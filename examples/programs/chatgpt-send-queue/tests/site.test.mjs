@@ -5,7 +5,7 @@ import {createChatGPTSite} from '../src/site.js';
 // Adapter contract tests only. These stubs do not prove ChatGPT selectors or
 // React input acceptance; those require the live USER_SCRIPT run.
 function fixture() {
-  const state={users:[],clicks:0,write:text=>text,focus:()=>{}};
+  const state={users:[],clicks:0,write:text=>text,focus:()=>{},onInput:()=>{}};
   class Textarea {
     constructor(){this.current='';this.tagName='TEXTAREA';this.isConnected=true;}
     get value(){return this.current;}
@@ -15,9 +15,11 @@ function fixture() {
     querySelector(){return null;}
     getClientRects(){return [{}];}
     focus(){state.focus();}
-    dispatchEvent(){}
+    dispatchEvent(event){state.onInput(this,event);}
   }
   const editor=new Textarea();
+  let activeEditor=editor;
+  const replaceEditor=(text='')=>{const next=new Textarea();next.current=text;activeEditor.isConnected=false;activeEditor=next;return next;};
   const send={isConnected:true,disabled:false,
     closest:()=>null,getClientRects:()=>[{}],
     getAttribute:name=>name==='data-testid'?'send-button':null,
@@ -28,10 +30,10 @@ function fixture() {
     getComputedStyle:()=>({display:'block',visibility:'visible'}),
     HTMLTextAreaElement:Textarea,InputEvent:class {}};
   win.top=win;
-  const doc={querySelectorAll:selector=>selector.startsWith('#prompt-textarea')?[editor]:
+  const doc={querySelectorAll:selector=>selector.startsWith('#prompt-textarea')?[activeEditor]:
     selector.startsWith('[data-message-author-role="user"]')?state.users:[]};
   const site=createChatGPTSite({doc,win,isComposing:()=>!!state.composing});
-  return {site,state,editor};
+  return {site,state,editor,replaceEditor};
 }
 
 test('prepare preserves whitespace-only native drafts without writing or clicking',()=>{
@@ -176,4 +178,43 @@ test('canonical empty contenteditable paragraphs are empty without trimming real
   assert.equal(site.inspect().draft,' ');
   editor.textContent='text';editor.innerText='text\n';
   assert.equal(site.inspect().draft,'text\n');
+});
+
+test('normal clear verifies the currently active editor',()=>{
+  const {site,editor}=fixture();editor.current='keep exact\n';
+  const cleared=site.clearForQueue(site.inspect());
+  assert.equal(cleared.ok,true);assert.equal(cleared.text,'keep exact\n');
+  assert.equal(editor.value,'');
+});
+for(const nextText of ['', 'original still present']) {
+  test('clear cannot succeed if input dispatch replaces the composer '+JSON.stringify(nextText),()=>{
+    const {site,state,editor,replaceEditor}=fixture();editor.current='original still present';
+    state.onInput=()=>replaceEditor(nextText);
+    const result=site.clearForQueue(site.inspect());
+    assert.equal(result.ok,false);assert.equal(result.needsRecovery,true);
+    assert.equal(result.text,'original still present');
+    assert.equal(site.inspect().draft,nextText);assert.equal(state.clicks,0);
+  });
+}
+test('partial clear retains exact recovery text',()=>{
+  const {site,editor,state}=fixture();editor.current='complete payload';
+  state.write=text=>text===''?'partial payload':text;
+  const result=site.clearForQueue(site.inspect());
+  assert.equal(result.ok,false);assert.equal(result.needsRecovery,true);
+  assert.equal(result.text,'complete payload');assert.equal(editor.value,'partial payload');
+  assert.equal(state.clicks,0);
+});
+test('input event restoring a draft after clear is detected',()=>{
+  const {site,editor,state}=fixture();editor.current='original payload';
+  state.onInput=()=>{editor.current='website restored';};
+  const result=site.clearForQueue(site.inspect());
+  assert.equal(result.ok,false);assert.equal(result.text,'original payload');
+  assert.equal(editor.value,'website restored');
+});
+test('input event throw after native clear preserves recovery text',()=>{
+  const {site,editor,state}=fixture();editor.current='original payload';
+  state.onInput=()=>{throw Error('website listener threw');};
+  const result=site.clearForQueue(site.inspect());
+  assert.equal(result.ok,false);assert.equal(result.needsRecovery,true);
+  assert.equal(result.text,'original payload');
 });

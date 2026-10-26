@@ -1,14 +1,20 @@
 # OpenDesk Send Queue · ChatGPT 网页增强
 
-Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · 范围仅 `https://chatgpt.com/*` · 版本 `0.1.2`、r1。
+Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · 范围仅 `https://chatgpt.com/*` · 版本 `0.1.3`、r2（新身份）。
 
 ## 新身份与旧安装并存（2026-10-26）
 
-`opendesk.ai-send-queue` 0.1.2/r1 是独立安装身份，须通过原 Page 安装入口单独审阅。旧正式包 `opendesk.chatgpt-send-queue.opendesk-page.json`（旧身份 0.1.2/r4）保留只读，不迁移旧安装、授权或内存队列。业务模块、样式、资源与网站范围沿用原实现。
+`opendesk.ai-send-queue` 从 0.1.2/r1 开始采用独立安装身份；R5.5 源码升级为 0.1.3/r2。该身份，须通过原 Page 安装入口单独审阅。旧正式包 `opendesk.chatgpt-send-queue.opendesk-page.json`（旧身份 0.1.2/r4）保留只读，不迁移旧安装、授权或内存队列。业务模块、样式、资源与网站范围沿用原实现。
 
 新旧身份原本可分别挂载生命周期并驱动发送。新入口发现旧活动生命周期标记时返回 `status: skipped` / `reason: legacy-active`，不创建队列或 UI；若旧生命周期稍后出现，新实例在下一次轮询或用户操作前只销毁自己的资源，不调用旧清理、不清空、不复制或接管旧队列。标记只用于保守阻止运行，不授予权限。局部视图 ID 保留原样，不代表安装身份或授权迁移；退出后不自动重启。请先人工处理旧队列，再通过原安装管理入口停用旧安装，在新文档使用单独获批的新安装。此保护不证明任意旧版本或不同执行世界的原生并存安全。
 
-本轮 5 项身份/生命周期定向 Node 测试、入口语法、项目校验、原打包器格式/哈希与候选同源检查通过。新包 `sourceHash: 01cad4e3f16f843aea6fe722c7989b4860ea11412a3f5cb6d22c4c714bcd31f1`，`packageHash: 0cc2ab295f0141b53f2351215122f05632d07f7d1dd565de55c58d81311d8441`。仅验证新身份、旧生命周期避让、包格式及哈希；不重跑 FIFO 全套，不操作浏览器。离线候选输出位于 `artifacts/ai-four-products-r126-content-20261026/queue-candidate/`，使用原 `npm run build:program` 与 `scripts/build-page-install-package.mjs`。原生安装、自动运行、发送、站点并存及撤权均为 `NOT_TESTED`。
+0.1.2/r1 历史版本的 5 项身份/生命周期定向 Node 测试、入口语法、项目校验、原打包器格式/哈希与候选同源检查通过。新包 `sourceHash: 01cad4e3f16f843aea6fe722c7989b4860ea11412a3f5cb6d22c4c714bcd31f1`，`packageHash: 0cc2ab295f0141b53f2351215122f05632d07f7d1dd565de55c58d81311d8441`。仅验证新身份、旧生命周期避让、包格式及哈希；不重跑 FIFO 全套，不操作浏览器。离线候选输出位于 `artifacts/ai-four-products-r126-content-20261026/queue-candidate/`，使用原 `npm run build:program` 与 `scripts/build-page-install-package.mjs`。原生安装、自动运行、发送、站点并存及撤权均为 `NOT_TESTED`。
+
+## R5.5 · 正式源码清空安全补丁（2026-10-26）
+
+新源码在原生草稿写入/清空后，重新确认活动会话、form、editor、附件、输入法和原始草稿的完整读回。若网页在 input 事件后替换编辑器、恢复草稿、部分写入或抛出异常，**不将草稿加入可发送队列**，暂停队列，并在现有按钮提示区域保留未入队原文的显式复制入口；浏览器拒绝 Clipboard API 时允许手动选择复制。恢复备份仅保留当前页面内存，刷新会丢失；不会上传或静默存储私人内容。
+
+入队前执行只读容量、长度、会话校验，队列已满不先清空官网输入框。新旧 Program ID 继续隔离。0.1.3/r2 的正式编译包、真实安装、同 ID 升级与官方 ChatGPT 发信回归必须以 CI 构建和真实 Mac Chrome 证据分别确认，不能将隔离单测当作原生 PASS。
 
 ## 目标与真实功能边界
 

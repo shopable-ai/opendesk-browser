@@ -33,13 +33,27 @@ export default async function main({assets}={}) {
     const actions={
       enqueue(event){
         if(event?.shiftKey){actions.togglePause();return;}
-        const snap=site.inspect(),state=engine.view();
+        if(view?.hasRecovery()){
+          notify('请先复制上一条未入队的原草稿，再继续操作');return;
+        }
+        const snap=site.inspect();
         if(!snap.ok){notify(snap.reason);return;}
+        // Reject invalid/full/mismatched queues without changing website text.
+        const eligible=engine.checkEnqueue(snap.draft,snap.route);
+        if(!eligible.ok){notify(eligible.reason);return;}
         const selected=site.clearForQueue(snap);
-        if(!selected.ok){notify(selected.reason);return;}
+        if(!selected.ok){
+          if(selected.needsRecovery){
+            engine.pause('草稿清空结果未确认，等待用户恢复');
+            view.offerRecovery(selected.text,selected.reason);
+          }else notify(selected.reason);
+          return;
+        }
         if(!engine.enqueue(selected.text,snap.route)){
-          if(!site.restore(selected.text,''))engine.pause('入列失败且原生草稿无法恢复');
-          else notify('队列已满、文字超限或会话不一致');
+          if(!site.restore(selected.text,'')){
+            engine.pause('入列失败且原生草稿无法恢复');
+            view.offerRecovery(selected.text,'未能恢复原生草稿，消息未入队；请复制原文');
+          }else notify('队列状态变化，原生草稿已恢复');
           return;
         }
         engine.tick();
@@ -106,7 +120,7 @@ export default async function main({assets}={}) {
         snap.stopButton.contains(event.target)))engine.pause('官网回复被手动停止，队列已暂停');
     },true);
     owner.on(window,'beforeunload',event=>{
-      if(!engine.view().items.length)return;
+      if(!engine.view().items.length&&!view?.hasRecovery())return;
       event.preventDefault();event.returnValue='';
     });
     // Reconcile only every 650ms; no timer infers completion from idle text.

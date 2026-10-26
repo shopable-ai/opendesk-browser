@@ -127,7 +127,17 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   function clearForQueue(snapshot) {
     if (!snapshot.ok || snapshot.rich || snapshot.composing || !normal(snapshot.draft)) return {ok:false,reason:'草稿为空、包含附件或输入法尚未完成'};
     const text=snapshot.draft;
-    if (!setDraft(snapshot.editor,'',snapshot)) return {ok:false,reason:'无法可靠清空原生草稿'};
+    // Website input handlers can replace the composer after the old element
+    // accepted the clear. Only the currently active editor can confirm it.
+    let cleared=false;
+    try{cleared=setDraft(snapshot.editor,'',snapshot);}
+    catch{/* The write may have happened before the website handler threw. */}
+    const after=inspect();
+    if(!cleared || !after.ok || after.route!==snapshot.route ||
+      after.form!==snapshot.form || after.editor!==snapshot.editor ||
+      after.rich || after.composing || after.draft!=='')
+      return {ok:false,needsRecovery:true,text,
+        reason:'原生输入框清空结果未确认，草稿未入队；请恢复或复制原文'};
     return {ok:true,text};
   }
   function restore(text,expected) {

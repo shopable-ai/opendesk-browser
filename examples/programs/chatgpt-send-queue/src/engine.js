@@ -25,9 +25,18 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if (!snap.ok || (state.route && state.route!==snap.route)) {pause('请返回原对话后再恢复');return false;}
     state.paused=false;state.reason='';idleSince=null;emit();return true;
   }
+  // Read-only preflight before any destructive website draft operation.
+  function checkEnqueue(text,route) {
+    if(typeof text!=='string'||!site.normal(text))return {ok:false,reason:'原生草稿为空'};
+    if(text.length>MAX_TEXT)return {ok:false,reason:'文字超过队列上限'};
+    if(items.length>=MAX_ITEMS)return {ok:false,reason:'发送队列已满'};
+    if(!route || (state.route && route!==state.route))
+      return {ok:false,reason:'会话不一致，队列未修改'};
+    return {ok:true};
+  }
   function enqueue(text,route) {
-    if(typeof text!=='string'||!site.normal(text)||text.length>MAX_TEXT||items.length>=MAX_ITEMS)return false;
-    if(!route || (state.route && route!==state.route)) {pause('会话不一致，队列未修改');return false;}
+    const eligible=checkEnqueue(text,route);
+    if(!eligible.ok){if(eligible.reason==='会话不一致，队列未修改')pause(eligible.reason);return false;}
     state.route=route;
     items.push({id:'q'+(++sequence),text,state:'queued'});
     if (state.phase==='waiting') state.reason='';
@@ -175,6 +184,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(t-idleSince<IDLE_MS)return;
     state.reason='';startSubmit(snap,current());
   }
-  return Object.freeze({view,enqueue,pause,resume,remove,reclaim,move,
+  return Object.freeze({view,checkEnqueue,enqueue,pause,resume,remove,reclaim,move,
     toggleExpanded,requestNow,confirmForceStop,tick});
 }
