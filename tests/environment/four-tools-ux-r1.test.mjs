@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {load} from 'cheerio';
+import {runInNewContext} from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {generatePreview} from '../../scripts/preview/build-preview.mjs';
 
@@ -85,3 +86,34 @@ for(const id of ids){
   assert.ok(/^[a-f0-9]{64}$/.test(preview.manifest.designSha256));
  });
 }
+
+test('R1.0 clipper canonical preview scenarios use the existing real SDK mock without stale session data',async()=>{
+ for(const [scenario,count,errorCode] of [
+  ['success',6,null],['empty',0,null],
+  ['error',null,'E_HOST_STORAGE'],['permission-denied',null,'E_PERMISSION_DENIED']
+ ]){
+  const preview=await generatePreview({tool:'web-markdown-clipper',scenario,width:320});
+  // Only the SDK simulator is executed here, not the tool UI or a real Chrome Host.
+  const match=preview.frameHtml.match(/<script src="data:text\\/javascript;base64,([^"]+)"\\><\\/script>/);
+  assert.ok(match,'the canonical iframe contains an isolated SDK mock');
+  const mock=Buffer.from(match[1],'base64').toString('utf8');
+  assert.doesNotMatch(mock,/sessionStorage\\.(?:getItem|setItem)/,
+    'canonical offline preview must not inherit previous preview session state');
+  const sandbox={
+   document:{documentElement:{dataset:{}},querySelector:()=>({})},
+   window:{addEventListener(){}},parent:{postMessage(){}},
+   TextEncoder,URL,location:{search:''},__opendeskPreviewScenario:scenario
+  };
+  runInNewContext(mock,sandbox,{timeout:1000});
+  assert.equal(typeof sandbox.OpenDeskTool.setNavigation,'undefined',
+    'the standalone in-tool back controls cannot be hidden without a Host navigation bridge');
+  if(errorCode){
+   await assert.rejects(sandbox.OpenDeskTool.request('clipNotes.list',{}),
+     error=>error?.code===errorCode);
+  }else{
+   const result=await sandbox.OpenDeskTool.request('clipNotes.list',{query:'',offset:0});
+   assert.equal(result.total,count);
+   assert.equal(result.items.length,count);
+  }
+ }
+});
