@@ -73,6 +73,7 @@ test('Native Side Panel route fails closed for forged URLs, frames and permissio
    {...trusted,frameId:1},
    {...trusted,url:f.api.runtime.getURL('sidepanel.html#forged')},
    {...trusted,url:f.api.runtime.getURL('sidepanel.html?admin=true')},
+   {...trusted,url:f.api.runtime.getURL('sidepanel.html?hostInstanceId=runner&scheduledRunner=1')},
    {...trusted,url:f.api.runtime.getURL('native-agent/workspace.html')},
    {...trusted,url:'https://example.com/sidepanel.html'}
  ]){
