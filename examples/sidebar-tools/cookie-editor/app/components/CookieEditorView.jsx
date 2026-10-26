@@ -21,6 +21,7 @@ const shapes={
   chevron:<path d="m7 10 5 5 5-5"/>,
   eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
   copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>,
+  settings:<><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></>,
   eyeoff:<><path d="m3 3 18 18"/><path d="M9.8 5.7A10 10 0 0 1 12 5.5c6.6 0 10 6.5 10 6.5a13 13 0 0 1-3.4 4"/><path d="M6.5 6.5C3.5 8.4 2 12 2 12s3.4 6.5 10 6.5a10 10 0 0 0 4-.8"/></>
 };
 export function CookieIcon({name}){
@@ -278,7 +279,7 @@ export function CookieSearch({
 }
 export function CookieRows({
   rows=[],totalCount=rows.length,selected=null,onSelect=()=>{},
-  pinnedNote=false,newEditor=null,renderEditor=null,idPrefix='editor-'
+  pinnedNote=false,newEditor=null,renderEditor=null,idPrefix='editor-',site=''
 }){
   return <section className="cookie-list" aria-label="Cookie 列表">
     {newEditor}
@@ -289,12 +290,15 @@ export function CookieRows({
         aria-expanded={selected===row.id} aria-controls={idPrefix+row.id}
         onClick={()=>onSelect(row.id)}>
         <span className="row-text"><strong>{row.name}</strong>
-          <small>{row.domain} <span>·</span> {row.path}</small></span>
-        <span className="row-flags">
-          {row.httpOnly&&<abbr title="HttpOnly · 网页脚本不可读取" aria-label="HttpOnly Cookie">H</abbr>}
-          {row.secure&&<abbr title="Secure · 仅安全连接传输" aria-label="Secure Cookie">S</abbr>}
-          {row.partitionKey&&<abbr title="Partitioned · 分区 Cookie" aria-label="Partitioned Cookie">P</abbr>}
-        </span>
+          {(() => {
+            const details=[
+              ...(row.domain.replace(/^\./,'')===site?[]:[row.domain]),
+              ...(row.path==='/'?[]:[row.path]),
+              ...(row.hostOnly===false?['跨子域']:[]),
+              ...(row.partitionKey?['分区']:[])
+            ];
+            return details.length?<small>{details.join(' · ')}</small>:null;
+          })()}</span>
         <CookieIcon name="chevron"/>
       </button>
       {selected===row.id&&<div id={idPrefix+row.id}>
@@ -346,7 +350,7 @@ export function CookieEditorView({
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
       exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
       importOpen={importOpen} busy={busy} readonly={readonly}/>
-    <CookieRows rows={currentPage} totalCount={rows.length} selected={selected}
+    <CookieRows site={site} rows={currentPage} totalCount={rows.length} selected={selected}
       newEditor={newEditor}
       onSelect={id=>onSelect(id===selected?null:id)} renderEditor={editor}
       idPrefix="cookie-react-editor-"/>
