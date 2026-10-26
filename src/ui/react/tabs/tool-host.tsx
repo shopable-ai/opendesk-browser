@@ -202,7 +202,14 @@ export function ToolHost({view}) {
 </svg>
 
 </ToolField>
-<ToolField as="strong" id="sidebar-tool-title" className="od-page-title">
+<ToolField as="strong" id="sidebar-tool-title" className="od-page-title"
+ role="heading" aria-level={2} aria-label={snapshot.fields['sidebar-tool-title']?.textContent||undefined}
+ renderText={(text,state)=>state.data.pageLabel?
+   <span className="sidebar-tool-title-path">
+     <span className="sidebar-tool-title-parent">{state.data.toolLabel}</span>
+     <span className="sidebar-tool-title-divider"> / </span>
+     <span className="sidebar-tool-title-current">{state.data.pageLabel}</span>
+   </span>:text}>
 
 </ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-primary-action" className="sidebar-tool-icon-action od-icon-button" title="当前页面操作" aria-label="当前页面操作" hidden={true}>
@@ -546,7 +553,7 @@ function BookmarkSettings() {
   </ToolField>;
 }
 
-function ToolField({as:Tag='div', id, children, nodeRef, ...props}) {
+function ToolField({as:Tag='div', id, children, renderText, nodeRef, ...props}) {
   const {view, snapshot, refs} = React.useContext(ToolContext), state = snapshot.fields[id];
   if (!state) throw new Error('E_SIDEBAR_TOOL_FIELD: ' + id);
   const ref = React.useCallback(node => {if (node) refs.current.set(id, node); else refs.current.delete(id); nodeRef?.(node);}, [refs, id, nodeRef]);
@@ -555,7 +562,8 @@ function ToolField({as:Tag='div', id, children, nodeRef, ...props}) {
   for (const [key, value] of Object.entries(state.data)) attrs['data-' + key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] = value;
   if (Tag === 'button') {attrs.disabled = state.disabled; attrs.type = props.type || 'button'; attrs.onClick = event => view.dispatch(id, 'click', event.nativeEvent);}
   if (Tag === 'details') {attrs.open = state.open; attrs.onToggle = event => {if (event.currentTarget.open !== view.fields[id].open) view.patch(id, {open:event.currentTarget.open});};}
-  return <Tag {...attrs}>{state.textSet ? state.textContent : children ?? state.textContent}</Tag>;
+  const content=state.textSet ? state.textContent : children ?? state.textContent;
+  return <Tag {...attrs}>{renderText?renderText(content,state):content}</Tag>;
 }
 
 function ToolGrantRows({id, rows, emptyLabel, disabled, onRevoke, className, rowClassName='sidebar-tool-site-entry'}) {
