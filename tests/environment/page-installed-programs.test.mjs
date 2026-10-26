@@ -483,6 +483,37 @@ test('Candidate remains immutable; verification and native registration are dist
   const result=await f.service.handleBoot(f.message(),f.sender);assert.equal(result.state,'completed');assert.equal(f.executeCalls,1);
   assert.equal(f.rows().find(r=>r.tag==='page-execution-v1').sourceHash,candidate.manifest.sourceHash);
 });
+test('Chrome may reorder native match ranges without changing the installed authority',async()=>{
+  const f=fixture(),sourceUtf8='// ==UserScript==\n// @match https://chatgpt.com/*\n// @match https://chat.deepseek.com/*\n// @match https://gemini.google.com/*\n// @exclude-match https://chatgpt.com/private/*\n// @exclude-match https://chat.deepseek.com/private/*\n// @noframes\n// @run-at document-idle\n// ==/UserScript==\nasync function main(){return 42;}';
+  const candidate=await f.prepare('document-idle',{sourceUtf8});
+  const getScripts=f.api.userScripts.getScripts;
+  f.api.userScripts.getScripts=async filter=>(await getScripts(filter)).map(row=>({...row,
+    matches:[row.matches[1],row.matches[0],row.matches[2]],excludeMatches:[...row.excludeMatches].reverse()}));
+  const installed=await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.equal(installed.nativeState,'registered');
+  f.restart();await f.service.reconcile();
+  assert.equal(f.installation().nativeState,'registered');assert.equal(f.registerCalls,1);
+  assert.deepEqual(f.installation().pageRules.matches,['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*']);
+  assert.equal(f.executeCalls,0);
+});
+for(const [field,change] of [
+  ['added match',row=>row.matches.push('https://other.example/*')],
+  ['removed match',row=>row.matches.pop()],
+  ['changed exclusion',row=>row.excludeMatches=['https://example.com/private/*']],
+  ['code',row=>row.js[0].code+='\nvoid 0;'],
+  ['id',row=>row.id+='-changed'],
+  ['world',row=>row.world='MAIN'],
+  ['worldId',row=>row.worldId+='-changed'],
+  ['runAt',row=>row.runAt='document_start'],
+  ['allFrames',row=>row.allFrames=true]
+])test('native readback still rejects changed '+field,async()=>{
+  const f=fixture(),getScripts=f.api.userScripts.getScripts;
+  f.api.userScripts.getScripts=async filter=>(await getScripts(filter)).map(row=>{change(row);return row;});
+  const installed=await f.install();
+  assert.equal(installed.nativeState,'blocked');assert.equal(installed.error.code,'E_EFFECT_UNKNOWN');
+  assert.equal(f.native.size,0);assert.equal(f.executeCalls,0);
+});
 test('forged verification fields, stale CAS, denied permission and disabled Chrome toggle cannot be reported installed',async()=>{
   const f=fixture(),candidate=await f.prepare();
   await fails(()=>f.service.verifyPageCandidate({programId:'script',revision:1,target:f.target,receipt:{}},{}),'E_SCHEMA');

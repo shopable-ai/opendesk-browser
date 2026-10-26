@@ -394,7 +394,13 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
   }
   function nativeEqual(actual,expected){return actual&&['id','matches','excludeMatches','runAt','allFrames','world','worldId','js']
-    .every(k=>equal(actual[k]??(k==='excludeMatches'?[]:null),expected[k]));}
+    .every(k=>{
+      const value=actual[k]??(k==='excludeMatches'?[]:null);
+      // Chrome may reorder match ranges on readback; every other field stays exact.
+      return k==='matches'||k==='excludeMatches'
+        ? Array.isArray(value)&&equal([...value].sort(),[...expected[k]].sort())
+        : equal(value,expected[k]);
+    });}
   async function reconcileOne(row){
     let state='blocked',error=null,managedCleanup;
     try{
