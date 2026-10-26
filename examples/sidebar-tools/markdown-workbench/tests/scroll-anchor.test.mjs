@@ -75,7 +75,9 @@ test('editing and preview mode changes release the old reading position',()=>{
 });
 
 test('confirmed clear and imported content never reuse an earlier end anchor',async()=>{
- const clear=fixture();clear.bottom();clear.root.querySelector('#mdw-clear').click();
+ const clear=fixture();clear.emit('input');clear.bottom();
+ assert.equal(clear.root.querySelector('#mdw-clear').disabled,false,'user input enables destructive control');
+ clear.root.querySelector('#mdw-clear').click();
  clear.root.querySelector('#mdw-review-confirm').click();await Promise.resolve();
  assert.equal(clear.editor.value,'');clear.resize(247,102,7534,0);
  assert.equal(clear.editor.scrollTop,0);

@@ -28,7 +28,12 @@ test('R1.0 Markdown edit/preview mode controls cannot accidentally include the d
  assert.equal($('.mdw-modes button[data-mode]').length,3);
  assert.equal($('#mdw-panes[data-mode]').length,1);
  assert.match(js,/querySelectorAll\('\.mdw-modes button\[data-mode\]'\)/);
- assert.equal($('.mdw-toolbar .od-icon-button').length,2);
+ assert.equal($('.mdw-toolbar .od-icon-button').length,3,'import, copy and clear are visible direct controls');
+ assert.equal($('.mdw-menu, .mdw-menu-actions').length,0,'no one-item More menu');
+ assert.equal($('.mdw-toolbar #mdw-clear[aria-label="清空编辑区"][disabled]').length,1);
+ assert.equal($('.mdw-toolbar #mdw-inline-review[role="dialog"][hidden]').length,1);
+ assert.equal($('.mdw-inline-review-actions button').length,2);
+ assert.equal($('#mdw-state').length,0,'redundant second save-status row is removed');
  assert.equal($('h1').length,0,'Host renders product title');
  assert.match(css,/^\/\* @opendesk-shared-design \*\//);
  assert.match(css,/\.mdw-inline-review\[hidden\]\{display:none!important\}/);
