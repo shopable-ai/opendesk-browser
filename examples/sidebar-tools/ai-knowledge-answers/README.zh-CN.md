@@ -3,6 +3,18 @@
 独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.5`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R2.1 的安装、保存、编辑、侧栏关闭重开及固定来源回答已在独立 Mac Chrome for Testing 完成核心验证，见文末；R1.3 的 DOM 观察、定时消息处理、草稿发送与独立 DOM 回执仍按对应工作流记录，其他第三方网站不在本轮范围。
 
 
+## R1.0 · 四工具正式界面最小收敛（2026-10-26）
+
+本轮仅优化 `ai-knowledge-answers/src/` 沙箱问答与知识管理：去除「测试知识回答」定位，首页改为「知识检索」，将问题与知识依据放在首屏，降低静态快捷键及重复说明的视觉优先级。来源条目只显示知识问题，不向用户默认展示内部存储 ID。**固定答案是知识条目直接返回；相似问题只是检索候选；这里没有冒充真正 AI 草稿。** 未改动可信客服监听、自动发送、Provider、RAG 或 Host，也不覆盖其他对话推进中的自动客服工作。
+
+统一预览从仓库根目录运行：
+
+```sh
+node scripts/preview/build-preview.mjs --tool ai-knowledge-answers --surface side-panel --scenario success --theme light --width 360
+```
+
+输出 `artifacts/previews/ai-knowledge-answers/side-panel-success-light-360.html` 与 `.context.json`，可改 320/400/440、dark、empty/error/permission-denied/untrusted。生成器从正式配置打包加载 `src/index.html`、`src/style.css`、`src/model.js`、`src/main.js`；只模拟 `storage.get/set`、下载与剪贴板接口。预览内知识不会写入 Chrome，导出按钮不会写入文件系统，真实 AI Provider 与客服自动发送不可由该离线页面执行。早期 `preview/index.html` 的可信客服专项预览仍保留，不与本轮统一工具预览混淆。**新界面源码发布及 Native Chrome 验收尚需独立执行**，旧版本原生证据不自动证明新代码。
+
 ## R3.2 · 多问题、逐项来源与正式 UX（2026-10-26）
 
 **业务目标与边界**：一条真实客户消息识别多个问题，逐题核对旧知识及适用范围，再生成一条待审核的客服草稿。此次仅扩展现有获批准的本地客服页 Runtime；不新增 Host、Shared AI Provider、SDK、站点 Adapter 或 HTTP 服务，不能宣称已支持任意第三方客服网站。正式沙箱工具版本仍为 0.1.5；可信 Browser 编译与工具包发行不能混淆。
