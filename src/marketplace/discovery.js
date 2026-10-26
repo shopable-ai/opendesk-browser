@@ -35,7 +35,9 @@ export function validateDeclaredMarketInstall(href,pageUrl,channel,releases){
 // never page text, cookies, scripts or network requests.
 export function captureDeclaredMarketLinks(){
   const links=[];
-  for(const node of document.querySelectorAll('link[rel][href]')){
+  // An incomplete rel declaration still counts. Otherwise a second link
+  // without href would be silently ignored instead of rejected as ambiguous.
+  for(const node of document.querySelectorAll('link[rel]')){
     if(!node.relList?.contains('opendesk-install'))continue;
     links.push(node.getAttribute('href'));
     if(links.length>=3)break;
