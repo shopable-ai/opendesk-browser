@@ -3,7 +3,8 @@ const $=selector=>document.querySelector(selector);
 const protocol='opendesk.market.intent.v1';
 const connection=$('#connection-state'),connectButton=$('#connect-button');
 const action=$('#open-review'),status=$('#handoff-state');
-let channel,active=false,intentId,probeGeneration=0;
+let channel,active=false,probeGeneration=0;
+const intentIds=new Map();
 function problem(code,message){return Object.assign(new Error(message),{code});}
 function send(message){
   return new Promise((resolve,reject)=>{
@@ -35,8 +36,8 @@ async function configuration(){
   if(!/^[a-p]{32}$/.test(value.extensionId))throw problem('E_EXTENSION_ID','市场未配置有效的 OpenDesk 扩展 ID。');
   channel=value;return value;
 }
-function showError(error){
-  if(status){status.textContent=error.message;status.dataset.state='error';}
+function showError(error,target=status){
+  if(target){target.hidden=false;target.textContent=error.message||'无法打开安装审阅。';target.dataset.state='error';}
   if($('#handoff-details')){$('#handoff-details').hidden=false;$('#handoff-code').textContent=error.code||'E_CONNECT';}
 }
 async function connect(){
@@ -48,22 +49,33 @@ async function connect(){
   finally{if(generation===probeGeneration)connectButton.disabled=false;}
 }
 connectButton?.addEventListener('click',connect);
-action?.addEventListener('click',async()=>{
-  if(active)return;active=true;action.disabled=true;status.textContent='正在打开扩展可信审阅页…';status.dataset.state='pending';
+// A market listing may contain multiple fixed releases. Each subject gets one
+// retryable intent ID; reusing an ID for another card is forbidden by R5.
+const reviewButtons=[...document.querySelectorAll('[data-open-review]')];
+if(action&&!reviewButtons.includes(action))reviewButtons.push(action);
+for(const button of reviewButtons)button.addEventListener('click',async()=>{
+  if(active)return;
+  active=true;button.disabled=true;
+  const localStatus=button.closest?.('.app-card')?.querySelector?.('[data-handoff-state]')||status;
+  if(localStatus){localStatus.hidden=false;localStatus.textContent='正在打开扩展可信审阅页…';localStatus.dataset.state='pending';}
   try{
-    await configuration();const subject=JSON.parse(action.dataset.subject);
+    await configuration();
+    const subject=JSON.parse(button.dataset.subject);
     const key='opendesk.market.intent:'+JSON.stringify(subject);
+    let intentId=intentIds.get(key);
     if(!intentId){
       try{const old=JSON.parse(sessionStorage.getItem(key));if(old&&old.expiresAt>Date.now()&&/^[a-f0-9-]{36}$/.test(old.id))intentId=old.id;}catch{/* Storage is optional. */}
-      intentId||=crypto.randomUUID();
-      try{sessionStorage.setItem(key,JSON.stringify({id:intentId,expiresAt:Date.now()+30*60*1000}));}catch{/* Keep same ID in memory for retries. */}
+      intentId||=crypto.randomUUID();intentIds.set(key,intentId);
+      try{sessionStorage.setItem(key,JSON.stringify({id:intentId,expiresAt:Date.now()+30*60*1000}));}catch{/* Keep ID in memory on retry. */}
     }
     await send({protocol,action:'OPEN_INSTALL_REVIEW',intentId,subject});
     probeGeneration++;connectButton.disabled=false;
-    connection.textContent='已连接 OpenDesk';status.textContent='已打开扩展审阅页。请在该页确认；交接完成不表示已安装。';status.dataset.state='success';
-    action.textContent='返回扩展审阅页';if($('#handoff-details'))$('#handoff-details').hidden=true;
-  }catch(error){showError(error);}
-  finally{active=false;action.disabled=false;}
+    connection.textContent='已连接 OpenDesk';
+    if(localStatus){localStatus.textContent='已打开扩展审阅页。请在该页确认；交接完成不表示已安装。';localStatus.dataset.state='success';}
+    button.textContent='返回扩展审阅页';
+    if($('#handoff-details'))$('#handoff-details').hidden=true;
+  }catch(error){showError(error,localStatus);}
+  finally{active=false;button.disabled=false;}
 });
 const search=$('#app-search'),cards=[...document.querySelectorAll('.app-card')];let selected='全部';
 function filter(){

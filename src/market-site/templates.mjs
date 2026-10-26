@@ -10,13 +10,15 @@ const collectionSubject=col=>({kind:'collection',collectionId:col.id,revision:co
 const handoffAction=(subject,label)=>'<button type="button" class="button primary" id="open-review" data-subject="'+e(JSON.stringify(subject))+'">'+e(label)+'</button><p id="handoff-state" class="minor" role="status">在扩展中审阅并确认；安装后由你打开。</p><a class="minor" href="'+installPath(subject)+'">安装交接说明</a><details id="handoff-details" hidden><summary>连接技术信息</summary><p id="handoff-code" class="digest"></p><a href="/how-to-install/">安装与连接帮助</a></details>';
 const category=app=>app.category==='阅读'?'阅读':['笔记','Markdown','AI'].includes(app.category)?'笔记与写作':'效率';
 const logo='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 10h18M5 10v11h14V10M3 10l2-7h14l2 7M9 21v-7h6v7M8 3l-1 7M16 3l1 7"/></svg>';
-export function layout({title,description,body,path,channel,origin=channel.origin,section='apps'}){
+export function layout({title,description,body,path,channel,origin=channel.origin,section='apps',installSubject=null}){
   const canonical=origin?origin+path:null;
   return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
     '<title>'+e(title)+' · OpenDesk 应用市场</title><meta name="description" content="'+e(description)+'">'+
     '<meta name="color-scheme" content="light dark"><meta name="referrer" content="no-referrer">'+
     '<meta property="og:title" content="'+e(title)+'"><meta property="og:description" content="'+e(description)+'">'+
     (canonical?'<link rel="canonical" href="'+e(canonical)+'"><meta property="og:url" content="'+e(canonical)+'">':'')+
+    (channel.enabled&&origin&&installSubject?.kind==='app'?
+      '<link rel="opendesk-install" href="'+e(origin+installPath(installSubject))+'">':'')+
     '<link rel="stylesheet" href="/design-tokens.css"><link rel="stylesheet" href="/market.css">'+
     '<script type="module" src="/client.js"></script></head><body><a class="skip-link" href="#content">跳到内容</a>'+
     '<header class="site-header shell"><a class="brand" href="/">'+logo+'<span>OpenDesk <small>应用市场</small></span></a>'+
@@ -32,7 +34,11 @@ const tag=label=>'<span class="tag">'+e(label)+'</span>';
 function card(app){
   return '<article class="card app-card" data-category="'+e(category(app))+'" data-search="'+e([app.title,app.summary,...app.features].join(' ').toLowerCase())+'">'+
     '<div class="card-meta">'+tag(app.category)+'<span>v'+e(app.version)+'</span></div><h2><a href="'+appPath(app,false)+'">'+e(app.title)+'</a></h2>'+
-    '<p>'+e(app.summary)+'</p><p class="minor">运行于 '+e(app.surfaces.join(' · '))+'</p><a class="detail-link" href="'+appPath(app,false)+'">查看应用 <span aria-hidden="true">→</span></a></article>';
+    '<p>'+e(app.summary)+'</p><p class="minor">运行于 '+e(app.surfaces.join(' · '))+'</p>'+
+    '<button type="button" class="button primary app-install-button" data-open-review data-subject="'+
+    e(JSON.stringify(appSubject(app)))+'">安装到 OpenDesk</button>'+
+    '<p class="minor app-install-feedback" data-handoff-state role="status" hidden></p>'+
+    '<a class="detail-link" href="'+appPath(app,false)+'">查看应用 <span aria-hidden="true">→</span></a></article>';
 }
 export function home(apps){
   return '<section class="hero"><p class="eyebrow">OPENDESK APPS</p><h1>给浏览器，添一点好用的能力。</h1>'+

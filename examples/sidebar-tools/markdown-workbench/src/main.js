@@ -2,13 +2,13 @@
 'use strict';
 const {root,request}=globalThis.OpenDeskTool,q=id=>root.querySelector('#'+id);
 const editor=q('mdw-source'),rendered=q('mdw-preview'),pane=q('mdw-panes');
-const message=q('mdw-status'),state=q('mdw-state'),file=q('mdw-file');
+const message=q('mdw-status'),file=q('mdw-file'),clearButton=q('mdw-clear'),toolbar=root.querySelector('.mdw-toolbar');
 // ToolHost owns the application title. Preserve the existing optional navigation contract.
 globalThis.OpenDeskTool.setNavigation?.({page:'home',title:'Markdown 工作台',canBack:false});
 const review=q('mdw-inline-review'),reviewText=q('mdw-review-text');
 const reviewConfirm=q('mdw-review-confirm'),reviewCancel=q('mdw-review-cancel');
 const buttons=[...root.querySelectorAll('.mdw-modes button[data-mode]')],MARK=String.fromCharCode(96);
-let dirty=false,timer=0,filename='markdown.md',importSerial=0,reviewAction=null;
+let dirty=false,timer=0,filename='markdown.md',importSerial=0,reviewAction=null,reviewOrigin=null;
 // Remember only explicit end-of-document reading, never a pixel/height ratio.
 let followEnd=false,editorWidth=editor.clientWidth,editorHeight=editor.clientHeight;
 const releaseEnd=()=>{followEnd=false;};
@@ -36,17 +36,34 @@ globalThis.addEventListener('pagehide',()=>{
 const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 const bytes=text=>new TextEncoder().encode(text).length;
 const status=(text,error=false)=>{message.textContent=text;message.dataset.error=String(error);};
-const cancelReview=()=>{reviewAction=null;review.hidden=true;};
-const markDirty=()=>{releaseEnd();cancelReview();importSerial++;dirty=true;state.textContent='尚未下载的修改';};
-function reviewDiscard(message,action){
- cancelReview();reviewAction=action;reviewText.textContent=message;review.hidden=false;
+const cancelReview=()=>{
+ reviewAction=null;review.hidden=true;toolbar.dataset.review='false';
+ clearButton.setAttribute('aria-expanded','false');
+};
+const updateClear=()=>{clearButton.disabled=!editor.value;};
+const markDirty=()=>{
+ releaseEnd();cancelReview();importSerial++;dirty=Boolean(editor.value);updateClear();
+ status(editor.value?'有未保存到文件的修改，离开前请下载 .md。':'编辑区已清空。');
+};
+function reviewDiscard(message,action,origin=clearButton){
+ cancelReview();reviewAction=action;reviewOrigin=origin;reviewText.textContent=message;
+ review.hidden=false;toolbar.dataset.review='true';
+ clearButton.setAttribute('aria-expanded',String(origin===clearButton));
  reviewConfirm.focus({preventScroll:true});
 }
 reviewConfirm.addEventListener('click',()=>{
  const action=reviewAction;if(!action)return;
  cancelReview();void Promise.resolve().then(action).catch(e=>status(String(e?.message||e),true));
 });
-reviewCancel.addEventListener('click',()=>{cancelReview();status('已取消操作，原稿仍保留。');editor.focus();});
+function dismissReview(){
+ const target=reviewOrigin;cancelReview();reviewOrigin=null;
+ status('已取消，当前内容保持不变。');
+ (target?.focus?target:editor).focus({preventScroll:true});
+}
+reviewCancel.addEventListener('click',dismissReview);
+review.addEventListener('keydown',event=>{
+ if(event.key==='Escape'){event.preventDefault();event.stopPropagation();dismissReview();}
+});
 function safeUrl(value,image=false){
  try{
   const u=new URL(value);
@@ -149,7 +166,7 @@ file.addEventListener('change',()=>{
  const chosen=file.files?.[0];file.value='';if(!chosen)return;
  if(chosen.size>150000){status('文件超过 150 KB，请选择小文件',true);return;}
  const proceed=()=>importMarkdown(chosen);
- if(dirty)reviewDiscard('导入 '+chosen.name+' 将替换当前未保存的 Markdown。请先下载或复制备份，再选择是否继续。',proceed);
+ if(dirty)reviewDiscard('导入「'+chosen.name+'」会替换当前内容，是否继续？',proceed,q('mdw-import'));
  else void proceed();
 });
 q('mdw-copy').addEventListener('click',async()=>{
@@ -163,15 +180,14 @@ q('mdw-download').addEventListener('click',async()=>{
   await globalThis.OpenDeskSDK.browser.downloads.text({text:editor.value,filename});
   // A browser download request is not proof that a durable file exists.
   // Retain discard protection until the user decides to replace the draft.
-  state.textContent='下载已发起 · 请核对文件';
-  status('已发起 Markdown 下载；请在下载记录中确认文件已保存。');
+  status('已发起下载，请在浏览器下载记录中确认文件已保存。');
  }catch(e){status('下载失败：'+String(e.message||e),true);}
 });
 q('mdw-clear').addEventListener('click',()=>{
  if(!editor.value)return;
- reviewDiscard('清空将删除当前编辑区的全部 Markdown，且无法撤销。建议先下载或复制备份。',()=>{
-  editor.value='';markDirty();refresh();status('已清空，内容尚未下载保存');
- });
+ reviewDiscard('确定清空当前全部内容？此操作不能撤销。',()=>{
+  editor.value='';markDirty();refresh();editor.focus({preventScroll:true});
+ },clearButton);
 });
-refresh();
+updateClear();refresh();
 })();
