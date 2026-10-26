@@ -27,6 +27,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let catalogError='',pageCatalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null,listUninstallReview=null;
   let pageDiscovery=null,discoveryGeneration=0;
+  let marketDiscoveryAvailable=false,discoveryChannelGeneration=0;
   const language=()=>localeController?.getLocale?.()||'zh-CN';
   const readingTocOfficial=row=>row.kind==='app'&&row.id==='reading-toc'&&
     row.title===readingTocCatalog.messages['zh-CN'].title&&
@@ -108,7 +109,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   function syncFilters(){
     extensionList.renderToolbar({
-      query:searchText,kind,scope,menuOpen:toolbarMenuOpen,
+      query:searchText,kind,scope,menuOpen:toolbarMenuOpen,marketDiscoveryAvailable,
       language:localeController?.getPreference?.()||language(),
       languageActionLabel:localeManagerText(language(),'languageAction'),
       onSearch(value){if(disposed)return;searchText=value;query=value.trim();draw();},
@@ -138,7 +139,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         tools:installed.filter(tool=>tool.localization),localeController,
         onClose(){languageManager=null;syncFilters();}}:null,
       onReload(){if(disposed)return;closeMenu();message('正在刷新扩展…','loading','loading');
-        void readOfficial();void readPageOfficial();void refresh();},
+        void readDiscoveryChannel();void readOfficial();void readPageOfficial();void refresh();},
       onLanguage(value){if(disposed)return;void localeController?.setLocale(value).catch(error=>{
         message('语言保存失败：'+String(error?.message||error),'error');syncLanguage();
       });}
@@ -372,6 +373,19 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         search.focus({preventScroll:true});
     }
   }
+  async function readDiscoveryChannel(){
+    const generation=++discoveryChannelGeneration;
+    try{
+      const channel=await loadMarketChannel(api);
+      if(disposed||generation!==discoveryChannelGeneration)return;
+      marketDiscoveryAvailable=channel?.enabled===true;
+    }catch{
+      if(disposed||generation!==discoveryChannelGeneration)return;
+      // A missing or untrusted release channel is not a usable install entry.
+      marketDiscoveryAvailable=false;
+    }
+    syncFilters();
+  }
   function renderPageDiscovery(){
     if(disposed)return;
     extensionList.renderDiscovery?.(pageDiscovery?{
@@ -409,8 +423,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         message:'已匹配当前扩展内的官方固定发行。安装仍需在可信页面审阅确认。'};
     }catch(error){
       if(disposed||generation!==discoveryGeneration)return;
-      pageDiscovery={state:'error',message:(error?.code||'E_DISCOVERY')+'：'+
-        String(error?.message||'无法核验当前网页安装声明。')};
+      pageDiscovery=error?.code==='E_DISCOVERY_MISSING'
+        ?{state:'empty',message:'此网页没有声明可安装的 OpenDesk 官方应用。你仍可从应用市场安装。'}
+        :{state:'error',message:(error?.code||'E_DISCOVERY')+'：'+
+          String(error?.message||'无法核验当前网页安装声明。')};
     }
     renderPageDiscovery();
   }
@@ -811,8 +827,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   api.storage.onChanged?.addListener(storageChanged);
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   message('正在读取已安装扩展与授权状态…','loading','loading');draw();
-  void readOfficial();void readPageOfficial();void refresh();
-  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;
+  void readDiscoveryChannel();void readOfficial();void readPageOfficial();void refresh();
+  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;discoveryChannelGeneration++;
     listUninstallReview=null;uninstallReview=null;closeRowMenu();
     doc.removeEventListener('opendesk-language-settings',languageSettingsRequested);
     doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);
