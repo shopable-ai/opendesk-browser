@@ -20,7 +20,7 @@
 
 这是开发通道示例 URL，部署时必须替换为**当前正式构建通道中实际允许的 HTTPS Origin 和固定发行版本**；即使声明存在，仍以扩展内完整官方发行 Catalog 核验为准。普通网页本身不会获得 OpenDesk 外部消息特权。
 
-用户在普通网页保持顶层活动标签，打开 OpenDesk 侧边栏「扩展」→ 更多 →「检测当前网页可安装应用」；扩展在**用户主动点击时**使用现有 `currentPageTarget.capture/revalidate` 锁定所属窗口活动 tab/document，通过 `chrome.scripting.executeScript` 的 `ISOLATED` 世界只读 `link` 的 `rel`/`href`。**点击时即冻结文档身份（不等到异步加载 Catalog 才决定目标）；进入可信页前再次检查 DOM 声明、固定发行和文档身份**。若唯一声明指向**当前通道配置允许的**固定官方 Sidebar App 发行，则展示应用和版本，点击「打开可信审阅」进入扩展自己的固定版本详情，再由用户选择审阅安装。发现时没有安装、下载或授权。
+主路径是应用网页上的「安装到 OpenDesk」按钮；以下仅是手动辅助发现：当可信网页安装通道启用时，用户在普通网页保持顶层活动标签，打开 OpenDesk 侧边栏「扩展」→ 更多 → 选择显示范围「可安装 / 更新」，再在列表上方的「从当前网页安装」区域点击「检查网页安装入口」。在「已安装」列表、网页增强类型筛选或未配置受信任安装通道时不显示此入口；没有声明时显示普通说明，不视为权限或安全错误。扩展在**用户主动点击时**使用现有 `currentPageTarget.capture/revalidate` 锁定所属窗口活动 tab/document，通过 `chrome.scripting.executeScript` 的 `ISOLATED` 世界只读 `link` 的 `rel`/`href`。**点击时即冻结文档身份（不等到异步加载 Catalog 才决定目标）；进入可信页前再次检查 DOM 声明、固定发行和文档身份**。若唯一声明指向**当前通道配置允许的**固定官方 Sidebar App 发行，则展示应用和版本，点击「查看应用详情」进入扩展自己的固定版本详情，再由用户选择审阅安装。发现时没有安装、下载或授权。
 
 声明不支持 Page Program 自动转换、第三方任意包、脚本源、参数批准、安装清单读取、后台全站扫描、系统 URI handler。生产通道不完整时明确拒绝启用；开发 HTTP 仅受控 Loopback Origin（含端口）。
 
@@ -35,6 +35,7 @@
 ## 四、验证与证据
 
 - 组件：`node --test tests/environment/market-page-discovery-r61.test.mjs tests/environment/market-site-client-r5.test.mjs tests/environment/app-market-r5.test.mjs`
+- R6.2 菜单与上下文回归：上述 `market-page-discovery-r61.test.mjs` 同时检查发现动作已从全局菜单移除，并受「可安装 / 更新」、应用类型和可信通道开关约束；没有声明时用中性空状态。
 - 真正的构建：`npm run build:dev`、`npm run build:market-site`、`npm run check`。
 - 已有端到端：`.github/workflows/app-market-r3.yml` 的真实 HTTP 网站 + 扩展内审阅 + 真实安装 + Markdown 工具验证；已在原 `tests/helpers/app-market-r5-native.mjs` 增加**首页按钮首次安装路径**，不重新建设浏览器测试。
 - 交互 HTML：公网页面由 `scripts/build-market-site.mjs` 直接从 `src/market-site/templates.mjs` 和 `src/market-site/client.js` 生成 `dist/app-market-public/index.html`。扩展中心 React 页面仍由既有预览 `scripts/preview/build-sidebar-six-react-preview.mjs` 和现有源码驱动，不存在新的假交互 HTML。
