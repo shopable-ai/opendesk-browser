@@ -263,7 +263,7 @@ try{
    const expiration=editor().locator('input[type="datetime-local"]');
    assert.equal(await session.isChecked(),false);
    const original=await expiration.inputValue();
-   assert.match(original,/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$/);
+   assert.match(original,/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
    assert.match(await editor().innerText(),/过期时间（Expiration）/);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
      width+'px advanced expiry overflow');
