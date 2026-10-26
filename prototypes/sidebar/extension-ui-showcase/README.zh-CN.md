@@ -1,4 +1,45 @@
-# OpenDesk Extension UI 参考入口（R2.3 → R2.6）
+# OpenDesk Extension UI 参考入口（R2.3 → R2.8）
+
+## R2.8 · 真实 React Tree 优先与评分纠偏（2026-10-26）
+
+**唯一继续使用的 Atlas 文件：** [R2.8 React-first Atlas（修改原 R2.7 HTML，而非重新创建）](./r27-source-aligned-atlas.html)。默认进入 Components，首屏嵌入已有的 Bookmark Manager React 编译 Tree；Patterns 新增 P01–P16 逐项分级。
+
+**P0 结论：CURRENT_SOURCE_NOT_TESTED / NOT_PASSED。**
+
+- 正式 Tree：`examples/sidebar-tools/bookmark-manager/src/react/App.jsx`；CSS：`src/react/style.css`（不是旧 Classic 的 `src/style.css`）。文件夹层级、直接子项数量、搜索、展开折叠、选中、方向键、Home/End、F2 均已有实现；大于 120 行时启用 44px 虚拟化。
+- 现有批准离线 React 预览：`examples/sidebar-tools/bookmark-manager/preview/index.html`。最后更新 2026-10-17；manifest 的 `reactRuntime=true`、`mock=true`、`sourceBound=false`、`nativeVerified=false`、`toolVersion=0.3.8`。它确实使用编译 React App，但只是**旧版 Mock 渲染**。
+- 正式 App.jsx 2026-10-26 仍有修改；当前正式包 0.3.12 的安装尚未获本次 Chrome 证据。旧 React 预览不能代替新版源码、Host 授权或原生书签验收。
+- P01–P16 的精确状态和原因在 Atlas 的 **Patterns** Tab。`REAL_REACT_RENDERED` 的 P05/P06/P15 仅指历史 React 预览，其余为 `DOCUMENTED_ONLY` 或 `SIMULATED_ONLY`；本轮 **0/16** 项达到同候选真实浏览器证据，`REAL_TOOL_RENDERED` 无新增证据。没有凭空创作新的 Tree/组件库。
+
+### 正式差异清单
+
+| 优先 | 差异 | 处理 |
+| --- | --- | --- |
+| P0 | R2.7 默认不是 Tree，模拟 R2.6 Tree 容易被误认作共享 React Tree | 已在现有 Atlas 首屏接入原 React 编译预览，明确历史版本与 Mock 属性 |
+| P0 | 旧批准 React 预览截至 10 月 17 日，正式 App.jsx 于 10 月 26 日更新 | 待执行原 `preview/react/build-preview.mjs` 生成 `dev.html`，通过 `preview:check` / `preview:chrome` 再按既有审批流程晋升 |
+| P0 | 当前 React/HTML/Vue Tool 的业务实例与可信组件不等价 | 已在 Atlas 分层标记 Shared React、Host CSS、Business React、Tool React/HTML、Simulated |
+| P1 | 正式 `.bm-count` 在 <=349px 被 CSS 隐藏，740px 改用并排 Inspector | 320/360/400/440/960px + 200% 需真实核查，再决定必要的最小修复 |
+| P1 | 当前 React Tree 的按键、ARIA、滚动与独立安装版本没有新候选证据 | 本轮 NOT_TESTED，不引用旧 CI 冒充 PASS |
+
+### 八维静态初评（满分 100，每维独立，非浏览器验收）
+
+| 维度 | 分数 | 状态 |
+| --- | ---: | --- |
+| 正式视觉一致性 | 78 | 当前浏览器对照 NOT_TESTED |
+| 组件覆盖 | 38 | 真实组件库仅 Button/Card/Switch；P0 未通过 |
+| 布局模式 | 80 | 16 Pattern 已分类，大部分尚非同源渲染 |
+| 业务交互 | 57 | 旧 React Tree Mock 存在，最新版实际业务未验 |
+| 响应式 | 59 | CSS 断点可读，当前视口/缩放 NOT_TESTED |
+| 无障碍 | 61 | 有 ARIA/键盘处理，当前焦点和读屏 NOT_TESTED |
+| 源码可复用性 | 82 | 单 Root/唯一 Tokens，跨 Tool 复用仍受隔离限制 |
+| 真实性与验收证据 | 74 | 已区分真实与模拟，尚无本轮 Chrome 回执 |
+
+**静态初评平均：66.125/100（约 66.1）。** 这是证据约束下的阶段评估，不能宣称八维独立专家已评到 95；正式验收为 NOT_TESTED / P0_NOT_PASSED。严格门槛仍为每项 >=95 且有对应真实证据，不以旧 Mock/旧 Chromium 替代。
+
+**下一实际动作：** 保留所有 R2.3–R2.7 的有效结果，优先用现有 React 构建脚本编译新 `dev.html`、检查与最新 App/CSS 对应的 SHA，验证书签真实 Tree、计数/折叠/搜索/键盘/虚拟化，再进行正式产品必要差量修复。已批准的 `preview/index.html` 不经已有 Chromium 审批不得手动覆盖。
+
+---
+
 
 > **用途：设计与交互审阅；不代表正式安装、Host、Chrome 或 React 运行验收。** 此目录不是新 UI 框架、组件包或第二个 React Root。
 
