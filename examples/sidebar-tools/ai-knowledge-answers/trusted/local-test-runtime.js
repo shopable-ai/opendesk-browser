@@ -167,25 +167,36 @@ export function createLocalKnowledgeTestRuntime({
      if(!running(s,epoch))return;
      const library=model.library(read.value??model.empty());
      if(read.etag!==s.etag){stop('本轮知识版本已变化，需重新批准');return;}
-     const result=model.lookup(library,{question:message.text,scope:message.scope});
+     const result=planCustomerMessage(model,library,{question:message.text,scope:message.scope});
      if(!running(s,epoch))return;
+     const baselineParts=result.parts.map(p=>({...p,sourceIds:[...p.sourceIds],
+       candidateSourceIds:[...p.candidateSourceIds]}));
+     const explain=plan=>plan.status==='ANSWERED_FIXED'?'固定规则匹配，可核对发送':
+       plan.status==='GREETING_ONLY'?'安全问候模板已准备；需要人工确认':
+       plan.status==='RETRIEVED_ONLY'?'已有候选来源，需可信点击调用 AI 并人工审核':
+       ['PARTIAL_REVIEW_REQUIRED','MULTI_REVIEW_REQUIRED','COMPOSITE_REVIEW_REQUIRED'].includes(plan.status)
+         ?plan.answeredCount+' 项有依据，'+plan.reviewCount+' 项需要核实；整条消息仅能人工确认':
+       plan.status==='CLARIFICATION_REQUIRED'?'请先明确退款申请期限、审核时长或到账时间':
+       plan.status==='HUMAN_REQUIRED'?'涉及实时订单或业务操作，需授权系统或人工处理':
+       plan.status==='OVER_LIMIT'?'问题过多或草稿超出安全长度，需人工拆分处理':
+       '没有确定依据，禁止自动发送';
      update(s,message.messageId,{
        status:result.status,sourceIds:result.sourceIds.slice(),answer:result.answer||'',
-       etag:read.etag,providerGeneration:null,
-       message:result.status==='ANSWERED_FIXED'?'固定规则匹配，可核对发送':
-         result.status==='RETRIEVED_ONLY'?'已有候选来源，需可信点击调用 AI 并人工审核':
-         '没有确定依据，禁止发送'
+       parts:result.parts,baselineParts,answeredCount:result.answeredCount,
+       reviewCount:result.reviewCount,hasAI:false,
+       etag:read.etag,providerGeneration:null,message:explain(result)
      });
      if(result.status==='RETRIEVED_ONLY'&&s.approvedAI&&typeof callAI==='function'&&running(s,epoch)){
        update(s,message.messageId,{status:'GENERATING_AI',message:'正在使用已批准的共享 AI 生成草稿'});
        try{
-         const ai=await callAI({question:message.text,scope:message.scope,
+         const ai=await callAI({question:result.parts[0].question,scope:message.scope,
            approvedKnowledgeTest:s.approvedAI,expectedEtag:s.etag});
          if(!running(s,epoch))return;
          const check=await readLibrary();assertLive();
          if(!running(s,epoch))return;
          if(check.etag!==s.etag)throw fail('E_KB_STALE','知识版本在 AI 处理期间变化');
-         if(ai?.status==='REVIEW_REQUIRED'&&ai.answer&&ai.sourceIds?.length){
+         if(ai?.status==='REVIEW_REQUIRED'&&ai.answer&&ai.sourceIds?.length&&
+          ai.sourceIds.every(id=>result.parts[0].candidateSourceIds.includes(id))){
            update(s,message.messageId,{status:'REVIEW_REQUIRED',answer:ai.answer,
              sourceIds:ai.sourceIds.slice(),etag:s.etag,providerGeneration:getProviderGeneration(),
              message:'真实 AI 草稿，需人工核对后才能发送'});
@@ -195,6 +206,44 @@ export function createLocalKnowledgeTestRuntime({
          if(running(s,epoch))update(s,message.messageId,{status:'ERROR',answer:'',
            message:'AI 请求失败：'+String(error?.code||error?.message||error)});
        }
+     }
+     // Every optional multi-intent AI call uses the existing approved Consumer,
+     // with a separate evidence fence for each question. Never auto-send.
+     const candidates=result.parts.map((p,i)=>p.status==='RETRIEVED_ONLY'?i:-1).filter(i=>i>=0);
+     if(result.parts.length>1&&candidates.length&&candidates.length<=MAX_AI_INTENTS&&
+        s.approvedAI&&typeof callAI==='function'&&running(s,epoch)&&result.answer){
+       update(s,message.messageId,{status:'GENERATING_AI',message:'正在逐项核对候选知识；草稿仍需人工审核'});
+       const reviewed=result.parts.map(p=>({...p,sourceIds:p.sourceIds.slice(),
+         candidateSourceIds:p.candidateSourceIds.slice()}));
+       let hasAI=false;
+       for(const index of candidates){
+         if(!running(s,epoch))return;
+         const part=reviewed[index];
+         try{
+           const ai=await callAI({question:part.question,scope:message.scope,
+             approvedKnowledgeTest:s.approvedAI,expectedEtag:s.etag});
+           if(!running(s,epoch))return;
+           const checked=await readLibrary();assertLive();
+           if(!running(s,epoch))return;
+           if(checked.etag!==s.etag)throw fail('E_KB_STALE','逐题 AI 期间知识已变化');
+           if(ai?.status==='REVIEW_REQUIRED'&&typeof ai.answer==='string'&&ai.answer.trim()&&
+              Array.isArray(ai.sourceIds)&&ai.sourceIds.length&&
+              ai.sourceIds.every(id=>part.candidateSourceIds.includes(id))){
+             reviewed[index]={...part,status:'REVIEW_REQUIRED',answer:ai.answer,
+               sourceIds:ai.sourceIds.slice(),reason:'SEMANTIC_UNVERIFIED',needsHuman:true};
+             hasAI=true;
+           }else reviewed[index]={...part,answer:'',sourceIds:[],reason:'AI_SOURCE_INVALID'};
+         }catch(cause){
+           if(!running(s,epoch))return;
+           reviewed[index]={...part,answer:'',sourceIds:[],reason:'AI_FAILED'};
+         }
+       }
+       if(!running(s,epoch))return;
+       const draft=composeCustomerReply({hasGreeting:result.hasGreeting,overLimit:false},reviewed);
+       update(s,message.messageId,{status:draft.status,answer:draft.answer,
+         parts:draft.parts,sourceIds:draft.sourceIds,
+         answeredCount:draft.answeredCount,reviewCount:draft.reviewCount,
+         hasAI,providerGeneration:hasAI?getProviderGeneration():null,message:explain(draft)});
      }
      if(result.status==='ANSWERED_FIXED'&&s.autoSendFixed&&running(s,epoch)){
        try{await send(s,message.messageId);}catch{/* Terminal UNKNOWN/STALE, no retry. */}
