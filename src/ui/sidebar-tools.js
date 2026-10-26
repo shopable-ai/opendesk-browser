@@ -27,7 +27,7 @@ import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/backgro
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
-import {formatSidebarToolTitle,sidebarToolTitleParts} from './sidebar-tools/title-path.js';
+import {formatSidebarToolTitle,formatSidebarToolTitleContext} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
@@ -1309,17 +1309,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const titleOptions={toolTitle:visibleTitle,
       pageTitle:nativeBookmarkNavigation?.title||navigation?.title||
         (clipNavigation?clipNavigationTitles[clipPage]:null),
-      isHome:nativeBookmarkNavigation?.page==='home'||navigation?.page==='home'||
+      isHome:nativeBookmarkNavigation?.page==='home'||['home','index'].includes(navigation?.page)||
         (clipNavigation&&clipPage==='home'),
       isSettings:tocSettingsOpen};
-    const titleParts=sidebarToolTitleParts(titleOptions);
-    const resolvedTitle=formatSidebarToolTitle({...titleOptions,
+    const labelOptions={...titleOptions,
       readOnlyLabel:readOnlyPreview?(trustedTocTitle?
-        readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''});
+        readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''};
+    const resolvedTitle=formatSidebarToolTitle(labelOptions);
+    const fullTitle=formatSidebarToolTitleContext(labelOptions);
+    // One short visible title; the complete context remains in accessibility
+    // and hover, not as a flex-spaced breadcrumb occupying the toolbar.
     patchToolField(view,title,{textContent:resolvedTitle,
-      data:{toolLabel:titleParts.tool,pageLabel:titleParts.page}});
-    // Full location remains readable even if the visible title truncates.
-    patchToolField(view,title,{title:active?resolvedTitle+' · v'+active.version:''});
+      attributes:{'aria-label':fullTitle},
+      title:active?fullTitle+' · v'+active.version:''});
     const contextAction=tocSettingsOpen?'':navigation?.primary||
       (clipNavigation?({library:'new',reader:'edit',edit:'save',new:'save'}[clipPage]||''):'');
     const contextLabel=(clipNavigation?

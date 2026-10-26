@@ -417,20 +417,9 @@
  * State-changing enable/disable and site features belong in Settings. */
 .sidebar-tool-view-head{position:relative;z-index:3;gap:2px;min-height:32px;margin-bottom:6px}
 .sidebar-tool-view-head>strong{font-size:13px}
-/* One shared header, not a second breadcrumb/nav row. The title owns only the
-   flexible space left by fixed Back and action buttons. CSS truncation adds
-   the ellipsis only when text actually overflows; do not pre-truncate strings. */
-#sidebar-tool-title{flex:1 1 0;min-width:0;max-width:100%;container:tool-title / inline-size}
-#sidebar-tool-title .sidebar-tool-title-path{display:flex;align-items:baseline;width:100%;max-width:100%;min-width:0;overflow:hidden;white-space:nowrap}
-#sidebar-tool-title .sidebar-tool-title-parent{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#sidebar-tool-title .sidebar-tool-title-divider{flex:0 0 auto;margin-inline:2px;white-space:pre}
-#sidebar-tool-title .sidebar-tool-title-current{flex:0 1 auto;min-width:0;max-width:66%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* Available TITLE width, not viewport width: many actions can leave very
-   little space even on a wide panel. Always preserve the leaf/page identity. */
-@container tool-title (max-width:100px){
-  #sidebar-tool-title .sidebar-tool-title-parent,#sidebar-tool-title .sidebar-tool-title-divider{display:none}
-  #sidebar-tool-title .sidebar-tool-title-current{flex:1 1 0;max-width:100%}
-}
+/* One left-aligned current-page label fills the space between Back and fixed
+   actions. No flex-growing parent text or redundant breadcrumb segments. */
+#sidebar-tool-title{flex:1 1 0;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* At 200% zoom the header itself may be only 180px wide. Give Back and the
    title a complete first row, then wrap the existing actions without clipping. */
 @media(max-width:240px){
@@ -470,7 +459,6 @@
   border:1px solid var(--od-line);border-radius:var(--radius-surface);
   background:var(--od-paper)
 }
-.sidebar-tool-settings-title{margin:0;font-size:13px;font-weight:700;line-height:1.35;color:var(--od-ink)}
 #sidebar-tool-adblock-product-settings{justify-self:start;max-width:100%;min-height:34px;font-size:12px}
 .sidebar-tool-settings-heading{display:flex;align-items:center;gap:10px;min-width:0;padding:2px 0 12px;border-bottom:1px solid var(--od-line)}
 .sidebar-tool-settings-heading-icon{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:10px;background:var(--od-muted);color:var(--od-sub)}
