@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>语音文字整理 · 同源交互预览（模拟网页）</title>
+<link rel="stylesheet" href="../assets/panel.css">
+<style>
+body{font:14px/1.5 system-ui,sans-serif;margin:0;background:#f7f8fa;color:#1f2937;padding:22px}
+.demo{max-width:730px;margin:auto}.demo h1{font-size:20px;margin:0}.tip{color:#667085;font-size:13px}
+.native{background:white;border-radius:14px;border:1px solid #e0e5ed;padding:18px;margin-top:18px}
+.native textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:8px;padding:12px;font:inherit}
+#overlay{position:fixed;right:12px;bottom:88px;z-index:10}
+.banner{color:#b91c1c;font-weight:600}
+</style></head><body>
+<div class="demo"><h1>ChatGPT 语音整理 · 同源 UI 预览</h1>
+<p class="banner">模拟网页！没有调用 ChatGPT、MCP 或任何模型。</p>
+<p class="tip">预览复用正式 src/widget.js、src/model.js 与 assets/panel.css。只有官网输入框适配器为模拟版本。</p>
+<div class="native"><strong>模拟 ChatGPT 输入框</strong>
+<form id="demo-form"><textarea id="native-editor" rows="4">嗯，我在欧喷德斯克里面嗯使用扣得克斯和瑞爱克特开发。</textarea></form>
+<button type="button" id="change-draft">模拟用户修改原草稿（验证防覆盖）</button>
+<p class="tip">点右下角「整理文字」→「读取草稿」→「生成整理请求」；将整理后的文本手动粘贴到结果框，确认再填入。</p></div></div>
+<div id="overlay"></div>
+<script type="module">
+import {mountCleanupWidget} from '../src/widget.js';
+const editor=document.querySelector('#native-editor'),form=document.querySelector('#demo-form');
+const owner={content:document.querySelector('#overlay'),on(node,type,cb,opts){node.addEventListener(type,cb,opts)}};
+const site={
+ capture(){return {ok:true,binding:{doc:document,url:location.href,editor,form,draft:editor.value}};},
+ check(binding,composing){
+   if(composing())return {ok:false,reason:'输入法正在编辑'};
+   if(binding.doc!==document||binding.url!==location.href||binding.editor!==editor||
+      binding.form!==form||binding.draft!==editor.value)
+     return {ok:false,reason:'原草稿已变化，禁止覆盖'};
+   return {ok:true};
+ },
+ async fill(binding,text,composing){
+   const gate=this.check(binding,composing);
+   if(!gate.ok)return {...gate,outcome:'NOT_DISPATCHED'};
+   editor.value=text;editor.dispatchEvent(new Event('input',{bubbles:true}));
+   await new Promise(resolve=>setTimeout(resolve,80));
+   if(editor.value!==text)return {ok:false,outcome:'OUTCOME_UNKNOWN',reason:'未通过读回'};
+   return {ok:true,filled:true,sent:false,readBackVerified:true,outcome:'VERIFIED'};
+ }
+};
+mountCleanupWidget({owner,site,doc:document,win:window});
+document.querySelector('#change-draft').onclick=()=>{editor.value+=' 用户后续新增的文字'};
+</script></body></html>
