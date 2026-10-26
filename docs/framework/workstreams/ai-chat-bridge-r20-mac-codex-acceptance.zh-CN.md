@@ -2,6 +2,19 @@
 
 **默认中文｜ORIGINAL GOAL FIRST｜LATEST MAIN｜LOCAL MAC REAL CHROME｜DELTA ONLY｜CROSS-CHAT DEDUP｜NO SECOND HOST｜NO FAKE PASS｜ONLY MAIN**
 
+## 当前开发结果（2026-10-26 13:38 后，取代下方历史阶段）
+
+当前阶段为**日常 Chrome 核心开发**，复用 `npm run dev` → `dist/development`；不继续下方旧 production 验收、完整矩阵和评分。真实扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，开发服务与 Native 均已在界面观察到连接。
+
+- 已通过百度首页正常搜索 `OpenDesk Browser`，没有绕过安全验证。原源码真实返回 `dom_changed/count=0`；页面 DOM 证明普通 `.result.c-container` 使用 `tpl="www_index"`，旧脚本仅接受 `se_com_default`。仅加入这个已观察的普通模板，广告、未知模板、精确网站/关键词及 URL 校验保持生效。
+- 开发页 Controller 参数已修复并提交 `f644b3995`：Native 列表缺少 runtimeKind 时，使用核验产物的 runtimeKind 显示参数入口，不把准备操作当作执行。
+- 修复后以相同参数 `{query:"OpenDesk Browser",limit:3}` 执行，真实 **runId `17ea3f0e-5008-4ff0-bedd-a64cc814adc9`**，**resultId `792be814-4414-4511-a96c-824f648cc24a`**；返回 `success/count=3`，界面显示**已完成 · 资源已释放**。三个结果为 OpenDesk、OpenProject/openDesk 和 OpenProject 13.1；证据 slot 为 1、2、5，均为 `www_index`，未把可见广告和百科特殊模块纳入结果。
+- 原结果经现有「下载结果 JSON」导出，SHA-256 `fff89039d3c4999de30a88997dc1d460423ba8c2b64bf829a81b0ad62541657a`；原件保留在 `artifacts/ai-chat-bridge-r20-mac-20261026/result-17ea3f0e-5008-4ff0-bedd-a64cc814adc9.json`。下载原件证明结果身份；释放结论来自原生侧栏状态，未直接读取或修改浏览器存储。
+- 本机任务目录显示为空；该候选尚未导入/安装。经原 `createTaskPackage` 校验还发现旧 `limit` 参数缺少必填 title，已补齐。未发布的 `baidu.search.top3@1.0.0` 候选同步源码与 Manifest；当前 **sourceHash `586fbf0f2d16a9bd00f17dd1b5e0b94171e799a53fe2d0d6edf9b86db0121cd3`**，**manifestHash `6be4d039d123c89b51fba945d5997724de5948c3b839c1d2afa0b2dcfccd49ed`**。Bridge 仅同步这两个精确身份值，没有放宽固定任务准入；下方旧哈希仅为历史证据。
+- 16 项定向测试通过：真实导入合同、源码/Manifest/Bridge 同源、当前普通模板、广告和未知模板排除、空结果/验证码/DOM 变化、精确参数及现有 Bridge 身份/撤权/去重/未知回包保护。未执行全量构建或 production 验收。
+
+**用户随后明确继续使用侧栏「开发 → 本地项目」，无需打开独立任务目录；这条开发运行链已实际完成。** 本例是 Controller 自动化，业务仍在原任务源码中，不改成 Sidebar Tool。浏览器工具曾拒绝观察 `chrome-extension://…/sidepanel.html` 任务目录，原因是其 URL 策略只允许 HTTP(S)，不是百度再次出现验证码；未改用其他自动化接口绕过拒绝。后续若继续原固定 Task 的 ChatGPT Bridge，仍须走原「我的」任务导入、同源码 runId 核对与安装链，不能以本地项目运行替代安装身份。实际安装身份/代际、原会话回传、自动分支及 `page.read.fixed` 真实回归仍为 **NOT_TESTED**，不再把独立目录作为当前本地项目开发的前置条件。
+
 ## 当前续推结果（2026-10-26 03:43，取代下方 03:00 状态）
 
 **完整 production 候选已通过并在专属 CFT 中加载；百度真实闭环尚未完成。** 当前下一条用户操作是本轮 CFT 的「开发 → 本地项目」连接核对，不要求进入独立 `native-agent/workspace.html`。桌面控制工具目前误选其他 owner 的同名 CFT 实例，完整可执行路径不被接受，名称定位超时，截图不可用；未接管其他 Profile，真实本地项目按钮操作仍为 NOT_TESTED。已请求用户将本轮新窗口切到前台以继续定位。

@@ -31,7 +31,7 @@ async function main() {
     for (const node of nodes.slice(0,40)) {
       // Prefer omissions to misclassifying unrecognized Baidu result modules as organic.
       const tpl=node.getAttribute('tpl');
-      if (tpl !== null && tpl !== 'se_com_default') continue;
+      if (tpl !== null && tpl !== 'se_com_default' && tpl !== 'www_index') continue;
       const anchors = [...node.querySelectorAll('h3 a')].filter(visible);
       if (anchors.length !== 1) continue;
       const a=anchors[0], heading=a.closest('h3');

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import vm from 'node:vm';
+import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
 
 const src=await readFile(new URL('../../examples/tasks/baidu-search-top3.js',import.meta.url),'utf8');
 const pkg=JSON.parse(await readFile(new URL('../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
@@ -10,7 +11,8 @@ const sha=text=>createHash('sha256').update(text).digest('hex');
 const canonical=v=>v===null||typeof v!=='object'?JSON.stringify(v):
   Array.isArray(v)?'['+v.map(canonical).join(',')+']':
   '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}';
-test('Baidu Task package pins identical source and manifest bytes',()=>{
+test('Baidu Task package is importable and pins identical source and manifest bytes',async()=>{
+  await verifyTaskPackage(pkg);
   assert.equal(pkg.manifest.taskId,'baidu.search.top3');
   assert.equal(pkg.manifest.version,'1.0.0');
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
@@ -51,6 +53,19 @@ test('fixed task filters paid positions and returns top three organic links',asy
  assert.equal(response.count,3);
  assert.deepEqual(Array.from(response.results,x=>x.title),['标题 1','标题 3','标题 4']);
  assert.equal(response.results[0].url,'https://example.org/1');
+});
+test('recognizes observed www_index organic results while retaining ad and unknown-template filters',async()=>{
+ const observed=(n,ad=false)=>{
+   const node=row(n,ad),attr=node.getAttribute;
+   node.getAttribute=name=>name==='tpl'?'www_index':attr(name);
+   return node;
+ };
+ const unknown=row(99),attr=unknown.getAttribute;
+ unknown.getAttribute=name=>name==='tpl'?'bk_polysemy':attr(name);
+ const response=await run([observed(1),observed(2),observed(3,true),unknown,observed(5)]);
+ assert.equal(response.count,3);
+ assert.deepEqual(Array.from(response.results,x=>x.title),['标题 1','标题 2','标题 5']);
+ assert.ok(response.results.every(x=>x.evidence.tpl==='www_index'));
 });
 test('no invented results on partial or empty SERP',async()=>{
  assert.equal((await run([row(1)])).count,1);

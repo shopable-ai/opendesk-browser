@@ -1,6 +1,7 @@
 // R2.0 Baidu business bridge: component/contract evidence only, never a Chrome PASS.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {createChatGPTBridgeTriggerLedger} from '../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {bridgePrompt,initChatGPTFixedBridgePage} from '../../src/native-agent/chatgpt-fixed-bridge-page.js';
@@ -17,6 +18,12 @@ const request=validateChatGPTTaskRequest(JSON.stringify({
   version:1,requestId:id,taskId:'baidu.search.top3',args
 }));
 const candidateText=JSON.stringify(request);
+test('Baidu Bridge admits the exact importable task package identity',async()=>{
+  const pkg=JSON.parse(await readFile(new URL('../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
+  assert.equal(BAIDU_TASK_VERSION,pkg.manifest.version);
+  assert.equal(BAIDU_TASK_SOURCE_HASH,pkg.manifest.program.sourceHash);
+  assert.equal(BAIDU_TASK_MANIFEST_HASH,pkg.manifestHash);
+});
 const resultData={kind:'baidu.search.top3.result',version:1,query:args.query,
   sourceUrl:baiduSearchTarget(request),status:'success',count:2,
   results:[
