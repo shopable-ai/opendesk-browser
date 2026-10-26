@@ -390,6 +390,9 @@
 .cookie-editor-react .cookie-account-current>div{display:grid;gap:1px;min-width:0}
 .cookie-editor-react .cookie-account-current strong{font-size:var(--od-body-size);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-current small{font-size:var(--od-meta-size);color:var(--od-sub);overflow-wrap:anywhere}
+.cookie-editor-react .cookie-account-list{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control)}
+.cookie-editor-react .cookie-account-list>.cookie-account-card{padding:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-account-list>.cookie-account-card:last-child{border-bottom:0}
 .cookie-editor-react .cookie-account-card{min-height:59px;flex-wrap:nowrap}
 .cookie-editor-react .cookie-account-card.is-current{background:var(--od-muted)}
 .cookie-editor-react .cookie-account-card-text{font-size:var(--od-note-size)}
