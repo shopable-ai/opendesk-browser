@@ -1,14 +1,14 @@
-// R5.3 source-bound 1:1 Chromium evidence; real current offline preview vs R5.2 commit.
+// R5.4 Chromium equivalence: R5.3 slider selection against the formal R5.4 defaults.
 import assert from 'node:assert/strict';
 import {spawn,execFileSync} from 'node:child_process';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {tmpdir} from 'node:os';
 const root=resolve('.'),src='examples/programs/chatgpt-send-queue/preview/index.html';
-const dir=resolve(process.argv[2]||'artifacts/send-queue-crown-r53');
-const before=execFileSync('git',['show','596b4e53d8016e52543453f5e4883abb9a1d0161:'+src],{encoding:'utf8',maxBuffer:8e6});
+const dir=resolve(process.argv[2]||'artifacts/send-queue-crown-r54');
+const before=execFileSync('git',['show','633c9326ffc3ca2e45e95ffa7e7b6cb1ba74e499:'+src],{encoding:'utf8',maxBuffer:8e6});
 const after=await readFile(join(root,src),'utf8');
-assert.match(before,/R5\.2 CROWN-VISUAL-BEGIN/);assert.match(after,/R5\.3 CROWN-FIT-BEGIN/);
+assert.match(before,/R5\.3 CROWN-FIT-BEGIN/);assert.match(after,/R5\.4 CROWN-USER-FIT-BEGIN/);
 const profile=await mkdtemp(join(tmpdir(),'sq-crown-'));
 let chrome,ws,seq=0;const calls=new Map(),sleep=ms=>new Promise(ok=>setTimeout(ok,ms));
 function cdp(method,params={}){let id=++seq;return new Promise((ok,fail)=>{
@@ -46,7 +46,7 @@ async function smoke(){const r=await ev('(()=>{const q=s=>document.querySelector
   assert.deepEqual(r,{n:4,clear:true,hidden:true,open:4,removed:3,paused:true,resumed:false,reset:3});console.log('CROWN_QUEUE_INTERACTION_PASS '+JSON.stringify(r))}
 try{await mkdir(dir,{recursive:true});
   chrome=spawn(process.env.CHROME_BIN||'chromium',['--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'],{stdio:'ignore'});
-  await connect();const version=(await cdp('Browser.getVersion')).product;const samples=[];let oldAlpha;
+  await connect();const version=(await cdp('Browser.getVersion')).product;const samples=[];let oldAlpha;const selected=new Map();
   for(const [rev,html] of [['before',before],['after',after]]){await load(html);const geometry=await alpha();
     if(rev==='before')oldAlpha=geometry;else assert.deepEqual(geometry,oldAlpha,'unexpected WebP change');
     console.log('CROWN_ALPHA_'+rev.toUpperCase()+' '+JSON.stringify(geometry));
@@ -54,13 +54,22 @@ try{await mkdir(dir,{recursive:true});
       await cdp('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
       const choose=[['sizes',size],['themes',theme],['widths',width]].map(([id,value])=>'document.querySelector('+JSON.stringify('#'+id+' [data-value="'+value+'"]')+').click()').join(';')+';true';
       await ev(choose);
+      if(rev==='before')await ev("for(const [k,v] of Object.entries({angle:-1,scale:85,offsetX:-2,offsetY:-3})){const e=document.getElementById(k);e.value=v;e.dispatchEvent(new Event('input',{bubbles:true}));}true");
       const m=await ev('('+inspect.toString()+')()');const name=rev+'-'+size+'-'+theme+'-'+width;
       assert.equal(m.button.w,size,name+' button width');assert.equal(m.button.h,size,name+' button height');
       assert.equal(m.native.w,size,name+' native button width');assert.ok(m.native.x-m.button.right>=3,name+' native gap');
       assert.equal(m.rows,3,name+' queue rows');assert.equal(m.items,3,name+' queue items');
       assert.ok(m.hit&&m.artwork&&m.pointer==='none',name+' hit/asset');
+      const scene=[size,theme,width].join(':');
+      if(rev==='before')selected.set(scene,m);
+      else {
+        const prev=selected.get(scene);assert.ok(prev,'missing selected scene '+scene);
+        for(const key of ['w','h','x','y','angle'])
+          assert.ok(Math.abs(parseFloat(m[key])-parseFloat(prev[key]))<=.02,
+            'final CSS != user slider selection: '+scene+' '+key+' '+m[key]+' vs '+prev[key]);
+      }
       if(rev==='after'){assert.ok(m.scroll<=width+1,name+' overflow');
-        assert.ok(Math.abs(Number.parseFloat(m.x)+Number.parseFloat(m.w)/2-size/2)<=1,name+' center');
+        assert.ok(Math.abs(Number.parseFloat(m.x)+Number.parseFloat(m.w)/2-size/2)<=3,name+' center');
         assert.equal(m.filter,'none',name+' shadow layer');
         const arrow=(size-(size===34?17:20))/2+(size===34?17:20)*5/24;
         assert.ok(Number.parseFloat(m.y)+Number.parseFloat(m.h)<arrow-1,name+' arrow clearance')}
@@ -72,5 +81,5 @@ try{await mkdir(dir,{recursive:true});
     if(rev==='after')await smoke();
   }
   await writeFile(join(dir,'metrics.json'),JSON.stringify({evidence:'SOURCE_BOUND_CHROMIUM',chrome:version,deviceScaleFactor:1,macChromeTested:false,samples},null,2));
-  console.log('CROWN_R53_BROWSER_PASS '+samples.length+' genuine HTML scenes '+version);
+  console.log('CROWN_R54_BROWSER_PASS '+samples.length+' genuine HTML scenes '+version);
 }finally{try{ws?.close()}catch{}try{chrome?.kill()}catch{}await sleep(250);await rm(profile,{recursive:true,force:true})}

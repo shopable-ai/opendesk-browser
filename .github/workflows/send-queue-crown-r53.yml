@@ -1,4 +1,4 @@
-name: Send Queue R5.3 crown native-size visual audit
+name: Send Queue R5.4 selected fit visual audit
 on:
   push:
     branches: [main]
@@ -26,12 +26,12 @@ jobs:
       - name: Render actual offline HTML in Chrome at deviceScaleFactor 1
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node examples/programs/chatgpt-send-queue/scripts/crown-r53-chromium.mjs artifacts/send-queue-crown-r53
+        run: node examples/programs/chatgpt-send-queue/scripts/crown-r53-chromium.mjs artifacts/send-queue-crown-r54
       - name: Preserve before/after 1:1 screenshots and alpha measurements
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: send-queue-r53-crown-native-screenshots
-          path: artifacts/send-queue-crown-r53/
+          name: send-queue-r54-selected-crown-screenshots
+          path: artifacts/send-queue-crown-r54/
           if-no-files-found: warn
           retention-days: 14
