@@ -273,7 +273,7 @@ export async function runMarketR5Acceptance(d){
   // as the R5 detail page, without opening a real install yet.
   await ui.detail(website,'r61-web-home-cta',
     '.app-card:has(h2 a[href="/apps/opendesk/markdown-workbench/"]) [data-open-review]');
-  for(const width of [320,360,520,1280]){
+  for(const width of [320,360,400,440,520,960,1280]){
     await website.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
     await until(()=>evaluate(website,'innerWidth==='+width),'website viewport width');
     // Position only the visual inspection viewport; no product state changes.
@@ -305,7 +305,13 @@ export async function runMarketR5Acceptance(d){
   // Preserve the R5 fixed detail visual audit while making the first
   // authentic Markdown install start from R6.1's homepage CTA.
   const detailPreview=await openTab(channel.origin+'/apps/opendesk/markdown-workbench/versions/'+packages.get('markdown-workbench').version+'/');
-  await visible(detailPreview,'#open-review');await ui.detail(detailPreview,'r5-web-detail','#open-review');
+  await visible(detailPreview,'#open-review');
+  const pinnedHref=channel.origin+'/install/opendesk/markdown-workbench/versions/'+packages.get('markdown-workbench').version+'/';
+  assert.deepEqual(await evaluate(detailPreview,
+    'Array.from(document.querySelectorAll("link[rel~=opendesk-install]"),element=>element.href)'),
+    [pinnedHref],'actual HTTP detail must declare exactly one fixed official install');
+  check('r61-real-http-fixed-link-declaration',{href:pinnedHref});
+  await ui.detail(detailPreview,'r5-web-detail','#open-review');
   await close(detailPreview);
   let first=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{home:true,keyboard:true});
   await visible(first.review,'[data-market-action="confirm-install"]');
