@@ -23,10 +23,22 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  let currentSite=demoSite,globalGrant=scenario!=='first';
  const siteRows=new Map([[demoSite,rows]]);
  // Preview-only account fixture. No real account, Cookie, Host or storage.
- let demoVault={configured:false,unlocked:false,revision:0,
-   accounts:[],settings:{autoRefresh:true,autoEnabled:false}};
- let demoPassphrase=null;
+ const accountDemo=['accountsDemo','accountSwitchFail','accountSwitchUnknown','accountsLocked'].includes(scenario);
+ const unlockedDemo=accountDemo&&scenario!=='accountsLocked';
+ const fictionalAccounts=[
+   {alias:'work',origin:'https://'+demoSite,displayName:'工作账号',version:1,allowAuto:true},
+   {alias:'personal',origin:'https://'+demoSite,displayName:'个人账号',version:1,allowAuto:false},
+   {alias:'qa',origin:'https://'+demoSite,displayName:'测试账号',version:1,allowAuto:true}
+ ];
+ let demoVault=accountDemo
+   ?{configured:true,unlocked:unlockedDemo,revision:3,currentAlias:unlockedDemo?'work':null,
+     accounts:fictionalAccounts,settings:{autoRefresh:true,autoEnabled:false}}
+   :{configured:false,unlocked:false,revision:0,currentAlias:null,
+     accounts:[],settings:{autoRefresh:true,autoEnabled:false}};
+ let demoPassphrase=unlockedDemo?'preview-only-passphrase':null;
  const demoSnapshots=new Map();
+ if(accountDemo)for(const item of fictionalAccounts)
+   demoSnapshots.set(item.alias,clone(fictionalCookies()));
  const accountMeta=()=>({...clone(demoVault),
    accounts:demoVault.unlocked?demoVault.accounts
      .filter(item=>item.origin==='https://'+currentSite)
@@ -135,7 +147,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
       return accountMeta();
     }
     if(action==='lock'){
-      demoVault.unlocked=false;return {locked:true};
+      demoVault.unlocked=false;demoVault.currentAlias=null;return {locked:true};
     }
     if(!demoVault.unlocked)throw error('E_VAULT_LOCKED');
     if(payload.revision!==demoVault.revision)throw error('E_VAULT_CONFLICT');
@@ -143,7 +155,10 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     const selected=demoVault.accounts.find(item=>item.alias===payload.alias&&item.origin===origin);
     if(action==='switch'){
       if(!selected)throw error('E_ACCOUNT_NOT_FOUND');
+      if(scenario==='accountSwitchUnknown')throw error('E_OUTCOME_UNKNOWN');
+      if(scenario==='accountSwitchFail')throw error('E_SITE_GRANT_REQUIRED');
       rows=clone(demoSnapshots.get(selected.alias)||[]);
+      demoVault.currentAlias=selected.alias;
       record('previewAccountSwitch',{alias:selected.alias,fixture:true});
       return {switched:true,verified:true,reloadRequested:demoVault.settings.autoRefresh,
         preview:true};
@@ -160,6 +175,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
       if(action==='rename')selected.displayName=String(payload.displayName).slice(0,64);
       if(action==='update')demoSnapshots.set(selected.alias,clone(rows));
       if(action==='delete'){
+        if(demoVault.currentAlias===selected.alias)demoVault.currentAlias=null;
         demoVault.accounts.splice(demoVault.accounts.indexOf(selected),1);
         demoSnapshots.delete(selected.alias);
       }
