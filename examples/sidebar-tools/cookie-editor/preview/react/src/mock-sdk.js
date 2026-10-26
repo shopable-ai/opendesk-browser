@@ -31,7 +31,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
    accounts:demoVault.unlocked?demoVault.accounts
      .filter(item=>item.origin==='https://'+currentSite)
      .map(item=>({...item,siteLabel:currentSite,siteUrl:'https://'+currentSite+'/'})):[],
-   autoRuntimeReady:demoVault.unlocked
+   autoRuntimeReady:demoVault.unlocked,preview:true
  });
  const seedRows=hostname=>{
   if(scenario==='empty')return [];
