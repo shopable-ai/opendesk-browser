@@ -397,3 +397,36 @@
  .cookie-editor-react .cookie-account-card{gap:var(--space-1);flex-wrap:nowrap}
  .cookie-editor-react .cookie-account-avatar{width:30px;height:30px}
 }
+
+/* R2.6: shared product presentation for inert share and market flows. */
+.cookie-editor-react .cookie-market-intro{display:grid;gap:var(--space-1);min-width:0}
+.cookie-editor-react .cookie-market-intro p{margin:0;color:var(--od-sub);font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-market-controls{display:grid;gap:var(--space-2)}
+.cookie-editor-react .cookie-market-controls>.od-field{width:100%}
+.cookie-editor-react .cookie-market-categories{display:flex;gap:var(--space-1);overflow-x:auto;min-width:0;align-items:center}
+.cookie-editor-react .cookie-market-categories>*{flex:0 0 auto}
+.cookie-editor-react .cookie-market-results{display:grid;gap:0;min-width:0;border-top:1px solid var(--od-line)}
+.cookie-editor-react .cookie-market-resource{display:grid;gap:var(--space-1);padding:var(--space-3) 0;border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .cookie-market-resource-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.cookie-editor-react .cookie-market-resource-head strong{font-size:var(--od-body-size)}
+.cookie-editor-react .cookie-market-resource-head small{font-size:var(--od-meta-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-market-resource p{margin:0;font-size:var(--od-note-size);color:var(--od-sub);line-height:1.6}
+.cookie-editor-react .cookie-market-resource-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2)}
+.cookie-editor-react .cookie-market-detail{display:grid;gap:var(--space-3);min-width:0}
+.cookie-editor-react .cookie-market-detail-head{display:flex;gap:var(--space-2);align-items:center;min-width:0}
+.cookie-editor-react .cookie-market-detail-head>strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cookie-editor-react .cookie-market-detail p{margin:0;font-size:var(--od-note-size);color:var(--od-sub);line-height:1.6}
+.cookie-editor-react .cookie-share-form{display:grid;gap:var(--space-3);min-width:0}
+.cookie-editor-react .cookie-share-source{display:grid;gap:var(--space-1);padding:var(--space-2);background:var(--od-muted);border-radius:var(--radius-control)}
+.cookie-editor-react .cookie-share-source small{font-size:var(--od-meta-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-share-options{display:grid;gap:var(--space-1);min-width:0;padding:0;border:0}
+.cookie-editor-react .cookie-share-options legend{font-weight:650;margin-bottom:var(--space-1)}
+.cookie-editor-react .cookie-share-options>label{display:flex;align-items:center;gap:var(--space-2);min-height:30px}
+.cookie-editor-react .cookie-share-field{display:grid;gap:var(--space-1);min-width:0;font-size:var(--od-note-size);font-weight:650}
+.cookie-editor-react .cookie-share-field>.od-field{width:100%}
+.cookie-editor-react .cookie-share-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}
+.cookie-editor-react .cookie-share-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);flex-wrap:wrap}
+.cookie-editor-react .cookie-share-demo-code{display:block;overflow-wrap:anywhere;padding:var(--space-2);background:var(--od-muted);border-radius:var(--radius-control);font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-share-outcomes{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.cookie-editor-react .cookie-share-status{margin:0;padding:var(--space-2);background:var(--od-muted);border-radius:var(--radius-control);font-size:var(--od-note-size)}
+@media(max-width:350px){.cookie-editor-react .cookie-share-row{grid-template-columns:minmax(0,1fr)}}
