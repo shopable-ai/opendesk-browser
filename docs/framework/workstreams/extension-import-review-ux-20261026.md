@@ -33,7 +33,7 @@
 - **源码增量**：点击菜单先关闭更多菜单、把焦点放在可见触发按钮，再同步调用原 `sidebarTools.openImport()`；Host 返回 false 或抛异常时提供明确反馈。菜单显示「导入扩展…」。不修改任何可信 Installer、权限与 Page Authority 规则。
 - **语言隔离**：原 `#extension-center-language-settings` 与 LocaleManager 继续处理语言包；现有全局拖入分类与 `#extension-center-file` 的代码路径暂保留，避免误删兼容路径，但隐藏输入不再是扩展菜单入口。
 - **交互预览**：复用 `prototypes/sidebar/extension-center-r47-frequency-first-preview.html`；「导入扩展…」先显示无批准状态的空白文件选择弹窗，预设的更新/新增权限/网页增强审阅继续通过独立场景按钮触发。
-- **测试**：增加 ExtensionCenter 实际 Controller 与 React 扩展列表 DOM 的入口/失败回执断言；React ToolHost 同屏集成及 Native Chrome 使用另一个定向测试验收。此段记录不主张运行过 Node/Playwright/Chrome。
+- **新增测试源码**：`tests/environment/extension-center-r47-interaction.test.mjs` 增加实际 Controller + React 列表 DOM 入口与拒绝/异常反馈断言；`tests/environment/extension-center-react-page.test.mjs` 增加实际 ExtensionCenter Controller + React ToolHost 同屏集成，覆盖弹窗先于系统文件选择器、选择按钮手势、单实例、焦点、Esc 与关闭重开。后者的文件处理使用 Host 测试替身，不模拟安装成功；真实安装校验仍由既有 `sidebar-tools-host.test.mjs` 等合同负责。Node / Playwright / Mac Chrome 尚未运行，标 `NOT_TESTED`。
 - **证据边界**：GitHub 主分支直接编辑，未获得本机 Mac Chrome 现场验收；未运行的 Node / Playwright / 原生 Chrome 测试严格为 `NOT_TESTED`。
 
 - **预览焦点对齐**：模拟导入弹窗打开时聚焦文件输入；从已关闭的更多菜单进入时，关闭弹窗将焦点恢复到可见的「更多」按钮，而不是隐藏的菜单项。
