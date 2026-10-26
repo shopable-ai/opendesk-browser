@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline' file:; script-src 'unsafe-inline'; frame-src 'self' file:; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="od-preview-proof" content="UI_PREVIEW_ONLY">
-<title>OpenDesk Extension UI · R2.7 Source-Aligned Atlas</title>
+<title>OpenDesk Extension UI · Design System / Reference</title>
 <link rel="stylesheet" href="../../../src/ui/design-tokens.css">
 <style>
 /* A read-only catalog shell. Canonical values are loaded from src/ui/design-tokens.css;
@@ -68,26 +68,45 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
 .foot{font-size:11px;color:var(--od-sub);margin-top:16px;padding-top:10px;border-top:1px solid var(--od-line)}
 @media(max-width:740px){.wrapper{padding:10px}.layout{display:block}.side{position:static;display:flex;overflow:auto;margin-bottom:12px;gap:4px;scrollbar-width:thin}.nav{white-space:nowrap;width:auto;flex:none;padding:8px}.aside-foot{display:none}.full-frame{height:730px}.source-table th,.source-table td{padding:8px 4px}.source-table td:nth-child(3){max-width:170px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+/* Reference-only catalog layout: all colors, density and radii from canonical tokens. */
+.component-catalog{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:var(--space-2);margin:var(--space-3) 0}
+.component-item{padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);min-width:0;display:grid;align-content:start;gap:var(--space-1)}
+.component-item strong{font-size:var(--od-body-size)}.component-item small{overflow-wrap:anywhere}
+.component-item p{font-size:var(--od-note-size);overflow-wrap:anywhere}
+.component-item .source-level{font:var(--od-meta-size)/1.5 ui-monospace,monospace;color:var(--od-sub)}
+.example-code{font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre;overflow:auto;max-height:420px;max-width:100%;padding:var(--space-3);border-radius:var(--radius-control);border:1px solid var(--od-line);background:var(--od-muted);color:var(--od-ink)}
+.archived-example{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);padding:var(--space-3)}
+.archived-example>summary{cursor:pointer;font-weight:650;min-height:36px;display:flex;align-items:center}
+.archived-example .archive-body{padding-top:var(--space-2)}
+.archived-example .archive-body>.card{border:0;padding:0}
+@media(max-width:440px){.component-catalog{grid-template-columns:minmax(0,1fr)}.example-code{font-size:11px}.archived-example .full-frame{height:600px}}
 </style>
 </head>
 <body>
 <div class="wrapper">
   <header class="head">
-    <div><p class="eyebrow">OPENDESK · EXTENSION UI R2.7</p><h1>组件与布局规范图谱 · React Tree 优先</h1><p>正式 React Showcase + 既有 R2.5 Pattern / R2.6 Business · 只读参考</p></div>
+    <div><p class="eyebrow">OPENDESK · DESIGN SYSTEM / REFERENCE</p><h1>统一视觉、组件与扩展开发参考</h1><p>Foundation → Components → Patterns → Business Recipes → Developer / AI Guide → Source &amp; Proof</p></div>
     <span class="proof">UI_PREVIEW_ONLY · 浏览器验收 NOT_TESTED</span>
   </header>
   <div class="layout">
     <nav class="side" role="tablist" aria-label="规范图谱入口" id="atlas-tabs" aria-orientation="vertical">
-      <button type="button" class="nav" data-tab="foundation" role="tab" id="tab-foundation" aria-selected="false" aria-controls="pane-foundation" tabindex="-1"><span class="num">01</span>Foundation</button>
-      <button type="button" class="nav" data-tab="components" role="tab" id="tab-components" aria-selected="true" aria-controls="pane-components" tabindex="0"><span class="num">02</span>Components · React Tree</button>
+      <button type="button" class="nav" data-tab="foundation" role="tab" id="tab-foundation" aria-selected="true" aria-controls="pane-foundation" tabindex="0"><span class="num">01</span>Foundation</button>
+      <button type="button" class="nav" data-tab="components" role="tab" id="tab-components" aria-selected="false" aria-controls="pane-components" tabindex="-1"><span class="num">02</span>Components</button>
       <button type="button" class="nav" data-tab="patterns" role="tab" id="tab-patterns" aria-selected="false" aria-controls="pane-patterns" tabindex="-1"><span class="num">03</span>Patterns</button>
       <button type="button" class="nav" data-tab="business" role="tab" id="tab-business" aria-selected="false" aria-controls="pane-business" tabindex="-1"><span class="num">04</span>Business</button>
-      <button type="button" class="nav" data-tab="source" role="tab" id="tab-source" aria-selected="false" aria-controls="pane-source" tabindex="-1"><span class="num">05</span>Source &amp; Proof</button>
-      <p class="aside-foot">五层图谱负责发现与溯源；不修改运行时组件、Tool 身份、SDK、Host、权限或安装流程。</p>
+      <button type="button" class="nav" data-tab="guide" role="tab" id="tab-guide" aria-selected="false" aria-controls="pane-guide" tabindex="-1"><span class="num">05</span>Developer / AI Guide</button>
+      <button type="button" class="nav" data-tab="source" role="tab" id="tab-source" aria-selected="false" aria-controls="pane-source" tabindex="-1"><span class="num">06</span>Source &amp; Proof</button>
+      <p class="aside-foot">开发前先选执行环境与页面模式，再选最少的现有组件。参考页不取得 Host 权限。</p>
     </nav>
     <main class="content">
-      <section class="panel" id="pane-foundation" role="tabpanel" aria-labelledby="tab-foundation" hidden>
-        <div class="panel-head"><div><h2>Foundation · 唯一设计基础</h2><p>色彩、文字、间距、圆角来自正式 <code>src/ui/design-tokens.css</code>。</p></div></div>
+      <section class="panel" id="pane-foundation" role="tabpanel" aria-labelledby="tab-foundation">
+        <div class="panel-head"><div><h2>Foundation · 唯一设计基础</h2><p>先定视觉，再选布局与组件；语义色、间距与圆角实时引用 <code>src/ui/design-tokens.css</code>。</p></div><a class="action" href="../../../docs/framework/extension-ui-reference-patterns-r25.zh-CN.md">阅读设计契约</a></div>
+        <div class="grid" aria-label="规范使用顺序">
+          <div class="card"><h3>01 · 识别执行环境</h3><p>可信 React、HTML/React/Vue 沙箱 Tool、Page Program 的 CSS 与权限边界不同；先确定类型。</p></div>
+          <div class="card"><h3>02 · 选择布局模式</h3><p>优先 P01–P16 的 Page Header、Settings Group、Search/List、Edit 等已有组合，不先发明新 Card。</p></div>
+          <div class="card"><h3>03 · 使用真实组件</h3><p>共享 React 目前以 Button、Card、Switch 为主；其他控件必须查看业务或 React Aria 来源等级。</p></div>
+        </div>
         <div class="card"><h3>语义色板（实时引用正式 CSS 变量）</h3>
           <div class="tokens">
             <div class="token"><div class="swatch" style="--swatch:var(--od-brand)"></div><div class="token-info"><strong>Brand</strong><code>--od-brand</code></div></div>
@@ -107,33 +126,27 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
           </div><p class="muted" style="margin-top:12px">页面只允许一个 gutter 负责人，避免 Card 套 Card。</p></div>
           <div class="card"><h3>Radius</h3><div class="radius"><div class="control">Control · 8px</div><div class="surface">Surface · 12px</div></div></div>
           <div class="card"><h3>Typography</h3><p><strong>13px · 正文与操作</strong></p><p class="muted">12px · 注释与辅助信息</p><p style="font-size:11px;color:var(--od-sub)">11px · 技术元数据，不承载主要错误修复说明</p></div>
-          <div class="card"><h3>Light / Dark</h3><p>正式 Tokens 定义系统深色调色板。真实 React 离线预览提供主题切换；请进入 Components 测试。这里不创建第二套主题状态源。</p></div>
+          <div class="card"><h3>Light / Dark</h3><p>Atlas 外壳跟随系统，使用正式 Tokens；Components 内的真实 React 构建预览可单独切换深浅主题。对比度、200% 缩放和原生行为仍需当前候选实测。</p></div>
         </div>
         <div class="note">源码：<a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-tokens.css">design-tokens.css</a> · <a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-system.css">design-system.css</a>。独立 Tool iframe 不可直接继承宿主私有 stylesheet。</div>
       </section>
 
-      <section class="panel" id="pane-components" role="tabpanel" aria-labelledby="tab-components">
-        <div class="panel-head"><div><h2>Components · 真实业务 React 优先</h2><p>先看正式 Bookmark Tree 的历史 React 构建，再区分共享组件与 Showcase 局部演示。</p></div></div>
-        
-        <div class="card" id="p05-real-bookmark">
-          <div class="bar"><div><h3>P05 · Bookmark Manager 真实 React Tree</h3><p>本轮唯一 P0 视觉与交互基准 · 直接复用仓库已编译的 React App，不手写树</p></div>
-            <a href="../../../examples/sidebar-tools/bookmark-manager/preview/index.html" target="_blank" rel="noopener noreferrer">独立打开实际 React Tree 预览</a></div>
-          <div class="note" style="margin:10px 0"><strong>HISTORICAL_REAL_REACT · CURRENT_SOURCE_NOT_VERIFIED</strong>：预览最后批准于 2026-10-17，正式 <code>App.jsx</code> 于 2026-10-26 更新。预览包含真实 React Tree + Bookmark Model/Service 的内存 SDK Mock，但不是最新正式业务构建，且不连接 Chrome 书签或 Host。不得据此将 R2.8 的 P0 标记通过。</div>
-          <div class="chips" aria-label="真实 React Tree 源码能力" style="margin-bottom:10px">
-            <span class="chip">层级与文件夹</span><span class="chip">直接子项数量</span><span class="chip">展开 / 折叠 / 选中</span>
-            <span class="chip">路径搜索</span><span class="chip">方向键 / Home / End / F2</span><span class="chip">超过 120 行虚拟化</span>
-          </div>
-          <iframe class="full-frame" id="bookmark-real-react" title="Bookmark Manager 已编译真实 React Tree：历史来源、内存 SDK Mock" src="../../../examples/sidebar-tools/bookmark-manager/preview/index.html" loading="eager"></iframe>
-          <details style="margin-top:10px"><summary>核对原始源码与真实渲染证据</summary>
-            <div class="link-list" style="margin-top:8px">
-              <a href="../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx" target="_blank" rel="noopener noreferrer">App.jsx · Tree / row count / keyboard / virtualization / Inspector</a>
-              <a href="../../../examples/sidebar-tools/bookmark-manager/src/react/style.css" target="_blank" rel="noopener noreferrer">style.css · 正式 React Tree 样式（非 Classic 样式）</a>
-              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx" target="_blank" rel="noopener noreferrer">离线入口 · import 正式 App.jsx 与 CSS</a>
-              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs" target="_blank" rel="noopener noreferrer">同源候选构建器 · 需要新的 CI/Chromium 晋升证据</a>
-              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs" target="_blank" rel="noopener noreferrer">历史真实 Chromium 测试 · Tree/键盘/虚拟化/缩放（不可晋升为本轮 PASS）</a>
+      <section class="panel" id="pane-components" role="tabpanel" aria-labelledby="tab-components" hidden>
+        <div class="panel-head"><div><h2>Components · 搜索组件与正确来源</h2><p>优先真实共享组件、正式 CSS 原语与 React Aria；Bookmark Tree 仅作业务参考，不是全局设计基准。</p></div></div>
+        <div class="card">
+          <div class="bar">
+            <label for="component-search"><strong>查找组件 / 使用场景</strong></label>
+            <div class="actions">
+              <input type="search" id="component-search" placeholder="搜索 Button、Settings、Error…" autocomplete="off">
+              <select id="component-kind" aria-label="按来源类型筛选"><option value="all">全部来源</option><option value="SHARED_REACT">共享 React</option><option value="HOST_CSS_PRIMITIVE">可信 CSS</option><option value="REACT_ARIA_SAMPLE">React Aria 示例</option><option value="BUSINESS_REACT">正式业务</option><option value="SANDBOX_TOOL">沙箱 Tool</option><option value="LAYOUT_PATTERN">Layout Pattern</option></select>
+              <button type="button" class="action" id="clear-component">清除</button>
             </div>
-          </details>
+          </div>
+          <div id="component-catalog" class="component-catalog" aria-label="真实组件及参考来源目录"></div>
+          <p id="component-count" class="muted" role="status" aria-live="polite"></p>
+          <p class="muted">点击“查看源码”定位已有实现；下方 React Showcase 展示实际编译组件的内存交互。来源等级不能因演示可点而升级为正式可导入组件。</p>
         </div>
+        
         <div class="card"><h3>正式共享组件与业务组合必须分开</h3><div class="chips">
           <span class="chip shared">Button / IconButton · Shared React</span>
           <span class="chip shared">Card / CardContent · Shared React</span>
@@ -151,6 +164,27 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
           <iframe id="real-react" class="frame" loading="lazy" title="真实 React Extension UI Showcase" src="../react-preview/index.html?tab=tools&amp;ui=showcase&amp;width=360&amp;theme=light"></iframe>
         </div>
         <div class="note"><strong>源码级真实 ≠ 原生验收。</strong> 该 iframe 为编译的 React Preview，不是安装中的工具，也不证明真实存储/权限/撤权。编译输入及产物哈希由原构建脚本负责。</div>
+        <details class="archived-example"><summary>业务专项参考：P05 / P06 Bookmark Tree（历史构建，非设计规范 P0）</summary><div class="archive-body">
+        <div class="card" id="p05-real-bookmark">
+          <div class="bar"><div><h3>P05 · Bookmark Manager React Tree（历史业务参考）</h3><p>只用于验证业务级 Tree / Inspector；不作为通用 UI 规范 P0</p></div>
+            <a href="../../../examples/sidebar-tools/bookmark-manager/preview/index.html" target="_blank" rel="noopener noreferrer">独立打开实际 React Tree 预览</a></div>
+          <div class="note" style="margin:10px 0"><strong>HISTORICAL_REAL_REACT · CURRENT_SOURCE_NOT_VERIFIED</strong>：预览最后批准于 2026-10-17，正式 <code>App.jsx</code> 于 2026-10-26 更新。预览包含真实 React Tree + Bookmark Model/Service 的内存 SDK Mock，但不是最新正式业务构建，且不连接 Chrome 书签或 Host。不得据此将 R2.8 的 P0 标记通过。</div>
+          <div class="chips" aria-label="真实 React Tree 源码能力" style="margin-bottom:10px">
+            <span class="chip">层级与文件夹</span><span class="chip">直接子项数量</span><span class="chip">展开 / 折叠 / 选中</span>
+            <span class="chip">路径搜索</span><span class="chip">方向键 / Home / End / F2</span><span class="chip">超过 120 行虚拟化</span>
+          </div>
+          <iframe class="full-frame" id="bookmark-real-react" title="Bookmark Manager 已编译真实 React Tree：历史来源、内存 SDK Mock" src="../../../examples/sidebar-tools/bookmark-manager/preview/index.html" loading="lazy"></iframe>
+          <details style="margin-top:10px"><summary>核对原始源码与真实渲染证据</summary>
+            <div class="link-list" style="margin-top:8px">
+              <a href="../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx" target="_blank" rel="noopener noreferrer">App.jsx · Tree / row count / keyboard / virtualization / Inspector</a>
+              <a href="../../../examples/sidebar-tools/bookmark-manager/src/react/style.css" target="_blank" rel="noopener noreferrer">style.css · 正式 React Tree 样式（非 Classic 样式）</a>
+              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx" target="_blank" rel="noopener noreferrer">离线入口 · import 正式 App.jsx 与 CSS</a>
+              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs" target="_blank" rel="noopener noreferrer">同源候选构建器 · 需要新的 CI/Chromium 晋升证据</a>
+              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs" target="_blank" rel="noopener noreferrer">历史真实 Chromium 测试 · Tree/键盘/虚拟化/缩放（不可晋升为本轮 PASS）</a>
+            </div>
+          </details>
+        </div>
+        </div></details>
       </section>
 
       <section class="panel" id="pane-patterns" role="tabpanel" aria-labelledby="tab-patterns" hidden>
@@ -192,6 +226,99 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
         <div class="note">CHAT_ADAPTER_NOT_SOURCE_HTML · 不连接真实安装、权限、持久化或业务代码。真实运行仍须从原工具及 Host 验收。</div>
       </section>
 
+      <section class="panel" id="pane-guide" role="tabpanel" aria-labelledby="tab-guide" hidden>
+        <div class="panel-head"><div><h2>Developer / AI Guide · 从需求到一致 UI</h2><p>先决定信任环境与页面模式，再选已存在组件、状态与测试；以下代码不包含 Host/SDK 权限。</p></div><a class="action" href="../../../docs/framework/extension-ui-reference-patterns-r25.zh-CN.md">完整规范</a></div>
+        <div class="grid">
+          <div class="card"><h3>设置页</h3><p>P01 + P02：一个页首、一个 Settings Group、一处 Switch；保存失败保留值。反模式：每个字段独立 Card、重复启用开关。</p></div>
+          <div class="card"><h3>搜索列表页</h3><p>P03 + P04 + P16：搜索优先、可清除，行操作在 More，空态能恢复。反模式：两排工具栏、列表项多层边框。</p></div>
+          <div class="card"><h3>创建 / 编辑页</h3><p>P06 + P07 + P13：主字段清楚、独立返回、未保存保护；未知写入先核对。反模式：默认大 Drawer、异常时偷偷重试。</p></div>
+        </div>
+        <div class="note"><strong>运行环境安全：</strong>仅经审查的宿主 React 可直接导入已有 <code>src/ui/react/components/ui</code> 和宿主 CSS；独立 HTML/React/Vue Tool 需依自身打包器编译、使用自己的 scoped CSS 和公开 SDK。此参考绝不提供 Host 私有 API 或额外权限。</div>
+        <div class="card"><div class="bar"><div><h3>可信 React · 搜索列表</h3><p>放在 src/ui/react/tabs/，由现有 Root 渲染；需要本仓库 React 与现有 Design CSS。</p></div><button type="button" class="action copy-example" data-copy="example-trusted" aria-label="复制可信 React · 搜索列表代码">复制代码</button></div><pre class="example-code" id="example-trusted"><code>import * as React from 'react';
+import {Button} from '../components/ui/button.tsx'; // 放在 src/ui/react/tabs/ 下
+export function SearchList({items = [], onCreate}) {
+  const [query, setQuery] = React.useState('');
+  const inputId = React.useId();
+  const visible = items.filter(item =&gt;
+    item.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+  return &lt;section className="od-stack"&gt;
+    &lt;header className="od-page-head"&gt;
+      &lt;h2 className="od-page-title"&gt;条目&lt;/h2&gt;
+      &lt;div className="od-page-actions"&gt;
+        &lt;Button variant="primary" onClick={onCreate}&gt;新建&lt;/Button&gt;
+      &lt;/div&gt;
+    &lt;/header&gt;
+    &lt;div className="od-toolbar"&gt;
+      &lt;label htmlFor={inputId}&gt;搜索条目&lt;/label&gt;
+      &lt;input id={inputId} className="od-field" value={query}
+        onChange={event =&gt; setQuery(event.target.value)} /&gt;
+    &lt;/div&gt;
+    {visible.length ? &lt;ul&gt;{visible.map(item =&gt;
+      &lt;li key={item}&gt;{item}&lt;/li&gt;)}&lt;/ul&gt; :
+      &lt;p role="status"&gt;没有匹配项，请清除搜索。&lt;/p&gt;}
+  &lt;/section&gt;;
+}
+// 由现有 Sidebar React Root 引用该组件；不新建 createRoot / Host。</code></pre></div>
+        <div class="card"><div class="bar"><div><h3>独立 HTML Tool · 设置页</h3><p>可作为独立 HTML 在浏览器打开；示例保存仅修改状态文本，无真实 SDK 写入。正式工具使用自身打包器与样式。</p></div><button type="button" class="action copy-example" data-copy="example-html" aria-label="复制独立 HTML Tool · 设置页代码">复制代码</button></div><pre class="example-code" id="example-html"><code>&lt;!doctype html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+&lt;style&gt;
+/* 完全独立的 Tool 沙箱示例：系统语义色为安全回退。
+   正式 Tool 应在自己的构建中维护与 Design Tokens 审核一致的样式。 */
+:root{font:13px/1.5 system-ui;color-scheme:light dark}
+*{box-sizing:border-box}
+body{margin:0;padding:12px;color:CanvasText;background:Canvas}
+form{display:grid;gap:8px;max-width:100%;min-width:0}
+input,button{font:inherit;min-height:36px;border-radius:8px}
+input{width:100%;min-width:0;padding:8px;border:1px solid GrayText}
+button{padding:8px 12px;border:1px solid ButtonText;background:ButtonFace;color:ButtonText}
+:focus-visible{outline:2px solid Highlight;outline-offset:2px}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;main&gt;
+&lt;form id="settings"&gt;&lt;label for="name"&gt;名称（必填）&lt;/label&gt;
+&lt;input id="name" required maxlength="80"&gt;
+&lt;button type="submit"&gt;保存当前演示&lt;/button&gt;
+&lt;p id="result" role="status" aria-live="polite"&gt;仅预览内存，未连接 SDK。&lt;/p&gt;
+&lt;/form&gt;
+&lt;/main&gt;
+&lt;script&gt;
+document.getElementById('settings').addEventListener('submit', e =&gt; {
+  e.preventDefault();
+  document.getElementById('result').textContent =
+    '演示已校验：' + document.getElementById('name').value;
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre></div>
+        <div class="card"><div class="bar"><div><h3>独立 Vue Tool · 搜索页</h3><p>SFC 放在已有 Vue Tool 的源码目录，交由其已安装的 Vue 构建器处理；不注入 Host。</p></div><button type="button" class="action copy-example" data-copy="example-vue" aria-label="复制独立 Vue Tool · 搜索页代码">复制代码</button></div><pre class="example-code" id="example-vue"><code>&lt;script setup&gt;
+import {ref, computed} from 'vue';
+const query = ref('');
+const rows = ['设置', '导入', '历史'];
+const visible = computed(() =&gt;
+  rows.filter(row =&gt; row.includes(query.value)));
+&lt;/script&gt;
+&lt;template&gt;
+  &lt;main class="tool"&gt;
+    &lt;label for="tool-search"&gt;搜索功能&lt;/label&gt;
+    &lt;input id="tool-search" v-model="query" type="search"&gt;
+    &lt;ul v-if="visible.length"&gt;
+      &lt;li v-for="row in visible" :key="row"&gt;{{ row }}&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;p v-else role="status"&gt;没有结果，请修改搜索词。&lt;/p&gt;
+  &lt;/main&gt;
+&lt;/template&gt;
+&lt;style scoped&gt;
+.tool{display:grid;gap:8px;min-width:0;padding:12px}
+input{width:100%;min-width:0;min-height:36px;border-radius:8px}
+&lt;/style&gt;
+&lt;!-- 仅供已有 Vue SFC Tool 构建使用；不注入可信 Host。 --&gt;</code></pre></div>
+        <p id="copy-result" class="muted" role="status" aria-live="polite">复制按钮只复制代码；不运行、安装或写入浏览器权限。</p>
+        <div class="card"><h3>AI 开发前置六问</h3><p>执行环境？对应 P01–P16 哪一类？使用哪一正式 Token / 组件？主要操作和异常状态？窄屏 / 键盘 / 焦点怎么处理？用哪条真实构建和 Chrome 证据证明？缺失证据标 NOT_TESTED，不宣称 95+。</p></div>
+      </section>
       <section class="panel" id="pane-source" role="tabpanel" aria-labelledby="tab-source" hidden>
         <div class="panel-head"><div><h2>Source &amp; Proof · 代码归属</h2><p>严格区别共享组件、宿主原语、现有业务实例及模拟器控件。</p></div></div>
         <div class="card">
@@ -230,7 +357,7 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
       </section>
     </main>
   </div>
-  <p class="foot">R2.8 REACT-FIRST SOURCE AUDIT · 无新增 UI 库、Host、SDK、安装器、React Root。此页面加载仓库中的已有预览与权威 CSS；独立下载单个文件时请保留仓库相对资源路径。</p>
+  <p class="foot">DESIGN SYSTEM FIRST · 单一 Atlas / React Root / Token 来源；R2.5 / R2.6 演示均标记为模拟，Bookmark Tree 为历史业务参考。保留仓库相对资源路径才能加载正式 React 预览。</p>
 </div>
 <script>
 (function(){
@@ -277,6 +404,48 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
   query.addEventListener('input',filter);
   document.getElementById('clear-source').addEventListener('click',function(){query.value='';filter();query.focus()});
   filter();
+
+  const catalogEntries=[["Button / IconButton","SHARED_REACT","src/ui/react/components/ui/button.tsx","主要/次要/危险/图标操作；图标必须有可访问名称","不要自行创建新的按钮色板"],["Card / CardContent","SHARED_REACT","src/ui/react/components/ui/card.tsx","必要时一层信息容器","禁止每行套 Card 与重复 padding"],["Switch","SHARED_REACT","src/ui/react/components/ui/switch.tsx","单一持久设置的开关，依真实回读显示","不将启用与权限授权混为一谈"],["Input / Textarea / Select","HOST_CSS_PRIMITIVE","src/ui/design-system.css","有 label、帮助与错误文本的完整字段","不是可导入的共享 React Field"],["Checkbox / Radio / Segmented","REACT_ARIA_SAMPLE","src/ui/react/preview/extension-ui-showcase.tsx","多选、单选、少量分段选择","不能声称已共享或绕过焦点"],["Menu / Popover / Tooltip","REACT_ARIA_SAMPLE","src/ui/react/preview/extension-ui-showcase.tsx","低频操作与上下文说明","主要动作不可藏入菜单"],["Toolbar / Page Header","HOST_CSS_PRIMITIVE","src/ui/design-system.css","一个页首、单组高频动作","同一视图不重复页面标题"],["Settings Group / Section","LAYOUT_PATTERN","docs/framework/extension-ui-layout-recipes-r25.zh-CN.md","同目的设置聚合，一层边界","不为每字段单造 Card"],["Search / Filter","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","搜索、清除、过滤、空态恢复","不用重复双工具栏"],["List Row / More","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","标题、两行摘要、次级操作","行内部不放多个高亮按钮"],["Dialog / Confirmation","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","删除、撤权与高风险确认","不能模拟 Host 授权成功"],["Sheet / Import","BUSINESS_REACT","src/ui/react/tabs/tool-host.tsx","中断式高价值操作、导入审查","宽度很窄时不塞大型 Drawer"],["Status / Loading / Error","LAYOUT_PATTERN","src/ui/design-system.css","可恢复、明确结果及下一步","不把 UNKNOWN 写成成功"],["Empty / No Results","BUSINESS_REACT","src/ui/react/tabs/tools.tsx","提供清除条件或重试操作","不能只有空白卡片"],["Tree","SANDBOX_TOOL","examples/sidebar-tools/bookmark-manager/src/react/App.jsx","层级浏览：仅业务专项参考","不是共享 Tree 组件"],["Inspector / Detail / Dirty Draft","SANDBOX_TOOL","examples/sidebar-tools/bookmark-manager/src/react/App.jsx","详情、编辑和离开保护","历史离线预览不能替代最新业务证明"],["Prompt Form / Edit","SANDBOX_TOOL","examples/sidebar-tools/prompt-shortcuts/src/index.html","正文优先、选填折叠、保存恢复","不能把沙箱 UI 冒充 Host 原语"],["Cookie Dense Data","SANDBOX_TOOL","examples/sidebar-tools/cookie-editor/src/index.html","敏感字段、密集列表与眼睛按钮","不可明文显示真实 Cookie"],["Code Workbench / Run","BUSINESS_REACT","src/ui/react/tabs/develop-editor.tsx","编辑、Run/Stop、结果分层","点击按钮不代表运行成功"],["Locale / Translation","BUSINESS_REACT","src/ui/react/tabs/locale-manager.tsx","日常语言与语言包管理拆分","不暴露冗余高级字段"],["Permission / Revoke","BUSINESS_REACT","src/ui/react/tabs/tool-host.tsx","真实权限状态与撤销后果","不从参考页请求权限"],["Disclosure / Advanced","HOST_CSS_PRIMITIVE","src/ui/design-system.css","低频诊断折叠、键盘可操作","不能隐藏主要保存动作"]];
+  const catalog=document.getElementById('component-catalog');
+  const cards=catalogEntries.map(function(item){
+    const article=document.createElement('article');article.className='component-item';
+    const name=document.createElement('strong');name.textContent=item[0];article.appendChild(name);
+    const level=document.createElement('span');level.className='source-level';level.textContent=item[1];article.appendChild(level);
+    const use=document.createElement('p');use.textContent='适用：'+item[3];article.appendChild(use);
+    const avoid=document.createElement('p');avoid.className='muted';avoid.textContent='避免：'+item[4];article.appendChild(avoid);
+    const link=document.createElement('a');link.href='../../../'+item[2];link.target='_blank';link.rel='noopener noreferrer';link.textContent='查看源码 / Pattern';article.appendChild(link);
+    catalog.appendChild(article);return {article,item};
+  });
+  const catalogSearch=document.getElementById('component-search');
+  const catalogKind=document.getElementById('component-kind');
+  function filterCatalog(){
+    const q=catalogSearch.value.trim().toLocaleLowerCase();let n=0;
+    cards.forEach(function(entry){
+      const match=(catalogKind.value==='all'||entry.item[1]===catalogKind.value)&&
+        entry.item.join(' ').toLocaleLowerCase().includes(q);
+      entry.article.hidden=!match;if(match)n++;
+    });
+    document.getElementById('component-count').textContent=n+' / '+cards.length+' 项参考（共享组件、CSS、业务和模拟严格分级）';
+  }
+  catalogSearch.addEventListener('input',filterCatalog);
+  catalogKind.addEventListener('change',filterCatalog);
+  document.getElementById('clear-component').addEventListener('click',function(){catalogSearch.value='';catalogKind.value='all';filterCatalog();catalogSearch.focus();});
+  filterCatalog();
+  document.querySelectorAll('.copy-example').forEach(function(button){
+    button.addEventListener('click',async function(){
+      const el=document.getElementById(button.dataset.copy);
+      const status=document.getElementById('copy-result');
+      try{
+        if(!navigator.clipboard?.writeText)throw new Error('clipboard unavailable');
+        await navigator.clipboard.writeText(el.textContent);
+        status.textContent='代码已复制；仍需在对应构建环境中编译和验证。';
+      }catch{
+        const selection=window.getSelection();const range=document.createRange();
+        range.selectNodeContents(el);selection.removeAllRanges();selection.addRange(range);
+        status.textContent='浏览器未允许自动复制，已选中代码，请手动复制。';
+      }
+    });
+  });
 })();
 </script>
 </body>

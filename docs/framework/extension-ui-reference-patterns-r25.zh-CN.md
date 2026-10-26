@@ -136,3 +136,48 @@ R2.5 交互参考页至少应有两层导航（**预览外壳专用，不加入�
 - **保留旧成果**：R2.3 组件覆盖的价值、R2.4 业务布局的价值、已实现 React Aria/Token/Extension Center/ToolHost/LocaleManager/正式开发页及已通过的局部验收证据。
 
 **本轮原始最高目标：** 形成 **“可复用布局模式 + 完整交互组件示例 + 真实业务应用 + 源码入口 + 验收证据”** 的开发参考，使未来每次新增 OpenDesk 扩展无需从零决定 UI 排版，不是再堆一个组件陈列馆。
+
+---
+
+## 当前执行契约 · 统一 UI Reference（2026-10-27）
+
+> 本节是对 R2.5 历史设计状态的当前补充。正式视觉来源仍只有 `src/ui/design-tokens.css` 和 `src/ui/design-system.css`，可信 React 根与安全边界仍由 R33 架构文档决定；不得因本节增加第二套组件包、React Root、CSS Palette 或 Host。
+
+**用户目标与先后顺序：** 先统一视觉，再检索正式组件，再选布局（P01–P16），最后用六个业务范例验证。Bookmark Tree 是业务质量参照，属于专项 owner，不再担当主设计 P0。当前 [index.html](../../prototypes/sidebar/extension-ui-showcase/index.html) 直接进入已有 [Atlas](../../prototypes/sidebar/extension-ui-showcase/r27-source-aligned-atlas.html)。Atlas 中的 SOURCE / PREVIEW / HISTORICAL / NOT_TESTED 不能相互升级。
+
+### 视觉决策（真实 Token 优先，不人工写第二套值）
+
+| 决策 | 规则 | 禁止 |
+| --- | --- | --- |
+| 色彩 | 语义 `--od-ink/sub/bg/paper/line/brand/focus/positive/negative`；正式深色源也在 Tokens | 新组件硬编码品牌色、只靠颜色传递失败 |
+| 字号 | 正文 `--od-body-size`、辅助 `--od-note-size`、技术 `--od-meta-size`；错误提示必须可读 | 主体/重要错误藏在 11px 灰字 |
+| 间距 | `--space-1/2/3/4` 为 4/8/12/16px；父容器只持有一层 gutter | 嵌套 Card 连续增加内边距 |
+| 控件 | `--od-icon-size`=34px，常规表单/按钮最小 36px；控制圆角 `--radius-control`，表面 `--radius-surface` | 任意新圆角、热区小于可触控要求 |
+| 信息层级 | 当前视图仅一个页首；主要操作靠近上下文，详情/编辑 320–440px 优先完整子页 | 双页首、双保存、把高频动作埋入 More |
+| 状态 | Hover、Focus、Disabled、Loading、Empty、Error、Unknown 和撤权均需语义反馈 | Unknown 自动重试写入、将演示交互当真实成功 |
+| 适配 | 320/360/400/440px、960px、200% 缩放；`min-width:0`、局部滚动、长文本可换行 | 页面横向溢出、悬浮操作遮盖焦点 |
+| 无障碍 | label/for 或 aria-label，焦点可见，菜单/对话框 Escape 与焦点返回，status/alert | 图标按钮无名称、模拟键盘通过 |
+
+以上规范是**目标行为**，不是本轮已经完成八维产品验收的证明。数值随真实 CSS 修改而更新；视觉例外须能指向现有正式使用场景并有对照。
+
+### 组件来源分级（不能误导 AI）
+
+- `SHARED_REACT`：现有 `components/ui/button.tsx`、`card.tsx`、`switch.tsx` 可供合适的可信 React 消费者导入。
+- `HOST_CSS_PRIMITIVE`：`design-system.css` 下的 Toolbar、Field、Surface、Disclosure、Icon Group 等，仅在可信 UI 有安全的现成样式。
+- `REACT_ARIA_SAMPLE`：Showcase 使用的 Checkbox、Radio、Segmented、Popover、Menu、Tooltip 等，是基于已安装 React Aria 的示例，不自动成为通用共享 API。
+- `BUSINESS_REACT`：Extension Center、ToolHost、Develop、Locale 的真实 UI；按原 owner 和业务依赖借鉴模式，不整段复制 Host 状态机。
+- `SANDBOX_TOOL`：Bookmark Manager、Prompt Shortcuts、Cookie Editor 各自的 HTML/React Tool 代码，只在各自打包/SDK 规则内使用。
+- `CHAT_ADAPTER_NOT_SOURCE_HTML`：R2.5/R2.6 内存交互模拟，供布局比较，禁止记录为正式产品或同源 React 实现。
+
+### 三环境的最短安全开发路径
+
+1. **可信 React（第一方经审计）**：选 [现有 JSX 根](../../src/ui/react/) 和 `components/ui`，通过已定义的 Tabs/Root 消费，不创建 `createRoot`；所有特权操作仍由现有可信 Controller/Host 裁定。
+2. **HTML Tool（独立沙箱）**：复用 [Prompt Shortcuts 正式 HTML/CSS](../../examples/sidebar-tools/prompt-shortcuts/src/index.html) 的结构，使用自己的 `style.css` / 公开 SDK 和已有 Tool 打包器，不让 `design-tokens.css`、`design-system.css` 穿透 iframe；参考页 Guide 的完整 HTML 例子仅修改演示内存。
+3. **React / Vue Tool（独立沙箱）**：在各自 Tool 目录中用原编译器生成静态 Tool 内容，React JSX / Vue SFC 仅借鉴尺寸、语义与模式，不能直接挂到可信 Root、导入私有 Host 或取得新增权限；Guide 的 Vue 片段需要原项目 Vue 构建上下文。
+
+### AI 在创建扩展前必须完成的任务检查
+
+以“设置页 / 搜索列表 / 编辑页”三种复用基准至少各实现一次新 UI 任务。逐一记录：选型→Pattern→实际组件/Token→初始/空/加载/失败/未知态→键盘/窄屏→真实构建与来源归属。设置页优先 P01/P02；搜索列表优先 P03/P04/P16；编辑页优先 P06/P07/P13。不得凭预览里一个可点击按钮就推断真实写入成功。
+
+**证据门槛：** 真实 render 与正式产品版本关系、320/360/400/440/960px + 200% + 深浅主题、焦点/ARIA、HTML/React/Vue 编译、权限边界和三任务复用逐项保留 DONE_VALID/PARTIAL/MISSING/NOT_TESTED；八维独立评分不得空填 95。每维实证 ≥95 才能宣布正式质量通过。最小自动检查来自原测试目录，不新增独立验证基础设施。
+

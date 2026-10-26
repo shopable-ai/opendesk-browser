@@ -13,6 +13,14 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 **先核对当前主分支与本地未提交/并行差异，再改文件；不强推、不全仓重排 CSS。**
 
+## 新扩展 UI Reference · 设计系统优先（2026-10-27）
+
+**目标：开发者和 AI 用现有视觉与组件迅速产出一致的新扩展，而不是优化某个专项 Tree。** 开始一项新 UI 时，先从 [统一参考入口](../../../prototypes/sidebar/extension-ui-showcase/index.html) 查 Foundation、Components、P01–P16、6 Business、Developer/AI Guide 与 Source & Proof，设计合同见 [Extension UI 参考规范](../../../docs/framework/extension-ui-reference-patterns-r25.zh-CN.md)。主入口只是已有 Atlas 的别名，禁止再创建 Atlas、第二套 Token 或 React Root。
+
+**严格来源分级：** 正式共享 React（Button/Card/Switch）≠ 正式业务 React ≠ Host CSS 原语 ≠ React Aria 局部演示 ≠ HTML/React/Vue 沙箱 Tool ≠ 内存模拟。不得照抄历史业务组件建立新的共享 API；Bookmark Tree 仅在业务确实需要 Tree 时参考，不是一般设置/搜索/编辑页的首要标准。
+
+**AI/开发者交付顺序：** 先识别可信 React / 独立 Tool / Page Program → 选一个主要 P Pattern + 最少 Group → 选正式 Token 与真实源文件 → 设计主要操作、空/加载/失败/未知/撤权状态 → 验证 320/360/400/440/960、200%、键盘/ARIA 和安全边界 → 证明产物源一致。设置、搜索列表、编辑三类作为通用复用样本。未跑真实候选 Chrome 与安装验收保留 NOT_TESTED；不能凭方案长短评分 ≥95。
+
 ## 唯一现行规范（禁止复制成第二套设计系统）
 
 **最新五 Tab/类型标签的权威**为 [R4 产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.md) 与 `src/ui/react/app-shell.tsx`。R37 正式 HTML 为根目录 `sidepanel.html`，源码 `src/ui/sidepanel.html` 只含空挂载节点；旧 `tool.html` 已退役。遗留 `tab-tools`/`workbench-tools` DOM ID 不是仍存在「工具」一级 Tab 的证据。

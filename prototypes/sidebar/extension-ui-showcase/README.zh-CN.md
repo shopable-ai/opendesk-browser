@@ -1,4 +1,16 @@
-# OpenDesk Extension UI 参考入口（R2.3 → R2.8）
+# Extension UI Design System · 当前执行入口（2026-10-27）
+
+**最高目标：** 为开发者和 AI 提供 Foundation → Components → Patterns → 6 Business Recipes → Developer/AI Guide → Source & Proof。组件系统优先，不再把 Bookmark Tree 当成 P0 或 UI 风格模板。
+
+**唯一入口：** [index.html](./index.html)（直接转到原有 [Source-Aligned Atlas](./r27-source-aligned-atlas.html)；不再维护独立第二套色板与展示框架）。Atlas 默认 Foundation，Components 提供可检索目录、来源类型、适用/反模式和现有 React 预览；Guide 提供可信 React、独立 HTML 与 Vue Tool 最小示例及三种任务的选型。全部是参考资料，不会安装应用或申请 Host 权限。
+
+**可复用现状（截至审计起点 05808f0）：** 共享 React=Button/IconButton、Card/CardContent、Switch；其他由正式 CSS、React Aria、业务 React、沙箱 Tool 提供，且保持真实等级。P01–P16 与六业务复用原页面；R2.8 Tree 是历史业务参考，非同源当前验收。预览编译产物在仓库中存在（约 1.6 MB），但构建输入 SHA 与当前 main 的一致性、320–960px/200%/键盘/Chrome **NOT_TESTED**。禁止把本页编辑或 Node 检查当成产品 95+ 通过。
+
+**权威文档：** [设计决策与开发复用契约](../../../docs/framework/extension-ui-reference-patterns-r25.zh-CN.md)；[P01–P16 Layout Recipe](../../../docs/framework/extension-ui-layout-recipes-r25.zh-CN.md)；[执行边界与组件所有权](../../../.agents/skills/opendesk-extension-ui/SKILL.md)。历史 R2.8 以下保留作审计来源，不再作为下一轮实施优先级。
+
+---
+
+# 历史记录 · R2.3 → R2.8（只读，非当前 P0）
 
 ## R2.8 · 真实 React Tree 优先与评分纠偏（2026-10-26）
 
