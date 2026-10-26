@@ -104,6 +104,9 @@ export function createCookieSdkAdapter({getBrowser,request}){
   }
   return {
     targetFor,getTargetReason:()=>lastPageReason,checkRead,list,exactList,readValue,
+    // Fixed first-party account RPC is admitted by the existing trusted Host.
+    // No raw Cookie snapshot is returned to this adapter or to React.
+    accountRequest:(action,payload={})=>request('cookieAccount.'+action,payload),
     beginExportIntent:(target,method)=>request('cookieEditor.export.begin',{url:target.url,method}),
     finishExportIntent:ref=>request('cookieEditor.export.finish',{ref}),
     beginImportIntent:target=>request('cookieEditor.import.begin',{url:target.url}),
