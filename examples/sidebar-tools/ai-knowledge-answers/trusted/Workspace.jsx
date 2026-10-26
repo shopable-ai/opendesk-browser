@@ -13,6 +13,7 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
   const [approved,setApproved]=React.useState(false);
   const [autoFixed,setAutoFixed]=React.useState(false);
   const [reviewFor,setReviewFor]=React.useState('');
+  const [rechecking,setRechecking]=React.useState('');
   const [error,setError]=React.useState('');
   const prepared=state.prepared,test=state.test,records=test?.records||[];
   const running=test?.mode==='running',paused=test?.mode==='paused';
@@ -41,6 +42,13 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
   const sendPage=(event,messageId,reviewApproved=false)=>{
     setError('');
     guard(()=>host.sendToLocalPage({event:event.nativeEvent,messageId,reviewApproved}));
+  };
+  const reconcilePage=(event,messageId)=>{
+    setError('');setRechecking(messageId);
+    guard(async()=>{
+      try{return await host.reconcileLocalPage({event:event.nativeEvent,messageId});}
+      finally{setRechecking(current=>current===messageId?'':current);}
+    });
   };
   return <div className="od-knowledge-workspace">
     <section className="od-knowledge-dashboard" aria-label="知识问答控制台">
@@ -105,6 +113,13 @@ export default function KnowledgeWorkspace({host,onOpenSettings}){
           {row.answer&&<p className="od-knowledge-answer">{row.answer}</p>}
           {row.status==='CONFIRMED'&&row.replyMessageId&&
             <p className="od-knowledge-meta">网页已确认：{row.replyMessageId} · 回复客户消息：{row.messageId}</p>}
+          {started&&row.status==='UNKNOWN'&&row.answer&&<div className="od-knowledge-review">
+            <p className="od-note">网页发送结果尚不能确认。只能核对原网页，绝不再次发送。</p>
+            <button type="button" className="od-button" disabled={state.busy||Boolean(rechecking)}
+              onClick={event=>reconcilePage(event,row.messageId)}>
+              {rechecking===row.messageId?'正在只读核对…':'只读核对网页回执'}
+            </button>
+          </div>}
           {started&&row.status==='RETRIEVED_ONLY'&&<button type="button" className="od-button"
             disabled={state.busy} onClick={()=>prepareInbound(row.messageId)}>使用共享 AI 生成草稿</button>}
           {started&&row.status==='ANSWERED_FIXED'&&<button type="button" className="od-button"

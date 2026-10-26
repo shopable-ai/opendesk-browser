@@ -1,6 +1,80 @@
-# AI 知识问答 · R2.1 UI 与 R1.3 本地模拟聊天测试
+# AI 客服（AI 知识问答）· 正式源码、同源交互预览与实测说明
 
 独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.5`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R2.1 的安装、保存、编辑、侧栏关闭重开及固定来源回答已在独立 Mac Chrome for Testing 完成核心验证，见文末；R1.3 的 DOM 观察、定时消息处理、草稿发送与独立 DOM 回执仍按对应工作流记录，其他第三方网站不在本轮范围。
+
+
+## R3.1 · 正式入口、真实能力边界与离开对话后的使用方法（2026-10-26）
+
+**唯一持续维护入口就是本 README + 仓库文件，不依赖 ChatGPT 的 `/mnt/data/` 聊天附件。** 历史 `ai_knowledge_answers_interactive_preview.html` 是单文件演示，不是正式产品；如果附件失效，直接使用下方同源 HTTP 预览，不重建知识模型。
+
+| 项目 | 仓库内准确路径 | 使用角色 |
+| --- | --- | --- |
+| 正式 Sidebar Tool 安装包 | `examples/sidebar-tools/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json` | 官方扩展中心导入、更新及身份核验，版本 `0.1.5` |
+| 知识问答正式界面 | `examples/sidebar-tools/ai-knowledge-answers/src/index.html`、`style.css`、`main.js`、`model.js` | 沙箱知识查询、CRUD、搜索筛选、JSON/CSV、ETag 写后读回 |
+| 正式同源交互预览 | **`examples/sidebar-tools/ai-knowledge-answers/preview/index.html`** | HTTP 载入真实 `src/` 页面脚本；仅模拟 Host 存储和可信 AI 外观 |
+| 可信 AI 客服界面 | `examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx`、`workspace.css`、`host.js` | 真正客服监听、审核、发送、UNKNOWN 只读核对入口；**不属于 HTTP 预览所模拟的权限** |
+| 真实客户端业务接线 | `trusted/ai-request.js`、`local-test-runtime.js`、`local-test-adapter.js` | 现有 Shared Provider、固定端口/文档 DOM、去重与只读回执 |
+| 客服模拟网页 | `examples/tasks/ai-knowledge-chat-demo.html`、`.js`、`.css` | 独立客户消息和客服 DOM 发送表单；网页本身**不生成客服答案** |
+| 示例知识及用例 | `fixtures/sample-knowledge.json`、`sample-knowledge.csv`、`answer-test-cases.json` | 14 条虚构知识、52 个场景，不代表真实商家政策 |
+| 本轮状态及证据边界 | `docs/framework/workstreams/ai-knowledge-answers-r31-20261026.md` | 已有能力、增量改动、未验证项与下一条真实操作 |
+
+### 启动两个互相独立的网页（Mac，仓库根目录）
+
+先确认 `lsof -nP -iTCP:43111 -sTCP:LISTEN` 与 `lsof -nP -iTCP:43112 -sTCP:LISTEN`；若已有其他 owner 的服务，核对其目录，不抢占、强杀或重复启动。没有监听时分别运行：
+
+```sh
+cd /Users/shopme/Documents/workspace/opendesk-browser
+python3 -m http.server 43112 --bind 127.0.0.1 --directory examples/sidebar-tools/ai-knowledge-answers
+# 打开 http://127.0.0.1:43112/preview/ （知识 UI，同源业务源码 + 假 Host）
+
+# 新终端，在相同仓库根目录
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+# 打开 http://127.0.0.1:43111/ai-knowledge-chat-demo.html （独立真实网页 DOM）
+```
+
+预览只能测试：切换「问答/知识」、固定回答和候选来源、新建/编辑/启停/删除、JSON/CSV 导入导出，以及冲突/回执丢失模拟。选择空库或 14 条样例数据后，输入问题→查询→编辑→保存→返回再次查询。`43112` 的预览刷新会重置内存；这**不是**真实 Host 持久化或 Shared Provider、客服监听及 DOM 发送。
+
+### 如何在已安装工具验证真实客服闭环
+
+1. 在原「扩展」中心核对官方身份和 0.1.5，同一 Browser 已编译最新 `trusted/` 代码；保留现有数据，导入 `fixtures/sample-knowledge.json` 时先备份并预览。
+2. 在 Chrome **当前窗口**打开上方固定 `43111` 客服网页，然后在可信侧栏点击「批准并监听本地测试页」（10 分钟、20 条、单一 `documentId`、默认关闭自动发送）。此授权不是针对任意第三方网站的泛授权。
+3. 批准后在网页**新发送**「几天内可以退款」；观察客户 `messageId`、`thread_demo_01`、知识 `qa_demo_refund` 和 `ANSWERED_FIXED`。在侧栏人工确认，或仅在事先明确勾选后允许固定答案自动发送；检查网页实际客服 DOM 的 `data-reply-to` 和唯一客服 `messageId`，侧栏出现 `CONFIRMED`。
+4. 新发「退款需要几天」→ `RETRIEVED_ONLY`。逐条审阅将发送给 AI 的问题、条件、来源和 Provider 后，通过原 Shared AI Consumer 获得 `REVIEW_REQUIRED` 草稿；人工审核内容并单独点击「人工确认发送」。定时自动 AI 草稿必须另行授权；**自动生成始终不等于自动发送**。
+5. 本地网页可设 3/6/10 秒、4/8/12/20 条定时消息。分别验证两会话切换、暂停/恢复、停止、保存知识后的 ETag 失效、Provider 撤权，以及同客户双击不能重复发送。
+6. 对 `UNKNOWN` 使用可信侧栏「只读核对网页回执」：只读取原授权文档，不再次点击发送；若原客户文本/范围/线程及唯一客服回执完整一致则更新 `CONFIRMED`，否则继续 `UNKNOWN` 并人工调查。**停止/撤权/切换文档后不能偷偷重绑旧消息。**
+
+### 状态与排障
+
+| 状态或问题 | 用户应如何处理 |
+| --- | --- |
+| `ANSWERED_FIXED` | 仅代表准确知识匹配；未授权自动固定发送时，仍需实际点击确认 |
+| `RETRIEVED_ONLY` / `REVIEW_REQUIRED` | 候选不等于事实；AI 草稿必须核对来源、申请期限/到账时长等语义后逐条批准 |
+| `AMBIGUOUS` / `NO_MATCH` / `INVALID_AI` | 不自动回答，先调整知识、条件或转人工 |
+| `SENDING` | 网页结果尚在处理，禁止再次点击同一消息 |
+| `UNKNOWN` | 禁止自动或人工盲目重发；原会话仍在时执行只读核对，否则人工检查网页聊天记录 |
+| `STALE` / ETag 冲突 | 重新读取并核对知识版本、原消息与授权；旧答案和已废弃 AI 草稿不得沿用 |
+| 监听已暂停/停止、授权撤回 | 暂停不会取消已经实际点击的发送；撤权后不派发新操作，重新运行须再次审阅 |
+| 页面“等待 OpenDesk 监听” | 证明客户端尚未读到监听标识；先核实正式工具身份、可信 Host、当前窗口与 `43111` URL，不以客户端演示页面冒充侧栏启动成功 |
+
+### 已完成与尚未证明的测试
+
+- **历史真实 Mac CFT 核心 PASS（`0.1.5`）**：通过原安装/升级流程，知识新建、保存读回、编辑、关闭重开侧栏后仍可查询；该证据仅覆盖知识管理，并非本轮浏览器重新验收。
+- **历史 Node/fake Chrome/fake Provider PASS**：见 `R1.5-LOCAL` 文档的 24/24 Runtime、34/34 Host/Provider、16/16 共享夹具。修改后的 R3.1 新增 UNKNOWN 只读核对定向测试必须另行运行，不继承旧 PASS。
+- **R3.1 当前新增源码**：只读复核实现、可信 UI 操作和定向回归；本轮如果只通过 GitHub 写入，不得标记 Node、HTTP 浏览器、真实 Chrome、真实 Shared Provider、真实 DOM 回执 PASS。
+- **未完成**：本轮真实已安装工具中的监听→固定回执→真实 Provider→人工审核→网页确认，三方真实网站适配（须先有用户批准的目标站点及 DOM 契约），以及 production 安装/撤权/原生异常全矩阵。
+- **不混淆发行身份**：`trusted/` 改动属于 Browser 内静态编译业务，不应手工修改现有 0.1.5 Sidebar Tool JSON 或冒充包版本升级；部署之前按唯一 Browser 构建和官方 admission 验证新可信代码真正被加载。
+
+本轮新用例的本地最小命令：
+
+```sh
+node --test tests/environment/ai-knowledge-chat-r13.test.mjs
+node --test tests/environment/ai-knowledge-answers-host.test.mjs tests/environment/ai-knowledge-answers-provider-contract.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-knowledge-answers --check-project
+```
+
+历史的 UI/包/Native 分层证据继续见下文及相应 workstream；本 README 和上述仓库路径才是**跨 ChatGPT 对话的长期启动入口**。
+
+
 
 ## R1.3：从哪里开始测试（原生尚未验收）
 

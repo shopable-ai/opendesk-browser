@@ -91,6 +91,53 @@ export function createLocalKnowledgeTestRuntime({
      throw error;
    }finally{s.sending.delete(id);}
  }
+ // A lost send receipt must never trigger a second click. This independent
+ // read-only recovery is permitted while paused: it can confirm what already
+ // happened, but cannot initiate any website action.
+ async function reconcileUnknown(s,id){
+   if(!active(s))throw fail('E_KB_TEST_STOPPED','原测试会话已停止，无法重新绑定旧回执');
+   if(s.sending.has(id))throw fail('E_KB_TEST_SEND_BUSY','该消息正在发送或只读核对中');
+   assertLive();
+   const record=snapshot.records.find(row=>row.messageId===id);
+   if(!record||record.threadId!==s.threadId||record.status!=='UNKNOWN'||
+      typeof record.answer!=='string'||!record.answer.trim())
+     throw fail('E_KB_TEST_RECONCILE','仅允许对有原始答案的未知发送结果执行只读核对');
+   s.sending.add(id);
+   try{
+     // The existing adapter revalidates the exact approved Chrome document.
+     const page=await adapter.read();
+     if(!active(s))throw fail('E_KB_TEST_STOPPED','只读核对期间原测试会话已停止');
+     assertLive();
+     if(page.threadId!==s.threadId){
+       stop('网页已切换客户会话，旧回执保持未知并停止监听');
+       throw fail('E_KB_TEST_STALE','客户会话已切换，不能采用该网页的回执');
+     }
+     const rows=page.messages;
+     const customers=rows.filter(row=>row.direction==='customer'&&
+       row.threadId===s.threadId&&row.messageId===id&&
+       row.text===record.question&&row.scope===record.scope);
+     // Check every agent reply to this customer, not just identical text:
+     // duplicate or contradictory replies require manual investigation.
+     const replies=rows.filter(row=>row.direction==='agent'&&
+       row.threadId===s.threadId&&row.replyTo===id);
+     const receipt=replies[0];
+     if(customers.length===1&&replies.length===1&&
+        receipt.text===record.answer.trim()&&
+        /^kb_msg_[0-9a-f-]{36}$/u.test(receipt.messageId)&&
+        rows.filter(row=>row.messageId===receipt.messageId).length===1){
+       update(s,id,{status:'CONFIRMED',replyMessageId:receipt.messageId,
+         message:'只读核对成功：唯一网页回执已匹配，未再次发送'});
+       return {status:'CONFIRMED',threadId:s.threadId,
+         messageId:receipt.messageId,replyTo:id,readOnly:true};
+     }
+     update(s,id,{message:'只读核对没有唯一匹配回执；结果仍未知，禁止重新发送，请人工检查网页记录'});
+     return {status:'UNKNOWN',code:'E_KB_DEMO_NO_UNIQUE_RECEIPT',readOnly:true};
+   }catch(cause){
+     if(active(s))update(s,id,{message:'只读核对失败，结果仍未知且禁止重发：'+
+       String(cause?.code||cause?.message||cause)});
+     throw cause;
+   }finally{s.sending.delete(id);}
+ }
  async function analyze(s,message){
    const epoch=s.pauseEpoch;
    if(!running(s,epoch))return;
@@ -286,6 +333,11 @@ export function createLocalKnowledgeTestRuntime({
      if(!event?.isTrusted)throw fail('E_USER_GESTURE','必须在可信 Side Panel 点击发送');
      if(!session||session.paused)throw fail('E_KB_TEST_PAUSED','监听已停止或暂停');
      return send(session,messageId,{reviewApproved});
+   },
+   reconcile({event,messageId}={}){
+     if(!event?.isTrusted)throw fail('E_USER_GESTURE','只读回执核对需要可信侧栏的真实点击');
+     if(!session||!active(session))throw fail('E_KB_TEST_STOPPED','原会话已停止，只能人工查看网页记录');
+     return reconcileUnknown(session,messageId);
    },
    dispose(){stop('测试会话已关闭');}
  });

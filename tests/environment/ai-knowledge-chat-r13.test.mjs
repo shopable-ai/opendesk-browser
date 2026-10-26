@@ -520,3 +520,99 @@ for(const changedKnowledge of [false,true]){
    }finally{rt.dispose();}
  });
 }
+
+test('R3.1 UNKNOWN after a real site click can be confirmed by a separate read-only receipt without another send',async()=>{
+ const {api,target,site}=lab();
+ const execute=api.scripting.executeScript;
+ api.scripting.executeScript=async options=>{
+   const actual=await execute(options);
+   // The site handler DID send; only the executeScript receipt was lost.
+   if(options.args[0].operation==='send')
+     return [{frameId:0,documentId:activeDoc,
+       result:{ok:false,code:'E_KB_DEMO_OUTCOME_UNKNOWN'}}];
+   return actual;
+ };
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','recoverable fixed answer');
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_DEMO_OUTCOME_UNKNOWN'});
+   assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+   assert.equal(site.sendCalls,1);
+   const reads=site.readCalls;
+   const receipt=await rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId});
+   assert.equal(receipt.status,'CONFIRMED');
+   assert.equal(receipt.readOnly,true);
+   assert.equal(receipt.replyTo,inbound.messageId);
+   assert.equal(rt.snapshot().records[0].replyMessageId,receipt.messageId);
+   assert.equal(rt.snapshot().confirmed,1);
+   assert.ok(site.readCalls>reads,'recovery uses another website DOM read');
+   assert.equal(site.sendCalls,1,'read-only recovery cannot click Send again');
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_TEST_NO_ANSWER'});
+ }finally{rt.dispose();}
+});
+
+test('R3.1 UNKNOWN remains terminal when no receipt or multiple replies are present, including pause',async()=>{
+ const {api,target,site}=lab({failSend:true});
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','unknown fixed answer');
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}));
+   assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+   rt.pause(); // A read-only reconciliation is safe while sending is paused.
+   const missing=await rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId});
+   assert.equal(missing.status,'UNKNOWN');
+   const answer=rt.snapshot().records[0].answer;
+   const base={threadId:inbound.threadId,direction:'agent',scope:'',replyTo:inbound.messageId,
+     text:answer,createdAt:'2026-10-26T00:01:00.000Z'};
+   site.messages.push({...base,messageId:'kb_msg_00000000-0000-4000-b000-000000000003'},
+     {...base,messageId:'kb_msg_00000000-0000-4000-b000-000000000004'});
+   const duplicate=await rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId});
+   assert.equal(duplicate.status,'UNKNOWN');
+   assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+   assert.equal(rt.snapshot().errors,1);
+   assert.equal(site.sendCalls,1,'neither reconciliation performs a second send');
+ }finally{rt.dispose();}
+});
+
+test('R3.1 read-only receipt recovery requires trusted click and an UNKNOWN original message',async()=>{
+ const {api,target,site}=lab();
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','fixed original');
+   assert.throws(()=>rt.reconcile({event:{isTrusted:false},messageId:inbound.messageId}),
+     {code:'E_USER_GESTURE'});
+   await assert.rejects(rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_TEST_RECONCILE'});
+   rt.stop('explicit stop');
+   assert.throws(()=>rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_TEST_STOPPED'});
+   assert.equal(site.sendCalls,0);
+ }finally{rt.dispose();}
+});
+
+test('R3.1 trusted source owns UNKNOWN read-only UI and Host route; sandbox package cannot send',()=>{
+ const trusted=new URL('../../examples/sidebar-tools/ai-knowledge-answers/trusted/',import.meta.url);
+ const ui=readFileSync(new URL('Workspace.jsx',trusted),'utf8');
+ const host=readFileSync(new URL('host.js',trusted),'utf8');
+ const runtime=readFileSync(new URL('local-test-runtime.js',trusted),'utf8');
+ assert.match(ui,/只读核对网页回执/);
+ assert.match(host,/reconcileLocalPage/);
+ assert.match(runtime,/return reconcileUnknown\(session,messageId\)/);
+ assert.doesNotMatch(runtime.match(/async function reconcileUnknown[\s\S]*?async function analyze/)?.[0]||'',
+   /adapter\.send\(/,'read-only recovery never calls send');
+});
+
