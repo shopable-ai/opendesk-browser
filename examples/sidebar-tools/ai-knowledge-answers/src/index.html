@@ -8,22 +8,22 @@
   </header>
   <p id="qa-status" role="status" aria-live="polite" class="qa-status" hidden></p>
   <section id="qa-view-ask" class="qa-view" role="tabpanel" aria-labelledby="qa-tab-ask">
-    <div class="qa-headline"><div><h2>测试知识回答</h2><p>输入问题，核对已有知识及来源</p></div></div>
+    <div class="qa-headline"><div><h2>知识检索</h2><p>根据已保存的知识查找答案与依据</p></div></div>
     <div class="qa-ready-line" role="status" aria-live="polite"><span id="qa-ready-dot" class="qa-dot off" aria-hidden="true"></span><span id="qa-ready-label">正在读取知识库…</span></div>
-    <label class="qa-label" for="qa-query">客户问题</label>
+    <label class="qa-label" for="qa-query">输入问题</label>
     <textarea id="qa-query" class="od-field" rows="3" maxlength="300" placeholder="例如：退款需要几天？"></textarea>
     <details id="qa-query-options" class="qa-options"><summary>指定适用条件 <span>选填</span></summary><label class="qa-label" for="qa-query-scope">适用条件</label><input id="qa-query-scope" class="od-field" maxlength="60" placeholder="例如：A 方案"></details>
-    <button id="qa-ask" class="od-button od-button--primary qa-primary" type="button">查询知识</button><p class="qa-query-tip">快捷键：Ctrl / ⌘ + Enter</p>
+    <button id="qa-ask" class="od-button od-button--primary qa-primary" type="button" title="快捷键 Ctrl / ⌘ + Enter">查询知识</button>
     <section id="qa-result" class="qa-result" aria-label="本次回答" aria-live="polite" hidden>
       <div class="qa-result-head"><strong id="qa-result-kind"></strong><span id="qa-result-count"></span></div>
       <p id="qa-result-text"></p>
       <p id="qa-result-advice" class="qa-result-advice"></p>
-      <div id="qa-source-title" class="qa-source-title">知识来源</div><ul id="qa-result-sources"></ul>
+      <div id="qa-source-title" class="qa-source-title">引用的知识</div><ul id="qa-result-sources"></ul>
     </section>
     <details class="qa-answer-guide"><summary>固定答案与 AI 生成有何区别？</summary><p>精确问题显示已保存的固定答案，相似问题仅提供知识候选。官方发行如在上方提供可信 AI 问答工作区，可在那里审阅知识并生成草稿；AI 草稿均须人工核对。</p></details>
   </section>
   <section id="qa-view-list" class="qa-view" role="tabpanel" aria-labelledby="qa-tab-list" hidden>
-    <div class="qa-headline"><div><h2>知识库</h2><p>点击条目查看或编辑</p></div>
+    <div class="qa-headline"><div><h2>知识库</h2></div>
       <div class="qa-actions">
         <button id="qa-new" class="od-icon-button qa-icon" type="button" title="新建知识" aria-label="新建知识"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
         <button id="qa-manage-toggle" class="od-icon-button qa-icon" type="button" title="导入与导出" aria-label="导入与导出" aria-expanded="false" aria-controls="qa-manage"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>

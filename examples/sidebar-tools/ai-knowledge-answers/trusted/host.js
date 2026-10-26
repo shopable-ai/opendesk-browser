@@ -30,11 +30,11 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
   const test=api&&currentPageTarget?createLocalKnowledgeTestRuntime({
     api,currentPageTarget,model,readLibrary,
     assertLive:live,getProviderGeneration:()=>conversation.providerGeneration(),
-    callAI:async({question,scope,approvedKnowledgeTest,expectedEtag})=>{
+    callAI:async({question,scope,approvedKnowledgeTest,expectedEtag,sourceIdAllowlist=null})=>{
       const preparedAI=await autoConsumer.refresh();
       if(preparedAI.etag!==expectedEtag)
         throw error('E_KB_STALE','批准时的知识版本已经变化');
-      return autoConsumer.request({request:question,scope,approvedKnowledgeTest});
+      return autoConsumer.request({request:question,scope,approvedKnowledgeTest,sourceIdAllowlist});
     },
     onStopAI:()=>{autoConsumer.invalidate();conversation.revokeKnowledgeTest();},
     onChange:next=>publish({test:next})
@@ -49,7 +49,7 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
     subscribeConnection(value=>{if(value.nativeConnected===false&&conversation.source().provider==='local_codex')
       invalidate('Native 连接已断开，旧回答已失效');}),
     conversation.subscribeAuthorizationChanges(()=>invalidate('模型权限发生变化，旧回答已失效'))];
-  async function prepare({question,scope='',inboundId=null,testIdentity=null}={}){
+  async function prepare({question,scope='',inboundId=null,testIdentity=null,sourceIdAllowlist=null}={}){
       live();if(state.busy)throw error('E_KB_BUSY','当前问答尚未结束');
       const expected=revision;prepared=null;selectedInbound=null;
       publish({busy:true,prepared:null,result:null,error:''});
@@ -58,10 +58,17 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
         if(expected!==revision)throw error('E_KB_STALE','准备期间知识或授权已变化');
         const library=model.library(read.value??model.empty());
         const lookup=model.lookup(library,{question,scope});
-        const references=library.items.filter(item=>lookup.sourceIds.includes(item.id));
+        if(sourceIdAllowlist!==null&&
+          (lookup.status!=='RETRIEVED_ONLY'||!Array.isArray(sourceIdAllowlist)||
+           !sourceIdAllowlist.length||sourceIdAllowlist.length>3||
+           new Set(sourceIdAllowlist).size!==sourceIdAllowlist.length||
+           sourceIdAllowlist.some(id=>!lookup.sourceIds.includes(id))))
+          throw error('E_KB_REFERENCES','本轮逐题来源与现有模型检索不一致');
+        const permitted=sourceIdAllowlist===null?lookup.sourceIds:sourceIdAllowlist;
+        const references=library.items.filter(item=>permitted.includes(item.id));
         const recipient=conversation.recipient();
         prepared=Object.freeze({question:question.trim(),scope,etag:receipt.etag,revision,
-          recipient,references,lookup,inboundId,testIdentity});
+          recipient,references,lookup,inboundId,testIdentity,sourceIdAllowlist});
         selectedInbound=inboundId;
         publish({prepared});return prepared;
       }catch(cause){publish({error:cause.message});throw cause;}
@@ -75,7 +82,8 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
       if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
       const item=test.select(messageId);
       return prepare({question:item.question,scope:item.scope,
-         inboundId:messageId,testIdentity:item.testIdentity});
+         inboundId:messageId,testIdentity:item.testIdentity,
+         sourceIdAllowlist:item.sourceIdAllowlist});
     },
     startLocalTest({event,autoSendFixed=false}={}){
       if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
@@ -118,12 +126,14 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
         const now=test?.select(inboundId),prior=current.testIdentity,identity=now?.testIdentity;
         if(!prior||!identity||!Object.keys(prior).every(key=>prior[key]===identity[key])||
            current.question!==now.question||current.scope!==now.scope||
+           JSON.stringify(current.sourceIdAllowlist)!==JSON.stringify(now.sourceIdAllowlist)||
            current.etag!==test.approvalContext().etag)
           throw error('E_KB_STALE','客户会话或知识已变化，请重新准备 AI 草稿');
       }
       round=new AbortController();const owned=round,expected=revision;
       let pending;
-      try{pending=consumer.request({request:current.question,scope:current.scope,event,signal:owned.signal});}
+      try{pending=consumer.request({request:current.question,scope:current.scope,event,
+        signal:owned.signal,sourceIdAllowlist:current.sourceIdAllowlist});}
       catch(cause){round=null;throw cause;}
       publish({busy:true,result:null,error:''});
       return Promise.resolve(pending).then(result=>{

@@ -56,7 +56,7 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
     latest=prepared;
     return {loaded:true,count:prepared.library.items.length,etag:prepared.etag};
   }
-  function request({request,scope='',signal,event,approvedKnowledgeTest=null}={}){
+  function request({request,scope='',signal,event,approvedKnowledgeTest=null,sourceIdAllowlist=null}={}){
     live();
     if(busy)throw fail('E_KB_BUSY','上一轮问答尚未完成');
     if(event?.isTrusted!==true&&!approvedKnowledgeTest)
@@ -76,9 +76,18 @@ export function createKnowledgeAnswerConsumer({model,conversation,readLibrary,as
       return Promise.resolve({...lookup,question:lookup.answer||
         '没有确定的知识答案，需人工核查。',modelCalled:false});
     }
+    // R3.2: The per-intent router may conservatively REJECT some BM25
+    // candidates. It may not add sources. Enforce that same allowlist BEFORE
+    // sending any context to Shared Provider and before a permission prompt.
+    if(sourceIdAllowlist!==null&&(!Array.isArray(sourceIdAllowlist)||
+       !sourceIdAllowlist.length||sourceIdAllowlist.length>3||
+       sourceIdAllowlist.some(id=>typeof id!=='string'||!lookup.sourceIds.includes(id))||
+       new Set(sourceIdAllowlist).size!==sourceIdAllowlist.length))
+      throw fail('E_KB_REFERENCES','逐题候选来源不在原模型检索结果中');
+    const permittedIds=sourceIdAllowlist===null?lookup.sourceIds:sourceIdAllowlist;
     // The original trusted event is forwarded unchanged. The consumer starts
     // the Chrome Provider origin grant BEFORE this function's first await.
-    const chosen=snapshot.library.items.filter(item=>lookup.sourceIds.includes(item.id))
+    const chosen=snapshot.library.items.filter(item=>permittedIds.includes(item.id))
       .map(({id,question,answer,scope})=>({id,question,answer,scope}));
     if(!chosen.length||chosen.length>3)throw fail('E_KB_REFERENCES','未获得受审的候选来源');
     const context={scope,references:chosen};

@@ -25,7 +25,7 @@ function state(){
   $('qa-danger').hidden=!selected;
   $('qa-delete').hidden=!selected;$('qa-delete').disabled=blocked||!selected;
   $('qa-ready-label').textContent=uncertain?'写入或读取待核对，请刷新':!ready?'正在读取知识库…':
-    '已载入 '+kb.items.length+' 条知识 · 本地查询可用';
+    kb.items.length+' 条知识可查询';
   $('qa-ready-dot').classList.toggle('off',!ready||uncertain);
   $('qa-refresh').disabled=busy||Boolean(review);
   $('qa-manage-toggle').disabled=blocked;
@@ -264,15 +264,15 @@ $('qa-ask').addEventListener('click',()=>{
       NO_MATCH:'本地知识没有依据，请补充资料或转人工。'
     })[r.status]||'请人工核对答案和来源。';
     $('qa-source-title').hidden=r.sourceIds.length===0;
-    $('qa-result-count').textContent=r.sourceIds.length+' 条来源';
+    $('qa-result-count').textContent=r.sourceIds.length? r.sourceIds.length+' 条知识依据':'暂无知识来源';
     $('qa-result-text').textContent=r.answer||(r.status==='RETRIEVED_ONLY'?
       '找到了相关资料，本次仅展示检索结果。如上方显示可信 AI 问答，请在那里准备并审阅知识后发送。':
       '缺少确定的知识依据，请人工核对。');
     for(const id of r.sourceIds){
       const row=kb.items.find(x=>x.id===id),li=root.ownerDocument.createElement('li');
       const name=root.ownerDocument.createElement('span');name.textContent=row?.question||'未知来源';
-      const key=root.ownerDocument.createElement('span');key.className='qa-source-id';key.textContent=id;
-      li.append(name,key);sources.append(li);
+      // Internal storage IDs are not user-facing evidence. Preserve the cited question.
+      li.append(name);sources.append(li);
     }
     $('qa-result').hidden=false;notice('');
   }catch(error){notice('查询失败：'+String(error?.message||error),true);}

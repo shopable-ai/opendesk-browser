@@ -1,66 +1,47 @@
-*{box-sizing:border-box}body{margin:0;background:transparent;color:var(--ink,#233047);font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button,input,textarea{font:inherit}button{cursor:pointer}button:focus-visible,textarea:focus-visible{outline:2px solid #456ce8;outline-offset:2px}
-#tool-status{display:none}.mdw{--edge:#dde5f1;--sub:#69788f;--paper:#fff;--layer:#f7f9fd;min-width:0;padding:10px;background:var(--paper);border:1px solid var(--edge);border-radius:12px}
-.mdw-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}.mdw-bar strong{font-size:13px}.mdw-bar span{font-size:11px;color:var(--sub)}
-.mdw-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-.mdw-actions button{border:1px solid var(--edge);border-radius:8px;background:var(--layer);color:inherit;min-height:31px;padding:5px 10px;font-size:12px}
-.mdw-actions .primary{background:#335bd0;color:#fff;border-color:#335bd0}
-.mdw-inline-review{margin:0 0 9px;padding:9px 10px;border:1px solid #d8bdc2;border-radius:8px;background:#fff7f8}
-.mdw-inline-review[hidden]{display:none!important}
-.mdw-inline-review p{margin:0 0 7px;font-size:12px;line-height:1.5;color:#7b424d;overflow-wrap:anywhere}
-.mdw-inline-review-actions{display:flex;gap:7px;flex-wrap:wrap}
-.mdw-inline-review-actions button{min-height:32px;padding:5px 10px;border:1px solid var(--edge);background:var(--paper);color:inherit;border-radius:8px;font-size:12px}
-#mdw-review-confirm{background:#9d4250;border-color:#9d4250;color:#fff}
-.mdw-modes{display:flex;gap:3px;margin-bottom:8px;padding:3px;border:1px solid var(--edge);background:var(--layer);border-radius:9px}
-.mdw-modes button{flex:1;border:0;border-radius:6px;background:transparent;min-height:29px;color:var(--sub);font-size:12px}
-.mdw-modes button[aria-pressed=true]{background:var(--paper);color:inherit;box-shadow:0 1px 4px #10244813;font-weight:650}
-.mdw-panes{display:grid;gap:9px;min-width:0}.mdw-pane{min-width:0}
-.mdw-pane-title{display:block;margin-bottom:5px;font-weight:650;font-size:11px;color:var(--sub)}
-#mdw-source,.mdw-preview{display:block;width:100%;min-height:230px;height:min(56dvh,720px);padding:10px;border:1px solid var(--edge);border-radius:9px;background:var(--layer);color:inherit;overflow:auto;overflow-wrap:anywhere}
-#mdw-source{resize:vertical;tab-size:2;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
-.mdw-preview{font-size:13px;line-height:1.65}.mdw-preview>:first-child{margin-top:0}
-.mdw-preview h1,.mdw-preview h2,.mdw-preview h3{line-height:1.3;margin:13px 0 8px}
+/* @opendesk-shared-design */
+/* ToolHost owns the application title; use only canonical od-* controls. */
+.mdw{box-sizing:border-box;display:flex;flex-direction:column;gap:var(--space-2);width:100%;min-width:0;max-width:100%;padding:var(--space-3);color:var(--od-ink);background:var(--od-paper)}
+.mdw [hidden]{display:none!important}
+.mdw-toolbar{position:relative;justify-content:flex-end;gap:var(--space-2);flex-wrap:nowrap}
+.mdw-file-actions{gap:var(--space-1);margin-right:auto}
+.mdw-toolbar #mdw-download{flex:none;white-space:nowrap}
+.mdw-menu{position:relative;flex:none}
+.mdw-menu>summary{min-height:34px}
+.mdw-menu-actions{position:absolute;right:0;top:100%;z-index:10;min-width:160px;padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);box-shadow:0 10px 28px color-mix(in srgb,var(--od-ink) 12%,transparent)}
+.mdw-menu-actions button{width:100%}
+.mdw-modes{display:flex;gap:var(--space-1);min-width:0}
+.mdw-modes button{flex:1 1 0;min-width:0}
+.mdw-inline-review{padding:var(--space-3);border:1px solid var(--od-warning-border);border-radius:var(--radius-surface);background:var(--od-warning-bg)}
+.mdw-inline-review p{margin:0 0 var(--space-2);color:var(--od-warning-ink);overflow-wrap:anywhere;font-size:var(--od-note-size)}
+.mdw-inline-review-actions{justify-content:flex-end;flex-wrap:wrap}
+.mdw-panes{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);min-width:0}
+.mdw-pane{min-width:0}
+.mdw-pane-title{display:block;margin:0 0 var(--space-1)}
+#mdw-source,.mdw-preview{display:block;width:100%;min-width:0;min-height:230px;height:min(56dvh,720px);overflow:auto;overflow-wrap:anywhere}
+#mdw-source{resize:vertical;tab-size:2;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+.mdw-preview{padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted);font-size:var(--od-body-size);line-height:1.65}
+.mdw-preview>:first-child{margin-top:0}
+.mdw-preview :is(h1,h2,h3){line-height:1.35;margin:var(--space-3) 0 var(--space-2)}
 .mdw-preview h1{font-size:21px}.mdw-preview h2{font-size:18px}.mdw-preview h3{font-size:15px}
-.mdw-preview p,.mdw-preview ul,.mdw-preview ol,.mdw-preview blockquote{margin:7px 0}
-.mdw-preview pre{padding:10px;overflow:auto;border-radius:7px;background:#e9eff8;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,SFMono-Regular,monospace}
+.mdw-preview :is(p,ul,ol,blockquote){margin:var(--space-2) 0}
+.mdw-preview pre{padding:var(--space-3);overflow:auto;border-radius:var(--radius-control);background:var(--od-paper);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,SFMono-Regular,monospace}
 .mdw-preview code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
-.mdw-preview blockquote{border-left:3px solid #a3b7e3;padding-left:10px;color:var(--sub)}
-.mdw-preview a{color:#3159b9;overflow-wrap:anywhere}
+.mdw-preview blockquote{border-left:3px solid var(--od-input-border);padding-left:var(--space-2);color:var(--od-sub)}
+.mdw-preview a{color:var(--od-accent-ink);overflow-wrap:anywhere}
 .mdw-preview table{display:block;max-width:100%;overflow:auto;border-collapse:collapse}
-.mdw-preview td,.mdw-preview th{border:1px solid var(--edge);padding:5px 7px;text-align:left}
-.mdw-preview .mdw-image{display:inline-block;padding:2px 5px;background:var(--layer);border:1px solid var(--edge);border-radius:6px}
-.mdw-status{margin:8px 0 0;font-size:11px;color:var(--sub);overflow-wrap:anywhere}
-.mdw-status[data-error=true]{color:#ad3d4b}.mdw-panes[data-mode=edit] .mdw-result,.mdw-panes[data-mode=preview] .mdw-edit{display:none}
-@media(min-width:740px){.mdw-panes[data-mode=split]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-@media(max-width:400px){.mdw{padding:8px}.mdw-actions button{padding:5px 8px}.mdw-panes{gap:7px}}
-@media(prefers-color-scheme:dark){body{color:#e1e6f2}.mdw{--edge:#39435b;--sub:#a0adc3;--paper:#202633;--layer:#171e29}
-.mdw-actions .primary{background:#4568d4;border-color:#4568d4}.mdw-preview pre{background:#2a3547}.mdw-preview a{color:#9bbaff}}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
-
-/* Preserve the standalone title; verified official Host already renders it. */
-.mdw.mdw-host-nav .mdw-bar strong{display:none!important}
-.mdw.mdw-host-nav .mdw-bar{justify-content:flex-end}
-
-/* Only the release-verified Host opts into flex-height editing.
- * Independent editor pages preserve their original intrinsic pane dimensions. */
-#tool-root[data-opendesk-height-mode="workspace"] .mdw{
-  display:flex;flex-direction:column;height:var(--opendesk-host-available-height);
-  min-height:0;overflow-y:auto;overscroll-behavior:contain;
-}
-#tool-root[data-opendesk-height-mode="workspace"] .mdw-panes{
-  flex:1 0 160px;min-height:160px;grid-template-rows:minmax(0,1fr);
-}
-#tool-root[data-opendesk-height-mode="workspace"] .mdw-panes[data-mode="split"]{
-  grid-template-rows:repeat(2,minmax(0,1fr));
-}
-#tool-root[data-opendesk-height-mode="workspace"] .mdw-pane{
-  display:flex;flex-direction:column;min-height:0;
-}
-#tool-root[data-opendesk-height-mode="workspace"] :is(#mdw-source,.mdw-preview){
-  flex:1 1 auto;height:auto;min-height:0;
-}
-@media(min-width:740px){
-  #tool-root[data-opendesk-height-mode="workspace"] .mdw-panes[data-mode="split"]{
-    grid-template-rows:minmax(0,1fr);
-  }
-}
+.mdw-preview :is(td,th){border:1px solid var(--od-line);padding:var(--space-1) var(--space-2);text-align:left}
+.mdw-preview .mdw-image{display:inline-block;padding:2px var(--space-1);border:1px solid var(--od-line);border-radius:var(--radius-control)}
+.mdw-status{margin:0;font-size:var(--od-note-size);color:var(--od-sub);overflow-wrap:anywhere}
+.mdw-status[data-error=true]{color:var(--od-negative)}
+.mdw-save-state{font-size:var(--od-meta-size);color:var(--od-sub)}
+.mdw-panes[data-mode=edit] .mdw-result,.mdw-panes[data-mode=preview] .mdw-edit{display:none}
+@media(min-width:740px){.mdw-panes[data-mode=split]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:340px){.mdw{padding:var(--space-2)}.mdw-toolbar{gap:var(--space-1)}.mdw-file-actions{gap:var(--space-1)}}
+@media(prefers-reduced-motion:reduce){.mdw *{scroll-behavior:auto!important}}
+/* Preserve the existing verified flexible editor viewport; standalone keeps intrinsic height. */
+#tool-root[data-opendesk-height-mode="workspace"] .mdw{height:var(--opendesk-host-available-height);min-height:0;overflow-y:auto;overscroll-behavior:contain}
+#tool-root[data-opendesk-height-mode="workspace"] .mdw-panes{flex:1 0 160px;min-height:160px;grid-template-rows:minmax(0,1fr)}
+#tool-root[data-opendesk-height-mode="workspace"] .mdw-panes[data-mode="split"]{grid-template-rows:repeat(2,minmax(0,1fr))}
+#tool-root[data-opendesk-height-mode="workspace"] .mdw-pane{display:flex;flex-direction:column;min-height:0}
+#tool-root[data-opendesk-height-mode="workspace"] :is(#mdw-source,.mdw-preview){flex:1 1 auto;height:auto;min-height:0}
+@media(min-width:740px){#tool-root[data-opendesk-height-mode="workspace"] .mdw-panes[data-mode="split"]{grid-template-rows:minmax(0,1fr)}}

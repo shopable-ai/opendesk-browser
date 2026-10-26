@@ -172,7 +172,18 @@
       button.addEventListener('click',action(()=>open(record.id)));fragment.append(button);
     }
     q('records').replaceChildren(fragment);
-    q('count').textContent=filtered.length+' 条结果 · '+(bytes/1048576).toFixed(2)+' / 4 MiB';
+    // Keep the operational list count visible; move technical storage usage to Management.
+    q('count').textContent=filtered.length+' 条记录';
+    const usage=q('storage-usage');
+    if(usage)usage.textContent='本机空间：'+(bytes/1048576).toFixed(2)+' / 4 MiB';
+    const activeFilter=q('active-filter');
+    if(activeFilter){
+      const parts=[];
+      if(kind!=='all')parts.push(labels[kind]||kind);
+      if(tag)parts.push('#'+tag);
+      if(sort!=='updated')parts.push(sort==='created'?'最近保存':'标题排序');
+      activeFilter.textContent=parts.join(' · ')||'全部';
+    }
     q('total-count').textContent=total?String(total):'';
     const none=!filtered.length,filteredOut=Boolean(total&&(kind!=='all'||q('search').value.trim()||tag));
     q('empty').hidden=!none;

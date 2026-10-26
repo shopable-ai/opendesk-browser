@@ -102,3 +102,18 @@
 #tool-root[data-opendesk-height-mode="workspace"] .ki .ki-writing-view .ki-content{
   flex:1 1 auto;height:auto;min-height:140px;
 }
+
+/* R1.0 Four Tools UX · Keep list and search first, reveal all original filters on demand. */
+.ki-filter-panel{margin:8px 0 0;min-width:0}
+.ki-filter-panel>summary{display:flex;align-items:center;gap:8px;min-height:35px;padding:6px 9px;cursor:pointer;list-style:none;color:var(--ki-muted);border:1px solid var(--ki-line);border-radius:8px;font-size:12px;font-weight:650;background:var(--ki-bg)}
+.ki-filter-panel>summary::-webkit-details-marker{display:none}
+.ki-filter-panel>summary::before{content:"";width:7px;height:7px;flex:none;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
+.ki-filter-panel[open]>summary::before{transform:rotate(45deg)}
+.ki-filter-panel #ki-active-filter{margin-left:auto;min-width:0;max-width:56%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:400;color:var(--ki-accent)}
+.ki-filter-panel .ki-filter-body{min-width:0;padding:0 8px 10px;border:1px solid var(--ki-line);border-top:0;border-radius:0 0 8px 8px}
+.ki-filter-panel .ki-filters{margin:0 0 6px;padding:9px 0 5px}
+.ki-filter-panel .ki-list-controls{min-width:0}
+.ki-filter-panel .ki-list-controls label{min-width:0}
+.ki .ki-summary{margin:8px 0 7px}
+.ki .ki-storage-usage{margin:6px 4px 3px;color:var(--ki-muted);font-size:11px;line-height:1.5}
+@media(max-width:359px){.ki-filter-panel .ki-list-controls{flex-wrap:wrap}.ki-filter-panel .ki-list-controls label{flex:1 1 110px}}

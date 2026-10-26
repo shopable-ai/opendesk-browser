@@ -195,6 +195,7 @@ export function createLocalKnowledgeTestRuntime({
        update(s,message.messageId,{status:'GENERATING_AI',message:'正在使用已批准的共享 AI 生成草稿'});
        try{
          const ai=await callAI({question:result.parts[0].question,scope:message.scope,
+           sourceIdAllowlist:result.parts[0].candidateSourceIds.slice(),
            approvedKnowledgeTest:s.approvedAI,expectedEtag:s.etag});
          if(!running(s,epoch))return;
          const check=await readLibrary();assertLive();
@@ -226,6 +227,7 @@ export function createLocalKnowledgeTestRuntime({
          const part=reviewed[index];
          try{
            const ai=await callAI({question:part.question,scope:message.scope,
+             sourceIdAllowlist:part.candidateSourceIds.slice(),
              approvedKnowledgeTest:s.approvedAI,expectedEtag:s.etag});
            if(!running(s,epoch))return;
            const checked=await readLibrary();assertLive();
@@ -390,6 +392,7 @@ export function createLocalKnowledgeTestRuntime({
       const selectedQuestion=record.parts?.length===1?
         record.parts[0].question:record.question;
       return {question:selectedQuestion,scope:record.scope,messageId:record.messageId,
+       sourceIdAllowlist:record.sourceIds.slice(),
        testIdentity:{serial:s.serial,pauseEpoch:s.pauseEpoch,threadId:s.threadId,
          documentId:target.documentId}};
    },
