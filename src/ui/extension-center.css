@@ -141,6 +141,8 @@
 .od-import-overlay .sidebar-tool-import-head{flex:none;min-height:52px;padding:8px 14px;
   border-bottom:1px solid var(--od-line)}
 .od-import-overlay .sidebar-tool-import-head strong{font-size:14px;color:var(--od-ink)}
+/* The update row already states the incoming version; do not repeat it beside the title. */
+.od-import-overlay #sidebar-tool-preview:has(#sidebar-tool-update:not([hidden])) #sidebar-tool-preview-version{display:none}
 .od-import-overlay[data-file-drag="true"] #sidebar-tool-import{outline:2px dashed var(--od-focus);
   outline-offset:-4px}
 .od-import-overlay[data-file-drag="true"] #sidebar-tool-import .od-import-sheet-body:before{
