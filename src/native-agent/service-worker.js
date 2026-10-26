@@ -278,8 +278,10 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       typeof sender.documentId==='string'&&sender.documentId.length>0&&
       (sender.frameId===undefined||sender.frameId===0);
     const optionsSender=trustedDocument&&sender.url===api.runtime.getURL('native-agent/settings.html');
-    const panelSender=trustedDocument&&Boolean(toolDocumentIdentity(
-      api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender.url));
+    const panelIdentity=trustedDocument?toolDocumentIdentity(
+      api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender.url):null;
+    // Scheduled runners are never a human-facing authorization surface.
+    const panelSender=Boolean(panelIdentity&&!panelIdentity.scheduledRunner);
     if(!optionsSender&&!panelSender)throw new AgentBridgeError('E_OWNER');
     await initial;
     if(msg?.type==='status') {
