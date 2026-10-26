@@ -37,7 +37,7 @@ test('R1.0 Markdown edit/preview mode controls cannot accidentally include the d
  assert.equal($('h1').length,0,'Host renders product title');
  assert.match(css,/^\/\* @opendesk-shared-design \*\//);
  assert.match(css,/\.mdw-inline-review\[hidden\]\{display:none!important\}/);
- assert.match(js,/下载已发起/);
+ assert.match(js,/已发起下载，请在浏览器下载记录中确认文件已保存/);
 });
 test('R1.0 Clipper help and backups are secondary, while existing actions remain',async()=>{
  const html=await read('examples/sidebar-tools/web-markdown-clipper/src/index.html');
