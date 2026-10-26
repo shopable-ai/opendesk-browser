@@ -229,3 +229,38 @@
 .ec-site-upgrade input:focus-visible{outline:2px solid var(--od-primary,#315fd5);outline-offset:2px}
 .ec-site-upgrade [role="alert"]{color:#aa3030;overflow-wrap:anywhere}
 .ec-site-upgrade button{justify-self:start;max-width:100%}
+
+
+/* R1.4: two independently installed AI Page Programs share this trusted
+ * management presentation, never a second UI Host or enable-state store. */
+.ec-page-control{padding:var(--space-3);background:var(--od-paper)}
+.ec-page-control .ec-page-main{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);min-height:46px}
+.ec-page-main-copy{flex:1;min-width:0}
+.ec-page-main-copy h3{font-size:13px;margin:0 0 3px;color:var(--od-ink)}
+.ec-page-main-copy p{margin:0}
+.ec-page-main .od-shared-switch{margin-inline:8px 3px;flex:none}
+.ec-page-control .ec-page-state{font-weight:700;color:var(--od-ink);margin:12px 0 4px}
+.ec-page-control .ec-page-state[data-state="ready"]{color:var(--od-positive)}
+.ec-page-control .ec-page-state[data-state="restricted"]{color:var(--od-negative)}
+.ec-page-control .ec-page-legacy{overflow-wrap:anywhere;color:var(--od-ink)}
+.ec-page-control-actions{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-3)}
+.ec-page-control-actions button{min-height:38px}
+.ec-page-management .ec-detail-actions{margin:8px 0 0}
+.ec-page-release-block{overflow-wrap:anywhere}
+.ec-site-review-details,.ec-page-diagnostics{min-width:0}
+.ec-site-review-details{margin-top:var(--space-3);border-top:1px solid var(--od-line);padding-top:var(--space-2)}
+.ec-site-review-details summary,.ec-page-diagnostics summary{display:list-item;cursor:pointer;font-size:12px;
+  font-weight:600;color:var(--od-accent-ink);line-height:1.5;padding:10px 3px}
+.ec-site-review-details summary:focus-visible,.ec-page-diagnostics summary:focus-visible{
+  outline:2px solid var(--od-focus);outline-offset:2px;border-radius:var(--radius-control)}
+.ec-page-diagnostics[open]{padding-bottom:var(--space-3)}
+.ec-site-review-details .ec-site-upgrade{margin-top:3px;border-top:0;padding-top:0}
+@media (pointer:coarse){
+  .ec-page-control-actions button{min-height:44px}
+  .ec-site-review-details summary,.ec-page-diagnostics summary{min-height:44px}
+}
+@media (max-width:360px){
+  .ec-page-control .ec-page-main{gap:var(--space-2)}
+  .ec-page-main .od-shared-switch{margin-inline:3px}
+  .ec-page-control-actions{flex-direction:column;align-items:stretch}
+}

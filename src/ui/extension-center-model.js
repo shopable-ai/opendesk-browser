@@ -71,6 +71,48 @@ const EXTENSION_SEARCH_ALIASES=Object.freeze({
   'opendesk.chatgpt-mindmap':'旧版 ChatGPT 思维导图 XMind',
   'opendesk.chatgpt-send-queue':'旧版 ChatGPT 消息发送队列 Queue'
 });
+// Presentation-only metadata for the two independent AI Page Programs.
+// Legacy installations remain separate Authority records, never aliases.
+const AI_PAGE_LEGACY_IDS=Object.freeze({
+  'opendesk.ai-scroll-navigation':'opendesk.chatgpt-jump-top',
+  'opendesk.ai-reply-mindmap':'opendesk.chatgpt-mindmap'
+});
+
+export function describeManagedAiPage(page,installedPrograms=[]){
+  const legacyProgramId=AI_PAGE_LEGACY_IDS[page?.programId];
+  if(!legacyProgramId)return null;
+  const enabledKnown=typeof page.enabled==='boolean';
+  const enabled=page.enabled===true;
+  const authorization=page.authorization?.status;
+  const native=page.nativeState;
+  const cleanupUnknown=page.managedCleanup?.state==='unknown';
+  const error=Boolean(page.error);
+  let state='pending',status='运行条件待核对';
+  if(!enabledKnown){status='启用状态尚未核实';}
+  else if(!enabled){
+    if(authorization==='disabled'&&native==='disabled'&&!cleanupUnknown&&!error){
+      state='off';status='已停用 · 原生注销已确认';
+    }else status='已停用 · 原生清理待核对';
+  }else if(authorization==='active'&&native==='registered'&&!cleanupUnknown&&!error){
+    state='ready';status='自动运行条件已就绪';
+  }else if(authorization==='suspended'){
+    state='restricted';status='网站访问权限已暂停';
+  }else if(native==='blocked'){
+    state='restricted';status='Chrome 注册受阻';
+  }else if(error||cleanupUnknown){
+    state='restricted';status='注册或清理异常，需核对';
+  }else status='已请求启用 · 原生状态待核对';
+  const legacyInstalled=installedPrograms.some(row=>
+    (row?.installed??row)?.programId===legacyProgramId);
+  return {
+    enabled,enabledKnown,state,status,
+    note:'显示的是本机授权和 Chrome 注册读回，并非对当前网页已实际运行的证明。',
+    legacyProgramId:legacyInstalled?legacyProgramId:null,
+    canRestore:enabledKnown&&enabled&&!cleanupUnknown&&
+      (authorization==='suspended'||native==='blocked')
+  };
+}
+
 // Presentation-only decision. No installed Page UI / candidate-preview entry is verified yet.
 // Null is intentional: rows without a real high-frequency action lead to details.
 export function resolveExtensionPrimaryAction(row){

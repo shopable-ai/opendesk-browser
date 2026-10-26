@@ -7,7 +7,7 @@ import {readFile} from 'node:fs/promises';
 // An isolated browser fixture: actual production controller + React page,
 // service doubles only. Never touches the product watcher or installed Chrome.
 const modulePath=process.env.OPENDESK_PLAYWRIGHT_MODULE;
-async function fixture({withImportHost=false}={}){
+async function fixture({withImportHost=false,pageId='reader'}={}){
   const state={rowsModel:{rows:[]},toolbarModel:null,detailModel:null,uninstallModel:null,
     recoveryModel:null,feedbackModel:null,statusModel:null,view:'list',menuKey:null};
   const root=createRoot(document.getElementById('root'));
@@ -29,7 +29,9 @@ async function fixture({withImportHost=false}={}){
   };
   const app={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',title:'快速笔记',description:'记录内容',
     version:'1.0.0',capabilities:['storage.local'],html:'<main>Notes</main>',css:'',js:'void 0;'};
-  const page={programId:'reader',manifestHash:'a'.repeat(64),installed:{title:'阅读增强',
+  const page={programId:pageId,manifestHash:'a'.repeat(64),installed:{title:
+    pageId==='opendesk.ai-scroll-navigation'?'AI 对话滚动导航':
+      pageId==='opendesk.ai-reply-mindmap'?'AI 回复思维导图':'阅读增强',
     revision:1,manifestHash:'a'.repeat(64),sourceHash:'b'.repeat(64),enabled:true,
     nativeState:'registered',authorization:{status:'active',generation:5,
       installationId:'fixture-page-install-1'},
@@ -84,7 +86,13 @@ async function fixture({withImportHost=false}={}){
       }
       if(method!=='setInstalledPageEnabled')throw Error(method);
       calls.push({action:'page-toggle',args});
-      if(!ackOnly){page.installed.enabled=args.enabled;page.installed.authorization.generation++;}
+      if(!ackOnly){
+        page.installed.enabled=args.enabled;page.installed.authorization.generation++;
+        if(pageId!=='reader'){
+          page.installed.authorization.status=args.enabled?'active':'disabled';
+          page.installed.nativeState=args.enabled?'registered':'disabled';
+        }
+      }
       return {enabled:args.enabled};
     }};
   const sidebarTools={openTool:id=>{calls.push({action:'open',id});return true;},
@@ -123,7 +131,7 @@ async function fixture({withImportHost=false}={}){
   await controller.refresh();
 }
 
-async function browserFixture(t,{withImportHost=false}={}){
+async function browserFixture(t,{withImportHost=false,pageId='reader'}={}){
   const css=(await Promise.all(['design-tokens.css','design-system.css','extension-center.css','tool-shell.css']
     .map(name=>readFile(new URL('../../src/ui/'+name,import.meta.url),'utf8')))).join('\n');
   const {chromium}=await import(modulePath);
@@ -136,7 +144,7 @@ async function browserFixture(t,{withImportHost=false}={}){
     import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from './src/ui/sidebar-tools/package.js';
     import {SIDEBAR_TOOL_ENABLE_STORE} from './src/ui/sidebar-tools/lifecycle.js';
     import {TOOL_CLEANUP_STORE} from './src/ui/sidebar-tools/installation.js';
-    (${fixture.toString()})(${JSON.stringify({withImportHost})});`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,
+    (${fixture.toString()})(${JSON.stringify({withImportHost,pageId})});`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,
     format:'esm',platform:'browser',target:'es2022',logLevel:'silent'});
   const server=createServer((req,res)=>{
     res.setHeader('Content-Type',req.url==='/app.js'?'text/javascript':req.url==='/style.css'?'text/css':req.url.includes('catalog.json')?'application/json':'text/html');
@@ -155,7 +163,7 @@ async function browserFixture(t,{withImportHost=false}={}){
   const page=await browser.newPage({reducedMotion:'reduce'});page.setDefaultTimeout(5000);
   const errors=[];page.on('pageerror',error=>errors.push(String(error)));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
-  await page.locator('[data-extension-id="page:reader"]').waitFor().catch(async error=>{
+  await page.locator('[data-extension-id="page:'+pageId+'"]').waitFor().catch(async error=>{
     throw Error(String(error)+'\nFIXTURE_DIAGNOSTICS '+JSON.stringify({errors,state:await page.evaluate(()=>({text:document.body.innerText,fixture:typeof window.fixture}))}));
   });
   t.after(()=>assert.deepEqual(errors,[]));return page;
@@ -475,4 +483,58 @@ test('R5.7 real ExtensionCenter Controller + React ToolHost preserve ImportSheet
   await page.locator('#sidebar-tool-import-close').click();
   await sheet.waitFor({state:'hidden'});
   await page.waitForFunction(()=>document.activeElement?.id==='extension-center-more');
+});
+
+
+for(const [programId,name] of [
+  ['opendesk.ai-scroll-navigation','AI 对话滚动导航'],
+  ['opendesk.ai-reply-mindmap','AI 回复思维导图']
+]){
+  test('R1.4 production React master Switch and trusted Page readback: '+name,options,async t=>{
+    const page=await browserFixture(t,{pageId:programId});
+    await page.locator('[data-extension-key="page:'+programId+'"][data-extension-action="main"]').click();
+    const control=page.getByRole('switch',{name:'启用「'+name+'」'});
+    await control.waitFor();
+    assert.equal(await control.getAttribute('aria-checked'),'true');
+    assert.equal(await page.locator('#extension-center-detail [data-ec-detail-action="toggle"]').count(),1);
+    assert.equal(await page.locator('#extension-center-detail button[data-ec-detail-action="toggle"]').count(),0,
+      'the master Switch replaces rather than duplicates the old toggle action');
+    assert.match(await page.locator('.ec-page-state').innerText(),/自动运行条件已就绪/);
+    const before=await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length);
+    await control.evaluate(node=>node.click());
+    assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),before,
+      'programmatic click must not pass the trusted UI/Authority guard');
+    await page.evaluate(()=>fixture.controller.refresh());
+    await control.click();
+    await page.waitForFunction(()=>fixture.page.installed.enabled===false&&
+      fixture.state.detailModel?.busy===false);
+    assert.equal(await control.getAttribute('aria-checked'),'false');
+    assert.match(await page.locator('.ec-page-state').innerText(),/原生注销已确认/);
+    assert.equal(await page.evaluate(()=>fixture.calls.find(c=>c.action==='page-toggle').args.expectedGeneration),5);
+    await control.focus();await page.keyboard.press('Space');
+    await page.waitForFunction(()=>fixture.page.installed.enabled===true&&
+      fixture.state.detailModel?.busy===false);
+    assert.equal(await control.getAttribute('aria-checked'),'true');
+    assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),2);
+    assert.equal(await control.evaluate(node=>document.activeElement===node),true);
+    await page.setViewportSize({width:320,height:720});
+    assert.equal(await control.isVisible(),true);
+    assert.equal(await page.locator('.ec-page-management [data-ec-detail-action="uninstall"]').count(),1);
+    if(programId==='opendesk.ai-reply-mindmap')
+      assert.equal(await page.locator('.ec-site-review-details').count(),0);
+    else assert.equal(await page.locator('.ec-site-review-details summary').count(),1);
+    await page.evaluate(()=>fixture.dispose());
+  });
+}
+
+test('R1.4 master Switch never displays a Host acknowledgment as saved state',options,async t=>{
+  const page=await browserFixture(t,{pageId:'opendesk.ai-scroll-navigation'});
+  await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
+  const control=page.getByRole('switch',{name:'启用「AI 对话滚动导航」'});
+  await page.evaluate(()=>fixture.setAckOnly(true));
+  await control.click();
+  await page.waitForFunction(()=>fixture.state.statusModel?.text.includes('读回确认'));
+  assert.equal(await control.getAttribute('aria-checked'),'true');
+  assert.equal(await page.evaluate(()=>fixture.page.installed.enabled),true);
+  assert.equal(await page.evaluate(()=>fixture.state.statusModel.state),'error');
 });

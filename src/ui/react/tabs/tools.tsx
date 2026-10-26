@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {Button,IconButton} from '../components/ui/button.tsx';
+import {Switch} from '../components/ui/switch.tsx';
 import {localeManagerText} from '../../locale-manager-localization.js';
 
 const LocaleManager=React.lazy(()=>import('./locale-manager.tsx'));
@@ -209,16 +210,131 @@ function extensionActionGlyph(id,label){
   }
 }
 
+// A React Aria Switch carries a boolean, not the native trusted event.
+// Capture the real gesture within the same React subtree and require it
+// before delegating to the original Controller/Authority. Never optimistically
+// change the displayed persisted state.
+function ManagedPageControl({control,title}){
+  const gesture=React.useRef(null);
+  const capture=event=>{
+    gesture.current=event.nativeEvent?.isTrusted===true?event.nativeEvent:null;
+  };
+  const onChange=next=>{
+    const event=gesture.current;
+    gesture.current=null;
+    if(event?.isTrusted===true&&typeof next==='boolean'&&next!==control.enabled)
+      control.onToggle?.(next,event);
+  };
+  return <section className="ec-detail-card ec-page-control" aria-label="网页增强启用状态">
+    <div className="ec-page-main" onPointerDownCapture={capture}
+      onPointerUpCapture={capture} onKeyDownCapture={capture}
+      onKeyUpCapture={capture} onClickCapture={capture}
+      onBlurCapture={()=>{gesture.current=null;}}>
+      <div className="ec-page-main-copy">
+        <h3>启用此应用</h3>
+        <p>授权后在适用网站自动运行，不需要保持侧边栏打开。</p>
+      </div>
+      <Switch data-ec-detail-action="toggle" aria-label={'启用「'+title+'」'}
+        isSelected={control.enabled} isDisabled={control.busy||!control.enabledKnown}
+        onChange={onChange}/>
+    </div>
+    <p className="ec-page-state" data-state={control.state} role="status" aria-live="polite">
+      {control.status}
+    </p>
+    <p>{control.note}</p>
+    {control.legacyProgramId&&<p className="ec-page-legacy">
+      检测到同时安装的旧版：{control.legacyProgramId}。
+      两者安装身份和授权完全独立；请在扩展列表中单独停用或卸载旧版，不会自动迁移或删除。
+    </p>}
+    {(control.canRestore||control.state==='pending'||control.state==='restricted')&&
+      <div className="ec-page-control-actions">
+        {control.canRestore&&<Button disabled={control.busy}
+          onClick={event=>control.onRestore?.(event.nativeEvent)}>
+          尝试恢复原有授权与注册
+        </Button>}
+        <Button disabled={control.busy} onClick={event=>control.onRefresh?.(event.nativeEvent)}>
+          刷新可信状态
+        </Button>
+      </div>}
+  </section>;
+}
+
+function PageSiteUpgrade({upgrade}){
+  return <form className="ec-site-upgrade" aria-label="添加自定义 AI 网站"
+    onSubmit={event=>{
+      event.preventDefault();
+      const fields=event.currentTarget.elements;
+      upgrade.onSubmit?.({
+        origin:fields.namedItem('origin')?.value||'',
+        pathScope:fields.namedItem('pathScope')?.value||'/'
+      },event.nativeEvent);
+    }}>
+    <h4>添加自定义 AI 网站</h4>
+    <p>创建待审阅的固定网站范围，由原安装器确认 Chrome 权限。保存选择器不能代替授权。</p>
+    <label>网站 Origin
+      <input name="origin" type="url" required maxLength={256}
+        placeholder="https://example.com" autoComplete="off"
+        disabled={Boolean(upgrade.disabledReason||upgrade.busy)}/>
+    </label>
+    <label>运行路径前缀
+      <input name="pathScope" type="text" defaultValue="/" required maxLength={512}
+        autoComplete="off"
+        disabled={Boolean(upgrade.disabledReason||upgrade.busy)}/>
+    </label>
+    <p>Chrome 网站权限可能覆盖完整域名；UserScript 执行路径仍受本次审阅范围约束。</p>
+    {upgrade.disabledReason&&<p role="status">{upgrade.disabledReason}</p>}
+    {upgrade.error&&<p role="alert">{upgrade.error}</p>}
+    <Button type="submit" disabled={Boolean(upgrade.disabledReason||upgrade.busy)}>
+      {upgrade.busy?'正在准备候选…':'审阅新增网站权限'}
+    </Button>
+  </form>;
+}
+
+function PageDiagnostics({info}){
+  return <>
+    <p>来源：{info?.source||'来源未记录'}</p>
+    <p>安装身份：{info?.installationId||'待核对'}</p>
+    <p>授权状态：{info?.authorization||'未知'}</p>
+    <p>Chrome 注册：{info?.nativeState||'未知'}</p>
+    {info?.nativeId&&<p>注册 ID：{info.nativeId}</p>}
+    {info?.sourceHash&&<p>固定源码 SHA-256：{info.sourceHash}</p>}
+    {info?.manifestHash&&<p>安装 Manifest SHA-256：{info.manifestHash}</p>}
+    {info?.packageHash&&<p>安装包 SHA-256：{info.packageHash}</p>}
+    {info?.cleanupState&&<p>受管界面清理：{info.cleanupState}</p>}
+    {info?.error&&<p role="status">注册错误：{info.error}</p>}
+    <p>排除网站：{info?.excluded?.join('、')||'无'}</p>
+    <p>授权能力：{info?.capabilities?.join('、')||'未记录'}</p>
+    <p>网络来源：{info?.networkOrigins?.join('、')||'未记录'}</p>
+    <p>数据规则：{info?.dataRule}</p>
+  </>;
+}
+
+function DetailActions({model}){
+  return <div className="ec-detail-actions">
+    {model.actions.map(action=>{
+      const icon=extensionActionGlyph(action.id,action.label);
+      return icon?<IconButton key={action.id}
+        className={action.id==='uninstall'?'ec-detail-action od-icon-button--danger':'ec-detail-action'}
+        disabled={model.busy} label={action.label+'「'+model.title+'」'} title={action.label}
+        data-ec-detail-action={action.id}
+        onClick={event=>action.onClick?.(event.nativeEvent)}>{icon}</IconButton>:
+        <Button key={action.id} disabled={model.busy} data-ec-detail-action={action.id}
+          onClick={event=>action.onClick?.(event.nativeEvent)}>{action.label}</Button>;
+    })}
+  </div>;
+}
+
 // Detail actions retain the originating native event. Identity and permission
 // checks remain with the existing Extension Center controller.
 export function ExtensionDetail({model,container}){
   React.useLayoutEffect(()=>{
     if(!model||model.busy||!model.focusAction)return;
-    const target=[...(container?.querySelectorAll('button[data-ec-detail-action]')||[])]
+    const target=[...(container?.querySelectorAll('[data-ec-detail-action]')||[])]
       .find(node=>node.dataset.ecDetailAction===model.focusAction);
-    target?.focus?.({preventScroll:true});
+    (target?.querySelector?.('[role="switch"]')||target)?.focus?.({preventScroll:true});
   },[model,container]);
   if(!model)return null;
+  const managed=Boolean(model.pageControl);
   return <>
     <div className="ec-detail-head">
       <span className="ec-glyph" aria-hidden="true">{model.kind==='page'?'◇':'▦'}</span>
@@ -227,19 +343,9 @@ export function ExtensionDetail({model,container}){
       </div>
     </div>
     <p>{model.description}</p>
-    <div className="ec-detail-actions">
-      {model.actions.map(action=>{
-        const icon=extensionActionGlyph(action.id,action.label);
-        return icon?<IconButton key={action.id}
-          className={action.id==='uninstall'?'ec-detail-action od-icon-button--danger':'ec-detail-action'}
-          disabled={model.busy} label={action.label+'「'+model.title+'」'} title={action.label}
-          data-ec-detail-action={action.id}
-          onClick={event=>action.onClick?.(event.nativeEvent)}>{icon}</IconButton>:
-          <Button key={action.id} disabled={model.busy} data-ec-detail-action={action.id}
-            onClick={event=>action.onClick?.(event.nativeEvent)}>{action.label}</Button>;
-      })}
-    </div>
-    <section className="ec-detail-card">
+    {managed&&<ManagedPageControl control={model.pageControl} title={model.title}/>}
+    {!managed&&<DetailActions model={model}/>}
+    {!managed&&<section className="ec-detail-card">
       <h3>安装与来源</h3>
       <p>{model.installationText}</p>
       <p>{model.kind==='app'?'版本：v':'修订：r'}{model.version}</p>
@@ -251,57 +357,43 @@ export function ExtensionDetail({model,container}){
             '请先恢复上次卸载的数据与权限清理，不会自动重新安装。':
             '正式安装必须在现有应用市场审阅固定包和能力清单。'}</p>}
       </>}
-    </section>
+    </section>}
     {model.kind==='page'&&<section className="ec-detail-card">
-      <h3>网站范围与授权</h3>
-      <ul className="ec-sites">{model.sites.map(site=><li key={site}>{site}</li>)}</ul>
+      <h3>{managed?'适用网站':'网站范围与授权'}</h3>
+      {model.sites.length?<ul className="ec-sites">{model.sites.map(site=><li key={site}>{site}</li>)}</ul>:
+        <p>尚无已核实的网站规则；不能据此推断程序可自动运行。</p>}
       <p>{model.suspended?
         '网站访问受限；需要按照原授权规则重新授权。':
         '仅在原安装批准的网站范围内运行，不因扩展本身具备网站访问权限而扩大程序授权。'}</p>
-      <p>排除网站：{model.pageInfo?.excluded?.join('、')||'无'}</p>
-      <p>授权能力：{model.pageInfo?.capabilities?.join('、')||'未记录'}</p>
-      <p>网络来源：{model.pageInfo?.networkOrigins?.join('、')||'未记录'}</p>
-      {model.siteUpgrade&&<form className="ec-site-upgrade" aria-label="添加自定义 AI 网站"
-        onSubmit={event=>{
-          event.preventDefault();
-          const fields=event.currentTarget.elements;
-          model.siteUpgrade.onSubmit?.({
-            origin:fields.namedItem('origin')?.value||'',
-            pathScope:fields.namedItem('pathScope')?.value||'/'
-          },event.nativeEvent);
-        }}>
-        <h4>添加自定义 AI 网站</h4>
-        <p>创建待审阅的固定网站范围，再由原安装器确认 Chrome 权限。保存选择器不能代替授权。</p>
-        <label>网站 Origin
-          <input name="origin" type="url" required maxLength={256}
-            placeholder="https://example.com" autoComplete="off"
-            disabled={Boolean(model.siteUpgrade.disabledReason||model.siteUpgrade.busy)}/>
-        </label>
-        <label>运行路径前缀
-          <input name="pathScope" type="text" defaultValue="/" required maxLength={512}
-            autoComplete="off"
-            disabled={Boolean(model.siteUpgrade.disabledReason||model.siteUpgrade.busy)}/>
-        </label>
-        <p>Chrome 网站权限可能覆盖完整域名；UserScript 执行路径仍受本次审阅范围约束。</p>
-        {model.siteUpgrade.disabledReason&&<p role="status">{model.siteUpgrade.disabledReason}</p>}
-        {model.siteUpgrade.error&&<p role="alert">{model.siteUpgrade.error}</p>}
-        <Button type="submit" disabled={Boolean(model.siteUpgrade.disabledReason||model.siteUpgrade.busy)}>
-          {model.siteUpgrade.busy?'正在准备候选…':'审阅新增网站权限'}
-        </Button>
-      </form>}
+      {!managed&&<>
+        <p>排除网站：{model.pageInfo?.excluded?.join('、')||'无'}</p>
+        <p>授权能力：{model.pageInfo?.capabilities?.join('、')||'未记录'}</p>
+        <p>网络来源：{model.pageInfo?.networkOrigins?.join('、')||'未记录'}</p>
+      </>}
+      {model.siteUpgrade&&(managed?
+        <details className="ec-site-review-details">
+          <summary>添加自定义 AI 网站（需要重新审阅权限）</summary>
+          <PageSiteUpgrade upgrade={model.siteUpgrade}/>
+        </details>:
+        <PageSiteUpgrade upgrade={model.siteUpgrade}/>)}
     </section>}
-    {model.kind==='page'&&<section className="ec-detail-card">
-      <h3>Chrome 注册与数据</h3>
-      <p>来源：{model.pageInfo?.source||'来源未记录'}</p>
-      <p>安装身份：{model.pageInfo?.installationId||'待核对'}</p>
-      <p>授权状态：{model.pageInfo?.authorization||'未知'}</p>
-      <p>Chrome 注册：{model.pageInfo?.nativeState||'未知'}</p>
-      {model.pageInfo?.nativeId&&<p>注册 ID：{model.pageInfo.nativeId}</p>}
-      {model.pageInfo?.sourceHash&&<p>固定源码 SHA-256：{model.pageInfo.sourceHash}</p>}
-      {model.pageInfo?.cleanupState&&<p>受管界面清理：{model.pageInfo.cleanupState}</p>}
-      {model.pageInfo?.error&&<p role="status">注册错误：{model.pageInfo.error}</p>}
-      <p>数据规则：{model.pageInfo?.dataRule}</p>
+    {managed&&<section className="ec-detail-card ec-page-management">
+      <h3>版本与管理</h3>
+      <p>{model.installationText} · 修订：r{model.version}</p>
+      {model.pageControl.officialBlock&&<p className="ec-page-release-block" role="status">
+        官方发行仍受限：{model.pageControl.officialBlock}
+      </p>}
+      <DetailActions model={model}/>
     </section>}
+    {model.kind==='page'&&(managed?
+      <details className="ec-detail-card ec-page-diagnostics">
+        <summary>权限、安装身份与技术诊断</summary>
+        <PageDiagnostics info={model.pageInfo}/>
+      </details>:
+      <section className="ec-detail-card">
+        <h3>Chrome 注册与数据</h3>
+        <PageDiagnostics info={model.pageInfo}/>
+      </section>)}
   </>;
 }
 

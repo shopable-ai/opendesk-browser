@@ -14,14 +14,19 @@ export function installedPageEnableAction(installed){
 
 // Trusted enable/restore operation used by the unified Extension Center.
 // It does not install, convert, or enlarge a Page program's website rules.
-export async function setInstalledPageProgramEnabled({api,client,row}){
+export async function setInstalledPageProgramEnabled({api,client,row,enabled}){
   const installed=row?.installed;
   if(!installed||installed.manifestHash!==row.manifestHash)
     throw Object.assign(new Error('已安装网页程序身份已变化，请刷新列表'),{code:'E_PAGE_CHANGED'});
-  const action=installedPageEnableAction(installed);
-  if(action.enabled)await requireChromePermissions({api,request:{origins:pageHostPermissionOrigins(installed.pageRules.matches)}});
+  // The master Switch sends its explicit desired state. The legacy row-menu
+  // action still preserves the separate "restore suspended grant" behavior.
+  if(enabled!==undefined&&typeof enabled!=='boolean')
+    throw Object.assign(new Error('无效的网页增强启用意图'),{code:'E_PAGE_ENABLED'});
+  const targetEnabled=enabled??installedPageEnableAction(installed).enabled;
+  if(targetEnabled)await requireChromePermissions({
+    api,request:{origins:pageHostPermissionOrigins(installed.pageRules.matches)}});
   const result=await client.request('setInstalledPageEnabled',{
-    programId:row.programId,manifestHash:installed.manifestHash,enabled:action.enabled,
+    programId:row.programId,manifestHash:installed.manifestHash,enabled:targetEnabled,
     expectedGeneration:installed.authorization?.generation??null});
   if(result.error)throw result.error;
   return result;

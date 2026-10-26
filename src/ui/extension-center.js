@@ -4,7 +4,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tool
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {loadOfficialPageCatalog} from '../scripting/user-scripts/official-page-catalog.js';
 import {installedPageEnableAction,setInstalledPageProgramEnabled} from './installed-page-tools.js';
-import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction} from './extension-center-model.js';
+import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeManagedAiPage} from './extension-center-model.js';
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage} from './app-localization.js';
@@ -589,6 +589,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
     const pendingReview=uninstallReview?.key===row.key?uninstallReview:null;
     const page=row.kind==='page'?row.record?.installed:null;
+    const pageControl=page&&pageStatusKnown?describeManagedAiPage(page,pages):null;
     const confirmation=pendingReview?{
       text:'卸载后将停止此网页增强自动运行，并从本机安装列表移除；不会自动删除网站自己的数据。',
       onConfirm:confirmPageUninstall,onCancel:cancelPageUninstall
@@ -624,19 +625,35 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       }else if(row.kind==='page'&&!row.installed){
         if(row.release?.status==='available')add('审阅并安装','install',()=>openPageReview(row.key));
       }else if(row.installed&&!pendingReview){
-        if(row.stateKnown!==false)
+        // These AI Page apps use one visible master switch, not two enable controls.
+        if(row.stateKnown!==false&&!pageControl)
           add(installedPageEnableAction(row.record.installed).label,'toggle',
             event=>{void togglePage(row,event);});
         if(row.update&&row.release?.status==='available')
           add('审阅官方新版','update',()=>openPageReview(row.key));
         else add('更新 / 导入新版…','update',()=>{backIfNeeded();sidebarTools.openImport();});
         add('卸载网页增强…','uninstall',event=>openUninstallReview(row,event));
-        add('前往开发','develop',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();});
+        if(!pageControl)
+          add('前往开发','develop',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();});
       }
       extensionList.renderDetail({
         key:row.key,title:titleOf(row),type:typeOf(row),kind:row.kind,
         description:rowDescription(row),actions,busy:Boolean(busy||pendingKey),
         focusAction:focused,
+        pageControl:pageControl?{
+          ...pageControl,
+          busy:Boolean(busy||pendingKey),
+          officialBlock:row.release?.status==='blocked'?row.release.blockedReason||'官方发行尚未批准':null,
+          onToggle:(value,event)=>{
+            if(typeof value==='boolean'&&value!==page.enabled)void togglePage(row,event,value);
+          },
+          onRestore:event=>{
+            if(pageControl.canRestore)void togglePage(row,event,true);
+          },
+          onRefresh:event=>{
+            if(event?.isTrusted===true&&!disposed&&!busy&&!pendingKey)void refresh();
+          }
+        }:null,
         installed:row.installed,cleanupPending:row.cleanupPending,
         version:row.version,source:sources[row.id]||null,
         usageText:row.kind==='app'&&row.installed?installedAppUsage(row):'',
@@ -658,6 +675,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           nativeState:page.nativeState||'未知',nativeId:page.nativeId||null,
           installationId:page.authorization?.installationId||null,
           sourceHash:page.sourceHash||null,
+          manifestHash:page.manifestHash||null,packageHash:page.packageHash||null,
           cleanupState:page.managedCleanup?.state||null,
           error:page.error?.message||null,
           dataRule:'卸载撤销本机安装与受管网页界面；不自动删除网站自身存储或脚本已产生的数据。'
@@ -728,19 +746,23 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         search?.focus?.({preventScroll:true});}
     }
   }
-  async function togglePage(row,event){
+  async function togglePage(row,event,desiredEnabled){
     if(disposed||!event?.isTrusted||busy||pendingKey||row.kind!=='page')return;
     if(row.stateKnown===false)return;
     if(!samePageIdentity(find(row.key),pageIdentity(row))){
       message('网页增强状态已变化，请刷新后重试。','error');void refresh();return;
     }
-    const targetEnabled=installedPageEnableAction(row.record.installed).enabled;
+    const installed=row.record.installed;
+    const targetEnabled=typeof desiredEnabled==='boolean'?desiredEnabled:installedPageEnableAction(installed).enabled;
+    if(typeof desiredEnabled==='boolean'&&desiredEnabled===installed.enabled&&
+      !(desiredEnabled&&(
+        installed.authorization?.status==='suspended'||installed.nativeState==='blocked')))return;
     const inDetail=selectedKey===row.key;
     detailFocusAction=inDetail?'toggle':null;
     busy=true;pendingKey=row.key;draw();if(inDetail)renderDetail();
     try{
       let result,operationError,readback=false;
-      try{result=await setInstalledPageProgramEnabled({api,client,row:row.record});}
+      try{result=await setInstalledPageProgramEnabled({api,client,row:row.record,enabled:desiredEnabled});}
       catch(error){
         operationError=error;
         if(!disposed)message((error?.code||'E_PAGE_INSTALLATION')+'：'+
