@@ -1,4 +1,4 @@
-# Web Markdown Clipper · 1.2.7
+# 网页剪藏 · 当前配置版本 1.2.8
 
 保存开始时收起未保存确认；保存尚未完成时，返回、取消与迟到的放弃操作均保留编辑状态及正文，成功后回到更新后的阅读页。工具 ID、权限与本地数据命名空间不变，已安装版本通过同 ID 更新。
 
@@ -133,3 +133,9 @@ npm run build
 新版验收记录见 `ACCEPTANCE-R1.8-WEB.md`。历史 1.1.4 的 Chrome 验收不代表新版已经通过；本轮重点是全新安装后的全文持久化、重启读回和权限隔离。
 
 R1.8.2 网页开发验收记录：`ACCEPTANCE-R1.8.2-WEB.md`。目前真实 Chrome、正式 CI 和安装包晋升须按实际回执确认，不能把模拟预览作为 PASS。
+
+## R1.0 · 四工具统一视觉增量与规范预览（2026-10-26）
+
+本轮只精简正式 `src/`：移除重复产品标题，选中文字右键说明默认折叠，「我的摘录」的备份收进「更多」，保存说明只有超出 160,000 字节限制时才提示。文章/选区/引用/链接、正文提取、最近摘录、检索、详情、编辑、删除、Markdown 备份、异常与读回原逻辑不重建。保留已有独立 [交互预览](preview/index.html) 作为历史产品测试入口。
+
+新增**现有统一预览生成器**适配：仓库根目录运行 `node scripts/preview/build-preview.mjs --tool web-markdown-clipper --surface side-panel --scenario success --theme light --width 360`，输出忽略目录 `artifacts/previews/web-markdown-clipper/side-panel-success-light-360.html` 及 `.context.json`；宽度可改 320/400/440，主题 dark，场景 empty/error/permission-denied。生成器直接编入打包后的真实工具 HTML/CSS/JS，并重用本目录既有 `preview/mock-host.js` 作为离线 SDK 边界；不运行真实网页授权、剪藏或下载，不具备 Chrome 持久化证据。所有生成操作及 Chrome 安装必须在本地实际执行；本轮远端源码修改不等于正式发行包已晋升。
