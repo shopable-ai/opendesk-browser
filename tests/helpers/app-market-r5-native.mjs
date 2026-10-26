@@ -194,19 +194,25 @@ export async function runMarketR5Acceptance(d){
     for(const cut of [a1,a2])Object.assign(cut.record,{status:'PASS',recovered});
     check('native-worker-prepared-before-create-and-created-before-persist-recovery',{intentId:row1.intentId,reviewId:row1.reviewId,operationId:row1.operationId});
   }
-  async function websiteSubjectReview(subject,{existingPage=null,details=false,keyboard=false,audit=false,handoffCuts=false}={}){
+  async function websiteSubjectReview(subject,{existingPage=null,details=false,home=false,keyboard=false,audit=false,handoffCuts=false}={}){
     await newIntentBudget();
     const route=subject.kind==='app'?subject.marketId+'/versions/'+subject.version+'/':
       'collections/'+subject.collectionId+'/revisions/'+subject.revision+'/';
-    const url=channel.origin+(details?(subject.kind==='app'?'/apps/':'/'):'/install/')+route;
-    const page=existingPage||await openTab(url);await visible(page,'#open-review');
+    const url=home?channel.origin+'/':
+      channel.origin+(details?(subject.kind==='app'?'/apps/':'/'):'/install/')+route;
+    const reviewSelector=home?'.app-card:has(h2 a[href="/apps/'+subject.marketId+'/"]) [data-open-review]':'#open-review';
+    const feedbackSelector=home?'.app-card:has(h2 a[href="/apps/'+subject.marketId+'/"]) [data-handoff-state]':'#handoff-state';
+    const page=existingPage||await openTab(url);await visible(page,reviewSelector);
     await until(()=>evaluate(page,'document.querySelector("#connection-state").textContent.includes("已连接 OpenDesk")'),'real page script and external probe ready');
-    if(audit)await ui.detail(page,'r5-web-detail','#open-review');
+    if(audit)await ui.detail(page,home?'r61-web-home-install':'r5-web-detail',reviewSelector);
     if(handoffCuts)await interruptedHandoff(page);
-    else if(keyboard)await ui.enter(page,'#open-review','r5-first-website-handoff');
-    else await click(page,'#open-review');
-    await until(async()=>{const state=await evaluate(page,'document.querySelector("#handoff-state").dataset.state');
-      if(state==='error')throw Error(await evaluate(page,'document.querySelector("#handoff-state").textContent'));return state==='success';},'HTTP website opened trusted review');
+    else if(keyboard)await ui.enter(page,reviewSelector,home?'r61-first-home-handoff':'r5-first-website-handoff');
+    else await click(page,reviewSelector);
+    await until(async()=>{
+      const state=await evaluate(page,'document.querySelector('+JSON.stringify(feedbackSelector)+')?.dataset.state');
+      if(state==='error')throw Error(await evaluate(page,'document.querySelector('+JSON.stringify(feedbackSelector)+').textContent'));
+      return state==='success';
+    },'HTTP website opened trusted review');
     const intent=await evaluate(page,'JSON.parse(sessionStorage.getItem('+JSON.stringify('opendesk.market.intent:'+JSON.stringify(subject))+')).id');
     const row=await until(async()=>(await intentRows()).find(r=>r.intentId===intent),'real persisted handoff');
     const reviewURL='chrome-extension://'+id+'/ui/marketplace.html?intent='+row.reviewId;
@@ -292,7 +298,12 @@ export async function runMarketR5Acceptance(d){
 
   await mark('http-first-install-fixed-review-and-use');
   const initial=await installed();assert(!initial.some(row=>row.id==='markdown-workbench'));
-  let first=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{details:true,keyboard:true,audit:true});
+  // Preserve the R5 fixed detail visual audit while making the first
+  // authentic Markdown install start from R6.1's homepage CTA.
+  const detailPreview=await openTab(channel.origin+'/apps/opendesk/markdown-workbench/versions/'+packages.get('markdown-workbench').version+'/');
+  await visible(detailPreview,'#open-review');await ui.detail(detailPreview,'r5-web-detail','#open-review');
+  await close(detailPreview);
+  let first=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{home:true,keyboard:true,audit:true});
   await visible(first.review,'[data-market-action="confirm-install"]');
   assert.deepEqual(await installed(),initial,'website handoff cannot install');await d.assertNoFrames();await d.assertNoGrants();
   assert.match(await evaluate(first.review,'document.body.innerText'),/发布者：OpenDesk/);
@@ -310,7 +321,8 @@ export async function runMarketR5Acceptance(d){
   await navigate(first.review,first.reviewURL);await visible(first.review,'[data-market-action="confirm-install"]');
   await screenshot(first.review,'r5-trusted-review.png');
   const beforeTargets=(await targets()).filter(row=>row.url===first.reviewURL).length;
-  await click(first.page,'#open-review');await until(()=>evaluate(first.page,'document.querySelector("#handoff-state").dataset.state==="success"'),'same intent repeated');
+  await click(first.page,'.app-card:has(h2 a[href="/apps/opendesk/markdown-workbench/"]) [data-open-review]');
+  await until(()=>evaluate(first.page,'document.querySelector(".app-card:has(h2 a[href=\"/apps/opendesk/markdown-workbench/\"]) [data-handoff-state]")?.dataset.state==="success"'),'same homepage intent repeated');
   assert.equal((await targets()).filter(row=>row.url===first.reviewURL).length,beforeTargets);
   assert.equal((await intentRows()).find(row=>row.intentId===first.row.intentId).operationId,first.row.operationId);
   await close(first.page);await click(first.review,'[data-market-action="confirm-install"]');
