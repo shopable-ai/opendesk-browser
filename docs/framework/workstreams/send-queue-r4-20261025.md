@@ -310,3 +310,17 @@
 - 取回 D 的第一次自动化点击因控件重建未实际命中，不能算产品失败或 PASS；清空 F 后 D 按原队列授权自动发送。随后在仍忙碌的 G 中用新 H 和最新控件索引完成取回验证。原始失败记录 `r8-reclaim-ax.txt` 保留，正式取回证据使用 `r8-reclaim-success-*`。中途 UI 工具要求重新读取窗口时，先读回现场再继续；未发现非本任务的新草稿/队列，未清空用户内容。
 - 最终定向 Node 153/153 PASS，覆盖强制停止后的对应轮次、单次副作用、草稿/附件/输入法、unknown 超时与身份保护，Enter 回退/正常发送/IME/修饰键、布局几何与原生热区；`r8-targeted.tap`。项目格式校验、预览 CSS/WebP 同源检查和最终包校验通过。独立只读 reviewer 对 engine/site/main 与相关测试未发现重要问题，另跑过两个真实模块离线集成；这不是完整正式审计或评分。
 - UI 锁已释放，`native_ui_owner: null`；原 CFT/Profile、原安装、既有服务保留。本轮无 production、全生命周期、真实 IME/特殊空白、桥并发、宽度×缩放或独立评分证据，均不提升为 PASS；内存队列跨刷新恢复仍不支持。只提交本任务文件到 main，不推送。
+
+
+## R5.12 · 待发送列表与消息框之间移除说明（2026-10-27）
+
+- 用户最新要求：待发送列表下方和消息框之间不显示文字说明，采用简洁队列交互。范围仅独立 Page USER_SCRIPT 的 `view.js`、自有 CSS 和离线预览；发送引擎、站点适配、入口、公开能力和网站范围未改。main，不分支/worktree/PR、不推送；其他 owner 改动保留。
+- 删除全部阶段的底部说明及其 CSS，不留下空状态行。正常操作继续使用原按钮 title / aria-label。unknown 警示放在对应消息行序号位，保留禁用发送/编辑、禁止重试和原删除确认；鼠标悬停、键盘聚焦可识别原因，激活原提示区域展示详情。折叠的未知消息在展开按钮显示警示，避免异常藏在第三条以后。离线预览同步移除同位置说明，历史模拟控制面板仍为模拟，不能作为运行证据。
+- 新 `0.1.10/r9` 固定候选：`artifacts/send-queue-r9-01a17980/final-candidate/`；sourceHash `7c445500cd9899dbac2902a26a6740069cb64b90a72d12cf686515af0f5d7f81`，packageHash `171db1586900a794394d3d081ca4f02967c6b862178e2ee2af66e60038d87f00`，源码 92,714 bytes。四个源码、两个资产逐项匹配收据；完整异步包校验 PASS，原打包器从同一草稿同步唯一当前身份正式包，候选/正式包逐字节一致。早期 `candidate/` 不是安装候选；最终因补齐折叠异常警示，以新 `final-candidate/` 冻结，未覆盖旧字节。
+- 定向验证：先以旧源码确认“仍有底栏”和“无消息行警示”两个失败，再修复；最终视图、身份和预览 28/28 PASS，包括全部发送阶段无底栏、unknown 可访问入口与按钮禁用、折叠警示、原生输入框几何保护和预览同源。项目格式及预览 CSS/WebP 同步 PASS。发送行为未改，复用 R5.11 对其原始源码的证据，不把旧行为矩阵宣称为 r9 全量复测。
+- 首次申请原生 UI 锁时被其他 owner 占用，继续离线工作；其释放后取得锁，未抢占或跨对话发消息。原专用窗口首读无队列/草稿，沿原管理入口 r8→r9 审阅，读回完整版本/指纹、网站范围未变化及详情 active / registered。installationId `9bf2f0d6-9b5b-4d72-a372-23bbce9aecfc`、registrationId `opendesk-page-boot-e736f023860568cd7be4f76373b4882840d0f3928e1ca8e3` 不变，仍 page.dom / ChatGPT 单站。
+- 运行环境仍 CFT154 专用 `test-chatgpt-profile`、扩展 `ajjjgoapcaonglplhlnlfofmlemdakhk`，原静态 Developer 路径 `artifacts/send-queue-r56-mac-final-01a17882/source-snapshot/dist/development-developer`，无 dev serve；未构建/替换宿主或停止任何服务。仅空队列/草稿时刷新启动 r9。
+- 真实结果 `CORE_UI_NATIVE_PASS / PAGE_UPDATED_WITH_LIMITATIONS`：原生 Enter 提交自有 A，B 在回复期间可入列且无底部说明；首次截图前 A 已结束、B 自动单次入站，因此该截图不是最终等待态证明。另用自有 C 回复期间入列 PENDING 并马上保留 HOLD 草稿；原生停止 C 后，PENDING 和准确 HOLD 同时保留，AX 与原图确认队列直接衔接消息框、无状态文字或多余空栏。原生工具两次输出大图报 `native_hook_stdin_oversized`，改为保存原始截图并通过 `view_image` 检查，未为此修改产品或重试发送。
+- 原始证据根 `artifacts/send-queue-r9-01a17980/core/`：`upgrade-review-ax.txt`、`installed-ax.txt`、`waiting-draft-ax.txt`、`waiting-draft-visual.png`、`pending-removed-ax.txt`、`final-ax.txt`、`native-result.json`、`package-validation.json`。收尾先删除自有 PENDING（HOLD 保留），再清空自有 HOLD；最终无队列/草稿、原生语音按钮恢复。原用户历史、浏览器、Profile 与服务保留，UI 锁已释放。
+- unknown 新入口只做定向 DOM 视图验证，未在网站故意制造未知发送结果。production、完整生命周期、真实 IME、宽度/缩放矩阵与评分继续延期，未升级为 PASS；本轮不进入公开发行。
+- 提交时发现并行 main 提交 `55e33dcef` 已包含本轮源码、测试及 r9 正式包；只读核对工作区与 HEAD 对应文件无差异，正式包仍与本轮实际安装候选逐字节一致。保留该提交，不重写历史；本 owner 仅补交 README、当前目录说明及本段原生验证记录，不包含计算接力等并行改动。
