@@ -40,14 +40,22 @@ function within(host,row){
 }
 function safeRow(row,host,storeId,partition){
   if(!object(row)||!within(host,row)||typeof row.name!=='string'||
-    typeof row.value!=='string'||row.name.length>256||row.value.length>4096||
+    !row.name||row.name.length>256||/[;=\\s\\x00-\\x1f\\x7f]/.test(row.name)||
+    typeof row.value!=='string'||new TextEncoder().encode(row.value).length>4096||
     typeof row.path!=='string'||!row.path.startsWith('/')||row.path.length>512||
+    /[\\r\\n;]/.test(row.path)||
     typeof row.hostOnly!=='boolean'||typeof row.secure!=='boolean'||
     typeof row.httpOnly!=='boolean'||typeof row.session!=='boolean'||
     row.storeId!==storeId||!['lax','strict','no_restriction','unspecified'].includes(row.sameSite)||
     row.partitionKey&&!samePartition(row.partitionKey,partition)||
-    !row.session&&(!Number.isFinite(row.expirationDate)||row.expirationDate<=Date.now()/1000))
+    !row.session&&(!Number.isFinite(row.expirationDate)||row.expirationDate<=Date.now()/1000)||
+    row.name.startsWith('__Secure-')&&!row.secure||
+    row.name.startsWith('__Host-')&&(!row.secure||!row.hostOnly||row.path!=='/')||
+    row.sameSite==='no_restriction'&&!row.secure)
     throw fail('E_ACCOUNT_COOKIE_SCOPE');
+  const checkedUrl=new URL('https://'+host);
+  checkedUrl.pathname=row.path;
+  if(checkedUrl.pathname!==row.path)throw fail('E_ACCOUNT_COOKIE_SCOPE');
   return {
     name:row.name,value:row.value,domain:row.domain,path:row.path,
     hostOnly:row.hostOnly,secure:row.secure,httpOnly:row.httpOnly,
@@ -224,6 +232,8 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
     const unique=new Map();
     for(const row of all)unique.set(cookieId(row),row);
     const rows=validateRows([...unique.values()],host,storeId,partition);
+    if(origin.startsWith('http:')&&rows.some(row=>row.secure))
+      throw fail('E_ACCOUNT_COOKIE_SCOPE');
     await permission(origin,grant,true);
     await validateDocument(document,origin,context.automatic);
     return rows;
@@ -231,6 +241,8 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
   async function effect(context,desired){
     const current=await cookiesFor(context);
     const expected=validateRows(desired,context.host,context.storeId,context.partition);
+    if(context.origin.startsWith('http:')&&expected.some(row=>row.secure))
+      throw fail('E_ACCOUNT_COOKIE_SCOPE');
     const steps=planAccountCookieEffects(current,expected);
     if(steps.length>MAX_COOKIES*2)throw fail('E_ACCOUNT_LIMIT');
     const driverContext={approved:true,origin:context.origin,grant:context.grant,
