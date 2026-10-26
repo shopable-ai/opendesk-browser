@@ -2,6 +2,7 @@
 /* ToolHost owns the application title; use only canonical od-* controls. */
 .mdw{box-sizing:border-box;display:flex;flex-direction:column;gap:var(--space-2);width:100%;min-width:0;max-width:100%;padding:var(--space-3);color:var(--od-ink);background:var(--od-paper)}
 .mdw [hidden]{display:none!important}
+.mdw-inline-review[hidden]{display:none!important}
 .mdw-toolbar{position:relative;justify-content:flex-end;gap:var(--space-2);flex-wrap:nowrap}
 .mdw-file-actions{gap:var(--space-1);margin-right:auto}
 .mdw-toolbar #mdw-download{flex:none;white-space:nowrap}
