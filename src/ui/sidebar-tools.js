@@ -3073,7 +3073,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       rateExceeded=++requestCount>120;
     }
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
-    const verifiedGesture=(message.operation.startsWith('cookieAccount.')||
+    const verifiedGesture=((typeof message.operation==='string'&&
+       message.operation.startsWith('cookieAccount.'))||
       message.operation==='cookieEditor.import.begin'||
       message.operation==='cookieEditor.write.begin'||
       message.operation==='cookieEditor.clear.begin'||
