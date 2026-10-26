@@ -159,6 +159,13 @@ test('R6.2 website discovery is available-only and absent from the global extens
   assert.match(center,/void readDiscoveryChannel\(\)/);
   assert.match(center,/error\?\.code==='E_DISCOVERY_MISSING'/);
   assert.match(center,/state:'empty'/);
+  assert.match(center,/state:'empty',target/);
+  assert.match(center,/state:'error',target/);
+  const contextual=pageUI.slice(pageUI.indexOf('export function ExtensionDiscovery('),
+    pageUI.indexOf('// React owns the complete Extension Center presentation'));
+  assert.equal((contextual.match(/id="extension-center-discover"/g)||[]).length,1);
+  assert.match(contextual,/const activate=event=>/);
+  assert.match(contextual,/aria-disabled=\{model\?\.state==='loading'\|\|undefined\}/);
 });
 
 
