@@ -285,9 +285,12 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
     const {operation,payload}=message;
     if(MUTATIONS.has(operation)&&message.trustedClick!==true)
       throw fail('E_USER_GESTURE_REQUIRED');
-    if(operation==='unlock')return vault.unlock(payload.passphrase);
-    if(operation==='lock')return vault.lock();
     const origin=originOf(payload.origin);
+    if(operation==='unlock'){
+      await vault.unlock(payload.passphrase);
+      return statusFor(origin);
+    }
+    if(operation==='lock')return vault.lock();
     if(operation==='status')return statusFor(origin);
     const {revision}=payload;
     if(!Number.isSafeInteger(revision)||revision<0)
@@ -303,6 +306,7 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
           {refresh:data.settings.autoRefresh});
       });
     }
+    return exclusive(async()=>{
     let capture=null;
     if(['create','update'].includes(operation)){
       const grant=grantFor(record.siteRecord,origin,true);
@@ -342,6 +346,7 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
     const value=await statusFor(origin);
     if(value.revision!==changed)throw fail('E_OUTCOME_UNKNOWN');
     return value;
+    });
   }
   async function navigation(event){
     try{
