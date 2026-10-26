@@ -73,20 +73,20 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
 <body>
 <div class="wrapper">
   <header class="head">
-    <div><p class="eyebrow">OPENDESK · EXTENSION UI R2.7</p><h1>组件与布局规范图谱</h1><p>正式 React Showcase + 既有 R2.5 Pattern / R2.6 Business · 只读参考</p></div>
+    <div><p class="eyebrow">OPENDESK · EXTENSION UI R2.7</p><h1>组件与布局规范图谱 · React Tree 优先</h1><p>正式 React Showcase + 既有 R2.5 Pattern / R2.6 Business · 只读参考</p></div>
     <span class="proof">UI_PREVIEW_ONLY · 浏览器验收 NOT_TESTED</span>
   </header>
   <div class="layout">
     <nav class="side" role="tablist" aria-label="规范图谱入口" id="atlas-tabs" aria-orientation="vertical">
-      <button type="button" class="nav" data-tab="foundation" role="tab" id="tab-foundation" aria-selected="true" aria-controls="pane-foundation" tabindex="0"><span class="num">01</span>Foundation</button>
-      <button type="button" class="nav" data-tab="components" role="tab" id="tab-components" aria-selected="false" aria-controls="pane-components" tabindex="-1"><span class="num">02</span>Components</button>
+      <button type="button" class="nav" data-tab="foundation" role="tab" id="tab-foundation" aria-selected="false" aria-controls="pane-foundation" tabindex="-1"><span class="num">01</span>Foundation</button>
+      <button type="button" class="nav" data-tab="components" role="tab" id="tab-components" aria-selected="true" aria-controls="pane-components" tabindex="0"><span class="num">02</span>Components · React Tree</button>
       <button type="button" class="nav" data-tab="patterns" role="tab" id="tab-patterns" aria-selected="false" aria-controls="pane-patterns" tabindex="-1"><span class="num">03</span>Patterns</button>
       <button type="button" class="nav" data-tab="business" role="tab" id="tab-business" aria-selected="false" aria-controls="pane-business" tabindex="-1"><span class="num">04</span>Business</button>
       <button type="button" class="nav" data-tab="source" role="tab" id="tab-source" aria-selected="false" aria-controls="pane-source" tabindex="-1"><span class="num">05</span>Source &amp; Proof</button>
       <p class="aside-foot">五层图谱负责发现与溯源；不修改运行时组件、Tool 身份、SDK、Host、权限或安装流程。</p>
     </nav>
     <main class="content">
-      <section class="panel" id="pane-foundation" role="tabpanel" aria-labelledby="tab-foundation">
+      <section class="panel" id="pane-foundation" role="tabpanel" aria-labelledby="tab-foundation" hidden>
         <div class="panel-head"><div><h2>Foundation · 唯一设计基础</h2><p>色彩、文字、间距、圆角来自正式 <code>src/ui/design-tokens.css</code>。</p></div></div>
         <div class="card"><h3>语义色板（实时引用正式 CSS 变量）</h3>
           <div class="tokens">
@@ -112,8 +112,28 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
         <div class="note">源码：<a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-tokens.css">design-tokens.css</a> · <a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-system.css">design-system.css</a>。独立 Tool iframe 不可直接继承宿主私有 stylesheet。</div>
       </section>
 
-      <section class="panel" id="pane-components" role="tabpanel" aria-labelledby="tab-components" hidden>
-        <div class="panel-head"><div><h2>Components · 真实 React Showcase</h2><p>下方直接加载现有离线 React 编译产物，使用同一 React Root 的预览 Portal。</p></div></div>
+      <section class="panel" id="pane-components" role="tabpanel" aria-labelledby="tab-components">
+        <div class="panel-head"><div><h2>Components · 真实业务 React 优先</h2><p>先看正式 Bookmark Tree 的历史 React 构建，再区分共享组件与 Showcase 局部演示。</p></div></div>
+        
+        <div class="card" id="p05-real-bookmark">
+          <div class="bar"><div><h3>P05 · Bookmark Manager 真实 React Tree</h3><p>本轮唯一 P0 视觉与交互基准 · 直接复用仓库已编译的 React App，不手写树</p></div>
+            <a href="../../../examples/sidebar-tools/bookmark-manager/preview/index.html" target="_blank" rel="noopener noreferrer">独立打开实际 React Tree 预览</a></div>
+          <div class="note" style="margin:10px 0"><strong>HISTORICAL_REAL_REACT · CURRENT_SOURCE_NOT_VERIFIED</strong>：预览最后批准于 2026-10-17，正式 <code>App.jsx</code> 于 2026-10-26 更新。预览包含真实 React Tree + Bookmark Model/Service 的内存 SDK Mock，但不是最新正式业务构建，且不连接 Chrome 书签或 Host。不得据此将 R2.8 的 P0 标记通过。</div>
+          <div class="chips" aria-label="真实 React Tree 源码能力" style="margin-bottom:10px">
+            <span class="chip">层级与文件夹</span><span class="chip">直接子项数量</span><span class="chip">展开 / 折叠 / 选中</span>
+            <span class="chip">路径搜索</span><span class="chip">方向键 / Home / End / F2</span><span class="chip">超过 120 行虚拟化</span>
+          </div>
+          <iframe class="full-frame" id="bookmark-real-react" title="Bookmark Manager 已编译真实 React Tree：历史来源、内存 SDK Mock" src="../../../examples/sidebar-tools/bookmark-manager/preview/index.html" loading="eager"></iframe>
+          <details style="margin-top:10px"><summary>核对原始源码与真实渲染证据</summary>
+            <div class="link-list" style="margin-top:8px">
+              <a href="../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx" target="_blank" rel="noopener noreferrer">App.jsx · Tree / row count / keyboard / virtualization / Inspector</a>
+              <a href="../../../examples/sidebar-tools/bookmark-manager/src/react/style.css" target="_blank" rel="noopener noreferrer">style.css · 正式 React Tree 样式（非 Classic 样式）</a>
+              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx" target="_blank" rel="noopener noreferrer">离线入口 · import 正式 App.jsx 与 CSS</a>
+              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs" target="_blank" rel="noopener noreferrer">同源候选构建器 · 需要新的 CI/Chromium 晋升证据</a>
+              <a href="../../../examples/sidebar-tools/bookmark-manager/preview/r3041-chrome.mjs" target="_blank" rel="noopener noreferrer">历史真实 Chromium 测试 · Tree/键盘/虚拟化/缩放（不可晋升为本轮 PASS）</a>
+            </div>
+          </details>
+        </div>
         <div class="card"><h3>正式共享组件与业务组合必须分开</h3><div class="chips">
           <span class="chip shared">Button / IconButton · Shared React</span>
           <span class="chip shared">Card / CardContent · Shared React</span>
@@ -135,6 +155,31 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
 
       <section class="panel" id="pane-patterns" role="tabpanel" aria-labelledby="tab-patterns" hidden>
         <div class="panel-head"><div><h2>Patterns · P01–P16</h2><p>复用 R2.5 已保存的布局/Group 互动参考，避免重复开发。</p></div><a href="r25-layout-patterns.html" target="_blank" rel="noopener noreferrer">独立打开 R2.5</a></div>
+        
+        <div class="card" id="r28-pattern-proof">
+          <h3>R2.8 · P01–P16 实际运行分级</h3>
+          <p class="muted">REAL_REACT_RENDERED 在本表仅指<strong>历史批准编译 React 预览中确有真实业务 UI</strong>，并不表示 2026-10-26 当前源码已通过测试。DOCUMENTED_ONLY 可能有正式 JSX/CSS，但缺少最新、可核实的渲染证据；SIMULATED_ONLY 指本 Atlas 可见的 R2.6 页面目前只有模拟交互。REAL_TOOL_RENDERED=0，MISSING=0，不人为提高覆盖率。</p>
+          <div style="overflow-x:auto;margin-top:9px"><table class="source-table" aria-label="P01 到 P16 来源与运行证据分级">
+            <thead><tr><th scope="col">Pattern</th><th scope="col">当前可见实现</th><th scope="col">为何如此归类</th></tr></thead>
+            <tbody><tr><td>P01 · Page Header</td><td><code>DOCUMENTED_ONLY</code></td><td>正式 React 开发页有源码；Atlas 未证明同 SHA 浏览器渲染</td></tr>
+<tr><td>P02 · Section / Settings</td><td><code>DOCUMENTED_ONLY</code></td><td>正式 Design CSS 原语；R2.5/R2.6 为模拟组合</td></tr>
+<tr><td>P03 · Search Toolbar</td><td><code>DOCUMENTED_ONLY</code></td><td>真实 React Toolbar 源码已定位；当前同源交互未测</td></tr>
+<tr><td>P04 · List Row / More</td><td><code>DOCUMENTED_ONLY</code></td><td>真实 React ExtensionRows 源码已定位；当前同源交互未测</td></tr>
+<tr><td>P05 · Bookmark Tree</td><td><code>REAL_REACT_RENDERED</code></td><td>2026-10-17 历史真实 React 离线预览；10-26 当前源码未重建</td></tr>
+<tr><td>P06 · Tree→Detail→Edit</td><td><code>REAL_REACT_RENDERED</code></td><td>历史 React Tree/Inspector 页面；新版 guarded back 未同步</td></tr>
+<tr><td>P07 · Prompt Form</td><td><code>SIMULATED_ONLY</code></td><td>R2.6 可操作的是模拟页；正式 HTML Tool 有源码但未在此渲染</td></tr>
+<tr><td>P08 · Code Workbench</td><td><code>DOCUMENTED_ONLY</code></td><td>正式 DevelopEditor/Execution React 源码；当前交互未测</td></tr>
+<tr><td>P09 · Cookie Dense Data</td><td><code>SIMULATED_ONLY</code></td><td>R2.6 是模拟页；正式 Cookie Tool 非此预览</td></tr>
+<tr><td>P10 · Import Sheet</td><td><code>DOCUMENTED_ONLY</code></td><td>正式 ToolHost ImportSheet JSX；独立真实操作未验</td></tr>
+<tr><td>P11 · Permission / Revoke</td><td><code>DOCUMENTED_ONLY</code></td><td>权限只能 Host 裁定；展示不能当授权验证</td></tr>
+<tr><td>P12 · Menu / Dialog</td><td><code>DOCUMENTED_ONLY</code></td><td>正式 ExtensionRowMenu/UninstallDialog JSX；缺同候选焦点证据</td></tr>
+<tr><td>P13 · Error / Unknown</td><td><code>SIMULATED_ONLY</code></td><td>R2.6 注入失败是内存模拟；真实 lost-ack 待同源核查</td></tr>
+<tr><td>P14 · Locale</td><td><code>DOCUMENTED_ONLY</code></td><td>正式 LocaleManager JSX；R2.6 中文资源为模拟</td></tr>
+<tr><td>P15 · Responsive Inspector</td><td><code>REAL_REACT_RENDERED</code></td><td>历史 React 宽窄 Inspector + r3041 历史 Chrome 测试；当前未复验</td></tr>
+<tr><td>P16 · Empty / Loading</td><td><code>SIMULATED_ONLY</code></td><td>R2.6 显示模拟状态；正式 React 视图来源存在但未演示同源</td></tr></tbody>
+          </table></div>
+          <p class="note" style="margin-top:10px"><strong>正式门槛：0/16 当前同源通过。</strong> 历史编译 React 的 3 项不能通过当前源码身份门禁；静态文件、模拟点击、旧 Chrome 测试不得提升为本轮验收 PASS。</p>
+        </div>
         <div class="card"><h3>六类 Group</h3><div class="chips"><span class="chip">Page Header / Action</span><span class="chip">Settings</span><span class="chip">Form Field</span><span class="chip">Search / Filter</span><span class="chip">List / Detail</span><span class="chip">Feedback / Danger</span></div><p class="muted" style="margin-top:8px">这些是设计分组而非新建的组件 API；具体 16 Pattern 以原 R2.5 文档为准。</p></div>
         <iframe class="full-frame" title="R2.5 Pattern 互动参考（非正式源码运行）" loading="lazy" src="r25-layout-patterns.html"></iframe>
         <div class="note">CHAT_ADAPTER_NOT_SOURCE_HTML · 内存演示；源码映射见 <a href="r25-source-index.zh-CN.md" target="_blank" rel="noopener noreferrer">R2.5 Source Index</a>。</div>
@@ -185,7 +230,7 @@ select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border
       </section>
     </main>
   </div>
-  <p class="foot">R2.7 SOURCE-ALIGNED INDEX · 无新增 UI 库、Host、SDK、安装器、React Root。此页面加载仓库中的已有预览与权威 CSS；独立下载单个文件时请保留仓库相对资源路径。</p>
+  <p class="foot">R2.8 REACT-FIRST SOURCE AUDIT · 无新增 UI 库、Host、SDK、安装器、React Root。此页面加载仓库中的已有预览与权威 CSS；独立下载单个文件时请保留仓库相对资源路径。</p>
 </div>
 <script>
 (function(){
