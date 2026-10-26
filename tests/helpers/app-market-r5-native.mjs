@@ -269,6 +269,10 @@ export async function runMarketR5Acceptance(d){
   await ui.reach(website,'button[data-filter="阅读"]','r5-home-category-space');await ui.key(website,' ','Space',32);
   assert.equal(await evaluate(website,'document.querySelector("button[data-filter=阅读]").getAttribute("aria-pressed")'),'true');
   await click(website,'button[data-filter="全部"]');
+  // R6.1 homepage CTA has the same native keyboard/zoom/320px visual gate
+  // as the R5 detail page, without opening a real install yet.
+  await ui.detail(website,'r61-web-home-cta',
+    '.app-card:has(h2 a[href="/apps/opendesk/markdown-workbench/"]) [data-open-review]');
   for(const width of [320,360,520,1280]){
     await website.send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
     await until(()=>evaluate(website,'innerWidth==='+width),'website viewport width');
@@ -303,8 +307,9 @@ export async function runMarketR5Acceptance(d){
   const detailPreview=await openTab(channel.origin+'/apps/opendesk/markdown-workbench/versions/'+packages.get('markdown-workbench').version+'/');
   await visible(detailPreview,'#open-review');await ui.detail(detailPreview,'r5-web-detail','#open-review');
   await close(detailPreview);
-  let first=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{home:true,keyboard:true,audit:true});
+  let first=await websiteReview('markdown-workbench',packages.get('markdown-workbench').version,{home:true,keyboard:true});
   await visible(first.review,'[data-market-action="confirm-install"]');
+  await ui.detail(first.review,'r5-trusted-review','[data-market-action="confirm-install"]');
   assert.deepEqual(await installed(),initial,'website handoff cannot install');await d.assertNoFrames();await d.assertNoGrants();
   assert.match(await evaluate(first.review,'document.body.innerText'),/发布者：OpenDesk/);
   const immutableTitle=await evaluate(first.review,'document.querySelector("h1").textContent');
