@@ -421,12 +421,16 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     pageDiscovery={...selected,busy:true};renderPageDiscovery();
     try{
       await currentPageTarget.revalidate(selected.target);
-      const {apps}=await loadOfficialCatalog({api});
-      if(!apps.some(row=>row.id===selected.subject.marketId&&row.version===selected.subject.version&&
-        row.sha256===selected.release.sha256))
-        throw Object.assign(new Error('已验证发行版本发生变化，请重新检测当前网页。'),{code:'E_DISCOVERY_RELEASE'});
-      // The release read is asynchronous: recheck document and selection
-      // immediately before a trusted tab is opened. No stale result proceeds.
+      const [channel,{apps}]=await Promise.all([
+        loadMarketChannel(api),loadOfficialCatalog({api})
+      ]);
+      const fresh=await discoverCurrentPageMarketInstall({
+        api,currentPageTarget,channel,releases:apps,target:selected.target
+      });
+      if(fresh.href!==selected.href||fresh.release.sha256!==selected.release.sha256)
+        throw Object.assign(new Error('当前网页的安装声明或官方发行已变化，请重新检测。'),{code:'E_DISCOVERY_CHANGED'});
+      // Channel, page DOM and release bytes are all rechecked on the trusted
+      // review gesture. Stale discoveries cannot open a different app.
       await currentPageTarget.revalidate(selected.target);
       if(disposed||generation!==discoveryGeneration||pageDiscovery?.subject!==selected.subject)return;
       // No untrusted URL reaches Chrome or the Installer. Existing trusted catalog owns review.
