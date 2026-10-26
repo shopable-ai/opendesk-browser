@@ -338,8 +338,7 @@
 .cookie-editor-react .cookie-account-card-text strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-card-text small{color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-menu-anchor{position:relative;flex:none}
-.cookie-editor-react .cookie-account-menu{position:absolute;z-index:40;right:0;top:calc(100% + 4px);width:190px;max-width:calc(100vw - 26px);display:grid;padding:4px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);box-shadow:0 6px 22px #00000024}
-.cookie-editor-react .cookie-account-menu.is-up{top:auto;bottom:calc(100% + 4px)}
+.cookie-editor-react .cookie-account-menu{position:fixed;z-index:1000;width:190px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 20px);overflow-y:auto;display:grid;padding:4px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);box-shadow:0 6px 22px #00000024}
 .cookie-editor-react .cookie-account-menu>button{min-height:35px;text-align:left;border:0;background:transparent;color:var(--od-ink);padding:6px 9px;border-radius:var(--radius-control)}
 .cookie-editor-react .cookie-account-menu>button:hover:not(:disabled),.cookie-editor-react .cookie-account-menu>button:focus-visible{background:var(--od-muted)}
 .cookie-editor-react .cookie-account-menu>button:disabled{color:var(--od-sub)}
@@ -358,4 +357,21 @@
   .cookie-editor-react .cookie-account-verify{flex-wrap:wrap}
   .cookie-editor-react .cookie-account-verify button{margin-left:auto}
   .cookie-editor-react .cookie-account-card{flex-wrap:wrap}
+}
+
+/* Encrypted account vault: one compact first-party form, never a second UI. */
+.cookie-editor-react .cookie-account-unlock,
+.cookie-editor-react .cookie-account-inline{display:grid;gap:var(--space-2);min-width:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-muted)}
+.cookie-editor-react .cookie-account-unlock label{display:grid;gap:4px}
+.cookie-editor-react .cookie-account-unlock small{color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.55}
+.cookie-editor-react .cookie-account-inline-controls{display:flex;flex-wrap:wrap;gap:var(--space-2);min-width:0;align-items:center}
+.cookie-editor-react .cookie-account-inline-controls>.od-field{flex:1 1 150px;min-width:0}
+.cookie-editor-react .cookie-account-inline-controls>.od-button{flex:0 0 auto}
+.cookie-editor-react .cookie-account-inline>p{margin:0;font-size:var(--od-note-size);overflow-wrap:anywhere}
+.cookie-editor-react .cookie-account-feedback{font-size:var(--od-note-size);line-height:1.5}
+.cookie-editor-react .cookie-account-feedback.is-error{color:var(--od-danger,#a63131)}
+@media(max-width:360px){
+  .cookie-editor-react .cookie-account-header{padding:var(--space-2)}
+  .cookie-editor-react .cookie-account-content{padding:var(--space-2)}
+  .cookie-editor-react .cookie-account-inline-controls>.od-button{min-height:34px}
 }

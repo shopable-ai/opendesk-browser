@@ -30,6 +30,8 @@ import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
 import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
+import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS}
+  from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
@@ -1856,6 +1858,61 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return {status:'unavailable',message:'只读开发预览没有绑定业务网页'};
       throw new Error('开发预览不允许真实写入、打开任务或控制网页');
     }
+    // Existing reviewed Side Panel Host is the only transport into the fixed
+    // MV3 account service. Never trust caller-supplied grants, tab selectors,
+    // gesture assertions, document identity or Cookie value payloads.
+    if(operation.startsWith('cookieAccount.')){
+      const action=operation.slice('cookieAccount.'.length);
+      if(tool.id!=='cookie-editor'||!COOKIE_ACCOUNT_OPERATIONS.includes(action)||
+         !['browser.cookies.read','browser.cookies.values','browser.cookies.write']
+           .every(cap=>tool.capabilities.includes(cap))||
+         !await admittedOfficialCookieImport(tool,revocationEpoch))
+        throw Object.assign(new Error('当前正式 Cookie Editor 未获得账号管理资格'),
+          {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
+      if(action!=='status'&&!verifiedGesture)
+        throw Object.assign(new Error('请直接点击账号操作按钮重试'),
+          {code:'E_USER_GESTURE_REQUIRED'});
+      if(!payload||typeof payload!=='object'||Array.isArray(payload))
+        throw Object.assign(new Error('账号操作参数无效'),{code:'E_ACCOUNT_REQUEST'});
+      const fields={
+        status:[],unlock:['passphrase'],lock:[],
+        create:['displayName','revision'],
+        rename:['alias','accountVersion','displayName','revision'],
+        update:['alias','accountVersion','revision'],
+        delete:['alias','accountVersion','revision'],
+        switch:['alias','revision'],
+        setAutoEnabled:['enabled','revision'],
+        setAutoRefresh:['enabled','revision'],
+        allowAlias:['alias','accountVersion','enabled','revision']
+      }[action];
+      if(!fields||Object.keys(payload).some(field=>!fields.includes(field))||
+         fields.some(field=>!Object.hasOwn(payload,field)))
+        throw Object.assign(new Error('账号操作字段不符合协议'),{code:'E_ACCOUNT_REQUEST'});
+      const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
+      if(!origin)throw Object.assign(new Error('当前没有活动的 HTTP(S) 网站'),
+        {code:'E_DOCUMENT_CHANGED'});
+      const data={origin,...Object.fromEntries(fields.map(field=>[field,payload[field]]))};
+      if(['create','update','switch'].includes(action)){
+        const {captured,document}=captureCookieImportDocument('账号');
+        await currentPageTarget.revalidate(captured);
+        assertSession(source,token);
+        if(document.origin!==origin)
+          throw Object.assign(new Error('账号目标网站已变化'),{code:'E_DOCUMENT_CHANGED'});
+        data.document=document;
+      }
+      assertSession(source,token);
+      const packageHash=await sidebarToolPackageHash(tool);
+      const response=await api.runtime.sendMessage({
+        protocol:COOKIE_ACCOUNT_PROTOCOL,toolId:tool.id,operation:action,
+        payload:data,packageHash,installEpoch:revocationEpoch,
+        trustedClick:action!=='status'&&verifiedGesture
+      });
+      if(!response?.ok)
+        throw Object.assign(new Error(response?.error?.message||'可信账号服务未确认操作'),
+          {code:response?.error?.code||'E_ACCOUNT_HOST'});
+      assertSession(source,token);
+      return response.data;
+    }
     if(operation==='analytics.report'){
       // Legacy portable tool UI may only self-report its own bounded copy success.
       // It cannot claim host lifecycle, storage commits or another tool's event.
@@ -3016,7 +3073,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       rateExceeded=++requestCount>120;
     }
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
-    const verifiedGesture=(message.operation==='cookieEditor.import.begin'||
+    const verifiedGesture=(message.operation.startsWith('cookieAccount.')||
+      message.operation==='cookieEditor.import.begin'||
       message.operation==='cookieEditor.write.begin'||
       message.operation==='cookieEditor.clear.begin'||
       message.operation==='cookieEditor.export.begin')&&

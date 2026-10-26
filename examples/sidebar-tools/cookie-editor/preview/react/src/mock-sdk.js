@@ -22,6 +22,17 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  let rows=scenario==='empty'?[]:fictionalCookies(),failure='',clearPlan=null,releaseLoading;
  let currentSite=demoSite,globalGrant=scenario!=='first';
  const siteRows=new Map([[demoSite,rows]]);
+ // Preview-only account fixture. No real account, Cookie, Host or storage.
+ let demoVault={configured:false,unlocked:false,revision:0,
+   accounts:[],settings:{autoRefresh:true,autoEnabled:false}};
+ let demoPassphrase=null;
+ const demoSnapshots=new Map();
+ const accountMeta=()=>({...clone(demoVault),
+   accounts:demoVault.unlocked?demoVault.accounts
+     .filter(item=>item.origin==='https://'+currentSite)
+     .map(item=>({...item,siteLabel:currentSite,siteUrl:'https://'+currentSite+'/'})):[],
+   autoRuntimeReady:demoVault.unlocked
+ });
  const seedRows=hostname=>{
   if(scenario==='empty')return [];
   const original=fictionalCookies()[0];
@@ -110,6 +121,58 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     return {started:true};
    }}},
   request:async(operation,payload)=>{
+   if(operation.startsWith('cookieAccount.')){
+    if(scenario==='hostClosed')throw error('E_HOST_CLOSED');
+    const action=operation.slice('cookieAccount.'.length);
+    if(action==='status')return accountMeta();
+    if(action==='unlock'){
+      if(typeof payload.passphrase!=='string'||payload.passphrase.length<12)
+        throw error('E_VAULT_PASSPHRASE');
+      if(demoPassphrase!==null&&payload.passphrase!==demoPassphrase)
+        throw error('E_VAULT_LOCKED_OR_CORRUPT');
+      demoPassphrase=payload.passphrase;
+      demoVault.configured=true;demoVault.unlocked=true;
+      return accountMeta();
+    }
+    if(action==='lock'){
+      demoVault.unlocked=false;return {locked:true};
+    }
+    if(!demoVault.unlocked)throw error('E_VAULT_LOCKED');
+    if(payload.revision!==demoVault.revision)throw error('E_VAULT_CONFLICT');
+    const origin='https://'+currentSite;
+    const selected=demoVault.accounts.find(item=>item.alias===payload.alias&&item.origin===origin);
+    if(action==='switch'){
+      if(!selected)throw error('E_ACCOUNT_NOT_FOUND');
+      rows=clone(demoSnapshots.get(selected.alias)||[]);
+      record('previewAccountSwitch',{alias:selected.alias,fixture:true});
+      return {switched:true,verified:true,reloadRequested:demoVault.settings.autoRefresh,
+        preview:true};
+    }
+    if(action==='create'){
+      if(!payload.displayName||!rows.length)throw error('E_ACCOUNT_EMPTY');
+      const alias='acct_preview_'+String(demoVault.revision+1).padStart(3,'0');
+      demoVault.accounts.push({alias,origin,
+        displayName:String(payload.displayName).slice(0,64),version:1,allowAuto:false});
+      demoSnapshots.set(alias,clone(rows));
+    }else if(['rename','update','delete','allowAlias'].includes(action)){
+      if(!selected)throw error('E_ACCOUNT_NOT_FOUND');
+      if(selected.version!==payload.accountVersion)throw error('E_VAULT_CONFLICT');
+      if(action==='rename')selected.displayName=String(payload.displayName).slice(0,64);
+      if(action==='update')demoSnapshots.set(selected.alias,clone(rows));
+      if(action==='delete'){
+        demoVault.accounts.splice(demoVault.accounts.indexOf(selected),1);
+        demoSnapshots.delete(selected.alias);
+      }
+      if(action==='allowAlias')selected.allowAuto=payload.enabled===true;
+      selected.version++;
+    }else if(action==='setAutoEnabled'||action==='setAutoRefresh'){
+      demoVault.settings[action==='setAutoEnabled'?'autoEnabled':'autoRefresh']=
+        payload.enabled===true;
+    }else throw error('E_ACCOUNT_REQUEST');
+    demoVault.revision++;
+    record('previewAccountMutation',{action,fixture:true});
+    return accountMeta();
+   }
    if(operation==='currentPage.info'){
     if(scenario==='noPage'||scenario==='restricted'||scenario==='switching')
       return {status:'unavailable',reasonCode:scenario==='noPage'?'E_NO_ACTIVE_TAB':

@@ -18,14 +18,18 @@ const ruleHelp={
 // controller/adapter and must never be passed to presentation props.
 export function CookieAccounts({
   origin='',accounts=[],route='list',onRoute=()=>{},
-  vaultReady=false,switchReady=false,autoRuntimeReady=false,
+  configured=false,vaultReady=false,switchReady=false,autoRuntimeReady=false,
+  busy=false,feedback=null,onUnlock,onLock,
   autoEnabled=false,autoRefresh=true,
   onCreate,onSwitch,onRename,onUpdate,onDelete,onShare,
   onToggleAuto,onToggleRefresh,onAllowAlias,onCopyLink
 }){
   const [query,setQuery]=React.useState('');
   const [menuId,setMenuId]=React.useState(null);
-  const [menuUp,setMenuUp]=React.useState(false);
+  const [menuPosition,setMenuPosition]=React.useState({left:8,top:8});
+  const [inline,setInline]=React.useState(null);
+  const [draft,setDraft]=React.useState('');
+  const passphrase=React.useRef(null);
   const [testUrl,setTestUrl]=React.useState('');
   const [testResult,setTestResult]=React.useState(null);
   const trigger=React.useRef(null);
@@ -56,12 +60,55 @@ export function CookieAccounts({
     document.addEventListener('pointerdown',outside,true);
     document.addEventListener('focusin',outside,true);
     document.addEventListener('keydown',escape,true);
+    const closeOnScroll=()=>setMenuId(null);
+    window.addEventListener('scroll',closeOnScroll,true);
+    window.addEventListener('resize',closeOnScroll);
     return ()=>{
       document.removeEventListener('pointerdown',outside,true);
       document.removeEventListener('focusin',outside,true);
       document.removeEventListener('keydown',escape,true);
+      window.removeEventListener('scroll',closeOnScroll,true);
+      window.removeEventListener('resize',closeOnScroll);
     };
   },[menuId]);
+  const commitPassword=()=>{
+    const input=passphrase.current;
+    if(!input||typeof onUnlock!=='function'||busy)return;
+    const password=input.value;input.value='';
+    if(password.length>=12)onUnlock(password);
+  };
+  const startInline=(kind,item=null)=>{
+    setMenuId(null);
+    setInline({kind,item});
+    setDraft(kind==='rename'?item.displayName:'');
+  };
+  const commitInline=()=>{
+    if(!inline||busy)return;
+    if(inline.kind==='create'&&draft.trim())onCreate?.(draft.trim());
+    if(inline.kind==='rename'&&draft.trim())
+      onRename?.(inline.item,draft.trim());
+    if(inline.kind==='delete')onDelete?.(inline.item);
+    setInline(null);setDraft('');
+  };
+  const positionMenu=button=>{
+    const rect=button.getBoundingClientRect();
+    const width=Math.min(190,Math.max(160,window.innerWidth-16));
+    const left=Math.max(8,Math.min(window.innerWidth-width-8,rect.right-width));
+    const estimatedHeight=204;
+    const top=rect.bottom+4+estimatedHeight>window.innerHeight-8
+      ?Math.max(8,rect.top-estimatedHeight-4):rect.bottom+4;
+    setMenuPosition({left,top});
+  };
+  const onMenuKeyDown=event=>{
+    if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+    event.preventDefault();
+    const candidates=[...(popup.current?.querySelectorAll('[role="menuitem"]:not(:disabled)')||[])];
+    if(!candidates.length)return;
+    const at=candidates.indexOf(document.activeElement);
+    const next=event.key==='Home'?0:event.key==='End'?candidates.length-1:
+      (at+(event.key==='ArrowDown'?1:-1)+candidates.length)%candidates.length;
+    candidates[next].focus({preventScroll:true});
+  };
   const openSettings=()=>{
     scroll.current=list.current?.scrollTop||0;
     setMenuId(null);setTestResult(null);onRoute('auto');
@@ -81,15 +128,18 @@ export function CookieAccounts({
     approvedFragment:autoRuntimeReady,allowedAliases:allowlist
   }));
   const actions=item=>[
-    ['重命名',onRename],['更新当前 Cookie 快照',onUpdate],
-    ['生成切换链接',onCopyLink],['分享',onShare],['删除',onDelete]
-  ].map(([label,action])=><button key={label} type="button" role="menuitem"
-    disabled={!vaultReady||typeof action!=='function'||
-      (label==='生成切换链接'&&!linkFor(item))}
+    ['重命名',()=>startInline('rename',item),Boolean(onRename)],
+    ['更新当前 Cookie 快照',()=>onUpdate?.(item),Boolean(onUpdate)],
+    ['生成切换链接',()=>onCopyLink?.(item,linkFor(item)),
+      Boolean(onCopyLink)&&Boolean(linkFor(item))],
+    ['分享',()=>onShare?.(item),Boolean(onShare)],
+    ['删除',()=>startInline('delete',item),Boolean(onDelete)]
+  ].map(([label,action,available])=><button key={label} type="button"
+    role="menuitem" disabled={busy||!vaultReady||!available}
     onClick={()=>{
       setMenuId(null);
-      if(label==='生成切换链接')action(item,linkFor(item));
-      else action(item);
+      trigger.current?.focus({preventScroll:true});
+      action();
     }}>{label}</button>);
   if(route==='auto')return <section className="cookie-account-page od-surface"
     aria-label="管理自动切换">
@@ -102,7 +152,7 @@ export function CookieAccounts({
         <span><strong>允许 URL 自动切换</strong>
           <small>仅对白名单内的本站账号生效</small></span>
         <input type="checkbox" role="switch" checked={autoEnabled}
-          disabled={!autoRuntimeReady||typeof onToggleAuto!=='function'}
+          disabled={busy||!vaultReady||!autoRuntimeReady||typeof onToggleAuto!=='function'}
           onChange={event=>onToggleAuto?.(event.target.checked)}/>
       </label>
       {!autoRuntimeReady&&<p className="cookie-account-notice" role="status">
@@ -113,7 +163,7 @@ export function CookieAccounts({
         className="cookie-account-setting">
         <span>{item.displayName}<small>{item.alias}</small></span>
         <input type="checkbox" role="switch" checked={item.allowAuto===true}
-          disabled={!vaultReady||!autoRuntimeReady||typeof onAllowAlias!=='function'}
+          disabled={busy||!vaultReady||!autoRuntimeReady||typeof onAllowAlias!=='function'}
           onChange={event=>onAllowAlias?.(item,event.target.checked)}/>
       </label>):<p className="cookie-account-empty">暂无已保存的账号快照。</p>}
       <h3>账号切换链接</h3>
@@ -123,7 +173,7 @@ export function CookieAccounts({
           <strong>{item.displayName}</strong>
           <code>{linkFor(item)}</code>
           <button type="button" className="od-button od-button--secondary"
-            disabled={typeof onCopyLink!=='function'}
+            disabled={busy||typeof onCopyLink!=='function'}
             onClick={()=>onCopyLink?.(item,linkFor(item))}>复制链接</button>
         </div>):<p className="cookie-account-empty">
           网站兼容性及白名单验证完成后，才能生成可执行切换链接。
@@ -148,28 +198,66 @@ export function CookieAccounts({
   const filtered=accounts.filter(item=>
     String(item.displayName||'').toLowerCase().includes(query.toLowerCase()));
   return <section className="cookie-account-page od-surface" aria-label="账号"
-    ref={list}>
+    id="cookie-product-panel-accounts" role="tabpanel"
+    aria-labelledby="cookie-product-tab-accounts" ref={list}>
     <header className="cookie-account-header">
       <strong>账号 <span className="cookie-account-count">{accounts.length}</span></strong>
       <div className="cookie-account-actions">
         <CookieIconButton name="settings" label="管理自动切换"
           onClick={openSettings}/>
+        {vaultReady&&<CookieIconButton name="lock" label="锁定账号仓库"
+          disabled={busy||typeof onLock!=='function'} onClick={()=>onLock?.()}/>}
         <button type="button" className="od-button od-button--primary"
-          disabled={!vaultReady||typeof onCreate!=='function'}
-          onClick={()=>onCreate?.()}>保存当前账号</button>
+          disabled={busy||!vaultReady||typeof onCreate!=='function'}
+          onClick={()=>startInline('create')}>保存当前账号</button>
       </div>
     </header>
     <div className="cookie-account-content">
+      {!vaultReady&&<div className="cookie-account-unlock">
+        <label htmlFor="cookie-account-passphrase">
+          <strong>{configured?'解锁本机账号仓库':'首次设置账号仓库口令'}</strong>
+          <small>至少 12 个字符；仅用于本机加密，不保存到网页或账号列表。请妥善保管，丢失后无法解密原快照。</small>
+        </label>
+        <div className="cookie-account-inline-controls">
+          <input id="cookie-account-passphrase" className="od-field"
+            type="password" ref={passphrase} autoComplete="new-password"
+            aria-label="账号仓库口令" disabled={busy}
+            onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();commitPassword();}}}/>
+          <button className="od-button od-button--primary" type="button"
+            disabled={busy||typeof onUnlock!=='function'}
+            onClick={commitPassword}>{configured?'解锁':'设置并解锁'}</button>
+        </div>
+      </div>}
+      {feedback&&<p role={feedback.kind==='error'?'alert':'status'}
+        className={'cookie-account-feedback'+(feedback.kind==='error'?' is-error':'')}>
+        {feedback.text}
+      </p>}
+      {inline&&vaultReady&&<div className="cookie-account-inline" aria-label="账号操作">
+        <strong>{inline.kind==='create'?'保存当前账号':
+          inline.kind==='rename'?'重命名账号':'确认删除账号快照'}</strong>
+        {inline.kind!=='delete'?<input type="text" className="od-field"
+          aria-label="账号名称" value={draft} maxLength={64}
+          autoFocus onChange={event=>setDraft(event.target.value)}
+          onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();commitInline();}
+            if(event.key==='Escape'){setInline(null);setDraft('');}}}/>:
+          <p>删除「{inline.item.displayName}」的本机快照，不会删除网站中的 Cookie。</p>}
+        <div className="cookie-account-inline-controls">
+          <button className="od-button od-button--secondary" type="button"
+            disabled={busy} onClick={()=>{setInline(null);setDraft('');}}>取消</button>
+          <button className="od-button od-button--primary" type="button"
+            disabled={busy||inline.kind!=='delete'&&!draft.trim()}
+            onClick={commitInline}>{inline.kind==='delete'?'删除快照':'保存'}</button>
+        </div>
+      </div>}
       <label className="cookie-account-setting">
         <span><strong>切换后自动刷新网页</strong>
           <small>默认开启，确认写入及回读成功后才刷新</small></span>
         <input type="checkbox" role="switch" checked={autoRefresh}
-          disabled={!switchReady||typeof onToggleRefresh!=='function'}
+          disabled={busy||!switchReady||typeof onToggleRefresh!=='function'}
           onChange={event=>onToggleRefresh?.(event.target.checked)}/>
       </label>
       {!vaultReady&&<p className="cookie-account-notice" role="status">
-        受保护的账号快照仓库尚未接入，不能保存或切换登录 Cookie。
-        不会使用普通 localStorage 存放敏感信息。
+        加密仓库保持锁定。解锁前不会读取、保存或切换任何登录 Cookie。
       </p>}
       {accounts.length>0&&<input className="od-field cookie-account-search"
         type="search" placeholder="搜索账号" aria-label="搜索账号"
@@ -182,37 +270,41 @@ export function CookieAccounts({
           <strong>{item.displayName}</strong><small>{item.siteLabel||origin}</small>
         </div>
         <button type="button" className="od-button od-button--secondary"
-          disabled={!switchReady||typeof onSwitch!=='function'}
+          disabled={busy||!switchReady||typeof onSwitch!=='function'}
           onClick={()=>onSwitch?.(item)}>切换</button>
         <div className="cookie-account-menu-anchor">
           <button type="button" className="od-icon-button"
+            disabled={busy||!vaultReady}
             aria-label={'更多操作：'+item.displayName} aria-haspopup="menu"
             aria-expanded={menuId===item.alias}
             onClick={event=>{
               const opening=menuId!==item.alias;
               if(opening){
                 trigger.current=event.currentTarget;
-                setMenuUp(event.currentTarget.getBoundingClientRect().bottom>
-                  window.innerHeight-230);
+                positionMenu(event.currentTarget);
               }
               setMenuId(opening?item.alias:null);
             }}>···</button>
           {menuId===item.alias&&<div ref={popup} role="menu"
-            className={'cookie-account-menu'+(menuUp?' is-up':'')}>
+            className="cookie-account-menu" style={menuPosition}
+            aria-label={'账号操作：'+item.displayName}
+            onKeyDown={onMenuKeyDown}>
             {actions(item)}
           </div>}
         </div>
       </article>)}
       {!filtered.length&&<p className="cookie-account-empty">
         {accounts.length?'没有匹配的账号。':
-          '尚无账号快照。可信存储接入后，可从当前网站保存账号。'}
+          '尚无账号快照。解锁后可保存当前网站的 Cookie 账号。'}
       </p>}
     </div>
   </section>;
 }
 
 export function CookieAccountMarket(){
-  return <section className="cookie-account-page od-surface" aria-label="市场">
+  return <section className="cookie-account-page od-surface" aria-label="市场"
+    id="cookie-product-panel-market" role="tabpanel"
+    aria-labelledby="cookie-product-tab-market">
     <header className="cookie-account-header"><strong>市场</strong>
       <span className="cookie-market-status">尚未上线</span></header>
     <div className="cookie-account-content">
