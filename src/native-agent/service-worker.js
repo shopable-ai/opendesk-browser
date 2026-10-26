@@ -1,12 +1,13 @@
-import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LEDGER,AGENT_MAX_BYTES,
+import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_LAST_CONNECTED_AT_KEY,AGENT_MAX_LEDGER,AGENT_MAX_BYTES,
   AGENT_MUTATIONS,AGENT_CONFIG_PROTOCOL,AgentBridgeError,agentValidateRequest,agentDigest} from './protocol.js';
 import {createLocalProjectService} from './local-project-service.js';
 import {createWorkflowAIService} from './workflow-ai-service.js';
 import {createFileWorkspaceService} from './file-workspace-service.js';
+import {SIDEPANEL_DOCUMENT_PATH,toolDocumentIdentity} from '../tool-document-url.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map(),development}={}) {
-  let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0,workflowAiVersion=0;
+  let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0,workflowAiVersion=0,lastConnectedAt=null;
   const pending=new Map(),store=api.storage.local;
   const workflowAI=createWorkflowAIService({api,hostPorts,
     connection:()=>({enabled,ready,port,generation,workflowAiVersion}),
@@ -201,7 +202,11 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
           extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localDevMultiVersion:msg.localDevMultiVersion===1?1:0,localFilesVersion:1,
           ...(workflowAiVersion===1?{workflowAiVersion:1}:{}),
           ...(msg.localDevAccessVersion===1?{localDevAccessVersion:1}:{}),
-          ...(msg.localDevSourceVersion===1?{localDevSourceVersion:1}:{})});}catch{connected.disconnect();}
+          ...(msg.localDevSourceVersion===1?{localDevSourceVersion:1}:{})});
+         // Confirm the transport handshake before recording any connection history.
+         lastConnectedAt=Date.now();
+         void store.set({[AGENT_LAST_CONNECTED_AT_KEY]:lastConnectedAt}).catch(()=>{});
+        }catch{connected.disconnect();}
         workflowAI.publish();
       }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
       else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
@@ -215,6 +220,12 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   }
   const initial=(async()=>{
     const intent=settingsGeneration;
+    // The timestamp is local metadata, not a credential or a permission grant.
+    try{
+      const previous=await store.get(AGENT_LAST_CONNECTED_AT_KEY);
+      const value=previous?.[AGENT_LAST_CONNECTED_AT_KEY];
+      if(Number.isSafeInteger(value)&&value>0)lastConnectedAt=value;
+    }catch{/* Connection remains available even if history cannot be read. */}
     const configuration=await store.get(AGENT_ENABLED_KEY);
     const granted=configuration[AGENT_ENABLED_KEY]===true&&
       await api.permissions.contains({permissions:['nativeMessaging']});
@@ -260,8 +271,18 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       if(msg?.type==='files.request')return files.request(msg.method,msg.params,{sessionId:msg.expectedSessionId});
       throw new AgentBridgeError('E_CAPABILITY');
     }
-    if(sender?.id!==api.runtime.id||sender?.url!==api.runtime.getURL('native-agent/settings.html')||
-      typeof sender.documentId!=='string')throw new AgentBridgeError('E_OWNER');
+    // The trusted Side Panel may read and manage the same Native connection.
+    // Its exact packaged URL and top-level document identity are required;
+    // installed sandbox tools, content scripts and foreign frames cannot use it.
+    const trustedDocument=sender?.id===api.runtime.id&&
+      typeof sender.documentId==='string'&&sender.documentId.length>0&&
+      (sender.frameId===undefined||sender.frameId===0);
+    const optionsSender=trustedDocument&&sender.url===api.runtime.getURL('native-agent/settings.html');
+    const panelIdentity=trustedDocument?toolDocumentIdentity(
+      api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender.url):null;
+    // Scheduled runners are never a human-facing authorization surface.
+    const panelSender=Boolean(panelIdentity&&!panelIdentity.scheduledRunner);
+    if(!optionsSender&&!panelSender)throw new AgentBridgeError('E_OWNER');
     await initial;
     if(msg?.type==='status') {
       // A trusted Options read is also a bounded, read-only discovery trigger:
@@ -269,7 +290,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       // Never request permissions here or issue script/RunHost mutations.
       if(enabled&&!port)connect();
       return {enabled,nativeConnected:ready,connecting:enabled&&!!port&&!ready,hostCount:live().length,
-        extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,
+        extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,lastConnectedAt,
         requiresReload:enabled&&!ready&&typeof api.runtime.connectNative!=='function'};
     }
     if(msg?.type==='enable') {

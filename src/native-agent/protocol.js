@@ -5,6 +5,8 @@ export const AGENT_HOST = 'com.shopable.opendesk_browser.agent';
 export const AGENT_CONFIG_PROTOCOL = 'opendesk.native-agent.config.v1';
 export const AGENT_LEDGER_KEY = 'opendesk.native-agent.ledger.v1';
 export const AGENT_ENABLED_KEY = 'opendesk.native-agent.enabled.v1';
+// Local-only evidence of a completed Host hello/welcome handshake, not Codex readiness.
+export const AGENT_LAST_CONNECTED_AT_KEY = 'opendesk.native-agent.lastConnectedAt.v1';
 export const AGENT_MAX_BYTES = 60 * 1024;
 export const AGENT_MAX_LEDGER = 256;
 export const AGENT_MUTATIONS = Object.freeze(['script.save', 'run.start', 'run.stop', 'page.preview', 'page.dispose']);

@@ -341,28 +341,35 @@
 .task-section-actions .od-icon-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .task-section-actions button:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-input-border)}
 .sidebar-tools-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);margin-left:auto;flex:0 0 auto;min-width:0}
-.sidebar-tool-import{min-width:0;margin:0 0 8px;padding:10px;background:#fff;border:1px solid #dbe5f3;border-radius:var(--radius-surface);box-shadow:0 2px 10px #1e3c6810}
+.sidebar-tool-import{min-width:0;margin:0 0 8px;padding:10px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
 .sidebar-tool-import-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
-.sidebar-tool-import-head strong{font-size:13px;color:#253951}
-#sidebar-tool-import-close{background:transparent;color:#5d7089;border-color:#e0e7f0}
-.sidebar-tool-import label{margin:8px 0 4px;font-size:12px;font-weight:650;color:#3c506c}
-#sidebar-tool-file{display:block;width:100%;min-width:0;min-height:42px;margin:0;padding:5px;border:1px dashed #b9c9de;border-radius:var(--radius-control);background:#f8faff;color:#566882;font-size:11px}
-#sidebar-tool-file::file-selector-button{min-height:34px;margin-right:8px;padding:5px 9px;border:1px solid #ccd9ed;border-radius:var(--radius-control);background:#fff;color:#37588e;font:inherit;font-weight:650;cursor:pointer}
-.sidebar-tool-import-hint{margin:4px 0 0;font-size:11px;line-height:1.45;color:var(--od-sub)}
-.sidebar-tool-preview{min-width:0;margin-top:8px;padding-top:8px;border-top:1px solid #e8edf5}
-.sidebar-tool-preview-heading{display:flex;align-items:baseline;gap:8px;min-width:0}
-.sidebar-tool-preview-heading strong{min-width:0;overflow-wrap:anywhere;font-size:13px;color:#233856}
-#sidebar-tool-preview-version{flex:none;color:#64768d;font-size:11px}
-#sidebar-tool-preview-description{color:#536981;font-size:12px;line-height:1.5;margin:4px 0 10px}
-.sidebar-tool-capabilities{background:#f4f7fc;border:1px solid #e8edf5;border-radius:var(--radius-control);padding:8px 10px}
-.sidebar-tool-capabilities span{display:block;margin-bottom:3px;font-size:11px;color:var(--od-sub)}
-.sidebar-tool-capabilities p{margin:0;font-size:12px;line-height:1.5;color:#304765}
-.sidebar-tool-preview-file{margin:8px 0;font-size:11px;color:var(--od-sub);overflow-wrap:anywhere}
-.sidebar-tool-file-error{margin:6px 0 0;font-size:11px;color:#a53b45;overflow-wrap:anywhere}
-.sidebar-tool-update{margin:9px 0;padding:9px 10px;border:1px solid #dbe5f3;border-radius:var(--radius-control);background:#f8faff;font-size:12px}
-.sidebar-tool-update strong{color:#304765}
-.sidebar-tool-update p{margin:5px 0 0;font-size:11px;overflow-wrap:anywhere}
-.sidebar-tool-update-warning{color:#97470e;font-weight:650}
+.sidebar-tool-import-head strong{font-size:13px;color:var(--od-ink)}
+#sidebar-tool-import-close{background:transparent;color:var(--od-sub);border-color:var(--od-line)}
+.sidebar-tool-import label{display:block;margin:4px 0 6px;font-size:12px;font-weight:650;color:var(--od-ink)}
+#sidebar-tool-file{display:block;width:100%;min-width:0;min-height:42px;margin:0;padding:5px;border:1px dashed var(--od-input-border);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-ink);font-size:11px}
+#sidebar-tool-file::file-selector-button{min-height:34px;margin-right:8px;padding:5px 9px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font:inherit;font-weight:650;cursor:pointer}
+.sidebar-tool-import-hint{margin:6px 0 0;font-size:11px;line-height:1.45;color:var(--od-sub)}
+.sidebar-tool-preview{min-width:0;margin-top:12px;padding-top:10px;border-top:1px solid var(--od-line)}
+.sidebar-tool-preview-heading{display:flex;align-items:baseline;gap:8px;min-width:0;flex-wrap:wrap}
+.sidebar-tool-preview-heading strong{min-width:0;overflow-wrap:anywhere;font-size:14px;color:var(--od-ink)}
+#sidebar-tool-preview-version{color:var(--od-sub);font-size:11px}
+#sidebar-tool-preview-description{color:var(--od-sub);font-size:12px;line-height:1.55;margin:7px 0 8px;white-space:pre-line;overflow-wrap:anywhere}
+.sidebar-tool-update{margin:6px 0 8px;padding:0;border:0;background:transparent;font-size:12px}
+.sidebar-tool-update p{margin:3px 0 0;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+#sidebar-tool-update-versions{font-weight:650;color:var(--od-ink)}
+.sidebar-tool-update-impact{color:var(--od-sub)}
+.sidebar-tool-update-warning{margin-top:8px!important;padding:8px 10px;border-left:3px solid #bb8a36;background:var(--od-muted);border-radius:var(--radius-control);color:var(--od-ink);font-weight:650}
+.sidebar-tool-permissions-details{min-width:0;margin:9px 0 6px;padding:9px 10px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted)}
+.sidebar-tool-permissions-details>summary{cursor:pointer;color:var(--od-ink);font-size:12px;font-weight:650;line-height:1.5}
+.sidebar-tool-permission-body{margin-top:8px;padding-top:8px;border-top:1px solid var(--od-line)}
+.sidebar-tool-permission-body p{margin:0 0 5px;color:var(--od-ink);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.sidebar-tool-permission-body #sidebar-tool-update-capabilities{color:var(--od-sub);font-size:11px}
+.sidebar-tool-permission-body #sidebar-tool-update-capabilities:empty{display:none}
+.sidebar-tool-preview-source{margin:8px 0 3px;color:var(--od-sub);font-size:11px;line-height:1.5}
+.sidebar-tool-technical-details{min-width:0;margin:0;padding:3px 0;border:0;background:transparent;font-size:11px;color:var(--od-sub)}
+.sidebar-tool-technical-details>summary{cursor:pointer;font-size:11px;line-height:1.5}
+.sidebar-tool-preview-file{margin:8px 0 0;padding:9px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:11px;line-height:1.5;overflow-wrap:anywhere;user-select:text}
+.sidebar-tool-file-error{margin:6px 0 0;font-size:11px;color:var(--od-negative);overflow-wrap:anywhere}
 #sidebar-tool-install{width:auto;display:block;margin-inline-start:auto;min-height:34px;padding:8px 10px;background:#365eda;color:#fff;font-size:12px;font-weight:700}
 #sidebar-tool-install:disabled{opacity:.5}
 .sidebar-tool-list{display:grid;gap:var(--space-2);margin:0}
@@ -414,6 +421,27 @@
  * State-changing enable/disable and site features belong in Settings. */
 .sidebar-tool-view-head{position:relative;z-index:3;gap:2px;min-height:32px;margin-bottom:6px}
 .sidebar-tool-view-head>strong{font-size:13px}
+/* One shared header, not a second breadcrumb/nav row. The title owns only the
+   flexible space left by fixed Back and action buttons. CSS truncation adds
+   the ellipsis only when text actually overflows; do not pre-truncate strings. */
+#sidebar-tool-title{flex:1 1 0;min-width:0;max-width:100%;container:tool-title / inline-size}
+#sidebar-tool-title .sidebar-tool-title-path{display:flex;align-items:baseline;width:100%;max-width:100%;min-width:0;overflow:hidden;white-space:nowrap}
+#sidebar-tool-title .sidebar-tool-title-parent{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sidebar-tool-title .sidebar-tool-title-divider{flex:0 0 auto;margin-inline:2px;white-space:pre}
+#sidebar-tool-title .sidebar-tool-title-current{flex:0 1 auto;min-width:0;max-width:66%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Available TITLE width, not viewport width: many actions can leave very
+   little space even on a wide panel. Always preserve the leaf/page identity. */
+@container tool-title (max-width:100px){
+  #sidebar-tool-title .sidebar-tool-title-parent,#sidebar-tool-title .sidebar-tool-title-divider{display:none}
+  #sidebar-tool-title .sidebar-tool-title-current{flex:1 1 0;max-width:100%}
+}
+/* At 200% zoom the header itself may be only 180px wide. Give Back and the
+   title a complete first row, then wrap the existing actions without clipping. */
+@media(max-width:240px){
+  #sidebar-tool-title{flex:1 1 calc(100% - max(44px,var(--od-icon-size)) - var(--space-2))}
+  .sidebar-tool-header-actions{margin-left:auto}
+}
+
 .sidebar-tool-view-head>.sidebar-tool-icon-action,
 .sidebar-tool-view-head .od-conversation-header-slot>.od-conversation-frame-trigger,
 .sidebar-tool-header-actions>.sidebar-tool-icon-action{

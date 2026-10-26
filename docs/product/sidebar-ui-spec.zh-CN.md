@@ -30,6 +30,10 @@
 - **Controller Task**：在「开发」创作，按 Task Authority 安装，在「我的」运行和定时调度；不因此变成应用或网页增强。
 - **可信功能与 Skill**：OpenDesk Browser 本身是一款 Chrome Extension；产品「扩展」是统一管理入口；第一方静态审计代码、动态应用、Page、Controller、Agent Skill 都必须独立区分。
 
+### 已安装应用的单行当前页标题（2026-10-26）
+
+安装后的应用只保留 **返回图标 + 当前页标题 + 必要操作图标**：根页显示「书签管理」；进入原生可信设置显示「书签管理 / 设置」；已经通过官方包与活动实例验证的业务子页显示「扩展名称 / 当前页面」。这是一行纯文本位置提示，不叠加新 Nav、完整历史路径、技术版本或权限声明。标题占据左右固定按钮间剩余空间（`flex:1 1 0;min-width:0`），分开处理父应用名和当前页；宽度不足时用 CSS `text-overflow:ellipsis` 先省略父名称，标题本身 ≤100px 则优先只显示子页名（完整文字保持在 DOM、ARIA、鼠标标题提示中）；200% 极窄缩放允许原有操作按钮自然换行而不遮挡。返回由真实业务状态机与未保存保护决定，不由文字决定。书签管理真实新建/编辑 Sheet 已在可信 React 注册 Back 关闭与脏草稿守卫，因此可作为当前子视图；详情预览、Dialog、菜单仍不是路由；未验真包不能改可信标题栏。实现边界、扩展 README 同步与测试见[Sidebar Tool 导航合同 R2](../architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)。
+
 ### R5.14 React 扩展中心：正式源码与唯一预览的所有权（2026-10-20）
 
 正式渲染链：`src/ui/react/main.tsx` → `src/ui/react/app-shell.tsx` → `src/ui/react/tabs/tools.tsx`；离线预览调用同一个 `mountSidebarApp`，演示安装/删除仅操作内存，**不是 Host 操作成功证据**。正式扩展的真实操作仍由原控制器和 Authority 完成，不能在 HTML 预览里复制实现。

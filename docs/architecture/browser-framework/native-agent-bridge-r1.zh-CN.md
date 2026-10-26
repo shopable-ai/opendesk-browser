@@ -1,5 +1,20 @@
 # OpenDesk Browser Native Agent Bridge R1：正式运行链可选入口
 
+## 2026-10-26 · Native 连接设置与共享 AI 弹窗
+
+**产品目标：** 从「AI 对话 → AI 设置」即可看清当前本机通信状态和此前是否曾成功握手。日常启停通过 Switch 就地完成，只有安装、开发版配对、目录工作区和诊断才需要打开独立的 `native-agent/settings.html`。不要把“AI 来源”与“本机连接”混为一个开关，也不要把已启用、在线、Codex Provider 已就绪说成同一种成功。
+
+**源码唯一归属：** `src/ui/react/components/provider-settings.tsx` 是四处可信对话共用的 React Sheet；`src/ui/tool-shell.js` 提供不含 Provider API Key 的 Native Facade；`src/ui/react/main.tsx` → `app-shell.tsx` 传递同一个 Facade。`src/native-agent/settings.html` / `settings.css` / `settings.js` 是 Chrome Options 页；`src/native-agent/service-worker.js` 和原 `AGENT_CONFIG_PROTOCOL` 仍是唯一启停/状态权威。不创建第二个 Host、Bridge、权限仓库或 Provider Runtime。
+
+用户可看到五类主要实时状态：未启用、正在连接、已连接、已启用但当前离线、需要重载；读取失败显示未知并提供重试，绝不按“未连接”冒充真实失败。已启用不等于连接成功。若 `lastConnectedAt` 有真实 `hello/welcome` 握手证据，即使当前离线/关闭也显示「上次成功连接」；没有证据就不猜历史。时间戳仅存 `chrome.storage.local`，不上传或视为 Codex 能力验证；当前运行可用性只采用 `nativeConnected` 的实时握手值。AI 来源的保存与本机连接 Switch 各自独立，已有 HTTPS API Key 仍只保留原会话处理。
+
+**权限与来源：** `permissions.request({permissions:['nativeMessaging']})` 仅由用户真实启用手势同步触发；状态读取绝不弹授权框。后台 Native 配置消息仍检查 `sender.id`、顶层 `documentId/frameId`，只允许打包 Options 页或通过 `toolDocumentIdentity` 校验的可信 `sidepanel.html`；安装工具 iframe、内容脚本、错误路径、Hash/未知 query 均不得读取或变更设置。状态查询可对已启用且断开的连接做有限重新发现，绝不触发 RunHost 业务任务。拒绝授权/断连/回执未知须可见并恢复，不自动重复授权或配对。
+
+**布局：** Options 第一屏展示 Switch、实时状态与重新检测；本地工作区入口独立；开发版配对、技术身份和诊断默认折叠；使用统计仍为默认关闭的独立同意项，原 `analytics-disclosure-2026-10-24-v8` 完整披露文本未删除，只将长说明置于可展开区域。桌面、360/320 px 及键盘/读屏均按单列响应式和真实可聚焦控件设计。
+
+**验证边界：** `tests/environment/native-agent-bridge.test.mjs` 新增可信 Side Panel 启停、无握手不报历史、握手后时间戳持久化、离线仍可识别历史及伪造 sender 拒绝的定向断言。代码写入 main 不等于测试/真实 Mac Chrome 通过；没有同一候选的原生 UI、Native Host、权限弹窗、焦点、窄屏测试回执时保持 `NOT_TESTED`，不能把设计评分当作实测质量。
+
+
 
 ## 当前 R2.2 增量：目录源码、MCP 和原运行链
 

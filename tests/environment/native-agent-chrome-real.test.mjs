@@ -355,7 +355,9 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     console.log('REAL_CHROME_CDP_OPTIONS_ERROR='+error.message+' stderr='+debug.slice(-1200));
     throw error;
   }
-  const status=async()=>evaluated("document.getElementById('bridge-status')?.textContent||''");
+  // Current status is concise. The extension identity lives in advanced diagnostics.
+  // Read both fields without expanding disclosure or changing any settings.
+  const status=async()=>evaluated("(()=>[document.getElementById('bridge-status')?.textContent,document.getElementById('bridge-details')?.textContent].filter(Boolean).join('\\n'))()");
   try {
     await eventually(async()=>((await status()).includes('Extension ID：'+extensionId)),{
       timeout:15000,label:'Options settings page with real extension sender'
@@ -372,9 +374,9 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   let workerControl=await connectCDP(workerTarget.webSocketDebuggerUrl);
   t.after(()=>workerControl?.close());
   await cdp.call('Page.bringToFront');
-  await evaluated("(()=>{globalThis.__nativeEnableClicks=[];document.addEventListener('click',event=>{if(event.target.id==='bridge-enable')globalThis.__nativeEnableClicks.push({isTrusted:event.isTrusted});},true);})()");
-  const rectangle=await evaluated("(()=>{const r=document.getElementById('bridge-enable').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");
-  assert.ok(rectangle&&rectangle.x>0&&rectangle.y>0,'Native Enable button must be visible');
+  await evaluated("(()=>{globalThis.__nativeEnableClicks=[];document.addEventListener('change',event=>{if(event.target.id==='bridge-toggle')globalThis.__nativeEnableClicks.push({isTrusted:event.isTrusted,checked:event.target.checked});},true);})()");
+  const rectangle=await evaluated("(()=>{const r=document.querySelector('.connection-switch .switch-track').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");
+  assert.ok(rectangle&&rectangle.x>0&&rectangle.y>0,'Native connection Switch must be visible');
   await cdp.call('Input.dispatchMouseEvent',{type:'mouseMoved',x:rectangle.x,y:rectangle.y});
   await cdp.call('Input.dispatchMouseEvent',{type:'mousePressed',x:rectangle.x,y:rectangle.y,button:'left',clickCount:1});
   await cdp.call('Input.dispatchMouseEvent',{type:'mouseReleased',x:rectangle.x,y:rectangle.y,button:'left',clickCount:1});
@@ -386,8 +388,9 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   }
   const clicks=await evaluated('globalThis.__nativeEnableClicks');
   console.log('REAL_CHROME_NATIVE_ENABLE_CLICK='+JSON.stringify(clicks));
-  assert.equal(clicks.length,1,'Exactly one actual Options enable click must be observed');
-  assert.equal(clicks[0].isTrusted,true,'Options enable click must be native');
+  assert.equal(clicks.length,1,'Exactly one actual Options switch change must be observed');
+  assert.equal(clicks[0].isTrusted,true,'Options switch change must be native');
+  assert.equal(clicks[0].checked,true,'Options switch was explicitly enabled');
   await eventually(()=>evaluated("chrome.permissions.contains({permissions:['nativeMessaging']})"),{
     timeout:60000,label:'Actual native permission dialog approval'});
   // The persistent enable choice must commit before stopping its worker.

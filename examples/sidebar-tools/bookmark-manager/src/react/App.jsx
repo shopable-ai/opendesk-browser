@@ -3,6 +3,7 @@ import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} fro
 import {Button as OpenDeskButton,IconButton as OpenDeskIconButton} from '../../../../../src/ui/react/components/ui/button.tsx';
 import {bookmarkConversationContext} from '../../../../../src/ui/conversation/bookmark-actions.js';
 import {runBookmarkAgentLoop} from '../../../../../src/ui/conversation/bookmark-agent-loop.js';
+import {bookmarkEditorNavigation} from './navigation.js';
 const model=globalThis.BookmarkR2Model;
 const TREE_ROW_HEIGHT=44;
 export const bookmarkConversationSamples=Object.freeze(['创建一个叫 AI 工具的文件夹，并把 https://example.com 收藏进去','把当前网页收藏到 AI 工具','找出 React 相关书签']);
@@ -382,7 +383,14 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
 
  function setDraft(value){fillEpoch.current++;updateDraft(value)}
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++;writeEpoch.current++;fillEpoch.current++}},[]);
- useEffect(()=>{onStateChange?.({dirty:dirtyDraft(draft),saving:busy,draft:draft?JSON.stringify({title:draft.title,url:draft.url,parentId:draft.parentId}).slice(0,8192):''})},[onStateChange,draft,busy]);
+ // Only an open editor sheet is a genuine child/Back target. Never infer
+ // a Host route from a bookmark preview, selection, folder picker or menu.
+ useEffect(()=>{
+  onStateChange?.({dirty:dirtyDraft(draft),saving:busy,
+   draft:draft?JSON.stringify({title:draft.title,url:draft.url,parentId:draft.parentId}).slice(0,8192):'',
+   navigation:bookmarkEditorNavigation(draft),
+   back:draft?()=>requestCloseSheet():null});
+ },[onStateChange,draft,busy,uncertain]);
  const revoke=useCallback(()=>{
   authorityEpoch.current++;writeEpoch.current++;readEpoch.current++;
   setTree(null);setDraft(null);setSelectedId(null);setPreviewOpen(false);setMenu(null);

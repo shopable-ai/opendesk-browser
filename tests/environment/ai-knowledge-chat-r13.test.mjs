@@ -1,5 +1,8 @@
 // R1.3 targeted Node proof: real model + fixture, FAKE Chrome API / FAKE model replies.
 // These tests NEVER claim a real Provider call, installed Chrome permission, or native DOM receipt.
+// R3.2 safety migration: non-exact RAG regression inputs now explicitly ask for the
+// refund application deadline. Bare '退款需要几天' is ambiguous (refund vs. review vs.
+// payout) and is separately tested as CLARIFICATION_REQUIRED in R3.2.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -157,7 +160,7 @@ test('R1.3 AI: local preapproved RAG creates a review draft, never silently send
    await rt.start({event:{isTrusted:true},autoSendFixed:true});
    const context=rt.approvalContext();
    rt.approveAI({...context,providerGeneration:4,expiresAt:Date.now()+120000});
-   site.messages.push(customer('退款需要几天'));
+   site.messages.push(customer('退款期限需要几天'));
    await until(()=>rt.snapshot().records[0]?.status==='REVIEW_REQUIRED','review draft');
    assert.equal(aiCalls,1);assert.equal(site.sendCalls,0);
    const row=rt.snapshot().records[0];
@@ -285,13 +288,13 @@ test('R1.3 pause: automatic AI permission is revoked while fixed permission stay
    assert.equal(stoppedAI,1,'pause invokes existing consumer cancellation and grant revocation');
    assert.equal(rt.snapshot().autoSendFixed,true,'fixed reply consent is a separate permission');
    rt.resume();
-   site.messages.push(customer('退款需要几天'));
+   site.messages.push(customer('退款期限需要几天'));
    await until(()=>['RETRIEVED_ONLY','REVIEW_REQUIRED'].includes(rt.snapshot().records[0]?.status),
      'post-resume non-exact question');
    assert.equal(aiCalls,0,'resume must not reuse the old automatic AI grant');
    assert.equal(rt.snapshot().records[0].status,'RETRIEVED_ONLY');
    rt.approveAI({...rt.approvalContext(),providerGeneration:4,expiresAt:Date.now()+120000});
-   site.messages.push(customer('退款需要几天','','kb_msg_00000000-0000-4000-a000-000000000003'));
+   site.messages.push(customer('退款期限需要几天','','kb_msg_00000000-0000-4000-a000-000000000003'));
    await until(()=>rt.snapshot().records[1]?.status==='REVIEW_REQUIRED','newly approved AI draft');
    assert.equal(aiCalls,1);assert.equal(site.sendCalls,0,'new AI drafts still require human review');
  }finally{rt.dispose();}
@@ -307,7 +310,7 @@ test('R1.3 pause: delayed retrieval cannot start AI using a new post-resume gran
  try{
    await rt.start({event:{isTrusted:true}});
    rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
-   holdReads=true;site.messages.push(customer('退款需要几天'));
+   holdReads=true;site.messages.push(customer('退款期限需要几天'));
    await until(()=>typeof releaseRead==='function','pending inbound knowledge read');
    rt.pause();rt.resume();
    rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
@@ -328,7 +331,7 @@ test('R1.3 pause: an in-flight AI response is discarded after pause and resume',
  try{
    await rt.start({event:{isTrusted:true}});
    rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
-   site.messages.push(customer('退款需要几天'));
+   site.messages.push(customer('退款期限需要几天'));
    await until(()=>typeof releaseAI==='function','in-flight AI request');
    rt.pause();rt.resume();
    releaseAI({status:'REVIEW_REQUIRED',answer:'退款到账时长需要人工核查。',sourceIds:['qa_demo_refund']});
@@ -407,7 +410,7 @@ test('R1.4 manual AI: attached draft must match original customer, session, ETag
  const {api,target,site}=lab();
  const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
    readLibrary:async()=>({value:library,etag}),assertLive:()=>{},getProviderGeneration:()=>2});
- const inbound=customer('退款需要几天');
+ const inbound=customer('退款期限需要几天');
  const proposal={status:'REVIEW_REQUIRED',answer:'演示规则：签收后 7 天内可以申请退款。',
    sourceIds:['qa_demo_refund']};
  try{
@@ -520,3 +523,99 @@ for(const changedKnowledge of [false,true]){
    }finally{rt.dispose();}
  });
 }
+
+test('R3.1 UNKNOWN after a real site click can be confirmed by a separate read-only receipt without another send',async()=>{
+ const {api,target,site}=lab();
+ const execute=api.scripting.executeScript;
+ api.scripting.executeScript=async options=>{
+   const actual=await execute(options);
+   // The site handler DID send; only the executeScript receipt was lost.
+   if(options.args[0].operation==='send')
+     return [{frameId:0,documentId:activeDoc,
+       result:{ok:false,code:'E_KB_DEMO_OUTCOME_UNKNOWN'}}];
+   return actual;
+ };
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','recoverable fixed answer');
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_DEMO_OUTCOME_UNKNOWN'});
+   assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+   assert.equal(site.sendCalls,1);
+   const reads=site.readCalls;
+   const receipt=await rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId});
+   assert.equal(receipt.status,'CONFIRMED');
+   assert.equal(receipt.readOnly,true);
+   assert.equal(receipt.replyTo,inbound.messageId);
+   assert.equal(rt.snapshot().records[0].replyMessageId,receipt.messageId);
+   assert.equal(rt.snapshot().confirmed,1);
+   assert.ok(site.readCalls>reads,'recovery uses another website DOM read');
+   assert.equal(site.sendCalls,1,'read-only recovery cannot click Send again');
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_TEST_NO_ANSWER'});
+ }finally{rt.dispose();}
+});
+
+test('R3.1 UNKNOWN remains terminal when no receipt or multiple replies are present, including pause',async()=>{
+ const {api,target,site}=lab({failSend:true});
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','unknown fixed answer');
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}));
+   assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+   rt.pause(); // A read-only reconciliation is safe while sending is paused.
+   const missing=await rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId});
+   assert.equal(missing.status,'UNKNOWN');
+   const answer=rt.snapshot().records[0].answer;
+   const base={threadId:inbound.threadId,direction:'agent',scope:'',replyTo:inbound.messageId,
+     text:answer,createdAt:'2026-10-26T00:01:00.000Z'};
+   site.messages.push({...base,messageId:'kb_msg_00000000-0000-4000-b000-000000000003'},
+     {...base,messageId:'kb_msg_00000000-0000-4000-b000-000000000004'});
+   const duplicate=await rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId});
+   assert.equal(duplicate.status,'UNKNOWN');
+   assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+   assert.equal(rt.snapshot().errors,1);
+   assert.equal(site.sendCalls,1,'neither reconciliation performs a second send');
+ }finally{rt.dispose();}
+});
+
+test('R3.1 read-only receipt recovery requires trusted click and an UNKNOWN original message',async()=>{
+ const {api,target,site}=lab();
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','fixed original');
+   assert.throws(()=>rt.reconcile({event:{isTrusted:false},messageId:inbound.messageId}),
+     {code:'E_USER_GESTURE'});
+   await assert.rejects(rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_TEST_RECONCILE'});
+   rt.stop('explicit stop');
+   assert.throws(()=>rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_TEST_STOPPED'});
+   assert.equal(site.sendCalls,0);
+ }finally{rt.dispose();}
+});
+
+test('R3.1 trusted source owns UNKNOWN read-only UI and Host route; sandbox package cannot send',()=>{
+ const trusted=new URL('../../examples/sidebar-tools/ai-knowledge-answers/trusted/',import.meta.url);
+ const ui=readFileSync(new URL('Workspace.jsx',trusted),'utf8');
+ const host=readFileSync(new URL('host.js',trusted),'utf8');
+ const runtime=readFileSync(new URL('local-test-runtime.js',trusted),'utf8');
+ assert.match(ui,/只读核对网页回执/);
+ assert.match(host,/reconcileLocalPage/);
+ assert.match(runtime,/return reconcileUnknown\(session,messageId\)/);
+ assert.doesNotMatch(runtime.match(/async function reconcileUnknown[\s\S]*?async function analyze/)?.[0]||'',
+   /adapter\.send\(/,'read-only recovery never calls send');
+});
+

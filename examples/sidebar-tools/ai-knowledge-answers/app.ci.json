@@ -1,0 +1,13 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "ui",
+  "node": [
+    "tests/environment/ai-knowledge-multi-intent-r32.test.mjs",
+    "tests/environment/ai-knowledge-chat-r13.test.mjs",
+    "tests/environment/ai-knowledge-answers-r1.test.mjs",
+    "tests/environment/ai-knowledge-answers-ui-r2.test.mjs",
+    "tests/environment/ai-knowledge-answers-provider-contract.test.mjs",
+    "tests/environment/ai-knowledge-answers-admission.test.mjs",
+    "tests/environment/ai-knowledge-answers-host.test.mjs"
+  ]
+}

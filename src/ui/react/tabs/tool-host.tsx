@@ -12,6 +12,7 @@ const ToolContext = React.createContext(null);
 export function ToolHost({view}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
   const importOpen = snapshot.fields['sidebar-tool-import']?.hidden === false;
+  const reviewing = snapshot.fields['sidebar-tool-preview']?.hidden === false;
   const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
   const secondaryAction = snapshot.fields['sidebar-tool-secondary-action']?.data?.action || '';
   const managementActionsVisible=['sidebar-tool-settings-open','sidebar-tool-remove']
@@ -139,57 +140,34 @@ export function ToolHost({view}) {
 </div>
 <div className="od-import-sheet-body">
 <label htmlFor="sidebar-tool-file">
-{"拖入 JSON 安装包，或点击选择文件"}
+{reviewing ? "更换安装包" : "选择安装包"}
 </label>
 <ToolFileInput value={snapshot.fields['sidebar-tool-file'].value} disabled={snapshot.fields['sidebar-tool-file'].disabled}
-  onChoose={actions.chooseFile} onCancel={actions.cancelFile}/><ToolField as="p" id="sidebar-tool-file-error" className="sidebar-tool-file-error" role="alert" hidden={true}>
-
-</ToolField>
-<p className="sidebar-tool-import-hint">
-{"支持 .opendesk-tool.json 应用包或 .opendesk-page.json 网页增强安装包。选择文件后查看身份、版本和权限，再确认安装。网页增强安装后在批准的网站自动运行。开发草稿请到「开发」导入。"}
-</p>
+  onChoose={actions.chooseFile} onCancel={actions.cancelFile}/>
+<ToolField as="p" id="sidebar-tool-file-error" className="sidebar-tool-file-error" role="alert" hidden={true}/>
+{!reviewing && <p className="sidebar-tool-import-hint">支持应用包与网页增强包（JSON）</p>}
 <ToolField as="div" id="sidebar-tool-preview" className="sidebar-tool-preview" hidden={true}>
 <div className="sidebar-tool-preview-heading">
-<ToolField as="strong" id="sidebar-tool-preview-title">
-
-</ToolField>
-<ToolField as="span" id="sidebar-tool-preview-version">
-
-</ToolField>
-
+<ToolField as="strong" id="sidebar-tool-preview-title"/>
+<ToolField as="span" id="sidebar-tool-preview-version"/>
 </div>
-<ToolField as="p" id="sidebar-tool-preview-description">
-
+<ToolField as="div" id="sidebar-tool-update" className="sidebar-tool-update" hidden={true}>
+<ToolField as="p" id="sidebar-tool-update-versions"/>
+<ToolField as="p" id="sidebar-tool-update-impact"/>
+<ToolField as="p" id="sidebar-tool-update-warning" className="sidebar-tool-update-warning" hidden={true}/>
 </ToolField>
-<div className="sidebar-tool-capabilities od-surface">
-<span>
-{"申请能力"}
-</span>
-<ToolField as="p" id="sidebar-tool-preview-capabilities">
-
-</ToolField>
-
+<ToolField as="p" id="sidebar-tool-preview-description"/>
+<ToolField as="details" id="sidebar-tool-permissions-details" className="sidebar-tool-permissions-details od-disclosure od-disclosure--flat">
+<summary><ToolField as="span" id="sidebar-tool-permission-summary"/></summary>
+<div className="sidebar-tool-permission-body">
+<ToolField as="p" id="sidebar-tool-preview-capabilities"/>
+<ToolField as="p" id="sidebar-tool-update-capabilities"/>
 </div>
-<ToolField as="p" id="sidebar-tool-preview-file" className="sidebar-tool-preview-file">
-
 </ToolField>
-<ToolField as="div" id="sidebar-tool-update" className="sidebar-tool-update od-surface" hidden={true}>
-<strong>
-{"更新前请核对"}
-</strong>
-<ToolField as="p" id="sidebar-tool-update-versions">
-
-</ToolField>
-<ToolField as="p" id="sidebar-tool-update-capabilities">
-
-</ToolField>
-<p>
-{"侧边栏工具：同 ID 更新保留本地数据，卸载时才清理。网页增强：原生注册与权限以 Host 回执为准。"}
-</p>
-<ToolField as="p" id="sidebar-tool-update-warning" className="sidebar-tool-update-warning" hidden={true}>
-
-</ToolField>
-
+<ToolField as="p" id="sidebar-tool-preview-source"/>
+<ToolField as="details" id="sidebar-tool-technical-details" className="sidebar-tool-technical-details od-disclosure od-disclosure--flat">
+<summary>技术详情 · 文件与校验信息</summary>
+<ToolField as="p" id="sidebar-tool-preview-file" className="sidebar-tool-preview-file"/>
 </ToolField>
 </ToolField>
 <ToolField as="p" id="page-install-import-status" role="status" aria-live="polite" hidden={true}>
@@ -224,7 +202,14 @@ export function ToolHost({view}) {
 </svg>
 
 </ToolField>
-<ToolField as="strong" id="sidebar-tool-title" className="od-page-title">
+<ToolField as="strong" id="sidebar-tool-title" className="od-page-title"
+ role="heading" aria-level={2} aria-label={snapshot.fields['sidebar-tool-title']?.textContent||undefined}
+ renderText={(text,state)=>state.data.pageLabel?
+   <span className="sidebar-tool-title-path">
+     <span className="sidebar-tool-title-parent">{state.data.toolLabel}</span>
+     <span className="sidebar-tool-title-divider"> / </span>
+     <span className="sidebar-tool-title-current">{state.data.pageLabel}</span>
+   </span>:text}>
 
 </ToolField>
 <ToolField as="button" type="button" id="sidebar-tool-primary-action" className="sidebar-tool-icon-action od-icon-button" title="当前页面操作" aria-label="当前页面操作" hidden={true}>
@@ -568,7 +553,7 @@ function BookmarkSettings() {
   </ToolField>;
 }
 
-function ToolField({as:Tag='div', id, children, nodeRef, ...props}) {
+function ToolField({as:Tag='div', id, children, renderText, nodeRef, ...props}) {
   const {view, snapshot, refs} = React.useContext(ToolContext), state = snapshot.fields[id];
   if (!state) throw new Error('E_SIDEBAR_TOOL_FIELD: ' + id);
   const ref = React.useCallback(node => {if (node) refs.current.set(id, node); else refs.current.delete(id); nodeRef?.(node);}, [refs, id, nodeRef]);
@@ -577,7 +562,8 @@ function ToolField({as:Tag='div', id, children, nodeRef, ...props}) {
   for (const [key, value] of Object.entries(state.data)) attrs['data-' + key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] = value;
   if (Tag === 'button') {attrs.disabled = state.disabled; attrs.type = props.type || 'button'; attrs.onClick = event => view.dispatch(id, 'click', event.nativeEvent);}
   if (Tag === 'details') {attrs.open = state.open; attrs.onToggle = event => {if (event.currentTarget.open !== view.fields[id].open) view.patch(id, {open:event.currentTarget.open});};}
-  return <Tag {...attrs}>{state.textSet ? state.textContent : children ?? state.textContent}</Tag>;
+  const content=state.textSet ? state.textContent : children ?? state.textContent;
+  return <Tag {...attrs}>{renderText?renderText(content,state):content}</Tag>;
 }
 
 function ToolGrantRows({id, rows, emptyLabel, disabled, onRevoke, className, rowClassName='sidebar-tool-site-entry'}) {

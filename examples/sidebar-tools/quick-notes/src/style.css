@@ -1,33 +1,45 @@
 /* @opendesk-shared-design */
-/* Layout, local content and list-selection state ONLY.
- * Color, controls, focus, hover and surface geometry come from the official build. */
+/* Scoped layout only; colors, focus, controls and token values come from existing Shared UI. */
 .notes-app{width:100%;min-width:0;margin:0;padding:var(--space-3)}
-.page-context{display:flex;align-items:flex-start;gap:var(--space-2);min-width:0;padding-bottom:var(--space-3);border-bottom:1px solid var(--od-line)}
-.notes-mark{display:block;flex:none;width:24px;height:24px;object-fit:contain}
-.page-meta{flex:1;min-width:0}
-.page-summary{margin:0;overflow-wrap:anywhere}
-.page-url{margin:var(--space-1) 0 0;overflow-wrap:anywhere;word-break:break-word}
-.notes-heading{display:flex;align-items:center;gap:var(--space-2);min-height:var(--od-icon-size);margin:var(--space-2) 0 var(--space-1)}
-.notes-heading label{margin:0}
-.note-count{white-space:nowrap}
+.notes-view[hidden]{display:none}
+.notes-heading{display:flex;align-items:center;gap:var(--space-2);min-height:var(--od-icon-size);margin:0 0 var(--space-2)}
+.notes-heading .od-page-title{flex:none}
+.note-count{min-width:0;white-space:nowrap}
 .notes-heading .icon-button{margin-left:auto}
-.note-list{display:flex;min-width:0;gap:var(--space-2);overflow-x:auto;padding:0 0 var(--space-2);scrollbar-width:thin}
+.note-list{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);min-width:0}
 .note-list:empty{display:none}
-.note-chip{flex:none;max-width:140px;width:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.note-chip[data-selected="true"]{border-color:var(--od-focus);background:var(--od-muted);color:var(--od-accent-ink)}
-#note-text{display:block;width:100%;min-width:0;min-height:126px;max-height:480px;margin:0;resize:vertical;overflow-wrap:anywhere}
+.note-row.od-button{width:100%;min-width:0;min-height:60px;display:grid;grid-template-columns:minmax(0,1fr) 12px;align-items:center;gap:var(--space-2);padding:var(--space-3);text-align:left;justify-content:stretch;background:var(--od-paper);border-color:var(--od-line);color:var(--od-ink)}
+.note-row:hover:not(:disabled){background:var(--od-muted)}
+.note-row-body{min-width:0;display:grid;gap:var(--space-1)}
+.note-row-title{display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:var(--od-body-size);font-weight:600;line-height:1.4}
+.note-row-preview{display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:var(--od-note-size);font-weight:400;line-height:1.5;color:var(--od-sub)}
+.note-row-chevron{justify-self:end;color:var(--od-sub);font-size:18px;font-weight:400;line-height:1}
+.note-empty{margin:0;padding:var(--space-4) var(--space-3);border:1px dashed var(--od-line);border-radius:var(--radius-surface);text-align:center}
+.edit-heading{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2)}
+.edit-heading .od-page-title{flex:none}
+.edit-heading .icon-button{margin-left:auto}
+.editor-unsaved{white-space:nowrap}
+#note-text{display:block;width:100%;min-width:0;min-height:126px;height:clamp(190px,42vh,360px);max-height:480px;margin:0;resize:vertical;overflow-wrap:anywhere}
 .editor-actions{display:flex;align-items:center;gap:var(--space-2);min-height:var(--od-icon-size);margin-top:var(--space-2)}
 .action-spacer{flex:1}
 .page-attach{display:inline-flex;align-items:center;gap:var(--space-2);margin:0;min-width:0;min-height:var(--od-icon-size);font-size:var(--od-note-size);color:var(--od-sub);cursor:pointer}
 .page-attach input{margin:0;accent-color:var(--od-brand)}
 .note-attachment{margin:var(--space-1) 0 0;overflow-wrap:anywhere}
-#note-status{margin:var(--space-1) 0 0;overflow-wrap:anywhere}
+#note-status{margin:var(--space-2) 0 0;overflow-wrap:anywhere}
 #note-status[data-state="success"]{color:var(--od-positive)}
 #note-status[data-state="error"]{color:var(--od-negative)}
+.page-context{min-width:0;margin-top:var(--space-4);padding-top:var(--space-2);border-top:1px solid var(--od-line)}
+.page-context>summary{flex-wrap:nowrap}
+.page-caption{flex:none;white-space:nowrap}
+.page-summary{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.page-context[open] .page-summary{white-space:normal;overflow-wrap:anywhere}
+.page-details{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.page-url{flex:1;min-width:0;margin:0;overflow-wrap:anywhere;word-break:break-word}
+.page-details .icon-button{margin-left:auto}
 .task-shortcut{margin-top:var(--space-4);padding-top:var(--space-3);border-top:1px solid var(--od-line)}
 .task-row{display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-2);min-width:0}
 .task-row input{flex:1;min-width:0}
-.note-confirm{margin-top:var(--space-3)}
+.note-confirm{margin:0 0 var(--space-3)}
 .note-confirm p{margin:0 0 var(--space-3)}
 .confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
 .confirm-actions button{flex:none;white-space:nowrap}
@@ -37,8 +49,8 @@
   .editor-actions .action-spacer{display:none}
   .editor-actions #delete-note{grid-column:2}
   .editor-actions #save-note{grid-column:3}
+  .page-context>summary{flex-wrap:wrap}
+  .page-summary{flex-basis:100%}
 }
-@media(max-width:360px){.note-chip{max-width:108px}}
 @media(min-width:800px){.notes-app{max-width:760px;margin-inline:auto}}
-/* Layout-only compact wrap: 160px viewport cannot fit two complete standard buttons. */
 @media(max-width:175px){.confirm-actions button{flex:1 1 100%}}

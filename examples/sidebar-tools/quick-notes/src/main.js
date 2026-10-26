@@ -4,9 +4,13 @@
   const el=id=>root.querySelector('#'+id);
   const STORAGE_KEY='notes';
   const MAX_NOTES=16;
-  let notes=[],selectedId=null,dirty=false,pageInfo=null,busy=false,ready=false;
+  let notes=[],selectedId=null,dirty=false,pageInfo=null,busy=false,ready=false,activeView='list';
   let notesEtag=null,legacyPending=false,pageEpoch=0,deleting=false,confirmation=null;
-  const reportState=()=>setState?.({dirty,busy});
+  const reportState=()=>{
+    setState?.({dirty,busy});
+    const badge=el('editor-unsaved');
+    if(badge){badge.hidden=!dirty&&!busy;badge.textContent=busy?'保存中…':'未保存';}
+  };
   const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
   const show=(message='',state='info')=>{
     const node=el('note-status');node.textContent=message;node.dataset.state=state;node.hidden=!message;
@@ -23,17 +27,33 @@
     el('note-attachment').hidden=!title;
     el('attach-page').disabled=!ready||busy||Boolean(confirmation)||(!pageInfo&&!note?.pageUrl);
   }
+  function renderView(){
+    const index=el('notes-list-view'),edit=el('notes-edit-view');
+    if(index)index.hidden=activeView!=='list';
+    if(edit)edit.hidden=activeView!=='edit';
+    const title=el('editor-title');if(title)title.textContent=selected()?'编辑笔记':'新建笔记';
+    const empty=el('note-empty');if(empty)empty.hidden=notes.length>0;
+    const close=el('back-to-notes');if(close)close.disabled=!ready||busy||Boolean(confirmation);
+  }
   function renderList() {
     reportState();
     el('note-text').disabled=!ready||deleting||Boolean(confirmation);
     const list=el('note-list');list.replaceChildren();
     for(const note of notes) {
       const button=root.ownerDocument.createElement('button');
-      button.type='button';button.className='od-button od-button--secondary note-chip';button.textContent=label(note);
+      button.type='button';button.className='od-button od-button--secondary note-row';
       button.disabled=!ready||busy||Boolean(confirmation);
-      button.title=label(note);button.dataset.selected=String(note.id===selectedId);
+      button.title=label(note);
       button.setAttribute('aria-label','编辑笔记：'+label(note));
-      button.setAttribute('aria-pressed',String(note.id===selectedId));
+      const body=root.ownerDocument.createElement('span');body.className='note-row-body';
+      const heading=root.ownerDocument.createElement('span');heading.className='note-row-title';heading.textContent=label(note);
+      const excerpt=root.ownerDocument.createElement('span');excerpt.className='note-row-preview';
+      const lines=note.text.trim().split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+      excerpt.textContent=(lines.length>1?lines.slice(1).join(' '):note.text.trim().slice(22)).slice(0,140);
+      body.append(heading);if(excerpt.textContent)body.append(excerpt);
+      const cue=root.ownerDocument.createElement('span');cue.className='note-row-chevron';
+      cue.textContent='›';cue.setAttribute('aria-hidden','true');
+      button.append(body);button.append(cue);
       button.addEventListener('click',()=>selectNote(note.id));
       list.append(button);
     }
@@ -43,7 +63,7 @@
     el('save-note').disabled=!ready||busy||Boolean(confirmation);
     el('open-task').disabled=!ready||busy||Boolean(confirmation);
     el('task-name').disabled=Boolean(confirmation);
-    attachment();
+    attachment();renderView();
   }
   // MV3's opaque sandbox deliberately forbids native modal APIs.
   function ask(message,action) {
@@ -51,7 +71,7 @@
     confirmation={action,focus:root.ownerDocument.activeElement};
     el('note-confirm-message').textContent=message;
     el('note-confirm').hidden=false;
-    renderList();el('note-confirm-cancel').focus();
+    renderList();el('note-confirm')?.scrollIntoView?.({block:'nearest'});el('note-confirm-cancel').focus();
   }
   function finishConfirmation(accepted) {
     if(!confirmation)return;
@@ -71,7 +91,16 @@
       const note=selected();
       el('note-text').value=note?.text||'';
       el('attach-page').checked=Boolean(note?.pageUrl);
-      renderList();show('');
+      activeView='edit';renderList();show('');el('note-text').focus();
+    });
+  }
+  function backToList(){
+    if(!ready||busy||confirmation||activeView!=='edit')return;
+    confirmDiscard(()=>{
+      dirty=false;
+      el('note-text').value=selected()?.text||'';
+      el('attach-page').checked=Boolean(selected()?.pageUrl);
+      activeView='list';renderList();show('');el('add-note').focus();
     });
   }
   function createNote() {
@@ -79,7 +108,7 @@
     confirmDiscard(()=>{
       selectedId=null;dirty=false;
       el('note-text').value='';el('attach-page').checked=false;
-      renderList();show('');el('note-text').focus();
+      activeView='edit';renderList();show('');el('note-text').focus();
     });
   }
   async function refreshPage() {
@@ -118,7 +147,7 @@
       legacyPending=typeof old.value==='string'&&Boolean(old.value);
       const upgrading=current.value===null&&legacyPending;
       if(upgrading)recovered=[{id:newId(),text:old.value,pageTitle:'',pageUrl:'',updatedAt:0}];
-      notes=recovered;notesEtag=current.etag;ready=true;
+      notes=recovered;notesEtag=current.etag;ready=true;activeView='list';
       selectedId=notes[0]?.id||null;el('note-text').disabled=false;
       el('note-text').value=selected()?.text||'';
       el('attach-page').checked=Boolean(selected()?.pageUrl);
@@ -187,7 +216,7 @@
     try{
       // The authoritative array/tombstone is committed before obsolete-field cleanup.
       const result=await request('storage.set',{key:STORAGE_KEY,value:next,ifMatch:notesEtag});
-      notes=next;notesEtag=result.etag;selectedId=notes[0]?.id||null;dirty=false;
+      notes=next;notesEtag=result.etag;selectedId=notes[0]?.id||null;dirty=false;activeView='list';
       el('note-text').value=selected()?.text||'';
       el('attach-page').checked=Boolean(selected()?.pageUrl);
       const cleaned=await clearLegacy();
@@ -219,6 +248,7 @@
   el('attach-page').addEventListener('change',()=>{if(!ready||busy)return;dirty=true;reportState();show('当前修改尚未保存。');});
   el('refresh-page').addEventListener('click',()=>void refreshPage());
   el('add-note').addEventListener('click',createNote);
+  el('back-to-notes')?.addEventListener('click',backToList);
   el('save-note').addEventListener('click',()=>void saveNote());
   el('delete-note').addEventListener('click',()=>void deleteNote());
   el('open-task').addEventListener('click',async()=>{

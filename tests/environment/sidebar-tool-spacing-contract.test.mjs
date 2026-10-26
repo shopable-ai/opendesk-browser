@@ -49,7 +49,7 @@ test('Quick notes consumes only the canonical spacing and control CSS at build t
   assert.match(css,/@media\(max-width:175px\)\{\.confirm-actions button\{flex:1 1 100%\}\}/,
     '160px view stacks full-label buttons, not half-visible actions');
   assert.doesNotMatch(css,/@import\b|url\(\s*['"]?\s*https?:/);
-  assert.equal(JSON.parse(config).version,'1.1.9','visual change must be a real tool upgrade');
+  assert.equal(JSON.parse(config).version,'1.1.10','visual change must be a real tool upgrade');
 });
 
 test('Tools list avoids long technical empty text and stale toggling notices',async()=>{

@@ -28,6 +28,7 @@ import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar
 import {subscribePreviewSession} from './sidebar-tools/live-preview.js';
 import {createToolDevelopmentControls} from './sidebar-tools/development-controls.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
+import {AGENT_CONFIG_PROTOCOL} from '../native-agent/protocol.js';
 import {createChatGPTFixedBridgeHost} from '../native-agent/chatgpt-fixed-bridge-host.js';
 import {CHATGPT_BRIDGE_PROTOCOL} from '../native-agent/chatgpt-bridge-trigger-gate.js';
 import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
@@ -126,8 +127,33 @@ const tabMemory=createSidebarTabMemory({
   onError:error=>console.warn('Sidebar tab preference unavailable',error)
 });
 let scheduleUI=null,scheduleHost=null;
+// Same trusted Native Agent settings authority as the packaged Options page.
+// The permission prompt starts synchronously from the user's Switch gesture.
+const nativeConnection=Object.freeze({
+  async readStatus(){
+    const reply=await chrome.runtime.sendMessage({protocol:AGENT_CONFIG_PROTOCOL,type:'status'});
+    if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'连接状态读取失败'),
+      {code:reply?.error?.code||'E_NATIVE_STATUS'});
+    if(typeof reply.data?.enabled!=='boolean'||typeof reply.data?.nativeConnected!=='boolean')
+      throw new Error('本机连接状态回执无效');
+    return reply.data;
+  },
+  async setEnabled(shouldEnable){
+    if(typeof shouldEnable!=='boolean')throw new Error('本机连接设置无效');
+    if(shouldEnable){
+      const permission=chrome.permissions.request({permissions:['nativeMessaging']});
+      if(!await permission)throw new Error('未授予本机连接权限，保持原设置');
+    }
+    const reply=await chrome.runtime.sendMessage({protocol:AGENT_CONFIG_PROTOCOL,
+      type:shouldEnable?'enable':'disable'});
+    if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'本机连接修改失败'),
+      {code:reply?.error?.code||'E_NATIVE_CONFIG'});
+    return reply.data;
+  }
+});
 // Create the complete interface before controllers attach their real hosts.
 extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
+  nativeConnection,
   openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
   onNavigate:view=>reactNavigationRequest?.(view)??false});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,

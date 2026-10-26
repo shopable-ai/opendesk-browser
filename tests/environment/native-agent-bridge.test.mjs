@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createNativeAgentService} from '../../src/native-agent/service-worker.js';
-import {AGENT_LEDGER_KEY,AGENT_ENABLED_KEY} from '../../src/native-agent/protocol.js';
+import {AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_LAST_CONNECTED_AT_KEY} from '../../src/native-agent/protocol.js';
 
 const drain=()=>new Promise(resolve=>setTimeout(resolve,0));
 async function waitForObserved(predicate){
@@ -32,6 +32,71 @@ function mock({enabled=true,granted=true}={}){
 const message=(requestId,method,params={})=>({v:1,kind:'request',requestId,method,params});
 const settingsSender=f=>({id:f.api.runtime.id,
   url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'settings-document'});
+test('trusted Side Panel shows and changes the same Native connection without redirecting',async t=>{
+ const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;
+ const sender={id:f.api.runtime.id,
+   url:f.api.runtime.getURL('sidepanel.html?hostInstanceId=panel-one'),
+   documentId:'actual-panel-document',frameId:0};
+ const initial=await f.service.handleSettings({type:'status'},sender);
+ assert.equal(initial.enabled,false);
+ assert.equal(initial.nativeConnected,false);
+ assert.equal(initial.lastConnectedAt,null,'never infer a successful past connection from a saved switch');
+ assert.equal(f.native(),undefined);
+ await f.service.handleSettings({type:'enable'},sender);
+ assert.ok(f.native(),'Native permission was already granted by the trusted caller');
+ const notYet=await f.service.handleSettings({type:'status'},sender);
+ assert.equal(notYet.enabled,true);
+ assert.equal(notYet.nativeConnected,false,'enabled is not connected');
+ assert.equal(notYet.lastConnectedAt,null);
+ f.native().onMessage.fire({v:1,kind:'hello'});
+ await drain();
+ const online=await f.service.handleSettings({type:'status'},sender);
+ assert.equal(online.nativeConnected,true);
+ assert.ok(Number.isSafeInteger(online.lastConnectedAt)&&online.lastConnectedAt>0);
+ assert.equal(f.stored[AGENT_LAST_CONNECTED_AT_KEY],online.lastConnectedAt);
+ await f.service.handleSettings({type:'disable'},sender);
+ const offline=await f.service.handleSettings({type:'status'},sender);
+ assert.equal(offline.enabled,false);
+ assert.equal(offline.nativeConnected,false);
+ assert.equal(offline.lastConnectedAt,online.lastConnectedAt,
+   'history survives disconnect but must not be mistaken for current availability');
+ assert.equal(f.requests.length,0,'status and switch never dispatch user tasks');
+});
+
+test('saved successful handshake history survives restart but is never live connectivity',async t=>{
+ const f=mock({enabled:false});t.after(()=>f.service.dispose());
+ const previous=Date.UTC(2026,9,25,12,0);
+ f.stored[AGENT_LAST_CONNECTED_AT_KEY]=previous;
+ await f.service.ready;
+ const snapshot=await f.service.handleSettings({type:'status'},settingsSender(f));
+ assert.equal(snapshot.lastConnectedAt,previous);
+ assert.equal(snapshot.enabled,false);
+ assert.equal(snapshot.nativeConnected,false);
+ assert.equal(f.native(),undefined,'historical success must never connect when disabled');
+});
+
+test('Native Side Panel route fails closed for forged URLs, frames and permissions',async t=>{
+ const f=mock({enabled:false,granted:false});t.after(()=>f.service.dispose());await f.service.ready;
+ const trusted={id:f.api.runtime.id,url:f.api.runtime.getURL('sidepanel.html'),
+   documentId:'panel-doc',frameId:0};
+ for(const sender of [
+   {...trusted,id:'foreign-extension'},
+   {...trusted,documentId:''},
+   {...trusted,frameId:1},
+   {...trusted,url:f.api.runtime.getURL('sidepanel.html#forged')},
+   {...trusted,url:f.api.runtime.getURL('sidepanel.html?admin=true')},
+   {...trusted,url:f.api.runtime.getURL('sidepanel.html?hostInstanceId=runner&scheduledRunner=1')},
+   {...trusted,url:f.api.runtime.getURL('native-agent/workspace.html')},
+   {...trusted,url:'https://example.com/sidepanel.html'}
+ ]){
+   for(const type of ['status','enable','disable'])
+     await assert.rejects(()=>f.service.handleSettings({type},sender),{code:'E_OWNER'});
+ }
+ await assert.rejects(()=>f.service.handleSettings({type:'enable'},trusted),
+   {code:'E_PERMISSION_REQUIRED'});
+ assert.equal(f.stored[AGENT_ENABLED_KEY],false);
+ assert.equal(f.native(),undefined);
+});
 test('R16 welcome echoes AI version only after the Native Host advertises version 1',async t=>{
   for(const advertised of [undefined,0,1,2,'1',true,null])await t.test(String(advertised),async t=>{
     const f=mock();t.after(()=>f.service.dispose());await f.service.ready;

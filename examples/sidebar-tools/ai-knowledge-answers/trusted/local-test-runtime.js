@@ -1,4 +1,5 @@
 import {createLocalKnowledgeDemoAdapter} from './local-test-adapter.js';
+import {planCustomerMessage,composeCustomerReply,MAX_AI_INTENTS} from './multi-intent.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const LIMIT=20;
@@ -37,10 +38,11 @@ export function createLocalKnowledgeTestRuntime({
    if(s.sending.has(id))throw fail('E_KB_TEST_SEND_BUSY','该客户消息正在发送或核对，请勿重复确认');
    const record=snapshot.records.find(x=>x.messageId===id);
    if(!record||record.threadId!==s.threadId||!record.answer||
-      !['ANSWERED_FIXED','REVIEW_REQUIRED'].includes(record.status))
+      !['ANSWERED_FIXED','REVIEW_REQUIRED','GREETING_ONLY',
+         'COMPOSITE_REVIEW_REQUIRED','MULTI_REVIEW_REQUIRED','PARTIAL_REVIEW_REQUIRED'].includes(record.status))
      throw fail('E_KB_TEST_NO_ANSWER','当前消息没有可发送的答案');
-   if(record.status==='REVIEW_REQUIRED'&&!reviewApproved)
-     throw fail('E_KB_REVIEW','AI 草稿必须由用户实际审阅并明确确认');
+   if(record.status!=='ANSWERED_FIXED'&&!reviewApproved)
+     throw fail('E_KB_REVIEW','问候、多问题或 AI 草稿必须先人工核对并明确确认');
    if(record.providerGeneration!==null&&record.providerGeneration!==getProviderGeneration())
      throw fail('E_KB_STALE','模型设置已变化，旧 AI 草稿不得发送');
    s.sending.add(id);
@@ -51,8 +53,25 @@ export function createLocalKnowledgeTestRuntime({
      if(read.etag!==record.etag)throw fail('E_KB_STALE','知识版本已更新，旧答案不得发送');
      const library=model.library(read.value??model.empty());
      const sourceIds=record.sourceIds||[];
-     if(!sourceIds.length||sourceIds.some(id=>!library.items.some(x=>x.id===id&&x.enabled&&x.scope===record.scope)))
+     if((!sourceIds.length&&record.status!=='GREETING_ONLY')||sourceIds.some(id=>
+         !library.items.some(x=>x.id===id&&x.enabled&&x.scope===record.scope)))
        throw fail('E_KB_STALE','原知识来源不可用，旧回答不得发送');
+     // Never trust a previously planned question after the library is reread.
+     const replanned=planCustomerMessage(model,library,{question:record.question,scope:record.scope});
+     const signature=parts=>JSON.stringify(parts.map(p=>[p.question,p.status,p.sourceIds,p.candidateSourceIds]));
+     if(signature(replanned.parts)!==signature(record.baselineParts||[]))
+       throw fail('E_KB_STALE','逐题问题或知识归属已变化，请重新分析');
+     if(record.status==='GREETING_ONLY'&&
+        (replanned.status!=='GREETING_ONLY'||replanned.answer!==record.answer))
+       throw fail('E_KB_STALE','问候模板已变化，请重新确认');
+     if(['MULTI_REVIEW_REQUIRED','PARTIAL_REVIEW_REQUIRED','COMPOSITE_REVIEW_REQUIRED'].includes(record.status)){
+       if(!record.parts?.length||record.parts.some(p=>
+         p.status==='REVIEW_REQUIRED'&&(!p.sourceIds.length||
+           p.sourceIds.some(id=>!p.candidateSourceIds.includes(id)))))
+         throw fail('E_KB_STALE','AI 来源与原子问题不匹配');
+       if(!record.hasAI&&(replanned.answer!==record.answer||replanned.status!==record.status))
+         throw fail('E_KB_STALE','合成草稿已经失效');
+     }
      if(record.status==='ANSWERED_FIXED'){
        const current=model.lookup(library,{question:record.question,scope:record.scope});
        if(current.status!=='ANSWERED_FIXED'||current.answer!==record.answer||
@@ -91,6 +110,53 @@ export function createLocalKnowledgeTestRuntime({
      throw error;
    }finally{s.sending.delete(id);}
  }
+ // A lost send receipt must never trigger a second click. This independent
+ // read-only recovery is permitted while paused: it can confirm what already
+ // happened, but cannot initiate any website action.
+ async function reconcileUnknown(s,id){
+   if(!active(s))throw fail('E_KB_TEST_STOPPED','原测试会话已停止，无法重新绑定旧回执');
+   if(s.sending.has(id))throw fail('E_KB_TEST_SEND_BUSY','该消息正在发送或只读核对中');
+   assertLive();
+   const record=snapshot.records.find(row=>row.messageId===id);
+   if(!record||record.threadId!==s.threadId||record.status!=='UNKNOWN'||
+      typeof record.answer!=='string'||!record.answer.trim())
+     throw fail('E_KB_TEST_RECONCILE','仅允许对有原始答案的未知发送结果执行只读核对');
+   s.sending.add(id);
+   try{
+     // The existing adapter revalidates the exact approved Chrome document.
+     const page=await adapter.read();
+     if(!active(s))throw fail('E_KB_TEST_STOPPED','只读核对期间原测试会话已停止');
+     assertLive();
+     if(page.threadId!==s.threadId){
+       stop('网页已切换客户会话，旧回执保持未知并停止监听');
+       throw fail('E_KB_TEST_STALE','客户会话已切换，不能采用该网页的回执');
+     }
+     const rows=page.messages;
+     const customers=rows.filter(row=>row.direction==='customer'&&
+       row.threadId===s.threadId&&row.messageId===id&&
+       row.text===record.question&&row.scope===record.scope);
+     // Check every agent reply to this customer, not just identical text:
+     // duplicate or contradictory replies require manual investigation.
+     const replies=rows.filter(row=>row.direction==='agent'&&
+       row.threadId===s.threadId&&row.replyTo===id);
+     const receipt=replies[0];
+     if(customers.length===1&&replies.length===1&&
+        receipt.text===record.answer.trim()&&
+        /^kb_msg_[0-9a-f-]{36}$/u.test(receipt.messageId)&&
+        rows.filter(row=>row.messageId===receipt.messageId).length===1){
+       update(s,id,{status:'CONFIRMED',replyMessageId:receipt.messageId,
+         message:'只读核对成功：唯一网页回执已匹配，未再次发送'});
+       return {status:'CONFIRMED',threadId:s.threadId,
+         messageId:receipt.messageId,replyTo:id,readOnly:true};
+     }
+     update(s,id,{message:'只读核对没有唯一匹配回执；结果仍未知，禁止重新发送，请人工检查网页记录'});
+     return {status:'UNKNOWN',code:'E_KB_DEMO_NO_UNIQUE_RECEIPT',readOnly:true};
+   }catch(cause){
+     if(active(s))update(s,id,{message:'只读核对失败，结果仍未知且禁止重发：'+
+       String(cause?.code||cause?.message||cause)});
+     throw cause;
+   }finally{s.sending.delete(id);}
+ }
  async function analyze(s,message){
    const epoch=s.pauseEpoch;
    if(!running(s,epoch))return;
@@ -101,25 +167,36 @@ export function createLocalKnowledgeTestRuntime({
      if(!running(s,epoch))return;
      const library=model.library(read.value??model.empty());
      if(read.etag!==s.etag){stop('本轮知识版本已变化，需重新批准');return;}
-     const result=model.lookup(library,{question:message.text,scope:message.scope});
+     const result=planCustomerMessage(model,library,{question:message.text,scope:message.scope});
      if(!running(s,epoch))return;
+     const baselineParts=result.parts.map(p=>({...p,sourceIds:[...p.sourceIds],
+       candidateSourceIds:[...p.candidateSourceIds]}));
+     const explain=plan=>plan.status==='ANSWERED_FIXED'?'固定规则匹配，可核对发送':
+       plan.status==='GREETING_ONLY'?'安全问候模板已准备；需要人工确认':
+       plan.status==='RETRIEVED_ONLY'?'已有候选来源，需可信点击调用 AI 并人工审核':
+       ['PARTIAL_REVIEW_REQUIRED','MULTI_REVIEW_REQUIRED','COMPOSITE_REVIEW_REQUIRED'].includes(plan.status)
+         ?plan.answeredCount+' 项有依据，'+plan.reviewCount+' 项需要核实；整条消息仅能人工确认':
+       plan.status==='CLARIFICATION_REQUIRED'?'请先明确退款申请期限、审核时长或到账时间':
+       plan.status==='HUMAN_REQUIRED'?'涉及实时订单或业务操作，需授权系统或人工处理':
+       plan.status==='OVER_LIMIT'?'问题过多或草稿超出安全长度，需人工拆分处理':
+       '没有确定依据，禁止自动发送';
      update(s,message.messageId,{
        status:result.status,sourceIds:result.sourceIds.slice(),answer:result.answer||'',
-       etag:read.etag,providerGeneration:null,
-       message:result.status==='ANSWERED_FIXED'?'固定规则匹配，可核对发送':
-         result.status==='RETRIEVED_ONLY'?'已有候选来源，需可信点击调用 AI 并人工审核':
-         '没有确定依据，禁止发送'
+       parts:result.parts,baselineParts,answeredCount:result.answeredCount,
+       reviewCount:result.reviewCount,hasAI:false,
+       etag:read.etag,providerGeneration:null,message:explain(result)
      });
      if(result.status==='RETRIEVED_ONLY'&&s.approvedAI&&typeof callAI==='function'&&running(s,epoch)){
        update(s,message.messageId,{status:'GENERATING_AI',message:'正在使用已批准的共享 AI 生成草稿'});
        try{
-         const ai=await callAI({question:message.text,scope:message.scope,
+         const ai=await callAI({question:result.parts[0].question,scope:message.scope,
            approvedKnowledgeTest:s.approvedAI,expectedEtag:s.etag});
          if(!running(s,epoch))return;
          const check=await readLibrary();assertLive();
          if(!running(s,epoch))return;
          if(check.etag!==s.etag)throw fail('E_KB_STALE','知识版本在 AI 处理期间变化');
-         if(ai?.status==='REVIEW_REQUIRED'&&ai.answer&&ai.sourceIds?.length){
+         if(ai?.status==='REVIEW_REQUIRED'&&ai.answer&&ai.sourceIds?.length&&
+          ai.sourceIds.every(id=>result.parts[0].candidateSourceIds.includes(id))){
            update(s,message.messageId,{status:'REVIEW_REQUIRED',answer:ai.answer,
              sourceIds:ai.sourceIds.slice(),etag:s.etag,providerGeneration:getProviderGeneration(),
              message:'真实 AI 草稿，需人工核对后才能发送'});
@@ -129,6 +206,44 @@ export function createLocalKnowledgeTestRuntime({
          if(running(s,epoch))update(s,message.messageId,{status:'ERROR',answer:'',
            message:'AI 请求失败：'+String(error?.code||error?.message||error)});
        }
+     }
+     // Every optional multi-intent AI call uses the existing approved Consumer,
+     // with a separate evidence fence for each question. Never auto-send.
+     const candidates=result.parts.map((p,i)=>p.status==='RETRIEVED_ONLY'?i:-1).filter(i=>i>=0);
+     if(result.parts.length>1&&candidates.length&&candidates.length<=MAX_AI_INTENTS&&
+        s.approvedAI&&typeof callAI==='function'&&running(s,epoch)&&result.answer){
+       update(s,message.messageId,{status:'GENERATING_AI',message:'正在逐项核对候选知识；草稿仍需人工审核'});
+       const reviewed=result.parts.map(p=>({...p,sourceIds:p.sourceIds.slice(),
+         candidateSourceIds:p.candidateSourceIds.slice()}));
+       let hasAI=false;
+       for(const index of candidates){
+         if(!running(s,epoch))return;
+         const part=reviewed[index];
+         try{
+           const ai=await callAI({question:part.question,scope:message.scope,
+             approvedKnowledgeTest:s.approvedAI,expectedEtag:s.etag});
+           if(!running(s,epoch))return;
+           const checked=await readLibrary();assertLive();
+           if(!running(s,epoch))return;
+           if(checked.etag!==s.etag)throw fail('E_KB_STALE','逐题 AI 期间知识已变化');
+           if(ai?.status==='REVIEW_REQUIRED'&&typeof ai.answer==='string'&&ai.answer.trim()&&
+              Array.isArray(ai.sourceIds)&&ai.sourceIds.length&&
+              ai.sourceIds.every(id=>part.candidateSourceIds.includes(id))){
+             reviewed[index]={...part,status:'REVIEW_REQUIRED',answer:ai.answer,
+               sourceIds:ai.sourceIds.slice(),reason:'SEMANTIC_UNVERIFIED',needsHuman:true};
+             hasAI=true;
+           }else reviewed[index]={...part,answer:'',sourceIds:[],reason:'AI_SOURCE_INVALID'};
+         }catch(cause){
+           if(!running(s,epoch))return;
+           reviewed[index]={...part,answer:'',sourceIds:[],reason:'AI_FAILED'};
+         }
+       }
+       if(!running(s,epoch))return;
+       const draft=composeCustomerReply({hasGreeting:result.hasGreeting,overLimit:false},reviewed);
+       update(s,message.messageId,{status:draft.status,answer:draft.answer,
+         parts:draft.parts,sourceIds:draft.sourceIds,
+         answeredCount:draft.answeredCount,reviewCount:draft.reviewCount,
+         hasAI,providerGeneration:hasAI?getProviderGeneration():null,message:explain(draft)});
      }
      if(result.status==='ANSWERED_FIXED'&&s.autoSendFixed&&running(s,epoch)){
        try{await send(s,message.messageId);}catch{/* Terminal UNKNOWN/STALE, no retry. */}
@@ -166,7 +281,8 @@ export function createLocalKnowledgeTestRuntime({
        s.queue.push(msg);
        const record=Object.freeze({messageId:msg.messageId,threadId:msg.threadId,
          question:msg.text,scope:msg.scope,status:'OBSERVED',message:'真实 DOM 新消息',
-         sourceIds:[],answer:'',etag:null,providerGeneration:null,replyMessageId:null});
+         sourceIds:[],answer:'',parts:[],baselineParts:[],answeredCount:0,reviewCount:0,
+         hasAI:false,etag:null,providerGeneration:null,replyMessageId:null});
        publish({observed:snapshot.observed+1,records:[...snapshot.records,record]});
      }
      void drain(s);
@@ -263,7 +379,12 @@ export function createLocalKnowledgeTestRuntime({
      const target=adapter.target;
      if(!target||target.documentId!==snapshot.target?.documentId)
        throw fail('E_KB_TEST_STALE','客服网页文档身份已失效');
-     return {question:record.question,scope:record.scope,messageId:record.messageId,
+     // The single semantic intent may be preceded by a greeting. The AI
+      // Consumer must receive the parsed question, while the site send and
+      // receipt remain bound to the ORIGINAL customer message ID/text.
+      const selectedQuestion=record.parts?.length===1?
+        record.parts[0].question:record.question;
+      return {question:selectedQuestion,scope:record.scope,messageId:record.messageId,
        testIdentity:{serial:s.serial,pauseEpoch:s.pauseEpoch,threadId:s.threadId,
          documentId:target.documentId}};
    },
@@ -286,6 +407,11 @@ export function createLocalKnowledgeTestRuntime({
      if(!event?.isTrusted)throw fail('E_USER_GESTURE','必须在可信 Side Panel 点击发送');
      if(!session||session.paused)throw fail('E_KB_TEST_PAUSED','监听已停止或暂停');
      return send(session,messageId,{reviewApproved});
+   },
+   reconcile({event,messageId}={}){
+     if(!event?.isTrusted)throw fail('E_USER_GESTURE','只读回执核对需要可信侧栏的真实点击');
+     if(!session||!active(session))throw fail('E_KB_TEST_STOPPED','原会话已停止，只能人工查看网页记录');
+     return reconcileUnknown(session,messageId);
    },
    dispose(){stop('测试会话已关闭');}
  });

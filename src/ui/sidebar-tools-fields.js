@@ -72,6 +72,17 @@ export const SIDEBAR_TOOL_FIELDS = {
     "textContent": "",
     "className": "sidebar-tool-preview-file"
   },
+  "sidebar-tool-preview-source": {"textContent": "", "className": "sidebar-tool-preview-source"},
+  "sidebar-tool-permissions-details": {
+    "open": false,
+    "className": "sidebar-tool-permissions-details od-disclosure od-disclosure--flat"
+  },
+  "sidebar-tool-permission-summary": {"textContent": "权限详情"},
+  "sidebar-tool-technical-details": {
+    "open": false,
+    "className": "sidebar-tool-technical-details od-disclosure od-disclosure--flat"
+  },
+  "sidebar-tool-update-impact": {"textContent": "", "className": "sidebar-tool-update-impact"},
   "sidebar-tool-install": {
     "disabled": true,
     "textContent": "确认安装",
@@ -114,7 +125,7 @@ export const SIDEBAR_TOOL_FIELDS = {
   },
   "sidebar-tool-update": {
     "hidden": true,
-    "className": "sidebar-tool-update od-surface"
+    "className": "sidebar-tool-update"
   },
   "sidebar-tool-update-versions": {
     "textContent": ""

@@ -98,6 +98,10 @@ export function createTrustedKnowledgeHost({conversation,readLibrary,assertIdent
       if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
       return test.confirm(input);
     },
+    reconcileLocalPage:input=>{
+      if(!test)throw error('E_KB_DEMO_HOST','当前没有本地测试文档适配');
+      return test.reconcile(input);
+    },
     // Must be entered directly from the original trusted Send handler.
     send({event,approved=false}){
       live();if(state.busy)throw error('E_KB_BUSY','当前问答尚未结束');
