@@ -218,3 +218,31 @@ test('R2.3 offline preview Settings mirrors only a public key presence flag and 
  assert.doesNotMatch(JSON.stringify(after),/not-stored-credential/);
  un();preview.dispose();
 });
+
+test('R2.3 Native settings now show actual connection state inline without a second Host',async()=>{
+ const paths=[
+  '../../src/ui/react/components/provider-settings.tsx',
+  '../../src/ui/tool-shell.js',
+  '../../src/native-agent/service-worker.js',
+  '../../src/native-agent/settings.html',
+  '../../src/ui/react/components/conversation-dock.css'
+ ];
+ const [sheet,shell,bridge,options,css]=await Promise.all(
+  paths.map(path=>readFile(new URL(path,import.meta.url),'utf8')));
+ assert.match(sheet,/<NativeConnectionCard nativeConnection=\{nativeConnection\}/);
+ assert.match(sheet,/<Switch aria-label="启用 OpenDesk 本机连接"/);
+ assert.match(sheet,/lastConnectedAt/);
+ assert.match(sheet,/status\.nativeConnected/);
+ assert.match(sheet,/连接开关即时生效/);
+ assert.doesNotMatch(sheet,/连接状态请在本机设置查看/);
+ assert.match(shell,/nativeConnection=Object\.freeze/);
+ assert.match(shell,/permissions\.request\(\{permissions:\['nativeMessaging'\]\}\)/);
+ assert.match(bridge,/toolDocumentIdentity\(/);
+ assert.match(bridge,/sender\.frameId===0/);
+ assert.match(bridge,/AGENT_LAST_CONNECTED_AT_KEY/);
+ assert.match(options,/id="bridge-toggle" type="checkbox" role="switch"/);
+ assert.match(options,/id="bridge-status"/);
+ assert.match(options,/<details class="settings-card advanced-card">/);
+ assert.match(options,/<details class="privacy-details">/);
+ assert.match(css,/\.od-shared-provider-local-card \.od-shared-switch\{/);
+});
