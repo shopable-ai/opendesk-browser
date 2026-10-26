@@ -5,7 +5,7 @@ import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
   from '../../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled}
   from '../../../../src/ui/sidebar-tools/lifecycle.js';
-import {MARKET_PROVENANCE_STORE} from '../../../../src/ui/sidebar-tools/installation.js';
+import {MARKET_PROVENANCE_STORE} from '../../../../src/sidebar-tools/official-reading-toc.js';
 import {BROWSER_MENU_GRANTS_STORE} from '../../../../src/framework/sdk/browser-contract.js';
 import {OFFICIAL_CATALOG_PATH,validateOfficialReleaseCatalog,matchesOfficialRelease}
   from '../../../../src/sidebar-tools/official-catalog.js';
@@ -13,10 +13,10 @@ import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {createCookieService} from '../../../../src/platform/chrome/cookies.js';
 import {inspectAccountSwitchUrl} from '../app/domain/account-switch-url.js';
 import {createCookieAccountVault} from './account-vault.js';
-import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_EFFECTS} from './account-contract.js';
+import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_EFFECTS,COOKIE_ACCOUNT_SEEN_KEY} from './account-contract.js';
 
 export {COOKIE_ACCOUNT_PROTOCOL} from './account-contract.js';
-const ID='cookie-editor',MAX_COOKIES=100,MAX_ACCOUNTS=48,SEEN_KEY='opendesk.cookie-editor.auto-seen.v1';
+const ID='cookie-editor',MAX_COOKIES=100,MAX_ACCOUNTS=48,SEEN_KEY=COOKIE_ACCOUNT_SEEN_KEY;
 const MUTATIONS=new Set(COOKIE_ACCOUNT_EFFECTS);
 const fail=code=>Object.assign(new Error(code),{code});
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);

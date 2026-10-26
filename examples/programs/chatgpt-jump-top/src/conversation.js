@@ -403,11 +403,19 @@ export function findRegionBindings(doc, win) {
 }
 // Both reply navigation and mindmap own their live host; the shared group
 // owns layout only. Repeated mounts do not move an already correctly placed host.
+// Resolving the same verified assistant footer as Mind Map prevents creating
+// two background groups when the native DIL action buttons sit one level deeper.
+function answerToolScope(bar) {
+  return bar.closest?.('.turn-action-controls') || bar;
+}
 export function mountAnswerTool(bar, host) {
   if (!bar?.isConnected || !host || host === bar || host.contains(bar)) return null;
-  const groups = [...bar.children].filter(node => node.hasAttribute(ANSWER_TOOLS));
-  if (groups.length > 1) return null; // Ambiguous shared ownership: leave peers untouched.
+  const scope = answerToolScope(bar);
+  const groups = [...scope.querySelectorAll(`[${ANSWER_TOOLS}]`)];
+  if (groups.length > 1) return null; // Do not mutate ambiguous foreign groups.
   let group = groups[0];
+  const target = group?.parentElement || scope;
+  if (!target?.isConnected || !scope.contains(target)) return null;
   if (!group) {
     group = bar.ownerDocument.createElement('span');
     group.setAttribute(ANSWER_TOOLS, '');
@@ -420,8 +428,8 @@ export function mountAnswerTool(bar, host) {
   if (previous !== group) group.append(host);
   if (previous !== group && previous?.hasAttribute(ANSWER_TOOLS) && !previous.childNodes.length)
     previous.remove();
-  // Either tool may mount first. Keep navigation before the independent
-  // mindmap button without replacing either host or the shared background.
+  // The two Apps retain their own listeners. Order navigation before Mind Map
+  // and never replace the shared group, native controls or a peer's host.
   const mindmap = [...group.children].find(node =>
     node.matches('[data-opendesk-chatgpt-mindmap="button"]'));
   if (mindmap) {
@@ -431,10 +439,10 @@ export function mountAnswerTool(bar, host) {
         mindmap.before(navigation);
     }
   }
-  // The native wrappers stay in their original order, before our final group.
-  if (bar.lastElementChild !== group) bar.append(group);
+  if (target.lastElementChild !== group) target.append(group);
   return group;
 }
+
 export function unmountAnswerTool(host) {
   const group = host?.parentElement;
   host?.remove();
@@ -543,7 +551,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
       // Two distinct versions can share a document even when each has its
       // own module-local WeakMap. The first connected live host wins; a
       // second install cannot create a second effective reply navigator.
-      const incumbent = [...binding.header.querySelectorAll(`[${MODERN_OWN}="reply"]`)]
+      const incumbent = [...answerToolScope(binding.header).querySelectorAll(`[${MODERN_OWN}="reply"]`)]
         .find(node => node.isConnected && node.shadowRoot &&
           node.getAttribute(OWN) === (sessionKey === 'default' ? 'host' : sessionKey));
       if (incumbent && incumbent !== mounted.get(binding.header)?.host) {
@@ -552,7 +560,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
       }
       // React cloneNode copies the marker, not the ShadowRoot/listeners.
       // Clean only inert copies owned by this navigation session.
-      for (const clone of binding.header.querySelectorAll(
+      for (const clone of answerToolScope(binding.header).querySelectorAll(
         `[${OWN}="${sessionKey === 'default' ? 'host' : sessionKey}"]`)) {
         if (!clone.shadowRoot) unmountAnswerTool(clone);
       }
@@ -562,7 +570,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
           && old.directions.join(',') === binding.directions.join(',') &&
           (binding.answerRoot
             ? old.host.parentElement?.hasAttribute(ANSWER_TOOLS)
-              && old.host.parentElement.parentElement === binding.header
+              && answerToolScope(binding.header).contains(old.host.parentElement)
             : old.host.nextElementSibling === binding.anchor)) {
         if (binding.answerRoot) mountAnswerTool(binding.header, old.host);
         for (const {button} of old.controls) button.disabled = !binding.target;
@@ -573,7 +581,7 @@ export function installJumpToTop({doc, win, owner, resolveBindings = findRegionB
       const cleanups = item.controls.map(({button, direction})=>owner.on(button, 'click', event => {
         event.preventDefault();
         event.stopPropagation();
-        const active = [...binding.header.querySelectorAll(`[${MODERN_OWN}="reply"]`)]
+        const active = [...answerToolScope(binding.header).querySelectorAll(`[${MODERN_OWN}="reply"]`)]
           .find(node => node.isConnected && node.shadowRoot &&
             node.getAttribute(OWN) === (sessionKey === 'default' ? 'host' : sessionKey));
         // The old Page can mount between scheduled refresh and a click.

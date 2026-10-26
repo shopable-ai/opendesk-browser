@@ -12,15 +12,15 @@ function unmountAnswerTool(host){
 }
 function mountAnswerTool(bar,host){
   if(!bar?.isConnected||!host||host===bar||host.contains(bar))return null;
-  // DIL nests the native actions and navigation inside the outer footer.
-  // Join that existing group without lifting it out of its native wrapper.
-  const nested=[...bar.querySelectorAll(`[${TOOLS}]`)].filter(node=>
-    node.parentElement!==bar&&node.querySelector('[data-opendesk-chatgpt-jump-top]'));
-  if(nested.length>1)return null;
-  const target=nested[0]?.parentElement||bar;
-  const groups=[...target.children].filter(node=>node.hasAttribute(TOOLS));
-  if(groups.length>1)return null;
+  // The native DIL footer may wrap a narrower action row. Both independent
+  // Page Programs resolve that same footer without requiring the other Program
+  // to have installed a navigation button first.
+  const scope=bar.closest?.('.turn-action-controls')||bar;
+  const groups=[...scope.querySelectorAll(`[${TOOLS}]`)];
+  if(groups.length>1)return null; // Ambiguous ownership: never guess or delete a peer.
   let group=groups[0];
+  const target=group?.parentElement||scope;
+  if(!target?.isConnected||!scope.contains(target))return null;
   if(!group){
     group=bar.ownerDocument.createElement('span');group.setAttribute(TOOLS,'');
     group.style.cssText='display:inline-flex;align-items:center;gap:2px;padding:2px;border-radius:12px;'+
@@ -31,6 +31,8 @@ function mountAnswerTool(bar,host){
   const previous=host.parentElement;
   if(group.lastElementChild!==host)group.append(host);
   if(previous!==group&&previous?.hasAttribute(TOOLS)&&!previous.childNodes.length)previous.remove();
+  // Existing nested shared groups stay inside the native row. A missing group
+  // is independently created at the same outer footer by either installation.
   if(target.lastElementChild!==group)target.append(group);
   return group;
 }

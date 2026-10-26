@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {parseHTML} from 'linkedom';
 import {createAnswerRegistry} from '../src/answer-registry.js';
+import {mountAnswerTool as mountScrollTool,unmountAnswerTool as unmountScrollTool}
+  from '../../chatgpt-jump-top/src/conversation.js';
 
 const deferred=()=>{
   let resolve,reject;
@@ -9,7 +11,7 @@ const deferred=()=>{
   return {promise,resolve,reject};
 };
 
-function setup({firstDestroy,firstTheme,firstStart,searchIdentity,createFailure,startFailure}={}){
+function setup({firstDestroy,firstTheme,firstStart,searchIdentity,createFailure,startFailure,beforeStart}={}){
   const {document}=parseHTML('<html><body><article data-testid="conversation-turn-1"><div data-message-author-role="assistant" data-message-id="A"><div class="markdown"><h2>Answer</h2><p>Original answer body</p></div></div><div data-testid="message-actions"><button data-testid="copy-turn-action-button">Copy</button></div></article></body></html>');
   const content=document.querySelector('.markdown'),handlers=new Map(),observers=[],views=[];
   if(searchIdentity){
@@ -46,6 +48,7 @@ function setup({firstDestroy,firstTheme,firstStart,searchIdentity,createFailure,
         }};
       views.push(view);return view;
     }});
+  beforeStart?.({document,content});
   registry.start();
   const triggerHost=document.querySelector('[data-opendesk-chatgpt-mindmap="button"]');
   const trigger=triggerHost.shadowRoot.querySelector('button');
@@ -159,6 +162,78 @@ test('reply group reuses navigation and retires only its own mindmap host',async
   assert.equal(h.triggerHost.isConnected,false);
 });
 
+
+test('Mind Map alone creates one shared right-side footer without Scroll Navigation',async()=>{
+  const h=setup(),group=h.triggerHost.parentElement,bar=group.parentElement;
+  assert.equal(group.hasAttribute('data-opendesk-chatgpt-answer-tools'),true);
+  assert.equal(bar.lastElementChild,group);
+  assert.equal(group.querySelectorAll('[data-opendesk-chatgpt-jump-top]').length,0);
+  await h.click();await h.click();
+  assert.equal(h.triggerHost.parentElement,group);
+  await h.registry.destroy();
+  assert.equal(group.isConnected,false);
+  assert.equal(bar.querySelector('[data-testid="copy-turn-action-button"]')!==null,true);
+});
+
+test('Mind Map first: Scroll joins its outer DIL footer and stopping either preserves its peer',async()=>{
+  const h=setup(),group=h.triggerHost.parentElement,bar=group.parentElement;
+  bar.classList.add('turn-action-controls');
+  const row=bar.ownerDocument.createElement('div'),native=bar.firstElementChild;
+  row.append(native);bar.prepend(row);
+  const navigator=bar.ownerDocument.createElement('span');
+  navigator.setAttribute('data-opendesk-chatgpt-jump-top','host');
+  assert.equal(mountScrollTool(row,navigator),group);
+  for(let i=0;i<3;i++)h.registry.scan();
+  assert.deepEqual([...group.children],[navigator,h.triggerHost]);
+  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-answer-tools]').length,1);
+  unmountScrollTool(navigator);
+  assert.equal(group.isConnected,true);
+  assert.equal(h.triggerHost.parentElement,group);
+  await h.click();await h.click();
+  await h.registry.destroy();
+  assert.equal(group.isConnected,false);
+  assert.equal(native.isConnected,true);
+});
+
+test('Scroll first: Mind Map reuses the same group without needing a Scroll startup side effect',async()=>{
+  let group,navigator,bar,row,native;
+  const h=setup({beforeStart:({document})=>{
+    bar=document.querySelector('[data-testid="message-actions"]');
+    bar.classList.add('turn-action-controls');
+    row=document.createElement('div');native=bar.firstElementChild;
+    row.append(native);bar.append(row);
+    navigator=document.createElement('span');
+    navigator.setAttribute('data-opendesk-chatgpt-jump-top','host');
+    group=mountScrollTool(row,navigator);
+  }});
+  assert.equal(group.parentElement,bar);
+  assert.equal(h.triggerHost.parentElement,group);
+  assert.deepEqual([...group.children],[navigator,h.triggerHost]);
+  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-answer-tools]').length,1);
+  await h.registry.destroy();
+  assert.equal(group.isConnected,true);
+  assert.equal(navigator.parentElement,group);
+  assert.equal(native.isConnected,true);
+  unmountScrollTool(navigator);
+  assert.equal(group.isConnected,false);
+});
+
+test('Mind Map alone reuses a nested empty shared group without any installed navigation',async()=>{
+  let group,row,bar;
+  const h=setup({beforeStart:({document})=>{
+    bar=document.querySelector('[data-testid="message-actions"]');
+    row=document.createElement('div');bar.append(row);
+    group=document.createElement('span');
+    group.setAttribute('data-opendesk-chatgpt-answer-tools','');
+    row.append(group);
+  }});
+  assert.equal(h.triggerHost.parentElement,group);
+  assert.equal(group.parentElement,row);
+  assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-answer-tools]').length,1);
+  await h.registry.destroy();
+  assert.equal(group.isConnected,false);
+  assert.equal(row.isConnected,true);
+});
 
 test('old and new installed Mind Map identities preserve the other live trigger',async()=>{
   const h=setup(),group=h.triggerHost.parentElement,bar=group.parentElement;

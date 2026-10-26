@@ -2,8 +2,9 @@
 // worker, never into the installed React/sandbox bundle or the Browser SDK.
 // Persistent storage contains authenticated ciphertext only. The AES key is
 // passphrase-derived and retained in trusted, memory-only Chrome session storage.
-export const COOKIE_ACCOUNT_VAULT_KEY='opendesk.cookie-editor.vault.v1';
-export const COOKIE_ACCOUNT_SESSION_KEY='opendesk.cookie-editor.vault-session.v1';
+import {COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY}
+  from './account-contract.js';
+export {COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY} from './account-contract.js';
 const FORMAT=1,ITERATIONS=420000,MAX_PLAIN_BYTES=512000;
 const fail=(code)=>Object.assign(new Error(code),{code});
 const enc=new TextEncoder(),dec=new TextDecoder('utf-8',{fatal:true});
