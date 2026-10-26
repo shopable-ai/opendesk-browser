@@ -9,7 +9,7 @@
       <div class="ki-head-actions">
         <button id="ki-new" class="ki-primary" type="button">＋ 新建</button>
         <details id="ki-manage" class="ki-menu"><summary aria-label="管理收件箱">管理</summary>
-          <div class="ki-menu-panel"><button id="ki-refresh" type="button" title="刷新收件箱">刷新收件箱</button><button id="ki-backup" type="button">下载 JSON 备份</button></div>
+          <div class="ki-menu-panel"><button id="ki-refresh" type="button" title="刷新收件箱">刷新收件箱</button><button id="ki-backup" type="button">下载 JSON 备份</button><p id="ki-storage-usage" class="ki-storage-usage" aria-label="收件箱容量"></p></div>
         </details>
       </div>
     </header>
@@ -17,6 +17,9 @@
       <input id="ki-search" type="search" maxlength="100" autocomplete="off" placeholder="搜索标题、正文、提问或标签" aria-label="搜索知识收件箱">
       <button id="ki-clear" type="button" title="清除搜索" aria-label="清除搜索" hidden>清除</button>
     </div>
+    <details id="ki-filter-panel" class="ki-filter-panel">
+      <summary>筛选与排序 <span id="ki-active-filter">全部</span></summary>
+      <div class="ki-filter-body">
     <nav class="ki-filters" aria-label="按分类筛选">
       <button type="button" data-kind="all" aria-pressed="true">全部</button>
       <button type="button" data-kind="inbox" aria-pressed="false">待整理</button>
@@ -28,6 +31,8 @@
       <label for="ki-tag-filter"><span>标签</span><select id="ki-tag-filter"><option value="">全部标签</option></select></label>
       <label for="ki-sort"><span>排序</span><select id="ki-sort"><option value="updated">最近修改</option><option value="created">最近保存</option><option value="title">标题</option></select></label>
     </div>
+      </div>
+    </details>
     <div class="ki-summary"><span id="ki-count">正在读取…</span></div>
     <p id="ki-list-loading" class="ki-loading" role="status">正在读取收件箱…</p>
     <div id="ki-records" class="ki-records" aria-describedby="ki-keyboard-help"></div>
