@@ -47,7 +47,7 @@
       ],
       "installationPolicy": "reviewed",
       "publication": "blocked",
-      "blockedReason": "R4.8 业务 owner 尚未完成新身份交接与正式打包。"
+      "blockedReason": "Send Queue 源码仍为旧 Program ID（0.1.2）；新 ID 须由业务 owner 交接并生成独立正式包，旧安装和授权不会自动迁移。"
     }
   ]
 }
