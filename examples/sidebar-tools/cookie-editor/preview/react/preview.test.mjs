@@ -319,3 +319,67 @@ test('R5.25 preview covers real Controller status categories from fictional SDK'
    }finally{f.close();}
  }
 });
+
+test('R2.6 fictional account scenes expose three redacted accounts without touching real transport',async()=>{
+ const demo=createMockSdk({scenario:'accountsDemo'});
+ try{
+  const state=await demo.request('cookieAccount.status',{});
+  assert.equal(state.preview,true);
+  assert.equal(state.configured,true);
+  assert.equal(state.unlocked,true);
+  assert.deepEqual(state.accounts.map(a=>a.alias),['work','personal','qa']);
+  assert.equal(state.currentAlias,'work');
+  assert.equal(state.settings.autoRefresh,true);
+  const receipt=await demo.request('cookieAccount.switch',{alias:'personal',revision:state.revision});
+  assert.equal(receipt.preview,true);
+  assert.equal(receipt.verified,true);
+  assert.equal((await demo.request('cookieAccount.status',{})).currentAlias,'personal');
+  const ops=demo.inspect().calls.filter(x=>x.op==='previewAccountSwitch');
+  assert.equal(ops.length,1);
+  assert.equal(ops[0].args.fixture,true);
+ }finally{demo.dispose();}
+ const locked=createMockSdk({scenario:'accountsLocked'});
+ try{
+  const state=await locked.request('cookieAccount.status',{});
+  assert.equal(state.configured,true);
+  assert.equal(state.unlocked,false);
+  assert.deepEqual(state.accounts,[]);
+ }finally{locked.dispose();}
+ for(const [scenario,code] of [
+  ['accountSwitchFail','E_SITE_GRANT_REQUIRED'],
+  ['accountSwitchUnknown','E_OUTCOME_UNKNOWN']
+ ]){
+  const sdk=createMockSdk({scenario});
+  try{
+   const state=await sdk.request('cookieAccount.status',{});
+   await assert.rejects(sdk.request('cookieAccount.switch',{
+    alias:'personal',revision:state.revision
+   }),{code});
+   assert.equal((await sdk.request('cookieAccount.status',{})).currentAlias,'work');
+  }finally{sdk.dispose();}
+ }
+});
+
+test('R2.6 market and invite UX are one official React tree with inert production actions',async()=>{
+ const [product,preview,experiences,accounts,stylesheet]=await Promise.all([
+  read('../../app/CookieEditorApp.jsx'),read('./src/App.jsx'),
+  read('../../app/components/CookieAccountExperiences.jsx'),
+  read('../../app/components/CookieAccounts.jsx'),read('../../src/react.css')
+ ]);
+ assert.match(product,/CookieAccountMarket previewOnly=\{previewMode\}/);
+ assert.match(product,/initialSection='cookie'/);
+ assert.match(preview,/React\.useState\('accountsDemo'\)/);
+ assert.match(preview,/initialSection=\{\['accountsDemo'/);
+ assert.match(preview,/<CookieEditorApp\b/);
+ assert.match(accounts,/CookieAccountShare account=\{shareItem\}/);
+ assert.doesNotMatch(accounts,/export function CookieAccountMarket/);
+ assert.match(experiences,/disabled=\{!previewOnly\|\|!validRecipient\}/);
+ assert.match(experiences,/disabled=\{!previewOnly\}/);
+ for(const str of ['24 小时','7 天','3 次','匿名邀请','指定用户','团队协作席位',
+  '演示与测试环境','授权委托访问','撤销','模拟失败'])
+   assert.ok(experiences.includes(str),'missing '+str);
+ for(const src of [preview,experiences])assert.doesNotMatch(src,
+  /chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest/);
+ assert.match(stylesheet,/\.cookie-market-resource/);
+ assert.match(stylesheet,/\.cookie-share-demo-code/);
+});
