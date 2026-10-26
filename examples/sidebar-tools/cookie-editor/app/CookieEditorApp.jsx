@@ -475,6 +475,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       <nav className="cookie-product-tabs" role="tablist" aria-label="Cookie Editor 页面"
         onKeyDown={onProductTabKey}>
         {productTabs.map(([key,label])=><button key={key} type="button"
+          id={'cookie-product-tab-'+key}
+          aria-controls={'cookie-product-panel-'+key}
           role="tab" aria-selected={section===key} tabIndex={section===key?0:-1}
           className={"od-button "+(section===key?"is-current":"")}
           onClick={()=>chooseSection(key)}>{label}</button>)}
@@ -489,7 +491,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         adapter={adapter} onDirty={setDirty}/>
     </>:
     <>
-      {section==='cookie'&&<>
+      {section==='cookie'&&<section id="cookie-product-panel-cookie"
+        role="tabpanel" aria-labelledby="cookie-product-tab-cookie">
       <CookiePermissions phase={snapshot.phase} reason={snapshot.problem} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}
         onOffline={()=>switchMode('offline')}/>
@@ -539,7 +542,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
             setPanel(null);
           }}/>}
       </div>}
-      </>}
+      </section>}
       {section==='accounts'&&<CookieAccounts
         origin={target?.origin||''} accounts={accountState?.accounts||[]}
         configured={accountState?.configured===true}
