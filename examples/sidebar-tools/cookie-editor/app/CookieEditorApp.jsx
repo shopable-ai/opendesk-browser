@@ -9,12 +9,15 @@ import CookieImport from './components/CookieImport.jsx';
 import CookieExport from './components/CookieExport.jsx';
 import CookiePermissions from './components/CookiePermissions.jsx';
 import CookieOfflineWorkspace from './components/CookieOfflineWorkspace.jsx';
+import {CookieAccounts,CookieAccountMarket} from './components/CookieAccounts.jsx';
 
 // The only transport is Controller -> Adapter -> public OpenDeskSDK.browser.
 // Host permission, value grant and native receipts are never replaced in React.
 export default function CookieEditorApp({request,hostRoot,setState}){
   const [view,setView]=React.useState(null);
   const [mode,setMode]=React.useState('browser');
+  const [section,setSection]=React.useState('cookie');
+  const [accountRoute,setAccountRoute]=React.useState('list');
   const [offlineInitialSite,setOfflineInitialSite]=React.useState(null);
   const modeRef=React.useRef('browser');
   const syncGate=React.useRef({panel:null,selected:null,dirty:false,confirmation:null,working:false,exportOpen:false});
@@ -354,6 +357,21 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       {hostname:result.hostname,count:result.count});
   };
   const select=id=>guarded(()=>{setPanel(null);setExportOpen(false);setSelected(id);setStatus('');});
+  const chooseSection=next=>guarded(()=>{
+    if(next===section)return;
+    setSection(next);setAccountRoute('list');
+  });
+  const productTabs=[['cookie','Cookie'],['accounts','账号'],['market','市场']];
+  const onProductTabKey=e=>{
+    if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+    e.preventDefault();
+    const current=productTabs.findIndex(([key])=>key===section);
+    const next=e.key==='Home'?0:e.key==='End'?2:
+      (current+(e.key==='ArrowRight'?1:2))%3;
+    hostRoot.querySelectorAll('.cookie-product-tabs [role="tab"]')[next]
+      ?.focus({preventScroll:true});
+    chooseSection(productTabs[next][0]);
+  };
   const onKeyDown=e=>{
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){
       // Child forms own Save; never accidentally save hidden/redacted values.
@@ -366,6 +384,14 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
   };
   return <main className="cookie-editor-react od-page" onKeyDown={onKeyDown}>
+    {mode==='browser'&&!(section==='accounts'&&accountRoute==='auto')&&
+      <nav className="cookie-product-tabs" role="tablist" aria-label="Cookie Editor 页面"
+        onKeyDown={onProductTabKey}>
+        {productTabs.map(([key,label])=><button key={key} type="button"
+          role="tab" aria-selected={section===key} tabIndex={section===key?0:-1}
+          className={"od-button "+(section===key?"is-current":"")}
+          onClick={()=>chooseSection(key)}>{label}</button>)}
+      </nav>}
     {mode==='offline'?<>
       <header className="cookie-offline-toolbar" aria-label="离线文件">
         <strong>离线文件</strong>
@@ -376,6 +402,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         adapter={adapter} onDirty={setDirty}/>
     </>:
     <>
+      {section==='cookie'&&<>
       <CookiePermissions phase={snapshot.phase} reason={snapshot.problem} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}
         onOffline={()=>switchMode('offline')}/>
@@ -425,6 +452,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
             setPanel(null);
           }}/>}
       </div>}
+      </>}
+      {section==='accounts'&&<CookieAccounts
+        origin={target?.origin||''} accounts={[]} route={accountRoute}
+        onRoute={setAccountRoute} vaultReady={false}
+        switchReady={false} autoRuntimeReady={false}/>}
+      {section==='market'&&<CookieAccountMarket/>}
     </>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&
       ['error','warning'].includes(snapshot.messageType)&&
