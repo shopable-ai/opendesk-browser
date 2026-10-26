@@ -529,14 +529,21 @@ $('sidebar-tool-install').addEventListener('click',()=>{
  $('sidebar-tool-install').disabled=true;
  $('sidebar-tool-install').textContent='已模拟确认';
 });
-$('sidebar-tool-file').addEventListener('change',event=>{
- const files=Array.from(event.currentTarget.files||[]);
- if(files.length!==1)return;
- const file=files[0];
- // A new file selection invalidates the displayed mock review immediately.
+function invalidateDemoFileReview(){
+ // Preview-only guard: no real file can inherit a former scenario's approval.
  $('sidebar-tool-preview').hidden=true;
  $('sidebar-tool-install').disabled=true;
  reviewDialog.querySelector('label[for="sidebar-tool-file"]').textContent='选择安装包';
+ $('demo-review-status').textContent='';
+}
+$('sidebar-tool-file').addEventListener('change',event=>{
+ const files=Array.from(event.currentTarget.files||[]);
+ invalidateDemoFileReview();
+ if(files.length!==1){
+  $('demo-review-status').textContent='未选择安装包；原审阅已清除。';
+  return;
+ }
+ const file=files[0];
  if(!/\.json$/i.test(file.name)){
   $('sidebar-tool-file-error').textContent='请选择 JSON 安装包进行预览。';
   $('sidebar-tool-file-error').hidden=false;return;
@@ -544,15 +551,17 @@ $('sidebar-tool-file').addEventListener('change',event=>{
  $('sidebar-tool-file-error').hidden=true;
  $('demo-review-status').textContent='已选择「'+file.name+'」。演示不解析包内容，不能确认安装；关闭弹窗后可选择其他场景。';
 });
+$('sidebar-tool-file').addEventListener('cancel',()=>{
+ invalidateDemoFileReview();
+ $('demo-review-status').textContent='已取消文件选择；原审阅已清除。';
+});
 overlay.addEventListener('dragover',event=>{
  if(Array.from(event.dataTransfer?.types||[]).includes('Files')){event.preventDefault();event.dataTransfer.dropEffect='copy';}
 });
 overlay.addEventListener('drop',event=>{
  const files=Array.from(event.dataTransfer?.files||[]);
  if(!files.length)return;event.preventDefault();event.stopPropagation();
- $('sidebar-tool-preview').hidden=true;
- $('sidebar-tool-install').disabled=true;
- reviewDialog.querySelector('label[for="sidebar-tool-file"]').textContent='选择安装包';
+ invalidateDemoFileReview();
  if(files.length!==1||!/\.json$/i.test(files[0].name)){
   $('sidebar-tool-file-error').textContent='一次仅支持选择一个 JSON 安装包。';
   $('sidebar-tool-file-error').hidden=false;return;
