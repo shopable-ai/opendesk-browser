@@ -195,6 +195,31 @@ test('Page update review discloses added website scope and existing revision bef
     'Only showing permission changes does not install or prompt');
 });
 
+test('unchanged Page update omits empty deltas and exposes validated hashes only in technical details',async t=>{
+  const pkg=await installPackage(),f=await fixture(t,{installed:[receipt(pkg)]});
+  f.select(pkg,{name:'local.opendesk-page.json'});
+  await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.equal(f.get('sidebar-tool-permissions-details').open,false);
+  assert.equal(f.get('sidebar-tool-technical-details').open,false);
+  assert.equal(f.get('sidebar-tool-update-capabilities').textContent,'');
+  const technical=f.get('sidebar-tool-preview-file').textContent;
+  assert.match(technical,/local\.opendesk-page\.json/);
+  assert.ok(technical.includes('安装包 SHA-256：'+pkg.packageHash));
+  assert.ok(technical.includes('源码 SHA-256：'+pkg.sourceHash));
+});
+
+test('Page update discloses removal of site exclusions as potential expansion',async t=>{
+  const pkg=await installPackage(),previous=receipt(pkg,{
+    pageRules:{...pkg.pageRules,excludeMatches:['https://restricted.example/*']}
+  });
+  const f=await fixture(t,{installed:[previous]});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.equal(f.get('sidebar-tool-permissions-details').open,true);
+  assert.match(f.get('sidebar-tool-update-capabilities').textContent,/移除排除网站.*restricted\.example/);
+  assert.doesNotMatch(f.get('sidebar-tool-update-capabilities').textContent,/新增网站范围：无/);
+  assert.match(f.get('sidebar-tool-update-warning').textContent,/实际运行范围可能扩大/);
+});
+
 test('valid Page receipt without a durable installed-list readback does not close or retry',async t=>{
   const pkg=await installPackage();let calls=0;
   const f=await fixture(t,{requestPage(operation){
