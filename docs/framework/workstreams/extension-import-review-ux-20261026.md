@@ -35,3 +35,5 @@
 - **交互预览**：复用 `prototypes/sidebar/extension-center-r47-frequency-first-preview.html`；「导入扩展…」先显示无批准状态的空白文件选择弹窗，预设的更新/新增权限/网页增强审阅继续通过独立场景按钮触发。
 - **测试**：增加 ExtensionCenter 实际 Controller 与 React 扩展列表 DOM 的入口/失败回执断言；React ToolHost 同屏集成及 Native Chrome 使用另一个定向测试验收。此段记录不主张运行过 Node/Playwright/Chrome。
 - **证据边界**：GitHub 主分支直接编辑，未获得本机 Mac Chrome 现场验收；未运行的 Node / Playwright / 原生 Chrome 测试严格为 `NOT_TESTED`。
+
+- **预览焦点对齐**：模拟导入弹窗打开时聚焦文件输入；从已关闭的更多菜单进入时，关闭弹窗将焦点恢复到可见的「更多」按钮，而不是隐藏的菜单项。
