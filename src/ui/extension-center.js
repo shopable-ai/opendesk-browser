@@ -384,14 +384,25 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }:null);
   }
   async function detectPageInstall(event){
-    if(disposed||busy||pendingKey||event?.isTrusted!==true)return;
+    if(disposed||busy||pendingKey||pageDiscovery?.busy||
+      pageDiscovery?.state==='loading'||event?.isTrusted!==true)return;
     closeMenu();
     const generation=++discoveryGeneration;
-    pageDiscovery={state:'loading',message:'正在核对当前网页的安装声明…'};renderPageDiscovery();
+    // Capture synchronously at the actual user action, not after slow
+    // catalog/channel fetches that could observe a different active tab.
+    let target;
+    try{target=currentPageTarget.capture();}
+    catch(error){
+      pageDiscovery={state:'error',message:(error?.code||'E_DISCOVERY_TARGET')+'：'+
+        String(error?.message||'当前网页尚未准备好，请重新检测。')};
+      renderPageDiscovery();return;
+    }
+    pageDiscovery={state:'loading',target,message:'正在核对当前网页的安装声明…'};renderPageDiscovery();
     try{
       const [channel,catalog]=await Promise.all([loadMarketChannel(api),loadOfficialCatalog({api})]);
+      if(disposed||generation!==discoveryGeneration)return;
       const found=await discoverCurrentPageMarketInstall({
-        api,currentPageTarget,channel,releases:catalog.apps
+        api,currentPageTarget,channel,releases:catalog.apps,target
       });
       if(disposed||generation!==discoveryGeneration)return;
       pageDiscovery={...found,state:'found',
@@ -406,6 +417,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   async function reviewDiscoveredPage(event){
     const selected=pageDiscovery;
     if(event?.isTrusted!==true||disposed||busy||pendingKey||selected?.state!=='found'||selected.busy)return;
+    const generation=discoveryGeneration;
     pageDiscovery={...selected,busy:true};renderPageDiscovery();
     try{
       await currentPageTarget.revalidate(selected.target);
@@ -413,6 +425,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       if(!apps.some(row=>row.id===selected.subject.marketId&&row.version===selected.subject.version&&
         row.sha256===selected.release.sha256))
         throw Object.assign(new Error('已验证发行版本发生变化，请重新检测当前网页。'),{code:'E_DISCOVERY_RELEASE'});
+      // The release read is asynchronous: recheck document and selection
+      // immediately before a trusted tab is opened. No stale result proceeds.
+      await currentPageTarget.revalidate(selected.target);
+      if(disposed||generation!==discoveryGeneration||pageDiscovery?.subject!==selected.subject)return;
       // No untrusted URL reaches Chrome or the Installer. Existing trusted catalog owns review.
       await api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')+
         '#/apps/'+selected.subject.marketId+'/versions/'+selected.subject.version});
