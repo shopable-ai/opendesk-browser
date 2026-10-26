@@ -16,7 +16,7 @@
 - **单一展示 owner**：`src/ui/sidebar-tools.js` 从现有 `tocSettingsOpen`、经过可信准入的业务 `navigation-state` 和安装元数据生成 `sidebar-tool-title`；仅抽出纯文本助手 `src/ui/sidebar-tools/title-path.js`。不新增 Nav、面包屑条、Router 或历史栈。完整文字与版本可从标题悬浮提示看到；小屏继续沿用既有截断布局，不压缩操作点击区域。
 - **状态优先级**：可信设置高于业务子页显示；退出设置恢复此前有效业务标题；根页不追加「/ 首页」；工具自行上报完整路径时不重复前缀。视觉提示不能自动赋予一个子页面 Back 权限；业务动作 owner 不变。
 - **信任边界**：只有与官方登记完整包字节一致、当前安装代际、iframe 实例和来源核对通过的沙箱才可用 `OpenDeskTool.setNavigation` 更新 Host 页名。手工同 ID、过期实例、未验真工具继续使用自己的 UI；绝不从任意 iframe 文本构造可信页头或修改权限。
-- **不是路由的界面**：书签管理可信 React 的详情 PreviewPane、新建/编辑 Sheet、确认 Dialog 均保留自身标题及关闭事件。不得只因弹层出现就显示虚假「/ 编辑」并让全局返回退出整个扩展；若日后提升为真正全页子视图，需要同时接通真实业务返回和草稿保护。
+- **真正可返回的业务视图**：书签管理可信 React 的新建/编辑 Sheet 在 R2.1 已注册静态业务 `bookmarkEditorNavigation` 与原生关闭回调 `requestCloseSheet()`，因此可以显示「书签管理 / 新建书签」「书签管理 / 编辑书签」。全局返回首先进入原草稿未保存/写入未知确认，不直接退出扩展；进入可信设置暂时覆盖标题，返回恢复编辑状态。仅选择书签生成的详情 PreviewPane、菜单、文件夹选择与确认 Dialog 仍不产生新宿主路由。
 - **发行边界**：本轮仅修改 Browser 共享 Host 源码；`bookmark-manager` 正式 JSON、配置版本、能力和业务 SDK 均不变。要在已安装浏览器看到变化，需要更新/重载包含新 Host 的 Browser。真实 Mac Chrome 未执行前标记 `NATIVE_NOT_TESTED`。
 - **定向验收**：主界面 → 设置 → 返回原界面；已验真业务根页 → 子页 → 设置 → 原子页；旧/第三方沙箱不越权；标题窄屏完整提示与键盘可访问；脏草稿保存中返回不丢失。对应测试：`tests/environment/sidebar-tool-header-title-r2.test.mjs`、`sidebar-tool-hierarchical-back-r12.test.mjs`。
 
