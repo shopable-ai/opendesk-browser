@@ -236,6 +236,52 @@ try{
   assert.equal(await page.locator('input[type=password]').count(),0);
   await button('取消').click();
  });
+ await test('three product tabs have no badge counts and keep keyboard navigation',async()=>{
+  for(const width of [320,360,380,400,440]){
+   await page.setViewportSize({width,height:880});
+   const tabs=page.getByRole('tablist',{name:'Cookie Editor 页面'});
+   assert.deepEqual(await tabs.getByRole('tab').allTextContents(),['Cookie','账号','市场']);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
+     width+'px navigation overflow');
+  }
+  const tabs=page.getByRole('tablist',{name:'Cookie Editor 页面'});
+  await tabs.getByRole('tab',{name:'Cookie',exact:true}).focus();
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await tabs.getByRole('tab',{name:'账号'}).getAttribute('aria-selected'),'true');
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await tabs.getByRole('tab',{name:'市场'}).getAttribute('aria-selected'),'true');
+  await page.keyboard.press('Home');
+  assert.equal(await tabs.getByRole('tab',{name:'Cookie'}).getAttribute('aria-selected'),'true');
+  await ready();await page.setViewportSize({width:380,height:880});
+ });
+ await test('Expiration is local, session stays session, and expired drafts cannot save',async()=>{
+  for(const width of [320,360,380,400,440]){
+   await page.setViewportSize({width,height:880});
+   await row('theme').click();
+   await editor().locator('details.advanced > summary').click();
+   const session=editor().getByRole('checkbox',{name:'Session',exact:true});
+   const expiration=editor().locator('input[type="datetime-local"]');
+   assert.equal(await session.isChecked(),false);
+   const original=await expiration.inputValue();
+   assert.match(original,/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$/);
+   assert.match(await editor().innerText(),/过期时间（Expiration）/);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
+     width+'px advanced expiry overflow');
+   await session.check();
+   assert.equal(await expiration.count(),0);
+   assert.match(await editor().innerText(),/会话 Cookie · 不设置 Expiration/);
+   await session.uncheck();
+   assert.equal(await expiration.inputValue(),original);
+   await expiration.fill('2000-01-01T00:00:00');
+   await button('保存').click();
+   await editor().getByRole('alert').getByText(/过期时间必须晚于现在/).waitFor();
+   assert.equal(await expiration.inputValue(),'2000-01-01T00:00:00');
+   if(width===320)await page.screenshot({path:join(output,'320-expiration-light.png'),fullPage:true});
+   await expiration.fill(original);
+   await button('取消').click();
+  }
+  await page.setViewportSize({width:380,height:880});
+ });
  await test('dirty switching protects draft, then explicit discard opens new editor',async()=>{
   await row('session_id').click();await nameInput().fill('held_draft');
   await page.getByRole('searchbox',{name:'搜索 Cookie'}).fill('theme');
