@@ -59,7 +59,7 @@ export async function generatePreview({
     fail('official design CSS is missing from the validated tool package');
   if(tool==='web-markdown-clipper'&&!pkg.css.startsWith('/* opendesk.shared-tokens.v1 sha256='))
     fail('clipper is not compiled from the canonical shared tokens');
-  if(tool==='knowledge-inbox'&&(!pkg.css.includes('.ki{')||/@import\\b|url\\s*\\(\\s*['"]?\\s*(?:https?:|\\/\\/)/i.test(pkg.css)))
+  if(tool==='knowledge-inbox'&&(!pkg.css.includes('.ki{')||/@import\b|url\s*\(\s*['"]?\s*(?:https?:|\/\/)/i.test(pkg.css)))
     fail('knowledge-inbox legacy scoped CSS source contract has changed');
   let mock,operations;
   if(tool==='quick-notes'){
