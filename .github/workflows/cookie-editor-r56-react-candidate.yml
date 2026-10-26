@@ -5,6 +5,10 @@ on:
     paths:
       - '.github/workflows/cookie-editor-r56-react-candidate.yml'
       - 'examples/sidebar-tools/cookie-editor/app/**'
+      - 'examples/sidebar-tools/cookie-editor/trusted/**'
+      - 'src/sw.js'
+      - 'src/ui/sidebar-tools/installation.js'
+      - 'tests/environment/cookie-editor-account-*.test.mjs'
       - 'examples/sidebar-tools/cookie-editor/src/react.css'
       - 'examples/sidebar-tools/cookie-editor/src/root.html'
       - 'examples/sidebar-tools/cookie-editor/package.json'
@@ -64,6 +68,17 @@ jobs:
           npm run build --prefix examples/sidebar-tools/cookie-editor
           npm run stage:candidate --prefix examples/sidebar-tools/cookie-editor
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor             --promote-from artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json
+      - name: R2.4 trusted vault and canonical background-switch regressions
+        run: |
+          node --check examples/sidebar-tools/cookie-editor/trusted/account-contract.js
+          node --check examples/sidebar-tools/cookie-editor/trusted/account-vault.js
+          node --check examples/sidebar-tools/cookie-editor/trusted/account-service.js
+          node --check src/sw.js
+          node --check src/ui/sidebar-tools/installation.js
+          node --test \
+            tests/environment/cookie-editor-account-vault.test.mjs \
+            tests/environment/cookie-editor-account-switch-url.test.mjs \
+            tests/environment/cookie-editor-account-switch-host.test.mjs
       - name: R5.24 independent trusted grant and native Host regressions
         run: |
           node --test tests/environment/cookie-editor-r524-grant.test.mjs
