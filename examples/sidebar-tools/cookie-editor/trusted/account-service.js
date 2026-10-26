@@ -111,7 +111,7 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
     serial=run.catch(()=>{});
     return run;
   };
-  async function hostSender(sender){
+  async function hostSender(sender,expected=sender?.documentId){
     if(!isSidebarToolHostSender(api,sender,ID)||sender.tab?.incognito||
        sender.frameId!==undefined&&sender.frameId!==0||
        sender.documentLifecycle&&sender.documentLifecycle!=='active'||
@@ -120,10 +120,12 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
     const type=sender.tab?'TAB':'SIDE_PANEL';
     const contexts=await api.runtime.getContexts({contextTypes:[type],
       documentUrls:[sender.url],...(sender.tab?{tabIds:[sender.tab.id]}:{})});
-    if(contexts.filter(row=>row.contextType===type&&row.documentUrl===sender.url&&
-      row.documentId===sender.documentId&&row.frameId===0&&!row.incognito&&
-      (!sender.tab||row.tabId===sender.tab.id)).length!==1)
-      throw fail('E_ACCOUNT_SENDER');
+    const valid=contexts.filter(row=>row.contextType===type&&
+      row.documentUrl===sender.url&&typeof row.documentId==='string'&&
+      row.documentId&&(!expected||row.documentId===expected)&&
+      row.frameId===0&&!row.incognito&&(!sender.tab||row.tabId===sender.tab.id));
+    if(valid.length!==1)throw fail('E_ACCOUNT_SENDER');
+    return valid[0].documentId;
   }
   async function installed(message=null){
     const state=await api.storage.local.get([SIDEBAR_TOOL_STORE,
@@ -305,9 +307,9 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
        !COOKIE_ACCOUNT_OPERATIONS.includes(message.operation)||
        !object(message.payload))
       throw fail('E_ACCOUNT_REQUEST');
-    await hostSender(sender);
+    const hostDocumentId=await hostSender(sender);
     const record=await installed(message);
-    await hostSender(sender);
+    await hostSender(sender,hostDocumentId);
     const {operation,payload}=message;
     if(MUTATIONS.has(operation)&&message.trustedClick!==true)
       throw fail('E_USER_GESTURE_REQUIRED');
