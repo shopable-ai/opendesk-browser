@@ -80,9 +80,36 @@ Chrome 默认用户脚本开关关闭时返回 E_PAGE_INSTALL_PENDING，未自�
 - 本对话 get_goal 实读 null；更早原对话 01a176d6 goal 上次观察 ACTIVE，当前跨对话状态未知。创建不暂停/迁移/完成该旧目标；不伪报 lifecycle 同步。本对话移交后不重复操作文件/浏览器/输出。
 - 后续先核对本轮 diff/证据对应输入，安全收尾提交；只补与独立安装使用有关的当前未完成操作。有真实内容再补三站实际导航动作，必要门禁齐备才批准 Scroll 官方发现安装；否则继续写 BLOCKED_CONTENT/NOT_TESTED。Mind Map 许可、Queue owner 阻塞不越权处理。八维均 NOT_SCORED，平均 NOT_SCORED，无虚构 95。
 
-## 接手增量收尾（2026-10-26，ACTIVE）
+## 接手增量收尾（2026-10-26，LOCAL_COMPLETE）
 
 - 接收对话 `01a17744-943f-79e3-bfc5-721a66140588` 已接管上述四个文件；起始 main/HEAD `d5de00e8016aba16cc1935f51ae2587b77bfe441`，索引为空。未接管其他 dirty 文件、日常 watcher、Chrome 或 Native。
 - 实读三份交付输入的 SHA256 与上文一致，且逐字节等于 `ai-four-products-r125-native-fix/frozen-source` 对应文件。原 81/105 PASS 日志、production receipt 与原生 JSON 均可读，复用原候选的证据，不重跑测试、晋升或构建；不将其提升为新 main 整包验收。
 - fetch 后远端 main 为 `9a3d7b4c86f9bda731246b76980df60615a4724c`；新增内容没有修改本轮三个交付文件。远端同时修改了其他 owner 尚未提交的 `src/ui/sidebar-tools.js`，Git 集成必须保护其现有改动，不自动 stash、暂存或覆盖。先精确提交本轮四文件，再处理远端集成边界。
 - 当前不占用浏览器/Profile/端口/构建输出。Scroll 内容、Mind Map 许可、Queue owner 门禁保持原状态；完整矩阵和评分继续延期。
+
+### 两项生命周期增量（VERIFIED）
+
+四文件已精确提交为 `e6752699ddcce9b4f992d345a9ef6bb3189db193`，提交后索引为空，其他 owner 的全部 dirty 保留。用户随后明确授权“协调后继续合并推送”；相关 owner 释放与远端集成结果见下文。
+
+本次仅补 Prompt 主动卸载后完整进程重启不回装、Scroll 停用后完整进程重启保持 disabled 两个未测操作。二者直接证明拆分后用户独立管理意图的持久性；已有扩展重载和运行态重启不能完全替代。复用同一 frozen-source/dist/production，不构建或晋升；新证据仅写 `artifacts/ai-four-products-r125-native-fix/incremental-lifecycle/`。沿现有 launcher 的最小两启动适配使用全新专用临时 Profile；临时 browser 沿用原 owner 已释放的独立克隆，不接触个人登录资料、旧已删 Profile、日常 Chrome/Native/watchers。安装只作为本次停用场景前置，不重复历史升级、三站业务、完整故障注入或评分。
+
+- **Prompt 卸载持久性 PASS**：真实扩展中心确认卸载后，安装列表无 Prompt、默认预装 bootstrap 为 complete。正常退出整个浏览器再重开同一 Profile，真实侧栏仍无 Prompt，安装持久数据与 bootstrap 读回一致，没有重新预装。证据 `prompt-uninstalled-before-restart.json`、`after-full-restart.json`。
+- **Scroll 停用持久性 PASS**：真实 UI 安装原正式 0.4.0/r1 后停用，重启前后 installationId 均为 `9b801f82-46f8-44b6-a392-2ebc9754425a`，enabled=false、nativeState/authorization=disabled、managedCleanup=retired、原生 getScripts=[]。没有把停用后的 UI 隐藏等同于原生清理。证据 `before-full-restart.json`、`after-full-restart.json`。
+- 运行身份为同一冻结 production 包 SHA256 `6d1d8492aaac404bf595cc43e3595b610050c355660795ea0002e1058ddcabb6`，CFT 155.0.8059.39、扩展 ID `mbjianpjmiafflgmlkkpdpdhbhedjkbd`。同一临时 Profile `codex-cft-727bpfsl` 由 PID 40196 正常退出后以 PID 55889 启动；SIDE_PANEL 通过实际工具栏重开。只读 CDP 用于安装、storage 与注册读回，没有改写运行时状态或注入伪回执。`incremental-result.json` 保存两项 PASS 及四份原始证据 SHA256，收尾再次核对一致。
+- 两次启动已结束，launcher exit 0；`cleanup.json` 确认临时 Profile removed、residual=[]。日常 Chrome/Native、watcher、dist/development 未占用或替换。当前无浏览器、Profile、端口或构建输出占用。
+
+### 协调、合并与提交边界
+
+Reading TOC 对话 `01a17717-2d50-74b1-9879-36669acf0be9` 和书签导入对话 `01a17715-a966-7121-b8f8-b78c61798aee` 均明确释放 `src/ui/sidebar-tools.js` 对应本地改动；记录为同目录的 `reading-toc-prelaunch-owner-release-20261026.md` 与 `bookmark-import-update-20261026-01a17715.md`。只保护其改动，不将其顺带提交。
+
+准备集成期间，用户另行启动的「拉取并合并 Git 更新」对话 `01a15352-d840-7250-893d-4c0af1c2930e` 已开始 Git 事务。本对话即时停止写入并协调，由该 owner 完成远端 `cd4c2f5a268b0fbf26b62e01f2a18876cd832f7f` 的正常合并：`c2bbc45f7c5c0c9d835abfb83991b21bbcf0b4ed`。唯一 README 冲突保留两方阶段记录；该 owner 最终明确恢复 32 项原文件改动、3 个未跟踪文件并释放 Git/index/HEAD，未推送。
+
+本对话读回确认：main、索引空、无未解决冲突；`e6752699d` 和远端提交均为 HEAD 祖先；三份已提交交付输入与 e6752699d 逐字节相等。32 项已保存文件中，31 项与备份逐字节相等；共享 sidebar-tools.js 精确等于“原 owner 改动 + 已合入远端内容”的无冲突三方合并结果。保存的 stash 保留，未丢弃、重复应用或提交。收尾核对回执为 `artifacts/ai-four-products-r125-native-fix/remote-main-integration/restoration-check.json`。
+
+后续只提交本文验证记录并正常推送 main，实际提交/推送 SHA 以 Git 回执和最终答复为准。其他 owner 新修改的 Prompt 源码、配置、正式 JSON 等全部保留且不纳入本轮提交；本轮原生证据只绑定冻结的 Prompt 1.1.19 和指定 Browser 包，不冒充更新中工作树或合并后整包的原生验收。
+
+### 当前可交付与后续条件
+
+ALREADY_DONE：原业务、历史升级与已通过生命周期证据复用。IMPLEMENTED：无序站点范围读回修复、对应定向测试和 Prompt 1.1.19 正式包已在 e6752699d 保存。VERIFIED：新增的完整浏览器重启后 Prompt 不回装、Scroll 保持停用两项均通过。
+
+BLOCKED/REMAINING：Scroll 缺三站真实长对话导航证据，仍 BLOCKED_CONTENT/NOT_TESTED、官方发行未批准；Mind Map 仍 BLOCKED_LICENSE、redistributionApproved=false；Send Queue 仍 OWNED_ELSEWHERE，未接管旧队列或产生新身份正式包。八维及平均分仍 NOT_SCORED，完整矩阵继续延期。NEXT：只有取得真实内容后才补对应导航操作并按原门禁判断发行；许可与 Queue 由其 owner 独立解除。当前授权的增量开发和验证已收尾，不自动启动这些阻塞项，也不将更早跨对话目标伪报完成或迁移。
