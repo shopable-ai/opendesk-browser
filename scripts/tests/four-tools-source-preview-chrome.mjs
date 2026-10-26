@@ -118,7 +118,7 @@ async function testMarkdown(ctx){
   ed.dispatchEvent(new Event('input',{bubbles:true}));
   await new Promise(ok=>setTimeout(ok,160));
   if(q('mdw-clear').disabled)throw Error('Clear did not become enabled');
-  q('mdw-panes').querySelector('[data-mode=preview]')?.click();
+  document.querySelector('.mdw-modes [data-mode="preview"]')?.click();
   if(q('mdw-preview').querySelector('img,script'))throw Error('Unsafe Markdown generated active elements');
   if(!q('mdw-preview').textContent.includes('<img'))throw Error('Unsafe markup was not escaped');
   q('mdw-clear').click();
