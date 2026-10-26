@@ -31,8 +31,11 @@ function sourceCandidates(library,question,scope,found){
   const scored=library.items.filter(x=>x.enabled&&x.scope===scope).map(x=>{
     const head=[x.question,...x.aliases].join(' ');
     const hits=terms.filter(t=>head.includes(t)).length;
-    return {id:x.id,hits,prior:found.sourceIds.indexOf(x.id)};
-  }).filter(x=>x.hits>0).sort((a,b)=>b.hits-a.hits||
+    const timeQuestion=/何时|什么时候|多久|几天|多少天|几点|多长时间/u.test(question);
+    const evidenceTime=/何时|什么时候|多久|几天|多少天|小时|工作日|天内|日内|时长|周期|时效/u.test(head+' '+x.answer);
+    return {id:x.id,hits:timeQuestion&&!evidenceTime?0:hits,
+      prior:found.sourceIds.indexOf(x.id)};
+  }).filter(x=>x.hits>=Math.max(1,Math.ceil(terms.length*0.6))).sort((a,b)=>b.hits-a.hits||
     (a.prior<0?999:a.prior)-(b.prior<0?999:b.prior)||a.id.localeCompare(b.id)).slice(0,3);
   return {status:scored.length?'RETRIEVED_ONLY':'NO_MATCH',answer:'',
     sourceIds:scored.map(x=>x.id),needsHuman:true,candidates:[]};
