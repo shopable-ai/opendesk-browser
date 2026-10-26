@@ -18,6 +18,12 @@ export default function CookieEditorApp({request,hostRoot,setState}){
   const [mode,setMode]=React.useState('browser');
   const [section,setSection]=React.useState('cookie');
   const [accountRoute,setAccountRoute]=React.useState('list');
+  // Only trusted, redacted account metadata may enter React. The encrypted
+  // snapshot, Cookie values and vault key never cross the Host boundary.
+  const [accountState,setAccountState]=React.useState(null);
+  const [accountBusy,setAccountBusy]=React.useState(false);
+  const [accountNotice,setAccountNotice]=React.useState(null);
+  const accountInFlight=React.useRef(false);
   const [offlineInitialSite,setOfflineInitialSite]=React.useState(null);
   const modeRef=React.useRef('browser');
   const syncGate=React.useRef({panel:null,selected:null,dirty:false,confirmation:null,working:false,exportOpen:false});
@@ -176,6 +182,87 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
   },[snapshot.epoch,snapshot.phase]);
   const target=snapshot.target;
+
+  React.useEffect(()=>{
+    if(mode!=='browser'||section!=='accounts'||!target?.origin){
+      setAccountState(null);return;
+    }
+    let active=true;
+    setAccountState(null);
+    setAccountNotice(null);
+    void adapter.accountRequest('status',{}).then(result=>{
+      if(active&&result&&typeof result.configured==='boolean'&&
+         Array.isArray(result.accounts))setAccountState(result);
+      else if(active)throw Error('E_ACCOUNT_HOST');
+    }).catch(error=>{
+      if(active)setAccountNotice({kind:'error',
+        text:'账号服务不可用（'+String(error?.code||'E_ACCOUNT_HOST')+'）。请确认已安装最新正式版。'});
+    });
+    return ()=>{active=false;};
+  },[adapter,mode,section,target?.origin]);
+  const accountAction=(action,payload={},success='账号已更新')=>{
+    if(accountInFlight.current||modeRef.current!=='browser'||!target?.origin||
+       (action!=='unlock'&&action!=='lock'&&!accountState?.unlocked))return;
+    accountInFlight.current=true;
+    // Start the Host request in the original button/change gesture. The
+    // privileged parent independently observes userActivation synchronously.
+    const intent=adapter.accountRequest(action,{
+      ...payload,...(action==='unlock'||action==='lock'?{}:
+        {revision:accountState.revision})
+    });
+    const requestedOrigin=target.origin;
+    setAccountBusy(true);setAccountNotice(null);
+    void Promise.resolve(intent).then(receipt=>{
+      if(controller.snapshot().target?.origin!==requestedOrigin)return;
+      if(action==='switch'){
+        if(receipt?.switched!==true||receipt?.verified!==true)
+          throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+        setAccountNotice({kind:'success',text:receipt.reloadRequested
+          ?'已验证 Cookie 切换，正在刷新目标网页。'
+          :'已验证 Cookie 切换；自动刷新已关闭。'});
+        if(!receipt.reloadRequested)void controller.load();
+      }else if(action==='lock'){
+        setAccountState(previous=>previous?{
+          ...previous,unlocked:false,accounts:[],revision:null,
+          settings:{autoEnabled:false,autoRefresh:true}
+        }:null);
+        setAccountNotice({kind:'success',text:'账号仓库已锁定。'});
+      }else{
+        if(typeof receipt?.configured!=='boolean'||!Array.isArray(receipt.accounts))
+          throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+        setAccountState(receipt);
+        setAccountNotice({kind:'success',text:success});
+      }
+    }).catch(error=>{
+      if(controller.snapshot().target?.origin!==requestedOrigin)return;
+      const code=String(error?.code||'E_ACCOUNT_HOST');
+      const hints={
+        E_OUTCOME_UNKNOWN:'可能发生部分 Cookie 写入，请手动核对，勿直接重复切换。',
+        E_REFRESH_OUTCOME_UNKNOWN:'Cookie 切换已尝试，但网页刷新结果未确认，请手动核对。',
+        E_VAULT_LOCKED_OR_CORRUPT:'口令不正确或加密仓库损坏，原数据未覆盖。',
+        E_VAULT_CONFLICT:'另一个操作已修改账号，请重新打开账号页读取最新状态。',
+        E_ACCOUNT_PARENT_DOMAIN_UNSUPPORTED:'本站使用跨子域 Cookie，当前安全模式不支持完整快照。',
+        E_COOKIE_PARTITION:'Cookie 分区已变化，请重新检查目标标签页及授权。',
+        E_COOKIE_STORE:'当前标签页的 Cookie Store 不匹配。',
+        E_SITE_GRANT_REQUIRED:'网站 Cookie 授权失效，请在工具可信设置中恢复。',
+        E_ACCOUNT_EMPTY:'当前站点没有可保存或切换的 Cookie。'
+      };
+      setAccountNotice({kind:'error',text:(hints[code]||'本次操作未确认，请检查权限或仓库状态。')+
+        '（'+code+'）'});
+    }).finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
+  };
+  const copyAccountLink=(item,url)=>{
+    if(!url||accountInFlight.current)return;
+    accountInFlight.current=true;
+    const pending=adapter.copy(url);
+    setAccountBusy(true);setAccountNotice(null);
+    void Promise.resolve(pending).then(result=>{
+      if(result?.copied!==true)throw Error('E_OUTCOME_UNKNOWN');
+      setAccountNotice({kind:'success',text:'已复制 '+item.displayName+' 的自动切换链接。'});
+    }).catch(error=>setAccountNotice({kind:'error',
+      text:'复制结果未确认（'+String(error?.code||'E_CLIPBOARD')+'）。'}))
+      .finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
+  };
   // Opening import preserves the mounted list, query, page, scroll and draft.
   // Only a later native write needs the editor-dirty conflict gate.
   const openImport=()=>{
@@ -454,9 +541,31 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       </div>}
       </>}
       {section==='accounts'&&<CookieAccounts
-        origin={target?.origin||''} accounts={[]} route={accountRoute}
-        onRoute={setAccountRoute} vaultReady={false}
-        switchReady={false} autoRuntimeReady={false}/>}
+        origin={target?.origin||''} accounts={accountState?.accounts||[]}
+        configured={accountState?.configured===true}
+        route={accountRoute} onRoute={setAccountRoute}
+        vaultReady={accountState?.unlocked===true} switchReady={
+          accountState?.unlocked===true&&snapshot.phase==='ready'}
+        autoRuntimeReady={accountState?.autoRuntimeReady===true&&
+          accountState?.unlocked===true}
+        autoEnabled={accountState?.settings?.autoEnabled===true}
+        autoRefresh={accountState?.settings?.autoRefresh!==false}
+        busy={accountBusy||locked} feedback={accountNotice}
+        onUnlock={passphrase=>accountAction('unlock',{passphrase},'账号仓库已解锁。')}
+        onLock={()=>accountAction('lock')}
+        onCreate={displayName=>accountAction('create',{displayName},'已保存当前账号快照。')}
+        onSwitch={item=>accountAction('switch',{alias:item.alias})}
+        onRename={(item,displayName)=>accountAction('rename',{
+          alias:item.alias,accountVersion:item.version,displayName},'账号已重命名。')}
+        onUpdate={item=>accountAction('update',{
+          alias:item.alias,accountVersion:item.version},'已更新账号快照。')}
+        onDelete={item=>accountAction('delete',{
+          alias:item.alias,accountVersion:item.version},'账号快照已删除。')}
+        onToggleAuto={enabled=>accountAction('setAutoEnabled',{enabled},'自动切换设置已更新。')}
+        onToggleRefresh={enabled=>accountAction('setAutoRefresh',{enabled},'刷新设置已更新。')}
+        onAllowAlias={(item,enabled)=>accountAction('allowAlias',{
+          alias:item.alias,accountVersion:item.version,enabled},'自动切换白名单已更新。')}
+        onCopyLink={copyAccountLink}/>}
       {section==='market'&&<CookieAccountMarket/>}
     </>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&
