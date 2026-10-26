@@ -48,12 +48,24 @@ test('production queue view retains original three-item window and no crown beha
  assert.ok(view.includes("crown.setAttribute('aria-hidden','true')"));
 });
 
-test('approved frontal crown is wide, source-bound, and unrotated by default',()=>{
+test('approved frontal crown is wide, source-bound, and minimally corrected by default',()=>{
  for(const name of ['desktop','touch']){
    assert.ok(declared(name+'-w')>declared(name+'-h'));
-   assert.equal(declared(name+'-angle'),0);
+   assert.equal(declared(name+'-angle'),4);
  }
  assert.match(css,/pointer-events:none;z-index:2/);
- assert.match(html,/id="angle-out">0°/);
- assert.match(html,/id="angle" type="range"[^>]*value="0"/);
+ assert.match(html,/id="angle-out">4°/);
+ assert.match(html,/id="angle" type="range"[^>]*value="4"/);
+});
+
+test('34/42 fixed CSS geometry centers the artwork and preserves a clear arrow zone',()=>{
+ for(const [name,button,svg] of [['desktop',34,17],['touch',42,20]]){
+   const w=declared(name+'-w'),h=declared(name+'-h'),x=declared(name+'-x'),y=declared(name+'-y');
+   assert.ok(Math.abs(x+w/2-button/2)<=1,'CSS box must align with blue button center: '+name);
+   assert.ok(y+h>=button*.23,'crown must sit over the upper blue arc: '+name);
+   const arrowStart=(button-svg)/2+svg*5/24;
+   assert.ok(y+h<arrowStart-1,'crown CSS box must not reach the arrow head: '+name);
+   assert.ok(declared(name+'-angle')<=5,'avoid an exaggerated second tilt: '+name);
+ }
+ assert.match(css,/\.sq-crown\{[^}]*filter:none/,'do not add a synthetic shadow layer');
 });
