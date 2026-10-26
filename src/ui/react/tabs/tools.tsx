@@ -321,8 +321,6 @@ export function ExtensionToolbar({model}){
         <button id="extension-center-reset" className="ec-menu-action" type="button"
           onClick={event=>current.onReset?.(event.nativeEvent)}>恢复默认筛选</button>
         <div className="ec-menu-separator">
-          <button id="extension-center-discover" className="ec-menu-action" type="button"
-             onClick={event=>current.onDiscover?.(event.nativeEvent)}>检测当前网页可安装应用</button>
            <button id="extension-center-import" className="ec-menu-action" type="button"
             onClick={event=>current.onImport?.(event.nativeEvent)}>导入扩展…</button>
           <button id="extension-center-reload" className="ec-menu-action" type="button"
@@ -408,24 +406,37 @@ export function ExtensionRowMenu({items=[],model=null}){
 }
 
 // A read-only discovery result; install authority remains with the existing Host.
-export function ExtensionDiscovery({model}){
-  if(!model)return null;
-  const found=model.state==='found';
+export function ExtensionDiscovery({model,onDiscover,showEntry=false}){
+  if(!model&&!showEntry)return null;
+  const found=model?.state==='found';
   return <section id="extension-center-discovery" className="ec-discovery" aria-label="当前网页安装发现">
-    <div className="ec-discovery-copy">
-      <strong>{found?model.title+' · v'+model.version:model.state==='loading'?'正在检测当前网页':'网页安装声明'}</strong>
-      {found&&model.origin&&<span className="ec-discovery-origin">{model.origin}</span>}
-      <p role="status" data-state={model.state}>{model.message}</p>
-    </div>
-    <div className="ec-discovery-actions">
-      {found?<Button disabled={model.busy}
-        onClick={event=>model.onReview?.(event.nativeEvent)}>
-        {model.busy?'正在核对…':'打开可信审阅'}
-      </Button>:model.state==='error'?<Button onClick={event=>model.onRetry?.(event.nativeEvent)}>重新检测</Button>:null}
-      <IconButton label="关闭网页发现结果" title="关闭" onClick={event=>model.onDismiss?.(event.nativeEvent)}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </IconButton>
-    </div>
+    {model?<React.Fragment>
+      <div className="ec-discovery-copy">
+        <strong>{found?model.title+' · v'+model.version:model.state==='loading'?'正在检测当前网页':'当前网页安装入口'}</strong>
+        {found&&model.origin&&<span className="ec-discovery-origin">{model.origin}</span>}
+        <p role="status" data-state={model.state}>{model.message}</p>
+      </div>
+      <div className="ec-discovery-actions">
+        {found?<Button disabled={model.busy}
+          onClick={event=>model.onReview?.(event.nativeEvent)}>
+          {model.busy?'正在核对…':'查看应用详情'}
+        </Button>:(model.state==='error'||model.state==='empty')?
+          <Button onClick={event=>model.onRetry?.(event.nativeEvent)}>重新检测</Button>:null}
+        <IconButton label="关闭网页发现结果" title="关闭" onClick={event=>model.onDismiss?.(event.nativeEvent)}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </IconButton>
+      </div>
+    </React.Fragment>:<>
+      <div className="ec-discovery-copy">
+        <strong>从当前网页安装</strong>
+        <p>仅检查网页声明的 OpenDesk 官方应用，不会直接安装。</p>
+      </div>
+      <div className="ec-discovery-actions">
+        <Button id="extension-center-discover" onClick={event=>onDiscover?.(event.nativeEvent)}>
+          检查网页安装入口
+        </Button>
+      </div>
+    </>}
   </section>;
 }
 
@@ -438,6 +449,8 @@ export function ExtensionCenterPage({
   statusModel=null,menuKey=null,rowMenuModel=null,view='list',onBack=()=>{}
 }){
   const detailVisible=view==='detail';
+  const showWebDiscovery=toolbarModel?.scope==='available'&&toolbarModel?.kind!=='page'&&
+    toolbarModel?.marketDiscoveryAvailable===true;
   const detailRef=React.useRef(null),pageRef=React.useRef(null);
   const [fileOver,setFileOver]=React.useState(false);
   const fileDragDepth=React.useRef(0);
@@ -481,7 +494,8 @@ export function ExtensionCenterPage({
     onDragLeave={onDragLeave} onDrop={onDrop}>
     <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible}>
       <div className="ec-toolbar"><ExtensionToolbar model={toolbarModel}/></div>
-       <ExtensionDiscovery model={discoveryModel}/>
+      <ExtensionDiscovery model={showWebDiscovery?discoveryModel:null}
+        showEntry={showWebDiscovery} onDiscover={toolbarModel?.onDiscover}/>
       <input id="extension-center-file" type="file" accept=".json,application/json" hidden
         aria-label="选择扩展安装包或语言包" onChange={event=>{
           toolbarModel?.onImportFiles?.(Array.from(event.currentTarget.files||[]));event.currentTarget.value='';
