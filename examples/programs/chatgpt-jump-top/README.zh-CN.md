@@ -5,7 +5,8 @@
 - **正式包与入口**：[ai-scroll-navigation.opendesk-page.json](ai-scroll-navigation.opendesk-page.json)，ID `opendesk.ai-scroll-navigation`，版本 **0.4.0 / revision 1**。在 OpenDesk「扩展 → 导入」选择此文件，审阅身份、版本及 ChatGPT、DeepSeek、Gemini 三站范围后安装；安装后归「网页增强」，由原 Page Authority 管理。
 - **独立使用**：无需安装 Prompt Shortcuts。旧 `opendesk.chatgpt-jump-top` 与新 ID 分别管理，旧安装和网站授权不会自动转移；可在原管理入口主动停用或卸载旧安装。
 - **已有证据**：指定冻结 Browser 候选已通过真实 Chrome 安装、范围审阅、注册读回、停用/恢复、更新、撤权清理、新旧 ID 独立安装与卸载；完整浏览器重启后仍保留同一 installationId 和停用状态。候选身份与原始证据见[四产品工作记录](../../../docs/framework/workstreams/ai-four-products-r125-local-20261026.md)，不代表当前 main 整包验收。
-- **当前剩余**：三站缺真实长对话，实际导航仍为 `BLOCKED_CONTENT / NOT_TESTED`。官方目录继续 `publication=blocked`，暂不开放目录安装；上述原包导入入口不等于官方发行已批准。
+- **本轮内容操作**：同一冻结 Browser 候选、原 0.4.0/r1 在已登录 ChatGPT 的既有长回复中显示导航；实际点击后分别看见当前内容区域的首节和末段。此证据限于该区域的两个方向，不代表整段对话、全部内容类型或三站完整验收；与本机 Mind Map 新身份的两轮开关共用同一页面。
+- **当前剩余**：DeepSeek、Gemini 的真实长对话导航仍为 `BLOCKED_CONTENT / NOT_TESTED`。官方目录继续 `publication=blocked`，暂不开放目录安装；上述原包导入入口不等于官方发行已批准。
 
 下方 R1.2.1 及更早章节保留当时的源码与验收状态；其中“新包待构建”“安装未验证”等结论已由本节和工作记录中的增量证据更新。
 

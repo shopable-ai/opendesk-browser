@@ -8,11 +8,13 @@ Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · �
 
 新旧身份原本可分别挂载生命周期并驱动发送。新入口发现旧活动生命周期标记时返回 `status: skipped` / `reason: legacy-active`，不创建队列或 UI；若旧生命周期稍后出现，新实例在下一次轮询或用户操作前只销毁自己的资源，不调用旧清理、不清空、不复制或接管旧队列。标记只用于保守阻止运行，不授予权限。局部视图 ID 保留原样，不代表安装身份或授权迁移；退出后不自动重启。请先人工处理旧队列，再通过原安装管理入口停用旧安装，在新文档使用单独获批的新安装。此保护不证明任意旧版本或不同执行世界的原生并存安全。
 
-本轮 5 项身份/生命周期定向 Node 测试、入口语法、项目校验、原打包器格式/哈希与候选同源检查通过。新包 `sourceHash: 01cad4e3f16f843aea6fe722c7989b4860ea11412a3f5cb6d22c4c714bcd31f1`，`packageHash: 0cc2ab295f0141b53f2351215122f05632d07f7d1dd565de55c58d81311d8441`。仅验证新身份、旧生命周期避让、包格式及哈希；不重跑 FIFO 全套，不操作浏览器。离线候选输出位于 `artifacts/ai-four-products-r126-content-20261026/queue-candidate/`，使用原 `npm run build:program` 与 `scripts/build-page-install-package.mjs`。原生安装、自动运行、发送、站点并存及撤权均为 `NOT_TESTED`。
+准备阶段的 5 项身份/生命周期定向 Node 测试、入口语法、项目校验、原打包器格式/哈希与候选同源检查通过。新包 `sourceHash: 01cad4e3f16f843aea6fe722c7989b4860ea11412a3f5cb6d22c4c714bcd31f1`，`packageHash: 0cc2ab295f0141b53f2351215122f05632d07f7d1dd565de55c58d81311d8441`。仅验证新身份、旧生命周期避让、包格式及哈希，未重跑 FIFO 全套。离线候选输出位于 `artifacts/ai-four-products-r126-content-20261026/queue-candidate/`，使用原 `npm run build:program` 与 `scripts/build-page-install-package.mjs`。
+
+随后在专用 CFT156 临时 Profile，经原 Page 导入入口审阅新 ID、0.1.2/r1 和 ChatGPT 单站范围后安装；真实安装终态及详情均已读回，授权 active、Chrome registered、固定源码与上述哈希一致。刷新前输入框为空，刷新后网站显示“无法加载此 ChatGPT 对话”，网站重试及另一已有会话未恢复编辑框。因此空队列 UI、页面自动运行、发送、原生并存及撤权仍为 `NOT_TESTED`，没有发送消息，也未据此修改产品。详情见[四产品工作记录](../../../docs/framework/workstreams/ai-four-products-r125-local-20261026.md)。
 
 ## 目标与真实功能边界
 
-这是独立 Page Program。**不是** Prompt Shortcuts、OpenDesk 自身 `src/ui/react/components/conversation.tsx`、Chrome 独立扩展或 ChatGPT API 客户端。新独立正式包为本目录的 `ai-send-queue.opendesk-page.json`，通过 OpenDesk「扩展 → 导入」审阅身份、版本及网站范围后安装，归「网页增强」。新身份未在 Chrome 安装或运行，原生证据为 `NOT_TESTED`；文末旧身份的历史证据不适用于新包。
+这是独立 Page Program。**不是** Prompt Shortcuts、OpenDesk 自身 `src/ui/react/components/conversation.tsx`、Chrome 独立扩展或 ChatGPT API 客户端。新独立正式包为本目录的 `ai-send-queue.opendesk-page.json`，通过 OpenDesk「扩展 → 导入」审阅身份、版本及网站范围后安装，归「网页增强」。新身份的安装与注册证据见上文；文末旧身份的运行历史不适用于新包。
 
 S01：官网正在回复时，用户继续输入并点击蓝色队列按钮两次；原生草稿分别进入同一对话的内存队列。等待网站显示回复完成、原生发送控件变为安全可用、输入框无他人草稿后，先填入消息，下一轮重新核对网页与按钮，再**只点击一次**；准确找到一个新增用户消息节点才能认定确认。下一条要等待新的助手回复节点明确结束后继续。队列不通过私有网络端点、cookie、模拟官方 API 或后台配额发送。
 

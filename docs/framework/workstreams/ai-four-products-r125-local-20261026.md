@@ -146,3 +146,17 @@ BLOCKED/REMAINING：Scroll 缺三站真实长对话导航证据，仍 BLOCKED_CO
 - Scroll 原包导入审阅识别「此版本已经安装」，确认核对返回原 r1 blocked / `E_PAGE_INSTALL_PENDING`，提示打开用户脚本开关，与 Chrome on 状态冲突。为刷新现有运行状态，安全重载同一临时扩展；CFT156 随后显示该未打包扩展已停用，明确要求开启「开发者模式」。这是当前环境阻塞，不是已复现的 Scroll/Mind Map/Queue 业务缺陷；未修改产品适配环境。
 - 新的开发者模式设置不在先前两项授权内，已按 CUA 策略单独询问，仅限同一临时 Profile；当前待用户回复，未打开、未绕过。Profile 暂留用于继续获批操作，当前 ownership 仍在本对话；测试结束时须正常退出并核对 launcher 清理。
 - 脱敏观测：`artifacts/ai-four-products-r126-content-20261026/core-observations.json`。三个新身份的本轮核心内容操作仍 NOT_TESTED。Mind Map 本机候选仍 LOCAL_VALIDATION_ONLY/distributable=false、许可 BLOCKED；Queue 不发送消息；三站发行与完整矩阵、评分仍延期。
+
+### 授权后的实际操作与本轮收尾（2026-10-26）
+
+用户明确回复“允许，仅本次临时 Profile”。仅在原 `codex-cft-lw_zujhn` 打开 Chrome 开发者模式，实际读回开发者模式、OpenDesk 启用、允许运行用户脚本均为 on。继续复用同一静态 production 冻结 Browser，扩展 ID 和包 SHA256 不变；没有 dev serve 连接，不是新 main 整包或正式 production 验收。
+
+- **Scroll 当前内容双向操作已观察**：恢复原安装后仍为 installationId `fe9b40cb-86a0-4988-8e05-c9a84bc97750`、r1、active / registered，固定源码仍为 `7e7f8377447e176cf9fa3bed1848f9e6979af7143e10279ad1fc15bcbec5a9bd`。在已登录 ChatGPT 的既有长回复中，实际点击「Back to start of this content」后看见内容首节，点击「Go to end of this content」后看见绑定内容区域末段。证据只覆盖该区域，不能提升为整段对话、全部内容类型、DeepSeek/Gemini 或三站正式通过。后两站仍 NOT_TESTED，官方目录保持 blocked。
+- **Mind Map 新身份安装及两轮核心开关通过**：原 Page 导入入口审阅并安装 `opendesk.ai-reply-mindmap` 0.2.7/r1，本机候选 sourceHash/packageHash 与上文一致。详情为 installationId `fcb12cd7-fb43-4bf8-b656-87ef6c80adb9`、active / registered、r1、固定源码 `c8156358dfe0009876cc39fdd61a814201619b4f1b9d5cf6f53753af56efa8b8`。同一已有回复实际打开第一轮 XMind，截图观察到绘制的画布；第二轮再次出现 XMind 只读画布与操作栏。两轮关闭后画布均移除，等待过渡完成后的规范化回复 AX 均与基线相同（8357 字符，SHA256 `6c796e7203e6de8b6f9eda6dd0a22c6e82823b34cfd051c03b63de12f6b01762`）。这是 AX 原文恢复证据，不是 DOM 字节比较、控制台零错误或全部生命周期验收。触发器本身是“切换按钮”；此前只匹配普通按钮的筛选漏掉它，已纠正观察方法，未修改有效产品。许可继续 BLOCKED、LOCAL_VALIDATION_ONLY/distributable=false；未生成项目正式 JSON 或分发资源。
+- **Queue 新身份安装通过，空 UI 尚未验证**：首次确认被 CUA 界面变化保护中断，列表无新安装；重新从原入口审阅新 ID、0.1.2/r1 和 ChatGPT 单站范围后，实际返回“已安装网页增强”。详情为 installationId `c5e92706-130b-4d58-9e80-40ca57f08259`、active / registered、r1、固定源码 `01cad4e3f16f843aea6fe722c7989b4860ea11412a3f5cb6d22c4c714bcd31f1`。刷新前输入框为空；刷新后网站显示“无法加载此 ChatGPT 对话”，原网站重试及另一已有会话均未恢复编辑框。故空队列 UI、页面自动运行和发送等运行操作保持 NOT_TESTED，不能从注册成功推断可用；该网站加载失败不构成已证实的 Queue 业务故障。没有发送消息、修改草稿或放宽安全校验。
+- **观察与隐私边界**：复杂会话的截图传输曾报 `native_hook_stdin_oversized`；切换较短的已有回复后恢复观察，不把传输失败登记为产品故障。原文只在内存中比较，持久证据仅有匿名哈希、身份、状态和操作结果；未保存私人正文、会话 URL、Cookie 值或原始截图至仓库/本机证据。上一节 Cookie 预览误入私有工具输出的异常保留，不改写为无异常。
+- **资源已释放**：正常退出快捷键及按住退出未结束 PID；只读核对 PID 75835 的准确 executable、Profile 与 parent 后，通过原 owner launcher PID 75834 转发 SIGTERM。launcher 已结束该浏览器并删除临时 Profile，`cleanup.json` 为 browserExited=true、temporaryProfileRemoved=true。未启动第二实例、未强杀其他进程，日常 Chrome/Native、watcher、dist/development 与冻结输出未修改。
+
+本机脱敏记录为 `artifacts/ai-four-products-r126-content-20261026/core-observations.json`，SHA256 `348f9138e4e8e72933730723d4ff89db539bad50c838e48412a1612ee175b47b`；内含六份安装、导航、两轮还原、网站阻塞和清理证据的 SHA256。忽略目录不提交；本文和三项目 README 保留可恢复的结果及候选边界。本轮仅更新说明及官方 blocked 原因，无产品源码或包变化；核对 JSON、文档链接、原包摘要及局部 diff，不重跑已有效的 Node 测试、打包或 Browser 构建。
+
+当前剩余：Queue 空界面待 ChatGPT 恢复可加载后继续；DeepSeek/Gemini 内容导航、Mind Map 分发许可、Queue 发送及完整原生矩阵、正式发行和评分均未完成。完整矩阵仍延期、评分 NOT_SCORED，不因本轮核心增量完成而自动开展。当前无本对话占用的浏览器/Profile/端口/构建 writer。

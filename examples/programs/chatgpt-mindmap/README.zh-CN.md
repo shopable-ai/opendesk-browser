@@ -1,5 +1,11 @@
 # AI 回复思维导图 · OpenDesk 网页增强
 
+## 新身份本机核心验证（2026-10-26）
+
+新 ID `opendesk.ai-reply-mindmap` 的 **0.2.7/r1** 本机候选已通过原 Page 导入审阅安装，详情为 active / registered，固定源码 `c8156358dfe0009876cc39fdd61a814201619b4f1b9d5cf6f53753af56efa8b8`。同一冻结 Browser 候选中，使用 ChatGPT 已有回复完成两轮打开 XMind、返回原文；第一轮实际看见绘制的画布，第二轮再次出现 XMind 只读画布及操作栏。两次关闭后画布均移除，稳定后的规范化回复 AX 均与基线一致（8357 字符）；不声明 DOM 字节一致或控制台零错误，没有发送消息。
+
+候选仅在本机忽略目录 `artifacts/ai-four-products-r126-content-20261026/mindmap-local-candidate/`，仍为 **LOCAL_VALIDATION_ONLY / distributable=false**；未生成本项目正式 JSON，XMind 分发许可继续 **BLOCKED**。未验证导出、主题、全部生命周期或正式发行。脱敏身份及两轮比对见[四产品工作记录](../../../docs/framework/workstreams/ai-four-products-r125-local-20261026.md)；下方源码交付时“未构建、未安装”是历史状态。
+
 ## R1.2.3 新身份源码交付（2026-10-26）
 
 - **新 Page Program ID：** `opendesk.ai-reply-mindmap`；源码版本仍为 `0.2.7`，新身份首次打包的目标修订为 **r1**。项目目录仍为 `examples/programs/chatgpt-mindmap/`，不因此改路径或扩大 `https://chatgpt.com/*` 授权。

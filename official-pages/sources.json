@@ -17,7 +17,7 @@
       ],
       "installationPolicy": "reviewed",
       "publication": "blocked",
-      "blockedReason": "新 ID 0.4.0/r1 已有冻结候选的真实 Chrome 安装、三站范围审阅、注册读回及独立生命周期证据；仍缺三站真实长对话导航操作，官方目录暂不开放安装。"
+      "blockedReason": "新 ID 0.4.0/r1 已有冻结候选的真实 Chrome 安装、三站范围审阅、注册读回、独立生命周期及 ChatGPT 当前长内容区域双向导航证据；DeepSeek、Gemini 真实内容导航仍未验证，官方目录暂不开放安装。"
     },
     {
       "programId": "opendesk.ai-reply-mindmap",
@@ -47,7 +47,7 @@
       ],
       "installationPolicy": "reviewed",
       "publication": "blocked",
-      "blockedReason": "新 ID 0.1.2/r1 已有独立正式包及身份、旧生命周期避让的定向 Node 证据；仍缺新身份真实 Chrome 安装与核心操作证据，旧安装和授权不会自动迁移。"
+      "blockedReason": "新 ID 0.1.2/r1 已有独立正式包、旧生命周期避让的定向 Node 证据及真实 Chrome 安装与注册读回；空队列 UI 和发送等运行操作尚未验证，旧安装和授权不会自动迁移。"
     }
   ]
 }
