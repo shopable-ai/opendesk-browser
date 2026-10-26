@@ -50,6 +50,12 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 独立运行页：使用同一 sidepanel.html React 应用及既有受信任运行 Host，不新增 SW/RunHost
 ```
 
+## 已安装应用的页内轻导航（R2，2026-10-26）
+
+遇到“打开子页面/设置后上方标题仍不变”等任务，先核对[现有 Sidebar Tool 导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)与真实页面 owner，而不是新建 Nav。**优先只修改共享标题投影**：根页「书签管理」，可信设置「书签管理 / 设置」，已验真的业务子页「扩展名称 / 当前页」；一行标题与唯一返回按钮即可。不能由标题暗示不存在的返回层级；Sheet、弹窗、菜单保留自己的标题与关闭事件，完整历史不出现在页首。
+
+可信设置标题由 `src/ui/sidebar-tools.js` + `src/ui/sidebar-tools/title-path.js` 统一处理；已签发官方沙箱的导航提示只能通过现有受安装身份、实例、来源约束的 `setNavigation`，普通/旧版沙箱继续自带业务标题。返回由业务逻辑处理，草稿与保存锁仍有效；不能为了纯视觉修复扩大权限、修改 JSON 包或加入另一套 Host。**修复后同步变更扩展 README、产品/架构 MD、相关开发 Skill 与定向回归测试**；是否在原生 Chrome 实际通过需单独报告。
+
 ## 所有内置页面统一的视觉硬约束
 
 | 角色 | 必须优先使用 | 常见错误 |
