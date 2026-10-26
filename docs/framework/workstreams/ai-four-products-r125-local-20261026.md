@@ -113,3 +113,12 @@ Reading TOC 对话 `01a17717-2d50-74b1-9879-36669acf0be9` 和书签导入对话 
 ALREADY_DONE：原业务、历史升级与已通过生命周期证据复用。IMPLEMENTED：无序站点范围读回修复、对应定向测试和 Prompt 1.1.19 正式包已在 e6752699d 保存。VERIFIED：新增的完整浏览器重启后 Prompt 不回装、Scroll 保持停用两项均通过。
 
 BLOCKED/REMAINING：Scroll 缺三站真实长对话导航证据，仍 BLOCKED_CONTENT/NOT_TESTED、官方发行未批准；Mind Map 仍 BLOCKED_LICENSE、redistributionApproved=false；Send Queue 仍 OWNED_ELSEWHERE，未接管旧队列或产生新身份正式包。八维及平均分仍 NOT_SCORED，完整矩阵继续延期。NEXT：只有取得真实内容后才补对应导航操作并按原门禁判断发行；许可与 Queue 由其 owner 独立解除。当前授权的增量开发和验证已收尾，不自动启动这些阻塞项，也不将更早跨对话目标伪报完成或迁移。
+
+## 本次接收：安装说明收尾（2026-10-26）
+
+- 负责人：本次接收对话；仅写本文、`examples/programs/chatgpt-jump-top/README.zh-CN.md`、`official-pages/sources.json` 的 Scroll 阻塞说明。类型为既有 Page USER_SCRIPT，使用原 Page 安装审阅与 Authority；本次不修改业务、SDK、身份、权限、包或发行状态。
+- 起始 HEAD `7b57806f790ecccf1c029682639818c2a61e7254`，main 工作区及索引干净。前 Git owner 已完成提交和推送并 idle；本次单次 fetch 后仅快进至 `941927bd5`，四项远端预览文件与本次范围不重叠，不再循环追赶远端。
+- 实际说明缺口：Scroll README 仍将新包和安装写为未完成，官方目录仍以缺 Chrome 安装、范围审阅和注册回读为阻塞原因。补正式原包的直接链接及原导入入口，把当前阻塞写为三站真实长对话导航缺证；`publication=blocked` 保持。
+- Prompt 当前正式包为 1.1.20，SHA256 `e93e1bde0a9fb7953fafbba1f1a71266890706f412f47f6209389c7b4afbf5ef`，与其 README 对应；1.1.19 原生升级和卸载证据只保留原候选边界，不提升为 1.1.20 安装 PASS。Scroll 原包仍为 0.4.0/r1，sourceHash/packageHash 与上文相同。
+- Mind Map 许可仍 `redistributionApproved=false`；Queue 源码和正式包仍为旧 ID，未收到新 owner 交接。两项只读保留阻塞，不重做业务或迁移数据。
+- 验证仅核对 JSON 说明变更、文档包链接、原包身份/摘要及既有生命周期证据。无运行时代码变化，不重跑测试、构建、打包或浏览器操作；不占用日常 Chrome/Native、watcher、dist/development、旧 Profile 或冻结输出。

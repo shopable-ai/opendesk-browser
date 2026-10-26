@@ -1,6 +1,15 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
-## R1.2.1 当前业务源码（2026-10-25；新身份未正式安装验收）
+## 当前独立安装与状态（2026-10-26）
+
+- **正式包与入口**：[ai-scroll-navigation.opendesk-page.json](ai-scroll-navigation.opendesk-page.json)，ID `opendesk.ai-scroll-navigation`，版本 **0.4.0 / revision 1**。在 OpenDesk「扩展 → 导入」选择此文件，审阅身份、版本及 ChatGPT、DeepSeek、Gemini 三站范围后安装；安装后归「网页增强」，由原 Page Authority 管理。
+- **独立使用**：无需安装 Prompt Shortcuts。旧 `opendesk.chatgpt-jump-top` 与新 ID 分别管理，旧安装和网站授权不会自动转移；可在原管理入口主动停用或卸载旧安装。
+- **已有证据**：指定冻结 Browser 候选已通过真实 Chrome 安装、范围审阅、注册读回、停用/恢复、更新、撤权清理、新旧 ID 独立安装与卸载；完整浏览器重启后仍保留同一 installationId 和停用状态。候选身份与原始证据见[四产品工作记录](../../../docs/framework/workstreams/ai-four-products-r125-local-20261026.md)，不代表当前 main 整包验收。
+- **当前剩余**：三站缺真实长对话，实际导航仍为 `BLOCKED_CONTENT / NOT_TESTED`。官方目录继续 `publication=blocked`，暂不开放目录安装；上述原包导入入口不等于官方发行已批准。
+
+下方 R1.2.1 及更早章节保留当时的源码与验收状态；其中“新包待构建”“安装未验证”等结论已由本节和工作记录中的增量证据更新。
+
+## 历史：R1.2.1 业务源码（2026-10-25；当时新身份未正式安装验收）
 
 - **独立 Page Program**：代码自带滚动导航；不再要求 Prompt Shortcuts 安装、启用或提供运行时。安装来源仍为 `examples/programs/chatgpt-jump-top/`，避免破坏现有路径引用。
 - **新 Program 身份（源码）**：`src/main.js` 与 `package.json` 现一致为 `opendesk.ai-scroll-navigation`，项目版本 `0.4.0`。旧 `opendesk.chatgpt-jump-top` 不是同 ID 升级，原 `0.2.0` 正式包仅是历史安装制品。已查阅原 Page 安装合同，跨 ID 没有已证实的授权迁移；必须由用户在「扩展」审阅旧安装并明确停用/卸载，再经独立的网站权限审阅安装新 ID。**任何旧授权都不自动转移，新包仍待同源构建及核验。**
