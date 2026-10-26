@@ -27,6 +27,7 @@ import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/backgro
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
+import {formatSidebarToolTitle} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
@@ -1297,14 +1298,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const currentTocLocale=toolLocaleContext(active).locale;
     const visibleTitle=trustedTocTitle?
       uiMessage(toolLocaleContext(active).localization||readingTocCatalog,currentTocLocale,'title'):active?.title;
-    patchToolField(view, title, {textContent: active?visibleTitle+(readOnlyPreview?' · '+(trustedTocTitle?
-      readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''):''});
-    patchToolField(view, title, {title: active?'v'+active.version:''});
     const clipNavigation=navigationAllowed&&active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
     const navigation=navigationAllowed&&frame&&toolNavigation?toolNavigation:null;
-    if(tocSettingsOpen)patchToolField(view,title,{textContent:visibleTitle});
-    else if(clipNavigation||navigation)
-      patchToolField(view,title,{textContent:navigation?.title||clipNavigationTitles[clipPage]});
+    // Display-only path; trusted settings override signed sandbox page hints.
+    // The sandbox still owns the real Back stack and unsaved draft handling.
+    const resolvedTitle=formatSidebarToolTitle({toolTitle:visibleTitle,
+      pageTitle:navigation?.title||(clipNavigation?clipNavigationTitles[clipPage]:null),
+      isHome:navigation?.page==='home'||(clipNavigation&&clipPage==='home'),
+      isSettings:tocSettingsOpen,
+      readOnlyLabel:readOnlyPreview?(trustedTocTitle?
+        readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''});
+    patchToolField(view,title,{textContent:resolvedTitle});
+    // The full current location stays readable in the narrow-header tooltip.
+    patchToolField(view,title,{title:active?resolvedTitle+' · v'+active.version:''});
     const contextAction=tocSettingsOpen?'':navigation?.primary||
       (clipNavigation?({library:'new',reader:'edit',edit:'save',new:'save'}[clipPage]||''):'');
     const contextLabel=(clipNavigation?
