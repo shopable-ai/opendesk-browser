@@ -381,7 +381,7 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
   }
  }
 
- function setDraft(value){fillEpoch.current++;updateDraft(value)}
+ function setDraft(value){fillEpoch.current++;draftRef.current=value;updateDraft(value)}
  useEffect(()=>{activeRef.current=true;return()=>{activeRef.current=false;readEpoch.current++;writeEpoch.current++;fillEpoch.current++}},[]);
  // Only an open editor sheet is a genuine child/Back target. Never infer
  // a Host route from a bookmark preview, selection, folder picker or menu.
@@ -523,7 +523,16 @@ export default function App({runtime=null,mode='preview',onStateChange=null,dock
  function toggle(id){interactionEpoch.current++;if(expanded.has(id)&&tree){let node=tree.byId.get(activeId),limit=0;while(node&&limit++<100){if(node.parentId===id){setActiveId(id);break}node=tree.byId.get(node.parentId)}}setExpanded(prev=>{const n=new Set(prev);if(n.has(id))n.delete(id);else n.add(id);return n})}
  function startEdit(node,{move=false}={}){if(!node||node.locked)return;setDraft(initialDraft('edit',isFolder(node)?'folder':'bookmark',node,node.parentId));setSelectedId(node.id);setPickerOpen(move);setUncertain(false)}
  function closeSheet(){if(busy)return;if(uncertain)setNotice('写入结果未知，请先刷新核对书签。');setDraft(null);setPickerOpen(false);setError('')}
- function requestCloseSheet(){if(busy)return;fillEpoch.current++;if(dirtyDraft(draft)||uncertain){setConfirmDiscard(true);return}closeSheet()}
+ function requestCloseSheet(){
+  // Host Back is dispatched outside this React tree. Read the latest input
+  // synchronously, even if the edit-state effect has not run after typing.
+  if(busyRef.current)return;
+  fillEpoch.current++;
+  if(dirtyDraft(draftRef.current)||uncertainRef.current){
+   setConfirmDiscard(true);return;
+  }
+  closeSheet();
+ }
  function perform(action){
   setPickerOpen(false);setMenu(null);
   if(action.type==='select'){setSelectedId(action.id);setDraft(null);setPreviewOpen(true)}
