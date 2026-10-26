@@ -51,6 +51,8 @@ function safeRow(row,host,storeId,partition){
     !row.session&&(!Number.isFinite(row.expirationDate)||row.expirationDate<=Date.now()/1000)||
     row.name.startsWith('__Secure-')&&!row.secure||
     row.name.startsWith('__Host-')&&(!row.secure||!row.hostOnly||row.path!=='/')||
+    (row.name.startsWith('__Http-')||row.name.startsWith('__Host-Http-'))&&
+      (!row.secure||!row.httpOnly)||
     row.sameSite==='no_restriction'&&!row.secure)
     throw fail('E_ACCOUNT_COOKIE_SCOPE');
   const checkedUrl=new URL('https://'+host);
@@ -98,7 +100,12 @@ function meta(account){
   return {alias,origin,displayName,version,allowAuto,siteLabel:new URL(origin).hostname,
     siteUrl:origin+'/'};
 }
-export function createCookieAccountService({api=globalThis.chrome,now=Date.now}={}){
+// A repeat of an auto-switch URL is never a new intent merely because time passed.
+// User-initiated manual switching bypasses this tab-scoped automatic fence.
+export function sameAccountAutoSwitchAttempt(prior,{url,alias,version}){
+  return Boolean(prior&&prior.url===url&&prior.alias===alias&&prior.version===version);
+}
+export function createCookieAccountService({api=globalThis.chrome}={}){
   const vault=createCookieAccountVault({api});
   const cookieDriver=createCookieService({api,authorize: async({url},context)=>{
     if(!context?.approved||new URL(url).origin!==context.origin)
@@ -403,18 +410,19 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
       const document={tabId:event.tabId,documentId:frame?.documentId,url:event.url};
       await validateDocument(document,origin,true);
       await exclusive(async()=>{
-        // Record an expiring, trusted, per-tab in-flight fence BEFORE any
-        // native Cookie effect or reload. Worker restarts and fragment events
-        // must not automatically replay an effect with uncertain outcome.
+        // Persist a trusted per-tab fence BEFORE native Cookie effects.
+        // No TTL: after expiry, an old URL could replay an uncertain write.
+        // A deliberate manual switch or changed account version can re-arm.
         const state=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
         const id=String(event.tabId),prior=state[id];
-        if(prior?.url===url.href&&prior.alias===account.alias&&
-           prior.version===account.version&&prior.expiresAt>now())return;
+        if(sameAccountAutoSwitchAttempt(prior,{
+          url:url.href,alias:account.alias,version:account.version
+        }))return;
         const current=await vault.read();
         if(current.revision!==data.revision)throw fail('E_VAULT_CONFLICT');
         const latest=await installed();
         const priorFence={url:url.href,alias:account.alias,version:account.version,
-          expiresAt:now()+600000,phase:'in_flight'};
+          phase:'in_flight'};
         state[id]=priorFence;
         await api.storage.session.set({[SEEN_KEY]:state});
         const verified=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]?.[id];

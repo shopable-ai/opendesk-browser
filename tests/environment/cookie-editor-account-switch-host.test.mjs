@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,
   COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
-import {planAccountCookieEffects,validateAccountCookieRow}
+import {planAccountCookieEffects,validateAccountCookieRow,
+  sameAccountAutoSwitchAttempt}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
 import {readFile} from 'node:fs/promises';
 
@@ -91,4 +92,34 @@ test('trusted validator rejects invalid Paths, changes of scope and prefixes',()
     original({session:false,expirationDate:1})
   ])assert.throws(()=>validateAccountCookieRow(row,'example.com','0'),
     {code:'E_ACCOUNT_COOKIE_SCOPE'});
+});
+
+test('trusted auto-switch fence never replays the same old URL after TTL expiry',()=>{
+  const target={url:'https://example.com/#od-account=acct_example',
+    alias:'acct_example',version:2};
+  for(const phase of ['in_flight','applied']){
+    // Existing sessions may already contain a legacy expiresAt field.
+    const previous={...target,phase,expiresAt:1};
+    assert.equal(sameAccountAutoSwitchAttempt(previous,target),true);
+  }
+  assert.equal(sameAccountAutoSwitchAttempt(null,target),false);
+  assert.equal(sameAccountAutoSwitchAttempt(
+    {...target,phase:'in_flight'}, {...target,version:3}),false);
+  assert.equal(sameAccountAutoSwitchAttempt(
+    {...target,phase:'applied'}, {...target,alias:'acct_other'}),false);
+  assert.equal(sameAccountAutoSwitchAttempt(
+    {...target,phase:'applied'}, {...target,url:'https://example.com/'}),false);
+});
+
+test('trusted cookie prefixes require exact Secure and HttpOnly properties',()=>{
+  for(const name of ['__Http-auth','__Host-Http-auth']){
+    assert.equal(validateAccountCookieRow(original({name}), 'example.com','0').name,name);
+    for(const patch of [{secure:false},{httpOnly:false}]){
+      assert.throws(()=>validateAccountCookieRow(original({name,...patch}),
+        'example.com','0'),{code:'E_ACCOUNT_COOKIE_SCOPE'});
+    }
+  }
+  assert.throws(()=>validateAccountCookieRow(
+    original({name:'__Host-Http-auth',path:'/account'}),
+    'example.com','0'),{code:'E_ACCOUNT_COOKIE_SCOPE'});
 });
