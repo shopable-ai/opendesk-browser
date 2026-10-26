@@ -83,3 +83,22 @@ done
 | Mac Chrome 正式升级、真实数据持久化、网站授权、200% 缩放及可访问性完整矩阵 | NOT_TESTED | 必须由独立 Mac Codex 验收并留同候选原始证据 |
 
 这些有限 PASS 不能代替四工具 Native Chrome、发行晋升和最终专家评分。后续应该先执行**真实包/预览构建**与定向测试，发现真实 FAIL 则在对应现有文件修最小缺陷；若全部通过，转本地原位升级和完整验收，不重新进行四工具 UI 开发。
+
+## R1.1 · Markdown 工作台单项菜单纠偏（2026-10-26）
+
+用户实际指出：工具栏「更多」只有一个清空按钮，打开菜单后在 320–360px 下挤占布局；此前提供的聊天 HTML 链接无法成功打开评审。**以这条可复现体验问题为新主任务**，不重复开发其余三个工具，也不扩大 Host/SDK。
+
+已改正式业务源码（本轮仅 `examples/sidebar-tools/markdown-workbench/src/`）：
+
+- `index.html`：删除没有信息价值的单项「更多」菜单；常用导入/复制、主要下载、低频危险清空同排。清空为 34px `od-icon-button`，无内容禁用；唯一确认浮层在工具栏内而不是占据编辑区。
+- `style.css`：全部使用现有 shared tokens 和 `od-*`，确认浮层靠近触发位置、最大高度有界，不改变编辑视图排版；三种模式使用 `od-segmented`。
+- `main.js`：保持导入替换保护，清空取消保留数据，确认后清空；Esc 取消并恢复焦点；清空/覆盖采用明确的「清空内容 / 替换内容」文案；只确认浏览器发起下载，不冒充文件持久化。未触动存储、Markdown 安全渲染和权限合同。
+- 定向测试同步：`tests/environment/four-tools-ux-r1.test.mjs`、`tests/environment/markdown-tools-r22.test.mjs`、`examples/sidebar-tools/markdown-workbench/tests/scroll-anchor.test.mjs`；已有 README 同步到 R1.1。
+
+**实际执行过的分层验证：**
+
+1. GitHub 最新业务源码的结构、唯一 ID、三个图标按钮、无更多菜单、canonical CSS `assertLayoutOnly`：`SOURCE_AUDIT=PASS`。
+2. 将最新正式 `src/main.js` 用隔离 V8 + 最小 DOM/SDK 替身直接执行：空态清空禁用、输入启用、点击出现确认、取消不删除、确认清空、预览切换、下载回执文案：`ISOLATED_JS=PASS`，非 Chrome。
+3. 新聊天交互适配 HTML `markdown-workbench-ux-r1-1-interactive.html` 在容器 Chromium `page.set_content` 执行，320/360/400/440px、编辑/预览、导入、删除取消/确认、Esc、浅深色以及 200% 模拟缩放，未见页面脚本异常/横向溢出：`CHAT_ADAPTER=PASS`。**此文件是模拟交互，非仓库生成的正式 SOURCE_HTML，也不代表 Chrome 安装运行**。
+
+**剩余阻断 / 下一步 owner：** 当前没有可用的同候选正式扩展安装、Mac Chrome 浏览器、旧数据恢复及真正 `scripts/preview/build-preview.mjs` 生成后 UI 截图的原始证据。需要本地 Codex 在最新 `main` 上运行定向测试、正式预览及发行包构建，只有通过后再执行版本升级/包晋升，并记录 Native PASS/FAIL。不能以聊天适配体验分数宣称整个扩展 95+。
