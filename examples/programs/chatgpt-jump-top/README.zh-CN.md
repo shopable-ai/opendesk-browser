@@ -2,12 +2,14 @@
 
 ## R1.3.4 增量（2026-10-27）
 
-- 当前正式目标为 **0.4.6 / revision 7**，保留独立 Program ID `opendesk.ai-scroll-navigation`。下方版本和证据均为历史，不能代替本候选验收。
+- 当前正式可导入包为 **0.4.6 / revision 7**，保留独立 Program ID `opendesk.ai-scroll-navigation`。后续历史章节不能代替本候选证据。
+- 首次使用 Page 网页增强时，需在 Chrome 的 OpenDesk Browser 扩展详情中允许用户脚本。安装后在批准的网站直接运行；不需要再到产品详情启用一次。`E_USER_SCRIPTS_UNAVAILABLE` 时先核对这一 Chrome 权限开关及其真实读回。
 - 从「扩展 → 已安装 → AI 对话滚动导航 → 详情」填写精确 HTTP(S) Origin 和路径前缀，进入原 Installer 审阅。Chrome 网站授权可能覆盖整个主机；原生匹配路径、明确端口与可信 Host 仍约束程序执行。HTTP/HTTPS、localhost、127.0.0.1 和不同端口分别处理，禁止通配 Origin、查询或片段作为路径范围。
 - 自定义网站候选由可信 Host 从当前不可变源码生成，使用 `1_000_000_000..2_147_483_647` 的保留 Revision 区间和 `+site.r…` 版本。相同输入生成相同身份，碰撞失败并保留旧安装；官方冻结包不得使用该区间。Revision 是不可变键，不以数值决定升级顺序。
 - 新网站审阅成功后打开或刷新目标页面，点击「网站适配」，选取主区域与滚动容器，可选消息和锚点，分别测试顶部、底部，再保存并核对可信读回。配置与安装授权分离；并发冲突及未知保存需先主动重新读取。收缩授权保留休眠规则数据，不能借旧规则恢复执行权限。
 - 扩权拒绝或原生注册失败保留原安装；旧确认、停用、撤权和未知状态不能显示成功或自动恢复。升级不扩权时复用合法安装授权；新增范围仍须原审阅和 Chrome 权限。
-- 定向 Node、真实 Builder、包哈希与原生验收分别记录在 [R134 增量台账](../../../docs/framework/workstreams/ai-scroll-navigation-r134-delta.json)。**当前原生完整验收尚未通过，官方目录继续 `publication=blocked`。**
+- **本阶段核心闭环已在 Mac 有窗口 Chrome 的隔离 Profile 跑通**：原安装器安装 r7 → 审阅并更新本地精确网站范围 → 可视选取对话区域和滚动容器 → 上下测试 → 可信保存并读回 → 刷新恢复双按钮及边界禁用态 → 正常停用清理和恢复。测试页面为 `http://127.0.0.1:43111/demo-form.html`；主区域选取结果 `main > div > div` 对应 `.lab-content`，滚动容器为 `html`，消息选择器为 `.unit`。恢复后配置值与 ETag 均保留。
+- 定向 Node、真实 Builder、包哈希与本次原生核心证据分别记录在 [R134 增量台账](../../../docs/framework/workstreams/ai-scroll-navigation-r134-delta.json) 的 `coreContinuation`。复用已有 production 快照，未替换日常扩展，也未重测未变输入。本次网站扩权升级发生于首次规则保存前；保存后的升级保留沿用未变的定向保护测试，不新增原生通过声明。**三站真实长对话、完整发行验收仍未完成，官方目录继续 `publication=blocked`；边缘矩阵延期。**
 
 
 ## R1.3.2 配置增量（2026-10-26）

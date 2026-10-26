@@ -336,8 +336,8 @@
       "testedInputCommit": "2687857ca"
     }
   ],
-  "native": "NOT_TESTED",
-  "updatedAt": "2026-10-26T17:37:52.622112+00:00",
+  "native": "CORE_PASS for bound local-demo normal flow; full publication acceptance NOT_TESTED",
+  "updatedAt": "2026-10-26T17:56:11.302067+00:00",
   "latestObservedRemote": "e001499ce3bab3f35bb0af7907732a3b6ef62ab8",
   "packageBinding": {
     "programId": "opendesk.ai-scroll-navigation",
@@ -1027,5 +1027,128 @@
         "nextAction": "Read r7 CI and native evidence"
       }
     }
+  },
+  "coreContinuation": {
+    "status": "CORE_PASS",
+    "observedAt": "2026-10-26T17:45:17.220150+00:00",
+    "scope": "Normal install, exact custom site review, selection, navigation, trusted save and refresh; affected lifecycle only. Edge matrices deferred.",
+    "candidate": "0.4.6/r7",
+    "evidence": "artifacts/ai-scroll-r134/native-r7-core",
+    "resources": {
+      "browser": "released: owned PID 45259 exited; dedicated Profile removed; no daily browser or watcher replaced",
+      "extension": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r134-r7-inputs-pnfhgxbr/dist/production",
+      "dailyWatcher": "PID 21250 / port 43119 preserved",
+      "demo": "Existing server PID 68658 / port 43111 read-only reuse"
+    },
+    "next": "Current normal core is complete. Formal publication and deferred matrices require a separate current request.",
+    "ci": {
+      "runId": 40370672763,
+      "head": "67882b2df7685ba744322d674120791ba0bcb877",
+      "status": "queued",
+      "conclusion": null
+    },
+    "publication": "blocked",
+    "completedAt": "2026-10-26T17:56:11.302067+00:00",
+    "result": "artifacts/ai-scroll-r134/native-r7-core/core-result.json",
+    "resultSha256": "b9fa3f89d26403e55843e682b794ce59902dfe489c20fb5066635bc5b3b72521",
+    "checks": {
+      "userScriptsEnabled": true,
+      "unapprovedSiteHasNoUI": true,
+      "visualMainSelected": true,
+      "visualScrollerSelected": true,
+      "topTestConfirmed": true,
+      "bottomTestConfirmed": true,
+      "trustedSaveConfirmed": true,
+      "refreshRestoredBothButtons": true,
+      "bottomButtonActualScroll": true,
+      "topButtonActualScroll": true,
+      "disabledUICleaned": true,
+      "restoredUI": true,
+      "configUnchangedAfterRestore": true,
+      "exactNativeRegistration": true,
+      "persistentActiveInstallation": true,
+      "ownedCleanup": true
+    },
+    "candidateBinding": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json",
+      "sha256": "104136d6942d6b7933a15d1a8df74b30856047135645dcf692d2be2bc57d0ef6",
+      "sourceHash": "487f655fb22184bedbde0450b7e6f542961aa76ecc78a806fd1e63b0190335e3",
+      "programId": "opendesk.ai-scroll-navigation",
+      "revision": 7,
+      "version": "0.4.6"
+    },
+    "extensionPackageHash": "dca721389de177d54f18d81252c9a06d7ae64a169679aa42ba39a04e92f36ca3",
+    "extensionFingerprint": "e32e0a00d7085383e8290b81847506bce159df8743639149a6a9120d23c87507",
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/156.0.8078.4",
+      "revision": "@f842f52ef39fd97b449eb27cff414bf05a98ddce",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+      "jsVersion": "15.6.75"
+    },
+    "extensionId": "jebmpompeddppmefggjeffhldlkhkkdo",
+    "installationId": "c7336c0b-b9d5-4c53-b145-26ad1ebbbc65",
+    "installedRevision": 1978225210,
+    "savedRule": {
+      "tag": "page-config-v1",
+      "namespace": "tool:jebmpompeddppmefggjeffhldlkhkkdo",
+      "programId": "opendesk.ai-scroll-navigation",
+      "etag": "cd8104a8-d87a-407f-8ec7-26ff4b80930c",
+      "value": {
+        "version": 1,
+        "sites": [
+          {
+            "origin": "http://127.0.0.1:43111",
+            "pathScope": "/demo-form.html",
+            "mainSelector": "main > div > div",
+            "scrollSelector": "html",
+            "messageSelector": ".unit",
+            "anchorSelector": "",
+            "enabled": true
+          }
+        ]
+      },
+      "updatedAt": 1793037074786
+    },
+    "evidenceHashes": {
+      "session.json": "78d56ec2c199f49dc3cc1e02e2e1e8b0e81406a2cce5253a1c8a577b8110bb55",
+      "restored-installed-state.json": "6181945d7552a9c709508c4b7759b182d012eb87fe611b6dba7cff712b1b35eb",
+      "0009-manager.json": "188d1be1329d4069623929c8edc1cd09b1004ad7b8d31d7cdf0d8cdd45704a0e",
+      "0041-demo.json": "9b0b513416b3759fd99e7b42aebb18df89cd8ce3098faa02c8fca89569a6a1b3",
+      "0065-demo.json": "56243e3fda56bf4f4beb3f49b4d34248ddcaaa85ce9f11f220266d3c7d11649c",
+      "0069-demo.json": "51986eb56717f15fafbe2e1cd853007ddb06aaa402e92ff42acf90a5a2a343f2",
+      "0073-demo.json": "1c6fea82a76d3875af08451b5b364024b6a489c0479f2985375ff3df76a02b64",
+      "0081-demo.json": "b8762ea5de543ac6d1f543280279af2d66dacbe5f849581725ab40e406c3b3f8",
+      "0089-demo.json": "62c68f910c0e315f2c2dad76788cb18bc9ca1ed6fe299fb8b6095e8dc279c42f",
+      "0093-demo.json": "84a7c15ebc2bc2cae010fb5cc1bfd3eb5388fd06079f4849090cec3e8894911e",
+      "0097-demo.json": "62c68f910c0e315f2c2dad76788cb18bc9ca1ed6fe299fb8b6095e8dc279c42f",
+      "0109-demo.json": "9b0b513416b3759fd99e7b42aebb18df89cd8ce3098faa02c8fca89569a6a1b3",
+      "0121-demo.json": "62c68f910c0e315f2c2dad76788cb18bc9ca1ed6fe299fb8b6095e8dc279c42f",
+      "0125-demo.json": "3a5f9c23e563a0ab6d4c4c9538a54a32e71a08bca34dd68d7e49e581b07d9414",
+      "live-target-dom.json": "c13adafbbea1428237d4f2d1f528d443bce336217b65bab120497759545029c6",
+      "visual-main-input.json": "290f4b518b481d53aa47cc3d1472ff36ba94dd5dca8dae522ee1b9a887707101",
+      "visual-scroll-input.json": "290f4b518b481d53aa47cc3d1472ff36ba94dd5dca8dae522ee1b9a887707101",
+      "switch-hit-diagnostic.json": "40b62879c583c649d3373f3bf43d812347b1cec931dedec1e31befe6d5f748ce"
+    },
+    "limits": [
+      "Normal local demo core only; no three-site live conversation/full release certification",
+      "Host permission already available; no Chrome permission-denial dialog tested",
+      "Site-scope upgrade tested before first rule save; post-save upgrade preservation inherits unchanged Node protection, not newly claimed native evidence",
+      "r7 CI observed queued; no automatic rerun/polling",
+      "Production snapshot predates later Cookie UI commits; does not certify entire current main",
+      "No edge, width/zoom, fault-injection or scoring matrix executed"
+    ],
+    "codeChanges": "None; permission environment and driver target resolved. Frozen business and package bytes unchanged.",
+    "evidenceReuse": "Unchanged r7 business, Host/Installer/Authority, CAS, source, identity and revocation protections reuse recorded targeted Node/Builder evidence; no full regression rerun.",
+    "cleanup": {
+      "cleanupStatus": "PASS",
+      "pidAliveAfterExit": false,
+      "profileRemoved": true
+    },
+    "driverFindings": [
+      "Closed custom-site details require clicking .ec-site-review-details summary; no .ec-site-upgrade summary exists.",
+      "React Aria switch input is intentionally clipped; real visible label[data-ec-detail-action=toggle] is the click target. No product change needed."
+    ],
+    "upgradeEvidence": "Original Installer r7 to 0.4.6+site.r1978225210, same installationId, generation 1 to 2, exact six native matches. Later disable/restore generations 3/4 retain saved config and ETag. Post-save upgrade not repeated; unchanged targeted protection inherited."
   }
 }
