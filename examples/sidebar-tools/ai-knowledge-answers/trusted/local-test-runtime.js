@@ -216,7 +216,7 @@ export function createLocalKnowledgeTestRuntime({
      // with a separate evidence fence for each question. Never auto-send.
      const candidates=result.parts.map((p,i)=>p.status==='RETRIEVED_ONLY'?i:-1).filter(i=>i>=0);
      if(result.parts.length>1&&candidates.length&&candidates.length<=MAX_AI_INTENTS&&
-        s.approvedAI&&typeof callAI==='function'&&running(s,epoch)&&result.answer){
+        s.approvedAI&&typeof callAI==='function'&&running(s,epoch)){
        update(s,message.messageId,{status:'GENERATING_AI',message:'正在逐项核对候选知识；草稿仍需人工审核'});
        const reviewed=result.parts.map(p=>({...p,sourceIds:p.sourceIds.slice(),
          candidateSourceIds:p.candidateSourceIds.slice()}));
