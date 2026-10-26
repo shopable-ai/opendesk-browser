@@ -130,6 +130,15 @@ test('R6.2 incomplete rel declaration counts as a second, ambiguous install link
   }),{code:'E_DISCOVERY_AMBIGUOUS'});
 });
 
+test('R6.2 market layout stylesheet retains the real R5 layout and R6.1 buttons',async()=>{
+  const css=await readFile('src/market-site/market.css','utf8');
+  assert(!/^\\s*undefined\\b/.test(css),'R6.1 must not replace the real stylesheet with undefined');
+  for(const rule of ['.shell{','.site-header{','.cards{','.detail-heading{',
+    '.detail-columns{','@media(max-width:520px)','.app-card .app-install-button{']){
+    assert(css.includes(rule),'Missing market layout/CTA rule: '+rule);
+  }
+});
+
 test('R6.1 market lists real review buttons, fixed-version app pages declare one link',()=>{
   const cards=home([release]);
   assert.match(cards,/data-open-review/);
