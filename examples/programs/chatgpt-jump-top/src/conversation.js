@@ -237,8 +237,9 @@ export function findConversationNavigation(main, turnSelector, doc, win) {
   const turns = candidates.filter(node=>!candidates.some(parent=>parent!==node&&parent.contains(node)));
   if (!turns.length) return null;
   const first = turns[0], last = turns.at(-1);
-  const scroller = findConversationScroller(first, doc, win);
-  if (!scroller || turns.some(turn => findConversationScroller(turn, doc, win) !== scroller))
+  const scroller = findConversationScroller(first, doc, win, {includeSelf: true});
+  if (!scroller || turns.includes(scroller) ||
+      turns.some(turn => findConversationScroller(turn, doc, win, {includeSelf: true}) !== scroller))
     return null;
   // Do not accept a scrollport inside a single message, code editor, or aside.
   if (scroller !== doc.scrollingElement && scroller !== doc.documentElement &&

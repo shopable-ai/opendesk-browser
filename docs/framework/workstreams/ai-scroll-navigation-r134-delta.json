@@ -5,9 +5,11 @@
   "lastKnownRemote": "049d274e6f5a4e197a4c5e1366711dbba5f418f3",
   "publication": "blocked",
   "ci": {
-    "runId": 40351121223,
-    "status": "queued",
-    "headSha": "1c6fc80aaecc5254f1644d33655242498a1997c5"
+    "runId": 40366675090,
+    "status": "success",
+    "version": "0.4.4/r5",
+    "scope": "Historical r5, not inherited for changed r6 inputs",
+    "nextAction": "Run r6 workflow after scoped push"
   },
   "items": [
     {
@@ -15,48 +17,51 @@
       "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
       "path": ".github/workflows/ai-scroll-navigation-r131.yml",
       "existingCommit": "a184ee4bb4980a3db040a9c2bc9a339e1c58b5db",
-      "currentBlobSha": "5af350976a6225c89b10d10bc36eadbdb06c1b48",
+      "currentBlobSha": "b5f143a0b8742a31ee2c62596aed906dc8482556",
       "observedWorktreeBlobSha": "bfdbaab0e12f0c40842fef0072a064d54d766ced",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": null,
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "r6 remote CI and same-candidate native evidence pending",
       "parallelOwner": "R134 leader",
-      "nextAction": "按门禁实证补验，不重做已通过功能",
-      "testedWorktreeBlobSha": "5af350976a6225c89b10d10bc36eadbdb06c1b48",
-      "nodeEvidence": "verification.node"
+      "nextAction": "Read final r6 CI/native evidence",
+      "testedWorktreeBlobSha": "f12c7902ec3db9336570e3dc09cd6e09711e6fe1",
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": null
     },
     {
       "taskId": "R134-02",
       "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
       "path": "examples/programs/chatgpt-jump-top/package.json",
       "existingCommit": "e75abfc29c2c8fa4a6b1daabff15b174db1ab792",
-      "currentBlobSha": "790cf3ed7380733a15981dbaf53412f541351cf3",
+      "currentBlobSha": "a20e1a18d1b737bbf377e0ad11312d9730f8120b",
       "observedWorktreeBlobSha": "2fbeb7d90df6038663b3e9fcab4781c7f8f08551",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": null,
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "r6 remote CI and same-candidate native evidence pending",
       "parallelOwner": "R134 leader",
-      "nextAction": "按门禁实证补验，不重做已通过功能",
-      "testedWorktreeBlobSha": "790cf3ed7380733a15981dbaf53412f541351cf3",
-      "nodeEvidence": "verification.node"
+      "nextAction": "Read final r6 CI/native evidence",
+      "testedWorktreeBlobSha": "27c47f4de455b4a53c6f607a7b56c6d34bf6712f",
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": null
     },
     {
       "taskId": "R134-03",
       "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
       "path": "examples/programs/chatgpt-jump-top/src/conversation.js",
       "existingCommit": "ebd450a4bff79902c2eec5067dd5cb11ae87f635",
-      "currentBlobSha": "9961b0c072a953c4a05677826f4bc535cfa3d198",
+      "currentBlobSha": "c8bae986c8d04ac743fc775ee7c75f3924ac3eee",
       "observedWorktreeBlobSha": "1f6926a94d0ea324100e9c48c411c0ea475bb674",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": null,
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "r6 remote CI and same-candidate native evidence pending",
       "parallelOwner": "R134 leader",
-      "nextAction": "按门禁实证补验，不重做已通过功能",
-      "testedWorktreeBlobSha": "9961b0c072a953c4a05677826f4bc535cfa3d198",
-      "nodeEvidence": "verification.node"
+      "nextAction": "Read final r6 CI/native evidence",
+      "testedWorktreeBlobSha": "e2a4010687f9d9e15b4c805e8d037d1a1f6bc424",
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": null
     },
     {
       "taskId": "R134-04",
@@ -66,13 +71,14 @@
       "currentBlobSha": "958ed081e671616e111116326f62520c9e16e345",
       "observedWorktreeBlobSha": "958ed081e671616e111116326f62520c9e16e345",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "958ed081e671616e111116326f62520c9e16e345",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-05",
@@ -82,13 +88,14 @@
       "currentBlobSha": "b103d724642070b38e75946cb63ec89ae17c2551",
       "observedWorktreeBlobSha": "b103d724642070b38e75946cb63ec89ae17c2551",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "b103d724642070b38e75946cb63ec89ae17c2551",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-06",
@@ -98,61 +105,65 @@
       "currentBlobSha": "8aa1bf22f1f5339748414ab3da1f2d6ba7ebe399",
       "observedWorktreeBlobSha": "8aa1bf22f1f5339748414ab3da1f2d6ba7ebe399",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "8aa1bf22f1f5339748414ab3da1f2d6ba7ebe399",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-07",
       "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
       "path": "examples/programs/chatgpt-jump-top/src/site-configuration.js",
       "existingCommit": "e75abfc29c2c8fa4a6b1daabff15b174db1ab792",
-      "currentBlobSha": "7ebcde07c77a0e5aca672a3ba7451e8c2a312a90",
+      "currentBlobSha": "1a358cc5b5e28a69e199fe0bacf52ad12b127954",
       "observedWorktreeBlobSha": "65544678061e883d42b8d38a57a6d8ffd3430a64",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": null,
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "r6 remote CI and same-candidate native evidence pending",
       "parallelOwner": "R134 leader",
-      "nextAction": "按门禁实证补验，不重做已通过功能",
-      "testedWorktreeBlobSha": "7ebcde07c77a0e5aca672a3ba7451e8c2a312a90",
-      "nodeEvidence": "verification.node"
+      "nextAction": "Read final r6 CI/native evidence",
+      "testedWorktreeBlobSha": "f94aed04dc3a4869ded0335b09185adc635b3f5a",
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": null
     },
     {
       "taskId": "R134-08",
       "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
       "path": "examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json",
       "existingCommit": "40df7100cd8ea4331d509adc1f14092015ac77fa",
-      "currentBlobSha": "51a9bdb087e306d311f0750f38a65b8b51edb692",
+      "currentBlobSha": "5a837dd48f1e52964fc57ade5b8520c7d2746740",
       "observedWorktreeBlobSha": "589a75e0ed527427950345c658b688ce90ea8fee",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": null,
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "r6 remote CI and same-candidate native evidence pending",
       "parallelOwner": "R134 leader",
-      "nextAction": "按门禁实证补验，不重做已通过功能",
-      "testedWorktreeBlobSha": "51a9bdb087e306d311f0750f38a65b8b51edb692",
-      "nodeEvidence": "verification.node"
+      "nextAction": "Read final r6 CI/native evidence",
+      "testedWorktreeBlobSha": "bc79f06d614155a267c0ab38f73ed27568033254",
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": null
     },
     {
       "taskId": "R134-09",
       "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
       "path": "official-pages/sources.json",
       "existingCommit": "98e7fcc5e934813a8f9a5ec4185a85c7953c6236",
-      "currentBlobSha": "b59a50811e0190891d2271cb528263f51edc9bf2",
+      "currentBlobSha": "e705a54a0640dd72a8e77b6a289b6e6df7dedf73",
       "observedWorktreeBlobSha": "78e32f5dd0f5ce141d583fe856867093c997f4be",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": null,
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "r6 remote CI and same-candidate native evidence pending",
       "parallelOwner": "R134 leader",
-      "nextAction": "按门禁实证补验，不重做已通过功能",
-      "testedWorktreeBlobSha": "234badcabc56c2ddb527247dd981530d4689bea2",
-      "nodeEvidence": "verification.node"
+      "nextAction": "Read final r6 CI/native evidence",
+      "testedWorktreeBlobSha": "cbf364692ecf05a554c92a240fbb8a9b9f51efd3",
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": null
     },
     {
       "taskId": "R134-10",
@@ -162,13 +173,14 @@
       "currentBlobSha": "04616b72b0a1d2e72f07bcf6e39f2cde330e16a5",
       "observedWorktreeBlobSha": "012b9bd835e10e602eba9072a29e1706b6346f49",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "04616b72b0a1d2e72f07bcf6e39f2cde330e16a5",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-11",
@@ -178,13 +190,14 @@
       "currentBlobSha": "5712d5fa4bb4ba29dcd1d83bd47145ee7225ad26",
       "observedWorktreeBlobSha": "3bcbc04da88aa33029f59a80cb056b539b3d6217",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "5712d5fa4bb4ba29dcd1d83bd47145ee7225ad26",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-12",
@@ -194,29 +207,31 @@
       "currentBlobSha": "533e06a52afc0e01412cac31044060eb0e7bea14",
       "observedWorktreeBlobSha": "533e06a52afc0e01412cac31044060eb0e7bea14",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "533e06a52afc0e01412cac31044060eb0e7bea14",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-13",
       "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
       "path": "src/scripting/user-scripts/installed-programs.js",
       "existingCommit": "d30e82233c1897cb01d33938225cbbe865203e63",
-      "currentBlobSha": "f30498005985875b0c59e739c755071e7306ece5",
+      "currentBlobSha": "f7db9a50de20a99b54dddbc1a209982afb03c147",
       "observedWorktreeBlobSha": "a30bb445b8c304f943c494f65e8f368c49b44e3f",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "f30498005985875b0c59e739c755071e7306ece5",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-14",
@@ -226,29 +241,31 @@
       "currentBlobSha": "473104217d1d5ff4895fe0bd6e42fbde2139f527",
       "observedWorktreeBlobSha": "473104217d1d5ff4895fe0bd6e42fbde2139f527",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "473104217d1d5ff4895fe0bd6e42fbde2139f527",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-15",
       "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
       "path": "src/ui/extension-center.js",
       "existingCommit": "9315994a6679bae7cf2b6119bf479a84f94f0deb",
-      "currentBlobSha": "8e6beedfc0eb2b5f833b5af7f9d91cbce4c07286",
+      "currentBlobSha": "c53d583a41434be3b731ca6838535416dbe0c774",
       "observedWorktreeBlobSha": "16599238948c99fdcb5a04dfa44c05ce637504a9",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": null,
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "r6 remote CI and same-candidate native evidence pending",
       "parallelOwner": "R134 leader",
-      "nextAction": "按门禁实证补验，不重做已通过功能",
-      "testedWorktreeBlobSha": "5e5225bdfa2fcb7a86dee050fd183dc871167454",
-      "nodeEvidence": "verification.node"
+      "nextAction": "Read final r6 CI/native evidence",
+      "testedWorktreeBlobSha": "c53d583a41434be3b731ca6838535416dbe0c774",
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": null
     },
     {
       "taskId": "R134-16",
@@ -258,13 +275,14 @@
       "currentBlobSha": "ca325d276ba83cc5beb430c224a37747f01b5921",
       "observedWorktreeBlobSha": "f21738659661b86862ea5a692bc2da1f9acfff72",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "ca325d276ba83cc5beb430c224a37747f01b5921",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-17",
@@ -274,13 +292,14 @@
       "currentBlobSha": "3732714118e852c853cdb367fac442d7f4d2f832",
       "observedWorktreeBlobSha": "1af8b78f99882e882843bfa7ca6c37c9bdf52dc8",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "3732714118e852c853cdb367fac442d7f4d2f832",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-18",
@@ -290,40 +309,42 @@
       "currentBlobSha": "33772a20c348b7808cbc33469c8678890476ee25",
       "observedWorktreeBlobSha": "7d211eabcf920612802818653553a5efffd3eb76",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "33772a20c348b7808cbc33469c8678890476ee25",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     },
     {
       "taskId": "R134-19",
       "originalGoal": "AI导航源码/授权/正式包真实增量闭环",
       "path": "tests/environment/page-installed-programs.test.mjs",
       "existingCommit": "749c3f465f79d2a25c12f5392274776b9d968e47",
-      "currentBlobSha": "1d15d561e4c1f085e4f5e2d77abca2a36825c587",
+      "currentBlobSha": "13b528df2e3c2751b04f7ad9df83e127b4e044ed",
       "observedWorktreeBlobSha": "30d68a3b0869e9cacd1f5163a6cf2a6e8d543d8b",
       "historicalTestInputSha": null,
-      "ciEvidence": "NEEDS_TEST: remote run queued; not PASS",
+      "ciEvidence": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
       "status": "ALREADY_DONE",
-      "remainingDelta": "源码/定向组件验证完成；同候选完整原生及远程CI未完成",
+      "remainingDelta": "同候选完整原生/200%缩放/三站证据仍缺；源码和相关CI完成",
       "parallelOwner": "R134 leader",
       "nextAction": "按门禁实证补验，不重做已通过功能",
       "testedWorktreeBlobSha": "1d15d561e4c1f085e4f5e2d77abca2a36825c587",
-      "nodeEvidence": "verification.node"
+      "nodeEvidence": "verification.node",
+      "testedInputCommit": "2687857ca"
     }
   ],
   "native": "NOT_TESTED",
-  "updatedAt": "2026-10-26T17:12:25.500983+00:00",
-  "latestObservedRemote": "73f6949766a52615c7925996c8ae13bb1743ce37",
+  "updatedAt": "2026-10-26T17:37:52.622112+00:00",
+  "latestObservedRemote": "e001499ce3bab3f35bb0af7907732a3b6ef62ab8",
   "packageBinding": {
     "programId": "opendesk.ai-scroll-navigation",
-    "version": "0.4.4",
-    "revision": 5,
-    "sourceHash": "e6e6786f2d95454b7063148cce2db0b11b18b0fe9168def07fb4308ab51c1d33",
-    "packageHash": "9eeb01342c6205411be16a3f6411722c0fd55cf8f4d825efbfa6365446ac7abe",
+    "version": "0.4.6",
+    "revision": 7,
+    "sourceHash": "487f655fb22184bedbde0450b7e6f542961aa76ecc78a806fd1e63b0190335e3",
+    "packageHash": "eb486ea2a9dc009c9ee37f68bdd5265977d63adbb58965f62a513898bae6880a",
     "pageRules": {
       "matches": [
         "https://chatgpt.com/*",
@@ -334,10 +355,7 @@
       "runAt": "document_idle",
       "allFrames": false,
       "world": "USER_SCRIPT"
-    },
-    "publication": "blocked",
-    "chromeNative": "NOT_TESTED for final r5",
-    "macNative": "NOT_TESTED for final r5"
+    }
   },
   "verification": {
     "node": {
@@ -402,21 +420,60 @@
       "historicalPartial": "native-01 r4 real Mac CFT original install/custom-port registration/config/save/refresh/edges; invalid as final r5 PASS"
     },
     "ci": {
-      "status": "NEEDS_TEST",
-      "runs": [
-        {
-          "id": 40351930453,
-          "head": "a184ee4bb4980a3db040a9c2bc9a339e1c58b5db",
-          "observedStatus": "queued",
-          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40351930453"
-        }
-      ]
+      "status": "ALREADY_DONE",
+      "result": "NODE_PASS + BUILD_PASS + PACKAGE_PASS",
+      "run": 40366675090,
+      "head": "e7ba2b9ac985aba025b60ce61a99754be55c98d9",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40366675090",
+      "tests": 392,
+      "fail": 0,
+      "sourceHash": "e6e6786f2d95454b7063148cce2db0b11b18b0fe9168def07fb4308ab51c1d33",
+      "packageHash": "9eeb01342c6205411be16a3f6411722c0fd55cf8f4d825efbfa6365446ac7abe",
+      "proof": "artifacts/ai-scroll-r134/ci-proof-r5.json",
+      "limits": "No remote Chrome/Mac Native assertion. Other CI failures classified and retained."
     },
     "reactBrowser": {
       "status": "ALREADY_DONE",
       "result": "12/12 headless actual React fixture PASS",
       "log": "artifacts/ai-scroll-r134/react-browser-r5.tap",
       "scope": "Actual root stylesheet inputs, trusted Chrome input; Host service doubles, not installed native extension."
+    },
+    "relatedCiFailures": [
+      {
+        "run": 40366675065,
+        "classification": "OUTSIDE_R134: SDK manifest brand fixture assertion",
+        "detail": "k2-sdk-auto-install.test.mjs:35 expected fixed toolbar brand; all R134 Page tests in same job passed. No authority relaxation."
+      },
+      {
+        "run": 40366675196,
+        "classification": "OUTSIDE_R134: historical Git object and proxy-lock fixture",
+        "detail": "sidebar-tools-host test42 git show4a67583db unavailable in shallow CI; test92 ai-vip-share missing cross-context proxy resource lock. No Page custom-site call or R134 changed business path."
+      }
+    ],
+    "reactMatrix": {
+      "status": "ALREADY_DONE",
+      "result": "8/8_PASS",
+      "widths": [
+        320,
+        360,
+        400,
+        440
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "keyboard": "Space toggles confirmed durable state; focus remains on Switch; Enter opens site section",
+      "source": "actual trusted root CSS and React/controller in headless shell with service doubles",
+      "log": "artifacts/ai-scroll-r134/matrix-r5.tap",
+      "nativeZoom200": "NOT_TESTED"
+    },
+    "productionR6": {
+      "status": "passed",
+      "mode": "production",
+      "attemptId": "2465be43-7155-44fe-925c-3d13baa58a5d",
+      "receipt": "build-production.json",
+      "packageHash": "8af080d496c35f7e92426185bcd667381a3165b70a58712b0dd6d6b4b78cc63e"
     }
   },
   "concurrentMain": [
@@ -459,6 +516,11 @@
       "commit": "73f6949766a52615c7925996c8ae13bb1743ce37",
       "status": "ALREADY_DONE",
       "meaning": "Cookie UI canonical button changes, safe fast-forward; unrelated source not retested or edited."
+    },
+    {
+      "commit": "cdc029593fe1e854a0f42cce2a600e42d6dbce5e",
+      "status": "ALREADY_DONE",
+      "meaning": "并行发送队列更新及其清单行；不属于本轮，不重做、不覆盖。AI Scroll固定字节未变。"
     }
   ],
   "safety": {
@@ -468,13 +530,10 @@
     "mockNativePass": false,
     "dormantConfig": "Scope contraction may carry unchanged prior rules or delete them, cannot edit/add unauthorized rules. Returning official package contracts scope; new scope needs original review again."
   },
-  "workingBaseHead": "73f6949766a52615c7925996c8ae13bb1743ce37",
+  "workingBaseHead": "e001499ce3bab3f35bb0af7907732a3b6ef62ab8",
   "deferred": [
-    "三站真实登录内容与共存",
-    "最终r5完整安装/拒绝/撤权/升级恢复原生矩阵",
-    "320/360/400/440px、浅深色、200%与键盘焦点的完整实测",
-    "相关远程CI成功读回",
-    "独立评分全部>=95与官方发布门禁"
+    "Final r7 same-candidate complete native lifecycle, three logged-in AI sites, real200% zoom",
+    "Independent dimensions>=95 not established; publication blocked"
   ],
   "parallelProtection": {
     "dailyWatcher": "PIDs 21250/21230, port43119; never stopped",
@@ -745,5 +804,228 @@
         }
       ]
     }
-  ]
+  ],
+  "implementationCommit": "2687857ca",
+  "integrationCommit": "e7ba2b9ac985aba025b60ce61a99754be55c98d9",
+  "resourceHold": "Released by owner4 after two completed/released calculation runs; no daily watcher/output replacement",
+  "remotePackageReadback": {
+    "observedAt": "2026-10-26T17:24:11.340043+00:00",
+    "url": "https://raw.githubusercontent.com/shopable-ai/opendesk-browser/main/examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json",
+    "programId": "opendesk.ai-scroll-navigation",
+    "version": "0.4.4",
+    "revision": 5,
+    "sourceHash": "e6e6786f2d95454b7063148cce2db0b11b18b0fe9168def07fb4308ab51c1d33",
+    "packageHash": "9eeb01342c6205411be16a3f6411722c0fd55cf8f4d825efbfa6365446ac7abe",
+    "pageRules": {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    },
+    "publication": "blocked",
+    "chromeNative": "NOT_TESTED for final r5",
+    "macNative": "NOT_TESTED for final r5"
+  },
+  "watcherSafetyCorrection": "本轮未直接改写dist或替换扩展，早先Host/root源码及远程FF曾间接触发原watcher。收到最新冻结请求后无受监视源码写入，无Native前台操作。",
+  "r6Delta": {
+    "reason": "Independent counterexamples reproduced; frozen r5 bytes preserved in Git",
+    "files": {
+      ".github/workflows/ai-scroll-navigation-r131.yml": {
+        "currentBlobSha": "f12c7902ec3db9336570e3dc09cd6e09711e6fe1",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "examples/programs/chatgpt-jump-top/README.zh-CN.md": {
+        "currentBlobSha": "6d8a1b7ff8d6e677a8dafae6a43694c6127c2f46",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json": {
+        "currentBlobSha": "bc79f06d614155a267c0ab38f73ed27568033254",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "examples/programs/chatgpt-jump-top/package.json": {
+        "currentBlobSha": "27c47f4de455b4a53c6f607a7b56c6d34bf6712f",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "examples/programs/chatgpt-jump-top/src/conversation.js": {
+        "currentBlobSha": "e2a4010687f9d9e15b4c805e8d037d1a1f6bc424",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "examples/programs/chatgpt-jump-top/src/site-configuration.js": {
+        "currentBlobSha": "f94aed04dc3a4869ded0335b09185adc635b3f5a",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "examples/programs/chatgpt-jump-top/tests/conversation.test.mjs": {
+        "currentBlobSha": "76f62ef2ef90ba82816893c500ba070d9cc3db2c",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "examples/programs/chatgpt-jump-top/tests/site-configuration.test.mjs": {
+        "currentBlobSha": "1e4d8a3ad2683ea5baae07645484334a6d5e1e70",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "official-pages/sources.json": {
+        "currentBlobSha": "cbf364692ecf05a554c92a240fbb8a9b9f51efd3",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "src/ui/extension-center-model.js": {
+        "currentBlobSha": "ff3ed18d380fc631d5ea147a527d47b7de1de17f",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "src/ui/extension-center.js": {
+        "currentBlobSha": "c53d583a41434be3b731ca6838535416dbe0c774",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "tests/environment/ai-scroll-build-support.mjs": {
+        "currentBlobSha": "80fc13f4433659948f1987d604ee29c87a7cd1ed",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "tests/environment/ai-scroll-release-r134.test.mjs": {
+        "currentBlobSha": "652f792cafd10adb6bd6727f6d73ccdb1f457c0c",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      },
+      "tests/environment/extension-center-official-pages-r124.test.mjs": {
+        "currentBlobSha": "5068a2374e541b0b727ad906f46dacab8824d110",
+        "status": "ALREADY_DONE",
+        "reason": "r6 counterexample fix, corresponding regression or immutable package/CI governance"
+      }
+    },
+    "nodeEvidence": [
+      "r6-delta.tap:145/145 executions",
+      "r6-package-host.tap:273/273 executions; includes overlapping conversation imports, not unique coverage"
+    ],
+    "sourceHash": "c4898de362709dbec6d39fbb5e6675eabbc157aedfdaf19272904376ba1052b3",
+    "packageHash": "67ff926a21e7fa42ab98391fd7a20f68e879d6b894fe964a4889776a0e3aa889",
+    "native": "NEEDS_TEST",
+    "ci": "NEEDS_TEST",
+    "pendingCommit": true
+  },
+  "implementationCommits": [
+    "2687857ca63c42b8324c352bba33b7bbcf593020"
+  ],
+  "r7Delta": {
+    "previousCandidate": "r6 artifacts retained; native r6 installation/cancel is historical, not final native PASS",
+    "reason": "single self-scrolling turn and interleaved pointer release counterexamples reproduced and corrected",
+    "tests": [
+      "r7-before.tap:3 failed before fix",
+      "r7-program.tap:102/102",
+      "r7-bound.tap:146/146"
+    ],
+    "files": {
+      ".github/workflows/ai-scroll-navigation-r131.yml": {
+        "currentBlobSha": "b5f143a0b8742a31ee2c62596aed906dc8482556",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "examples/programs/chatgpt-jump-top/README.zh-CN.md": {
+        "currentBlobSha": "bab9e108a7ba38c4d18151cbe61d6a57c8a4aee7",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json": {
+        "currentBlobSha": "5a837dd48f1e52964fc57ade5b8520c7d2746740",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "examples/programs/chatgpt-jump-top/package.json": {
+        "currentBlobSha": "a20e1a18d1b737bbf377e0ad11312d9730f8120b",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "examples/programs/chatgpt-jump-top/src/conversation.js": {
+        "currentBlobSha": "c8bae986c8d04ac743fc775ee7c75f3924ac3eee",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "examples/programs/chatgpt-jump-top/src/site-configuration.js": {
+        "currentBlobSha": "1a358cc5b5e28a69e199fe0bacf52ad12b127954",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "examples/programs/chatgpt-jump-top/tests/conversation.test.mjs": {
+        "currentBlobSha": "694c31465ed997371f5db7c183e59843ae983fe3",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "examples/programs/chatgpt-jump-top/tests/site-configuration.test.mjs": {
+        "currentBlobSha": "10848927c2e17bd2adff4969f4f26b61e4d636db",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "official-pages/sources.json": {
+        "currentBlobSha": "e705a54a0640dd72a8e77b6a289b6e6df7dedf73",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "src/ui/extension-center-model.js": {
+        "currentBlobSha": "ff3ed18d380fc631d5ea147a527d47b7de1de17f",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "src/ui/extension-center.js": {
+        "currentBlobSha": "c53d583a41434be3b731ca6838535416dbe0c774",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "tests/environment/ai-scroll-build-support.mjs": {
+        "currentBlobSha": "001bf77b3de13448cc5e724e9e657aac562cc6e6",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "tests/environment/ai-scroll-release-r134.test.mjs": {
+        "currentBlobSha": "60dca0ee845a102031cd7007f822f67789b676a5",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      },
+      "tests/environment/extension-center-official-pages-r124.test.mjs": {
+        "currentBlobSha": "5068a2374e541b0b727ad906f46dacab8824d110",
+        "status": "ALREADY_DONE",
+        "owner": "R134 leader",
+        "ciEvidence": null,
+        "nextAction": "Read r7 CI and native evidence"
+      }
+    }
+  }
 }

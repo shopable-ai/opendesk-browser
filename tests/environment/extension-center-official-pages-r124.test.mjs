@@ -59,6 +59,21 @@ test('R1.2.4 installed Page status is independent of bundled catalog availabilit
   assert.equal(composeExtensionEntries({pages:[],pageReleases:[]}).length,0);
 });
 
+test('R134 dynamic scope identity keeps official releases discoverable through review',()=>{
+  const installed=page('opendesk.ai-scroll-navigation',1500000000);
+  const rows=composeExtensionEntries({pages:[installed],
+    pageReleases:[release(installed.programId,'available',6)]});
+  assert.equal(rows[0].update,true);
+  assert.equal(rows[0].officialReview,true);
+  assert.deepEqual(filterExtensionEntries(rows,{scope:'available'}),rows);
+  assert.equal(rows[0].record.installed,installed);
+  assert.equal(composeExtensionEntries({pages:[installed],
+    pageReleases:[release(installed.programId,'blocked',6)]})[0].update,false);
+  const other=page('other.page',1500000000);
+  assert.equal(composeExtensionEntries({pages:[other],
+    pageReleases:[release(other.programId,'available',6)]})[0].update,false);
+});
+
 test('R1.2.4 Page discovery controls route through the original authority review',async()=>{
   const center=await readFile('src/ui/extension-center.js','utf8');
   const host=await readFile('src/ui/sidebar-tools.js','utf8');

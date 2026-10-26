@@ -1,5 +1,7 @@
 // Read-only unified view of existing installed registries and bundled official releases.
 import {sidebarToolPackageHash} from './sidebar-tools/package.js';
+import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_SITE_REVISION_BASE}
+  from '../scripting/user-scripts/scroll-config-contract.js';
 
 export async function describeInstalledAppSource(tool,record){
   const sha256=await sidebarToolPackageHash(tool);
@@ -36,10 +38,16 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],pageR
       (row?.installed&&(row.programId!==p.programId||row.manifestHash!==p.manifestHash)))continue;
     pageIds.add(p.programId);
     const release=pageReleaseById.get(p.programId)||null;
+    // Scope variants have immutable identity keys, not release precedence.
+    // Offer the original review even when an official freeze has a lower key.
+    const officialReview=p.programId===SCROLL_CONFIG_PROGRAM_ID&&
+      p.revision>=SCROLL_SITE_REVISION_BASE&&release?.status==='available'&&
+      release.revision<SCROLL_SITE_REVISION_BASE;
     entries.push({key:'page:'+p.programId,id:p.programId,kind:'page',title:p.title||p.programId,
       description:(p.pageRules?.matches||[]).join('、')||'已安装网页增强',version:p.revision,
       installed:true,enabled:pageStatusKnown?p.enabled===true:null,stateKnown:pageStatusKnown,
-      release,update:Boolean(release?.status==='available'&&release.revision>p.revision),
+      release,officialReview,update:Boolean(release?.status==='available'&&
+        (release.revision>p.revision||officialReview)),
       record:{programId:p.programId,manifestHash:p.manifestHash,installed:p}});
   }
   // Bundled Page candidates never become installed entries without an Authority record.

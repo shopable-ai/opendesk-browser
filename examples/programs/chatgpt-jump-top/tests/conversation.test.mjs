@@ -1362,3 +1362,46 @@ test('conversation rejects a transcript whose middle turn uses another scroll co
   element({parent:main,attributes:{'data-testid':'conversation-turn-3'}});
   assert.ok(conversation.findConversationNavigation(main,'[data-testid^="conversation-turn-"]',doc,view)===null);
 });
+
+
+for (const position of [0, 1, 2]) {
+  test('r6 rejects self-scrolling turn ' + (position + 1) + ' of three without moving the outer', () => {
+    const {doc, view, main, target} = region();
+    const turns = [target, ...[2, 3].map(index => element({parent: main,
+      attributes: {'data-testid': 'conversation-turn-' + index}}))];
+    const selected = turns[position];
+    selected.style.overflowY = 'auto';
+    selected.scrollHeight = selected.clientHeight + 600;
+    const selector = '[data-testid^="conversation-turn-"]';
+    assert.equal(conversation.findConversationNavigation(main, selector, doc, view) === null, true,
+      'self-scrolling turn ' + (position + 1) + ' splits the transcript');
+    for (const edge of ['top', 'bottom'])
+      assert.equal(conversation.jumpConversationEdge(main, selector, edge, doc, view), false);
+    assert.deepEqual(main.calls, []);
+    assert.deepEqual(selected.calls, []);
+  });
+}
+
+test('r6 ignores descendant code scrollports and non-scrolling self overflow', () => {
+  const {doc, view, main, target} = region();
+  const middle = element({parent: main, overflowY: 'auto', height: 300, scrollHeight: 300,
+    attributes: {'data-testid': 'conversation-turn-2'}});
+  element({parent: main, attributes: {'data-testid': 'conversation-turn-3'}});
+  const code = element({tag: 'pre', parent: middle, overflowY: 'auto', height: 100, scrollHeight: 900});
+  const selector = '[data-testid^="conversation-turn-"]';
+  assert.equal(conversation.findConversationNavigation(main, selector, doc, view)?.scroller, main);
+  assert.equal(conversation.jumpConversationEdge(main, selector, 'bottom', doc, view), true);
+  assert.equal(main.scrollTop, main.scrollHeight - main.clientHeight);
+  assert.deepEqual(code.calls, []);
+  assert.deepEqual(target.calls, []);
+});
+
+test('r7 single turn uses its conversation ancestor and rejects its own scrollport',()=>{
+  const {doc,view,main,target}=region();
+  const selector='[data-testid^="conversation-turn-"]';
+  assert.equal(conversation.findConversationNavigation(main,selector,doc,view)?.scroller,main);
+  target.style.overflowY='auto';target.scrollHeight=target.clientHeight+600;
+  assert.equal(conversation.findConversationNavigation(main,selector,doc,view),null);
+  assert.equal(conversation.jumpConversationEdge(main,selector,'bottom',doc,view),false);
+  assert.deepEqual(main.calls,[]);assert.deepEqual(target.calls,[]);
+});

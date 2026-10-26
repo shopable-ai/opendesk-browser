@@ -236,29 +236,47 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
       '。规则仅在原安装批准的网站执行；其他网站必须先经过扩权升级审阅。';
   };
   let guide=null,block=null,move=null,keys=null,releaseClick=null;
-  function stopPick({consumeClick=false}={}){
+  function stopPick({consumeClick=false,gesture=null}={}){
     releaseClick?.();
     if(!selecting)return;
     for(const event of ['pointerdown','click','contextmenu'])doc.removeEventListener(event,block,true);
     doc.removeEventListener('pointermove',move,true);
     doc.removeEventListener('keydown',keys,true);
     selecting=null;guide=null;el('pick').hidden=true;
-    // The pointerdown that selected a DOM node can still produce a click.
-    // Consume it so a website button/link never activates while picking.
+    // Keep the selected pointer's release and compatibility tail out of the
+    // page, without swallowing another pointer's independent gesture.
     if(consumeClick){
-      const eat=event=>{event.preventDefault();event.stopImmediatePropagation();releaseClick?.();};
+      const pointerId=gesture?.pointerId;
+      const otherPointers=new Set();
+      let compatibility=true;
+      const matches=event=>event.pointerId===undefined
+        ? compatibility : event.pointerId===pointerId;
+      const eat=event=>{
+        if(!matches(event)){
+          if(event.type==='pointerup'||event.type==='pointercancel')otherPointers.delete(event.pointerId);
+          return;
+        }
+        event.preventDefault();event.stopImmediatePropagation();
+        if(event.type==='pointerup'||event.type==='pointercancel')compatibility=otherPointers.size===0;
+        if(event.type==='click')releaseClick?.();
+      };
+      const tail=['pointerup','pointercancel','mouseup','click'];
       releaseClick=()=>{
-        doc.removeEventListener('click',eat,true);
+        for(const type of tail)doc.removeEventListener(type,eat,true);
         doc.removeEventListener('pointerdown',release,true);
         doc.removeEventListener('keydown',releaseKey,true);
         releaseClick=null;
       };
-      const release=()=>releaseClick?.();
+      const release=event=>{
+        if(event===gesture)return;
+        if(!event||event.pointerId===pointerId)releaseClick?.();
+        else {otherPointers.add(event.pointerId);compatibility=false;}
+      };
       const releaseKey=event=>{
         if(['Shift','Control','Alt','Meta','AltGraph','CapsLock','NumLock','ScrollLock'].includes(event.key))return;
         release();
       };
-      doc.addEventListener('click',eat,true);
+      for(const type of tail)doc.addEventListener(type,eat,true);
       // A held pointer may release after an arbitrary delay. Keep capture
       // until its click, a new intentional gesture, or lifecycle disposal.
       doc.addEventListener('pointerdown',release,true);
@@ -298,7 +316,7 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
       event.preventDefault();event.stopImmediatePropagation();
       if(event.type!=='pointerdown'||event.isTrusted!==true)return;
       const node=identify(event),selector=node&&safeUniqueSelector(doc,node);
-      stopPick({consumeClick:true});el('panel').hidden=false;
+      stopPick({consumeClick:true,gesture:event});el('panel').hidden=false;
       if(!selector){say('未找到唯一且可见的目标；请重新选择。',true);return;}
       el(field).value=selector;invalidate();say('已选取目标：'+selector);
     };

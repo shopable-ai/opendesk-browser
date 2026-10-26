@@ -348,3 +348,116 @@ test('visual picks reject editor/sidebar hits, ambiguous scrollports and unprove
     f.owner.dispose();
   }
 });
+
+
+// Native Node EventTarget delivers real Event objects in sequence. The first
+// target models document capture, the second the website's target handlers.
+// Only the trusted-input flag is supplied by the fixture; no browser claim.
+async function gestureSettings() {
+  const f = await settings(storage(), ({doc}) => {
+    const capture = new EventTarget();
+    const options = value => typeof value === 'boolean' ? {capture: value} : value;
+    doc.addEventListener = (type, fn, value) => capture.addEventListener(type, fn, options(value));
+    doc.removeEventListener = (type, fn, value) => capture.removeEventListener(type, fn, options(value));
+    doc.__capture = capture;
+  });
+  const website = new EventTarget(), seen = [];
+  const types = ['pointerdown', 'pointerup', 'pointercancel', 'mousedown', 'mouseup', 'click'];
+  for (const type of types) website.addEventListener(type, event => seen.push(event.type));
+  const button = f.doc.createElement('button');f.main.append(button);
+  f.doc.elementFromPoint = () => button;
+  const send = (type, props = {}) => {
+    const event = new Event(type, {cancelable: true, bubbles: true});
+    const values = {isTrusted: true, pointerId: 7, pointerType: 'mouse',
+      button: 0, clientX: 100, clientY: 100, ...props};
+    // Compatibility MouseEvents carry no pointer identity.
+    if (type === 'mouseup' || type === 'mousedown') {delete values.pointerId;delete values.pointerType;}
+    Object.defineProperties(event, Object.fromEntries(Object.entries(values)
+      .map(([key, value]) => [key, {value}])));
+    let reachedTarget = false;
+    const reach = () => {reachedTarget = true;};
+    f.doc.addEventListener(type, reach, true);
+    f.doc.__capture.dispatchEvent(event);
+    f.doc.removeEventListener(type, reach, true);
+    if (reachedTarget) website.dispatchEvent(new Event(type));
+    return {prevented: event.defaultPrevented, reachedTarget};
+  };
+  return {...f, seen, send};
+}
+
+test('r6 selecting gesture consumes release and compatibility events before website handlers', async () => {
+  const f = await gestureSettings();
+  f.click(f.el('pick-main'));
+  for (const type of ['pointerdown', 'pointerup', 'mouseup', 'click']) {
+    const event = f.send(type);
+    assert.equal(event.prevented, true, type + ' prevents activation');
+    assert.equal(event.reachedTarget, false, type + ' never reaches website handler');
+  }
+  assert.deepEqual(f.seen, []);
+  assert.equal(f.send('click').reachedTarget, true, 'following independent click is allowed');
+  f.owner.dispose();
+});
+
+test('r6 cancellation consumes only the selected pointer and its compatibility tail', async () => {
+  const f = await gestureSettings();
+  f.click(f.el('pick-main'));f.send('pointerdown');
+  assert.equal(f.send('pointerup', {pointerId: 8}).reachedTarget, true, 'unrelated pointer release');
+  assert.equal(f.send('pointercancel').reachedTarget, false, 'selected pointer cancellation');
+  assert.equal(f.send('mouseup').reachedTarget, false, 'compatibility mouseup');
+  assert.equal(f.send('click').reachedTarget, false, 'compatibility click');
+  assert.equal(f.send('pointerup', {pointerId: 8}).reachedTarget, true);
+  f.owner.dispose();
+});
+
+test('r6 unrelated new pointer gesture passes without stealing the held selection release', async () => {
+  const f = await gestureSettings();
+  f.click(f.el('pick-main'));f.send('pointerdown');
+  for (const type of ['pointerdown', 'pointerup', 'mouseup', 'click'])
+    assert.equal(f.send(type, {pointerId: 8}).reachedTarget, true, type + ' unrelated gesture');
+  for (const type of ['pointerup', 'mouseup', 'click'])
+    assert.equal(f.send(type).reachedTarget, false, type + ' original gesture');
+  f.owner.dispose();
+});
+
+test('r6 new same-pointer gesture and dispose release all pending event captures', async () => {
+  const f = await gestureSettings();
+  f.click(f.el('pick-main'));f.send('pointerdown');
+  for (const type of ['pointerdown', 'pointerup', 'mouseup', 'click'])
+    assert.equal(f.send(type).reachedTarget, true, 'new gesture ' + type);
+  for (const disposedDuringPick of [false, true]) {
+    const next = await gestureSettings();next.click(next.el('pick-main'));
+    if (!disposedDuringPick) next.send('pointerdown');
+    next.owner.dispose();
+    for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'mouseup', 'click'])
+      assert.equal(next.send(type).reachedTarget, true, 'dispose releases ' + type);
+  }
+  f.owner.dispose();
+});
+
+
+test('r6 legacy compatibility click is consumed but untrusted down cannot select a node', async () => {
+  const f = await gestureSettings();
+  f.click(f.el('pick-main'));
+  f.send('pointerdown', {isTrusted: false});
+  assert.equal(f.el('main').value, '#thread', 'synthetic input cannot update the selection');
+  assert.equal(f.el('pick').hidden, false, 'selection still awaits trusted input');
+  f.send('pointerdown');
+  assert.notEqual(f.el('main').value, '#thread', 'trusted fixture input selects the button');
+  assert.equal(f.send('pointerup').reachedTarget, false);
+  assert.equal(f.send('mouseup').reachedTarget, false);
+  assert.equal(f.send('click', {pointerId: undefined, pointerType: undefined}).reachedTarget, false);
+  assert.equal(f.send('click', {pointerId: undefined}).reachedTarget, true);
+  f.owner.dispose();
+});
+
+for(const end of ['pointerup','pointercancel']){
+  test('r7 interleaved selected '+end+' preserves the independent mouse release',async()=>{
+    const f=await gestureSettings();f.click(f.el('pick-main'));
+    f.send('pointerdown',{pointerType:'touch'});
+    assert.equal(f.send('pointerdown',{pointerId:8,pointerType:'mouse'}).reachedTarget,true);
+    assert.equal(f.send(end,{pointerType:'touch'}).reachedTarget,false);
+    for(const type of ['pointerup','mouseup','click'])
+      assert.equal(f.send(type,{pointerId:8,pointerType:'mouse'}).reachedTarget,true,type);
+    f.owner.dispose();
+  });
+}

@@ -635,7 +635,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           add(installedPageEnableAction(row.record.installed).label,'toggle',
             event=>{void togglePage(row,event);});
         if(row.update&&row.release?.status==='available')
-          add('审阅官方新版','update',()=>openPageReview(row.key));
+          add(row.officialReview?'审阅官方发行':'审阅官方新版','update',()=>openPageReview(row.key));
         else add('更新 / 导入新版…','update',()=>{backIfNeeded();sidebarTools.openImport();});
         add('卸载网页增强…','uninstall',event=>openUninstallReview(row,event));
         if(!pageControl)
