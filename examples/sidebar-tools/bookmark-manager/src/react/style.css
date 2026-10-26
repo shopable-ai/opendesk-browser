@@ -162,11 +162,14 @@
  .bm-sheet .bm-editor-actions .bm-button{height:44px}
 }
 
-/* At native 200% zoom, keep the toolbar from consuming the Tree's height.
-   The four 44px actions remain reachable by touch scrolling and Tab focus. */
+/* At native 200% zoom (e.g. a 360px panel -> 180 CSS px), four
+   44px touch targets cannot fit beside the count on one row. Wrap the
+   existing actions into two visible rows instead of hiding controls
+   behind a horizontal scroller; preserve every 44px hit area. */
 @media(pointer:coarse) and (max-width:240px){
- .bm-topbar{flex-wrap:nowrap;flex-shrink:0;gap:var(--space-2)}
- .bm-topbar .bm-heading{flex:none}
- .bm-top-actions{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;padding:2px}
+ .bm-topbar{flex-wrap:wrap;flex-shrink:0;gap:0;padding-block:4px}
+ .bm-topbar .bm-heading{flex:0 0 100%;justify-content:center}
+ .bm-top-actions{flex:0 0 100%;flex-wrap:wrap;justify-content:center;overflow:visible;padding:0;gap:4px}
+ .bm-create-actions{width:100%;justify-content:space-evenly;margin:0;padding:0;border:0}
  .bm-top-actions>*{flex:none}
 }
