@@ -8,7 +8,8 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export const COOKIE_REACT_SOURCE_FILES=[
   'app/entries/official.jsx','app/CookieEditorApp.jsx',
   'app/adapters/browser-sdk.js','app/controller/cookie-controller.js',
-  'app/domain/cookie-model.js','app/components/CookieEditorView.jsx',
+  'app/domain/cookie-model.js','app/domain/account-switch-url.js',
+  'app/components/CookieEditorView.jsx','app/components/CookieAccounts.jsx',
   'app/components/CookieInlineEditor.jsx','app/components/CookieClearDialog.jsx',
   'app/components/CookieImport.jsx','app/components/CookieExport.jsx',
   'app/components/CookiePermissions.jsx','app/components/CookieOfflineWorkspace.jsx',
