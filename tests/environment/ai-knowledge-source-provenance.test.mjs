@@ -10,19 +10,20 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 const project='examples/sidebar-tools/ai-knowledge-answers';
 const reviewed={
   'src/model.js':'752b91ea8d98f7da10e9d8902e3629bef69df58c',
-  'trusted/host.js':'d01c666821b35ebbbdc113e8c805b106d3db9ba7',
-  'trusted/ai-request.js':'e7adb932efbcf9e2b8a7961804ef1e486fd5c854',
-  'trusted/local-test-runtime.js':'73870713cfead3a19c022c30bd274b4a3ee251b9',
+  'trusted/host.js':'02bdd31fdcb2292196c849bd0a4c13e9bde78c0c',
+  'trusted/ai-request.js':'2228f1490904f99b47d087cc617015da57dce26f',
+  'trusted/local-test-runtime.js':'2605e9d4825f3d95140a1eaccc73c1cc62ee6cda',
   'trusted/local-test-adapter.js':'fd56f20148aefe75cc2cc91187a831db0dbadcc1',
-  'trusted/Workspace.jsx':'602b3938a4e68ae164bfd259efab233c17f27a45',
-  'trusted/workspace.css':'5ce11eba0a8ad784478c2e3820d9d9771d934f5f'
+  'trusted/Workspace.jsx':'9fa5a0e47805bfbbd092dbab7f78bb346588058b',
+  'trusted/workspace.css':'3f11650babfd3e1a490907b33e2f722bd97fa53d',
+  'trusted/multi-intent.js':'82d4b49d194783e04844e36df78d757955e31378'
 };
 const examine=(path,{root=process.cwd(),target='ui/tool-shell.js'}={})=>
   describeBundle({root,lock:{packages:{}},chunk:{fileName:target,
     modules:{[resolve(root,project,path)+(path.endsWith('.css')?'?raw':'')]:
       {renderedLength:1,originalLength:1}}}}).modules[0];
 
-test('Knowledge source review admits exactly seven fixed inputs to tool-shell only',()=>{
+test('Knowledge source review admits exactly eight fixed inputs to tool-shell only',()=>{
   const otherTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS),'ui/unknown-host.js']);
   otherTargets.delete('ui/tool-shell.js');
   for(const [path,blob] of Object.entries(reviewed)){

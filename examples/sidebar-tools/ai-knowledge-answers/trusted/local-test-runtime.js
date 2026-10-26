@@ -4,6 +4,19 @@ import {planCustomerMessage,composeCustomerReply,MAX_AI_INTENTS} from './multi-i
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const LIMIT=20;
 const DURATION_MS=10*60*1000;
+// These failures invalidate the approved round, rather than just one answer.
+const terminalAIFailure=cause=>cause?.name==='AbortError'||[
+  'E_KB_STALE','E_KB_TEST_STALE','E_KB_TEST_STOPPED','E_KB_TEST_PAUSED',
+  'E_CANCELLED','E_MODEL_STALE','E_MODEL_GRANT_REVOKED','E_AI_PERMISSION',
+  'E_PERMISSION','E_KB_AUTH','E_TOOL_CHANGED','E_HOST_CLOSED','E_AI_IDENTITY',
+  'E_USER_GESTURE','E_KB_TEST_CONSENT'
+].includes(cause?.code);
+// Keep bounded diagnostic evidence, never grants or transport payloads.
+const aiFailure=cause=>({
+  code:typeof cause?.code==='string'?cause.code.slice(0,80):
+    cause?.name==='AbortError'?'E_CANCELLED':'E_AI_FAILED',
+  message:typeof cause?.message==='string'?cause.message.slice(0,256):'AI 请求失败'
+});
 const validMessage=msg=>typeof msg?.messageId==='string'&&
   /^kb_msg_[0-9a-f-]{36}$/u.test(msg.messageId)&&
   typeof msg?.text==='string'&&msg.text.trim()&&msg.text.length<=300&&
@@ -242,7 +255,16 @@ export function createLocalKnowledgeTestRuntime({
            }else reviewed[index]={...part,answer:'',sourceIds:[],reason:'AI_SOURCE_INVALID'};
          }catch(cause){
            if(!running(s,epoch))return;
-           reviewed[index]={...part,answer:'',sourceIds:[],reason:'AI_FAILED'};
+           const failure=aiFailure(cause);
+           reviewed[index]={...part,answer:'',sourceIds:[],reason:'AI_FAILED',failure};
+           if(terminalAIFailure(cause)){
+             update(s,message.messageId,{status:'STALE',answer:'',sourceIds:[],failure,
+               parts:reviewed.map(p=>({...p,answer:'',sourceIds:[]})),
+               answeredCount:0,reviewCount:reviewed.length,hasAI:false,
+               message:'逐题 AI 已中止：'+failure.code});
+             stop('逐题 AI 授权或知识已失效：'+failure.code);
+             return;
+           }
          }
        }
        if(!running(s,epoch))return;

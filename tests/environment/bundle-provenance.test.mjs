@@ -300,7 +300,7 @@ test('Prompt Shortcuts jump uses one reviewed source only in the Page Relay',asy
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,
-    'cca839ec6625da106376fb739f4462c44f39fa5b');
+    'ea1dcb3114175c2b79e134df1794a1fdd93460c9');
   for(const target of ['sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-jump-pin-')));

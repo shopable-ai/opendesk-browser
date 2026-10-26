@@ -97,14 +97,18 @@ function reviewedCompiledBookmarkReact(target,path,root){
 // installation epoch, consent and exact local-document checks remain separate.
 // R1.5 review: adapter generations fence retired async document callbacks;
 // pre-dispatch errors become visible without replaying unknown sends.
+// R3.2 review: the pure bounded intent planner narrows retrieval source IDs;
+// the existing reviewed Host handles disclosure, consent and receipt recovery.
+// No new privileged output, dynamic module or package-code admission.
 const compiledKnowledgeInputs=Object.freeze({
   'examples/sidebar-tools/ai-knowledge-answers/src/model.js':'752b91ea8d98f7da10e9d8902e3629bef69df58c',
-  'examples/sidebar-tools/ai-knowledge-answers/trusted/host.js':'d01c666821b35ebbbdc113e8c805b106d3db9ba7',
-  'examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js':'e7adb932efbcf9e2b8a7961804ef1e486fd5c854',
-  'examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js':'73870713cfead3a19c022c30bd274b4a3ee251b9',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/host.js':'02bdd31fdcb2292196c849bd0a4c13e9bde78c0c',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js':'2228f1490904f99b47d087cc617015da57dce26f',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js':'2605e9d4825f3d95140a1eaccc73c1cc62ee6cda',
   'examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-adapter.js':'fd56f20148aefe75cc2cc91187a831db0dbadcc1',
-  'examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx':'602b3938a4e68ae164bfd259efab233c17f27a45',
-  'examples/sidebar-tools/ai-knowledge-answers/trusted/workspace.css':'5ce11eba0a8ad784478c2e3820d9d9771d934f5f'
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx':'9fa5a0e47805bfbbd092dbab7f78bb346588058b',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/workspace.css':'3f11650babfd3e1a490907b33e2f722bd97fa53d',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/multi-intent.js':'82d4b49d194783e04844e36df78d757955e31378'
 });
 function reviewedCompiledKnowledge(target,path,root){
   if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledKnowledgeInputs,path))return null;
@@ -171,7 +175,7 @@ const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
   // Shared with the standalone diagnostic harness; never an installed package import.
-  'examples/programs/chatgpt-jump-top/src/conversation.js':'cca839ec6625da106376fb739f4462c44f39fa5b',
+  'examples/programs/chatgpt-jump-top/src/conversation.js':'ea1dcb3114175c2b79e134df1794a1fdd93460c9',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
   'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'5f0184b28abe5d8e03855f9c130d45faba807d1e'
 });
@@ -320,6 +324,10 @@ function reviewedCompiledWebClipper(target,path,root){
 // forwarded only to the existing content-free analytics Host. That Host
 // independently verifies exact official install, epoch, grant and document.
 // No new output owner, permission, site or untrusted code admission.
+// 2026-10-26 prelaunch review: heading access retains installed-reader
+// compatibility; the existing installer reserves the official ID and rejects
+// local/forged imports. Package translations still require exact release
+// identity. Duplicate owners, user stops and Chrome access checks remain.
 // Reading TOC has one trusted business source. All these exact Git blobs
 // compile into EXISTING reviewed fixed outputs, never arbitrary JS, remote
 // packages or another privileged Host. Page algorithms/renderers are limited
@@ -328,9 +336,9 @@ const compiledReadingTocInputs=Object.freeze({
   'examples/sidebar-tools/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
   'examples/sidebar-tools/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
   'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
-  'examples/sidebar-tools/reading-toc/trusted/page.js':'4b95602c7f4bf2a41a7236b525c5555951702dfc',
+  'examples/sidebar-tools/reading-toc/trusted/page.js':'558571f1d95e2ac3eec1212b9ee78bb396678582',
   'examples/sidebar-tools/reading-toc/trusted/view.js':'e79fe3289544f09f13ebd5c26a382e70526be3f6',
-  'examples/sidebar-tools/reading-toc/trusted/policy.js':'29bbc2fdebcec89c63484422298924baec08eba6',
+  'examples/sidebar-tools/reading-toc/trusted/policy.js':'16a4f6693afaa807811d53f30adf32aa31ffbd13',
   'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'ffdfc72c479bb16ef27e60eda26255b43870e4ae',
   'examples/sidebar-tools/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'
 });

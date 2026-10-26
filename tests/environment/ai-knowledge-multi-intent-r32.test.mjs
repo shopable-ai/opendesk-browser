@@ -110,7 +110,7 @@ test('R3.2 cautious split deduplicates questions, does not split comma condition
  assert.deepEqual(splitCustomerIntents('退款期限是多少？退款期限是多少？何时发货？').questions,
    ['退款期限是多少','何时发货']);
  assert.deepEqual(splitCustomerIntents('如果我周末申请退款，什么时候到账？').questions,
-   ['如果我周末申请退款，什么时候到账']);
+   ['如果我周末申请退款,什么时候到账']);
  const r=plan('退款期限是多少？何时发货？可以安装吗？发票怎么开？价格多少？');
  assert.equal(r.status,'OVER_LIMIT');assert.equal(r.answer,'');
 });
@@ -279,6 +279,106 @@ test('R3.2 cross-topic AI citations cannot be attached to another question',asyn
    const row=rt.snapshot().records[0];
    assert.equal(row.answer,'');
    assert.deepEqual(row.sourceIds,[]);
+   assert.equal(site.sendCalls,0);
+ }finally{rt.dispose();}
+});
+for(const code of ['E_KB_STALE','E_CANCELLED','E_MODEL_GRANT_REVOKED',
+ 'E_AI_PERMISSION','E_KB_AUTH','E_TOOL_CHANGED','E_MODEL_STALE','E_PERMISSION']){
+ test('R3.2 '+code+' aborts remaining intents and queued customers without a sendable draft',async()=>{
+   const {site,api,target}=fakePage();let calls=0,stops=0;
+   const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+     readLibrary:async()=>({value:lib,etag}),assertLive:()=>{},
+     onStopAI:()=>{stops++;},
+     callAI:async()=>{calls++;throw Object.assign(new Error('失效证据'),{code,
+       authorization:{secret:'must not be retained'}});}});
+   try{
+     await rt.start({event:{isTrusted:true},autoSendFixed:true});
+     rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
+     site.messages.push(customer('如何申请电子发票？我能在哪看物流？'),
+       {...customer('如何申请电子发票？我能在哪看物流？'),
+         messageId:'kb_msg_00000000-0000-4000-a000-000000000023'});
+     await until(()=>rt.snapshot().mode==='idle','terminal AI failure');
+     const state=rt.snapshot(),row=state.records[0];
+     assert.equal(calls,1,'no next intent or queued customer AI request');
+     assert.equal(stops,1);assert.equal(state.autoAI,false);
+     assert.equal(row.status,'STALE');assert.equal(row.answer,'');
+     assert.deepEqual(row.sourceIds,[]);
+     assert.deepEqual(row.failure,{code,message:'失效证据'});
+     assert.deepEqual(row.parts[0].failure,row.failure);
+     assert.match(row.message,new RegExp(code));
+     assert.equal(site.sendCalls,0);
+     assert.throws(()=>rt.confirm({event:{isTrusted:true},messageId:id,reviewApproved:true}),
+       {code:'E_KB_TEST_PAUSED'});
+     assert.throws(()=>rt.approvalContext(),{code:'E_KB_TEST_STOPPED'});
+     assert.equal(calls,1);assert.equal(site.sendCalls,0);
+   }finally{rt.dispose();}
+ });
+}
+test('R3.2 ETag loss after an AI result discards earlier draft and stops the next intent',async()=>{
+ const {site,api,target}=fakePage();let calls=0,readEtag=etag;
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:lib,etag:readEtag}),assertLive:()=>{},
+   callAI:async()=>{calls++;readEtag='b'.repeat(64);return {
+     status:'REVIEW_REQUIRED',answer:'must be discarded',sourceIds:['qa_demo_invoice']};}});
+ try{
+   await rt.start({event:{isTrusted:true}});
+   rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
+   site.messages.push(customer('退款期限是多少？如何申请电子发票？我能在哪看物流？'));
+   await until(()=>rt.snapshot().mode==='idle','ETag invalidation');
+   const row=rt.snapshot().records[0];
+   assert.equal(calls,1);assert.equal(row.failure.code,'E_KB_STALE');
+   assert.equal(row.answer,'');assert.deepEqual(row.sourceIds,[]);
+   assert.ok(row.parts.every(p=>!p.answer&&p.sourceIds.length===0));
+   assert.equal(site.sendCalls,0);
+ }finally{rt.dispose();}
+});
+test('R3.2 ordinary AI failure preserves bounded evidence and permits only reviewed partial draft',async()=>{
+ const {site,api,target}=fakePage();let calls=0;
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:lib,etag}),assertLive:()=>{},
+   callAI:async()=>{
+     if(++calls===1)throw Object.assign(new Error('x'.repeat(600)),{code:'E_AI_NETWORK',
+       authorization:{secret:'must not be retained'}});
+     return {status:'REVIEW_REQUIRED',answer:'演示规则：发货后可查看物流。',
+       sourceIds:['qa_demo_tracking']};
+   }});
+ try{
+   await rt.start({event:{isTrusted:true},autoSendFixed:true});
+   rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
+   site.messages.push(customer('如何申请电子发票？我能在哪看物流？'));
+   await until(()=>rt.snapshot().records[0]?.status==='PARTIAL_REVIEW_REQUIRED','partial AI failure');
+   const row=rt.snapshot().records[0];
+   assert.equal(calls,2);assert.equal(rt.snapshot().mode,'running');
+   assert.deepEqual(row.parts[0].failure,{code:'E_AI_NETWORK',message:'x'.repeat(256)});
+   assert.equal(row.parts[0].reason,'AI_FAILED');
+   assert.deepEqual(row.sourceIds,['qa_demo_tracking']);
+   assert.equal(row.answeredCount,1);assert.equal(row.reviewCount,1);
+   assert.equal(site.sendCalls,0);
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:id}),{code:'E_KB_REVIEW'});
+   await rt.confirm({event:{isTrusted:true},messageId:id,reviewApproved:true});
+   assert.equal(site.sendCalls,1);
+ }finally{rt.dispose();}
+});
+test('R3.2 permission loss during post-AI validation clears previously accepted AI parts',async()=>{
+ const {site,api,target}=fakePage();let calls=0,live=true;
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:lib,etag}),
+   assertLive:()=>{if(!live)throw Object.assign(new Error('权限已撤销'),{code:'E_PERMISSION'});},
+   callAI:async()=>{
+     calls++;if(calls===2)live=false;
+     return {status:'REVIEW_REQUIRED',answer:'旧 AI 草稿',
+       sourceIds:[calls===1?'qa_demo_invoice':'qa_demo_tracking']};
+   }});
+ try{
+   await rt.start({event:{isTrusted:true}});
+   rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
+   site.messages.push(customer('如何申请电子发票？我能在哪看物流？'));
+   await until(()=>rt.snapshot().mode==='idle','post-AI permission loss');
+   const row=rt.snapshot().records[0];
+   assert.equal(calls,2);assert.equal(row.failure.code,'E_PERMISSION');
+   assert.equal(row.parts[0].status,'REVIEW_REQUIRED','first AI result was accepted before revocation');
+   assert.ok(row.parts.every(p=>!p.answer&&p.sourceIds.length===0));
+   assert.equal(row.answer,'');assert.deepEqual(row.sourceIds,[]);
    assert.equal(site.sendCalls,0);
  }finally{rt.dispose();}
 });
