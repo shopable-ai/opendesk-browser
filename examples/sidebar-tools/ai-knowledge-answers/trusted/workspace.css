@@ -55,3 +55,27 @@
 .od-knowledge-frame-target{min-height:300px;display:flex;flex-direction:column;min-width:0}
 .od-knowledge-workspace :is(button,input,textarea,summary):focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 @media(max-width:350px){.od-knowledge-dashboard{padding:11px 10px}.od-knowledge-composer{padding:9px 10px}.od-knowledge-data-manager{padding:9px 10px}.od-knowledge-stats{gap:4px}.od-knowledge-summary{padding:8px 10px}}
+
+/* R3.2 · User-first review; technical state stays behind disclosures. */
+.od-knowledge-overview{display:flex;gap:9px;align-items:flex-start;min-width:0;padding:10px 11px;border:1px solid var(--od-line);border-radius:10px;background:var(--od-muted)}
+.od-knowledge-overview>div{display:grid;gap:3px;min-width:0}
+.od-knowledge-overview strong{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.od-knowledge-overview span:not(.od-knowledge-state-dot){font-size:10.5px;color:var(--od-sub);line-height:1.5;overflow-wrap:anywhere}
+.od-knowledge-state-dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--od-sub);margin-top:4px}
+.od-knowledge-state-dot.is-running{background:var(--od-positive)}
+.od-knowledge-diagnostics{font-size:11px;color:var(--od-sub);min-width:0}
+.od-knowledge-diagnostics>summary{cursor:pointer;min-height:24px;line-height:1.65;font-size:11px}
+.od-knowledge-diagnostics[open]>.od-knowledge-summary{margin:7px 0}
+.od-knowledge-evidence{border-top:1px solid var(--od-line);padding-top:6px}
+.od-knowledge-evidence>p{margin:5px 0!important}
+.od-knowledge-intents{display:grid;gap:5px;min-width:0}
+.od-knowledge-intent{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;min-width:0;font-size:11px;line-height:1.5}
+.od-knowledge-intent>span{min-width:0;overflow-wrap:anywhere}
+.od-knowledge-intent>strong{flex:none;font-size:10px;font-weight:550;color:var(--od-sub)}
+.od-knowledge-answer-block{min-width:0;display:grid;gap:5px}
+.od-knowledge-answer-block>strong{font-size:10.5px;color:var(--od-sub);font-weight:600}
+.od-knowledge-result .od-knowledge-answer-block .od-knowledge-answer{margin:0}
+.od-knowledge-result .od-knowledge-question span{flex:0 1 132px;min-width:0;max-width:132px;white-space:normal;overflow-wrap:anywhere}
+.od-knowledge-result .od-knowledge-question strong{min-width:0;flex:1}
+.od-knowledge-result .od-knowledge-evidence .od-knowledge-meta{display:block}
+@media(max-width:350px){.od-knowledge-result .od-knowledge-question span{max-width:100px}}
