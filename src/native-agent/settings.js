@@ -30,10 +30,12 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
   let settleTimer,connectingPolls=0,lastState=null,busy=false;
   const renderState=state=>{
     toggle.checked=Boolean(state.enabled);
+    const lastSeen=Number.isSafeInteger(state.lastConnectedAt)&&state.lastConnectedAt>0
+      ?new Date(state.lastConnectedAt).toLocaleString('zh-CN',{dateStyle:'short',timeStyle:'short'}):null;
     let heading,description,connection='offline';
     if(!state.enabled){
       heading='未启用';
-      description='本机连接已关闭；需要时开启即可。';
+      description=lastSeen?'此前成功连接：'+lastSeen+'；目前已关闭。':'本机连接已关闭；需要时开启即可。';
     }else if(state.nativeConnected){
       heading='已连接';
       description='OpenDesk 本机通信在线，无需重复配对；Codex 能力仍需使用时核验。';
@@ -47,7 +49,8 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
       connection='connecting';
     }else{
       heading='已启用 · 当前离线';
-      description='连接设置仍在。请确认 OpenDesk 已运行，或点击重新检测。';
+      description=(lastSeen?'上次成功连接：'+lastSeen+'。':'连接设置仍在。')+
+        '请确认 OpenDesk 已运行，或点击重新检测。';
     }
     status.textContent=heading;
     caption.textContent=description;
@@ -58,7 +61,8 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
         state.requiresReload?translate('settings.requiresReload'):
           state.connecting?translate('settings.trying'):translate('settings.notConnected')}),
       translate('settings.hostCount',{count:state.hostCount}),
-      translate('settings.extensionId',{id:state.extensionId})
+      translate('settings.extensionId',{id:state.extensionId}),
+      ...(lastSeen?['上次成功连接：'+lastSeen]:[])
     ].join('\n');
     if(!busy)toggle.disabled=false;
   };
