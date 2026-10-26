@@ -27,7 +27,7 @@ import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/backgro
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
-import {formatSidebarToolTitle} from './sidebar-tools/title-path.js';
+import {formatSidebarToolTitle,sidebarToolTitleParts} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
@@ -200,6 +200,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let clipPage=null;
   // A display-only page hint; the sandbox remains the only business history owner.
   let toolNavigation=null,navigationAllowed=false;
+  // The signed static Bookmark React editor alone may register a real Back target.
+  let bookmarkNavigation=null,bookmarkNavigationBack=null;
   const actionReview=view.fields["sidebar-tool-action-review"],actionSummary=view.fields["sidebar-tool-action-summary"];
   const actionContinue=view.fields["sidebar-tool-action-continue"],actionCancel=view.fields["sidebar-tool-action-cancel"];
   let pendingAction=null,pendingPage=null;
@@ -935,6 +937,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(frameExportPort){frameExportPort.onmessage=null;frameExportPort.close();frameExportPort=null;}
     toolDirty=false;toolSaving=false;frameDraft='';clipPage=null;
     toolNavigation=null;navigationAllowed=false;
+    bookmarkNavigation=null;bookmarkNavigationBack=null;
     nativePending=false;
     if(nativeUI){const old=nativeUI;nativeUI=null;try{old.dispose();}catch{}}
     if(frame){frame.onload=null;frame.remove();frame=null;}
@@ -1300,16 +1303,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       uiMessage(toolLocaleContext(active).localization||readingTocCatalog,currentTocLocale,'title'):active?.title;
     const clipNavigation=navigationAllowed&&active?.id==='web-markdown-clipper'&&!!frame&&clipPage!==null;
     const navigation=navigationAllowed&&frame&&toolNavigation?toolNavigation:null;
-    // Display-only path; trusted settings override signed sandbox page hints.
-    // The sandbox still owns the real Back stack and unsaved draft handling.
-    const resolvedTitle=formatSidebarToolTitle({toolTitle:visibleTitle,
-      pageTitle:navigation?.title||(clipNavigation?clipNavigationTitles[clipPage]:null),
-      isHome:navigation?.page==='home'||(clipNavigation&&clipPage==='home'),
-      isSettings:tocSettingsOpen,
+    const nativeBookmarkNavigation=active?.id===TRUSTED_BOOKMARK_ID&&
+      nativeUI?.kind==='bookmark'?bookmarkNavigation:null;
+    // Display only. Trusted Settings overrides an admitted editor/sandbox page.
+    const titleOptions={toolTitle:visibleTitle,
+      pageTitle:nativeBookmarkNavigation?.title||navigation?.title||
+        (clipNavigation?clipNavigationTitles[clipPage]:null),
+      isHome:nativeBookmarkNavigation?.page==='home'||navigation?.page==='home'||
+        (clipNavigation&&clipPage==='home'),
+      isSettings:tocSettingsOpen};
+    const titleParts=sidebarToolTitleParts(titleOptions);
+    const resolvedTitle=formatSidebarToolTitle({...titleOptions,
       readOnlyLabel:readOnlyPreview?(trustedTocTitle?
         readingTocHostText(currentTocLocale,'readonly'):'只读预览'):''});
-    patchToolField(view,title,{textContent:resolvedTitle});
-    // The full current location stays readable in the narrow-header tooltip.
+    patchToolField(view,title,{textContent:resolvedTitle,
+      data:{toolLabel:titleParts.tool,pageLabel:titleParts.page}});
+    // Full location remains readable even if the visible title truncates.
     patchToolField(view,title,{title:active?resolvedTitle+' · v'+active.version:''});
     const contextAction=tocSettingsOpen?'':navigation?.primary||
       (clipNavigation?({library:'new',reader:'edit',edit:'save',new:'save'}[clipPage]||''):'');
@@ -1359,7 +1368,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     renderTocSettings();
     // The shared back is always about the visible level, even for single-page tools.
     const backLabel=tocSettingsOpen?'返回上一页':
-      (navigation?.canBack||(clipNavigation&&clipPage!=='home'))?'返回上一级':'返回扩展列表';
+      (nativeBookmarkNavigation?.canBack||navigation?.canBack||
+        (clipNavigation&&clipPage!=='home'))?'返回上一级':'返回扩展列表';
     patchToolField(view,backButton,{title:backLabel});
     setToolFieldAttribute(view,backButton,'aria-label',backLabel);
     taskWorkbench.setToolActive?.(Boolean(visible && active));
@@ -1470,8 +1480,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             instanceId:token,installEpoch:frameRevocationEpoch==null?null:String(frameRevocationEpoch),
             onStateChange:state=>{
               if(disposed||active!==tool||instance!==token)return;
+              const next=state?.navigation;
+              // Only signed, statically admitted React can call this closure.
+              // Keep accepted page names bounded; no dynamic iframe can set it.
+              const allowed=next?.canBack===true&&
+                (next.page==='create'||next.page==='edit')&&
+                ['新建书签','新建文件夹','编辑书签','编辑文件夹'].includes(next.title)&&
+                typeof state?.back==='function';
+              const normalized=allowed?{page:next.page,title:next.title,canBack:true}:null;
+              const changed=bookmarkNavigation?.page!==normalized?.page||
+                bookmarkNavigation?.title!==normalized?.title||
+                toolSaving!==Boolean(state?.saving);
+              bookmarkNavigation=normalized;
+              bookmarkNavigationBack=allowed?state.back:null;
               toolDirty=Boolean(state?.dirty);toolSaving=Boolean(state?.saving);
               frameDraft=String(state?.draft||'').slice(0,8192);
+              if(changed)render();
             }});
           if(disposed||active!==tool||instance!==token){dispose();return;}
           nativeUI={dispose,kind:'bookmark'};nativePending=false;
@@ -3850,6 +3874,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   listen(backButton,'click',()=>{
     if(busy)return;
     if(tocSettingsOpen){closePromptSettings();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});return;}
+    if(nativeUI?.kind==='bookmark'&&bookmarkNavigation?.canBack&&bookmarkNavigationBack){
+      if(toolSaving){notice('书签正在保存，请完成后再返回。',true);return;}
+      bookmarkNavigationBack();return;
+    }
     if(requestBusinessNavigation('back'))return;
     if(clipPage&&clipPage!=='home'&&requestClipNavigation('back'))return;
     const id=active?.id;
