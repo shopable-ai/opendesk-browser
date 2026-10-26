@@ -8,6 +8,8 @@ import {planCustomerMessage,splitCustomerIntents,GREETING_REPLY} from
   '../../examples/sidebar-tools/ai-knowledge-answers/trusted/multi-intent.js';
 import {createLocalKnowledgeTestRuntime} from
   '../../examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js';
+import {createKnowledgeAnswerConsumer} from
+  '../../examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js';
 
 const lib=JSON.parse(readFileSync(new URL(
   '../../examples/sidebar-tools/ai-knowledge-answers/fixtures/sample-knowledge.json',import.meta.url),'utf8'));
@@ -147,6 +149,34 @@ test('R3.2 changing or disabling knowledge removes its answer and source',()=>{
  assert.equal(r.answeredCount,1);
  assert.ok(!r.sourceIds.includes('qa_demo_delivery'));
  assert.notEqual(r.answer,plan(mixed).answer);
+});
+test('R3.2 original Shared Provider receives only allowlisted intent sources',async()=>{
+ let calls=0,delivered=null;
+ const conversation={
+   cancel:async()=>{},
+   request:async input=>{
+     calls++;delivered=input;
+     return {authorization:{assertWrite:async()=>{},release:()=>{}},
+       proposal:{answer:'演示规则：符合条件的实物订单可在签收后 7 天内申请退款。',
+         sourceIds:['qa_demo_refund'],needsHuman:true}};
+   }
+ };
+ const consumer=createKnowledgeAnswerConsumer({
+   model,conversation,readLibrary:async()=>({value:lib,etag}),assertIdentity:()=>{}});
+ try{
+   await consumer.refresh();
+   assert.throws(()=>consumer.request({request:'退款期限需要几天',
+     event:{isTrusted:true},sourceIdAllowlist:['qa_demo_payment']}),
+     {code:'E_KB_REFERENCES'});
+   assert.equal(calls,0,'unowned refs may not reach permission or Provider');
+   const answer=await consumer.request({request:'退款期限需要几天',
+     event:{isTrusted:true},sourceIdAllowlist:['qa_demo_refund']});
+   assert.equal(calls,1);
+   assert.deepEqual(delivered.context.references.map(x=>x.id),['qa_demo_refund']);
+   assert.equal(answer.status,'REVIEW_REQUIRED');
+   assert.deepEqual(answer.sourceIds,['qa_demo_refund']);
+   assert.equal(answer.needsHuman,true);
+ }finally{consumer.dispose();}
 });
 test('R3.2 fixture customer receives a single reviewed DOM reply; no automatic multi-send',async()=>{
  const {site,api,target}=fakePage();
