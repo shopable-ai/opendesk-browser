@@ -56,6 +56,16 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 可信设置标题由 `src/ui/sidebar-tools.js` + `src/ui/sidebar-tools/title-path.js` 统一处理；已签发官方沙箱的导航提示只能通过现有受安装身份、实例、来源约束的 `setNavigation`，普通/旧版沙箱继续自带业务标题。返回由业务逻辑处理，草稿与保存锁仍有效；不能为了纯视觉修复扩大权限、修改 JSON 包或加入另一套 Host。**修复后同步变更扩展 README、产品/架构 MD、相关开发 Skill 与定向回归测试**；是否在原生 Chrome 实际通过需单独报告。
 
+## 共享 AI 设置与 Native Options 的两层交互（2026-10-26）
+
+多个第一方 AI 对话框的设置入口统一复用 `src/ui/react/components/provider-settings.tsx` 和既有 Provider Runtime；**默认在同一个 Sheet 内展示 AI 来源、本机连接 Switch、实际在线状态、上次成功连接记录及重新检测**，不得每次都要求跳转到 `src/native-agent/settings.html`。只有首次安装/开发配对、目录工作区、困难诊断和长隐私披露等低频操作才进入独立 Options 页；不因此加第三个 Nav 或重复保存按钮。用户切换 AI 来源仍由现有「保存 AI 设置」生效，本机 Switch 则独立且即时提交，并明确告知两者保存语义不同。
+
+**必须区分三层状态：** Chrome Native Messaging 的授权、连接开关的已启用、Native Host 实际 `hello/welcome` 握手在线；三者不等价，且均不等于 Codex Provider 可推理。完整正常/错误/恢复语义详见 [Native Agent Bridge 的设置 UI 合同](../../../docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md)。历史成功时间仅在握手回执后留于本地，不存在记录不得猜测旧版安装是否曾连接；当前离线时仍可显示历史，但绝不显示「已连接」。正在连接、未知、需要重载都必须语义可见，Switch 状态始终绑定真实设置回读，不乐观伪造成功。
+
+**权威与安全：** 可信 ToolShell 把原 `AGENT_CONFIG_PROTOCOL` 的有限设置 facade 传给同一个 React Root；只有实际用户启用手势触发 `permissions.request(nativeMessaging)`。SW 侧验证 sender、documentId、顶层来源和 `sidepanel.html` 合法身份，拒绝动态工具 iframe、网页脚本与 Scheduled Runner。禁止复制另一个 SW、Host、权限记录、Provider 或开启时自动执行业务。取消弹窗不撤销已提交的 Native Switch；权限撤销、状态失败和失回执后由唯一后台状态重新判定。
+
+**排版与隐私：** Options 继续复用设计 Token，自有隔离 CSS；第一屏只放 Switch、当前状态、重新检测与说明，文件工作区放次级卡片，扩展 ID/配对诊断默认折叠。已有可选统计同意开关和完整披露必须保留，长文字可以默认折叠但不能缩小同意范围或变相默认开启。修改中文文案须同步 EN/JA/繁中既有 i18n 目录；避免设置页切换语言后残留中文。真实 320/360/400px、键盘焦点、Chrome 权限手势、离线/重启/撤权和实际回读需要绑定同一构建候选，未测报告 `NOT_TESTED`。本类回归优先 `shared-ai-conversation-r23.test.mjs`、`native-agent-bridge.test.mjs` 与既有真实 Chrome Options 入口；不得为了旧选择器保留重复按钮。
+
 ## 所有内置页面统一的视觉硬约束
 
 | 角色 | 必须优先使用 | 常见错误 |
