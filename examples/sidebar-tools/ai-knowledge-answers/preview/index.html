@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI 知识问答 · 同源交互预览</title>
+<title>OpenDesk Browser · AI 客服 · 同源预览</title>
 <style>
 /* Preview-only visual shell. Real UI / model / controller are loaded from ../src/. */
 *{box-sizing:border-box}
@@ -27,16 +27,33 @@ body{margin:0;color:#253146;background:#f2f4f8;font:13px/1.5 system-ui,-apple-sy
 .preview-scenarios{max-width:900px;margin:0 auto 10px;padding:0 16px;display:flex;flex-wrap:wrap;gap:10px}
 .preview-scenarios label{display:flex;align-items:center;gap:6px;color:#53647e;font-size:12px}
 .preview-scenarios select{max-width:240px;border:1px solid #dbe3ed;border-radius:8px;padding:7px 8px;background:#fff;color:#273348}
-.preview-trusted{max-width:868px;margin:0 auto 10px;padding:9px 12px;border:1px solid #dbe3ed;border-radius:10px;background:#fff;color:#53647e}
-.preview-trusted summary{cursor:pointer;font-weight:650}
-.preview-trusted p{margin:8px 0}
-.preview-trusted button{border:1px solid #dbe3ed;border-radius:8px;background:#f4f7fb;padding:8px;color:#273348;cursor:pointer}
-.preview-trusted output{display:block;margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere}
+.preview-dev-tools,.preview-router{max-width:868px;margin:0 auto 10px;padding:9px 12px;border:1px solid #dbe3ed;border-radius:10px;background:#fff;color:#53647e}
+.preview-dev-tools summary,.preview-router summary{cursor:pointer;font-weight:650;min-height:24px}
+.preview-dev-tools .preview-scenarios{padding:8px 0 0}
+.preview-dev-tools .preview-buttons{width:max-content;max-width:100%;margin-top:9px;flex-wrap:wrap}
+.preview-router p{margin:8px 0;line-height:1.6}
+.preview-router textarea{width:100%;min-height:86px;resize:vertical;padding:9px;font:inherit;border:1px solid #dbe3ed;border-radius:8px;color:#253146}
+.preview-router button,.preview-dev-tools #preview-reload{border:1px solid #dbe3ed;border-radius:8px;background:#f4f7fb;padding:8px;color:#273348;cursor:pointer;font:inherit}
+.preview-router button{margin:8px 0}
+.preview-router output{display:block;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}
+.preview-router .preview-parts{list-style:none;margin:8px 0;padding:0;display:grid;gap:5px}
+.preview-router .preview-parts li{padding:7px 9px;border:1px solid #e5eaf0;border-radius:7px;overflow-wrap:anywhere}
+.preview-router .preview-parts small{display:block;color:#64748b;font-size:11px}
+.preview-router .preview-router-draft{padding:9px;border:1px solid #e5eaf0;border-radius:7px;background:#f9fafb;white-space:pre-wrap}
+.preview-panel{min-width:0}
+.preview-host-title strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:360px){.preview-stage{padding-left:5px;padding-right:5px}.preview-header{margin-top:12px}}
 </style>
 </head>
 <body>
 <header class="preview-header">
-  <div><h1>AI 知识问答 · R2.1 同源交互预览</h1><p>同源预览：运行真实 HTML / CSS / model.js / main.js，Host 存储由本页模拟</p></div>
+  <div><h1>OpenDesk Browser · AI 客服</h1>
+    <p>知识管理同源预览 · 多问题业务路由检查</p></div>
+</header>
+<div class="preview-notice">下方产品容器只运行正式 <code>src/</code> 知识管理源码。
+可信客服 <code>Workspace.jsx</code> 需要 Browser 构建及真实授权，HTTP 不模拟网页发送或真实 Provider。</div>
+<details class="preview-dev-tools">
+  <summary>开发者工具 · 预览宽度、数据与异常</summary>
   <div class="preview-buttons" role="group" aria-label="切换侧栏预览宽度">
     <button data-size="320" aria-pressed="false">320</button>
     <button data-size="360" aria-pressed="true">360</button>
@@ -44,17 +61,28 @@ body{margin:0;color:#253146;background:#f2f4f8;font:13px/1.5 system-ui,-apple-sy
     <button data-size="440" aria-pressed="false">440</button>
     <button data-size="600" aria-pressed="false">600</button>
   </div>
-</header>
-<div class="preview-notice">正式 HTML / CSS / model.js / main.js 同源运行；仅 Host 存储与导出为模拟。Provider 与网站发送不在本页执行。</div>
-<div class="preview-scenarios"><label>测试数据 <select id="preview-seed"><option value="sample">14 条示例</option><option value="empty">空知识库</option></select></label><label>下次读写异常 <select id="preview-fault"><option value="none">正常</option><option value="conflict">保存冲突</option><option value="unknown">回执丢失</option><option value="read">读取失败</option></select></label></div>
-<details class="preview-trusted"><summary>可信 AI 待审阅状态演示（仅模拟）</summary><p>独立于正式工具沙箱；不连接 Provider、不生成真实答案、不发送消息。</p><button id="preview-ai" type="button">演示 AI 草稿待审阅</button><output id="preview-ai-result" role="status" aria-live="polite"></output></details>
+  <div class="preview-scenarios">
+    <label>知识数据 <select id="preview-seed"><option value="sample">14 条示例</option><option value="empty">空知识库</option></select></label>
+    <label>下一次读写异常 <select id="preview-fault"><option value="none">正常</option><option value="conflict">保存冲突</option><option value="unknown">回执丢失</option><option value="read">读取失败</option></select></label>
+    <button id="preview-reload" type="button">重置预览</button>
+  </div>
+</details>
+<details class="preview-router">
+  <summary>多问题处理检查 · 来自正式业务路由（不发送）</summary>
+  <p>仅在此开发工具区调用 <code>trusted/multi-intent.js</code> 与正式知识模型；
+    不运行或仿造可信客服 UI、Chrome 权限、AI 请求和网站回执。</p>
+  <label for="preview-inbound">输入一条客户消息</label>
+  <textarea id="preview-inbound" maxlength="300">你好！退款期限是多少？何时发货？可以上门安装吗？</textarea>
+  <button id="preview-route" type="button">分析客户问题</button>
+  <div id="preview-route-results" aria-live="polite"></div>
+</details>
 <main class="preview-stage">
   <div class="preview-panel" id="preview-panel">
-    <header class="preview-host-title"><strong>AI 知识问答</strong><span>OpenDesk · Sidebar Tool</span><button type="button" id="preview-reload" title="重置模拟数据">重置</button></header>
+    <header class="preview-host-title"><strong>AI 客服</strong><span>知识管理 · 同源源码</span></header>
     <div id="preview-tool"></div>
   </div>
 </main>
-<footer class="preview-foot">本页通过 HTTP 打开才可读取相对源码。运行示例：<code>python3 -m http.server 43112 --bind 127.0.0.1 --directory examples/sidebar-tools/ai-knowledge-answers</code>，随后打开 <code>http://127.0.0.1:43112/preview/</code>。</footer>
+<footer class="preview-foot">本页需在 HTTP 环境读取相对源码。运行示例：<code>python3 -m http.server 43112 --bind 127.0.0.1 --directory examples/sidebar-tools/ai-knowledge-answers</code>，随后打开 <code>http://127.0.0.1:43112/preview/</code>。</footer>
 <script>
 (async()=>{
   const container=document.getElementById('preview-tool');let root;
@@ -147,18 +175,32 @@ body{margin:0;color:#253146;background:#f2f4f8;font:13px/1.5 system-ui,-apple-sy
     await script('../src/model.js');
     const model=frame.contentWindow.OpenDeskKnowledgeAnswersModel;model.library(saved);
     await script('../src/main.js');
-    document.getElementById('preview-ai').addEventListener('click',()=>{
-      const out=document.getElementById('preview-ai-result'),question=root.querySelector('#qa-query')?.value?.trim()||'';
-      if(!question){out.textContent='请先在问答页输入问题。';return;}
+    // Developer-only business route: the exact source module is imported,
+    // never reimplemented inside preview or presented as trusted React.
+    const {planCustomerMessage}=await import('../trusted/multi-intent.js');
+    const routeOutput=document.getElementById('preview-route-results');
+    document.getElementById('preview-route').addEventListener('click',()=>{
+      routeOutput.replaceChildren();
       try{
-        const found=model.lookup(
-          model.library(saved),
-          {question,scope:root.querySelector('#qa-query-scope')?.value||''});
-        out.textContent=found.sourceIds.length?
-          '模拟 AI 草稿 · 待人工审阅。候选来源：'+found.sourceIds.join('、')+
-          '。没有调用 Provider，也没有生成可信答案。':
-          '模拟 Provider 不可用 / 缺少依据 · 不允许自动回复。';
-      }catch(e){out.textContent='模拟准备失败：'+String(e.message||e);}
+        const question=document.getElementById('preview-inbound').value;
+        const scope=root.querySelector('#qa-query-scope')?.value||'';
+        const plan=planCustomerMessage(model,model.library(saved),{question,scope});
+        const status=doc.createElement('strong');
+        status.textContent=plan.answeredCount+' 项有依据 · '+plan.reviewCount+' 项需要核实';
+        const list=doc.createElement('ul');list.className='preview-parts';
+        for(const part of plan.parts){
+          const li=doc.createElement('li');li.textContent=part.question;
+          const meta=doc.createElement('small');
+          meta.textContent=part.status+' · 来源：'+(part.sourceIds.join('、')||'无已确认来源');
+          li.append(meta);list.append(li);
+        }
+        const draft=doc.createElement('p');draft.className='preview-router-draft';
+        draft.textContent=plan.answer||'暂无可交付答案，需要澄清或人工处理。';
+        routeOutput.append(status,list,draft);
+      }catch(error){
+        const warning=doc.createElement('p');warning.textContent='分析失败：'+String(error?.message||error);
+        routeOutput.append(warning);
+      }
     });
   }catch(error){
     fail('同源预览载入失败：'+String(error.message||error)+
