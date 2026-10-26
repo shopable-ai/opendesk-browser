@@ -51,21 +51,35 @@ test('production queue view retains original three-item window and no crown beha
 test('approved frontal crown is wide, source-bound, and minimally corrected by default',()=>{
  for(const name of ['desktop','touch']){
    assert.ok(declared(name+'-w')>declared(name+'-h'));
-   assert.equal(declared(name+'-angle'),4);
+   assert.equal(declared(name+'-angle'),-1);
  }
  assert.match(css,/pointer-events:none;z-index:2/);
- assert.match(html,/id="angle-out">4°/);
- assert.match(html,/id="angle" type="range"[^>]*value="4"/);
+ assert.match(html,/id="angle-out">-1°/);
+ assert.match(html,/id="angle" type="range"[^>]*value="-1"/);
 });
 
 test('34/42 fixed CSS geometry centers the artwork and preserves a clear arrow zone',()=>{
  for(const [name,button,svg] of [['desktop',34,17],['touch',42,20]]){
    const w=declared(name+'-w'),h=declared(name+'-h'),x=declared(name+'-x'),y=declared(name+'-y');
-   assert.ok(Math.abs(x+w/2-button/2)<=1,'CSS box must align with blue button center: '+name);
-   assert.ok(y+h>=button*.23,'crown must sit over the upper blue arc: '+name);
+   assert.ok(Math.abs(x+w/2-button/2)<=3,'CSS box must align with blue button center: '+name);
+   assert.ok(y+h>=button*.16,'crown must sit over the upper blue arc: '+name);
    const arrowStart=(button-svg)/2+svg*5/24;
    assert.ok(y+h<arrowStart-1,'crown CSS box must not reach the arrow head: '+name);
-   assert.ok(declared(name+'-angle')<=5,'avoid an exaggerated second tilt: '+name);
+   assert.ok(Math.abs(declared(name+'-angle'))<=5,'avoid an exaggerated second tilt: '+name);
  }
  assert.match(css,/\.sq-crown\{[^}]*filter:none/,'do not add a synthetic shadow layer');
+});
+
+test('R5.4 selected values are baked exactly once into formal CSS for both button sizes',()=>{
+ const base={desktop:{w:32,h:23,x:1,y:-13},touch:{w:39,h:28,x:1,y:-16}};
+ const round=v=>Number(v.toFixed(2));
+ for(const [name,p] of Object.entries(base)){
+   const w=round(p.w*.85),h=round(p.h*.85);
+   const x=round(p.x-(w-p.w)*.5-2),y=round(p.y-(h-p.h)*.78-3);
+   assert.deepEqual([declared(name+'-w'),declared(name+'-h'),declared(name+'-x'),declared(name+'-y'),declared(name+'-angle')],[w,h,x,y,-1],name);
+ }
+ assert.match(html,/已正式采用：角度 -1°、原基准 85%、水平 -2px、垂直 -3px/);
+ assert.match(html,/id="scale" type="range"[^>]*value="100"/);
+ assert.match(html,/id="offsetX" type="range"[^>]*value="0"/);
+ assert.match(html,/id="offsetY" type="range"[^>]*value="0"/);
 });

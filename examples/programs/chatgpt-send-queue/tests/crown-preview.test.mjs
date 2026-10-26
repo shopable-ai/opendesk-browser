@@ -19,7 +19,7 @@ test('selected C WebP is the only packaged crown image: valid, alpha capable and
  assert.deepEqual(manifest.opendesk.assets.filter(x=>x.kind==='image').map(x=>x.path),['assets/crown-premium.webp']);
  assert.match(css,/\.sq-crown\{[^}]*pointer-events:none/);
  assert.match(css,/url\("crown-premium\.webp"\)/);
- assert.match(css,/R5\.3 CROWN-FIT-BEGIN/);
+ assert.match(css,/R5\.4 CROWN-USER-FIT-BEGIN/);
 });
 test('production CSS and exact selected C WebP match the standalone preview bytes',()=>{
  const run=spawnSync(process.execPath,['scripts/sync-crown-preview.mjs','--check'],{cwd:base,encoding:'utf8'});
@@ -49,7 +49,7 @@ test('preview is offline and retains main queue interactions without A/B switche
 test('front-only two-layer crown does not hide send arrow or consume pointer hits',()=>{
  assert.match(css,/\.sq-send>svg\{[^}]*z-index:1;pointer-events:none/);
  assert.match(css,/\.sq-crown\{[^}]*pointer-events:none;z-index:2/);
- assert.match(css,/--sq-crown-desktop-angle:4deg/);
- assert.match(css,/--sq-crown-touch-angle:4deg/);
+ assert.match(css,/--sq-crown-desktop-angle:-1deg/);
+ assert.match(css,/--sq-crown-touch-angle:-1deg/);
  assert.match(html,/蓝色圆形按钮在后、正面金冠在前/);
 });
