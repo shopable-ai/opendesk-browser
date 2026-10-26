@@ -60,10 +60,15 @@ export function CookieAccounts({
     document.addEventListener('pointerdown',outside,true);
     document.addEventListener('focusin',outside,true);
     document.addEventListener('keydown',escape,true);
+    const closeOnScroll=()=>setMenuId(null);
+    window.addEventListener('scroll',closeOnScroll,true);
+    window.addEventListener('resize',closeOnScroll);
     return ()=>{
       document.removeEventListener('pointerdown',outside,true);
       document.removeEventListener('focusin',outside,true);
       document.removeEventListener('keydown',escape,true);
+      window.removeEventListener('scroll',closeOnScroll,true);
+      window.removeEventListener('resize',closeOnScroll);
     };
   },[menuId]);
   const commitPassword=()=>{
@@ -97,7 +102,7 @@ export function CookieAccounts({
   const onMenuKeyDown=event=>{
     if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
     event.preventDefault();
-    const candidates=[...popup.current?.querySelectorAll('[role="menuitem"]:not(:disabled)')||[]];
+    const candidates=[...(popup.current?.querySelectorAll('[role="menuitem"]:not(:disabled)')||[])];
     if(!candidates.length)return;
     const at=candidates.indexOf(document.activeElement);
     const next=event.key==='Home'?0:event.key==='End'?candidates.length-1:
@@ -193,7 +198,8 @@ export function CookieAccounts({
   const filtered=accounts.filter(item=>
     String(item.displayName||'').toLowerCase().includes(query.toLowerCase()));
   return <section className="cookie-account-page od-surface" aria-label="账号"
-    ref={list}>
+    id="cookie-product-panel-accounts" role="tabpanel"
+    aria-labelledby="cookie-product-tab-accounts" ref={list}>
     <header className="cookie-account-header">
       <strong>账号 <span className="cookie-account-count">{accounts.length}</span></strong>
       <div className="cookie-account-actions">
@@ -296,7 +302,9 @@ export function CookieAccounts({
 }
 
 export function CookieAccountMarket(){
-  return <section className="cookie-account-page od-surface" aria-label="市场">
+  return <section className="cookie-account-page od-surface" aria-label="市场"
+    id="cookie-product-panel-market" role="tabpanel"
+    aria-labelledby="cookie-product-tab-market">
     <header className="cookie-account-header"><strong>市场</strong>
       <span className="cookie-market-status">尚未上线</span></header>
     <div className="cookie-account-content">
