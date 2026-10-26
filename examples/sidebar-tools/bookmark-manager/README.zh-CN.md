@@ -1,5 +1,12 @@
 # Bookmark Manager · 正式 React 与 Classic 兼容工具
 
+## 书签管理设置页标题与返回（2026-10-26）
+
+当前正式工具配置仍为 `0.3.11`。从书签管理右上角进入可信“设置”页时，宿主应在原有顶部一行显示 **「书签管理 / 设置」**；返回后恢复「书签管理」和先前的书签工作区，保留未保存草稿与现有权限。根页只显示应用名，不再增加 Nav。书签详情 PreviewPane、新建/编辑 Sheet 已有自身标题及关闭，它们不是新的宿主业务路由，不为了视觉标签改写返回栈。
+
+本次问题的 owner 是公共 `src/ui/sidebar-tools.js` 的 Host 标题投影，新增纯文本 `src/ui/sidebar-tools/title-path.js`；不是 Bookmark CRUD、SDK 或 React Service 缺陷。**未更改本工具业务源码、tool.config.json、正式 JSON 包或能力声明，也无需以相同版本重打安装包。** 需要 Browser 包含更新后的 Host 才能生效；未执行本地 Chrome 操作前均标记 `NOT_TESTED`。后续依照[导航合同 R2](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)与[产品 UI 规范](../../../docs/product/sidebar-ui-spec.zh-CN.md)维护，业务层若真的新增全页子视图须同步标题与真实返回事件。
+
+
 ## 0.3.11 重装后列表与正式界面恢复（2026-10-24）
 
 书签管理是官方目录中的 **optional 可选应用**，不是默认预装。本次现场已安装最新 `0.3.11`，包 SHA 正确但来源未记录，因此进入 Classic 兼容界面。市场现提供「审阅官方来源 → 确认官方来源」：仅在完整包与固定官方发行一致时，通过原安装器补回来源；保留包、安装代际、数据及已有授权，同版本不同内容和降级仍拒绝。包字节及版本未改变。
