@@ -37,7 +37,7 @@ test('Cookie name, path, Store and Partition remain independent in an operation 
   assert.equal(plan.find(item=>item.kind==='set')?.row.path,'/account');
 });
 
-test('one private Host protocol has no raw Cookie or key RPC',()=>{
+test('one private Host protocol has no raw Cookie or key RPC',async()=>{
   assert.equal(COOKIE_ACCOUNT_PROTOCOL,'opendesk.cookie-accounts.v1');
   assert.equal(new Set(COOKIE_ACCOUNT_OPERATIONS).size,COOKIE_ACCOUNT_OPERATIONS.length);
   assert.ok(COOKIE_ACCOUNT_OPERATIONS.includes('status'));
