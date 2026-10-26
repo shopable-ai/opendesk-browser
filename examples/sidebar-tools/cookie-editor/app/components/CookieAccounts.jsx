@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {CookieIconButton} from './CookieEditorView.jsx';
+import {CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
 import {createAccountSwitchUrl,inspectAccountSwitchUrl} from '../domain/account-switch-url.js';
 
 const ruleHelp={
@@ -148,6 +148,10 @@ export function CookieAccounts({
       <h2>管理自动切换</h2>
     </header>
     <div className="cookie-account-content">
+      {feedback&&<p role={feedback.kind==='error'?'alert':'status'}
+        className={'cookie-account-feedback'+(feedback.kind==='error'?' is-error':'')}>
+        {feedback.text}
+      </p>}
       <label className="cookie-account-setting">
         <span><strong>允许 URL 自动切换</strong>
           <small>仅对白名单内的本站账号生效</small></span>
@@ -277,6 +281,13 @@ export function CookieAccounts({
             disabled={busy||!vaultReady}
             aria-label={'更多操作：'+item.displayName} aria-haspopup="menu"
             aria-expanded={menuId===item.alias}
+            onKeyDown={event=>{
+              if(event.key==='ArrowDown'&&menuId===item.alias){
+                event.preventDefault();
+                popup.current?.querySelector('[role="menuitem"]:not(:disabled)')
+                  ?.focus({preventScroll:true});
+              }
+            }}
             onClick={event=>{
               const opening=menuId!==item.alias;
               if(opening){
@@ -284,7 +295,7 @@ export function CookieAccounts({
                 positionMenu(event.currentTarget);
               }
               setMenuId(opening?item.alias:null);
-            }}>···</button>
+            }}><CookieIcon name="more"/></button>
           {menuId===item.alias&&<div ref={popup} role="menu"
             className="cookie-account-menu" style={menuPosition}
             aria-label={'账号操作：'+item.displayName}
