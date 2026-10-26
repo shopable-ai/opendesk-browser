@@ -1,25 +1,27 @@
 # Sidebar Tool Navigation Contract R1 · 已安装可信框架上的最小层级协作
 
-状态：R1.2 是 `web-markdown-clipper` 的历史试点；R2 增加当前共享标题呈现规则。唯一权威仍为 `docs/product/sidebar-ui-spec.zh-CN.md` 与已有 Host/Sandbox 协议；不创建新 Router/Host。
+状态：R1.2 为 `web-markdown-clipper` 历史试点；R2.2 统一采用当前页短标题。权威产品与权限合同不变：`docs/product/sidebar-ui-spec.zh-CN.md` 与现有 Host/Sandbox 协议；不创建 Router 或第二条导航栏。
 
-## R2 单行动态标题（现行增量，2026-10-26）
+## R2.2 唯一可见当前页标题（现行，2026-10-26）
 
-**用户问题**：已安装应用进入宿主可信“设置”后仍只显示应用名；部分已接入官方导航的内部页面只显示「编辑」等短标题，缺少所属扩展上下文。不因此增加第二条导航栏。
+**原问题**：将父扩展名和子页名渲染为两个 flex span，导致「书签管理 / 设置」中间出现大片空白；「提示词快捷按钮 / 提示词详情」重复语义并挤占侧栏宽度。
 
-| 真实当前页面 | 唯一页首标题 | 原返回按钮 |
+| 实际视图 | 共享页头可见标题 | 完整悬浮提示与 ARIA |
 | --- | --- | --- |
-| 书签管理首页 | `书签管理` | 回扩展列表 |
-| 书签管理可信设置 | `书签管理 / 设置` | 返回原工作区；从管理入口直接进入时正常打开工具 |
-| 已验真官方工具编辑子页 | `工具名称 / 编辑` | 交给业务现有 `back` 与脏草稿保护 |
-| 未接入官方导航的旧/第三方工具 | `工具名称` | 保留工具自身子页导航，不推断 iframe 历史 |
+| 书签管理首页 | `书签管理` | `书签管理` |
+| 书签管理可信设置 | `设置` | `书签管理 / 设置` |
+| 书签/文件夹新建 Sheet | `新建` | `书签管理 / 新建书签` 等原业务名称 |
+| 书签/文件夹编辑 Sheet | `编辑` | `书签管理 / 编辑书签` 等原业务名称 |
+| 提示词详情 | `详情` | `提示词快捷按钮 / 提示词详情` |
+| 提示词新建/编辑 | `新建` / `编辑` | 保留原完整业务路径 |
+| 无准入的旧版/第三方工具 | 工具原名称 | 工具自己负责内部导航 |
 
-- **单一展示 owner**：`src/ui/sidebar-tools.js` 从现有 `tocSettingsOpen`、经过可信准入的业务 `navigation-state` 和安装元数据生成 `sidebar-tool-title`；仅抽出纯文本助手 `src/ui/sidebar-tools/title-path.js`。不新增 Nav、面包屑条、Router 或历史栈。完整文字与版本可从标题悬浮提示看到；小屏继续沿用既有截断布局，不压缩操作点击区域。
-- **状态优先级**：可信设置高于业务子页显示；退出设置恢复此前有效业务标题；根页不追加「/ 首页」；工具自行上报完整路径时不重复前缀。视觉提示不能自动赋予一个子页面 Back 权限；业务动作 owner 不变。
+- **唯一展示 owner**：`src/ui/sidebar-tools/title-path.js` 仅将已准入业务页名投影为可见短名，`src/ui/sidebar-tools.js` 仍从可信设置、活动业务导航和安装元数据取状态；`src/ui/react/tabs/tool-host.tsx` 仅渲染单段文本，`src/ui/tool-shell.css` 处理剩余空间及真正溢出时的省略。禁止父名和页名各自 flex 占宽、可见面包屑或第二条 Header。完整路径在 `title` 与 `aria-label` 中保留，悬浮提示还包含实际版本。
+- **不粗暴删任意业务名称**：仅固定已知短语如「提示词详情」「摘录详情」「新建/编辑书签」「新建/编辑文件夹」「新建/编辑提示词」映射为简洁动作名；未知标题保持原文，确实空间不足才 CSS 省略。收到合法完整路径时，可见标题只取末级，悬浮和辅助技术仍可还原。业务 `setNavigation` 保留原有意义的标题与状态。
+- **可信设置去重**：Header 已显示「设置」时，设置区域不再额外渲染「工具设置」H2，仍保留语义 `aria-label`。根页显示工具名；可信设置优先于编辑/详情，关闭设置恢复原子页；导航根状态 `home/index` 不追加「首页/列表」。
 - **R2.2 实例生命周期**：导航的收取、呈现和动作发送均核对当前完整包及安装代际；收到代际撤销后立即清除导航提示。保留可复制草稿的旧沙箱也不能继续控制宿主页首或发送导航动作。同包、同代际、未处于设置的活动可信 UI 重复打开时复用原实例；异步初始化/恢复的失败只清理其捕获的旧 Host，核对 tool/instance 后才可改变共享工作区。书签编辑区域的无障碍名称与同一业务导航标题一致。
-- **信任边界**：只有与官方登记完整包字节一致、当前安装代际、iframe 实例和来源核对通过的沙箱才可用 `OpenDeskTool.setNavigation` 更新 Host 页名。手工同 ID、过期实例、未验真工具继续使用自己的 UI；绝不从任意 iframe 文本构造可信页头或修改权限。
-- **真正可返回的业务视图**：书签管理可信 React 的新建/编辑 Sheet 在 R2.1 已注册静态业务 `bookmarkEditorNavigation` 与原生关闭回调 `requestCloseSheet()`，因此可以显示「书签管理 / 新建书签」「书签管理 / 编辑书签」。全局返回首先进入原草稿未保存/写入未知确认，不直接退出扩展；进入可信设置暂时覆盖标题，返回恢复编辑状态。仅选择书签生成的详情 PreviewPane、菜单、文件夹选择与确认 Dialog 仍不产生新宿主路由。
-- **发行边界**：R2.1 同时修改 Browser 共享 Host、静态可信 React 业务 `App.jsx` / `navigation.js` 以及 `scripts/bundle-provenance.mjs` 受审源码锁；`bookmark-manager` 正式 JSON、配置版本、能力和业务 SDK 均不变。要在已安装浏览器看到变化，需要构建并更新/重载包含新 Host 与可信 React 的 Browser。真实 Mac Chrome 未执行前标记 `NATIVE_NOT_TESTED`。
-- **定向验收**：主界面 → 设置 → 返回原界面；已验真业务根页 → 子页 → 设置 → 原子页；旧/第三方沙箱不越权；标题窄屏完整提示与键盘可访问；脏草稿保存中返回不丢失。Host Back 必须读取 `draftRef.current` 的最新输入和 `busyRef.current`、`uncertainRef.current`，不能依赖 React Effect 更新前的旧闭包。对应测试：`tests/environment/bookmark-manager-title-navigation-r1.test.mjs`、`sidebar-tool-header-title-r2.test.mjs`、`sidebar-tool-hierarchical-back-r12.test.mjs`、`bookmark-manager-r32-formal-source.test.mjs`。
+- **行为与安全不由标题决定**：共享 Back、书签 React Sheet 的 `requestCloseSheet()` 草稿/保存中/结果未知保护和提示词业务 Back 都不依赖短文字。只有经过官方完整包字节、活动实例、来源和安装代际核验的工具才能上报可信标题；未验真同 ID 和过期实例仍隔离。
+- **短标题调整的交付边界**：只调整 Browser 共享 Host/React/CSS、规范和测试，不修改书签或提示词业务源码、版本、能力或正式 JSON 包；需在真实 Chrome 更新包含新 Host 的 Browser 才生效。定向测试 `tests/environment/sidebar-tool-header-title-r2.test.mjs`、`bookmark-manager-title-navigation-r1.test.mjs`、`sidebar-tool-hierarchical-back-r12.test.mjs`；Mac 原生未执行标 `NATIVE_NOT_TESTED`。
 
 ## 用户原则
 
@@ -34,12 +36,12 @@ R2.2 本地证据与验证缺口见[增量记录](../framework/workstreams/sideb
 - 业务 owner：`examples/sidebar-tools/web-markdown-clipper/src/notes.js`，负责 `home → library → reader → edit`、从 `recent → reader` 直返首页、编辑来源、搜索/筛选/滚动以及保存/取消。不得使用 `window.history.back()`。
 - 可信呈现 owner：现有 `ToolHost` / `src/ui/sidebar-tools.js`，只绘制标题、左返回及当前上下文图标，根页面仍使用原关闭/生命周期。不得复制一套浏览历史。
 - 原版 `src/sidebar-tools/bridge.js` 仍是隔离入口，不允许扩展代码直接修改可信 React DOM。所有消息沿 `SIDEBAR_TOOL_PROTOCOL`，必须通过 `event.origin==='null'`、实际 `event.source`、宿主活动 `instance` 与 `toolId` 验证。工具被关闭、切换或实例重新创建后清空显示提示，旧消息一律无效。
-- 只对 `web-markdown-clipper` 暴露 `OpenDeskTool.setNavigation({page})`，`page` 仅允许 `home | library | reader | edit | new`。Sandbox→Host 使用 `kind:'navigation-state'`；Host→Sandbox 使用 `kind:'navigation-action'` 且 `action` 仅 `back | primary`。宿主将页面 ID 映射为内置标题和图标，绝不接受扩展自填可信标题、HTML、URL、脚本或特权操作。
+- 当前已验真官方工具沿原协议上报各自受约束的 `OpenDeskTool.setNavigation`；历史 `web-markdown-clipper` 页面 ID 为 `home | library | reader | edit | new`。Sandbox→Host 使用 `kind:'navigation-state'`；Host→Sandbox 使用 `kind:'navigation-action'` 且 `action` 仅 `back | primary`。宿主将页面 ID 映射为内置标题和图标，绝不接受扩展自填可信标题、HTML、URL、脚本或特权操作。
 - `busy / dirty` 使用既有 `OpenDeskTool.setState` 与宿主原始生命周期。保存进行时禁止切换；编辑未保存时业务返回触发确认，打开设置前提示先保存或取消。根返回仍通过原有关闭保护。
 - `primary` 行为由 `notes.js` 自己判断：资料库新建、阅读进入编辑、编辑/新建保存。显示提示不能代替业务端再次验证当前状态。
 - 旧工具及独立标签页：没有 `setNavigation` 的工具保留既有内部页头与按钮。没有已验证活动子页时宿主根返回保持旧操作，不凭空推断历史。独立标签页不创建虚假的扩展列表路由。
 
-## R1.2 兼容性调查（未接入者不自动改写）
+## R1.2 兼容性调查（历史记录，不代表当前准入状态）
 
 | 扩展 | 已检查的源码头部 | 本轮处理 |
 |---|---|---|
