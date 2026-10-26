@@ -59,3 +59,23 @@ ChatGPT 官方插件或 MCP 能在具备权限时由 ChatGPT 主动调用外部�
 - 当前交付是辅助 UI 的业务源码与预览，未宣称网页普通聊天额度可程序化无限使用。
 
 Mac Codex 只处理本项目实际未完成的测试和修复，不能重复开发相同功能；先检查用户原工作区、已存在的开发进程和 latest main，保留他人的未提交更改，禁止创建新分支、worktree 或 PR。
+
+## 2026-10-26 调研证据与 P1 明确阻断项
+
+官方依据：
+
+- https://help.openai.com/en/articles/8914046-temporary-chat-in-chatgpt ：Personalized Temporary Chat 可以使用已有插件；Unpersonalized 不使用插件，临时会话不进入普通历史（除非主动保存）。
+- https://help.openai.com/en/articles/12584461-developer-mode-and-full-mcp-connectors-in-chatgpt ：自定义 MCP 的完整写入权限主要面向合格 Business / Enterprise / Edu；Pro 自定义 MCP 的 read/fetch 不等于任意自定义写入工具获授权。已安装的专门应用如具备写入工具，也需单独检查权限和参数。
+- https://help.openai.com/en/articles/20001542-using-your-chatgpt-plan-in-other-apps-and-sites ：Sign in with ChatGPT 合作应用 AI 请求使用 Work/Codex 共享额度；不应声称属于网页普通聊天池。
+- https://openai.com/policies/terms-of-use/ ：禁止未获授权的程序化提取输出及绕过访问限制。
+- https://learn.chatgpt.com/docs/chrome-extension ：官方 Chrome side chat 可在浏览器旁侧展示聊天，但没有向第三方 Page Program 提供自动发起模型请求与直接接受回执的公开合同。
+
+开源对照：2026-10-26 仓库推送记录可核查：
+- https://github.com/Wei-Shaw/sub2api ：Codex 模型清单处理器面向 Codex CLI/桌面客户端，并非官网普通聊天的公开 API。
+- https://github.com/router-for-me/CLIProxyAPI ：Codex/CLI OAuth 通道，额度归属不能推定普通网页聊天。
+- https://github.com/HuggingBear/Chat2API ：最后代码更新 2024-07；旧版 AccessToken/RefreshToken 私有协议，不能推定现可用。
+- https://github.com/stufently/gpt-web-gateway/blob/main/CHANGELOG.md ：2.16.2 (2026-10-26)；2.16.0 报告网页任务卡住和诊断/重试，其 README 公开披露官网自动化条款风险和 backend-api 截取。
+
+本轮 P0 公开资料与最新代码分类已开展，当前账号的实际额度/许可没有模拟或确认；P1 未发现可授权的「AI 整理正文写入 OpenDesk」工具，真实插件调用、回执身份与新会话均 NOT_TESTED；P2 仅独立 Page 辅助程序源码与模拟预览存在，正式 Chrome 尚未验收。没有任何一项可以升级称作完整自动闭环 PASS。
+
+下一次实测顺序：先在支持写入的**已有** OpenDesk 应用/工具及账号权限下寻找一个目标明确的安全正文接收动作；如无此能力则记录 BLOCKED，不重复研究 Codex 网关；随后仅验证普通用户手动从官网临时对话复制 JSON、输入框冲突保护与读回。任何新宿主/通信 API 必须经独立缺口审计，不能为了做演示临时开放网页事件权限。
