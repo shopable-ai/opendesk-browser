@@ -963,3 +963,42 @@ test('R132 disabling or revoking original install instantly fences saved config 
     enabled:false},{});
   await fails(()=>f.service.handleBoot(message,f.sender),'E_PAGE_AUTHORIZATION');
 });
+
+test('R133 custom Origin candidate remains read-only, requires exact installed identity, and never revives a disabled Page',async()=>{
+  const f=fixture(),programId='opendesk.ai-scroll-navigation',revision=3;
+  const source=[
+    '// ==UserScript==','// @name Navigation reviewed scope',
+    '// @version 0.4.2','// @match https://example.com/*',
+    '// @noframes','// @run-at document-idle','// ==/UserScript==',
+    '// __openDeskScrollConfig','async function main(){return 3;}'
+  ].join(String.fromCharCode(10))+String.fromCharCode(10);
+  const candidate=await f.prepare('document-idle',{programId,revision,
+    site:'https://example.com/*',sourceUtf8:source});
+  const installed=await f.service.installPageProgram({programId,revision,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  const request={programId,origin:'https://custom.example.org',pathScope:'/chat',
+    expectedInstalledManifestHash:installed.manifestHash,
+    expectedGeneration:installed.authorization.generation};
+  const initialWrites=f.writes.length,initialRegister=f.registerCalls;
+  const pkg=await f.service.prepareScrollSitePackage(request,{});
+  assert.equal(pkg.programId,programId);
+  assert.equal(pkg.revision,revision+1);
+  assert.equal(pkg.version,'0.4.2+site.r4');
+  assert.deepEqual(pkg.pageRules.matches,[
+    'https://example.com/*','https://custom.example.org/chat',
+    'https://custom.example.org/chat?*','https://custom.example.org/chat/*'
+  ]);
+  assert.equal(f.writes.length,initialWrites,'preparing review cannot write installation');
+  assert.equal(f.registerCalls,initialRegister,'preparing review cannot register USER_SCRIPT');
+  assert.equal(f.permissionRequests.length,0,'preparing review cannot request Chrome permissions');
+  assert.equal(f.installation(programId).revision,3,'only original Installer can authorize new revision');
+  await fails(()=>f.service.prepareScrollSitePackage({...request,expectedGeneration:0},{}),'E_REVISION');
+  await fails(()=>f.service.prepareScrollSitePackage({...request,origin:'https://example.com'},{}),
+    'E_SITE_ALREADY_ALLOWED');
+  f.granted=false;
+  await fails(()=>f.service.prepareScrollSitePackage(request,{}),'E_PERMISSION');
+  f.granted=true;
+  await f.service.setInstalledPageEnabled({programId,manifestHash:installed.manifestHash,
+    expectedGeneration:installed.authorization.generation,enabled:false},{});
+  await fails(()=>f.service.prepareScrollSitePackage(request,{}),'E_PAGE_AUTHORIZATION');
+});
