@@ -14,7 +14,8 @@ test('single reference entry delegates to existing Atlas without a second palett
 });
 test('Atlas loads canonical tokens, no new component root and correct default',()=>{
   assert.match(atlas,/href="\.\.\/\.\.\/\.\.\/src\/ui\/design-tokens\.css"/);
-  assert.match(atlas,/id="tab-foundation" aria-selected="true"/);
+  assert.match(atlas,/id="tab-components" aria-selected="true"/);
+  assert.match(atlas,/id="pane-foundation" role="tabpanel" aria-labelledby="tab-foundation" hidden/);
   assert.match(atlas,/id="pane-guide"/);
   assert.match(atlas,/id="component-catalog"/);
   assert.doesNotMatch(atlas,/createRoot\s*\(/);
@@ -35,4 +36,18 @@ test('reference provides environment-specific examples and three reuse tasks',()
   assert.match(doc,/页面模式/);
   assert.match(doc,/独立沙箱/);
   assert.match(doc,/200%/);
+});
+
+test('R3.0 React-first Atlas fits constrained widths without a scroll-only primary nav',()=>{
+  assert.match(atlas,/id="mobile-tab-select"/);
+  assert.match(atlas,/\.side\{display:none\}/);
+  assert.match(atlas,/\.frame\{[^}]*max-width:100%/);
+  assert.doesNotMatch(atlas,/\.frame\{[^}]*max-width:none/);
+  assert.match(atlas,/id="react-fit-status"/);
+  assert.match(atlas,/id="react-runtime-status"/);
+  assert.match(atlas,/id="open-react"/);
+  assert.ok(atlas.indexOf('id="real-react"')<atlas.indexOf('id="component-catalog"'),
+    'compiled React must be immediately discoverable ahead of the catalog');
+  assert.match(atlas,/无法读取 iframe（来源隔离）/);
+  assert.match(atlas,/请求 360px/);
 });
