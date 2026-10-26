@@ -299,7 +299,10 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
     const value=await vault.status();
     const site=originOf(origin);
     return {...value,accounts:value.accounts.filter(x=>x.origin===site).map(meta),
-      autoRuntimeReady:true};
+      autoRuntimeReady:Boolean(api?.webNavigation?.onCompleted?.addListener&&
+        api?.webNavigation?.onReferenceFragmentUpdated?.addListener&&
+        api?.webNavigation?.getFrame&&api?.storage?.session?.get&&
+        api?.cookies?.getPartitionKey)};
   }
   async function dispatch(message,sender){
     if(!object(message)||message.protocol!==COOKIE_ACCOUNT_PROTOCOL||
