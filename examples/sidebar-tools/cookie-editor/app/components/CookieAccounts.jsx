@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
 import {createAccountSwitchUrl,inspectAccountSwitchUrl} from '../domain/account-switch-url.js';
+import {CookieAccountShare} from './CookieAccountExperiences.jsx';
 
 const ruleHelp={
   E_URL_INVALID:'请输入普通 HTTP(S) 网页地址。',
@@ -25,6 +26,7 @@ export function CookieAccounts({
   onToggleAuto,onToggleRefresh,onAllowAlias,onCopyLink
 }){
   const [query,setQuery]=React.useState('');
+  const [shareItem,setShareItem]=React.useState(null);
   const [menuId,setMenuId]=React.useState(null);
   const [menuPosition,setMenuPosition]=React.useState({left:8,top:8});
   const [inline,setInline]=React.useState(null);
@@ -140,7 +142,7 @@ export function CookieAccounts({
     ['更新当前 Cookie 快照',()=>onUpdate?.(item),Boolean(onUpdate)],
     ['生成切换链接',()=>onCopyLink?.(item,linkFor(item)),
       Boolean(onCopyLink)&&Boolean(linkFor(item))],
-    ['分享',()=>onShare?.(item),Boolean(onShare)],
+    ['分享配置',()=>setShareItem(item),true],
     ['删除',()=>startInline('delete',item),Boolean(onDelete)]
   ].map(([label,action,available])=><button key={label} type="button"
     className="od-button od-button--quiet" role="menuitem" disabled={busy||!vaultReady||!available}
@@ -149,6 +151,8 @@ export function CookieAccounts({
       trigger.current?.focus({preventScroll:true});
       action();
     }}>{label}</button>);
+  if(shareItem)return <CookieAccountShare account={shareItem} previewOnly={previewOnly}
+    onBack={()=>setShareItem(null)}/>;
   if(route==='auto')return <section className="cookie-account-page od-surface"
     aria-label="管理自动切换">
     <header className="cookie-account-header">
@@ -329,20 +333,3 @@ export function CookieAccounts({
   </section>;
 }
 
-export function CookieAccountMarket(){
-  return <section className="cookie-account-page od-surface" aria-label="市场"
-    id="cookie-product-panel-market" role="tabpanel"
-    aria-labelledby="cookie-product-tab-market">
-    <header className="cookie-account-header"><strong>市场</strong>
-      <span className="cookie-market-status">尚未上线</span></header>
-    <div className="cookie-account-content">
-      <p className="cookie-account-notice">
-        尚未接入可信身份、服务端授权和交易服务；目前没有可领取、购买或租用的资源。
-      </p>
-      <div className="cookie-market-outline">
-        <strong>后续方向</strong>
-        <span>团队席位 · 可撤销授权 · 邀请领取 · 到期管理</span>
-      </div>
-    </div>
-  </section>;
-}
