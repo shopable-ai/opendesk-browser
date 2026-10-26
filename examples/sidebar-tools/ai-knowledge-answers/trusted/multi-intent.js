@@ -11,8 +11,32 @@ const ambiguousRefund=/退款|退货/u;
 const refundDuration=/多久|多长时间|几天|多少天|什么时候/u;
 const refundQualifier=/申请|期限|签收|审核|处理|到账|退回|退款到|生效|完成/u;
 const realtime=/((?:我的|我这|这笔|该笔).{0,6}(?:订单|物流|退款)|订单号|物流单号|快递到哪|查(?:一下|询).{0,8}(?:订单|快递|物流|退款)|(?:订单|物流|退款).{0,6}(?:状态|进度|现在|到哪)|帮我(?:取消|退款|修改|下单|申请|查询)|替我(?:退款|取消|修改)|给我(?:退款|取消)|改(?:一下)?(?:收货)?地址|现在(?:发|退)了没有)/u;
-const duplicate=parts=>new Set(parts.map(comparable)).size!==parts.length;
 const budget=parts=>parts.length<=MAX_CUSTOMER_INTENTS&&parts.every(x=>x.length>0&&x.length<=180);
+// The original BM25 scorer can match generic "什么时候" to support hours,
+// even when the customer is asking about shipping. Require a topical match
+// in the STANDARD question or an explicit alias before disclosing any AI
+// candidate. This is a conservative candidate gate, not semantic proof.
+function topicTerms(question){
+  const topic=question.replace(/什么时候|多长时间|何时|多久|几天|多少天|多少|如何|怎么|什么|请问|需要|可以|是否|能否|能够|支持|有没有|能不能|吗|呢|呀|啊/gu,'');
+  const terms=new Set();
+  for(const match of topic.matchAll(/[\p{Script=Han}]{2,}/gu)){
+    const word=match[0];
+    for(let i=0;i<word.length-1;i++)terms.add(word.slice(i,i+2));
+  }
+  return [...terms];
+}
+function sourceCandidates(library,question,scope,found){
+  if(found.status==='ANSWERED_FIXED'||found.status==='AMBIGUOUS')return found;
+  const terms=topicTerms(question);if(!terms.length)return {...found,status:'NO_MATCH',sourceIds:[]};
+  const scored=library.items.filter(x=>x.enabled&&x.scope===scope).map(x=>{
+    const head=[x.question,...x.aliases].join(' ');
+    const hits=terms.filter(t=>head.includes(t)).length;
+    return {id:x.id,hits,prior:found.sourceIds.indexOf(x.id)};
+  }).filter(x=>x.hits>0).sort((a,b)=>b.hits-a.hits||
+    (a.prior<0?999:a.prior)-(b.prior<0?999:b.prior)||a.id.localeCompare(b.id)).slice(0,3);
+  return {status:scored.length?'RETRIEVED_ONLY':'NO_MATCH',answer:'',
+    sourceIds:scored.map(x=>x.id),needsHuman:true,candidates:[]};
+}
 
 export function splitCustomerIntents(message){
   if(typeof message!=='string'||!message.trim()||message.length>300)
@@ -52,7 +76,8 @@ export function composeCustomerReply(parsed,parts){
   const unknownCount=parts.length-answered.length;
   const status=parsed.overLimit?'OVER_LIMIT':
     !parts.length?(parsed.hasGreeting?'GREETING_ONLY':'NO_MATCH'):
-    parts.length===1&&!parsed.hasGreeting?parts[0].status:
+    parts.length===1&&(!parsed.hasGreeting||parts[0].status==='RETRIEVED_ONLY')
+      ?parts[0].status:
     unknownCount?'PARTIAL_REVIEW_REQUIRED':
     parts.length===1?'COMPOSITE_REVIEW_REQUIRED':'MULTI_REVIEW_REQUIRED';
   let answer='';
@@ -75,7 +100,7 @@ export function composeCustomerReply(parsed,parts){
   // Never truncate policy wording or let the web click fail after approval.
   const tooLong=answer.length>2800;
   return {status:tooLong?'OVER_LIMIT':status,answer:tooLong?'':answer,
-    sourceIds:parts.length===1&&!parsed.hasGreeting&&parts[0].status==='RETRIEVED_ONLY'
+    sourceIds:parts.length===1&&parts[0].status==='RETRIEVED_ONLY'
       ?parts[0].candidateSourceIds.slice():verifiedIds,
     answeredCount:answered.length,reviewCount:unknownCount,
     needsHuman:status!=='ANSWERED_FIXED'||parsed.hasGreeting,
@@ -98,7 +123,7 @@ export function planCustomerMessage(model,lib,{question,scope=''}={}){
     // No high-confidence parsing across a conjoined, underspecified request.
     if(/(?:退款|退货).*(?:和|以及).*(?:发货|物流)|(?:发货|物流).*(?:和|以及).*(?:退款|退货)/u.test(part))
       return reviewPart(part,'CLARIFICATION_REQUIRED','INTENT_BOUNDARY_UNCERTAIN');
-    const found=model.lookup(library,{question:part,scope});
+    const found=sourceCandidates(library,part,scope,model.lookup(library,{question:part,scope}));
     return {question:part,status:found.status,answer:found.answer||'',
       sourceIds:found.status==='ANSWERED_FIXED'?found.sourceIds.slice():[],
       candidateSourceIds:found.status==='RETRIEVED_ONLY'?found.sourceIds.slice():[],
