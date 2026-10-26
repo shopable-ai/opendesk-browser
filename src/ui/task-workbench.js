@@ -298,7 +298,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     syncRunDock();myView.publish();
   }
-  const taskSearchReturnFocus=()=>focus(ui('task-search-toggle').hidden?'task-open-catalog':'task-search-toggle',{preventScroll:true});
+  const taskSearchReturnFocus=()=>focus('task-manage-toggle',{preventScroll:true});
   function renderInstalledCards() {
     const selected=ui('task-installed-list').value;
     let origin=null;
@@ -333,6 +333,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function setTaskManagementMode(open) {
     taskManagementMode=Boolean(open);
     ui('task-manage-toggle').attributes['aria-pressed']=String(taskManagementMode);
+    // Search belongs to the existing management context, not a fifth header action.
+    ui('task-search-panel').hidden=!taskManagementMode||!installed.length;
     if(taskManagementMode){
       ui('task-tools').open=true;
       if(!installedRow()&&installed[0]){
@@ -340,10 +342,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         renderInstalledSelection();
       }
     }else{
+      // Never strand a task behind a search/filter when management closes.
+      localQuery='';localFilter='all';ui('local-discover-search').value='';
       dismissTaskUninstall();
       ui('task-tools').open=false;
     }
-    renderInstalledCards();
+    renderInstalledCards();update();
   }
   function dismissTaskUninstall() {
     pendingTaskUninstall=null;
@@ -351,6 +355,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   function renderInstalled() {
     ui('task-installed-count').text=installed.length+' 个';
+    ui('task-manage-toggle').disabled=installed.length===0;
+    ui('task-search-panel').hidden=!taskManagementMode||!installed.length;
     const sel=ui('task-installed-list'),prior=sel.value;
     myView.options('task-installed-list',[
       {label:installed.length?'请选择已安装任务':'暂无已安装任务',value:''},
@@ -781,26 +787,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }finally{input.value='';}
     }));
   }
-  function setTaskSearchOpen(open){
-    const panel=ui('task-search-panel'),toggle=ui('task-search-toggle');
-    panel.hidden=!open;toggle.attributes['aria-expanded']=String(open);
-    if(open){
-      renderInstalledCards();update();
-      focus('local-discover-search',{preventScroll:true});
-    }else{
-      localQuery='';localFilter='all';ui('local-discover-search').value='';
-      renderInstalledCards();update();taskSearchReturnFocus();
-    }
-  }
   registerAction('taskManageToggleClick',event=>{
-    if(!event.isTrusted)return;
+    if(!event.isTrusted||!installed.length)return;
     setTaskManagementMode(!taskManagementMode);
   });
-  registerAction('taskSearchToggleClick',()=>setTaskSearchOpen(ui('task-search-panel').hidden));
   registerAction('taskSearchPanelKeydown',event=>{
-    if(event.key!=='Escape'||event.defaultPrevented||event.isComposing)return;
+    if(event.key!=='Escape'||event.defaultPrevented||event.isComposing||!taskManagementMode)return;
     event.preventDefault();
-    setTaskSearchOpen(false);
+    setTaskManagementMode(false);
+    taskSearchReturnFocus();
   });
   registerAction('localDiscoverSearchInput',()=>{
     localQuery=ui('local-discover-search').value.trim().toLocaleLowerCase();
@@ -941,8 +936,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(navigate('tasks')===false)return false;
     // A manager handoff must not leave its explicitly selected task filtered out.
     localQuery='';localFilter='all';ui('local-discover-search').value='';
-    ui('task-search-panel').hidden=true;
-    ui('task-search-toggle').attributes['aria-expanded']='false';
+    setTaskManagementMode(false);
     ui('task-installed-list').value=taskId;
     renderInstalledSelection();
     return true;

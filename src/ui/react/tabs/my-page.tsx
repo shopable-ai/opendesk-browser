@@ -89,21 +89,15 @@ export function MyTasksPage({view,agent=null,hidden=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   return <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" className="od-page" data-workbench-page="tasks" hidden={hidden}>
 <MyControl view={view} as="section" className="tasks-surface" aria-label="已安装任务" id="my-task-surface">
-<div className="task-section-head od-toolbar">
+<div className="task-section-head od-page-head">
 <div className="task-section-copy">
 <strong>{"自动化任务"}</strong>
 <MyControl view={view} as="span" id="task-installed-count" aria-live="polite">
 </MyControl>
 </div>
-<div className="task-section-actions">
+<div className="task-section-actions od-page-actions">
 <MyAgentToggle agent={agent}/>
-<MyControl view={view} as="button" id="task-search-toggle" onClick={event=>view.actions.taskSearchToggleClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="搜索和筛选任务" aria-label="搜索和筛选任务" aria-expanded="false" aria-controls="task-search-panel">
-<svg viewBox="0 0 24 24" aria-hidden="true">
-<circle cx="10.8" cy="10.8" r="6.8"/>
-<path d="m16 16 5 5"/>
-</svg>
-</MyControl>
-<MyControl view={view} as="button" id="task-manage-toggle" onClick={event=>view.actions.taskManageToggleClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="管理自动化任务" aria-label="管理自动化任务" aria-pressed="false" aria-controls="task-installed-cards">
+<MyControl view={view} as="button" id="task-manage-toggle" onClick={event=>view.actions.taskManageToggleClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="管理与查找任务" aria-label="管理与查找任务" aria-pressed="false" aria-controls="task-search-panel task-installed-cards">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M4 7h9m6 0h1M4 17h1m6 0h9"/>
 <circle cx="16" cy="7" r="3"/>
@@ -116,7 +110,7 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 <path d="M12 7v5l3 2"/>
 </svg>
 </MyControl>
-<MyControl view={view} as="button" type="button" id="task-open-catalog" onClick={event=>view.actions.taskOpenCatalogClick?.(event.nativeEvent)} className="od-icon-button" aria-label="添加任务" title="添加任务" aria-expanded="false" aria-controls="task-add-menu">
+<MyControl view={view} as="button" type="button" id="task-open-catalog" onClick={event=>view.actions.taskOpenCatalogClick?.(event.nativeEvent)} className="od-icon-button od-icon-button--primary" aria-label="添加任务" title="添加任务" aria-expanded="false" aria-controls="task-add-menu">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M12 5v14M5 12h14"/>
 </svg>
@@ -142,7 +136,7 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 <MyControl view={view} as="p" id="task-add-status" className="hint" role="status" aria-live="polite">
 </MyControl>
 </MyControl>
-<MyControl view={view} as="div" id="task-search-panel" onKeyDown={event=>view.actions.taskSearchPanelKeydown?.(event.nativeEvent)} className="task-search-panel">
+<MyControl view={view} as="div" id="task-search-panel" onKeyDown={event=>view.actions.taskSearchPanelKeydown?.(event.nativeEvent)} className="task-search-panel" role="search" aria-label="查找与筛选已安装任务">
 <div className="local-discovery-search-row od-toolbar">
 <label htmlFor="local-discover-search" className="visually-hidden">{"搜索已安装任务"}</label>
 <MyControl view={view} as="input" type="search" id="local-discover-search" onInput={event=>view.actions.localDiscoverSearchInput?.(event.nativeEvent)} className="od-field" placeholder="搜索已安装任务…" autoComplete="off" aria-controls="task-installed-cards"/>

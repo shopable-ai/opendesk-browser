@@ -5,7 +5,6 @@ export const myWorkbenchDefaults={
   "task-stop":{"hidden":false,"disabled":true},
   "my-task-surface":{"hidden": false, "disabled": false},
   "task-installed-count":{"hidden": false, "disabled": false},
-  "task-search-toggle":{"hidden": false, "disabled": false},
   "task-manage-toggle":{"hidden": false, "disabled": false},
   "schedule-open":{"hidden": false, "disabled": false},
   "task-open-catalog":{"hidden": false, "disabled": false},
