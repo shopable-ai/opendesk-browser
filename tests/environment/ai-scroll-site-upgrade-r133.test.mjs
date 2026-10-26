@@ -21,7 +21,7 @@ test('exact site request is bounded to URL path, never wildcard Origin',()=>{
 test('scoped package is a distinct revision, not a grant or mutation of installed source',async()=>{
   const base=JSON.parse(await readFile('examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json','utf8'));
   const source=base.sourceUtf8.includes('__openDeskScrollConfig')?base.sourceUtf8:
-    base.sourceUtf8+'\\n// __openDeskScrollConfig\\n';
+    base.sourceUtf8+'\n// __openDeskScrollConfig\n';
   const sourceHash=await digestUtf8(source),manifestHash='a'.repeat(64);
   const candidate={sourceUtf8:source,manifestHash,manifest:{
     programId:'opendesk.ai-scroll-navigation',revision:3,sourceHash,

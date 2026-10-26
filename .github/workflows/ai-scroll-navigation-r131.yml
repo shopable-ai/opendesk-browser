@@ -8,7 +8,9 @@ on:
       - 'examples/programs/chatgpt-jump-top/package.json'
       - 'tests/environment/chatgpt-jump-top.test.mjs'
       - 'tests/environment/ai-scroll-config-r132.test.mjs'
+      - 'tests/environment/ai-scroll-site-upgrade-r133.test.mjs'
       - 'src/scripting/user-scripts/scroll-config-contract.js'
+      - 'src/scripting/user-scripts/scroll-site-upgrade.js'
       - 'src/scripting/user-scripts/page-install-authorization.js'
       - 'src/scripting/user-scripts/installed-programs.js'
       - 'src/scripting/user-scripts/preview.js'
@@ -36,7 +38,7 @@ jobs:
       - name: Affected Node and Page Authority regressions
         run: |
           set -euo pipefail
-          node --test tests/environment/chatgpt-jump-top.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs tests/environment/ai-scroll-config-r132.test.mjs
+          node --test tests/environment/chatgpt-jump-top.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs tests/environment/ai-scroll-config-r132.test.mjs tests/environment/ai-scroll-site-upgrade-r133.test.mjs
           node scripts/validate-program-project.mjs examples/programs/chatgpt-jump-top
       - name: Reuse production Program Builder and Page Installer
         run: |

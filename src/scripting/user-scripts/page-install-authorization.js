@@ -11,9 +11,9 @@ export function pageHostPermissionOrigins(matches){
   invariant(Array.isArray(matches),'E_PAGE_MATCH','缺少待审阅的网站范围');
   return [...new Set(matches.map(pattern=>{
     invariant(typeof pattern==='string'&&pattern!=='<all_urls>'&&
-      /^(https?|\\*):\\/\\/[^/]+\\//.test(pattern),'E_PAGE_MATCH','需要 HTTP(S) 网站权限范围');
-    const [,scheme,authority]=/^(https?|\\*):\\/\\/([^/]+)\\//.exec(pattern);
-    return scheme+'://'+authority.replace(/:(?:\\*|[0-9]+)$/,'')+'/*';
+      /^(https?|\*):\/\/[^/]+\//.test(pattern),'E_PAGE_MATCH','需要 HTTP(S) 网站权限范围');
+    const [,scheme,authority]=/^(https?|\*):\/\/([^/]+)\//.exec(pattern);
+    return scheme+'://'+authority.replace(/:(?:\*|[0-9]+)$/,'')+'/*';
   }))];
 }
 export function pageInstallScope(pageRules,programId='',revision=0) {

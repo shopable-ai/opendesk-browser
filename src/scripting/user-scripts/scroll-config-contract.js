@@ -71,8 +71,9 @@ export function scrollConfigForUrl(input,href){
  */
 export function scrollSiteInstallMatches(origin,scope='/'){
   const site=urlOrigin(origin),path=pathScope(scope);
+  requireValue(!new URL(site).hostname.includes('*'),'E_CONFIG_SCOPE','必须使用无通配符的精确网站 Origin');
   requireValue(!new URL(site).port,'E_CONFIG_SCOPE','按端口独立授权尚未支持；请输入无自定义端口的 Origin');
-  requireValue(!/[*?#\\\u0000-\u001f\u007f]/.test(path)&&
+  requireValue(!/[*?#\\u0000-\u001f\u007f]/.test(path)&&
     new URL(site+path).pathname===path,'E_CONFIG_SCOPE','网站路径不能包含通配符或隐式跳转');
   if(path==='/')return [site+'/*'];
   return [site+path,site+path+'?*',site+(path.endsWith('/')?path+'*':path+'/*')];
