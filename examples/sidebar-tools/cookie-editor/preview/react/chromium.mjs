@@ -82,7 +82,7 @@ try{
   await lab.locator('summary').click();
  });
  await test('fixed React 19 + Shared UI, one actual App and 380px frame',async()=>{
-  assert.equal(await page.title(),'Cookie Editor R5.23 · 自适应侧边栏交互预览');
+  assert.equal(await page.title(),'Cookie Editor R2.6 · React 同源视觉与交互预览');
   assert.deepEqual(await page.evaluate(()=>({react:OpenDeskPageReact.version,button:typeof OpenDeskSidebarUI.Button,chrome:typeof chrome?.cookies})),{react:'19.2.0',button:'function',chrome:'undefined'});
   assert.equal(await page.locator('.cookie-editor-react').count(),1);
   assert.equal(await page.locator('.site-hostname').count(),1);
