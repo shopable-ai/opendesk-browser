@@ -1,7 +1,7 @@
 // One standalone conversation dock per installed Page Program.
 // The five navigation behaviors share two physical buttons (one top, one bottom).
 import {findSiteConversation} from './site-adapters.js';
-import {jumpConversationEdge,legacyNavigationPresent} from './conversation.js';
+import {jumpConversationEdge} from './conversation.js';
 
 const OWN='data-opendesk-ai-scroll-navigation';
 const sessions=new WeakMap();
@@ -37,7 +37,7 @@ export function installFloatingNavigation({doc,win,owner}) {
     // A legacy Page may mount after our last refresh. Do not race it.
     const active=[...doc.querySelectorAll(`[${OWN}="dock"]`)]
       .find(node=>node.isConnected&&node.shadowRoot?.querySelector('button'));
-    if (legacyFloatingPresent(doc,win)||legacyNavigationPresent(doc)||active!==host) {
+    if (legacyFloatingPresent(doc,win)||active!==host) {
       schedule();return;
     }
     // Invalidate stale buttons before navigation/React reconciliation finishes.
@@ -94,7 +94,9 @@ export function installFloatingNavigation({doc,win,owner}) {
     const next=context();
     // Existing old trusted-page navigation wins during extension upgrade.
     // Once that owner is removed, its DOM mutation permits standalone mounting.
-    if (!next||legacyFloatingPresent(doc,win)||legacyNavigationPresent(doc)) {
+    // Old reply-local buttons do not own the global two-key dock.
+    // Only a live former global floating control may block this surface.
+    if (!next||legacyFloatingPresent(doc,win)) {
       host?.remove();binding=null;return;
     }
     // One visible dock across independently installed script instances, even
