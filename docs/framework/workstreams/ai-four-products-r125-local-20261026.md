@@ -172,3 +172,7 @@ BLOCKED/REMAINING：Scroll 缺三站真实长对话导航证据，仍 BLOCKED_CO
 - UI 退出快捷键未结束专用 PID 18634；核实 executable、Profile、parent 后，经原 launcher PID 18541 转发 SIGTERM。launcher exit 0，浏览器退出与临时 Profile 删除均已核实。未再调用已退出的 CUA binding；日常 Chrome/Native、watcher、dist/development、其他输出及冻结候选不变。
 - 本机脱敏记录：`artifacts/ai-three-products-r127-queue-20261026/core-observations.json`，SHA256 `597f5e82ee19e386b8e7052ea9646c729333dc2ea8de01b89d78d492e1d695e3`。只有身份、状态和操作摘要；没有 Cookie 值、私人正文、会话 URL 或保存的原始截图。文档更新仅做内容、引用与局部 diff 检查。
 - Git 开始时 HEAD 为 `314ddb2d25e07f2df1011d8232c4f25c9f35ee9b`；fetch 至 origin/main `4196f9e30` 后 ahead 1 / behind 23。已提交树的只读 merge-tree 预演无冲突，但远端修改与其他 owner 的 dirty `src/ui/extension-center.js`、`src/ui/react/tabs/tools.tsx`、`src/ui/tool-shell.css` 重叠；另有并行 bridge 文件陆续出现，均保留。集成与正常推送待 owner 协调，不自动 stash、替他人提交、覆盖或强推。
+
+### R127 Git 收尾（2026-10-26，已解除协调阻塞）
+
+用户随后明确授权仅协调 Git 收尾。已定位并向「移除扩展搜索框的语言按钮」对话 `01a17811-b972-7522-8a9c-0bc25eb8634d` 发出限定消息；该 owner 只读确认六文件改动完整保留，释放集成边界，没有重复编辑、提交或产品检查。协调期间，其他并行工作已将全部 dirty 提交为 `dc0eed1711ee787f36040bf95e2aaa9508b62593`，正常 merge 为 `163ce268d3a42394cebb45d91b62e25ec321fddd` 并推送；本对话没有替其提交、stash 或覆盖。已核实说明提交 `314ddb2d25e07f2df1011d8232c4f25c9f35ee9b`、`9f35834e8` 均是远端 main 的祖先。工作树干净后，本对话以 `--ff-only` 同步至 `4638ca28d0a1f8783004ffe041078c32f7e9261d`，正常 push 返回 `Everything up-to-date`，HEAD 与 origin/main 相同。这里只关闭 Git 协调边界；R127 仍只证明上文 0.1.2/r1 的部分观察，不把远端后来进入的 Queue 0.1.3/r2 源码或其他产品改动视为已经完成原生验证。
