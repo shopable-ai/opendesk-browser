@@ -22,6 +22,22 @@ function role(button) {
   return null;
 }
 function one(nodes) { return nodes.length === 1 ? nodes[0] : null; }
+// ChatGPT can unmount the oldest turns. Accept only a detached prefix,
+// followed by the exact original tail and exactly `appended` new nodes.
+// Never substitute text/IDs for node identity or proceed without an old anchor.
+function matchesHistoryTail(before,current,appended=0) {
+  const retained=current.length-appended, dropped=before.length-retained;
+  if(retained<0 || dropped<0 || (before.length>0&&retained===0))return false;
+  if(before.slice(0,dropped).some(node=>node.isConnected!==false))return false;
+  return current.slice(0,retained).every((node,i)=>node===before[dropped+i]) &&
+    current.slice(retained).every(node=>!before.includes(node));
+}
+function matchesConversationTail(before,snapshot,minAdded,maxAdded=minAdded) {
+  if(!Array.isArray(before.history)||!Array.isArray(snapshot.history))return false;
+  const added=snapshot.history.filter(node=>!before.history.includes(node)).length;
+  return added>=minAdded && added<=maxAdded &&
+    matchesHistoryTail(before.history,snapshot.history,added);
+}
 function editorText(editor) {
   if(typeof editor?.value==='string')return editor.value;
   // Rich editors render their one empty paragraph as a layout newline.
@@ -87,10 +103,12 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     const anchorButton=stopButton||sendButton||one(nearby);
     const users = [...doc.querySelectorAll(USER)].filter(el=>!el.parentElement?.closest(USER));
     const assistants = [...doc.querySelectorAll(ASSISTANT)].filter(el=>!el.parentElement?.closest(ASSISTANT));
+    const history = [...doc.querySelectorAll(USER+','+ASSISTANT)]
+      .filter(el=>!el.parentElement?.closest(USER+','+ASSISTANT));
     const last = assistants.at(-1) || null;
     const busy = !!stopButton || streaming(last);
     const completed = !last || assistantCompleted(last);
-    return {ok:true,route,form,editor,sendButton,stopButton,anchorButton,users,assistants,
+    return {ok:true,route,form,editor,sendButton,stopButton,anchorButton,users,assistants,history,
       busy,idle:!busy && completed,answerComplete:assistantCompleted(last) && !streaming(last),
       draft:editorText(editor),composing:isComposing(),
       rich:!!editor.querySelector?.(RICH) || !!form.querySelector('[data-attachment-id],[data-file-id]')};
@@ -177,7 +195,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       fresh.form!==initial.form || fresh.editor!==initial.editor ||
       !fresh.idle || fresh.rich || fresh.draft!=='')
       return {ok:false,mayHaveWritten:false,reason:'会话、输入框或原生草稿已改变'};
-    const before={users:fresh.users,assistants:fresh.assistants,
+    const before={users:fresh.users,assistants:fresh.assistants,history:fresh.history,
       assistantCount:fresh.assistants.length,route:fresh.route};
     // Once setDraft is attempted, a false result or throwing website handler
     // cannot prove that the user has not received (and manually sent) the text.
@@ -202,8 +220,8 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     if(!fresh.ok || fresh.route!==token.route || fresh.form!==token.form ||
       fresh.editor!==token.editor || fresh.rich || fresh.composing ||
       fresh.draft!==token.text ||
-      fresh.users.length!==token.before.users.length ||
-      fresh.users.some((node,i)=>node!==token.before.users[i]))
+      !matchesHistoryTail(token.before.users,fresh.users) ||
+      !matchesConversationTail(token.before,fresh,0))
       return {ok:false,stage:'before-click',reason:'准备发送期间原生编辑器、草稿或消息记录已变化'};
     if(fresh.busy)return {ok:false,stage:'before-click',reason:'网站开始了其他回复'};
     if(!fresh.sendButton)return {ok:false,retry:true,reason:'未找到原生发送按钮'};
@@ -217,8 +235,10 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   }
   function confirmationIssue(before,text,snapshot) {
     if (!snapshot.ok || snapshot.route!==before.route) return '原对话或输入框已不可确认';
-    if (snapshot.users.length !== before.users.length+1) return '用户消息数量与发送前记录不符';
-    if (before.users.some((node,i)=>snapshot.users[i]!==node)) return '历史用户消息节点已变化';
+    if (!matchesHistoryTail(before.users,snapshot.users,1))
+      return snapshot.users.length!==before.users.length+1?
+        '用户消息数量与发送前记录不符':'历史用户消息节点已变化';
+    if(!matchesConversationTail(before,snapshot,1,2))return '历史对话节点或顺序已变化';
     const newMessage=snapshot.users.at(-1);
     if(before.users.includes(newMessage))return '未找到唯一新增用户消息';
     if(messageText(newMessage)!==text)return '新增用户消息正文与队列不完全一致';
@@ -230,10 +250,9 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
   function replyComplete(before,confirmedUser,snapshot) {
     if(!before?.assistants || !confirmedUser || !snapshot.ok ||
       snapshot.route!==before.route || snapshot.busy || !snapshot.idle || !snapshot.answerComplete ||
-      snapshot.users.length!==before.users.length+1 || snapshot.users.at(-1)!==confirmedUser ||
-      before.users.some((node,i)=>snapshot.users[i]!==node) ||
-      snapshot.assistants.length!==before.assistants.length+1 ||
-      before.assistants.some((node,i)=>snapshot.assistants[i]!==node))return false;
+      !matchesHistoryTail(before.users,snapshot.users,1) || snapshot.users.at(-1)!==confirmedUser ||
+      !matchesHistoryTail(before.assistants,snapshot.assistants,1) ||
+      !matchesConversationTail(before,snapshot,2))return false;
     const order=confirmedUser.compareDocumentPosition(snapshot.assistants.at(-1));
     return !(order&1) && Boolean(order&4);
   }

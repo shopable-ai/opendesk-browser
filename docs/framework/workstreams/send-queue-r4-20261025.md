@@ -257,3 +257,30 @@
 
 - 本轮证据目录 `artifacts/send-queue-r56-mac-final-01a17882/no-pause-r5-20261027/`，包含测试输出、构建收据、安装审阅与详情、消息原文和上述真实 AX。此次证明 r5 无暂停及 B→C 自动交接，**不是 A 回复时同时预排 B/C 的连续完整 ABC 验收**。先前“未取得下一轮就绪检查”的定时延迟根因尚未证明，不宣称已修复；保留 6 秒期限和 unknown 保护。
 - 当前核心需求收口。跨刷新恢复仍不支持；长对话数量限制、新版桥并发、真实 IME/特殊空白、production、生命周期全量、矩阵、压力与评分继续未验证/延期，不自动进入后续验收。保留专属浏览器和 launcher，不触及日常 Chrome、并行 owner 服务或共享输出。
+
+## R5.10 同候选完整链与关键操作（2026-10-27）
+
+- 当前 owner：`01a17954-e900-7d92-992e-d369e1ca89c4`；承接队列项目、专属 CFT 与证据目录，只在 main。当前项目目录及本记录接手时无未提交差异，其他 owner 改动保留。
+- 类型仍为独立 Page USER_SCRIPT，公开 `document` / `@opendesk/ui`，源码仅本项目，安装包仍 `opendesk.page-install.v1`；无需框架改动，不新增 SDK/Host/安装器。主 Skill 为 script-authoring，候选安装时转 program-publish。
+- 当前核心步骤：先核对实际安装 r5 和空队列/草稿，再在 A 正在生成时分别排 B/C，证明整条连续自动交接；随后合并验证原生草稿保护、取回编辑和删除。已有 r5 B→C 和 Node 保护证据复用，不重复全量测试。
+- 接手只读进程核对：原 browser/launcher 54791/54789 仍运行，加载原 `source-snapshot/dist/development-developer` 静态 Developer 包，无 serve；尚未通过本轮 UI 核对安装。日常 watcher/共享输出不操作。全局原生 UI 锁暂由计算接力 owner `01a1794f-f8ed-7080-9137-7925d5003ecf` 持有，ui-acquire 返回 busy；不抢锁、不点击或输入。
+- 本轮新证据目录：`artifacts/send-queue-r56-mac-final-01a17882/core-r5-abc-20261027/`。未执行测试不登记 PASS。跨刷新恢复、production、完整生命周期、桥并发、真实 IME/特殊空白、宽度/缩放、压力和评分仍延期。
+
+### 最终结果：r6 连续 ABC 通过；其余原生操作由用户接管现场
+
+- 释放前一 owner 的 UI 占用后，本轮通过实际管理详情核对 r5、原安装身份和完整源码指纹；正式包与 r5 安装候选逐字节一致。沿用原 CFT154、扩展 `ajjjgoapcaonglplhlnlfofmlemdakhk`、静态 Developer 加载目录，无 serve，不重建宿主或覆盖共享输出。
+- r5 最短真实连续链复现具体失败：A/B/C 均入站一次，C 回复正确，但 C 确认进入“用户消息数量与发送前记录不符” unknown。原生 Elements 查询观察到用户节点数量由初始 4 → A 后 5 → B 后 6 → C 后 5，旧前缀消失。只读 DOM 观察未独立证明 detached 属性或虚拟化根因。核对 C 后经原删除确认收束 unknown，没有重试或补发。见 `dom-user-selector-ax.txt`、`dom-prefix-eviction-ax.txt`、`unknown-deleted-ax.txt`。
+- 最小修复仅本项目 `src/site.js` 及 engine 快照：允许明确 detached 的旧前缀消失，保留节点身份与顺序必须精确匹配，非空基线不可丢失全部锚点；用户/助手的合并记录防止内部轮次缺失被误当角色前缀。commit 只允许新增 0 个节点、confirmation 允许唯一用户及至多一个新助手、reply 必须唯一用户和唯一新助手。精确正文、对应回复完成、原生单次点击、6 秒期限、unknown 禁止重试和原权限均保留。
+- 独立只读 reviewer 先后指出合并顺序及阶段新增上限缺口，均增加反例并修复；最终 review `CLEAR`（仅本次修复）。定向结果 site/engine **92/92**、main-recovery **6/6**、版本与身份 **5/5**，均 0 fail/skip；前期口头 96/98 的计数已纠正，不当作额外测试。原始输出 `combined-prefix-regression-final.tap`、`main-recovery-final.tap`、`identity-final.tap`，红灯证据 `prefix-regression-before.tap`。未运行无关仓库矩阵。
+- 原构建器只构建本项目：`r6-build/` 的早期候选及一次不可覆盖输出错误均未用于安装；最终使用新输出 `r6-bounded-build/`。最终版本 `opendesk.ai-send-queue / 0.1.7 / r6`，89,808 bytes，sourceHash `39e3adbd9f942c297377bbf57fee276001db0af0d791b16a5373abcc3e98d16a`，packageHash `0743518dff3c5846949154d01f33106c780e2cbce956c3d0a532b9ed3e3fdaee`。通过原打包器从同一草稿同步当前身份唯一正式包；与实际安装候选逐字节一致，四个源码和两个资产均匹配构建收据，完整异步包校验 PASS，见 `r6-package-validation.json`。legacy 包、皇冠、宿主源码未改；官方目录仅自己的条目升版，继续 `publication: blocked`。
+- r5→r6 经原“更新 / 导入新版”入口审阅并确认，版本、两项完整指纹及权限范围未变化提示均读回；详情 active/registered，installationId `9bf2f0d6-9b5b-4d72-a372-23bbce9aecfc`、registrationId `opendesk-page-boot-e736f023860568cd7be4f76373b4882840d0f3928e1ca8e3` 保持，仅 `page.dom` / `https://chatgpt.com/*`。空队列/草稿刷新后运行 r6，无第二次启用。见 `r6-upgrade-review-ax.txt`、`r6-installed-ax.txt`。
+
+| 同一 r6 的真实操作 | 预期 | 实际及结论 | 原始证据 |
+| --- | --- | --- | --- |
+| A 回复时分别入列 B/C | 两条等待，不抢发 | Stop 与 B/C 同时存在，PASS | `r6-a-active-bc-waiting-ax.txt`、PNG |
+| A 完成后自动交接 B | B 入站一次，C 仍等待 | B 输出与 C 待发同屏，无提前发送/恢复，PASS | `r6-b-active-c-waiting-ax.txt`、PNG |
+| B 完成后自动交接 C | C 一次入站并完成，清空队列/草稿 | 最终 A/B/C user 各一次，C 回复 `SQ-R6-ABC-27-C-OK`，无 unknown、无待发队列、原生草稿为空，PASS | `r6-abc-final-ax.txt`、`r6-abc-final.png`、`r6-abc-result.json` |
+| 草稿保护、取回编辑、删除 | 不覆盖草稿，准确取回/删除待发项 | D 已入站并开始回复后，工具检测人工操作；现场出现“测试2 / 测试4”。用户明确“我正在手动测试，请保留现场”，立即停止 UI 操作，余下原生复测 NOT_TESTED | `native-ui-user-takeover-ax.txt`、本轮用户答复 |
+
+- 核心 ABC 为同一已安装候选、不间断自动交接，不能用本轮结果提升 production 或任意长对话保证。后续若继续上述草稿/编辑/删除复测，应先与用户确认窗口已交回，并重新读取现场；不得清空用户手测队列或重复发送 D。相关 Node 保护证据不替代本轮尚未完成的原生操作。
+- UI 锁已释放（`native_ui_owner: null`），专属浏览器、Profile、用户草稿/队列和现有服务保留；独立 reviewer 已收尾。用户手测窗口由用户控制，本对话不继续轮询或输入。正式包与源码在 main 做范围提交，不推送，不包含并行 owner 文件。

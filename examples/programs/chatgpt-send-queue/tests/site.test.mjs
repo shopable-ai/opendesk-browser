@@ -6,7 +6,7 @@ import {createQueueEngine} from '../src/engine.js';
 // Adapter contract tests only. These stubs do not prove ChatGPT selectors or
 // React input acceptance; those require the live USER_SCRIPT run.
 function fixture() {
-  const state={users:[],clicks:0,write:text=>text,focus:()=>{},onInput:()=>{}};
+  const state={users:[],assistants:[],clicks:0,write:text=>text,focus:()=>{},onInput:()=>{}};
   class Textarea {
     constructor(){this.current='';this.tagName='TEXTAREA';this.isConnected=true;}
     get value(){return this.current;}
@@ -32,7 +32,8 @@ function fixture() {
     HTMLTextAreaElement:Textarea,InputEvent:class {}};
   win.top=win;
   const doc={querySelectorAll:selector=>selector.startsWith('#prompt-textarea')?[activeEditor]:
-    selector.startsWith('[data-message-author-role="user"]')?state.users:[]};
+    selector.includes('user')&&selector.includes('assistant')?(state.history||[...state.users,...state.assistants]):
+    selector.startsWith('[data-message-author-role="user"]')?state.users:state.assistants};
   const site=createChatGPTSite({doc,win,isComposing:()=>!!state.composing});
   return {site,state,editor,replaceEditor,send};
 }
@@ -69,7 +70,7 @@ test('commit rejects whitespace or nonbreaking-space changes after prepare',()=>
 });
 test('confirmation requires exact new message text, including surrounding whitespace',()=>{
   const {site,state}=fixture();
-  const before={route:site.inspect().route,users:[]};
+  const before={route:site.inspect().route,users:[],history:[]};
   const message={parentElement:null,querySelector:()=>null,innerText:'queued message'};
   state.users=[message];
   assert.equal(site.confirm(before,' queued message ',site.inspect()),false);
@@ -121,7 +122,7 @@ test('focusing cannot write into a replaced composer',()=>{
 test('confirmation rejects replaced historical user nodes',()=>{
   const {site,state}=fixture();
   const old={parentElement:null},replacement={parentElement:null};
-  const before={route:site.inspect().route,users:[old]};
+  const before={route:site.inspect().route,users:[old],history:[old]};
   state.users=[replacement,{parentElement:null,querySelector:()=>null,innerText:'queued'}];
   assert.equal(site.confirm(before,'queued',site.inspect()),false);
   assert.equal(site.confirmationIssue(before,'queued',site.inspect()),'历史用户消息节点已变化');
@@ -133,9 +134,9 @@ test('reply completion is tied to the confirmed user and one subsequent assistan
   const {site}=fixture();
   const oldUser={},oldAssistant={},assistant={};
   const user={compareDocumentPosition:node=>node===assistant?4:1};
-  const before={route:'c/12345678',users:[oldUser],assistants:[oldAssistant]};
+  const before={route:'c/12345678',users:[oldUser],assistants:[oldAssistant],history:[oldUser,oldAssistant]};
   const snapshot={ok:true,route:before.route,users:[oldUser,user],
-    assistants:[oldAssistant,assistant],busy:false,idle:true,answerComplete:true};
+    assistants:[oldAssistant,assistant],history:[oldUser,oldAssistant,user,assistant],busy:false,idle:true,answerComplete:true};
   assert.equal(site.replyComplete(before,user,snapshot),true);
   for(const patch of [
     {users:[{},user]}, {users:[oldUser,user,{}]}, {assistants:[{},assistant]},
@@ -339,4 +340,144 @@ test('real prepare preflight failure waits and automatically retries after the c
   now=1300;engine.tick();now=2500;engine.tick();
   assert.equal(engine.view().inFlight.phase,'await-native-ready');
   assert.equal(f.state.clicks,0);
+});
+
+// The live page unmounts only the oldest turns as a conversation grows.
+// Detached prefixes may disappear; the retained tail still uses exact nodes.
+test('confirmation accepts detached oldest turns while retaining the exact history tail',()=>{
+  const {site,state}=fixture();
+  const evicted={isConnected:false},anchor={isConnected:true,parentElement:null};
+  const message={isConnected:true,parentElement:null,querySelector:()=>null,innerText:'queued'};
+  const before={route:site.inspect().route,users:[evicted,anchor],history:[evicted,anchor]};
+  state.users=[anchor,message];
+  assert.equal(site.confirm(before,'queued',site.inspect()),true);
+  assert.equal(site.confirm(before,' queued',site.inspect()),false,'body stays exact');
+  evicted.isConnected=true;
+  assert.equal(site.confirm(before,'queued',site.inspect()),false,'a still-mounted omission is not eviction');
+  evicted.isConnected=false;
+  state.users=[message];
+  assert.equal(site.confirm(before,'queued',site.inspect()),false,'losing every anchor stays unknown');
+  state.users=[{...anchor},message];
+  assert.equal(site.confirm(before,'queued',site.inspect()),false,'replacement is not the original tail');
+  state.users=[anchor,{...message},message];
+  assert.equal(site.confirm(before,'queued',site.inspect()),false,'two new turns stay unknown');
+});
+
+test('commit accepts only a detached history prefix and still clicks at most once',()=>{
+  const {site,state}=fixture();
+  const evicted={isConnected:true,parentElement:null},anchor={isConnected:true,parentElement:null};
+  state.users=[evicted,anchor];
+  const token=site.prepare('queued',site.inspect()).token;
+  evicted.isConnected=false;state.users=[anchor];
+  assert.equal(site.commit(token).ok,true);
+  assert.equal(state.clicks,1);
+  state.users=[anchor,{parentElement:null}];
+  assert.equal(site.commit(token).ok,false,'a new turn forbids another click');
+  assert.equal(state.clicks,1);
+});
+
+test('commit refuses a newly appended completed assistant before any click',()=>{
+  const {site,state}=fixture();
+  const anchor={isConnected:true,parentElement:null};
+  state.users=[anchor];state.history=[anchor];
+  const token=site.prepare('queued',site.inspect()).token;
+  const assistant={isConnected:true,parentElement:null,closest:()=>null,
+    getAttribute:()=> 'complete',hasAttribute:()=>true,matches:()=>false,querySelector:()=>null};
+  state.assistants=[assistant];state.history=[anchor,assistant];
+  assert.equal(site.inspect().idle,true);
+  assert.equal(site.commit(token).stage,'before-click');
+  assert.equal(state.clicks,0);
+});
+
+test('confirmation refuses one exact user accompanied by two new assistants',()=>{
+  const {site}=fixture();
+  const anchor={isConnected:true},user={querySelector:()=>null,innerText:'queued'},a1={},a2={};
+  const before={route:'c/12345678',users:[anchor],history:[anchor]};
+  const snapshot={ok:true,route:before.route,users:[anchor,user],assistants:[a1,a2],
+    history:[anchor,user,a1,a2]};
+  assert.equal(site.confirm(before,'queued',snapshot),false);
+  assert.equal(site.confirm(before,'queued',{...snapshot,assistants:[a1],history:[anchor,user,a1]}),true);
+});
+
+test('reply completion follows exact user and assistant tails after prefix eviction',()=>{
+  const {site}=fixture();
+  const goneUser={isConnected:false},oldUser={},goneAssistant={isConnected:false},oldAssistant={},assistant={};
+  const user={compareDocumentPosition:node=>node===assistant?4:1};
+  const before={route:'c/12345678',users:[goneUser,oldUser],assistants:[goneAssistant,oldAssistant],
+    history:[goneUser,goneAssistant,oldUser,oldAssistant]};
+  const snapshot={ok:true,route:before.route,users:[oldUser,user],assistants:[oldAssistant,assistant],
+    history:[oldUser,oldAssistant,user,assistant],busy:false,idle:true,answerComplete:true};
+  assert.equal(site.replyComplete(before,user,snapshot),true);
+  for(const patch of [
+    {users:[user]}, {users:[{},user]}, {users:[oldUser,{},user]},
+    {assistants:[assistant]}, {assistants:[{},assistant]}, {assistants:[oldAssistant,{},assistant]},
+    {busy:true}, {answerComplete:false}, {route:'c/87654321'}
+  ])assert.equal(site.replyComplete(before,user,{...snapshot,...patch}),false);
+  goneAssistant.isConnected=true;
+  assert.equal(site.replyComplete(before,user,snapshot),false);
+});
+
+test('detached role prefixes cannot conceal an interior removal in the combined conversation',()=>{
+  const {site}=fixture();
+  const u0={isConnected:false},a0={isConnected:false},u1={},a1={isConnected:false},u2={},a2={},a3={};
+  const u3={compareDocumentPosition:node=>node===a3?4:1};
+  const before={route:'c/12345678',users:[u0,u1,u2],assistants:[a0,a1,a2],history:[u0,a0,u1,a1,u2,a2]};
+  const snapshot={ok:true,route:before.route,users:[u1,u2,u3],assistants:[a2,a3],
+    history:[u1,u2,a2,u3,a3],busy:false,idle:true,answerComplete:true};
+  assert.equal(site.replyComplete(before,u3,snapshot),false);
+  const message={parentElement:null,querySelector:()=>null,innerText:'queued'};
+  assert.equal(site.confirm(before,'queued',{ok:true,route:before.route,
+    users:[u1,u2,message],history:[u1,u2,a2,message]}),false);
+});
+
+test('history eviction rejects missing evidence, interior loss, reordering, prepend and recycled nodes',()=>{
+  const {site,state}=fixture();
+  const a={isConnected:false,parentElement:null},b={isConnected:true,parentElement:null},c={isConnected:true,parentElement:null};
+  const added={parentElement:null,querySelector:()=>null,innerText:'queued'};
+  const before={route:site.inspect().route,users:[a,b,c],history:[a,b,c]};
+  for(const users of [[a,c,added],[b,added],[c,b,added],[{},a,b,c,added],[b,c,a]]){
+    state.users=users;assert.equal(site.confirm(before,'queued',site.inspect()),false);
+  }
+  state.users=[b,c,added];
+  delete a.isConnected;
+  assert.equal(site.confirm(before,'queued',site.inspect()),false);
+  a.isConnected=false;
+  assert.equal(site.confirm({...before,history:undefined},'queued',site.inspect()),false);
+  assert.equal(site.confirm(before,'queued',site.inspect()),true);
+});
+
+test('real adapter and engine advance once after prefix eviction and never retry a changed-history send',()=>{
+  const f=fixture(),{site,state,editor}=f;
+  let now=0;
+  function node(text,complete=true){
+    return {isConnected:true,parentElement:null,innerText:text,complete,
+      querySelector:()=>null,closest:()=>null,matches:()=>false,
+      hasAttribute:name=>name==='data-talvt-turn-state',
+      getAttribute(name){return name==='data-talvt-turn-state'?(this.complete?'complete':'streaming'):null;},
+      compareDocumentPosition(other){const a=state.history.indexOf(this),b=state.history.indexOf(other);return a<0||b<0?1:a<b?4:2;}};
+  }
+  const u0=node('old0'),a0=node('answer0'),u1=node('old1'),a1=node('answer1');
+  state.users=[u0,u1];state.assistants=[a0,a1];state.history=[u0,a0,u1,a1];
+  let newAssistant;
+  state.onSend=()=>{
+    const user=node(editor.value);newAssistant=node('new answer',false);
+    editor.current='';
+    u0.isConnected=false;a0.isConnected=false;
+    state.users=[u1,user];state.assistants=[a1,newAssistant];state.history=[u1,a1,user,newAssistant];
+  };
+  const engine=createQueueEngine({site,clock:()=>now});
+  const step=t=>{now=t;engine.tick();};
+  engine.enqueue('A',site.inspect().route);engine.enqueue('B',site.inspect().route);
+  step(0);step(1200);step(1300);step(1400);
+  assert.equal(state.clicks,1);assert.deepEqual(engine.view().items.map(x=>x.text),['B']);
+  step(3000);assert.equal(state.clicks,1,'the corresponding reply is still streaming');
+  newAssistant.complete=true;
+  step(3100);step(4300);step(5500);
+  assert.equal(engine.view().inFlight.phase,'await-native-ready');
+  const manual=node('manual different message');state.users.push(manual);state.history.push(manual);
+  step(5600);
+  assert.equal(engine.view().phase,'unknown');
+  step(20000);step(30000);
+  assert.equal(state.clicks,1,'unknown never replays the queued or prior message');
+  assert.deepEqual(engine.view().items.map(x=>x.text),['B']);
 });

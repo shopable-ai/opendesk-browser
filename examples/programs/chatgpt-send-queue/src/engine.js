@@ -24,7 +24,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     const item=items.find(v=>v.id===id);
     if(!item||state.inFlight)return false;
     state.inFlight={item,phase:'unknown',before:before?.ok?{
-      route:before.route,users:before.users,assistants:before.assistants,
+      route:before.route,users:before.users,assistants:before.assistants,history:before.history,
       assistantCount:before.assistants.length}:undefined};
     markUnknown(reason);return true;
   }
@@ -110,7 +110,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     }
     item.state='sending';state.phase='sending';
     state.inFlight={item,phase:'preparing',started:clock(),before:{
-      route:snap.route,users:snap.users,assistants:snap.assistants,assistantCount:snap.assistants.length}};
+      route:snap.route,users:snap.users,assistants:snap.assistants,history:snap.history,assistantCount:snap.assistants.length}};
     emit();
     let prepared;
     try{prepared=site.prepare(item.text,snap);}
