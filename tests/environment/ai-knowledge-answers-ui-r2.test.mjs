@@ -451,8 +451,11 @@ for(const [format,method,receipt,success,error] of [
 test('R2.1: preview stays source-linked and models Host failure separately from Provider',()=>{
  const html=read('preview/index.html');
  for(const value of ['../src/index.html','../src/style.css','../src/model.js','../src/main.js',
-  'preview-fault','preview-seed','E_OUTCOME_UNKNOWN','E_STORAGE_CONFLICT','preview-ai'])
+  'preview-fault','preview-seed','E_OUTCOME_UNKNOWN','E_STORAGE_CONFLICT',
+  '../trusted/multi-intent.js','Workspace.jsx','HTTP 不模拟网页发送或真实 Provider'])
   assert.ok(html.includes(value),value);
+ assert.doesNotMatch(html,/id=["']preview-ai["']/,
+   'R3.2 的 HTTP 预览不得伪装真实 AI 草稿或客服发送入口');
 });
 test('R2.1: project release is exact canonical source build',async()=>{
  const tool=await createSidebarToolPackage(new URL('.',base).pathname);
