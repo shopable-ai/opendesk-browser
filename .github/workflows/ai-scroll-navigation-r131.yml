@@ -95,5 +95,5 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'build(ai-scroll): refresh verified 0.4.1/r2 install package'
+          git commit -m 'build(ai-scroll): publish verified 0.4.2/r3 install package'
           git push origin HEAD:refs/heads/main
