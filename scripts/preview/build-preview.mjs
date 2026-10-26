@@ -59,7 +59,7 @@ export async function generatePreview({
     fail('official design CSS is missing from the validated tool package');
   if(tool==='web-markdown-clipper'&&!pkg.css.startsWith('/* opendesk.shared-tokens.v1 sha256='))
     fail('clipper is not compiled from the canonical shared tokens');
-  if(tool==='knowledge-inbox'&&(!pkg.css.includes('.ki{')||/@import\\b|url\\s*\\(\\s*['"]?\\s*(?:https?:|\\/\\/)/i.test(pkg.css)))
+  if(tool==='knowledge-inbox'&&(!pkg.css.includes('.ki{')||/@import\b|url\s*\(\s*['"]?\s*(?:https?:|\/\/)/i.test(pkg.css)))
     fail('knowledge-inbox legacy scoped CSS source contract has changed');
   let mock,operations;
   if(tool==='quick-notes'){
@@ -94,9 +94,20 @@ export async function generatePreview({
     // Reuse its well-tested existing standalone SDK simulation, but keep internal
     // navigation buttons: this canonical Host shell has no clipper navigation bridge.
     const original=await readFile(new URL('../../examples/sidebar-tools/web-markdown-clipper/preview/mock-host.js',import.meta.url),'utf8');
-    const bridge="  setNavigation({page}={}){post('navigation-state',{page});},";
-    if(!original.includes(bridge))fail('existing clipper mock navigation contract changed');
-    mock=Buffer.from(original.replace(bridge,'  // In-tool navigation remains active in this shell.'));
+    const bridge=" setNavigation({page}={}){post('navigation-state',{page});},";
+    const fixture='if(!local.clips){';
+    const saved="try{const saved=sessionStorage.getItem(key);if(saved)local=JSON.parse(saved);}catch{/* Isolated demo fallback only. */}";
+    const persist="const persist=()=>{try{sessionStorage.setItem(key,JSON.stringify(local));}catch{/* Preview-only. */}};";
+    if(![bridge,fixture,saved,persist].every(marker=>original.includes(marker)))
+      fail('existing clipper mock navigation, fixture or storage contract changed');
+    // Canonical previews are deterministic and ephemeral; the original Clipper
+    // standalone demonstration still retains its own sessionStorage behavior.
+    const source=original.replace(bridge,' // In-tool navigation remains active in this shell.')
+      .replace(saved,'/* Canonical preview: no session storage reads. */')
+      .replace(persist,'const persist=()=>{}; // Canonical preview: memory only.')
+      .replace(fixture,"if(globalThis.__opendeskPreviewScenario==='empty')local.clips={version:1,items:[]};\n"+fixture);
+    const faultLayer=await readFile(new URL('./web-markdown-clipper-scenario-mock.js',import.meta.url),'utf8');
+    mock=Buffer.from(source+'\n'+faultLayer);
     operations=['currentPage.info','clipNotes.list','clipNotes.get','clipNotes.save','clipNotes.edit',
       'clipNotes.remove','clipNotes.backup','browser.clipboard.writeText','browser.downloads.text'];
   }else if(tool==='knowledge-inbox'){

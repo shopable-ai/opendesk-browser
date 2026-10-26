@@ -19,6 +19,11 @@ on:
       - 'examples/sidebar-tools/quick-notes/**'
       - 'examples/sidebar-tools/bookmark-manager/**'
       - 'examples/sidebar-tools/adblock/**'
+      - 'examples/sidebar-tools/markdown-workbench/**'
+      - 'examples/sidebar-tools/web-markdown-clipper/**'
+      - 'examples/sidebar-tools/knowledge-inbox/**'
+      - 'examples/sidebar-tools/ai-knowledge-answers/**'
+      - 'tests/environment/four-tools-ux-r1.test.mjs'
       - 'tests/environment/adblock-preview-contract.test.mjs'
       - 'tests/environment/sidebar-preview-contract.test.mjs'
       - 'contracts/ui-preview/**'
@@ -45,6 +50,11 @@ jobs:
           node --check scripts/preview/check-preview-contract.mjs
           node --check scripts/preview/quick-notes-mock.js
           node --check scripts/preview/bookmark-manager-mock.js
+          node --check scripts/preview/markdown-workbench-mock.js
+          node --check scripts/preview/web-markdown-clipper-scenario-mock.js
+          node --check scripts/preview/knowledge-inbox-mock.js
+          node --check scripts/preview/ai-knowledge-answers-mock.js
+          node --check tests/environment/four-tools-ux-r1.test.mjs
           node --check scripts/preview/adblock-host-source.mjs
           node --check scripts/preview/adblock-mock.js
           node --check scripts/preview/adblock-host-preview.js
@@ -64,7 +74,7 @@ jobs:
           npm run build
           test -s dist/production/sidebar-shared-ui.js
       - name: Verify package identity, mock safety and negative guards
-        run: node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-preview-kit.test.mjs tests/environment/browser-tool-creation-workflow-r21.test.mjs tests/environment/adblock-preview-contract.test.mjs
+        run: node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-preview-kit.test.mjs tests/environment/browser-tool-creation-workflow-r21.test.mjs tests/environment/adblock-preview-contract.test.mjs tests/environment/four-tools-ux-r1.test.mjs
       - name: Build official tool and offline preview matrix
         run: |
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/quick-notes-preview-proof.opendesk-tool.json
@@ -80,6 +90,21 @@ jobs:
             node scripts/preview/build-preview.mjs --tool bookmark-manager --surface side-panel --scenario "$scenario" --theme light --width 360
             node scripts/preview/build-preview.mjs --tool adblock --surface side-panel --scenario "$scenario" --theme light --width 360
           done
+      - name: Generate four official source-bound HTML previews (SDK simulation only)
+        run: |
+          set -euo pipefail
+          for tool in markdown-workbench web-markdown-clipper knowledge-inbox ai-knowledge-answers; do
+            node scripts/preview/build-preview.mjs --tool "$tool" --surface side-panel --scenario success --theme light --width 360
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: four-tools-source-bound-preview
+          path: |
+            artifacts/previews/markdown-workbench/*
+            artifacts/previews/web-markdown-clipper/*
+            artifacts/previews/knowledge-inbox/*
+            artifacts/previews/ai-knowledge-answers/*
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: adblock-source-bound-preview
