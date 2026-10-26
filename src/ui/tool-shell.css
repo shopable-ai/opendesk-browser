@@ -432,8 +432,8 @@
 /* Available TITLE width, not viewport width: many actions can leave very
    little space even on a wide panel. Always preserve the leaf/page identity. */
 @container tool-title (max-width:100px){
-  .sidebar-tool-title-parent,.sidebar-tool-title-divider{display:none}
-  .sidebar-tool-title-current{flex:1 1 0;max-width:100%}
+  #sidebar-tool-title .sidebar-tool-title-parent,#sidebar-tool-title .sidebar-tool-title-divider{display:none}
+  #sidebar-tool-title .sidebar-tool-title-current{flex:1 1 0;max-width:100%}
 }
 /* At 200% zoom the header itself may be only 180px wide. Give Back and the
    title a complete first row, then wrap the existing actions without clipping. */

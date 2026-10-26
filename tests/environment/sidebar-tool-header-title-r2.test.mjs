@@ -54,7 +54,8 @@ test('title flexes into remaining width, child is preferred and fixed action hit
   assert.match(css,/\.sidebar-tool-title-current\{[^}]*text-overflow:ellipsis/);
   assert.match(css,/@container tool-title \(max-width:100px\)/);
   assert.match(css,/@media\(max-width:240px\)\{\s*#sidebar-tool-title\{flex:1 1 calc/);
-  assert.match(css,/@container tool-title[\s\S]*?\.sidebar-tool-title-parent,\.sidebar-tool-title-divider\{display:none\}/);
+  assert.match(css,/@container tool-title[\s\S]*?#sidebar-tool-title \.sidebar-tool-title-parent,#sidebar-tool-title \.sidebar-tool-title-divider\{display:none\}/);
+  assert.match(css,/#sidebar-tool-title \.sidebar-tool-title-current\{flex:1 1 0;max-width:100%\}/);
   assert.match(css,/\.sidebar-tool-header-actions\{display:flex/);
   assert.match(css,/@media\(pointer:coarse\)\{[\s\S]*?flex-basis:44px/);
 });
