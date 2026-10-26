@@ -29,7 +29,10 @@ function requestScope(requestId,taskId=FIXED_PAGE_TASK_ID,args={}){
 }
 function sameScope(row,requestId,taskId,args){
   const desired=requestScope(requestId,taskId,args);
-  const stored=row.scope||{taskId:FIXED_PAGE_TASK_ID,args:{}};
+  const scope=row.scope||{taskId:FIXED_PAGE_TASK_ID,args:{}};
+  // Storage may reorder dictionary keys. Validate both scopes through the same
+  // strict parser before comparing their canonical task arguments.
+  const stored=requestScope(requestId,scope.taskId,scope.args);
   return stored.taskId===desired.taskId&&JSON.stringify(stored.args)===JSON.stringify(desired.args);
 }
 const officialURL=value=>{

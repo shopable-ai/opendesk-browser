@@ -60,6 +60,21 @@ test('one durable nonce is pinned to exactly one selected Task and search query'
   await assert.rejects(restarted.reserve({...context,taskId:request.taskId,args}),
     {code:'E_BRIDGE_REPLAY'});
 });
+test('persisted search scope ignores object key order but still rejects changed arguments',async()=>{
+  const sorted=value=>Array.isArray(value)?value.map(sorted):value&&typeof value==='object'?
+    Object.fromEntries(Object.keys(value).sort().map(key=>[key,sorted(value[key])])):value;
+  let saved={};
+  const backing={async get(key){return {[key]:structuredClone(saved[key])};},
+    async set(value){saved=sorted({...saved,...structuredClone(value)});}};
+  const ledger=createChatGPTBridgeTriggerLedger({storage:backing,clock:()=>1000,generateId:()=>id});
+  await ledger.prepare(source,{taskId:request.taskId,args});
+  await ledger.authorize({source,requestId:id,mode:'manual'});
+  const context={source,requestId:id,mode:'manual',turnKey:'turn-1',answerKey:'answer-1:0',taskId:request.taskId};
+  await assert.rejects(ledger.reserve({...context,args:{query:'changed',limit:3}}),{code:'E_BRIDGE_CONTEXT'});
+  assert.equal((await ledger.reserve({...context,args})).consumed,true);
+  assert.equal((await ledger.assertConsumed({...context,args})).allowed,true);
+  await assert.rejects(ledger.assertConsumed({...context,args:{query:'changed',limit:3}}),{code:'E_BRIDGE_REVOKED'});
+});
 test('ChatGPT page waits for the complete streamed candidate before one approved automatic request',async()=>{
   const nodes=[],listeners=new Map();
   const element=tag=>{

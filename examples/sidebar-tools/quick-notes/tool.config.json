@@ -12,8 +12,5 @@
     "html": "src/index.html",
     "css": "src/style.css",
     "js": "src/main.js"
-  },
-  "assets": [
-    "assets/mark.png"
-  ]
+  }
 }

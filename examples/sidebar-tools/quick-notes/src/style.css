@@ -8,8 +8,7 @@
 .notes-heading .icon-button{margin-left:auto}
 .note-list{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);min-width:0}
 .note-list:empty{display:none}
-.note-row.od-button{width:100%;min-width:0;min-height:60px;display:grid;grid-template-columns:minmax(0,1fr) 12px;align-items:center;gap:var(--space-2);padding:var(--space-3);text-align:left;justify-content:stretch;background:var(--od-paper);border-color:var(--od-line);color:var(--od-ink)}
-.note-row:hover:not(:disabled){background:var(--od-muted)}
+.note-row.od-button{width:100%;min-width:0;min-height:60px;display:grid;grid-template-columns:minmax(0,1fr) 12px;align-items:center;gap:var(--space-2);text-align:left;justify-content:stretch}
 .note-row-body{min-width:0;display:grid;gap:var(--space-1)}
 .note-row-title{display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:var(--od-body-size);font-weight:600;line-height:1.4}
 .note-row-preview{display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:var(--od-note-size);font-weight:400;line-height:1.5;color:var(--od-sub)}
