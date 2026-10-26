@@ -57,6 +57,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   let extensionView='list',onExtensionBack=()=>{},menuKey=null,detailModel=null,uninstallModel=null;
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
   let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
+  let discoveryModel=null;
   let feedbackModel={showEmpty:false,emptyText:'',countText:'正在读取扩展…'};
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'},cloudPageModel={};
@@ -84,7 +85,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   function closeSharedProviderSettings(){if(disposed)return;settingsOpen=false;paint();}
   function paint(){
     if(disposed)return;
-    const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,
+    const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,discoveryModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
       <style data-opendesk-trusted-react-css="">{bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
@@ -310,6 +311,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     renderUninstall(next){if(disposed)return;uninstallModel=next;paint();},
     renderToolbar(next){if(disposed)return;toolbarModel=next;paint();},
     renderFeedback(next){if(disposed)return;feedbackModel=next;paint();},
+    renderDiscovery(next){if(disposed)return;discoveryModel=next;paint();},
     renderRecoveries(next){if(disposed)return;recoveryModel=next;paint();},
     renderStatus(next){if(disposed)return;statusModel=next;paint();},
     dispose
