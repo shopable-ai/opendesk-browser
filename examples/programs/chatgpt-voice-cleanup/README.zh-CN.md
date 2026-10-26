@@ -79,3 +79,8 @@ Mac Codex 只处理本项目实际未完成的测试和修复，不能重复开�
 本轮 P0 公开资料与最新代码分类已开展，当前账号的实际额度/许可没有模拟或确认；P1 未发现可授权的「AI 整理正文写入 OpenDesk」工具，真实插件调用、回执身份与新会话均 NOT_TESTED；P2 仅独立 Page 辅助程序源码与模拟预览存在，正式 Chrome 尚未验收。没有任何一项可以升级称作完整自动闭环 PASS。
 
 下一次实测顺序：先在支持写入的**已有** OpenDesk 应用/工具及账号权限下寻找一个目标明确的安全正文接收动作；如无此能力则记录 BLOCKED，不重复研究 Codex 网关；随后仅验证普通用户手动从官网临时对话复制 JSON、输入框冲突保护与读回。任何新宿主/通信 API 必须经独立缺口审计，不能为了做演示临时开放网页事件权限。
+
+
+### Custom GPT Actions 作为旧版备选的补充判断
+
+官方 https://help.openai.com/en/articles/8554397-creating-and-editing-gpts 已说明个人 Free/Go/Plus/Pro 账户不能新建/发布 GPT；已存在的 GPTs 仍可能继续使用。https://help.openai.com/en/articles/9442513-configuring-actions-in-gpts 说明 GPT Actions 可以调用外部 API（包括经授权的修改操作），但 Pro mode 不支持 Actions；同时官方规划淘汰自定义 GPT 并迁移至 Plugins。因此它是「有既存 GPT 与服务端接收器时可专项试验」的过渡选项，不作为本轮从零建设的默认产品路线，亦不能被说成一键官网模型 API。
