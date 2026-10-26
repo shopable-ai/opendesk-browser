@@ -63,7 +63,13 @@ export function mountCleanupWidget({owner,site,doc=document,win=window}){
  owner.on(result.area,'input',()=>{accepted=null;refresh()});
  owner.on(prepare,'click',()=>{
    try{
-     if(!binding&&!bind())return;
+     if(!binding){
+       // Preparing directly after typing in the floating panel must not erase
+       // manually provided text with an empty website draft.
+       const typed=original.area.value;
+       if(!bind())return;
+       if(typed)original.area.value=typed;
+     }
      if(unknown)throw new Error('本页存在未知写入结果，请人工核对并刷新');
      if(typeof win.crypto?.randomUUID!=='function')throw new Error('无法创建安全任务标识');
      requestId=win.crypto.randomUUID();
