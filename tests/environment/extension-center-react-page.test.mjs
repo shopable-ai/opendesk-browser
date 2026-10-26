@@ -444,10 +444,15 @@ test('R5.7 real ExtensionCenter Controller + React ToolHost preserve ImportSheet
   assert.deepEqual(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='import')),
     [{action:'import'}]);
 
-  await sheet.locator('#sidebar-tool-file').setInputFiles({
+  // Only an explicit click inside the open sheet may trigger Chrome's file chooser.
+  const chooserPromise=page.waitForEvent('filechooser');
+  await sheet.locator('label[for="sidebar-tool-file"]').click();
+  const chooser=await chooserPromise;
+  await chooser.setFiles({
     name:'demo.opendesk-tool.json',mimeType:'application/json',
     buffer:Buffer.from('{"format":"fixture-not-an-installation"}')
   });
+  assert.equal(fileChooserCount,1,'the native chooser opens only after the user clicks Select');
   await page.waitForFunction(()=>fixture.calls.some(x=>x.action==='file-picked'));
   assert.deepEqual(await page.evaluate(()=>fixture.calls.filter(x=>x.action==='file-picked')),
     [{action:'file-picked',names:['demo.opendesk-tool.json']}]);
@@ -466,7 +471,7 @@ test('R5.7 real ExtensionCenter Controller + React ToolHost preserve ImportSheet
   await sheet.waitFor({state:'visible'});
   assert.equal(await page.locator('#sidebar-tool-import').count(),1,
     'reopening does not mount a second ImportSheet');
-  assert.equal(fileChooserCount,0);
+  assert.equal(fileChooserCount,1,'reopening the dialog does not reopen the picker');
   await page.locator('#sidebar-tool-import-close').click();
   await sheet.waitFor({state:'hidden'});
   await page.waitForFunction(()=>document.activeElement?.id==='extension-center-more');
