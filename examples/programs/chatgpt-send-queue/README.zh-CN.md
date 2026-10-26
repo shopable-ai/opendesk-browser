@@ -24,7 +24,7 @@ Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · �
 
 R5.6 独立诊断发现：已填入官网的队列正文若由用户手动发送，r2 可把提交前变化误标为可恢复失败；Stop 后切换会话也会阻断超时锁定。修复使用新 `0.1.4/r3`，保留已提交 r2 的固定字节与指纹。准备成功后的异常或超时进入 unknown，普通恢复不再重试；Stop 超时不依赖当前会话或编辑器是否可读。隔离回归与 Mac 真实验收分别记录，未授权时不通过入队触发发送。
 
-这是独立 Page Program。**不是** Prompt Shortcuts、OpenDesk 自身 `src/ui/react/components/conversation.tsx`、Chrome 独立扩展或 ChatGPT API 客户端。新独立正式包为本目录的 `ai-send-queue.opendesk-page.json`，通过 OpenDesk「扩展 → 导入」审阅身份、版本及网站范围后安装，归「网页增强」。0.1.2/r1 的安装与注册证据见上文；当前 0.1.4/r3 的真实安装与运行仍为 `NOT_TESTED`，文末旧身份的运行历史不适用于新包。
+这是独立 Page Program。**不是** Prompt Shortcuts、OpenDesk 自身 `src/ui/react/components/conversation.tsx`、Chrome 独立扩展或 ChatGPT API 客户端。新独立正式包为本目录的 `ai-send-queue.opendesk-page.json`，通过 OpenDesk「扩展 → 导入」审阅身份、版本及网站范围后安装，归「网页增强」。2026-10-26 已在 `test-chatgpt-profile` 通过原管理 UI 完成同身份 r1→r2→0.1.4/r3 升级，r3 源码指纹与正式包一致；停用、恢复和页面刷新后重新查询安装状态通过。该静态 Developer 宿主未登录 ChatGPT，也没有真实 `/c/` 会话；未入队或发送，r3 队列运行及真实发送保持 `BLOCKED / NOT_TESTED`。安装详情尚未展示语义版本号，不能把新包版本当作安装字段已完整保存。详见[核心升级记录](../../../docs/framework/workstreams/send-queue-r4-20261025.md#r57-核心升级与不发送检查2026-10-26)。文末旧身份的运行历史不适用于新包。
 
 S01：官网正在回复时，用户继续输入并点击蓝色队列按钮两次；原生草稿分别进入同一对话的内存队列。等待网站显示回复完成、原生发送控件变为安全可用、输入框无他人草稿后，先填入消息，下一轮重新核对网页与按钮，再**只点击一次**；准确找到一个新增用户消息节点才能认定确认。下一条要等待新的助手回复节点明确结束后继续。队列不通过私有网络端点、cookie、模拟官方 API 或后台配额发送。
 

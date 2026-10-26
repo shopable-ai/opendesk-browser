@@ -195,3 +195,23 @@
 - 一份 prepare 复核前的临时候选已隔离为 `rejected-r3-prepare-gap.opendesk-page.json`，没有晋升、安装或提交。最终唯一正式路径仍为 `examples/programs/chatgpt-send-queue/ai-send-queue.opendesk-page.json`。旧身份 `opendesk.chatgpt-send-queue` 包、R5.4 CSS/WebP 均逐字节保持。
 - 独立 reviewer 对最终源码 delta 未发现可行动 P1/P2，见 `independent-review-1-4-final.md`；构建/原生证据 reviewer 见 `independent-review-5-8-before.md`。八项维度均为 `NOT_SCORED`，无充分同候选原生证据，不计算平均分。
 - 下一步：释放 Profile 后，从真实 r1 安装终态开始，同入口升级保留的 r2，再更新 r3，逐次核对 installationId 与指纹。真实消息发送尚未授权，所有入队与发送测试保持 `BLOCKED`；皇冠可见/热区、暂停队列交互、真实草稿/附件/IME、旧 ID 原生并存、重载/卸载资源释放均为 `NOT_TESTED`，不以 Node 或 active 字段冒充通过。
+
+## R5.7 核心升级与不发送检查（2026-10-26）
+
+- 当前 owner：Codex `01a178c2-cfd1-73c2-9ed6-e7a3f8e44236`。本对话新设核心目标；原对话旧全面验收 goal 的移交记录为 paused，未在本对话改写或完成它。完整矩阵、production 宿主、宽度/缩放、压力和评分继续延期，不作为核心收口条件。
+- 本轮沿用静态 Developer 宿主，CFT `154.0.8037.92` / `test-chatgpt-profile`，扩展 `ajjjgoapcaonglplhlnlfofmlemdakhk`。实际加载路径仍为本证据根的 `source-snapshot/dist/development-developer`，无 dev serve 连接，宿主快照基于 `abfe0fcf9`。浏览器/launcher PID `54791/54789` 与日常 watcher `79949` 保留，未重建、重启或覆盖输出。
+- 交接中的 r1 安装与 r1→r2 已有真实 UI 证据，本轮未重复。开始时从详情读回 r2、原 installationId 与 r2 完整源码 SHA。r3 从原「更新 / 导入新版…」入口导入；系统选择器最终选用 `candidate-r3.opendesk-page.json`，已重新核对与目录内唯一正式包逐字节一致。审阅展示同一 programId、`v0.1.4/r3`、完整源码/packageHash，网站范围明确未变化；确认后列表仍为 5 个扩展且只有一个该队列项。
+
+| 操作 | 预期 | 实际 | 结论 | 原始证据（同 R5.6 证据根） |
+| --- | --- | --- | --- | --- |
+| 原入口 r2→r3 更新 | 保留安装身份、原范围，使用已修复源码 | UI 成功消息为 v0.1.4；详情 r3，active/registered，完整源码 SHA 与正式包一致 | PASS（真实安装升级） | `native-r3-update-review-full-ax.txt`、`native-r3-update-review.png`、`native-r3-updated-list-ax.txt`、`native-r3-installed-full-ax.txt`、`native-r3-installed.png` |
+| 管理详情停用 | 停止后续自动启动并读回权威状态 | disabled/disabled，r3、安装身份及源码 SHA 不变，受管清理 retired | PASS（管理状态）；活跃队列释放未测 | `native-r3-disabled-full-ax.txt` |
+| 原入口恢复 | 恢复原范围与身份的注册 | active/registered，r3、安装身份及源码 SHA 不变 | PASS（管理状态）；会话内自动 UI 未测 | `native-r3-restored-full-ax.txt` |
+| 空草稿首页刷新，再返回列表并重新打开详情 | 页面刷新完成，安装仍为 r3 | 未登录首页恢复，原生草稿为空，r3 状态仍 active/registered；无 `/c/` 身份，未出现队列操作 UI | PASS（刷新和重新查询安装）；队列运行 BLOCKED | `native-r3-after-page-reload-full-ax.txt`、`native-r3-after-page-reload.png`、`native-r3-requeried-after-reload-full-ax.txt` |
+| 查已安装版本展示 | 审阅能显示原安装的语义版本 | 仍显示「当前 版本未记录 · r2 → 新 v0.1.4 · r3」；详情只有修订号 | FAIL（已定位，未修复宿主） | r3 更新审阅与安装详情 |
+| FIFO、等待对应助手完成、主动暂停/恢复、unknown 原生行为 | 在独立测试对话且获明确发送授权后验证 | 未登录、无真实会话且发送未授权；没有输入测试语句、入队或发送 | BLOCKED / NOT_TESTED | 本轮全部真实 AX，未制造会话 URL/DOM |
+
+- r3 安装身份始终 `9bf2f0d6-9b5b-4d72-a372-23bbce9aecfc`，注册 ID 始终 `opendesk-page-boot-e736f023860568cd7be4f76373b4882840d0f3928e1ca8e3`。固定源码 SHA-256 `804ec9067d83f9098d74a9db82ab5887ffd1a78c1411065dc024a032b4c7ec97`，包摘要 `5aadca8bc7298bd73524c7dcba3f1e3168ac71ac9a20c30843eb5a26ea500fd7`，仅 `page.dom`、`https://chatgpt.com/*`、顶层 USER_SCRIPT。皇冠 CSS/WebP 和程序源码未改；沿用最终 96/96 定向 Node、编译和包校验证据，未重复全组。
+- 版本字段的独立只读诊断：`installed-programs.js` 的 `importPageInstallPackage` 校验包 version 后未保存到安装记录，`publicInstall` 也不返回该字段；`extension-center-model.js` 将 revision 当作展示版本。属于既有安装元数据及 UI 投影缺口，工具自身目录无法修复，跨 Page Program 通用；不需要第二 SDK/Host/安装器。最小后续范围为原安装元数据、公开投影及相关定向测试，不应为了展示扩改 candidate/hash 合同，更不能凭当前包反填历史版本。本轮完成最小诊断并保留当前宿主，未宣称该缺口已修复。
+- 安全提交 `98e7fcc5e` 在本轮开始时尚未推送；后续按当前远端 main 的实际提交与脏文件集合核对后普通合并，保留双方历史，不 rebase/stash/reset/强推、不建分支/worktree/PR。并行 owner 在核对期间继续修改其他文件，因此不能用全工作区 SHA 恒定证明其保留；以合并实际写入集合与原脏文件无交集为依据，原核对差异如实保留在证据目录，绝不恢复或覆盖并行新改动。最终推送与远端正式包读回以 `core-remote-verification.json` 为准；本地安装和身份检查另见 `core-identity-verification.json`，不能用安装成功替代推送证据。
+- 后续真实运行所需的具体条件：用户在此专属 Profile 完成登录并打开独立测试对话，另行明确授权最少测试消息。获授权前不点击入队；unknown 出现立即停止并人工核对，不自动补发。本轮安装成功不等于新身份发送、活跃旧身份并存、卸载释放或全面发布验收 PASS。
