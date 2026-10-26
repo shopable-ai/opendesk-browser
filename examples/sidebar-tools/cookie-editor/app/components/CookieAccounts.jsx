@@ -19,7 +19,7 @@ const ruleHelp={
 export function CookieAccounts({
   origin='',accounts=[],route='list',onRoute=()=>{},
   configured=false,vaultReady=false,switchReady=false,autoRuntimeReady=false,
-  busy=false,feedback=null,onUnlock,onLock,
+  busy=false,feedback=null,previewOnly=false,onUnlock,onLock,
   autoEnabled=false,autoRefresh=true,
   onCreate,onSwitch,onRename,onUpdate,onDelete,onShare,
   onToggleAuto,onToggleRefresh,onAllowAlias,onCopyLink
@@ -123,10 +123,18 @@ export function CookieAccounts({
       });
     }catch{return null;}
   };
-  const verify=()=>setTestResult(inspectAccountSwitchUrl(testUrl,{
-    expectedOrigin:origin,enabled:autoEnabled&&autoRuntimeReady,
-    approvedFragment:autoRuntimeReady,allowedAliases:allowlist
-  }));
+  const verify=()=>{
+    const check=inspectAccountSwitchUrl(testUrl,{
+      expectedOrigin:origin,enabled:autoEnabled&&autoRuntimeReady,
+      approvedFragment:autoRuntimeReady,allowedAliases:allowlist
+    });
+    // The initial audited runtime only acts on canonical root links.
+    // Do not label deeper SPA routes eligible before an adapter is reviewed.
+    let path='/';
+    try{path=new URL(testUrl).pathname;}catch{}
+    setTestResult(check.status==='eligible'&&path!=='/'
+      ?{status:'blocked',code:'E_SITE_ADAPTER_REQUIRED'}:check);
+  };
   const actions=item=>[
     ['重命名',()=>startInline('rename',item),Boolean(onRename)],
     ['更新当前 Cookie 快照',()=>onUpdate?.(item),Boolean(onUpdate)],
@@ -183,6 +191,7 @@ export function CookieAccounts({
           网站兼容性及白名单验证完成后，才能生成可执行切换链接。
         </p>}
       <h3>验证规则</h3>
+      <p className="cookie-account-empty">当前仅支持本站根路径上的固定 Fragment 协议；不会修改原有 Query 或 SPA 路由。</p>
       <div className="cookie-account-verify">
         <input type="url" className="od-field" aria-label="待验证的账号切换链接"
           placeholder="粘贴链接" value={testUrl}
@@ -217,6 +226,9 @@ export function CookieAccounts({
       </div>
     </header>
     <div className="cookie-account-content">
+      {previewOnly&&<p className="cookie-account-notice" role="status">
+        这是源自正式 React 组件的虚构数据演示：不会写入真实 Cookie、加密仓库或浏览器自动切换后台。
+      </p>}
       {!vaultReady&&<div className="cookie-account-unlock">
         <label htmlFor="cookie-account-passphrase">
           <strong>{configured?'解锁本机账号仓库':'首次设置账号仓库口令'}</strong>
