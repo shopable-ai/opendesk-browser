@@ -908,3 +908,58 @@ test('R1.12 manual Page refuses an invalid document or installation grant withou
   assert.equal(f.executeCalls,0,'failed manual attempts must never inject source');
   assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,0);
 });
+
+
+// R1.3.2: Program-specific trusted selector storage on the ORIGINAL Page broker.
+async function scrollConfigFixture(){
+  const f=fixture(),programId='opendesk.ai-scroll-navigation',revision=3;
+  const candidate=await f.prepare('document-idle',{programId,revision});
+  const installed=await f.service.installPageProgram({programId,revision,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  const executionKey='R132-config-document',receiptNonce=crypto.randomUUID();
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',{
+    tag:'page-execution-v1',namespace:'tool:test',programId,revision,
+    executionKey,receiptNonce,browserSessionIncarnation:f.session,
+    manifestHash:installed.manifestHash,sourceHash:installed.sourceHash,
+    installationId:installed.authorization.installationId,
+    grantGeneration:installed.authorization.generation,tabId:1,
+    documentId:f.sender.documentId,state:'completed'
+  },executionKey));
+  const message={protocol:PAGE_BOOT_PROTOCOL,action:'page-config',
+    operation:'read',programId,executionKey,receiptNonce};
+  const site={origin:'https://example.com',pathScope:'/demo',
+    mainSelector:'main',scrollSelector:'#thread',messageSelector:'',
+    anchorSelector:'',enabled:true};
+  return {f,installed,message,site};
+}
+test('R132 installed Page config survives readback/restart and uses CAS with idempotent retry',async()=>{
+  const {f,message,site}=await scrollConfigFixture();
+  assert.deepEqual(await f.service.handleBoot(message,f.sender),{etag:'0',value:{version:1,sites:[]}});
+  const value={version:1,sites:[site]};
+  const saved=await f.service.handleBoot({...message,operation:'write',etag:'0',value},f.sender);
+  assert.ok(saved.etag&&saved.etag!=='0');assert.deepEqual(saved.value,value);
+  assert.deepEqual(await f.service.handleBoot({...message,operation:'write',etag:'0',value},f.sender),saved);
+  await fails(()=>f.service.handleBoot({...message,operation:'write',etag:'0',
+    value:{version:1,sites:[{...site,mainSelector:'#different'}]}},f.sender),'E_CONFIG_CONFLICT');
+  assert.deepEqual(await f.service.handleBoot(message,f.sender),saved);
+  f.restart();
+  assert.deepEqual(await f.service.handleBoot(message,f.sender),saved);
+});
+test('R132 config cannot edit unapproved sites or impersonate another execution',async()=>{
+  const {f,message,site}=await scrollConfigFixture();
+  const unauthorized={version:1,sites:[{...site,origin:'https://unapproved.test'}]};
+  await fails(()=>f.service.handleBoot({...message,operation:'write',etag:'0',value:unauthorized},f.sender),
+    'E_PAGE_AUTHORIZATION');
+  await fails(()=>f.service.handleBoot({...message,receiptNonce:'wrong'},f.sender),
+    'E_PAGE_AUTHORIZATION');
+  await fails(()=>f.service.handleBoot({...message,programId:'other'},f.sender),'E_OWNER');
+  await fails(()=>f.service.handleBoot({...message,sourceUtf8:'evil'},f.sender),'E_SCHEMA');
+  assert.deepEqual(await f.service.handleBoot(message,f.sender),{etag:'0',value:{version:1,sites:[]}});
+});
+test('R132 disabling or revoking original install instantly fences saved config access',async()=>{
+  const {f,message,installed}=await scrollConfigFixture();
+  await f.service.setInstalledPageEnabled({programId:message.programId,
+    manifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation,
+    enabled:false},{});
+  await fails(()=>f.service.handleBoot(message,f.sender),'E_PAGE_AUTHORIZATION');
+});

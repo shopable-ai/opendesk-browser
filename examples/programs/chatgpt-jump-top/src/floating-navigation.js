@@ -2,6 +2,7 @@
 // The five navigation behaviors share two physical buttons (one top, one bottom).
 import {findSiteConversation} from './site-adapters.js';
 import {jumpConversationEdge} from './conversation.js';
+import {scrollConfiguredEdge} from './site-configuration.js';
 
 const OWN='data-opendesk-ai-scroll-navigation';
 const sessions=new WeakMap();
@@ -29,11 +30,11 @@ export function liveDock(node,win) {
 }
 const between=(value,min,max)=>Math.max(min,Math.min(max,value));
 
-export function installFloatingNavigation({doc,win,owner}) {
+export function installFloatingNavigation({doc,win,owner,resolveConversation=null}) {
   sessions.get(doc)?.dispose();
   let disposed=false,pending=false,observedRoot=null,observer=null,host=null,buttons=null;
   let binding=null,lastHref=win.location.href;
-  const context=()=>findSiteConversation(doc,win);
+  const context=()=>typeof resolveConversation==='function'?resolveConversation():findSiteConversation(doc,win);
   const isCurrent=()=>!disposed&&binding&&host?.isConnected&&
     binding.root===doc.documentElement&&binding.href===win.location.href;
   function click(direction,event) {
@@ -49,7 +50,8 @@ export function installFloatingNavigation({doc,win,owner}) {
     // Invalidate stale buttons before navigation/React reconciliation finishes.
     const next=context();
     if (!next||next.main!==binding.main||next.scroller!==binding.scroller) return;
-    jumpConversationEdge(next.main,next.selector,direction,doc,win);
+    if(next.custom)scrollConfiguredEdge(next,direction,doc,win);
+    else jumpConversationEdge(next.main,next.selector,direction,doc,win);
     schedule();
   }
   function prepare() {
@@ -136,7 +138,8 @@ export function installFloatingNavigation({doc,win,owner}) {
     buttons.stack.classList.toggle('compact',compact);
     const count=options.length,width=compact?count*SIZE+(count-1)*GAP:SIZE;
     const height=compact?SIZE:count*SIZE+(count-1)*GAP;
-    const left=between(Math.max(rect.left,Math.min(first.left,last.left))+12,
+    const chosenAnchor=next.custom?next.anchor?.getBoundingClientRect?.():null;
+    const left=between((chosenAnchor?.left??Math.max(rect.left,Math.min(first.left,last.left)))+12,
       8,Math.max(8,win.innerWidth-width-8));
     const topPos=Math.round(Math.min(win.innerHeight,rect.bottom)-INSET-height);
     const minTop=Math.max(8,rect.top+8);

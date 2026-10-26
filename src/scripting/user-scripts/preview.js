@@ -1,3 +1,4 @@
+import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION} from './scroll-config-contract.js';
 import {readNativeUserScripts} from './native-access.js';
 import {httpUrl, permissionPattern} from '../../environment.js';
 import {FoundationError, invariant} from '../../platform/protocol.js';
@@ -530,10 +531,25 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         sourceHash:script.sourceHash},installation);reserved=true;
       invariant(script.sourceHash===installation.sourceHash,'E_SOURCE_HASH','安装源码已变化');
       const frameResources=await readPageFrameResources(candidate.sourceUtf8);
-      if(frameResources.length)await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:true});
+      const scrollConfig=installation.programId===SCROLL_CONFIG_PROGRAM_ID&&
+        installation.revision>=SCROLL_CONFIG_MIN_REVISION;
+      if(frameResources.length||scrollConfig)await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:true});
       const frameBootstrap=frameResources.length?pageFrameBootstrapSource({executionKey:installation.executionKey,
         receiptNonce,resourceIds:frameResources.map(row=>row.resourceId)}):'';
-      const js=[{code:managedUIBootstrapSource(receiptNonce)+';\n'+frameBootstrap+';\n'+script.js.map(row=>row.code).join('\n;\n')}];
+      const configBootstrap=scrollConfig?(()=>{
+        const binding={protocol:'opendesk.page-installed.boot.v1',action:'page-config',
+          programId:installation.programId,executionKey:installation.executionKey,receiptNonce};
+        return '(()=>{const binding='+JSON.stringify(binding)+';'+
+          'const send=async(operation,details={})=>{const receipt=await chrome.runtime.sendMessage({...binding,operation,...details});'+
+          'if(!receipt?.ok)throw Object.assign(new Error(receipt?.error?.message||"配置操作未确认"),'+
+          '{code:receipt?.error?.code||"E_CONFIG_UNKNOWN"});return receipt.data;};'+
+          'Object.defineProperty(globalThis,"__openDeskScrollConfig",{configurable:true,value:Object.freeze({'+
+          'pageRules:'+JSON.stringify(candidate.manifest.pageRules)+
+          ',read:()=>send("read"),write:(value,etag)=>send("write",{value,etag})'+
+          '})});})();';
+      })():'';
+      const js=[{code:managedUIBootstrapSource(receiptNonce)+';\n'+frameBootstrap+';\n'+
+        configBootstrap+';\n'+script.js.map(row=>row.code).join('\n;\n')}];
       const compiledSha256=await sha256Utf8(js[0].code);
       // Persist the world/code binding in the original Authority execution too;
       // session metadata alone cannot choose a world for privileged control.

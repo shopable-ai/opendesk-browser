@@ -11,6 +11,7 @@ import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
 import {loadBuiltinPageSource,loadPackagedOptionalPageLibraries} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
+import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION,SCROLL_CONFIG_EMPTY,normalizeScrollConfig} from './scroll-config-contract.js';
 import {pageProgramUrlMatches} from './page-program-rules.js';
 import {PAGE_FRAME_ACTION} from './page-frame-runtime.js';
 // Reuse exact literals within the fixed privileged bundle budget.
@@ -285,7 +286,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       }
       invariant(!previous?.managedCleanup||previous.managedCleanup.state==='retired',
         'E_PAGE_CLEANUP_PENDING','旧安装的受管界面清理尚未确认；请核对原网页后主动完成清理，不能覆盖恢复记录');
-      const scope=pageInstallScope(candidate.manifest.pageRules),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
+      const scope=pageInstallScope(candidate.manifest.pageRules,candidate.manifest.programId,candidate.manifest.revision),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
       const row={tag:PAGE_INSTALL_TAG,namespace,programId:request.programId,revision:request.revision,
         title:request.title?.trim()??previous?.title??request.programId,
         manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,builtinIdentity:candidate.builtinIdentity,pageRules:candidate.manifest.pageRules,enabled:previous?.enabled??true,
@@ -468,7 +469,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       const granted=await api.permissions.contains({origins:row.pageRules.matches});
       const status=!row.enabled?'disabled':granted&&row.nativeState==='registered'&&!row.error?'active':'suspended';
       authorization={tag:'page-install-authorization-v1',installationId:crypto.randomUUID(),generation:1,status,
-        scope:pageInstallScope(row.pageRules),approvedAt:row.installedAt};
+        scope:pageInstallScope(row.pageRules,row.programId,row.revision),approvedAt:row.installedAt};
       if(status==='suspended')error={code:PAGE_PERMISSION_ERROR,message:ACCESS_CHANGED};
     }catch(cause){error={code:cause.code||'E_PAGE_AUTHORIZATION',message:'旧安装无法验证，请重新核对并安装固定版本'};}
     const next={...row,authorization,nativeState:authorization?.status==='active'?row.nativeState:'blocked',error,
@@ -578,7 +579,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
           dependencyLockId:row.manifest.dependencyLockId,
           stage:proof?.status??'Candidate',installed:publicInstall(installed.find(i=>i.programId===row.manifest.programId)),
           authorizationChange:pageInstallScopeDelta(installed.find(i=>i.programId===row.manifest.programId)?.authorization?.scope,
-            pageInstallScope(row.manifest.pageRules))};
+            pageInstallScope(row.manifest.pageRules,row.manifest.programId,row.manifest.revision))};
       });return {catalog,installed:installed.map(publicInstall)};
     });
   }
@@ -760,7 +761,87 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       if(held&&(confirmed||!dispatched))await admission.release({nonce:message.requestId});
     }
   }
+
+  // Same native USER_SCRIPT broker, same persistent Page Authority; no page-facing
+  // generic storage API. Exact execution nonce and document bind each request.
+  async function handlePageConfig(message,sender) {
+    const isWrite=message?.operation==='write';
+    fields(message,isWrite?
+      ['protocol','action','programId','operation','executionKey','receiptNonce','value','etag']:
+      ['protocol','action','programId','operation','executionKey','receiptNonce']);
+    invariant(message.protocol===PAGE_BOOT_PROTOCOL&&message.action==='page-config'&&
+      ['read','write'].includes(message.operation)&&message.programId===SCROLL_CONFIG_PROGRAM_ID&&
+      typeof message.executionKey==='string'&&message.executionKey.length<2048&&
+      typeof message.receiptNonce==='string'&&message.receiptNonce.length>0&&message.receiptNonce.length<=128&&
+      sender?.id===api.runtime.id&&sender.frameId===0&&typeof sender.documentId==='string'&&
+      Number.isSafeInteger(sender.tab?.id)&&!sender.tab.incognito,
+      'E_OWNER','配置请求必须来自原安装的顶层隔离执行文档');
+    return ordered(async()=>{
+      const execution=await read(tx=>tx.get(PAGE_STORE,message.executionKey));
+      invariant(execution?.tag==='page-execution-v1'&&execution.namespace===namespace&&
+        execution.programId===message.programId&&execution.executionKey===message.executionKey&&
+        execution.receiptNonce===message.receiptNonce&&
+        ['dispatched','completed'].includes(execution.state)&&
+        execution.tabId===sender.tab.id&&execution.documentId===sender.documentId&&
+        execution.browserSessionIncarnation===session,
+        'E_PAGE_AUTHORIZATION','配置执行身份不匹配或已过期');
+      const installKey=key(INSTALL_KEY_KIND,namespace,message.programId);
+      const row=await read(tx=>tx.get(PAGE_STORE,installKey));
+      invariant(row?.revision>=SCROLL_CONFIG_MIN_REVISION&&row.nativeState==='registered'&&
+        active(row)&&row.manifestHash===execution.manifestHash&&row.sourceHash===execution.sourceHash&&
+        row.authorization.installationId===execution.installationId&&
+        row.authorization.generation===execution.grantGeneration,
+        'E_PAGE_AUTHORIZATION','未批准此安装的可信配置能力');
+      const epoch=permissionEpoch(row);
+      await requireSiteGrant(row);
+      const [tab,frames,desired]=await Promise.all([
+        api.tabs.get(sender.tab.id),api.webNavigation.getAllFrames({tabId:sender.tab.id}),descriptor(row)]);
+      const frame=frames?.find(f=>f.frameId===0&&f.documentId===sender.documentId);
+      invariant(frame&&!frame.errorOccurred&&
+        (!frame.documentLifecycle||frame.documentLifecycle==='active')&&
+        tab?.url===frame.url&&!tab.pendingUrl&&!tab.incognito&&
+        new URL(sender.url).origin===new URL(frame.url).origin&&
+        pageProgramUrlMatches(row.pageRules,frame.url),'E_DOCUMENT_STALE','网页已离开批准范围');
+      const registered=await (await nativeAPI()).getScripts({ids:[row.nativeId]});
+      invariant(registered.length===1&&nativeEqual(registered[0],desired.script),
+        'E_PAGE_AUTHORIZATION','原生安装注册内容已经改变');
+      invariant(permissionEpoch(row)===epoch,'E_PAGE_AUTHORIZATION',ACCESS_CHANGED);
+      const configKey=key('config',namespace,message.programId);
+      const snapshot=record=>({value:structuredClone(record?.value??SCROLL_CONFIG_EMPTY),etag:record?.etag??'0'});
+      if(!isWrite){
+        return snapshot(await read(tx=>tx.get(PAGE_STORE,configKey)));
+      }
+      invariant(typeof message.etag==='string'&&message.etag.length<=128,
+        'E_CONFIG_SCHEMA','缺少配置的版本校验值');
+      const value=normalizeScrollConfig(message.value);
+      // Config is merely CSS data. A saved rule cannot enlarge frozen pageRules,
+      // create an installation, change a grant or revive a disabled Program.
+      for(const site of value.sites){
+        invariant(pageProgramUrlMatches(row.pageRules,site.origin+site.pathScope),
+          'E_PAGE_AUTHORIZATION','该网站未获安装或升级审阅授权');
+      }
+      const saved=await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
+        const current=await tx.get(PAGE_STORE,installKey);
+        invariant(current?.token===row.token&&current.manifestHash===row.manifestHash&&
+          current.authorization?.generation===row.authorization.generation&&active(current)&&
+          permissionEpoch(row)===epoch,'E_PAGE_AUTHORIZATION','配置提交前安装权限已改变');
+        const old=await tx.get(PAGE_STORE,configKey);
+        if(old&&equal(old.value,value))return snapshot(old); // idempotent retry
+        invariant((old?.etag??'0')===message.etag,'E_CONFIG_CONFLICT',
+          '网站规则已被其他窗口修改；请重新读取后合并，草稿仍保留');
+        const record={tag:'page-config-v1',namespace,programId:message.programId,
+          etag:crypto.randomUUID(),value,updatedAt:clock.now()};
+        await tx.put(PAGE_STORE,record,configKey);
+        return snapshot(record);
+      });
+      const confirmed=await read(tx=>tx.get(PAGE_STORE,configKey));
+      invariant(confirmed?.etag===saved.etag&&equal(confirmed.value,saved.value),
+        'E_CONFIG_UNKNOWN','配置写入后的持久化读回未知；不得当作成功');
+      return saved;
+    });
+  }
   function handleBoot(message,sender,source='page_auto',manualReceiptId=null,manualHostDocumentId=null){
+    if(message?.action==='page-config')return handlePageConfig(message,sender);
     if(message?.action===PAGE_FRAME_ACTION)return frameBoot(message,sender);
     const next=executions.then(()=>boot(message,sender,source,manualReceiptId,manualHostDocumentId)).catch(async error=>{
       // Chrome's User Scripts toggle does not necessarily emit permissions

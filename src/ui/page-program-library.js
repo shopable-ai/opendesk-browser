@@ -51,6 +51,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
       '\n程序能力：隔离网页 DOM；不继承扩展、其他程序或独立网页 SDK 的权限。'+
       (delta?'\n新增权限需要确认：'+[
         ...delta.addedSites.map(site=>'新增网站 '+site),
+        ...(delta.addedCapabilities||[]).map(capability=>'新增程序能力 '+capability),
         ...delta.removedExclusions.map(site=>'不再排除 '+site),
         ...(delta.changedExecution?['运行环境或时机改变']:[])].join('；'):'')+
       '\n源码 SHA-256：'+row.sourceHash+

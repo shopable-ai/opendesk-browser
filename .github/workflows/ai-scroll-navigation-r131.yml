@@ -7,6 +7,11 @@ on:
       - 'examples/programs/chatgpt-jump-top/tests/**'
       - 'examples/programs/chatgpt-jump-top/package.json'
       - 'tests/environment/chatgpt-jump-top.test.mjs'
+      - 'tests/environment/ai-scroll-config-r132.test.mjs'
+      - 'src/scripting/user-scripts/scroll-config-contract.js'
+      - 'src/scripting/user-scripts/page-install-authorization.js'
+      - 'src/scripting/user-scripts/installed-programs.js'
+      - 'src/scripting/user-scripts/preview.js'
       - '.github/workflows/ai-scroll-navigation-r131.yml'
   workflow_dispatch:
 permissions:
@@ -31,13 +36,13 @@ jobs:
       - name: Affected Node and Page Authority regressions
         run: |
           set -euo pipefail
-          node --test tests/environment/chatgpt-jump-top.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs
+          node --test tests/environment/chatgpt-jump-top.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs tests/environment/ai-scroll-config-r132.test.mjs
           node scripts/validate-program-project.mjs examples/programs/chatgpt-jump-top
       - name: Reuse production Program Builder and Page Installer
         run: |
           set -euo pipefail
           node scripts/build-program-project.mjs examples/programs/chatgpt-jump-top --out "$RUNNER_TEMP/ai-scroll-nav-build"
-          node scripts/build-page-install-package.mjs --input "$RUNNER_TEMP/ai-scroll-nav-build/program.opendesk-draft.json" --out examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json --revision 2 --title "AI 对话滚动导航"
+          node scripts/build-page-install-package.mjs --input "$RUNNER_TEMP/ai-scroll-nav-build/program.opendesk-draft.json" --out examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json --revision 3 --title "AI 对话滚动导航"
       - name: Verify byte identity, revision, scope and blocked release
         run: |
           set -euo pipefail
@@ -55,8 +60,8 @@ jobs:
           ]);
           const value=await validatePageInstallPackage(JSON.parse(current));
           assert.equal(value.programId,'opendesk.ai-scroll-navigation');
-          assert.equal(value.version,'0.4.1');
-          assert.equal(value.revision,2);
+          assert.equal(value.version,'0.4.2');
+          assert.equal(value.revision,3);
           assert.equal(value.sourceUtf8,source);
           assert.deepEqual(value.pageRules.matches,[
             'https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*']);
@@ -64,11 +69,11 @@ jobs:
           const publication=JSON.parse(manifest);
           const entry=publication.programs.find(row=>row.programId===value.programId);
           assert.ok(entry&&entry.publication==='blocked');
-          assert.ok((entry.version==='0.4.0'&&entry.revision===1)||
+          assert.ok((entry.version==='0.4.1'&&entry.revision===2)||
             (entry.version===value.version&&entry.revision===value.revision));
           entry.version=value.version;
           entry.revision=value.revision;
-          entry.blockedReason='0.4.1/r2 已通过正式构建和定向 Node 校验，但仍缺新包真实 Chrome/Mac 安装及 ChatGPT、DeepSeek、Gemini 三站长对话操作证据；官方目录继续阻断发行。';
+          entry.blockedReason='0.4.2/r3 已完成受安装授权约束的网站配置源码与正式构建；自定义站点扩权安装及新包真实 Chrome/Mac、三站操作仍缺证据，官方目录继续阻断发行。';
           await writeFile('official-pages/sources.json',JSON.stringify(publication,null,2)+'\n');
           console.log(JSON.stringify({programId:value.programId,version:value.version,
             revision:value.revision,sourceHash:value.sourceHash,packageHash:value.packageHash,

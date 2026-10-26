@@ -1,6 +1,14 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
-## 当前独立安装与状态（2026-10-26）
+## R1.3.2 配置增量（2026-10-26）
+
+- 正式源码目标版本 **0.4.2 / revision 3**；仅已批准安装的独立 ID `opendesk.ai-scroll-navigation` 可读写本程序网站配置。原有 0.4.1/r2 不因源码变化而自动获得 `page.config` 权限，更新需在原 Installer 审阅能力差异。
+- 以页面右下角「网站适配」入口选取对话区域及真实滚动容器；上下分别测试，保存使用原 Installed Page Broker 的身份、文档、原生注册和授权读回，并使用 CAS/ETag 与保存后重读。
+- 规则作为惰性 CSS 字符串按 Program ID 持久保存，支持刷新后恢复、冲突报错、重复保存确认及升级保留；不能把规则或网站存储当作授权。
+- **新增任意 Origin 的自动打包、扩权审阅与安装闭环仍未实现**：现阶段 UI 只能保存已通过冻结 pageRules 获批的网站规则。要支持新网站，先由原 Installer 完成包含该 Origin 的受审阅升级，不能靠新增规则或 `<all_urls>` 绕过。
+- 本段记录源码设计和本轮变更范围，并非 Chrome/Mac 原生验收结论；应以对应提交的 CI 与包哈希结果为准。正式目录继续 `publication=blocked`。
+
+## 历史：R1.3.1 安装与状态（2026-10-26）
 
 - **正式包与入口**：[ai-scroll-navigation.opendesk-page.json](ai-scroll-navigation.opendesk-page.json)，ID `opendesk.ai-scroll-navigation`，版本 **0.4.0 / revision 1**。在 OpenDesk「扩展 → 导入」选择此文件，审阅身份、版本及 ChatGPT、DeepSeek、Gemini 三站范围后安装；安装后归「网页增强」，由原 Page Authority 管理。
 - **独立使用**：无需安装 Prompt Shortcuts。旧 `opendesk.chatgpt-jump-top` 与新 ID 分别管理，旧安装和网站授权不会自动转移；可在原管理入口主动停用或卸载旧安装。
