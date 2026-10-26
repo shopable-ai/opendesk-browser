@@ -2,9 +2,26 @@
 
 **最高目标：** 为开发者和 AI 提供 Foundation → Components → Patterns → 6 Business Recipes → Developer/AI Guide → Source & Proof。组件系统优先，不再把 Bookmark Tree 当成 P0 或 UI 风格模板。
 
-**唯一入口：** [index.html](./index.html)（直接转到原有 [Source-Aligned Atlas](./r27-source-aligned-atlas.html)；不再维护独立第二套色板与展示框架）。Atlas 默认 Foundation，Components 提供可检索目录、来源类型、适用/反模式和现有 React 预览；Guide 提供可信 React、独立 HTML 与 Vue Tool 最小示例及三种任务的选型。全部是参考资料，不会安装应用或申请 Host 权限。
+**唯一入口：** [index.html](./index.html)（直接转到原有 [Source-Aligned Atlas](./r27-source-aligned-atlas.html)；不再维护独立第二套色板与展示框架）。Atlas 默认 Components，首先显示已有 React 编译预览，再显示可检索目录、来源类型与适用/反模式；Foundation 仍是第一项规范分类；Guide 提供可信 React、独立 HTML 与 Vue Tool 最小示例及三种任务的选型。全部是参考资料，不会安装应用或申请 Host 权限。
 
 **可复用现状（截至审计起点 05808f0）：** 共享 React=Button/IconButton、Card/CardContent、Switch；其他由正式 CSS、React Aria、业务 React、沙箱 Tool 提供，且保持真实等级。P01–P16 与六业务复用原页面；R2.8 Tree 是历史业务参考，非同源当前验收。预览编译产物在仓库中存在（约 1.6 MB），但构建输入 SHA 与当前 main 的一致性、320–960px/200%/键盘/Chrome **NOT_TESTED**。禁止把本页编辑或 Node 检查当成产品 95+ 通过。
+
+## R3.0 · 真实 React 预览优先与窄屏导航差量（2026-10-27）
+
+- **现有主入口不变：** `prototypes/sidebar/extension-ui-showcase/index.html` → 原 `r27-source-aligned-atlas.html`。没有第二个 Atlas、React Root 或共享组件库。
+- **组件优先：** 默认 Components，原 `scripts/preview/build-sidebar-six-react-preview.mjs` 产物在目录之前；22 类参考及 P01–P16 原位保留。预览能显示不代表已通过最新源码同源校验。
+- **窄屏真实缺口：** 原导航在 ≤740px 强制横向滚动，iframe 固定 360px 且 `max-width:none`。现改为窄屏章节选择器 + iframe `max-width:100%`，并显示请求宽度与实际宽度。请求 960px、容器不足时不会冒充精确 960px 视口。
+- **可见失败：** Atlas 探测同源 iframe 是否挂载 `.od-demo-gallery`；未检测到或因来源隔离无法读取时，提示独立打开，绝不将 iframe `load` 当作正式 Chrome 验收。
+
+**本地查看（必须从仓库根目录启动 HTTP 服务，不通过 GitHub Raw 链接打开 HTML）：**
+
+```bash
+cd /Users/shopme/Documents/workspace/opendesk-browser
+python3 -m http.server 4173 --bind 127.0.0.1
+# 浏览器打开：http://127.0.0.1:4173/prototypes/sidebar/extension-ui-showcase/index.html
+```
+
+**同源候选检查：** `node scripts/preview/build-sidebar-six-react-preview.mjs --check`。只有该命令通过才能把现有 `react-preview/index.html` 当作当前源码产物；失败时由本地 Codex 审核原构建依赖后使用同一脚本再生成，避免覆盖并行工作。仓库连接不等于本地 Mac Chrome，320/360/400/440/960、200% 放大、焦点、菜单、Dialog 和实际截图仍为 `NOT_TESTED`，需本地验收。
 
 **权威文档：** [设计决策与开发复用契约](../../../docs/framework/extension-ui-reference-patterns-r25.zh-CN.md)；[P01–P16 Layout Recipe](../../../docs/framework/extension-ui-layout-recipes-r25.zh-CN.md)；[执行边界与组件所有权](../../../.agents/skills/opendesk-extension-ui/SKILL.md)。历史 R2.8 以下保留作审计来源，不再作为下一轮实施优先级。
 
