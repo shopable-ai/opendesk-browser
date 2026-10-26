@@ -379,7 +379,12 @@ export function createLocalKnowledgeTestRuntime({
      const target=adapter.target;
      if(!target||target.documentId!==snapshot.target?.documentId)
        throw fail('E_KB_TEST_STALE','客服网页文档身份已失效');
-     return {question:record.question,scope:record.scope,messageId:record.messageId,
+     // The single semantic intent may be preceded by a greeting. The AI
+      // Consumer must receive the parsed question, while the site send and
+      // receipt remain bound to the ORIGINAL customer message ID/text.
+      const selectedQuestion=record.parts?.length===1?
+        record.parts[0].question:record.question;
+      return {question:selectedQuestion,scope:record.scope,messageId:record.messageId,
        testIdentity:{serial:s.serial,pauseEpoch:s.pauseEpoch,threadId:s.threadId,
          documentId:target.documentId}};
    },
