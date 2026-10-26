@@ -9,10 +9,10 @@ import '../../examples/sidebar-tools/bookmark-manager/src/service.js';
 const prefix='examples/sidebar-tools/bookmark-manager/';
 const appPath=prefix+'src/react/App.jsx';
 const cssPath=prefix+'src/react/style.css';
-const files=[prefix+'src/model.js',prefix+'src/service.js',appPath,cssPath];
+const files=[prefix+'src/model.js',prefix+'src/service.js',appPath,prefix+'src/react/navigation.js',cssPath];
 const read=p=>readFile(p,'utf8');
 
-test('R3.2 formal JSX is the unique UI source and all four compiled modules remain pinned',async()=>{
+test('R3.2 formal JSX is the unique UI source and all five compiled modules remain pinned',async()=>{
  for(const path of files)await access(path);
  assert.equal(existsSync(prefix+'preview/react/src/App.jsx'),false);
  assert.equal(existsSync(prefix+'preview/react/src/style.css'),false);
