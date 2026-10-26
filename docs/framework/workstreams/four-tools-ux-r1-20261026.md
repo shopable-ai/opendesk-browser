@@ -102,3 +102,34 @@ done
 3. 新聊天交互适配 HTML `markdown-workbench-ux-r1-1-interactive.html` 在容器 Chromium `page.set_content` 执行，320/360/400/440px、编辑/预览、导入、删除取消/确认、Esc、浅深色以及 200% 模拟缩放，未见页面脚本异常/横向溢出：`CHAT_ADAPTER=PASS`。**此文件是模拟交互，非仓库生成的正式 SOURCE_HTML，也不代表 Chrome 安装运行**。
 
 **剩余阻断 / 下一步 owner：** 当前没有可用的同候选正式扩展安装、Mac Chrome 浏览器、旧数据恢复及真正 `scripts/preview/build-preview.mjs` 生成后 UI 截图的原始证据。需要本地 Codex 在最新 `main` 上运行定向测试、正式预览及发行包构建，只有通过后再执行版本升级/包晋升，并记录 Native PASS/FAIL。不能以聊天适配体验分数宣称整个扩展 95+。
+
+## R1.2 · 在线同源交付与正式包差异（2026-10-26）
+
+目标继续保持：四个现有官方 Sidebar Tool 的真正可交互同源预览及可安装包，绝不重画 UI、重建 SDK/Host 或覆盖并行 trusted/ 工作。
+
+### 已完成、无需重复开发
+
+- R1.1 Markdown 源码已经移除仅有清空项的「更多」，保留单层工具栏、清空浮层、Esc、取消、输入保护：原提交 64b6cf6cbb49e6250e78483d7fd0063c6d1db305。避免再次重复修改工具栏。
+- 最新 main 读取时配置版本：Markdown 1.0.6、网页剪藏 1.2.9、知识收件箱 1.2.9、AI 知识问答 0.1.5。
+- 本轮 GitHub 正常提交：ebb7b3a7282d72a74ed922c09b352dfcd3b68d53（修复下载状态旧断言），1cee2cc8275c8eaace0932205166913772b72ef4（README 版本及正式包规范），86fce1dabeb0a177e734cdaa35d70366bd947a2a、4196f9e304f8ed4759fedb4b616ec4e2c91cb6ae、8d0337eaec2e19039811d2a569dee94dd3c5e821（新增并改进实际 Chrome 交互测试），adb160433cea26e5659de6f662add7284604625d（原工作流内新增独立 four-tools-delivery job）。
+- 新任务继续复用 scripts/preview/build-preview.mjs，生成四工具 360px 浅色真实 HTML、Markdown 320/360/400/440px 浅深色，同源 SDK Mock、Node 定向检查、Chromium 基本交互及产物上传；不是第二套预览。
+
+### 正式包差异：下次只做这些未完成增量
+
+| 工具 | 正式源码和目录包现状 | 下一步 |
+| --- | --- | --- |
+| markdown-workbench | 配置与包同为 1.0.6，HTML 一致，但包内 JS 少源码一行清空/导入替换确认按钮文案 | 定向测试通过后按补丁版本安全晋升，不用相同 1.0.6 覆盖 |
+| web-markdown-clipper | 配置与包同为 1.2.9，包 HTML 和主 JS 已与源码相同 | 仅补 --check-project 等规范字节核查 |
+| knowledge-inbox | 源码/配置 1.2.9，目录缺少唯一 knowledge-inbox.opendesk-tool.json | 定向测试后用原打包器生成唯一正式包 |
+| ai-knowledge-answers | 配置与包同为 0.1.5，但包 HTML/主 JS 已不同于 src | 仅沙箱 src 增量升级补丁版，不能触碰并行 trusted/ |
+
+### 不能虚报的验收与当前阻断
+
+- 历史 Sidebar Preview CI 40309794751 于 Validate syntax 阶段失败：E_UI_PREVIEW_LOCK: stale preview input src/ui/design-system.css；失败发生在四工具预览生成之前，不能判定四工具失败。
+- 独立 four-tools-delivery 已添加到既有 Sidebar Preview Contract 工作流，运行 40321999119、40323062540 核查时均为 queued，没有可验证的 HTML、context.json、Node/Chromium 执行结果或截图。
+- PASS（GitHub 内容级）：正式源码、README、测试与工作流提交的存在性、原始内容和 blob SHA 已实读。PASS（隔离语法）：新 Chrome 测试 JS 经 V8 基础解析；这不是 Node --check 或运行 PASS。
+- NOT_TESTED：四份正式 SOURCE_BOUND_HTML、Node 定向测试、真实 headless Chrome UI、正式包 --check-project / --promote-from、Mac Native Chrome 安装和原位升级、200% 与键盘/ARIA 完整验收。
+- CHAT_ADAPTER_NOT_SOURCE_HTML 只属于本对话 SDK 模拟交互适配，不是正式预览源文件或已验证可访问的四份 HTML。
+- 正式产品四工具八维评分、独立提示词/原型/正式 Chrome 评分和各综合算术平均全部为 N/A，未获得执行证据前不能编造 95+。
+
+唯一下一步顺序：先查看 independent four-tools-delivery 的实跑结果并核验真正的四个 HTML 和 context.json；失败只修该项；通过后按上表执行安全包晋升；最后 Mac Native 验收。不得重做 R1.1 菜单或其他扩展已经完成的 UI。
