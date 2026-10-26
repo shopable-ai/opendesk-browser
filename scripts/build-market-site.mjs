@@ -61,10 +61,10 @@ export async function buildMarketSite({env=process.env}={}){
     const target=resolve(stage,path);if(!target.startsWith(stage+'/'))throw Error('Output traversal');
     await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes);outputFiles.push({path,bytes:Buffer.byteLength(bytes),sha256:hash(bytes)});
   };
-  const routes=[],page=async(path,title,description,body,section='apps')=>{
+  const routes=[],page=async(path,title,description,body,section='apps',installSubject=null)=>{
     if(path!=='/'&&!/^\/[a-z0-9/.-]+\/$/.test(path))throw Error('Invalid market route');
     if(routes.includes(path))throw Error('Duplicate market route '+path);
-    routes.push(path);await write(path.slice(1)+'index.html',layout({title,description,body,path,channel,origin,section}));
+    routes.push(path);await write(path.slice(1)+'index.html',layout({title,description,body,path,channel,origin,section,installSubject}));
   };
   try{
     for(const [input,path] of [['src/market-site/market.css','market.css'],['src/market-site/client.js','client.js'],['src/ui/design-tokens.css','design-tokens.css']])await write(path,await readFile(input));
@@ -76,10 +76,10 @@ export async function buildMarketSite({env=process.env}={}){
     for(const app of releases){
       const live=current.find(row=>row.id===app.id),versions=releases.filter(row=>row.id===app.id).sort((a,b)=>b.version.localeCompare(a.version,undefined,{numeric:true}));
       const options={current:live,versions,media:media.find(row=>row.toolId===app.toolId&&row.version===app.version)||null};
-      await page(appPath(app),app.title+' v'+app.version,app.description,appDetail(app,options));
-      if(app.version===live?.version)await page(appPath(app,false),app.title,app.summary,appDetail(app,{...options,fixed:false}));
       const subject={kind:'app',marketId:app.id,version:app.version};
-      await page(installPath(subject),'安装 '+app.title+' v'+app.version,'在 OpenDesk 中审阅此固定应用版本。',installPage(subject,app.title));
+      await page(appPath(app),app.title+' v'+app.version,app.description,appDetail(app,options),'apps',subject);
+      if(app.version===live?.version)await page(appPath(app,false),app.title,app.summary,appDetail(app,{...options,fixed:false}),'apps',subject);
+      await page(installPath(subject),'安装 '+app.title+' v'+app.version,'在 OpenDesk 中审阅此固定应用版本。',installPage(subject,app.title),'apps',subject);
     }
     // A historically pinned collection can outlive available release evidence.
     // Preserve its share route as an explicit missing-evidence page, never invent
