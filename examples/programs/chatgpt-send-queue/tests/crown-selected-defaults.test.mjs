@@ -47,3 +47,13 @@ test('production queue view retains original three-item window and no crown beha
  assert.ok(view.includes("more.setAttribute('aria-expanded',String(state.expanded))")||view.includes("more.setAttribute('aria-expanded',String(expanded))"));
  assert.ok(view.includes("crown.setAttribute('aria-hidden','true')"));
 });
+
+test('approved frontal crown is wide, source-bound, and unrotated by default',()=>{
+ for(const name of ['desktop','touch']){
+   assert.ok(declared(name+'-w')>declared(name+'-h'));
+   assert.equal(declared(name+'-angle'),0);
+ }
+ assert.match(css,/pointer-events:none;z-index:2/);
+ assert.match(html,/id="angle-out">0°/);
+ assert.match(html,/id="angle" type="range"[^>]*value="0"/);
+});
