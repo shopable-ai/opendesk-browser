@@ -214,9 +214,10 @@ test('R5.2 Markdown Workbench import and clear are explicit in-page operations',
   append(...items){this.children.push(...items);}
   replaceChildren(...items){this.children=[...items];}
  }
- const ids=['mdw-source','mdw-preview','mdw-panes','mdw-status','mdw-state','mdw-file','mdw-import','mdw-copy','mdw-download','mdw-clear','mdw-inline-review','mdw-review-text','mdw-review-confirm','mdw-review-cancel'];
+ const ids=['mdw-source','mdw-preview','mdw-panes','mdw-status','mdw-file','mdw-import','mdw-copy','mdw-download','mdw-clear','mdw-inline-review','mdw-review-text','mdw-review-confirm','mdw-review-cancel'];
  const nodes=Object.fromEntries(ids.map(id=>[id,new TestNode(id)]));
- const root={querySelector:selector=>nodes[selector.slice(1)],querySelectorAll:()=>[]};
+ const toolbar=new TestNode('mdw-toolbar');
+ const root={querySelector:selector=>selector==='.mdw-toolbar'?toolbar:nodes[selector.slice(1)],querySelectorAll:()=>[]};
  const document={createElement:tag=>new TestNode(tag),createDocumentFragment:()=>new TestNode('fragment')};
  const window={addEventListener(type){if(type==='beforeunload')throw new Error('modal exit handler must never register');}};
  runInNewContext(source,{globalThis:{OpenDeskTool:{root,request:async()=>({})},addEventListener:window.addEventListener.bind(window)},document,window,
