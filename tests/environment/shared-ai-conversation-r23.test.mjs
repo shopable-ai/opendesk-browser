@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {inferHttpsSource,httpsSourceConfigurationError} from '../../src/ui/ai/provider-https-source.js';
 import {load} from 'cheerio';
+import {transform} from 'esbuild';
 import {renderSidebarReact} from '../../scripts/preview/react-sidebar-ssr.mjs';
 import {createWorkflowUIState} from '../../src/ui/workflow/workflow-ui-state.js';
 import {appendWorkflowSuggestionDraft} from '../../src/ui/conversation/draft-suggestion.js';
@@ -245,4 +246,45 @@ test('R2.3 Native settings now show actual connection state inline without a sec
  assert.match(options,/<details class="settings-card advanced-card">/);
  assert.match(options,/<details class="privacy-details">/);
  assert.match(css,/\.od-shared-provider-local-card \.od-shared-switch\{/);
+});
+
+test('shared AI settings use the real Native status authority and keep Options advanced-only',async()=>{
+ const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
+ const [sheet,shell,service,options,style,zh,en,ja,tw]=await Promise.all([
+  read('src/ui/react/components/provider-settings.tsx'),
+  read('src/ui/tool-shell.js'),
+  read('src/native-agent/service-worker.js'),
+  read('src/native-agent/settings.html'),
+  read('src/native-agent/settings.css'),
+  read('src/i18n/locales/zh-CN.js'),
+  read('src/i18n/locales/en.js'),
+  read('src/i18n/locales/ja.js'),
+  read('src/i18n/locales/zh-TW.js')
+ ]);
+ assert.ok((await transform(sheet,{loader:'tsx',target:'es2022',jsx:'transform'})).code.length>1000,
+   'the real shared sheet must compile, including both provider branches');
+ assert.match(sheet,/function NativeConnectionCard\(/);
+ assert.match(sheet,/<Switch aria-label="启用 OpenDesk 本机连接"/);
+ assert.match(sheet,/nativeConnection\.readStatus\(\)/);
+ assert.match(sheet,/nativeConnection\.setEnabled\(selected\)/);
+ assert.match(sheet,/status\.nativeConnected\?'已连接'/);
+ assert.match(sheet,/lastConnectedAt/,'history must be visible without inventing Codex readiness');
+ assert.match(sheet,/连接开关即时生效；下方保存按钮只保存 AI 来源/);
+ assert.doesNotMatch(sheet,/连接状态请在本机设置查看/);
+ assert.doesNotMatch(sheet,/chrome\.permissions|chrome\.runtime/,'the UI cannot own Chrome authority');
+ assert.match(shell,/const nativeConnection=Object\.freeze\(/);
+ assert.match(shell,/chrome\.permissions\.request\(\{permissions:\['nativeMessaging'\]\}\)/);
+ assert.match(shell,/AGENT_CONFIG_PROTOCOL,type:'status'/);
+ assert.match(service,/toolDocumentIdentity/);
+ assert.match(service,/!panelIdentity\.scheduledRunner/);
+ assert.match(options,/<input id="bridge-toggle" type="checkbox" role="switch"/);
+ assert.match(options,/<details class="settings-card advanced-card">/);
+ assert.match(options,/<details class="privacy-details">/);
+ assert.match(options,/data-disclosure-version="analytics-disclosure-2026-10-24-v8"/);
+ assert.match(style,/@media\(max-width:360px\)/);
+ for(const localized of [zh,en,ja,tw]){
+  assert.match(localized,/"settings\.connectionHeading":/);
+  assert.match(localized,/"settings\.captionPastOffline":/);
+  assert.match(localized,/"settings\.analyticsSummary":/);
+ }
 });
