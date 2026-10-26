@@ -21,6 +21,8 @@ const MUTATIONS=new Set(COOKIE_ACCOUNT_EFFECTS);
 const fail=code=>Object.assign(new Error(code),{code});
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const samePartition=(a,b)=>Boolean(a&&b&&a.topLevelSite===b.topLevelSite&&
+  Boolean(a.hasCrossSiteAncestor)===Boolean(b.hasCrossSiteAncestor));
 const originOf=value=>{
   let url;try{url=new URL(value);}catch{throw fail('E_SITE_MISMATCH');}
   if(!['http:','https:'].includes(url.protocol)||url.origin!==value||
@@ -43,7 +45,7 @@ function safeRow(row,host,storeId,partition){
     typeof row.hostOnly!=='boolean'||typeof row.secure!=='boolean'||
     typeof row.httpOnly!=='boolean'||typeof row.session!=='boolean'||
     row.storeId!==storeId||!['lax','strict','no_restriction','unspecified'].includes(row.sameSite)||
-    row.partitionKey&&!same(row.partitionKey,partition)||
+    row.partitionKey&&!samePartition(row.partitionKey,partition)||
     !row.session&&(!Number.isFinite(row.expirationDate)||row.expirationDate<=Date.now()/1000))
     throw fail('E_ACCOUNT_COOKIE_SCOPE');
   return {
@@ -181,7 +183,11 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
     if(matches.length!==1)throw fail('E_COOKIE_STORE');
     const partitionReply=await api.cookies?.getPartitionKey?.({tabId:tab.id,frameId:0});
     const partition=partitionReply?.partitionKey;
-    if(!partition||!same(partition,grant.partitionKey))
+    // A reviewed all-site Cookie grant may omit its initial partition.
+    // Never assume a default store/partition: always bind the live tab's
+    // exact native partition, and compare any site-scoped grant when present.
+    if(!partition||grant.partitionKey&&
+       !samePartition(partition,grant.partitionKey))
       throw fail('E_COOKIE_PARTITION');
     return {origin,host:new URL(origin).hostname,storeId:grant.storeId,
       partition,document,grant,automatic};
@@ -197,10 +203,10 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
     // Parent-domain cookies could control related origins. Never silently omit
     // them and falsely claim a complete login snapshot.
     if(also.some(row=>!within(host,row)&&
-       (!row.partitionKey||same(row.partitionKey,partition))))
+       (!row.partitionKey||samePartition(row.partitionKey,partition))))
       throw fail('E_ACCOUNT_PARENT_DOMAIN_UNSUPPORTED');
     const all=[...native,...also].filter(row=>within(host,row)&&
-      (!row.partitionKey||same(row.partitionKey,partition)));
+      (!row.partitionKey||samePartition(row.partitionKey,partition)));
     const unique=new Map();
     for(const row of all)unique.set(cookieId(row),row);
     const rows=validateRows([...unique.values()],host,storeId,partition);
@@ -353,7 +359,10 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
       if(event?.frameId!==0||!Number.isSafeInteger(event.tabId)||
          typeof event.url!=='string')return;
       const url=new URL(event.url),origin=originOf(url.origin);
-      if(!url.hash.startsWith('#od-account='))return;
+      // The supported generated contract is the site's canonical root.
+      // Never transform an existing SPA path/query router into an implicit
+      // account command until a separately reviewed site adapter exists.
+      if(url.pathname!=='/'||url.search||!url.hash.startsWith('#od-account='))return;
       const record=await installed();
       const data=await vault.read();
       if(!data.settings.autoEnabled)return;
