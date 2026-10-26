@@ -1283,3 +1283,18 @@ test('conversation edge controls accept short real overflow but reject unrelated
   assert.equal(conversation.findConversationNavigation(main, turnSelector, doc, view)?.scroller, main);
   assert.deepEqual(nested.calls, []);
 });
+
+test('recognized transcript retains disabled controls without any scroll range', () => {
+  const {doc, view, root, main} = nativeMessages();
+  main.scrollHeight=main.clientHeight;
+  root.scrollHeight=root.clientHeight;
+  main.scrollTop=0;
+  root.scrollTop=0;
+  const turns='[data-content-search-unit-key]';
+  const navigation=conversation.findConversationNavigation(main,turns,doc,view);
+  assert.equal(navigation?.scroller,main);
+  assert.equal(conversation.jumpConversationEdge(main,turns,'top',doc,view),false);
+  assert.equal(conversation.jumpConversationEdge(main,turns,'bottom',doc,view),false);
+  assert.deepEqual(main.calls,[]);
+  assert.deepEqual(root.calls,[]);
+});

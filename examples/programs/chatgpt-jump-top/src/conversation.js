@@ -107,7 +107,9 @@ export function findConversationScroller(target, doc, win, {includeSelf = false}
     }
   }
   const root = doc.scrollingElement || doc.documentElement;
-  return root && root.scrollHeight > root.clientHeight + 1 ? root : null;
+  // Keep an identified transcript's edge controls disabled even when the
+  // document has no scroll range. Scroll actions still check their own max.
+  return root || null;
 }
 function viewport(scroller, doc, win) {
   if (scroller === doc.scrollingElement || scroller === doc.documentElement) {
@@ -216,7 +218,8 @@ export function jumpRegionEnd(binding, doc, win) {
     scroller.scrollTop + rect.bottom - (port.top + port.height) + GAP);
 }
 // Fixed, audited site adapters provide the transcript container and turn
-// selector. Ambiguous/empty/unscrollable regions fail closed.
+// selector. Empty/ambiguous turns fail closed; recognized transcripts with
+// zero scroll range keep disabled controls instead of vanishing.
 export function findConversationNavigation(main, turnSelector, doc, win) {
   if (!main?.isConnected || !rendered(main, win) ||
       typeof turnSelector !== 'string' || !turnSelector) return null;
@@ -225,8 +228,7 @@ export function findConversationNavigation(main, turnSelector, doc, win) {
   if (!turns.length) return null;
   const first = turns[0], last = turns.at(-1);
   const scroller = findConversationScroller(first, doc, win);
-  if (!scroller || findConversationScroller(last, doc, win) !== scroller ||
-      !(scroller.scrollHeight - scroller.clientHeight > 2))
+  if (!scroller || findConversationScroller(last, doc, win) !== scroller)
     return null;
   // Do not accept a scrollport inside a single message, code editor, or aside.
   if (scroller !== doc.scrollingElement && scroller !== doc.documentElement &&
