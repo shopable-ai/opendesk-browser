@@ -62,13 +62,22 @@ for(const button of reviewButtons)button.addEventListener('click',async()=>{
     await configuration();
     const subject=JSON.parse(button.dataset.subject);
     const key='opendesk.market.intent:'+JSON.stringify(subject);
-    let intentId=intentIds.get(key);
-    if(!intentId){
-      try{const old=JSON.parse(sessionStorage.getItem(key));if(old&&old.expiresAt>Date.now()&&/^[a-f0-9-]{36}$/.test(old.id))intentId=old.id;}catch{/* Storage is optional. */}
-      intentId||=crypto.randomUUID();intentIds.set(key,intentId);
-      try{sessionStorage.setItem(key,JSON.stringify({id:intentId,expiresAt:Date.now()+30*60*1000}));}catch{/* Keep ID in memory on retry. */}
+    const now=Date.now();
+    let intent=intentIds.get(key);
+    // R5 review intents expire after 30 minutes. The in-memory cache MUST
+    // expire too, otherwise a long-lived homepage can never request review again.
+    if(!intent||intent.expiresAt<=now){
+      let saved;
+      try{
+        const old=JSON.parse(sessionStorage.getItem(key));
+        if(old&&old.expiresAt>now&&Number.isSafeInteger(old.expiresAt)&&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(old.id))saved=old;
+      }catch{/* Storage is optional. */}
+      intent=saved||{id:crypto.randomUUID(),expiresAt:now+30*60*1000};
+      intentIds.set(key,intent);
+      if(!saved)try{sessionStorage.setItem(key,JSON.stringify(intent));}catch{/* Preserve memory until expiry. */}
     }
-    await send({protocol,action:'OPEN_INSTALL_REVIEW',intentId,subject});
+    await send({protocol,action:'OPEN_INSTALL_REVIEW',intentId:intent.id,subject});
     probeGeneration++;connectButton.disabled=false;
     connection.textContent='已连接 OpenDesk';
     if(localStatus){localStatus.textContent='已打开扩展审阅页。请在该页确认；交接完成不表示已安装。';localStatus.dataset.state='success';}
