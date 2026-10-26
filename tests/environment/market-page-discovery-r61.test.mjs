@@ -109,6 +109,27 @@ test('R6.1 rejects missing, duplicate, changed, failed and non-top-document disc
   }
 });
 
+test('R6.2 incomplete rel declaration counts as a second, ambiguous install link',async()=>{
+  const declared=[
+    {relList:{contains:token=>token===OPENDESK_INSTALL_REL},getAttribute:()=>href},
+    {relList:{contains:token=>token===OPENDESK_INSTALL_REL},getAttribute:()=>null},
+    {relList:{contains:()=>false},getAttribute:()=>href}
+  ];
+  const scanned=runInNewContext('('+captureDeclaredMarketLinks.toString()+')()',{
+    document:{querySelectorAll(selector){
+      assert.equal(selector,'link[rel]');
+      return declared;
+    }},
+    location:{href:page}
+  });
+  assert.equal(scanned.documentUrl,page);
+  assert.deepEqual([...scanned.links],[href,null]);
+  const h=harness({links:scanned.links});
+  await assert.rejects(discoverCurrentPageMarketInstall({
+    api:h.api,currentPageTarget:h.target,channel,releases:[release]
+  }),{code:'E_DISCOVERY_AMBIGUOUS'});
+});
+
 test('R6.1 market lists real review buttons, fixed-version app pages declare one link',()=>{
   const cards=home([release]);
   assert.match(cards,/data-open-review/);
