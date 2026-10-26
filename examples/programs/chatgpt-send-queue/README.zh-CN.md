@@ -12,6 +12,8 @@ Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · �
 
 随后在专用 CFT156 临时 Profile，经原 Page 导入入口审阅新 ID、0.1.2/r1 和 ChatGPT 单站范围后安装；真实安装终态及详情均已读回，授权 active、Chrome registered、固定源码与上述哈希一致。刷新前输入框为空，刷新后网站显示“无法加载此 ChatGPT 对话”，网站重试及另一已有会话未恢复编辑框。因此空队列 UI、页面自动运行、发送、原生并存及撤权仍为 `NOT_TESTED`，没有发送消息，也未据此修改产品。详情见[四产品工作记录](../../../docs/framework/workstreams/ai-four-products-r125-local-20261026.md)。
 
+2026-10-26 R127 增量：在新的专用临时 Profile，经本次明确确认用户脚本、Queue 安装与 Cookie Editor 权限后，原入口再次安装同一候选，详情为 active / registered，固定源码哈希不变。网站初始化和历史列表先阻塞，原生重试后可打开一个已有会话；AX 读到原生输入框占位提示与「当前草稿加入发送队列」按钮，空列表未暴露。该会话可见「连接已中断，正在等待完整答复」，另外两个已有会话显示加载错误；截图未确认队列按钮的可见位置，因此只记录 `PARTIAL_AX_OBSERVATION`，不提升为可见且可操作的空 UI PASS。没有点击队列按钮、入队、发送或修改草稿；无已证实 Queue 故障，未修改源码或包。浏览器已退出、临时 Profile 已删除，发送、原生并存与撤权仍 `NOT_TESTED`。
+
 ## 目标与真实功能边界
 
 这是独立 Page Program。**不是** Prompt Shortcuts、OpenDesk 自身 `src/ui/react/components/conversation.tsx`、Chrome 独立扩展或 ChatGPT API 客户端。新独立正式包为本目录的 `ai-send-queue.opendesk-page.json`，通过 OpenDesk「扩展 → 导入」审阅身份、版本及网站范围后安装，归「网页增强」。新身份的安装与注册证据见上文；文末旧身份的运行历史不适用于新包。

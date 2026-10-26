@@ -160,3 +160,15 @@ BLOCKED/REMAINING：Scroll 缺三站真实长对话导航证据，仍 BLOCKED_CO
 本机脱敏记录为 `artifacts/ai-four-products-r126-content-20261026/core-observations.json`，SHA256 `348f9138e4e8e72933730723d4ff89db539bad50c838e48412a1612ee175b47b`；内含六份安装、导航、两轮还原、网站阻塞和清理证据的 SHA256。忽略目录不提交；本文和三项目 README 保留可恢复的结果及候选边界。本轮仅更新说明及官方 blocked 原因，无产品源码或包变化；核对 JSON、文档链接、原包摘要及局部 diff，不重跑已有效的 Node 测试、打包或 Browser 构建。
 
 当前剩余：Queue 空界面待 ChatGPT 恢复可加载后继续；DeepSeek/Gemini 内容导航、Mind Map 分发许可、Queue 发送及完整原生矩阵、正式发行和评分均未完成。完整矩阵仍延期、评分 NOT_SCORED，不因本轮核心增量完成而自动开展。当前无本对话占用的浏览器/Profile/端口/构建 writer。
+
+## R127 Queue 空界面增量（2026-10-26，PARTIAL_AX_OBSERVATION）
+
+- 接收 owner 对话 `01a17827-4402-7950-b75e-d0c37f52e868`；仅处理当前空队列操作，不重做 Prompt，不重跑既有 Node 测试或 Browser 构建。三份候选和产品源码均未变化。当前对话 `get_goal` 实读 null，不改变更早对话目标状态。
+- 沿原 launcher 新建 CFT156.0.8078.4 专用临时 Profile，复用只读冻结的 `ai-four-products-r125-native-fix/frozen-source/dist/production`；ID `mbjianpjmiafflgmlkkpdpdhbhedjkbd`，Browser SHA256 仍为 `6d1d8492aaac404bf595cc43e3595b610050c355660795ea0002e1058ddcabb6`。这是静态 production 本地核心测试候选，无 dev serve，不代表最新 main 整包或正式验收。
+- 新 Profile 的用户脚本开关、Queue 安装及 Cookie Editor 全站 Cookie 管理均获本次明确确认，没有沿用旧 Profile 授权。仅经原 Cookie Editor 导入用户指定文件登录 ChatGPT；原文件保留，未打印 Cookie 值、改 Cookie DB 或 Chrome 配置。未开启开发者模式或重载扩展。
+- Queue 原导入审阅显示 `opendesk.ai-send-queue`、0.1.2/r1、ChatGPT 单站顶层范围；安装终态及详情为 active / registered，installationId `441d8a00-a478-4927-b632-8afc7786b396`，固定 sourceHash `01cad4e3f16f843aea6fe722c7989b4860ea11412a3f5cb6d22c4c714bcd31f1`。这是当前临时 Profile 的独立安装记录，不替代旧安装身份。
+- ChatGPT 未登录首页可加载；登录后初始化与历史列表一度阻塞，新页面及网站原生重试后出现已有会话列表。一个已有会话中，AX 读到原生输入框占位提示、「当前草稿加入发送队列」按钮且没有队列列表；曾将 AX 的占位值暂按非空处理，随后核对为占位提示。仅聚焦一次已确认空的输入框，没有输入、点击队列/原生发送、入队或修改草稿。截图显示网站「连接已中断，正在等待完整答复」，未确认队列按钮的可见位置；另两个已有会话显示无法加载。故只记 `PARTIAL_AX_OBSERVATION`，**可见且可操作的空 UI 仍 NOT_TESTED**，不将隐藏/不可见控件的 AX 存在冒充核心 PASS，也不据网站错误制造 Queue 源码改动。
+- 没有新 Profile 中合法已登录的 DeepSeek/Gemini 内容条件，不发送消息制造内容，内容导航仍 NOT_TESTED。Mind Map 许可继续 BLOCKED，未正式打包或分发。Queue 发送、原生并存和撤权，以及完整矩阵、正式发行、评分继续延期。
+- UI 退出快捷键未结束专用 PID 18634；核实 executable、Profile、parent 后，经原 launcher PID 18541 转发 SIGTERM。launcher exit 0，浏览器退出与临时 Profile 删除均已核实。未再调用已退出的 CUA binding；日常 Chrome/Native、watcher、dist/development、其他输出及冻结候选不变。
+- 本机脱敏记录：`artifacts/ai-three-products-r127-queue-20261026/core-observations.json`，SHA256 `597f5e82ee19e386b8e7052ea9646c729333dc2ea8de01b89d78d492e1d695e3`。只有身份、状态和操作摘要；没有 Cookie 值、私人正文、会话 URL 或保存的原始截图。文档更新仅做内容、引用与局部 diff 检查。
+- Git 开始时 HEAD 为 `314ddb2d25e07f2df1011d8232c4f25c9f35ee9b`；fetch 至 origin/main `4196f9e30` 后 ahead 1 / behind 23。已提交树的只读 merge-tree 预演无冲突，但远端修改与其他 owner 的 dirty `src/ui/extension-center.js`、`src/ui/react/tabs/tools.tsx`、`src/ui/tool-shell.css` 重叠；另有并行 bridge 文件陆续出现，均保留。集成与正常推送待 owner 协调，不自动 stash、替他人提交、覆盖或强推。
