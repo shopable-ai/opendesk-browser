@@ -330,7 +330,7 @@ export function CookieEditorView({
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,exportOpen=false,
   exportContent=null,onCloseExport,importOpen=false,
-  editor=null,newEditor=null,busy=false,readonly=false,page=1,pageSize=40,onPage=()=>{}
+  editor=null,newEditor=null,busy=false,readonly=false,page=1,pageSize=40,onPage=()=>{},showSiteBar=true
 }){
   const matching=row=>[row.name,row.domain,row.path].some(value=>
     String(value||'').toLowerCase().includes(query.toLowerCase()))&&
@@ -348,8 +348,8 @@ export function CookieEditorView({
   // Keep expanded editor reachable even when the filter or page changes.
   if(current&&!currentPage.includes(current))currentPage.unshift(current);
   return <main className="cookie-react-view" aria-label="Cookie Editor" inert={importOpen}>
-    <CookieSiteBar site={site} readonly={readonly} busy={busy}
-      syncStale={syncStale} onRefresh={onRefresh}/>
+    {showSiteBar&&<CookieSiteBar site={site} readonly={readonly} busy={busy}
+      syncStale={syncStale} onRefresh={onRefresh}/>}
     {/* Keep search accessible in one click while the export popover is open.
         The menu still floats over the list, never over the search field. */}
     <CookieSearch query={query} onQuery={onQuery}
