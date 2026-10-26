@@ -6,7 +6,7 @@
 
 ## 使用
 
-1. 更新 OpenDesk Browser 到包含本工具的版本。在侧栏 **工具 → 知识收件箱 → 安装** 中审阅能力，确认安装。
+1. 更新 OpenDesk Browser 到包含本工具的版本。在侧栏 **扩展 → 知识收件箱 → 安装** 中审阅能力，确认安装。
 2. 打开 `https://chatgpt.com` 的对话，安装审阅后会直接显示固定保存入口，无需回到设置逐站授权。若主动停用过该网站，可在工具设置中恢复；Chrome 网站访问仍须允许。
 3. 等回答生成完成，点击回答下面的 **保存**。**更多** 中可保存为灵感、草稿，或只保存这一条回答内的选中文字。**Markdown** 直接请求完整 MD 文件下载。
 4. 打开 **知识收件箱**，可以搜索正文、提问、标签或备注，按分类/标签筛选，按最近修改、保存时间或标题排序。点击记录后直接阅读排版后的 Markdown。键盘可在记录间使用 ↑/↓、Home/End，按 Enter 打开，阅读时按 Esc 返回列表；遇到展开菜单或结构导图时 Esc 优先关闭当前层。
@@ -33,7 +33,7 @@
 
 ## 实现与授权
 
-工具 ID：`knowledge-inbox`，版本：`1.2.7`。声明能力：`page.capture`、`knowledge.store`、`user.export`。
+工具 ID：`knowledge-inbox`，当前配置版本：`1.2.9`。声明能力：`page.capture`、`knowledge.store`、`user.export`。
 
 页面捕获由扩展固定 content script 按真实点击执行；收件箱沙箱不能任意读取页面，也不能直接使用 Chrome 或 Native API。固定网站范围内复用安装审阅的捕获能力；主动停用网站会移除页面按钮，已收藏内容保留。扩展可信宿主在每次操作时复核工具包哈希、真实 sender/document、站点可用性和当前文档。
 
@@ -50,3 +50,17 @@ npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox
 点击“新建”或“新建第一条知识”后，焦点进入标题框，可以直接输入。编辑和新建均将正文放在前面，分类、标签与备注默认折叠在正文下方；非法输入会明确提示并禁用保存。窄屏默认正文高度固定，避免随沙箱 iframe 高度反复增大。
 
 Mac R24.4 的真实 Chrome、剪贴板、下载及 Native 文件读回证据见 [本轮验收记录](../../../docs/framework/workstreams/knowledge-inbox-r24-20261011.md)。线上 ChatGPT 因本轮未提供登录条件记录为 BLOCKED；受控页面结果不能替代线上验收。
+
+## R1.0 · 优先展示搜索、列表及新建（2026-10-26）
+
+正式首页保留搜索及记录列表作为主要内容。分类/标签/排序改由「筛选与排序」折叠展开；折叠标题概述活动条件，已保存记录数量仍直接可见；4 MiB 技术容量移入「管理」。筛选与排序数据契约、旧记录、分类、草稿、标签、原文、权限和导出均不改变。新建及编辑原有二级页、未保存保护和来源能力不重写。
+
+### 统一离线同源预览
+
+从仓库根目录运行：
+
+```sh
+node scripts/preview/build-preview.mjs --tool knowledge-inbox --surface side-panel --scenario success --theme light --width 360
+```
+
+输出 `artifacts/previews/knowledge-inbox/side-panel-success-light-360.html` 与同名 `.context.json`。替换 `--width` 为 320/400/440，`--theme` 为 dark，`--scenario` 为 empty/error/permission-denied/untrusted 测试状态。生成器使用已验证打包的**正式** HTML/CSS/JS，但 SDK `knowledge.*` 和剪贴板由隔离内存 Mock 接管；不得将网页捕获、真实存储、Native 文件及升级认定为已验证。已有 `preview/index.html` 是专门的 ChatGPT 图片交付产品演示，不应当替代该统一工具预览。完成本地构建/Chrome 真实验收前不宣称新候选正式发行通过。
