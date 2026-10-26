@@ -100,6 +100,52 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
 }
 const panel=h=>h.ui('list').content.children[0];
 
+test('queue stays directly above the composer without a status footer in every phase',()=>{
+  const h=fixture();assert.equal(h.view.place(h.snap),true);
+  for(const phase of [null,'preparing','await-native-ready','await-stop','await-confirm','unknown']){
+    h.state({answerGate:false,phase:phase==='unknown'?'unknown':'waiting',
+      reason:'原生草稿非空，等待用户处理',inFlight:phase?{id:'q1',phase}:null});
+    h.view.render();
+    assert.deepEqual(panel(h).children.map(node=>node.className),['sq-rows']);
+  }
+  h.state({items:Array.from({length:4},(_,i)=>({id:'q'+i,text:'message '+i,state:'queued'})),
+    phase:'waiting',inFlight:null});h.view.render();
+  assert.deepEqual(panel(h).children.map(node=>node.className),['sq-rows','sq-more']);
+});
+
+test('unknown result stays on its message with an accessible warning and no retry controls',()=>{
+  const h=fixture();assert.equal(h.view.place(h.snap),true);
+  h.state({phase:'unknown',reason:'网站可能已发送',inFlight:{id:'q1',phase:'unknown'},
+    items:[{id:'q1',text:'queued text',state:'unknown'}]});h.view.render();
+  const row=panel(h).querySelectorAll('[data-id-row]')[0];
+  const buttons=row.querySelectorAll('button');
+  const warning=buttons.find(node=>node.dataset.action==='status');
+  assert.ok(warning);assert.match(warning.title,/发送结果未知.*网站可能已发送.*不会自动重试/);
+  assert.equal(warning.getAttribute('aria-label'),warning.title);
+  assert.equal(buttons.find(node=>node.dataset.action==='now').disabled,true);
+  assert.equal(buttons.find(node=>node.dataset.action==='edit').disabled,true);
+  const click=h.ui('list').listeners.find(x=>x.event==='click').callback;
+  click({target:{closest:()=>warning},stopPropagation(){}});
+  const toast=h.ui('button').content.children[1];
+  assert.equal(toast.hidden,false);assert.equal(toast.textContent,warning.title);
+  h.state({reason:'未能确认用户消息入站'});h.view.render();
+  assert.match(panel(h).querySelectorAll('button').find(node=>node.dataset.action==='status').title,
+    /未能确认用户消息入站/);
+});
+
+test('collapsed messages cannot hide an unknown-result warning',()=>{
+  const h=fixture();assert.equal(h.view.place(h.snap),true);
+  const items=Array.from({length:4},(_,i)=>({id:'q'+i,text:'message '+i,state:i===3?'unknown':'queued'}));
+  h.state({items,phase:'unknown',reason:'停止结果未知',inFlight:{id:'q3',phase:'unknown'}});
+  h.view.render();
+  const more=panel(h).children[1];
+  assert.match(more.textContent,/⚠.*展开其余 1 条/);
+  assert.match(more.getAttribute('aria-label'),/停止结果未知.*不会自动重试/);
+  h.state({expanded:true});h.view.render();
+  const warning=panel(h).querySelectorAll('button').find(node=>node.dataset.action==='status');
+  assert.equal(warning.dataset.id,'q3');
+});
+
 test('docks to visible shared rounded surface, not form or editor-only/transparent shells',()=>{
   const h=fixture(),original=h.form.getBoundingClientRect().width,input=h.editor.getBoundingClientRect().width;
   h.form.style.setProperty('border-top-left-radius','17px','important');

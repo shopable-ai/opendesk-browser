@@ -1,0 +1,123 @@
+{
+  "format": "opendesk.build-artifact.v1",
+  "status": "BUILT_UNVERIFIED",
+  "installable": false,
+  "runtimeKind": "controller",
+  "programId": "opendesk.chatgpt-calculation-relay",
+  "version": "0.2.0",
+  "sourceFormat": "esm",
+  "entryFormat": "async-main",
+  "entry": "src/main.js",
+  "buildMode": "production",
+  "buildHash": "94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f",
+  "sourceModules": [
+    {
+      "path": "src/contract.js",
+      "bytes": 9382,
+      "sha256": "70cbbbd89a00450410839c127a496566b4cb8132c33c992b34d82263d03d2938"
+    },
+    {
+      "path": "src/conversation.js",
+      "bytes": 5858,
+      "sha256": "9beea495ecca5c887549bedc4e715f241d5a0a90235ea977bec8d76be00ee6e9"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 323,
+      "sha256": "b75e0280b033a19f6b1657c7402ca8cce765c7a2bee7c7b6bb1e74d293ea0011"
+    },
+    {
+      "path": "src/relay.js",
+      "bytes": 9633,
+      "sha256": "58b2cee77308b0e696af7f8426cbf07c5eda20fa2b9eaac5c12a71e23a9f49bb"
+    },
+    {
+      "path": "src/site.js",
+      "bytes": 10781,
+      "sha256": "44cee8c5c44aec5b80e68d4b3c905303196ce34e6d6657e1103afb1e5c234934"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/contract.js",
+      "bytes": 9382,
+      "sha256": "70cbbbd89a00450410839c127a496566b4cb8132c33c992b34d82263d03d2938"
+    },
+    {
+      "path": "src/conversation.js",
+      "bytes": 5858,
+      "sha256": "9beea495ecca5c887549bedc4e715f241d5a0a90235ea977bec8d76be00ee6e9"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 323,
+      "sha256": "b75e0280b033a19f6b1657c7402ca8cce765c7a2bee7c7b6bb1e74d293ea0011"
+    },
+    {
+      "path": "src/relay.js",
+      "bytes": 9633,
+      "sha256": "58b2cee77308b0e696af7f8426cbf07c5eda20fa2b9eaac5c12a71e23a9f49bb"
+    },
+    {
+      "path": "src/site.js",
+      "bytes": 10781,
+      "sha256": "44cee8c5c44aec5b80e68d4b3c905303196ce34e6d6657e1103afb1e5c234934"
+    }
+  ],
+  "npmPackages": [],
+  "npmDependencies": [],
+  "npmBundledModules": [],
+  "npmLockSha256": "c4abe097eaa4649b85243ed5bc38fb1b03e28a3166a9f951f45049563674c507",
+  "sourceFile": "program.js",
+  "sourceHash": "94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f",
+  "sourceBytes": 21636,
+  "draftFile": "program.opendesk-draft.json",
+  "authoring": {
+    "files": [
+      {
+        "path": "src/contract.js",
+        "bytes": 9382,
+        "sha256": "70cbbbd89a00450410839c127a496566b4cb8132c33c992b34d82263d03d2938"
+      },
+      {
+        "path": "src/conversation.js",
+        "bytes": 5858,
+        "sha256": "9beea495ecca5c887549bedc4e715f241d5a0a90235ea977bec8d76be00ee6e9"
+      },
+      {
+        "path": "src/main.js",
+        "bytes": 323,
+        "sha256": "b75e0280b033a19f6b1657c7402ca8cce765c7a2bee7c7b6bb1e74d293ea0011"
+      },
+      {
+        "path": "src/relay.js",
+        "bytes": 9633,
+        "sha256": "58b2cee77308b0e696af7f8426cbf07c5eda20fa2b9eaac5c12a71e23a9f49bb"
+      },
+      {
+        "path": "src/site.js",
+        "bytes": 10781,
+        "sha256": "44cee8c5c44aec5b80e68d4b3c905303196ce34e6d6657e1103afb1e5c234934"
+      }
+    ],
+    "webpackModules": [
+      "src/contract.js",
+      "src/conversation.js",
+      "src/main.js",
+      "src/relay.js",
+      "src/site.js"
+    ],
+    "buildMode": "production",
+    "buildHash": "94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f"
+  },
+  "siteOrigins": [
+    "https://chatgpt.com"
+  ],
+  "permissions": [
+    "page.automation",
+    "storage.persistent"
+  ],
+  "deadlineMs": 120000,
+  "candidateFile": "program.opendesk-task.json",
+  "note": "Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted."
+}

@@ -15,7 +15,8 @@ export function createSidebarToolsView() {
   const runtime = Object.seal({frameRoot: null, settingsControl: null});
   const trustedSettingsActions=Object.create(null);
   let snapshot = {fields: Object.fromEntries(Object.entries(fields).map(([key, state]) => [key, {...state}])),
-    labels: {...labels}, effectVersion: 0, legacyAdblockVisible:false, trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
+    market: {pending: [], review: null, error: ''}, labels: {...labels}, effectVersion: 0, legacyAdblockVisible:false, trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
+  let marketInstallActions = null;
   let disposed = false, queued = false, attachment = null, connection = null;
   const trustedSettings=Object.freeze(Object.fromEntries(Object.keys(snapshot.trustedSettings).map(key=>[key,Object.freeze({
     render(model){
@@ -85,7 +86,7 @@ export function createSidebarToolsView() {
       const controller = record.factory();
       if (!controller || typeof controller.dispose !== 'function') throw new Error('E_SIDEBAR_TOOL_CONTROLLER');
       record.controller = controller;
-      if (record.visible !== undefined) controller.setVisible(record.visible);
+      if (record.visible !== undefined) controller.setVisible(record.visible, record.destination);
       Promise.resolve(controller.ready).then(() => {
         if (!record.closed) record.resolve();
       }, record.reject);
@@ -106,6 +107,14 @@ export function createSidebarToolsView() {
   }
   return Object.freeze({
     fields, labels, actions, runtime, patch, bind, dispatch, trustedSettings, trustedSettingsActions,
+    get marketInstallActions() {return marketInstallActions;},
+    setMarketInstall(patch) {
+      if (disposed) return;
+      snapshot = {...snapshot, market: {...snapshot.market, ...patch}}; notify();
+    },
+    connectMarketInstall(actions) {
+      if (!disposed) marketInstallActions = actions;
+    },
     setLegacyAdblockVisible(visible){
       if(disposed||snapshot.legacyAdblockVisible===visible)return;
       snapshot={...snapshot,legacyAdblockVisible:Boolean(visible)};notify();
@@ -160,9 +169,10 @@ export function createSidebarToolsView() {
       record.ready = new Promise((resolve, reject) => {record.resolve = resolve; record.reject = reject;});
       record.ready.catch(() => {});
       const facade = {ready: record.ready,
-        setVisible(visible) {
+        setVisible(visible, destination = null) {
           if (record.closed) return;
-          record.visible = visible; return record.controller?.setVisible(visible);
+          record.visible = visible; record.destination = destination;
+          return record.controller?.setVisible(visible, destination);
         },
         dispose() {closeConnection(record);}
       };
@@ -175,7 +185,11 @@ export function createSidebarToolsView() {
           return record.controller[key](...args);
         };
       }
-      for (const key of ['isDirty', 'isPreviewActive', 'isPreviewDirty', 'isPreviewEditing']) {
+      facade.assertCanInstallMarketTool=(...args)=>{
+        if(!record.controller)throw new Error('工具工作台尚未就绪，请稍后重试。');
+        return record.controller.assertCanInstallMarketTool(...args);
+      };
+      for (const key of ['canPresentMarketReview', 'hasInstallReview', 'isDirty', 'isPreviewActive', 'isPreviewDirty', 'isPreviewEditing']) {
         facade[key] = (...args) => !record.closed && !!record.controller?.[key](...args);
       }
       connection = record; initialize(); return Object.freeze(facade);
@@ -189,6 +203,7 @@ export function createSidebarToolsView() {
       try { if (attachment) detachRuntime(attachment); else closeConnection(connection); }
       finally {
         subscribers.clear();
+        marketInstallActions = null;
         snapshot={...snapshot,trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
         for(const key of Object.keys(trustedSettingsActions))delete trustedSettingsActions[key];
         for (const key of Object.keys(actions)) delete actions[key];

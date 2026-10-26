@@ -2,9 +2,15 @@
 
 本入口把已正式安装的 Controller Task 交给现有 `run.start` / RunHost / Authority。公开 Browser SDK 没有 `tasks.run`。它不发布、不安装 Task，也不创建 Runner、队列或嵌套执行槽。已有全局 `@slot` 被占用时立即拒绝 `E_OWNER`，调用方不能在占槽的 Controller 中等待另一个 Task。
 
-本次证据是 Node fixture 中的实际 adapter、RunHost、Authority、存储和 Native service；Chrome API 与 Worker 执行使用替身。真实 Chrome 安装、Native 配对、运行均为 **NOT_TESTED**。本轮没有打开浏览器、重启服务或更新本机安装。旧 Native Host 若仍使用复制快照，源码 allowlist 更新不代表该快照已经支持新方法；部署另行处理。
+**已实测通过当前 Go Native 的 installed-task `run.start` → `run.get`；`task.list` 发现仍有独立缺口。** 2026-10-27（北京时间），已安装的 `opendesk.chatgpt-calculation-relay@0.2.0`，sourceHash `94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f`，由公开 Native CLI 调用 `status` 和 `inspect`，从实际 Chrome/RunHost 返回 `completed`、`retirementState:released`、`workerRetired:true` 和 `slotAvailable:true`。例如 status Run `172464d6-165c-4fd1-92c6-b4133831aa76` / Result `b91f7472-4a15-448d-8472-24fef13d56fd` 独立读回「我的」已完成业务 `relay-isolated-017` 的 A=42、B=126；当时整个业务项目目录已临时离线。真实请求与 Host 回执见[调用请求](../../artifacts/chatgpt-task-0.2.0-20261026/owner4/relay-owner4-isolated17-status-request.json)、[完整终态回执](../../artifacts/chatgpt-task-0.2.0-20261026/owner4/relay-owner4-isolated17-status-result-2.json)及[解码结果](../../artifacts/chatgpt-task-0.2.0-20261026/owner4/relay-owner4-isolated17-status-decoded.json)；业务汇总见[证据索引](../../examples/programs/chatgpt-calculation-relay/EVIDENCE.json)。这些是当前持续开发扩展的安装/调用证据，production 扩展验收仍为 `NOT_TESTED`。
+
+第二组「我的」业务 `relay-isolated-019`（19、25、3）也由同一固定版本完成，Native status Run `6ab91e6e-3408-4381-96a6-0ca51284fc7b` / Result `932ac97a-a71d-4f00-83fb-e04d0682e28d` 独立读回 A=44、B=132；[终态回执](../../artifacts/chatgpt-task-0.2.0-20261026/owner4/relay-owner4-isolated19-status-result-2.json)同样为 completed/released。第二组运行和回读时业务源码目录仍不存在，之后20个文件按原 SHA 完整恢复。
+
+2026-10-26 的 `task.list` 两次现场调用仍记录为 **FAILED（连接关闭）**，不反复重试。原始[发现诊断](../../artifacts/chatgpt-task-0.2.0-20261026/native-discovery.json)保存 `E_EFFECT_UNKNOWN` / `Native connection closed` / `OUTCOME_UNKNOWN`，当时未发起 Run。只读源码核对发现 Go 仓库 `internal/browserbridge/wire.go` 的 allowlist 缺少 `task.list`，保留 `run.start`；这解释发现缺口，但不证明二进制逐字同源。本轮沿原 Go、认证、配对和服务运行，没有为此修改或重装 Go。调用者可从真实安装审阅/回执取得固定身份，再用已验证的 `run.start`。Node 接入的 91 项测试属于另外的 `NODE_PASS` 证据，不能代替上述原生回执。
 
 ## 获取当前身份
+
+以下命令和 JSON 是协议调用说明；实际 Host、目标和任务身份必须当次读取。当前 Go 不支持 `task.list` 时，跳过发现命令并使用真实安装回执，不能猜测身份或更换 owner。
 
 使用已完成合法认证和授权的现有 Native CLI，不读取或复制 socket credential。需要可用的已登记 Side Panel Host、Native Messaging 权限和既有网站授权。多个 Host 时必须指定 `registrationId`。
 
@@ -42,7 +48,7 @@ node native-agent/cli.mjs target.current --file host.json --request-id current-t
 
 ## 固定身份并运行
 
-从列表选择 `enabled:true` 的实际 Task，把 taskId、version、sourceHash 原样填入 `request.json`。将同一 Host 的 `target.current.result.target` 完整复制为 target；示例中的参数须替换为该 Task 已审阅 paramsSchema 允许的内容。
+从列表选择 `enabled:true` 的实际 Task，或使用真实安装回执，把 taskId、version、sourceHash 原样填入 `request.json`。将同一 Host 的 `target.current.result.target` 完整复制为 target；示例中的参数须替换为该 Task 已审阅 paramsSchema 允许的内容。
 
 ```json
 {

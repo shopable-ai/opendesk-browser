@@ -98,4 +98,12 @@ Stop 走原 RunHost，停止原因 E_CANCELLED；完成回执后继续查询原 
 
 run.deadlineMs 默认 30000，范围 1000–120000；到期以 E_TIMEOUT 收尾。Locator 等待默认 30 秒，单次 timeout 上限 120 秒，同时受运行期限约束；timeout:0 是立即到期。未知 native effect/缺回执/撤权仍保守拦截。[断连恢复](dependencies-and-errors.zh-CN.md#断连和未知结果)。
 
-实现依据：[项目包装器](../../scripts/build-program-project.mjs)、[Worker main](../../src/scripting/sandbox/worker-runtime.js)、[MCP Session](../../native-agent/local-dev/session.mjs)、[持久结果](../../src/platform/host/controller-methods.js)。内部 run.start/get/stop 是实现协议，不是新增公开 MCP 工具。
+## 已安装 Task 的存储与调用
+
+Task 默认只有 `page.automation`。需使用 AppStorage 的任务在固定 manifest 中显式声明 `storage.persistent`；只开放 getItem/setItem/removeItem/clear 四个 AppStorage 方法，不因名称相同的能力标记开放 Chrome local、HTTP、Cookie 或 Native。存储按 namespace + 稳定 taskId 隔离，同一任务跨版本保留；草稿旧记录不自动迁入，脚本不能指定其他任务的存储作用域。
+
+Task manifest 的可选 `deadlineMs` 为1000–120000整数，默认30000；安装审阅显示权限与期限，全部受 manifestHash 绑定。「我的」和本地项目按该声明启动；安装版共享 Authority 强制该上限，外部调用只能缩短。Stop、撤权及资源退役合同保持有效。
+
+「我的」手动运行使用固定安装版本。另有原 Native Agent 的[已安装任务调用](native-installed-tasks.zh-CN.md)：只读 `task.list` 发现真实安装身份，`run.start` 的 `installed-task` 来源必须明确 pin taskId/version/sourceHash，经原 RunHost 和 Authority 执行；不读取源码 Provider，不是新增开发 MCP 工具。工作流和 Worker SDK 没有因此增加 `tasks.run`。新调用合同的 Node 验证与真实 Chrome/Native 验收分别记录，不能互相代替。
+
+实现依据：[项目包装器](../../scripts/build-program-project.mjs)、[Worker main](../../src/scripting/sandbox/worker-runtime.js)、[MCP Session](../../native-agent/local-dev/session.mjs)、[持久结果](../../src/platform/host/controller-methods.js)。内部执行协议与公开 Native/MCP 接口各自遵守其文档，不把直接调用内部函数当作公开 SDK。

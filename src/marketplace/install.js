@@ -1,77 +1,161 @@
 import {loadMarketTool} from './distribution.js';
-import {loadReviewIntent,consumeReviewIntent,settleReviewIntent,marketError} from './intent.js';
+import {loadReviewIntent,consumeReviewIntent,settleReviewIntent,cancelReviewIntent,closeUnjournaledReview,marketError} from './intent.js';
+import {claimMarketReview} from './panel.js';
+import {readMarketInstallStatus,marketExpectedIdentity} from './status.js';
 import {getInstalledSidebarTools,installReviewedSidebarTool,recoverMarketOperation,sameSidebarToolPackage,MARKET_OPERATIONS_STORE} from '../ui/sidebar-tools/installation.js';
-import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
 
-// A small trusted review surface; package JS is only stored by the shared
-// installer, then runs on explicit Open in the existing opaque sandbox.
-export function initMarketInstall({api=globalThis.chrome,root=document.getElementById('market-root'),lockManager=navigator.locks}={}){
-  let handoff,candidate,baseline,busy=false,closed=false;
-  const node=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;return el;};
-  const message=node('p','正在从市场核对固定版本…');message.setAttribute('role','status');
-  const controls=node('div','');controls.className='actions';
-  root.replaceChildren(node('h1','安装应用'),message,controls);
-  const say=text=>{message.textContent=text;};
-  const action=(label,run)=>{const el=node('button',label);el.type='button';el.className='market-button';
-    el.addEventListener('click',async()=>{if(busy||closed)return;busy=true;for(const button of controls.children)button.disabled=true;
-      try{await run();}catch(error){say((error.code||'E_INSTALL')+'：'+error.message);controls.replaceChildren();
-        action('核对原安装结果',recover);}
-      finally{busy=false;for(const button of controls.children)button.disabled=false;}});controls.append(el);return el;};
-  const showOpen=()=>{say('已核对本机安装：v'+candidate.tool.version+'。点击打开即可使用。');controls.replaceChildren();
-    action('打开使用',()=>api.tabs.create({url:toolPageHref(api.runtime,candidate.tool.id)}));
-    action('完成',()=>window.close());};
+// Transaction owner for the existing ImportSheet. Presentation receives text
+// and bounded actions only; dynamic package JS remains in the original sandbox.
+export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockManager=globalThis.navigator?.locks,
+  onChange=()=>{},onClose=()=>{},assertOwner=()=>claimMarketReview(api,reviewId),
+  assertCanInstall=()=>{},openTool=null}={}){
+  let handoff,candidate,baseline,operation,status,closed=false;
+  let model={title:'安装应用',phase:'loading',message:'正在核对本机安装交接…',summary:[],technical:[],actions:[],busy:false};
+  let actions=new Map();
+  const publish=patch=>{model={...model,...patch};if(!closed)onChange(model);};
+  const say=message=>publish({message});
+  function controls(items){actions=new Map(items.map(([id,label,run])=>[id,run]));publish({actions:items.map(([id,label])=>({id,label}))});}
+  function finish(){if(model.busy)return false;closed=true;onClose();return true;}
+  async function localState(){
+    handoff=await loadReviewIntent(api,reviewId);
+    if(handoff.subject.kind!=='app')throw marketError('E_INTENT_FIELDS','套装请使用原批次审阅入口。');
+    operation=((await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{})[handoff.operationId];
+    status=await readMarketInstallStatus(api,handoff);
+  }
+  const readOnly=()=>handoff.consumedAt!==null||handoff.recoveryOnly||Boolean(operation)||status.installation!=='review';
+  function showOpen(){
+    publish({phase:'installed',message:'已核对本次安装：v'+handoff.subject.version+'。'+
+      (status.enabled===false?'此应用保持停用，可在扩展管理中恢复。':'可以直接打开使用。'),summary:[],technical:[]});
+    controls([...(status.enabled===false?[]:[['open','打开使用',async()=>{
+      await localState();
+      if(status.enabled===false)throw marketError('E_TOOL_DISABLED','此应用已停用，请先在扩展设置中恢复。');
+      if(status.installation!=='installed')throw marketError('E_NOT_INSTALLED','本次安装身份已变化，请核对原结果。');
+      const id=handoff.subject.marketId.split('/')[1];
+      if(!openTool||!await openTool(id))
+        throw marketError('E_TOOL_OPEN_DEFERRED','应用已安装。请先保存或关闭当前编辑，再打开使用。');
+      closed=true;onClose();
+    }]]),['done','完成',()=>{closed=true;onClose();}]]);
+  }
+  function recoveryControls(){
+    if(status.installation==='installed'){showOpen();return;}
+    if(status.installation==='cancelled'){
+      publish({phase:'cancelled',message:'已取消，未提交安装。'});controls([['done','完成',()=>{closed=true;onClose();}]]);return;
+    }
+    const items=[['recover','核对原安装结果',recover]];
+    if(handoff.consumedAt!==null&&!operation&&handoff.settledAt===null)
+      items.push(['end','结束此交接（安装结果未知）',async()=>{
+        await assertOwner();
+        await closeUnjournaledReview({api,lockManager,reviewId,operationId:handoff.operationId,subject:handoff.subject,approved:true});
+        await localState();publish({phase:'unknown',message:'已结束此交接，安装结果仍未知；未标记成功或取消。'});
+        controls([['done','完成',()=>{closed=true;onClose();}]]);
+      }]);
+    items.push(['later','稍后继续',()=>{closed=true;onClose();}]);controls(items);
+  }
+  function retryControls(){controls([['reload','重新加载审阅',loadCandidate],['cancel','取消安装',cancel]]);}
+  async function failed(error){
+    let message=(error.code||'E_INSTALL')+'：'+error.message;
+    if(handoff){try{await localState();if(readOnly())recoveryControls();else retryControls();}
+      catch(localError){controls([['recover','核对原安装结果',recover]]);message+=' 本机记录读取失败：'+localError.message;}}
+    else controls([['reload','重新加载审阅',loadCandidate]]);
+    publish({phase:'error',message});
+  }
+  async function cancel(){
+    await assertOwner();
+    await cancelReviewIntent({api,lockManager,reviewId});await localState();
+    if(status.installation!=='cancelled')throw marketError('E_OUTCOME_UNKNOWN','取消记录尚未核对，请核对原结果。');
+    recoveryControls();
+  }
   async function recover(){
-    const operationId=handoff.operationId;
-    const result=await recoverMarketOperation({api,lockManager,operationId});
-    const installed=await getInstalledSidebarTools(api);
-    if(result.state==='succeeded'&&installed.some(tool=>sameSidebarToolPackage(tool,candidate.tool))){
-      await settleReviewIntent({api,lockManager,reviewId:handoff.reviewId});showOpen();
-    }else say('原安装结果：'+result.state+'。未重新提交安装，请保留此窗口核对。');
+    await localState();
+    if(operation){
+      await recoverMarketOperation({api,lockManager,operationId:handoff.operationId,expectedIdentity:marketExpectedIdentity(handoff,operation)});
+      await settleReviewIntent({api,lockManager,reviewId});await localState();
+    }
+    const labels={review:'尚未提交',failed:'安装失败',unknown:'安装结果未知',installing:'安装中'};
+    publish({phase:status.installation,message:'本次请求：'+(labels[status.installation]||'待核对')+'。'+
+      (status.installedVersion?'当前本机版本：v'+status.installedVersion+'。':'')+'不会重复提交安装。'});
+    recoveryControls();
   }
   async function commit(){
-    say('正在安装所选固定版本…');
+    await localState();if(readOnly()){await recover();return;}
+    await assertOwner();if(closed)return;
+    await assertCanInstall(candidate.tool.id);if(closed)return;
+    publish({phase:'installing',message:'正在安装所选固定版本…'});
     const latest=await loadMarketTool(handoff.subject,{api,origin:handoff.origin});
+    if(closed)return;
     if(latest.release.sha256!==candidate.release.sha256||!sameSidebarToolPackage(latest.tool,candidate.tool))
       throw marketError('E_PACKAGE_IDENTITY','发行内容在审阅后变化，未提交安装。请重新选择版本。');
     if(candidate.tool.capabilities.includes(FOCUS_CAPABILITY)){
       if(candidate.tool.id!==FOCUS_ID)throw marketError('E_TOOL_RUNTIME_UNAVAILABLE','此应用未获可信专注后台能力。');
       await probeStayFocusService({api,tool:candidate.tool});
     }
+    if(closed)return;
     const result=await installReviewedSidebarTool({api,lockManager,candidate:candidate.tool,baseline,reviewApproved:true,
       market:{marketId:handoff.subject.marketId,sha256:candidate.release.sha256,operationId:handoff.operationId},
       approveSourceChange:()=>true,approveUpdate:()=>true,
-      commitIntent:async()=>{handoff=await consumeReviewIntent({api,lockManager,reviewId:handoff.reviewId,
-        operationId:handoff.operationId,subject:handoff.subject});}});
+      commitIntent:async()=>{
+        if(closed)throw marketError('E_REVIEW_CLOSED','安装面板已关闭，未提交安装。');
+        // Verify the exact real panel owner and source document immediately
+        // before the original one-time consume marker, under its existing lock.
+        const claimed=await assertOwner();
+        await assertCanInstall(candidate.tool.id);
+        if(closed)throw marketError('E_REVIEW_CLOSED','安装面板已关闭，未提交安装。');
+        handoff=await consumeReviewIntent({api,lockManager,reviewId,operationId:handoff.operationId,
+          subject:handoff.subject,sha256:candidate.release.sha256,
+          panelOwnerDocumentId:claimed?.panelTarget?.owner?.documentId,
+          assertReady:()=>{
+            if(closed)throw marketError('E_REVIEW_CLOSED','安装面板已关闭，未提交安装。');
+            return assertCanInstall(candidate.tool.id);
+          },
+          validate:async()=>{await assertCanInstall(candidate.tool.id);return assertOwner();}});
+      }});
     if(!['installed','already-installed'].includes(result.state))throw marketError('E_OUTCOME_UNKNOWN','安装结果尚未确认。');
-    if(!(await getInstalledSidebarTools(api)).some(tool=>sameSidebarToolPackage(tool,candidate.tool)))
-      throw marketError('E_OUTCOME_UNKNOWN','本机安装读回不一致，请核对原结果。');
-    await settleReviewIntent({api,lockManager,reviewId:handoff.reviewId});showOpen();
+    await recover();
+    if(status.installation!=='installed')throw marketError('E_OUTCOME_UNKNOWN','本次安装结果尚未核对，请核对原结果。');
   }
-  const ready=(async()=>{
-    const ids=new URLSearchParams(location.search).getAll('intent');
-    if(ids.length!==1)throw marketError('E_INTENT_MISSING','缺少唯一安装请求。');
-    handoff=await loadReviewIntent(api,ids[0]);
-    candidate=await loadMarketTool(handoff.subject,{api,origin:handoff.origin});
+  async function loadCandidate(){
+    await localState();
+    if(readOnly()){await recover();return;}
+    await assertOwner();if(closed)return;
+    candidate=await loadMarketTool(handoff.subject,{api,origin:handoff.origin});if(closed)return;
     baseline=(await getInstalledSidebarTools(api)).find(tool=>tool.id===candidate.tool.id)||null;
-    root.querySelector('h1').textContent=candidate.tool.title;
-    const summary=node('section','');summary.className='surface';
-    for(const text of ['版本：v'+candidate.tool.version+(baseline?'（本机 v'+baseline.version+'，保留工具数据）':''),
+    const capability=cap=>cap==='storage.local'?'在本机保存此应用的数据':'使用受限能力（'+cap+'）';
+    const capabilities=candidate.tool.capabilities.map(capability),
+      addedCapabilities=candidate.tool.capabilities.filter(cap=>!baseline?.capabilities.includes(cap)).map(capability);
+    publish({title:candidate.tool.title,phase:'review',details:{version:candidate.tool.version,
+      previousVersion:baseline?.version??null,origin:handoff.origin,description:candidate.tool.description,
+      capabilities,addedCapabilities},summary:[
+      '固定版本：v'+candidate.tool.version+(baseline?' · 当前 v'+baseline.version+'，保留工具数据':''),
       '来源：'+handoff.origin+'（本扩展配置的市场）',candidate.tool.description,
-      '申请能力：'+(candidate.tool.capabilities.join('、')||'无'),
-      '新增能力：'+(candidate.tool.capabilities.filter(cap=>!baseline?.capabilities.includes(cap)).join('、')||'无'),
-      '应用在受限沙箱中运行。网站或敏感能力仍按原权限检查；安装后无需再次启用。',
-      ...(baseline?['本次确认会替换此 ID 的已安装代码，请核对来源和能力。']:[])])summary.append(node('p',text));
-    const details=node('details','');details.append(node('summary','固定发行信息'),node('p',handoff.subject.marketId),node('p','SHA-256：'+candidate.release.sha256));summary.append(details);
-    root.insertBefore(summary,message);
-    const operations=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
-    if(handoff.consumedAt!==null||handoff.recoveryOnly||operations[handoff.operationId]){
-      say('此请求已有安装记录，请核对原结果；不会自动重新安装。');action('核对原安装结果',recover);return;
-    }
-    say('请核对版本、来源和申请能力。取消不会修改安装记录。');
-    action(baseline?'确认更新 / 安装':'确认安装',commit);
-    action('取消',()=>{closed=true;say('已取消，未提交安装。');controls.replaceChildren();window.close();});
-  })().catch(error=>{say((error.code||'E_PACKAGE')+'：'+error.message);});
-  return {ready,dispose(){closed=true;}};
+      '申请能力：'+(candidate.tool.capabilities.map(capability).join('、')||'无'),
+      '新增能力：'+(candidate.tool.capabilities.filter(cap=>!baseline?.capabilities.includes(cap)).map(capability).join('、')||'无'),
+      '应用在受限沙箱中运行。网站或敏感能力仍按原权限检查；安装后无需再次启用，已停用的应用更新后保持停用。',
+      ...(baseline?['本次确认会替换此 ID 的已安装代码，请核对来源和能力。']:[])],
+      technical:[handoff.subject.marketId,'SHA-256：'+candidate.release.sha256,'能力标识：'+candidate.tool.capabilities.join('、')],
+      message:'请确认安装版本、来源和权限。'});
+    controls([['commit',baseline?'确认更新':'确认安装',commit],['cancel','取消安装',cancel]]);
+  }
+  const ready=loadCandidate().catch(failed);
+  return {ready,getSnapshot:()=>model,dismiss:finish,
+    async act(id){
+      const run=actions.get(id);if(!run||model.busy||closed)return;
+      publish({busy:true});
+      try{await run();}catch(error){await failed(error);}finally{publish({busy:false});}
+    },
+    // Document destruction is NOT cancellation. In-flight installer outcomes
+    // are recovered from the existing intent/journal, never resubmitted.
+    dispose(){closed=true;}
+  };
+}
+
+// Historical popup URLs are guidance only. Only the real Side Panel Sheet can
+// approve; this document cannot become a second installation authority.
+export function initMarketInstall({root=document.getElementById('market-root')}={}){
+  root.replaceChildren();
+  const heading=document.createElement('h1');heading.textContent='在侧边栏继续安装';
+  const message=document.createElement('p');message.setAttribute('role','status');
+  message.textContent='请回到市场所在的 Chrome 窗口，点击 OpenDesk 工具栏图标。同一安装请求会在侧边栏内呈现；打开侧边栏不会批准安装。';
+  root.append(heading,message);return {ready:Promise.resolve(),dispose(){}};
 }

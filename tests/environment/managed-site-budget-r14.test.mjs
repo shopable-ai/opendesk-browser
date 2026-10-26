@@ -90,6 +90,20 @@ test('compatibility probe admits the original live Side Panel installer before i
   assert.equal(result.managedSiteRuntime.privilegedJs,false);
   assert.equal(f.local.has(MANAGED_SITE_BUDGET_STORE),false,'read-only admission must not create owner resources');
 });
+test('market install confirmation can only probe compatibility from its exact live document',async()=>{
+  const f=fixture(),url=f.api.runtime.getURL('ui/market-install.html?intent=review');
+  const sender={...f.sender,url,tab:{id:7,incognito:false}};
+  const context={contextType:'TAB',documentUrl:url,documentId:sender.documentId,frameId:0,tabId:7,incognito:false};
+  f.api.runtime.getContexts=async()=>[context];
+  const probe={protocol:MANAGED_SITE_BUDGET_PROTOCOL,toolId:id,operation:'probe'};
+  assert.equal((await f.service.dispatch(probe,sender)).managedSiteRuntime.privilegedJs,false);
+  for(const bad of [{...sender,url:url.replace('market-install.html','market-install.html.evil')},
+    {...sender,id:'another-extension'},{...sender,documentId:'retired-document'},
+    {...sender,tab:{id:8}},{...sender,frameId:1}])
+    await assert.rejects(f.service.dispatch(probe,bad),{code:'E_TOOL_SENDER'});
+  await assert.rejects(f.service.dispatch(await f.msg('setPolicy',{...settings,expectedRev:0}),sender),{code:'E_TOOL_SENDER'});
+  assert.equal(f.local.has(MANAGED_SITE_BUDGET_STORE),false);
+});
 test('compatibility probe resolves Chrome Side Panel omitted fields only from a unique live native context',async()=>{
   const f=fixture([]),message={protocol:MANAGED_SITE_BUDGET_PROTOCOL,toolId:id,operation:'probe'};
   const sender={id:f.sender.id,url:f.sender.url,origin:'chrome-extension://'+f.sender.id};

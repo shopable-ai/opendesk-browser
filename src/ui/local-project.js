@@ -160,7 +160,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     if(backgroundTimer!==null)clearTimeout(backgroundTimer);
     backgroundTimer=null;backgroundRead=null;backgroundKey='';backgroundError=null;prepared=null;
   }
-  // The current Go aggregator may omit Node preparation metadata. Resolve only
+  // The current Go aggregator may omit preparation or runtime metadata. Resolve only
   // an already-authorized selected binding, verify its bytes, and retain only
   // a summary. This is a read/compile, not a browser Run or a new file grant.
   function syncPreparation(){
@@ -171,7 +171,9 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     if(backgroundKey===key)return;
     if(backgroundTimer!==null)clearTimeout(backgroundTimer);
     backgroundTimer=null;backgroundKey=key;backgroundError=null;prepared=null;
-    if(state!==undefined)return; // Node's own ready/updating/error state is authoritative.
+    if(state!==undefined&&(state!=='ready'||['controller','page-userscript'].includes(row.runtimeKind)))return;
+    // A ready summary without a runtime cannot decide Controller parameters.
+    // Keep in-progress/error summaries authoritative; verify missing type from source.
     const ticket={generation,epoch,bindingId:row.bindingId,key};
     backgroundTimer=setTimeout(()=>{
       backgroundTimer=null;
@@ -186,7 +188,10 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
           !/^[a-f0-9]{64}$/.test(source.sourceHash||'')||
           (source.inputHash!==undefined&&!/^[a-f0-9]{64}$/.test(source.inputHash))||
           source.sourceBytes!==new TextEncoder().encode(source.sourceUtf8).length||
-          source.sourceHash!==await sha256Utf8(source.sourceUtf8))
+          source.sourceHash!==await sha256Utf8(source.sourceUtf8)||
+          state==='ready'&&(
+            row.preparation.sourceHash&&row.preparation.sourceHash!==source.sourceHash||
+            row.preparation.sourceRevision&&row.preparation.sourceRevision!==(source.sourceRevision??source.inputHash)))
           throw failure('E_DEV_HASH','准备的源码字节、版本或授权绑定不一致');
         if(!current())return;
         prepared={bindingId:ticket.bindingId,providerEpoch:ticket.epoch,

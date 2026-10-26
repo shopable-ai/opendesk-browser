@@ -170,12 +170,14 @@ test('SW review at 512 KiB is non-blocking and 1 MiB hard cap blocks +1 byte',()
   setBytes(BUILD_POLICY.serviceWorkerProductionBytes+1);
   assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
 });
-test('only the fixed Side Panel host receives 3 MiB in both modes; other fixed outputs retain the 512 KiB limit',()=>{
+test('fixed UI host budgets apply only to their exact outputs in both modes',()=>{
   assert.equal(entryByteBudget('ui/tool-shell.js','production'),3*1024*1024);
   assert.equal(entryByteBudget('ui/tool-shell.js','development'),3*1024*1024);
   assert.equal(entryByteBudget('sw.js','production'),1024*1024);
   assert.equal(entryByteBudget('sw.js','development'),1536*1024);
-  for(const target of ['ui/sidebar-tool-host.js','agents/page-relay.js','libs/packages/axios.js']){
+  assert.equal(entryByteBudget('ui/sidebar-tool-host.js','production'),516*1024);
+  assert.equal(entryByteBudget('ui/sidebar-tool-host.js','development'),516*1024);
+  for(const target of ['agents/page-relay.js','libs/packages/axios.js','ui/sidebar-tool-host-copy.js']){
     assert.equal(entryByteBudget(target,'production'),512*1024);
     assert.equal(entryByteBudget(target,'development'),512*1024);
   }

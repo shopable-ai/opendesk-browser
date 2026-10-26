@@ -252,3 +252,288 @@ Profile、正式 HTTPS 发布通道、高级竞态及完整评分继续延期。
 - 本机记录：`artifacts/app-market-r62/http-manual-install/receipt.json`。
   新提示/重连为组件与 HTTP 验证；协调释放后未再做浏览器 UI 复验，不能写成新 UI 原生 PASS。
   正文采集、额外网站授权、全应用、全仓与 production 验收均未执行，不扩张为本轮目标。
+
+## 2026-10-26 R6.3 独立分发与最小可信确认窗
+
+本轮进一步完成的核心操作是：主扩展具备一次通用安装能力后，HTTP 市场可新增不在
+扩展内置 Catalog 中的 Sidebar Tool，并发布其新版本；用户从 HTTP 详情页直接打开
+简洁可信确认窗，确认后经原安装器安装、打开原沙箱应用。无需先浏览完整扩展市场。
+前节网页剪藏证据只证明内置应用交接，不能替代本节的独立新增与升级证据。
+
+### 实现与发行输入
+
+- `scripts/build-market-site.mjs` 接受 `buildMarketSite({env, projects:[项目目录,…]})`，
+  CLI 通过 `OPENDESK_MARKET_PROJECTS` JSON 数组传入；开发服务支持同一环境变量。
+  同一应用多个固定版本需要同时提供各版本源码目录。构建复用原 Sidebar Tool 打包器，
+  生成 `/releases/<marketId>/<version>/descriptor.json` 及规范 JSON 安装包；不会修改
+  扩展 Catalog、源码或 `dist/development`。相同 ID/版本而字节不同直接拒绝并保留原输出。
+  只有历史元数据、没有包字节的版本继续显示为不可安装。
+- `src/marketplace/distribution.js` 只信任扩展编译配置中的市场 Origin 与扩展 ID，
+  从确定路径取得固定版本描述与包。核对精确字段、ID/版本、字节数、SHA-256 和规范
+  序列化字节；拒绝重定向、任意下载 URL 和超限资源。市场页面不能把包代码交给可信世界执行。
+- `src/marketplace/install.js` / `market-install.html` 展示来源、版本、本机版本、能力及
+  新增能力；确认时重新核对同一包，复用 `installReviewedSidebarTool`、原意图/操作日志、
+  来源/基线检查及数据保留机制。未知结果只恢复核对，不自动重装。打开使用进入原工具沙箱，
+  并聚焦所在窗口。套装仍沿用原完整市场入口，本节独立分发范围为单个 Sidebar Tool。
+- 网站 `GET_INSTALL_STATUS` 只返回有限状态；“已安装”须核对本机版本、包哈希和来源记录，
+  有操作日志时还须核对该操作成功。网页交接成功不能冒充安装成功；刷新查询不会重放安装。
+- 新确认文档加入既有安装兼容探测/清理入口的精确路径白名单。Stay Focus、Managed Site
+  和计划清理继续核对真实扩展、活动文档、顶层 Frame 与 Tab；不授予确认页业务修改能力。
+
+本机演示构建命令（这些目录为 ignored 临时验证输入，不是正式示例发行包）：
+
+```sh
+OPENDESK_MARKET_PROJECTS='["artifacts/app-market-r63/independent-project","artifacts/app-market-r63/independent-project-v2","artifacts/app-market-r63/independent-project-v3"]' node scripts/build-market-site.mjs
+```
+
+### 核心原生证据与候选区分
+
+- 复用正常 Chrome 应用，新建隔离资料 **OpenDesk Market R63 Test**，加载固定路径
+  `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`，真实 ID 为
+  `ccfcjegpkdlgbclopjmadlcjedelidmf`。这是持续开发产物，原 watcher PID79949、端口43119
+  保留；构建 Source Map 的对应源码已核对。`development-update.json` 标记仍陈旧，
+  未据此宣称自动热更新连接或所有窗口已更新。
+- 临时应用 `market-install-demo` 不在冻结扩展的 `official-tools/catalog.json` 中。
+  从 `http://127.0.0.1:43132/apps/opendesk/market-install-demo/` 选择 v1.0.0，
+  HTTP 按钮自动打开 `/ui/market-install.html?intent=1464203d-5743-4636-8abe-1b1ab12957f5`；
+  确认后实际读回 v1.0.0，打开沙箱计数器，计数从0增加至1。返回网站显示已安装。
+- 随后只更新市场发行输入到 v1.1.0，HTTP 按钮打开升级确认，intent 为
+  `74c2672f-16c7-4c15-b405-6e4b4f969ccb`；显示本机 v1.0.0、无新增能力并保留数据。
+  确认后打开实际 v1.1.0 沙箱，计数仍为1，点击后变为2。
+  **上述新增安装至独立升级期间，扩展全部167个文件指纹一致，changedFiles=[]**；
+  记录指纹为 `3a1b00ec1187b332f890e15b44b160ba8859ec430feb983918cd36ce1ca26eff`。
+  证据：`artifacts/app-market-r63/host-before.json`、`native-receipt.json`、
+  `native-confirmation.png`、`native-site-installed.png`、`native-v2-open.png`。
+- 上述观察发现“打开使用”会让应用标签留在确认小窗后方。补上窗口聚焦，并补齐 Stay Focus
+  精确只读探测路径后，仅在本轮独立资料重载开发扩展，复验 v1.1.0→v1.2.0。
+  HTTP 自动确认 intent 为 `9edda8ed-fca5-438c-9c92-8f3c350f3023`，本机读回 v1.2.0；
+  点击一次打开使用，无需点击完成，应用窗口直接前置，沙箱显示 v1.2.0，原计数2保留。
+  此次最终交互证据独立记录为 `native-final-receipt.json`、`native-final-v3-open.png`。
+  最终复验期间共享 watcher 另更新了 `ui/tool-shell.js` 及其 Map，故此段不宣称全包冻结；
+  市场安装 JS、SW、Manifest 和 Catalog 的前后哈希一致。不能将前一候选的全包指纹
+  冒充最后两项修复后的指纹。
+- 当前 HTTP 服务仍在 `127.0.0.1:43132`，最后市场 siteBuildId 为
+  `d12cdb4a87739d62642985dca5e84118630777013bd77f7e3f3dc0909146e6ed`，包含演示3版本。
+  原日常资料运行旧缓存 Worker 的现象已记录，未强制重载其活动任务、草稿或 Native 连接；
+  因此当前完整原生证据属于上述独立资料。CFT154 / Send Queue Profile、PID54791 继续保留。
+
+### 定向验证与本轮边界
+
+- `market-dynamic-install`、`market-dynamic-site`、`market-site-client-r5`、
+  `market-page-discovery-r61` 四文件24/24 PASS：覆盖非内置 ID/版本发行、固定身份与摘要、
+  来源/重定向/大小拒绝、同版本冲突保护、简洁窗口、真实结果查询及不重放。
+- 原 R5 意图/Sender/去重/恢复及共享安装器相关定向项12/12 PASS。
+  更新后的独立网站构建断言验证实际分发包的字节与摘要；其定向项 PASS。
+- 新确认入口的计划清理准入1/1、Managed Site只读探测1/1、Stay Focus新旧入口只读探测
+  2/2 PASS；仿冒路径、过期文档、错误身份/Frame以及业务修改请求继续拒绝。
+  新 Stay Focus 项曾直接复现 `E_FOCUS_SENDER`，仅补精确路径后通过。
+  此为组件保护证据，未执行真实 Stay Focus 安装。
+- 修改涉及的语法检查及 `git diff --check` 通过；没有新建第二安装器/Authority，没有
+  全量扩展构建、全仓回归、全应用原生矩阵、缩放专项、评分或 production 发布。
+  production 通道仍关闭，正式 HTTPS 发行、CWS 及日常所有窗口热更新状态为 NOT_TESTED；
+  `PUBLIC_RELEASE_BLOCKED` / `NOT_SCORED` 保留。上述 ignored 截图与收据仅在本机，未上传。
+- 实现主体在并行 main 集成提交 `15e9f9027ea9015e136b79d19666689695e37e58` 中已保存；
+  本轮后续交互修复、定向测试和本节在写入时仍为工作区改动，不把并行提交冒称本轮独立提交。
+
+## R6.4 · 同一 HTTP 文档内审阅和安装（2026-10-27，开发中）
+
+### 本轮直接复现与执行位置
+
+在正常 Chrome 的 **OpenDesk Market R63 Test** 独立资料，打开
+`http://127.0.0.1:43132/apps/opendesk/market-install-demo/` 并点击安装，实际创建了
+`chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/ui/market-install.html?intent=750fe8b9-bc6d-40ec-8aa2-12b4e269b180`。
+因此 R6.3 的弹窗证据不能证明 HTTP 内安装，本轮以此为待修复缺口。
+
+本轮代码电路：
+
+| 所有权 / 位置 | 构建入口与运行世界 | 调用与最终权限 |
+| --- | --- | --- |
+| 网站 `client.js`、`templates.mjs` | 独立 HTTP 市场，网站 MAIN | 仅请求固定应用版本的 REVIEW；不能发送确认、包、URL 或权限批准 |
+| `marketplace/page-bridge.js` | 既有 `agents/page-relay.js`，固定 ISOLATED | 仅编译市场 Origin 的顶层文档启用；HTTP 内 closed ShadowRoot 展示后台审阅内容；真实点击同步核对 `isTrusted`、短暂激活、可见和焦点 |
+| `marketplace/page-install.js` | 既有 `marketplace/market-host.js`，MV3 Worker | 核对真实内部 Sender、精确 Origin、当前顶层 Chrome DocumentId、固定身份/摘要、本机基线、一次性 token；沿原共享安装器和日志提交 |
+| 原 `sidebar-tools/installation.js` | 扩展存储 / Authority | 保留原锁、来源、身份、撤权代际、数据和未知结果保护；包 JS 仅存储，安装时不执行 |
+
+网站不能通过 external message 或网页合成事件直接提交。closed ShadowRoot 用于固定 UI 与闭包隔离，
+不是新授权层，也不能把 HTTP 网络内容提升为 HTTPS。`MessageSender` 没有浏览器认证的用户批准字段；
+真实手势由固定 ISOLATED 监听器采集，不能替代 Chrome 要求的独立网站/敏感权限手势。
+正常单应用路径不创建确认窗、不嵌入扩展 iframe；成功后的“打开使用”才主动进入原工具宿主。
+套装与原完整市场入口保留。
+
+### 当前组件证据与原生待办
+
+- `market-page-install.test.mjs`：10/10 PASS，实际调用共享安装器，覆盖新 ID 安装、升级保留数据、
+  取消、固定内容变化、本机基线变化、导航/过期/错误 token、双提交、消费回执丢失与同日志恢复。
+  Chrome Sender 和存储由组件测试模拟，不是原生安装证据。
+- `market-page-bridge`、`market-page-copy`、`market-site-client-r5` 定向检查已通过；
+  检查网站仅能请求审阅、可信点击边界、无 iframe、取消与超时不重放，以及套装原入口。
+- 旧固定发行下载、来源、摘要、超限/重定向拒绝及 R5 意图保护相关 21 项通过。
+- 当前共享持续开发 writer 由 Task owner 恢复为 PID21250，仍写入 `dist/development`。
+  本轮保留该 writer、日常草稿与 CFT154/Send Queue，未创建第二 writer 或替换日常扩展路径。
+- 临时非内置应用 `market-page-counter` 的 v1.0.0/v1.1.0 源码位于 ignored
+  `artifacts/app-market-r64/`；首个市场候选只分发 v1.0.0，原生同页安装/取消/升级正在等待共享
+  Chrome 前台与短时源码冻结窗口释放，仍为 **NOT_TESTED**。不以 Node PASS 或新网站文案宣称完成。
+
+正式 HTTPS/CWS/production、全应用矩阵、缩放专项、独立评分继续延期；本轮不改变通道白名单、
+Chrome 权限或安装 Authority。最终候选指纹和原生结果将在同节补记。
+
+本轮安全复核另外发现并收敛了待合入项：刷新后为原事务换发仅恢复/打开授权，保留消费标记；
+缺失日志的交接由明确操作结束且继续报告未知；外部状态共用固定摘要/取消判定；普通应用旧外部
+弹窗操作在创建记录前拒绝。冻结期间用隔离模块快照执行该后台候选的12项定向断言，全部通过，
+输出保存在 `artifacts/app-market-r64/candidate-test-output.txt`；这是候选组件证据，尚非已加载扩展证据。
+网页确认呈现采用持久模态层与同步可见性/命中/稳定性检查的加固候选；closed ShadowRoot 本身
+不构成防点击劫持证明，移除发生在 COMMIT 发出后也不能保证撤回在途事务。
+
+## R6.5 · HTTP 发起、扩展可信审阅、原安装器提交（2026-10-27）
+
+本节是最新核心开发结果，取代 R6.4 的网页最终确认候选；前节保留为历史记录。
+HTTP 网站只发起固定版本审阅、查询结果或打开已核对的安装。最终批准统一在原
+`ui/market-install.html` 扩展窗口完成，随后调用原 Installer/Authority；没有第二安装器。
+旧网页桥已退役，历史 STATUS 仅可读，PREPARE/COMMIT 等旧动作拒绝。
+
+### 当前可用操作与实现
+
+- 网站详情的“安装到OpenDesk / 更新”打开同一通用可信审阅窗，展示版本、市场 Origin、
+  本机基线和能力差异；一次确认后写入消费记录并由原安装器提交。Origin 不表示官方认证。
+- 取消持久化后返回网站；超时、刷新、重连和未知结果只核对原交接，不自动重放安装。
+  成功必须核对原事务身份、固定摘要、来源、实际包字节与适用撤权代际。
+  “当前存在安装”独立于“本次事务成功”，缺失或不匹配的日志继续显示未知。
+- 网站可直接打开当前合法安装；升级前可另行打开旧版。停用状态仍由原 Authority 阻止运行，
+  升级不恢复已停用应用。同包再次审阅也先消费原意图并留日志，不重写数据或撤权代际。
+- 自动状态读取合并并限频，为显式安装保留原请求额度；未放宽后台限流或 Sender 校验。
+  套装状态读取原批次，核对固定成员和原安装日志；没有并列安装状态库。
+- 独立市场发行保留经过完整清单、描述、实际包及摘要核验的旧固定版本和独立项目。
+  同身份不同字节、旧输出损坏或来源变化时拒绝替换；网站发布不要求重建扩展。
+
+### 本次真实 Chrome 核心证据
+
+环境为独立资料 **OpenDesk Market R63 Test**，持续开发路径
+`/Users/shopme/Documents/workspace/opendesk-browser/dist/development`，真实扩展 ID
+`ccfcjegpkdlgbclopjmadlcjedelidmf`。Chrome 扩展管理页实际核对路径、ID 和启用状态；
+调试页显示“开发服务已连接”，revision 为
+`d100ace886a2a6dd1f9fa478c0a828c3b18e087f73234c44357e062c328a5ff6`。
+原 watcher PID21250 /43119、HTTP 市场 /43132 保留。云控诊断显示 E_DIAGNOSTICS，未作为本轮
+市场安装故障处理，也不宣称云控已通过。
+
+从 `http://127.0.0.1:43132/apps/opendesk/market-page-counter/` 实际执行：
+
+| 用户操作 | 实际结果与原审阅 ID |
+| --- | --- |
+| 取消首次审阅 | 扩展窗保存“已取消，未提交安装”，网站读回取消；`a7beb1de-9fdb-4daa-9660-3e311ec60566` |
+| 再次显式安装 v1.0.0 | 一次确认后核对成功，网站直接打开原沙箱；`5feb849e-0c72-4610-a532-5078a040991a` |
+| 原 SDK 保存数据 | 计数从0增至3，关闭原工具后由网站重开仍为3 |
+| 仅市场发行 v1.1.0 | 网站显示“更新”及当前1.0.0，审阅显示无新增能力、保留数据；`06763a1a-d1b0-48c7-bce7-bf27b654e2f4` |
+| 确认升级并打开 | 一次确认读回1.1.0；网站直接打开，新 JavaScript 写出“v1.1.0 新代码已运行”，计数仍为3 |
+| 保存并重载扩展 | 再加一为4，关闭本轮工具标签，在独立资料扩展管理页 Reload；刷新网站仍核对原事务成功，直接打开后新代码标记与计数4均保留 |
+
+两版固定包的实际下载字节与描述摘要已核对：
+
+- v1.0.0：949 bytes，SHA-256 `814812108ce1a575dcef2d66255f76d99e24fc4c5a0286e3c6f6ca9873e7dea8`。
+- v1.1.0：1058 bytes，SHA-256 `1f1d7b2a19834f5fb565f36b33c9859535a6e55ba0d7b7bb2740a84e04d0d4c5`。
+
+市场输出 siteBuildId：`2741b7bc65b97677e3b492aa0e5648f3ee620fc71aa8d79687736205325e5df4`，
+15个应用、36个固定发行。**从新市场发布前到升级及扩展重载后，全部167个扩展文件前后指纹
+一致，changedFiles=[]，无排除项**；完整指纹
+`242346e00bbc7bb7688f8e4c39326a3170f9bb938fb27e3acf9dba2323f63ff2`。
+内部 dev revision 与全部文件清单指纹是不同算法的证据，不相互替代。
+
+本机 ignored 证据位于 `artifacts/app-market-r65/`：`01`—`17` AX/PNG、
+`native-receipt.json`、`release-verification.json`、`site-build-final.json`、
+`host-b0-final.json`、`host-b1-final.json`、`host-comparison.json`。
+`host-b0.json` 是此前源码修复前的历史基线，不用于本次全包冻结结论。
+证据由真实 UI 操作取得，未读取浏览器私有存储，未操作日常资料或并行测试 Profile。
+
+### 定向检查与未执行范围
+
+受本次状态、审阅和 Installer 改动触发的 client/page-install/trusted-install/dynamic-install
+检查88/88通过，覆盖真实 Installer 组件中的数据/停用保留、消费回执丢失、未知结果、
+固定 SHA、日志身份、撤权代际、Sender/Origin/Document 和共享限流。
+发行保留、损坏拒绝、旧桥无副作用及页面文案检查15/15通过；相关 JavaScript 语法及
+`git diff --check` 通过。Node 模拟 Sender/存储的结果不冒充原生证据。
+
+原生停用应用升级、原生套装安装、整个 Chrome 进程重启为 NOT_TESTED；本次已执行的是独立
+资料的扩展 Reload。production、公网 HTTPS/CWS、全量回归、缩放/宽度专项及独立评分继续延期，
+`PUBLIC_RELEASE_BLOCKED` / `NOT_SCORED` 不变。本轮在 main 保留可审阅工作区改动，未提交或推送。
+
+## R6.6 · 单应用审阅迁入原 React Side Panel ImportSheet（2026-10-27）
+
+本节取代 R6.5 的单应用独立审阅窗；历史证据保留。HTTP 市场只发起固定版本请求，
+真实 Side Panel 在原 React ImportSheet 中呈现并一次确认，仍由原 Installer/Authority、
+intent 和 operation journal 提交与核对。套装继续原批次入口，不新建安装器或状态库。
+
+### 当前实现与边界
+
+- `src/marketplace/install.js` 将原单应用事务接入可订阅审阅模型，原浮层显示版本、Origin、
+  当前安装、新增能力、数据与停用状态说明，SHA 等技术字段默认折叠。历史
+  `ui/market-install.html` 只显示工具栏指引，不能批准或取消。
+- `src/marketplace/panel.js` 与原 intent 校验原来源 tab/window/document，CLAIM 绑定实际
+  Side Panel document；普通 TAB、跨窗口和活跃旧 owner 不能抢领。Chrome 本机原生 panel
+  的 `windowId=-1`、大写文档 ID、缺失 sender frame/document 通过共享 `resolveToolSender`
+  归一化，再精确核对原生 SIDE_PANEL。全局 panel 的窗口由固定可信调用方通过
+  `windows.getCurrent()` 取得；后台 `windows.get()` 证明窗口存在，不构成独立的原生窗口归属证明。
+  网站消息不能提供这个 windowId。
+- 网站能区分已打开、待处理与需要工具栏手势的回执，不把 `sidePanel.open()` 调用成功
+  当成审阅已经显示。源码编辑、未保存内容或其他审阅占用时，原页面保留并显示待处理入口；
+  异步 CLAIM 后再核对占用状态。更新同一工具在原消费标记前同步检查保存/草稿，不能覆盖草稿。
+- “取消安装”保存原取消记录；关闭浮层、关闭或销毁 panel 只结束当前呈现。
+  新文档接续同一请求；已消费、journal、结果未知仅核对原事务，不重新下载安装。
+  未消费且无 journal 的旧来源文档失效返回 `E_INTENT_EXPIRED`，网站只在下一次显式点击时
+  新建请求；不会换绑原目标或复活已消费事务。
+- 原 JSON 选择、拖入和本地安装分支保留，同一浮层与市场审阅互斥；本轮没有迁移旧工具业务。
+
+### 同候选真实 Chrome 核心结果
+
+使用独立资料 **OpenDesk Market R63 Test**，实际路径
+`/Users/shopme/Documents/workspace/opendesk-browser/dist/development`，扩展 ID
+`ccfcjegpkdlgbclopjmadlcjedelidmf`。扩展管理页核对路径/ID/启用状态，调试页实际显示
+“开发服务已连接”，revision 为
+`d689f432f4827c58922537502eba3be1368efb4b1bfb071fa9781b000c1c32c4`。
+模式为持续开发，非 production 静态验收包。
+
+共享 watcher 原 PID21250 因旧配置缓存与固定 Host 超限未能发布。用户明确同意后温和重启
+这一个 watcher；当前 PID71072，端口仍为43119、输出路径与扩展 ID 不变。测得
+`ui/sidebar-tool-host.js` 为525455 bytes；仅此固定 entry 的工程上限从512 KiB改为516 KiB，
+余量2929 bytes，其他 entry 上限及代码来源、CSP、固定自包含门禁不变。没有另起并行 writer。
+
+临时非内置应用为 `market-sheet-counter`，只使用 `storage.local`，测试源码位于 ignored
+`artifacts/app-market-r66/counter-1.0.0/` 与 `counter-1.1.0/`。从
+`http://127.0.0.1:43132/apps/opendesk/market-sheet-counter/` 实际执行：
+
+| 用户操作 | 真实结果 |
+| --- | --- |
+| 首次发起并取消 | 原 Side Panel 浮层显示版本/来源/能力；取消持久化，市场读回“本次安装已取消” |
+| 再次显式安装 | 新审阅在侧栏一次确认后成功，网站核对本机记录，没有独立安装窗 |
+| 打开并保存 | 原沙箱运行v1.0.0，原 SDK 保存计数2并显示“保存成功” |
+| 仅市场发布v1.1.0 | 网站显示更新，当前安装仍为1.0.0；没有重建或替换扩展 |
+| 开发页接收更新 | 保留“开发”页与原编辑器，只显示“opendesk/market-sheet-counter · v1.1.0 · 审阅安装” |
+| 关闭、重开 Side Panel | hostInstanceId由`9d3b4d1b-71ed-4aa4-a977-532a60d33349`变为`661bb5a1-f67b-4a8b-8ae0-51809fd2633c`，原待处理请求仍在，重新打开显示原升级基线 |
+| 接续并确认升级 | 核对v1.1.0成功；新代码写出“v1.1.0 新代码已运行”，计数仍为2 |
+| 普通同URL标签页 | 显示“无法核对真实 Side Panel 文档身份”，没有安装确认资格 |
+| 旧弹窗URL | 只显示“在侧边栏继续安装”指引，无安装或取消按钮 |
+| 原本地导入入口 | 原“导入扩展”浮层、文件选择与JSON拖入提示正常显示；关闭后回到原列表 |
+
+两版固定发行均1151 bytes，HTTP实际下载字节与描述摘要一致：
+
+- v1.0.0：SHA-256 `907612087b9e07cff7d020102acaa81d005cce1ab54f17aa3a57ecb592400ef0`。
+- v1.1.0：SHA-256 `a1093011a0364bc994f5e4d75fe4159c132ef05c3702ac868550ff66367462ed`。
+
+市场最终siteBuildId：`e0adfd3262f869baccb4e799b0b00c9cf7405c2205c7a107229a48d44dfcebaf`，
+16个应用、38个发行。网站发布前后扩展**全部167个文件、无排除项**指纹一致，
+`changedFiles=[]`，完整指纹
+`730c1b93396068dbe26ffb77e01df652e25c228ea70b9ffcb689c060018c9934`。
+
+ignored证据：`artifacts/app-market-r66/01`—`18` AX/PNG、`native-receipt.json`、
+`release-verification.json`、`host-before-site-update.json`、`host-after-site-update.json`、
+`host-comparison.json`、`site-build-v1.1.txt`、`site-copy-tests.txt`与`dev-watch.log`。
+没有读取浏览器私有存储或操作其他测试资料；临时应用保留在上述专用资料，计数2。
+
+### 定向验证与保留缺口
+
+panel handoff、原trusted installer、coordinator、React状态及网站client/copy定向检查通过。
+其中trusted-install/coordinator/React状态29项通过，最终网站client/copy34项通过；
+原生sender归一化、source失效、跨窗口/owner/普通TAB、最终同步草稿guard由后端定向用例覆盖。
+WXT持续开发产物成功发布并与实际Chrome连接revision一致；相关语法与diff格式检查通过。
+
+本轮原生只验一个非内置应用的两版。停用升级、未知结果故障注入、跨窗口攻击、本地JSON安装
+重跑和原生套装安装未执行；相关组件保护不冒充这些原生证据。production、公网HTTPS/CWS、
+完整回归、宽度/缩放及独立评分继续延期，`PUBLIC_RELEASE_BLOCKED` / `NOT_SCORED`不变。
+main工作区保留可审阅改动，未提交或推送；无关并行改动与服务保留。

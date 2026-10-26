@@ -43,7 +43,7 @@ function memoryStorage(){
   };
 }
 function installerSender(f,{market=false}={}){
-  const url=f.api.runtime.getURL(market?'ui/marketplace.html?intent=review#apps':SIDEPANEL_DOCUMENT_PATH+'?hostInstanceId=12345678-1234-4123-8123-123456789abc');
+  const url=f.api.runtime.getURL(market?(market==='install'?'ui/market-install.html':'ui/marketplace.html')+'?intent=review#apps':SIDEPANEL_DOCUMENT_PATH+'?hostInstanceId=12345678-1234-4123-8123-123456789abc');
   const sender={id:f.api.runtime.id,url,documentId:'installer-document',frameId:0,documentLifecycle:'active',
     ...(market?{tab:{id:7,incognito:false}}:{})};
   f.contexts.splice(0,f.contexts.length,{documentId:sender.documentId,documentUrl:url,frameId:0,
@@ -97,6 +97,18 @@ test('Marketplace recovery rejects missing intent, corrupt state and stale or fo
   assert.deepEqual(await f.repo.definitions(),before);
   await pendingUninstall(f);
   assert.equal((await f.service.cleanupUninstalledToolSchedules(request,sender)).alarmsCleared,true);
+});
+
+test('minimal market confirmation reuses cleanup admission without accepting a lookalike or stale document',async()=>{
+  const f=await fixture();await f.start();await pendingUninstall(f);
+  const sender=installerSender(f,{market:'install'}),request={toolId:f.tool.id};
+  for(const forged of [
+    {...sender,url:sender.url.replace('market-install.html','market-install.html.evil')},
+    {...sender,documentId:'retired-document'},
+    {...sender,frameId:1},
+    {...sender,id:'another-extension'}
+  ])await assert.rejects(f.service.cleanupUninstalledToolSchedules(request,forged),error('E_OWNER'));
+  assert.equal((await f.service.cleanupUninstalledToolSchedules(request,sender)).schedulesRetired,true);
 });
 
 test('failed native alarm removal retains an unknown cleanup outcome and retry verifies old tombstones',async()=>{

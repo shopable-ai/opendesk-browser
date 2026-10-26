@@ -11,7 +11,15 @@ const ToolContext = React.createContext(null);
 
 export function ToolHost({view}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
-  const importOpen = snapshot.fields['sidebar-tool-import']?.hidden === false;
+  const marketReview = snapshot.market?.review ?? null;
+  const marketReviewRef = React.useRef(marketReview);
+  marketReviewRef.current = marketReview;
+  const importOpen = marketReview !== null || snapshot.fields['sidebar-tool-import']?.hidden === false;
+  const dismissImport = () => {
+    if (marketReviewRef.current) {
+      if (!marketReviewRef.current.busy) view.marketInstallActions?.dismiss();
+    } else view.dispatch('sidebar-tool-import-close', 'click');
+  };
   const reviewing = snapshot.fields['sidebar-tool-preview']?.hidden === false;
   const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
   const secondaryAction = snapshot.fields['sidebar-tool-secondary-action']?.data?.action || '';
@@ -71,11 +79,14 @@ export function ToolHost({view}) {
     const priorOverflow=doc.body.style.overflow;
     if(app)app.inert=true;
     doc.body.style.overflow='hidden';
-    panel.querySelector('#sidebar-tool-file')?.focus({preventScroll:true});
+    (marketReviewRef.current ? panel :
+      panel.querySelector('#sidebar-tool-file') || panel).focus({preventScroll:true});
     const onKeyDown=event=>{
       if(event.key==='Escape'){
         event.preventDefault();event.stopPropagation();
-        view.dispatch('sidebar-tool-import-close','click',event);return;
+        if(marketReviewRef.current){
+          if(!marketReviewRef.current.busy)view.marketInstallActions?.dismiss();
+        }else view.dispatch('sidebar-tool-import-close','click',event);return;
       }
       if(event.key!=='Tab')return;
       const focusable=[...panel.querySelectorAll(
@@ -100,7 +111,7 @@ export function ToolHost({view}) {
         target?.focus?.({preventScroll:true});
       }
     };
-  },[importOpen,view]);
+  },[importOpen,marketReview !== null,view]);
   const context = React.useMemo(() => ({view, snapshot, refs}), [view, snapshot]);
   return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack"><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden={true}>
 <ToolField as="p" id="sidebar-tool-action-summary" role="status">
@@ -118,10 +129,52 @@ export function ToolHost({view}) {
 
 </ToolField>
 
-<ImportSheet open={importOpen}
-  onBackdrop={event=>view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}
-  onFileDrop={event=>view.dispatch('sidebar-tool-file','drop',event.nativeEvent)}>
-<ToolField as="section" id="sidebar-tool-import" className="sidebar-tool-import od-surface"
+<ImportSheet open={importOpen} blockFiles={marketReview !== null} busy={Boolean(marketReview?.busy)}
+  onBackdrop={event=>marketReview ? dismissImport() : view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}
+  onFileDrop={event=>{if(!marketReview)view.dispatch('sidebar-tool-file','drop',event.nativeEvent);}}>
+{marketReview ? <section id="sidebar-tool-import" className="sidebar-tool-import od-surface"
+  ref={node=>{if(node)refs.current.set('sidebar-tool-import',node);else refs.current.delete('sidebar-tool-import');}}
+  role="dialog" aria-modal="true" aria-labelledby="sidebar-tool-import-heading" tabIndex={-1}
+  aria-busy={marketReview.busy} data-phase={marketReview.phase}>
+  <div className="sidebar-tool-import-head od-toolbar">
+    <strong id="sidebar-tool-import-heading">{marketReview.title}</strong>
+    <button type="button" className="sidebar-tool-icon-action od-icon-button"
+      title={['installed','cancelled'].includes(marketReview.phase)?'关闭':'稍后继续'}
+      aria-label={['installed','cancelled'].includes(marketReview.phase)?'关闭':'稍后继续'}
+      disabled={marketReview.busy} onClick={dismissImport}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
+    </button>
+  </div>
+  <div className="od-import-sheet-body od-market-review">
+    <p role={marketReview.phase==='error'?'alert':'status'} className="od-market-status">{marketReview.message}</p>
+    {marketReview.details ? <>
+      <dl className="od-market-facts">
+        <div><dt>安装版本</dt><dd>{marketReview.phase==='review'&&marketReview.details.previousVersion?
+          `v${marketReview.details.previousVersion} → v${marketReview.details.version}`:`v${marketReview.details.version}`}</dd></div>
+        <div><dt>来源</dt><dd>{marketReview.details.origin}</dd></div>
+      </dl>
+      {marketReview.phase==='review'&&<>
+        <p>{marketReview.details.description}</p>
+        <section className="od-market-permissions" aria-label="申请权限">
+          <strong>申请权限</strong>
+          {marketReview.details.capabilities.length?<ul>{marketReview.details.capabilities.map(cap=><li key={cap}>{cap}</li>)}</ul>:<p>无</p>}
+          {marketReview.details.previousVersion&&<p>本次新增：{marketReview.details.addedCapabilities.join('、')||'无'}；保留原有应用数据。已停用的应用更新后仍保持停用。</p>}
+        </section>
+        <p className="od-market-note">应用在受限沙箱中运行。访问网站或使用敏感能力时，仍需相应授权。</p>
+      </>}
+    </> : marketReview.summary.map((line,index)=><p key={index}>{line}</p>)}
+    {marketReview.technical.length>0&&<details className="sidebar-tool-technical-details od-disclosure od-disclosure--flat">
+      <summary>技术详情 · 文件与校验信息</summary>
+      {marketReview.technical.map((line,index)=><p key={index}>{line}</p>)}
+    </details>}
+  </div>
+  <div className="od-import-sheet-footer od-market-footer">
+    {marketReview.phase==='review'&&<p className="od-market-note">关闭可稍后继续；取消安装会结束本次请求。</p>}
+    <div className="od-toolbar">{marketReview.actions.map((action,index)=><button key={action.id} type="button"
+      className={index===0?'od-button':'od-button od-button--secondary'} disabled={marketReview.busy}
+      onClick={()=>{if(!marketReviewRef.current?.busy)view.marketInstallActions?.act(action.id);}}>{action.label}</button>)}</div>
+  </div>
+</section> : <ToolField as="section" id="sidebar-tool-import" className="sidebar-tool-import od-surface"
   role="dialog" aria-modal={importOpen} aria-labelledby="sidebar-tool-import-heading" hidden={true} tabIndex={-1}>
 <div className="sidebar-tool-import-head od-toolbar">
 <strong id="sidebar-tool-import-heading">
@@ -188,7 +241,7 @@ export function ToolHost({view}) {
 {"确认安装"}
 </ToolField>
 </div>
-</ToolField>
+</ToolField>}
 </ImportSheet>
 
 <ToolField as="section" id="sidebar-tool-display" className="sidebar-tool-display" aria-label="当前工具界面" hidden={true}>
@@ -463,7 +516,7 @@ export function ToolHost({view}) {
 </div></ToolContext.Provider>;
 }
 
-function ImportSheet({open,onBackdrop,onFileDrop,children}) {
+function ImportSheet({open,onBackdrop,onFileDrop,blockFiles=false,busy=false,children}) {
   const [fileOver,setFileOver]=React.useState(false),depth=React.useRef(0);
   React.useEffect(()=>{if(!open){depth.current=0;setFileOver(false);}},[open]);
   const hasFiles=event=>Array.from(event.dataTransfer?.types||[]).includes('Files');
@@ -471,11 +524,11 @@ function ImportSheet({open,onBackdrop,onFileDrop,children}) {
     data-file-drag={fileOver?'true':undefined}
     onDragEnter={event=>{
       if(!hasFiles(event))return;
-      event.preventDefault();depth.current++;setFileOver(true);
+      event.preventDefault();if(blockFiles)return;depth.current++;setFileOver(true);
     }}
     onDragOver={event=>{
       if(!hasFiles(event))return;
-      event.preventDefault();event.dataTransfer.dropEffect='copy';
+      event.preventDefault();event.dataTransfer.dropEffect=blockFiles?'none':'copy';
     }}
     onDragLeave={event=>{
       if(!hasFiles(event))return;
@@ -483,12 +536,13 @@ function ImportSheet({open,onBackdrop,onFileDrop,children}) {
       if(!depth.current)setFileOver(false);
     }}
     onDrop={event=>{
+      if(blockFiles){event.preventDefault();event.stopPropagation();depth.current=0;setFileOver(false);return;}
       if(!hasFiles(event))return;
       event.preventDefault();event.stopPropagation();
-      depth.current=0;setFileOver(false);onFileDrop?.(event);
+      depth.current=0;setFileOver(false);if(!blockFiles)onFileDrop?.(event);
     }}>
     <button type="button" className="od-import-backdrop" tabIndex={-1}
-      aria-label="关闭导入扩展" onClick={onBackdrop}/>
+      aria-label="关闭导入扩展" disabled={busy} onClick={onBackdrop}/>
     {children}
   </div>;
   // SSR keeps the single expected host; Chrome portals it out of scroll clipping.

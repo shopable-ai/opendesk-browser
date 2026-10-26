@@ -13,6 +13,7 @@ import {createBusinessConversation} from './conversation/provider-consumer.js';
 import {createTrustedKnowledgeHost} from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/host.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
+import {createMarketInstallSheet} from './market-install-sheet.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountSidebarApp} from './react/main.tsx';
 import {createDeveloperView} from './develop-view.js';
@@ -83,7 +84,7 @@ const createCloudHosting=historyUI.createCloudHosting;
 if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
   throw new Error('E_TRUSTED_TASK_UI_MISSING');
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
-let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null,livePreview=null,toolDevelopmentControls=null;
+let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null,livePreview=null,toolDevelopmentControls=null,marketInstallSheet=null;
 // Do not construct or query the privileged History controller while Extensions
 // (or any ordinary tab) is active. Leaving Debug also clears private results.
 function syncTrustedHistory(view=pendingReactTab){
@@ -360,6 +361,21 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     startScheduledHost();
     await tabMemory.restore().catch(error=>console.warn('Sidebar tab restoration unavailable',error));
     if(shellClosed)return;
+    if(actualSidePanel){
+      await sidebarTools.ready;
+      if(shellClosed)return;
+      marketInstallSheet=createMarketInstallSheet({api:chrome,view:toolView,
+        assertCanInstall:id=>sidebarTools.assertCanInstallMarketTool(id),
+        hasOtherReview:()=>sidebarTools.hasInstallReview()||Boolean(document.querySelector('[role="dialog"][aria-modal="true"]')),
+        // The Sheet overlays the existing workspace without disposing editors.
+        // A blurred search field or the Developer tab is not an editing lock.
+        canAutoOpen:()=>sidebarTools.canPresentMarketReview(),
+        openTool:async id=>{
+          if(shellClosed||!verifiedSidePanel||!sidebarTools.canPresentMarketReview())return false;
+          if(taskWorkbench.navigate('tools')===false)return false;
+          return Boolean(sidebarTools.openTool(id));
+        }});
+    }
     // The React ToolHost already renders a selected installed app. A trusted,
     // short-lived toolId locator drives its existing Host, not a second router.
     panelToolIntents=createPanelToolIntentReceiver({api:chrome,
@@ -490,6 +506,7 @@ Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.
 })});
 listen(window, 'pagehide', () => {
   fixedPageChatBridge.dispose();
+  marketInstallSheet?.dispose();
   livePreview?.dispose();
   toolDevelopmentControls?.dispose();
   disposeDevelopment?.();

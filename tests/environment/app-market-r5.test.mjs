@@ -20,22 +20,27 @@ import {officialFixtures} from '../helpers/official-tools.mjs';
 const source=JSON.parse(await readFile('src/marketplace/channel-config.json','utf8'));
 const channel=resolveMarketChannel({mode:'development',env:{},source,unpackedPath:'/tmp/r5-component-extension'});
 const app={kind:'app',marketId:'opendesk/markdown-workbench',version:'1.0.1'};
+const collection={kind:'collection',collectionId:'reading-kit',revision:2};
 const message=(subject=app,intentId=randomUUID())=>({protocol,action:'OPEN_INSTALL_REVIEW',intentId,subject});
 const probe={protocol,action:'PROBE'};
 const shuffled=value=>Array.isArray(value)?value.map(shuffled):value&&typeof value==='object'?
   Object.fromEntries(Object.keys(value).sort().reverse().map(k=>[k,shuffled(value[k])])):value;
 function harness(){
-  const values={},writes=[],tabs=new Map(),updates=[],locks=new Map();let time=1000000,created=0;
+  const values={},writes=[],tabs=new Map(),updates=[],windows=[],panelOpens=[],contexts=[],locks=new Map();let time=1000000,created=0;
   const sender={url:channel.origin+'/install/',origin:channel.origin,frameId:0,
-    documentId:randomBytes(16).toString('hex').toUpperCase(),documentLifecycle:'active',tab:{id:1,incognito:false}};
+    documentId:randomBytes(16).toString('hex').toUpperCase(),documentLifecycle:'active',tab:{id:1,windowId:1,incognito:false}};
   tabs.set(1,{id:1,windowId:1,url:sender.url,incognito:false});
-  const api={runtime:{id:channel.extensionId,getURL:p=>'chrome-extension://'+channel.extensionId+'/'+p},
+  const api={runtime:{id:channel.extensionId,getURL:p=>'chrome-extension://'+channel.extensionId+'/'+p,
+      async getContexts(){return structuredClone(contexts);}},
     storage:{local:{async get(keys){return Object.fromEntries((typeof keys==='string'?[keys]:keys).map(k=>[k,shuffled(structuredClone(values[k]))]));},
       async set(rows){writes.push(Object.keys(rows));Object.assign(values,structuredClone(rows));}}},
     tabs:{async get(id){return structuredClone(tabs.get(id));},async query(){return [...tabs.values()].map(row=>structuredClone(row));},
       async create(row){const tab={...row,id:100+created++,windowId:1};tabs.set(tab.id,tab);return tab;},
       async update(id,row){updates.push({id,...row});return Object.assign(tabs.get(id),row);}},
-    windows:{async update(){}},webNavigation:{async getFrame({documentId}){return {documentId,parentFrameId:-1,documentLifecycle:'active',url:sender.url};}}};
+    windows:{async update(){},async create(options){windows.push(options);return {id:1,tabs:[await api.tabs.create({url:options.url,active:true})]};}},
+    sidePanel:{async open(options){panelOpens.push(options);}},
+    webNavigation:{async getFrame({documentId}){return documentId!==undefined&&documentId!==sender.documentId?null:
+      {documentId:sender.documentId,parentFrameId:-1,documentLifecycle:'active',url:sender.url};}}};
   const lockManager={request(name,options,fn){
     fn??=options;
     if(options?.ifAvailable&&locks.has(name))return Promise.resolve(fn(null));
@@ -43,10 +48,21 @@ function harness(){
     const queued=next.catch(()=>{});locks.set(name,queued);
     void queued.finally(()=>{if(locks.get(name)===queued)locks.delete(name);});return next;
   }};
+  contexts.push({contextType:'SIDE_PANEL',windowId:1,frameId:0,incognito:false,
+    documentId:randomBytes(16).toString('hex'),documentUrl:api.runtime.getURL('sidepanel.html')+'?hostInstanceId='+randomUUID()});
   const host=()=>createMarketHandoff({api,channel,lockManager,now:()=>time});
-  return {api,values,writes,tabs,updates,sender,lockManager,host,time:v=>time=v,now:()=>time};
+  return {api,values,writes,tabs,updates,windows,panelOpens,contexts,sender,lockManager,host,time:v=>time=v,now:()=>time};
 }
-const open=async h=>{const request=message();await h.host().handle(request,h.sender);return {request,row:h.values[MARKET_INTENTS_STORE].intents[0]};};
+// Seed historical handoff metadata to exercise resume across protocol retirement.
+function seedHistoricalApp(h){
+  const request=message(),row={intentId:request.intentId,subject:app,reviewId:randomUUID(),operationId:randomUUID(),
+    origin:channel.origin,createdAt:h.now(),expiresAt:h.now()+MARKET_INTENT_TTL,phase:'opened',tabId:99,
+    consumedAt:null,settledAt:null,closureReason:null};
+  h.values[MARKET_INTENTS_STORE]={schema:MARKET_INTENTS_STORE,intents:[row],requests:[]};
+  readMarketIntentStore(h.values[MARKET_INTENTS_STORE]);
+  h.tabs.set(row.tabId,{id:row.tabId,windowId:1,url:h.api.runtime.getURL('ui/market-install.html')+'?intent='+row.reviewId});
+  return {request,row:structuredClone(row)};
+}
 test('R5 production trust is disabled until all reviewed inputs exist; development cannot leak into it',()=>{
   const prod=resolveMarketChannel({mode:'production',source,env:{OPENDESK_MARKET_DEV_ORIGIN:'http://127.0.0.1:9999',OPENDESK_MARKET_DEV_EXTENSION_ID:'a'.repeat(32)}});
   assert.equal(prod.enabled,false);assert.equal(prod.origin,null);assert.equal(prod.extensionId,null);
@@ -72,17 +88,25 @@ test('R5 finite messages reject code, URLs, approval flags, protocol drift and u
 });
 test('R5 validates browser sender, live top document and exact port before any handoff mutation',async()=>{
   const h=harness();await validateMarketSender(h.api,h.sender,channel);
-  for(const documentId of ['0'.repeat(16)+'1'.repeat(16),'a'.repeat(16)+'0'.repeat(16)])
-    await validateMarketSender(h.api,{...h.sender,documentId},channel);
+  const originalDocumentId=h.sender.documentId;
+  for(const documentId of ['0'.repeat(16)+'1'.repeat(16),'a'.repeat(16)+'0'.repeat(16)]){
+    h.sender.documentId=documentId;await validateMarketSender(h.api,h.sender,channel);
+  }
+  h.sender.documentId=originalDocumentId;
   for(const bad of [{...h.sender,origin:'https://untrusted.invalid'},{...h.sender,url:'http://127.0.0.1:43133/'},
     {...h.sender,frameId:1},{...h.sender,documentId:undefined},{...h.sender,documentId:randomUUID()},
     {...h.sender,documentId:'0'.repeat(32)},{...h.sender,documentId:'Z'.repeat(32)},
     {...h.sender,documentId:'a'.repeat(31)},{...h.sender,documentId:'a'.repeat(33)},
+    {...h.sender,documentId:randomBytes(16).toString('hex')},
+    {...h.sender,tab:{...h.sender.tab,windowId:2}},
     {...h.sender,documentLifecycle:'prerender'},
     {...h.sender,id:'a'.repeat(32)},{...h.sender,tab:{id:1,incognito:true}}])
     await assert.rejects(h.host().handle(message(),bad));
   const getFrame=h.api.webNavigation.getFrame;
   h.api.webNavigation.getFrame=async()=>({...h.sender,documentId:randomBytes(16).toString('hex'),parentFrameId:-1});
+  await assert.rejects(h.host().handle(message(),h.sender),{code:'E_DOCUMENT'});
+  h.api.webNavigation.getFrame=async query=>query.frameId===0?
+    {...h.sender,documentId:randomBytes(16).toString('hex'),parentFrameId:-1}:getFrame(query);
   await assert.rejects(h.host().handle(message(),h.sender),{code:'E_DOCUMENT'});
   h.api.webNavigation.getFrame=getFrame;
   h.tabs.get(1).pendingUrl='https://untrusted.invalid/';
@@ -91,18 +115,40 @@ test('R5 validates browser sender, live top document and exact port before any h
   await assert.rejects(h.host().handle(message(),h.sender),{code:'E_DOCUMENT'});
   assert.deepEqual(h.writes,[]);
 });
-test('R5 probe exposes no installed information; same intent resumes exact review after worker replacement',async()=>{
+test('R5 app OPEN resumes the same real Side Panel review without popup or approval',async()=>{
+  for(const historical of [false,true]){
+    const h=harness(),request=historical?seedHistoricalApp(h).request:message();
+    assert.equal((await h.host().handle(request,h.sender)).status,'REVIEW_OPENED');
+    const row=structuredClone(h.values[MARKET_INTENTS_STORE].intents[0]);
+    assert.deepEqual(row.panelTarget,{tabId:1,windowId:1,documentId:h.sender.documentId,owner:null});
+    const resumed=await h.host().handle(request,h.sender);
+    assert.equal(resumed.status,'REVIEW_OPENED');assert.equal(resumed.intentId,row.intentId);
+    assert.equal(h.values[MARKET_INTENTS_STORE].intents[0].operationId,row.operationId);
+    assert.equal(h.values[MARKET_INTENTS_STORE].intents[0].reviewId,row.reviewId);
+    assert.deepEqual(h.panelOpens,[{windowId:1},{windowId:1}]);
+    h.contexts[0].contextType='TAB';
+    assert.equal((await h.host().handle(request,h.sender)).status,'REVIEW_PENDING');
+    h.api.sidePanel.open=async()=>{throw Error('component user activation unavailable');};
+    assert.equal((await h.host().handle(request,h.sender)).status,'PANEL_REQUIRED');
+    assert.equal(h.values[MARKET_INTENTS_STORE].intents.length,1);
+    assert.equal(h.values[MARKET_INTENTS_STORE].intents[0].operationId,row.operationId);
+    assert.deepEqual(h.windows,[]);
+    assert.deepEqual(h.updates,[]);assert.equal(h.tabs.size,historical?2:1);assert.equal(row.consumedAt,null);
+    assert.equal(h.values[SIDEBAR_TOOL_STORE],undefined);assert.equal(h.values[MARKET_OPERATIONS_STORE],undefined);
+  }
+});
+test('R5 probe exposes no installed information; collection intent resumes exact review after worker replacement',async()=>{
   const h=harness(),host=h.host();h.values[SIDEBAR_TOOL_STORE]=[{id:'private-not-for-website'}];
   assert.deepEqual(await host.handle(probe,h.sender),{ok:true,protocol,status:'CONNECTED'});
-  const request=message();const result=await host.handle(request,h.sender);
+  const request=message(collection);const result=await host.handle(request,h.sender);
   assert.deepEqual(result,{ok:true,protocol,status:'REVIEW_OPENED',intentId:request.intentId});
   const row=structuredClone(h.values[MARKET_INTENTS_STORE].intents[0]);
   await h.host().handle(request,h.sender);
   assert.equal(h.tabs.size,2);assert.equal(h.values[MARKET_INTENTS_STORE].intents[0].reviewId,row.reviewId);
   assert.equal(h.values[MARKET_INTENTS_STORE].intents[0].operationId,row.operationId);
   assert(!h.updates.some(update=>Object.hasOwn(update,'url')),'resuming a tab must never replace its candidate URL');
-  await assert.rejects(host.handle({...request,subject:{...app,version:'1.0.0'}},h.sender),{code:'E_INTENT_CONFLICT'});
-  await host.handle(message({kind:'app',marketId:'opendesk/time-review',version:'1.3.0'}),h.sender);
+  await assert.rejects(host.handle({...request,subject:{...collection,revision:3}},h.sender),{code:'E_INTENT_CONFLICT'});
+  await host.handle(message({...collection,revision:1}),h.sender);
   assert.equal(h.tabs.size,3);assert.equal(h.tabs.get(row.tabId).url,h.api.runtime.getURL('ui/marketplace.html')+'?intent='+row.reviewId);
   assert(h.writes.every(keys=>keys.length===1&&keys[0]===MARKET_INTENTS_STORE));
 });
@@ -116,7 +162,7 @@ test('R5 prepared/opened persistence and committed-tab acknowledgement faults re
       if(!fired&&((point==='prepare-after'&&count===1)||(point==='opened-after'&&count===2))){fired=true;throw Error('component acknowledgement lost');}
     };
     h.api.tabs.create=async row=>{const tab=await create(row);if(!fired&&point==='create-after'){fired=true;throw Error('component create acknowledgement lost');}return tab;};
-    const request=message();await assert.rejects(h.host().handle(request,h.sender),{code:'E_HANDOFF_UNKNOWN'});
+    const request=message(collection);await assert.rejects(h.host().handle(request,h.sender),{code:'E_HANDOFF_UNKNOWN'});
     const previous=h.values[MARKET_INTENTS_STORE]?.intents[0];
     await h.host().handle(request,h.sender);
     assert.equal(h.tabs.size,2,point);assert.equal(h.values[MARKET_INTENTS_STORE].intents.length,1);
@@ -134,14 +180,14 @@ test('R5 queue, global/origin rate and capacity are bounded across tabs and work
   await assert.rejects(h.host().handle(probe,h.sender),{code:'E_RATE_LIMIT'});
   const g=harness();g.values[MARKET_INTENTS_STORE]={schema:MARKET_INTENTS_STORE,intents:[],requests:Array.from({length:120},(_,i)=>({origin:'https://origin'+i+'.invalid',at:g.now()}))};
   await assert.rejects(g.host().handle(probe,g.sender),{code:'E_RATE_LIMIT'});
-  const c=harness();const {row}=await open(c);
+  const c=harness();const {row}=seedHistoricalApp(c);
   c.values[MARKET_INTENTS_STORE].intents=Array.from({length:64},()=>({...row,intentId:randomUUID(),reviewId:randomUUID(),operationId:randomUUID()}));
-  await assert.rejects(c.host().handle(message(),c.sender),{code:'E_INTENT_CAPACITY'});
-  const n=harness();for(let i=0;i<6;i++)await n.host().handle(message(),n.sender);
-  await assert.rejects(n.host().handle(message(),n.sender),{code:'E_RATE_LIMIT'});
+  await assert.rejects(c.host().handle(message(collection),c.sender),{code:'E_INTENT_CAPACITY'});
+  const n=harness();for(let i=0;i<6;i++)await n.host().handle(message({...collection,revision:i+1}),n.sender);
+  await assert.rejects(n.host().handle(message({...collection,revision:7}),n.sender),{code:'E_RATE_LIMIT'});
 });
 test('R5 expiry protects only the original unresolved operation/batch, without deleting installer journals',async()=>{
-  const h=harness(),{row}=await open(h);h.time(h.now()+MARKET_INTENT_TTL+1);
+  const h=harness(),{row}=seedHistoricalApp(h);h.time(h.now()+MARKET_INTENT_TTL+1);
   await assert.rejects(loadReviewIntent(h.api,row.reviewId,h.now()),{code:'E_INTENT_EXPIRED'});
   h.values[MARKET_OPERATIONS_STORE]={[row.operationId]:{state:'outcome-unknown'}};
   assert.equal((await loadReviewIntent(h.api,row.reviewId,h.now())).recoveryOnly,true);
@@ -155,7 +201,8 @@ test('R5 expiry protects only the original unresolved operation/batch, without d
 });
 test('R5 consumed handoff cannot replay when terminal installer or batch history is gone',async()=>{
   for(const subject of [app,{kind:'collection',collectionId:'reading-kit',revision:2}]){
-    const h=harness(),request=message(subject);await h.host().handle(request,h.sender);
+    const h=harness(),request=subject.kind==='app'?seedHistoricalApp(h).request:message(subject);
+    if(subject.kind==='collection')await h.host().handle(request,h.sender);
     const row=h.values[MARKET_INTENTS_STORE].intents[0];
     const claim=()=>consumeReviewIntent({api:h.api,lockManager:h.lockManager,reviewId:row.reviewId,operationId:row.operationId,subject,now:h.now()});
     await claim();delete h.values[MARKET_OPERATIONS_STORE];delete h.values[MARKET_BATCH_STORE];
@@ -166,11 +213,11 @@ test('R5 consumed handoff cannot replay when terminal installer or batch history
   }
 });
 test('R5 shared consumption and external requests do not overwrite each other; expired approval is refused',async()=>{
-  const h=harness(),{request,row}=await open(h);
-  await Promise.all([h.host().handle(request,h.sender),consumeReviewIntent({api:h.api,lockManager:h.lockManager,
+  const h=harness(),{request,row}=seedHistoricalApp(h);
+  await Promise.all([h.host().handle({...request,action:'GET_INSTALL_STATUS'},h.sender),consumeReviewIntent({api:h.api,lockManager:h.lockManager,
     reviewId:row.reviewId,operationId:row.operationId,subject:app,now:h.now()})]);
   assert.equal(h.values[MARKET_INTENTS_STORE].intents[0].consumedAt,h.now());
-  const x=harness(),opened=await open(x);x.time(x.now()+MARKET_INTENT_TTL);
+  const x=harness(),opened=seedHistoricalApp(x);x.time(x.now()+MARKET_INTENT_TTL);
   await assert.rejects(consumeReviewIntent({api:x.api,lockManager:x.lockManager,reviewId:opened.row.reviewId,
     operationId:opened.row.operationId,subject:app,now:x.now()}),{code:'E_INTENT_EXPIRED'});
   assert.throws(()=>readMarketIntentStore({...h.values[MARKET_INTENTS_STORE],grants:['all']}),{code:'E_INTENT_STORAGE'});
@@ -191,44 +238,57 @@ test('R5 existing installer checks baseline and hash before consuming a handoff;
 });
 test('R5 consumed-without-journal survives TTL, and explicit locked recovery ends only the handoff',async()=>{
   for(const subject of [app,{kind:'collection',collectionId:'reading-kit',revision:2}]){
-    const h=harness();await h.host().handle(message(subject),h.sender);const row=h.values[MARKET_INTENTS_STORE].intents[0];
+    const h=harness();
+    if(subject.kind==='app')seedHistoricalApp(h);else await h.host().handle(message(subject),h.sender);
+    const row=h.values[MARKET_INTENTS_STORE].intents[0];
     const opts={api:h.api,lockManager:h.lockManager,reviewId:row.reviewId,operationId:row.operationId,subject};
     await consumeReviewIntent({...opts,now:h.now()});h.time(h.now()+MARKET_INTENT_TTL+1);
     await h.host().handle(probe,h.sender);
     assert.equal((await loadReviewIntent(h.api,row.reviewId,h.now())).recoveryOnly,true);
-    await assert.rejects(h.host().handle(message(subject),h.sender),{code:'E_REVIEW_PENDING'});
+    const resumed=await h.host().handle(message(subject),h.sender);
+    assert.equal(resumed.intentId,row.intentId);assert.equal(h.values[MARKET_INTENTS_STORE].intents[0].operationId,row.operationId);
     await assert.rejects(closeUnjournaledReview(opts),{code:'E_REVIEW_REQUIRED'});
     const closed=await closeUnjournaledReview({...opts,approved:true});
     assert.equal(closed.outcome,'UNKNOWN_WITHOUT_JOURNAL');assert.deepEqual(closed.observed,[]);
     assert.equal(closed.handoff.consumedAt,row.createdAt);assert.equal(closed.handoff.closureReason,'unknown-without-journal');
     assert.equal(h.values[SIDEBAR_TOOL_STORE],undefined);assert.equal(h.values[MARKET_OPERATIONS_STORE],undefined);assert.equal(h.values[MARKET_BATCH_STORE],undefined);
+    await h.host().handle(probe,h.sender);
+    assert.equal(h.values[MARKET_INTENTS_STORE].intents.length,subject.kind==='app'?1:0,
+      'submitted app remains read-only recoverable; closed collection retains its original cleanup semantics');
+    if(subject.kind==='app'){
+      assert.equal((await loadReviewIntent(h.api,row.reviewId,h.now())).recoveryOnly,true);
+      await assert.rejects(consumeReviewIntent({...opts,now:row.createdAt}),{code:'E_INTENT_CONSUMED'});
+    }
     await h.host().handle(message(subject),h.sender);
-    assert.equal(h.values[MARKET_INTENTS_STORE].intents.length,1,'expired closed handoff can be cleaned; new approval has a new identity');
-    assert.notEqual(h.values[MARKET_INTENTS_STORE].intents[0].operationId,row.operationId);
+    assert.equal(h.values[MARKET_INTENTS_STORE].intents.length,subject.kind==='app'?2:1,'new review has a new identity after explicit closure');
+    assert.notEqual(h.values[MARKET_INTENTS_STORE].intents.at(-1).operationId,row.operationId);
   }
 });
 test('R5 a lost consumption acknowledgement stops before installer writes, and two consumers never both succeed',async()=>{
   const fixtures=await officialFixtures(),release=fixtures.catalog.apps.find(row=>row.toolId==='markdown-workbench'),candidate=JSON.parse(fixtures.resources.get(release.packagePath));
-  const h=harness(),{row}=await open(h),opts={api:h.api,lockManager:h.lockManager,reviewId:row.reviewId,operationId:row.operationId,subject:app,now:h.now()};
+  const h=harness(),{row}=seedHistoricalApp(h),opts={api:h.api,lockManager:h.lockManager,reviewId:row.reviewId,operationId:row.operationId,subject:app,now:h.now()};
   const set=h.api.storage.local.set;let faulted=false;
   h.api.storage.local.set=async value=>{await set(value);if(!faulted&&value[MARKET_INTENTS_STORE]?.intents[0]?.consumedAt!==null){faulted=true;throw Error('component consumption acknowledgement lost');}};
   await assert.rejects(installReviewedSidebarTool({api:h.api,lockManager:h.lockManager,candidate,reviewApproved:true,
     market:{marketId:release.id,sha256:release.sha256,operationId:row.operationId},commitIntent:()=>consumeReviewIntent(opts)}),{code:'E_HANDOFF_UNKNOWN'});
   assert.equal(h.values[SIDEBAR_TOOL_STORE],undefined);assert.equal(h.values[MARKET_OPERATIONS_STORE],undefined);
   await assert.rejects(consumeReviewIntent(opts),{code:'E_INTENT_CONSUMED'});
-  const k=harness(),opened=await open(k),claim=()=>consumeReviewIntent({api:k.api,lockManager:k.lockManager,reviewId:opened.row.reviewId,operationId:opened.row.operationId,subject:app,now:k.now()});
+  const k=harness(),opened=seedHistoricalApp(k),claim=()=>consumeReviewIntent({api:k.api,lockManager:k.lockManager,reviewId:opened.row.reviewId,operationId:opened.row.operationId,subject:app,now:k.now()});
   const pair=await Promise.allSettled([claim(),claim()]);assert.equal(pair.filter(row=>row.status==='fulfilled').length,1);
   assert.equal(pair.find(row=>row.status==='rejected').reason.code,'E_INTENT_CONSUMED');
 });
 test('R5 terminal settlement survives journal trimming and missing recovery respects existing locks',async()=>{
-  const h=harness(),{row}=await open(h),opts={api:h.api,lockManager:h.lockManager,reviewId:row.reviewId,operationId:row.operationId,subject:app};
+  const h=harness(),{row}=seedHistoricalApp(h),opts={api:h.api,lockManager:h.lockManager,reviewId:row.reviewId,operationId:row.operationId,subject:app};
   await consumeReviewIntent({...opts,now:h.now()});h.values[MARKET_OPERATIONS_STORE]={[row.operationId]:{marketId:app.marketId,version:app.version,state:'succeeded'}};
   await assert.rejects(closeUnjournaledReview({...opts,approved:true}),{code:'E_INTENT_HAS_JOURNAL'});
   await settleReviewIntent(opts);delete h.values[MARKET_OPERATIONS_STORE];
   await assert.rejects(consumeReviewIntent({...opts,now:h.now()}),{code:'E_INTENT_CONSUMED'});
   assert.equal(h.values[MARKET_INTENTS_STORE].intents[0].closureReason,'journal-terminal');
-  h.time(h.now()+MARKET_INTENT_TTL+1);await h.host().handle(probe,h.sender);assert.equal(h.values[MARKET_INTENTS_STORE].intents.length,0);
-  const k=harness(),other=await open(k),candidate={api:k.api,lockManager:k.lockManager,reviewId:other.row.reviewId,operationId:other.row.operationId,subject:app};
+  h.time(h.now()+MARKET_INTENT_TTL+1);await h.host().handle(probe,h.sender);
+  assert.equal(h.values[MARKET_INTENTS_STORE].intents.length,1);
+  assert.equal((await loadReviewIntent(h.api,row.reviewId,h.now())).recoveryOnly,true);
+  await assert.rejects(consumeReviewIntent({...opts,now:row.createdAt}),{code:'E_INTENT_CONSUMED'});
+  const k=harness(),other=seedHistoricalApp(k),candidate={api:k.api,lockManager:k.lockManager,reviewId:other.row.reviewId,operationId:other.row.operationId,subject:app};
   await consumeReviewIntent({...candidate,now:k.now()});let release,finished=false;
   const holding=k.lockManager.request('opendesk.sidebar-tools:tool:markdown-workbench',()=>new Promise(resolve=>{release=resolve;}));
   await new Promise(resolve=>setImmediate(resolve));
@@ -315,6 +375,9 @@ test('R5 independent website build is reproducible, self-contained and replaces 
   try{
     const env={OPENDESK_MARKET_SITE_OUTPUT:dest,OPENDESK_MARKET_BUILD_MODE:'development'};
     const first=await buildMarketSite({env});await writeFile(join(dest,'stale-file.txt'),'old');
+    await assert.rejects(buildMarketSite({env}),/Untracked previous market output/);
+    assert.equal(await readFile(join(dest,'stale-file.txt'),'utf8'),'old','unknown output is retained for its owner');
+    await rm(join(dest,'stale-file.txt'));
     const second=await buildMarketSite({env});assert.equal(first.buildId,second.buildId);
     await assert.rejects(access(join(dest,'stale-file.txt')));
     for(const route of ['index.html','apps/opendesk/markdown-workbench/versions/1.0.1/index.html','collections/reading-kit/revisions/1/index.html','how-to-install/index.html','404.html'])
@@ -322,7 +385,14 @@ test('R5 independent website build is reproducible, self-contained and replaces 
     const fixed=await readFile(join(dest,'apps/opendesk/quick-notes/versions/1.1.1/index.html'),'utf8');
     assert.match(fixed,/canonical/);assert.match(fixed,/1\.1\.1/);
     const manifest=JSON.parse(await readFile(join(dest,'site-build.json'),'utf8'));
-    assert(!manifest.files.some(row=>row.path.endsWith('.opendesk-tool.json')));
+    const catalog=JSON.parse(await readFile(join(dest,'catalog.json'),'utf8'));
+    assert(catalog.downloads.length>0,'the market distributes fixed packages independently of the host build');
+    for(const release of catalog.downloads){
+      const path=release.packagePath.slice(1),bytes=await readFile(join(dest,path));
+      assert.equal(bytes.length,release.bytes);
+      assert.equal(createHash('sha256').update(bytes).digest('hex'),release.sha256);
+      assert(manifest.files.some(row=>row.path===path&&row.sha256===release.sha256));
+    }
     await assert.rejects(buildMarketSite({env:{...env,OPENDESK_MARKET_SITE_OUTPUT:'src'}}),/may not replace/);
   }finally{await rm(tmp,{recursive:true,force:true});}
 });

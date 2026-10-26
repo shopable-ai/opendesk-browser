@@ -893,11 +893,12 @@ test('catalogs without preparation metadata only read selected authorized source
   assert.match(f.find('local-project-diagnostics').textContent,/源码 SHA-256/);
   assert.equal((await f.view.resolve(f.view.capture())).sourceHash,sourceHash);
 });
-for(const runtimeKind of ['controller','page-userscript']){
-test(`catalog runtime omission uses verified source for parameter visibility: ${runtimeKind}`,async t=>{
-  const f=fixture(t,{connected:true});
-  f.setProjects([{...project,runtimeKind:undefined,preparation:undefined}]);
+for(const runtimeKind of ['controller','page-userscript'])for(const preparationState of [undefined,'ready']){
+test(`catalog runtime omission uses verified source for parameter visibility: ${runtimeKind}, preparation=${preparationState}`,async t=>{
   const sourceUtf8='async function main() { return 1; }',sourceHash=await sha256Utf8(sourceUtf8);
+  const f=fixture(t,{connected:true});
+  f.setProjects([{...project,runtimeKind:undefined,preparation:preparationState?
+    {state:preparationState,sourceHash,sourceRevision:'a'.repeat(64)}:undefined}]);
   const prior=f.client.requestLocalProject;
   f.client.requestLocalProject=async(method,params)=>method==='project.resolve'?
     {bindingId:params.bindingId,providerEpoch:'epoch-a',runtimeKind,sourceUtf8,
@@ -912,6 +913,41 @@ test(`catalog runtime omission uses verified source for parameter visibility: ${
   assert.equal(f.find('local-project-params-tools').hidden,true);
   assert.equal(f.find('local-project-params').value,'{"query":"OpenDesk Browser","limit":3}');
   assert.ok(!f.calls.includes('run.start'),'preparing parameters must not execute');
+});
+}
+for(const mismatch of ['sourceHash','sourceRevision']){
+test(`catalog runtime omission rejects ready summary mismatch: ${mismatch}`,async t=>{
+  const sourceUtf8='async function main() { return 1; }',sourceHash=await sha256Utf8(sourceUtf8);
+  const sourceRevision='a'.repeat(64),entered=deferred(),reply=deferred();
+  const f=fixture(t,{connected:true});
+  f.setProjects([{...project,runtimeKind:undefined,preparation:{state:'ready',sourceHash,sourceRevision}}]);
+  const prior=f.client.requestLocalProject,reads=[],effects=[];
+  f.client.requestLocalProject=async(method,params)=>{
+    if(method!=='project.resolve')return prior(method,params);
+    reads.push(params.bindingId);entered.resolve();return reply.promise;
+  };
+  f.client.request=async method=>{effects.push(method);throw Error('preparing source must not dispatch');};
+  t.after(()=>reply.resolve());
+  await entered.promise;
+  const captured=f.view.capture();
+  assert.equal(f.view.readyForRun(),false,'a ready summary without a verified runtime is not runnable');
+  assert.equal(f.find('local-project-params-tools').hidden,true);
+  const returnedSource=mismatch==='sourceHash'?sourceUtf8+' // changed':sourceUtf8;
+  reply.resolve({bindingId:project.bindingId,providerEpoch:'epoch-a',runtimeKind:'controller',
+    sourceUtf8:returnedSource,sourceBytes:Buffer.byteLength(returnedSource),
+    sourceHash:await sha256Utf8(returnedSource),inputHash:sourceRevision,
+    sourceRevision:mismatch==='sourceRevision'?'b'.repeat(64):sourceRevision});
+  for(let n=0;n<20&&f.find('local-project-status').dataset.state!=='source-error';n++)
+    await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.find('local-project-status').dataset.state,'source-error');
+  assert.match(f.find('local-project-diagnostics').textContent,/E_DEV_HASH/);
+  assert.equal(f.find('local-project-params-tools').hidden,true,'rejected bytes cannot reveal Controller parameters');
+  assert.equal(f.view.readyForRun(),false);
+  assert.equal(f.view.canAttemptRun(),false);
+  assert.throws(()=>f.view.capture(),{code:'E_DEV_SOURCE'});
+  await assert.rejects(f.view.resolve(captured),{code:'E_DEV_CONFLICT'});
+  assert.deepEqual(reads,[project.bindingId],'only the selected source is read; rejected source cannot be resolved again');
+  assert.deepEqual(effects,[],'source preparation must never dispatch Page execution');
 });
 }
 test('bad background SHA is non-executable and prior project stays visible offline',async t=>{

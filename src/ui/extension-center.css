@@ -157,6 +157,21 @@
 .od-import-sheet-footer{flex:none;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
   border-top:1px solid var(--od-line);background:var(--od-paper)}
 .od-import-sheet-footer #sidebar-tool-install{width:100%;min-height:40px}
+.od-market-review{display:flex;flex-direction:column;gap:var(--space-3);font-size:var(--od-body-size);line-height:1.6}
+.od-market-review p,.od-market-facts,.od-market-permissions ul{margin:0}
+.od-market-facts{display:grid;gap:var(--space-2)}
+.od-market-facts>div{display:grid;grid-template-columns:5em minmax(0,1fr);gap:var(--space-2)}
+.od-market-facts dt{color:var(--od-sub)}
+.od-market-facts dd{margin:0;overflow-wrap:anywhere}
+.od-market-permissions{display:flex;flex-direction:column;gap:var(--space-1)}
+.od-market-permissions ul{padding-inline-start:1.5em}
+.od-market-note{color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
+.od-market-footer{display:flex;flex-direction:column;gap:var(--space-2)}
+.od-market-footer>p{margin:0}
+.od-market-footer .od-toolbar{gap:var(--space-2)}
+.od-market-footer .od-toolbar>button{flex:1;min-height:40px}
+[data-phase="installed"] .od-market-status{color:var(--od-positive);font-weight:600}
+[data-phase="error"] .od-market-status{color:var(--od-negative)}
 .od-import-overlay #sidebar-tool-import:focus-visible,
 .od-import-overlay button:focus-visible,.od-import-overlay input:focus-visible,
 .od-import-overlay summary:focus-visible{

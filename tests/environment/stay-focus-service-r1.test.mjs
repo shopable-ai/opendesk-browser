@@ -527,8 +527,8 @@ test('R3.2 worker probe checks live sender and runtime without installing or gra
   await assert.rejects(f.focus.probe(message,f.sender),{code:'E_FOCUS_RUNTIME_UNAVAILABLE'});
 });
 
-test('R3.2 Marketplace has read-only live worker admission, never Focus mutation authority',async()=>{
-  const f=fixture(),market=f.api.runtime.getURL('ui/marketplace.html')+
+for(const reviewPath of ['ui/marketplace.html','ui/market-install.html'])test('R3.2 Marketplace has read-only live worker admission, never Focus mutation authority: '+reviewPath,async()=>{
+  const f=fixture(),market=f.api.runtime.getURL(reviewPath)+
     '?intent=123e4567-e89b-42d3-a456-426614174000#/apps/opendesk/stay-focus';
   const sender={id:f.sender.id,url:market,frameId:0,documentId:'market-document-1',
     documentLifecycle:'active',tab:{id:91,incognito:false}};
@@ -560,7 +560,7 @@ test('R3.2 Marketplace has read-only live worker admission, never Focus mutation
     {...sender,tab:{id:91,incognito:true}}
   ])await assert.rejects(f.focus.probe(message,bad),{code:'E_FOCUS_SENDER'});
   for(const change of [
-    {documentUrl:live.documentUrl.replace('ui/marketplace.html','ui/other.html')},
+    {documentUrl:live.documentUrl.replace(reviewPath,'ui/other.html')},
     {documentUrl:live.documentUrl.replace(f.sender.id,'another-extension')},
     {documentUrl:live.documentUrl.replace('?intent=','?other=')},
     {documentId:'retired-document'},{tabId:92},{frameId:1},{incognito:true},

@@ -1,6 +1,67 @@
-# AI 双对话计算接力 R1.1 · 最小真实闭环
+# ChatGPT 双对话计算接力 · 固定安装 Task 0.2.0
 
-## 2026-10-26 当前结果：核心闭环完成
+## 2026-10-27 本轮可观察测试：草稿例外已批准，等待原生 UI
+
+本轮计划从「我的」运行新的 23、7、4 和 31、9、2，两组均 **NOT_STARTED**；30→120、40→80 只是待核验预期，不是新实测结果。没有发送本轮计算消息，没有编辑或发送受保护草稿，也没有修改业务源码或冻结发行包。
+
+已重新通过 Chrome 原生详情核对实际启用 ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 与加载路径 `dist/development`；调试页显示开发服务已连接，指纹 `a1c7b3faca4a3cd050eb84aa34221da1f7258549858c13dbd5c5b6f7925d830d`。原 watcher PID 21230/21250 保留。真实「我的」中已选到同一安装任务；公开 Native 固定身份 status Run `8877a469-08c5-4b74-83aa-975b6f43963e` / Result `831216cf-d9ae-4ef5-8d0b-6802fb11a641` 为 completed/released、workerRetired:true、slotAvailable:true，读回历史业务 relay-isolated-019 completed，无待对账阻塞。此为本轮新查询，所读计算仍属历史数据。
+
+新建专用 ChatGPT 标签自动继承受保护的 175 字符草稿，官网「新聊天」也保留它。用户随后明确批准「允许仅清空专用副本，完成后恢复」；此授权只覆盖本轮专用副本，原有两个受保护标签不编辑、不发送，不再次询问同一例外。恢复操作前须重新核对全文与 SHA。当前原生 UI 锁由另一活动聊天持有，等待其释放，不强抢。原生界面曾出现旧索引失效、Side Panel 关闭以及前台切回其他市场测试窗口；停止输入，不将所有变化都归因于 watcher。未关闭他人窗口或停止共享服务。本轮新建专用标签保留待续测。
+
+现场索引见 EVIDENCE.json 的 observableTestSession，以及 `artifacts/chatgpt-task-0.2.0-20261027/observable/`。下一操作：原生 UI 可用后重新核对准确窗口/Host，完成两组真实「我的」运行、各自独立 Native status 与同 runId 去重核对，最后恢复专用草稿副本。本轮未进入 production、完整矩阵、评分或 task.list 修复。
+
+## 2026-10-27 当前结果：安装版核心闭环完成
+
+当前阶段为 `INSTALLED_CORE_CHROME_PASS_DEVELOPMENT`。实际安装身份 `opendesk.chatgpt-calculation-relay@0.2.0`；sourceHash `94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f`，manifestHash `7ff1c135adb86acfec36676be2eba4e30e56cf7673358a422a42c19fe78fba91`。通过「我的 → 添加任务 → 导入」进入原目录，Verify→Available→Installed 后执行；不是旧 R1.1 草稿或另一个 local-* 身份。
+
+| 从「我的」普通运行 | 结果 | GUI 宿主 Run / Result | Native 独立 status Run / Result |
+| --- | --- | --- | --- |
+| relay-isolated-017：17、25、3 | A=42，B=126，completed | f0f5c225-75f2-4172-951e-7c82aa8518a0 / 12a03c4a-163e-4e0a-b24f-19a0d6fdabdd | 172464d6-165c-4fd1-92c6-b4133831aa76 / b91f7472-4a15-448d-8472-24fef13d56fd |
+| relay-isolated-019：19、25、3 | A=44，B=132，completed | 2cb2f64e-5b52-4f48-9142-552ac9e7d470 / 021c9f1e-869f-4f8f-ab53-f8cfb39fe6f2 | 6ab91e6e-3408-4381-96a6-0ca51284fc7b / 932ac97a-a71d-4f00-83fb-e04d0682e28d |
+
+两次 Native 回执均为 `completed/released`、`workerRetired:true`、`slotAvailable:true`，精确 pin 同一 taskId/version/sourceHash；解码原文、算术、A/B 不同对话与 documentId、双方消息 ID、完成信号及 handoff 均核对。它们是另一消费者对已安装版本的只读调用，未从 Native 再发送第三组计算。
+
+两组普通运行和独立读回期间，整个业务源码目录临时移至忽略证据目录，原路径不存在；本项目开发 MCP 已退出，没有使用源码 Provider。仅证明本项目独立执行，不声称停掉了其他项目 Provider。20 个文件按原 SHA 全部恢复后才更新本文；冻结 release 原字节保持不变。
+
+实际对话：17组 [A](https://chatgpt.com/c/6adf83df-df98-83ec-aa0c-2b4964faa4a0) → [B](https://chatgpt.com/c/6adf83fb-7ac0-83ee-a0a2-9b4ac02f1451)；19组 [A](https://chatgpt.com/c/6adf8c92-6324-83ec-b6cc-cb247d4e810b) → [B](https://chatgpt.com/c/6adf8ca7-4e68-83ee-9004-574362e14646)。完整结构化数据及原始 Native 回执索引见 [EVIDENCE.json](EVIDENCE.json)。GUI 身份是原生 UI 观察记录，单独标注，未冒称原始 Host JSON。
+
+此前 `relay-installed-001` 在 A 点击后未能于有界等待内确认，正确留下 unknown。原同文档 inspect 找到唯一完成的 A=42；显式同 runId、原参数 reconcile 未重发 A，完成 B=126。GUI Run `136cec91-5f61-4bad-bc7c-4b493b398cc0` / Result `9975d69c-b521-4728-bed0-fc9a3588b02b`，随后 Native 独立读回。没有为了消除这次 unknown 放宽确认、改期限或修改业务代码。
+
+草稿恢复：专用首页恢复原备份全文，175 个 Unicode 字符、178 个 JS code units，原生 AX 逐字核对，未发送。窗口焦点干扰曾令原受保护窗口草稿短暂变为 `19`，已立即恢复相同备份且未发送；不将本轮表述为“从未触碰”。附加 Native inspect 因多个 Host 注册而在入场前被辅助脚本拒绝，没有盲选 Host 或再次发送。草稿证据等级为原生 AX 全文核对。
+
+环境为现有持续开发 Chrome，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载 `dist/development`，原 watcher 保留。共享源码更新曾多次触发安全重载，完成后已通知协作 owner 释放前台；未替换扩展、修改 Native 配对、创建新分支/worktree/PR 或提交推送。原暂停目标未更新。production 扩展、同候选真实 Stop/撤权专项、完整矩阵及评分仍 `NOT_TESTED`。Go `task.list` 连接关闭仍是独立发现缺口；已核实身份的 installed-task `run.start/run.get` 实测可用，不为此改装 Go。
+
+以下保留旧观察；出现“当前”仅代表该条记录当时状态，不覆盖上节。
+
+## 2026-10-26 正式 Task 推进 · 安装前历史
+
+当前是 `FIXED_CANDIDATE_NOT_INSTALLED`，覆盖下列旧记录的“当前”阶段说明。Controller Task 归「我的」；官网适配、通用对话模块、业务协议及零参数入口均留独立项目。旧 R1.1 两轮真实 Chrome 证据保留，不将其 sourceHash 或运行身份改写为本候选身份。
+
+已完成核心源码：参数化 addend/secondAddend/multiplier；官网对话模块与计算协议分开；日志/状态/返回校验；保留写前意图、唯一点击、真实发送确认、读回、导航重绑及 unknown 围栏。AppStorage 通过显式 storage.persistent 安装授权，按 namespace+稳定 taskId 隔离并跨版本保留，不迁移草稿旧日志。120000ms 进入 manifestHash 和安装审阅；共享 Authority 强制上限，现有手动/Native/计划/Cloud 入口遵守同一合同。
+
+### 已证实通用缺口与最小修复
+
+- 公开 Controller 已提供 AppStorage，但原 Task manifest 只允许 page.automation，安装 Task 的 service 操作被 assertTaskCapability 拒绝；不能在业务目录合法赋予权限。最小组件复现及拒绝/允许/撤权验证在 task-storage-project、k3-controller-authority 和 Task 包测试。跨工具价值是需要恢复日志的任何安装 Controller；最小修复沿既有 Task 合同、Authority、repository，未开放 CHROME_LOCAL/网络/Cookie/Native，未新增存储系统。
+- 公开 Controller deadline 为1000–120000，原本地Run/我的固定30000，低于历史实测36–51秒。新增可选 manifest/project deadlineMs，默认保持30000，上限120000，权限/期限变化使源合同失效并要求重新审阅；不无限延长，不绕过停止/退役。
+- 原 Native run.start 只有 draft/saved，无法提供安装 Task 必要的安装代次；工作流只有页面动作，SDK没有 tasks.run。新增真实 installed-task source 和只读 task.list，复用原认证、RunHost、Authority、ledger、单槽与持久结果；没有另造执行器或嵌套队列。当前已安装 Go 的 task.list 实际连接关闭，Go/连接层具体原因未定位；不能把Node源码支持当作已部署可用。
+
+### 固定候选
+
+`release/0.2.0/program.opendesk-task.json` 使用原打包管线与格式，包ID `opendesk.chatgpt-calculation-relay`，version `0.2.0`，sourceHash `94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f`，manifestHash `7ff1c135adb86acfec36676be2eba4e30e56cf7673358a422a42c19fe78fba91`。两次编译字节一致；无本机绝对路径或临时目标/Host身份。构建仍为 BUILT_UNVERIFIED。
+
+本地「保存为任务」沿原绑定生成local-*身份、默认安装版本1.0.0；它与可移植包是明确不同的发行身份，未静默替换旧示例。当前尚无真实 installedTaskId/installedVersion/runId/resultId，不能从包名推测。完整当前哈希及验证边界见 EVIDENCE.json。
+
+### 当前用户操作与阻塞
+
+下一操作仍是：当前同源源码Run的真实证明 →「保存为任务」→可信安装审阅→在「我的」运行；安装后断开开发MCP/源码Provider，执行两组参数、独立状态读回，再用其他消费者调用同一安装版本。尚未执行的这些项和production扩展验收均为 NOT_TESTED。
+
+本轮先读取真实Chrome既有Sidebar入口；尝试打开扩展页被浏览器自动化URL策略拒绝，工具明确禁止改用其他方式绕过。未进入安装审阅，不能假报 Installed。已配对Go Native doctor只读确认connected、实际原extensionId；两个实际Host的task.list均报连接关闭/E_EFFECT_UNKNOWN，未发起任何Run或网页动作。原始发现证据：artifacts/chatgpt-task-0.2.0-20261026/native-discovery.json。
+
+用户最新要求核心优先，已停止扩大边缘测试。业务104项、历史日志6项、Native调用91项及受影响平台/期限检查通过；较大UI检查195/197，两条失败为HEAD已有的空闲Run dock过时断言，未为此改产品布局。后续仅解决上述安装/实际调用阻塞，不恢复全矩阵或评分。
+
+当前只在main，未由本对话或子agent提交/推送；并行owner推进main并已收录部分本轮文件，按实际文件哈希记证据，不撤回其提交。原dist/development与watcher保留，未停止其他服务、切换模型/Native配对、替换日常扩展。旧测试草稿未触碰。未启动本轮开发MCP或源码Provider；没有待清理的本轮浏览器/Profile或运行。README、CONTRACT和MAINTENANCE包含安装/调用/查询/Stop/升级/数据保留说明。
+
+## 2026-10-26 旧 R1.1 开发草稿结果：核心闭环完成
 
 owner `01a17895-c63b-7af3-9e2f-4d8053a0c22d`，`main`，本轮核心工作 `COMPLETE`。已用原 MCP/RunHost 分别通过一次普通 Controller Run 完成真实官网 `17+25 → 42 → 不同新对话 42×3 → 126` 和 `19+25 → 44 → 不同新对话 44×3 → 132`。两个 Run 均 `completed/released`，结果另经独立 status Run 从可信存储读回并完整核对。原 unknown A 已在原文档对账，不重发 A，随后完成 B。开发核心链 `CHROME_PASS`，当前定向测试 37/37 `NODE_PASS`。
 
@@ -84,7 +145,7 @@ Node 定向测试调用实际业务模块、AppStorage facade、项目编译器�
 
 旧 owner 在新对话确认创建后释放本项目文件与本轮浏览器操作，不再重复执行。本对话 goal 实读为 null；更早 owner 对话 goal 状态未知，创建新对话不代表目标已迁移、暂停或完成。交接只说明源码和部分真实证据，完整 A→B 核心仍为 FAILED/NOT_TESTED。
 
-## 2026-10-26 接手后实测结果（当前权威状态）
+## 2026-10-26 接手后实测结果（旧 R1.1 源码）
 
 本轮开始时 main HEAD 为 `abfe0fcf9891df9e616eed33259b63bc72f08c3b`。独立项目之外的并行改动未修改；没有创建分支、worktree 或 PR。
 

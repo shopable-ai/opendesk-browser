@@ -529,9 +529,21 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     if(identity&&await canonicalSha256(tool)!==identity.sha256)
       throw error('待安装包的规范化摘要与市场审阅记录不一致','E_MARKET_IDENTITY');
     if(existing&&sameSidebarToolPackage(existing,tool)){
-      if(identity)await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,{
-        ...provenance,[tool.id]:{marketId:identity.marketId,sha256:identity.sha256,version:tool.version}
-      },provenance,'市场来源');
+      if(identity){
+        const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
+        if(original[identity.operationId])throw error('事务已存在，请先核对原结果','E_OUTCOME_UNKNOWN');
+        const epochs=requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
+        const journal={marketId:identity.marketId,sha256:identity.sha256,toolId:tool.id,version:tool.version,
+          ...(epochs[tool.id]?{installEpoch:epochs[tool.id]}:{}),state:'reviewed',reason:'already-installed',updatedAt:Date.now()};
+        if(commitIntent)await commitIntent();
+        await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations({...original,[identity.operationId]:journal}),original,'市场事务记录');
+        await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,{
+          ...provenance,[tool.id]:{marketId:identity.marketId,sha256:identity.sha256,version:tool.version}
+        },provenance,'市场来源');
+        const current=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE];
+        await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations({...current,
+          [identity.operationId]:{...journal,state:'succeeded',updatedAt:Date.now()}}),current,'市场事务确认');
+      }
       return {state:'already-installed',tool};
     }
     if(!existing&&(await getPendingToolCleanups(api))[tool.id])

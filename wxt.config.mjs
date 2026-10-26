@@ -6,6 +6,7 @@ import {transformPinnedReactPrototype,transformPinnedReactDomInputTracker,transf
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
+// Build and package verification share the exact fixed-entry byte budgets.
 import {FIXED_OUTPUTS, entryByteBudget} from './scripts/build-contract.mjs';
 import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication} from './scripts/wxt-development.mjs';
 import {outputGuardPort} from './scripts/development-lock.mjs';
@@ -33,7 +34,7 @@ export default defineConfig({
   webExt: {disabled: true},
   dev: {reloadCommand: false, server: {host:'127.0.0.1',port:outputGuardPort(process.env.OPENDESK_DEV_PORT??43119)}},
   manifest: structuredClone(manifest),
-  vite: () => ({resolve:{dedupe:['react','react-dom']},define:{__OPENDESK_AI_LOCAL_TEST__:JSON.stringify(aiLocalTest),__OPENDESK_AI_LOCAL_PACKAGE_HASH__:JSON.stringify(aiLocalPackageHash),__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer')},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
+  vite: () => ({resolve:{dedupe:['react','react-dom']},define:{__OPENDESK_MARKET_ORIGIN__:JSON.stringify(resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||'production'}).origin),__OPENDESK_AI_LOCAL_TEST__:JSON.stringify(aiLocalTest),__OPENDESK_AI_LOCAL_PACKAGE_HASH__:JSON.stringify(aiLocalPackageHash),__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer')},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
     'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},

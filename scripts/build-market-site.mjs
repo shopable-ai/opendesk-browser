@@ -1,4 +1,4 @@
-// Deterministic inputs and a complete output tree; never reuse stale dist pages.
+// Deterministic inputs and regenerated pages; retain verified fixed release bytes.
 import {mkdir,writeFile,readFile,rename,rm,readdir,lstat} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -6,7 +6,8 @@ import {createHash,randomUUID} from 'node:crypto';
 import {OFFICIAL_COLLECTIONS,officialMarketApps} from '../src/marketplace/catalog.js';
 import {createOfficialToolResources,officialToolInputs} from './build-official-tools.mjs';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from './build-sidebar-tool.mjs';
-import {officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
+import {officialPackagePath,validateOfficialReleaseCatalog,OFFICIAL_RELEASE_SCHEMA,OFFICIAL_SOURCE_REPOSITORY} from '../src/sidebar-tools/official-catalog.js';
+import {validateSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 import {compareToolVersions} from '../src/ui/sidebar-tools/installation.js';
 import {resolveMarketChannel,marketOrigin} from './market-channel.mjs';
 import {loadMarketSnapshots,mergeMarketReleases} from './market-release-snapshots.mjs';
@@ -38,6 +39,59 @@ export const MARKET_HEADERS={
 };
 const releaseKey=row=>row.id+'@'+row.version;
 const releaseBase=row=>'/releases/'+row.id+'/'+row.version+'/';
+// Previous public releases use the same snapshot/descriptor contracts as current
+// inputs. A format marker alone is not evidence of immutable executable bytes.
+async function previousMarketRelease(dest){
+  let stat;
+  try{stat=await lstat(dest);}catch(error){if(error.code==='ENOENT')return {exists:false,snapshots:[],packages:new Map()};throw error;}
+  if(!stat.isDirectory()||stat.isSymbolicLink())throw Error('Invalid existing market output');
+  const paths=await filesAt(dest);
+  if(!paths.length)return {exists:true,snapshots:[],packages:new Map()};
+  const manifest=JSON.parse(await readFile(resolve(dest,'site-build.json'),'utf8'));
+  const {buildId,...identity}=manifest;
+  if(manifest.schema!=='opendesk.market.build.v1'||buildId!==hash(JSON.stringify(identity))||!Array.isArray(manifest.files))
+    throw Error('Invalid previous market build identity');
+  const verified=new Map();
+  for(const row of manifest.files){
+    if(typeof row.path!=='string'||!paths.includes(row.path)||verified.has(row.path))
+      throw Error('Invalid previous market file identity');
+    const bytes=await readFile(resolve(dest,row.path));
+    if(bytes.length!==row.bytes||hash(bytes)!==row.sha256)throw Error('Previous market file integrity mismatch: '+row.path);
+    verified.set(row.path,bytes);
+  }
+  if(paths.length!==verified.size+1)throw Error('Untracked previous market output');
+  const catalog=JSON.parse(verified.get('catalog.json'));
+  if(catalog.format!=='opendesk.market.public.v1'||!Array.isArray(catalog.releases)||
+    !Array.isArray(catalog.downloads)||!Array.isArray(catalog.unavailableReleases)||!Array.isArray(catalog.collections))throw Error('Invalid previous market catalog');
+  const snapshots=catalog.releases.map((row,index)=>({schema:'opendesk.market.release-snapshot.v1',
+    source:{kind:'recorded-release-evidence',identity:'sha256:'+buildId},
+    catalog:validateOfficialReleaseCatalog({schema:OFFICIAL_RELEASE_SCHEMA,sourceRepository:OFFICIAL_SOURCE_REPOSITORY,apps:[row]}),
+    collections:index===0?catalog.collections:[]}));
+  const releases=new Map(catalog.releases.map(row=>[releaseKey(row),row])),packages=new Map();
+  if(releases.size!==catalog.releases.length)throw Error('Duplicate previous market release');
+  for(const descriptor of catalog.downloads){
+    const key=descriptor.marketId+'@'+descriptor.version,row=releases.get(key);
+    if(!row||packages.has(key))throw Error('Invalid previous market download identity');
+    const expected={schema:'opendesk.market.release.v1',marketId:row.id,version:row.version,
+      bytes:row.bytes,sha256:row.sha256,packagePath:releaseBase(row)+'package.opendesk-tool.json'};
+    const same=value=>JSON.stringify(value)===JSON.stringify(expected);
+    if(!same(descriptor)||!same(JSON.parse(verified.get(releaseBase(row).slice(1)+'descriptor.json'))))
+      throw Error('Previous market descriptor identity mismatch: '+key);
+    const bytes=verified.get(expected.packagePath.slice(1));
+    if(!bytes||bytes.length!==row.bytes||hash(bytes)!==row.sha256)throw Error('Previous market package integrity mismatch: '+key);
+    const tool=validateSidebarToolPackage(JSON.parse(bytes));
+    if(tool.id!==row.toolId||tool.version!==row.version||tool.title!==row.packageTitle||
+      tool.description!==row.description||JSON.stringify(tool.capabilities)!==JSON.stringify(row.capabilities))
+      throw Error('Previous market package identity mismatch: '+key);
+    packages.set(key,bytes);
+  }
+  // Downloadable releases cannot silently become metadata-only history.
+  for(const row of catalog.releases){
+    const unavailable=catalog.unavailableReleases.some(item=>item.id===row.id&&item.version===row.version);
+    if(unavailable===packages.has(releaseKey(row)))throw Error('Invalid previous market release availability');
+  }
+  return {exists:true,identity:buildId,snapshots,packages};
+}
 async function projectPackages(projects){
   if(!Array.isArray(projects)||projects.length>64||projects.some(p=>typeof p!=='string'||!p.trim()))
     throw Error('Market projects must be an array of at most 64 project directories');
@@ -65,15 +119,17 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
     throw Error('Market output may not replace or contain a project input');
   // Reuse the fixed-release conflict and metadata validator for every supplied
   // version, including multiple versions of the same independent project.
-  const snapshots=await loadMarketSnapshots();
+  const previous=await previousMarketRelease(dest),snapshots=await loadMarketSnapshots();
   for(const {project,row} of external)snapshots.push({schema:'opendesk.market.release-snapshot.v1',
     source:{kind:'official-builder',identity:'sha256:'+hash(project)},
     catalog:{...official.catalog,apps:[row]},collections:[]});
+  snapshots.push(...previous.snapshots);
   const archived=mergeMarketReleases(snapshots,official.catalog,OFFICIAL_COLLECTIONS);
-  const packages=new Map(official.catalog.apps.map(row=>[releaseKey(row),official.resources.get(row.packagePath)]));
+  const packages=new Map(previous.packages);
+  for(const row of official.catalog.apps)packages.set(releaseKey(row),official.resources.get(row.packagePath));
   for(const {row,bytes} of external)packages.set(releaseKey(row),bytes);
   const latest=new Map(official.catalog.apps.map(row=>[row.id,row]));
-  for(const {row} of external){
+  for(const row of archived.releases.filter(row=>packages.has(releaseKey(row)))){
     const prior=latest.get(row.id);
     if(!prior||compareToolVersions(row.version,prior.version)>0)latest.set(row.id,row);
   }
@@ -116,14 +172,14 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
       downloads,unavailableReleases:releases.filter(row=>!row.downloadable).map(({id,version})=>({id,version})),
       recommended:[...latest.values()].map(({id,version})=>({id,version})),collections:archived.collections},null,2)+'\n');
     for(const file of media)await write('media/'+file.filename,file.bytes);
-    await page('/','官方应用','发现 OpenDesk 官方应用，查看用途、运行位置与固定版本，在可信扩展页面审阅安装。',home(current));
+    await page('/','应用','发现 OpenDesk 应用，查看用途、运行位置与固定版本，在 OpenDesk 通用可信页确认安装。',home(current));
     for(const app of releases){
       const live=current.find(row=>row.id===app.id),versions=releases.filter(row=>row.id===app.id).sort((a,b)=>b.version.localeCompare(a.version,undefined,{numeric:true}));
       const options={current:live,versions,media:media.find(row=>row.toolId===app.toolId&&row.version===app.version)||null};
       const subject={kind:'app',marketId:app.id,version:app.version};
       await page(appPath(app),app.title+' v'+app.version,app.description,appDetail(app,options),'apps',subject);
       if(app.version===live?.version)await page(appPath(app,false),app.title,app.summary,appDetail(app,{...options,fixed:false}),'apps',subject);
-      await page(installPath(subject),'安装 '+app.title+' v'+app.version,'在 OpenDesk 中审阅此固定应用版本。',installPage(subject,app.title),'apps',subject);
+      await page(installPath(subject),'安装 '+app.title+' v'+app.version,'在 OpenDesk 通用可信页审阅此固定应用版本。',installPage(subject,app.title),'apps',subject);
     }
     // A historically pinned collection can outlive available release evidence.
     // Preserve its share route as an explicit missing-evidence page, never invent
@@ -135,7 +191,7 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
       const title=current.find(row=>row.id===member.id)?.title||member.id;
       const subject={kind:'app',marketId:member.id,version:member.version};
       await page(appPath(member),title+' v'+member.version+' · 发行记录待核对','此固定版本来自历史套装引用，缺少完整发行快照。',
-        '<section class="hero"><p class="eyebrow">历史套装引用 · 固定版本</p><h1>'+escapeHTML(title)+' v'+escapeHTML(member.version)+'</h1><p class="lead">此版本记录在官方固定套装中，但当前归档缺少可核验的完整发行快照。</p><p>不会用当前版本代替，也不会编造摘要或发行说明。扩展可信页会核对其实际包含的固定版本。</p><div class="actions"><a class="button primary" href="'+installPath(subject)+'">在扩展中核对此版本</a><a href="/collections/">查看套装记录</a></div></section>');
+        '<section class="hero"><p class="eyebrow">历史套装引用 · 固定版本</p><h1>'+escapeHTML(title)+' v'+escapeHTML(member.version)+'</h1><p class="lead">此版本记录在官方固定套装中，但当前归档缺少可核验的完整发行快照。</p><p>不会用当前版本代替，也不会编造摘要或发行说明。OpenDesk 会核对该固定版本的实际可用性。</p><div class="actions"><a class="button primary" href="'+installPath(subject)+'">查看此版本安装说明</a><a href="/collections/">查看套装记录</a></div></section>');
       await page(installPath(subject),'核对 '+title+' v'+member.version,'核对历史套装引用中的固定版本；不保证当前扩展包含该包。',installPage(subject,title));
     }
     await page('/collections/','官方套装','固定应用组合与不可变 revision。',collectionList(archived.collections),'collections');
@@ -160,16 +216,11 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
       files:outputFiles.sort((a,b)=>a.path.localeCompare(b.path))};
     manifest.buildId=hash(JSON.stringify(manifest));
     await writeFile(resolve(stage,'site-build.json'),JSON.stringify(manifest,null,2)+'\n');
+    const checked=await previousMarketRelease(dest);
+    if(checked.exists!==previous.exists||checked.identity!==previous.identity)
+      throw Error('Previous market output changed during build');
     let old=null;
-    try{
-      const stat=await lstat(dest);if(!stat.isDirectory()||stat.isSymbolicLink())throw Error('Invalid existing market output');
-      const names=await readdir(dest);
-      if(names.length){
-        const marker=JSON.parse(await readFile(resolve(dest,'catalog.json'),'utf8'));
-        if(marker.format!=='opendesk.market.public.v1')throw Error('Refusing to replace an unrecognized directory');
-      }
-      old=dest+'.previous-'+randomUUID();await rename(dest,old);
-    }catch(error){if(error.code!=='ENOENT')throw error;}
+    if(previous.exists){old=dest+'.previous-'+randomUUID();await rename(dest,old);}
     try{await rename(stage,dest);}catch(error){if(old)await rename(old,dest);throw error;}
     if(old)await rm(old,{recursive:true,force:true});
     return {output:dest,buildId:manifest.buildId,apps:current.length,releases:releases.length,origin,mode,

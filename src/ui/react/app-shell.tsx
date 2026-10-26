@@ -42,6 +42,20 @@ export function SidebarAppShell({
       <SidebarNavigation activeTab={activeTab} debugEnabled={debugEnabled}
         onNavigate={onNavigate}/>
     </nav>
+    {Boolean(toolSnapshot.market?.pending.length||toolSnapshot.market?.error)&&!toolSnapshot.market.review&&
+      <section className="od-surface od-stack" aria-label="待审阅的市场安装">
+        <p role="status">{toolSnapshot.market.pending.length?'有市场安装等待审阅，可稍后继续。':'暂时无法读取待审阅的市场安装。'}</p>
+        <div className="od-toolbar">{toolSnapshot.market.pending.map(item=>
+          <button key={item.reviewId} type="button" className="od-button od-button--secondary"
+            onClick={()=>toolView.marketInstallActions?.open(item.reviewId)}>
+            {item.title&&<>{item.title} · </>}{item.subject.marketId} · v{item.subject.version} · 审阅安装
+          </button>)}</div>
+        {toolSnapshot.market.error&&<>
+          <p role="alert">{toolSnapshot.market.error}</p>
+          <button type="button" className="od-button od-button--secondary"
+            onClick={()=>toolView.marketInstallActions?.refresh?.()}>重试</button>
+        </>}
+      </section>}
     <main id="workspace-content">
       <div id="site-access-recovery" className="row" role="status" hidden={siteAccess.data.websites!==false}>
         <span id="site-access-recovery-message">访问受限：Chrome 已限制网站访问。</span>

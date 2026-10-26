@@ -2,21 +2,21 @@
 
 官网对话操作已拆成可维护模块；计算接力是使用者：A 计算两个整数的和，可信存储读回后，在不同新对话 B 乘以第三个整数。正式零参数入口接受参数，不固定17或19，ChatGPT业务不进入通用Host。
 
-**当前是待正式验证安装的固定候选，尚未证明安装版可用。** 旧R1.1在持续开发Chrome完成普通Run的42→126和44→132，均独立读回持久结果；它们只证明旧源码哈希。0.2.0源码、权限、安装、外部调用的证据见[工作记录](WORKSTREAM.zh-CN.md)最新节及[本轮证据](EVIDENCE.json)。Node通过和固定包不等于安装成功。
+**0.2.0 已在当前持续开发 Chrome 安装并完成两组「我的」运行：42→126、44→132。** 两次运行及 Native 独立状态读回期间，整个业务源码目录临时移出；调用使用已安装固定版本。真实 taskId 为 `opendesk.chatgpt-calculation-relay`，版本 `0.2.0`，sourceHash 为 `94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f`。见[工作记录](WORKSTREAM.zh-CN.md)及[运行证据](EVIDENCE.json)。这是开发扩展的实际安装证据；production 扩展、完整矩阵及评分仍未执行。
 
 ## 从哪里安装
 
-推荐原「开发 → 本地项目 → 运行本地项目 → 保存为任务 → 确认安装固定版本」，正式任务在「我的」。开发接入见[本地项目指南](../../../docs/api/sidebar-local-projects.zh-CN.md)。首次源码验证需要合法项目Provider；安装完成后日常执行不再使用它。
+本轮实测使用[固定可移植包](release/0.2.0/program.opendesk-task.json)，从「我的 → 添加任务 → 导入」进入现有任务目录，验证、设为可用并审阅安装。包采用原 `opendesk.task-package.v1`，包 ID 和实际安装 ID 均为 `opendesk.chatgpt-calculation-relay`，版本 `0.2.0`。
 
 1. 在已登录的`https://chatgpt.com`选择专用空白对话和同窗口Sidebar。确认没有草稿、附件、正在生成的内容；不要清空此前恢复的测试草稿。
-2. 选择本目录项目，输入下方参数，明确点击「运行本地项目」。候选声明有限120秒期限，内部共享预算并预留落账时间；官网过慢仍可能超时。
-3. 核对真实宿主runId/resultId/revision.sourceHash、completed及资源released。同一当前源码、文档和持久结果才能「保存为任务」；R1.1旧成功不能验证0.2.0。
-4. 审阅名称、固定版本、网站`https://chatgpt.com`、`page.automation`、`storage.persistent`和最长120秒。确认后由原Candidate→Verify→Available→Installed链安装；Controller安装核对原运行，不为保存再次发送计算。
-5. 到「我的」核实实际安装记录。关闭本次开发MCP和项目源码Provider，再在「我的」运行并单独查询。这一步必须实测后才算独立运行通过；本轮仍为NOT_TESTED。
+2. 导入固定包，按原入口执行同一哈希的 Controller 验证，核对真实宿主 runId/resultId/sourceHash。候选声明有限120秒期限，内部共享预算并预留落账时间；官网过慢仍可能超时。
+3. 验证通过后设为可用，审阅名称、固定版本、网站 `https://chatgpt.com`、`page.automation`、`storage.persistent` 和最长120秒，由原 Candidate→Verify→Available→Installed 链安装。
+4. 到「我的」选择已安装任务，填写下方参数并运行。日常运行不需要开发 MCP、项目 Provider 或源码目录；首次安装验证和普通运行是不同动作。
+5. 用同一安装身份执行 `status`，独立读回原业务 runId。实测 `relay-isolated-017` 和 `relay-isolated-019` 均完成，Native 查询自身也达到 completed/released。同一业务 runId 再次 Run 只读旧记录。
 
-本地保存沿用原稳定绑定身份：实际ID为`local-*`，首次版本默认`1.0.0`，可在审阅中选择合法新版本。项目版本0.2.0不会改写已有本地任务ID。调用者必须从真实安装记录取ID、版本、哈希，不能用目录名猜测。
+开发迭代也可使用「开发 → 本地项目 → 运行本地项目 → 保存为任务」，见[本地项目指南](../../../docs/api/sidebar-local-projects.zh-CN.md)。首次源码验证需要合法项目 Provider；此路径本轮未作同候选原生验收。它沿原稳定绑定生成 `local-*` 身份、首次版本默认 `1.0.0`，与本轮可移植包身份不同。调用者必须从真实安装记录取 ID、版本、哈希，不能用目录名猜测，也不要同时安装两种身份绕过未知日志。
 
-可移植候选是[release/0.2.0/program.opendesk-task.json](release/0.2.0/program.opendesk-task.json)，采用原`opendesk.task-package.v1`，包ID `opendesk.chatgpt-calculation-relay`、包版本`0.2.0`。这是同源的另一种发行身份，**不是本机已安装ID**。需要该身份时，从「我的 → 添加 → 导入」进入原任务目录，以同一sourceHash的新Controller运行证明验证、设为可用并审阅安装。不要同时安装两种身份绕过未知日志。构建记录为BUILT_UNVERIFIED，没有伪造验证/安装记录。
+`release/0.2.0/` 保留冻结构建的原字节，构建记录中的 `BUILT_UNVERIFIED` 仍描述构建时事实。后续安装与运行证明单独保存在 EVIDENCE.json，未改写原构建记录。
 
 ## 在「我的」运行和查询
 
@@ -44,13 +44,12 @@
 
 ## 从其他环节调用同一安装版本
 
-本轮在原Native Agent补齐只读`task.list`及`run.start`的`installed-task`来源。使用原CLI/Native认证、当前Sidebar Host和同一RunHost/Authority/持久结果，不传源码、目录或Provider绑定。完整可用请求见[已安装任务Native调用](../../../docs/api/native-installed-tasks.zh-CN.md)。
+公开 Native CLI 的 `installed-task` 来源已实测调用同一安装版本的 `status`/`inspect`，复用原认证、当前 Sidebar Host、RunHost/Authority 和持久结果，不传源码、目录或 Provider 绑定。当前部署 Go 的 `task.list` 仍有 allowlist 缺口，返回连接关闭；它不影响已核实安装身份的 `run.start`。完整请求见[已安装任务 Native 调用](../../../docs/api/native-installed-tasks.zh-CN.md)。
 
 从仓库根使用原CLI：
 
 ```sh
 node native-agent/cli.mjs bridge.status
-node native-agent/cli.mjs task.list --file host.json
 node native-agent/cli.mjs target.current --file host.json
 node native-agent/cli.mjs run.start --file installed-run.json --request-id relay-admission-001
 node native-agent/cli.mjs run.get --file original-run.json
@@ -63,7 +62,7 @@ node native-agent/cli.mjs run.get --file original-run.json
   "registrationId":"从bridge.status读取",
   "source":{
     "kind":"installed-task",
-    "taskId":"从task.list读取真实安装ID",
+    "taskId":"从真实安装回执读取ID；支持task.list的部署也可从列表读取",
     "version":"真实安装版本",
     "sourceHash":"真实64位源码SHA256"
   },

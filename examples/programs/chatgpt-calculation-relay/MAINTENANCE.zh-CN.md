@@ -37,6 +37,8 @@
 
 不要删除 active 指针、换任务身份、换业务 runId 或恢复旧代码来绕过未知请求。没有可靠发送证据的记录不得自动改为 completed/未发送。
 
+0.2.0 安装版实测曾在 A 点击后超过发送确认的有界等待而留下 unknown；只读 inspect 在原文档找到唯一用户消息与完成的 A=42，随后显式 reconcile 未重发 A，完成 B=126。另两次普通运行直接完成。该记录证明恢复路径，不证明网络延迟的具体根因；不要仅为避免 unknown 扩大等待或取消确认。运行身份见 [工作记录](WORKSTREAM.zh-CN.md)和 [EVIDENCE.json](EVIDENCE.json)。
+
 ## 固定构建与安全升级
 
 项目无第三方运行时依赖，无 CDN、npm 动态加载或凭据文件；项目 package-lock 固定空依赖图。构建器及 webpack/terser 版本由仓库根 package.json/package-lock 固定，构建记录应另记根锁 SHA。构建必须在使用该根锁安装的现有 Node 工具链运行；普通安装版执行不需要这些构建工具。

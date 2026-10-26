@@ -766,6 +766,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, fileInput, {value: ''});setFileError();
   }
   function setImportOpen(open) {
+    if(open&&view.getSnapshot().market?.review)return;
     patchToolField(view, importPanel, {hidden: !open});
     setToolFieldAttribute(view, importTrigger, 'aria-expanded', String(open));
     if(!open)clearImport();
@@ -1093,7 +1094,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     render();
   }
   async function reviewOfficial(release){
-    if(busy||disposed)return;
+    if(busy||disposed||view.getSnapshot().market?.review)return;
     setImportOpen(true);clearImport();notice('');
     const selection=++fileSelection;
     try{
@@ -1777,14 +1778,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     show();return true;
   }
   function openOfficialReview(id){
-    if(disposed||busy||!visible||active||!officialLoaded)return false;
+    if(disposed||busy||!visible||active||!officialLoaded||view.getSnapshot().market?.review)return false;
     const release=officialReleases.find(row=>row.toolId===id);
     if(!release)return false;
     void reviewOfficial(release);
     return true;
   }
   function openImport(){
-    if(disposed||busy||!visible||active)return false;
+    if(disposed||busy||!visible||active||view.getSnapshot().market?.review)return false;
     setImportOpen(true);notice('');return true;
   }
   function openImportFiles(files){
@@ -3760,7 +3761,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
   }
   function reviewDroppedFiles(files){
-    if(disposed||busy)return;
+    if(disposed||busy||view.getSnapshot().market?.review)return;
     // Dragging does not populate a native file input. Clear any prior picker
     // name and invalidate pending asynchronous review before choosing new bytes.
     fileSelection++;resetReview();patchToolField(view,fileInput,{value:''});
@@ -3970,7 +3971,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   cancelActionReview();
   notice('');
   listen(importTrigger,'click',()=>{
-    if(busy)return;
+    if(busy||view.getSnapshot().market?.review)return;
     const next=importPanel.hidden;
     setImportOpen(next);notice('');
   });
@@ -4425,7 +4426,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }));
   }
   render();
-  return Object.freeze({ready,openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openPagePackageReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,
+    canPresentMarketReview:()=>!disposed&&!busy&&!toolSaving&&!toolDirty&&!isDirty()&&
+      importPanel.hidden!==false&&actionReview.hidden!==false&&removeReview.hidden!==false&&!pendingAction&&!pendingUninstallId,
+    assertCanInstallMarketTool:id=>{
+      if(disposed)throw new Error('当前工具工作台已关闭，请重新打开审阅。');
+      if(active?.id===id&&(busy||toolSaving||toolDirty||isDirty()))
+        throw new Error('当前应用有未保存内容或正在保存。请关闭安装浮层，先保存或取消编辑，再继续更新；草稿已保留。');
+    },
+    hasInstallReview:()=>importPanel.hidden===false,
+    openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openPagePackageReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();

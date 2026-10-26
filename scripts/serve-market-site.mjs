@@ -22,7 +22,8 @@ const server=createServer(async(req,res)=>{
 });
 // Binding is the port-ownership check. EADDRINUSE never kills another process.
 await new Promise((ok,fail)=>{server.once('error',fail);server.listen(Number(url.port),'127.0.0.1',ok);});
-try{const built=await buildMarketSite({env:{...process.env,OPENDESK_MARKET_BUILD_MODE:'development'}});output=built.output;
+try{const built=await buildMarketSite({env:{...process.env,OPENDESK_MARKET_BUILD_MODE:'development'},
+  projects:JSON.parse(process.env.OPENDESK_MARKET_PROJECTS||'[]')});output=built.output;
   console.log(JSON.stringify({...built,url:channel.origin,extension:'dist/development',note:'先构建并加载开发扩展；Ctrl+C 停止本服务。'}));
 }catch(error){server.close();throw error;}
 for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>server.close(()=>process.exit(0)));

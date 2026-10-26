@@ -107,7 +107,9 @@ export async function readSummary(page) {
 
 ## 参数、Page 规则和资产
 
-Controller siteOrigins 恰好一个，permissions 为 `["page.automation"]`；paramsSchema 验证 run 参数。示例只允许 `{}`，不能向它传 value。需要 value 时在自己的项目 schema 声明数字字段，在零参数 `main()` 中直接读取 `params.value`。Sidebar 本地参数与手工草稿参数分开保存。
+Controller siteOrigins 恰好一个，permissions 至少为 `["page.automation"]`；需要安装后 AppStorage 时显式声明 `["page.automation","storage.persistent"]`。该权限仅允许 AppStorage 的 getItem/setItem/removeItem/clear，不开放 Chrome local、HTTP、Cookie 或 Native。已安装 Task 按 namespace + 稳定 taskId 隔离存储、跨版本保留；开发草稿旧记录不自动迁入。paramsSchema 验证 run 参数。示例只允许 `{}`，不能向它传 value。需要 value 时在自己的项目 schema 声明数字字段，在零参数 `main()` 中直接读取 `params.value`。Sidebar 本地参数与手工草稿参数分开保存。
+
+Controller 可声明可选 `deadlineMs`，整数 1000–120000，未声明默认30000。它与权限、源码、网站及参数合同一起冻结进入 Task manifestHash，并在安装审阅中展示；共享 Authority 拒绝超出已安装任务审阅期限的运行。更长的项目编译预算不等于无限运行，也不允许绕过 Stop、撤权或未知副作用保护。以上新合同有定向 Node 覆盖；真实安装/Native 证据须按具体候选另验。
 
 本地 Controller 可显式声明 `siteOrigins: ["<all_urls>"]`，在所有可运行的 HTTP/HTTPS 网页开发运行，仍须 Chrome 网站许可。正式安装 Task 只绑定审核时的具体网站；全站离线构建仅输出固定源码与草稿，不生成通配 Task 安装包。
 

@@ -337,7 +337,7 @@
     }
   ],
   "native": "CORE_PASS for bound local-demo normal flow; full publication acceptance NOT_TESTED",
-  "updatedAt": "2026-10-26T17:56:11.302067+00:00",
+  "updatedAt": "2026-10-26T18:26:27.500719+00:00",
   "latestObservedRemote": "e001499ce3bab3f35bb0af7907732a3b6ef62ab8",
   "packageBinding": {
     "programId": "opendesk.ai-scroll-navigation",
@@ -1150,5 +1150,313 @@
       "React Aria switch input is intentionally clipped; real visible label[data-ec-detail-action=toggle] is the click target. No product change needed."
     ],
     "upgradeEvidence": "Original Installer r7 to 0.4.6+site.r1978225210, same installationId, generation 1 to 2, exact six native matches. Later disable/restore generations 3/4 retain saved config and ETag. Post-save upgrade not repeated; unchanged targeted protection inherited."
-  }
+  },
+  "devContinuation": {
+    "observedAt": "2026-10-26T19:18:15.491511+00:00",
+    "scope": "dev only; daily Chrome normal Side Panel; no production acceptance",
+    "status": "PARTIAL_CHATGPT_PASS_WAITING_NATIVE_WINDOW",
+    "businessCodeChanged": false,
+    "candidate": {
+      "programId": "opendesk.ai-scroll-navigation",
+      "version": "0.4.6",
+      "revision": 7,
+      "file": "examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json",
+      "fileSha256": "104136d6942d6b7933a15d1a8df74b30856047135645dcf692d2be2bc57d0ef6",
+      "packageHash": "eb486ea2a9dc009c9ee37f68bdd5265977d63adbb58965f62a513898bae6880a",
+      "sourceHash": "487f655fb22184bedbde0450b7e6f542961aa76ecc78a806fd1e63b0190335e3"
+    },
+    "developmentEnvironment": {
+      "app": "/Users/shopme/Applications/Google Chrome.app",
+      "profileReadback": "您的 Chrome",
+      "extensionIdReadback": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "sidePanelHostInstanceId": "e7406f36-e120-43f5-b74e-076e73fccbff",
+      "normalToolbarOpen": "PASS",
+      "developTabOpen": "PASS",
+      "serveConnectionReadback": "开发服务已连接 · 构建指纹 d689f432f482；保存源码后自动安全更新。",
+      "serveBuildRevision": "d689f432f4827c58922537502eba3be1368efb4b1bfb071fa9781b000c1c32c4",
+      "expectedOutputPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "actualLoadedPath": "NOT_TESTED",
+      "watcherObservedPid": 71072,
+      "watcherChanged": false,
+      "demoServerObservedPid": 68658
+    },
+    "install": {
+      "previousRevision": 2,
+      "previousEnabled": false,
+      "originalInstallerImport": "PASS",
+      "updateReadback": "已更新网页增强「AI 对话滚动导航」v0.4.6；原有停用状态已保留。",
+      "revisionReadback": 7,
+      "installationId": "0f356e39-c6a2-4694-81e7-18ce3dbc2e1d",
+      "manifestHash": "84adb034fc1efeee3adb426aa7142e060949e97a7d2a9ba39a416c8395b4c0e3",
+      "sourceHashReadback": "487f655fb22184bedbde0450b7e6f542961aa76ecc78a806fd1e63b0190335e3",
+      "registrationId": "opendesk-page-boot-8bc2d7637524cfe8a97ab4a79a339d97f8c3de8e5418adf2",
+      "restoreReadback": {
+        "enabled": true,
+        "authorization": "active",
+        "chromeRegistration": "registered"
+      }
+    },
+    "localSiteReview": {
+      "origin": "http://127.0.0.1:43111",
+      "pathPrefix": "/demo-form.html",
+      "derivedVersion": "0.4.6+site.r1978225210",
+      "derivedRevision": 1978225210,
+      "prepared": "PASS",
+      "installerActualScope": [
+        "http://127.0.0.1:43111/demo-form.html",
+        "http://127.0.0.1:43111/demo-form.html?*",
+        "http://127.0.0.1:43111/demo-form.html/*"
+      ],
+      "confirmationOutcome": "NOT_CONFIRMED; native action rejected because app state changed; do not replay without reading original installation"
+    },
+    "blocker": {
+      "kind": "CONCURRENT_NATIVE_WINDOW_ACTIVITY",
+      "owner": "01a17980-4fcc-78c3-bbf3-88d017f6756a",
+      "nativeUiAcquire": "busy on direct attempts and bounded 45-second polling",
+      "ownerSnapshot": "active, latest turn inProgress",
+      "authority": "User requested continued waiting without messages; no cross-chat message or lock stealing",
+      "lockResult": "Acquired after send-queue release, then voluntarily released after native focus mismatch",
+      "activeChatObserved": "01a1794f-f8ed-7080-9137-7925d5003ecf"
+    },
+    "driverNotes": [
+      "Transferred old browser tab could not be claimed because still owned by source chat; created own new HTTP demo tab 560068654 instead.",
+      "Native normal toolbar Side Panel succeeded; did not retry rejected direct extension URL.",
+      "macOS Open dialog initially reported Open disabled, but selecting r7 file and Return imported it normally; no product source change justified.",
+      "UI lock was discovered as necessary on repeated app-state changes; no further native actions while another owner holds lock.",
+      "Dedicated nonfocused window and narrow locator recovery allowed real ChatGPT conversation/reply navigation and refresh checks. Native focus later diverged from browser focus while calculation task remained active; stopped native input without changing business source."
+    ],
+    "pending": [
+      "Read current install/site-review state before confirming anything",
+      "Read actual daily extension loaded path and current connected serve fingerprint",
+      "Complete original local-site scope review if still pending",
+      "Visually select region/scroller; test top/bottom; trusted save and refresh",
+      "Verify installed top/bottom navigation and disabled boundaries",
+      "Verify normal disable/cleanup/restore with config and ETag retained",
+      "DeepSeek/Gemini existing-content checks remain NOT_TESTED"
+    ],
+    "deferred": [
+      "production acceptance",
+      "publication",
+      "independent scores",
+      "width/zoom matrix",
+      "fault/edge matrix"
+    ],
+    "parallelProtection": "No business/shared-build edit, second writer, service restart, cross-chat message or installation replay. Exact local-site installation and current loaded-path readback still pending.",
+    "evidence": "artifacts/ai-scroll-r134/dev-r7-window-20261027/dev-result.json",
+    "evidenceSha256": "2c20a0f29506f85a08a3ecc777bae5537e58d997fbd8aeb4ecc7a40b11704970",
+    "owner": "01a1798d-07c8-7682-91b9-db9e8932a7a1",
+    "testResource": {
+      "browserId": "1",
+      "profile": "您的 Chrome",
+      "tabId": "560068654",
+      "originalWindowId": 560068556,
+      "dedicatedWindowId": 560068656,
+      "createReadbackFocused": false,
+      "urlReadback": "https://chatgpt.com/c/6adf6390-ffd4-83e8-a6c7-a240390451ae",
+      "titleReadback": "技术验证准备確認",
+      "note": "Transferred owned local demo tab to a new nonfocused window, then navigated this task tab to the existing conversation; no chat messages sent."
+    },
+    "chatgpt": {
+      "url": "https://chatgpt.com/c/6adf6390-ffd4-83e8-a6c7-a240390451ae",
+      "title": "技术验证准备確認",
+      "method": "Documented CUA browser Playwright role clicks in dedicated nonfocused daily Chrome window; no global native input",
+      "actualScrollContainer": ".thread-scroll-container",
+      "scrollHeight": 8701,
+      "clientHeight": 817,
+      "conversationTop": {
+        "before": 7683.5,
+        "after": 0.5,
+        "topDisabledAfterSettle": true,
+        "bottomEnabled": true,
+        "screenshot": "chatgpt-conversation-top.png"
+      },
+      "conversationBottom": {
+        "before": 0.5,
+        "after": 7883.5,
+        "maximum": 7884,
+        "bottomDisabledAfterSettle": true,
+        "screenshot": "chatgpt-conversation-bottom.png"
+      },
+      "lastLongReplyTop": {
+        "before": 7883.5,
+        "after": 6734.5,
+        "visibleHeading": "OpenDesk Shared AI R2.3.1 本地验证结果",
+        "screenshot": "chatgpt-reply-top.png"
+      },
+      "lastLongReplyBottom": {
+        "before": 6734.5,
+        "after": 7683.5,
+        "screenshot": "chatgpt-reply-bottom.png",
+        "limitation": "Locator may scroll the end toolbar into view before clicking; final visible landing confirmed, handler-only scroll distance not isolated"
+      },
+      "refresh": {
+        "navigationTopVisible": true,
+        "navigationBottomVisible": true,
+        "siteConfigurationVisible": true,
+        "screenshot": "chatgpt-after-refresh.png"
+      },
+      "messagesSent": 0,
+      "composerChanged": false,
+      "scopeLimitation": "Daily installed UI observed, exact current manifest/version still awaits original Installer readback; no DeepSeek/Gemini claim"
+    },
+    "nativeWindowAttempt": {
+      "ownedWindow": 560068656,
+      "ownedTab": 560068654,
+      "managementReadback": "Own tab remained on existing ChatGPT conversation",
+      "focusMismatch": "Browser focus update and native AX showed own window, while later native screenshot showed concurrent calculation window. Native address navigation outcome unverified; no install/config/disable action attempted.",
+      "action": "Stopped native input and released own UI lease; wait for concurrent operation to finish"
+    },
+    "coordination": {
+      "userAnswer": "继续等待，不发消息",
+      "crossThreadMessageSent": false,
+      "lockStealing": false,
+      "uiLeaseReleased": true
+    }
+  },
+  "devContinuationHistory": [
+    {
+      "observedAt": "2026-10-26T18:26:27.500719+00:00",
+      "scope": "dev only; normal core user operations; no production acceptance",
+      "status": "INCOMPLETE_TOOL_BLOCKED",
+      "businessCodeChanged": false,
+      "candidate": {
+        "programId": "opendesk.ai-scroll-navigation",
+        "version": "0.4.6",
+        "revision": 7,
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json",
+        "sha256": "104136d6942d6b7933a15d1a8df74b30856047135645dcf692d2be2bc57d0ef6"
+      },
+      "developmentOutput": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "revision": "d689f432f4827c58922537502eba3be1368efb4b1bfb071fa9781b000c1c32c4",
+        "markerSha256": "c5b90404b250e854fca5944bdc29c7c111119b193ebc84b217a6d491b5a9de4d",
+        "listedFiles": 125,
+        "mismatches": [],
+        "status": "FILE_INTEGRITY_PASS",
+        "browserServeConnection": "NOT_TESTED"
+      },
+      "environmentObservations": [
+        "Native Chrome sidepanel at extension ccfcjegpkdlgbclopjmadlcjedelidmf returned ERR_FILE_NOT_FOUND while dist/development/sidepanel.html and manifest.json were absent.",
+        "Existing watcher log showed ui/sidebar-tool-host.js 525455 > 524288 build budget failure. Shared build-contract/wxt files were already modified by a parallel owner; this task did not edit them.",
+        "One watcher was observed after recovery: npm PID71052/node PID71072 on port43119. Output marker restored at 2026-10-26T18:19:25.964982+00:00. This task did not perform that restart, launch a writer or stop a service; owner identity was not verified.",
+        "Native extension-details path readback referred to the concurrent OpenDesk Market R63 Test profile, not confirmed daily-profile evidence. Daily loaded-path/serve-client pairing remains NOT_TESTED.",
+        "Dedicated local demo HTTP tab loaded normally; its DOM snapshot contained no AI navigation UI, consistent with no demonstrated approved local-site installation in this dev profile. No installation status is inferred.",
+        "Dedicated existing ChatGPT conversation was opened without submitting messages. Browser CUA create/claim/DOM operations timed out three times, including after runtime recovery and the documented alternate tab API. This is a driver failure, not evidence of a navigation defect."
+      ],
+      "toolPolicy": {
+        "action": "Open chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html as an independent tab",
+        "result": "REJECTED",
+        "reason": "Browser URL policy allows only http: and https:; alternate surface/indirect workaround prohibited",
+        "workaroundAttempted": false
+      },
+      "pending": [
+        "Confirm actual daily loaded path, ID and connected serve revision in dev UI",
+        "Install/read back current r7 using the original Installer in that dev profile",
+        "Review exact local-site scope; select main/scroller; test top and bottom; trusted save and refresh",
+        "Verify normal disable/restore with saved config retained",
+        "Verify real supported-site navigation on existing content without sending messages"
+      ],
+      "deferred": [
+        "production acceptance",
+        "full release certification",
+        "independent scores",
+        "width/zoom matrix",
+        "fault/edge matrix"
+      ],
+      "historicalEvidence": "coreContinuation retains the earlier isolated production local-demo result; it is not current dev PASS",
+      "next": "Restore permitted browser/UI access, then resume at actual daily dev connection and original Installer; do not repeat unchanged Node tests or rebuild the extension solely for this record.",
+      "parallelProtection": "No source, shared build config, browser permission, install state, user draft, external message, watcher or production output changed by this task.",
+      "evidence": "artifacts/ai-scroll-r134/dev-r7-core/dev-result.json",
+      "evidenceSha256": "6e295877ee0dcd9a33d6ad1679660198cb0b6a0e95943b8cf6ae85954986bb0a"
+    },
+    {
+      "observedAt": "2026-10-26T18:44:24.733801+00:00",
+      "scope": "dev only; daily Chrome normal Side Panel; no production acceptance",
+      "status": "INCOMPLETE_NATIVE_UI_BUSY",
+      "businessCodeChanged": false,
+      "candidate": {
+        "programId": "opendesk.ai-scroll-navigation",
+        "version": "0.4.6",
+        "revision": 7,
+        "file": "examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json",
+        "fileSha256": "104136d6942d6b7933a15d1a8df74b30856047135645dcf692d2be2bc57d0ef6",
+        "packageHash": "eb486ea2a9dc009c9ee37f68bdd5265977d63adbb58965f62a513898bae6880a",
+        "sourceHash": "487f655fb22184bedbde0450b7e6f542961aa76ecc78a806fd1e63b0190335e3"
+      },
+      "developmentEnvironment": {
+        "app": "/Users/shopme/Applications/Google Chrome.app",
+        "profileReadback": "您的 Chrome",
+        "extensionIdReadback": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "sidePanelHostInstanceId": "e7406f36-e120-43f5-b74e-076e73fccbff",
+        "normalToolbarOpen": "PASS",
+        "developTabOpen": "PASS",
+        "serveConnectionReadback": "开发服务已连接 · 构建指纹 d689f432f482；保存源码后自动安全更新。",
+        "serveBuildRevision": "d689f432f4827c58922537502eba3be1368efb4b1bfb071fa9781b000c1c32c4",
+        "expectedOutputPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "actualLoadedPath": "NOT_TESTED",
+        "watcherObservedPid": 71072,
+        "watcherChanged": false,
+        "demoServerObservedPid": 68658
+      },
+      "install": {
+        "previousRevision": 2,
+        "previousEnabled": false,
+        "originalInstallerImport": "PASS",
+        "updateReadback": "已更新网页增强「AI 对话滚动导航」v0.4.6；原有停用状态已保留。",
+        "revisionReadback": 7,
+        "installationId": "0f356e39-c6a2-4694-81e7-18ce3dbc2e1d",
+        "manifestHash": "84adb034fc1efeee3adb426aa7142e060949e97a7d2a9ba39a416c8395b4c0e3",
+        "sourceHashReadback": "487f655fb22184bedbde0450b7e6f542961aa76ecc78a806fd1e63b0190335e3",
+        "registrationId": "opendesk-page-boot-8bc2d7637524cfe8a97ab4a79a339d97f8c3de8e5418adf2",
+        "restoreReadback": {
+          "enabled": true,
+          "authorization": "active",
+          "chromeRegistration": "registered"
+        }
+      },
+      "localSiteReview": {
+        "origin": "http://127.0.0.1:43111",
+        "pathPrefix": "/demo-form.html",
+        "derivedVersion": "0.4.6+site.r1978225210",
+        "derivedRevision": 1978225210,
+        "prepared": "PASS",
+        "installerActualScope": [
+          "http://127.0.0.1:43111/demo-form.html",
+          "http://127.0.0.1:43111/demo-form.html?*",
+          "http://127.0.0.1:43111/demo-form.html/*"
+        ],
+        "confirmationOutcome": "NOT_CONFIRMED; native action rejected because app state changed; do not replay without reading original installation"
+      },
+      "blocker": {
+        "kind": "PARALLEL_NATIVE_UI_OWNERSHIP",
+        "owner": "01a17980-4fcc-78c3-bbf3-88d017f6756a",
+        "uiAcquireResult": "native UI busy; do independent work, retry after owner releases",
+        "mustNotSteal": true
+      },
+      "driverNotes": [
+        "Transferred old browser tab could not be claimed because still owned by source chat; created own new HTTP demo tab 560068654 instead.",
+        "Native normal toolbar Side Panel succeeded; did not retry rejected direct extension URL.",
+        "macOS Open dialog initially reported Open disabled, but selecting r7 file and Return imported it normally; no product source change justified.",
+        "UI lock was discovered as necessary on repeated app-state changes; no further native actions while another owner holds lock."
+      ],
+      "pending": [
+        "Read original installer/installation state after native UI is available; finish exact local-site review if still pending",
+        "Confirm actual daily loaded directory",
+        "Select main/scroller visually; test both directions; trusted save/readback and refresh",
+        "Click installed navigation top and bottom and verify actual scrolling",
+        "Disable cleanup and restore with saved config retained",
+        "Verify existing real ChatGPT conversation without sending messages; DeepSeek/Gemini require available existing content"
+      ],
+      "deferred": [
+        "production acceptance",
+        "publication",
+        "independent scores",
+        "width/zoom matrix",
+        "fault/edge matrix"
+      ],
+      "parallelProtection": "No source/shared build edits, no second writer, no service restarts, no external messages or composer changes. Only this program was upgraded/restored through original UI; local-site update outcome must be read before further action.",
+      "evidence": "artifacts/ai-scroll-r134/dev-r7-resume-20261027/dev-result.json",
+      "evidenceSha256": "d5b45ebc9a5081e93505a242548e894da094080ff07b8dd0cfcc7bbd742d41ed"
+    }
+  ]
 }

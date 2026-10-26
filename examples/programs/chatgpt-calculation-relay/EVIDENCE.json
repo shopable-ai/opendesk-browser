@@ -1,0 +1,365 @@
+{
+  "observedAt": "2026-10-26T17:28:20.596559+00:00",
+  "stage": "INSTALLED_CORE_CHROME_PASS_DEVELOPMENT",
+  "task": {
+    "taskId": "opendesk.chatgpt-calculation-relay",
+    "version": "0.2.0",
+    "sourceHash": "94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f",
+    "manifestHash": "7ff1c135adb86acfec36676be2eba4e30e56cf7673358a422a42c19fe78fba91",
+    "sourceBytes": 21636,
+    "permissions": [
+      "page.automation",
+      "storage.persistent"
+    ],
+    "deadlineMs": 120000,
+    "candidate": "release/0.2.0/program.opendesk-task.json",
+    "installedTaskId": "opendesk.chatgpt-calculation-relay",
+    "installedVersion": "0.2.0",
+    "runId": "2cb2f64e-5b52-4f48-9142-552ac9e7d470",
+    "resultId": "021c9f1e-869f-4f8f-ab53-f8cfb39fe6f2"
+  },
+  "build": {
+    "status": "BUILT_UNVERIFIED",
+    "command": "node scripts/build-program-project.mjs examples/programs/chatgpt-calculation-relay --mode production --out examples/programs/chatgpt-calculation-relay/release/0.2.0",
+    "repeatMemoryBuildSameBytes": true,
+    "rootToolchainLockSha256": "46dea0ff8bfd8a075eb190f3bf51ee9894051dd7e25079d5a9cb0190ef615561",
+    "node": "v24.16.0",
+    "sourceFiles": {
+      "package.json": "745dc3b9a2f01bf14bb2350686fd2bf2c11c059955fc18cb28872471ab5c9062",
+      "package-lock.json": "c4abe097eaa4649b85243ed5bc38fb1b03e28a3166a9f951f45049563674c507",
+      "src/contract.js": "70cbbbd89a00450410839c127a496566b4cb8132c33c992b34d82263d03d2938",
+      "src/conversation.js": "9beea495ecca5c887549bedc4e715f241d5a0a90235ea977bec8d76be00ee6e9",
+      "src/main.js": "b75e0280b033a19f6b1657c7402ca8cce765c7a2bee7c7b6bb1e74d293ea0011",
+      "src/relay.js": "58b2cee77308b0e696af7f8426cbf07c5eda20fa2b9eaac5c12a71e23a9f49bb",
+      "src/site.js": "44cee8c5c44aec5b80e68d4b3c905303196ce34e6d6657e1103afb1e5c234934"
+    },
+    "portableScan": {
+      "absoluteLocalPaths": false,
+      "temporaryTargetOrRegistration": false
+    }
+  },
+  "verification": {
+    "business": {
+      "status": "NODE_PASS",
+      "tests": 104,
+      "historicalRecordCompatibility": 6
+    },
+    "installedTaskPlatform": {
+      "status": "NODE_PASS",
+      "storageContractAndInstall": 38,
+      "resolver": 1,
+      "authority": 8
+    },
+    "nativeInvocation": {
+      "status": "NODE_PASS",
+      "tests": 91
+    },
+    "affectedDeadlineConsumers": {
+      "status": "NODE_PASS",
+      "cloud": 2,
+      "deadline": 1,
+      "scheduledAndTrial": 43
+    },
+    "ui": {
+      "status": "PARTIAL_NODE_PASS",
+      "passed": 195,
+      "total": 197,
+      "knownUnrelatedFailures": [
+        "idle My dock expectation at task-workbench.test.mjs:551",
+        "idle Scheduled dock expectation at task-workbench.test.mjs:1036"
+      ],
+      "classification": "Both expect idle Run footer; current HEAD already places Run in selected Task detail. Unchanged by this task."
+    },
+    "taskInstall": "CHROME_PASS",
+    "installedManualRuns": "CHROME_PASS_TWO_PARAMETER_GROUPS",
+    "providerDisconnectedRun": "CHROME_PASS_BUSINESS_SOURCE_DIRECTORY_ABSENT",
+    "installedOtherConsumerRun": "NATIVE_PASS_READ_ONLY_STATUS_AND_INSPECT",
+    "productionExtension": "NOT_TESTED",
+    "stopAndRevocationNative": "NOT_TESTED_THIS_CANDIDATE",
+    "nodeEvidenceFreshness": "Historical checks retained from 2026-10-26 candidate preparation; no product source changed during owner4 native verification; not rerun for documentation edits."
+  },
+  "priorEvidence": {
+    "scope": "R1.1 DEVELOPMENT_ONLY; distinct source bytes, not evidence for this Task candidate",
+    "sourceHash": "15f2a2e506962d258ec2c4b35c460f2cad09e98c8d76436fb470ada4437aea71",
+    "index": "../../../artifacts/chatgpt-relay-r11-resume-20261026/owner2-summary.json",
+    "preservedDraft": "Untouched in this task"
+  },
+  "blockers": [
+    {
+      "operation": "Optional Native task.list discovery",
+      "code": "GO_ALLOWLIST_GAP",
+      "blockingCurrentCore": false,
+      "detail": "Existing deployed Go task.list returned connection closed. Public installed-task run.start/run.get succeeded with actual installed identity. Go/Native pairing unchanged."
+    }
+  ],
+  "workspace": {
+    "branch": "main",
+    "observedHead": "26f121a0b71e7fe02447b77feed1e39a66d31e1c",
+    "agentCommitted": false,
+    "agentPushed": false,
+    "concurrentMainAdvanced": true,
+    "existingWatcherPreserved": true
+  },
+  "previousInstallationObservation": {
+    "observedAt": "2026-10-26T15:26:33.232Z",
+    "stage": "FIXED_CANDIDATE_NOT_INSTALLED",
+    "blockers": [
+      {
+        "operation": "Open trusted extension installation review",
+        "code": "BROWSER_POLICY_REJECTED",
+        "detail": "Automation refused chrome-extension URL and prohibited alternate-surface workarounds. Human trusted installation review still required."
+      },
+      {
+        "operation": "Discover installed Task through current Go Native",
+        "code": "E_EFFECT_UNKNOWN",
+        "detail": "doctor provider=opendesk connected true; task.list on both live Host registrations closed connection. No run or webpage action was dispatched. Exact Go/transport root cause not established.",
+        "evidence": "../../../artifacts/chatgpt-task-0.2.0-20261026/native-discovery.json"
+      }
+    ],
+    "runtimeVerification": {
+      "taskInstall": "NOT_TESTED",
+      "installedManualRuns": "NOT_TESTED",
+      "providerDisconnectedRun": "NOT_TESTED",
+      "installedOtherConsumerRun": "NOT_TESTED",
+      "productionExtension": "NOT_TESTED"
+    }
+  },
+  "installedRuns": [
+    {
+      "businessRunId": "relay-isolated-017",
+      "entry": "My native UI",
+      "params": {
+        "addend": 17,
+        "secondAddend": 25,
+        "multiplier": 3
+      },
+      "hostRunId": "f0f5c225-75f2-4172-951e-7c82aa8518a0",
+      "resultId": "12a03c4a-163e-4e0a-b24f-19a0d6fdabdd",
+      "state": "completed",
+      "sourceHash": "94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f",
+      "guiReceiptKind": "native-ui-observation-not-raw-host-receipt",
+      "independentReadback": {
+        "consumer": "public Native CLI installed-task run.start then run.get",
+        "runId": "172464d6-165c-4fd1-92c6-b4133831aa76",
+        "resultId": "b91f7472-4a15-448d-8472-24fef13d56fd",
+        "state": "completed",
+        "retirementState": "released",
+        "workerRetired": true,
+        "slotAvailable": true,
+        "rawReceipt": "../../../artifacts/chatgpt-task-0.2.0-20261026/owner4/relay-owner4-isolated17-status-result-2.json",
+        "request": "../../../artifacts/chatgpt-task-0.2.0-20261026/owner4/relay-owner4-isolated17-status-request.json",
+        "receiptSha256": "6b6a5b190c46adafd69f7f498d85d3cfb1c594d39505906934be7fe6ed8f3c0b"
+      },
+      "journalKey": "opendesk.chatgpt-calculation-relay.v1:relay-isolated-017",
+      "handoff": {
+        "fromConversation": "c/6adf83df-df98-83ec-aa0c-2b4964faa4a0",
+        "fromDocumentId": "10FD99B3B9847EDEAA04FE0FCA383D01",
+        "sourceJournalKey": "opendesk.chatgpt-calculation-relay.v1:relay-isolated-017",
+        "sourceStep": "A",
+        "state": "bound",
+        "toDocumentId": "9C74F3F6B56A9119730AEF5FA1B98D28"
+      },
+      "steps": {
+        "A": {
+          "assistantMessageId": "assistant:50851925-5ae8-45e1-b097-54574562fc8f",
+          "completedAt": 1793033205676,
+          "completionSignal": "official-turn-complete-or-copy-action; no-streaming; stable-twice",
+          "conversation": "c/6adf83df-df98-83ec-aa0c-2b4964faa4a0",
+          "documentId": "10FD99B3B9847EDEAA04FE0FCA383D01",
+          "raw": "{\"runId\":\"relay-isolated-017\",\"step\":\"A\",\"value\":42}",
+          "runId": "relay-isolated-017",
+          "step": "A",
+          "url": "https://chatgpt.com/c/6adf83df-df98-83ec-aa0c-2b4964faa4a0",
+          "userMessageId": "user:3b064eb7-f356-457d-9aa3-60a518fded77",
+          "value": 42
+        },
+        "B": {
+          "assistantMessageId": "assistant:b499122a-a00b-4319-9f6f-08b39b265db9",
+          "completedAt": 1793033219510,
+          "completionSignal": "official-turn-complete-or-copy-action; no-streaming; stable-twice",
+          "conversation": "c/6adf83fb-7ac0-83ee-a0a2-9b4ac02f1451",
+          "documentId": "9C74F3F6B56A9119730AEF5FA1B98D28",
+          "raw": "{\"runId\":\"relay-isolated-017\",\"step\":\"B\",\"value\":126}",
+          "runId": "relay-isolated-017",
+          "step": "B",
+          "url": "https://chatgpt.com/c/6adf83fb-7ac0-83ee-a0a2-9b4ac02f1451",
+          "userMessageId": "user:d7908fc0-bd4f-4a56-ab38-719b5cc39a6c",
+          "value": 126
+        }
+      }
+    },
+    {
+      "businessRunId": "relay-isolated-019",
+      "entry": "My native UI",
+      "params": {
+        "addend": 19,
+        "secondAddend": 25,
+        "multiplier": 3
+      },
+      "hostRunId": "2cb2f64e-5b52-4f48-9142-552ac9e7d470",
+      "resultId": "021c9f1e-869f-4f8f-ab53-f8cfb39fe6f2",
+      "state": "completed",
+      "sourceHash": "94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f",
+      "guiReceiptKind": "native-ui-observation-not-raw-host-receipt",
+      "independentReadback": {
+        "consumer": "public Native CLI installed-task run.start then run.get",
+        "runId": "6ab91e6e-3408-4381-96a6-0ca51284fc7b",
+        "resultId": "932ac97a-a71d-4f00-83fb-e04d0682e28d",
+        "state": "completed",
+        "retirementState": "released",
+        "workerRetired": true,
+        "slotAvailable": true,
+        "rawReceipt": "../../../artifacts/chatgpt-task-0.2.0-20261026/owner4/relay-owner4-isolated19-status-result-2.json",
+        "request": "../../../artifacts/chatgpt-task-0.2.0-20261026/owner4/relay-owner4-isolated19-status-request.json",
+        "receiptSha256": "9bae9fb3d60cc8085771b27ce9c79b227a7e10442911f525817a76c02e59de00"
+      },
+      "journalKey": "opendesk.chatgpt-calculation-relay.v1:relay-isolated-019",
+      "handoff": {
+        "fromConversation": "c/6adf8c92-6324-83ec-b6cc-cb247d4e810b",
+        "fromDocumentId": "9C74F3F6B56A9119730AEF5FA1B98D28",
+        "sourceJournalKey": "opendesk.chatgpt-calculation-relay.v1:relay-isolated-019",
+        "sourceStep": "A",
+        "state": "bound",
+        "toDocumentId": "DAB163CD440EA495E87E224F68E352F4"
+      },
+      "steps": {
+        "A": {
+          "assistantMessageId": "assistant:8b01f96e-5b3a-4061-8761-2921abf291c9",
+          "completedAt": 1793035423926,
+          "completionSignal": "official-turn-complete-or-copy-action; no-streaming; stable-twice",
+          "conversation": "c/6adf8c92-6324-83ec-b6cc-cb247d4e810b",
+          "documentId": "9C74F3F6B56A9119730AEF5FA1B98D28",
+          "raw": "{\"runId\":\"relay-isolated-019\",\"step\":\"A\",\"value\":44}",
+          "runId": "relay-isolated-019",
+          "step": "A",
+          "url": "https://chatgpt.com/c/6adf8c92-6324-83ec-b6cc-cb247d4e810b",
+          "userMessageId": "user:6dfe3c54-dbee-4e13-b51f-1bf827f16d06",
+          "value": 44
+        },
+        "B": {
+          "assistantMessageId": "assistant:32be12e5-d751-4ca6-9180-0ce2256abd9a",
+          "completedAt": 1793035439460,
+          "completionSignal": "official-turn-complete-or-copy-action; no-streaming; stable-twice",
+          "conversation": "c/6adf8ca7-4e68-83ee-9004-574362e14646",
+          "documentId": "DAB163CD440EA495E87E224F68E352F4",
+          "raw": "{\"runId\":\"relay-isolated-019\",\"step\":\"B\",\"value\":132}",
+          "runId": "relay-isolated-019",
+          "step": "B",
+          "url": "https://chatgpt.com/c/6adf8ca7-4e68-83ee-9004-574362e14646",
+          "userMessageId": "user:e5d9b888-4218-4797-b2fd-98fe20d27ea9",
+          "value": 132
+        }
+      }
+    }
+  ],
+  "runtime": {
+    "mode": "continuous development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "dist/development",
+    "existingWatcherPreserved": true,
+    "businessCodeUnchangedDuringNativeVerification": true,
+    "fixedReleaseUnchanged": true,
+    "noCommitOrPushByOwner4": true
+  },
+  "isolation": {
+    "status": "PASS",
+    "sourceDirectoryAbsentDuringBothMyRunsAndIndependentNativeReadbacks": true,
+    "sourceOfflineManifest": "../../../artifacts/chatgpt-task-0.2.0-20261026/owner4/source-offline-manifest.json",
+    "restoration": "../../../artifacts/chatgpt-task-0.2.0-20261026/owner4/source-restored.json",
+    "restoredFileCount": 20,
+    "providerBoundary": "Own development MCP had exited; no business project MCP process was observed. No claim that unrelated Providers were stopped. My/Native execute the installed fixed package without a project path or source in request."
+  },
+  "unknownRecovery": {
+    "originalFailure": {
+      "businessRunId": "relay-installed-001",
+      "hostRunId": "e734b57d-c958-410a-b762-3e6c62df26e6",
+      "resultId": "905d07b5-fd6b-44e4-8349-00853997169b",
+      "state": "failed",
+      "sourceHash": "94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f",
+      "documentId": "F7AAFA23C853F6723D244C571265E9B5"
+    },
+    "reconcile": {
+      "hostRunId": "136cec91-5f61-4bad-bc7c-4b493b398cc0",
+      "resultId": "9975d69c-b521-4728-bed0-fc9a3588b02b",
+      "state": "completed",
+      "B": 126,
+      "documentId": "697FEBC302E0203AAC256AA60F4B4421",
+      "sourceHash": "94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f"
+    },
+    "status": "CHROME_PASS_EXPLICIT_RECONCILE_NO_A_RESEND",
+    "businessRunId": "relay-installed-001",
+    "note": "A send confirmation exceeded the bounded wait; original same-document inspect found one complete A=42. Explicit same-run reconcile verified it and completed B=126. Precise network root cause not established.",
+    "independentReadback": "../../../artifacts/chatgpt-task-0.2.0-20261026/owner4/relay-owner4-reconciled-status-result-2.json"
+  },
+  "draftRestoration": {
+    "status": "NATIVE_AX_FULL_TEXT_MATCH",
+    "draftSha256": "e6753466a7aa4a03d06025b83a1611b2225899a4659768ee5effe6bfe61daf4a",
+    "unicodeCharacters": 175,
+    "jsCodeUnits": 178,
+    "dedicatedTabId": 560068615,
+    "originalProtectedTabId": 560068547,
+    "sent": false,
+    "incident": "Native input temporarily replaced original protected draft with 19; restored exact backup before any send. Dedicated homepage also restored exact full backup after both calculations.",
+    "verification": "Full native AX string includes exact backup; no page/native write API used. Additional Native inspect not admitted because bridge had multiple registered Hosts."
+  },
+  "evidenceArtifacts": {
+    "uiObservations": "../../../artifacts/chatgpt-task-0.2.0-20261026/owner4/ui-observations.json",
+    "note": "GUI IDs and draft restoration are native UI observations, not raw Host receipts. Native status JSON files are raw public CLI/Host responses; artifact directory is local ignored evidence."
+  },
+  "observableTestSession": {
+    "observedAt": "2026-10-26T17:52:07.723Z",
+    "status": "WAITING_NATIVE_UI_OWNER",
+    "requestedNewGroups": [
+      {
+        "runId": "relay-observable-023",
+        "addend": 23,
+        "secondAddend": 7,
+        "multiplier": 4,
+        "status": "NOT_STARTED",
+        "expectedOnly": {
+          "A": 30,
+          "B": 120
+        }
+      },
+      {
+        "runId": "relay-observable-031",
+        "addend": 31,
+        "secondAddend": 9,
+        "multiplier": 2,
+        "status": "NOT_STARTED",
+        "expectedOnly": {
+          "A": 40,
+          "B": 80
+        }
+      }
+    ],
+    "currentCoreBlocker": "Native UI lock owned by 01a17954-e900-7d92-992e-d369e1ca89c4. Do not steal; no native input until released.",
+    "installationReadback": {
+      "kind": "fresh public Native installed-task status, historical business data only",
+      "runId": "8877a469-08c5-4b74-83aa-975b6f43963e",
+      "resultId": "831216cf-d9ae-4ef5-8d0b-6802fb11a641",
+      "state": "completed",
+      "retirementState": "released",
+      "workerRetired": true,
+      "slotAvailable": true,
+      "businessRunId": "relay-isolated-019",
+      "businessStatus": "completed",
+      "needsReconciliation": false,
+      "sourceHash": "94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f",
+      "rawReceipt": "../../../artifacts/chatgpt-task-0.2.0-20261027/observable/relay-observable-baseline-result-2.json",
+      "decoded": "../../../artifacts/chatgpt-task-0.2.0-20261027/observable/relay-observable-baseline-decoded.json"
+    },
+    "environment": "../../../artifacts/chatgpt-task-0.2.0-20261027/observable/environment.json",
+    "frozenReleaseUnchanged": true,
+    "businessSourceChanged": false,
+    "newCalculationMessageSent": false,
+    "protectedDraftEdited": false,
+    "permissionQuestion": "Only dedicated inherited draft may be temporarily emptied after backup and restored; original protected tabs remain unedited.",
+    "nextAction": "After an explicit answer and stable correct window, run both groups from My, independent Native status, then same-run duplicate readback.",
+    "draftException": {
+      "approved": true,
+      "scope": "Only dedicated inherited copy; preserve original two protected tabs; restore exact full text after tests",
+      "answer": "允许仅清空专用副本，完成后恢复"
+    }
+  }
+}

@@ -2,6 +2,7 @@
 const ICON={send:'<path d="M12 19V5m-6 6 6-6 6 6"/>',
   now:'<path d="M12 19V5m-6 6 6-6 6 6M4 20h16"/>',
   edit:'<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z"/>',
+  status:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/>',
   remove:'<path d="M18 6 6 18M6 6l12 12"/>'};
 // Crown artwork is a declared, packaged transparent WebP (assets/queue.css).
 function element(doc,tag,cls,text){
@@ -17,6 +18,9 @@ function action(doc,what,label,id){
   const b=element(doc,'button','sq-action');b.type='button';b.dataset.action=what;
   if(id)b.dataset.id=id;b.setAttribute('aria-label',label);b.title=label;
   b.append(svg(doc,ICON[what]));return b;
+}
+function unknownMessage(state){
+  return '发送结果未知 · '+(state.reason||'请核对原对话')+'；队列不会自动重试';
 }
 function inline(host,width){
   const props={position:'relative',display:'block',top:'auto',right:'auto',
@@ -94,6 +98,13 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
           case 'edit':actions.edit(b.dataset.id);break;
           case 'remove':actions.remove(b.dataset.id);break;
           case 'more':engine.toggleExpanded();break;
+          case 'status':{
+            const state=engine.view();
+            if(state.items.some(item=>item.id===b.dataset.id&&item.state==='unknown')||
+              (state.inFlight?.id===b.dataset.id&&state.inFlight.phase==='unknown'))
+              toast(unknownMessage(state));
+            break;
+          }
         }
         e.stopPropagation();
       });
@@ -209,16 +220,23 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     const rows=element(doc,'div','sq-rows');rows.setAttribute('role','list');
     const shown=state.expanded?items:items.slice(0,3);
     for(const [i,item] of shown.entries()){
-      const row=element(doc,'div','sq-row'+(item.state==='unknown'?' sq-unknown':''));
+      const unknown=item.state==='unknown'||
+        (state.inFlight?.id===item.id&&state.inFlight.phase==='unknown');
+      const row=element(doc,'div','sq-row'+(unknown?' sq-unknown':''));
       row.setAttribute('role','listitem');row.dataset.idRow=item.id;row.tabIndex=0;
-      row.draggable=item.state!=='sending'&&item.state!=='unknown';
+      row.draggable=item.state!=='sending'&&!unknown;
       row.title='Alt + 上下方向键调整顺序';
-      row.append(element(doc,'span','sq-index',String(i+1)));
+      // Keep exceptional feedback with the affected message, never as a footer
+      // between the waiting list and the website's composer.
+      if(unknown){
+        const warning=action(doc,'status',unknownMessage(state),item.id);
+        warning.className='sq-action sq-index sq-warning';row.append(warning);
+      }else row.append(element(doc,'span','sq-index',String(i+1)));
       const text=element(doc,'span','sq-text',item.text);text.title=item.text;row.append(text);
       const ops=element(doc,'div','sq-ops');
       for(const [key,label] of [['now','强制发送'],['edit','取回输入框编辑'],['remove','删除']]){
         const b=action(doc,key,label,item.id);
-        if((item.state==='sending'||item.state==='unknown')&&key!=='remove')b.disabled=true;
+        if((item.state==='sending'||unknown)&&key!=='remove')b.disabled=true;
         ops.append(b);
       }
       row.append(ops);rows.append(row);
@@ -226,25 +244,12 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     root.append(rows);
     if(items.length>3){
       const more=element(doc,'button','sq-more',state.expanded?'收起队列':'展开其余 '+(items.length-3)+' 条');
-      more.type='button';more.dataset.action='more';more.setAttribute('aria-expanded',String(state.expanded));root.append(more);
-    }
-    {
-      const note=element(doc,'div','sq-note');
-      note.setAttribute('role','status');
-      const unknown=state.phase==='unknown'||items.some(item=>item.state==='unknown')||
-        state.inFlight?.phase==='unknown';
-      const flight=state.inFlight?.phase;
-      // Describe the actual fence, without a countdown or inferring completion.
-      const status=unknown?'发送结果未知 · '+(state.reason||'请核对原对话，队列不会自动重试'):
-        flight==='await-confirm'?'正在发送 · 等待官网确认消息入站':
-        flight==='await-stop'?'等待停止结果 · 尚未发送下一条':
-        flight?'正在准备发送 · 其余消息等待中':
-        state.answerGate?'':
-        '等待中 · '+(state.reason||'等待网页就绪');
-      if(status){
-        note.append(element(doc,'span','sq-note-text',status));
-        root.append(note);
+      if(!state.expanded&&items.slice(3).some(item=>item.state==='unknown'||
+        (state.inFlight?.id===item.id&&state.inFlight.phase==='unknown'))){
+        more.setAttribute('aria-label',more.textContent+' · '+unknownMessage(state));
+        more.title=unknownMessage(state);more.textContent='⚠ '+more.textContent;
       }
+      more.type='button';more.dataset.action='more';more.setAttribute('aria-expanded',String(state.expanded));root.append(more);
     }
     if(activeRow){
       const row=[...root.querySelectorAll('[data-id-row]')]

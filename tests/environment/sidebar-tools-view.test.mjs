@@ -131,6 +131,38 @@ test('SSR contains import, execution display and trusted reviews, with one owner
 });
 
 
+test('market review and success use one dialog with clear facts and no repeated permission review',()=>{
+  const view=createSidebarToolsView();
+  const details={version:'1.0.0',previousVersion:null,origin:'http://127.0.0.1:43132',
+    description:'<img src=x onerror=untrusted()>',capabilities:['应用本地存储'],addedCapabilities:['应用本地存储']};
+  view.setMarketInstall({review:{title:'安装计数器',phase:'review',busy:false,
+    message:'请确认安装版本、来源和权限。',details,summary:[],technical:['SHA-256：fixed'],
+    actions:[{id:'install',label:'确认安装'},{id:'cancel',label:'取消安装'}]}});
+  const render=()=>parseHTML(renderToStaticMarkup(React.createElement(ToolHost,{view}))).document;
+  let doc=render(),dialog=doc.querySelector('#sidebar-tool-import');
+  assert.equal(doc.querySelectorAll('#sidebar-tool-import').length,1);
+  assert.equal(dialog.getAttribute('role'),'dialog');
+  assert.equal(dialog.querySelector('dd:last-child').textContent,'v1.0.0');
+  assert.match(dialog.querySelector('.od-market-facts').textContent,/http:\/\/127.0.0.1:43132/);
+  assert.equal(dialog.querySelectorAll('[aria-label="申请权限"]').length,1);
+  assert.equal(dialog.querySelector('img'),null,'market description stays escaped');
+  assert.doesNotMatch(dialog.textContent,/本次新增/,'first install does not repeat the same permission list');
+  view.setMarketInstall({review:{...view.getSnapshot().market.review,
+    details:{...details,previousVersion:'0.9.0',addedCapabilities:[]}}});
+  assert.match(render().querySelector('#sidebar-tool-import').textContent,/已停用的应用更新后仍保持停用/);
+  view.setMarketInstall({review:{...view.getSnapshot().market.review,phase:'installed',
+    message:'已安装 v1.0.0，可以直接打开使用。',technical:[],
+    actions:[{id:'open',label:'打开使用'},{id:'done',label:'完成'}]}});
+  doc=render();dialog=doc.querySelector('#sidebar-tool-import');
+  assert.equal(doc.querySelectorAll('#sidebar-tool-import').length,1);
+  assert.equal(dialog.dataset.phase,'installed');
+  assert.equal(dialog.querySelector('[aria-label="申请权限"]'),null);
+  assert.equal(dialog.querySelector('.od-disclosure'),null);
+  assert.doesNotMatch(dialog.textContent,/确认安装|取消安装|关闭可稍后继续/);
+  assert.deepEqual([...dialog.querySelectorAll('.od-market-footer button')].map(node=>node.textContent),['打开使用','完成']);
+  view.dispose();
+});
+
 test('real React header uses plain escaped text with complete accessible context',()=>{
   const view=createSidebarToolsView();
   view.patch('sidebar-tool-display',{hidden:false});

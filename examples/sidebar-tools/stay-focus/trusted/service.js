@@ -79,7 +79,7 @@ export function createStayFocusService({api=globalThis.chrome,lockManager=global
          !Number.isInteger(sender.tab.id)||sender.tab.id<0||sender.tab.incognito||
          sender.frameId!==0||typeof sender.documentId!=='string'||!sender.documentId||
          sender.documentLifecycle&&sender.documentLifecycle!=='active'||
-         url.protocol!==market.protocol||url.host!==market.host||url.pathname!==market.pathname)
+         url.protocol!==market.protocol||url.host!==market.host||![market.pathname,'/ui/market-install.html'].includes(url.pathname))
         throw Error('invalid marketplace');
       // Same-document routing can leave sender.url with an earlier fragment.
       // Bind the live document first; only the fragment may differ.

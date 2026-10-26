@@ -1,5 +1,17 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
+## 当前 dev 测试（2026-10-27）
+
+**当前 dev 已通过 ChatGPT 实际滚动操作，本地适配核心流程尚未完成（`PARTIAL_CHATGPT_PASS_WAITING_NATIVE_WINDOW`）。** 此前已从日常「您的 Chrome」工具栏正常打开侧边栏并进入「开发」，未再出现 `ERR_FILE_NOT_FOUND`；「调试 → 本地开发服务」实读为已连接，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，构建指纹为 `d689f432f4827c58922537502eba3be1368efb4b1bfb071fa9781b000c1c32c4`。实际加载目录仍未从日常 Profile 详情读回，不能只凭预期 `dist/development` 路径认定。
+
+日常安装原为主动停用的 r2。本轮通过原「更新 / 导入新版」安装 **0.4.6 / r7**，读回源码 SHA-256 `487f655fb22184bedbde0450b7e6f542961aa76ecc78a806fd1e63b0190335e3`，安装身份 `0f356e39-c6a2-4694-81e7-18ce3dbc2e1d` 保持，升级保留停用；随后为本轮测试明确恢复，Authority 为 `active`、Chrome 注册为 `registered`。这不证明网页已实际导航。
+
+已通过详情准备本地 `http://127.0.0.1:43111`、路径前缀 `/demo-form.html` 的原安装器审阅候选（`0.4.6+site.r1978225210`）。确认点击遭遇原生窗口变更提示，尚无安装终态。发送队列释放 UI 锁后，本任务曾取得锁；但浏览器焦点与原生截图再次不一致，计算接力对话仍在原生操作。本任务停止原生输入并释放自己的锁，按用户要求继续等待，不发送协调消息。下一步先读取当前安装/审阅状态，再完成网站适配、可信保存刷新及停用清理和恢复，不重放结果未知的安装确认。
+
+在本任务独立日常 Chrome 窗口、既有 ChatGPT「技术验证准备確認」对话中，已实际点击整段对话顶部和底部：真实 `.thread-scroll-container` 的 `scrollTop` 分别落到 `0.5` 和 `7883.5`（最大值 `7884`），对应边界按钮停用；末条长回复回顶落到 `6734.5`，可见其首节。末条回复到底后可见末段，但定位器可能先把末尾工具栏滚入视口，不单独据此归因按钮处理函数的滚动距离。刷新后整段对话双按钮及网站适配入口自动恢复。未发送消息；本次未验证 DeepSeek/Gemini，也尚未重新读回当前安装精确版本与本地规则。
+
+本任务未改业务或公共构建源码，未启动第二个 writer、停止服务或发送网页消息；不为驱动焦点问题修改安装器。旧的内部 URL 拒绝和隔离 production 测试保留历史，不能代替当前 dev 通过。详见 [R134 台账的 `devContinuation`](../../../docs/framework/workstreams/ai-scroll-navigation-r134-delta.json) 与其中证据索引；production、正式发布、评分和边缘矩阵继续延期。
+
 ## R1.3.4 增量（2026-10-27）
 
 - 当前正式可导入包为 **0.4.6 / revision 7**，保留独立 Program ID `opendesk.ai-scroll-navigation`。后续历史章节不能代替本候选证据。
