@@ -50,7 +50,7 @@ test('title flexes into remaining width, child is preferred and fixed action hit
   const css=await read('src/ui/tool-shell.css');
   assert.match(css,/#sidebar-tool-title\{flex:1 1 0;min-width:0/);
   assert.match(css,/container:tool-title \/ inline-size/);
-  assert.match(css,/\.sidebar-tool-title-parent\{[^}]*text-overflow:ellipsis/);
+  assert.match(css,/\.sidebar-tool-title-parent\{flex:1 1 0;[^}]*text-overflow:ellipsis/);
   assert.match(css,/\.sidebar-tool-title-current\{[^}]*text-overflow:ellipsis/);
   assert.match(css,/@container tool-title \(max-width:100px\)/);
   assert.match(css,/@media\(max-width:240px\)\{\s*#sidebar-tool-title\{flex:1 1 calc/);

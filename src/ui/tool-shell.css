@@ -426,7 +426,7 @@
    the ellipsis only when text actually overflows; do not pre-truncate strings. */
 #sidebar-tool-title{flex:1 1 0;min-width:0;max-width:100%;container:tool-title / inline-size}
 #sidebar-tool-title .sidebar-tool-title-path{display:flex;align-items:baseline;width:100%;max-width:100%;min-width:0;overflow:hidden;white-space:nowrap}
-#sidebar-tool-title .sidebar-tool-title-parent{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sidebar-tool-title .sidebar-tool-title-parent{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #sidebar-tool-title .sidebar-tool-title-divider{flex:0 0 auto;margin-inline:2px;white-space:pre}
 #sidebar-tool-title .sidebar-tool-title-current{flex:0 1 auto;min-width:0;max-width:66%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Available TITLE width, not viewport width: many actions can leave very
