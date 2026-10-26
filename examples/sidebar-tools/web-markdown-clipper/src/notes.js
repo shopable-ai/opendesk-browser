@@ -123,9 +123,9 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
   const large=next&&bytes(next.body)>BODY_LIMIT;
   q('clip-save').disabled=!next||busy||Boolean(large);
   q('clip-save').title=large?'超过 160,000 字节，请下载完整 Markdown':'完整保存到我的摘录';
+  q('clip-save-explain').hidden=!large;
   q('clip-save-explain').textContent=large
-   ?'正文超过 160,000 字节，未截断；可下载完整 .md'
-   :'完整保存到本机「我的摘录」；也可以复制或下载 .md';
+   ?'正文超过 160,000 字节，未截断；请下载完整 .md 文件。':'';
  }
  function viewState(){
   const list=!editing&&!reading;
