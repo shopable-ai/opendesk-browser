@@ -4,23 +4,23 @@
 
 ## 一、开发用户路径
 
-1. 按现有 R5 开发通道构建扩展与网站，以真正生成的 `dist/app-market-public/catalog.json` 核对 Markdown 工作台发行版本和包摘要（源码 `examples/sidebar-tools/markdown-workbench/tool.config.json` 当前写有 `1.0.5`，但实际以本次构建的发行目录为准）。
+1. 按现有 R5 开发通道构建扩展与网站，以真正生成的 `dist/app-market-public/catalog.json` 核对 Markdown 工作台发行版本和包摘要（核查时 `examples/sidebar-tools/markdown-workbench/tool.config.json` 与正式 JSON 包已升级至 `1.0.6`；实际仍以本次构建的官方发行 Catalog、真实摘要为准，不能固定使用这份文档中的旧快照）。
 2. 打开 `http://127.0.0.1:43132/`，首页真实官方卡片有「安装到 OpenDesk」按钮。点击后，网页以已有 `opendesk.market.intent.v1` 的 `OPEN_INSTALL_REVIEW` 请求固定 `marketId + version`。
 3. OpenDesk 在已有后台路径校验受控 origin、tab/document/sender；在 `ui/marketplace.html?intent=...` 打开可信审阅。**网页“已打开审阅”不表示安装成功**。
 4. 用户在扩展可信页核对固定发行和所需能力、确认安装。**真正安装仍由 `installReviewedSidebarTool` 和原有 Installed Authority 负责**；然后从「扩展」中心看到已安装工具，打开 Markdown 工作台编辑/预览，复制或下载。
-5. 取消审阅或连接失败时不会偷偷安装；重复点击保留同一固定应用的交接身份，不创建第二套 installer。
+5. 取消审阅或连接失败时不会偷偷安装；重复点击在 30 分钟有效期内保留同一固定应用的交接身份；超过 TTL 的长期开启页面会生成新请求 ID，未决原事务仍由 R5 恢复机制保护，不创建第二套 installer。
 
 ## 二、唯一网页发现声明 v1
 
 发现合同：`opendesk.market.discovery.v1`。当前只支持顶层 HTML 的**一条** link 声明：
 
 ```html
-<link rel="opendesk-install" href="http://127.0.0.1:43132/install/opendesk/markdown-workbench/versions/1.0.5/">
+<link rel="opendesk-install" href="http://127.0.0.1:43132/install/opendesk/markdown-workbench/versions/1.0.6/">
 ```
 
 这是开发通道示例 URL，部署时必须替换为**当前正式构建通道中实际允许的 HTTPS Origin 和固定发行版本**；即使声明存在，仍以扩展内完整官方发行 Catalog 核验为准。普通网页本身不会获得 OpenDesk 外部消息特权。
 
-用户在普通网页保持顶层活动标签，打开 OpenDesk 侧边栏「扩展」→ 更多 →「检测当前网页可安装应用」；扩展在**用户主动点击时**使用现有 `currentPageTarget.capture/revalidate` 锁定所属窗口活动 tab/document，通过 `chrome.scripting.executeScript` 的 `ISOLATED` 世界只读 `link` 的 `rel`/`href`。若唯一声明指向**当前通道配置允许的**固定官方 Sidebar App 发行，则展示应用和版本，点击「打开可信审阅」进入扩展自己的固定版本详情，再由用户选择审阅安装。发现时没有安装、下载或授权。
+用户在普通网页保持顶层活动标签，打开 OpenDesk 侧边栏「扩展」→ 更多 →「检测当前网页可安装应用」；扩展在**用户主动点击时**使用现有 `currentPageTarget.capture/revalidate` 锁定所属窗口活动 tab/document，通过 `chrome.scripting.executeScript` 的 `ISOLATED` 世界只读 `link` 的 `rel`/`href`。**点击时即冻结文档身份（不等到异步加载 Catalog 才决定目标）；进入可信页前再次检查 DOM 声明、固定发行和文档身份**。若唯一声明指向**当前通道配置允许的**固定官方 Sidebar App 发行，则展示应用和版本，点击「打开可信审阅」进入扩展自己的固定版本详情，再由用户选择审阅安装。发现时没有安装、下载或授权。
 
 声明不支持 Page Program 自动转换、第三方任意包、脚本源、参数批准、安装清单读取、后台全站扫描、系统 URI handler。生产通道不完整时明确拒绝启用；开发 HTTP 仅受控 Loopback Origin（含端口）。
 
