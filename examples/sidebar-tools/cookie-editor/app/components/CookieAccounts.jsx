@@ -143,7 +143,7 @@ export function CookieAccounts({
     ['分享',()=>onShare?.(item),Boolean(onShare)],
     ['删除',()=>startInline('delete',item),Boolean(onDelete)]
   ].map(([label,action,available])=><button key={label} type="button"
-    role="menuitem" disabled={busy||!vaultReady||!available}
+    className="od-button od-button--quiet" role="menuitem" disabled={busy||!vaultReady||!available}
     onClick={()=>{
       setMenuId(null);
       trigger.current?.focus({preventScroll:true});
