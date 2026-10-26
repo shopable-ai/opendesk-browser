@@ -33,6 +33,19 @@ const dataUrl=(mime,bytes)=>'data:'+mime+';base64,'+base64(bytes);
 const htmlEscape=value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;')
   .replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
 const fail=message=>{throw Error('E_UI_PREVIEW: '+message);};
+// Legacy Knowledge Inbox still has its own scoped palette. Derive the forced
+// preview scheme from its exact packaged CSS, never from a second hand-drawn skin.
+function legacyPreviewPalette(tool,css,theme){
+  if(tool!=='knowledge-inbox')return '';
+  const light=css.match(/^:root\{([^}]*)\}/);
+  const dark=css.match(/@media\(prefers-color-scheme:dark\)\{\s*:root\{([^}]*)\}/);
+  if(!light||!dark)fail('Knowledge Inbox production light/dark palette is unavailable');
+  const declarations=theme==='dark'?dark[1]:light[1];
+  if(!declarations.includes('--ki-bg:')||!declarations.includes('--ki-ink:')||
+     /@import|url\s*\(|[{}]/i.test(declarations))
+    fail('Knowledge Inbox preview palette contains unsupported declarations');
+  return '\n:root{'+declarations+'}';
+}
 
 export async function generatePreview({
   tool='quick-notes',surface='side-panel',scenario='success',theme='light',
@@ -131,6 +144,7 @@ export async function generatePreview({
   }
   const {tokens,components,digest}=await officialDesignSources();
   const override=await canonicalThemeOverride(theme);
+  const legacyPalette=legacyPreviewPalette(tool,pkg.css,theme);
   const shell=await sidebarPreviewShellSource({tool});
   const tocOverlay=tool==='reading-toc'?await readingTocOverlayPreview({scenario}):null;
   const adblock=tool==='adblock'?await canonicalAdblockPreviewHost():null;
@@ -163,7 +177,7 @@ export async function generatePreview({
     ...(pkg.scripts||[]).map(script=>'<script src="'+dataUrl('text/javascript',script.code)+'"></script>'),
     // Shared UI installs canonical styles at runtime. Force the requested
     // preview theme after those styles, so it does not depend on the OS theme.
-    '<style>'+override+'</style>',
+    '<style>'+override+legacyPalette+'</style>',
     '<script src="'+dataUrl('text/javascript',pkg.js)+'"></script>',
     '</body></html>'
   ].join('');
