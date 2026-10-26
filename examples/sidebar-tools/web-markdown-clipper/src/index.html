@@ -18,7 +18,7 @@
  <symbol id="clip-i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 </svg>
 <header class="clip-head">
- <div class="clip-brand"><strong>网页剪藏</strong><span id="clip-site" aria-live="polite">当前网页</span></div>
+ <div class="clip-brand"><span id="clip-site" aria-live="polite">当前网页</span></div>
  <button type="button" id="clip-my-notes" class="clip-outline" hidden tabindex="-1" aria-hidden="true">我的摘录 · 0</button>
 </header>
 <section id="clip-home" aria-label="当前网页摘录">
@@ -30,7 +30,7 @@
  <button type="button" data-clip-mode="link" aria-pressed="false">链接</button>
 </div>
 <button type="button" id="clip-fetch" class="primary clip-fetch" aria-label="提取当前文章">提取当前文章</button>
-<p id="clip-selection-hint" class="clip-hint">也可在网页选中文字后，右键选择「保存选中内容到我的摘录」；完成安装审阅后即可使用；设置仅用于主动停用或恢复。</p>
+<details class="clip-context-help"><summary>如何保存选中文字？</summary><p id="clip-selection-hint" class="clip-hint">在网页选中文字后，也可右键选择「保存选中内容到我的摘录」。</p></details>
 <div class="clip-actions" role="toolbar" aria-label="显示方式">
  <button type="button" id="clip-show-preview" aria-pressed="true"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-eye"></use></svg>预览</button>
  <button type="button" id="clip-show-source" aria-pressed="false"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-code-2"></use></svg>Markdown</button>
@@ -49,7 +49,7 @@
  <button type="button" id="clip-copy" aria-label="复制 Markdown" title="复制到剪贴板"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-copy"></use></svg>复制</button>
  <button type="button" id="clip-download" aria-label="下载 Markdown" title="下载为本地 .md 文件"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-download"></use></svg>下载 .md</button>
 </div>
-<p id="clip-save-explain" class="clip-hint">保存留在浏览器；复制进入剪贴板；下载生成文件</p>
+<p id="clip-save-explain" class="clip-hint" hidden></p>
 <p id="clip-status" class="clip-status" role="status" aria-live="polite">选择文章提取，或先在网页中选中文字。</p>
 <section id="clip-recent" aria-labelledby="clip-recent-title">
  <div class="clip-recent-head">
@@ -74,7 +74,7 @@
   <label class="clip-filter-wrap"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-filter"></use></svg><select id="clip-kind-filter" aria-label="筛选摘录类型"><option value="all">全部</option><option value="clip">网页</option><option value="note">便签</option></select></label>
   <button type="button" id="clip-note-reload" class="clip-outline clip-icon-button" title="刷新摘录" aria-label="刷新摘录"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-refresh-cw"></use></svg></button>
  </div>
- <div class="clip-notes-meta" id="clip-notes-meta"><span id="clip-note-count">0 条已保存</span><button type="button" id="clip-note-backup" class="clip-link"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-archive"></use></svg>导出备份</button></div>
+ <div class="clip-notes-meta" id="clip-notes-meta"><span id="clip-note-count">0 条已保存</span><details class="clip-backup-menu"><summary aria-label="摘录管理">更多</summary><button type="button" id="clip-note-backup" class="clip-link"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-archive"></use></svg>导出备份</button></details></div>
  <section id="clip-note-editor" class="clip-note-editor" aria-label="编辑摘录" hidden>
   <div class="clip-editor-head">
    <button type="button" id="clip-note-editor-back" class="clip-outline clip-icon-button" aria-label="返回摘录" title="返回摘录"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-arrow-left"></use></svg></button>
