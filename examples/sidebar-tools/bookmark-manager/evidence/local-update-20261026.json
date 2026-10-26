@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-26",
+  "timezone": "Asia/Shanghai",
+  "scope": "Synchronize the current Bookmark Manager source, formal JSON and daily development official release",
+  "status": "PACKAGE_READY_INSTALL_NOT_TESTED",
+  "package": {
+    "path": "examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+    "version": "0.3.12",
+    "previousVersion": "0.3.11",
+    "changedFields": ["version", "css"],
+    "bytes": 88766,
+    "sha256": "06972e1420b0c43d8d0474fb91540bd5a405b96599861dabfb741587ee458383",
+    "capabilitiesChanged": false,
+    "trustedReactAdmissionVersion": "0.3.12",
+    "projectSourceCheck": "PROJECT_PACKAGE_MATCH"
+  },
+  "development": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "existingWatcherPidObserved": 76857,
+    "officialResourceByteEqual": true,
+    "catalogVersion": "0.3.12",
+    "browserClientConnection": "NOT_VERIFIED",
+    "loadedPathInChrome": "NOT_VERIFIED_THIS_RUN",
+    "extensionIdObservedInChrome": "ccfcjegpkdlgbclopjmadlcjedelidmf"
+  },
+  "automatedChecks": {
+    "packageUpdate": {"command": "npm run app:update -- bookmark-manager", "result": "PASS", "testsPassed": 7},
+    "trustedReact": {"files": ["bookmark-manager-r306-trusted-react.test.mjs", "bookmark-manager-r33-default-react.test.mjs"], "result": "PASS", "testsPassed": 6},
+    "projectPackage": "PASS",
+    "admissionSyntax": "PASS",
+    "scopedDiffWhitespace": "PASS"
+  },
+  "chrome": {
+    "observations": ["Existing daily Chrome extension list displayed 11 extensions", "Bookmark Manager opened the Classic sandbox and read the existing bookmark tree", "Existing Full Bookmarks approval was enabled", "Opened the current extension official marketplace through the existing UI"],
+    "installedVersion": "NOT_READ_THIS_RUN",
+    "updateResult": "NOT_COMPLETED",
+    "blocker": "Browser tool URL policy denied access to chrome-extension pages; no alternate surface, storage mutation or other workaround was used after rejection",
+    "nextOperation": "In the existing official marketplace, review and confirm Bookmark Manager 0.3.12 update, then verify installed version, provenance and normal React open"
+  },
+  "notTested": ["Actual 0.3.12 installation or permission renewal", "Updated Chrome React interface", "Bookmark writes", "Chrome restart persistence", "Production acceptance"]
+}
