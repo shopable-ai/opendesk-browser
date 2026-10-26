@@ -25,6 +25,19 @@ function topicTerms(question){
   }
   return [...terms];
 }
+// Subject families are a narrow negative filter, not a semantic assertion.
+// It prevents a shared everyday phrase from crossing refund / shipping /
+// invoice / installation policy boundaries. AI still requires explicit review.
+const subjectFamilies=[
+  {ask:/退款|退货/u,match:/退款|退货/u},
+  {ask:/发货|发出|寄出/u,match:/发货|发出|寄出/u},
+  {ask:/物流|快递/u,match:/物流|快递/u},
+  {ask:/上门|安装/u,match:/上门|安装/u},
+  {ask:/发票/u,match:/发票/u},
+  {ask:/保修|质保/u,match:/保修|质保/u},
+  {ask:/优惠券|折扣券/u,match:/优惠券|折扣券|张券/u},
+  {ask:/付款|支付|银行卡|钱包/u,match:/付款|支付|银行卡|钱包/u}
+];
 function sourceCandidates(library,question,scope,found){
   if(found.status==='ANSWERED_FIXED'||found.status==='AMBIGUOUS')return found;
   const terms=topicTerms(question);if(!terms.length)return {...found,status:'NO_MATCH',sourceIds:[]};
@@ -36,11 +49,12 @@ function sourceCandidates(library,question,scope,found){
   const scored=library.items.filter(x=>x.enabled&&x.scope===scope&&allowed.has(x.id)).map(x=>{
     const head=[x.question,...x.aliases].join(' ');
     const hits=terms.filter(t=>head.includes(t)).length;
+    const domainValid=subjectFamilies.every(f=>!f.ask.test(question)||f.match.test(head));
     const timeQuestion=/何时|什么时候|多久|几天|多少天|几点|多长时间/u.test(question);
     const evidenceTime=/何时|什么时候|多久|几天|多少天|小时|工作日|天内|日内|时长|周期|时效/u.test(head+' '+x.answer);
-    return {id:x.id,hits:timeQuestion&&!evidenceTime?0:hits,
+    return {id:x.id,hits:!domainValid||timeQuestion&&!evidenceTime?0:hits,
       prior:found.sourceIds.indexOf(x.id)};
-  }).filter(x=>x.hits>=Math.max(1,Math.ceil(terms.length*0.6))).sort((a,b)=>b.hits-a.hits||
+  }).filter(x=>x.hits>0).sort((a,b)=>b.hits-a.hits||
     (a.prior<0?999:a.prior)-(b.prior<0?999:b.prior)||a.id.localeCompare(b.id)).slice(0,3);
   return {status:scored.length?'RETRIEVED_ONLY':'NO_MATCH',answer:'',
     sourceIds:scored.map(x=>x.id),needsHuman:true,candidates:[]};
