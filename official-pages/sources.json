@@ -6,8 +6,8 @@
       "programId": "opendesk.ai-scroll-navigation",
       "project": "examples/programs/chatgpt-jump-top",
       "packageFile": "ai-scroll-navigation.opendesk-page.json",
-      "version": "0.4.0",
-      "revision": 1,
+      "version": "0.4.1",
+      "revision": 2,
       "title": "AI 对话滚动导航",
       "description": "ChatGPT、DeepSeek、Gemini 的长内容及对话导航。",
       "sites": [
@@ -17,7 +17,7 @@
       ],
       "installationPolicy": "reviewed",
       "publication": "blocked",
-      "blockedReason": "新 ID 0.4.0/r1 已有冻结候选的真实 Chrome 安装、三站范围审阅、注册读回、独立生命周期及 ChatGPT 当前长内容区域双向导航证据；DeepSeek、Gemini 真实内容导航仍未验证，官方目录暂不开放安装。"
+      "blockedReason": "0.4.1/r2 已通过正式构建和定向 Node 校验，但仍缺新包真实 Chrome/Mac 安装及 ChatGPT、DeepSeek、Gemini 三站长对话操作证据；官方目录继续阻断发行。"
     },
     {
       "programId": "opendesk.ai-reply-mindmap",
