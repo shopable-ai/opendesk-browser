@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline' file:; script-src 'unsafe-inline'; frame-src 'self' file:; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="od-preview-proof" content="UI_PREVIEW_ONLY">
+<title>OpenDesk Extension UI · R2.7 Source-Aligned Atlas</title>
+<link rel="stylesheet" href="../../../src/ui/design-tokens.css">
+<style>
+/* A read-only catalog shell. Canonical values are loaded from src/ui/design-tokens.css;
+   no host CSS/JS enters sandbox Tools and no second React root is created. */
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.5;color:var(--od-ink);background:var(--od-bg);color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:var(--od-bg);color:var(--od-ink)}
+button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+a{color:var(--od-accent-ink);overflow-wrap:anywhere}a:hover{text-decoration:none}
+[hidden]{display:none!important}
+h1,h2,h3,p{margin:0}h1{font-size:17px;line-height:1.4}h2{font-size:15px}h3{font-size:13px}
+small,.muted{color:var(--od-sub);font-size:12px}
+.wrapper{max-width:1440px;margin:auto;padding:16px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.07em;color:var(--od-sub)}
+.head p{color:var(--od-sub);margin-top:4px;font-size:12px}
+.proof{border:1px solid var(--od-line);padding:5px 9px;border-radius:999px;font-size:11px;color:var(--od-sub);background:var(--od-paper);white-space:nowrap}
+.layout{display:grid;grid-template-columns:218px minmax(0,1fr);gap:16px;align-items:start}
+.side{position:sticky;top:12px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:8px;display:grid;gap:3px}
+.nav{display:flex;width:100%;align-items:center;gap:9px;text-align:left;padding:10px;border:0;border-radius:var(--radius-control);color:var(--od-ink);background:transparent;min-height:40px}
+.nav:hover{background:var(--od-muted)}.nav[aria-selected=true]{background:var(--od-muted);font-weight:700;color:var(--od-accent-ink)}
+.num{display:grid;place-items:center;width:21px;height:21px;flex:none;border:1px solid var(--od-line);border-radius:6px;font-size:10px;color:var(--od-sub)}
+.aside-foot{border-top:1px solid var(--od-line);margin-top:6px;padding:12px 8px 6px;font-size:11px;color:var(--od-sub)}
+.content{min-width:0}.panel{display:grid;gap:12px;min-width:0}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.panel-head p{margin-top:3px;color:var(--od-sub);font-size:12px}
+.card{padding:12px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);min-width:0}
+.card h3{margin-bottom:9px}.card p{font-size:12px;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px}
+.tokens{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:9px}
+.token{border:1px solid var(--od-line);border-radius:var(--radius-control);overflow:hidden}
+.swatch{height:54px;background:var(--swatch,var(--od-paper));border-bottom:1px solid var(--od-line)}
+.token-info{padding:7px 9px;display:grid;gap:2px}.token-info code{font-size:11px;overflow-wrap:anywhere}.token-info small{font-size:10px}
+.spacing{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.spacing span{display:flex;align-items:center;gap:6px;font-size:12px}
+.spacing i{display:inline-block;height:15px;width:var(--sample);background:var(--od-brand);border-radius:2px}
+.radius{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.radius div{padding:15px;border:1px solid var(--od-line);background:var(--od-muted);font-size:12px}
+.radius .control{border-radius:var(--radius-control)}.radius .surface{border-radius:var(--radius-surface)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.bar label{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--od-sub)}
+select,input[type=search]{min-height:34px;border:1px solid var(--od-input-border);background:var(--od-paper);color:var(--od-ink);border-radius:var(--radius-control);padding:5px 8px;min-width:0}
+.bar select{width:auto}
+.frame-box{border:1px solid var(--od-line);background:var(--od-muted);border-radius:var(--radius-surface);padding:12px;overflow:auto;min-height:560px}
+.frame{display:block;flex:none;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);width:360px;height:770px;margin:0 auto;max-width:none}
+.full-frame{display:block;width:100%;min-height:780px;height:calc(100vh - 230px);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
+.note{border-left:3px solid var(--od-brand);padding:8px 12px;background:var(--od-muted);font-size:12px;border-radius:0 8px 8px 0}
+.source-table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}
+.source-table th,.source-table td{border-bottom:1px solid var(--od-line);padding:9px 6px;vertical-align:top;overflow-wrap:anywhere}
+.source-table th{font-weight:650;color:var(--od-sub);white-space:nowrap}
+.source-table td:first-child{font-weight:600}
+.source-table code{font-size:11px;word-break:break-all}
+.link-list{display:grid;gap:6px;font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--od-line);border-radius:999px;padding:5px 9px;font-size:11px;background:var(--od-paper)}
+.chip.shared{border-color:var(--od-brand);color:var(--od-accent-ink)}
+.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.action{border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);padding:7px 10px;min-height:34px}
+.action:hover{background:var(--od-muted)}
+.foot{font-size:11px;color:var(--od-sub);margin-top:16px;padding-top:10px;border-top:1px solid var(--od-line)}
+@media(max-width:740px){.wrapper{padding:10px}.layout{display:block}.side{position:static;display:flex;overflow:auto;margin-bottom:12px;gap:4px;scrollbar-width:thin}.nav{white-space:nowrap;width:auto;flex:none;padding:8px}.aside-foot{display:none}.full-frame{height:730px}.source-table th,.source-table td{padding:8px 4px}.source-table td:nth-child(3){max-width:170px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <header class="head">
+    <div><p class="eyebrow">OPENDESK · EXTENSION UI R2.7</p><h1>组件与布局规范图谱</h1><p>正式 React Showcase + 既有 R2.5 Pattern / R2.6 Business · 只读参考</p></div>
+    <span class="proof">UI_PREVIEW_ONLY · 浏览器验收 NOT_TESTED</span>
+  </header>
+  <div class="layout">
+    <nav class="side" role="tablist" aria-label="规范图谱入口" id="atlas-tabs" aria-orientation="vertical">
+      <button type="button" class="nav" data-tab="foundation" role="tab" id="tab-foundation" aria-selected="true" aria-controls="pane-foundation" tabindex="0"><span class="num">01</span>Foundation</button>
+      <button type="button" class="nav" data-tab="components" role="tab" id="tab-components" aria-selected="false" aria-controls="pane-components" tabindex="-1"><span class="num">02</span>Components</button>
+      <button type="button" class="nav" data-tab="patterns" role="tab" id="tab-patterns" aria-selected="false" aria-controls="pane-patterns" tabindex="-1"><span class="num">03</span>Patterns</button>
+      <button type="button" class="nav" data-tab="business" role="tab" id="tab-business" aria-selected="false" aria-controls="pane-business" tabindex="-1"><span class="num">04</span>Business</button>
+      <button type="button" class="nav" data-tab="source" role="tab" id="tab-source" aria-selected="false" aria-controls="pane-source" tabindex="-1"><span class="num">05</span>Source &amp; Proof</button>
+      <p class="aside-foot">五层图谱负责发现与溯源；不修改运行时组件、Tool 身份、SDK、Host、权限或安装流程。</p>
+    </nav>
+    <main class="content">
+      <section class="panel" id="pane-foundation" role="tabpanel" aria-labelledby="tab-foundation">
+        <div class="panel-head"><div><h2>Foundation · 唯一设计基础</h2><p>色彩、文字、间距、圆角来自正式 <code>src/ui/design-tokens.css</code>。</p></div></div>
+        <div class="card"><h3>语义色板（实时引用正式 CSS 变量）</h3>
+          <div class="tokens">
+            <div class="token"><div class="swatch" style="--swatch:var(--od-brand)"></div><div class="token-info"><strong>Brand</strong><code>--od-brand</code></div></div>
+            <div class="token"><div class="swatch" style="--swatch:var(--od-bg)"></div><div class="token-info"><strong>Background</strong><code>--od-bg</code></div></div>
+            <div class="token"><div class="swatch" style="--swatch:var(--od-paper)"></div><div class="token-info"><strong>Surface</strong><code>--od-paper</code></div></div>
+            <div class="token"><div class="swatch" style="--swatch:var(--od-line)"></div><div class="token-info"><strong>Border</strong><code>--od-line</code></div></div>
+            <div class="token"><div class="swatch" style="--swatch:var(--od-positive)"></div><div class="token-info"><strong>Success</strong><code>--od-positive</code></div></div>
+            <div class="token"><div class="swatch" style="--swatch:var(--od-negative)"></div><div class="token-info"><strong>Danger</strong><code>--od-negative</code></div></div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="card"><h3>Spacing · 4px 网格</h3><div class="spacing">
+            <span><i style="--sample:var(--space-1)"></i>4</span>
+            <span><i style="--sample:var(--space-2)"></i>8</span>
+            <span><i style="--sample:var(--space-3)"></i>12</span>
+            <span><i style="--sample:var(--space-4)"></i>16</span>
+          </div><p class="muted" style="margin-top:12px">页面只允许一个 gutter 负责人，避免 Card 套 Card。</p></div>
+          <div class="card"><h3>Radius</h3><div class="radius"><div class="control">Control · 8px</div><div class="surface">Surface · 12px</div></div></div>
+          <div class="card"><h3>Typography</h3><p><strong>13px · 正文与操作</strong></p><p class="muted">12px · 注释与辅助信息</p><p style="font-size:11px;color:var(--od-sub)">11px · 技术元数据，不承载主要错误修复说明</p></div>
+          <div class="card"><h3>Light / Dark</h3><p>正式 Tokens 定义系统深色调色板。真实 React 离线预览提供主题切换；请进入 Components 测试。这里不创建第二套主题状态源。</p></div>
+        </div>
+        <div class="note">源码：<a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-tokens.css">design-tokens.css</a> · <a target="_blank" rel="noopener noreferrer" href="https://github.com/shopable-ai/opendesk-browser/blob/main/src/ui/design-system.css">design-system.css</a>。独立 Tool iframe 不可直接继承宿主私有 stylesheet。</div>
+      </section>
+
+      <section class="panel" id="pane-components" role="tabpanel" aria-labelledby="tab-components" hidden>
+        <div class="panel-head"><div><h2>Components · 真实 React Showcase</h2><p>下方直接加载现有离线 React 编译产物，使用同一 React Root 的预览 Portal。</p></div></div>
+        <div class="card"><h3>正式共享组件与业务组合必须分开</h3><div class="chips">
+          <span class="chip shared">Button / IconButton · Shared React</span>
+          <span class="chip shared">Card / CardContent · Shared React</span>
+          <span class="chip shared">Switch · Shared React</span>
+          <span class="chip">Select / Input / Textarea · Host CSS + Native</span>
+          <span class="chip">Menu / Popover / Dialog / Radio / Checkbox · React Aria 演示</span>
+          <span class="chip">Tree / Import / Permission / Locale · 业务实例</span>
+        </div></div>
+        <div class="bar card"><div class="actions">
+          <label>宽度 <select id="component-width" aria-label="React 组件预览宽度"><option>320</option><option selected>360</option><option>400</option><option>440</option><option>960</option></select></label>
+          <label>主题 <select id="component-theme" aria-label="React 组件预览主题"><option value="light">浅色</option><option value="dark">深色</option></select></label>
+          <button type="button" class="action" id="reload-react">重新装载 React</button>
+        </div><span class="muted">状态仅影响本地预览；不访问 Host</span></div>
+        <div class="frame-box" id="react-frame-box">
+          <iframe id="real-react" class="frame" loading="lazy" title="真实 React Extension UI Showcase" src="../react-preview/index.html?tab=tools&amp;ui=showcase&amp;width=360&amp;theme=light"></iframe>
+        </div>
+        <div class="note"><strong>源码级真实 ≠ 原生验收。</strong> 该 iframe 为编译的 React Preview，不是安装中的工具，也不证明真实存储/权限/撤权。编译输入及产物哈希由原构建脚本负责。</div>
+      </section>
+
+      <section class="panel" id="pane-patterns" role="tabpanel" aria-labelledby="tab-patterns" hidden>
+        <div class="panel-head"><div><h2>Patterns · P01–P16</h2><p>复用 R2.5 已保存的布局/Group 互动参考，避免重复开发。</p></div><a href="r25-layout-patterns.html" target="_blank" rel="noopener noreferrer">独立打开 R2.5</a></div>
+        <div class="card"><h3>六类 Group</h3><div class="chips"><span class="chip">Page Header / Action</span><span class="chip">Settings</span><span class="chip">Form Field</span><span class="chip">Search / Filter</span><span class="chip">List / Detail</span><span class="chip">Feedback / Danger</span></div><p class="muted" style="margin-top:8px">这些是设计分组而非新建的组件 API；具体 16 Pattern 以原 R2.5 文档为准。</p></div>
+        <iframe class="full-frame" title="R2.5 Pattern 互动参考（非正式源码运行）" loading="lazy" src="r25-layout-patterns.html"></iframe>
+        <div class="note">CHAT_ADAPTER_NOT_SOURCE_HTML · 内存演示；源码映射见 <a href="r25-source-index.zh-CN.md" target="_blank" rel="noopener noreferrer">R2.5 Source Index</a>。</div>
+      </section>
+
+      <section class="panel" id="pane-business" role="tabpanel" aria-labelledby="tab-business" hidden>
+        <div class="panel-head"><div><h2>Business · 六类现有业务</h2><p>使用 R2.6 已完成的完整流程，不重做列表、编辑、导入或回退模拟。</p></div><a href="r26-business-layout-review.html" target="_blank" rel="noopener noreferrer">独立打开 R2.6</a></div>
+        <div class="chips"><span class="chip">扩展管理</span><span class="chip">Prompt Shortcuts</span><span class="chip">Bookmark Manager</span><span class="chip">Cookie Editor</span><span class="chip">开发</span><span class="chip">语言管理</span></div>
+        <iframe class="full-frame" title="R2.6 六类业务布局互动参考（内存模拟）" loading="lazy" src="r26-business-layout-review.html"></iframe>
+        <div class="note">CHAT_ADAPTER_NOT_SOURCE_HTML · 不连接真实安装、权限、持久化或业务代码。真实运行仍须从原工具及 Host 验收。</div>
+      </section>
+
+      <section class="panel" id="pane-source" role="tabpanel" aria-labelledby="tab-source" hidden>
+        <div class="panel-head"><div><h2>Source &amp; Proof · 代码归属</h2><p>严格区别共享组件、宿主原语、现有业务实例及模拟器控件。</p></div></div>
+        <div class="card">
+          <div class="bar"><label for="source-search"><strong>检索来源与能力</strong></label><div class="actions"><input type="search" id="source-search" placeholder="搜索 Button、Tree、Permission…"><button type="button" class="action" id="clear-source" aria-label="清除源码搜索">清除</button></div></div>
+          <div style="overflow-x:auto"><table class="source-table"><thead><tr><th scope="col">组件 / 能力</th><th scope="col">当前性质</th><th scope="col">真实源码入口</th></tr></thead><tbody id="source-rows">
+            <tr><td>Button / IconButton</td><td>SHARED_REACT</td><td><a href="../../../src/ui/react/components/ui/button.tsx">components/ui/button.tsx</a></td></tr>
+            <tr><td>Card / CardContent</td><td>SHARED_REACT</td><td><a href="../../../src/ui/react/components/ui/card.tsx">components/ui/card.tsx</a></td></tr>
+            <tr><td>Switch</td><td>SHARED_REACT · React Aria</td><td><a href="../../../src/ui/react/components/ui/switch.tsx">components/ui/switch.tsx</a></td></tr>
+            <tr><td>Toolbar / Surface / Alert / Field / InputGroup / Disclosure</td><td>HOST_CSS_PRIMITIVE</td><td><a href="../../../src/ui/design-system.css">design-system.css</a></td></tr>
+            <tr><td>Select / Input / Textarea</td><td>NATIVE_IN_HOST · NOT_SHARED_REACT</td><td><a href="../../../src/ui/react/preview/extension-ui-showcase.tsx">preview/extension-ui-showcase.tsx</a></td></tr>
+            <tr><td>Checkbox / Radio / Segmented</td><td>PREVIEW_REACT_ARIA · NOT_SHARED_COMPONENT</td><td><a href="../../../src/ui/react/preview/extension-ui-showcase.tsx">preview/extension-ui-showcase.tsx</a></td></tr>
+            <tr><td>Menu / Popover / Tooltip / Tabs</td><td>PREVIEW_REACT_ARIA · NOT_SHARED_COMPONENT</td><td><a href="../../../src/ui/react/preview/extension-ui-showcase.tsx">preview/extension-ui-showcase.tsx</a></td></tr>
+            <tr><td>Dialog / Confirmation</td><td>EXISTING_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/tools.tsx">tabs/tools.tsx</a></td></tr>
+            <tr><td>Search / List / Empty / Loading</td><td>EXISTING_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/tools.tsx">tabs/tools.tsx</a></td></tr>
+            <tr><td>Tree / Detail / Dirty Draft / Error</td><td>SANDBOX_TOOL_REACT</td><td><a href="../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx">bookmark-manager/App.jsx</a></td></tr>
+            <tr><td>Code Editor / Execution / Notice</td><td>TRUSTED_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/develop-editor.tsx">tabs/develop-editor.tsx</a></td></tr>
+            <tr><td>Import / Permission / Revoke</td><td>TRUSTED_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/tool-host.tsx">tabs/tool-host.tsx</a></td></tr>
+            <tr><td>Locale / Translation Pack</td><td>TRUSTED_BUSINESS_REACT</td><td><a href="../../../src/ui/react/tabs/locale-manager.tsx">tabs/locale-manager.tsx</a></td></tr>
+            <tr><td>Prompt Input &amp; Save</td><td>SANDBOX_TOOL_HTML</td><td><a href="../../../examples/sidebar-tools/prompt-shortcuts/src/index.html">prompt-shortcuts/index.html</a></td></tr>
+            <tr><td>Cookie Fields &amp; Sensitive Values</td><td>SANDBOX_TOOL_HTML</td><td><a href="../../../examples/sidebar-tools/cookie-editor/src/index.html">cookie-editor/index.html</a></td></tr>
+          </tbody></table></div><p id="source-count" role="status" aria-live="polite" class="muted" style="margin-top:9px">15 类来源映射</p>
+        </div>
+        <div class="grid">
+          <div class="card"><h3>HTML Tool</h3><p>使用本工具自己的 HTML/CSS/JS 和原 Browser SDK。可借鉴语义尺寸，但不能跨 iframe 继承 Host 私有 React/CSS/权限。</p></div>
+          <div class="card"><h3>React Tool</h3><p>只在现有工具的独立构建上下文中复用获准源码；不得创建第二个可信 React Root 或让动态 JSX 取得 Host 权限。</p></div>
+          <div class="card"><h3>Vue Tool</h3><p>继续使用工具的原编译器与安装包。迁移设计原则而非强制引入宿主组件、Tailwind Preflight 或额外 SDK。</p></div>
+        </div>
+        <div class="card"><h3>证据分类</h3><div class="chips"><span class="chip shared">SOURCE_VERIFIED · 本次路径逐一核查</span><span class="chip">BUILT_REACT_ARTIFACT_PRESENT</span><span class="chip">R2.5/R2.6 · ADAPTER_ONLY</span><span class="chip">CHROMIUM / MAC · NOT_TESTED</span><span class="chip">INSTALL / HOST / PERMISSION · NOT_TESTED</span></div>
+          <p class="muted" style="margin-top:9px">首次审计 main：<code>e72b3974e7c540c09821f6e83b234b57fb7e5f1f</code>。本页只提供链接与分级，不计算实时提交漂移，也不提升现有预览的测试等级。</p></div>
+        <div class="link-list card"><strong>权威规范与原始入口</strong>
+          <a href="../../../docs/architecture/ui-layout-conventions-r27.zh-CN.md">UI 布局规范 R27</a>
+          <a href="../../../docs/architecture/react-ui-shared-components-r33.zh-CN.md">统一 React Root 与沙箱边界 R33</a>
+          <a href="../../../docs/framework/extension-ui-layout-recipes-r25.zh-CN.md">R2.5 · 16 Pattern / 6 Group Recipe</a>
+          <a href="../react-preview/index.html?tab=tools&amp;ui=showcase&amp;width=360&amp;theme=light">正式 React Showcase 直接打开</a>
+        </div>
+      </section>
+    </main>
+  </div>
+  <p class="foot">R2.7 SOURCE-ALIGNED INDEX · 无新增 UI 库、Host、SDK、安装器、React Root。此页面加载仓库中的已有预览与权威 CSS；独立下载单个文件时请保留仓库相对资源路径。</p>
+</div>
+<script>
+(function(){
+  'use strict';
+  const nav=Array.from(document.querySelectorAll('.nav[data-tab]'));
+  const names=nav.map(function(x){return x.dataset.tab});
+  function activate(name,focus){
+    nav.forEach(function(btn){
+      const yes=btn.dataset.tab===name;
+      btn.setAttribute('aria-selected',String(yes));
+      btn.tabIndex=yes?0:-1;
+      document.getElementById('pane-'+btn.dataset.tab).hidden=!yes;
+      if(yes&&focus)btn.focus();
+    });
+  }
+  nav.forEach(function(btn){btn.addEventListener('click',function(){activate(btn.dataset.tab,false)})});
+  document.getElementById('atlas-tabs').addEventListener('keydown',function(e){
+    const i=names.findIndex(function(name){return document.getElementById('tab-'+name).getAttribute('aria-selected')==='true'});
+    let next=-1;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown')next=(i+1)%names.length;
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp')next=(i+names.length-1)%names.length;
+    if(e.key==='Home')next=0;
+    if(e.key==='End')next=names.length-1;
+    if(next<0)return;
+    e.preventDefault();activate(names[next],true);
+  });
+  const frame=document.getElementById('real-react');
+  const width=document.getElementById('component-width');
+  const theme=document.getElementById('component-theme');
+  function applyReact(){
+    frame.style.width=width.value+'px';
+    frame.src='../react-preview/index.html?'+new URLSearchParams({tab:'tools',ui:'showcase',width:width.value,theme:theme.value}).toString();
+  }
+  width.addEventListener('change',applyReact);theme.addEventListener('change',applyReact);
+  document.getElementById('reload-react').addEventListener('click',applyReact);
+  const query=document.getElementById('source-search');
+  const rows=Array.from(document.querySelectorAll('#source-rows tr'));
+  function filter(){
+    const q=query.value.trim().toLocaleLowerCase();
+    let count=0;
+    rows.forEach(function(row){const yes=row.textContent.toLocaleLowerCase().includes(q);row.hidden=!yes;if(yes)count++});
+    document.getElementById('source-count').textContent=count+' / '+rows.length+' 类来源映射';
+  }
+  query.addEventListener('input',filter);
+  document.getElementById('clear-source').addEventListener('click',function(){query.value='';filter();query.focus()});
+  filter();
+})();
+</script>
+</body>
+</html>
