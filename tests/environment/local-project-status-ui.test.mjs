@@ -893,6 +893,27 @@ test('catalogs without preparation metadata only read selected authorized source
   assert.match(f.find('local-project-diagnostics').textContent,/源码 SHA-256/);
   assert.equal((await f.view.resolve(f.view.capture())).sourceHash,sourceHash);
 });
+for(const runtimeKind of ['controller','page-userscript']){
+test(`catalog runtime omission uses verified source for parameter visibility: ${runtimeKind}`,async t=>{
+  const f=fixture(t,{connected:true});
+  f.setProjects([{...project,runtimeKind:undefined,preparation:undefined}]);
+  const sourceUtf8='async function main() { return 1; }',sourceHash=await sha256Utf8(sourceUtf8);
+  const prior=f.client.requestLocalProject;
+  f.client.requestLocalProject=async(method,params)=>method==='project.resolve'?
+    {bindingId:params.bindingId,providerEpoch:'epoch-a',runtimeKind,sourceUtf8,
+      sourceBytes:Buffer.byteLength(sourceUtf8),sourceHash,inputHash:'a'.repeat(64)}:prior(method,params);
+  await tick();
+  for(let n=0;n<20&&!f.view.readyForRun();n++)await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.view.readyForRun(),true);
+  assert.equal(f.find('local-project-params-tools').hidden,runtimeKind!=='controller');
+  assert.match(f.find('local-project-diagnostics').textContent,new RegExp(`（${runtimeKind}）`));
+  f.find('local-project-params').value='{"query":"OpenDesk Browser","limit":3}';
+  f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');
+  assert.equal(f.find('local-project-params-tools').hidden,true);
+  assert.equal(f.find('local-project-params').value,'{"query":"OpenDesk Browser","limit":3}');
+  assert.ok(!f.calls.includes('run.start'),'preparing parameters must not execute');
+});
+}
 test('bad background SHA is non-executable and prior project stays visible offline',async t=>{
   const f=fixture(t,{connected:true,saved:{bindingId:'local-a',name:'TOC',localMode:true}});
   f.setProjects([{...project,preparation:undefined}]);

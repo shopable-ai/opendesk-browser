@@ -94,6 +94,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
   function render(message){
     renderTools();
     const local=active(),row=selected(),preparation=row?.preparation,ready=readyForRun();
+    const runtimeKind=row?.runtimeKind||prepared?.runtimeKind;
     const identity=JSON.stringify([local,checking,connected,nativeConnected,epoch,selection,row,workspaces.length,row?.fileOnly?programsFor(row).length:null,diagnostic,last,preparationError?.code,nativeUpdateError?.code,backgroundError,prepared,workspaceOpenError,message]);
     if(identity===rendered)return;
     rendered=identity;
@@ -103,7 +104,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     if(heading)patchDeveloperField(view,heading,{textContent:local?'项目连接':'直接编辑'});
     patchDeveloperField(view,find('local-project-tools'),{hidden:!local});
     patchDeveloperField(view,find('manual-source-editor'),{hidden:local});
-    patchDeveloperField(view,find('local-project-params-tools'),{hidden:!local||row?.runtimeKind!=='controller'});
+    patchDeveloperField(view,find('local-project-params-tools'),{hidden:!local||runtimeKind!=='controller'});
     patchDeveloperField(view,find('manual-project-params-tools'),{hidden:local});
     patchDeveloperField(view,select,{disabled:checking||(!connected&&!workspaces.length)});
     patchDeveloperField(view,find('local-project-connect'),{textContent:row?.fileOnly?'打开文件工作区 ↗':'连接本机 OpenDesk ↗'});
@@ -136,7 +137,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       '源码 Provider：'+(connected?'已注册':'未就绪'),
       '本地测试网页：独立目标，未检测（127.0.0.1:43111）',
       epoch?'Provider Epoch：'+epoch:'',
-      row?'项目绑定：'+row.bindingId+'（'+(row.fileOnly?'文件工作区':row.runtimeKind)+'）':'',
+      row?'项目绑定：'+row.bindingId+'（'+(row.fileOnly?'文件工作区':runtimeKind||'待核验')+'）':'',
       diagnostic,
       backgroundError?(backgroundError.code||'E_DEV_SOURCE')+'：'+(backgroundError.message||'准备失败'):'',
       preparation?.error?(preparation.error.code||'E_DEV_SOURCE')+'：'+(preparation.error.message||'准备失败'):'',
