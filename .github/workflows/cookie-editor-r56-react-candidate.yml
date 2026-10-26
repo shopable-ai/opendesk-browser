@@ -163,9 +163,10 @@ jobs:
           if git diff --cached --quiet; then
             echo 'Exact build artifacts already checked in'; exit 0
           fi
+          release_version="$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/cookie-editor/tool.config.json','utf8')).version")"
           git -c user.name='OpenDesk Cookie CI' \
             -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'build(cookie-editor): promote tested 2.0.36 installable JSON and React preview'
+            commit -m "build(cookie-editor): promote tested ${release_version} installable JSON and React preview"
           # The WXT prerequisite regenerates this tracked *CI-only* audit receipt.
           # It is unrelated to the tested Cookie package and must never block a
           # safe non-destructive rebase or leak into the release commit.
