@@ -369,7 +369,7 @@
 .cookie-editor-react .cookie-account-inline-controls>.od-button{flex:0 0 auto}
 .cookie-editor-react .cookie-account-inline>p{margin:0;font-size:var(--od-note-size);overflow-wrap:anywhere}
 .cookie-editor-react .cookie-account-feedback{font-size:var(--od-note-size);line-height:1.5}
-.cookie-editor-react .cookie-account-feedback.is-error{color:var(--od-danger,#a63131)}
+.cookie-editor-react .cookie-account-feedback.is-error{color:var(--od-danger,var(--od-ink))}
 @media(max-width:360px){
   .cookie-editor-react .cookie-account-header{padding:var(--space-2)}
   .cookie-editor-react .cookie-account-content{padding:var(--space-2)}
