@@ -95,8 +95,13 @@ export async function generatePreview({
     // navigation buttons: this canonical Host shell has no clipper navigation bridge.
     const original=await readFile(new URL('../../examples/sidebar-tools/web-markdown-clipper/preview/mock-host.js',import.meta.url),'utf8');
     const bridge="  setNavigation({page}={}){post('navigation-state',{page});},";
-    if(!original.includes(bridge))fail('existing clipper mock navigation contract changed');
-    mock=Buffer.from(original.replace(bridge,'  // In-tool navigation remains active in this shell.'));
+    const fixture='if(!local.clips){';
+    if(!original.includes(bridge)||!original.includes(fixture))
+      fail('existing clipper mock navigation or fixture contract changed');
+    const source=original.replace(bridge,'  // In-tool navigation remains active in this shell.')
+      .replace(fixture,"if(!local.clips&&globalThis.__opendeskPreviewScenario!=='empty'){");
+    const faultLayer=await readFile(new URL('./web-markdown-clipper-scenario-mock.js',import.meta.url),'utf8');
+    mock=Buffer.from(source+'\n'+faultLayer);
     operations=['currentPage.info','clipNotes.list','clipNotes.get','clipNotes.save','clipNotes.edit',
       'clipNotes.remove','clipNotes.backup','browser.clipboard.writeText','browser.downloads.text'];
   }else if(tool==='knowledge-inbox'){
