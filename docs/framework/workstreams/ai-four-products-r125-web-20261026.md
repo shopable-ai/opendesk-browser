@@ -84,3 +84,13 @@ Scroll：R1.2.4 的 0.4.0/r1 新身份正式包不重建；历史 CI 收据 [402
 **唯一优先下一操作**：由 Send Queue 当前业务 owner 明确接收本节 P0 精确身份迁移合同，在 R5.1 及后续最新业务基础上交付新 ID 源码、独立正式 Page 包与定向 Node/CI 证据；Prompt 发行 owner 可按 P1 并行修复已证实的 provenance 及正式包差异。XMind 由资源许可权责方处理，不将审批问题交给 Mac Codex 用代码绕过。
 
 正式产品八维评分全部 `NOT_SCORED`：没有新四 ID 完整 Node/CI、原生安装及许可通过的同一候选证据；有效项 0/8，平均分不计算。静态实施质量和真实产品通过率必须分开。
+
+## 本轮提交的后续真实 CI 收据（非 Mac 原生验收）
+
+官方四产品定向工作流 [40275412022](https://github.com/shopable-ai/opendesk-browser/actions/runs/40275412022) 精确绑定本轮 blockedReason 提交 `9159c1116a3907852c144b9fc0071a0d08dc742c`：
+
+- `contract` job `121417011091` 为 success：`npm run pretest`、`node --test tests/environment/official-page-catalog-r124.test.mjs tests/environment/extension-center-official-pages-r124.test.mjs ...` 输出 **17 tests / 17 pass / 0 fail**；`node scripts/build-official-pages.mjs --out ...` 通过，blocked 目录没有开放安装。
+- `scroll-candidate` job `121417135615` 为 success：同一新 ID `0.4.0/r1`，sourceHash `7e7f8377447e176cf9fa3bed1848f9e6979af7143e10279ad1fc15bcbec5a9bd`，packageHash `7500942dc0c2115f80a14342ccabc1031f23b47e5ead7b71547f4842844a3d4a`；日志 `SCROLL_SOURCE_REBUILD_AND_FORMAL_PACKAGE_EQUAL 45511`。
+- 此回执仅证明**本次发行文案修复未破坏官方发现及 Scroll 同源正式包**，不证明 Queue 新身份、Prompt 1.1.19 晋升、XMind 许可或真实 Chrome 安装。其他流水线失败仍须按 owner/输入归因，不转借通过。
+
+后续另一个 Send Queue owner 提交 `596b4e53d8016e52543453f5e4883abb9a1d0161` 修改皇冠图片、CSS、预览及两项皇冠测试；新身份文件 `package.json` 仍为旧 ID，说明迁移 owner gate 继续生效。R1.2.5 仍未触碰此目录。
