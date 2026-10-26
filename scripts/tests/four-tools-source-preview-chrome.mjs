@@ -121,10 +121,18 @@ async function testMarkdown(ctx){
   document.querySelector('.mdw-modes [data-mode="preview"]')?.click();
   if(q('mdw-preview').querySelector('img,script'))throw Error('Unsafe Markdown generated active elements');
   if(!q('mdw-preview').textContent.includes('<img'))throw Error('Unsafe markup was not escaped');
+  const beforeTop=q('mdw-panes').getBoundingClientRect().top;
   q('mdw-clear').click();
   if(q('mdw-inline-review').hidden)throw Error('Clear confirmation was not displayed');
+  if(Math.abs(q('mdw-panes').getBoundingClientRect().top-beforeTop)>1)
+   throw Error('Clear confirmation caused editor layout shift');
   q('mdw-review-cancel').click();
   if(!ed.value.startsWith('# Heading'))throw Error('Cancel lost the draft');
+  if(document.activeElement!==q('mdw-clear'))throw Error('Cancel did not restore trigger focus');
+  q('mdw-clear').click();
+  q('mdw-inline-review').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  if(!q('mdw-inline-review').hidden||!ed.value.startsWith('# Heading'))
+   throw Error('Escape must close review without discarding draft');
   q('mdw-clear').click();q('mdw-review-confirm').click();
   await Promise.resolve();await Promise.resolve();
   if(ed.value||!q('mdw-clear').disabled)throw Error('Confirm did not clear/disable');
@@ -135,15 +143,21 @@ async function testMarkdown(ctx){
   if(q('mdw-inline-review').hidden)throw Error('Import replacement did not ask for confirmation');
   q('mdw-review-cancel').click();
   if(ed.value!=='# Keep')throw Error('Import cancel lost existing draft');
-  q('mdw-copy').click();await Promise.resolve();await Promise.resolve();
+  input.files=dt.files;input.dispatchEvent(new Event('change',{bubbles:true}));
+  if(q('mdw-inline-review').hidden)throw Error('Import replace confirm was not displayed');
+  q('mdw-review-confirm').click();
+  await new Promise(ok=>setTimeout(ok,120));
+  if(ed.value!=='# Replacement')throw Error('Confirmed Markdown import did not replace draft');
+  q('mdw-copy').click();await new Promise(ok=>setTimeout(ok,50));
   const copied=q('mdw-status').textContent;
   if(!copied.includes('已复制'))throw Error('Simulated copy did not respond');
-  q('mdw-download').click();await Promise.resolve();await Promise.resolve();
+  q('mdw-download').click();await new Promise(ok=>setTimeout(ok,50));
   const downloaded=q('mdw-status').textContent;
   if(!downloaded.includes('已发起下载')||!downloaded.includes('下载记录'))
    throw Error('Download feedback must not claim persisted file');
-  return {cancelPreserved:true,clearConfirmed:true,untrustedMarkupPassive:true,
-   importCancelPreserved:true,copySimulated:true,downloadSimulated:true};
+  return {cancelPreserved:true,focusRestored:true,escapeCancelled:true,layoutStable:true,
+   clearConfirmed:true,untrustedMarkupPassive:true,importCancelPreserved:true,
+   importConfirmed:true,copySimulated:true,downloadSimulated:true};
  }.toString()+')()';
  return evaluate(code,ctx);
 }
