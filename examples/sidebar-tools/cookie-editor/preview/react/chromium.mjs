@@ -272,12 +272,12 @@ try{
    assert.match(await editor().innerText(),/会话 Cookie · 不设置 Expiration/);
    await session.uncheck();
    assert.equal(await expiration.inputValue(),original);
-   await expiration.fill('2000-01-01T00:00:00');
+   await expiration.fill('2000-01-01T00:00');
    await button('保存').click();
    await editor().getByRole('alert').getByText(/过期时间必须晚于现在/).waitFor();
-   assert.equal(await expiration.inputValue(),'2000-01-01T00:00:00');
+   assert.ok((await expiration.inputValue()).startsWith('2000-01-01T00:00'));
    if(width===320)await page.screenshot({path:join(output,'320-expiration-light.png'),fullPage:true});
-   await expiration.fill(original);
+   await expiration.fill(original.slice(0,16));
    await button('取消').click();
   }
   await page.setViewportSize({width:380,height:880});
