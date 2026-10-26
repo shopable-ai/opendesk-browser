@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import {IconButton} from './ui/button.tsx';
+import {Switch} from './ui/switch.tsx';
 import {inferHttpsSource,isHttpsSource,httpsSourceConfigurationError} from '../../ai/provider-https-source.js';
 
 function focusableElements(panel){
@@ -11,11 +12,106 @@ function focusableElements(panel){
 const EMPTY_SETTINGS=Object.freeze({source:'local_codex',endpoint:'',model:'',hasApiKey:false,generation:0});
 const noSubscribe=()=>()=>{};
 
+function NativeConnectionCard({nativeConnection,onOpenNativeSettings,doc}){
+ const [status,setStatus]=React.useState(null);
+ const [loading,setLoading]=React.useState(Boolean(nativeConnection?.readStatus));
+ const [busy,setBusy]=React.useState(false);
+ const [error,setError]=React.useState('');
+ const generation=React.useRef(0);
+ const polls=React.useRef(0);
+ const refresh=React.useCallback(async()=>{
+  if(!nativeConnection?.readStatus)return null;
+  const ticket=++generation.current;
+  try{
+   const next=await nativeConnection.readStatus();
+   if(ticket===generation.current){setStatus(next);setLoading(false);}
+   return next;
+  }catch(ex){
+   if(ticket===generation.current){
+    setStatus(null);setLoading(false);
+    setError('连接状态读取失败：'+String(ex?.message||ex));
+   }
+   return null;
+  }
+ },[nativeConnection]);
+ React.useEffect(()=>{
+  polls.current=0;
+  void refresh();
+  const onReturn=()=>{if(doc?.hidden)return;polls.current=0;void refresh();};
+  const view=doc?.defaultView;
+  view?.addEventListener('focus',onReturn);
+  doc?.addEventListener('visibilitychange',onReturn);
+  return ()=>{
+   generation.current++;
+   view?.removeEventListener('focus',onReturn);
+   doc?.removeEventListener('visibilitychange',onReturn);
+  };
+ },[doc,refresh]);
+ React.useEffect(()=>{
+  if(!status?.connecting||busy||polls.current>=6)return;
+  const timer=setTimeout(()=>{polls.current++;void refresh();},650);
+  return ()=>clearTimeout(timer);
+ },[status,busy,refresh]);
+ const change=async selected=>{
+  if(busy||loading||!status||!nativeConnection?.setEnabled)return;
+  generation.current++;setBusy(true);setError('');
+  try{
+   // This call starts Chrome's optional permission prompt in the Switch gesture.
+   await nativeConnection.setEnabled(selected);
+   polls.current=0;
+   await refresh();
+  }catch(ex){
+   await refresh();
+   setError('本机连接未完成：'+String(ex?.message||ex));
+  }finally{setBusy(false);}
+ };
+ const title=!nativeConnection?.readStatus?'状态不可用':loading?'正在检测':
+  !status?'无法确认':!status.enabled?'未启用':status.nativeConnected?'已连接':
+  status.requiresReload?'需要重载':status.connecting?'正在连接':'已启用 · 当前离线';
+ const hint=!nativeConnection?.readStatus?'请打开本机设置检查连接。':
+  !status?'无法读取真实连接状态；没有自动重新授权。':
+  !status.enabled?'启用时才会申请本机连接权限。':
+  status.nativeConnected?'OpenDesk 已在线；Codex 能力在发送时再次核验。':
+  status.requiresReload?'浏览器需要重新加载扩展，开关已保持启用。':
+  status.connecting?'正在等待 OpenDesk 握手，请勿重复设置。':
+  '已保存启用设置，但当前未连接；请检查本机程序是否运行。';
+ return <div className="od-shared-provider-local-card">
+  <div className="od-shared-provider-local-main">
+   <div className="od-shared-provider-native-state">
+    <strong>OpenDesk 本机连接</strong>
+    <small role="status" aria-live="polite" data-state={status?.nativeConnected?'connected':
+      status?.enabled?'enabled':'off'}>{title}</small>
+   </div>
+   {nativeConnection?.setEnabled&&
+    <Switch aria-label="启用 OpenDesk 本机连接" isSelected={Boolean(status?.enabled)}
+     isDisabled={busy||loading||!status} onChange={value=>{void change(value);}}/>}
+  </div>
+  <p className="od-shared-provider-native-hint">{hint}</p>
+  <div className="od-shared-provider-local-footer">
+   {nativeConnection?.readStatus&&
+    <button type="button" className="od-button od-button--secondary"
+     disabled={busy||loading} onClick={()=>{polls.current=0;setError('');void refresh();}}>
+     重新检测
+    </button>}
+   {onOpenNativeSettings&&
+    <button type="button" className="od-button od-button--secondary"
+     onClick={event=>{
+      if(!event.nativeEvent?.isTrusted)return;
+      try{void Promise.resolve(onOpenNativeSettings()).catch(ex=>
+       setError('无法打开高级设置：'+String(ex?.message||ex)));}
+      catch(ex){setError('无法打开高级设置：'+String(ex?.message||ex));}
+     }}>高级设置</button>}
+  </div>
+  {error&&<p className="od-conversation-error" role="alert">{error}</p>}
+  <p className="od-shared-provider-native-note">连接开关即时生效；下方保存按钮只保存 AI 来源。</p>
+ </div>;
+}
+
 // ToolShell owns the sole Runtime; this is a presentational settings client,
 // rendered as a Portal of the existing trusted React root, never a second root.
 export function SharedProviderSettingsSheet({
  open=false,onClose,doc=globalThis.document,providerSettings=null,
- onOpenNativeSettings=null,children
+ onOpenNativeSettings=null,nativeConnection=null,children
 }){
  const panel=React.useRef(null);
  const snapshot=React.useSyncExternalStore(providerSettings?.subscribeSettings??noSubscribe,
@@ -201,19 +297,8 @@ export function SharedProviderSettingsSheet({
          }}/>
          清除现有会话密钥
         </label>}
-       </div>:<div className="od-shared-provider-local-card">
-        <div className="od-shared-provider-native-state">
-         <strong>本机 Codex</strong><small>连接状态请在本机设置查看</small>
-        </div>
-        {onOpenNativeSettings&&<button type="button" className="od-button od-button--secondary"
-         onClick={event=>{
-          if(!event.nativeEvent?.isTrusted)return;
-          try {
-           void Promise.resolve(onOpenNativeSettings()).catch(ex=>setError(
-            '无法打开本机连接设置：'+String(ex?.message||ex)));
-          }catch(ex){setError('无法打开本机连接设置：'+String(ex?.message||ex));}
-         }}>本机连接设置</button>}
-       </div>}
+       </div>:<NativeConnectionCard nativeConnection={nativeConnection}
+        onOpenNativeSettings={onOpenNativeSettings} doc={doc}/>
        <p className="od-shared-provider-permission-note">
         网页摘要仍需按本轮授权；切换 AI 来源不会扩大 Chrome 或本机权限，也不会自动重放业务操作。
        </p>
