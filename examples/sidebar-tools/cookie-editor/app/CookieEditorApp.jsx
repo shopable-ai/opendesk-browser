@@ -217,9 +217,11 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       if(action==='switch'){
         if(receipt?.switched!==true||receipt?.verified!==true)
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
-        setAccountNotice({kind:'success',text:receipt.reloadRequested
-          ?'已验证 Cookie 切换，正在刷新目标网页。'
-          :'已验证 Cookie 切换；自动刷新已关闭。'});
+        setAccountNotice({kind:'success',text:receipt.preview===true
+          ?'预览模拟：切换流程已返回虚构回执，未操作真实 Cookie。'
+          :receipt.reloadRequested
+            ?'已验证 Cookie 切换，正在刷新目标网页。'
+            :'已验证 Cookie 切换；自动刷新已关闭。'});
         if(!receipt.reloadRequested)void controller.load();
       }else if(action==='lock'){
         setAccountState(previous=>previous?{
@@ -231,7 +233,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         if(typeof receipt?.configured!=='boolean'||!Array.isArray(receipt.accounts))
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
         setAccountState(receipt);
-        setAccountNotice({kind:'success',text:success});
+        setAccountNotice({kind:'success',text:receipt.preview===true
+          ?'预览模拟：'+success+'（未写入真实账号）':success});
       }
     }).catch(error=>{
       if(controller.snapshot().target?.origin!==requestedOrigin)return;
@@ -569,6 +572,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           accountState?.unlocked===true}
         autoEnabled={accountState?.settings?.autoEnabled===true}
         autoRefresh={accountState?.settings?.autoRefresh!==false}
+        previewOnly={accountState?.preview===true}
         busy={accountBusy||locked} feedback={accountNotice}
         onUnlock={passphrase=>accountAction('unlock',{passphrase},'账号仓库已解锁。')}
         onLock={()=>accountAction('lock')}
