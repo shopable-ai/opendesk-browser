@@ -1,5 +1,15 @@
 # Bookmark Manager · 正式 React 与 Classic 兼容工具
 
+## R2.1 正式 React 业务子页与长标题（2026-10-26）
+
+**已修改实际业务代码**：`src/react/App.jsx` 使用新建的 `src/react/navigation.js`，将真实的新建/编辑书签或文件夹 Sheet 注册为宿主可返回的业务子视图，标题显示「书签管理 / 新建书签」「书签管理 / 编辑书签」等。共享顶部返回会调用原本的 `requestCloseSheet()`：正在保存时不能返回，草稿已修改或写入结果未知时显示原有确认；保存/关闭后回到「书签管理」。仅选择书签而出现的详情 PreviewPane、弹出菜单、文件夹选择与确认框**不**注册宿主子页。可信「设置」优先显示「书签管理 / 设置」，关闭设置仍回到当前编辑 Sheet，不擅自放弃草稿。
+
+标题采用原 `src/ui/react/tabs/tool-host.tsx` 标题位，`src/ui/tool-shell.css` 的 `flex:1 1 0; min-width:0` 自动使用两侧按钮之间的剩余空间，父扩展名与当前页名分段渲染；父名称先省略，标题可用宽度 ≤100px 时仅显示子页名称，右侧固定按钮不被压缩。只有极窄面板/200% 放大沿用既有 Header 自然换行；无新 Nav/面包屑栏。完整路径仍保留在标题的实际文本、ARIA 与悬浮提示中。
+
+**真实发行边界**：可信 React 业务源不是 `bookmark-manager.opendesk-tool.json` 动态沙箱 JS。此改动经原 `scripts/bundle-provenance.mjs` 的受审 Git Blob 锁批准并由 Browser 固定 React 入口编译，不改变原工具 ID、`0.3.11` JSON、书签权限、SDK、Host 写入操作或 Chrome 书签数据。旧版/非官方同 ID 包仍走原隔离沙箱，不接收可信页面回调。本轮仅执行源文件与回归合同核对，**Node 构建、同源码 Chromium/原生 Chrome 视觉与读写测试仍为 `NOT_TESTED`**；不得因源码提交而声称全部 95+ 验收通过。
+
+定向检查入口：`tests/environment/bookmark-manager-title-navigation-r1.test.mjs`、`sidebar-tool-header-title-r2.test.mjs`、`sidebar-tool-hierarchical-back-r12.test.mjs`，以及既有 `bookmark-manager-r32-formal-source.test.mjs` 的来源锁校验。
+
 ## 书签管理设置页标题与返回（2026-10-26）
 
 当前正式工具配置仍为 `0.3.11`。从书签管理右上角进入可信“设置”页时，宿主应在原有顶部一行显示 **「书签管理 / 设置」**；返回后恢复「书签管理」和先前的书签工作区，保留未保存草稿与现有权限。根页只显示应用名，不再增加 Nav。书签详情 PreviewPane、新建/编辑 Sheet 已有自身标题及关闭，它们不是新的宿主业务路由，不为了视觉标签改写返回栈。
