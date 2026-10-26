@@ -105,6 +105,11 @@ function meta(account){
 export function sameAccountAutoSwitchAttempt(prior,{url,alias,version}){
   return Boolean(prior&&prior.url===url&&prior.alias===alias&&prior.version===version);
 }
+// An unresolved automatic write also blocks DIFFERENT automatic account intents
+// in the same tab. A deliberate manual switch remains available for recovery.
+export function autoSwitchFenceBlocks(prior,target){
+  return prior?.phase==='in_flight'||sameAccountAutoSwitchAttempt(prior,target);
+}
 export function createCookieAccountService({api=globalThis.chrome}={}){
   const vault=createCookieAccountVault({api});
   const cookieDriver=createCookieService({api,authorize: async({url},context)=>{
@@ -415,7 +420,7 @@ export function createCookieAccountService({api=globalThis.chrome}={}){
         // A deliberate manual switch or changed account version can re-arm.
         const state=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
         const id=String(event.tabId),prior=state[id];
-        if(sameAccountAutoSwitchAttempt(prior,{
+        if(autoSwitchFenceBlocks(prior,{
           url:url.href,alias:account.alias,version:account.version
         }))return;
         const current=await vault.read();

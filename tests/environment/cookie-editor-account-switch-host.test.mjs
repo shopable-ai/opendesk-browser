@@ -4,7 +4,7 @@ import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,
   COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {planAccountCookieEffects,validateAccountCookieRow,
-  sameAccountAutoSwitchAttempt}
+  sameAccountAutoSwitchAttempt,autoSwitchFenceBlocks}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
 import {readFile} from 'node:fs/promises';
 
@@ -122,4 +122,14 @@ test('trusted cookie prefixes require exact Secure and HttpOnly properties',()=>
   assert.throws(()=>validateAccountCookieRow(
     original({name:'__Host-Http-auth',path:'/account'}),
     'example.com','0'),{code:'E_ACCOUNT_COOKIE_SCOPE'});
+});
+
+test('uncertain automatic Cookie effect blocks a different alias until manual recovery',()=>{
+  const prior={url:'https://example.com/#od-account=acct_one',
+    alias:'acct_one',version:1,phase:'in_flight'};
+  const target={url:'https://example.com/#od-account=acct_two',
+    alias:'acct_two',version:1};
+  assert.equal(autoSwitchFenceBlocks(prior,target),true);
+  assert.equal(autoSwitchFenceBlocks({...prior,phase:'applied'},target),false);
+  assert.equal(autoSwitchFenceBlocks(null,target),false);
 });
