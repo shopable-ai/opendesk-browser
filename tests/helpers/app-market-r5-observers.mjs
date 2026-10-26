@@ -34,6 +34,15 @@ import {exactBreakpointLocation,readFrame} from '../framework/b05-native-observe
 import {discoverMarketCutPoints,marketCallLocation} from './app-market-r5-cutpoints.mjs';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 const hash=value=>createHash('sha256').update(value).digest('hex');
+export function marketReadbackParent(point,frames){
+  const parent=point.readbackParent,frame=frames[1],top=frames[0];
+  const order=(a,b)=>a.lineNumber-b.lineNumber||a.columnNumber-b.columnNumber;
+  assert(parent&&frame&&top,'the real grouped readback caller must be on the paused stack');
+  assert.equal(frame.location.scriptId,top.location.scriptId,'same loaded installer script');
+  assert(order(frame.location,parent.location)>=0&&order(frame.location,parent.endLocation)<0,
+    'the immediate caller must be the source-bound Object.keys(updates).map call');
+  return frame;
+}
 const isFunction=node=>['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node?.type);
 export function marketSenderPoints(source){
   const entries=[];
@@ -209,7 +218,17 @@ export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=f
           (name==='A2'?',tab:'+point.tabExpression:'')+'})':name==='B'?
           '({operationId:'+point.operationIdExpression+',toolId:'+point.toolIdExpression+',registryKey:'+point.registryKeyExpression+',journalKey:'+point.journalKeyExpression+'})':
           '({key:'+point.keyExpression+',scope:'+point.scopeExpression+',failure:'+point.failureExpression+',next:'+point.nextExpression+',previous:'+point.previousExpression+'})';
-        const observation={at:new Date().toISOString(),location:frame.location,value:await readFrame(client,frame,expression)};
+        let value;
+        if(name==='C'&&!observeRegistryWrites&&point.readbackParent){
+          const parent=marketReadbackParent(point,event.params.callFrames);
+          const key=await readFrame(client,frame,point.keyExpression);
+          assert.equal(typeof key,'string','actual readback key');
+          const literal=JSON.stringify(key),bindings=point.readbackParent;
+          value={key,...await readFrame(client,parent,'({scope:'+point.scopeExpression+',failure:'+point.failureExpression+
+            ',next:'+bindings.updatesExpression+'['+literal+'],previous:'+bindings.priorExpression+'['+literal+']})')};
+          record.readbackCaller={location:parent.location,functionLocation:parent.functionLocation};
+        }else value=await readFrame(client,frame,expression);
+        const observation={at:new Date().toISOString(),location:frame.location,value};
         if(observeRegistryWrites)record.observations.push(observation);
         else {record.hit=observation;record.status='PAUSED_AT_EXACT_CALL';}
       }catch(error){failed=error;record.status='NOT_OBSERVED';record.errors.push({stage:'hit',message:error.message});}
@@ -267,7 +286,7 @@ export async function armMarketCut(d,name,{targetId=null,observeRegistryWrites=f
     record.armedContextUniqueId=context.uniqueId;
     record.status='ARMED';
   }catch(error){failed=error;record.status='NOT_OBSERVED';record.errors.push({stage:'arm',message:error.message});await dispose();throw error;}
-  async function wait(){return d.until(()=>{if(failed)throw failed;return record.hit;},'native exact interruption '+name);}
+  async function wait(){return waitForMarketCutOutcome(d.until,()=>{if(failed)throw failed;return record.hit;},'native exact interruption '+name);}
   async function terminate(){
     await wait();record.termination={requestedAt:new Date().toISOString(),requestedAtMs:Date.now(),afterSequence:eventSequence,
       method:isWorker?'ServiceWorker.stopWorker':'Target.closeTarget'};

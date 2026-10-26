@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
-import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE} from '../../src/reading-toc/policy.js';
+import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 
 // Extends the existing native Chrome driver. All product mutations use native input.
 export async function runR261Acceptance(d){

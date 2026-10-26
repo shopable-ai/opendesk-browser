@@ -1,0 +1,436 @@
+{
+  "schema": "opendesk.market.release-snapshot.v1",
+  "source": {
+    "kind": "official-builder",
+    "identity": "sha256:4fc6c8df69321c9bf9b5812c3e3a25d9a6770b54efdd998b97b196a657cf6926"
+  },
+  "catalog": {
+    "schema": "opendesk.official-tools.releases.v1",
+    "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
+    "apps": [
+      {
+        "id": "opendesk/ai-knowledge-answers",
+        "toolId": "ai-knowledge-answers",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "0.1.5",
+        "packageTitle": "AI 知识问答",
+        "description": "本地知识编辑、固定回答与来源检索；官方发行通过共享 AI 生成需人工审阅的知识答案。",
+        "capabilities": [
+          "storage.local",
+          "user.export"
+        ],
+        "packagePath": "official-tools/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json",
+        "bytes": 57380,
+        "sha256": "19b07522517e69ff275ecc86addeaee6fd57f729f9486f73ac96d67b82bb3e05"
+      },
+      {
+        "id": "opendesk/reading-toc",
+        "toolId": "reading-toc",
+        "kind": "sidebar-tool",
+        "installationPolicy": "preinstalled",
+        "version": "1.0.11",
+        "packageTitle": "阅读目录",
+        "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+        "capabilities": [
+          "page.toc"
+        ],
+        "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+        "bytes": 42146,
+        "sha256": "dcf2bafe89556b4ab4c39733519037e5f7437669a869d0f0c7d6cf60daba2ed4"
+      },
+      {
+        "id": "opendesk/web-markdown-clipper",
+        "toolId": "web-markdown-clipper",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.2.9",
+        "packageTitle": "网页剪藏",
+        "description": "网页全文剪藏与选区摘录；我的摘录支持长期本地保存、搜索、全文阅读和 Markdown 备份。",
+        "capabilities": [
+          "page.clip",
+          "user.export",
+          "storage.local",
+          "currentPage.read",
+          "browser.contextMenu"
+        ],
+        "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+        "bytes": 77161,
+        "sha256": "f5b47c36fbd88f2f59937ab5df7b921776fa5ffa6ca3f42bf8b1b5f55c8ef311"
+      },
+      {
+        "id": "opendesk/quick-notes",
+        "toolId": "quick-notes",
+        "kind": "sidebar-tool",
+        "installationPolicy": "preinstalled",
+        "version": "1.1.10",
+        "packageTitle": "网页笔记",
+        "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+        "capabilities": [
+          "storage.local",
+          "currentPage.read",
+          "tasks.open"
+        ],
+        "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+        "bytes": 35841,
+        "sha256": "502a73c8d9d8fd0161edc825d2895b68b9bdf12480b0f332a9817cf875befdbd"
+      },
+      {
+        "id": "opendesk/markdown-workbench",
+        "toolId": "markdown-workbench",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.6",
+        "packageTitle": "Markdown 工作台",
+        "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+        "capabilities": [
+          "user.export"
+        ],
+        "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+        "bytes": 31179,
+        "sha256": "1aed08cfd862d7affe56928f3698d05e61109b31d107a575e070c70a3214253b"
+      },
+      {
+        "id": "opendesk/knowledge-inbox",
+        "toolId": "knowledge-inbox",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.2.9",
+        "packageTitle": "知识收件箱",
+        "description": "保存 ChatGPT 回答，也可手动新建知识，整理标签、草稿并导出 Markdown。",
+        "capabilities": [
+          "page.capture",
+          "knowledge.store",
+          "user.export"
+        ],
+        "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+        "bytes": 67054,
+        "sha256": "e59629286e7de6e62f40451aba325b408dafe77071bd17126259cdc292780b66"
+      },
+      {
+        "id": "opendesk/time-review",
+        "toolId": "time-review",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.6.0",
+        "packageTitle": "Time Review · 时间回顾",
+        "description": "单独授权网站并主动开始后，在本机回顾前台非空闲网页时间；六分类、Canvas 分钟时间线、暂停与 JSON/CSV 导出。默认不上传。",
+        "capabilities": [
+          "time.review",
+          "user.export"
+        ],
+        "packagePath": "official-tools/time-review/time-review.opendesk-tool.json",
+        "bytes": 41548,
+        "sha256": "90f5029049ed4b2cadd69fa91c4efaefb45f031bd94c07e708c9f78d5f2776f6"
+      },
+      {
+        "id": "opendesk/stay-focus",
+        "toolId": "stay-focus",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.0.10",
+        "packageTitle": "Stay Focus · 保持专注",
+        "description": "本机娱乐限额、共享时间预算、工作时段和专注模式；由 Chrome 在得到独立授权后限制网站访问。",
+        "capabilities": [
+          "focus.control",
+          "currentPage.read"
+        ],
+        "packagePath": "official-tools/stay-focus/stay-focus.opendesk-tool.json",
+        "bytes": 28393,
+        "sha256": "be06660714b761e484d6e9c8bf195c0bbd8232804c016b6febca4f5b90c27ac0"
+      },
+      {
+        "id": "opendesk/adblock",
+        "toolId": "adblock",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.2.4",
+        "packageTitle": "广告拦截",
+        "description": "离线阻断广告与跟踪资源，支持网站例外、点击屏蔽网页元素和本地自动恢复。",
+        "capabilities": [
+          "adblock.control"
+        ],
+        "packagePath": "official-tools/adblock/adblock.opendesk-tool.json",
+        "bytes": 30489,
+        "sha256": "990810a35a35504014fe9b49d12f8073a33e619fb01822e0c057d03b3e085512"
+      },
+      {
+        "id": "opendesk/ai-vip-share",
+        "toolId": "ai-vip-share",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "1.4.1",
+        "packageTitle": "AI VIP Share",
+        "description": "AI VIP Share 激活码与指定网址激活，取得服务器分配的网站会话；经可信确认写入 Cookie 并打开目标网页。生产协议未配置。",
+        "capabilities": [
+          "storage.local",
+          "network",
+          "browser.tabs",
+          "browser.proxy.managed",
+          "browser.cookies.write",
+          "currentPage.read"
+        ],
+        "packagePath": "official-tools/ai-vip-share/ai-vip-share.opendesk-tool.json",
+        "bytes": 117620,
+        "sha256": "3571bdd79a8a51f074441484cb7950bec1a611d552a8d73ffc9ac7ab1dfb7025"
+      },
+      {
+        "id": "opendesk/cookie-editor",
+        "toolId": "cookie-editor",
+        "kind": "sidebar-tool",
+        "installationPolicy": "preinstalled",
+        "version": "2.0.39",
+        "packageTitle": "Cookie Editor · Cookie 管理",
+        "description": "Cookie Editor：管理已授权网站的 Cookie，支持原位编辑、导入导出与安全清理。",
+        "capabilities": [
+          "currentPage.read",
+          "user.export",
+          "browser.cookies.read",
+          "browser.cookies.values",
+          "browser.cookies.write",
+          "browser.cookies.observe",
+          "browser.cookies.clear"
+        ],
+        "packagePath": "official-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+        "bytes": 125893,
+        "sha256": "892887021f7135301bf40e171197f1352923e7339b4fd71489bcb1ee0e0c5202"
+      },
+      {
+        "id": "opendesk/bookmark-manager",
+        "toolId": "bookmark-manager",
+        "kind": "sidebar-tool",
+        "installationPolicy": "optional",
+        "version": "0.3.12",
+        "packageTitle": "书签管理",
+        "description": "独立 SDK 书签管理：请求单独的 Chrome 全部书签授权；修改和危险删除经可信界面确认。",
+        "capabilities": [
+          "browser.bookmarks.full",
+          "currentPage.read"
+        ],
+        "packagePath": "official-tools/bookmark-manager/bookmark-manager.opendesk-tool.json",
+        "bytes": 88766,
+        "sha256": "06972e1420b0c43d8d0474fb91540bd5a405b96599861dabfb741587ee458383"
+      },
+      {
+        "id": "opendesk/prompt-shortcuts",
+        "toolId": "prompt-shortcuts",
+        "kind": "sidebar-tool",
+        "installationPolicy": "preinstalled",
+        "version": "1.1.20",
+        "packageTitle": "提示词快捷按钮",
+        "description": "提示词快捷按钮：ChatGPT、DeepSeek、Gemini 对话页默认适配，保留草稿，只插入不发送；其他网站可自定义规则。",
+        "capabilities": [
+          "storage.local",
+          "user.export",
+          "page.prompts",
+          "browser.contextMenu"
+        ],
+        "packagePath": "official-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json",
+        "bytes": 143868,
+        "sha256": "e93e1bde0a9fb7953fafbba1f1a71266890706f412f47f6209389c7b4afbf5ef"
+      }
+    ]
+  },
+  "collections": [
+    {
+      "id": "reading-kit",
+      "revision": 10,
+      "title": "阅读与摘录",
+      "description": "阅读目录 1.0.11、网页剪藏 1.2.9 与网页笔记 1.1.10 的固定组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.11"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.2.9"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.10"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 9,
+      "title": "阅读与摘录",
+      "description": "阅读目录 1.0.10：当前受审官方版本；网页剪藏 1.0.1、网页笔记 1.1.9。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.10"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.1"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.9"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 8,
+      "title": "阅读与摘录",
+      "description": "阅读目录 1.0.9：主要章节名称和无障碍提示完善；网页剪藏 1.0.1、网页笔记 1.1.9。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.9"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.1"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.9"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 7,
+      "title": "阅读与摘录",
+      "description": "目录 1.0.8、新增 AI 会员与合作招募界面；网页剪藏 1.0.1、网页笔记 1.1.9。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.8"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.1"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.9"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 6,
+      "title": "阅读与摘录",
+      "description": "目录 1.0.7、网页剪藏 1.0.1 与网页笔记 1.1.9 的固定组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.7"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.1"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.9"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 5,
+      "title": "阅读与摘录",
+      "description": "目录、剪藏与网页笔记；包含网页剪藏 1.0.1 的固定组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.4"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.1"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.8"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 4,
+      "title": "阅读与摘录",
+      "description": "目录、剪藏与网页笔记；固定阅读目录 1.0.4 默认网站可用性的组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.4"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.0"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.8"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 3,
+      "title": "阅读与摘录",
+      "description": "目录、剪藏与网页笔记；包含网页笔记 1.1.8 窄屏修复的固定组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.3"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.0"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.8"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 2,
+      "title": "阅读与摘录",
+      "description": "目录、剪藏与网页笔记；2026-10-12 固定版本组合。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.3"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.0"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.6"
+        }
+      ]
+    },
+    {
+      "id": "reading-kit",
+      "revision": 1,
+      "title": "阅读与摘录",
+      "description": "从章节导航到剪藏，再把想法写进笔记。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.2"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.0"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.1"
+        }
+      ]
+    }
+  ]
+}

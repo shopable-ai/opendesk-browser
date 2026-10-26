@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {parseHTML} from 'linkedom';
 import {initMarketplace} from '../../src/marketplace/page.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
-import {MARKET_PROVENANCE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
+import {MARKET_PROVENANCE_STORE,TOOL_REVOCATION_EPOCHS_STORE,compareToolVersions} from '../../src/ui/sidebar-tools/installation.js';
 import {OFFICIAL_RELEASE_SCHEMA,OFFICIAL_SOURCE_REPOSITORY,officialPackagePath} from '../../src/sidebar-tools/official-catalog.js';
 
 const bytes=await readFile('examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json');
@@ -106,7 +106,10 @@ test('an installation changed after review cannot receive stale official provena
 });
 
 test('a newer installed version still rejects downgrade to the catalog release',async t=>{
-  const f=await fixture(t,{installed:{...tool,version:'0.3.12'}});
+  const [major,minor,patch]=tool.version.split('.').map(Number);
+  const newerVersion=[major,minor,patch+1].join('.');
+  assert.equal(compareToolVersions(newerVersion,tool.version),1,'fixture must be newer than the actual catalog release');
+  const f=await fixture(t,{installed:{...tool,version:newerVersion}});
   assert.equal(f.button('审阅官方来源'),undefined);
   f.button('审阅版本更新').click();
   await settle(()=>f.document.querySelector('[data-market-action="confirm-install"]'));

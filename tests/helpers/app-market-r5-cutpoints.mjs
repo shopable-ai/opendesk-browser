@@ -37,6 +37,30 @@ export function discoverMarketCutPoints(source,{required=['A1','A2','B','C'],reg
     endLocation:{lineNumber:node.loc.end.line-1,columnNumber:node.loc.end.column},breakpointType:'call',...bindings};};
   const wanted=new Set(required),result={};
   need(wanted.size===required.length&&required.length>0&&required.every(id=>['A1','A2','B','C'].includes(id)),'explicit unique required cuts');
+  // The installer commits package bytes and their generation in one local set.
+  // Bind that helper structurally; never substitute another scoped write.
+  const commitOwners=[...new Set(entries.filter(entry=>literal(entry.node,'工具安装及实例代际')).map(entry=>entry.owner))];
+  let commit=null;
+  if((wanted.has('B')||wanted.has('C'))&&commitOwners.length){
+    const fn=one(commitOwners,'package/generation commit helper');
+    const parent=index.get(fn)?.ancestors.at(-1);
+    need(fn?.async&&(fn.type==='FunctionDeclaration'&&fn.id?.name||fn.type==='FunctionExpression'&&parent?.type==='CallExpression'&&parent.callee===fn)&&
+      fn.params.length===7&&fn.params.every(node=>node.type==='Identifier'),'actual grouped commit parameters');
+    const [api,next,previous,nextEpochs,previousEpochs]=fn.params.map(node=>node.name);
+    const objectFor=(value,epoch,label)=>{
+      const declaration=one(own(fn,node=>node.type==='VariableDeclarator'&&node.init?.type==='ObjectExpression'&&
+        node.init.properties.some(prop=>prop.computed&&path(prop.value)===value)),label);
+      const props=declaration.init.properties;
+      need(declaration.id.type==='Identifier'&&props.length===4&&props.slice(0,2).every(prop=>prop.type==='Property'&&prop.computed&&prop.key.type==='Identifier')&&
+        path(props[0].value)===value&&path(props[1].value)===epoch&&props.slice(2).every(prop=>prop.type==='SpreadElement'),'package/generation '+label);
+      return {binding:declaration.id.name,registry:path(props[0].key),epochs:path(props[1].key)};
+    };
+    const updates=objectFor(next,nextEpochs,'updates'),prior=objectFor(previous,previousEpochs,'prior');
+    need(updates.registry===prior.registry&&updates.epochs===prior.epochs&&updates.registry!==updates.epochs,'same distinct package/generation keys');
+    const set=one(calls(fn,node=>path(node.callee)===api+'.storage.local.set'),'grouped registry submission');
+    awaited(set);need(set.arguments.length===1&&path(set.arguments[0])===updates.binding,'submit the exact grouped updates');
+    commit={fn,api,next,previous,updates,prior,set};
+  }
   if(wanted.has('A1')||wanted.has('A2')){
     const marker=ownerOfMarker('Missing created tab identity'),fn=need(marker.owner,'handoff function');
     const query=one(calls(fn,node=>path(node.callee)?.endsWith('.tabs.query')),'handoff tabs.query');
@@ -71,16 +95,21 @@ export function discoverMarketCutPoints(source,{required=['A1','A2','B','C'],reg
   }
   if(wanted.has('B')){
     const scopedCall=scope=>one(entries.filter(entry=>entry.node.type==='CallExpression'&&literal(entry.node.arguments.at(-1),scope)),scope+' writer');
-    const registry=scopedCall('工具安装记录'),journal=scopedCall('市场事务记录'),fn=registry.owner,writer=journal.owner;
+    const registry=commit?one(entries.filter(entry=>entry.node.type==='CallExpression'&&
+      (commit.fn.id?path(entry.node.callee)===commit.fn.id.name:entry.node.callee===commit.fn)),'grouped installer commit'):scopedCall('工具安装记录');
+    const journal=scopedCall('市场事务记录'),fn=registry.owner,writer=journal.owner;
     need(fn&&writer&&fn!==writer&&fn.async&&writer.async,'installer lock callback and journal closure');
     const declaration=one(entries.filter(entry=>entry.node.type==='VariableDeclarator'&&entry.node.init===writer),'bound installer journal closure');
     need(declaration.owner===fn&&declaration.node.id.type==='Identifier','journal is local to the same installer');const writeOp=declaration.node.id.name;
     const phaseCall=phase=>one(calls(fn,node=>node.callee.type==='Identifier'&&node.callee.name===writeOp&&node.arguments.length===1&&literal(node.arguments[0],phase)),'installer writeOp '+phase);
     const reviewed=phaseCall('reviewed'),committing=phaseCall('committing');
     [reviewed,committing,registry.node,journal.node].forEach(awaited);
-    need(registry.node.arguments.length===5&&journal.node.arguments.length===5&&registry.node.callee.type==='Identifier'&&journal.node.callee.type==='Identifier'&&registry.node.callee.name===journal.node.callee.name,'same verified storage writer');
+    need(journal.node.arguments.length===5&&journal.node.callee.type==='Identifier','verified journal writer');
+    need(registry.node.arguments.length===(commit?7:5)&&(registry.node.callee.type==='Identifier'||commit&&registry.node.callee===commit.fn)&&
+      (commit||registry.node.callee.name===journal.node.callee.name),'verified registry writer');
     need(registry.node.arguments.slice(0,2).every(node=>node.type==='Identifier')&&journal.node.arguments.slice(0,2).every(node=>node.type==='Identifier'),'actual API and store bindings');
-    need(registry.node.arguments[0].name===journal.node.arguments[0].name&&registry.node.arguments[1].name!==journal.node.arguments[1].name,'separate registry and journal stores');
+    const registryKey=commit?commit.updates.registry:registry.node.arguments[1].name;
+    need(registry.node.arguments[0].name===journal.node.arguments[0].name&&registryKey!==journal.node.arguments[1].name,'separate registry and journal stores');
     const commitProperties=index.get(fn).ancestors.filter(isFn).flatMap(parent=>parent.params.flatMap(param=>param.type==='ObjectPattern'?param.properties.filter(node=>key(node,'commitIntent')):[]));
     const commitProperty=one(commitProperties,'installer commitIntent parameter');
     const commitBinding=commitProperty.value.type==='AssignmentPattern'?commitProperty.value.left:commitProperty.value;
@@ -90,11 +119,38 @@ export function discoverMarketCutPoints(source,{required=['A1','A2','B','C'],reg
     const operation=one(own(writer,node=>node.type==='Property'&&node.computed&&path(node.key)?.endsWith('.operationId')),'journal operation identity').key;
     const toolId=one(own(writer,node=>key(node,'toolId')),'journal tool identity').value;
     need(unchain(operation).object.type==='Identifier'&&path(toolId)?.endsWith('.id'),'bound operation/tool identity');
-    result.B=point(reviewed,{apiExpression:registry.node.arguments[0].name,registryKeyExpression:registry.node.arguments[1].name,
-      journalKeyExpression:journal.node.arguments[1].name,writeOpExpression:writeOp,storageWriterExpression:registry.node.callee.name,
+    result.B=point(reviewed,{apiExpression:registry.node.arguments[0].name,registryKeyExpression:registryKey,
+      journalKeyExpression:journal.node.arguments[1].name,writeOpExpression:writeOp,storageWriterExpression:registry.node.callee.name??null,
       operationIdExpression:source.slice(operation.start,operation.end),toolIdExpression:source.slice(toolId.start,toolId.end)});
   }
-  if(wanted.has('C')){
+  if(wanted.has('C')&&commit){
+    const {fn,api,updates,prior,set}=commit;
+    const get=one(entries.filter(entry=>entry.node.type==='CallExpression'&&path(entry.node.callee)===api+'.storage.local.get'&&entry.ancestors.includes(fn)),'grouped registry readback').node;
+    const callback=index.get(get).owner;
+    need(callback?.type==='ArrowFunctionExpression'&&callback.params.length===1&&callback.params[0].type==='Identifier'&&callback.body===get,'direct per-key readback callback');
+    const store=callback.params[0].name;
+    need(get.arguments.length===1&&path(get.arguments[0])===store,'readback uses actual key');
+    const map=index.get(callback).ancestors.at(-1);
+    need(map?.type==='CallExpression'&&map.callee.type==='MemberExpression'&&!map.callee.computed&&name(map.callee.property)==='map'&&map.callee.object.type==='CallExpression'&&path(map.callee.object.callee)==='Object.keys'&&
+      map.callee.object.arguments.length===1&&path(map.callee.object.arguments[0])===updates.binding&&map.arguments.length===1,'read every submitted key');
+    const all=index.get(map).ancestors.at(-1);
+    need(path(all?.callee)==='Promise.all'&&all.arguments.length===1,'await all readbacks');awaited(all);
+    need(set.end<get.start,'submission before readback');
+    const failure=one(own(fn,node=>node.type==='VariableDeclarator'&&literal(node.init,null)),'commit failure binding').id;
+    need(failure.type==='Identifier','actual failure identifier');
+    if(result.B)need((fn.id?.name??null)===result.B.storageWriterExpression,'B and C use the same grouped commit');
+    const bindings={apiExpression:api,scopeExpression:JSON.stringify('工具安装及实例代际'),failureExpression:failure.name,helperExpression:fn.id?.name??null};
+    result.C=point(get,{...bindings,keyExpression:store,nextExpression:updates.binding+'['+store+']',previousExpression:prior.binding+'['+store+']'});
+    // The map callback captures only api. V8 need not expose the commit's
+    // other locals in that callback; observe them in its actual caller frame.
+    result.C.readbackParent={location:{lineNumber:map.loc.start.line-1,columnNumber:map.loc.start.column},
+      endLocation:{lineNumber:map.loc.end.line-1,columnNumber:map.loc.end.column},
+      updatesExpression:updates.binding,priorExpression:prior.binding};
+    result.C.submission=point(set,{...bindings,keyExpression:updates.registry,nextExpression:updates.binding+'['+updates.registry+']',previousExpression:prior.binding+'['+updates.registry+']'});
+    if(registryStoreKey!==undefined){need(typeof registryStoreKey==='string'&&registryStoreKey.length>0,'literal registry storage key');
+      result.C.condition=store+'==='+JSON.stringify(registryStoreKey);
+      result.C.submission.condition=updates.registry+'==='+JSON.stringify(registryStoreKey);}
+  }else if(wanted.has('C')){
     const returned=one(entries.filter(({node})=>{
       if(node.type!=='ReturnStatement'||node.argument?.type!=='ObjectExpression')return false;
       const properties=node.argument.properties,confirmed=properties.filter(node=>key(node,'confirmed')),ack=properties.filter(node=>key(node,'acknowledgementLost'));
@@ -104,7 +160,7 @@ export function discoverMarketCutPoints(source,{required=['A1','A2','B','C'],reg
     const scope=fn.params[4];need(scope.type==='AssignmentPattern'&&scope.left.type==='Identifier'&&literal(scope.right,'本地存储'),'actual scope parameter');
     const [api,store,next,previous]=fn.params.slice(0,4).map(node=>node.name),scopeName=scope.left.name;
     need(new Set([api,store,next,previous,scopeName]).size===5,'distinct writer bindings');
-    const set=one(calls(fn,node=>path(node.callee)===api+'.storage.local.set'),'verified local set'),get=one(calls(fn,node=>path(node.callee)===api+'.storage.local.get'),'verified local readback');
+    const set=one(calls(fn,node=>path(node.callee)===api+'.set'),'verified storage area set'),get=one(calls(fn,node=>path(node.callee)===api+'.get'),'verified storage area readback');
     awaited(set);awaited(get);
     need(set.arguments.length===1&&set.arguments[0].type==='ObjectExpression'&&set.arguments[0].properties.length===1,'single exact local write');
     const entry=set.arguments[0].properties[0];

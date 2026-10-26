@@ -20,16 +20,20 @@ import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey,serializeSidebarToolPackage} fr
 import {MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {MARKET_BATCH_STORE} from '../../src/marketplace/batch.js';
 import {OFFICIAL_COLLECTIONS} from '../../src/marketplace/catalog.js';
-import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
-import {TRUSTED_TIME_REVIEW_VERSION} from '../../src/time-review/trusted-admission.js';
-import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
+import {READING_TOC_SITE_STORE} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+import {TRUSTED_TIME_REVIEW_VERSION} from '../../examples/sidebar-tools/time-review/trusted/trusted-admission.js';
+import {CLIP_SITE_STORE} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 
 const chromeBinary=[process.env.CHROME_BIN,'google-chrome','chromium','google-chrome-stable']
   .filter(Boolean).find(exe=>spawnSync(exe,['--version'],{stdio:'ignore'}).status===0);
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const discoveryOnly=process.env.OPENDESK_NATIVE_MARKET_R61_DISCOVERY_ONLY==='1';
+const noChannelOnly=process.env.OPENDESK_NATIVE_MARKET_R61_NO_CHANNEL_ONLY==='1';
+assert(!discoveryOnly||process.env.OPENDESK_NATIVE_MARKET_R5==='1','discovery-only requires the R5 HTTP acceptance driver');
+assert(!noChannelOnly||process.env.OPENDESK_NATIVE_MARKET_R5!=='1','unconfigured production channel is a separate acceptance scope');
 const controls={'reading-toc':'#toc-list','web-markdown-clipper':'#clip-fetch',
-  'knowledge-inbox':'#ki-records','quick-notes':'#note-text','markdown-workbench':'#mdw-source','time-review':'#minute-canvas',
+  'knowledge-inbox':'#ki-records','quick-notes':'#add-note','markdown-workbench':'#mdw-source','time-review':'#minute-canvas',
   'cookie-editor':'#preview-banner','r45-local-tool':'#mdw-source'};
 const grantKeys=[READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE];
 function cdpSocket(url){
@@ -105,28 +109,30 @@ const website=label=>'<!doctype html><html lang="zh-CN"><meta charset="utf-8"><t
   '<article><h1>R45 '+label+' 阅读文章</h1><p>'+('这是一段仅用于隔离浏览器验收的本地文章，展示标题与正文，并没有远程网站数据。'.repeat(10))+'</p>'+
   '<h2>R45 授权边界</h2><p>'+('只有用户明确批准当前网站后，扩展才应读取本文。'.repeat(15))+'</p>'+
   '<h2>R45 持久选择</h2><p>'+('停用选择在关闭侧栏、重启浏览器和更新工具后都应保留。'.repeat(12))+'</p></article></html>';
-async function fixtureServer(label){
-  const server=createServer((_req,res)=>{res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(website(label));});
+async function fixtureServer(label,installHref=''){
+  const html=installHref?website(label).replace('<title>','<link rel="opendesk-install" href="'+installHref+'"><title>'):website(label);
+  const server=createServer((_req,res)=>{res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(html);});
   await new Promise((ok,fail)=>{server.once('error',fail);server.listen(0,'127.0.0.1',ok);});
   return {server,origin:'http://127.0.0.1:'+server.address().port};
 }
 
-test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrome: scoped real 30-minute expiry':process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1'?'R5 real HTTP Chrome: scoped natural Worker lifecycle':process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite external handoff, installation, use and recovery':process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail management and lifecycle':'R4.8 production Chrome: preinstalled and optional tools, permissions, updates, restart and uninstall',{timeout:process.env.OPENDESK_NATIVE_MARKET_R5==='1'&&process.env.OPENDESK_NATIVE_MARKET_R5_LONG==='1'?2700000:720000},async t=>{
+test(noChannelOnly?'R6.2 production Chrome: unconfigured channel has no webpage install entry':discoveryOnly?'R6.2 real HTTP Chrome: scoped ordinary webpage discovery and installation':process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrome: scoped real 30-minute expiry':process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1'?'R5 real HTTP Chrome: scoped natural Worker lifecycle':process.env.OPENDESK_NATIVE_MARKET_R5==='1'?'R5 real HTTP Chrome: finite external handoff, installation, use and recovery':process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail management and lifecycle':'R4.8 production Chrome: preinstalled and optional tools, permissions, updates, restart and uninstall',{timeout:process.env.OPENDESK_NATIVE_MARKET_R5==='1'&&process.env.OPENDESK_NATIVE_MARKET_R5_LONG==='1'?2700000:720000},async t=>{
   assert.ok(chromeBinary,'A real Chrome for Testing binary is required');
   const extension=await realpath(resolve(process.env.OPENDESK_NATIVE_EXTENSION_PATH||'dist/production'));
   const artifactDir=resolve(process.env.OPENDESK_NATIVE_ARTIFACT_DIR||'artifacts/app-market-r3');await mkdir(artifactDir,{recursive:true});
   const catalogBytes=await readFile(join(extension,OFFICIAL_CATALOG_PATH));
   const catalog=validateOfficialReleaseCatalog(JSON.parse(catalogBytes));
+  const sources=JSON.parse(await readFile(resolve('official-tools/catalog.json'),'utf8'));
   const packages=new Map();
   for(const row of catalog.apps){
     const bytes=await readFile(join(extension,row.packagePath));assert.equal(bytes.length,row.bytes);assert.equal(hash(bytes),row.sha256);
     packages.set(row.toolId,JSON.parse(bytes));
-    assert.equal(row.installationPolicy,['reading-toc','quick-notes','cookie-editor'].includes(row.toolId)?'preinstalled':'optional');
+    assert.equal(row.installationPolicy,sources.tools.find(source=>source.id===row.toolId)?.installationPolicy,
+      'candidate policy must match the audited source Catalog: '+row.toolId);
   }
   // Keep the whole trusted release set aligned with the actual source Catalog.
   // The UI control fixtures below deliberately exercise only their own products;
   // adding a new privileged tool must not silently grant it a native consent.
-  const sources=JSON.parse(await readFile(resolve('official-tools/catalog.json'),'utf8'));
   assert.deepEqual([...packages.keys()].sort(),sources.tools.map(row=>row.id).sort(),
     'candidate packages must exactly match the audited official tool sources');
   assert(Object.keys(controls).filter(id=>id!=='r45-local-tool').every(id=>packages.has(id)),
@@ -140,7 +146,8 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   assert.equal(buildReceipt.status,'passed');
   const fingerprint=await packageFingerprint(extension);assert.equal(fingerprint.packageHash,buildReceipt.report.packageHash);
   const profile=await realpath(await mkdtemp(join(tmpdir(),'opendesk-market-r45-'))),profileStat=await lstat(profile);
-  const servers=await Promise.all([fixtureServer('A'),fixtureServer('B')]);
+  const markdown=catalog.apps.find(row=>row.toolId==='markdown-workbench');
+  const servers=await Promise.all([fixtureServer('A',noChannelOnly?'http://127.0.0.1:43132/install/'+markdown.id+'/versions/'+markdown.version+'/':''),fixtureServer('B')]);
   const evidence={result:'IN_PROGRESS',commit:process.env.GITHUB_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),
     extensionPath:extension,packageHash:fingerprint.packageHash,catalogSha256:hash(catalogBytes),releases:catalog.apps,
     platform:process.platform,nodeVersion:process.version,consoleErrors:[],browserCleanupInterruptions:[],runtimeExceptions:[],runtimeExceptionRevocations:[],
@@ -311,7 +318,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   }
   const readStore=(key,target=side)=>evaluate(target,'chrome.storage.local.get('+JSON.stringify(key)+').then(x=>x['+JSON.stringify(key)+'])');
   const installed=async(target=side)=>(await readStore(SIDEBAR_TOOL_STORE,target))||[];
-  const action=(id,name)=>'button[data-extension-key="app:'+id+'"][data-extension-action="'+(name==='open'?'primary':name)+'"]';
+  const action=(id,name)=>'button[data-extension-key="app:'+id+'"][data-extension-action="'+(name==='open'?'main':name)+'"]';
   async function assertNoGrants(target=side){for(const key of grantKeys)assert.deepEqual((await readStore(key,target))||{},{});}
   async function assertNoFrames(){
     assert.equal(await evaluate(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
@@ -392,7 +399,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     const dialogsBefore=evidence.dialogs.length;
     await click(side,'#sidebar-tool-remove');await visible(side,'#sidebar-tool-inline-remove-confirm');
     await click(side,'#sidebar-tool-inline-remove-confirm');
-    await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-inline-remove").hidden'),
+    await until(()=>evaluate(side,'(()=>{const review=document.querySelector("#sidebar-tool-inline-remove");return !review||review.hidden;})()'),
       'native uninstall confirmation consumed '+id);
     await until(async()=>!(await installed()).some(row=>row.id===id),'uninstall '+id);
     await until(()=>evaluate(side,'(()=>{const b=document.querySelector('+JSON.stringify(action(id,'open'))+');return !b||b.textContent.trim()==="安装"})()'),'removed installed action '+id);
@@ -435,7 +442,7 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'closed review '+id);
     await assertNoFrames();await assertNoGrants();
   }
-  async function importPackage(pkg,name,plans=[],{reviewOnly=false}={}){
+  async function importPackage(pkg,name,plans=[],{reviewOnly=false,rejectedWith=null}={}){
     const file=join(profile,name+'.opendesk-tool.json');await writeFile(file,serializeSidebarToolPackage(pkg));
     if(await evaluate(side,'document.querySelector("#extension-center-menu").hidden'))
       await click(side,'#extension-center-more');
@@ -449,7 +456,14 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     const reviewText=await evaluate(side,'document.querySelector("#sidebar-tool-preview").textContent');
     for(const plan of plans)for(const part of plan.parts)assert(reviewText.includes(part),'inline import review explains '+part);
     const dialogsBefore=evidence.dialogs.length;
+    const rejectedBaseline=rejectedWith?{registry:await installed(),provenance:await readStore(MARKET_PROVENANCE_STORE)}:null;
     await click(side,'#sidebar-tool-install');
+    if(rejectedWith){
+      await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-file-error")?.textContent.includes('+JSON.stringify(rejectedWith)+')'),'local package rejected: '+rejectedWith);
+      assert.deepEqual(await installed(),rejectedBaseline.registry);
+      assert.deepEqual(await readStore(MARKET_PROVENANCE_STORE),rejectedBaseline.provenance);
+      await click(side,'#sidebar-tool-import-close');return;
+    }
     await until(async()=>(await installed()).some(row=>row.id===pkg.id&&row.version===pkg.version),'local package committed');
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'local review closed');
     assert.equal(evidence.dialogs.length,dialogsBefore,'local import uses one visible review');
@@ -475,12 +489,12 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   await launch();side=await openPanel();await phase('fresh-preinstalled-state');
   const defaultIds=catalog.apps.filter(row=>row.installationPolicy==='preinstalled').map(row=>row.toolId);
   await until(async()=>JSON.stringify((await installed()).map(row=>row.id))===JSON.stringify(defaultIds),'trusted first-install defaults');
-  assert.deepEqual(defaultIds,['reading-toc','quick-notes','cookie-editor']);await assertNoGrants();await assertNoFrames();
+  assert.deepEqual(defaultIds,sources.tools.filter(row=>row.installationPolicy==='preinstalled').map(row=>row.id));await assertNoGrants();await assertNoFrames();
   assert.equal(await evaluate(side,'document.querySelectorAll("#extension-center-list li[data-extension-id]").length'),defaultIds.length);
   assert.equal(await evaluate(side,'document.querySelector("#extension-center-list-view").hidden'),false,'unified list is the default');
   await click(side,'#extension-center-more');
   await click(side,'#extension-center-menu [data-ec-scope="available"]');
-  assert.equal(await evaluate(side,'document.querySelectorAll("#extension-center-list li[data-extension-id]").length'),catalog.apps.length-defaultIds.length);
+  assert.equal(await evaluate(side,'[...document.querySelectorAll("#extension-center-list li[data-extension-id]")].filter(row=>row.dataset.extensionId.startsWith("app:")).length'),catalog.apps.length-defaultIds.length);
   await click(side,'#extension-center-more');
   await click(side,'#extension-center-more');
   await click(side,'#extension-center-menu [data-ec-scope="smart"]');
@@ -493,6 +507,30 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   for(const page of [pageA,pageB])await until(()=>evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'default HTTP TOC is available without a positive grant');
   await screenshot(side,'r48-fresh-preinstalled.png');
 
+  if(noChannelOnly){
+    assert.equal(buildMode,'production');
+    const channel=JSON.parse(await readFile(join(extension,'marketplace/channel.json')));
+    assert.equal(channel.enabled,false,'production must not inherit development HTTP trust');
+    const before=await installed(),provenance=await readStore(MARKET_PROVENANCE_STORE);
+    await activate(pageA);
+    await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent==='+JSON.stringify(servers[0].origin+'/article')),'production current ordinary page');
+    assert.equal(await evaluate(pageA,'document.querySelectorAll("link[rel=opendesk-install]").length'),1);
+    await click(side,'#extension-center-more');
+    await click(side,'#extension-center-menu [data-ec-scope="available"]');
+    await click(side,'#extension-center-more');
+    const ui=await evaluate(side,'({tabs:[...document.querySelectorAll(".workbench-nav [role=tab]")].filter(el=>el.getClientRects().length).map(el=>el.textContent.trim()),discoveryVisible:!!document.querySelector("#extension-center-discover")?.getClientRects().length})');
+    assert.deepEqual(ui.tabs,['我的','扩展','工作流','开发','云控']);
+    assert.equal(ui.discoveryVisible,false,'no actionable discovery entry without a trusted market channel');
+    assert.deepEqual(await installed(),before);assert.deepEqual(await readStore(MARKET_PROVENANCE_STORE),provenance);
+    assert(!(await browser.send('Target.getTargets')).targetInfos.some(row=>row.url.includes('/ui/marketplace.html')));
+    await assertNoFrames();await screenshot(side,'r62-production-no-channel.png');
+    evidence.r61={scope:'PRODUCTION_NO_CHANNEL_ONLY',channel,ui,status:'PASS'};
+    assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash);
+    assertRuntimeClean();await closeChrome();assertRuntimeClean();
+    evidence.result='REAL_CHROME_MARKET_R61_NO_CHANNEL_PASS';evidence.buildMode=buildMode;
+    evidence.finalRegistry=before;evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
+    await save();return;
+  }
   if(process.env.OPENDESK_NATIVE_MARKET_R5==='1'){
     await runMarketR5Acceptance({t,extension,artifactDir,evidence,packages,catalog,buildMode,
       getSide:()=>side,getHost:()=>host,getExtensionId:()=>extensionId,
@@ -502,8 +540,8 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
       restartChrome:async()=>{await closeChrome();host=null;side=null;await launch();side=await openPanel();return {side,host};}});
     assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash);
     assertRuntimeClean();evidence.buildMode=buildMode;evidence.finalRegistry=await installed();await closeChrome();assertRuntimeClean();
-    evidence.result=process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'REAL_CHROME_MARKET_R5_EXPIRY_PASS':process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1'?'REAL_CHROME_MARKET_R5_NATURAL_PASS':'REAL_CHROME_MARKET_R5_PASS';evidence.r5.result='PASS';
-    evidence.publicWebsite=process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'REAL_HTTP_CHROME_EXPIRY_PASS':process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1'?'REAL_HTTP_CHROME_NATURAL_LIFECYCLE_PASS':'REAL_HTTP_CHROME_PASS';
+    evidence.result=discoveryOnly?'REAL_CHROME_MARKET_R61_DISCOVERY_PASS':process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'REAL_CHROME_MARKET_R5_EXPIRY_PASS':process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1'?'REAL_CHROME_MARKET_R5_NATURAL_PASS':'REAL_CHROME_MARKET_R5_PASS';evidence.r5.result='PASS';
+    evidence.publicWebsite=discoveryOnly?'REAL_HTTP_CHROME_DISCOVERY_PASS':process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'REAL_HTTP_CHROME_EXPIRY_PASS':process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1'?'REAL_HTTP_CHROME_NATURAL_LIFECYCLE_PASS':'REAL_HTTP_CHROME_PASS';
     evidence.r5.macChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
     evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
     await save();return;
@@ -518,6 +556,94 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     evidence.buildMode=buildMode;evidence.finalRegistry=await installed();await closeChrome();
     evidence.result='REAL_CHROME_R261_PASS';evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
     await save();return;
+  }
+
+  // Production-only adapters for the current React list and trusted settings.
+  const {MAX_INSTALLED_TOOLS}=await import('../../src/ui/sidebar-tools/package.js');
+  const {tocSiteAllowed}=await import('../../examples/sidebar-tools/reading-toc/trusted/policy.js');
+  const {installedSiteAllowed}=await import('../../src/ui/sidebar-tools/site-grants.js');
+  const omittedId='ai-knowledge-answers';
+  assert.equal(catalog.apps.find(row=>row.toolId===omittedId)?.installationPolicy,'optional');
+  const retainedReleases=catalog.apps.filter(row=>row.toolId!==omittedId);
+  assert.equal(retainedReleases.length,MAX_INSTALLED_TOOLS);
+  const prodAction=(id,name='main')=>'button[data-extension-key="app:'+id+'"][data-extension-action="'+name+'"]';
+  async function prodList(scope='smart',target=side){
+    if(target===side)await openMyTools();
+    if(await evaluate(target,'document.querySelector("#extension-center-menu").hidden'))await click(target,'#extension-center-more');
+    await click(target,'#extension-center-menu [data-ec-kind="all"]');
+    await click(target,'#extension-center-menu [data-ec-scope="'+scope+'"]');
+    await click(target,'#extension-center-more');
+    await inputText(target,'#extension-center-search','');
+  }
+  async function prodOpenTool(id){
+    await prodList();await click(side,prodAction(id));return iframeWith(id);
+  }
+  async function prodSettings(id){
+    await prodList();await click(side,prodAction(id,'more'));
+    await click(side,'#extension-center-row-menu [data-ec-context-action="settings"]');
+    await visible(side,'#sidebar-tool-settings-view');
+  }
+  async function prodUninstall(id){
+    await prodList();await click(side,prodAction(id,'more'));
+    await click(side,'#extension-center-row-menu [data-ec-context-action="uninstall"]');
+    await click(side,'[role="dialog"] .od-uninstall-confirm');
+    await until(async()=>!(await installed()).some(row=>row.id===id),'production list uninstall '+id);
+    await until(()=>evaluate(side,'!document.querySelector("[role=dialog] .od-uninstall-confirm")&&document.querySelector("#extension-center-status").textContent.includes("数据与授权清理已完成")'),'production uninstall cleanup '+id);
+    assert.equal((await readStore(TOOL_CLEANUP_STORE))?.[id],undefined);
+    assert.equal((await readStore(MARKET_PROVENANCE_STORE))?.[id],undefined);
+    assert.equal(await readStore(sidebarToolStorageKey(id)),undefined);
+  }
+  async function prodReview(id,target=side){
+    const before=await installed(target),release=catalog.apps.find(row=>row.toolId===id);
+    await prodList('available',target);await inputText(target,'#extension-center-search',id);
+    if(before.some(row=>row.id===id)){
+      await click(target,prodAction(id,'more'));
+      await click(target,'#extension-center-row-menu [data-ec-context-action="detail"]');
+      await click(target,'[data-ec-detail-action="update"]');
+    }else{
+      await click(target,prodAction(id));await click(target,'[data-ec-detail-action="install"]');
+    }
+    await visible(target,'#sidebar-tool-preview');
+    assert.equal(await evaluate(target,'document.querySelector("#sidebar-tool-preview-version").textContent'),'v'+release.version);
+    assert.deepEqual(await installed(target),before,'review is read only');
+  }
+  async function prodInstall(id){
+    await prodReview(id);await click(side,'#sidebar-tool-import-close');
+    await prodReview(id);await click(side,'#sidebar-tool-install');
+    await until(async()=>(await installed()).some(row=>row.id===id),'production confirmed install '+id);
+    await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'production review closed');
+    await assertNoFrames();await assertNoGrants();
+  }
+  const siteKey=id=>id==='reading-toc'?READING_TOC_SITE_STORE:CLIP_SITE_STORE;
+  const siteAllowed=(settings,id,url)=>id==='reading-toc'?tocSiteAllowed(settings,id,url):installedSiteAllowed(settings,id,url);
+  async function prodSite(id,allow,origin){
+    await prodSettings(id);
+    await click(side,'#sidebar-tool-settings-'+(allow?'allow':'deny'));
+    await until(async()=>siteAllowed(await readStore(siteKey(id)),id,origin)===allow,'persisted current website availability '+id);
+    await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-settings-'+(allow?'allow':'deny')+'").getAttribute("aria-pressed")==="true"'),'website setting read back');
+    await back();
+  }
+  async function prodMarketReview(id){
+    const release=catalog.apps.find(row=>row.toolId===id),before=await installed();
+    const target=await openTab('chrome-extension://'+extensionId+'/ui/marketplace.html#/apps/'+release.id+'/versions/'+release.version,true);
+    await click(target,'#market-root .detail-layout aside .actions button');
+    await visible(target,'[data-market-action="confirm-install"]');
+    assert.deepEqual(await installed(),before,'fixed official source review cannot mutate installation');
+    return target;
+  }
+  async function prodCommitUpgrade(id,target){
+    await click(target,'[data-market-action="confirm-install"]');
+    const release=catalog.apps.find(row=>row.toolId===id);
+    await until(async()=>(await installed()).find(row=>row.id===id)?.version===release.version,'explicit official source replacement '+id);
+    await until(async()=>(await readStore(MARKET_PROVENANCE_STORE))?.[id]?.sha256===release.sha256,'official source provenance '+id);
+    await until(()=>evaluate(target,'!document.querySelector(".review")'),'official source review consumed');
+    await browser.send('Target.closeTarget',{targetId:target.targetId});
+  }
+  async function prodOpenSavedNote(note){
+    const frame=await prodOpenTool('quick-notes');
+    await click(frame,'#note-list .note-row');await visible(frame,'#note-text');
+    await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'saved note opened from real list');
+    return frame;
   }
 
   // Preserve the upstream acceptance loop for every current official release.
@@ -600,7 +726,19 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     await screenshot(toolPage,'app-ui-'+release.toolId+'-'+release.version+'.png');
     assert.equal((await browser.send('Target.closeTarget',{targetId:opened.targetId})).success,true);
     await until(async()=>(await browser.send('Target.getTargets')).targetInfos.every(row=>row.type!=='iframe'||!row.url?.includes('/sidebar-tools/sandbox.html')),'market tool sandbox destroyed');
+    const capturedRegistry=await installed();
+    assert(capturedRegistry.some(row=>row.id===release.toolId&&row.version===release.version));
+    assert(capturedRegistry.length<=MAX_INSTALLED_TOOLS,'individual coverage respects the real capacity');
+    Object.assign(evidence.appDetails.at(-1),{scope:'ALL_RELEASES_INDIVIDUALLY',
+      uiScreenshot:'app-ui-'+release.toolId+'-'+release.version+'.png',installedIdsAtCapture:capturedRegistry.map(row=>row.id)});
+    if(release.toolId===omittedId)await prodUninstall(omittedId);
   }
+  assert.deepEqual((await installed()).map(row=>row.id).sort(),retainedReleases.map(row=>row.toolId).sort());
+  assert.deepEqual(evidence.appDetails.map(row=>row.toolId),catalog.apps.map(row=>row.toolId));
+  evidence.installationScopes=[
+    {scope:'ALL_RELEASES_INDIVIDUALLY',toolIds:evidence.appDetails.map(row=>row.toolId),screenshots:true,simultaneous:false},
+    {scope:'RETAINED_SET',toolIds:retainedReleases.map(row=>row.toolId),count:retainedReleases.length,capacity:MAX_INSTALLED_TOOLS,omittedAfterScreenshot:omittedId}
+  ];
   // Preserve the upstream R3.1 real batch/reload acceptance. The old official
   // revision stays immutable; a user-created revision pins current releases.
   await phase('market-fixed-unavailable-version-and-current-batch');
@@ -612,55 +750,57 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   await click(market,'#market-root .surface .actions button.primary');
   await visible(market,'.review .actions button:not(.primary)');
   assert.equal(await evaluate(market,'document.querySelector(".review .actions .primary").disabled'),true,'old revision cannot silently replace its unavailable pinned notes');
-  assert.equal((await installed()).length,catalog.apps.length,'preflight alone never installs');
+  assert.equal((await installed()).length,retainedReleases.length,'preflight alone never installs');
   assert.match(await evaluate(market,'document.querySelector("#market-root").innerText'),/1\.1\.1/);
   const unavailableReview=await evaluate(market,'document.querySelector(".review").innerText');
   assert.match(unavailableReview,/需要处理/);
   assert.match(unavailableReview,/当前扩展不包含这个固定版本/);
   await click(market,'.review .actions button:not(.primary)');
   await click(market,'#market-my');
-  for(let index=1;index<=catalog.apps.length;index++){
+  await until(()=>evaluate(market,'document.querySelectorAll(".action-row input[type=checkbox]").length==='+retainedReleases.length),'only retained releases selectable');
+  for(let index=1;index<=retainedReleases.length;index++){
     const selector='#market-root .action-row:nth-child('+index+') input[type="checkbox"]';
     await visible(market,selector);await click(market,selector);
   }
   await click(market,'#market-root .surface > .actions button:nth-child(2)');
   const collectionRoute=await until(()=>evaluate(market,'location.hash.startsWith("#/collections/my-selection/revisions/")?location.hash:null'),'user-created current fixed revision');
-  await uninstall('web-markdown-clipper');await uninstall('knowledge-inbox');
+  await prodUninstall('web-markdown-clipper');await prodUninstall('knowledge-inbox');
   await activate(market);await visible(market,'#market-root .surface .actions button.primary');
   await click(market,'#market-root .surface .actions button.primary');await visible(market,'.review .actions .primary');
-  assert.equal((await installed()).length,catalog.apps.length-2,'current revision review requires confirmation');
+  assert.equal((await installed()).length,retainedReleases.length-2,'current revision review requires confirmation');
   await click(market,'.review .actions .primary');
-  const expectedBatch=catalog.apps.map(row=>['web-markdown-clipper','knowledge-inbox'].includes(row.toolId)?'succeeded':'skip');
+  const expectedBatch=retainedReleases.map(row=>['web-markdown-clipper','knowledge-inbox'].includes(row.toolId)?'succeeded':'skip');
   const completedBatch=await until(async()=>{
     const value=await readStore(MARKET_BATCH_STORE,market);
-    return (await installed()).length===catalog.apps.length&&JSON.stringify(value?.items?.map(row=>row.status))===JSON.stringify(expectedBatch)?value:null;
+    return (await installed()).length===retainedReleases.length&&JSON.stringify(value?.items?.map(row=>row.status))===JSON.stringify(expectedBatch)?value:null;
   },'two real batch installs with existing releases skipped');
   assert.equal(completedBatch.collectionId,'my-selection');
-  assert.equal(new Set(completedBatch.items.map(row=>row.operationId)).size,catalog.apps.length);
+  assert.deepEqual(completedBatch.items.map(row=>row.id),retainedReleases.map(row=>row.id),'batch pins exactly the retained fixed releases');
+  assert.equal(new Set(completedBatch.items.map(row=>row.operationId)).size,retainedReleases.length);
   await until(()=>evaluate(market,'!document.querySelector(".review")'),'batch commit finished');
   const previousDocument=await evaluate(market,'performance.timeOrigin');
   await market.send('Page.reload');
   await until(()=>evaluate(market,'performance.timeOrigin!=='+previousDocument+'&&document.readyState==="complete"&&location.hash==='+JSON.stringify(collectionRoute)+'&&document.querySelectorAll("#market-root .surface").length>=2'),'persisted batch after actual document reload');
   const persistedBatch=await readStore(MARKET_BATCH_STORE,market);assert.deepEqual(persistedBatch,completedBatch);
-  evidence.batch={collectionId:completedBatch.collectionId,revision:completedBatch.revision,statuses:expectedBatch,
+  evidence.batch={scope:'RETAINED_SET',toolIds:retainedReleases.map(row=>row.toolId),collectionId:completedBatch.collectionId,revision:completedBatch.revision,statuses:expectedBatch,
     operationIds:completedBatch.items.map(row=>row.operationId),reloadVerified:true,unavailableOldRevisionNotSubstituted:true};
   await assertNoFrames();await assertNoGrants();
-  await click(market,'#market-my');await until(()=>evaluate(market,'document.querySelectorAll(".action-row").length==='+catalog.apps.length),'all current official tools after batch');
+  await click(market,'#market-my');await until(()=>evaluate(market,'document.querySelectorAll(".action-row").length==='+retainedReleases.length),'retained official tools after batch');
   await screenshot(market,'market-my-apps.png');
   await browser.send('Target.closeTarget',{targetId:market.targetId});
-  for(const release of catalog.apps)await uninstall(release.toolId);
+  for(const release of retainedReleases)await prodUninstall(release.toolId);
   await assertNoGrants();assert.deepEqual(await installed(),[]);
 
   await phase('side-panel-official-installs-and-cross-window-confirmation');
-  for(const release of catalog.apps.filter(row=>row.toolId!=='markdown-workbench')){
-    await officialInstall(release.toolId);await openTool(release.toolId);await back();
+  for(const release of retainedReleases.filter(row=>row.toolId!=='markdown-workbench')){
+    await prodInstall(release.toolId);
   }
   const secondLauncher=await openTab('chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID(),true);
   const second=await openPanel(secondLauncher);
   assert.notEqual(second.windowId,side.windowId,'concurrent approvals use two actual Chrome windows');
   assert.notEqual(second.contextId,side.contextId,'each window owns its real SIDE_PANEL context');
   evidence.concurrentPanels=[side,second].map(panel=>({windowId:panel.windowId,contextId:panel.contextId,targetId:panel.targetId,documentUrl:panel.documentUrl}));
-  await officialReview('markdown-workbench');await officialReview('markdown-workbench',second);
+  await prodReview('markdown-workbench');await prodReview('markdown-workbench',second);
   const clicks=await Promise.allSettled([click(side,'#sidebar-tool-install'),click(second,'#sidebar-tool-install')]);
   assert(clicks.some(row=>row.status==='fulfilled'),'at least one native approval must be delivered');
   await until(async()=>(await installed()).filter(row=>row.id==='markdown-workbench').length===1,'single concurrent install');
@@ -674,102 +814,84 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   await browser.send('Target.closeTarget',{targetId:secondLauncher.targetId});
   await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden||document.querySelector("#sidebar-tool-preview").hidden'),'first review consumed');
   if(await evaluate(side,'!document.querySelector("#sidebar-tool-import").hidden'))await click(side,'#sidebar-tool-import-close');
-  await openTool('markdown-workbench');await back();
-  assert.equal((await installed()).length,catalog.apps.length);await assertNoGrants();await screenshot(side,'r45-current-official-installed.png');
+  await prodOpenTool('markdown-workbench');await back();
+  assert.equal((await installed()).length,retainedReleases.length);await assertNoGrants();await screenshot(side,'r45-current-official-installed.png');
 
-  await phase('independent-origin-grants-and-explicit-page-clip');
+  await phase('installed-site-availability-and-explicit-page-clip');
   await activate(pageA);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[0].origin)+')'),'Side Panel current page A');
-  // There is no longer a JavaScript consent prompt to "decline". Instead,
-  // verify that opening Settings and pressing the already-unselected Deny
-  // action cannot silently grant website access.
-  evidence.websitePermissionBeforeGrant=[];
-  for(const [id,key] of [['reading-toc',READING_TOC_SITE_STORE],['web-markdown-clipper',CLIP_SITE_STORE]]){
-    await click(side,action(id,'open'));await click(side,'#sidebar-tool-settings-open');
-    assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-settings-allow").getAttribute("aria-pressed")'),'false');
-    const dialogsBefore=evidence.dialogs.length;
-    await click(side,'#sidebar-tool-settings-deny');
-    assert.equal(evidence.dialogs.length,dialogsBefore,'Deny with no grant cannot open a dialog');
-    await back();
-    await assertNoGrants();await assertNoFrames();
-    assert.equal(await evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
-    evidence.websitePermissionBeforeGrant.push({id,origin:servers[0].origin,after:(await readStore(key))??null});
+  evidence.websiteAvailability=[];
+  for(const id of ['reading-toc','web-markdown-clipper']){
+    assert(siteAllowed(await readStore(siteKey(id)),id,servers[0].origin),'installation reuses reviewed site capability');
+    await prodSite(id,false,servers[0].origin);
+    assert(siteAllowed(await readStore(siteKey(id)),id,servers[1].origin),'stopping A does not stop B');
+    if(id==='reading-toc')await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'stopping A removes TOC');
+    const stopped=await readStore(siteKey(id));
+    await prodSite(id,true,servers[0].origin);
+    evidence.websiteAvailability.push({id,origin:servers[0].origin,stopped,restored:await readStore(siteKey(id))});
   }
-  await grantSite('reading-toc');
-  await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC only on approved A');
-  assert.equal(await evaluate(pageB,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
+  await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC restored on A');
+  await until(()=>evaluate(pageB,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'default TOC on B');
   await evaluate(pageA,'new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
   await screenshot(pageA,'app-use-reading-toc-'+packages.get('reading-toc').version+'-page.png');
-  await grantSite('web-markdown-clipper');
-  let frame=await openTool('web-markdown-clipper');await click(frame,'#clip-fetch');
+  let frame=await prodOpenTool('web-markdown-clipper');await click(frame,'#clip-fetch');
   await until(()=>evaluate(frame,'document.querySelector("#clip-source").value.includes("R45 授权边界")'),'actual article extraction');
   await until(()=>evaluate(frame,'document.querySelector("#clip-status").dataset.error!=="true"&&!document.querySelector("#clip-fetch").disabled'),'completed actual clip');
   await evaluate(frame,'new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
   await screenshot(side,'app-use-web-markdown-clipper-'+packages.get('web-markdown-clipper').version+'-side-panel.png');await back();
   const grantedBefore={toc:await readStore(READING_TOC_SITE_STORE),clip:await readStore(CLIP_SITE_STORE)};
-  assert.deepEqual(grantedBefore.toc,{'reading-toc':[servers[0].origin]});
-  assert.deepEqual(grantedBefore.clip,{'web-markdown-clipper':[servers[0].origin]});
+  assert.deepEqual(grantedBefore.toc??{},{});
+  assert.deepEqual(grantedBefore.clip??{},{});
 
   await phase('controlled-local-old-version-and-reviewed-official-upgrade');
   const notes=packages.get('quick-notes'),oldNotes={...notes,version:'0.0.1',capabilities:['storage.local']};
-  await importPackage(oldNotes,'controlled-old-notes',[{parts:['版本回退']}]);
-  frame=await openTool('quick-notes');const note='R45：明确保存，升级和重启后保留 '+randomUUID();
-  await visible(frame,'#note-text');await inputText(frame,'#note-text',note);await click(frame,'#save-note');
+  await importPackage(oldNotes,'rejected-local-official-notes',[{parts:['版本回退']}],{rejectedWith:'E_PUBLISHER_CONFLICT'});
+  await prodUninstall('quick-notes');await importPackage(oldNotes,'controlled-old-notes');
+  frame=await prodOpenTool('quick-notes');const note='R45：明确保存，升级和重启后保留 '+randomUUID();
+  await click(frame,'#add-note');await visible(frame,'#note-text');await inputText(frame,'#note-text',note);await click(frame,'#save-note');
   await until(()=>evaluate(frame,'document.querySelector("#note-status").textContent.includes("已保存")&&!document.querySelector("#save-note").disabled'),'native note save acknowledged');
   const noteData=await readStore(sidebarToolStorageKey('quick-notes'));assert(JSON.stringify(noteData).includes(note));await back();
-  await officialReview('quick-notes');assert.equal(await evaluate(side,'document.querySelector("[data-official-tool-id=quick-notes]").dataset.installationState'),'update');
-  await click(side,'#sidebar-tool-import-close');assert.equal((await installed()).find(row=>row.id==='quick-notes').version,'0.0.1');
-  await officialReview('quick-notes');
-  const reviewedUpdate=await evaluate(side,'document.querySelector("#sidebar-tool-preview").textContent');
+  let upgrade=await prodMarketReview('quick-notes');
+  const reviewedUpdate=await evaluate(upgrade,'document.querySelector(".review").textContent');
   assert(reviewedUpdate.includes('来源')&&reviewedUpdate.includes('新增能力'));
-  await click(side,'#sidebar-tool-import-close');
-  assert.equal((await installed()).find(row=>row.id==='quick-notes').version,'0.0.1');assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
-  await officialReview('quick-notes');await click(side,'#sidebar-tool-install');
-  await until(async()=>(await installed()).find(row=>row.id==='quick-notes')?.version===notes.version,'official notes upgraded after both consents');
-  await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'notes upgrade review closed');
+  await click(upgrade,'[data-market-action="cancel-install"]');
+  await browser.send('Target.closeTarget',{targetId:upgrade.targetId});
+  assert.equal((await installed()).find(row=>row.id==='quick-notes').version,'0.0.1');
   assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
-  frame=await openTool('quick-notes');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'same private note after upgrade');await back();
-  const toc=packages.get('reading-toc');await importPackage({...toc,version:'0.0.1'},'controlled-old-toc',[{parts:['版本回退']}]);
-  await officialReview('reading-toc');assert.deepEqual(await readStore(READING_TOC_SITE_STORE),grantedBefore.toc);
-  await click(side,'#sidebar-tool-install');
-  await until(async()=>(await installed()).find(row=>row.id==='reading-toc')?.version===toc.version,'TOC reviewed upgrade');
-  await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'TOC review closed');
-  assert.deepEqual(await readStore(READING_TOC_SITE_STORE),grantedBefore.toc);assert.deepEqual(await readStore(CLIP_SITE_STORE),grantedBefore.clip);
+  upgrade=await prodMarketReview('quick-notes');await prodCommitUpgrade('quick-notes',upgrade);
+  assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
+  frame=await prodOpenSavedNote(note);await back();
+  const toc=packages.get('reading-toc'),oldToc={...toc,version:'0.0.1'};
+  await importPackage(oldToc,'rejected-local-official-toc',[{parts:['版本回退']}],{rejectedWith:'E_PUBLISHER_CONFLICT'});
+  await prodUninstall('reading-toc');await importPackage(oldToc,'controlled-old-toc');
+  upgrade=await prodMarketReview('reading-toc');await prodCommitUpgrade('reading-toc',upgrade);
+  assert.deepEqual(await readStore(READING_TOC_SITE_STORE)??{},grantedBefore.toc??{});
+  assert.deepEqual(await readStore(CLIP_SITE_STORE),grantedBefore.clip);
+  evidence.sourceReplacement={rejectedLocalTakeover:['quick-notes','reading-toc'],seededAfterExplicitUninstall:true,
+    confirmedVia:'trusted fixed market review',noteDataPreserved:true};
 
-  await phase('panel-close-reopen-preserves-grants-and-no-automatic-tool-instance');
+  await phase('panel-close-reopen-preserves-installation-and-no-automatic-tool-instance');
   await closePanel();assert.equal(await evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length'),1);
-  side=await openPanel();await assertNoFrames();assert.equal((await installed()).length,catalog.apps.length);
+  side=await openPanel();await assertNoFrames();assert.equal((await installed()).length,retainedReleases.length);
+  await activate(pageA);
+  await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[0].origin)+')'),'current A before explicit stop');
+  for(const id of ['reading-toc','web-markdown-clipper'])await prodSite(id,false,servers[0].origin);
+  await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'stopped A TOC removed');
   await activate(pageB);
-  await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[1].origin)+')'),'Side Panel current page B');
-  for(const [id,key,label] of [['reading-toc',READING_TOC_SITE_STORE,'目录'],['web-markdown-clipper',CLIP_SITE_STORE,'剪藏']]){
-    await click(side,action(id,'open'));await click(side,'#sidebar-tool-settings-open');
-    await visible(side,'#sidebar-tool-settings-view .sidebar-toc-advanced > summary');
-    if(await evaluate(side,'!document.querySelector("#sidebar-tool-settings-view .sidebar-toc-advanced").open'))
-      await click(side,'#sidebar-tool-settings-view .sidebar-toc-advanced > summary');
-    await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-settings-view .sidebar-toc-advanced").open'),
-      'tool authorization records expanded through their trusted control');
-    await visible(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
-    const before=await readStore(key);
+  await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[1].origin)+')'),'current B for cross-origin restore');
+  for(const id of ['reading-toc','web-markdown-clipper']){
+    const key=siteKey(id),before=await readStore(key);
+    await prodSettings(id);
+    const advanced='#sidebar-tool-generic-site-advanced';await visible(side,advanced);
+    if(!await evaluate(side,'document.querySelector('+JSON.stringify(advanced)+').open'))await click(side,advanced+' > summary');
     await click(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
-    // Native mouseReleased does not await the async storage/lock handler. Wait
-    // for this revocation and its final UI before the next gesture can be made.
-    await until(async()=>!(await readStore(key))?.[id]?.includes(servers[0].origin),'persisted revocation '+id);
-    await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-status").textContent==='+
-      JSON.stringify('已撤销 '+servers[0].origin+' 的'+label+'授权')),'completed revocation UI '+id);
-    if(id==='web-markdown-clipper'){
-      // Revocation suspends the tool holding page content and returns to the
-      // library. Hidden settings may retain disabled DOM until the next render.
-      await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-list-view").hidden&&document.querySelector("#sidebar-tool-settings-view").hidden'),'revocation closes content-bearing clipper');
-      await assertNoFrames();
-    }else{
-      assert.equal(await evaluate(side,'[...document.querySelectorAll("#sidebar-tool-settings-sites .sidebar-tool-site-revoke")].some(button=>!button.disabled&&button.getClientRects().length>0)'),false);
-    }
-    (evidence.revocations??=[]).push({id,key,before,after:await readStore(key)});
-
-    if(await evaluate(side,'document.querySelector("#sidebar-tool-list-view").hidden'))await back();
+    await until(async()=>siteAllowed(await readStore(key),id,servers[0].origin),'restore stopped A from current B');
+    await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-settings-sites .sidebar-tool-site-revoke")'),'stopped-origin row consumed');
+    (evidence.crossOriginRestores??=[]).push({id,currentOrigin:servers[1].origin,restoredOrigin:servers[0].origin,before,after:await readStore(key)});
+    await back();
   }
-  await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'revocation immediately removes A TOC');
-  await assertNoGrants();await screenshot(side,'r45-revoked-from-other-origin.png');
+  await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'cross-origin restore returns A TOC');
+  await assertNoGrants();await screenshot(side,'r45-restored-from-other-origin.png');
 
   // Capacity-only fixture: special keys in an owned, disposable Chrome profile.
   // Tool packages, tool data and install operations are still populated solely
@@ -790,9 +912,13 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     fixtureValueBytes:capacityChunkBytes,driverSetCalls:capacityCount,driverRemoveCalls:0,
     installedVia:'native UI',dataOrigin:'capacity-only fixture'};
   await phase('other-local-json-import');
+  await prodUninstall('ai-vip-share');
+  evidence.localFixtureScope={scope:'RETAINED_SET_WITH_LOCAL_FIXTURE',omittedOptional:'ai-vip-share',localTool:'r45-local-tool',capacity:MAX_INSTALLED_TOOLS};
   await importPackage({...packages.get('markdown-workbench'),id:'r45-local-tool',title:'R45 本地导入工具'},'other-local-tool');
-  await openTool('r45-local-tool');await back();
+  await prodOpenTool('r45-local-tool');await back();
   const beforeRestart=await installed();
+  assert.equal(beforeRestart.length,MAX_INSTALLED_TOOLS);
+  evidence.localFixtureScope.toolIds=beforeRestart.map(row=>row.id);
   await phase('first-complete-chrome-restart');await closeChrome();host=null;side=null;await launch();side=await openPanel();
   assert.deepEqual(await installed(),beforeRestart);await assertNoGrants();await assertNoFrames();
   assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
@@ -808,36 +934,31 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
   evidence.storageCapacity.driverRemoveCalls=1;
   evidence.storageCapacity.afterFixtureCleanupBytes=capacityCleanup.used;
   pageA=await openTab(servers[0].origin+'/article');pageB=await openTab(servers[1].origin+'/article');
-  for(const page of [pageA,pageB])assert.equal(await evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
-  frame=await openTool('quick-notes');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'native note survives full Chrome restart');await back();
+  for(const page of [pageA,pageB])await until(()=>evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'default TOC remains available after restart');
+  frame=await prodOpenSavedNote(note);await back();
   assert.notEqual(evidence.chromeLifecycles[0].pid,evidence.chromeLifecycles[1].pid);
 
   await phase('uninstall-removes-data-grants-and-provenance');
-  // Re-grant through real UI after proving revocation survived the restart.
-  // Uninstall must now remove existing grants, not merely observe empty stores.
+  // Populate real stop preferences so uninstall proves their cleanup too.
   await activate(pageA);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[0].origin)+')'),'current page A before uninstall');
-  await grantSite('reading-toc');
-  await grantSite('web-markdown-clipper');
-  await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC re-granted before uninstall');
-  // grantSite already observes its completed trusted UI, then back() clears
-  // the transient status. Recheck the durable permission after navigation.
-  await until(async()=>JSON.stringify(await readStore(CLIP_SITE_STORE))===JSON.stringify(grantedBefore.clip),
-    'durable clip grant after returning to the library before uninstall');
-  assert.deepEqual(await readStore(READING_TOC_SITE_STORE),grantedBefore.toc);
-  assert.deepEqual(await readStore(CLIP_SITE_STORE),grantedBefore.clip);
-  for(const row of await installed())await uninstall(row.id);
+  for(const id of ['reading-toc','web-markdown-clipper']){
+    await prodSite(id,false,servers[0].origin);
+    assert.equal(siteAllowed(await readStore(siteKey(id)),id,servers[0].origin),false);
+  }
+  for(const row of await installed())await prodUninstall(row.id);
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'uninstall removes authorized page TOC');
   await assertNoGrants();assert.deepEqual(await installed(),[]);
   for(const row of beforeRestart)assert.equal(await readStore(sidebarToolStorageKey(row.id)),undefined);
   assert.deepEqual((await readStore(MARKET_PROVENANCE_STORE))||{},{});
   await phase('second-complete-chrome-restart-after-uninstall');await closeChrome();host=null;side=null;await launch();side=await openPanel();
   assert.deepEqual(await installed(),[]);await assertNoGrants();await assertNoFrames();
-  await click(side,'#extension-center-more');
-  await click(side,'#extension-center-menu [data-ec-scope="available"]');
+  await prodList('available');
   for(const release of catalog.apps){
-    await visible(side,action(release.toolId,'open'));
-    assert.equal(await evaluate(side,'document.querySelector('+JSON.stringify(action(release.toolId,'open'))+').textContent.trim()'),'安装');
+    await visible(side,prodAction(release.toolId));
+    await click(side,prodAction(release.toolId));await visible(side,'[data-ec-detail-action="install"]');
+    assert.match(await evaluate(side,'document.querySelector("[data-ec-detail-action=install]").textContent'),/安装/);
+    await click(side,'#extension-center-back');
     const raw=await evaluate(host,'fetch(chrome.runtime.getURL('+JSON.stringify(release.packagePath)+')).then(r=>r.text())');assert.equal(hash(Buffer.from(raw)),release.sha256);
   }
   assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash,'actual loaded production bytes stayed unchanged');
@@ -862,8 +983,8 @@ test(process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1'?'R5 real HTTP Chrom
     catalog.apps.map(row=>'app:'+row.toolId).sort(),
     'all released tools must appear in the visible extension center');
   for(const row of rows){
-    assert.deepEqual(row.actions.map(item=>item.action),['main','primary','more'],
-      'each unified row retains a main, primary and management focus target');
+    assert.deepEqual(row.actions.map(item=>item.action),['main'],
+      'uninstalled rows expose the current detail entry without installed management actions');
     assert(row.actions.every(item=>item.label),
       'every unified row keyboard control has a descriptive aria-label');
   }

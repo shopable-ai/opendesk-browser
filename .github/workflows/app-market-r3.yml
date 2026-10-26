@@ -48,6 +48,7 @@ on:
       - 'tests/environment/market-site-media-r5.test.mjs'
       - 'tests/environment/market-cutpoint-observation-r5.test.mjs'
       - 'tests/helpers/app-market-r5-native.mjs'
+      - 'tests/helpers/app-market-r61-discovery.mjs'
       - 'tests/helpers/app-market-r5-observers.mjs'
       - 'tests/helpers/app-market-r5-cutpoints.mjs'
       - 'tests/helpers/app-market-r5-ui.mjs'
@@ -63,6 +64,8 @@ on:
       - '.github/workflows/app-market-r3.yml'
       - 'examples/sidebar-tools/**'
       - 'official-tools/**'
+      - 'scripts/build-adblock-react.mjs'
+      - 'scripts/build-stay-focus-react.mjs'
       - 'scripts/build-official-tools.mjs'
       - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/build.mjs'
@@ -93,6 +96,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare source-bound official tool assets for component fixtures
+        run: npm run pretest
       - name: R5 handoff, installer, immutable archive and client state components
         run: |
           mkdir -p artifacts/app-market-r5
@@ -147,6 +152,8 @@ jobs:
           cache: npm
       - name: Install pinned dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare source-bound official tool assets for component fixtures
+        run: npm run pretest
       - name: Validate fixed releases, provenance isolation and migrations
         run: |
           node --test tests/environment/sidebar-storage-unlimited.test.mjs tests/environment/app-market-r3.test.mjs tests/environment/app-market-batch-r3.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-default-preinstall-r48.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/dev-service.test.mjs
@@ -177,6 +184,13 @@ jobs:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
         run: timeout --signal=TERM --kill-after=8s 480s xvfb-run -a node --test --test-concurrency=1 tests/framework/app-market-r3-native.test.mjs
+      - name: Production webpage discovery stays unavailable without a reviewed market channel
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+          OPENDESK_NATIVE_HEADED: '1'
+          OPENDESK_NATIVE_MARKET_R61_NO_CHANNEL_ONLY: '1'
+          OPENDESK_NATIVE_ARTIFACT_DIR: artifacts/app-market-r3/no-market-channel
+        run: xvfb-run -a node --test --test-reporter=tap tests/framework/app-market-r3-native.test.mjs
       - name: Full environment regressions against both actual builds
         run: npm test
       - name: Preserve reviewable receipts and genuine browser screenshots

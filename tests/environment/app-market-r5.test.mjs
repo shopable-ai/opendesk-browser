@@ -236,10 +236,14 @@ test('R5 terminal settlement survives journal trimming and missing recovery resp
   await new Promise(resolve=>setImmediate(resolve));assert.equal(finished,false);assert.equal(k.values[MARKET_INTENTS_STORE].intents[0].settledAt,null);
   release();await holding;await closing;assert.equal(finished,true);
 });
-test('R5 newest fixed reading kit advances Reading TOC while companion and historical versions stay pinned',async()=>{
+test('R5 fixed reading kit retains its reviewed versions independently of newer catalog releases',async()=>{
   const fixtures=await officialFixtures(),kits=OFFICIAL_COLLECTIONS.filter(row=>row.id==='reading-kit');
   const current=kits[0];
-  assert.equal(current.revision,9);
+  assert.equal(current.revision,10);
+  assert.deepEqual(current.members,[
+    {id:'opendesk/reading-toc',version:'1.0.11'},
+    {id:'opendesk/web-markdown-clipper',version:'1.2.9'},
+    {id:'opendesk/quick-notes',version:'1.1.10'}]);
   assert.deepEqual(kits.find(row=>row.revision===8).members,[
     {id:'opendesk/reading-toc',version:'1.0.9'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.1'},
@@ -252,12 +256,30 @@ test('R5 newest fixed reading kit advances Reading TOC while companion and histo
     {id:'opendesk/reading-toc',version:'1.0.7'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.1'},
     {id:'opendesk/quick-notes',version:'1.1.9'}]);
-  assert.deepEqual(current.members,[
+  assert.deepEqual(kits.find(row=>row.revision===9).members,[
     {id:'opendesk/reading-toc',version:'1.0.10'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.1'},
     {id:'opendesk/quick-notes',version:'1.1.9'}]);
-  const toc=fixtures.catalog.apps.find(row=>row.id==='opendesk/reading-toc');
-  assert.equal(current.members[0].version,toc.version);
+  for(const member of current.members)assert(fixtures.catalog.apps.some(row=>
+    row.id===member.id&&row.version===member.version),'current collection must use actual official releases: '+member.id+'@'+member.version);
+  const snapshots=await loadMarketSnapshots();
+  const archived=mergeMarketReleases(snapshots,fixtures.catalog,OFFICIAL_COLLECTIONS);
+  const historic=snapshots.find(row=>row.catalog.apps.some(app=>app.id==='opendesk/reading-toc'&&app.version==='1.0.10'));
+  assert(historic,'reviewed 1.0.10 must have an explicit immutable archive');
+  assert.equal(historic.source.kind,'recorded-release-evidence');
+  assert.match(historic.source.identity,/git:cb1643a66f8a7d588b301cd38e2fd2c5ce6d5cb2:/);
+  assert.deepEqual(historic.collections.find(row=>row.id==='reading-kit'&&row.revision===9),kits.find(row=>row.revision===9));
+  const oldToc=archived.releases.find(row=>row.id==='opendesk/reading-toc'&&row.version==='1.0.10');
+  assert.equal(oldToc.bytes,35044);
+  assert.equal(oldToc.sha256,'8d6bf170c92f3093de34f1401f49897d9734f740a0deef87076666a548cc39f0');
+  for(const member of kits.find(row=>row.revision===9).members)assert(archived.releases.some(row=>
+    row.id===member.id&&row.version===member.version),'historical collection member must retain its recorded release: '+member.id+'@'+member.version);
+  const publication=snapshots.find(row=>row.source.kind==='official-builder'&&
+    row.collections.some(collection=>collection.id==='reading-kit'&&collection.revision===10));
+  assert(publication,'current collection must have an official-builder snapshot');
+  assert.deepEqual(publication.collections,OFFICIAL_COLLECTIONS);
+  assert.deepEqual(publication.catalog,fixtures.catalog);
+  assert.equal(publication.source.identity,'sha256:'+createHash('sha256').update(JSON.stringify(fixtures.catalog)).digest('hex'));
   assert.deepEqual(kits.find(row=>row.revision===5).members,[
     {id:'opendesk/reading-toc',version:'1.0.4'},
     {id:'opendesk/web-markdown-clipper',version:'1.0.1'},

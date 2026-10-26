@@ -1,0 +1,50 @@
+{
+  "schema": "opendesk.market.release-snapshot.v1",
+  "source": {
+    "kind": "recorded-release-evidence",
+    "identity": "git:cb1643a66f8a7d588b301cd38e2fd2c5ce6d5cb2:examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json;sha256=8d6bf170c92f3093de34f1401f49897d9734f740a0deef87076666a548cc39f0"
+  },
+  "catalog": {
+    "schema": "opendesk.official-tools.releases.v1",
+    "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
+    "apps": [
+      {
+        "id": "opendesk/reading-toc",
+        "toolId": "reading-toc",
+        "kind": "sidebar-tool",
+        "installationPolicy": "preinstalled",
+        "version": "1.0.10",
+        "packageTitle": "阅读目录",
+        "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+        "capabilities": [
+          "page.toc"
+        ],
+        "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+        "bytes": 35044,
+        "sha256": "8d6bf170c92f3093de34f1401f49897d9734f740a0deef87076666a548cc39f0"
+      }
+    ]
+  },
+  "collections": [
+    {
+      "id": "reading-kit",
+      "revision": 9,
+      "title": "阅读与摘录",
+      "description": "阅读目录 1.0.10：当前受审官方版本；网页剪藏 1.0.1、网页笔记 1.1.9。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.10"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.1"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.9"
+        }
+      ]
+    }
+  ]
+}

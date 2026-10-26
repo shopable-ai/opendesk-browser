@@ -2,7 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {discoverMarketCutPoints,marketCallLocation} from '../helpers/app-market-r5-cutpoints.mjs';
-import {marketSenderPoints,assertObservedMarketConnection,waitForMarketCutOutcome,assertMarketRecoveryObserverStable} from '../helpers/app-market-r5-observers.mjs';
+import {marketSenderPoints,assertObservedMarketConnection,waitForMarketCutOutcome,assertMarketRecoveryObserverStable,marketReadbackParent} from '../helpers/app-market-r5-observers.mjs';
+
+test('grouped readback observes commit locals only in its real immediate map caller',async()=>{
+  const source=await readFile('src/ui/sidebar-tools/installation.js','utf8');
+  const {C}=discoverMarketCutPoints(source,{required:['C']});
+  const top={location:{scriptId:'actual',...C.location}},parent={location:{scriptId:'actual',...C.readbackParent.location}};
+  assert.equal(marketReadbackParent(C,[top,parent]),parent);
+  assert.throws(()=>marketReadbackParent(C,[top]));
+  assert.throws(()=>marketReadbackParent(C,[top,{location:{...parent.location,scriptId:'different'}}]));
+  assert.throws(()=>marketReadbackParent(C,[top,{location:{scriptId:'actual',...C.readbackParent.endLocation}}]));
+});
 
 test('a failed active wake cannot be swallowed by polling and replaced with later success',async()=>{
   const failure=Error('actual website wake failed');let calls=0;
@@ -50,7 +60,7 @@ test('market observation binds current non-nested source calls and declines chan
   const host=await readFile('src/marketplace/external.js','utf8');
   const installer=await readFile('src/ui/sidebar-tools/installation.js','utf8');
   const storage=await readFile('src/ui/sidebar-tools/storage-state.js','utf8');
-  for(const [source,required] of [[host,['A1','A2']],[installer,['B']],[storage,['C']]]){
+  for(const [source,required] of [[host,['A1','A2']],[installer,['B','C']],[storage,['C']]]){
     const points=discoverMarketCutPoints(source,{required,registryStoreKey:'opendesk.sidebar-tools.installed.v1'});
     for(const point of Object.values(points)){
       assert.equal(point.nestedInvocations,0);assert.equal(point.breakpointType,'call');
@@ -60,6 +70,28 @@ test('market observation binds current non-nested source calls and declines chan
   for(const source of [host.replace('api.tabs.query({})','api.tabs.query({filter:other()})'),
     host.replace('Missing created tab identity','different identity marker')]){
     assert.throws(()=>discoverMarketCutPoints(source,{required:['A1']}),{code:'E_NATIVE_NOT_OBSERVED'});
+  }
+});
+
+
+test('grouped package/generation cuts bind exact readbacks and reject unknown submission shapes',async()=>{
+  const source=await readFile('src/ui/sidebar-tools/installation.js','utf8');
+  const points=discoverMarketCutPoints(source,{required:['B','C'],registryStoreKey:'opendesk.sidebar-tools.installed.v1'});
+  assert.equal(points.B.storageWriterExpression,points.C.helperExpression);
+  assert.equal(points.C.text,'api.storage.local.get(key)');
+  assert.equal(points.C.submission.text,'api.storage.local.set(updates)');
+  assert.equal(points.C.nextExpression,'updates[key]');
+  assert.equal(points.C.previousExpression,'prior[key]');
+  assert.match(points.C.condition,/^key===/);
+  assert.match(points.C.submission.condition,/^SIDEBAR_TOOL_STORE===/);
+  for(const [before,after] of [
+    ['await api.storage.local.set(updates)','await api.storage.local.set(other)'],
+    ['Object.keys(updates).map(key=>api.storage.local.get(key))','Object.keys(prior).map(key=>api.storage.local.get(key))'],
+    ['[TOOL_REVOCATION_EPOCHS_STORE]:nextEpochs','[SIDEBAR_TOOL_STORE]:nextEpochs'],
+    ["await writeOp('reviewed');","await writeOp('unreviewed');"]
+  ]){
+    const changed=source.replace(before,after);assert.notEqual(changed,source);
+    assert.throws(()=>discoverMarketCutPoints(changed,{required:['B','C']}),{code:'E_NATIVE_NOT_OBSERVED'});
   }
 });
 

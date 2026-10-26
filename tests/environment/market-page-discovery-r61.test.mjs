@@ -165,7 +165,7 @@ test('R6.1 existing React page owns the discovery UI; no alternate installer exi
   assert(detect.indexOf('target=currentPageTarget.capture()')>=0);
   assert(detect.indexOf('target=currentPageTarget.capture()')<
     detect.indexOf('await Promise.all([loadMarketChannel(api),loadOfficialCatalog({api})])'),
-    'the user's document must be captured before any asynchronous channel/catalog fetch');
+    "the user's document must be captured before any asynchronous channel/catalog fetch");
   assert.match(center,/#\/apps\//);
   assert.match(pageUI,/ExtensionDiscovery/);
   assert.match(pageUI,/extension-center-discover/);

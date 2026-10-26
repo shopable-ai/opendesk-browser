@@ -2,7 +2,7 @@
 // are arranged here: website messages and trusted UI perform all product actions.
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {readFile,stat,writeFile} from 'node:fs/promises';
+import {mkdir,readFile,stat,writeFile} from 'node:fs/promises';
 import {resolve,join,extname} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
@@ -12,10 +12,12 @@ import {MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../../src/ui/side
 import {MARKET_BATCH_STORE,marketBatchUnresolved} from '../../src/marketplace/batch.js';
 import {OFFICIAL_COLLECTIONS} from '../../src/marketplace/catalog.js';
 import {sidebarToolStorageKey,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {READING_TOC_SITE_STORE,tocSiteAllowed} from '../../src/reading-toc/policy.js';
+import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {READING_TOC_SITE_STORE,tocSiteAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {observeMarketSender,armMarketCut,assertObservedMarketConnection,assertMarketRecoveryObserverStable} from './app-market-r5-observers.mjs';
 import {marketUIAudit} from './app-market-r5-ui.mjs';
 import {runMarketNaturalLifecycle,runMarketRealExpiry} from './app-market-r5-natural.mjs';
+import {marketDiscoveryFixture,runMarketDiscoveryAcceptance} from './app-market-r61-discovery.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.png':'image/png','.xml':'application/xml','.txt':'text/plain'};
 async function serverAt(port,handler){
@@ -30,10 +32,12 @@ export async function runMarketR5Acceptance(d){
   const currentKit=OFFICIAL_COLLECTIONS.find(row=>row.id==='reading-kit');
   const naturalOnly=process.env.OPENDESK_NATIVE_MARKET_R5_NATURAL_ONLY==='1';
   const expiryOnly=process.env.OPENDESK_NATIVE_MARKET_R5_EXPIRY_ONLY==='1';
+  const discoveryOnly=process.env.OPENDESK_NATIVE_MARKET_R61_DISCOVERY_ONLY==='1';
   const idleOnly=process.env.OPENDESK_NATIVE_MARKET_R5_IDLE_ONLY==='1';
   const reuseHTTP=process.env.OPENDESK_NATIVE_MARKET_REUSE_HTTP==='1';
   assert(!idleOnly||naturalOnly,'idle-only is a separately scoped natural acceptance run');
   assert(!expiryOnly||!naturalOnly,'expiry-only and natural-only are separate acceptance scopes');
+  assert(!discoveryOnly||(!naturalOnly&&!expiryOnly),'discovery-only and lifecycle-only are separate acceptance scopes');
   assert(!expiryOnly||process.env.OPENDESK_NATIVE_MARKET_R5_LONG==='1','a real TTL run requires its long timeout');
   assert(!naturalOnly||idleOnly||process.env.OPENDESK_NATIVE_MARKET_R5_LONG==='1','a real TTL run requires its long timeout');
   assert(!reuseHTTP||naturalOnly||expiryOnly,'only scoped lifecycle acceptance may reuse its owner website');
@@ -47,7 +51,7 @@ export async function runMarketR5Acceptance(d){
   evidence.r5={siteBuildId:site.buildId,siteManifestSha256:hash(siteBytes),origin:channel.origin,
     websiteFiles:output.length,channel,actualBrowser:'Chrome for Testing; real extension and HTTP',
     externalSender:'browser-provided; never supplied by driver',checks:[],negative:[],responsive:[],
-    result:'IN_PROGRESS',scope:expiryOnly?'REAL_TTL_ONLY':naturalOnly?(idleOnly?'NATURAL_IDLE_ONLY':'NATURAL_IDLE_AND_REAL_TTL'):'FULL_MARKET_R5',formalHttps:'BLOCKED_NO_REVIEWED_PRODUCTION_CHANNEL',macChrome:process.platform==='darwin'?'IN_PROGRESS':'NOT_TESTED',
+    result:'IN_PROGRESS',scope:discoveryOnly?'PAGE_DISCOVERY_ONLY':expiryOnly?'REAL_TTL_ONLY':naturalOnly?(idleOnly?'NATURAL_IDLE_ONLY':'NATURAL_IDLE_AND_REAL_TTL'):'FULL_MARKET_R5',formalHttps:'BLOCKED_NO_REVIEWED_PRODUCTION_CHANNEL',macChrome:process.platform==='darwin'?'IN_PROGRESS':'NOT_TESTED',
     notTested:['formal-https-and-web-store-channel','configured-production-manifest-real-chrome','user-local-mac-profile',
       'native-five-second-connection-timeout',
       'native-tabs-create-acknowledgement-loss','native-storage-set-acknowledgement-loss',
@@ -67,6 +71,10 @@ export async function runMarketR5Acceptance(d){
       chrome.runtime.sendMessage(target,cases[params.get('case')]||base,response=>finish(chrome.runtime.lastError?{error:chrome.runtime.lastError.message}:{response}));});document.querySelector('#send').disabled=false;`;
   const publicHandler=async(req,res)=>{
     const u=new URL(req.url,channel.origin);
+    const discoveryFixture=marketDiscoveryFixture(u,{channel,
+      release:d.catalog.apps.find(row=>row.toolId==='markdown-workbench'),
+      alternate:d.catalog.apps.find(row=>row.toolId==='quick-notes')});
+    if(discoveryFixture!==null){res.writeHead(200,{'content-type':mime['.html']});return res.end(discoveryFixture);}
     if(u.pathname==='/_r5/conformance.js'){res.writeHead(200,{'content-type':mime['.js']});return res.end(conformanceJS);}
     if(u.pathname==='/_r5/frame.html'){res.writeHead(200,{'content-type':mime['.html']});return res.end('<!doctype html><title>R5 real iframe rejection</title><iframe id="frame" style="width:600px;height:180px;border:0" src="/_r5/conformance.html"></iframe><pre id="result">ready</pre><script src="/_r5/parent.js"></script>');}
     if(u.pathname==='/_r5/parent.js'){res.writeHead(200,{'content-type':mime['.js']});return res.end('window.addEventListener("message",event=>{if(event.origin===location.origin)document.querySelector("#result").textContent=JSON.stringify(event.data)})');}
@@ -93,6 +101,13 @@ export async function runMarketR5Acceptance(d){
   assert(/^\d{1,5}$/.test(demoPort)&&Number(demoPort)<=65535,'isolated demo port must be 0..65535');
   const demo=await serverAt(Number(demoPort),async(req,res)=>{if(new URL(req.url,'http://127.0.0.1').pathname!=='/demo-form.html'){res.writeHead(404);return res.end();}res.writeHead(200,{'content-type':mime['.html']});res.end(demoBytes);});d.t.after(demo.close);
   evidence.r5.demo={url:demo.origin+'/demo-form.html',source:'examples/tasks/demo-form.html',sha256:hash(demoBytes)};
+  if(discoveryOnly){
+    await runMarketDiscoveryAcceptance({d,origin:wrongPort.origin,channel,
+      release:d.catalog.apps.find(row=>row.toolId==='markdown-workbench'),mark,check});
+    assert.deepEqual(evidence.dialogErrors,[]);assert.equal(evidence.dialogs.length,0);
+    assert.equal(evidence.protectedStorageWritesFromDriver,0);
+    evidence.publicMarket='LOCAL_HTTP_ONLY';await d.save();return;
+  }
   const intentRows=async()=>((await readStore(MARKET_INTENTS_STORE,host()))?.intents||[]);
   const storedCutState=async()=>({intents:await intentRows(),operations:(await readStore(MARKET_OPERATIONS_STORE,host()))||{},
     registry:await installed(),provenance:(await readStore(MARKET_PROVENANCE_STORE,host()))||{},
@@ -357,9 +372,51 @@ export async function runMarketR5Acceptance(d){
   check('trusted-install-result-open-action-reaches-current-installed-tool',{targetId:trustedOpen.targetId,url:actualToolURL,resources:hostResources});
   await close(first.review);
   let frame=await openTool('markdown-workbench');
-  await inputText(frame,'#mdw-source','# R5 真实安装\n\n**已运行**');await click(frame,'button[data-mode="preview"]');
+  const markdownSource='# R5 真实安装\n\n**已运行**';
+  await inputText(frame,'#mdw-source',markdownSource);await click(frame,'button[data-mode="preview"]');
   await until(()=>evaluate(frame,'document.querySelector("#mdw-preview h1")?.textContent==="R5 真实安装"&&document.querySelector("#mdw-preview strong")?.textContent==="已运行"'),'real Markdown rendering');
   await screenshot(side(),'r5-markdown-real-use.png');
+  // A real completed browser download and exact file bytes prove export.
+  // The editor remains current-session only: exporting does not clear its
+  // dirty/leave protection or prove automatic persistence of an editor draft.
+  assert.equal(typeof d.artifactDir,'string','download evidence needs the owned artifact directory');
+  const downloadDir=resolve(d.artifactDir,'downloads');await mkdir(downloadDir,{recursive:true});
+  const download=evidence.r5.markdownDownload={status:'IN_PROGRESS',directory:downloadDir,
+    selector:'#mdw-download',draftPersistence:'CURRENT_SESSION_ONLY_WITH_LEAVE_PROTECTION',events:[]};
+  const offDownload=d.onBrowserEvent(event=>{
+    if(['Browser.downloadWillBegin','Browser.downloadProgress'].includes(event.method))
+      download.events.push({method:event.method,...event.params});
+  });
+  try{
+    await d.sendBrowser('Browser.setDownloadBehavior',{behavior:'allowAndName',downloadPath:downloadDir,eventsEnabled:true});
+    await click(frame,'#mdw-download');
+    const completed=await until(()=>{
+      const begins=download.events.filter(row=>row.method==='Browser.downloadWillBegin');
+      assert(begins.length<=1,'one native download click must start exactly one download');
+      if(!begins.length)return false;
+      const begin=begins[0],progress=download.events.filter(row=>row.method==='Browser.downloadProgress'&&row.guid===begin.guid);
+      assert(!progress.some(row=>row.state==='canceled'),'Chrome canceled the actual Markdown download');
+      const done=progress.find(row=>row.state==='completed');
+      return done&&{begin,done};
+    },'actual Markdown browser download completes (SDK success alone is insufficient)');
+    assert.match(completed.begin.guid,/^[A-Za-z0-9-]+$/,'Chrome GUID stays inside the owned download directory');
+    // The test download policy names files by Chrome GUID. It proves completed
+    // bytes; the normal profile's final suggested filename is separate evidence.
+    const file=resolve(completed.done.filePath||join(downloadDir,completed.begin.guid));
+    assert.equal(file,join(downloadDir,completed.begin.guid),'test download stays in its owned directory');
+    assert((await stat(file)).isFile(),'Chrome must create the downloaded file');
+    const bytes=await readFile(file);
+    assert.deepEqual(bytes,Buffer.from(markdownSource,'utf8'),'actual downloaded UTF-8 bytes exactly match the edited Markdown');
+    Object.assign(download,{guid:completed.begin.guid,suggestedFilename:completed.begin.suggestedFilename,
+      requestedFilename:'markdown.md',normalProfileFilename:'NOT_TESTED_CDP_POLICY_NAMES_BY_GUID',
+      file,bytes:bytes.length,sha256:hash(bytes),progress:completed.done});
+  }catch(error){download.status='FAIL';download.error=error.message;throw error;}
+  finally{
+    offDownload();
+    await d.sendBrowser('Browser.setDownloadBehavior',{behavior:'default',eventsEnabled:false});
+  }
+  download.status='PASS';
+  check('native-markdown-download-completes-with-exact-utf8-file',{guid:download.guid,file:download.file,bytes:download.bytes,sha256:download.sha256});
   await click(side(),'#sidebar-tool-back');await visible(side(),'#sidebar-tool-action-continue');
   assert.match(await evaluate(side(),'document.querySelector("#sidebar-tool-action-review").textContent'),/未保存|修改/);
   assert((await targets()).some(row=>row.targetId===frame.targetId),'draft stays mounted before explicit discard');
@@ -370,6 +427,37 @@ export async function runMarketR5Acceptance(d){
   check('http-real-sender-fixed-review-first-install-close-website-then-confirm-and-real-markdown-use',
     {intentId:first.row.intentId,reviewId:first.row.reviewId,operationId:first.row.operationId,version:first.row.subject.version,
       operationState:operation.state,settledAt:completedIntent.settledAt});
+
+  await mark('markdown-explicit-stop-resume-and-launch');
+  const markdownRegistry=await installed(),markdownProvenance=await readStore(MARKET_PROVENANCE_STORE,host());
+  const assertMarkdownAuthority=async()=>{
+    assert.deepEqual(await installed(),markdownRegistry,'Markdown lifecycle preserves the installed Registry');
+    assert.deepEqual(await readStore(MARKET_PROVENANCE_STORE,host()),markdownProvenance,'Markdown lifecycle preserves official provenance');
+  };
+  frame=await openTool('markdown-workbench');
+  const stoppedFrameId=frame.targetId;
+  await click(side(),'#sidebar-tool-settings-open');
+  await visible(side(),'#sidebar-tool-enable');
+  await click(side(),'#sidebar-tool-enable');
+  await until(async()=>(await readStore(SIDEBAR_TOOL_ENABLE_STORE,host()))?.['markdown-workbench']===false,'Markdown actively stopped');
+  await until(async()=>(await targets()).every(row=>row.targetId!==stoppedFrameId),'stopped Markdown sandbox destroyed');
+  await d.assertNoFrames();await assertMarkdownAuthority();
+  check('native-markdown-stop-destroys-sandbox-preserves-installation',{enabled:false,destroyedTargetId:stoppedFrameId});
+  await click(side(),'#sidebar-tool-enable');
+  await until(async()=>(await readStore(SIDEBAR_TOOL_ENABLE_STORE,host()))?.['markdown-workbench']===true,'Markdown explicitly restored');
+  await click(side(),'#sidebar-tool-settings-open');
+  await until(()=>evaluate(side(),'document.querySelector("#sidebar-tool-settings-view").hidden'),'Markdown settings close before explicit launch');
+  await visible(side(),'#sidebar-tool-launch');
+  await d.assertNoFrames();await assertMarkdownAuthority();
+  await screenshot(side(),'r62-markdown-restored-awaiting-launch.png');
+  await click(side(),'#sidebar-tool-launch');
+  frame=await d.iframeWith('markdown-workbench');await visible(frame,'#mdw-source');
+  assert.notEqual(frame.targetId,stoppedFrameId,'explicit launch creates a fresh Markdown sandbox');
+  await assertMarkdownAuthority();
+  await back();await assertMarkdownAuthority();
+  check('native-markdown-restore-waits-for-explicit-launch',{enabled:true,automaticSandboxCount:0,
+    launchedTargetId:frame.targetId,installedVersion:markdownRegistry.find(row=>row.id==='markdown-workbench').version,
+    provenance:markdownProvenance['markdown-workbench']});
 
   await mark('real-website-connection-timeout-and-explicit-reconnect');
   const beforeTimeout=await storedCutState(),timeoutObserver=await observeMarketSender(d,{holdProbe:true});
@@ -574,8 +662,14 @@ export async function runMarketR5Acceptance(d){
 
   await mark('native-old-package-note-save-baseline-recheck-and-website-upgrade');
   const notes=packages.get('quick-notes'),oldNotes={...notes,version:'0.0.1',capabilities:['storage.local']};
-  await importPackage(oldNotes,'r5-controlled-old-notes',[{parts:['版本回退']}]);
+  await importPackage(oldNotes,'r5-rejected-local-official-takeover',[{parts:['版本回退']}],{rejectedWith:'E_PUBLISHER_CONFLICT'});
+  check('native-local-package-cannot-take-over-installed-official-source');
+  // Seed the controlled local fixture only after explicitly uninstalling the
+  // official app. Its later source change is visibly reviewed in the market.
+  await uninstall('quick-notes');
+  await importPackage(oldNotes,'r5-controlled-local-notes');
   frame=await openTool('quick-notes');const note='R5 本机笔记：升级和 Chrome 重启后保留 '+randomUUID();
+  await click(frame,'#add-note');
   await inputText(frame,'#note-text',note);await click(frame,'#save-note');
   await until(()=>evaluate(frame,'document.querySelector("#note-status").textContent.includes("已保存")&&!document.querySelector("#save-note").disabled'),'native note save');
   const noteData=await readStore(sidebarToolStorageKey('quick-notes'));assert(JSON.stringify(noteData).includes(note));await back();
@@ -593,7 +687,7 @@ export async function runMarketR5Acceptance(d){
   const beforeRegistry=await storedCutState(),registryCut=await armMarketCut(d,'C',{targetId:upgrade.review.targetId});
   const registryGesture=click(upgrade.review,'[data-market-action="confirm-install"]').then(()=>({status:'ACKNOWLEDGED'}),error=>({status:'TARGET_CLOSED',message:error.message}));
   const registryHit=await registryCut.wait();
-  assert.equal(registryHit.value.key,SIDEBAR_TOOL_STORE);assert.equal(registryHit.value.scope,'工具安装记录');assert.equal(registryHit.value.failure,null);
+  assert.equal(registryHit.value.key,SIDEBAR_TOOL_STORE);assert.equal(registryHit.value.scope,'工具安装及实例代际');assert.equal(registryHit.value.failure,null);
   assert.equal(registryHit.value.next.find(row=>row.id==='quick-notes').version,notes.version);
   assert.equal(registryHit.value.previous.find(row=>row.id==='quick-notes').version,'0.0.2');
   await registryCut.terminate();registryCut.record.gesture=await registryGesture;
@@ -632,7 +726,7 @@ export async function runMarketR5Acceptance(d){
   Object.assign(registryCut.record,{status:'PASS',recoveredOperation:(await readStore(MARKET_OPERATIONS_STORE,host()))[upgrade.row.operationId],recoveredIntent:settledUpgrade});
   check('native-registry-committed-page-interruption-recovers-original-operation-and-user-data',
     {operationId:upgrade.row.operationId,version:notes.version,storageAcknowledgementLoss:'NOT_TESTED; interrupted only after successful native set'});
-  frame=await openTool('quick-notes');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'same note in updated actual tool');
+  frame=await openTool('quick-notes');await click(frame,'#note-list .note-row');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'same note in updated actual tool');
   await screenshot(side(),'r5-notes-after-update.png');await back();
   evidence.r5.update={fixtureVersions:['0.0.1','0.0.2'],fixtureStatus:'controlled local test packages, not historical official releases',officialVersion:notes.version,
     noteDataSha256:hash(Buffer.from(JSON.stringify(noteData))),operationId:upgrade.row.operationId,operationState:'succeeded',settledAt:settledUpgrade.settledAt};
@@ -669,10 +763,12 @@ export async function runMarketR5Acceptance(d){
   await openTool('markdown-workbench');await click(side(),'#sidebar-tool-remove');await visible(side(),'#sidebar-tool-inline-remove-cancel');
   const beforeCancel=await installed();await click(side(),'#sidebar-tool-inline-remove-cancel');assert.deepEqual(await installed(),beforeCancel);await back();
   await uninstall('markdown-workbench');assert.equal(await readStore(sidebarToolStorageKey('markdown-workbench')),undefined);
+  await runMarketDiscoveryAcceptance({d,origin:wrongPort.origin,channel,
+    release:d.catalog.apps.find(row=>row.toolId==='markdown-workbench'),mark,check});
   const registryBeforeRestart=await installed();await d.restartChrome();
   assert.deepEqual(await installed(),registryBeforeRestart);assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
   assert(!((await installed()).some(row=>row.id==='markdown-workbench')));
-  frame=await openTool('quick-notes');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'persisted note after actual Chrome exit/relaunch');await back();
+  frame=await openTool('quick-notes');await click(frame,'#note-list .note-row');await until(()=>evaluate(frame,'document.querySelector("#note-text").value==='+JSON.stringify(note)),'persisted note after actual Chrome exit/relaunch');await back();
   assert(tocSiteAllowed(await readStore(READING_TOC_SITE_STORE),'reading-toc',demo.origin));
   check('inline-uninstall-cancel-confirm-and-normal-chrome-restart-with-persisted-updated-data');
 

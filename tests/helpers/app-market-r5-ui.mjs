@@ -20,9 +20,13 @@ export function marketUIAudit(d){
   }
   async function reach(target,selector,label){
     await activate(target);
-    for(let step=0;step<40;step++){
+    // A full native cycle also traverses Chrome's toolbar. Allow two document
+    // lengths, still bounded, as the catalog adds real keyboard stops.
+    const budget=Math.max(80,2*await evaluate(target,
+      '[...document.querySelectorAll("a[href],button,input,select,textarea,[tabindex]")].filter(el=>!el.disabled&&el.tabIndex>=0&&el.getClientRects().length).length')+2);
+    for(let step=0;step<budget;step++){
       await key(target,'Tab','Tab',9);const state=await focused(target,selector);
-      record.keyboard.push({label,action:'Tab',step,...state});
+      record.keyboard.push({scenario:label,action:'Tab',step,...state});
       if(state.matches){
         // A native Tab may trigger document smooth-scrolling. Read until the
         // browser finishes exposing the focused control; never call focus(),

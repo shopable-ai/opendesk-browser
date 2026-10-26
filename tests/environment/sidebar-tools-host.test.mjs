@@ -12,9 +12,10 @@ import {AI_ID,AI_CAPABILITY,AI_OPERATIONS} from '../../examples/sidebar-tools/ai
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS,ADBLOCK_RULE_FIRST,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
-import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
+import {initSidebarToolSandbox,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
+import {MANAGED_SITE_BUDGET_PROTOCOL,MANAGED_SITE_RUNTIME_CONTRACT} from '../../src/platform/host/managed-site-runtime-contract.js';
 import {ANALYTICS_PROTOCOL} from '../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
@@ -571,7 +572,8 @@ test('prelaunch host reads older readers without provenance and still blocks sto
 test('R26 corrupted enable records preserve bytes and refuse execution or changes',async t=>{
   const corrupt={[sample.id]:'false'},store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[SIDEBAR_TOOL_ENABLE_STORE,corrupt]]);
   const f=await hostFixture(t,{store,startTool:false});f.host.openTool(sample.id);
-  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);assert.equal(f.elements['sidebar-tool-enable'].disabled,true);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);assert.equal(f.elements['sidebar-tool-enable'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-enable-retry'].hidden,false);
   assert.deepEqual(store.get(SIDEBAR_TOOL_ENABLE_STORE),corrupt);
 });
 
@@ -789,7 +791,7 @@ test('actual sandbox state object clears host dirty state only after busy work e
   const parent={postMessage(data){sent.push(data);f.win.emit('message',{
     origin:'null',source:f.frame.contentWindow,data});}};
   runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
-    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,window:sandboxWindow,parent,
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,sandboxToolMessages,window:sandboxWindow,parent,
     document:{getElementById:id=>id==='tool-root'?root:status,documentElement:new Node('html'),
       head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
     Blob,URL:{createObjectURL:()=> 'blob:component-contract',revokeObjectURL(){}},
@@ -1971,8 +1973,27 @@ test('R4.8 manual reviewed installation remains available for every offline offi
   const requested=[],store=new Map();
   const f=await hostFixture(t,{store,startTool:false,fetcher:async(url,options)=>{
     requested.push(String(url));return officialFixtureFetch(url,options);
+  },hostReply:async message=>{
+    // This component double represents the shipping declarative-policy Worker.
+    // Missing/unsupported Worker admission remains covered by installer tests.
+    if(message.protocol===MANAGED_SITE_BUDGET_PROTOCOL&&message.operation==='probe')
+      return {ok:true,data:{managedSiteRuntime:{contract:MANAGED_SITE_RUNTIME_CONTRACT,
+        privilegedJs:false,policyKinds:['site-budget.v2','site-budget.v3']}}};
   }});
-  f.api.permissions={contains:async()=>false}; // No native proxy rights in this installer fixture.
+  // Model empty native resources for verified uninstall; no real permissions or
+  // Chrome rules/proxy are touched by this component fixture.
+  f.api.permissions={contains:async({permissions})=>permissions.every(name=>name==='proxy')};
+  f.api.proxy={settings:{async get(){return {levelOfControl:'controllable_by_this_extension'};},
+    async clear(){assert.fail('an empty proxy must never be cleared');}}};
+  const alarms=new Map();
+  f.api.alarms={async create(name,value){alarms.set(name,value);},
+    async clear(name){return alarms.delete(name);},async get(name){return alarms.get(name);}};
+  const session=new Map();
+  f.api.storage.session={
+    async get(key){return {[key]:structuredClone(session.get(key))};},
+    async set(rows){for(const [key,value] of Object.entries(rows))session.set(key,structuredClone(value));},
+    async remove(key){session.delete(key);}
+  };
   const {catalog}=await officialFixtures();
   assert.deepEqual(requested,[f.api.runtime.getURL('official-tools/catalog.json'),OFFICIAL_FOCUS_LATEST_URL],
     'first run loads only the local catalog and fixed Focus metadata, never tool packages');
@@ -1995,13 +2016,13 @@ test('R4.8 manual reviewed installation remains available for every offline offi
     assert.equal(store.get(SIDEBAR_TOOL_STORE).filter(row=>row.id===release.toolId).length,1);
     assert.equal(store.get(MARKET_PROVENANCE_STORE)[release.toolId].sha256,release.sha256);
     assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'confirmed install cannot run code');
-  }
-  assert.equal(store.get(SIDEBAR_TOOL_STORE).length,catalog.apps.length);
-  for(const release of catalog.apps){
+    // Exercise every package without bypassing the real installed-tool limit.
     f.host.openTool(release.toolId);
     f.emit(f.elements['sidebar-tool-remove'],'click');
     f.emit(f.elements['sidebar-tool-inline-remove-confirm'],'click');
     await settle(()=>!store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===release.toolId));
+    try{await settle(()=>!store.get(TOOL_CLEANUP_STORE)?.[release.toolId]);}
+    catch{assert.fail(release.toolId+': '+f.elements['sidebar-tool-status'].textContent);}
   }
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
   f.host.dispose();
@@ -2436,14 +2457,15 @@ test('Prompt Shortcuts reads real native menu status, not a missing legacy grant
   gate.resolve();
   // The React presentation view exposes attributes as a plain object, not a DOM Map.
   await settle(()=>!button.disabled&&button.attributes['aria-checked']==='true');
-  assert.equal(button.textContent,'关闭右键快捷添加');
+  assert.equal(button.attributes['role'],'switch');
+  assert.equal(button.attributes['aria-label'],'选中文字快速添加');
   assert.equal(f.store.has(BROWSER_MENU_GRANTS_STORE),false,
     'a reviewed default is active without a second OpenDesk grant record');
   assert.equal(permissionRequests,0,'reading an existing Chrome permission never requests it again');
   f.view.actions[button.key].click({isTrusted:true});
   await settle(()=>toggles.length===1&&!button.disabled&&button.attributes['aria-checked']==='false');
   assert.equal(toggles[0].enabled,false,'the first real click closes the already active menu');
-  assert.equal(button.textContent,'启用右键快捷添加');
+  assert.equal(button.attributes['aria-checked'],'false');
   assert.equal(permissionRequests,0,'stopping a menu requires no Chrome permission prompt');
 });
 
@@ -3188,9 +3210,9 @@ test('R5.38 one clear preview dialog mints one exact native Host approval withou
   cookieTestLocation(t);
   const tool=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
   const grant={storeId:'0',grantEpoch:'r538-clear-grant',read:true,write:true,
-    observe:true,clear:true,values:false,valueConsent:false};
+    observe:true,clear:true,values:true,valueConsent:true};
   const store=await verifiedCookieStore(tool,grant);
-  const f=await hostFixture(t,{tool,store,target});
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true}});
   await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
   const old=Object.getOwnPropertyDescriptor(globalThis,'navigator');
   let trusted=false;
@@ -3246,9 +3268,9 @@ test('R5.38 forged clear size or revoked site grant never falls through to a dup
   cookieTestLocation(t);
   const tool=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
   const grant={storeId:'0',grantEpoch:'r538-grant',read:true,write:true,
-    observe:true,clear:true,values:false,valueConsent:false};
+    observe:true,clear:true,values:true,valueConsent:true};
   const store=await verifiedCookieStore(tool,grant);
-  const f=await hostFixture(t,{tool,store,target});
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true}});
   await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
   const old=Object.getOwnPropertyDescriptor(globalThis,'navigator');
   Object.defineProperty(globalThis,'navigator',{configurable:true,

@@ -119,7 +119,7 @@ test('My Apps opens local installed package while official catalog is missing or
   const open=walk(root).find(n=>n.textContent==='打开'&&n.listeners.has('click'));
   assert(open,'local Open control must not be guarded by catalog contents');
   await open.listeners.get('click')();
-  assert.match(opened,/chrome-extension:\/\/abcdefghijklmnop\/ui\/sidepanel.html/);
+  assert.match(opened,/chrome-extension:\/\/abcdefghijklmnop\/sidepanel\.html/);
   assert.equal(f.values[sidebarToolStorageKey(tool.id)].notes,'private draft');
   assert.equal(active,0);
 });
@@ -180,7 +180,7 @@ test('stalled official package lookup never blocks local My Apps or Open after c
   const open=walk(root).find(node=>node.textContent==='打开'&&node.listeners.has('click'));
   assert(open,'the local tool opens without waiting for a publisher package');
   await open.listeners.get('click')();
-  assert.match(opened,/chrome-extension:\/\/abcdefghijklmnop\/ui\/tool\.html/);
+  assert.match(opened,/chrome-extension:\/\/abcdefghijklmnop\/sidepanel\.html/);
   assert.deepEqual(f.values[sidebarToolStorageKey(tool.id)],{notes:'离线内容仍然可用'});
 });
 
