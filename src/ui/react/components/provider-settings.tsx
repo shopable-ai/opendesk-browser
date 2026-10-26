@@ -300,7 +300,7 @@ export function SharedProviderSettingsSheet({
          清除现有会话密钥
         </label>}
        </div>:<NativeConnectionCard nativeConnection={nativeConnection}
-        onOpenNativeSettings={onOpenNativeSettings} doc={doc}/>
+        onOpenNativeSettings={onOpenNativeSettings} doc={doc}/>}
        <p className="od-shared-provider-permission-note">
         网页摘要仍需按本轮授权；切换 AI 来源不会扩大 Chrome 或本机权限，也不会自动重放业务操作。
        </p>
