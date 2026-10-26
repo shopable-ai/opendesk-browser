@@ -39,6 +39,8 @@
 
 **SOURCE_IMPLEMENTED**：R3.2 的业务模块、Runtime、可信 UI、预览与定向测试已写入 main；使用原 `src/model.js`、14 条示例和原 `trusted/local-test-runtime.js` 的源码做过隔离 V8 执行：目标消息确实返回 2 项已答/1 项待核实，未经审核 0 次替身发送，人工审核后替身 Adapter 仅发送一次，状态 `CONFIRMED`。隔离执行不等于 Node CI、真实网页或 Provider 通过。
 
+**R3.2 终版隔离烟测（非正式 Node PASS）**：绑定本次最新 GitHub 源码中的 model、router、Runtime、原 Shared AI Consumer/Host 与预览脚本执行 **33/33** 纯业务/语法检查，无失败。另使用原 Shared Consumer + 替身 Provider 真实执行过逐题允许列表：不属于本问题的 `qa_demo_payment` 在调用 Provider 前收到 `E_KB_REFERENCES`（Provider 次数 0）；合法 `qa_demo_refund` 仅把该知识的 `id/question/answer/scope` 交给替身 Provider（次数 1），结果仍是 `REVIEW_REQUIRED`。两个非精确问题在有单文档授权时通过原 Runtime 分别取 `qa_demo_invoice` / `qa_demo_tracking` 的草稿，合成为一条，人工确认前 0 次替身发送、人工确认后 1 次。**这些运行环境都不是 Node 的官方测试入口，也不是真实模型/网页发送**。
+
 **历史证据不可继承**：R3.1 的 158/158 Node PASS 对应旧源码；R3.2 新 Node / CI 结果单独核对实际 Job。`PREVIEW_BROWSER_PASS`、`CHROME_PASS`、`REAL_PROVIDER_PASS` 当前未获得本次真实验收；第三方正式站点 Adapter/授权仍 `BLOCKED_NO_TARGET`。
 
 新增最小命令（Mac、本仓库根目录）：
