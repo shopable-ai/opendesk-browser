@@ -52,7 +52,8 @@ try{await mkdir(dir,{recursive:true});
     console.log('CROWN_ALPHA_'+rev.toUpperCase()+' '+JSON.stringify(geometry));
     for(const size of [34,42])for(const theme of ['light','dark'])for(const width of [320,360,400,440]){
       await cdp('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
-      await ev('document.querySelector("#sizes [data-value=\"'+size+'\"]').click();document.querySelector("#themes [data-value=\"'+theme+'\"]').click();document.querySelector("#widths [data-value=\"'+width+'\"]').click();true');
+      const choose=[['sizes',size],['themes',theme],['widths',width]].map(([id,value])=>'document.querySelector('+JSON.stringify('#'+id+' [data-value="'+value+'"]')+').click()').join(';')+';true';
+      await ev(choose);
       const m=await ev('('+inspect.toString()+')()');const name=rev+'-'+size+'-'+theme+'-'+width;
       assert.equal(m.button.w,size,name+' button width');assert.equal(m.button.h,size,name+' button height');
       assert.equal(m.native.w,size,name+' native button width');assert.ok(m.native.x-m.button.right>=3,name+' native gap');
