@@ -13,11 +13,11 @@ import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {createCookieService} from '../../../../src/platform/chrome/cookies.js';
 import {inspectAccountSwitchUrl} from '../app/domain/account-switch-url.js';
 import {createCookieAccountVault} from './account-vault.js';
+import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_EFFECTS} from './account-contract.js';
 
-export const COOKIE_ACCOUNT_PROTOCOL='opendesk.cookie-accounts.v1';
+export {COOKIE_ACCOUNT_PROTOCOL} from './account-contract.js';
 const ID='cookie-editor',MAX_COOKIES=100,MAX_ACCOUNTS=48,SEEN_KEY='opendesk.cookie-editor.auto-seen.v1';
-const MUTATIONS=new Set(['unlock','lock','create','rename','update','delete',
-  'switch','setAutoEnabled','setAutoRefresh','allowAlias']);
+const MUTATIONS=new Set(COOKIE_ACCOUNT_EFFECTS);
 const fail=code=>Object.assign(new Error(code),{code});
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
@@ -276,8 +276,7 @@ export function createCookieAccountService({api=globalThis.chrome,now=Date.now}=
   async function dispatch(message,sender){
     if(!object(message)||message.protocol!==COOKIE_ACCOUNT_PROTOCOL||
        message.toolId!==ID||typeof message.operation!=='string'||
-       !['status','unlock','lock','create','rename','update','delete','switch',
-         'setAutoEnabled','setAutoRefresh','allowAlias'].includes(message.operation)||
+       !COOKIE_ACCOUNT_OPERATIONS.includes(message.operation)||
        !object(message.payload))
       throw fail('E_ACCOUNT_REQUEST');
     await hostSender(sender);
