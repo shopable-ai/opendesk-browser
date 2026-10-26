@@ -17,8 +17,18 @@ function mountAnswerTool(bar,host){
   // to have installed a navigation button first.
   const scope=bar.closest?.('.turn-action-controls')||bar;
   const groups=[...scope.querySelectorAll(`[${TOOLS}]`)];
-  if(groups.length>1)return null; // Ambiguous ownership: never guess or delete a peer.
   let group=groups[0];
+  if(groups.length>1){
+    const previous=host.parentElement;
+    const destinations=groups.filter(candidate=>candidate!==previous);
+    // A late navigation mount may leave our earlier, own-only group outside
+    // its native row. Move only our host into that unique navigation group.
+    if(groups.length!==2||destinations.length!==1||
+      previous?.childNodes.length!==1||previous.firstChild!==host||
+      ![...destinations[0].children].some(node=>node.hasAttribute('data-opendesk-chatgpt-jump-top')))
+      return null; // Ambiguous ownership: never guess or delete a peer.
+    group=destinations[0];
+  }
   const target=group?.parentElement||scope;
   if(!target?.isConnected||!scope.contains(target))return null;
   if(!group){

@@ -101,7 +101,7 @@ test('same identity is a no-op including token/generation/proof/unknown cleanup;
   const f=fixture(),pkg=await packageFor(),first=await f.import(pkg),snapshot=structuredClone(f.rows()),cleanups=f.cleanups;
   assert.deepEqual(await f.import(pkg,first),first);assert.deepEqual(f.rows(),snapshot);
   assert.equal(f.cleanups,cleanups);assert.equal(f.registers,1);assert.equal(f.previews,0);
-  const disabled=await f.service.setInstalledPageEnabled({programId:pkg.programId,manifestHash:first.manifestHash,
+  const disabled=await f.service.setInstalledPageEnabled({programId:pkg.programId,manifestHash:first.manifestHash,installationId:first.authorization.installationId,
     expectedGeneration:first.authorization.generation,enabled:false},{id:'test'});
   const before=structuredClone(f.rows());
   assert.equal((await f.import(pkg,disabled)).enabled,false);assert.deepEqual(f.rows(),before);
@@ -125,7 +125,7 @@ test('package upgrades reuse original installer CAS, scope approval and disabled
   for(const enabled of [true,false]){
     const f=fixture(),pkg=await packageFor();let previous=await f.import(pkg);
     if(!enabled)previous=await f.service.setInstalledPageEnabled({programId:pkg.programId,
-      manifestHash:previous.manifestHash,expectedGeneration:previous.authorization.generation,enabled:false},{id:'test'});
+      manifestHash:previous.manifestHash,installationId:previous.authorization.installationId,expectedGeneration:previous.authorization.generation,enabled:false},{id:'test'});
     const oldToken=f.installation().token,oldProof=structuredClone(f.rows().find(r=>r.tag==='page-verification-v1'));
     const nextSource=source.replace('https://example.com/*','https://example.net/*');
     const nextRules={...rules,matches:['https://example.net/*']};
@@ -154,7 +154,7 @@ test('pending managed UI cleanup cannot be overwritten by an upgrade',async()=>{
   const f=fixture(),pkg=await packageFor(),first=await f.import(pkg);
   f.cleanupUncertain=true;
   const disabled=await f.service.setInstalledPageEnabled({
-    programId:pkg.programId,manifestHash:first.manifestHash,
+    programId:pkg.programId,manifestHash:first.manifestHash,installationId:first.authorization.installationId,
     expectedGeneration:first.authorization.generation,enabled:false
   },{id:'test'});
   assert.equal(f.installation().managedCleanup?.state,'unknown');

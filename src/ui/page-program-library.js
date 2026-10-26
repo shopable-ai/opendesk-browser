@@ -152,6 +152,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     if(!row?.installed)throw new Error('尚未安装');const enabled=!row.installed.enabled;
     if(enabled)await requireChromePermissions({api,request:requestFor(row.installed)});assertOpen();
     const result=await client.request('setInstalledPageEnabled',{programId:row.programId,manifestHash:row.installed.manifestHash,enabled,
+      installationId:row.installed.authorization?.installationId,
       expectedGeneration:row.installed.authorization?.generation??null});
     if(result.error)throw result.error;
     return enabled?'已启用；下次进入匹配网页自动运行。':'已停用后续自动执行。刷新原网页可清除旧脚本的界面、监听器和计时器；已发生的效果不会回滚。';
@@ -192,7 +193,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
         if(!row.installed.enabled)throw {code:'E_REVISION',message:'程序启用状态在恢复期间改变，请刷新后重新核对'};
         if(current.authorization.status==='suspended'){
           const result=await client.request('setInstalledPageEnabled',{programId:row.programId,manifestHash:current.manifestHash,enabled:true,
-            expectedGeneration:current.authorization.generation});
+            installationId:current.authorization.installationId,expectedGeneration:current.authorization.generation});
           if(result.error)throw result.error;
         }else if(current.authorization.status!=='active')throw {code:'E_PAGE_AUTHORIZATION',message:'请重新核对并安装此固定版本'};
       }

@@ -32,7 +32,7 @@ const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
 }});
 
 function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null}={}){
-  const {doc,adapter}=createExtensionCenterDOM(t);
+  const {doc,adapter,state}=createExtensionCenterDOM(t);
   const nodes=new Proxy({}, {get:(_,id)=>doc.getElementById(id)});
   const store=new Map([[SIDEBAR_TOOL_STORE,structuredClone(installedRows)],
     [SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
@@ -89,6 +89,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     writes.push(structuredClone(args));
     const program=programs.find(row=>row.programId===args.programId);
     assert.equal(args.manifestHash,program.manifestHash);
+    assert.equal(args.installationId,program.installed.authorization.installationId);
     assert.equal(args.expectedGeneration,program.installed.authorization.generation);
     if(!pageAckOnly){
       program.installed.enabled=args.enabled;
@@ -124,7 +125,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
   const button=(key,action)=>buttons(key).find(node=>node.dataset.extensionAction===action);
   const rowMenu=()=>doc.getElementById('extension-center-row-menu');
   const menuItem=text=>rowMenu()?.children.find(node=>node.textContent.includes(text));
-  return {doc,nodes,ui,store,sidebarTools,invocations,writes,uninstalls,list,button,buttons,rowMenu,menuItem,programs,
+  return {doc,nodes,ui,state,store,sidebarTools,invocations,writes,uninstalls,list,button,buttons,rowMenu,menuItem,programs,
     setCorrupt:value=>{corrupt=value;},setFailPages:value=>{failPages=value;},
     setPageCatalog:value=>{pageCandidates=value;},setPageUninstallMode:value=>{pageUninstallMode=value;},
     setPageAckOnly:value=>{pageAckOnly=value;},
@@ -322,7 +323,7 @@ test('R4.7 installed Page menu is keyboard usable, invokes original generation-b
   f.menuItem('停用自动运行').dispatch('click');
   await settle(()=>f.writes.length===1);
   assert.deepEqual(f.writes[0],{programId:'reader',manifestHash:'a'.repeat(64),
-    enabled:false,expectedGeneration:5});
+    installationId:'original-installation',enabled:false,expectedGeneration:5});
   await settle(()=>f.menuItem('停用自动运行')===undefined);
   assert.equal(f.programs[0].installed.enabled,false);
 });
@@ -354,7 +355,7 @@ test('R5.6 suspended Page offers direct restoration but cannot claim native succ
   await settle(()=>f.writes.length===1);
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   assert.deepEqual(f.writes[0],{
-    programId:'reader',manifestHash:'a'.repeat(64),enabled:true,expectedGeneration:5
+    programId:'reader',manifestHash:'a'.repeat(64),installationId:'original-installation',enabled:true,expectedGeneration:5
   });
   assert.equal(f.nodes['extension-center-status'].dataset.state,'info',
     'a still-blocked native registration must not be called a successful restore');
@@ -663,14 +664,18 @@ test('R4.8 historical reference preserves the production toolbar action contract
     const doc=parseHTML(source).document;
     const element=doc.querySelector('.ec-toolbar'),host=doc.getElementById(hostId);
     assert.ok(element&&host,'toolbar and import host must exist');
-    assert.equal(element.nextElementSibling,host,'toolbar must immediately precede the import host');
+    const next=element.nextElementSibling;
+    assert.equal(next?.matches('input[type="file"][hidden]')?next.nextElementSibling:next,host,
+      'only the hidden file picker may separate the toolbar from its import host');
     return element.outerHTML;
   };
   const formal=toolbar(html,'extension-center-import-host');
   const demo=toolbar(preview,'preview-import-host');
   // Preserve the reviewed historical reference; the current React preview
   // has its own source-bound generator and check. Product copy may advance.
-  const controls=source=>[...source.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]).sort();
+  // The historical preview predates moving locale selection to the shared shell.
+  const controls=source=>[...source.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1])
+    .filter(id=>id!=='extension-center-language').sort();
   assert.deepEqual(controls(demo.replaceAll('preview-','extension-center-')),controls(formal));
   for(const attribute of ['data-ec-kind','data-ec-scope','aria-controls']){
     const values=source=>[...source.matchAll(new RegExp(attribute+'="([^"]+)"','g'))]
@@ -817,8 +822,8 @@ test('R5.0 official catalog stale responses and failures must be rejected by sou
   assert.match(center,/const id=\+\+officialSequence/);
   assert.match(center,/id===officialSequence/);
   assert.match(center,/official=\[\];catalogError=/);
-  assert.match(center,/return \{refresh,dispose\(\)\{if\(disposed\)return;disposed=true;sequence\+\+;officialSequence\+\+;\s*listUninstallReview=null;uninstallReview=null;closeRowMenu\(\)/,
-    'dispose invalidates both asynchronous sequences and pending reviews before closing the menu');
+  assert.match(center,/return \{refresh,dispose\(\)\{if\(disposed\)return;disposed=true;sequence\+\+;officialSequence\+\+;pageOfficialSequence\+\+;discoveryGeneration\+\+;discoveryChannelGeneration\+\+;\s*listUninstallReview=null;uninstallReview=null;closeRowMenu\(\)/,
+    'dispose invalidates each asynchronous catalog/discovery sequence and pending reviews before closing the menu');
 });
 
 
@@ -845,4 +850,40 @@ test('R5.7 menu opens trusted import Host, never the global picker or language m
   more.dispatch('click');f.nodes['extension-center-import'].dispatch('click');
   assert.match(f.nodes['extension-center-status'].textContent,/Host unavailable/);
   assert.equal(pickerClicks,0);
+});
+
+test('R1.5 Page readback remains authoritative when unrelated Sidebar storage fails',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.button('page:reader','main').dispatch('click');
+  f.setCorrupt(true);
+  f.doc.querySelector('[data-ec-detail-action="toggle"]').dispatch('click');
+  await settle(()=>f.writes.length===1&&!f.state.detailModel.busy);
+  assert.equal(f.programs[0].installed.enabled,false);
+  assert.equal(f.state.statusModel.state,'success');
+  assert.match(f.state.statusModel.text,/Page Authority 确认/);
+});
+
+test('R1.5 successful Page uninstall is confirmed while its official candidate remains',async t=>{
+  const sources=JSON.parse(await readFile('official-pages/sources.json','utf8'));
+  const apps=sources.programs.map(({project,packageFile,publication,...row})=>
+    ({...row,kind:'page-program',status:'blocked'}));
+  t.mock.method(globalThis,'fetch',async url=>{
+    if(String(url).endsWith('official-pages/catalog.json'))return new Response(JSON.stringify({
+      schema:'opendesk.official-pages.releases.v1',sourceRepository:sources.sourceRepository,apps}));
+    throw Error('unrelated catalog unavailable');
+  });
+  const f=fixture(t),row=f.programs[0];
+  row.programId=row.installed.programId='opendesk.ai-scroll-navigation';
+  await f.ui.refresh();
+  await settle(()=>f.state.toolbarModel?.countText!==undefined||f.list.children.length>0);
+  // Let the asynchronous bundled-catalog read finish before entering details.
+  await tick();await tick();
+  f.button('page:'+row.programId,'main').dispatch('click');
+  assert.ok(f.state.detailModel.pageControl.officialBlock,'the real catalog candidate is loaded');
+  f.doc.querySelector('[data-ec-detail-action="uninstall"]').dispatch('click');
+  f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
+  await settle(()=>f.uninstalls.length===1&&f.state.statusModel.text.includes('卸载'));
+  assert.equal(f.programs.length,0);
+  assert.equal(f.state.statusModel.state,'success');
+  assert.match(f.state.statusModel.text,/持久安装列表确认卸载/);
 });

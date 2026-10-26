@@ -10,6 +10,8 @@
 
 确认按钮复用原 Chrome 权限手势。安装仍核对 `expectedInstalledManifestHash`、`expectedGeneration`，升级沿既有固定 Revision 和权限范围规则执行。相同已安装 manifest 返回原安装和当前 Chrome 注册状态，保留 installationId、token、generation、enabled，不重新执行或创建身份；主动停用、撤权或缺失注册不会显示为可自动使用的成功。成功界面要求原安装授权 active、enabled、Chrome registered 的回执，详情可查看安装 ID 和 manifest 摘要。请求结果未知时先查询 `listPagePrograms`，不自动重放写操作。
 
+启停及恢复使用 `setInstalledPageEnabled({programId, manifestHash, installationId, expectedGeneration, enabled})`，其中 `installationId` 必填，取自所选安装的 `authorization.installationId`。Authority 初读与写事务均校验安装身份及代数；缺失身份拒绝为 `E_SCHEMA`，错误身份或陈旧代数拒绝为 `E_REVISION`。即使卸载后重装同字节且 generation 重置，旧安装请求也不能作用于新安装。
+
 草稿 JSON 继续用于「开发」的源码导入与本地项目调试；扩展安装入口明确拒绝将草稿当安装包，不自动导航或覆盖编辑器。临时运行不等于持久安装。Sidebar 应用 `.opendesk-tool.json` 保持原独立沙箱安装流程。
 
 ## 开发中的静态 import 保存

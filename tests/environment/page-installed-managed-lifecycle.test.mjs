@@ -94,7 +94,7 @@ function fixture(){
   };
   f.boot=()=>{const row=f.installation();return f.service.handleBoot({protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token},
     {id:'test',documentId:target.documentId,frameId:0,url:target.expectedUrl,tab:{id:1}});};
-  f.disable=()=>{const row=f.installation();return f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,enabled:false,expectedGeneration:row.authorization.generation},{});};
+  f.disable=()=>{const row=f.installation();return f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,installationId:row.authorization.installationId,enabled:false,expectedGeneration:row.authorization.generation},{});};
   f.uninstall=()=>{const row=f.installation();return f.service.uninstallPageProgram({programId:'script',manifestHash:row.manifestHash,expectedGeneration:row.authorization.generation},{});};
   f.dispose=()=>{for(const context of contexts.values())vm.runInContext('globalThis.ui?.destroy()',context);};
   return f;
@@ -331,7 +331,7 @@ test('unknown cleanup fences upgraded source in the same document, including aft
     const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.cleanupReplies=()=>[];
     await f.disable();if(uninstall)await f.uninstall();
     let row=await f.install('return 43;',2);
-    if(!row.enabled)row=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,enabled:true,expectedGeneration:row.authorization.generation},{});
+    if(!row.enabled)row=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,installationId:row.authorization.installationId,enabled:true,expectedGeneration:row.authorization.generation},{});
     const count=f.calls.filter(r=>r.js.at(-1).code.includes('return 43;')).length;
     await assert.rejects(f.boot(),{code:'E_UI_CLEANUP_FAILED'});
     assert.equal(f.calls.filter(r=>r.js.at(-1).code.includes('return 43;')).length,count,'new source must not dispatch past unknown cleanup');

@@ -373,12 +373,13 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   }
   async function setInstalledPageEnabled(request,sender){
     request=structuredClone(request);
-    fields(request,['programId','manifestHash','enabled','expectedGeneration']);
+    fields(request,['programId','manifestHash','installationId','enabled','expectedGeneration']);
     invariant(typeof request.enabled==='boolean','E_SCHEMA','启用状态必须是布尔值');
     return ordered(async()=>{
       let row;
       const previous=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,request.programId)));
       invariant(previous?.tag===PAGE_INSTALL_TAG&&previous.manifestHash===request.manifestHash&&
+        previous.authorization?.installationId===request.installationId&&
         (previous.authorization?.generation??null)===request.expectedGeneration,PAGE_REVISION_ERROR,'安装授权已改变');
       // Restoring or enabling is explicit. Checking permissions cannot itself
       // restore a suspended installation or execute an old document.
@@ -391,7 +392,9 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       }
       await scoped(sender,PAGE_WRITE,async tx=>{
         const installKey=key(INSTALL_KEY_KIND,namespace,request.programId),old=await tx.get(PAGE_STORE,installKey);
-        invariant(old?.tag===PAGE_INSTALL_TAG&&old.manifestHash===request.manifestHash&&old.token===previous.token,
+        invariant(old?.tag===PAGE_INSTALL_TAG&&old.manifestHash===request.manifestHash&&old.token===previous.token&&
+          old.authorization?.installationId===request.installationId&&
+          old.authorization?.generation===request.expectedGeneration,
           PAGE_REVISION_ERROR,'安装身份已改变');
         if(request.enabled)invariant(permissionEpoch(old)===epoch,PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
         const authorization=assertPageInstallAuthorization(old);
@@ -662,14 +665,14 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       const rows=await tx.all(PAGE_STORE),installed=await Promise.all(rows.filter(r=>r?.tag===PAGE_INSTALL_TAG&&r.namespace===namespace).map(async row=>{
         // Readback only downgrades the public projection, never restores a
         // blocked grant or repairs registrations, source, locks or stored state.
-        if(row.nativeState!=='registered')return row;
-        if(!row.enabled)return {...row,nativeState:'disabled',error:null};
+        if(!['registered','disabled'].includes(row.nativeState)||row.authorization?.status==='suspended')return row;
         let error=nativeError;
         if(!error)try{
-          invariant(nativeEqual(registered.get(row.nativeId),await nativeDescriptor(row,row.pageRules)),
+          const expected=await nativeDescriptor(row,row.pageRules);
+          invariant(row.enabled?nativeEqual(registered.get(row.nativeId),expected):!registered.has(expected.id),
             'E_PAGE_INSTALLATION','原生注册内容不一致，请主动核对安装状态');
         }catch(cause){error={code:cause.code,message:cause.message};}
-        return error?{...row,nativeState:'blocked',error}:row;
+        return error?{...row,nativeState:'blocked',error}:row.enabled?row:{...row,nativeState:'disabled'};
       }));
       const catalog=rows.filter(r=>r?.tag==='page-candidate-v1'&&r.namespace===namespace).map(row=>{
         const proof=rows.find(p=>p?.tag==='page-verification-v1'&&p.namespace===namespace&&p.candidateId===row.candidateId&&p.manifestHash===row.manifestHash);

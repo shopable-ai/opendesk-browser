@@ -142,21 +142,27 @@ test('R134 document_idle bootstrap waits for the registration mutation and runs 
   assert.equal(f.sourceCalls,1);
 });
 
-for(const scenario of ['registered','unavailable','missing','unrelated registration','disabled','disabled unavailable'])
+for(const scenario of ['registered','unavailable','missing','unrelated registration','disabled','disabled unavailable','disabled read throws','disabled stale registration'])
 test('R343 list readback is live and read-only: '+scenario,async()=>{
-  const f=fixture(),installed=await f.install();
+  const f=fixture(),installed=await f.install(),native=structuredClone(f.native.get(installed.nativeId));
   if(scenario.startsWith('disabled'))await f.service.setInstalledPageEnabled({programId:'script',
-    manifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation,enabled:false},{});
+    manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,enabled:false},{});
   if(scenario==='unavailable'||scenario==='disabled unavailable')f.access=false;
   if(scenario==='missing'||scenario==='unrelated registration')f.native.delete(installed.nativeId);
   if(scenario==='unrelated registration')f.native.set('another-program',{id:'another-program'});
+  if(scenario==='disabled read throws')f.api.userScripts.getScripts=async()=>{f.nativeReads++;throw Error('readback failed');};
+  if(scenario==='disabled stale registration')f.native.set(installed.nativeId,native);
+  f.storedCandidateReads=0;
   const before={db:f.snapshot(),native:structuredClone(f.native),worlds:structuredClone(f.worlds),
     writes:f.writes.length,register:f.registerCalls,unregister:f.unregisterCalls,execute:f.executeCalls,
     preview:f.previewCalls,permissions:structuredClone(f.permissionRequests),candidates:f.storedCandidateReads};
   const reads=f.nativeReads,result=await f.service.listPagePrograms({},{}),row=result.installed[0];
-  const blocked=['unavailable','missing','unrelated registration'].includes(scenario);
-  assert.equal(row.nativeState,scenario.startsWith('disabled')?'disabled':blocked?'blocked':'registered');
-  assert.equal(row.error?.code,scenario==='unavailable'?'E_USER_SCRIPTS_UNAVAILABLE':blocked?'E_PAGE_INSTALLATION':undefined);
+  const blocked=['unavailable','missing','unrelated registration','disabled unavailable','disabled read throws','disabled stale registration'].includes(scenario);
+  assert.equal(row.nativeState,blocked?'blocked':scenario.startsWith('disabled')?'disabled':'registered');
+  assert.equal(row.error?.code,scenario.endsWith('unavailable')?'E_USER_SCRIPTS_UNAVAILABLE':
+    scenario==='disabled read throws'?'E_USER_SCRIPTS_NATIVE':blocked?'E_PAGE_INSTALLATION':undefined);
+  assert.equal(row.ready,scenario==='registered');
+  assert.equal(f.storedCandidateReads,0,'list never loads frozen source/dependency material');
   assert.deepEqual(result.catalog[0].installed,row,'both library consumers must receive the same observed installation');
   assert.equal(row.enabled,!scenario.startsWith('disabled'));
   assert.deepEqual(row.authorization,f.installation().authorization,'observation must not restore or rotate a grant');
@@ -194,7 +200,7 @@ test('R343 list readback rechecks current authority after delayed native observa
   };
   const listing=f.service.listPagePrograms({},{});
   await Promise.race([arrived,listing.then(()=>assert.fail('list returned without observing native registration'))]);
-  if(change==='disable')await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+  if(change==='disable')await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
     expectedGeneration:installed.authorization.generation,enabled:false},{});
   else await f.storage.transaction(['commandJournal'],'readwrite',async tx=>{
     const host=await tx.get('commandJournal','host:host');
@@ -203,7 +209,10 @@ test('R343 list readback rechecks current authority after delayed native observa
   const before=f.snapshot(),writes=f.writes.length;release();
   if(change==='disable'){
     const result=await listing;
-    assert.equal(result.installed[0].enabled,false);assert.equal(result.installed[0].nativeState,'disabled');
+    assert.equal(result.installed[0].enabled,false);
+    // The delayed native snapshot still contains the pre-disable bootstrap.
+    assert.equal(result.installed[0].nativeState,'blocked');
+    assert.equal(result.installed[0].error.code,'E_PAGE_INSTALLATION');
   }else await assert.rejects(listing,{code:'E_OWNER'});
   assert.deepEqual(f.snapshot(),before);assert.equal(f.writes.length,writes);
   assert.equal(f.executeCalls,0);assert.deepEqual(f.permissionRequests,[]);
@@ -231,7 +240,7 @@ test('installed Page name uses the original registry and survives disabled upgra
   const installed=await f.service.installPageProgram({programId:'script',revision:1,
     manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null,title:' 表单助手 '},{});
   assert.equal(installed.title,'表单助手');
-  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
     enabled:false,expectedGeneration:installed.authorization.generation},{});
   const next=await f.prepare('document-idle',{revision:2});
   await f.service.installPageProgram({programId:'script',revision:2,manifestHash:next.manifestHash,
@@ -307,7 +316,7 @@ test('old library ABI, catalog or jQuery receipts cannot approve a changed envir
     await fails(()=>f.service.makePageAvailable({programId:'script',revision:1,manifestHash:candidate.manifestHash},{}),'E_PAGE_ENVIRONMENT');
     await fails(()=>f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,
       expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation},{}),'E_PAGE_ENVIRONMENT');
-    await fails(()=>f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+    await fails(()=>f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
       expectedGeneration:installed.authorization.generation,enabled:true},{}),'E_PAGE_ENVIRONMENT');
     if(mismatch==='missing'){f.restart();await f.service.reconcile();}
     else await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PAGE_ENVIRONMENT');
@@ -368,7 +377,7 @@ test('revocation refuses automatic execution; explicit restore rotates authoriza
   await fails(()=>f.service.handleBoot(old,f.sender),'E_PERMISSION');assert.equal(f.executeCalls,0);
   f.granted=true;f.restart();await f.service.reconcile();
   assert.equal(f.installation().authorization.status,'suspended');assert.equal(f.native.size,0,'Chrome onAdded alone cannot restore a program');
-  const restored=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+  const restored=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
     expectedGeneration:revoked.authorization.generation,enabled:true},{});
   assert.equal(restored.authorization.status,'active');assert.equal(restored.authorization.installationId,installed.authorization.installationId);
   assert.equal(f.executeCalls,0,'restore must not replay a previous document');
@@ -385,7 +394,7 @@ test('observed Chrome access loss without an onRemoved event suspends old boots 
     await fails(()=>f.service.handleBoot(old,f.sender),kind==='user-scripts'?'E_USER_SCRIPTS_UNAVAILABLE':'E_PERMISSION');
     assert.equal(f.installation().authorization.status,'suspended');
     f.access=f.granted=true;await fails(()=>f.service.handleBoot(old,f.sender),'E_PERMISSION');
-    const row=f.installation();await f.service.setInstalledPageEnabled({programId:row.programId,manifestHash:row.manifestHash,
+    const row=f.installation();await f.service.setInstalledPageEnabled({programId:row.programId,manifestHash:row.manifestHash,installationId:row.authorization.installationId,
       expectedGeneration:row.authorization.generation,enabled:true},{});
     assert.equal(f.executeCalls,0);f.navigate('new-restored-document');
     assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');assert.equal(f.permissionRequests.length,0);
@@ -403,11 +412,11 @@ test('same-scope upgrade reuses Chrome grant and installation identity; stale up
   assert.equal(f.permissionRequests.length,0);await fails(()=>f.service.installPageProgram(request,{}),'E_REVISION');
   await fails(()=>f.service.handleBoot(old,f.sender),'E_PERMISSION');
   const current=f.message();
-  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,
+  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,installationId:upgraded.authorization.installationId,
     expectedGeneration:upgraded.authorization.generation,enabled:false},{});
-  await fails(()=>f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,
+  await fails(()=>f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,installationId:upgraded.authorization.installationId,
     expectedGeneration:upgraded.authorization.generation,enabled:true},{}),'E_REVISION');
-  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,
+  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,installationId:upgraded.authorization.installationId,
     expectedGeneration:disabled.authorization.generation,enabled:true},{});
   await fails(()=>f.service.handleBoot(current,f.sender),'E_PERMISSION');assert.equal(f.executeCalls,0);
 });
@@ -415,7 +424,7 @@ test('same-scope upgrade reuses Chrome grant and installation identity; stale up
 test('upgrading a disabled Page script keeps it disabled and unregisters native bootstrap after restart',async()=>{
   const f=fixture(),installed=await f.install();
   const disabled=await f.service.setInstalledPageEnabled({programId:'script',
-    manifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation,
+    manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
     enabled:false},{});
   assert.equal(disabled.enabled,false);
   assert.equal(disabled.authorization.status,'disabled');
@@ -443,7 +452,7 @@ test('two installed programs keep independent authorization and cannot combine n
   assert.notEqual(a.authorization.installationId,b.authorization.installationId);
   const ma=f.message(),mb=f.message('second');
   await fails(()=>f.service.handleBoot({...ma,token:mb.token},f.sender),'E_PERMISSION');
-  await f.service.setInstalledPageEnabled({programId:'second',manifestHash:b.manifestHash,expectedGeneration:b.authorization.generation,enabled:false},{});
+  await f.service.setInstalledPageEnabled({programId:'second',manifestHash:b.manifestHash,installationId:b.authorization.installationId,expectedGeneration:b.authorization.generation,enabled:false},{});
   assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
   await fails(()=>f.service.handleBoot(mb,f.sender),'E_PERMISSION');
   assert.deepEqual(f.rows().filter(row=>row.tag==='page-execution-v1').map(row=>row.programId),['script']);
@@ -470,7 +479,7 @@ test('revocation during late installed authorization retains the observed effect
   f.api.permissions.contains=async request=>{const answer=await contains(request);
     if(f.executeCalls&&++afterExecution===2){entered();await gate;}return answer;};
   const running=f.service.handleBoot(f.message(),f.sender);await reached;
-  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
     expectedGeneration:f.installation().authorization.generation,enabled:false},{});
   release();await fails(()=>running,'E_PERMISSION');
   const execution=f.rows().find(row=>row.tag==='page-execution-v1');
@@ -578,7 +587,7 @@ test('each manifest/document is admitted once; unknown effect is retained across
 });
 test('disable revokes durable admission before native reconciliation and survives unavailable API plus restart',async()=>{
   const f=fixture(),installed=await f.install(),message=f.message();f.access=false;
-  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
+  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
   assert.equal(disabled.enabled,false);assert.equal(disabled.nativeState,'blocked');
   await fails(()=>f.service.handleBoot(message,f.sender),'E_PERMISSION');assert.equal(f.executeCalls,0);
   f.access=true;f.restart();await f.service.reconcile();assert.equal(f.native.size,0);assert.equal(f.installation().nativeState,'disabled');
@@ -595,7 +604,7 @@ test('delayed native unregister cannot execute a disabled program or complete di
     if(filter.ids.includes(installed.nativeId)){entered();await gate;}
     return unregister(filter);
   };
-  const disabling=f.service.setInstalledPageEnabled({programId:'B',manifestHash:installed.manifestHash,
+  const disabling=f.service.setInstalledPageEnabled({programId:'B',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
     expectedGeneration:installed.authorization.generation,enabled:false},{});
   disabling.then(()=>{settled=true;},()=>{settled=true;});
   try{
@@ -629,7 +638,7 @@ test('a queued invocation rechecks disabled grant before user source dispatch',a
   const f=fixture(),installed=await f.install();let entered,release;
   const arrived=new Promise(r=>entered=r),gate=new Promise(r=>release=r);f.beforeExecute=async()=>{entered();await gate;};
   const run=f.service.handleBoot(f.message(),f.sender);await arrived;
-  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
+  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
   release();await fails(()=>run,'E_PERMISSION');assert.equal(f.executeCalls,0);
 });
 test('installed executions use the same persisted Authority slot and cannot bypass disable or Controller ownership',async()=>{
@@ -642,7 +651,7 @@ test('installed executions use the same persisted Authority slot and cannot bypa
   await admission.reserveInstalled(claim,row);
   await fails(()=>admission.reserveInstalled({...claim,nonce:'second'},row),'E_OWNER');
   await admission.release({nonce:'nonce'});
-  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
+  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,installationId:row.authorization.installationId,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
   await fails(()=>admission.reserveInstalled(claim,row),'E_PERMISSION');
 });
 
@@ -666,7 +675,7 @@ test('disable remains responsive after dispatch while async user completion is p
   const running=f.service.handleBoot(f.message(),f.sender);
   for(let n=0;n<100&&!f.executeCalls;n++)await new Promise(resolve=>setTimeout(resolve,1));
   assert.equal(f.executeCalls,1);
-  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
+  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
   assert.equal(disabled.enabled,false);assert.equal(f.native.size,0);
   finish();await fails(()=>running,'E_PERMISSION');
   assert.equal(f.rows().find(row=>row.tag==='page-execution-v1').state,'failed');
@@ -791,7 +800,7 @@ test('R5.5 uncertain managed UI cleanup keeps a disabled installed record and re
   assert.equal(observed.installed.length,1,'do not hide a recoverable installation');
   assert.equal(observed.installed[0].managedCleanup.state,'unknown');
   await fails(()=>f.service.setInstalledPageEnabled({programId:'script',
-    manifestHash:blocked.manifestHash,expectedGeneration:blocked.authorization.generation,
+    manifestHash:blocked.manifestHash,installationId:blocked.authorization.installationId,expectedGeneration:blocked.authorization.generation,
     enabled:true},{}),'E_PAGE_CLEANUP_PENDING');
   const next=await f.prepare('document-idle',{revision:2});
   await fails(()=>f.service.installPageProgram({programId:'script',revision:2,
@@ -857,7 +866,7 @@ test('manual first-document click preserves authority checks: '+change,async()=>
   if(change==='website permission')f.granted=false;
   if(change==='script switch')f.access=false;
   if(change==='disabled'){
-    const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+    const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
       expectedGeneration:installed.authorization.generation,enabled:false},{});
     request.expectedGeneration=disabled.authorization.generation;
   }
@@ -998,7 +1007,7 @@ test('R134 dormant rules survive scope contraction but cannot be edited without 
 test('R132 disabling or revoking original install instantly fences saved config access',async()=>{
   const {f,message,installed}=await scrollConfigFixture();
   await f.service.setInstalledPageEnabled({programId:message.programId,
-    manifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation,
+    manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
     enabled:false},{});
   await fails(()=>f.service.handleBoot(message,f.sender),'E_PAGE_AUTHORIZATION');
 });
@@ -1029,7 +1038,7 @@ test('R133 custom Origin candidate remains read-only, requires exact installed i
   f.granted=false;
   await fails(()=>f.service.prepareScrollSitePackage(request,{}),'E_PERMISSION');
   f.granted=true;
-  await f.service.setInstalledPageEnabled({programId,manifestHash:installed.manifestHash,
+  await f.service.setInstalledPageEnabled({programId,manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
     expectedGeneration:installed.authorization.generation,enabled:false},{});
   await fails(()=>f.service.prepareScrollSitePackage(request,{}),'E_REVISION');
   await fails(()=>f.service.prepareScrollSitePackage({...request,
@@ -1179,4 +1188,55 @@ test('R134 list blocks same-id registration drift without reconciliation: '+fiel
   assert.equal(row.error.code,'E_PAGE_INSTALLATION');assert.deepEqual(result.catalog[0].installed,row);
   assert.deepEqual({db:f.snapshot(),native:f.native,writes:f.writes.length,
     register:f.registerCalls,unregister:f.unregisterCalls,execute:f.executeCalls},before);
+});
+
+
+test('R15 legacy enable request cannot mutate a byte-identical reinstall',async()=>{
+  const f=fixture(),first=await f.install();
+  const legacy={programId:'script',manifestHash:first.manifestHash,
+    expectedGeneration:first.authorization.generation,enabled:false};
+  const {enabled,...identity}=legacy;
+  await f.service.uninstallPageProgram({...identity,installationId:first.authorization.installationId},{});
+  const again=await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:first.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.equal(again.manifestHash,first.manifestHash);
+  assert.equal(again.authorization.generation,first.authorization.generation);
+  assert.notEqual(again.authorization.installationId,first.authorization.installationId);
+  const before=f.snapshot();
+  await fails(()=>f.service.setInstalledPageEnabled(legacy,{}),'E_SCHEMA');
+  for(const enabled of [false,true])await fails(()=>f.service.setInstalledPageEnabled({
+    ...legacy,enabled,installationId:first.authorization.installationId},{}),'E_REVISION');
+  assert.deepEqual(f.snapshot(),before);
+});
+
+test('R15 missing or wrong installation identity cannot enable or disable',async()=>{
+  const f=fixture(),row=await f.install(),before=f.snapshot();
+  for(const enabled of [false,true]){
+    const request={programId:row.programId,manifestHash:row.manifestHash,
+      expectedGeneration:row.authorization.generation,enabled};
+    await fails(()=>f.service.setInstalledPageEnabled(request,{}),'E_SCHEMA');
+    for(const installationId of [undefined,null,'','wrong-installation'])
+      await fails(()=>f.service.setInstalledPageEnabled({...request,installationId},{}),'E_REVISION');
+  }
+  assert.deepEqual(f.snapshot(),before);
+});
+
+for(const changed of ['installationId','generation'])test('R15 enable transaction rechecks '+changed,async()=>{
+  const f=fixture(),row=await f.install();
+  const request={programId:row.programId,manifestHash:row.manifestHash,
+    installationId:row.authorization.installationId,expectedGeneration:row.authorization.generation,enabled:true};
+  let concurrent;
+  f.api.permissions.contains=async()=>{
+    await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+      const key='page-installed:'+canonical([f.installation().namespace,row.programId]);
+      const current=await tx.get('frameworkKV',key);
+      current.authorization[changed]=changed==='generation'?current.authorization.generation+1:crypto.randomUUID();
+      await tx.put('frameworkKV',current,key);
+    });
+    concurrent=f.snapshot();return true;
+  };
+  const registers=f.registerCalls;
+  await fails(()=>f.service.setInstalledPageEnabled(request,{}),'E_REVISION');
+  assert.deepEqual(f.snapshot(),concurrent);
+  assert.equal(f.registerCalls,registers);
 });

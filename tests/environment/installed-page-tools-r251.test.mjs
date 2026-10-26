@@ -229,7 +229,7 @@ describe('R25.1 installed Page behavior through unified ExtensionCenter / real R
     await toggle(page).evaluate(node=>node.dispatchEvent(new MouseEvent('click',{bubbles:true})));
     assert.equal((await writes(page)).length,1);
     await page.evaluate(()=>fixture.releaseWrite());await idle(page);
-    assert.deepEqual((await writes(page))[0].args,{programId:'page-a',manifestHash:'a'.repeat(64),enabled:false,expectedGeneration:7});
+    assert.deepEqual((await writes(page))[0].args,{programId:'page-a',manifestHash:'a'.repeat(64),installationId:'installation-page-a',enabled:false,expectedGeneration:7});
     assert.equal(await status(page).getAttribute('data-state'),'success');
     assert.match(await status(page).innerText(),/Page Authority 确认/);
     assert.equal(await toggle(page).evaluate(node=>node===document.activeElement),true);
@@ -252,9 +252,9 @@ describe('R25.1 installed Page behavior through unified ExtensionCenter / real R
 
   test('11 suspended installation explicitly restores enabled:true in the same approved scope',async t=>{
     const page=await open(t,[installed('page-a',{authorization:{status:'suspended',generation:9,installationId:'original'}})]);
-    await detail(page);assert.equal(await toggle(page).innerText(),'恢复自动运行');
+    await detail(page);assert.equal(await toggle(page).getAttribute('aria-label'),'恢复自动运行「已安装的原始名称」');
     await toggle(page).click();await idle(page);
-    assert.deepEqual((await writes(page))[0].args,{programId:'page-a',manifestHash:'a'.repeat(64),enabled:true,expectedGeneration:9});
+    assert.deepEqual((await writes(page))[0].args,{programId:'page-a',manifestHash:'a'.repeat(64),installationId:'original',enabled:true,expectedGeneration:9});
     assert.deepEqual(await page.evaluate(()=>fixture.permissionChecks),[{origins:['https://example.com/*']}]);
     assert.deepEqual(await page.evaluate(()=>fixture.rows[0].pageRules.matches),['https://example.com/*']);
     assert.equal(await page.evaluate(()=>fixture.rows[0].authorization.installationId),'original');

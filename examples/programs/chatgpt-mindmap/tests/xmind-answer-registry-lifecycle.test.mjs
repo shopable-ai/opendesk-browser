@@ -327,6 +327,23 @@ test('multiple nested navigation groups refuse a guessed destination',async()=>{
   assert.equal(bar.querySelectorAll('[data-opendesk-chatgpt-jump-top]').length,2);
 });
 
+for(const kind of ['element','text'])test(`nested navigation cannot absorb a mindmap group shared with a ${kind} peer`,async()=>{
+  const h=setup(),oldGroup=h.triggerHost.parentElement,bar=oldGroup.parentElement;
+  const peer=kind==='text'?bar.ownerDocument.createTextNode('native peer'):bar.ownerDocument.createElement('button');
+  oldGroup.append(peer);
+  const row=bar.ownerDocument.createElement('div'),group=bar.ownerDocument.createElement('span');
+  group.setAttribute('data-opendesk-chatgpt-answer-tools','');
+  const navigation=bar.ownerDocument.createElement('span');
+  navigation.setAttribute('data-opendesk-chatgpt-jump-top','prompt-shortcuts');
+  group.append(navigation);row.append(group);bar.prepend(row);
+  const before=bar.innerHTML;
+  for(let i=0;i<3;i++)h.registry.scan();
+  assert.equal(bar.innerHTML,before);assert.equal(h.triggerHost.parentElement,oldGroup);
+  await h.registry.destroy();
+  assert.equal(peer.parentNode,oldGroup);assert.equal(oldGroup.isConnected,true);
+  assert.equal(navigation.parentElement,group);assert.equal(group.parentElement,row);
+});
+
 test('late old toolbar retirement failure cannot close a replacement and remains a cleanup error',async()=>{
   const firstDestroy=deferred(),h=setup({firstDestroy});
   await h.click();const old=h.views[0];

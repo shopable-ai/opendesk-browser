@@ -32,6 +32,7 @@ async function fixture(catalog=[candidate()]){
       return row.installed;
     }
     if(method==='setInstalledPageEnabled'){
+      assert.equal(input.installationId,row.installed.authorization.installationId);
       row.installed.enabled=input.enabled;row.installed.authorization.status=input.enabled?'active':'disabled';
       row.installed.authorization.generation++;return row.installed;
     }
@@ -85,6 +86,7 @@ test('Page Verify, Install and Enable reuse native grants and keep program autho
   await f.click('toggle');await f.click('toggle');assert.equal(f.requests.length,0);
   const enables=f.calls.filter(row=>row.method==='setInstalledPageEnabled');
   assert.deepEqual(enables.map(row=>row.input.expectedGeneration),[1,2]);
+  assert.deepEqual(enables.map(row=>row.input.installationId),[installationId,installationId]);
   assert.equal(enables[1].input.enabled,true);
 });
 

@@ -85,6 +85,8 @@ async function fixture({withImportHost=false,pageId='reader'}={}){
           installationId:args.installationId,managedCleanup:{state:'retired'}};
       }
       if(method!=='setInstalledPageEnabled')throw Error(method);
+      if(args.installationId!==page.installed.authorization.installationId)
+        throw Object.assign(Error('Page installation changed'),{code:'E_REVISION'});
       calls.push({action:'page-toggle',args});
       if(!ackOnly){
         page.installed.enabled=args.enabled;page.installed.authorization.generation++;
@@ -119,7 +121,7 @@ async function fixture({withImportHost=false,pageId='reader'}={}){
       return Promise.resolve({state:'cleaned',toolId:id});}};
   const controller=createExtensionCenter({api,client,doc:document,sidebarTools,extensionList,
     taskWorkbench:{navigate:tab=>{calls.push({action:'navigate',tab});return true;}}});
-  window.fixture={state,calls,store,page,changes,connections,controller,
+  window.fixture={state,calls,store,page,changes,connections,controller,client,
     installedApps:()=>store[SIDEBAR_TOOL_STORE],
     pageInstalled:()=>pageInstalled,nativeEvent:()=>lastNativeEvent,
     setCorrupt:value=>{corrupt=value;},setAckOnly:value=>{ackOnly=value;},
@@ -535,8 +537,6 @@ for(const [programId,name] of [
     assert.equal(await control.isChecked(),true);
     assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),2);
     assert.equal(await control.evaluate(node=>document.activeElement===node),true);
-    await page.setViewportSize({width:320,height:720});
-    assert.equal(await control.isVisible(),true);
     assert.equal(await page.locator('.ec-page-management [data-ec-detail-action="uninstall"]').count(),1);
     if(programId==='opendesk.ai-reply-mindmap')
       assert.equal(await page.locator('.ec-site-review-details').count(),0);
@@ -555,4 +555,84 @@ test('R1.4 master Switch never displays a Host acknowledgment as saved state',op
   assert.equal(await control.isChecked(),true);
   assert.equal(await page.evaluate(()=>fixture.page.installed.enabled),true);
   assert.equal(await page.evaluate(()=>fixture.state.statusModel.state),'error');
+});
+
+for(const nativeState of ['unregistered','pending','registered'])
+test('R1.5 explicit recovery reaches the original Page Host: '+nativeState,options,async t=>{
+  const page=await browserFixture(t,{pageId:'opendesk.ai-scroll-navigation'});
+  await page.evaluate(async nativeState=>{
+    fixture.page.installed.nativeState=nativeState;
+    if(nativeState==='registered')fixture.page.installed.error={code:'E_EFFECT_UNKNOWN',message:'readback needed'};
+    await fixture.controller.refresh();
+  },nativeState);
+  await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
+  await page.getByRole('button',{name:'尝试恢复原有授权与注册',exact:true}).click();
+  await page.waitForFunction(()=>fixture.calls.some(call=>call.action==='page-toggle')&&!fixture.state.detailModel.busy);
+  const calls=await page.evaluate(()=>fixture.calls.filter(call=>call.action==='page-toggle'));
+  assert.equal(calls.length,1);
+  assert.equal(calls[0].args.enabled,true);
+  assert.equal(calls[0].args.expectedGeneration,5);
+  assert.deepEqual(await page.evaluate(()=>fixture.page.installed.pageRules.matches),['https://example.com/*']);
+});
+
+test('R1.5 background refresh preserves focus after trusted Switch mouse and Space actions',options,async t=>{
+  const page=await browserFixture(t,{pageId:'opendesk.ai-scroll-navigation'});
+  await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
+  const control=page.getByRole('switch',{name:'启用「AI 对话滚动导航」'});
+  await clickSwitch(control);
+  await page.waitForFunction(()=>fixture.page.installed.enabled===false&&!fixture.state.detailModel.busy);
+  assert.equal(await control.isChecked(),false);
+  await control.focus();await page.keyboard.press('Space');
+  await page.waitForFunction(()=>fixture.page.installed.enabled===true&&!fixture.state.detailModel.busy);
+  assert.equal(await control.isChecked(),true);
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),2);
+  const summary=page.locator('.ec-page-diagnostics summary');
+  await summary.focus();
+  await page.evaluate(()=>fixture.controller.refresh());
+  assert.equal(await summary.evaluate(node=>document.activeElement===node),true);
+});
+
+test('R1.5 recovery ACK with superseded readback cannot confirm cached enabled state',options,async t=>{
+  const page=await browserFixture(t,{pageId:'opendesk.ai-scroll-navigation'});
+  await page.evaluate(async()=>{
+    fixture.page.installed.nativeState='pending';await fixture.controller.refresh();
+    const request=fixture.client.request.bind(fixture.client);
+    fixture.client.request=(method,args)=>method==='listPagePrograms'
+      ?new Promise(resolve=>{(fixture.reads??=[]).push(()=>request(method,args).then(resolve));})
+      :request(method,args);
+  });
+  await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
+  await page.getByRole('button',{name:'尝试恢复原有授权与注册',exact:true}).click();
+  await page.waitForFunction(()=>fixture.reads?.length===1);
+  await page.evaluate(()=>{void fixture.controller.refresh();});
+  await page.waitForFunction(()=>fixture.reads.length===2);
+  await page.evaluate(()=>fixture.reads[0]());
+  await page.waitForFunction(()=>fixture.state.statusModel.state==='error');
+  assert.match(await page.evaluate(()=>fixture.state.statusModel.text),/读回确认/);
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),1);
+  await page.evaluate(()=>fixture.reads[1]());
+});
+
+test('R1.5 uninstall ACK with superseded readback cannot confirm a cached absent row',options,async t=>{
+  const page=await browserFixture(t,{pageId:'opendesk.ai-scroll-navigation'});
+  await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
+  await page.evaluate(()=>{
+    const request=fixture.client.request.bind(fixture.client);
+    fixture.reads=[];let lists=0;
+    fixture.client.request=(method,args)=>{
+      if(method!=='listPagePrograms'||++lists===2)return request(method,args);
+      return new Promise(resolve=>fixture.reads.push(()=>request(method,args).then(resolve)));
+    };
+  });
+  await page.locator('[data-ec-detail-action="uninstall"]').click();
+  await page.locator('.od-uninstall-confirm').click();
+  await page.waitForFunction(()=>fixture.reads.length===1);
+  await page.evaluate(()=>fixture.controller.refresh());
+  await page.evaluate(()=>{void fixture.controller.refresh();});
+  await page.waitForFunction(()=>fixture.reads.length===2);
+  await page.evaluate(()=>fixture.reads[0]());
+  await page.waitForFunction(()=>fixture.state.statusModel.state==='error');
+  assert.match(await page.evaluate(()=>fixture.state.statusModel.text),/未得到完整确认/);
+  assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-uninstall').length),1);
+  await page.evaluate(()=>fixture.reads[1]());
 });

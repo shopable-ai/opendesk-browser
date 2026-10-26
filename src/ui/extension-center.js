@@ -602,6 +602,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       // React solely owns extension-center-detail-body; keep the authoritative
       // verified identity check and all existing Host/permission routes above.
       const focused=detailFocusAction||doc.activeElement?.dataset?.ecDetailAction;
+      if(!busy&&!pendingKey)detailFocusAction=null;
       const actions=[];
       const identity=selectedIdentity;
       const add=(label,id,onClick)=>actions.push({label,id,onClick(event){
@@ -732,7 +733,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         if(outcome?.error)throw Object.assign(new Error(outcome.error.message||'卸载失败'),
           {code:outcome.error.code||'E_PAGE_UNINSTALL_PENDING'});
       }catch(error){operationError=error;}
-      try{readback=await refresh();}catch(error){operationError??=error;}
+      try{readback=await refresh({pageReadback:true});}catch(error){operationError??=error;}
       if(disposed)return;
       if(operationError)message((operationError.code||'E_PAGE_UNINSTALL_PENDING')+'：'+
         String(operationError.message||operationError)+
@@ -741,7 +742,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         outcome.manifestHash===expected.manifestHash&&
         outcome.installationId===expected.installationId&&
         (!outcome.managedCleanup||outcome.managedCleanup.state==='retired')&&
-        readback&&pageStatusKnown&&!find(expected.key))
+        readback&&pageStatusKnown&&!find(expected.key)?.installed)
         message('已从 Page Authority 回执和持久安装列表确认卸载。已打开的网页可能仍有旧效果，请刷新网页。','success');
       else message('卸载结果未得到完整确认；不会自动重试，请刷新后核对原生注册及安装状态。','error');
     }finally{
@@ -759,8 +760,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const installed=row.record.installed;
     const targetEnabled=typeof desiredEnabled==='boolean'?desiredEnabled:installedPageEnableAction(installed).enabled;
     if(typeof desiredEnabled==='boolean'&&desiredEnabled===installed.enabled&&
-      !(desiredEnabled&&(
-        installed.authorization?.status==='suspended'||installed.nativeState==='blocked')))return;
+      !(desiredEnabled&&describeManagedAiPage(installed,pages)?.canRestore))return;
     const inDetail=selectedKey===row.key;
     detailFocusAction=inDetail?'toggle':null;
     busy=true;pendingKey=row.key;draw();if(inDetail)renderDetail();
@@ -772,13 +772,15 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         if(!disposed)message((error?.code||'E_PAGE_INSTALLATION')+'：'+
           String(error?.message||error),'error');
       }
-      try{readback=await refresh();}catch(error){operationError??=error;}
+      try{readback=await refresh({pageReadback:true});}catch(error){operationError??=error;}
       if(disposed)return;
       const current=find(row.key);
       if(operationError)
         message((operationError.code||'E_PAGE_INSTALLATION')+'：'+String(operationError.message||operationError),'error');
       else if(result===false||result==null||!readback||!pageStatusKnown||
-        current?.record?.manifestHash!==row.record.manifestHash||current.enabled!==targetEnabled)
+        current?.record?.manifestHash!==row.record.manifestHash||
+        current?.record?.installed?.authorization?.installationId!==installed.authorization?.installationId||
+        current.enabled!==targetEnabled)
         message('网页增强操作尚未由 Page Authority 读回确认；请刷新后检查注册状态。','error');
       else if(targetEnabled&&(current.record.installed.nativeState!=='registered'||
         current.record.installed.authorization?.status!=='active'||current.record.installed.error))
@@ -809,7 +811,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     else message('卸载清理尚未确认完成；请刷新后核对恢复状态。','error');
     draw();if(selectedKey)renderDetail();
   }
-  async function refresh(){
+  async function refresh({pageReadback=false}={}){
     if(disposed)return false;
     const id=++sequence;
     const results=await Promise.allSettled([
@@ -848,7 +850,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       message(catalogError||pageCatalogError?'官方目录部分暂不可用：'+[catalogError,pageCatalogError].filter(Boolean).join('；'):'',
         catalogError||pageCatalogError?'error':'info',catalogError||pageCatalogError?'catalog':'read');
     draw();if(selectedKey)renderDetail();
-    return !dataError;
+    return pageReadback?pageStatusKnown:!dataError;
   }
   async function readOfficial(){
     const id=++officialSequence;

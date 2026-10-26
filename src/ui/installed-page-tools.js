@@ -27,6 +27,7 @@ export async function setInstalledPageProgramEnabled({api,client,row,enabled}){
     api,request:{origins:pageHostPermissionOrigins(installed.pageRules.matches)}});
   const result=await client.request('setInstalledPageEnabled',{
     programId:row.programId,manifestHash:installed.manifestHash,enabled:targetEnabled,
+    installationId:installed.authorization?.installationId,
     expectedGeneration:installed.authorization?.generation??null});
   if(result.error)throw result.error;
   return result;
