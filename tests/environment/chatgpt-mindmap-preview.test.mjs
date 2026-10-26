@@ -78,6 +78,20 @@ test('localhost serves the exact four checked-in bytes without generating copies
   }finally{await session.close();}
 });
 
+test('preview serves the live answer registry diagnostics dependency from its fixed route',async()=>{
+  const registry=await readFile(new URL('src/answer-registry.js',root),'utf8');
+  assert.match(registry,/from '\.\/diagnostics\.js'/);
+  const session=await startXmindPreview();
+  try{
+    const response=await fetch(new URL('/src/diagnostics.js',session.url));
+    assert.equal(response.status,200);
+    assert.match(response.headers.get('content-type'),/javascript/);
+    assert.equal(response.headers.get('content-security-policy'),PREVIEW_CSP);
+    assert.equal(await response.text(),await readFile(new URL('src/diagnostics.js',root),'utf8'));
+    assert.equal((await fetch(new URL('/src/not-approved.js',session.url))).status,404);
+  }finally{await session.close();}
+});
+
 test('ChatGPT simulated product UI and design MD are source-bound, not a second renderer',async()=>{
   const [html,css,shell,design]=await Promise.all([
     readFile(new URL('preview/chatgpt.html',root),'utf8'),

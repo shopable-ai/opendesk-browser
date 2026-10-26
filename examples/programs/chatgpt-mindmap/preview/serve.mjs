@@ -25,7 +25,7 @@ const allowedFiles=new Map([
   ['/preview/preview.css',join(PROJECT_DIR,'preview/preview.css')],
   ['/preview/app.js',join(PROJECT_DIR,'preview/app.js')],
   ['/assets/ui.css',join(PROJECT_DIR,'assets/ui.css')],
-  ...['answer-registry','chatgpt-adapter','extract','view','export','xmind-adapter',
+  ...['answer-registry','chatgpt-adapter','diagnostics','extract','view','export','xmind-adapter',
     'xmind-convert','xmind-png']
     .map(name=>['/src/'+name+'.js',join(PROJECT_DIR,'src',name+'.js')])
 ]);
