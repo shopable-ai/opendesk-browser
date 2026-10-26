@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Button} from '@opendesk/ui';
 import {createCookieSdkAdapter} from './adapters/browser-sdk.js';
 import {createCookieController} from './controller/cookie-controller.js';
-import {CookieEditorView,CookieIconButton} from './components/CookieEditorView.jsx';
+import {CookieEditorView,CookieIconButton,CookieSiteBar} from './components/CookieEditorView.jsx';
 import CookieInlineEditor from './components/CookieInlineEditor.jsx';
 import CookieClearDialog from './components/CookieClearDialog.jsx';
 import CookieImport from './components/CookieImport.jsx';
@@ -13,10 +13,10 @@ import {CookieAccounts,CookieAccountMarket} from './components/CookieAccounts.js
 
 // The only transport is Controller -> Adapter -> public OpenDeskSDK.browser.
 // Host permission, value grant and native receipts are never replaced in React.
-export default function CookieEditorApp({request,hostRoot,setState}){
+export default function CookieEditorApp({request,hostRoot,setState,previewMode=false,initialSection='cookie'}){
   const [view,setView]=React.useState(null);
   const [mode,setMode]=React.useState('browser');
-  const [section,setSection]=React.useState('cookie');
+  const [section,setSection]=React.useState(initialSection);
   const [accountRoute,setAccountRoute]=React.useState('list');
   // Only trusted, redacted account metadata may enter React. The encrypted
   // snapshot, Cookie values and vault key never cross the Host boundary.
@@ -217,6 +217,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       if(action==='switch'){
         if(receipt?.switched!==true||receipt?.verified!==true)
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+        setAccountState(previous=>previous?{...previous,currentAlias:payload.alias}:previous);
         setAccountNotice({kind:'success',text:receipt.preview===true
           ?'预览模拟：切换流程已返回虚构回执，未操作真实 Cookie。'
           :receipt.reloadRequested
@@ -225,7 +226,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         if(!receipt.reloadRequested)void controller.load();
       }else if(action==='lock'){
         setAccountState(previous=>previous?{
-          ...previous,unlocked:false,accounts:[],revision:null,
+          ...previous,unlocked:false,accounts:[],currentAlias:null,revision:null,
           settings:{autoEnabled:false,autoRefresh:true}
         }:null);
         setAccountNotice({kind:'success',text:'账号仓库已锁定。'});
@@ -490,6 +491,9 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }
   };
   return <main className="cookie-editor-react od-page" onKeyDown={onKeyDown}>
+    {mode==='browser'&&snapshot.phase==='ready'&&<CookieSiteBar
+      site={target?.hostname||''} syncStale={snapshot.syncStale}
+      busy={locked} onRefresh={()=>guarded(refresh)}/>}
     {mode==='browser'&&!(section==='accounts'&&accountRoute==='auto')&&
       <nav className="cookie-product-tabs" role="tablist" aria-label="Cookie Editor 页面"
         onKeyDown={onProductTabKey}>
@@ -497,8 +501,8 @@ export default function CookieEditorApp({request,hostRoot,setState}){
           id={'cookie-product-tab-'+key}
           aria-controls={'cookie-product-panel-'+key}
           role="tab" aria-selected={section===key} tabIndex={section===key?0:-1}
-          className={"od-button "+(section===key?"od-button--secondary is-current":"od-button--quiet")}
-          onClick={()=>chooseSection(key)}>{label}</button>)}
+          className={'od-button od-button--quiet'+(section===key?' is-current':'')}
+          onClick={()=>chooseSection(key)}><span className="cookie-tab-label">{label}</span></button>)}
       </nav>}
     {mode==='offline'?<>
       <header className="cookie-offline-toolbar" aria-label="离线文件">
@@ -516,7 +520,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
         disabled={busy} onRetry={()=>guarded(refresh)}
         onOffline={()=>switchMode('offline')}/>
       {snapshot.phase==='ready'&&<div className="od-surface cookie-editor-workspace">
-        <CookieEditorView site={target?.hostname||''} syncStale={snapshot.syncStale}
+        <CookieEditorView site={target?.hostname||''} showSiteBar={false} syncStale={snapshot.syncStale}
           importOpen={panel==='import'}
           rows={snapshot.rows} selected={selected} onSelect={select}
           onRefresh={()=>guarded(refresh)}
@@ -564,6 +568,7 @@ export default function CookieEditorApp({request,hostRoot,setState}){
       </section>}
       {section==='accounts'&&<CookieAccounts
         origin={target?.origin||''} accounts={accountState?.accounts||[]}
+        currentAlias={accountState?.currentAlias||null}
         configured={accountState?.configured===true}
         route={accountRoute} onRoute={setAccountRoute}
         vaultReady={accountState?.unlocked===true} switchReady={
