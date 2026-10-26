@@ -9,7 +9,7 @@ const askPrefix=/^(?:请问|想咨询一下|我想了解一下|麻烦问一下|�
 const greeting=/^(?:(?:你|您)好(?:呀|啊)?|hi|hello)(?=$|[\s，,。！!？?；;])/iu;
 const ambiguousRefund=/退款|退货/u;
 const refundDuration=/多久|多长时间|几天|多少天|什么时候/u;
-const refundQualifier=/申请|期限|签收|审核|处理|到账|退回|退款到|生效|完成/u;
+const refundQualifier=/申请|期限|签收|审核|处理|到账|退回|退款到|生效|完成|几天内|多少天内/u;
 const realtime=/((?:我的|我这|这笔|该笔).{0,6}(?:订单|物流|退款)|订单号|物流单号|快递到哪|查(?:一下|询).{0,8}(?:订单|快递|物流|退款)|(?:订单|物流|退款).{0,6}(?:状态|进度|现在|到哪)|帮我(?:取消|退款|修改|下单|申请|查询)|替我(?:退款|取消|修改)|给我(?:退款|取消)|改(?:一下)?(?:收货)?地址|现在(?:发|退)了没有)/u;
 const budget=parts=>parts.length<=MAX_CUSTOMER_INTENTS&&parts.every(x=>x.length>0&&x.length<=180);
 // The original BM25 scorer can match generic "什么时候" to support hours,
