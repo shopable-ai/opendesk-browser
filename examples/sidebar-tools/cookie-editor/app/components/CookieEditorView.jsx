@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {compareCookieExpiration} from '../domain/cookie-expiration.js';
 // Independent, unprivileged presentation; identical source is used by the formal app and preview.
 // Shared UI primitives are supplied by the official app shell, not by this pure display module.
 
@@ -165,13 +166,20 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
             disabled={disabled} onChange={e=>onChange('session',e.target.checked)}/> Session</label>
         </div>
       </div>
-      {!draft.session&&<CookieFormField label="过期">
-        <input className="od-field" aria-label="过期时间（本地时间）"
-          title="本地时间"
-          aria-invalid={error.startsWith('请选择有效的未来')||undefined}
-          type="datetime-local" step="1" value={draft.expiration||''}
-          onChange={e=>onChange('expiration',e.target.value)} disabled={disabled}/>
-      </CookieFormField>}
+      {draft.session?<p className="editor-timezone" role="status">
+        会话 Cookie · 不设置 Expiration；结束时机由浏览器管理。
+      </p>:<div className="cookie-expiration-controls">
+        <CookieFormField label="过期时间（Expiration）" className="cookie-expiration-field">
+          <input className="od-field" aria-label="过期时间（Expiration，本地时间）"
+            aria-describedby="cookie-expiration-help"
+            aria-invalid={/过期时间|本地时间|夏令时/.test(error)||undefined}
+            type="datetime-local" step="1" value={draft.expiration||''}
+            onChange={e=>onChange('expiration',e.target.value)} disabled={disabled}/>
+        </CookieFormField>
+        <p className="editor-timezone" id="cookie-expiration-help">
+          当前设备本地时间 · 保存为 Unix 秒。夏令时重复或不存在的时间需重新选择。
+        </p>
+      </div>}
       {existing&&<details className="editor-identity">
         <summary>存储信息</summary>
         <div className="editor-identity-fields">
@@ -331,7 +339,7 @@ export function CookieEditorView({
   const visible=rows.filter(matching).sort((a,b)=>sort==='name'
     ?a.name.localeCompare(b.name):sort==='domain'
       ?a.domain.localeCompare(b.domain):sort==='path'
-        ?a.path.localeCompare(b.path):(Number(a.expirationDate)||0)-(Number(b.expirationDate)||0));
+        ?a.path.localeCompare(b.path):compareCookieExpiration(a,b));
   const current=rows.find(row=>row.id===selected);
   if(current&&!visible.includes(current))visible.unshift(current);
   const pages=Math.max(1,Math.ceil(visible.length/pageSize));
