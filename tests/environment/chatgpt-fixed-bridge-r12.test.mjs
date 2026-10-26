@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {verifyManifest,SDK_AUTOMATIC_CONTENT_SCRIPTS,CHATGPT_FIXED_BRIDGE_CONTENT_SCRIPT}
   from '../../scripts/verify-package.mjs';
 import assert from 'node:assert/strict';
-import {createChatGPTBridgeTriggerLedger,validChatGPTBridgeSource,installChatGPTBridgeTriggerGate}
+import {createChatGPTBridgeTriggerLedger,validChatGPTBridgeSource,installChatGPTBridgeTriggerGate,CHATGPT_BRIDGE_LEDGER_KEY}
   from '../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {verifyChatGPTFixedDurableResult,formatChatGPTFixedResult,
   FIXED_TASK_SOURCE_HASH,FIXED_TASK_MANIFEST_HASH,FIXED_TASK_VERSION,
@@ -123,6 +123,131 @@ function gateHarness(){
   });
   return {events,frame,tab,sender,send};
 }
+test('request revocation fences prepared, approved and consumed identities durably and idempotently',async()=>{
+  for(const status of ['prepared','approved','consumed','expired']){
+    let now=1000;
+    const storage=fakeStorage(),a=ledger(storage,[idA],()=>now);
+    const context={source,requestId:idA,mode:'manual',turnKey:'turn',answerKey:'answer'};
+    await a.prepare(source);
+    if(status!=='prepared')await a.authorize(context);
+    if(status==='consumed')await a.reserve(context);
+    if(status==='expired')now+=600001;
+    assert.deepEqual(await a.revokeRequest(context),{requestId:idA,revoked:true});
+    assert.deepEqual(await a.revokeRequest(context),{requestId:idA,revoked:true});
+    const row=storage.dump()[CHATGPT_BRIDGE_LEDGER_KEY][idA];
+    assert.equal(row.status,'revoked');
+    if(status==='consumed')assert.equal(row.consumedAt,1000);
+    const restarted=ledger(storage,[idA],()=>1000);
+    await assert.rejects(restarted.authorize(context),{code:'E_BRIDGE_APPROVAL'});
+    await assert.rejects(restarted.reserve(context),{code:'E_BRIDGE_REPLAY'});
+    await assert.rejects(restarted.assertConsumed(context),{code:'E_BRIDGE_REVOKED'});
+    await assert.rejects(restarted.prepare(source),{code:'E_BRIDGE_REPLAY'});
+  }
+});
+test('request revocation rejects wrong identities and preserves other requests including the same source',async()=>{
+  const storage=fakeStorage(),a=ledger(storage,[idA,idB]);
+  const context={source,requestId:idA,mode:'manual',turnKey:'turn',answerKey:'answer'};
+  await a.prepare(source);await a.authorize(context);await a.reserve(context);
+  await a.prepare(source);await a.authorize({...context,requestId:idB});
+  const before=storage.dump();
+  for(const changed of [{tabId:8},{documentId:'other'},{url:'https://chatgpt.com/c/other'}])
+    await assert.rejects(a.revokeRequest({...context,source:{...source,...changed}}),{code:'E_BRIDGE_REQUEST'});
+  await assert.rejects(a.revokeRequest({...context,requestId:'33333333-3333-4333-8333-333333333333'}),
+    {code:'E_BRIDGE_REQUEST'});
+  assert.throws(()=>a.revokeRequest({...context,requestId:'invalid'}),{code:'E_BRIDGE_REQUEST'});
+  assert.throws(()=>a.revokeRequest({...context,source:{...source,tabId:-1}}),{code:'E_BRIDGE_SOURCE'});
+  assert.deepEqual(storage.dump(),before);
+  await a.revokeRequest(context);
+  assert.deepEqual(storage.dump()[CHATGPT_BRIDGE_LEDGER_KEY][idB],before[CHATGPT_BRIDGE_LEDGER_KEY][idB]);
+  assert.equal((await a.reserve({...context,requestId:idB})).consumed,true);
+});
+test('request revocation serializes admission and acknowledges only after persistent write',async()=>{
+  const storage=fakeStorage(),a=ledger(storage,[idA]);
+  const context={source,requestId:idA,mode:'manual',turnKey:'turn',answerKey:'answer'};
+  await a.prepare(source);await a.authorize(context);
+  const entered=Promise.withResolvers(),release=Promise.withResolvers(),set=storage.set.bind(storage);
+  storage.set=async data=>{entered.resolve();await release.promise;await set(data);};
+  let acknowledged=false;
+  const revoked=a.revokeRequest(context).then(value=>{acknowledged=true;return value;});
+  await entered.promise;
+  assert.equal(acknowledged,false);
+  const reserved=assert.rejects(a.reserve(context),{code:'E_BRIDGE_REPLAY'});
+  release.resolve();await revoked;await reserved;
+  assert.equal(storage.dump()[CHATGPT_BRIDGE_LEDGER_KEY][idA].status,'revoked');
+});
+test('request revocation never acknowledges a failed persistent write and allows a durable retry',async()=>{
+  const storage=fakeStorage(),a=ledger(storage,[idA]);
+  const context={source,requestId:idA,mode:'manual',turnKey:'turn',answerKey:'answer'};
+  await a.prepare(source);await a.authorize(context);
+  const set=storage.set.bind(storage);
+  storage.set=async()=>{throw new Error('storage unavailable');};
+  await assert.rejects(a.revokeRequest(context),/storage unavailable/);
+  assert.equal(storage.dump()[CHATGPT_BRIDGE_LEDGER_KEY][idA].status,'approved');
+  storage.set=set;
+  assert.deepEqual(await a.revokeRequest(context),{requestId:idA,revoked:true});
+  await assert.rejects(ledger(storage,[]).reserve(context),{code:'E_BRIDGE_REPLAY'});
+});
+test('content revoke-request uses real sender and current source instead of supplied source',async()=>{
+  const changes={
+    'foreign extension':h=>{h.sender.id='foreign';},
+    'subframe':h=>{h.sender.frameId=1;},
+    'foreign sender':h=>{h.sender.url='https://evil.example/c/test';},
+    'credential sender':h=>{h.sender.url='https://user:pass@chatgpt.com/c/test';},
+    'legacy sender':h=>{h.sender.url='https://chat.openai.com/c/test';},
+    'replacement document':h=>{h.frame.documentId='replacement';},
+    'inactive document':h=>{h.frame.documentLifecycle='cached';},
+    'pending navigation':h=>{h.tab.pendingUrl=source.url;},
+    'mismatched tab':h=>{h.tab.id++;},
+    'incognito':h=>{h.tab.incognito=true;},
+    'current URL mismatch':h=>{h.tab.url='https://chatgpt.com/c/other';},
+    'different current source':h=>{h.tab.url=h.frame.url='https://chatgpt.com/c/other';},
+    'sidepanel':h=>{delete h.sender.tab;h.sender.url='chrome-extension://extid/sidepanel.html?hostInstanceId=host';}
+  };
+  for(const [name,change] of Object.entries(changes)){
+    const h=gateHarness(),prepared=await h.send({kind:'prepare'}),requestId=prepared.data.requestId;
+    const original=structuredClone({frame:h.frame,tab:h.tab,sender:h.sender});
+    change(h);
+    const response=await h.send({kind:'revoke-request',requestId,source});
+    assert.equal(response.ok,false,name);
+    assert.match(response.error.code,/^E_BRIDGE_(SOURCE|SENDER|REQUEST)$/,name);
+    for(const key of ['frame','tab','sender']){
+      for(const field of Object.keys(h[key]))delete h[key][field];
+      Object.assign(h[key],original[key]);
+    }
+    assert.equal((await h.send({kind:'authorize',requestId,mode:'manual'})).ok,true,name);
+  }
+  const h=gateHarness(),prepared=await h.send({kind:'prepare'}),requestId=prepared.data.requestId;
+  const response=await h.send({kind:'revoke-request',requestId,source:{...source,tabId:999}});
+  assert.deepEqual(response,{ok:true,data:{requestId,revoked:true}});
+  assert.equal((await h.send({kind:'authorize',requestId,mode:'manual'})).error.code,'E_BRIDGE_APPROVAL');
+  assert.equal(h.events.message({protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'cancel'},h.sender,()=>{}),false);
+});
+test('gate accepts exact project conversation path and rejects unfamiliar route prefixes',async()=>{
+  const projectURL='https://chatgpt.com/g/g-p-6ac53d2f7814819191ac41eeec7cac11-opendesk-brower/c/6addf87f-9b78-83e8-8678-929e9e52ac3e';
+  for(const url of [source.url,projectURL,projectURL+'/']){
+    const h=gateHarness();h.tab.url=h.frame.url=url;
+    const prepared=await h.send({kind:'prepare'});
+    assert.equal(prepared.ok,true,url);
+    assert.equal(prepared.data.source.url,url);
+    const requestId=prepared.data.requestId;
+    assert.equal((await h.send({kind:'authorize',requestId,mode:'manual'})).ok,true,url);
+    h.events.history({tabId:source.tabId,frameId:0});
+    assert.equal((await h.send({kind:'authorize',requestId,mode:'manual'})).ok,false,url);
+  }
+  for(const url of ['https://chatgpt.com/foo/c/id','https://chatgpt.com/g/random/c/id',
+    'https://chatgpt.com/g/g-p-/c/id','https://chatgpt.com/g/g-p-中文/c/id',
+    'https://chatgpt.com/g/g-p-valid/extra/c/id','https://chatgpt.com/g/g-p-valid/c/',
+    'https://chatgpt.com/c/','https://chat.openai.com/c/id',
+    projectURL.replace('https://','https://user:pass@')]){
+    for(const kind of ['prepare','authorize']){
+      const h=gateHarness(),prepared=kind==='authorize'?await h.send({kind:'prepare'}):null;
+      h.tab.url=h.frame.url=url;
+      const response=await h.send({kind,requestId:prepared?.data.requestId,mode:'manual'});
+      assert.equal(response.ok,false,url+' '+kind);
+      assert.equal(response.error.code,'E_BRIDGE_SOURCE',url);
+    }
+  }
+});
 test('prepare freezes current browser source and authorize accepts the same document with an old injection URL',async()=>{
   for(const initial of ['https://chatgpt.com/','https://chatgpt.com/c/initial-injection']){
     const h=gateHarness();h.sender.url=initial;

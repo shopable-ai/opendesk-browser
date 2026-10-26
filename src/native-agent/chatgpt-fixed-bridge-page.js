@@ -205,21 +205,27 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   const prepareButton=doc.createElement('button');prepareButton.textContent='建立请求';
   const autoButton=doc.createElement('button');autoButton.textContent='批准本次自动执行';
   const runButton=doc.createElement('button');runButton.className='run';runButton.textContent='执行';
+  const cancelButton=doc.createElement('button');cancelButton.textContent='停止/取消';
   const status=doc.createElement('div');status.className='status';status.setAttribute('role','status');
-  bar.append(prepareButton,autoButton,runButton);
+  bar.append(prepareButton,autoButton,runButton,cancelButton);
   panel.append(heading,fields,bar,status);shadow.append(style,panel);
   (doc.body||doc.documentElement).append(root);
-  let pending=false,composition=false,closed=false;
-  let state=null,composerClaim=null;
+  let pending=false,preparing=false,cancelPending=false,deliveryPending=false,composition=false,closed=false;
+  let state=null,composerClaim=null; // latest claim for navigation cleanup only
   const note=(text,error=false)=>{status.textContent=text;status.classList.toggle('error',error);};
   const update=()=>{
-    const ready=!!state&&!state.attempted&&!state.deliveryStarted&&win.location.href===state.url;
-    prepareButton.disabled=pending;
-    autoButton.disabled=pending||!ready||state.mode==='auto';
-    runButton.disabled=pending||!ready||state.mode==='auto';
-    const editing=pending||Boolean(state&&!state.attempted);
+    const busy=pending||cancelPending||deliveryPending;
+    const ready=!!state&&!state.cancelled&&!state.attempted&&!state.deliveryStarted&&win.location.href===state.url;
+    prepareButton.disabled=busy;
+    autoButton.disabled=busy||!ready||state.mode==='auto';
+    runButton.disabled=busy||!ready||state.mode==='auto';
+    cancelButton.disabled=preparing||!state||state.cancelled||state.sendSubmitted||state.settled;
+    const editing=busy||Boolean(state&&!state.attempted);
     taskSelect.disabled=editing;queryInput.disabled=editing;
     queryField.hidden=taskSelect.value!==BAIDU_TASK_ID;
+  };
+  const assertActive=owner=>{
+    if(owner!==state||owner.cancelled)throw fail('E_BRIDGE_CANCELLED','本次请求已取消，禁止继续执行或回传');
   };
   const validatePage=()=>{
     if(!chatGPTConversationId(win.location.href)||win.location.origin!=='https://chatgpt.com')
@@ -251,12 +257,16 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     return {page,request};
   };
   const execute=async mode=>{
-    if(!state||state.attempted||pending)return;
+    if(!state||state.cancelled||state.attempted||pending||cancelPending||deliveryPending)return;
+    const owner=state;
     pending=true;update();
     try {
       validatePage();
       const {page}=observe();
-      if(mode==='manual')await send({kind:'authorize',requestId:state.requestId,mode});
+      if(mode==='manual'){
+        await send({kind:'authorize',requestId:state.requestId,mode});
+        assertActive(owner);
+      }
       if(state.mode==='auto'&&mode!=='auto')throw fail('E_BRIDGE_MODE','已批准自动执行，不可更改触发身份');
       state.attempted=true;state.mode=mode;
       note('已提交受信执行。正在核验安装身份和真实网页结果…');
@@ -266,6 +276,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       const reply=await send({kind:'execute',requestId:state.requestId,mode,
         candidateText:page.blocks[0],sourceUrl:state.url,source:state.source,turnKey:page.turnKey,
         answerKey:page.answerKey});
+      assertActive(owner);
+      state.settled=true;
       const baiduStatus=reply?.taskId===BAIDU_TASK_ID?
         ('；百度结果：'+({success:'成功',no_results:'无自然搜索结果',
           blocked:'访问受阻或验证码',dom_unavailable:'搜索区域不可用',
@@ -275,14 +287,15 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         reply?.sent?'原会话已确认收到真实结果，官方 AI 回复仍待核查':
         '任务已返回，但自动发送未获完整回执')+baiduStatus);
     }catch(error){
+      if(owner.cancelled)return;
       note((error.code||'E_BRIDGE')+'：'+(error.message||'执行失败')+
         (state?.attempted?'；不会自动重放':''),
         true);
     }finally{pending=false;update();}
   };
   prepareButton.addEventListener('click',async event=>{
-    if(!event.isTrusted||pending)return;
-    pending=true;update();
+    if(!event.isTrusted||pending||cancelPending||deliveryPending)return;
+    pending=true;preparing=true;update();
     try {
       validatePage();
       const snap=site.inspect();
@@ -311,14 +324,15 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       const inserted=prepareChatGPTBridgeDraft(site,prompt,snap);
       if(!inserted?.ok)throw fail('E_CHAT_FILL',inserted?.reason||'无法写入原生输入框');
       state={requestId:prepared.requestId,taskId,args,url,source:prepared.source,expiresAt:prepared.expiresAt,
-        attempted:false,deliveryStarted:false,mode:null,approvedTurnKey:null};
+        attempted:false,cancelled:false,sendSubmitted:false,settled:false,deliveryStarted:false,mode:null,approvedTurnKey:null};
       note('已建立'+(taskId===BAIDU_TASK_ID?'百度搜索「'+args.query+'」':'固定网页读取')+
         '请求；请在 ChatGPT 发送，再点击“执行”或批准本次自动执行。');
     }catch(error){note((error.code||'E_BRIDGE')+'：'+error.message,true);}
-    finally{pending=false;update();}
+    finally{pending=false;preparing=false;update();}
   });
   autoButton.addEventListener('click',async event=>{
-    if(!event.isTrusted||pending||!state||state.mode||state.attempted)return;
+    if(!event.isTrusted||pending||cancelPending||deliveryPending||!state||state.cancelled||state.mode||state.attempted)return;
+    const owner=state;
     pending=true;update();
     try{
       validatePage();
@@ -328,11 +342,40 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       const identity=readPage({expectedUrl:state.url,identityOnly:true,requestId:state.requestId});
       if(!identity.ok||identity.turnKey==='no-user')throw fail('E_CHAT_TURN','无法确认本次用户轮次');
       await send({kind:'authorize',requestId:state.requestId,mode:'auto'});
+      assertActive(owner);
       state.approvedTurnKey=identity.turnKey;state.mode='auto';
       note('只批准当前'+(state.taskId===BAIDU_TASK_ID?'百度搜索「'+state.args.query+'」':'固定网页读取')+
         '与这一轮回复触发一次，不批准其他任务、参数或循环。');
-    }catch(error){note((error.code||'E_BRIDGE_APPROVAL')+'：'+error.message,true);}
+    }catch(error){if(owner.cancelled)return;note((error.code||'E_BRIDGE_APPROVAL')+'：'+error.message,true);}
     finally{pending=false;update();}
+  });
+  cancelButton.addEventListener('click',async event=>{
+    if(!event.isTrusted||preparing||!state||state.cancelled||state.sendSubmitted||state.settled)return;
+    const owner=state,attempted=owner.attempted;
+    // Fence synchronously, before either transport can yield. Keep the original
+    // operation pending until its own promise settles; cancellation is not Run release.
+    owner.cancelled=true;owner.attempted=true;cancelPending=true;
+    note('已在本页取消后续执行与回传；正在核查撤销和停止请求…');update();
+    const revoke=send({kind:'revoke-request',requestId:owner.requestId});
+    const stop=attempted?send({kind:'cancel',requestId:owner.requestId,
+      source:owner.source,sourceUrl:owner.url}):Promise.resolve(null);
+    try{
+      const results=await Promise.allSettled([revoke,stop]);
+      const revoked=results[0].status==='fulfilled'&&results[0].value?.requestId===owner.requestId&&
+        results[0].value?.revoked===true;
+      const receipt=results[1].status==='fulfilled'?results[1].value:null;
+      const runHint=typeof receipt?.runId==='string'?'；运行 ID：'+receipt.runId:'';
+      const stopped=!attempted||(receipt?.cancelled===true&&
+        (receipt.runId===null||typeof receipt.runId==='string')&&
+        ['stop-requested','awaiting-run-identity','settled'].includes(receipt.executionState)&&
+        receipt.deliveryState==='cancelled');
+      if(!revoked||!stopped||owner.deliveryStarted){
+        note('UNKNOWN：本页已禁止继续执行与回传；停止或交付状态未确认，不保证已停止、释放或撤回。'+runHint,true);
+      }else{
+        note(attempted?'已取消后续回传；停止请求已登记，执行停止和资源释放仍待核查。'+runHint:
+          '本次请求已取消，授权已撤销；不会执行。');
+      }
+    }finally{cancelPending=false;update();}
   });
   runButton.addEventListener('click',event=>{
     if(event.isTrusted)void execute('manual');
@@ -341,11 +384,11 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   const poll=win.setInterval(()=>{
     if(closed)return;
     composerClaim?.navigation();
-    if(state&&win.location.href!==state.url){
+    if(state&&!state.cancelled&&win.location.href!==state.url){
       state.attempted=true;note('原对话已切换；旧授权失效，禁止回传。',true);update();
       return;
     }
-    if(state?.mode!=='auto'||state.attempted||pending||autoPollBusy)return;
+    if(state?.mode!=='auto'||state.cancelled||state.attempted||pending||autoPollBusy)return;
     autoPollBusy=true;
     try{observe();void execute('auto');}catch{/* Waiting for one complete answer; no execution. */}
     finally{autoPollBusy=false;}
@@ -357,45 +400,54 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   // context after durable Controller result verification. This script cannot
   // inspect or forge the Foundation ledger and never authorizes another Run.
   const deliver=async message=>{
-    if(!state||!state.attempted||state.deliveryStarted||message.requestId!==state.requestId||
+    if(!state||state.cancelled||!state.attempted||state.deliveryStarted||message.requestId!==state.requestId||
       message.sourceUrl!==state.url||message.mode!==state.mode||win.location.href!==state.url)
       throw fail('E_BRIDGE_DELIVERY','请求身份或会话已变化，禁止回填');
-    state.deliveryStarted=true;update();  // ambiguous effects cannot be retried
+    const owner=state;
+    state.deliveryStarted=true;deliveryPending=true;update();  // ambiguous effects cannot be retried
+    try{
     const identity=readPage({expectedUrl:state.url,identityOnly:true,requireComplete:true});
     if(!identity.ok||identity.turnKey!==message.turnKey||identity.answerKey!==message.answerKey)
       throw fail('E_CHAT_ANSWER','执行期间官网回答已被改写或重新生成');
     if(composition)throw fail('E_CHAT_IME','输入法仍在编辑，真实结果仅保留在 Host');
     if(typeof message.text!=='string'||!message.text||new TextEncoder().encode(message.text).byteLength>MAX_DELIVERY_BYTES)
       throw fail('E_BRIDGE_LIMIT','结果回传过长或无内容');
+    let deliveryClaim=null; // loss permanently fences this delivery, never a later request
     const checkDelivery=async()=>{
       const permission=await send({kind:'check-delivery',requestId:state.requestId,mode:state.mode,
         runId:message.runId,resultId:message.resultId});
+      assertActive(owner);
       if(permission?.allowed!==true)throw fail('E_BRIDGE_DELIVERY','发送前未获得确定的交付许可');
       if(closed||win.location.href!==state.url||composition)
         throw fail('E_CHAT_DELIVERY_UNKNOWN','交付核验期间会话或输入法已变化');
-      if(composerClaim&&!composerClaim.isHeld())
+      if(deliveryClaim&&!deliveryClaim.isHeld())
         throw fail('E_CHAT_DRAFT','输入框已被接管，本次发送永久失效；恢复相同文字也不会重发');
       const still=readPage({expectedUrl:state.url,identityOnly:true,requireComplete:true});
       if(!still.ok||still.turnKey!==message.turnKey||still.answerKey!==message.answerKey)
         throw fail('E_CHAT_DELIVERY_UNKNOWN','交付前官方 AI 轮次发生变化');
     };
-    await checkDelivery(); // no result bytes enter the website before admission
+    await checkDelivery();
+    assertActive(owner); // no result bytes enter the website before admission
     const snap=site.inspect();
     if(!snap.ok||snap.busy||!snap.idle||snap.rich||snap.draft!=='')
       throw fail('E_CHAT_DRAFT','原会话有新草稿、附件或正在回复，未覆盖；结果需人工核对');
     note('真实 Task 结果已核实。正在单次提交给原 ChatGPT 对话…');
-    composerClaim=claimChatGPTBridgeComposer({site,doc,win,snapshot:snap,text:message.text});
+    deliveryClaim=claimChatGPTBridgeComposer({site,doc,win,snapshot:snap,text:message.text});
+    composerClaim=deliveryClaim;
     let prepared;
     try{prepared=prepareChatGPTBridgeDraft(site,message.text,snap);}
-    finally{composerClaim.written();} // browser insertText may emit trusted input synchronously
+    finally{deliveryClaim.written();} // browser insertText may emit trusted input synchronously
     if(!prepared?.ok)throw fail('E_CHAT_FILL',prepared?.reason||'原生输入框未接受真实结果');
     let committed=false;
     for(let n=0;n<18;n++){
       await delay(250);
+      assertActive(owner);
       await checkDelivery();
+      assertActive(owner);
+      state.sendSubmitted=true;update();
       const outcome=site.commit(prepared.token);
       if(outcome.ok===true){committed=true;break;}
-      if(outcome.retry===true)continue; // no native click was attempted
+      if(outcome.retry===true){state.sendSubmitted=false;update();continue;} // no native click was attempted
       throw fail('E_CHAT_DELIVERY_UNKNOWN',outcome.reason||'原生发送状态不明');
     }
     if(!committed)throw fail('E_CHAT_DELIVERY_UNKNOWN','原生发送按钮未就绪；结果可能已写入输入框');
@@ -404,6 +456,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     let userObserved=false,resultUser=null;
     for(let n=0;n<100;n++){
       await delay(300);
+      assertActive(owner);
       if(win.location.href!==state.url)throw fail('E_CHAT_DELIVERY_UNKNOWN','发送后原会话导航，发送结果未知');
       const current=site.inspect();
       if(site.confirm(prepared.token.before,message.text,current)){
@@ -411,21 +464,23 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       }
     }
     if(!userObserved)throw fail('E_CHAT_DELIVERY_UNKNOWN','未观察到唯一的新增用户消息；禁止重发');
-    composerClaim.confirmed(); // only exact user confirmation AND an empty native draft
+    deliveryClaim.confirmed(); // only exact user confirmation AND an empty native draft
     note('已在原对话确认新增用户消息。等待官方 AI 继续回复…');
     let aiReplyObserved=false;
     for(let n=0;n<150;n++){
       await delay(400);
+      assertActive(owner);
       if(win.location.href!==state.url)break;
       const current=site.inspect();
       if(!current.ok||!site.confirm(prepared.token.before,message.text,current)||
         current.users.at(-1)!==resultUser)break;
-      composerClaim.confirmed();
+      deliveryClaim.confirmed();
       if(isChatGPTBridgeContinuation(snap,current,resultUser)){aiReplyObserved=true;break;}
     }
     note(aiReplyObserved?'原对话已收到结果，且官方 AI 完成新回复':
       '已证实原对话收到结果；官方 AI 是否完成本轮回复尚未证实');
     return {sent:true,userObserved:true,aiReplyObserved};
+    }finally{deliveryPending=false;update();}
   };
   const onMessage=(message,sender,reply)=>{
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='deliver')return false;
@@ -435,8 +490,9 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       if(url.origin!==origin||url.pathname!=='/sidepanel.html'||
         !url.searchParams.has('hostInstanceId')||['scheduledRunner','toolId','previewId'].some(key=>url.searchParams.has(key)))return false;
     }catch{return false;}
+    const owner=state;
     Promise.resolve().then(()=>deliver(message)).then(data=>reply({ok:true,data}),
-      error=>{note((error.code||'E_BRIDGE_DELIVERY')+'：'+(error.message||'回传未确认'),true);
+      error=>{if(!owner?.cancelled&&owner===state)note((error.code||'E_BRIDGE_DELIVERY')+'：'+(error.message||'回传未确认'),true);
         reply({ok:false,error:{code:error.code||'E_BRIDGE_DELIVERY',message:error.message||'回传未知',
           outcome:'OUTCOME_UNKNOWN'}});});
     return true;

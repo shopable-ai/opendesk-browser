@@ -128,6 +128,20 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
         return {allowed:true};
       });
     },
+    revokeRequest({source,requestId}){
+      requireSource(source);requireRequestId(requestId);
+      return sequence(async()=>{
+        const rows=await load(),row=rows[requestId];
+        if(!sameSource(row?.source,source)||
+          !['prepared','approved','consumed','revoked'].includes(row.status))
+          throw fail('E_BRIDGE_REQUEST','没有与原对话精确匹配的请求身份');
+        if(row.status!=='revoked'){
+          row.status='revoked';
+          await save(rows);
+        }
+        return {requestId,revoked:true};
+      });
+    },
     revokeSource(tabId){
       if(!Number.isSafeInteger(tabId))return Promise.resolve();
       return sequence(async()=>{
@@ -172,7 +186,7 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
       throw fail('E_BRIDGE_SOURCE','原对话标签地址或窗口身份已变更');
     const source={tabId,documentId,url:frame.url};
     if(!validChatGPTBridgeSource(source)||!officialURL(source.url)||
-      !/^\/c\/[A-Za-z0-9-]+\/?$/.test(new URL(source.url).pathname))
+      !/^(?:\/g\/g-p-[A-Za-z0-9-]+)?\/c\/[A-Za-z0-9-]+\/?$/.test(new URL(source.url).pathname))
       throw fail('E_BRIDGE_SOURCE','不是合法的官方对话');
     return source;
   };
@@ -198,7 +212,7 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
   };
   const listener=(message,sender,reply)=>{
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||
-      !['prepare','authorize','reserve','check-consumed'].includes(message.kind))return false;
+      !['prepare','authorize','revoke-request','reserve','check-consumed'].includes(message.kind))return false;
     const process=async()=>{
       if(['reserve','check-consumed'].includes(message.kind)){
         if(!sidepanelSender(sender))throw fail('E_BRIDGE_SENDER','必须由现有可信侧边栏确认运行');
@@ -212,6 +226,7 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
         return data;
       }
       const source=await pageSource(sender);
+      if(message.kind==='revoke-request')return ledger.revokeRequest({source,requestId:message.requestId});
       if(message.kind==='prepare')return ledger.prepare(source,{
         taskId:message.taskId??FIXED_PAGE_TASK_ID,args:message.args??{}
       });

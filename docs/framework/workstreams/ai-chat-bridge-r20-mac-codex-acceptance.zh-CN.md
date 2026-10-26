@@ -2,6 +2,63 @@
 
 **默认中文｜ORIGINAL GOAL FIRST｜LATEST MAIN｜LOCAL MAC REAL CHROME｜DELTA ONLY｜CROSS-CHAT DEDUP｜NO SECOND HOST｜NO FAKE PASS｜ONLY MAIN**
 
+## 本轮分段方案（2026-10-26，按首轮独立评审修订）
+
+本轮目标是完成「目标网页证据 → 验证源码 → 固定任务 → 正常触发 → 原会话回传」。继续在 `main` 和日常 `dist/development` 开发，复用 PID 76837/76857 的 watcher，不进入历史 production 验收。下面的方案质量评分与实际运行状态分别记录；本节优先于下方历史阶段。
+
+### 当前目标、关键测试与通过条件（用户于本轮明确要求）
+
+**当前开发阶段目标**：修通固定 Task 与原 Bridge 的实际合同差异，补齐本次请求的取消所有权；保存可执行方案，两位独立评审各≥95/100，受影响定向回归无失败，安全提交本任务文件到 `main`。这一阶段可独立完成，不能代替下面的真实用户闭环。
+
+**最终核心用户操作目标**：原固定 `baidu.search.top3@1.0.0` 安装后，在原 ChatGPT 会话请求搜索 `OpenDesk Browser`，读取百度前三条真实自然结果，获得同一次持久结果及资源释放证据，只回传原会话一次并观察中文续答；手动执行和「批准本次自动执行」分别用一个有意新请求验证。若真实网页受阻或变化，必须如实返回状态，不以预置三条或重复执行制造成功。
+
+| 关键测试 | 明确通过条件 | 当前证据 / 尚缺条件 |
+| --- | --- | --- |
+| 真实提取与模板边界 | 普通结果前三条字段来自当前 DOM；广告/未知模块排除；验证码、区域缺失、DOM 变化和无结果如实区分 | 已有真实 run/result 可复用；新增 Host `www_index` 合同回归通过。导出 URL 带原搜索参数，仅作提取证据，不冒充精确 owned URL 的安装后运行。 |
+| 固定保存与安装 | 源码/包双哈希相符；原 Authority 验证同源码真实 Run；原安装审阅后可用，取得真实 installationId/generation/enabled 与网站权限 | 源码/包已保存、Node 身份检查通过；安装 NOT_TESTED，须现有侧栏入口可被合法操作。 |
+| 手动触发与自动批准 | 同一 request/turn/answer/Task/参数只运行一次；完整回复前零运行；第二点击、旧批准、错会话/文档均不能再运行 | Node 准入及去重通过；两个原生流程各需同候选真实 Run、resultId、released，不能借本地项目结果充当。 |
+| 停止/取消与发送竞态 | 取消先本地阻断，精确持久撤销；只 Stop 自己的 runId；迟到授权/claim/结果不能继续；released 后仍可取消未发送结果；原生点击已尝试则 UNKNOWN，不承诺撤回 | Node 时序检查通过；真实按钮、Native Stop 和释放证据 NOT_TESTED。停止 ACK 不等于释放。 |
+| 原会话唯一回传 | 固定安装/权限/来源最后检查通过后，原生发送一次，观察同一结果用户消息和对应中文新回复；草稿/附件/IME 不覆盖 | Node 固定来源/撤权/草稿保护通过；官网操作须明确授权，涵盖初始请求及结果回传；当前原生回传 NOT_TESTED。 |
+| UNKNOWN 与恢复 | 已知原 runId 只读核查；只有 requestId 无可靠映射则保持 UNKNOWN；不猜最近记录、不补发、不重跑 | 保守恢复条件已写明；发送/Stop ACK 丢失的 Node 检查通过，原生故障注入不属于当前开发范围。 |
+
+**完成与停止条件**：本轮开发收尾须源码修复、定向检查、同口径独立评审、`main` 安全提交和未验证项记录齐备；最终核心完成须上表真实安装、两种触发、持久结果/释放及原会话唯一回传逐段证实，测试数量与方案分数均不能替代。当前扩展 URL 策略拒绝时停止该原生分支，不换工具或私有接口绕过；官网发送缺少明确授权时不发送。验证码交由原网页正常处理；身份/权限变化、未知副作用或 ACK 丢失停止本次链。其余可独立工作继续，证据仍有效且输入未变化不重复测试。不自动进入 production、完整矩阵、宽度缩放或任意网页 AI 自主生成。
+
+**当前下一条真实操作**：在原侧栏「我的 → 添加任务 → 导入任务文件」选择 `examples/tasks/baidu.search.top3.v1.opendesk-task.json` →「浏览任务目录」→展开「开发者：核对证据与设为本地可用」→在「已完成的真实运行 ID」填入 `17ea3f0e-5008-4ff0-bedd-a64cc814adc9` →「核对运行证据」→「设为本地可用」→「安装选定版本」并完成现有安装审阅。运行证据字段由工程操作者处理，不新增普通用户技术表单。`task-workbench.js` / `react/tabs/task-catalog.tsx` 已有侧栏目录，不必打开独立扩展标签页。此操作尚未执行：交接已记录浏览器工具拒绝 `chrome-extension://`，本轮不改用另一自动化入口、私有接口或浏览器数据库绕过。安装身份未知，不据此启动 Bridge。能独立完成的本地修复与评审继续。
+
+| 段落 / 用户操作 | 输入与输出 | 持久事实与完成证据 | 失败恢复 |
+| --- | --- | --- | --- |
+| 1. AI 辅助理解目标网页 | 输入是用户关键词、精确目标网页和只读 DOM；输出是普通结果/广告边界、选择器与预期字段。当前只确认 `#content_left .result.c-container` 的 `se_com_default`、`www_index`，读取标题/摘要/链接，不访问结果链接。 | 当前代码由 Codex 依据真实 DOM 辅助修订；已有原始结果的 runId/resultId 和导出 SHA 见下节。**尚未接通产品内 AI 自主观察/生成代码**，网站文本仅为不可信数据，不能发指令。 | 验证码/安全验证停止并提示人工在原网页处理；不能自动破解或循环重试。未知模块保守排除，不能猜选择器、扩大模板白名单或把 AI 的推测记为 DOM 证据。 |
+| 2. 在「开发 → 本地项目」明确运行验证 | 输入为固定源文件、`{query:"OpenDesk Browser",limit:3}` 和百度 `/s` 精确查询；原 RunHost/Worker 词法 `page/params` 输出有状态的真实结果。 | 复用 `17ea3f0e-5008-4ff0-bedd-a64cc814adc9` / `792be814-4414-4511-a96c-824f648cc24a`，真实 count=3、slot=1/2/5、`www_index`、completed/released；源码 SHA `586fbf0f…121cd3`。正式验证仍由原 Authority 读原 ledger，不把导出 JSON 当可导入证明。 | `blocked`、`dom_unavailable`、`dom_changed` 均不是提取成功；`no_results` 表示真实无结果，不等于本次前三条成功。Controller completed 只表示程序正常返回。缺失 DOM/未知模板不得保存为空结果成功。停止、断线或回执未知按下方原身份规则核查，不重放。修源码后必须有新的有意 Run。 |
+| 3. 保存、固定和安装 | 源码及同源 JSON 已在仓库保存，可再次找到；本例必须导入固定 `baidu.search.top3@1.0.0` 包。通常本地项目「保存为任务」可复用，但会生成 `local-<hash>`，不能接入本例的固定 Bridge。 | 原 Candidate → verifyTaskCandidate(runId) → Available → 审阅安装；原 Authority 校验同源码、当前内置库身份、原生操作成功回执、released。核对完整 sourceHash、manifestHash `6be4d039…cd49ed`、installationId/generation、enabled、网站权限。保存源码/包不等于已安装。 | 证明不再适用则明确新 Run，不伪造或手写 ledger。安装 ACK 未知只查原 Task 记录；版本/权限变化重新审阅，拒绝则停止。已安装版本不静默换字节；修改另增版本并重验。正常安装后不增加第二次通用启用步骤。 |
+| 4. 正常手动触发 | 安装核对完成后，在原 ChatGPT 精确会话选择任务和关键词→建立请求→用户在官网发送→完整且唯一匹配候选→用户明确执行。AI 只选择允许的 Task/参数，不能提交任意 JS。 | 原 Trigger Ledger 固定 requestId/turnKey/answerKey、精确 tab/document/会话；原 Authority/RunHost 创建 owned 百度目标。一次有意触发得到一个 runId、一个持久 resultId 和 released。 | 网站阻断或 DOM 变化返回真实状态，不编造结果、不自动改写或重试。换会话/文档、任务身份变化、权限撤回、停止/取消均阻断后续交付；迟到回包不能解除取消。UNKNOWN 按下方规则核查，不能当作未执行。 |
+| 5. 原会话唯一回传与批准分支 | 原 Bridge 校验持久结果、固定任务/版本/安装代际、精确会话，按真实 status/count 一次回传。手动链通过后，用新请求验证「批准本次自动执行」；两条均属于当前核心范围，不能只验手动就称全部完成。 | 记录唯一回传、原会话用户消息观察及中文 AI 续答；批准分支必须在生成中批准、完整候选前零运行、完整后运行/结果/交付各一。草稿/附件/IME 占用不得覆盖。运行与交付可分别失败，不能混成整体成功。 | 发送 ACK 未知标 UNKNOWN，保留已有原身份只读核对，不再发送。自动操作官网须人类明确授权，范围同时涵盖初始请求和真实结果回传；当前交接/建新对话授权不覆盖这两次发送，尚未取得该授权。 |
+
+### 已完成的最小修复与取消所有权
+
+`chatgpt-fixed-bridge-host.js` 的持久结果校验原先拒绝 `evidence.tpl="www_index"`，与已通过真实百度运行的固定 Task 输出不一致；现已仅补上该已观察模板。Task 字节/双哈希、Origin、权限和安装身份保持原合同。另修正原 Trigger Gate 对 `/g/g-p-…/c/…` 项目会话的误拒；仍精确绑定真实 sender、tab、document 与当前完整 URL，未知路由不开放。
+
+首轮独立架构审阅发现 Bridge 没有自己的停止入口：编辑器的 Stop 属于另一个 ownedRunId，不能替代 Bridge 取消；RunHost released 后也不能保护等待中的网页发送。现已在原 Bridge 加入「停止/取消」：页面同步设置取消栅栏；原 Ledger 按真实来源和 requestId 串行持久撤销 prepared/approved/consumed；原 Bridge Host 仅在获得自己的 claim.runId 且等于共享 Host.currentRun 时调用原 Stop。取消不等待撤销 ACK 才停止本页继续执行；撤销和 Host cancel 并行提交，迟到 authorize、claim、completion、check-delivery 均不得解除栅栏。claim 迟到后仅停止自己刚取得的 Run；没有已知 runId 时不能借用共享 Host 的其他运行。
+
+运行停止与结果交付分开：released 后仍可取消发送；已写入的草稿不删除；原生 commit 前同步关闭取消入口，仅明确 `retry:true`（未尝试点击）才恢复。Host 已分发 deliver 后保守报告交付 UNKNOWN，不能承诺撤回已尝试发送的消息。停止/撤销回执丢失维持 UNKNOWN，不能声称停止、释放或持久撤销成功，也不补发 Stop 或结果。Host 在同步核对真实 sender 的扩展、主文档、窗口和原请求身份后立即建立 deny-only 取消栅栏，再并行原 Stop 与异步来源查询；查询挂起或失败不能恢复执行/交付。
+
+复评还发现已释放的旧输入框 claim 会阻断下一请求回传，现将 claim 检查限定到本次 deliver，全局引用只负责导航清理；当前 claim 被用户接管后仍永久拒绝本次发送。不同 requestId 的「手动成功 → 自动批准成功」可以连续运行；旧 UNKNOWN marker 不会因新请求而被清除、替换或绕过。
+
+已以先失败后修复的定向回归覆盖模板差异、Bridge Stop、原 Ledger 撤销和连续交付；整合后 **61/61 Node 检查通过**，覆盖已知模板一次交付、未知/广告拒绝、精确项目会话、只停自己的 Run、迟到 claim/完成/交付、异步来源查询挂起/失败、released 后取消、原生 commit 边界、撤销持久写失败、连续手动/自动请求，以及原固定 Task 的身份、撤权、草稿/附件/IME 与 UNKNOWN 不重放。命令为 `node --test tests/environment/chatgpt-baidu-bridge-r20.test.mjs tests/environment/chatgpt-bridge-cancel-page-r21.test.mjs tests/environment/chatgpt-fixed-bridge-r12.test.mjs tests/environment/chatgpt-fixed-bridge-r13.test.mjs`。复用原百度提取16项中未受影响的脚本证据，没有重复脚本全组或运行全量构建。导出的真实结果仅供离线模板兼容检查，不伪造 saved Task 运行证据或 Chrome PASS。既有 watcher 自动重建后只读核对相关输出；没有实际已加载指纹/连接证据时标未知，不拿磁盘 revision 或进程存活替代。
+
+**UNKNOWN 的实际恢复边界**：已有确切 runId（包括停止回执显示的「运行 ID」）时，在「我的 → 对应任务 → 运行记录 → 对应记录 → 技术信息」核对同一 runId、resultId 与执行状态；列表仅最近8条，未显示不能推断未运行。该投影不含 retirementState，不能据此宣称资源已释放；释放需工程操作者经原授权 Controller 客户端查询 `snapshotControllerRun({runId})` 的 retirement 事实，不能为此绕过工具 URL 策略。只有 requestId、start ACK 丢失而 runId 未知时，当前 Trigger Ledger 没有 request→run 映射，无法可靠定位；保留 UNKNOWN、停止当前链，不按时间/关键词猜记录，不重新执行或发送。安装 ACK 未知只核查原 Task 安装记录，不能用该 requestId 推断运行结果。
+
+普通用户只需要现有项目运行、任务包导入/审阅和官网请求按钮；哈希、代际及证据核对由工程记录承担，不增加技术表单。没有观察到现有入口缺陷时不重构 UI。原 `page.read.fixed` 身份保持原样，因只改百度结果分支，选择原固定 Task 的直接合同回归，真实 Chrome 回归保留 NOT_TESTED。
+
+### 方案评审与停止条件
+
+两名独立原生子代理分别做架构审阅和批判审阅，继承父任务模型/provider，作者不兼任评审。固定评分维度共100：需求完整性15、分段依赖及持久状态15、架构复用及身份15、选择器可靠性15、权限/生命周期20、用户操作成本10、可验证性及证据诚实10。要求给真实分数、代码证据及缺口；低于95则针对缺口修订并以同一口径复评，不修改评分标准凑分。最终评审全文/agent ID 保留于本机 artifacts；分数仅评价方案，不证明运行通过。
+
+首轮架构评分 **93/100**、批判评分 **94/100**，均未达到95；首次修订后批判评分96，架构复评94并发现上述连续请求 claim 与异步取消栅栏问题。两项已补红→绿回归并最小修复，再按原评分尺度独立复评；历史分数与缺口保留，不能只展示最高分。
+
+最终独立复评：架构 **98/100 · PASS**（Faraday，`01a176db-6fd6-7910-b161-dfc7dcfab88b`），批判 **96/100 · PASS**（Mencius，`01a17708-7451-78d3-bc37-7704fb05348f`）。七维分别为架构 `15/15/15/15/19/9/10`、批判 `15/14/15/14/20/9/9`，均采用上述固定分值。评审者只读核对实现与测试、未重跑61项；测试由主代理执行。两者均未发现阻断当前最小开发链的源码问题，均明确原生核心链尚未通过。完整首轮、二次及最终正文保存在 `artifacts/ai-chat-bridge-r20-mac-20261026/segmented-core/`，最终为 `final-reviews.json`；`status.json` 记录相关源码/测试哈希与开发产物观察。
+
+本阶段只有真实提取、固定安装、手动和本次批准自动触发、唯一持久结果及 released、原会话唯一回传/中文续答逐段证实才算核心完成。当前提取已通过；保存源码/同源包及本地修复已完成；安装、正常固定触发、回传、批准分支、原生取消和项目会话均 NOT_TESTED。产品内 AI 自主观察/生成尚未接通，明确延期为独立产品工作，本次仅交付 Codex 辅助修订的固定任务链，不能宣传任意网页自主生成。工具策略阻断的原生步骤准确保留，先完成可独立修复工作，再交付最小实际按钮路径；不绕过限制、不重复创建对话、不恢复旧 production/全量矩阵/宽度缩放验收。
+
 ## 当前开发结果（2026-10-26 13:38 后，取代下方历史阶段）
 
 当前阶段为**日常 Chrome 核心开发**，复用 `npm run dev` → `dist/development`；不继续下方旧 production 验收、完整矩阵和评分。真实扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，开发服务与 Native 均已在界面观察到连接。

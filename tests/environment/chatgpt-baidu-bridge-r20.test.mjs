@@ -199,8 +199,9 @@ test('durable Baidu decoding verifies real revision, status, links, count and so
     {code:'E_BRIDGE_DURABLE'});
 });
 function harness({disabled=false,available=true,permission=true,
-  changedHash=false,sendThrows=false,badResult=false}={}){
-  const fx=fixture(badResult?{...resultData,count:3}:resultData);
+  changedHash=false,sendThrows=false,badResult=false,data=resultData,
+  beforeClaim,completion,onSnapshot,onFrame,onStart=()=>{},stopThrows=false,onSend=()=>{},sendReply}={}){
+  const fx=fixture(badResult?{...data,count:3}:data);
   const installation={taskId:request.taskId,version:BAIDU_TASK_VERSION,
     manifestHash:BAIDU_TASK_MANIFEST_HASH,enabled:!disabled,
     generation:7,installationId:'installation-baidu-1',scriptId:fx.scriptId};
@@ -211,7 +212,7 @@ function harness({disabled=false,available=true,permission=true,
   const resolved={...fx.resolved,taskId:request.taskId,version:BAIDU_TASK_VERSION,
     manifestHash:BAIDU_TASK_MANIFEST_HASH,generation:7,installationId:'installation-baidu-1',
     contentHash:changedHash?'f'.repeat(64):BAIDU_TASK_SOURCE_HASH,manifest};
-  const events={reserve:0,check:0,start:0,send:0};
+  const events={reserve:0,check:0,start:0,send:0,stop:0,snapshot:0,activeRun:null};
   const api={runtime:{id:'extid',async sendMessage(message){
       if(message.kind==='reserve'){
         events.reserve++;
@@ -228,10 +229,11 @@ function harness({disabled=false,available=true,permission=true,
         events.send++;
         assert.equal(tabId,source.tabId);assert.equal(opt.documentId,source.documentId);
         events.delivered=message.text;
+        onSend();if(sendReply)return sendReply;
         if(sendThrows)throw new Error('ambiguous native send');
         return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};
       }},
-    webNavigation:{async getFrame(){return {documentId:source.documentId,url:source.url,
+    webNavigation:{async getFrame(){await onFrame?.();return {documentId:source.documentId,url:source.url,
       documentLifecycle:'active',errorOccurred:false};}},
     permissions:{async contains(spec){
       assert.deepEqual(spec.origins,['https://chatgpt.com/*','https://www.baidu.com/*']);
@@ -245,11 +247,13 @@ function harness({disabled=false,available=true,permission=true,
     },
     subscribeInstalledTasks:()=>()=>{},
     subscribeConnection:()=>()=>{},
-    controller:{async snapshotControllerRun(){return fx.snapshot;}}};
-  const host={get currentRun(){return null;},
-    async start(input){events.start++;events.startInput=input;return {runId:fx.runId};},
-    get completion(){return Promise.resolve({runId:fx.runId,state:'completed',
-      retirement:{state:'released'},result:{resultId:fx.resultId}});}};
+    controller:{async snapshotControllerRun(){events.snapshot++;await onSnapshot?.(events.snapshot);return fx.snapshot;}}};
+  const host={get currentRun(){return events.activeRun;},
+    async start(input){events.start++;events.startInput=input;onStart();await beforeClaim;
+      events.activeRun=fx.runId;return {runId:fx.runId};},
+    async stop(input){events.stop++;events.stopInput=input;if(stopThrows)throw Error('stop acknowledgement lost');return {state:'stopped'};},
+    get completion(){return (completion||Promise.resolve({runId:fx.runId,state:'completed',
+      retirement:{state:'released'},result:{resultId:fx.resultId}})).then(value=>{events.activeRun=null;return value;});}};
   const sender={id:'extid',frameId:0,documentId:source.documentId,url:source.url,
     tab:{id:source.tabId,url:source.url,windowId:2,incognito:false}};
   const message={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'execute',
@@ -276,6 +280,26 @@ test('Baidu Host reuses exact RunHost/Authority, owned target, immutable params 
   assert.equal(h.events.send,1);assert.ok(h.events.check>=2);
   assert.equal(JSON.parse(h.events.delivered.slice(h.events.delivered.indexOf('{'))).data.count,2);
 });
+test('observed www_index evidence reaches the original Baidu Host while unknown templates cannot be delivered',async()=>{
+  // Daily Chrome run 17ea3f0e-5008-4ff0-bedd-a64cc814adc9 observed this
+  // ordinary template. These are component fixtures, not a saved-task Run proof.
+  const observed={...resultData,results:resultData.results.map(row=>({...row,
+    evidence:{...row.evidence,tpl:'www_index'}}))};
+  const h=harness({data:observed});
+  const receipt=await h.bridge.handle(h.message,h.sender);
+  assert.equal(receipt.taskStatus,'success');
+  assert.equal(receipt.resultCount,observed.count);
+  assert.equal(h.events.reserve,1);assert.equal(h.events.start,1);assert.equal(h.events.send,1);
+  const delivered=JSON.parse(h.events.delivered.slice(h.events.delivered.indexOf('{')));
+  assert.deepEqual(delivered.data.results,observed.results);
+  for(const tpl of ['bk_polysemy','paid_unknown','www_index_ad']){
+    const invalid={...observed,results:observed.results.map(row=>({...row,
+      evidence:{...row.evidence,tpl}}))};
+    const rejected=harness({data:invalid});
+    await assert.rejects(rejected.bridge.handle(rejected.message,rejected.sender),{code:'E_BRIDGE_RESULT'});
+    assert.equal(rejected.events.send,0,tpl);
+  }
+});
 test('Baidu Host denies unverified, disabled, uninstalled hash, Chrome denial and invalid result',async()=>{
   for(const opts of [{disabled:true},{available:false},{permission:false},
     {changedHash:true},{badResult:true}]){
@@ -289,4 +313,119 @@ test('ambiguous ChatGPT send after a real run does not trigger another run or se
   const h=harness({sendThrows:true});
   await assert.rejects(h.bridge.handle(h.message,h.sender),{code:'E_BRIDGE_SEND_UNKNOWN'});
   assert.equal(h.events.start,1);assert.equal(h.events.send,1);
+});
+const cancelMessage=h=>({protocol:h.message.protocol,kind:'cancel',requestId:id,source,sourceUrl:source.url});
+test('Bridge cancellation stops only its owned run and a late success cannot deliver',async()=>{
+  const started=Promise.withResolvers(),done=Promise.withResolvers();
+  const h=harness({onStart:()=>started.resolve(),completion:done.promise});
+  const execution=h.bridge.handle(h.message,h.sender);
+  await started.promise;
+  // Wait for the admission reply to assign the exact owned Run identity.
+  await Promise.resolve();await Promise.resolve();
+  const receipt=await h.bridge.cancel(cancelMessage(h),h.sender);
+  assert.equal(receipt.cancelled,true);assert.equal(receipt.runId,h.fx.runId);
+  assert.equal(receipt.executionState,'stop-requested');
+  assert.equal(receipt.deliveryState,'cancelled');
+  assert.equal(h.events.stop,1);
+  assert.deepEqual(h.events.stopInput,{controller:true,runId:h.fx.runId,requestId:id+':stop',reason:'E_CANCELLED'});
+  await h.bridge.cancel(cancelMessage(h),h.sender);
+  assert.equal(h.events.stop,1,'duplicate cancel must not submit a second Stop');
+  done.resolve({runId:h.fx.runId,state:'completed',retirement:{state:'released'},result:{resultId:h.fx.resultId}});
+  await assert.rejects(execution,{code:'E_BRIDGE_CANCELLED'});
+  assert.equal(h.events.send,0);
+});
+test('cancellation before start ACK waits for its own identity and never borrows another run',async()=>{
+  const started=Promise.withResolvers(),claim=Promise.withResolvers();
+  const h=harness({onStart:()=>started.resolve(),beforeClaim:claim.promise});
+  const execution=h.bridge.handle(h.message,h.sender);
+  await started.promise;
+  const receipt=await h.bridge.cancel(cancelMessage(h),h.sender);
+  assert.equal(receipt.runId,null);assert.equal(receipt.executionState,'awaiting-run-identity');
+  assert.equal(h.events.stop,0);
+  claim.resolve();
+  await assert.rejects(execution,{code:'E_BRIDGE_CANCELLED'});
+  assert.equal(h.events.stop,1);assert.equal(h.events.stopInput.runId,h.fx.runId);
+  assert.equal(h.events.send,0);
+});
+test('a released Bridge run can cancel delivery during a delayed final durable read',async()=>{
+  const reading=Promise.withResolvers(),read=Promise.withResolvers();
+  const h=harness({onSnapshot:n=>{if(n===2){reading.resolve();return read.promise;}}});
+  const execution=h.bridge.handle(h.message,h.sender);
+  await reading.promise;
+  const receipt=await h.bridge.cancel(cancelMessage(h),h.sender);
+  assert.equal(receipt.executionState,'settled');assert.equal(receipt.deliveryState,'cancelled');
+  assert.equal(h.events.stop,0,'a released run must not stop an unrelated RunHost slot');
+  read.resolve();
+  await assert.rejects(execution);
+  assert.equal(h.events.send,0);
+});
+test('cancel rejects foreign request or document and preserves a valid active run',async()=>{
+  const started=Promise.withResolvers(),done=Promise.withResolvers();
+  const h=harness({onStart:()=>started.resolve(),completion:done.promise});
+  const execution=h.bridge.handle(h.message,h.sender);await started.promise;
+  await assert.rejects(h.bridge.cancel({...cancelMessage(h),requestId:'44444444-4444-4444-8444-444444444444'},h.sender));
+  await assert.rejects(h.bridge.cancel(cancelMessage(h),{...h.sender,documentId:'foreign'}));
+  for(const sender of [{...h.sender,id:'foreign-extension'},{...h.sender,frameId:1},
+    {...h.sender,tab:{...h.sender.tab,windowId:3}},
+    {...h.sender,tab:{...h.sender.tab,incognito:true}},
+    {...h.sender,url:'https://example.org/'}])
+    await assert.rejects(h.bridge.cancel(cancelMessage(h),sender));
+  assert.equal(h.events.stop,0);
+  done.resolve({runId:h.fx.runId,state:'completed',retirement:{state:'released'},result:{resultId:h.fx.resultId}});
+  assert.equal((await execution).sent,true);assert.equal(h.events.send,1);
+});
+test('cancel fences a late claim while its live source query is still pending',async()=>{
+  const started=Promise.withResolvers(),claim=Promise.withResolvers();
+  const querying=Promise.withResolvers(),verified=Promise.withResolvers();let hold=false;
+  const h=harness({onStart:()=>started.resolve(),beforeClaim:claim.promise,
+    onFrame:()=>{if(hold){querying.resolve();return verified.promise;}}});
+  const execution=h.bridge.handle(h.message,h.sender);
+  const outcome=execution.then(value=>({value}),error=>({error}));
+  await started.promise;hold=true;
+  const cancelling=h.bridge.cancel(cancelMessage(h),h.sender);
+  const cancellation=cancelling.then(value=>({value}),error=>({error}));
+  await querying.promise;claim.resolve();
+  for(let i=0;i<20;i++)await Promise.resolve();
+  const stoppedWhilePending=h.events.stop;
+  verified.resolve();
+  const [run,cancel]=await Promise.all([outcome,cancellation]);
+  assert.equal(stoppedWhilePending,1,'a slow source query must not delay the owned late-claim Stop');
+  assert.equal(run.error?.code,'E_BRIDGE_CANCELLED');
+  assert.equal(cancel.value?.executionState,'stop-requested');
+  assert.equal(h.events.send,0);
+});
+test('failed asynchronous cancel source verification never restores execution or delivery',async()=>{
+  const started=Promise.withResolvers(),done=Promise.withResolvers();let failSource=false;
+  const h=harness({onStart:()=>started.resolve(),completion:done.promise,
+    onFrame:()=>{if(failSource)throw Error('source query failed');}});
+  const execution=h.bridge.handle(h.message,h.sender);
+  const outcome=execution.then(value=>({value}),error=>({error}));
+  await started.promise;await Promise.resolve();await Promise.resolve();failSource=true;
+  await assert.rejects(h.bridge.cancel(cancelMessage(h),h.sender));
+  failSource=false;
+  done.resolve({runId:h.fx.runId,state:'completed',retirement:{state:'released'},result:{resultId:h.fx.resultId}});
+  assert.equal((await outcome).error?.code,'E_BRIDGE_CANCELLED');
+  assert.equal(h.events.stop,1);assert.equal(h.events.send,0);
+});
+test('a lost Stop acknowledgement keeps cancellation fenced without claiming release or retrying',async()=>{
+  const started=Promise.withResolvers(),done=Promise.withResolvers();
+  const h=harness({onStart:()=>started.resolve(),completion:done.promise,stopThrows:true});
+  const execution=h.bridge.handle(h.message,h.sender);await started.promise;
+  await Promise.resolve();await Promise.resolve();
+  await assert.rejects(h.bridge.cancel(cancelMessage(h),h.sender),{code:'E_BRIDGE_STOP_UNKNOWN'});
+  await assert.rejects(h.bridge.cancel(cancelMessage(h),h.sender),{code:'E_BRIDGE_STOP_UNKNOWN'});
+  assert.equal(h.events.stop,1);
+  done.resolve({runId:h.fx.runId,state:'completed',retirement:{state:'released'},result:{resultId:h.fx.resultId}});
+  await assert.rejects(execution,{code:'E_BRIDGE_CANCELLED'});assert.equal(h.events.send,0);
+});
+test('cancellation after delivery dispatch reports UNKNOWN and never promises message withdrawal',async()=>{
+  const sending=Promise.withResolvers(),sent=Promise.withResolvers();
+  const h=harness({onSend:()=>sending.resolve(),sendReply:sent.promise});
+  const execution=h.bridge.handle(h.message,h.sender);await sending.promise;
+  const receipt=await h.bridge.cancel(cancelMessage(h),h.sender);
+  assert.equal(receipt.deliveryState,'unknown');assert.equal(receipt.executionState,'settled');
+  assert.equal(h.events.stop,0);
+  sent.resolve({ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}});
+  assert.equal((await execution).sent,true,'an observed original send is not retroactively withdrawn');
+  assert.equal(h.events.send,1);
 });
