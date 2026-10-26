@@ -5,7 +5,8 @@ import {createMockSdk,demoSite,demoSites} from './mock-sdk.js';
 // The shared product App owns compact editor copy, attribute/storage disclosures and the site header.
 // Scene controls live outside that App. Only SDK responses are fictional.
 export default function App(){
- const [scene,setScene]=React.useState('ready');
+ const [scene,setScene]=React.useState('accountsDemo');
+ const [width,setWidth]=React.useState(380);
  const [revision,setRevision]=React.useState(0);
  const [dark,setDark]=React.useState(false);
  const [failure,setFailure]=React.useState('');
@@ -32,16 +33,24 @@ export default function App(){
   mock.switchSite(hostname);setSite(hostname);
   hostRoot?.dispatchEvent(new Event('opendesk-page-changed'));
  };
- return <div className="r49-page">
+ return <div className="r49-page" style={{'--preview-panel-width':width+'px'}}>
   <details className="demo-lab" aria-label="预览场景切换器">
    <summary className="lab-title"><span>Cookie Editor · React 同源预览</span><span>交互预览 · 虚构数据</span></summary>
    <div className="lab-controllers">
     <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}>
-     <option value="ready">已授权</option><option value="first">首次全站授权</option>
+     <option value="accountsDemo">3 个虚构账号（默认）</option>
+     <option value="accountsLocked">仓库锁定 / 首次使用</option>
+     <option value="accountSwitchFail">账号切换失败</option>
+     <option value="accountSwitchUnknown">账号切换结果未知</option>
+     <option value="ready">Cookie 已授权</option><option value="first">首次全站授权</option>
      <option value="noPage">无活动网页</option><option value="restricted">受限网页</option>
      <option value="switching">正在切站</option><option value="chromeDenied">Chrome 权限缺失</option>
      <option value="hostClosed">宿主不可用</option><option value="readonly">写入被拒</option>
      <option value="empty">空列表</option><option value="loading">正在读取</option><option value="valuesDenied">值未授权</option><option value="saveError">保存失败</option><option value="copyError">复制失败</option><option value="downloadError">下载失败</option><option value="unknown">写入结果未知</option>
+    </select></label>
+    <label>宽度 <select data-testid="width" value={width}
+      onChange={e=>setWidth(Number(e.target.value))}>
+      {[320,360,380,400,440].map(value=><option key={value} value={value}>{value}px</option>)}
     </select></label>
     <label>模拟网站 <select data-testid="site" value={site} onChange={e=>switchSite(e.target.value)}>
      {demoSites.map(hostname=><option key={hostname} value={hostname}>{hostname}</option>)}
@@ -68,7 +77,9 @@ export default function App(){
   </section>}
   <section className="cookie-app" aria-label="Cookie Editor 虚构数据预览" hidden={settingsOpen} ref={setHostRoot}>
    {hostRoot&&(granted
-    ?<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}/>
+    ?<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}
+      previewMode initialSection={['accountsDemo','accountsLocked','accountSwitchFail',
+        'accountSwitchUnknown'].includes(scene)?'accounts':'cookie'}/>
     :<section className="preview-global-grant" aria-labelledby="preview-grant-title">
       <h2 id="preview-grant-title">Cookie 访问授权</h2>
       <p>允许管理普通 HTTP/HTTPS 网站的 Cookie；敏感值单独授权。</p>
