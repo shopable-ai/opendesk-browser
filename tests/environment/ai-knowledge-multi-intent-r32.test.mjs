@@ -234,17 +234,18 @@ test('R3.2 two semantic questions use bounded per-question AI and one human-revi
  }finally{rt.dispose();}
 });
 test('R3.2 cross-topic AI citations cannot be attached to another question',async()=>{
- const {site,api,target}=fakePage();
+ const {site,api,target}=fakePage();let aiCalls=0;
  const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
    readLibrary:async()=>({value:lib,etag}),assertLive:()=>{},
-   callAI:async()=>({status:'REVIEW_REQUIRED',
-     answer:'编造的错误政策',sourceIds:['qa_demo_payment']})});
+   callAI:async()=>{aiCalls++;return {status:'REVIEW_REQUIRED',
+     answer:'编造的错误政策',sourceIds:['qa_demo_payment']};}});
  try{
    await rt.start({event:{isTrusted:true}});
    rt.approveAI({...rt.approvalContext(),expiresAt:Date.now()+120000});
    site.messages.push(customer('如何申请电子发票？我能在哪看物流？'));
-   await until(()=>rt.snapshot().records[0]?.status==='PARTIAL_REVIEW_REQUIRED',
-     'invalid citation rejected');
+   await until(()=>aiCalls===2&&rt.snapshot().records[0]?.status==='PARTIAL_REVIEW_REQUIRED',
+     'both invalid citations checked');
+   assert.equal(aiCalls,2);
    const row=rt.snapshot().records[0];
    assert.equal(row.answer,'');
    assert.deepEqual(row.sourceIds,[]);
