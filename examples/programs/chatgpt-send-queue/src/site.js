@@ -73,7 +73,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     // Public DOM state can only veto our writes. Its absence grants no
     // permission and never substitutes for the bridge's trusted Host checks.
     if(form.hasAttribute('data-opendesk-composer-owner'))
-      return {ok:false,route,reason:'其他操作正在使用原生输入框，队列已暂停'};
+      return {ok:false,route,reason:'等待其他操作释放原生输入框'};
     const nativeButtons = [...form.querySelectorAll('button')].filter(el => visible(el,win) && !el.closest('[data-opendesk-ui-owner]'));
     const stopButtons = nativeButtons.filter(el => role(el)==='stop');
     const sendButtons = nativeButtons.filter(el => role(el)==='send');
@@ -206,9 +206,10 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
       fresh.users.some((node,i)=>node!==token.before.users[i]))
       return {ok:false,stage:'before-click',reason:'准备发送期间原生编辑器、草稿或消息记录已变化'};
     if(fresh.busy)return {ok:false,stage:'before-click',reason:'网站开始了其他回复'};
-    if(!fresh.sendButton || !fresh.idle || fresh.sendButton.disabled ||
-      fresh.sendButton.getAttribute('aria-disabled')==='true')
-      return {ok:false,retry:true};
+    if(!fresh.sendButton)return {ok:false,retry:true,reason:'未找到原生发送按钮'};
+    if(!fresh.idle)return {ok:false,retry:true,reason:'上一条回复尚未确认完成'};
+    if(fresh.sendButton.disabled || fresh.sendButton.getAttribute('aria-disabled')==='true')
+      return {ok:false,retry:true,reason:'原生发送按钮尚未启用'};
     // After this click the outcome is UNKNOWN until an exact new user turn is seen.
     try {fresh.sendButton.click();}
     catch {return {ok:false,stage:'after-click',reason:'原生发送点击结果未知'};}

@@ -26,13 +26,12 @@ export default async function main({assets}={}) {
   const site=createChatGPTSite({isComposing:()=>composing});
   owner.on(document,'compositionstart',()=>{composing=true;},true);
   owner.on(document,'compositionend',()=>{composing=false;},true);
-  let view=null,forceClick=false,engine;
+  let view=null,engine;
   try{
     engine=createQueueEngine({site,change:()=>view?.render()});
     const notify=message=>view?.toast(message);
     const actions={
-      enqueue(event){
-        if(event?.shiftKey){actions.togglePause();return;}
+      enqueue(){
         if(view?.hasRecovery()){
           notify('请先复制上一条未入队的原草稿，再继续操作');return;
         }
@@ -44,19 +43,19 @@ export default async function main({assets}={}) {
         const selected=site.clearForQueue(snap);
         if(!selected.ok){
           if(selected.needsRecovery){
-            engine.pause('草稿清空结果未确认，等待用户恢复');
+            engine.wait('草稿清空结果未确认，请先备份原文');
             view.offerRecovery(selected.text,selected.reason);
           }else notify(selected.reason);
           return;
         }
         if(!engine.enqueue(selected.text,snap.route)){
           if(!site.restore(selected.text,'')){
-            engine.pause('入列失败且原生草稿无法恢复');
+            engine.wait('入列失败且原生草稿无法恢复，请先备份原文');
             view.offerRecovery(selected.text,'未能恢复原生草稿，消息未入队；请复制原文');
           }else notify('队列状态变化，原生草稿已恢复');
           return;
         }
-        engine.tick();
+        poll();
       },
       edit(id){
         // No inline editor. Put this message back into ChatGPT's existing
@@ -75,13 +74,13 @@ export default async function main({assets}={}) {
         }
         const result=site.reclaimToComposer(item.text,snap);
         if(!result.ok){
-          if(result.mayHaveWritten)engine.pause('取回状态未确认，已暂停以防重复发送');
+          if(result.mayHaveWritten)engine.uncertain(id,'取回状态未确认，请核对输入框与原对话后删除该条，避免重复发送',snap);
           notify(result.reason||'无法安全取回，请检查输入框');return;
         }
         // Only after the original composer read-back confirms the exact text,
         // remove the item so it cannot later auto-send from the queue.
         if(!engine.reclaim(id)){
-          engine.pause('队列状态已改变，请核对输入框与排队内容');
+          engine.uncertain(id,'队列状态已改变，请核对输入框与原对话后删除该条',snap);
           notify('消息已放入输入框，但队列状态不确定');return;
         }
         notify('已取回到输入框，取消排队');
@@ -97,40 +96,28 @@ export default async function main({assets}={}) {
         if(result.needsStopConfirmation){
           const approved=window.confirm('确定停止当前 ChatGPT 回复并提前发送？\n仅在原生停止确认后发送；未知结果不会重试。');
           if(!approved)return;
-          forceClick=true;
-          try{if(!engine.confirmForceStop(id))notify('原生停止动作未获确认');}
-          finally{forceClick=false;}
+          if(!engine.confirmForceStop(id))notify('原生停止动作未获确认');
         } else if(!result.ok)notify(result.reason||'当前状态不能提前发送');
-      },
-      togglePause(){
-        if(engine.view().paused){
-          if(!engine.resume())notify('请先处理未知发送结果，或返回原对话');
-        }else engine.pause('用户主动暂停队列');
       }
     };
     view=createQueueView({owner,createPageUI,assets,engine,
       actions:Object.fromEntries(Object.entries(actions).map(([name,action])=>
         [name,(...args)=>{if(owner.active()&&!retireForLegacy())return action(...args);}] ))});
-    // Native Stop clicked by the user is not proof of normal answer completion.
-    owner.on(document,'click',event=>{
-      const state=engine.view();
-      if(forceClick||(!state.items.length&&!state.answerGate))return;
-      const snap=site.inspect();
-      if(snap.ok&&snap.stopButton&&(event.target===snap.stopButton||
-        snap.stopButton.contains(event.target)))engine.pause('官网回复被手动停止，队列已暂停');
-    },true);
     owner.on(window,'beforeunload',event=>{
       if(!engine.view().items.length&&!view?.hasRecovery())return;
       event.preventDefault();event.returnValue='';
     });
     // Reconcile only every 650ms; no timer infers completion from idle text.
-    owner.setInterval(()=>{
+    function poll(){
       if(!owner.active()||retireForLegacy())return;
       const snap=site.inspect();
-      if(snap.ok){view.place(snap);view.render();}
+      let placed=false;
+      if(snap.ok){placed=view.place(snap);view.render();}
       else view.hide();
-      engine.tick();
-    },650);
+      // Layout/recovery can veto new writes; confirmation and deadlines still run.
+      engine.tick({canSubmit:placed&&!view.hasRecovery()});
+    }
+    owner.setInterval(poll,650);
     const snap=site.inspect();
     if(snap.ok){view.place(snap);view.render();}
     return {programId:ID,status:'active',runtime:'USER_SCRIPT',

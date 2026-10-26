@@ -38,8 +38,8 @@
       "programId": "opendesk.ai-send-queue",
       "project": "examples/programs/chatgpt-send-queue",
       "packageFile": "ai-send-queue.opendesk-page.json",
-      "version": "0.1.4",
-      "revision": 3,
+      "version": "0.1.6",
+      "revision": 5,
       "title": "AI 消息发送队列",
       "description": "ChatGPT 主动入队的 FIFO 顺序发送与未知结果保护。",
       "sites": [
@@ -47,7 +47,7 @@
       ],
       "installationPolicy": "reviewed",
       "publication": "blocked",
-      "blockedReason": "0.1.3/r2 的隔离状态机诊断发现准备期间手动发送后的重复提交风险及导航后 Stop 超时未锁定；修复使用独立 0.1.4/r3，不复写 r2 固定字节。新候选的真实 Mac 安装、升级、发送和生命周期验收尚未完成；旧身份安装、授权和内存队列不迁移。"
+      "blockedReason": "0.1.6/r5 移除暂停/恢复功能，保留未知结果保护。核心开发验证与正式发布验收分别记录；production、生命周期全量及公开发行验收尚未完成，旧身份安装、授权和内存队列不迁移。"
     }
   ]
 }

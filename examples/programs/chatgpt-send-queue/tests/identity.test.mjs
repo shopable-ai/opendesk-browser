@@ -24,7 +24,7 @@ function harness({legacy=false,origin='https://chatgpt.com',frame=false}={}){
     createChatGPTSite(){calls.sites++;return site;},
     createQueueEngine(){calls.engines++;return {tick(){calls.ticks++;}};},
     createQueueView(options){calls.views++;actions=options.actions;
-      return {place(){},render(){},hide(){}};}});
+      return {place(){},render(){},hide(){},hasRecovery(){return false;}};}});
   vm.runInContext(source.replace(/^import .*;\n/gm,'').replace('export default async function main','async function main'),context);
   return {calls,legacyHost,run:()=>context.main(),setLegacy(value){legacy=value;},
     poll(){interval();},get actions(){return actions;}};
@@ -37,7 +37,7 @@ test('source manifest uses independent catalog identity without widening Page ru
   const entries=Object.values(catalog).find(value=>Array.isArray(value)&&value.some(x=>x.programId===ID));
   const entry=entries.find(x=>x.programId===ID);
   assert.equal(pkg.opendesk.id,entry.programId);
-  assert.equal(pkg.version,'0.1.4');assert.equal(entry.version,pkg.version);assert.equal(entry.revision,3);
+  assert.equal(pkg.version,'0.1.6');assert.equal(entry.version,pkg.version);assert.equal(entry.revision,5);
   assert.deepEqual(pkg.opendesk.pageRules,{matches:['https://chatgpt.com/*'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
 });
@@ -62,7 +62,7 @@ test('new identity starts alone; late legacy lifecycle retires it before inspect
 });
 
 test('every user action yields to late legacy lifecycle and remains inert after retirement',async()=>{
-  for(const name of ['enqueue','edit','remove','sendNow','togglePause']){
+  for(const name of ['enqueue','edit','remove','sendNow']){
     const h=harness();await h.run();const inspections=h.calls.inspect;
     h.setLegacy(true);h.actions[name]('unused');h.setLegacy(false);h.actions[name]('unused');
     assert.equal(h.calls.destroy,1,name);assert.equal(h.calls.inspect,inspections,name);

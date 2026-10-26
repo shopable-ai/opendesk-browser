@@ -44,6 +44,13 @@ test('prepare preserves whitespace-only native drafts without writing or clickin
   assert.equal(editor.value,' \n');
   assert.equal(state.clicks,0);
 });
+test('a disabled native send button reports readiness without clicking',()=>{
+  const {site,send,state}=fixture();
+  const prepared=site.prepare('queued',site.inspect());
+  send.disabled=true;
+  assert.deepEqual(site.commit(prepared.token),{ok:false,retry:true,reason:'原生发送按钮尚未启用'});
+  assert.equal(state.clicks,0);
+});
 test('a lossy editor insertion cannot be considered prepared',()=>{
   const {site,state}=fixture();
   state.write=text=>text.trim().replaceAll('\u00a0',' ');
@@ -288,11 +295,9 @@ for(const failure of ['replacement','input exception']) {
     const phaseAfterPrepare=engine.view().phase;
     f.send.click(); // Offline user action after the real prepare returned.
     assert.equal(f.state.users[0].innerText,text);
-    const resumed=engine.resume();
     step(1500);step(2700);step(2800);
-    t.diagnostic(JSON.stringify({failure,prepareResults,phaseAfterPrepare,resumed,
+    t.diagnostic(JSON.stringify({failure,prepareResults,phaseAfterPrepare,
       prepares,commits,stops,clicks:f.state.clicks,submissions:f.state.users.map(node=>node.innerText)}));
-    assert.equal(resumed,false);
     assert.equal(prepareResults[0].ok,false);
     assert.equal(prepareResults[0].mayHaveWritten,true);
     assert.equal(engine.view().phase,'unknown');
@@ -302,33 +307,36 @@ for(const failure of ['replacement','input exception']) {
       assert.equal(engine.requestNow(id).ok,false);
       assert.equal(engine.confirmForceStop(id),false);
     }
-    engine.pause('external snapshot notification');
+    engine.wait('external snapshot notification');
     step(20000);step(22000);
     assert.equal(engine.view().reason,reason);
     assert.deepEqual([prepares,commits,stops,f.state.clicks],[1,0,0,1]);
     assert.equal(engine.remove('q1'),true,'manual website check precedes deletion');
     step(24000);step(26000);
-    assert.equal(engine.view().paused,true);
+    assert.ok(engine.view().answerGate,'the acknowledged manual send still waits for its own reply');
     assert.deepEqual(engine.view().items.map(item=>item.text),['B']);
     assert.deepEqual([prepares,commits,stops,f.state.clicks],[1,0,0,1]);
   });
 }
 
-test('real prepare preflight failure keeps the engine failed and explicitly recoverable',()=>{
+test('real prepare preflight failure waits and automatically retries after the claim clears',()=>{
   const f=fixture();
   let now=0;
   f.state.occupied=false;
+  let claim=true;
   const site={...f.site,prepare:(...args)=>{
-    f.state.occupied=true; // A website claim appears between poll and preflight.
+    f.state.occupied=claim; // A website claim appears between poll and preflight.
     return f.site.prepare(...args);
   }};
   const engine=createQueueEngine({site,clock:()=>now});
   engine.enqueue(' A\u00a0\n',site.inspect().route);
   engine.tick();now=1200;engine.tick();
-  assert.equal(engine.view().phase,'failed');
+  assert.equal(engine.view().phase,'waiting');
   assert.equal(engine.view().inFlight,null);
   assert.equal(f.editor.value,'');
   assert.equal(f.state.clicks,0);
-  f.state.occupied=false;
-  assert.equal(engine.resume(),true);
+  claim=false;f.state.occupied=false;
+  now=1300;engine.tick();now=2500;engine.tick();
+  assert.equal(engine.view().inFlight.phase,'await-native-ready');
+  assert.equal(f.state.clicks,0);
 });

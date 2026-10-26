@@ -2,8 +2,7 @@
 const ICON={send:'<path d="M12 19V5m-6 6 6-6 6 6"/>',
   now:'<path d="M12 19V5m-6 6 6-6 6 6M4 20h16"/>',
   edit:'<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z"/>',
-  remove:'<path d="M18 6 6 18M6 6l12 12"/>',
-  play:'<path d="m8 5 11 7-11 7z"/>'};
+  remove:'<path d="M18 6 6 18M6 6l12 12"/>'};
 // Crown artwork is a declared, packaged transparent WebP (assets/queue.css).
 function element(doc,tag,cls,text){
   const node=doc.createElement(tag);if(cls)node.className=cls;
@@ -47,7 +46,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
           case 'now':actions.sendNow(b.dataset.id);break;
           case 'edit':actions.edit(b.dataset.id);break;
           case 'remove':actions.remove(b.dataset.id);break;
-          case 'play':actions.togglePause();break;
           case 'more':engine.toggleExpanded();break;
         }
         e.stopPropagation();
@@ -77,7 +75,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       button.addStyle(css);
       blue=element(doc,'button','sq-send');
       blue.type='button';blue.setAttribute('aria-label','当前草稿加入发送队列');
-      blue.title='OpenDesk 队列 · Shift + 点击暂停/恢复 · 皇冠仅为装饰';
+      blue.title='OpenDesk 队列 · 当前草稿加入发送队列 · 皇冠仅为装饰';
       const crown=element(doc,'span','sq-crown');
       crown.setAttribute('aria-hidden','true');
       blue.append(svg(doc,ICON.send),crown);
@@ -95,7 +93,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
         event.stopPropagation();
         if(target.dataset.recovery==='done'){
           recoveryText=null;recoveryReason='';
-          toast('请核对原生草稿，再手动恢复发送队列');return;
+          toast('请核对原生草稿；输入框清空且回复结束后队列自动继续');return;
         }
         if(target.dataset.recovery!=='copy')return;
         const original=recoveryText;
@@ -105,7 +103,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
           await clipboard.writeText(original);
           if(recoveryText!==original)return;
           recoveryText=null;recoveryReason='';
-          toast('原草稿已复制，请粘贴检查后再恢复队列');
+          toast('原草稿已复制；输入框清空且回复结束后队列自动继续');
         }catch{
           if(recoveryText!==original)return;
           const manual=element(doc,'textarea','sq-recovery-text');
@@ -153,7 +151,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       list.host.style.setProperty('display','none','important');reset();
       return;
     }
-    const signature=JSON.stringify([state.paused,state.expanded,state.reason,state.phase,state.inFlight?.phase,!!state.answerGate,
+    const signature=JSON.stringify([state.expanded,state.reason,state.phase,state.inFlight?.phase,!!state.answerGate,
       items.map(item=>[item.id,item.text,item.state])]);
     if(signature===lastSignature)return;
     lastSignature=signature;
@@ -189,18 +187,15 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       const unknown=state.phase==='unknown'||items.some(item=>item.state==='unknown')||
         state.inFlight?.phase==='unknown';
       const flight=state.inFlight?.phase;
-      const uncertain=unknown||['await-confirm','await-stop'].includes(flight);
       // Describe the actual fence, without a countdown or inferring completion.
       const status=unknown?'发送结果未知 · '+(state.reason||'请核对原对话，队列不会自动重试'):
         flight==='await-confirm'?'正在发送 · 等待官网确认消息入站':
         flight==='await-stop'?'等待停止结果 · 尚未发送下一条':
-        state.paused?'已暂停 · '+(state.reason||'等待用户恢复'):
         flight?'正在准备发送 · 其余消息等待中':
         state.answerGate?'':
         '等待中 · '+(state.reason||'等待网页就绪');
       if(status){
         note.append(element(doc,'span','sq-note-text',status));
-        if(state.paused&&!uncertain)note.append(action(doc,'play','恢复队列'));
         root.append(note);
       }
     }
@@ -244,7 +239,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     if(button.host.nextSibling!==nativeButton)nativeButton.parentElement.insertBefore(button.host,nativeButton);
     if(form.getBoundingClientRect().width<prior.width-1){
       doc.body.append(button.host);button.host.style.setProperty('display','none','important');
-      engine.pause('队列按钮会使原生输入框缩窄，已暂停');return false;
+      engine.wait('等待安全显示队列按钮，避免缩窄原生输入框');return false;
     }
     const state=engine.view();
     if(!state.items.length){list.host.style.setProperty('display','none','important');reset();return true;}
@@ -255,7 +250,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     const updated=form.getBoundingClientRect();
     if(updated.width<prior.width-1){
       doc.body.append(list.host);list.host.style.setProperty('display','none','important');
-      engine.pause('队列改变了原生输入宽度，已暂停');return false;
+      engine.wait('等待安全显示队列，避免改变原生输入宽度');return false;
     }
     const parentRect=parent.getBoundingClientRect(), offset=updated.left-parentRect.left;
     if(Number.isFinite(offset)&&Math.abs(offset)<600)

@@ -1,6 +1,6 @@
 # Send Queue R4 — 独立 Page Program 工作流
 
-> 当前结果见末节「R4.6 同轮复杂 A→B→C 可见等待与确认诊断」。r3 的短会话链通过，长对话数量校验限制仍存在；安装及先前管理证据见 R4.4。前节环境、延期和未测状态均保留为对应候选的历史观察，不代表当前结果。
+> 当前结果见末节「R5.8 重新运行关键测试与登录后实测」。新身份 r3 的 A→B 首次交接超时；人工核对后诊断候选 r4 的 B→C 自动交接通过，不能合并成同候选完整 A→B→C PASS。旧节结论只属于各自候选。
 
 - 日期：2026-10-25
 - 仓库：`shopable-ai/opendesk-browser`；**只写 `main`**
@@ -215,3 +215,45 @@
 - 版本字段的独立只读诊断：`installed-programs.js` 的 `importPageInstallPackage` 校验包 version 后未保存到安装记录，`publicInstall` 也不返回该字段；`extension-center-model.js` 将 revision 当作展示版本。属于既有安装元数据及 UI 投影缺口，工具自身目录无法修复，跨 Page Program 通用；不需要第二 SDK/Host/安装器。最小后续范围为原安装元数据、公开投影及相关定向测试，不应为了展示扩改 candidate/hash 合同，更不能凭当前包反填历史版本。本轮完成最小诊断并保留当前宿主，未宣称该缺口已修复。
 - 安全提交 `98e7fcc5e` 在本轮开始时尚未推送；后续按当前远端 main 的实际提交与脏文件集合核对后普通合并，保留双方历史，不 rebase/stash/reset/强推、不建分支/worktree/PR。并行 owner 在核对期间继续修改其他文件，因此不能用全工作区 SHA 恒定证明其保留；以合并实际写入集合与原脏文件无交集为依据，原核对差异如实保留在证据目录，绝不恢复或覆盖并行新改动。最终推送与远端正式包读回以 `core-remote-verification.json` 为准；本地安装和身份检查另见 `core-identity-verification.json`，不能用安装成功替代推送证据。
 - 后续真实运行所需的具体条件：用户在此专属 Profile 完成登录并打开独立测试对话，另行明确授权最少测试消息。获授权前不点击入队；unknown 出现立即停止并人工核对，不自动补发。本轮安装成功不等于新身份发送、活跃旧身份并存、卸载释放或全面发布验收 PASS。
+
+## R5.8 重新运行关键测试与登录后实测（2026-10-26 至 27）
+
+- 用户要求重新运行关键测试，随后明确使用自研 Cookie Editor，导入指定 JSON 完成登录、建立专用对话并继续完善。已用 OpenDesk 内已安装的 Cookie Editor v2.0.39 原文本导入入口导入 `/Users/shopme/Documents/temp/chatgpt.com-cookies.json`，刷新后确认账号菜单、历史和可用输入框。未记录 cookie 值；未使用外部 Cookie-Editor 完成登录，扩展菜单只观察到 OpenDesk。系统文件选择器的 Open 曾保持禁用，改用同工具公开文本导入，未认定产品故障。
+- 原静态 Developer 宿主、CFT154、Profile、扩展 ID 和安装身份沿用 R5.7。launcher/browser PID 54789/54791 于交接前仍存在；旧 watcher PID 79949 本次已未出现在进程查询中，不重启、不宣称持续开发已连接。日常 Chrome 和共享构建输出未操作。
+- **新执行证据**位于 `artifacts/send-queue-r56-mac-final-01a17882/rerun-core-20261026-233118/`。23:31 重新运行六个 Node 文件，96/96 PASS，完整 TAP、时间与输入 SHA 见 `node-tests.tap`、`run.json`；随后重新做包异步校验与管理停用/恢复，见 `package-native-verification.json`。不是复用旧结果。
+- 专用 ChatGPT 对话为 `https://chatgpt.com/c/6adf7737-1510-83ec-87ea-0ebb95e6a822`（Reply SQ READY OK）。仅发送建立会话、A、B、C 共四条无敏感测试消息，原文保存在 `native-test-messages.json`。A/B 为复杂 Python 题，C 要求精确回复 `SQ-C-OK`；队列发信未用人工原生 Send 代替。
+
+| 实际操作 | 新证据 | 结论及边界 |
+| --- | --- | --- |
+| r3 A 回复时分别入列 B/C | `a-streaming-bc-queued-ax.txt`、同名 PNG | 官网 Stop 与 B/C 待发同时可见，PASS |
+| r3 主动暂停及已有草稿时取回编辑 | `bc-paused-ax.txt`、`draft-protection-ax.txt` 和 PNG | B/C 保留，自己的保护草稿未被覆盖，PASS；文件 `bc-resumed*` 当时仍暂停，不能当恢复成功证据 |
+| r3 A 完成后的首次 A→B 自动交接 | `a-to-b-handoff-unknown-ax.txt`、PNG | FAIL：B 完整填入输入框后命中 6 秒就绪超时，C 保留，禁止自动重试；尚不能区分按钮未就绪和轮询延迟 |
+| 人工核对并收束未知条目 | 完整失败 AX 与后续 r4 快照 | 确认 B 尚未入站，经原删除确认移除 B，剩余队列维持暂停，再移除 C；没有对 unknown 自动补发。保留自身 B 草稿 |
+| 同入口升级诊断版 0.1.5/r4，再由队列接收尚未发送的 B | `r4-update-result-ax.txt`、`r4-installed-ax.txt`、`r4-b-readiness*` | 安装身份及范围不变；B 仅入站一次，PASS。此升级不是已证明修复首次超时 |
+| r4 B 思考/输出时 C 入列、暂停和恢复 | `r4-b-active-c-waiting-ax.txt`、`r4-b-output-c-waiting*`、`r4-c-paused-ax.txt`、`r4-c-resumed*` | Stop + C 等待、主动暂停与恢复均有新证据，PASS |
+| r4 B 完成后 C 自动发送与最终计数 | `r4-b-to-c-handoff*`、`native-final-verification.json` | B→C 自动交接 PASS；A/B/C user 各一次，C 回复 SQ-C-OK，队列和原生草稿为空，无 unknown。不是同候选、不间断的完整 ABC PASS |
+
+- 本轮仅修改自有 `src/site.js`、`src/engine.js`，给原生就绪重试和超时附准确原因；发送准入、单次点击、6 秒期限和 unknown 禁止重试均未放宽。`package.json` 为 0.1.5，候选 r4 固定源码 SHA `3bf152585901b9ba99f13939d0ca7513c06ae360bad515dac309e61902f80523`，packageHash `bf45658e5501264ccbc8572b3c50a90d5a263720bec54381899bbe98d4263122`。由原构建器输出 `r4-diagnostic-build/`，原打包器生成 `candidate-r4.opendesk-page.json`；未做宿主构建。
+- 新增两项诊断定向测试，engine/site 78/78 PASS。随后全组实际为 **97/98 PASS、1 FAIL**，唯一失败是 `identity.test.mjs` 仍固定要求 package/catalog 0.1.4/r3；raw log 为 `r4-node-tests.tap`。不弱化断言制造通过：待是否晋升 r4 决定后，同步正式包、目录自己的条目与版本断言，再仅复测受影响项。正式 `ai-send-queue.opendesk-page.json` 和目录当前仍为 r3，**不可声称 r4 已正式交付**。
+- 当前未提交的本任务文件：上述两个源码、`package.json`、`tests/engine.test.mjs`、`tests/site.test.mjs`、本记录。README 尚未同步 r4。其他 owner 对 market、scroll、Cookie Editor、共享安装器/构建脚本/installed-programs 等的 dirty 改动只读保护，不纳入提交。
+- 用户最新要求创建新的 Codex 对话继续完善：接收方优先核对当前空队列/空草稿、r4 安装、失败证据及未提交差异，明确复现首次超时的条件，做必要最小修复和对应真实验证，再收敛正式包与文档。本对话 `get_goal` 实读为 null；更早原对话 goal 的当前状态未知，创建不改变任何旧 goal。新对话接收后原 owner 不再操作该浏览器、Profile、业务文件与输出目录。全量 production、矩阵、压力、宽度/缩放、95 分评估继续延期；长对话、跨刷新恢复和新版桥协作的旧限制继续保留。
+
+## R5.9 移除暂停功能（2026-10-27，核心完成）
+
+- 用户最新纠偏：发送队列不应有暂停功能。移除 Shift 点击、暂停/恢复状态及按钮；暂时草稿、会话、控件与恢复副本问题按实际条件等待，条件恢复自动继续。未知副作用仍禁止重试，经原对话核对后删除条目，清理旧原因，剩余队列仍受空草稿、同会话和回复完成约束。
+- 修改计划：先以定向回归锁定自动恢复、删除未知条目后的提示与防重复保护，再修改自有 engine/main/view；同步唯一当前身份正式包、自己的目录项及说明，使用原安装入口升级后复测核心发送。保留 legacy 包和并行改动，不改宿主、不做全量验收。
+- 本轮 r4 先前实际观察：LRU A 已入站并回复完成；随后测试输入与自动填入 B 发生竞争，安全进入 unknown，B/C 未入站。再一次预排三条后，准备 A 至下一次轮询超过原 6 秒期限，诊断为“未取得下一轮原生就绪检查”；三条均未入站。人工核对后删除自己的测试条目并清空自己的草稿，最新观察为空队列/空草稿。原始 AX/PNG 与消息原文位于 `artifacts/send-queue-r56-mac-final-01a17882/core-r4-20261027/`。尚未证明定时延迟根因，也未把失败算作 ABC PASS。
+- 最终实现移除 engine 的 paused/pause/resume、Shift 隐藏操作和恢复按钮。草稿、附件、输入法、临时控件及会话阻塞按真实条件自动等待；布局与恢复副本只阻止新的写入，不阻断入站确认或既有超时。未知状态不可重试；删除后清除旧原因。对可能已写入的取回失败，保留写入前快照；核对删除时若已准确识别手动入站，仍等待该条对应的新助手回复完成。没有放宽精确正文、历史节点、权限或单次点击约束。
+- 定向验证：六个 Node 文件 104/104 PASS；独立 reviewer 发现取回不确定状态缺少发送前快照，修复后增加两项回归，engine/main 最终 63/63 PASS，reviewer 复核未发现新可行动问题。语法、项目声明及源码/资源哈希核对通过；未重跑无关全仓或宿主构建。
+- 最终版本 `opendesk.ai-send-queue / 0.1.6 / r5`，固定源码 89,356 bytes；sourceHash `e1717bfdf717edab62538db8c38f139992f23cfffe87f72d3e9baef709e287e0`，packageHash `44249b4a63b06d25609dc2bd0c214b7a54276abd9478d1fa5d78a089c7ed9800`。通过原构建器输出 `final-build/`，原打包器生成 `final-r5.opendesk-page.json`；安装与运行完成后由同一打包器同步目录内唯一当前身份正式包，逐字节一致。legacy 包及皇冠资源未修改；官方目录继续 `publication: blocked`。
+- CFT154 / `test-chatgpt-profile` 原静态 Developer 宿主及实际加载路径保持 R5.7，未连接 serve、未重建宿主。r4→r5 经原更新/导入审阅入口，原 installationId `9bf2f0d6-9b5b-4d72-a372-23bbce9aecfc` 与 registrationId `opendesk-page-boot-e736f023860568cd7be4f76373b4882840d0f3928e1ca8e3` 保持，active/registered，详情固定源码哈希匹配，仅原 `page.dom` / `https://chatgpt.com/*` 范围。
+
+| r5 真实用户操作 | 实际结果与边界 | 原始证据（下述证据目录） |
+| --- | --- | --- |
+| 长对话由队列发送 A | A 入站一次并回复，但数量校验进入 unknown；没有重复点击，长对话限制仍存在 | `long-conversation-count-unknown-ax.txt` |
+| 核对并删除该未知条目 | 操作时观察旧原因清除；保留自己的 B 草稿，随后清空，未补发。未保存删除后的独立 AX，不计为独立快照证明 | `native-r5-result.json` 中的操作记录；删除后快照缺失 |
+| 新专用短对话由队列发送 A、再发送 B；B 回复时入列 C | A 已完成后才入列 B；B 原生 Stop 与 C 等待同时可见 | `short-b-active-c-queued-ax.txt` |
+| B 完成后自动交接 C | C 入站一次，回复 `SQ-R5-SHORT-C-OK`；最终 A/B/C user 各一次、无 unknown、队列和草稿为空，未执行恢复操作 | `short-handoff-observed-ax.txt`、`short-final-ax.txt`、`short-final.png`、`native-r5-result.json` |
+
+- 本轮证据目录 `artifacts/send-queue-r56-mac-final-01a17882/no-pause-r5-20261027/`，包含测试输出、构建收据、安装审阅与详情、消息原文和上述真实 AX。此次证明 r5 无暂停及 B→C 自动交接，**不是 A 回复时同时预排 B/C 的连续完整 ABC 验收**。先前“未取得下一轮就绪检查”的定时延迟根因尚未证明，不宣称已修复；保留 6 秒期限和 unknown 保护。
+- 当前核心需求收口。跨刷新恢复仍不支持；长对话数量限制、新版桥并发、真实 IME/特殊空白、production、生命周期全量、矩阵、压力与评分继续未验证/延期，不自动进入后续验收。保留专属浏览器和 launcher，不触及日常 Chrome、并行 owner 服务或共享输出。

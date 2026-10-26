@@ -6,7 +6,7 @@ import {createChatGPTSite} from '../src/site.js';
 function fixture() {
   const state={now:0,route:'c/12345678-1234-1234-1234-123456789abc',
     busy:true,complete:false,answers:1,users:0,ack:false,clicks:0,
-    prepareCount:0,commitCount:0,replyAllowed:true,replyChecks:[],failClick:false,failStop:false,stops:0,changed:false,draft:''};
+    prepareCount:0,commitCount:0,preparedTexts:[],committedTexts:[],replyAllowed:true,replyChecks:[],failClick:false,failStop:false,stops:0,changed:false,draft:''};
   const userNodes=[],assistantNodes=[];
   const nodes=(cache,count)=>Array.from({length:count},(_,i)=>cache[i]??={id:i});
   const site={
@@ -18,6 +18,7 @@ function fixture() {
     prepare:(text,snapshot)=>{
       assert.equal(snapshot.route,state.route);
       state.prepareCount++;
+      state.preparedTexts.push(text);
       return {ok:true,token:{text,route:snapshot.route,before:{
         route:snapshot.route,assistantCount:state.answers,
         users:snapshot.users,assistants:snapshot.assistants
@@ -25,6 +26,7 @@ function fixture() {
     },
     commit:token=>{
       state.commitCount++;
+      state.committedTexts.push(token.text);
       state.clicks++;
       if(state.failClick)return {ok:false,stage:'after-click'};
       return {ok:true,before:token.before};
@@ -40,8 +42,8 @@ function fixture() {
     stop:()=>{state.stops++;if(state.throwStop)throw new Error('stop result unknown');return !state.failStop;}
   };
   const engine=createQueueEngine({site,clock:()=>state.now});
-  const step=(t,patch={})=>{Object.assign(state,patch);state.now=t;engine.tick();};
-  return {state,site,engine,step};
+  const step=(t,patch={},options)=>{Object.assign(state,patch);state.now=t;engine.tick(options);};
+  return {state,site,engine,step,defaults:{prepare:site.prepare,commit:site.commit}};
 }
 
 test('two queued messages require separate assistant completion gates and each message acknowledgement',()=>{
@@ -78,18 +80,15 @@ test('unknown post-click outcome remains queued without auto-retry',()=>{
   step(2100,{failClick:true});
   assert.equal(state.clicks,1);
   assert.equal(engine.view().items[0].state,'unknown');
-  assert.equal(engine.view().paused,true);
-  assert.equal(engine.resume(),false);
   step(10000);
   assert.equal(state.clicks,1);
 });
-test('a replaced editor or navigation pauses without sending',()=>{
+test('a replaced editor prevents sending while unavailable',()=>{
   const {state,engine,step}=fixture();
   engine.enqueue('original conversation only',state.route);
   step(100,{busy:false,complete:true});
   step(1400,{changed:true});
   assert.equal(state.clicks,0);
-  assert.equal(engine.view().paused,true);
 });
 test('acknowledgement timeout never causes duplicate click',()=>{
   const {state,engine,step}=fixture();
@@ -99,7 +98,6 @@ test('acknowledgement timeout never causes duplicate click',()=>{
   step(2100);
   step(19000);
   assert.equal(state.clicks,1);
-  assert.equal(engine.view().paused,true);
   assert.equal(engine.view().items[0].state,'unknown');
 });
 
@@ -136,64 +134,33 @@ test('sending and unknown-outcome messages cannot be reclaimed as editable draft
   assert.equal(state.clicks,1);
 });
 
-test('pause before native commit blocks clicks until explicit resume',()=>{
-  const {state,engine,step}=fixture();
-  engine.enqueue('one',state.route);
-  step(100,{busy:false,complete:true});
-  step(1400);
-  engine.pause();
-  step(2100);
-  assert.equal(state.clicks,0);
-  assert.equal(engine.view().inFlight.phase,'await-native-ready');
-  assert.equal(engine.resume(),true);
-  step(2200);
-  assert.equal(state.clicks,1);
-});
-
-test('returning to original conversation cannot bypass the navigation pause',()=>{
-  const {state,engine,step}=fixture(),route=state.route;
-  engine.enqueue('one',route);
-  step(100,{busy:false,complete:true});
-  step(1400);
-  step(2000,{route:'c/another-conversation'});
-  step(2100,{route});
-  assert.equal(state.clicks,0);
-  assert.equal(engine.view().paused,true);
-});
-
-test('paused post-click flight still reads confirmation without sending the next item',()=>{
+test('unavailable submission still confirms an already clicked message',()=>{
   const {state,engine,step}=fixture();
   engine.enqueue('one',state.route);
   engine.enqueue('two',state.route);
-  step(100,{busy:false,complete:true});
-  step(1400);
-  step(2100);
-  engine.pause();
-  step(2200,{ack:true,users:1});
+  step(100,{busy:false,complete:true});step(1400);step(2100);
+  step(2200,{ack:true,users:1},{canSubmit:false});
   assert.equal(engine.view().lastConfirmed,'q1');
-  assert.equal(engine.view().paused,true);
   assert.deepEqual(engine.view().items.map(item=>item.id),['q2']);
-  step(2300,{ack:false,answers:2});
-  step(3600);
-  step(5000);
+  step(2300,{ack:false,answers:2},{canSubmit:false});
+  step(3600,{}, {canSubmit:false});step(5000,{}, {canSubmit:false});
   assert.equal(state.prepareCount,1);
   assert.equal(state.clicks,1);
 });
 
-for(const unavailable of [null,'navigation','editor']) {
-  test(`paused post-click timeout remains unknown without retry (${unavailable||'original page'})`,()=>{
+for(const unavailable of ['original page','navigation','editor']) {
+  test(`unavailable submission preserves acknowledgement timeout (${unavailable})`,()=>{
     const {state,engine,step}=fixture();
     engine.enqueue('one',state.route);
-    step(100,{busy:false,complete:true});
-    step(1400);
-    step(2100);
-    engine.pause();
-    step(19000,unavailable==='navigation'?{route:'c/another-conversation'}:
-      unavailable==='editor'?{changed:true}:{});
+    step(100,{busy:false,complete:true});step(1400);step(2100);
+    const patch=unavailable==='navigation'?{route:'c/elsewhere'}:
+      unavailable==='editor'?{changed:true}:{};
+    step(17100,patch,{canSubmit:false});
+    assert.equal(engine.view().items[0].state,'sending','15s deadline is inclusive');
+    step(17101,{}, {canSubmit:false});
     assert.equal(engine.view().items[0].state,'unknown');
-    assert.equal(engine.resume(),false);
     assert.equal(engine.requestNow('q1').ok,false);
-    step(20000);
+    step(20000,{}, {canSubmit:false});
     assert.equal(state.clicks,1);
   });
 }
@@ -231,7 +198,6 @@ test('unknown stop stays attached to its item and locks every send entry',()=>{
   assert.deepEqual(engine.view().inFlight,{id:'q1',phase:'unknown'});
   assert.equal(engine.view().items[0].state,'unknown');
   assert.equal(engine.view().phase,'unknown');
-  assert.equal(engine.resume(),false);
   step(100,{busy:false,complete:true});
   assert.equal(engine.requestNow('q1').ok,false);
   step(1400);
@@ -283,33 +249,37 @@ test('an empty answer gate releases its conversation only after the new answer c
   step(3500);
   assert.equal(engine.view().answerGate,null);
   assert.equal(engine.view().route,null);
-  assert.equal(engine.view().paused,true,'completion must not undo a prior safety pause');
+  assert.equal(engine.view().reason,'','rejected enqueue must not leave a stale wait reason');
   assert.equal(state.clicks,1);
 });
 
 for(const throws of [false,true]) {
-  test(`unknown stop of nonhead item permits checked deletion but leaves other items paused (${throws?'throw':'false'})`,()=>{
-    const {state,engine,step}=fixture();
-    engine.enqueue('first',state.route);
-    engine.enqueue('selected',state.route);
+  test(`unknown nonhead stop requires checked deletion then empty draft and completed reply (${throws?'throw':'false'})`,()=>{
+    const f=fixture(),{state,engine,step}=f;
+    engine.enqueue(' A\u00a0\n',state.route);
+    engine.enqueue('B',state.route);
     state.failStop=true;
     state.throwStop=throws;
     assert.equal(engine.confirmForceStop('q2'),false);
     assert.deepEqual(engine.view().inFlight,{id:'q2',phase:'unknown'});
     assert.deepEqual(engine.view().items.map(item=>item.state),['queued','unknown']);
-    assert.equal(engine.resume(),false);
-    assert.equal(engine.remove('q2'),true,'the UI requires manual website check before this deletion');
-    assert.equal(engine.view().paused,true);
-    assert.equal(engine.view().phase,'waiting');
-    step(100,{busy:false,complete:true});
-    step(1400);
-    assert.equal(state.clicks,0);
+    step(100,{busy:false,complete:true});step(1400);
     assert.equal(state.prepareCount,0);
-    assert.equal(engine.resume(),true,'only explicit recovery after checked deletion can proceed');
-    step(1500);
-    step(2700);
-    step(2800);
+    assert.equal(engine.requestNow('q1').ok,false);
+    assert.equal(engine.remove('q2'),true,'the UI requires website inspection before deletion');
+    assert.equal(engine.view().reason,'');
+    state.draft='B';
+    step(1500);step(3000);
+    assert.equal(state.prepareCount,0,'checked deletion must not overwrite the unknown draft');
+    step(3100,{draft:'',busy:true,complete:false});step(4500);
+    assert.equal(state.prepareCount,0);
+    step(4600,{busy:false,complete:false});step(6000);
+    assert.equal(state.prepareCount,0,'idle alone cannot bypass reply completion');
+    step(6100,{complete:true});step(7100);
+    assert.equal(state.prepareCount,0);
+    step(7200);step(7300);
     assert.equal(state.clicks,1);
+    assert.deepEqual(state.committedTexts,[' A\u00a0\n']);
   });
 }
 
@@ -414,7 +384,7 @@ test('preflight rejects full, oversized and mismatched queues without mutating s
 
 // Every uncertain flight keeps its exact original text and closes all send
 // entries, including calls for a different queued item. Snapshot refreshes and
-// external pause notifications must not replace the manual-check instruction.
+// external wait notifications must not replace the manual-check instruction.
 function assertUnknownLocked(f,counts) {
   const {engine,state,step}=f;
   const unknown=engine.view();
@@ -422,14 +392,13 @@ function assertUnknownLocked(f,counts) {
   assert.equal(unknown.items.find(item=>item.id==='q1').state,'unknown');
   assert.equal(unknown.items.find(item=>item.id==='q1').text,' A\u00a0\n');
   assert.equal(unknown.inFlight.phase,'unknown');
-  assert.equal(unknown.paused,true);
+  assert.equal('paused' in unknown,false);
   assert.ok(unknown.reason);
   for(const patch of [{changed:true},{changed:false,route:'c/elsewhere'},
     {route:'c/12345678-1234-1234-1234-123456789abc',busy:true},{busy:false,draft:''}]) {
     step(state.now+20000,patch);
-    engine.pause('snapshot or website notification');
+    engine.wait('snapshot or website notification');
     assert.equal(engine.view().reason,unknown.reason);
-    assert.equal(engine.resume(),false);
     for(const id of ['q1','q2']) {
       assert.equal(engine.requestNow(id).ok,false);
       assert.equal(engine.confirmForceStop(id),false);
@@ -437,11 +406,33 @@ function assertUnknownLocked(f,counts) {
   }
   assert.deepEqual([state.prepareCount,state.commitCount,state.stops],counts);
   assert.equal(engine.remove('q1'),true,'manual website check precedes this deletion in the UI');
-  assert.equal(engine.view().paused,true);
+  assert.equal(engine.view().reason,'','checked deletion clears the unknown instruction');
   assert.deepEqual(engine.view().items.map(item=>item.text),['B']);
+  // Inspection/deletion is not permission to overwrite the original unknown draft.
+  state.draft=' A\u00a0\n';
   step(state.now+20000);
   step(state.now+20000);
   assert.deepEqual([state.prepareCount,state.commitCount,state.stops],counts);
+  step(state.now+100,{draft:'',busy:true,complete:false});
+  step(state.now+20000);
+  assert.deepEqual([state.prepareCount,state.commitCount,state.stops],counts);
+  step(state.now+100,{busy:false,complete:false});
+  step(state.now+20000);
+  assert.deepEqual([state.prepareCount,state.commitCount,state.stops],counts);
+  Object.assign(f.site,f.defaults);
+  state.failClick=false;
+  step(state.now+100,{complete:true});
+  step(state.now+1000);
+  assert.equal(state.prepareCount,counts[0],'completed reply still requires stable idle');
+  step(state.now+100);
+  assert.equal(state.prepareCount,counts[0]+1);
+  step(state.now+100);
+  assert.deepEqual([state.prepareCount,state.commitCount,state.stops],[counts[0]+1,counts[1]+1,counts[2]]);
+  assert.equal(state.preparedTexts.at(-1),'B');
+  assert.equal(state.committedTexts.at(-1),'B');
+  step(state.now+100,{ack:true,users:state.users+1});
+  assert.equal(engine.view().lastConfirmed,'q2');
+  assert.deepEqual(engine.view().items,[]);
 }
 
 for(const issue of ['identity/draft changed','other reply started']) {
@@ -457,15 +448,26 @@ for(const issue of ['identity/draft changed','other reply started']) {
     };
     f.step(2100);
     assertUnknownLocked(f,[1,1,0]);
-    assert.equal(f.state.clicks,0);
+    assert.equal(f.state.clicks,1,'only the remaining item is clicked after checked deletion');
   });
 }
 
+test('prepared timeout retains the last readiness reason without another click',()=>{
+  const f=fixture();
+  f.engine.enqueue('queued',f.state.route);
+  f.step(100,{busy:false,complete:true});f.step(1400);
+  f.site.commit=()=>{f.state.commitCount++;return {ok:false,retry:true,reason:'原生发送按钮尚未启用'};};
+  f.step(2100);f.step(7401);
+  assert.equal(f.engine.view().phase,'unknown');
+  assert.match(f.engine.view().reason,/原生发送按钮尚未启用/);
+  assert.equal(f.state.commitCount,1);assert.equal(f.state.clicks,0);
+});
+
 for(const unavailable of ['original page','navigation','editor']) {
-  for(const paused of [false,true]) {
+  for(const canSubmit of [true,false]) {
     const patch=unavailable==='navigation'?{route:'c/elsewhere'}:
       unavailable==='editor'?{changed:true}:{};
-    test(`prepared timeout becomes unknown (${unavailable}, paused=${paused})`,()=>{
+    test(`prepared timeout becomes unknown (${unavailable}, canSubmit=${canSubmit})`,()=>{
       const f=fixture();
       f.engine.enqueue(' A\u00a0\n',f.state.route);
       f.engine.enqueue('B',f.state.route);
@@ -473,38 +475,45 @@ for(const unavailable of ['original page','navigation','editor']) {
       f.step(1400);
       f.site.commit=()=>{f.state.commitCount++;return {ok:false,retry:true};};
       f.step(1500);
-      if(paused)f.engine.pause();
-      if(unavailable!=='original page')f.step(2000,patch);
-      f.step(7401);
+      if(unavailable!=='original page')f.step(2000,patch,{canSubmit});
+      f.step(7400,{}, {canSubmit:false});
+      assert.equal(f.engine.view().inFlight.phase,'await-native-ready');
+      f.step(7401,{}, {canSubmit});
       assertUnknownLocked(f,[1,1,0]);
-      assert.equal(f.state.clicks,0);
+      assert.equal(f.state.clicks,1,'checked deletion releases only the remaining item');
     });
-    test(`stop timeout precedes snapshot early returns (${unavailable}, paused=${paused})`,()=>{
+    test(`stop timeout precedes snapshot early returns (${unavailable}, canSubmit=${canSubmit})`,()=>{
       const f=fixture();
       f.engine.enqueue(' A\u00a0\n',f.state.route);
       f.engine.enqueue('B',f.state.route);
       assert.equal(f.engine.confirmForceStop('q1'),true);
-      if(paused)f.engine.pause();
-      f.step(100,patch);
-      f.step(12001);
+      f.step(100,patch,{canSubmit});
+      f.step(12000,{}, {canSubmit});
+      assert.equal(f.engine.view().inFlight.phase,'await-stop');
+      f.step(12001,{}, {canSubmit});
       assertUnknownLocked(f,[0,0,1]);
-      assert.equal(f.state.clicks,0);
+      assert.equal(f.state.clicks,1,'checked deletion releases only the remaining item');
     });
   }
 }
 
-test('prepare failure proven before clicking retains explicit resume behavior',()=>{
+test('prepare failure proven before writing automatically retries only after stable idle',()=>{
   const f=fixture();
   f.engine.enqueue(' A\u00a0\n',f.state.route);
   f.site.prepare=()=>{f.state.prepareCount++;return {ok:false,reason:'no write, no click'};};
-  f.step(100,{busy:false,complete:true});
-  f.step(1400);
-  assert.equal(f.engine.view().phase,'failed');
+  f.step(100,{busy:false,complete:true});f.step(1400);
   assert.equal(f.engine.view().inFlight,null);
   assert.equal(f.engine.view().items[0].text,' A\u00a0\n');
-  assert.equal(f.engine.resume(),true);
+  assert.match(f.engine.view().reason,/no write, no click/);
   assert.equal(f.state.commitCount,0);
   assert.equal(f.state.clicks,0);
+  Object.assign(f.site,f.defaults);
+  f.step(1500);f.step(2500);
+  assert.equal(f.state.prepareCount,1);
+  f.step(2600);f.step(2700);
+  assert.equal(f.state.prepareCount,2);
+  assert.equal(f.state.clicks,1);
+  assert.deepEqual(f.state.committedTexts,[' A\u00a0\n']);
 });
 
 test('unknown send failure keeps its instruction across unavailable snapshots',()=>{
@@ -515,7 +524,7 @@ test('unknown send failure keeps its instruction across unavailable snapshots',(
   f.step(1400);
   f.step(2100,{failClick:true});
   assertUnknownLocked(f,[1,1,0]);
-  assert.equal(f.state.clicks,1);
+  assert.equal(f.state.clicks,2,'one unknown click and one checked remaining send');
 });
 
 // Uses the unchanged real site.prepare/commit methods with an offline DOM
@@ -561,14 +570,14 @@ test('real adapter manual send after prepare never permits a second prepare or c
   step(2100);
   assert.equal(engine.view().phase,'unknown');
   assert.equal(engine.view().items[0].text,text);
-  assert.equal(engine.resume(),false);
   assert.equal(engine.requestNow('q1').ok,false);
   assert.equal(engine.confirmForceStop('q1'),false);
   step(20000);step(22000);
   assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,1,0,1]);
   assert.equal(engine.remove('q1'),true);
+  assert.equal(engine.view().reason,'');
+  editor.value=text; // The inspected unknown draft remains owned by the user.
   step(24000);step(26000);
-  assert.equal(engine.view().paused,true);
   assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,1,0,1]);
 });
 
@@ -586,6 +595,123 @@ for(const failure of ['mayHaveWritten','throw']) {
     f.step(100,{busy:false,complete:true});
     f.step(1400);
     assertUnknownLocked(f,[1,0,0]);
-    assert.equal(f.state.clicks,0);
+    assert.equal(f.state.clicks,1,'only the remaining item is sent after inspection');
   });
 }
+
+
+test('submission availability blocks prepare and commit without a pause API',()=>{
+  const {state,engine,step}=fixture();
+  engine.enqueue('one',state.route);
+  step(100,{busy:false,complete:true},{canSubmit:false});
+  step(1400,{}, {canSubmit:false});
+  assert.equal(state.prepareCount,0);
+  step(1500);
+  step(2700);
+  assert.equal(state.prepareCount,1);
+  step(2800,{}, {canSubmit:false});
+  assert.equal(state.commitCount,0);
+  step(2900);
+  assert.equal(state.clicks,1);
+  assert.equal('paused' in engine.view(),false);
+  assert.equal(engine.pause,undefined);
+  assert.equal(engine.resume,undefined);
+});
+
+for(const unavailable of ['navigation','editor']) {
+  test(`temporary ${unavailable} loss resets idle and automatically recovers`,()=>{
+    const {state,engine,step}=fixture(),route=state.route;
+    engine.enqueue('original conversation only',route);
+    step(100,{busy:false,complete:true});
+    step(1000,unavailable==='navigation'?{route:'c/elsewhere'}:{changed:true});
+    step(1400,{route,changed:false});
+    assert.equal(state.prepareCount,0,'time away cannot count as stable idle');
+    step(2400);
+    assert.equal(state.prepareCount,0);
+    step(2500);
+    assert.equal(state.prepareCount,1);
+    step(2600);
+    assert.equal(state.clicks,1);
+  });
+}
+
+
+test('wait records the current reason without changing queue identity or sending',()=>{
+  const {engine,state,step}=fixture();
+  engine.enqueue(' A\u00a0\n',state.route);
+  step(100,{busy:false,complete:true});
+  const before=engine.view();
+  engine.wait('原生控件暂不可用');
+  const waiting=engine.view();
+  assert.equal(waiting.reason,'原生控件暂不可用');
+  assert.deepEqual({...waiting,reason:before.reason},before);
+  assert.equal(state.prepareCount,0);
+  step(1000);
+  assert.equal(state.prepareCount,0,'wait resets the idle observation');
+  step(2000);
+  assert.equal(state.prepareCount,0);
+  step(2100);step(2200);
+  assert.equal(state.clicks,1,'normal polls recover automatically');
+  assert.deepEqual(state.committedTexts,[' A\u00a0\n']);
+});
+
+test('unsafe reclaim uncertainty binds the exact item and preserves the original draft',()=>{
+  const f=fixture(),{engine,state}=f;
+  engine.enqueue(' A\u00a0\n',state.route);
+  engine.enqueue('B',state.route);
+  const before=engine.view();
+  assert.equal(engine.uncertain('missing','not an item'),false);
+  assert.deepEqual(engine.view(),before);
+  assert.equal(engine.uncertain('q1','回填结果未知，请检查后删除'),true);
+  assert.deepEqual(engine.view().inFlight,{id:'q1',phase:'unknown'});
+  assert.equal(engine.view().reason,'回填结果未知，请检查后删除');
+  assert.equal(engine.uncertain('q2','must not replace unknown identity'),false);
+  assert.equal(engine.reclaim('q1'),false);
+  assert.equal(engine.reclaim('q2'),false);
+  assertUnknownLocked(f,[0,0,0]);
+  assert.equal(state.clicks,1);
+});
+
+test('uncertain cannot replace an active prepared flight',()=>{
+  const {engine,state,step}=fixture();
+  engine.enqueue('one',state.route);engine.enqueue('two',state.route);
+  step(100,{busy:false,complete:true});step(1400);
+  const before=engine.view();
+  assert.equal(engine.uncertain('q2','unsafe reclaim'),false);
+  assert.deepEqual(engine.view(),before);
+  step(2100);
+  assert.deepEqual(state.committedTexts,['one']);
+});
+
+test('checked deletion after an uncertain reclaim retains the manually sent turn reply gate',()=>{
+  const {engine,state,site,step}=fixture();
+  engine.enqueue('first',state.route);engine.enqueue('second',state.route);
+  Object.assign(state,{busy:false,complete:true});
+  const before=site.inspect();
+  assert.equal(engine.uncertain('q1','取回状态未知',before),true);
+  step(100,{ack:true,users:1}); // User sends the reclaimed draft outside the engine.
+  assert.equal(state.clicks,0);
+  assert.equal(engine.remove('q1'),true);
+  assert.ok(engine.view().answerGate);
+  step(200,{ack:false});step(1500);step(2800);
+  assert.equal(state.prepareCount,0,'an old completed assistant cannot release second');
+  step(3000,{answers:2});step(4200);step(5400);step(5500);
+  assert.deepEqual(state.committedTexts,['second']);
+  assert.equal(state.clicks,1);
+});
+
+test('stopped reply cannot prepare while submission is unavailable and recovers after stable idle',()=>{
+  const {engine,state,step}=fixture();
+  engine.enqueue('one',state.route);
+  assert.equal(engine.confirmForceStop('q1'),true);
+  step(100,{busy:false,complete:true},{canSubmit:false});
+  step(1400,{}, {canSubmit:false});
+  assert.equal(state.prepareCount,0);
+  assert.equal(state.commitCount,0);
+  assert.equal(state.stops,1);
+  step(1500);step(2500);
+  assert.equal(state.prepareCount,0);
+  step(2600);step(2700);
+  assert.equal(state.clicks,1);
+  assert.deepEqual(state.committedTexts,['one']);
+});

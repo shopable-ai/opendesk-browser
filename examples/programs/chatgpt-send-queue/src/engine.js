@@ -2,29 +2,31 @@
 const MAX_ITEMS=20, MAX_TEXT=8192, IDLE_MS=1100, ACK_MS=15000, STOP_MS=12000;
 export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   const items=[];
-  const state={items,route:null,paused:false,reason:'',phase:'waiting',
+  const state={items,route:null,reason:'',phase:'waiting',
     expanded:false,inFlight:null,answerGate:null,lastConfirmed:null,forceId:null};
-  let sequence=0, idleSince=null, lastSignature='';
+  let sequence=0, idleSince=null;
   const emit=()=>change(view());
   const current=()=>items[0]||null;
   const markUnknown=(why)=>{
     if(state.inFlight) {state.inFlight.item.state='unknown';state.inFlight.phase='unknown';}
-    state.phase='unknown';state.paused=true;state.reason=why;
+    state.phase='unknown';state.reason=why;
     state.forceId=null;emit();
   };
   function view(){return {...state,items:items.map(item=>({...item})),
     inFlight:state.inFlight?{id:state.inFlight.item.id,phase:state.inFlight.phase}:null};}
-  function pause(reason='已暂停') {
+  function wait(reason) {
     if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
-    if(state.paused && state.reason===reason)return;
-    state.paused=true;state.reason=reason;emit();
+    idleSince=null;
+    if(state.reason===reason)return;
+    state.reason=reason;emit();
   }
-  function resume() {
-    if(state.phase==='unknown' || state.inFlight?.phase==='unknown' || state.inFlight?.phase==='await-confirm' ||
-      state.inFlight?.phase==='await-stop')return false;
-    const snap=site.inspect();
-    if (!snap.ok || (state.route && state.route!==snap.route)) {pause('请返回原对话后再恢复');return false;}
-    state.paused=false;state.reason='';idleSince=null;emit();return true;
+  function uncertain(id,reason,before) {
+    const item=items.find(v=>v.id===id);
+    if(!item||state.inFlight)return false;
+    state.inFlight={item,phase:'unknown',before:before?.ok?{
+      route:before.route,users:before.users,assistants:before.assistants,
+      assistantCount:before.assistants.length}:undefined};
+    markUnknown(reason);return true;
   }
   // Read-only preflight before any destructive website draft operation.
   function checkEnqueue(text,route) {
@@ -37,7 +39,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   }
   function enqueue(text,route) {
     const eligible=checkEnqueue(text,route);
-    if(!eligible.ok){if(eligible.reason==='会话不一致，队列未修改')pause(eligible.reason);return false;}
+    if(!eligible.ok)return false;
     state.route=route;
     items.push({id:'q'+(++sequence),text,state:'queued'});
     if (state.phase==='waiting') state.reason='';
@@ -46,9 +48,16 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   function remove(id) {
     const item=items.find(v=>v.id===id);
     if(!item || (state.inFlight?.item===item && state.inFlight.phase!=='unknown'))return false;
-    if(state.inFlight?.item===item){state.inFlight=null;state.phase='waiting';state.paused=true;}
+    if(state.inFlight?.item===item){
+      const before=state.inFlight.before||state.inFlight.token?.before;
+      const snap=site.inspect();
+      if(before&&snap.ok&&site.confirm(before,item.text,snap)){
+        state.answerGate={before,confirmedUser:snap.users.at(-1),started:clock(),sawBusy:snap.busy};
+      }
+      state.inFlight=null;state.phase='waiting';state.reason='';idleSince=null;
+    }
     items.splice(items.indexOf(item),1);
-    if(!items.length && !state.answerGate)state.route=null;
+    if(!items.length && !state.answerGate){state.route=null;state.reason='';idleSince=null;}
     emit();return true;
   }
   function move(id,toIndex) {
@@ -72,7 +81,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     const snap=site.inspect();
     if(!snap.ok || snap.route!==state.route)return {ok:false,reason:'会话已变化'};
     if(snap.busy)return {ok:false,needsStopConfirmation:true};
-    move(id,0);state.paused=false;state.reason='';idleSince=null;emit();return {ok:true};
+    move(id,0);state.reason='';idleSince=null;emit();return {ok:true};
   }
   function confirmForceStop(id) {
     if(state.phase==='unknown' || state.inFlight || state.answerGate || !items.some(v=>v.id===id))return false;
@@ -88,10 +97,10 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     state.inFlight=null;
     move(id,0);
     item.state='waiting';state.inFlight=flight;
-    state.phase='waiting';state.forceId=id;state.paused=false;idleSince=null;emit();return true;
+    state.phase='waiting';state.forceId=id;state.reason='';idleSince=null;emit();return true;
   }
   function failBeforeClick(item,why) {
-    item.state='failed';state.phase='failed';state.paused=true;
+    item.state='queued';state.phase='waiting';
     state.reason=why||'未能安全提交至原生网页';
     state.inFlight=null;idleSince=null;emit();
   }
@@ -100,7 +109,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       failBeforeClick(item,'原生草稿或附件非空，未准备待发内容');return;
     }
     item.state='sending';state.phase='sending';
-    state.inFlight={item,phase:'preparing',started:clock()};
+    state.inFlight={item,phase:'preparing',started:clock(),before:{
+      route:snap.route,users:snap.users,assistants:snap.assistants,assistantCount:snap.assistants.length}};
     emit();
     let prepared;
     try{prepared=site.prepare(item.text,snap);}
@@ -114,17 +124,18 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     state.inFlight={item,phase:'await-native-ready',started:clock(),token:prepared.token};
     emit();
   }
-  function tick() {
+  function tick({canSubmit=true}={}) {
     if(!items.length && !state.answerGate)return;
     if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
     const t=clock();
-    // These deadlines survive pause, navigation and loss of the composer.
+    // These deadlines survive blocked submission, navigation and composer loss.
     // Once prepared, the user may have sent the draft outside this engine.
     if(state.inFlight?.phase==='await-stop' && t-state.inFlight.started>STOP_MS){
       markUnknown('停止结果未知，请核对原对话后删除该条；消息未自动重发');return;
     }
     if(state.inFlight?.phase==='await-native-ready' && t-state.inFlight.started>6000){
-      markUnknown('填入后的发送状态未知，请核对原对话和草稿后删除该条');return;
+      const detail=state.inFlight.readinessReason||'未取得下一轮原生就绪检查';
+      markUnknown(detail+'；填入后的发送状态未知，请核对原对话和草稿后删除该条');return;
     }
     const snap=site.inspect();
     // Lost page access cannot turn an already-clicked send into an unsent item.
@@ -132,23 +143,23 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       (!snap.ok || snap.route!==state.route) && t-state.inFlight.started>ACK_MS){
       markUnknown('未能确认用户消息入站，禁止重复点击');return;
     }
-    if(!snap.ok){pause(snap.reason||'原生控件暂不可用');return;}
-    if(state.route && snap.route!==state.route){pause('已切换对话，队列不会跨会话发送');return;}
+    if(!snap.ok){wait(snap.reason||'原生控件暂不可用');return;}
+    if(state.route && snap.route!==state.route){wait('等待返回原对话，队列不会跨会话发送');return;}
     if(state.inFlight?.phase==='await-stop') {
+      if(!canSubmit){idleSince=null;return;}
       if(snap.busy||!snap.idle){idleSince=null;return;}
       if(idleSince===null)idleSince=t;
       if(t-idleSince<IDLE_MS)return;
       const item=state.inFlight.item;state.inFlight=null;state.forceId=null;
-      if(state.paused)return;
       startSubmit(snap,item);return;
     }
     if(state.inFlight?.phase==='await-native-ready') {
       const flight=state.inFlight;
-      if(state.paused)return;
+      if(!canSubmit)return;
       let result;
       try{result=site.commit(flight.token);}
       catch{markUnknown('原生点击状态无法判定，请检查原对话');return;}
-      if(result?.retry)return;
+      if(result?.retry){flight.readinessReason=result.reason||'原生控件尚未就绪';return;}
       if(!result?.ok){
         if(result?.stage==='after-click'){markUnknown('网站可能已发送，请手动核对后删除该条');return;}
         markUnknown((result?.reason?result.reason+'；':'')+'填入后的发送状态未知，请核对原对话后删除该条');return;
@@ -183,17 +194,17 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       if(!items.length)state.route=null;
       emit();
     }
-    if(state.paused || state.inFlight || !items.length)return;
-    if(snap.busy || !snap.idle || snap.rich || snap.composing || snap.draft!=='') {
-      idleSince=null;
+    if(state.inFlight || !items.length)return;
+    if(!canSubmit){idleSince=null;return;}
+    if(snap.busy || !snap.idle || (snap.assistants.length>0&&!snap.answerComplete) || snap.rich || snap.composing || snap.draft!=='') {
       const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.composing?'等待输入法完成':snap.draft!==''?'原生草稿非空，等待用户处理':'等待当前回复结束';
-      if(reason!==lastSignature){lastSignature=reason;state.reason=reason;emit();}
+      wait(reason);
       return;
     }
     if(idleSince===null)idleSince=t;
     if(t-idleSince<IDLE_MS)return;
     state.reason='';startSubmit(snap,current());
   }
-  return Object.freeze({view,checkEnqueue,enqueue,pause,resume,remove,reclaim,move,
+  return Object.freeze({view,checkEnqueue,enqueue,wait,uncertain,remove,reclaim,move,
     toggleExpanded,requestNow,confirmForceStop,tick});
 }
