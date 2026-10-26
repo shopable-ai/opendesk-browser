@@ -187,7 +187,7 @@ test('R3.2 multi send respects ETag and pause; never clicks with stale knowledge
    site.messages.push(customer(mixed));
    await until(()=>rt.snapshot().records[0]?.status==='PARTIAL_REVIEW_REQUIRED','etag case');
    rt.pause();
-   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:id,reviewApproved:true}),
+   assert.throws(()=>rt.confirm({event:{isTrusted:true},messageId:id,reviewApproved:true}),
      {code:'E_KB_TEST_PAUSED'});
    rt.resume();readEtag='b'.repeat(64);
    await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:id,reviewApproved:true}),
