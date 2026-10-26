@@ -252,13 +252,29 @@ export default function CookieEditorApp({request,hostRoot,setState}){
     }).finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
   };
   const copyAccountLink=(item,url)=>{
-    if(!url||accountInFlight.current)return;
+    if(!url||accountInFlight.current||!target?.url)return;
     accountInFlight.current=true;
-    const pending=adapter.copy(url);
+    // Cookie-capable tools MUST reuse the first-party one-use export gate,
+    // including for a non-secret link. Direct clipboard SDK calls from this
+    // tool are intentionally denied by its stricter Host export policy.
+    const pending=(async()=>{
+      let ref=null;
+      try{
+        const intent=await adapter.beginExportIntent(target,'copy');
+        if(intent?.authorized!==true||!Number.isSafeInteger(intent.ref)||intent.ref<1)
+          throw Object.assign(Error('E_COOKIE_EXPORT'),{code:'E_COOKIE_EXPORT'});
+        ref=intent.ref;
+        return await adapter.copy(url);
+      }finally{
+        if(ref!==null)void adapter.finishExportIntent(ref).catch(()=>{});
+      }
+    })();
     setAccountBusy(true);setAccountNotice(null);
-    void Promise.resolve(pending).then(result=>{
+    void pending.then(result=>{
       if(result?.copied!==true)throw Error('E_OUTCOME_UNKNOWN');
-      setAccountNotice({kind:'success',text:'已复制 '+item.displayName+' 的自动切换链接。'});
+      setAccountNotice({kind:'success',text:accountState?.preview
+        ?'预览模拟：已处理复制链接操作。'
+        :'已复制 '+item.displayName+' 的自动切换链接。'});
     }).catch(error=>setAccountNotice({kind:'error',
       text:'复制结果未确认（'+String(error?.code||'E_CLIPBOARD')+'）。'}))
       .finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
