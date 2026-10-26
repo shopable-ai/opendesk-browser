@@ -9,16 +9,16 @@ const LEGACY='[data-opendesk-prompts-floating]';
 const GAP=6;
 const SIZE=42;
 const INSET=20;
-const TOP_LABEL=/^(?:scroll to top|back to top|return to top|回到顶部|返回顶部|回到对话顶部|回到对话开头)$/i;
-
-function nativeTopVisible(doc,win) {
-  return [...doc.querySelectorAll('button[aria-label],button[title]')].some(button=>{
-    if (button.closest?.(`[${OWN}],${LEGACY}`)) return false;
-    if (!TOP_LABEL.test((button.getAttribute('aria-label')||
-      button.getAttribute('title')||'').trim())) return false;
-    const rect=button.getBoundingClientRect(),style=win.getComputedStyle(button);
-    return rect.width>8&&rect.height>8&&rect.bottom>0&&rect.top<win.innerHeight&&
-      style.display!=='none'&&style.visibility!=='hidden';
+// A leftover Prompt host is only an incumbent when it still has a visible
+// control. An inert marker alone must not hide this standalone navigation.
+function legacyFloatingPresent(doc,win) {
+  return [...doc.querySelectorAll(LEGACY)].some(node=>{
+    if(!node.isConnected||node.closest?.('[hidden],[inert],[aria-hidden="true"]'))return false;
+    const control=node.shadowRoot?.querySelector('button')||node.querySelector?.('button');
+    if(!control)return false;
+    const rect=node.getBoundingClientRect(),style=win.getComputedStyle(node);
+    return rect.width>1&&rect.height>1&&style.display!=='none'&&
+      style.visibility!=='hidden';
   });
 }
 const between=(value,min,max)=>Math.max(min,Math.min(max,value));
@@ -36,8 +36,8 @@ export function installFloatingNavigation({doc,win,owner}) {
     if (event.isTrusted!==true||!isCurrent()) return;
     // A legacy Page may mount after our last refresh. Do not race it.
     const active=[...doc.querySelectorAll(`[${OWN}="dock"]`)]
-      .find(node=>node.isConnected&&node.shadowRoot);
-    if (doc.querySelector(LEGACY)||legacyNavigationPresent(doc)||active!==host) {
+      .find(node=>node.isConnected&&node.shadowRoot?.querySelector('button'));
+    if (legacyFloatingPresent(doc,win)||legacyNavigationPresent(doc)||active!==host) {
       schedule();return;
     }
     // Invalidate stale buttons before navigation/React reconciliation finishes.
@@ -94,20 +94,21 @@ export function installFloatingNavigation({doc,win,owner}) {
     const next=context();
     // Existing old trusted-page navigation wins during extension upgrade.
     // Once that owner is removed, its DOM mutation permits standalone mounting.
-    if (!next||doc.querySelector(LEGACY)||legacyNavigationPresent(doc)) {
+    if (!next||legacyFloatingPresent(doc,win)||legacyNavigationPresent(doc)) {
       host?.remove();binding=null;return;
     }
     // One visible dock across independently installed script instances, even
     // when the modules do not share their in-memory WeakMap. Keep the first
     // connected live ShadowRoot, never retire a peer's host.
     const existing=[...doc.querySelectorAll(`[${OWN}="dock"]`)]
-      .find(node=>node.isConnected&&node.shadowRoot);
+      .find(node=>node.isConnected&&node.shadowRoot?.querySelector('button'));
     if (existing&&existing!==host) {
       host?.remove();binding=null;return;
     }
     prepare();
-    const top=!nativeTopVisible(doc,win);
-    const options=top?[buttons.top,buttons.bottom]:[buttons.bottom];
+    // This product owns exactly two physical controls. A native back-to-top
+    // is an obstacle to position around, not permission to remove our top key.
+    const options=[buttons.top,buttons.bottom];
     if (options.length!==buttons.stack.children.length||
         options.some((button,index)=>buttons.stack.children[index]!==button))
       buttons.stack.replaceChildren(...options);
@@ -130,23 +131,36 @@ export function installFloatingNavigation({doc,win,owner}) {
     const left=between(Math.max(rect.left,Math.min(first.left,last.left))+12,
       8,Math.max(8,win.innerWidth-width-8));
     const topPos=Math.round(Math.min(win.innerHeight,rect.bottom)-INSET-height);
-    if (!Number.isFinite(topPos)||topPos<Math.max(8,rect.top+8)||left+width>win.innerWidth-8) {
-      host.style.visibility='hidden';binding=null;return;
-    }
-    const blocked=[...doc.querySelectorAll('button,[role="button"],input,textarea,[contenteditable="true"]')]
-      .some(node=>{
-        if (node.hidden||node.closest?.(`[${OWN}],${LEGACY}`)) return false;
+    const minTop=Math.max(8,rect.top+8);
+    // Reposition within the recognized conversation before hiding on a
+    // native control/composer collision. We never overlay other controls or
+    // let an uncertain placement redirect scrolling to another region.
+    const obstacles=[...doc.querySelectorAll('button,[role="button"],input,textarea,[contenteditable="true"]')]
+      .filter(node=>{
+        if(node.hidden||node.closest?.(`[${OWN}],${LEGACY}`))return false;
         const r=node.getBoundingClientRect(),style=win.getComputedStyle(node);
-        return style.display!=='none'&&style.visibility!=='hidden'&&
-          r.width>0&&r.height>0&&r.left<left+width&&r.right>left&&
-          r.top<topPos+height&&r.bottom>topPos;
-      });
-    if (blocked) {host.style.visibility='hidden';binding=null;return;}
+        return style.display!=='none'&&style.visibility!=='hidden'&&r.width>0&&r.height>0;
+      }).map(node=>node.getBoundingClientRect());
+    const candidates=[
+      [left,topPos],
+      [left,topPos-height-12],
+      [left+width+12,topPos],
+      [left-width-12,topPos],
+      [Math.round(rect.right-width-12),topPos],
+      [left,topPos-2*(height+12)]
+    ];
+    const chosen=candidates.find(([x,y])=>
+      Number.isFinite(x)&&Number.isFinite(y)&&
+      x>=8&&x+width<=win.innerWidth-8&&
+      x>=Math.max(8,rect.left)&&x+width<=Math.min(win.innerWidth-8,rect.right)&&
+      y>=minTop&&y+height<=Math.min(win.innerHeight-8,rect.bottom-8)&&
+      !obstacles.some(r=>r.left<x+width&&r.right>x&&r.top<y+height&&r.bottom>y));
+    if(!chosen){host.style.visibility='hidden';binding=null;return;}
     host.classList.toggle('dark',doc.documentElement?.classList?.contains('dark')||
       doc.documentElement?.getAttribute('data-theme')==='dark');
     if (!host.isConnected) doc.documentElement?.append(host);
-    host.style.left=Math.round(left)+'px';
-    host.style.top=topPos+'px';
+    host.style.left=Math.round(chosen[0])+'px';
+    host.style.top=Math.round(chosen[1])+'px';
     host.style.visibility='visible';
     binding={href:win.location.href,main:next.main,scroller,root:doc.documentElement};
   }
@@ -187,6 +201,9 @@ export function installFloatingNavigation({doc,win,owner}) {
   owner.onDispose(dispose);
   for (const type of ['popstate','hashchange','pageshow','resize','scroll'])
     owner.on(win,type,schedule,type==='scroll');
+  // Element scrolls usually do not bubble to window; capture them on document
+  // to update boundary-disabled keys after an actual transcript scroll.
+  owner.on(doc,'scroll',schedule,true);
   win.navigation&&owner.on(win.navigation,'navigatesuccess',schedule);
   const session={dispose,refresh};
   sessions.set(doc,session);

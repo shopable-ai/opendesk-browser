@@ -521,8 +521,28 @@ test('forged verification fields, stale CAS, denied permission and disabled Chro
   f.granted=false;
   await fails(()=>f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{}),'E_PERMISSION');
   assert.equal(f.native.size,0);f.granted=true;f.access=false;
-  const installed=await f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
-  assert.equal(installed.nativeState,'blocked');assert.equal(installed.error.code,'E_USER_SCRIPTS_UNAVAILABLE');
+  await fails(()=>f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,
+    expectedInstalledManifestHash:null},{}),'E_USER_SCRIPTS_UNAVAILABLE');
+  assert.equal(f.installation(),undefined,'no active install is persisted when Chrome User Scripts is off');
+  f.access=true;
+  const installed=await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.equal(installed.ready,true);
+  assert.equal(installed.nativeState,'registered');
+});
+test('same-version installation requires current native content and scope, not only the saved id',async()=>{
+  const f=fixture(),installed=await f.install();
+  const request={programId:'script',revision:1,manifestHash:installed.manifestHash,
+    expectedInstalledManifestHash:installed.manifestHash,
+    expectedGeneration:installed.authorization.generation};
+  assert.equal((await f.service.installPageProgram(request,{})).ready,true);
+  f.native.get(installed.nativeId).js[0].code+='\n// changed';
+  await fails(()=>f.service.installPageProgram(request,{}),'E_PAGE_INSTALLATION');
+  f.native.get(installed.nativeId).js[0].code=f.native.get(installed.nativeId).js[0].code.replace(/\n\/\/ changed$/,'');
+  f.granted=false;
+  await fails(()=>f.service.installPageProgram(request,{}),'E_PERMISSION');
+  f.granted=true;f.access=false;
+  await fails(()=>f.service.installPageProgram(request,{}),'E_USER_SCRIPTS_UNAVAILABLE');
 });
 test('untrusted messages need authentic sender, current grant and exact native document bootstrap marker',async()=>{
   const f=fixture();await f.install();const message=f.message();

@@ -49,7 +49,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(row.enabled===false)return '阅读目录已被主动停用；可在设置中恢复。';
     return '阅读目录安装后会在符合条件的网页自动显示；无需再次启用或逐站授权。“打开”仅查看侧边栏目录。';
   };
-  const typeOf=row=>row.kind==='page'?'网页增强':'应用';
+  // "Application" is a product identity; Page/Sidebar is the run mode.
+  // This changes presentation only, never installed IDs or Authority records.
+  const typeOf=row=>row.kind==='page'?'应用 · 网页增强':'应用 · 侧边栏';
   const all=()=>composeExtensionEntries({installed,pages,official:appStatusKnown?official:[],
     pageReleases:pageStatusKnown?officialPages:[],
     enabled,appStatusKnown,pageStatusKnown,cleanupPendingIds:[...pendingCleanups]});
@@ -623,7 +625,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         appDataText:row.kind==='app'&&row.installed?
           '应用存储用量：未知（没有可信的单应用 Chrome 存储统计）。':'',
         installationText:row.installed?
-          ('本机已安装 · '+(row.stateKnown===false?'状态待核对':row.enabled?'已启用':'已停用')):
+          ('本机已安装 · '+(row.stateKnown===false?'状态待核对':
+            row.kind==='page'&&row.enabled&&
+              (page?.nativeState!=='registered'||page?.authorization?.status!=='active'||page?.error)
+              ?'自动运行未就绪':row.enabled?'已启用':'已停用')):
           (row.cleanupPending?'已从安装记录移除 · 卸载清理待恢复':
             row.kind==='page'&&row.release?.status==='blocked'?
               '官方 Page 产品 · 尚未开放安装：'+row.release.blockedReason:

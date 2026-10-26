@@ -19,15 +19,14 @@ const EXCLUDED = '[role="dialog"],[aria-modal="true"],[hidden],[inert],[aria-hid
 const GAP = 12;
 const sessions = new WeakMap(); // doc -> per-owner sessions (Program and trusted tool may coexist)
 
-// An installed pre-rename Page Program can remain live in an existing tab.
-// Its actual ShadowRoot (not a React-cloned inert marker) takes precedence.
-// Do not uninstall, touch its listeners, or infer permission migration.
+// A hidden pre-rename lifecycle is not a navigator. Yield only to a live
+// legacy ShadowRoot containing a real navigation button. Inert DOM markers,
+// empty hosts and React clones must not permanently suppress new Scroll UI.
+// This arbitration never transfers, disables or deletes the old installation.
 export function legacyNavigationPresent(doc) {
-  // The frozen 0.2.0 Page always creates this hidden owner even before it
-  // finds a long reply. This avoids a short-conversation duplicate window.
-  return Boolean(doc.querySelector(LEGACY_LIFECYCLE)) ||
-    [...doc.querySelectorAll(`[${OWN}]`)].some(node =>
-      node.isConnected && node.shadowRoot && !node.hasAttribute(MODERN_OWN));
+  return [...doc.querySelectorAll(`[${OWN}]`)].some(node =>
+    node.isConnected && !node.hasAttribute(MODERN_OWN) &&
+    Boolean(node.shadowRoot?.querySelector('button')));
 }
 
 function isWritingViewer(element, aside, win) {
@@ -227,7 +226,7 @@ export function findConversationNavigation(main, turnSelector, doc, win) {
   const first = turns[0], last = turns.at(-1);
   const scroller = findConversationScroller(first, doc, win);
   if (!scroller || findConversationScroller(last, doc, win) !== scroller ||
-      !(scroller.scrollHeight - scroller.clientHeight > Math.max(240, scroller.clientHeight * .6)))
+      !(scroller.scrollHeight - scroller.clientHeight > 2))
     return null;
   // Do not accept a scrollport inside a single message, code editor, or aside.
   if (scroller !== doc.scrollingElement && scroller !== doc.documentElement &&

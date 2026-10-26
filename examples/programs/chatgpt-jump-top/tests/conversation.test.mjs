@@ -1201,6 +1201,7 @@ test('new Scroll reply host keeps old Mind Map marker and yields immediately to 
   const legacy = element({tag: 'span', parent: toolbar,
     attributes: {'data-opendesk-chatgpt-jump-top': 'host'}});
   legacy.attachShadow({mode: 'open'});
+  element({tag: 'button', parent: legacy.shadowRoot});
   assert.equal(conversation.legacyNavigationPresent(doc), true);
   const moves = main.calls.length;
   owner.click(button);
@@ -1237,21 +1238,48 @@ test('two module-local Scroll owners use the first live same-key reply host', t 
   assert.equal(toolbar.querySelectorAll('[data-opendesk-ai-scroll-navigation="reply"]').length, 1);
 });
 
-test('old installed Page lifecycle blocks a new navigator before an old reply button exists', t => {
+test('inert old lifecycle cannot hide new navigation; a real old button still wins', t => {
   const {doc, view, rows: [{toolbar}]} = controlledEditors();
   const lifecycle = element({tag: 'div', parent: doc.documentElement,
     attributes: {'data-opendesk-ui-owner': 'old-program',
       'data-od-id': 'opendesk.chatgpt-jump-top.lifecycle'}});
-  assert.equal(conversation.legacyNavigationPresent(doc), true);
+  assert.equal(conversation.legacyNavigationPresent(doc), false,
+    'old hidden lifecycle is not an active navigation button');
   const owner = observerOwner();
   const session = conversation.installJumpToTop({doc, win: view, owner});
   t.after(() => owner.dispose());
-  assert.equal(session.isMounted(), false);
-  assert.equal(toolbar.querySelector('[data-opendesk-ai-scroll-navigation="reply"]'), null);
-  lifecycle.remove();
-  owner.emit({type: 'childList', target: doc.documentElement, addedNodes: [],
-    removedNodes: [lifecycle]});
+  assert.equal(session.isMounted(), true);
+  const old = element({tag: 'span', parent: toolbar,
+    attributes: {'data-opendesk-chatgpt-jump-top': 'host'}});
+  old.attachShadow({mode: 'open'});
+  assert.equal(conversation.legacyNavigationPresent(doc), false,
+    'empty old ShadowRoot is also inert');
+  element({tag: 'button', parent: old.shadowRoot});
+  assert.equal(conversation.legacyNavigationPresent(doc), true);
+  owner.emit({type: 'childList', target: toolbar, addedNodes: [old], removedNodes: []});
   owner.flush();
-  assert.equal(conversation.legacyNavigationPresent(doc), false);
-  assert.equal(session.isMounted(), true, 'resumes without transferring any old grant');
+  assert.equal(session.isMounted(), false);
+  old.remove();
+  owner.emit({type: 'childList', target: toolbar, addedNodes: [], removedNodes: [old]});
+  owner.flush();
+  assert.equal(session.isMounted(), true,
+    'new navigator resumes without borrowing the old installation grant');
+  lifecycle.remove();
+});
+
+test('conversation edge controls accept short real overflow but reject unrelated scrollports', () => {
+  const {doc, view, main, target} = nativeMessages();
+  main.scrollHeight = main.clientHeight + 40;
+  main.scrollTop = 0;
+  const turnSelector = '[data-content-search-unit-key]';
+  const bound = conversation.findConversationNavigation(main, turnSelector, doc, view);
+  assert.equal(bound?.scroller, main);
+  assert.equal(conversation.jumpConversationEdge(main, turnSelector, 'bottom', doc, view), true);
+  assert.equal(main.scrollTop, 40);
+  assert.equal(conversation.jumpConversationEdge(main, turnSelector, 'top', doc, view), true);
+  assert.equal(main.scrollTop, 0);
+  const nested = element({tag: 'pre', parent: target, overflowY: 'auto',
+    scrollHeight: 800, height: 150});
+  assert.equal(conversation.findConversationNavigation(main, turnSelector, doc, view)?.scroller, main);
+  assert.deepEqual(nested.calls, []);
 });
