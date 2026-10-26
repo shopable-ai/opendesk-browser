@@ -143,7 +143,7 @@ R2.5 交互参考页至少应有两层导航（**预览外壳专用，不加入�
 
 > 本节是对 R2.5 历史设计状态的当前补充。正式视觉来源仍只有 `src/ui/design-tokens.css` 和 `src/ui/design-system.css`，可信 React 根与安全边界仍由 R33 架构文档决定；不得因本节增加第二套组件包、React Root、CSS Palette 或 Host。
 
-**用户目标与先后顺序：** 先统一视觉，再检索正式组件，再选布局（P01–P16），最后用六个业务范例验证。Bookmark Tree 是业务质量参照，属于专项 owner，不再担当主设计 P0。当前 [index.html](../../prototypes/sidebar/extension-ui-showcase/index.html) 直接进入已有 [Atlas](../../prototypes/sidebar/extension-ui-showcase/r27-source-aligned-atlas.html)。Atlas 中的 SOURCE / PREVIEW / HISTORICAL / NOT_TESTED 不能相互升级。
+**用户目标与先后顺序：** 先统一视觉，再按页面模式检索正式组件，再选布局（P01–P16），最后用六个业务范例验证。Bookmark Tree 是业务质量参照，属于专项 owner，不再担当主设计 P0。当前 [index.html](../../prototypes/sidebar/extension-ui-showcase/index.html) 直接进入已有 [Atlas](../../prototypes/sidebar/extension-ui-showcase/r27-source-aligned-atlas.html)。Atlas 中的 SOURCE / PREVIEW / HISTORICAL / NOT_TESTED 不能相互升级。
 
 ### 视觉决策（真实 Token 优先，不人工写第二套值）
 
