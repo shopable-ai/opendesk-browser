@@ -203,15 +203,7 @@ export function ToolHost({view}) {
 
 </ToolField>
 <ToolField as="strong" id="sidebar-tool-title" className="od-page-title"
- role="heading" aria-level={2} aria-label={snapshot.fields['sidebar-tool-title']?.textContent||undefined}
- renderText={(text,state)=>state.data.pageLabel?
-   <span className="sidebar-tool-title-path">
-     <span className="sidebar-tool-title-parent">{state.data.toolLabel}</span>
-     <span className="sidebar-tool-title-divider"> / </span>
-     <span className="sidebar-tool-title-current">{state.data.pageLabel}</span>
-   </span>:text}>
-
-</ToolField>
+  role="heading" aria-level={2}/>
 <ToolField as="button" type="button" id="sidebar-tool-primary-action" className="sidebar-tool-icon-action od-icon-button" title="当前页面操作" aria-label="当前页面操作" hidden={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
 {topAction==='new' ? <path d="M12 5v14M5 12h14"/> :
@@ -271,7 +263,6 @@ export function ToolHost({view}) {
 
 </ToolField>
 <ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
-<h2 className="sidebar-tool-settings-title"><ToolLabel name="settingsTitle"/></h2>
 <section className="sidebar-tool-settings-product" aria-label="扩展设置">
 <ToolField as="button" type="button" id="sidebar-tool-adblock-product-settings"
   className="od-button od-button--secondary" hidden={true}>{"广告拦截设置"}</ToolField>

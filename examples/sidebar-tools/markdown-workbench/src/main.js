@@ -47,6 +47,7 @@ const markDirty=()=>{
 };
 function reviewDiscard(message,action,origin=clearButton){
  cancelReview();reviewAction=action;reviewOrigin=origin;reviewText.textContent=message;
+ reviewConfirm.textContent=origin===clearButton?'清空内容':'替换内容';
  review.hidden=false;toolbar.dataset.review='true';
  clearButton.setAttribute('aria-expanded',String(origin===clearButton));
  reviewConfirm.focus({preventScroll:true});

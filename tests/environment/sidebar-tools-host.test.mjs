@@ -160,19 +160,22 @@ test('R1.7 exact official Prompt Shortcuts forwards Header New/Back without remo
   assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
   verifyAction('sidebar-tool-primary-action','primary');
   send({page:'create',title:'新建提示词',canBack:true});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+' / 新建提示词');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'新建');
+  assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],official.title+' / 新建提示词');
   assert.equal(f.elements['sidebar-tool-back'].title,'返回上一级');
   assert.equal(f.elements['sidebar-tool-primary-action'].hidden,true);
   verifyAction('sidebar-tool-back','back');
   send({page:'edit',title:'编辑提示词',canBack:true});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+' / 编辑提示词');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
+  assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],official.title+' / 编辑提示词');
   verifyAction('sidebar-tool-back','back');
   f.emit(f.elements['sidebar-tool-settings-open'],'click');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+' / 设置');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'设置');
+  assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],official.title+' / 设置');
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.runtime.frameRoot.children[0],f.frame);
-  assert.equal(f.elements['sidebar-tool-title'].textContent,official.title+' / 编辑提示词');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
 });
 
 test('R1.7 same-ID manually altered Prompt Shortcuts cannot claim official Header actions',async t=>{
@@ -194,7 +197,8 @@ test('R1.6 generic tool settings has a single titled return without remounting',
  const f=await hostFixture(t),original=f.frame;
  assert.equal(f.elements['sidebar-tool-back'].title,'返回扩展列表');
  f.emit(f.elements['sidebar-tool-settings-open'],'click');
- assert.equal(f.elements['sidebar-tool-title'].textContent,sample.title+' / 设置');
+ assert.equal(f.elements['sidebar-tool-title'].textContent,'设置');
+ assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],sample.title+' / 设置');
  assert.equal(f.elements['sidebar-tool-back'].title,'返回上一页');
  assert.equal(f.runtime.frameRoot.children[0],original,'settings retains the same tool instance');
  f.emit(f.elements['sidebar-tool-back'],'click');
@@ -213,7 +217,8 @@ for(const id of ['web-markdown-clipper','prompt-shortcuts'])test('R2.2 revoked '
   const navigate=()=>send('navigation-state',id==='web-markdown-clipper'?{page:'edit'}:
     {state:{page:'edit',title:'编辑提示词',canBack:true,primary:'save',secondary:'more'}});
   navigate();send('draft',{text:'可复制的未保存草稿'});send('edit-state',{dirty:true,busy:false});
-  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / '+
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
+  assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],tool.title+' / '+
     (id==='web-markdown-clipper'?'编辑摘录':'编辑提示词'));
   assert.equal(f.host.openTool(id),f.loaded.instance,'same package and epoch reuse the sandbox draft');
   assert.equal(f.runtime.frameRoot.children[0],f.frame);
@@ -278,18 +283,20 @@ test('R2.2 admitted native Bookmark reuses its current page and keeps settings a
   const state={navigation:{page:'edit',title:'编辑书签',canBack:true},back:()=>{backs++;},
     dirty:true,saving:false,draft:'native draft'};
   mounts[0].onStateChange(state);
-  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 编辑书签');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
+  assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],tool.title+' / 编辑书签');
   assert.equal(f.host.openTool(tool.id),token);
   assert.equal(mounts.length,1);assert.equal(disposals,0);
   assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'reopening current native app does not leave its draft');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 编辑书签');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(backs,1,'the retained page still owns Back');
   mounts[0].onStateChange({...state,dirty:false});
   f.emit(f.elements['sidebar-tool-settings-open'],'click');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 设置');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'设置');
+  assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],tool.title+' / 设置');
   f.emit(f.elements['sidebar-tool-back'],'click');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 编辑书签');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'编辑');
   assert.equal(mounts.length,1);assert.equal(disposals,0,'settings return preserves the native owner');
   // Opening from settings retains the existing explicit relaunch behavior.
   f.emit(f.elements['sidebar-tool-settings-open'],'click');
@@ -301,7 +308,7 @@ test('R2.2 admitted native Bookmark reuses its current page and keeps settings a
   f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:epochs}});
   assert.equal(disposals,2,'epoch change retires trusted native UI');
   mounts[0].onStateChange(state);
-  assert.equal(f.elements['sidebar-tool-title'].textContent,tool.title+' / 设置','stale callback cannot restore a subpage');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'设置','stale callback cannot restore a subpage');
   const fresh=f.host.openTool(tool.id);
   await settle(()=>mounts.length===3&&f.runtime.frameRoot.dataset.bookmarkTrusted==='true');
   assert.notEqual(fresh,token);
@@ -1771,7 +1778,8 @@ test('R4.7 settings live next to retained TOC iframe; appearance remains separat
   assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
   assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
   assert.equal(f.elements['sidebar-tool-frame'].children[0],iframe,'the sandbox is retained, not reloaded');
-  assert.equal(f.elements['sidebar-tool-title'].textContent,toc.title+' / 设置');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'设置');
+  assert.equal(f.elements['sidebar-tool-title'].attributes['aria-label'],toc.title+' / 设置');
   const pagePrefs=changeReadingTocVisibility({},toc.id,url,'page',true);
   f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:pagePrefs}});
   assert.equal(f.elements['sidebar-tool-settings-page-visibility'].textContent,'恢复显示');

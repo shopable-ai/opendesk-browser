@@ -41,6 +41,17 @@ test('My page, owning dock and standalone task catalog consume the same presenta
   const scheduleOpen=page.getElementById('schedule-open');
   assert.equal(scheduleOpen.getAttribute('aria-label'),'打开定时计划');
   assert.equal(scheduleOpen.className,'od-icon-button');
+  const header=page.querySelector('.task-section-head');
+  assert.ok(header.classList.contains('od-page-head'),'My uses shared page header');
+  assert.ok(header.querySelector('.task-section-actions').classList.contains('od-page-actions'));
+  assert.deepEqual([...header.querySelectorAll('.task-section-actions button')].map(button=>button.id),
+    ['my-agent-toggle','task-manage-toggle','schedule-open','task-open-catalog']);
+  assert.equal(page.getElementById('task-search-toggle'),null,'standalone search no longer occupies header');
+  assert.ok(page.getElementById('task-open-catalog').classList.contains('od-icon-button--primary'));
+  assert.equal(page.getElementById('task-search-panel').getAttribute('role'),'search');
+  assert.equal(page.getElementById('task-search-panel').hasAttribute('hidden'),true);
+  assert.equal(page.getElementById('task-manage-toggle').getAttribute('aria-controls'),
+    'task-search-panel task-installed-cards');
   const owningDock=parseHTML(renderToStaticMarkup(React.createElement(MyTasksDock,{view}))).document;
   assert.equal(owningDock.getElementById('task-run'),null,'footer is Stop-only');
   assert.equal(owningDock.getElementById('task-stop').getAttribute('aria-label'),'停止「任务 A」');

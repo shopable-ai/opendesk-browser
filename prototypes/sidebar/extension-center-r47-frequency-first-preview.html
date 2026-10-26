@@ -514,12 +514,12 @@ function openReview(key='update'){
  closeMenu(false);closeGlobalMenu();
  prepareReview(key);overlay.hidden=false;demoRoot.inert=true;
  document.body.style.overflow='hidden';
- $('sidebar-tool-import-close').focus({preventScroll:true});
+ $('sidebar-tool-file').focus({preventScroll:true});
 }
 function closeReview(){
  if(overlay.hidden)return;
  overlay.hidden=true;demoRoot.inert=reviewWasInert;document.body.style.overflow='';
- const target=reviewReturnFocus?.isConnected?reviewReturnFocus:$('preview-more');
+ const target=reviewReturnFocus?.isConnected&&!reviewReturnFocus.closest('[hidden]')?reviewReturnFocus:$('preview-more');
  target?.focus?.({preventScroll:true});
 }
 $('preview-import').addEventListener('click',()=>openReview('import'));

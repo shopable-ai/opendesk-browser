@@ -65,7 +65,6 @@ const previewDeviceZone=()=>{
 };
 export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,filter,onFilter,
   selectedTask='',manageMode=false,onManageMode=()=>{},onTaskAction=()=>{},density='many'}){
-  const [showSearch,setShowSearch]=React.useState(false);
   const [addOpen,setAddOpen]=React.useState(false);
   const [addStatus,setAddStatus]=React.useState('');
   const [removalReview,setRemovalReview]=React.useState('');
@@ -136,7 +135,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('workbench-discover').hidden=tab!=='tasks'||mode!=='catalog';
     get('workbench-tasks').querySelector('.tasks-surface').hidden=mode!=='list';
     get('scheduled-panel').hidden=mode!=='schedule';
-    get('task-search-panel').hidden=!showSearch;
+    get('task-search-panel').hidden=!manageMode;
     get('task-add-menu').hidden=!addOpen||mode!=='list';
     get('task-open-catalog').setAttribute('aria-expanded',String(addOpen&&mode==='list'));
     get('task-manage-toggle').setAttribute('aria-pressed',String(manageMode));
@@ -154,7 +153,6 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       ?'确认卸载「'+current.title+'」？历史结果仍可能保留。'
       :'确认卸载此任务？';
     get('task-add-status').textContent=addStatus;
-    get('task-search-toggle').setAttribute('aria-expanded',String(showSearch));
     get('local-discover-count').textContent='显示 '+rows.length+' 项 · 仅预览';
     for(const key of ['all','current','disabled'])
       get('local-filter-'+key).setAttribute('aria-pressed',String(filter===key));
@@ -219,7 +217,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('task-catalog-status').textContent=importReview||
       '仅预览 · 仅展示正式目录 UI，安装须核对任务与授权';
     get('task-install').disabled=true;
-  },[tab,mode,rows,selectedTask,manageMode,removalReview,managerRows.length,managerRemoving,filter,showSearch,addOpen,addStatus,editingId,view,
+  },[tab,mode,rows,selectedTask,manageMode,removalReview,managerRows.length,managerRemoving,filter,addOpen,addStatus,editingId,view,
     plans,density,pending,dirtyConfirm,rule,feedback,found.length,importReview,managerOrigin]);
   React.useEffect(()=>{
     const zone=get('schedule-timezone');
@@ -244,8 +242,10 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       const node=get(id);node.addEventListener(event,fn);
       off.push(()=>node.removeEventListener(event,fn));
     };
-    bind('task-search-toggle','click',()=>setShowSearch(v=>!v));
-    bind('task-manage-toggle','click',()=>onManageMode(!manageMode));
+    bind('task-manage-toggle','click',()=>{
+      if(manageMode){onSearch('');onFilter('all');get('local-discover-search').value='';}
+      onManageMode(!manageMode);
+    });
     bind('task-refresh','click',()=>onTaskAction('refresh',selectedTask));
     bind('task-fork-draft','click',()=>onTaskAction('fork',selectedTask));
     bind('task-toggle','click',()=>onTaskAction('toggle',selectedTask));
@@ -262,7 +262,11 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     for(const key of ['all','current','disabled'])
       bind('local-filter-'+key,'click',()=>onFilter(key));
     bind('task-search-panel','keydown',e=>{
-      if(e.key==='Escape'&&!e.isComposing){setShowSearch(false);get('task-search-toggle').focus();}
+      if(e.key==='Escape'&&!e.isComposing){
+        e.preventDefault();onSearch('');onFilter('all');
+        get('local-discover-search').value='';
+        onManageMode(false);get('task-manage-toggle').focus();
+      }
     });
     bind('task-open-catalog','click',()=>setAddOpen(open=>!open));
     bind('task-add-close','click',()=>{setAddOpen(false);get('task-open-catalog').focus();});

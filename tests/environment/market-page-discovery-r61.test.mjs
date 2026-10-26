@@ -2,6 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
+import {randomUUID} from 'node:crypto';
 import {validateDeclaredMarketInstall,discoverCurrentPageMarketInstall,
   captureDeclaredMarketLinks,OPENDESK_INSTALL_REL} from '../../src/marketplace/discovery.js';
 import {layout,home} from '../../src/market-site/templates.mjs';
@@ -114,4 +116,79 @@ test('R6.1 existing React page owns the discovery UI; no alternate installer exi
   assert.match(pageUI,/extension-center-discover/);
   assert.match(main,/renderDiscovery\(next\)/);
   assert(!pageUI.includes('chrome.runtime.sendMessage'));
+});
+
+
+function marketListingClient(){
+  const clientScript=null;
+  const nodes=new Map(),sent=[],storage=new Map(),buttons=[],timers=new Map();
+  let timerId=0;
+  const node=()=>({textContent:'',disabled:false,hidden:false,dataset:{},listeners:{},
+    addEventListener(type,fn){this.listeners[type]=fn;}});
+  for(const selector of ['#connection-state','#connect-button','#open-review','#handoff-state',
+    '#handoff-details','#handoff-code','#app-search','#search-results','#no-results'])
+    nodes.set(selector,node());
+  nodes.delete('#open-review');
+  const addCard=(subject)=>{
+    const button=node(),state=node();
+    button.dataset.subject=JSON.stringify(subject);
+    button.closest=()=>({querySelector:sel=>sel==='[data-handoff-state]'?state:null});
+    buttons.push(button);return {button,state,subject};
+  };
+  const first=addCard({kind:'app',marketId:'opendesk/markdown-workbench',version:'1.0.5'});
+  const second=addCard({kind:'app',marketId:'opendesk/quick-notes',version:'1.2.0'});
+  const chrome={runtime:{sendMessage(extensionId,message,callback){sent.push({extensionId,message,callback});}}};
+  const context={
+    document:{querySelector:sel=>nodes.get(sel)||null,
+      querySelectorAll:sel=>sel==='[data-open-review]'?buttons:[]},
+    chrome,fetch:async()=>({ok:true,json:async()=>({
+      schema:'opendesk.market.channel.v1',protocol:'opendesk.market.intent.v1',
+      origin,extensionId:'a'.repeat(32),enabled:true
+    })}),
+    location:{origin},crypto:{randomUUID},
+    sessionStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},
+    setTimeout(fn){const id=++timerId;timers.set(id,fn);return id;},
+    clearTimeout(id){timers.delete(id);},JSON,Date,URL
+  };
+  return {nodes,sent,first,second,context};
+}
+
+test('R6.1 multiple cards use distinct fixed intents; double-click has one in-flight request and retry is idempotent',async()=>{
+  const script=await readFile('src/market-site/client.js','utf8');
+  const h=marketListingClient();
+  runInNewContext(script,h.context,{filename:'src/market-site/client.js'});
+  const tick=()=>new Promise(resolve=>setImmediate(resolve));
+  await tick();
+  const probe=h.sent.find(row=>row.message.action==='PROBE');
+  assert(probe,'market client starts with existing PROBE');
+  probe.callback({ok:true,protocol:'opendesk.market.intent.v1',status:'CONNECTED'});
+  await tick();
+
+  const firstPending=h.first.button.listeners.click();
+  await h.first.button.listeners.click();await tick();
+  let opens=h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW');
+  assert.equal(opens.length,1,'duplicate click did not send a second request');
+  assert.equal(opens[0].message.subject.marketId,'opendesk/markdown-workbench');
+  opens[0].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'REVIEW_OPENED',
+    intentId:opens[0].message.intentId});
+  await firstPending;
+  assert.match(h.first.state.textContent,/不表示已安装/);
+
+  const secondPending=h.second.button.listeners.click();await tick();
+  opens=h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW');
+  assert.equal(opens.length,2);
+  assert.equal(opens[1].message.subject.marketId,'opendesk/quick-notes');
+  assert.notEqual(opens[0].message.intentId,opens[1].message.intentId);
+  opens[1].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'REVIEW_OPENED',
+    intentId:opens[1].message.intentId});
+  await secondPending;
+
+  const retry=h.first.button.listeners.click();await tick();
+  opens=h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW');
+  assert.equal(opens.length,3);
+  assert.equal(opens[2].message.intentId,opens[0].message.intentId);
+  assert.equal(Object.keys(opens[2].message).sort().join(','),'action,intentId,protocol,subject');
+  opens[2].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'REVIEW_OPENED',
+    intentId:opens[2].message.intentId});
+  await retry;
 });

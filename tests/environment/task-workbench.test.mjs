@@ -418,13 +418,13 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
     'React owns exactly one shared task workspace, not a duplicated form');
 });
 
-test('My searches a single installed task list on demand without executing or requesting permissions',async t=>{
+test('My keeps search inside installed task management without executing or requesting permissions',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form','demo.second']);
-  assert.equal(f.field('task-search-panel').hidden,true,'My search is collapsed by default');
-  await f.click('task-search-toggle');
+  assert.equal(f.field('task-search-panel').hidden,true,'Contextual search is collapsed until management is opened');
+  await f.click('task-manage-toggle');
   assert.equal(f.field('task-search-panel').hidden,false);
-  assert.equal(f.field('task-search-toggle').attributes['aria-expanded'],'true');
+  assert.equal(f.field('task-manage-toggle').attributes['aria-pressed'],'true');
   f.field('local-discover-search').value='不存在的任务';f.action('localDiscoverSearchInput');
   assert.equal(f.myView.data.taskRows.rows.length,0);
   assert.match(f.myView.data.taskRows.emptyText,/没有匹配/);
@@ -436,9 +436,9 @@ test('My searches a single installed task list on demand without executing or re
   f.myView.data.taskRows.onSelect('demo.form');
   assert.equal(f.field('task-installed-list').value,'demo.form');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
-  await f.click('task-search-toggle');
+  await f.click('task-manage-toggle');
   assert.equal(f.field('task-search-panel').hidden,true);
-  assert.equal(f.field('task-search-toggle').attributes['aria-expanded'],'false');
+  assert.equal(f.field('task-manage-toggle').attributes['aria-pressed'],'false');
   assert.equal(f.field('local-discover-search').value,'');
   assert.equal(f.myView.data.taskRows.rows.length,2);
   await f.click('task-open-catalog');
@@ -449,9 +449,9 @@ test('My searches a single installed task list on demand without executing or re
   assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/sidepanel.html');
 });
 
-test('R5.1 Escape closes inline My search, clears filters and restores keyboard focus without Run',async t=>{
+test('My Escape closes task management, clears filters and returns focus without Run',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
-  await f.click('task-search-toggle');
+  await f.click('task-manage-toggle');
   f.field('local-discover-search').value='不存在的任务';
   f.action('localDiscoverSearchInput');
   await f.click('local-filter-current');
@@ -463,14 +463,14 @@ test('R5.1 Escape closes inline My search, clears filters and restores keyboard 
   await tick();
   assert.equal(prevented,true,'Escape action must consume the event');
   assert.equal(f.field('task-search-panel').hidden,true);
-  assert.equal(f.field('task-search-toggle').attributes['aria-expanded'],'false');
+  assert.equal(f.field('task-manage-toggle').attributes['aria-pressed'],'false');
   assert.equal(f.field('local-discover-search').value,'');
   assert.equal(f.field('local-filter-all').attributes['aria-pressed'],'true');
   assert.equal(f.myView.data.taskRows.rows.length,2);
   // The Node fixture observes the focus instruction only; browser focus and
   // keyboard dispatch require actual React/Chrome, never a fake Element.fire.
-  assert.equal(f.doc.activeElement,f.get('task-search-toggle'),
-    'production action delegates the focus request to the search button');
+  assert.equal(f.doc.activeElement,f.get('task-manage-toggle'),
+    'production action restores focus to the management button');
   assert.equal(f.field('task-run').disabled,false);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
@@ -482,7 +482,7 @@ test('My task filters use the one installed list and never run or grant permissi
   await f.ui.refresh();
   assert.equal(f.field('task-run').disabled,false);
   const param=f.field('task-param-name');
-  await f.click('task-search-toggle');
+  await f.click('task-manage-toggle');
   const visibleTaskIds=()=>f.myView.data.taskRows.rows.map(row=>row.taskId);
   await f.click('local-filter-disabled');
   assert.equal(f.field('local-filter-disabled').attributes['aria-pressed'],'true');
@@ -642,7 +642,7 @@ test('R4 accessible five production tabs support Arrow and Home/End',async t=>{
   // Actual event preventDefault(), roving focus and scroll remain Chrome-level checks.
 });
 
-test('R4 task selection and My search handoff retain React row identity; DOM focus needs Chrome',async t=>{
+test('R4 task selection and My management search retain React row identity; DOM focus needs Chrome',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),
     ['demo.form','demo.second']);
@@ -653,7 +653,7 @@ test('R4 task selection and My search handoff retain React row identity; DOM foc
   f.myView.data.taskRows.onSelect('demo.second');
   assert.equal(f.field('task-installed-list').value,'demo.second');
   await f.click('tab-my-tasks');
-  await f.click('task-search-toggle');
+  await f.click('task-manage-toggle');
   f.field('local-discover-search').value='表单';
   f.action('localDiscoverSearchInput');
   assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form']);
