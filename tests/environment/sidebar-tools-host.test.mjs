@@ -932,7 +932,9 @@ test('R5.3 local review identifies normalized candidate/current hashes and cance
   const label=f.elements['sidebar-tool-preview-file'].textContent;
   assert.ok(label.includes('候选包 SHA-256（规范序列化）：'+await sidebarToolPackageHash(candidate)));
   assert.ok(label.includes('当前包 SHA-256（规范序列化）：'+await sidebarToolPackageHash(sample)));
-  assert.match(label,/包 Hash 已规范化，文件空白或键顺序不影响此值/);
+  assert.match(label,/校验值基于规范序列化，文件空白和键顺序不影响结果/);
+  assert.equal(f.elements['sidebar-tool-update-capabilities'].textContent,'',
+    'unchanged capabilities do not occupy update details');
   f.emit(f.elements['sidebar-tool-import-close'],'click');
   assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),before);
