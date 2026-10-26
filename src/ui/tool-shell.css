@@ -435,6 +435,12 @@
   .sidebar-tool-title-parent,.sidebar-tool-title-divider{display:none}
   .sidebar-tool-title-current{flex:1 1 0;max-width:100%}
 }
+/* At 200% zoom the header itself may be only 180px wide. Give Back and the
+   title a complete first row, then wrap the existing actions without clipping. */
+@media(max-width:240px){
+  #sidebar-tool-title{flex:1 1 calc(100% - max(44px,var(--od-icon-size)) - var(--space-2))}
+  .sidebar-tool-header-actions{margin-left:auto}
+}
 
 .sidebar-tool-view-head>.sidebar-tool-icon-action,
 .sidebar-tool-view-head .od-conversation-header-slot>.od-conversation-frame-trigger,
