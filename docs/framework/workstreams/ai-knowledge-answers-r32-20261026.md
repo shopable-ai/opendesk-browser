@@ -68,3 +68,28 @@
 **R3.2 后续安全审计（增量）**：检查到原 Host/Consumer 仍可能在单问题初筛时把已被新主题过滤拒绝的其他候选知识发送给 Provider。已最小扩展原 `createKnowledgeAnswerConsumer.request({sourceIdAllowlist})` 和可信 Host 的 `prepare`/`prepareInbound`/`send` 与 Runtime `callAI` 接线，**不改变无 allowlist 的既有调用**，对手工入站草稿和已授权逐题自动草稿均校验 allowlist 是原模型候选的子集，并保持来源 ETag/客户 ID/授权代次关联。本轮 Node 定向测试额外包含“非法来源在 Provider 调用前拒绝、合法唯一来源只发送该知识”的行为案例。
 
 **R3.2 更广覆盖**：混合两条纯语义问题（原知识中发票 + 物流）的自动 AI 草稿在本机已授权时，最多两次在原 Consumer 请求不同的引用，最后仅合成**一条需人工核对**的回复，无条件自动发送次数为零。该段已在原 Runtime 的隔离 V8 替身 Adapter 中实际运行；有明确 `MULTI_REVIEW_REQUIRED`、引用 `qa_demo_invoice` / `qa_demo_tracking`、两次逐题请求与一次人工批准后发送的测试观察。独立真实 Provider 结果仍 `NOT_TESTED`。
+
+
+### 最终 R3.2 源码隔离复核与自审
+
+- **SOURCE_IMPLEMENTED / ISOLATED_V8_SMOKE_PASS（33/33）**：重新载入最终 `src/model.js`、14 条 fixture、`trusted/multi-intent.js`、`trusted/local-test-runtime.js`、`trusted/host.js`、`trusted/ai-request.js`、`preview/index.html`，33 项纯业务及 JavaScript 解析检查全通过；包含原别名、退款时长歧义、来源隔离、删除知识、重复请求去重、隐式双话题拒绝、多轮草稿候选、所有运行文件 JS 可解析。实际来源 blob：路由 `82d4b49d194783e04844e36df78d757955e31378`、Runtime `50c5e68170ddd54ec9280b84367a300c2877f4d7`、Consumer `2228f1490904f99b47d087cc617015da57dce26f`、Host `02bdd31fdcb2292196c849bd0a4c13e9bde78c0c`、预览 `0e2cf55a777173893cd576ffdb1aaf81a5dbc169`；此项仅为源代码在工具 V8 中隔离运行，不是 Node/Browser PASS。
+- **Provider 分题来源行为（替身）**：实际 Shared Consumer 函数接受含知识 `qa_demo_payment` 的错误允许列表，在请求 Provider 前 `E_KB_REFERENCES`，传输 0 次；接收本题 `qa_demo_refund` 后仅外发该单一候选，得到 `REVIEW_REQUIRED` / `needsHuman=true`。真实 Provider 未调用。
+- **语义双问题 Runtime 替身行为**：「如何申请电子发票？我能在哪看物流？」分别使用原 Consumer 授权路径产生 `qa_demo_invoice` / `qa_demo_tracking` 的逐题结果，合成 `MULTI_REVIEW_REQUIRED` 单条建议；未审核发送 0 次，人工批准后原 Runtime 派发一次。独立 Provider 身份及真实 DOM 仍未验证。
+- **CI 状态**：针对新增测试的 GitHub App CI 已排队，最新已发现作业 [40299028923](https://github.com/shopable-ai/opendesk-browser/actions/runs/40299028923) 在查询时 `queued` 且 `conclusion=null`，不得标成 `NODE_PASS`。确认某次 run 绑定最终源码且实际成功才补充 evidence，若仍排队则本地 Codex 运行定向 Node。
+
+**六视角反方审查（内部源码审查，非外部专家认证）**：产品架构—还没有第三方站点适配；客服业务—单条混合消息已闭环但跨消息上下文/客户订单不可核实；AI/RAG—候选严格匹配旧模型并逐题限定，但自由表达仍靠人工审阅；浏览器安全—保留同一文档授权/暂停/只读核对，未有真实原生证据；前端 UX—开发按钮隔离，仍有沙箱历史「测试知识回答」字样；测试工程—新测试源码存在且源级 33/33，App CI/Chrome 尚未完成。
+
+| 九维度自评分（100 分制） | 源码审查暂评 |
+| --- | ---: |
+| 1. 原始业务目标覆盖 | 88 |
+| 2. 用户理解与信息架构 | 93 |
+| 3. 多问题拆分与中文语义 | 89 |
+| 4. 知识来源与事实边界 | 94 |
+| 5. 安全合成与人工审核 | 95 |
+| 6. 既有架构复用与去重 | 97 |
+| 7. 正式 UI/预览分隔 | 91 |
+| 8. 测试工程与实际证据 | 85 |
+| 9. 可维护性和正式站点扩展 | 91 |
+
+九维**内部源码审查算术平均 = (88+93+89+94+95+97+91+85+91)/9 = 91.4/100**，没有达到全部 95 的目标，不人为拔高。**真实产品验收综合：NOT_SCORED**，因为 Chrome/Provider/真实多站点仍未验证；这些暂评分绝不能被解读为实机验收或独立第三方认可。要达到目标，先完成未验收项、沙箱发行标题与更广泛中文对话语料，不应为数字而改报告。
+
