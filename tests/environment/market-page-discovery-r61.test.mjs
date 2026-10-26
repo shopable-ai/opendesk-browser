@@ -144,6 +144,24 @@ test('R6.1 existing React page owns the discovery UI; no alternate installer exi
 });
 
 
+test('R6.2 website discovery is available-only and absent from the global extensions menu',async()=>{
+  const center=await readFile('src/ui/extension-center.js','utf8');
+  const pageUI=await readFile('src/ui/react/tabs/tools.tsx','utf8');
+  const toolbar=pageUI.slice(pageUI.indexOf('export function ExtensionToolbar('),
+    pageUI.indexOf('export function ExtensionEmpty('));
+  assert(!toolbar.includes('extension-center-discover'),'global menu must not own the web discovery action');
+  assert.match(pageUI,/showWebDiscovery=toolbarModel\?\.scope==='available'/);
+  assert.match(pageUI,/toolbarModel\?\.kind!=='page'/);
+  assert.match(pageUI,/toolbarModel\?\.marketDiscoveryAvailable===true/);
+  assert.match(pageUI,/showEntry=\{showWebDiscovery\}/);
+  assert.match(pageUI,/id="extension-center-discover"/);
+  assert.match(center,/marketDiscoveryAvailable=channel\?\.enabled===true/);
+  assert.match(center,/void readDiscoveryChannel\(\)/);
+  assert.match(center,/error\?\.code==='E_DISCOVERY_MISSING'/);
+  assert.match(center,/state:'empty'/);
+});
+
+
 function marketListingClient(){
   const clientScript=null;
   const nodes=new Map(),sent=[],storage=new Map(),buttons=[],timers=new Map();
