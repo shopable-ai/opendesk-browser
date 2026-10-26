@@ -17,7 +17,7 @@ const ruleHelp={
 // This screen renders only metadata. Raw Cookie values stay in the trusted
 // controller/adapter and must never be passed to presentation props.
 export function CookieAccounts({
-  origin='',accounts=[],route='list',onRoute=()=>{},
+  origin='',accounts=[],currentAlias=null,route='list',onRoute=()=>{},
   configured=false,vaultReady=false,switchReady=false,autoRuntimeReady=false,
   busy=false,feedback=null,previewOnly=false,onUnlock,onLock,
   autoEnabled=false,autoRefresh=true,
@@ -265,6 +265,11 @@ export function CookieAccounts({
             onClick={commitInline}>{inline.kind==='delete'?'删除快照':'保存'}</button>
         </div>
       </div>}
+      {vaultReady&&accounts.length>0&&<div className="cookie-account-current" aria-label="当前账号状态">
+        <span className="cookie-account-avatar" aria-hidden="true">{String(accounts.find(item=>item.alias===currentAlias)?.displayName||'?').slice(0,1)}</span>
+        <div><small>当前账号</small><strong>{accounts.find(item=>item.alias===currentAlias)?.displayName||'尚未验证'}</strong>
+          <small>{currentAlias&&accounts.some(item=>item.alias===currentAlias)?'最近一次可信切换结果 · 非网页登录验证':'无法根据 Cookie 快照推断网站登录身份'}</small></div>
+      </div>}
       <label className="cookie-account-setting">
         <span><strong>切换后自动刷新网页</strong>
           <small>默认开启，确认写入及回读成功后才刷新</small></span>
@@ -278,7 +283,7 @@ export function CookieAccounts({
       {accounts.length>0&&<input className="od-field cookie-account-search"
         type="search" placeholder="搜索账号" aria-label="搜索账号"
         value={query} onChange={event=>setQuery(event.target.value)}/>}
-      {filtered.map(item=><article key={item.alias} className="cookie-account-card">
+      {filtered.map(item=><article key={item.alias} className={'cookie-account-card'+(item.alias===currentAlias?' is-current':'')}>
         <span className="cookie-account-avatar" aria-hidden="true">
           {String(item.displayName||'?').slice(0,1)}
         </span>
@@ -286,8 +291,8 @@ export function CookieAccounts({
           <strong>{item.displayName}</strong><small>{item.siteLabel||origin}</small>
         </div>
         <button type="button" className="od-button od-button--secondary"
-          disabled={busy||!switchReady||typeof onSwitch!=='function'}
-          onClick={()=>onSwitch?.(item)}>切换</button>
+          disabled={busy||!switchReady||typeof onSwitch!=='function'||item.alias===currentAlias}
+          onClick={()=>onSwitch?.(item)}>{item.alias===currentAlias?'已切换':'切换'}</button>
         <div className="cookie-account-menu-anchor">
           <button type="button" className="od-icon-button"
             disabled={busy||!vaultReady}
