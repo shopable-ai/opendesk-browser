@@ -122,7 +122,7 @@ test('R6.1 existing React page owns the discovery UI; no alternate installer exi
 function marketListingClient(){
   const clientScript=null;
   const nodes=new Map(),sent=[],storage=new Map(),buttons=[],timers=new Map();
-  let timerId=0;
+  let timerId=0,clock=Date.now();
   const node=()=>({textContent:'',disabled:false,hidden:false,dataset:{},listeners:{},
     addEventListener(type,fn){this.listeners[type]=fn;}});
   for(const selector of ['#connection-state','#connect-button','#open-review','#handoff-state',
@@ -148,9 +148,9 @@ function marketListingClient(){
     location:{origin},crypto:{randomUUID},
     sessionStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},
     setTimeout(fn){const id=++timerId;timers.set(id,fn);return id;},
-    clearTimeout(id){timers.delete(id);},JSON,Date,URL
+    clearTimeout(id){timers.delete(id);},JSON,Date:{now:()=>clock},URL
   };
-  return {nodes,sent,first,second,context};
+  return {nodes,sent,first,second,context,advance:(millis)=>{clock+=millis;}};
 }
 
 test('R6.1 multiple cards use distinct fixed intents; double-click has one in-flight request and retry is idempotent',async()=>{
@@ -191,4 +191,14 @@ test('R6.1 multiple cards use distinct fixed intents; double-click has one in-fl
   opens[2].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'REVIEW_OPENED',
     intentId:opens[2].message.intentId});
   await retry;
+  // R5's durable handoff expires at 30 minutes. An open homepage must
+  // not indefinitely replay an expired intent from its in-memory cache.
+  h.advance(31*60*1000);
+  const renewed=h.first.button.listeners.click();await tick();
+  opens=h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW');
+  assert.equal(opens.length,4);
+  assert.notEqual(opens[3].message.intentId,opens[0].message.intentId);
+  opens[3].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'REVIEW_OPENED',
+    intentId:opens[3].message.intentId});
+  await renewed;
 });
