@@ -65,3 +65,15 @@ export function scrollConfigForUrl(input,href){
   matches.sort((a,b)=>b.pathScope.length-a.pathScope.length);
   return matches[0]||null;
 }
+
+/** Exact site Origin + segment-boundary path prefix. No wildcard Origin,
+ * script grant, arbitrary JS or CSS-powered widening is possible here.
+ */
+export function scrollSiteInstallMatches(origin,scope='/'){
+  const site=urlOrigin(origin),path=pathScope(scope);
+  requireValue(!new URL(site).port,'E_CONFIG_SCOPE','按端口独立授权尚未支持；请输入无自定义端口的 Origin');
+  requireValue(!/[*?#\\\u0000-\u001f\u007f]/.test(path)&&
+    new URL(site+path).pathname===path,'E_CONFIG_SCOPE','网站路径不能包含通配符或隐式跳转');
+  if(path==='/')return [site+'/*'];
+  return [site+path,site+path+'?*',site+(path.endsWith('/')?path+'*':path+'/*')];
+}

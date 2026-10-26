@@ -10,7 +10,8 @@ import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
 import {loadBuiltinPageSource,loadPackagedOptionalPageLibraries} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
-import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
+import {pageInstallScope,pageInstallScopeDelta,pageHostPermissionOrigins,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
+import {buildScrollSiteUpgradePackage} from './scroll-site-upgrade.js';
 import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION,SCROLL_CONFIG_EMPTY,normalizeScrollConfig} from './scroll-config-contract.js';
 import {pageProgramUrlMatches} from './page-program-rules.js';
 import {PAGE_FRAME_ACTION} from './page-frame-runtime.js';
@@ -105,7 +106,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     await readNativeUserScripts(api);return api.userScripts;
   }
   async function requireSiteGrant(row){
-    if(await api.permissions.contains({origins:row.pageRules.matches})!==true)
+    if(await api.permissions.contains({origins:pageHostPermissionOrigins(row.pageRules.matches)})!==true)
       throw Object.assign(new FoundationError(PAGE_PERMISSION_ERROR,ACCESS_CHANGED),{pageAccessLost:true});
   }
   async function material(programId,revision){
@@ -298,7 +299,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
           approvedAt:delta.requiresConfirmation?clock.now():previous.authorization.approvedAt}};
       const epoch=permissionEpoch(row);
       const desired=await descriptor(row);
-      invariant(await api.permissions.contains({origins:desired.script.matches}),PAGE_PERMISSION_ERROR,'安装的网站范围尚未获得授权');
+      invariant(await api.permissions.contains({origins:pageHostPermissionOrigins(desired.script.matches)}),PAGE_PERMISSION_ERROR,'安装的网站范围尚未获得授权');
       // Chrome's User Scripts opt-in is a prerequisite, never a second
       // OpenDesk approval after "install success". Do not persist a new
       // active row until its native API is accessible. Disabled updates keep
@@ -425,7 +426,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       else{
         const epoch=permissionEpoch(row);
         const desired=await descriptor(row);
-        invariant(await api.permissions.contains({origins:desired.script.matches}),PAGE_PERMISSION_ERROR,'原网站权限已撤销');
+        invariant(await api.permissions.contains({origins:pageHostPermissionOrigins(desired.script.matches)}),PAGE_PERMISSION_ERROR,'原网站权限已撤销');
         await native.configureWorld({worldId:PAGE_BOOT_WORLD,csp:PAGE_WORLD_CSP,messaging:true});
         invariant(permissionEpoch(row)===epoch,PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
         if(!nativeEqual(existing[0],desired.script)){
@@ -466,7 +467,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       // Migrate only a proven existing DOM installation. Metadata, a candidate,
       // or an unverified legacy record cannot create a program authorization.
       await descriptor(row,{legacy:true});
-      const granted=await api.permissions.contains({origins:row.pageRules.matches});
+      const granted=await api.permissions.contains({origins:pageHostPermissionOrigins(row.pageRules.matches)});
       const status=!row.enabled?'disabled':granted&&row.nativeState==='registered'&&!row.error?'active':'suspended';
       authorization={tag:'page-install-authorization-v1',installationId:crypto.randomUUID(),generation:1,status,
         scope:pageInstallScope(row.pageRules,row.programId,row.revision),approvedAt:row.installedAt};
@@ -553,6 +554,44 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       // the shared Controller/Page slot; changing installations cannot free it.
       if(recovered?.receiptNonce&&contextGone)await admission.release({nonce:recovered.receiptNonce});
     }
+  }
+  // Read-only. New websites receive no authority until an independent
+  // user-clicked review installs the returned immutable Page package.
+  async function prepareScrollSitePackage(request,sender){
+    fields(request,['programId','expectedInstalledManifestHash','expectedGeneration','origin','pathScope']);
+    invariant(request.programId===SCROLL_CONFIG_PROGRAM_ID&&
+      typeof request.expectedInstalledManifestHash==='string'&&
+      Number.isSafeInteger(request.expectedGeneration),
+      'E_PAGE_AUTHORIZATION','站点申请须绑定已安装导航的身份与授权代数');
+    const row=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
+      key(INSTALL_KEY_KIND,namespace,SCROLL_CONFIG_PROGRAM_ID)));
+    invariant(row?.manifestHash===request.expectedInstalledManifestHash&&
+      row.authorization?.generation===request.expectedGeneration,
+      PAGE_REVISION_ERROR,'授权身份变化；请重新进入已安装应用详情');
+    assertPageInstallAuthorization(row);
+    invariant(active(row)&&row.nativeState==='registered'&&!row.error,
+      'E_PAGE_AUTHORIZATION','异常或停用的安装不能申请扩权');
+    const epoch=permissionEpoch(row);
+    await requireSiteGrant(row);
+    const desired=await descriptor(row);
+    const registered=await readNativeUserScripts(api,{ids:[row.nativeId]});
+    invariant(registered.length===1&&nativeEqual(registered[0],desired.script),
+      'E_PAGE_AUTHORIZATION','尚未确认 Chrome 原生注册内容');
+    const {candidate}=await material(row.programId,row.revision);
+    const rows=await scoped(sender,'readonly',tx=>tx.all(PAGE_STORE));
+    const revisions=rows.filter(item=>item?.tag==='page-candidate-v1'&&
+      item.namespace===namespace&&item.manifest?.programId===SCROLL_CONFIG_PROGRAM_ID)
+      .map(item=>item.manifest.revision);
+    const revision=1+Math.max(row.revision,...revisions);
+    const pkg=await buildScrollSiteUpgradePackage({installed:row,candidate,
+      origin:request.origin,pathScope:request.pathScope,revision});
+    const fresh=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
+      key(INSTALL_KEY_KIND,namespace,SCROLL_CONFIG_PROGRAM_ID)));
+    invariant(fresh?.token===row.token&&fresh.manifestHash===row.manifestHash&&
+      fresh.authorization?.generation===request.expectedGeneration&&
+      active(fresh)&&fresh.nativeState==='registered'&&!fresh.error&&
+      permissionEpoch(row)===epoch,'E_PAGE_AUTHORIZATION','候选生成期间授权已改变');
+    return pkg;
   }
   async function listPagePrograms(request,sender){
     fields(request,[]);
@@ -909,6 +948,6 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     }
     return {...response,receiptId};
   }
-  return Object.freeze({importPageInstallPackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
+  return Object.freeze({importPageInstallPackage,prepareScrollSitePackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
     listPagePrograms,runInstalledPageProgram,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
 }

@@ -5,6 +5,17 @@ import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION} from './scroll-conf
 // Installed Page v1 currently exposes only isolated DOM execution. Empty
 // network origins are intentional: a Chrome grant or public SDK never supplies
 // this program with HTTP, cookies, storage, Native or another program's rights.
+// Chrome host permissions are coarser than USER_SCRIPT path matches.
+// The trusted Page Authority continues to validate the reviewed native path.
+export function pageHostPermissionOrigins(matches){
+  invariant(Array.isArray(matches),'E_PAGE_MATCH','缺少待审阅的网站范围');
+  return [...new Set(matches.map(pattern=>{
+    invariant(typeof pattern==='string'&&pattern!=='<all_urls>'&&
+      /^(https?|\\*):\\/\\/[^/]+\\//.test(pattern),'E_PAGE_MATCH','需要 HTTP(S) 网站权限范围');
+    const [,scheme,authority]=/^(https?|\\*):\\/\\/([^/]+)\\//.exec(pattern);
+    return scheme+'://'+authority.replace(/:(?:\\*|[0-9]+)$/,'')+'/*';
+  }))];
+}
 export function pageInstallScope(pageRules,programId='',revision=0) {
   const config=programId===SCROLL_CONFIG_PROGRAM_ID&&revision>=SCROLL_CONFIG_MIN_REVISION;
   return {capabilities:config?['page.dom','page.config']:['page.dom'],
