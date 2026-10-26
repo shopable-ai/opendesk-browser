@@ -322,7 +322,9 @@ export async function runMarketR5Acceptance(d){
   await screenshot(first.review,'r5-trusted-review.png');
   const beforeTargets=(await targets()).filter(row=>row.url===first.reviewURL).length;
   await click(first.page,'.app-card:has(h2 a[href="/apps/opendesk/markdown-workbench/"]) [data-open-review]');
-  await until(()=>evaluate(first.page,'document.querySelector(".app-card:has(h2 a[href=\"/apps/opendesk/markdown-workbench/\"]) [data-handoff-state]")?.dataset.state==="success"'),'same homepage intent repeated');
+  await until(()=>evaluate(first.page,'document.querySelector('+
+    JSON.stringify('.app-card:has(h2 a[href="/apps/opendesk/markdown-workbench/"]) [data-handoff-state]')+
+    ')?.dataset.state==="success"'),'same homepage intent repeated');
   assert.equal((await targets()).filter(row=>row.url===first.reviewURL).length,beforeTargets);
   assert.equal((await intentRows()).find(row=>row.intentId===first.row.intentId).operationId,first.row.operationId);
   await close(first.page);await click(first.review,'[data-market-action="confirm-install"]');
