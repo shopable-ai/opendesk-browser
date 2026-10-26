@@ -1091,6 +1091,39 @@ test('answer tool group mounts idempotently at right, moves own host and unmount
 });
 
 
+test('Scroll navigation alone owns the outer DIL footer and keeps a peer across refresh/dispose',t=>{
+  const f=nativeMessages({assistant:true});
+  const footer=element({parent:f.pair,attributes:{class:'turn-action-controls'}});
+  footer.append(f.toolbar);
+  // The minimal DOM fixture recognizes attribute selectors; model the real
+  // browser's class-aware closest() for this one DIL footer contract.
+  const closest=f.toolbar.closest.bind(f.toolbar);
+  f.toolbar.closest=selector=>selector==='.turn-action-controls'?footer:closest(selector);
+  const owner=observerOwner();
+  const session=conversation.installJumpToTop({doc:f.doc,win:f.view,owner,
+    regionDirections:{top:true,bottom:true}});
+  t.after(()=>session.dispose());
+  const group=footer.querySelector('[data-opendesk-chatgpt-answer-tools]');
+  assert.ok(group,'scroll navigation independently created the background group');
+  assert.equal(group.parentElement,footer);
+  const host=group.querySelector('[data-opendesk-chatgpt-jump-top]');
+  assert.ok(host?.isConnected);
+  for(let i=0;i<4;i++){
+    session.refresh();
+    assert.equal(group.querySelector('[data-opendesk-chatgpt-jump-top]'),host,
+      'refresh must not repeatedly replace a host mounted outside the native inner row');
+  }
+  const mindmap=element({tag:'span',attributes:{'data-opendesk-chatgpt-mindmap':'button'}});
+  assert.equal(conversation.mountAnswerTool(footer,mindmap),group);
+  assert.deepEqual(group.children,[host,mindmap]);
+  session.dispose();
+  assert.equal(mindmap.parentElement,group);
+  assert.equal(group.isConnected,true);
+  conversation.unmountAnswerTool(mindmap);
+  assert.equal(group.isConnected,false);
+  assert.equal(f.toolbar.querySelectorAll('button').length,3,'native actions remain intact');
+});
+
 test('mindmap transition and uncertain mapping retain disabled controls and restore the same host', t => {
   const f = dilMindmapReply();
   const owner = observerOwner();
