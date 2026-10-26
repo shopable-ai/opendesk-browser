@@ -168,3 +168,30 @@
 - 独立业务：`src/view.js` 保留原蓝色入队按钮，仅将皇冠 SVG 换成 `pointer-events:none` 的装饰 span；桌面尺寸 38×29、-7°，触屏 44×33；未改队列引擎与网站交互。
 - `preview/index.html` 使用同一个真实 WebP 相对路径并提供角度/大小对比；单文件对话演示采用同一素材的内嵌 data URL，以保证不依赖仓库资源可打开。
 - 已验证：资源尺寸/格式与 `scripts/program-assets.mjs` 受控图片合同一致，WebP Git Blob SHA 匹配本地原始字节，预览 Chromium 离线运行与按钮入队模拟；正式程序打包、安装与真实 ChatGPT UI 仍 NOT_TESTED。原 Send Queue R4.3 引擎验收结论不升级。
+
+## R5.6 Mac 正式包与安装验收（2026-10-26，进行中）
+
+- Owner：Codex `01a17882-eb02-7512-a567-b4cd441e88ed`；状态 `STATIC_PASS / NATIVE_IN_PROGRESS`。写入限定 Send Queue 业务、定向测试、版本、正式包、其 CI、官方目录中的本程序条目及本记录，保留并行市场、计算接力与固定桥改动。
+- 初始 HEAD `642e3151abfa7ae6c90c5cc9662c73beacbbb119`；安全快进到 `40df7100cd8ea4331d509adc1f14092015ac77fa`。既有 R5.4/R5.5/R5.6 提交保留；相关源码、测试、资产与构建输入相对 CI `4638ca28d` 未变化。
+- CI [40328382041](https://github.com/shopable-ai/opendesk-browser/actions/runs/40328382041) 已完成 FAIL：源码检查、正式编译、包生成、异步完整性校验及上传产物均 success，只有提交正式包步骤 failure。未取得完整任务日志，不猜测该步骤的具体退出原因。复用历史 70/70 Node PASS 和此次源码检查 success，不重跑相同测试。
+- 原入口本地构建一次，完整 `await validatePageInstallPackage` 校验 PASS。正式包已普通提交并推送 `abfe0fcf9`：`opendesk.ai-send-queue`、`0.1.3/r2`，sourceHash `7cf33bc6461d3439c437d17a08049d311cf776bfbacbf04f68344ab5c930895c`，packageHash `75b69d303655a272724e48844286b858e51ebbc6e3881e10dbf5e636e791664c`。固定源码 88,796 bytes，网站范围仍仅 ChatGPT 顶层 USER_SCRIPT；旧身份包及 R5.4 皇冠资产未变化。
+- 有效历史同 ID r1 已保存在本轮忽略证据目录；不伪造历史升级包。原始证据根为 `artifacts/send-queue-r56-mac-final-01a17882/`。
+- 本轮使用独立提交源码快照 `source-snapshot/` 和静态 Developer 构建，guard 43247；不写共享 `dist/development`、不停止 watcher、不使用其他对话 Profile/页面。它不是持续开发 serve 或 production 宿主。首次误用仓库目录的构建被既有 owner 锁拒绝，未写共享输出，随即改正工作目录。
+- 新建独立本地 Chrome Profile，用户纠正后的显示名为 `test-chatgpt-profile`；真实路径 `/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-xjma6yw1/Profile 1`。CFT `154.0.8037.92`、PID `54791`，扩展 `ajjjgoapcaonglplhlnlfofmlemdakhk`、版本 `0.1.0`，实际加载上述 `source-snapshot/dist/development-developer`，无 serve 连接。`test-chatgpt-profile-version-ax.txt` 与 `test-chatgpt-profile-extension-ax.txt` 记录真实路径及状态。用户明确批准仅该 Profile 的用户脚本与安装升级，`native-userscripts-enabled-ax.txt` 已读回开关 on；该批准不包含真实发送。
+- r1 已经原生文件选择、安装审阅，UI 展示新 ID、`0.1.2/r1`、ChatGPT 顶层网站范围和两项完整哈希；证据 `test-chatgpt-profile-r1-review{.png,-ax.txt}`。该证据只到确认页，不证明安装成功。另一条市场任务同时操作相同 Profile，使 AX 索引及标签页互相变化；已停止争用，经用户明确授权发送协调消息，请其释放浏览器。没有用驱动异常判定产品 FAIL。
+
+### 独立复现失败与修复候选
+
+| 操作 | 预期 | 实际与结论 | 原始证据（均在本轮忽略目录） |
+| --- | --- | --- | --- |
+| 真实 engine/site 方法准备 A，模拟用户手动提交后普通恢复 | 不重复 A | r2 出现第二次提交，`FAIL`；修复后 unknown、恢复拒绝，仅保留一条手动提交，`PASS（隔离方法）` | `diagnostic-before.sh`、`diagnostic-before.stdout.txt`、`diagnostic-after.stdout.txt` |
+| Stop 后切换 route，虚拟时钟超过 12 秒 | unknown，允许核对后删除 | r2 一直 await-stop，`FAIL`；修复后超时先于 route/控件返回，unknown 锁定，`PASS（隔离方法）` | 上述诊断及 `engine-regression-{before,after}.log` |
+| input 事件保留正文并替换 editor，或写入后抛错，随后模拟手动发送与恢复 | 不把已尝试写入当成可重试 | 原分支存在重复风险，8 项回归失败；`mayHaveWritten` 修复后拒绝恢复、无额外 commit，`PASS（隔离方法）` | `engine-prepare-regression-{before,after}.log` |
+| 运行完整本工具 Node 与源声明/皇冠检查 | 全部通过且不改变站点或资产 | 最终 96/96、0 skip；语法、项目、皇冠同步通过，`PASS（Node/源码）` | `node-tests-final-r3.log`、`source-validation-final-r3.json`、`crown-sync-final-r3.log` |
+
+- 业务最小修复仅 `src/engine.js` 与 `src/site.js`：已准备/可能已写入的失败、异常及超时进入 unknown；Stop 超时不依赖当前页面可读；unknown 提示不被后续暂停覆盖。未改变精确用户/助手身份、原生点击次数合同、内存队列或站点权限。明确未尝试写入的失败仍允许显式恢复。
+- 首轮 engine 红转绿为 32/48 → 48/48；补齐 prepare 边界的 engine/site 红转绿为 68/76 → 76/76，最终完整队列 96/96。均为实际导入方法加内存 DOM/时钟，不是 ChatGPT 原生发送。此前 87/87 为中间输入，不替代最终 96/96。
+- 已提交 r2 字节与上述指纹保留在 `abfe0fcf9891df9e616eed33259b63bc72f08c3b`，不复写固定 r2。修复候选使用 `opendesk.ai-send-queue / 0.1.4 / r3`，89,428 bytes，sourceHash `804ec9067d83f9098d74a9db82ab5887ffd1a78c1411065dc024a032b4c7ec97`，packageHash `5aadca8bc7298bd73524c7dcba3f1e3168ac71ac9a20c30843eb5a26ea500fd7`。原构建器 production 源码逐字节等于安装包，完整 SHA-256 与 `await validatePageInstallPackage`、项目/目录身份和 pageRules 均通过，见 `package-validation-r3.json`；官方目录保持 `publication: blocked`。
+- 一份 prepare 复核前的临时候选已隔离为 `rejected-r3-prepare-gap.opendesk-page.json`，没有晋升、安装或提交。最终唯一正式路径仍为 `examples/programs/chatgpt-send-queue/ai-send-queue.opendesk-page.json`。旧身份 `opendesk.chatgpt-send-queue` 包、R5.4 CSS/WebP 均逐字节保持。
+- 独立 reviewer 对最终源码 delta 未发现可行动 P1/P2，见 `independent-review-1-4-final.md`；构建/原生证据 reviewer 见 `independent-review-5-8-before.md`。八项维度均为 `NOT_SCORED`，无充分同候选原生证据，不计算平均分。
+- 下一步：释放 Profile 后，从真实 r1 安装终态开始，同入口升级保留的 r2，再更新 r3，逐次核对 installationId 与指纹。真实消息发送尚未授权，所有入队与发送测试保持 `BLOCKED`；皇冠可见/热区、暂停队列交互、真实草稿/附件/IME、旧 ID 原生并存、重载/卸载资源释放均为 `NOT_TESTED`，不以 Node 或 active 字段冒充通过。

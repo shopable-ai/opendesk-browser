@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-examples/chatgpt-send-queue",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "type": "module",
   "description": "Conservative, memory-only ChatGPT Send Queue Page USER_SCRIPT",

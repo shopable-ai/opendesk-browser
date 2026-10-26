@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createQueueEngine} from '../src/engine.js';
+import {createChatGPTSite} from '../src/site.js';
 
 function fixture() {
   const state={now:0,route:'c/12345678-1234-1234-1234-123456789abc',
     busy:true,complete:false,answers:1,users:0,ack:false,clicks:0,
-    prepareCount:0,replyAllowed:true,replyChecks:[],failClick:false,failStop:false,stops:0,changed:false,draft:''};
+    prepareCount:0,commitCount:0,replyAllowed:true,replyChecks:[],failClick:false,failStop:false,stops:0,changed:false,draft:''};
   const userNodes=[],assistantNodes=[];
   const nodes=(cache,count)=>Array.from({length:count},(_,i)=>cache[i]??={id:i});
   const site={
@@ -23,6 +24,7 @@ function fixture() {
       }}};
     },
     commit:token=>{
+      state.commitCount++;
       state.clicks++;
       if(state.failClick)return {ok:false,stage:'after-click'};
       return {ok:true,before:token.before};
@@ -409,3 +411,181 @@ test('preflight rejects full, oversized and mismatched queues without mutating s
   assert.equal(engine.checkEnqueue('overflow',state.route).ok,false);
   assert.equal(engine.view().items.length,20);
 });
+
+// Every uncertain flight keeps its exact original text and closes all send
+// entries, including calls for a different queued item. Snapshot refreshes and
+// external pause notifications must not replace the manual-check instruction.
+function assertUnknownLocked(f,counts) {
+  const {engine,state,step}=f;
+  const unknown=engine.view();
+  assert.equal(unknown.phase,'unknown');
+  assert.equal(unknown.items.find(item=>item.id==='q1').state,'unknown');
+  assert.equal(unknown.items.find(item=>item.id==='q1').text,' A\u00a0\n');
+  assert.equal(unknown.inFlight.phase,'unknown');
+  assert.equal(unknown.paused,true);
+  assert.ok(unknown.reason);
+  for(const patch of [{changed:true},{changed:false,route:'c/elsewhere'},
+    {route:'c/12345678-1234-1234-1234-123456789abc',busy:true},{busy:false,draft:''}]) {
+    step(state.now+20000,patch);
+    engine.pause('snapshot or website notification');
+    assert.equal(engine.view().reason,unknown.reason);
+    assert.equal(engine.resume(),false);
+    for(const id of ['q1','q2']) {
+      assert.equal(engine.requestNow(id).ok,false);
+      assert.equal(engine.confirmForceStop(id),false);
+    }
+  }
+  assert.deepEqual([state.prepareCount,state.commitCount,state.stops],counts);
+  assert.equal(engine.remove('q1'),true,'manual website check precedes this deletion in the UI');
+  assert.equal(engine.view().paused,true);
+  assert.deepEqual(engine.view().items.map(item=>item.text),['B']);
+  step(state.now+20000);
+  step(state.now+20000);
+  assert.deepEqual([state.prepareCount,state.commitCount,state.stops],counts);
+}
+
+for(const issue of ['identity/draft changed','other reply started']) {
+  test(`prepared before-click rejection requires manual check (${issue})`,()=>{
+    const f=fixture();
+    f.engine.enqueue(' A\u00a0\n',f.state.route);
+    f.engine.enqueue('B',f.state.route);
+    f.step(100,{busy:false,complete:true});
+    f.step(1400);
+    f.site.commit=()=>{
+      f.state.commitCount++;
+      return {ok:false,stage:'before-click',reason:issue};
+    };
+    f.step(2100);
+    assertUnknownLocked(f,[1,1,0]);
+    assert.equal(f.state.clicks,0);
+  });
+}
+
+for(const unavailable of ['original page','navigation','editor']) {
+  for(const paused of [false,true]) {
+    const patch=unavailable==='navigation'?{route:'c/elsewhere'}:
+      unavailable==='editor'?{changed:true}:{};
+    test(`prepared timeout becomes unknown (${unavailable}, paused=${paused})`,()=>{
+      const f=fixture();
+      f.engine.enqueue(' A\u00a0\n',f.state.route);
+      f.engine.enqueue('B',f.state.route);
+      f.step(100,{busy:false,complete:true});
+      f.step(1400);
+      f.site.commit=()=>{f.state.commitCount++;return {ok:false,retry:true};};
+      f.step(1500);
+      if(paused)f.engine.pause();
+      if(unavailable!=='original page')f.step(2000,patch);
+      f.step(7401);
+      assertUnknownLocked(f,[1,1,0]);
+      assert.equal(f.state.clicks,0);
+    });
+    test(`stop timeout precedes snapshot early returns (${unavailable}, paused=${paused})`,()=>{
+      const f=fixture();
+      f.engine.enqueue(' A\u00a0\n',f.state.route);
+      f.engine.enqueue('B',f.state.route);
+      assert.equal(f.engine.confirmForceStop('q1'),true);
+      if(paused)f.engine.pause();
+      f.step(100,patch);
+      f.step(12001);
+      assertUnknownLocked(f,[0,0,1]);
+      assert.equal(f.state.clicks,0);
+    });
+  }
+}
+
+test('prepare failure proven before clicking retains explicit resume behavior',()=>{
+  const f=fixture();
+  f.engine.enqueue(' A\u00a0\n',f.state.route);
+  f.site.prepare=()=>{f.state.prepareCount++;return {ok:false,reason:'no write, no click'};};
+  f.step(100,{busy:false,complete:true});
+  f.step(1400);
+  assert.equal(f.engine.view().phase,'failed');
+  assert.equal(f.engine.view().inFlight,null);
+  assert.equal(f.engine.view().items[0].text,' A\u00a0\n');
+  assert.equal(f.engine.resume(),true);
+  assert.equal(f.state.commitCount,0);
+  assert.equal(f.state.clicks,0);
+});
+
+test('unknown send failure keeps its instruction across unavailable snapshots',()=>{
+  const f=fixture();
+  f.engine.enqueue(' A\u00a0\n',f.state.route);
+  f.engine.enqueue('B',f.state.route);
+  f.step(100,{busy:false,complete:true});
+  f.step(1400);
+  f.step(2100,{failClick:true});
+  assertUnknownLocked(f,[1,1,0]);
+  assert.equal(f.state.clicks,1);
+});
+
+// Uses the unchanged real site.prepare/commit methods with an offline DOM
+// double. The manual website send occurs between those two engine polls.
+// This is adapter/engine evidence, never a real ChatGPT send.
+test('real adapter manual send after prepare never permits a second prepare or commit',()=>{
+  let now=0,prepareCount=0,commitCount=0,stops=0,clicks=0;
+  const users=[],text=' A\u00a0\n';
+  class Textarea {
+    constructor(){this.current='';this.tagName='TEXTAREA';this.isConnected=true;}
+    get value(){return this.current;}
+    set value(value){this.current=value;}
+    closest(selector){return selector==='form'?form:null;}
+    getAttribute(){return null;}
+    querySelector(){return null;}
+    getClientRects(){return [{}];}
+    focus(){}
+    dispatchEvent(){}
+  }
+  const editor=new Textarea();
+  const send={isConnected:true,disabled:false,closest:()=>null,getClientRects:()=>[{}],
+    getAttribute:name=>name==='data-testid'?'send-button':null,matches:()=>false,
+    click:()=>{clicks++;users.push({parentElement:null,querySelector:()=>null,innerText:editor.value});editor.value='';}};
+  const form={isConnected:true,hasAttribute:()=>false,querySelectorAll:()=>[send],querySelector:()=>null};
+  const win={location:{origin:'https://chatgpt.com',pathname:'/c/12345678'},
+    getComputedStyle:()=>({display:'block',visibility:'visible'}),HTMLTextAreaElement:Textarea,InputEvent:class {}};
+  win.top=win;
+  const doc={querySelectorAll:selector=>selector.startsWith('#prompt-textarea')?[editor]:
+    selector.startsWith('[data-message-author-role="user"]')?users:[]};
+  const adapter=createChatGPTSite({doc,win});
+  const site={...adapter,
+    prepare:(...args)=>{prepareCount++;return adapter.prepare(...args);},
+    commit:(...args)=>{commitCount++;const result=adapter.commit(...args);assert.equal(result.stage,'before-click');return result;},
+    stop:(...args)=>{stops++;return adapter.stop(...args);}};
+  const engine=createQueueEngine({site,clock:()=>now});
+  const step=t=>{now=t;engine.tick();};
+  engine.enqueue(text,site.inspect().route);
+  engine.enqueue('B',site.inspect().route);
+  step(100);step(1400);
+  assert.equal(editor.value,text);
+  send.click(); // The user's native send, not an engine action.
+  assert.equal(users[0].innerText,text);
+  step(2100);
+  assert.equal(engine.view().phase,'unknown');
+  assert.equal(engine.view().items[0].text,text);
+  assert.equal(engine.resume(),false);
+  assert.equal(engine.requestNow('q1').ok,false);
+  assert.equal(engine.confirmForceStop('q1'),false);
+  step(20000);step(22000);
+  assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,1,0,1]);
+  assert.equal(engine.remove('q1'),true);
+  step(24000);step(26000);
+  assert.equal(engine.view().paused,true);
+  assert.deepEqual([prepareCount,commitCount,stops,clicks],[1,1,0,1]);
+});
+
+for(const failure of ['mayHaveWritten','throw']) {
+  test(`uncertain prepare failure locks every send entry (${failure})`,()=>{
+    const f=fixture();
+    f.engine.enqueue(' A\u00a0\n',f.state.route);
+    f.engine.enqueue('B',f.state.route);
+    f.site.prepare=()=>{
+      f.state.prepareCount++;
+      f.state.draft=' A\u00a0\n';
+      if(failure==='throw')throw new Error('write cannot be excluded');
+      return {ok:false,mayHaveWritten:true,reason:'prepare may have written'};
+    };
+    f.step(100,{busy:false,complete:true});
+    f.step(1400);
+    assertUnknownLocked(f,[1,0,0]);
+    assert.equal(f.state.clicks,0);
+  });
+}

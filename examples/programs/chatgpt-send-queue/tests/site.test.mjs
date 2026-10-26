@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createChatGPTSite} from '../src/site.js';
+import {createQueueEngine} from '../src/engine.js';
 
 // Adapter contract tests only. These stubs do not prove ChatGPT selectors or
 // React input acceptance; those require the live USER_SCRIPT run.
@@ -23,7 +24,7 @@ function fixture() {
   const send={isConnected:true,disabled:false,
     closest:()=>null,getClientRects:()=>[{}],
     getAttribute:name=>name==='data-testid'?'send-button':null,
-    matches:()=>false,click:()=>state.clicks++};
+    matches:()=>false,click:()=>{state.clicks++;state.onSend?.();}};
   const form={isConnected:true,hasAttribute:()=>!!state.occupied,
     querySelectorAll:()=>[send],querySelector:()=>null};
   const win={location:{origin:'https://chatgpt.com',pathname:'/c/12345678'},
@@ -33,7 +34,7 @@ function fixture() {
   const doc={querySelectorAll:selector=>selector.startsWith('#prompt-textarea')?[activeEditor]:
     selector.startsWith('[data-message-author-role="user"]')?state.users:[]};
   const site=createChatGPTSite({doc,win,isComposing:()=>!!state.composing});
-  return {site,state,editor,replaceEditor};
+  return {site,state,editor,replaceEditor,send};
 }
 
 test('prepare preserves whitespace-only native drafts without writing or clicking',()=>{
@@ -217,4 +218,117 @@ test('input event throw after native clear preserves recovery text',()=>{
   const result=site.clearForQueue(site.inspect());
   assert.equal(result.ok,false);assert.equal(result.needsRecovery,true);
   assert.equal(result.text,'original payload');
+});
+
+for(const failure of ['replacement','lossy write','input exception']) {
+  test(`prepare reports possible writes after setDraft (${failure})`,()=>{
+    const {site,state,replaceEditor}=fixture();
+    const text=' A\u00a0\n';
+    if(failure==='replacement')state.onInput=editor=>replaceEditor(editor.value);
+    if(failure==='lossy write')state.write=value=>value.trim();
+    if(failure==='input exception')state.onInput=()=>{throw new Error('input handler failed after write');};
+    const result=site.prepare(text,site.inspect());
+    assert.equal(result.ok,false);
+    assert.equal(result.mayHaveWritten,true);
+    assert.equal(state.clicks,0);
+    if(failure!=='lossy write')assert.equal(site.inspect().draft,text);
+  });
+}
+
+test('prepare preflight rejection explicitly proves that no write was attempted',()=>{
+  const {site,state,editor}=fixture();
+  const snapshot=site.inspect();
+  editor.current='website restored draft';
+  let writes=0;
+  state.write=value=>{writes++;return value;};
+  const result=site.prepare(' A\u00a0\n',snapshot);
+  assert.equal(result.ok,false);
+  assert.equal(result.mayHaveWritten,false);
+  assert.equal(writes,0);
+  assert.equal(editor.value,'website restored draft');
+  assert.equal(state.clicks,0);
+});
+
+for(const failure of ['replacement','input exception']) {
+  test(`real prepare ${failure} followed by manual send cannot duplicate the message`,t=>{
+    const f=fixture(),text=' A\u00a0\n';
+    let now=0,prepares=0,commits=0,stops=0;
+    const prepareResults=[];
+    f.state.onInput=editor=>{
+      // Simulate the website's synchronous input handler after native write.
+      // Only the first attempt changes the editor, so an unsafe resume would
+      // allow an otherwise normal second prepare/commit to submit a duplicate.
+      f.state.onInput=()=>{};
+      if(failure==='replacement')f.replaceEditor(editor.value);
+      else throw new Error('input handler failed after write');
+    };
+    f.state.onSend=()=>{
+      const editor=f.site.inspect().editor;
+      f.state.users.push({parentElement:null,querySelector:()=>null,innerText:editor.value});
+      editor.current='';
+    };
+    const site={...f.site,
+      prepare:(...args)=>{
+        prepares++;
+        try {
+          const result=f.site.prepare(...args);
+          prepareResults.push({ok:result.ok,mayHaveWritten:result.mayHaveWritten,reason:result.reason});
+          return result;
+        } catch(error) {prepareResults.push({threw:true});throw error;}
+      },
+      commit:(...args)=>{commits++;return f.site.commit(...args);},
+      stop:(...args)=>{stops++;return f.site.stop(...args);}};
+    const engine=createQueueEngine({site,clock:()=>now});
+    const step=value=>{now=value;engine.tick();};
+    engine.enqueue(text,site.inspect().route);
+    engine.enqueue('B',site.inspect().route);
+    step(100);step(1400);
+    assert.equal(site.inspect().draft,text);
+    assert.equal(f.state.clicks,0);
+    const phaseAfterPrepare=engine.view().phase;
+    f.send.click(); // Offline user action after the real prepare returned.
+    assert.equal(f.state.users[0].innerText,text);
+    const resumed=engine.resume();
+    step(1500);step(2700);step(2800);
+    t.diagnostic(JSON.stringify({failure,prepareResults,phaseAfterPrepare,resumed,
+      prepares,commits,stops,clicks:f.state.clicks,submissions:f.state.users.map(node=>node.innerText)}));
+    assert.equal(resumed,false);
+    assert.equal(prepareResults[0].ok,false);
+    assert.equal(prepareResults[0].mayHaveWritten,true);
+    assert.equal(engine.view().phase,'unknown');
+    assert.equal(engine.view().items[0].text,text);
+    const reason=engine.view().reason;
+    for(const id of ['q1','q2']) {
+      assert.equal(engine.requestNow(id).ok,false);
+      assert.equal(engine.confirmForceStop(id),false);
+    }
+    engine.pause('external snapshot notification');
+    step(20000);step(22000);
+    assert.equal(engine.view().reason,reason);
+    assert.deepEqual([prepares,commits,stops,f.state.clicks],[1,0,0,1]);
+    assert.equal(engine.remove('q1'),true,'manual website check precedes deletion');
+    step(24000);step(26000);
+    assert.equal(engine.view().paused,true);
+    assert.deepEqual(engine.view().items.map(item=>item.text),['B']);
+    assert.deepEqual([prepares,commits,stops,f.state.clicks],[1,0,0,1]);
+  });
+}
+
+test('real prepare preflight failure keeps the engine failed and explicitly recoverable',()=>{
+  const f=fixture();
+  let now=0;
+  f.state.occupied=false;
+  const site={...f.site,prepare:(...args)=>{
+    f.state.occupied=true; // A website claim appears between poll and preflight.
+    return f.site.prepare(...args);
+  }};
+  const engine=createQueueEngine({site,clock:()=>now});
+  engine.enqueue(' A\u00a0\n',site.inspect().route);
+  engine.tick();now=1200;engine.tick();
+  assert.equal(engine.view().phase,'failed');
+  assert.equal(engine.view().inFlight,null);
+  assert.equal(f.editor.value,'');
+  assert.equal(f.state.clicks,0);
+  f.state.occupied=false;
+  assert.equal(engine.resume(),true);
 });

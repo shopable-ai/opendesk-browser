@@ -15,6 +15,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   function view(){return {...state,items:items.map(item=>({...item})),
     inFlight:state.inFlight?{id:state.inFlight.item.id,phase:state.inFlight.phase}:null};}
   function pause(reason='已暂停') {
+    if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
     if(state.paused && state.reason===reason)return;
     state.paused=true;state.reason=reason;emit();
   }
@@ -103,14 +104,29 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     emit();
     let prepared;
     try{prepared=site.prepare(item.text,snap);}
-    catch{failBeforeClick(item,'准备原生消息时出错，未执行点击');return;}
-    if(!prepared?.ok){failBeforeClick(item,prepared?.reason);return;}
+    catch{markUnknown('准备原生消息时出错，可能已填入；请核对原对话和草稿后删除该条');return;}
+    if(!prepared?.ok){
+      if(prepared?.mayHaveWritten){
+        markUnknown((prepared.reason?prepared.reason+'；':'')+'可能已填入，请核对原对话和草稿后删除该条');return;
+      }
+      failBeforeClick(item,prepared?.reason);return;
+    }
     state.inFlight={item,phase:'await-native-ready',started:clock(),token:prepared.token};
     emit();
   }
   function tick() {
     if(!items.length && !state.answerGate)return;
-    const snap=site.inspect(),t=clock();
+    if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
+    const t=clock();
+    // These deadlines survive pause, navigation and loss of the composer.
+    // Once prepared, the user may have sent the draft outside this engine.
+    if(state.inFlight?.phase==='await-stop' && t-state.inFlight.started>STOP_MS){
+      markUnknown('停止结果未知，请核对原对话后删除该条；消息未自动重发');return;
+    }
+    if(state.inFlight?.phase==='await-native-ready' && t-state.inFlight.started>6000){
+      markUnknown('填入后的发送状态未知，请核对原对话和草稿后删除该条');return;
+    }
+    const snap=site.inspect();
     // Lost page access cannot turn an already-clicked send into an unsent item.
     if(state.inFlight?.phase==='await-confirm' &&
       (!snap.ok || snap.route!==state.route) && t-state.inFlight.started>ACK_MS){
@@ -119,7 +135,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if(!snap.ok){pause(snap.reason||'原生控件暂不可用');return;}
     if(state.route && snap.route!==state.route){pause('已切换对话，队列不会跨会话发送');return;}
     if(state.inFlight?.phase==='await-stop') {
-      if(t-state.inFlight.started>STOP_MS){markUnknown('停止结果未知，消息未自动重发');return;}
       if(snap.busy||!snap.idle){idleSince=null;return;}
       if(idleSince===null)idleSince=t;
       if(t-idleSince<IDLE_MS)return;
@@ -129,10 +144,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     }
     if(state.inFlight?.phase==='await-native-ready') {
       const flight=state.inFlight;
-      if(t-flight.started>6000){
-        failBeforeClick(flight.item,'网页发送按钮没有就绪，内容留在原生输入框');
-        return;
-      }
       if(state.paused)return;
       let result;
       try{result=site.commit(flight.token);}
@@ -140,7 +151,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       if(result?.retry)return;
       if(!result?.ok){
         if(result?.stage==='after-click'){markUnknown('网站可能已发送，请手动核对后删除该条');return;}
-        failBeforeClick(flight.item,result?.reason);return;
+        markUnknown((result?.reason?result.reason+'；':'')+'填入后的发送状态未知，请核对原对话后删除该条');return;
       }
       state.inFlight={item:flight.item,phase:'await-confirm',started:t,before:result.before};
       emit();return;
@@ -161,7 +172,6 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       }
       return;
     }
-    if(state.phase==='unknown' || state.inFlight?.phase==='unknown')return;
     if(state.answerGate) {
       state.answerGate.sawBusy ||= snap.busy;
       if(snap.busy || !snap.idle || !snap.answerComplete ||

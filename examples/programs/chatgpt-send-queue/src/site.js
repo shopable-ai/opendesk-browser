@@ -176,14 +176,21 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     if(!initial?.ok || !fresh.ok || fresh.route!==initial.route ||
       fresh.form!==initial.form || fresh.editor!==initial.editor ||
       !fresh.idle || fresh.rich || fresh.draft!=='')
-      return {ok:false,reason:'会话、输入框或原生草稿已改变'};
+      return {ok:false,mayHaveWritten:false,reason:'会话、输入框或原生草稿已改变'};
     const before={users:fresh.users,assistants:fresh.assistants,
       assistantCount:fresh.assistants.length,route:fresh.route};
-    if(!setDraft(fresh.editor,text,fresh))return {ok:false,reason:'网页编辑器未接收待发内容'};
-    const filled=inspect();
-    if(!filled.ok || filled.route!==before.route || filled.form!==fresh.form ||
-      filled.editor!==fresh.editor || filled.draft!==text || filled.rich)
-      return {ok:false,reason:'填入内容后网页编辑器身份或草稿变化'};
+    // Once setDraft is attempted, a false result or throwing website handler
+    // cannot prove that the user has not received (and manually sent) the text.
+    try {
+      if(!setDraft(fresh.editor,text,fresh))
+        return {ok:false,mayHaveWritten:true,reason:'网页编辑器未确认完整接收待发内容'};
+      const filled=inspect();
+      if(!filled.ok || filled.route!==before.route || filled.form!==fresh.form ||
+        filled.editor!==fresh.editor || filled.draft!==text || filled.rich)
+        return {ok:false,mayHaveWritten:true,reason:'填入内容后网页编辑器身份或草稿变化'};
+    } catch {
+      return {ok:false,mayHaveWritten:true,reason:'准备原生消息时出错，草稿写入结果未知'};
+    }
     return {ok:true,token:{route:before.route,form:fresh.form,editor:fresh.editor,
       text,before}};
   }
