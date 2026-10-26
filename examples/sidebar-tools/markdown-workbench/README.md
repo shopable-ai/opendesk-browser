@@ -1,6 +1,6 @@
 # Markdown 工作台
 
-工具 ID：`markdown-workbench`。当前配置版本以 [tool.config.json](tool.config.json) 为准（本轮源码核查为 `1.0.5`）。这是离线 Markdown 编辑器，不自动保存到本机文件或云端；正式权限只有 `user.export`。
+工具 ID：`markdown-workbench`。当前配置版本以 [tool.config.json](tool.config.json) 为准（本轮 GitHub 核查时配置为 `1.0.6`；后续以配置和经过校验的正式包为准）。这是离线 Markdown 编辑器，不自动保存到本机文件或云端；正式权限只有 `user.export`。
 
 ## 使用
 
@@ -19,7 +19,7 @@
 npm run build:sidebar-tool -- examples/sidebar-tools/markdown-workbench
 ```
 
-官方 Catalog 从此目录源码构建 `dist/production/official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json`；目录不维护生成包副本。已安装工具须按真实版本、来源、摘要和用户审阅执行原位更新；仅提交源码不代表安装包已经更新。
+工具目录保留唯一正式安装包 `markdown-workbench.opendesk-tool.json`。正式交付须先生成候选并运行定向测试，再通过现有 `--promote-from` 晋升并执行 `--check-project`，不能手动编辑安装包。官方 Catalog 使用经过核验的同源版本。已安装工具须按真实版本、来源、摘要和用户审阅原位更新；仅提交源码不代表安装包已经更新。
 
 ## 同源离线交互预览（R1.0）
 
