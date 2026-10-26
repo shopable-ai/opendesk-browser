@@ -128,8 +128,12 @@ export function planCustomerMessage(model,lib,{question,scope=''}={}){
       return reviewPart(part,'HUMAN_REQUIRED','BUSINESS_API_REQUIRED');
     if(ambiguousRefund.test(part)&&refundDuration.test(part)&&!refundQualifier.test(part))
       return reviewPart(part,'CLARIFICATION_REQUIRED','REFUND_TIME_AMBIGUOUS');
-    // No high-confidence parsing across a conjoined, underspecified request.
-    if(/(?:退款|退货).*(?:和|以及).*(?:发货|物流)|(?:发货|物流).*(?:和|以及).*(?:退款|退货)/u.test(part))
+    // An unseparated sentence can contain multiple intents without a "?".
+    // Refuse to turn such a sentence into one supposedly grounded RAG answer.
+    const refundTopic=/(?:退款|退货)/u.test(part);
+    const shippingTopic=/(?:发货|物流|快递)/u.test(part);
+    const mixedRefundStages=refundTopic&&/(?:申请|期限)/u.test(part)&&/(?:审核|到账|退回)/u.test(part);
+    if((refundTopic&&shippingTopic)||mixedRefundStages)
       return reviewPart(part,'CLARIFICATION_REQUIRED','INTENT_BOUNDARY_UNCERTAIN');
     const found=sourceCandidates(library,part,scope,model.lookup(library,{question:part,scope}));
     return {question:part,status:found.status,answer:found.answer||'',
