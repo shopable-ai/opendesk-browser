@@ -34,10 +34,37 @@
 | 固定本地 DOM 自动客服 | IMPLEMENTED，NATIVE_E2E_NOT_TESTED | 原 Adapter/Runtime 已有功能；真实监听、唯一客服回执没有近期授权环境证明 |
 | 真实 Shared Provider 与 AI 草稿 | IMPLEMENTED，NATIVE_PROVIDER_NOT_TESTED | Node fake 测试与真实 Provider 必须分开 |
 | 原 UNKNOWN 发送保护 | ALREADY_DONE，历史 Node PASS | 旧 Runtime 的禁重试和暂停/去重证据可复用 |
-| R3.1 UNKNOWN 只读恢复 | SOURCE_CHANGED，TEST_NOT_RUN | 不擅自引用旧 R1.5 测试作为新增覆盖 PASS |
+| R3.1 UNKNOWN 只读恢复 | CI_NODE_PASS（4/4 新增）／NATIVE_NOT_TESTED | 原 GitHub App CI 158/158 包含新增定向测试；真实网站不借用该结论 |
 | 同源 HTTP 知识预览 | ALREADY_DONE，R3.1_NOT_TESTED | 43112 启动后在本地浏览器访问；不等于 Browser 可信侧栏 |
 | 正式包与安装身份 | 0.1.5 旧证据；本轮 NOT_TESTED | 未改变沙箱业务包，不应因 Trusted 变化无依据修改 JSON |
 | 用户已批准的真实第三方客服网站 | BLOCKED_NO_TARGET | 需完成本地 fixture 的可信真实闭环后再对具体站点另行授权 |
+
+
+## R3.1 CI 真正执行的结果与源码绑定
+
+首次源码提交 `6a91458bb61e732cee7f8c8e52ef33f92226c50e` 包含只读核对；后续提交 `29caf7d45f2b5c2b743338ef6749ea9913d16eb6` 仅增加 `app.ci.json`，让原 `scripts/app-ci.mjs` 自动发现六份业务 Node 测试。没有新增 workflow、Host、Provider 或 SDK。
+
+GitHub Actions `OpenDesk App CI`：[run 40284151167](https://github.com/shopable-ai/opendesk-browser/actions/runs/40284151167)，`app-validate (ai-knowledge-answers)` job **`121443898437`** 读取并构建准确提交 `29caf7d`：
+
+- `node scripts/app-ci.mjs node "ai-knowledge-answers"` 实际结果：**158/158 PASS，0 FAIL**。其中新增 R3.1 四项均是 GitHub 原始 job 日志的独立 `ok`（序号 113–116），分别覆盖真实点击后丢失回执、无/多回执和暂停、真实 UI 点击边界、同一 Runtime/Host/JSX 所有权。
+- 候选构建：`0.1.5`，`57,435` 字节，SHA-256 `e65e942b7715c0801e93f784a7923f4f0a814a076f39aeb31a89a3e6ebb4bc36`；输出 `CANDIDATE_SOURCE_IDENTICAL`。这证明候选与被测源码同源，但不是正式晋升安装或真实浏览器运行。
+- 该 App profile `kind=ui`，本轮 Chrome/browser 和 macOS Native 步骤未要求、未执行；fake Chrome/Provider 的 Node 结果不可改写为真实 Provider 或 DOM E2E PASS。其他并行工作流失败需按各自源头核查，不替代本产品已执行的 job。
+
+## 九个独立质量维度（基于现有证据的工程评估，不冒充外部专家认证）
+
+| 维度 | /100 | 扣分与依据 |
+| --- | ---: | --- |
+| 功能完整性 | 74 | 知识管理较成熟，真实第三方网站与正式自动客服上线未完成 |
+| 客服业务闭环 | 56 | 本地固定链已实现，缺真实可信监听、人工发送和唯一 DOM 回执 |
+| 知识事实安全 | 86 | 来源与数字规则、固定范围、人工审核已实现；真实语义边界待测 |
+| 自动发送可靠性 | 82 | 定向去重、ETag、批准固定答案和 UNKNOWN 只读核对有 Node 证据；原生尚缺 |
+| 用户体验 | 84 | 管理页有历史 Chrome 操作证据；可信客服操作和全宽实际使用未验收 |
+| 架构复用 | 96 | 沿用原 Host、Consumer、Runtime、Adapter 和 App CI，未增第二套 |
+| 异常恢复 | 88 | 暂停、撤权、并发、迟到结果、UNKNOWN 只读核对有 Node 证据；真实中断尚缺 |
+| 测试证据 | 81 | 此次 158/158 Node 与历史管理界面 CFT PASS，真实 Provider/DOM 无结果 |
+| 可维护性 | 93 | README 可独立启动、状态台账、复用 App CI，仍需 Native 与站点合同 |
+
+算术平均：`(74+56+86+82+84+96+88+81+93) / 9 = 82.22/100`。产品尚未达到所有维度 ≥95；尤其真实客服闭环缺少 Native E2E 和实际 Provider 回执，不能靠 Node 分数推高。下一条真正增量是**在合法 Mac Chrome 入口复核正式安装/可信代码 → 新客户消息 → 真实固定答案发送和回执 → UNKNOWN 只读恢复 → 真实 Shared Provider 草稿及人工发送**，已通过的源码和 Node 不重复开发。
 
 ## 本地 Codex 的最短剩余增量（非重复开发）
 

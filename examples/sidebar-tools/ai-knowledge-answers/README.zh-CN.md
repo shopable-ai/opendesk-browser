@@ -16,6 +16,7 @@
 | 真实客户端业务接线 | `trusted/ai-request.js`、`local-test-runtime.js`、`local-test-adapter.js` | 现有 Shared Provider、固定端口/文档 DOM、去重与只读回执 |
 | 客服模拟网页 | `examples/tasks/ai-knowledge-chat-demo.html`、`.js`、`.css` | 独立客户消息和客服 DOM 发送表单；网页本身**不生成客服答案** |
 | 示例知识及用例 | `fixtures/sample-knowledge.json`、`sample-knowledge.csv`、`answer-test-cases.json` | 14 条虚构知识、52 个场景，不代表真实商家政策 |
+| 自动化测试接入 | `examples/sidebar-tools/ai-knowledge-answers/app.ci.json` | 直接复用仓库既有 App CI，每次定向提交运行知识、Host、Provider 与客服 Runtime 测试 |
 | 本轮状态及证据边界 | `docs/framework/workstreams/ai-knowledge-answers-r31-20261026.md` | 已有能力、增量改动、未验证项与下一条真实操作 |
 
 ### 启动两个互相独立的网页（Mac，仓库根目录）
@@ -59,8 +60,10 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 ### 已完成与尚未证明的测试
 
 - **历史真实 Mac CFT 核心 PASS（`0.1.5`）**：通过原安装/升级流程，知识新建、保存读回、编辑、关闭重开侧栏后仍可查询；该证据仅覆盖知识管理，并非本轮浏览器重新验收。
-- **历史 Node/fake Chrome/fake Provider PASS**：见 `R1.5-LOCAL` 文档的 24/24 Runtime、34/34 Host/Provider、16/16 共享夹具。修改后的 R3.1 新增 UNKNOWN 只读核对定向测试必须另行运行，不继承旧 PASS。
-- **R3.1 当前新增源码**：只读复核实现、可信 UI 操作和定向回归；本轮如果只通过 GitHub 写入，不得标记 Node、HTTP 浏览器、真实 Chrome、真实 Shared Provider、真实 DOM 回执 PASS。
+- **历史 Node/fake Chrome/fake Provider PASS**：见 `R1.5-LOCAL` 文档的 24/24 Runtime、34/34 Host/Provider、16/16 共享夹具，均不代替本轮回归或真实 DOM。
+- **R3.1 新增 Node 回归已真实执行通过**：GitHub App CI 基于源码提交 `29caf7d45f2b5c2b743338ef6749ea9913d16eb6`，`app-validate (ai-knowledge-answers)` job `121443898437` 为 **158/158 PASS、0 FAIL**，其中 4/4 新增 `R3.1` 用例 PASS。运行地址：https://github.com/shopable-ai/opendesk-browser/actions/runs/40284151167 。测试使用 fake Chrome/Provider，不能计为真实客服 DOM 发送或 Shared Provider。
+- **同源正式候选来源校验通过（CI，仅 Node）**：0.1.5、57,435 字节、SHA-256 `e65e942b7715c0801e93f784a7923f4f0a814a076f39aeb31a89a3e6ebb4bc36`，状态 `CANDIDATE_SOURCE_IDENTICAL`；未由本轮重新安装/升级正式 Chrome，也没有声称 Browser trusted 代码获运行验证。
+- **本轮仍未实测**：HTTP 43112 预览操作、真实 Chrome 可信监听/只读恢复/DOM 发送、真实 Shared Provider 与用户批准的第三方客服网站；均为 `NOT_TESTED`，不以本次 Node 158 PASS 补齐。
 - **未完成**：本轮真实已安装工具中的监听→固定回执→真实 Provider→人工审核→网页确认，三方真实网站适配（须先有用户批准的目标站点及 DOM 契约），以及 production 安装/撤权/原生异常全矩阵。
 - **不混淆发行身份**：`trusted/` 改动属于 Browser 内静态编译业务，不应手工修改现有 0.1.5 Sidebar Tool JSON 或冒充包版本升级；部署之前按唯一 Browser 构建和官方 admission 验证新可信代码真正被加载。
 
