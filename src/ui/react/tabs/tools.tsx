@@ -409,34 +409,34 @@ export function ExtensionRowMenu({items=[],model=null}){
 export function ExtensionDiscovery({model,onDiscover,showEntry=false}){
   if(!model&&!showEntry)return null;
   const found=model?.state==='found';
-  return <section id="extension-center-discovery" className="ec-discovery" aria-label="当前网页安装发现">
-    {model?<React.Fragment>
-      <div className="ec-discovery-copy">
-        <strong>{found?model.title+' · v'+model.version:model.state==='loading'?'正在检测当前网页':'当前网页安装入口'}</strong>
-        {found&&model.origin&&<span className="ec-discovery-origin">{model.origin}</span>}
-        <p role="status" data-state={model.state}>{model.message}</p>
-      </div>
-      <div className="ec-discovery-actions">
-        {found?<Button disabled={model.busy}
-          onClick={event=>model.onReview?.(event.nativeEvent)}>
-          {model.busy?'正在核对…':'查看应用详情'}
-        </Button>:(model.state==='error'||model.state==='empty')?
-          <Button onClick={event=>model.onRetry?.(event.nativeEvent)}>重新检测</Button>:null}
-        <IconButton label="关闭网页发现结果" title="关闭" onClick={event=>model.onDismiss?.(event.nativeEvent)}>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </IconButton>
-      </div>
-    </React.Fragment>:<>
-      <div className="ec-discovery-copy">
-        <strong>从当前网页安装</strong>
-        <p>仅检查网页声明的 OpenDesk 官方应用，不会直接安装。</p>
-      </div>
-      <div className="ec-discovery-actions">
-        <Button id="extension-center-discover" onClick={event=>onDiscover?.(event.nativeEvent)}>
-          检查网页安装入口
-        </Button>
-      </div>
-    </>}
+  const retry=model?.state==='error'||model?.state==='empty';
+  const activate=event=>{
+    if(found)model.onReview?.(event.nativeEvent);
+    else if(retry)model.onRetry?.(event.nativeEvent);
+    else if(!model)onDiscover?.(event.nativeEvent);
+  };
+  return <section id="extension-center-discovery" className="ec-discovery"
+    aria-label="当前网页安装发现" aria-busy={model?.state==='loading'||Boolean(model?.busy)}>
+    <div className="ec-discovery-copy">
+      <strong>{found?model.title+' · v'+model.version:
+        model?.state==='loading'?'正在检测当前网页':model?'当前网页安装入口':'从当前网页安装'}</strong>
+      {found&&model.origin&&<span className="ec-discovery-origin">{model.origin}</span>}
+      <p role="status" data-state={model?.state}>
+        {model?.message||'仅检查网页声明的 OpenDesk 官方应用，不会直接安装。'}
+      </p>
+    </div>
+    <div className="ec-discovery-actions">
+      <Button id="extension-center-discover" disabled={Boolean(model?.busy)}
+        aria-disabled={model?.state==='loading'||undefined}
+        onClick={activate}>
+        {found?(model.busy?'正在核对…':'查看应用详情'):
+          model?.state==='loading'?'正在检测…':retry?'重新检测':'检查网页安装入口'}
+      </Button>
+      {model&&<IconButton label="关闭网页发现结果" title="关闭"
+        onClick={event=>model.onDismiss?.(event.nativeEvent)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </IconButton>}
+    </div>
   </section>;
 }
 
