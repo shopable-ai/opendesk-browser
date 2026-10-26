@@ -17,8 +17,8 @@
 - **状态优先级**：可信设置高于业务子页显示；退出设置恢复此前有效业务标题；根页不追加「/ 首页」；工具自行上报完整路径时不重复前缀。视觉提示不能自动赋予一个子页面 Back 权限；业务动作 owner 不变。
 - **信任边界**：只有与官方登记完整包字节一致、当前安装代际、iframe 实例和来源核对通过的沙箱才可用 `OpenDeskTool.setNavigation` 更新 Host 页名。手工同 ID、过期实例、未验真工具继续使用自己的 UI；绝不从任意 iframe 文本构造可信页头或修改权限。
 - **真正可返回的业务视图**：书签管理可信 React 的新建/编辑 Sheet 在 R2.1 已注册静态业务 `bookmarkEditorNavigation` 与原生关闭回调 `requestCloseSheet()`，因此可以显示「书签管理 / 新建书签」「书签管理 / 编辑书签」。全局返回首先进入原草稿未保存/写入未知确认，不直接退出扩展；进入可信设置暂时覆盖标题，返回恢复编辑状态。仅选择书签生成的详情 PreviewPane、菜单、文件夹选择与确认 Dialog 仍不产生新宿主路由。
-- **发行边界**：本轮仅修改 Browser 共享 Host 源码；`bookmark-manager` 正式 JSON、配置版本、能力和业务 SDK 均不变。要在已安装浏览器看到变化，需要更新/重载包含新 Host 的 Browser。真实 Mac Chrome 未执行前标记 `NATIVE_NOT_TESTED`。
-- **定向验收**：主界面 → 设置 → 返回原界面；已验真业务根页 → 子页 → 设置 → 原子页；旧/第三方沙箱不越权；标题窄屏完整提示与键盘可访问；脏草稿保存中返回不丢失。对应测试：`tests/environment/sidebar-tool-header-title-r2.test.mjs`、`sidebar-tool-hierarchical-back-r12.test.mjs`。
+- **发行边界**：R2.1 同时修改 Browser 共享 Host、静态可信 React 业务 `App.jsx` / `navigation.js` 以及 `scripts/bundle-provenance.mjs` 受审源码锁；`bookmark-manager` 正式 JSON、配置版本、能力和业务 SDK 均不变。要在已安装浏览器看到变化，需要构建并更新/重载包含新 Host 与可信 React 的 Browser。真实 Mac Chrome 未执行前标记 `NATIVE_NOT_TESTED`。
+- **定向验收**：主界面 → 设置 → 返回原界面；已验真业务根页 → 子页 → 设置 → 原子页；旧/第三方沙箱不越权；标题窄屏完整提示与键盘可访问；脏草稿保存中返回不丢失。Host Back 必须读取 `draftRef.current` 的最新输入和 `busyRef.current`、`uncertainRef.current`，不能依赖 React Effect 更新前的旧闭包。对应测试：`tests/environment/bookmark-manager-title-navigation-r1.test.mjs`、`sidebar-tool-header-title-r2.test.mjs`、`sidebar-tool-hierarchical-back-r12.test.mjs`、`bookmark-manager-r32-formal-source.test.mjs`。
 
 ## 用户原则
 
