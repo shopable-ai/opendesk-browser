@@ -31,7 +31,7 @@
   const metricLabel=byId('ai-vip-metric-label');
   const meter=byId('ai-vip-meter'),meterBar=byId('ai-vip-meter-bar');
   const redeemForm=byId('ai-vip-redeem-form');
-  const codeReveal=byId('ai-vip-code-reveal'),codeClear=byId('ai-vip-code-clear');
+  const codeClear=byId('ai-vip-code-clear');
   const confirm=byId('ai-vip-redeem-confirm');
   const code=byId('ai-vip-redeem-code');
   const redeem=byId('ai-vip-redeem');
@@ -46,6 +46,8 @@
   const recoveryStatus=byId('ai-vip-recovery-status');
   const recoveryCheck=byId('ai-vip-recovery-check');
   const shop=byId('ai-vip-shop-open'),shopStatus=byId('ai-vip-shop-status');
+  const desktopOpen=byId('ai-vip-desktop-open'),desktopStatus=byId('ai-vip-desktop-status');
+  const desktopSection=byId('ai-vip-desktop-promo');
   const localSection=byId('ai-vip-local-development');
   const localConnect=byId('ai-vip-local-connect'),localStatus=byId('ai-vip-local-status');
   const cookieSection=byId('ai-vip-cookie-section'),cookieStatus=byId('ai-vip-cookie-status');
@@ -57,15 +59,16 @@
     secondaryMetrics,history,historyCount,refresh,code,redeem,redeemStatus,redeemError,
     previewPanel,previewTitle,previewDescription,previewAccount,cancel,
     recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus,
-    metricLabel,meter,meterBar,redeemForm,codeReveal,codeClear,confirm,
+    metricLabel,meter,meterBar,redeemForm,codeClear,confirm,
     memberCard,memberFacts,historyDetails,redeemIntro,redeemFine,
-    shopSection,proxySection]
+    shopSection,proxySection,desktopSection,desktopOpen,desktopStatus]
       .some(element=>!element))return;
 
   // Release-owned values: only populate after commercial/provider review.
   // Do not use the technical proxy activate/verify URLs for these endpoints.
   const BUSINESS_ENDPOINTS=Object.freeze({member:'',voucherPreview:'',voucherRedeem:'',voucherStatus:''});
   const PRODUCT_CATALOG_URL='';
+  const DESKTOP_CLIENT_URL='';
   const plain=value=>Boolean(value)&&typeof value==='object'&&!Array.isArray(value);
   const safeString=(value,max=100)=>typeof value==='string'&&value.trim()&&
     value.length<=max?value.trim():null;
@@ -79,6 +82,18 @@
       const url=new URL(value);
       if(url.protocol!=='https:'||!url.hostname||url.username||url.password||
         url.hash||url.search||url.port||url.href.length>2048)return null;
+      return url.href;
+    }catch{return null;}
+  }
+  // Promotion targets are release-owned, fixed public URLs. Do not relax the
+  // HTTPS-only commercial Provider validator or accept web-page URL overrides.
+  function validPromotionUrl(value){
+    if(typeof value!=='string'||!value||value.length>2048)return null;
+    try{
+      const url=new URL(value);
+      if(!['http:','https:'].includes(url.protocol)||!url.hostname||
+        url.username||url.password||url.hash||url.href.length>2048||
+        /^(localhost|.*\.localhost|127(?:\.\d{1,3}){3}|0\.0\.0\.0|\[::1\])$/i.test(url.hostname))return null;
       return url.href;
     }catch{return null;}
   }
@@ -106,7 +121,8 @@
   const LOCAL_DOMAINS=Object.freeze(['chatgpt.com','openai.com','claude.ai','anthropic.com',
     'gemini.google.com','generativelanguage.googleapis.com','perplexity.ai']);
   const LOCAL_PREFERENCE_KEY='aiVipLocalDevelopmentR136';
-  const catalog=validCatalogUrl(PRODUCT_CATALOG_URL);
+  const catalog=validPromotionUrl(PRODUCT_CATALOG_URL);
+  const desktopClient=validPromotionUrl(DESKTOP_CLIENT_URL);
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
@@ -839,13 +855,7 @@
     previewPanel.hidden=!pending;
     cancel.hidden=!pending;
     cancel.disabled=busy;
-    codeReveal.disabled=code.disabled;
     codeClear.disabled=code.disabled||!code.value;
-    if(code.disabled||!code.value){
-      code.type='password';
-      codeReveal.setAttribute('aria-label','显示兑换码');
-      codeReveal.setAttribute('aria-pressed','false');
-    }
     showRecovery();
     redeemStatus.hidden=!recoveryPanel.hidden||!redeemError.hidden;
     refreshProxyPresentation();
@@ -1120,17 +1130,9 @@
     redeemNotice('兑换内容需先由服务端预检，确认后才会提交。');
     renderRedeem();
   });
-  codeReveal.addEventListener('click',event=>{
-    if(event?.isTrusted!==true||code.disabled)return;
-    const visible=code.type==='password';
-    code.type=visible?'text':'password';
-    codeReveal.setAttribute('aria-label',visible?'隐藏兑换码':'显示兑换码');
-    codeReveal.setAttribute('aria-pressed',String(visible));
-  });
   codeClear.addEventListener('click',event=>{
     if(event?.isTrusted!==true||code.disabled)return;
     code.value='';
-    code.type='password';
     redeemNotice('兑换码已清空，尚未提交。');
     renderRedeem();
     code.focus?.();
@@ -1230,26 +1232,39 @@
     }finally{urlChecking=false;}
   }
   const shopSdk=window.OpenDeskSDK?.browser?.tabs;
-  shop.disabled=!catalog;
-  shopSection.hidden=!catalog;
-  shopStatus.hidden=true;
-  shop.addEventListener('click',event=>{
-    if(event?.isTrusted!==true||!catalog||shop.disabled)return;
-    shop.disabled=true;shopStatus.hidden=false;shopStatus.textContent='正在请求打开商品目录…';
-    // Invoke the reviewed SDK directly in the trusted user gesture.
-    let operation;
-    try{
-      if(typeof shopSdk?.create!=='function')throw Error('当前版本缺少网页打开能力');
-      operation=shopSdk.create({url:catalog});
-    }catch{
-      shopStatus.textContent='未能打开商品目录，请检查权限或稍后重试。';
-      shop.disabled=false;return;
-    }
-    Promise.resolve(operation).then(
-      ()=>{shopStatus.textContent='已请求在浏览器新标签页打开商品目录。';},
-      ()=>{shopStatus.textContent='未能打开商品目录，请检查权限或稍后重试。';}
-    ).finally(()=>{shop.disabled=false;});
-  });
+  shopSection.hidden=false;
+  desktopSection.hidden=false;
+  function bindPromotion(button,status,url,name){
+    // A visible but unconfigured promotion explains the release blocker;
+    // it never tries to navigate to an invented or unreviewed destination.
+    button.disabled=false;status.hidden=true;
+    button.addEventListener('click',event=>{
+      if(event?.isTrusted!==true||button.disabled)return;
+      if(!url){
+        status.hidden=false;
+        status.textContent=name+'的外部网址尚未配置或未通过审核，无法打开。';
+        return;
+      }
+      button.disabled=true;
+      status.hidden=false;
+      status.textContent='正在请求打开'+name+'…';
+      let operation;
+      try{
+        if(typeof shopSdk?.create!=='function')throw Error('E_TABS_UNAVAILABLE');
+        operation=shopSdk.create({url});
+      }catch{
+        status.textContent='未能打开'+name+'，请检查浏览器授权或稍后重试。';
+        button.disabled=false;
+        return;
+      }
+      Promise.resolve(operation).then(
+        ()=>{status.textContent='浏览器已确认接收打开'+name+'的请求。';},
+        ()=>{status.textContent='未能打开'+name+'，请检查浏览器授权或稍后重试。';}
+      ).finally(()=>{button.disabled=false;});
+    });
+  }
+  bindPromotion(shop,shopStatus,catalog,'商品目录');
+  bindPromotion(desktopOpen,desktopStatus,desktopClient,'桌面客户端');
   // AI domain preferences and provider endpoints belong to this installed tool,
   // never the public browser-wide proxy Driver. Production remains disabled
   // until a separately reviewed, authenticated Provider is configured.

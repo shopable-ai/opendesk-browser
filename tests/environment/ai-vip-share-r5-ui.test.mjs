@@ -24,18 +24,19 @@ test('R5 official tool compiles member, redeem and store UI with canonical desig
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write','currentPage.read']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
-  for(const text of ['AI 会员','兑换激活','预检激活','查看更多商品','AI 网站访问'])
+  for(const text of ['AI 会员','兑换激活','预检激活','查看更多商品','AI 网站访问','推荐 AI 代理电脑客户端'])
     assert(view.includes(text),text);
-  assert.match(view,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
+  assert.match(view,/id="ai-vip-redeem-code"[^>]*type="text"[^>]*data-sensitive/);
   assert.match(view,/id="ai-vip-redeem"[^>]*disabled/);
-  assert.match(view,/id="ai-vip-shop-open"[^>]*disabled/);
+  assert.match(view,/id="ai-vip-shop-open"/);
+  assert.doesNotMatch(view,/id="ai-vip-shop-open"[^>]*disabled/);
   assert(!view.includes('id="proxy-toggle"'));
   assert.equal(pkg.html.trim(),'<div id="tool-app"></div>');
   assert(!view.includes('1 个月')&&!view.includes('3 个月'));
   assert.match(pkg.js,/OpenDeskPageReact/);
   assert.match(pkg.js,/OpenDeskSidebarUI/);
   assert(!pkg.js.includes('showModal')&&!pkg.js.includes('window.open('));
-  assert.match(script,/shopSdk\.create\(\{url:catalog\}\)/);
+  assert.match(script,/shopSdk\.create\(\{url\}\)/);
 });
 
 test('R5 existing host shows isolated product and a single trusted proxy card',async t=>{
@@ -122,7 +123,8 @@ test('R5 no Provider, SKU or shop can invent business success',async t=>{
   assert.match(script,/const ACTIVATION_URLS=Object\.freeze\(\[\]\)/);
   assert.match(script,/const APPROVED_PROXY_ENDPOINT=null/);
   assert.match(script,/PRODUCT_CATALOG_URL=''/);
-  assert.match(script,/shopSdk\.create\(\{url:catalog\}\)/);
+  assert.match(script,/DESKTOP_CLIENT_URL=''/);
+  assert.match(script,/shopSdk\.create\(\{url\}\)/);
   assert(!/fetch\(|showModal\(|window\.open\(/.test(script));
   assert(!/aiAccess\.activate|aiAccess\.enable|chrome\.proxy/.test(script));
 });

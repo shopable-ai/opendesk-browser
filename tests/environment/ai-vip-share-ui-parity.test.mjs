@@ -39,15 +39,19 @@ test('one React app owns exactly one root and all controller-required nodes',()=
 test('member-first product structure reuses official Shared UI and never clones Host',()=>{
   for(const name of ['Button','IconButton','Card','CardContent'])
     assert.match(view,new RegExp('\\b'+name+'\\b'));
-  const order=['ai-vip-membership','ai-vip-redeem',
-    'ai-vip-cookie-section','ai-vip-shop','ai-vip-proxy'];
+  const order=['ai-vip-brand','ai-vip-membership','ai-vip-redeem',
+    'ai-vip-cookie-section','ai-vip-shop','ai-vip-proxy','ai-vip-desktop-promo'];
   const indices=order.map(v=>view.indexOf(v));
   assert(indices.every((v,i)=>v>0&&(i===0||v>indices[i-1])));
-  assert.doesNotMatch(view,/<h1\b|ai-vip-brand|功能与接入状态|服务与开发信息|本地开发|演示步骤|ai-vip-feature-|ai-vip-local-connect|公司共享账号|ai-vip-shared-section|ai-vip-shared-account/);
+  assert.doesNotMatch(view,/<h1\b|功能与接入状态|服务与开发信息|本地开发|演示步骤|ai-vip-feature-|ai-vip-local-connect|公司共享账号|ai-vip-shared-section|ai-vip-shared-account/);
   assert.match(view,/aria-label="AI VIP Share 会员与权益中心"/);
-  assert.match(view,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
+  assert.match(view,/id="ai-vip-redeem-code"[^>]*type="text"[^>]*data-sensitive/);
   assert.doesNotMatch(view,/PREVIEW-RECEIPT|DEMO-ACCESS|example\.com|演示网站访问|公司共享账号/);
-  assert.match(view,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
+  assert.match(view,/id="ai-vip-redeem-code"[^>]*type="text"[^>]*data-sensitive/);
+  assert.equal(ids.filter(id=>id==='ai-vip-shop-open').length,1);
+  assert.equal(ids.filter(id=>id==='ai-vip-desktop-open').length,1);
+  assert.match(view,/电脑端推荐/);
+  assert.doesNotMatch(view,/id="ai-vip-code-reveal"/);
   assert.doesNotMatch(controller,/window\.open\(|chrome\.cookies|chrome\.proxy\.settings/);
 });
 
@@ -79,7 +83,8 @@ test('formal package references one compiled React UI and immutable business saf
   assert.match(pkg.css,/ai-vip-membership/);
   assert.match(pkg.css,/ai-vip-secondary-metrics/);
   assert.doesNotMatch(pkg.css,/\.ai-vip-benefits\{/);
-  assert.doesNotMatch(pkg.css,/\.ai-vip-brand/);
+  assert.match(pkg.css,/\.ai-vip-brand/);
+  assert.match(pkg.css,/\.ai-vip-desktop-promo/);
   assert.deepEqual(pkg.capabilities,config.capabilities);
   const ready=JSON.parse(await read('dist/build-ready.json'));
   assert.equal(ready.format,'opendesk.ui-build-ready.v1');
@@ -102,12 +107,19 @@ test('preview imports the same React source, isolates fixture and leaves product
   assert.match(configRaw,/"browser\.cookies\.write"/);
   assert.match(view,/id="ai-vip-member-facts"[^>]*hidden/);
   assert.match(view,/id="ai-vip-redeem-form"[^>]*hidden/);
-  assert.match(view,/id="ai-vip-shop-section"[^>]*hidden/);
+  assert.match(view,/id="ai-vip-shop-section"/);
+  assert.doesNotMatch(view,/id="ai-vip-shop-section"[^>]*hidden/);
   assert.match(view,/id="ai-vip-proxy-toggle"[^>]*hidden/);
   assert.match(controller,/toggle\.hidden=!stop&&!ready/);
   assert.match(controller,/redeemForm\.hidden=!showForm/);
   assert.doesNotMatch(view,/<select[^>]*id="ai-vip-shared-account"/);
   assert.match(controller,/storeRequest\('currentPage\.info'\)/);
+  assert.match(controller,/const PRODUCT_CATALOG_URL='';/);
+  assert.match(controller,/const DESKTOP_CLIENT_URL='';/);
+  assert.match(controller,/bindPromotion\(shop,shopStatus,catalog,'商品目录'\)/);
+  assert.match(controller,/bindPromotion\(desktopOpen,desktopStatus,desktopClient,'桌面客户端'\)/);
+  assert.match(controller,/shopSdk\.create\(\{url\}\)/);
+  assert.doesNotMatch(controller,/codeReveal|code\.type='password'/);
 });
 
 test('320px and 360px shared-theme CSS remains declared',()=>{
@@ -115,8 +127,8 @@ test('320px and 360px shared-theme CSS remains declared',()=>{
   assert.match(style,/@media\(max-width:360px\)/);
   assert.match(style,/@media\(max-width:320px\)/);
   assert.match(style,/--od-paper/);
-  assert.match(style,/\.ai-vip-redeem-inputs>\.od-icon-button\{position:absolute/);
-  assert.match(style,/#ai-vip-code-clear\{right:6px/);
+  assert.match(style,/\.ai-vip-redeem-inputs\{display:flex/);
+  assert.match(style,/\.ai-vip-code-field>\.od-icon-button\{position:absolute/);
   assert.doesNotMatch(style,/grid-template-columns:minmax\(0,1fr\) 36px 36px/);
   assert.match(style,/\[hidden\]\{display:none!important\}/);
 });
