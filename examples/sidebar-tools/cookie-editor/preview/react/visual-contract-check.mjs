@@ -173,14 +173,29 @@ try{
       if(crop.width<=0||crop.height<=0)throw Error('screenshot outside viewport');
       // CDP captures the same real Chromium compositor frame without Playwright's
       // unrelated animation/font-stability wait on the approved prototype.
+      console.log(JSON.stringify({audit:'R36_CAPTURE_START',width,theme,tab,page:name}));
       const session=await context.newCDPSession(page);
+      let completed=false;
       try{
-        const result=await session.send('Page.captureScreenshot',{
-          format:'png',fromSurface:true,
-          clip:{x:crop.x,y:crop.y,width:crop.width,height:crop.height,scale:1}
-        });
+        // Chromium can stop responding to compositor capture on animated
+        // reference documents. Never let one frame block the entire CI report.
+        const result=await Promise.race([
+          session.send('Page.captureScreenshot',{
+            format:'png',fromSurface:true,
+            clip:{x:crop.x,y:crop.y,width:crop.width,height:crop.height,scale:1}
+          }),
+          new Promise((_,reject)=>setTimeout(()=>reject(
+            Error('E_R36_CDP_SCREENSHOT_DEADLINE')),5500))
+        ]);
+        completed=true;
         await writeFile(path,Buffer.from(result.data,'base64'));
-      }finally{await session.detach();}
+        console.log(JSON.stringify({audit:'R36_CAPTURE_OK',width,theme,tab,page:name}));
+      }finally{
+        if(completed)await Promise.race([
+          session.detach(),
+          new Promise(resolve=>setTimeout(resolve,1000))
+        ]);
+      }
       screenshots.push(path);
     }catch(error){
       const message=String(error?.message||error);
