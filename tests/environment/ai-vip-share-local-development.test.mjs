@@ -139,7 +139,7 @@ test('real fixture preview/confirm grants development feature, refreshes member 
   assert.equal(e.store.get(RECOVERY),null);
   const journal=e.storageCalls.find(row=>row.operation==='storage.set'&&row.key===RECOVERY&&row.value);
   assert.equal(journal.value.schemaVersion,2);assert.equal(journal.value.serviceOrigin,ORIGIN);
-  assert.equal(journal.value.packageVersion,'1.4.1');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
+  assert.equal(journal.value.packageVersion,'1.4.2');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
   await e.click('proxy-toggle');
   assert.deepEqual(e.proxyCalls,[{action:'enable',config:profile}]);
   assert.equal(e.get('proxy-toggle').attributes['data-action'],'stop');
