@@ -15,6 +15,12 @@ const exampleResources=Object.freeze([
     description:'通过官方可撤销授权授予最低必要权限，不转交登录凭据。',
     details:'未来采用服务商认可的授权方式，并支持最小范围与随时撤销。'}
 ]);
+const shareExpiryOptions=Object.freeze([
+  ['1h','1 小时'],['1d','1 天'],['7d','7 天'],['1mo','1 个月'],
+  ['3mo','3 个月'],['6mo','6 个月'],['1y','1 年']
+]);
+const shareClaimOptions=Object.freeze([1,3,5,10]);
+const shareExpiryLabel=value=>shareExpiryOptions.find(([key])=>key===value)?.[1]||'—';
 const mockOutcomes={
   created:'已生成虚构邀请：没有创建服务端令牌或访问权限。',
   received:'模拟已领取：仅修改当前预览反馈，不传输 Cookie。',
@@ -27,10 +33,10 @@ const mockOutcomes={
 export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
   const [recipientType,setRecipientType]=React.useState('named');
   const [recipient,setRecipient]=React.useState('');
-  const [expiry,setExpiry]=React.useState('24');
+  const [expiry,setExpiry]=React.useState('1d');
   const [maxClaims,setMaxClaims]=React.useState('1');
   const [outcome,setOutcome]=React.useState('');
-  const updateType=type=>{setRecipientType(type);setOutcome('');};
+  const updateType=type=>{setRecipientType(type);setMaxClaims('1');setOutcome('');};
   const validRecipient=recipientType==='anonymous'||(
     recipient.includes('@')&&recipient.includes('.')&&recipient.length<=254
   );
@@ -69,16 +75,24 @@ export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
           <label className="cookie-share-field">邀请有效期
             <select className="od-field" value={expiry}
               onChange={e=>{setExpiry(e.target.value);setOutcome('');}}>
-              <option value="24">24 小时</option><option value="168">7 天</option>
+              {shareExpiryOptions.map(([value,label])=><option key={value} value={value}>{label}</option>)}
             </select>
           </label>
-          <label className="cookie-share-field">最多领取
+          {recipientType==='anonymous'&&<label className="cookie-share-field">最多领取
             <select className="od-field" value={maxClaims}
               onChange={e=>{setMaxClaims(e.target.value);setOutcome('');}}>
-              <option value="1">1 次</option><option value="3">3 次</option>
+              {shareClaimOptions.map(n=><option key={n} value={n}>{n} 次</option>)}
             </select>
-          </label>
+          </label>}
         </div>
+        <p className="cookie-account-empty">
+          {recipientType==='named'
+            ?'指定用户仅有 1 个领取名额，无需额外设置次数。'
+            :'任何持有匿名链接的人都可能尝试领取，请限制名额并按需撤销。'}
+        </p>
+        {['3mo','6mo','1y'].includes(expiry)&&<p className="cookie-account-empty">
+          长期链接更容易外传；正式版应由服务端按日历月份计算到期时间并允许撤销。
+        </p>}
         <p className="cookie-account-empty">
           正式分享必须由服务端验证用户、有效期、领取次数及撤销状态；不发送原始 Cookie、密码或 Session Token。
         </p>
@@ -89,7 +103,7 @@ export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
             onClick={()=>setOutcome('created')}>{previewOnly?'模拟生成邀请':'邀请服务未上线'}</button>
         </div>
         {outcome&&<div className="cookie-market-detail" role="status">
-          <strong>虚构邀请 · {expiry==='24'?'24 小时':'7 天'} · {maxClaims} 次</strong>
+          <strong>虚构邀请 · {shareExpiryLabel(expiry)} · {recipientType==='anonymous'?maxClaims:1} 次</strong>
           <code className="cookie-share-demo-code">https://example.invalid/invite/demo-only</code>
           <p className="cookie-account-empty">地址仅供视觉评审，不含任何有效令牌，也不能用于访问。</p>
           <p className="cookie-share-status">{mockOutcomes[outcome]}</p>
