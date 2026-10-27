@@ -222,6 +222,93 @@ toolView.bind('sidebar-tool-import-close','click',()=>{
   toolView.patch('sidebar-tool-file',{value:''});
   toolView.patch('sidebar-tool-file-error',{hidden:true,textContent:''});
 });
+// R6.7: Scenario data feeds the SAME ToolHost/ImportSheet and its existing
+// view.marketInstallActions entry. This is strictly in-memory and has no Installer.
+const MARKET_SCENES=new Set(['first','update','expanded','same','disabled','cancel','unknown','installed']);
+const previewMarketSelect=document.getElementById('od-sidebar-preview-market-scene');
+const marketExample={
+  title:'网页剪藏',id:'opendesk/web-markdown-clipper',
+  description:'将网页内容保存为 Markdown，并在侧边栏集中管理摘录。',
+  origin:'https://market-preview.invalid',version:'2.0.2'
+};
+function marketExampleReview(scene){
+  const updating=['update','expanded','same','disabled'].includes(scene);
+  const same=scene==='same',added=scene==='expanded';
+  const codes=['storage.local','page.clip',...(added?['browser.cookies.values']:[])];
+  const previousVersion=updating?(same?'2.0.2':'2.0.1'):null;
+  const disabled=scene==='disabled';
+  const phase=scene==='cancel'?'cancelled':scene==='unknown'?'unknown':
+    ['installed','disabled'].includes(scene)?'installed':'review';
+  const actions=phase==='review'?
+    [{id:'commit',label:updating?'确认更新':'确认安装'},{id:'cancel',label:'取消安装'}]:
+    phase==='unknown'?
+      [{id:'recover',label:'核对原安装结果'},{id:'later',label:'稍后继续'}]:
+    phase==='installed'?
+      [...(disabled?[]:[{id:'open',label:'打开使用'}]),{id:'done',label:'完成'}]:
+      [{id:'done',label:'完成'}];
+  const messages={
+    review:'仅预览 · 展示已核验元数据的界面结构，不执行安装。',
+    installed:disabled?'仅预览 · 已更新，原停用状态继续保留。':'仅预览 · 安装结果已读回，可以打开使用。',
+    cancelled:'仅预览 · 本次安装请求已取消，没有提交。',
+    unknown:'仅预览 · 安装结果未知。核对不会重放提交。'
+  };
+  return {
+    title:marketExample.title,phase,message:messages[phase],
+    busy:false,summary:[],technical:[],actions,
+    details:{
+      ...marketExample,previousVersion,capabilityCodes:codes,
+      capabilities:codes,addedCodes:added?['browser.cookies.values']:[],
+      addedCapabilities:[],removedCodes:[],packageBytes:null,sha256:null,
+      previousDisabled:disabled,previousEnableKnown:updating,
+      identicalInstalledPackage:same
+    }
+  };
+}
+function closePreviewMarketReview(){
+  toolView.setMarketInstall({review:null});
+  if(previewMarketSelect)previewMarketSelect.value='none';
+}
+function showPreviewMarketReview(scene){
+  if(!MARKET_SCENES.has(scene)){closePreviewMarketReview();return;}
+  // A preview route owns only a model projection; it cannot consume an intent.
+  toolView.patch('sidebar-tool-import',{hidden:true});
+  toolView.setMarketInstall({review:marketExampleReview(scene),error:''});
+  if(previewMarketSelect)previewMarketSelect.value=scene;
+}
+toolView.connectMarketInstall({
+  dismiss:closePreviewMarketReview,
+  act(id){
+    const review=toolView.getSnapshot().market.review;
+    if(!review||review.busy||!review.actions.some(action=>action.id===id))return;
+    if(id==='commit'){
+      toolView.setMarketInstall({review:{...review,phase:'installed',
+        message:'仅预览 · 模拟成功状态，无真实安装、写入或权限变更。',
+        actions:[{id:'open',label:'打开使用'},{id:'done',label:'完成'}]}});
+    }else if(id==='cancel'){
+      toolView.setMarketInstall({review:{...review,phase:'cancelled',
+        message:'仅预览 · 已取消内存演示，没有提交安装。',
+        actions:[{id:'done',label:'完成'}]}});
+    }else if(id==='recover'){
+      toolView.setMarketInstall({review:{...review,phase:'unknown',
+        message:'仅预览 · 原结果仍未知；没有再次提交或将未知标记为成功。',
+        actions:[{id:'recover',label:'核对原安装结果'},{id:'later',label:'稍后继续'}]}});
+    }else if(id==='open'){
+      app.renderStatus({text:'UI_PREVIEW_ONLY · 未打开真实应用或执行代码',state:'info'});
+    }else if(id==='done'||id==='later'||id==='end'){
+      closePreviewMarketReview();
+    }
+  }
+});
+previewMarketSelect?.addEventListener('change',event=>{
+  const scene=event.currentTarget.value;
+  showPreviewMarketReview(scene);
+  const url=new URL(location.href);
+  if(scene==='none')url.searchParams.delete('market');else url.searchParams.set('market',scene);
+  try{history.replaceState(null,'',url);}catch{/* file URL limitations */}
+});
+if(MARKET_SCENES.has(previewParams.get('market')))
+  showPreviewMarketReview(previewParams.get('market'));
+
 toolView.bind('sidebar-tool-file','change',async event=>{
   const selection=++previewSelection,file=event?.target?.files?.[0];
   toolView.patch('sidebar-tool-preview',{hidden:true});
@@ -488,6 +575,12 @@ export async function generateSidebarSixReactPreview(){
         '#od-preview-gallery{display:none}'+
         '#od-preview-gallery:not(:empty){display:block;position:absolute;inset:0;overflow:auto;'+
           'z-index:20;background:var(--od-bg)}'+
+        
+        'body>.od-import-overlay{inset:var(--od-preview-stage-top) auto auto var(--od-preview-stage-left);'+
+          'width:var(--od-preview-stage-width);height:var(--od-preview-stage-height);z-index:18}'+
+        'body>.od-import-overlay #sidebar-tool-import{max-height:calc(100% - 8px)}'+
+        '.od-sidebar-preview-header{position:relative;z-index:21}'+
+        '.od-sidebar-preview-header select:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}'+
         'body>.workflow-sheet-overlay{inset:var(--od-preview-stage-top) auto auto var(--od-preview-stage-left);'+
           'width:var(--od-preview-stage-width);height:var(--od-preview-stage-height)}'+
         'body>.workflow-sheet-overlay .workflow-sheet-panel{max-height:min(72dvh,560px,100%)}'+
@@ -512,6 +605,16 @@ export async function generateSidebarSixReactPreview(){
           '<label>主题 <select id="od-sidebar-preview-theme" aria-label="预览主题">'+
             '<option value="auto">跟随系统</option><option value="light">浅色</option>'+
             '<option value="dark">深色</option></select></label>'+
+          '<label>安装场景 <select id="od-sidebar-preview-market-scene" aria-label="安装审阅场景">'+
+            '<option value="none">不显示</option>'+
+            '<option value="first">首次安装</option>'+
+            '<option value="update">常规升级</option>'+
+            '<option value="expanded">新增敏感权限</option>'+
+            '<option value="same">同版本已安装</option>'+
+            '<option value="disabled">升级后停用</option>'+
+            '<option value="cancel">取消安装</option>'+
+            '<option value="unknown">结果未知</option>'+
+            '<option value="installed">安装成功</option></select></label>'+
         '</header>',
       '<div id="od-sidebar-preview-stage" class="od-sidebar-preview-stage">'+
         '<div id="od-sidebar-preview-boot" class="od-sidebar-preview-boot" role="status">'+
