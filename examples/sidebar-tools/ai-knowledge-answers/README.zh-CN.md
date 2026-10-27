@@ -3,6 +3,16 @@
 独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.5`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R2.1 的安装、保存、编辑、侧栏关闭重开及固定来源回答已在独立 Mac Chrome for Testing 完成核心验证，见文末；R1.3 的 DOM 观察、定时消息处理、草稿发送与独立 DOM 回执仍按对应工作流记录，其他第三方网站不在本轮范围。
 
 
+## R3.6-M0 · 真实客服闭环最小安全增量（2026-10-28）
+
+**原始产品目标**：让 AI 知识问答逐步成为跨平台智能电商客服，最终支持人工辅助、受控自动回复、接管及获授权的业务服务。**当前只验证本地 MVP**：测试网页客户发消息 → 可信 React Side Panel 读取 → 固定知识或共享 AI 草稿 → 默认人工确认 → 网站表单发送一次 → **独立读取 DOM** 核对同一客户的唯一回执。真实 Chrome 完整闭环尚未获得 PASS，不能把源码、Node/fake Chrome 或知识 CRUD 的原生记录提升为客服收发通过。
+
+- 复用现有 `examples/tasks/ai-knowledge-chat-demo.{html,js,css}`、`trusted/Workspace.jsx`、`host.js`、`local-test-runtime.js`、`multi-intent.js`、Shared AI 和唯一 React Root；不开发第二套 UI/Runtime/网页，不连接正式电商网站。
+- [M0 回执安全修复 `5753ac3`](https://github.com/shopable-ai/opendesk-browser/commit/5753ac300b571a489b67615247afd3945a594d11)：在 `trusted/local-test-adapter.js` 拒绝带 query/hash 的本地测试 URL；网页发送后的第二次独立读取必须证明当前 thread 下仅有**一条**关联客服消息及唯一消息 ID，其他情况维持 `UNKNOWN`，不自动重试。补充 `tests/environment/ai-knowledge-chat-r13.test.mjs` 的越界 URL 和重复回执回归。既有发送栅栏/暂停/ETag/UNKNOWN 只读核对不重写。
+- **最新证据分层**：`SOURCE_IMPLEMENTED`（本轮代码已在 main）；本轮新回归 `NODE_PASS` 需以实际 Node/对应 App CI 作证；`CHROME_PASS`、`REAL_PROVIDER_PASS` 对本轮完整客服链均为 `NOT_TESTED`。历史 Mac CFT 0.1.5 仅证明安装、知识保存/编辑/重开。不要把 App CI 的共享发现阶段失败误报为客服用例失败或通过。
+- **最短本机闭环**：保留现有 `npm run dev` watcher，确认正式 Browser 编译的 `trusted/` 源码确为本轮版本；确认 43111 端口没有其他 owner 后启动 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`，打开 **http://127.0.0.1:43111/ai-knowledge-chat-demo.html**。从正式可信 React 侧栏按原安装/来源准入批准监听，仅选择会话 A，发送新客户问题「几天内可以退款」，默认**人工确认**，核对网页中一个客服 DOM、原 `messageId`、`thread_demo_01`、`replyTo` 及侧栏 `CONFIRMED`；双击、暂停、切会话和结果未知不允许再发。第二条「你好」需人工确认且不调用 AI；多问题/无依据需形成一条人工待审草稿。无真实 Provider 授权则其调用结果为 `NOT_TESTED`。
+- **定向 Node 命令**：`node --test tests/environment/ai-knowledge-chat-r13.test.mjs tests/environment/ai-knowledge-multi-intent-r32.test.mjs`。只在需验证 Host/Provider 修改时追加对应合同测试。M1 编辑、静默等待与倒计时均延后；M2 第三方平台、订单/物流、自动退款、24 小时托管不阻塞本轮。
+
 ## R1.0 · 四工具正式界面最小收敛（2026-10-26）
 
 本轮仅优化 `ai-knowledge-answers/src/` 沙箱问答与知识管理：去除「测试知识回答」定位，首页改为「知识检索」，将问题与知识依据放在首屏，降低静态快捷键及重复说明的视觉优先级。来源条目只显示知识问题，不向用户默认展示内部存储 ID。**固定答案是知识条目直接返回；相似问题只是检索候选；这里没有冒充真正 AI 草稿。** 未改动可信客服监听、自动发送、Provider、RAG 或 Host，也不覆盖其他对话推进中的自动客服工作。
