@@ -1,0 +1,200 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {transformSync} from 'esbuild';
+import {createCookieController} from '../../examples/sidebar-tools/cookie-editor/app/controller/cookie-controller.js';
+import {parseTarget} from '../../examples/sidebar-tools/cookie-editor/app/domain/cookie-model.js';
+
+// Execute the real app handlers/effects and real controller, with only the
+// transport, leaf components and React scheduling replaced. No browser/storage.
+const source=readFileSync(new URL('../../examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx',import.meta.url),'utf8');
+const code=transformSync(source.replace(/^import .*;\n/gm,'').replace('export default function','function'),
+  {loader:'jsx',jsx:'transform'}).code;
+const alpha={alias:'acct_alpha',origin:'https://example.com',displayName:'Alpha',version:1,allowAuto:false};
+const beta={...alpha,alias:'acct_beta',displayName:'Beta'};
+function mount(section='accounts'){
+  const slots=[],effects=[],events=new Map(),timers=new Map();
+  const copies=[];
+  let begin=async()=>({authorized:true,ref:7}),copy=async()=>({copied:true});
+  let cursor=0,tree,changed=true,controller,url='https://example.com/',permission=true,rows=[];
+  let metadata={configured:true,unlocked:true,revision:1,accounts:[alpha,beta],settings:{autoRefresh:false}};
+  let respond=async action=>action==='status'?structuredClone(metadata):
+    action==='switch'?{switched:true,verified:true,reloadRequested:false}:
+    action==='lock'?{locked:true}:structuredClone(metadata);
+  const React={
+    useRef(value){const i=cursor++;return slots[i]??={current:value};},
+    useState(value){const i=cursor++;if(!(i in slots))slots[i]=value;
+      return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;changed=true;}];},
+    useEffect(fn,deps){const i=cursor++,old=slots[i];
+      if(!old||deps.some((value,j)=>!Object.is(value,old.deps[j])))
+        effects.push(()=>{old?.cleanup?.();slots[i]={deps,cleanup:fn()};});},
+    useLayoutEffect(fn,deps){this.useEffect(fn,deps);},
+    createElement(type,props,...children){return {type,props:props||{},children:children.flat(Infinity)};}
+  };
+  const window={setInterval:fn=>{const id=Symbol();timers.set(id,fn);return id;},
+    clearInterval:id=>timers.delete(id),addEventListener(){},removeEventListener(){}};
+  const document={visibilityState:'visible',addEventListener(){},removeEventListener(){}};
+  const adapter={targetFor:async()=>parseTarget(url),checkRead:async()=>({callableNow:permission}),
+    list:async()=>structuredClone(rows),accountRequest:(action,payload)=>respond(action,payload),
+    beginExportIntent:(target,method)=>{copies.push(['begin',target.url,method]);return begin();},
+    copy:text=>{copies.push(['copy',text]);return copy();},
+    finishExportIntent:async ref=>{copies.push(['finish',ref]);}};
+  const names=[...source.matchAll(/^import (?:\{([^}]+)\}|(\w+)) from /gm)]
+    .flatMap(match=>match[1]?match[1].split(',').map(x=>x.trim()):[match[2]])
+    .filter(name=>!['createCookieSdkAdapter','createCookieController'].includes(name));
+  const Component=new Function('React','window','document','createCookieSdkAdapter','createCookieController',...names,
+    code+'\nreturn CookieEditorApp;')(React,window,document,()=>adapter,options=>{
+      controller=createCookieController(options);return controller;
+    },...names);
+  const hostRoot={isConnected:true,querySelectorAll:()=>[],querySelector:()=>null,
+    addEventListener:(name,fn)=>events.set(name,fn),removeEventListener:name=>events.delete(name)};
+  function render(){cursor=0;changed=false;tree=Component({hostRoot,request(){},initialSection:section});
+    for(const effect of effects.splice(0))effect();}
+  const nodes=node=>node&&typeof node==='object'?[node,...node.children.flatMap(nodes)]:[];
+  const accounts=()=>nodes(tree).find(node=>node.type==='CookieAccounts').props;
+  async function flush(){for(let i=0;i<35;i++){if(changed)render();await Promise.resolve();}}
+  render();
+  return {flush,accounts,copies,get controller(){return controller;},
+    copyHandler:()=>section==='accounts'?text=>accounts().onCopyLink(alpha,text):
+      nodes(tree).find(node=>node.type==='CookieCustomizePanel').props.onCopyBrief,
+    setBegin:fn=>{begin=fn;},setCopy:fn=>{copy=fn;},
+    setResponse:fn=>{respond=fn;},setMetadata:value=>{metadata=value;},
+    async action(name,...args){const result=accounts()[name](...args);await flush();await result;await flush();},
+    async event(name){events.get(name)();await flush();},
+    setUrl:value=>{url=value;},setPermission:value=>{permission=value;},setRows:value=>{rows=value;},
+    async sync(){await controller.syncMetadata();await flush();},
+    async tick(){for(const timer of timers.values())timer();await flush();}
+  };
+}
+
+test('verified Alpha/Beta switch survives its metadata refresh and unchanged passive sync',async()=>{
+  const app=mount();await app.flush();
+  const epoch=app.controller.snapshot().epoch;
+  app.setRows([{name:'switched',domain:'example.com',path:'/',storeId:'0'}]);
+  await app.action('onSwitch',alpha);
+  assert.equal(app.accounts().currentAlias,alpha.alias);
+  assert.equal(app.controller.snapshot().epoch,epoch);
+  assert.equal(app.accounts().vaultReady,true);
+  await app.sync();assert.equal(app.accounts().currentAlias,alpha.alias);
+  await app.action('onSwitch',beta);
+  assert.equal(app.accounts().currentAlias,beta.alias);
+});
+
+test('site/permission invalidation, lock and delete clear the verified alias',async()=>{
+  for(const action of ['page','permission','lock','delete']){
+    const app=mount();await app.flush();await app.action('onSwitch',alpha);
+    assert.equal(app.accounts().currentAlias,alpha.alias);
+    if(action==='page'){app.setUrl('https://other.example/');await app.event('opendesk-page-changed');}
+    if(action==='permission'){app.setPermission(false);await app.event('opendesk-cookie-grants-changed');}
+    if(action==='lock')await app.action('onLock');
+    if(action==='delete'){
+      app.setResponse(async()=>({configured:true,unlocked:true,revision:2,accounts:[beta]}));
+      await app.action('onDelete',alpha);
+    }
+    assert.equal(app.accounts().currentAlias,null,action);
+  }
+});
+
+test('outside metadata changes and unrelated epoch loads retire the alias',async()=>{
+  for(const change of ['rows','epoch']){
+    const app=mount();await app.flush();await app.action('onSwitch',alpha);
+    assert.equal(app.accounts().currentAlias,alpha.alias);
+    if(change==='rows'){
+      app.setRows([{name:'outside',domain:'example.com',path:'/',storeId:'0'}]);await app.sync();
+    }else{await app.controller.load();await app.flush();}
+    assert.equal(app.accounts().currentAlias,null,change);
+  }
+});
+
+test('a failed second switch and an unconfirmed lock retire earlier verified evidence',async()=>{
+  for(const handler of ['onSwitch','onLock']){
+    const app=mount();await app.flush();await app.action('onSwitch',alpha);
+    assert.equal(app.accounts().currentAlias,alpha.alias);
+    app.setResponse(async()=>{throw Object.assign(Error('unknown'),{code:'E_OUTCOME_UNKNOWN'});});
+    await app.action(handler,beta);assert.equal(app.accounts().currentAlias,null);
+  }
+});
+
+test('Host metadata cannot establish a current alias; changed account versions retire receipt evidence',async()=>{
+  const app=mount();await app.flush();
+  app.setResponse(async()=>({configured:true,unlocked:true,revision:2,
+    accounts:[{...alpha,version:2},beta],currentAlias:alpha.alias}));
+  await app.action('onUnlock','not-a-real-password');
+  assert.equal(app.accounts().currentAlias,null);
+  app.setResponse(async action=>action==='switch'?{switched:true,verified:true,reloadRequested:false}:
+    {configured:true,unlocked:true,revision:3,accounts:[{...alpha,version:3},beta]});
+  await app.action('onSwitch',{...alpha,version:2});
+  assert.equal(app.accounts().currentAlias,alpha.alias);
+  await app.action('onUpdate',{...alpha,version:2});
+  assert.equal(app.accounts().currentAlias,null);
+});
+
+test('stale and unverified switch receipts never claim an alias',async()=>{
+  for(const kind of ['unverified','page','permission']){
+    const app=mount();await app.flush();let finish;
+    app.setResponse(()=>new Promise(resolve=>{finish=resolve;}));
+    const pending=app.accounts().onSwitch(alpha);await app.flush();
+    if(kind!=='unverified'){
+      app.setResponse(async()=>({configured:true,unlocked:true,accounts:[alpha,beta]}));
+      await app.event(kind==='page'?'opendesk-page-changed':'opendesk-cookie-grants-changed');
+    }
+    finish({switched:true,verified:kind!=='unverified',reloadRequested:false});
+    await pending;await app.flush();assert.equal(app.accounts().currentAlias,null,kind);
+  }
+});
+
+test('unknown results distinguish switch, lock and non-switch vault operations',async()=>{
+  for(const [handler,args,pattern] of [
+    ['onUnlock',['not-a-real-password'],/账号仓库.*未确认/],
+    ['onCreate',['Alpha'],/账号仓库.*未确认/],
+    ['onLock',[],/锁定回执未确认/],
+    ['onSwitch',[alpha],/可能发生部分 Cookie 写入/]
+  ]){
+    const app=mount();await app.flush();
+    app.setResponse(async()=>{throw Object.assign(Error('unknown'),{code:'E_OUTCOME_UNKNOWN'});});
+    await app.action(handler,...args);
+    assert.match(app.accounts().feedback.text,pattern);
+    if(handler==='onUnlock'||handler==='onCreate')assert.doesNotMatch(app.accounts().feedback.text,/Cookie 写入/);
+  }
+});
+
+test('account links and custom briefs synchronously enter and finally finish the one-use copy gate',async()=>{
+  for(const section of ['accounts','custom']){
+    const app=mount(section);await app.flush();
+    let admit;app.setBegin(()=>new Promise(resolve=>{admit=resolve;}));
+    const pending=app.copyHandler()('nonsecret text');
+    assert.deepEqual(app.copies,[['begin','https://example.com/','copy']],section);
+    admit({authorized:true,ref:7});await pending;await app.flush();
+    assert.deepEqual(app.copies,[['begin','https://example.com/','copy'],
+      ['copy','nonsecret text'],['finish',7]],section);
+  }
+});
+
+test('both nonsecret callers refuse denied gates and context changes; dispatched failures still finish',async()=>{
+  for(const section of ['accounts','custom'])for(const failure of ['denied','stale','copy']){
+    const app=mount(section);await app.flush();let admit;
+    app.setBegin(()=>new Promise(resolve=>{admit=resolve;}));
+    if(failure==='copy')app.setCopy(async()=>{throw Error('clipboard unavailable');});
+    const pending=Promise.resolve(app.copyHandler()('nonsecret text')).catch(()=>{});
+    if(failure==='stale')await app.event('opendesk-cookie-grants-changed');
+    admit(failure==='denied'?{authorized:false}:{authorized:true,ref:7});
+    await pending;await app.flush();
+    assert.equal(app.copies.some(([kind])=>kind==='copy'),failure==='copy',section+': '+failure);
+    assert.equal(app.copies.some(([kind])=>kind==='finish'),failure!=='denied',section+': '+failure);
+  }
+});
+
+test('context changes after clipboard dispatch suppress successful receipts for both nonsecret callers',async()=>{
+  for(const section of ['accounts','custom']){
+    const app=mount(section);await app.flush();let finish;
+    app.setCopy(()=>new Promise(resolve=>{finish=resolve;}));
+    let outcome='pending';
+    const pending=Promise.resolve(app.copyHandler()('nonsecret text'))
+      .then(result=>{outcome=result?.copied===true?'copied':'unconfirmed';},()=>{outcome='rejected';});
+    await app.flush();await app.event('opendesk-page-changed');
+    finish({copied:true});await pending;await app.flush();
+    assert.notEqual(outcome,'copied');
+    assert.equal(app.copies.at(-1)[0],'finish');
+    if(section==='accounts')assert.notEqual(app.accounts().feedback?.kind,'success');
+  }
+});

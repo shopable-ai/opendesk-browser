@@ -1,0 +1,126 @@
+{
+  "format": "opendesk.cookie-editor-core-evidence.v1",
+  "date": "2026-10-28",
+  "scope": "core development, no production acceptance",
+  "status": "CORE_NATIVE_PASS_WITH_EXPLICIT_GAPS",
+  "environment": {
+    "browser": "Chrome for Testing 155.0.8059.39",
+    "profile": "/Users/shopme/.opendesk-browser/dev-profiles/cookie-core-01a17e8d-b047a7c92bda",
+    "mode": "continuous development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "devConnected": true,
+    "observedDevRevision": "dad9e5434729080c5ceb1cf59ac5340fca389864ddc23a4a6fd839dd7566e76d",
+    "primaryPage": "http://127.0.0.1:43111/demo-form.html",
+    "automaticScope": "same local Origin canonical root only",
+    "personalProfileAccessed": false
+  },
+  "release": {
+    "id": "cookie-editor",
+    "version": "2.0.42",
+    "bytes": 217608,
+    "sha256": "d8a2b428bceaf6e5208bb7240268c6df2c81e90b13b30a50f00f2059477e7590",
+    "buildId": "5b2e1605dd09b2a93ebdb440241e25e19e1a8e27dd5d3c9a72b437dd48662880",
+    "candidateGates": "PASS",
+    "promoteFrom": "PASS",
+    "checkProject": "PASS",
+    "runtimeCatalogAndInstalledDetails": "MATCH",
+    "capabilitiesChanged": false
+  },
+  "sources": {
+    "app/CookieEditorApp.jsx": {
+      "bytes": 37163,
+      "sha256": "5b9b3fca75ddac9399a2a5fd4b4ca0123d999aa87680c4fc37d26730ab5d9957"
+    },
+    "app/components/CookieImport.jsx": {
+      "bytes": 12143,
+      "sha256": "e5722aa4b74d42b856aef24738d90a7f904924852079204b4941451d46088d16"
+    },
+    "trusted/account-vault.js": {
+      "bytes": 9556,
+      "sha256": "20a701eb2132aca499200020070046d305089dc82040727c9ab31e4a59687b3a"
+    },
+    "trusted/account-service.js": {
+      "bytes": 24824,
+      "sha256": "f9674b9ed2941888d0ec95d8bd1debaafa65c402aa208ba46107b8bcdf1e1cef"
+    },
+    "cookie-editor.opendesk-tool.json": {
+      "bytes": 217608,
+      "sha256": "d8a2b428bceaf6e5208bb7240268c6df2c81e90b13b30a50f00f2059477e7590"
+    }
+  },
+  "native": {
+    "cookie": "PASS: create/search/edit/expiry/cancel/export/import/delete/clear/readback; initial unchanged operations on 2.0.40, preview confirm 2.0.41, invalid preview/cancel/reopen on 2.0.42",
+    "accounts": "PASS: save Alpha/Beta, manual switch with Cookie readback, applied receipt UI in 2.0.42, rename/draft guard/focus, empty-save error preserves draft, lock/wrong password/unlock, update/delete temporary snapshot, reopen persistence",
+    "enterprise": "PASS: explicit unconnected data and customize navigation",
+    "market": "PASS: search/classification/account/auto/expiration navigation; expiration no write",
+    "customize": "PASS: generate, same-app cross-tab preservation, 2.0.42 system clipboard exact readback",
+    "community": "PASS: Telegram/Discord/WeChat expand/switch/collapse; no external communication",
+    "autoSwitch": "PASS: explicit local allowlist, off/deep-route denial, final root request restored Alpha Cookie and applied fence",
+    "revocation": "PASS: hidden empty business Sandbox, no visible read/write controls, native Cookie unchanged, legal regrant/read",
+    "isolation": "PASS: manifest Sandbox, chrome.runtime/cookies/permissions unavailable, connect-src none"
+  },
+  "testGroups": [
+    {
+      "file": "tests/environment/cookie-editor-import-preview-core.test.mjs",
+      "pass": 9
+    },
+    {
+      "file": "tests/environment/cookie-editor-account-vault.test.mjs",
+      "pass": 30
+    },
+    {
+      "file": "tests/environment/cookie-editor-account-ui-receipt.test.mjs",
+      "pass": 10
+    },
+    {
+      "file": "tests/environment/cookie-editor-account-switch-host.test.mjs",
+      "pass": 10
+    },
+    {
+      "files": [
+        "tests/environment/cookie-editor-react-source.test.mjs",
+        "tests/environment/cookie-editor-react-controller.test.mjs"
+      ],
+      "selection": "isolated root|Value remains|Vault lock|unknown native write|failed saves retain|revocation from",
+      "pass": 7
+    },
+    {
+      "file": "tests/environment/cookie-editor-react-build.test.mjs",
+      "selection": "canonical packer rejects|built React JSX|canonical packer emits",
+      "pass": 3
+    }
+  ],
+  "rawEvidence": "artifacts/cookie-editor-core-01a17e8d/",
+  "rawFiles": [
+    "results.json",
+    "installed-2042.png",
+    "import-preview-2042.png",
+    "final-cookie-2042.png",
+    "export-fixture.json"
+  ],
+  "gaps": {
+    "nativeFirstConfigurationAfterFix": "NOT_TESTED: existing encrypted vault preserved; first configuration covered by regression",
+    "downloadAndOtherExportFormats": "NOT_TESTED this run; unchanged source",
+    "otherSitesAndSPA": "NOT_TESTED",
+    "realEnterpriseMarketMembershipCommunityServices": "NOT_CONNECTED",
+    "productionAcceptance": "NOT_TESTED",
+    "independentScore": "NOT_SCORED",
+    "fullRegressionStressBrowserMatrix": "OUT_OF_SCOPE",
+    "widthZoomMatrix": "OUT_OF_SCOPE",
+    "valueOnlyExternalChanges": "metadata cannot prove ongoing login or detect all value-only changes"
+  },
+  "finalState": {
+    "testCookies": 3,
+    "accounts": [
+      "Core Alpha",
+      "Core Beta Renamed"
+    ],
+    "temporaryAccountDeleted": true,
+    "vault": "locked",
+    "automaticTrigger": "off",
+    "browser": "left visible",
+    "existingServices": "preserved",
+    "push": "not authorized; not performed"
+  }
+}

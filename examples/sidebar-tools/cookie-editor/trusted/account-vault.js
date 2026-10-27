@@ -51,6 +51,15 @@ function envelope(value){
     throw fail('E_VAULT_CORRUPT');
   return value;
 }
+function sameEnvelope(left,right){
+  try{envelope(left);envelope(right);}catch{return false;}
+  // Chrome storage may reorder object keys. Compare the complete validated
+  // envelope, retaining exact values and rejecting missing or extra fields.
+  const fields=['format','iterations','salt','iv','ciphertext'];
+  return Object.keys(left).length===fields.length&&
+    Object.keys(right).length===fields.length&&fields.every(field=>
+      Object.hasOwn(left,field)&&Object.hasOwn(right,field)&&left[field]===right[field]);
+}
 async function derive(password,salt,subtle){
   if(typeof password!=='string'||password.length<12||password.length>256||
     utf8(password).length>512)throw fail('E_VAULT_PASSPHRASE');
@@ -149,7 +158,7 @@ export function createCookieAccountVault({api=globalThis.chrome,
         await api.storage.local.set({[COOKIE_ACCOUNT_VAULT_KEY]:saved});
         const confirmed=(await api.storage.local.get(COOKIE_ACCOUNT_VAULT_KEY))
           [COOKIE_ACCOUNT_VAULT_KEY];
-        if(JSON.stringify(confirmed)!==JSON.stringify(saved))
+        if(!sameEnvelope(confirmed,saved))
           throw fail('E_OUTCOME_UNKNOWN');
       }
       await api.storage.session.set({[COOKIE_ACCOUNT_SESSION_KEY]:
@@ -180,12 +189,12 @@ export function createCookieAccountVault({api=globalThis.chrome,
       const replacement=await seal(next,key,raw(row.salt),cryptoImpl);
       const before=(await api.storage.local.get(COOKIE_ACCOUNT_VAULT_KEY))
         [COOKIE_ACCOUNT_VAULT_KEY];
-      if(JSON.stringify(before)!==JSON.stringify(row))
+      if(!sameEnvelope(before,row))
         throw fail('E_VAULT_CONFLICT');
       await api.storage.local.set({[COOKIE_ACCOUNT_VAULT_KEY]:replacement});
       const after=(await api.storage.local.get(COOKIE_ACCOUNT_VAULT_KEY))
         [COOKIE_ACCOUNT_VAULT_KEY];
-      if(JSON.stringify(after)!==JSON.stringify(replacement))
+      if(!sameEnvelope(after,replacement))
         throw fail('E_OUTCOME_UNKNOWN');
       return next.revision;
     });

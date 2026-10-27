@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
+import {inspectImport,rejectImportDuplicates} from '../domain/cookie-model.js';
 import {CookieImportDropzone,CookieIconButton} from './CookieEditorView.jsx';
 
 const MAX_FILE=8*1024*1024;
@@ -15,6 +16,12 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const stagedFile=React.useRef(null);
   const [stagedName,setStagedName]=React.useState('');
   const [overwrite,setOverwrite]=React.useState(true);
+  const [preview,setPreview]=React.useState(null);
+  const previewRef=React.useRef(null);
+  const revision=React.useRef(0);
+  const invalidatePreview=()=>{
+    revision.current++;previewRef.current=null;setPreview(null);
+  };
   const active=React.useRef(false);
   const running=React.useRef(false);
   const reading=React.useRef(false);
@@ -23,7 +30,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     let pending;
     try{pending=Promise.resolve(onBeginImport?.());}
     catch(error){pending=Promise.reject(error);}
-    // Trusted import admission starts in the explicit Import click, not file selection.
+    // Trusted admission starts only in the explicit confirmation click.
     intentRef.current=pending.then(value=>value===true,()=>false);
   };
   const headingId=React.useId();
@@ -38,7 +45,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     return ()=>{
       active.current=false;
       if(sourceRef.current)sourceRef.current.value='';
-      stagedFile.current=null;
+      stagedFile.current=null;previewRef.current=null;
       onPendingChange?.(false);
     };
   },[]);
@@ -57,8 +64,10 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     }
     running.current=true;setBusy(true);
     try{
-      if(await intentRef.current!==true){
-        onNotice?.('本次导入未获得可信操作授权，请重新点击导入。','error');
+      const authorized=await intentRef.current;
+      if(!active.current)return;
+      if(authorized!==true){
+        onNotice?.('本次导入未获得可信操作授权，请重新预览并确认导入。','error');
         return;
       }
       const imported=await onImportText?.(text,{overwrite});
@@ -76,33 +85,58 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
       if(active.current)setBusy(false);
     }
   };
-  const importFile=async file=>{
-    if(!file||reading.current||running.current||disabled||uncertain)return;
-    if(file.size>MAX_FILE){
-      onNotice?.('文件超过 8 MiB，请分批导入。','error');
-      if(fileRef.current)fileRef.current.value='';
-      return;
-    }
+  const preparePreview=async()=>{
+    if(reading.current||running.current||disabled||uncertain)return;
+    invalidatePreview();
+    const generation=revision.current;
+    const file=stagedFile.current;
     reading.current=true;setBusy(true);
     let text='';
     try{
-      text=await file.text();
-      if(!active.current)return;
-      await importText(text);
+      text=file?await file.text():sourceRef.current?.value||'';
+      if(!active.current||generation!==revision.current)return;
+      // Header/dictionary inputs inherit the Controller's current site at commit.
+      // This local placeholder never becomes a native destination.
+      const {records}=inspectImport(text,'auto','current-site.invalid',true);
+      rejectImportDuplicates(records);
+      const rows=records.map(({index,cookie,status})=>({index,status,
+        ...(cookie?{name:cookie.name,domain:cookie.domain,path:cookie.path}:{})}));
+      const next={rows,total:rows.length,ready:rows.filter(row=>row.status==='ready').length};
+      previewRef.current=next;setPreview(next);onNotice?.(null);
     }catch{
-      if(active.current)onNotice?.('无法读取 Cookie 文件，请重试。','error');
+      // Never surface parser/native exception text, which may contain secrets.
+      if(active.current)onNotice?.('无法预览：请检查文件或 Cookie 格式，输入已保留。','error');
     }finally{
       text='';reading.current=false;
-      if(active.current){
-        if(!running.current)setBusy(false);
-        if(fileRef.current)fileRef.current.value='';
-      }
+      if(active.current)setBusy(false);
     }
+  };
+  const confirmImport=()=>{
+    if(reading.current||running.current||disabled||uncertain||!previewRef.current?.ready)return;
+    if(onBeforeSubmit?.()===false)return;
+    const file=stagedFile.current;
+    invalidatePreview(); // A confirmation is single use, including failed/unknown writes.
+    beginIntent(); // Keep the original trusted click before any asynchronous file read.
+    if(!file){void importText(sourceRef.current?.value||'');return;}
+    reading.current=true;setBusy(true);
+    void (async()=>{
+      let text='';
+      try{
+        text=await file.text();
+        if(active.current)await importText(text);
+      }catch{
+        if(active.current)onNotice?.('无法读取 Cookie 文件，输入已保留，请重新预览。','error');
+      }finally{
+        text='';reading.current=false;
+        if(active.current&&!running.current)setBusy(false);
+      }
+    })();
   };
   // File selection and drag/drop only stage the user-supplied source.
   // No native Cookie write or trusted import intent is generated here.
   const stageFile=file=>{
     if(!file||disabled||uncertain||running.current||reading.current)return;
+    invalidatePreview();
     if(file.size>MAX_FILE){
       onNotice?.('文件超过 8 MiB，请分批导入。','error');
       if(fileRef.current)fileRef.current.value='';
@@ -158,7 +192,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
             stageFile(file);
           }}/>
         {stagedName&&<p className="cookie-import-selected" role="status">
-          已选择 {stagedName} · 点击导入即可写入
+          已选择 {stagedName} · 请先预览，再确认导入
         </p>}
         <label className="cookie-import-paste" htmlFor="cookie-import-source">
           <span>或粘贴 Cookie 内容</span>
@@ -168,6 +202,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
             autoComplete="off" spellCheck={false} data-cookie-secret-input="true"
             disabled={disabled||busy||uncertain}
             onInput={event=>{
+              invalidatePreview();
               if(stagedFile.current){stagedFile.current=null;setStagedName('');}
               setConfirmDiscard(false);onNotice?.(null);
               onPendingChange?.(Boolean(event.currentTarget.value.trim()));
@@ -177,12 +212,24 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
           <input type="checkbox" checked={overwrite}
             disabled={disabled||busy||uncertain}
             onChange={event=>{
+              invalidatePreview();
               const next=event.currentTarget.checked;setOverwrite(next);
               setConfirmDiscard(false);onPendingChange?.(Boolean(stagedFile.current)||
                 Boolean(sourceRef.current?.value.trim()));
             }}/>
           <span>覆盖已有 Cookie</span>
         </label>
+        {preview&&<section aria-label="导入预览" className="cookie-import-selected">
+          <p role="status">共 {preview.total} 条，可导入 {preview.ready} 条，
+            跳过 {preview.total-preview.ready} 条。尚未写入 Cookie，值不在预览中显示。</p>
+          <p>{overwrite?'同一 Cookie 身份已存在时将覆盖。':'同一 Cookie 身份已存在时将跳过，不覆盖。'}
+            省略域的记录使用当前网站；网站权限和最终可导入条数将在确认时校验。</p>
+          <ul>{preview.rows.map(row=><li key={row.index}>
+            {row.name?<>{row.name} · {row.domain==='current-site.invalid'?'当前网站':row.domain} · {row.path}</>:
+              <>第 {row.index} 条：格式无效</>}
+            {row.status!=='ready'&&'（跳过：无效、重复或已过期）'}
+          </li>)}</ul>
+        </section>}
       </div>
       <div className="cookie-import-footer">
         {notice&&<div role={notice.kind==='error'?'alert':'status'}
@@ -199,19 +246,10 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
         <div className="cookie-import-actions">
           <Button type="button" variant="secondary" disabled={disabled||busy}
             onClick={close}>取消</Button>
-          <Button type="button" variant="primary" disabled={disabled||busy||uncertain}
-            onClick={()=>{
-              if(reading.current||running.current||disabled||uncertain)return;
-              const file=stagedFile.current;
-              if(!file&&!(sourceRef.current?.value||'').trim()){
-                onNotice?.('请先选择文件或粘贴 Cookie 内容。','error');return;
-              }
-              if(onBeforeSubmit?.()===false)return;
-              beginIntent();
-              if(file)void importFile(file);
-              else void importText(sourceRef.current?.value||'');
-            }}>
-            {busy?'导入中…':'导入'}
+          <Button type="button" variant="primary"
+            disabled={disabled||busy||uncertain||Boolean(preview&&!preview.ready)}
+            onClick={()=>{if(previewRef.current)confirmImport();else void preparePreview();}}>
+            {busy?'处理中…':preview?'确认导入':'预览导入'}
           </Button>
         </div>
       </div>

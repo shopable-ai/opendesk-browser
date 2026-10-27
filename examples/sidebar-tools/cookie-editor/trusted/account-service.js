@@ -110,6 +110,13 @@ export function sameAccountAutoSwitchAttempt(prior,{url,alias,version}){
 export function autoSwitchFenceBlocks(prior,target){
   return prior?.phase==='in_flight'||sameAccountAutoSwitchAttempt(prior,target);
 }
+export function sameAccountAutoSwitchFence(actual,expected){
+  const fields=['url','alias','version','phase'];
+  return object(actual)&&object(expected)&&
+    Object.keys(actual).length===fields.length&&Object.keys(expected).length===fields.length&&
+    fields.every(field=>Object.hasOwn(actual,field)&&Object.hasOwn(expected,field)&&
+      actual[field]===expected[field]);
+}
 export function createCookieAccountService({api=globalThis.chrome}={}){
   const vault=createCookieAccountVault({api});
   const cookieDriver=createCookieService({api,authorize: async({url},context)=>{
@@ -431,14 +438,14 @@ export function createCookieAccountService({api=globalThis.chrome}={}){
         state[id]=priorFence;
         await api.storage.session.set({[SEEN_KEY]:state});
         const verified=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]?.[id];
-        if(!same(verified,priorFence))throw fail('E_OUTCOME_UNKNOWN');
+        if(!sameAccountAutoSwitchFence(verified,priorFence))throw fail('E_OUTCOME_UNKNOWN');
         try{
           await runSwitch(account,latest,document,{
             automatic:true,refresh:current.settings.autoRefresh
           });
           const next=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
           // Never overwrite a newer manual/automation fence for this tab.
-          if(same(next[id],priorFence)){
+          if(sameAccountAutoSwitchFence(next[id],priorFence)){
             next[id]={...priorFence,phase:'applied'};
             await api.storage.session.set({[SEEN_KEY]:next});
           }

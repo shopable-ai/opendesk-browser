@@ -4,7 +4,7 @@ import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,
   COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {planAccountCookieEffects,validateAccountCookieRow,
-  sameAccountAutoSwitchAttempt,autoSwitchFenceBlocks}
+  sameAccountAutoSwitchAttempt,autoSwitchFenceBlocks,sameAccountAutoSwitchFence}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
 import {readFile} from 'node:fs/promises';
 
@@ -12,6 +12,21 @@ const original=(overrides={})=>({
   name:'demo',value:'fiction',domain:'example.com',path:'/',
   storeId:'0',hostOnly:true,session:true,secure:true,httpOnly:true,
   sameSite:'lax',...overrides
+});
+
+test('automatic fence readback accepts reordered keys but rejects changed or incomplete receipts',()=>{
+  const expected={url:'https://example.com/#od-account=acct_one',
+    alias:'acct_one',version:2,phase:'in_flight'};
+  const reordered=Object.fromEntries(Object.entries(expected).reverse());
+  assert.equal(sameAccountAutoSwitchFence(reordered,expected),true);
+  for(const field of Object.keys(expected)){
+    const missing={...reordered};delete missing[field];
+    assert.equal(sameAccountAutoSwitchFence(missing,expected),false);
+    assert.equal(sameAccountAutoSwitchFence({...reordered,[field]:'changed'},expected),false);
+  }
+  for(const receipt of [null,[],{...reordered,extra:true}])
+    assert.equal(sameAccountAutoSwitchFence(receipt,expected),false);
+  assert.equal(autoSwitchFenceBlocks(reordered,{...expected,alias:'acct_two'}),true);
 });
 
 test('native Cookie switch plan is deterministic, exact and idempotent',()=>{

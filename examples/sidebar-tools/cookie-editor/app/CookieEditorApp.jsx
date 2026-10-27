@@ -32,6 +32,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   });
   const [accountNotice,setAccountNotice]=React.useState(null);
   const accountInFlight=React.useRef(false);
+  // Session-only evidence of an applied snapshot, never a persisted login claim.
+  const verifiedAccount=React.useRef(null);
   const [offlineInitialSite,setOfflineInitialSite]=React.useState(null);
   const modeRef=React.useRef('browser');
   const syncGate=React.useRef({panel:null,selected:null,dirty:false,confirmation:null,working:false,exportOpen:false});
@@ -64,7 +66,17 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       getBrowser:()=>globalThis.OpenDeskSDK?.browser,
       request
     });
-    const controller=createCookieController({adapter,onChange:s=>setView(s)});
+    const controller=createCookieController({adapter,onChange:s=>{
+      const verified=verifiedAccount.current;
+      if(verified){
+        if(s.epoch!==verified.epoch||s.target?.url!==verified.url||
+          s.phase!=='ready'||s.syncStale||
+          (!verified.refreshing&&JSON.stringify(s.rows)!==verified.rows))
+          verifiedAccount.current=null;
+        else if(verified.refreshing)verified.rows=JSON.stringify(s.rows);
+      }
+      setView(s);
+    }});
     data.current={adapter,controller};
   }
   const {controller,adapter}=data.current;
@@ -192,9 +204,17 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     }
   },[snapshot.epoch,snapshot.phase]);
   const target=snapshot.target;
+  const acceptAccountState=result=>{
+    const verified=verifiedAccount.current;
+    if(verified&&(!result.unlocked||!result.accounts.some(item=>
+      item.alias===verified.alias&&item.version===verified.version&&item.origin===target?.origin)))
+      verifiedAccount.current=null;
+    setAccountState(result);
+  };
 
   React.useEffect(()=>{
     if(mode!=='browser'||section!=='accounts'||!target?.origin){
+      verifiedAccount.current=null;
       setAccountState(null);return;
     }
     let active=true;
@@ -202,7 +222,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     setAccountNotice(null);
     void adapter.accountRequest('status',{}).then(result=>{
       if(active&&result&&typeof result.configured==='boolean'&&
-         Array.isArray(result.accounts))setAccountState(result);
+         Array.isArray(result.accounts))acceptAccountState(result);
       else if(active)throw Error('E_ACCOUNT_HOST');
     }).catch(error=>{
       if(active)setAccountNotice({kind:'error',
@@ -214,6 +234,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     if(accountInFlight.current||modeRef.current!=='browser'||!target?.origin||
        (action!=='unlock'&&action!=='lock'&&!accountState?.unlocked))return;
     accountInFlight.current=true;
+    if(action==='switch'||action==='lock'||
+      (['delete','update'].includes(action)&&payload.alias===verifiedAccount.current?.alias))
+      verifiedAccount.current=null;
     // Start the Host request in the original button/change gesture. The
     // privileged parent independently observes userActivation synchronously.
     const intent=adapter.accountRequest(action,{
@@ -228,18 +251,28 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         live.target?.origin===requestedOrigin;
     };
     setAccountBusy(true);setAccountNotice(null);
-    return Promise.resolve(intent).then(receipt=>{
+    return Promise.resolve(intent).then(async receipt=>{
       if(!sameAccountContext())return false;
       if(action==='switch'){
-        if(receipt?.switched!==true||receipt?.verified!==true)
+        if(receipt?.switched!==true||receipt?.verified!==true||controller.snapshot().phase!=='ready')
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
-        setAccountState(previous=>previous?{...previous,currentAlias:payload.alias}:previous);
+        const account=accountState.accounts.find(item=>item.alias===payload.alias&&
+          item.origin===requestedOrigin);
+        if(!account)throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+        const verified={alias:account.alias,version:account.version,
+          epoch:requestedEpoch,url:target.url,rows:JSON.stringify(controller.snapshot().rows),
+          refreshing:!receipt.reloadRequested};
+        verifiedAccount.current=verified;
         setAccountNotice({kind:'success',text:receipt.preview===true
           ?'预览模拟：切换流程已返回虚构回执，未操作真实 Cookie。'
           :receipt.reloadRequested
             ?'已验证 Cookie 切换，正在刷新目标网页。'
             :'已验证 Cookie 切换；自动刷新已关闭。'});
-        if(!receipt.reloadRequested)void controller.load();
+        if(!receipt.reloadRequested){
+          // Reconcile metadata without retiring the just-verified target/epoch.
+          try{await controller.syncMetadata();}
+          finally{verified.refreshing=false;}
+        }
       }else if(action==='lock'){
         // A trusted affirmative receipt is required before marking the vault locked.
         if(receipt?.locked!==true)
@@ -252,7 +285,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       }else{
         if(typeof receipt?.configured!=='boolean'||!Array.isArray(receipt.accounts))
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
-        setAccountState(receipt);
+        acceptAccountState(receipt);
         setAccountNotice({kind:'success',text:receipt.preview===true
           ?'预览模拟：'+success+'（未写入真实账号）':success});
       }
@@ -263,7 +296,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       const hints={
         E_OUTCOME_UNKNOWN:action==='lock'
           ?'账号仓库锁定回执未确认；请核对实际状态，勿假定已锁定。'
-          :'可能发生部分 Cookie 写入，请手动核对，勿直接重复切换。',
+          :action==='switch'?'可能发生部分 Cookie 写入，请手动核对，勿直接重复切换。'
+          :'账号仓库操作结果未确认；请先读取并核对仓库状态，勿直接重复操作。',
         E_REFRESH_OUTCOME_UNKNOWN:'Cookie 切换已尝试，但网页刷新结果未确认，请手动核对。',
         E_VAULT_LOCKED_OR_CORRUPT:'口令不正确或加密仓库损坏，原数据未覆盖。',
         E_VAULT_CONFLICT:'另一个操作已修改账号，请重新打开账号页读取最新状态。',
@@ -278,6 +312,34 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       return false;
     }).finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
   };
+  const copyNonSecret=async text=>{
+    const requested=controller.snapshot();
+    if(!text||exportPending.current||modeRef.current!=='browser'||
+      requested.phase!=='ready'||requested.busy||!requested.target?.url)
+      throw Object.assign(Error('E_COOKIE_EXPORT'),{code:'E_COOKIE_EXPORT'});
+    const sameCopyContext=()=>{
+      const live=controller.snapshot();
+      return modeRef.current==='browser'&&live.phase==='ready'&&
+        live.epoch===requested.epoch&&live.target?.url===requested.target.url;
+    };
+    // Cookie-capable tools MUST reuse the first-party one-use export gate,
+    // even for non-secret links/briefs, in the original trusted click stack.
+    let ref=null;
+    exportPending.current=true;
+    try{
+      const intent=await adapter.beginExportIntent(requested.target,'copy');
+      if(intent?.authorized!==true||!Number.isSafeInteger(intent.ref)||intent.ref<1)
+        throw Object.assign(Error('E_COOKIE_EXPORT'),{code:'E_COOKIE_EXPORT'});
+      ref=intent.ref;
+      if(!sameCopyContext())throw Error('E_CONTEXT');
+      const receipt=await adapter.copy(text);
+      if(!sameCopyContext())throw Error('E_CONTEXT');
+      return receipt;
+    }finally{
+      if(ref!==null)void adapter.finishExportIntent(ref).catch(()=>{});
+      exportPending.current=false;
+    }
+  };
   const copyAccountLink=(item,url)=>{
     if(!url||accountInFlight.current||!target?.url)return;
     const requestedOrigin=target.origin,requestedEpoch=controller.snapshot().epoch;
@@ -286,24 +348,10 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       return modeRef.current==='browser'&&live.epoch===requestedEpoch&&
         live.target?.origin===requestedOrigin;
     };
+    const pending=copyNonSecret(url);
     accountInFlight.current=true;
-    // Cookie-capable tools MUST reuse the first-party one-use export gate,
-    // including for a non-secret link. Direct clipboard SDK calls from this
-    // tool are intentionally denied by its stricter Host export policy.
-    const pending=(async()=>{
-      let ref=null;
-      try{
-        const intent=await adapter.beginExportIntent(target,'copy');
-        if(intent?.authorized!==true||!Number.isSafeInteger(intent.ref)||intent.ref<1)
-          throw Object.assign(Error('E_COOKIE_EXPORT'),{code:'E_COOKIE_EXPORT'});
-        ref=intent.ref;
-        return await adapter.copy(url);
-      }finally{
-        if(ref!==null)void adapter.finishExportIntent(ref).catch(()=>{});
-      }
-    })();
     setAccountBusy(true);setAccountNotice(null);
-    void pending.then(result=>{
+    return pending.then(result=>{
       if(!sameCopyContext())return;
       if(result?.copied!==true)throw Error('E_OUTCOME_UNKNOWN');
       setAccountNotice({kind:'success',text:accountState?.preview
@@ -615,7 +663,10 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           setAccountDirty(false);action();
         },onCancel)}
         origin={target?.origin||''} accounts={accountState?.accounts||[]}
-        currentAlias={accountState?.currentAlias||null}
+        currentAlias={snapshot.phase==='ready'&&accountState?.unlocked&&verifiedAccount.current&&
+          snapshot.epoch===verifiedAccount.current.epoch&&target?.url===verifiedAccount.current.url&&
+          accountState.accounts.some(item=>item.alias===verifiedAccount.current.alias&&
+            item.version===verifiedAccount.current.version)?verifiedAccount.current.alias:null}
         configured={accountState?.configured===true}
         route={accountRoute} onRoute={setAccountRoute}
         vaultReady={accountState?.unlocked===true} switchReady={
@@ -656,7 +707,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         })}/>}
       {section==='custom'&&<CookieCustomizePanel draft={customDraft}
         onDraftChange={setCustomDraft} previewMode={previewMode}
-        onCopyBrief={text=>adapter.copy(text)} onCommunity={()=>chooseSection('circle')}/>}
+        onCopyBrief={copyNonSecret} onCommunity={()=>chooseSection('circle')}/>}
       {section==='circle'&&<CookieCommunityPanel/>}
     </>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&

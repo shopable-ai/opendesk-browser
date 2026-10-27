@@ -1,47 +1,47 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-## 当前核心开发状态与扩展测试入口（2026-10-28）
+## 当前核心开发与原生验证（2026-10-28 · 2.0.42）
 
-**六页 React 界面已接入同一应用，但业务完成度不同。** 本轮仍为仅 dev 阶段：本对话没有主动运行构建、打包、晋升或安装。下面的当前状态优先于后文历史版本记录。
+**六页正式 React Sidebar App 已通过本轮核心原生流程。** 在本对话独立、可见的 CFT Profile 中，通过原安装审阅链从旧包更新到 **2.0.42**；使用实际 SDK / Host / Chrome Cookie，未使用 Mock。当前是持续开发环境，不是 production 验收或全站兼容结论。下面状态优先于后文历史记录。
 
-### 源码在哪里
+### 安装身份与复测入口
 
-- 正式应用：[`app/CookieEditorApp.jsx`](app/CookieEditorApp.jsx)；账号：[`app/components/CookieAccounts.jsx`](app/components/CookieAccounts.jsx)；分享配置与本地市场：[`app/components/CookieAccountExperiences.jsx`](app/components/CookieAccountExperiences.jsx)；企业、定制、圈子：[`app/components/CookieBusinessPanels.jsx`](app/components/CookieBusinessPanels.jsx)。
-- Cookie 业务仍由 `app/controller/cookie-controller.js` 和 `app/adapters/browser-sdk.js` 调用原 SDK / Host / Authority；样式是 `src/react.css`。
-- 正式入口 [`app/entries/official.jsx`](app/entries/official.jsx) 通过 `OpenDeskTool.root/request/setState` 在工具 Sandbox 中挂载同一 App。这是 OpenDesk 扩展运行的 Sidebar App 源码，**不挂到可信宿主 `src/ui/react/`**。
-- 网页 dev 入口 `preview/react/src/App.jsx` 也导入同一 App，但使用 `mock-sdk.js`。可访问 [当前源码预览](http://127.0.0.1:43134/dev.html)、[A/B 入口](http://127.0.0.1:43134/a-b-dev.html) 与 [来源回执](http://127.0.0.1:43134/dev-source.json)。预览不读写真实 Cookie；日常 Chrome 注入真实 SDK 时继续拒绝混用。固定 Shared UI 产物只读复用，`sourceBuildProof=false`。
+- 唯一正式包：[`cookie-editor.opendesk-tool.json`](cookie-editor.opendesk-tool.json)，217608 字节，SHA-256 `d8a2b428bceaf6e5208bb7240268c6df2c81e90b13b30a50f00f2059477e7590`。实际安装详情及运行目录 Catalog 均匹配；工具 ID、能力列表不变。
+- 当前编译回执 buildId：`5b2e1605dd09b2a93ebdb440241e25e19e1a8e27dd5d3c9a72b437dd48662880`。原 dev watcher 已按原 React 编译器更新产物；本轮复用该 writer，使用原打包器候选→定向门禁→`--promote-from`→`--check-project`，没有第二个 Browser build writer。
+- CFT **155.0.8059.39**；专用 Profile：`/Users/shopme/.opendesk-browser/dev-profiles/cookie-core-01a17e8d-b047a7c92bda`，启动名 `cookie-core-01a17e8d`。本轮仅操作此实例，保留日常 Chrome、其他 Profile、现有 watcher 与测试服务器。
+- Chrome 扩展详情实读加载目录为本仓库 `dist/development`，真实扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。可信“调试→本地开发服务”实读已连接，观察时构建指纹 `dad9e5434729`；后续 dev 更新可改变指纹。
+- 标准核心页面：`http://127.0.0.1:43111/demo-form.html`。所有 Cookie、名称与场景均为本轮虚构数据；没有读取个人 Profile 或真实站点登录信息。自动切换另使用同一测试服务器的根路径，以满足既有根 Fragment 合同。
+- 结束时保留三个 `od_core_01a17e8d_*` 测试 Cookie、Core Alpha / Core Beta Renamed 两条加密快照；自动触发已关闭，仓库已锁定。测试口令仅适用于此虚构仓库：`fictional-cookie-core-01a17e8d`。
 
-### 六页的功能与证据边界
+### 六页实测结果
 
-| 页面 | 已实现的操作 | 本轮证据与尚未完成 |
+| 页面 | 本轮真实用户操作 | 边界 |
 | --- | --- | --- |
-| Cookie | 列表、搜索、原位编辑、有效期、导入导出、安全清理；已有正式 Controller / SDK 接线 | 旧安装 2.0.39 在 localhost 读取列表→打开新建→取消通过，未写 Cookie；历史原生读写仅证明对应旧包。最新源码的原生操作仍 `NOT_TESTED`。 |
-| 账号 | 新建、重命名及草稿保护；切换、更新、删除、锁定和 URL 自动切换已有 Host 接线，后台能力以 `autoRuntimeReady` 为准 | 当前 React + Mock 验证新建/重命名、保存失败保留表单、继续编辑与焦点恢复。最新原生仓库操作、授权范围及后台切换仍 `NOT_TESTED`；邀请分享只有配置演示，真实服务未上线。 |
-| 企业 | 场景说明、资源展示、进入定制 | 当前 Mock 显示明确标注的虚构席位/预算；正式入口无数据时显示未接入。真实企业、席位、用量与预算接口未接。 |
-| 市场 | 本地功能目录、搜索/分类及账号管理、切换设置、Expiration 体验入口 | 当前 Mock 搜索→切换设置通过，其他入口保留前轮限定证据；不提供在线资源市场、交易或账号共享。Expiration 只打开未保存编辑区。 |
-| 定制 | 场景→需求摘要→公开剪贴板 SDK；同一 App 内跨 Tab 保留 | 当前 Mock 复制失败会保留摘要并提示手动复制，跨页保留通过；前轮模拟成功有独立证据。真实剪贴板 Host 仍 `NOT_TESTED`；商务联系方式未配置，不自动发送/建单，刷新或关闭不承诺持久化。 |
-| 圈子 | Telegram / Discord / 微信入口展开、切换与收起 | 当前 Mock 复核 Telegram→Discord，前轮覆盖三个入口。真实邀请/联系方式均待公布；尚不能实际加入社群。 |
+| Cookie | 列表、搜索、新建 Session、编辑值与相对有效期、取消不写、JSON 系统剪贴板导出、预览后确认导入、错误保留输入、预览取消、单条删除及 Host-only 清理、重开回读通过 | 新建/编辑/导出最初在 2.0.40 实测；导入确认在 2.0.41 实测；2.0.42 复测导入错误/预览/取消，且账号切换真实恢复三条 Cookie。未改动的流程复用同源证据；文件下载与其他格式未在本轮原生复测。 |
+| 账号 | 保存两条快照、手动 Alpha/Beta 切换并独立回读 Cookie、重命名、临时快照更新与明确删除、锁定/错误口令/正确解锁、重开持久状态通过；空站点保存返回 `E_ACCOUNT_EMPTY`，名称与错误保留，跨页与 Escape 的继续编辑恢复焦点 | 已应用标识仅表示当前会话最近一次可信快照回执，不证明网站登录；外部仅值变化不一定能由元数据检测。修复后首次空仓库配置有 Node 回归，本轮未重置已配置原生仓库重复首次配置。 |
+| 企业 | 无数据明确显示“尚未接入”，进入定制通过 | 真实企业、席位、用量、预算接口未接入。 |
+| 市场 | 本地搜索、分类及账号管理、自动切换设置、Expiration 跳转通过；Expiration 未自动写入 | 无在线交易、共享账号或线上市场服务。 |
+| 定制 | 选择方向、生成摘要、跨 Tab 保留通过；2.0.42 的可信复制成功，系统粘贴内容与摘要逐字一致 | 关闭或刷新不承诺持久化；没有自动发送、建单或配置商务联系方式。 |
+| 圈子 | Telegram / Discord / 微信展开、切换、收起通过，明确显示待公布 | 真实邀请与联系方式未接入，未对外发送消息。 |
 
-本轮修复一处实际缺陷：账号名称有草稿时，尝试换 Tab 后选择“继续编辑”，原先只聚焦账号 Tab；现在等待确认关闭、输入恢复可用后聚焦原名称框。空站点保存返回 `E_ACCOUNT_EMPTY` 时，错误和输入保持，Escape 继续编辑及明确放弃后的入口焦点均正常。未修改 Host、权限或回执判断。
+### 本轮修复及受影响保护
 
-### 当前浏览器与产物差异
+1. 导入增加“预览导入→确认导入”，预览只显示名称/域/路径与数量，不写 Cookie、不取得写入 intent。值不进入 React state；输入/文件/覆盖策略变化使预览失效，未知结果禁止重试。
+2. Chrome storage 回读会重排对象键。加密仓库与自动切换栅栏改为完整字段值比较，仍拒绝缺失、额外、篡改和并发回执；保留冲突与未知结果拒绝。
+3. 手动切换后在同一有效目标/epoch 同步元数据，保留可信已应用快照标识；切站、撤权、锁定、删除或可观察变化清除标识。仓库操作未知结果使用对应提示，不误称已写 Cookie。
+4. 定制摘要与账号链接复用原有一次性导出授权；复制前后验证上下文，结束释放 intent，没有新增 SDK、Host、权限或安装路径。
 
-- 日常 Chrome 实读加载目录为本仓库 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。可信“调试→本地开发服务”显示已连接，观察时构建指纹 `eaf8465eab7e`；不是 production 验收包。未重启 watcher 或浏览器。
-- “扩展→Cookie Editor→管理→查看详情”实读安装版本 **2.0.39**，SHA-256 `892887021f7135301bf40e171197f1352923e7339b4fd71489bcb1ee0e0c5202`，与目录唯一正式 JSON 一致。
-- 当前 `tool.config.json` / `package.json` 为 **2.0.40**。开始时编译回执 buildId 为 `8c46f8ec436b945e660301bcc2df7a184e9c972fb40e3cd18632a7b68cdc2a74`；收尾只读复核时已更新为 `2320a1eb496fb2424454de548eb81f8daa9e8c62177c2ba05f46f36dc4d41a6a`，20 个来源和 2 个产物哈希均匹配，包含本轮焦点修复。本对话未调用编译命令，未核实此次产物更新的执行者；可复用匹配产物，不据此重复构建。唯一正式 JSON 和实际安装仍为 2.0.39，尚未包含新源码。
-- 扩展 dev watcher 更新的是 Browser；它不会自动替换已安装的 Sidebar App。**现在可以测试旧 2.0.39 的 Cookie 入口；最新六页和账号改动尚不能当作已在扩展中运行。**
+原生自动切换：关闭时拒绝；只允许显式白名单；深路径拒绝；同一本地测试 Origin 的根 `/#od-account=...` 在最终可信代码中成功切到 Alpha，独立 Cookie 回读一致，栅栏回读为 `applied`。修复前未知请求没有自动重放，复测采用新明确请求。没有验证其他站点/SPA 适配。
 
-### 进入最新源码扩展测试的后续步骤（打包及安装尚未执行）
+原生撤权：可信设置撤销后，业务 Sandbox 隐藏且内容清空，读写入口不可用，实际 Cookie 不变；经原授权入口恢复后重新读取。执行世界仍是 manifest Sandbox，`chrome.runtime/cookies/permissions` 不可用，CSP `connect-src 'none'`；不是可信宿主内运行用户代码。定向 Node 回归继续覆盖权限预检拒绝、未知写入不重试和过期异步回执。
 
-1. 在原工具目录确认源码与产物 writer，复核并复用当前匹配的 `dist/tool.js`、`dist/tool.css` 和 `dist/build-ready.json`；只有后续源码变化使回执失配时，才按原 `node scripts/build-cookie-editor-react.mjs` 编译。不运行第二个 Browser dev/build 覆盖共享输出。
-2. 进入原打包 Skill，用 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --out artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json` 生成临时候选，执行与变更相关的来源、包身份、账号/草稿及安全门禁。候选成功不等于安装成功。
-3. 门禁通过后按同一打包器 `--promote-from`、`--check-project` 晋升唯一正式 JSON，并按项目合同与源码一起安全保存到 `main`。官方 Catalog 固定读取该正式包；需由现有开发资源流程同步并确认运行中的官方目录识别新版本，不能直接改 Catalog、安装记录或拿未晋升候选冒充官方身份。
-4. 从“扩展→Cookie Editor→管理”走同 ID 更新的原审阅链，核对版本、包摘要、能力及必要授权；保留原数据，不先卸载。重新打开后再次核对实际安装身份。
-5. 只在 `http://127.0.0.1:43111/demo-form.html` 使用虚构测试 Cookie，先验证读取→新建/保存/回读，再验证账号保存/重命名/切换、定制复制及新页面跳转。真实服务未接的功能继续报告缺口，不以 Mock 成功替代。无需恢复 production、全量矩阵或评分。
+### 证据与未执行项
 
-若只需继续 UI 调试，复用当前 Vite 即可；Native Workspace 的既有只读预览也不继承安装权限，不能替代 Cookie/账号 Host 测试。本对话遵守此前“仅 dev、不构建、不打包、不晋升、不安装”的边界，后续打包、晋升与更新步骤保留为下一阶段。
+本机原始证据：`artifacts/cookie-editor-core-01a17e8d/results.json`、`installed-2042.png`、`import-preview-2042.png`、`final-cookie-2042.png`。可提交的精简身份及证据索引见 [`evidence/core-native-20261028.json`](evidence/core-native-20261028.json)。截图与临时包不提交。
 
-本轮证据：本机 `artifacts/cookie-editor-r37-dev/extension-readiness-20261028/`（`results.json`、来源回执、扩展旧版入口和账号焦点截图）；前轮其他核心操作在 `artifacts/cookie-editor-r37-dev/other-pages/results.json`，仅适用于它记录的快照。新增定向源码检查 2 项通过；未运行全量测试。认可 HTML Blob `020adbf22005cba219af4ff27cd3f3e492978bed` 保持不变。
+相关回归：导入预览 9、仓库 30、账号 UI 回执/复制 10、可信切换及栅栏 10、定向 Controller/来源保护 7、包来源 3 项通过；语法、diff 与最终包同源检查通过。没有运行 Browser 全量构建、全套回归、production、跨浏览器/缩放宽度矩阵或独立评分；这些仍为 `NOT_TESTED` / `OUT_OF_SCOPE`，不影响本轮核心开发收尾。
+
+正式源码仍在 `app/`，业务通过原 Controller / Adapter / SDK / Host / Authority。`preview/react/` 的 Mock 只用于 UI 预览，不能替代以上原生证据。2.0.40、2.0.41 是本轮被最终包替换的中间版本，工具目录只保留一个正式 JSON。此前“仅 dev、不打包/安装”的阶段记录已被本轮明确授权与实际更新取代；下文历史版本仅证明各自候选。
 
 ## 样式归属（2026-10-28）
 
