@@ -82,7 +82,11 @@ try{
   oldPage.setDefaultTimeout(10000);
   reactPage.setDefaultTimeout(10000);
   for(const page of [oldPage,reactPage])page.on('pageerror',error=>errors.push({width,message:error.message}));
-  await oldPage.goto(pathToFileURL(approvedPath).href,{waitUntil:'load'});
+  // The locked prototype is self-contained; navigate via its exact bytes in
+  // the same Chromium context. file:// navigation left compositor screenshot
+  // requests unresolved on the CI runner; setContent uses identical markup as
+  // the approved srcdoc in the source-bound A/B wrapper.
+  await oldPage.setContent(originalBytes.toString('utf8'),{waitUntil:'load'});
   await oldPage.locator('#labWidth').selectOption(String(width));
   await reactPage.goto(pathToFileURL(reactPath).href,{waitUntil:'load'});
   await reactPage.locator('.row-trigger').first().waitFor({state:'visible'});
