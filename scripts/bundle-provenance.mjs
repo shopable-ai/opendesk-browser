@@ -244,7 +244,7 @@ function reviewedCompiledPromptShortcuts(target,path,root){
 // of src/ must not turn examples/ into an executable-code wildcard.
 // These blob pins intentionally require review when privileged code changes.
 const compiledStayFocusInputs=Object.freeze({
-  'examples/sidebar-tools/stay-focus/trusted/react-controls.tsx':'2c304e19e6a8f9b74d5fc2de19554c21b8ab3932',
+  'examples/sidebar-tools/stay-focus/trusted/react-controls.tsx':'2e490028e19fbb048c2b9aa49073e7ee94100daf',
   'examples/sidebar-tools/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
   'examples/sidebar-tools/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
   'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'65346648494b88fbf434a5a951769edba445c32e',
