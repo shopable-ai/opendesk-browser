@@ -154,7 +154,9 @@ jobs:
           retention-days: 14
           path: |
             examples/sidebar-tools/cookie-editor/dist/
+            examples/sidebar-tools/cookie-editor/preview/cookie-editor.html
             examples/sidebar-tools/cookie-editor/preview/react/index.html
+            examples/sidebar-tools/cookie-editor/preview/compare-r34.html
             artifacts/sidebar-tools/cookie-editor/
             artifacts/cookie-editor-r523/
       - name: Promote only Chromium-tested preview and source-bound package to main

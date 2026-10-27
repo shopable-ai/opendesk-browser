@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Cookie Editor R3.4 · 原版 / 正式 React 同源对比</title>
+<style>
+:root{font:13px/1.5 system-ui,-apple-system,"PingFang SC",sans-serif;color-scheme:light dark}
+*{box-sizing:border-box}body{margin:0;min-width:0;background:Canvas;color:CanvasText}
+header{padding:15px 18px 12px;border-bottom:1px solid GrayText}
+h1{font-size:16px;margin:0 0 5px}p{font-size:12px;margin:4px 0;color:GrayText}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+select,a{font:inherit;border:1px solid GrayText;border-radius:7px;padding:5px 9px;background:Canvas;color:CanvasText}
+a{text-decoration:none}a:hover{text-decoration:underline}
+.pair{display:flex;gap:18px;padding:16px;overflow-x:auto;align-items:flex-start;min-height:0}
+.slot{flex:none;width:calc(var(--panel-width,380px) + 24px);min-width:0}
+.slot h2{font-size:13px;margin:0 0 8px;display:flex;justify-content:space-between;gap:8px}
+.slot h2 small{font-size:11px;font-weight:400;color:GrayText}
+.slot iframe{display:block;width:100%;height:850px;border:1px solid GrayText;border-radius:10px;background:white}
+footer{padding:0 18px 14px;color:GrayText;font-size:11px}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Cookie Editor · R3.4 双真实文件交互对比</h1>
+  <p>左侧直接加载已认可 HTML；右侧直接加载正式 React 的已编译同源 HTML。此页面不复制任何产品组件或样式。</p>
+  <div class="controls">
+    <label>对比视口 <select id="width" aria-label="对比面板宽度">
+      <option value="320">320px</option><option value="360">360px</option>
+      <option value="380" selected>380px</option><option value="400">400px</option>
+      <option value="440">440px</option><option value="520">520px</option>
+    </select></label>
+    <a href="./cookie-editor.html" target="_blank" rel="noopener">单独打开原版 A</a>
+    <a href="./react/index.html" target="_blank" rel="noopener">单独打开 React B</a>
+  </div>
+  <p>对比视口只调整 iframe 宽度；大于 380px 时请在两侧各自的预览宽度控件选择同值。Tab、明暗主题和故障场景也分别在原始文件内操作，不注入模拟业务代码。</p>
+</header>
+<main class="pair" aria-label="原版与 React 双文件对比">
+  <section class="slot"><h2>A · 已认可 HTML <small>Blob 020adbf22005</small></h2>
+    <iframe title="A 已认可 Cookie Editor 原版 HTML" src="./cookie-editor.html"></iframe>
+  </section>
+  <section class="slot"><h2>B · 正式 React 同源预览 <small>真实 React 组件 + Mock SDK</small></h2>
+    <iframe title="B 正式 Cookie Editor React 编译 HTML" src="./react/index.html"></iframe>
+  </section>
+</main>
+<footer>必须使用同一目录的实际 A/B 文件；此查看器不代表 Chrome 安装业务的真实授权回执。</footer>
+<script>
+document.getElementById('width').addEventListener('change',event=>{
+  const width=Number(event.target.value);
+  if([320,360,380,400,440,520].includes(width))
+    document.documentElement.style.setProperty('--panel-width',width+'px');
+});
+</script>
+</body>
+</html>
