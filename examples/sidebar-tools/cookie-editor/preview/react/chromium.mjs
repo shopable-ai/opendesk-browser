@@ -603,6 +603,9 @@ try{
     'ambiguous lock must retain the last confirmed unlocked view');
   assert.equal(await page.getByText('账号仓库已锁定。').count(),0);
   await scene('accountsDemo');
+  // Scene reset follows the approved Cookie-first baseline; account controls
+  // are intentionally not on the hidden tab.
+  await page.getByRole('tab',{name:'账号',exact:true}).click();
   await button('锁定账号仓库').waitFor();
   await button('锁定账号仓库').click();
   await page.getByText('账号仓库已锁定。').waitFor();
