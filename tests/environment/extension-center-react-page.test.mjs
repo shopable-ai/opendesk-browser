@@ -208,6 +208,9 @@ test('React page preserves list, search/filter, detail identity and native Page 
   await page.locator('[data-extension-key="page:reader"][data-extension-action="main"]').click();
   assert.equal(await page.locator('#extension-center-detail').isVisible(),true);
   assert.match(await page.locator('.ec-sites').innerText(),/https:\/\/example.com\/\*/);
+  assert.equal(await page.getByRole('switch',{name:'启用「阅读增强」'}).count(),1);
+  assert.equal(await page.locator('#extension-center-detail button[data-ec-detail-action="toggle"]').count(),0);
+  assert.equal(await page.locator('.ec-page-diagnostics:not([open])').count(),1);
   await page.locator('#extension-center-back').click();
   await page.locator('[data-extension-key="page:reader"][data-extension-action="more"]').click();
   await page.locator('#extension-center-row-menu').getByRole('menuitem',{name:'查看详情',exact:true}).click();
@@ -218,7 +221,7 @@ test('React page preserves list, search/filter, detail identity and native Page 
       installed:fixture.page.installed,calls:fixture.calls,detail:fixture.state.detailModel,
       status:fixture.state.statusModel,text:document.body.innerText
     }))));});
-  assert.equal(await page.locator('[data-ec-detail-action="toggle"]').evaluate(node=>node===document.activeElement),true);
+  assert.equal(await page.getByRole('switch',{name:'启用「阅读增强」'}).evaluate(node=>node===document.activeElement),true);
   assert.equal(await page.evaluate(()=>fixture.calls.find(x=>x.action==='page-toggle').args.expectedGeneration),5);
   await page.evaluate(()=>{fixture.setAckOnly(true);});
   await page.locator('[data-ec-detail-action="toggle"]').click();

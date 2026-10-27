@@ -229,7 +229,7 @@ export function CookieAccounts({
       </div>}
       <label className="cookie-account-setting">
         <span><strong>切换后自动刷新网页</strong>
-          <small>仅目标标签页 · 回读确认后刷新；未保存的网页内容可能丢失</small></span>
+          <small title="仅目标标签页 · 回读确认后刷新；未保存的网页内容可能丢失">仅目标页 · 回读后刷新 · 未保存内容可能丢失</small></span>
         <input type="checkbox" role="switch" checked={autoRefresh}
           disabled={busy||!switchReady||typeof onToggleRefresh!=='function'}
           onChange={event=>onToggleRefresh?.(event.target.checked)}/>
@@ -276,11 +276,11 @@ export function CookieAccounts({
       <header className="cookie-account-header" aria-label="已保存账号操作">
         <strong>已保存账号 <span className="cookie-account-count">{accounts.length}</span></strong>
         <div className="cookie-account-actions">
-          <CookieIconButton name="settings" label="管理自动切换"
+          <CookieIconButton name="settings" label="管理自动切换" appearance="quiet"
             onClick={openSettings}/>
-          {vaultReady&&<CookieIconButton name="lock" label="锁定账号仓库"
+          {vaultReady&&<CookieIconButton name="lock" label="锁定账号仓库" appearance="quiet"
             disabled={busy||typeof onLock!=='function'} onClick={()=>onLock?.()}/>}
-          <CookieIconButton name="plus" label="保存当前 Cookie 为账号"
+          <CookieIconButton name="plus" label="保存当前 Cookie 为账号" appearance="quiet"
             disabled={busy||!vaultReady||typeof onCreate!=='function'}
             onClick={()=>startInline('create')}/>
         </div>
@@ -303,7 +303,7 @@ export function CookieAccounts({
             disabled={busy||!switchReady||typeof onSwitch!=='function'}
             onClick={()=>onSwitch?.(item)}>切换</button>}
         <div className="cookie-account-menu-anchor">
-          <button type="button" className="od-icon-button"
+          <button type="button" className="od-icon-button od-icon-button--quiet"
             disabled={busy||!vaultReady}
             aria-label={'更多操作：'+item.displayName} aria-haspopup="menu"
             aria-expanded={menuId===item.alias}

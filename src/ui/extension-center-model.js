@@ -133,6 +133,38 @@ export function resolveExtensionPrimaryAction(row){
 export function resolveExtensionRowIntent(row){
   return resolveExtensionPrimaryAction(row)?'launch':'detail';
 }
+// All installed Page Programs use the same trusted management projection.
+// The existing AI projection retains its legacy identity/restore semantics.
+export function describeInstalledPageControl(page,installedPrograms=[]){
+  const ai=describeManagedAiPage(page,installedPrograms);
+  if(ai)return ai;
+  const enabledKnown=typeof page?.enabled==='boolean',enabled=page?.enabled===true;
+  const authorization=page?.authorization?.status,native=page?.nativeState;
+  const sitesKnown=Array.isArray(page?.pageRules?.matches)&&page.pageRules.matches.length>0;
+  const cleanupUnknown=page?.managedCleanup?.state==='unknown',error=Boolean(page?.error);
+  let state='pending',status='运行条件待核对';
+  if(!enabledKnown)status='启用状态尚未核实';
+  else if(!enabled){
+    if(authorization==='disabled'&&native==='disabled'&&!cleanupUnknown&&!error){
+      state='off';status='已停用 · 原生注销已确认';
+    }else status='已停用 · 原生清理待核对';
+  }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!cleanupUnknown&&!error){
+    state='ready';status='自动运行条件已就绪';
+  }else if(authorization==='suspended'){
+    state='restricted';status='网站访问权限已暂停';
+  }else if(native==='blocked'){
+    state='restricted';status='Chrome 注册受阻';
+  }else if(error||cleanupUnknown){
+    state='restricted';status='注册或清理异常，需核对';
+  }else status='已请求启用 · 原生状态待核对';
+  return {enabled,enabledKnown,state,status,
+    note:'状态来自 Page Authority 和 Chrome 注册读回，并非当前网页的运行证明。',
+    legacyProgramId:null,
+    canRestore:enabledKnown&&enabled&&!cleanupUnknown&&
+      (authorization==='suspended'||(authorization==='active'&&(native!=='registered'||error)))
+  };
+}
+
 export function filterExtensionEntries(entries,{query='',kind='all',scope='smart'}={}){
   const needle=lower(query);
   // Default/legacy scopes project only verified installed entries. Search never

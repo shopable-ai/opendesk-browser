@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {describeManagedAiPage,composeExtensionEntries} from '../../src/ui/extension-center-model.js';
+import {describeManagedAiPage,describeInstalledPageControl,composeExtensionEntries} from '../../src/ui/extension-center-model.js';
 import {installedPageEnableAction,setInstalledPageProgramEnabled}
   from '../../src/ui/installed-page-tools.js';
 
@@ -99,4 +99,24 @@ test('R1.4 absent native registration cannot be labelled as a running page',()=>
   assert.equal(describeManagedAiPage(installed(undefined,{
     authorization:{status:'needs-confirmation'},nativeState:'blocked'})).canRestore,false,
     'new consent requirements cannot be silently passed by Restore');
+});
+
+
+test('R1.7 generic Page uses the common status projection without implicit permission grants',()=>{
+  for(const id of ['reader','opendesk.chatgpt-jump-top','opendesk.any-other-page']){
+    const view=describeInstalledPageControl(installed(id));
+    assert.equal(view.state,'ready');assert.equal(view.enabled,true);
+    assert.equal(view.enabledKnown,true);assert.equal(view.canRestore,false);
+    assert.equal(view.legacyProgramId,null);
+  }
+  const restricted=describeInstalledPageControl(installed('reader',{
+    authorization:{status:'suspended',generation:3,installationId:'install-1'}}));
+  assert.equal(restricted.state,'restricted');assert.equal(restricted.canRestore,true);
+  assert.equal(describeInstalledPageControl(installed('reader',{
+    authorization:{status:'needs-confirmation'},nativeState:'blocked'})).canRestore,false);
+  assert.equal(describeInstalledPageControl(installed('reader',{pageRules:{matches:[]}})).state,'pending');
+  assert.equal(describeInstalledPageControl(installed('reader',{enabled:false,nativeState:'registered'})).state,'pending');
+  assert.equal(describeInstalledPageControl(installed('reader',{enabled:undefined})).enabledKnown,false);
+  const ai=installed('opendesk.ai-scroll-navigation');
+  assert.deepEqual(describeInstalledPageControl(ai),describeManagedAiPage(ai));
 });

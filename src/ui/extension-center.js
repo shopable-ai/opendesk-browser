@@ -4,7 +4,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tool
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {loadOfficialPageCatalog} from '../scripting/user-scripts/official-page-catalog.js';
 import {installedPageEnableAction,setInstalledPageProgramEnabled} from './installed-page-tools.js';
-import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeManagedAiPage} from './extension-center-model.js';
+import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeInstalledPageControl} from './extension-center-model.js';
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage} from './app-localization.js';
@@ -642,7 +642,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
     const pendingReview=uninstallReview?.key===row.key?uninstallReview:null;
     const page=row.kind==='page'?row.record?.installed:null;
-    const pageControl=page&&pageStatusKnown?describeManagedAiPage(page,pages):null;
+    const pageControl=page&&pageStatusKnown?describeInstalledPageControl(page,pages):null;
     const confirmation=pendingReview?{
       text:'卸载后将停止此网页增强自动运行，并从本机安装列表移除；不会自动删除网站自己的数据。',
       onConfirm:confirmPageUninstall,onCancel:cancelPageUninstall
@@ -703,7 +703,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       }
       extensionList.renderDetail({
         key:row.key,title:titleOf(row),type:typeOf(row),kind:row.kind,
-        description:rowDescription(row),actions,busy:Boolean(busy||pendingKey),
+        description:row.kind==='page'?(row.release?.description||''):rowDescription(row),actions,busy:Boolean(busy||pendingKey),
         focusAction:focused,
         pageControl:pageControl?{
           ...pageControl,
@@ -724,6 +724,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         usageText:row.kind==='app'&&row.installed?installedAppUsage(row):'',
         sites:page?.pageRules?.matches||(row.kind==='page'?row.release?.sites:[])||[],
         siteUpgrade:row.kind==='page'&&row.installed&&row.id===SCROLL_CONFIG_PROGRAM_ID?{
+          // Only the trusted scroll-site review provides this capability.
+          title:'添加自定义 AI 网站',
+          summary:'添加自定义网站（需审阅权限）',
+          description:'创建待审阅的网站范围；由原安装器确认 Chrome 权限，选择器不能代替授权。',
+          permissionNote:'Chrome 授权可能覆盖完整域名，运行仍受已批准的路径范围约束。',
           onSubmit:(value,event)=>void reviewScrollSite(value,event,pageIdentity(row)),
           busy:Boolean(busy||pendingKey),error:siteUpgradeError,
           disabledReason:!page?.enabled?'程序已停用；请先主动恢复启用':
@@ -820,7 +825,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const installed=row.record.installed;
     const targetEnabled=typeof desiredEnabled==='boolean'?desiredEnabled:installedPageEnableAction(installed).enabled;
     if(typeof desiredEnabled==='boolean'&&desiredEnabled===installed.enabled&&
-      !(desiredEnabled&&describeManagedAiPage(installed,pages)?.canRestore))return;
+      !(desiredEnabled&&describeInstalledPageControl(installed,pages)?.canRestore))return;
     const inDetail=selectedKey===row.key;
     detailFocusAction=inDetail?'toggle':null;
     busy=true;pendingKey=row.key;draw();if(inDetail)renderDetail();
