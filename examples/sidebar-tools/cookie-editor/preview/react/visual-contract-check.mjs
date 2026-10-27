@@ -6,6 +6,7 @@ import {createHash} from 'node:crypto';
 import {dirname,resolve,join} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {chromium} from 'playwright';
+import {execFileSync} from 'node:child_process';
 
 const here=dirname(fileURLToPath(import.meta.url));
 const approvedPath=resolve(here,'../cookie-editor.html');
@@ -14,6 +15,15 @@ const contract=JSON.parse(await readFile(join(here,'visual-contract.json'),'utf8
 const originalBytes=await readFile(approvedPath);
 const gitBlob=createHash('sha1').update('blob '+originalBytes.length+'\0').update(originalBytes).digest('hex');
 if(gitBlob!==contract.approvedHtml.gitBlobSha)throw Error('E_APPROVED_HTML_CHANGED: '+gitBlob);
+let previewCheck='';
+try{
+ previewCheck=execFileSync(process.execPath,[join(here,'build-preview.mjs'),'--check'],
+   {cwd:here,encoding:'utf8',stdio:['ignore','pipe','pipe']});
+ if(!previewCheck.includes('R520_PREVIEW_MATCH'))throw Error('missing preview SHA readback');
+}catch(cause){
+ throw Error('E_R35_REACT_PREVIEW_STALE: rebuild with existing official pipeline before audit; '+
+   String(cause.stderr||cause.message).slice(0,450));
+}
 const enforce=process.argv.includes('--enforce');
 const all=process.argv.includes('--all');
 const theme=process.argv.includes('--dark')?'dark':'light';
@@ -80,11 +90,34 @@ try{
     await oldPage.locator('#labTheme').click();
     await reactPage.getByRole('button',{name:'深色',exact:true}).click();
   }
-  for(const tab of ['cookie','accounts']){
-   if(tab==='accounts'){
-     await oldPage.locator('#tabAccounts').click();
-     await reactPage.locator('#cookie-product-tab-accounts').click();
+  const tabLabels={accounts:'Accounts',enterprise:'Enterprise',market:'Market',
+    custom:'Custom',circle:'Circle'};
+  for(const tab of ['cookie','accounts','enterprise','market','custom','circle']){
+   if(tab!=='cookie'){
+     await oldPage.locator('#tab'+tabLabels[tab]).click();
+     await reactPage.locator('#cookie-product-tab-'+tab).click();
+     await oldPage.locator('#view'+(tab==='cookie'?'Cookies':tabLabels[tab])).waitFor({state:'visible'});
+     await reactPage.locator('#cookie-product-panel-'+tab).waitFor({state:'visible'});
    }
+   const layout=contract.layoutOrder?.[tab];
+   if(layout){
+     for(const [origin,page] of [['html',oldPage],['react',reactPage]]){
+       const points=[];
+       for(const selector of layout[origin]){
+         const element=page.locator(selector).first();
+         const box=await element.boundingBox();
+         points.push({selector,y:box?.y??null});
+       }
+       if(points.some(item=>item.y===null)||points.some((item,i)=>i>0&&item.y+1<points[i-1].y))
+         diffs.push({width,theme,tab,id:origin+'-section-order',status:'LOCKED',
+           kind:'STRUCTURE_ORDER',points});
+     }
+   }
+   const empty=await reactPage.locator('.cookie-editor-react svg').evaluateAll(nodes=>
+     nodes.filter(node=>!node.querySelector('path,circle,rect,line,polyline,polygon,ellipse'))
+       .map(node=>node.outerHTML.slice(0,220)));
+   if(empty.length)diffs.push({width,theme,tab,id:'empty-svg',status:'LOCKED',
+     kind:'EMPTY_REACT_SVG',count:empty.length,elements:empty});
    const selectors=contract.elements.filter(item=>item.tab===tab);
    for(const item of selectors){
     const [html,react]=await Promise.all([sample(oldPage,item.html,item.icon),sample(reactPage,item.react,item.icon)]);
@@ -128,7 +161,7 @@ try{
  }
 }finally{await browser.close();}
 const report={schema:contract.schema,approvedGitBlob:gitBlob,
-  builtReactSource:'UNVERIFIED_BY_THIS_SCRIPT',theme,widths,
+  builtReactSource:'CHECKED_BY_EXISTING_BUILD_PREVIEW',theme,widths,
   notes:['Run npm run build and build-preview.mjs --check before this audit.',
     'Screenshots are from two real files, not a composite replacement UI.',
     'Genuine browser 200% zoom, Mac Chrome Host permissions and real Cookie operations require separate tests.',

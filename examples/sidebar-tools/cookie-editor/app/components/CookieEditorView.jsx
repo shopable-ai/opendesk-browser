@@ -27,9 +27,12 @@ const shapes={
   eyeoff:<><path d="m3 3 18 18"/><path d="M9.8 5.7A10 10 0 0 1 12 5.5c6.6 0 10 6.5 10 6.5a13 13 0 0 1-3.4 4"/><path d="M6.5 6.5C3.5 8.4 2 12 2 12s3.4 6.5 10 6.5a10 10 0 0 0 4-.8"/></>
 };
 export function CookieIcon({name}){
+  // An unregistered icon is a source contract failure, never an empty SVG.
+  // All icon names used by the Cookie/Accounts presenters must be registered.
+  if(!Object.hasOwn(shapes,name))throw Error('E_COOKIE_ICON_UNREGISTERED: '+String(name));
   return <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
     fill="none" stroke="currentColor" strokeWidth="1.7"
-    strokeLinecap="round" strokeLinejoin="round">{shapes[name]||null}</svg>;
+    strokeLinecap="round" strokeLinejoin="round">{shapes[name]}</svg>;
 }
 function Action({name,label,disabled=false,onClick,pressed,tone='normal',className='',
   expanded,controls,haspopup,buttonRef}){
