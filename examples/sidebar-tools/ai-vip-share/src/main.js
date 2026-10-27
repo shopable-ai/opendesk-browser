@@ -124,6 +124,26 @@
   const COOKIE_CODES=new Set(['E_OUTCOME_UNKNOWN','E_COOKIE_CONFLICT','E_COOKIE_SCOPE','E_COOKIE_STORE',
     'E_COOKIE_PARTITION','E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_SITE_GRANT_REQUIRED',
     'E_GRANT_REVOKED','E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_PERMISSION','E_SCHEMA','E_LIMIT']);
+  // Keep exact error codes in the durable receipt. Only this display map
+  // translates them for non-technical users; no code is logged or retried.
+  const COOKIE_RESULT_LABELS=Object.freeze({
+    E_OUTCOME_UNKNOWN:'写入结果待核对',
+    E_COOKIE_CONFLICT:'网站会话冲突',
+    E_COOKIE_SCOPE:'会话范围不匹配',
+    E_COOKIE_STORE:'浏览器会话存储不可用',
+    E_COOKIE_PARTITION:'当前浏览器不支持此会话',
+    E_CHROME_UNSUPPORTED:'浏览器不支持该操作',
+    E_CHROME_PERMISSION_REQUIRED:'尚未授予浏览器 Cookie 权限',
+    E_SITE_GRANT_REQUIRED:'请先允许此网站的 Cookie 访问',
+    E_GRANT_REVOKED:'网站授权已撤销',
+    E_TOOL_CHANGED:'工具已更新，请重新打开',
+    E_TOOL_DISABLED:'工具已停用',
+    E_OWNER:'会话不属于当前工具',
+    E_CONTEXT:'网页状态已变化',
+    E_PERMISSION:'权限不足',
+    E_SCHEMA:'会话内容格式无效',
+    E_LIMIT:'会话内容超出限制'
+  });
   let cookiePending=null,cookieRecord=null,cookieReady=false,cookieBusy=false,cookieFault='';
   let cookieFaultRecoverable=false;
   let sharedCatalog=null,sharedId='',sharedGeneration=0,sharedBusy=false,sharedNotice='',acquireAfterActivation=false;
@@ -310,14 +330,15 @@
       (record?.deliveryId===cookiePending?.deliveryId&&record.state!=='failed');
     clear(cookieResults);
     for(const row of record?.results||[])addRow(cookieResults,'第 '+(row.index+1)+' 项',
-      row.verified?'已写入并核验':row.saved?'已写入，尚未核验':row.code||'未确认');
+      row.verified?'已写入并核验':row.saved?'已写入，尚未核验':
+        COOKIE_RESULT_LABELS[row.code]||'未完成，请人工核对');
     const labels={success:'全部 Cookie 已写入并核验；请在目标页面验证会话。',
       partial:'部分 Cookie 已写入；其余未完成。不会自动回滚或重放，请在目标页面核对。',
       failed:'Cookie 未写入。请检查目标网站的 Chrome 权限与工具设置授权；修复后可主动重试有效交付。',
       unknown:'Cookie 操作结果未知或恢复记录未确认；已禁止重放，请在目标页面人工核对。'};
     cookieStatus.textContent=cookieFault||(cookieBusy?'正在核对授权与网站会话，请勿重复操作。':
       record&&(!cookiePending||record.deliveryId===cookiePending.deliveryId)?labels[record.state]:
-        cookiePending?'已收到网站会话，目标：'+new URL(cookiePending.targetUrl).origin+'。应用前请核对授权。':
+        cookiePending?'已收到网站会话，目标网站：'+new URL(cookiePending.targetUrl).host+'。应用前请核对授权。':
         sharedBusy?'正在获取网站会话…':sharedNotice.startsWith('未取得有效')?
           '暂未取得有效网站会话，请检查授权后重试。':'尚未应用网站会话。');
     if(cookieOpen)cookieOpen.hidden=record?.state!=='success'||!cookieTarget(record.targetUrl);
@@ -1038,7 +1059,7 @@
       await clearRecovered(key);
       cookiePending=null;cookieFault='';
       acquireAfterActivation=true;
-      redeemNotice((localMode?'本地开发服务':'服务端')+'已确认兑换成功。正在刷新权益与兑换记录；代理状态保持不变。');
+      redeemNotice('服务端已确认兑换成功。正在更新权益与兑换记录；网络连接需要单独开启。');
       busy=false;renderRedeem();
       await refreshMember();
     }catch(error){

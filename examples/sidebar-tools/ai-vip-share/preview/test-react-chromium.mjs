@@ -216,6 +216,9 @@ async function run(){
   await select('#preview-cookie','partial');
   await click('#ai-vip-cookie-install');
   await until('document.getElementById("ai-vip-cookie-status")?.textContent.includes("部分 Cookie")','partial write visible');
+  const receiptCopy=await evaluate('document.getElementById("ai-vip-cookie-section")?.innerText');
+  assert(receiptCopy.includes('请先允许此网站的 Cookie 访问'));
+  assert(!receiptCopy.includes('E_SITE_GRANT_REQUIRED'),'no raw Host/SDK codes in product');
   result.checks.push('voucher review + explicit confirmation + partial Cookie write without replay');
   await capture(390,'light','react-cookie-partial-390-light');
 
