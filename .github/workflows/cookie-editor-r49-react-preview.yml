@@ -77,6 +77,13 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: npm run test:chromium
+      - name: R3.5 approved HTML / actual React DOM and screenshot audit (report-only)
+        working-directory: examples/sidebar-tools/cookie-editor/preview/react
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          node visual-contract-check.mjs --all
+          node visual-contract-check.mjs --dark
       # Release identity belongs after browser evidence: the checked-in install
       # JSON may lag a compiled candidate while the separate promotion gate is blocked.
       # Do not skip Chromium merely because that guarded identity is stale.
@@ -92,5 +99,6 @@ jobs:
           path: |
             examples/sidebar-tools/cookie-editor/preview/react/index.html
             artifacts/cookie-editor-r523/
+            artifacts/cookie-editor-r35-visual/
       # Publishing is owned by cookie-editor-r56-react-candidate.yml after
       # its combined source-bound package, Node and Chromium release gates.

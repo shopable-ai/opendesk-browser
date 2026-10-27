@@ -143,6 +143,7 @@
       "source": "app/components/CookieEditorView.jsx",
       "css": "src/react.css",
       "compare": [
+        "fontFamily",
         "fontSize",
         "fontWeight",
         "lineHeight",
@@ -160,6 +161,7 @@
       "source": "app/components/CookieEditorView.jsx",
       "css": "src/react.css",
       "compare": [
+        "fontFamily",
         "fontSize",
         "lineHeight",
         "color",
@@ -269,6 +271,7 @@
       "source": "app/components/CookieAccounts.jsx",
       "css": "src/react.css",
       "compare": [
+        "fontFamily",
         "fontSize",
         "fontWeight",
         "lineHeight",
@@ -285,6 +288,7 @@
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
       "compare": [
+        "fontFamily",
         "fontSize",
         "paddingTop",
         "paddingBottom",
@@ -345,6 +349,7 @@
       "source": "app/components/CookieAccountExperiences.jsx",
       "css": "src/react.css",
       "compare": [
+        "fontFamily",
         "paddingTop",
         "paddingBottom",
         "backgroundColor",
@@ -402,6 +407,7 @@
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
       "compare": [
+        "fontFamily",
         "fontSize",
         "paddingTop",
         "paddingBottom",
@@ -448,6 +454,7 @@
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
       "compare": [
+        "fontFamily",
         "paddingTop",
         "paddingBottom",
         "backgroundColor",

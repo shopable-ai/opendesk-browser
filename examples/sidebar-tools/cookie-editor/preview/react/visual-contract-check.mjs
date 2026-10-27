@@ -88,6 +88,8 @@ try{
   }
   if(theme==='dark'){
     await oldPage.locator('#labTheme').click();
+    if(await reactPage.locator('.demo-lab').getAttribute('open')===null)
+      await reactPage.locator('.demo-lab>summary').click();
     await reactPage.getByRole('button',{name:'深色',exact:true}).click();
   }
   const tabLabels={accounts:'Accounts',enterprise:'Enterprise',market:'Market',
@@ -171,6 +173,9 @@ const report={schema:contract.schema,approvedGitBlob:gitBlob,
     missing:diffs.filter(x=>x.kind==='MISSING_ELEMENT').length,
     emptyIcons:diffs.filter(x=>x.kind==='EMPTY_REACT_SVG').length},
   diffs,errors,screenshots,exceptions:contract.exceptions};
-await writeFile(join(output,'report.json'),JSON.stringify(report,null,2)+'\n');
-console.log(JSON.stringify({status:report.status,report:join(output,'report.json'),counts:report.counts,errors:errors.length},null,2));
+await writeFile(join(output,'report-'+theme+'-'+(all?'all':'380')+'.json'),JSON.stringify(report,null,2)+'\n');
+console.log(JSON.stringify({status:report.status,report:join(output,'report-'+theme+'-'+(all?'all':'380')+'.json'),
+ counts:report.counts,errors:errors.length,
+ exampleDiffs:diffs.slice(0,16).map(({width,tab,id,kind,property,html,react,source,css})=>
+   ({width,tab,id,kind,property,html,react,source,css}))},null,2));
 if(enforce&&(report.counts.locked||errors.length))process.exitCode=1;
