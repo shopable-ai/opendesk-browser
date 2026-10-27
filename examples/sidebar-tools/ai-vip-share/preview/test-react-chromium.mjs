@@ -193,9 +193,18 @@ async function run(){
   }.toString()+')()');
   assert.equal(geometry.inline,true,'reveal and clear must be inside one input shell');
   assert.equal(geometry.large,true,'activation input requires a full touch target');
+  const emptyRightGap=await evaluate('document.getElementById("ai-vip-redeem-code").getBoundingClientRect().right-document.getElementById("ai-vip-code-reveal").getBoundingClientRect().right');
+  assert(emptyRightGap>=4&&emptyRightGap<=12,'empty input should not reserve space for hidden Clear action');
   await click('#preview-controls > summary');
   await click('#preview-fill-code');
   await until('document.getElementById("ai-vip-redeem")?.disabled===false','valid voucher preflight');
+  const filledPositions=await evaluate('('+function(){
+    const eye=document.getElementById('ai-vip-code-reveal').getBoundingClientRect();
+    const clear=document.getElementById('ai-vip-code-clear').getBoundingClientRect();
+    return {eyeToClear:clear.left-eye.right,clearVisible:!document.getElementById('ai-vip-code-clear').disabled};
+  }.toString()+')()');
+  assert(filledPositions.clearVisible&&filledPositions.eyeToClear>=0,
+    'filled input must show non-overlapping Reveal and Clear');
   assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").type'),'password');
   await click('#ai-vip-code-reveal');
   assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").type'),'text');

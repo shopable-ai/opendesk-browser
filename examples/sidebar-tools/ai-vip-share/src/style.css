@@ -54,6 +54,10 @@
 .ai-vip-redeem-inputs>.od-field::placeholder{color:var(--od-sub);opacity:.85;letter-spacing:0}
 .ai-vip-redeem-inputs>.od-icon-button{position:absolute;top:4px;right:45px;width:36px;height:36px;min-width:36px;min-height:36px;display:grid;place-items:center}
 .ai-vip-redeem-inputs>#ai-vip-code-clear{right:6px}
+/* The empty field needs just one inset action. Reveal slides right only when
+   Clear is disabled/hidden; the password remains masked and never stored. */
+.ai-vip-redeem-inputs:has(#ai-vip-code-clear:disabled)>#ai-vip-code-reveal{right:6px}
+.ai-vip-redeem-inputs:has(#ai-vip-code-clear:disabled)>.od-field{padding-right:48px}
 .ai-vip-redeem-inputs>.od-icon-button:disabled{opacity:.4;cursor:default}
 .ai-vip-redeem-inputs>#ai-vip-code-clear:disabled{opacity:0;pointer-events:none}
 .ai-vip-redeem-inputs>.od-field:focus-visible{outline:2px solid var(--od-brand);outline-offset:1px}
