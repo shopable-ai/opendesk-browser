@@ -395,7 +395,7 @@ try{
     assert.match(await evaluate('document.querySelector(".od-market-feedback").textContent'),/安装完成/);
     await click('.od-market-actions button:first-child');
     await until('!document.getElementById("extension-center-detail").hidden');
-    assert.match(await evaluate('document.getElementById("extension-center-detail-body").textContent'),/v2\\.0\\.2/);
+    assert.equal((await evaluate('document.getElementById("extension-center-detail-body").textContent')).includes('版本：v2.0.2'),true);
     assert.equal(await evaluate('!!document.querySelector("[data-ec-detail-action=open]")'),true);
     await screenshot('market-success-to-detail');
     await click('[data-ec-detail-action=open]');
