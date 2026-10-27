@@ -57,8 +57,8 @@ jobs:
             jsBudget:220000,jsFitsProductionTool:js.length<=220000,
             htmlBytes:(await stat('index.html')).size}));
           NODE
-      - name: Cookie React controller and source regression (Node)
-        run: node --test tests/environment/cookie-editor-react-controller.test.mjs tests/environment/cookie-editor-react-source.test.mjs
+      - name: Cookie React controller regression (Node)
+        run: node --test tests/environment/cookie-editor-react-controller.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Ensure CJK glyphs in screenshot evidence
@@ -72,6 +72,11 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: npm run test:chromium
+      # Release identity belongs after browser evidence: the checked-in install
+      # JSON may lag a compiled candidate while the separate promotion gate is blocked.
+      # Do not skip Chromium merely because that guarded identity is stale.
+      - name: Checked-in release identity and source regression (Node)
+        run: node --test tests/environment/cookie-editor-react-source.test.mjs
       - name: Preserve exact HTML and screenshot evidence even if failed
         if: always()
         uses: actions/upload-artifact@v4
