@@ -455,6 +455,11 @@ function openDemoDetail(key){
       dataRule:'演示界面不读取、修改或清理任何网站数据'
     }:null});
   app.renderView('detail');
+  // Match production openDetail(): make the newly opened view keyboard reachable.
+  requestAnimationFrame(()=>{
+    if(selectedDemoKey===key&&document.getElementById('extension-center-detail')?.hidden===false)
+      document.getElementById('extension-center-back')?.focus({preventScroll:true});
+  });
 }
 app.connectBack(closeDetail);
 function publishRows(){
