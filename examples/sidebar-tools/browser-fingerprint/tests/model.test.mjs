@@ -32,6 +32,18 @@ test('compare unknown vs equal, preserve partial report caveat',()=>{
   assert.match(report.caveat,/PARTIAL/);
 });
 test('forged environment field cannot enter saved A snapshots',()=>{
-  const s=snapshotFromReading(reading());s.fields[3].status='available';s.fields[3].value='fake';
+  const s=structuredClone(snapshotFromReading(reading()));s.fields[3].status='available';s.fields[3].value='fake';
   assert.throws(()=>reportJson(s),/非法或未经授权/);
+});
+
+test('snapshots are immutable and reject unreviewed data and fake sources',()=>{
+  const saved=snapshotFromReading(reading());
+  assert.ok(Object.isFrozen(saved)&&Object.isFrozen(saved.target)&&
+    Object.isFrozen(saved.fields)&&saved.fields.every(Object.isFrozen));
+  const fake=structuredClone(saved);fake.fields[0].source='page-js';
+  assert.throws(()=>reportJson(fake),{code:'E_HISTORY_SCHEMA'});
+  const extra=structuredClone(saved);extra.target.fullUrl='https://qa.example.test/?secret=abc';
+  assert.throws(()=>reportJson(extra),{code:'E_HISTORY_SCHEMA'});
+  const forged=structuredClone(saved);forged.fields[3].source='sidepanel';
+  assert.throws(()=>reportJson(forged),{code:'E_HISTORY_SCHEMA'});
 });
