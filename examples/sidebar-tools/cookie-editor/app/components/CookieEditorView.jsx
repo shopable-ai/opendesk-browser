@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {compareCookieExpiration} from '../domain/cookie-expiration.js';
+import {compareCookieExpiration,localExpirationText} from '../domain/cookie-expiration.js';
 // Independent, unprivileged presentation; identical source is used by the formal app and preview.
 // Shared UI primitives are supplied by the official app shell, not by this pure display module.
 
@@ -124,6 +124,58 @@ export function CookieExportActions({onCopy,onDownload,disabled=false,downloadLa
       disabled={disabled} onClick={onDownload}><CookieIcon name="download"/>{downloadLabel}</button>
   </div>;
 }
+// Compact, visible Expiration choice. Domain/Controller own actual Cookie rules;
+// mode selection only converts safe UI input into existing session/expiration draft.
+export function CookieExpirationField({draft,disabled=false,onChange=()=>{},error=''}) {
+  const [mode,setMode]=React.useState(()=>draft.session?'session':'date');
+  const [duration,setDuration]=React.useState('1d');
+  const durations=React.useMemo(()=>[
+    ['1h','1 小时',3600],['1d','1 天',86400],
+    ['7d','7 天',604800],['30d','30 天',2592000]
+  ],[]);
+  const chooseDuration=key=>{
+    const seconds=durations.find(([value])=>value===key)?.[2]||86400;
+    setDuration(key);
+    onChange('expiration',localExpirationText(Math.floor(Date.now()/1000)+seconds));
+  };
+  const changeMode=next=>{
+    setMode(next);
+    onChange('session',next==='session');
+    if(next!=='session'&&(next==='duration'||!draft.expiration)){
+      chooseDuration(duration);
+    }
+  };
+  return <section className="cookie-expiration-compact" aria-label="有效期设置">
+    <label className="cookie-expiration-mode">
+      <span>有效期 · Expiration</span>
+      <select className="od-field" aria-label="有效期方式" value={mode}
+        disabled={disabled} onChange={event=>changeMode(event.target.value)}>
+        <option value="session">会话（Session）</option>
+        <option value="date">指定日期</option>
+        <option value="duration">相对时长</option>
+      </select>
+    </label>
+    {mode==='session'?<p className="editor-timezone" role="status">
+      会话 Cookie · 不设置固定到期时间，结束时机由浏览器管理。
+    </p>:mode==='date'?<label className="cookie-expiration-date">
+      <span>到期日期和时间（本地）</span>
+      <input className="od-field" type="datetime-local" step="1"
+        aria-label="过期时间（Expiration，本地时间）"
+        aria-invalid={/过期时间|本地时间|夏令时/.test(error)||undefined}
+        value={draft.expiration||''} disabled={disabled}
+        onChange={event=>onChange('expiration',event.target.value)}/>
+      <small>保存为 Unix 秒；夏令时不合法或重复时间会被拒绝。</small>
+    </label>:<label className="cookie-expiration-duration">
+      <span>保存后有效期</span>
+      <select className="od-field" aria-label="有效时长" value={duration}
+        disabled={disabled} onChange={event=>chooseDuration(event.target.value)}>
+        {durations.map(([value,label])=><option key={value} value={value}>{label}</option>)}
+      </select>
+      <small>预计到期：{draft.expiration?draft.expiration.replace('T',' '):'—'}（本地）</small>
+    </label>}
+  </section>;
+}
+
 // One advanced editor surface; Cookie identity rules and validation remain
 // solely with the caller's Domain/Controller, never inside presentation.
 export function CookieAdvancedFields({draft,existing=false,disabled=false,onChange=()=>{},
@@ -162,24 +214,8 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
             disabled={disabled} onChange={e=>onChange('secure',e.target.checked)}/> Secure</label>
           <label><input type="checkbox" checked={draft.httpOnly===true}
             disabled={disabled} onChange={e=>onChange('httpOnly',e.target.checked)}/> HttpOnly</label>
-          <label><input type="checkbox" checked={draft.session===true}
-            disabled={disabled} onChange={e=>onChange('session',e.target.checked)}/> Session</label>
         </div>
       </div>
-      {draft.session?<p className="editor-timezone" role="status">
-        会话 Cookie · 不设置 Expiration；结束时机由浏览器管理。
-      </p>:<div className="cookie-expiration-controls">
-        <CookieFormField label="过期时间（Expiration）" className="cookie-expiration-field">
-          <input className="od-field" aria-label="过期时间（Expiration，本地时间）"
-            aria-describedby="cookie-expiration-help"
-            aria-invalid={/过期时间|本地时间|夏令时/.test(error)||undefined}
-            type="datetime-local" step="1" value={draft.expiration||''}
-            onChange={e=>onChange('expiration',e.target.value)} disabled={disabled}/>
-        </CookieFormField>
-        <p className="editor-timezone" id="cookie-expiration-help">
-          当前设备本地时间 · 保存为 Unix 秒。夏令时重复或不存在的时间需重新选择。
-        </p>
-      </div>}
       {existing&&<details className="editor-identity">
         <summary>存储信息</summary>
         <div className="editor-identity-fields">
