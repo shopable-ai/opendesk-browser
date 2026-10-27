@@ -516,6 +516,25 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     renderDetail();workspace?.scrollTo?.({top:0});
     get('extension-center-back')?.focus({preventScroll:true});
   }
+  async function openInstalledAppDetail({marketId,id,version,sha256}={}){
+    if(disposed||busy||pendingKey||typeof id!=='string'||!id||
+      marketId!=='opendesk/'+id||typeof version!=='string'||!version||
+      typeof sha256!=='string'||!/^[a-f0-9]{64}$/.test(sha256))return false;
+    // Fresh installed registry and pinned market provenance, never the market page.
+    if(!await refresh({appReadback:true})||disposed)return false;
+    const row=find('app:'+id),source=sources[id];
+    if(!row||row.kind!=='app'||row.installed!==true||row.stateKnown!==true||
+      row.version!==version||source?.kind!=='market'||source.sha256!==sha256){
+      message('当前已安装应用的版本或发行身份已变化，请核对原安装结果。','error');
+      return false;
+    }
+    // Return navigation must reveal the newly installed row, despite older filters.
+    if(!filterExtensionEntries(all(),{query,kind,scope}).some(item=>item.key===row.key)){
+      query='';searchText='';kind='all';scope='smart';draw();
+    }
+    openDetail(row.key,'main');
+    return selectedKey===row.key;
+  }
   function back(){
     if(disposed)return;
     selectedKey=null;selectedInstalled=null;selectedIdentity=null;detailFocusAction=null;uninstallReview=null;
@@ -623,6 +642,17 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             add('恢复卸载清理','cleanup',event=>{void retryCleanup(row,event);});
           else add('审阅并安装','install',()=>openReview(row.key));
         }else{
+          if(row.stateKnown===true&&row.enabled===true)
+            add('打开使用','open',event=>{
+              if(event?.isTrusted!==true)return;
+              if(taskWorkbench.navigate('tools')===false){
+                message('请先处理当前未保存内容，再打开应用。','error');return;
+              }
+              try{
+                if(!sidebarTools.openTool(row.id))
+                  message('应用尚未打开；请处理未保存草稿或查看宿主提示后重试。','error');
+              }catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+String(error?.message||error),'error');}
+            });
           if(row.stateKnown!==false)
             add('设置与权限','settings',()=>{backIfNeeded();sidebarTools.openSettings(row.id);});
           if(row.update&&row.release)add('审阅新版','update',()=>openReview(row.key));
@@ -811,7 +841,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     else message('卸载清理尚未确认完成；请刷新后核对恢复状态。','error');
     draw();if(selectedKey)renderDetail();
   }
-  async function refresh({pageReadback=false}={}){
+  async function refresh({pageReadback=false,appReadback=false}={}){
     if(disposed)return false;
     const id=++sequence;
     const results=await Promise.allSettled([
@@ -850,7 +880,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       message(catalogError||pageCatalogError?'官方目录部分暂不可用：'+[catalogError,pageCatalogError].filter(Boolean).join('；'):'',
         catalogError||pageCatalogError?'error':'info',catalogError||pageCatalogError?'catalog':'read');
     draw();if(selectedKey)renderDetail();
-    return pageReadback?pageStatusKnown:!dataError;
+    return appReadback?appStatusKnown:pageReadback?pageStatusKnown:!dataError;
   }
   async function readOfficial(){
     const id=++officialSequence;
@@ -905,7 +935,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   message('正在读取已安装扩展与授权状态…','loading','loading');draw();
   void readDiscoveryChannel();void readOfficial();void readPageOfficial();void refresh();
-  return {refresh,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;discoveryChannelGeneration++;
+  return {refresh,openInstalledAppDetail,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;discoveryChannelGeneration++;
     listUninstallReview=null;uninstallReview=null;closeRowMenu();
     doc.removeEventListener('opendesk-language-settings',languageSettingsRequested);
     doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);

@@ -173,8 +173,11 @@ export function ToolHost({view}) {
       doc.body.style.overflow=priorOverflow;
       if(app)app.inert=priorInert;
       if(panel.contains(doc.activeElement)||doc.activeElement===doc.body){
-        const target=priorFocus?.isConnected&&!priorFocus.closest?.('[hidden]')?priorFocus:
-          doc.getElementById('extension-center-more')||doc.getElementById('extension-center-search');
+        const detail=marketReview&&doc.getElementById('extension-center-detail')?.hidden===false?
+          doc.getElementById('extension-center-back'):null;
+        const target=detail||(
+          priorFocus?.isConnected&&!priorFocus.closest?.('[hidden]')?priorFocus:
+            doc.getElementById('extension-center-more')||doc.getElementById('extension-center-search'));
         target?.focus?.({preventScroll:true});
       }
     };
@@ -205,7 +208,12 @@ export function ToolHost({view}) {
   aria-busy={marketReview.busy} data-phase={marketReview.phase}>
   <div className="sidebar-tool-import-head od-toolbar">
     <strong id="sidebar-tool-import-heading">{marketReview.phase==='review'?
-      (marketReview.details?.previousVersion?'审阅应用更新':'审阅应用安装'):'安装审阅结果'}</strong>
+      (marketReview.details?.previousVersion?'审阅应用更新':'审阅应用安装'):
+      marketReview.phase==='installed'?
+        (marketReview.details?.previousVersion?'更新完成':'安装完成'):
+      marketReview.phase==='cancelled'?'已取消安装':
+      marketReview.phase==='unknown'?'尚未确认安装结果':
+      marketReview.phase==='installing'?'正在安装…':'安装审阅'}</strong>
     <IconButton label={['installed','cancelled'].includes(marketReview.phase)?'关闭':'稍后继续'}
       className="sidebar-tool-icon-action od-market-close"
       disabled={marketReview.busy} onClick={dismissImport}>
@@ -310,7 +318,7 @@ export function ToolHost({view}) {
       <dl>
         <div><dt>应用 ID</dt><dd>{marketReview.details.id||'未提供'}</dd></div>
         <div><dt>完整来源</dt><dd>{marketReview.details.origin}</dd></div>
-        <div><dt>SHA-256</dt><dd>{marketReview.details.sha256||'预览无真实校验摘要'}</dd></div>
+        <div><dt>SHA-256</dt><dd>{marketReview.details.sha256||'尚无校验摘要'}</dd></div>
         {Number.isSafeInteger(marketReview.details.packageBytes)&&
           <div><dt>发行包大小</dt><dd>{marketReview.details.packageBytes.toLocaleString('zh-CN')} 字节</dd></div>}
         <div><dt>原始能力标识</dt><dd>{(marketReview.details.capabilityCodes??[]).join(' · ')||'无'}</dd></div>

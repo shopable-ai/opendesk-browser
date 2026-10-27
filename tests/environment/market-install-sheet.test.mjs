@@ -25,7 +25,7 @@ function harness(t){
   const view={setMarketInstall:patch=>{h.patches.push(patch);Object.assign(h.state,patch);},connectMarketInstall:actions=>h.actions=actions};
   h.guard=()=>{};
   h.sheet=createMarketInstallSheet({api,view,canAutoOpen:()=>h.auto,hasOtherReview:()=>h.other,
-    assertCanInstall:id=>h.guard(id)});
+    assertCanInstall:id=>h.guard(id),openInstalledAppDetail:identity=>h.openDetails?.(identity)});
   t.after(()=>{h.sheet.dispose();delete globalThis.__marketSheetTest;});
   return h;
 }
@@ -93,4 +93,5 @@ test('the existing Host installation guard is passed to each review',async t=>{
   const h=harness(t);await flush();await h.actions.open('first');
   let checked;h.guard=id=>{checked=id;throw Error('未保存');};
   assert.throws(()=>h.models[0].options.assertCanInstall('example'),/未保存/);assert.equal(checked,'example');
+  assert.equal(typeof h.models[0].options.openInstalledAppDetail,'function');
 });

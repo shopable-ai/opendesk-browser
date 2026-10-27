@@ -373,10 +373,10 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
         // The Sheet overlays the existing workspace without disposing editors.
         // A blurred search field or the Developer tab is not an editing lock.
         canAutoOpen:()=>sidebarTools.canPresentMarketReview(),
-        openTool:async id=>{
+        openInstalledAppDetail:async identity=>{
           if(shellClosed||!verifiedSidePanel||!sidebarTools.canPresentMarketReview())return false;
           if(taskWorkbench.navigate('tools')===false)return false;
-          return Boolean(sidebarTools.openTool(id));
+          return extensionCenter.openInstalledAppDetail(identity);
         }});
     }
     // The React ToolHost already renders a selected installed app. A trusted,
