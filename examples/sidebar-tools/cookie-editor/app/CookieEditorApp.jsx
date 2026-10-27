@@ -525,7 +525,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           id={'cookie-product-tab-'+key}
           aria-controls={'cookie-product-panel-'+key}
           role="tab" aria-selected={section===key} tabIndex={section===key?0:-1}
-          className={'od-button od-button--quiet'+(section===key?' is-current':'')}
+          className={'od-button od-button--quiet od-button--tab'+(section===key?' is-current':'')}
           onClick={()=>chooseSection(key)}><span className="cookie-tab-label">{label}</span></button>)}
       </nav>}
     {mode==='offline'?<>

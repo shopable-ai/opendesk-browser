@@ -45,6 +45,8 @@ details>section{margin-top:var(--space-3)}
 .od-button--secondary{background:var(--od-action-bg);border-color:var(--od-action-border);color:var(--od-action-ink)}
 .od-button--danger{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}
 .od-button--quiet{background:transparent;border-color:transparent;color:var(--od-ink)}
+/* Opt-in compact navigation tab: shared focus/disabled semantics, no tool-private button skin. */
+.od-button--tab{min-height:0;padding:0;border:0;border-radius:0}
 .od-icon-button{position:relative;display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .od-icon-button--primary{border-color:var(--od-brand);background:var(--od-brand);color:var(--od-on-brand)}
 .od-icon-button--danger{border-color:var(--od-negative);background:var(--od-negative-bg);color:var(--od-negative)}

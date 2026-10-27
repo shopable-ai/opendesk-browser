@@ -9,7 +9,7 @@ import {compareCookieExpiration,localExpirationText} from '../domain/cookie-expi
 const shapes={
   globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></>,
   refresh:<><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></>,
-  search:<><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></>,
+  search:<><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></>,
   filter:<path d="M4 6h16M7 12h10m-7 6h4"/>,
   download:<path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/>,
   upload:<path d="M12 21V9m-4 4 4-4 4 4M4 3v4h16V3"/>,

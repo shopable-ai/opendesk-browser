@@ -50,7 +50,7 @@
 .cookie-editor-react .site-name{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}
 .cookie-editor-react .site-name>span{font-size:var(--od-meta-size);color:var(--od-sub)}
 .cookie-editor-react .site-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cookie-editor-react .list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:42px;padding:var(--space-2) var(--space-3)}
+.cookie-editor-react .list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:42px;padding:var(--space-1) var(--space-3)}
 .cookie-editor-react .list-toolbar>strong{white-space:nowrap}
 .cookie-editor-react .toolbar-actions{display:flex;gap:var(--space-1);align-items:center}
 .cookie-editor-react .action-separator{width:1px;height:20px;background:var(--od-line);margin:0 var(--space-1)}
@@ -68,7 +68,7 @@
 .cookie-editor-react .sort-field{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);margin-top:var(--space-2)}
 .cookie-editor-react .sort-field select{max-width:68%;min-width:0}
 .cookie-editor-react .cookie-row{border-top:1px solid var(--od-line)}
-.cookie-editor-react .row-trigger{width:100%;display:flex;gap:9px;align-items:center;justify-content:flex-start;min-height:50px;padding:9px 13px}
+.cookie-editor-react .row-trigger{width:100%;display:flex;gap:9px;align-items:center;justify-content:flex-start;min-height:50px;padding:8px 13px}
 .cookie-editor-react .row-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
 .cookie-editor-react .row-text{min-width:0;flex:1;display:grid;gap:2px;text-align:left}
 .cookie-editor-react .row-text strong,.cookie-editor-react .row-text small{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5}
@@ -324,9 +324,9 @@
   flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
 }
 /* R2.3 React account/market areas use the same official design tokens. */
-.cookie-editor-react .cookie-product-tabs{display:flex;align-items:stretch;gap:var(--space-1);min-height:42px;padding:0 var(--space-2);margin:0 0 var(--space-2);border-bottom:1px solid var(--od-line);background:var(--od-paper)}
-.cookie-editor-react .cookie-product-tabs>button{min-width:0;min-height:42px;flex:0 1 auto}
-.cookie-editor-react .cookie-tab-label{display:flex;align-items:center;justify-content:center;min-height:42px;padding:0 var(--space-2);border-bottom:2px solid transparent;font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-product-tabs{display:flex;align-items:stretch;gap:var(--space-1);min-height:41px;padding:0 var(--space-3);margin:0;border-bottom:1px solid var(--od-line);background:transparent}
+.cookie-editor-react .cookie-product-tabs>button{min-width:0;min-height:40px;flex:0 1 auto}
+.cookie-editor-react .cookie-tab-label{display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 var(--space-2);border-bottom:2px solid transparent;font-size:var(--od-note-size);font-weight:700}
 .cookie-editor-react .is-current .cookie-tab-label{border-bottom-color:var(--od-brand);color:var(--od-brand)}
 .cookie-editor-react .cookie-account-page{position:relative;min-width:0;max-height:calc(100dvh - 80px);overflow-y:auto;overflow-x:clip}
 .cookie-editor-react .cookie-account-header{min-height:34px;display:flex;align-items:center;gap:var(--space-2);justify-content:space-between;padding:0;margin-top:var(--space-1);border:0}
@@ -335,9 +335,11 @@
 .cookie-editor-react .cookie-account-count{color:var(--od-sub);font-weight:400}
 .cookie-editor-react .cookie-account-content{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3)}
 .cookie-editor-react .cookie-account-content h3{margin:var(--space-2) 0 0;font-size:13px}
-.cookie-editor-react .cookie-account-setting{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;min-height:49px;padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted)}
-.cookie-editor-react .cookie-account-setting>span{display:grid;gap:2px;min-width:0}
-.cookie-editor-react .cookie-account-setting small{font-size:var(--od-meta-size);color:var(--od-sub);overflow-wrap:anywhere}
+.cookie-editor-react #cookie-product-panel-accounts .cookie-account-content{padding-inline:13px}
+.cookie-editor-react .cookie-account-setting{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;min-height:49px;padding:9px 10px;border:1px solid var(--od-line);border-radius:9px;background:var(--od-muted)}
+.cookie-editor-react .cookie-account-setting>span{display:grid;gap:3px;min-width:0}
+.cookie-editor-react .cookie-account-setting strong{font-size:11.5px;line-height:1.4;font-weight:700}
+.cookie-editor-react .cookie-account-setting small{font-size:10px;line-height:1.5;color:var(--od-sub);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cookie-editor-react .cookie-account-setting input[type=checkbox]{appearance:none;flex:none;position:relative;width:38px;height:22px;min-width:38px;margin:0;border:1px solid var(--od-line);border-radius:999px;background:var(--od-line);cursor:pointer}
 .cookie-editor-react .cookie-account-setting input[type=checkbox]::before{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--od-paper);transition:transform .15s ease}
 .cookie-editor-react .cookie-account-setting input[type=checkbox]:checked{background:var(--od-brand);border-color:var(--od-brand)}
@@ -348,7 +350,7 @@
 .cookie-editor-react .cookie-account-notice{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:var(--od-note-size);overflow-wrap:anywhere}
 .cookie-editor-react .cookie-account-empty{margin:0;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.6}
 .cookie-editor-react .cookie-account-card{display:flex;align-items:center;gap:var(--space-2);min-width:0;padding:var(--space-2) 0;border-bottom:1px solid var(--od-line)}
-.cookie-editor-react .cookie-account-avatar{flex:none;display:grid;place-items:center;width:33px;height:33px;border-radius:10px;background:var(--od-muted);color:var(--od-brand);font-weight:700}
+.cookie-editor-react .cookie-account-avatar{flex:none;display:grid;place-items:center;width:33px;height:33px;border-radius:9px;background:var(--od-muted);color:var(--od-brand);font-size:12px;font-weight:700}
 .cookie-editor-react .cookie-account-card-text{display:grid;gap:2px;min-width:0;flex:1}
 .cookie-editor-react .cookie-account-card-text strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-card-text small{color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -402,12 +404,12 @@
 .cookie-editor-react .cookie-account-page{display:flex;flex:1 1 auto;flex-direction:column;max-height:none;min-height:0;overflow-y:auto;border:0;border-radius:0}
 .cookie-editor-react .cookie-account-header{flex:0 0 auto}
 .cookie-editor-react .cookie-account-content{gap:var(--space-2)}
-.cookie-editor-react .cookie-account-current{display:flex;gap:var(--space-2);align-items:center;min-width:0;padding:var(--space-2);background:var(--od-muted);border:1px solid var(--od-line);border-radius:var(--radius-control)}
+.cookie-editor-react .cookie-account-current{display:flex;gap:var(--space-2);align-items:center;min-width:0;padding:9px 10px;background:var(--od-muted);border:1px solid var(--od-line);border-radius:9px}
 .cookie-editor-react .cookie-account-current>div{display:grid;gap:1px;min-width:0;flex:1}
 .cookie-editor-react .cookie-account-current strong{font-size:var(--od-body-size);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-current small{font-size:10px;color:var(--od-sub);overflow-wrap:anywhere}
-.cookie-editor-react .cookie-account-list{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control)}
-.cookie-editor-react .cookie-account-list>.cookie-account-card{padding:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-account-list{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:10px}
+.cookie-editor-react .cookie-account-list>.cookie-account-card{padding:9px 7px 9px 10px;min-width:0}
 .cookie-editor-react .cookie-account-list>.cookie-account-card:last-child{border-bottom:0}
 .cookie-editor-react .cookie-account-card{min-height:61px;flex-wrap:nowrap}
 .cookie-editor-react .cookie-account-card.is-current{background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}

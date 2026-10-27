@@ -229,7 +229,7 @@ export function CookieAccounts({
       </div>}
       <label className="cookie-account-setting">
         <span><strong>切换后自动刷新网页</strong>
-          <small>仅目标标签页 · 回读确认后刷新；未保存的网页内容可能丢失</small></span>
+          <small title="仅目标标签页 · 回读确认后刷新；未保存的网页内容可能丢失">仅目标页 · 回读后刷新 · 未保存内容可能丢失</small></span>
         <input type="checkbox" role="switch" checked={autoRefresh}
           disabled={busy||!switchReady||typeof onToggleRefresh!=='function'}
           onChange={event=>onToggleRefresh?.(event.target.checked)}/>
