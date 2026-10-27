@@ -199,9 +199,10 @@ const vite=await createServer({root:process.cwd(),configFile:false,appType:'cust
   logLevel:'error',
   // The fixture imports JSX from source. Browser ESM cannot directly import
   // React 19's CommonJS exports (e.g. react-dom.createPortal), so prebundle
-  // only the pinned React entrypoints; do not scan the entire repository.
+  // the pinned React and React Aria entrypoints, including Aria's CommonJS
+  // use-sync-external-store shim; do not scan the entire repository.
   optimizeDeps:{noDiscovery:true,entries:[],
-    include:['react','react/jsx-runtime','react-dom','react-dom/client']},
+    include:['react','react/jsx-runtime','react-dom','react-dom/client','react-aria-components']},
   // This source fixture needs transforms only; never bind the shared HMR port
   // or start a source watcher alongside the development extension.
   server:{middlewareMode:true,hmr:false,ws:false,watch:null}});

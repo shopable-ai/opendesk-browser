@@ -29,7 +29,7 @@ const original={window:globalThis.window,document:globalThis.document};
 // Keep the matching linkedom constructors available between synchronous tests.
 const activateDOM=window=>{
   globalThis.window=window;globalThis.document=window.document;
-  for(const key of ['Node','Element','HTMLElement','HTMLInputElement','HTMLTextAreaElement',
+  for(const key of ['Node','Element','HTMLElement','HTMLButtonElement','HTMLInputElement','HTMLTextAreaElement',
     'SVGElement','Event','MutationObserver'])if(window[key])globalThis[key]=window[key];
 };
 activateDOM(initial.window);

@@ -75,6 +75,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     statusOrigin=origin;
     if(!disposed)extensionList.renderStatus({text:value,state});
   };
+  function clearActionMessage(){
+    if(statusOrigin!=='action')return;
+    if(dataError)message('读取失败，未核验的旧安装缓存已从列表撤下。'+dataError,'error','read');
+    else if(catalogError||pageCatalogError)
+      message('官方目录部分暂不可用：'+[catalogError,pageCatalogError].filter(Boolean).join('；'),'error','catalog');
+    else message('','info','read');
+  }
   function closeMenu(returnFocus=false){
     if(toolbarMenuOpen){toolbarMenuOpen=false;syncFilters();}
     if(returnFocus)more.focus({preventScroll:true});
@@ -502,6 +509,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   function openDetail(key,returnAction='main'){
     const row=find(key);if(disposed||!row||(scope!=='available'&&!row.installed))return;
     closeRowMenu();
+    clearActionMessage();
     selectedInstalled=row.installed;uninstallReview=null;siteUpgradeError='';
     // A detail belongs to one reviewed package/revision, not merely a reusable ID.
     // Enable/disable and Page authorization may change without replacing that identity.
@@ -568,6 +576,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   function back(){
     if(disposed)return;
+    clearActionMessage();
     selectedKey=null;selectedInstalled=null;selectedIdentity=null;detailFocusAction=null;uninstallReview=null;
     extensionList.renderView('list');
     workspace?.scrollTo?.({top:listScroll});
@@ -673,17 +682,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             add('恢复卸载清理','cleanup',event=>{void retryCleanup(row,event);});
           else add('审阅并安装','install',()=>openReview(row.key));
         }else{
-          if(row.stateKnown===true&&row.enabled===true)
-            add('打开使用','open',event=>{
-              if(event?.isTrusted!==true)return;
-              if(taskWorkbench.navigate('tools')===false){
-                message('请先处理当前未保存内容，再打开应用。','error');return;
-              }
-              try{
-                if(!sidebarTools.openTool(row.id))
-                  message('应用尚未打开；请处理未保存草稿或查看宿主提示后重试。','error');
-              }catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+String(error?.message||error),'error');}
-            });
           if(row.stateKnown!==false)
             add('设置与权限','settings',()=>{backIfNeeded();sidebarTools.openSettings(row.id);});
           if(row.update&&row.release)add('审阅新版','update',()=>openReview(row.key));

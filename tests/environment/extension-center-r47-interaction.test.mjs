@@ -822,7 +822,7 @@ test('R5.0 official catalog stale responses and failures must be rejected by sou
   assert.match(center,/const id=\+\+officialSequence/);
   assert.match(center,/id===officialSequence/);
   assert.match(center,/official=\[\];catalogError=/);
-  assert.match(center,/return \{refresh,dispose\(\)\{if\(disposed\)return;disposed=true;sequence\+\+;officialSequence\+\+;pageOfficialSequence\+\+;discoveryGeneration\+\+;discoveryChannelGeneration\+\+;\s*listUninstallReview=null;uninstallReview=null;closeRowMenu\(\)/,
+  assert.match(center,/dispose\(\)\{if\(disposed\)return;disposed=true;sequence\+\+;officialSequence\+\+;pageOfficialSequence\+\+;discoveryGeneration\+\+;discoveryChannelGeneration\+\+;\s*listUninstallReview=null;uninstallReview=null;closeRowMenu\(\)/,
     'dispose invalidates each asynchronous catalog/discovery sequence and pending reviews before closing the menu');
 });
 
@@ -856,7 +856,9 @@ test('R1.5 Page readback remains authoritative when unrelated Sidebar storage fa
   const f=fixture(t);await f.ui.refresh();
   f.button('page:reader','main').dispatch('click');
   f.setCorrupt(true);
-  f.doc.querySelector('[data-ec-detail-action="toggle"]').dispatch('click');
+  // Controller regression: linkedom cannot perform a native React Aria press.
+  // Pointer/Space Switch behavior has its own real Chromium coverage.
+  f.state.detailModel.pageControl.onToggle(false,{isTrusted:true});
   await settle(()=>f.writes.length===1&&!f.state.detailModel.busy);
   assert.equal(f.programs[0].installed.enabled,false);
   assert.equal(f.state.statusModel.state,'success');
@@ -886,4 +888,86 @@ test('R1.5 successful Page uninstall is confirmed while its official candidate r
   assert.equal(f.programs.length,0);
   assert.equal(f.state.statusModel.state,'success');
   assert.match(f.state.statusModel.text,/持久安装列表确认卸载/);
+});
+
+for(const transition of ['detail','back'])test('R1.8 action feedback clears on '+transition+' without changing Page authority',async t=>{
+  const f=fixture(t,{disabled:true});await f.ui.refresh();
+  f.programs[0].installed.enabled=false;
+  f.programs[0].installed.nativeState='blocked';
+  f.programs[0].installed.authorization.status='disabled';
+  f.programs[0].installed.managedCleanup={scope:'managed-ui-only',state:'unknown'};
+  const second=structuredClone(page());second.programId='mindmap';
+  second.installed.programId='mindmap';second.installed.title='思维导图';
+  f.programs.push(second);await f.ui.refresh();
+  if(transition==='back')f.button('page:reader','main').dispatch('click');
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('启用应用').dispatch('click');
+  await settle(()=>f.state.statusModel.state==='success');
+  assert.match(f.state.statusModel.text,/本机安装记录确认应用启用/);
+  await f.ui.refresh();
+  assert.match(f.state.statusModel.text,/本机安装记录确认应用启用/,'same-view refresh retains current result');
+  if(transition==='back')f.nodes['extension-center-back'].dispatch('click');
+  else f.button('page:reader','main').dispatch('click');
+  assert.doesNotMatch(f.state.statusModel.text,/本机安装记录确认应用启用/,'old action cannot describe another view');
+  assert.notEqual(f.state.statusModel.state,'success');
+  if(transition==='back')f.button('page:reader','main').dispatch('click');
+  assert.equal(f.programs[0].installed.enabled,false);
+  assert.equal(f.programs[0].installed.managedCleanup.state,'unknown');
+  assert.equal(f.state.detailModel.pageControl.enabled,false);
+  assert.match(f.state.detailModel.pageControl.status,/已停用.*清理待核对/);
+  f.nodes['extension-center-back'].dispatch('click');
+  f.button('page:mindmap','main').dispatch('click');
+  assert.doesNotMatch(f.state.statusModel.text,/本机安装记录确认应用启用/);
+  assert.equal(f.writes.length,0,'navigation never changes Page permissions or enablement');
+});
+
+test('R1.8 detail and back retain read failures',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  f.setCorrupt(true);await f.ui.refresh();
+  const before={...f.state.statusModel};
+  assert.equal(before.state,'error');assert.match(before.text,/读取失败/);
+  f.button('page:reader','main').dispatch('click');
+  assert.deepEqual(f.state.statusModel,before);
+  f.nodes['extension-center-back'].dispatch('click');
+  assert.deepEqual(f.state.statusModel,before);
+});
+
+test('R1.8 detail and back retain catalog failures',async t=>{
+  const originalFetch=globalThis.fetch;
+  globalThis.fetch=async()=>{throw Error('R18 catalog unavailable');};
+  t.after(()=>{globalThis.fetch=originalFetch;});
+  const f=fixture(t);await f.ui.refresh();
+  await settle(()=>f.state.statusModel.state==='error'&&f.state.statusModel.text.includes('目录'));
+  const before={...f.state.statusModel};
+  f.button('page:reader','main').dispatch('click');
+  assert.deepEqual(f.state.statusModel,before);
+  f.nodes['extension-center-back'].dispatch('click');
+  assert.deepEqual(f.state.statusModel,before);
+});
+
+for(const failure of ['read','catalog','pageCatalog'])for(const transition of ['detail','back'])
+test('R1.8 navigation restores '+failure+' failure masked by action on '+transition,async t=>{
+  const originalFetch=globalThis.fetch;
+  let release;
+  const gate=new Promise(resolve=>{release=resolve;});
+  if(failure!=='read'){
+    globalThis.fetch=async url=>{
+      const target=String(url).includes(failure==='catalog'?'official-tools/catalog.json':'official-pages/catalog.json');
+      if(target){await gate;throw Error('R18 masked '+failure);}
+      return originalFetch(url);
+    };
+    t.after(()=>{release();globalThis.fetch=originalFetch;});
+  }
+  const f=fixture(t,{disabled:true});await f.ui.refresh();
+  if(transition==='back')f.button('page:reader','main').dispatch('click');
+  f.button('app:quick-notes','more').dispatch('click');
+  f.menuItem('启用应用').dispatch('click');
+  await settle(()=>f.state.statusModel.state==='success');
+  if(failure==='read'){f.setCorrupt(true);await f.ui.refresh();}
+  else {release();await tick();await tick();}
+  assert.equal(f.state.statusModel.state,'success','action still owns current receipt');
+  if(transition==='back')f.nodes['extension-center-back'].dispatch('click');
+  else f.button('page:reader','main').dispatch('click');
+  assert.equal(f.state.statusModel.state,'error');
+  assert.match(f.state.statusModel.text,failure==='read'?/读取失败/:new RegExp('R18 masked '+failure));
 });

@@ -20,7 +20,7 @@ import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../scripting/user-
 import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 import {loadOfficialPagePackage} from '../scripting/user-scripts/official-page-catalog.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolRevocationEpochs,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
@@ -255,7 +255,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let developmentStorage=null;
   let frameExportPort=null;
   let promptHost=null;
-  let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
+  let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0,revocationReadError=false;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   function refreshMenuStatus(tool,origin){
     const key=JSON.stringify([tool.id,tool.version,revocationEpochs[tool.id]??null,origin,
@@ -348,6 +348,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, status, {textContent: message});setToolFieldAttribute(view, status, 'data-state', problem?'error':'info');
     patchToolField(view, status, {hidden: !message});
   };
+  const clearTransientNotice=()=>{
+    if(!disposed&&!busy&&!toolSaving&&status.attributes['data-state']!=='error')notice('');
+  };
+  // Clear the previous receipt before row/detail navigation can report a new
+  // result. Errors remain owned by notice; navigation never touches tool state.
+  const clearNavigationNotice=event=>{
+    if(event.target?.closest?.('[data-extension-action="main"],#extension-center-back'))
+      clearTransientNotice();
+  };
+  doc.addEventListener('click',clearNavigationNotice,true);
+  listeners.push(()=>doc.removeEventListener('click',clearNavigationNotice,true));
   const capabilities=Object.freeze({
     'storage.local':'保存此工具的数据',
     'currentPage.read':'读取当前网页标题和地址',
@@ -951,6 +962,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     instance=null;requestCount=0;requestWindow=Date.now();lastHostHeight=null;
     frameRoot.replaceChildren();
     if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.promptAi;delete frameRoot.dataset.knowledgeAi;delete frameRoot.dataset.officialWorkspace;}
+  }
+  // Preserve text for recovery while retiring every executable old instance.
+  function retireUntrustedTool(){
+    if(!active||readOnlyPreview)return;
+    if(toolDirty||toolSaving||knowledgeDirty||frameDraft)
+      recoverableDrafts.set(active.id,frameDraft||'未收到可恢复的表单内容；工具已安全停止。');
+    destroyFrame();knowledgeDirty=false;tocSettingsOpen=true;render();
+  }
+  function requireHostRevocationEpochs(value){
+    try{
+      const epochs=requireToolRevocationEpochs(value);
+      revocationReadError=false;
+      return epochs;
+    }catch(error){
+      revocationReadError=true;retireUntrustedTool();throw error;
+    }
   }
   // The only admission for privileged Time Review rendering. Built-in code
   // never consumes the installed package's html/css/js as executable input.
@@ -1667,7 +1694,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         try{
           await assertSidebarToolEnabled(api,tool.id);
           const current=requireCompleteInstalledSidebarTools((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
-          const epochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
+          const epochs=requireHostRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
           if(!current.some(row=>samePackage(row,tool))||(epochs?.[tool.id]??null)!==frameRevocationEpoch)
             throw new Error('工具身份已变化，请重新打开');
         }catch(error){
@@ -1688,6 +1715,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         }catch{/* No trusted catalog/proof: retain the tool's own navigation UI. */}
       }
       if(!sameInstance(frame?.contentWindow,token))return;
+      if(!readOnly&&(installedReadError||revocationReadError||enableReadError||
+         !sidebarToolEnabled(enableRecords,tool.id)||!samePackage(tool,toolById(tool.id))||
+         frameRevocationEpoch!==(revocationEpochs[tool.id]??null))){
+        retireUntrustedTool();return;
+      }
       navigationAllowed=approvedNavigation;
       if(approvedNavigation&&FULL_HEIGHT_OFFICIAL_TOOLS.has(tool.id)){
         frameRoot.dataset.officialWorkspace='true';
@@ -1727,7 +1759,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
-    if(installedReadError){notice('安装记录读取失败，请刷新核对后再打开应用。',true);return;}
+    if(installedReadError||revocationReadError){notice('安装记录读取失败，请刷新核对后再打开应用。',true);return;}
     // An OD rail click on the already-open app must not remount its live UI,
     // discard its draft or introduce a redundant leave-confirmation dialog.
     if(!launchGate&&active?.id===id&&!readOnlyPreview&&!tocSettingsOpen&&
@@ -1768,7 +1800,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       active?.id===id&&samePackage(active,tool);
     const show=()=>{
       if(disposed||!visible||busy)return;
-      cancelRemovalReview();setImportOpen(false);
+      cancelRemovalReview();setImportOpen(false);clearTransientNotice();
       if(!sameLiveCookie)destroyFrame();
       active=tool;readOnlyPreview=false;previewDirty=false;
       tocSettingsOpen=true;tocScope='site';render();
@@ -2755,7 +2787,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(tool.id!==KNOWLEDGE_TOOL_ID)throw new Error('知识收件箱工具身份无效');
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
       if(!requireCompleteInstalledSidebarTools(owned).some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
-      const generations=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
+      const generations=requireHostRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
       if((generations[tool.id]??null)!==revocationEpoch)
         throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
       const packageHash=await knowledgePackageHash(tool);
@@ -2772,7 +2804,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
       if(!requireCompleteInstalledSidebarTools(owned).some(row=>samePackage(row,tool)))
         throw new Error('工具已更新或卸载');
-      const generations=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
+      const generations=requireHostRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
       if((generations[tool.id]??null)!==revocationEpoch)
         throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
       assertSession(source,token);
@@ -3128,7 +3160,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     work.then(async result=>{
       if(!readOnlyPreview){
         await assertSidebarToolEnabled(api,tool.id);
-        const epochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
+        const epochs=requireHostRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
         if((epochs?.[tool.id]??null)!==revocationEpoch)throw new Error('工具请求已撤销，请核对实际结果');
       }
       assertSession(source,token);
@@ -3221,7 +3253,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(Object.hasOwn(changes||{},TOOL_REVOCATION_EPOCHS_STORE)){
       revocationReadEpoch++;
-      revocationEpochs=changes[TOOL_REVOCATION_EPOCHS_STORE]?.newValue||{};
+      try{revocationEpochs=requireHostRevocationEpochs(changes[TOOL_REVOCATION_EPOCHS_STORE]?.newValue);}
+      catch(error){notice(error.message,true);return;}
       if(active&&!readOnlyPreview&&frameRevocationEpoch!==(revocationEpochs[active.id]??null)){
         navigationAllowed=false;toolNavigation=null;clipPage=null;
         if(nativeUI||nativePending){
@@ -3256,7 +3289,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       fresh=requireCompleteInstalledSidebarTools(changes[SIDEBAR_TOOL_STORE]?.newValue);
       installedReadError=false;
     }catch(error){
-      installedReadError=true;
+      installedReadError=true;retireUntrustedTool();
       render();
       notice((error?.code||'E_STORAGE_CORRUPT')+'：本机安装记录异常，已停止操作以保留原数据。',true);
       return;
@@ -3313,11 +3346,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(disposed||catalogEpoch!==epoch)return;
       const fresh=requireCompleteInstalledSidebarTools(result[SIDEBAR_TOOL_STORE]);
       if(revocationRead===revocationReadEpoch)
-        revocationEpochs=epochs[TOOL_REVOCATION_EPOCHS_STORE]||{};
+        revocationEpochs=requireHostRevocationEpochs(epochs[TOOL_REVOCATION_EPOCHS_STORE]);
       installed=fresh;installedReadError=false;
       render();
     }catch(error){
-      installedReadError=true;
+      installedReadError=true;retireUntrustedTool();
       render();
       throw error;
     }

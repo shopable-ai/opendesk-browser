@@ -3500,3 +3500,129 @@ test('R5.25 Cookie grant revocation destroys the prior iframe instead of exposin
   assert.equal(f.runtime.frameRoot.children.length,0,'revocation must destroy the old execution instance');
   assert.equal(frame.onload,null,'retired iframe cannot load again');
 });
+
+
+for(const corrupt of ['broken',[],null,{'notes-local':false}]){
+  test('R1.8 corrupt epochs initial read blocks opening: '+JSON.stringify(corrupt),async t=>{
+    const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[TOOL_REVOCATION_EPOCHS_STORE,corrupt]]);
+    const f=await hostFixture(t,{store,startTool:false});
+    f.host.openTool(sample.id);
+    assert.equal(f.runtime.frameRoot.children.length,0);
+    assert.deepEqual(store.get(TOOL_REVOCATION_EPOCHS_STORE),corrupt);
+  });
+  test('R1.8 corrupt epochs change retires default-null instance and preserves draft: '+JSON.stringify(corrupt),async t=>{
+    const f=await hostFixture(t);
+    for(const data of [{kind:'draft',text:'保留未保存草稿'},{kind:'edit-state',dirty:true,busy:false}])
+      f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+        protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,...data}});
+    f.store.set(TOOL_REVOCATION_EPOCHS_STORE,corrupt);
+    f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:corrupt}});
+    assert.equal(f.frame.isConnected,false);
+    assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,'保留未保存草稿');
+    f.host.openTool(sample.id);
+    assert.equal(f.runtime.frameRoot.children.length,0);
+    assert.deepEqual(f.store.get(TOOL_REVOCATION_EPOCHS_STORE),corrupt);
+  });
+  test('R1.8 corrupt epochs SDK readback cannot write: '+JSON.stringify(corrupt),async t=>{
+    const f=await hostFixture(t);
+    f.store.set(TOOL_REVOCATION_EPOCHS_STORE,corrupt);
+    f.ask('storage.set',{key:'note',value:'must not write'});
+    await pause();await pause();
+    assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+    assert.equal(f.frame.isConnected,false);
+  });
+  test('R1.8 corrupt epochs final load read cannot dispatch: '+JSON.stringify(corrupt),async t=>{
+    const f=await hostFixture(t,{startTool:false});
+    f.host.openTool(sample.id);const frame=f.runtime.frameRoot.firstElementChild;
+    f.store.set(TOOL_REVOCATION_EPOCHS_STORE,corrupt);
+    await frame.onload();
+    assert.equal(frame.contentWindow.sent.some(row=>row.kind==='load'),false);
+    assert.equal(frame.isConnected,false);
+  });
+}
+
+test('R1.8 corrupt installed event during catalog await retires load before dispatch',async t=>{
+  const tool=await officialToolFixture('prompt-shortcuts');
+  const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
+  const gate=deferred(),entered=deferred(),digest=crypto.subtle.digest.bind(crypto.subtle);
+  t.mock.method(crypto.subtle,'digest',async(...args)=>{
+    entered.resolve();await gate.promise;return digest(...args);
+  });
+  f.host.openTool(tool.id);const frame=f.runtime.frameRoot.firstElementChild;
+  const loading=frame.onload();await entered.promise;
+  const damaged=[tool,{...sample,id:'invalid id'}];
+  f.store.set(SIDEBAR_TOOL_STORE,damaged);f.change(damaged);
+  const retired=!frame.isConnected;
+  gate.resolve();await loading;
+  assert.equal(retired,true,'corrupt notification retires immediately');
+  assert.equal(frame.contentWindow.sent.some(row=>row.kind==='load'),false);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
+});
+
+test('R1.8 corrupt authority and installed notifications leave read-only preview intact',async t=>{
+  const f=await hostFixture(t,{startTool:false});
+  f.host.openReadOnlyPreview(sample);
+  const frame=f.runtime.frameRoot.firstElementChild;await frame.onload();
+  for(const key of [TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE]){
+    f.store.set(key,'broken');f.changeStorage({[key]:{newValue:'broken'}});
+    assert.equal(frame.isConnected,true);
+  }
+  assert.equal(frame.contentWindow.sent.filter(row=>row.kind==='load').length,1);
+});
+
+test('R1.8 corrupt installed notification retires executable frame but retains draft text',async t=>{
+  const f=await hostFixture(t);
+  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{
+    protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,
+    kind:'draft',text:'安装状态未知时仍可复制的草稿'}});
+  const damaged=[sample,{...sample,id:'invalid id'}];
+  f.store.set(SIDEBAR_TOOL_STORE,damaged);f.change(damaged);
+  assert.equal(f.frame.isConnected,false);
+  assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,'安装状态未知时仍可复制的草稿');
+  f.host.openTool(sample.id);assert.equal(f.runtime.frameRoot.children.length,0);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
+});
+
+test('R1.8 extension-center toggles retain current Host success receipts',async t=>{
+  const f=await hostFixture(t,{startTool:false});
+  for(const enabled of [false,true]){
+    assert.equal(await f.host.toggleEnabled(sample.id,{isTrusted:true}),true);
+    assert.equal(f.store.get(SIDEBAR_TOOL_ENABLE_STORE)[sample.id],enabled);
+    assert.match(f.elements['sidebar-tool-status'].textContent,enabled?/应用已恢复使用/:/已停用/);
+    assert.equal(f.elements['sidebar-tool-status'].hidden,false);
+  }
+});
+
+test('R1.8 Host own enable button retains stop and restore feedback',async t=>{
+  const f=await hostFixture(t);
+  const event={isTrusted:true,target:{id:'sidebar-tool-enable'}};
+  assert.equal(await f.host.toggleEnabled(sample.id,event),true);
+  assert.match(f.elements['sidebar-tool-status'].textContent,/已停用/);
+  assert.equal(await f.host.toggleEnabled(sample.id,event),true);
+  assert.match(f.elements['sidebar-tool-status'].textContent,/应用已恢复使用/);
+});
+
+for(const destination of ['detail','list','settings'])test('R1.8 previous install notice clears on '+destination+' navigation while errors remain',async t=>{
+  const other={...sample,id:'other-app',title:'另一个应用'};
+  const f=await hostFixture(t,{startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[sample,other]]])});
+  const navigate=()=>{
+    if(destination==='settings')return f.host.openSettings(other.id);
+    const button=f.doc.createElement('button');
+    if(destination==='detail')button.dataset.extensionAction='main';
+    else button.id='extension-center-back';
+    const child=f.doc.createElement('span');button.append(child);f.doc.body.append(button);
+    child.dispatchEvent(new f.doc.defaultView.Event('click',{bubbles:true}));button.remove();
+  };
+  for(const text of ['已安装网页增强「本地程序」v1.0.0；打开或刷新目标网页即可使用。','已卸载「本地程序」，本地数据已清理。']){
+    f.view.patch('sidebar-tool-status',{textContent:text,hidden:false,attributes:{'data-state':'info'}});
+    await f.host.ready;
+    assert.equal(f.elements['sidebar-tool-status'].textContent,text,'fresh receipts survive reads until navigation');
+    navigate();
+    assert.equal(f.elements['sidebar-tool-status'].textContent,'');
+    assert.equal(f.elements['sidebar-tool-status'].hidden,true);
+  }
+  f.view.patch('sidebar-tool-status',{textContent:'安装记录读取失败，请核对原始数据',hidden:false,attributes:{'data-state':'error'}});
+  navigate();
+  assert.match(f.elements['sidebar-tool-status'].textContent,/安装记录读取失败/);
+  assert.equal(f.elements['sidebar-tool-status'].hidden,false);
+});

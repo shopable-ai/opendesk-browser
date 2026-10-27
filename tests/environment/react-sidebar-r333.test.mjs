@@ -32,12 +32,18 @@ test('R33.3 real TSX transformation and privilege-free UI modules',async()=>{
     const code=await read(path);
     const transformed=await transform(code,{loader:'tsx',jsx:'transform',target:'es2022'});
     assert.ok(transformed.code.length>0,'TSX transpiles: '+path);
-    // These two trusted pilots already have fixed, reviewed React imports.
+    // Trusted pilots and their scoped host styles have fixed, reviewed imports.
     // Exempt only the exact pinned statements; new imports must still fail.
     const auditedTrustedImports=[
       "import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';",
       "import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';",
       "import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';",
+      "import timeReviewHostCSS from '../../../examples/sidebar-tools/time-review/trusted/host.css?raw';",
+      "import bookmarkManagerHostCSS from '../../../examples/sidebar-tools/bookmark-manager/trusted/host.css?raw';",
+      "import cookieEditorHostCSS from '../../../examples/sidebar-tools/cookie-editor/trusted/host.css?raw';",
+      "import aiVipShareHostCSS from '../../../examples/sidebar-tools/ai-vip-share/trusted/host.css?raw';",
+      "import promptShortcutsHostCSS from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/host.css?raw';",
+      "import readingTocHostCSS from '../../../examples/sidebar-tools/reading-toc/trusted/host.css?raw';",
       "import KnowledgeWorkspace from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx';",
       "import knowledgeWorkspaceCSS from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/workspace.css?raw';"
     ];
