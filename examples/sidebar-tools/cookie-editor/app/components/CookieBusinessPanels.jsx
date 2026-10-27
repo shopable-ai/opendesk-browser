@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {CookieIcon} from './CookieEditorView.jsx';
 
 // Product-owned presentation translated from preview/cookie-editor.html.
 // All enterprise figures are marked fictional and never impersonate SDK data.
@@ -9,10 +10,10 @@ const enterpriseFeatures=[
   ['席位、用量与成本概览','有官方数据时展示席位和预算；没有数据的服务保持「未接入」。','clock']
 ];
 const customFeatures=[
-  ['一个工作入口，覆盖更多任务','把获授权的 AI 工具用于内容整理、资料分析、问答和重复工作，降低操作成本。'],
-  ['多账号与团队灵活管理','不同部门、项目快速找到对应工作区；归属清晰，不依赖共享密码。'],
-  ['看清额度与使用效果','汇总合法可用的席位、预算与使用数据，无法获取的额度不猜测。'],
-  ['符合企业自己的工作方式','先解决少量高频任务，不另外建立审批或 OA 系统。']
+  ['一个工作入口，覆盖更多任务','把获授权的 AI 工具用于内容整理、资料分析、问答和重复工作，降低操作成本。','share'],
+  ['多账号与团队灵活管理','不同部门、项目快速找到对应工作区；归属清晰，不依赖共享密码。','users'],
+  ['看清额度与使用效果','汇总合法可用的席位、预算与使用数据，无法获取的额度不猜测。','clock'],
+  ['符合企业自己的工作方式','先解决少量高频任务，不另外建立审批或 OA 系统。','settings']
 ];
 const sampleUsage=[
   {name:'ChatGPT · 运营团队',value:'6 / 10 席位',current:6,total:10,note:'已分配席位 · 非对话次数额度'},
@@ -36,8 +37,8 @@ function Hero({eyebrow,title,children}){
 }
 function FeatureList({items}){
   return <div className="cookie-business-features">
-    {items.map(([title,detail],i)=><article className="cookie-business-feature" key={title}>
-      <span className="cookie-business-symbol" aria-hidden="true">{i+1}</span>
+    {items.map(([title,detail,icon])=><article className="cookie-business-feature" key={title}>
+      <span className="cookie-business-symbol" aria-hidden="true"><CookieIcon name={icon||'settings'}/></span>
       <div><strong>{title}</strong><p>{detail}</p></div>
     </article>)}
   </div>;
@@ -58,6 +59,11 @@ export function CookieEnterprisePanel({previewMode=false,onCustomize=()=>{}}){
         <small>{item.note}</small>
         <progress value={item.current} max={item.total} aria-label={item.name+'模拟占用比例'}/>
       </article>)}
+      <article className="cookie-business-usage-row">
+        <div><strong>其他 AI 服务 · 研发团队</strong><strong>未接入</strong></div>
+        <small>暂无可用管理数据</small>
+        <div className="cookie-business-usage-empty" aria-label="未接入管理数据"/>
+      </article>
       <p>示例席位、预算不代表 ChatGPT 对话次数额度。真实数据需企业授权和官方接口。</p>
     </div>:<p className="cookie-business-muted">
       尚未接入真实企业账号、席位或使用额度。需要由组织授权并使用服务商支持的正式接口。
@@ -73,33 +79,45 @@ export function CookieEnterprisePanel({previewMode=false,onCustomize=()=>{}}){
     </section>
   </div></Page>;
 }
-export function CookieCustomizePanel({onCommunity=()=>{}}){
+export function CookieCustomizePanel({onCommunity=()=>{},draft,onDraftChange,onCopyBrief,previewMode=false}){
   const [contactOpen,setContactOpen]=React.useState(false);
-  const [need,setNeed]=React.useState('一套 AI 资源覆盖更多工作场景');
-  const [note,setNote]=React.useState('');
-  const [brief,setBrief]=React.useState('');
-  const prepare=()=>setBrief(
+  const [copyStatus,setCopyStatus]=React.useState('');
+  const [copying,setCopying]=React.useState(false);
+  const copyInFlight=React.useRef(false);
+  const {need,note,brief}=draft;
+  const updateDraft=patch=>{setCopyStatus('');onDraftChange(previous=>({...previous,...patch}));};
+  const prepare=()=>updateDraft({brief:
     ['OpenDesk Browser · 企业 AI 定制需求',
      '需求方向：'+need,
      '场景说明：'+(note.trim()||'待沟通'),
      '要求：基于现有正式授权的 AI 工具和账号资源，降低日常切换、维护与人工重复操作成本。',
-     '备注：不包含账号密码、Cookie 或其他登录凭据。'].join('\n'));
+     '备注：请勿在场景说明中填写账号密码、Cookie 或其他登录凭据。'].join('\n')});
+  const copyBrief=async()=>{
+    if(copyInFlight.current||!brief)return;
+    copyInFlight.current=true;setCopying(true);setCopyStatus('');
+    try{
+      const receipt=await onCopyBrief(brief);
+      if(receipt?.copied!==true)throw Error('E_COPY_UNCONFIRMED');
+      setCopyStatus(previewMode?'预览模拟：需求说明已交给模拟剪贴板。':'需求说明已复制。');
+    }catch{setCopyStatus('复制未确认，请从下方摘要手动复制。');}
+    finally{copyInFlight.current=false;setCopying(false);}
+  };
   return <Page id="custom"><div className="cookie-business-content">
     <Hero eyebrow="CUSTOM · 企业 AI 定制" title="同一批 AI 资源，创造更多工作价值">
       让企业已有的合法授权 AI 资源用于内容创作、知识问答、客服辅助、研发和办公，
       减少重复复制、频繁切换与人工维护，让每一份 AI 投入发挥更大价值。
     </Hero>
-    <section className="cookie-business-callout">
-      <strong>按团队需求配置 AI 工作方式</strong>
-      <p>沟通账号归属、任务场景、成本与实施范围。</p>
-      <button type="button" className="od-button od-button--primary"
+    <section className="cookie-business-callout cookie-business-contact-strip">
+      <div><strong>按团队需求配置 AI 工作方式</strong>
+        <p>沟通账号归属、任务场景、成本与实施范围。</p></div>
+      <button type="button" className="od-button od-button--primary cookie-button--compact"
         aria-expanded={contactOpen} aria-controls="cookie-business-contact"
         onClick={()=>setContactOpen(value=>!value)}>
-        {contactOpen?'收起联系方式':'联系定制'}</button>
+        {contactOpen?'收起':'联系定制'}<CookieIcon name="right"/></button>
       {contactOpen&&<div id="cookie-business-contact" className="cookie-business-contact">
         <strong>定制联系方式 · 待公布</strong>
         <p>真实商务邮箱与社群号尚未配置，不虚构联系方式。可先生成需求摘要。</p>
-        <button className="od-button od-button--secondary" type="button" onClick={onCommunity}>查看社群渠道</button>
+        <button className="od-button od-button--quiet cookie-button--compact" type="button" onClick={onCommunity}>查看社群渠道<CookieIcon name="right"/></button>
       </div>}
     </section>
     <h3>为企业解决什么问题</h3><FeatureList items={customFeatures}/>
@@ -111,7 +129,7 @@ export function CookieCustomizePanel({onCommunity=()=>{}}){
       <h3>说说你最想节省的工作</h3>
       <p>不需要注册或审批，生成说明即可用于人工沟通。</p>
       <label>最关注的方向
-        <select className="od-field" value={need} onChange={e=>{setNeed(e.target.value);setBrief('');}}>
+        <select className="od-field" value={need} onChange={e=>updateDraft({need:e.target.value,brief:''})}>
           {['一套 AI 资源覆盖更多工作场景','企业多账号与团队使用入口',
             'AI 用量、席位与预算可视化','云端与本地 AI 工作流程']
             .map(option=><option key={option} value={option}>{option}</option>)}
@@ -120,13 +138,15 @@ export function CookieCustomizePanel({onCommunity=()=>{}}){
       <label>你的场景（选填）
         <textarea className="od-field" maxLength={300} value={note}
           placeholder="例如：让运营团队更高效使用现有 AI 工具。请勿填写账号密码或 Cookie。"
-          onChange={e=>{setNote(e.target.value);setBrief('');}}/>
+          onChange={e=>updateDraft({note:e.target.value,brief:''})}/>
       </label>
-      <button type="button" className="od-button od-button--primary" onClick={prepare}>生成需求说明</button>
-      {brief&&<label>需求摘要（可手动复制）
-        <textarea className="od-field" readOnly value={brief} rows={6}
+      <button type="button" className="od-button od-button--primary cookie-button--compact" onClick={prepare}>生成需求说明</button>
+      {brief&&<><label>需求摘要（可手动复制）
+        <textarea className="od-field" readOnly value={brief} rows={6} aria-label="需求摘要（可手动复制）"
           onFocus={e=>e.target.select()}/>
-      </label>}
+      </label><button type="button" className="od-button od-button--secondary cookie-button--compact"
+        disabled={copying} onClick={()=>void copyBrief()}>复制定制需求<CookieIcon name="copy"/></button></>}
+      {copyStatus&&<p role="status">{copyStatus}</p>}
       <small>文字仅在当前页面生成，不会自动发送或创建工单。</small>
     </section>
     <details className="cookie-business-disclosure"><summary>可讨论的工具与数据边界</summary>
@@ -143,26 +163,29 @@ export function CookieCommunityPanel(){
       扩展不承载站内聊天、话题发布或交易。
     </Hero>
     <div className="cookie-business-features">
-      {channels.map(channel=><article className="cookie-business-channel" key={channel.id}>
+      {channels.map(channel=><article className="cookie-business-channel" key={channel.id} aria-label={channel.name}>
         <div className="cookie-business-channel-top">
           <span className="cookie-business-avatar" aria-hidden="true">{channel.name.slice(0,1)}</span>
           <div><strong>{channel.name}</strong><small>{channel.tag}</small></div>
-          <small>待公布</small>
+          <small className="cookie-business-channel-status">待公布</small>
         </div>
         <p>{channel.info}</p>
-        <button type="button" className="od-button od-button--quiet"
+        <button type="button" className="od-button od-button--secondary cookie-button--compact"
           aria-expanded={expanded===channel.id}
+          aria-label={channel.name+' · '+(expanded===channel.id?'收起入口':'查看入口')}
+          aria-controls={'cookie-community-'+channel.id}
           onClick={()=>setExpanded(expanded===channel.id?'':channel.id)}>
-          {expanded===channel.id?'收起':'查看入口'}
+          {expanded===channel.id?'收起':'查看入口'}<CookieIcon name={expanded===channel.id?'chevron':'right'}/>
         </button>
-        {expanded===channel.id&&<p className="cookie-business-muted">
-          真实邀请链接或联系方式尚未公布。上线后直接提供对应外部入口，无需在扩展里注册或发帖。
+        {expanded===channel.id&&<p id={'cookie-community-'+channel.id} className="cookie-business-channel-detail">
+          {channel.name} 的真实邀请链接或联系方式尚未公布。上线后直接提供对应外部入口，无需在扩展里注册或发帖。
         </p>}
       </article>)}
     </div>
-    <p className="cookie-business-muted">
-      外部社群中的资讯和合作机会需自行核验；OpenDesk 不托管交易，也不提供登录凭据买卖渠道。
-    </p>
+    <section className="cookie-business-callout cookie-business-circle-note">
+      <strong>信息在社群中交流</strong>
+      <p>外部社群中的资讯和合作机会需自行核验；OpenDesk 不托管交易，也不提供登录凭据买卖渠道。</p>
+    </section>
   </div></Page>;
 }
 
@@ -186,10 +209,10 @@ export function CookieMembershipRecommendations({origin=''}) {
         {isChatGPT?'当前 ChatGPT 网站的官方会员与同类 AI 服务。':
           '以 ChatGPT 为例展示可用的官方会员推荐。'}
       </p></div>
-      <button type="button" className="od-button od-button--primary"
+      <button type="button" className="od-button od-button--primary cookie-button--compact"
         aria-expanded={expanded} aria-controls="cookie-membership-services"
         onClick={()=>setExpanded(value=>!value)}>
-        {expanded?'收起':'购买会员'}</button>
+        {expanded?'收起':'购买会员'}<CookieIcon name={expanded?'chevron':'right'}/></button>
     </div>
     {expanded&&<div id="cookie-membership-services" className="cookie-business-membership-list">
       <small>官方会员与同类推荐 · 外部订阅，不在扩展付款</small>

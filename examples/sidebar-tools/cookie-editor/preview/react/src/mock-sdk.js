@@ -16,16 +16,39 @@ export function fictionalCookies(){
   {...b,name:'embedded_pref',value:'enabled',sameSite:'no_restriction',partitionKey}
  ];
 }
+// A/B fixture from approved HTML blob 020adbf22005cba219af4ff27cd3f3e492978bed.
+// HTML has metadata only: values remain fictional. It specifies neither storeId
+// nor a precise PartitionKey; retain explicit simulated identities from the
+// safety fixture rather than silently flattening the partitioned Cookie.
+export function approvedParityCookies(now=Date.now()){
+ const afterDays=days=>Math.floor(now/1000)+days*86400;
+ const rows=fictionalCookies();
+ const byName=name=>rows.find(row=>row.name===name);
+ return [
+  byName('session_id'),byName('__Host-auth'),
+  {...byName('theme'),expirationDate:afterDays(30)},
+  {...byName('locale'),expirationDate:afterDays(7)},
+  byName('cart_count'),
+  {...byName('analytics_consent'),session:false,expirationDate:afterDays(90)},
+  byName('embedded_pref'),
+  {...rows[6],name:'long_optional_cookie_for_layout_checks',path:'/',secure:false}
+ ];
+}
 const clone=value=>structuredClone(value);
 const error=code=>Object.assign(Error(code),{code});
 export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
- let rows=scenario==='empty'?[]:fictionalCookies(),failure='',clearPlan=null,releaseLoading;
+ const parity=scenario==='approvedParity';
+ let rows=scenario==='empty'?[]:parity?approvedParityCookies():fictionalCookies(),failure='',clearPlan=null,releaseLoading;
  let currentSite=demoSite,globalGrant=scenario!=='first';
  const siteRows=new Map([[demoSite,rows]]);
  // Preview-only account fixture. No real account, Cookie, Host or storage.
- const accountDemo=['accountsDemo','accountSwitchFail','accountSwitchUnknown','accountLockUnknown','accountsLocked'].includes(scenario);
+ const accountDemo=parity||['accountsDemo','accountSwitchFail','accountSwitchUnknown','accountLockUnknown','accountsLocked'].includes(scenario);
  const unlockedDemo=accountDemo&&scenario!=='accountsLocked';
- const fictionalAccounts=[
+ const fictionalAccounts=parity?[
+   {alias:'work',origin:'https://'+demoSite,displayName:'工作账号',version:1,allowAuto:false},
+   {alias:'personal',origin:'https://'+demoSite,displayName:'个人账号',version:1,allowAuto:false},
+   {alias:'backup',origin:'https://'+demoSite,displayName:'备用账号',version:1,allowAuto:false}
+ ]:[
    {alias:'work',origin:'https://'+demoSite,displayName:'工作账号',version:1,allowAuto:true},
    {alias:'personal',origin:'https://'+demoSite,displayName:'个人账号',version:1,allowAuto:false},
    {alias:'qa',origin:'https://'+demoSite,displayName:'测试账号',version:1,allowAuto:true}
@@ -37,8 +60,12 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
      accounts:[],settings:{autoRefresh:true,autoEnabled:false}};
  let demoPassphrase=unlockedDemo?'preview-only-passphrase':null;
  const demoSnapshots=new Map();
- if(accountDemo)for(const item of fictionalAccounts)
-   demoSnapshots.set(item.alias,clone(fictionalCookies()));
+ if(accountDemo)for(const item of fictionalAccounts){
+   // HTML supplies counts 8/8/7, not saved Cookie contents. The backup subset
+   // here is synthetic, not evidence of a real account snapshot or Host write.
+   const snapshot=parity?rows.slice(0,item.alias==='backup'?7:8):fictionalCookies();
+   demoSnapshots.set(item.alias,clone(snapshot));
+ }
  const accountMeta=()=>({...clone(demoVault),
    accounts:demoVault.unlocked?demoVault.accounts
      .filter(item=>item.origin==='https://'+currentSite)

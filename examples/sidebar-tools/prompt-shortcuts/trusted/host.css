@@ -1,0 +1,24 @@
+/* Fixed trusted prompt-shortcuts host UI; never loaded from installed tool bytes. */
+#sidebar-tool-prompt-native-row[hidden]{display:none!important}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-toc-settings-row{padding:7px 2px;margin:0;gap:10px}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] #sidebar-tool-settings-hint{margin:0;padding:9px 10px;border-radius:8px;background:var(--od-muted);color:var(--od-sub);font-size:11px;line-height:1.55}
+#sidebar-tool-prompt-native-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.sidebar-tool-prompt-native-info{display:grid;gap:3px;flex:1;min-width:0}
+.sidebar-tool-prompt-native-info strong{font-size:12px}
+.sidebar-tool-prompt-native-info small{font-size:11px;color:var(--od-sub);line-height:1.4;overflow-wrap:anywhere}
+#sidebar-tool-prompt-native-action{font-size:11px;min-height:32px;flex:none;white-space:normal}
+@media(max-width:330px){#sidebar-tool-prompt-native-row{align-items:flex-start;flex-wrap:wrap}}
+@media(max-width:330px){#sidebar-tool-prompt-native-action{margin-left:auto}}
+#sidebar-tool-prompt-web-row[hidden],#sidebar-tool-prompt-enable-description[hidden]{display:none!important}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-tool-prompt-enable-info{display:grid;gap:3px;flex:1;min-width:0}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-tool-prompt-enable-info strong{font-size:12px}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-tool-prompt-enable-info small{font-size:11px;color:var(--od-sub)}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch{box-sizing:border-box;display:inline-block;position:relative;flex:0 0 42px;width:42px;min-width:42px;height:34px;min-height:34px;max-height:34px;padding:0;border:0;border-radius:9px;background:transparent;font-size:0;cursor:pointer}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::before{content:"";position:absolute;top:6px;left:3px;width:36px;height:22px;border-radius:100px;background:var(--od-input-border);transition:background .15s}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::after{content:"";position:absolute;top:9px;left:6px;width:16px;height:16px;border-radius:50%;background:var(--od-paper);box-shadow:0 1px 3px #0003;transition:transform .15s}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch[aria-checked="true"]::before{background:var(--od-brand)}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch[aria-checked="true"]::after{transform:translateX(14px)}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch:disabled{cursor:not-allowed;opacity:.45}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
+#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] #sidebar-tool-prompt-native-action{font-size:0}
+@media(prefers-reduced-motion:reduce){#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::before,#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::after{transition:none}}

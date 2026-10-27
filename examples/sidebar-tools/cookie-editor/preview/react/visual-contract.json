@@ -1,5 +1,5 @@
 {
-  "schema": "opendesk.cookie-editor.visual-contract.r35.v1",
+  "schema": "opendesk.cookie-editor.visual-contract.r37.v1",
   "approvedHtml": {
     "path": "preview/cookie-editor.html",
     "gitBlobSha": "020adbf22005cba219af4ff27cd3f3e492978bed",
@@ -9,12 +9,38 @@
   "previews": {
     "html": "preview/cookie-editor.html",
     "react": "preview/react/index.html",
-    "reactGenerator": "preview/react/build-preview.mjs"
+    "reactGenerator": "preview/react/build-preview.mjs",
+    "dev": "/dev.html",
+    "devComparison": "/a-b-dev.html",
+    "devSourceReceipt": "/dev-source.json"
   },
   "scenario": {
     "site": "shop.example.com",
-    "reactScenario": "accountsDemo",
-    "baselineWidth": 380
+    "reactScenario": "approvedParity",
+    "baselineWidth": 380,
+    "fixedTime": "2026-10-27T04:00:00.000Z",
+    "timezone": "Asia/Shanghai"
+  },
+  "cookieStates": {
+    "default": [],
+    "edit": [{"html":".cookie-trigger >> nth=0","react":".row-trigger >> nth=0"}],
+    "new": [{"html":"[data-action='new-cookie']","react":"button[aria-label='新建 Cookie']"}],
+    "date": [
+      {"html":".cookie-trigger >> nth=0","react":".row-trigger >> nth=0"},
+      {"html":"#editExpirationMode","react":"select[aria-label='有效期方式']","select":"date"}
+    ],
+    "duration": [
+      {"html":".cookie-trigger >> nth=0","react":".row-trigger >> nth=0"},
+      {"html":"#editExpirationMode","react":"select[aria-label='有效期方式']","select":"duration"}
+    ],
+    "advanced": [
+      {"html":".cookie-trigger >> nth=0","react":".row-trigger >> nth=0"},
+      {"html":"#cookieEditForm details > summary","react":".cookie-inline-editor details.advanced > summary"}
+    ],
+    "search": [{"html":"#searchCookie","react":"input[aria-label='搜索 Cookie']","fill":"theme"}],
+    "filter": [{"html":"[data-action='filter-panel']","react":"button[aria-label='筛选与排序']"}],
+    "import": [{"html":"[data-action='import']","react":"button[aria-label='导入 Cookie']"}],
+    "export": [{"html":"[data-action='export']","react":"button[aria-label='导出 Cookie']"}]
   },
   "statuses": [
     "LOCKED",
@@ -693,5 +719,92 @@
         ".cookie-business-muted"
       ]
     }
+  },
+  "inventory": {
+    "scope": {
+      "html": "#panel",
+      "react": ".cookie-app"
+    },
+    "coverage": "All visible DOM descendants, including off-scroll content; every control, direct text node, SVG tree, attributes, parent index, computed style, relative rect and state. Hidden nodes excluded. Preview laboratory is outside these roots.",
+    "styleKeys": [
+      "display",
+      "position",
+      "fontFamily",
+      "fontSize",
+      "fontWeight",
+      "lineHeight",
+      "letterSpacing",
+      "color",
+      "backgroundColor",
+      "borderTopColor",
+      "borderRightColor",
+      "borderBottomColor",
+      "borderLeftColor",
+      "borderTopWidth",
+      "borderRightWidth",
+      "borderBottomWidth",
+      "borderLeftWidth",
+      "borderRadius",
+      "paddingTop",
+      "paddingBottom",
+      "paddingLeft",
+      "paddingRight",
+      "marginTop",
+      "marginBottom",
+      "gap",
+      "alignItems",
+      "justifyContent",
+      "overflowX",
+      "overflowY",
+      "whiteSpace",
+      "textOverflow",
+      "width",
+      "height",
+      "boxShadow",
+      "opacity",
+      "fill",
+      "stroke",
+      "strokeWidth",
+      "accentColor",
+      "borderTopStyle",
+      "borderRightStyle",
+      "borderBottomStyle",
+      "borderLeftStyle"
+    ],
+    "differenceClasses": [
+      "VISUAL_GAP",
+      "DYNAMIC_REVIEW_REQUIRED",
+      "SAFETY_REVIEW_REQUIRED",
+      "PREVIEW_ONLY",
+      "TEST_INFRA_FAIL"
+    ],
+    "policy": "All visible nodes retained. Layout-only wrappers do not themselves imply visual gaps. Compare text ranges, rendered control labels, paint, rect and states; raw styles, attributes and structure remain in inventory. Exceptions are specific review records, never visual approval.",
+    "coordinateOrigin": {
+      "html": ".sitebar",
+      "react": ".site-bar"
+    },
+    "previewOnly": {
+      "html": [
+        ".host-preview",
+        ".footer",
+        ".sitehint",
+        ".site-select",
+        "outside #panel"
+      ],
+      "react": [
+        "outside .cookie-app"
+      ]
+    },
+    "matching": "region + Cookie name/account displayName + semantic role + control owner + stable occurrence; no global text or SVG shape matching",
+    "categories": [
+      "STRUCTURE",
+      "COPY",
+      "ICON",
+      "STYLE",
+      "RECT",
+      "STATE",
+      "A11Y",
+      "TEST_INFRA_FAIL"
+    ]
   }
 }

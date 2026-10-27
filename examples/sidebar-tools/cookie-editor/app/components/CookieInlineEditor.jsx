@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
-import {CookieFormField,CookieValueField,CookieAdvancedFields,CookieExpirationField,CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
+import {CookieFormField,CookieValueField,CookieAdvancedFields,CookieExpirationField,CookieIconButton} from './CookieEditorView.jsx';
 import {localExpirationText,parseLocalExpiration} from '../domain/cookie-expiration.js';
 
 // Cookie Value is deliberately an uncontrolled DOM input. React state, props,
@@ -161,7 +161,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
         event.target.matches?.('input[type="text"]'))submit(event);
     }}>
     <div className="cookie-editor-heading editor-top">
-      <strong>{edited?'编辑':'新建'}</strong>
+      <strong>{edited?'编辑 Cookie':'新建 Cookie'}</strong>
       <span className="editor-top-right">
         {dirty&&<em className="cookie-dirty-note">未保存</em>}
       </span>
@@ -200,15 +200,14 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       <Button type="button" variant="secondary" onClick={()=>onCancel?.()}>放弃</Button>
     </div>}
     <div className="cookie-editor-actions">
-      {edited&&<CookieIconButton name="trash" label="删除 Cookie" tone="danger"
-        className="cookie-editor-icon-action" onClick={()=>onDelete?.(row.id)}
-        disabled={disabled}/>}
-      <span className="cookie-spacer"/>
-      <CookieIconButton name="close" label="取消" disabled={disabled}
-          onClick={requestClose}/>
+      {edited&&<Button type="button" variant="secondary" aria-label="删除 Cookie"
+        className="cookie-button--compact cookie-editor-delete" onClick={()=>onDelete?.(row.id)}
+        disabled={disabled}>删除</Button>}
+      <Button type="button" variant="secondary" className="cookie-button--compact"
+        disabled={disabled} onClick={requestClose}>取消</Button>
       <Button variant="primary" type="button" onClick={submit}
-        className="cookie-editor-save" disabled={disabled||(edited&&!dirty)}>
-        <CookieIcon name="check"/>保存
+        className="cookie-button--compact cookie-editor-save" disabled={disabled||(edited&&!dirty)}>
+        保存
       </Button>
     </div>
   </section>;

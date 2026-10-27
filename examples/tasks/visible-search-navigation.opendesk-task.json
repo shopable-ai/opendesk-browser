@@ -1,0 +1,43 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "workflow.visible-search",
+    "version": "1.0.1",
+    "title": "可见网页搜索与详情跳转",
+    "description": "在本机测试页填写关键词、搜索并访问匹配详情页；动作间短暂停留便于观察，返回真实网页读回结果。",
+    "author": "OpenDesk local development",
+    "source": "local-developer",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "deadlineMs": 60000,
+    "program": {
+      "revision": 1,
+      "sourceHash": "d436e12ee875be9eb5d38e81830c710c2ea98cf32c53ecec0d0a9c405d95a7bd"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "keyword": {
+          "type": "string",
+          "title": "搜索关键词",
+          "enum": [
+            "OpenDesk",
+            "Workflow"
+          ]
+        }
+      },
+      "required": [
+        "keyword"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "15857c2a757cd3abf9b176ef1f8a360908b857f34d8af06821f94051db1a5eeb",
+  "sourceUtf8": "// Controller Task. Only the local Browser Test Lab origin is permitted.\n// Short pauses keep actual page actions visible while observing the run.\nasync function main() {\n  const origin = 'http://127.0.0.1:43111';\n  const keyword = String(params.keyword ?? 'OpenDesk');\n  if (!['OpenDesk', 'Workflow'].includes(keyword)) throw new Error('Unsupported demo keyword');\n  if (!String(await page.url()).startsWith(origin + '/')) throw new Error('Unexpected target origin');\n  const pause = ms => new Promise(resolve => setTimeout(resolve, ms));\n  await pause(8000);\n  await page.goto(origin + '/workflow-search.html', {waitUntil:'domcontentloaded', timeout:10000});\n  await pause(2000);\n  await page.getByLabel('搜索关键词', {exact:true}).fill(keyword);\n  await pause(2000);\n  await page.getByRole('button', {name:'搜索', exact:true}).click();\n  await page.locator('#workflow-search-complete').waitFor({state:'visible', timeout:10000});\n  const submissions = await page.locator('#workflow-search-count').textContent();\n  const searchResult = await page.locator('#workflow-search-results').textContent();\n  const title = keyword === 'OpenDesk' ? 'OpenDesk Browser · 官方项目介绍' : 'OpenDesk Workflow · 使用指南';\n  const href = await page.getByRole('link', {name:title, exact:true}).getAttribute('href');\n  const expected = keyword === 'OpenDesk' ? '?detail=opendesk' : '?detail=workflow';\n  if (href !== expected || submissions !== '提交次数：1') throw new Error('Search result did not match');\n  await pause(3000);\n  // Navigate with the public API so Authority can transfer to the new document.\n  await page.goto(origin + '/workflow-search.html' + href, {waitUntil:'domcontentloaded', timeout:10000});\n  const detailTitle = await page.locator('#workflow-search-detail-title').textContent();\n  const detailDescription = await page.locator('#workflow-search-detail-description').textContent();\n  if (detailTitle !== title) throw new Error('Detail page did not match the selected search result');\n  const detailUrl = await page.url();\n  await pause(3000);\n  return {keyword, submissions, searchResult, detailTitle, detailDescription, detailUrl, observedAt:new Date().toISOString()};\n}\n"
+}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {CookieExportFormatRow,CookieExportActions,CookieIconButton} from './CookieEditorView.jsx';
+import {CookieExportFormatRow,CookieExportActions} from './CookieEditorView.jsx';
 
 // Compact, non-modal export popover used by both official React and the preview.
 // Credential reads and clipboard/download effects remain Controller -> SDK -> Host.
@@ -44,7 +44,6 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
     aria-modal="false" aria-labelledby={titleId}>
     <div className="cookie-panel-heading">
       <h3 id={titleId}>导出 Cookie</h3>
-      <CookieIconButton name="close" label="关闭导出" disabled={busy} onClick={onClose}/>
     </div>
     <CookieExportFormatRow format={format} includeValues={includeValues} disabled={busy}
       panelId={panelId} onFormat={next=>{setFormat(next);setMessage('');}}

@@ -1,3 +1,14 @@
+/* Scope outgoing bubble colors to the transcript, including the Workflow transcript Portal. */
+.od-conversation-log,.workflow-chat-transcript{
+ --od-conversation-user-bg:#95ec69;
+ --od-conversation-user-ink:#20341e;
+}
+@media(prefers-color-scheme:dark){
+ .od-conversation-log,.workflow-chat-transcript{
+  --od-conversation-user-bg:#31543c;
+  --od-conversation-user-ink:#effaf0;
+ }
+}
 /* Framework-owned, trusted shared Dock; the business tree stays mounted. */
 .od-conversation-workspace{height:100%;min-height:0;min-width:0;width:100%;display:flex;flex-direction:column;overflow:hidden;color:var(--od-ink)}
 .od-conversation-business{min-height:0;min-width:0;flex:1 1 auto;overflow:hidden}

@@ -2,27 +2,47 @@
 import {chromium} from 'playwright';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {dirname,resolve,join} from 'node:path';
-import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {mkdir,readFile,writeFile,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 const here=dirname(fileURLToPath(import.meta.url));
-const output=resolve(process.argv[2]||resolve(here,'../../../../../artifacts/cookie-editor-r523'));
+const devIndex=process.argv.indexOf('--dev-url');
+const devUrl=devIndex<0?null:new URL(process.argv[devIndex+1]);
+if(devUrl&&(!['127.0.0.1','localhost','[::1]'].includes(devUrl.hostname)||devUrl.protocol!=='http:'))throw Error('E_DEV_URL_LOOPBACK_REQUIRED');
+const output=resolve((process.argv[2]?.startsWith('--')?null:process.argv[2])||resolve(here,'../../../../../artifacts/cookie-editor-r523'));
 await mkdir(output,{recursive:true});
-const html=await readFile(join(here,'index.html'));
+const html=devUrl?null:await readFile(join(here,'index.html'));
+const sourceBefore=devUrl?await(await fetch(new URL('/dev-source.json',devUrl))).json():null;
+if(sourceBefore&&(sourceBefore.generatedHtmlUsed!==false||sourceBefore.mode!=='CURRENT_SOURCE_DEV'))throw Error('E_DEV_SOURCE_RECEIPT_INVALID');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_BIN||undefined});
 const context=await browser.newContext({viewport:{width:380,height:880},acceptDownloads:true});
 const page=await context.newPage();page.setDefaultTimeout(7000);
 const errors=[],network=[],pass=[];
 page.on('pageerror',e=>errors.push(e.message));
-page.on('request',req=>{if(/^https?:/.test(req.url()))network.push(req.url());});
+page.on('request',req=>{if(/^https?:/.test(req.url())&&(!devUrl||new URL(req.url()).origin!==devUrl.origin))network.push(req.url());});
 const button=name=>page.getByRole('button',{name,exact:true});
-const test=async(name,run)=>{await run();pass.push(name);console.log('PASS',name);};
+const matchIndex=process.argv.indexOf('--test-match');
+const testMatch=matchIndex<0?null:new RegExp(process.argv[matchIndex+1]);
+const widthIndex=process.argv.indexOf('--single-width');
+const singleWidth=widthIndex<0?null:Number(process.argv[widthIndex+1]);
+if(singleWidth!==null&&![320,360,380,400,440,520].includes(singleWidth))throw Error('E_TEST_WIDTH');
+const atWidths=widths=>singleWidth===null?widths:[singleWidth];
+const skipped=[];
+const test=async(name,run)=>{if(testMatch&&!testMatch.test(name)){skipped.push(name);return;}await run();pass.push(name);console.log('PASS',name);};
 const ready=async()=>{await page.locator('.cookie-row').first().waitFor();assert.equal(await page.locator('.cookie-row').count(),8);};
 const lab=page.locator('.demo-lab');
 const openLab=async()=>{if(await lab.getAttribute('open')===null)await lab.locator('summary').click();};
-const scene=async value=>{await openLab();await page.getByTestId('scenario').selectOption(value);};
-const reset=async()=>{await openLab();await button('重置').click();await ready();};
+const replaceScene=async action=>{
+ await openLab();
+ const previous=await page.locator('.cookie-editor-react').elementHandle();
+ await action();
+ // The old scene can still contain eight rows while React schedules its
+ // replacement. Never start an interaction against that retiring App.
+ if(previous)await page.waitForFunction(el=>!el.isConnected,previous);
+};
+const scene=async value=>replaceScene(()=>page.getByTestId('scenario').selectOption(value));
+const reset=async()=>{await replaceScene(()=>button('重置').click());await ready();};
 const row=name=>page.locator('.row-trigger').filter({has:page.locator('strong',{hasText:new RegExp('^'+name+'$')})});
 const nameInput=()=>page.getByRole('textbox',{name:'名称',exact:true});
 const valueInput=()=>page.getByRole('textbox',{name:'Cookie 值',exact:true});
@@ -47,7 +67,7 @@ const checkSheetBounds=async(sheet,width,height,stage)=>{
  return settled;
 };
 try{
- await page.goto(pathToFileURL(join(here,'index.html')).href,{waitUntil:'load'});
+ await page.goto(devUrl?.href||pathToFileURL(join(here,'index.html')).href,{waitUntil:'load'});
  await test('R2.6 defaults to three fictional accounts and product-owned share/market views',async()=>{
   // R3.4: open Cookie first to match the frozen baseline, then verify the
   // same three-account fixture is reachable without changing the SDK mock.
@@ -80,8 +100,8 @@ try{
   await lab.locator('summary').click();
   await page.screenshot({path:join(output,'380-r26-accounts-dark.png'),fullPage:true});
   await openLab();await button('浅色').click();await lab.locator('summary').click();
-  await button('更多操作：个人账号').click();
-  await page.getByRole('menuitem',{name:'分享配置'}).click();
+  await button('个人账号更多操作').click();
+  await page.getByRole('menuitem',{name:'分享账号配置'}).click();
   await page.getByRole('region',{name:'分享配置'}).waitFor();
   await page.getByLabel('匿名邀请').check();
   await page.getByRole('button',{name:'模拟生成邀请'}).click();
@@ -229,11 +249,13 @@ try{
  });
  await test('site change during a read safely restarts without unknown-effect recovery',async()=>{
   await page.evaluate(()=>{
-   document.querySelector('[aria-label="刷新 Cookie"]').click();
+   document.querySelector('[aria-label="重新读取 Cookie"]').click();
    document.querySelector('.cookie-app').dispatchEvent(new Event('opendesk-page-changed'));
   });
   await ready();
-  assert.equal(await button('重新读取 Cookie').count(),0);
+  assert.equal(await page.locator('.cookie-permission').count(),0,
+    'safe read restart must not leave a recovery panel');
+  assert.equal(await page.locator('.site-bar').getByRole('button',{name:'重新读取 Cookie',exact:true}).count(),1);
   assert.equal(await page.getByText('正在读取 Cookie…',{exact:true}).count(),0);
   assert.equal(await page.getByText(/结果可能未知；请手动核对/).count(),0);
   assert.equal(await page.locator('.site-hostname').innerText(),'shop.example.com');
@@ -265,7 +287,7 @@ try{
  await test('inline edit: original value, clean cancel, dirty guard and restoration',async()=>{
   await row('session_id').click();await valueInput().waitFor();
   await page.waitForFunction(()=>document.querySelector('[data-cookie-secret-input]')?.value==='sess_demo_only_C18');
-  assert.equal(await editor().locator('.editor-top > strong').innerText(),'编辑');
+  assert.equal(await editor().locator('.editor-top > strong').innerText(),'编辑 Cookie');
   assert.equal(await valueInput().getAttribute('placeholder'),'留空保留原值');
   assert.equal(await button('保存').isDisabled(),true);
   await button('取消').click();assert.equal(await editor().count(),0);
@@ -294,24 +316,56 @@ try{
     'Cookie flags should preserve H / S / P metadata');
   const search=page.getByRole('searchbox',{name:'搜索 Cookie'});await search.fill('theme');
   assert.equal(await page.locator('.cookie-row').count(),1);await search.fill('');
-  await button('筛选与排序').click();await button('分区').click();
+  await button('筛选与排序').click();
+  const sort=page.getByRole('combobox',{name:'Cookie 排序'});
+  await sort.selectOption('name');
+  const names=await page.locator('.row-trigger strong').allTextContents();
+  assert.deepEqual(names,await page.evaluate(values=>[...values].sort((a,b)=>a.localeCompare(b)),names),
+    'name sorting follows the browser locale, including the fictional Chinese name');
+  await sort.selectOption('source');
+  await button('分区').click();
   assert.equal(await page.locator('.cookie-row').count(),1);assert.equal(await row('embedded_pref').count(),1);
   await button('全部').click();await button('筛选与排序').click();
   await row('embedded_pref').click();
   const attributes=editor().locator('details.advanced');
-  assert.equal(await attributes.locator(':scope > summary').innerText(),'属性');
+  assert.equal(await attributes.locator(':scope > summary').innerText(),'其他属性 / 存储信息');
   await attributes.locator(':scope > summary').click();
   assert.equal(await editor().getByRole('textbox',{name:'Domain',exact:true}).getAttribute('readonly'),'');
   assert.equal(await editor().getByRole('textbox',{name:'Path',exact:true}).getAttribute('readonly'),'');
-  assert.equal(await editor().getByRole('checkbox',{name:'Host-only',exact:true}).isDisabled(),true);
+  assert.equal(await editor().getByRole('checkbox',{name:'Host-only',exact:true}).count(),0);
   const storage=editor().locator('details.editor-identity');
   assert.equal(await storage.getAttribute('open'),null);
   assert.equal(await storage.locator(':scope > summary').innerText(),'存储信息');
   await storage.locator(':scope > summary').click();
   assert.match(await storage.innerText(),/Store ID/);assert.match(await storage.innerText(),/PartitionKey/);
+  assert.match(await storage.innerText(),/Host-only\s+是（仅当前主机）/);
   assert.match(await storage.innerText(),/partner\.example\.net/);
   assert.equal(await page.locator('input[type=password]').count(),0);
   await button('取消').click();
+ });
+ await test('dirty Cookie tab keyboard cancel and discard restore selected-tab focus',async()=>{
+  await scene('approvedParity');await ready();
+  await row('session_id').click();await nameInput().fill('cookie_tab_draft');
+  await editor().locator('.cookie-dirty-note').waitFor();
+  const tabs=page.getByRole('tablist',{name:'Cookie Editor 页面'});
+  const cookie=tabs.getByRole('tab',{name:'Cookie',exact:true});
+  const accounts=tabs.getByRole('tab',{name:'账号',exact:true});
+  const assertSelected=async(tab)=>{
+    assert.equal(await tab.getAttribute('aria-selected'),'true');
+    assert.equal(await tab.evaluate(el=>document.activeElement===el),true);
+    assert.equal(await tabs.locator('[tabindex="0"]').count(),1);
+  };
+  await cookie.focus();await page.keyboard.press('ArrowRight');
+  await page.getByText('放弃未保存修改？',{exact:true}).waitFor();
+  await page.keyboard.press('Escape');await assertSelected(cookie);
+  assert.equal(await nameInput().inputValue(),'cookie_tab_draft');
+  await page.keyboard.press('ArrowRight');await button('继续编辑').click();
+  await assertSelected(cookie);
+  assert.equal(await nameInput().inputValue(),'cookie_tab_draft');
+  await page.keyboard.press('ArrowRight');await button('放弃').click();
+  await assertSelected(accounts);assert.equal(await editor().count(),0);
+  await page.keyboard.press('ArrowLeft');await assertSelected(cookie);await ready();
+  await page.screenshot({path:join(output,'380-dirty-tab-focus.png'),fullPage:true});
  });
  await test('six product tabs match approved HTML and keep keyboard navigation',async()=>{
   for(const width of [320,360,380,400,440,520]){
@@ -335,7 +389,7 @@ try{
   await ready();await page.setViewportSize({width:380,height:880});
  });
  await test('Expiration is local, session stays session, and expired drafts cannot save',async()=>{
-  for(const width of [320,360,380,400,440,520]){
+  for(const width of atWidths([320,360,380,400,440,520])){
    await page.setViewportSize({width,height:880});
    await row('theme').click();
    await editor().locator('details.advanced > summary').click();
@@ -344,12 +398,12 @@ try{
    assert.equal(await mode.inputValue(),'date');
    const original=await expiration.inputValue();
    assert.match(original,/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/);
-   assert.match(await editor().innerText(),/有效期 · Expiration/);
+   assert.match(await editor().innerText(),/有效期\s*Expiration/);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
      width+'px advanced expiry overflow');
    await mode.selectOption('session');
    assert.equal(await expiration.count(),0);
-   assert.match(await editor().innerText(),/会话 Cookie · 不设置固定到期时间/);
+   assert.match(await editor().innerText(),/按浏览器会话管理，不设置固定到期日。/);
    await mode.selectOption('date');
    assert.equal(await expiration.inputValue(),original);
    await expiration.fill('2000-01-01T00:00');
@@ -461,7 +515,7 @@ try{
   assert.equal(await page.locator('.cookie-row').count(),9);await reset();
  });
  await test('export floats above the list, uses two tabs and closes on outside focus',async()=>{
-  for(const width of [320,360,400,440]){
+  for(const width of atWidths([320,360,400,440])){
    await page.setViewportSize({width,height:760});
    await button('导出 Cookie').click();
    const popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
@@ -470,12 +524,19 @@ try{
    assert.equal(await popup.getByRole('tab',{name:'Netscape'}).count(),0);
    assert.equal(await popup.getByRole('tab',{name:'JSON'}).getAttribute('aria-selected'),'true');
    assert.equal(await page.locator('dialog:modal').count(),0);
-   const box=await popup.boundingBox();
+   const box=await page.locator('.cookie-export-popover').boundingBox();
    const segment=await popup.locator('.cookie-export-tabs').boundingBox();
    const format=await popup.getByRole('tab',{name:'Cookie Header'}).boundingBox();
    assert.ok(segment.width<230,'format control must be compact');
-   assert.ok(format.height>=28&&format.width>=90,
-     'compact tabs must retain usable pointer targets');
+   assert.ok(Math.abs(format.height-24)<=1,'format choice follows approved 24px chip');
+   assert.ok(box.width<=317,'popover follows approved 316px maximum');
+   if(width>=360)assert.ok(Math.abs(box.width-316)<=1,'popover is 316px when space permits');
+   assert.equal(await popup.getByRole('button',{name:'关闭导出'}).count(),0);
+   for(const label of ['复制','下载']){
+    const action=await popup.getByRole('button',{name:label,exact:true}).boundingBox();
+    assert.ok(Math.abs(action.height-33)<=1,'approved compact action height');
+    assert.ok(action.width<100,'copy/download retain natural content width');
+   }
    assert.ok(box.x>=4&&box.x+box.width<=width-4,'popover within '+width+'px');
    await page.keyboard.press('Escape');await popup.waitFor({state:'detached'});
    assert.equal(await button('导出 Cookie').evaluate(el=>el===el.ownerDocument.activeElement),true);
@@ -489,7 +550,7 @@ try{
   // The anchored popover must not geometrically cover the search field.
   // A single real pointer click focuses search and dismisses the menu.
   const search=page.getByRole('searchbox',{name:'搜索 Cookie'});
-  const menuBox=await popup.boundingBox();
+  const menuBox=await page.locator('.cookie-export-popover').boundingBox();
   const searchBox=await search.boundingBox();
   assert.ok(menuBox.y>=searchBox.y+searchBox.height-1,
     'popover must not cover search, even in a narrow sidebar');
@@ -640,8 +701,8 @@ try{
   const header=page.locator('.site-bar');
   assert.equal(await header.locator('details,summary,select').count(),0);
   assert.equal(await page.getByLabel('网站 URL',{exact:true}).count(),0);
-  assert.equal(await header.getByRole('button',{name:'刷新 Cookie',exact:true}).count(),1);
-  await button('刷新 Cookie').click();await ready();
+  assert.equal(await header.getByRole('button',{name:'重新读取 Cookie',exact:true}).count(),1);
+  await button('重新读取 Cookie').click();await ready();
  });
  await test('380px dark and editing evidence; clear-value icon stays inside input',async()=>{
   await reset();await button('深色').click();
@@ -660,7 +721,9 @@ try{
   await clear.click();assert.equal(await valueInput().inputValue(),'');assert.equal(await button('保存').isEnabled(),true);
  });
  assert.deepEqual(errors,[]);assert.deepEqual(network,[]);
- const receipt={status:'PASS',htmlSha256:sha(html),chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:['380-r26-accounts-light.png','380-r26-accounts-dark.png','380-r26-share-light.png','380-r26-market-light.png',...([320,360,380,400,440,520].flatMap(width=>[width+'-r26-accounts-light.png',width+'-r26-market-light.png'])),'380-light.png','380-dark.png','380-editing.png'],gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Real browser zoom and signed installed package out of scope']};
+ const sourceAfter=devUrl?await(await fetch(new URL('/dev-source.json',devUrl))).json():null;
+ if(devUrl)assert.equal(sourceAfter.sourceHash,sourceBefore.sourceHash,'source changed during dev test');
+ const receipt={status:'PASS',selection:testMatch?.source||'all existing cases',singleWidth,skipped,mode:devUrl?'CURRENT_SOURCE_DEV':'STATIC',devUrl:devUrl?.href,sourceBefore,sourceAfter,htmlSha256:html?sha(html):null,chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:(await readdir(output)).filter(name=>name.endsWith('.png')),gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Real browser zoom and signed installed package out of scope']};
  await writeFile(join(output,'chromium-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({status:'PASS',tests:pass.length,htmlSha256:receipt.htmlSha256,output}));
 }catch(error){
  await page.screenshot({path:join(output,'failure.png'),fullPage:true}).catch(()=>{});

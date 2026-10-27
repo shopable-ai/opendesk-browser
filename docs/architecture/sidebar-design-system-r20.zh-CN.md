@@ -117,7 +117,7 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 
 ## R30：公共组件外观唯一所有权与迁移用法（2026-10-13）
 
-这是既有 R20 设计系统的**实施说明**，不是第二套设计系统。数值只在 `src/ui/design-tokens.css` 调整；`src/ui/design-system.css` 是公共外观唯一来源；`src/ui/tool-shell.css` 只负责业务特有布局、尺寸和交互状态。Side Panel 无需强制改为 Tailwind，也不向第三方工具 iframe / 网页注入宿主 CSS。
+这是既有 R20 设计系统的**实施说明**，不是第二套设计系统。公共数值只在 `src/ui/design-tokens.css` 调整；`src/ui/design-system.css` 是公共外观唯一来源；`src/ui/tool-shell.css` 负责宿主布局、尺寸和交互状态。工具的业务样式由各自项目持有，具体边界见下文 R31。Side Panel 无需强制改为 Tailwind，也不向第三方工具 iframe / 网页注入宿主 CSS。
 
 | 角色 | 公共类 | 使用规则 |
 | --- | --- | --- |
@@ -164,9 +164,11 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 
 这是**已有 R20/R30 的修正**，并非第二套 Design System。跨界面范围及 HTML 语义矩阵见 [R27](ui-layout-conventions-r27.zh-CN.md)，多 Section 的组织见 [R28](sidebar-multi-section-tab-contract-r28.zh-CN.md)。
 
-- `src/ui/design-tokens.css`：语义颜色、暗色值、间距及圆角的唯一变量来源。
+- `src/ui/design-tokens.css`：跨组件通用的语义颜色、暗色值、间距及圆角的唯一变量来源。不接收 Cookie Editor 等应用专属色板，也不承接仅某个组件使用的局部变量。
 - `src/ui/design-system.css`：共享 `od-disclosure`（一级边框、paper、标题、Hover、Focus）、`--flat`（次级无框）、`--info`（标题说明）、`od-surface--padded`、按钮/字段/工具栏/提示及结果的**唯一视觉实现**。普通标题 44px、flat 36px；粗指针统一至少 44px，后续取值以源码为准。
 - `src/ui/tool-shell.css`：只管理视图 Grid/Flex、父容器 gap、局部宽高/滚动与真实业务状态；不得复制通用 `summary` 的最小高度、Hover 背景或边框圆角。开发页同组 `developer-context`、`developer-run-area` 使用 `od-stack` 8px，独立区块父 Grid 16px。
+- **业务归属（2026-10-28）**：可安装工具的主题、插画色和专用按钮变体留在 `examples/sidebar-tools/<id>/src/`；经审计的可信权限界面样式留在该工具 `trusted/host.css`，由现有可信 React 根固定引入，不从安装包加载可信 CSS。共享组件自身的变量（例如对话气泡）留在组件 CSS，并限定在组件根上。只有已有独立消费者、语义也通用的规则才提升为公共组件；多个业务页面看起来相近不构成提升理由。退役功能无引用的样式直接删除。
+- **应用定制**：复用公共 `od-*` 基类，专用变体使用应用前缀；不要给框架增加单应用的 `od-button--*` 或主题类。声明 `@opendesk-shared-design` 的工具可在自己的单一根类 `@scope (.app-root){…}` 内定义应用主题和变体，公共组件默认外观仍由共享来源提供。现有编译器保留全局覆盖及远程资源限制，拒绝 scope 内的全局注册规则和无效字符串；作用域只是 CSS 归属边界，不增加权限。
 - **不要嵌套重复边框**：主功能独立 `od-disclosure`；依赖 SHA、编译产物和运行历史使用内部 `od-disclosure od-disclosure--flat`；首次说明使用 `--info`。普通卡片需要 padding 时同时使用 `od-surface od-surface--padded`。
 - **隔离边界**：这些 CSS 原语只为可信 Side Panel/共用可信工具页提供直接复用。Native Workspace、Settings、Marketplace、可安装工具 iframe 及目标网页仍按 R27 各自隔离构建与主题映射，不扩大权限或跨执行世界加载宿主 CSS。
 - **验收**：用 `sidebar-component-contract.test.mjs` 的 CSS 规则/声明检查保护外观所有权，`sidebar-r19-layout-visual.mjs` 比较开发与云控两 Tab 的计算背景、边框、圆角、标题、Hover、深浅色；静态 Chrome 结果不能冒充 Mac 原生扩展、真实缩放、权限或安装验收。缺证据标 `NOT_TESTED`。
@@ -181,6 +183,35 @@ Native Agent 全页 Workspace 和 Settings 具有自己的大屏结构与本地�
 <details class="od-disclosure od-disclosure--flat"><summary>依赖 SHA</summary><pre class="od-result">按需查看</pre></details>
 <div class="od-surface od-surface--padded">普通内容卡片</div>
 ```
+
+### R31 本轮完成目标与关键测试条件（2026-10-28）
+
+**当前目标：公共设计层只承担通用职责，应用独立拥有业务样式，拆分后受影响界面的外观与操作保持一致，并有可重复执行的归属检查。** 本轮以源码分层和受影响范围验证为完成边界；正式安装包更新另按原发行合同触发。
+
+| 目标 | 完成条件 |
+| --- | --- |
+| 公共层通用 | `design-tokens.css` / `design-system.css` 中已识别的应用专属变量、主题、选择器和单应用按钮变体为零；通用安装管理和导航仍由宿主持有。新增公共变体须记录至少两个现有独立业务消费者及一致的通用语义，脱离具体业务数据仍可成立；未满足时留在自身 owner。 |
+| 专用样式有明确 owner | 沙箱应用样式、固定可信权限界面样式、共享组件局部变量分别归属应用 `src/`、工具 `trusted/`、组件 CSS；无重复实现、无为了移除业务名称而保留业务条件的公共规则。移走的规则能逐项核对选择器语义、声明、条件与顺序。 |
+| 拆分保持使用体验 | 同一浏览器、字体和视口下，受影响界面浅深色、控件状态与焦点的计算样式相对拆分前基线无差异；原有点击对象、按钮可用性、确认/取消和隐藏行为保持。 |
+| 后续修改可回归 | 归属与编译边界检查保留在仓库；测试会拒绝应用样式回流和作用域逃逸。视觉证据记录实际输入、浏览器、场景和结果，不能用测试总数或旧报告替代当前改动的证明。 |
+
+关键测试按真实影响选择；以下是本次拆分的必守条件，不是要求每次修改文档都执行全套产品测试。
+
+| 关键条件 | 通过标准 | 对应入口 / 证据 |
+| --- | --- | --- |
+| 归属及无重复 | 公共设计无 Cookie 专属规则；6 个已拆分工具的样式不回流 `tool-shell.css`；可信样式固定导入原 React 根；退役 AdBlock 仅保留必要隐藏保护。共享设置类在 Time Review / Stay Focus 中语义中性，原控制器 ID 不变。 | [应用归属检查](../../tests/environment/application-style-ownership.test.mjs)、[可信功能归属检查](../../tests/environment/trusted-feature-style-ownership.test.mjs) |
+| 定制有界 | 应用根内主题和变体有效；根外同类控件、文档根变量、无关 Quick Notes 编译结果不受 Cookie 定制影响。全局覆盖、非法 scope 根、坏字符串换行、转义 URL、远程资源及 scope 内全局注册规则均须拒绝；合法注释、字符串括号、emoji 和续行可通过。 | 应用归属检查；浏览器中比较应用根内/外控件及根变量 |
+| 外观和焦点保持 | Cookie 列表、编辑器、账号界面及按钮 hover / expanded / pressed / disabled；Time Review、Stay Focus、Cookie 首次授权和书签授权界面，在浅深色下比较几何、颜色、背景、边框、字体、display、间距和焦点。当前范围内计算样式差异为零，Tab 焦点可见；预览强制主题与系统主题组合保持原行为。 | [Cookie 设计检查](../../tests/environment/cookie-editor-react-design.test.mjs)、可信功能归属检查；同输入 Chromium 计算样式比较 |
+| 受影响操作保持 | 设置控件确认/取消、隐藏、busy 和 disabled 行为正确；原生点击对象同步传递，原 ID、焦点和滚动目标保持。应用列表到编辑、取消及弹层开关保持；CSS 改动不能让隐藏或禁用控件重新可操作。源码断言或静态 DOM 比较不能充当真实安装操作证据。 | [可信设置交互检查](../../tests/environment/trusted-settings-react-ownership.test.mjs)、[网站授权定向回归](../../tests/environment/time-review-r15-site-grants.test.mjs)；受影响应用的最短操作链 |
+| 编译及加载保持 | 应用实际构建入口可编译，产物保留原生 scope 且通过共享 CSS 编译器；固定可信 CSS 随现有 React bundle 加载，无遗漏的额外 CSS 资产。共享沙箱 UI 保持原固定 React/组件来源，动态安装包的 CSS/JS 不进入可信样式入口。 | [可信样式内存编译](../../tests/environment/react-sidebar-style-bundle-r23.test.mjs)；[共享 UI R16](../../tests/environment/sidebar-shared-ui-r16.test.mjs) 的 `fixed shared UI compiles`、[R17](../../tests/environment/sidebar-shared-ui-r17.test.mjs) 的 `upstream React Aria`；Cookie 实际入口 `write:false` 编译 |
+| 结论与输入一致 | 保存基线/候选相关源码和实际 CSS 摘要、浏览器版本、场景及差异；历史证据可在相关输入未变时复用。新引入或无法排除与本次改动相关的失败阻止完成；证实无关的旧失败单独记录。权限、来源、身份或撤权异常必须先分类并验证，不以放宽校验取得通过。 | 源码 diff、定向结果与候选证据；真实安装/升级未执行时保持 `NOT_TESTED` |
+
+**执行与停止条件：** 修改归属/编译器时先运行两份归属检查；影响控件类、CSS 顺序或样式时，再运行对应组件/交互检查和受影响场景的计算样式比较；修改构建入口时才补相关内存编译。上述当前受影响条件全部满足、无未解释的新失败后，即可报告“源码优化完成”。不以固定的 54 项测试数或 95 分作为长期通过标准，不因本轮完成自动启动发布或全仓巡检。
+
+**现有证据（上轮观察，本次仅制定合同，未重跑）：** 本机 `artifacts/css-ownership-20261028/verification.json` 记录 54 项定向检查，以及 Cookie 8 组、可信宿主 12 组、预览主题 4 组的计算样式零差异。这些为静态/模拟界面与编译证据；应用完整操作链及同候选真实 Chrome 安装/升级尚未据此验收。正式包 `2.0.39` 与开发配置 `2.0.40` 的既有差异、其他旧断言问题保留原记录，只有实际阻断当前步骤时处理。
+
+**阶段边界：** 本轮不启动正式包晋升、Chrome 安装/升级、全仓旧测试修复、尺寸/缩放矩阵或全量评分。后续明确进入发布阶段时，再按原打包器的候选→定向门禁→同源晋升→同 ID 更新流程验证版本、权限与数据保留；不得将本节的源码完成视为发布完成。
+
 ## R31 目标适配：第一方可信工具 UI 不必默认 iframe（2026-10-13）
 
 这是 [官方预编译 UI / 动态工具隔离决策](browser-framework/custom-tool-ui-and-local-development.zh-CN.md#r16-设计决策官方预编译-ui-与动态工具隔离并存2026-10-13) 在 **Side Panel 布局**上的增量规则，**当前尚未实施**；不改变上文对现行 iframe 工具的 R26/R30 约束。

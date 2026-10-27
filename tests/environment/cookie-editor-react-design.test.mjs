@@ -9,11 +9,13 @@ test('installed CSS owns the approved icon and row geometry without preview over
   const css=await readFile(root+'src/react.css','utf8');
   const preview=await readFile(root+'preview/react/src/style.css','utf8');
   assert.match(css,/\.cookie-editor-react svg\{width:17px;height:17px;flex:none\}/);
-  assert.match(css,/\.row-trigger\{[^}]*min-height:51px;[^}]*padding:8px 9px/);
-  assert.match(css,/\.row-text small\{[^}]*white-space:normal;[^}]*overflow-wrap:anywhere/);
+  const approved=await readFile(root+'preview/cookie-editor.html','utf8');
+  assert.match(approved,/\.cookie-trigger\{[^}]*min-height:50px;[^}]*padding:9px 13px/);
+  assert.match(css,/\.row-trigger\{[^}]*min-height:50px;[^}]*padding:9px 13px/);
+  assert.match(css,/\.row-text small\{[^}]*white-space:nowrap;[^}]*text-overflow:ellipsis/);
   assert.doesNotMatch(preview,/\.cookie-app (?:svg|\.row-trigger|\.row-text)/);
 });
-test('official shared design compiles candidate CSS without custom component skins',async()=>{
+test('official shared design compiles candidate CSS without global component skins',async()=>{
   const css=await readFile(root+'src/react.css','utf8');
   assert.doesNotThrow(()=>assertLayoutOnly(css));
   const compiled=await compileSharedToolCss(css);
@@ -40,7 +42,7 @@ test('real React app relies on shared buttons, fields and surfaces',async()=>{
   const [app,view,editor]=files;
   assert.match(app,/className="(?:[^"\s]+\s+)*od-surface(?:\s+[^"\s]+)*"/);
   assert.match(view,/od-icon-button/);
-  assert.match(view,/od-button--quiet/);
+  assert.match(view,/cookie-button--choice/);
   assert.match(editor,/od-field/);
   for(const src of files.slice(2))assert.doesNotMatch(src,/<button\b/);
 });

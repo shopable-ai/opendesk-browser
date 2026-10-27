@@ -30,8 +30,8 @@ test('export is an anchored two-tab React popover, never a replacement page',asy
   assert.match(popup,/role="tabpanel"/);
   assert.doesNotMatch(popup,/JSON 备份保留完整属性|复制为请求头文本|仅导出属性，不包含 Cookie 值/);
   assert.match(css,/\.cookie-export-popover\{/);
- assert.match(view,/format===key\?'od-button--secondary':'od-button--quiet'/);
- assert.match(css,/display:inline-grid;grid-template-columns:max-content max-content/);
+ assert.match(view,/className="od-button cookie-button--choice"/);
+ assert.match(css,/\.cookie-export-tabs\{\s*display:flex;gap:6px;align-items:center/);
  assert.match(view,/aria-selected=\{format===key\}/);
   assert.doesNotMatch(css,/\.cookie-export-workspace\{/);
 });
@@ -386,4 +386,34 @@ test('R3.2 market and account invite share one formal App but never create produ
   /chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest/);
  assert.match(stylesheet,/\.cookie-market-resource/);
  assert.match(stylesheet,/\.cookie-share-demo-code/);
+});
+
+
+test('R3.7 dev comparison imports safely and pins approved bytes without generated HTML',async()=>{
+ const {approvedHtml,comparisonHtml,accepted}=await import('./build-a-b.mjs');
+ const {createHash}=await import('node:crypto');
+ const original=await approvedHtml();
+ assert.equal(accepted,'020adbf22005cba219af4ff27cd3f3e492978bed');
+ assert.equal(createHash('sha1').update('blob '+original.length+'\0').update(original).digest('hex'),accepted);
+ const html=comparisonHtml(original,'',{dev:true});
+ assert.match(html,/id="current-react"[^>]*src="\/dev.html"/);
+ assert.match(html,/id="approved-html"[^>]*srcdoc=/);
+ assert.doesNotMatch(html,/data:text\/javascript;base64/);
+ const staticHtml=comparisonHtml(original,'STATIC_FIXTURE',{digest:'fixture'});
+ assert.match(staticHtml,/srcdoc="STATIC_FIXTURE"/);
+ assert.doesNotMatch(staticHtml,/allow-same-origin/);
+});
+
+test('R3.7 dev serves current CSS and source receipts while static auditing remains strict',async()=>{
+ const [vite,audit,contract]=await Promise.all([read('./vite.config.mjs'),read('./visual-contract-check.mjs'),read('./visual-contract.json').then(JSON.parse)]);
+ assert.match(vite,/compileSharedToolCss\(readFileSync\(productCss/);
+ assert.match(vite,/server\.watcher\.add/);
+ assert.match(vite,/generatedHtmlUsed:false/);
+ assert.match(vite,/src="\/src\/main.jsx"/);
+ assert.match(audit,/if\(!selfTest&&!devUrl\)try/);
+ assert.match(audit,/E_R35_REACT_PREVIEW_STALE/);
+ assert.match(audit,/E_SOURCE_CHANGED_DURING_AUDIT/);
+ assert.equal(contract.scenario.reactScenario,'approvedParity');
+ assert.ok(contract.scenario.fixedTime);
+ assert.ok(contract.inventory.styleKeys.includes('stroke'));
 });

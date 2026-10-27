@@ -24,6 +24,12 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   // snapshot, Cookie values and vault key never cross the Host boundary.
   const [accountState,setAccountState]=React.useState(null);
   const [accountBusy,setAccountBusy]=React.useState(false);
+  const [accountDirty,setAccountDirty]=React.useState(false);
+  const [accountFormRevision,setAccountFormRevision]=React.useState(0);
+  const [accountResumeRevision,setAccountResumeRevision]=React.useState(0);
+  const [customDraft,setCustomDraft]=React.useState({
+    need:'一套 AI 资源覆盖更多工作场景',note:'',brief:''
+  });
   const [accountNotice,setAccountNotice]=React.useState(null);
   const accountInFlight=React.useRef(false);
   const [offlineInitialSite,setOfflineInitialSite]=React.useState(null);
@@ -38,7 +44,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const setSelected=value=>{syncGate.current.selected=value;updateSelected(value);};
   const [query,setQuery]=React.useState('');
   const [filter,setFilter]=React.useState('all');
-  const [sort,setSort]=React.useState('name');
+  const [sort,setSort]=React.useState('source');
   const [page,setPage]=React.useState(1);
   const [expanded,setExpanded]=React.useState(false);
   const [dirty,updateDirty]=React.useState(false);
@@ -71,7 +77,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   },[importNotice]);
   const snapshot=view||controller.snapshot();
   const busy=Boolean(snapshot.busy||working);
-  const locked=busy||Boolean(confirmation);
+  const locked=busy||accountBusy||Boolean(confirmation);
   const scrubSensitive=()=>{
     // Invalidate DOM secrets synchronously on permission changes and navigation,
     // even before React commits the render that removes the editor.
@@ -87,10 +93,12 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const ask=(text,action,onCancel,kind='discard',details={})=>{
     setConfirmation({text,action,onCancel,kind,...details});
   };
-  const guarded=(action)=>{
+  const guarded=(action,onCancel)=>{
     if(locked)return;
-    if(dirty){ask('放弃未保存修改？',()=>{
-      setDirty(false);action();});return;}
+    if(dirty||accountDirty){ask('放弃未保存修改？',()=>{
+      setDirty(false);
+      if(accountDirty){setAccountDirty(false);setAccountFormRevision(value=>value+1);}
+      action();},onCancel);return;}
     action();
   };
   const endConfirm=accept=>{
@@ -136,7 +144,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       controller.dispose();
     };
   },[hostRoot,controller]);
-  React.useEffect(()=>{setState?.({busy,dirty});},[busy,dirty,setState]);
+  React.useEffect(()=>{setState?.({busy:busy||accountBusy,dirty:dirty||accountDirty});},[busy,accountBusy,dirty,accountDirty,setState]);
   // Auto-sync metadata only while the live list is idle and visible. An open
   // editor or import never loses its draft to an external website update.
   const lastAutoCheck=React.useRef(0);
@@ -220,8 +228,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         live.target?.origin===requestedOrigin;
     };
     setAccountBusy(true);setAccountNotice(null);
-    void Promise.resolve(intent).then(receipt=>{
-      if(!sameAccountContext())return;
+    return Promise.resolve(intent).then(receipt=>{
+      if(!sameAccountContext())return false;
       if(action==='switch'){
         if(receipt?.switched!==true||receipt?.verified!==true)
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
@@ -248,8 +256,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         setAccountNotice({kind:'success',text:receipt.preview===true
           ?'预览模拟：'+success+'（未写入真实账号）':success});
       }
+      return true;
     }).catch(error=>{
-      if(!sameAccountContext())return;
+      if(!sameAccountContext())return false;
       const code=String(error?.code||'E_ACCOUNT_HOST');
       const hints={
         E_OUTCOME_UNKNOWN:action==='lock'
@@ -266,6 +275,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       };
       setAccountNotice({kind:'error',text:(hints[code]||'本次操作未确认，请检查权限或仓库状态。')+
         '（'+code+'）'});
+      return false;
     }).finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
   };
   const copyAccountLink=(item,url)=>{
@@ -486,10 +496,18 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       {hostname:result.hostname,count:result.count});
   };
   const select=id=>guarded(()=>{setPanel(null);setExportOpen(false);setSelected(id);setStatus('');});
-  const chooseSection=next=>guarded(()=>{
-    if(next===section)return;
-    setSection(next);setAccountRoute('list');
-  });
+  const focusSection=key=>hostRoot.querySelector('#cookie-product-tab-'+key)
+    ?.focus({preventScroll:true});
+  const chooseSection=next=>{
+    if(locked)return;
+    if(next===section){focusSection(section);return;}
+    guarded(()=>{
+      setSection(next);setAccountRoute('list');focusSection(next);
+    },()=>{
+      if(section==='accounts'&&accountDirty)setAccountResumeRevision(value=>value+1);
+      else focusSection(section);
+    });
+  };
   const productTabs=[['cookie','Cookie'],['accounts','账号'],['enterprise','企业'],
     ['market','市场'],['custom','定制'],['circle','圈子']];
   const onProductTabKey=e=>{
@@ -499,8 +517,6 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     const total=productTabs.length;
     const next=e.key==='Home'?0:e.key==='End'?total-1:
       (current+(e.key==='ArrowRight'?1:total-1))%total;
-    hostRoot.querySelectorAll('.cookie-product-tabs [role="tab"]')[next]
-      ?.focus({preventScroll:true});
     chooseSection(productTabs[next][0]);
   };
   const onKeyDown=e=>{
@@ -592,6 +608,12 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       </div>}
       </section>}
       {section==='accounts'&&<CookieAccounts
+        key={(target?.origin||'')+':'+(accountState?.unlocked===true)+':'+accountFormRevision}
+        onDirty={setAccountDirty}
+        resumeRevision={accountResumeRevision}
+        onDiscardRequest={(action,onCancel)=>ask('放弃未保存修改？',()=>{
+          setAccountDirty(false);action();
+        },onCancel)}
         origin={target?.origin||''} accounts={accountState?.accounts||[]}
         currentAlias={accountState?.currentAlias||null}
         configured={accountState?.configured===true}
@@ -625,14 +647,16 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         onEnterprise={()=>chooseSection('enterprise')}
         onExperience={id=>guarded(()=>{
           setPanel(null);setExportOpen(false);setStatus('');
-          if(id==='account-kit'){setSection('accounts');setAccountRoute('list');}
+          if(id==='account-kit'){setSection('accounts');setAccountRoute('list');focusSection('accounts');}
           if(id==='switch-kit'){setSection('accounts');setAccountRoute('auto');}
           if(id==='expiry-kit'){
-            setSection('cookie');setAccountRoute('list');
+            setSection('cookie');setAccountRoute('list');focusSection('cookie');
             if(snapshot.phase==='ready')setSelected('new');
           }
         })}/>}
-      {section==='custom'&&<CookieCustomizePanel onCommunity={()=>chooseSection('circle')}/>}
+      {section==='custom'&&<CookieCustomizePanel draft={customDraft}
+        onDraftChange={setCustomDraft} previewMode={previewMode}
+        onCopyBrief={text=>adapter.copy(text)} onCommunity={()=>chooseSection('circle')}/>}
       {section==='circle'&&<CookieCommunityPanel/>}
     </>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&

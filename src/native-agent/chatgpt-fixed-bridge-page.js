@@ -11,8 +11,12 @@ const MAX_DELIVERY_BYTES=8192;
 const CONVERSATION_HELP='当前页面尚未建立会话。请先在 ChatGPT 发送一条消息并等待回复，或从左侧选择一个已有对话，再建立浏览器任务请求。';
 const REQUEST_HELP='请保持同一窗口的 OpenDesk 侧栏打开。先选择任务并建立请求。官网发送请求后，可手动执行或批准一次自动执行。';
 const INSTALLED_CHOICE='__installed__';
-const sameRequestScope=(a,b)=>a.taskId===b.taskId&&JSON.stringify(a.args)===JSON.stringify(b.args)&&
-  a.targetUrl===b.targetUrl&&JSON.stringify(a.installation)===JSON.stringify(b.installation);
+// The strict request parser admits flat primitive args/installation fields.
+// Storage can reorder their keys without changing the approved scope.
+const sameFields=(a,b)=>a===b||Boolean(a&&b&&Object.keys(a).length===Object.keys(b).length&&
+  Object.keys(a).every(key=>Object.hasOwn(b,key)&&a[key]===b[key]));
+const sameRequestScope=(a,b)=>a.taskId===b.taskId&&sameFields(a.args,b.args)&&
+  a.targetUrl===b.targetUrl&&sameFields(a.installation,b.installation);
 const isUserTurn=(snapshot,id)=>snapshot.ok&&snapshot.users.at(-1)?.textContent?.includes(id);
 
 // Focus may synchronously restore a website draft. Inspect after focusing and
@@ -282,7 +286,8 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     const busy=pending||cancelPending||deliveryPending;
     const ready=!!state&&!state.future&&!state.cancelled&&!state.attempted&&!state.deliveryStarted&&win.location.href===state.url;
     adoptButton.disabled=busy||loadingTasks||!hasConversation||Boolean(state&&!state.cancelled&&!state.attempted);
-    prepareButton.disabled=busy||loadingTasks||!hasConversation||taskSelect.value===INSTALLED_CHOICE;
+    prepareButton.disabled=busy||loadingTasks||!hasConversation||taskSelect.value===INSTALLED_CHOICE||
+      (taskSelect.value.startsWith('installed:')&&!selectedTask());
     preapproveButton.disabled=busy||loadingTasks||!hasConversation||!selectedTask()||Boolean(state&&!state.cancelled&&!state.attempted);
     autoButton.disabled=busy||!ready||state.mode==='auto';
     runButton.disabled=busy||!ready||state.mode==='auto';
@@ -293,7 +298,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     taskSelect.disabled=editing||loadingTasks;queryInput.disabled=editing;
     targetInput.disabled=editing;argsInput.disabled=editing;
     queryField.hidden=taskSelect.value!==BAIDU_TASK_ID;
-    targetField.hidden=!selectedTask();argsField.hidden=!selectedTask();
+    targetField.hidden=!selectedTask()&&!state?.candidate;argsField.hidden=targetField.hidden;
     if(state?.candidate){
       selection.textContent='本次脚本：'+state.taskId+'\n目标：'+state.targetUrl+'\n参数：'+JSON.stringify(state.args);
     }else if(!state||state.attempted){
@@ -442,6 +447,18 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       state={...adoptedRequest,url,source:prepared.source,expiresAt:prepared.expiresAt,candidate:prepared.candidate,
         adoptedRequest,attempted:false,cancelled:false,sendSubmitted:false,settled:false,deliveryStarted:false,
         mode:grant?'auto':null,approvedTurnKey:page.turnKey};
+      // Show the accepted request in the controls too, rather than leaving a
+      // previous manual selection above the correct execution summary.
+      const key='installed:'+state.taskId;
+      let option=installedOptions.find(item=>item.value===key);
+      if(!option){
+        option=doc.createElement('option');option.value=key;
+        taskSelect.append(option);installedOptions.push(option);
+      }
+      const name=installedTasks.get(key)?.name;
+      option.textContent=(name?name+' · ':'')+state.taskId+' @ '+state.installation.version;
+      taskSelect.value=key;targetInput.value=state.targetUrl;argsInput.value=JSON.stringify(state.args);
+      argsHelp.textContent='';
       selection.textContent='本次脚本：'+state.taskId+'\n目标：'+state.targetUrl+'\n参数：'+JSON.stringify(state.args);
       observe();note(grant?'已匹配预批准的新任务，将自动执行一次。':automatic?
         '已自动识别待执行任务。请核对脚本、网址和参数，只需点击一次“执行”。':
@@ -479,7 +496,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         !after.ok||after.turnKey!==baseline.turnKey||after.answerKey!==baseline.answerKey||
         prepared.baseline?.turnKey!==baseline.turnKey||prepared.baseline?.answerKey!==baseline.answerKey||
         prepared.source?.url!==url||prepared.taskId!==selected.taskId||prepared.targetUrl!==targetUrl||
-        JSON.stringify(prepared.installation)!==JSON.stringify(selected.installation)||
+        !sameFields(prepared.installation,selected.installation)||
         !Number.isFinite(prepared.expiresAt)||prepared.expiresAt<=Date.now()||prepared.expiresAt>Date.now()+300000)
         throw fail('E_BRIDGE_CONTEXT','预批准期间会话、回答或安装范围已改变；不会绑定旧生成');
       state={...prepared,url,future:true,attempted:false,cancelled:false,mode:'auto'};
@@ -512,7 +529,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
         if(taskSelect.value!==choice||argsInput.value!==inputArgs||targetInput.value.trim()!==targetUrl)
           throw fail('E_BRIDGE_CONTEXT','核验期间脚本、参数或网址发生变化');
         if(checked.taskId!==taskId||checked.targetUrl!==targetUrl||
-          JSON.stringify(checked.installation)!==JSON.stringify(selected.installation))
+          !sameFields(checked.installation,selected.installation))
           throw fail('E_BRIDGE_CONTEXT','可信宿主返回的安装版本或目标不匹配');
         args=checked.args;scope={targetUrl:checked.targetUrl,installation:checked.installation};
       }

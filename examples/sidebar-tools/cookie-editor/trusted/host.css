@@ -1,0 +1,47 @@
+/* Fixed trusted cookie-editor host UI; never loaded from installed tool bytes. */
+.trusted-cookie-panel{margin-top:var(--space-3);min-width:0}
+
+
+
+.trusted-cookie-content{display:grid;gap:var(--space-2);min-width:0}
+.trusted-cookie-content>.hint{line-height:1.6;margin:0}
+.trusted-cookie-content>.identity{margin:0}
+.trusted-cookie-content>button{justify-self:start}
+.trusted-cookie-list{display:grid;gap:var(--space-2);max-height:330px;overflow:auto;min-width:0}
+.trusted-cookie-item{display:flex;align-items:flex-start;gap:var(--space-2);padding:var(--space-2);border:1px solid var(--od-input-border);border-radius:var(--radius-control);min-width:0;flex-wrap:wrap}
+.trusted-cookie-item-copy{display:grid;gap:2px;flex:1 1 140px;min-width:0}
+.trusted-cookie-item-copy>strong,.trusted-cookie-value{overflow-wrap:anywhere;word-break:break-word}
+.trusted-cookie-item-copy>small{color:var(--od-sub);overflow-wrap:anywhere}
+.trusted-cookie-value{font:12px/1.5 ui-monospace,monospace}
+.trusted-cookie-item-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.trusted-cookie-item-actions button{min-height:32px}
+.trusted-cookie-observe{min-width:0}
+
+.trusted-cookie-observe>.hint{font-size:12px;line-height:1.55;margin:var(--space-2) 0}
+.trusted-cookie-observe-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.trusted-cookie-observe-actions>button{min-width:0;min-height:32px;flex:1 1 88px}
+.trusted-cookie-watch-events{display:grid;gap:var(--space-1);max-height:168px;overflow:auto;min-width:0}
+.trusted-cookie-watch-event{font:12px/1.5 ui-monospace,monospace;overflow-wrap:anywhere;padding:var(--space-1);border-bottom:1px solid var(--od-input-border)}
+.trusted-cookie-write{min-width:0}
+
+.trusted-cookie-write label{margin-bottom:var(--space-1)}
+.trusted-cookie-write input{margin-top:0}
+.trusted-cookie-write>.hint{line-height:1.6}
+@media(max-width:350px){.trusted-cookie-item-actions{width:100%}}
+.sidebar-tool-cookie-permissions[hidden]{display:none!important}
+.sidebar-tool-cookie-permissions[data-mode="first-use"]{
+  display:flex;flex-direction:column;justify-content:center;gap:9px;
+  min-height:236px;padding:36px clamp(16px,6vw,28px);margin:0 0 8px;
+}
+.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-heading{
+  font-size:16px;line-height:1.4;font-weight:650;margin:0;
+}
+.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-help{
+  margin:0 0 8px;font-size:12px;line-height:1.65;max-width:40ch;
+}
+.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-first-use,.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-site-toggle{
+  width:100%;
+}
+.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-site-toggle{
+  min-height:40px;max-width:360px;
+}

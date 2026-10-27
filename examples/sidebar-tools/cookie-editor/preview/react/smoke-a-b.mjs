@@ -6,11 +6,14 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
 const here=dirname(fileURLToPath(import.meta.url));
+const devIndex=process.argv.indexOf('--dev-url');
+const devUrl=devIndex<0?null:new URL(process.argv[devIndex+1]);
+if(devUrl&&(!['127.0.0.1','localhost','[::1]'].includes(devUrl.hostname)||devUrl.protocol!=='http:'))throw Error('E_DEV_URL_LOOPBACK_REQUIRED');
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_BIN||undefined});
 try{
  const page=await browser.newPage({viewport:{width:1000,height:920},deviceScaleFactor:1});
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
- await page.goto(pathToFileURL(join(here,'a-b.html')).href,{waitUntil:'load'});
+ await page.goto(devUrl?.href||pathToFileURL(join(here,'a-b.html')).href,{waitUntil:'load'});
  const approved=page.frameLocator('#approved-html');
  const current=page.frameLocator('#current-react');
  await approved.locator('#tabAccounts').click({timeout:18000});
@@ -22,7 +25,7 @@ try{
  const output=join(here,'../../../../../artifacts/cookie-editor-r35-visual');
  await mkdir(output,{recursive:true});
  await page.screenshot({path:join(output,'380-side-by-side-a-b.png'),
-   animations:'disabled',caret:'hide'});
+   animations:'disabled',caret:'hide',timeout:10000});
  console.log(JSON.stringify({status:'R35_AB_INTERACTIVE_PASS',
-   html:'preview/react/a-b.html',original:'approved HTML',react:'formal source / Mock SDK'}));
+   html:devUrl?.href||'preview/react/a-b.html',original:'approved HTML',react:'formal source / Mock SDK'}));
 }finally{await browser.close();}

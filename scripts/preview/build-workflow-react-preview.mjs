@@ -137,14 +137,15 @@ export async function generateWorkflowReactPreview(){
         '--od-input-border:var(--od-dark-input-border);--od-focus:var(--od-dark-accent-ink);'+
         '--od-positive:var(--od-dark-positive);--od-negative:var(--od-dark-negative);'+
         '--od-muted:var(--od-dark-muted);--od-accent-ink:var(--od-dark-accent-ink);'+
-        '--od-nav-active:var(--od-dark-accent-ink);--od-warning-bg:#392d21;'+
+        '--od-warning-bg:#392d21;'+
         '--od-warning-border:#8b6841;--od-warning-ink:#f6dca8}',
       '.od-workflow-preview-stage[data-preview-theme="light"]{'+
         '--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;'+
         '--od-paper:#fff;--od-bg:#f5f7fb;--od-input-border:#7f8da1;'+
         '--od-focus:#365eda;--od-positive:#117a5d;--od-negative:#ae3d4b;'+
-        '--od-muted:#f5f7fb;--od-accent-ink:#365eda;--od-nav-active:#365eda;'+
+        '--od-muted:#f5f7fb;--od-accent-ink:#365eda;'+
         '--od-warning-bg:#fff9ec;--od-warning-border:#dcc58a;--od-warning-ink:#76501b}',
+      '.od-workflow-preview-stage[data-preview-theme] .workbench-nav{--od-nav-active:var(--od-accent-ink)}',
       '.od-workflow-preview-footer{text-align:center;padding:0 10px 12px;'+
         'font-size:10px;color:var(--od-sub)}',
       '@media(max-width:380px){.od-workflow-preview-frame{padding-inline:0}'+

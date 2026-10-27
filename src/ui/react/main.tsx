@@ -11,6 +11,13 @@ import {TrustedConversationWorkspace} from './components/conversation.tsx';
 import {createPromptReconciliationAdapter} from '../conversation/prompt-controller.js';
 import sharedUiCSS from './components/ui/sidebar-shared.css?raw';
 import conversationDockCSS from './components/conversation-dock.css?raw';
+import trustedSettingsCSS from './components/trusted-settings.css?raw';
+import timeReviewHostCSS from '../../../examples/sidebar-tools/time-review/trusted/host.css?raw';
+import bookmarkManagerHostCSS from '../../../examples/sidebar-tools/bookmark-manager/trusted/host.css?raw';
+import cookieEditorHostCSS from '../../../examples/sidebar-tools/cookie-editor/trusted/host.css?raw';
+import aiVipShareHostCSS from '../../../examples/sidebar-tools/ai-vip-share/trusted/host.css?raw';
+import promptShortcutsHostCSS from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/host.css?raw';
+import readingTocHostCSS from '../../../examples/sidebar-tools/reading-toc/trusted/host.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
 import localeManagerCSS from './tabs/locale-manager.css?raw';
@@ -89,7 +96,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,discoveryModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
+      <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
       <SidebarAppShell activeTab={navigationTab}
         debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}

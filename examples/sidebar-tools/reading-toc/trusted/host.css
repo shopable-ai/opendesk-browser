@@ -1,0 +1,5 @@
+/* Fixed trusted reading-toc host UI; never loaded from installed tool bytes. */
+#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-toc-language{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
+#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-toc-language-select{width:100%;min-width:0}
+#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-visibility{width:100%;height:auto;white-space:normal}
+#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-visibility>span{min-width:0;overflow-wrap:break-word}

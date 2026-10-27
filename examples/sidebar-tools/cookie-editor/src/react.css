@@ -1,6 +1,60 @@
 /* @opendesk-shared-design */
-/* Cookie-specific geometry; official shared primitives own controls, palette and focus. */
-.cookie-editor-react{width:100%;min-width:0;max-width:860px;margin:0 auto;padding:var(--space-3);color:var(--od-ink);font:var(--od-body-size)/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+/* Application-owned theme and control variants; never exported as framework defaults.
+ * Native scope bounds customization; light-dark follows the document color-scheme. */
+@scope (.cookie-editor-react){
+ :scope{
+  --od-cookie-ink:light-dark(#26364a,#eff3fa);
+  --od-cookie-sub:light-dark(#718198,#9fb0c9);
+  --od-cookie-line:light-dark(#e5eaf1,#35445c);
+  --od-cookie-brand:light-dark(#366bd7,#a9beff);
+  --od-cookie-paper:light-dark(#fff,#192538);
+  --od-cookie-muted:light-dark(#f6f8fc,#24344a);
+  --od-cookie-brand-bg:light-dark(#edf3ff,#283d61);
+  --od-cookie-positive:light-dark(#218268,#83cdb2);
+  --od-cookie-negative:light-dark(#bc4451,#ff9daa);
+  --od-cookie-primary:#356bd9;
+  --od-cookie-switch-off:#bac5d4;
+  --od-cookie-avatar-bg:#ebefff;
+  --od-cookie-avatar-ink:#576cbd;
+  --od-cookie-mint-bg:#e0f5e9;
+  --od-cookie-mint-ink:#278568;
+  --od-cookie-coral-bg:#ffece4;
+  --od-cookie-coral-ink:#ab654c;
+  --od-cookie-violet-bg:#eee9ff;
+  --od-cookie-violet-ink:#7561b4;
+
+  --od-ink:var(--od-cookie-ink);
+  --od-sub:var(--od-cookie-sub);
+  --od-line:var(--od-cookie-line);
+  --od-brand:var(--od-cookie-brand);
+  --od-brand-bg:var(--od-cookie-brand-bg);
+  --od-accent-ink:var(--od-cookie-brand);
+  --od-paper:var(--od-cookie-paper);
+  --od-muted:var(--od-cookie-muted);
+  --od-bg:var(--od-cookie-muted);
+  --od-positive:var(--od-cookie-positive);
+  --od-negative:var(--od-cookie-negative);
+  --od-input-border:var(--od-cookie-line);
+  --od-action-bg:var(--od-cookie-paper);
+  --od-action-border:var(--od-cookie-line);
+  --od-action-ink:var(--od-cookie-ink);
+  --od-control-primary:var(--od-cookie-primary);
+ }
+/* Optional dense text action; default buttons keep their existing dimensions. */
+.cookie-button--compact{min-height:33px;padding:7px 10px;border-radius:7px;font-size:11px;font-weight:650}
+.cookie-button--compact:not(.od-button--secondary):not(.od-button--quiet):not(.od-button--danger){background:var(--od-control-primary,var(--od-brand));border-color:var(--od-control-primary,var(--od-brand))}
+.cookie-button--row-action{min-height:30px;padding:5px 9px}
+/* Optional compact format/filter choice, with explicit selected semantics. */
+.cookie-button--choice{min-height:0;padding:4px 8px;border:1px solid var(--od-line);border-radius:6px;background:var(--od-paper);color:var(--od-sub);font-size:10px;font-weight:400}
+.cookie-button--choice:is([aria-selected=true],[aria-pressed=true]){color:var(--od-brand);border-color:var(--od-brand);background:var(--od-brand-bg)}
+/* Application icon geometry preserves the approved Cookie UI. */
+:scope .od-icon-button svg{width:17px;height:17px;stroke-width:1.7}
+:scope .od-icon-button--quiet{border:0}
+:scope .od-icon-button--quiet:is(:hover,[aria-expanded=true]):not(:disabled){background:var(--od-muted);color:var(--od-ink)}
+:scope .od-icon-button--quiet[aria-pressed=true]{background:var(--od-brand-bg);color:var(--od-brand)}
+}
+/* Cookie-specific geometry; common controls and focus come from shared primitives. */
+.cookie-editor-react{container-type:inline-size;width:100%;min-width:0;max-width:860px;margin:0 auto;padding:0;color:var(--od-ink);font:var(--od-body-size)/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
 .cookie-editor-react svg{width:17px;height:17px;flex:none}
 .cookie-editor-react input,.cookie-editor-react textarea,.cookie-editor-react select{max-width:100%}
 .cookie-editor-react input,.cookie-editor-react textarea{min-width:0}
@@ -16,7 +70,9 @@
 .cookie-site-select input{width:100%;min-height:36px}
 .cookie-site-select button{flex:none}
 .cookie-editor-react .cookie-react-view{width:100%;min-width:0;max-width:none}
-.cookie-editor-react .cookie-inline-editor,.cookie-editor-react .cookie-panel{display:grid;gap:var(--space-3);min-width:0}
+.cookie-editor-react .cookie-panel{display:grid;gap:var(--space-3);min-width:0}
+/* Approved editor is vertical. Native value lifetime and identity guards remain in JSX. */
+.cookie-editor-react .cookie-inline-editor{display:grid;gap:9px;min-width:0;margin:0 10px 11px;padding:11px;border:1px solid var(--od-line);border-left:2px solid var(--od-brand);border-radius:9px}
 .cookie-editor-react .cookie-panel{margin-top:var(--space-3)}
 .cookie-editor-react .cookie-inline-editor h3,.cookie-editor-react .cookie-panel h3{font-size:var(--od-body-size);margin:0}
 .cookie-editor-react .cookie-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}
@@ -24,7 +80,8 @@
 .cookie-editor-react .cookie-editor-grid>label input:not([type=checkbox]),.cookie-editor-react .cookie-editor-grid>label select,.cookie-editor-react .cookie-panel>label select{width:100%;min-width:0}
 .cookie-editor-react label:has(>input[type=checkbox]){display:flex;gap:var(--space-2);align-items:center}
 .cookie-editor-react label input[type=checkbox]{width:15px;height:15px;margin:0;accent-color:var(--od-brand)}
-.cookie-editor-react .cookie-editor-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-editor-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:7px;min-width:0}
+.cookie-editor-react .cookie-editor-delete{color:var(--od-negative)}
 .cookie-editor-react .cookie-editor-actions button{flex-shrink:0}
 .cookie-editor-react .cookie-spacer{flex:1;min-width:6px}
 .cookie-editor-react .cookie-editor-details[open]>.cookie-editor-grid{margin-top:var(--space-2)}
@@ -44,78 +101,81 @@
 .cookie-editor-react .cookie-offline-site label{flex:1}
 .cookie-editor-react .cookie-offline-site input{width:100%}
 .cookie-editor-react .cookie-offline>div.cookie-editor-actions{padding:var(--space-3) 0}
-.cookie-editor-react .site-bar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .site-bar{position:relative;z-index:2;flex:0 0 auto;display:flex;align-items:center;gap:8px;height:46px;min-height:46px;padding:6px 13px;border-bottom:1px solid var(--od-line)}
 .cookie-editor-react .site-symbol{display:grid;place-items:center;color:var(--od-sub);width:24px;height:24px;flex-shrink:0}
 .cookie-editor-react .site-symbol svg{width:18px;height:18px}
 .cookie-editor-react .site-name{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}
 .cookie-editor-react .site-name>span{font-size:var(--od-meta-size);color:var(--od-sub)}
 .cookie-editor-react .site-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cookie-editor-react .list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:42px;padding:var(--space-1) var(--space-3)}
-.cookie-editor-react .list-toolbar>strong{white-space:nowrap}
-.cookie-editor-react .toolbar-actions{display:flex;gap:var(--space-1);align-items:center}
-.cookie-editor-react .action-separator{width:1px;height:20px;background:var(--od-line);margin:0 var(--space-1)}
+.cookie-editor-react .list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:7px;height:42px;min-height:42px;padding:3px 12px 4px 14px}
+.cookie-editor-react .list-toolbar>strong{white-space:nowrap;font-size:12px}
+.cookie-editor-react .list-toolbar>strong>span{color:var(--od-sub);font-weight:500;margin-left:3px}
+.cookie-editor-react .toolbar-actions{display:flex;gap:1px;align-items:center}
+.cookie-editor-react .action-separator{width:1px;height:18px;background:var(--od-line);margin:0 3px}
 .cookie-editor-react .cookie-react-icon{flex:none}
-.cookie-editor-react .searchbar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3)}
-.cookie-editor-react .searchbox{min-width:0;flex:1;display:flex;align-items:center;gap:var(--space-2);min-height:36px;padding-inline:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
+.cookie-editor-react .searchbar{display:flex;align-items:center;gap:var(--space-2);padding:8px 13px}
+.cookie-editor-react .searchbox{min-width:0;flex:1;display:flex;align-items:center;gap:7px;height:36px;min-height:36px;padding-inline:10px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
 .cookie-editor-react .searchbox:focus-within{outline:2px solid var(--od-brand);outline-offset:1px}
 .cookie-editor-react .cookie-search-symbol{display:grid;place-items:center;flex:none;color:var(--od-sub)}
-.cookie-editor-react .searchbox input{flex:1;width:100%;min-width:0;min-height:34px;border:0;outline:0;box-shadow:none;background:transparent;padding:0}
+.cookie-editor-react .searchbox input{flex:1;width:100%;min-width:0;height:33px;min-height:33px;border:0;outline:0;box-shadow:none;background:transparent;padding:0;color:var(--od-ink);font-size:12px}
 .cookie-editor-react .searchbox input:focus-visible{outline:0;box-shadow:none}
 .cookie-editor-react .searchbox input::-webkit-search-cancel-button{display:none}
 .cookie-editor-react .cookie-search-clear{flex:none;width:28px;min-width:28px;height:28px}
-.cookie-editor-react .filter-panel{padding:var(--space-2) var(--space-3);border-top:1px solid var(--od-line);border-bottom:1px solid var(--od-line)}
-.cookie-editor-react .filter-chips{display:flex;flex-wrap:wrap;gap:var(--space-1)}
-.cookie-editor-react .sort-field{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);margin-top:var(--space-2)}
-.cookie-editor-react .sort-field select{max-width:68%;min-width:0}
-.cookie-editor-react .cookie-row{border-top:1px solid var(--od-line)}
-.cookie-editor-react .row-trigger{width:100%;display:flex;gap:9px;align-items:center;justify-content:flex-start;min-height:50px;padding:8px 13px}
+.cookie-editor-react .filter-panel{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:7px 13px;background:var(--od-muted);border-top:1px solid var(--od-line);border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .filter-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cookie-editor-react .sort-field{display:flex;align-items:center;min-width:0;margin:0 0 0 auto}
+.cookie-editor-react .sort-field>.od-field{width:auto;max-width:100%;min-width:0;min-height:25px;padding:4px 6px;font-size:10px}
+.cookie-editor-react .cookie-list{border-top:1px solid var(--od-line)}
+.cookie-editor-react .cookie-row{border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .row-trigger{width:100%;display:flex;gap:9px;align-items:center;justify-content:flex-start;min-height:50px;padding:9px 13px;border:0;border-radius:0;background:transparent;color:var(--od-ink);font:inherit;text-align:left}
+.cookie-editor-react .row-trigger:hover{background:var(--od-muted);filter:none}
+.cookie-editor-react .row-trigger>svg{color:var(--od-sub)}
 .cookie-editor-react .row-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
 .cookie-editor-react .row-text{min-width:0;flex:1;display:grid;gap:2px;text-align:left}
 .cookie-editor-react .row-text strong,.cookie-editor-react .row-text small{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5}
 .cookie-editor-react .row-text strong{font-size:var(--od-note-size);font-weight:690}
 .cookie-editor-react .row-text small{font-size:10px;color:var(--od-sub)}
 .cookie-editor-react .row-flags{display:flex;gap:var(--space-1);align-items:center;flex:none;color:var(--od-sub)}
-.cookie-editor-react .row-flags abbr{font-size:var(--od-meta-size);line-height:1.2;text-decoration:none;
-  padding:2px 4px;border-radius:var(--radius-control);background:var(--od-muted)}
+.cookie-editor-react .row-flags abbr{font-size:9px;line-height:1.5;text-decoration:none;
+  padding:2px 4px;border-radius:4px;background:var(--od-muted)}
 .cookie-editor-react .row-text .cookie-row-expired{color:var(--od-danger,var(--od-sub))}
 .cookie-editor-react .cookie-react-detail{padding:var(--space-3);border-top:1px solid var(--od-line);display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap}
 .cookie-editor-react .empty-list{display:grid;gap:var(--space-1);padding:var(--space-4);text-align:center;color:var(--od-sub)}
 .cookie-editor-react .empty-list strong{color:var(--od-ink)}
-@media(max-width:400px){.cookie-editor-react .cookie-editor-grid{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .cookie-mode-tabs{width:100%}.cookie-editor-react .cookie-mode-tabs>button{flex:1}.cookie-editor-react .cookie-site-select{gap:var(--space-1)}.cookie-editor-react .cookie-editor-actions button{flex:1 1 auto}.cookie-editor-react .cookie-spacer{display:none}}
+@media(max-width:400px){.cookie-editor-react .cookie-editor-grid{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .cookie-mode-tabs{width:100%}.cookie-editor-react .cookie-mode-tabs>button{flex:1}.cookie-editor-react .cookie-site-select{gap:var(--space-1)}.cookie-editor-react .cookie-spacer{display:none}}
 
 /* Anchored export menu: no route change, modal overlay, or redundant format select. */
 .cookie-editor-react .list-toolbar{position:relative;z-index:3}
-.cookie-editor-react .toolbar-actions{position:relative}
 .cookie-editor-react .cookie-export-popover{
-  position:absolute;right:0;top:calc(100% + 8px);z-index:8;
-  width:min(288px,calc(100vw - 24px));max-height:calc(100dvh - 132px);
+  position:absolute;right:9px;top:calc(100% - 1px);z-index:8;
+  width:min(316px,calc(100% - 18px));max-height:calc(100dvh - 132px);
   min-width:0;overflow:auto;overscroll-behavior:contain;
-  padding:var(--space-3);border:1px solid var(--od-line);
-  border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink);
+  padding:11px;border:1px solid var(--od-line);
+  border-radius:9px;background:var(--od-paper);color:var(--od-ink);
   box-shadow:0 12px 32px rgba(0,0,0,.14);
 }
-.cookie-editor-react .cookie-export-panel{display:grid;gap:var(--space-3);min-width:0}
+.cookie-editor-react .cookie-export-panel{display:grid;gap:9px;min-width:0}
 .cookie-editor-react .cookie-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
-.cookie-editor-react .cookie-export-panel h3{font-size:var(--od-body-size);margin:0}
-.cookie-editor-react .export-format.cookie-export-options{display:grid;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-export-panel h3{font-size:12px;margin:0}
+.cookie-editor-react .export-format.cookie-export-options{display:grid;gap:9px;min-width:0}
 .cookie-editor-react .cookie-export-tabs{
-  display:inline-grid;grid-template-columns:max-content max-content;gap:2px;
+  display:flex;gap:6px;align-items:center;
   width:max-content;max-width:100%;justify-self:start;
-  padding:3px;border:1px solid var(--od-line);
-  border-radius:var(--radius-control);background:var(--od-bg);
+  padding:0;border:0;background:transparent;
 }
 .cookie-editor-react .cookie-export-tabs>button{
-  min-width:0;min-height:32px;white-space:nowrap;
+  min-width:0;white-space:nowrap;
 }
 /* Format choices reuse shared component states and focus rules. */
-.cookie-editor-react .cookie-export-values{
-  display:flex;align-items:center;gap:var(--space-2);
-  font-size:var(--od-meta-size);color:var(--od-sub);
+.cookie-editor-react .export-format label.cookie-export-values{
+  display:flex;align-items:flex-start;gap:var(--space-2);
+  font-size:var(--od-meta-size);color:var(--od-ink);
 }
+.cookie-editor-react .cookie-export-values>input[type=checkbox]{width:13px;height:13px;min-height:0;margin:2px 3px 3px 4px;padding:0;accent-color:var(--od-control-primary)}
 .cookie-editor-react .cookie-export-content{display:grid;gap:var(--space-3);min-width:0}
 .cookie-editor-react .cookie-export-panel .cookie-message{margin:0}
 .cookie-editor-react .cookie-export-actions{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2);
+  display:flex;gap:6px;align-items:center;
 }
 .cookie-editor-react .cookie-export-actions button{min-width:0}
 
@@ -123,26 +183,28 @@
 /* Preview-aligned one-column form and inline Value eye; only layout, no new skins. */
 .cookie-editor-react .cookie-editor-heading{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2)}
 .cookie-editor-react .cookie-dirty-note{font-size:var(--od-meta-size);color:var(--od-sub)}
-.cookie-editor-react .cookie-editor-primary{grid-template-columns:minmax(0,1fr)}
-.cookie-editor-react .cookie-editor-primary>label,.cookie-editor-react .cookie-editor-value-field{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-editor-primary{grid-template-columns:minmax(0,1fr);gap:9px}
+.cookie-editor-react .cookie-editor-primary>label,.cookie-editor-react .cookie-editor-value-field{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;min-width:0}
 .cookie-editor-react .cookie-editor-value-field>label{min-width:0;font-size:var(--od-note-size)}
 .cookie-editor-react .cookie-value-inline{position:relative;display:flex;align-items:center;min-width:0}
 .cookie-editor-react .cookie-value-inline>input{width:100%;min-width:0;padding-right:40px}
 .cookie-editor-react .cookie-value-toggle{position:absolute;right:3px;top:50%;transform:translateY(-50%);display:grid;place-items:center;flex:none}
 .cookie-editor-react .cookie-value-toggle svg{width:17px;height:17px}
-.cookie-editor-react .cookie-value-restore{display:flex;align-items:center;gap:var(--space-2);margin-left:84px;flex-wrap:wrap;font-size:var(--od-meta-size)}
+.cookie-editor-react .cookie-value-restore{display:flex;align-items:center;gap:var(--space-2);margin-left:0;flex-wrap:wrap;font-size:var(--od-meta-size)}
 .cookie-editor-react .cookie-sensitive-output{margin-left:84px}
-@media(max-width:350px){.cookie-editor-react .cookie-editor-primary>label,.cookie-editor-react .cookie-editor-value-field{grid-template-columns:56px minmax(0,1fr)}.cookie-editor-react .cookie-value-restore,.cookie-editor-react .cookie-sensitive-output{margin-left:64px}}
+
 
 /* Preview form fields and formal editor use identical label/control JSX.
    The shared design system continues to own skins and focus behavior. */
-.cookie-editor-react .cookie-inline-editor .field{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:var(--space-2);min-width:0}
-.cookie-editor-react .cookie-inline-editor .field>span{min-width:0;font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-inline-editor .field{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;min-width:0;font-size:11px;font-weight:650}
+.cookie-editor-react .cookie-inline-editor .field>span{min-width:0;font-size:11px}
+.cookie-editor-react .cookie-inline-editor .field>.cookie-value-note{font-size:10px;font-weight:400;color:var(--od-sub);line-height:1.5}
+.cookie-editor-react .cookie-inline-editor .od-field{width:100%;font-size:12px;font-weight:400;min-height:34px;padding:7px 8px;border-radius:7px}
+.cookie-editor-react .cookie-editor-heading>strong{font-size:12px}
 .cookie-editor-react .cookie-editor-heading .editor-top-right{display:flex;align-items:center;gap:var(--space-2)}
 .cookie-editor-react .cookie-editor-close{display:grid;place-items:center;flex:none}
 .cookie-editor-react .cookie-inline-editor .discard-row{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
 .cookie-editor-react .cookie-inline-editor .discard-row>span{flex:1;min-width:110px}
-@media(max-width:350px){.cookie-editor-react .cookie-inline-editor .field{grid-template-columns:56px minmax(0,1fr)}}
 
 /* Import dropzone uses the shared presentation component inside a native modal. */
 .cookie-editor-react .cookie-import-dropzone{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0}
@@ -163,19 +225,24 @@
 .cookie-editor-react .export-format .field{display:flex;align-items:center;gap:var(--space-2);flex:1 1 155px;min-width:0}
 .cookie-editor-react .export-format .field>span{flex:none}
 .cookie-editor-react .export-format .field>select{flex:1;min-width:0}
-.cookie-editor-react .export-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2);min-width:0}
-.cookie-editor-react .export-actions>button{display:flex;align-items:center;justify-content:center;gap:var(--space-2);min-width:0}
-.cookie-editor-react .export-actions svg{width:16px;height:16px;flex:none}
+.cookie-editor-react .export-actions{display:flex;align-items:center;gap:6px;min-width:0}
+.cookie-editor-react .export-actions>button{display:block;min-width:0}
+.cookie-editor-react .export-actions svg{display:inline-block;width:17px;height:17px;vertical-align:middle;flex:none}
 
 /* The Preview advanced-property hierarchy is now the official hierarchy. */
-.cookie-editor-react .advanced-body{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3) 0}
-.cookie-editor-react .advanced-body .field{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:var(--space-2);min-width:0}
-.cookie-editor-react .advanced-body .field>span{font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-editor-details{margin:0;padding-top:7px;border:0;border-top:1px solid var(--od-line);border-radius:0}
+.cookie-editor-react .cookie-editor-details>summary{font-size:11px;font-weight:650;color:var(--od-sub);cursor:pointer}
+.cookie-editor-react .advanced-body{display:grid;gap:9px;min-width:0;padding:9px 0 0}
+.cookie-editor-react .advanced-body .field{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;min-width:0}
+.cookie-editor-react .cookie-attribute-note{margin:0;font-size:10px;font-weight:400;color:var(--od-sub);line-height:1.5}
+.cookie-editor-react .advanced-body .field>span{font-size:11px}
 .cookie-editor-react .advanced-body .field :is(input,select){width:100%;min-width:0}
 .cookie-editor-react .advanced-body .pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
 .cookie-editor-react .advanced-body .pair .field{grid-template-columns:minmax(0,1fr)}
 .cookie-editor-react .advanced-body .toggles-row{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
-.cookie-editor-react .advanced-body .toggles{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
+.cookie-editor-react .advanced-body .toggles{display:flex;align-items:center;flex-wrap:wrap;gap:12px;color:var(--od-sub);font-size:10px}
+.cookie-editor-react .advanced-body .toggles>label{display:flex;align-items:center;gap:4px;font:inherit;color:inherit}
+.cookie-editor-react .advanced-body .toggles input{width:13px;height:13px;min-height:0;margin:4px 3px 3px 4px;padding:0;accent-color:auto}
 .cookie-editor-react .advanced-body .cookie-expiration-controls{display:grid;gap:var(--space-1);min-width:0}
 .cookie-editor-react .advanced-body .cookie-expiration-field{grid-template-columns:minmax(0,1fr);gap:var(--space-1)}
 .cookie-editor-react .advanced-body .cookie-expiration-field>.od-field{width:100%;min-width:0}
@@ -186,7 +253,7 @@
 .cookie-editor-react .advanced-body .editor-identity-fields>div{display:grid;gap:var(--space-1);min-width:0}
 .cookie-editor-react .advanced-body code{overflow-wrap:anywhere}
 .cookie-editor-react .advanced-body .editor-timezone,.cookie-editor-react .advanced-body .editor-hint{overflow-wrap:anywhere}
-@media(max-width:350px){.cookie-editor-react .advanced-body .pair,.cookie-editor-react .advanced-body .editor-identity-fields{grid-template-columns:minmax(0,1fr)}.cookie-editor-react .advanced-body .field{grid-template-columns:56px minmax(0,1fr)}}
+@media(max-width:350px){.cookie-editor-react .advanced-body .pair,.cookie-editor-react .advanced-body .editor-identity-fields{grid-template-columns:minmax(0,1fr)}}
 
 /* Preview is the main surface: no duplicate Host heading or multi-layer Card padding. */
 
@@ -207,7 +274,7 @@
 @media(max-width:350px){.cookie-clear-dialog-body{padding:var(--space-2)}.cookie-clear-dialog-actions>button{flex:1 1 0;min-width:0}}
 
 /* R5.18: formal React Value clear; shared UI owns the icon and metadata. */
-.cookie-editor-react .cookie-inline-editor .field>.cookie-value-label{min-width:0;font-size:var(--od-note-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-inline-editor .field>.cookie-value-label{min-width:0;font-size:11px;color:var(--od-ink)}
 .cookie-editor-react .cookie-value-inline>input{padding-inline-end:42px}
 .cookie-editor-react .cookie-value-inline>.cookie-value-clear{position:absolute;inset-inline-end:3px;top:50%;transform:translateY(-50%);width:30px;height:30px;padding:0;border:0;background:transparent;color:var(--od-sub);border-radius:7px}
 .cookie-editor-react .cookie-value-inline>.cookie-value-clear:hover:not(:disabled){background:var(--od-bg);color:var(--od-ink)}
@@ -218,8 +285,7 @@
 .cookie-editor-react .cookie-editor-actions .cookie-editor-save svg{width:16px;height:16px;flex:none}
 
 /* Site header keeps the scoped hostname and refresh action. */
-.cookie-editor-react .site-bar{position:relative;z-index:2;min-height:44px;padding:var(--space-2) var(--space-3)}
-.cookie-editor-react .site-hostname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--od-note-size);font-weight:650}
+.cookie-editor-react .site-hostname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--od-note-size);font-weight:690}
 .cookie-editor-react .cookie-offline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--od-line)}
 .cookie-editor-react .cookie-editor-actions>.cookie-react-icon{flex:0 0 36px}
 
@@ -324,51 +390,55 @@
   flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
 }
 /* R2.3 React account/market areas use the same official design tokens. */
-.cookie-editor-react .cookie-product-tabs{display:flex;align-items:stretch;gap:var(--space-1);min-height:41px;padding:0 var(--space-3);margin:0;border-bottom:1px solid var(--od-line);background:transparent}
-.cookie-editor-react .cookie-product-tabs>button{min-width:0;min-height:40px;flex:0 1 auto}
-.cookie-editor-react .cookie-tab-label{display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 var(--space-2);border-bottom:2px solid transparent;font-size:var(--od-note-size);font-weight:700}
-.cookie-editor-react .is-current .cookie-tab-label{border-bottom-color:var(--od-brand);color:var(--od-brand)}
 .cookie-editor-react .cookie-account-page{position:relative;min-width:0;max-height:calc(100dvh - 80px);overflow-y:auto;overflow-x:clip}
-.cookie-editor-react .cookie-account-header{min-height:34px;display:flex;align-items:center;gap:var(--space-2);justify-content:space-between;padding:0;margin-top:var(--space-1);border:0}
+.cookie-editor-react .cookie-account-header{min-height:34px;display:flex;align-items:center;gap:var(--space-2);justify-content:space-between;padding:0;margin:0 0 7px;border:0}
+.cookie-editor-react .cookie-account-header>strong{font-size:12px;font-weight:730}
 .cookie-editor-react .cookie-account-header h2{flex:1;margin:0;font-size:15px;line-height:1.4}
 .cookie-editor-react .cookie-account-actions{display:flex;align-items:center;gap:var(--space-1);min-width:0}
 .cookie-editor-react .cookie-account-count{color:var(--od-sub);font-weight:400}
-.cookie-editor-react .cookie-account-content{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3)}
+.cookie-editor-react .cookie-account-content{display:grid;gap:var(--space-2);min-width:0;padding:11px 13px 22px}
 .cookie-editor-react .cookie-account-content h3{margin:var(--space-2) 0 0;font-size:13px}
-.cookie-editor-react #cookie-product-panel-accounts .cookie-account-content{padding-inline:13px}
-.cookie-editor-react .cookie-account-setting{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;min-height:49px;padding:9px 10px;border:1px solid var(--od-line);border-radius:9px;background:var(--od-muted)}
+.cookie-editor-react #cookie-product-panel-accounts .cookie-account-content{gap:0}
+.cookie-editor-react .cookie-account-setting{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;min-height:49px;padding:9px 10px;margin-bottom:14px;border:1px solid var(--od-line);border-radius:9px;background:var(--od-muted)}
 .cookie-editor-react .cookie-account-setting>span{display:grid;gap:3px;min-width:0}
 .cookie-editor-react .cookie-account-setting strong{font-size:11.5px;line-height:1.4;font-weight:700}
 .cookie-editor-react .cookie-account-setting small{font-size:10px;line-height:1.5;color:var(--od-sub);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cookie-editor-react .cookie-account-setting input[type=checkbox]{appearance:none;flex:none;position:relative;width:38px;height:22px;min-width:38px;margin:0;border:1px solid var(--od-line);border-radius:999px;background:var(--od-line);cursor:pointer}
-.cookie-editor-react .cookie-account-setting input[type=checkbox]::before{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--od-paper);transition:transform .15s ease}
-.cookie-editor-react .cookie-account-setting input[type=checkbox]:checked{background:var(--od-brand);border-color:var(--od-brand)}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]{appearance:none;flex:none;position:relative;width:38px;height:22px;min-width:38px;margin:0;border:1px solid transparent;border-radius:999px;background:var(--od-cookie-switch-off);cursor:pointer}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]::before{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--od-on-brand);transition:transform .15s ease}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]:checked{background:var(--od-cookie-primary);border-color:transparent}
 .cookie-editor-react .cookie-account-setting input[type=checkbox]:checked::before{transform:translateX(16px)}
 .cookie-editor-react .cookie-account-setting input[type=checkbox]:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
 .cookie-editor-react .cookie-account-setting input[type=checkbox]:disabled{cursor:default;opacity:.6}
 @media(prefers-reduced-motion:reduce){.cookie-editor-react .cookie-account-setting input[type=checkbox]::before{transition:none}}
 .cookie-editor-react .cookie-account-notice{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:var(--od-note-size);overflow-wrap:anywhere}
 .cookie-editor-react .cookie-account-empty{margin:0;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.6}
-.cookie-editor-react .cookie-account-card{display:flex;align-items:center;gap:var(--space-2);min-width:0;padding:var(--space-2) 0;border-bottom:1px solid var(--od-line)}
-.cookie-editor-react .cookie-account-avatar{flex:none;display:grid;place-items:center;width:33px;height:33px;border-radius:9px;background:var(--od-muted);color:var(--od-brand);font-size:12px;font-weight:700}
+.cookie-editor-react .cookie-account-card{display:flex;align-items:center;gap:9px;min-width:0;min-height:61px;flex-wrap:nowrap;padding:9px 7px 9px 10px;border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .cookie-account-avatar{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:var(--od-cookie-avatar-bg);color:var(--od-cookie-avatar-ink);font-size:12px;font-weight:790}
+.cookie-editor-react .cookie-account-avatar--violet{background:var(--od-cookie-violet-bg);color:var(--od-cookie-violet-ink)}
+.cookie-editor-react .cookie-account-avatar--coral{background:var(--od-cookie-coral-bg);color:var(--od-cookie-coral-ink)}
+.cookie-editor-react .cookie-account-avatar--mint{background:var(--od-cookie-mint-bg);color:var(--od-cookie-mint-ink)}
 .cookie-editor-react .cookie-account-card-text{display:grid;gap:2px;min-width:0;flex:1}
 .cookie-editor-react .cookie-account-card-text strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-card-text small{color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-applied{
-  flex:none;color:var(--od-positive);font-size:var(--od-meta-size);white-space:nowrap;
+  flex:none;color:var(--od-positive);font-size:10px;white-space:nowrap;
 }
 .cookie-editor-react .cookie-account-security-note{
-  margin:0;color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.6;
+  margin:13px 1px 0;color:var(--od-sub);font-size:10.5px;line-height:1.65;
 }
 .cookie-editor-react .cookie-account-menu-anchor{position:relative;flex:none}
-.cookie-editor-react .cookie-account-menu{position:fixed;z-index:1000;width:190px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 20px);overflow-y:auto;display:grid;padding:4px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);box-shadow:0 6px 22px color-mix(in srgb,var(--od-ink) 14%,transparent)}
-.cookie-editor-react .cookie-account-menu>button{width:100%;min-height:35px;justify-content:flex-start;text-align:left}
+.cookie-editor-react .cookie-account-menu-anchor>.od-icon-button{width:28px;min-width:28px;height:32px;min-height:32px}
+.cookie-editor-react .cookie-account-menu{position:fixed;z-index:1000;width:176px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 20px);overflow-y:auto;display:grid;padding:4px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);box-shadow:0 6px 22px color-mix(in srgb,var(--od-ink) 14%,transparent)}
+.cookie-editor-react .cookie-account-menu>button{width:100%;min-height:34px;justify-content:flex-start;text-align:left;gap:9px}
+.cookie-editor-react .cookie-account-menu svg{width:15px;height:15px;color:var(--od-sub)}
+.cookie-editor-react .cookie-account-menu-separator{border:0;border-top:1px solid var(--od-line);width:100%;margin:3px 0}
+.cookie-editor-react .cookie-account-menu-delete{color:var(--od-negative)}
 .cookie-editor-react .cookie-account-link{display:grid;gap:var(--space-1);min-width:0}
 .cookie-editor-react .cookie-account-link code{display:block;min-width:0;overflow-wrap:anywhere;padding:var(--space-2);background:var(--od-muted);border-radius:var(--radius-control);font-size:11px}
 .cookie-editor-react .cookie-account-link button{justify-self:start}
 .cookie-editor-react .cookie-account-verify{display:flex;gap:var(--space-2);min-width:0}
 .cookie-editor-react .cookie-account-verify input{flex:1;min-width:0}
-.cookie-editor-react .cookie-account-feedback{margin:0;color:var(--od-sub);overflow-wrap:anywhere}
+.cookie-editor-react .cookie-account-feedback{margin:0 0 11px;color:var(--od-sub);overflow-wrap:anywhere}
 .cookie-editor-react .cookie-market-status{font-size:var(--od-meta-size);color:var(--od-sub)}
 .cookie-editor-react .cookie-market-outline{display:grid;gap:var(--space-2);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
 .cookie-editor-react .cookie-market-outline span{font-size:var(--od-note-size);color:var(--od-sub)}
@@ -381,8 +451,13 @@
 }
 
 /* Encrypted account vault: one compact first-party form, never a second UI. */
-.cookie-editor-react .cookie-account-unlock,
-.cookie-editor-react .cookie-account-inline{display:grid;gap:var(--space-2);min-width:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-muted)}
+.cookie-editor-react .cookie-account-unlock{display:grid;gap:var(--space-2);min-width:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-muted)}
+.cookie-editor-react .cookie-account-form-page h2{margin:0 0 12px;font-size:13px;line-height:1.5}
+.cookie-editor-react .cookie-account-inline{display:grid;gap:10px;min-width:0;padding:11px;border:1px solid var(--od-line);border-radius:9px;background:var(--od-paper)}
+.cookie-editor-react .cookie-account-name-field{display:grid;gap:5px;font-size:11px;font-weight:600}
+.cookie-editor-react .cookie-account-name-field input{width:100%;font-weight:400}
+.cookie-editor-react .cookie-account-inline>p{color:var(--od-sub);line-height:1.6}
+.cookie-editor-react .cookie-account-form-actions{justify-content:flex-end}
 .cookie-editor-react .cookie-account-unlock label{display:grid;gap:4px}
 .cookie-editor-react .cookie-account-unlock small{color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.55}
 .cookie-editor-react .cookie-account-inline-controls{display:flex;flex-wrap:wrap;gap:var(--space-2);min-width:0;align-items:center}
@@ -398,21 +473,17 @@
 }
 
 /* R2.6 compact hierarchy, canonical Shared UI controls. */
-.cookie-editor-react{padding:0}
-.cookie-editor-react>.site-bar{flex:0 0 auto;height:46px;min-height:46px;padding:6px var(--space-3)}
 .cookie-editor-react .cookie-editor-workspace{border:0;border-radius:0}
 .cookie-editor-react .cookie-account-page{display:flex;flex:1 1 auto;flex-direction:column;max-height:none;min-height:0;overflow-y:auto;border:0;border-radius:0}
 .cookie-editor-react .cookie-account-header{flex:0 0 auto}
-.cookie-editor-react .cookie-account-content{gap:var(--space-2)}
-.cookie-editor-react .cookie-account-current{display:flex;gap:var(--space-2);align-items:center;min-width:0;padding:9px 10px;background:var(--od-muted);border:1px solid var(--od-line);border-radius:9px}
-.cookie-editor-react .cookie-account-current>div{display:grid;gap:1px;min-width:0;flex:1}
-.cookie-editor-react .cookie-account-current strong{font-size:var(--od-body-size);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cookie-editor-react .cookie-account-current{display:flex;gap:9px;align-items:center;min-width:0;padding:8px 10px;margin-bottom:10px;background:var(--od-muted);border:1px solid var(--od-line);border-radius:9px}
+.cookie-editor-react .cookie-account-current>div{min-width:0;flex:1}
+.cookie-editor-react .cookie-account-current strong{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-current small{font-size:10px;color:var(--od-sub);overflow-wrap:anywhere}
-.cookie-editor-react .cookie-account-list{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:10px}
-.cookie-editor-react .cookie-account-list>.cookie-account-card{padding:9px 7px 9px 10px;min-width:0}
+.cookie-editor-react .cookie-account-current-status{font-size:10px;padding:2px 6px;border-radius:5px;background:var(--od-muted);color:var(--od-sub)}
+.cookie-editor-react .cookie-account-list{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:10px;overflow:hidden}
 .cookie-editor-react .cookie-account-list>.cookie-account-card:last-child{border-bottom:0}
-.cookie-editor-react .cookie-account-card{min-height:61px;flex-wrap:nowrap}
-.cookie-editor-react .cookie-account-card.is-current{background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}
+.cookie-editor-react .cookie-account-card.is-current{background:var(--od-cookie-brand-bg)}
 .cookie-editor-react .cookie-account-card-text{font-size:var(--od-note-size)}
 .cookie-editor-react .cookie-account-card-text small{font-size:10px}
 @media(max-width:350px){
@@ -425,14 +496,15 @@
 .cookie-editor-react .cookie-market-intro p{margin:0;color:var(--od-sub);font-size:var(--od-note-size)}
 .cookie-editor-react .cookie-market-controls{display:grid;gap:var(--space-2)}
 .cookie-editor-react .cookie-market-controls>.od-field{width:100%}
-.cookie-editor-react .cookie-market-categories{display:flex;gap:var(--space-1);overflow-x:auto;min-width:0;align-items:center}
+.cookie-editor-react .cookie-market-categories{display:flex;gap:5px;flex-wrap:wrap;min-width:0;align-items:center;margin-bottom:2px}
 .cookie-editor-react .cookie-market-categories>*{flex:0 0 auto}
 .cookie-editor-react .cookie-market-results{display:grid;gap:0;min-width:0;border-top:1px solid var(--od-line)}
 .cookie-editor-react .cookie-market-resource{display:grid;gap:var(--space-1);padding:var(--space-3) 0;border-bottom:1px solid var(--od-line)}
-.cookie-editor-react .cookie-market-resource-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.cookie-editor-react .cookie-market-resource-head{display:flex;align-items:center;gap:7px}
+.cookie-editor-react .cookie-market-resource-head>small:last-child{margin-left:auto;color:var(--od-positive)}
 .cookie-editor-react .cookie-market-resource-head strong{font-size:var(--od-body-size)}
 .cookie-editor-react .cookie-market-resource-head small{font-size:var(--od-meta-size);color:var(--od-sub)}
-.cookie-editor-react .cookie-market-resource p{margin:0;font-size:var(--od-note-size);color:var(--od-sub);line-height:1.6}
+.cookie-editor-react .cookie-market-resource p{margin:0;font-size:10.5px;color:var(--od-sub);line-height:1.6}
 .cookie-editor-react .cookie-market-resource-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2)}
 .cookie-editor-react .cookie-market-detail{display:grid;gap:var(--space-3);min-width:0}
 .cookie-editor-react .cookie-market-detail-head{display:flex;gap:var(--space-2);align-items:center;min-width:0}
@@ -458,35 +530,43 @@
 /* Approved preview/cookie-editor.html → production React UI surfaces.
    One official App, one Shared UI palette; never style Host permission prompts here. */
 .cookie-editor-react .cookie-product-tabs{
-  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:0;min-width:0;min-height:41px;padding-inline:var(--space-2);margin-bottom:0;
+  display:flex;align-items:center;
+  gap:0;min-width:0;height:41px;min-height:41px;padding:0 7px;margin:0;border-bottom:1px solid var(--od-line);background:transparent;
 }
 .cookie-editor-react .cookie-product-tabs>button{
-  width:100%;min-width:0;min-height:41px;
+  flex:1 1 0;width:auto;min-width:0;min-height:41px;
 }
 .cookie-editor-react .cookie-product-tabs .cookie-tab-label{
-  min-width:0;min-height:41px;padding:0;
+  display:flex;align-items:center;justify-content:center;width:100%;min-width:0;min-height:41px;padding:0;border-bottom:2px solid transparent;color:var(--od-sub);
   white-space:nowrap;font-size:11.5px;font-weight:700;
+}
+.cookie-editor-react .is-current .cookie-tab-label{border-bottom-color:var(--od-brand);color:var(--od-brand)}
+@container (max-width:275px){
+ .cookie-editor-react .cookie-product-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:auto;min-height:0}
+ .cookie-editor-react .cookie-product-tabs>button,.cookie-editor-react .cookie-product-tabs .cookie-tab-label{min-height:35px}
+ .cookie-editor-react .cookie-product-tabs>:nth-child(n+4) .cookie-tab-label{border-top:1px solid var(--od-line)}
+ .cookie-editor-react .cookie-expiration-mode{grid-template-columns:minmax(0,1fr)}
+ .cookie-editor-react .cookie-account-card{flex-wrap:wrap}
 }
 .cookie-editor-react .cookie-business-panel{min-width:0;overflow-x:clip}
 .cookie-editor-react .cookie-business-content{
-  display:grid;gap:var(--space-3);min-width:0;
-  padding:var(--space-3);width:100%;
+  display:grid;gap:11px;min-width:0;
+  padding:11px 12px 24px;width:100%;
 }
 .cookie-editor-react .cookie-business-content>h3,
 .cookie-editor-react .cookie-business-heading h3{
-  margin:var(--space-1) 0 0;font-size:13px;line-height:1.4;
+  margin:4px 0 0;font-size:12px;line-height:1.45;
 }
 .cookie-editor-react .cookie-business-hero{
   display:grid;gap:6px;min-width:0;
   background:var(--od-muted);border-radius:var(--radius-surface);padding:14px 12px;
 }
 .cookie-editor-react .cookie-business-hero small{
-  color:var(--od-brand);letter-spacing:.06em;font-size:10px;font-weight:700;
+  color:var(--od-brand);letter-spacing:.06em;font-size:9px;font-weight:750;
 }
-.cookie-editor-react .cookie-business-hero h2{font-size:15px;line-height:1.4;margin:0}
+.cookie-editor-react .cookie-business-hero h2{font-size:14px;line-height:1.4;margin:0}
 .cookie-editor-react .cookie-business-hero p{
-  margin:0;font-size:var(--od-note-size);color:var(--od-sub);line-height:1.65;
+  margin:0;font-size:10.5px;color:var(--od-sub);line-height:1.7;
 }
 .cookie-editor-react .cookie-business-heading{
   display:flex;gap:var(--space-2);align-items:baseline;justify-content:space-between;
@@ -496,15 +576,15 @@
   flex:none;font-size:var(--od-meta-size);color:var(--od-sub);
 }
 .cookie-editor-react .cookie-business-features{
-  display:grid;gap:var(--space-2);min-width:0;
+  display:grid;gap:7px;min-width:0;
 }
 .cookie-editor-react .cookie-business-feature,
 .cookie-editor-react .cookie-business-channel{
   min-width:0;border:1px solid var(--od-line);
-  border-radius:var(--radius-surface);padding:var(--space-3);background:var(--od-paper);
+  border-radius:9px;padding:10px;background:var(--od-paper);
 }
 .cookie-editor-react .cookie-business-feature{
-  display:flex;align-items:start;gap:var(--space-2);
+  display:flex;align-items:start;gap:9px;
 }
 .cookie-editor-react .cookie-business-feature>div{
   flex:1;min-width:0;display:grid;gap:3px;
@@ -513,13 +593,13 @@
 .cookie-editor-react .cookie-business-avatar{
   display:grid;place-items:center;flex:none;
   width:31px;height:31px;border-radius:8px;
-  color:var(--od-brand);background:var(--od-muted);font-size:12px;font-weight:700;
+  color:var(--od-brand);background:var(--od-cookie-brand-bg);font-size:12px;font-weight:700;
 }
 .cookie-editor-react .cookie-business-feature strong,
-.cookie-editor-react .cookie-business-channel strong{font-size:var(--od-body-size)}
+.cookie-editor-react .cookie-business-channel strong{font-size:11.5px}
 .cookie-editor-react .cookie-business-feature p,
 .cookie-editor-react .cookie-business-channel p{
-  margin:0;font-size:var(--od-note-size);line-height:1.6;color:var(--od-sub);
+  margin:0;font-size:10.5px;line-height:1.6;color:var(--od-sub);
   overflow-wrap:anywhere;
 }
 .cookie-editor-react .cookie-business-usage{
@@ -527,12 +607,12 @@
   border:1px solid var(--od-line);border-radius:var(--radius-surface);
 }
 .cookie-editor-react .cookie-business-usage-row{
-  display:grid;gap:5px;min-width:0;padding:var(--space-3);
+  display:grid;gap:5px;min-width:0;padding:10px 11px;
   border-bottom:1px solid var(--od-line);
 }
 .cookie-editor-react .cookie-business-usage-row>div{
   display:flex;align-items:center;justify-content:space-between;gap:var(--space-1);
-  min-width:0;font-size:var(--od-note-size);
+  min-width:0;font-size:11.5px;
 }
 .cookie-editor-react .cookie-business-usage-row>div>*{
   overflow-wrap:anywhere;
@@ -540,8 +620,9 @@
 .cookie-editor-react .cookie-business-usage-row small,
 .cookie-editor-react .cookie-business-usage>p,
 .cookie-editor-react .cookie-business-muted{
-  font-size:var(--od-note-size);color:var(--od-sub);line-height:1.6;
+  font-size:10.5px;color:var(--od-sub);line-height:1.6;
 }
+.cookie-editor-react .cookie-business-usage-empty{height:5px;border-radius:20px;background:var(--od-line)}
 .cookie-editor-react .cookie-business-usage-row progress{
   appearance:none;width:100%;height:5px;border:none;
   background:var(--od-line);border-radius:20px;overflow:hidden;
@@ -560,6 +641,11 @@
   border:1px solid var(--od-line);background:var(--od-paper);
 }
 .cookie-editor-react .cookie-business-callout>strong{font-size:var(--od-body-size)}
+.cookie-editor-react .cookie-business-contact-strip{grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:12px 11px}
+.cookie-editor-react .cookie-business-contact-strip>div>strong{font-size:11.5px;line-height:1.4}
+.cookie-editor-react .cookie-business-contact-strip>div>p{margin:5px 0 0;color:var(--od-sub);font-size:10px;line-height:1.5}
+.cookie-editor-react .cookie-business-contact-strip>.cookie-business-contact{grid-column:1/-1}
+.cookie-editor-react .cookie-business-contact-strip>button svg{width:12px;height:12px}
 .cookie-editor-react .cookie-business-callout>p,
 .cookie-editor-react .cookie-business-inquiry>p,
 .cookie-editor-react .cookie-business-contact>p{
@@ -594,12 +680,19 @@
   display:flex;align-items:center;gap:var(--space-2);min-width:0;
 }
 .cookie-editor-react .cookie-business-channel-top>div{flex:1;min-width:0;display:grid;gap:2px}
-.cookie-editor-react .cookie-business-channel-top small{font-size:var(--od-meta-size);color:var(--od-sub)}
-.cookie-editor-react .cookie-business-channel>button{justify-self:start}
-.cookie-editor-react .cookie-business-channel .cookie-business-muted{margin:0}
+.cookie-editor-react .cookie-business-channel-top small{font-size:10px;color:var(--od-sub)}
+.cookie-editor-react .cookie-business-channel-top .cookie-business-channel-status{
+  flex:none;padding:3px 6px;border-radius:5px;background:var(--od-bg);font-size:9.5px;
+}
+.cookie-editor-react .cookie-business-channel>button{justify-self:end}
+.cookie-editor-react .cookie-business-channel>button svg{width:12px;height:12px}
+.cookie-editor-react .cookie-business-channel .cookie-business-channel-detail{
+  padding:8px 9px;border-radius:7px;background:var(--od-bg);
+}
+.cookie-editor-react .cookie-business-circle-note{padding:11px}
+.cookie-editor-react .cookie-business-circle-note>strong{font-size:11.5px}
+.cookie-editor-react .cookie-business-circle-note>p{font-size:10.5px}
 @media(max-width:350px){
- .cookie-editor-react .cookie-product-tabs{padding-inline:var(--space-1)}
- .cookie-editor-react .cookie-product-tabs .cookie-tab-label{font-size:11px}
  .cookie-editor-react .cookie-business-content{padding:var(--space-2)}
  .cookie-editor-react .cookie-business-feature{padding:var(--space-2)}
  .cookie-editor-react .cookie-business-actions{gap:var(--space-1)}
@@ -608,6 +701,8 @@
 
 /* Lightweight feature catalog: direct action, no request/approval UI. */
 .cookie-editor-react .cookie-market-page{gap:var(--space-2)}
+.cookie-editor-react .cookie-market-page .cookie-market-resource>strong{font-size:12px;line-height:1.4}
+.cookie-editor-react .cookie-market-page .cookie-market-resource-actions button svg{width:12px;height:12px}
 .cookie-editor-react .cookie-market-page>.od-field{width:100%;min-width:0}
 .cookie-editor-react .cookie-market-page .cookie-market-results{
   display:grid;gap:var(--space-2);border:0;
@@ -626,19 +721,20 @@
 
 /* Official external subscriptions; no invented pricing or payment capture. */
 .cookie-editor-react .cookie-business-membership{
-  display:grid;gap:var(--space-2);min-width:0;padding:var(--space-2);
-  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+  display:grid;gap:var(--space-2);min-width:0;padding:11px;margin-top:11px;
+  border:1px solid var(--od-line);border-radius:10px;
 }
 .cookie-editor-react .cookie-business-membership-header{
   display:flex;align-items:center;justify-content:space-between;
   gap:var(--space-2);min-width:0;
 }
 .cookie-editor-react .cookie-business-membership-header>div{flex:1;min-width:0}
-.cookie-editor-react .cookie-business-membership-header strong{font-size:var(--od-body-size)}
+.cookie-editor-react .cookie-business-membership-header strong{font-size:12px}
 .cookie-editor-react .cookie-business-membership-header p{
-  margin:3px 0 0;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5;
+  margin:3px 0 0;color:var(--od-sub);font-size:10px;line-height:1.5;
 }
 .cookie-editor-react .cookie-business-membership-header>button{flex:none}
+.cookie-editor-react .cookie-business-membership-header>button svg{width:14px;height:14px}
 .cookie-editor-react .cookie-business-membership-list{
   display:grid;gap:0;min-width:0;border-top:1px solid var(--od-line);
 }
@@ -674,34 +770,36 @@
 
 /* Explicit Cookie Expiration UI: visible before advanced attributes. */
 .cookie-editor-react .cookie-expiration-compact{
-  display:grid;gap:var(--space-2);min-width:0;margin-top:var(--space-2);
-  padding:var(--space-2) var(--space-3);border:1px solid var(--od-line);
+  display:grid;gap:6px;min-width:0;margin:0;
+  padding:9px 10px;border:1px solid var(--od-line);
   border-radius:var(--radius-control);background:var(--od-muted);
 }
 .cookie-editor-react .cookie-expiration-mode{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:var(--space-2);min-width:0;font-size:var(--od-note-size);font-weight:650;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,150px);align-items:center;
+  gap:10px;min-width:0;font-size:11.5px;font-weight:700;line-height:1.35;
 }
-.cookie-editor-react .cookie-expiration-mode>span{flex:1;min-width:0}
-.cookie-editor-react .cookie-expiration-mode>select{
-  flex:0 1 160px;min-width:120px;max-width:58%;min-height:34px;
+.cookie-editor-react .cookie-expiration-mode>span{min-width:0}
+.cookie-editor-react .cookie-expiration-compact>.cookie-expiration-mode small{display:block;font-size:10px;font-weight:450;line-height:1.35;margin-top:2px}
+.cookie-editor-react .cookie-expiration-mode>.od-field{
+  min-width:0;max-width:100%;height:34px;min-height:34px;font-size:11.5px;padding:5px 7px;
 }
 .cookie-editor-react .cookie-expiration-compact>p{
-  margin:0;font-size:var(--od-note-size);color:var(--od-sub);line-height:1.5;
+  margin:0;font-size:10px;color:var(--od-sub);line-height:1.55;
 }
 .cookie-editor-react .cookie-expiration-date,
 .cookie-editor-react .cookie-expiration-duration{
-  display:grid;gap:var(--space-1);min-width:0;
-  font-size:var(--od-note-size);font-weight:600;
+  display:grid;gap:5px;min-width:0;padding-top:5px;border-top:1px solid var(--od-line);
+  font-size:11px;font-weight:650;
 }
 .cookie-editor-react .cookie-expiration-date>.od-field,
 .cookie-editor-react .cookie-expiration-duration>.od-field{
   width:100%;min-width:0;max-width:100%;font-weight:400;
 }
+.cookie-editor-react .cookie-inline-editor .cookie-expiration-date>.od-field{font-size:11px}
 .cookie-editor-react .cookie-expiration-compact small{
-  color:var(--od-sub);font-size:var(--od-meta-size);font-weight:400;line-height:1.5;
+  color:var(--od-sub);font-size:10px;font-weight:400;line-height:1.55;
 }
 @media(max-width:350px){
  .cookie-editor-react .cookie-expiration-compact{padding:var(--space-2)}
- .cookie-editor-react .cookie-expiration-mode>select{min-width:110px}
+ .cookie-editor-react .cookie-expiration-mode{grid-template-columns:minmax(0,1fr) minmax(0,130px)}
 }

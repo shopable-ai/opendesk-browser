@@ -7,18 +7,14 @@ import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const here=dirname(fileURLToPath(import.meta.url));
-const original=await readFile(resolve(here,'../cookie-editor.html'));
-const sha=createHash('sha1').update('blob '+original.length+'\0').update(original).digest('hex');
-const accepted='020adbf22005cba219af4ff27cd3f3e492978bed';
-if(sha!==accepted)throw Error('E_R35_APPROVED_HTML_CHANGED: '+sha);
-const checked=execFileSync(process.execPath,[join(here,'build-preview.mjs'),'--check'],{
- cwd:here,encoding:'utf8',stdio:['ignore','pipe','pipe']
-});
-if(!checked.includes('R520_PREVIEW_MATCH'))throw Error('E_R35_STALE_REACT_HTML');
-const react=await readFile(join(here,'index.html'),'utf8');
-if(!react.includes('data:text/javascript;base64,')||!react.includes("connect-src 'none'"))
- throw Error('E_R35_MISSING_PRODUCTION_REACT_SOURCE');
-const digest=createHash('sha256').update(react).digest('hex');
+export const accepted='020adbf22005cba219af4ff27cd3f3e492978bed';
+export async function approvedHtml(){
+ const original=await readFile(resolve(here,'../cookie-editor.html'));
+ const sha=createHash('sha1').update('blob '+original.length+'\0').update(original).digest('hex');
+ if(sha!==accepted)throw Error('E_R35_APPROVED_HTML_CHANGED: '+sha);
+ return original;
+}
+export function comparisonHtml(original,react,{dev=false,digest=''}={}){
 const attr=text=>String(text).replaceAll('&','&amp;').replaceAll('"','&quot;')
  .replaceAll('<','&lt;').replaceAll('>','&gt;');
 const file='<!doctype html>\n<html lang="zh-CN"><head><meta charset="utf-8">'+
@@ -39,10 +35,26 @@ const file='<!doctype html>\n<html lang="zh-CN"><head><meta charset="utf-8">'+
  '<div class="pair"><figure><figcaption>批准版 HTML · 视觉基线</figcaption>'+
  '<iframe id="approved-html" title="批准版 HTML" sandbox="allow-scripts allow-downloads allow-popups"'+
  ' srcdoc="'+attr(original.toString('utf8'))+'"></iframe></figure>'+
- '<figure><figcaption>正式 React · 同源构建</figcaption>'+
- '<iframe id="current-react" title="正式 React" sandbox="allow-scripts allow-downloads allow-popups"'+
- ' srcdoc="'+attr(react)+'"></iframe></figure></div></body></html>';
+ '<figure><figcaption>正式 React · '+(dev?'当前源码 dev':'同源构建')+'</figcaption>'+
+ '<iframe id="current-react" title="正式 React"'+(dev?'':' sandbox="allow-scripts allow-downloads allow-popups"')+
+ (dev?' src="/dev.html" sandbox="allow-scripts allow-same-origin allow-downloads allow-popups"':' srcdoc="'+attr(react)+'"')+'></iframe></figure></div></body></html>';
+return file;
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ const original=await approvedHtml();
+ const sha=accepted;
+const checked=execFileSync(process.execPath,[join(here,'build-preview.mjs'),'--check'],{
+ cwd:here,encoding:'utf8',stdio:['ignore','pipe','pipe']
+});
+if(!checked.includes('R520_PREVIEW_MATCH'))throw Error('E_R35_STALE_REACT_HTML');
+const react=await readFile(join(here,'index.html'),'utf8');
+if(!react.includes('data:text/javascript;base64,')||!react.includes("connect-src 'none'"))
+ throw Error('E_R35_MISSING_PRODUCTION_REACT_SOURCE');
+const digest=createHash('sha256').update(react).digest('hex');
+const file=comparisonHtml(original,react,{digest});
 const out=join(here,'a-b.html');
 await writeFile(out,file);
 console.log(JSON.stringify({status:'R35_AB_BUILT',file:out,
  originalBlob:sha,reactSha256:digest,htmlBytes:Buffer.byteLength(file)},null,2));
+
+}

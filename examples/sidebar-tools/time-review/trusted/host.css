@@ -1,0 +1,8 @@
+/* Fixed trusted time-review host UI; never loaded from installed tool bytes. */
+.od-trusted-settings-actions #time-review-site-grants-list{flex:1 1 100%;min-width:0;display:grid;gap:6px}
+.time-review-site-grant-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:7px 9px;border:1px solid var(--line);border-radius:var(--radius-control);background:var(--surface)}
+.time-review-site-grant-row span{font-size:12px;overflow-wrap:anywhere;min-width:0}
+.time-review-site-grant-row button{flex:none;min-height:28px}
+#time-review-site-all-confirm{border-color:var(--line);background:var(--surface-subtle)}
+#time-review-site-all-confirm p{color:var(--od-sub)}
+#time-review-clear-approve{background:var(--od-negative);color:var(--od-paper)}

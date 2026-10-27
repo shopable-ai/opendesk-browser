@@ -1,1 +1,27 @@
-{"name":"opendesk-cookie-editor-r49-preview","private":true,"version":"0.0.0","type":"module","engines":{"node":">=22.12.0"},"scripts":{"build":"vite build && node build-preview.mjs","check":"node build-preview.mjs --check","test:chromium":"npm run check && node chromium.mjs","test":"node --test preview.test.mjs"},"dependencies":{"react":"19.2.0","react-dom":"19.2.0"},"devDependencies":{"vite":"7.3.6","playwright":"1.55.1"}}
+{
+  "name": "opendesk-cookie-editor-r49-preview",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "vite build && node build-preview.mjs",
+    "check": "node build-preview.mjs --check",
+    "test:chromium": "npm run check && node chromium.mjs",
+    "test": "node --test preview.test.mjs",
+    "dev": "vite --host 127.0.0.1 --port 43134 --strictPort",
+    "audit:dev": "node visual-contract-check.mjs --dev-url http://127.0.0.1:43134/dev.html --g1",
+    "test:chromium:dev": "node chromium.mjs --dev-url http://127.0.0.1:43134/dev.html",
+    "test:a-b:dev": "node smoke-a-b.mjs --dev-url http://127.0.0.1:43134/a-b-dev.html"
+  },
+  "dependencies": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "vite": "7.3.6",
+    "playwright": "1.55.1"
+  }
+}

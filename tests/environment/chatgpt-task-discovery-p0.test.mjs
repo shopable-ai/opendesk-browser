@@ -44,7 +44,8 @@ test('P0 discovery resets on SPA navigation and will only observe a later new us
 });
 
 const flush=async()=>{for(let i=0;i<40;i++)await Promise.resolve();};
-function pageHarness(){
+function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbingo.org/html',
+  grantReply=value=>value,bindReply=value=>value}={}){
   const nodes=[],sends=[],events=new Map(),snap=snapshot();let poll;
   const element=tag=>{
     const node={tag,style:{},classList:{toggle(){}},listeners:{},setAttribute(){},append(){},remove(){},
@@ -57,15 +58,15 @@ function pageHarness(){
   const source={tabId:9,documentId:'document-discovery',url:'https://chatgpt.com/c/discovery-test-12345678'};
   const win={location:{href:source.url,origin:'https://chatgpt.com'},setInterval(fn){poll=fn;return 1;},
     clearInterval(){},addEventListener(){},removeEventListener(){}};win.top=win;
-  const installation={version:'1.0.0',manifestHash:'a'.repeat(64),scriptId:'task:page.read.fixed:1.0.0',
+  const installation={version:'1.0.0',manifestHash:'a'.repeat(64),scriptId:`task:${taskId}:1.0.0`,
     revision:1,contentHash:'b'.repeat(64),installationId:'fixed-install',generation:1};
-  const task={taskId:'page.read.fixed',version:'1.0.0',installation,paramsSchema:{properties:{}},siteOrigins:['https://httpbingo.org']};
+  const task={taskId,version:'1.0.0',installation,paramsSchema:{properties:{}},siteOrigins:[new URL(targetUrl).origin]};
   const intent={protocol:'opendesk.task.intent.v1',candidateId:'p0-new-candidate-123',taskId:task.taskId,
-    targetUrl:'https://httpbingo.org/html',args:{}};
+    targetUrl,args};
   let grantHook=()=>{},noCandidate=false;
   const identity=()=>noCandidate?{ok:false,error:{code:'E_CHAT_FORMAT',message:'no candidate'}}:{ok:!snap.busy,turnKey:snap.users.at(-1).getAttribute('data-message-id'),
     answerKey:snap.assistants.at(-1).getAttribute('data-message-id'),blocks:[JSON.stringify(intent)]};
-  const scope={taskId:task.taskId,args:{},targetUrl:intent.targetUrl,installation};
+  const scope={taskId:task.taskId,args:{...args},targetUrl:intent.targetUrl,installation};
   const prepared=()=>({requestId:'33333333-3333-4333-8333-333333333333',source:{...source,url:win.location.href},...scope,
     candidate:{candidateId:intent.candidateId,text:JSON.stringify(intent),turnKey:identity().turnKey,answerKey:identity().answerKey}});
   let grant;
@@ -74,9 +75,9 @@ function pageHarness(){
     if(msg.kind==='list-tasks')return {ok:true,data:{tasks:[task]}};
     if(msg.kind==='preapprove-next-task'){
       grant={...prepared(),candidate:undefined,baseline:{turnKey:identity().turnKey,answerKey:identity().answerKey},expiresAt:Date.now()+300000};
-      grantHook();return {ok:true,data:grant};
+      grantHook();return {ok:true,data:grantReply(structuredClone(grant))};
     }
-    if(msg.kind==='bind-preapproved-task')return {ok:true,data:{...prepared(),expiresAt:grant.expiresAt,baseline:grant.baseline}};
+    if(msg.kind==='bind-preapproved-task')return {ok:true,data:bindReply({...prepared(),expiresAt:grant.expiresAt,baseline:grant.baseline})};
     if(msg.kind==='adopt-task')return {ok:true,data:prepared()};
     if(msg.kind==='execute')return {ok:true,data:{sent:true,aiReplyObserved:true,runId:'run-p0',resultId:'result-p0'}};
     return {ok:true,data:{}};
@@ -90,6 +91,7 @@ function pageHarness(){
     setGrantHook:fn=>{grantHook=fn;},async selectInstalled(){
       const select=nodes.find(node=>node.tag==='select');select.value='__installed__';await select.listeners.change();
       nodes.filter(node=>node.tag==='input')[1].value=intent.targetUrl;
+      nodes.find(node=>node.tag==='textarea').value=JSON.stringify(intent.args);
     }};
 }
 test('P0 page automatically prepares a new five-field candidate and requires exactly one execute click',async()=>{
@@ -100,6 +102,26 @@ test('P0 page automatically prepares a new five-field candidate and requires exa
   assert.equal(h.buttons[2].disabled,false);
   await h.click(2);await h.click(2);h.poll();await flush();
   assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,1);h.page.dispose();
+});
+test('P0 discovered task replaces the old task, target and args shown before execution',async()=>{
+  for(const taskId of ['page.read.fixed','custom.page.read']){
+    const h=pageHarness({taskId});
+    const select=h.nodes.find(node=>node.tag==='select');
+    const target=h.nodes.filter(node=>node.tag==='input')[1];
+    const args=h.nodes.find(node=>node.tag==='textarea');
+    select.value='baidu.search.top3';target.value='https://www.baidu.com/s?wd=old';
+    args.value='{"query":"old","limit":3}';
+    h.next();await flush();
+    const selected=h.nodes.find(node=>node.tag==='option'&&node.value===select.value);
+    assert.ok(selected?.textContent.includes(taskId));
+    assert.equal(target.value,h.intent.targetUrl);
+    assert.equal(args.value,JSON.stringify(h.intent.args));
+    assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,0);
+    assert.equal(h.buttons[2].disabled,false);
+    await h.click(2);
+    assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,1);
+    h.page.dispose();
+  }
 });
 test('P0 page denies in-flight preapproval and binds only a future reply for one automatic run',async()=>{
   for(const race of ['already-streaming','starts-during-approval','future']){
@@ -117,6 +139,39 @@ test('P0 page denies in-flight preapproval and binds only a future reply for one
       assert.equal(h.sends.find(msg=>msg.kind==='execute').mode,'auto');
       assert.equal(h.sends.filter(msg=>msg.kind==='authorize-task').length,0);
     }
+    h.page.dispose();
+  }
+});
+
+const baiduScope={taskId:'baidu.search.top3',args:{query:'OpenDesk Browser',limit:3},
+  targetUrl:'https://www.baidu.com/s?wd=OpenDesk%20Browser'};
+const storageOrder=scope=>({...scope,
+  args:Object.fromEntries(Object.entries(scope.args).sort()),
+  installation:Object.fromEntries(Object.entries(scope.installation).sort())});
+test('P0 page accepts identical preapproved scope after storage reorders its dictionaries',async()=>{
+  for(const grantReply of [value=>value,storageOrder]){
+    const h=pageHarness({...baiduScope,grantReply,bindReply:storageOrder});await h.selectInstalled();
+    await h.click(6);h.next();await flush();h.poll();await flush();
+    assert.equal(h.sends.filter(msg=>msg.kind==='bind-preapproved-task').length,1);
+    assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,1);
+    h.poll();await flush();assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,1);
+    h.page.dispose();
+  }
+});
+test('P0 page still rejects changed preapproval scope, request identity or expiry without retry',async()=>{
+  for(const change of [
+    value=>({...value,args:{...value.args,limit:2}}),
+    value=>({...value,targetUrl:'https://www.baidu.com/s?wd=another'}),
+    value=>({...value,installation:{...value.installation,generation:2}}),
+    value=>({...value,installation:{...value.installation,contentHash:'c'.repeat(64)}}),
+    value=>({...value,requestId:'44444444-4444-4444-8444-444444444444'}),
+    value=>({...value,expiresAt:value.expiresAt+1})
+  ]){
+    const h=pageHarness({...baiduScope,bindReply:value=>change(storageOrder(value))});await h.selectInstalled();
+    await h.click(6);h.next();await flush();h.poll();await flush();
+    assert.equal(h.sends.filter(msg=>msg.kind==='bind-preapproved-task').length,1);
+    assert.equal(h.sends.filter(msg=>msg.kind==='execute').length,0);
+    assert.match(h.nodes.find(node=>node.className==='status').textContent,/E_BRIDGE_CONTEXT/);
     h.page.dispose();
   }
 });

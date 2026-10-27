@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {CookieIconButton} from './CookieEditorView.jsx';
+import {CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
 
 // Product-owned React presentation, shared by the official app and preview.
 // No Cookie value, credential, share token, network call or persistent grant
@@ -138,25 +138,29 @@ export function CookieAccountMarket({onExperience=()=>{},onEnterprise=()=>{}}){
         <p>从多账号管理、快捷切换到 Cookie 有效期，点击即可在当前产品中体验。
            企业多部门、席位与用量管理在「企业」中查看。</p>
       </header>
-      <input className="od-field" type="search" placeholder="搜索功能、模板或场景"
-        aria-label="搜索市场功能" value={query} onChange={e=>setQuery(e.target.value)}/>
+      <div className="searchbox">
+        <span className="cookie-search-symbol"><CookieIcon name="search"/></span>
+        <input type="search" placeholder="搜索功能、模板或场景"
+          aria-label="搜索市场功能" value={query} onChange={e=>setQuery(e.target.value)}/>
+      </div>
       <div className="cookie-market-categories" role="group" aria-label="市场分类">
         {[['all','全部'],['template','模板'],['workflow','快捷方案'],['guide','示例']]
           .map(([key,label])=><button key={key} type="button"
-            className={'od-button '+(category===key?'od-button--secondary':'od-button--quiet')}
+            className="od-button cookie-button--choice"
             aria-pressed={category===key} onClick={()=>setCategory(key)}>{label}</button>)}
       </div>
       <div className="cookie-market-results" aria-label="功能示例">
         {results.map(item=><article key={item.id} className="cookie-market-resource">
           <div className="cookie-market-resource-head">
+            <span className="cookie-business-symbol"><CookieIcon name={item.category==='template'?'users':item.category==='workflow'?'link':'clock'}/></span>
             <small>{item.categoryLabel}</small><small>可体验</small>
           </div>
           <strong>{item.title}</strong>
           <p>{item.description}</p>
           <div className="cookie-market-resource-actions">
             <small>{item.audience}</small>
-            <button type="button" className="od-button od-button--secondary"
-              onClick={()=>onExperience(item.id)}>{item.action}</button>
+            <button type="button" className="od-button od-button--secondary cookie-button--compact cookie-button--row-action"
+              onClick={()=>onExperience(item.id)}>{item.action}<CookieIcon name="right"/></button>
           </div>
         </article>)}
         {!results.length&&<p className="cookie-account-empty">没有匹配的功能示例。</p>}
@@ -164,8 +168,8 @@ export function CookieAccountMarket({onExperience=()=>{},onEnterprise=()=>{}}){
       <p className="cookie-account-empty">
         不提供账号交易、登录 Cookie 共享、申请或审批；未来真实市场资源须单独核验来源和授权。
       </p>
-      <button type="button" className="od-button od-button--quiet"
-        onClick={onEnterprise}>需要团队管理？看看企业方案</button>
+      <button type="button" className="od-button od-button--quiet cookie-button--compact"
+        onClick={onEnterprise}>需要团队管理？看看企业方案<CookieIcon name="right"/></button>
     </div>
   </section>;
 }

@@ -26,7 +26,7 @@ button:hover:not(:disabled){filter:brightness(.97)}
 details{margin:var(--space-2) 0}
 summary{cursor:pointer;color:var(--od-ink);overflow-wrap:anywhere}
 details>section{margin-top:var(--space-3)}
-:focus-visible,#workspace-content :focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
 
 /* Shared primitives: semantics here; state-specific geometry stays in tool-shell.css. */
@@ -118,12 +118,6 @@ details>section{margin-top:var(--space-3)}
 /* Keep the trusted tool host aligned with tools that follow the OS theme. */
 @media(prefers-color-scheme:dark){
   :root{color-scheme:dark}
-  :root .workbench-nav{background:var(--od-paper)}
-  :root .workbench-nav button{color:var(--od-sub)}
-  :root .workbench-nav button[aria-selected=true]{color:var(--od-nav-active);border-bottom-color:var(--od-nav-active)}
-  :root .sidebar-tool-icon-action{color:var(--od-sub)}
-  :root .sidebar-tool-icon-action:hover:not(:disabled){background:var(--od-muted)}
-  :root #sidebar-tool-remove:hover:not(:disabled){background:var(--od-negative-bg);color:var(--od-negative)}
 }
 
 /* Shared compact input contract; action buttons remain real consumer actions. */

@@ -2,6 +2,7 @@
  * View-specific layout rules; shared tokens and primitives live in design-system.css.
  * Four-pixel spacing rhythm: 4 / 8 / 12 / 16, with touch targets kept usable.
  */
+#workspace-content :focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 #script-current-page-status[data-state=unavailable],#script-status[data-state=error],#sdk-status[data-state=error],#status[data-error=true]{color:var(--od-negative)}
 #script-current-page-status[data-state=available]{color:var(--od-positive)}
 #script-version[data-dirty=true]{color:var(--od-warning-ink);font-weight:650}
@@ -15,7 +16,7 @@
 .opendesk-react-app{display:flex;flex:1 1 auto;flex-direction:column;min-width:0;min-height:0;width:100%}
 .opendesk-react-dock-host{flex:none;min-width:0}
 /* Six official tabs and development Debug share one trusted RunHost; only the tablist scrolls. */
-.workbench-nav{flex:none;display:flex;gap:0;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:var(--od-page-gutter);scrollbar-width:thin;padding:0 var(--od-page-gutter);border-bottom:1px solid var(--line);background:#fff}
+.workbench-nav{--od-nav-active:var(--od-brand);flex:none;display:flex;gap:0;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scroll-padding-inline:var(--od-page-gutter);scrollbar-width:thin;padding:0 var(--od-page-gutter);border-bottom:1px solid var(--line);background:#fff}
 .workbench-nav button{flex:0 0 auto;min-width:50px;min-height:40px;padding:10px 7px 9px;white-space:nowrap;scroll-snap-align:start;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
 .workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
 /* The horizontally scrolling tablist clips outward outlines vertically. */
@@ -465,21 +466,8 @@
 .sidebar-tool-settings-heading-copy{min-width:0}
 .sidebar-tool-settings-heading-copy h2{margin:0;font-size:14px;font-weight:700;line-height:1.4;color:var(--od-ink)}
 .sidebar-tool-settings-heading-copy p{margin:3px 0 0;font-size:11px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere}
-.sidebar-tool-bookmark-permissions{
-  display:grid;gap:10px;min-width:0;padding:12px;
-  border:1px solid var(--od-line);border-radius:var(--radius-control);
-  background:var(--od-paper)
-}
 /* Settings already owns the surface: do not nest a second app-management card. */
 .sidebar-tool-management{display:grid;gap:8px;min-width:0}
-.sidebar-tool-bookmark-intro{display:flex;align-items:flex-start;gap:10px;min-width:0}
-.sidebar-tool-bookmark-icon{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:9px;background:var(--od-muted);color:var(--od-sub)}
-.sidebar-tool-bookmark-icon svg{width:17px;height:17px}
-.sidebar-tool-bookmark-copy{min-width:0;display:grid;gap:5px}
-.sidebar-tool-bookmark-copy strong{font-size:12px;font-weight:700;line-height:1.4;color:var(--od-ink)}
-.sidebar-tool-bookmark-copy p{margin:0;min-width:0;font-size:11px;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
-#sidebar-tool-bookmark-grant{min-height:36px;width:100%;font-size:12px;white-space:normal}
-#sidebar-tool-bookmark-grant[aria-pressed="true"]{background:var(--od-paper);border-color:var(--od-line);color:var(--od-ink)}
 .sidebar-tool-section-caption{font-size:12px;font-weight:700;color:var(--od-ink)}
 .sidebar-tool-management .sidebar-toc-settings-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0;margin:0;min-width:0}
 .sidebar-tool-management .sidebar-tool-prompt-enable-info{flex:1;min-width:0}
@@ -532,23 +520,7 @@
 }
 @media(max-width:360px){
  .sidebar-tool-settings-view{padding:10px}
- .sidebar-tool-bookmark-permissions{padding:10px}
 }
-
-.time-review-trusted-actions{display:flex;flex-wrap:wrap;gap:8px;min-width:0;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-.time-review-trusted-actions[hidden]{display:none!important}
-.time-review-trusted-actions>p{flex:1 1 100%;margin:0;color:var(--od-sub);font-size:12px;line-height:1.5}
-.time-review-trusted-actions button{flex:0 0 auto;min-height:34px;padding:6px 10px;font-size:12px}
-.time-review-inline-clear-review{display:flex;align-items:center;flex-wrap:wrap;gap:8px;flex:1 1 100%;padding:9px;border:1px solid #e5c4c8;border-radius:var(--radius-control);background:#fff8f8}
-.time-review-inline-clear-review[hidden]{display:none!important}
-.time-review-inline-clear-review p{flex:1 1 100%;margin:0;font-size:12px;color:#82454d}
-.time-review-trusted-actions #time-review-site-grants-list{flex:1 1 100%;min-width:0;display:grid;gap:6px}
-.time-review-site-grant-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:7px 9px;border:1px solid var(--line);border-radius:var(--radius-control);background:var(--surface)}
-.time-review-site-grant-row span{font-size:12px;overflow-wrap:anywhere;min-width:0}
-.time-review-site-grant-row button{flex:none;min-height:28px}
-#time-review-site-all-confirm{border-color:var(--line);background:var(--surface-subtle)}
-#time-review-site-all-confirm p{color:var(--od-sub)}
-#time-review-clear-approve{background:var(--od-negative);color:var(--od-paper)}
 .sidebar-toc-settings-intro{font-size:12px;color:var(--text-secondary,#62738b);margin:0 0 15px;line-height:1.5}
 .sidebar-toc-settings-scope{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px;background:var(--surface-subtle,#f7f9fd);border:1px solid var(--line,#e6eaf1);border-radius:var(--radius-control);margin-bottom:12px}
 .sidebar-toc-settings-scope>div{min-width:0;overflow-wrap:anywhere}
@@ -856,10 +828,6 @@
 .sidebar-toc-settings-hint{margin:4px 0 9px;line-height:1.5;color:#697a91}
 .sidebar-toc-settings-row{display:flex;justify-content:space-between;align-items:center;gap:7px;margin:7px 0;min-height:31px}
 .sidebar-toc-settings-row>span{min-width:0;flex:1}
-#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-toc-language{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
-#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-toc-language-select{width:100%;min-width:0}
-#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-visibility{width:100%;height:auto;white-space:normal}
-#sidebar-tool-settings-view[data-tool="reading-toc"] #sidebar-tool-visibility>span{min-width:0;overflow-wrap:break-word}
 .sidebar-toc-visibility-toggle{flex:none;min-height:34px;min-width:52px;padding:4px 9px;border:1px solid #d9e3f2;background:#fff;border-radius:var(--radius-control);font-size:11px;color:#536982;cursor:pointer}
 .sidebar-toc-visibility-toggle[aria-pressed=true]{border-color:#b9c9ef;background:#edf2ff;color:#3157b1;font-weight:700}
 .sidebar-toc-visibility-toggle:disabled{opacity:.5;cursor:not-allowed}
@@ -1141,9 +1109,7 @@
 #workbench-tasks #cloud-hosting>p{font-size:12px;line-height:1.5;margin:var(--space-2) 0}
 #workbench-tasks #cloud-hosting>label:has(input[type=checkbox]){display:flex;align-items:flex-start;gap:var(--space-2);line-height:1.5}
 #workbench-tasks #cloud-hosting>label>input[type=checkbox]{flex:none;margin:3px 0 0}
-.task-tools .row,.developer-editor .row,.sidebar-tool-import .row,.sidebar-tool-update .row,
-.sidebar-tool-inline-remove-actions,.sidebar-tool-action-buttons,.time-review-trusted-actions,
-.time-review-inline-clear-review,#page-component-remote .od-toolbar{justify-content:flex-end}
+.task-tools .row,.developer-editor .row,.sidebar-tool-import .row,.sidebar-tool-update .row,.sidebar-tool-inline-remove-actions,.sidebar-tool-action-buttons,#page-component-remote .od-toolbar{justify-content:flex-end}
 /* A compact desktop control remains at least 44px on coarse-pointer devices. */
 @media(pointer:coarse){
   .developer-source-switch label{min-height:44px}
@@ -1447,37 +1413,6 @@
  .schedule-plan-actions>.od-button{flex:1 1 85px;min-width:0}
 }
 
-/* Trusted native Cookie inspector: within existing Tools surface, not the sandbox. */
-.trusted-cookie-panel{margin-top:var(--space-3);min-width:0}
-
-
-
-.trusted-cookie-content{display:grid;gap:var(--space-2);min-width:0}
-.trusted-cookie-content>.hint{line-height:1.6;margin:0}
-.trusted-cookie-content>.identity{margin:0}
-.trusted-cookie-content>button{justify-self:start}
-.trusted-cookie-list{display:grid;gap:var(--space-2);max-height:330px;overflow:auto;min-width:0}
-.trusted-cookie-item{display:flex;align-items:flex-start;gap:var(--space-2);padding:var(--space-2);border:1px solid var(--od-input-border);border-radius:var(--radius-control);min-width:0;flex-wrap:wrap}
-.trusted-cookie-item-copy{display:grid;gap:2px;flex:1 1 140px;min-width:0}
-.trusted-cookie-item-copy>strong,.trusted-cookie-value{overflow-wrap:anywhere;word-break:break-word}
-.trusted-cookie-item-copy>small{color:var(--od-sub);overflow-wrap:anywhere}
-.trusted-cookie-value{font:12px/1.5 ui-monospace,monospace}
-.trusted-cookie-item-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
-.trusted-cookie-item-actions button{min-height:32px}
-/* Trusted Cookie observation is ephemeral, opt-in and contains metadata only. */
-.trusted-cookie-observe{min-width:0}
-
-.trusted-cookie-observe>.hint{font-size:12px;line-height:1.55;margin:var(--space-2) 0}
-.trusted-cookie-observe-actions{display:flex;flex-wrap:wrap;gap:var(--space-1)}
-.trusted-cookie-observe-actions>button{min-width:0;min-height:32px;flex:1 1 88px}
-.trusted-cookie-watch-events{display:grid;gap:var(--space-1);max-height:168px;overflow:auto;min-width:0}
-.trusted-cookie-watch-event{font:12px/1.5 ui-monospace,monospace;overflow-wrap:anywhere;padding:var(--space-1);border-bottom:1px solid var(--od-input-border)}
-.trusted-cookie-write{min-width:0}
-
-.trusted-cookie-write label{margin-bottom:var(--space-1)}
-.trusted-cookie-write input{margin-top:0}
-.trusted-cookie-write>.hint{line-height:1.6}
-@media(max-width:350px){.trusted-cookie-item-actions{width:100%}}
 
 /* R5.2 Cloud: task-first authorization, advanced technical identity and one page gutter. */
 #workbench-cloud .cloud-overview-secondary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--space-2);margin-top:var(--space-2)}
@@ -1553,16 +1488,6 @@
 
 
 
-/* Prompt Shortcuts: one lightweight settings page, no website grant grid. */
-#sidebar-tool-prompt-native-row[hidden]{display:none!important}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-toc-settings-row{padding:7px 2px;margin:0;gap:10px}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] #sidebar-tool-settings-hint{margin:0;padding:9px 10px;border-radius:8px;background:var(--od-muted);color:var(--od-sub);font-size:11px;line-height:1.55}
-#sidebar-tool-prompt-native-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
-.sidebar-tool-prompt-native-info{display:grid;gap:3px;flex:1;min-width:0}
-.sidebar-tool-prompt-native-info strong{font-size:12px}
-.sidebar-tool-prompt-native-info small{font-size:11px;color:var(--od-sub);line-height:1.4;overflow-wrap:anywhere}
-#sidebar-tool-prompt-native-action{font-size:11px;min-height:32px;flex:none;white-space:normal}
-@media(max-width:330px){#sidebar-tool-prompt-native-row{align-items:flex-start;flex-wrap:wrap}#sidebar-tool-prompt-native-action{margin-left:auto}}
 /* Tools with their own trusted site grants must not show generic TOC/Clip grant controls. */
 #sidebar-tool-generic-site-scope[hidden],#sidebar-tool-generic-site-binary[hidden],#sidebar-tool-generic-site-advanced[hidden]{display:none!important}
 
@@ -1575,84 +1500,11 @@
 #sidebar-tool-display[data-trusted-tool-inline="true"]>#sidebar-tool-launch,
 #sidebar-tool-display[data-trusted-tool-inline="true"]>#sidebar-tool-retired-draft{order:3}
 
-/* AI VIP Share R5: extension-owned proxy card below isolated member UI. */
-.sidebar-tool-ai-proxy-native{min-width:0;margin-top:var(--space-3)}
-#ai-access-trusted-controls{display:grid;gap:var(--space-2)}
-#ai-access-trusted-controls .ai-access-proxy-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2)}
-#ai-access-trusted-controls .ai-access-proxy-head>h2{margin:0}
-#ai-access-trusted-controls p{margin:0}
-#ai-access-trusted-controls .od-button{justify-self:start}
 
-/* AdBlock R1.9: product layout sourced from the audited first-party DOM factory. */
-#sidebar-tool-adblock-native[hidden],.sidebar-tool-adblock-native[hidden],.sidebar-tool-adblock-native [hidden]{display:none!important}
-.sidebar-tool-adblock-native{max-width:560px;min-width:0;margin:var(--space-2) auto;padding:var(--space-2) 0 var(--space-3);color:var(--od-ink);overflow-wrap:anywhere}
-.sidebar-tool-adblock-native *{box-sizing:border-box}
-.sidebar-tool-adblock-native .adblock-native-card{margin:0 0 14px;padding:16px 15px;border:1px solid var(--od-line);border-radius:14px;background:var(--od-paper)}
-.sidebar-tool-adblock-native .adblock-native-card-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0}
-.sidebar-tool-adblock-native .adblock-native-copy{min-width:0;flex:1}
-.sidebar-tool-adblock-native .adblock-native-heading{margin:0;font-size:14px;font-weight:720;line-height:1.4}
-.sidebar-tool-adblock-native .adblock-native-muted{display:block;margin:4px 0 0;font-size:11px;line-height:1.5;color:var(--od-sub)}
-.sidebar-tool-adblock-native .adblock-native-toggle{display:flex;align-items:center;justify-content:flex-start;width:46px;min-width:46px;height:27px;min-height:27px;flex:none;padding:3px;border:0;border-radius:999px;background:var(--od-line);color:transparent;font-size:0;line-height:0;overflow:hidden;cursor:pointer}
-.sidebar-tool-adblock-native .adblock-native-toggle::after{content:"";display:block;width:21px;height:21px;flex:none;border-radius:50%;background:#fff;box-shadow:0 2px 6px #162f4b25;transition:transform .15s}
-.sidebar-tool-adblock-native .adblock-native-toggle[aria-checked=true]{background:var(--od-brand)}
-.sidebar-tool-adblock-native .adblock-native-toggle[aria-checked=true]::after{transform:translateX(19px)}
-.sidebar-tool-adblock-native .adblock-native-toggle:disabled{opacity:.48;cursor:not-allowed}
-.sidebar-tool-adblock-native .adblock-native-status{display:flex;gap:7px;align-items:center;margin:12px 0 0;color:#13815e;font-size:11px;font-weight:650;line-height:1.5}
-.sidebar-tool-adblock-native .adblock-native-status.is-off{color:var(--od-sub)}
-.sidebar-tool-adblock-native .adblock-native-status.is-unknown{color:var(--od-negative)}
-.sidebar-tool-adblock-native .adblock-native-status-dot{flex:none;width:7px;height:7px;border-radius:50%;background:#26b586}
-.sidebar-tool-adblock-native .adblock-native-status.is-off .adblock-native-status-dot{background:var(--od-sub)}
-.sidebar-tool-adblock-native .adblock-native-status.is-unknown .adblock-native-status-dot{background:var(--od-negative)}
-.sidebar-tool-adblock-native .adblock-native-eyebrow{margin:0;color:var(--od-sub);font-size:10px;letter-spacing:.08em;font-weight:730}
-.sidebar-tool-adblock-native .adblock-native-site-ident{display:flex;align-items:center;gap:10px;margin:10px 0 18px;min-width:0}
-.sidebar-tool-adblock-native .adblock-native-avatar{display:grid;place-items:center;flex:none;width:37px;height:37px;border-radius:11px;background:var(--od-muted);color:var(--od-brand);font-size:16px;font-weight:800}
-.sidebar-tool-adblock-native .adblock-native-site-identity{min-width:0;flex:1}
-.sidebar-tool-adblock-native .adblock-native-host{display:block;overflow-wrap:anywhere;word-break:break-word;font-size:15px;letter-spacing:-.25px;font-weight:760;line-height:1.4}
-.sidebar-tool-adblock-native .adblock-native-divider{height:1px;background:var(--od-line);margin:14px 0}
-.sidebar-tool-adblock-native .adblock-native-summary{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;min-width:0}
-.sidebar-tool-adblock-native .adblock-native-metric{min-width:0}
-.sidebar-tool-adblock-native .adblock-native-count{display:block;font-size:30px;line-height:1.18;letter-spacing:-1.6px;font-weight:780;font-variant-numeric:tabular-nums}
-.sidebar-tool-adblock-native .adblock-native-stat-note{flex:none;align-self:center;padding:4px 7px;border:1px solid var(--od-line);border-radius:99px;background:var(--od-muted);color:var(--od-sub);font-size:10px}
-.sidebar-tool-adblock-native .adblock-native-help{margin:14px 0 0;color:var(--od-sub);font-size:11px;line-height:1.6}
-.sidebar-tool-adblock-native .adblock-native-preset{padding:14px 15px}
-.sidebar-tool-adblock-native .adblock-native-preset-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px}
-.sidebar-tool-adblock-native .adblock-native-pill{padding:3px 8px;border-radius:20px;background:var(--od-muted);color:var(--od-brand);font-size:10px;font-weight:680}
-.sidebar-tool-adblock-native .adblock-native-link{display:flex;align-items:center;gap:9px;width:100%;min-height:42px;padding:10px 2px;text-align:left;background:transparent;border:0;color:var(--od-ink);font-size:12px;font-weight:690}
-.sidebar-tool-adblock-native .adblock-native-link-count{margin-left:auto;color:var(--od-sub);font-size:11px}
-.sidebar-tool-adblock-native .adblock-native-chevron{color:var(--od-sub);font-size:22px;font-weight:400}
-.sidebar-tool-adblock-native .adblock-native-feedback{margin:var(--space-2) 0 0;color:var(--od-sub);font-size:11px;line-height:1.5}
-.sidebar-tool-adblock-native .adblock-native-feedback[data-error=true]{color:var(--od-negative)}
-.sidebar-tool-adblock-native .adblock-native-subhead{display:flex;align-items:center;gap:10px;min-height:34px;margin:0 0 19px}
-.sidebar-tool-adblock-native .adblock-native-subhead h2{flex:1;margin:0;font-size:17px;font-weight:770;letter-spacing:-.4px}
-.sidebar-tool-adblock-native .adblock-native-back{display:grid;place-items:center;flex:none;width:32px;height:32px;min-height:32px;padding:0;border:1px solid var(--od-line);border-radius:10px;background:var(--od-paper);color:var(--od-sub);font-size:27px;line-height:1}
-.sidebar-tool-adblock-native .adblock-native-subcount{color:var(--od-sub);font-size:11px;white-space:nowrap}
-.sidebar-tool-adblock-native .adblock-native-intro{margin:0 0 13px;color:var(--od-sub);font-size:12px;line-height:1.6}
-.sidebar-tool-adblock-native .adblock-native-settings-card{padding:0 15px}
-.sidebar-tool-adblock-native .adblock-native-setting{padding:14px 0;border-top:1px solid var(--od-line)}
-.sidebar-tool-adblock-native .adblock-native-setting:first-child{border-top:0}
-.sidebar-tool-adblock-native .adblock-native-setting h3{margin:0;font-size:13px;font-weight:700}
-.sidebar-tool-adblock-native .adblock-native-setting p{margin:4px 0 0;font-size:11px;line-height:1.6;color:var(--od-sub)}
-.sidebar-tool-adblock-native .adblock-native-secondary{margin-top:9px;min-height:30px;padding:6px 10px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);color:var(--od-brand);font-size:11px;font-weight:720}
-.sidebar-tool-adblock-native .adblock-native-setting-note{margin:14px 0 0;padding:13px;border-radius:10px;background:var(--od-muted);color:var(--od-sub);font-size:11px;line-height:1.6}
-.sidebar-tool-adblock-native button:focus-visible{outline:2px solid var(--od-brand);outline-offset:3px}
-.sidebar-tool-adblock-native .adblock-native-link:hover,.sidebar-tool-adblock-native .adblock-native-secondary:hover{color:var(--od-brand)}
-@media(max-width:350px){.sidebar-tool-adblock-native .adblock-native-card{padding-inline:12px}.sidebar-tool-adblock-native .adblock-native-card-row{gap:7px}.sidebar-tool-adblock-native .adblock-native-stat-note{font-size:9px}}
-@media(prefers-reduced-motion:reduce){.sidebar-tool-adblock-native .adblock-native-toggle::after{transition:none}}
+/* Retired AdBlock notice still obeys the hidden state. */
+#sidebar-tool-adblock-native[hidden]{display:none!important}
 
 /* R2.5 Prompt Shortcuts: trusted Host owns all three switches. */
-#sidebar-tool-prompt-web-row[hidden],#sidebar-tool-prompt-enable-description[hidden]{display:none!important}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-tool-prompt-enable-info{display:grid;gap:3px;flex:1;min-width:0}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-tool-prompt-enable-info strong{font-size:12px}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .sidebar-tool-prompt-enable-info small{font-size:11px;color:var(--od-sub)}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch{box-sizing:border-box;display:inline-block;position:relative;flex:0 0 42px;width:42px;min-width:42px;height:34px;min-height:34px;max-height:34px;padding:0;border:0;border-radius:9px;background:transparent;font-size:0;cursor:pointer}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::before{content:"";position:absolute;top:6px;left:3px;width:36px;height:22px;border-radius:100px;background:var(--od-input-border);transition:background .15s}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::after{content:"";position:absolute;top:9px;left:6px;width:16px;height:16px;border-radius:50%;background:var(--od-paper);box-shadow:0 1px 3px #0003;transition:transform .15s}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch[aria-checked="true"]::before{background:var(--od-brand)}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch[aria-checked="true"]::after{transform:translateX(14px)}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch:disabled{cursor:not-allowed;opacity:.45}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
-#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] #sidebar-tool-prompt-native-action{font-size:0}
-@media(prefers-reduced-motion:reduce){#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::before,#sidebar-tool-settings-view[data-tool="prompt-shortcuts"] .ps-host-switch::after{transition:none}}
 
 /* R33.3.11 compact Add; keep a single workspace scroll owner. */
 .task-add-menu{min-width:0;margin:0 0 var(--space-3);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);gap:var(--space-3)}
@@ -1716,22 +1568,14 @@
   overflow:auto;padding:var(--space-2);border:1px solid var(--od-line);
   border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:11px}
 
-/* Cookie Editor: one trusted first-use action before the existing React iframe. */
-.sidebar-tool-cookie-permissions[hidden]{display:none!important}
-.sidebar-tool-cookie-permissions[data-mode="first-use"]{
-  display:flex;flex-direction:column;justify-content:center;gap:9px;
-  min-height:236px;padding:36px clamp(16px,6vw,28px);margin:0 0 8px;
-}
-.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-heading{
-  font-size:16px;line-height:1.4;font-weight:650;margin:0;
-}
-.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-help{
-  margin:0 0 8px;font-size:12px;line-height:1.65;max-width:40ch;
-}
-.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-first-use,
-.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-site-toggle{
-  width:100%;
-}
-.sidebar-tool-cookie-permissions[data-mode="first-use"] #sidebar-tool-cookie-site-toggle{
-  min-height:40px;max-width:360px;
+
+/* Workbench navigation and tool lifecycle actions follow the OS theme. */
+@media(prefers-color-scheme:dark){
+  .workbench-nav{--od-nav-active:#9dc1ff}
+  :root .workbench-nav{background:var(--od-paper)}
+  :root .workbench-nav button{color:var(--od-sub)}
+  :root .workbench-nav button[aria-selected=true]{color:var(--od-nav-active);border-bottom-color:var(--od-nav-active)}
+  :root .sidebar-tool-icon-action{color:var(--od-sub)}
+  :root .sidebar-tool-icon-action:hover:not(:disabled){background:var(--od-muted)}
+  :root #sidebar-tool-remove:hover:not(:disabled){background:var(--od-negative-bg);color:var(--od-negative)}
 }

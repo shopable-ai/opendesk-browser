@@ -1,5 +1,54 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 当前核心开发状态与扩展测试入口（2026-10-28）
+
+**六页 React 界面已接入同一应用，但业务完成度不同。** 本轮仍为仅 dev 阶段：本对话没有主动运行构建、打包、晋升或安装。下面的当前状态优先于后文历史版本记录。
+
+### 源码在哪里
+
+- 正式应用：[`app/CookieEditorApp.jsx`](app/CookieEditorApp.jsx)；账号：[`app/components/CookieAccounts.jsx`](app/components/CookieAccounts.jsx)；分享配置与本地市场：[`app/components/CookieAccountExperiences.jsx`](app/components/CookieAccountExperiences.jsx)；企业、定制、圈子：[`app/components/CookieBusinessPanels.jsx`](app/components/CookieBusinessPanels.jsx)。
+- Cookie 业务仍由 `app/controller/cookie-controller.js` 和 `app/adapters/browser-sdk.js` 调用原 SDK / Host / Authority；样式是 `src/react.css`。
+- 正式入口 [`app/entries/official.jsx`](app/entries/official.jsx) 通过 `OpenDeskTool.root/request/setState` 在工具 Sandbox 中挂载同一 App。这是 OpenDesk 扩展运行的 Sidebar App 源码，**不挂到可信宿主 `src/ui/react/`**。
+- 网页 dev 入口 `preview/react/src/App.jsx` 也导入同一 App，但使用 `mock-sdk.js`。可访问 [当前源码预览](http://127.0.0.1:43134/dev.html)、[A/B 入口](http://127.0.0.1:43134/a-b-dev.html) 与 [来源回执](http://127.0.0.1:43134/dev-source.json)。预览不读写真实 Cookie；日常 Chrome 注入真实 SDK 时继续拒绝混用。固定 Shared UI 产物只读复用，`sourceBuildProof=false`。
+
+### 六页的功能与证据边界
+
+| 页面 | 已实现的操作 | 本轮证据与尚未完成 |
+| --- | --- | --- |
+| Cookie | 列表、搜索、原位编辑、有效期、导入导出、安全清理；已有正式 Controller / SDK 接线 | 旧安装 2.0.39 在 localhost 读取列表→打开新建→取消通过，未写 Cookie；历史原生读写仅证明对应旧包。最新源码的原生操作仍 `NOT_TESTED`。 |
+| 账号 | 新建、重命名及草稿保护；切换、更新、删除、锁定和 URL 自动切换已有 Host 接线，后台能力以 `autoRuntimeReady` 为准 | 当前 React + Mock 验证新建/重命名、保存失败保留表单、继续编辑与焦点恢复。最新原生仓库操作、授权范围及后台切换仍 `NOT_TESTED`；邀请分享只有配置演示，真实服务未上线。 |
+| 企业 | 场景说明、资源展示、进入定制 | 当前 Mock 显示明确标注的虚构席位/预算；正式入口无数据时显示未接入。真实企业、席位、用量与预算接口未接。 |
+| 市场 | 本地功能目录、搜索/分类及账号管理、切换设置、Expiration 体验入口 | 当前 Mock 搜索→切换设置通过，其他入口保留前轮限定证据；不提供在线资源市场、交易或账号共享。Expiration 只打开未保存编辑区。 |
+| 定制 | 场景→需求摘要→公开剪贴板 SDK；同一 App 内跨 Tab 保留 | 当前 Mock 复制失败会保留摘要并提示手动复制，跨页保留通过；前轮模拟成功有独立证据。真实剪贴板 Host 仍 `NOT_TESTED`；商务联系方式未配置，不自动发送/建单，刷新或关闭不承诺持久化。 |
+| 圈子 | Telegram / Discord / 微信入口展开、切换与收起 | 当前 Mock 复核 Telegram→Discord，前轮覆盖三个入口。真实邀请/联系方式均待公布；尚不能实际加入社群。 |
+
+本轮修复一处实际缺陷：账号名称有草稿时，尝试换 Tab 后选择“继续编辑”，原先只聚焦账号 Tab；现在等待确认关闭、输入恢复可用后聚焦原名称框。空站点保存返回 `E_ACCOUNT_EMPTY` 时，错误和输入保持，Escape 继续编辑及明确放弃后的入口焦点均正常。未修改 Host、权限或回执判断。
+
+### 当前浏览器与产物差异
+
+- 日常 Chrome 实读加载目录为本仓库 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。可信“调试→本地开发服务”显示已连接，观察时构建指纹 `eaf8465eab7e`；不是 production 验收包。未重启 watcher 或浏览器。
+- “扩展→Cookie Editor→管理→查看详情”实读安装版本 **2.0.39**，SHA-256 `892887021f7135301bf40e171197f1352923e7339b4fd71489bcb1ee0e0c5202`，与目录唯一正式 JSON 一致。
+- 当前 `tool.config.json` / `package.json` 为 **2.0.40**。开始时编译回执 buildId 为 `8c46f8ec436b945e660301bcc2df7a184e9c972fb40e3cd18632a7b68cdc2a74`；收尾只读复核时已更新为 `2320a1eb496fb2424454de548eb81f8daa9e8c62177c2ba05f46f36dc4d41a6a`，20 个来源和 2 个产物哈希均匹配，包含本轮焦点修复。本对话未调用编译命令，未核实此次产物更新的执行者；可复用匹配产物，不据此重复构建。唯一正式 JSON 和实际安装仍为 2.0.39，尚未包含新源码。
+- 扩展 dev watcher 更新的是 Browser；它不会自动替换已安装的 Sidebar App。**现在可以测试旧 2.0.39 的 Cookie 入口；最新六页和账号改动尚不能当作已在扩展中运行。**
+
+### 进入最新源码扩展测试的后续步骤（打包及安装尚未执行）
+
+1. 在原工具目录确认源码与产物 writer，复核并复用当前匹配的 `dist/tool.js`、`dist/tool.css` 和 `dist/build-ready.json`；只有后续源码变化使回执失配时，才按原 `node scripts/build-cookie-editor-react.mjs` 编译。不运行第二个 Browser dev/build 覆盖共享输出。
+2. 进入原打包 Skill，用 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --out artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json` 生成临时候选，执行与变更相关的来源、包身份、账号/草稿及安全门禁。候选成功不等于安装成功。
+3. 门禁通过后按同一打包器 `--promote-from`、`--check-project` 晋升唯一正式 JSON，并按项目合同与源码一起安全保存到 `main`。官方 Catalog 固定读取该正式包；需由现有开发资源流程同步并确认运行中的官方目录识别新版本，不能直接改 Catalog、安装记录或拿未晋升候选冒充官方身份。
+4. 从“扩展→Cookie Editor→管理”走同 ID 更新的原审阅链，核对版本、包摘要、能力及必要授权；保留原数据，不先卸载。重新打开后再次核对实际安装身份。
+5. 只在 `http://127.0.0.1:43111/demo-form.html` 使用虚构测试 Cookie，先验证读取→新建/保存/回读，再验证账号保存/重命名/切换、定制复制及新页面跳转。真实服务未接的功能继续报告缺口，不以 Mock 成功替代。无需恢复 production、全量矩阵或评分。
+
+若只需继续 UI 调试，复用当前 Vite 即可；Native Workspace 的既有只读预览也不继承安装权限，不能替代 Cookie/账号 Host 测试。本对话遵守此前“仅 dev、不构建、不打包、不晋升、不安装”的边界，后续打包、晋升与更新步骤保留为下一阶段。
+
+本轮证据：本机 `artifacts/cookie-editor-r37-dev/extension-readiness-20261028/`（`results.json`、来源回执、扩展旧版入口和账号焦点截图）；前轮其他核心操作在 `artifacts/cookie-editor-r37-dev/other-pages/results.json`，仅适用于它记录的快照。新增定向源码检查 2 项通过；未运行全量测试。认可 HTML Blob `020adbf22005cba219af4ff27cd3f3e492978bed` 保持不变。
+
+## 样式归属（2026-10-28）
+
+应用主题、`--od-cookie-*` 色板与 `cookie-button--*` 专用变体保存在 `src/react.css` 的 `@scope (.cookie-editor-react)` 内，继续复用公共 `od-*` 控件。Cookie 权限界面的可信样式由本目录 `trusted/host.css` 持有，通过原可信 React 根固定引入；通用设计文件不再携带 Cookie 业务规则。
+
+本次为源码拆分，浅深色与控件状态已进行浏览器计算样式对比。正式 JSON 保持原发行身份；源码迭代完成不表示已晋升或更新现有安装。
+
 ## 同版本发行身份漂移修复（2026-10-26）
 
 Chrome for Testing 155 的已安装 2.0.39 摘要为 `892887021f7135301bf40e171197f1352923e7339b4fd71489bcb1ee0e0c5202`，但持续开发内置目录从当前共享 CSS 重新打包出同版本 `bd4767d5c94feb35f48083c9dbe4368f47e8a3f691ca0a5325ed910dc3e1efa8`。版本相同导致没有更新入口，可信 Host 的精确来源校验因此拒绝一键导出。

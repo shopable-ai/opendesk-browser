@@ -7,12 +7,14 @@ import {compareCookieExpiration,localExpirationText} from '../domain/cookie-expi
 // preview adapter and a reviewed trusted adapter. Never read Cookie values,
 // installed package HTML/JS or privileged browser transport in this module.
 const shapes={
+  users:<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+  clock:<><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>,
   globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></>,
   refresh:<><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></>,
   search:<><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></>,
-  filter:<path d="M4 6h16M7 12h10m-7 6h4"/>,
-  download:<path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4"/>,
-  upload:<path d="M12 21V9m-4 4 4-4 4 4M4 3v4h16V3"/>,
+  filter:<path d="M4 7h16M7 12h10M10 17h4"/>,
+  download:<path d="M12 4v15m-5-5 5 5 5-5M4 20v2h16v-2"/>,
+  upload:<path d="M12 20V5m-5 5 5-5 5 5M4 4V2h16v2"/>,
   plus:<path d="M12 5v14M5 12h14"/>,
   trash:<><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13"/></>,
   close:<path d="M6 6l12 12M18 6 6 18"/>,
@@ -20,9 +22,13 @@ const shapes={
   check:<path d="m5 12 5 5L20 7"/>,
   more:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
   chevron:<path d="m7 10 5 5 5-5"/>,
+  right:<path d="m9 18 6-6-6-6"/>,
   eye:<><path d="M2 12s3.4-6.5 10-6.5S22 12 22 12s-3.4 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
   copy:<><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h2"/></>,
-  settings:<><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></>,
+  settings:<><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></>,
+  edit:<path d="M15 5l4 4M4 20l4-.7L20 7a2 2 0 0 0-4-4L4 15v5z"/>,
+  link:<path d="M10 13a5 5 0 0 0 7 .5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>,
+  share:<><circle cx="18" cy="5" r="3"/><circle cx="5" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8 11 7-5M8 13l7 5"/></>,
   lock:<><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></>,
   eyeoff:<><path d="m3 3 18 18"/><path d="M9.8 5.7A10 10 0 0 1 12 5.5c6.6 0 10 6.5 10 6.5a13 13 0 0 1-3.4 4"/><path d="M6.5 6.5C3.5 8.4 2 12 2 12s3.4 6.5 10 6.5a10 10 0 0 0 4-.8"/></>
 };
@@ -54,6 +60,7 @@ export function CookieFormField({label,children,className=''}) {
 // value editor as a username/password form. Never use a password-type input here.
 export function CookieValueField({inputRef,inputValue,onChange,disabled=false,
   placeholder='',maxLength=4096,invalid=false,describedBy,showClear=false,onClear}){
+  const hintId=React.useId();
   // Input label cannot wrap both a text box and a clear button.
   // Raw Cookie values never enter presentation state.
   return <div className="field cookie-editor-value-field">
@@ -61,7 +68,7 @@ export function CookieValueField({inputRef,inputValue,onChange,disabled=false,
     <div className="cookie-value-inline value-input">
       <input id="opendesk-cookie-attribute-data" name="opendesk-cookie-attribute-data"
         aria-label="Cookie 值" aria-invalid={invalid||undefined}
-        aria-describedby={describedBy} className="od-field"
+        aria-describedby={[describedBy,hintId].filter(Boolean).join(' ')} className="od-field"
         ref={inputRef} type="text" autoComplete="off" autoCapitalize="off"
         autoCorrect="off" spellCheck={false}
         data-cookie-secret-input="true" maxLength={maxLength}
@@ -70,6 +77,7 @@ export function CookieValueField({inputRef,inputValue,onChange,disabled=false,
       {showClear&&!disabled&&typeof onClear==='function'&&
         <Action name="close" label="清空值" className="cookie-value-clear" onClick={onClear}/>}
     </div>
+    <span className="cookie-value-note" id={hintId}>修改将在点击保存后生效。</span>
   </div>;
 }
 // Pure presentation of the approved Preview IO controls. Both simulated
@@ -109,7 +117,7 @@ export function CookieExportFormatRow({format='json',onFormat,includeValues=true
       aria-label="导出格式" onKeyDown={changeFromKeys}>
       {[['json','JSON',jsonId],['header','Cookie Header',headerId]].map(([key,label,id])=>
         <button key={key} id={id} data-export-format={key} type="button" role="tab"
-          className={'od-button '+(format===key?'od-button--secondary':'od-button--quiet')}
+          className="od-button cookie-button--choice"
           aria-selected={format===key} aria-controls={panelId} tabIndex={format===key?0:-1}
           disabled={disabled} onClick={()=>onFormat?.(key)}>{label}</button>)}
     </div>
@@ -121,17 +129,17 @@ export function CookieExportFormatRow({format='json',onFormat,includeValues=true
 }
 export function CookieExportActions({onCopy,onDownload,disabled=false,downloadLabel='下载'}){
   return <div className="export-actions cookie-export-actions">
-    <button type="button" className="text-btn od-button od-button--secondary"
-      disabled={disabled} onClick={onCopy}><CookieIcon name="copy"/>复制</button>
-    <button type="button" className="text-btn primary od-button od-button--primary"
-      disabled={disabled} onClick={onDownload}><CookieIcon name="download"/>{downloadLabel}</button>
+    <button type="button" className="text-btn od-button od-button--secondary cookie-button--compact"
+      disabled={disabled} onClick={onCopy}><CookieIcon name="copy"/>{' '}复制</button>
+    <button type="button" className="text-btn primary od-button od-button--primary cookie-button--compact"
+      disabled={disabled} onClick={onDownload}><CookieIcon name="download"/>{' '}{downloadLabel}</button>
   </div>;
 }
 // Compact, visible Expiration choice. Domain/Controller own actual Cookie rules;
 // mode selection only converts safe UI input into existing session/expiration draft.
 export function CookieExpirationField({draft,disabled=false,onChange=()=>{},error=''}) {
   const [mode,setMode]=React.useState(()=>draft.session?'session':'date');
-  const [duration,setDuration]=React.useState('1d');
+  const [duration,setDuration]=React.useState('7d');
   const durations=React.useMemo(()=>[
     ['1h','1 小时',3600],['1d','1 天',86400],
     ['7d','7 天',604800],['30d','30 天',2592000]
@@ -150,7 +158,7 @@ export function CookieExpirationField({draft,disabled=false,onChange=()=>{},erro
   };
   return <section className="cookie-expiration-compact" aria-label="有效期设置">
     <label className="cookie-expiration-mode">
-      <span>有效期 · Expiration</span>
+      <span>有效期<small>Expiration</small></span>
       <select className="od-field" aria-label="有效期方式" value={mode}
         disabled={disabled} onChange={event=>changeMode(event.target.value)}>
         <option value="session">会话（Session）</option>
@@ -159,22 +167,22 @@ export function CookieExpirationField({draft,disabled=false,onChange=()=>{},erro
       </select>
     </label>
     {mode==='session'?<p className="editor-timezone" role="status">
-      会话 Cookie · 不设置固定到期时间，结束时机由浏览器管理。
+      按浏览器会话管理，不设置固定到期日。
     </p>:mode==='date'?<label className="cookie-expiration-date">
-      <span>到期日期和时间（本地）</span>
+      <span>到期日期和时间（本机时区）</span>
       <input className="od-field" type="datetime-local" step="1"
         aria-label="过期时间（Expiration，本地时间）"
         aria-invalid={/过期时间|本地时间|夏令时/.test(error)||undefined}
         value={draft.expiration||''} disabled={disabled}
         onChange={event=>onChange('expiration',event.target.value)}/>
-      <small>保存为 Unix 秒；夏令时不合法或重复时间会被拒绝。</small>
+      <small>到期时间：{draft.expiration?new Date(draft.expiration).toLocaleString('zh-CN'):'—'}（本机时间）</small>
     </label>:<label className="cookie-expiration-duration">
-      <span>保存后有效期</span>
+      <span>从保存时刻起</span>
       <select className="od-field" aria-label="有效时长" value={duration}
         disabled={disabled} onChange={event=>chooseDuration(event.target.value)}>
         {durations.map(([value,label])=><option key={value} value={value}>{label}</option>)}
       </select>
-      <small>预计到期：{draft.expiration?draft.expiration.replace('T',' '):'—'}（本地）</small>
+      <small>保存后预计到期：{draft.expiration?new Date(draft.expiration).toLocaleString('zh-CN'):'—'}（本机时间）</small>
     </label>}
   </section>;
 }
@@ -183,9 +191,9 @@ export function CookieExpirationField({draft,disabled=false,onChange=()=>{},erro
 // solely with the caller's Domain/Controller, never inside presentation.
 export function CookieAdvancedFields({draft,existing=false,disabled=false,onChange=()=>{},
   advancedOpen,onAdvancedToggle,error=''}){
-  return <details className="advanced cookie-editor-details od-disclosure"
+  return <details className="advanced cookie-editor-details"
     open={advancedOpen} onToggle={onAdvancedToggle}>
-    <summary>属性</summary>
+    <summary>其他属性 / 存储信息</summary>
     <div className="advanced-body">
       <div className="pair">
         <CookieFormField label="Domain">
@@ -210,18 +218,21 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
       </CookieFormField>
       <div className="toggles-row">
         <div className="toggles">
-          <label title="仅当前主机"><input type="checkbox"
-            checked={draft.hostOnly===true} disabled={existing||disabled}
+          {!existing&&<label title="仅当前主机"><input type="checkbox"
+            checked={draft.hostOnly===true} disabled={disabled}
             onChange={e=>onChange('hostOnly',e.target.checked)}/> Host-only</label>
+          }
           <label><input type="checkbox" checked={draft.secure===true}
             disabled={disabled} onChange={e=>onChange('secure',e.target.checked)}/> Secure</label>
           <label><input type="checkbox" checked={draft.httpOnly===true}
             disabled={disabled} onChange={e=>onChange('httpOnly',e.target.checked)}/> HttpOnly</label>
         </div>
       </div>
+      <p className="cookie-attribute-note">Session 不保存固定到期日；指定日期或相对时长会保存 expirationDate（Unix 秒，可在 JSON 中查看）。</p>
       {existing&&<details className="editor-identity">
         <summary>存储信息</summary>
         <div className="editor-identity-fields">
+          <div><span>Host-only</span><code>{draft.hostOnly?'是（仅当前主机）':'否（跨子域）'}</code></div>
           <div><span>Store ID</span><code>{draft.storeId??'默认'}</code></div>
           <div><span>PartitionKey</span><code>{draft.partitionKey?JSON.stringify(draft.partitionKey):'—'}</code></div>
         </div>
@@ -236,7 +247,7 @@ export function CookieSiteBar({site,loading=false,readonly=false,busy=false,gran
     {loading&&<span className="site-status muted">读取中</span>}
     {readonly&&<span className="site-status limited">只读</span>}
     {syncStale&&<span className="site-status limited" title="自动同步暂不可用">未同步</span>}
-    <Action name="refresh" label="刷新 Cookie" appearance="quiet" onClick={onRefresh}
+    <Action name="refresh" label="重新读取 Cookie" appearance="quiet" onClick={onRefresh}
       disabled={busy||!granted||typeof onRefresh!=='function'}/>
   </header>;
 }
@@ -273,11 +284,11 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
   return <div className="list-toolbar">
     <strong>Cookie <span>{count}</span></strong>
     <div className="toolbar-actions">
-      <Action name="upload" label="导入 Cookie" appearance="quiet" onClick={onImport}
+      <Action name="download" label="导入 Cookie" appearance="quiet" onClick={onImport}
         haspopup="dialog" expanded={importOpen}
         controls={importOpen?"cookie-import-drawer":undefined}
         disabled={busy||importOpen||readonly||typeof onImport!=='function'}/>
-      <Action name="download" label="导出 Cookie" appearance="quiet" onClick={onExport}
+      <Action name="upload" label="导出 Cookie" appearance="quiet" onClick={onExport}
         buttonRef={exportButton} haspopup="dialog" expanded={exportOpen}
         controls={exportOpen?exportPopupId:undefined}
         disabled={busy||typeof onExport!=='function'}/>
@@ -294,7 +305,7 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
 }
 export function CookieSearch({
   query='',onQuery=()=>{},expandedFilters=false,onToggleFilters=()=>{},
-  filter='all',onFilter=()=>{},sort='name',onSort=()=>{}
+  filter='all',onFilter=()=>{},sort='source',onSort=()=>{}
 }){
   const searchRef=React.useRef(null);
   return <>
@@ -313,11 +324,12 @@ export function CookieSearch({
       <div className="filter-chips">
         {[['all','全部'],['secure','Secure'],['httpOnly','HttpOnly'],
           ['session','会话'],['partitioned','分区']].map(([key,label])=>
-          <button key={key} type="button" className={'chip od-button '+(filter===key?'selected':'od-button--secondary')}
+          <button key={key} type="button" className="chip od-button cookie-button--choice"
             onClick={()=>onFilter(key)} aria-pressed={filter===key}>{label}</button>)}
       </div>
-      <label className="sort-field">排序
-        <select className="od-field" value={sort} onChange={e=>onSort(e.target.value)}>
+      <label className="sort-field" title="排序">
+        <select className="od-field" aria-label="Cookie 排序" value={sort} onChange={e=>onSort(e.target.value)}>
+          <option value="source">原始顺序</option>
           <option value="name">名称</option><option value="domain">域名</option>
           <option value="path">路径</option><option value="expiration">过期时间</option>
         </select>
@@ -327,11 +339,11 @@ export function CookieSearch({
 }
 // Session Cookies have no absolute expiration; presentation reads only redacted metadata.
 export function cookieRowExpiryLabel(row,nowSeconds=Date.now()/1000){
-  if(row.session===true)return '会话';
+  if(row.session===true)return '会话 · 结束时间由浏览器决定';
   if(!Number.isFinite(row.expirationDate))return '到期时间未知';
   if(row.expirationDate<=nowSeconds)return '已过期';
   const local=localExpirationText(row.expirationDate);
-  return local?'到期 '+local.slice(0,16).replace('T',' '):'到期时间未知';
+  return local?'到期 '+local.slice(5,16).replace('-','/').replace('T',' '):'到期时间未知';
 }
 export function CookieRows({
   rows=[],totalCount=rows.length,selected=null,onSelect=()=>{},
@@ -350,7 +362,7 @@ export function CookieRows({
         ...(row.hostOnly===false?['跨子域']:[])
       ].filter(Boolean);
       return <article key={row.id} className={'cookie-row '+(selected===row.id?'expanded':'')}>
-        <button className="row-trigger od-button od-button--quiet" data-row={row.id} type="button"
+        <button className="row-trigger" data-row={row.id} type="button"
           aria-expanded={selected===row.id} aria-controls={idPrefix+row.id}
           onClick={()=>onSelect(row.id)}>
           <span className="row-text"><strong>{row.name}</strong>
@@ -381,7 +393,7 @@ export function CookieRows({
 }
 export function CookieEditorView({
   site,rows=[],selected=null,onSelect=()=>{},onRefresh,syncStale=false,
-  query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='name',
+  query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='source',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,exportOpen=false,
   exportContent=null,onCloseExport,importOpen=false,
@@ -391,7 +403,7 @@ export function CookieEditorView({
     String(value||'').toLowerCase().includes(query.toLowerCase()))&&
     (filter==='all'||(filter==='partitioned'?Boolean(row.partitionKey):
       filter==='session'?Boolean(row.session):Boolean(row[filter])));
-  const visible=rows.filter(matching).sort((a,b)=>sort==='name'
+  const visible=rows.filter(matching).sort((a,b)=>sort==='source'?0:sort==='name'
     ?a.name.localeCompare(b.name):sort==='domain'
       ?a.domain.localeCompare(b.domain):sort==='path'
         ?a.path.localeCompare(b.path):compareCookieExpiration(a,b));

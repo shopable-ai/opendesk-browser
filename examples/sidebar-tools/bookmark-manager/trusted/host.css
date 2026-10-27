@@ -1,0 +1,17 @@
+/* Fixed trusted bookmark-manager host UI; never loaded from installed tool bytes. */
+.sidebar-tool-bookmark-permissions{
+  display:grid;gap:10px;min-width:0;padding:12px;
+  border:1px solid var(--od-line);border-radius:var(--radius-control);
+  background:var(--od-paper)
+}
+.sidebar-tool-bookmark-intro{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.sidebar-tool-bookmark-icon{display:grid;place-items:center;flex:0 0 30px;height:30px;border-radius:9px;background:var(--od-muted);color:var(--od-sub)}
+.sidebar-tool-bookmark-icon svg{width:17px;height:17px}
+.sidebar-tool-bookmark-copy{min-width:0;display:grid;gap:5px}
+.sidebar-tool-bookmark-copy strong{font-size:12px;font-weight:700;line-height:1.4;color:var(--od-ink)}
+.sidebar-tool-bookmark-copy p{margin:0;min-width:0;font-size:11px;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
+#sidebar-tool-bookmark-grant{min-height:36px;width:100%;font-size:12px;white-space:normal}
+#sidebar-tool-bookmark-grant[aria-pressed="true"]{background:var(--od-paper);border-color:var(--od-line);color:var(--od-ink)}
+@media(max-width:360px){
+ .sidebar-tool-bookmark-permissions{padding:10px}
+}

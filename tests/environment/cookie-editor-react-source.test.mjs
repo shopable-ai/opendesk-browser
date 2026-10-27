@@ -126,7 +126,7 @@ test('advanced Cookie identities use shared-App JSX and remain read-only for exi
   assert.match(view,/readOnly=\{existing\}/);
   assert.match(view,/Store ID/);
   assert.match(view,/PartitionKey/);
-  assert.match(view,/<summary>属性<\/summary>/);
+  assert.match(view,/<summary>其他属性 \/ 存储信息<\/summary>/);
   assert.match(view,/editor-identity-fields/);
   assert.doesNotMatch(view,/设备本地时间；|Domain Cookie/);
   assert.match(editor,/<CookieAdvancedFields draft=\{draft\}/);

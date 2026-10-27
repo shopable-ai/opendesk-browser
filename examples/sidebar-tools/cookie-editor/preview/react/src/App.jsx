@@ -39,6 +39,7 @@ export default function App(){
    <div className="lab-controllers">
     <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}>
      <option value="accountsDemo">3 个虚构账号（默认）</option>
+     <option value="approvedParity">认可 HTML A/B 数据（保留分区身份）</option>
      <option value="accountsLocked">仓库锁定 / 首次使用</option>
      <option value="accountSwitchFail">账号切换失败</option>
      <option value="accountSwitchUnknown">账号切换结果未知</option>

@@ -18,17 +18,67 @@ function canonicalRule(css, selector) {
   if(!line || !line.endsWith('}')) throw Error('E_PREVIEW_DESIGN: missing official CSS rule '+selector);
   return line;
 }
+// Native @scope confines application skins to their own DOM subtree. Mask
+// comments/strings before matching braces so text cannot terminate that boundary.
+function withoutApplicationScopes(css) {
+  const chars=css.split('');
+  for(let i=0;i<css.length;i++){
+    if(css[i]==='/'&&css[i+1]==='*'){
+      const end=css.indexOf('*/',i+2);
+      if(end<0)throw Error('E_PREVIEW_DESIGN: unterminated CSS comment');
+      for(let j=i;j<end+2;j++)chars[j]=' ';
+      i=end+1;
+    }else if(css[i]==='"'||css[i]==="'"){
+      const quote=css[i],start=i;
+      for(i++;i<css.length&&css[i]!==quote;i++){
+        if(/[\n\r\f]/.test(css[i]))throw Error('E_PREVIEW_DESIGN: invalid CSS string newline');
+        if(css[i]==='\\'){
+          i++;
+          if(css[i]==='\r'&&css[i+1]==='\n')i++;
+        }
+      }
+      if(i>=css.length)throw Error('E_PREVIEW_DESIGN: unterminated CSS string');
+      for(let j=start;j<=i;j++)chars[j]=' ';
+    }
+  }
+  const masked=chars.join('');
+  const scope=/@scope\b/gi;
+  let match,previous=0,result='';
+  while((match=scope.exec(masked))){
+    const header=masked.slice(match.index).match(/^@scope\s*\(\s*\.([a-z][\w-]*)\s*\)\s*\{/i);
+    if(!header||/^od-/i.test(header[1]))
+      throw Error('E_PREVIEW_DESIGN: application scope requires its own root class');
+    const start=match.index+header[0].length;
+    let end=start,depth=1;
+    for(;end<masked.length&&depth;end++){
+      if(masked[end]==='{')depth++;
+      if(masked[end]==='}')depth--;
+    }
+    if(depth)throw Error('E_PREVIEW_DESIGN: unterminated application scope');
+    const body=masked.slice(start,end-1);
+    if(body.includes('\\')||/\b(?:url|(?:-webkit-)?image-set)\s*\(/i.test(body)||[...body.matchAll(/@([\w-]+)/g)].some(([,name])=>
+      !['media','supports','container','starting-style'].includes(name.toLowerCase())))
+      throw Error('E_PREVIEW_DESIGN: global at-rule inside application scope');
+    result+=css.slice(previous,match.index);
+    previous=end;
+    scope.lastIndex=end;
+  }
+  return result+css.slice(previous);
+}
 export function assertLayoutOnly(css) {
   if(!css.trimStart().startsWith(SHARED_DESIGN_MARKER))
     throw Error('E_PREVIEW_DESIGN: tool must explicitly opt in to shared design');
   const layout = css.trimStart().slice(SHARED_DESIGN_MARKER.length);
-  if(/@import\b|url\s*\(\s*['"]?\s*(?:https?:|\/\/)|#[0-9a-f]{3,8}\b|:root\s*\{|--(?:od-|space-|radius-)[a-z\d-]*\s*:/i.test(layout))
+  if(/@import\b|url\s*\(\s*['"]?\s*(?:https?:|\/\/|javascript:)/i.test(layout))
+    throw Error('E_PREVIEW_DESIGN: remote stylesheet or resource');
+  const unscoped=withoutApplicationScopes(layout);
+  if(/#[0-9a-f]{3,8}\b|:root\s*\{|--(?:od-|space-|radius-)[a-z\d-]*\s*:/i.test(unscoped))
     throw Error('E_PREVIEW_DESIGN: private design token, color or remote stylesheet');
-  if(/(?:^|[},])\s*(?:button|input|textarea|select|\.od-(?:button|icon-button|field))(?=[\s.:#\[{,]|\{)/m.test(layout))
+  if(/(?:^|[},])\s*(?:button|input|textarea|select|\.od-(?:button|icon-button|field))(?=[\s.:#\[{,]|\{)/m.test(unscoped))
     throw Error('E_PREVIEW_DESIGN: global or shared component appearance override');
-  // A tool may position an existing button but may not establish its own visual skin.
+  // Outside its application scope, a tool may position existing buttons but not skin them.
   // This deliberately distinguishes harmless layout (margin, flex, grid) from visual declarations.
-  for(const match of layout.matchAll(/([^{}]+)\{([^{}]*)\}/g)){
+  for(const match of unscoped.matchAll(/([^{}]+)\{([^{}]*)\}/g)){
     const selector=match[1],declarations=match[2];
     if(/(?:\.|#|\s)(?:[\w-]*button|[\w-]*btn)\b|\bbutton\b/i.test(selector)&&
       /(?:^|;)\s*(?:background(?:-color)?|border(?:-[\w-]+)?|color|font(?:-[\w-]+)?|box-shadow|padding(?:-[\w-]+)?|outline(?:-[\w-]+)?)\s*:/i.test(declarations))
@@ -75,15 +125,14 @@ export async function compileSharedToolCss(sourceCss) {
   const layout=assertLayoutOnly(sourceCss);
   const {tokens,components,publicRules,digest}=await officialDesignSources();
   const basic=baseSelectors.map(selector=>canonicalRule(components,selector)).join('\n');
-  const focus=components.split('\n').find(line=>line.startsWith(':focus-visible,#workspace-content :focus-visible{'));
+  const focus=components.split('\n').find(line=>line.startsWith(':focus-visible{'));
   if(!focus)throw Error('E_PREVIEW_DESIGN: missing canonical focus rule');
-  const scopedFocus=focus.replace(',#workspace-content :focus-visible','');
   const schemeSource=components.match(/@media\(prefers-color-scheme:dark\)\{\s*:root\{color-scheme:dark\}/);
   if(!schemeSource)throw Error('E_PREVIEW_DESIGN: missing canonical dark color scheme');
   // The sandbox contains its own document. Only approved, non-privileged visuals
   // are copied; host navigation, workspace and page scroll styles are excluded.
   return '/* opendesk.shared-design.v1 sha256='+digest+'; GENERATED from canonical CSS */\n'+
-    tokens+'\n'+basic+'\n'+scopedFocus+'\n'+schemeSource[0]+'}'+'\n'+publicRules+'\n'+layout;
+    tokens+'\n'+basic+'\n'+focus+'\n'+schemeSource[0]+'}'+'\n'+publicRules+'\n'+layout;
 }
 export async function canonicalThemeOverride(theme) {
   if(!['light','dark'].includes(theme))throw Error('E_PREVIEW_THEME: unsupported theme');

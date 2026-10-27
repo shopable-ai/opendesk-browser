@@ -226,8 +226,8 @@ test('R1.5 trusted permission elements are owned by the real React tool host',as
   }
   assert.doesNotMatch(html,/id="time-review-permission-settings"/,
     'legacy HTML must not duplicate the React-owned trusted controls');
-  const css=await readFile('src/ui/tool-shell.css','utf8');
-  assert.match(css,/\.time-review-trusted-actions\[hidden\]\{display:none!important\}/);
+  const css=await readFile('src/ui/react/components/trusted-settings.css','utf8');
+  assert.match(css,/\.od-trusted-settings-actions\[hidden\]\{display:none!important\}/);
 });
 
 test('R1.5 missing trusted HTML fails closed only for Time Review, not unrelated tools',()=>{

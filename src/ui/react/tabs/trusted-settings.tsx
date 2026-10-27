@@ -8,7 +8,7 @@ export {AiAccessSettings} from '../../../../examples/sidebar-tools/ai-vip-share/
 export function TimeReviewSettings({model,actions}){
   const ref=useSettingsEffect(model);
   if(!model)return null;
-  return <section id="time-review-permission-settings" className="time-review-trusted-actions" aria-label="时间回顾采集权限" hidden={!model.visible} ref={ref}>
+  return <section id="time-review-permission-settings" className="od-trusted-settings-actions" aria-label="时间回顾采集权限" hidden={!model.visible} ref={ref}>
 <p>
 {"首次安装默认准备记录；明确批准网站统计范围并授予 Chrome 空闲检测权限后自动开始，无需再次点击开始。仅记录前台非空闲网页的域名和时长，默认只保存在本机。"}
 </p>
@@ -24,7 +24,7 @@ export function TimeReviewSettings({model,actions}){
 <button onClick={event=>actions?.['time-review-site-current-open']?.(event.nativeEvent)} disabled={model.busy} hidden={model.currentGrantHidden} id="time-review-site-current-open" type="button" className="od-button od-button--secondary">
 {"授权当前网站…"}
 </button>
-<section id="time-review-site-confirm" className="time-review-inline-clear-review" aria-label="确认当前网站统计权限" hidden={!model.siteReview}>
+<section id="time-review-site-confirm" className="od-trusted-settings-review" aria-label="确认当前网站统计权限" hidden={!model.siteReview}>
 <p id="time-review-site-confirm-text">{model.confirmText}</p>
 <button onClick={event=>actions?.['time-review-site-current-approve']?.(event.nativeEvent)} disabled={model.busy} id="time-review-site-current-approve" type="button" className="od-button od-button--secondary">
 {"确认授权该网站"}
@@ -37,7 +37,7 @@ export function TimeReviewSettings({model,actions}){
 <button onClick={event=>actions?.['time-review-site-all-open']?.(event.nativeEvent)} disabled={model.busy} hidden={model.allGrantHidden} id="time-review-site-all-open" type="button" className="od-button od-button--secondary">
 {"授权全部普通网站…"}
 </button>
-<section id="time-review-site-all-confirm" className="time-review-inline-clear-review" aria-label="确认全部网站统计权限" hidden={!model.allReview}>
+<section id="time-review-site-all-confirm" className="od-trusted-settings-review" aria-label="确认全部网站统计权限" hidden={!model.allReview}>
 <p>
 {"确认允许 Time Review 统计全部普通 HTTP(S) 网站（不含浏览器内部与隐身页面）？该授权独立于主扩展权限。"}
 </p>
@@ -64,7 +64,7 @@ export function TimeReviewSettings({model,actions}){
 <button onClick={event=>actions?.['time-review-clear-open']?.(event.nativeEvent)} disabled={model.busy} id="time-review-clear-open" type="button" className="od-button od-button--secondary">
 {"清空时间统计…"}
 </button>
-<section id="time-review-inline-clear-review" className="time-review-inline-clear-review" aria-label="确认清空时间统计" hidden={!model.clearReview}>
+<section id="time-review-inline-clear-review" className="od-trusted-settings-review" aria-label="确认清空时间统计" hidden={!model.clearReview}>
 <p>
 {"确定清空所有本机时间统计？请先导出备份，清空后无法恢复。"}
 </p>
@@ -85,7 +85,7 @@ export function TimeReviewSettings({model,actions}){
 <button onClick={event=>actions?.['time-review-minute-disable']?.(event.nativeEvent)} disabled={model.busy} id="time-review-minute-disable" type="button" className="od-button od-button--secondary">
 {"关闭并删除分钟明细…"}
 </button>
-<section id="time-review-minute-delete-review" className="time-review-inline-clear-review" aria-label="确认删除分钟明细" hidden={!model.minuteReview}>
+<section id="time-review-minute-delete-review" className="od-trusted-settings-review" aria-label="确认删除分钟明细" hidden={!model.minuteReview}>
 <p>
 {"确定关闭未来分钟采集并永久删除已有分钟明细？日汇总和分类保持不变。"}
 </p>

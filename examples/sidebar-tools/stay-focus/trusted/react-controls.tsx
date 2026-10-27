@@ -38,7 +38,7 @@ export function StayFocusSettings({model,actions}){
   const phase=model.phase||'checking';
   const needsStart=['first','reauthorize','needs-permission','stopped'].includes(phase);
   const running=phase==='active'||phase==='unverified';
-  return <section id="stay-focus-trusted-settings" className="time-review-trusted-actions"
+  return <section id="stay-focus-trusted-settings" className="od-trusted-settings-actions"
     hidden={!model.visible} ref={ref} aria-label="Stay Focus 可信运行状态">
     <p id="stay-focus-native-status" role="status" aria-live="polite">{model.statusText||'正在核对 Chrome 状态…'}</p>
     {needsStart&&<p className="od-note">{model.intro}</p>}
@@ -61,7 +61,7 @@ export function StayFocusSettings({model,actions}){
         disabled={model.busy} onClick={event=>actions?.openClear(event.nativeEvent)}>
         清空所有设置与记录…
       </button>
-      <section id="stay-focus-clear-confirm" className="time-review-inline-clear-review"
+      <section id="stay-focus-clear-confirm" className="od-trusted-settings-review"
         hidden={!model.clearReview}>
         <p>确认删除 Stay Focus 网站清单、额度与使用记录？此操作不影响 Time Review。</p>
         <button type="button" id="stay-focus-clear-approve"
