@@ -1,6 +1,6 @@
 # 应用市场 R6.9.4 · 真实安装、卸载与状态收敛
 
-2026-10-27；owner：Codex `01a17dc5-0bdc-7e03-8d36-6006d2418217`。当前结果：**核心闭环 BLOCKED_PENDING_PERMISSION**，不可宣称完整 PASS。真实安装、卸载、刷新、重装已经完成；实际书签读取／搜索尚未授权和验证。
+2026-10-27；owner：Codex `01a17dc5-0bdc-7e03-8d36-6006d2418217`。当前结果：**开发市场本地核心闭环 PASS**。真实安装、卸载、刷新、重装以及实际书签读取／搜索均已完成；首次敏感权限由用户单独确认后在 Chrome 原生弹窗允许。正式公开发布和完整95分验收不因此变为 PASS。
 
 ## 范围与源码身份
 
@@ -38,17 +38,27 @@
 | --- | --- | --- |
 | 核对已启用扩展、真实加载路径和连接 | PASS | `01-loaded-extension-details.txt`、`02-market-ready.txt` |
 | 网页点击安装，原 Side Panel 可信审阅一次确认 | PASS | `03-install-handoff.txt`、`04-trusted-review.txt`、`05-install-confirmed.txt` |
-| 成功 Sheet 点击打开使用 | ToolHost 路由 PASS；读取 BLOCKED | `06-direct-open.txt`，进入书签工具自己的权限设置，未进入 ExtensionDetail |
+| 成功 Sheet 点击打开使用 | ToolHost 路由 PASS；首次缺权限（后续已授权） | `06-direct-open.txt`，进入书签工具自己的权限设置，未进入 ExtensionDetail |
 | 停用目标扩展并重新连接，保留旧副本启用 | PASS | `08-disabled-connection.txt`：`E_NO_RECEIVER`，明确目标新 ID；随后恢复启用 |
 | 原 Side Panel 卸载本次测试书签应用 | PASS | `10-uninstall-review.txt`、`11-uninstalled-list.txt`：读回卸载，列表5→4 |
 | 网页刷新，无旧已安装声明、无自动审阅 | PASS | `12-refreshed-after-uninstall.txt` |
 | 再次显式安装、原审阅一次确认 | PASS | `14-reinstalled.txt` |
 | 固定身份、版本、来源及摘要 | PASS | `15-installed-identity.txt`：opendesk/bookmark-manager 0.3.13，89,315 B，SHA `7267020eb9f6a8458558a857dc4ae1d9fbbcbdf7d74812a83fb84e713c305ed9` |
-| 重装后打开、权限未自动授予 | 路由与权限保护 PASS；读/搜索 NOT_TESTED | `16-reinstalled-open-awaiting-permission.txt` |
+| 重装后打开、权限未自动授予 | 路由与权限保护 PASS；读/搜索见后续证据 | `16-reinstalled-open-awaiting-permission.txt` |
+| 用户确认授权后真实读取和搜索 | PASS | `18-bookmark-permission-granted.txt`、`20-bookmark-permission-recheck.txt`、`21-bookmark-search.txt` |
 
 安装与卸载均使用浏览器内部原链路，没有安装或配对额外桌面客户端／Native Host。机器已有其他会话的 Native 服务，未操作；不声称整机不存在这些进程。只卸载本轮新 ID 下的测试工具，不删除原用户书签或旧扩展数据。
 
-当前书签工具需要独立 Chrome 完整书签权限，授权也可编辑、移动、删除全部书签。安装后授权开关保持0，符合不能自动授予的边界。已通过异步问题向用户请求在此测试 Profile 授权并仅做读取/搜索；答复仍待确认。不能借旧扩展已获授权来替代当前候选，也不能自动扩大权限。
+当前书签工具需要独立 Chrome 完整书签权限，授权也可编辑、移动、删除全部书签。安装后授权开关保持0，符合不能自动授予的边界。用户随后明确答复“授权此测试 Profile，继续只读验收”；在同一 Profile、同一新ID的原工具设置发起授权，并在 Chrome 原生“读取和更改您的书签”弹窗允许。授权开关读回1，随后原工具完成SDK检查并读取3个根/目录节点，搜索“书签栏”得到1/1结果；未新增、编辑、移动或删除任何书签，没有借用旧扩展权限。
+
+## 用户确认后的最小续跑
+
+- 用户明确批准测试 Profile 的完整书签权限，继续只读验收；没有再次索取同一确认。
+- `17-bookmark-permission-request.txt`：原生权限弹窗明确“读取和更改您的书签”。
+- `18-bookmark-permission-granted.txt`：同一 ToolHost 授权开关为1，“已授权本工具访问全部书签”。
+- `20-bookmark-permission-recheck.txt`：原工具SDK检查完成，实际书签树显示3节点、书签栏和其他书签目录。授权后初始检查尚未就绪时使用了现有“重新检查SDK与权限”按钮；没有改代码或重复授权。
+- `21-bookmark-search.txt`：搜索“书签栏”，全局搜索显示1/1目录结果。测试 Profile 中没有真实用户书签条目；不为制造结果创建书签。
+- 此次读取证据属于原已完成重装的最终同一候选，原安装/卸载/刷新/重装和必要回归证据继续有效。没有产品源码变化，不重建或重跑测试。
 
 ## 最小验证与已知限制
 
@@ -57,14 +67,14 @@
 - 包预晋升检查27项中26 PASS / 1 FAIL，失败为无关 AI VIP Share 正式包1.4.1与源码1.4.2漂移；记录后延期。目标五包同源校验全部 PASS，见 `package-postpromotion-checks.json`。
 - 最终静态开发构建 PASS，网站构建 PASS，`git diff --check` PASS。未新增依赖。
 - R6.9.2 CI `40513098611`、后续CI `40517011891` 仅为各自旧候选历史 PASS；当前提交 CI **NOT_TESTED**，没有推送触发。
-- 版本／摘要／enabled 改变拒绝打开、草稿守卫和 UNKNOWN／双击不重交由定向测试证明；本轮对应完整原生反例 **NOT_TESTED**。实际停用连接和不自动授权已原生验证。
+- 版本／摘要／enabled 改变拒绝打开、草稿守卫和 UNKNOWN／双击不重交由定向测试证明；本轮对应完整原生反例 **NOT_TESTED**。实际停用连接、不自动授权及用户授权后的只读访问已原生验证。
 - 精确“网页未读成功回执即卸载”竞态由新增定向回归证明；正常原生重装链补证，未声称精确竞态也实测。
-- 键盘、明暗主题及用户指定320/360/400/440/520px专项 **NOT_TESTED**；核心读取尚未完成，不提前开展该矩阵。
+- 键盘、明暗主题及用户指定320/360/400/440/520px专项 **NOT_TESTED**；未修改CSS/布局，本次授权续跑只补实际读取/搜索证据，核心完成后按用户停止规则收尾，不扩大矩阵。
 - 正式渠道 `acquireUrl` / `verifiedAt` 为空，当前仅本地 HTTP；**PUBLIC_RELEASE_BLOCKED**，不以本地结果替代公开 HTTPS 发布。
 
 ## 反方审计与独立评分
 
-- 打开不会进入技术详情：成功 Sheet 调用原 `openInstalledApp → extensionCenter.openInstalledMarketApp → sidebarTools.openTool`；新候选实际显示 ToolHost 的书签权限设置。当前尚不能宣称已看到可用书签树。
+- 打开不会进入技术详情：成功 Sheet 调用原 `openInstalledApp → extensionCenter.openInstalledMarketApp → sidebarTools.openTool`；新候选先显示 ToolHost 自身权限设置。用户批准首次书签权限后，实际进入该工具独立沙箱中的书签树和全局搜索，没有进入 ExtensionDetail，也没有要求再次安装。
 - 卸载不会被历史成功误导：网页不维护长期安装态，终态收据不跨刷新恢复，成功明确仅为原事务；真实卸载刷新显示安装按钮。旧成功日志已终结但未读时，精确身份匹配且包/来源已移除才关闭旧交接。
 - 变化与未知不会错误启动或重装：原打开链重新校验版本、摘要、来源及enabled，未知只查询原事务；连接失败实测拒绝，身份与UNKNOWN边界定向回归通过。未进行的原生反例仍保留 NOT_TESTED。
 
@@ -72,10 +82,10 @@
 
 | 产品UX | Chrome架构 | 安全 | 状态一致性 | 测试证据 | 维护性 | 发布工程 | 跨对话去重 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 86 | 91 | 92 | 90 | 85 | 87 | 86 | 89 |
+| 90 | 92 | 93 | 90 | 89 | 87 | 87 | 89 |
 
-算术平均 **706 / 8 = 88.25**；各维≥95目标未达。实际读取、授权后撤权、公网和原生反例缺口均如实扣分。
+算术平均 **717 / 8 = 89.625（约89.63）**；各维≥95目标未达。独立审计核对新增原生证据后认可本轮限定核心闭环PASS，无新增代码阻塞，代码审查维持COMMENT。测试Profile只有空目录，本次证明3节点读取及目录搜索，不扩称非空网址书签、大型树或完整生命周期验证；授权后撤权、公网和其余原生反例缺口继续扣分。
 
 ## 续跑的唯一最小动作
 
-收到完整书签授权确认后，在同一 Profile、同一ID和现有工具权限入口完成授权，仅读取/搜索，不新增、编辑或删除书签；然后复用当前安装、卸载、重装证据完成核心结果判断。未授权前不执行依赖该权限的动作；没有伪报 goal complete／paused／blocked 生命周期，也未创建自动化或新对话。之后仅补当前任务必要的剩余反例／UI定向验证，不重做整个市场。
+用户已确认授权，唯一阻断已解除；同一候选实际读取与搜索通过，按核心闭环完成即停止的要求收尾。当前没有本轮核心操作待办；公开HTTPS渠道、其余原生反例及UI矩阵仍保留原验证等级，不自动进入正式发布／完整95分验收。源码提交 `174ce7a072678cea7b4d534e547652379f66b9cd` 不变，本次仅补记录；不重复安装、卸载、构建或已有效测试。未操作其他会话资源，没有伪报原生goal生命周期，也未创建自动化或新对话。
