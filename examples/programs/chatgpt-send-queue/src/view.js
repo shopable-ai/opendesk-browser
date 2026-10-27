@@ -77,6 +77,15 @@ function composerSurface(editor,nativeButton,form,win){
 }
 export function createQueueView({owner,createPageUI,assets,engine,actions}){
   const doc=owner.content.ownerDocument,css=owner.getAsset('assets/queue.css');
+  // addStyle() injects a <style> into the page Shadow DOM. A relative WebP
+  // URL there resolves against chatgpt.com, not our Program asset directory.
+  // Resolve the already packaged image through the trusted asset API instead.
+  const crownImage=owner.getAsset('assets/crown-premium.webp');
+  const imageRef='url("crown-premium.webp")';
+  if(typeof crownImage!=='string'||!/^data:image\/webp;base64,[a-z0-9+/=]+$/i.test(crownImage)||
+    !css.includes(imageRef))
+    throw new Error('Packaged Send Queue crown image is missing or invalid');
+  const buttonCss=css.replace(imageRef,`url("${crownImage}")`);
   let list=null,button=null,root=null,blue=null,toastNode=null,toastToken=0;
   let lastSignature='',recoveryText=null,recoveryReason='';
   function reset(){
@@ -130,7 +139,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     }
     if(!button?.active()){
       button=createPageUI({id:'opendesk.chatgpt-send-queue.button',assets,baseStyles:false});
-      button.addStyle(css);
+      button.addStyle(buttonCss);
       blue=element(doc,'button','sq-send');
       blue.type='button';blue.setAttribute('aria-label','当前草稿加入发送队列');
       blue.title='OpenDesk 队列 · 当前草稿加入发送队列 · 皇冠仅为装饰';
