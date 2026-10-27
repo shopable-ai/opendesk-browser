@@ -90,6 +90,7 @@ jobs:
           node scripts/build-adblock-react.mjs
           node scripts/build-stay-focus-react.mjs
           node scripts/build-cookie-editor-react.mjs
+          npm --prefix examples/sidebar-tools/ai-vip-share run build
       - name: New ordinary App fixture, automatic selection and fail-closed DNR gate
         run: node --test tests/environment/app-ci.test.mjs
 
@@ -126,6 +127,7 @@ jobs:
           node scripts/build-adblock-react.mjs
           node scripts/build-stay-focus-react.mjs
           node scripts/build-cookie-editor-react.mjs
+          npm --prefix examples/sidebar-tools/ai-vip-share run build
       - name: Compile App and build a source-identical, unpromoted candidate
         run: node scripts/app-ci.mjs build "${{ matrix.app }}"
       - name: Existing shared install/update/disable/uninstall and App-owned tests

@@ -5,6 +5,7 @@ import {officialToolInputs} from './build-official-tools.mjs';
 import {officialPageInputs} from './build-official-pages.mjs';
 import {acquireDevelopmentLock} from './development-lock.mjs';
 import {prepare,build} from 'wxt';
+import {build as buildVite} from 'vite';
 import {mkdir, readFile, writeFile, rm, mkdtemp} from 'node:fs/promises';
 import {createHash,randomUUID} from 'node:crypto';
 import {resolve} from 'node:path';
@@ -34,6 +35,10 @@ await verifyReadingTocTrustedLocales();
 // is now consumed only as an independently built, reviewed package asset.
 await buildAdblockReact({log:false});
 await buildCookieEditorReactIfOfficial({log:false});
+// AI VIP Share is a compiled official React tool. Build source-bound JS/CSS
+// before officialToolInputs reads the verified compiled artifacts.
+await buildVite({configFile:resolve('examples/sidebar-tools/ai-vip-share/vite.config.mjs'),
+  logLevel:'warn',clearScreen:false});
 inputsBefore = await sourceInputs();
 process.env.OPENDESK_BUILD_MODE=mode;
 await preparePublic();
