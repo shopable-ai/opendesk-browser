@@ -14,6 +14,15 @@ A 只读：目标网页环境检测 → 来源标记 → 保存 A/B → 逐字�
 - 安全审计：动作回调、权限、网络、执行世界、危险操作确认语义无代码变化。只替换 `scripts/bundle-provenance.mjs` 中该一个精确 Git Blob 锁定值；强制不匹配失败保留。锁定修复提交：`49c853a4c4600bf82be6eb92da819b55e17eafa6`。
 - **状态**：P1 源码审查 DONE，最新 Host BUILD / App CI **NOT_TESTED**（必须关联包含该修复的具体 CI SHA）。
 
+## R1.8 第二轮实际 Host 构建失败及审核修复
+
+- 运行 <https://github.com/shopable-ai/opendesk-browser/actions/runs/40558605822>，源提交 `ff4b61b2a0c3fbba35b2663a5b87ecb380f67cbb`：`discover` 与 `ci-contract` PASS，`app-validate` Host 构建 FAIL，Node/Chromium 后续步骤未运行。
+- 第一处 Stay Focus 锁定失败已越过；新错误在 `scripts/bundle-provenance.mjs:445`：`Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/time-review/trusted/host.css`。
+- 逐个核对固定 React Root 的六个静态 `?raw` CSS：time-review / bookmark-manager / cookie-editor / ai-vip-share / prompt-shortcuts / reading-toc，均为 app 自有展示样式，未见远程资源或脚本执行结构。
+- 只为上述**六个精确路径**增加 `ui/tool-shell.js` 独占、SHA1 Git Blob 复核、符号链接拒绝的静态 Host CSS 准入；保留对其他 examples/vendor/installed 输入的构建硬拒绝，不引入目录通配、额外 Chrome 权限或安装包执行。
+- 六个 CSS blob：`examples/sidebar-tools/time-review/trusted/host.css` = `fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6`；`examples/sidebar-tools/bookmark-manager/trusted/host.css` = `5bbe841558c86389994defd93f6077aa928a9cf9`；`examples/sidebar-tools/cookie-editor/trusted/host.css` = `b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f`；`examples/sidebar-tools/ai-vip-share/trusted/host.css` = `634786710c463671b9c24c424725bf6c7ff4ec8e`；`examples/sidebar-tools/prompt-shortcuts/trusted/host.css` = `aa08e38ebd56e34c49c1c07be5a1b6727426865b`；`examples/sidebar-tools/reading-toc/trusted/host.css` = `93db2443725c8fac84dd94585d08d933766c2040`。
+- 该补丁是否 BUILD PASS / Chromium PASS 必须看此后同一提交 SHA 对应的 App CI，不提前宣称成功。
+
 ## P2–P4：已有实现，等待真实门禁
 
 - 已有 Node 测试：`tests/model.test.mjs`、`history.test.mjs`、`flow.test.mjs`。R1.6 曾有模拟 Host 的 13/13 PASS，但不能换算成当前提交的 Node PASS。

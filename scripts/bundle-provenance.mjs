@@ -400,6 +400,28 @@ function reviewedCompiledReadingToc(target,path,root){
   return hash;
 }
 
+// Allow only the six audited fixed app-owned CSS blobs already imported
+// by the trusted React root. Display-only CSS, fixed output, no wildcards.
+const compiledTrustedHostStyleInputs=Object.freeze({
+  'examples/sidebar-tools/time-review/trusted/host.css':'fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6',
+  'examples/sidebar-tools/bookmark-manager/trusted/host.css':'5bbe841558c86389994defd93f6077aa928a9cf9',
+  'examples/sidebar-tools/cookie-editor/trusted/host.css':'b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f',
+  'examples/sidebar-tools/ai-vip-share/trusted/host.css':'634786710c463671b9c24c424725bf6c7ff4ec8e',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/host.css':'aa08e38ebd56e34c49c1c07be5a1b6727426865b',
+  'examples/sidebar-tools/reading-toc/trusted/host.css':'93db2443725c8fac84dd94585d08d933766c2040'
+});
+function reviewedCompiledTrustedHostStyle(target,path,root){
+  if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledTrustedHostStyleInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Host CSS must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledTrustedHostStyleInputs[path])
+    throw Error('Trusted Host CSS changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')
   .map(row=>[row.npm,row.output]));
 export function assertLibraryModuleBoundary(target,path,npmName) {
@@ -440,7 +462,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledAppOwnedBackground(chunk.fileName,path,root)||
       reviewedCompiledSharedMarkdown(chunk.fileName,path,root)||
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
-      reviewedCompiledReadingToc(chunk.fileName,path,root);
+      reviewedCompiledReadingToc(chunk.fileName,path,root)||
+      reviewedCompiledTrustedHostStyle(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,
