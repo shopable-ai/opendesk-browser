@@ -122,18 +122,29 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
     candidate=await loadMarketTool(handoff.subject,{api,origin:handoff.origin});if(closed)return;
     baseline=(await getInstalledSidebarTools(api)).find(tool=>tool.id===candidate.tool.id)||null;
     const capability=cap=>cap==='storage.local'?'在本机保存此应用的数据':'使用受限能力（'+cap+'）';
-    const capabilities=candidate.tool.capabilities.map(capability),
-      addedCapabilities=candidate.tool.capabilities.filter(cap=>!baseline?.capabilities.includes(cap)).map(capability);
-    publish({title:candidate.tool.title,phase:'review',details:{version:candidate.tool.version,
-      previousVersion:baseline?.version??null,origin:handoff.origin,description:candidate.tool.description,
-      capabilities,addedCapabilities},summary:[
+    const capabilityCodes=[...candidate.tool.capabilities];
+    const addedCodes=capabilityCodes.filter(cap=>!baseline?.capabilities.includes(cap));
+    const removedCodes=(baseline?.capabilities??[]).filter(cap=>!capabilityCodes.includes(cap));
+    const capabilities=capabilityCodes.map(capability),addedCapabilities=addedCodes.map(capability);
+    // Projection only: these fields come from the already validated, digest-pinned
+    // package and the existing local enable record. No new install authority.
+    publish({title:candidate.tool.title,phase:'review',details:{
+      id:handoff.subject.marketId,version:candidate.tool.version,
+      previousVersion:baseline?.version??null,origin:handoff.origin,
+      description:candidate.tool.description,capabilities,addedCapabilities,
+      capabilityCodes,addedCodes,removedCodes,
+      packageBytes:candidate.release.bytes,sha256:candidate.release.sha256,
+      previousDisabled:Boolean(baseline&&status.enabled===false),
+      previousEnableKnown:Boolean(baseline&&typeof status.enabled==='boolean'),
+      identicalInstalledPackage:Boolean(baseline&&sameSidebarToolPackage(baseline,candidate.tool))
+    },summary:[
       '固定版本：v'+candidate.tool.version+(baseline?' · 当前 v'+baseline.version+'，保留工具数据':''),
       '来源：'+handoff.origin+'（本扩展配置的市场）',candidate.tool.description,
       '申请能力：'+(candidate.tool.capabilities.map(capability).join('、')||'无'),
       '新增能力：'+(candidate.tool.capabilities.filter(cap=>!baseline?.capabilities.includes(cap)).map(capability).join('、')||'无'),
       '应用在受限沙箱中运行。网站或敏感能力仍按原权限检查；安装后无需再次启用，已停用的应用更新后保持停用。',
       ...(baseline?['本次确认会替换此 ID 的已安装代码，请核对来源和能力。']:[])],
-      technical:[handoff.subject.marketId,'SHA-256：'+candidate.release.sha256,'能力标识：'+candidate.tool.capabilities.join('、')],
+      technical:[handoff.subject.marketId,'SHA-256：'+candidate.release.sha256,'能力标识：'+candidate.tool.capabilities.join('、'),'安装包字节：'+candidate.release.bytes],
       message:'请确认安装版本、来源和权限。'});
     controls([['commit',baseline?'确认更新':'确认安装',commit],['cancel','取消安装',cancel]]);
   }
