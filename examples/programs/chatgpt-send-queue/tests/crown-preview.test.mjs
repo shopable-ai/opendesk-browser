@@ -8,6 +8,7 @@ const base=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const file=path=>readFileSync(resolve(base,path));
 const css=file('assets/queue.css').toString(),img=file('assets/crown-premium.webp');
 const html=file('preview/index.html').toString();
+const tuner=file('preview/tools/crown-tuner.html').toString();
 const find=(start,end)=>{const i=html.indexOf(start),j=html.indexOf(end,i+start.length);assert.ok(i>=0&&j>i,'missing region '+start);return html.slice(i+start.length,j)};
 test('selected C WebP is the only packaged crown image: valid, alpha capable and small',()=>{
  assert.equal(img.toString('ascii',0,4),'RIFF');
@@ -35,8 +36,11 @@ test('preview is offline and retains main queue interactions without A/B switche
  assert.doesNotMatch(html,/R5\.2 · SELECTED C/);
  assert.doesNotMatch(html,/<(?:script|link)\b[^>]+(?:src|href)\s*=\s*["'](?:https?:|\.\.?\/)/i);
  assert.doesNotMatch(html,/url\(["']?\.\.?\//);
- for(const id of ['blue','native','draft','more','reset','angle','scale','offsetX','offsetY','sizes','widths','themes','finish','toggle-pause','sample-add','detail-send','restore-style'])
-   assert.ok(html.includes('id="'+id+'"'),'missing '+id);
+ for(const id of ['blue','native','draft','more','reset','sizes','widths','themes','finish','toggle-pause','sample-add','detail-send'])
+   assert.ok(html.includes('id="'+id+'"'),'missing main preview '+id);
+ for(const id of ['angle','scale','x','y'])
+   assert.ok(tuner.includes('id="'+id+'"'),'missing separate tuner '+id);
+ assert.doesNotMatch(html,/id="angle"|id="scale"|id="restore-style"/);
  for(const op of ["if(action==='edit')","if(action==='remove')","if(action==='now')"]) assert.ok(html.includes(op),'missing queue action '+op);
  assert.doesNotMatch(html,/A · 三尖精简款|B · 低矮宽檐款|C · 多尖游戏款/);
  assert.match(html,/window\.__sendQueuePreview/);

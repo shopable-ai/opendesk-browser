@@ -37,7 +37,8 @@ test('source manifest uses independent catalog identity without widening Page ru
   const entries=Object.values(catalog).find(value=>Array.isArray(value)&&value.some(x=>x.programId===ID));
   const entry=entries.find(x=>x.programId===ID);
   assert.equal(pkg.opendesk.id,entry.programId);
-  assert.equal(pkg.version,'0.1.10');assert.equal(entry.version,pkg.version);assert.equal(entry.revision,9);
+  assert.equal(pkg.version,'0.1.11');assert.equal(entry.version,pkg.version);assert.equal(entry.revision,10);
+  assert.equal(entry.publication,'blocked','native acceptance is pending');
   assert.deepEqual(pkg.opendesk.pageRules,{matches:['https://chatgpt.com/*'],excludeMatches:[],
     runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
 });

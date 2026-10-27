@@ -5,7 +5,7 @@ import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const text=path=>readFileSync(resolve(root,path),'utf8');
-const css=text('assets/queue.css'),html=text('preview/index.html');
+const css=text('assets/queue.css'),html=text('preview/index.html'),tuner=text('preview/tools/crown-tuner.html');
 const declared=(key)=>{const found=css.match(new RegExp('--sq-crown-'+key+':(-?\\d+(?:\\.\\d+)?)(px|deg)'));assert.ok(found,'missing '+key);return Number(found[1]);};
 
 test('34/42 use CSS-owned artwork geometry, not frozen historical slider numbers',()=>{
@@ -21,13 +21,14 @@ test('34/42 use CSS-owned artwork geometry, not frozen historical slider numbers
  assert.match(css,/\.sq-crown\{[^}]*pointer-events:none/);
 });
 
-test('preview reset gets formal values from computed styles; tuning is temporary only',()=>{
- assert.match(html,/function restoreStyle\(\)/);
- assert.match(html,/getComputedStyle\(b\)/);
- assert.match(html,/for\(const key of crownKeys\)b\.style\.removeProperty\(key\)/);
- assert.match(html,/\$\('restore-style'\)\.addEventListener\('click',restoreStyle\)/);
- assert.match(html,/restoreStyle\(\);render\(\);toast\('已恢复正式方案 C/);
- assert.doesNotMatch(html,/\[\['angle',-25\],\['scale',85\],\['offsetX',-4\],\['offsetY',2\]\]/);
+test('standalone tuner derives temporary defaults from formal CSS without modifying main preview',()=>{
+ assert.match(tuner,/function readBase\(\)/);
+ assert.match(tuner,/getComputedStyle\(preview\)/);
+ assert.match(tuner,/for\(const key of keys\)preview\.style\.removeProperty\(key\)/);
+ assert.match(tuner,/\$\('reset'\)\.addEventListener\('click',reset\)/);
+ assert.match(tuner,/\$\('angle'\)\.value=String\(official\.angle\)/);
+ assert.match(html,/tools\/crown-tuner\.html/);
+ assert.doesNotMatch(html,/id="angle"|id="scale"|id="restore-style"/);
 });
 
 test('preview keeps three initial rows, expansion, conservative draft protection',()=>{
@@ -54,8 +55,9 @@ test('approved frontal crown is wide, source-bound, and minimally corrected by d
    assert.equal(declared(name+'-angle'),-1);
  }
  assert.match(css,/pointer-events:none;z-index:2/);
- assert.match(html,/id="angle-out">-1°/);
- assert.match(html,/id="angle" type="range"[^>]*value="-1"/);
+ assert.match(tuner,/<output id="angle-out"><\/output>/);
+ assert.match(tuner,/id="angle" type="range"/);
+ assert.match(tuner,/\$\('angle'\)\.value=String\(official\.angle\)/);
 });
 
 test('34/42 fixed CSS geometry centers the artwork and preserves a clear arrow zone',()=>{
@@ -78,8 +80,11 @@ test('R5.4 selected values are baked exactly once into formal CSS for both butto
    const x=round(p.x-(w-p.w)*.5-2),y=round(p.y-(h-p.h)*.78-3);
    assert.deepEqual([declared(name+'-w'),declared(name+'-h'),declared(name+'-x'),declared(name+'-y'),declared(name+'-angle')],[w,h,x,y,-1],name);
  }
- assert.match(html,/已正式采用：角度 -1°、原基准 85%、水平 -2px、垂直 -3px/);
- assert.match(html,/id="scale" type="range"[^>]*value="100"/);
- assert.match(html,/id="offsetX" type="range"[^>]*value="0"/);
- assert.match(html,/id="offsetY" type="range"[^>]*value="0"/);
+ assert.match(tuner,/<link rel="stylesheet" href="\.\.\/\.\.\/assets\/queue\.css">/);
+ assert.match(tuner,/id="scale" type="range"[^>]*value="100"/);
+ assert.match(tuner,/id="x" type="range"[^>]*value="0"/);
+ assert.match(tuner,/id="y" type="range"[^>]*value="0"/);
+ assert.match(tuner,/\$\('scale'\)\.value='100'/);
+ assert.match(tuner,/\$\('x'\)\.value='0'/);
+ assert.match(tuner,/\$\('y'\)\.value='0'/);
 });
