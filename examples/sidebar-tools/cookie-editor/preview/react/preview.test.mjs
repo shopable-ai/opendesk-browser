@@ -360,23 +360,26 @@ test('R2.6 fictional account scenes expose three redacted accounts without touch
  }
 });
 
-test('R2.6 market and invite UX are one official React tree with inert production actions',async()=>{
+test('R3.2 market and account invite share one formal App but never create production grants',async()=>{
  const [product,preview,experiences,accounts,stylesheet]=await Promise.all([
   read('../../app/CookieEditorApp.jsx'),read('./src/App.jsx'),
   read('../../app/components/CookieAccountExperiences.jsx'),
   read('../../app/components/CookieAccounts.jsx'),read('../../src/react.css')
  ]);
- assert.match(product,/CookieAccountMarket previewOnly=\{previewMode\}/);
+ assert.match(product,/<CookieAccountMarket\b/);
  assert.match(product,/initialSection='cookie'/);
+ assert.match(product,/\['cookie','Cookie'\],\['accounts','账号'\],\['enterprise','企业'\]/);
  assert.match(preview,/React\.useState\('accountsDemo'\)/);
  assert.match(preview,/initialSection=\{\['accountsDemo'/);
  assert.match(preview,/<CookieEditorApp\b/);
- assert.match(accounts,/CookieAccountShare account=\{shareItem\}/);
+ assert.match(accounts,/<CookieAccountShare account=\{shareItem\} previewOnly=\{previewOnly\}/);
  assert.doesNotMatch(accounts,/export function CookieAccountMarket/);
  assert.match(experiences,/disabled=\{!previewOnly\|\|!validRecipient\}/);
- assert.match(experiences,/disabled=\{!previewOnly\}/);
- for(const str of ['24 小时','7 天','3 次','匿名邀请','指定用户','团队协作席位',
-  '演示与测试环境','授权委托访问','撤销','模拟失败'])
+ assert.match(experiences,/邀请服务未上线/);
+ assert.match(experiences,/https:\/\/example\.invalid\/invite\/demo-only/);
+ assert.match(experiences,/onExperience\(item\.id\)/);
+ for(const str of ['多账号整理','网址快捷切换','Cookie 有效期管理',
+  '匿名邀请','指定用户','撤销','模拟失败'])
    assert.ok(experiences.includes(str),'missing '+str);
  for(const src of [preview,experiences])assert.doesNotMatch(src,
   /chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest/);
