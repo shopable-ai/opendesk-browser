@@ -122,8 +122,37 @@ try{
   evidence.checks.push('STALE_DOCUMENT_CANNOT_SAVE');
   await fixture('0');await click('检测当前网页');
   await until('document.querySelector(".fp-notice")?.textContent.includes("已读取 Host 页面字段")','recapture A');
-  await click('保存部分证据');
-  await until('JSON.parse(localStorage.getItem("opendesk.fingerprint.a.preview-only.v1")||"null")?.items?.length===1','save A');
+  // Delay a simulated SDK storage response. A fast second click must not
+  // create another write, and switching tabs cannot discard the final receipt.
+  assert(await evaluate('('+function(){
+    const original=globalThis.OpenDeskTool.request.bind(globalThis.OpenDeskTool);
+    globalThis.__fpTestWrites=0;
+    globalThis.OpenDeskTool.request=(operation,args)=>{
+      if(operation!=='storage.set')return original(operation,args);
+      globalThis.__fpTestWrites++;
+      if(globalThis.__fpTestWrites!==1)return original(operation,args);
+      return new Promise((ok,fail)=>{
+        globalThis.__fpTestRelease=()=>Promise.resolve(original(operation,args)).then(ok,fail);
+      });
+    };
+    return true;
+  }.toString()+')()'));
+  assert(await evaluate('('+function(){
+    const button=[...document.querySelectorAll('button')]
+      .find(el=>el.textContent.trim()==='保存部分证据'&&!el.disabled);
+    if(!button)return false;
+    button.click();button.click();return true;
+  }.toString()+')()'));
+  await until('typeof globalThis.__fpTestRelease==="function"','pending preview write');
+  await click('历史');
+  await until('document.querySelector(".fp-tabs button.active")?.textContent.trim()==="历史"','history while saving');
+  assert.equal(await evaluate('globalThis.__fpTestWrites'),1);
+  assert.equal(await evaluate('JSON.parse(localStorage.getItem("opendesk.fingerprint.a.preview-only.v1")||"null")?.items?.length||0'),0);
+  await evaluate('globalThis.__fpTestRelease()');
+  await until('document.querySelectorAll(".fp-history-item").length===1','save A displayed after tab switch');
+  assert.equal(await evaluate('globalThis.__fpTestWrites'),1);
+  evidence.checks.push('PENDING_SAVE_TAB_SWITCH_AND_DOUBLE_CLICK_GUARD');
+  await click('检测');
   await fixture('1');await click('检测当前网页');
   await until('document.querySelector(".fp-value")?.textContent==="https://shop.example.test"','read B');
   await click('保存部分证据');
@@ -137,6 +166,19 @@ try{
   await click('历史');
   await until('document.querySelectorAll(".fp-history-item").length===2','durable preview history after reload');
   evidence.checks.push('PREVIEW_RESTART_READBACK');
+  // Actual CDP keyboard events, not calling React handlers from the fixture.
+  await evaluate('document.querySelector(".fp-tabs button").focus()');
+  await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+  await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+  assert.equal(await evaluate('document.activeElement?.textContent.trim()'),'对比');
+  await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+  await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+  await until('document.querySelector(".fp-tabs button.active")?.textContent.trim()==="对比"','keyboard Enter switched tab');
+  await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+  await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+  assert.equal(await evaluate('document.querySelectorAll(".fp-diff-row").length')>=10,true);
+  evidence.checks.push('TAB_ENTER_ESCAPE_PRESERVE_COMPARISON');
+  await click('历史');
   for(const width of [320,360,400,440,520]){
     await call('Emulation.setDeviceMetricsOverride',{width,height:840,deviceScaleFactor:1,mobile:false});
     const m=await evaluate('('+function(){
