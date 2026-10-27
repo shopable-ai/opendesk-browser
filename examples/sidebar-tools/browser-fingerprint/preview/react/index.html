@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Browser Fingerprint · 正式 React 同源预览</title>
+<link rel="stylesheet" href="../../../../../dist/development/ui/design-tokens.css">
+<link rel="stylesheet" href="../../dist/tool.css">
+<style>
+body{margin:0;background:var(--od-bg,#f5f7fb);font-family:system-ui}
+.fp-demo-top{max-width:520px;margin:auto;padding:10px;border-bottom:1px solid var(--od-line,#ccc);display:flex;gap:9px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--od-sub,#53647e)}
+.fp-demo-top strong{font-size:13px;color:var(--od-ink,#1b2c49)}
+.fp-demo-top select{padding:6px;border:1px solid #98a2b3;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="fp-demo-top"><strong>浏览器环境检测</strong>
+<span>离线测试替身 · 不是目标网页真实检测</span>
+<label>演示网站<select id="fp-fixture"><option value="0">QA 购物车</option>
+<option value="1">电商结账页</option></select></label><span id="fp-fixture-status"></span></div>
+<div id="fp-preview-root"><div id="tool-app"></div></div>
+<script src="../../../../../src/libs/page-frameworks/react-19.2.0.js"></script>
+<script src="../../../../../dist/development/sidebar-shared-ui.js"></script>
+<script src="./sdk-preview.js"></script>
+<script src="../../dist/tool.js"></script>
+</body>
+</html>

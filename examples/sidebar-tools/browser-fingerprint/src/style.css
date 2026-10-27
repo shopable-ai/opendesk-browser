@@ -1,0 +1,47 @@
+/* @opendesk-shared-design */
+.fp-app{box-sizing:border-box;display:grid;gap:12px;min-width:0;padding:10px 12px 18px;color:var(--od-ink);background:var(--od-paper);font:var(--od-body-size,13px)/1.5 system-ui,sans-serif;overflow-wrap:anywhere}
+.fp-app *{box-sizing:border-box}
+.fp-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px;border:1px solid var(--od-line);border-radius:12px;background:var(--od-muted)}
+.fp-tabs button{min-height:36px;border:0;background:transparent;color:var(--od-sub);border-radius:9px;font:inherit;cursor:pointer}
+.fp-tabs button.active{background:var(--od-paper);color:var(--od-ink);font-weight:650;box-shadow:0 1px 3px #00000012}
+.fp-card{display:grid;gap:11px;padding:13px 14px}
+.fp-card strong{font-size:13px}
+.fp-section-head{display:flex;justify-content:space-between;align-items:center;gap:9px;min-width:0}
+.fp-section-head .fp-caption{min-width:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.fp-caption,.fp-secondary,.fp-source,.fp-proof{font-size:11px;color:var(--od-sub);line-height:1.6}
+.fp-secondary{margin:0}.fp-proof{display:grid;gap:2px}
+.fp-actions{display:flex;gap:8px;flex-wrap:wrap}
+.fp-actions button{display:inline-flex;gap:6px;align-items:center;justify-content:center}
+.fp-actions button svg{flex:none}
+.fp-empty{margin:0;padding:16px 6px;text-align:center;font-size:12px;color:var(--od-sub)}
+.fp-notice,.fp-preview-note{margin:0;border:1px solid var(--od-line);border-radius:10px;padding:9px 10px;font-size:11px;line-height:1.6}
+.fp-notice.fp-error{color:var(--od-negative);border-color:var(--od-negative)}
+.fp-notice.fp-warning{color:var(--od-warning,#80510d)}
+.fp-notice.fp-success{color:var(--od-positive,#117a5d)}
+.fp-preview-note{background:var(--od-muted)}
+.fp-fields,.fp-diff{display:grid}
+.fp-field,.fp-diff-row{padding:11px 0;border-bottom:1px solid var(--od-line);min-width:0}
+.fp-field:last-child,.fp-diff-row:last-child{border:0}
+.fp-field-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.fp-field-head strong{min-width:0}
+.fp-status{font-size:10px;padding:2px 6px;border:1px solid var(--od-line);border-radius:20px;white-space:nowrap;color:var(--od-sub)}
+.fp-status.fp-ok,.fp-status.fp-same{color:var(--od-positive,#117a5d)}
+.fp-status.fp-changed{color:var(--od-warning,#80510d)}
+.fp-status.fp-unverifiable{color:var(--od-sub)}
+.fp-status.fp-source-different{color:var(--od-warning,#80510d)}
+.fp-value{padding:4px 0;font-size:12px;line-height:1.5;word-break:break-word}
+.fp-selects{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.fp-selects label{display:grid;gap:5px;font-size:11px;font-weight:600;min-width:0}
+.fp-selects select{background:var(--od-paper);color:var(--od-ink);border:1px solid var(--od-input-border);border-radius:8px;width:100%;min-width:0;padding:8px 5px;font:inherit}
+.fp-compare-values{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:5px}
+.fp-compare-values div{min-width:0;display:grid;align-content:start;gap:4px;font-size:11px;word-break:break-word}
+.fp-compare-values small{font-size:10px;color:var(--od-sub)}
+.fp-history-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--od-line)}
+.fp-history-main{min-width:0;display:grid;gap:4px}
+.fp-history-main span{color:var(--od-sub);font-size:11px}
+.fp-history-actions{display:flex;align-items:center;flex:none;gap:4px}
+.fp-history-actions>button:not(.od-icon-button){background:var(--od-paper);color:var(--od-ink);border:1px solid var(--od-line);padding:6px;border-radius:8px;font-size:11px;cursor:pointer}
+.fp-app button:focus-visible,.fp-app select:focus-visible{outline:2px solid var(--od-focus,var(--od-brand));outline-offset:2px}
+.fp-app button:disabled{cursor:not-allowed;opacity:.55}
+@media(max-width:360px){.fp-app{padding:8px;gap:9px}.fp-card{padding:11px}.fp-actions button{flex:1 1 125px}.fp-selects{grid-template-columns:1fr}.fp-history-item{flex-wrap:wrap}.fp-history-actions{margin-left:auto}}
+@media(pointer:coarse){.fp-app button{min-height:44px}}
