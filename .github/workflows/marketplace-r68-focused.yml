@@ -15,9 +15,12 @@ on:
       - 'src/ui/react/tabs/tool-host.tsx'
       - 'src/ui/react/preview/clipper-preview.js'
       - 'scripts/preview/build-sidebar-six-react-preview.mjs'
+      - 'scripts/bundle-provenance.mjs'
       - 'scripts/tests/sidebar-six-react-preview-interaction.mjs'
       - 'tests/environment/market-trusted-install.test.mjs'
+      - 'tests/environment/market-probe-provenance-r691.test.mjs'
       - 'tests/environment/market-panel-navigation-r691.test.mjs'
+      - 'tests/environment/market-page-panel-navigation-r691.test.mjs'
       - 'tests/environment/market-site-client-r5.test.mjs'
       - 'tests/environment/market-page-discovery-r61.test.mjs'
       - 'tests/environment/market-install-sheet.test.mjs'
@@ -38,9 +41,9 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Test trusted single-installer review, durable receipt and detail identity
-        run: node --test tests/environment/market-trusted-install.test.mjs tests/environment/market-install-sheet.test.mjs
+        run: node --test tests/environment/market-trusted-install.test.mjs tests/environment/market-install-sheet.test.mjs tests/environment/market-probe-provenance-r691.test.mjs
       - name: Verify market panel routing, external client compatibility and identity gates
-        run: node --test tests/environment/market-panel-navigation-r691.test.mjs tests/environment/market-site-client-r5.test.mjs tests/environment/market-panel-handoff.test.mjs tests/environment/market-page-discovery-r61.test.mjs
+        run: node --test tests/environment/market-panel-navigation-r691.test.mjs tests/environment/market-page-panel-navigation-r691.test.mjs tests/environment/market-site-client-r5.test.mjs tests/environment/market-panel-handoff.test.mjs tests/environment/market-page-discovery-r61.test.mjs
       - name: Build exact product React Side Panel HTML
         run: node scripts/preview/build-sidebar-six-react-preview.mjs
       - name: Verify source-bound React component contract

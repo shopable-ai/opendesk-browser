@@ -7,7 +7,7 @@ import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   installReviewedSidebarTool,recoverMarketOperation,retryUninstalledToolCleanup,
   requireCompleteInstalledSidebarTools,
   TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
-import {MARKET_PANEL_NAV_PROTOCOL} from './panel-navigation.js';
+import {MARKET_PANEL_NAV_PROTOCOL,marketPanelNavigationKey,validMarketPanelNavigation} from './panel-navigation.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
 import {MARKET_INTENTS_STORE,loadReviewIntent,marketSubjectRoute,consumeReviewIntent,settleReviewIntent,closeUnjournaledReview} from './intent.js';
@@ -87,13 +87,13 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   lockManager=globalThis.navigator?.locks}={}){
   if(globalThis.location?.pathname==='/ui/market-install.html')return initMarketInstall({api,root,lockManager});
   if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 OpenDesk 扩展内使用应用市场');
-  let matchGeneration=0,localReadGeneration=0,disposed=false;
+  let matchGeneration=0,localReadGeneration=0,navigationGeneration=0,disposed=false;
   const reviewId=new URLSearchParams(location.search||'').get('intent');
   const state={installed:[],catalog:null,apps:[],notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
     batchRunning:false,batchRecovering:false,cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:'',
     localStatus:'loading',localError:'',catalogStatus:'loading',catalogError:'',
     usageStatus:'loading',usage:null,usageError:'',cleanups:{},operations:{},provenance:{},
-    handoff:null,handoffStatus:reviewId?'loading':'none',handoffError:'',handoffCancelled:false};
+    handoff:null,handoffStatus:reviewId?'loading':'none',handoffError:'',handoffCancelled:false,panelRequest:null};
   const currentRoute=()=>route(state.handoff?marketSubjectRoute(state.handoff.subject):location.hash);
   const getOfficialApp=id=>state.apps.find(row=>row.id===id)||null;
   const say=(message='',isError=false)=>{state.notice=message;state.error=isError;render();};
@@ -120,7 +120,26 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   // All single-app transitions stay in the existing native Side Panel Root.
   // A response means the Host actually accepted a route, not an installation.
+  function showPanelResult(response){
+    const notices={APP_OPENED:'已在侧边栏打开应用运行界面。',
+      DETAIL_OPENED:'已在侧边栏打开应用详情。',
+      REVIEW_REQUEST_ACCEPTED:'安装审阅已在侧边栏打开，请在侧边栏核对安装结果。',
+      NAVIGATION_PENDING:'已提交侧边栏导航请求，等待目标面板确认。',
+      PANEL_REQUIRED:'导航请求已保存；请打开当前 Chrome 窗口的 OpenDesk 侧边栏继续。',
+      NAVIGATION_BLOCKED:'侧边栏已保留导航请求；请先处理未保存编辑或安装审阅。',
+      IDENTITY_CHANGED:'应用身份已变化，本次导航未执行；请重新核对。'};
+    say((notices[response.status]||'导航结果未知，请在 Side Panel 核对。')+
+      (response.message?' '+response.message:''),!['APP_OPENED','DETAIL_OPENED','REVIEW_REQUEST_ACCEPTED'].includes(response.status));
+  }
+  function acceptPanelResult(key,row){
+    const pending=state.panelRequest;
+    if(!pending||row?.requestId!==pending.requestId||row.windowId!==pending.windowId||
+      key!==marketPanelNavigationKey(pending.windowId)||
+      !validMarketPanelNavigation(row,{windowId:pending.windowId})||row.status==='NAVIGATION_PENDING')return;
+    showPanelResult(row);
+  }
   async function navigatePanel(action,app=null,localTool=null){
+    const generation=++navigationGeneration;state.panelRequest=null;
     const toolId=localTool?.id||app?.toolId;
     const version=localTool?.version||app?.version;
     const release=app&&state.catalog?.apps.find(row=>row.id===app.id&&row.version===app.version);
@@ -130,18 +149,20 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     try{
       const response=await api.runtime.sendMessage({protocol:MARKET_PANEL_NAV_PROTOCOL,action:'NAVIGATE',
         target:action,toolId,version,marketId:release?.id??null,sha256:release?.sha256??null});
+      if(disposed||generation!==navigationGeneration)return;
       if(response?.protocol!==MARKET_PANEL_NAV_PROTOCOL||response.ok!==true)
         throw fail(response?.error?.message||'无法确认 Side Panel 导航。',response?.error?.code||'E_NAV_UNKNOWN');
-      const notices={APP_OPENED:'已在侧边栏打开应用运行界面。',
-        DETAIL_OPENED:'已在侧边栏打开应用详情。',
-        REVIEW_REQUEST_ACCEPTED:'已在侧边栏发起正式安装审阅；尚未安装。',
-        NAVIGATION_PENDING:'已提交侧边栏导航请求，等待目标面板确认。',
-        PANEL_REQUIRED:'导航请求已保存；请打开当前 Chrome 窗口的 OpenDesk 侧边栏继续。',
-        NAVIGATION_BLOCKED:'侧边栏已保留导航请求；请先处理未保存编辑或安装审阅。',
-        IDENTITY_CHANGED:'应用身份已变化，本次导航未执行；请重新核对。'};
-      say((notices[response.status]||'导航结果未知，请在 Side Panel 核对。')+
-        (response.message?' '+response.message:''),!['APP_OPENED','DETAIL_OPENED','REVIEW_REQUEST_ACCEPTED'].includes(response.status));
-    }catch(error){say((error.code||'E_NAV')+'：'+String(error.message||error),true);}
+      const key=marketPanelNavigationKey(response.windowId);
+      state.panelRequest={requestId:response.requestId,windowId:response.windowId};
+      showPanelResult(response);
+      // The Host can finish after the initial response timeout. Read once to
+      // close the response/listener race, then observe this exact request only.
+      if(['NAVIGATION_PENDING','PANEL_REQUIRED'].includes(response.status)){
+        try{const stored=await api.storage.session.get(key);
+          if(!disposed&&generation===navigationGeneration)acceptPanelResult(key,stored[key]);
+        }catch{/* The existing pending locator remains visible and recoverable. */}
+      }
+    }catch(error){if(!disposed&&generation===navigationGeneration)say((error.code||'E_NAV')+'：'+String(error.message||error),true);}
   }
   async function reloadInstalled(){
     const generation=++localReadGeneration;
@@ -840,10 +861,14 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(reviewId){const stranded=missingHandoffRecovery();if(stranded)content.append(stranded);content.append(handoffNavigation());}
     root.replaceChildren(content);
   }
-  const onHash=()=>{if(reviewId){render();return;}state.review=null;state.batchPlan=null;state.notice='';render();
+  const onHash=()=>{if(reviewId){render();return;}navigationGeneration++;state.panelRequest=null;state.review=null;state.batchPlan=null;state.notice='';render();
     root.focus?.({preventScroll:true});window.scrollTo?.(0,0);
     if(currentRoute().kind==='my'&&state.localStatus==='ready')void refreshUsage();};
   const onStorage=(changes,area)=>{
+    if(area==='session'){
+      for(const [key,change] of Object.entries(changes||{}))acceptPanelResult(key,change.newValue);
+      return;
+    }
     if(area!=='local')return;
     const keys=Object.keys(changes||{});
     if(keys.some(key=>[SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,TOOL_CLEANUP_STORE,MARKET_INTENTS_STORE,

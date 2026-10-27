@@ -67,13 +67,27 @@ const sameTarget=(a,b)=>a.source===b.source&&a.action===b.action&&a.toolId===b.t
 // Verify Chrome's browser-owned source document immediately before presenting.
 export async function verifyMarketPanelNavigationSource(api,request){
   try{
-    const [tab,frame]=await Promise.all([
-      api.tabs.get(request.tabId),api.webNavigation.getFrame({tabId:request.tabId,frameId:0})
+    const builtIn=request.source==='built-in';
+    if(builtIn&&(!validSourceURL('built-in',request.sourceUrl)||
+      new URL(request.sourceUrl).host!==new URL(api.runtime.getURL('ui/marketplace.html')).host))return false;
+    // Extension TAB documents are exposed by runtime.getContexts, not
+    // webNavigation.getFrame (which returns null for the built-in market).
+    const [tab,proof]=await Promise.all([
+      api.tabs.get(request.tabId),builtIn?
+        api.runtime.getContexts({contextTypes:['TAB'],tabIds:[request.tabId],windowIds:[request.windowId],
+          documentIds:[request.sourceDocumentId],documentUrls:[request.sourceUrl]}):
+        api.webNavigation.getFrame({tabId:request.tabId,frameId:0})
     ]);
-    return Boolean(tab?.id===request.tabId&&tab.windowId===request.windowId&&!tab.incognito&&
-      tab.url===request.sourceUrl&&(!tab.pendingUrl||tab.pendingUrl===tab.url)&&
-      frame?.documentId===request.sourceDocumentId&&frame.parentFrameId===-1&&
-      frame.documentLifecycle==='active'&&frame.url===request.sourceUrl);
+    if(!(tab?.id===request.tabId&&tab.windowId===request.windowId&&!tab.incognito&&
+      tab.url===request.sourceUrl&&(!tab.pendingUrl||tab.pendingUrl===tab.url)))return false;
+    if(builtIn){
+      const context=proof?.length===1?proof[0]:null;
+      return Boolean(context?.contextType==='TAB'&&context.tabId===request.tabId&&
+        context.windowId===request.windowId&&context.frameId===0&&context.incognito===false&&
+        context.documentId===request.sourceDocumentId&&context.documentUrl===request.sourceUrl);
+    }
+    return Boolean(proof?.documentId===request.sourceDocumentId&&proof.parentFrameId===-1&&
+      proof.documentLifecycle==='active'&&proof.url===request.sourceUrl);
   }catch{return false;}
 }
 export async function queueMarketPanelNavigation(api,request,{now=Date.now}={}){
@@ -167,12 +181,15 @@ export function registerTrustedMarketNavigation(api=globalThis.chrome){
     const expected=api.runtime.getURL('ui/marketplace.html');
     let legitimate=false;
     try{
-      const target=new URL(url),fixed=new URL(expected);
+      const target=new URL(url),fixed=new URL(expected),current=new URL(sender?.tab?.url);
+      // Chrome's sender URL can retain the original document URL after a
+      // same-document hash route. Bind the intent to the current browser URL.
+      target.hash='';current.hash='';
       legitimate=sender?.id===api.runtime.id&&sender?.frameId===0&&
         sender?.documentLifecycle==='active'&&typeof sender?.documentId==='string'&&
         id(sender?.tab?.id)&&id(sender?.tab?.windowId)&&!sender.tab.incognito&&
         target.origin===fixed.origin&&target.pathname===fixed.pathname&&
-        !target.username&&!target.password;
+        !target.username&&!target.password&&target.href===current.href;
     }catch{/* Reject malformed extension-origin requests. */}
     if(!legitimate){sendResponse({ok:false,protocol:MARKET_PANEL_NAV_PROTOCOL,
       error:{code:'E_NAV_SENDER',message:'只允许扩展内可信市场页面发起导航。'}});return true;}
@@ -183,22 +200,17 @@ export function registerTrustedMarketNavigation(api=globalThis.chrome){
       if(!exact(message,['protocol','action','target','toolId','version','marketId','sha256'])||
         message.action!=='NAVIGATE')
         throw marketError('E_NAV_FIELDS','内部市场导航契约无效。');
-      const [tab,frame]=await Promise.all([
-        api.tabs.get(sender.tab.id),api.webNavigation.getFrame({tabId:sender.tab.id,frameId:0})
-      ]);
-      if(!tab||tab.id!==sender.tab.id||tab.windowId!==sender.tab.windowId||
-        tab.incognito||tab.url!==url||tab.pendingUrl&&tab.pendingUrl!==tab.url||
-        !frame||frame.documentId!==sender.documentId||frame.parentFrameId!==-1||
-        frame.documentLifecycle!=='active'||frame.url!==url)
-        throw marketError('E_NAV_DOCUMENT','市场文档或窗口已经变化，请重新点击。');
-      const request=createMarketPanelNavigation({windowId:tab.windowId,tabId:tab.id,source:'built-in',
+      const request=createMarketPanelNavigation({windowId:sender.tab.windowId,tabId:sender.tab.id,source:'built-in',
         action:message.target,toolId:message.toolId,version:message.version,
         marketId:message.marketId,sha256:message.sha256,
-        sourceDocumentId:sender.documentId,sourceUrl:url});
+        sourceDocumentId:sender.documentId,sourceUrl:sender.tab.url});
+      if(!await verifyMarketPanelNavigationSource(api,request))
+        throw marketError('E_NAV_DOCUMENT','市场文档或窗口已经变化，请重新点击。');
       const pending=await queueMarketPanelNavigation(api,request);
       const opened=await opening;
       const result=await waitMarketPanelNavigation(api,pending);
       return {ok:true,protocol:MARKET_PANEL_NAV_PROTOCOL,requestId:pending.requestId,
+        windowId:pending.windowId,
         status:result.status==='NAVIGATION_PENDING'&&!opened?'PANEL_REQUIRED':result.status,
         message:result.message||''};
     })().then(sendResponse,error=>sendResponse({ok:false,protocol:MARKET_PANEL_NAV_PROTOCOL,

@@ -404,7 +404,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
             if(!sidebarTools.canPresentMarketReview())return blocked('已有草稿或其他安装审阅，请完成后重新发起。');
             if(taskWorkbench.navigate('tools')===false)return blocked('当前工作区拒绝导航，草稿已保留。');
             return sidebarTools.openOfficialReview(request.toolId)===true
-              ?{status:'REVIEW_REQUEST_ACCEPTED',message:'已由正式 Side Panel 安装审阅入口接收，尚未安装。'}
+              ?{status:'REVIEW_REQUEST_ACCEPTED',message:'正式安装审阅入口已接收；安装结果请以侧边栏与本机记录为准。'}
               :blocked('安装审阅入口暂不可用，原请求未提交。');
           }
           if(request.action==='detail'){

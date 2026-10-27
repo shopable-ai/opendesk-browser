@@ -17,6 +17,9 @@ function fixture(){
   const values={},listeners=new Set(),events=[];
   const api={
     runtime:{id:EXT,getURL:path=>'chrome-extension://'+EXT+'/'+path,
+      async getContexts(filter){events.push('contexts');api.contextFilter=filter;
+        return [{contextType:'TAB',documentId:'1'.repeat(32),frameId:0,
+          documentUrl:api.runtime.getURL('ui/marketplace.html'),tabId:12,windowId:7,incognito:false}];},
       onMessage:{addListener(fn){api.listener=fn;},removeListener(){}}},
     storage:{
       onChanged:{addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)},
@@ -34,8 +37,8 @@ function fixture(){
     sidePanel:{open(options){events.push('panel:'+options.windowId);return Promise.resolve();}},
     tabs:{async get(tabId){events.push('tab:'+tabId);return {id:tabId,windowId:7,
       url:api.runtime.getURL('ui/marketplace.html'),incognito:false};}},
-    webNavigation:{async getFrame(){events.push('frame');return {documentId:'1'.repeat(32),
-      parentFrameId:-1,documentLifecycle:'active',url:api.runtime.getURL('ui/marketplace.html')};}}
+    // Chrome does not expose extension-owned TABs through webNavigation.
+    webNavigation:{async getFrame(){events.push('frame');return null;}}
   };
   return {api,values,events,listeners};
 }
@@ -83,11 +86,45 @@ test('blocked editor keeps a recoverable request; explicit retry can succeed',as
 test('pinned browser document and source URL are rechecked before a Side Panel Host route',async()=>{
   const h=fixture(),row=sample();
   assert.equal(await verifyMarketPanelNavigationSource(h.api,row),true);
-  h.api.webNavigation.getFrame=async()=>({documentId:'2'.repeat(32),
-    parentFrameId:-1,documentLifecycle:'active',url:row.sourceUrl});
+  h.api.runtime.getContexts=async()=>[{contextType:'TAB',documentId:'2'.repeat(32),
+    frameId:0,documentUrl:row.sourceUrl,tabId:12,windowId:7,incognito:false}];
   assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
   h.api.tabs.get=async()=>({id:12,windowId:8,url:row.sourceUrl,incognito:false});
   assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
+});
+
+test('built-in source requires one exact Chrome TAB context and never falls back to a frame',async()=>{
+  const h=fixture(),row=sample();
+  const context=(await h.api.runtime.getContexts({}))[0];
+  for(const changes of [{documentId:'2'.repeat(32)},{documentUrl:row.sourceUrl+'#other'},
+    {tabId:13},{windowId:8},{frameId:1},{contextType:'SIDE_PANEL'},{incognito:true}]){
+    h.api.runtime.getContexts=async()=>[{...context,...changes}];
+    assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false,JSON.stringify(changes));
+  }
+  for(const contexts of [[],[context,context]]){
+    h.api.runtime.getContexts=async()=>contexts;
+    assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
+  }
+  h.api.runtime.getContexts=async()=>{throw new Error('context unavailable');};
+  assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
+  delete h.api.runtime.getContexts;
+  assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
+  assert.equal(h.events.includes('frame'),false);
+});
+
+test('external source still requires an active top-level webNavigation frame',async()=>{
+  const h=fixture(),url='https://market.example/apps/example-app',
+    row=sample({source:'external',sourceUrl:url});
+  h.api.tabs.get=async()=>({id:12,windowId:7,url,incognito:false});
+  const frame={documentId:row.sourceDocumentId,parentFrameId:-1,documentLifecycle:'active',url};
+  h.api.webNavigation.getFrame=async()=>frame;
+  h.api.runtime.getContexts=async()=>{throw new Error('external pages are not extension contexts');};
+  assert.equal(await verifyMarketPanelNavigationSource(h.api,row),true);
+  for(const changes of [{documentId:'2'.repeat(32)},{parentFrameId:0},
+    {documentLifecycle:'cached'},{url:url+'#other'}]){
+    h.api.webNavigation.getFrame=async()=>({...frame,...changes});
+    assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
+  }
 });
 
 test('identical outstanding click deduplicates instead of replacing pending intent',async()=>{
@@ -111,7 +148,8 @@ test('internal marketplace immediately requests Side Panel before asynchronous d
     onNavigate:async()=>({status:'REVIEW_REQUEST_ACCEPTED'})});
   receiver.start(7);const unregister=registerTrustedMarketNavigation(h.api);
   const source={id:EXT,frameId:0,documentId:'1'.repeat(32),documentLifecycle:'active',
-    url:h.api.runtime.getURL('ui/marketplace.html'),tab:{id:12,windowId:7,incognito:false}};
+    url:h.api.runtime.getURL('ui/marketplace.html'),tab:{id:12,windowId:7,incognito:false,
+      url:h.api.runtime.getURL('ui/marketplace.html')}};
   const response=await new Promise(resolve=>h.api.listener({
     protocol:MARKET_PANEL_NAV_PROTOCOL,action:'NAVIGATE',target:'review',
     toolId:'example-app',version:'1.0.0',marketId:'opendesk/example-app',sha256:SHA
@@ -119,7 +157,63 @@ test('internal marketplace immediately requests Side Panel before asynchronous d
   assert.equal(h.events[0],'panel:7');
   assert.equal(response.ok,true);
   assert.equal(response.status,'REVIEW_REQUEST_ACCEPTED');
+  assert.equal(h.events.includes('frame'),false);
+  assert.deepEqual(h.api.contextFilter,{contextTypes:['TAB'],tabIds:[12],windowIds:[7],
+    documentIds:[source.documentId],documentUrls:[source.url]});
   unregister();receiver.dispose();
+});
+
+test('internal SPA navigation binds the current hash route while Chrome sender URL stays at the document URL',async()=>{
+  const h=fixture(),url=h.api.runtime.getURL('ui/marketplace.html'),
+    current=url+'#/apps/opendesk/example-app/versions/1.0.0';
+  h.api.tabs.get=async()=>({id:12,windowId:7,url:current,incognito:false});
+  h.api.runtime.getContexts=async filter=>{h.api.contextFilter=filter;return [{contextType:'TAB',
+    documentId:'1'.repeat(32),frameId:0,documentUrl:current,tabId:12,windowId:7,incognito:false}];};
+  const receiver=createMarketPanelNavigationReceiver({api:h.api,
+    onNavigate:async()=>({status:'REVIEW_REQUEST_ACCEPTED'})});
+  receiver.start(7);registerTrustedMarketNavigation(h.api);
+  const response=await new Promise(resolve=>h.api.listener({
+    protocol:MARKET_PANEL_NAV_PROTOCOL,action:'NAVIGATE',target:'review',
+    toolId:'example-app',version:'1.0.0',marketId:'opendesk/example-app',sha256:SHA
+  },{id:EXT,frameId:0,documentId:'1'.repeat(32),documentLifecycle:'active',
+    url,tab:{id:12,windowId:7,incognito:false,url:current}},resolve));
+  assert.equal(response.ok,true);
+  assert.equal(response.status,'REVIEW_REQUEST_ACCEPTED');
+  assert.deepEqual(h.api.contextFilter.documentUrls,[current]);
+  assert.equal(h.values[marketPanelNavigationKey(7)].sourceUrl,current);
+  receiver.dispose();
+});
+
+test('internal SPA sender and tab may differ only in fragment, never origin, path or query',async()=>{
+  const url='chrome-extension://'+EXT+'/ui/marketplace.html';
+  for(const tabUrl of [url+'?other=1',url.replace('/marketplace.html','/other.html')+'#/apps/other',
+    url.replace(EXT,'b'.repeat(32)),undefined]){
+    const h=fixture();
+    registerTrustedMarketNavigation(h.api);
+    const response=await new Promise(resolve=>h.api.listener({
+      protocol:MARKET_PANEL_NAV_PROTOCOL,action:'NAVIGATE',target:'review',
+      toolId:'example-app',version:'1.0.0',marketId:'opendesk/example-app',sha256:SHA
+    },{id:EXT,frameId:0,documentId:'1'.repeat(32),documentLifecycle:'active',
+      url,tab:{id:12,windowId:7,incognito:false,url:tabUrl}},resolve));
+    assert.equal(response.ok,false);
+    assert.equal(response.error.code,'E_NAV_SENDER');
+    assert.equal(h.events.length,0);
+    assert.deepEqual(h.values,{});
+  }
+});
+
+test('internal market refuses stale or missing context before enqueueing a review',async()=>{
+  const h=fixture();registerTrustedMarketNavigation(h.api);
+  h.api.runtime.getContexts=async()=>[];
+  const response=await new Promise(resolve=>h.api.listener({
+    protocol:MARKET_PANEL_NAV_PROTOCOL,action:'NAVIGATE',target:'review',
+    toolId:'example-app',version:'1.0.0',marketId:'opendesk/example-app',sha256:SHA
+  },{id:EXT,frameId:0,documentId:'1'.repeat(32),documentLifecycle:'active',
+    url:h.api.runtime.getURL('ui/marketplace.html'),tab:{id:12,windowId:7,incognito:false,
+      url:h.api.runtime.getURL('ui/marketplace.html')}},resolve));
+  assert.equal(response.ok,false);
+  assert.equal(response.error.code,'E_NAV_DOCUMENT');
+  assert.deepEqual(h.values,{});
 });
 test('non-market document cannot enqueue navigation or open the panel',async()=>{
   const h=fixture();registerTrustedMarketNavigation(h.api);
