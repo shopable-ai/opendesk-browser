@@ -110,9 +110,14 @@ async function capture(width,theme,name){
   await select('#preview-width',String(width));
   await wait(100);
   const size=await evaluate('('+function(){
-    const el=document.querySelector('.frame'),r=el.getBoundingClientRect();
+    const el=document.querySelector('.frame');
+    // Capture the product from its top, not from the current scroll left after STOP.
+    el.scrollIntoView({block:'start'});
+    const r=el.getBoundingClientRect();
+    const content=el.querySelector('.ai-vip');
     return {x:r.x,y:r.y,w:r.width,h:r.height,
-      noOverflow:document.documentElement.scrollWidth<=document.documentElement.clientWidth+1};
+      noOverflow:document.documentElement.scrollWidth<=document.documentElement.clientWidth+1 &&
+        (!content||content.scrollWidth<=content.clientWidth+1)};
   }.toString()+')()');
   assert(size.w>280&&size.w<=width+2,'bad source-bound frame width '+width);
   assert(size.noOverflow,'horizontal overflow '+width);

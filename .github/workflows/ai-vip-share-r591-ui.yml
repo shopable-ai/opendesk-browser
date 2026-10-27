@@ -49,6 +49,11 @@ jobs:
           CHECK
       - name: Build preview from SAME App.jsx and Shared UI source, isolated SDK fixture
         run: npm run build:preview --prefix examples/sidebar-tools/ai-vip-share
+      - name: Install CJK fonts for Chinese screenshots
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-noto-cjk
+          fc-match -f '%{family}\\n' ':lang=zh'
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Exercise source-bound React in real Chromium, SDK mocked, not installed
