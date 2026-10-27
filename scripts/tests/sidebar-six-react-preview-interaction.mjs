@@ -176,7 +176,7 @@ try{
     assert.equal(await evaluate('document.querySelectorAll("#opendesk-react-app").length'),1);
     await selectedTab('tools','tab-tools');
   });
-  await step('approved AI sheet: 320px layout, protocol guard, secret and Cancel/Save',async()=>{
+  if(!process.argv.includes('--market-only'))await step('approved AI sheet: 320px layout, protocol guard, secret and Cancel/Save',async()=>{
     const url=pathToFileURL(html);
     url.searchParams.set('tab','workflow');
     url.searchParams.set('ai-settings','1');
@@ -247,6 +247,7 @@ try{
     await selectedTab('tools','tab-tools');
   });
   if(!process.argv.includes('--settings-only')){
+  if(!process.argv.includes('--market-only')){
   await step('six Tab pointer navigation and keyboard roving focus',async()=>{
     const tabs=[['tasks','tab-my-tasks'],['tools','tab-tools'],['workflow','tab-workflow'],
       ['develop','tab-develop'],['cloud','tab-cloud'],['debug','tab-debug']];
@@ -384,6 +385,7 @@ try{
     assert.equal(await evaluate('document.getElementById("sidebar-tool-file-error").hidden'),true);
     await key('Escape');await until('document.getElementById("sidebar-tool-import").hidden');assert.deepEqual(await rowIds(),before);
   });
+  }
   await step('R6.8 market success to existing React detail, disabled and unknown (memory-only)',async()=>{
     await navigate('tools','tab-tools');
     await click('#od-sidebar-preview-open-market');
@@ -423,6 +425,7 @@ try{
     await until('document.querySelector("#sidebar-tool-import[data-phase=unknown]")===null');
     await screenshot('market-unknown-no-success');
   });
+  if(!process.argv.includes('--market-only')){
   await step('workflow suggestions, settings, draft retention and disconnected controls',async()=>{
     await navigate('workflow','tab-workflow');
     assert.equal(await evaluate('document.getElementById("workflow-ai-plan").disabled'),true);
@@ -484,6 +487,7 @@ try{
     assert.match(await evaluate('document.getElementById("trusted-history-status").textContent'),/不读取浏览器历史/);
     await screenshot('debug-history-read-only');
   });
+  }
   }
   assert.deepEqual(exceptions,[],'Browser errors');report.status='PASS';
 }catch(error){

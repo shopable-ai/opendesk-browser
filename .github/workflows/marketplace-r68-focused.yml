@@ -1,0 +1,47 @@
+name: Marketplace R6.8 focused Side Panel navigation
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/marketplace/install.js'
+      - 'src/ui/market-install-sheet.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/extension-center.js'
+      - 'src/ui/react/tabs/tool-host.tsx'
+      - 'src/ui/react/preview/clipper-preview.js'
+      - 'scripts/preview/build-sidebar-six-react-preview.mjs'
+      - 'scripts/tests/sidebar-six-react-preview-interaction.mjs'
+      - 'tests/environment/market-trusted-install.test.mjs'
+      - 'tests/environment/market-install-sheet.test.mjs'
+      - 'tests/environment/sidebar-six-react-preview-contract.test.mjs'
+      - '.github/workflows/marketplace-r68-focused.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  market-r68:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Test trusted single-installer review, durable receipt and detail identity
+        run: node --test tests/environment/market-trusted-install.test.mjs tests/environment/market-install-sheet.test.mjs
+      - name: Build exact product React Side Panel HTML
+        run: node scripts/preview/build-sidebar-six-react-preview.mjs
+      - name: Verify source-bound React component contract
+        run: node --test tests/environment/sidebar-six-react-preview-contract.test.mjs
+      - name: Test user clicks against real React sheet and detail in Chromium
+        run: node scripts/tests/sidebar-six-react-preview-interaction.mjs --market-only
+      - name: Publish a single directly openable HTML for UI review
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-r68-react-source-bound-html
+          path: prototypes/sidebar/react-preview/index.html
+          if-no-files-found: warn
+          retention-days: 14

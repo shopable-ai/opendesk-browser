@@ -157,6 +157,7 @@ export function createClipperPreview({view,stage,doc=document,onUninstall=()=>{}
     patch('display',{hidden:true});patch('settings-view',{hidden:true});patch('cookie-permissions',{hidden:true});
     view.runtime.frameRoot.hidden=false;
     doc.getElementById('extension-center').hidden=false;
+    notice('');
     doc.querySelector('[data-extension-key="'+key+'"]')?.focus({preventScroll:true});
   }
   return Object.freeze({
