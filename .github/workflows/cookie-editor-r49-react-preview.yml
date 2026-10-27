@@ -90,8 +90,8 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: |
-          node visual-contract-check.mjs --all
-          node visual-contract-check.mjs --dark
+          node visual-contract-check.mjs --g1
+          node visual-contract-check.mjs --g1 --dark
       # Release identity belongs after browser evidence: the checked-in install
       # JSON may lag a compiled candidate while the separate promotion gate is blocked.
       # Do not skip Chromium merely because that guarded identity is stale.

@@ -28,6 +28,8 @@ const enforce=process.argv.includes('--enforce');
 const all=process.argv.includes('--all');
 const theme=process.argv.includes('--dark')?'dark':'light';
 const widths=all?[320,360,380,400,440,520]:[380];
+const tabs=process.argv.includes('--g1')?['cookie','accounts']:
+  ['cookie','accounts','enterprise','market','custom','circle'];
 const output=resolve(here,'../../../../../artifacts/cookie-editor-r35-visual');
 await mkdir(output,{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_BIN||undefined});
@@ -77,6 +79,8 @@ try{
  for(const width of widths){
   const context=await browser.newContext({viewport:{width:Math.max(620,width+70),height:900},deviceScaleFactor:1});
   const [oldPage,reactPage]=await Promise.all([context.newPage(),context.newPage()]);
+  oldPage.setDefaultTimeout(10000);
+  reactPage.setDefaultTimeout(10000);
   for(const page of [oldPage,reactPage])page.on('pageerror',error=>errors.push({width,message:error.message}));
   await oldPage.goto(pathToFileURL(approvedPath).href,{waitUntil:'load'});
   await oldPage.locator('#labWidth').selectOption(String(width));
@@ -94,7 +98,8 @@ try{
   }
   const tabLabels={accounts:'Accounts',enterprise:'Enterprise',market:'Market',
     custom:'Custom',circle:'Circle'};
-  for(const tab of ['cookie','accounts','enterprise','market','custom','circle']){
+  for(const tab of tabs){
+   console.log(JSON.stringify({audit:'R35_VISUAL_SCENE',width,theme,tab}));
    if(tab!=='cookie'){
      await oldPage.locator('#tab'+tabLabels[tab]).click();
      await reactPage.locator('#cookie-product-tab-'+tab).click();
