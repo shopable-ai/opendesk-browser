@@ -171,15 +171,33 @@ try{
       const crop={x,y,width:Math.min(rect.width,viewport.width-x),
         height:Math.min(rect.height,viewport.height-y)};
       if(crop.width<=0||crop.height<=0)throw Error('screenshot outside viewport');
-      await page.screenshot({path,clip:crop,animations:'disabled',caret:'hide'});
+      // CDP captures the same real Chromium compositor frame without Playwright's
+      // unrelated animation/font-stability wait on the approved prototype.
+      const session=await context.newCDPSession(page);
+      try{
+        const result=await session.send('Page.captureScreenshot',{
+          format:'png',fromSurface:true,
+          clip:{x:crop.x,y:crop.y,width:crop.width,height:crop.height,scale:1}
+        });
+        await writeFile(path,Buffer.from(result.data,'base64'));
+      }finally{await session.detach();}
       screenshots.push(path);
     }catch(error){
       const message=String(error?.message||error);
       errors.push({width,tab,page:name,message});
       diffs.push({width,theme,tab,id:name+'-screenshot',status:'LOCKED',
-        kind:'SCREENSHOT_FAILURE',message});
+        kind:'TEST_INFRA_FAIL',message});
     }
    }
+   // Checkpoint every completed width/tab; runner cancellation must not erase
+   // evidence from prior scenes. Do not report browser infra as visual parity.
+   await writeFile(join(output,'scene-'+width+'-'+theme+'-'+tab+'.json'),
+     JSON.stringify({width,theme,tab,
+       status:errors.some(x=>x.width===width&&x.tab===tab)?'TEST_INFRA_FAIL':
+         diffs.some(x=>x.width===width&&x.tab===tab&&x.status==='LOCKED')?'VISUAL_GAP':'REVIEW_REQUIRED',
+       diffs:diffs.filter(x=>x.width===width&&x.tab===tab),
+       errors:errors.filter(x=>x.width===width&&x.tab===tab),
+       screenshots:screenshots.filter(x=>x.includes(width+'-'+theme+'-'+tab+'-'))},null,2)+'\n');
   }
   await context.close();
  }
