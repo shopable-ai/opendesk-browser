@@ -53,8 +53,8 @@ function harness(overrides={}){
       if(message.kind==='check-delivery')return {ok:true,data:{allowed:true}};
       return {ok:true,data:{}};
     }}};
-  const page=initChatGPTFixedBridgePage({api,doc,win,site,readPage:()=>({ok:true,
-    turnKey:'turn-1',answerKey:'answer-1:0',blocks:[JSON.stringify({...JSON.parse(candidate),...currentScope,requestId:currentRequestId})]})});
+  const page=initChatGPTFixedBridgePage({api,doc,win,site,readPage:overrides.readPage||(()=>({ok:true,
+    turnKey:'turn-1',answerKey:'answer-1:0',blocks:[JSON.stringify({...JSON.parse(candidate),...currentScope,requestId:currentRequestId})]}))});
   const buttons=nodes.filter(x=>x.tag==='button');
   const status=nodes.find(x=>x.className==='status');
   const click=i=>{assert.ok(buttons[i],`button ${i} exists`);return buttons[i].listeners.click({isTrusted:true});};
@@ -202,12 +202,31 @@ test('SPA conversation creation enables prepare and leaving it restores guidance
 test('approved complete candidate cancelled before polling never executes or edits the draft',async()=>{
   const h=harness();await h.prepare();await h.click(1);
   h.snap.draft='user draft';await h.click(3);h.poll();h.click(2);await flush();
-  assert.equal(h.buttons.length,4);assert.equal(h.buttons[3].textContent,'停止/取消');
+  assert.equal(h.buttons[4].textContent,'采用对话任务');assert.equal(h.buttons[3].textContent,'停止/取消');
   assert.equal(h.sends.filter(x=>x.kind==='execute').length,0);
   assert.equal(h.sends.filter(x=>x.kind==='cancel').length,0);
   assert.deepEqual(h.sends.find(x=>x.kind==='revoke-request'),
     {protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'revoke-request',requestId:id});
   assert.equal(h.snap.draft,'user draft');assert.equal(h.writes.length,1);h.page.dispose();
+});
+
+test('view button follows this running identity and never chooses a target or restarts execution',async()=>{
+  const execution=Promise.withResolvers();
+  const h=harness({execute:()=>execution.promise,'show-execution-page':()=>({shown:true,runId:'run-real'})});
+  const view=h.buttons.find(button=>button.textContent==='查看执行页面');
+  assert.equal(view.disabled,true);await h.prepare();await h.click(2);await flush();
+  const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',requestId:id,sourceUrl:source.url,
+    mode:'manual',stage:'running',taskId:'page.read.fixed',runId:'run-real'};
+  const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'};
+  h.receive(progress,sender);assert.equal(view.disabled,false);
+  await view.listeners.click({isTrusted:false});assert.equal(h.sends.some(row=>row.kind==='show-execution-page'),false);
+  await view.listeners.click({isTrusted:true});
+  assert.deepEqual(h.sends.find(row=>row.kind==='show-execution-page'),{protocol:progress.protocol,
+    kind:'show-execution-page',requestId:id,runId:'run-real',source,sourceUrl:source.url});
+  h.receive({...progress,stage:'result-ready'},sender);assert.equal(view.disabled,true);
+  execution.resolve({runId:'run-real',sent:true,aiReplyObserved:true});await flush();
+  assert.equal(view.disabled,true);assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);
+  h.page.dispose();
 });
 
 test('late manual and auto authorizations cannot dispatch execute or overwrite cancellation',async()=>{
@@ -393,4 +412,47 @@ test('a new request cannot clear or replace an UNKNOWN composer marker even afte
   assert.equal(h.snap.draft,'');assert.equal(h.writes.length,3);
   assert.equal(h.commits.length,1);
   assert.equal(h.snap.form.getAttribute(marker),'chatgpt-fixed-bridge');
+});
+
+const intentText=JSON.stringify({protocol:'opendesk.task.intent.v1',candidateId:'candidate-custom-1',
+  taskId:'custom.read',targetUrl:'https://example.com/article',args:{}});
+function intentHarness(){
+  let text=intentText;
+  const h=harness({readPage:()=>({ok:true,turnKey:'turn-1',answerKey:'answer-1:0',blocks:[text]}),
+    'adopt-task':()=>({requestId:id,source,taskId:'custom.read',args:{length:200},
+      targetUrl:'https://example.com/article',installation,
+      candidate:{candidateId:'candidate-custom-1',text:intentText,turnKey:'turn-1',answerKey:'answer-1:0'}})});
+  return {...h,drift:()=>{text+=' ';}};
+}
+test('appended adoption button needs a trusted click and adopts without nonce echo, draft edits or execution',async()=>{
+  const h=intentHarness();h.snap.users=[h.messageNode('请读取这篇文章')];h.snap.draft='existing user draft';
+  await h.buttons[4].listeners.click({isTrusted:false});assert.equal(h.sends.length,0);
+  await h.click(4);
+  assert.deepEqual(h.buttons.slice(0,4).map(button=>button.textContent),
+    ['建立请求','批准本次自动执行','执行','停止/取消']);
+  assert.equal(h.sends.length,1);assert.equal(h.sends[0].kind,'adopt-task');
+  assert.equal(h.writes.length,0);assert.equal(h.snap.draft,'existing user draft');
+  assert.match(h.status.textContent,/已采用对话任务，尚未执行/);
+  await h.click(2);await flush();
+  assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task','authorize-task','execute']);
+  const execution=h.sends[2];assert.equal(execution.candidateText,intentText);
+  assert.equal(execution.adoptedRequest.installation.scriptId,installation.scriptId);
+  assert.deepEqual(execution.adoptedRequest.args,{length:200});
+  const selection=h.nodes.find(node=>node.className==='selection');
+  assert.match(selection.textContent,/本次脚本：custom\.read/);
+  assert.match(selection.textContent,/https:\/\/example\.com\/article/);
+  assert.match(selection.textContent,/"length":200/);h.page.dispose();
+});
+test('adopted candidate drift blocks manual and auto approval before any execute',async()=>{
+  for(const button of [1,2]){
+    const h=intentHarness();await h.click(4);h.drift();await h.click(button);await flush();
+    assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task']);
+    assert.match(h.status.textContent,/已改变/);assert.equal(h.writes.length,0);h.page.dispose();
+  }
+});
+test('adopted auto approval stays separate from adoption and polling dispatches once',async()=>{
+  const h=intentHarness();await h.click(4);assert.equal(h.sends.length,1);
+  await h.click(1);assert.deepEqual(h.sends.map(row=>row.kind),['adopt-task','authorize-task']);
+  h.poll();await flush();h.poll();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,1);h.page.dispose();
 });

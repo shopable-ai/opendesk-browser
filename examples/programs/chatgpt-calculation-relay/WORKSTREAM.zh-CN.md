@@ -1,14 +1,27 @@
 # ChatGPT 双对话计算接力 · 固定安装 Task 0.2.0
 
-## 2026-10-27 本轮可观察测试：草稿例外已批准，等待原生 UI
+## 2026-10-27 本轮新实测完成：两组接力与同 runId 去重
 
-本轮计划从「我的」运行新的 23、7、4 和 31、9、2，两组均 **NOT_STARTED**；30→120、40→80 只是待核验预期，不是新实测结果。没有发送本轮计算消息，没有编辑或发送受保护草稿，也没有修改业务源码或冻结发行包。
+本轮在日常持续开发 Chrome 的专用标签 `560068640`，通过「我的」执行同一已安装固定版本 `opendesk.chatgpt-calculation-relay@0.2.0`。两组均为本轮新发送、新回复；下表是实际持久日志与独立算术核对结果，不是历史 17/19 组或预期值。
 
-已重新通过 Chrome 原生详情核对实际启用 ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 与加载路径 `dist/development`；调试页显示开发服务已连接，指纹 `a1c7b3faca4a3cd050eb84aa34221da1f7258549858c13dbd5c5b6f7925d830d`。原 watcher PID 21230/21250 保留。真实「我的」中已选到同一安装任务；公开 Native 固定身份 status Run `8877a469-08c5-4b74-83aa-975b6f43963e` / Result `831216cf-d9ae-4ef5-8d0b-6802fb11a641` 为 completed/released、workerRetired:true、slotAvailable:true，读回历史业务 relay-isolated-019 completed，无待对账阻塞。此为本轮新查询，所读计算仍属历史数据。
+| 业务 runId / 输入 | 实际结果 | GUI 宿主 Run / Result（原生 AX） | 独立 Native status Run / Result |
+| --- | --- | --- | --- |
+| relay-observable-023 / 23、7、4 | A=30，B=120 | 37fdc721-c1e6-4acb-8df8-f6e62e5d24d7 / a1fb06bd-dac0-4d3a-bc44-b55e3feb92f1 | 18b94f0c-3d34-417c-8b83-35670fc38b3d / d48d3e1e-73ab-44c9-9142-3dd3b43a9754 |
+| relay-observable-031 / 31、9、2 | A=40，B=80 | 01e68214-97f7-418e-b0cb-7c24c08d386a / 750eaf7f-3bd6-48c9-917e-475748bb450e | 008d4020-364f-48bf-9aad-754dd6a7e998 / 8ef15050-dd61-4198-9d69-89b9a796ae13 |
 
-新建专用 ChatGPT 标签自动继承受保护的 175 字符草稿，官网「新聊天」也保留它。用户随后明确批准「允许仅清空专用副本，完成后恢复」；此授权只覆盖本轮专用副本，原有两个受保护标签不编辑、不发送，不再次询问同一例外。恢复操作前须重新核对全文与 SHA。当前原生 UI 锁由另一活动聊天持有，等待其释放，不强抢。原生界面曾出现旧索引失效、Side Panel 关闭以及前台切回其他市场测试窗口；停止输入，不将所有变化都归因于 watcher。未关闭他人窗口或停止共享服务。本轮新建专用标签保留待续测。
+共同 sourceHash：`94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f`。两次 Native status 均精确 pin taskId/version/sourceHash，返回 completed/released、workerRetired:true、slotAvailable:true、needsReconciliation:false。已核对四条助手原文、八个互不重复的用户/助手消息 ID、stable-twice 完成信号、空消息基线、不同 A/B 对话与 documentId，以及导航前持久交接和 B 动态提示词中的实际 A 值。
 
-现场索引见 EVIDENCE.json 的 observableTestSession，以及 `artifacts/chatgpt-task-0.2.0-20261027/observable/`。下一操作：原生 UI 可用后重新核对准确窗口/Host，完成两组真实「我的」运行、各自独立 Native status 与同 runId 去重核对，最后恢复专用草稿副本。本轮未进入 production、完整矩阵、评分或 task.list 修复。
+实际对话：23组 [A](https://chatgpt.com/c/6adfa602-c520-83ec-b14e-8eacfb0ff25f) → [B](https://chatgpt.com/c/6adfa611-89a8-83ec-9dc5-a69b3b744931)；31组 [A](https://chatgpt.com/c/6adfa725-d3e8-83ec-b9a1-2e7818a726f6) → [B](https://chatgpt.com/c/6adfa733-7118-83e8-aa19-3ea52c6f9fad)。
+
+随后在31组 B原页面通过「我的」重复 `relay-observable-023` 及原输入23、7、4；GUI Run `8197d8c4-1fff-4da9-a409-924bf4800928` / Result `3a5c4edd-1de1-433c-a3e2-a5849b76e7ed` completed。重复前后各一次 Native inspect 对照：原23组日志逐字段相等，当前31组 B的URL、documentId、两条消息ID、完成/空草稿状态完全不变，证明没有重发或导航。inspect 查询自身亦 completed/released、workerRetired:true、slotAvailable:true。
+
+用户明确允许使用其他浏览器窗口，并允许「仅清空专用副本，完成后恢复」。本轮仅在专用标签操作，未编辑/发送两个原受保护标签，未发送跨聊天协调消息或改动其他 owner 的锁。继承草稿清空前与备份全文核对；结束后在专用首页恢复175个Unicode字符、178个JS code units，原生AX逐字相等，SHA256 `e6753466a7aa4a03d06025b83a1611b2225899a4659768ee5effe6bfe61daf4a`，未发送。
+
+实际加载路径 `dist/development`、扩展ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；恢复时开发服务已连接，指纹 `0373664465b5ae19e014999358b7b853c4c0a781e260e9d66e595c8f1be778e8`。旧21230/21250已由现有71052/71072 watcher替代，本轮未启停或覆盖任何watcher。发送前观察到一次共享安全重载，重新核对参数后才运行；数字框的粘贴/原生AX更新曾未立即反映，使用原生键入和实际数值核对解决，没有因此修改产品。
+
+GUI身份与completed来自原生AX。补取这三次GUI来源run.get均被既有owner边界拒绝 `E_PERMISSION / NOT_DISPATCHED`，保留拒绝回执，不放宽权限；GUI记录不冒充原始Host JSON或逐个Worker退役回执。独立Native查询有完整原始Host回执和释放证据。完整索引见 [EVIDENCE.json](EVIDENCE.json) 的 observableTestSession，本机原始证据见 [本轮证据目录](../../../artifacts/chatgpt-task-0.2.0-20261027/observable/verification.json)。
+
+本轮只更新说明和证据；业务源码与冻结release逐文件SHA均未变，未重复构建、安装、提交或推送。源码目录离线证明仍仅属于下节历史17/19组，本轮未重复该动作。production、同候选Stop/撤权完整矩阵、评分与task.list部署修复继续延期，当前请求的核心测试已完成。
 
 ## 2026-10-27 当前结果：安装版核心闭环完成
 

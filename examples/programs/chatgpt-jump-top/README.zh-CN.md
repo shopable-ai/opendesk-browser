@@ -1,14 +1,38 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
-## 当前 dev 测试（2026-10-27）
+## 父容器左对齐修正（2026-10-27，源码完成、安装未验证）
 
-**当前 dev 已通过 ChatGPT 实际滚动操作，本地适配核心流程尚未完成（`PARTIAL_CHATGPT_PASS_WAITING_NATIVE_WINDOW`）。** 此前已从日常「您的 Chrome」工具栏正常打开侧边栏并进入「开发」，未再出现 `ERR_FILE_NOT_FOUND`；「调试 → 本地开发服务」实读为已连接，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，构建指纹为 `d689f432f4827c58922537502eba3be1368efb4b1bfb071fa9781b000c1c32c4`。实际加载目录仍未从日常 Profile 详情读回，不能只凭预期 `dist/development` 路径认定。
+按最新要求，置顶/置底导航与提示词快捷按钮的浮动宿主同为 `document.documentElement` 的子节点，使用相同的主区域左侧 8px 边距，不再额外叠加提示词栏的 1px 边框和 6px 内边距。320px 左侧导航占位场景中，导航宿主从上轮的 335px 修正为 328px；碰撞避让只沿该左边距向上移动。独立安装不依赖提示词工具的 DOM、安装或启用状态。
+
+回复操作区 `span[data-opendesk-chatgpt-answer-tools]` 取消起始侧自动边距，改为起始侧 0、末尾侧 auto，内部按钮靠左排列；复用已有右对齐组时也会修正布局，保留原生操作和独立 Mind Map 宿主。改动只涉及本项目业务源码和定向测试，上下滚动及边界禁用通过相关检查。
+
+修复前 7 项相关用例失败，修复后 `node --test --test-reporter=dot examples/programs/chatgpt-jump-top/tests/floating-navigation.test.mjs tests/environment/chatgpt-jump-top.test.mjs` 共 86 项通过，两个修改模块语法检查通过。原生 UI 锁仍由其他 owner 持有，本轮未取得锁、未操作浏览器，也未刷新可信状态；上轮的停用及 `managedCleanup=unknown` 只是最后已知安装状态。本轮真实对齐、安装、网站适配、可信保存和刷新恢复仍 `NOT_TESTED`。
+
+**下文旧 0.4.7/r8 候选已不对应本次源码，不可作为本次修复包导入。** 保留旧候选及其历史哈希，不重建扩展、不覆盖 watcher；后续只有正常可信状态实际变为 retired 后，才从最新源码通过原 Builder 生成新的不可变 Revision、保留已批准六条范围，并走原 Installer 同身份更新。原正式 JSON 仍为 0.4.6/r7。本轮证据记录在既有 dev JSON 和 R134 台账的 `parentContainerAlignmentCorrection`。
+
+## 上轮左边距修复与安装阻塞（历史记录）
+
+**源码已修复，新版尚未安装（`SOURCE_FIXED_UPDATE_BLOCKED_MANAGED_CLEANUP`）。** 本轮已取得并释放原生 UI 锁，在日常 Chrome 的既有 ChatGPT 内容截图中再次复现旧导航偏右。DOM 矩形驱动超时，未将截图估读或定向测试当作新版原生通过。源码改为按可见主区域、原生导航占位及完整对话列定位，并计入提示词按钮的物理内边距；不依赖提示词工具 DOM 或启用状态。自定义锚点、其他站点、单实例、可信点击及清理合同保持。
+
+此前定向检查已复现旧算法 `598px` 对比目标 `335px` 的偏移，修复后 109 项受影响检查通过；本轮没有重复源码测试。三站基候选 **0.4.7/r8** 的 sourceHash 为 `361aa36fb1a18799a8c5143a04cf782ab77f8c554e651e9c558bf459e2b974b4`，未安装。为保留当前已批准的本地范围，本轮从相同业务源码快照经原 Program Builder 生成临时日常候选 `artifacts/ai-scroll-r134/dev-left-alignment-20261027/daily-r8/ai-scroll-navigation.opendesk-page.json`，只补入已批准的三条本地精确匹配；sourceHash 为 `84f8ba1795b0233e3b42f2f7430a5c5bdba1ad9532887ed4cd7c438e43192861`，packageHash 为 `8414db7c010288b570ce508f98990429b4e30fd60325383a532fa029d22d6f4d`。包与构建字节、当前源码模块逐项一致；仓库正式包仍为 0.4.6/r7。
+
+原「更新 / 导入新版」已显示**网站权限范围未变化**，完整保留三站及 `http://127.0.0.1:43111/demo-form.html`、`?*`、`/*` 六条执行匹配。但确认更新返回 `E_PAGE_CLEANUP_PENDING`：旧安装 `managedCleanup=unknown`，不能覆盖恢复记录。此未知态在更新前已存在。正常详情停用移除了当前文档的导航、回复按钮及网站适配入口；恢复同样被清理栅栏拒绝。结束本聊天旧测试文档后，可信刷新仍为 unknown。**当前原安装仍是 r1978225210，原 installationId `0f356e39-c6a2-4694-81e7-18ce3dbc2e1d` 和范围保留，授权及 Chrome 注册均为 disabled；没有安装 r8，未强制恢复、卸载、清空账本或修改 Authority。** 其他聊天窗口未动，配置未写入。
+
+日常扩展 ID 实读为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，Chrome 详情的实际加载来源已核对为 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`；「调试 → 本地开发服务」已连接，构建指纹 `342c19166d67c722a19754ef539027686c1d0d55d12120d2de340221f8feb371`。未构建或重载扩展、未覆盖共享 watcher。本聊天续接入口为 windowId `560068656` / tabId `560068665` 的本地 demo；旧窗口中本任务三个标签及本任务原单页已正常关闭，均可按原 URL 重开。
+
+下一步只读核对原安装清理是否已由真实文档退出变为 retired；unknown 不变时不重复更新、启停、测试或构建。解除后才按原 Installer 更新同一身份并恢复，再核对真实对齐/上下滚动 → 本地可视选择主区域和实际容器 → 双向测试、可信保存读回、刷新和边界禁用 → 正常停用清理与恢复。配置/ETag 保留仍 `NOT_TESTED`；ETag 无允许入口时如实保留未验证。原始记录及截图见 [本轮 dev 证据](../../../artifacts/ai-scroll-r134/dev-left-alignment-20261027/dev-result.json) 和 R134 台账 `leftAlignmentContinuation`。production、发行、评分及尺寸/边缘矩阵继续延期。
+
+## 前次 dev 测试（2026-10-27）
+
+**当前 dev 已通过 ChatGPT 实际滚动操作和本地网站范围更新，网站适配核心流程尚未完成（`HANDOFF_PARTIAL_CHATGPT_AND_LOCAL_INSTALL_PASS`）。** 此前已从日常「您的 Chrome」工具栏正常打开侧边栏并进入「开发」，未再出现 `ERR_FILE_NOT_FOUND`；「调试 → 本地开发服务」实读为已连接，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，构建指纹为 `d689f432f4827c58922537502eba3be1368efb4b1bfb071fa9781b000c1c32c4`。实际加载目录仍未从日常 Profile 详情读回，不能只凭预期 `dist/development` 路径认定。
 
 日常安装原为主动停用的 r2。本轮通过原「更新 / 导入新版」安装 **0.4.6 / r7**，读回源码 SHA-256 `487f655fb22184bedbde0450b7e6f542961aa76ecc78a806fd1e63b0190335e3`，安装身份 `0f356e39-c6a2-4694-81e7-18ce3dbc2e1d` 保持，升级保留停用；随后为本轮测试明确恢复，Authority 为 `active`、Chrome 注册为 `registered`。这不证明网页已实际导航。
 
-已通过详情准备本地 `http://127.0.0.1:43111`、路径前缀 `/demo-form.html` 的原安装器审阅候选（`0.4.6+site.r1978225210`）。确认点击遭遇原生窗口变更提示，尚无安装终态。发送队列释放 UI 锁后，本任务曾取得锁；但浏览器焦点与原生截图再次不一致，计算接力对话仍在原生操作。本任务停止原生输入并释放自己的锁，按用户要求继续等待，不发送协调消息。下一步先读取当前安装/审阅状态，再完成网站适配、可信保存刷新及停用清理和恢复，不重放结果未知的安装确认。
+等待并行原生操作结束后，已通过原安装器完成本地 `http://127.0.0.1:43111`、路径前缀 `/demo-form.html` 的固定范围更新，版本 `0.4.6+site.r1978225210`、修订 `1978225210`；安装身份保持，授权 `active`、Chrome 注册 `registered`。更新后固定源码 SHA-256 为 `3d1157f6e92ff1e77d8ec56a7c1ccf7dacf57d67ade13343e3b8fd11ac429da6`，Manifest SHA-256 为 `86379c7f154838a2744d1ec13005bb25d6091988d09ed586102711175ef515e5`。刷新后网站适配入口自动显示，可信 Host 读回 0 条规则；区域选择尚未保存，用户要求新对话续接后已按 Escape 收束选择，保留专用标签并释放 UI 锁。未发协调消息。
 
-在本任务独立日常 Chrome 窗口、既有 ChatGPT「技术验证准备確認」对话中，已实际点击整段对话顶部和底部：真实 `.thread-scroll-container` 的 `scrollTop` 分别落到 `0.5` 和 `7883.5`（最大值 `7884`），对应边界按钮停用；末条长回复回顶落到 `6734.5`，可见其首节。末条回复到底后可见末段，但定位器可能先把末尾工具栏滚入视口，不单独据此归因按钮处理函数的滚动距离。刷新后整段对话双按钮及网站适配入口自动恢复。未发送消息；本次未验证 DeepSeek/Gemini，也尚未重新读回当前安装精确版本与本地规则。
+在本任务独立日常 Chrome 窗口、既有 ChatGPT「技术验证准备確認」对话中，已实际点击整段对话顶部和底部：真实 `.thread-scroll-container` 的 `scrollTop` 分别落到 `0.5` 和 `7883.5`（最大值 `7884`），对应边界按钮停用；末条长回复回顶落到 `6734.5`，可见其首节。末条回复到底后可见末段，但定位器可能先把末尾工具栏滚入视口，不单独据此归因按钮处理函数的滚动距离。刷新后整段对话双按钮及网站适配入口自动恢复。未发送消息；本次未验证 DeepSeek/Gemini，规则持久化及停用恢复仍待完成。
+
+用户最新要求：左下角置顶、置底双按钮的左边距与提示词快捷按钮一致，提取前坐标正常。接收对话优先核对真实页面与原定位逻辑并修复，再完成网站适配、可信保存刷新和停用恢复；本对话尚未修改该定位。
 
 本任务未改业务或公共构建源码，未启动第二个 writer、停止服务或发送网页消息；不为驱动焦点问题修改安装器。旧的内部 URL 拒绝和隔离 production 测试保留历史，不能代替当前 dev 通过。详见 [R134 台账的 `devContinuation`](../../../docs/framework/workstreams/ai-scroll-navigation-r134-delta.json) 与其中证据索引；production、正式发布、评分和边缘矩阵继续延期。
 

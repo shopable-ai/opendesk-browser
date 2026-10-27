@@ -82,3 +82,16 @@ export function fixedPageReadTarget(request){
     throw fail('E_BRIDGE_SCHEMA','不是固定网页读取任务');
   return FIXED_PAGE_URL;
 }
+
+// Independent assistant intent: no installation pin or authorization nonce.
+export const CHATGPT_TASK_INTENT_PROTOCOL='opendesk.task.intent.v1';
+export function validateChatGPTTaskIntent(text){
+  if(typeof text!=='string'||text.length>4096)throw fail('E_BRIDGE_LIMIT','任务意图超出长度限制');
+  let value;try{value=JSON.parse(text);}catch{throw fail('E_BRIDGE_FORMAT','任务意图必须是完整 JSON');}
+  if(!own(value,['protocol','candidateId','taskId','targetUrl','args'])||Object.keys(value).length!==5||
+    value.protocol!==CHATGPT_TASK_INTENT_PROTOCOL||typeof value.candidateId!=='string'||!token.test(value.candidateId)||
+    typeof value.taskId!=='string'||!taskIdPattern.test(value.taskId)||!validTarget(value.targetUrl))
+    throw fail('E_BRIDGE_SCHEMA','任务意图字段、候选身份或目标不合法');
+  return Object.freeze({protocol:value.protocol,candidateId:value.candidateId,taskId:value.taskId,
+    targetUrl:value.targetUrl,args:genericArgs(value.args)});
+}

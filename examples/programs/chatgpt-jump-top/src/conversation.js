@@ -423,8 +423,13 @@ export function mountAnswerTool(bar, host) {
     group.style.cssText = 'display:inline-flex;align-items:center;gap:2px;padding:2px;'
       + 'border-radius:12px;background:color-mix(in srgb,currentColor 6%,transparent);'
       + 'border:1px solid color-mix(in srgb,currentColor 10%,transparent);'
-      + 'margin-inline-start:auto;max-width:100%;flex-wrap:wrap;flex:0 0 auto;';
+      + 'max-width:100%;flex-wrap:wrap;flex:0 0 auto;';
   }
+  // A peer may have created the group with the former right-aligned margin.
+  // Update layout only, and avoid style mutations on every observer refresh.
+  if (group.style.marginInlineStart !== '0px') group.style.marginInlineStart = '0px';
+  if (group.style.marginInlineEnd !== 'auto') group.style.marginInlineEnd = 'auto';
+  if (group.style.justifyContent !== 'flex-start') group.style.justifyContent = 'flex-start';
   const previous = host.parentElement;
   if (previous !== group) group.append(host);
   if (previous !== group && previous?.hasAttribute(ANSWER_TOOLS) && !previous.childNodes.length)

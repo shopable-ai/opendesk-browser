@@ -1066,7 +1066,7 @@ test('mindmap mapping rejects nonadjacent, nested, duplicate, visible-original a
   }
 });
 
-test('answer tool group mounts idempotently at right, moves own host and unmounts only empty groups', () => {
+test('answer tool group stays left aligned, moves own host and unmounts only empty groups', () => {
   const {doc} = environment();
   const bars = ['flex', 'inline-flex'].map(display => {
     const bar = element({parent: doc.body});bar.style.display = display;
@@ -1077,7 +1077,9 @@ test('answer tool group mounts idempotently at right, moves own host and unmount
   const group = conversation.mountAnswerTool(bars[0], host);
   conversation.mountAnswerTool(bars[0], peer);
   assert.equal(group, bars[0].lastElementChild);
-  assert.match(group.style.cssText, /margin-inline-start:auto/);
+  assert.equal(group.style.marginInlineStart, '0px');
+  assert.equal(group.style.marginInlineEnd, 'auto');
+  assert.equal(group.style.justifyContent, 'flex-start');
   assert.match(group.style.cssText, /border-radius:12px/);
   assert.equal(conversation.mountAnswerTool(bars[0], host), group);
   assert.deepEqual(group.children, [host, peer]);
@@ -1088,6 +1090,26 @@ test('answer tool group mounts idempotently at right, moves own host and unmount
   assert.equal(peer.parentElement, group);
   conversation.unmountAnswerTool(peer);
   assert.equal(group.isConnected, false);
+});
+
+test('mounting navigation left aligns an existing peer group without replacing it', () => {
+  const {doc} = environment();
+  const bar = element({parent: doc.body});bar.style.display = 'flex';
+  const native = element({tag: 'button', parent: bar});
+  const group = element({tag: 'span', parent: bar,
+    attributes: {'data-opendesk-chatgpt-answer-tools': ''}});
+  group.style.marginInlineStart = 'auto';
+  const peer = element({tag: 'span', parent: group,
+    attributes: {'data-opendesk-chatgpt-mindmap': 'button'}});
+  const host = doc.createElement('span');host.setAttribute('data-opendesk-chatgpt-jump-top', 'host');
+  assert.equal(conversation.mountAnswerTool(bar, host), group);
+  assert.equal(group.style.marginInlineStart, '0px');
+  assert.equal(group.style.marginInlineEnd, 'auto');
+  assert.equal(group.style.justifyContent, 'flex-start');
+  assert.deepEqual(group.children, [host, peer]);
+  assert.equal(bar.children[0], native);
+  conversation.unmountAnswerTool(host);
+  assert.deepEqual(group.children, [peer]);
 });
 
 

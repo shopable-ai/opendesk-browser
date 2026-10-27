@@ -1,0 +1,13 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Browser Environment P0</title>
+<style>body{font:14px system-ui;margin:16px;color:#17212e;background:#f7f9fc}h1{font-size:19px}button,select{font:inherit;padding:9px;margin:5px 0;width:100%;box-sizing:border-box}button{cursor:pointer}label{display:block;margin-top:10px}pre{font:11px ui-monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:10px;border:1px solid #ccd4df}#status{font-weight:600}small{display:block;color:#526074}</style>
+<h1>浏览环境 P0 · 隔离测试</h1><small>仅允许 127.0.0.1:43128 的测试页面。此扩展与正式 OpenDesk 无集成。</small>
+<button id="list">刷新测试标签列表</button>
+<label>Target<select id="target" aria-label="Target"></select></label>
+<label>Control<select id="control" aria-label="Control"></select></label>
+<button id="bind">绑定 Target / Control</button>
+<button id="observe">只读观测</button>
+<button id="start">启动 / 刷新验证</button>
+<button id="stop">停止 / 刷新恢复</button>
+<button id="close">关闭测试目标（安全恢复）</button>
+<p id="status" role="status">正在读取状态</p><pre id="output"></pre>
+<script type="module" src="panel.js"></script></html>

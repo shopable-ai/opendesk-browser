@@ -847,6 +847,58 @@ button.primary:hover{background:#1b4aac}
     preset('valid');
   })();
   // EXP005_FIXTURE_END
+  // CHATGPT_CORE_DOM_EVIDENCE_START
+  // Opt-in local DOM observation only. It never runs a task or changes search timing.
+  (() => {
+    const query = new URL(location.href).searchParams;
+    const token = query.get('od-evidence') || query.get('od-watch');
+    if (!token || !/^[a-z0-9-]{8,80}$/.test(token)) return;
+    const key = 'opendesk.demo.dom-evidence.v1:' + token;
+    if (query.has('od-watch')) {
+      const panel = document.createElement('section');
+      panel.setAttribute('aria-label', '本地搜索 DOM 留证');
+      const heading = document.createElement('h2');
+      heading.textContent = '本地搜索 DOM 留证（独立观察，不是任务结果）';
+      const output = document.createElement('pre');
+      output.style.whiteSpace = 'pre-wrap';
+      output.style.overflowWrap = 'anywhere';
+      panel.append(heading, output);
+      document.getElementById('lab-search').prepend(panel);
+      const render = () => {
+        try {
+          const value = JSON.parse(localStorage.getItem(key));
+          output.textContent = value?.token === token && value.protocol === 'opendesk.demo.dom-evidence.v1'
+            ? JSON.stringify(value, null, 2) : '等待该唯一观察标识的网页 DOM；尚无证据';
+        } catch { output.textContent = 'DOM 留证不可读取；不能推断成功'; }
+      };
+      window.addEventListener('storage', event => { if (event.key === key) render(); });
+      render();
+      return;
+    }
+    const evidence = {protocol: 'opendesk.demo.dom-evidence.v1', token,
+      documentId: crypto.randomUUID(), url: location.href, records: []};
+    let clicks = 0;
+    const capture = event => {
+      const get = id => document.getElementById(id);
+      evidence.records.push({event, observedAt: new Date().toISOString(), clicks,
+        keyword: get('keyword').value.slice(0, 4000),
+        status: get('search-status').hidden ? '' : get('search-status').textContent.slice(0, 4000),
+        result: get('results').textContent.slice(0, 4000),
+        count: get('search-count').textContent.slice(0, 100)});
+      evidence.records = evidence.records.slice(-16);
+      try { localStorage.setItem(key, JSON.stringify(evidence)); } catch { /* No effect on the search. */ }
+    };
+    const form = document.getElementById('search-form');
+    form.addEventListener('click', event => {
+      if (event.target.closest('#search-submit')) { ++clicks; capture('click'); }
+    });
+    form.addEventListener('input', () => capture('input'));
+    form.addEventListener('submit', () => queueMicrotask(() => capture('submit')));
+    new MutationObserver(() => capture('dom')).observe(document.getElementById('lab-search'),
+      {childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['hidden']});
+    capture('initial');
+  })();
+  // CHATGPT_CORE_DOM_EVIDENCE_END
 })();
 </script>
 

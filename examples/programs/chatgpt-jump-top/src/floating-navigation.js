@@ -30,6 +30,45 @@ export function liveDock(node,win) {
 }
 const between=(value,min,max)=>Math.max(min,Math.min(max,value));
 
+function chatGPTGutterLeft(main,doc,win) {
+  const rect=main.getBoundingClientRect();
+  const visibleBox=node=>{
+    if(!node?.isConnected||node.hidden||node.closest?.('[hidden],[inert],[aria-hidden="true"]'))return null;
+    const style=win.getComputedStyle(node),box=node.getBoundingClientRect();
+    return style.display!=='none'&&!['hidden','collapse'].includes(style.visibility)&&
+      style.opacity!=='0'&&box.width>0&&box.height>0&&box.right>0&&box.bottom>0&&
+      box.left<win.innerWidth&&box.top<win.innerHeight?box:null;
+  };
+  let safeLeft=rect.left;
+  // ChatGPT's history can be a sibling of main or a column inside it.
+  // Reserve only a visible, tall navigation occupying the region's left edge.
+  for(const navigation of doc.querySelectorAll('aside,nav,[role="navigation"]')) {
+    const box=visibleBox(navigation);
+    if(!box)continue;
+    const height=Math.min(rect.bottom,win.innerHeight,box.bottom)-Math.max(rect.top,0,box.top);
+    if(box.left<=rect.left&&box.right>Math.max(rect.left,0)&&
+        box.right<=rect.left+rect.width/2&&height>=rect.height/2)
+      safeLeft=Math.max(safeLeft,box.right);
+  }
+  let left=safeLeft;
+  const composers=[...main.querySelectorAll('#prompt-textarea,[data-testid="composer-text-input"],#mobile-composer-prompt,[data-composer-markdown][contenteditable="true"][role="textbox"]')]
+    .filter(node=>visibleBox(node));
+  if(composers.length===1) {
+    // Use the outermost full-height content column, never the indented
+    // message text or the composer box itself. No prompt-tool DOM is needed.
+    for(let area=composers[0].parentElement;area&&area!==main;area=area.parentElement) {
+      if(!main.contains(area))break;
+      const box=visibleBox(area);
+      if(box&&box.left>=safeLeft&&box.right<=rect.right+1&&box.width>=200&&
+          box.height>=rect.height/2&&box.top>=rect.top-1&&box.bottom<=rect.bottom+1)
+        left=box.left;
+    }
+  }
+  // Both hosts are documentElement siblings with the same 8px region gutter.
+  // The prompt rail's border and inner padding do not belong to that gutter.
+  return Math.max(8,left+8,safeLeft+8);
+}
+
 export function installFloatingNavigation({doc,win,owner,resolveConversation=null}) {
   sessions.get(doc)?.dispose();
   let disposed=false,pending=false,observedRoot=null,observer=null,host=null,buttons=null;
@@ -139,7 +178,11 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     const count=options.length,width=compact?count*SIZE+(count-1)*GAP:SIZE;
     const height=compact?SIZE:count*SIZE+(count-1)*GAP;
     const chosenAnchor=next.custom?next.anchor?.getBoundingClientRect?.():null;
-    const left=between((chosenAnchor?.left??Math.max(rect.left,Math.min(first.left,last.left)))+12,
+    const alignChatGPT=!next.custom&&next.site==='chatgpt'&&!compact;
+    const desiredLeft=alignChatGPT
+      ?chatGPTGutterLeft(next.main,doc,win)
+      :(chosenAnchor?.left??Math.max(rect.left,Math.min(first.left,last.left)))+12;
+    const left=between(desiredLeft,
       8,Math.max(8,win.innerWidth-width-8));
     const topPos=Math.round(Math.min(win.innerHeight,rect.bottom)-INSET-height);
     const minTop=Math.max(8,rect.top+8);
@@ -152,7 +195,12 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
         const r=node.getBoundingClientRect(),style=win.getComputedStyle(node);
         return style.display!=='none'&&style.visibility!=='hidden'&&r.width>0&&r.height>0;
       }).map(node=>node.getBoundingClientRect());
-    const candidates=[
+    const candidates=alignChatGPT?[
+      // Keep the shared left edge when avoiding native controls.
+      [left,topPos],
+      [left,topPos-height-12],
+      [left,topPos-2*(height+12)]
+    ]:[
       [left,topPos],
       [left,topPos-height-12],
       [left+width+12,topPos],

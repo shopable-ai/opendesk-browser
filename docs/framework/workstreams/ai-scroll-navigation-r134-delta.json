@@ -1152,9 +1152,9 @@
     "upgradeEvidence": "Original Installer r7 to 0.4.6+site.r1978225210, same installationId, generation 1 to 2, exact six native matches. Later disable/restore generations 3/4 retain saved config and ETag. Post-save upgrade not repeated; unchanged targeted protection inherited."
   },
   "devContinuation": {
-    "observedAt": "2026-10-26T19:18:15.491511+00:00",
+    "observedAt": "2026-10-26T19:30:42.416466+00:00",
     "scope": "dev only; daily Chrome normal Side Panel; no production acceptance",
-    "status": "PARTIAL_CHATGPT_PASS_WAITING_NATIVE_WINDOW",
+    "status": "HANDOFF_PARTIAL_CHATGPT_AND_LOCAL_INSTALL_PASS",
     "businessCodeChanged": false,
     "candidate": {
       "programId": "opendesk.ai-scroll-navigation",
@@ -1197,26 +1197,29 @@
       }
     },
     "localSiteReview": {
-      "origin": "http://127.0.0.1:43111",
-      "pathPrefix": "/demo-form.html",
-      "derivedVersion": "0.4.6+site.r1978225210",
-      "derivedRevision": 1978225210,
-      "prepared": "PASS",
-      "installerActualScope": [
+      "status": "PASS",
+      "version": "0.4.6+site.r1978225210",
+      "revision": 1978225210,
+      "installationId": "0f356e39-c6a2-4694-81e7-18ce3dbc2e1d",
+      "sourceHash": "3d1157f6e92ff1e77d8ec56a7c1ccf7dacf57d67ade13343e3b8fd11ac429da6",
+      "manifestHash": "86379c7f154838a2744d1ec13005bb25d6091988d09ed586102711175ef515e5",
+      "authorization": "active",
+      "chromeRegistration": "registered",
+      "registrationId": "opendesk-page-boot-8bc2d7637524cfe8a97ab4a79a339d97f8c3de8e5418adf2",
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*",
         "http://127.0.0.1:43111/demo-form.html",
         "http://127.0.0.1:43111/demo-form.html?*",
         "http://127.0.0.1:43111/demo-form.html/*"
       ],
-      "confirmationOutcome": "NOT_CONFIRMED; native action rejected because app state changed; do not replay without reading original installation"
+      "installerReadback": "已更新网页增强「AI 对话滚动导航」v0.4.6+site.r1978225210；打开或刷新目标网页即可使用。"
     },
     "blocker": {
-      "kind": "CONCURRENT_NATIVE_WINDOW_ACTIVITY",
-      "owner": "01a17980-4fcc-78c3-bbf3-88d017f6756a",
-      "nativeUiAcquire": "busy on direct attempts and bounded 45-second polling",
-      "ownerSnapshot": "active, latest turn inProgress",
-      "authority": "User requested continued waiting without messages; no cross-chat message or lock stealing",
-      "lockResult": "Acquired after send-queue release, then voluntarily released after native focus mismatch",
-      "activeChatObserved": "01a1794f-f8ed-7080-9137-7925d5003ecf"
+      "kind": "USER_REQUESTED_HANDOFF",
+      "latestUnfinishedOperation": "Fix left margin to match prompt shortcuts, then complete unsaved local configuration",
+      "nativeUiLease": "released"
     },
     "driverNotes": [
       "Transferred old browser tab could not be claimed because still owned by source chat; created own new HTTP demo tab 560068654 instead.",
@@ -1226,13 +1229,12 @@
       "Dedicated nonfocused window and narrow locator recovery allowed real ChatGPT conversation/reply navigation and refresh checks. Native focus later diverged from browser focus while calculation task remained active; stopped native input without changing business source."
     ],
     "pending": [
-      "Read current install/site-review state before confirming anything",
-      "Read actual daily extension loaded path and current connected serve fingerprint",
-      "Complete original local-site scope review if still pending",
-      "Visually select region/scroller; test top/bottom; trusted save and refresh",
-      "Verify installed top/bottom navigation and disabled boundaries",
-      "Verify normal disable/cleanup/restore with config and ETag retained",
-      "DeepSeek/Gemini existing-content checks remain NOT_TESTED"
+      "Compare live navigation and prompt-shortcuts left edges, restore consistent conversation-gutter positioning",
+      "Read actual daily loaded path and current connected serve fingerprint",
+      "Visually select main/scroller; test both directions; trusted save/readback and refresh",
+      "Verify installed local navigation actual scrolling and disabled boundaries",
+      "Verify disable cleanup and restore with config/ETag retained",
+      "DeepSeek/Gemini existing-content checks remain NOT_TESTED; no messages authorized"
     ],
     "deferred": [
       "production acceptance",
@@ -1243,7 +1245,7 @@
     ],
     "parallelProtection": "No business/shared-build edit, second writer, service restart, cross-chat message or installation replay. Exact local-site installation and current loaded-path readback still pending.",
     "evidence": "artifacts/ai-scroll-r134/dev-r7-window-20261027/dev-result.json",
-    "evidenceSha256": "2c20a0f29506f85a08a3ecc777bae5537e58d997fbd8aeb4ecc7a40b11704970",
+    "evidenceSha256": "22219f338b415c16dd815e74625e4efd862545a97c91bd758f2be2a45c614572",
     "owner": "01a1798d-07c8-7682-91b9-db9e8932a7a1",
     "testResource": {
       "browserId": "1",
@@ -1311,7 +1313,19 @@
       "crossThreadMessageSent": false,
       "lockStealing": false,
       "uiLeaseReleased": true
-    }
+    },
+    "localConfiguration": {
+      "afterRefreshLaunchVisible": true,
+      "trustedReadback": "已从可信 Host 读取 · 0 条规则",
+      "saved": false,
+      "latestAction": "Entered region selection, then user requested new chat; Escape closed settings and focus returned to launch. No rule saved.",
+      "handoffTab": "560068654",
+      "handoffWindow": 560068656,
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "tabMarkedHandoff": true,
+      "sidepanelHostInstanceId": "09715cdf-8551-49aa-a61c-046eacbbda5a"
+    },
+    "latestUserRequirement": "左下角置顶、置底两个按钮的左边距与提示词快捷按钮一致；代码从其提取，原坐标正常。接收对话优先实测复现并修复定位，随后完成本地配置核心链。"
   },
   "devContinuationHistory": [
     {
@@ -1458,5 +1472,214 @@
       "evidence": "artifacts/ai-scroll-r134/dev-r7-resume-20261027/dev-result.json",
       "evidenceSha256": "d5b45ebc9a5081e93505a242548e894da094080ff07b8dd0cfcc7bbd742d41ed"
     }
-  ]
+  ],
+  "leftAlignmentContinuation": {
+    "stage": "daily-development",
+    "status": "SOURCE_FIXED_UPDATE_BLOCKED_MANAGED_CLEANUP",
+    "observedAt": "2026-10-26T20:29:33.382031+00:00",
+    "baseHead": "33e329b55",
+    "sourceHashesBefore": {
+      "examples/programs/chatgpt-jump-top/src/floating-navigation.js": "65f77db40f67b196fbce6e499f961d356ce52b2b225c4344764dc7a16019b660",
+      "examples/sidebar-tools/prompt-shortcuts/trusted/page.js": "b445642b79fcf191ab34d9059578b78736807eddd1d8416b9801c8633b4c3bab",
+      "examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json": "104136d6942d6b7933a15d1a8df74b30856047135645dcf692d2be2bc57d0ef6"
+    },
+    "currentObservation": "UI lock acquired and released normally. Fresh native screenshot reproduces installed r7 left offset. Original Installer rejected exact-six-scope 0.4.7/r8 update with E_PAGE_CLEANUP_PENDING; normal disable removed this document UI, normal restore is also blocked. Old installation retained, now disabled with managedCleanup unknown. Own original test documents closed; no other owner pages touched.",
+    "inheritedEvidence": "../dev-r7-window-20261027/dev-result.json",
+    "pending": [
+      "Original installed managed cleanup must become retired through exact-document lifecycle; no unsafe clearing or private Authority calls.",
+      "Same-identity exact-six-scope r8 update then restore via normal Installer.",
+      "Fresh r8 aligned button edges and bidirectional ChatGPT scroll.",
+      "Local visual selection, trusted save/readback, refresh, boundary disabled states, disable and restore with configuration retention.",
+      "ETag via permitted readback, otherwise explicitly NOT_TESTED."
+    ],
+    "outOfScope": [
+      "production acceptance",
+      "publication",
+      "independent score",
+      "width/zoom matrix",
+      "edge/failure matrix"
+    ],
+    "sourceFix": {
+      "file": "examples/programs/chatgpt-jump-top/src/floating-navigation.js",
+      "behavior": "ChatGPT desktop dock uses visible conversation region and native navigation occupancy; aligns physical button edge with former prompt rail button inset without requiring its DOM or installation.",
+      "baselineFixture": {
+        "oldLeft": 598,
+        "expectedLeft": 335
+      },
+      "customAnchor": "unchanged"
+    },
+    "verification": {
+      "command": "node --test examples/programs/chatgpt-jump-top/tests/floating-navigation.test.mjs examples/programs/chatgpt-jump-top/tests/site-configuration.test.mjs tests/environment/chatgpt-jump-top.test.mjs",
+      "pass": 109,
+      "fail": 0,
+      "regressionBeforeFix": {
+        "pass": 1,
+        "fail": 3
+      },
+      "projectValidation": "AUTHORING_VALID_NOT_PACKAGED",
+      "builder": "BUILT_UNVERIFIED",
+      "packageValidation": "PASS",
+      "byteIdentity": "PASS",
+      "sourceModulesCurrent": "PASS",
+      "syntax": "PASS: changed module and new test",
+      "diffCheck": "PASS"
+    },
+    "candidate": {
+      "path": "artifacts/ai-scroll-r134/dev-left-alignment-20261027/r8/ai-scroll-navigation.opendesk-page.json",
+      "version": "0.4.7",
+      "revision": 8,
+      "sourceHash": "361aa36fb1a18799a8c5143a04cf782ab77f8c554e651e9c558bf459e2b974b4",
+      "packageHash": "fa8feda9c7d6e575a110a77676031a5f693fe2ec76e4b27ad04b48f174bba115",
+      "fileSha256": "53119930407a718c7c6ef45565a2f0e97543aad474a49d66c770ec9aeaa634e3",
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "installed": false,
+      "currentSourceMatches": false,
+      "supersededBy": "parentContainerAlignmentCorrection",
+      "importAsCurrentFix": false
+    },
+    "followup": {
+      "automationId": "ai",
+      "kind": "heartbeat",
+      "status": "ACTIVE",
+      "rrule": "FREQ=MINUTELY;INTERVAL=5",
+      "purpose": "Quiet read-only observation of managed cleanup after UI lock acquisition. While unknown, no repeated import, enable/disable, build, test or browser cleanup. Resume original exact-scope update only after authoritative state changes to retired."
+    },
+    "dailyCandidate": {
+      "path": "artifacts/ai-scroll-r134/dev-left-alignment-20261027/daily-r8/ai-scroll-navigation.opendesk-page.json",
+      "version": "0.4.7",
+      "revision": 8,
+      "sourceHash": "84f8ba1795b0233e3b42f2f7430a5c5bdba1ad9532887ed4cd7c438e43192861",
+      "packageHash": "8414db7c010288b570ce508f98990429b4e30fd60325383a532fa029d22d6f4d",
+      "fileSha256": "3476b4ea7d250eece201ee784e1a7bd884a84577c7f385995eb07351033b678f",
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*",
+        "http://127.0.0.1:43111/demo-form.html",
+        "http://127.0.0.1:43111/demo-form.html?*",
+        "http://127.0.0.1:43111/demo-form.html/*"
+      ],
+      "sourceProvenance": "artifacts/ai-scroll-r134/dev-left-alignment-20261027/daily-r8-source-provenance.json",
+      "byteIdentity": "PASS",
+      "sourceModulesCurrent": "PASS",
+      "review": "Native Installer explicitly reported website permission range unchanged; six exact script matches shown.",
+      "installed": false,
+      "result": "E_PAGE_CLEANUP_PENDING",
+      "currentSourceMatches": false,
+      "supersededBy": "parentContainerAlignmentCorrection",
+      "importAsCurrentFix": false
+    },
+    "runtime": {
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "actualLoadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "pathEvidence": "daily-extension-path.ax.txt",
+      "serve": "connected",
+      "buildFingerprint": "342c19166d67c722a19754ef539027686c1d0d55d12120d2de340221f8feb371",
+      "extensionRebuilt": false,
+      "sharedWatcherTouched": false
+    },
+    "nativeContinuation": {
+      "owner": "01a179b3-ebe8-73f2-93cf-e16682c6cca1",
+      "uiLock": "released",
+      "windowId": 560068656,
+      "originalTabId": 560068654,
+      "continuationTabId": 560068665,
+      "continuationUrl": "http://127.0.0.1:43111/demo-form.html",
+      "beforeScreenshot": "chatgpt-r7-current.png",
+      "beforeLeftMeasurement": "Screenshot confirms wide right offset: prompt button roughly x670 physical pixels, navigation roughly x1198 physical pixels on 2x screenshot. DOM rectangle read timed out, so exact current DOM rectangles NOT_TESTED.",
+      "beforeActive": "active / registered; cleanup already unknown before update attempt",
+      "updateFailure": "E_PAGE_CLEANUP_PENDING: old managed UI cleanup not confirmed",
+      "normalDisable": "disabled / disabled; current conversation edge buttons, reply actions, and settings launcher removed from native AX",
+      "normalRestore": "E_PAGE_CLEANUP_PENDING; remains disabled",
+      "documentExit": "Closed only own former group tabs 560068644/560068646/560068648 and original tab 560068654; own fresh local tab 560068665 remains in window 560068656. Cleanup still unknown after fresh trusted read.",
+      "installedIdentity": {
+        "programId": "opendesk.ai-scroll-navigation",
+        "installationId": "0f356e39-c6a2-4694-81e7-18ce3dbc2e1d",
+        "revision": 1978225210,
+        "sourceHash": "3d1157f6e92ff1e77d8ec56a7c1ccf7dacf57d67ade13343e3b8fd11ac429da6",
+        "manifestHash": "86379c7f154838a2744d1ec13005bb25d6091988d09ed586102711175ef515e5",
+        "authorization": "disabled",
+        "nativeState": "disabled",
+        "managedCleanup": "unknown"
+      },
+      "blockedScreenshot": "cleanup-pending-final.png",
+      "finalReadback": "final-installed-state.ax.txt",
+      "configWrite": false,
+      "etag": "NOT_TESTED: no permitted trusted UI readback completed",
+      "frameworkChanges": false
+    },
+    "evidence": "artifacts/ai-scroll-r134/dev-left-alignment-20261027/dev-result.json",
+    "parentContainerAlignmentCorrection": {
+      "observedAt": "2026-10-27T13:35:17.850355+08:00",
+      "owner": "01a17bd5-3768-73f0-9c79-61a17486e20f",
+      "stage": "daily-development",
+      "status": "SOURCE_FIXED_CANDIDATE_STALE_UI_BUSY",
+      "requirement": "Navigation and prompt shortcut hosts share the same parent and left gutter; span[data-opendesk-chatgpt-answer-tools] is left aligned.",
+      "changes": [
+        "Keep both floating hosts under document.documentElement and align their containers at conversation left + 8px; remove the extra 7px prompt-rail inner padding compensation.",
+        "Keep built-in desktop ChatGPT collision avoidance within that same left gutter.",
+        "Use margin-inline-start:0, margin-inline-end:auto and justify-content:flex-start for new or reused answer tool groups; preserve native controls and peer hosts."
+      ],
+      "fixture": {
+        "mainLeft": 320,
+        "previousHostLeft": 335,
+        "currentHostLeft": 328
+      },
+      "sourceFiles": {
+        "examples/programs/chatgpt-jump-top/src/floating-navigation.js": "828b0b14f3a907661e1100fe8880e993314afe10bdad936057b034e64d73da22",
+        "examples/programs/chatgpt-jump-top/src/conversation.js": "b5a189019411b78bf7434b285e6e326f5a226c68193acc12e2e7cc1340e910ac",
+        "examples/programs/chatgpt-jump-top/tests/floating-navigation.test.mjs": "b4695dfd7dc28050152702e4ed1ef0fb833b20e28958c10730cbcf94ab2bf60c",
+        "examples/programs/chatgpt-jump-top/tests/conversation.test.mjs": "7d071736bf7fb3dfef6a9834059cf7648ab80bc548f7413ff92552156595a68f"
+      },
+      "verification": {
+        "regressionBeforeFix": {
+          "selected": 7,
+          "pass": 0,
+          "fail": 7
+        },
+        "command": "node --test --test-reporter=dot examples/programs/chatgpt-jump-top/tests/floating-navigation.test.mjs tests/environment/chatgpt-jump-top.test.mjs",
+        "pass": 86,
+        "fail": 0,
+        "exitCode": 0,
+        "coverage": [
+          "shared parent and gutter",
+          "sidebar occupancy",
+          "collision keeps left gutter",
+          "trusted bidirectional scroll and boundary disabled states",
+          "custom anchor unchanged",
+          "new and existing peer answer groups left aligned",
+          "peer ownership and lifecycle"
+        ],
+        "syntax": "PASS: floating-navigation.js and conversation.js",
+        "diffCheck": "PASS: changed tracked source and tests"
+      },
+      "native": {
+        "result": "NOT_TESTED_UI_LOCK_BUSY",
+        "uiLockAcquired": false,
+        "browserUiOperated": false,
+        "trustedStateRefreshed": false,
+        "lastKnownInstalledRevision": 1978225210,
+        "installationId": "0f356e39-c6a2-4694-81e7-18ce3dbc2e1d",
+        "lastKnownAuthorization": "disabled",
+        "lastKnownNativeState": "disabled",
+        "lastKnownManagedCleanup": "unknown",
+        "lastKnownObservedAt": "2026-10-27T13:24:00+08:00",
+        "lastKnownOnly": true
+      },
+      "candidate": {
+        "existingR8MatchesCurrentSource": false,
+        "existingR8BytesChanged": false,
+        "instruction": "Do not import either old r8 candidate as the current fix. Only after normal trusted cleanup becomes retired, use the existing Builder for a new immutable revision with all six approved matches, then update the original installation through the existing Installer."
+      },
+      "frameworkChanges": false,
+      "extensionRebuilt": false,
+      "watcherTouched": false,
+      "committed": false,
+      "pushed": false
+    }
+  }
 }

@@ -1,9 +1,10 @@
 import {readChatGPTEdit,assertChatGPTTarget,chatGPTConversationId} from './workspace-chatgpt.js';
 import {CHATGPT_BRIDGE_PROTOCOL,validChatGPTBridgeSource} from './chatgpt-bridge-trigger-gate.js';
 import {validateChatGPTTaskRequest,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,
-  FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL} from './chatgpt-task-request.js';
+  FIXED_PAGE_URL,baiduSearchTarget,CHATGPT_TASK_REQUEST_PROTOCOL,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskIntent} from './chatgpt-task-request.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
+import {showChatGPTExecutionPage} from './chatgpt-execution-page.js';
 
 export const FIXED_TASK_VERSION='1.0.0';
 export const FIXED_TASK_SOURCE_HASH='c2684b24d3e6ef9b0319703661d8d7b53014df60533608bcd697361cc70a99f4';
@@ -30,7 +31,8 @@ const identityKeys=['version','manifestHash','generation','installationId'];
 const installationKeys=['version','manifestHash','scriptId','revision','contentHash','installationId','generation'];
 const installationOf=value=>Object.fromEntries(installationKeys.map(key=>[key,value[key]]));
 const sameInstallation=(a,b)=>installationKeys.every(key=>a?.[key]===b?.[key]);
-const selectionScope=request=>request.installation?{targetUrl:request.targetUrl,installation:request.installation}:{};
+const selectionScope=request=>({...(request.installation?{targetUrl:request.targetUrl,installation:request.installation}:{}),
+  ...(request.candidate?{candidate:request.candidate}:{})});
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&
   Object.getPrototypeOf(value)===Object.prototype;
 const safeWebURL=value=>{
@@ -207,7 +209,27 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     if(currentPageTarget?.snapshot?.windowId!==tab.windowId)
       throw fail('E_BRIDGE_WINDOW','原会话已不在原侧边栏窗口');
   };
+  const assertIntent=async(source,message)=>{
+    const observed=await readReply(api,source,null,{protocols:[CHATGPT_TASK_INTENT_PROTOCOL],taskIntent:true,requireComplete:true});
+    if(observed.turnKey!==message.turnKey||observed.answerKey!==message.answerKey||
+      observed.blocks?.length!==1||observed.blocks[0]!==message.candidateText)
+      throw fail('E_BRIDGE_ANSWER','最新完整回答的候选字节或轮次已改变');
+    const intent=validateChatGPTTaskIntent(observed.blocks[0]);
+    return {intent,candidate:{candidateId:intent.candidateId,text:observed.blocks[0],
+      turnKey:observed.turnKey,answerKey:observed.answerKey}};
+  };
   const assertReply=async(source,message)=>{
+    if(message.adoptedRequest){
+      const {intent,candidate}=await assertIntent(source,message);
+      const request=validateChatGPTTaskRequest(JSON.stringify(message.adoptedRequest));
+      if(request.requestId!==message.requestId||request.taskId!==intent.taskId||request.targetUrl!==intent.targetUrl||
+        !request.installation)throw fail('E_BRIDGE_CONTEXT','采用的任务范围已改变');
+      const normalized=await normalizeSelection({...request,args:intent.args});
+      if(JSON.stringify(normalized.request.args)!==JSON.stringify(request.args))
+        throw fail('E_BRIDGE_CONTEXT','采用的参数或默认值已改变');
+      await assertIntent(source,message);
+      return {...request,candidate};
+    }
     const observed=await readReply(api,source,message.requestId,{
       protocols:[CHATGPT_TASK_REQUEST_PROTOCOL],requireUserEcho:true});
     if(observed.turnKey!==message.turnKey||observed.answerKey!==message.answerKey||
@@ -310,7 +332,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     if(!await api.permissions.contains({origins:['https://chatgpt.com/*',target.origin+'/*']}))
       throw fail('E_BRIDGE_PERMISSION','ChatGPT 或所选脚本网站的 Chrome 访问权限缺失');
     const args=validateTaskParams(installed.manifest.paramsSchema,request.args);
-    const normalized=validateChatGPTTaskRequest(JSON.stringify({...request,args,
+    const normalized=validateChatGPTTaskRequest(JSON.stringify({...request,candidate:undefined,args,
       installation:installationOf(installed)}));
     return {installed,request:normalized};
   };
@@ -353,6 +375,36 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     if(disposed||epoch!==authorityRevision)throw fail('E_BRIDGE_REVOKED','核验期间安装状态已改变');
     return {taskId:request.taskId,args:normalized.request.args,...selectionScope(normalized.request)};
   };
+  const adoptTask=async(message,sender)=>{
+    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='adopt-task')
+      throw fail('E_BRIDGE_SCHEMA','不是采用对话任务请求');
+    const source=await preparationSource(sender),epoch=authorityRevision;
+    const {intent,candidate}=await assertIntent(source,message);
+    const installed=await resolveSelection(intent.taskId);
+    const normalized=await normalizeSelection({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,
+      kind:'opendesk.task.request',version:1,requestId:'00000000-0000-4000-8000-000000000000',
+      taskId:intent.taskId,args:intent.args,targetUrl:intent.targetUrl,installation:installationOf(installed)});
+    await assertSource(source,sender);await assertIntent(source,message);
+    if(disposed||epoch!==authorityRevision)throw fail('E_BRIDGE_REVOKED','采用期间安装或权限已改变');
+    const reply=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'prepare',source,
+      taskId:intent.taskId,args:normalized.request.args,...selectionScope(normalized.request),candidate});
+    if(reply?.ok!==true)throw fail(reply?.error?.code||'E_BRIDGE_OUTCOME_UNKNOWN',
+      reply?.error?.message||'采用回执未知，禁止重新生成请求');
+    return {...reply.data,candidate};
+  };
+  const authorizeTask=async(message,sender)=>{
+    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='authorize-task'||
+      !['manual','auto'].includes(message.mode)||!message.adoptedRequest)
+      throw fail('E_BRIDGE_SCHEMA','不是采用任务的批准请求');
+    const source=await preparationSource(sender),epoch=authorityRevision;
+    const request=await assertReply(source,message);
+    await assertSource(source,sender);
+    if(disposed||epoch!==authorityRevision)throw fail('E_BRIDGE_REVOKED','批准期间安装或权限已改变');
+    const reply=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'authorize',source,
+      requestId:request.requestId,mode:message.mode,taskId:request.taskId,args:request.args,...selectionScope(request)});
+    if(reply?.ok!==true)throw fail(reply?.error?.code||'E_BRIDGE_APPROVAL',reply?.error?.message||'批准回执未知');
+    return reply.data;
+  };
   // Recheck the same Foundation installation and durable result at the actual
   // send boundary. Waiting for a native button never extends a revoked grant.
   const checkDelivery=async(message,sender)=>{
@@ -382,6 +434,30 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     if(disposed||delivery!==active||active.authorityRevision!==authorityRevision||!isVerifiedSidePanel())
       throw fail('E_BRIDGE_DELIVERY','可信 Host 或任务授权在核验期间已改变');
     return {allowed:true};
+  };
+  const showExecutionPage=async(message,sender)=>{
+    const active=operation;
+    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='show-execution-page'||
+      !active||message.requestId!==active.message.requestId||message.runId!==active.runId||
+      !sameSource(message.source,active.source)||message.sourceUrl!==active.source.url)
+      throw fail('E_BRIDGE_TARGET','没有与本次请求匹配的运行页面');
+    return showChatGPTExecutionPage({api,client,host,runId:active.runId,assertActive:async()=>{
+      assertActive(active);
+      await assertSource(active.source,sender);
+      if(active.authorityRevision!==authorityRevision||!active.request||!active.installed)
+        throw fail('E_BRIDGE_REVOKED','本次运行的安装或权限已改变');
+      const installed=active.request.installation?(await normalizeSelection(active.request)).installed:
+        await resolve(active.request.taskId);
+      if(!sameInstallation(installed,active.installed))
+        throw fail('E_BRIDGE_REVISION','本次运行的安装身份已改变');
+      const gate=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'check-consumed',
+        source:active.source,requestId:active.message.requestId,mode:active.message.mode,
+        turnKey:active.message.turnKey,answerKey:active.message.answerKey,
+        taskId:active.request.taskId,args:active.request.args,...selectionScope(active.request)});
+      if(gate?.ok!==true||gate.data?.allowed!==true||active.authorityRevision!==authorityRevision)
+        throw fail('E_BRIDGE_REVOKED','本次来源批准已撤销或状态未知');
+      assertActive(active);
+    }});
   };
   async function handle(message,sender){
     if(disposed||!isVerifiedSidePanel())throw fail('E_BRIDGE_HOST','请在同窗口真正的 OpenDesk Side Panel 中使用本功能');
@@ -416,10 +492,11 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       const installed=request.installation?(await normalizeSelection(request)).installed:await resolve(request.taskId);
       if(request.installation){
         const normalized=validateTaskParams(installed.manifest.paramsSchema,request.args);
-        const canonicalRequest=validateChatGPTTaskRequest(JSON.stringify({...request,args:normalized}));
+        const canonicalRequest=validateChatGPTTaskRequest(JSON.stringify({...request,candidate:undefined,args:normalized}));
         if(JSON.stringify(canonicalRequest.args)!==JSON.stringify(request.args))
           throw fail('E_BRIDGE_CONTEXT','任务参数未绑定完整默认值，请重新建立请求');
       }
+      Object.assign(active,{request,installed,authorityRevision:admittedRevision});
       progress('validating',installed);
       assertActive(active);
       if(admittedRevision!==authorityRevision)throw fail('E_BRIDGE_REVOKED','安装核验期间授权已改变');
@@ -509,7 +586,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       throw error;
     }finally{delivery=null;if(operation===active)operation=null;busy=false;}
   }
-  return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,dispose(){
+  return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,showExecutionPage,dispose(){
     disposed=true;invalidate();delivery=null;
     unsubscribeTasks?.();unsubscribeConnection?.();api.permissions?.onRemoved?.removeListener(invalidate);
   }});

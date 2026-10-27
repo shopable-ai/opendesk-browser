@@ -10,7 +10,7 @@ export function chatGPTConversationId(value){
 // Chrome serializes this function into the extension's ISOLATED world. It
 // exposes no listener, Native RPC, credentials, or model API to the page.
 export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=false,
-  protocols=['opendesk.workspace.edit.v1'],requestIds,requireUserEcho=false,resultId=null,requireComplete=false}){
+  protocols=['opendesk.workspace.edit.v1'],requestIds,requireUserEcho=false,resultId=null,requireComplete=false,taskIntent=false}){
   const error=(code,message)=>({ok:false,error:{code,message,outcome:'NOT_DISPATCHED'}});
   const url=location.href;
   if(url!==expectedUrl||!['https://chatgpt.com','https://chat.openai.com'].includes(location.origin))
@@ -35,7 +35,7 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   const turnKey=user?local.turns.get(user):'no-user';
   const userText=user?.textContent||'';
   const stop=[...document.querySelectorAll('[data-testid="stop-button"],button[aria-label="Stop generating"],button[aria-label="停止生成"]')].some(node=>!hidden(node));
-  const answer=lastUser<0?[]:messages.slice(lastUser+1);
+  const answer=lastUser<0?[]:taskIntent?messages.slice(lastUser+1).slice(-1):messages.slice(lastUser+1);
   const streaming=stop||answer.some(node=>{const turn=node.closest('[data-talvt-turn-state]');
     return turn&&turn.getAttribute('data-talvt-turn-state')!=='complete';})||answer.some(node=>node.matches('[data-is-streaming="true"],.result-streaming')||node.closest('[data-is-streaming="true"],.result-streaming')||node.querySelector('[data-is-streaming="true"],.result-streaming'));
   // Keep both node identity and its observed text revision. Regenerating an
@@ -85,7 +85,12 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
       let protocol;try{protocol=JSON.parse(text).protocol;}catch{}
       // Count ALL protocol candidates before checking the nonce. Conflicting
       // old/new blocks cannot be hidden by filtering on the expected ID first.
-      const marked=/\b(?:language-)?opendesk-(?:edit|request)\b/.test(label);
+      const intentMarked=/\b(?:language-)?opendesk-task\b/.test(label);
+      const marked=/\b(?:language-)?opendesk-(?:edit|request)\b/.test(label)||taskIntent&&intentMarked;
+      if(taskIntent){
+        if(!intentMarked&&protocol!=='opendesk.task.intent.v1')continue;
+        if(!intentMarked)unmarkedRequest=true;
+      }
       if(!marked&&!protocols.includes(protocol)&&
         !(text.trim().startsWith('{')&&protocols.some(p=>text.includes('"'+p+'"'))))continue;
       if(protocol==='opendesk.workspace.request.v1'&&!/\b(?:language-)?opendesk-request\b/.test(label))unmarkedRequest=true;
@@ -94,8 +99,8 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
     }
   }
   if(blocks.length!==1)return error('E_CHAT_FORMAT','本轮完整回答没有唯一的 OpenDesk 请求或提案。');
-  if(unmarkedRequest)return error('E_CHAT_REQUEST_MARKER','读取请求必须在明确标记的 opendesk-request 代码块中，未执行正文中的示例。');
-  if(!ids.some(id=>id&&blocks[0].includes(id)))return error('E_REQUEST_CONTEXT','回答的请求身份已过期，未执行。');
+  if(unmarkedRequest)return error('E_CHAT_REQUEST_MARKER',taskIntent?'对话任务必须在明确标记的 opendesk-task 代码块中。':'读取请求必须在明确标记的 opendesk-request 代码块中，未执行正文中的示例。');
+  if(!taskIntent&&!ids.some(id=>id&&blocks[0].includes(id)))return error('E_REQUEST_CONTEXT','回答的请求身份已过期，未执行。');
   return {ok:true,url,turnKey,answerKey,blocks,assistantFragments:answer.length,resultObserved:!!resultId&&userText.includes(resultId)};
 }
 

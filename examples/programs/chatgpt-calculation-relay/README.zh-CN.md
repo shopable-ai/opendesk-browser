@@ -2,7 +2,7 @@
 
 官网对话操作已拆成可维护模块；计算接力是使用者：A 计算两个整数的和，可信存储读回后，在不同新对话 B 乘以第三个整数。正式零参数入口接受参数，不固定17或19，ChatGPT业务不进入通用Host。
 
-**0.2.0 已在当前持续开发 Chrome 安装并完成两组「我的」运行：42→126、44→132。** 两次运行及 Native 独立状态读回期间，整个业务源码目录临时移出；调用使用已安装固定版本。真实 taskId 为 `opendesk.chatgpt-calculation-relay`，版本 `0.2.0`，sourceHash 为 `94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f`。见[工作记录](WORKSTREAM.zh-CN.md)及[运行证据](EVIDENCE.json)。这是开发扩展的实际安装证据；production 扩展、完整矩阵及评分仍未执行。
+**0.2.0 本轮新增两组真实「我的」运行：23+7→30→×4=120；31+9→40→×2=80。** 各组独立 Native 只读状态均 completed/released；同 runId 重复运行前后，日志和网页消息不变，没有重发。专用副本草稿已全文恢复且未发送。真实 taskId 为 `opendesk.chatgpt-calculation-relay`，版本 `0.2.0`，sourceHash 为 `94b604e88d82074d749f34ca81e62e276c414fd7a90bb8b29d642369829ada6f`。Run/Result、原始回复与证据等级见[工作记录](WORKSTREAM.zh-CN.md)及[运行证据](EVIDENCE.json)。历史42→126、44→132组另外保留源码目录离线证明，本轮未重复离线动作。当前为持续开发扩展；production、完整矩阵及评分仍未执行。
 
 ## 从哪里安装
 
@@ -41,6 +41,14 @@
 ```
 
 同一业务runId重复Run只读旧记录，不重发。status是最后持久化状态，旧running不证明现在仍运行。浏览器重启后查「我的」原历史和同一安装taskId的status，不恢复Worker、不自动重放未知步骤。状态查询自己的宿主runId与原业务runId必须区分。
+
+## 实现与调用链
+
+`src/main.js` 是零参数 Controller 入口；`site.js` 封装官网 DOM 与公开 page 操作，`conversation.js` 负责文档绑定、草稿保护、单次发送确认及完整回复，`contract.js` 校验参数和 JSON，`relay.js` 负责 A→持久化读回→新对话 B 的业务状态。每步发送前记录意图；发送结果不确定时留下 unknown，不自动补发。同 runId、同输入重复运行直接读取旧日志。
+
+「我的」调用链：选择已安装固定 Task → 原 RunHost/Authority 核对安装身份与权限 → Controller Worker → 公开 page 操作官网 A → AppStorage 保存并读回 A → 导航并绑定新文档 B → 使用保存的 A 值生成 B 提示词 → 保存业务结果和宿主持久回执。
+
+本轮其他消费者调用链：公开 Native CLI → Native Agent/当前 Sidebar Host → 按 taskId、version、sourceHash 解析已安装版本 → 同一 RunHost/Authority/Worker → `status` 只读 AppStorage，或 `inspect` 只读当前网页 → 原 `run.get` 返回该 Native 查询的持久结果。CLI 请求不携带业务源码；这条链本轮没有发送新的计算消息。
 
 ## 从其他环节调用同一安装版本
 

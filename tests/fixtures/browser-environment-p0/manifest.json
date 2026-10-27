@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "OpenDesk Browser Environment P0 · Isolated Test",
+  "version": "1.2.0",
+  "minimum_chrome_version": "118",
+  "description": "Localhost-only technical fixture; never the production OpenDesk extension.",
+  "permissions": ["debugger", "sidePanel", "tabs", "scripting", "storage"],
+  "host_permissions": ["http://127.0.0.1:43128/*"],
+  "background": {"service_worker": "worker.js", "type": "module"},
+  "action": {"default_title": "Open environment P0 side panel"},
+  "side_panel": {"default_path": "panel.html"},
+  "incognito": "not_allowed",
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'"}
+}
