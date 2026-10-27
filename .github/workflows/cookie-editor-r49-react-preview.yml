@@ -64,12 +64,14 @@ jobs:
       - name: Ensure CJK glyphs in screenshot evidence
         timeout-minutes: 3
         run: |
-          # Ubuntu runner package indices are already provisioned; an extra
-          # apt update can stall on third-party mirrors before browser tests.
-          sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=25 install -y --no-install-recommends fonts-noto-cjk
+          # Test actual CJK glyphs; prefer installed fonts over downloading a
+          # 61 MB font bundle which previously timed out.
+          if ! fc-list :lang=zh-cn family | grep -Eq 'Noto Sans CJK|WenQuanYi'; then
+            sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=25 install -y --no-install-recommends fonts-wqy-microhei
+          fi
           fc-cache -f >/dev/null
           fc-match -f '%{family}\\n' 'sans:lang=zh-cn' | tee /tmp/cookie-editor-cjk-family
-          grep -q 'Noto Sans CJK' /tmp/cookie-editor-cjk-family
+          grep -Eq 'Noto Sans CJK|WenQuanYi' /tmp/cookie-editor-cjk-family
       - name: Real built React 19 Chromium UI E2E
         working-directory: examples/sidebar-tools/cookie-editor/preview/react
         env:

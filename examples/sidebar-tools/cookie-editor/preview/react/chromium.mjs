@@ -49,8 +49,15 @@ const checkSheetBounds=async(sheet,width,height,stage)=>{
 try{
  await page.goto(pathToFileURL(join(here,'index.html')).href,{waitUntil:'load'});
  await test('R2.6 defaults to three fictional accounts and product-owned share/market views',async()=>{
+  // R3.4: open Cookie first to match the frozen baseline, then verify the
+  // same three-account fixture is reachable without changing the SDK mock.
+  const cookieTab=page.getByRole('tab',{name:'Cookie',exact:true});
   const accountTab=page.getByRole('tab',{name:'账号',exact:true});
-  await accountTab.waitFor();
+  await cookieTab.waitFor();
+  assert.equal(await cookieTab.getAttribute('aria-selected'),'true');
+  await page.locator('.cookie-row').first().waitFor();
+  await page.screenshot({path:join(output,'380-r34-cookie-initial.png'),fullPage:true});
+  await accountTab.click();
   assert.equal(await accountTab.getAttribute('aria-selected'),'true');
   await page.locator('.cookie-account-card').first().waitFor();
   assert.equal(await page.locator('.cookie-account-card').count(),3);
