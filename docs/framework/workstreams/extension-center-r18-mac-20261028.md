@@ -103,7 +103,7 @@ R5.3 历史 job [122237112711](https://github.com/shopable-ai/opendesk-browser/a
 - 完全沿用 `resolveExtensionRowIntent` → `openRow` → `sidebarTools.openTool` → 原 ToolHost；正式 `ExtensionDetail`、状态模型、唯一 React Root、Shared UI、Tokens、Page Authority、Installer 与可信卸载流程沿用既有实现。未改 AI 导航算法或浮动按钮。
 - 正式预览为 `prototypes/sidebar/react-preview/index.html`，本地直接打开；可用原 `node scripts/preview/build-sidebar-six-react-preview.mjs --check` 检查同源。`sidebar-six-preview.tsx` 仍不是正式构建入口。预览不能代替原生 Side Panel。
 - 独立审查已关闭两项 HIGH 与后续两项 MEDIUM，未发现本轮新增回退；结论只覆盖本次 dev 修复，不等同整体发布批准。
-- **NOT_TESTED**：真实已安装 Side Panel 的320/360/400/440/520精确宽度、200%缩放、完整深浅色与触屏等价矩阵；五应用逐项未知/卸载/身份变化的全部原生故障场景；所有受支持 Page 类型的完整原生矩阵；被发行门禁阻断的新 AI 回复思维导图包；Side Panel Console 完整采集。已有 Node/服务替身结果不能填补这些原生项。
+- **NOT_TESTED**：真实已安装 Side Panel 的320/400/440/520精确宽度、200%缩放、完整深浅色与触屏等价矩阵；五应用逐项未知/卸载/身份变化的全部原生故障场景；所有受支持 Page 类型的完整原生矩阵；被发行门禁阻断的新 AI 回复思维导图包。已补当前 Side Panel Console 与360px读回，见下文；已有 Node/服务替身结果不能填补其余原生项。
 - **R1.8不能标记最终完成**。当前交付是已验证的 dev 核心链路和最小修复；production 为主动延期，其他缺证项目如上。goal 工具的原始正文无法在当前接口改写，未将原始完整目标标记 complete。
 
 | 八维独立验收（每项100） | 结果 | 原因 |
@@ -118,3 +118,13 @@ R5.3 历史 job [122237112711](https://github.com/shopable-ai/opendesk-browser/a
 | 自动化、发行与证据可靠性 | NOT_SCORED | 仍有失败/历史日志缺口，production延期 |
 
 综合算术平均值 **NOT_SCORED**；没有八个有证据的数值，不制造95分或相加评分。
+
+## 提交后补充的原生证据与收尾
+
+- 本轮修复提交为 `c1219d84a56675955a8ac7e8a7b811aa25510440`。随后另一对话提交 `b208dbc8fcf50559a96f3b8c0752df96d908695d`，将前述 React/语言菜单、生成器、Bookmark 等并行输入及两处 language 测试 hunks 一并保存。前文“保留未提交”描述的是测试执行时的文件状态；这些结果仍来自当时完整工作区，不能倒称为仅本轮修复提交的独立结果。本轮没有重写或纳入其提交。
+- 在本轮独立窗口为 hostInstanceId `03c66b3b-3fc0-4364-afd9-963c864ceaa8` 打开原生 Side Panel DevTools，未连接或操作其他任务的 inspector。Console 显示两条 `official-tools/stay-focus/latest.json` 的 GitHub raw **404**，属于既有 Stay Focus 发行来源，记录为 OUT_OF_SCOPE；不宣称零 Console 错误。最初原始采集为 `sidepanel-console-before-matrix.*`，最终采集为 `sidepanel-console-final.*`。
+- 测量时误将残余 Console 输入前缀与只读表达式拼接，造成一条 `ReferenceError: prefers is not defined`；这是本轮驱动输入错误，已单独保留，不能算为产品故障，也没有清空 Console 隐藏它。校正输入后正常读回真实渲染器数据。
+- 默认主题读回 `innerWidth=360`、`innerHeight=731`、`devicePixelRatio=2`、`document.documentElement.scrollWidth=360`、dark=false；DPR=2是 Retina 比例，不能作为200%浏览器缩放证据。拖动手柄、辅助功能与方向键操作没有改变测量宽度，其他精确尺寸不能报 PASS，也未据此判定产品尺寸故障。
+- 只在本轮 Side Panel renderer 使用 DevTools 的 `prefers-color-scheme: dark` 媒体模拟，实际读回 dark=true、width=360、scrollWidth=360；原 Prompt 工具与 Host 均显示深色。`native-viewport-360-dark.ax.txt`、`prompt-dark-native-render.*` 为 **真实已安装 dev 渲染＋媒体模拟**，不是系统主题切换、完整主题矩阵或静态预览。未修改 CSS。
+- 已执行原生命令 **Do not emulate CSS prefers-color-scheme**，再次读回 dark=false、width=360、scrollWidth=360，随后仅关闭本轮 DevTools。`prompt-light-restored-native.*` 与 `extension-list-final-native.*` 保存默认主题下原 ToolHost 和返回列表的最终截图/AX。原 watcher、其他 Chrome 窗口、安装数据和授权保持其已有状态。
+- 上述补充只有运行证据记录，无新的源码修复；不重复已通过且输入未变化的检查，不补跑已延期的 production 构建。八维结论和 R1.8 未完成状态保持不变。
