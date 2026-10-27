@@ -56,26 +56,59 @@ export function sameRuntimeTarget(reading,raw){
       (!before.tabRef||now.volatile.tabRef===before.tabRef)&&now.origin===reading.target.origin;
   }catch{return false;}
 }
+// Reject unknown properties: a hidden URL, document ref or fake JS source
+// must never sneak into a persisted/reportable A-only snapshot.
+const onlyKeys=(value,allowed)=>value&&typeof value==='object'&&
+  !Array.isArray(value)&&Object.keys(value).every(key=>allowed.includes(key));
 export function assertSnapshot(s){
-  if(!s||s.schema!==SNAPSHOT_SCHEMA||typeof s.id!=='string'||!s.id||s.id.length>90||
-    !Number.isFinite(Date.parse(s.capturedAt))||!['LIVE','PREVIEW'].includes(s.mode)||
-    s.completeness!=='partial'||typeof s.target?.origin!=='string'||
-    typeof s.target?.host!=='string'||!['url-only','document-ref-observed'].includes(s.target.identityLevel)||
-    Object.hasOwn(s,'volatile')||!Array.isArray(s.fields)||s.fields.length!==FIELD_DEFINITIONS.length)
+  if(!onlyKeys(s,['schema','id','capturedAt','mode','completeness','target','fields'])||
+    s.schema!==SNAPSHOT_SCHEMA||typeof s.id!=='string'||!s.id||s.id.length>90||
+    typeof s.capturedAt!=='string'||!Number.isFinite(Date.parse(s.capturedAt))||
+    !['LIVE','PREVIEW'].includes(s.mode)||s.completeness!=='partial'||
+    !onlyKeys(s.target,['origin','host','identityLevel'])||
+    typeof s.target.origin!=='string'||typeof s.target.host!=='string'||
+    !['url-only','document-ref-observed'].includes(s.target.identityLevel)||
+    !Array.isArray(s.fields)||s.fields.length!==FIELD_DEFINITIONS.length)
     throw fail('E_HISTORY_SCHEMA','快照格式不符，拒绝覆盖历史');
+  let target;
+  try{target=new URL(s.target.origin);}catch{
+    throw fail('E_HISTORY_SCHEMA','快照网页来源无效');
+  }
+  if(!['http:','https:'].includes(target.protocol)||target.origin!==s.target.origin||
+    target.hostname!==s.target.host||target.username||target.password)
+    throw fail('E_HISTORY_SCHEMA','快照网页身份不可信');
   s.fields.forEach((field,index)=>{
     const def=FIELD_DEFINITIONS[index];
-    if(field?.key!==def.key||typeof field.source!=='string'||
-      !['available','not_exposed','unavailable'].includes(field.status)||
-      (field.status!=='available'&&field.value!==null)||
-      (def.kind==='environment'&&field.status==='available'))
-      throw fail('E_HISTORY_SCHEMA','存在非法或未经授权的环境值');
+    if(!onlyKeys(field,['key','status','value','source','reason'])||field.key!==def.key)
+      throw fail('E_HISTORY_SCHEMA','存在非法字段或隐藏数据');
+    if(def.kind==='environment'){
+      if(field.status!=='not_exposed'||field.value!==null||
+        field.source!=='page-js'||field.reason!=='E_SDK')
+        throw fail('E_HISTORY_SCHEMA','存在非法或未经授权的环境值');
+    }else{
+      const expected=def.key==='origin'?s.target.origin:
+        def.key==='host'?s.target.host:null;
+      if(field.source!=='host'||(expected!==null&&
+        (field.status!=='available'||field.value!==expected||field.reason!==null))||
+        (def.key==='title'&&!(field.status==='available'&&
+          typeof field.value==='string'&&field.value.length>0&&field.value.length<=160&&
+          field.reason===null||field.status==='unavailable'&&
+          field.value===null&&field.reason==='EMPTY_PAGE_TITLE')))
+        throw fail('E_HISTORY_SCHEMA','Host 页面字段或来源不一致');
+    }
   });
   return s;
 }
+export function freezeSnapshot(snapshot){
+  assertSnapshot(snapshot);
+  for(const field of snapshot.fields)Object.freeze(field);
+  Object.freeze(snapshot.fields);
+  Object.freeze(snapshot.target);
+  return Object.freeze(snapshot);
+}
 export function snapshotFromReading(reading){
   const {volatile,...rest}=reading||{};
-  const s=JSON.parse(JSON.stringify(rest));return assertSnapshot(s);
+  return freezeSnapshot(JSON.parse(JSON.stringify(rest)));
 }
 export function compareSnapshots(a,b){
   assertSnapshot(a);assertSnapshot(b);
