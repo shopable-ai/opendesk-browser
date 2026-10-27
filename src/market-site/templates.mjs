@@ -7,8 +7,7 @@ export const installPath=subject=>subject.kind==='app'?'/install/'+subject.marke
   '/install/collections/'+subject.collectionId+'/revisions/'+subject.revision+'/';
 const appSubject=app=>({kind:'app',marketId:app.id,version:app.version});
 const collectionSubject=col=>({kind:'collection',collectionId:col.id,revision:col.revision});
-const appControls=subject=>'<button type="button" class="button" data-return-review hidden>返回同一审阅</button>'+
-  (subject.kind==='app'?'<button type="button" class="button" data-open-installed hidden>打开当前安装</button>':'');
+const appControls=()=>'<button type="button" class="button" data-return-review hidden>返回同一审阅</button>';
 const handoffAction=(subject,label)=>'<button type="button" class="button primary" id="open-review" data-subject="'+e(JSON.stringify(subject))+'">'+e(label)+'</button>'+appControls(subject)+'<p id="handoff-state" class="minor" role="status">'+(subject.kind==='app'?'网页仅发起审阅；请在 OpenDesk 侧边栏安装面板 中确认安装；如面板未打开，点击 OpenDesk 工具栏继续安装。打开面板不表示已批准，安装后可另行打开使用。':'在扩展中审阅并确认；安装后由你打开。')+'</p><a class="minor" href="'+installPath(subject)+'">安装交接说明</a><details id="handoff-details" hidden><summary>连接技术信息</summary><p id="handoff-code" class="digest"></p><a href="/how-to-install/">安装与连接帮助</a></details>';
 const category=app=>app.category==='阅读'?'阅读':['笔记','Markdown','AI'].includes(app.category)?'笔记与写作':'效率';
 const logo='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 10h18M5 10v11h14V10M3 10l2-7h14l2 7M9 21v-7h6v7M8 3l-1 7M16 3l1 7"/></svg>';

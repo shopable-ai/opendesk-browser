@@ -26,17 +26,14 @@ function send(message,target=channel){
       if(chrome.runtime.lastError)return reject(noReceiver(target));
       if(response?.protocol!==protocol)return reject(problem('E_PROTOCOL','OpenDesk 安装协议不兼容，请更新扩展。'));
       if(response.ok!==true)return reject(problem(response.error?.code||'E_HANDOFF',String(response.error?.message||'无法完成交接。').slice(0,400)));
-      const expected={PROBE:'CONNECTED',OPEN_INSTALL_REVIEW:'REVIEW_OPENED',GET_INSTALL_STATUS:'INSTALL_STATUS',
-        GET_APP_STATUS:'APP_STATUS',OPEN_INSTALLED_APP:'APP_OPENED'}[message.action];
+      const expected={PROBE:'CONNECTED',OPEN_INSTALL_REVIEW:'REVIEW_OPENED',GET_INSTALL_STATUS:'INSTALL_STATUS'}[message.action];
       const panelRequired=message.action==='OPEN_INSTALL_REVIEW'&&message.subject.kind==='app'&&
         ['PANEL_REQUIRED','REVIEW_PENDING'].includes(response.status);
-      const navigationResult=message.action==='OPEN_INSTALLED_APP'&&
-        ['NAVIGATION_PENDING','PANEL_REQUIRED','NAVIGATION_BLOCKED','IDENTITY_CHANGED'].includes(response.status);
-      if((response.status!==expected&&!panelRequired&&!navigationResult)||!expected||
+      if((response.status!==expected&&!panelRequired)||!expected||
         (message.action==='GET_INSTALL_STATUS'&&response.intentId!==message.intentId)||
         (message.action==='OPEN_INSTALL_REVIEW'&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(response.intentId)))
         return reject(problem('E_RESPONSE','无法核对交接回执，请查看已有审阅页。'));
-      if(['GET_APP_STATUS','GET_INSTALL_STATUS'].includes(message.action)&&message.subject.kind==='app'&&
+      if(message.action==='GET_INSTALL_STATUS'&&message.subject.kind==='app'&&
         (!['not-installed','installed','update-available','different-version'].includes(response.currentInstallation)||
          !(response.installedVersion===null||typeof response.installedVersion==='string'&&response.installedVersion.length>0)||
          !(response.enabled===null||typeof response.enabled==='boolean')))
@@ -94,8 +91,7 @@ const entries=reviewButtons.map(button=>{
   const entry={button,subject:JSON.parse(button.dataset.subject),
     localStatus:container?.querySelector('[data-handoff-state]')||status,
     returnButton:container?.querySelector('[data-return-review]'),
-    openButton:container?.querySelector('[data-open-installed]'),current:null,intent:null,
-    appCheckedAt:null,intentCheckedAt:null,intentCheckedId:null};
+    intent:null,intentCheckedAt:null,intentCheckedId:null};
   entry.key='opendesk.market.intent:'+JSON.stringify(entry.subject);
   try{
     const saved=JSON.parse(sessionStorage.getItem(entry.key));
@@ -107,14 +103,10 @@ const entries=reviewButtons.map(button=>{
 function saveIntent(entry){
   try{if(entry.intent)sessionStorage.setItem(entry.key,JSON.stringify(entry.intent));else sessionStorage.removeItem(entry.key);}catch{}
 }
-function hasInstalled(entry){return entry.current?.currentInstallation==='installed';}
 function unresolved(entry){return entry.intent&&!['installed','cancelled','failed'].includes(entry.intent.installation);}
 function render(entry){
-  const pending=unresolved(entry),installed=hasInstalled(entry);
-  entry.button.textContent=pending?'核对安装结果':entry.current?.currentInstallation==='installed'?'打开使用':
-    entry.current?.currentInstallation==='update-available'?'更新':'安装到OpenDesk';
-  if(entry.returnButton)entry.returnButton.hidden=!pending;
-  if(entry.openButton)entry.openButton.hidden=!installed||entry.button.textContent==='打开使用';
+  entry.button.textContent=unresolved(entry)?'核对安装结果':'安装到OpenDesk';
+  if(entry.returnButton)entry.returnButton.hidden=!unresolved(entry);
 }
 function feedback(entry,text,state='pending'){
   if(entry.localStatus){entry.localStatus.hidden=false;entry.localStatus.textContent=text;entry.localStatus.dataset.state=state;}
@@ -124,15 +116,6 @@ function appReviewFeedback(handoff){
     '安装审阅请求已保留，请点击 OpenDesk 工具栏继续安装，或在侧边栏处理当前审阅，在侧边栏安装面板 中核对并确认；打开面板不表示已批准或已安装。':
     handoff==='panel-opening'?'正在打开 OpenDesk 侧边栏安装面板，请在面板中核对并确认；打开面板不表示已批准，发起审阅不表示已安装。':
     (handoff==='panel-open'?'已打开 OpenDesk 侧边栏安装面板，请核对并确认；':'请在 OpenDesk 侧边栏安装面板 中核对并确认；')+'打开面板不表示已批准，发起审阅不表示已安装。';
-}
-function showCurrent(entry,result){
-  entry.current=result;render(entry);
-  if(!entry.intent){
-    const labels={'not-installed':'此固定版本尚未安装。',installed:'已安装，可打开使用。',
-      'update-available':'已有较旧版本；本页固定发行尚未安装，可以审阅更新。','different-version':'已安装不同版本；本页不能代替它打开另一个发行。'};
-    feedback(entry,labels[result.currentInstallation]+(result.installedVersion?' 当前版本：'+result.installedVersion+'。':'')+
-      (result.enabled===false?' 当前安装已停用。':''));
-  }
 }
 async function checkInstallation(entry){
   if(!entry.intent)return;
@@ -147,18 +130,16 @@ async function checkInstallation(entry){
     throw error;
   }
   if(entry.intent?.id!==id)return;
-  if(entry.subject.kind==='app')showCurrent(entry,result);
   entry.intent.installation=result.installation;
-  const labels={installed:'本次安装已成功，已核对本机安装记录。',review:entry.subject.kind==='app'?appReviewFeedback(result.handoff):'请在 OpenDesk 审阅页核对并确认。',
+  const labels={installed:'本次安装成功。请在 OpenDesk 侧边栏打开使用。',review:entry.subject.kind==='app'?appReviewFeedback(result.handoff):'请在 OpenDesk 审阅页核对并确认。',
     cancelled:'本次安装已取消。再次点击安装将发起新审阅。',failed:'本次安装失败。可显式重新发起审阅。',
     unknown:'本次安装结果未知。请核对结果，或显式返回同一审阅；不会自动重装。',installing:'正在安装，请等待并核对结果。'};
   feedback(entry,labels[result.installation]+
     (entry.subject.kind==='app'&&result.installation==='unknown'&&result.handoff?' '+appReviewFeedback(result.handoff):'')+
     (entry.subject.kind==='collection'&&result.progress?' '+result.progress:'')+
-    (result.handoffClosed?' 原交接已明确结束，原安装结果仍未知；再次点击才会发起新审阅。':'')+
-    (result.currentInstallation&&result.currentInstallation!=='not-installed'?' 当前已有安装，可另行打开。':''),
+    (result.handoffClosed?' 原交接已明确结束，原安装结果仍未知；再次点击才会发起新审阅。':''),
     result.installation==='installed'?'success':result.installation==='failed'?'error':'pending');
-  if(['cancelled','failed'].includes(result.installation)||result.handoffClosed===true)entry.intent=null;
+  if(['installed','cancelled','failed'].includes(result.installation)||result.handoffClosed===true)entry.intent=null;
   saveIntent(entry);render(entry);
 }
 async function refreshStatuses(){
@@ -167,19 +148,12 @@ async function refreshStatuses(){
   try{
     await configuration();
     for(const entry of entries){
-      // A pending receipt already includes current installation status. Cache
-      // background reads and bound their total so focus events leave capacity
-      // for explicit install/open actions under the receiver's existing limit.
+      if(!unresolved(entry))continue;
       const now=Date.now();
-      if(entry.intent){
-        if((entry.intentCheckedId!==entry.intent.id||entry.intentCheckedAt===null||now-entry.intentCheckedAt>=15000)&&allowAutomaticRead()){
-          entry.intentCheckedId=entry.intent.id;entry.intentCheckedAt=now;entry.appCheckedAt=now;
-          try{await checkInstallation(entry);}catch(error){showError(error,entry.localStatus);}
-        }
-      }else if(entry.subject.kind==='app'&&(entry.appCheckedAt===null||now-entry.appCheckedAt>=60000)&&allowAutomaticRead()){
-        entry.appCheckedAt=now;
-        try{showCurrent(entry,await send({protocol,action:'GET_APP_STATUS',subject:entry.subject}));}
-        catch(error){showError(error,entry.localStatus);}
+      if((entry.intentCheckedId!==entry.intent.id||entry.intentCheckedAt===null||
+        now-entry.intentCheckedAt>=15000)&&allowAutomaticRead()){
+        entry.intentCheckedId=entry.intent.id;entry.intentCheckedAt=now;
+        try{await checkInstallation(entry);}catch(error){showError(error,entry.localStatus);}
       }
     }
   }finally{active=false;}
@@ -187,19 +161,9 @@ async function refreshStatuses(){
 async function perform(entry,operation){
   if(active)return;
   active=true;
-  for(const control of [entry.button,entry.returnButton,entry.openButton])if(control)control.disabled=true;
+  for(const control of [entry.button,entry.returnButton])if(control)control.disabled=true;
   try{
     await configuration();
-    if(operation==='open'||operation==='primary'&&!unresolved(entry)&&entry.current?.currentInstallation==='installed'){
-      const opened=await send({protocol,action:'OPEN_INSTALLED_APP',subject:entry.subject});
-      const label={APP_OPENED:'已在 OpenDesk 侧边栏打开此固定发行。',
-        NAVIGATION_PENDING:'已向 Side Panel 提交打开请求；等待原窗口面板核对，尚未确认运行。',
-        PANEL_REQUIRED:'打开请求已保留；请点击 Chrome 工具栏中的 OpenDesk 打开同一窗口侧边栏。',
-        NAVIGATION_BLOCKED:'侧边栏未接受打开操作；请先保存草稿或关闭其他审阅，再主动重试。',
-        IDENTITY_CHANGED:'版本、发行身份或本机安装状态已变化，应用没有启动。'};
-      feedback(entry,(label[opened.status]||'打开结果未知，请核对 Side Panel。')+
-        (opened.message?' '+opened.message:''),opened.status==='APP_OPENED'?'success':'pending');return;
-    }
     if(operation==='primary'&&unresolved(entry)){await checkInstallation(entry);return;}
     if(!entry.intent||!unresolved(entry)){
       entry.intent={id:crypto.randomUUID(),subject:entry.subject,installation:'unknown'};
@@ -218,14 +182,13 @@ async function perform(entry,operation){
   }catch(error){showError(error,entry.localStatus);}
   finally{
     active=false;render(entry);
-    for(const control of [entry.button,entry.returnButton,entry.openButton])if(control)control.disabled=false;
+    for(const control of [entry.button,entry.returnButton])if(control)control.disabled=false;
   }
 }
 for(const entry of entries){
   render(entry);
   entry.button.addEventListener('click',()=>perform(entry,'primary'));
   entry.returnButton?.addEventListener('click',()=>perform(entry,'return'));
-  entry.openButton?.addEventListener('click',()=>perform(entry,'open'));
 }
 // Returning to the website only reads status, never opens review or an app.
 for(const event of ['focus','pageshow'])globalThis.addEventListener?.(event,()=>{

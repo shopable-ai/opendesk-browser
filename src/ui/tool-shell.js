@@ -375,10 +375,9 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
         // The Sheet overlays the existing workspace without disposing editors.
         // A blurred search field or the Developer tab is not an editing lock.
         canAutoOpen:()=>sidebarTools.canPresentMarketReview(),
-        openInstalledAppDetail:async identity=>{
+        openInstalledApp:async identity=>{
           if(shellClosed||!verifiedSidePanel||!sidebarTools.canPresentMarketReview())return false;
-          if(taskWorkbench.navigate('tools')===false)return false;
-          return extensionCenter.openInstalledAppDetail(identity);
+          return extensionCenter.openInstalledMarketApp(identity);
         }});
     }
     if(actualSidePanel){

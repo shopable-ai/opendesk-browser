@@ -10,7 +10,7 @@ import {probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/tru
 // and bounded actions only; dynamic package JS remains in the original sandbox.
 export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockManager=globalThis.navigator?.locks,
   onChange=()=>{},onClose=()=>{},assertOwner=()=>claimMarketReview(api,reviewId),
-  assertCanInstall=()=>{},openInstalledAppDetail=null}={}){
+  assertCanInstall=()=>{},openInstalledApp=null}={}){
   let handoff,candidate,baseline,operation,status,closed=false;
   let model={title:'安装应用',phase:'loading',message:'正在核对本机安装交接…',summary:[],technical:[],actions:[],busy:false};
   let actions=new Map();
@@ -30,21 +30,24 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
     const updated=Boolean(candidate&&baseline&&!identical);
     const outcome=identical?'当前已安装此版本':updated?'更新完成':'安装完成';
     publish({phase:'installed',message:outcome+' · 已核对本机 v'+status.installedVersion+'。'+
-      (status.enabled===false?'应用仍保持停用，可在详情中管理。':'可查看应用详情。'),
+      (status.enabled===false?'应用保持停用，请在已安装列表中恢复后使用。':'点击“打开使用”进入应用。'),
       summary:[],technical:[]});
-    controls([['details','查看应用',async()=>{
-      // A painted success is not authority: read the original operation again.
+    const items=[];
+    if(status.enabled===true)items.push(['open','打开使用',async()=>{
+      // A painted success is not authority: recheck committed identity and enablement.
       await localState();
-      if(status.installation!=='installed'||status.installedVersion!==handoff.subject.version)
-        throw marketError('E_NOT_INSTALLED','本次安装身份已变化，请核对原结果。');
+      if(status.installation!=='installed'||status.installedVersion!==handoff.subject.version||status.enabled!==true)
+        throw marketError('E_NOT_INSTALLED','本次安装身份或启用状态已变化，请核对原结果。');
       const id=handoff.subject.marketId.split('/')[1];
       const sha256=handoff.sha256||operation?.sha256;
-      if(!/^[a-f0-9]{64}$/.test(sha256||'')||!openInstalledAppDetail||
-        !await openInstalledAppDetail({marketId:handoff.subject.marketId,id,
+      if(!/^[a-f0-9]{64}$/.test(sha256||'')||!openInstalledApp||
+        !await openInstalledApp({marketId:handoff.subject.marketId,id,
           version:handoff.subject.version,sha256}))
-        throw marketError('E_DETAIL_DEFERRED','安装结果已核对，但尚未进入应用详情；请检查当前侧边栏状态后重试。');
+        throw marketError('E_APP_OPEN_DEFERRED','安装已完成，但尚未打开应用；请检查侧边栏的未保存内容与安装状态后重试。');
       closed=true;onClose();
-    }],['done','完成',()=>{closed=true;onClose();}]]);
+    }]);
+    items.push(['done','完成',()=>{closed=true;onClose();}]);
+    controls(items);
   }
   function recoveryControls(){
     if(status.installation==='installed'){showOpen();return;}
