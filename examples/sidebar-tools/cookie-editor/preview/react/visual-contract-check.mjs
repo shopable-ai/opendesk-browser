@@ -204,7 +204,7 @@ try{
     }catch(error){
       const message=String(error?.message||error);
       errors.push({width,tab,page:name,message});
-      diffs.push({width,theme,tab,id:name+'-screenshot',status:'LOCKED',
+      diffs.push({width,theme,tab,id:name+'-screenshot',status:'TEST_INFRA_FAIL',
         kind:'TEST_INFRA_FAIL',message});
     }
    }
@@ -227,8 +227,10 @@ const report={schema:contract.schema,approvedGitBlob:gitBlob,
     'Screenshots are from two real files, not a composite replacement UI.',
     'Genuine browser 200% zoom, Mac Chrome Host permissions and real Cookie operations require separate tests.',
     'Token color differences are reported, not silently waived.'],
-  status:diffs.some(x=>x.status==='LOCKED')?'GAP':'REVIEW_REQUIRED',
+  status:diffs.some(x=>x.status==='LOCKED')?'GAP':
+    errors.length?'TEST_INFRA_FAIL':'REVIEW_REQUIRED',
   counts:{total:diffs.length,locked:diffs.filter(x=>x.status==='LOCKED').length,
+    testInfra:diffs.filter(x=>x.kind==='TEST_INFRA_FAIL').length,
     missing:diffs.filter(x=>x.kind==='MISSING_ELEMENT').length,
     emptyIcons:diffs.filter(x=>x.kind==='EMPTY_REACT_SVG').length},
   diffs,errors,screenshots,exceptions:contract.exceptions};
