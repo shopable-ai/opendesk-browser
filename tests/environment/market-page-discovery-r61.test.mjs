@@ -142,7 +142,7 @@ test('R6.2 market layout stylesheet retains the real R5 layout and R6.1 buttons'
 test('R6.1 market lists real review buttons, fixed-version app pages declare one link',()=>{
   const cards=home([release]);
   assert.match(cards,/data-open-review/);
-  assert.match(cards,/安装到 OpenDesk/);
+  assert.match(cards,/安装到\s*OpenDesk/);
   assert.match(cards,/opendesk\/markdown-workbench/);
   const pinned={kind:'app',marketId:release.id,version:release.version};
   const html=layout({title:'工作台',description:'demo',body:'x',path:'/apps/opendesk/markdown-workbench/',
@@ -219,7 +219,14 @@ function marketListingClient(){
   };
   const first=addCard({kind:'app',marketId:'opendesk/markdown-workbench',version:'1.0.5'});
   const second=addCard({kind:'app',marketId:'opendesk/quick-notes',version:'1.2.0'});
-  const chrome={runtime:{sendMessage(extensionId,message,callback){sent.push({extensionId,message,callback});}}};
+  const chrome={runtime:{sendMessage(extensionId,message,callback){
+    sent.push({extensionId,message,callback});
+    // Status reads are read-only; the current client performs them after PROBE.
+    // A never-answered read must not freeze this fixture's reconnect tests.
+    if(message.action==='GET_APP_STATUS')queueMicrotask(()=>callback({ok:true,
+      protocol:'opendesk.market.intent.v1',status:'APP_STATUS',
+      currentInstallation:'not-installed',installedVersion:null,enabled:null}));
+  }}};
   const context={
     document:{querySelector:sel=>nodes.get(sel)||null,
       querySelectorAll:sel=>sel==='[data-open-review]'?buttons:[]},
@@ -260,15 +267,15 @@ test('R6.2 a disabled refreshed channel cannot fall back to a cached receiver fo
   await h.nodes.get('#connect-button').listeners.click();
   assert.match(h.nodes.get('#connection-state').textContent,/尚未启用安装交接/);
   await h.first.button.listeners.click();
-  assert.equal(h.sent.length,1,'no message reaches the stale receiver');
+  assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,0,'no install message reaches the stale receiver');
   assert.match(h.first.state.textContent,/尚未启用安装交接/);
 });
 
 test('R6.2 installation help starts on HTTP and explains the automatic trusted confirmation',()=>{
   const html=helpPage({...channel,extensionId:'a'.repeat(32)});
   assert.match(html,/从本网站打开应用详情/);
-  assert.match(html,/网页会打开扩展的可信安装小窗/);
-  assert.match(html,/无需手动输入/);
+  assert.match(html,/在 OpenDesk 侧边栏安装面板 中核对版本/);
+  assert.match(html,/打开面板不表示已批准/);
   assert.match(html,/本市场指定的扩展 ID/);
   assert(html.includes('a'.repeat(32)));
   assert.match(html,/安装成功以真实本机记录为准/);
@@ -313,10 +320,19 @@ test('R6.1 multiple cards use distinct fixed intents; double-click has one in-fl
   check.callback({ok:true,protocol:'opendesk.market.intent.v1',status:'INSTALL_STATUS',
     intentId:check.message.intentId,installation:'unknown'});
   await retry;
-  assert.match(h.first.state.textContent,/结果待核对/);
-  // R5's durable handoff expires at 30 minutes. An open homepage must
-  // not indefinitely replay an expired intent from its in-memory cache.
+  assert.match(h.first.state.textContent,/结果未知|核对结果/);
+  // Expiration never silently replaces a durable unknown operation. Only an
+  // explicit closed/expired reply from the Host permits a new review.
   h.advance(31*60*1000);
+  const oldRequest=h.first.button.listeners.click();await tick();
+  opens=h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW');
+  assert.equal(opens.length,2,'unknown operations must not be replayed');
+  const oldCheck=h.sent.at(-1);
+  assert.equal(oldCheck.message.action,'GET_INSTALL_STATUS');
+  assert.equal(oldCheck.message.intentId,opens[0].message.intentId);
+  oldCheck.callback({ok:false,protocol:'opendesk.market.intent.v1',
+    error:{code:'E_INTENT_EXPIRED',message:'原审阅记录已过期'}});
+  await oldRequest;
   const renewed=h.first.button.listeners.click();await tick();
   opens=h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW');
   assert.equal(opens.length,3);
