@@ -175,8 +175,26 @@ for(const mutation of ['missing','state','sha','toolId','epoch','provenance','by
     if(mutation==='epoch')h.values[TOOL_REVOCATION_EPOCHS_STORE][tool.id]=randomUUID();
     if(mutation==='provenance')h.values[MARKET_PROVENANCE_STORE][tool.id].sha256='0'.repeat(64);
     if(mutation==='bytes')h.values[SIDEBAR_TOOL_STORE][0].js='void 99;';
-    assert.equal((await h.action('STATUS')).installation,'unknown');
+    const status=await h.action('STATUS');
+    assert.equal(status.installation,'unknown');assert.equal(status.handoffClosed,false);
   });
+
+test('missing package alone cannot close an uncertain or conflicting installation transaction',async()=>{
+  for(const mutation of ['missing-journal','committing','outcome-unknown','sha','marketId','version','toolId','source-remains']){
+    const h=harness(),row=await seed(h);await install(h,row);
+    const op=h.values[MARKET_OPERATIONS_STORE][row.operationId];
+    h.values[SIDEBAR_TOOL_STORE]=[];
+    if(mutation!=='source-remains')h.values[MARKET_PROVENANCE_STORE]={};
+    if(mutation==='missing-journal')delete h.values[MARKET_OPERATIONS_STORE][row.operationId];
+    if(['committing','outcome-unknown'].includes(mutation))op.state=mutation;
+    if(mutation==='sha')op.sha256='0'.repeat(64);
+    if(mutation==='marketId')op.marketId='opendesk/another-tool';
+    if(mutation==='version')op.version='2.0.0';
+    if(mutation==='toolId')op.toolId='another-tool';
+    const status=await h.action('STATUS');
+    assert.equal(status.installation,'unknown',mutation);assert.equal(status.handoffClosed,false,mutation);
+  }
+});
 
 test('exact package acknowledgement loss stops before creating its successful journal',async()=>{
   const h=harness(),row=await seed(h);await install(h,row);

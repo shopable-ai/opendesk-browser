@@ -4,7 +4,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {randomUUID} from 'node:crypto';
+import {readMarketInstallStatus} from '../../src/marketplace/status.js';
+import {MARKET_OPERATIONS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 const script=await readFile('src/market-site/client.js','utf8');
+const templates=await readFile('src/market-site/templates.mjs','utf8');
 const protocol='opendesk.market.intent.v1',origin='http://127.0.0.1:43132';
 const config={schema:'opendesk.market.channel.v1',protocol,enabled:true,extensionId:'a'.repeat(32),origin};
 const app={kind:'app',marketId:'opendesk/markdown-workbench',version:'1.0.1'};
@@ -18,9 +21,10 @@ function client({receiver=true,configuration=config,fetchError=null,subjects=[ap
   function node(){return {textContent:'',disabled:false,hidden:false,dataset:{},listeners:{},addEventListener(name,fn){this.listeners[name]=fn;}};}
   for(const name of ['#connection-state','#connect-button','#handoff-state','#handoff-details','#handoff-code'])nodes.set(name,node());
   const controls=subjects.map(subject=>{
-    const button=node(),status=node(),back=node(),open=node();button.dataset.subject=JSON.stringify(subject);
-    button.parentElement={querySelector:selector=>({'[data-handoff-state]':status,'[data-return-review]':back,'[data-open-installed]':open})[selector]};
-    return {button,status,back,open};
+    const button=node(),status=node(),back=node();button.dataset.subject=JSON.stringify(subject);
+    button.textContent=subject.kind==='app'?'安装到OpenDesk':'打开 OpenDesk 安装审阅';
+    button.parentElement={querySelector:selector=>({'[data-handoff-state]':status,'[data-return-review]':back})[selector]};
+    return {button,status,back};
   });
   nodes.set('#open-review',controls[0].button);
   const window={addEventListener(name,fn){if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(fn);},
@@ -41,23 +45,20 @@ function client({receiver=true,configuration=config,fetchError=null,subjects=[ap
   const reply=(request,extra={})=>answer(request,{ok:true,protocol,
     ...({PROBE:{status:'CONNECTED'},
       GET_INSTALL_STATUS:{status:'INSTALL_STATUS',intentId:request.message.intentId,installation:'unknown',progress:null,...current()},
-      GET_APP_STATUS:{status:'APP_STATUS',...current()},
-      OPEN_INSTALLED_APP:{status:'APP_OPENED',requestId:randomUUID()},
       OPEN_INSTALL_REVIEW:{status:'REVIEW_OPENED',intentId:request.message.intentId}}[request.message.action]),...extra});
   return {nodes,sent,posted,timers,listeners,storage,controls,answer,reply,
     advance:milliseconds=>time+=milliseconds,
     act:(index=0)=>controls[index].button.listeners.click(),back:(index=0)=>controls[index].back.listeners.click(),
-    open:(index=0)=>controls[index].open.listeners.click(),
     emit:name=>Promise.all([...(listeners.get(name)||[])].map(fn=>fn())),
     expire(){for(const [id,timer] of [...timers]){timers.delete(id);timer.fn();}}};
 }
-async function ready(h,state='not-installed',extra={}){
-  // Complete automatic read-only replies. Installation state always comes from the extension.
+async function ready(h){
+  // Complete connection probes and original transaction receipt recovery only.
   for(let turn=0;turn<64;turn++){
     await tick();
     for(const req of h.sent.filter(row=>!row.answered)){
-      assert.ok(['PROBE','GET_INSTALL_STATUS','GET_APP_STATUS'].includes(req.message.action));
-      h.reply(req,req.message.action==='GET_APP_STATUS'?current(state,extra):{});
+      assert.ok(['PROBE','GET_INSTALL_STATUS'].includes(req.message.action));
+      h.reply(req);
     }
   }
 }
@@ -68,10 +69,9 @@ function whitelist(h){
   for(const {message,id} of h.sent){
     assert.equal(id,config.extensionId);assert.equal(message.protocol,protocol);
     const fields=message.action==='PROBE'?['protocol','action']:
-      ['GET_APP_STATUS','OPEN_INSTALLED_APP'].includes(message.action)?['protocol','action','subject']:
-        ['protocol','action','intentId','subject'];
+      ['protocol','action','intentId','subject'];
     assert.deepEqual(Object.keys(message).sort(),fields.sort());
-    assert.ok(['PROBE','GET_INSTALL_STATUS','OPEN_INSTALL_REVIEW','GET_APP_STATUS','OPEN_INSTALLED_APP'].includes(message.action));
+    assert.ok(['PROBE','GET_INSTALL_STATUS','OPEN_INSTALL_REVIEW'].includes(message.action));
   }
   assert.equal(h.posted.length,0,'no page REVIEW/PREPARE/COMMIT channel');
 }
@@ -100,7 +100,7 @@ test('unknown timeout persists before sending, then primary click only queries',
   assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,1);
   whitelist(h);
 });
-test('refresh, focus, pageshow and reconnect only query fixed session intent and current app status',async()=>{
+test('refresh, focus, pageshow and reconnect only recover the fixed session intent',async()=>{
   const h=client();await ready(h);const first=await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
   const restored=client({storage:h.storage});await ready(restored);
   assert.equal(restored.sent.find(row=>row.message.action==='GET_INSTALL_STATUS').message.intentId,first.message.intentId);
@@ -121,15 +121,21 @@ test('cancellation clears session and a later explicit install creates a new int
   const second=await respond(h,h.act(),'OPEN_INSTALL_REVIEW');assert.notEqual(first.message.intentId,second.message.intentId);
   whitelist(h);
 });
-test('website reads authoritative app status on connect and focus, never installs automatically',async()=>{
-  const h=client();await ready(h,'installed');
-  assert.equal(h.controls[0].button.textContent,'打开使用');
-  assert.deepEqual(h.sent.map(row=>row.message.action),['PROBE','GET_APP_STATUS']);
-  h.advance(16000);h.emit('focus');await ready(h,'installed');
-  assert.equal(h.controls[0].button.textContent,'打开使用');
-  assert.equal(h.sent.some(row=>['OPEN_INSTALL_REVIEW','OPEN_INSTALLED_APP'].includes(row.message.action)),false);
+test('website never queries current app state or opens apps on load, focus, pageshow or reconnect',async()=>{
+  const subjects=Array.from({length:13},(_,index)=>({...app,marketId:'opendesk/card-'+String.fromCharCode(97+index)}));
+  const h=client({subjects});await ready(h);
+  assert.deepEqual(h.sent.map(row=>row.message.action),['PROBE']);
+  for(const event of ['focus','pageshow']){
+    h.advance(16000);h.emit(event);await ready(h);
+    assert.deepEqual(h.sent.map(row=>row.message.action),['PROBE']);
+  }
+  h.nodes.get('#connect-button').listeners.click();await ready(h);
+  assert.deepEqual(h.sent.map(row=>row.message.action),['PROBE','PROBE']);
+  assert.ok(h.controls.every(row=>row.button.textContent==='安装到OpenDesk'));
+  assert.doesNotMatch(script,/GET_APP_STATUS|OPEN_INSTALLED_APP/);
   whitelist(h);
 });
+
 test('an older installed release in an unknown handoff does not change public CTA',async()=>{
   const h=client();await ready(h);
   await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
@@ -140,15 +146,7 @@ test('an older installed release in an unknown handoff does not change public CT
   assert.equal(h.sent.some(row=>row.message.action==='OPEN_INSTALLED_APP'),false);
   whitelist(h);
 });
-test('uninstall restores install CTA after focus checks the actual registry',async()=>{
-  const h=client();await ready(h,'installed');
-  assert.equal(h.controls[0].button.textContent,'打开使用');
-  h.advance(16000);h.emit('focus');await ready(h,'not-installed');
-  assert.equal(h.controls[0].button.textContent,'安装到OpenDesk');
-  assert.equal(h.sent.filter(row=>row.message.action==='GET_APP_STATUS').length,2);
-  assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,0);
-  whitelist(h);
-});
+
 test('installing uses public copy and only matching installed operation result reports success',async()=>{
   const h=client();await ready(h);await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
   await respond(h,h.act(),'GET_INSTALL_STATUS',{installation:'installing',progress:'committing'});
@@ -156,9 +154,8 @@ test('installing uses public copy and only matching installed operation result r
   assert.doesNotMatch(h.controls[0].status.textContent,/committing/);
   assert.equal(h.controls[0].button.textContent,'核对安装结果');
   await respond(h,h.act(),'GET_INSTALL_STATUS',{installation:'installed',...current('installed')});
-  assert.equal(h.controls[0].status.dataset.state,'success');assert.equal(h.controls[0].button.textContent,'打开使用');
+  assert.equal(h.controls[0].status.dataset.state,'success');assert.equal(h.controls[0].button.textContent,'安装到OpenDesk');
   assert.equal(h.storage.has(key(app)),false,'successful receipt does not become a session installed cache');
-  await respond(h,h.act(),'OPEN_INSTALLED_APP');
   assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,1);
   whitelist(h);
 });
@@ -239,6 +236,29 @@ test('an explicitly ended unknown handoff permits only a later user initiated re
   const second=await respond(h,h.act(),'OPEN_INSTALL_REVIEW');assert.notEqual(first.message.intentId,second.message.intentId);
   whitelist(h);
 });
+
+test('unread successful receipt followed by uninstall and refresh clears only the old transaction, without replay',async()=>{
+  const h=client();await ready(h);const first=await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
+  const operationId=randomUUID(),sha256='a'.repeat(64);
+  // The original journal acknowledged success; the package and provenance have since been removed.
+  const stored={[MARKET_OPERATIONS_STORE]:{[operationId]:{state:'succeeded',toolId:'markdown-workbench',
+    marketId:app.marketId,version:app.version,sha256}}};
+  const receipt=await readMarketInstallStatus({storage:{local:{get:async()=>stored}}},
+    {subject:app,operationId,sha256,consumedAt:1,settledAt:2,closureReason:'journal-terminal'});
+  const restored=client({storage:h.storage});await tick();restored.reply(restored.sent[0]);await tick();
+  const query=restored.sent.at(-1);assert.equal(query.message.action,'GET_INSTALL_STATUS');
+  assert.equal(query.message.intentId,first.message.intentId);restored.reply(query,receipt);await tick();
+  assert.equal(restored.storage.has(key(app)),false);
+  assert.equal(restored.controls[0].button.textContent,'安装到OpenDesk');
+  assert.equal(restored.controls[0].back.hidden,true);
+  assert.match(restored.controls[0].status.textContent,/原安装事务已成功结束.*当前应用已移除.*再次点击安装/);
+  assert.notEqual(restored.controls[0].status.dataset.state,'success');
+  const before=restored.sent.length;restored.emit('focus');restored.emit('pageshow');await ready(restored);
+  assert.equal(restored.sent.length,before,'terminal receipt recovery stops querying without automatic review');
+  const second=await respond(restored,restored.act(),'OPEN_INSTALL_REVIEW');
+  assert.notEqual(second.message.intentId,first.message.intentId);
+  whitelist(h);whitelist(restored);
+});
 test('an expired unsubmitted request clears the session without claiming its result or automatically retrying',async()=>{
   const h=client();await ready(h);const first=await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
   const checking=h.act();await tick();
@@ -267,40 +287,50 @@ test('malformed external review receipt cannot erase the queryable proposed inte
     await respond(h,h.act(),'GET_INSTALL_STATUS');whitelist(h);
   }
 });
-test('successful receipt clears the intent and independent state read keeps correct CTA',async()=>{
-  const h=client();await ready(h);await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
-  await respond(h,h.act(),'GET_INSTALL_STATUS',{installation:'installed',...current('installed')});
-  assert.match(h.controls[0].status.textContent,/本次安装成功.*侧边栏打开使用/);
-  assert.equal(h.storage.has(key(app)),false);
-  assert.equal(h.controls[0].button.textContent,'打开使用');
-  const restored=client({storage:h.storage});await ready(restored,'installed');
-  assert.equal(restored.controls[0].button.textContent,'打开使用');
-  assert.deepEqual(restored.sent.map(row=>row.message.action),['PROBE','GET_APP_STATUS']);
-  whitelist(h);whitelist(restored);
+test('successful transaction receipt is cleared on return and never restored as current installed state',async()=>{
+  for(const event of ['focus','pageshow']){
+    const h=client();await ready(h);await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
+    await respond(h,h.act(),'GET_INSTALL_STATUS',{installation:'installed',...current('installed')});
+    assert.match(h.controls[0].status.textContent,/本次安装成功.*本次事务回执.*不代表当前仍已安装.*侧边栏核对并打开使用/);
+    assert.equal(h.storage.has(key(app)),false);
+    assert.equal(h.controls[0].button.textContent,'安装到OpenDesk');
+    const before=h.sent.length;
+    h.emit(event);await ready(h);
+    assert.equal(h.sent.length,before);
+    assert.equal(h.controls[0].status.hidden,true);
+    assert.equal(h.controls[0].status.textContent,'');
+    assert.notEqual(h.controls[0].status.dataset.state,'success');
+    const restored=client({storage:h.storage});await ready(restored);
+    assert.equal(restored.controls[0].button.textContent,'安装到OpenDesk');
+    assert.doesNotMatch(restored.controls[0].status.textContent,/安装成功|已安装/);
+    assert.deepEqual(restored.sent.map(row=>row.message.action),['PROBE']);
+    whitelist(h);whitelist(restored);
+  }
 });
-test('installed app opens by guarded Side Panel action without new install intent',async()=>{
-  const h=client();await ready(h,'installed');
-  const opened=await respond(h,h.act(),'OPEN_INSTALLED_APP');
-  assert.deepEqual(JSON.parse(JSON.stringify(opened.message.subject)),app);
-  assert.equal(h.controls[0].status.dataset.state,'success');
-  assert.match(h.controls[0].status.textContent,/侧边栏打开应用/);
-  assert.equal(h.storage.size,0);
-  assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,0);
-  whitelist(h);
+
+test('legacy terminal receipts are discarded without querying or claiming current installation',async()=>{
+  for(const installation of ['installed','cancelled','failed']){
+    const storage=new Map([[key(app),JSON.stringify({id:randomUUID(),subject:app,installation})]]);
+    const h=client({storage});await ready(h);
+    assert.deepEqual(h.sent.map(row=>row.message.action),['PROBE']);
+    assert.equal(storage.has(key(app)),false);
+    assert.equal(h.controls[0].button.textContent,'安装到OpenDesk');
+    assert.doesNotMatch(h.controls[0].status.textContent,/成功|已安装/);whitelist(h);
+  }
 });
-test('automatic app reads are bounded while manual checks remain available',async()=>{
-  const subjects=Array.from({length:13},(_,index)=>({...app,marketId:'opendesk/card-'+String.fromCharCode(97+index)}));
-  const h=client({subjects});await ready(h);
-  assert.equal(h.sent.filter(row=>row.message.action==='GET_APP_STATUS').length,13);
-  for(let index=0;index<4;index++){h.emit('focus');h.emit('pageshow');await ready(h);}
-  assert.equal(h.sent.filter(row=>row.message.action==='GET_APP_STATUS').length,24);
-  assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,0);
-  await respond(h,h.act(),'GET_APP_STATUS');
-  assert.equal(h.controls[0].button.textContent,'安装到OpenDesk');
-  await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
+
+test('double clicks and return events during review handoff cannot duplicate the request',async()=>{
+  const h=client();await ready(h);
+  const first=h.act(),second=h.act(),back=h.back();await tick();
+  assert.equal(h.controls[0].button.disabled,true);assert.equal(h.controls[0].back.disabled,true);
+  h.emit('focus');h.emit('pageshow');await tick();
   assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,1);
+  assert.equal(h.sent.filter(row=>row.message.action==='GET_INSTALL_STATUS').length,0);
+  h.reply(h.sent.at(-1));await Promise.all([first,second,back]);
+  assert.equal(h.controls[0].button.disabled,false);assert.equal(h.controls[0].back.disabled,false);
   whitelist(h);
 });
+
 test('automatic pending reads are bounded while explicit result queries still work',async()=>{
   const subjects=Array.from({length:13},(_,index)=>({...app,marketId:'opendesk/card-'+String.fromCharCode(97+index)}));
   const storage=new Map(subjects.map(subject=>[key(subject),JSON.stringify({id:randomUUID(),subject})]));
@@ -310,9 +340,9 @@ test('automatic pending reads are bounded while explicit result queries still wo
   await respond(h,h.act(),'GET_INSTALL_STATUS');assert.equal(h.sent.at(-1).message.action,'GET_INSTALL_STATUS');whitelist(h);
 });
 
-test('app install and update accept opened, required and pending panel receipts without claiming approval or installation',async()=>{
-  for(const state of ['not-installed','update-available'])for(const status of ['REVIEW_OPENED','PANEL_REQUIRED','REVIEW_PENDING']){
-    const h=client();await ready(h,state);const recovered=randomUUID();
+test('app review handoffs accept opened, required and pending panel receipts without claiming approval or installation',async()=>{
+  for(const status of ['REVIEW_OPENED','PANEL_REQUIRED','REVIEW_PENDING']){
+    const h=client();await ready(h);const recovered=randomUUID();
     await respond(h,h.act(),'OPEN_INSTALL_REVIEW',{status,intentId:recovered});
     assert.equal(JSON.parse(h.storage.get(key(app))).id,recovered);
     assert.equal(h.controls[0].status.dataset.state,'pending');
@@ -382,55 +412,36 @@ test('pending receipt survives refresh with backend status lacking handoff and n
   whitelist(h);whitelist(restored);
 });
 
-
-test('disabled installed app shows management guidance but cannot auto-enable or open',async()=>{
-  const h=client();await ready(h,'installed',{enabled:false});
-  assert.equal(h.controls[0].button.textContent,'管理');
-  await h.act();
-  assert.match(h.controls[0].status.textContent,/已停用.*扩展中心管理/);
-  assert.equal(h.sent.some(row=>['OPEN_INSTALLED_APP','OPEN_INSTALL_REVIEW'].includes(row.message.action)),false);
-  whitelist(h);
-});
-test('update is an actual review, but different-version is not impersonated',async()=>{
-  const update=client();await ready(update,'update-available');
-  assert.equal(update.controls[0].button.textContent,'更新');
-  await respond(update,update.act(),'OPEN_INSTALL_REVIEW');
-  assert.equal(update.sent.some(row=>row.message.action==='OPEN_INSTALLED_APP'),false);
-  const other=client();await ready(other,'different-version');
-  assert.equal(other.controls[0].button.textContent,'核对版本');
-  await other.act();
-  assert.match(other.controls[0].status.textContent,/不是所选固定版本/);
-  assert.equal(other.sent.some(row=>['OPEN_INSTALL_REVIEW','OPEN_INSTALLED_APP'].includes(row.message.action)),false);
-  whitelist(update);whitelist(other);
-});
-test('receiver disconnect clears a previously installed CTA, without retrying an installation',async()=>{
-  const h=client();await ready(h,'installed');
-  assert.equal(h.controls[0].button.textContent,'打开使用');
-  h.advance(16000);h.emit('focus');await tick();
-  const req=h.sent.at(-1);assert.equal(req.message.action,'GET_APP_STATUS');
-  h.answer(req,undefined,'No receiver');await tick();
-  assert.equal(h.controls[0].button.textContent,'核对状态');
-  assert.match(h.nodes.get('#connection-state').textContent,/连接不可用/);
-  assert.equal(h.sent.some(row=>row.message.action==='OPEN_INSTALL_REVIEW'),false);
-  whitelist(h);
-});
-test('malformed real-state response never displays installed',async()=>{
-  const h=client();await tick();h.reply(h.sent[0]);await tick();
-  const req=h.sent.at(-1);assert.equal(req.message.action,'GET_APP_STATUS');
-  h.reply(req,{currentInstallation:'installed',installedVersion:app.version,enabled:'yes'});
-  await tick();
-  assert.equal(h.controls[0].button.textContent,'核对状态');
-  assert.equal(h.controls[0].status.dataset.state,'error');whitelist(h);
-});
-test('pending, blocked and identity-changed app opens are not reported as opened',async()=>{
-  for(const state of ['PANEL_REQUIRED','NAVIGATION_PENDING','NAVIGATION_BLOCKED','IDENTITY_CHANGED']){
-    const h=client();await ready(h,'installed');
-    await respond(h,h.act(),'OPEN_INSTALLED_APP',{status:state,message:'当前界面仍有草稿'});
-    assert.notEqual(h.controls[0].status.dataset.state,'success');
-    assert.equal(h.sent.some(row=>row.message.action==='OPEN_INSTALL_REVIEW'),false);
-    whitelist(h);
+test('original receipts never project installed, disabled or other-version state onto public CTA',async()=>{
+  for(const state of ['installed','update-available','different-version'])for(const enabled of [true,false]){
+    const h=client();await ready(h);await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
+    await respond(h,h.act(),'GET_INSTALL_STATUS',{installation:'unknown',...current(state,{enabled})});
+    assert.equal(h.controls[0].button.textContent,'核对安装结果');
+    assert.match(h.controls[0].status.textContent,/本次安装结果未知/);
+    assert.notEqual(h.controls[0].status.dataset.state,'success');whitelist(h);
   }
 });
+
+test('receiver disconnect preserves the original uncertain intent and never resubmits it',async()=>{
+  const h=client();await ready(h);const first=await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
+  const checking=h.act();await tick();h.answer(h.sent.at(-1),undefined,'No receiver');await checking;
+  assert.equal(h.controls[0].button.textContent,'核对安装结果');
+  assert.equal(JSON.parse(h.storage.get(key(app))).id,first.message.intentId);
+  assert.match(h.controls[0].status.textContent,/无法连接 OpenDesk/);
+  assert.match(h.nodes.get('#connection-state').textContent,/连接不可用/);
+  const query=await respond(h,h.act(),'GET_INSTALL_STATUS');
+  assert.equal(query.message.intentId,first.message.intentId);
+  assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,1);
+  whitelist(h);
+});
+
+test('public templates direct app use to Side Panel and describe only original transaction recovery',()=>{
+  assert.doesNotMatch(templates,/data-open-installed|或「更新」/);
+  assert.match(templates,/安装后请在 OpenDesk 侧边栏打开使用/);
+  assert.match(templates,/网页仅展示本次安装事务回执，不同步当前安装状态/);
+  assert.match(templates,/仅恢复未结束的原事务回执/);
+});
+
 test('market public install chain does not require native desktop messaging',async()=>{
   const [external,install,distribution]=await Promise.all([
     readFile('src/marketplace/external.js','utf8'),readFile('src/marketplace/install.js','utf8'),

@@ -237,8 +237,9 @@ test('production single-app entry points do not create tool tabs or bypass confi
   assert.match(center,/sidebarTools\.openOfficialReview\(selected\.release\.toolId\)/);
   assert.match(shell,/actualSidePanel\)\{/);
   assert.match(shell,/extensionCenter\.openInstalledMarketApp/);
-  assert.match(client,/action:'GET_APP_STATUS'/);
-  assert.match(client,/action:'OPEN_INSTALLED_APP'/);
+  assert.doesNotMatch(client,/GET_APP_STATUS|OPEN_INSTALLED_APP/);
+  assert.match(client,/action:'OPEN_INSTALL_REVIEW'/);
+  assert.match(client,/action:'GET_INSTALL_STATUS',intentId:id,subject:entry.subject/);
   assert.match(shell,/openInstalledApp:async identity/);
   assert.match(shell,/extensionCenter\.openInstalledMarketApp\(identity\)/);
 });

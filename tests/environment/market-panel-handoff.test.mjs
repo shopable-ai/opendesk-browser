@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {createMarketHandoff} from '../../src/marketplace/external.js';
 import {createMarketPanelHost,registerMarketPanelHost,MARKET_PANEL_PROTOCOL,requestPendingMarketReviews,claimMarketReview} from '../../src/marketplace/panel.js';
-import {MARKET_INTENT_PROTOCOL,MARKET_INTENTS_STORE,MARKET_INTENT_TTL,readMarketIntentStore,consumeReviewIntent,loadReviewIntent} from '../../src/marketplace/intent.js';
+import {MARKET_INTENT_PROTOCOL,MARKET_INTENTS_STORE,MARKET_INTENT_TTL,readMarketIntentStore,consumeReviewIntent,loadReviewIntent,settleReviewIntent} from '../../src/marketplace/intent.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
-import {MARKET_OPERATIONS_STORE,installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
+import {MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE,installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
 
 function fixture(){
   const origin='http://127.0.0.1:43132',id='a'.repeat(32),values={},opened=[],created=[];
@@ -395,4 +395,36 @@ test('source refresh cannot expire consumed, journal/unknown, successful, failed
     assert.deepEqual(h.values[MARKET_OPERATIONS_STORE],journal,state);
     assert.equal(h.values[MARKET_INTENTS_STORE].intents.length,1,state);
   }
+});
+
+test('successful panel install removed before website receipt allows a fresh explicit review after source refresh',async()=>{
+  const h=fixture();await h.host.handle(h.request,h.sender);h.contexts.push(h.context);
+  const claimed=(await h.claim()).handoff;
+  const candidate={format:'opendesk.sidebar-tool.v1',id:'example-app',version:'1.0.0',title:'Example',
+    description:'Example app',capabilities:[],html:'<main>Example</main>',css:'',js:'void 0;'};
+  const sha256=await sidebarToolPackageHash(candidate);
+  await installReviewedSidebarTool({api:h.api,lockManager:h.lockManager,candidate,baseline:null,reviewApproved:true,
+    market:{marketId:h.request.subject.marketId,sha256,operationId:h.row().operationId},
+    commitIntent:()=>h.consume({sha256,panelOwnerDocumentId:claimed.panelTarget.owner.documentId})});
+  await settleReviewIntent({api:h.api,lockManager:h.lockManager,reviewId:h.row().reviewId});
+  const original=structuredClone(h.row()),journal=structuredClone(h.values[MARKET_OPERATIONS_STORE]);
+  // Model the completed SidePanel uninstall before the website ever asks for a receipt.
+  await h.api.storage.local.set({[SIDEBAR_TOOL_STORE]:[],[MARKET_PROVENANCE_STORE]:{}});
+  h.sender.documentId='B'.repeat(32);h.setTop({...h.top(),documentId:h.sender.documentId});
+  const opened=h.opened.length;
+  const status=await h.restart().handle({...h.request,action:'GET_INSTALL_STATUS'},h.sender);
+  assert.equal(status.installation,'unknown');assert.equal(status.progress,'succeeded');
+  assert.equal(status.currentInstallation,'not-installed');assert.equal(status.handoffClosed,true);
+  assert.equal(h.opened.length,opened,'receipt recovery cannot open or reinstall');
+  assert.deepEqual((await h.list()).reviews,[]);
+  assert.deepEqual(h.values[MARKET_OPERATIONS_STORE],journal);
+  const request={...h.request,intentId:randomUUID()};
+  const next=await h.restart().handle(request,h.sender);
+  assert.equal(next.intentId,request.intentId);assert.notEqual(next.intentId,original.intentId);
+  const pending=(await h.list()).reviews;
+  assert.equal(pending.length,1);assert.equal(pending[0].intentId,request.intentId);
+  assert.notEqual(pending[0].operationId,original.operationId);
+  assert.equal(h.values[MARKET_INTENTS_STORE].intents[1].consumedAt,null);
+  assert.deepEqual(h.values[SIDEBAR_TOOL_STORE],[]);
+  assert.deepEqual(h.values[MARKET_OPERATIONS_STORE],journal);
 });

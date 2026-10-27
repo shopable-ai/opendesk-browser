@@ -45,12 +45,17 @@ async function statusFromStored(stored,handoff){
   const op=handoff.operationId?stored[MARKET_OPERATIONS_STORE]?.[handoff.operationId]:null;
   const cancelled=handoff.cancelledAt!=null||handoff.pageReview?.cancelledAt!=null;
   let installation=handoff.consumedAt!=null?'unknown':cancelled?'cancelled':'review';
+  let completedAndRemoved=false;
   if(op){
     const identity=marketExpectedIdentity(handoff,op);
     const matches=op.marketId===subject.marketId&&op.version===subject.version&&op.toolId===subject.marketId.split('/')[1]&&
       /^[a-f0-9]{64}$/.test(op.sha256)&&op.sha256===identity.sha256;
     const epochMatches=!Object.hasOwn(op,'installEpoch')||typeof op.installEpoch==='string'&&
       requireToolRevocationEpochs(stored[TOOL_REVOCATION_EPOCHS_STORE])[op.toolId]===op.installEpoch;
+    // A matching acknowledged transaction stays terminal after uninstall. This
+    // closes only its handoff; it neither claims a current install nor retries it.
+    completedAndRemoved=matches&&op.state==='succeeded'&&handoff.consumedAt!=null&&!cancelled&&
+      !tool&&stored[MARKET_PROVENANCE_STORE]?.[op.toolId]===undefined;
     if(!matches)installation='unknown';
     else if(op.state==='failed')installation='failed';
     else if(op.state==='succeeded'&&verified&&tool.version===subject.version&&source.sha256===op.sha256&&epochMatches&&!cancelled)
@@ -58,5 +63,5 @@ async function statusFromStored(stored,handoff){
     else installation='unknown';
   }
   return {installation,progress:op?.state||null,currentInstallation,installedVersion:verified?tool.version:null,enabled,
-    handoffClosed:handoff.closureReason==='unknown-without-journal'&&handoff.settledAt!=null};
+    handoffClosed:completedAndRemoved||handoff.closureReason==='unknown-without-journal'&&handoff.settledAt!=null};
 }
