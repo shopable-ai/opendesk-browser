@@ -141,3 +141,13 @@ R5.3 历史 job [122237112711](https://github.com/shopable-ai/opendesk-browser/a
 - 此次实际 hostInstanceId `d76900ef-7316-4a7b-96d5-c0ee6c0e913f`，调试页读到 **开发服务已连接**，revision `fc1a87c1f566cd5f679e623ff9594b912cb73178bb4da72b2e768561a5cb1023`，同一扩展ID/`dist/development`；`dev-connection-disabled-usage-fix.*`。保留原 watcher，不用 production 包替换日常环境。
 - R4 准确 job 的日志连接再次返回 Transport closed，自己的真实 Chrome 页面明确提示 **Sign in to view logs**；没有取得完整正文。本窗口导航回本地测试页仍停在旧文档/加载中，而本地服务单独返回 HTTP200；记录浏览器/驱动阻塞，不作为扩展产品故障。`native-navigation-pending.*` 区分地址栏输入与实际旧文档，不能宣称导航成功，也不操作其他窗口的 debugger 解除它。
 - Chrome 尺寸手柄的原生 Increment 辅助操作同样没有可见尺寸变化。未验证的精确宽度、200%、触屏和异常身份矩阵继续 NOT_TESTED，不据此修改 CSS 或宣称产品尺寸故障。八维仍均 NOT_SCORED，算术平均 NOT_SCORED；R1.8完整验收仍未完成，production 保持延期。
+
+## 新标签页恢复、原生缩放与剩余阻塞
+
+- 在本任务自己的 Chrome 窗口新增标签页，通过现有本地测试页入口实际加载 `http://127.0.0.1:43111/demo-form.html`；`native-new-tab-navigation-recovered.*` 记录新文档，而非只记录地址栏。此前旧标签页的导航停滞已绕开，没有取消其他任务的 debugger 或操作其他窗口。
+- 通过 Chrome 原生菜单将本地网页从100%调到200%；`chrome-menu-zoom-200-native.*` 保留可见百分比。原 Prompt 业务及 AI 滚动导航统一详情仍能进入，分别保存 `prompt-native-browser-zoom-200.*`、`ai-scroll-native-browser-zoom-200.*`。AI详情仍只有一个主开关，并如实显示 off／原生清理待核对；没有为测试扩大网站授权或改变启用状态。
+- **网页200%不等于侧栏200%。** 在本任务 Side Panel DevTools 的顶层 `top` 上下文只读测得：实际 `sidepanel.html?hostInstanceId=d76900ef-7316-4a7b-96d5-c0ee6c0e913f` 的 width=360、height=731、DPR=2、scrollWidth=360、dark=false、visualViewport.scale=1。`sidepanel-top-metrics-browser-zoom-200.*` 是顶层证据；较早的 `sidepanel-metrics-browser-zoom-200.*` 来自 sandbox iframe（360×626），不得混作顶层测量。侧栏自身200%重排仍为 NOT_TESTED。
+- 已通过原生缩放弹层“重置”，实际读回100%（`chrome-zoom-restored-100-native.*`），仅关闭本任务 DevTools，并返回扩展列表及原详情入口焦点（`extension-list-after-zoom-restored-native.*`）。未清空 Console；既有两条 Stay Focus 索引404仍保留。
+- 当前同一 Side Panel 实际读到“开发服务已连接”，revision仍为 `fc1a87c1f566cd5f679e623ff9594b912cb73178bb4da72b2e768561a5cb1023`，扩展ID和 `dist/development` 沿用原环境；`dev-connection-after-zoom-recovery.*`。没有重启或覆盖 dev watcher，没有新 production 构建。
+- 新标签页和校准后的鼠标坐标下，原生分隔线拖动仍未产生可见宽度变化（`native-divider-drag-after-new-tab.*`）。跨本轮及前两轮尝试，辅助动作、方向键、拖动均未解除这一控制阻塞。不能用普通网页 viewport、CSS变换或静态预览填充真实 Side Panel 的精确宽度／缩放／触屏验收，也不能据驱动无效判定产品CSS损坏。其余尺寸和触屏仍为 NOT_TESTED；没有新的产品差异需要修改源码。
+- dev核心操作和定向修复已有证据；剩余完整原生验收需要可实际控制侧栏尺寸、缩放和触屏的测试入口，以及仍缺失的逐应用原生异常证据。R4完整日志仍需有权读取的外部状态，已阻断的新思维导图发行也不由本轮绕过。当前无法在既定边界内完成这些项目；R1.8不标记完成，八维及算术平均保持 NOT_SCORED。仅新增运行证据记录，不重复输入未变的自动测试。
