@@ -317,7 +317,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   }
   const savedRules=[]; // Never leaves preview memory.
   let view='home',tab='tools',scenario='chatgpt',enabled=true,editorFrom='home',editIndex=-1,
-      draftDirty=false,pathTouched=false,pick=null,tested={top:false,bottom:false},pendingAction=null,
+      draftDirty=false,pathTouched=false,pick=null,tested={top:false,bottom:false},pendingAction=null,reviewScroll=0,
       authorizedInPreview=new Set(['https://chatgpt.com','https://chat.deepseek.com','https://gemini.google.com']);
   let toastTimer=null,exitCallback=null;
   function toast(msg){clearTimeout(toastTimer);$('toast').textContent=msg;$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,3500);}
@@ -325,7 +325,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   function leave(current,target,focus){if(draftDirty&&current==='editor'){$('discard-dialog').showModal();exitCallback=()=>{draftDirty=false;show(target,focus)};return;}show(target,focus);}
   $('discard-keep').onclick=()=>{$('discard-dialog').close();exitCallback=null;};
   $('discard-confirm').onclick=()=>{const cb=exitCallback;exitCallback=null;$('discard-dialog').close();cb?.();};
-  function changeTab(t){tab=t;const tabs=[...document.querySelectorAll('.workbench-nav [role="tab"]')];tabs.forEach(b=>{const ok=b.dataset.tab===t;b.setAttribute('aria-selected',String(ok));b.tabIndex=ok?0:-1});if(t==='tools')show('home','back-index');else{$('other-title').textContent=tabs.find(b=>b.dataset.tab===t)?.textContent||'工作台';show('other','other-return')}}
+  function changeTab(t){if(view==='editor'&&draftDirty){$('discard-dialog').showModal();exitCallback=()=>{draftDirty=false;changeTab(t)};return;}tab=t;const tabs=[...document.querySelectorAll('.workbench-nav [role="tab"]')];tabs.forEach(b=>{const ok=b.dataset.tab===t;b.setAttribute('aria-selected',String(ok));b.tabIndex=ok?0:-1});if(t==='tools')show('home','back-index');else{$('other-title').textContent=tabs.find(b=>b.dataset.tab===t)?.textContent||'工作台';show('other','other-return')}}
   document.querySelectorAll('.workbench-nav [role="tab"]').forEach(b=>{
     b.addEventListener('click',()=>changeTab(b.dataset.tab));
     b.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const tabs=[...document.querySelectorAll('.workbench-nav [role="tab"]')],i=tabs.indexOf(b),j=e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+(e.key==='ArrowLeft'?-1:1)+tabs.length)%tabs.length;changeTab(tabs[j].dataset.tab);tabs[j].focus();});
@@ -387,7 +387,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     $('url-feedback').hidden=true;$('editor-detected').hidden=true;$('permission-note').hidden=true;
     if(v.error)return;
     if(urlChanged&&!pathTouched)$('site-path').value=v.path;
-    $('permission-note').hidden=authorizedInPreview.has(v.origin);
+    $('permission-note').hidden=authorizedInPreview.has(v.origin)||(scenario==='pending'&&v.origin==='https://example.ai');
     if(isBuiltin(v.url.href)){$('editor-detected').hidden=false;$('editor-detected').textContent='此网站已有内置适配。';}
   }
   function startEditor(from='home',index=-1){
@@ -417,11 +417,11 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     updateEditorScope();renderDraft();toast('仅填入当前网页地址，未自动提交');$('site-url').focus();};
   function permissionFor(next){
     const target=editorTarget();if(target.error){urlError(target.error);$('site-url').focus();return false;}
-    if(authorizedInPreview.has(target.origin))return true;
-    pendingAction=next;$('install-host').textContent=target.origin;$('install-path-copy').textContent='申请范围：'+target.path;
+    if(authorizedInPreview.has(target.origin)||(scenario==='pending'&&target.origin==='https://example.ai'))return true;
+    reviewScroll=$('workspace').scrollTop;pendingAction=next;$('install-host').textContent=target.origin;$('install-path-copy').textContent='申请范围：'+target.path;
     stopPick(false);show('install','simulate-authorize');return false;
   }
-  function returnFromReview(){show('editor','site-url');$('mock-stage').hidden=false;updateEditorScope();renderDraft();}
+  function returnFromReview(){show('editor');$('mock-stage').hidden=false;updateEditorScope();renderDraft();requestAnimationFrame(()=>{$('workspace').scrollTop=reviewScroll;});}
   $('install-back').onclick=()=>{pendingAction=null;returnFromReview();};
   $('simulate-authorize').onclick=()=>{const target=editorTarget();if(target.error){returnFromReview();urlError(target.error);return;}
     authorizedInPreview.add(target.origin);const next=pendingAction;pendingAction=null;returnFromReview();
@@ -434,13 +434,24 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   // have inspected the real active website. Production checks live in site-configuration.js.
   function uniqueMock(selector){
     if(!selector||selector.length>256)return null;
-    try{const elements=[...document.querySelectorAll(selector)];return elements.length===1&&$('mock-stage').contains(elements[0])?elements[0]:null;}
+    try{
+      const elements=[...document.querySelectorAll(selector)],stage=$('mock-stage');
+      if(elements.length!==1||!stage.contains(elements[0]))return null;
+      const node=elements[0];
+      if(node.matches('input,textarea,select,button,[type="password"],[contenteditable]')||node.closest('[data-opendesk-ai-scroll-navigation]'))return null;
+      for(let it=node;it&&it!==stage;it=it.parentElement){
+        if(it.hidden||it.matches('[aria-hidden="true"],[inert]'))return null;
+        const css=getComputedStyle(it);if(css.display==='none'||css.visibility==='hidden')return null;
+      }
+      const rect=node.getBoundingClientRect();if(!stage.hidden&&(!rect.width||!rect.height))return null;
+      return node;
+    }
     catch{return null;}
   }
   function matchMockMessages(selector,main){
     if(!selector)return true;
     if(selector.length>256)return false;
-    try{const nodes=[...main.querySelectorAll(selector)];return nodes.length>0&&nodes.length<=2000&&nodes.every(n=>n.closest('#mock-content')===main);}catch{return false;}
+    try{const nodes=[...main.querySelectorAll(selector)];return nodes.length>0&&nodes.length<=2000&&nodes.every(n=>n.closest('#mock-content')===main&&!n.hidden&&!n.closest('input,textarea,pre,[contenteditable],[aria-hidden="true"],[inert]')&&getComputedStyle(n).display!=='none'&&getComputedStyle(n).visibility!=='hidden');}catch{return false;}
   }
   function ruleCheck(){
     const main=uniqueMock($('css-main').value.trim()),scroll=uniqueMock($('css-scroll').value.trim()),anchorValue=$('css-anchor').value.trim();
