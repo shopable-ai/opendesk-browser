@@ -105,9 +105,13 @@ async function select(selector,value){
   }.toString()+')('+JSON.stringify(selector)+','+JSON.stringify(value)+')');
 }
 async function capture(width,theme,name){
+  // Match both media-query viewport and product width; remove preview-only framing.
   await cdp('Emulation.setDeviceMetricsOverride',{width,height:1460,deviceScaleFactor:1,mobile:false});
   await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:theme}]});
   await select('#preview-width',String(width));
+  await evaluate('document.querySelector(".studio").style.padding="0";'+
+    'document.querySelector(".frame").style.border="0";'+
+    'document.documentElement.style.setProperty("--frame-width",'+JSON.stringify(width+'px')+')');
   await wait(100);
   const size=await evaluate('('+function(){
     const el=document.querySelector('.frame');
@@ -115,17 +119,19 @@ async function capture(width,theme,name){
     el.scrollIntoView({block:'start'});
     const r=el.getBoundingClientRect();
     const content=el.querySelector('.ai-vip');
-    return {x:r.x,y:r.y,w:r.width,h:r.height,
+    return {x:r.x,y:r.y,w:r.width,h:r.height,productWidth:content?.getBoundingClientRect().width,
       noOverflow:document.documentElement.scrollWidth<=document.documentElement.clientWidth+1 &&
         (!content||content.scrollWidth<=content.clientWidth+1)};
   }.toString()+')()');
-  assert(size.w>280&&size.w<=width+2,'bad source-bound frame width '+width);
+  assert.equal(size.productWidth,width,'source-bound product width must match requested width');
+  assert.equal(size.w,width,'preview frame must not shrink the product viewport');
   assert(size.noOverflow,'horizontal overflow '+width);
   const screenshot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,
     clip:{x:size.x,y:size.y,width:Math.ceil(size.w),height:Math.ceil(Math.min(size.h,1350)),scale:1}});
   const bytes=Buffer.from(screenshot.data,'base64');
   await writeFile(join(out,name+'.png'),bytes);
-  result.screenshots.push({name,width,theme,sha256:createHash('sha256').update(bytes).digest('hex')});
+  result.screenshots.push({name,width,actualProductWidth:size.productWidth,actualFrameWidth:size.w,
+    theme,sha256:createHash('sha256').update(bytes).digest('hex')});
   return size;
 }
 async function run(){

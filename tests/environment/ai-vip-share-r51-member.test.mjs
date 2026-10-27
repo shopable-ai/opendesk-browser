@@ -135,6 +135,37 @@ test('R5.1 feature/quota does not invent monthly duration, and guest cannot rede
   assert.equal(node(e,'redeem-code').disabled,true);
   assert.equal(node(e,'redeem').disabled,true);
 });
+test('R2.3 supplementary grants retain availability and feature detail beside active membership',async()=>{
+  const e=await runtime({configured:true,provider:async()=>({status:200,
+    data:member({entitlements:[time(),
+      {...quota,status:'inactive'},
+      {...quota,type:'credit',title:'历史点数',status:'expired',remaining:5},
+      {...quota,title:'已耗尽额度',remaining:0},
+      {...quota,title:'未生效额度',status:'inactive',remaining:0},
+      {...time(Date.now()-86400000),title:'旧体验权益'},
+      {type:'feature',title:'网站访问',status:'active',detail:'仅限已批准的网站'}
+    ]})})});
+  assert.equal(node(e,'member-state').textContent,'权益有效');
+  const text=node(e,'secondary-metrics').textContent;
+  assert.match(text,/请求配额：17 \/ 100 次（未生效）/);
+  assert.match(text,/历史点数：5 \/ 100 次（已到期）/);
+  assert.match(text,/已耗尽额度：0 \/ 100 次（已用尽）/);
+  assert.match(text,/未生效额度：0 \/ 100 次（未生效）/);
+  assert.match(text,/旧体验权益：[^·]+（已到期）/);
+  assert.match(text,/网站访问：有效 · 仅限已批准的网站/);
+  assert.doesNotMatch(text,/3 天体验权益/);
+});
+test('R2.3 history renders every verified entry up to the accepted limit',async()=>{
+  const redemptions=Array.from({length:50},(_,i)=>({
+    redemptionId:'r-'+i,skuTitle:'权益包 '+i,status:'redeemed',
+    redeemedAt:Date.now()-i*1000,voucherPreviewMasked:'***-99'
+  }));
+  const e=await runtime({configured:true,provider:async()=>({status:200,
+    data:member({entitlements:[quota],redemptions})})});
+  assert.equal(node(e,'history-count').textContent,'50 条');
+  assert.equal(node(e,'history-list').children.length,50);
+  assert.equal(node(e,'history-list').children.at(-1).children[0].textContent,'权益包 49');
+});
 test('R5.1 two-step voucher flow confirms account and passes exactly one idempotency key',async()=>{
   const calls=[];
   const e=await runtime({configured:true,provider:async args=>{
@@ -157,6 +188,7 @@ test('R5.1 two-step voucher flow confirms account and passes exactly one idempot
   assert.equal(node(e,'redeem').disabled,false);
   preflight(e);
   await flush();await flush();
+  assert.match(node(e,'redeem-status').textContent,/确认激活/);
   assert.equal(node(e,'redeem-confirm').disabled,false);
   assert.equal(node(e,'redeem-code').value,'');
   assert.equal(node(e,'redeem-preview').hidden,false);

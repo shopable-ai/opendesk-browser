@@ -795,16 +795,19 @@
     // All strings are from the already validated server snapshot.
     const extras=entitlements.filter(e=>e!==primary);
     secondaryMetrics.textContent=extras.map(e=>{
+      const status=e.status!=='active'?e.status:
+        e.type==='time'&&e.expiresAt<=serverNow?'expired':
+        ['quota','credit'].includes(e.type)&&e.remaining===0?'exhausted':e.status;
       if(e.type==='quota'||e.type==='credit')
-        return e.title+'：'+e.remaining+' / '+e.total+' '+e.unit;
-      if(e.type==='time')return e.title+'：'+dateLabel(e.expiresAt);
-      return e.title+'：'+statusLabel(e.status);
+        return e.title+'：'+e.remaining+' / '+e.total+' '+e.unit+'（'+statusLabel(status)+'）';
+      if(e.type==='time')return e.title+'：'+dateLabel(e.expiresAt)+'（'+statusLabel(status)+'）';
+      return e.title+'：'+statusLabel(status)+' · '+e.detail;
     }).join(' · ');
     secondaryMetrics.hidden=!extras.length||account.state!=='bound';
     historyDetails.hidden=!redemptions.length;
     historyCount.textContent=redemptions.length?String(redemptions.length)+' 条':'';
     clear(history);
-    redemptions.slice(0,20).forEach(item=>addRow(history,item.title,
+    redemptions.forEach(item=>addRow(history,item.title,
       dateLabel(item.at)+' · '+(item.status==='redeemed'?'已兑换':'已撤销')+
       (item.masked?' · '+item.masked:'')));
     refresh.hidden=false;refresh.disabled=false;
@@ -986,7 +989,7 @@
         previewTitle.textContent=result.title;
         previewDescription.textContent=result.summary+' · '+result.masked+'；确认后才会兑换。';
         previewAccount.textContent='接收账号：'+snapshot.account.name;
-        redeemNotice('请核对商品与账号，再点击「确认兑换」。');
+        redeemNotice('请核对商品与账号，再点击「确认激活」。');
       }catch{
         redeemNotice('无法核验兑换码，请检查账号、兑换码或网络后重试。',true);
       }finally{
