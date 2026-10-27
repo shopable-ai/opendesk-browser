@@ -213,9 +213,15 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         {revision:accountState.revision})
     });
     const requestedOrigin=target.origin;
+    const requestedEpoch=controller.snapshot().epoch;
+    const sameAccountContext=()=>{
+      const live=controller.snapshot();
+      return modeRef.current==='browser'&&live.epoch===requestedEpoch&&
+        live.target?.origin===requestedOrigin;
+    };
     setAccountBusy(true);setAccountNotice(null);
     void Promise.resolve(intent).then(receipt=>{
-      if(controller.snapshot().target?.origin!==requestedOrigin)return;
+      if(!sameAccountContext())return;
       if(action==='switch'){
         if(receipt?.switched!==true||receipt?.verified!==true)
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
@@ -227,6 +233,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
             :'已验证 Cookie 切换；自动刷新已关闭。'});
         if(!receipt.reloadRequested)void controller.load();
       }else if(action==='lock'){
+        // A trusted affirmative receipt is required before marking the vault locked.
+        if(receipt?.locked!==true)
+          throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
         setAccountState(previous=>previous?{
           ...previous,unlocked:false,accounts:[],currentAlias:null,revision:null,
           settings:{autoEnabled:false,autoRefresh:true}
@@ -240,10 +249,12 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           ?'预览模拟：'+success+'（未写入真实账号）':success});
       }
     }).catch(error=>{
-      if(controller.snapshot().target?.origin!==requestedOrigin)return;
+      if(!sameAccountContext())return;
       const code=String(error?.code||'E_ACCOUNT_HOST');
       const hints={
-        E_OUTCOME_UNKNOWN:'可能发生部分 Cookie 写入，请手动核对，勿直接重复切换。',
+        E_OUTCOME_UNKNOWN:action==='lock'
+          ?'账号仓库锁定回执未确认；请核对实际状态，勿假定已锁定。'
+          :'可能发生部分 Cookie 写入，请手动核对，勿直接重复切换。',
         E_REFRESH_OUTCOME_UNKNOWN:'Cookie 切换已尝试，但网页刷新结果未确认，请手动核对。',
         E_VAULT_LOCKED_OR_CORRUPT:'口令不正确或加密仓库损坏，原数据未覆盖。',
         E_VAULT_CONFLICT:'另一个操作已修改账号，请重新打开账号页读取最新状态。',
@@ -259,6 +270,12 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   };
   const copyAccountLink=(item,url)=>{
     if(!url||accountInFlight.current||!target?.url)return;
+    const requestedOrigin=target.origin,requestedEpoch=controller.snapshot().epoch;
+    const sameCopyContext=()=>{
+      const live=controller.snapshot();
+      return modeRef.current==='browser'&&live.epoch===requestedEpoch&&
+        live.target?.origin===requestedOrigin;
+    };
     accountInFlight.current=true;
     // Cookie-capable tools MUST reuse the first-party one-use export gate,
     // including for a non-secret link. Direct clipboard SDK calls from this
@@ -277,13 +294,16 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     })();
     setAccountBusy(true);setAccountNotice(null);
     void pending.then(result=>{
+      if(!sameCopyContext())return;
       if(result?.copied!==true)throw Error('E_OUTCOME_UNKNOWN');
       setAccountNotice({kind:'success',text:accountState?.preview
         ?'预览模拟：已处理复制链接操作。'
         :'已复制 '+item.displayName+' 的自动切换链接。'});
-    }).catch(error=>setAccountNotice({kind:'error',
-      text:'复制结果未确认（'+String(error?.code||'E_CLIPBOARD')+'）。'}))
-      .finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
+    }).catch(error=>{
+      if(!sameCopyContext())return;
+      setAccountNotice({kind:'error',
+        text:'复制结果未确认（'+String(error?.code||'E_CLIPBOARD')+'）。'});
+    }).finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
   };
   // Opening import preserves the mounted list, query, page, scroll and draft.
   // Only a later native write needs the editor-dirty conflict gate.

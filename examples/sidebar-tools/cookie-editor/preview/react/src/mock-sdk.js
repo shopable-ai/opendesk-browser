@@ -23,7 +23,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  let currentSite=demoSite,globalGrant=scenario!=='first';
  const siteRows=new Map([[demoSite,rows]]);
  // Preview-only account fixture. No real account, Cookie, Host or storage.
- const accountDemo=['accountsDemo','accountSwitchFail','accountSwitchUnknown','accountsLocked'].includes(scenario);
+ const accountDemo=['accountsDemo','accountSwitchFail','accountSwitchUnknown','accountLockUnknown','accountsLocked'].includes(scenario);
  const unlockedDemo=accountDemo&&scenario!=='accountsLocked';
  const fictionalAccounts=[
    {alias:'work',origin:'https://'+demoSite,displayName:'工作账号',version:1,allowAuto:true},
@@ -147,6 +147,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
       return accountMeta();
     }
     if(action==='lock'){
+      // A negative Host receipt must leave the demonstration vault untouched.
+      if(scenario==='accountLockUnknown')return {locked:false};
       demoVault.unlocked=false;demoVault.currentAlias=null;return {locked:true};
     }
     if(!demoVault.unlocked)throw error('E_VAULT_LOCKED');

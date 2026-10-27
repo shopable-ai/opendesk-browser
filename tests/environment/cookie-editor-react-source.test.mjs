@@ -247,3 +247,17 @@ test('R5.38 clearing Host-only cookies uses first React dialog confirmation, not
 });
 const sourceHost=()=>readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
 const getHostGate=()=>readFile(new URL('../../src/ui/sidebar-tools/cookie-clear-intent.js',import.meta.url),'utf8');
+
+test('Vault lock and async account UI require current trusted receipts',async()=>{
+ const [app,mock,preview,chromium]=await Promise.all([
+  get('app/CookieEditorApp.jsx'),get('preview/react/src/mock-sdk.js'),
+  get('preview/react/src/App.jsx'),get('preview/react/chromium.mjs')
+ ]);
+ assert.match(app,/if\(receipt\?\.locked!==true\)/);
+ assert.match(app,/live\.epoch===requestedEpoch/);
+ assert.match(app,/if\(!sameAccountContext\(\)\)return/);
+ assert.match(app,/if\(!sameCopyContext\(\)\)return/);
+ assert.match(mock,/accountLockUnknown/);
+ assert.match(preview,/accountLockUnknown/);
+ assert.match(chromium,/account Vault lock requires an affirmative trusted receipt/);
+});
