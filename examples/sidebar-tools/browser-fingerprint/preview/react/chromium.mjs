@@ -172,6 +172,9 @@ try{
   await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
   assert.equal(await evaluate('document.activeElement?.textContent.trim()'),'对比');
   await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+  // CDP keyDown alone does not emit the character event that activates a native button.
+  // Send the actual Enter character; never bypass the React onClick handler.
+  await call('Input.dispatchKeyEvent',{type:'char',key:'Enter',text:'\r',unmodifiedText:'\r',windowsVirtualKeyCode:13});
   await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
   await until('document.querySelector(".fp-tabs button.active")?.textContent.trim()==="对比"','keyboard Enter switched tab');
   await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
