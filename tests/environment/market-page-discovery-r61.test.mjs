@@ -273,7 +273,7 @@ test('R6.2 a disabled refreshed channel cannot fall back to a cached receiver fo
 
 test('R6.2 installation help starts on HTTP and explains the automatic trusted confirmation',()=>{
   const html=helpPage({...channel,extensionId:'a'.repeat(32)});
-  assert.match(html,/从本网站打开应用详情/);
+  assert.match(html,/从本网站选择应用/);
   assert.match(html,/在 OpenDesk 侧边栏安装面板 中核对版本/);
   assert.match(html,/打开面板不表示已批准/);
   assert.match(html,/本市场指定的扩展 ID/);
@@ -318,7 +318,8 @@ test('R6.1 multiple cards use distinct fixed intents; double-click has one in-fl
   assert.equal(check.message.action,'GET_INSTALL_STATUS');
   assert.equal(check.message.intentId,opens[0].message.intentId);
   check.callback({ok:true,protocol:'opendesk.market.intent.v1',status:'INSTALL_STATUS',
-    intentId:check.message.intentId,installation:'unknown'});
+    intentId:check.message.intentId,installation:'unknown',progress:null,
+    currentInstallation:'not-installed',installedVersion:null,enabled:null});
   await retry;
   assert.match(h.first.state.textContent,/结果未知|核对结果/);
   // Expiration never silently replaces a durable unknown operation. Only an
