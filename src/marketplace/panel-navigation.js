@@ -61,7 +61,8 @@ export async function queueMarketPanelNavigation(api,request,{now=Date.now}={}){
   }
   await api.storage.session.set({[key]:request});
   const stored=(await api.storage.session.get(key))[key];
-  if(stored?.requestId!==request.requestId||stored?.status!=='NAVIGATION_PENDING')
+  if(stored?.requestId!==request.requestId||
+    !(stored.status==='NAVIGATION_PENDING'||completeStatuses.has(stored.status)))
     throw marketError('E_NAV_UNKNOWN','导航请求写入结果不明，请从 Side Panel 核对；不要重复安装。');
   return stored;
 }
@@ -75,7 +76,8 @@ export async function waitMarketPanelNavigation(api,request,{timeoutMs=900}={}){
   if(!api.storage.onChanged?.addListener)return request;
   return new Promise(resolve=>{
     let ended=false;
-    const done=row=>{if(ended)return;ended=true;clearTimeout(timer);
+    let timer=null;
+    const done=row=>{if(ended)return;ended=true;if(timer!==null)clearTimeout(timer);
       api.storage.onChanged.removeListener?.(changed);resolve(row||request);};
     const changed=(changes,area)=>{
       if(area!=='session'||!Object.hasOwn(changes,key))return;
@@ -83,7 +85,7 @@ export async function waitMarketPanelNavigation(api,request,{timeoutMs=900}={}){
       if(row?.requestId===request.requestId&&completeStatuses.has(row.status))done(row);
     };
     api.storage.onChanged.addListener(changed);
-    const timer=setTimeout(()=>{void inspect().then(done,()=>done(null));},timeoutMs);
+    timer=setTimeout(()=>{void inspect().then(done,()=>done(null));},timeoutMs);
     void inspect().then(row=>{if(row)done(row);}).catch(()=>{});
   });
 }
@@ -139,7 +141,7 @@ export function registerTrustedMarketNavigation(api=globalThis.chrome){
     try{
       const target=new URL(url),fixed=new URL(expected);
       legitimate=sender?.id===api.runtime.id&&sender?.frameId===0&&
-        sender?.documentLifecycle!=='prerender'&&sender?.documentLifecycle!=='cached'&&
+        sender?.documentLifecycle==='active'&&typeof sender?.documentId==='string'&&
         id(sender?.tab?.id)&&id(sender?.tab?.windowId)&&!sender.tab.incognito&&
         target.origin===fixed.origin&&target.pathname===fixed.pathname&&
         !target.username&&!target.password;
