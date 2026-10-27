@@ -128,7 +128,7 @@ test('320px and 360px shared-theme CSS remains declared',()=>{
   assert.match(style,/@media\(max-width:320px\)/);
   assert.match(style,/--od-paper/);
   assert.match(style,/\.ai-vip-redeem-inputs\{display:flex/);
-  assert.match(style,/\.ai-vip-code-field>\.od-icon-button\{position:absolute/);
+  assert.match(style,/\.ai-vip-code-field>\.ai-vip-code-clear\{position:absolute/);
   assert.doesNotMatch(style,/grid-template-columns:minmax\(0,1fr\) 36px 36px/);
   assert.match(style,/\[hidden\]\{display:none!important\}/);
 });

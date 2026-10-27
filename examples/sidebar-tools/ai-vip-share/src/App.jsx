@@ -35,7 +35,7 @@ export default function VipApp(){
               <strong id="ai-vip-account-name">暂无法查询账号与会员权益</strong>
               <span id="ai-vip-product-name" hidden></span>
             </div>
-            <IconButton label="刷新会员信息" id="ai-vip-refresh" className="od-icon-button" type="button" title="刷新会员信息" aria-label="刷新会员信息" hidden disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/><path d="M21 20v-5h-5"/></svg></IconButton>
+            <IconButton label="刷新会员信息" id="ai-vip-refresh" className="ai-vip-refresh" type="button" title="刷新会员信息" aria-label="刷新会员信息" hidden disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/><path d="M21 20v-5h-5"/></svg></IconButton>
           </div>
           <div id="ai-vip-member-facts" className="ai-vip-member-facts" hidden>
             <p id="ai-vip-metric-label" className="ai-vip-metric-caption">剩余会员时间</p>
