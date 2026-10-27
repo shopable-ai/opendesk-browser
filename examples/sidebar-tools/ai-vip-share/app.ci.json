@@ -1,6 +1,6 @@
 {
   "schema": "opendesk.app-ci.v1",
-  "kind": "ui",
+  "kind": "react",
   "node": [
     "tests/environment/ai-vip-share-r2.test.mjs",
     "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
@@ -12,5 +12,11 @@
     "tests/environment/ai-vip-share-ui-parity.test.mjs",
     "examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.test.mjs",
     "examples/sidebar-tools/ai-vip-share/dev/local-test/proxy-line-probe.test.mjs"
+  ],
+  "afterBuild": [
+    "examples/sidebar-tools/ai-vip-share/tests/prepare-browser.mjs"
+  ],
+  "browser": [
+    "examples/sidebar-tools/ai-vip-share/preview/test-react-chromium.mjs"
   ]
 }
