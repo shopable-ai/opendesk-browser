@@ -226,6 +226,7 @@ toolView.bind('sidebar-tool-import-close','click',()=>{
 // view.marketInstallActions entry. This is strictly in-memory and has no Installer.
 const MARKET_SCENES=new Set(['first','update','expanded','same','disabled','cancel','unknown','installed']);
 const previewMarketSelect=document.getElementById('od-sidebar-preview-market-scene');
+const previewMarketTrigger=document.getElementById('od-sidebar-preview-open-market');
 const marketExample={
   title:'网页剪藏',id:'opendesk/web-markdown-clipper',
   description:'将网页内容保存为 Markdown，并在侧边栏集中管理摘录。',
@@ -264,16 +265,27 @@ function marketExampleReview(scene){
     }
   };
 }
+function setPreviewMarketRoute(scene){
+  const url=new URL(location.href);
+  if(scene==='none')url.searchParams.delete('market');else url.searchParams.set('market',scene);
+  try{history.replaceState(null,'',url);}catch{/* file:// history restrictions */}
+}
 function closePreviewMarketReview(){
   toolView.setMarketInstall({review:null});
   if(previewMarketSelect)previewMarketSelect.value='none';
+  previewMarketTrigger?.setAttribute('aria-expanded','false');
+  setPreviewMarketRoute('none');
 }
 function showPreviewMarketReview(scene){
   if(!MARKET_SCENES.has(scene)){closePreviewMarketReview();return;}
-  // A preview route owns only a model projection; it cannot consume an intent.
+  // Only the existing React ToolHost owns the drawer. The preview controls
+  // are outside that root and can never call a real Installer or Authority.
+  onNavigate('tools');
   toolView.patch('sidebar-tool-import',{hidden:true});
   toolView.setMarketInstall({review:marketExampleReview(scene),error:''});
   if(previewMarketSelect)previewMarketSelect.value=scene;
+  previewMarketTrigger?.setAttribute('aria-expanded','true');
+  setPreviewMarketRoute(scene);
 }
 toolView.connectMarketInstall({
   dismiss:closePreviewMarketReview,
@@ -299,13 +311,13 @@ toolView.connectMarketInstall({
     }
   }
 });
-previewMarketSelect?.addEventListener('change',event=>{
-  const scene=event.currentTarget.value;
-  showPreviewMarketReview(scene);
-  const url=new URL(location.href);
-  if(scene==='none')url.searchParams.delete('market');else url.searchParams.set('market',scene);
-  try{history.replaceState(null,'',url);}catch{/* file URL limitations */}
+previewMarketTrigger?.addEventListener('click',()=>{
+  // One visible, preview-only gesture; no JSON drag, Host request or install.
+  const selected=previewMarketSelect?.value;
+  showPreviewMarketReview(MARKET_SCENES.has(selected)?selected:'first');
 });
+previewMarketSelect?.addEventListener('change',event=>
+  showPreviewMarketReview(event.currentTarget.value));
 if(MARKET_SCENES.has(previewParams.get('market')))
   showPreviewMarketReview(previewParams.get('market'));
 
@@ -567,6 +579,8 @@ export async function generateSidebarSixReactPreview(){
         '.od-sidebar-preview-header strong{font-size:14px}'+
         '.od-sidebar-preview-header label{display:flex;align-items:center;gap:6px;margin:0}'+
         '.od-sidebar-preview-header select{width:auto;min-height:30px;padding:3px 8px}'+
+        '.od-sidebar-preview-market-trigger{margin-left:auto;min-height:34px;'+
+          'padding:6px 11px;font-size:12px;white-space:nowrap}'+
         '.od-sidebar-preview-stage{display:flex;flex-direction:column;position:relative;'+
           'height:clamp(520px,calc(100dvh - 150px),860px);min-height:520px;min-width:0;'+
           'overflow:hidden;background:var(--od-paper);border:1px solid var(--od-line);'+
@@ -598,6 +612,10 @@ export async function generateSidebarSixReactPreview(){
       '</head><body><div id="od-sidebar-preview-shell" class="od-sidebar-preview-shell">'+
         '<header class="od-sidebar-preview-header" data-preview-development-only="true">'+
           '<strong>OpenDesk · React UI 预览</strong>'+
+          '<button type="button" id="od-sidebar-preview-open-market" '+
+            'class="od-button od-sidebar-preview-market-trigger" '+
+            'aria-haspopup="dialog" aria-controls="sidebar-tool-import" '+
+            'aria-expanded="false" title="只预览正式 React 审阅界面，不执行安装">打开安装审阅</button>'+
           '<label>宽度 <select id="od-sidebar-preview-width" aria-label="预览宽度">'+
             '<option value="320">320</option><option value="360">360</option>'+
             '<option value="400" selected>400</option><option value="440">440</option>'+
