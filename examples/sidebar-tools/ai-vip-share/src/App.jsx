@@ -25,31 +25,6 @@ export default function VipApp(){
         </div>
       </header>
     
-      <section className="ai-vip-review" aria-labelledby="ai-vip-features-title">
-        <h2 id="ai-vip-features-title">功能与接入状态</h2>
-        <p id="ai-vip-service-mode" className="ai-vip-note" role="status" aria-live="polite">正式服务未配置。安装工具后即可查看接入状态，无需另外激活工具。</p>
-        <details className="ai-vip-service ai-vip-feature-details">
-          <summary>查看 6 类功能与入口 <span aria-hidden="true">▾</span></summary>
-          <dl className="ai-vip-feature-list">
-            <dt>会员账号与权益 · 下方会员卡</dt><dd id="ai-vip-feature-member">正式账号服务未配置，暂不能登录、绑定或查询权益。</dd>
-            <dt>激活码激活与记录 · 下方兑换激活</dt><dd id="ai-vip-feature-redeem">正式兑换服务未配置，输入框暂不显示。</dd>
-            <dt>专属激活链接与安装续接</dt><dd>尚未实现。缺少短效凭据验证、安装后续接与回跳；安装 JSON 不会自动领取权益。</dd>
-            <dt>网站 Cookie 交付 · 有效兑换回执后出现</dt><dd id="ai-vip-feature-cookie">生产目标未配置；收到有效交付后才可核对目标并确认写入。</dd>
-            <dt>更多商品</dt><dd id="ai-vip-feature-shop">商城地址未配置，商品按钮暂不显示。</dd>
-            <dt>代理启停 · 下方 AI 网站访问</dt><dd id="ai-vip-feature-proxy">生产代理未配置；代理连接与会员权益分别核验。</dd>
-          </dl>
-        </details>
-        <p id="ai-vip-demo-availability" className="ai-vip-note">正在检测本地演示入口。</p>
-        
-      </section>
-    
-      <section id="ai-vip-local-development" className="ai-vip-review" aria-labelledby="ai-vip-local-title" hidden>
-        <strong id="ai-vip-local-title">本地开发</strong>
-        <p id="ai-vip-local-status" role="status" aria-live="polite">尚未连接本地开发服务。</p>
-        <Button id="ai-vip-local-connect" className="od-button od-button--secondary" type="button" disabled>连接本地开发</Button>
-        <p className="ai-vip-fine-print">演示步骤：先连接 → 输入测试码 DEMO-VIP-01 → 预检激活 → 核对账号并确认激活 → 查看权益与兑换记录。Cookie 写入和代理启用仍各自确认。演示数据不代表付费会员。</p>
-      </section>
-    
       <Card id="ai-vip-member-card" className="ai-vip-membership" data-view="unconfigured" aria-labelledby="ai-vip-member-title">
         <CardContent className="ai-vip-card-inner">
           <div className="ai-vip-section-head">
@@ -157,6 +132,36 @@ export default function VipApp(){
         <div id="ai-vip-proxy-alert" className="ai-vip-proxy-alert" hidden><p id="ai-vip-proxy-alert-text"></p></div>
       </section>
     
+      <details className="ai-vip-service ai-vip-advanced">
+        <summary>服务与开发信息 <span aria-hidden="true">▾</span></summary>
+        <div className="ai-vip-advanced-content">
+        <section className="ai-vip-review" aria-labelledby="ai-vip-features-title">
+          <h2 id="ai-vip-features-title">功能与接入状态</h2>
+          <p id="ai-vip-service-mode" className="ai-vip-note" role="status" aria-live="polite">正式服务未配置。安装工具后即可查看接入状态，无需另外激活工具。</p>
+          <details className="ai-vip-service ai-vip-feature-details">
+            <summary>查看 6 类功能与入口 <span aria-hidden="true">▾</span></summary>
+            <dl className="ai-vip-feature-list">
+              <dt>会员账号与权益 · 下方会员卡</dt><dd id="ai-vip-feature-member">正式账号服务未配置，暂不能登录、绑定或查询权益。</dd>
+              <dt>激活码激活与记录 · 下方兑换激活</dt><dd id="ai-vip-feature-redeem">正式兑换服务未配置，输入框暂不显示。</dd>
+              <dt>专属激活链接与安装续接</dt><dd>尚未实现。缺少短效凭据验证、安装后续接与回跳；安装 JSON 不会自动领取权益。</dd>
+              <dt>网站 Cookie 交付 · 有效兑换回执后出现</dt><dd id="ai-vip-feature-cookie">生产目标未配置；收到有效交付后才可核对目标并确认写入。</dd>
+              <dt>更多商品</dt><dd id="ai-vip-feature-shop">商城地址未配置，商品按钮暂不显示。</dd>
+              <dt>代理启停 · 下方 AI 网站访问</dt><dd id="ai-vip-feature-proxy">生产代理未配置；代理连接与会员权益分别核验。</dd>
+            </dl>
+          </details>
+          <p id="ai-vip-demo-availability" className="ai-vip-note">正在检测本地演示入口。</p>
+          
+        </section>
+      
+        <section id="ai-vip-local-development" className="ai-vip-review" aria-labelledby="ai-vip-local-title" hidden>
+          <strong id="ai-vip-local-title">本地开发</strong>
+          <p id="ai-vip-local-status" role="status" aria-live="polite">尚未连接本地开发服务。</p>
+          <Button id="ai-vip-local-connect" className="od-button od-button--secondary" type="button" disabled>连接本地开发</Button>
+          <p className="ai-vip-fine-print">演示步骤：先连接 → 输入测试码 DEMO-VIP-01 → 预检激活 → 核对账号并确认激活 → 查看权益与兑换记录。Cookie 写入和代理启用仍各自确认。演示数据不代表付费会员。</p>
+        </section>
+        </div>
+      </details>
+
       <details className="ai-vip-service">
         <summary>使用说明 <span aria-hidden="true">▾</span></summary>
         <div className="ai-vip-service-content">

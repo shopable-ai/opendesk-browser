@@ -136,6 +136,7 @@ async function run(){
   assert.equal(await evaluate('document.querySelectorAll("#ai-vip-proxy-toggle").length'),1);
   assert.equal(await evaluate('document.getElementById("ai-vip-redeem").disabled'),true);
   result.checks.push('unconfigured product fails closed');
+  await click('.ai-vip-advanced > summary');
   await click('#ai-vip-local-connect');
   await until('document.getElementById("ai-vip-local-connect")?.textContent==="退出本地开发"','dev opt-in');
   await click('#preview-member');

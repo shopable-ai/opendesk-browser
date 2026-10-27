@@ -1,5 +1,5 @@
 /* @opendesk-shared-design */
-/* R5.9.4: conditional one-theme layout. Canonical OpenDesk controls own visual skins. */
+/* R2: product-first React layout; the verified Host owns canonical control skins. */
 .ai-vip{width:100%;min-width:0;display:grid;gap:15px;padding:16px 17px 17px;background:var(--od-paper);color:var(--od-ink);overflow-wrap:anywhere}
 .ai-vip *{box-sizing:border-box;min-width:0}
 .ai-vip [hidden]{display:none!important}
@@ -86,6 +86,11 @@
 .ai-vip-service summary span{margin-left:auto}
 .ai-vip-service-content{padding:8px 1px 0;font-size:12px;color:var(--od-sub);line-height:1.6}
 .ai-vip-service-content p{margin:0 0 9px;overflow-wrap:anywhere}
+.ai-vip-advanced{margin-top:0}
+.ai-vip-advanced-content{display:grid;gap:12px;padding-top:9px}
+.ai-vip-advanced-content>.ai-vip-review{font-size:12px;line-height:1.6}
+.ai-vip-advanced-content>.ai-vip-review h2{margin:0;font-size:13px}
+.ai-vip-advanced summary{font-weight:650}
 @media(max-width:360px){.ai-vip{gap:13px}.ai-vip-card-inner{padding:13px}.ai-vip-expiry{flex-basis:100%;text-align:left}.ai-vip-account-row{gap:7px}.ai-vip-pill{max-width:62%}}
 @media(max-width:345px){.ai-vip{padding:13px 12px 15px}}
 @media(max-width:320px){.ai-vip-account-copy strong{font-size:13px}.ai-vip-redeem-inputs{grid-template-columns:minmax(0,1fr) 36px 36px;gap:5px}}
