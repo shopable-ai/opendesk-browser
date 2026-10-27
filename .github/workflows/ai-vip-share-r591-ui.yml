@@ -49,6 +49,16 @@ jobs:
           CHECK
       - name: Build preview from SAME App.jsx and Shared UI source, isolated SDK fixture
         run: npm run build:preview --prefix examples/sidebar-tools/ai-vip-share
+      - name: Publish source-bound preview immediately after compilation
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-vip-share-preview-${{ github.sha }}
+          path: |
+            examples/sidebar-tools/ai-vip-share/preview/dist/
+            examples/sidebar-tools/ai-vip-share/dist/build-ready.json
+            artifacts/ai-vip-share-react/candidate.opendesk-tool.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Install CJK fonts for Chinese screenshots
         run: |
           sudo apt-get update -qq
