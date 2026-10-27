@@ -186,8 +186,11 @@ test('recomputes when the shared surface changes and never rewrites native inlin
   assert.equal(h.ui('button').host.style.getPropertyValue('display'),'none');
   assert.equal(h.view.place(h.snap),true);
   h.state({items:[]});h.view.render();
-  assert.equal(h.ui('list').host.style.getPropertyValue('display'),'none');
-  assert.equal(h.ui('list').host.style.getPropertyValue('margin-left'),'');
+  assert.equal(h.ui('list').host.style.getPropertyValue('display'),'block');
+  assert.equal(panel(h).className,'sq-panel sq-empty');
+  assert.equal(panel(h).children[0].children[0].textContent,'···');
+  assert.equal(h.view.place(h.snap),true);
+  assert.equal(h.ui('list').host.getBoundingClientRect().bottom,h.surface.getBoundingClientRect().top);
   for(const node of [h.form,h.surface,h.wrapper,h.editor,h.native])assert.equal(node.style.values.size,0);
 });
 
@@ -236,9 +239,32 @@ test('coarse-pointer button keeps its existing 42px hot area and native control 
   assert.equal(h.native.getBoundingClientRect().width,34);
 });
 
+test('fresh empty queue keeps its decorative cue visible and never rewrites official corners',()=>{
+  const h=fixture(),nativeBefore=[...h.surface.style.values];
+  h.state({items:[]});
+  assert.equal(h.view.place(h.snap),true);
+  const root=panel(h),rows=root.children[0],cue=rows.children[0];
+  assert.equal(root.className,'sq-panel sq-empty');
+  assert.equal(rows.className,'sq-rows');
+  assert.equal(cue.className,'sq-empty-mark');
+  assert.equal(cue.textContent,'···');
+  assert.equal(cue.getAttribute('aria-hidden'),'true');
+  assert.equal(h.ui('list').host.style.getPropertyValue('display'),'block');
+  assert.deepEqual([...h.surface.style.values],nativeBefore);
+  h.state({items:[{id:'q2',text:'follow-up',state:'queued'}]});
+  h.view.render();
+  assert.equal(root.className,'sq-panel');
+  assert.equal(root.children[0].children[0].className,'sq-row');
+  h.state({items:[]});h.view.render();
+  assert.equal(root.children[0].children[0].textContent,'···');
+  h.dispose();
+});
+
 test('panel CSS consumes measured radius without any website selector',async()=>{
   const css=await readFile(new URL('../assets/queue.css',import.meta.url),'utf8');
   assert.match(css,/border-radius:var\(--sq-surface-radius,/);
+  assert.match(css,/\.sq-panel\.sq-empty \.sq-rows\{height:18px/);
+  assert.match(css,/\.sq-empty-mark\{/);
   assert.doesNotMatch(css,/(?:^|[}\n])\s*(?:form|textarea|#prompt-textarea)[\s:{]/);
 });
 
