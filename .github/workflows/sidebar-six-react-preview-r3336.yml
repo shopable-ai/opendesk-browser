@@ -36,6 +36,14 @@ jobs:
       - name: Build from installed DOM, CSS and real React components
         id: build_preview
         run: node scripts/preview/build-sidebar-six-react-preview.mjs
+      - name: Preserve source-bound R6.7 market review HTML for visual review
+        if: ${{ steps.build_preview.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-r67-source-bound-html
+          path: prototypes/sidebar/react-preview/index.html
+          if-no-files-found: error
+          retention-days: 14
       - name: Check approved AI settings in Chromium (real React, no Host)
         if: ${{ steps.build_preview.outcome == 'success' && !cancelled() }}
         run: node scripts/tests/sidebar-six-react-preview-interaction.mjs --settings-only
