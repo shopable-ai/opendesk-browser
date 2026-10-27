@@ -165,3 +165,42 @@ export function CookieCommunityPanel(){
     </p>
   </div></Page>;
 }
+
+
+// External official subscription links only. No purchase, resale or payment workflow.
+const officialServices=Object.freeze([
+  {name:'ChatGPT',initial:'G',desc:'通用办公、写作与编程',url:'https://chatgpt.com/pricing/'},
+  {name:'Claude',initial:'C',desc:'长文与研发协作',url:'https://claude.com/pricing'},
+  {name:'Gemini',initial:'✦',desc:'Google AI 工具',url:'https://one.google.com/about/'},
+  {name:'Grok',initial:'X',desc:'信息与研究辅助',url:'https://x.ai/pricing'},
+  {name:'Perplexity',initial:'P',desc:'搜索与研究',url:'https://www.perplexity.ai/pro'}
+]);
+export function CookieMembershipRecommendations({origin=''}) {
+  const [expanded,setExpanded]=React.useState(false);
+  let currentHost='';
+  try{currentHost=new URL(origin).hostname;}catch{}
+  const isChatGPT=currentHost==='chatgpt.com'||currentHost.endsWith('.chatgpt.com');
+  return <section className="cookie-business-membership" aria-label="官方会员与同类 AI 推荐">
+    <div className="cookie-business-membership-header">
+      <div><strong>会员订阅</strong><p>
+        {isChatGPT?'当前 ChatGPT 网站的官方会员与同类 AI 服务。':
+          '以 ChatGPT 为例展示可用的官方会员推荐。'}
+      </p></div>
+      <button type="button" className="od-button od-button--primary"
+        aria-expanded={expanded} aria-controls="cookie-membership-services"
+        onClick={()=>setExpanded(value=>!value)}>
+        {expanded?'收起':'购买会员'}</button>
+    </div>
+    {expanded&&<div id="cookie-membership-services" className="cookie-business-membership-list">
+      <small>官方会员与同类推荐 · 外部订阅，不在扩展付款</small>
+      {officialServices.map(service=><article className="cookie-business-membership-row" key={service.name}>
+        <span className="cookie-business-avatar" aria-hidden="true">{service.initial}</span>
+        <div><strong>{service.name}{isChatGPT&&service.name==='ChatGPT'?' · 当前网站':''}</strong>
+          <small>{service.desc}</small></div>
+        <a href={service.url} target="_blank" rel="noopener noreferrer"
+          className="od-button od-button--quiet" aria-label={'前往 '+service.name+' 官方会员页面'}>官网</a>
+      </article>)}
+      <p>仅连接服务商官方页面，价格和权益以官网为准。不出售账号、密码、Cookie 或共享席位。</p>
+    </div>}
+  </section>;
+}
