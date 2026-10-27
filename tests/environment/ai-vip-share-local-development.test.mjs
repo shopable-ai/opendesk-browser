@@ -143,7 +143,7 @@ test('real fixture preview/confirm grants development feature, refreshes member 
   await e.click('redeem-confirm');
   assert.equal(e.fixture.ledger.size,1);
   assert.equal(e.get('member-state').textContent,'权益有效');
-  assert.match(e.get('verified').textContent,/本地开发服务已核验/);
+  assert.match(e.get('verified').textContent,/服务端已核验/);
   assert.equal(e.get('proxy-toggle').hidden,false);
   assert.equal(e.get('proxy-toggle').disabled,false);
   assert.equal(e.store.get(RECOVERY),null);

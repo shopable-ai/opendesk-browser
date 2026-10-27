@@ -52,9 +52,8 @@
 .ai-vip-redeem-inputs{display:block;position:relative;min-height:44px;min-width:0}
 .ai-vip-redeem-inputs>.od-field{width:100%;height:44px;min-height:44px;margin:0;min-width:0;max-width:none;padding:0 86px 0 12px;font-size:14px;letter-spacing:.1px;border-radius:var(--radius-control)}
 .ai-vip-redeem-inputs>.od-field::placeholder{color:var(--od-sub);opacity:.85;letter-spacing:0}
-.ai-vip-redeem-inputs>.od-icon-button{position:absolute;top:4px;right:45px;width:36px;height:36px;min-width:36px;min-height:36px;display:grid;place-items:center;border:0;border-radius:var(--radius-control);background:transparent;color:var(--od-sub);padding:0}
+.ai-vip-redeem-inputs>.od-icon-button{position:absolute;top:4px;right:45px;width:36px;height:36px;min-width:36px;min-height:36px;display:grid;place-items:center}
 .ai-vip-redeem-inputs>#ai-vip-code-clear{right:6px}
-.ai-vip-redeem-inputs>.od-icon-button:focus-visible{outline:2px solid var(--od-brand);outline-offset:0}
 .ai-vip-redeem-inputs>.od-icon-button:disabled{opacity:.4;cursor:default}
 .ai-vip-redeem-inputs>#ai-vip-code-clear:disabled{opacity:0;pointer-events:none}
 .ai-vip-redeem-inputs>.od-field:focus-visible{outline:2px solid var(--od-brand);outline-offset:1px}
