@@ -28,7 +28,7 @@ function element(id=''){
   };
 }
 async function runtime({configured=false,provider,store={value:null},clockShiftMs=0,
-  storageGet,afterStorageSet,monotonicClock=performance,catalogUrl,tabsCreate,currentPage}={}){
+  storageGet,afterStorageSet,monotonicClock=performance,catalogUrl,desktopUrl,tabsCreate,currentPage}={}){
   const [html,script]=await Promise.all([readFile(htmlPath,'utf8'),readFile(sourcePath,'utf8')]);
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(row=>row[1]);
   const nodes=new Map(ids.map(id=>[id,element(id)]));
@@ -69,6 +69,11 @@ async function runtime({configured=false,provider,store={value:null},clockShiftM
     assert(scriptText.includes(catalogConfig),'catalog injection must remain VM-only');
     scriptText=scriptText.replace(catalogConfig,`const PRODUCT_CATALOG_URL=${JSON.stringify(catalogUrl)};`);
   }
+  if(desktopUrl!==undefined){
+    const desktopConfig="const DESKTOP_CLIENT_URL='';";
+    assert(scriptText.includes(desktopConfig),'desktop injection must remain VM-only');
+    scriptText=scriptText.replace(desktopConfig,`const DESKTOP_CLIENT_URL=${JSON.stringify(desktopUrl)};`);
+  }
   vm.runInNewContext(scriptText,{window,document,URL,
     Date:class extends Date {static now(){return Date.now()+clockShiftMs;}},
     performance:monotonicClock,Intl,Math,Set,Number,Array,
@@ -102,13 +107,14 @@ test('R5.2 official package grants scoped recovery storage but no network permis
   assert(!/fetch\(|window\.open\(|chrome\.proxy|aiAccess\.activate/.test(pkg.js));
   assert((await readFile(sourcePath,'utf8')).includes(originalConfig));
 });
-test('R5.1 without approved Provider disables all sensitive business controls',async()=>{
+test('R2.7 without approved Provider blocks business actions but keeps promotions discoverable',async()=>{
   const e=await runtime();
   assert.equal(node(e,'member-state').textContent,'服务未配置');
   assert.equal(node(e,'refresh').disabled,true);
   assert.equal(node(e,'redeem-code').disabled,true);
   assert.equal(node(e,'redeem').disabled,true);
-  assert.equal(node(e,'shop-open').disabled,true);
+  assert.equal(node(e,'shop-open').disabled,false);
+  assert.equal(node(e,'desktop-open').disabled,false);
   assert.deepEqual(e.calls,[]);
 });
 test('R5.1 verified time and quota show distinct values, server expiry and ledger',async()=>{
@@ -650,13 +656,47 @@ test('R5.2 fixed HTTPS catalog requires trust, coalesces in-flight clicks and re
   assert.equal(node(e,'shop-open').disabled,false);
 });
 
-test('R5.9.4 service-unconfigured UI omits empty metrics, disabled forms and shop',async()=>{
+test('R2.7 unconfigured state omits phantom metrics but keeps approved promotion UI visible',async()=>{
   const e=await runtime();
   for(const id of ['member-facts','secondary-metrics','history-details','redeem-form',
-    'shop-section','proxy-toggle','refresh'])
+    'proxy-toggle','refresh'])
     assert.equal(node(e,id).hidden,true,id+' must be absent from the visible empty state');
   assert.equal(node(e,'remaining').textContent,'');
+  assert.equal(node(e,'shop-section').hidden,false);
+  assert.equal(node(e,'desktop-promo').hidden,false);
   assert(!node(e,'account-name').textContent.includes('待核验'));
+});
+
+test('R2.7 catalog and desktop promotions use independent fixed HTTP(S) targets only',async()=>{
+  const catalogUrl='http://catalog.example.org/products',desktopUrl='https://client.example.net/desktop';
+  const e=await runtime({catalogUrl,desktopUrl});
+  node(e,'shop-open').listeners.click({isTrusted:false});
+  node(e,'desktop-open').listeners.click({isTrusted:false});
+  assert.equal(e.tabCalls.length,0);
+  node(e,'shop-open').listeners.click({isTrusted:true});
+  node(e,'desktop-open').listeners.click({isTrusted:true});
+  await flush();await flush();
+  assert.deepEqual(e.tabCalls.map(x=>x.url),[catalogUrl,desktopUrl]);
+  assert.equal(node(e,'shop-open').disabled,false);
+  assert.equal(node(e,'desktop-open').disabled,false);
+  assert.deepEqual(e.calls,[],'promotions must not invoke commercial Provider');
+  assert(!e.storageCalls.includes('storage.set'),'promotions must not write voucher journal');
+});
+test('R2.7 unset or invalid promo URLs stay visible with no navigation',async()=>{
+  for(const urls of [
+    {},{catalogUrl:'javascript:alert(1)',desktopUrl:'file:///etc/passwd'},
+    {catalogUrl:'http://localhost:7898/',desktopUrl:'https://user:secret@example.org/'}
+  ]){
+    const e=await runtime(urls);
+    for(const kind of ['shop','desktop']){
+      assert.equal(node(e,kind==='shop'?'shop-open':'desktop-open').disabled,false);
+      node(e,kind==='shop'?'shop-open':'desktop-open').listeners.click({isTrusted:true});
+      assert.match(node(e,kind==='shop'?'shop-status':'desktop-status').textContent,/尚未配置或未通过审核/);
+    }
+    assert.equal(e.tabCalls.length,0);
+    assert(!e.storageCalls.includes('storage.set'));
+    assert.deepEqual(e.calls,[]);
+  }
 });
 test('R5.9.4 guest and verified no-subscription state do not show phantom stats',async()=>{
   for(const [account,isGuest] of [[{state:'guest'},true],[undefined,false]]){

@@ -1,3 +1,21 @@
+# AI VIP Share · 预览说明
+
+## 设计预览：唯一固定名称 `design.html`
+
+- [`design.html`](design.html) 是 R4.2 历史视觉与后续交互补强的单文件 HTML 设计基线；兑换码是**普通文本输入框**，不应出现密码眼睛按钮。
+- **商品入口只保留一个「查看更多商品」按钮**，在批准的外部 HTTP(S) 地址配置后，单击直接打开新标签页；不需要内部商品页面、商品列表、弹窗或额外确认。
+- 「AI 网站访问」下方有独立的小型**「推荐 AI 代理电脑客户端」推广卡**，内含「推广」标识、一句说明和一个「了解桌面客户端」按钮。它使用**另一个**外部 HTTP(S) 地址；不会改变会员、兑换、Cookie、Chrome 代理状态。
+- 目前**没有收到实际商品目录或桌面客户端 URL**，因此原型中这两个链接均未配置。点击时只提示缺少地址，不伪造跳转、支付或购买成功。可仅在离线预览测试时附加 `?catalogUrl=<URL编码后的HTTP(S)地址>&desktopUrl=<URL编码后的HTTP(S)地址>` 验证用户点击打开外部页；**正式扩展不得接受未受信的 query 参数作为目标网址**。
+- 设计文件仅用于评审。已删除不需要的本地商品页；保留正式同源预览 `index.html` 及历史原型归档，避免覆盖产品构建。
+- 本轮不修改 `../src/App.jsx`、`../src/main.js`、`../src/style.css`、`tool.config.json` 或已安装 JSON；待确认设计后再精确迁移 React。真实浏览器外链导航与已安装扩展行为需要单独验收。
+
+## 正式 React 同源预览（待视觉收敛）
+
+
+现有 [`index.html`](index.html) 与 `main.jsx` 保持原位，继续通过正式 `../src/App.jsx`、`../src/style.css`、`../src/main.js` 构建；**目前尚未按照 `design.html` 完成精确视觉迁移**。后续需在正式 React 和真实 Mac Chrome 验收中核对与设计稿的差异，并保留原有授权、兑换事务、Cookie journal、代理 STOP 合同。生产商品地址/会员 Provider 未配置时不能擅自增加真实购买跳转。
+
+---
+
 # AI VIP Share · 正式 React 同源交互预览
 
 主入口：[`index.html`](index.html)。浏览器访问需要先执行 `npm run build:preview --prefix examples/sidebar-tools/ai-vip-share`，打开生成的 `preview/dist/index.html`；这不是另一份产品 Mock。

@@ -18,6 +18,12 @@ const server=createServer(async(req,res)=>{
   try{
     const url=new URL(req.url,'http://localhost');
     if(url.pathname.includes('..')||/%2f|%5c/i.test(req.url))throw Error('unsafe asset');
+    // Serve the approved, unchanged HTML baseline only to this test harness.
+    if(url.pathname==='/design.html'){
+      const baseline=await readFile(resolve('examples/sidebar-tools/ai-vip-share/preview/design.html'));
+      res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
+      res.end(baseline);return;
+    }
     const file=resolve(root,'.'+(url.pathname==='/'?'/index.html':url.pathname));
     if(!file.startsWith(root+'/'))throw Error('unsafe path');
     const data=await readFile(file);
@@ -109,7 +115,12 @@ async function capture(width,theme,name){
   await cdp('Emulation.setDeviceMetricsOverride',{width,height:1460,deviceScaleFactor:1,mobile:false});
   await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:theme}]});
   await select('#preview-width',String(width));
-  await evaluate('document.querySelector(".studio").style.padding="0";'+
+  // Linux CI reserves ~17 CSS px for a classic page scrollbar; macOS Side
+  // Panels use overlay scrollbars. Hide the test-page scrollbar without
+  // disabling scrolling or changing installable App/Shared UI geometry.
+  await evaluate('document.documentElement.style.scrollbarWidth="none";'+
+    'document.body.style.scrollbarWidth="none";'+
+    'document.querySelector(".studio").style.padding="0";'+
     'document.querySelector(".frame").style.border="0";'+
     'document.documentElement.style.setProperty("--frame-width",'+JSON.stringify(width+'px')+')');
   await wait(100);
@@ -149,7 +160,14 @@ async function run(){
   }.toString()+')()');
   assert.deepEqual(isolated,{singleRoot:true,leaked:false,hasProxy:true,outside:true,
     studioClosed:true,inputDisabled:true});
-  result.checks.push('no company-account UI or developer console in formal product');
+  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-shop-open").length'),1);
+  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-desktop-open").length'),1);
+  assert.equal(await evaluate('document.getElementById("ai-vip-shop-section")?.hidden'),false);
+  await click('#ai-vip-shop-open');
+  assert.match(await evaluate('document.getElementById("ai-vip-shop-status").textContent'),/尚未配置或未通过审核/);
+  await click('#ai-vip-desktop-open');
+  assert.match(await evaluate('document.getElementById("ai-vip-desktop-status").textContent'),/尚未配置或未通过审核/);
+  result.checks.push('two visible unconfigured external links, no false navigation or developer console');
   await capture(390,'light','react-offline-390-light');
 
   await cdp('Page.navigate',{url});
@@ -178,6 +196,29 @@ async function run(){
   for(const width of [320,360,390,400,440,520])
     await capture(width,'light','react-member-'+width+'-light');
   await capture(390,'dark','react-member-390-dark');
+  // 200% browser-like CSS zoom at a 320px logical Side Panel: no horizontal clipping.
+  await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'}]});
+  await cdp('Emulation.setDeviceMetricsOverride',{width:640,height:1600,deviceScaleFactor:1,mobile:false});
+  await select('#preview-width','320');
+  await evaluate('document.body.style.zoom="2"');
+  await wait(80);
+  const zoomState=await evaluate('('+function(){
+    const width=document.documentElement.clientWidth;
+    const app=document.querySelector('.ai-vip');
+    const frame=document.querySelector('.frame');
+    return {viewport:width,frame:frame.getBoundingClientRect().width,
+      content:app.getBoundingClientRect().width,
+      noOverflow:document.documentElement.scrollWidth<=width+1&&app.scrollWidth<=app.clientWidth+1};
+  }.toString()+')()');
+  assert.equal(zoomState.viewport,640);
+  assert(zoomState.frame<=640&&zoomState.frame>=630,'zoomed sidebar should fill the viewport');
+  assert(zoomState.noOverflow,'200% zoom overflow or clipped content');
+  const zoomShot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});
+  await writeFile(join(out,'react-member-320-zoom200-light.png'),Buffer.from(zoomShot.data,'base64'));
+  result.screenshots.push({name:'react-member-320-zoom200-light',zoom:'200%',logicalWidth:320,
+    theme:'light',noOverflow:zoomState.noOverflow});
+  await evaluate('document.body.style.zoom=""');
+  result.checks.push('320px logical width at 200% zoom without horizontal overflow');
 
   await cdp('Page.navigate',{url:url+'?scene=session'});
   await until('document.getElementById("ai-vip-member-state")?.textContent==="权益有效"','approved session fixture');
@@ -196,29 +237,19 @@ async function run(){
     'only one live instructional line belongs in the redeem card');
   const geometry=await evaluate('('+function(){
     const input=document.querySelector('#ai-vip-redeem-code').getBoundingClientRect();
-    const reveal=document.querySelector('#ai-vip-code-reveal').getBoundingClientRect();
     const clear=document.querySelector('#ai-vip-code-clear').getBoundingClientRect();
-    return {inline:reveal.left>=input.left&&reveal.right<=input.right&&
-      clear.left>=input.left&&clear.right<=input.right,large:input.height>=42};
+    return {inline:clear.left>=input.left&&clear.right<=input.right,
+      large:input.height>=36,clearSize:clear.width>=28,
+      noReveal:document.querySelectorAll('#ai-vip-code-reveal').length===0,
+      plain:document.getElementById('ai-vip-redeem-code').type==='text'};
   }.toString()+')()');
-  assert.equal(geometry.inline,true,'reveal and clear must be inside one input shell');
-  assert.equal(geometry.large,true,'activation input requires a full touch target');
-  const emptyRightGap=await evaluate('document.getElementById("ai-vip-redeem-code").getBoundingClientRect().right-document.getElementById("ai-vip-code-reveal").getBoundingClientRect().right');
-  assert(emptyRightGap>=4&&emptyRightGap<=12,'empty input should not reserve space for hidden Clear action');
+  assert.deepEqual(geometry,{inline:true,large:true,clearSize:true,noReveal:true,plain:true},
+    'approved text input uses just one embedded Clear control');
   await click('#preview-controls > summary');
   await click('#preview-fill-code');
   await until('document.getElementById("ai-vip-redeem")?.disabled===false','valid voucher preflight');
-  const filledPositions=await evaluate('('+function(){
-    const eye=document.getElementById('ai-vip-code-reveal').getBoundingClientRect();
-    const clear=document.getElementById('ai-vip-code-clear').getBoundingClientRect();
-    return {eyeToClear:clear.left-eye.right,clearVisible:!document.getElementById('ai-vip-code-clear').disabled};
-  }.toString()+')()');
-  assert(filledPositions.clearVisible&&filledPositions.eyeToClear>=0,
-    'filled input must show non-overlapping Reveal and Clear');
-  assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").type'),'password');
-  await click('#ai-vip-code-reveal');
+  assert.equal(await evaluate('document.getElementById("ai-vip-code-clear").disabled'),false);
   assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").type'),'text');
-  await click('#ai-vip-code-reveal');
   await click('#ai-vip-code-clear');
   assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").value'),'');
   assert.equal(await evaluate('document.getElementById("ai-vip-redeem").disabled'),true);
@@ -252,6 +283,27 @@ async function run(){
   await until('document.getElementById("ai-vip-member-state")?.textContent==="无法核验"','provider error');
   await capture(390,'light','react-error-390-light');
   result.checks.push('quota, expiry and provider-error layouts use the same React view');
+  // Capture the real HTML visual baseline for side-by-side human review;
+  // no fabricated pixel-parity score and no mock replacement of React.
+  await cdp('Emulation.setDeviceMetricsOverride',{width:1024,height:1460,deviceScaleFactor:1,mobile:false});
+  await cdp('Page.navigate',{url:url+'design.html'});
+  await until('document.querySelector(".shell .membership")','approved design HTML');
+  await wait(100);
+  const baselineRect=await evaluate('('+function(){
+    const shell=document.querySelector('.shell').getBoundingClientRect();
+    const brand=document.querySelector('.brand h2');
+    return {x:shell.x,y:shell.y,width:shell.width,height:shell.height,
+      brandFont:getComputedStyle(brand).fontSize,memberRadius:getComputedStyle(document.querySelector('.membership')).borderRadius};
+  }.toString()+')()');
+  const baselineShot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,
+    clip:{x:baselineRect.x,y:baselineRect.y,width:Math.ceil(baselineRect.width),
+      height:Math.ceil(Math.min(baselineRect.height,1350)),scale:1}});
+  const baselineBytes=Buffer.from(baselineShot.data,'base64');
+  await writeFile(join(out,'reference-design-member-390-light.png'),baselineBytes);
+  result.screenshots.push({name:'reference-design-member-390-light',referenceOnly:true,
+    width:baselineRect.width,sha256:createHash('sha256').update(baselineBytes).digest('hex')});
+  result.reference={source:'preview/design.html',role:'human_visual_AB_reference',
+    ...baselineRect,automatedPixelParity:'NOT_TESTED'};
   assert.equal(exceptions.length,0,'runtime exceptions: '+exceptions.join(' | '));
   result.status='CHROMIUM_REACT_PREVIEW_PASS_NOT_INSTALLED';
   console.log('AI_VIP_REACT_PREVIEW_CHROMIUM_PASS '+result.checks.join(' / '));

@@ -1,0 +1,13 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "browser-fingerprint",
+  "version": "0.1.0",
+  "title": "浏览器环境检测",
+  "description": "只读 QA 诊断：已核验页面信息、部分证据快照、历史比较及本地报告。",
+  "capabilities": ["currentPage.read", "storage.local", "user.export"],
+  "requires": {"browserSdk": "1.0.0"},
+  "contributes": {"contextMenus": []},
+  "uiRuntime": "opendesk.react-ui.v1",
+  "files": {"html": "src/index.html", "css": "dist/tool.css", "js": "dist/tool.js"},
+  "assets": []
+}

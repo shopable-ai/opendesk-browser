@@ -1,5 +1,18 @@
 # AI VIP Share · 独立 Sidebar Tool
 
+## R2.7 当前正式源码与验证边界（2026-10-28）
+
+**现行 UI 契约：** [`preview/design.html`](preview/design.html) 是已认可的独立 HTML 视觉参照；真正可安装的 React 组件仍只有 [`src/App.jsx`](src/App.jsx)，入口 [`src/main.jsx`](src/main.jsx)，公共 SDK 事务控制器为 [`src/main.js`](src/main.js)。正式同源预览为 [`preview/index.html`](preview/index.html) + [`preview/main.jsx`](preview/main.jsx)，经 `npm run build:preview --prefix examples/sidebar-tools/ai-vip-share` 编译；不可把历史设计原型或受控 SDK fixture 当作已安装业务。
+
+- 会员主卡、兑换区、真实记录折叠区、AI 网站访问和新增的桌面客户端推广卡保留同一个 React Root，不添加内部商品商城或支付页。
+- **激活码输入框现为普通文字，内嵌清空按钮，不再有密码眼睛按钮**。旧 R2.2 及历史章节中的“默认遮蔽”描述只属旧版本；原预检、明确确认、恢复与 Cookie unknown journal 未重写。
+- 商品卡恰好一个“查看更多商品”入口；AI 网站访问下方独立的“推荐 AI 代理电脑客户端”推广入口。只有被审核写入源码常量 `PRODUCT_CATALOG_URL` 和 `DESKTOP_CLIENT_URL` 的 HTTP/HTTPS 地址，才能通过公共 `browser.tabs.create` 打开。**两个正式地址当前均为空**；按钮保留可见，点击仅如实提示未配置，不导航、不报业务成功。商务 Provider 的 HTTPS 严格校验、Cookie、代理和兑换不受两个推广入口影响。
+- 色彩以公共 `@opendesk-shared-design` 语义令牌为唯一来源，紫色在 App CSS 内从官方色板混合推导，不引入私有原始色值、全局按钮皮肤、第二套主题或宿主 CSS 修改。和设计参照的像素差异必须通过 Chromium A/B 截图人工复核；不得声称自动像素完全一致。
+- 源码目标仍是 1.4.2；仓库历史 `ai-vip-share.opendesk-tool.json` 仍是 1.4.1。必须通过来源锁、候选同源、公开 SDK 与真实 Chrome 审阅后才能进行版本晋升；本文本身不构成安装/发布批准。
+- 专用验收：`npm run build --prefix examples/sidebar-tools/ai-vip-share`，`npm run build:preview --prefix examples/sidebar-tools/ai-vip-share`，`node --test tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs tests/environment/ai-vip-share-r59-proxy-ui.test.mjs tests/environment/ai-vip-share-ui-parity.test.mjs tests/environment/ai-vip-share-local-development.test.mjs`，`node examples/sidebar-tools/ai-vip-share/preview/test-react-chromium.mjs`。**其中 Chromium 是 Mock SDK 同源预览而非 Mac 安装验收。**
+
+本节为 R2.7 唯一现行解释；下方 R2.3、R2.2、R1.x 长期保留为历史真实证据，其旧 UI、版本摘要和测试结果不得推断为 R2.7 当前版本的通过结论。
+
 ## R2.3 当前验收 · 安装升级已原生验证，业务验收仍阻塞（2026-10-27）
 
 **P2 安装升级为 `NATIVE_VERIFIED`；完整业务验收尚未通过，正式交付仍为 `BLOCKED`。** 用户确认商业服务尚未配置，本轮只验收获批准的受控环境。隔离 Chrome for Testing 154.0.8037.92 经原可信安装器完成正式 1.4.1 → 当前 1.4.2 同 ID 审阅升级，未卸载重装；审阅页核对旧、新完整摘要及权限未变化。升级前用公共存储 API 准备了非空测试偏好、1.4.1 未确认兑换和 Cookie unknown journal，升级及关闭重开后，三项值与 ETag 全部不变。它们是非秘密的兼容性测试状态，不是业务成功回执。

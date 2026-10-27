@@ -6,12 +6,13 @@ const ORIGIN='http://127.0.0.1:43111';
 const PATH='/ai-knowledge-chat-demo.html';
 const isFixtureUrl=url=>{
   try{const parsed=new URL(url);return parsed.origin===ORIGIN&&parsed.pathname===PATH&&
-    !parsed.username&&!parsed.password;}catch{return false;}
+    !parsed.username&&!parsed.password&&!parsed.search&&!parsed.hash;}catch{return false;}
 };
 
 // Chrome serializes this entire function into the target isolated world: no closure captures.
 export function localKnowledgeDemoDOM({operation,replyTo,threadId,answer}={}){
-  if(location.origin!=='http://127.0.0.1:43111'||location.pathname!=='/ai-knowledge-chat-demo.html')
+  if(location.origin!=='http://127.0.0.1:43111'||location.pathname!=='/ai-knowledge-chat-demo.html'||
+     location.search||location.hash)
     return {ok:false,code:'E_KB_DEMO_SCOPE'};
   const root=document.querySelector('#kb-demo-root[data-kb-demo="v1"]');
   const list=document.getElementById('kb-demo-message-list');
@@ -114,10 +115,15 @@ export function createLocalKnowledgeDemoAdapter({api,currentPageTarget}={}){
     async send({messageId,threadId,answer,assertBeforeClick}){
       const receipt=await invoke('send',{replyTo:messageId,threadId,answer},assertBeforeClick);
       const observed=await invoke('read');
-      const matches=observed.messages.filter(row=>row.direction==='agent'&&
-        row.threadId===threadId&&row.replyTo===messageId&&
-        row.messageId===receipt.messageId&&row.text===answer.trim());
-      if(matches.length!==1)throw fail('E_KB_DEMO_OUTCOME_UNKNOWN',
+      // A single matching reply is not sufficient: another reply to the
+      // same customer must keep the result UNKNOWN, never CONFIRMED.
+      const replies=observed.messages.filter(row=>row.direction==='agent'&&
+        row.threadId===threadId&&row.replyTo===messageId);
+      const matches=replies.filter(row=>row.messageId===receipt.messageId&&
+        row.text===answer.trim());
+      if(observed.threadId!==threadId||replies.length!==1||matches.length!==1||
+         observed.messages.filter(row=>row.messageId===receipt.messageId).length!==1)
+        throw fail('E_KB_DEMO_OUTCOME_UNKNOWN',
         '发送后未取得唯一匹配的 DOM 回执；结果未知，禁止自动重试');
       return {status:'CONFIRMED',messageId:receipt.messageId,threadId,replyTo:messageId};
     },
