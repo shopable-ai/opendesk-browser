@@ -205,10 +205,18 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     if(!list?.active()||!button?.active())return;
     const state=engine.view(),items=state.items;
     if(!items.length){
-      lastSignature='';
-      list.host.style.setProperty('display','none','important');reset();
+      if(lastSignature==='empty')return;
+      lastSignature='empty';
+      root.className='sq-panel sq-empty';
+      const rows=element(doc,'div','sq-rows');
+      rows.setAttribute('role','list');
+      const cue=element(doc,'span','sq-empty-mark','···');
+      cue.setAttribute('aria-hidden','true');
+      rows.append(cue);
+      root.replaceChildren(rows);
       return;
     }
+    root.className='sq-panel';
     const signature=JSON.stringify([state.expanded,state.reason,state.phase,state.inFlight?.phase,!!state.answerGate,
       items.map(item=>[item.id,item.text,item.state])]);
     if(signature===lastSignature)return;
@@ -310,7 +318,8 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     if(button.host.nextSibling!==nativeButton)nativeButton.parentElement.insertBefore(button.host,nativeButton);
     if(!safe())return fail('等待安全显示队列按钮，避免缩窄原生输入框或遮挡原生按钮');
     const state=engine.view();
-    if(!state.items.length){list.host.style.setProperty('display','none','important');reset();return true;}
+    // Size the 18px cue before measuring the docked top tangent span.
+    if(!state.items.length)render();
     const parent=form.parentElement;if(!parent||parent.closest('[contenteditable]'))return fail();
     reset();
     inline(list.host,surface.width);
