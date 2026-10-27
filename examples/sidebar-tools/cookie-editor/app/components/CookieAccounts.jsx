@@ -285,7 +285,7 @@ export function CookieAccounts({
             onClick={()=>startInline('create')}/>
         </div>
       </header>
-      {accounts.length>0&&<input className="od-field cookie-account-search"
+      {(accounts.length>3||query.length>0)&&<input className="od-field cookie-account-search"
         type="search" placeholder="搜索账号" aria-label="搜索账号"
         value={query} onChange={event=>setQuery(event.target.value)}/>}
       {filtered.length>0&&<div className="cookie-account-list" aria-label="已保存账号">
