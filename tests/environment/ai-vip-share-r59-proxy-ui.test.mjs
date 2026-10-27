@@ -13,7 +13,16 @@ async function runtime({status=()=>released,start=async()=>owned,stop=async()=>r
   const [html,original]=await Promise.all(['src/App.jsx','src/main.js'].map(p=>readFile(base+p,'utf8')));
   const nodes=new Map([...html.matchAll(/\bid="([^" ]+)"/g)].map(([,id])=>[id,{id,hidden:false,disabled:false,value:'',textContent:'',listeners:{},children:[],attributes:{},style:{},
     classList:{toggle(){}},setAttribute(name,value){this.attributes[name]=String(value)},removeAttribute(name){delete this.attributes[name]},
-    append(...xs){this.children.push(...xs)},replaceChildren(...xs){this.children=xs},addEventListener(type,fn){this.listeners[type]=fn},focus(){}}]));
+    append(...xs){this.children.push(...xs)},replaceChildren(...xs){this.children=xs},addEventListener(type,fn){this.listeners[type]=fn},isConnected:true,focus(){document.activeElement=this}}]));
+  const document={body:{},activeElement:null,hasFocus:()=>true,
+    createElement:()=>({children:[],append(...xs){this.children.push(...xs)}})};
+  for(const node of nodes.values()){
+    let disabled=node.disabled;
+    Object.defineProperty(node,'disabled',{get:()=>disabled,set(value){
+      disabled=value;
+      if(value&&document.activeElement===node)document.activeElement=document.body;
+    }});
+  }
   const calls=[];
   const proxy={getStatus:async()=>{calls.push('status');return status()},requestEnable:async arg=>{calls.push('start');return start(arg)},requestDisable:async()=>{calls.push('stop');return stop()}};
   let script=original;
@@ -25,10 +34,28 @@ async function runtime({status=()=>released,start=async()=>owned,stop=async()=>r
   }
   const window={OpenDeskTool:{root:{querySelector:s=>nodes.get(s.slice(1))},request:async()=>({value:null,etag:createHash('sha256').update('null').digest('hex')})},
     OpenDeskSDK:{browser:{proxy:{managed:proxy},network:{request:async()=>({status:200,data:{schemaVersion:1,serverNow:Date.now(),account:{state:'bound',id:'member',displayNameMasked:'m***'},entitlements:[{type:'time',status:'active',title:'fixture only',expiresAt:Date.now()+(expired?-60000:60000)}],redemptions:[]}})}}}};
-  vm.runInNewContext(script,{window,document:{createElement:()=>({children:[],append(...xs){this.children.push(...xs)}})},URL,Date,Intl,performance,crypto:{randomUUID:()=>crypto.randomUUID()}});
+  vm.runInNewContext(script,{window,document,URL,Date,Intl,performance,crypto:{randomUUID:()=>crypto.randomUUID()}});
   await flush();await flush();
-  return {get:name=>nodes.get('ai-vip-'+name),calls,click:async(name,trusted=true)=>{nodes.get('ai-vip-'+name).listeners.click({isTrusted:trusted});await flush();await flush();},flush};
+  return {get:name=>nodes.get('ai-vip-'+name),document,calls,click:async(name,trusted=true)=>{nodes.get('ai-vip-'+name).listeners.click({isTrusted:trusted});await flush();await flush();},flush};
 }
+
+test('keyboard status refresh restores focus after the pending read disables its button',async()=>{
+  const read=deferred();let reads=0;
+  const e=await runtime({status:()=>++reads===1?released:read.promise});
+  e.get('proxy-refresh').focus();
+  await e.click('proxy-refresh');
+  assert.equal(e.get('proxy-refresh').disabled,true);
+  read.resolve(released);await flush();await flush();
+  assert.equal(e.document.activeElement,e.get('proxy-refresh'));
+});
+test('pending status refresh does not take focus back from another control',async()=>{
+  const read=deferred();let reads=0;
+  const e=await runtime({status:()=>++reads===1?released:read.promise});
+  e.get('proxy-refresh').focus();await e.click('proxy-refresh');
+  e.get('redeem-code').focus();
+  read.resolve(released);await flush();await flush();
+  assert.equal(e.document.activeElement,e.get('redeem-code'));
+});
 
 test('formal core keeps member/redeem/shop/proxy order and one proxy action',async()=>{
   const html=await readFile(base+'src/App.jsx','utf8');

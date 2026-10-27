@@ -1,14 +1,18 @@
 # AI VIP Share · 独立 Sidebar Tool
 
-## R2.3 当前验收 · 1.4.2 尚未原生通过（2026-10-27）
+## R2.3 当前验收 · 安装升级已原生验证，业务验收仍阻塞（2026-10-27）
 
-当前状态为 **`PACKAGE_READY_INSTALL_NOT_TESTED`，正式交付 `BLOCKED`**。用户确认商业服务尚未配置，本轮只验收受控环境。已修复附加权益丢失状态/说明、兑换记录仅显示前 20 条、确认提示与按钮名称不一致三处实际问题；定向 Node 6/6、包检查 1/1 通过。正式 React 同源 Chromium 差量验证五档真实 viewport/container 宽度 320/360/400/440/520px × 浅/深色，以及 50 条历史展开；这些是 Mock SDK 预览证据，未安装到 Sandbox。
+**P2 安装升级为 `NATIVE_VERIFIED`；完整业务验收尚未通过，正式交付仍为 `BLOCKED`。** 用户确认商业服务尚未配置，本轮只验收获批准的受控环境。隔离 Chrome for Testing 154.0.8037.92 经原可信安装器完成正式 1.4.1 → 当前 1.4.2 同 ID 审阅升级，未卸载重装；审阅页核对旧、新完整摘要及权限未变化。升级前用公共存储 API 准备了非空测试偏好、1.4.1 未确认兑换和 Cookie unknown journal，升级及关闭重开后，三项值与 ETag 全部不变。它们是非秘密的兼容性测试状态，不是业务成功回执。
 
-最终候选 SHA-256 为 `94f5807672d61d0f32b7ffe95dfe6502a05032f8f9568157ea62dc63fe7bde23`；React buildId 为 `ecff3e4e2de0a51bb11a97b0b6bb55b409a9b9572c81e74ec2ff90a4139c2b57`。唯一正式 JSON 仍为 **1.4.1**，SHA-256 `70cd5025eb63940cb678ffe47f4d2c580aeff6e2807e8dddfebef8544b3c2827`，未晋升或覆盖。
+当前安装态为 React 19.2.0、Shared UI、一个 `tool-app` Root；沙箱 origin 为 `null`，访问父文档被 SecurityError 拒绝，无 `chrome.runtime`。服务未配置、兑换恢复锁定及 Cookie 未知禁止重放均真实显示，没有虚构有效会员。Tab → Enter 刷新代理状态曾丢失焦点，本轮仅修复其异步焦点恢复；最终候选原生复验按钮保持焦点，Escape 不清除恢复状态。定向代理 UI 回归 8/8（含不抢其他控件焦点、START 在途 STOP、晚响应和未知释放保护），源码语法及规范包同源核对通过。
 
-已只读复用并验证既有 production 宿主。首次 Chrome 156 CfT 因同名实例窗口绑定不一致停止；随后用未运行的现成 Chrome 154 CfT 路径重试，独立 Profile 的版本、Side Panel URL 与自有 CDP 回执匹配，真实五 Tab 和「扩展 → 导入扩展」入口已打开。原生选择器显示正式 1.4.1 JSON 已选中，但「打开」持续禁用；切换「所有文件」及键盘重选仍未提交。宿主允许 `.json`，不能据此断定过滤器或工具源码损坏；多实例模态窗口归属仍有不确定性，记录为 `CFT_NATIVE_FILE_CHOOSER_BLOCKED`，未绕过安装器。两次自有实例均已清理。安装、升级、非空状态保留、当前包真实业务/Cookie/代理与完整 Sandbox 验收均 `NOT_TESTED`。此外，现有开发 profile 仅批准旧 1.4.0 包摘要，不能用于当前 1.4.2；不手改来源锁取得联调权限。先提供可精确绑定且可完成文件选择的隔离入口，并完成当前包的受控 profile 审阅，再继续原安装器的 1.4.1 → 1.4.2 升级。
+最终候选 SHA-256 为 `5d48f78d0f5daf7e5687487aedacecdf5fc77426fef6fe6c803e6295462a433e`；React buildId 为 `7ff0a06b8043a2a2b099991a44dc21e647b518877dd57fe99c7e2635d1236f3f`。唯一正式 JSON 仍为 **1.4.1**，SHA-256 `70cd5025eb63940cb678ffe47f4d2c580aeff6e2807e8dddfebef8544b3c2827`，未晋升或覆盖。复用的 production 宿主摘要为 `20b36f47e95ffd37b518d70eb557bcd8a853e57de4e2a156afaa9e3f987d07c8`，来源及 115 个文件与原构建回执匹配；没有重建或覆盖共享宿主。自有 Chrome 实例与临时 Profile 已清理，其他浏览器、服务和用户日常配置保留。
 
-本机完整来源、独立十维审计和最短路径保存在 `artifacts/ai-vip-share-r23-native-20261027/acceptance.json`；按仓库约定，运行记录留在本地。十维正式评分因缺少当前候选原生证据均为 `NOT_TESTED`，不产生 95+ 或综合分。下列旧 UI、CI 和原生结果仅在各自候选范围内有效。
+**剩余阻断：** development profile 的可信批准仍仅对应旧 1.4.0 摘要，当前候选没有匹配批准；正式 React 也没有本地开发切换入口。应由既有可信配置 owner 审阅上述最终候选、固定本地目标与合法入口，交付匹配 Host，不能只替换 hash、注入偏好/权益或借用旧批准。会员查询 → 预检 → 明确确认 → 结果/历史、URL 激活、Cookie 精确批次及网站身份回读、代理启停/冲突/撤权仍为 `BLOCKED/NOT_TESTED`。Stay Focus 来源锁未修改。
+
+此前五档 320/360/400/440/520px × 浅深色和 50 条历史的同源 Chromium 差量是 **Mock SDK 预览**；布局输入未变，可限定复用。当前安装态仅核验 360px 浅色的未配置、恢复锁定和 Cookie unknown 状态；完整 Sandbox 尺寸/主题、200%、其余状态与键盘矩阵仍 `NOT_TESTED`。不把预览、旧 A/B 或 Cookie 写入回执当当前业务 PASS。十维正式评分均未完成，不产生 95+ 或综合分。
+
+本机完整来源及十维缺口见 `artifacts/ai-vip-share-r23-native-20261027/acceptance.json`，最终原生审阅、存储前后读回和截图在其 `native-final/`。早先文件选择阻断已用原生键盘路径选择解决，属于驱动问题，未修改安装器。旧候选 `94f580…` 的 P2 及焦点失败证据保留在 `native-keyboard-retry/`，不替代上述最终候选。
 
 ## R2.3 · 去掉独立「我的权益」区块（2026-10-27）
 

@@ -1347,7 +1347,13 @@
       }finally{if(read===readSequence){reading=false;paint();}}
     }
     refreshProxy.addEventListener('click',event=>{
-      if(event?.isTrusted===true)void update();
+      if(event?.isTrusted!==true)return;
+      const restoreFocus=document.activeElement===refreshProxy;
+      void update().finally(()=>{
+        if(restoreFocus&&refreshProxy.isConnected&&!refreshProxy.disabled&&
+          !refreshProxy.hidden&&document.hasFocus()&&document.activeElement===document.body)
+          refreshProxy.focus({preventScroll:true});
+      });
     });
     refreshDevelopmentAvailability=update;
     async function start(){
