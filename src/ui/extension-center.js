@@ -45,6 +45,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     row.description===readingTocCatalog.messages['zh-CN'].description?
       uiMessage(readingTocCatalog,language(),'description'):row.description||'';
   const installedAppUsage=row=>{
+    if(row.enabled===false&&!readingTocOfficial(row))
+      return '应用已停用；可在设置与权限中恢复。';
     if(!readingTocOfficial(row))
       return '应用已安装，可按需打开界面；有额外权限需求的操作会独立检查。';
     if(row.stateKnown===false)return '安装状态尚待核对；不会据此自动恢复目录。';

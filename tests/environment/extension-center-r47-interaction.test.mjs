@@ -570,12 +570,16 @@ test('R4.8 app detail matches the R4.7 preview: no duplicate Open and visible st
   assert.deepEqual(enabledActions,['设置与权限'],
     'the verified primary Open belongs on the list, not duplicated inside Details');
   assert.equal(enabled.nodes['extension-center-detail-body'].textContent.includes('已停用'),false);
+  assert.match(enabled.nodes['extension-center-detail-body'].textContent,/应用已安装，可按需打开界面/);
 
   const disabled=fixture(t,{disabled:true});await disabled.ui.refresh();
   disabled.button('app:quick-notes','main').dispatch('click');
   assert.equal(disabled.nodes['extension-center-detail'].hidden,false);
   assert.match(disabled.nodes['extension-center-detail-body'].textContent,/已停用 · 记录内容/,
     'detail introduction preserves the same stopped-state message as the list and preview');
+  assert.match(disabled.nodes['extension-center-detail-body'].textContent,/应用已停用；可在设置与权限中恢复/);
+  assert.doesNotMatch(disabled.nodes['extension-center-detail-body'].textContent,/可按需打开界面/,
+    'a stopped app must not describe itself as available to open');
   assert.deepEqual([...disabled.nodes['extension-center-detail-body'].querySelectorAll('button')]
     .map(button=>button.getAttribute('aria-label')?.replace(/「.*$/,'')||button.textContent),['设置与权限']);
 });

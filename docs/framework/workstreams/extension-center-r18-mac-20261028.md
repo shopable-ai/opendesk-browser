@@ -128,3 +128,16 @@ R5.3 历史 job [122237112711](https://github.com/shopable-ai/opendesk-browser/a
 - 只在本轮 Side Panel renderer 使用 DevTools 的 `prefers-color-scheme: dark` 媒体模拟，实际读回 dark=true、width=360、scrollWidth=360；原 Prompt 工具与 Host 均显示深色。`native-viewport-360-dark.ax.txt`、`prompt-dark-native-render.*` 为 **真实已安装 dev 渲染＋媒体模拟**，不是系统主题切换、完整主题矩阵或静态预览。未修改 CSS。
 - 已执行原生命令 **Do not emulate CSS prefers-color-scheme**，再次读回 dark=false、width=360、scrollWidth=360，随后仅关闭本轮 DevTools。`prompt-light-restored-native.*` 与 `extension-list-final-native.*` 保存默认主题下原 ToolHost 和返回列表的最终截图/AX。原 watcher、其他 Chrome 窗口、安装数据和授权保持其已有状态。
 - 上述补充只有运行证据记录，无新的源码修复；不重复已通过且输入未变化的检查，不补跑已延期的 production 构建。八维结论和 R1.8 未完成状态保持不变。
+
+## dev 停用详情的后续修正
+
+- 在自己的真实 Chrome 窗口停用 Cookie 后，列表正确进入详情而没有加载业务 iframe，但使用说明仍写“应用已安装，可按需打开界面”。这是实际产品文案矛盾，不能归为旧测试漂移。`cookie-disabled-detail-native.*` 保留修复前证据。
+- 最小修改 `src/ui/extension-center.js` 的普通应用说明：明确停用时显示“应用已停用；可在设置与权限中恢复”。原 Reading TOC 身份及专属说明、未知状态投影、原 Host、Authority 和权限操作均未修改；没有新增 UI 或 API。
+- 在原 R4.8 详情测试补充启用说明、停用恢复指引及禁止误导文案断言。原源码先失败（`disabled-usage-before.log`）；修复后中心/行操作/React 详情三个现有文件 **78/78 PASS，0 SKIP**（`disabled-usage-after-browser.log`）。第一次未带浏览器依赖环境的执行为60 PASS/18 SKIP，保留原日志，不当作完整通过。`npm run check` 再次通过1255文件（`disabled-usage-source-check.log`）。
+- 原正式预览 `--check` 通过（`disabled-usage-preview-check.log`），input SHA `036f7e81b4b9b3cfaf3d4fee1330f979bef8b2a9a5cd7295ef2bfe14878d4e27`。无需生成新页面；此元数据对应当时完整 main 工作区输入。
+- 独立只读复核未发现阻止提交的问题，明确限定为这两处差异的源码/覆盖检查，不冒充独立原生或 production 验收。
+- 修复后的 Cookie 详情已在 dev 实际读到新文案、停用状态及无业务 iframe；随后经原设置恢复 on。补完 AdBlock、Bookmark、Clipper 的菜单停用→主体进入详情→原设置 off→恢复 on→返回原业务，均未卸载、升级或更改业务数据、网站权限；AdBlock 原全局保护 off 也未切换。结合此前 Prompt，五应用现在各有原生停用/恢复证据，但仍未覆盖逐项未知/卸载/身份变化故障。
+- 新证据位于既有 `native-dev/`：`cookie-disabled-detail-fixed-native.*`、`cookie-restored-after-usage-fix.*`、`adblock-disabled-native.*` / `adblock-restored-native.*`、`bookmark-disabled-native.*` / `bookmark-restored-native.*`、`clipper-disabled-native.*` / `clipper-restored-native.*`、`five-apps-restored-list-native.*`。所有应用恢复后停留扩展列表。
+- 此次实际 hostInstanceId `d76900ef-7316-4a7b-96d5-c0ee6c0e913f`，调试页读到 **开发服务已连接**，revision `fc1a87c1f566cd5f679e623ff9594b912cb73178bb4da72b2e768561a5cb1023`，同一扩展ID/`dist/development`；`dev-connection-disabled-usage-fix.*`。保留原 watcher，不用 production 包替换日常环境。
+- R4 准确 job 的日志连接再次返回 Transport closed，自己的真实 Chrome 页面明确提示 **Sign in to view logs**；没有取得完整正文。本窗口导航回本地测试页仍停在旧文档/加载中，而本地服务单独返回 HTTP200；记录浏览器/驱动阻塞，不作为扩展产品故障。`native-navigation-pending.*` 区分地址栏输入与实际旧文档，不能宣称导航成功，也不操作其他窗口的 debugger 解除它。
+- Chrome 尺寸手柄的原生 Increment 辅助操作同样没有可见尺寸变化。未验证的精确宽度、200%、触屏和异常身份矩阵继续 NOT_TESTED，不据此修改 CSS 或宣称产品尺寸故障。八维仍均 NOT_SCORED，算术平均 NOT_SCORED；R1.8完整验收仍未完成，production 保持延期。
