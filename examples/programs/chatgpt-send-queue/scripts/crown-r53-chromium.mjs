@@ -60,7 +60,7 @@ try{await mkdir(dir,{recursive:true});
       assert.equal(await ev('window.__sendQueuePreview().items.length'),3,'R5.5 existing sample action must show three rows');
     }
     console.log('CROWN_ALPHA_'+rev.toUpperCase()+' '+JSON.stringify(geometry));
-    for(const size of [34,42])for(const theme of ['light','dark'])for(const width of [320,360,400,440]){
+    for(const size of [34,42])for(const theme of ['light','dark'])for(const width of (rev==='before'?[320,360,400,440]:[320,360,400,440,520])){
       await cdp('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
       const choose=[['sizes',size],['themes',theme],['widths',width]].map(([id,value])=>'document.querySelector('+JSON.stringify('#'+id+' [data-value="'+value+'"]')+').click()').join(';')+';true';
       await ev(choose);
@@ -73,7 +73,8 @@ try{await mkdir(dir,{recursive:true});
       const scene=[size,theme,width].join(':');
       if(rev==='before')selected.set(scene,m);
       else {
-        const prev=selected.get(scene);assert.ok(prev,'missing selected scene '+scene);
+        const comparison=[size,theme,width===520?440:width].join(':');
+        const prev=selected.get(comparison);assert.ok(prev,'missing selected scene '+comparison);
         for(const key of ['w','h','x','y','angle'])
           assert.ok(Math.abs(parseFloat(m[key])-parseFloat(prev[key]))<=.02,
             'final CSS != user slider selection: '+scene+' '+key+' '+m[key]+' vs '+prev[key]);
@@ -84,7 +85,7 @@ try{await mkdir(dir,{recursive:true});
         const arrow=(size-(size===34?17:20))/2+(size===34?17:20)*5/24;
         assert.ok(Number.parseFloat(m.y)+Number.parseFloat(m.h)<arrow-1,name+' arrow clearance')}
       samples.push({name,...m});console.log('CROWN_REAL_CHROMIUM_PASS '+name+' '+JSON.stringify({x:m.x,y:m.y,w:m.w,h:m.h,angle:m.angle,gap:m.native.x-m.button.right}));
-      if(width===400){let x=Math.max(0,Math.floor(m.button.x-33)),y=Math.max(0,Math.floor(m.button.y-34));
+      if(width===400||width===520){let x=Math.max(0,Math.floor(m.button.x-33)),y=Math.max(0,Math.floor(m.button.y-34));
         await capture(name+'-crop',{x,y,width:Math.min(140,width-x),height:118});
         if(rev==='after')await capture(name+'-full')}
     }

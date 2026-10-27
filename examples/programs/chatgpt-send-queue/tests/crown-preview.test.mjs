@@ -48,6 +48,8 @@ test('preview is offline and retains main queue interactions without A/B switche
  assert.match(html,/expanded\?items:items\.slice\(0,3\)/);
  assert.match(html,/items\.length<=3/);
  assert.match(html,/pointer-events:none/);
+ assert.match(html,/data-value="440">440<\/button><button type="button" data-value="520">520<\/button>/);
+ assert.match(html,/id="widths"/);
 });
 
 test('front-only two-layer crown does not hide send arrow or consume pointer hits',()=>{
