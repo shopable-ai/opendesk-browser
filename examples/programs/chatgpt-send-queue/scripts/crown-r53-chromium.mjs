@@ -42,13 +42,23 @@ async function alpha(){return ev('(async()=>{const a=JSON.parse(document.querySe
 async function capture(name,clip){const r=await cdp('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:false,...(clip?{clip:{...clip,scale:1}}:{})});
   await writeFile(join(dir,name+'.png'),Buffer.from(r.data,'base64'));
   if(/^(before|after)-(34|42)-light-400-crop$/.test(name))console.log('CROWN_IMAGE_BASE64 '+name+' '+r.data)}
-async function smoke(){const r=await ev('(()=>{const q=s=>document.querySelector(s);q("#draft").value="第四条测试";q("#blue").click();const n=window.__sendQueuePreview().items.length,clear=!q("#draft").value,hidden=q("#rows").children.length===3;q("#more").click();const open=q("#rows").children.length;q("#rows [data-id=q4][data-action=remove]")?.click();const removed=window.__sendQueuePreview().items.length;q("#toggle-pause").click();const paused=window.__sendQueuePreview().paused;q("#toggle-pause").click();const resumed=window.__sendQueuePreview().paused;q("#reset").click();return {n,clear,hidden,open,removed,paused,resumed,reset:window.__sendQueuePreview().items.length}})()');
-  assert.deepEqual(r,{n:4,clear:true,hidden:true,open:4,removed:3,paused:true,resumed:false,reset:3});console.log('CROWN_QUEUE_INTERACTION_PASS '+JSON.stringify(r))}
+async function smoke(){const r=await ev('(()=>{const q=s=>document.querySelector(s);q("#draft").value="第四条测试";q("#blue").click();const n=window.__sendQueuePreview().items.length,clear=!q("#draft").value,hidden=q("#rows").children.length===3;q("#more").click();const open=q("#rows").children.length;q("#rows [data-id=q4][data-action=remove]")?.click();const removed=window.__sendQueuePreview().items.length;q("#toggle-pause").click();const paused=window.__sendQueuePreview().paused;q("#toggle-pause").click();const resumed=window.__sendQueuePreview().paused;q("#reset").click();return {n,clear,hidden,open,removed,paused,resumed,reset:window.__sendQueuePreview().items.length,empty:q('#queue').classList.contains('sq-empty'),cue:q('#rows').textContent}})()');
+  assert.deepEqual(r,{n:4,clear:true,hidden:true,open:4,removed:3,paused:true,resumed:false,reset:0,empty:true,cue:'···'});console.log('CROWN_QUEUE_INTERACTION_PASS '+JSON.stringify(r))}
 try{await mkdir(dir,{recursive:true});
   chrome=spawn(process.env.CHROME_BIN||'chromium',['--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'],{stdio:'ignore'});
   await connect();const version=(await cdp('Browser.getVersion')).product;const samples=[];let oldAlpha;const selected=new Map();
   for(const [rev,html] of [['before',before],['after',after]]){await load(html);const geometry=await alpha();
-    if(rev==='before')oldAlpha=geometry;else assert.deepEqual(geometry,oldAlpha,'unexpected WebP change');
+    if(rev==='before')oldAlpha=geometry;else {
+      assert.deepEqual(geometry,oldAlpha,'unexpected WebP change');
+      // R5.5 starts genuinely empty; capture and verify both neutral themes
+      // before using the already shipped "show 3 examples" preview action.
+      const empty=await ev('(()=>{const q=s=>document.querySelector(s),bg=()=>getComputedStyle(q("#queue")).backgroundColor;const cue=q("#rows").textContent;const light=bg();q("#themes [data-value=dark]").click();const dark=bg();q("#themes [data-value=light]").click();return {n:window.__sendQueuePreview().items.length,empty:q("#queue").classList.contains("sq-empty"),cue,light,dark}})()');
+      assert.deepEqual(empty,{n:0,empty:true,cue:'···',light:'rgb(247, 248, 250)',dark:'rgb(46, 48, 53)'},'R5.5 empty cue and neutral colors');
+      await cdp('Emulation.setDeviceMetricsOverride',{width:400,height:900,deviceScaleFactor:1,mobile:false});
+      await capture('after-empty-34-light-400-full');
+      await ev('document.querySelector("#sample-add").click();true');
+      assert.equal(await ev('window.__sendQueuePreview().items.length'),3,'R5.5 existing sample action must show three rows');
+    }
     console.log('CROWN_ALPHA_'+rev.toUpperCase()+' '+JSON.stringify(geometry));
     for(const size of [34,42])for(const theme of ['light','dark'])for(const width of [320,360,400,440]){
       await cdp('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:false});
