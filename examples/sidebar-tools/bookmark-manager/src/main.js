@@ -63,12 +63,20 @@ function isDirty(){
   rememberDraft();
   return !sameDraft(s.draft,s.initialDraft);
 }
+function reportState(){
+  // The bridge may mark every input dirty after our business handler. Report
+  // the actual draft at the microtask checkpoint, including unresolved writes.
+  void Promise.resolve().then(()=>tool.setState?.({
+    dirty:s.saveNeedsReview||isDirty(),busy:s.busy
+  }));
+}
 function focusSelected(){
   const target=[...root.querySelectorAll('.bm-entry')].find(el=>el.dataset?.nodeId===s.selection);
   (target||q('bm-search')).focus({preventScroll:true});
 }
 const busy=value=>{
   s.busy=value;
+  reportState();
   for(const button of root.querySelectorAll('button'))button.disabled=value;
   if(!value){
     const locked=Boolean(node(s.selection)?.locked);
@@ -284,6 +292,7 @@ function renderDelete(){
   q('bm-delete-children').checked=false;
 }
 function render(){
+  reportState();
   // Moving the same inspector between the narrow list and desktop column
   // must not discard a foreground input's cursor or keyboard focus.
   const active=document.activeElement;
@@ -640,6 +649,8 @@ function onAction(action,id){
     if(inNarrow())q('bm-inspector').scrollIntoView?.({block:'nearest'});
   }
 }
+root.addEventListener('input',reportState);
+root.addEventListener('change',reportState);
 root.addEventListener('keydown',event=>{
   if(event.key==='Escape'&&s.pending){
     event.preventDefault();dismissDraftSwitch();return;

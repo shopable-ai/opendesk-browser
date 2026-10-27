@@ -30,6 +30,8 @@ test('R37 offline preview generates from the empty official root with working pr
     'standalone HTML must not inherit hidden/height-constrained product document');
   assert.match($('style').last().text(),/\.od-sidebar-preview-stage\{display:flex;flex-direction:column/,
     'React needs a real flex host rather than an auto-height block');
+  assert.match($('style').last().text(),/height:clamp\(240px,calc\(100dvh - 150px\),860px\);min-height:0/,
+    '200% zoom must keep the review footer within the preview viewport');
   assert.match($('style').last().text(),/#opendesk-react-app\{flex:1 1 auto;min-height:0;height:100%/,
     'main React root must receive measurable viewport height');
   assert.equal($('#opendesk-react-app').attr('class'),load(await read('src/ui/sidepanel.html'))('#opendesk-react-app').attr('class'));
@@ -63,8 +65,10 @@ test('R37 offline preview generates from the empty official root with working pr
   assert.match(previewSource,/primaryAction:null/);
   assert.match(previewSource,/onMarket:previewNotice,onImport:previewOpenImport,onReload:previewNotice/);
   assert.match(previewSource,/toolView\.bind\('sidebar-tool-import-close'/);
-  assert.match(previewSource,/openDemoDetail\(key\)/,
-    'installed market result must reach the existing React ExtensionDetail');
+  assert.match(previewSource,/else if\(id==='open'\)[\s\S]*?!marketDemoReceipt\.enabled[\s\S]*?closePreviewMarketReview\(\);\s*clipper\.open\(\)/,
+    'installed market result opens the existing ToolHost UI only while enabled');
+  assert.doesNotMatch(previewSource,/id:'details',label:'查看应用'/,
+    'success must not route through the management detail placeholder');
   assert.doesNotMatch(previewSource,/模拟成功状态，无真实安装/,
     'the production drawer must not show preview implementation details');
   assert.match(previewSource,/opendesk\.page-install\.v1/,'preview recognizes Page install metadata without an Authority');

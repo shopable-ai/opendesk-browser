@@ -231,6 +231,8 @@ test('an explicitly ended unknown handoff permits only a later user initiated re
   await respond(h,h.act(),'GET_INSTALL_STATUS',{installation:'unknown',handoffClosed:true});
   assert.equal(h.storage.has(key(app)),false);assert.equal(h.controls[0].back.hidden,true);
   assert.match(h.controls[0].status.textContent,/原安装结果仍未知/);
+  assert.match(h.controls[0].status.textContent,/再次点击安装才会发起新审阅/);
+  assert.doesNotMatch(h.controls[0].status.textContent,/返回同一审阅|侧边栏安装面板/);
   assert.notEqual(h.controls[0].status.dataset.state,'success');
   assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,1);
   const second=await respond(h,h.act(),'OPEN_INSTALL_REVIEW');assert.notEqual(first.message.intentId,second.message.intentId);

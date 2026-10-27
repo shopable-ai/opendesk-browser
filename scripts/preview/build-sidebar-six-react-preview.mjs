@@ -249,11 +249,11 @@ function marketExampleReview(scene){
     phase==='unknown'?
       [{id:'recover',label:'核对原安装结果'},{id:'later',label:'稍后继续'}]:
     phase==='installed'?
-      [{id:'details',label:'查看应用'},{id:'done',label:'完成'}]:
+      [...(disabled?[]:[{id:'open',label:'打开使用'}]),{id:'done',label:'完成'}]:
       [{id:'done',label:'完成'}];
   const messages={
     review:'请核对应用及权限。',
-    installed:disabled?'应用已更新，仍保持停用。':'安装完成 · 可查看应用详情。',
+    installed:disabled?'应用已更新，仍保持停用。':'安装完成 · 点击“打开使用”进入应用。',
     cancelled:'已取消安装。',
     unknown:'尚未确认安装结果，请核对原请求。'
   };
@@ -305,10 +305,10 @@ toolView.connectMarketInstall({
         enabled:!review.details.previousDisabled};
       const message=review.details.identicalInstalledPackage?'当前已安装此版本。':
         review.details.previousDisabled?'应用已更新，仍保持停用。':
-        review.details.previousVersion?'更新完成 · 可查看应用详情。':
-          '安装完成 · 可查看应用详情。';
+        review.details.previousVersion?'更新完成 · 点击“打开使用”进入应用。':
+          '安装完成 · 点击“打开使用”进入应用。';
       toolView.setMarketInstall({review:{...review,phase:'installed',message,
-        actions:[{id:'details',label:'查看应用'},{id:'done',label:'完成'}]}});
+        actions:[...(marketDemoReceipt.enabled?[{id:'open',label:'打开使用'}]:[]),{id:'done',label:'完成'}]}});
     }else if(id==='cancel'){
       toolView.setMarketInstall({review:{...review,phase:'cancelled',
         message:'已取消安装。',
@@ -317,13 +317,12 @@ toolView.connectMarketInstall({
       toolView.setMarketInstall({review:{...review,phase:'unknown',
         message:'尚未确认安装结果；仅核对原请求，不重复提交。',
         actions:[{id:'recover',label:'核对原安装结果'},{id:'later',label:'稍后继续'}]}});
-    }else if(id==='details'){
-      // Navigates the production ExtensionDetail projection, never a toast.
+    }else if(id==='open'){
+      // Same ToolHost preview UI; this memory receipt grants no installed authority.
       if(review.phase!=='installed'||!marketDemoReceipt||
-        marketDemoReceipt.version!==review.details.version)return;
-      const key='app:'+marketDemoReceipt.id;
+        !marketDemoReceipt.enabled||marketDemoReceipt.version!==review.details.version)return;
       closePreviewMarketReview();
-      openDemoDetail(key);
+      clipper.open();
     }else if(id==='done'||id==='later'||id==='end'){
       closePreviewMarketReview();
     }
@@ -634,7 +633,7 @@ export async function generateSidebarSixReactPreview(){
         '.od-sidebar-preview-market-trigger{margin-left:auto;min-height:34px;'+
           'padding:6px 11px;font-size:12px;white-space:nowrap}'+
         '.od-sidebar-preview-stage{display:flex;flex-direction:column;position:relative;'+
-          'height:clamp(520px,calc(100dvh - 150px),860px);min-height:520px;min-width:0;'+
+          'height:clamp(240px,calc(100dvh - 150px),860px);min-height:0;min-width:0;'+
           'overflow:hidden;background:var(--od-paper);border:1px solid var(--od-line);'+
           'border-radius:var(--radius-surface)}'+
         '#opendesk-react-app{flex:1 1 auto;min-height:0;height:100%;overflow:hidden}'+
@@ -659,7 +658,7 @@ export async function generateSidebarSixReactPreview(){
         '.od-sidebar-preview-error{color:var(--od-negative);border-color:var(--od-negative)}'+
         '.od-sidebar-preview-error[hidden]{display:none!important}'+
         '@media(max-width:420px){body{padding:10px}'+
-         '.od-sidebar-preview-stage{height:clamp(520px,calc(100dvh - 125px),860px)}}'+
+         '.od-sidebar-preview-stage{height:clamp(240px,calc(100dvh - 125px),860px)}}'+
       '</style>',
       '</head><body><div id="od-sidebar-preview-shell" class="od-sidebar-preview-shell">'+
         '<header class="od-sidebar-preview-header" data-preview-development-only="true">'+

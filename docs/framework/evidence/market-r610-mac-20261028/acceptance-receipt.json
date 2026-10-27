@@ -1,0 +1,346 @@
+{
+  "schema": "opendesk.market.r610.acceptance.v1",
+  "createdAt": "2026-10-27T18:51:48.767813+00:00",
+  "status": "CORE_LOOP_PASS_FINAL_ACCEPTANCE_INCOMPLETE",
+  "sourceBase": "f18eab63ca86aae1847ed90c561301804fdbba95",
+  "sourceSnapshot": "/private/tmp/opendesk-market-r610-whjsrhs5",
+  "browser": {
+    "pid": 46224,
+    "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/market-r610-mac-20261028/cft-profile",
+    "executable": "/private/tmp/OpenDesk Market R610 CFT.app/Contents/MacOS/Google Chrome for Testing",
+    "bundleId": "com.opendesk.testing.market-r610",
+    "extension": "/private/tmp/opendesk-market-r610-whjsrhs5/dist/development",
+    "origin": "http://127.0.0.1:43134",
+    "endpoint": "ws://127.0.0.1:60557/devtools/browser/63d5607e-82a4-4ae5-b7b0-271056fde20f",
+    "mode": "STATIC_DEVELOPMENT",
+    "watcher": false,
+    "packageHash": "51d0bf0a96751abf70d0edbaaf2840bbb9aba79293892c5fb613c3173cc0167e"
+  },
+  "browserVersion": "155.0.8059.39",
+  "browserExecutableSha256": "316795971c05d253320fcc574168aa8ae7782eae9beb540e0595ebbd654ab965",
+  "market": {
+    "origin": "http://127.0.0.1:43134",
+    "buildId": "18a2edc8cb7bfb9fc75abe4fe83a2ad1c4e2fa1670e7d07d76274cf286d8892e",
+    "apps": 13,
+    "releases": 38,
+    "serverPidAtLastObservation": 51239,
+    "externalProject": "examples/sidebar-tools/bookmark-manager",
+    "supportedBuilderInput": "OPENDESK_MARKET_PROJECTS"
+  },
+  "identityBoundary": {
+    "extensionFrozenBuiltinBookmark": "0.3.13",
+    "independentMarketToolTested": "0.3.14",
+    "toolBytes": 89438,
+    "toolSha256": "ff681516aeb5826fc66f8472d69baa6557cb2722f421d3811bdaadb1655e43c7",
+    "toolRuntime": "CLASSIC_OPAQUE_SANDBOX",
+    "formalReactAdmissionChanged": false,
+    "previewEvidenceClass": "UI_PREVIEW_ONLY"
+  },
+  "realLoop": {
+    "initialInstall": "0.3.13 PASS",
+    "initialSaveAndSearch": "PASS",
+    "initialUninstall": "FAIL_DIRTY_FALSE_POSITIVE_PRESERVED",
+    "reviewedUpdate": "0.3.13 to 0.3.14 PASS",
+    "updatedSaveReadbackSearch": "PASS",
+    "updatedDirectUninstall": "PASS",
+    "uninstalledIframeCount": 0,
+    "uninstalledLocalDataKeys": [],
+    "nativeMessagingGranted": false,
+    "chromeBookmarksRetained": true,
+    "webCurrentInstalledFalseClaim": false
+  },
+  "preview": {
+    "widths": [
+      320,
+      360,
+      400,
+      440,
+      520
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "normalCases": 10,
+    "actual200PercentCases": 10,
+    "keyboardFooterHitVerified": true,
+    "successOpensExistingTool": true,
+    "unknownAndDisabledCannotOpen": true,
+    "parallelClipperStagePreserved": true
+  },
+  "tests": {
+    "marketTargeted": {
+      "pass": 142,
+      "fail": 0
+    },
+    "pageInstall": {
+      "pass": 30,
+      "fail": 0
+    },
+    "clientFinal": {
+      "pass": 32,
+      "fail": 0
+    },
+    "trustedControls": {
+      "pass": 22,
+      "fail": 0
+    },
+    "clipperRelease": {
+      "pass": 1,
+      "fail": 0
+    },
+    "bookmarkAndPromotion": {
+      "pass": 5,
+      "fail": 0
+    },
+    "languageTargetedFinal": {
+      "pass": 3,
+      "fail": 0
+    },
+    "previewContractFinal": {
+      "pass": 1,
+      "fail": 0
+    },
+    "languageAndInteractionBroadHistoricalRun": {
+      "pass": 99,
+      "fail": 4,
+      "oneOwnedHistoricalFixtureFixedAndTargetedRetested": true,
+      "threeIntegrationFailuresUnresolved": false
+    },
+    "countsOverlapDoNotSum": true,
+    "integrationOwnerCommitRecheck": {
+      "pass": 3,
+      "fail": 0,
+      "ownerCommit": "c1219d84a56675955a8ac7e8a7b811aa25510440"
+    }
+  },
+  "independentReview": {
+    "agent": "Hume",
+    "id": "01a17eac-09c6-75e1-8185-73f44ebb7210",
+    "verdict": "COMMENT",
+    "actionableNewDiffFindings": 0,
+    "scoresOutOf100": {
+      "product": 95,
+      "ux": 94,
+      "reactArchitecture": 94,
+      "installationSecurity": 96,
+      "lifecycle": 94,
+      "testEvidence": 86,
+      "maintainability": 92,
+      "crossChatDedup": 96
+    },
+    "arithmeticMean": 93.375,
+    "everyDimensionAtLeast95": false,
+    "previousScoresOutOf100": {
+      "product": 94,
+      "ux": 94,
+      "reactArchitecture": 94,
+      "installationSecurity": 96,
+      "lifecycle": 93,
+      "testEvidence": 82,
+      "maintainability": 92,
+      "crossChatDedup": 95
+    },
+    "displayMean": 93.38,
+    "incrementalUpdate": "Original three integration failures now pass after owner commit; full suite not rerun; native candidate still frozen f18 plus owned delta"
+  },
+  "notTested": [
+    "production five-tab candidate",
+    "CWS/public HTTPS release",
+    "independent semantic type diagnostics",
+    "current-candidate native cancel/failure/duplicate/unknown fault matrix",
+    "post-freeze c121 runtime changes in this native install candidate"
+  ],
+  "ci": {
+    "status": "NOT_CONFIRMED",
+    "queriedBaseWorkflowRuns": 0,
+    "emptyIsNotGreen": true,
+    "currentLocalDeltaPushed": false
+  },
+  "preservedResources": [
+    "main parallel uncommitted changes",
+    "daily watcher 43119/43120 dist/development",
+    "existing market 43132",
+    "existing R694 market 43133",
+    "other Chrome/CFT profiles"
+  ],
+  "evidenceRoot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/market-r610-mac-20261028",
+  "evidenceFiles": [
+    {
+      "path": "build-final2.log",
+      "bytes": 32296,
+      "sha256": "11341f048e7434c3ea60229a1a249a41249e363ea91844ec7077bf5724022792"
+    },
+    {
+      "path": "build-evidence/build-development.json",
+      "bytes": 733670,
+      "sha256": "8c1c3e0b4e3a1dd692c828482d513c93e81068133dfbfefa4b1c718e46da631a"
+    },
+    {
+      "path": "market-serve-final.log",
+      "bytes": 520,
+      "sha256": "04fb2f70c51fec0a6706b619a4b109ed71f91635c5c50b984f576cc5459d375d"
+    },
+    {
+      "path": "bookmark-served-identity.json",
+      "bytes": 560,
+      "sha256": "cc81b72a1c0d366372d5f3b8fe46c90883048d86c9beff31966b546227d3f11e"
+    },
+    {
+      "path": "bookmark-update-readback.json",
+      "bytes": 380,
+      "sha256": "4fcd88bf5c16406fdb0a381386f0fa0e2c35d16735724c5142864cef1dd980b3"
+    },
+    {
+      "path": "bookmark-v14-core.json",
+      "bytes": 261,
+      "sha256": "065b98f3ec4df55a7cde7b40fda797a6df76ba8258e98afff6330c3d2d4cc4db"
+    },
+    {
+      "path": "uninstall-v13-blocked-readback.json",
+      "bytes": 953,
+      "sha256": "be2802fa2ce767e1cc8597bac41f34b489ba36d2edfb375c840874215f2cfb6a"
+    },
+    {
+      "path": "uninstall-v14-readback.json",
+      "bytes": 612,
+      "sha256": "6332b3ee0790de23f7a7be9877f89c9f6f4b3220a1c0343f31d03dd4228436b9"
+    },
+    {
+      "path": "website-after-uninstall.json",
+      "bytes": 328,
+      "sha256": "e2314a2f2c4c121a0e2efd90e2664c4da42a74c3cb6235b057fc6cce32008085"
+    },
+    {
+      "path": "real-language-entry.json",
+      "bytes": 721,
+      "sha256": "93939518864ba8e18d2f5e53d1868f4c86b48ff270092c4387e5c311ccf06dc2"
+    },
+    {
+      "path": "runtime-input-readback.json",
+      "bytes": 679,
+      "sha256": "bffb548013c6eab60115251054e53fdc9753faffe4e2fcb7f0447eec3dbd72d1"
+    },
+    {
+      "path": "market-targeted.tap",
+      "bytes": 15247,
+      "sha256": "3cda5e3154e7557b38cc03c1431dae192cc9c2cf1303eaef40bb55bbd09250bb"
+    },
+    {
+      "path": "page-install.tap",
+      "bytes": 2613,
+      "sha256": "f289dc0dea4fede447d138d7f126217b699d6550f9bb4a8c7b164b3ce2b9c87c"
+    },
+    {
+      "path": "client-final.tap",
+      "bytes": 3425,
+      "sha256": "682dd7547f8ca90f70b2769c6d2b6b22457521a2bb60d44bde1431388643c206"
+    },
+    {
+      "path": "trusted-controls.tap",
+      "bytes": 2851,
+      "sha256": "23adda0614f32b897a5d1f86b2c3492ddf899d48352b14b067142e167b106ca4"
+    },
+    {
+      "path": "clipper-release.tap",
+      "bytes": 208,
+      "sha256": "38e6b27ca82708293e9ecc7c3208e544b89429e6e807f075af82ff81247199d6"
+    },
+    {
+      "path": "bookmark-regression.tap",
+      "bytes": 642,
+      "sha256": "155dd6ec1f1c4ccce6779adeaf86cf15e58d60e19e9bd0f0545d6bad15b5a6a7"
+    },
+    {
+      "path": "bookmark-promote.json",
+      "bytes": 377,
+      "sha256": "955df0b9ec7a82cba0d7c1359af5228180702d827eede73cf79b43f36d407523"
+    },
+    {
+      "path": "bookmark-project-check.json",
+      "bytes": 374,
+      "sha256": "d800486328590deafd96ebd01bcc0519286b7ee1b62bbafdb8c39bf02429cc92"
+    },
+    {
+      "path": "language-final.tap",
+      "bytes": 25304,
+      "sha256": "041d738b46fa2c78cf86e8f58d89e6d159562f02e4c6ae51e705c14b458e1c68"
+    },
+    {
+      "path": "language-targeted-final.tap",
+      "bytes": 427,
+      "sha256": "2cba91656dfdf160170ab730a615e2fb4a4d0274b50c4cfe47d4d0fb0337e9db"
+    },
+    {
+      "path": "preview-contract-final.tap",
+      "bytes": 229,
+      "sha256": "a3d54b8c69bfbeec651144cf930c8f4abb23ef431e8abf5a23efbd4e273367af"
+    },
+    {
+      "path": "preview-source-final.json",
+      "bytes": 17833,
+      "sha256": "249a036722f9a0dd18a6d1f2bb08e8227bca2a9885c9e43aaeae8b3b9507c6e9"
+    },
+    {
+      "path": "preview-final-normal.json",
+      "bytes": 1244,
+      "sha256": "4284ec63593d60552d0569cfaf5f267c3a44b4a3014653da70ed6fb50dde1184"
+    },
+    {
+      "path": "preview-keyboard-footer-200.json",
+      "bytes": 2640,
+      "sha256": "58375e84b189760fb5d9a07928d1112efbd12b47cdd942e820c8b442104991ee"
+    },
+    {
+      "path": "preview-open-path.json",
+      "bytes": 1446,
+      "sha256": "826fc9862c4cceed498920c55a5f15edfb702c81b3c74c345811a58854bd9169"
+    },
+    {
+      "path": "preview-result-gates.json",
+      "bytes": 526,
+      "sha256": "9494d2c672c8c502bf03cf3821738846501ee75774eedd3b01d46d3f119e382b"
+    },
+    {
+      "path": "preview-locale-market.json",
+      "bytes": 798,
+      "sha256": "1ca1d2d5084bc5ae3cc251c05a439662834425a7a0dac13c693a8389c315d55a"
+    },
+    {
+      "path": "ci-query.json",
+      "bytes": 848,
+      "sha256": "116a395de1f4182d350d7316c95f21ea60060113cca55fac9fe339e7e6d14b95"
+    },
+    {
+      "path": "integration-owner-commit-recheck.tap",
+      "bytes": 419,
+      "sha256": "707ec7aaa49638e3c9b0fabced4f87a2cf371b677cb3a205cd82866bdd2e3d16"
+    },
+    {
+      "path": "independent-review-final.json",
+      "bytes": 824,
+      "sha256": "d2c49443b61fd6044680639dd82192f7d5d4c5fb17cdcbb30925ade47d9b9660"
+    }
+  ],
+  "latestMainAtIntegrationRecheck": "c1219d84a56675955a8ac7e8a7b811aa25510440",
+  "historicalIntegrationFailures": [
+    {
+      "name": "R4.8 app detail matches the R4.7 preview: no duplicate Open and visible stopped status",
+      "observed": "unexpected additional open action",
+      "ownerBoundary": "owner committed c1219d84a; no source overwrite by R610",
+      "currentStatus": "PASS_TARGETED_AFTER_OWNER_COMMIT"
+    },
+    {
+      "name": "R5.0 official catalog stale responses and failures must be rejected by source guards",
+      "observed": "dispose source regex does not match",
+      "ownerBoundary": "owner committed c1219d84a; no source overwrite by R610",
+      "currentStatus": "PASS_TARGETED_AFTER_OWNER_COMMIT"
+    },
+    {
+      "name": "R1.5 Page readback remains authoritative when unrelated Sidebar storage fails",
+      "observed": "DOM did not settle",
+      "ownerBoundary": "owner committed c1219d84a; no source overwrite by R610",
+      "currentStatus": "PASS_TARGETED_AFTER_OWNER_COMMIT"
+    }
+  ]
+}

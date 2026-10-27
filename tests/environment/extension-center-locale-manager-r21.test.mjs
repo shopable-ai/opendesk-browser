@@ -46,7 +46,11 @@ const {createExtensionCenterDOM}=await import(await compile('../helpers/extensio
   esbuild:import.meta.resolve('esbuild'),linkedom:import.meta.resolve('linkedom')
 }));
 const button=await compile('../../src/ui/react/components/ui/button.tsx',deps);
+const toggle=await compile('../../src/ui/react/components/ui/switch.tsx',{
+  ...deps,'react-aria-components':import.meta.resolve('react-aria-components')
+});
 const tools=await compile('../../src/ui/react/tabs/tools.tsx',{...deps,'../components/ui/button.tsx':button,
+  '../components/ui/switch.tsx':toggle,
   '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href});
 const {default:LocaleManager}=await import(await compile('../../src/ui/react/tabs/locale-manager.tsx',{
   ...deps,'../components/ui/button.tsx':button,'./tools.tsx':tools,'./locale-manager.css':'data:text/javascript,export{}',
@@ -75,11 +79,20 @@ const selectValue=(select,value)=>{
   Object.defineProperty(select,'value',{configurable:true,value,writable:true});select.dispatch('change');
 };
 
-test('extension search toolbar omits the language button and retains market and filter actions',t=>{
-  const ui=createExtensionCenterDOM(t);
-  assert.equal(ui.doc.getElementById('extension-center-language-settings'),null);
+test('R6.10 language and translation lives in More and delegates the original native event',t=>{
+  const events=[];
+  const ui=createExtensionCenterDOM(t,{props:{toolbarModel:{menuOpen:false,
+    onLanguageSettings:event=>events.push(event)}}});
+  const action=ui.doc.getElementById('extension-center-language-settings');
+  assert.equal(action.textContent,'语言与翻译');
+  assert.equal(action.closest('#extension-center-menu').hidden,true);
   assert.deepEqual([...ui.doc.querySelector('.ec-toolbar').children].map(node=>node.id||node.className),
     ['ec-search','extension-center-market','extension-center-menu-wrap']);
+  assert.equal(events.length,0,'rendering must not open language settings');
+  ui.adapter.renderToolbar({menuOpen:true,onLanguageSettings:event=>events.push(event)});
+  assert.equal(action.closest('#extension-center-menu').hidden,false);
+  const nativeEvent=action.dispatch('click');
+  assert.deepEqual(events,[nativeEvent]);
 });
 
 test('daily tool choices save their scope, follow the default only when requested, and retain focus',async t=>{

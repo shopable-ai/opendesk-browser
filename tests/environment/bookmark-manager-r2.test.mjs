@@ -487,7 +487,8 @@ test('R2.1 UI guards current-page identity and observes SDK events with teardown
 // Run the actual UI, model and service against the public SDK boundary. Timers
 // advance explicitly so recovery/teardown assertions cannot pass by timing luck.
 async function bookmarkUi(configure=()=>{},Clock=Date){
-  const dom=new Map(),timers=new Map(),lifecycle=new Map();let timerId=0;
+  const dom=new Map(),timers=new Map(),lifecycle=new Map(),rootListeners=new Map();let timerId=0;
+  let hostState={dirty:false,busy:false};const stateReports=[];
   const element=tag=>({tag,children:[],listeners:new Map(),dataset:{},style:{},
     classList:{add(){},contains(){return false}},
     value:'',hidden:false,disabled:false,textContent:'',attributes:{},
@@ -506,7 +507,14 @@ async function bookmarkUi(configure=()=>{},Clock=Date){
     append(...children){this.children.push(...children.flatMap(child=>
       child.tag==='fragment'?child.children:[child]))},
     replaceChildren(...children){this.children=[];this.append(...children)},
-    fire(type,event={}){return this.listeners.get(type)?.({preventDefault(){},target:this,...event})}
+    fire(type,event={}){
+      const dispatched={preventDefault(){},target:this,...event};
+      const result=this.listeners.get(type)?.(dispatched);
+      rootListeners.get(type)?.(dispatched);
+      // Model the bridge's generic input listener running AFTER business handlers.
+      if(type==='input')hostState={...hostState,dirty:true};
+      return result;
+    }
   });
   for(const [,tag,attrs,id] of (await src('src/index.html')).matchAll(
     /<(button|input|select|form)\b([^>]*\bid="([^"]+)"[^>]*)>/g)){
@@ -518,13 +526,17 @@ async function bookmarkUi(configure=()=>{},Clock=Date){
     if(!dom.has(selector))dom.set(selector,element('div'));
     return dom.get(selector);
   },querySelectorAll(tag){return [...dom.values()].flatMap(el=>[el,...descendants(el)])
-    .filter(el=>el.tag===tag)},addEventListener(){}};
+    .filter(el=>el.tag===tag)},addEventListener(type,handler){rootListeners.set(type,handler)}};
   const ctx=createContext({URL,Date:Clock,document:{createElement:element,
     createElementNS:(namespace,tag)=>{
       assert.equal(namespace,'http://www.w3.org/2000/svg');
       return element(tag);
     },
-    createDocumentFragment:()=>element('fragment')},OpenDeskTool:{root:rootNode},
+    createDocumentFragment:()=>element('fragment')},OpenDeskTool:{root:rootNode,
+      setState(state){
+        assert.equal(typeof state.dirty,'boolean');assert.equal(typeof state.busy,'boolean');
+        hostState={dirty:state.dirty,busy:state.busy};stateReports.push(hostState);
+      }},
     setTimeout(fn,delay){const id=++timerId;timers.set(id,{fn,delay});return id},
     clearTimeout(id){timers.delete(id)},
     addEventListener(type,handler){lifecycle.set(type,handler)}});
@@ -536,7 +548,7 @@ async function bookmarkUi(configure=()=>{},Clock=Date){
   await settle();
   const get=id=>rootNode.querySelector('#'+id);
   const text=el=>el.textContent+el.children.map(text).join('');
-  return {data,get,timers,settle,text,
+  return {data,get,timers,settle,text,stateReports,get hostState(){return hostState},
     async click(id){get(id).fire('click');await settle()},
     async action(label){
       const button=rootNode.querySelectorAll('button').find(el=>
@@ -892,4 +904,72 @@ test('R2.5 confirms a folder save only after a fresh tree read contains the crea
   assert.equal(ui.get('bm-form-view').hidden,true);
   assert.equal(ui.get('bm-save').disabled,false);
   ui.close();
+});
+
+
+test('R6.10 sandbox reports busy until save readback, then clean through search',async()=>{
+  const roots=sample();let finishWrite,finishRead,created=false;
+  const ui=await bookmarkUi(({sdk})=>{
+    sdk.bookmarks.getTree=async()=>{
+      if(created)await new Promise(resolve=>{finishRead=resolve});
+      return roots;
+    };
+    sdk.bookmarks.create=async args=>{
+      await new Promise(resolve=>{finishWrite=resolve});
+      roots[0].children[0].children.push({id:'50',title:args.title,parentId:args.parentId,children:[]});
+      created=true;return {id:'50'};
+    };
+  });
+  assert.ok(ui.stateReports.length,'initial state is explicitly reported');
+  await ui.click('bm-new-folder');
+  assert.deepEqual(ui.hostState,{dirty:false,busy:false});
+  ui.get('bm-name').value='R610';ui.get('bm-name').fire('input');
+  await ui.settle();assert.deepEqual(ui.hostState,{dirty:true,busy:false});
+  await ui.submit();assert.deepEqual(ui.hostState,{dirty:true,busy:true});
+  finishWrite();await ui.settle();
+  assert.equal(typeof finishRead,'function');
+  assert.deepEqual(ui.hostState,{dirty:true,busy:true},'RPC completion alone cannot clear state');
+  finishRead();await ui.settle();
+  assert.match(ui.get('bm-notice').textContent,/已更新并重新读取/);
+  assert.deepEqual(ui.hostState,{dirty:false,busy:false});
+  ui.get('bm-search').value='R610';ui.get('bm-search').fire('input');
+  assert.equal(ui.hostState.dirty,true,'late generic bridge input marks dirty synchronously');
+  await ui.settle();assert.deepEqual(ui.hostState,{dirty:false,busy:false});
+  assert.match(ui.text(ui.get('bm-list')),/R610/);
+  ui.close();
+});
+
+test('R6.10 sandbox search/filter preserve real drafts, revert and cancel report clean',async()=>{
+  const ui=await bookmarkUi();
+  await ui.action('管理 other');await ui.action('编辑');
+  ui.get('bm-name').value='Unsaved R610';ui.get('bm-name').fire('input');
+  await ui.settle();assert.deepEqual(ui.hostState,{dirty:true,busy:false});
+  for(const id of ['bm-search','bm-folder-query']){
+    ui.get(id).value='folder';ui.get(id).fire('input');await ui.settle();
+    assert.deepEqual(ui.hostState,{dirty:true,busy:false},id+' cannot discard a real draft');
+  }
+  ui.get('bm-name').value='other';ui.get('bm-name').fire('input');
+  await ui.settle();assert.deepEqual(ui.hostState,{dirty:false,busy:false});
+  ui.get('bm-parent').value='2';ui.get('bm-parent').fire('change');
+  await ui.settle();assert.deepEqual(ui.hostState,{dirty:true,busy:false});
+  await ui.click('bm-cancel');assert.deepEqual(ui.hostState,{dirty:false,busy:false});
+  ui.close();
+});
+
+test('R6.10 sandbox unknown or unconfirmed writes stay dirty even if fields match baseline',async()=>{
+  for(const code of ['E_OUTCOME_UNKNOWN','E_EFFECT_UNKNOWN','E_WRITE_NOT_CONFIRMED']){
+    const ui=await bookmarkUi(({sdk})=>{
+      if(code!=='E_WRITE_NOT_CONFIRMED')sdk.bookmarks.create=async()=>{throw failure(code)};
+    });
+    await ui.click('bm-new-folder');
+    ui.get('bm-name').value='Unknown R610';ui.get('bm-name').fire('input');
+    await ui.submit();
+    assert.deepEqual(ui.hostState,{dirty:true,busy:false},code);
+    assert.equal(ui.get('bm-save').disabled,true);
+    ui.get('bm-name').value='';ui.get('bm-name').fire('input');
+    ui.get('bm-search').value='other';ui.get('bm-search').fire('input');
+    await ui.settle();assert.deepEqual(ui.hostState,{dirty:true,busy:false},code+' retains uncertainty');
+    await ui.click('bm-cancel');assert.deepEqual(ui.hostState,{dirty:false,busy:false});
+    ui.close();
+  }
 });

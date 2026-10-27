@@ -18,7 +18,8 @@
       "id": "web-markdown-clipper",
       "project": "examples/sidebar-tools/web-markdown-clipper",
       "kind": "sidebar-tool",
-      "installationPolicy": "optional"
+      "installationPolicy": "optional",
+      "packageFile": "web-markdown-clipper.opendesk-tool.json"
     },
     {
       "id": "quick-notes",

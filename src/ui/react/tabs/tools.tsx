@@ -406,12 +406,6 @@ export function ExtensionToolbar({model}){
       onClick={event=>current.onMarket?.(event.nativeEvent)}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"/></svg>
     </IconButton>
-    <IconButton id="extension-center-language-settings" className="ec-icon" label="语言设置"
-      title="语言与翻译设置" onClick={event=>current.onLanguageSettings?.(event.nativeEvent)}>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-3 3-3 15 0 18M12 3c3 3 3 15 0 18"/>
-      </svg>
-    </IconButton>
     <div id="extension-center-menu-wrap" className="ec-menu-wrap">
       <IconButton id="extension-center-more" className="ec-icon" label="筛选和管理扩展"
         title="扩展筛选与更多操作" aria-haspopup="true"
@@ -435,6 +429,8 @@ export function ExtensionToolbar({model}){
         <button id="extension-center-reset" className="ec-menu-action" type="button"
           onClick={event=>current.onReset?.(event.nativeEvent)}>恢复默认筛选</button>
         <div className="ec-menu-separator">
+          <Button id="extension-center-language-settings" className="ec-menu-action"
+            onClick={event=>current.onLanguageSettings?.(event.nativeEvent)}>语言与翻译</Button>
            <button id="extension-center-import" className="ec-menu-action" type="button"
             onClick={event=>current.onImport?.(event.nativeEvent)}>导入扩展…</button>
           <button id="extension-center-reload" className="ec-menu-action" type="button"

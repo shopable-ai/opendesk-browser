@@ -244,7 +244,8 @@ function reviewedCompiledPromptShortcuts(target,path,root){
 // of src/ must not turn examples/ into an executable-code wildcard.
 // These blob pins intentionally require review when privileged code changes.
 const compiledStayFocusInputs=Object.freeze({
-  'examples/sidebar-tools/stay-focus/trusted/react-controls.tsx':'2c304e19e6a8f9b74d5fc2de19554c21b8ab3932',
+  // R6.10: reviewed b8c0596e4; only two shared presentation class names changed.
+  'examples/sidebar-tools/stay-focus/trusted/react-controls.tsx':'2e490028e19fbb048c2b9aa49073e7ee94100daf',
   'examples/sidebar-tools/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
   'examples/sidebar-tools/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
   'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'65346648494b88fbf434a5a951769edba445c32e',
@@ -400,6 +401,28 @@ function reviewedCompiledReadingToc(target,path,root){
   return hash;
 }
 
+// R6.10 review of b8c0596e4: existing trusted Host styles moved out of the
+// shared stylesheet. These exact presentation-only blobs enter only the
+// existing React root; this grants no installed package/source admission.
+const compiledHostStyleInputs=Object.freeze({
+  'examples/sidebar-tools/time-review/trusted/host.css':'fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6',
+  'examples/sidebar-tools/bookmark-manager/trusted/host.css':'5bbe841558c86389994defd93f6077aa928a9cf9',
+  'examples/sidebar-tools/cookie-editor/trusted/host.css':'b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f',
+  'examples/sidebar-tools/ai-vip-share/trusted/host.css':'634786710c463671b9c24c424725bf6c7ff4ec8e',
+  'examples/sidebar-tools/prompt-shortcuts/trusted/host.css':'aa08e38ebd56e34c49c1c07be5a1b6727426865b',
+  'examples/sidebar-tools/reading-toc/trusted/host.css':'93db2443725c8fac84dd94585d08d933766c2040'
+});
+function reviewedCompiledHostStyle(target,path,root){
+  if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledHostStyleInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted Host style must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledHostStyleInputs[path])
+    throw Error('Trusted Host style changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')
   .map(row=>[row.npm,row.output]));
 export function assertLibraryModuleBoundary(target,path,npmName) {
@@ -440,7 +463,8 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledAppOwnedBackground(chunk.fileName,path,root)||
       reviewedCompiledSharedMarkdown(chunk.fileName,path,root)||
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
-      reviewedCompiledReadingToc(chunk.fileName,path,root);
+      reviewedCompiledReadingToc(chunk.fileName,path,root)||
+      reviewedCompiledHostStyle(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,

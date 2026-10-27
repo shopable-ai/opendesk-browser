@@ -673,9 +673,10 @@ test('R4.8 historical reference preserves the production toolbar action contract
   const demo=toolbar(preview,'preview-import-host');
   // Preserve the reviewed historical reference; the current React preview
   // has its own source-bound generator and check. Product copy may advance.
-  // The historical preview predates moving locale selection to the shared shell.
+  // The historical preview predates the shared locale manager and its R6.10
+  // move into More. Its locale control is not the current manager contract.
   const controls=source=>[...source.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1])
-    .filter(id=>id!=='extension-center-language').sort();
+    .filter(id=>!['extension-center-language','extension-center-language-settings'].includes(id)).sort();
   assert.deepEqual(controls(demo.replaceAll('preview-','extension-center-')),controls(formal));
   for(const attribute of ['data-ec-kind','data-ec-scope','aria-controls']){
     const values=source=>[...source.matchAll(new RegExp(attribute+'="([^"]+)"','g'))]
@@ -832,7 +833,8 @@ test('R5.7 menu opens trusted import Host, never the global picker or language m
   const more=f.nodes['extension-center-more'],picker=f.nodes['extension-center-file'];
   let pickerClicks=0;
   picker.click=()=>{pickerClicks++;};
-  assert.equal(f.doc.getElementById('extension-center-language-settings'),null);
+  assert.equal(f.doc.getElementById('extension-center-language-settings').closest('#extension-center-menu'),
+    f.nodes['extension-center-menu']);
   more.dispatch('click');
   const importAction=f.nodes['extension-center-import'];
   assert.equal(importAction.textContent,'导入扩展…');

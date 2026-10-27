@@ -149,11 +149,12 @@ async function checkInstallation(entry){
   const labels={installed:'本次安装成功（仅为本次事务回执，不代表当前仍已安装）。请在 OpenDesk 侧边栏核对并打开使用。',review:entry.subject.kind==='app'?appReviewFeedback(result.handoff):'请在 OpenDesk 审阅页核对并确认。',
     cancelled:'本次安装已取消。再次点击安装将发起新审阅。',failed:'本次安装失败。可显式重新发起审阅。',
     unknown:'本次安装结果未知。请核对结果，或显式返回同一审阅；不会自动重装。',installing:'正在安装，请等待并核对结果。'};
+  const endedUnknown=result.handoffClosed===true&&result.installation==='unknown';
   feedback(entry,completedAndRemoved?
-    '原安装事务已成功结束，当前应用已移除。再次点击安装才会发起新审阅。':labels[result.installation]+
+    '原安装事务已成功结束，当前应用已移除。再次点击安装才会发起新审阅。':endedUnknown?
+    '原交接已明确结束，原安装结果仍未知；再次点击安装才会发起新审阅，不会自动重装。':labels[result.installation]+
     (entry.subject.kind==='app'&&result.installation==='unknown'&&result.handoff?' '+appReviewFeedback(result.handoff):'')+
-    (entry.subject.kind==='collection'&&result.progress?' '+result.progress:'')+
-    (result.handoffClosed?' 原交接已明确结束，原安装结果仍未知；再次点击才会发起新审阅。':''),
+    (entry.subject.kind==='collection'&&result.progress?' '+result.progress:''),
     result.installation==='installed'?'success':result.installation==='failed'?'error':'pending');
   if(['installed','cancelled','failed'].includes(result.installation)||result.handoffClosed===true)entry.intent=null;
   saveIntent(entry);render(entry);

@@ -15,6 +15,18 @@ import {officialFixtures,officialToolFixture,officialFixtureFetch} from '../help
 import {officialMarketApps} from '../../src/marketplace/catalog.js';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+test('R6.10 clipper keeps the reviewed fixed release despite shared style edits',async()=>{
+  const source=await readOfficialSources();
+  const row=source.tools.find(item=>item.id==='web-markdown-clipper');
+  assert.equal(row.packageFile,'web-markdown-clipper.opendesk-tool.json');
+  const bytes=await readFile(row.project+'/'+row.packageFile);
+  const archive=JSON.parse(await readFile('official-tools/releases/r5-20261026-reading-kit-10.json','utf8'));
+  const release=archive.catalog.apps.find(item=>item.toolId===row.id);
+  assert.equal(hash(bytes),release.sha256);
+  assert.equal(bytes.length,release.bytes);
+  const built=await createOfficialToolResources();
+  assert.deepEqual(built.resources.get(officialPackagePath(row.id)),bytes);
+});
 const api={runtime:{getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path}};
 const spec=id=>({id,project:'examples/sidebar-tools/'+id,kind:'sidebar-tool',installationPolicy:'optional'});
 async function fixture(t){

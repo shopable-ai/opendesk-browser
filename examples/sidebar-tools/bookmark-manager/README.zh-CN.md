@@ -1,5 +1,11 @@
 # Bookmark Manager · 正式 React 与 Classic 兼容工具
 
+## 0.3.14 · 市场 R6.10 沙箱状态修复（2026-10-28）
+
+本轮市场候选实际运行原 Classic 隔离界面。修复保存成功或搜索后仍被通用 input 监听误标为未保存、导致卸载被拦的问题：通过公开 `OpenDeskTool.setState({dirty,busy})` 上报真实草稿和写入状态；未保存草稿、写入中及未知结果继续保留保护。ID、权限和公共宿主均未改变，未调整可信 React 准入锁。
+
+候选经定向回归后由原打包器晋升目录唯一正式 JSON，版本 **0.3.14**，SHA-256 `ff681516aeb5826fc66f8472d69baa6557cb2722f421d3811bdaadb1655e43c7`，`--check-project` 通过。独立 Mac Chrome for Testing 中完成原市场审阅更新、打开、一次写入确认、Chrome 读回、搜索及直接卸载；安装记录、iframe 和工具本地数据已清除，Chrome 书签保留，Native Messaging 未授权。此次为本地静态 development 候选证据，不代替下文历史 production/React 候选证据。完整身份与限制见 [R6.10 记录](../../../docs/framework/workstreams/market-install-r610-mac-20261028.md)。
+
 ## R2.2 共享 Header 当前页短标题（2026-10-26，现行覆盖历史 R2.1）
 
 共享 Browser Host 正式代码修正了双 flex span 将「书签管理 / 设置」拉出大段空白的问题。**当前可见**：根页「书签管理」、可信设置「设置」、新建书签/文件夹 Sheet「新建」、编辑书签/文件夹 Sheet「编辑」；完整「书签管理 / 编辑书签」等原业务标题保留在悬浮提示与 ARIA。可信设置内部冗余「工具设置」H2 已去除，原返回、草稿确认、保存中拦截不变。此变更只涉及 Browser Host，**没有修改书签 React 业务源码、0.3.12 JSON 包或权限**；需要在 Chrome 更新包含新 Host 的 Browser 才生效。下文 R2.1「父/子同时可见」及 R2 设置全路径均属历史描述，而非现行规范。本次真实 Mac 安装效果尚未验证：`NOT_TESTED`。
