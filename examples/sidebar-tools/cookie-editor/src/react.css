@@ -433,3 +433,154 @@
 .cookie-editor-react .cookie-share-outcomes{display:flex;flex-wrap:wrap;gap:var(--space-1)}
 .cookie-editor-react .cookie-share-status{margin:0;padding:var(--space-2);background:var(--od-muted);border-radius:var(--radius-control);font-size:var(--od-note-size)}
 @media(max-width:350px){.cookie-editor-react .cookie-share-row{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Approved preview/cookie-editor.html → production React UI surfaces.
+   One official App, one Shared UI palette; never style Host permission prompts here. */
+.cookie-editor-react .cookie-product-tabs{
+  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:0;min-width:0;padding-inline:var(--space-2);margin-bottom:0;
+}
+.cookie-editor-react .cookie-product-tabs>button{
+  width:100%;min-width:0;min-height:41px;padding:0;border-radius:0;
+}
+.cookie-editor-react .cookie-product-tabs .cookie-tab-label{
+  min-width:0;min-height:41px;padding:0;
+  white-space:nowrap;font-size:12px;font-weight:600;
+}
+.cookie-editor-react .cookie-business-panel{min-width:0;overflow-x:clip}
+.cookie-editor-react .cookie-business-content{
+  display:grid;gap:var(--space-3);min-width:0;
+  padding:var(--space-3);width:100%;
+}
+.cookie-editor-react .cookie-business-content>h3,
+.cookie-editor-react .cookie-business-heading h3{
+  margin:var(--space-1) 0 0;font-size:13px;line-height:1.4;
+}
+.cookie-editor-react .cookie-business-hero{
+  display:grid;gap:6px;min-width:0;
+  background:var(--od-muted);border-radius:var(--radius-surface);padding:14px 12px;
+}
+.cookie-editor-react .cookie-business-hero small{
+  color:var(--od-brand);letter-spacing:.06em;font-size:10px;font-weight:700;
+}
+.cookie-editor-react .cookie-business-hero h2{font-size:15px;line-height:1.4;margin:0}
+.cookie-editor-react .cookie-business-hero p{
+  margin:0;font-size:var(--od-note-size);color:var(--od-sub);line-height:1.65;
+}
+.cookie-editor-react .cookie-business-heading{
+  display:flex;gap:var(--space-2);align-items:baseline;justify-content:space-between;
+  min-width:0;
+}
+.cookie-editor-react .cookie-business-heading>small{
+  flex:none;font-size:var(--od-meta-size);color:var(--od-sub);
+}
+.cookie-editor-react .cookie-business-features{
+  display:grid;gap:var(--space-2);min-width:0;
+}
+.cookie-editor-react .cookie-business-feature,
+.cookie-editor-react .cookie-business-channel{
+  min-width:0;border:1px solid var(--od-line);
+  border-radius:var(--radius-surface);padding:var(--space-3);background:var(--od-paper);
+}
+.cookie-editor-react .cookie-business-feature{
+  display:flex;align-items:start;gap:var(--space-2);
+}
+.cookie-editor-react .cookie-business-feature>div{
+  flex:1;min-width:0;display:grid;gap:3px;
+}
+.cookie-editor-react .cookie-business-symbol,
+.cookie-editor-react .cookie-business-avatar{
+  display:grid;place-items:center;flex:none;
+  width:31px;height:31px;border-radius:8px;
+  color:var(--od-brand);background:var(--od-muted);font-size:12px;font-weight:700;
+}
+.cookie-editor-react .cookie-business-feature strong,
+.cookie-editor-react .cookie-business-channel strong{font-size:var(--od-body-size)}
+.cookie-editor-react .cookie-business-feature p,
+.cookie-editor-react .cookie-business-channel p{
+  margin:0;font-size:var(--od-note-size);line-height:1.6;color:var(--od-sub);
+  overflow-wrap:anywhere;
+}
+.cookie-editor-react .cookie-business-usage{
+  display:grid;gap:0;min-width:0;overflow:hidden;
+  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+}
+.cookie-editor-react .cookie-business-usage-row{
+  display:grid;gap:5px;min-width:0;padding:var(--space-3);
+  border-bottom:1px solid var(--od-line);
+}
+.cookie-editor-react .cookie-business-usage-row>div{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--space-1);
+  min-width:0;font-size:var(--od-note-size);
+}
+.cookie-editor-react .cookie-business-usage-row>div>*{
+  overflow-wrap:anywhere;
+}
+.cookie-editor-react .cookie-business-usage-row small,
+.cookie-editor-react .cookie-business-usage>p,
+.cookie-editor-react .cookie-business-muted{
+  font-size:var(--od-note-size);color:var(--od-sub);line-height:1.6;
+}
+.cookie-editor-react .cookie-business-usage-row progress{
+  appearance:none;width:100%;height:5px;border:none;
+  background:var(--od-line);border-radius:20px;overflow:hidden;
+}
+.cookie-editor-react .cookie-business-usage-row progress::-webkit-progress-bar{
+  background:var(--od-line);border-radius:20px;
+}
+.cookie-editor-react .cookie-business-usage-row progress::-webkit-progress-value{
+  background:var(--od-brand);border-radius:20px;
+}
+.cookie-editor-react .cookie-business-usage>p{margin:0;padding:var(--space-3)}
+.cookie-editor-react .cookie-business-callout,
+.cookie-editor-react .cookie-business-inquiry{
+  display:grid;gap:var(--space-2);min-width:0;
+  padding:var(--space-3);border-radius:var(--radius-surface);
+  border:1px solid var(--od-line);background:var(--od-paper);
+}
+.cookie-editor-react .cookie-business-callout>strong{font-size:var(--od-body-size)}
+.cookie-editor-react .cookie-business-callout>p,
+.cookie-editor-react .cookie-business-inquiry>p,
+.cookie-editor-react .cookie-business-contact>p{
+  margin:0;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.6;
+}
+.cookie-editor-react .cookie-business-actions{
+  display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;min-width:0;
+}
+.cookie-editor-react .cookie-business-actions a{min-height:32px;text-decoration:none}
+.cookie-editor-react .cookie-business-contact{
+  display:grid;gap:var(--space-2);min-width:0;
+  border-top:1px solid var(--od-line);padding-top:var(--space-2);
+}
+.cookie-editor-react .cookie-business-inquiry label{
+  display:grid;gap:var(--space-1);font-size:var(--od-note-size);font-weight:600;min-width:0;
+}
+.cookie-editor-react .cookie-business-inquiry select,
+.cookie-editor-react .cookie-business-inquiry textarea{
+  width:100%;min-width:0;font-weight:400;
+}
+.cookie-editor-react .cookie-business-inquiry textarea{min-height:74px}
+.cookie-editor-react .cookie-business-inquiry small{color:var(--od-sub);font-size:var(--od-meta-size)}
+.cookie-editor-react .cookie-business-disclosure{
+  padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);
+}
+.cookie-editor-react .cookie-business-disclosure summary{cursor:pointer;font-weight:600}
+.cookie-editor-react .cookie-business-disclosure p{
+  margin:var(--space-2) 0 0;line-height:1.6;color:var(--od-sub);font-size:var(--od-note-size);
+}
+.cookie-editor-react .cookie-business-channel{display:grid;gap:var(--space-2)}
+.cookie-editor-react .cookie-business-channel-top{
+  display:flex;align-items:center;gap:var(--space-2);min-width:0;
+}
+.cookie-editor-react .cookie-business-channel-top>div{flex:1;min-width:0;display:grid;gap:2px}
+.cookie-editor-react .cookie-business-channel-top small{font-size:var(--od-meta-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-business-channel>button{justify-self:start}
+.cookie-editor-react .cookie-business-channel .cookie-business-muted{margin:0}
+@media(max-width:350px){
+ .cookie-editor-react .cookie-product-tabs{padding-inline:var(--space-1)}
+ .cookie-editor-react .cookie-product-tabs .cookie-tab-label{font-size:11px}
+ .cookie-editor-react .cookie-business-content{padding:var(--space-2)}
+ .cookie-editor-react .cookie-business-feature{padding:var(--space-2)}
+ .cookie-editor-react .cookie-business-actions{gap:var(--space-1)}
+}
