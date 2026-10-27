@@ -204,6 +204,8 @@ const demoRows=Object.freeze([
     description:'仅展示官方目录候选外观，不提供模拟安装',installed:false,version:'2.0.0'}
 ]);
 const demoRemoved=new Set();
+// Preview only: no Authority, installer or persistent store.
+const demoPageEnabled=new Map([['page:demo-markup',true]]);
 let pendingDemoReview=null,listDemoReview=null,selectedDemoKey=null;
 const demoInstalled=row=>row.installed&&!demoRemoved.has(row.key);
 const toolbar={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
@@ -421,13 +423,14 @@ function confirmDemoUninstallReview(event){
     '」（仅内存演示，没有真实卸载或权限变更）',state:'success'});
   document.getElementById('extension-center-search')?.focus({preventScroll:true});
 }
-function openDemoDetail(key){
+function openDemoDetail(key,{focusToggle=false}={}){
   const base=demoRows.find(item=>item.key===key&&!demoRemoved.has(item.key));
   if(!base)return;
   const receipt=marketDemoReceipt?.id===key.slice(4)?marketDemoReceipt:null;
   const row=receipt?{...base,version:receipt.version,description:marketExample.description}:base;
   selectedDemoKey=key;closeRowMenu();
   const installed=demoInstalled(row),reviewing=pendingDemoReview===key;
+  const pageEnabled=demoPageEnabled.get(key)!==false;
   const detailActions=receipt&&!reviewing?
     [...(receipt.enabled?[{id:'open',label:'打开使用',onClick:event=>{
       if(event?.isTrusted===true)clipper.open();
@@ -437,7 +440,19 @@ function openDemoDetail(key){
   app.renderDetail({key:row.key,title:row.title,kind:row.kind,type:row.type,
     description:row.description,installed,cleanupPending:false,
     version:row.version,busy:false,
-    actions:detailActions,
+    actions:detailActions,focusAction:focusToggle?'toggle':null,
+    pageControl:row.kind==='page'&&installed?{
+      enabled:pageEnabled,enabledKnown:true,state:pageEnabled?'pending':'off',
+      status:pageEnabled?'仅预览 · 模拟启用，Chrome 注册未核对':'仅预览 · 模拟停用，Chrome 注册未核对',
+      note:'无 Page Authority、Chrome 授权或原生注册状态读回。',
+      canRestore:false,busy:false,legacyProgramId:null,
+      onToggle:(value,event)=>{
+        if(event?.isTrusted!==true||typeof value!=='boolean'||demoRemoved.has(key))return;
+        demoPageEnabled.set(key,value);
+        openDemoDetail(key,{focusToggle:true});
+        app.renderStatus({text:'仅预览 · 仅修改当前页面示例开关，不影响安装与权限',state:'info'});
+      },onRefresh:previewNotice
+    }:null,
     confirmation:reviewing?{
       text:'确认后，该演示条目会从已安装列表消失。这里不调用真实卸载、数据清理或权限 API。',
       onCancel:cancelDemoUninstallReview,onConfirm:confirmDemoUninstallReview
@@ -457,7 +472,7 @@ function openDemoDetail(key){
   app.renderView('detail');
   // Match production openDetail(): make the newly opened view keyboard reachable.
   requestAnimationFrame(()=>{
-    if(selectedDemoKey===key&&document.getElementById('extension-center-detail')?.hidden===false)
+    if(!focusToggle&&selectedDemoKey===key&&document.getElementById('extension-center-detail')?.hidden===false)
       document.getElementById('extension-center-back')?.focus({preventScroll:true});
   });
 }

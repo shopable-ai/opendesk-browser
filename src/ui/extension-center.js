@@ -117,6 +117,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       language:localeController?.getPreference?.()||language(),
       onSearch(value){if(disposed)return;searchText=value;query=value.trim();draw();},
       onMarket(){if(!disposed)openMarket();},
+      onLanguageSettings(event){if(event?.isTrusted===true&&!disposed)openLanguageSettings();},
       onDiscover(event){if(!disposed)void detectPageInstall(event);},
       onToggleMenu(){if(disposed)return;closeRowMenu();toolbarMenuOpen=!toolbarMenuOpen;syncFilters();},
       onCloseMenu:closeMenu,

@@ -32,16 +32,17 @@ test('R33.3 real TSX transformation and privilege-free UI modules',async()=>{
     const code=await read(path);
     const transformed=await transform(code,{loader:'tsx',jsx:'transform',target:'es2022'});
     assert.ok(transformed.code.length>0,'TSX transpiles: '+path);
-    // The trusted bookmark pilot imports three fixed, reviewed JS sources;
-    // its unchanged CSS is assembled into the existing fixed shell stylesheet.
-    // Exempt those exact statements only; arbitrary sidebar-tool imports remain forbidden.
-    const auditedBookmarkImports=[
+    // These two trusted pilots already have fixed, reviewed React imports.
+    // Exempt only the exact pinned statements; new imports must still fail.
+    const auditedTrustedImports=[
       "import '../../../examples/sidebar-tools/bookmark-manager/src/model.js';",
       "import '../../../examples/sidebar-tools/bookmark-manager/src/service.js';",
-      "import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';"
+      "import BookmarkReactApp from '../../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx';",
+      "import KnowledgeWorkspace from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx';",
+      "import knowledgeWorkspaceCSS from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/workspace.css?raw';"
     ];
     const checkedCode=path==='src/ui/react/main.tsx'
-      ?auditedBookmarkImports.reduce((value,statement)=>value.replace(statement,''),code)
+      ?auditedTrustedImports.reduce((value,statement)=>value.replace(statement,''),code)
       :code;
     assert.doesNotMatch(checkedCode,/from ['"][^'"]*(?:framework\/sdk|platform\/host|sidebar-tools\/installation|chrome|examples\/sidebar-tools)/);
   }
