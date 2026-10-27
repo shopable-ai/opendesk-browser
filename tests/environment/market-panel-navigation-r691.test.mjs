@@ -126,7 +126,7 @@ test('production single-app entry points do not create tool tabs or bypass confi
   assert.doesNotMatch(external,/toolPageHref\(/);
   assert.match(page,/navigatePanel\('review',app\)/);
   assert.match(external,/loadMarketReleaseDescriptor\(request\.subject/);
-  assert.match(external,/source\.sha256|storedSource\.sha256/);
+  assert.match(external,/storedSource\?\.sha256!==release\.sha256/);
   assert.match(center,/sidebarTools\.openOfficialReview\(selected\.release\.toolId\)/);
   assert.match(shell,/actualSidePanel\)\{/);
   assert.match(shell,/extensionCenter\.openInstalledMarketApp/);
