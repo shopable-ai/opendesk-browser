@@ -268,6 +268,17 @@ test('panel CSS consumes measured radius without any website selector',async()=>
   assert.doesNotMatch(css,/(?:^|[}\n])\s*(?:form|textarea|#prompt-textarea)[\s:{]/);
 });
 
+test('product preview keeps the original crown and moves calibration to a separate tool',async()=>{
+  const html=await readFile(new URL('../preview/index.html',import.meta.url),'utf8');
+  const tool=await readFile(new URL('../preview/tools/crown-tuner.html',import.meta.url),'utf8');
+  assert.match(html,/mark\.textContent='···'/);
+  assert.match(html,/显示 3 条示例消息/);
+  assert.match(html,/tools\/crown-tuner\.html/);
+  assert.doesNotMatch(html,/id="angle"|id="scale"|detail-native/);
+  assert.match(tool,/\.\.\/\.\.\/assets\/queue\.css/);
+  assert.match(tool,/class="sq-crown"/);
+});
+
 test('single-line row allows only the added action width without shrinking the native shell or controls',()=>{
   const h=fixture({damage:'inline'});
   assert.equal(h.view.place(h.snap),true);h.view.render();
