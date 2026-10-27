@@ -4,9 +4,76 @@ import {createPortal} from 'react-dom';
 import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings} from './trusted-settings.tsx';
 import {UninstallDialog} from './tools.tsx';
 import {TrustedConversationHeaderSlot} from '../components/conversation.tsx';
+import {Button,IconButton} from '../components/ui/button.tsx';
 
 const h=React.createElement.bind(React);
 const ToolContext = React.createContext(null);
+
+const MARKET_CAPABILITY_UI=Object.freeze({
+  'storage.local':['本机应用数据','保存此应用的本地配置与资料','data'],
+  'browser.storage':['浏览器存储','通过受控 SDK 使用浏览器存储','data'],
+  'currentPage.read':['当前网页内容','在授权范围内读取当前页面','web'],
+  'tasks.open':['打开任务','通过受控入口打开任务','tool'],
+  'page.toc':['页面目录','读取文章结构并生成目录','web'],
+  'page.clip':['网页摘录','提取并保存网页选定内容','web'],
+  'page.capture':['网页内容捕获','在授权后捕获当前网页信息','web'],
+  'user.export':['导出文件','将用户选择的数据导出到本机','data'],
+  'knowledge.store':['知识资料','保存应用自己的知识内容','data'],
+  'time.review':['时间分析','查看受控的网站时间记录','web'],
+  'focus.control':['专注管理','通过可信运行时管理专注规则','tool'],
+  'ai.access':['AI 服务','通过受控接口使用 AI 能力','tool'],
+  'adblock.control':['内容屏蔽','管理由此应用控制的屏蔽规则','web'],
+  'page.prompts':['网页提示词','在授权网页使用提示词快捷操作','web'],
+  'browser.contextMenu':['网页右键菜单','在审阅的网站范围使用右键入口','web'],
+  'browser.tabs':['浏览器标签页','查询或操作浏览器标签页','web'],
+  'browser.sidePanel':['浏览器侧边栏','打开或控制受限侧边栏界面','tool'],
+  'network':['网络请求','通过 SDK 发起受控网络请求','web'],
+  'browser.network.observe':['网络活动观察','按授权规则观察网络活动','web'],
+  'browser.events':['浏览器事件','订阅允许的浏览器事件','tool'],
+  'browser.operations':['浏览器操作','执行受许可的浏览器操作','web'],
+  'browser.screenshot':['网页截图','在授权后捕获网页画面','web'],
+  'browser.bookmarks':['书签','读取或管理授权范围内的书签','data'],
+  'browser.bookmarks.full':['完整书签','访问完整浏览器书签树','data'],
+  'browser.scheduler':['定时任务','登记受控的定时处理','tool'],
+  'browser.cookies.read':['Cookie 元信息','按实际权限读取 Cookie 信息','web'],
+  'browser.cookies.values':['Cookie 内容','按实际权限读取 Cookie 值','web'],
+  'browser.cookies.write':['修改 Cookie','按实际权限写入 Cookie','web'],
+  'browser.cookies.observe':['Cookie 变化','监听已授权范围内的 Cookie 变化','web'],
+  'browser.cookies.clear':['删除 Cookie','按实际权限清除 Cookie','web'],
+  'browser.proxy.managed':['受管代理','管理受限的浏览器代理配置','web']
+});
+const MARKET_NO_SITE_CAPABILITIES=new Set([
+  'storage.local','browser.storage','knowledge.store','user.export','browser.sidePanel'
+]);
+function marketOriginHost(origin){
+  try {return new URL(origin).host;}catch{return '已配置发行渠道';}
+}
+function MarketGlyph({kind='app'}){
+  const paths={
+    app:<><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8.5 8.5h2v2h-2zM13.5 8.5h2v2h-2zM8.5 13.5h2v2h-2zM13.5 13.5h2v2h-2z"/></>,
+    shield:<><path d="M12 2.6 20 6v5.4c0 5.2-3.7 8.7-8 10-4.3-1.3-8-4.8-8-10V6z"/><path d="m8.7 12.2 2.3 2.3 4.5-4.6"/></>,
+    data:<><ellipse cx="12" cy="5.4" rx="7.9" ry="3.1"/><path d="M4.1 5.4v13c0 1.7 3.5 3.1 7.9 3.1s7.9-1.4 7.9-3.1v-13M4.1 11.9c0 1.7 3.5 3.1 7.9 3.1s7.9-1.4 7.9-3.1"/></>,
+    web:<><circle cx="12" cy="12" r="9"/><path d="M3.2 12h17.6M12 3c3 2.5 4.6 5.5 4.6 9s-1.6 6.5-4.6 9c-3-2.5-4.6-5.5-4.6-9S9 5.5 12 3"/></>,
+    tool:<><path d="M13.9 3.5a6.2 6.2 0 0 0-7.8 7.8L3 14.4l6.6 6.6 3.1-3.1a6.2 6.2 0 0 0 7.8-7.8l-4.4 4.4-6.6-6.6z"/></>,
+    arrow:<><path d="M4.5 12h14m-6-6 6 6-6 6"/></>,
+    check:<><circle cx="12" cy="12" r="9"/><path d="m7.5 12.3 3.2 3.2 5.8-6.3"/></>,
+    info:<><circle cx="12" cy="12" r="9"/><path d="M12 10.6v5.7m0-9.4v.2"/></>
+  };
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[kind]||paths.tool}</svg>;
+}
+function MarketCapabilityRow({code,isNew=false}){
+  const [name,explanation,icon]=MARKET_CAPABILITY_UI[code]||[
+    '其他受限能力','按浏览器运行时的实际能力与授权规则检查；完整标识见高级信息','tool'];
+  return <div className={'od-market-capability-row'+(isNew?' is-new':'')} >
+    <span className="od-market-capability-icon"><MarketGlyph kind={icon}/></span>
+    <div className="od-market-capability-copy">
+      <div className="od-market-capability-title">{name}{isNew&&<span className="od-market-added">新增</span>}</div>
+      <p>{explanation}</p>
+    </div>
+  </div>;
+}
+
 
 
 export function ToolHost({view}) {
@@ -132,47 +199,138 @@ export function ToolHost({view}) {
 <ImportSheet open={importOpen} blockFiles={marketReview !== null} busy={Boolean(marketReview?.busy)}
   onBackdrop={event=>marketReview ? dismissImport() : view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}
   onFileDrop={event=>{if(!marketReview)view.dispatch('sidebar-tool-file','drop',event.nativeEvent);}}>
-{marketReview ? <section id="sidebar-tool-import" className="sidebar-tool-import od-surface"
+{marketReview ? <section id="sidebar-tool-import" className="sidebar-tool-import od-surface od-market-install-sheet"
   ref={node=>{if(node)refs.current.set('sidebar-tool-import',node);else refs.current.delete('sidebar-tool-import');}}
   role="dialog" aria-modal="true" aria-labelledby="sidebar-tool-import-heading" tabIndex={-1}
   aria-busy={marketReview.busy} data-phase={marketReview.phase}>
   <div className="sidebar-tool-import-head od-toolbar">
-    <strong id="sidebar-tool-import-heading">{marketReview.title}</strong>
-    <button type="button" className="sidebar-tool-icon-action od-icon-button"
-      title={['installed','cancelled'].includes(marketReview.phase)?'关闭':'稍后继续'}
-      aria-label={['installed','cancelled'].includes(marketReview.phase)?'关闭':'稍后继续'}
+    <strong id="sidebar-tool-import-heading">{marketReview.phase==='review'?
+      (marketReview.details?.previousVersion?'审阅应用更新':'审阅应用安装'):'安装审阅结果'}</strong>
+    <IconButton label={['installed','cancelled'].includes(marketReview.phase)?'关闭':'稍后继续'}
+      className="sidebar-tool-icon-action od-market-close"
       disabled={marketReview.busy} onClick={dismissImport}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
-    </button>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
+        strokeLinecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
+    </IconButton>
   </div>
   <div className="od-import-sheet-body od-market-review">
-    <p role={marketReview.phase==='error'?'alert':'status'} className="od-market-status">{marketReview.message}</p>
     {marketReview.details ? <>
-      <dl className="od-market-facts">
-        <div><dt>安装版本</dt><dd>{marketReview.phase==='review'&&marketReview.details.previousVersion?
-          `v${marketReview.details.previousVersion} → v${marketReview.details.version}`:`v${marketReview.details.version}`}</dd></div>
-        <div><dt>来源</dt><dd>{marketReview.details.origin}</dd></div>
-      </dl>
+      <div className="od-market-identity">
+        <span className="od-market-app-icon"><MarketGlyph kind="app"/></span>
+        <div className="od-market-identity-copy">
+          <h2 className="od-market-app-name">{marketReview.title}</h2>
+          <p className="od-market-publisher" title="已核对配置的发行渠道，不代表认证了开发者身份">
+            发行渠道 · {marketOriginHost(marketReview.details.origin)}
+          </p>
+        </div>
+      </div>
+      <div className="od-market-version-line">
+        <span className="od-market-version-label">{marketReview.details.previousVersion?'版本更新':'安装版本'}</span>
+        <div className="od-market-version-numbers">
+          {marketReview.details.previousVersion&&<>
+            <span className="od-market-version-from">v{marketReview.details.previousVersion}</span>
+            <span className="od-market-version-arrow"><MarketGlyph kind="arrow"/></span>
+          </>}
+          <strong>v{marketReview.details.version}</strong>
+        </div>
+      </div>
       {marketReview.phase==='review'&&<>
-        <p>{marketReview.details.description}</p>
-        <section className="od-market-permissions" aria-label="申请权限">
-          <strong>申请权限</strong>
-          {marketReview.details.capabilities.length?<ul>{marketReview.details.capabilities.map(cap=><li key={cap}>{cap}</li>)}</ul>:<p>无</p>}
-          {marketReview.details.previousVersion&&<p>本次新增：{marketReview.details.addedCapabilities.join('、')||'无'}；保留原有应用数据。已停用的应用更新后仍保持停用。</p>}
+        {marketReview.details.description&&<p className="od-market-description">{marketReview.details.description}</p>}
+        {marketReview.details.identicalInstalledPackage&&
+          <p className="od-market-same-package"><MarketGlyph kind="check"/> 本机已有完全相同的版本与内容，确认后只核对原安装结果。</p>}
+        <section className="od-market-section" aria-labelledby="od-market-permissions-title">
+          <div className="od-market-section-head">
+            <span className="od-market-section-icon"><MarketGlyph kind="shield"/></span>
+            <h3 id="od-market-permissions-title">权限与访问</h3>
+            <span className="od-market-section-aside">{(marketReview.details.capabilityCodes??[]).length} 项声明</span>
+          </div>
+          {(marketReview.details.capabilityCodes??[]).length?
+            <div className="od-market-capability-list">
+              {(marketReview.details.capabilityCodes??[]).slice(0,3).map(code=>
+                <MarketCapabilityRow key={code} code={code}
+                  isNew={(marketReview.details.addedCodes??[]).includes(code)&&Boolean(marketReview.details.previousVersion)}/>)}
+              {(marketReview.details.capabilityCodes??[]).length>3&&
+                <details className="od-market-more-capabilities">
+                  <summary>查看其余 {(marketReview.details.capabilityCodes??[]).length-3} 项能力</summary>
+                  <div className="od-market-capability-list">
+                    {marketReview.details.capabilityCodes.slice(3).map(code=>
+                      <MarketCapabilityRow key={code} code={code}
+                        isNew={(marketReview.details.addedCodes??[]).includes(code)&&Boolean(marketReview.details.previousVersion)}/>)}
+                  </div>
+                </details>}
+            </div>:<p className="od-market-empty-permissions">未声明额外浏览器能力</p>}
+          <div className="od-market-site-scope">
+            <span className="od-market-site-icon"><MarketGlyph kind="web"/></span>
+            <div>
+              <strong>{(marketReview.details.capabilityCodes??[]).every(code=>MARKET_NO_SITE_CAPABILITIES.has(code))?
+                '无需网站访问':'网站访问按需授权'}</strong>
+              <p>安装本身不授予网站访问；实际站点范围由权限系统管理。</p>
+            </div>
+          </div>
         </section>
-        <p className="od-market-note">应用在受限沙箱中运行。访问网站或使用敏感能力时，仍需相应授权。</p>
+        {marketReview.details.previousVersion&&<section className="od-market-section od-market-changes"
+          aria-labelledby="od-market-changes-title">
+          <div className="od-market-section-head">
+            <span className="od-market-section-icon"><MarketGlyph kind="arrow"/></span>
+            <h3 id="od-market-changes-title">本次变化</h3>
+          </div>
+          {(marketReview.details.addedCodes??[]).length===0&&(marketReview.details.removedCodes??[]).length===0?
+            <div className="od-market-unchanged"><MarketGlyph kind="check"/> 权限声明没有变化</div>:
+            <div className="od-market-change-details">
+              {(marketReview.details.addedCodes??[]).length>0&&<p>
+                <strong>新增能力</strong> · {marketReview.details.addedCodes.map(code=>
+                  MARKET_CAPABILITY_UI[code]?.[0]||'其他受限能力').join('、')}
+              </p>}
+              {(marketReview.details.removedCodes??[]).length>0&&<p>
+                <strong>移除能力</strong> · {marketReview.details.removedCodes.map(code=>
+                  MARKET_CAPABILITY_UI[code]?.[0]||'其他受限能力').join('、')}
+              </p>}
+            </div>}
+          <p className="od-market-secondary-note">仅比较已核验的能力声明；发行包未提供功能更新日志。</p>
+        </section>}
+        <section className="od-market-retention" aria-label="安装与数据影响">
+          <span className="od-market-retention-icon"><MarketGlyph kind="check"/></span>
+          <div>
+            <strong>{marketReview.details.previousVersion?'保留现有数据':'安装不会自动执行应用代码'}</strong>
+            <p>{marketReview.details.previousVersion?
+              '正常更新不会主动清除应用数据；原有停用状态延续。':'安装完成后由你决定何时打开使用。'}
+            </p>
+            {marketReview.details.previousDisabled&&<p className="od-market-retained-disabled">当前应用已停用，更新后仍保持停用。</p>}
+          </div>
+        </section>
       </>}
-    </> : marketReview.summary.map((line,index)=><p key={index}>{line}</p>)}
-    {marketReview.technical.length>0&&<details className="sidebar-tool-technical-details od-disclosure od-disclosure--flat">
-      <summary>技术详情 · 文件与校验信息</summary>
-      {marketReview.technical.map((line,index)=><p key={index}>{line}</p>)}
+    </> : marketReview.summary.map((line,index)=><p key={index} className="od-market-fallback-line">{line}</p>)}
+    {marketReview.phase!=='review'&&<div className="od-market-feedback"
+      role={marketReview.phase==='error'?'alert':'status'} aria-live="polite">
+      <MarketGlyph kind={marketReview.phase==='installed'?'check':'info'}/>
+      <p>{marketReview.message}</p>
+    </div>}
+    {marketReview.details&&<details className="sidebar-tool-technical-details od-market-advanced od-disclosure od-disclosure--flat">
+      <summary>高级信息 <span>应用身份与发行校验</span></summary>
+      <dl>
+        <div><dt>应用 ID</dt><dd>{marketReview.details.id||'未提供'}</dd></div>
+        <div><dt>完整来源</dt><dd>{marketReview.details.origin}</dd></div>
+        <div><dt>SHA-256</dt><dd>{marketReview.details.sha256||'预览无真实校验摘要'}</dd></div>
+        {Number.isSafeInteger(marketReview.details.packageBytes)&&
+          <div><dt>发行包大小</dt><dd>{marketReview.details.packageBytes.toLocaleString('zh-CN')} 字节</dd></div>}
+        <div><dt>原始能力标识</dt><dd>{(marketReview.details.capabilityCodes??[]).join(' · ')||'无'}</dd></div>
+      </dl>
+      <p>校验固定发行内容不等于发布者身份认证；具体网站授权由现有权限系统决定。</p>
     </details>}
+    {!marketReview.details&&marketReview.technical.length>0&&
+      <details className="sidebar-tool-technical-details od-market-advanced od-disclosure od-disclosure--flat">
+        <summary>高级信息</summary>
+        {marketReview.technical.map((line,index)=><p key={index}>{line}</p>)}
+      </details>}
   </div>
   <div className="od-import-sheet-footer od-market-footer">
-    {marketReview.phase==='review'&&<p className="od-market-note">关闭可稍后继续；取消安装会结束本次请求。</p>}
-    <div className="od-toolbar">{marketReview.actions.map((action,index)=><button key={action.id} type="button"
-      className={index===0?'od-button':'od-button od-button--secondary'} disabled={marketReview.busy}
-      onClick={()=>{if(!marketReviewRef.current?.busy)view.marketInstallActions?.act(action.id);}}>{action.label}</button>)}</div>
+    {marketReview.phase==='review'&&
+      <p className="od-market-footer-note">确认一次即可提交此固定版本；关闭可以稍后继续审阅。</p>}
+    <div className="od-market-actions">{marketReview.actions.map((action,index)=>
+      <Button key={action.id} variant={index===0?'primary':'secondary'}
+        disabled={marketReview.busy} onClick={()=>{if(!marketReviewRef.current?.busy)view.marketInstallActions?.act(action.id);}}>
+        {action.label}
+      </Button>)}</div>
   </div>
 </section> : <ToolField as="section" id="sidebar-tool-import" className="sidebar-tool-import od-surface"
   role="dialog" aria-modal={importOpen} aria-labelledby="sidebar-tool-import-heading" hidden={true} tabIndex={-1}>
