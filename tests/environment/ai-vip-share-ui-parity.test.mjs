@@ -29,6 +29,11 @@ test('one React app owns exactly one root and all controller-required nodes',()=
   assert.equal(ids.filter(id=>id==='ai-vip-proxy-toggle').length,1);
   assert.ok(ids.includes('ai-vip-shared-receive'),'Only a conditional website-session retry remains');
   assert.equal(ids.filter(id=>id==='ai-vip-redeem-confirm').length,1);
+  assert.equal(ids.filter(id=>id==='ai-vip-secondary-metrics').length,1);
+  assert(!ids.includes('ai-vip-benefits')&&!ids.includes('ai-vip-benefits-section'),
+    'A separate 我的权益 block is forbidden');
+  assert.doesNotMatch(view,/我的权益/);
+  assert.match(controller,/secondaryMetrics\.textContent=extras\.map/);
 });
 
 test('member-first product structure reuses official Shared UI and never clones Host',()=>{
@@ -72,6 +77,8 @@ test('formal package references one compiled React UI and immutable business saf
   assert.match(pkg.js,/OpenDeskSidebarUI/);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
   assert.match(pkg.css,/ai-vip-membership/);
+  assert.match(pkg.css,/ai-vip-secondary-metrics/);
+  assert.doesNotMatch(pkg.css,/\.ai-vip-benefits\{/);
   assert.doesNotMatch(pkg.css,/\.ai-vip-brand/);
   assert.deepEqual(pkg.capabilities,config.capabilities);
   const ready=JSON.parse(await read('dist/build-ready.json'));

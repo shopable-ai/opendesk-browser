@@ -36,10 +36,7 @@ export default function VipApp(){
           <div id="ai-vip-meter" className="ai-vip-meter" role="progressbar" aria-label="已核验的剩余额度进度" aria-valuemin="0" aria-valuemax="100" hidden><span id="ai-vip-meter-bar"></span></div>
           </div>
           <p id="ai-vip-verified" className="ai-vip-meta" role="status" aria-live="polite" hidden></p>
-          <div id="ai-vip-benefits-section" className="ai-vip-benefits" hidden>
-            <div className="ai-vip-benefits-head"><h3 id="ai-vip-benefits-title">我的权益</h3></div>
-            <ul id="ai-vip-benefits" className="ai-vip-list" aria-labelledby="ai-vip-benefits-title"></ul>
-          </div>
+          <p id="ai-vip-secondary-metrics" className="ai-vip-secondary-metrics" hidden></p>
         </CardContent>
         <details id="ai-vip-history-details" className="ai-vip-history" hidden>
           <summary><strong>兑换记录</strong><span><span id="ai-vip-history-count"></span> <span aria-hidden="true">▾</span></span></summary>

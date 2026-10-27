@@ -31,8 +31,8 @@
 .ai-vip-meter{height:5px;border-radius:var(--radius-pill);background:var(--od-bg);margin:10px 0 0;overflow:hidden}
 .ai-vip-meter span{display:block;height:100%;width:0;border-radius:var(--radius-pill);background:var(--od-brand);transition:width .2s}
 .ai-vip-meta{font-size:12px;line-height:1.5;color:var(--od-sub);margin:11px 0 0}
-.ai-vip-benefits{margin-top:12px;padding-top:12px;border-top:1px solid var(--od-line)}
-.ai-vip-benefits-head h3,.ai-vip-benefits-head strong{font-size:13px;font-weight:700;color:var(--od-ink)}
+.ai-vip-secondary-metrics{margin:9px 0 0;color:var(--od-sub);font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.ai-vip-benefits-head strong{font-size:13px;font-weight:700;color:var(--od-ink)}
 .ai-vip-benefits-head span{font-size:12px;color:var(--od-sub)}
 .ai-vip-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:7px}
 .ai-vip-list li{font-size:12px;line-height:1.55;padding:9px 10px;border-radius:var(--radius-control);background:var(--od-bg);color:var(--od-sub);overflow-wrap:anywhere}

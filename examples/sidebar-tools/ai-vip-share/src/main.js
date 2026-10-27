@@ -11,7 +11,7 @@
   const byId=id=>root.querySelector('#'+id);
   const memberCard=byId('ai-vip-member-card');
   const memberFacts=byId('ai-vip-member-facts');
-  const benefitSection=byId('ai-vip-benefits-section');
+  const secondaryMetrics=byId('ai-vip-secondary-metrics');
   const historyDetails=byId('ai-vip-history-details');
   const redeemIntro=byId('ai-vip-redeem-intro');
   const redeemFine=byId('ai-vip-redeem-fine');
@@ -24,7 +24,7 @@
   const unit=byId('ai-vip-remaining-unit');
   const expiry=byId('ai-vip-expiry');
   const verified=byId('ai-vip-verified');
-  const benefits=byId('ai-vip-benefits');
+
   const history=byId('ai-vip-history-list');
   const historyCount=byId('ai-vip-history-count');
   const refresh=byId('ai-vip-refresh');
@@ -54,11 +54,11 @@
   const sharedStatus=byId('ai-vip-shared-status'),sharedReceive=byId('ai-vip-shared-receive');
   const cookieOpen=byId('ai-vip-cookie-open');
   if([memberState,accountName,productName,remaining,unit,expiry,verified,
-    benefits,history,historyCount,refresh,code,redeem,redeemStatus,redeemError,
+    secondaryMetrics,history,historyCount,refresh,code,redeem,redeemStatus,redeemError,
     previewPanel,previewTitle,previewDescription,previewAccount,cancel,
     recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus,
     metricLabel,meter,meterBar,redeemForm,codeReveal,codeClear,confirm,
-    memberCard,memberFacts,benefitSection,historyDetails,redeemIntro,redeemFine,
+    memberCard,memberFacts,historyDetails,redeemIntro,redeemFine,
     shopSection,proxySection]
       .some(element=>!element))return;
 
@@ -734,16 +734,6 @@
       entitlements:data.entitlements.map(verifiedEntitlement),
       redemptions:data.redemptions.map(verifiedRecord)};
   }
-  function benefitDescription(e,serverNow){
-    if(e.type==='time'){
-      const days=Math.max(0,Math.ceil((e.expiresAt-serverNow)/86400000));
-      return (e.status==='active'?'剩余 '+days+' 天 · ':'')+
-        '到期 '+dateLabel(e.expiresAt)+' · '+statusLabel(e.status);
-    }
-    if(e.type==='quota'||e.type==='credit')
-      return '剩余 '+e.remaining+' / '+e.total+' '+e.unit+' · '+statusLabel(e.status);
-    return e.detail+' · '+statusLabel(e.status);
-  }
   const statusLabel=value=>({active:'有效',expired:'已到期',
     exhausted:'已用尽',inactive:'未生效'})[value]||'待核验';
   function renderMember(){
@@ -800,12 +790,17 @@
     }
     verified.hidden=!primary&&!redemptions.length;
     verified.textContent=verified.hidden?'':'服务端已核验 · '+dateLabel(serverNow);
-    // The primary entitlement is already the member hero metric; listing it
-    // twice adds visual noise. Secondary grants still show their own detail.
+    // One member card: no second "我的权益" panel. Do not lose genuine
+    // supplementary quota/feature grants that are not the hero entitlement.
+    // All strings are from the already validated server snapshot.
     const extras=entitlements.filter(e=>e!==primary);
-    benefitSection.hidden=!extras.length;
-    clear(benefits);
-    extras.forEach(e=>addRow(benefits,e.title,benefitDescription(e,serverNow)));
+    secondaryMetrics.textContent=extras.map(e=>{
+      if(e.type==='quota'||e.type==='credit')
+        return e.title+'：'+e.remaining+' / '+e.total+' '+e.unit;
+      if(e.type==='time')return e.title+'：'+dateLabel(e.expiresAt);
+      return e.title+'：'+statusLabel(e.status);
+    }).join(' · ');
+    secondaryMetrics.hidden=!extras.length||account.state!=='bound';
     historyDetails.hidden=!redemptions.length;
     historyCount.textContent=redemptions.length?String(redemptions.length)+' 条':'';
     clear(history);
@@ -913,7 +908,7 @@
     accountName.hidden=false;
     productName.textContent='';productName.hidden=true;
     memberFacts.hidden=true;verified.hidden=true;
-    benefitSection.hidden=true;historyDetails.hidden=true;
+    secondaryMetrics.hidden=true;historyDetails.hidden=true;
     renderRedeem();
     try{
       const data=verifiedMember(await businessRequest('GET',endpoints.member));
@@ -931,11 +926,11 @@
       productName.textContent='请检查网络或权限，然后刷新重试。';
       productName.hidden=false;
       memberFacts.hidden=true;verified.hidden=true;
-      benefitSection.hidden=true;historyDetails.hidden=true;
+      secondaryMetrics.hidden=true;historyDetails.hidden=true;
       remaining.textContent='';unit.textContent='';expiry.textContent='';
       meter.hidden=true;meterBar.style.width='0%';
       meter.removeAttribute('aria-valuenow');
-      clear(benefits);clear(history);historyCount.textContent='';
+      secondaryMetrics.textContent='';clear(history);historyCount.textContent='';
       if(recovery)redeemNotice('会员身份暂无法核验，上次兑换仍待核对；不可再次提交。',true);
       else if(redeemStatus.textContent.includes('服务端已确认兑换成功'))
         redeemNotice('服务端已确认兑换成功，但权益刷新失败；请稍后刷新查看最新数据。');
@@ -1408,7 +1403,7 @@
     accountName.hidden=false;
     productName.textContent='';productName.hidden=true;
     memberFacts.hidden=true;verified.hidden=true;
-    benefitSection.hidden=true;historyDetails.hidden=true;
+    secondaryMetrics.hidden=true;historyDetails.hidden=true;
     redeemNotice('会员服务接入后可使用兑换码。');
     refresh.hidden=true;refresh.disabled=true;
     }else{

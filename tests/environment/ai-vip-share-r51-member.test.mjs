@@ -95,7 +95,8 @@ test('R5.2 official package grants scoped recovery storage but no network permis
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write','currentPage.read']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
-  assert(view.includes('id="ai-vip-benefits"'));
+  assert(view.includes('id="ai-vip-secondary-metrics"'));
+  assert(!view.includes('我的权益')&&!view.includes('id="ai-vip-benefits-section"'));
   assert(view.includes('id="ai-vip-history-list"'));
   assert(view.includes('aria-live="polite"'));
   assert(!/fetch\(|window\.open\(|chrome\.proxy|aiAccess\.activate/.test(pkg.js));
@@ -120,8 +121,9 @@ test('R5.1 verified time and quota show distinct values, server expiry and ledge
   assert.equal(node(e,'remaining').textContent,'3');
   assert.equal(node(e,'remaining-unit').textContent,'天');
   assert.match(node(e,'expiry').textContent,/2026/);
-  assert.equal(node(e,'benefits').children.length,1,'primary hero entitlement must not repeat in the secondary list');
-  assert.match(node(e,'benefits').children[0].children[1].textContent,/17 \/ 100 次/);
+  assert.equal(node(e,'secondary-metrics').hidden,false);
+  assert.match(node(e,'secondary-metrics').textContent,/请求配额：17 \/ 100 次/);
+  assert.doesNotMatch(node(e,'secondary-metrics').textContent,/3 天体验权益/);
   assert.equal(node(e,'history-count').textContent,'1 条');
   assert.equal(node(e,'redeem-code').disabled,false);
   assert(e.calls.every(call=>call.url.startsWith(BOUND)));
@@ -618,7 +620,7 @@ test('R5.2 fixed HTTPS catalog requires trust, coalesces in-flight clicks and re
 
 test('R5.9.4 service-unconfigured UI omits empty metrics, disabled forms and shop',async()=>{
   const e=await runtime();
-  for(const id of ['member-facts','benefits-section','history-details','redeem-form',
+  for(const id of ['member-facts','secondary-metrics','history-details','redeem-form',
     'shop-section','proxy-toggle','refresh'])
     assert.equal(node(e,id).hidden,true,id+' must be absent from the visible empty state');
   assert.equal(node(e,'remaining').textContent,'');
@@ -628,7 +630,7 @@ test('R5.9.4 guest and verified no-subscription state do not show phantom stats'
   for(const [account,isGuest] of [[{state:'guest'},true],[undefined,false]]){
     const e=await runtime({configured:true,provider:async()=>({status:200,
       data:member({account,entitlements:[]})})});
-    for(const id of ['member-facts','benefits-section','history-details'])
+    for(const id of ['member-facts','secondary-metrics','history-details'])
       assert.equal(node(e,id).hidden,true);
     assert.equal(node(e,'redeem-form').hidden,isGuest);
     assert.equal(node(e,'remaining').textContent,'');
@@ -646,6 +648,6 @@ test('R5.9.4 quota, feature and exhausted entitlement get truthful distinct pres
     assert.equal(node(e,'member-facts').hidden,false);
     assert.equal(node(e,'remaining').textContent,want);
     assert.notEqual(node(e,'remaining-unit').textContent,'天');
-    assert.equal(node(e,'benefits-section').hidden,true,'one visible hero metric needs no duplicated list');
+    assert.equal(node(e,'secondary-metrics').hidden,true,'one hero metric needs no separate rights list');
   }
 });

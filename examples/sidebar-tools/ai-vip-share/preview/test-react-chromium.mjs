@@ -153,8 +153,12 @@ async function run(){
   assert.equal(await evaluate('document.querySelector("#ai-vip-product-name")?.textContent.includes("AI 会员")'),true);
   assert.equal(await evaluate('document.querySelector("#ai-vip-cookie-section")?.hidden'),true,
     'default membership must not add unapproved website-session workflow');
-  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-benefits .ai-vip-list-item").length'),2,
-    'primary membership hero must not repeat in benefit list');
+  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-benefits-section,#ai-vip-benefits").length'),0,
+    'a second 我的权益 panel must not be mounted');
+  const secondary=await evaluate('document.getElementById("ai-vip-secondary-metrics")?.textContent');
+  assert.match(secondary,/可用额度：80 \/ 120 次/);
+  assert.match(secondary,/AI 网站访问：有效/);
+  assert(!secondary.includes('AI 会员体验权益'),'hero entitlement must not repeat');
   const labels=await evaluate('document.getElementById("tool-app").innerText');
   assert(!labels.includes('演示网站访问')&&!labels.includes('公司共享账号'),'fixture labels leaked into product');
   result.checks.push('product typography uses clean membership/website-access labels');
