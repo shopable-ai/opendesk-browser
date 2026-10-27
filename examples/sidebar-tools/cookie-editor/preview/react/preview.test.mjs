@@ -370,7 +370,8 @@ test('R3.2 market and account invite share one formal App but never create produ
  assert.match(product,/initialSection='cookie'/);
  assert.match(product,/\['cookie','Cookie'\],\['accounts','账号'\],\['enterprise','企业'\]/);
  assert.match(preview,/React\.useState\('accountsDemo'\)/);
- assert.match(preview,/initialSection=\{\['accountsDemo'/);
+ assert.match(preview,/initialSection=\{\['accountsLocked'/);
+ assert.doesNotMatch(preview,/initialSection=\{\['accountsDemo'/);
  assert.match(preview,/<CookieEditorApp\b/);
  assert.match(accounts,/<CookieAccountShare account=\{shareItem\} previewOnly=\{previewOnly\}/);
  assert.doesNotMatch(accounts,/export function CookieAccountMarket/);
