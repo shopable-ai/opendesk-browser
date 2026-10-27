@@ -34,8 +34,10 @@
       if(operation==='storage.set'){
         if(args.key!=='fingerprint.a.history.v1'||args.ifMatch!==etag(stored))
           throw Object.assign(Error('预览版本冲突'),{code:'E_STORAGE_CONFLICT'});
-        stored=structuredClone(args.value);
-        try{localStorage.setItem(key,JSON.stringify(stored));}catch{}
+        const next=structuredClone(args.value);
+        try{localStorage.setItem(key,JSON.stringify(next));}
+        catch{throw Object.assign(Error('离线预览存储不可写，未确认保存'),{code:'E_PREVIEW_STORAGE'});}
+        stored=next;
         return {saved:true,preview:true};
       }
       if(operation==='clipboard.writeText'){
