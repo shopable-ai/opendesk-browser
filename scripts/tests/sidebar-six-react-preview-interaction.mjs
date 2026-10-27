@@ -384,6 +384,45 @@ try{
     assert.equal(await evaluate('document.getElementById("sidebar-tool-file-error").hidden'),true);
     await key('Escape');await until('document.getElementById("sidebar-tool-import").hidden');assert.deepEqual(await rowIds(),before);
   });
+  await step('R6.8 market success to existing React detail, disabled and unknown (memory-only)',async()=>{
+    await navigate('tools','tab-tools');
+    await click('#od-sidebar-preview-open-market');
+    await until('document.querySelector("#sidebar-tool-import[data-phase=review]")!==null');
+    assert.equal(await evaluate('document.querySelector("#sidebar-tool-import").textContent.includes("仅预览")'),false,
+      'official production ImportSheet has no fixture note');
+    await click('.od-market-actions button:first-child');
+    await until('document.querySelector("#sidebar-tool-import[data-phase=installed]")!==null');
+    assert.match(await evaluate('document.querySelector(".od-market-feedback").textContent'),/安装完成/);
+    await click('.od-market-actions button:first-child');
+    await until('!document.getElementById("extension-center-detail").hidden');
+    assert.match(await evaluate('document.getElementById("extension-center-detail-body").textContent'),/v2\\.0\\.2/);
+    assert.equal(await evaluate('!!document.querySelector("[data-ec-detail-action=open]")'),true);
+    await screenshot('market-success-to-detail');
+    await click('[data-ec-detail-action=open]');
+    await until('!document.getElementById("sidebar-tool-display").hidden');
+    assert.equal(await evaluate('document.documentElement.dataset.previewProof'),'UI_PREVIEW_ONLY');
+    await click('#sidebar-tool-back');
+    await until('document.getElementById("sidebar-tool-display").hidden');
+    await click('#extension-center-back');
+    await until('document.getElementById("extension-center-detail").hidden');
+    await evaluate('(()=>{const n=document.getElementById("od-sidebar-preview-market-scene");n.value="disabled";n.dispatchEvent(new Event("change",{bubbles:true}));})()');
+    await until('document.querySelector("#sidebar-tool-import[data-phase=installed]")!==null');
+    await click('.od-market-actions button:first-child');
+    await until('!document.getElementById("extension-center-detail").hidden');
+    assert.match(await evaluate('document.getElementById("extension-center-detail-body").textContent'),/展示停用/);
+    assert.equal(await evaluate('!!document.querySelector("[data-ec-detail-action=open]")'),false,
+      'disabled demo cannot acquire a launch action');
+    await click('#extension-center-back');
+    await until('document.getElementById("extension-center-detail").hidden');
+    await evaluate('(()=>{const n=document.getElementById("od-sidebar-preview-market-scene");n.value="unknown";n.dispatchEvent(new Event("change",{bubbles:true}));})()');
+    await until('document.querySelector("#sidebar-tool-import[data-phase=unknown]")!==null');
+    assert.equal(await evaluate('document.querySelector(".od-market-actions").textContent.includes("查看应用")'),false);
+    await click('.od-market-actions button:first-child');
+    await until('document.querySelector("#sidebar-tool-import[data-phase=unknown]")!==null');
+    await click('.od-market-actions button:last-child');
+    await until('document.querySelector("#sidebar-tool-import[data-phase=unknown]")===null');
+    await screenshot('market-unknown-no-success');
+  });
   await step('workflow suggestions, settings, draft retention and disconnected controls',async()=>{
     await navigate('workflow','tab-workflow');
     assert.equal(await evaluate('document.getElementById("workflow-ai-plan").disabled'),true);

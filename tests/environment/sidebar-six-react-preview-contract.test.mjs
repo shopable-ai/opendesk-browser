@@ -63,6 +63,10 @@ test('R37 offline preview generates from the empty official root with working pr
   assert.match(previewSource,/primaryAction:null/);
   assert.match(previewSource,/onMarket:previewNotice,onImport:previewOpenImport,onReload:previewNotice/);
   assert.match(previewSource,/toolView\.bind\('sidebar-tool-import-close'/);
+  assert.match(previewSource,/openDemoDetail\(key\)/,
+    'installed market result must reach the existing React ExtensionDetail');
+  assert.doesNotMatch(previewSource,/模拟成功状态，无真实安装/,
+    'the production drawer must not show preview implementation details');
   assert.match(previewSource,/opendesk\.page-install\.v1/,'preview recognizes Page install metadata without an Authority');
   assert.match(previewSource,/opendesk\.sidebar-tool\.v2/,'preview recognizes Tool package metadata');
   assert.match(previewSource,/仅预览 · 不执行安装/);

@@ -211,6 +211,8 @@ const previewNotice=()=>app.renderStatus({text:'仅预览 · 请在正式 Chrome
 // The canonical React preview demonstrates the drawer and file metadata only.
 // Neither this adapter nor the disabled button can install, update or grant access.
 let previewSelection=0;
+// The scene receipt is in this offline document's memory, never storage.
+let marketDemoReceipt=null;
 const previewOpenImport=()=>{
   toolbar.menuOpen=false;publishToolbar();
   toolView.patch('sidebar-tool-import',{hidden:false});
@@ -245,13 +247,13 @@ function marketExampleReview(scene){
     phase==='unknown'?
       [{id:'recover',label:'核对原安装结果'},{id:'later',label:'稍后继续'}]:
     phase==='installed'?
-      [...(disabled?[]:[{id:'open',label:'打开使用'}]),{id:'done',label:'完成'}]:
+      [{id:'details',label:'查看应用'},{id:'done',label:'完成'}]:
       [{id:'done',label:'完成'}];
   const messages={
-    review:'仅预览 · 展示已核验元数据的界面结构，不执行安装。',
-    installed:disabled?'仅预览 · 已更新，原停用状态继续保留。':'仅预览 · 安装结果已读回，可以打开使用。',
-    cancelled:'仅预览 · 本次安装请求已取消，没有提交。',
-    unknown:'仅预览 · 安装结果未知。核对不会重放提交。'
+    review:'请核对应用及权限。',
+    installed:disabled?'应用已更新，仍保持停用。':'安装完成 · 可查看应用详情。',
+    cancelled:'已取消安装。',
+    unknown:'尚未确认安装结果，请核对原请求。'
   };
   return {
     title:marketExample.title,phase,message:messages[phase],
@@ -282,7 +284,11 @@ function showPreviewMarketReview(scene){
   // are outside that root and can never call a real Installer or Authority.
   onNavigate('tools');
   toolView.patch('sidebar-tool-import',{hidden:true});
-  toolView.setMarketInstall({review:marketExampleReview(scene),error:''});
+  const review=marketExampleReview(scene);
+  marketDemoReceipt=review.phase==='installed'?{
+    id:marketExample.id.split('/')[1],version:marketExample.version,
+    enabled:!review.details.previousDisabled}:null;
+  toolView.setMarketInstall({review,error:''});
   if(previewMarketSelect)previewMarketSelect.value=scene;
   previewMarketTrigger?.setAttribute('aria-expanded','true');
   setPreviewMarketRoute(scene);
@@ -293,19 +299,29 @@ toolView.connectMarketInstall({
     const review=toolView.getSnapshot().market.review;
     if(!review||review.busy||!review.actions.some(action=>action.id===id))return;
     if(id==='commit'){
-      toolView.setMarketInstall({review:{...review,phase:'installed',
-        message:'仅预览 · 模拟成功状态，无真实安装、写入或权限变更。',
-        actions:[{id:'open',label:'打开使用'},{id:'done',label:'完成'}]}});
+      marketDemoReceipt={id:marketExample.id.split('/')[1],version:review.details.version,
+        enabled:!review.details.previousDisabled};
+      const message=review.details.identicalInstalledPackage?'当前已安装此版本。':
+        review.details.previousDisabled?'应用已更新，仍保持停用。':
+        review.details.previousVersion?'更新完成 · 可查看应用详情。':
+          '安装完成 · 可查看应用详情。';
+      toolView.setMarketInstall({review:{...review,phase:'installed',message,
+        actions:[{id:'details',label:'查看应用'},{id:'done',label:'完成'}]}});
     }else if(id==='cancel'){
       toolView.setMarketInstall({review:{...review,phase:'cancelled',
-        message:'仅预览 · 已取消内存演示，没有提交安装。',
+        message:'已取消安装。',
         actions:[{id:'done',label:'完成'}]}});
     }else if(id==='recover'){
       toolView.setMarketInstall({review:{...review,phase:'unknown',
-        message:'仅预览 · 原结果仍未知；没有再次提交或将未知标记为成功。',
+        message:'尚未确认安装结果；仅核对原请求，不重复提交。',
         actions:[{id:'recover',label:'核对原安装结果'},{id:'later',label:'稍后继续'}]}});
-    }else if(id==='open'){
-      app.renderStatus({text:'UI_PREVIEW_ONLY · 未打开真实应用或执行代码',state:'info'});
+    }else if(id==='details'){
+      // Navigates the production ExtensionDetail projection, never a toast.
+      if(review.phase!=='installed'||!marketDemoReceipt||
+        marketDemoReceipt.version!==review.details.version)return;
+      const key='app:'+marketDemoReceipt.id;
+      closePreviewMarketReview();
+      openDemoDetail(key);
     }else if(id==='done'||id==='later'||id==='end'){
       closePreviewMarketReview();
     }
@@ -363,7 +379,13 @@ toolView.bind('sidebar-tool-file','change',async event=>{
 });
 const closeRowMenu=()=>app.renderRowMenu([]);
 const closeDetail=()=>{
+  const key=selectedDemoKey;
   pendingDemoReview=null;selectedDemoKey=null;closeRowMenu();app.renderView('list');
+  queueMicrotask(()=>{
+    const row=key?[...document.querySelectorAll('#extension-center-list [data-extension-key]')]
+      .find(node=>node.dataset.extensionKey===key&&node.dataset.extensionAction==='main'):null;
+    (row||document.getElementById('extension-center-search'))?.focus?.({preventScroll:true});
+  });
 };
 function publishDemoUninstall(){
   const row=demoRows.find(item=>item.key===listDemoReview&&demoInstalled(item));
@@ -400,22 +422,32 @@ function confirmDemoUninstallReview(event){
   document.getElementById('extension-center-search')?.focus({preventScroll:true});
 }
 function openDemoDetail(key){
-  const row=demoRows.find(item=>item.key===key&&!demoRemoved.has(item.key));
-  if(!row)return;
+  const base=demoRows.find(item=>item.key===key&&!demoRemoved.has(item.key));
+  if(!base)return;
+  const receipt=marketDemoReceipt?.id===key.slice(4)?marketDemoReceipt:null;
+  const row=receipt?{...base,version:receipt.version,description:marketExample.description}:base;
   selectedDemoKey=key;closeRowMenu();
   const installed=demoInstalled(row),reviewing=pendingDemoReview===key;
+  const detailActions=receipt&&!reviewing?
+    [...(receipt.enabled?[{id:'open',label:'打开使用',onClick:event=>{
+      if(event?.isTrusted===true)clipper.open();
+    }}]:[]),{id:'settings',label:'设置与权限',onClick:previewNotice}]:
+    installed&&!reviewing?[{id:'uninstall',label:'卸载…',
+      onClick:event=>openDemoUninstallReview(key,event)}]:[];
   app.renderDetail({key:row.key,title:row.title,kind:row.kind,type:row.type,
     description:row.description,installed,cleanupPending:false,
     version:row.version,busy:false,
-    actions:installed&&!reviewing?[{id:'uninstall',label:'卸载…',
-      onClick:event=>openDemoUninstallReview(key,event)}]:[],
+    actions:detailActions,
     confirmation:reviewing?{
       text:'确认后，该演示条目会从已安装列表消失。这里不调用真实卸载、数据清理或权限 API。',
       onCancel:cancelDemoUninstallReview,onConfirm:confirmDemoUninstallReview
     }:null,
-    source:installed?{label:'演示来源（非真实安装）'}:null,
-    installationText:installed?'演示条目 · 非真实安装':'演示候选 · 尚未安装',
-    usageText:'仅供审阅排版，不运行扩展',appDataText:'',
+    source:installed?{label:'内存演示来源（无真实安装回执）'}:null,
+    installationText:receipt?'内存演示 · '+(receipt.enabled?'展示启用':'展示停用'):
+      installed?'演示条目 · 非真实安装':'演示候选 · 尚未安装',
+    usageText:receipt?(receipt.enabled?'点击「打开使用」可查看离线工具界面。':
+      '应用保持停用，查看详情不会自动启用。'):'仅供审阅排版，不运行扩展',
+    appDataText:'',
     sites:row.kind==='page'?['https://example.com/*']:[],suspended:false,
     pageInfo:row.kind==='page'?{
       source:'演示数据',excluded:[],capabilities:[],networkOrigins:[],
@@ -640,8 +672,8 @@ export async function generateSidebarSixReactPreview(){
         '</div>'+
         '<div id="od-sidebar-preview-error" class="od-sidebar-preview-error" role="alert" hidden></div>'+
         appRoot+'<div id="od-preview-gallery"></div></div>',
-      '<p class="od-sidebar-preview-notice">UI_PREVIEW_ONLY · 仅用于界面审阅，'+
-       '无真实安装、授权、模型推理或任务执行；含开发专用调试 Tab。</p></div>',
+      '<p class="od-sidebar-preview-notice">UI_PREVIEW_ONLY · 界面预览，'+
+       '不执行真实安装、授权或应用操作。</p></div>',
       '<script src="data:text/javascript;base64,'+executable.toString('base64')+'"></script>',
       '</body></html>\n'
     ].join('\n');
