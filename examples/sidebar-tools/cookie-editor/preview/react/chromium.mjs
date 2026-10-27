@@ -332,25 +332,25 @@ try{
    await page.setViewportSize({width,height:880});
    await row('theme').click();
    await editor().locator('details.advanced > summary').click();
-   const session=editor().getByRole('checkbox',{name:'Session',exact:true});
+   const mode=editor().getByRole('combobox',{name:'有效期方式'});
    const expiration=editor().locator('input[type="datetime-local"]');
-   assert.equal(await session.isChecked(),false);
+   assert.equal(await mode.inputValue(),'date');
    const original=await expiration.inputValue();
    assert.match(original,/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
-   assert.match(await editor().innerText(),/过期时间（Expiration）/);
+   assert.match(await editor().innerText(),/有效期 · Expiration/);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
      width+'px advanced expiry overflow');
-   await session.check();
+   await mode.selectOption('session');
    assert.equal(await expiration.count(),0);
-   assert.match(await editor().innerText(),/会话 Cookie · 不设置 Expiration/);
-   await session.uncheck();
+   assert.match(await editor().innerText(),/会话 Cookie · 不设置固定到期时间/);
+   await mode.selectOption('date');
    assert.equal(await expiration.inputValue(),original);
    await expiration.fill('2000-01-01T00:00');
    await button('保存').click();
    await editor().getByRole('alert').getByText(/过期时间必须晚于现在/).waitFor();
    assert.ok((await expiration.inputValue()).startsWith('2000-01-01T00:00'));
    if(width===320)await page.screenshot({path:join(output,'320-expiration-light.png'),fullPage:true});
-   await expiration.fill(original.slice(0,16));
+   await expiration.fill(original);
    await button('取消').click();
   }
   await page.setViewportSize({width:380,height:880});
