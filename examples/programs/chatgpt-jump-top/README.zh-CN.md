@@ -1,5 +1,29 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
+## 最新真实 UI 核心完成（2026-10-27，0.4.7/r11）
+
+**本次测试 Profile 的核心操作已完成。** 在 Mac 有窗口 CFT 154 的独立持久 `test-chatgpt-01` 中，经原 Installer 安装并读回相同 r11 字节，真实点击验证 ChatGPT 导航与提示词浮动栏同为根节点子元素、左边距均为 349px，正常窗口内互不重叠；整段对话回顶与到底及边界禁用可用。当前 R134 宿主的稳定回顶位置为 `0.5`，最大值 `7917`；首次加载后的内容展开曾改变位置，未把该中间读数当成回顶成功。回复操作组起始边距为 `0px`、`justify-content:flex-start`；真实回复回顶可见首节，末端按钮点击后可见末节（不单独归因额外滚动距离），原生「更多操作」可打开。
+
+实测修复了两个业务问题：透明侧栏父元素中的按钮被误算为障碍，导致导航隐藏；关闭 Shadow DOM 的提示词栏未预留位置，导致重叠。现在过滤不可见祖先，检查公开 Shadow DOM 与根级固定宿主的可见矩形，并沿同一左边距寻找空位；不读取其他工具私有内容，不修改宿主或 SDK。
+
+本地 `http://127.0.0.1:43111/demo-form.html` 已完成：可视选择区域 `main > div > div` 和滚动容器 `html` → 消息 `.unit`、路径 `/demo-form.html` → 双向测试 →「已保存并从可信 Host 确认」→ 刷新恢复双按钮及边界状态 → 停用后「原生注销已确认」且网页入口移除 → 恢复、刷新并从可信 Host 读回同一条配置。最终 r11 安装身份为 `db7f5f7f-6d9e-4061-a307-a262fbe03555`，授权 active、Chrome registered、清理 retired。允许的 UI 不显示 ETag，故数值 ETag 保留 `NOT_TESTED`。
+
+测试复用既有 R134 production 静态快照 `/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r134-r7-inputs-pnfhgxbr/dist/production`，扩展 ID `jebmpompeddppmefggjeffhldlkhkkdo`，无 serve 连接；这是独立测试宿主，不代表当前 main 扩展的完整 production 验收。此前 Send Queue 静态快照缺少配置桥接，改用已有 R134 快照后完成本地链路，未为环境差异修改平台。测试结束已正常关闭自有浏览器、释放 Profile 和 UI 锁，保留登录态与规则；没有发送 ChatGPT 消息。
+
+r11 sourceHash 为 `05a3108f3a6b1afefb470e796c98b45f0f9cd08f586a97ea6d98ea3503517e6e`，packageHash 为 `d14640c5df41c003e286a69a940b2dbfe5a68607305afa6df8a79dcf616a1c66`，五个业务模块与当前源码及构建记录逐字节一致。受影响的 89 项定向检查通过；透明父元素用例进一步限定为可见侧栏后，9 项布局检查再次通过。源码与测试改动留在 main 工作区，未提交或推送；目录正式 r7 包未覆盖，日常安装清理问题未在本轮处理，DeepSeek/Gemini 长对话、正式发行、评分及尺寸矩阵不属于此次核心完成声明。
+
+证据：[最新结果与截图索引](../../../artifacts/ai-scroll-r134/test-profile-left-alignment-20261027/result.json)、[r11 测试候选](../../../artifacts/ai-scroll-r134/test-profile-left-alignment-20261027/r11/ai-scroll-navigation.opendesk-page.json)、[ChatGPT 实际布局](../../../artifacts/ai-scroll-r134/test-profile-left-alignment-20261027/r11-r134-chatgpt-top-final.png)、[恢复后的配置](../../../artifacts/ai-scroll-r134/test-profile-left-alignment-20261027/r11-restored-config.png)。下文均保留为历史观察，不覆盖本节最新结果。
+
+## 历史：指定测试 Profile 实测中断（2026-10-27，首次 r9 未安装）
+
+本轮已取得并释放自身 UI 锁，经 CUA 精确选择 CFT 154 进程 PID 54791，新建本任务窗口；`chrome://version` 实读为 `test-chatgpt-profile` 对应的 `codex-cft-xjma6yw1/Profile 1`。Chrome 扩展详情实读 ID `ajjjgoapcaonglplhlnlfofmlemdakhk`，实际加载 Send Queue 静态开发快照 `artifacts/send-queue-r56-mac-final-01a17882/source-snapshot/dist/development-developer`，用户脚本已允许；未验证 serve 连接。原导航安装 ID `dc776e10-cce8-4dd3-a829-94283e9417de`、r7、active / registered、清理 retired，与日常安装分开。
+
+从当前业务源码用原 Program Builder 和 Page 打包器冻结独立 **0.4.7/r9**，保留指定六条精确匹配。sourceHash 为 `9fc66673189bca2f39141eb3f21f4f384a09dfefe13d5ea9c67e70c75b4cb883`，packageHash 为 `68784ccd790dabc3d44638ae83e3f6271d7e04b7bfb640618dfec4b807c72c9a`；全部五个业务模块逐字节对应当前源码。旧 r8 继续不适用，目录正式 r7 包保持原字节。
+
+已只读打开指定既有长对话，看到真实提示词快捷按钮和旧导航，并进入原「更新 / 导入新版」文件选择器。**选择器尚未完成、未进入 r9 审阅时，CUA 返回 `App quit`；进程检查确认 PID 54791 及其目录对应进程已退出。退出原因未确定，不据此认定脚本产品故障。** 按交接明确限制没有重启、替换 Profile 或强抢其他窗口。r9 未安装，最新左对齐、上下滚动、边界禁用、回复组、本地适配、可信保存、刷新及停用恢复全部仍 `NOT_TESTED`；本轮不重复已有 Node 测试，也不声称 UI 测试完成。
+
+历史候选与来源：[首次中断证据](../../../artifacts/ai-scroll-r134/test-profile-left-alignment-20261027/interrupted-result.json)、[历史 r9 候选](../../../artifacts/ai-scroll-r134/test-profile-left-alignment-20261027/r9/ai-scroll-navigation.opendesk-page.json)。后续需先在获准恢复的同 Profile 读回真实安装状态，再复用此不可变 r9 走正常审阅和核心 UI 链；日常清理阻塞、production、发行及评分仍单独延期。本轮未改业务、平台源码或共享服务，未提交或推送。
+
 ## 父容器左对齐修正（2026-10-27，源码完成、安装未验证）
 
 按最新要求，置顶/置底导航与提示词快捷按钮的浮动宿主同为 `document.documentElement` 的子节点，使用相同的主区域左侧 8px 边距，不再额外叠加提示词栏的 1px 边框和 6px 内边距。320px 左侧导航占位场景中，导航宿主从上轮的 335px 修正为 328px；碰撞避让只沿该左边距向上移动。独立安装不依赖提示词工具的 DOM、安装或启用状态。

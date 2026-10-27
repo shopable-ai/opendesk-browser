@@ -848,7 +848,7 @@ button.primary:hover{background:#1b4aac}
   })();
   // EXP005_FIXTURE_END
   // CHATGPT_CORE_DOM_EVIDENCE_START
-  // Opt-in local DOM observation only. It never runs a task or changes search timing.
+  // Opt-in local DOM observation only. It never runs a task or changes search delays.
   (() => {
     const query = new URL(location.href).searchParams;
     const token = query.get('od-evidence') || query.get('od-watch');

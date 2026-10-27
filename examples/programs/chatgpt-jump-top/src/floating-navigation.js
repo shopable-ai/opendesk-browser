@@ -30,6 +30,29 @@ export function liveDock(node,win) {
 }
 const between=(value,min,max)=>Math.max(min,Math.min(max,value));
 
+function controlObstacles(doc,win) {
+  const controls=[];
+  const collect=root=>{
+    controls.push(...root.querySelectorAll('button,[role="button"],input,textarea,[contenteditable="true"]'));
+    for(const node of root.querySelectorAll('*'))
+      if(node.shadowRoot&&!node.closest?.(`[${OWN}],${LEGACY}`))collect(node.shadowRoot);
+  };
+  collect(doc);
+  // A closed shadow does not expose its controls. Root-level fixed peers
+  // still reserve their visible host rectangle, without a tool-specific hook.
+  controls.push(...[...doc.documentElement.children]
+    .filter(node=>win.getComputedStyle(node).position==='fixed'));
+  return controls.filter(node=>{
+    for(let area=node;area;area=area.parentElement||area.getRootNode?.().host) {
+      if(area.hidden||area.matches?.(`[${OWN}],${LEGACY},[inert],[aria-hidden="true"]`))return false;
+      const style=win.getComputedStyle(area);
+      if(style.display==='none'||['hidden','collapse'].includes(style.visibility)||style.opacity==='0')return false;
+    }
+    const r=node.getBoundingClientRect();
+    return r.width>0&&r.height>0;
+  }).map(node=>node.getBoundingClientRect());
+}
+
 function chatGPTGutterLeft(main,doc,win) {
   const rect=main.getBoundingClientRect();
   const visibleBox=node=>{
@@ -189,17 +212,17 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     // Reposition within the recognized conversation before hiding on a
     // native control/composer collision. We never overlay other controls or
     // let an uncertain placement redirect scrolling to another region.
-    const obstacles=[...doc.querySelectorAll('button,[role="button"],input,textarea,[contenteditable="true"]')]
-      .filter(node=>{
-        if(node.hidden||node.closest?.(`[${OWN}],${LEGACY}`))return false;
-        const r=node.getBoundingClientRect(),style=win.getComputedStyle(node);
-        return style.display!=='none'&&style.visibility!=='hidden'&&r.width>0&&r.height>0;
-      }).map(node=>node.getBoundingClientRect());
+    const obstacles=controlObstacles(doc,win);
     const candidates=alignChatGPT?[
       // Keep the shared left edge when avoiding native controls.
       [left,topPos],
       [left,topPos-height-12],
-      [left,topPos-2*(height+12)]
+      [left,topPos-2*(height+12)],
+      // A short viewport may need a gap above several stacked native or
+      // shadow controls. Keep the same gutter and test their upper edges.
+      ...obstacles.filter(r=>r.left<left+width&&r.right>left)
+        .map(r=>[left,Math.floor(r.top-height-12)])
+        .sort((a,b)=>b[1]-a[1])
     ]:[
       [left,topPos],
       [left,topPos-height-12],

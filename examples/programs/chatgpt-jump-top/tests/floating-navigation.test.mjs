@@ -18,8 +18,8 @@ function fixture({mainLeft=320,columnLeft=320,sidebar=false}={}) {
     box(parseFloat(this.style.left)||0,parseFloat(this.style.top)||0,42,90);};
   const win={innerWidth:1728,innerHeight:817,location:new URL('https://chatgpt.com/c/existing'),
     getComputedStyle:node=>({display:node.hidden?'none':node.style.display||'block',
-      visibility:node.style.visibility||'visible',opacity:'1',
-      overflowY:node===main?'auto':'visible',position:'static'})};
+      visibility:node.style.visibility||'visible',opacity:node.style.opacity||'1',
+      overflowY:node===main?'auto':'visible',position:node.style.position||'static'})};
   Object.assign(main,{scrollTop:400,scrollHeight:8701,clientHeight:817});
   const disposals=[],listeners=new Map();
   const owner={on(target,type,listener){
@@ -76,6 +76,41 @@ test('ChatGPT collision avoidance keeps the shared left gutter after two blocked
   const {host}=f.mount();
   assert.equal(host.style.left,'328px');
   assert.ok(parseFloat(host.style.top)+90<=600);
+});
+
+test('transparent sidebar action parents do not hide the conversation dock',()=>{
+  const f=fixture({sidebar:true});
+  for(const y of [707,605,503]) {
+    const parent=f.doc.createElement('span'),button=f.doc.createElement('button');
+    parent.style.opacity='0';parent.append(button);f.nav.append(parent);
+    f.rects.set(button,box(320,y,50,40));
+  }
+  const {host}=f.mount();
+  assert.ok(host);
+  assert.equal(host.style.left,'328px');
+  assert.equal(host.style.top,'707px');
+});
+
+test('visible shadow controls reserve space and additional vertical gaps remain usable',()=>{
+  const f=fixture(),peer=f.doc.createElement('div');f.doc.documentElement.append(peer);
+  const shadow=peer.attachShadow({mode:'open'}),button=f.doc.createElement('button');
+  shadow.append(button);f.rects.set(button,box(328,400,52,400));
+  const {host}=f.mount();
+  assert.ok(host);
+  assert.equal(host.style.left,'328px');
+  assert.ok(parseFloat(host.style.top)+90<400,'dock stays above the peer controls');
+  assert.equal(peer.isConnected,true);
+});
+
+test('closed fixed peer hosts reserve their whole rectangle without reading private controls',()=>{
+  const f=fixture(),peer=f.doc.createElement('div');
+  peer.style.position='fixed';f.doc.documentElement.append(peer);
+  peer.attachShadow({mode:'closed'}).append(f.doc.createElement('button'));
+  f.rects.set(peer,box(328,400,52,400));
+  const {host}=f.mount();
+  assert.ok(host);
+  assert.equal(host.style.left,'328px');
+  assert.ok(parseFloat(host.style.top)+90<400);
 });
 
 test('aligned dock scrolls both directions and updates boundary disabled states',()=>{

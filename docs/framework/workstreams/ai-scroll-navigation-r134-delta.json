@@ -1679,7 +1679,286 @@
       "extensionRebuilt": false,
       "watcherTouched": false,
       "committed": false,
-      "pushed": false
+      "pushed": false,
+      "testProfileContinuation": {
+        "observedAt": "2026-10-27T14:34:53.830178+08:00",
+        "owner": "01a17c0b-8416-7cf1-9f74-177fb1e56297",
+        "stage": "specified static development test profile; core UI only",
+        "status": "BLOCKED_TEST_BROWSER_EXITED_BEFORE_IMPORT_REVIEW",
+        "evidence": "artifacts/ai-scroll-r134/test-profile-left-alignment-20261027/interrupted-result.json",
+        "candidate": {
+          "programId": "opendesk.ai-scroll-navigation",
+          "version": "0.4.7",
+          "revision": 9,
+          "sourceHash": "9fc66673189bca2f39141eb3f21f4f384a09dfefe13d5ea9c67e70c75b4cb883",
+          "packageHash": "68784ccd790dabc3d44638ae83e3f6271d7e04b7bfb640618dfec4b807c72c9a",
+          "pageRules": {
+            "matches": [
+              "https://chatgpt.com/*",
+              "https://chat.deepseek.com/*",
+              "https://gemini.google.com/*",
+              "http://127.0.0.1:43111/demo-form.html",
+              "http://127.0.0.1:43111/demo-form.html?*",
+              "http://127.0.0.1:43111/demo-form.html/*"
+            ],
+            "excludeMatches": [],
+            "runAt": "document_idle",
+            "allFrames": false,
+            "world": "USER_SCRIPT"
+          },
+          "fileSha256": "d85139340c973cb15b29d445a31f560f710e1cd8d58a7a8ea4906fbb6fd7d277",
+          "sourceModuleBytesMatch": true,
+          "installed": false,
+          "reviewReached": false,
+          "importAsCurrentFix": false,
+          "supersededBy": "0.4.7/r11"
+        },
+        "runtime": {
+          "pid": 54791,
+          "profile": "test-chatgpt-profile",
+          "profilePath": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-xjma6yw1/Profile 1",
+          "extensionId": "ajjjgoapcaonglplhlnlfofmlemdakhk",
+          "installationId": "dc776e10-cce8-4dd3-a829-94283e9417de",
+          "installedRevisionBefore": 7,
+          "managedCleanupBefore": "retired",
+          "extensionLoadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/send-queue-r56-mac-final-01a17882/source-snapshot/dist/development-developer",
+          "serve": "NOT_TESTED",
+          "browserVersion": "154.0.8037.92",
+          "windowBinding": "Exact executable selected via CUA; own new window chrome://version read back exact Profile 1 path. CUA native window title includes test-chatgpt-profile.",
+          "ownWindow": "New window; title 技术验证准备確認; no numeric OS window ID exposed by native CUA",
+          "hostInstanceId": "f29b4608-ea68-48af-9c94-3f71ff8d759b",
+          "pidAfterFailure": null
+        },
+        "uiLock": "released",
+        "nativeResult": "Original r7 identity/retired state and existing prompt UI read; browser exited in native file selection before r9 review. No latest-candidate UI PASS.",
+        "uiResults": {
+          "sharedParentAndPhysicalLeft": "NOT_TESTED_LATEST_CANDIDATE_NOT_INSTALLED",
+          "conversationTopAndBottom": "NOT_TESTED_LATEST_CANDIDATE_NOT_INSTALLED",
+          "boundaryDisabled": "NOT_TESTED_LATEST_CANDIDATE_NOT_INSTALLED",
+          "answerToolsLeftAlignment": "NOT_TESTED_LATEST_CANDIDATE_NOT_INSTALLED",
+          "nativeToolbarAndReplyDirections": "NOT_TESTED_LATEST_CANDIDATE_NOT_INSTALLED",
+          "localVisualAdaptation": "NOT_TESTED_LATEST_CANDIDATE_NOT_INSTALLED",
+          "trustedSaveReadback": "NOT_TESTED_LATEST_CANDIDATE_NOT_INSTALLED",
+          "refreshRestore": "NOT_TESTED_LATEST_CANDIDATE_NOT_INSTALLED",
+          "disableCleanupAndRestore": "NOT_TESTED_LATEST_CANDIDATE_NOT_INSTALLED",
+          "etag": "NOT_TESTED_NO_TRUSTED_READBACK_COMPLETED"
+        },
+        "pending": [
+          "Restore access to the specified original Profile browser through an explicitly authorized process recovery; restart currently forbidden.",
+          "Re-read actual installed state/revision before selecting the already-built immutable r9; then normal same-identity update with six-match review.",
+          "Run latest-candidate ChatGPT and local adaptation/save/refresh/disable/restore core UI steps."
+        ],
+        "dailyInstallation": "Not rechecked or modified; historical cleanup unknown remains separate.",
+        "supersededBy": "realUiCompletion"
+      },
+      "realUiCompletion": {
+        "observedAt": "2026-10-27T16:08:32.932000+08:00",
+        "owner": "01a17c0b-8416-7cf1-9f74-177fb1e56297",
+        "stage": "real UI core operations in isolated test profile; release validation deferred",
+        "status": "REAL_UI_CORE_PASS_TEST_PROFILE",
+        "evidence": "artifacts/ai-scroll-r134/test-profile-left-alignment-20261027/result.json",
+        "evidenceSha256": "dbca31c9839f5c94c855234fa49e42dd278f1cab5486ece54b2d0b1ea9127dda",
+        "candidate": {
+          "programId": "opendesk.ai-scroll-navigation",
+          "version": "0.4.7",
+          "revision": 11,
+          "sourceHash": "05a3108f3a6b1afefb470e796c98b45f0f9cd08f586a97ea6d98ea3503517e6e",
+          "packageHash": "d14640c5df41c003e286a69a940b2dbfe5a68607305afa6df8a79dcf616a1c66",
+          "pageRules": {
+            "matches": [
+              "https://chatgpt.com/*",
+              "https://chat.deepseek.com/*",
+              "https://gemini.google.com/*",
+              "http://127.0.0.1:43111/demo-form.html",
+              "http://127.0.0.1:43111/demo-form.html?*",
+              "http://127.0.0.1:43111/demo-form.html/*"
+            ],
+            "excludeMatches": [],
+            "runAt": "document_idle",
+            "allFrames": false,
+            "world": "USER_SCRIPT"
+          }
+        },
+        "runtime": {
+          "browserVersion": "154.0.8037.92",
+          "profile": "test-chatgpt-01",
+          "profilePath": "/Users/shopme/.codex/browser-profiles/chatgpt/test-chatgpt-01/user-data/Default",
+          "mode": "existing production static test snapshot",
+          "extensionLoadedPath": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r134-r7-inputs-pnfhgxbr/dist/production",
+          "extensionId": "jebmpompeddppmefggjeffhldlkhkkdo",
+          "hostInstanceId": "a843efaf-4aa6-40c5-aca2-c21fd634a220",
+          "serve": "not connected; static snapshot",
+          "pidDuringTest": 81006,
+          "browserAfterTest": "normal stop through profile owner helper; profile data retained"
+        },
+        "installation": {
+          "installationId": "db7f5f7f-6d9e-4061-a307-a262fbe03555",
+          "revision": 11,
+          "sourceHash": "05a3108f3a6b1afefb470e796c98b45f0f9cd08f586a97ea6d98ea3503517e6e",
+          "authority": "active",
+          "chromeRegistration": "registered",
+          "managedCleanup": "retired",
+          "readbackEvidence": "r11-final-installed.ax.txt"
+        },
+        "sourceFiles": {
+          "src/conversation.js": "b5a189019411b78bf7434b285e6e326f5a226c68193acc12e2e7cc1340e910ac",
+          "src/floating-navigation.js": "8499a23ff819583e867f739b4eb8d6f37b0f5deaba07335b2c866d2c16981564",
+          "src/main.js": "7fdb0c6392b41b7cabe5d54693d7666ea8947772e85972a9b4f801386d588ce0",
+          "src/site-adapters.js": "91d285494dc45f28dccf1f88fef675a2de37f66aabb17c14ed6d93345a62ecb0",
+          "src/site-configuration.js": "ebace6c3d3b65fdb127a0d2650445da36cd53cfcbcc6e81f581be90d76b72b5d"
+        },
+        "provenance": {
+          "moduleBytesMatchCurrentSource": true,
+          "moduleHashesMatchBuilderRecord": true,
+          "packageSourceEqualsProgramJs": true,
+          "packageSourceHashVerified": true,
+          "candidateFileSha256": "ddf67352049f09e97125a0dba05204e076cf190f8459fa356609de0cb2caff66",
+          "formalR7UnchangedSha256": "104136d6942d6b7933a15d1a8df74b30856047135645dcf692d2be2bc57d0ef6"
+        },
+        "uiResults": {
+          "sharedParentAndPhysicalLeft": {
+            "status": "PASS",
+            "navigationAndPromptLeft": 349,
+            "parent": "document.documentElement",
+            "noOverlap": true,
+            "evidence": [
+              "r11-r134-chatgpt-top-dom.ax.txt",
+              "r11-r134-chatgpt-top-final.png"
+            ]
+          },
+          "conversationTopAndBottom": {
+            "status": "PASS",
+            "oldSnapshotStableTop": 0.5,
+            "oldSnapshotBottom": 9085.5,
+            "oldSnapshotMaximum": 9086,
+            "r134StableTop": 0.5,
+            "r134Maximum": 7917,
+            "r134Bottom": "real click showed final reply and bottom disabled",
+            "hydrationNote": "Initial post-refresh scroll anchoring shifted 0 to 972 (earlier 1024 on old snapshot); repeated actual click after content stabilized reached 0.5. Intermediate reads are not endpoint proof.",
+            "evidence": [
+              "r11-chatgpt-top-read.ax.txt",
+              "r11-chatgpt-bottom-read.ax.txt",
+              "r11-r134-chatgpt-top-stable.ax.txt",
+              "r11-r134-chatgpt-bottom-final.ax.txt"
+            ]
+          },
+          "boundaryDisabled": {
+            "status": "PASS",
+            "evidence": [
+              "r11-r134-chatgpt-top-final.png",
+              "r11-r134-chatgpt-bottom-final.png",
+              "r11-local-refreshed-bottom.png"
+            ]
+          },
+          "answerToolsLeftAlignment": {
+            "status": "PASS",
+            "marginInlineStart": "0px",
+            "justifyContent": "flex-start",
+            "evidence": "r11-r134-chatgpt-top-dom.ax.txt"
+          },
+          "replyDirectionsAndNativeToolbar": {
+            "status": "PASS_VISIBLE_CORE_ACTIONS",
+            "replyTop": "actual click revealed reply heading and first section",
+            "replyBottom": "actual click left final section visible; no independent attribution of extra scroll distance because toolbar is at reply end",
+            "nativeMore": "opened original More menu then Escape; no native menu action selected",
+            "evidence": [
+              "r11-reply-top.png",
+              "r11-reply-bottom.png",
+              "r11-native-more.ax.txt"
+            ]
+          },
+          "localVisualAdaptation": {
+            "status": "PASS",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "pathScope": "/demo-form.html",
+            "mainSelector": "main > div > div",
+            "scrollSelector": "html",
+            "messageSelector": ".unit",
+            "anchorSelector": "",
+            "enabled": true,
+            "selection": "actual point-and-click selector UI",
+            "bothDirectionTests": "PASS",
+            "evidence": [
+              "r11-pick-main.png",
+              "r11-local-tests.ax.txt"
+            ]
+          },
+          "trustedSaveReadback": {
+            "status": "PASS",
+            "message": "已保存并从可信 Host 确认，刷新后仍可恢复。",
+            "evidence": "r11-local-saved.ax.txt"
+          },
+          "refreshRestore": {
+            "status": "PASS",
+            "trustedRules": 1,
+            "sameValues": true,
+            "navigationBothDirectionsAndDisabledEdges": "PASS",
+            "evidence": [
+              "r11-local-refreshed-config.ax.txt",
+              "r11-local-refreshed-bottom.png"
+            ]
+          },
+          "disableCleanupAndRestore": {
+            "status": "PASS",
+            "disabledMessage": "已停用 · 原生注销已确认",
+            "pageNavigationAndLauncherRemoved": true,
+            "restoredRules": 1,
+            "sameValuesAfterRestoreAndRefresh": true,
+            "finalAuthority": "active",
+            "finalRegistration": "registered",
+            "finalCleanup": "retired",
+            "evidence": [
+              "r11-disabled.ax.txt",
+              "r11-disabled.png",
+              "r11-restored-config.ax.txt",
+              "r11-restored-config.png",
+              "r11-final-installed.ax.txt"
+            ]
+          },
+          "etag": "NOT_TESTED: no ETag value exposed in permitted normal UI; no private API/storage access used"
+        },
+        "verification": {
+          "targetedTests": {
+            "command": "node --test --test-reporter=dot examples/programs/chatgpt-jump-top/tests/floating-navigation.test.mjs tests/environment/chatgpt-jump-top.test.mjs",
+            "passed": 89,
+            "note": "Run after r11 source fix, before UI chain; source unchanged since."
+          },
+          "opacityFixtureRefinement": {
+            "change": "Use visible sidebar so regression isolates transparent ancestor instead of hidden sidebar.",
+            "command": "node --test --test-reporter=dot examples/programs/chatgpt-jump-top/tests/floating-navigation.test.mjs",
+            "passed": 9
+          },
+          "syntax": "PASS"
+        },
+        "resources": {
+          "nativeUiLock": "released",
+          "profileLease": "released",
+          "ownBrowser": "stopped normally",
+          "profileData": "retained",
+          "sharedWatcher": "untouched"
+        },
+        "protection": {
+          "frameworkEdited": false,
+          "extensionRebuilt": false,
+          "sharedWatcherTouched": false,
+          "privateStorageAccessed": false,
+          "chatgptMessageSent": false,
+          "committed": false,
+          "pushed": false,
+          "formalR7Promoted": false,
+          "dailyInstallationModified": false,
+          "otherOwnerDemoFormEdited": false
+        },
+        "remainingCoreWork": [],
+        "deferred": [
+          "Daily Chrome historical cleanup unknown; not rechecked or changed",
+          "DeepSeek and Gemini long conversation checks",
+          "Formal publication and official catalog promotion",
+          "Full current-main production extension acceptance and independent score",
+          "Zoom/physical-width matrix out of scope",
+          "ETag numeric retention not observable through allowed UI"
+        ]
+      }
     }
   }
 }
