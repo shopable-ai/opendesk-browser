@@ -49,7 +49,7 @@ async function harness(t){
     windows:{async update(id,options){focused.push({id,...options});}}};
   const locks=new Map(),lockManager={request(name,work){const next=(locks.get(name)||Promise.resolve()).then(work);locks.set(name,next.catch(()=>{}));return next;}};
   Object.assign(h,{api,lockManager,row:()=>values[MARKET_INTENTS_STORE].intents[0]});
-  h.openAppDetail=identity=>{h.panelOpened.push(identity);return true;};
+  h.openApp=identity=>{h.panelOpened.push(identity);return true;};
   globalThis.document={createElement:tag=>new Element(tag)};
   globalThis.location={search:'?intent='+row.reviewId};
   globalThis.window={close(){h.closes++;}};
@@ -61,7 +61,7 @@ async function harness(t){
   h.mount=()=>{
     h.ui=createMarketInstallReview({api,lockManager,reviewId:row.reviewId,assertOwner:()=>h.assertOwner(),
       assertCanInstall:id=>h.assertCanInstall(id),
-      openInstalledAppDetail:identity=>h.openAppDetail(identity),
+      openInstalledApp:identity=>h.openApp(identity),
       onChange:model=>{h.model=model;h.models.push(model);},onClose:()=>{h.closes++;}});
     h.model=h.ui.getSnapshot();return h.ui;
   };
@@ -134,16 +134,16 @@ test('one confirmation binds SHA, installs once, and offline reload recovers the
   assert.equal(registryWrites(),1);h.offline=true;await h.start();
   assert.equal(h.downloads,2);assert.equal(registryWrites(),1);assert.match(h.message(),/安装完成/);
   assert.equal(h.closes,0);assert.deepEqual(h.opened,[]);
-  await h.click('查看应用');assert.deepEqual(h.panelOpened,[{marketId:'opendesk/'+tool.id,id:tool.id,
+  await h.click('打开使用');assert.deepEqual(h.panelOpened,[{marketId:'opendesk/'+tool.id,id:tool.id,
      version:tool.version,sha256:await sidebarToolPackageHash(tool)}]);
   assert.deepEqual(h.opened,[]);assert.deepEqual(h.focused,[]);assert.equal(h.closes,1);
 });
 
 test('blocked in-panel opening keeps the installed result without another window or install',async t=>{
   const h=await harness(t);await h.start();await h.click('确认安装');
-  const writes=h.writes.length;h.openAppDetail=()=>false;
-  await h.click('查看应用');assert.equal(h.closes,0);assert.deepEqual(h.opened,[]);
-  assert.match(h.message(),/E_DETAIL_DEFERRED/);assert.equal(h.writes.length,writes);
+  const writes=h.writes.length;h.openApp=()=>false;
+  await h.click('打开使用');assert.equal(h.closes,0);assert.deepEqual(h.opened,[]);
+  assert.match(h.message(),/E_APP_OPEN_DEFERRED/);assert.equal(h.writes.length,writes);
   assert.ok(h.row().settledAt);assert.equal(h.downloads,2);
 });
 
@@ -154,10 +154,10 @@ test('updating preserves application data and the disabled state with a single a
   assert.match(h.model.summary.join('\n'),/保留工具数据/);assert.deepEqual(h.buttons(),['确认更新','取消安装']);
   await h.click('确认更新');assert.deepEqual(h.values[dataKey],{notes:['keep']});
   assert.equal(h.values[SIDEBAR_TOOL_ENABLE_STORE][tool.id],false);assert.match(h.message(),/保持停用/);
-  assert.deepEqual(h.buttons(),['查看应用','完成']);assert.deepEqual(h.opened,[]);
-   const writes=h.writes.length;await h.click('查看应用');
-   assert.equal(h.closes,1);assert.equal(h.writes.length,writes);
-   assert.equal(h.panelOpened[0].id,tool.id);
+  assert.deepEqual(h.buttons(),['完成']);assert.deepEqual(h.opened,[]);
+  assert.deepEqual(h.panelOpened,[],'disabled apps must never be launched or silently enabled');
+  const writes=h.writes.length;await h.click('完成');
+  assert.equal(h.closes,1);assert.equal(h.writes.length,writes);
 });
 
 test('consumed request without journal closes only the handoff and remains unknown offline',async t=>{
@@ -184,14 +184,14 @@ test('existing current installation is separate from this consumed request witho
   const h=await harness(t);await h.consume();h.values[SIDEBAR_TOOL_STORE]=[tool];
   h.values[MARKET_PROVENANCE_STORE]={[tool.id]:{marketId:h.row().subject.marketId,version:tool.version,sha256:await sidebarToolPackageHash(tool)}};
   await h.start();assert.match(h.message(),/安装结果未知/);assert.match(h.message(),/当前本机版本/);
-  assert.ok(!h.buttons().includes('查看应用'));assert.equal(h.downloads,0);
+  assert.ok(!h.buttons().includes('打开使用'));assert.equal(h.downloads,0);
 });
 
 test('recovery rejects mismatched journal identity without fetching or submitting again',async t=>{
   const h=await harness(t);await h.start();await h.click('确认安装');
   h.values[MARKET_OPERATIONS_STORE][h.row().operationId].marketId='opendesk/another-tool';
   h.offline=true;await h.start();assert.equal(h.downloads,2);
-  assert.match(h.message(),/E_MARKET_IDENTITY/);assert.ok(!h.buttons().includes('查看应用'));
+  assert.match(h.message(),/E_MARKET_IDENTITY/);assert.ok(!h.buttons().includes('打开使用'));
   assert.equal(h.writes.filter(write=>write[SIDEBAR_TOOL_STORE]).length,1);
 });
 
@@ -292,7 +292,7 @@ test('owner lost after confirmation preflight is rejected at commit before consu
   assert.equal(h.row().consumedAt,null);assert.equal(h.row().cancelledAt,undefined);
   assert.deepEqual(h.writes,[]);assert.equal(h.values[MARKET_OPERATIONS_STORE],undefined);
   assert.equal(h.values[SIDEBAR_TOOL_STORE],undefined);assert.equal(h.values[MARKET_PROVENANCE_STORE],undefined);
-  assert.ok(!h.buttons().includes('查看应用'));assert.equal(h.closes,0);
+  assert.ok(!h.buttons().includes('打开使用'));assert.equal(h.closes,0);
 });
 
 test('legacy initMarketInstall only renders guidance and cannot approve or cancel installation',async t=>{
