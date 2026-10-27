@@ -53,3 +53,14 @@ A 只读：目标网页环境检测 → 来源标记 → 保存 A/B → 逐字�
 ## 下一步最小操作
 
 观察由此文件变更触发的 Browser Fingerprint App CI：核对 `discover` → `ci-contract` → `app-validate` 的 Host 构建、Node、预览及 Chromium 回执。CI 若失败，以第一条真实错误为准修复，勿刷新无关锁。仅在拿到真实产物 SHA 和浏览器证据后更新相应结论；不提交伪造 PASS。
+
+## R1.8 最终已验证 · 同源正式构建与 Chromium（SDK 仍阻断完整 A）
+
+- **真实 CI PASS**：<https://github.com/shopable-ai/opendesk-browser/actions/runs/40561525645>，`sourceCommit=c5190198bd3c3b6df5aabcc304449bcf5fa913d1`。该运行 `discover`、`ci-contract`、`app-validate(browser-fingerprint)` 全部成功；`native-macos-chrome` 为 **skipped**，不得宣称已安装。
+- **Node PASS 55/55**：含本 App 既有 13 条模型/历史/流程测试及共享 Host 回归；`CANDIDATE_SOURCE_IDENTICAL` PASS。正式候选包版本 `0.1.0`、SHA256 `bf7fa4fcaa08940118047af7c920b3f239e8b80c52c878af8f45ad9b4dd343e6`。
+- **BUILD PASS**：`examples/sidebar-tools/browser-fingerprint/dist/build-ready.json`：`buildId=48a31ab3355bceb514018435c6eb3e3a81ea1ebae5f523d0bed43cbac50d1f3d`；`dist/tool.js` 19672 B、SHA256 `3665ea564a1e1a37ad98a6962e7076c2661da24bc7e2f0439143e2fe5cac30c5`；`dist/tool.css` 4048 B、SHA256 `ebfb78ea0048ac52b963f351be87a203fe5275e37a27ec7fb401c3a6001819d5`。
+- **PREVIEW BUILD PASS**：`preview/react/build-preview.mjs` 使用上述正式 JS/CSS 和固定 React 19 Runtime / Shared UI 构建单文件 HTML；`htmlSha256=c2e1357d9387f599b51d2448998dca00ed36b0811b750a7677d9c6acdc96f0c1`，`runtimeSha256=d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758`，`sharedUiSha256=ee41ca4cee75d24aa7f1858f5193f0b7ba643e6f6a7fbaf6c0e54863141b48ab`。从实际 CI artifact 的 `artifacts/app-ci/browser-fingerprint/preview.html` 提取，重新独立核对文件 SHA256 完全一致；仓库内 `preview/react/index.html` 依然是构建前源码引用版，需要在本地运行 `preview:build` 才生成这一份同源单文件。
+- **CHROMIUM PASS（离线模拟 SDK）**：Chrome for Testing `155.0.8059.39` 在 Linux xvfb 实际运行；`PASS_SIMULATED_HOST_CHROMIUM`，无 JS 异常，测试证据位于 CI artifact 的 `artifacts/app-ci/browser-fingerprint/chrome/fingerprint-r16-chromium-evidence.json`。已通过单 React Root / 三 Tab、目标身份失效拒写、保存中切换 Tab 与双击去重、A/B 比较、刷新历史读回、CDP Tab/Enter/Esc、320/360/400/440/520px 无水平溢出和深色截图。400px 截图 SHA256 `37f9207636e957e890b9edd668c6c5705b337d2ab50b9b03e410308f2e7681d8`。
+- **证据限制**：CI 视图中中文字体为缺字方框，虽然容器和溢出自动检查 PASS，但不能据此认定中文视觉细节达到最终标准。真正的 macOS Chrome 安装、用户站点授权、200% 原生缩放、OS 剪贴板/文件实际落盘、目标网页 UA/languages/timeZone/viewport/screen/DPR 均未获真实完成回执。`preview:check` 独立命令尚未单独执行；同源编译/Hash 已由生成器和 Chromium 启动校验。
+- **GO/NO_GO**：本轮可完成开发层面的部分 A 构建与离线交互验证；平台缺少经审批的真实环境采集 SDK，完整 A 功能仍 **NO_GO**，B/C 无权进入开发。本证据不把模拟页面或 Host 的 URL/title 当真实目标网页指纹。
+
