@@ -115,15 +115,16 @@ function safeMessageGroupSelector(main,hit,win){
     if(node.hasAttribute?.('data-message-id'))probes.push(['[data-message-id]',140]);
     for(const [name,weight] of [['data-testid',125],['data-role',120],['role',115]]){
       const value=node.getAttribute?.(name);
-      if(value&&value.length<=80&&!/["\\\u0000-\u001f]/.test(value))
+      if(value&&value.length<=80&&!/["\\\u0000-\u001f]/.test(value)&&
+          /(message|turn|chat|response|assistant|user|article|bubble|reply|listitem)/i.test(value))
         probes.push(['['+name+'="'+value+'"]',weight]);
     }
     if(tag==='article')probes.push(['article',130]);
     if(tag==='li')probes.push(['li',65]);
     for(const cls of [...(node.classList||[])].slice(0,6)){
       if(!/^[a-zA-Z_][a-zA-Z0-9_-]{1,63}$/.test(cls))continue;
-      const weight=/(message|turn|chat|response|assistant|bubble|reply)/i.test(cls)?110:35;
-      probes.push([tag+'.'+escape(cls),weight]);
+      const semantic=/(message|turn|chat|response|assistant|bubble|reply)/i.test(cls);
+      if(semantic||node.parentElement===main)probes.push([tag+'.'+escape(cls),semantic?110:35]);
     }
     for(const [selector,weight] of probes){
       if(selector.length>256)continue;
@@ -183,11 +184,14 @@ label{display:grid;gap:5px;margin:10px 0;font-weight:600}input[type=text]{width:
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .selector-line,.url-line,.header-actions{display:flex;align-items:center;gap:8px}
 .selector-line input,.url-line input{min-width:0;flex:1}
-.pick-btn,.header-actions button{width:36px;min-width:36px;height:36px;min-height:36px;padding:0;display:grid;place-items:center}
+.pick-btn,.header-actions button{width:36px;min-width:36px;height:36px;min-height:36px;padding:0;display:grid;place-items:center;border:1px solid #c9d3e2;border-radius:9px;background:#f7f9fc;color:#263750}
 .pick-btn svg,.header-actions svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.8;fill:none}
+.header-actions button{border-color:transparent;background:transparent}
 .current-tag{color:#607083;font-size:12px}
 input[readonly]{background:#f4f6f9;color:#64738b}
 .footer{display:flex;justify-content:flex-end;border-top:1px solid #e3e8ef;padding-top:10px}
+.footer .primary{min-height:36px;padding:7px 18px;border:1px solid #315fd5;border-radius:9px;background:#315fd5;color:#fff;font-weight:650}
+.status:empty{display:none}
 @media(pointer:coarse){.pick-btn,.header-actions button{width:44px;min-width:44px;height:44px;min-height:44px}}
 @media(prefers-color-scheme:dark){
 :host{color-scheme:dark;color:#e5ebf4}.panel,.launch{background:#1a2636;color:#e5ebf4;border-color:#485971}
@@ -303,7 +307,8 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
     }
     const candidate={version:1,sites:current.sites.filter(r=>{
       const storedKey=r.origin+'\n'+r.pathScope;
-      return storedKey!==key&&storedKey!==editingKey;
+      return remove?storedKey!==(editingKey||key):
+        storedKey!==key&&storedKey!==editingKey;
     })};
     if(!remove)candidate.sites.push(rule);
     const epoch=++operationEpoch;
