@@ -1,12 +1,14 @@
 import {MARKET_INTENT_PROTOCOL,MARKET_INTENTS_STORE,MARKET_INTENT_TTL,MARKET_INTENT_CAPACITY,
   marketError,validateMarketMessage,readMarketIntentStore,marketReviewURL,withMarketIntentLock,validateMarketSubject,marketIntentUnresolved,validateMarketPanelSource} from './intent.js';
-import {MARKET_OPERATIONS_STORE} from '../ui/sidebar-tools/installation.js';
+import {MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 import {MARKET_BATCH_STORE,marketBatchUnresolved,readMarketBatch} from './batch.js';
 import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
 import {createPageInstallHost,MARKET_PAGE_PROTOCOL} from './page-install.js';
 import {readMarketInstallStatus} from './status.js';
 import {hasMarketPanelContext,registerMarketPanelHost} from './panel.js';
-import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
+import {loadMarketReleaseDescriptor} from './distribution.js';
+import {createMarketPanelNavigation,queueMarketPanelNavigation,waitMarketPanelNavigation,
+  registerTrustedMarketNavigation} from './panel-navigation.js';
 
 // Chrome serializes its browser-owned DocumentId (UnguessableToken) as 32 hex
 // characters. It is distinct from our request/review UUIDs and contextId UUIDs.
@@ -86,13 +88,27 @@ export function createMarketHandoff({api=globalThis.chrome,channel,lockManager=g
       const status=await readMarketInstallStatus(api,{subject:request.subject});
       const {currentInstallation,installedVersion,enabled}=status;
       if(request.action==='OPEN_INSTALLED_APP'){
-        if(currentInstallation==='not-installed')throw marketError('E_NOT_INSTALLED','尚未核对此来源的本机安装，请先安装。');
-        if(enabled===false)throw marketError('E_TOOL_DISABLED','此应用已停用，请先在 OpenDesk 的应用设置中恢复。');
-        // A locator only. The existing tool document rechecks current installation,
-        // epoch, enable state and SDK authority before running its opaque sandbox.
-        const tab=await api.tabs.create({url:toolPageHref(api.runtime,request.subject.marketId.split('/')[1]),active:true});
-        await api.windows.update(tab.windowId,{focused:true});
-        return {ok:true,protocol:MARKET_INTENT_PROTOCOL,status:'APP_OPENED'};
+        if(currentInstallation!=='installed')
+          throw marketError('E_VERSION_MISMATCH','当前来源的所选固定版本未安装，请先核对安装与更新状态。');
+        if(enabled!==true)throw marketError('E_TOOL_DISABLED','应用已停用或启用状态未知，不会自动启用。');
+        // Internal official releases and external channel releases have distinct
+        // trust roots. Read this external publisher's pinned descriptor, then
+        // compare the *verified installed bytes* with its SHA-256.
+        const {release}=await loadMarketReleaseDescriptor(request.subject,{api,origin});
+        const toolId=request.subject.marketId.split('/')[1];
+        const storedSource=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]?.[toolId];
+        if(storedSource?.marketId!==request.subject.marketId||
+          storedSource?.version!==request.subject.version||storedSource?.sha256!==release.sha256)
+          throw marketError('E_RELEASE_MISMATCH','所选市场发行与本机已安装内容不一致，请审阅固定版本；不会启动其他发行。');
+        const pending=await queueMarketPanelNavigation(api,createMarketPanelNavigation({
+          windowId:sender.tab.windowId,tabId:sender.tab.id,source:'external',action:'open',
+          toolId,marketId:request.subject.marketId,version:request.subject.version,sha256:release.sha256
+        }));
+        const opened=panelOpening?await panelOpening:false;
+        const result=await waitMarketPanelNavigation(api,pending);
+        return {ok:true,protocol:MARKET_INTENT_PROTOCOL,requestId:pending.requestId,
+          status:result.status==='NAVIGATION_PENDING'&&!opened?'PANEL_REQUIRED':result.status,
+          message:result.message||''};
       }
       return {ok:true,protocol:MARKET_INTENT_PROTOCOL,status:'APP_STATUS',currentInstallation,installedVersion,enabled};
     }
@@ -189,7 +205,7 @@ export function createMarketHandoff({api=globalThis.chrome,channel,lockManager=g
       if(pendingCount>=16)throw marketError('E_RATE_LIMIT','安装交接正忙，请稍后重试。');
     }catch(error){return Promise.reject(error);}
     let panelOpening;
-    if(cachedChannel&&message.action==='OPEN_INSTALL_REVIEW'&&message.subject.kind==='app'&&
+    if(cachedChannel&&['OPEN_INSTALL_REVIEW','OPEN_INSTALLED_APP'].includes(message.action)&&message.subject.kind==='app'&&
       Number.isSafeInteger(sender.tab.windowId)&&sender.tab.windowId>=0){
       // This only presents our existing trusted UI. Do not wait for the queue,
       // storage, or network before Chrome checks the real user activation.
@@ -218,5 +234,6 @@ export function registerMarketHandoff(api=globalThis.chrome){
   };
   api.runtime.onMessage.addListener(pageListener);
   const removePanel=registerMarketPanelHost(api);
-  return ()=>{removePanel();api.runtime.onMessageExternal.removeListener(listener);api.runtime.onMessage.removeListener(pageListener);};
+  const removeNavigation=registerTrustedMarketNavigation(api);
+  return ()=>{removeNavigation();removePanel();api.runtime.onMessageExternal.removeListener(listener);api.runtime.onMessage.removeListener(pageListener);};
 }

@@ -126,22 +126,24 @@ test('installed app opens without creating an intent; open failure only retries 
   await respond(h,h.act(),'OPEN_INSTALLED_APP');assert.equal(h.storage.size,0);
   assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,0);whitelist(h);
 });
-test('available update allows review and opening the current installation independently',async()=>{
+test('available update requires review and cannot open a different pinned release',async()=>{
   const h=client();await ready(h,'update-available');
-  assert.equal(h.controls[0].button.textContent,'更新');assert.equal(h.controls[0].open.hidden,false);
-  await respond(h,h.open(),'OPEN_INSTALLED_APP');assert.equal(h.storage.size,0);
+  assert.equal(h.controls[0].button.textContent,'更新');assert.equal(h.controls[0].open.hidden,true);
   await respond(h,h.act(),'OPEN_INSTALL_REVIEW');
   await respond(h,h.act(),'GET_INSTALL_STATUS',{installation:'unknown',...current('update-available')});
   assert.match(h.controls[0].status.textContent,/本次安装结果未知.*当前已有安装/);
-  assert.notEqual(h.controls[0].status.dataset.state,'success');assert.equal(h.controls[0].open.hidden,false);
-  await respond(h,h.open(),'OPEN_INSTALLED_APP');whitelist(h);
+  assert.notEqual(h.controls[0].status.dataset.state,'success');
+  assert.equal(h.controls[0].open.hidden,true);
+  assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALLED_APP').length,0);
+  whitelist(h);
 });
-test('different-version and disabled installation remain truthful and can be opened explicitly',async()=>{
+test('different-version and disabled installation never claim selected release can open',async()=>{
   const h=client();await ready(h,'different-version');
-  assert.equal(h.controls[0].button.textContent,'安装到OpenDesk');assert.equal(h.controls[0].open.hidden,false);
+  assert.equal(h.controls[0].button.textContent,'安装到OpenDesk');assert.equal(h.controls[0].open.hidden,true);
   h.advance(61000);h.emit('focus');await tick();h.reply(h.sent.at(-1),current('different-version',{enabled:false}));await tick();
-  assert.match(h.controls[0].status.textContent,/其他版本.*已停用/);
-  await respond(h,h.open(),'OPEN_INSTALLED_APP');whitelist(h);
+  assert.match(h.controls[0].status.textContent,/不同版本.*已停用/);
+  assert.equal(h.controls[0].open.hidden,true);
+  assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALLED_APP').length,0);whitelist(h);
 });
 test('installing uses public copy and only matching installed operation result reports success',async()=>{
   const h=client();await ready(h);await respond(h,h.act(),'OPEN_INSTALL_REVIEW');

@@ -13,6 +13,8 @@ import {createBusinessConversation} from './conversation/provider-consumer.js';
 import {createTrustedKnowledgeHost} from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/host.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
+import {createMarketPanelNavigationReceiver} from '../marketplace/panel-navigation.js';
+import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {createMarketInstallSheet} from './market-install-sheet.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountSidebarApp} from './react/main.tsx';
@@ -84,7 +86,7 @@ const createCloudHosting=historyUI.createCloudHosting;
 if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
   throw new Error('E_TRUSTED_TASK_UI_MISSING');
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
-let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null,livePreview=null,toolDevelopmentControls=null,marketInstallSheet=null;
+let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null,marketPanelIntents=null,livePreview=null,toolDevelopmentControls=null,marketInstallSheet=null;
 // Do not construct or query the privileged History controller while Extensions
 // (or any ordinary tab) is active. Leaving Debug also clears private results.
 function syncTrustedHistory(view=pendingReactTab){
@@ -379,6 +381,55 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
           return extensionCenter.openInstalledAppDetail(identity);
         }});
     }
+    if(actualSidePanel){
+      // The only receiver is the verified native Side Panel: no parallel React
+      // page, second Installer, arbitrary script, or tab-based Host is created.
+      marketPanelIntents=createMarketPanelNavigationReceiver({api:chrome,
+        onNavigate:async request=>{
+          await sidebarTools.ready;
+          const blocked=message=>({status:'NAVIGATION_BLOCKED',message});
+          const changed=message=>({status:'IDENTITY_CHANGED',message});
+          if(shellClosed||!verifiedSidePanel)return blocked('真实 Side Panel 已关闭，原请求仍可恢复。');
+          if(request.source==='built-in'&&request.action!=='open-local'){
+            const {apps}=await loadOfficialCatalog({api:chrome});
+            const release=apps.find(row=>row.id===request.marketId&&
+              row.toolId===request.toolId&&row.version===request.releaseVersion&&
+              row.sha256===request.sha256);
+            if(!release)return changed('本机内置官方发行版本或摘要已变化；旧请求未执行。');
+          }
+          if(request.action==='review'){
+            if(request.source!=='built-in')return changed('外部市场不能要求安装内置官方发行。');
+            if(!sidebarTools.canPresentMarketReview())return blocked('已有草稿或其他安装审阅，请完成后重新发起。');
+            if(taskWorkbench.navigate('tools')===false)return blocked('当前工作区拒绝导航，草稿已保留。');
+            return sidebarTools.openOfficialReview(request.toolId)===true
+              ?{status:'REVIEW_REQUEST_ACCEPTED',message:'已由正式 Side Panel 安装审阅入口接收，尚未安装。'}
+              :blocked('安装审阅入口暂不可用，原请求未提交。');
+          }
+          if(request.action==='detail'){
+            if(taskWorkbench.navigate('tools')===false)return blocked('当前工作区有未保存内容，未打开详情。');
+            return await extensionCenter.openInstalledAppDetail({marketId:request.marketId,
+              id:request.toolId,version:request.releaseVersion,sha256:request.sha256})
+              ?{status:'DETAIL_OPENED',message:'已进入正式 ExtensionDetail。'}
+              :changed('已安装版本或来源摘要不匹配，未打开其他应用详情。');
+          }
+          if(!sidebarTools.canPresentMarketReview())return blocked('当前有未保存内容或正在安装，原打开请求已保留。');
+          const opened=request.action==='open-local'?
+            request.source==='built-in'&&await extensionCenter.openInstalledLocalTool({
+              id:request.toolId,version:request.releaseVersion}):
+            await extensionCenter.openInstalledMarketApp({
+              marketId:request.marketId,id:request.toolId,version:request.releaseVersion,sha256:request.sha256});
+          return opened?{status:'APP_OPENED',message:'已由现有 ToolHost 挂载运行界面。'}:
+            changed('当前安装或启用状态已变化，或工作区未允许打开；没有启动应用。');
+        },
+        onBlocked:result=>extensionCenter.reportPanelNavigation(result.message),
+        onError:error=>console.warn('Market panel navigation',error)
+      });
+      try{
+        const currentWindow=await chrome.windows.getCurrent();
+        if(!shellClosed&&Number.isSafeInteger(currentWindow?.id))
+          marketPanelIntents.start(currentWindow.id);
+      }catch(error){console.warn('Market panel receiver unavailable',error);}
+    }
     // The React ToolHost already renders a selected installed app. A trusted,
     // short-lived toolId locator drives its existing Host, not a second router.
     panelToolIntents=createPanelToolIntentReceiver({api:chrome,
@@ -521,7 +572,7 @@ listen(window, 'pagehide', () => {
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
   myAgent.dispose();myConversation.dispose();scheduleHost?.dispose();scheduleUI?.dispose();
-  panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose();toolLocaleService.dispose(); debugWorkbench?.dispose(); promptConversation?.dispose();workflowView.dispose();providerRuntime.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  marketPanelIntents?.dispose();panelToolIntents?.dispose();tabMemory.dispose(); localeController.dispose();toolLocaleService.dispose(); debugWorkbench?.dispose(); promptConversation?.dispose();workflowView.dispose();providerRuntime.dispose(); extensionCenter.dispose(); sidebarTools.dispose(); extensionList.dispose(); toolView.dispose(); nativeAgentHost.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); sharedRunHost.dispose(); developerView.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }

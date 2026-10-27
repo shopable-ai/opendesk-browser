@@ -10,6 +10,7 @@ import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-to
 import {uiMessage} from './app-localization.js';
 import {PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {loadMarketChannel} from '../marketplace/external.js';
+import {readMarketInstallStatus} from '../marketplace/status.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
 import {SCROLL_CONFIG_PROGRAM_ID} from '../scripting/user-scripts/scroll-config-contract.js';
 
@@ -454,11 +455,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       // review gesture. Stale discoveries cannot open a different app.
       await currentPageTarget.revalidate(selected.target);
       if(disposed||generation!==discoveryGeneration||pageDiscovery?.subject!==selected.subject)return;
-      // No untrusted URL reaches Chrome or the Installer. Existing trusted catalog owns review.
-      await api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')+
-        '#/apps/'+selected.subject.marketId+'/versions/'+selected.subject.version});
+      // Discovery is already inside the native Side Panel. Keep its verified
+      // document, release and editor intact; use the original ImportSheet host.
+      if(!sidebarTools.canPresentMarketReview()||
+        sidebarTools.openOfficialReview(selected.release.toolId)!==true)
+        throw Object.assign(new Error('当前有未保存草稿或其他安装审阅。原网页和候选已保留，请处理后重试。'),{code:'E_REVIEW_DEFERRED'});
       if(pageDiscovery?.subject===selected.subject)pageDiscovery={...selected,busy:false,
-        message:'已打开可信应用详情。请在那里审阅并确认；此操作不代表安装成功。'};
+        message:'已在当前侧边栏发起正式安装审阅；未执行安装，也未授予网站权限。'};
     }catch(error){
       if(pageDiscovery?.subject===selected.subject)pageDiscovery={...selected,busy:false,
         message:(error?.code||'E_DISCOVERY_REVIEW')+'：'+String(error?.message||error)};
@@ -534,6 +537,33 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
     openDetail(row.key,'main');
     return selectedKey===row.key;
+  }
+  async function openInstalledMarketApp({marketId,id,version,sha256}={}){
+    if(disposed||busy||pendingKey||marketId!=='opendesk/'+id||
+      typeof id!=='string'||typeof version!=='string'||!/^[a-f0-9]{64}$/.test(sha256||''))
+      return false;
+    // The Side Panel rechecks the actual persisted bytes/provenance/enablement,
+    // never trusts an external publisher's claimed same-ID/same-version match.
+    const observed=await readMarketInstallStatus(api,{subject:{kind:'app',marketId,version},consumedAt:null});
+    if(observed.currentInstallation!=='installed'||observed.enabled!==true)return false;
+    if(!await refresh({appReadback:true})||disposed)return false;
+    const row=find('app:'+id),source=sources[id];
+    if(!row||row.kind!=='app'||row.installed!==true||row.stateKnown!==true||
+      row.enabled!==true||row.version!==version||source?.kind!=='market'||source.sha256!==sha256)
+      return false;
+    if(taskWorkbench.navigate('tools')===false)return false;
+    try{return Boolean(sidebarTools.openTool(id,{userInitiated:true}));}
+    catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+String(error?.message||error),'error');return false;}
+  }
+  async function openInstalledLocalTool({id,version}={}){
+    if(disposed||busy||pendingKey||typeof id!=='string'||typeof version!=='string'||
+      !await refresh({appReadback:true})||disposed)return false;
+    const row=find('app:'+id);
+    if(!row||row.kind!=='app'||row.installed!==true||row.stateKnown!==true||
+      row.enabled!==true||row.version!==version)return false;
+    if(taskWorkbench.navigate('tools')===false)return false;
+    try{return Boolean(sidebarTools.openTool(id,{userInitiated:true}));}
+    catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+String(error?.message||error),'error');return false;}
   }
   function back(){
     if(disposed)return;
@@ -935,7 +965,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const connChanged=client.subscribeConnection?.(state=>{if(state.connected)void refresh();});
   message('正在读取已安装扩展与授权状态…','loading','loading');draw();
   void readDiscoveryChannel();void readOfficial();void readPageOfficial();void refresh();
-  return {refresh,openInstalledAppDetail,dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;discoveryChannelGeneration++;
+  return {refresh,openInstalledAppDetail,openInstalledMarketApp,openInstalledLocalTool,
+    reportPanelNavigation:value=>message(String(value||'市场导航被暂缓。'),'error'),
+    dispose(){if(disposed)return;disposed=true;sequence++;officialSequence++;pageOfficialSequence++;discoveryGeneration++;discoveryChannelGeneration++;
     listUninstallReview=null;uninstallReview=null;closeRowMenu();
     doc.removeEventListener('opendesk-language-settings',languageSettingsRequested);
     doc.removeEventListener('opendesk:page-installation-changed',pageInstallationChanged);

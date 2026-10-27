@@ -7,7 +7,7 @@ import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   installReviewedSidebarTool,recoverMarketOperation,retryUninstalledToolCleanup,
   requireCompleteInstalledSidebarTools,
   TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
-import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
+import {MARKET_PANEL_NAV_PROTOCOL} from './panel-navigation.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
 import {MARKET_INTENTS_STORE,loadReviewIntent,marketSubjectRoute,consumeReviewIntent,settleReviewIntent,closeUnjournaledReview} from './intent.js';
@@ -117,6 +117,31 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     const row=state.catalog?.apps.find(item=>item.id===app?.id&&item.version===app?.version);
     if(!row)throw fail('当前扩展未发行这个固定版本','E_PACKAGE_MISSING');
     return loadOfficialTool(row,{api});
+  }
+  // All single-app transitions stay in the existing native Side Panel Root.
+  // A response means the Host actually accepted a route, not an installation.
+  async function navigatePanel(action,app=null,localTool=null){
+    const toolId=localTool?.id||app?.toolId;
+    const version=localTool?.version||app?.version;
+    const release=app&&state.catalog?.apps.find(row=>row.id===app.id&&row.version===app.version);
+    if(action!=='open-local'&&!release){
+      say('当前官方固定发行不可用，请重新加载市场目录。',true);return;
+    }
+    try{
+      const response=await api.runtime.sendMessage({protocol:MARKET_PANEL_NAV_PROTOCOL,action:'NAVIGATE',
+        target:action,toolId,version,marketId:release?.id??null,sha256:release?.sha256??null});
+      if(response?.protocol!==MARKET_PANEL_NAV_PROTOCOL||response.ok!==true)
+        throw fail(response?.error?.message||'无法确认 Side Panel 导航。',response?.error?.code||'E_NAV_UNKNOWN');
+      const notices={APP_OPENED:'已在侧边栏打开应用运行界面。',
+        DETAIL_OPENED:'已在侧边栏打开应用详情。',
+        REVIEW_REQUEST_ACCEPTED:'已在侧边栏发起正式安装审阅；尚未安装。',
+        NAVIGATION_PENDING:'已提交侧边栏导航请求，等待目标面板确认。',
+        PANEL_REQUIRED:'导航请求已保存；请打开当前 Chrome 窗口的 OpenDesk 侧边栏继续。',
+        NAVIGATION_BLOCKED:'侧边栏已保留导航请求；请先处理未保存编辑或安装审阅。',
+        IDENTITY_CHANGED:'应用身份已变化，本次导航未执行；请重新核对。'};
+      say((notices[response.status]||'导航结果未知，请在 Side Panel 核对。')+
+        (response.message?' '+response.message:''),!['APP_OPENED','DETAIL_OPENED','REVIEW_REQUEST_ACCEPTED'].includes(response.status));
+    }catch(error){say((error.code||'E_NAV')+'：'+String(error.message||error),true);}
   }
   async function reloadInstalled(){
     const generation=++localReadGeneration;
@@ -331,12 +356,10 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         '只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。','minor'));
     const side=elem('aside','side'),meta=elem('section','surface');meta.append(infoSpecs(app));
     const acts=elem('div','actions');
-    const open=button('打开使用',()=>api.tabs.create({url:toolPageHref(api.runtime,app.toolId)}),recordedOfficialSource(app));
-    if(current&&state.matched.has(app.id)){
-      if(!recordedOfficialSource(app))acts.append(button('审阅官方来源',()=>reviewApp(app),true));
-      acts.append(open);
-    }
-    else acts.append(button(current?'审阅版本更新':'审阅并安装',()=>reviewApp(app)));
+    if(current&&state.matched.has(app.id)&&recordedOfficialSource(app)){
+      acts.append(button('查看应用详情',()=>navigatePanel('detail',app),true),
+        button('打开使用',()=>navigatePanel('open',app)));
+    }else acts.append(button(current?'审阅官方版本':'审阅并安装',()=>reviewApp(app),true));
     acts.append(button('复制详情链接',()=>copy(location.href).then(()=>say('已复制此扩展内详情链接；跨设备分享请使用部署后的公网地址。')).catch(e=>say(e.message,true))));
     if(app.toolId==='time-review'&&app.externalWeb?.url==='https://todo6.com/'){
       acts.append(button(app.externalWeb.label,()=>api.tabs.create({url:app.externalWeb.url})));
@@ -357,7 +380,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(state.review)content.append(renderReview(state.review));
     else if(state.matched.has(app.id)&&recordedOfficialSource(app)){
       content.append(para('已核对本机安装：v'+app.version+'。安装不会自动运行。'));
-      const open=button('打开使用',()=>api.tabs.create({url:toolPageHref(api.runtime,app.toolId)}),true);
+      const open=button('打开使用',()=>navigatePanel('open',app),true);
       open.dataset.marketAction='open-installed';content.append(add(elem('div','actions'),open));
     }else if(state.handoffCancelled){
       content.append(para('已取消本次审阅，未提交安装。'));
@@ -397,6 +420,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     });action.dataset.marketAction='close-unjournaled';action.disabled=state.busy;box.append(action);return box;
   }
   async function reviewApp(app) {
+    if(!state.handoff)return navigatePanel('review',app);
     if(state.busy)return;
     state.busy=true;say('正在核对随扩展发行的固定版本包…');
     try{
@@ -471,7 +495,9 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     finally{await settleHandoff();state.busy=false;render();}
   }
   async function commitApp(review){
-    if(state.busy||state.review!==review)return;
+    // Only historical recovery handoffs may still confirm in this legacy page.
+    // New single-app reviews belong exclusively to the official Side Panel.
+    if(!state.handoff||state.busy||state.review!==review)return;
     state.busy=true;render();
     try{
       await verifyReviewedOfficialTool(review.release,review.tool,{api});
@@ -554,7 +580,9 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       const cb=elem('input');cb.type='checkbox';cb.disabled=!app;cb.checked=Boolean(app&&state.selected.has(app.id));
       if(app)cb.addEventListener('change',()=>{if(cb.checked)state.selected.add(app.id);else state.selected.delete(app.id);});
       label.append(cb,elem('span','',tool.title+' · v'+tool.version+(app?'':'（非当前官方发行版本）')));
-      line.append(label,button('打开',()=>api.tabs.create({url:toolPageHref(api.runtime,tool.id)})));
+      line.append(label,
+        ...(app?[button('详情',()=>navigatePanel('detail',app))]:[]),
+        button('打开',()=>app?navigatePanel('open',app):navigatePanel('open-local',null,tool)));
       table.append(line);
     }
     if(!state.installed.length)table.append(para('尚无已安装应用。'));

@@ -30,7 +30,9 @@ function send(message,target=channel){
         GET_APP_STATUS:'APP_STATUS',OPEN_INSTALLED_APP:'APP_OPENED'}[message.action];
       const panelRequired=message.action==='OPEN_INSTALL_REVIEW'&&message.subject.kind==='app'&&
         ['PANEL_REQUIRED','REVIEW_PENDING'].includes(response.status);
-      if((response.status!==expected&&!panelRequired)||!expected||
+      const navigationResult=message.action==='OPEN_INSTALLED_APP'&&
+        ['NAVIGATION_PENDING','PANEL_REQUIRED','NAVIGATION_BLOCKED','IDENTITY_CHANGED'].includes(response.status);
+      if((response.status!==expected&&!panelRequired&&!navigationResult)||!expected||
         (message.action==='GET_INSTALL_STATUS'&&response.intentId!==message.intentId)||
         (message.action==='OPEN_INSTALL_REVIEW'&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(response.intentId)))
         return reject(problem('E_RESPONSE','无法核对交接回执，请查看已有审阅页。'));
@@ -105,7 +107,7 @@ const entries=reviewButtons.map(button=>{
 function saveIntent(entry){
   try{if(entry.intent)sessionStorage.setItem(entry.key,JSON.stringify(entry.intent));else sessionStorage.removeItem(entry.key);}catch{}
 }
-function hasInstalled(entry){return entry.current&&entry.current.currentInstallation!=='not-installed';}
+function hasInstalled(entry){return entry.current?.currentInstallation==='installed';}
 function unresolved(entry){return entry.intent&&!['installed','cancelled','failed'].includes(entry.intent.installation);}
 function render(entry){
   const pending=unresolved(entry),installed=hasInstalled(entry);
@@ -127,7 +129,7 @@ function showCurrent(entry,result){
   entry.current=result;render(entry);
   if(!entry.intent){
     const labels={'not-installed':'此固定版本尚未安装。',installed:'已安装，可打开使用。',
-      'update-available':'可更新，也可打开当前安装。','different-version':'已安装其他版本，可打开当前安装或审阅此固定版本。'};
+      'update-available':'已有较旧版本；本页固定发行尚未安装，可以审阅更新。','different-version':'已安装不同版本；本页不能代替它打开另一个发行。'};
     feedback(entry,labels[result.currentInstallation]+(result.installedVersion?' 当前版本：'+result.installedVersion+'。':'')+
       (result.enabled===false?' 当前安装已停用。':''));
   }
@@ -189,8 +191,14 @@ async function perform(entry,operation){
   try{
     await configuration();
     if(operation==='open'||operation==='primary'&&!unresolved(entry)&&entry.current?.currentInstallation==='installed'){
-      await send({protocol,action:'OPEN_INSTALLED_APP',subject:entry.subject});
-      feedback(entry,'已打开当前安装。','success');return;
+      const opened=await send({protocol,action:'OPEN_INSTALLED_APP',subject:entry.subject});
+      const label={APP_OPENED:'已在 OpenDesk 侧边栏打开此固定发行。',
+        NAVIGATION_PENDING:'已向 Side Panel 提交打开请求；等待原窗口面板核对，尚未确认运行。',
+        PANEL_REQUIRED:'打开请求已保留；请点击 Chrome 工具栏中的 OpenDesk 打开同一窗口侧边栏。',
+        NAVIGATION_BLOCKED:'侧边栏未接受打开操作；请先保存草稿或关闭其他审阅，再主动重试。',
+        IDENTITY_CHANGED:'版本、发行身份或本机安装状态已变化，应用没有启动。'};
+      feedback(entry,(label[opened.status]||'打开结果未知，请核对 Side Panel。')+
+        (opened.message?' '+opened.message:''),opened.status==='APP_OPENED'?'success':'pending');return;
     }
     if(operation==='primary'&&unresolved(entry)){await checkInstallation(entry);return;}
     if(!entry.intent||!unresolved(entry)){
