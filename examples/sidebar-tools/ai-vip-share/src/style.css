@@ -36,6 +36,7 @@
 .ai-vip-benefits-head span{font-size:12px;color:var(--od-sub)}
 .ai-vip-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:7px}
 .ai-vip-list li{font-size:12px;line-height:1.55;padding:9px 10px;border-radius:var(--radius-control);background:var(--od-bg);color:var(--od-sub);overflow-wrap:anywhere}
+.ai-vip-list:empty{display:none}
 .ai-vip-list .ai-vip-list-item{display:grid;gap:3px}
 .ai-vip-list-item strong{font-size:13px;color:var(--od-ink);font-weight:650}
 .ai-vip-list-item p{margin:0;font-size:12px;line-height:1.55;color:var(--od-sub)}
@@ -44,14 +45,20 @@
 .ai-vip-history summary::-webkit-details-marker{display:none}
 .ai-vip-history summary strong{font-weight:650;color:var(--od-accent-ink)}
 .ai-vip-history .ai-vip-list{padding:0 15px 12px;margin:0}
-.ai-vip-redeem,.ai-vip-proxy{display:grid;gap:8px;padding:0 1px}
+.ai-vip-redeem,.ai-vip-proxy{display:grid;gap:10px;border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:15px;background:var(--od-paper);min-width:0}
 .ai-vip-redeem h2{font-size:14px;line-height:1.45;margin:0;color:var(--od-ink)}
 .ai-vip-note,.ai-vip-fine-print,.ai-vip-proxy-source{color:var(--od-sub);font-size:12px;line-height:1.6;margin:0}
-.ai-vip-redeem-form{display:grid;gap:9px;margin:0}
-.ai-vip-redeem-inputs{display:grid;grid-template-columns:minmax(0,1fr) 36px 36px;align-items:center;gap:7px}
-.ai-vip-redeem-inputs>.od-field{width:100%;height:38px;min-height:38px;margin:0;min-width:0;max-width:none;padding:0 10px;font-size:13px}
-.ai-vip-redeem-inputs>.od-icon-button{height:38px;min-height:38px;width:36px;min-width:36px}
-.ai-vip-primary{min-height:37px;width:100%;justify-content:center}
+.ai-vip-redeem-form{display:grid;gap:10px;margin:0}
+.ai-vip-redeem-inputs{display:block;position:relative;min-height:44px;min-width:0}
+.ai-vip-redeem-inputs>.od-field{width:100%;height:44px;min-height:44px;margin:0;min-width:0;max-width:none;padding:0 86px 0 12px;font-size:14px;letter-spacing:.1px;border-radius:var(--radius-control)}
+.ai-vip-redeem-inputs>.od-field::placeholder{color:var(--od-sub);opacity:.85;letter-spacing:0}
+.ai-vip-redeem-inputs>.od-icon-button{position:absolute;top:4px;right:45px;width:36px;height:36px;min-width:36px;min-height:36px;display:grid;place-items:center;border:0;border-radius:var(--radius-control);background:transparent;color:var(--od-sub);padding:0}
+.ai-vip-redeem-inputs>#ai-vip-code-clear{right:6px}
+.ai-vip-redeem-inputs>.od-icon-button:focus-visible{outline:2px solid var(--od-brand);outline-offset:0}
+.ai-vip-redeem-inputs>.od-icon-button:disabled{opacity:.4;cursor:default}
+.ai-vip-redeem-inputs>#ai-vip-code-clear:disabled{opacity:0;pointer-events:none}
+.ai-vip-redeem-inputs>.od-field:focus-visible{outline:2px solid var(--od-brand);outline-offset:1px}
+.ai-vip-primary{min-height:42px;width:100%;justify-content:center;font-weight:650}
 .ai-vip-review{border:1px solid var(--od-line);border-radius:var(--radius-control);padding:11px;background:var(--od-muted);color:var(--od-ink);display:grid;gap:8px;font-size:12px;line-height:1.6}
 .ai-vip-review>strong{font-size:13px}
 .ai-vip-review p{font-size:12px;line-height:1.6;margin:0;overflow-wrap:anywhere}
@@ -63,7 +70,8 @@
 .ai-vip-shop{display:grid;gap:6px}
 .ai-vip-shop-link{min-height:37px;justify-content:center;width:100%;font-size:13px;font-weight:650}
 .ai-vip-shop-status{margin:0}
-.ai-vip-proxy{padding-top:14px;border-top:1px solid var(--od-line)}
+.ai-vip-session-retry{min-height:36px;justify-self:start;font-size:12px}
+.ai-vip-proxy{padding-top:15px}
 .ai-vip-proxy h2{font-size:14px}
 .ai-vip-proxy[data-mode="critical"]{gap:10px}
 .ai-vip-proxy-toggle{width:100%;min-height:38px}
@@ -71,7 +79,7 @@
 .ai-vip-proxy-alert p{margin:0}
 .ai-vip-proxy-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0}
 .ai-vip-proxy-refresh{flex:none}
-@media(max-width:360px){.ai-vip{gap:13px}.ai-vip-card-inner{padding:13px}.ai-vip-expiry{flex-basis:100%;text-align:left}.ai-vip-account-row{gap:7px}.ai-vip-pill{max-width:62%}}
+@media(max-width:360px){.ai-vip{gap:13px}.ai-vip-card-inner,.ai-vip-redeem,.ai-vip-proxy{padding:13px}.ai-vip-expiry{flex-basis:100%;text-align:left}.ai-vip-account-row{gap:7px}.ai-vip-pill{max-width:62%}}
 @media(max-width:345px){.ai-vip{padding:13px 12px 15px}}
-@media(max-width:320px){.ai-vip-account-copy strong{font-size:13px}.ai-vip-redeem-inputs{grid-template-columns:minmax(0,1fr) 36px 36px;gap:5px}}
+@media(max-width:320px){.ai-vip-account-copy strong{font-size:13px}.ai-vip-redeem-inputs>.od-field{padding-right:84px}}
 @media(prefers-reduced-motion:reduce){.ai-vip-meter span{transition:none}}

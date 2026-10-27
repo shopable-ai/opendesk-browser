@@ -10,7 +10,7 @@ const note=document.getElementById('preview-note');
 const tell=message=>{note.textContent=message+'（只修改隔离演示，未操作 Chrome。）';};
 
 const scene=document.getElementById('preview-scene');
-const allowed=new Set(['member','redeem','offline']);
+const allowed=new Set(['member','redeem','quota','expired','guest','error','offline']);
 const requested=new URL(location.href).searchParams.get('scene');
 scene.value=allowed.has(requested)?requested:'member';
 scene.addEventListener('change',()=>{
@@ -28,8 +28,13 @@ width.addEventListener('change',()=>{
 });
 width.dispatchEvent(new Event('change'));
 
-document.getElementById('preview-switch').addEventListener('click',()=>{
-  tell('服务端演示分配已改为 '+fixture.switchAccount()+'；请点击产品内刷新会员信息');
+document.getElementById('preview-fill-code').addEventListener('click',()=>{
+  const input=document.getElementById('ai-vip-redeem-code');
+  if(!input||input.disabled){tell('请选择「待兑换」场景，再填入体验激活码');return;}
+  input.value='DEMO-VIP-01';
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+  input.focus({preventScroll:true});
+  tell('体验激活码已填入；预检与最终确认仍需在正式产品界面主动点击');
 });
 document.getElementById('preview-cookie').addEventListener('change',event=>{
   fixture.cookieOutcome=event.target.value;

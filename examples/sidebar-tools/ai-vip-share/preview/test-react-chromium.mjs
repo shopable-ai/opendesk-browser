@@ -130,52 +130,90 @@ async function capture(width,theme,name){
 }
 async function run(){
   await connect();
-  // Production-unconfigured state: there must not be any development or
-  // preview controls mounted in the actual product React tree.
+  // Every frame uses the installable App.jsx + real business controller.
   await cdp('Page.navigate',{url:url+'?scene=offline'});
-  await until('document.getElementById("ai-vip-member-state")?.textContent==="服务未配置"','production fail-closed state');
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="服务未配置"','provider not configured');
   const isolated=await evaluate('('+function(){
-    const app=document.querySelector('#tool-app');
-    const studio=document.querySelector('#preview-controls');
+    const app=document.querySelector('#tool-app'),studio=document.querySelector('#preview-controls');
     return {singleRoot:document.querySelectorAll('#tool-app .ai-vip').length===1,
-      hasDev:!!app?.querySelector('#ai-vip-local-connect,#ai-vip-features-title,#ai-vip-service-mode,.ai-vip-advanced,h1'),
+      leaked:!!app?.querySelector('#ai-vip-local-connect,#ai-vip-shared-section,#ai-vip-shared-account,#ai-vip-features-title,h1'),
       hasProxy:app?.querySelectorAll('#ai-vip-proxy-toggle').length===1,
-      outside:!!studio&&!app.contains(studio),
-      studioClosed:studio?.open===false,
-      redeemDisabled:document.getElementById('ai-vip-redeem')?.disabled===true};
+      outside:!!studio&&!app.contains(studio),studioClosed:studio?.open===false,
+      inputDisabled:document.getElementById('ai-vip-redeem')?.disabled===true};
   }.toString()+')()');
-  assert.equal(isolated.singleRoot,true);
-  assert.equal(isolated.hasDev,false,'production must not expose lab or feature inventory');
-  assert.equal(isolated.hasProxy,true);
-  assert.equal(isolated.outside,true);
-  assert.equal(isolated.studioClosed,true);
-  assert.equal(isolated.redeemDisabled,true);
-  result.checks.push('production has no dev UI and unconfigured service fails closed');
+  assert.deepEqual(isolated,{singleRoot:true,leaked:false,hasProxy:true,outside:true,
+    studioClosed:true,inputDisabled:true});
+  result.checks.push('no company-account UI or developer console in formal product');
   await capture(390,'light','react-offline-390-light');
 
-  // The preview ONLY supplies an approved local SDK fixture. No developer
-  // control panel exists inside the installed React product.
   await cdp('Page.navigate',{url});
-  await until('document.getElementById("ai-vip-member-state")?.textContent==="权益有效"','fixture-owned member state');
-  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-local-connect").length'),0);
-  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-proxy-toggle").length'),1);
-  result.checks.push('fixture member entitlement without any in-product demo switch');
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="权益有效"','member entitlement');
+  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-shared-account,#ai-vip-shared-section").length'),0);
+  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-redeem-code").length'),1);
+  assert.equal(await evaluate('document.querySelector("#ai-vip-product-name")?.textContent.includes("AI 会员")'),true);
+  const labels=await evaluate('document.getElementById("tool-app").innerText');
+  assert(!labels.includes('演示网站访问')&&!labels.includes('公司共享账号'),'fixture labels leaked into product');
+  result.checks.push('product typography uses clean membership/website-access labels');
   await click('#preview-controls > summary');
-  await click('#preview-switch');
-  await until('document.getElementById("ai-vip-refresh")?.disabled===false','member refresh available');
-  await click('#ai-vip-refresh');
-  await until('document.getElementById("ai-vip-shared-account")?.textContent.includes(" B")','server-assigned B');
-  result.checks.push('server-only account reassignment A to B');
   await select('#preview-proxy','enabled');
   await click('#ai-vip-proxy-refresh');
   await until('document.getElementById("ai-vip-proxy-toggle")?.dataset.action==="stop"','owned STOP');
   await click('#ai-vip-proxy-toggle');
   await until('document.getElementById("ai-vip-proxy-state")?.textContent==="已停止"','proxy STOP ack');
-  result.checks.push('direct trusted STOP; no actual proxy');
-  for(const width of [320,360,390,400,440,520]){
+  result.checks.push('trusted STOP remains independent of membership and Cookie');
+  for(const width of [320,360,390,400,440,520])
     await capture(width,'light','react-member-'+width+'-light');
-  }
   await capture(390,'dark','react-member-390-dark');
+
+  await cdp('Page.navigate',{url:url+'?scene=redeem'});
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="尚未开通"','ready for first redemption');
+  await until('document.getElementById("ai-vip-redeem-code")?.disabled===false','redeem enabled');
+  const geometry=await evaluate('('+function(){
+    const input=document.querySelector('#ai-vip-redeem-code').getBoundingClientRect();
+    const reveal=document.querySelector('#ai-vip-code-reveal').getBoundingClientRect();
+    const clear=document.querySelector('#ai-vip-code-clear').getBoundingClientRect();
+    return {inline:reveal.left>=input.left&&reveal.right<=input.right&&
+      clear.left>=input.left&&clear.right<=input.right,large:input.height>=42};
+  }.toString()+')()');
+  assert.equal(geometry.inline,true,'reveal and clear must be inside one input shell');
+  assert.equal(geometry.large,true,'activation input requires a full touch target');
+  await click('#preview-controls > summary');
+  await click('#preview-fill-code');
+  await until('document.getElementById("ai-vip-redeem")?.disabled===false','valid voucher preflight');
+  assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").type'),'password');
+  await click('#ai-vip-code-reveal');
+  assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").type'),'text');
+  await click('#ai-vip-code-reveal');
+  await click('#ai-vip-code-clear');
+  assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").value'),'');
+  assert.equal(await evaluate('document.getElementById("ai-vip-redeem").disabled'),true);
+  await click('#preview-fill-code');
+  await capture(390,'light','react-redeem-input-390-light');
+  await click('#ai-vip-redeem');
+  await until('document.getElementById("ai-vip-redeem-preview")?.hidden===false','voucher preview visible');
+  await capture(390,'light','react-redeem-confirm-390-light');
+  assert.equal(await evaluate('document.getElementById("ai-vip-redeem-confirm").disabled'),false);
+  await click('#ai-vip-redeem-confirm');
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="权益有效"','redeemed member');
+  await until('document.getElementById("ai-vip-cookie-install")?.disabled===false','conditional session delivery');
+  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-shared-section").length'),0);
+  await select('#preview-cookie','partial');
+  await click('#ai-vip-cookie-install');
+  await until('document.getElementById("ai-vip-cookie-status")?.textContent.includes("部分 Cookie")','partial write visible');
+  result.checks.push('voucher review + explicit confirmation + partial Cookie write without replay');
+  await capture(390,'light','react-cookie-partial-390-light');
+
+  // The expiry / quota layouts are product cases, not developer-only cards.
+  await cdp('Page.navigate',{url:url+'?scene=quota'});
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="权益有效"','quota member');
+  await capture(390,'light','react-quota-390-light');
+  await cdp('Page.navigate',{url:url+'?scene=expired'});
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="已到期"','expired member');
+  await capture(390,'light','react-expired-390-light');
+  await cdp('Page.navigate',{url:url+'?scene=error'});
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="无法核验"','provider error');
+  await capture(390,'light','react-error-390-light');
+  result.checks.push('quota, expiry and provider-error layouts use the same React view');
   assert.equal(exceptions.length,0,'runtime exceptions: '+exceptions.join(' | '));
   result.status='CHROMIUM_REACT_PREVIEW_PASS_NOT_INSTALLED';
   console.log('AI_VIP_REACT_PREVIEW_CHROMIUM_PASS '+result.checks.join(' / '));

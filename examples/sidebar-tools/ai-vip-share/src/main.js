@@ -200,15 +200,22 @@
   }
   function assignedShared(){return sharedCatalog?.accounts.find(row=>row.id===sharedId);}
   function renderShared(){
-    if(!sharedSection||!sharedAssigned||!sharedStatus||!sharedReceive)return;
-    sharedSection.hidden=!sharedCatalog;
-    sharedAssigned.textContent=assignedShared()?.label||'尚未分配';
-    sharedReceive.disabled=busy||cookieBusy||sharedBusy||!assignedShared()||
-      !cookieReady||(Boolean(cookieFault)&&!cookieFaultRecoverable)||['unknown','partial'].includes(cookieRecord?.state);
-    sharedStatus.textContent=['unknown','partial'].includes(cookieRecord?.state)?
+    const selection=assignedShared();
+    // Allocation remains private server state; only a conditional session
+    // recovery action is exposed in the installable product.
+    if(sharedSection)sharedSection.hidden=!sharedCatalog;
+    if(sharedAssigned)sharedAssigned.textContent=selection?.label||'尚未分配';
+    if(sharedReceive){
+      sharedReceive.hidden=!selection||Boolean(cookiePending)||
+        ['unknown','partial'].includes(cookieRecord?.state);
+      sharedReceive.disabled=busy||cookieBusy||sharedBusy||!selection||
+        !cookieReady||(Boolean(cookieFault)&&!cookieFaultRecoverable)||
+        ['unknown','partial'].includes(cookieRecord?.state);
+    }
+    if(sharedStatus)sharedStatus.textContent=['unknown','partial'].includes(cookieRecord?.state)?
       '上次会话写入结果仍需人工核对；已停止取得会话，不会自动重放。':
       sharedBusy?'正在取得服务器分配账号的会话…':sharedNotice||
-      (assignedShared()?'服务器已分配 '+assignedShared().label+'；尚未写入目标网站。':'当前没有服务器分配的账号。');
+      (selection?'服务器已分配 '+selection.label+'；尚未写入目标网站。':'当前没有服务器分配的账号。');
     if(cookieBusy)refresh.disabled=true;
   }
   async function requestSharedSession(){
@@ -295,7 +302,7 @@
   }
   function renderCookies(){
     if(!cookieSection||!cookieStatus||!cookieInstall||!cookieResults)return;
-    cookieSection.hidden=!cookiePending&&!cookieRecord&&!cookieFault;
+    cookieSection.hidden=!cookiePending&&!cookieRecord&&!cookieFault&&!assignedShared();
     const record=cookieRecord;
     cookieInstall.hidden=!cookiePending;
     cookieInstall.disabled=!cookieReady||cookieBusy||busy||!cookiePending||Boolean(cookieFault)||
@@ -307,10 +314,11 @@
       partial:'部分 Cookie 已写入；其余未完成。不会自动回滚或重放，请在目标页面核对。',
       failed:'Cookie 未写入。请检查目标网站的 Chrome 权限与工具设置授权；修复后可主动重试有效交付。',
       unknown:'Cookie 操作结果未知或恢复记录未确认；已禁止重放，请在目标页面人工核对。'};
-    cookieStatus.textContent=cookieFault|| (cookieBusy?'正在核对授权与逐项写入回执，请勿重复操作。':
+    cookieStatus.textContent=cookieFault||(cookieBusy?'正在核对授权与网站会话，请勿重复操作。':
       record&&(!cookiePending||record.deliveryId===cookiePending.deliveryId)?labels[record.state]:
-        cookiePending?'已收到 '+cookiePending.payload.cookies.length+' 项 Cookie，目标：'+new URL(cookiePending.targetUrl).origin+
-          '。确认写入可能替换该网站当前会话。':'尚未收到 Cookie 交付。');
+        cookiePending?'已收到网站会话，目标：'+new URL(cookiePending.targetUrl).origin+'。应用前请核对授权。':
+        sharedBusy?'正在获取网站会话…':sharedNotice.startsWith('未取得有效')?
+          '暂未取得有效网站会话，请检查授权后重试。':'尚未应用网站会话。');
     if(cookieOpen)cookieOpen.hidden=record?.state!=='success'||!cookieTarget(record.targetUrl);
   }
   async function readCookieRecord(){
@@ -418,8 +426,8 @@
         await saveCookieRecord({...record,...outcome},marker);
         if(outcome.state!=='failed')cookiePending=null;
         if(delivery.sharedAccountId){
-          sharedNotice=outcome.state==='success'?'已写入 '+assignedShared().label+'；正在打开目标网页，请核对实际账号。':
-            '账号切换未完成；请核对逐项回执与目标页面，不会自动重试。';
+          sharedNotice=outcome.state==='success'?'网站会话已写入；请在目标页面核对实际登录状态。':
+            '网站会话未完整写入；请核对逐项结果，不会自动重试。';
           if(outcome.state==='success')await openCookieTarget();
         }
       }catch(error){
@@ -769,7 +777,7 @@
       expiry.textContent=primary.detail;
     }
     verified.hidden=!primary&&!redemptions.length;
-    verified.textContent=verified.hidden?'':(localMode?'本地开发服务已核验 · ':'服务端已核验 · ')+dateLabel(serverNow);
+    verified.textContent=verified.hidden?'':'服务端已核验 · '+dateLabel(serverNow);
     benefitSection.hidden=!entitlements.length;
     clear(benefits);
     entitlements.forEach(e=>addRow(benefits,e.title,benefitDescription(e,serverNow)));
@@ -1286,10 +1294,9 @@
       else if(current?.state==='conflict')detail.textContent='代理控制权冲突，不会覆盖其他扩展。';
       else if(!safeEndpoint())detail.textContent='代理服务尚未接入，暂不能启用。';
       else if(!hasEntitlement())detail.textContent=localMode?
-        '本地开发：请先兑换 DEMO-VIP-01，取得开发代理功能回执。':'需要经过服务端核验的有效会员权益。';
+        '请先完成会员激活，取得网站访问权益。':'需要经过服务端核验的有效会员权益。';
       else if(!current)detail.textContent='正在检测浏览器代理状态。';
-      else detail.textContent=localMode?'本地开发：仅将批准的 AI 网站/API 经 HTTP 127.0.0.1:7897；启用需可信面板授权。':
-        '启用需经过可信 Side Panel 授权。';
+      else detail.textContent='可访问已批准的网站；启用需经过可信 Side Panel 授权。';
       renderLocalDevelopment();
     };
     refreshProxyPresentation=paint;

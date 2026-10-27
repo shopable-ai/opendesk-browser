@@ -44,9 +44,11 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status',
     'ai-vip-service-mode','ai-vip-demo-availability','ai-vip-feature-member',
     'ai-vip-feature-redeem','ai-vip-feature-cookie','ai-vip-feature-shop',
-    'ai-vip-feature-proxy'];
+    'ai-vip-feature-proxy','ai-vip-shared-section','ai-vip-shared-account',
+    'ai-vip-shared-status'];
   const ids=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>id));
-  assert(testOnly.every(id=>!ids.has(id)),'Developer UI must not appear in shipped App.jsx');
+  assert(testOnly.every(id=>!ids.has(id)),
+    'Development/account allocation diagnostics must not appear in shipped App.jsx');
   const nodes=new Map([...ids,...testOnly].map(id=>[id,node(id)]));
   const calls=[],storageCalls=[],proxyCalls=[],cookieCalls=[],tabCalls=[],pageCalls=[],timers=[],toolStates=[];
   let page=currentPage??{status:'unavailable'};

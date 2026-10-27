@@ -49,13 +49,13 @@ export default function VipApp(){
     
       <section className="ai-vip-redeem" aria-labelledby="ai-vip-redeem-title">
         <h2 id="ai-vip-redeem-title">兑换激活</h2>
-        <p id="ai-vip-redeem-intro" className="ai-vip-note" hidden>预检激活内容后，再确认领取。</p>
+        <p id="ai-vip-redeem-intro" className="ai-vip-note" hidden>先核对权益，再确认兑换。</p>
         <form id="ai-vip-redeem-form" className="ai-vip-redeem-form" noValidate hidden>
           <label className="ai-vip-sr-only" htmlFor="ai-vip-redeem-code">激活码</label>
           <div className="ai-vip-redeem-inputs">
             <input id="ai-vip-redeem-code" className="od-field" type="password" data-sensitive
               maxLength="120" autoComplete="off" autoCapitalize="none" spellCheck="false"
-              aria-describedby="ai-vip-redeem-status" placeholder="输入激活码" disabled />
+              aria-describedby="ai-vip-redeem-status" placeholder="输入激活码" inputMode="text" disabled />
             <IconButton label="显示激活码" id="ai-vip-code-reveal" className="od-icon-button" type="button" title="显示或隐藏激活码" aria-label="显示激活码" aria-pressed="false" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></IconButton>
             <IconButton label="清空激活码" id="ai-vip-code-clear" className="od-icon-button" type="button" title="清空激活码" aria-label="清空激活码" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></IconButton>
           </div>
@@ -78,25 +78,17 @@ export default function VipApp(){
         </div>
         <p id="ai-vip-redeem-status" className="ai-vip-note" role="status" aria-live="polite">会员服务接入后可使用激活码。</p>
         <p id="ai-vip-redeem-error" className="ai-vip-error" role="alert" hidden></p>
-        <p id="ai-vip-redeem-fine" className="ai-vip-fine-print" hidden>兑换以服务端回执为准，不会自动启用代理。</p>
+        <p id="ai-vip-redeem-fine" className="ai-vip-fine-print" hidden>确认兑换后才会领取权益。</p>
       </section>
-    
-      <section id="ai-vip-shared-section" className="ai-vip-review" aria-labelledby="ai-vip-shared-title" hidden>
-        <h2 id="ai-vip-shared-title">公司共享账号</h2>
-        <p className="ai-vip-note">服务器分配的目标账号</p>
-        <p id="ai-vip-shared-account" aria-live="polite"></p>
-        <p id="ai-vip-shared-status" role="status" aria-live="polite"></p>
-        <Button id="ai-vip-shared-receive" className="od-button od-button--secondary" type="button" disabled>重新取得分配会话</Button>
-        <p className="ai-vip-fine-print">公司成员可在各自浏览器使用授权账号。同一浏览器的同一 Cookie 存储会切换当前账号，不提供多账号并发隔离。</p>
-      </section>
-    
+
       <section id="ai-vip-cookie-section" className="ai-vip-review" aria-labelledby="ai-vip-cookie-title" hidden>
-        <h2 id="ai-vip-cookie-title">网站会话交付</h2>
-        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未收到 Cookie 交付。</p>
-        <p className="ai-vip-fine-print">写入可能替换该网站当前会话。Cookie 写入回执不代表登录或第三方会员成功；请在目标页面核对。停止代理不会删除 Cookie。</p>
-        <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入回执"></ul>
-        <Button id="ai-vip-cookie-install" className="od-button od-button--secondary" type="button" disabled>确认写入网站 Cookie</Button>
-        <Button id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>打开目标网站核对账号</Button>
+        <h2 id="ai-vip-cookie-title">网站会话</h2>
+        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
+        <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
+        <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
+        <Button id="ai-vip-cookie-install" className="od-button od-button--secondary" type="button" disabled>确认应用网站会话</Button>
+        <Button id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
+        <Button id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
       </section>
     
       <section id="ai-vip-shop-section" className="ai-vip-shop" aria-label="更多商品" hidden>

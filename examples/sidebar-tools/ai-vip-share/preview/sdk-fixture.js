@@ -5,8 +5,12 @@ const SITE=ORIGIN+'/session/';
 const DOMAIN_LIST=['chatgpt.com','openai.com','claude.ai','anthropic.com',
   'gemini.google.com','generativelanguage.googleapis.com','perplexity.ai'];
 const clone=value=>value===undefined?undefined:structuredClone(value);
-const entitlement=()=>({type:'feature',status:'active',title:'演示网站访问',
-  featureId:'local-managed-proxy',detail:'仅预览 Fixture，不构成真实权益'});
+const access=()=>({type:'feature',status:'active',title:'AI 网站访问',
+  featureId:'local-managed-proxy',detail:'需单独启用网站访问连接'});
+const time=()=>({type:'time',status:'active',title:'AI 会员体验权益',
+  expiresAt:Date.now()+28*86400000});
+const quota=()=>({type:'quota',status:'active',title:'可用额度',
+  remaining:80,total:120,unit:'次'});
 const scope=()=>[{name:'demo-session',path:'/'},{name:'demo-nonce',path:'/'}];
 const idle=()=>({state:'disabled',control:'controllable_by_this_extension',
   permission:true,canStop:false,reason:null});
@@ -23,10 +27,10 @@ export function installPreviewFixture(root){
   // Only the preview owns this scenario selector. The installed package
   // cannot import this file, enable localhost or obtain a developmentProfile.
   const scene=new URL(location.href).searchParams.get('scene');
-  const offline=scene==='offline';
+  const offline=scene==='offline',serviceError=scene==='error';
   const values=new Map();
   if(!offline)values.set('aiVipLocalDevelopmentR136',{schemaVersion:1,enabled:true});
-  let granted=scene!=='redeem'&&!offline,assigned='A',serial=0,lastReceipt=null;
+  let granted=!['redeem','offline','guest'].includes(scene),assigned='A',serial=0,lastReceipt=null;
   let proxyState=idle(),proxyScenario='disabled',stopResolve=null;
   const devProfile=Object.freeze({endpoint:{scheme:'http',host:'127.0.0.1',port:7897},
     domains:[...DOMAIN_LIST]});
@@ -41,25 +45,31 @@ export function installPreviewFixture(root){
   };
   const member=()=>({
     schemaVersion:1,serverNow:Date.now(),
-    account:{state:'bound',id:'preview-member',displayNameMasked:'demo***@example.test'},
-    entitlements:granted?[entitlement()]:[],
-    redemptions:granted?[{redemptionId:'demo-r1',skuTitle:'演示会员',
+    account:scene==='guest'?{state:'guest'}:
+      {state:'bound',id:'preview-member',displayNameMasked:'vip***@example.test'},
+    entitlements:scene==='guest'?[]:scene==='expired'?[{...time(),
+      status:'expired',expiresAt:Date.now()-86400000}]:
+      granted?(scene==='quota'?[quota(),access()]:[time(),quota(),access()]):[],
+    redemptions:granted?[{redemptionId:'demo-r1',skuTitle:'AI 会员体验权益',
       redeemedAt:Date.now()-1000,status:'redeemed',idempotencyKey:'preview-only'}]:[],
-    ...(granted?{sharedAccounts:{schemaVersion:1,companyId:'preview-company',
-      assignedAccountId:'account-'+assigned,redemptionId:'demo-r1',
-      accounts:[{id:'account-'+assigned,label:'演示共享账号 '+assigned,targetUrl:SITE,
-        cookieScope:scope()}]}}:{})
+    ...(granted&&scene!=='expired'&&!['guest','offline'].includes(scene)?
+      {sharedAccounts:{schemaVersion:1,companyId:'preview-company',
+        assignedAccountId:'account-'+assigned,redemptionId:'demo-r1',
+        accounts:[{id:'account-'+assigned,label:'已获授权的网站会话',
+          targetUrl:SITE,cookieScope:scope()}]}}:{})
   });
   const api={
     network:{request:async({method,url,data})=>{
       if(typeof url!=='string'||!url.startsWith(ORIGIN+'/api/'))
         throw Error('E_PREVIEW_NO_EXTERNAL_NETWORK');
-      if(method==='GET'&&url===ORIGIN+'/api/member')
+      if(method==='GET'&&url===ORIGIN+'/api/member'){
+        if(serviceError)throw Error('E_PREVIEW_SERVICE_UNAVAILABLE');
         return {status:200,data:member()};
+      }
       if(method==='POST'&&url===ORIGIN+'/api/preview'){
         if(data?.code!=='DEMO-VIP-01')throw Error('E_PREVIEW_CODE');
         return {status:200,data:{previewId:'preview-v1',accountId:'preview-member',
-          skuTitle:'演示会员',grantSummary:'仅供交互演示的功能权益',
+          skuTitle:'AI 会员体验权益',grantSummary:'确认后领取网站访问权益',
           voucherPreviewMasked:'DEMO-****-01',expiresAt:Date.now()+120000}};
       }
       if(method==='POST'&&url===ORIGIN+'/api/redeem'){
@@ -68,7 +78,7 @@ export function installPreviewFixture(root){
         granted=true;
         lastReceipt={status:'redeemed',accountId:'preview-member',
           idempotencyKey:data.idempotencyKey,redemptionId:'demo-r1',
-          redeemedAt:Date.now(),grantedEntitlements:[entitlement()]};
+          redeemedAt:Date.now(),grantedEntitlements:[time(),quota(),access()]};
         return {status:200,data:lastReceipt};
       }
       if(method==='POST'&&url===ORIGIN+'/api/status'&&data?.operation==='sharedSession'){

@@ -38,9 +38,9 @@ body{margin:0;min-height:100vh;background:#f4f6fa;color:#28354b;font-size:13px}
 <body>
 <div class="studio">
   <div class="preview-bar" role="region" aria-label="预览外壳，不属于正式扩展界面">
-    <div class="preview-identity"><strong>AI VIP Share</strong><span class="preview-tag">演示数据</span></div>
+    <div class="preview-identity"><strong>AI VIP Share</strong><span class="preview-tag">虚构数据 · 仅供评审</span></div>
     <label class="preview-scene" for="preview-scene">场景
-      <select id="preview-scene"><option value="member">有效会员</option><option value="redeem">待兑换</option><option value="offline">未接入服务</option></select>
+      <select id="preview-scene"><option value="member">有效会员</option><option value="redeem">待兑换</option><option value="quota">额度会员</option><option value="expired">已到期</option><option value="guest">未登录</option><option value="error">服务异常</option><option value="offline">未接入服务</option></select>
     </label>
     <details id="preview-controls" class="preview-panel">
       <summary aria-label="展开演示场景设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/></svg>演示设置</summary>
@@ -48,7 +48,7 @@ body{margin:0;min-height:100vh;background:#f4f6fa;color:#28354b;font-size:13px}
         <label class="control" for="preview-width">侧边栏宽度
           <select id="preview-width"><option>320</option><option>360</option><option selected>390</option><option>400</option><option>440</option><option>520</option></select>
         </label>
-        <div class="control"><span>服务端分配</span><button id="preview-switch" type="button">切换账号 A / B</button></div>
+        <div class="control"><span>兑换输入</span><button id="preview-fill-code" type="button">填入体验激活码</button></div>
         <label class="control" for="preview-cookie">下一次 Cookie 回执
           <select id="preview-cookie"><option value="success">全部写入成功</option><option value="partial">部分成功</option><option value="unknown">结果未知</option></select>
         </label>
@@ -57,7 +57,7 @@ body{margin:0;min-height:100vh;background:#f4f6fa;color:#28354b;font-size:13px}
         </label>
         <div class="control" id="preview-release-wrap" hidden><span>模拟完成</span><button id="preview-release-stop" type="button">返回 STOP 回执</button></div>
       </div>
-      <p id="preview-note" role="status" aria-live="polite">更改场景仅重新初始化隔离预览，不会安装工具、连接外网或操作 Chrome。</p>
+      <p id="preview-note" role="status" aria-live="polite">场景来自隔离数据。会员权益、Cookie 与代理操作均不涉及真实账号或浏览器设置。</p>
     </details>
   </div>
   <main class="stage" aria-label="与正式 React 相同的会员产品界面">
