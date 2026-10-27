@@ -58,7 +58,7 @@ try{
   assert.equal(await page.locator('.site-hostname').count(),1);
   await page.screenshot({path:join(output,'380-r26-accounts-light.png'),fullPage:true});
   await openLab();
-  for(const width of [320,360,380,400,440]){
+  for(const width of [320,360,380,400,440,520]){
    await page.setViewportSize({width,height:880});
    await page.getByTestId('width').selectOption(String(width));
    await page.locator('.cookie-account-card').first().waitFor();
@@ -88,7 +88,7 @@ try{
   assert.equal(await cards.count(),3);
   await page.screenshot({path:join(output,'380-r26-market-light.png'),fullPage:true});
   await openLab();
-  for(const width of [320,360,380,400,440]){
+  for(const width of [320,360,380,400,440,520]){
    await page.setViewportSize({width,height:880});
    await page.getByTestId('width').selectOption(String(width));
    assert.equal(Math.round((await page.locator('.cookie-app').boundingBox()).width),width);
@@ -276,6 +276,11 @@ try{
   await button('取消').click();await reset();
  });
  await test('search, filter and advanced attributes remain in shared App',async()=>{
+  const summaries=page.locator('.cookie-row .row-text small');
+  assert.equal(await summaries.count(),8,'live Cookie rows must show expiration metadata');
+  assert.match(await summaries.first().innerText(),/会话|到期|已过期/);
+  assert.ok(await page.locator('.cookie-row .row-flags abbr').count()>0,
+    'Cookie flags should preserve H / S / P metadata');
   const search=page.getByRole('searchbox',{name:'搜索 Cookie'});await search.fill('theme');
   assert.equal(await page.locator('.cookie-row').count(),1);await search.fill('');
   await button('筛选与排序').click();await button('分区').click();
@@ -297,11 +302,12 @@ try{
   assert.equal(await page.locator('input[type=password]').count(),0);
   await button('取消').click();
  });
- await test('three product tabs have no badge counts and keep keyboard navigation',async()=>{
-  for(const width of [320,360,380,400,440]){
+ await test('six product tabs match approved HTML and keep keyboard navigation',async()=>{
+  for(const width of [320,360,380,400,440,520]){
    await page.setViewportSize({width,height:880});
    const tabs=page.getByRole('tablist',{name:'Cookie Editor 页面'});
-   assert.deepEqual(await tabs.getByRole('tab').allTextContents(),['Cookie','账号','市场']);
+   assert.deepEqual(await tabs.getByRole('tab').allTextContents(),
+     ['Cookie','账号','企业','市场','定制','圈子']);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
      width+'px navigation overflow');
   }
@@ -310,13 +316,15 @@ try{
   await page.keyboard.press('ArrowRight');
   assert.equal(await tabs.getByRole('tab',{name:'账号'}).getAttribute('aria-selected'),'true');
   await page.keyboard.press('ArrowRight');
+  assert.equal(await tabs.getByRole('tab',{name:'企业'}).getAttribute('aria-selected'),'true');
+  await page.keyboard.press('ArrowRight');
   assert.equal(await tabs.getByRole('tab',{name:'市场'}).getAttribute('aria-selected'),'true');
   await page.keyboard.press('Home');
   assert.equal(await tabs.getByRole('tab',{name:'Cookie'}).getAttribute('aria-selected'),'true');
   await ready();await page.setViewportSize({width:380,height:880});
  });
  await test('Expiration is local, session stays session, and expired drafts cannot save',async()=>{
-  for(const width of [320,360,380,400,440]){
+  for(const width of [320,360,380,400,440,520]){
    await page.setViewportSize({width,height:880});
    await row('theme').click();
    await editor().locator('details.advanced > summary').click();
@@ -624,7 +632,7 @@ try{
   await clear.click();assert.equal(await valueInput().inputValue(),'');assert.equal(await button('保存').isEnabled(),true);
  });
  assert.deepEqual(errors,[]);assert.deepEqual(network,[]);
- const receipt={status:'PASS',htmlSha256:sha(html),chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:['380-r26-accounts-light.png','380-r26-accounts-dark.png','380-r26-share-light.png','380-r26-market-light.png',...([320,360,380,400,440].flatMap(width=>[width+'-r26-accounts-light.png',width+'-r26-market-light.png'])),'380-light.png','380-dark.png','380-editing.png'],gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Real browser zoom and signed installed package out of scope']};
+ const receipt={status:'PASS',htmlSha256:sha(html),chromium:browser.version(),viewport:{width:380,height:880},tests:pass,errors,network,screenshots:['380-r26-accounts-light.png','380-r26-accounts-dark.png','380-r26-share-light.png','380-r26-market-light.png',...([320,360,380,400,440,520].flatMap(width=>[width+'-r26-accounts-light.png',width+'-r26-market-light.png'])),'380-light.png','380-dark.png','380-editing.png'],gaps:['Real Chrome Cookie SDK/permissions/install not exercised','Prebuilt fixed Shared UI resource reused; no host build','Real browser zoom and signed installed package out of scope']};
  await writeFile(join(output,'chromium-results.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({status:'PASS',tests:pass.length,htmlSha256:receipt.htmlSha256,output}));
 }catch(error){
  await page.screenshot({path:join(output,'failure.png'),fullPage:true}).catch(()=>{});

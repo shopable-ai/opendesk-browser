@@ -66,3 +66,26 @@ test('R5.34 keeps the sidebar list mounted under the responsive import sheet',as
   assert.match(host,/const fitCookieFrame=/);
   assert.match(host,/if\(active\?\.id==='cookie-editor'\)\{fitCookieFrame\(\);return;\}/);
 });
+
+test('R3.2 approved HTML maps to the installed six-tab layout and redacted Cookie row metadata',async()=>{
+  const [html,app,view,accounts,css]=await Promise.all([
+    readFile(root+'preview/cookie-editor.html','utf8'),
+    readFile(root+'app/CookieEditorApp.jsx','utf8'),
+    readFile(root+'app/components/CookieEditorView.jsx','utf8'),
+    readFile(root+'app/components/CookieAccounts.jsx','utf8'),
+    readFile(root+'src/react.css','utf8')]);
+  for(const id of ['tabCookies','tabAccounts','tabEnterprise','tabMarket','tabCustom','tabCircle'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  for(const key of ['cookie','accounts','enterprise','market','custom','circle'])
+    assert.match(app,new RegExp("'"+key+"'"));
+  assert.match(app,/className="cookie-product-pane"/);
+  assert.match(css,/\.cookie-editor-react>\.cookie-product-pane\{/);
+  assert.match(css,/\.cookie-editor-react \.cookie-editor-workspace\{/);
+  assert.match(view,/cookieRowExpiryLabel\(row\)/);
+  for(const flag of ['HttpOnly','Secure','Partitioned'])
+    assert.match(view,new RegExp('<abbr title="'+flag+'"'));
+  assert.ok(accounts.indexOf('className="cookie-account-current"')<
+    accounts.indexOf('<CookieMembershipRecommendations origin={origin}/>'),
+    'optional membership must not precede the trusted current-account strip');
+  assert.match(accounts,/cookie-account-security-note/);
+});
