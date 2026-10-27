@@ -533,7 +533,7 @@ test('R5.2 preview expiry during journal persistence forbids consumption and ret
   assert.equal(elapsed,180000,'clock advances only after durable journal write');
   assert.equal(e.calls.filter(args=>args.method==='POST'&&args.url.endsWith('/redeem')).length,0);
   assert.equal(store.value?.accountId,'customer-123');
-  assert.equal(store.value?.packageVersion,'1.4.1');
+  assert.equal(store.value?.packageVersion,'1.4.2');
   assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,1);
   assert.equal(node(e,'recovery').hidden,false);
   assert.equal(node(e,'redeem').disabled,true);

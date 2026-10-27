@@ -81,10 +81,12 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     }},tabs:{create:async args=>{tabCalls.push(clone(args));return {tabRef:'fixture-tab'};}}}}};
   // Capture polling without creating timers; each check is driven explicitly below.
   if(pollTimers)window.setInterval=(callback,ms)=>{timers.push({callback,ms});return timers.length;};
-  // Test-only source instrumentation exposes private functions without production hooks.
-  assert.match(script,/\}\)\(\);\s*$/);
-  const instrumented=script.replace(/\}\)\(\);\s*$/,
-    'window.__activationTests={activationCodeFromPage,checkActivationPage,claimActivation:value=>claimActivation(value,serviceRevision)};\n})();');
+  // Test-only instrumentation remains INSIDE mountController after the React
+  // lifecycle wrapper; do not add testing exports to production code.
+  const anchor='  return release;\n  }\n  // Legacy Node VM fixtures';
+  assert.ok(script.includes(anchor),'AI VIP controller instrumentation anchor changed');
+  const instrumented=script.replace(anchor,
+    '  window.__activationTests={activationCodeFromPage,checkActivationPage,claimActivation:value=>claimActivation(value,serviceRevision)};\n'+anchor);
   vm.runInNewContext(instrumented,{window,document:{createElement:()=>node()},URL,Date,Intl,performance:performanceClock,
     TextEncoder,Uint8Array,crypto:{randomUUID,subtle:webcrypto.subtle}}, {timeout:2000});
   await flush();
