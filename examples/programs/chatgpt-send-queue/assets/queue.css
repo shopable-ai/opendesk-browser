@@ -6,6 +6,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #6984ff;outline-
 .sq-panel{width:100%;min-width:0;margin:0;padding:0;border:1px solid #e3e5ea;border-radius:var(--sq-surface-radius,12px 12px 0 0);background:#fff;color:#303747;overflow:hidden}
 .sq-rows{display:flex;flex-direction:column;gap:0;max-height:224px;overflow-y:auto;scrollbar-width:thin}
 /* Minimal empty-state cue: keep the queue visible without introducing controls. */
+/* Soft, neutral indication only while the queue is empty; no native composer styles. */
+.sq-panel.sq-empty{background:#f7f8fa}
 .sq-panel.sq-empty .sq-rows{height:18px;max-height:18px;align-items:center;justify-content:center;overflow:hidden}
 .sq-empty-mark{font-size:12px;line-height:1;color:#858e9c;letter-spacing:2px;pointer-events:none;user-select:none}
 .sq-row{box-sizing:border-box;display:flex;align-items:center;gap:4px;min-width:0;height:35px;min-height:35px;margin:0;padding:0 5px 0 6px;background:transparent}
@@ -49,4 +51,5 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #6984ff;outline-
 [hidden]{display:none!important}
 @media(pointer:coarse){.sq-row{height:46px;min-height:46px}.sq-action{height:44px;width:40px}}
 @media(prefers-color-scheme:dark){.sq-panel{background:#262626;border-color:#4b4b4b;color:#eee}.sq-row:hover,.sq-row:focus-within{background:#333}.sq-row+.sq-row,.sq-more{border-color:#474747}.sq-text{color:#e4e4e7}.sq-action{color:#a5a5b0}.sq-more{background:#262626;color:#b3b9c9}.sq-row.sq-unknown{background:#382a20}.sq-warning{color:#ffbb86}}
+@media(prefers-color-scheme:dark){.sq-panel.sq-empty{background:#2e3035}.sq-empty-mark{color:#aab2c1}}
 @media(prefers-reduced-motion:reduce){.sq-send{transition:none}}
