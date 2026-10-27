@@ -34,11 +34,11 @@ export function CookieIcon({name}){
     fill="none" stroke="currentColor" strokeWidth="1.7"
     strokeLinecap="round" strokeLinejoin="round">{shapes[name]}</svg>;
 }
-function Action({name,label,disabled=false,onClick,pressed,tone='normal',className='',
+function Action({name,label,disabled=false,onClick,pressed,tone='normal',appearance='default',className='',
   expanded,controls,haspopup,buttonRef}){
   return <button ref={buttonRef} type="button" title={label} aria-label={label}
     aria-expanded={expanded} aria-controls={controls} aria-haspopup={haspopup}
-    className={'cookie-react-icon icon-btn od-icon-button'+(tone==='danger'?' cookie-clear-action od-icon-button--danger':'')+(className?' '+className:'')}
+    className={'cookie-react-icon icon-btn od-icon-button'+(tone==='danger'?' cookie-clear-action od-icon-button--danger':'')+(appearance==='quiet'?' od-icon-button--quiet':'')+(className?' '+className:'')}
     disabled={disabled} aria-pressed={pressed===undefined?undefined:pressed}
     onClick={onClick}><CookieIcon name={name}/></button>;
 }
@@ -236,7 +236,7 @@ export function CookieSiteBar({site,loading=false,readonly=false,busy=false,gran
     {loading&&<span className="site-status muted">读取中</span>}
     {readonly&&<span className="site-status limited">只读</span>}
     {syncStale&&<span className="site-status limited" title="自动同步暂不可用">未同步</span>}
-    <Action name="refresh" label="刷新 Cookie" onClick={onRefresh}
+    <Action name="refresh" label="刷新 Cookie" appearance="quiet" onClick={onRefresh}
       disabled={busy||!granted||typeof onRefresh!=='function'}/>
   </header>;
 }
@@ -273,18 +273,18 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
   return <div className="list-toolbar">
     <strong>Cookie <span>{count}</span></strong>
     <div className="toolbar-actions">
-      <Action name="upload" label="导入 Cookie" onClick={onImport}
+      <Action name="upload" label="导入 Cookie" appearance="quiet" onClick={onImport}
         haspopup="dialog" expanded={importOpen}
         controls={importOpen?"cookie-import-drawer":undefined}
         disabled={busy||importOpen||readonly||typeof onImport!=='function'}/>
-      <Action name="download" label="导出 Cookie" onClick={onExport}
+      <Action name="download" label="导出 Cookie" appearance="quiet" onClick={onExport}
         buttonRef={exportButton} haspopup="dialog" expanded={exportOpen}
         controls={exportOpen?exportPopupId:undefined}
         disabled={busy||typeof onExport!=='function'}/>
-      <span data-action="new"><Action name="plus" label="新建 Cookie"
+      <span data-action="new"><Action name="plus" label="新建 Cookie" appearance="quiet"
         onClick={onNew} disabled={busy||readonly||typeof onNew!=='function'}/></span>
       <span className="action-separator" aria-hidden="true"/>
-      <Action name="trash" label="安全清理本站 Cookie" tone="danger"
+      <Action name="trash" label="安全清理本站 Cookie" tone="danger" appearance="quiet"
         onClick={onClear} disabled={busy||readonly||clearDisabled||typeof onClear!=='function'}/>
       {exportOpen&&<div className="cookie-export-popover" id={exportPopupId} ref={exportPopup}>
         {exportContent}
@@ -306,7 +306,7 @@ export function CookieSearch({
         {query&&<Action name="close" label="清除搜索" className="cookie-search-clear"
           onClick={()=>{onQuery("");searchRef.current?.focus({preventScroll:true});}}/>}
       </div>
-      <Action name="filter" label="筛选与排序" pressed={expandedFilters}
+      <Action name="filter" label="筛选与排序" appearance="quiet" pressed={expandedFilters}
         onClick={onToggleFilters}/>
     </div>
     {expandedFilters&&<section className="filter-panel" aria-label="筛选与排序">
