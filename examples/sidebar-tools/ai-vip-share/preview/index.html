@@ -4,39 +4,67 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>AI VIP Share · 正式 React 同源预览</title>
+<title>AI VIP Share · 正式界面预览</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f2f4f8;color:#202b3b;font:13px/1.55 system-ui,-apple-system,"PingFang SC",sans-serif}
-.studio{max-width:830px;margin:0 auto;padding:16px;display:grid;gap:14px}
-.toolbar{background:#fff;padding:12px 14px;border:1px solid #d9dfeb;border-radius:12px;display:grid;gap:9px}
-.toolbar h1{font-size:14px;margin:0;font-weight:730}.toolbar p{margin:0;color:#60718a;font-size:12px}
-.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px}select,.toolbar button{border:1px solid #d1d9e8;border-radius:8px;background:#fff;color:#23324a;padding:6px 10px;font:inherit;min-height:34px}
-.toolbar button:focus-visible,select:focus-visible{outline:3px solid #7d8dec;outline-offset:2px}
-.stage{display:grid;justify-items:center}.frame{width:min(var(--frame-width,390px),100%);min-width:0;overflow:hidden;border:1px solid #dce2ed;border-radius:14px;background:#fff;box-shadow:0 12px 32px #172c4b0e}
-.frame #tool-root{min-width:0}.caption{font-size:12px;color:#687790}
-@media(prefers-color-scheme:dark){body{background:#161a22;color:#d6dfec}.toolbar,.frame,.toolbar button,select{background:#252d39;color:#e8eef8;border-color:#3c4a5a}.toolbar p,.caption{color:#b9c6db}}
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#f4f6fa;color:#28354b;font-size:13px}
+.studio{display:grid;gap:12px;max-width:680px;margin:0 auto;padding:12px}
+.preview-bar{background:#fff;border:1px solid #e1e5ef;border-radius:12px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.preview-identity{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px}
+.preview-identity strong{font-size:14px;letter-spacing:-.2px}
+.preview-tag{font-size:11px;color:#64738a}
+.preview-scene{display:flex;align-items:center;gap:6px;color:#5b6b82;font-size:12px;margin-left:auto}.preview-scene select{background:#fff;border:1px solid #d9dfeb;border-radius:7px;padding:5px 8px;font:inherit;color:#263b5b;max-width:142px;height:32px}
+.preview-panel{position:relative}
+.preview-panel>summary{cursor:pointer;list-style:none;color:#536381;font-size:12px;display:flex;align-items:center;gap:6px;min-height:28px;padding:3px 6px;border-radius:7px;user-select:none}
+.preview-panel>summary::-webkit-details-marker{display:none}
+.preview-panel>summary svg{width:14px;height:14px}
+.preview-panel[open]{width:100%;margin:0}
+.preview-panel[open]>summary{justify-content:flex-end}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin:8px 0 0;padding-top:10px;border-top:1px solid #e9ecf3}
+.control{display:grid;gap:5px;color:#596981;font-size:12px}
+.control select,.control button{height:35px;min-width:0;border:1px solid #d9dfeb;border-radius:8px;background:#fff;color:#263b5b;padding:0 10px;font:inherit}
+.control button{cursor:pointer;font-weight:600}
+.control button:hover{background:#f4f6fb}
+.control select:focus-visible,.control button:focus-visible,.preview-panel>summary:focus-visible{outline:2px solid #4569dd;outline-offset:2px}
+#preview-note{color:#63738a;font-size:11px;line-height:1.6;margin:8px 0 0}
+.stage{display:grid;justify-items:center;min-width:0}
+.frame{width:min(var(--frame-width,390px),100%);min-width:0;border:1px solid #e0e5ef;border-radius:13px;overflow:hidden;background:#fff;box-shadow:0 8px 25px rgba(29,48,78,.045)}
+.frame #tool-root{min-width:0}
+@media(max-width:360px){.studio{padding:8px}.preview-bar{padding:8px 10px}.preview-tag{font-size:10px}}
+@media(prefers-color-scheme:dark){body{background:#151b25;color:#e8eefb}.preview-bar,.frame{background:#222c39;border-color:#39475c}.preview-tag,#preview-note,.control,.preview-scene{color:#b1bfd5}.preview-scene select{background:#29374a;color:#e7eefc;border-color:#4a5970}.preview-panel>summary{color:#d4dff1}.controls{border-color:#39475c}.control select,.control button{background:#29374a;color:#e7eefc;border-color:#4a5970}.control button:hover{background:#32435a}}
 </style>
 </head>
 <body>
 <div class="studio">
-  <div class="toolbar" role="region" aria-label="只读交互预览控制台">
-    <h1>AI VIP Share · 正式 React 同源预览</h1>
-    <p>本页由正式 App.jsx 与原业务事务控制器构建。网络、Cookie、代理和账号均由本页隔离 Fixture 提供，不访问真实 Chrome 或商业服务。</p>
-    <div class="controls">
-      <label for="preview-width">宽度</label>
-      <select id="preview-width"><option>320</option><option>360</option><option selected>390</option><option>400</option><option>440</option><option>520</option></select>
-      <button id="preview-member" type="button">演示有效会员</button>
-      <button id="preview-switch" type="button">切换分配 A/B</button>
-      <label for="preview-cookie">Cookie 回执</label>
-      <select id="preview-cookie"><option value="success">全部成功</option><option value="partial">部分成功</option><option value="unknown">结果未知</option></select>
-      <label for="preview-proxy">代理</label>
-      <select id="preview-proxy"><option value="disabled">未启用</option><option value="enabled">已启用</option><option value="conflict">控制权冲突</option><option value="pending">STOP 待确认</option></select>
-      <button id="preview-release-stop" type="button" hidden>确认模拟 STOP</button>
-    </div>
-    <p id="preview-note" role="status" aria-live="polite">先在下方点击「连接本地开发」，再点击「演示有效会员」或输入 DEMO-VIP-01 按正式业务路径预检、确认。</p>
+  <div class="preview-bar" role="region" aria-label="预览外壳，不属于正式扩展界面">
+    <div class="preview-identity"><strong>AI VIP Share</strong><span class="preview-tag">演示数据</span></div>
+    <label class="preview-scene" for="preview-scene">场景
+      <select id="preview-scene"><option value="member">有效会员</option><option value="redeem">待兑换</option><option value="offline">未接入服务</option></select>
+    </label>
+    <details id="preview-controls" class="preview-panel">
+      <summary aria-label="展开演示场景设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/></svg>演示设置</summary>
+      <div class="controls">
+        <label class="control" for="preview-width">侧边栏宽度
+          <select id="preview-width"><option>320</option><option>360</option><option selected>390</option><option>400</option><option>440</option><option>520</option></select>
+        </label>
+        <div class="control"><span>服务端分配</span><button id="preview-switch" type="button">切换账号 A / B</button></div>
+        <label class="control" for="preview-cookie">下一次 Cookie 回执
+          <select id="preview-cookie"><option value="success">全部写入成功</option><option value="partial">部分成功</option><option value="unknown">结果未知</option></select>
+        </label>
+        <label class="control" for="preview-proxy">模拟代理状态
+          <select id="preview-proxy"><option value="disabled">未启用</option><option value="enabled">已启用</option><option value="conflict">控制权冲突</option><option value="pending">STOP 待确认</option></select>
+        </label>
+        <div class="control" id="preview-release-wrap" hidden><span>模拟完成</span><button id="preview-release-stop" type="button">返回 STOP 回执</button></div>
+      </div>
+      <p id="preview-note" role="status" aria-live="polite">更改场景仅重新初始化隔离预览，不会安装工具、连接外网或操作 Chrome。</p>
+    </details>
   </div>
-  <div class="stage"><div class="frame" id="preview-frame"><div id="tool-root"><div id="tool-app"></div></div></div></div>
-  <p class="caption">Source-bound fixture · 不执行真实安装、网络请求、Cookie 写入或代理启停。更改演示状态后，在产品内点击相应「刷新」查看最新服务端状态。</p>
+  <main class="stage" aria-label="与正式 React 相同的会员产品界面">
+    <div class="frame" id="preview-frame">
+      <div id="tool-root"><div id="tool-app"></div></div>
+    </div>
+  </main>
 </div>
 <script type="module" src="./main.jsx"></script>
 </body>

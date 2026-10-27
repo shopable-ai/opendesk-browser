@@ -3,27 +3,50 @@ import '../../../../src/ui/design-system.css';
 import '../../../../src/ui/react/components/ui/sidebar-shared.css';
 import {installPreviewFixture} from './sdk-fixture.js';
 
+// The laboratory stays outside #tool-app. Nothing here is packaged into the
+// installable tool's Sandbox JS or UI tree.
 const fixture=installPreviewFixture(document.getElementById('tool-root'));
-const width=document.getElementById('preview-width');
 const note=document.getElementById('preview-note');
-const tell=message=>{note.textContent=message+'（仅模拟；请使用产品内刷新查看状态。）';};
-width.addEventListener('change',()=>{document.documentElement.style.setProperty('--frame-width',width.value+'px');});
+const tell=message=>{note.textContent=message+'（只修改隔离演示，未操作 Chrome。）';};
+
+const scene=document.getElementById('preview-scene');
+const allowed=new Set(['member','redeem','offline']);
+const requested=new URL(location.href).searchParams.get('scene');
+scene.value=allowed.has(requested)?requested:'member';
+scene.addEventListener('change',()=>{
+  if(!allowed.has(scene.value))return;
+  const url=new URL(location.href);
+  if(scene.value==='member')url.searchParams.delete('scene');
+  else url.searchParams.set('scene',scene.value);
+  location.assign(url.href); // A new isolated Fixture, never a real account transition.
+});
+
+const width=document.getElementById('preview-width');
+width.addEventListener('change',()=>{
+  if(!['320','360','390','400','440','520'].includes(width.value))return;
+  document.documentElement.style.setProperty('--frame-width',width.value+'px');
+});
 width.dispatchEvent(new Event('change'));
-document.getElementById('preview-member').addEventListener('click',()=>{
-  fixture.activate();tell('已切为演示有效会员');
-});
+
 document.getElementById('preview-switch').addEventListener('click',()=>{
-  tell('服务器演示分配已切换为 '+fixture.switchAccount());
+  tell('服务端演示分配已改为 '+fixture.switchAccount()+'；请点击产品内刷新会员信息');
 });
-document.getElementById('preview-cookie').addEventListener('change',e=>{
-  fixture.cookieOutcome=e.target.value;tell('下次 Cookie 写入回执将为 '+e.target.selectedOptions[0].text);
+document.getElementById('preview-cookie').addEventListener('change',event=>{
+  fixture.cookieOutcome=event.target.value;
+  tell('下一次 Cookie 逐项写入将返回「'+event.target.selectedOptions[0].text+'」');
 });
-const proxy=document.getElementById('preview-proxy'),release=document.getElementById('preview-release-stop');
+const proxy=document.getElementById('preview-proxy');
+const release=document.getElementById('preview-release-stop');
+const releaseWrap=document.getElementById('preview-release-wrap');
 proxy.addEventListener('change',()=>{
   fixture.setProxyScenario(proxy.value);
-  release.hidden=proxy.value!=='pending';tell('代理模拟状态已调整');
+  releaseWrap.hidden=proxy.value!=='pending';
+  tell('代理状态已改变；请在产品内点刷新，以当前可信 SDK 读取状态');
 });
 release.addEventListener('click',()=>{
-  fixture.releaseStop();release.hidden=true;proxy.value='disabled';tell('模拟 STOP 已返回可核验的停用回执');
+  fixture.releaseStop();
+  releaseWrap.hidden=true;
+  proxy.value='disabled';
+  tell('模拟 STOP 已返回停用回执');
 });
 await import('../src/main.jsx');

@@ -59,7 +59,7 @@
     recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus,
     metricLabel,meter,meterBar,redeemForm,codeReveal,codeClear,confirm,
     memberCard,memberFacts,benefitSection,historyDetails,redeemIntro,redeemFine,
-    shopSection,proxySection,localSection,localConnect,localStatus]
+    shopSection,proxySection]
       .some(element=>!element))return;
 
   // Release-owned values: only populate after commercial/provider review.
@@ -453,7 +453,10 @@
       record.schemaVersion===1);
   }
   function renderLocalDevelopment(){
+    // The production React view has no development/fixture UI.
+    // Old isolated VM harnesses may provide these optional nodes.
     renderFeatureStatus();
+    if(!localSection||!localConnect||!localStatus)return;
     localSection.hidden=!developmentProfile;
     localConnect.disabled=!developmentProfile||localConnecting||busy||cookieBusy||
       (localMode&&(Boolean(recoveryFault)||Boolean(recovery&&recoveryMatchesService())||localSwitchBlocked()));
@@ -528,7 +531,7 @@
     if(localChoice&&recoveryReady&&recoveryMatchesService(recovery,true))changeBusinessMode(true);
     renderLocalDevelopment();
   }
-  localConnect.addEventListener('click',event=>{
+  localConnect?.addEventListener('click',event=>{
     if(event?.isTrusted!==true||localConnect.disabled||localConnecting||busy||cookieBusy)return;
     const selected=!localMode;
     localConnecting=true;localNotice='正在核对可信开发配置与本地选择…';renderLocalDevelopment();

@@ -21,8 +21,10 @@ test('one React app owns exactly one root and all controller-required nodes',()=
   assert.match(view,/<main className="ai-vip"/);
   assert.match(view,/useLayoutEffect/);
   assert.match(controller,/__OpenDeskVipStart=mountController/);
+  const testOnly=new Set(['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status']);
   for(const [,id] of controller.matchAll(/\bbyId\('([^']+)'\)/g))
-    assert.ok(ids.includes(id),'Missing React view target '+id);
+    if(!testOnly.has(id))assert.ok(ids.includes(id),'Missing React product target '+id);
+  for(const id of testOnly)assert.ok(!ids.includes(id),'Developer UI leaked into product: '+id);
   assert.equal(ids.filter(id=>id==='ai-vip-proxy-toggle').length,1);
   assert.equal(ids.filter(id=>id==='ai-vip-redeem-confirm').length,1);
 });
@@ -30,11 +32,12 @@ test('one React app owns exactly one root and all controller-required nodes',()=
 test('member-first product structure reuses official Shared UI and never clones Host',()=>{
   for(const name of ['Button','IconButton','Card','CardContent'])
     assert.match(view,new RegExp('\\b'+name+'\\b'));
-  const order=['ai-vip-brand','ai-vip-membership','ai-vip-redeem',
+  const order=['ai-vip-membership','ai-vip-redeem',
     'ai-vip-shared-section','ai-vip-cookie-section','ai-vip-shop','ai-vip-proxy'];
   const indices=order.map(v=>view.indexOf(v));
   assert(indices.every((v,i)=>v>0&&(i===0||v>indices[i-1])));
-  assert.match(view,/AI VIP Share[\s\S]*会员权益 · 兑换激活 · AI 网站访问/);
+  assert.doesNotMatch(view,/<h1\b|ai-vip-brand|功能与接入状态|服务与开发信息|本地开发|演示步骤|ai-vip-feature-|ai-vip-local-connect/);
+  assert.match(view,/aria-label="AI VIP Share 会员与权益中心"/);
   assert.match(view,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
   assert.doesNotMatch(view,/PREVIEW-RECEIPT|DEMO-ACCESS|example\.com/);
   assert.doesNotMatch(controller,/window\.open\(|chrome\.cookies|chrome\.proxy\.settings/);
@@ -65,7 +68,8 @@ test('formal package references one compiled React UI and immutable business saf
   assert.match(pkg.js,/OpenDeskPageReact/);
   assert.match(pkg.js,/OpenDeskSidebarUI/);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
-  assert.match(pkg.css,/ai-vip-brand/);
+  assert.match(pkg.css,/ai-vip-membership/);
+  assert.doesNotMatch(pkg.css,/\.ai-vip-brand/);
   assert.deepEqual(pkg.capabilities,config.capabilities);
   const ready=JSON.parse(await read('dist/build-ready.json'));
   assert.equal(ready.format,'opendesk.ui-build-ready.v1');
@@ -77,7 +81,9 @@ test('formal package references one compiled React UI and immutable business saf
 });
 
 test('preview imports the same React source, isolates fixture and leaves product flags disabled',()=>{
-  assert.match(preview,/正式 React 同源预览/);
+  assert.match(preview,/id="preview-controls"/);
+  assert.match(preview,/<div id="tool-root"><div id="tool-app"><\/div><\/div>/);
+  assert.doesNotMatch(view,/id="preview-|DEMO-VIP-01|<h1\b/);
   assert.match(preview,/\.\/main\.jsx/);
   assert.match(previewEntry,/await import\('\.\.\/src\/main\.jsx'\)/);
   assert.match(previewEntry,/installPreviewFixture/);

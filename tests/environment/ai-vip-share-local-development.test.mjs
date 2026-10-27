@@ -39,7 +39,15 @@ function fixtureRequest(fixture,{method,url,data,headers}){
 async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN}),
   developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
   performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false}={}){
-  const nodes=new Map([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>[id,node(id)]));
+  // Historical VM business tests simulate a development panel that now exists
+  // ONLY in the test harness, not in the installable React product DOM.
+  const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status',
+    'ai-vip-service-mode','ai-vip-demo-availability','ai-vip-feature-member',
+    'ai-vip-feature-redeem','ai-vip-feature-cookie','ai-vip-feature-shop',
+    'ai-vip-feature-proxy'];
+  const ids=new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(([,id])=>id));
+  assert(testOnly.every(id=>!ids.has(id)),'Developer UI must not appear in shipped App.jsx');
+  const nodes=new Map([...ids,...testOnly].map(id=>[id,node(id)]));
   const calls=[],storageCalls=[],proxyCalls=[],cookieCalls=[],tabCalls=[],pageCalls=[],timers=[],toolStates=[];
   let page=currentPage??{status:'unavailable'};
   let current={...released,...(developmentProfile?{developmentProfile}: {})};

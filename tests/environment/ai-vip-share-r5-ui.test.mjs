@@ -118,7 +118,9 @@ test('R5 no Provider, SKU or shop can invent business success',async t=>{
   assert.match(html,/暂无法查询账号与会员权益/);
   assert.match(html,/会员服务接入后可使用激活码/);
   assert.doesNotMatch(html,/id="ai-vip-remaining">—|id="ai-vip-remaining-unit">待核验/);
-  assert.match(html,/专属激活链接与安装续接[\s\S]*?尚未实现。缺少短效凭据验证、安装后续接与回跳；安装 JSON 不会自动领取权益。/);
+  assert.doesNotMatch(html,/专属激活链接与安装续接|功能与接入状态|本地开发|ai-vip-local-connect|<h1\b/);
+  assert.match(script,/const ACTIVATION_URLS=Object\.freeze\(\[\]\)/);
+  assert.match(script,/const APPROVED_PROXY_ENDPOINT=null/);
   assert.match(script,/PRODUCT_CATALOG_URL=''/);
   assert.match(script,/shopSdk\.create\(\{url:catalog\}\)/);
   assert(!/fetch\(|showModal\(|window\.open\(/.test(script));

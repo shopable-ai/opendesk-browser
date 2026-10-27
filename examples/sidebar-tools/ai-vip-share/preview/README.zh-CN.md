@@ -1,21 +1,36 @@
-# AI VIP Share · React 同源预览
+# AI VIP Share · 与正式 React 组件同源的交互预览
 
-唯一当前预览源码入口：[`index.html`](index.html)。
+唯一主入口：[`index.html`](index.html)。
 
-**本预览不是商业会员服务，也不是已安装的 OpenDesk 扩展。** 正式 React 组件来自 `../src/App.jsx`；业务事务流程仍运行 `../src/main.js`；仅 SDK 适配在此目录换为隔离的 `sdk-fixture.js`，不进入正式安装包。共享 Button/IconButton/Card 与宿主源码同源，不自行复制组件实现。
+## 三种界面边界
 
-在仓库根运行：
+- **正式产品**：`../src/App.jsx` 是可安装应用的唯一 React 界面。只展示会员、兑换、共享会话、Cookie 交付、代理等业务；在 Side Panel 中不重复显示应用品牌标题，不包含开发连接、功能枚举或 Fixture 信息。
+- **预览外壳**：本目录 `index.html` 的一行标题及默认收起的「演示设置」，仅用于切换会员场景、宽度、Cookie 回执、代理模拟状态。它位于 `#tool-app` 之外，绝不进入正式安装包。
+- **演示服务适配器**：`sdk-fixture.js` 在预览页面中提供隔离的 `OpenDeskTool`/`OpenDeskSDK` 回执；不会请求商用服务器、读写 Chrome Cookie 或配置真实代理。正式工具 `tool.config.json` 仍只有 `src/index.html` 和经源码签收的 `dist/tool.js`/`dist/tool.css`。
+
+## 本地编译与预览
 
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
+npm run build --prefix examples/sidebar-tools/ai-vip-share
 npm run build:preview --prefix examples/sidebar-tools/ai-vip-share
-# 从 preview/dist/ 启动本机静态 HTTP 服务，再打开 /index.html
+# 用静态 HTTP 服务打开 examples/sidebar-tools/ai-vip-share/preview/dist/index.html
 ```
 
-`preview/dist/index.html` 为构建后的可打开页面，直接双击源 `preview/index.html` 不会自动编译 JSX。预览只能模拟 SDK 回执，不可推断 Chrome Cookie/Proxy 或真实登录成功。宽度控制覆盖 320/360/390/400/440/520px，浏览器深浅色遵循 `prefers-color-scheme`。
+`preview/index.html` 是 Vite 输入，未编译时直接双击无法执行 JSX；需打开构建后的 `preview/dist/index.html`。工具正式 IIFE 和预览都从相同的 `App.jsx`、`main.js`、`style.css` 构建，不在此维护第二套业务 React。
 
-体验路径：打开预览 → 产品区「连接本地开发」→ 外层「演示有效会员」或输入固定测试码 `DEMO-VIP-01` 完成实际产品预检与明确确认 → 产品区刷新会员与服务器分配 → 从产品区请求共享会话、确认写入 → 在外层选择 Cookie 结果仅控制下一次虚拟回执。历史不可重放保护照常生效；部分或未知后刷新不会把已执行结果自动覆盖。外层切换代理场景后，产品区「重新检测代理状态」再查看；STOP 仍由产品区唯一按钮发出。
+## 可体验的场景
 
-历史 R5.7 单文件 Mock 已移动至 [`archive/r57.html`](archive/r57.html)，仅保留回归/对照，**不是**主预览，不可与正式 React 产品并列发布。对应 `test-ui.mjs` 只测试历史档案。R4 旧文件也是历史视觉档案。
+「演示设置」默认折叠，不占据业务首屏。内有三个会员场景：
 
-本次源码/React/构建/定向测试的执行情况以 GitHub Actions 与对应 commit SHA 的实际回执为准；没有同 SHA 的验证不得标 PASS。
+- **有效会员**：默认。使用虚构账号展示权益，切换由演示服务分配的 A/B 账号；点击产品自身「刷新会员信息」读取变化。
+- **待兑换账号**：演示账号尚未领取权益，可在正式 UI 输入 `DEMO-VIP-01`，按真实业务预检和明确确认步骤完成演示兑换。页面切换场景会重建隔离 Fixture，不会重放既有事务。
+- **正式服务未配置**：与未批准商业 Provider 一致的 fail-closed 入口，不出现演示会员、可用兑换或伪造登录。
+
+演示设置另外提供 Cookie 成功、部分写入、结果未知，以及代理已启用、冲突、STOP 待确认等回执。刷新或启停只能由产品界面真实用户操作触发，**测试外壳不会伪造可信事件或绕过 Host 权限**。
+
+历史 R5.7 静态 Mock 保存在 [`archive/r57.html`](archive/r57.html)，只供历史回归，不是新主预览，不应拿来检验现行产品。
+
+## 验收边界
+
+在 GitHub Actions 上先编译正式 React，再运行旧业务与 UI 的定向测试，然后编译同源预览并在真实 Chromium 上用隔离 SDK Fixture 执行。全部节点必须关联提交 SHA；这些步骤均**不等于已安装浏览器扩展、Chrome Cookie 真实写入或代理原生验证**。完整 Browser 构建若遭独立可信来源锁阻断，不允许跳过来源校验。

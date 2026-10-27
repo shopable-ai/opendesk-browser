@@ -213,3 +213,12 @@ AI VIP Share 从历史 HTML 模板切换为 `src/App.jsx` 单一业务 React Roo
 **迁移阶段限制：** `src/main.js` 中已验证的兑换事务/Cookie journal/服务器分配/STOP 流程暂作为 React DOM 兼容控制器，在 React commit 后挂载，防止未经回归的业务算法重写。后续以单独最小差量提取数据状态与订阅，再移除 DOM 耦合；本阶段不能声称业务表现已完全解耦。所有 Cookie 值保持在独立业务闭包，不进入 React props/state；React 只持有固定布局和元素 ID。卸载 React Root 会停止激活页轮询，旧实例异步副作用仍由现有 revision/Host 撤权栅栏约束。
 
 开发与同源预览见 [`preview/README.zh-CN.md`](preview/README.zh-CN.md)。生产商业 Provider/批准 Cookie 目标/付费权益尚未配置，正式产品始终 fail closed。2026-10-27 网页阶段待真实 CI 验证期间，不以 `1.4.2` 源码宣称旧 `1.4.1` 正式 JSON 已更新，也不将 Fixture 演示当 Chrome 原生通过。
+
+
+## R2.1 · 正式产品 / 交互预览 / 开发调试分界
+
+正式业务 React `src/App.jsx` 只提供「AI 会员 → 兑换激活 → 共享会话 / Cookie 交付（条件展示）→ AI 网站访问」。它不重复 Side Panel 可信应用标题，不放置“功能与接入状态”、本地开发入口、功能清单、Fixture 或工程步骤。
+
+`preview/index.html` 是独立的同源产品预览外壳，默认只有一行演示标题和折叠的场景设置；其内仍由正式 `App.jsx` 与原业务 Controller 提供可操作组件。预览 SDK Fixture 仅保存在 `preview/`，不会进入正式安装 JSON。历史 `1.4.1` 正式包在未满足候选晋升条件前继续保留。
+
+原 Controller 的本地开发选择、兑换恢复键、Cookie journal、代理 STOP 逻辑仍保持不变；相关旧测试由测试工具自行建立隐藏的开发面板节点，绝不将这些节点重新加进用户 React 页面。生产 Provider、Cookie 目标及代理入口未批准时仍 fail closed。开发轮次不能冒充真实 Chrome 的 A/B 切换、Cookie 写入或代理验证。

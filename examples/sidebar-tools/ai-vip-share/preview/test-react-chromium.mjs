@@ -130,31 +130,48 @@ async function capture(width,theme,name){
 }
 async function run(){
   await connect();
+  // Production-unconfigured state: there must not be any development or
+  // preview controls mounted in the actual product React tree.
+  await cdp('Page.navigate',{url:url+'?scene=offline'});
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="服务未配置"','production fail-closed state');
+  const isolated=await evaluate('('+function(){
+    const app=document.querySelector('#tool-app');
+    const studio=document.querySelector('#preview-controls');
+    return {singleRoot:document.querySelectorAll('#tool-app .ai-vip').length===1,
+      hasDev:!!app?.querySelector('#ai-vip-local-connect,#ai-vip-features-title,#ai-vip-service-mode,.ai-vip-advanced,h1'),
+      hasProxy:app?.querySelectorAll('#ai-vip-proxy-toggle').length===1,
+      outside:!!studio&&!app.contains(studio),
+      studioClosed:studio?.open===false,
+      redeemDisabled:document.getElementById('ai-vip-redeem')?.disabled===true};
+  }.toString()+')()');
+  assert.equal(isolated.singleRoot,true);
+  assert.equal(isolated.hasDev,false,'production must not expose lab or feature inventory');
+  assert.equal(isolated.hasProxy,true);
+  assert.equal(isolated.outside,true);
+  assert.equal(isolated.studioClosed,true);
+  assert.equal(isolated.redeemDisabled,true);
+  result.checks.push('production has no dev UI and unconfigured service fails closed');
+  await capture(390,'light','react-offline-390-light');
+
+  // The preview ONLY supplies an approved local SDK fixture. No developer
+  // control panel exists inside the installed React product.
   await cdp('Page.navigate',{url});
-  await until('document.getElementById("ai-vip-member-state")?.textContent==="服务未配置"','React mounted');
-  await until('document.getElementById("ai-vip-local-connect")?.disabled===false','dev fixture approved');
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="权益有效"','fixture-owned member state');
+  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-local-connect").length'),0);
   assert.equal(await evaluate('document.querySelectorAll("#ai-vip-proxy-toggle").length'),1);
-  assert.equal(await evaluate('document.getElementById("ai-vip-redeem").disabled'),true);
-  result.checks.push('unconfigured product fails closed');
-  await click('.ai-vip-advanced > summary');
-  await click('#ai-vip-local-connect');
-  await until('document.getElementById("ai-vip-local-connect")?.textContent==="退出本地开发"','dev opt-in');
-  await click('#preview-member');
+  result.checks.push('fixture member entitlement without any in-product demo switch');
+  await click('#preview-controls > summary');
+  await click('#preview-switch');
   await until('document.getElementById("ai-vip-refresh")?.disabled===false','member refresh available');
   await click('#ai-vip-refresh');
-  await until('document.getElementById("ai-vip-member-state")?.textContent==="权益有效"','actual member view');
-  result.checks.push('trusted local mode then fixture member query');
-  await click('#preview-switch');
-  await until('document.getElementById("ai-vip-refresh")?.disabled===false','assignment refresh available');
-  await click('#ai-vip-refresh');
   await until('document.getElementById("ai-vip-shared-account")?.textContent.includes(" B")','server-assigned B');
-  result.checks.push('server-assigned account switched A to B');
+  result.checks.push('server-only account reassignment A to B');
   await select('#preview-proxy','enabled');
   await click('#ai-vip-proxy-refresh');
   await until('document.getElementById("ai-vip-proxy-toggle")?.dataset.action==="stop"','owned STOP');
   await click('#ai-vip-proxy-toggle');
   await until('document.getElementById("ai-vip-proxy-state")?.textContent==="已停止"','proxy STOP ack');
-  result.checks.push('one direct user STOP, no real proxy');
+  result.checks.push('direct trusted STOP; no actual proxy');
   for(const width of [320,360,390,400,440,520]){
     await capture(width,'light','react-member-'+width+'-light');
   }

@@ -20,8 +20,13 @@ const fakeHash=value=>{
   return [...a,...a].map(x=>x.toString(16).padStart(8,'0')).join('');
 };
 export function installPreviewFixture(root){
+  // Only the preview owns this scenario selector. The installed package
+  // cannot import this file, enable localhost or obtain a developmentProfile.
+  const scene=new URL(location.href).searchParams.get('scene');
+  const offline=scene==='offline';
   const values=new Map();
-  let granted=false,assigned='A',serial=0,lastReceipt=null;
+  if(!offline)values.set('aiVipLocalDevelopmentR136',{schemaVersion:1,enabled:true});
+  let granted=scene!=='redeem'&&!offline,assigned='A',serial=0,lastReceipt=null;
   let proxyState=idle(),proxyScenario='disabled',stopResolve=null;
   const devProfile=Object.freeze({endpoint:{scheme:'http',host:'127.0.0.1',port:7897},
     domains:[...DOMAIN_LIST]});
@@ -95,7 +100,8 @@ export function installPreviewFixture(root){
           {index:1,saved:true,verified:true}]};
     }},
     proxy:{managed:{
-      getStatus:async()=>({...clone(proxyState),developmentProfile:clone(devProfile)}),
+      getStatus:async()=>({...clone(proxyState),
+        ...(offline?{}:{developmentProfile:clone(devProfile)})}),
       requestEnable:async()=>{
         if(proxyScenario==='conflict')throw Error('E_PREVIEW_OWNER');
         proxyState=owned();return clone(proxyState);

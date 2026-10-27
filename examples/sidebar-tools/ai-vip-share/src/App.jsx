@@ -2,8 +2,8 @@ import * as React from 'react';
 import {Button,IconButton,Card,CardContent} from '@opendesk/ui';
 
 // This is the installable app's only UI tree. The v1.4.2 compatibility
-// controller mounts after React commits, retaining the original SDK,
-// journal, idempotency and STOP semantics until they can be state-extracted.
+// controller mounts after React commits. Preview and developer controls
+// are never children of the installable product UI.
 export default function VipApp(){
   React.useLayoutEffect(()=>{
     const dispose=globalThis.__OpenDeskVipStart?.();
@@ -12,19 +12,6 @@ export default function VipApp(){
   return (
     <main className="ai-vip" aria-label="AI VIP Share 会员与权益中心">
       
-      <header className="ai-vip-brand">
-        <div className="ai-vip-logo" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m12 2 8 4v5c0 5.1-3.1 8.4-8 11-4.9-2.6-8-5.9-8-11V6l8-4Z"/>
-            <path d="m12 6.8 1.35 3.7 3.75.1-3 2.4 1.05 3.55L12 14.5 8.85 16.55 9.9 13l-3-2.4 3.75-.1Z"/>
-          </svg>
-        </div>
-        <div className="ai-vip-brand-copy">
-          <h1>AI VIP Share</h1>
-          <p>会员权益 · 兑换激活 · AI 网站访问</p>
-        </div>
-      </header>
-    
       <Card id="ai-vip-member-card" className="ai-vip-membership" data-view="unconfigured" aria-labelledby="ai-vip-member-title">
         <CardContent className="ai-vip-card-inner">
           <div className="ai-vip-section-head">
@@ -132,44 +119,6 @@ export default function VipApp(){
         <div id="ai-vip-proxy-alert" className="ai-vip-proxy-alert" hidden><p id="ai-vip-proxy-alert-text"></p></div>
       </section>
     
-      <details className="ai-vip-service ai-vip-advanced">
-        <summary>服务与开发信息 <span aria-hidden="true">▾</span></summary>
-        <div className="ai-vip-advanced-content">
-        <section className="ai-vip-review" aria-labelledby="ai-vip-features-title">
-          <h2 id="ai-vip-features-title">功能与接入状态</h2>
-          <p id="ai-vip-service-mode" className="ai-vip-note" role="status" aria-live="polite">正式服务未配置。安装工具后即可查看接入状态，无需另外激活工具。</p>
-          <details className="ai-vip-service ai-vip-feature-details">
-            <summary>查看 6 类功能与入口 <span aria-hidden="true">▾</span></summary>
-            <dl className="ai-vip-feature-list">
-              <dt>会员账号与权益 · 下方会员卡</dt><dd id="ai-vip-feature-member">正式账号服务未配置，暂不能登录、绑定或查询权益。</dd>
-              <dt>激活码激活与记录 · 下方兑换激活</dt><dd id="ai-vip-feature-redeem">正式兑换服务未配置，输入框暂不显示。</dd>
-              <dt>专属激活链接与安装续接</dt><dd>尚未实现。缺少短效凭据验证、安装后续接与回跳；安装 JSON 不会自动领取权益。</dd>
-              <dt>网站 Cookie 交付 · 有效兑换回执后出现</dt><dd id="ai-vip-feature-cookie">生产目标未配置；收到有效交付后才可核对目标并确认写入。</dd>
-              <dt>更多商品</dt><dd id="ai-vip-feature-shop">商城地址未配置，商品按钮暂不显示。</dd>
-              <dt>代理启停 · 下方 AI 网站访问</dt><dd id="ai-vip-feature-proxy">生产代理未配置；代理连接与会员权益分别核验。</dd>
-            </dl>
-          </details>
-          <p id="ai-vip-demo-availability" className="ai-vip-note">正在检测本地演示入口。</p>
-          
-        </section>
-      
-        <section id="ai-vip-local-development" className="ai-vip-review" aria-labelledby="ai-vip-local-title" hidden>
-          <strong id="ai-vip-local-title">本地开发</strong>
-          <p id="ai-vip-local-status" role="status" aria-live="polite">尚未连接本地开发服务。</p>
-          <Button id="ai-vip-local-connect" className="od-button od-button--secondary" type="button" disabled>连接本地开发</Button>
-          <p className="ai-vip-fine-print">演示步骤：先连接 → 输入测试码 DEMO-VIP-01 → 预检激活 → 核对账号并确认激活 → 查看权益与兑换记录。Cookie 写入和代理启用仍各自确认。演示数据不代表付费会员。</p>
-        </section>
-        </div>
-      </details>
-
-      <details className="ai-vip-service">
-        <summary>使用说明 <span aria-hidden="true">▾</span></summary>
-        <div className="ai-vip-service-content">
-          <p>仅在通过可信 Browser SDK 与 Chrome 原生权限确认后管理本工具的代理，不修改其他工具或系统 VPN 配置。连接可用不代表第三方会员已开通。</p>
-          <p>站点示例：ChatGPT · Claude · Gemini · Perplexity；最终适用范围以审核后的服务与商品说明为准。系统代理、VPN / TUN 与本工具状态分别核验。</p>
-          <p id="ai-vip-link-status">生产激活链接尚未配置。本地开发连接后可手动输入激活码，或在此工具打开时访问约定激活网址自动请求分配；网站权限与 Cookie 批次仍需可信确认。</p>
-        </div>
-      </details>
     </main>
   );
 }
