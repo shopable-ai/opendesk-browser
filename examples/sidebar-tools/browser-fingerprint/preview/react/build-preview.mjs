@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Source-bound HTML: reuses the compiled installed IIFE and the pinned React
 // runtime; only the SDK transport is replaced by an explicit preview fixture.
-import {readFile,writeFile} from 'node:fs/promises';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve,join,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -63,6 +63,13 @@ if(process.argv.includes('--check')){
   console.log('FINGERPRINT_SAME_SOURCE_PREVIEW_MATCH '+hash(html));
 }else{
   await writeFile(output,html);
+  // CI retains the EXACT generated HTML as a raw artifact, not a second UI.
+  if(process.env.GITHUB_ACTIONS==='true'){
+    const artifact=join(repo,'artifacts/app-ci/browser-fingerprint');
+    await mkdir(artifact,{recursive:true});
+    await writeFile(join(artifact,'preview.html'),html);
+    await writeFile(join(artifact,'preview.sha256'),hash(html)+'\n');
+  }
   console.log(JSON.stringify({status:'SAME_SOURCE_PREVIEW_BUILT',
     htmlSha256:hash(html),appSha256:hash(app),
     runtimeSha256:hash(runtime),sharedUiSha256:hash(shared)},null,2));
