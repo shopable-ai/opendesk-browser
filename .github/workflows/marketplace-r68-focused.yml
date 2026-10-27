@@ -34,7 +34,7 @@ jobs:
       - name: Build exact product React Side Panel HTML
         run: node scripts/preview/build-sidebar-six-react-preview.mjs
       - name: Verify source-bound React component contract
-        run: node --test tests/environment/sidebar-six-react-preview-contract.test.mjs
+        run: node --test --test-name-pattern="R37 offline preview generates" tests/environment/sidebar-six-react-preview-contract.test.mjs
       - name: Test user clicks against real React sheet and detail in Chromium
         run: node scripts/tests/sidebar-six-react-preview-interaction.mjs --market-only
       - name: Publish a single directly openable HTML for UI review
