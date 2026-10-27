@@ -1,6 +1,6 @@
 /* @opendesk-shared-design */
 /* Cookie-specific geometry; official shared primitives own controls, palette and focus. */
-.cookie-editor-react{width:100%;min-width:0;max-width:860px;margin:0 auto;padding:var(--space-3);color:var(--od-ink);font-size:var(--od-body-size);line-height:1.5}
+.cookie-editor-react{width:100%;min-width:0;max-width:860px;margin:0 auto;padding:var(--space-3);color:var(--od-ink);font:var(--od-body-size)/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
 .cookie-editor-react svg{width:17px;height:17px;flex:none}
 .cookie-editor-react input,.cookie-editor-react textarea,.cookie-editor-react select{max-width:100%}
 .cookie-editor-react input,.cookie-editor-react textarea{min-width:0}
