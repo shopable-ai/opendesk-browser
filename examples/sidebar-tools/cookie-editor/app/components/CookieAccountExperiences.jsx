@@ -4,16 +4,16 @@ import {CookieIconButton} from './CookieEditorView.jsx';
 // Product-owned React presentation, shared by the official app and preview.
 // No Cookie value, credential, share token, network call or persistent grant
 // enters this component. Live invitation and marketplace backends do not exist.
-const exampleResources=Object.freeze([
-  {id:'team',title:'团队协作席位',type:'seat',category:'官方席位',
-    description:'由服务商审核并正式邀请团队成员加入，不需要交出 Cookie。',
-    details:'未来使用可信身份、席位配额、官方授权、到期管理和撤销记录。'},
-  {id:'demo',title:'演示与测试环境',type:'demo',category:'隔离沙盒',
-    description:'完全虚构的数据与测试网站，方便体验流程而不接入生产登录。',
-    details:'资源应和真实会话隔离，带明确的演示标识、到期及数据清理规则。'},
-  {id:'delegate',title:'授权委托访问',type:'delegate',category:'受控委托',
-    description:'通过官方可撤销授权授予最低必要权限，不转交登录凭据。',
-    details:'未来采用服务商认可的授权方式，并支持最小范围与随时撤销。'}
+const marketOffers=Object.freeze([
+  {id:'account-kit',title:'多账号整理',category:'template',categoryLabel:'使用模板',
+    audience:'个人 · 多账号',description:'把工作、个人与备用账号分开保存，常用账号一键定位。',
+    action:'体验账号管理'},
+  {id:'switch-kit',title:'网址快捷切换',category:'workflow',categoryLabel:'快捷方案',
+    audience:'本机 · 自动切换',description:'用本站白名单和 URL Fragment 创建快捷入口，避免反复查找账号。',
+    action:'体验切换设置'},
+  {id:'expiry-kit',title:'Cookie 有效期管理',category:'guide',categoryLabel:'功能示例',
+    audience:'Cookie · 属性',description:'区分 Session 与指定有效期，查看并安全调整过期时间。',
+    action:'体验 Expiration'}
 ]);
 const shareExpiryOptions=Object.freeze([
   ['1h','1 小时'],['1d','1 天'],['7d','7 天'],['1mo','1 个月'],
@@ -120,70 +120,52 @@ export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
   </section>;
 }
 
-export function CookieAccountMarket({previewOnly=false}){
+export function CookieAccountMarket({onExperience=()=>{},onEnterprise=()=>{}}){
   const [query,setQuery]=React.useState('');
   const [category,setCategory]=React.useState('all');
-  const [detail,setDetail]=React.useState(null);
-  const [requested,setRequested]=React.useState(false);
-  const results=exampleResources.filter(item=>
-    (category==='all'||item.type===category)&&
-    [item.title,item.description,item.category].some(s=>
-      s.toLowerCase().includes(query.trim().toLowerCase())));
-  const back=()=>{setDetail(null);setRequested(false);};
+  const search=query.trim().toLowerCase();
+  const results=marketOffers.filter(item=>
+    (category==='all'||item.category===category)&&
+    [item.title,item.description,item.audience,item.categoryLabel]
+      .some(text=>text.toLowerCase().includes(search)));
   return <section className="cookie-account-page od-surface" aria-label="市场"
     id="cookie-product-panel-market" role="tabpanel"
     aria-labelledby="cookie-product-tab-market">
-    <header className="cookie-account-header">
-      <strong>市场</strong><span className="cookie-market-status">未上线 · 虚构示例</span>
-    </header>
-    <div className="cookie-account-content">
-      {detail?<div className="cookie-market-detail" aria-label="市场资源详情">
-        <div className="cookie-market-detail-head">
-          <CookieIconButton name="undo" label="返回市场" onClick={back}/>
-          <strong>{detail.title}</strong>
-          <small className="cookie-market-status">{detail.category}</small>
-        </div>
-        <p>{detail.description}</p>
-        <p>{detail.details}</p>
-        <p className="cookie-account-notice">官方授权方向尚未发布。不允许以 Cookie、密码或可重用登录会话作为交易对象。</p>
-        <div className="cookie-share-actions">
-          <button type="button" className="od-button od-button--secondary" onClick={back}>返回列表</button>
-          <button type="button" className="od-button od-button--primary" disabled={!previewOnly}
-            onClick={()=>setRequested(true)}>{previewOnly?'模拟申请':'授权未上线'}</button>
-        </div>
-        {requested&&<p className="cookie-share-status" role="status">
-          预览模拟申请：只更新页面状态，不发送网络请求或创建授权。
-        </p>}
-      </div>:<>
-        <div className="cookie-market-intro">
-          <strong>官方授权资源方向</strong>
-          <p>示例均为虚构设计；不提供购买、租赁或可领取的真实登录账号。</p>
-        </div>
-        <div className="cookie-market-controls">
-          <input type="search" className="od-field" aria-label="搜索市场资源"
-            placeholder="搜索授权资源" value={query} onChange={e=>setQuery(e.target.value)}/>
-          <div className="cookie-market-categories" role="group" aria-label="市场分类">
-            {[['all','全部'],['seat','团队席位'],['demo','演示环境'],['delegate','委托授权']]
-              .map(([id,label])=><button key={id} type="button"
-                className={'od-button '+(id===category?'od-button--secondary':'od-button--quiet')}
-                aria-pressed={id===category} onClick={()=>setCategory(id)}>{label}</button>)}
+    <div className="cookie-account-content cookie-market-page">
+      <header className="cookie-business-hero">
+        <small>MARKET · 轻量体验</small>
+        <h2>发现实用功能与配置示例</h2>
+        <p>从多账号管理、快捷切换到 Cookie 有效期，点击即可在当前产品中体验。
+           企业多部门、席位与用量管理在「企业」中查看。</p>
+      </header>
+      <input className="od-field" type="search" placeholder="搜索功能、模板或场景"
+        aria-label="搜索市场功能" value={query} onChange={e=>setQuery(e.target.value)}/>
+      <div className="cookie-market-categories" role="group" aria-label="市场分类">
+        {[['all','全部'],['template','模板'],['workflow','快捷方案'],['guide','示例']]
+          .map(([key,label])=><button key={key} type="button"
+            className={'od-button '+(category===key?'od-button--secondary':'od-button--quiet')}
+            aria-pressed={category===key} onClick={()=>setCategory(key)}>{label}</button>)}
+      </div>
+      <div className="cookie-market-results" aria-label="功能示例">
+        {results.map(item=><article key={item.id} className="cookie-market-resource">
+          <div className="cookie-market-resource-head">
+            <small>{item.categoryLabel}</small><small>可体验</small>
           </div>
-        </div>
-        <div className="cookie-market-results" aria-label="虚构资源列表">
-          {results.map(item=><article className="cookie-market-resource" key={item.id}>
-            <div className="cookie-market-resource-head">
-              <strong>{item.title}</strong><small>{item.category}</small>
-            </div>
-            <p>{item.description}</p>
-            <div className="cookie-market-resource-actions">
-              <small className="cookie-market-status">虚构示例</small>
-              <button type="button" className="od-button od-button--secondary"
-                onClick={()=>{setDetail(item);setRequested(false);}}>查看详情</button>
-            </div>
-          </article>)}
-          {!results.length&&<p className="cookie-account-empty">没有匹配的资源。</p>}
-        </div>
-      </>}
+          <strong>{item.title}</strong>
+          <p>{item.description}</p>
+          <div className="cookie-market-resource-actions">
+            <small>{item.audience}</small>
+            <button type="button" className="od-button od-button--secondary"
+              onClick={()=>onExperience(item.id)}>{item.action}</button>
+          </div>
+        </article>)}
+        {!results.length&&<p className="cookie-account-empty">没有匹配的功能示例。</p>}
+      </div>
+      <p className="cookie-account-empty">
+        不提供账号交易、登录 Cookie 共享、申请或审批；未来真实市场资源须单独核验来源和授权。
+      </p>
+      <button type="button" className="od-button od-button--quiet"
+        onClick={onEnterprise}>需要团队管理？看看企业方案</button>
     </div>
   </section>;
 }
