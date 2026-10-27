@@ -20,7 +20,9 @@ jobs:
         with:
           node-version: '22'
       - name: Verify Send Queue core and crown tests
-        run: node --test examples/programs/chatgpt-send-queue/tests/*.test.mjs
+        run: |
+          node --check examples/programs/chatgpt-send-queue/scripts/crown-r53-chromium.mjs
+          node --test examples/programs/chatgpt-send-queue/tests/*.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Render actual offline HTML in Chrome at deviceScaleFactor 1
