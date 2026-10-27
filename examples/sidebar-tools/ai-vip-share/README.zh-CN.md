@@ -1,5 +1,32 @@
 # AI VIP Share · 独立 Sidebar Tool
 
+## R2.8 扩展内安装续接状态（2026-10-28）
+
+**下一步仍是 OpenDesk Browser「扩展」内审阅安装 / 同 ID 升级并打开工具，当前为 `BLOCKED / NOT_TESTED`。** 本轮浏览器能力清单没有 Side Panel 安装控制入口；交接中记录的 `chrome://extensions/` 安全策略拒绝未解除，未换用其他浏览器面、CDP、命令或私有接口绕过。没有执行新的扩展安装或新窗口核心操作，也没有确认实际启用扩展的 ID、加载目录或持续开发连接。约定日常目录仍为 `dist/development`；其他 owner 的浏览器、Profile、watcher 和输出均保留。下方 R2.3 的旧候选原生证据不适用于本候选。
+
+已用唯一打包器从当前有效 `dist/build-ready.json` 生成临时候选 `artifacts/sidebar-tools/ai-vip-share/candidate.opendesk-tool.json`：**1.4.2，89,127 字节，SHA-256 / packageHash `2b7e5fc5a31d288d159fdcf9d731960cb63983774daf8e12d499b777b26812bf`**，`validated: true`、`installed: false`。相对 1.4.1 六项 capabilities 不变，新增固定 `opendesk.react-ui.v1` UI Runtime。React buildId 为 `b58b5e2e61d0868d8df02469ee36f87a1a9955786df9baabb344a51c70f5ad6c`。正式 1.4.1 JSON 的 SHA-256 仍为 `70cd5025eb63940cb678ffe47f4d2c580aeff6e2807e8dddfebef8544b3c2827`；未执行晋升、覆盖或发布。认可的 `preview/design.html` 未改。
+
+**来源与业务阻断：** 开发特权来源锁仍只批准 1.4.0 的 `043e97c5b92685d4865b03b36d45896777153709e8b32f7fca9530828c40ddfe`；当前 1.4.2 不得借用旧批准。生产托管代理名单为空，会员 Provider、Cookie 目标、代理 endpoint 和两个推广 URL 仍未配置 / 批准。候选包校验不会授予这些权限，也不证明会员、兑换、网站登录或代理成功。需先由现有可信配置 owner 审阅当前候选及固定测试范围，再通过可获允许的真实扩展安装入口继续。
+
+本次移交差量修复了 Cookie journal 尚未读完 / 读取失败时兑换可能提前放行的问题；读取完成前禁用预检与确认，unknown / partial 继续禁止重放。另修复应用 CSS 中四处无效颜色、深色推广小字可读性和窄屏会员数字 / 单位拆行，以及旧 CI 缺少 React 构建前置、失效的样式来源断言。预览外壳、截图和源码摘要核对只属于辅助测试，不进入第二套产品或授权流程。
+
+证据位于 `artifacts/ai-vip-share-r28-20261028/`：继承 `node-final.log` 的 104/104 与最后差量 `node-final-delta.log` 的 39/39，二者不是一次最终全量运行，也不能相加成去重数量。本轮重核 `chromium/report.json` 的 24 个源码 / 产物摘要，并确认正式 React build-ready 的全部源码摘要与该预览回执一致，见 `evidence-reuse-current.json`；未重跑有效矩阵。原 118 张截图仍为 Chrome 156.0.8078.48 的 **Mock SDK 同源预览**；`installed`、`nativeCookie`、`nativeProxy`、`provider` 均为 false，200% 项仅是 CSS zoom。当前候选与正式包身份见 `package-current-identity.json`，新打包回执见 `package-current.log`。新的远程 CI 尚未验证。
+
+独立 diff 审阅未发现阻塞性问题，新增恢复门禁、推广与 CI 的 12 项定向 Node 用例通过，另核对旧 Host 接线用例和 7 个 JS/MJS 的语法。审阅指出的仅匹配 import 变量名问题已收紧为检查实际 `<style>` 注入，随后 R5 受影响套件 6/6 通过，见 `node-r5-current.log`；预览 build-ready 的损坏 / 缺失回执负向用例仍为低优先级待办，未为此扩展浏览器矩阵。
+
+| 八维 | 已有证据 | 当前缺口 | 正式评分 |
+| --- | --- | --- | --- |
+| 视觉一致性 | 同源预览、认可 HTML 与修复后截图 | 最后候选独立视觉复核及安装态对照 | NOT_SCORED |
+| 响应式布局 | 六宽、浅深色预览及数字 / 单位几何断言 | 当前安装态、真实 GUI 缩放 | NOT_SCORED |
+| 交互体验 | 预览明文输入、清空、取消与 Escape 焦点 | 扩展内同候选操作 | NOT_SCORED |
+| 功能正确性 | Node 兑换恢复、推广错误与 STOP 定向证据 | 合法服务和真实 SDK 核心链 | NOT_SCORED |
+| 无障碍 | 预览真实键盘与深色 CTA 对比度证据 | 当前安装态焦点与辅助技术复核 | NOT_SCORED |
+| React 架构 | 单 Root、固定 Shared UI、源码与产物摘要一致 | 当前安装沙箱运行 | NOT_SCORED |
+| 安全边界 | Cookie 恢复门禁、未知不重放及来源锁保留 | 当前包获审、原生权限及撤权 | NOT_SCORED |
+| 真实安装质量 | 规范候选及版本 / 能力差异已核对 | 安装 / 升级、数据保留和打开均未执行 | NOT_SCORED |
+
+有 `NOT_TESTED` 项，不计算正式八维平均分，不宣称 ≥95 或产品验收完成。
+
 ## R2.7 当前正式源码与验证边界（2026-10-28）
 
 **现行 UI 契约：** [`preview/design.html`](preview/design.html) 是已认可的独立 HTML 视觉参照；真正可安装的 React 组件仍只有 [`src/App.jsx`](src/App.jsx)，入口 [`src/main.jsx`](src/main.jsx)，公共 SDK 事务控制器为 [`src/main.js`](src/main.js)。正式同源预览为 [`preview/index.html`](preview/index.html) + [`preview/main.jsx`](preview/main.jsx)，经 `npm run build:preview --prefix examples/sidebar-tools/ai-vip-share` 编译；不可把历史设计原型或受控 SDK fixture 当作已安装业务。

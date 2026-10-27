@@ -351,6 +351,68 @@ test('development revocation and restoration during recovery read invalidates th
 });
 
 const COOKIE_KEY='aiVipCookieDeliveryR137';
+for(const outcome of ['success','failure'])test(`manual activation waits for delayed Cookie recovery ${outcome}`,async()=>{
+  const entered=deferred(),resume=deferred();
+  const e=await runtime({store:new Map([[PREFERENCE,{schemaVersion:1,enabled:true}]]),
+    beforeStorageGet:async payload=>{
+      if(payload.key!==COOKIE_KEY)return;
+      entered.resolve();await resume.promise;
+      if(outcome==='failure')throw Error('Cookie journal unavailable');
+    }});
+  await entered.promise;
+  try{
+    assert.equal(e.get('member-state').textContent,'尚未开通','member recovery has completed');
+    assert.equal(e.get('recovery').hidden,true,'empty redemption journal has recovered');
+    assert(e.storageCalls.some(row=>row.operation==='storage.get'&&row.key===RECOVERY));
+    await e.preview();
+    await e.click('redeem-confirm');
+    assert.equal(e.calls.filter(row=>/\/(preview|redeem)$/.test(row.url)).length,0,
+      'direct manual handlers must not preflight or confirm while Cookie recovery is pending');
+    assert.equal(e.get('redeem-code').disabled,true);
+    assert.equal(e.get('redeem').disabled,true);
+    assert.equal(e.get('redeem-confirm').disabled,true);
+  }finally{resume.resolve();await e.flush();}
+  if(outcome==='failure'){
+    assert.match(e.get('cookie-status').textContent,/恢复记录无法核对/);
+    await e.preview();await e.click('redeem-confirm');
+    assert.equal(e.calls.filter(row=>/\/(preview|redeem)$/.test(row.url)).length,0);
+    assert.equal(e.get('redeem-code').disabled,true);
+    assert.equal(e.get('redeem-confirm').disabled,true);
+  }else{
+    assert.equal(e.get('redeem-code').disabled,false,'Cookie recovery completion rerenders the form');
+    assert.equal(e.get('redeem').disabled,false,'the retained code can now be preflighted');
+    await e.preview();assert.equal(e.get('redeem-confirm').disabled,false);
+    await e.click('redeem-confirm');assert.equal(e.fixture.ledger.size,1);
+  }
+});
+
+for(const outcome of ['fault','unknown','partial'])test(`pending manual preview cannot confirm after Cookie ${outcome}`,async()=>{
+  let failRead=false;
+  const e=await runtime({beforeStorageGet:async payload=>{
+    if(failRead&&payload.key===COOKIE_KEY)throw Error('Cookie journal unavailable');
+  },cookieSetMany:async()=>{
+    if(outcome==='unknown')throw Error('Cookie acknowledgement lost');
+    return {saved:1,verified:1,stopped:true,results:[{index:0,saved:true,verified:true},
+      {index:1,saved:false,verified:false,code:'E_GRANT_REVOKED'}]};
+  }});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  await e.preview('DEMO-VIP-02');
+  assert.equal(e.get('redeem-confirm').disabled,false);
+  await e.click('shared-receive');
+  failRead=outcome==='fault';await e.click('cookie-install');
+  assert.equal(e.get('redeem-preview').hidden,false,'the reviewed preview is still pending');
+  if(outcome==='fault'){
+    assert.match(e.get('cookie-status').textContent,/恢复存储无法核对/);
+    assert.equal(e.store.get(COOKIE_KEY)??null,null);
+  }else assert.equal(e.store.get(COOKIE_KEY).state,outcome);
+  const before=e.calls.length;
+  await e.click('redeem-confirm');
+  assert.equal(e.calls.length,before,'confirmation cannot issue even an identity request after Cookie fault/unknown');
+  assert.equal(e.fixture.ledger.size,1);
+  assert.equal(e.get('redeem-confirm').disabled,true);
+  assert.equal(e.storageCalls.filter(row=>row.operation==='storage.set'&&row.key===RECOVERY&&row.value).length,1);
+});
+
 const syntheticDelivery=()=>({schemaVersion:1,deliveryId:randomUUID(),targetUrl:ORIGIN+'/session/',
   expiresAt:Date.now()+120000,cookies:[{name:'synthetic_session',value:'synthetic-test-only',
     path:'/session/',httpOnly:true,secure:false,sameSite:'lax',expirationDate:Date.now()/1000+3600}]});

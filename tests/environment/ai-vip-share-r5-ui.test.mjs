@@ -47,8 +47,11 @@ test('R5 existing host shows isolated product and a single trusted proxy card',a
   assert.match(host,/aiPermissions\?\.render\(active,readOnlyPreview,enabled,Boolean\(legacyAiProxyTool&&enabled&&\(frame\|\|nativeUI\)\)\)/);
   assert(!host.includes('frameRoot.hidden=id===AI_ID'));
   assert.match(host,/const show=managed&&tocSettingsOpen/);
-  const css=await readFile('src/ui/tool-shell.css','utf8');
+  const css=await readFile('examples/sidebar-tools/ai-vip-share/trusted/host.css','utf8');
   assert.match(css,/\.sidebar-tool-ai-proxy-native/);
+  const entry=await readFile('src/ui/react/main.tsx','utf8');
+  assert.match(entry,/import aiVipShareHostCSS from '[^']*ai-vip-share\/trusted\/host\.css\?raw'/);
+  assert.match(entry,/<style data-opendesk-trusted-react-css="">\{[^}]*\baiVipShareHostCSS\b[^}]*\}<\/style>/);
 });
 
 test('R5 trusted card uses one genuinely clicked button and no activation field',async t=>{

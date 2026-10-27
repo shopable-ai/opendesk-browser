@@ -41,6 +41,7 @@ on:
       - 'tests/environment/ai-vip-share-r21-lifecycle.test.mjs'
       - 'tests/environment/ai-vip-share-r5-ui.test.mjs'
       - 'tests/environment/ai-vip-share-r51-member.test.mjs'
+      - 'tests/environment/ai-vip-share-ci.test.mjs'
       - 'src/ai-smart-access/**'
       - 'src/entrypoints/sidebar-tool-host.js'
       - 'tests/environment/tool-stage.test.mjs'
@@ -75,6 +76,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify AI VIP CI prerequisites and existing browser profile
+        run: node --test tests/environment/ai-vip-share-ci.test.mjs
       - name: Papa Parse CSV export and pinned installed-tool Node acceptance
         run: |
           node --test tests/environment/papa-parse-r1.test.mjs tests/environment/papa-parse-installed-csv-r12.test.mjs tests/environment/browser-sdk-contract-compat.test.mjs
@@ -84,6 +87,8 @@ jobs:
           node scripts/build-adblock-react.mjs
           node scripts/build-stay-focus-react.mjs
           node scripts/build-cookie-editor-react.mjs
+      - name: Compile AI VIP Share React before package-consuming tests
+        run: npm run build --prefix examples/sidebar-tools/ai-vip-share
       - name: Validate R14 tool isolation and all five Sidebar regressions
         run: |
           node --test tests/environment/ai-vip-share-r2.test.mjs tests/environment/ai-vip-share-r21-lifecycle.test.mjs tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs tests/environment/runtime-libs-trusted-worlds.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tool-multiscript-r72.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/tool-stage.test.mjs tests/environment/tool-snapshot.test.mjs tests/environment/tool-preview-session.test.mjs tests/environment/tool-watch.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-react-cdn-bundle.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
@@ -138,6 +143,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compile AI VIP Share React before package-consuming tests
+        run: npm run build --prefix examples/sidebar-tools/ai-vip-share
       - name: R5.8 durable redemption recovery, member UI parity and trusted STOP
         run: node --test tests/environment/ai-vip-share-r5-ui.test.mjs tests/environment/ai-vip-share-r51-member.test.mjs tests/environment/ai-vip-share-ui-parity.test.mjs
       - name: AI VIP Share confirmed HTML preview UX and interactions (Node fixtures)

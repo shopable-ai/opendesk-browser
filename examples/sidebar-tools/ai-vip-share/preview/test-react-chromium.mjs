@@ -44,6 +44,24 @@ const pending=new Map(),exceptions=[];
 const result={evidence:'SOURCE_BOUND_REACT_CHROMIUM_MOCK_SDK',installed:false,
   nativeCookie:false,nativeProxy:false,provider:false,
   sourceCommit:process.env.GITHUB_SHA||null,checks:[],screenshots:[],exceptions};
+async function verifyPreviewReceipt(){
+  const ready=JSON.parse(await readFile(join(root,'build-ready.json'),'utf8'));
+  assert.equal(ready.format,'opendesk.ui-build-ready.v1');
+  assert(ready.sources?.['examples/sidebar-tools/ai-vip-share/src/App.jsx']);
+  assert(ready.sources?.['examples/sidebar-tools/ai-vip-share/preview/vite.config.mjs']);
+  for(const [base,entries] of [[resolve('.'),ready.sources],[root,ready.files]]){
+    assert(entries&&Object.keys(entries).length);
+    for(const [name,expected] of Object.entries(entries)){
+      assert(!name.startsWith('/')&&!name.split('/').includes('..'),'receipt relative path');
+      const bytes=await readFile(resolve(base,name));
+      assert.equal(bytes.length,expected.bytes,'stale preview: '+name);
+      assert.equal(createHash('sha256').update(bytes).digest('hex'),expected.sha256,'stale preview: '+name);
+    }
+  }
+  const {sources,files}=ready;
+  assert.equal(ready.buildId,createHash('sha256').update(JSON.stringify({sources,files})).digest('hex'));
+  result.previewBuild=ready;
+}
 const wait=ms=>new Promise(ok=>setTimeout(ok,ms));
 function cdp(method,params={}){
   return new Promise((ok,fail)=>{
@@ -80,6 +98,9 @@ async function connect(){
     msg.error?t.fail(Error(msg.error.message)):t.ok(msg.result);
   });
   await cdp('Page.enable');await cdp('Runtime.enable');
+  result.browser=await cdp('Browser.getVersion');
+  result.executable=process.env.CHROME_BIN||'chromium';
+  result.platform=process.platform;
 }
 async function evaluate(code){
   const r=await cdp('Runtime.evaluate',{expression:code,returnByValue:true,awaitPromise:true});
@@ -124,28 +145,61 @@ async function capture(width,theme,name){
     'document.querySelector(".frame").style.border="0";'+
     'document.documentElement.style.setProperty("--frame-width",'+JSON.stringify(width+'px')+')');
   await wait(100);
+  await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:0,y:0});
   const size=await evaluate('('+function(){
     const el=document.querySelector('.frame');
     // Capture the product from its top, not from the current scroll left after STOP.
     el.scrollIntoView({block:'start'});
     const r=el.getBoundingClientRect();
     const content=el.querySelector('.ai-vip');
-    return {x:r.x,y:r.y,w:r.width,h:r.height,productWidth:content?.getBoundingClientRect().width,
+    const number=el.querySelector('#ai-vip-remaining').getBoundingClientRect();
+    const unit=el.querySelector('#ai-vip-remaining-unit').getBoundingClientRect();
+    return {x:r.x+scrollX,y:r.y+scrollY,w:r.width,h:r.height,productWidth:content?.getBoundingClientRect().width,
+      metricTogether:!number.width||!unit.width||
+        (unit.left>=number.right-1&&unit.top>=number.top&&unit.bottom<=number.bottom+2),
       noOverflow:document.documentElement.scrollWidth<=document.documentElement.clientWidth+1 &&
         (!content||content.scrollWidth<=content.clientWidth+1)};
+  }.toString()+')()');
+  if(size.productWidth!==width)result.layoutFailure=await evaluate('('+function(){
+    return Object.fromEntries(['html','body','.studio','.stage','.frame','#tool-root','.ai-vip'].map(selector=>{
+      const el=document.querySelector(selector),r=el.getBoundingClientRect(),s=getComputedStyle(el);
+      return [selector,{width:r.width,cssWidth:s.width,columns:s.gridTemplateColumns,zoom:s.zoom}];
+    }));
   }.toString()+')()');
   assert.equal(size.productWidth,width,'source-bound product width must match requested width');
   assert.equal(size.w,width,'preview frame must not shrink the product viewport');
   assert(size.noOverflow,'horizontal overflow '+width);
+  assert(size.metricTogether,'membership number and unit must stay together at '+width);
   const screenshot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,
-    clip:{x:size.x,y:size.y,width:Math.ceil(size.w),height:Math.ceil(Math.min(size.h,1350)),scale:1}});
+    clip:{x:size.x,y:size.y,width:Math.ceil(size.w),height:Math.ceil(size.h),scale:1}});
   const bytes=Buffer.from(screenshot.data,'base64');
   await writeFile(join(out,name+'.png'),bytes);
   result.screenshots.push({name,width,actualProductWidth:size.productWidth,actualFrameWidth:size.w,
     theme,sha256:createHash('sha256').update(bytes).digest('hex')});
   return size;
 }
+async function appearance(){
+  return evaluate('('+function(){
+    const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+    const rgb=color=>{ctx.clearRect(0,0,1,1);ctx.fillStyle=color;ctx.fillRect(0,0,1,1);
+      return [...ctx.getImageData(0,0,1,1).data];};
+    const luminance=c=>c.slice(0,3).map(n=>{const s=n/255;return s<=.04045?s/12.92:((s+.055)/1.055)**2.4;})
+      .reduce((sum,n,i)=>sum+n*[.2126,.7152,.0722][i],0);
+    return Object.fromEntries(['.ai-vip-logo','.ai-vip-membership','.ai-vip-code-field>.od-field',
+      '.ai-vip-shop-link','.ai-vip-desktop-cta','.ai-vip-proxy-toggle',
+      '.ai-vip-review--warning','.ai-vip-error','.ai-vip-proxy-alert'].map(selector=>{
+      const el=document.querySelector(selector),s=getComputedStyle(el),r=el.getBoundingClientRect();
+      const ink=rgb(s.color);let bg=rgb(s.backgroundColor),parent=el.parentElement;
+      while(bg[3]===0&&parent){bg=rgb(getComputedStyle(parent).backgroundColor);parent=parent.parentElement;}
+      const a=luminance(ink),b=luminance(bg);
+      return [selector,{color:s.color,background:s.backgroundColor,rgb:ink,backgroundRgb:bg,
+        contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),font:s.fontSize,radius:s.borderRadius,
+        width:r.width,height:r.height}];
+    }));
+  }.toString()+')()');
+}
 async function run(){
+  await verifyPreviewReceipt();
   await connect();
   // Every frame uses the installable App.jsx + real business controller.
   await cdp('Page.navigate',{url:url+'?scene=offline'});
@@ -193,9 +247,23 @@ async function run(){
   await click('#ai-vip-proxy-toggle');
   await until('document.getElementById("ai-vip-proxy-state")?.textContent==="已停止"','proxy STOP ack');
   result.checks.push('trusted STOP remains independent of membership and Cookie');
-  for(const width of [320,360,390,400,440,520])
-    await capture(width,'light','react-member-'+width+'-light');
-  await capture(390,'dark','react-member-390-dark');
+  result.appearance={};
+  for(const theme of ['light','dark']){
+    for(const width of [320,360,390,400,440,520])
+      await capture(width,theme,'react-member-'+width+'-'+theme);
+    result.appearance[theme]=await appearance();
+    for(const selector of ['.ai-vip-shop-link','.ai-vip-desktop-cta','.ai-vip-proxy-toggle'])
+      assert(result.appearance[theme][selector].contrast>=4.5,theme+' text contrast '+selector);
+    for(const selector of ['.ai-vip-review--warning','.ai-vip-error','.ai-vip-proxy-alert'])
+      assert.notEqual(result.appearance[theme][selector].background,'rgba(0, 0, 0, 0)',
+        'warning must have a valid semantic background: '+selector);
+  }
+  await cdp('DOM.enable');await cdp('CSS.enable');
+  const doc=await cdp('DOM.getDocument');
+  const heading=await cdp('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'.ai-vip-redeem h2'});
+  result.chineseFonts=(await cdp('CSS.getPlatformFontsForNode',{nodeId:heading.nodeId})).fonts;
+  assert(result.chineseFonts.some(font=>font.glyphCount>0&&/PingFang|Noto|Heiti|CJK|Song|YaHei|WenQuanYi/i.test(font.familyName)),
+    'Chinese screenshots require an actual CJK font, not missing-glyph boxes');
   // 200% browser-like CSS zoom at a 320px logical Side Panel: no horizontal clipping.
   await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'light'}]});
   await cdp('Emulation.setDeviceMetricsOverride',{width:640,height:1600,deviceScaleFactor:1,mobile:false});
@@ -246,14 +314,30 @@ async function run(){
   assert.deepEqual(geometry,{inline:true,large:true,clearSize:true,noReveal:true,plain:true},
     'approved text input uses just one embedded Clear control');
   await click('#preview-controls > summary');
-  await click('#preview-fill-code');
+  await click('#ai-vip-redeem-code');
+  await cdp('Input.insertText',{text:'DEMO-VIP-01'});
   await until('document.getElementById("ai-vip-redeem")?.disabled===false','valid voucher preflight');
   assert.equal(await evaluate('document.getElementById("ai-vip-code-clear").disabled'),false);
   assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").type'),'text');
   await click('#ai-vip-code-clear');
   assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").value'),'');
   assert.equal(await evaluate('document.getElementById("ai-vip-redeem").disabled'),true);
-  await click('#preview-fill-code');
+  await click('#ai-vip-redeem-code');
+  await cdp('Input.insertText',{text:'DEMO-VIP-01'});
+  await click('#ai-vip-redeem');
+  await until('document.getElementById("ai-vip-redeem-preview")?.hidden===false','cancel preview');
+  await click('#ai-vip-redeem-cancel');
+  assert.equal(await evaluate('document.getElementById("ai-vip-redeem-preview").hidden'),true);
+  assert.equal(await evaluate('document.activeElement?.id'),'ai-vip-redeem-code');
+  await cdp('Input.insertText',{text:'DEMO-VIP-01'});
+  await click('#ai-vip-redeem');
+  await until('document.getElementById("ai-vip-redeem-preview")?.hidden===false','Escape preview');
+  await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+  await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+  assert.equal(await evaluate('document.getElementById("ai-vip-redeem-preview").hidden'),true);
+  assert.equal(await evaluate('document.activeElement?.id'),'ai-vip-redeem-code');
+  result.checks.push('trusted keyboard text input, embedded Clear, Cancel and Escape return focus without confirmation');
+  await cdp('Input.insertText',{text:'DEMO-VIP-01'});
   await capture(390,'light','react-redeem-input-390-light');
   await click('#ai-vip-redeem');
   await until('document.getElementById("ai-vip-redeem-preview")?.hidden===false','voucher preview visible');
@@ -269,7 +353,7 @@ async function run(){
   const receiptCopy=await evaluate('document.getElementById("ai-vip-cookie-section")?.innerText');
   assert(receiptCopy.includes('请先允许此网站的 Cookie 访问'));
   assert(!receiptCopy.includes('E_SITE_GRANT_REQUIRED'),'no raw Host/SDK codes in product');
-  result.checks.push('voucher review + explicit confirmation + partial Cookie write without replay');
+  result.checks.push('voucher review + explicit confirmation + partial Cookie receipt visible; replay safety is verified separately by Node tests');
   await capture(390,'light','react-cookie-partial-390-light');
 
   // The expiry / quota layouts are product cases, not developer-only cards.
@@ -283,6 +367,36 @@ async function run(){
   await until('document.getElementById("ai-vip-member-state")?.textContent==="无法核验"','provider error');
   await capture(390,'light','react-error-390-light');
   result.checks.push('quota, expiry and provider-error layouts use the same React view');
+  // Reuse the same source-bound view for the remaining approved state/width
+  // matrix. These are fixture outcomes, never Native or commercial receipts.
+  for(const scene of ['member','guest','expired','error','offline','cookie-unknown','proxy-conflict','stop-pending']){
+    await cdp('Page.navigate',{url:url+'?scene='+(['cookie-unknown'].includes(scene)?'session':'member')});
+    if(['guest','expired','error','offline'].includes(scene))
+      await cdp('Page.navigate',{url:url+'?scene='+scene});
+    await until('Boolean(document.getElementById("ai-vip-member-state"))&&document.getElementById("ai-vip-member-state").textContent!=="待核验"','scene '+scene);
+    if(['cookie-unknown','proxy-conflict','stop-pending'].includes(scene)){
+      await click('#preview-controls > summary');
+      if(scene==='cookie-unknown'){
+        await click('#ai-vip-shared-receive');
+        await until('document.getElementById("ai-vip-cookie-install")?.disabled===false','unknown delivery');
+        await select('#preview-cookie','unknown');await click('#ai-vip-cookie-install');
+        await until('document.getElementById("ai-vip-cookie-status")?.textContent.includes("未知")','unknown Cookie receipt');
+        assert.equal(await evaluate('document.getElementById("ai-vip-cookie-install").disabled'),true);
+      }else{
+        await select('#preview-proxy',scene==='proxy-conflict'?'conflict':'pending');
+        await click('#ai-vip-proxy-refresh');
+        if(scene==='stop-pending'){
+          await until('document.getElementById("ai-vip-proxy-toggle")?.dataset.action==="stop"','pending STOP action');
+          await click('#ai-vip-proxy-toggle');
+          await until('document.getElementById("ai-vip-proxy-toggle")?.disabled===true','STOP request pending');
+          assert.notEqual(await evaluate('document.getElementById("ai-vip-proxy-state").textContent'),'已停止');
+        }else await until('document.getElementById("ai-vip-proxy-state")?.textContent.includes("冲突")','proxy conflict');
+      }
+    }
+    for(const theme of ['light','dark'])for(const width of [320,360,390,400,440,520])
+      await capture(width,theme,'matrix-'+scene+'-'+width+'-'+theme);
+  }
+  result.checks.push('eight states × six widths × two themes; unknown Cookie stays locked and pending STOP never reports success');
   // Capture the real HTML visual baseline for side-by-side human review;
   // no fabricated pixel-parity score and no mock replacement of React.
   await cdp('Emulation.setDeviceMetricsOverride',{width:1024,height:1460,deviceScaleFactor:1,mobile:false});
@@ -292,7 +406,7 @@ async function run(){
   const baselineRect=await evaluate('('+function(){
     const shell=document.querySelector('.shell').getBoundingClientRect();
     const brand=document.querySelector('.brand h2');
-    return {x:shell.x,y:shell.y,width:shell.width,height:shell.height,
+    return {x:shell.x+scrollX,y:shell.y+scrollY,width:shell.width,height:shell.height,
       brandFont:getComputedStyle(brand).fontSize,memberRadius:getComputedStyle(document.querySelector('.membership')).borderRadius};
   }.toString()+')()');
   const baselineShot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,

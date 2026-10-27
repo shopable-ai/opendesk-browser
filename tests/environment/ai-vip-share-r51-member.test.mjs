@@ -624,36 +624,38 @@ test('R5.2 storage retry clears an obsolete fault when no transaction is pending
   assert.deepEqual(e.calls,[]);
 });
 
-test('R5.2 fixed HTTPS catalog requires trust, coalesces in-flight clicks and recovers after SDK rejection',async()=>{
+for(const kind of ['shop','desktop'])test(`R2.8 fixed HTTPS ${kind} requires trust, coalesces clicks and recovers after SDK rejection`,async()=>{
   const catalogUrl='https://catalog.example.org/products';
   let rejectOpen;
-  const e=await runtime({catalogUrl,tabsCreate:()=>new Promise((resolve,reject)=>{rejectOpen=reject;})});
-  assert.equal(node(e,'shop-open').disabled,false);
-  node(e,'shop-open').listeners.click({isTrusted:false});
-  node(e,'shop-open').listeners.click({});
+  const e=await runtime({[kind==='shop'?'catalogUrl':'desktopUrl']:catalogUrl,
+    tabsCreate:()=>new Promise((resolve,reject)=>{rejectOpen=reject;})});
+  const target=id=>node(e,id.replace(/^shop/,kind));
+  assert.equal(target('shop-open').disabled,false);
+  target('shop-open').listeners.click({isTrusted:false});
+  target('shop-open').listeners.click({});
   await flush();
   assert.equal(e.tabCalls.length,0);
-  node(e,'shop-open').listeners.click({isTrusted:true});
-  node(e,'shop-open').listeners.click({isTrusted:true});
+  target('shop-open').listeners.click({isTrusted:true});
+  target('shop-open').listeners.click({isTrusted:true});
   await flush();
   assert.equal(e.tabCalls.length,1);
   assert.deepEqual(Object.keys(e.tabCalls[0]),['url']);
   assert.equal(e.tabCalls[0].url,catalogUrl);
-  assert.equal(node(e,'shop-open').disabled,true);
-  node(e,'shop-open').listeners.click({isTrusted:true});
+  assert.equal(target('shop-open').disabled,true);
+  target('shop-open').listeners.click({isTrusted:true});
   await flush();
   assert.equal(e.tabCalls.length,1,'pending SDK request must stay single-flight');
   rejectOpen(Error('Browser SDK permission denied'));
   await flush();await flush();
-  assert.equal(node(e,'shop-open').disabled,false);
-  assert.match(node(e,'shop-status').textContent,/未能打开商品目录/);
+  assert.equal(target('shop-open').disabled,false);
+  assert.match(target('shop-status').textContent,/未能打开(商品目录|桌面客户端)/);
   assert.deepEqual(e.calls,[]);
-  node(e,'shop-open').listeners.click({isTrusted:true});
+  target('shop-open').listeners.click({isTrusted:true});
   await flush();
   assert.equal(e.tabCalls.length,2,'button is usable again after rejection');
   rejectOpen(Error('Denied again'));
   await flush();await flush();
-  assert.equal(node(e,'shop-open').disabled,false);
+  assert.equal(target('shop-open').disabled,false);
 });
 
 test('R2.7 unconfigured state omits phantom metrics but keeps approved promotion UI visible',async()=>{
@@ -697,6 +699,17 @@ test('R2.7 unset or invalid promo URLs stay visible with no navigation',async()=
     assert(!e.storageCalls.includes('storage.set'));
     assert.deepEqual(e.calls,[]);
   }
+});
+for(const validKind of ['shop','desktop'])test(`R2.8 ${validKind} navigation is independent of the other invalid URL`,async()=>{
+  const url='https://catalog.example.org/reviewed';
+  const e=await runtime(validKind==='shop'?{catalogUrl:url,desktopUrl:'javascript:void(0)'}:
+    {catalogUrl:'file:///tmp/client',desktopUrl:url});
+  for(const kind of ['shop','desktop'])node(e,kind+'-open').listeners.click({isTrusted:true});
+  await flush();await flush();
+  assert.deepEqual(e.tabCalls.map(call=>call.url),[url]);
+  assert.match(node(e,(validKind==='shop'?'desktop':'shop')+'-status').textContent,/尚未配置或未通过审核/);
+  assert.deepEqual(e.calls,[]);
+  assert(!e.storageCalls.includes('storage.set'));
 });
 test('R5.9.4 guest and verified no-subscription state do not show phantom stats',async()=>{
   for(const [account,isGuest] of [[{state:'guest'},true],[undefined,false]]){

@@ -3,7 +3,8 @@
 .ai-vip{
   /* Official semantic tokens are the only palette source.
      Purple is a derived tint of existing shared colors, not a new Host theme. */
-  --vip-purple:color-mix(in srgb,var(--od-brand) 72%,var(--od-negative) 28%);
+  --vip-purple:oklch(from var(--od-brand) l calc(c * .88) calc(h + 17));
+  --vip-accent-ink:var(--vip-purple);
   --vip-purple-deep:color-mix(in srgb,var(--vip-purple) 82%,var(--od-ink) 18%);
   --vip-ink:var(--od-ink);
   --vip-muted:var(--od-sub);
@@ -38,7 +39,7 @@
 .ai-vip-section-head h2{font-size:12px;font-weight:700;letter-spacing:.1px;color:var(--vip-ink);line-height:1.4}
 .ai-vip-pill{flex:none;max-width:62%;border-radius:5px;padding:4px 7px;background:var(--vip-soft);color:var(--vip-muted);font-size:10px;line-height:1.4;font-weight:700;text-align:center}
 .ai-vip-pill[data-tone="active"]{background:var(--vip-positive-bg);color:var(--od-positive)}
-.ai-vip-pill[data-tone="warn"]{background:var(--od-on-brand)3df;color:var(--od-warning-ink)}
+.ai-vip-pill[data-tone="warn"]{background:var(--od-warning-bg);color:var(--od-warning-ink)}
 .ai-vip-pill[data-tone="neutral"]{background:var(--vip-lavender);color:var(--vip-purple)}
 .ai-vip-account-row{display:flex;align-items:center;gap:10px;padding:13px 0 0}
 .ai-vip-account-row:has(+ .ai-vip-member-facts:not([hidden])){padding-bottom:11px;border-bottom:1px solid var(--vip-line)}
@@ -50,7 +51,7 @@
 .ai-vip-member-facts{margin-top:12px}
 .ai-vip-metric-caption{margin:0 0 6px;font-size:11px;color:var(--vip-muted)}
 .ai-vip-metric-line{display:flex;align-items:baseline;justify-content:space-between;gap:6px 10px}
-.ai-vip-metric{display:flex;align-items:baseline;gap:4px;flex-wrap:wrap}
+.ai-vip-metric{display:flex;align-items:baseline;gap:4px;flex:none;white-space:nowrap}
 .ai-vip-metric strong{font-size:27px;line-height:1.1;letter-spacing:-.8px;font-weight:790;color:var(--vip-ink)}
 .ai-vip-metric>span{font-size:13px;font-weight:650}
 .ai-vip-expiry{flex:1 1 115px;text-align:right;color:var(--vip-muted);font-size:11px;line-height:1.5}
@@ -93,9 +94,9 @@
 .ai-vip-benefits-head span{font-size:10px;color:var(--vip-muted)}
 .ai-vip-review-actions{display:flex;gap:8px;flex-wrap:wrap}
 .ai-vip-review-actions .od-button{flex:1 1 115px;min-height:34px}
-.ai-vip-review--warning{border-color:var(--od-warning-bg);background:var(--od-on-brand)9ef;color:var(--od-warning-ink)}
+.ai-vip-review--warning{border-color:var(--od-warning-border);background:var(--od-warning-bg);color:var(--od-warning-ink)}
 .ai-vip-review--warning>strong{color:var(--od-warning-ink)}
-.ai-vip-error{margin:0;border-radius:8px;padding:9px 10px;background:var(--od-on-brand)8eb;color:var(--od-warning-ink);font-size:11px;line-height:1.6}
+.ai-vip-error{margin:0;border-radius:8px;padding:9px 10px;background:var(--od-warning-bg);color:var(--od-warning-ink);font-size:11px;line-height:1.6}
 .ai-vip-shop{display:grid;gap:6px}
 .ai-vip .ai-vip-shop-link{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:37px;padding:9px 12px;border:1px solid var(--vip-light-line);border-radius:9px;background:var(--vip-lavender);color:var(--vip-purple);font-size:12px;font-weight:700}
 .ai-vip .ai-vip-shop-link:hover:not(:disabled){background:var(--vip-lavender-strong);border-color:var(--vip-light-line)}
@@ -103,7 +104,7 @@
 .ai-vip-proxy-source{margin:0}
 .ai-vip-proxy-head-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px}
 .ai-vip-proxy-refresh{flex:none}
-.ai-vip-proxy-alert{padding:10px;border:1px solid var(--od-warning-bg);border-radius:8px;background:var(--od-on-brand)9ef;color:var(--od-warning-ink);font-size:11px;line-height:1.7}
+.ai-vip-proxy-alert{padding:10px;border:1px solid var(--od-warning-border);border-radius:8px;background:var(--od-warning-bg);color:var(--od-warning-ink);font-size:11px;line-height:1.7}
 .ai-vip-proxy-alert p{margin:0}
 .ai-vip .ai-vip-proxy-toggle{width:100%;min-height:36px;height:36px;font-size:11px}
 .ai-vip-desktop-promo{display:grid;gap:10px;margin-top:-4px;padding:12px;border:1px solid var(--vip-light-line);border-radius:11px;background:linear-gradient(125deg,var(--vip-lavender),var(--vip-soft))}
@@ -127,6 +128,7 @@
 @media(max-width:360px){
   .ai-vip{gap:13px}
   .ai-vip .ai-vip-card-inner,.ai-vip-redeem,.ai-vip-proxy{padding:13px}
+  .ai-vip-metric-line{flex-wrap:wrap}
   .ai-vip-expiry{flex-basis:100%;text-align:left}
   .ai-vip-account-row{gap:7px}
 }
@@ -140,4 +142,11 @@
   .ai-vip-desktop-icon{width:30px;height:30px}
 }
 @media(max-width:320px){.ai-vip-account-copy strong{font-size:12px}}
+@media(prefers-color-scheme:dark){
+  .ai-vip{--vip-accent-ink:color-mix(in srgb,var(--vip-purple) 30%,var(--od-ink) 70%)}
+}
+/* Filled actions keep their on-brand color; small accent text needs its own
+   theme-aware ink rather than reusing a background color in dark mode. */
+.ai-vip-pill[data-tone="neutral"],.ai-vip-avatar,.ai-vip .ai-vip-shop-link,
+.ai-vip-desktop-icon,.ai-vip-desktop-label,.ai-vip .ai-vip-desktop-cta{color:var(--vip-accent-ink)}
 @media(prefers-reduced-motion:reduce){.ai-vip-meter span{transition:none}}

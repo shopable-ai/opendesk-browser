@@ -389,7 +389,7 @@
   async function loadCookieRecord(){
     try{cookieRecord=(await readCookieRecord()).value;cookieReady=true;}
     catch{cookieFault='Cookie 恢复记录无法核对，已禁止写入；请检查工具存储授权。';}
-    renderCookies();
+    renderRedeem();
   }
   function receiveCookies(receipt){
     cookiePending=null;
@@ -839,7 +839,7 @@
   function renderRedeem(){
     const accountReady=Boolean(endpoints)&&snapshot?.account.state==='bound';
     const locked=Boolean(recovery||recoveryFault);
-    const allowed=accountReady&&!busy&&!cookieBusy&&recoveryReady&&!locked&&
+    const allowed=accountReady&&!busy&&!cookieBusy&&cookieReady&&!cookieFault&&recoveryReady&&!locked&&
       !['unknown','partial'].includes(cookieRecord?.state);
     const showForm=accountReady&&!locked;
     redeemForm.hidden=!showForm;
@@ -985,7 +985,7 @@
   }
   // Both entry points use this private flow. URL input never fabricates a trusted event.
   async function runActivation(value,automatic=false,urlCode=value){
-    if(busy||cookieBusy||!endpoints||!recoveryReady||
+    if(busy||cookieBusy||!cookieReady||cookieFault||!endpoints||!recoveryReady||
       recovery||recoveryFault||['unknown','partial'].includes(cookieRecord?.state)||snapshot?.account.state!=='bound')return;
     if(!pending){
       if(!/^[A-Za-z0-9._-]{6,120}$/.test(value))return;
