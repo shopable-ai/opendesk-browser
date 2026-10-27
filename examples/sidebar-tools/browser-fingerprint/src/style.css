@@ -1,5 +1,5 @@
 /* @opendesk-shared-design */
-// One application-local scope; Shared UI tokens and component primitives stay canonical.
+/* One application-local scope; Shared UI tokens and component primitives stay canonical. */
 @scope (.fp-app){
 :scope{box-sizing:border-box;display:grid;gap:12px;min-width:0;padding:10px 12px 18px;color:var(--od-ink);background:var(--od-paper);font:var(--od-body-size,13px)/1.5 system-ui,sans-serif;overflow-wrap:anywhere}
 :scope *{box-sizing:border-box}
