@@ -1,9 +1,14 @@
-name: Marketplace R6.8 focused Side Panel navigation
+name: Marketplace R6.9.1 trusted Side Panel navigation
 on:
   push:
     branches: [main]
     paths:
       - 'src/marketplace/install.js'
+      - 'src/marketplace/panel-navigation.js'
+      - 'src/marketplace/page.js'
+      - 'src/marketplace/external.js'
+      - 'src/marketplace/distribution.js'
+      - 'src/market-site/client.js'
       - 'src/ui/market-install-sheet.js'
       - 'src/ui/tool-shell.js'
       - 'src/ui/extension-center.js'
@@ -12,6 +17,8 @@ on:
       - 'scripts/preview/build-sidebar-six-react-preview.mjs'
       - 'scripts/tests/sidebar-six-react-preview-interaction.mjs'
       - 'tests/environment/market-trusted-install.test.mjs'
+      - 'tests/environment/market-panel-navigation-r691.test.mjs'
+      - 'tests/environment/market-site-client-r5.test.mjs'
       - 'tests/environment/market-install-sheet.test.mjs'
       - 'tests/environment/sidebar-six-react-preview-contract.test.mjs'
       - '.github/workflows/marketplace-r68-focused.yml'
@@ -19,7 +26,7 @@ on:
 permissions:
   contents: read
 jobs:
-  market-r68:
+  market-r691:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -31,6 +38,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Test trusted single-installer review, durable receipt and detail identity
         run: node --test tests/environment/market-trusted-install.test.mjs tests/environment/market-install-sheet.test.mjs
+      - name: Verify market panel routing, external client compatibility and identity gates
+        run: node --test tests/environment/market-panel-navigation-r691.test.mjs tests/environment/market-site-client-r5.test.mjs tests/environment/market-panel-handoff.test.mjs tests/environment/market-page-discovery-r61.test.mjs
       - name: Build exact product React Side Panel HTML
         run: node scripts/preview/build-sidebar-six-react-preview.mjs
       - name: Verify source-bound React component contract
@@ -41,7 +50,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: market-r68-react-source-bound-html
+          name: market-r691-react-source-bound-html
           path: prototypes/sidebar/react-preview/index.html
           if-no-files-found: warn
           retention-days: 14
