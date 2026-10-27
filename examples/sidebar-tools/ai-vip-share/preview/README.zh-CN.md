@@ -1,3 +1,18 @@
+# AI VIP Share · 预览说明
+
+## 视觉设计评审（当前优先核对）
+
+- [`design.html`](design.html)：简短固定文件名；基于 R4.2 历史视觉与 R2.5 增强交互的完整、离线 HTML 设计预览。激活码为普通文本输入框，无眼睛图标；会员、兑换预检、历史、网络状态及各种失败场景均为离线演示。
+- [`shop.html`](shop.html)：独立商品页演示。设计预览中「更多商品」与「查看更多商品」均为指向该页面的新标签页链接，不再使用弹窗；商品只是示例，不显示真实价格或提供支付/购买。
+- 直接打开 `design.html` 可评审视觉；保持这两个文件同目录，商品链接方能工作。
+- **这两页是尚待最终确认的视觉/交互契约，不是正式安装的 React 代码，也不参加业务包构建。** 不能把离线操作、模拟兑换和演示目录说成生产功能已完成。
+
+## 正式 React 同源预览（待视觉收敛）
+
+现有 [`index.html`](index.html) 与 `main.jsx` 保持原位，继续通过正式 `../src/App.jsx`、`../src/style.css`、`../src/main.js` 构建；**目前尚未按照 `design.html` 完成精确视觉迁移**。后续需在正式 React 和真实 Mac Chrome 验收中核对与设计稿的差异，并保留原有授权、兑换事务、Cookie journal、代理 STOP 合同。生产商品地址/会员 Provider 未配置时不能擅自增加真实购买跳转。
+
+---
+
 # AI VIP Share · 正式 React 同源交互预览
 
 主入口：[`index.html`](index.html)。浏览器访问需要先执行 `npm run build:preview --prefix examples/sidebar-tools/ai-vip-share`，打开生成的 `preview/dist/index.html`；这不是另一份产品 Mock。
