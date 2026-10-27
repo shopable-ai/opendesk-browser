@@ -261,3 +261,12 @@ test('Vault lock and async account UI require current trusted receipts',async()=
  assert.match(preview,/accountLockUnknown/);
  assert.match(chromium,/account Vault lock requires an affirmative trusted receipt/);
 });
+
+test('The account product layout has no preview-only teaching banner',async()=>{
+ const [component,baseline]=await Promise.all([
+  get('app/components/CookieAccounts.jsx'),get('preview/cookie-editor.html')
+ ]);
+ assert.doesNotMatch(component,/这是源自正式 React 组件的虚构数据演示/);
+ assert.doesNotMatch(baseline,/这是源自正式 React 组件的虚构数据演示/);
+ assert.match(component,/<CookieAccountShare/);
+});

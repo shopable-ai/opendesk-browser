@@ -231,9 +231,6 @@ export function CookieAccounts({
       </div>
     </header>
     <div className="cookie-account-content">
-      {previewOnly&&<p className="cookie-account-notice" role="status">
-        这是源自正式 React 组件的虚构数据演示：不会写入真实 Cookie、加密仓库或浏览器自动切换后台。
-      </p>}
       {vaultReady&&accounts.length>0&&<div className="cookie-account-current" aria-label="当前账号状态">
         <span className="cookie-account-avatar" aria-hidden="true">{String(accounts.find(item=>item.alias===currentAlias)?.displayName||'?').slice(0,1)}</span>
         <div><small>{currentAlias?'当前已应用的快照（非登录验证）':'当前账号状态'}</small><strong>{accounts.find(item=>item.alias===currentAlias)?.displayName||'尚未验证'}</strong>
