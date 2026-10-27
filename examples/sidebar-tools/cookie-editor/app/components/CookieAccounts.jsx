@@ -218,27 +218,18 @@ export function CookieAccounts({
   return <section className="cookie-account-page od-surface" aria-label="账号"
     id="cookie-product-panel-accounts" role="tabpanel"
     aria-labelledby="cookie-product-tab-accounts" ref={list}>
-    <header className="cookie-account-header">
-      <strong>账号 <span className="cookie-account-count">{accounts.length}</span></strong>
-      <div className="cookie-account-actions">
-        <CookieIconButton name="settings" label="管理自动切换"
-          onClick={openSettings}/>
-        {vaultReady&&<CookieIconButton name="lock" label="锁定账号仓库"
-          disabled={busy||typeof onLock!=='function'} onClick={()=>onLock?.()}/>}
-        <button type="button" className="od-button od-button--primary"
-          disabled={busy||!vaultReady||typeof onCreate!=='function'}
-          onClick={()=>startInline('create')}>保存当前账号</button>
-      </div>
-    </header>
     <div className="cookie-account-content">
       {vaultReady&&accounts.length>0&&<div className="cookie-account-current" aria-label="当前账号状态">
         <span className="cookie-account-avatar" aria-hidden="true">{String(accounts.find(item=>item.alias===currentAlias)?.displayName||'?').slice(0,1)}</span>
-        <div><small>{currentAlias?'当前已应用的快照（非登录验证）':'当前账号状态'}</small><strong>{accounts.find(item=>item.alias===currentAlias)?.displayName||'尚未验证'}</strong>
-          <small>{currentAlias&&accounts.some(item=>item.alias===currentAlias)?'最近一次可信切换结果 · 非网页登录验证':'无法根据 Cookie 快照推断网站登录身份'}</small></div>
+        <div><small>{currentAlias?'当前已应用的快照（非登录验证）':'当前账号状态'}</small>
+          <strong>{accounts.find(item=>item.alias===currentAlias)?.displayName||'待核对'}</strong></div>
+        <span className="cookie-account-applied" title="最近一次可信切换回读，不代表网站已经登录">
+          {currentAlias?'● 当前':'待核对'}
+        </span>
       </div>}
       <label className="cookie-account-setting">
         <span><strong>切换后自动刷新网页</strong>
-          <small>默认开启，确认写入及回读成功后才刷新</small></span>
+          <small>仅目标标签页 · 回读确认后刷新；未保存的网页内容可能丢失</small></span>
         <input type="checkbox" role="switch" checked={autoRefresh}
           disabled={busy||!switchReady||typeof onToggleRefresh!=='function'}
           onChange={event=>onToggleRefresh?.(event.target.checked)}/>
@@ -282,6 +273,18 @@ export function CookieAccounts({
       {!vaultReady&&<p className="cookie-account-notice" role="status">
         加密仓库保持锁定。解锁前不会读取、保存或切换任何登录 Cookie。
       </p>}
+      <header className="cookie-account-header" aria-label="已保存账号操作">
+        <strong>已保存账号 <span className="cookie-account-count">{accounts.length}</span></strong>
+        <div className="cookie-account-actions">
+          <CookieIconButton name="settings" label="管理自动切换"
+            onClick={openSettings}/>
+          {vaultReady&&<CookieIconButton name="lock" label="锁定账号仓库"
+            disabled={busy||typeof onLock!=='function'} onClick={()=>onLock?.()}/>}
+          <CookieIconButton name="plus" label="保存当前 Cookie 为账号"
+            disabled={busy||!vaultReady||typeof onCreate!=='function'}
+            onClick={()=>startInline('create')}/>
+        </div>
+      </header>
       {accounts.length>0&&<input className="od-field cookie-account-search"
         type="search" placeholder="搜索账号" aria-label="搜索账号"
         value={query} onChange={event=>setQuery(event.target.value)}/>}

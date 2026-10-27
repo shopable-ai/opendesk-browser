@@ -331,16 +331,22 @@
 .cookie-editor-react .cookie-tab-label{display:flex;align-items:center;justify-content:center;min-height:42px;padding:0 var(--space-2);border-bottom:2px solid transparent;font-size:var(--od-note-size)}
 .cookie-editor-react .is-current .cookie-tab-label{border-bottom-color:var(--od-brand);color:var(--od-brand)}
 .cookie-editor-react .cookie-account-page{position:relative;min-width:0;max-height:calc(100dvh - 80px);overflow-y:auto;overflow-x:clip}
-.cookie-editor-react .cookie-account-header{min-height:46px;display:flex;align-items:center;gap:var(--space-2);justify-content:space-between;padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .cookie-account-header{min-height:34px;display:flex;align-items:center;gap:var(--space-2);justify-content:space-between;padding:0;margin-top:var(--space-1);border:0}
 .cookie-editor-react .cookie-account-header h2{flex:1;margin:0;font-size:15px;line-height:1.4}
-.cookie-editor-react .cookie-account-actions{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-account-actions{display:flex;align-items:center;gap:var(--space-1);min-width:0}
 .cookie-editor-react .cookie-account-count{color:var(--od-sub);font-weight:400}
 .cookie-editor-react .cookie-account-content{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3)}
 .cookie-editor-react .cookie-account-content h3{margin:var(--space-2) 0 0;font-size:13px}
-.cookie-editor-react .cookie-account-setting{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
+.cookie-editor-react .cookie-account-setting{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0;min-height:49px;padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted)}
 .cookie-editor-react .cookie-account-setting>span{display:grid;gap:2px;min-width:0}
 .cookie-editor-react .cookie-account-setting small{font-size:var(--od-meta-size);color:var(--od-sub);overflow-wrap:anywhere}
-.cookie-editor-react .cookie-account-setting input[type=checkbox]{flex:none;width:16px;height:16px;accent-color:var(--od-brand)}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]{appearance:none;flex:none;position:relative;width:38px;height:22px;min-width:38px;margin:0;border:1px solid var(--od-line);border-radius:999px;background:var(--od-line);cursor:pointer}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]::before{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--od-paper);transition:transform .15s ease}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]:checked{background:var(--od-brand);border-color:var(--od-brand)}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]:checked::before{transform:translateX(16px)}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+.cookie-editor-react .cookie-account-setting input[type=checkbox]:disabled{cursor:default;opacity:.6}
+@media(prefers-reduced-motion:reduce){.cookie-editor-react .cookie-account-setting input[type=checkbox]::before{transition:none}}
 .cookie-editor-react .cookie-account-notice{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub);font-size:var(--od-note-size);overflow-wrap:anywhere}
 .cookie-editor-react .cookie-account-empty{margin:0;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.6}
 .cookie-editor-react .cookie-account-card{display:flex;align-items:center;gap:var(--space-2);min-width:0;padding:var(--space-2) 0;border-bottom:1px solid var(--od-line)}
@@ -367,7 +373,7 @@
 .cookie-editor-react .cookie-market-outline{display:grid;gap:var(--space-2);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
 .cookie-editor-react .cookie-market-outline span{font-size:var(--od-note-size);color:var(--od-sub)}
 @media(max-width:350px){
-  .cookie-editor-react .cookie-account-header{flex-wrap:wrap}
+  .cookie-editor-react .cookie-account-header{flex-wrap:nowrap}
   .cookie-editor-react .cookie-account-actions{margin-left:auto}
   .cookie-editor-react .cookie-account-verify{flex-wrap:wrap}
   .cookie-editor-react .cookie-account-verify button{margin-left:auto}
@@ -386,20 +392,20 @@
 .cookie-editor-react .cookie-account-feedback{font-size:var(--od-note-size);line-height:1.5}
 .cookie-editor-react .cookie-account-feedback.is-error{color:var(--od-danger,var(--od-ink))}
 @media(max-width:360px){
-  .cookie-editor-react .cookie-account-header{padding:var(--space-2)}
+  .cookie-editor-react .cookie-account-header{padding:0}
   .cookie-editor-react .cookie-account-content{padding:var(--space-2)}
   .cookie-editor-react .cookie-account-inline-controls>.od-button{min-height:34px}
 }
 
 /* R2.6 compact hierarchy, canonical Shared UI controls. */
 .cookie-editor-react{padding:0}
-.cookie-editor-react>.site-bar{flex:0 0 auto;min-height:43px;padding:var(--space-2) var(--space-3)}
+.cookie-editor-react>.site-bar{flex:0 0 auto;height:46px;min-height:46px;padding:6px var(--space-3)}
 .cookie-editor-react .cookie-editor-workspace{border:0;border-radius:0}
 .cookie-editor-react .cookie-account-page{display:flex;flex:1 1 auto;flex-direction:column;max-height:none;min-height:0;overflow-y:auto;border:0;border-radius:0}
 .cookie-editor-react .cookie-account-header{flex:0 0 auto}
 .cookie-editor-react .cookie-account-content{gap:var(--space-2)}
 .cookie-editor-react .cookie-account-current{display:flex;gap:var(--space-2);align-items:center;min-width:0;padding:var(--space-2);background:var(--od-muted);border:1px solid var(--od-line);border-radius:var(--radius-control)}
-.cookie-editor-react .cookie-account-current>div{display:grid;gap:1px;min-width:0}
+.cookie-editor-react .cookie-account-current>div{display:grid;gap:1px;min-width:0;flex:1}
 .cookie-editor-react .cookie-account-current strong{font-size:var(--od-body-size);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-current small{font-size:var(--od-meta-size);color:var(--od-sub);overflow-wrap:anywhere}
 .cookie-editor-react .cookie-account-list{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control)}
@@ -452,14 +458,14 @@
    One official App, one Shared UI palette; never style Host permission prompts here. */
 .cookie-editor-react .cookie-product-tabs{
   display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:0;min-width:0;padding-inline:var(--space-2);margin-bottom:0;
+  gap:0;min-width:0;min-height:41px;padding-inline:var(--space-2);margin-bottom:0;
 }
 .cookie-editor-react .cookie-product-tabs>button{
   width:100%;min-width:0;min-height:41px;
 }
 .cookie-editor-react .cookie-product-tabs .cookie-tab-label{
   min-width:0;min-height:41px;padding:0;
-  white-space:nowrap;font-size:12px;font-weight:600;
+  white-space:nowrap;font-size:11.5px;font-weight:700;
 }
 .cookie-editor-react .cookie-business-panel{min-width:0;overflow-x:clip}
 .cookie-editor-react .cookie-business-content{

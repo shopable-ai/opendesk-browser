@@ -79,7 +79,7 @@ export default function App(){
   <section className="cookie-app" aria-label="Cookie Editor 虚构数据预览" hidden={settingsOpen} ref={setHostRoot}>
    {hostRoot&&(granted
     ?<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}
-      previewMode initialSection={['accountsDemo','accountsLocked','accountSwitchFail',
+      previewMode initialSection={['accountsLocked','accountSwitchFail',
         'accountSwitchUnknown','accountLockUnknown'].includes(scene)?'accounts':'cookie'}/>
     :<section className="preview-global-grant" aria-labelledby="preview-grant-title">
       <h2 id="preview-grant-title">Cookie 访问授权</h2>
