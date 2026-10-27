@@ -2,8 +2,12 @@
 // This tool never treats an aiAccess proxy lease as a paid member entitlement.
 (function(){
   'use strict';
+  let started=false,release=()=>{};
+  function mountController(){
+  if(started)return release;
   const root=window.OpenDeskTool?.root;
-  if(!root)return;
+  if(!root||!root.querySelector?.('#ai-vip-member-card'))return null;
+  started=true;
   const byId=id=>root.querySelector('#'+id);
   const memberCard=byId('ai-vip-member-card');
   const memberFacts=byId('ai-vip-member-facts');
@@ -106,9 +110,9 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.1';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.2';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   let recoveryReady=false,busy=false,seq=0;
@@ -1383,6 +1387,17 @@
   renderBusinessConfiguration();
   setupManagedProxy();
   // Only the open installed app observes its current target; no background sandbox.
-  if(typeof window.setInterval==='function')window.setInterval(()=>{void checkActivationPage();},1200);
+  const activationTimer=typeof window.setInterval==='function'?
+    window.setInterval(()=>{void checkActivationPage();},1200):null;
   renderRedeem();
+  release=()=>{
+    if(activationTimer!==null)window.clearInterval?.(activationTimer);
+    ++serviceRevision;++sharedGeneration;++seq;
+  };
+  return release;
+  }
+  // Legacy Node VM fixtures mount synchronously; React mounts only after the
+  // real sandbox tree commits. Both paths invoke the same verified controller.
+  window.__OpenDeskVipStart=mountController;
+  if(window.OpenDeskTool?.root?.querySelector?.('#ai-vip-member-card'))mountController();
 })();

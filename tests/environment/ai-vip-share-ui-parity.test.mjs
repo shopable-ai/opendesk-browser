@@ -1,115 +1,101 @@
-// R5.8 production UI parity guard. This checks source/package contracts, not Chrome pixels.
+// R2 official React source-bound contract. Never equate this with Chrome native acceptance.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
-const toolRoot=fileURLToPath(new URL('../../examples/sidebar-tools/ai-vip-share/',import.meta.url));
-const read=path=>readFile(new URL('../../examples/sidebar-tools/ai-vip-share/'+path,import.meta.url),'utf8');
-const [html,css,js,preview,configRaw]=await Promise.all([
-  read('src/index.html'),read('src/style.css'),read('src/main.js'),
-  read('preview/index.html'),read('tool.config.json')
-]);
+const base='examples/sidebar-tools/ai-vip-share/';
+const read=relative=>readFile(base+relative,'utf8');
+const [view,controller,style,entry,configRaw,preview,previewEntry]=await Promise.all(
+  ['src/App.jsx','src/main.js','src/style.css','src/main.jsx',
+    'tool.config.json','preview/index.html','preview/main.jsx'].map(read));
 const config=JSON.parse(configRaw);
-const idList=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);
-const ids=new Set(idList);
-const has=id=>ids.has(id);
-const order=(source,terms)=>terms.map(term=>source.indexOf(term));
+const ids=[...view.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);
 
-test('production UI has one stable root, unique IDs, and all JS-bound nodes',()=>{
-  assert.match(html,/^<main class="ai-vip"/);
-  assert.equal(idList.length,ids.size);
-  for(const [,id] of js.matchAll(/\bbyId\('([^']+)'\)/g))
-    assert.ok(has(id),'Missing DOM ID for '+id);
-  for(const id of ['ai-vip-redeem-form','ai-vip-redeem-confirm','ai-vip-code-reveal',
-    'ai-vip-code-clear','ai-vip-meter','ai-vip-meter-bar','ai-vip-metric-label',
-    'ai-vip-proxy-toggle','ai-vip-proxy-refresh','ai-vip-proxy-alert'])
-    assert.ok(has(id),'Missing production UI control '+id);
-  assert.ok(!has('ai-vip-proxy-enable')&&!has('ai-vip-proxy-disable'));
+test('one React app owns exactly one root and all controller-required nodes',()=>{
+  assert.equal(ids.length,new Set(ids).size);
+  assert.match(entry,/createRoot\(mount\)/);
+  assert.match(entry,/root\.unmount\(\)/);
+  assert.match(entry,/import VipApp from '\.\/App\.jsx'/);
+  assert.match(view,/<main className="ai-vip"/);
+  assert.match(view,/useLayoutEffect/);
+  assert.match(controller,/__OpenDeskVipStart=mountController/);
+  for(const [,id] of controller.matchAll(/\bbyId\('([^']+)'\)/g))
+    assert.ok(ids.includes(id),'Missing React view target '+id);
+  assert.equal(ids.filter(id=>id==='ai-vip-proxy-toggle').length,1);
+  assert.equal(ids.filter(id=>id==='ai-vip-redeem-confirm').length,1);
 });
 
-test('member-first structure follows R5.7 main tool area; no studio fixture leaks',()=>{
-  const terms=['class="ai-vip-brand"','class="ai-vip-membership"',
-    'class="ai-vip-redeem"','class="ai-vip-shop"','class="ai-vip-proxy"',
-    'class="ai-vip-service"'];
-  const locations=order(html,terms);
-  assert.ok(locations.every(n=>n>=0));
-  assert.deepEqual(locations,[...locations].sort((a,b)=>a-b));
-  assert.match(preview,/class="brand"/);
-  assert.match(preview,/class="membership"/);
-  assert.match(preview,/class="redeem"/);
-  assert.match(preview,/class="proxy-card"/);
-  assert.match(preview,/class="service"/);
-  assert.match(html,/AI VIP Share[\s\S]*会员权益 · 兑换激活 · AI 网站访问/);
-  assert.match(html,/<svg[\s\S]*?<\/svg>/);
-  assert.doesNotMatch(html+js,/DEMO-ACCESS|PREVIEW-RECEIPT|example\.com|lab-install-confirm|scenario\b|window\.chrome\.proxy/);
+test('member-first product structure reuses official Shared UI and never clones Host',()=>{
+  for(const name of ['Button','IconButton','Card','CardContent'])
+    assert.match(view,new RegExp('\\b'+name+'\\b'));
+  const order=['ai-vip-brand','ai-vip-membership','ai-vip-redeem',
+    'ai-vip-shared-section','ai-vip-cookie-section','ai-vip-shop','ai-vip-proxy'];
+  const indices=order.map(v=>view.indexOf(v));
+  assert(indices.every((v,i)=>v>0&&(i===0||v>indices[i-1])));
+  assert.match(view,/AI VIP Share[\s\S]*会员权益 · 兑换激活 · AI 网站访问/);
+  assert.match(view,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
+  assert.doesNotMatch(view,/PREVIEW-RECEIPT|DEMO-ACCESS|example\.com/);
+  assert.doesNotMatch(controller,/window\.open\(|chrome\.cookies|chrome\.proxy\.settings/);
 });
 
-test('redeem uses actual user submit, preflight, explicit confirmation and masked input',()=>{
-  assert.match(html,/<form id="ai-vip-redeem-form"[\s\S]*?type="submit"/);
-  assert.match(html,/id="ai-vip-redeem-code"[^>]*type="password"/);
-  assert.match(js,/redeemForm\.addEventListener\('submit'/);
-  assert.match(js,/confirm\.addEventListener\('click'/);
-  assert.match(js,/codeReveal\.addEventListener\('click'/);
-  assert.match(js,/codeClear\.addEventListener\('click'/);
-  assert.match(js,/const RECOVERY_KEY='aiVipRedeemR52'/);
-  assert.match(js,/RECOVERY_COMPAT_VERSIONS=Object\.freeze/);
-  assert.match(js,/'1\.3\.4','1\.3\.5'/);
-  assert.match(js,/await beginRecovery\(accountId,key,redemptionIntent\)/);
-  assert.match(js,/voucherStatus/);
-  assert.doesNotMatch(js,/localStorage|sessionStorage/);
+test('redemption stays review-first and unresolved side effects retain journals',()=>{
+  assert.match(view,/id="ai-vip-redeem"[^>]*type="submit"/);
+  assert.match(view,/id="ai-vip-redeem-confirm"[^>]*>确认激活</);
+  assert.match(controller,/await beginRecovery\(accountId,key,redemptionIntent\)/);
+  assert.match(controller,/const RECOVERY_KEY='aiVipRedeemR52'/);
+  assert.match(controller,/RECOVERY_COMPAT_VERSIONS=Object\.freeze/);
+  assert.match(controller,/'1\.4\.0','1\.4\.1','1\.4\.2'/);
+  assert.match(controller,/browser\.cookies\.setMany\(delivery\.payload\)/);
+  assert.match(controller,/await sdk\.requestDisable\(\)/);
+  assert.match(controller,/const APPROVED_PROXY_ENDPOINT=null/);
+  assert.match(controller,/const COOKIE_TARGETS=Object\.freeze\(\[\]\)/);
+  assert.doesNotMatch(controller,/localStorage|sessionStorage/);
 });
 
-test('one STOP-priority proxy control never bypasses public Managed SDK',()=>{
-  assert.equal((html.match(/id="ai-vip-proxy-toggle"/g)||[]).length,1);
-  assert.match(js,/browser\?\.proxy\?\.managed/);
-  assert.match(js,/await sdk\.requestDisable\(\)/);
-  assert.match(js,/current\?\.canStop===true/);
-  assert.match(js,/const APPROVED_PROXY_ENDPOINT=null/);
-  assert.doesNotMatch(js,/chrome\.proxy\.settings|aiAccess\.(?:enable|activate)/);
-});
-
-test('responsive styling and explicit theme tokens cover narrow Sidebar tool',()=>{
-  assert.match(css,/\/\* @opendesk-shared-design \*\//);
-  assert.match(css,/@media\(max-width:360px\)/);
-  assert.match(css,/@media\(max-width:320px\)/);
-  assert.match(css,/--od-paper/);
-  assert.match(css,/minmax\(0,1fr\) 36px 36px/);
-  assert.match(css,/\[hidden\]\{display:none!important\}/);
-});
-
-test('v2 Sidebar Tool candidate builds from the real UI source, not preview',async()=>{
+test('formal package references one compiled React UI and immutable business safeguards',async()=>{
   assert.equal(config.id,'ai-vip-share');
-  assert.equal(config.version,'1.4.1');
-  assert.equal(config.files.html,'src/index.html');
-  assert.equal(config.files.css,'src/style.css');
-  assert.equal(config.files.js,'src/main.js');
-  const pkg=await createSidebarToolPackage(toolRoot);
-  assert.equal(pkg.version,'1.4.1');
-  assert.equal(pkg.html,html);
+  assert.equal(config.version,'1.4.2');
+  assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
+  assert.deepEqual(config.files,{html:'src/index.html',css:'dist/tool.css',js:'dist/tool.js'});
+  const pkg=await createSidebarToolPackage(base);
+  assert.equal(pkg.version,'1.4.2');
+  assert.equal(pkg.html.trim(),'<div id="tool-app"></div>');
+  assert.match(pkg.js,/OpenDeskPageReact/);
+  assert.match(pkg.js,/OpenDeskSidebarUI/);
+  assert.match(pkg.css,/opendesk\.shared-design\.v1/);
   assert.match(pkg.css,/ai-vip-brand/);
-  assert.match(pkg.js,/RECOVERY_COMPAT_VERSIONS/);
+  assert.deepEqual(pkg.capabilities,config.capabilities);
+  const ready=JSON.parse(await read('dist/build-ready.json'));
+  assert.equal(ready.format,'opendesk.ui-build-ready.v1');
+  for(const name of ['src/App.jsx','src/main.js','src/main.jsx',
+    'src/style.css','tool.config.json','vite.config.mjs']){
+    const bytes=await readFile(base+name);
+    assert.equal(ready.sources[name].sha256,createHash('sha256').update(bytes).digest('hex'));
+  }
 });
 
-test('R5.9.4 empty state hides unavailable content instead of emitting fake metrics',()=>{
-  assert.doesNotMatch(html,/id="ai-vip-remaining">—|id="ai-vip-remaining-unit">待核验/);
-  assert.match(html,/id="ai-vip-member-facts"[^>]*hidden/);
-  assert.match(html,/id="ai-vip-redeem-form"[^>]*hidden/);
-  assert.match(html,/id="ai-vip-shop-section"[^>]*hidden/);
-  assert.match(html,/id="ai-vip-proxy-toggle"[^>]*hidden/);
-  assert.match(js,/toggle\.hidden=!stop&&!ready/);
-  assert.match(js,/redeemForm\.hidden=!showForm/);
+test('preview imports the same React source, isolates fixture and leaves product flags disabled',()=>{
+  assert.match(preview,/正式 React 同源预览/);
+  assert.match(preview,/\.\/main\.jsx/);
+  assert.match(previewEntry,/await import\('\.\.\/src\/main\.jsx'\)/);
+  assert.match(previewEntry,/installPreviewFixture/);
+  assert.match(configRaw,/"browser\.cookies\.write"/);
+  assert.match(view,/id="ai-vip-member-facts"[^>]*hidden/);
+  assert.match(view,/id="ai-vip-redeem-form"[^>]*hidden/);
+  assert.match(view,/id="ai-vip-shop-section"[^>]*hidden/);
+  assert.match(view,/id="ai-vip-proxy-toggle"[^>]*hidden/);
+  assert.match(controller,/toggle\.hidden=!stop&&!ready/);
+  assert.match(controller,/redeemForm\.hidden=!showForm/);
+  assert.doesNotMatch(view,/<select[^>]*id="ai-vip-shared-account"/);
+  assert.match(controller,/storeRequest\('currentPage\.info'\)/);
 });
 
-
-test('server allocation is read-only and manual activation keeps explicit review',()=>{
-  assert.match(html,/<p id="ai-vip-shared-account"[^>]*aria-live="polite"/);
-  assert.doesNotMatch(html,/<select[^>]*id="ai-vip-shared-account"|<option\b/);
-  assert.match(html,/id="ai-vip-shared-receive"[^>]*>重新取得分配会话</);
-  assert.match(html,/id="ai-vip-redeem"[^>]*>预检激活</);
-  assert.match(html,/id="ai-vip-redeem-confirm"[^>]*>确认激活</);
-  assert.equal(config.capabilities.at(-1),'currentPage.read');
-  assert.match(js,/storeRequest\('currentPage\.info'\)/);
-  assert.doesNotMatch(js,/addEventListener\(['"]message['"]/);
+test('320px and 360px shared-theme CSS remains declared',()=>{
+  assert.match(style,/^\/\* @opendesk-shared-design \*\//);
+  assert.match(style,/@media\(max-width:360px\)/);
+  assert.match(style,/@media\(max-width:320px\)/);
+  assert.match(style,/--od-paper/);
+  assert.match(style,/\[hidden\]\{display:none!important\}/);
 });

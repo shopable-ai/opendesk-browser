@@ -204,3 +204,12 @@ src/main.js 保留原有 Browser SDK、可信服务端会员数据、存储 CAS 
 ## R1 业务源码清理（2026-10-19）
 
 原 R1 `ai-smart-access` 六个可信模块已统一归属本工具 `trusted/`；主扩展 Service Worker / Side Panel 可信入口仍会静态编译这些受限旧协议适配器，不通过安装包授予网页沙箱 Chrome 代理权限。当前正式工具优先使用既有公共 `browser.proxy.managed` SDK。旧数据身份、停用与卸载清理仍须保留；业务 JS 不能只靠更新可安装 JSON 热替换。未经真正测试的旧与新代理链隔离不标记 PASS。
+
+
+## R2 · 正式 React + Shared UI（网页阶段候选，待同 SHA 验证）
+
+AI VIP Share 从历史 HTML 模板切换为 `src/App.jsx` 单一业务 React Root（`src/main.jsx`），继续在原 opaque Sandbox 中运行。Button/IconButton/Card/CardContent 为公开 `@opendesk/ui`，由已有 Host 提供，不导入 Cookie Editor 的 Controller，也不把应用逻辑提升至可信宿主。正式 JS/CSS 由项目 `vite.config.mjs` IIFE 构建，`dist/build-ready.json` 对源码和编译产物签收。安装身份、capabilities 与公共 SDK 保持原样。
+
+**迁移阶段限制：** `src/main.js` 中已验证的兑换事务/Cookie journal/服务器分配/STOP 流程暂作为 React DOM 兼容控制器，在 React commit 后挂载，防止未经回归的业务算法重写。后续以单独最小差量提取数据状态与订阅，再移除 DOM 耦合；本阶段不能声称业务表现已完全解耦。所有 Cookie 值保持在独立业务闭包，不进入 React props/state；React 只持有固定布局和元素 ID。卸载 React Root 会停止激活页轮询，旧实例异步副作用仍由现有 revision/Host 撤权栅栏约束。
+
+开发与同源预览见 [`preview/README.zh-CN.md`](preview/README.zh-CN.md)。生产商业 Provider/批准 Cookie 目标/付费权益尚未配置，正式产品始终 fail closed。2026-10-27 网页阶段待真实 CI 验证期间，不以 `1.4.2` 源码宣称旧 `1.4.1` 正式 JSON 已更新，也不将 Fixture 演示当 Chrome 原生通过。

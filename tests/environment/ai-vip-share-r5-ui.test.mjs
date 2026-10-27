@@ -18,19 +18,24 @@ const tool={id:'ai-vip-share',capabilities:['ai.access']};
 test('R5 official tool compiles member, redeem and store UI with canonical design',async t=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
   assert.equal(pkg.id,'ai-vip-share');
-  assert.equal(pkg.version,'1.4.1');
+  assert.equal(pkg.version,'1.4.2');
+  const view=await readFile('examples/sidebar-tools/ai-vip-share/src/App.jsx','utf8');
+  const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write','currentPage.read']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
   for(const text of ['AI 会员','兑换激活','预检激活','查看更多商品','AI 网站访问'])
-    assert(pkg.html.includes(text),text);
-  assert.match(pkg.html,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
-  assert.match(pkg.html,/id="ai-vip-redeem"[^>]*disabled/);
-  assert.match(pkg.html,/id="ai-vip-shop-open"[^>]*disabled/);
-  assert(!pkg.html.includes('id="proxy-toggle"'));
-  assert(!pkg.html.includes('1 个月')&&!pkg.html.includes('3 个月'));
+    assert(view.includes(text),text);
+  assert.match(view,/id="ai-vip-redeem-code"[^>]*type="password"[^>]*data-sensitive/);
+  assert.match(view,/id="ai-vip-redeem"[^>]*disabled/);
+  assert.match(view,/id="ai-vip-shop-open"[^>]*disabled/);
+  assert(!view.includes('id="proxy-toggle"'));
+  assert.equal(pkg.html.trim(),'<div id="tool-app"></div>');
+  assert(!view.includes('1 个月')&&!view.includes('3 个月'));
+  assert.match(pkg.js,/OpenDeskPageReact/);
+  assert.match(pkg.js,/OpenDeskSidebarUI/);
   assert(!pkg.js.includes('showModal')&&!pkg.js.includes('window.open('));
-  assert.match(pkg.js,/shopSdk\.create\(\{url:catalog\}\)/);
+  assert.match(script,/shopSdk\.create\(\{url:catalog\}\)/);
 });
 
 test('R5 existing host shows isolated product and a single trusted proxy card',async t=>{
@@ -108,7 +113,7 @@ test('R5 conflict never enables proxy, but stops outstanding own intent',async t
 });
 
 test('R5 no Provider, SKU or shop can invent business success',async t=>{
-  const html=await readFile('examples/sidebar-tools/ai-vip-share/src/index.html','utf8');
+  const html=await readFile('examples/sidebar-tools/ai-vip-share/src/App.jsx','utf8');
   const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
   assert.match(html,/暂无法查询账号与会员权益/);
   assert.match(html,/会员服务接入后可使用激活码/);

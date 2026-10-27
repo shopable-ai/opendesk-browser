@@ -7,7 +7,7 @@ import vm from 'node:vm';
 import {createLocalFixture} from '../../examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs';
 
 const base='examples/sidebar-tools/ai-vip-share/';
-const [html,script]=await Promise.all(['src/index.html','src/main.js'].map(p=>readFile(base+p,'utf8')));
+const [html,script]=await Promise.all(['src/App.jsx','src/main.js'].map(p=>readFile(base+p,'utf8')));
 const ORIGIN='http://127.0.0.1:7898',EXTENSION_ORIGIN='chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf';
 const PREFERENCE='aiVipLocalDevelopmentR136',RECOVERY='aiVipRedeemR52';
 const domains=['chatgpt.com','openai.com','claude.ai','anthropic.com','gemini.google.com',

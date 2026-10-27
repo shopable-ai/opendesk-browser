@@ -7,7 +7,7 @@ import {createHash,webcrypto} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
 const sourcePath='examples/sidebar-tools/ai-vip-share/src/main.js';
-const htmlPath='examples/sidebar-tools/ai-vip-share/src/index.html';
+const htmlPath='examples/sidebar-tools/ai-vip-share/src/App.jsx';
 const BOUND='https://members.example.org'; // VM-only fixture; never a production endpoint.
 const originalConfig="const BUSINESS_ENDPOINTS=Object.freeze({member:'',voucherPreview:'',voucherRedeem:'',voucherStatus:''});";
 const testConfig="const BUSINESS_ENDPOINTS=Object.freeze({member:'"+BOUND+
@@ -90,15 +90,16 @@ const confirm=env=>node(env,'redeem-confirm').listeners.click({isTrusted:true});
 
 test('R5.2 official package grants scoped recovery storage but no network permission',async()=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(pkg.version,'1.4.1');
+  assert.equal(pkg.version,'1.4.2');
+  const view=await readFile(htmlPath,'utf8');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write','currentPage.read']);
   assert.match(pkg.css,/opendesk\.shared-design\.v1/);
-  assert(pkg.html.includes('id="ai-vip-benefits"'));
-  assert(pkg.html.includes('id="ai-vip-history-list"'));
-  assert(pkg.html.includes('aria-live="polite"'));
+  assert(view.includes('id="ai-vip-benefits"'));
+  assert(view.includes('id="ai-vip-history-list"'));
+  assert(view.includes('aria-live="polite"'));
   assert(!/fetch\(|window\.open\(|chrome\.proxy|aiAccess\.activate/.test(pkg.js));
-  assert(pkg.js.includes(originalConfig));
+  assert((await readFile(sourcePath,'utf8')).includes(originalConfig));
 });
 test('R5.1 without approved Provider disables all sensitive business controls',async()=>{
   const e=await runtime();

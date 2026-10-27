@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>AI VIP Share · UI-first 产品交互预览</title>
+<style>
+:root{font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:#263042;background:#f3f5f9;--muted:#7b8799;--line:#e8eaf0;--purple:#6258ca;--surface:#fff;--soft:#f8f9fc}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #afa9fc;outline-offset:2px}
+[hidden]{display:none!important}.studio{max-width:910px;margin:auto;padding:24px 16px 36px}.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:0 0 20px}.topbar h1{font-size:15px;letter-spacing:-.2px;margin:0 0 4px;font-weight:750}.topbar p{color:#8892a2;font-size:12px;margin:0}.view-selector{font-size:12px;color:#69768a;display:flex;align-items:center;gap:8px}.view-selector select{width:min(292px,65vw);background:#fff;border:1px solid #dde2ed;border-radius:8px;height:35px;padding:0 10px;color:#364357}
+.workspace{display:flex;gap:22px;justify-content:center;align-items:flex-start;flex-wrap:wrap}.shell{width:min(390px,100%);background:#fff;border:1px solid #e2e6ee;border-radius:14px;box-shadow:0 15px 40px rgba(36,45,73,.065);overflow:hidden;flex:none}.crumbs{height:39px;border-bottom:1px solid #edf0f5;display:flex;align-items:center;gap:7px;color:#8791a3;font-size:11px;padding:0 18px}.crumbs b{color:#536078;font-weight:600}
+.main{padding:16px 17px 17px}.brand{display:flex;align-items:center;gap:10px;margin-bottom:17px}.logo{height:38px;width:38px;display:grid;place-items:center;border-radius:11px;background:#6258cf;color:white;box-shadow:0 3px 9px #655ac52d;flex:none}.logo svg{width:23px;height:23px}.brand-text{min-width:0;flex:1}.brand h2{font-size:16px;line-height:1.2;letter-spacing:-.25px;margin:0 0 4px}.brand p{font-size:11px;color:#8a94a5;margin:0}.shop-top{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #dfe0f1;border-radius:8px;background:#fff;color:#6057c1;font-size:11px;font-weight:700;padding:7px 9px;white-space:nowrap}
+.membership{border:1px solid #e1e4ed;border-radius:12px;background:#fff;overflow:hidden}.card-inner{padding:14px 15px 13px}.section-label{display:flex;align-items:center;justify-content:space-between;gap:12px}.section-label strong{font-size:12px;color:#4a5669;letter-spacing:.1px}.pill{font-size:10px;font-weight:700;color:#7a8193;background:#f1f3f7;padding:4px 7px;border-radius:5px;white-space:nowrap}.pill.active{color:#258360;background:#eaf6ee}.pill.neutral{color:#695fc3;background:#f2f1fc}.pill.warn{color:#a56d25;background:#fff3df}
+.account-row{display:flex;align-items:center;gap:10px;padding:13px 0 11px;border-bottom:1px solid #eef0f4}.avatar{height:33px;width:33px;display:grid;place-items:center;border-radius:10px;background:#f0eeff;color:#7067ca;font-weight:750;font-size:13px;flex:none}.account-content{flex:1;min-width:0}.account-content b{display:block;font-size:13px;line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.account-content span{display:block;font-size:11px;color:#8a95a5;line-height:1.6}.tiny-link{font-size:11px;color:#665bc7;font-weight:650;background:none;border:0;padding:5px 0;white-space:nowrap}
+.clock-label{font-size:11px;color:#8993a3;margin:13px 0 6px}.time-wrap{display:flex;align-items:baseline;gap:10px;justify-content:space-between}.time-value{font-size:27px;font-weight:790;letter-spacing:-.8px;line-height:1.1;color:#282b40}.time-value span{font-size:13px;font-weight:630;letter-spacing:0;margin-left:2px}.expiry{font-size:11px;color:#758197;white-space:nowrap}.bar{height:5px;border-radius:99px;background:#eff0f6;margin:10px 0 7px;overflow:hidden}.bar span{display:block;height:100%;width:0;background:#8b81d9;border-radius:99px;transition:width .2s}.time-meta{font-size:10.5px;color:#8b96a7;line-height:1.6}.history{border-top:1px solid #edf0f4;background:#fafbfe;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:9px;font-size:11px;color:#778499}.history strong{color:#627086;font-weight:650}
+.redeem{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:13px 14px 14px}.redeem-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}.redeem h3{font-size:13px;color:#354154;letter-spacing:-.1px;margin:0}.redeem .sub{margin:0 0 11px;color:#8a94a5;font-size:11px;line-height:1.6}.input-row{display:flex;gap:7px}.input-row input{width:100%;min-width:0;height:37px;border:1px solid #e0e5ee;border-radius:8px;padding:0 10px;color:#354055;font-size:12px;background:#fff}.action{height:37px;border:0;border-radius:8px;background:#6056c9;color:#fff;font-size:12px;font-weight:700;padding:0 16px;white-space:nowrap}.action:disabled{background:#e6e8f0;color:#9ea6b5}.validity{font-size:10.5px;color:#8994a5;margin-top:8px;line-height:1.55}.link-hint{background:#f7f6fd;border:1px solid #e9e6fa;border-radius:9px;padding:9px 10px;margin-bottom:10px}.link-hint .row{display:flex;justify-content:space-between;align-items:center;gap:7px}.link-hint b{font-size:11px;color:#4f4b86}.link-hint p{font-size:11px;color:#797b9c;margin:4px 0 0}.link-code{font-size:11px;color:#504a95;font-weight:650;letter-spacing:.2px}
+.install-step{border:1px solid #e8e1f9;background:#fbfaff;border-radius:9px;padding:10px;margin-bottom:11px}.install-step strong{font-size:11px;color:#555085}.install-step p{font-size:11px;line-height:1.55;color:#777b96;margin:6px 0 10px}.step-action{border:1px solid #cbc5ef;color:#5f56ae;background:#fff;border-radius:7px;padding:7px 10px;font-size:11px;font-weight:700}
+.bottomline{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:8px}.buy-more{display:flex;align-items:center;gap:7px;text-decoration:none;font-size:12px;font-weight:700;color:#5e55be;padding:10px 12px;background:#f5f4ff;border:1px solid #e8e5fa;border-radius:9px;flex:1;justify-content:center}.service{margin-top:15px;border-top:1px solid #edf0f4;padding-top:12px}.service summary{list-style:none;display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11px;color:#818d9e}.service summary::-webkit-details-marker{display:none}.s-dot{width:7px;height:7px;background:#aaaebb;border-radius:50%;flex:none}.service summary strong{font-weight:650;color:#657184}.service summary span{margin-left:auto;color:#a1a9b6}.service .detail{font-size:11px;line-height:1.65;color:#828ea0;padding:10px 1px 0}.service .detail p{margin:0 0 7px}.domains{font-size:10.5px;color:#758298;background:#f7f8fb;border-radius:8px;padding:9px;line-height:1.7}
+.toast{margin-top:12px;color:#5856a0;background:#f5f3ff;border:1px solid #e3dfff;padding:10px;border-radius:8px;font-size:11.5px;line-height:1.6}.demo-footer{background:#fbfcff;border-top:1px solid #eef0f5;padding:10px 17px 12px;font-size:10px;color:#94a0b0;line-height:1.65}
+.aside{width:min(270px,100%);border:1px solid #e0e5ee;background:#fff;border-radius:12px;padding:18px}.aside h2{font-size:13px;margin:0 0 12px}.aside p{font-size:11.5px;line-height:1.7;color:#718093;margin:0 0 10px}.aside .mini{font-size:10.5px;color:#918eac;font-weight:700;margin:14px 0 5px}.aside hr{border:0;border-top:1px solid #edf0f5;margin:14px 0}.aside code{font-size:11px;overflow-wrap:anywhere}.note{font-size:11px;color:#8b96a6;text-align:center;line-height:1.6;padding-top:14px}
+@media(max-width:720px){.studio{padding:14px 10px 30px}.workspace{gap:13px}.topbar{margin-bottom:13px}.shell{width:min(390px,100%)}}@media(max-width:345px){.main{padding:13px 12px}.expiry{font-size:10px}.account-row{gap:7px}.shop-top{padding:7px;font-size:10px}}
+
+/* R4.1: always-visible safety controls; membership stays primary. */
+.proxy-card{border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:13px 14px;color:#354154}.proxy-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.proxy-head h3{margin:0;font-size:13px}.proxy-source{font-size:11px;color:#677489;margin:9px 0 0;line-height:1.6}.proxy-actions{display:flex;gap:8px;align-items:center;margin-top:10px}.proxy-actions button{min-height:36px;border:1px solid #dce0eb;border-radius:8px;background:white;color:#4c5670;font-size:11px;font-weight:650;padding:7px 10px}.proxy-actions .primary{background:#6258ca;border-color:#6258ca;color:#fff;flex:1}.proxy-actions .stop{background:#fff;border-color:#bdc3d2;color:#354154;flex:1}.proxy-actions button:disabled{opacity:.55;cursor:not-allowed}.proxy-help{margin:8px 0 0;font-size:10.5px;line-height:1.6;color:#6d798b}.proxy-alert{margin-top:10px;padding:10px;border:1px solid #edd6af;border-radius:8px;background:#fff9ef;color:#895617;font-size:11px;line-height:1.7}.proxy-alert p{margin:0}.proxy-alert .proxy-actions{flex-wrap:wrap;margin-top:7px}.proxy-alert button{background:#fffdf9;color:#775326;border-color:#e7d5b9;font-size:10.5px}
+/* Preview-only, retaining the confirmed R4.2 product visual structure. */
+.shell{width:min(var(--preview-width,390px),100%)}.benefits{margin-top:12px;padding-top:12px;border-top:1px solid #edf0f4}.benefits-head{display:flex;justify-content:space-between;gap:8px;color:#4b5871;font-size:11px}.benefits-head span{color:#8c97a9;font-size:10px}.benefits ul{list-style:none;padding:0;display:grid;gap:6px;margin:8px 0 0}.benefits li{padding:8px 9px;border-radius:7px;background:#f7f8fc;color:#66718a;font-size:11px;line-height:1.5}.history-panel{background:#fafbfe;border-top:1px solid #edf0f4;padding:10px 14px;font-size:11px;line-height:1.6;color:#77849a}.history-panel p{margin:0}.history-panel ol{margin:6px 0 0;padding-left:16px}.code-reveal{height:37px;flex:none;padding:0 9px;font-size:11px;font-weight:650;color:#6158a5;border:1px solid #e0e5ee;border-radius:8px;background:#fff}.redeem-review{margin-top:10px;border-radius:9px;padding:10px;border:1px solid #e2def9;background:#f8f7ff;color:#575479;font-size:11px;line-height:1.65}.redeem-review p{margin:6px 0}.review-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.review-actions button{height:34px}.redeem-feedback{border-radius:8px;background:#f5f3ff;color:#6155a8;font-size:11px;line-height:1.6;padding:9px;margin:9px 0 0}.redeem-feedback.warn{background:#fff8ed;color:#95642c}@media(max-width:380px){.input-row{flex-wrap:wrap}.input-row input{flex-basis:calc(100% - 64px)}.input-row .action{width:100%}}
+html[data-preview-theme=dark]{color-scheme:dark;--line:#344159;background:#151b28}html[data-preview-theme=dark] body{background:#151b28;color:#e8effa}html[data-preview-theme=dark] :is(.shell,.aside,.membership,.redeem,.proxy-card,.input-row input,.code-reveal,.view-selector select,.shop-top,.proxy-actions button,.step-action){background:#202a3b;color:#e5ecf7;border-color:#3a4761}html[data-preview-theme=dark] :is(.crumbs,.history,.history-panel,.demo-footer,.benefits li,.domains){background:#253246;color:#b1c0d4;border-color:#3a4761}html[data-preview-theme=dark] :is(.time-value,.brand h2,.redeem h3,.proxy-head h3,.section-label strong,.account-content b,.aside h2,.benefits-head){color:#f2f5ff}html[data-preview-theme=dark] :is(.topbar p,.brand p,.clock-label,.expiry,.time-meta,.redeem .sub,.aside p,.proxy-source,.proxy-help,.validity,.view-selector){color:#acbbce}html[data-preview-theme=dark] :is(.redeem-review,.toast,.link-hint,.install-step,.redeem-feedback){background:#302c4c;color:#e6ddfa;border-color:#514b78}html[data-preview-theme=dark] .proxy-alert{background:#483828;color:#ffe2b7;border-color:#785b36}html[data-preview-theme=dark] .buy-more{background:#332d56;color:#dcd5ff;border-color:#514777}html[data-preview-theme=dark] .bar{background:#39465e}
+
+/* R5.7: additive refinement of the approved R4.2 visual baseline. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.shell,.main,.membership,.redeem,.proxy-card{min-width:0}
+.brand .brand-text p{line-height:1.4}
+.account-content{overflow-wrap:anywhere}
+.time-wrap{gap:8px;flex-wrap:wrap}
+.time-value{min-width:0;overflow-wrap:anywhere}
+.expiry{white-space:normal;text-align:right;overflow-wrap:anywhere;max-width:55%}
+.input-row{display:grid;grid-template-columns:minmax(0,1fr) 44px 40px;gap:8px;align-items:center}
+.input-row input{grid-column:1;grid-row:1;min-width:0}
+.input-row .code-reveal{min-width:0;height:37px;padding:0 4px}
+.input-row .action{grid-column:1/-1;grid-row:2;min-height:36px}
+.redeem-feedback{overflow-wrap:anywhere}
+.redeem-review p{overflow-wrap:anywhere}
+.action,.step-action,.code-reveal,.tiny-link,.proxy-actions button{touch-action:manipulation}
+.action:focus-visible,.step-action:focus-visible,.code-reveal:focus-visible,.tiny-link:focus-visible,.proxy-actions button:focus-visible{outline:3px solid #8b81ea;outline-offset:2px}
+.redeem-review,.install-step,.proxy-alert{min-width:0}
+.redeem-review .review-actions{margin-top:8px}
+.redeem-review .review-actions button{min-height:36px}
+.history-panel{overflow-wrap:anywhere}
+.aside .step-action{max-width:100%;white-space:normal;text-align:left}
+.aside #lab-install-confirm{margin-top:4px}
+@media(max-width:380px){.input-row{display:grid;grid-template-columns:minmax(0,1fr) 44px 40px}.input-row input{flex-basis:auto}.input-row .action{width:100%}}
+html[data-preview-theme=dark] :is(.input-row input,.input-row .code-reveal,.input-row .action,.review-actions .step-action){color:#edf2ff;border-color:#56627b}
+html[data-preview-theme=dark] .input-row .action{background:#796fe3;color:#fff;border-color:#796fe3}
+html[data-preview-theme=dark] :is(.account-content span,.benefits li,.history-panel p,.history-panel li,.redeem-feedback,.install-step p,.link-hint p,.link-code,.validity,.time-meta,.clock-label){color:#c9d4e7}
+html[data-preview-theme=dark] :is(.pill.active,.pill.neutral,.pill.warn){background:#384264;color:#f4eaff}
+html[data-preview-theme=dark] :is(.step-action,.code-reveal){background:#303e55}
+
+/* R5.8: readable baseline colors, preserving the approved card structure. */
+.shell :is(.brand p,.account-content span,.clock-label,.expiry,.time-meta,.benefits-head span,.benefits li,.history,.validity,.redeem .sub,.proxy-source,.proxy-help,.service summary,.service summary span,.detail,.domains,.crumbs){color:#5c687d}
+.avatar{color:#6258ca}.tiny-link{min-height:34px;min-width:34px}
+.pill{color:#596275}.pill.active{color:#166746}.pill.neutral{color:#5a50ac}.pill.warn{color:#85531a}
+.input-row input::placeholder{color:#667186;opacity:1}
+html[data-preview-theme=dark] .shell :is(.brand p,.account-content span,.clock-label,.expiry,.time-meta,.benefits-head span,.benefits li,.history,.validity,.redeem .sub,.proxy-source,.proxy-help,.service summary,.service summary span,.detail,.domains,.crumbs,.crumbs b){color:#c3cee0}
+html[data-preview-theme=dark] .tiny-link{color:#c8c2ff}
+html[data-preview-theme=dark] .input-row input::placeholder{color:#b0bdd0}
+html[data-preview-theme=dark] .input-row .action{background:#675bd0;border-color:#675bd0}
+html[data-preview-theme=dark] .pill{background:#384264;color:#f4eaff}
+html[data-preview-theme=dark] .proxy-actions .primary{background:#6258ca;border-color:#8177dc;color:#fff}
+
+</style>
+</head>
+<body>
+<div class="studio">
+  <div class="topbar">
+    <div><h1>AI VIP Share · 产品 UI 交互预览</h1><p>延续 R4.2 视觉 · 会员、兑换、安装与代理均为离线演示</p></div>
+    <label class="view-selector">场景预览 <select id="scenario"><option value="member">会员已开通 · 主界面</option><option value="link-ready">激活链接 · 工具已安装</option><option value="link-install">激活链接 · 需要添加工具</option><option value="link-host">激活链接 · 未安装浏览器插件</option><option value="guest">未登录 / 未购买</option><option value="expired">会员已到期</option><option value="blocked">仓库真实基线 · 服务未配置</option><option value="conflict">代理冲突 · 可独立停用</option><option value="existing">使用现有网络 / 系统代理</option><option value="other-tool">OpenDesk 内其他工具占用</option><option value="locked">Chrome 不允许修改代理</option><option value="unknown">控制状态未知</option><option value="stop-failed">停止失败 · 可重试</option><option value="provider-stop">服务离线 · 仍可停用</option><option value="expired-stop">会员到期 · 仍可停用</option><option value="quota">额度型会员权益</option><option value="feature">功能型会员权益</option><option value="recovery">兑换回执未知</option><option value="service-timeout">预检请求超时</option><option value="submit-unknown">提交回执未知 · 可预检</option></select></label><label class="view-selector">宽度 <select id="preview-width"><option value="390">390px</option><option value="360">360px</option><option value="320">320px</option></select></label><label class="view-selector">外观 <select id="preview-theme"><option value="light">浅色</option><option value="dark">深色</option></select></label>
+  </div>
+  <div class="workspace">
+    <main class="shell" aria-label="AI VIP Share 会员中心交互原型">
+      <div class="crumbs"><span>扩展</span><span>/</span><b>AI VIP Share</b></div>
+      <div class="main">
+        <div class="brand"><div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 8 4v5c0 5.1-3.1 8.4-8 11-4.9-2.6-8-5.9-8-11V6l8-4Z"/><path d="m12 6.8 1.35 3.7 3.75.1-3 2.4 1.05 3.55L12 14.5 8.85 16.55 9.9 13l-3-2.4 3.75-.1Z"/></svg></div><div class="brand-text"><h2>AI VIP Share</h2><p>会员权益 · 兑换激活 · AI 网站访问</p></div></div>
+        <section class="membership" aria-label="AI 会员信息与会员时间">
+          <div class="card-inner">
+            <div class="section-label"><strong>AI 会员</strong><span class="pill active" id="member-pill">生效中</span></div>
+            <div class="account-row"><div class="avatar" aria-hidden="true">AI</div><div class="account-content"><b id="account-name">li***@example.com</b><span id="account-sub">AI VIP 会员 · 已绑定</span></div><button class="tiny-link" type="button" id="account-action">账号</button></div>
+            <p class="clock-label" id="metric-label">剩余会员时间</p><div class="time-wrap"><div class="time-value" id="remaining">31<span>天</span></div><div class="expiry" id="expiry">至 2026-11-15 23:59</div></div><div class="bar" id="meter-wrap" aria-label="演示权益进度"><span id="time-bar" style="width:76%"></span></div><div class="time-meta" id="time-meta">会员权益按服务端实际到期时间计算</div><div class="benefits"><div class="benefits-head"><strong>我的权益</strong><span>离线示例</span></div><ul id="benefits-list"><li>示例权益，未经服务端核验</li></ul></div>
+          </div><div class="history"><span id="last-order">最近操作：会员权益（演示）</span><button class="tiny-link" type="button" id="history" aria-expanded="false" aria-controls="history-panel">兑换记录 ▾</button></div><div class="history-panel" id="history-panel" hidden><p>本预览没有经过服务端核验的历史兑换记录。</p><ol id="history-list"></ol></div>
+        </section>
+        <section class="redeem" aria-label="兑换激活"><div class="redeem-head"><h3>兑换激活</h3></div><p class="sub">输入兑换码或使用专属激活链接，领取对应权益。</p>
+          <div class="install-step" id="install-step" hidden><strong id="install-title">需要先添加工具</strong><p id="install-desc"></p><button type="button" class="step-action" id="install-button">确认添加并继续兑换</button></div>
+          <div class="link-hint" id="link-hint" hidden><div class="row"><b>已识别专属激活链接</b><span class="pill neutral">尚未领取</span></div><p>激活意图（脱敏演示）：<span class="link-code" id="link-code">DEMO-****-2026</span></p></div>
+          <form class="input-row" id="redeem-form" novalidate>
+            <label class="sr-only" for="redeem-code">兑换码或激活码</label>
+            <input id="redeem-code" type="password" aria-label="兑换码或激活码" aria-describedby="redeem-caption redeem-feedback" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="120" placeholder="输入兑换码或激活码">
+            <button type="button" class="code-reveal" id="code-reveal" aria-label="显示兑换码">显示</button>
+            <button type="button" class="code-reveal" id="code-clear" aria-label="清空兑换码">清空</button>
+            <button class="action" id="redeem-button" type="submit">预检兑换</button>
+          </form>
+<div class="redeem-review" id="redeem-review" hidden><div class="benefits-head"><strong>兑换预检 · 离线示例</strong><span>尚未领取</span></div><p id="review-product"></p><p id="review-account"></p><div class="review-actions"><button class="action" id="review-confirm" type="button">确认兑换（模拟）</button><button class="step-action" id="review-cancel" type="button">取消</button></div></div>
+<div class="redeem-review" id="recovery-panel" hidden><strong>兑换回执尚未确认</strong><p id="recovery-text">有一笔演示事务结果未知；必须核对正式服务端后再继续。</p><button class="step-action" id="recovery-check" type="button">核对上次兑换（模拟）</button></div>
+<p id="redeem-feedback" class="redeem-feedback" role="status" aria-live="polite" tabindex="-1" hidden></p>
+          <div class="validity" id="redeem-caption">具体权益以服务端核验结果为准；兑换不会自动开启代理。</div>
+        </section>
+        <div class="bottomline"><a class="buy-more" id="shop" href="https://example.com/" target="_blank" rel="noopener noreferrer" title="在新标签页打开外部示例网站（正式商城地址尚未配置）">查看更多商品 ↗</a></div>
+        <section class="proxy-card" aria-labelledby="proxy-heading">
+          <div class="proxy-head"><h3 id="proxy-heading">AI 网站访问</h3><span class="pill" id="proxy-status" role="status" aria-live="polite">状态待确认</span></div>
+          <p class="proxy-source" id="proxy-source">当前网络：尚未检测</p>
+          <div class="proxy-actions"><button type="button" class="stop" id="proxy-toggle">停用代理</button></div>
+          <p class="proxy-help">仅启停 AI VIP Share 代理，不修改其他代理设置；会员有效期仍继续计算。</p>
+          <div class="proxy-alert" id="proxy-alert" hidden><p id="proxy-alert-text"></p><div class="proxy-actions"><button type="button" id="proxy-manage">扩展管理指引</button><button type="button" id="proxy-refresh">重新检测</button></div></div>
+        </section>
+        <details class="service"><summary><i class="s-dot" id="service-dot" aria-hidden="true"></i><strong id="service-title">适用网站与网络说明</strong><span>详情 ▾</span></summary><div class="detail"><p>本工具只控制自己的 Chrome 代理设置，不会关闭系统代理、VPN 或其他扩展。使用现有网络不代表已验证网站可用。</p><div class="domains">适用站点示例：ChatGPT · Claude · Gemini · Perplexity 等。网站及会员交付范围以正式商品为准。网络连通不代表第三方会员已开通。</div><p>启用本工具时，非匹配网站按直连规则处理，不自动串接原系统代理。系统 VPN / TUN 仍可能影响实际路由。</p></div></details>
+        <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+      </div>
+      
+    </main>
+    <aside class="aside" aria-label="产品设计说明">
+      <h2>会员优先，网络可控</h2><p>把「会员账号 + 当前权益」放在首屏主卡片，「兑换激活」紧随其后；兑换码的权益内容由商品核验决定，不预设固定时长。</p><hr><div class="mini">预览实验台（独立于扩展）</div><p>场景、宽度和外观控件只用于设计验收，不属于正式安装工具。</p><div class="mini">三种核心使用方式</div><p>① 登录后查看已有会员；② 手动输入兑换码；③ 从专属激活链接带入兑换意图，按安装状态继续。</p><div class="mini">链接场景</div><p>浏览器插件未安装：先完成浏览器确认安装；宿主已安装但工具未安装：明确确认添加工具；工具已安装：直接查看并确认兑换。</p><div class="mini">离线兑换样例</div><p>仅识别 <code>DEMO-ACCESS-2026</code> 作为固定演示码，未知兑换码不会成功。</p><button class="step-action" id="demo-code" type="button">填入演示兑换码</button><div class="mini">安装步骤模拟</div><button class="step-action" id="lab-install-confirm" type="button" hidden>实验台：模拟安装核验完成</button><p id="lab-install-status" role="status" aria-live="polite">安装状态说明</p><p id="lab-notice" role="status" aria-live="polite">离线预览状态</p><div class="mini">商品入口 · 外部页面</div><p>唯一商品入口在浏览器新标签页打开外部 HTTPS 页面，不再显示内置商品弹窗。当前目标为 example.com 演示域名，正式产品须更换为经过审核的商城地址。</p><div class="mini">代理冲突也能退出</div><p>启停入口始终可见；单击「启用代理」或「停用代理」直接操作本工具，无二次选择弹窗。停用只释放本工具接管，不关闭其他扩展或系统网络。</p><div class="mini">重要区分</div><p>账号、会员时长、工具安装、Chrome 代理启用是四种独立状态。会员有效不代表实际网络已成功接通。</p><hr><p><code>目标：examples/sidebar-tools/ai-vip-share/</code></p></aside>
+  </div>
+  <div class="note">设计场景模拟 · 商品入口将打开外部 HTTPS 示例网站 · 无真实支付或会员账户 · 不修改浏览器代理</div>
+</div>
+<script id="proxy-demo-model">
+/* Offline UI model, not a privileged SDK or a Chrome implementation. */
+(function(root){
+ 'use strict';
+ function initial(scene){
+  const s={owner:'none',ownPreference:false,desired:false,mode:'existing',operation:'idle',revision:0,member:true,provider:true,failures:0,stoppedByUser:false};
+  if(scene==='member')Object.assign(s,{owner:'self',ownPreference:true,desired:true,mode:'managed'});
+  if(scene==='conflict')Object.assign(s,{owner:'extension',ownPreference:true,desired:true,mode:'managed'});
+  if(scene==='other-tool')Object.assign(s,{owner:'tool',desired:true,mode:'managed'});
+  if(scene==='locked')Object.assign(s,{owner:'locked',ownPreference:true,desired:true,mode:'managed'});
+  if(scene==='unknown')Object.assign(s,{owner:'unknown',ownPreference:true,desired:true,mode:'managed'});
+  if(['stop-failed','provider-stop','expired-stop'].includes(scene))Object.assign(s,{owner:'self',ownPreference:true,desired:true,mode:'managed',failures:scene==='stop-failed'?1:0});
+  if(['guest','expired','expired-stop','link-install','link-host','recovery'].includes(scene))s.member=false;
+  if(['blocked','provider-stop','link-install','link-host','recovery'].includes(scene))s.provider=false;
+  return s;
+ }
+ function canStop(s){return s.desired||s.ownPreference||s.operation==='starting'||s.operation==='stop_failed';}
+ function canStart(s){return s.member&&s.provider&&s.owner==='none'&&s.operation==='idle'&&!s.ownPreference;}
+ function reduce(s,e){
+  if(e.type==='start'&&canStart(s))return {...s,desired:true,stoppedByUser:false,mode:'managed',operation:'starting',revision:s.revision+1};
+  if(e.type==='started'&&e.revision===s.revision&&s.operation==='starting'&&s.desired)return {...s,owner:'self',ownPreference:true,operation:'idle'};
+  if(e.type==='stop')return {...s,desired:false,stoppedByUser:true,mode:'existing',operation:'stopping',revision:s.revision+1};
+  if(e.type==='stopped'&&e.revision===s.revision&&s.operation==='stopping'){
+   if(s.failures>0)return {...s,operation:'stop_failed',failures:s.failures-1};
+   if(['unknown','locked'].includes(s.owner))return {...s,operation:'stop_failed'};
+   return {...s,owner:s.owner==='self'?'none':s.owner,ownPreference:false,operation:'idle'};
+  }
+  if(e.type==='ownerChanged')return {...s,owner:e.owner,desired:false,operation:'idle',revision:s.revision+1};
+  // Refresh, wake, redemption, and another proxy disappearing never auto-start.
+  return s;
+ }
+ root.AIVipProxyPreview=Object.freeze({initial,canStart,canStop,reduce});
+})(globalThis);
+</script>
+<script id="business-preview-model">
+(function(root) {
+  'use strict';
+  // Strictly fictional offline fixtures. Never infer entitlements from user text.
+  const fixtures=Object.freeze({
+    'DEMO-ACCESS-2026':'ready',
+    'DEMO-USED-2026':'used',
+    'DEMO-EXPIRED-2026':'expired',
+    'DEMO-WRONG-ACCOUNT-2026':'wrong_account'
+  });
+  const issued=new WeakSet();
+  function preflight(raw, scenario='member') {
+    const code=typeof raw==='string'?raw.trim():'';
+    if(!/^[A-Za-z0-9_-]{6,120}$/.test(code))
+      return {status:'invalid',message:'兑换码格式不正确。请输入 6–120 位字母、数字、短横线或下划线。'};
+    if(['blocked','provider-stop','link-host','link-install','recovery'].includes(scenario))
+      return {status:'unavailable',message:'尚不能核验权益：请完成必要步骤或等待正式会员服务恢复。'};
+    if(scenario==='guest')
+      return {status:'login_required',message:'请先绑定 AI VIP Share 产品账号，再预检兑换码。'};
+    if(scenario==='service-timeout')
+      return {status:'timeout',message:'模拟预检请求超时；未提交兑换，可手动重新预检。'};
+    const kind=fixtures[code];
+    if(kind==='used')return {status:'used',message:'演示：此兑换码已被使用。'};
+    if(kind==='expired')return {status:'expired',message:'演示：此兑换码已过期。'};
+    if(kind==='wrong_account')return {status:'wrong_account',message:'演示：兑换码与当前绑定账号不匹配。'};
+    if(kind!=='ready')
+      return {status:'unavailable',message:'未知兑换码无法核验，未配置正式 Provider；不会根据格式推断有效性。'};
+    const authorized=Object.freeze({
+      status:'ready',previewId:'PREVIEW-ONLY-001',
+      product:'AI VIP Share 演示体验权益 · 20 次示例额度',
+      account:'li***@example.com',kind:'quota',quantity:20,
+      maskedCode:'DEMO-****-2026'
+    });
+    issued.add(authorized);return authorized;
+  }
+  function confirm(preview) {
+    if(!preview||!issued.has(preview))return {status:'invalid'};
+    issued.delete(preview);
+    return Object.freeze({
+      status:'simulated',receipt:'PREVIEW-RECEIPT-001',
+      entitlement:'20 次示例额度（仅供离线演示）'
+    });
+  }
+  function recover() {
+    return {status:'unknown',message:'离线模拟无法查询可信服务端终态。相同事务保持锁定，不会自动重新提交或增加权益。'};
+  }
+  root.AIVipBusinessPreview=Object.freeze({preflight,confirm,recover});
+})(globalThis);
+</script>
+<script id="preview-ui-controller">
+(() => {
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const B=globalThis.AIVipBusinessPreview,P=globalThis.AIVipProxyPreview;
+  const sampleCode='DEMO-ACCESS-2026';
+  const scenes=Object.freeze({
+    member:{pill:'生效中 · 演示',tone:'active',account:'li***@example.com',sub:'AI VIP 会员 · 已绑定（演示）',label:'剩余会员时间',value:'31',unit:'天',expiry:'至 2026-11-15 23:59',progress:76,meta:'固定演示到期日 · 不是服务端查询结果',benefits:['会员体验权益（演示）'],last:'最近记录 · 离线示例'},
+    quota:{pill:'额度有效 · 演示',tone:'active',account:'li***@example.com',sub:'AI VIP 会员 · 已绑定（演示）',label:'剩余使用额度',value:'12',unit:'次',expiry:'总额度 20 次',progress:60,meta:'12 / 20 次 · 不换算成会员天数',benefits:['网站访问额度 · 12 / 20 次（演示）'],last:'最近记录 · 离线示例'},
+    feature:{pill:'功能有效 · 演示',tone:'active',account:'li***@example.com',sub:'AI VIP 会员 · 已绑定（演示）',label:'已获得的功能',value:'已开通',unit:'',expiry:'非时长类权益',progress:null,meta:'功能型权益不推断到期日期',benefits:['AI 网站适配服务（演示）','偏好同步功能（演示）'],last:'最近记录 · 离线示例'},
+    guest:{pill:'未开通',tone:'',account:'尚未绑定会员账号',sub:'绑定产品账号后查看权益',label:'当前会员权益',value:'未开通',unit:'',expiry:'暂无可核验权益',progress:null,meta:'可先浏览商品，兑换需绑定产品账号',benefits:['暂无已核验权益'],last:'暂无兑换记录'},
+    expired:{pill:'已到期',tone:'warn',account:'li***@example.com',sub:'AI VIP 会员 · 已到期（演示）',label:'剩余会员时间',value:'0',unit:'天',expiry:'已于 2026-10-14 到期',progress:0,meta:'权益到期不妨碍停用本工具代理',benefits:['会员时间权益已到期（演示）'],last:'历史记录 · 离线示例'},
+    blocked:{pill:'无法核验',tone:'warn',account:'会员状态待核验',sub:'正式会员 Provider 尚未配置',label:'当前权益状态',value:'待核验',unit:'',expiry:'服务不可用',progress:null,meta:'不能将上次显示当作最新会员状态',benefits:['无法连接会员服务，请稍后核对'],last:'兑换记录不可查询'},
+    'link-ready':{pill:'待兑换',tone:'neutral',account:'li***@example.com',sub:'账号已识别（演示）',label:'当前权益状态',value:'待领取',unit:'',expiry:'需确认兑换',progress:null,meta:'识别链接不代表已发放权益',benefits:['专属激活意图未消费（演示）'],last:'来源 · 专属链接'},
+    'link-install':{pill:'待安装',tone:'warn',account:'li***@example.com',sub:'已识别账号 · 未添加工具',label:'当前权益状态',value:'未领取',unit:'',expiry:'工具安装待确认',progress:null,meta:'完成工具安装后，仍需主动预检和确认',benefits:['链接意图已保留，尚未发放'],last:'来源 · 专属链接'},
+    'link-host':{pill:'待安装',tone:'warn',account:'未连接 OpenDesk',sub:'浏览器扩展尚未安装',label:'当前权益状态',value:'未领取',unit:'',expiry:'浏览器安装待确认',progress:null,meta:'网站无法静默安装 Chrome 扩展',benefits:['链接意图已保留，尚未发放'],last:'来源 · 专属链接'},
+    recovery:{pill:'回执待核对',tone:'warn',account:'li***@example.com',sub:'当前交易未取得可信终态',label:'当前权益状态',value:'待核对',unit:'',expiry:'禁止推断发放结果',progress:null,meta:'未知既非成功也非失败',benefits:['权益保持上次可信状态（演示）'],last:'待核对兑换事务'},
+    'service-timeout':{pill:'生效中 · 演示',tone:'active',account:'li***@example.com',sub:'模拟预检超时场景',label:'剩余会员时间',value:'31',unit:'天',expiry:'至 2026-11-15 23:59',progress:76,meta:'兑换预检超时不会改变会员',benefits:['会员体验权益（演示）'],last:'最近记录 · 离线示例'},
+    'submit-unknown':{pill:'生效中 · 演示',tone:'active',account:'li***@example.com',sub:'模拟确认回执未知场景',label:'剩余会员时间',value:'31',unit:'天',expiry:'至 2026-11-15 23:59',progress:76,meta:'回执不明时保持原权益',benefits:['会员体验权益（演示）'],last:'最近记录 · 离线示例'}
+  });
+  const currentScene=()=>$('scenario').value;
+  const state={
+    scene:currentScene(),
+    account:{bound:currentScene()!=='guest'},
+    install:{host:true,tool:true,intent:false,guide:false},
+    redeem:{phase:'idle',revision:0,pending:null,code:'',history:[],consumed:new Set(),unknown:new Set(),unknownCode:null},
+    proxy:P.initial(currentScene()),proxyGeneration:0
+  };
+  let historyOpen=false;
+  function isLink(){return state.install.intent;}
+  function installReady(){return state.install.host&&state.install.tool;}
+  function setMessage(text,warn=false) {
+    const el=$('redeem-feedback');
+    el.hidden=!text;el.textContent=text||'';
+    el.className='redeem-feedback'+(warn?' warn':'');
+  }
+  function toast(text) {
+    $('toast').hidden=!text;$('toast').textContent=text||'';
+  }
+  function drawMember(){
+    const kind=state.scene;
+    const d=scenes[kind]||scenes[kind==='expired-stop'?'expired':kind==='provider-stop'||kind==='stop-failed'?'member':'member'];
+    const guestBound=kind==='guest'&&state.account.bound;
+    $('member-pill').textContent=guestBound?'账号已绑定 · 演示':d.pill;
+    $('member-pill').className='pill '+(guestBound?'neutral':d.tone);
+    $('account-name').textContent=guestBound?'li***@example.com':d.account;
+    $('account-sub').textContent=guestBound?'演示绑定成功 · 尚无真实会员':d.sub;
+    $('account-action').textContent=!state.account.bound?'模拟绑定账号':'账号';
+    $('metric-label').textContent=d.label;
+    $('remaining').replaceChildren(document.createTextNode(d.value));
+    if(d.unit){const span=document.createElement('span');span.textContent=d.unit;$('remaining').append(span);}
+    $('expiry').textContent=d.expiry;
+    $('meter-wrap').hidden=d.progress===null;
+    $('time-bar').style.width=(d.progress===null?0:d.progress)+'%';
+    $('time-meta').textContent=d.meta;
+    $('last-order').textContent=d.last;
+    const benefits=$('benefits-list');benefits.replaceChildren();
+    const items=guestBound?['尚未开通任何真实权益']:d.benefits;
+    for(const label of items){const li=document.createElement('li');li.textContent=label;benefits.append(li);}
+    if(state.redeem.history.length&&state.account.bound){
+      const li=document.createElement('li');
+      li.textContent='本次预览模拟领取：20 次示例额度（非正式权益）';
+      benefits.append(li);
+      $('last-order').textContent='本次演示：'+state.redeem.history.at(-1).receipt;
+    }
+    $('service-dot').style.background=['conflict','other-tool'].includes(kind)?'#c79c58':'#aaafbb';
+  }
+  function drawHistory(){
+    $('history').setAttribute('aria-expanded',String(historyOpen));
+    $('history-panel').hidden=!historyOpen;
+    const list=$('history-list');list.replaceChildren();
+    const p=$('history-panel').querySelector('p');
+    const entries=state.account.bound?state.redeem.history:[];
+    p.textContent=entries.length?'下列为本次预览的模拟记录，没有真实兑换交易。':'暂无本次预览兑换记录；正式记录需要服务端核验。';
+    for(const entry of entries){
+      const li=document.createElement('li');li.textContent=entry.receipt+' · '+entry.entitlement+' · 非真实交易';
+      list.append(li);
+    }
+  }
+  function drawInstall(){
+    const link=isLink(),ready=installReady();
+    $('link-hint').hidden=!link;
+    $('link-code').textContent='DEMO-****-2026';
+    $('install-step').hidden=!link||ready;
+    const lab=$('lab-install-confirm');
+    lab.hidden=!link||ready;
+    if(link&&!ready){
+      const missingHost=!state.install.host;
+      $('install-title').textContent=missingHost?'需要先安装 OpenDesk Browser':'需要先添加 AI VIP Share 工具';
+      $('install-desc').textContent=(missingHost?
+        '请在正式环境通过官方渠道安装 Chrome 扩展并由用户确认。':
+        '正式环境需经可信安装管理器检查工具身份、版本和权限，并由用户确认。')+
+        (state.install.guide?' 当前仅显示离线指引，尚未执行安装。':'');
+      $('install-button').textContent=state.install.guide?'安装未完成 · 查看指引':'查看安装指引';
+      lab.textContent=missingHost?'实验台：模拟已确认安装浏览器':'实验台：模拟已确认添加工具';
+    }
+    $('lab-install-status').textContent=link?
+      (!state.install.host?'实验室状态：浏览器未安装 · 意图保留':!state.install.tool?
+        '实验室状态：宿主存在，工具未安装 · 意图保留':
+        '实验室状态：均已模拟安装 · 兑换仍需人工确认'):
+      '安装模拟仅在专属激活链接场景出现。';
+  }
+  function drawRedeem(){
+    const phase=state.redeem.phase,busy=phase==='prechecking'||phase==='submitting';
+    const locked=phase==='review'||phase==='submitting'||phase==='unknown';
+    const blocked=isLink()&&!installReady();
+    $('redeem-code').disabled=blocked||locked;
+    $('redeem-button').disabled=blocked||phase!=='idle';
+    $('redeem-button').textContent=phase==='prechecking'?'正在预检…':phase==='review'?'等待确认':phase==='submitting'?'提交中…':phase==='unknown'?'待核对':'预检兑换';
+    $('redeem-button').setAttribute('aria-busy',String(busy));
+    $('review-confirm').disabled=phase!=='review';
+    $('review-cancel').disabled=phase!=='review';
+    $('redeem-review').hidden=phase!=='review';
+    $('recovery-panel').hidden=phase!=='unknown';
+    $('code-reveal').disabled=blocked||locked;
+    $('code-clear').disabled=blocked||locked||!$('redeem-code').value;
+    $('code-reveal').textContent=$('redeem-code').type==='password'?'显示':'隐藏';
+    $('code-reveal').setAttribute('aria-label',$('redeem-code').type==='password'?'显示兑换码':'隐藏兑换码');
+    if(phase==='unknown')$('recovery-text').textContent='模拟提交回执未知；同一兑换码已锁定，先核对终态，不能重试提交。';
+    $('redeem-caption').textContent=blocked?
+      '安装及权限必须由用户确认；专属链接不会自动消费兑换码。':
+      '仅固定演示码可取得离线预检；兑换与代理启停完全独立。';
+  }
+  function drawProxy(){
+    const s=state.proxy,stop=P.canStop(s),busy=s.operation==='starting'||s.operation==='stopping';
+    let label='本工具已停用',tone='',alert='';
+    if(s.owner==='self'&&s.ownPreference){label='代理已启用 · 演示';tone='active';}
+    if(['extension','tool','locked','unknown'].includes(s.owner)&&(s.desired||s.ownPreference)){
+      label='控制需核对';tone='warn';
+    }
+    if(!s.provider&&!stop){label='Provider 不可用';tone='warn';}
+    if(!s.member&&s.provider&&!stop){label='需要有效会员';tone='neutral';}
+    if(s.operation==='starting')label='正在启用 · 可立即停用';
+    if(s.operation==='stopping')label='正在停用';
+    if(s.operation==='stop_failed'){label='停止未确认';tone='warn';}
+    const source={self:'本工具接管（离线演示）',none:'现有网络（未进行真实检测）',extension:'其他 Chrome 扩展管理',tool:'OpenDesk 另一工具管理',locked:'当前不可修改',unknown:'控制状态未知'};
+    if(s.owner==='extension')alert='另一扩展正在管理 Chrome 代理。本工具只取消自己的偏好，不抢占或清理对方设置。';
+    if(s.owner==='tool')alert='OpenDesk 其他工具持有代理控制权。取消本工具请求不会清理其他工具。';
+    if(s.owner==='locked')alert='Chrome 当前不允许本工具修改设置。可尝试取消本工具自身请求，不能解除策略或其他限制。';
+    if(s.owner==='unknown')alert='无法核对当前控制权，停用请求必须等待可信回执，不得假称清理成功。';
+    if(s.operation==='stop_failed')alert='停用结果未确认，已保留 STOP 意图。可点击重试停用；不要重新启用。';
+    $('proxy-status').textContent=label;$('proxy-status').className='pill '+tone;
+    $('proxy-source').textContent='当前控制来源：'+(source[s.owner]||source.none);
+    $('proxy-toggle').textContent=s.operation==='stopping'?'正在停用…':s.operation==='stop_failed'?'重试停用':stop?'停用代理':'启用代理';
+    $('proxy-toggle').className=stop?'stop':'primary';
+    // STOP takes priority over any in-flight START, including a member/provider outage.
+    $('proxy-toggle').disabled=s.operation==='stopping'||(!stop&&!P.canStart(s));
+    $('proxy-toggle').setAttribute('aria-busy',String(busy));
+    $('proxy-alert').hidden=!alert;$('proxy-alert-text').textContent=alert;
+    $('proxy-manage').hidden=!['extension','tool'].includes(s.owner)&&s.operation!=='stop_failed';
+    $('proxy-refresh').disabled=busy;
+  }
+  function draw(){drawMember();drawHistory();drawInstall();drawRedeem();drawProxy();}
+  function cancelPending(reason){
+    const r=state.redeem;r.revision++;r.pending=null;
+    if(r.phase==='prechecking'||r.phase==='review'){
+      r.phase='idle';if(reason)setMessage(reason);
+    }
+    // Unknown receipts survive scene changes and remain locked.
+  }
+  function effectiveScene(){
+    if(state.scene==='guest'&&state.account.bound)return 'member';
+    if(isLink()&&installReady())return 'member';
+    return state.scene;
+  }
+  function precheck(){
+    const r=state.redeem;
+    if(r.phase!=='idle'||(isLink()&&!installReady()))return;
+    const raw=$('redeem-code').value.trim();
+    if(r.consumed.has(raw)){setMessage('该固定演示码已在本次预览中模拟领取，不能重复领取。',true);return;}
+    if(r.unknown.has(raw)){r.phase='unknown';r.unknownCode=raw;setMessage('该交易回执未知，不允许重复提交同一兑换码。',true);drawRedeem();return;}
+    const result=B.preflight(raw,effectiveScene());
+    if(result.status==='invalid'||result.status==='login_required'||result.status==='unavailable'||
+       result.status==='used'||result.status==='expired'||result.status==='wrong_account'){
+      setMessage(result.message,true);return;
+    }
+    r.phase='prechecking';const revision=++r.revision;
+    setMessage('正在预检演示兑换码，不会消耗兑换码…');drawRedeem();
+    setTimeout(()=>{
+      if(revision!==r.revision||r.phase!=='prechecking')return;
+      if(result.status!=='ready'){r.phase='idle';setMessage(result.message,true);drawRedeem();return;}
+      r.pending={preview:result,raw};r.phase='review';
+      $('review-product').textContent='待领取（演示）：'+result.product;
+      $('review-account').textContent='绑定到产品账号：'+result.account+' · 未实际核验';
+      setMessage('预检完成。请核对权益和脱敏账号，确认或取消；尚未提交。');
+      drawRedeem();$('review-confirm').focus();
+    },420);
+  }
+  function confirm(){
+    const r=state.redeem;
+    if(r.phase!=='review'||!r.pending)return;
+    const p=r.pending;
+    if(r.consumed.has(p.raw)||r.unknown.has(p.raw))return;
+    r.phase='submitting';const revision=++r.revision;
+    setMessage('模拟提交中，请勿重复确认…');drawRedeem();$('redeem-feedback').focus();
+    setTimeout(()=>{
+      if(revision!==r.revision||r.phase!=='submitting')return;
+      r.pending=null;
+      if(state.scene==='submit-unknown'){
+        r.phase='unknown';r.unknownCode=p.raw;r.unknown.add(p.raw);
+        setMessage('模拟提交回执未知；没有任何权益更新，不可重复提交。',true);
+      }else{
+        const receipt=B.confirm(p.preview);
+        if(receipt.status!=='simulated'){
+          r.phase='idle';setMessage('模拟回执校验失败，没有更新任何权益。',true);
+        }else{
+          r.consumed.add(p.raw);r.history.push(receipt);r.phase='idle';
+          $('redeem-code').value='';
+          setMessage('离线模拟回执 '+receipt.receipt+'：记录已更新；未发放真实权益，也未启用代理。');
+        }
+      }
+      draw();
+      $(r.phase==='unknown'?'recovery-check':'redeem-code').focus();
+    },460);
+  }
+  function changeScene(){
+    const next=currentScene();if(next===state.scene)return;
+    const hadPending=['prechecking','review','submitting'].includes(state.redeem.phase);
+    // A simulated submitted operation is conservatively UNKNOWN if its callback is abandoned.
+    const abandonedCode=state.redeem.phase==='submitting'?state.redeem.pending?.raw:null;
+    if(abandonedCode)state.redeem.unknown.add(abandonedCode);
+    cancelPending();
+    if(state.redeem.phase==='submitting'){
+      state.redeem.phase='unknown';state.redeem.unknownCode=abandonedCode||sampleCode;
+    }else if(state.redeem.phase!=='unknown')state.redeem.phase='idle';
+    state.scene=next;state.account.bound=next!=='guest';
+    if(next==='recovery'){
+      state.redeem.phase='unknown';state.redeem.unknownCode=sampleCode;state.redeem.unknown.add(sampleCode);
+    }
+    state.install={host:next!=='link-host',tool:!['link-host','link-install'].includes(next),intent:next.startsWith('link-'),guide:false};
+    // Preserve typed code when switching ordinary cases. A link only supplies a sample when empty.
+    if(state.install.intent&&!$('redeem-code').value)$('redeem-code').value=sampleCode;
+    $('redeem-code').type='password';
+    state.proxyGeneration++;state.proxy=P.initial(next);
+    toast('');
+    if(hadPending)setMessage('已切换预览场景。未确认的预检已取消；在途提交结果未知，必须核对。',true);
+    else setMessage('');
+    $('lab-notice').textContent='当前场景：'+$('scenario').selectedOptions[0].textContent+
+      '。演示数据不会变更真实会员、安装或代理设置。';
+    draw();
+  }
+  // Bind one event path for each control. No capture-phase interception or duplicate handlers.
+  $('scenario').addEventListener('change',changeScene);
+  $('preview-width').addEventListener('change',()=>{
+    document.documentElement.style.setProperty('--preview-width',$('preview-width').value+'px');
+  });
+  $('preview-theme').addEventListener('change',()=>{
+    document.documentElement.setAttribute('data-preview-theme',$('preview-theme').value);
+  });
+  $('redeem-form').addEventListener('submit',e=>{e.preventDefault();precheck();});
+  $('redeem-code').addEventListener('input',()=>{
+    if(state.redeem.phase==='prechecking')cancelPending('兑换码已修改，上次预检已取消。');
+    drawRedeem();
+  });
+  $('code-clear').addEventListener('click',()=>{
+    if($('code-clear').disabled)return;
+    cancelPending();$('redeem-code').value='';$('redeem-code').type='password';
+    setMessage('已清空兑换码。');drawRedeem();$('redeem-code').focus();
+  });
+  $('code-reveal').addEventListener('click',()=>{
+    if($('code-reveal').disabled)return;
+    $('redeem-code').type=$('redeem-code').type==='password'?'text':'password';drawRedeem();
+  });
+  $('review-confirm').addEventListener('click',confirm);
+  $('review-cancel').addEventListener('click',()=>{
+    if(state.redeem.phase!=='review')return;
+    cancelPending('已取消预检，没有提交兑换或产生记录。');drawRedeem();$('redeem-code').focus();
+  });
+  $('recovery-check').addEventListener('click',()=>{
+    const result=B.recover();$('recovery-text').textContent=result.message;
+    setMessage('人工核对模拟：结果仍未知，相同交易继续锁定。',true);
+  });
+  $('history').addEventListener('click',()=>{historyOpen=!historyOpen;drawHistory();});
+  $('account-action').addEventListener('click',()=>{
+    if(!state.account.bound){
+      state.account.bound=true;toast('仅演示产品账号绑定，未连接真实登录或账号 Provider。');drawMember();
+    }else toast('账号管理需要经过审核的产品账号 Provider；不收集第三方 AI 登录凭据。');
+  });
+  $('install-button').addEventListener('click',()=>{
+    if(installReady())return;state.install.guide=true;drawInstall();
+    setMessage('已打开离线安装指引。这里没有安装任何 Chrome 扩展或 Sidebar 工具。');
+  });
+  $('lab-install-confirm').addEventListener('click',()=>{
+    if(!isLink()||installReady())return;
+    if(!state.install.host)state.install.host=true;
+    else state.install.tool=true;
+    state.install.guide=false;
+    if(installReady()&&!$('redeem-code').value)$('redeem-code').value=sampleCode;
+    $('lab-notice').textContent='实验台刚模拟完成一个安装核验步骤；没有调用 Chrome 安装接口。';
+    setMessage(installReady()?'两项安装状态已模拟完成。可手动预检，但不会自动兑换。':
+      '仅模拟宿主已安装；仍需确认工具安装，兑换意图未消费。');
+    draw();
+  });
+  $('demo-code').addEventListener('click',()=>{
+    if($('redeem-code').disabled){setMessage('当前处于未完成安装、回执未知或确认中状态，不能覆盖兑换意图。',true);return;}
+    cancelPending();$('redeem-code').value=sampleCode;$('redeem-code').type='password';
+    setMessage('已填入固定演示码。须手动预检并明确确认。');drawRedeem();$('redeem-code').focus();
+  });
+  $('proxy-toggle').addEventListener('click',()=>{
+    const type=P.canStop(state.proxy)?'stop':P.canStart(state.proxy)?'start':null;
+    if(!type||state.proxy.operation==='stopping')return;
+    state.proxy=P.reduce(state.proxy,{type});
+    const revision=state.proxy.revision,generation=state.proxyGeneration;
+    drawProxy();
+    setTimeout(()=>{
+      if(generation!==state.proxyGeneration)return;
+      state.proxy=P.reduce(state.proxy,{type:type==='stop'?'stopped':'started',revision});
+      drawProxy();
+    },380);
+  });
+  $('proxy-refresh').addEventListener('click',()=>{
+    drawProxy();toast('仅重新展示离线状态，不检测真实网络，不自动恢复代理。');
+  });
+  $('proxy-manage').addEventListener('click',()=>{
+    toast(state.proxy.owner==='tool'?'请在正式版由可信宿主定位当前 OpenDesk 代理持有者，本预览绝不清理其他工具。':
+      '正式版可提供扩展管理指引；仅凭 Chrome 代理值不能识别扩展名称，本预览未修改任何扩展。');
+  });
+  function initialize(){
+    state.install={host:state.scene!=='link-host',tool:!['link-host','link-install'].includes(state.scene),intent:state.scene.startsWith('link-'),guide:false};
+    if(state.install.intent)$('redeem-code').value=sampleCode;
+    if(state.scene==='recovery'){
+      state.redeem.phase='unknown';state.redeem.unknownCode=sampleCode;state.redeem.unknown.add(sampleCode);
+      setMessage('预设回执未知场景：交易锁定，不能把不确定结果当作成功。',true);
+    }
+    $('lab-notice').textContent='离线演示：会员、安装、兑换及代理均没有连接真实服务。';
+    draw();
+  }
+  initialize();
+})();
+</script>
+</body>
+</html>

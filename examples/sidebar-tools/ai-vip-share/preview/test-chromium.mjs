@@ -15,7 +15,7 @@ const require=createRequire(import.meta.url);
 const {chromium}=process.env.PLAYWRIGHT_MODULE?require(process.env.PLAYWRIGHT_MODULE):require('playwright-core');
 const executablePath=process.env.CHROME_FOR_TESTING_BIN||path.join(homedir(),'Library/Caches/ms-playwright/chromium-1248/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
 assert(existsSync(executablePath),'Point CHROME_FOR_TESTING_BIN to an existing test browser');
-const inputs=['index.html','test-ui.mjs','test-r41.mjs','test-chromium.mjs'];
+const inputs=['archive/r57.html','test-ui.mjs','test-r41.mjs','test-chromium.mjs'];
 async function hashes(){return Object.fromEntries(await Promise.all(inputs.map(async f=>[f,createHash('sha256').update(await readFile(new URL(f,import.meta.url))).digest('hex')])))}
 const sourceBefore=await hashes();
 const report={started:new Date().toISOString(),gitHead:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),node:process.version,executablePath,sourceBefore,cases:[],errors:[],requests:[],dialogs:[],screenshots:[],layouts:[],contrast:[]};
@@ -27,7 +27,7 @@ page.on('pageerror',e=>report.errors.push(String(e)));
 page.on('console',m=>{if(m.type()==='error')report.errors.push(m.text())});
 page.on('request',r=>report.requests.push(r.url()));
 page.on('dialog',async d=>{report.dialogs.push(d.message());await d.dismiss()});
-const url=new URL('./index.html',import.meta.url).href;
+const url=new URL('./archive/r57.html',import.meta.url).href;
 const $=id=>page.locator('#'+id);
 const text=id=>$(id).textContent();
 const scene=s=>$('scenario').selectOption(s);

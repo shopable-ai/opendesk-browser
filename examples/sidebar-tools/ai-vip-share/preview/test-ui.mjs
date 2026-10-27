@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext, Script} from 'node:vm';
 
-const html=readFileSync(new URL('./index.html',import.meta.url),'utf8');
+const html=readFileSync(new URL('./archive/r57.html',import.meta.url),'utf8');
 const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
 const businessSource=scripts.find(x=>x[0].includes('id="business-preview-model"'))?.[1];
 const proxySource=scripts.find(x=>x[0].includes('id="proxy-demo-model"'))?.[1];

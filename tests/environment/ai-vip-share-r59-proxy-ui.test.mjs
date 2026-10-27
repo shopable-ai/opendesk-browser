@@ -10,7 +10,7 @@ const released={state:'disabled',control:'controllable_by_this_extension',permis
 const owned={...released,state:'enabled',control:'controlled_by_this_extension',canStop:true};
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 async function runtime({status=()=>released,start=async()=>owned,stop=async()=>released,configured=false,expired=false}={}){
-  const [html,original]=await Promise.all(['src/index.html','src/main.js'].map(p=>readFile(base+p,'utf8')));
+  const [html,original]=await Promise.all(['src/App.jsx','src/main.js'].map(p=>readFile(base+p,'utf8')));
   const nodes=new Map([...html.matchAll(/\bid="([^" ]+)"/g)].map(([,id])=>[id,{id,hidden:false,disabled:false,value:'',textContent:'',listeners:{},children:[],attributes:{},style:{},
     classList:{toggle(){}},setAttribute(name,value){this.attributes[name]=String(value)},removeAttribute(name){delete this.attributes[name]},
     append(...xs){this.children.push(...xs)},replaceChildren(...xs){this.children=xs},addEventListener(type,fn){this.listeners[type]=fn},focus(){}}]));
@@ -31,7 +31,7 @@ async function runtime({status=()=>released,start=async()=>owned,stop=async()=>r
 }
 
 test('formal core keeps member/redeem/shop/proxy order and one proxy action',async()=>{
-  const html=await readFile(base+'src/index.html','utf8');
+  const html=await readFile(base+'src/App.jsx','utf8');
   assert(html.indexOf('aria-labelledby="ai-vip-redeem-title"')<html.indexOf('aria-labelledby="ai-vip-proxy-title"'));
   assert(html.indexOf('aria-label="更多商品"')<html.indexOf('aria-labelledby="ai-vip-proxy-title"'));
   const e=await runtime();
