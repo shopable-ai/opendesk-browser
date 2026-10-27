@@ -1,6 +1,8 @@
 /* @opendesk-shared-design */
-.fp-app{box-sizing:border-box;display:grid;gap:12px;min-width:0;padding:10px 12px 18px;color:var(--od-ink);background:var(--od-paper);font:var(--od-body-size,13px)/1.5 system-ui,sans-serif;overflow-wrap:anywhere}
-.fp-app *{box-sizing:border-box}
+// One application-local scope; Shared UI tokens and component primitives stay canonical.
+@scope (.fp-app){
+:scope{box-sizing:border-box;display:grid;gap:12px;min-width:0;padding:10px 12px 18px;color:var(--od-ink);background:var(--od-paper);font:var(--od-body-size,13px)/1.5 system-ui,sans-serif;overflow-wrap:anywhere}
+:scope *{box-sizing:border-box}
 .fp-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px;border:1px solid var(--od-line);border-radius:12px;background:var(--od-muted)}
 .fp-tabs button{min-height:36px;border:0;background:transparent;color:var(--od-sub);border-radius:9px;font:inherit;cursor:pointer}
 .fp-tabs button.active{background:var(--od-paper);color:var(--od-ink);font-weight:650;box-shadow:0 1px 3px #00000012}
@@ -41,7 +43,9 @@
 .fp-history-main span{color:var(--od-sub);font-size:11px}
 .fp-history-actions{display:flex;align-items:center;flex:none;gap:4px}
 .fp-history-actions>button:not(.od-icon-button){background:var(--od-paper);color:var(--od-ink);border:1px solid var(--od-line);padding:6px;border-radius:8px;font-size:11px;cursor:pointer}
-.fp-app button:focus-visible,.fp-app select:focus-visible{outline:2px solid var(--od-focus,var(--od-brand));outline-offset:2px}
-.fp-app button:disabled{cursor:not-allowed;opacity:.55}
-@media(max-width:360px){.fp-app{padding:8px;gap:9px}.fp-card{padding:11px}.fp-actions button{flex:1 1 125px}.fp-selects{grid-template-columns:1fr}.fp-history-item{flex-wrap:wrap}.fp-history-actions{margin-left:auto}}
-@media(pointer:coarse){.fp-app button{min-height:44px}}
+:scope button:focus-visible,:scope select:focus-visible{outline:2px solid var(--od-focus,var(--od-brand));outline-offset:2px}
+:scope button:disabled{cursor:not-allowed;opacity:.55}
+@media(max-width:360px){:scope{padding:8px;gap:9px}.fp-card{padding:11px}.fp-actions button{flex:1 1 125px}.fp-selects{grid-template-columns:1fr}.fp-history-item{flex-wrap:wrap}.fp-history-actions{margin-left:auto}}
+@media(pointer:coarse){:scope button{min-height:44px}}
+
+}

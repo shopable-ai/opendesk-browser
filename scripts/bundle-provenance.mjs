@@ -135,12 +135,16 @@ function reviewedCompiledBookmarkReact(target,path,root){
 // R3.2 review: the pure bounded intent planner narrows retrieval source IDs;
 // the existing reviewed Host handles disclosure, consent and receipt recovery.
 // No new privileged output, dynamic module or package-code admission.
+// 2026-10-28 reviewed the exact local-test-adapter.js Git blob delta:
+// stricter URL scope (reject query/hash) and unique reply receipt verification;
+// no new Chrome privileges, origins, target worlds or automatic resend paths.
+// Preserve per-file closed hash admission; never wildcard this allowlist.
 const compiledKnowledgeInputs=Object.freeze({
   'examples/sidebar-tools/ai-knowledge-answers/src/model.js':'752b91ea8d98f7da10e9d8902e3629bef69df58c',
   'examples/sidebar-tools/ai-knowledge-answers/trusted/host.js':'02bdd31fdcb2292196c849bd0a4c13e9bde78c0c',
   'examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js':'2228f1490904f99b47d087cc617015da57dce26f',
   'examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js':'2605e9d4825f3d95140a1eaccc73c1cc62ee6cda',
-  'examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-adapter.js':'fd56f20148aefe75cc2cc91187a831db0dbadcc1',
+  'examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-adapter.js':'25c43a64db60933c61f16a569afbfd376a5f8ac5',
   'examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx':'9fa5a0e47805bfbbd092dbab7f78bb346588058b',
   'examples/sidebar-tools/ai-knowledge-answers/trusted/workspace.css':'3f11650babfd3e1a490907b33e2f722bd97fa53d',
   'examples/sidebar-tools/ai-knowledge-answers/trusted/multi-intent.js':'82d4b49d194783e04844e36df78d757955e31378'
