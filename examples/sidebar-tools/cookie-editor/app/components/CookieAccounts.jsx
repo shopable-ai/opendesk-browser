@@ -2,6 +2,7 @@ import * as React from 'react';
 import {CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
 import {createAccountSwitchUrl,inspectAccountSwitchUrl} from '../domain/account-switch-url.js';
 import {CookieAccountShare} from './CookieAccountExperiences.jsx';
+import {CookieMembershipRecommendations} from './CookieBusinessPanels.jsx';
 
 const ruleHelp={
   E_URL_INVALID:'请输入普通 HTTP(S) 网页地址。',
@@ -230,6 +231,7 @@ export function CookieAccounts({
       </div>
     </header>
     <div className="cookie-account-content">
+      <CookieMembershipRecommendations origin={origin}/>
       {previewOnly&&<p className="cookie-account-notice" role="status">
         这是源自正式 React 组件的虚构数据演示：不会写入真实 Cookie、加密仓库或浏览器自动切换后台。
       </p>}
