@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="od-preview-kind" content="DESIGN_REVIEW_ONLY_NOT_SOURCE_PARITY">
 <meta name="od-preview-inherits" content="ai_scroll_navigation_r31_preview.html">
-<title>AI 对话滚动导航 · R3.5 交互预览</title>
+<title>AI 对话滚动导航 · R3.6 交互预览</title>
 <style>
 /* Inherit the R3.1 visual contract and the official OpenDesk semantic tokens.
  * Design review only; no Chrome authority, page.config, SDK or React is executed. */
@@ -143,7 +143,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 .dialog::backdrop{background:#11233899}.dialog h2{font-size:15px;font-weight:650}.dialog p{font-size:12px;color:var(--od-sub);line-height:1.6;margin:9px 0 15px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px}.dialog-actions button{flex:1}
 .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;background:#22324c;color:#fff;padding:10px 13px;border-radius:9px;max-width:calc(100vw - 24px);width:max-content;font-size:12px;box-shadow:0 10px 30px #0004}
 
-/* R3.5 one compact editor, one Side Panel scroll, all selectors visible. */
+/* R3.6 one compact editor, one Side Panel scroll, all selectors visible. */
 .compact-editor{display:grid;gap:10px;align-content:start}
 .editor-caption{font-size:12px;font-weight:750;padding-top:6px;line-height:1.3}
 .editor-caption:not(:first-child){border-top:1px solid var(--od-line);padding-top:12px;margin-top:3px}
@@ -169,7 +169,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 </style>
 </head>
 <body>
-<!-- R3.5 keeps the single inherited preview, with one-page CSS editing. -->
+<!-- R3.6 keeps the single inherited preview, with one-page CSS editing. -->
 <!-- Use symbol icons rather than Unicode glyphs, to avoid fallback-font drift. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
@@ -185,7 +185,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
 </svg>
 <header class="review-head" aria-label="预览控制（不属于正式应用）">
-  <div><strong>AI 对话滚动导航 · R3.5 交互预览</strong><small>沿用 R3.1 视觉基线 · 离线设计评审，所有授权和保存操作均为模拟</small></div>
+  <div><strong>AI 对话滚动导航 · R3.6 交互预览</strong><small>沿用 R3.1 视觉基线 · 离线设计评审，所有授权和保存操作均为模拟</small></div>
   <div class="review-controls">
     <label>宽度 <select id="review-width" aria-label="Side Panel 宽度"><option>320</option><option selected>360</option><option>400</option><option>440</option><option>520</option></select></label>
     <label>当前网页 <select id="review-site" aria-label="模拟活动网页"><option value="chatgpt">ChatGPT · 内置</option><option value="deepseek">DeepSeek · 内置</option><option value="gemini">Gemini · 内置</option><option value="new">example.ai · 未授权</option><option value="pending">example.ai · 已授权</option><option value="broken">example.ai · 结构变化</option><option value="internal">Chrome 内部页</option></select></label>
@@ -253,7 +253,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
             <div class="selector-row"><div class="selector-head"><label for="css-anchor">按钮锚点（可选）</label><small id="anchor-state" class="selector-state" hidden></small></div><div class="selector-edit-line"><input id="css-anchor" class="od-field" spellcheck="false" autocomplete="off" aria-describedby="anchor-state" placeholder="CSS 或点选"><button id="pick-anchor" type="button" class="od-icon-button selector-pick" aria-label="选取按钮锚点" title="在网页选取按钮锚点（离线预览）"><svg aria-hidden="true"><use href="#i-target"/></svg></button></div></div>
           </div>
           <p id="picking-notice" class="notice picking-inline" role="status" hidden>在右侧离线测试台点选；鼠标悬停高亮，点击确认；Esc 取消。<button id="cancel-pick" type="button" class="od-button od-button--quiet od-button--small">取消</button></p>
-          <div class="form-field"><label for="css-position">按钮位置</label><select id="css-position" class="od-field"><option value="auto">自动定位（推荐）</option><option value="left">左侧（仅预览）</option><option value="right">右侧（仅预览）</option><option value="anchor">跟随锚点（仅预览）</option></select><p id="position-note" class="od-meta" hidden>手动位置仅演示并保存在预览内存，正式配置契约不支持。</p></div>
+          
           <div class="save-row"><p id="editor-feedback" class="od-error" role="alert" hidden></p><button id="adapt-save" class="od-button" type="button" disabled>保存网站</button></div>
         </section>
       </section>
@@ -396,7 +396,6 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     $('editor-title').textContent=index<0?'添加网站':'编辑网站';
     $('site-url').value=r?.url||'';$('site-path').value=r?.path||'/';
     for(const [field,key] of [['main','main'],['scroll','scroll'],['message','message'],['anchor','anchor']])$('css-'+field).value=r?.[key]||'';
-    $('css-position').value=r?.position||'auto';
     updateEditorScope();show('editor','site-url');$('mock-stage').hidden=false;renderDraft();
   }
   function exitEditor(){leave('editor',editorFrom,editorFrom==='sites'?'sites-add':editorFrom==='builtin'?'builtin-add-custom':'home-add');}
@@ -443,8 +442,6 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
       ['main',true],['scroll',true],['message',false],['anchor',false]
     ],errors={};
     for(const [id,required] of fields)errors[id]=selectorError($('css-'+id).value,required);
-    if($('css-position').value==='anchor'&&!$('css-anchor').value.trim())
-      errors.anchor='跟随锚点须填写锚点 CSS';
     return {ok:!target.error&&fields.every(([id])=>!errors[id]),target,errors};
   }
   function ruleValid(){return ruleCheck().ok;}
@@ -458,7 +455,6 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
       element.dataset.invalid=String(Boolean(error&&value));
       $('css-'+id).setAttribute('aria-invalid',String(Boolean(error&&value)));
     }
-    $('position-note').hidden=$('css-position').value==='auto';
     const error=status.target.error;
     $('editor-feedback').hidden=!error;
     $('editor-feedback').textContent=error||'';
@@ -496,9 +492,8 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   });
   mockStage.addEventListener('keydown',event=>{if(pick&&(event.key==='Enter'||event.key===' ')){const target=event.target.closest?.('.mock-target');if(target){event.preventDefault();target.click();}}});
   $('mock-reset').onclick=()=>{$('mock-scroll').scrollTop=110;$('mock-state').textContent='已移动到中段，便于验证滚动。'};
-  for(const id of ['css-main','css-scroll','css-message','css-anchor','css-position']){
+  for(const id of ['css-main','css-scroll','css-message','css-anchor']){
     $(id).addEventListener('input',()=>{draftDirty=true;renderDraft();});
-    if(id==='css-position')$(id).addEventListener('change',()=>{draftDirty=true;renderDraft();});
   }
   function savePreviewRule(){
     if(!ruleValid()){renderDraft();return;}
@@ -506,7 +501,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     const target=editorTarget();
     const normalized={url:target.url.href,origin:target.origin,path:target.path,enabled:editIndex>=0?savedRules[editIndex].enabled:true,
       main:$('css-main').value.trim(),scroll:$('css-scroll').value.trim(),message:$('css-message').value.trim(),
-      anchor:$('css-anchor').value.trim(),position:$('css-position').value};
+      anchor:$('css-anchor').value.trim()};
     const slot=editIndex>=0?editIndex:savedRules.length;
     savedRules[slot]={...normalized};
     const snapshot={...savedRules[slot]};
