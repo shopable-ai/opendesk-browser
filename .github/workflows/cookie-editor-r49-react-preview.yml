@@ -86,6 +86,6 @@ jobs:
           if-no-files-found: warn
           path: |
             examples/sidebar-tools/cookie-editor/preview/react/index.html
-            examples/sidebar-tools/cookie-editor/preview/react/screenshots/
+            artifacts/cookie-editor-r523/
       # Publishing is owned by cookie-editor-r56-react-candidate.yml after
       # its combined source-bound package, Node and Chromium release gates.

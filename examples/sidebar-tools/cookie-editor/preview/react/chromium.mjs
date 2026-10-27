@@ -99,12 +99,16 @@ try{
   await page.setViewportSize({width:380,height:880});
   await page.getByTestId('width').selectOption('380');
   await lab.locator('summary').click();
-  await page.getByRole('searchbox',{name:'搜索市场资源'}).fill('委托');
+  // The production market offers working in-product experiences, not the
+  // retired review/request mock. Verify the actual account-switch route.
+  await page.getByRole('searchbox',{name:'搜索市场功能'}).fill('快捷');
   assert.equal(await cards.count(),1);
-  await page.getByRole('button',{name:'查看详情'}).click();
-  await page.getByRole('button',{name:'模拟申请'}).click();
-  await page.getByText(/只更新页面状态/).waitFor();
-  await button('返回市场').click();
+  await page.getByRole('button',{name:'体验切换设置'}).click();
+  await page.getByRole('heading',{name:'管理自动切换'}).waitFor();
+  await button('返回账号').click();
+  await page.getByRole('tab',{name:'市场',exact:true}).click();
+  await page.getByRole('searchbox',{name:'搜索市场功能'}).fill('');
+  assert.equal(await page.locator('.cookie-market-resource').count(),3);
   await scene('ready');
   await ready();
   await lab.locator('summary').click();
