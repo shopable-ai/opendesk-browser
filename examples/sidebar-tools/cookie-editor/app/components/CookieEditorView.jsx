@@ -322,6 +322,14 @@ export function CookieSearch({
     </section>}
   </>;
 }
+// Session Cookies have no absolute expiration; presentation reads only redacted metadata.
+export function cookieRowExpiryLabel(row,nowSeconds=Date.now()/1000){
+  if(row.session===true)return '会话';
+  if(!Number.isFinite(row.expirationDate))return '到期时间未知';
+  if(row.expirationDate<=nowSeconds)return '已过期';
+  const local=localExpirationText(row.expirationDate);
+  return local?'到期 '+local.slice(0,16).replace('T',' '):'到期时间未知';
+}
 export function CookieRows({
   rows=[],totalCount=rows.length,selected=null,onSelect=()=>{},
   pinnedNote=false,newEditor=null,renderEditor=null,idPrefix='editor-',site=''
@@ -329,31 +337,39 @@ export function CookieRows({
   return <section className="cookie-list" aria-label="Cookie 列表">
     {newEditor}
     {pinnedNote&&<p className="pinned-note">当前编辑项不符合筛选条件，暂时保留显示。</p>}
-    {rows.map(row=><article key={row.id}
-      className={'cookie-row '+(selected===row.id?'expanded':'')}>
-      <button className="row-trigger od-button od-button--quiet" data-row={row.id} type="button"
-        aria-expanded={selected===row.id} aria-controls={idPrefix+row.id}
-        onClick={()=>onSelect(row.id)}>
-        <span className="row-text"><strong>{row.name}</strong>
-          {(() => {
-            const details=[
-              ...(row.domain.replace(/^\./,'')===site?[]:[row.domain]),
-              ...(row.path==='/'?[]:[row.path]),
-              ...(row.hostOnly===false?['跨子域']:[]),
-              ...(row.partitionKey?['分区']:[])
-            ];
-            return details.length?<small>{details.join(' · ')}</small>:null;
-          })()}</span>
-        <CookieIcon name="chevron"/>
-      </button>
-      {selected===row.id&&<div id={idPrefix+row.id}>
-        {renderEditor?renderEditor(row):
-          <div className="cookie-react-detail" role="status">
-            <span>仅展示虚构元数据，不读取 Cookie 值。</span>
-            <button type="button" className="od-button od-button--secondary" onClick={()=>onSelect(null)}>收起</button>
-          </div>}
-      </div>}
-    </article>)}
+    {rows.map(row=>{
+      const expired=row.session!==true&&Number.isFinite(row.expirationDate)&&
+        row.expirationDate<=Date.now()/1000;
+      const details=[
+        cookieRowExpiryLabel(row),
+        ...(String(row.domain||'').replace(/^\./,'')===site?[]:[row.domain]),
+        ...(row.path==='/'?[]:[row.path]),
+        ...(row.hostOnly===false?['跨子域']:[])
+      ].filter(Boolean);
+      return <article key={row.id} className={'cookie-row '+(selected===row.id?'expanded':'')}>
+        <button className="row-trigger od-button od-button--quiet" data-row={row.id} type="button"
+          aria-expanded={selected===row.id} aria-controls={idPrefix+row.id}
+          onClick={()=>onSelect(row.id)}>
+          <span className="row-text"><strong>{row.name}</strong>
+            <small className={expired?'cookie-row-expired':undefined}>{details.join(' · ')}</small>
+          </span>
+          <span className="row-flags">
+            {row.httpOnly===true&&<abbr title="HttpOnly" aria-label="HttpOnly">H</abbr>}
+            {row.secure===true&&<abbr title="Secure" aria-label="Secure">S</abbr>}
+            {Boolean(row.partitionKey)&&<abbr title="Partitioned" aria-label="Partitioned">P</abbr>}
+          </span>
+          <CookieIcon name="chevron"/>
+        </button>
+        {selected===row.id&&<div id={idPrefix+row.id}>
+          {renderEditor?renderEditor(row):
+            <div className="cookie-react-detail" role="status">
+              <span>仅展示 Cookie 元数据；读取敏感值需要额外授权。</span>
+              <button type="button" className="od-button od-button--secondary"
+                onClick={()=>onSelect(null)}>收起</button>
+            </div>}
+        </div>}
+      </article>;
+    })}
     {rows.length===0&&!newEditor&&<div className="empty-list">
       <strong>{totalCount===0?'本站暂无 Cookie':'没有匹配的 Cookie'}</strong>
       <span>{totalCount===0?'可以新建或导入。':'尝试更换关键词或筛选条件。'}</span>

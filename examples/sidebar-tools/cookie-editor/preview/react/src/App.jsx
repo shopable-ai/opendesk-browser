@@ -50,7 +50,7 @@ export default function App(){
     </select></label>
     <label>宽度 <select data-testid="width" value={width}
       onChange={e=>setWidth(Number(e.target.value))}>
-      {[320,360,380,400,440].map(value=><option key={value} value={value}>{value}px</option>)}
+      {[320,360,380,400,440,520].map(value=><option key={value} value={value}>{value}px</option>)}
     </select></label>
     <label>模拟网站 <select data-testid="site" value={site} onChange={e=>switchSite(e.target.value)}>
      {demoSites.map(hostname=><option key={hostname} value={hostname}>{hostname}</option>)}

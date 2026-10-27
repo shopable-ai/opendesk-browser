@@ -518,8 +518,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         adapter={adapter} onDirty={setDirty}/>
     </>:
     <>
-      {section==='cookie'&&<section id="cookie-product-panel-cookie"
-        role="tabpanel" aria-labelledby="cookie-product-tab-cookie">
+      {section==='cookie'&&<section className="cookie-product-pane"
+        id="cookie-product-panel-cookie" role="tabpanel"
+        aria-labelledby="cookie-product-tab-cookie" aria-busy={busy}>
       <CookiePermissions phase={snapshot.phase} reason={snapshot.problem} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}
         onOffline={()=>switchMode('offline')}/>

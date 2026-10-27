@@ -73,8 +73,10 @@
 .cookie-editor-react .row-text{min-width:0;flex:1;display:grid;gap:2px;text-align:left}
 .cookie-editor-react .row-text strong,.cookie-editor-react .row-text small{white-space:normal;overflow-wrap:anywhere;line-height:1.5}
 .cookie-editor-react .row-text small{font-size:var(--od-meta-size);color:var(--od-sub)}
-.cookie-editor-react .row-flags{display:flex;gap:3px;color:var(--od-sub)}
-.cookie-editor-react .row-flags abbr{text-decoration:none;font-size:var(--od-meta-size)}
+.cookie-editor-react .row-flags{display:flex;gap:var(--space-1);align-items:center;flex:none;color:var(--od-sub)}
+.cookie-editor-react .row-flags abbr{font-size:var(--od-meta-size);line-height:1.2;text-decoration:none;
+  padding:2px 4px;border-radius:var(--radius-control);background:var(--od-muted)}
+.cookie-editor-react .row-text .cookie-row-expired{color:var(--od-danger,var(--od-sub))}
 .cookie-editor-react .cookie-react-detail{padding:var(--space-3);border-top:1px solid var(--od-line);display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap}
 .cookie-editor-react .empty-list{display:grid;gap:var(--space-1);padding:var(--space-4);text-align:center;color:var(--od-sub)}
 .cookie-editor-react .empty-list strong{color:var(--od-ink)}
@@ -223,7 +225,7 @@
 
 /* R5.36: the list stays mounted and inert. The sheet hugs its content;
    only overflowing sheet content scrolls, not the header/actions. */
-.cookie-editor-react>.cookie-editor-workspace{position:relative}
+.cookie-editor-react .cookie-editor-workspace{position:relative}
 .cookie-editor-react .cookie-import-dismiss-layer{
   position:absolute;inset:0;z-index:4;background:color-mix(in srgb,var(--od-ink) 5%,transparent);
 }
@@ -302,7 +304,11 @@
   box-sizing:border-box;height:100dvh;min-height:0;max-height:100dvh;
   display:flex;flex-direction:column;overflow:hidden;
 }
-.cookie-editor-react>.cookie-editor-workspace{
+/* The live Cookie tabpanel owns the flex height, so only its list scrolls. */
+.cookie-editor-react>.cookie-product-pane{
+  display:flex;flex:1 1 auto;flex-direction:column;min-width:0;min-height:0;overflow:hidden;
+}
+.cookie-editor-react .cookie-editor-workspace{
   display:flex;flex:1 1 auto;flex-direction:column;min-height:0;min-width:0;overflow:hidden;
 }
 .cookie-editor-react .cookie-react-view{
@@ -342,6 +348,12 @@
 .cookie-editor-react .cookie-account-card-text{display:grid;gap:2px;min-width:0;flex:1}
 .cookie-editor-react .cookie-account-card-text strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-card-text small{color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cookie-editor-react .cookie-account-applied{
+  flex:none;color:var(--od-positive);font-size:var(--od-meta-size);white-space:nowrap;
+}
+.cookie-editor-react .cookie-account-security-note{
+  margin:0;color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.6;
+}
 .cookie-editor-react .cookie-account-menu-anchor{position:relative;flex:none}
 .cookie-editor-react .cookie-account-menu{position:fixed;z-index:1000;width:190px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 20px);overflow-y:auto;display:grid;padding:4px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);box-shadow:0 6px 22px color-mix(in srgb,var(--od-ink) 14%,transparent)}
 .cookie-editor-react .cookie-account-menu>button{width:100%;min-height:35px;justify-content:flex-start;text-align:left}

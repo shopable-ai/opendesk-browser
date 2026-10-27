@@ -231,10 +231,21 @@ export function CookieAccounts({
       </div>
     </header>
     <div className="cookie-account-content">
-      <CookieMembershipRecommendations origin={origin}/>
       {previewOnly&&<p className="cookie-account-notice" role="status">
         这是源自正式 React 组件的虚构数据演示：不会写入真实 Cookie、加密仓库或浏览器自动切换后台。
       </p>}
+      {vaultReady&&accounts.length>0&&<div className="cookie-account-current" aria-label="当前账号状态">
+        <span className="cookie-account-avatar" aria-hidden="true">{String(accounts.find(item=>item.alias===currentAlias)?.displayName||'?').slice(0,1)}</span>
+        <div><small>{currentAlias?'当前已应用的快照（非登录验证）':'当前账号状态'}</small><strong>{accounts.find(item=>item.alias===currentAlias)?.displayName||'尚未验证'}</strong>
+          <small>{currentAlias&&accounts.some(item=>item.alias===currentAlias)?'最近一次可信切换结果 · 非网页登录验证':'无法根据 Cookie 快照推断网站登录身份'}</small></div>
+      </div>}
+      <label className="cookie-account-setting">
+        <span><strong>切换后自动刷新网页</strong>
+          <small>默认开启，确认写入及回读成功后才刷新</small></span>
+        <input type="checkbox" role="switch" checked={autoRefresh}
+          disabled={busy||!switchReady||typeof onToggleRefresh!=='function'}
+          onChange={event=>onToggleRefresh?.(event.target.checked)}/>
+      </label>
       {!vaultReady&&<div className="cookie-account-unlock">
         <label htmlFor="cookie-account-passphrase">
           <strong>{configured?'解锁本机账号仓库':'首次设置账号仓库口令'}</strong>
@@ -271,18 +282,6 @@ export function CookieAccounts({
             onClick={commitInline}>{inline.kind==='delete'?'删除快照':'保存'}</button>
         </div>
       </div>}
-      {vaultReady&&accounts.length>0&&<div className="cookie-account-current" aria-label="当前账号状态">
-        <span className="cookie-account-avatar" aria-hidden="true">{String(accounts.find(item=>item.alias===currentAlias)?.displayName||'?').slice(0,1)}</span>
-        <div><small>当前账号</small><strong>{accounts.find(item=>item.alias===currentAlias)?.displayName||'尚未验证'}</strong>
-          <small>{currentAlias&&accounts.some(item=>item.alias===currentAlias)?'最近一次可信切换结果 · 非网页登录验证':'无法根据 Cookie 快照推断网站登录身份'}</small></div>
-      </div>}
-      <label className="cookie-account-setting">
-        <span><strong>切换后自动刷新网页</strong>
-          <small>默认开启，确认写入及回读成功后才刷新</small></span>
-        <input type="checkbox" role="switch" checked={autoRefresh}
-          disabled={busy||!switchReady||typeof onToggleRefresh!=='function'}
-          onChange={event=>onToggleRefresh?.(event.target.checked)}/>
-      </label>
       {!vaultReady&&<p className="cookie-account-notice" role="status">
         加密仓库保持锁定。解锁前不会读取、保存或切换任何登录 Cookie。
       </p>}
@@ -297,9 +296,12 @@ export function CookieAccounts({
         <div className="cookie-account-card-text">
           <strong>{item.displayName}</strong><small>{item.siteLabel||origin}</small>
         </div>
-        <button type="button" className="od-button od-button--secondary"
-          disabled={busy||!switchReady||typeof onSwitch!=='function'||item.alias===currentAlias}
-          onClick={()=>onSwitch?.(item)}>{item.alias===currentAlias?'已切换':'切换'}</button>
+        {item.alias===currentAlias
+          ?<span className="cookie-account-applied"
+            title="最近一次可信切换确认；不代表网站已经登录">● 已应用</span>
+          :<button type="button" className="od-button od-button--secondary"
+            disabled={busy||!switchReady||typeof onSwitch!=='function'}
+            onClick={()=>onSwitch?.(item)}>切换</button>}
         <div className="cookie-account-menu-anchor">
           <button type="button" className="od-icon-button"
             disabled={busy||!vaultReady}
@@ -333,6 +335,10 @@ export function CookieAccounts({
         {accounts.length?'没有匹配的账号。':
           '尚无账号快照。解锁后可保存当前网站的 Cookie 账号。'}
       </p>}
+      <p className="cookie-account-security-note">
+        账号快照保存在本机加密仓库；分享配置与切换链接不包含 Cookie 或 Session Token。
+      </p>
+      <CookieMembershipRecommendations origin={origin}/>
     </div>
   </section>;
 }
