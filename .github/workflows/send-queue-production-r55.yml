@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'examples/programs/chatgpt-send-queue/src/**'
+      - 'examples/programs/chatgpt-send-queue/assets/**'
+      - 'examples/programs/chatgpt-send-queue/preview/**'
+      - 'examples/programs/chatgpt-send-queue/scripts/**'
       - 'examples/programs/chatgpt-send-queue/tests/**'
       - 'examples/programs/chatgpt-send-queue/package.json'
       - 'official-pages/sources.json'
@@ -37,6 +40,20 @@ jobs:
           node --test examples/programs/chatgpt-send-queue/tests/*.test.mjs
           node scripts/validate-program-project.mjs examples/programs/chatgpt-send-queue
           node examples/programs/chatgpt-send-queue/scripts/sync-crown-preview.mjs --check
+      - name: Resolve blocked candidate identity from official catalog
+        run: |
+          node --input-type=module <<'NODE' >> "$GITHUB_ENV"
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const catalog=JSON.parse(readFileSync('official-pages/sources.json','utf8'));
+          const manifest=JSON.parse(readFileSync('examples/programs/chatgpt-send-queue/package.json','utf8'));
+          const entry=catalog.programs.find(row=>row.programId==='opendesk.ai-send-queue');
+          assert.ok(entry,'missing official catalog entry');
+          assert.equal(entry.version,manifest.version);
+          assert.equal(entry.publication,'blocked','Mac acceptance is still required before public release');
+          assert.ok(Number.isSafeInteger(entry.revision)&&entry.revision>=10,'R5.5 must not rewrite r9');
+          console.log('SEND_QUEUE_REVISION='+entry.revision);
+          NODE
       - name: Compile actual Program with the existing production builder
         run: npm run build:program -- examples/programs/chatgpt-send-queue --out "$RUNNER_TEMP/send-queue-build"
       - name: Build canonical Page install package with existing installer format
@@ -44,7 +61,7 @@ jobs:
           node scripts/build-page-install-package.mjs \
             --input "$RUNNER_TEMP/send-queue-build/program.opendesk-draft.json" \
             --out examples/programs/chatgpt-send-queue/ai-send-queue.opendesk-page.json \
-            --revision 3 --title "AI 消息发送队列"
+            --revision "$SEND_QUEUE_REVISION" --title "AI 消息发送队列"
       - name: Validate package identity and compiled source integrity
         run: |
           node --input-type=module <<'NODE'
@@ -64,7 +81,13 @@ jobs:
           assert.equal(pkg.version,manifest.version);
           assert.equal(pkg.version,entry.version);
           assert.equal(pkg.revision,entry.revision);
-          assert.equal(pkg.revision,3);
+          assert.ok(pkg.revision>=10,'do not overwrite r9');
+          for(const marker of ['sq-empty-mark','sq-panel sq-empty','#f7f8fa','#2e3035',
+            'Packaged Send Queue crown image is missing or invalid']) {
+            assert.ok(pkg.sourceUtf8.includes(marker),'missing compiled R5.5 feature: '+marker);
+          }
+          const crown=(await readFile(dir+'assets/crown-premium.webp')).toString('base64');
+          assert.ok(pkg.sourceUtf8.includes(crown),'bundled WebP differs from official crown');
           assert.equal(pkg.sourceHash,createHash('sha256').update(pkg.sourceUtf8).digest('hex'));
           assert.equal((await validatePageInstallPackage(pkg)).packageHash,pkg.packageHash);
           assert.deepEqual(pkg.pageRules,manifest.opendesk.pageRules);
@@ -103,6 +126,10 @@ jobs:
             git fetch --no-tags origin main
             if ! git diff --quiet "$BASE_SHA" origin/main -- \
               examples/programs/chatgpt-send-queue/src \
+              examples/programs/chatgpt-send-queue/assets \
+              examples/programs/chatgpt-send-queue/preview \
+              examples/programs/chatgpt-send-queue/scripts \
+              examples/programs/chatgpt-send-queue/tests \
               examples/programs/chatgpt-send-queue/package.json \
               official-pages/sources.json "$FILE"; then
               echo 'Concurrent Send Queue source/package change; refusing publication'

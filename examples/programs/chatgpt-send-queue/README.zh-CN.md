@@ -1,6 +1,8 @@
 # OpenDesk Send Queue · ChatGPT 网页增强
 
-Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · 范围仅 `https://chatgpt.com/*` · 当前版本 `0.1.10`、r9。
+Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · 范围仅 `https://chatgpt.com/*` · 当前待验收候选版本 `0.1.11`、r10；下述 r9 为历史实测。
+
+2026-10-27 R5.5 增量：原皇冠 WebP 与最新空队列 CSS 均采用既有源码；将候选身份升为 0.1.11/r10，由原生产编译和官方 Page 安装格式生成新包，不覆盖历史 r9 内容指纹。发布清单继续设置 `publication: blocked`；源码静态检查、CI Chromium 离线画面和真实 Mac Chrome 安装、发送、200% 缩放必须分开记证，未验证项目保留 `NOT_TESTED`。皇冠几何和原生输入框样式不重新设计。
 
 2026-10-27 当前结果：r9 经原管理入口同身份升级。待发送列表直接衔接原生消息框，中间不再显示等待、准备、停止或入站确认说明，也不保留状态栏空白。操作说明留在按钮提示中；发送结果未知时，对应消息行显示可聚焦的警示按钮，悬停查看原因、点击或键盘激活查看提示，仍禁止自动重试；折叠项内的异常会在展开按钮显示警示。官网发送、停止、草稿保护、取回和删除继续沿用既有逻辑。
 
