@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Send Queue · Crown Tuner (Standalone)</title>
+<link rel="stylesheet" href="../../assets/queue.css">
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;color-scheme:light;--bg:#f5f6f8;--surface:#fff;--ink:#212733;--muted:#747b8c;--line:#e4e6ee}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}button,input{font:inherit}button{cursor:pointer}
+main{max-width:590px;margin:28px auto;padding:0 16px 30px}h1{font-size:20px;letter-spacing:-.3px;margin:0 0 5px}p{font-size:12px;color:var(--muted);line-height:1.6}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px}
+.work{height:144px;display:flex;align-items:center;justify-content:center;overflow:visible}
+.tool.size-34 .sq-send{--sq-crown-w:var(--sq-crown-desktop-w);--sq-crown-h:var(--sq-crown-desktop-h);--sq-crown-x:var(--sq-crown-desktop-x);--sq-crown-y:var(--sq-crown-desktop-y);--sq-crown-angle:var(--sq-crown-desktop-angle);width:34px;height:34px;min-width:34px}
+.tool.size-42 .sq-send{--sq-crown-w:var(--sq-crown-touch-w);--sq-crown-h:var(--sq-crown-touch-h);--sq-crown-x:var(--sq-crown-touch-x);--sq-crown-y:var(--sq-crown-touch-y);--sq-crown-angle:var(--sq-crown-touch-angle);width:42px;height:42px;min-width:42px}
+.tool.size-42 .sq-send>svg{width:20px;height:20px}
+#preview{transform:scale(2);cursor:default}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0 4px;font-size:12px;color:var(--muted)}output{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:#4c72f0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0}
+.actions button,.seg button{border:1px solid var(--line);border-radius:9px;padding:7px 12px;background:var(--surface);color:var(--ink);font-size:12px}
+.seg{display:flex;gap:6px}.seg button.active{border-color:#7290f0;background:#eaf0ff;color:#3055cb}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.5;background:var(--bg);border-radius:10px;padding:11px;color:var(--muted)}
+a{color:#466add}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #6685f8;outline-offset:2px}
+@media(max-width:430px){main{margin:14px auto}.card{padding:13px}}
+</style></head>
+<body><main class="tool size-34" id="tool">
+<h1>皇冠微调工具</h1>
+<p>独立设计工具。直接复用正式 <code>assets/queue.css</code> 与 <code>crown-premium.webp</code>，不会修改发送队列、官网输入框或生产参数。</p>
+<section class="card">
+<div class="row" style="margin-top:0"><strong>按钮尺寸</strong><div class="seg" id="sizes"><button type="button" data-size="34" class="active">34px</button><button type="button" data-size="42">42px</button></div></div>
+<div class="work"><button id="preview" class="sq-send" type="button" tabindex="-1" aria-label="只读皇冠外观预览"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg><span class="sq-crown" aria-hidden="true"></span></button></div>
+</section>
+<section class="card" aria-label="独立皇冠参数">
+<div class="row"><label for="angle">旋转角度</label><output id="angle-out"></output></div><input id="angle" type="range" min="-20" max="20" step="1">
+<div class="row"><label for="scale">比例</label><output id="scale-out"></output></div><input id="scale" type="range" min="75" max="130" step="5" value="100">
+<div class="row"><label for="x">水平位移</label><output id="x-out"></output></div><input id="x" type="range" min="-8" max="8" step="1" value="0">
+<div class="row"><label for="y">垂直位移</label><output id="y-out"></output></div><input id="y" type="range" min="-8" max="8" step="1" value="0">
+<div class="actions"><button id="reset" type="button">恢复正式参数</button><button id="copy" type="button">复制当前 CSS</button></div>
+<pre id="variables" aria-label="当前 CSS 自定义属性"></pre><p id="status" role="status">仅在本页面临时调整，关闭后恢复正式参数。</p>
+</section>
+<p><a href="../index.html">返回发送队列主预览</a></p>
+</main>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),preview=$('preview'),tool=$('tool');
+const keys=['--sq-crown-w','--sq-crown-h','--sq-crown-x','--sq-crown-y','--sq-crown-angle'];
+let official=null,cssText='';
+function readBase(){
+  for(const key of keys)preview.style.removeProperty(key);
+  const c=getComputedStyle(preview),v=key=>parseFloat(c.getPropertyValue(key));
+  official={w:v(keys[0]),h:v(keys[1]),x:v(keys[2]),y:v(keys[3]),angle:v(keys[4])};
+  if(Object.values(official).some(x=>!Number.isFinite(x))){
+    $('status').textContent='无法读取正式 CSS；请从项目目录打开本工具并保留 assets 目录。';return false;
+  }
+  return true;
+}
+function setOutput(){
+  for(const [id,suffix] of [['angle','°'],['scale','%'],['x','px'],['y','px']])
+    $(id+'-out').textContent=$(id).value+suffix;
+}
+function apply(){
+  if(!official)return;
+  const factor=Number($('scale').value)/100,w=official.w*factor,h=official.h*factor;
+  const values={
+    '--sq-crown-w':w.toFixed(2)+'px','--sq-crown-h':h.toFixed(2)+'px',
+    '--sq-crown-x':(official.x-(w-official.w)*.5+Number($('x').value)).toFixed(2)+'px',
+    '--sq-crown-y':(official.y-(h-official.h)*.78+Number($('y').value)).toFixed(2)+'px',
+    '--sq-crown-angle':$('angle').value+'deg'
+  };
+  for(const [key,value] of Object.entries(values))preview.style.setProperty(key,value);
+  cssText=Object.entries(values).map(([key,value])=>key+': '+value+';').join('\n');
+  $('variables').textContent=cssText;
+  setOutput();
+}
+function reset(){
+  if(!readBase())return;
+  $('angle').value=String(official.angle);
+  $('scale').value='100';$('x').value='0';$('y').value='0';
+  apply();$('status').textContent='当前为正式默认参数（仅在本工具中预览）。';
+}
+for(const key of ['angle','scale','x','y'])$(key).addEventListener('input',apply);
+$('sizes').addEventListener('click',event=>{
+  const b=event.target.closest('button[data-size]');if(!b)return;
+  tool.className='tool size-'+b.dataset.size;
+  for(const target of $('sizes').querySelectorAll('button'))target.classList.toggle('active',target===b);
+  reset();
+});
+$('reset').addEventListener('click',reset);
+$('copy').addEventListener('click',async()=>{
+  if(!cssText)return;
+  try{await navigator.clipboard.writeText(cssText);$('status').textContent='已复制参数；尚未写入生产代码。';}
+  catch{$('status').textContent='浏览器禁止直接复制，请手动选中下方 CSS。';const selection=window.getSelection(),range=document.createRange();range.selectNodeContents($('variables'));selection.removeAllRanges();selection.addRange(range);}
+});
+preview.addEventListener('click',event=>event.preventDefault());
+reset();
+})();
+</script></body></html>
