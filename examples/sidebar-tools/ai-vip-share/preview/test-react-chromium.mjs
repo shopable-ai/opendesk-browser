@@ -115,7 +115,12 @@ async function capture(width,theme,name){
   await cdp('Emulation.setDeviceMetricsOverride',{width,height:1460,deviceScaleFactor:1,mobile:false});
   await cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:theme}]});
   await select('#preview-width',String(width));
-  await evaluate('document.querySelector(".studio").style.padding="0";'+
+  // Linux CI reserves ~17 CSS px for a classic page scrollbar; macOS Side
+  // Panels use overlay scrollbars. Hide the test-page scrollbar without
+  // disabling scrolling or changing installable App/Shared UI geometry.
+  await evaluate('document.documentElement.style.scrollbarWidth="none";'+
+    'document.body.style.scrollbarWidth="none";'+
+    'document.querySelector(".studio").style.padding="0";'+
     'document.querySelector(".frame").style.border="0";'+
     'document.documentElement.style.setProperty("--frame-width",'+JSON.stringify(width+'px')+')');
   await wait(100);
