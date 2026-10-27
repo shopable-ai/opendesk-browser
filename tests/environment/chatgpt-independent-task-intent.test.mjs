@@ -13,7 +13,7 @@ import {encodeValue} from '../../src/platform/page-port/codec.js';
 const protocol='opendesk.chatgpt.bridge.r12.v1';
 const id='33333333-3333-4333-8333-333333333333';
 const source={tabId:9,documentId:'installed-task-document',url:'https://chatgpt.com/c/task-test-12345678'};
-function harness({holdRun=false}={}){
+function harness({holdRun=false,clock}={}){
   const installation={version:'1.2.3',manifestHash:'a'.repeat(64),scriptId:'task:article.read:1.2.3',
     revision:1,contentHash:'b'.repeat(64),installationId:'article-install-1',generation:2};
   const manifest={taskId:'article.read',version:'1.2.3',title:'读取文章',description:'按参数读取文章',
@@ -40,22 +40,26 @@ function harness({holdRun=false}={}){
   const observed={turnKey:message.turnKey,answerKey:message.answerKey,blocks:[JSON.stringify(intent)]};
   let saved={},counter=0,losePrepare=false;
   const storage={get:async key=>({[key]:structuredClone(saved[key])}),set:async value=>{Object.assign(saved,structuredClone(value));}};
-  const ledger=createChatGPTBridgeTriggerLedger({storage,generateId:()=>`44444444-4444-4444-8444-${String(++counter).padStart(12,'0')}`});
+  const ledger=createChatGPTBridgeTriggerLedger({storage,clock,generateId:()=>`44444444-4444-4444-8444-${String(++counter).padStart(12,'0')}`});
   const runningReady=Promise.withResolvers(),heldCompletion=Promise.withResolvers();
   const target={mode:'owned',tabId:42,frameId:0,documentId:'article-target-document',
     allowedOrigin:'https://example.com',targetSessionId:'article-session',targetVersion:1};
   const targetFrame={tabId:target.tabId,frameId:0,documentId:target.documentId,
     documentLifecycle:'active',url:request.targetUrl};
   const chromeEvent=()=>{const listeners=new Set();return {
-    addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)};};
+    addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),
+    emit:value=>{for(const listener of listeners)listener(value);}};};
   const permissionListeners=new Set();
   const events={starts:[],gates:[],progress:[],deliveries:[],snapshots:[],updates:[],stops:[]};
-  let permission=true,onSend=()=>{};
+  let permission=true,verified=true,onRead=()=>{},onSend=()=>{};
+  const lostACKs=new Set();
   const api={runtime:{id:'extid',async sendMessage(msg){events.gates.push(msg);
     try{
-      const data=await (msg.kind==='prepare'?ledger.prepare(msg.source,msg):
+      const data=await (msg.kind==='preapprove-next'?ledger.preapproveNext(msg.source,msg):
+        msg.kind==='bind-preapproved'?ledger.bindPreapproved(msg):
+        msg.kind==='revoke-request'?ledger.revokeRequest(msg):msg.kind==='prepare'?ledger.prepare(msg.source,msg):
         msg.kind==='authorize'?ledger.authorize(msg):msg.kind==='reserve'?ledger.reserve(msg):ledger.assertConsumed(msg));
-      if(msg.kind==='prepare'&&losePrepare)throw Error('ACK lost after durable write');
+      if(msg.kind==='prepare'&&losePrepare||lostACKs.has(msg.kind))throw Error('ACK lost after durable write');
       return {ok:true,data};
     }catch(error){return {ok:false,error:{code:error.code,message:error.message}};}}},
     tabs:{onRemoved:chromeEvent(),onDetached:chromeEvent(),onReplaced:chromeEvent(),
@@ -85,11 +89,17 @@ function harness({holdRun=false}={}){
   const finish=()=>{snapshot.run.state='completed';snapshot.run.retirementState='released';
     host.currentRun=null;heldCompletion.resolve(terminal);};
   const bridge=createChatGPTFixedBridgeHost({api,client,host,currentPageTarget:{snapshot:{windowId:2}},
-    isVerifiedSidePanel:()=>true,checkTarget:async()=>{},
-    readReply:async()=>structuredClone(observed)});
-  return {bridge,client,request,message,sender,installation,installed,resolved,candidate,events,snapshot,observed,intent,ledger,storage,host,target,finish,runningReady:runningReady.promise,
+    isVerifiedSidePanel:()=>verified,checkTarget:async()=>{},
+    readReply:async(_api,_source,_id,options)=>{
+      await onRead(options);
+      if(observed.error)throw observed.error;
+      return options.identityOnly?{...structuredClone(observed),answerComplete:observed.answerComplete!==false}:
+        structuredClone(observed);
+    }});
+  return {bridge,api,client,request,message,sender,installation,installed,resolved,candidate,events,snapshot,observed,intent,ledger,storage,host,target,finish,
+    unverify:()=>{verified=false;},onRead:fn=>{onRead=fn;},loseACK:kind=>lostACKs.add(kind),runningReady:runningReady.promise,
     revokePermission:()=>{permission=false;for(const listener of permissionListeners)listener();},losePrepare:()=>{losePrepare=true;},
-    deny:()=>{permission=false;},onSend:fn=>{onSend=fn;}};
+    grant:()=>{permission=true;},deny:()=>{permission=false;},onSend:fn=>{onSend=fn;}};
 }
 
 const adoption=h=>({protocol,kind:'adopt-task',candidateText:h.observed.blocks[0],
@@ -203,8 +213,8 @@ function domFixture(){
   const sandbox=vm.createContext({location:new URL(source.url),
     document:{querySelectorAll:selector=>$(selector).toArray().map(wrap)},
     getComputedStyle:node=>({display:node.getAttribute?.('data-hidden')==='true'?'none':'block'})});
-  const read=()=>vm.runInContext('('+inspectChatGPTEditsOnPage.toString()+')('+JSON.stringify({
-    expectedUrl:source.url,taskIntent:true,requireComplete:true,protocols:['opendesk.task.intent.v1']})+')',sandbox);
+  const read=(options={})=>vm.runInContext('('+inspectChatGPTEditsOnPage.toString()+')('+JSON.stringify({
+    expectedUrl:source.url,taskIntent:true,requireComplete:true,protocols:['opendesk.task.intent.v1'],...options})+')',sandbox);
   return {$,read,text};
 }
 test('serialized ISOLATED discovery uses only the latest complete assistant, explicit marker and unique code block',()=>{
@@ -391,4 +401,323 @@ test('candidate dedup uses stable conversation identity across document reloads 
   const other=await h.ledger.prepare({...source,url:'https://chatgpt.com/c/other-conversation'},scope);
   assert.notEqual(first.requestId,other.requestId);
   assert.equal(Object.values(await h.read()).filter(row=>row.candidate).length,2);
+});
+
+const preapproval=h=>({protocol,kind:'preapprove-next-task',taskId:h.request.taskId,
+  args:{},targetUrl:h.request.targetUrl,installation:structuredClone(h.installation)});
+const nextAnswer=h=>{h.observed.turnKey='turn-2';h.observed.answerKey='answer-2:0';};
+const binding=(h,grant)=>({...adoption(h),kind:'bind-preapproved-task',requestId:grant.requestId});
+const autoExecution=(h,bound)=>({protocol,kind:'execute',mode:'auto',source,sourceUrl:source.url,
+  ...adoption(h),kind:'execute',requestId:bound.requestId,
+  adoptedRequest:{protocol:'opendesk.task.request.v1',kind:'opendesk.task.request',version:1,
+    requestId:bound.requestId,taskId:bound.taskId,args:bound.args,targetUrl:bound.targetUrl,installation:bound.installation}});
+const rowsOf=async h=>(await h.storage.get(CHATGPT_BRIDGE_LEDGER_KEY))[CHATGPT_BRIDGE_LEDGER_KEY];
+
+test('P0 preapproval requires a complete idle baseline and rechecks it without minting on drift',async()=>{
+  for(const state of ['streaming','pending','incomplete','turn-drift','answer-drift','unverified','busy']){
+    const h=harness();let reads=0;
+    h.onRead(options=>{
+      assert.deepEqual(options,{identityOnly:true,taskIntent:true,requireComplete:true});
+      if(++reads===2&&state==='turn-drift')h.observed.turnKey+='-changed';
+      if(reads===2&&state==='answer-drift')h.observed.answerKey+='-changed';
+    });
+    if(['streaming','pending'].includes(state))h.observed.error={code:state==='pending'?'E_CHAT_PENDING':'E_CHAT_STREAMING'};
+    if(state==='incomplete')h.observed.answerComplete=false;
+    if(state==='unverified')h.unverify();
+    if(state==='busy')h.host.currentRun='other-run';
+    await assert.rejects(h.bridge.preapproveNextTask(preapproval(h),h.sender));
+    assert.equal(h.events.gates.length,0);assert.equal(h.events.starts.length,0);
+  }
+});
+test('P0 grants persist one approved auto row; exact binding preserves nonce, scope and five minute expiry through execution',async()=>{
+  const h=harness({clock:()=>1000}),grant=await h.bridge.preapproveNextTask(preapproval(h),h.sender);
+  assert.deepEqual(grant.baseline,{turnKey:'turn-1',answerKey:'answer-1:0'});
+  assert.equal(grant.expiresAt,301000);assert.deepEqual(grant.args,{maxChars:200});
+  let rows=await rowsOf(h);assert.equal(Object.keys(rows).length,1);
+  assert.equal(rows[grant.requestId].status,'approved');assert.equal(rows[grant.requestId].mode,'auto');
+  await assert.rejects(h.ledger.reserve({...grant,mode:'auto',turnKey:'turn-2',answerKey:'answer-2:0'}),{code:'E_BRIDGE_CONTEXT'});
+  nextAnswer(h);const bound=await h.bridge.bindPreapprovedTask(binding(h,grant),h.sender);
+  assert.equal(bound.requestId,grant.requestId);assert.equal(bound.expiresAt,grant.expiresAt);
+  rows=await rowsOf(h);assert.equal(Object.keys(rows).length,1);assert.ok(rows[grant.requestId].candidate);
+  assert.equal((await h.bridge.handle(autoExecution(h,bound),h.sender)).sent,true);
+  assert.equal(h.events.starts.length,1);
+  await assert.rejects(h.bridge.bindPreapprovedTask(binding(h,grant),h.sender),{code:'E_BRIDGE_REPLAY'});
+});
+test('P0 binding rejects changed URL, args, task, installation, old turn or old answer',async()=>{
+  for(const change of ['url','args','task','installation','turn','answer','multiple','bytes']){
+    const h=harness(),grant=await h.bridge.preapproveNextTask(preapproval(h),h.sender);
+    nextAnswer(h);
+    if(change==='url')h.intent.targetUrl+='?changed=1';
+    if(change==='args')h.intent.args={maxChars:201};
+    if(change==='task')h.intent.taskId='unknown.task';
+    if(change==='installation'){h.installed.generation++;h.resolved.generation++;}
+    if(change==='turn')h.observed.turnKey=grant.baseline.turnKey;
+    if(change==='answer')h.observed.answerKey=grant.baseline.answerKey;
+    h.observed.blocks=[JSON.stringify(h.intent)];
+    if(change==='multiple')h.observed.blocks.push(h.observed.blocks[0]);
+    const message=binding(h,grant);if(change==='bytes')message.candidateText+=' ';
+    await assert.rejects(h.bridge.bindPreapprovedTask(message,h.sender));
+    assert.equal((await rowsOf(h))[grant.requestId].candidate,undefined);
+    assert.equal(h.events.starts.length,0);
+  }
+});
+test('P0 preapproval fails closed on source, verified Host or authority drift while awaiting and after persistence',async()=>{
+  for(const phase of ['before','after'])for(const change of ['source','authority','host']){
+    const h=harness();let reads=0;
+    h.onRead(()=>{if(++reads===(phase==='before'?2:3)){
+      if(change==='source')h.sender.tab.url='https://chatgpt.com/c/changed-conversation';
+      if(change==='authority')h.revokePermission();
+      if(change==='host')h.unverify();
+    }});
+    await assert.rejects(h.bridge.preapproveNextTask(preapproval(h),h.sender));
+    const rows=await rowsOf(h);
+    if(phase==='before')assert.equal(h.events.gates.length,0);
+    else assert.equal(Object.values(rows)[0].status,'revoked');
+  }
+});
+test('P0 expiry and source/permission revocation cannot be bound or extended after worker restart',async()=>{
+  for(const change of ['expiry','source','permission']){
+    let now=1000;const h=harness({clock:()=>now});
+    const grant=await h.bridge.preapproveNextTask(preapproval(h),h.sender);
+    if(change==='expiry')now=grant.expiresAt;
+    if(change==='source')await h.ledger.revokeSource(source.tabId);
+    if(change==='permission')await h.ledger.revokeApprovals();
+    nextAnswer(h);await assert.rejects(h.bridge.bindPreapprovedTask(binding(h,grant),h.sender),{code:'E_BRIDGE_REPLAY'});
+    const restarted=createChatGPTBridgeTriggerLedger({storage:h.storage,clock:()=>now});
+    const msg=h.events.gates.at(-1);
+    await assert.rejects(restarted.bindPreapproved(msg),{code:'E_BRIDGE_REPLAY'});
+    assert.equal((await rowsOf(h))[grant.requestId].expiresAt,grant.expiresAt);
+  }
+});
+test('P0 lost grant ACK cannot mint a replacement; lost binding ACK retains durable conversation tombstone',async()=>{
+  const lost=harness();lost.loseACK('preapprove-next');
+  await assert.rejects(lost.bridge.preapproveNextTask(preapproval(lost),lost.sender),{code:'E_BRIDGE_OUTCOME_UNKNOWN'});
+  await assert.rejects(lost.bridge.preapproveNextTask(preapproval(lost),lost.sender),{code:'E_BRIDGE_REPLAY'});
+  assert.equal(Object.keys(await rowsOf(lost)).length,1);
+  const h=harness(),grant=await h.bridge.preapproveNextTask(preapproval(h),h.sender);nextAnswer(h);
+  h.loseACK('bind-preapproved');
+  await assert.rejects(h.bridge.bindPreapprovedTask(binding(h,grant),h.sender),{code:'E_BRIDGE_OUTCOME_UNKNOWN'});
+  await assert.rejects(h.bridge.bindPreapprovedTask(binding(h,grant),h.sender),{code:'E_BRIDGE_REPLAY'});
+  const restarted=createChatGPTBridgeTriggerLedger({storage:h.storage});
+  await assert.rejects(restarted.prepare({...source,documentId:'reloaded'},
+    {...grant,candidate:(await rowsOf(h))[grant.requestId].candidate}),{code:'E_BRIDGE_REPLAY'});
+  assert.equal(h.events.starts.length,0);
+});
+test('P0 bind shares the candidate quota and conversation dedup with ordinary adoption',async()=>{
+  const h=capacityHarness();await h.seed({candidates:512});
+  const grant=await h.ledger.preapproveNext(source,{...h.scope,baseline:{turnKey:'old-turn',answerKey:'old-answer'}});
+  await assert.rejects(h.ledger.bindPreapproved({...grant,candidate:h.candidate()}),{code:'E_BRIDGE_LIMIT'});
+  const other=harness(),adopted=await adopt(other);
+  const pre=await other.bridge.preapproveNextTask(preapproval(other),other.sender);nextAnswer(other);
+  await assert.rejects(other.bridge.bindPreapprovedTask(binding(other,pre),other.sender),{code:'E_BRIDGE_REPLAY'});
+  assert.ok((await rowsOf(other))[adopted.requestId].candidate);
+});
+test('P0 SW accepts preapprove/bind only from the original trusted sidepanel, never content or a tool shell',async()=>{
+  const h=harness();let listener;const event={addListener(){}};
+  installChatGPTBridgeTriggerGate({api:{storage:{local:h.storage},runtime:{id:'extid',getURL:()=> 'chrome-extension://extid/',
+    onMessage:{addListener:fn=>{listener=fn;}}},
+    webNavigation:{getFrame:async()=>({...source,documentLifecycle:'active'}),onCommitted:event,onHistoryStateUpdated:event},
+    tabs:{get:async()=>({id:source.tabId,url:source.url}),onRemoved:event},permissions:{onRemoved:event}}});
+  const trusted={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=real'};
+  const call=(msg,sender)=>new Promise(resolve=>listener({protocol,...msg},sender,resolve));
+  const message={...preapproval(h),kind:'preapprove-next',source,baseline:{turnKey:'old-turn',answerKey:'old-answer'}};
+  for(const sender of [h.sender,{...trusted,url:trusted.url+'&toolId=tool'},
+    {...trusted,url:trusted.url+'&scheduledRunner=1'},{...trusted,id:'foreign'}]){
+    assert.equal((await call(message,sender)).error.code,'E_BRIDGE_SENDER');
+    assert.equal((await call({kind:'bind-preapproved',source,requestId:id},sender)).error.code,'E_BRIDGE_SENDER');
+  }
+  const grant=await call(message,trusted);assert.equal(grant.ok,true);
+  const candidate={candidateId:h.intent.candidateId,text:h.observed.blocks[0],turnKey:'turn-1',answerKey:'answer-1:0'};
+  assert.equal((await call({...grant.data,kind:'bind-preapproved',candidate},trusted)).ok,true);
+});
+test('failed durable permission/source revocation stays fail closed after access returns, then flushes before reserve',async()=>{
+  for(const method of ['revokeApprovals','revokeSource']){
+    const h=harness(),msg=await adopt(h);await approve(h,msg);
+    const gate={...h.events.gates.at(-1),turnKey:msg.turnKey,answerKey:msg.answerKey};
+    const set=h.storage.set;let failing=true;
+    h.storage.set=async value=>{if(failing)throw Error('storage unavailable');return set(value);};
+    await assert.rejects(h.ledger[method](source.tabId),/storage unavailable/);
+    await assert.rejects(h.ledger.reserve(gate),/storage unavailable/);
+    failing=false;
+    await assert.rejects(h.ledger.reserve(gate),{code:'E_BRIDGE_REPLAY'});
+    const restarted=createChatGPTBridgeTriggerLedger({storage:h.storage});
+    await assert.rejects(restarted.reserve(gate),{code:'E_BRIDGE_REPLAY'});
+    assert.equal((await rowsOf(h))[msg.requestId].status,'revoked');
+  }
+});
+test('Host admission uses the verified installed manifest deadline, including short and long budgets',async()=>{
+  for(const budget of [1000,120000,undefined]){
+    const h=harness();if(budget!==undefined)h.candidate.manifest.deadlineMs=budget;
+    const msg=await adopt(h);await approve(h,msg);const before=Date.now();
+    assert.equal((await h.bridge.handle(msg,h.sender)).sent,true);
+    const after=Date.now(),deadline=h.events.starts[0].deadlineAt;
+    assert.ok(deadline>=before+(budget??30000)&&deadline<=after+(budget??30000));
+  }
+});
+
+test('real SW revocation events fence failed storage writes and worker restart before any repair, including consumed delivery',async()=>{
+  for(const event of ['permission','navigation'])for(const state of ['approved','consumed']){
+    const h=harness();let listener;
+    h.api.storage={local:h.storage,session:sessionStorage()};
+    h.api.runtime.getURL=()=> 'chrome-extension://extid/';
+    h.api.runtime.onMessage={addListener:fn=>{listener=fn;}};
+    const trusted={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=real'};
+    const call=message=>new Promise(resolve=>listener(message,trusted,resolve));
+    h.api.runtime.sendMessage=call;
+    installChatGPTBridgeTriggerGate({api:h.api});
+    const msg=await adopt(h);msg.mode='auto';await approve(h,msg);
+    const row=(await rowsOf(h))[msg.requestId];
+    const context={protocol,source,requestId:msg.requestId,mode:'auto',...row.scope,
+      candidate:row.candidate,turnKey:msg.turnKey,answerKey:msg.answerKey};
+    if(state==='consumed')assert.equal((await call({...context,kind:'reserve'})).ok,true);
+    const set=h.storage.set;let failing=true;
+    h.storage.set=async value=>{if(failing)throw Error('event revocation write failure');return set(value);};
+    if(event==='permission')h.revokePermission();
+    else h.api.webNavigation.onCommitted.emit({tabId:source.tabId,frameId:0});
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal((await rowsOf(h))[msg.requestId].status,state); // durable write really failed
+    assert.ok((await h.api.storage.session.get(CHATGPT_BRIDGE_LEDGER_KEY))[CHATGPT_BRIDGE_LEDGER_KEY]);
+    const kind=state==='consumed'?'check-consumed':'reserve';
+    const failed=await call({...context,kind});
+    assert.equal(failed.ok,false);assert.match(failed.error.message,/event revocation write failure/);
+    // Restart before storage recovers: the new worker has no old in-memory latch.
+    installChatGPTBridgeTriggerGate({api:h.api});
+    await new Promise(resolve=>setImmediate(resolve));
+    failing=false;h.grant();
+    assert.equal((await call({...context,kind})).ok,false);
+    assert.equal((await rowsOf(h))[msg.requestId].status,'revoked');
+    await assert.rejects(h.bridge.handle(msg,h.sender));
+    assert.equal(h.events.starts.length,0);assert.equal(h.events.deliveries.length,0);
+  }
+});
+
+test('P0 concurrent bindings admit exactly one candidate on the original nonce; UNKNOWN execution cannot bind again',async()=>{
+  const h=harness(),grant=await h.bridge.preapproveNextTask(preapproval(h),h.sender);nextAnswer(h);
+  const results=await Promise.allSettled([h.bridge.bindPreapprovedTask(binding(h,grant),h.sender),
+    h.bridge.bindPreapprovedTask(binding(h,grant),h.sender)]);
+  assert.equal(results.filter(row=>row.status==='fulfilled').length,1);
+  assert.equal(results.find(row=>row.status==='rejected').reason.code,'E_BRIDGE_REPLAY');
+  const bound=results.find(row=>row.status==='fulfilled').value;
+  h.host.start=async()=>{throw Error('UNKNOWN after dispatch');};
+  await assert.rejects(h.bridge.handle(autoExecution(h,bound),h.sender),/UNKNOWN after dispatch/);
+  await assert.rejects(h.bridge.bindPreapprovedTask(binding(h,grant),h.sender),{code:'E_BRIDGE_REPLAY'});
+  assert.equal((await rowsOf(h))[grant.requestId].status,'consumed');
+});
+
+test('failed explicit request cancellation keeps its deny fence and never revokes a different source',async()=>{
+  const h=harness(),grant=await h.bridge.preapproveNextTask(preapproval(h),h.sender);
+  await assert.rejects(h.ledger.revokeRequest({source:{...source,documentId:'foreign'},requestId:grant.requestId}),{code:'E_BRIDGE_REQUEST'});
+  assert.equal((await rowsOf(h))[grant.requestId].status,'approved');
+  const set=h.storage.set;let failing=true;
+  h.storage.set=async value=>{if(failing)throw Error('cancel write failure');return set(value);};
+  await assert.rejects(h.ledger.revokeRequest(grant),/cancel write failure/);
+  await assert.rejects(h.ledger.revokeRequest({source:{...source,documentId:'foreign'},requestId:grant.requestId}),/cancel write failure/);
+  failing=false;nextAnswer(h);
+  await assert.rejects(h.bridge.bindPreapprovedTask(binding(h,grant),h.sender),{code:'E_BRIDGE_REPLAY'});
+  assert.equal((await rowsOf(h))[grant.requestId].status,'revoked');
+});
+
+
+test('P0 serialized baseline inspection accepts idle text without a candidate and rejects streaming or a pending user turn',()=>{
+  const f=domFixture();f.$('[data-message-author-role="assistant"]').text('已完成的普通回答');
+  const options={identityOnly:true,taskIntent:true,requireComplete:true};
+  const baseline=f.read(options);assert.equal(baseline.ok,true);assert.equal(baseline.answerComplete,true);
+  assert.ok(baseline.turnKey);assert.ok(baseline.answerKey);
+  f.$('[data-message-author-role="assistant"]').attr('data-is-streaming','true');
+  assert.equal(f.read(options).error.code,'E_CHAT_STREAMING');
+  f.$('[data-message-author-role="assistant"]').removeAttr('data-is-streaming');
+  f.$('main').append('<div data-message-author-role="user">等待新回答</div>');
+  assert.equal(f.read(options).error.code,'E_CHAT_PENDING');
+});
+
+
+function sessionStorage(){
+  let values={};
+  return {get:async key=>({[key]:structuredClone(values[key])}),
+    set:async update=>{Object.assign(values,structuredClone(update));}};
+}
+function restartableGate(h,clock){
+  let listener;
+  h.api.storage={local:h.storage,session:sessionStorage()};
+  h.api.runtime.getURL=()=> 'chrome-extension://extid/';
+  h.api.runtime.onMessage={addListener:fn=>{listener=fn;}};
+  const trusted={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=real'};
+  const send=message=>new Promise(resolve=>listener({protocol,...message},trusted,resolve));
+  h.api.runtime.sendMessage=send;
+  const restart=()=>installChatGPTBridgeTriggerGate({api:h.api,clock});
+  restart();return {send,restart};
+}
+test('healthy full Gate restart after 31 seconds preserves the original five minute grant, binding, consumption and delivery fence',async()=>{
+  let now=1000;const h=harness(),gate=restartableGate(h,()=>now);
+  const grant=await h.bridge.preapproveNextTask(preapproval(h),h.sender);
+  const before=await rowsOf(h);assert.equal(grant.expiresAt,301000);
+  now=32000;gate.restart();
+  assert.deepEqual(await rowsOf(h),before); // startup is read-only; no blanket revocation
+  nextAnswer(h);const bound=await h.bridge.bindPreapprovedTask(binding(h,grant),h.sender);
+  assert.equal(bound.requestId,grant.requestId);assert.equal(bound.expiresAt,301000);
+  assert.equal(bound.expiresAt-now,269000);
+  const context={...bound,mode:'auto',turnKey:bound.candidate.turnKey,answerKey:bound.candidate.answerKey};
+  assert.equal((await gate.send({...context,kind:'reserve'})).ok,true);
+  const consumed=await rowsOf(h);now+=31000;gate.restart();
+  assert.deepEqual(await rowsOf(h),consumed);
+  assert.deepEqual(await gate.send({...context,kind:'check-consumed'}),{ok:true,data:{allowed:true}});
+  assert.equal((await gate.send({...context,kind:'reserve'})).error.code,'E_BRIDGE_REPLAY');
+  assert.equal((await gate.send({...context,kind:'bind-preapproved'})).error.code,'E_BRIDGE_REPLAY');
+  assert.equal((await rowsOf(h))[grant.requestId].expiresAt,301000);
+});
+test('healthy full Gate restart retains a prepared candidate for its original authorization and normal Host delivery',async()=>{
+  let now=1000;const h=harness({holdRun:true}),gate=restartableGate(h,()=>now),message=await adopt(h);
+  const before=await rowsOf(h);now+=31000;gate.restart();assert.deepEqual(await rowsOf(h),before);
+  await approve(h,message);
+  now+=31000;gate.restart();
+  const execution=h.bridge.handle(message,h.sender);
+  await h.runningReady;
+  assert.equal((await rowsOf(h))[message.requestId].status,'consumed');
+  now+=31000;gate.restart();h.finish();
+  assert.equal((await execution).sent,true);
+  assert.equal(h.events.starts.length,1);assert.equal(h.events.deliveries.length,1);
+});
+test('session cancellation marker survives local write failure and healthy worker reconstruction, retaining candidate tombstones',async()=>{
+  const h=harness(),gate=restartableGate(h),message=await adopt(h);await approve(h,message);
+  const set=h.storage.set;h.storage.set=async()=>{throw Error('local cancellation failed');};
+  const reply=await gate.send({kind:'revoke-request',source,requestId:message.requestId});assert.equal(reply.ok,false);
+  const fence=(await h.api.storage.session.get(CHATGPT_BRIDGE_LEDGER_KEY))[CHATGPT_BRIDGE_LEDGER_KEY];
+  assert.equal(fence.requests[0].requestId,message.requestId);
+  gate.restart();h.storage.set=set;
+  await assert.rejects(h.bridge.handle(message,h.sender),{code:'E_BRIDGE_REPLAY'});
+  const rows=await rowsOf(h);assert.equal(rows[message.requestId].status,'revoked');assert.ok(rows[message.requestId].candidate);
+  assert.equal((await h.api.storage.session.get(CHATGPT_BRIDGE_LEDGER_KEY))[CHATGPT_BRIDGE_LEDGER_KEY],null);
+  assert.equal(h.events.starts.length,0);assert.equal(h.events.deliveries.length,0);
+});
+test('session fence write failure still attempts durable local revocation; simultaneous failure is only an in-worker fence',async()=>{
+  for(const bothFail of [false,true]){
+    const h=harness(),message=await adopt(h);await approve(h,message);
+    const session=sessionStorage();session.set=async()=>{throw Error('session unavailable');};
+    const ledger=createChatGPTBridgeTriggerLedger({storage:h.storage,revocationStorage:session});
+    const set=h.storage.set;
+    if(bothFail)h.storage.set=async()=>{throw Error('local unavailable too');};
+    await assert.rejects(ledger.revokeApprovals());
+    assert.equal((await rowsOf(h))[message.requestId].status,bothFail?'approved':'revoked');
+    // No claim of restart safety if neither independent area accepted a write.
+    // The live worker still rejects and retains the pending revocation.
+    const context={...h.events.gates.at(-1),turnKey:message.turnKey,answerKey:message.answerKey};
+    await assert.rejects(ledger.reserve(context));
+    h.storage.set=set;
+    if(!bothFail){
+      const restarted=createChatGPTBridgeTriggerLedger({storage:h.storage});
+      await assert.rejects(restarted.reserve(context),{code:'E_BRIDGE_REPLAY'});
+    }
+  }
+});
+
+test('unreadable session storage blocks healthy admission but does not skip local persistence of a pending revocation',async()=>{
+  const h=harness(),message=await adopt(h);await approve(h,message);
+  const session={get:async()=>{throw Error('session read failed');},set:async()=>{throw Error('session write failed');}};
+  const ledger=createChatGPTBridgeTriggerLedger({storage:h.storage,revocationStorage:session});
+  const context={...h.events.gates.at(-1),turnKey:message.turnKey,answerKey:message.answerKey};
+  await assert.rejects(ledger.reserve(context),/session read failed/);
+  await assert.rejects(ledger.revokeSource(source.tabId),/session write failed/);
+  assert.equal((await rowsOf(h))[message.requestId].status,'revoked');
+  const restarted=createChatGPTBridgeTriggerLedger({storage:h.storage});
+  await assert.rejects(restarted.reserve(context),{code:'E_BRIDGE_REPLAY'});
 });

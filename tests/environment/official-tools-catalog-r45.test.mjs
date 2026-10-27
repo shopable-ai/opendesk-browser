@@ -9,7 +9,7 @@ import {createOfficialToolResources,buildOfficialTools,officialToolInputs,readOf
   from '../../scripts/build-official-tools.mjs';
 import {createSidebarToolPackage,buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 import {validateOfficialSourceCatalog,validateOfficialReleaseCatalog,OFFICIAL_SOURCE_SCHEMA,
-  OFFICIAL_SOURCE_REPOSITORY,OFFICIAL_CATALOG_PATH,officialPackagePath,loadOfficialCatalog,loadOfficialTool,
+  OFFICIAL_SOURCE_REPOSITORY,OFFICIAL_CATALOG_PATH,OFFICIAL_STAY_FOCUS_RELEASE_URL,officialPackagePath,loadOfficialCatalog,loadOfficialTool,
   officialToolStatus,matchesOfficialRelease} from '../../src/sidebar-tools/official-catalog.js';
 import {officialFixtures,officialToolFixture,officialFixtureFetch} from '../helpers/official-tools.mjs';
 import {officialMarketApps} from '../../src/marketplace/catalog.js';
@@ -244,7 +244,9 @@ test('R4.5 removing an optional candidate removes only previously generated reso
 test('R4.5 runtime fetches only extension-owned bytes; catalog alone has no install or execution effects',async()=>{
   const calls=[],fetcher=async(url,options)=>{calls.push({url,options});return officialFixtureFetch(url);};
   const catalog=await loadOfficialCatalog({api,fetcher});
-  assert.equal(calls.length,1);assert(calls[0].url.endsWith('/'+OFFICIAL_CATALOG_PATH));
+  assert.equal(calls.length,2);assert(calls[0].url.endsWith('/'+OFFICIAL_CATALOG_PATH));
+  assert.equal(calls[1].url,OFFICIAL_STAY_FOCUS_RELEASE_URL);
+  assert.equal(calls[1].options.redirect,'error');
   assert.equal(calls[0].options.redirect,'error');assert.equal(globalThis.__officialToolMustNotRun,undefined);
   for(const row of catalog.apps){
     const {tool}=await loadOfficialTool(row,{api,fetcher});assert.equal(tool.id,row.toolId);
@@ -253,7 +255,7 @@ test('R4.5 runtime fetches only extension-owned bytes; catalog alone has no inst
     assert.equal(await matchesOfficialRelease(row,reversed),true,'Chrome key ordering does not erase official identity');
     assert.equal(await matchesOfficialRelease(row,{...tool,js:tool.js+'\nvoid 1;'}),false);
   }
-  assert.equal(calls.length,1+catalog.apps.length);
+  assert.equal(calls.length,2+catalog.apps.length);
   await assert.rejects(loadOfficialCatalog({api:{runtime:{getURL:()=> 'https://example.com/catalog'}},fetcher}),e=>e.code==='E_PACKAGE_SOURCE');
 });
 test('R4.5 corrupt, missing, redirected and over-limit resources cannot be reviewed as official',async()=>{

@@ -375,6 +375,68 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     if(disposed||epoch!==authorityRevision)throw fail('E_BRIDGE_REVOKED','核验期间安装状态已改变');
     return {taskId:request.taskId,args:normalized.request.args,...selectionScope(normalized.request)};
   };
+  // Both operations use the existing SW ledger. A lost ACK is never retried.
+  const assertPreparation=epoch=>{
+    if(disposed||!isVerifiedSidePanel()||epoch!==authorityRevision)
+      throw fail('E_BRIDGE_REVOKED','等待期间可信来源、安装或权限已改变');
+    if(busy||host.currentRun)throw fail('E_BRIDGE_HOST','已有任务正在执行');
+  };
+  const readBaseline=async source=>{
+    const observed=await readReply(api,source,null,{identityOnly:true,taskIntent:true,requireComplete:true});
+    if(observed.answerComplete!==true||!requireValue(observed.turnKey,128)||
+      !requireValue(observed.answerKey,2048))
+      throw fail('E_BRIDGE_ANSWER','仅能预批准当前已完成的空闲回答之后的新任务');
+    return {turnKey:observed.turnKey,answerKey:observed.answerKey};
+  };
+  const preapprovedOperation=async(kind,message,sender,prepare)=>{
+    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!==kind)
+      throw fail('E_BRIDGE_SCHEMA','不是精确预批准请求');
+    const epoch=authorityRevision;assertPreparation(epoch);
+    const source=await preparationSource(sender);
+    const payload=await prepare(source);
+    await assertSource(source,sender);assertPreparation(epoch);
+    const reply=await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,
+      kind:kind==='preapprove-next-task'?'preapprove-next':'bind-preapproved',source,...payload});
+    if(reply?.ok!==true)throw fail(reply?.error?.code||'E_BRIDGE_OUTCOME_UNKNOWN',
+      reply?.error?.message||'持久回执未知，禁止重放或重新授权');
+    try{
+      await assertSource(source,sender);assertPreparation(epoch);
+      if(kind==='preapprove-next-task'){
+        const latest=await readBaseline(source);
+        if(JSON.stringify(latest)!==JSON.stringify(payload.baseline))
+          throw fail('E_BRIDGE_ANSWER','预批准期间基线回答已改变');
+      }else await assertIntent(source,message);
+      await assertSource(source,sender);assertPreparation(epoch);
+      return reply.data;
+    }catch(error){
+      // Deny-only cleanup: preserve the row/tombstone and never restore a grant.
+      await api.runtime.sendMessage({protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'revoke-request',
+        source,requestId:reply.data.requestId}).catch(()=>{});
+      throw error;
+    }
+  };
+  const preapproveNextTask=(message,sender)=>preapprovedOperation('preapprove-next-task',message,sender,async source=>{
+    const baseline=await readBaseline(source);
+    const request=validateChatGPTTaskRequest(JSON.stringify({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,
+      kind:'opendesk.task.request',version:1,requestId:'00000000-0000-4000-8000-000000000000',
+      taskId:message.taskId,args:message.args,targetUrl:message.targetUrl,installation:message.installation}));
+    if(!request.installation)throw fail('E_BRIDGE_SCHEMA','缺少明确的安装身份');
+    const normalized=await normalizeSelection(request);
+    const latest=await readBaseline(source);
+    if(JSON.stringify(latest)!==JSON.stringify(baseline))
+      throw fail('E_BRIDGE_ANSWER','预批准期间基线回答已改变');
+    return {taskId:request.taskId,args:normalized.request.args,...selectionScope(normalized.request),baseline};
+  });
+  const bindPreapprovedTask=(message,sender)=>preapprovedOperation('bind-preapproved-task',message,sender,async source=>{
+    const {intent,candidate}=await assertIntent(source,message);
+    const installed=await resolveSelection(intent.taskId);
+    const normalized=await normalizeSelection({protocol:CHATGPT_TASK_REQUEST_PROTOCOL,
+      kind:'opendesk.task.request',version:1,requestId:message.requestId,
+      taskId:intent.taskId,args:intent.args,targetUrl:intent.targetUrl,installation:installationOf(installed)});
+    await assertIntent(source,message);
+    return {requestId:message.requestId,taskId:intent.taskId,args:normalized.request.args,
+      ...selectionScope(normalized.request),candidate};
+  });
   const adoptTask=async(message,sender)=>{
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='adopt-task')
       throw fail('E_BRIDGE_SCHEMA','不是采用对话任务请求');
@@ -530,7 +592,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         target:{mode:'owned',url:targetUrl},
         expectedTaskGeneration:installed.generation,
         expectedTaskInstallationId:installed.installationId,
-        deadlineAt:Date.now()+30000,requestId:request.requestId});
+        deadlineAt:Date.now()+(installed.manifest.deadlineMs??30000),requestId:request.requestId});
       submitted=true;
       if(!claim?.runId||claim.duplicate)throw fail('E_BRIDGE_RUN_UNKNOWN','任务运行身份未知或已提交过；禁止重放');
       active.runId=claim.runId;
@@ -586,7 +648,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       throw error;
     }finally{delivery=null;if(operation===active)operation=null;busy=false;}
   }
-  return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,showExecutionPage,dispose(){
+  return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,preapproveNextTask,bindPreapprovedTask,showExecutionPage,dispose(){
     disposed=true;invalidate();delivery=null;
     unsubscribeTasks?.();unsubscribeConnection?.();api.permissions?.onRemoved?.removeListener(invalidate);
   }});

@@ -38,6 +38,13 @@ function candidateSnapshot(value){
     throw fail('E_BRIDGE_CONTEXT','候选身份或回答上下文不合法');
   return {candidateId:value.candidateId,text:value.text,turnKey:value.turnKey,answerKey:value.answerKey};
 }
+function replyBaseline(value){
+  if(!plain(value)||Object.keys(value).sort().join(',')!=='answerKey,turnKey'||
+    typeof value.turnKey!=='string'||!value.turnKey||value.turnKey.length>128||
+    typeof value.answerKey!=='string'||!value.answerKey||value.answerKey.length>2048)
+    throw fail('E_BRIDGE_CONTEXT','预批准必须绑定完整空闲回答');
+  return {turnKey:value.turnKey,answerKey:value.answerKey};
+}
 function sameCandidate(row,candidate){
   if(!row.candidate&&!candidate)return true;
   return !!candidate&&!!row.candidate&&JSON.stringify(candidateSnapshot(row.candidate))===JSON.stringify(candidateSnapshot(candidate));
@@ -57,18 +64,67 @@ const officialURL=value=>{
 // Serial admission belongs to the one MV3 service worker; persist BEFORE ACK.
 // Worker restart loses no admitted/consumed decisions. An ACK lost after a
 // durable write intentionally fails closed rather than replaying an effect.
-export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
+export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,clock=()=>Date.now(),
   generateId=()=>crypto.randomUUID()}={}){
   if(!storage?.get||!storage?.set)throw fail('E_BRIDGE_STORAGE','缺少受信持久存储');
-  let pending=Promise.resolve();
+  let pending=Promise.resolve(),revokeAll=false,revocationRevision=0;
+  const revokedTabs=new Set(),revokedRequests=[];
   const sequence=task=>{
     const next=pending.then(task);
     pending=next.catch(()=>{});
     return next;
   };
   const load=async()=>{
+    // Same key, separate existing Chrome session area: denial recovery only,
+    // never a second grant/Authority. It survives worker suspension/recreation.
+    if(revocationStorage){
+      let fence;
+      try{fence=(await revocationStorage.get(CHATGPT_BRIDGE_LEDGER_KEY))?.[CHATGPT_BRIDGE_LEDGER_KEY];}
+      catch(error){
+        if(!revokeAll&&!revokedTabs.size&&!revokedRequests.length)throw error;
+        // An unreadable recovery marker may contain other denials. Persist a
+        // conservative local revocation rather than skip the working store.
+        revokeAll=true;
+      }
+      if(fence!==undefined&&fence!==null){
+        if(!plain(fence)||fence.revocationFence!==1||typeof fence.all!=='boolean'||
+          !Array.isArray(fence.tabIds)||!fence.tabIds.every(Number.isSafeInteger)||
+          !Array.isArray(fence.requests)||!fence.requests.every(item=>plain(item)&&
+            typeof item.requestId==='string'&&TOKEN.test(item.requestId)&&validChatGPTBridgeSource(item.source)))
+          throw fail('E_BRIDGE_STORAGE','撤权恢复标记无法核验，禁止恢复批准');
+        revokeAll ||= fence.all;
+        for(const tabId of fence.tabIds)revokedTabs.add(tabId);
+        for(const item of fence.requests)if(!revokedRequests.some(old=>old.requestId===item.requestId&&
+          sameSource(old.source,item.source)))revokedRequests.push(item);
+      }
+    }
+    const needsRevocation=revokeAll||revokedTabs.size||revokedRequests.length;
+    const revision=revocationRevision;
+    if(needsRevocation&&revocationStorage){
+      try{
+        await revocationStorage.set({[CHATGPT_BRIDGE_LEDGER_KEY]:{revocationFence:1,
+          all:revokeAll,tabIds:[...revokedTabs],requests:structuredClone(revokedRequests)}});
+      }catch{
+        // Still attempt the local deny write. Either successful store can carry
+        // the revocation across restart; simultaneous failure cannot be proven.
+      }
+    }
     const value=(await storage.get(CHATGPT_BRIDGE_LEDGER_KEY))?.[CHATGPT_BRIDGE_LEDGER_KEY];
-    return plain(value)?{...value}:{};
+    const rows=plain(value)?structuredClone(value):{};
+    if(needsRevocation){
+      for(const [requestId,row] of Object.entries(rows))if((revokeAll||revokedTabs.has(row?.source?.tabId)||
+        revokedRequests.some(item=>item.requestId===requestId&&sameSource(row?.source,item.source)))&&
+        ['prepared','approved','consumed'].includes(row?.status))row.status='revoked';
+      // Persist denial before clearing the recovery marker. Any failed write
+      // keeps the in-worker fence; a successful session marker also fences a
+      // new worker. Never ACK a revocation that is only held in memory.
+      await storage.set({[CHATGPT_BRIDGE_LEDGER_KEY]:rows});
+      if(revision===revocationRevision){
+        if(revocationStorage)await revocationStorage.set({[CHATGPT_BRIDGE_LEDGER_KEY]:null});
+        if(revision===revocationRevision){revokeAll=false;revokedTabs.clear();revokedRequests.length=0;}
+      }
+    }
+    return rows;
   };
   const save=rows=>storage.set({[CHATGPT_BRIDGE_LEDGER_KEY]:rows});
   const prune=(rows,now)=>{
@@ -86,6 +142,49 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
     if(typeof requestId!=='string'||!TOKEN.test(requestId))throw fail('E_BRIDGE_REQUEST','请求身份不合法');
   };
   return Object.freeze({
+    preapproveNext(source,{taskId,args,targetUrl,installation,baseline}={}){
+      requireSource(source);baseline=replyBaseline(baseline);
+      return sequence(async()=>{
+        const rows=await load(),now=clock();prune(rows,now);
+        if(Object.values(rows).some(row=>sameSource(row.source,source)&&row.baseline&&
+          row.status==='approved'&&now<row.approvalExpiresAt))
+          throw fail('E_BRIDGE_REPLAY','当前预批准仍待绑定或消费，禁止重复授权');
+        const requestId=generateId();requireRequestId(requestId);
+        if(rows[requestId])throw fail('E_BRIDGE_REPLAY','随机请求身份出现冲突');
+        const scope=requestScope(requestId,taskId,args,targetUrl,installation);
+        if(!scope.installation)throw fail('E_BRIDGE_CONTEXT','预批准必须固定安装身份和精确目标');
+        for(const row of Object.values(rows))if(sameSource(row.source,source)&&
+          ['prepared','approved'].includes(row.status))row.status='revoked';
+        rows[requestId]={source:structuredClone(source),scope,baseline,createdAt:now,
+          expiresAt:now+300000,approvalExpiresAt:now+300000,approvedAt:now,status:'approved',mode:'auto'};
+        prune(rows,now);await save(rows);
+        return {requestId,source:structuredClone(source),...structuredClone(scope),
+          baseline:structuredClone(baseline),expiresAt:now+300000};
+      });
+    },
+    bindPreapproved({source,requestId,candidate,taskId,args,targetUrl,installation}){
+      requireSource(source);requireRequestId(requestId);candidate=candidateSnapshot(candidate);
+      return sequence(async()=>{
+        const rows=await load(),row=rows[requestId],now=clock();
+        if(!sameSource(row?.source,source)||!row.baseline||row.status!=='approved'||
+          row.mode!=='auto'||row.candidate||now>=row.approvalExpiresAt)
+          throw fail('E_BRIDGE_REPLAY','预批准已失效、已绑定或结果未知，禁止重放');
+        const baseline=replyBaseline(row.baseline),intent=validateChatGPTTaskIntent(candidate.text);
+        if(candidate.turnKey===baseline.turnKey||candidate.answerKey===baseline.answerKey||
+          !sameScope(row,requestId,taskId,args,targetUrl,installation)||
+          intent.taskId!==row.scope.taskId||intent.targetUrl!==row.scope.targetUrl)
+          throw fail('E_BRIDGE_CONTEXT','候选不是新轮次或与精确预批准范围不同');
+        if(candidate.candidateId===requestId||Object.values(rows).some(other=>
+          other.candidate?.candidateId===candidate.candidateId&&
+          chatGPTConversationId(other.source?.url)===chatGPTConversationId(source.url)))
+          throw fail('E_BRIDGE_REPLAY','同一对话候选已绑定，禁止重放');
+        if(Object.values(rows).filter(other=>other.candidate).length>=MAX_CANDIDATE_RECORDS)
+          throw fail('E_BRIDGE_LIMIT','候选防重放记录已满');
+        row.candidate=candidate;await save(rows);
+        return {requestId,source:structuredClone(source),...structuredClone(row.scope),
+          baseline:structuredClone(baseline),candidate:structuredClone(candidate),expiresAt:row.approvalExpiresAt};
+      });
+    },
     prepare(source,{taskId=FIXED_PAGE_TASK_ID,args={},targetUrl,installation,candidate}={}){
       requireSource(source);
       return sequence(async()=>{
@@ -138,7 +237,7 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
         if(!sameSource(row?.source,source)||row.status!=='approved'||row.mode!==mode||
           now>=row.approvalExpiresAt)
           throw fail('E_BRIDGE_REPLAY','没有当前轮次的一次性批准，或批准已消费／失效');
-        if(!sameCandidate(row,candidate)||row.candidate&&(row.candidate.turnKey!==turnKey||row.candidate.answerKey!==answerKey)||!sameScope(row,requestId,taskId,args,targetUrl,installation))
+        if(row.baseline&&!row.candidate||!sameCandidate(row,candidate)||row.candidate&&(row.candidate.turnKey!==turnKey||row.candidate.answerKey!==answerKey)||!sameScope(row,requestId,taskId,args,targetUrl,installation))
           throw fail('E_BRIDGE_CONTEXT','模型请求与用户建立的任务、参数、目标或安装快照不一致');
         row.status='consumed';row.consumedAt=now;row.turnKey=turnKey;row.answerKey=answerKey;
         await save(rows);
@@ -158,6 +257,7 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
     },
     revokeRequest({source,requestId}){
       requireSource(source);requireRequestId(requestId);
+      revokedRequests.push({requestId,source:structuredClone(source)});revocationRevision++;
       return sequence(async()=>{
         const rows=await load(),row=rows[requestId];
         if(!sameSource(row?.source,source)||
@@ -172,6 +272,7 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
     },
     revokeSource(tabId){
       if(!Number.isSafeInteger(tabId))return Promise.resolve();
+      revokedTabs.add(tabId);revocationRevision++;
       return sequence(async()=>{
         const rows=await load();
         let changed=false;
@@ -181,6 +282,7 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
       });
     },
     revokeApprovals(){
+      revokeAll=true;revocationRevision++;
       return sequence(async()=>{
         const rows=await load();
         let changed=false;
@@ -194,7 +296,8 @@ export function createChatGPTBridgeTriggerLedger({storage,clock=()=>Date.now(),
 }
 
 export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
-  const ledger=createChatGPTBridgeTriggerLedger({storage:api.storage.local,clock});
+  const ledger=createChatGPTBridgeTriggerLedger({storage:api.storage.local,
+    revocationStorage:api.storage.session,clock});
   const pageSource=async sender=>{
     if(sender?.id!==api.runtime.id||sender?.frameId!==0||
       !Number.isSafeInteger(sender?.tab?.id)||sender.tab.incognito||
@@ -240,15 +343,17 @@ export function installChatGPTBridgeTriggerGate({api=chrome,clock}={}){
   };
   const listener=(message,sender,reply)=>{
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||
-      !['prepare','authorize','revoke-request','reserve','check-consumed'].includes(message.kind))return false;
+      !['prepare','authorize','revoke-request','reserve','check-consumed','preapprove-next','bind-preapproved'].includes(message.kind))return false;
     const process=async()=>{
-      if(['reserve','check-consumed'].includes(message.kind)||message.candidate){
+      if(['reserve','check-consumed','preapprove-next','bind-preapproved'].includes(message.kind)||message.candidate||message.kind==='revoke-request'&&sidepanelSender(sender)){
         if(!sidepanelSender(sender))throw fail('E_BRIDGE_SENDER','必须由现有可信侧边栏确认运行');
         const tabId=message.source?.tabId;
         if(!sourceEpochs.has(tabId))sourceEpochs.set(tabId,0);
         const epoch=sourceEpochs.get(tabId),permissions=permissionEpoch;
         await assertSource(message.source);
-        const data=await (message.kind==='prepare'?ledger.prepare(message.source,message):
+        const data=await (message.kind==='preapprove-next'?ledger.preapproveNext(message.source,message):
+          message.kind==='bind-preapproved'?ledger.bindPreapproved(message):
+          message.kind==='revoke-request'?ledger.revokeRequest(message):message.kind==='prepare'?ledger.prepare(message.source,message):
           message.kind==='authorize'?ledger.authorize(message):
           message.kind==='reserve'?ledger.reserve(message):ledger.assertConsumed(message));
         if(epoch!==sourceEpochs.get(tabId)||permissions!==permissionEpoch)
