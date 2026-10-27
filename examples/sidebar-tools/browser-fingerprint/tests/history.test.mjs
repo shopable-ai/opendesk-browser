@@ -59,3 +59,33 @@ test('bounded history rejects new writes without silent deletion',async()=>{
   await assert.rejects(()=>saveSnapshot(h.request,item('six')),{code:'E_HISTORY_LIMIT'});
   assert.equal(h.inspect().items.length,5);
 });
+
+test('stale ETag conflicts without overwriting a newer history',async()=>{
+  const h=host(),staleEtag=(await readHistory(h.request)).etag;
+  await saveSnapshot(h.request,item('first'));
+  const staleRequest=async(op,p)=>op==='storage.get'
+    ?{...(await h.request(op,p)),etag:staleEtag}:h.request(op,p);
+  await assert.rejects(()=>saveSnapshot(staleRequest,item('second')),
+    {code:'E_STORAGE_CONFLICT'});
+  assert.deepEqual(h.inspect().items.map(x=>x.id),['first']);
+});
+test('single 8 KiB item cap is checked without dropping snapshots',async()=>{
+  const h=host();
+  const large=id=>snapshotFromReading(makeReading({status:'available',
+    url:'https://qa.example.test/',title:'A'.repeat(160),tabRef:'t',documentRef:'d'},
+    {id:'z'.repeat(87)+id,at:'2026-10-27T14:00:00Z'}));
+  for(let i=0;i<4;i++)await saveSnapshot(h.request,large(String(i)));
+  await assert.rejects(()=>saveSnapshot(h.request,large('4')),{code:'E_HISTORY_LIMIT'});
+  assert.equal(h.inspect().items.length,4);
+});
+test('read history returns immutable snapshots and does not import forged fields',async()=>{
+  const h=host();await saveSnapshot(h.request,item('valid'));
+  const r=await readHistory(h.request);
+  assert.ok(Object.isFrozen(r.history.items[0]));
+  assert.ok(Object.isFrozen(r.history.items[0].fields[0]));
+  const invalid=structuredClone(h.inspect());
+  invalid.items[0].fields[3].value='browser spoof';
+  const seed=host();const {etag}=await readHistory(seed.request);
+  await seed.request('storage.set',{key:HISTORY_KEY,value:invalid,ifMatch:etag});
+  await assert.rejects(()=>readHistory(seed.request),{code:'E_HISTORY_SCHEMA'});
+});
