@@ -152,7 +152,9 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
       '新增能力：'+(candidate.tool.capabilities.filter(cap=>!baseline?.capabilities.includes(cap)).map(capability).join('、')||'无'),
       '应用在受限沙箱中运行。网站或敏感能力仍按原权限检查；安装后无需再次启用，已停用的应用更新后保持停用。',
       ...(baseline?['本次确认会替换此 ID 的已安装代码，请核对来源和能力。']:[])],
-      technical:[handoff.subject.marketId,'SHA-256：'+candidate.release.sha256,'能力标识：'+candidate.tool.capabilities.join('、'),'安装包字节：'+candidate.release.bytes],
+      technical:[handoff.subject.marketId,'SHA-256：'+candidate.release.sha256,'能力标识：'+candidate.tool.capabilities.join('、'),
+       ...(Number.isSafeInteger(candidate.release.bytes)&&candidate.release.bytes>0?
+         ['安装包字节：'+candidate.release.bytes]:[])],
       message:'请确认安装版本、来源和权限。'});
     controls([['commit',baseline?'确认更新':'确认安装',commit],['cancel','取消安装',cancel]]);
   }
