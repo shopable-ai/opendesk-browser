@@ -1,3 +1,13 @@
+# 当前预览入口（2026-10-27）
+
+- **最新经用户交互评审的 HTML 视觉参考：** [cookie-editor.html](./cookie-editor.html)。六个 Tab（Cookie / 账号 / 企业 / 市场 / 定制 / 圈子）、Cookie Expiration、账号分享七档链接有效期、匿名领取 1/3/5/10 次，以及订阅/外部社群入口；这是**原生 HTML/CSS/JavaScript 模拟原型，非 React，不访问真实 Cookie 或可信 Host**。
+- **正式产品同源 React 预览：** [react/index.html](./react/index.html)，必须从 `../app/`、`../src/react.css`、`react/src/` 构建生成，预览虚构数据来自 SDK Mock，不能直接修改生成后的 HTML 代替源码修改。
+- **历史兼容入口：** `index.html` 是 R4.6 旧静态预览；`cookie-editor-r4.3-preview.html` 与 `cookie-editor-r4.9.2-approved.html` 是历史参考。为免破坏历史测试/链接，本轮不覆盖、删除或改名，**均不是新的开发视觉标准**。
+- **UI 迁移原则：** 从 `cookie-editor.html` 提取布局/样式/可访问交互转成真正 JSX；仅复用可信 Controller、SDK Adapter、Host、Domain、安全边界和经验证的账号操作。**禁止**把演示账号/Cookie、DOM 内事件代理、伪结果或任意 HTML 脚本直接搬进生产 React。
+- **发布门槛：** 先完成正式 React 同状态视觉和功能，不对安装 JSON、生产身份、Trusted Host 或安全权限做无证据变更；实际构建、CI 和 Mac Chrome 验收分别记录。
+
+---
+
 # Cookie Editor R4.3 原始设计预览
 
 - `cookie-editor-r4.3-preview.html` 延续已确认 R4.3 原始布局；历史 Git Blob `7a129f509814805ab78827eaccbc77a64b20010f` 可从历史找回。2026-10-16 定向修复默认 SameSite=Lax 导致的新建误报未保存，不涉及真实 Chrome 操作。
