@@ -11,6 +11,7 @@ import CookiePermissions from './components/CookiePermissions.jsx';
 import CookieOfflineWorkspace from './components/CookieOfflineWorkspace.jsx';
 import {CookieAccounts} from './components/CookieAccounts.jsx';
 import {CookieAccountMarket} from './components/CookieAccountExperiences.jsx';
+import {CookieEnterprisePanel,CookieCustomizePanel,CookieCommunityPanel} from './components/CookieBusinessPanels.jsx';
 
 // The only transport is Controller -> Adapter -> public OpenDeskSDK.browser.
 // Host permission, value grant and native receipts are never replaced in React.
@@ -469,13 +470,15 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     if(next===section)return;
     setSection(next);setAccountRoute('list');
   });
-  const productTabs=[['cookie','Cookie'],['accounts','账号'],['market','市场']];
+  const productTabs=[['cookie','Cookie'],['accounts','账号'],['enterprise','企业'],
+    ['market','市场'],['custom','定制'],['circle','圈子']];
   const onProductTabKey=e=>{
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
     e.preventDefault();
     const current=productTabs.findIndex(([key])=>key===section);
-    const next=e.key==='Home'?0:e.key==='End'?2:
-      (current+(e.key==='ArrowRight'?1:2))%3;
+    const total=productTabs.length;
+    const next=e.key==='Home'?0:e.key==='End'?total-1:
+      (current+(e.key==='ArrowRight'?1:total-1))%total;
     hostRoot.querySelectorAll('.cookie-product-tabs [role="tab"]')[next]
       ?.focus({preventScroll:true});
     chooseSection(productTabs[next][0]);
@@ -595,7 +598,11 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         onAllowAlias={(item,enabled)=>accountAction('allowAlias',{
           alias:item.alias,accountVersion:item.version,enabled},'自动切换白名单已更新。')}
         onCopyLink={copyAccountLink}/>}
+      {section==='enterprise'&&<CookieEnterprisePanel previewMode={previewMode}
+        onCustomize={()=>chooseSection('custom')}/>}
       {section==='market'&&<CookieAccountMarket previewOnly={previewMode}/>}
+      {section==='custom'&&<CookieCustomizePanel onCommunity={()=>chooseSection('circle')}/>}
+      {section==='circle'&&<CookieCommunityPanel/>}
     </>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&
       ['error','warning'].includes(snapshot.messageType)&&
