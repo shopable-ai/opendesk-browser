@@ -1,6 +1,24 @@
 # AI 客服（AI 知识问答）· 正式源码、同源交互预览与实测说明
 
-独立 Sidebar Tool v2，ID `ai-knowledge-answers`，版本 `0.1.5`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R2.1 的安装、保存、编辑、侧栏关闭重开及固定来源回答已在独立 Mac Chrome for Testing 完成核心验证，见文末；R1.3 的 DOM 观察、定时消息处理、草稿发送与独立 DOM 回执仍按对应工作流记录，其他第三方网站不在本轮范围。
+独立 Sidebar Tool v2，ID `ai-knowledge-answers`，当前版本 `0.1.7`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。R3.7 已在真实 Mac Chrome 新窗口完成固定知识自动发送与独立 DOM 确认；其他第三方网站不在本轮范围。下方 R3.6 及更早章节保留当时的版本和验证状态，以本节限定的最新证据为准。
+
+## R3.7-AUTO-MVP · 固定知识自动回复实测（2026-10-28）
+
+**核心链路 `CHROME_PASS`**：在原可信侧栏勾选「允许自动发送已核对的固定答案」并点击一次「批准并监听本地测试页」后，客户在 `http://127.0.0.1:43111/ai-knowledge-chat-demo.html` 的会话 A 发送「几天内可以退款」。原 Runtime 命中 `qa_demo_refund`，真实网页表单自动送出一条「演示规则：符合条件的实物订单可在签收后 7 天内申请退款。」，侧栏显示 `CONFIRMED`（DOM 已确认）。未点击单条发送或 AI 生成授权；固定回答路径不调用模型。
+
+- 客户消息 `kb_msg_da4742d6-fc24-45f8-b311-ed277076e1aa`；客服回执 `kb_msg_64ede800-fe0b-4c4b-bd5e-f0455108fbb6`；同属 `thread_demo_01`，客服 `replyTo` 精确指向该客户消息。后续独立读取仍只有一条关联回复。
+- 本轮只修复已复现的发行/准入阻塞：旧准入限定 `0.1.5`，已有工具为 `0.1.6`，且正式包与当前样式源码不同。使用原 `npm run app:update -- ai-knowledge-answers` 构建、校验、晋升为 `0.1.7`，同步可信版本门禁；经原官方市场审阅升级后进入原可信 React 工作台。未重写任何发送业务模块。
+- 真实 Chrome：未知知识不发送、问候和多问题保留人工审核、暂停/停止不发送新消息、切会话停止旧许可均已观察。`UNKNOWN` 故障及 ETag 变更仍只有定向 Node 证据，未完成本轮 Chrome 故障验证，不记原生 PASS。
+- 定向 Node：客服 Runtime / 多问题 **60/60 PASS**，官方准入 / 包一致性 / 原 UI **45/45 PASS**，原更新流程包测试 **8/8 PASS**。历史 GitHub App CI 仍为 **188/190**，不能冒称已重跑通过。
+- 环境为日常 `npm run dev` → `dist/development` 的持续开发包，非 production 验收。测试后监听已停止，新窗口保留会话 A 的真实回复。本机完整操作及原始证据索引见 [R3.7 本机实测记录](../../../docs/framework/workstreams/ai-knowledge-answers-r37-auto-mvp-20261028.md)（按仓库忽略规则不提交日志）；核心 DOM 原件为 `artifacts/ai-knowledge-r37-auto-mvp/chrome-core-dom.json`。
+
+独立只读评审根据真实 DOM、侧栏 AX/截图、原始 Node 日志及最小 diff 评分；这是本轮限定 MVP 的证据充分度，各维满分 100，非 production 产品评分：
+
+| 核心闭环 | 知识准确性 | 单次发送/回执 | 授权/来源 | 暂停/停止/会话 | UNKNOWN/变更失效 | 零 AI 边界 | 证据/验证 | 维护/交付 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 96 | 95 | 96 | 94 | 93 | 82 | 94 | 92 | 93 |
+
+算术平均 **835 ÷ 9 = 92.78/100**。主要扣分来自 UNKNOWN/ETag 的 Chrome 缺口、异步安全边界仍以 Node 为主、零模型请求没有独立调用审计，以及真实核心闭环只覆盖一条固定问题。没有以总分替代各项证据。
 
 
 ## R3.6-M0 · 真实客服闭环最小安全增量（2026-10-28）

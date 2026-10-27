@@ -47,7 +47,7 @@ test('actual knowledge source and optional official release share bytes; plain i
 
 test('exact official canonical package is admitted, including reordered storage keys',async()=>{
  assert.equal(TRUSTED_KNOWLEDGE_ID,id);
- assert.equal(TRUSTED_KNOWLEDGE_VERSION,'0.1.5');
+ assert.equal(TRUSTED_KNOWLEDGE_VERSION,'0.1.7');
  const args=fixture();
  assert.equal(await admitsTrustedKnowledge(args),true);
  assert.equal(await admitsTrustedKnowledge({...args,enableRecords:{[id]:true}}),true);

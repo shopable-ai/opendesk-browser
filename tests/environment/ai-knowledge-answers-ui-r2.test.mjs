@@ -459,7 +459,7 @@ test('R2.1: preview stays source-linked and models Host failure separately from 
 });
 test('R2.1: project release is exact canonical source build',async()=>{
  const tool=await createSidebarToolPackage(new URL('.',base).pathname);
- assert.equal(tool.version,'0.1.5');
+ assert.equal(tool.version,'0.1.7');
  const candidate=process.env.OPENDESK_KNOWLEDGE_CANDIDATE;
  if(candidate!==undefined)assert.ok(isAbsolute(candidate),'OPENDESK_KNOWLEDGE_CANDIDATE must be an absolute path');
  const packagePath=candidate??new URL('ai-knowledge-answers.opendesk-tool.json',base);
