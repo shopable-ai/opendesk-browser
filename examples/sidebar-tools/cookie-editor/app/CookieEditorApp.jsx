@@ -600,7 +600,17 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         onCopyLink={copyAccountLink}/>}
       {section==='enterprise'&&<CookieEnterprisePanel previewMode={previewMode}
         onCustomize={()=>chooseSection('custom')}/>}
-      {section==='market'&&<CookieAccountMarket previewOnly={previewMode}/>}
+      {section==='market'&&<CookieAccountMarket
+        onEnterprise={()=>chooseSection('enterprise')}
+        onExperience={id=>guarded(()=>{
+          setPanel(null);setExportOpen(false);setStatus('');
+          if(id==='account-kit'){setSection('accounts');setAccountRoute('list');}
+          if(id==='switch-kit'){setSection('accounts');setAccountRoute('auto');}
+          if(id==='expiry-kit'){
+            setSection('cookie');setAccountRoute('list');
+            if(snapshot.phase==='ready')setSelected('new');
+          }
+        })}/>}
       {section==='custom'&&<CookieCustomizePanel onCommunity={()=>chooseSection('circle')}/>}
       {section==='circle'&&<CookieCommunityPanel/>}
     </>}
