@@ -10,7 +10,7 @@ const note=document.getElementById('preview-note');
 const tell=message=>{note.textContent=message+'（只修改隔离演示，未操作 Chrome。）';};
 
 const scene=document.getElementById('preview-scene');
-const allowed=new Set(['member','redeem','quota','expired','guest','error','offline']);
+const allowed=new Set(['member','session','redeem','quota','expired','guest','error','offline']);
 const requested=new URL(location.href).searchParams.get('scene');
 scene.value=allowed.has(requested)?requested:'member';
 scene.addEventListener('change',()=>{

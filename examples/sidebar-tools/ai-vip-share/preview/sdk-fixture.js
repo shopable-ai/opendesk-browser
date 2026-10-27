@@ -52,7 +52,7 @@ export function installPreviewFixture(root){
       granted?(scene==='quota'?[quota(),access()]:[time(),quota(),access()]):[],
     redemptions:granted?[{redemptionId:'demo-r1',skuTitle:'AI 会员体验权益',
       redeemedAt:Date.now()-1000,status:'redeemed',idempotencyKey:'preview-only'}]:[],
-    ...(granted&&scene!=='expired'&&!['guest','offline'].includes(scene)?
+    ...(granted&&['redeem','session'].includes(scene)?
       {sharedAccounts:{schemaVersion:1,companyId:'preview-company',
         assignedAccountId:'account-'+assigned,redemptionId:'demo-r1',
         accounts:[{id:'account-'+assigned,label:'已获授权的网站会话',

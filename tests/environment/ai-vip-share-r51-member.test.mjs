@@ -120,8 +120,8 @@ test('R5.1 verified time and quota show distinct values, server expiry and ledge
   assert.equal(node(e,'remaining').textContent,'3');
   assert.equal(node(e,'remaining-unit').textContent,'天');
   assert.match(node(e,'expiry').textContent,/2026/);
-  assert.equal(node(e,'benefits').children.length,2);
-  assert.match(node(e,'benefits').children[1].children[1].textContent,/17 \/ 100 次/);
+  assert.equal(node(e,'benefits').children.length,1,'primary hero entitlement must not repeat in the secondary list');
+  assert.match(node(e,'benefits').children[0].children[1].textContent,/17 \/ 100 次/);
   assert.equal(node(e,'history-count').textContent,'1 条');
   assert.equal(node(e,'redeem-code').disabled,false);
   assert(e.calls.every(call=>call.url.startsWith(BOUND)));
@@ -646,6 +646,6 @@ test('R5.9.4 quota, feature and exhausted entitlement get truthful distinct pres
     assert.equal(node(e,'member-facts').hidden,false);
     assert.equal(node(e,'remaining').textContent,want);
     assert.notEqual(node(e,'remaining-unit').textContent,'天');
-    assert.equal(node(e,'benefits-section').hidden,false);
+    assert.equal(node(e,'benefits-section').hidden,true,'one visible hero metric needs no duplicated list');
   }
 });

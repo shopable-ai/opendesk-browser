@@ -151,6 +151,10 @@ async function run(){
   assert.equal(await evaluate('document.querySelectorAll("#ai-vip-shared-account,#ai-vip-shared-section").length'),0);
   assert.equal(await evaluate('document.querySelectorAll("#ai-vip-redeem-code").length'),1);
   assert.equal(await evaluate('document.querySelector("#ai-vip-product-name")?.textContent.includes("AI 会员")'),true);
+  assert.equal(await evaluate('document.querySelector("#ai-vip-cookie-section")?.hidden'),true,
+    'default membership must not add unapproved website-session workflow');
+  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-benefits .ai-vip-list-item").length'),2,
+    'primary membership hero must not repeat in benefit list');
   const labels=await evaluate('document.getElementById("tool-app").innerText');
   assert(!labels.includes('演示网站访问')&&!labels.includes('公司共享账号'),'fixture labels leaked into product');
   result.checks.push('product typography uses clean membership/website-access labels');
@@ -165,9 +169,21 @@ async function run(){
     await capture(width,'light','react-member-'+width+'-light');
   await capture(390,'dark','react-member-390-dark');
 
+  await cdp('Page.navigate',{url:url+'?scene=session'});
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="权益有效"','approved session fixture');
+  await until('document.getElementById("ai-vip-shared-receive")?.disabled===false','session refresh available');
+  assert.equal(await evaluate('document.getElementById("ai-vip-cookie-section")?.hidden'),false);
+  assert.equal(await evaluate('document.querySelectorAll("#ai-vip-shared-section,#ai-vip-shared-account").length'),0);
+  await click('#ai-vip-shared-receive');
+  await until('document.getElementById("ai-vip-cookie-install")?.disabled===false','explicit session receipt');
+  await capture(390,'light','react-conditional-session-390-light');
+  result.checks.push('website session is conditional and contains no company account manager');
+
   await cdp('Page.navigate',{url:url+'?scene=redeem'});
   await until('document.getElementById("ai-vip-member-state")?.textContent==="尚未开通"','ready for first redemption');
   await until('document.getElementById("ai-vip-redeem-code")?.disabled===false','redeem enabled');
+  assert.equal(await evaluate('document.getElementById("ai-vip-redeem-intro")?.hidden&&document.getElementById("ai-vip-redeem-fine")?.hidden'),true,
+    'only one live instructional line belongs in the redeem card');
   const geometry=await evaluate('('+function(){
     const input=document.querySelector('#ai-vip-redeem-code').getBoundingClientRect();
     const reveal=document.querySelector('#ai-vip-code-reveal').getBoundingClientRect();

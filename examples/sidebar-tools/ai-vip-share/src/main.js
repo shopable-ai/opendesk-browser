@@ -206,6 +206,7 @@
     if(sharedSection)sharedSection.hidden=!sharedCatalog;
     if(sharedAssigned)sharedAssigned.textContent=selection?.label||'尚未分配';
     if(sharedReceive){
+      sharedReceive.textContent=cookieRecord?.state==='success'?'重新获取网站会话':'获取网站会话';
       sharedReceive.hidden=!selection||Boolean(cookiePending)||
         ['unknown','partial'].includes(cookieRecord?.state);
       sharedReceive.disabled=busy||cookieBusy||sharedBusy||!selection||
@@ -778,9 +779,12 @@
     }
     verified.hidden=!primary&&!redemptions.length;
     verified.textContent=verified.hidden?'':'服务端已核验 · '+dateLabel(serverNow);
-    benefitSection.hidden=!entitlements.length;
+    // The primary entitlement is already the member hero metric; listing it
+    // twice adds visual noise. Secondary grants still show their own detail.
+    const extras=entitlements.filter(e=>e!==primary);
+    benefitSection.hidden=!extras.length;
     clear(benefits);
-    entitlements.forEach(e=>addRow(benefits,e.title,benefitDescription(e,serverNow)));
+    extras.forEach(e=>addRow(benefits,e.title,benefitDescription(e,serverNow)));
     historyDetails.hidden=!redemptions.length;
     historyCount.textContent=redemptions.length?String(redemptions.length)+' 条':'';
     clear(history);
@@ -804,8 +808,10 @@
       !['unknown','partial'].includes(cookieRecord?.state);
     const showForm=accountReady&&!locked;
     redeemForm.hidden=!showForm;
-    redeemIntro.hidden=!showForm;
-    redeemFine.hidden=!showForm;
+    // The live redeem-status below the form owns the single instructional line.
+    // Keep legacy nodes inert for test/recovery compatibility, with no spacing.
+    redeemIntro.hidden=true;
+    redeemFine.hidden=true;
     code.disabled=!allowed||Boolean(pending);
     redeem.disabled=!allowed||Boolean(pending)||
       !/^[A-Za-z0-9._-]{6,120}$/.test(code.value.trim());
@@ -1296,7 +1302,7 @@
       else if(!hasEntitlement())detail.textContent=localMode?
         '请先完成会员激活，取得网站访问权益。':'需要经过服务端核验的有效会员权益。';
       else if(!current)detail.textContent='正在检测浏览器代理状态。';
-      else detail.textContent='可访问已批准的网站；启用需经过可信 Side Panel 授权。';
+      else detail.textContent='启用后可访问已批准的 AI 网站。';
       renderLocalDevelopment();
     };
     refreshProxyPresentation=paint;
