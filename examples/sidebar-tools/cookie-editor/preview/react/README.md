@@ -1,3 +1,13 @@
+# 2026-10-27 · HTML 视觉基准 → 正式 React 的网页源码迁移
+
+- **视觉参考唯一文件**：../cookie-editor.html（原生 HTML/CSS/JS，已审核的交互原型，不是真实 SDK 或正式 React）。
+- **React 业务源码**：../../app/CookieEditorApp.jsx、../../app/components/CookieBusinessPanels.jsx、../../app/components/CookieAccountExperiences.jsx、../../app/components/CookieAccounts.jsx、../../app/components/CookieInlineEditor.jsx、../../app/components/CookieEditorView.jsx、../../src/react.css。
+- **已在 GitHub main 写入的差量**：六个 Tab、企业/定制/圈子 React 页面、官方会员链接、轻量市场直接体验、七档邀请有效期、匿名领取 1/3/5/10 次、Cookie Expiration 单行下拉与条件日期输入；原 Controller、SDK、Trusted Host 不动。
+- **必须区分状态**：React 源码已变更，然而 react/index.html 是既有生成产物，**目前并未在本网页环境重建**，因此不能将旧 HTML 当作最新 React 的视觉或功能证据。预览构建、源指纹核对、截图一致性、Cookie 原生验收仍为 **NOT_TESTED**。不允许手改生成后的 React bundle 伪造通过。
+- **继续推进**：先从真实 React 源码构建同源 HTML 并完成关键 UI 状态比对，修正视觉偏差；之后才交本地 Codex 执行轻量真实 Chrome 测试、修复与验收。已有历史固定预览不删除，来源身份和正式安装 JSON 由原有晋升流程维护。
+
+---
+
 # Cookie Editor R5.20 · shared App offline preview
 
 ## 2026-10-23 · 导出浮层交互（React 原型源码）
