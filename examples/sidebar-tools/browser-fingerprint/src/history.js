@@ -1,4 +1,4 @@
-import {HISTORY_SCHEMA,HISTORY_KEY,HISTORY_LIMIT,HISTORY_ITEM_BYTES,assertSnapshot} from './model.js';
+import {HISTORY_SCHEMA,HISTORY_KEY,HISTORY_LIMIT,HISTORY_ITEM_BYTES,freezeSnapshot} from './model.js';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
 function parse(value){
@@ -6,12 +6,12 @@ function parse(value){
   if(!value||value.schema!==HISTORY_SCHEMA||!Array.isArray(value.items)||
     value.items.length>HISTORY_LIMIT)throw fail('E_HISTORY_SCHEMA','历史版本异常，拒绝覆盖');
   const ids=new Set();
-  for(const s of value.items){
-    assertSnapshot(s);
+  const items=value.items.map(row=>freezeSnapshot(JSON.parse(JSON.stringify(row))));
+  for(const s of items){
     if(ids.has(s.id))throw fail('E_HISTORY_SCHEMA','快照 ID 重复');
     ids.add(s.id);
   }
-  return value;
+  return Object.freeze({schema:HISTORY_SCHEMA,items:Object.freeze(items)});
 }
 export async function readHistory(request){
   const r=await request('storage.get',{key:HISTORY_KEY,withEtag:true});
@@ -38,7 +38,7 @@ async function commit(request,history,etag){
   return checked.history.items;
 }
 export async function saveSnapshot(request,snapshot){
-  assertSnapshot(snapshot);
+  freezeSnapshot(snapshot);
   const {history,etag}=await readHistory(request);
   if(history.items.some(row=>row.id===snapshot.id))
     throw fail('E_DUPLICATE','已存在相同快照，不能覆盖');
