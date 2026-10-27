@@ -102,7 +102,8 @@ export function createMarketHandoff({api=globalThis.chrome,channel,lockManager=g
           throw marketError('E_RELEASE_MISMATCH','所选市场发行与本机已安装内容不一致，请审阅固定版本；不会启动其他发行。');
         const pending=await queueMarketPanelNavigation(api,createMarketPanelNavigation({
           windowId:sender.tab.windowId,tabId:sender.tab.id,source:'external',action:'open',
-          toolId,marketId:request.subject.marketId,version:request.subject.version,sha256:release.sha256
+          toolId,marketId:request.subject.marketId,version:request.subject.version,sha256:release.sha256,
+          sourceDocumentId:sender.documentId,sourceUrl:sender.url
         }));
         const opened=panelOpening?await panelOpening:false;
         const result=await waitMarketPanelNavigation(api,pending);

@@ -19,6 +19,7 @@ on:
       - 'tests/environment/market-trusted-install.test.mjs'
       - 'tests/environment/market-panel-navigation-r691.test.mjs'
       - 'tests/environment/market-site-client-r5.test.mjs'
+      - 'tests/environment/market-page-discovery-r61.test.mjs'
       - 'tests/environment/market-install-sheet.test.mjs'
       - 'tests/environment/sidebar-six-react-preview-contract.test.mjs'
       - '.github/workflows/marketplace-r68-focused.yml'

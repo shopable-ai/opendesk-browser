@@ -4,11 +4,13 @@ import {randomUUID} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {createMarketPanelNavigation,validMarketPanelNavigation,queueMarketPanelNavigation,
   waitMarketPanelNavigation,createMarketPanelNavigationReceiver,registerTrustedMarketNavigation,
+  verifyMarketPanelNavigationSource,
   marketPanelNavigationKey,MARKET_PANEL_NAV_PROTOCOL,MARKET_PANEL_NAV_TTL} from '../../src/marketplace/panel-navigation.js';
 
 const SHA='a'.repeat(64),EXT='a'.repeat(32);
 const sample=(overrides={})=>createMarketPanelNavigation({windowId:7,tabId:12,
   source:'built-in',action:'detail',toolId:'example-app',
+  sourceDocumentId:'1'.repeat(32),sourceUrl:'chrome-extension://'+EXT+'/ui/marketplace.html',
   marketId:'opendesk/example-app',version:'1.0.0',sha256:SHA,
   requestId:randomUUID(),issuedAt:Date.now(),...overrides});
 function fixture(){
@@ -42,6 +44,7 @@ test('R6.9.1 panel locator validates source, fixed version and sha256',()=>{
   assert.equal(validMarketPanelNavigation(row,{windowId:7}),true);
   assert.equal(validMarketPanelNavigation(row,{windowId:8}),false);
   assert.equal(validMarketPanelNavigation({...row,sha256:'0'}, {windowId:7}),false);
+  assert.equal(validMarketPanelNavigation({...row,sourceDocumentId:'2'.repeat(12)},{windowId:7}),false);
   assert.equal(validMarketPanelNavigation({...row,issuedAt:Date.now()-MARKET_PANEL_NAV_TTL-1},{windowId:7}),false);
   assert.throws(()=>sample({source:'external',action:'open-local',marketId:null,sha256:null}),{code:'E_NAV_FIELDS'});
   assert.throws(()=>sample({marketId:'opendesk/other-app'}),{code:'E_NAV_FIELDS'});
@@ -77,6 +80,16 @@ test('blocked editor keeps a recoverable request; explicit retry can succeed',as
   assert.equal(calls,2);
   receiver.dispose();
 });
+test('pinned browser document and source URL are rechecked before a Side Panel Host route',async()=>{
+  const h=fixture(),row=sample();
+  assert.equal(await verifyMarketPanelNavigationSource(h.api,row),true);
+  h.api.webNavigation.getFrame=async()=>({documentId:'2'.repeat(32),
+    parentFrameId:-1,documentLifecycle:'active',url:row.sourceUrl});
+  assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
+  h.api.tabs.get=async()=>({id:12,windowId:8,url:row.sourceUrl,incognito:false});
+  assert.equal(await verifyMarketPanelNavigationSource(h.api,row),false);
+});
+
 test('identical outstanding click deduplicates instead of replacing pending intent',async()=>{
   const h=fixture(),first=sample({action:'open'});
   const a=await queueMarketPanelNavigation(h.api,first);

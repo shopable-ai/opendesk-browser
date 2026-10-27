@@ -7,6 +7,17 @@ export const MARKET_PANEL_NAV_PREFIX='opendesk.market.panel-navigation.v1.';
 export const MARKET_PANEL_NAV_TTL=120000;
 const SHA=/^[a-f0-9]{64}$/;
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const CHROME_DOCUMENT_ID=/^(?!0{32}$)[0-9a-f]{32}$/i;
+function validSourceURL(source,url){
+  if(typeof url!=='string'||url.length>2048)return false;
+  try{
+    const parsed=new URL(url);
+    if(parsed.username||parsed.password)return false;
+    return source==='built-in'?
+      parsed.protocol==='chrome-extension:'&&parsed.pathname==='/ui/marketplace.html':
+      ['https:','http:'].includes(parsed.protocol)&&Boolean(parsed.hostname);
+  }catch{return false;}
+}
 const id=value=>Number.isSafeInteger(value)&&value>=0;
 const exact=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&
   Object.keys(value).sort().join(',')===[...keys].sort().join(',');
@@ -16,10 +27,12 @@ export function marketPanelNavigationKey(windowId){
   return MARKET_PANEL_NAV_PREFIX+windowId;
 }
 export function createMarketPanelNavigation({windowId,tabId,source,action,toolId,version,
-  marketId=null,sha256=null,requestId=crypto.randomUUID(),issuedAt=Date.now()}={}){
+  marketId=null,sha256=null,sourceDocumentId,sourceUrl,
+  requestId=crypto.randomUUID(),issuedAt=Date.now()}={}){
   if(!id(windowId)||!id(tabId)||!validToolId(toolId)||
     !['built-in','external'].includes(source)||!['review','detail','open','open-local'].includes(action)||
-    !UUID.test(requestId)||!Number.isSafeInteger(issuedAt)||issuedAt<0||
+    !UUID.test(requestId)||!CHROME_DOCUMENT_ID.test(sourceDocumentId||'')||
+    !validSourceURL(source,sourceUrl)||!Number.isSafeInteger(issuedAt)||issuedAt<0||
     !/^(0|[1-9]\d{0,5})\.(0|[1-9]\d{0,5})\.(0|[1-9]\d{0,5})$/.test(version||''))
     throw marketError('E_NAV_FIELDS','市场导航参数无效。');
   if(action==='open-local'){
@@ -29,7 +42,8 @@ export function createMarketPanelNavigation({windowId,tabId,source,action,toolId
     if(marketId!=='opendesk/'+toolId||!SHA.test(sha256||''))
       throw marketError('E_NAV_FIELDS','固定发行身份不完整。');
   }
-  return {version:1,windowId,tabId,source,action,toolId,marketId,releaseVersion:version,
+  return {version:1,windowId,tabId,source,sourceDocumentId,sourceUrl,
+    action,toolId,marketId,releaseVersion:version,
     sha256,requestId,issuedAt,status:'NAVIGATION_PENDING'};
 }
 export function validMarketPanelNavigation(value,{windowId,now=Date.now()}={}){
@@ -41,13 +55,27 @@ export function validMarketPanelNavigation(value,{windowId,now=Date.now()}={}){
   try{
     const parsed=createMarketPanelNavigation({windowId:value.windowId,tabId:value.tabId,
       source:value.source,action:value.action,toolId:value.toolId,version:value.releaseVersion,
-      marketId:value.marketId,sha256:value.sha256,requestId:value.requestId,issuedAt:value.issuedAt});
+      marketId:value.marketId,sha256:value.sha256,
+      sourceDocumentId:value.sourceDocumentId,sourceUrl:value.sourceUrl,
+      requestId:value.requestId,issuedAt:value.issuedAt});
     return parsed.requestId===value.requestId;
   }catch{return false;}
 }
 const sameTarget=(a,b)=>a.source===b.source&&a.action===b.action&&a.toolId===b.toolId&&
   a.marketId===b.marketId&&a.releaseVersion===b.releaseVersion&&a.sha256===b.sha256&&
-  a.tabId===b.tabId;
+  a.tabId===b.tabId&&a.sourceDocumentId===b.sourceDocumentId&&a.sourceUrl===b.sourceUrl;
+// Verify Chrome's browser-owned source document immediately before presenting.
+export async function verifyMarketPanelNavigationSource(api,request){
+  try{
+    const [tab,frame]=await Promise.all([
+      api.tabs.get(request.tabId),api.webNavigation.getFrame({tabId:request.tabId,frameId:0})
+    ]);
+    return Boolean(tab?.id===request.tabId&&tab.windowId===request.windowId&&!tab.incognito&&
+      tab.url===request.sourceUrl&&(!tab.pendingUrl||tab.pendingUrl===tab.url)&&
+      frame?.documentId===request.sourceDocumentId&&frame.parentFrameId===-1&&
+      frame.documentLifecycle==='active'&&frame.url===request.sourceUrl);
+  }catch{return false;}
+}
 export async function queueMarketPanelNavigation(api,request,{now=Date.now}={}){
   const key=marketPanelNavigationKey(request.windowId),time=now();
   if(!validMarketPanelNavigation(request,{windowId:request.windowId,now:time})||
@@ -165,7 +193,8 @@ export function registerTrustedMarketNavigation(api=globalThis.chrome){
         throw marketError('E_NAV_DOCUMENT','市场文档或窗口已经变化，请重新点击。');
       const request=createMarketPanelNavigation({windowId:tab.windowId,tabId:tab.id,source:'built-in',
         action:message.target,toolId:message.toolId,version:message.version,
-        marketId:message.marketId,sha256:message.sha256});
+        marketId:message.marketId,sha256:message.sha256,
+        sourceDocumentId:sender.documentId,sourceUrl:url});
       const pending=await queueMarketPanelNavigation(api,request);
       const opened=await opening;
       const result=await waitMarketPanelNavigation(api,pending);

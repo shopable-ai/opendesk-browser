@@ -13,7 +13,7 @@ import {createBusinessConversation} from './conversation/provider-consumer.js';
 import {createTrustedKnowledgeHost} from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/host.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
-import {createMarketPanelNavigationReceiver} from '../marketplace/panel-navigation.js';
+import {createMarketPanelNavigationReceiver,verifyMarketPanelNavigationSource} from '../marketplace/panel-navigation.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {createMarketInstallSheet} from './market-install-sheet.js';
 import {createExtensionCenter} from './extension-center.js';
@@ -390,6 +390,8 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
           const blocked=message=>({status:'NAVIGATION_BLOCKED',message});
           const changed=message=>({status:'IDENTITY_CHANGED',message});
           if(shellClosed||!verifiedSidePanel)return blocked('真实 Side Panel 已关闭，原请求仍可恢复。');
+          if(!await verifyMarketPanelNavigationSource(chrome,request))
+            return changed('来源窗口或浏览器文档身份已变化，旧导航请求不会执行。');
           if(request.source==='built-in'&&request.action!=='open-local'){
             const {apps}=await loadOfficialCatalog({api:chrome});
             const release=apps.find(row=>row.id===request.marketId&&
