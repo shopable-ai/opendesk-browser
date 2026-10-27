@@ -75,10 +75,12 @@ export default function App({adapter,preview=false}){
   const [busy,setBusy]=React.useState('');
   const [notice,setNotice]=React.useState({type:'info',text:'点击“检测”读取当前网页可信上下文。'});
   const revision=React.useRef(0),active=React.useRef(true);
+  const operation=React.useRef(null); // guard before React state is committed
   React.useEffect(()=>{
     active.current=true;
     let alive=true;
     const seq=++revision.current;
+    operation.current={seq,name:'history'};
     setBusy('history');
     readHistory(adapter.request).then(({history:row})=>{
       if(!alive||!active.current||revision.current!==seq)return;
@@ -89,19 +91,32 @@ export default function App({adapter,preview=false}){
     }).catch(error=>{
       if(alive&&active.current&&revision.current===seq)
         setNotice({type:'error',text:'历史读取失败：'+errorLabel(error)});
-    }).finally(()=>{if(alive&&revision.current===seq)setBusy('');});
+    }).finally(()=>{
+      if(operation.current?.seq===seq)operation.current=null;
+      if(alive&&revision.current===seq)setBusy('');
+    });
     return ()=>{alive=false;active.current=false;revision.current++;};
   },[adapter]);
   const safeSet=(seq,fn)=>{if(active.current&&revision.current===seq)fn();};
+  const begin=name=>{
+    if(!active.current||operation.current)return null;
+    const seq=++revision.current;
+    operation.current={seq,name};
+    setBusy(name);
+    return seq;
+  };
+  const finish=seq=>{
+    if(operation.current?.seq!==seq)return;
+    operation.current=null;
+    safeSet(seq,()=>setBusy(''));
+  };
   const navigate=next=>{
-    revision.current++;
-    setView(next);setBusy('');
-    // Invalidate in-flight results; persisting mutations must be read back.
-    if(next==='history')void refreshHistory();
+    setView(next);
+    // Switching tabs must not discard a pending storage result.
+    if(next==='history'&&!operation.current)void refreshHistory();
   };
   async function refreshHistory(){
-    const seq=++revision.current;
-    setBusy('history');
+    const seq=begin('history');if(seq===null)return;
     try{
       const {history:row}=await readHistory(adapter.request);
       safeSet(seq,()=>{
@@ -111,25 +126,30 @@ export default function App({adapter,preview=false}){
         setNotice({type:'info',text:'历史已读回：'+row.items.length+' 条。'});
       });
     }catch(error){safeSet(seq,()=>setNotice({type:'error',text:errorLabel(error)}));}
-    finally{safeSet(seq,()=>setBusy(''));}
+    finally{finish(seq);}
   }
   async function detect(){
-    const seq=++revision.current;setBusy('detect');setReading(null);
+    const seq=begin('detect');if(seq===null)return;
+    setReading(null);
     setNotice({type:'info',text:'正在通过可信 SDK 核验网页…'});
     try{
       const ctx=await adapter.context();
       const item=makeReading(ctx,{id:ident(),at:stamp(),preview});
+      if(item.volatile.documentRef&&
+        !sameRuntimeTarget(item,await adapter.context()))
+        throw Object.assign(Error('检测期间网页身份发生变化，请重新检测'),{code:'E_CONTEXT'});
       safeSet(seq,()=>{
         setReading(item);
-        setNotice({type:'warning',text:
-          '已读取网页来源与标题；网页 JS 环境字段尚未开放，检测为部分完成，不代表完整浏览器指纹。'});
+        setNotice({type:'warning',text:item.volatile.documentRef?
+          '已读取 Host 页面字段；目标网页 JS 环境字段未开放，检测为部分完成。':
+          '已读取部分页面字段，但缺少稳定文档引用，不能保存；请检查 SDK 支持。'});
       });
     }catch(error){safeSet(seq,()=>setNotice({type:'error',text:errorLabel(error)}));}
-    finally{safeSet(seq,()=>setBusy(''));}
+    finally{finish(seq);}
   }
   async function save(){
-    if(!reading||busy)return;
-    const seq=++revision.current;setBusy('save');
+    if(!reading)return;
+    const seq=begin('save');if(seq===null)return;
     try{
       const before=await adapter.context();
       if(!sameRuntimeTarget(reading,before))
@@ -142,18 +162,21 @@ export default function App({adapter,preview=false}){
       try{same=sameRuntimeTarget(reading,await adapter.context());}catch{same=false;}
       safeSet(seq,()=>{
         setHistory(items);
+        if(!same)setReading(null);
         setLeftId(snapshot.id);
         setRightId(items.find(row=>row.id!==snapshot.id)?.id||'');
         setNotice({type:same?'success':'warning',
           text:same?'部分证据已持久化并读回（环境字段仍不可用）。':
             '写入与读回已完成，但网页身份已变化；请重新检测，勿把旧快照当作新网页。'});
       });
-    }catch(error){safeSet(seq,()=>setNotice({type:'error',text:errorLabel(error)}));}
-    finally{safeSet(seq,()=>setBusy(''));}
+    }catch(error){safeSet(seq,()=>{
+      if(error?.code==='E_CONTEXT')setReading(null);
+      setNotice({type:'error',text:errorLabel(error)});
+    });}
+    finally{finish(seq);}
   }
   async function remove(id){
-    if(busy)return;
-    const seq=++revision.current;setBusy('delete');
+    const seq=begin('delete');if(seq===null)return;
     try{
       const items=await deleteSnapshot(adapter.request,id);
       safeSet(seq,()=>{
@@ -163,13 +186,13 @@ export default function App({adapter,preview=false}){
         setNotice({type:'success',text:'已删除选中记录，并重新读回确认。'});
       });
     }catch(error){safeSet(seq,()=>setNotice({type:'error',text:errorLabel(error)}));}
-    finally{safeSet(seq,()=>setBusy(''));}
+    finally{finish(seq);}
   }
   const a=history.find(x=>x.id===leftId)||null;
   const b=leftId===rightId?null:history.find(x=>x.id===rightId)||null;
   async function output(kind){
-    if(!a||busy)return;
-    const seq=++revision.current;setBusy(kind);
+    if(!a)return;
+    const seq=begin(kind);if(seq===null)return;
     try{
       const text=reportJson(a,b,stamp());
       const result=kind==='copy'
@@ -182,7 +205,7 @@ export default function App({adapter,preview=false}){
       safeSet(seq,()=>setNotice({type:'success',text:kind==='copy'?
         '报告已复制。':preview?'离线预览已触发下载，不代表 Chrome Host 受理。':'Chrome 已受理文件下载，但尚不能证明真实落盘。'}));
     }catch(error){safeSet(seq,()=>setNotice({type:'error',text:errorLabel(error)}));}
-    finally{safeSet(seq,()=>setBusy(''));}
+    finally{finish(seq);}
   }
   return <main className="fp-app">
     <nav className="fp-tabs" aria-label="浏览器环境检测视图">
@@ -200,7 +223,7 @@ export default function App({adapter,preview=false}){
         <div className="fp-actions">
           <Button variant="primary" disabled={!!busy} onClick={()=>void detect()}>
             <Glyph name="refresh"/>检测当前网页</Button>
-          <Button variant="secondary" disabled={!!busy||!reading} onClick={()=>void save()}>
+          <Button variant="secondary" disabled={!!busy||!reading?.volatile?.documentRef} onClick={()=>void save()}>
             <Glyph name="save"/>保存部分证据</Button>
         </div>
         {reading?<div className="fp-proof">
