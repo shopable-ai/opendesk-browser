@@ -6,7 +6,7 @@ import {MARKET_OPERATIONS_STORE} from './sidebar-tools/installation.js';
 // Presentation coordinator on the existing trusted Root. No navigation or
 // sandbox disposal occurs when review is opened, deferred, or dismissed.
 export function createMarketInstallSheet({api,view,canAutoOpen=()=>false,hasOtherReview=()=>false,
-  assertCanInstall=()=>{},openInstalledAppDetail}={}){
+  assertCanInstall=()=>{},openInstalledApp}={}){
   let closed=false,current=null,currentId=null,refreshing=false,again=false,opening=null,activeTicket=null;
   const deferred=new Set();
   const error=problem=>view.setMarketInstall({error:problem?.message||'暂时无法核对市场安装交接。'});
@@ -53,7 +53,7 @@ export function createMarketInstallSheet({api,view,canAutoOpen=()=>false,hasOthe
           activeTicket=null;if(opening===ticket)opening=null;
           view.setMarketInstall({review:null});void refresh();
         },
-        openInstalledAppDetail});
+        openInstalledApp});
       view.setMarketInstall({review:current.getSnapshot(),error:''});
       // Loading belongs to this review instance, not the global open lock.
       // Closing a slow download must allow another pending review immediately.

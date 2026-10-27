@@ -1,0 +1,697 @@
+{
+  "schema": "opendesk.cookie-editor.visual-contract.r35.v1",
+  "approvedHtml": {
+    "path": "preview/cookie-editor.html",
+    "gitBlobSha": "020adbf22005cba219af4ff27cd3f3e492978bed",
+    "mutability": "LOCKED"
+  },
+  "productSource": "app/CookieEditorApp.jsx",
+  "previews": {
+    "html": "preview/cookie-editor.html",
+    "react": "preview/react/index.html",
+    "reactGenerator": "preview/react/build-preview.mjs"
+  },
+  "scenario": {
+    "site": "shop.example.com",
+    "reactScenario": "accountsDemo",
+    "baselineWidth": 380
+  },
+  "statuses": [
+    "LOCKED",
+    "DYNAMIC",
+    "SAFETY_EXCEPTION",
+    "PREVIEW_ONLY"
+  ],
+  "elements": [
+    {
+      "id": "sitebar",
+      "tab": "cookie",
+      "status": "LOCKED",
+      "html": ".sitebar",
+      "react": ".site-bar",
+      "source": "app/components/CookieEditorView.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "fontSize",
+        "paddingTop",
+        "paddingBottom",
+        "backgroundColor"
+      ]
+    },
+    {
+      "id": "tabs",
+      "tab": "cookie",
+      "status": "LOCKED",
+      "html": ".tabs",
+      "react": ".cookie-product-tabs",
+      "source": "app/CookieEditorApp.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "fontSize",
+        "paddingTop",
+        "paddingBottom",
+        "backgroundColor",
+        "borderBottomColor"
+      ]
+    },
+    {
+      "id": "searchbar",
+      "tab": "cookie",
+      "status": "LOCKED",
+      "html": ".searchbar",
+      "react": ".searchbar",
+      "source": "app/components/CookieEditorView.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "paddingTop",
+        "paddingBottom",
+        "paddingLeft",
+        "paddingRight"
+      ]
+    },
+    {
+      "id": "searchbox",
+      "tab": "cookie",
+      "status": "LOCKED",
+      "html": ".searchbox",
+      "react": ".searchbox",
+      "source": "app/components/CookieEditorView.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "borderRadius",
+        "borderTopWidth",
+        "borderTopColor",
+        "backgroundColor"
+      ]
+    },
+    {
+      "id": "search-icon",
+      "tab": "cookie",
+      "status": "LOCKED",
+      "html": ".searchbox svg",
+      "react": ".cookie-search-symbol svg",
+      "source": "app/components/CookieEditorView.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "width",
+        "height",
+        "color"
+      ],
+      "icon": true
+    },
+    {
+      "id": "toolbar",
+      "tab": "cookie",
+      "status": "LOCKED",
+      "html": ".toolbar",
+      "react": ".list-toolbar",
+      "source": "app/components/CookieEditorView.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "paddingTop",
+        "paddingBottom",
+        "fontSize"
+      ]
+    },
+    {
+      "id": "cookie-row",
+      "tab": "cookie",
+      "status": "LOCKED",
+      "html": ".cookie-trigger",
+      "react": ".row-trigger",
+      "source": "app/components/CookieEditorView.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "paddingLeft",
+        "paddingRight",
+        "fontSize",
+        "backgroundColor"
+      ]
+    },
+    {
+      "id": "cookie-title",
+      "tab": "cookie",
+      "status": "LOCKED",
+      "html": ".cookie-key strong",
+      "react": ".row-text strong",
+      "source": "app/components/CookieEditorView.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "fontFamily",
+        "fontSize",
+        "fontWeight",
+        "lineHeight",
+        "color",
+        "whiteSpace",
+        "textOverflow"
+      ]
+    },
+    {
+      "id": "cookie-description",
+      "tab": "cookie",
+      "status": "DYNAMIC",
+      "html": ".cookie-key small",
+      "react": ".row-text small",
+      "source": "app/components/CookieEditorView.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "fontFamily",
+        "fontSize",
+        "lineHeight",
+        "color",
+        "whiteSpace",
+        "textOverflow"
+      ]
+    },
+    {
+      "id": "current-account",
+      "tab": "accounts",
+      "status": "SAFETY_EXCEPTION",
+      "html": ".current-strip",
+      "react": ".cookie-account-current",
+      "source": "app/components/CookieAccounts.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "borderRadius",
+        "paddingTop",
+        "paddingBottom",
+        "backgroundColor"
+      ]
+    },
+    {
+      "id": "refresh-switch",
+      "tab": "accounts",
+      "status": "LOCKED",
+      "html": ".auto-refresh-setting",
+      "react": ".cookie-account-setting",
+      "source": "app/components/CookieAccounts.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "borderRadius",
+        "paddingTop",
+        "paddingBottom",
+        "backgroundColor"
+      ]
+    },
+    {
+      "id": "saved-accounts-heading",
+      "tab": "accounts",
+      "status": "LOCKED",
+      "html": ".account-head",
+      "react": ".cookie-account-header",
+      "source": "app/components/CookieAccounts.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "fontSize",
+        "paddingTop",
+        "paddingBottom"
+      ]
+    },
+    {
+      "id": "saved-accounts-list",
+      "tab": "accounts",
+      "status": "LOCKED",
+      "html": ".accounts-list",
+      "react": ".cookie-account-list",
+      "source": "app/components/CookieAccounts.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "width",
+        "borderRadius",
+        "borderTopColor",
+        "backgroundColor"
+      ]
+    },
+    {
+      "id": "account-row",
+      "tab": "accounts",
+      "status": "LOCKED",
+      "html": ".account-row",
+      "react": ".cookie-account-card",
+      "source": "app/components/CookieAccounts.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "height",
+        "paddingLeft",
+        "paddingRight",
+        "backgroundColor"
+      ]
+    },
+    {
+      "id": "account-avatar",
+      "tab": "accounts",
+      "status": "SAFETY_EXCEPTION",
+      "html": ".account-row .avatar",
+      "react": ".cookie-account-card .cookie-account-avatar",
+      "source": "app/components/CookieAccounts.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "width",
+        "height",
+        "borderRadius",
+        "fontSize",
+        "backgroundColor"
+      ]
+    },
+    {
+      "id": "account-name",
+      "tab": "accounts",
+      "status": "DYNAMIC",
+      "html": ".account-title strong",
+      "react": ".cookie-account-card-text strong",
+      "source": "app/components/CookieAccounts.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "fontFamily",
+        "fontSize",
+        "fontWeight",
+        "lineHeight",
+        "whiteSpace",
+        "textOverflow"
+      ]
+    },
+    {
+      "id": "enterprise-hero",
+      "tab": "enterprise",
+      "status": "LOCKED",
+      "html": ".custom-hero",
+      "react": ".cookie-business-hero",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "fontFamily",
+        "fontSize",
+        "paddingTop",
+        "paddingBottom",
+        "backgroundColor",
+        "borderRadius"
+      ]
+    },
+    {
+      "id": "enterprise-feature",
+      "tab": "enterprise",
+      "status": "LOCKED",
+      "html": ".custom-feature",
+      "react": ".cookie-business-feature",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "paddingTop",
+        "paddingBottom",
+        "fontSize",
+        "borderRadius",
+        "borderTopColor"
+      ]
+    },
+    {
+      "id": "enterprise-feature-icon",
+      "tab": "enterprise",
+      "status": "LOCKED",
+      "html": ".custom-feature .market-symbol svg",
+      "react": ".cookie-business-feature .cookie-business-symbol svg",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "width",
+        "height"
+      ],
+      "icon": true
+    },
+    {
+      "id": "enterprise-usage",
+      "tab": "enterprise",
+      "status": "LOCKED",
+      "html": ".custom-usage",
+      "react": ".cookie-business-usage",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "borderRadius",
+        "borderTopColor",
+        "width"
+      ]
+    },
+    {
+      "id": "market-hero",
+      "tab": "market",
+      "status": "LOCKED",
+      "html": ".market-lead",
+      "react": ".cookie-business-hero",
+      "source": "app/components/CookieAccountExperiences.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "fontFamily",
+        "paddingTop",
+        "paddingBottom",
+        "backgroundColor",
+        "borderRadius"
+      ]
+    },
+    {
+      "id": "market-search",
+      "tab": "market",
+      "status": "LOCKED",
+      "html": "#marketSearch",
+      "react": "input[aria-label='搜索市场功能']",
+      "source": "app/components/CookieAccountExperiences.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "fontSize",
+        "height",
+        "borderRadius"
+      ]
+    },
+    {
+      "id": "market-feature",
+      "tab": "market",
+      "status": "LOCKED",
+      "html": ".market-item",
+      "react": ".cookie-market-resource",
+      "source": "app/components/CookieAccountExperiences.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "paddingTop",
+        "paddingBottom",
+        "borderTopColor"
+      ]
+    },
+    {
+      "id": "market-item-icon",
+      "tab": "market",
+      "status": "LOCKED",
+      "html": ".market-item .market-symbol svg",
+      "react": ".cookie-market-resource .cookie-market-resource-head svg",
+      "source": "app/components/CookieAccountExperiences.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "width",
+        "height"
+      ],
+      "icon": true
+    },
+    {
+      "id": "custom-hero",
+      "tab": "custom",
+      "status": "LOCKED",
+      "html": ".custom-hero",
+      "react": ".cookie-business-hero",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "fontFamily",
+        "fontSize",
+        "paddingTop",
+        "paddingBottom",
+        "backgroundColor",
+        "borderRadius"
+      ]
+    },
+    {
+      "id": "custom-feature",
+      "tab": "custom",
+      "status": "LOCKED",
+      "html": ".custom-feature",
+      "react": ".cookie-business-feature",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "paddingTop",
+        "paddingBottom",
+        "fontSize",
+        "borderRadius",
+        "borderTopColor"
+      ]
+    },
+    {
+      "id": "custom-feature-icon",
+      "tab": "custom",
+      "status": "LOCKED",
+      "html": ".custom-feature .market-symbol svg",
+      "react": ".cookie-business-feature .cookie-business-symbol svg",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "width",
+        "height"
+      ],
+      "icon": true
+    },
+    {
+      "id": "circle-hero",
+      "tab": "circle",
+      "status": "LOCKED",
+      "html": ".market-lead",
+      "react": ".cookie-business-hero",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "fontFamily",
+        "paddingTop",
+        "paddingBottom",
+        "backgroundColor",
+        "borderRadius"
+      ]
+    },
+    {
+      "id": "circle-channel",
+      "tab": "circle",
+      "status": "LOCKED",
+      "html": ".circle-channel",
+      "react": ".cookie-business-channel",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "paddingTop",
+        "paddingBottom",
+        "borderRadius",
+        "borderTopColor"
+      ]
+    },
+    {
+      "id": "circle-avatar",
+      "tab": "circle",
+      "status": "DYNAMIC",
+      "html": ".circle-channel .community-avatar",
+      "react": ".cookie-business-channel .cookie-business-avatar",
+      "source": "app/components/CookieBusinessPanels.jsx",
+      "css": "src/react.css",
+      "compare": [
+        "width",
+        "height",
+        "borderRadius",
+        "fontSize"
+      ]
+    }
+  ],
+  "staticText": [
+    {
+      "id": "cookie-search-placeholder",
+      "tab": "cookie",
+      "status": "LOCKED",
+      "html": "#searchCookie",
+      "react": "input[aria-label='搜索 Cookie']",
+      "attr": "placeholder",
+      "value": "搜索名称、域名或路径"
+    },
+    {
+      "id": "accounts-refresh-title",
+      "tab": "accounts",
+      "status": "LOCKED",
+      "html": ".auto-refresh-setting .setting-label",
+      "react": ".cookie-account-setting strong",
+      "value": "切换后自动刷新网页"
+    },
+    {
+      "id": "saved-accounts",
+      "tab": "accounts",
+      "status": "LOCKED",
+      "html": ".account-head>strong",
+      "react": ".cookie-account-header>strong",
+      "contains": "已保存账号"
+    },
+    {
+      "tab": "enterprise",
+      "id": "enterprise-title",
+      "status": "LOCKED",
+      "html": ".custom-hero h2",
+      "react": ".cookie-business-hero h2",
+      "value": "让团队 AI 账号更好管理"
+    },
+    {
+      "tab": "enterprise",
+      "id": "enterprise-feature-title",
+      "status": "LOCKED",
+      "html": ".custom-section-head h3",
+      "react": ".cookie-business-content>h3",
+      "value": "团队常见场景"
+    },
+    {
+      "tab": "market",
+      "id": "market-title",
+      "status": "LOCKED",
+      "html": ".market-lead>strong",
+      "react": ".cookie-business-hero h2",
+      "value": "发现实用功能与配置示例"
+    },
+    {
+      "tab": "market",
+      "id": "market-search-placeholder",
+      "status": "LOCKED",
+      "html": "#marketSearch",
+      "react": "input[aria-label='搜索市场功能']",
+      "attr": "placeholder",
+      "value": "搜索功能、模板或场景"
+    },
+    {
+      "tab": "custom",
+      "id": "custom-title",
+      "status": "LOCKED",
+      "html": ".custom-hero h2",
+      "react": ".cookie-business-hero h2",
+      "value": "同一批 AI 资源，创造更多工作价值"
+    },
+    {
+      "tab": "custom",
+      "id": "custom-feature-title",
+      "status": "LOCKED",
+      "html": ".custom-section-head h3",
+      "react": ".cookie-business-content>h3",
+      "value": "为企业解决什么问题"
+    },
+    {
+      "tab": "circle",
+      "id": "circle-title",
+      "status": "LOCKED",
+      "html": ".market-lead>strong",
+      "react": ".cookie-business-hero h2",
+      "value": "加入圈子，发现更多价值信息"
+    }
+  ],
+  "exceptions": [
+    {
+      "id": "trusted-login-state",
+      "status": "SAFETY_EXCEPTION",
+      "reason": "应用快照仅表示可信写入回读，不意味着网站登录成功；不复用 HTML 模拟成功文本"
+    },
+    {
+      "id": "secure-vault",
+      "status": "SAFETY_EXCEPTION",
+      "reason": "正式 React 受本机加密仓库锁定与敏感值授权限制，不能复制原版可用状态"
+    },
+    {
+      "id": "demo-site-picker",
+      "status": "PREVIEW_ONLY",
+      "reason": "原版可切换的模拟站点下拉属于实验台；正式站点由可信 Host 提供"
+    },
+    {
+      "id": "account-colors",
+      "status": "SAFETY_EXCEPTION",
+      "reason": "原版虚构账号的主题色不属于可信账号元数据，不在正式账号数据中伪造"
+    },
+    {
+      "id": "shared-colors",
+      "status": "LOCKED",
+      "reason": "原版和 Shared UI 颜色有差异时必须报告；不得复制私有 Hex 颜色规避"
+    },
+    {
+      "id": "refresh-helper",
+      "status": "SAFETY_EXCEPTION",
+      "reason": "正式文案保留写入回读确认与未保存网页内容风险说明"
+    }
+  ],
+  "layoutOrder": {
+    "cookie": {
+      "html": [
+        ".sitebar",
+        ".tabs",
+        ".searchbar",
+        ".toolbar",
+        ".cookie-trigger"
+      ],
+      "react": [
+        ".site-bar",
+        ".cookie-product-tabs",
+        ".searchbar",
+        ".list-toolbar",
+        ".row-trigger"
+      ]
+    },
+    "accounts": {
+      "html": [
+        ".current-strip",
+        ".auto-refresh-setting",
+        ".account-head",
+        ".accounts-list"
+      ],
+      "react": [
+        ".cookie-account-current",
+        ".cookie-account-setting",
+        ".cookie-account-header",
+        ".cookie-account-list"
+      ]
+    },
+    "enterprise": {
+      "html": [
+        ".custom-hero",
+        ".custom-section-head",
+        ".custom-features",
+        ".custom-usage"
+      ],
+      "react": [
+        ".cookie-business-hero",
+        ".cookie-business-content>h3",
+        ".cookie-business-features",
+        ".cookie-business-usage"
+      ]
+    },
+    "market": {
+      "html": [
+        ".market-lead",
+        ".market-search",
+        ".market-filters",
+        ".market-list"
+      ],
+      "react": [
+        ".cookie-business-hero",
+        "input[aria-label='搜索市场功能']",
+        ".cookie-market-categories",
+        ".cookie-market-results"
+      ]
+    },
+    "custom": {
+      "html": [
+        ".custom-hero",
+        ".custom-contact-strip",
+        ".custom-section-head",
+        ".custom-features"
+      ],
+      "react": [
+        ".cookie-business-hero",
+        ".cookie-business-callout",
+        ".cookie-business-content>h3",
+        ".cookie-business-features"
+      ]
+    },
+    "circle": {
+      "html": [
+        ".market-lead",
+        ".circle-channel-list",
+        ".circle-info"
+      ],
+      "react": [
+        ".cookie-business-hero",
+        ".cookie-business-features",
+        ".cookie-business-muted"
+      ]
+    }
+  }
+}

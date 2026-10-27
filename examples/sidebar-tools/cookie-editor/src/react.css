@@ -50,12 +50,12 @@
 .cookie-editor-react .site-name{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}
 .cookie-editor-react .site-name>span{font-size:var(--od-meta-size);color:var(--od-sub)}
 .cookie-editor-react .site-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cookie-editor-react .list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2) var(--space-3)}
+.cookie-editor-react .list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:42px;padding:var(--space-2) var(--space-3)}
 .cookie-editor-react .list-toolbar>strong{white-space:nowrap}
 .cookie-editor-react .toolbar-actions{display:flex;gap:var(--space-1);align-items:center}
 .cookie-editor-react .action-separator{width:1px;height:20px;background:var(--od-line);margin:0 var(--space-1)}
 .cookie-editor-react .cookie-react-icon{flex:none}
-.cookie-editor-react .searchbar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3) 0}
+.cookie-editor-react .searchbar{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3)}
 .cookie-editor-react .searchbox{min-width:0;flex:1;display:flex;align-items:center;gap:var(--space-2);min-height:36px;padding-inline:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper)}
 .cookie-editor-react .searchbox:focus-within{outline:2px solid var(--od-brand);outline-offset:1px}
 .cookie-editor-react .cookie-search-symbol{display:grid;place-items:center;flex:none;color:var(--od-sub)}
@@ -68,11 +68,12 @@
 .cookie-editor-react .sort-field{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);margin-top:var(--space-2)}
 .cookie-editor-react .sort-field select{max-width:68%;min-width:0}
 .cookie-editor-react .cookie-row{border-top:1px solid var(--od-line)}
-.cookie-editor-react .row-trigger{width:100%;display:flex;gap:var(--space-2);align-items:center;justify-content:flex-start;min-height:51px;padding:8px 9px}
+.cookie-editor-react .row-trigger{width:100%;display:flex;gap:9px;align-items:center;justify-content:flex-start;min-height:50px;padding:9px 13px}
 .cookie-editor-react .row-trigger[aria-expanded="true"]>svg{transform:rotate(180deg)}
 .cookie-editor-react .row-text{min-width:0;flex:1;display:grid;gap:2px;text-align:left}
-.cookie-editor-react .row-text strong,.cookie-editor-react .row-text small{white-space:normal;overflow-wrap:anywhere;line-height:1.5}
-.cookie-editor-react .row-text small{font-size:var(--od-meta-size);color:var(--od-sub)}
+.cookie-editor-react .row-text strong,.cookie-editor-react .row-text small{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5}
+.cookie-editor-react .row-text strong{font-size:var(--od-note-size);font-weight:690}
+.cookie-editor-react .row-text small{font-size:10px;color:var(--od-sub)}
 .cookie-editor-react .row-flags{display:flex;gap:var(--space-1);align-items:center;flex:none;color:var(--od-sub)}
 .cookie-editor-react .row-flags abbr{font-size:var(--od-meta-size);line-height:1.2;text-decoration:none;
   padding:2px 4px;border-radius:var(--radius-control);background:var(--od-muted)}
@@ -322,9 +323,6 @@
 .cookie-editor-react .cookie-offline{
   flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
 }
-.cookie-editor-react .row-text small{font-size:var(--od-note-size)}
-
-
 /* R2.3 React account/market areas use the same official design tokens. */
 .cookie-editor-react .cookie-product-tabs{display:flex;align-items:stretch;gap:var(--space-1);min-height:42px;padding:0 var(--space-2);margin:0 0 var(--space-2);border-bottom:1px solid var(--od-line);background:var(--od-paper)}
 .cookie-editor-react .cookie-product-tabs>button{min-width:0;min-height:42px;flex:0 1 auto}
@@ -407,13 +405,14 @@
 .cookie-editor-react .cookie-account-current{display:flex;gap:var(--space-2);align-items:center;min-width:0;padding:var(--space-2);background:var(--od-muted);border:1px solid var(--od-line);border-radius:var(--radius-control)}
 .cookie-editor-react .cookie-account-current>div{display:grid;gap:1px;min-width:0;flex:1}
 .cookie-editor-react .cookie-account-current strong{font-size:var(--od-body-size);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cookie-editor-react .cookie-account-current small{font-size:var(--od-meta-size);color:var(--od-sub);overflow-wrap:anywhere}
+.cookie-editor-react .cookie-account-current small{font-size:10px;color:var(--od-sub);overflow-wrap:anywhere}
 .cookie-editor-react .cookie-account-list{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control)}
 .cookie-editor-react .cookie-account-list>.cookie-account-card{padding:var(--space-2);min-width:0}
 .cookie-editor-react .cookie-account-list>.cookie-account-card:last-child{border-bottom:0}
-.cookie-editor-react .cookie-account-card{min-height:59px;flex-wrap:nowrap}
-.cookie-editor-react .cookie-account-card.is-current{background:var(--od-muted)}
+.cookie-editor-react .cookie-account-card{min-height:61px;flex-wrap:nowrap}
+.cookie-editor-react .cookie-account-card.is-current{background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}
 .cookie-editor-react .cookie-account-card-text{font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-account-card-text small{font-size:10px}
 @media(max-width:350px){
  .cookie-editor-react .cookie-account-card{gap:var(--space-1);flex-wrap:nowrap}
  .cookie-editor-react .cookie-account-avatar{width:30px;height:30px}
