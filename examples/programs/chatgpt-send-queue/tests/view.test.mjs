@@ -84,13 +84,15 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
       if(node.className==='sq-send')node.measure=host.measure;
     }};
     let active=true;
-    const listeners=[];
-    const ui={kind,host,content,shadowRoot:{activeElement:null},listeners,
-      active:()=>active,addStyle(){},on(node,event,callback){listeners.push({node,event,callback});},
+    const listeners=[],styles=[];
+    const ui={kind,host,content,shadowRoot:{activeElement:null},listeners,styles,
+      active:()=>active,addStyle(text){styles.push(text);},on(node,event,callback){listeners.push({node,event,callback});},
       destroy(){active=false;host.remove();}};
     managed.push(ui);return ui;
   };
-  const owner={content:{ownerDocument:doc},getAsset:()=>'',onDispose:fn=>disposals.push(fn),setTimeout(){}};
+  const owner={content:{ownerDocument:doc},getAsset:path=>path.endsWith('.webp')?
+    'data:image/webp;base64,ZmFrZQ==':'.sq-crown{background:url("crown-premium.webp") center/contain no-repeat}',
+    onDispose:fn=>disposals.push(fn),setTimeout(){}};
   const engine={view:()=>state,wait:reason=>waits.push(reason)};
   const view=createQueueView({owner,createPageUI,assets:[],engine,
     actions:{sendNow:id=>calls.push(id)}});
@@ -258,6 +260,29 @@ test('fresh empty queue keeps its decorative cue visible and never rewrites offi
   h.state({items:[]});h.view.render();
   assert.equal(root.children[0].children[0].textContent,'···');
   h.dispose();
+});
+
+test('the crown in the production Shadow DOM uses the packaged WebP data URL',()=>{
+  const h=fixture();
+  assert.equal(h.view.place(h.snap),true);
+  const stylesheet=h.ui('button').styles.join('\n');
+  assert.match(stylesheet,/url\("data:image\/webp;base64,ZmFrZQ=="\)/);
+  assert.doesNotMatch(stylesheet,/url\("crown-premium\.webp"\)/);
+  assert.match(h.ui('list').styles.join('\n'),/crown-premium\.webp/);
+  h.dispose();
+});
+
+test('preview bundles the exact official WebP and keeps reset colors neutral',async()=>{
+  const html=await readFile(new URL('../preview/index.html',import.meta.url),'utf8');
+  const binary=await readFile(new URL('../assets/crown-premium.webp',import.meta.url));
+  const css=await readFile(new URL('../assets/queue.css',import.meta.url),'utf8');
+  const data=binary.toString('base64');
+  assert.ok(data.length>10000);
+  assert.match(html,/data:image\/webp;base64,/);
+  assert.ok(html.includes('data:image/webp;base64,'+data));
+  assert.match(css,/\.sq-panel\.sq-empty\{background:#f7f8fa\}/);
+  assert.match(css,/\.sq-panel\.sq-empty\{background:#2e3035\}/);
+  assert.match(html,/body\[data-theme="dark"\] \.sq-panel\.sq-empty\{background:#2e3035\}/);
 });
 
 test('panel CSS consumes measured radius without any website selector',async()=>{
