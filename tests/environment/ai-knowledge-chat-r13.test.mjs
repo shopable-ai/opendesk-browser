@@ -524,6 +524,51 @@ for(const changedKnowledge of [false,true]){
  });
 }
 
+test('M0 exact local fixture URL: query and hash variants cannot start a trusted session',async()=>{
+ const suffixes=['?unapproved=1','#different'];
+ for(const suffix of suffixes){
+   const {api,target,site}=lab();
+   const capture=target.capture;
+   target.capture=()=>({...capture(),url:url+suffix});
+   const adapter=createLocalKnowledgeDemoAdapter({api,currentPageTarget:target});
+   await assert.rejects(adapter.start(),{code:'E_KB_DEMO_SCOPE'});
+   assert.equal(site.readCalls,0,'unapproved URL must not inject into a document');
+   adapter.drop();
+ }
+});
+
+test('M0 independent DOM receipt: two replies to one customer remain UNKNOWN and never resend',async()=>{
+ const {api,target,site}=lab();
+ const execute=api.scripting.executeScript;
+ api.scripting.executeScript=async options=>{
+   const result=await execute(options);
+   if(options.args[0].operation==='send'){
+     // The initial send succeeded, but a second agent message appeared before
+     // the separately executed read. An exact match alone is not enough.
+     site.messages.push({...site.messages.at(-1),
+       messageId:'kb_msg_00000000-0000-4000-b000-000000000003'});
+   }
+   return result;
+ };
+ const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+   readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+ const inbound=customer('几天内可以退款');
+ try{
+   await rt.start({event:{isTrusted:true}});
+   site.messages.push(inbound);
+   await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','fixed answer for duplicate receipt');
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_DEMO_OUTCOME_UNKNOWN'});
+   assert.equal(site.sendCalls,1,'the real site click already happened exactly once');
+   assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+   await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+     {code:'E_KB_TEST_NO_ANSWER'});
+   const readOnly=await rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId});
+   assert.equal(readOnly.status,'UNKNOWN','duplicate receipt is not a confirmation');
+   assert.equal(site.sendCalls,1,'a read-only investigation cannot trigger a retry');
+ }finally{rt.dispose();}
+});
+
 test('R3.1 UNKNOWN after a real site click can be confirmed by a separate read-only receipt without another send',async()=>{
  const {api,target,site}=lab();
  const execute=api.scripting.executeScript;
