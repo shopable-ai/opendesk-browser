@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
-import {CookieFormField,CookieValueField,CookieAdvancedFields,CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
+import {CookieFormField,CookieValueField,CookieAdvancedFields,CookieExpirationField,CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
 import {localExpirationText,parseLocalExpiration} from '../domain/cookie-expiration.js';
 
 // Cookie Value is deliberately an uncontrolled DOM input. React state, props,
@@ -186,6 +186,8 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
           <CookieIconButton name="undo" label="恢复原值" className="cookie-value-undo"
             disabled={disabled} onClick={restoreValue}/>}
       </div>}
+    <CookieExpirationField draft={draft} disabled={disabled}
+      onChange={update} error={message}/>
     <CookieAdvancedFields draft={draft} existing={edited} disabled={disabled}
       onChange={update} error={message}/>
     {edited&&draft.name!==row.name&&<p className="editor-hint">
