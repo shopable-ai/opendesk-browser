@@ -155,8 +155,25 @@ try{
     if(data.scrollWidth>data.clientWidth+1)
       diffs.push({width,theme,tab,id:name+'-container',status:'LOCKED',kind:'HORIZONTAL_OVERFLOW',data});
     const path=join(output,width+'-'+theme+'-'+tab+'-'+name+'.png');
-    await page.locator(selector).screenshot({path});
-    screenshots.push(path);
+    // Element screenshot waits for layout "stability"; the approved prototype
+    // contains animated interactions. Sample actual bounds and screenshot
+    // the page clip without waiting for unrelated animations to settle.
+    try{
+      const rect=await page.locator(selector).first().boundingBox();
+      const viewport=page.viewportSize();
+      if(!rect||!viewport)throw Error('missing screenshot bounds');
+      const x=Math.max(0,rect.x),y=Math.max(0,rect.y);
+      const crop={x,y,width:Math.min(rect.width,viewport.width-x),
+        height:Math.min(rect.height,viewport.height-y)};
+      if(crop.width<=0||crop.height<=0)throw Error('screenshot outside viewport');
+      await page.screenshot({path,clip:crop,animations:'disabled',caret:'hide'});
+      screenshots.push(path);
+    }catch(error){
+      const message=String(error?.message||error);
+      errors.push({width,tab,page:name,message});
+      diffs.push({width,theme,tab,id:name+'-screenshot',status:'LOCKED',
+        kind:'SCREENSHOT_FAILURE',message});
+    }
    }
   }
   await context.close();
