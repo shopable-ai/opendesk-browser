@@ -584,3 +584,69 @@
  .cookie-editor-react .cookie-business-feature{padding:var(--space-2)}
  .cookie-editor-react .cookie-business-actions{gap:var(--space-1)}
 }
+
+
+/* Lightweight feature catalog: direct action, no request/approval UI. */
+.cookie-editor-react .cookie-market-page{gap:var(--space-2)}
+.cookie-editor-react .cookie-market-page>.od-field{width:100%;min-width:0}
+.cookie-editor-react .cookie-market-page .cookie-market-results{
+  display:grid;gap:var(--space-2);border:0;
+}
+.cookie-editor-react .cookie-market-page .cookie-market-resource{
+  min-width:0;display:grid;gap:var(--space-2);
+  padding:var(--space-3);border:1px solid var(--od-line);
+  border-radius:var(--radius-surface);
+}
+.cookie-editor-react .cookie-market-page .cookie-market-resource-actions{
+  justify-content:space-between;gap:var(--space-2);flex-wrap:wrap;
+}
+.cookie-editor-react .cookie-market-page .cookie-market-resource-actions>small{
+  color:var(--od-sub);font-size:var(--od-meta-size);
+}
+
+/* Official external subscriptions; no invented pricing or payment capture. */
+.cookie-editor-react .cookie-business-membership{
+  display:grid;gap:var(--space-2);min-width:0;padding:var(--space-2);
+  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+}
+.cookie-editor-react .cookie-business-membership-header{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:var(--space-2);min-width:0;
+}
+.cookie-editor-react .cookie-business-membership-header>div{flex:1;min-width:0}
+.cookie-editor-react .cookie-business-membership-header strong{font-size:var(--od-body-size)}
+.cookie-editor-react .cookie-business-membership-header p{
+  margin:3px 0 0;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5;
+}
+.cookie-editor-react .cookie-business-membership-header>button{flex:none}
+.cookie-editor-react .cookie-business-membership-list{
+  display:grid;gap:0;min-width:0;border-top:1px solid var(--od-line);
+}
+.cookie-editor-react .cookie-business-membership-list>small{
+  padding:var(--space-2) 0;color:var(--od-sub);font-size:var(--od-meta-size);
+}
+.cookie-editor-react .cookie-business-membership-row{
+  display:flex;align-items:center;gap:var(--space-2);min-width:0;
+  padding:var(--space-2) 0;border-bottom:1px solid var(--od-line);
+}
+.cookie-editor-react .cookie-business-membership-row>div{
+  flex:1;min-width:0;display:grid;gap:2px;
+}
+.cookie-editor-react .cookie-business-membership-row>div>strong{
+  font-size:var(--od-note-size);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.cookie-editor-react .cookie-business-membership-row>div>small{
+  color:var(--od-sub);font-size:var(--od-meta-size);overflow-wrap:anywhere;
+}
+.cookie-editor-react .cookie-business-membership-row>a{
+  min-height:30px;flex:none;text-decoration:none;
+}
+.cookie-editor-react .cookie-business-membership-list>p{
+  margin:var(--space-2) 0 0;color:var(--od-sub);
+  font-size:var(--od-meta-size);line-height:1.6;
+}
+@media(max-width:350px){
+ .cookie-editor-react .cookie-business-membership-header{gap:var(--space-1)}
+ .cookie-editor-react .cookie-business-membership-header p{font-size:10px}
+ .cookie-editor-react .cookie-market-page .cookie-market-resource{padding:var(--space-2)}
+}
