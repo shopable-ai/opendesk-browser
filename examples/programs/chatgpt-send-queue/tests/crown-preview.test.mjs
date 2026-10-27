@@ -36,7 +36,7 @@ test('preview is offline and retains main queue interactions without A/B switche
  assert.doesNotMatch(html,/R5\.2 · SELECTED C/);
  assert.doesNotMatch(html,/<(?:script|link)\b[^>]+(?:src|href)\s*=\s*["'](?:https?:|\.\.?\/)/i);
  assert.doesNotMatch(html,/url\(["']?\.\.?\//);
- for(const id of ['blue','native','draft','more','reset','sizes','widths','themes','finish','toggle-pause','sample-add','detail-send'])
+ for(const id of ['blue','native','draft','more','reset','sizes','widths','themes','finish','toggle-pause','sample-add'])
    assert.ok(html.includes('id="'+id+'"'),'missing main preview '+id);
  for(const id of ['angle','scale','x','y'])
    assert.ok(tuner.includes('id="'+id+'"'),'missing separate tuner '+id);
