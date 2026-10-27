@@ -242,25 +242,6 @@ function Preview(){
       source:{label:'仅预览（无真实来源回执）'},
       sites:row.kind==='page'?['https://example.invalid/*（预览）']:[],
       actions,busy:!!extensionReview,suspended:scene==='denied'||row.suspended===true,
-      pageControl:row.kind==='page'&&row.installed?{
-        enabled:row.enabled===true,enabledKnown:!['unknown','disconnected'].includes(scene),
-        state:scene==='denied'?'restricted':row.enabled===false?'off':'pending',
-        status:scene==='denied'?'网站权限受限（仅预览）':
-          row.enabled?'模拟启用 · 未连接 Chrome 注册':'模拟停用 · 未连接 Chrome 注册',
-        note:'仅界面状态；无 Page Authority 或 Chrome 注册读回。',
-        busy:!!extensionReview,canRestore:false,legacyProgramId:null,
-        onToggle:(enabled,event)=>{
-          if(event?.isTrusted!==true)return;
-          setExtensionRecords(current=>current.map(item=>
-            item.key===row.key?{...item,enabled}:item));
-          setNotice('仅预览 · 已更新内存开关；未修改安装或授权。');
-        },
-        onRefresh:()=>setNotice('仅预览 · 无真实 Page Authority 状态。')
-      }:null,
-      pageInfo:row.kind==='page'&&row.installed?{
-        source:'仅预览',authorization:'未连接（预览）',nativeState:'未连接（预览）',
-        capabilities:[],networkOrigins:[],excluded:[],dataRule:'无真实数据或授权'
-      }:null,
       cleanupPending:false};
   })();
   const transcript=workflowConversationCleared?[]:(messages[scene]||[]);
