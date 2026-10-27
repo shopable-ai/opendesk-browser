@@ -231,8 +231,8 @@ function ManagedPageControl({control,title}){
       onKeyUpCapture={capture} onClickCapture={capture}
       onBlurCapture={()=>{gesture.current=null;}}>
       <div className="ec-page-main-copy">
-        <h3>启用此应用</h3>
-        <p>授权后在适用网站自动运行，不需要保持侧边栏打开。</p>
+        <h3>启用此网页增强</h3>
+        <p>在已授权的网站自动运行</p>
       </div>
       <Switch data-ec-detail-action="toggle" aria-label={'启用「'+title+'」'}
         isSelected={control.enabled} isDisabled={control.busy||!control.enabledKnown}
@@ -241,7 +241,7 @@ function ManagedPageControl({control,title}){
     <p className="ec-page-state" data-state={control.state} role="status" aria-live="polite">
       {control.status}
     </p>
-    <p>{control.note}</p>
+    {control.note&&control.state!=='ready'&&<p>{control.note}</p>}
     {control.legacyProgramId&&<p className="ec-page-legacy">
       检测到同时安装的旧版：{control.legacyProgramId}。
       两者安装身份和授权完全独立；请在扩展列表中单独停用或卸载旧版，不会自动迁移或删除。
@@ -260,7 +260,7 @@ function ManagedPageControl({control,title}){
 }
 
 function PageSiteUpgrade({upgrade}){
-  return <form className="ec-site-upgrade" aria-label="添加自定义 AI 网站"
+  return <form className="ec-site-upgrade" aria-label={upgrade.title||'添加自定义网站'}
     onSubmit={event=>{
       event.preventDefault();
       const fields=event.currentTarget.elements;
@@ -269,8 +269,8 @@ function PageSiteUpgrade({upgrade}){
         pathScope:fields.namedItem('pathScope')?.value||'/'
       },event.nativeEvent);
     }}>
-    <h4>添加自定义 AI 网站</h4>
-    <p>创建待审阅的固定网站范围，由原安装器确认 Chrome 权限。保存选择器不能代替授权。</p>
+    <h4>{upgrade.title||'添加自定义网站'}</h4>
+    {upgrade.description&&<p>{upgrade.description}</p>}
     <label>网站 Origin
       <input name="origin" type="url" required maxLength={256}
         placeholder="https://example.com" autoComplete="off"
@@ -281,7 +281,7 @@ function PageSiteUpgrade({upgrade}){
         autoComplete="off"
         disabled={Boolean(upgrade.disabledReason||upgrade.busy)}/>
     </label>
-    <p>Chrome 网站权限可能覆盖完整域名；UserScript 执行路径仍受本次审阅范围约束。</p>
+    {upgrade.permissionNote&&<p>{upgrade.permissionNote}</p>}
     {upgrade.disabledReason&&<p role="status">{upgrade.disabledReason}</p>}
     {upgrade.error&&<p role="alert">{upgrade.error}</p>}
     <Button type="submit" disabled={Boolean(upgrade.disabledReason||upgrade.busy)}>
@@ -334,7 +334,9 @@ export function ExtensionDetail({model,container}){
     (target?.querySelector?.('[role="switch"]')||target)?.focus?.({preventScroll:true});
   },[model,container]);
   if(!model)return null;
-  const managed=Boolean(model.pageControl);
+  const managed=model.kind==='page'&&Boolean(model.pageControl);
+  // Render Authority/official scopes only. Never infer capabilities from titles.
+  const sites=Array.isArray(model.sites)?model.sites.filter(s=>typeof s==='string'&&s.trim()):[];
   return <>
     <div className="ec-detail-head">
       <span className="ec-glyph" aria-hidden="true">{model.kind==='page'?'◇':'▦'}</span>
@@ -342,7 +344,7 @@ export function ExtensionDetail({model,container}){
         <strong>{model.title}</strong><span className="ec-type">{model.type}</span>
       </div>
     </div>
-    <p>{model.description}</p>
+    {model.description&&<p className="ec-detail-description">{model.description}</p>}
     {managed&&<ManagedPageControl control={model.pageControl} title={model.title}/>}
     {!managed&&<DetailActions model={model}/>}
     {!managed&&<section className="ec-detail-card">
@@ -354,46 +356,34 @@ export function ExtensionDetail({model,container}){
           {model.source?.sha256&&<p>固定包 SHA-256：{model.source.sha256}</p>}
           <p>{model.usageText||'应用已安装，可按需打开界面。'}</p>
           <p>{model.appDataText}</p></>:<p>{model.cleanupPending?
-            '请先恢复上次卸载的数据与权限清理，不会自动重新安装。':
-            '正式安装必须在现有应用市场审阅固定包和能力清单。'}</p>}
+          '请先恢复上次卸载的数据与权限清理，不会自动重新安装。':
+          '正式安装必须在现有应用市场审阅固定包和能力清单。'}</p>}
       </>}
     </section>}
-    {model.kind==='page'&&<section className="ec-detail-card">
-      <h3>{managed?'适用网站':'网站范围与授权'}</h3>
-      {model.sites.length?<ul className="ec-sites">{model.sites.map(site=><li key={site}>{site}</li>)}</ul>:
-        <p>尚无已核实的网站规则；不能据此推断程序可自动运行。</p>}
-      <p>{model.suspended?
-        '网站访问受限；需要按照原授权规则重新授权。':
-        '仅在原安装批准的网站范围内运行，不因扩展本身具备网站访问权限而扩大程序授权。'}</p>
-      {!managed&&<>
-        <p>排除网站：{model.pageInfo?.excluded?.join('、')||'无'}</p>
-        <p>授权能力：{model.pageInfo?.capabilities?.join('、')||'未记录'}</p>
-        <p>网络来源：{model.pageInfo?.networkOrigins?.join('、')||'未记录'}</p>
-      </>}
-      {model.siteUpgrade&&(managed?
-        <details className="ec-site-review-details">
-          <summary>添加自定义 AI 网站（需要重新审阅权限）</summary>
-          <PageSiteUpgrade upgrade={model.siteUpgrade}/>
-        </details>:
-        <PageSiteUpgrade upgrade={model.siteUpgrade}/>)}
+    {model.kind==='page'&&(sites.length>0||model.siteUpgrade)&&<section className="ec-detail-card ec-page-sites">
+      <h3>适用网站</h3>
+      {sites.length>0&&<ul className="ec-sites">{sites.map(site=><li key={site}>{site}</li>)}</ul>}
+      {model.suspended&&<p role="status">网站访问受限，需按原授权流程恢复。</p>}
+      {model.siteUpgrade&&<details className="ec-site-review-details">
+        <summary>{model.siteUpgrade.summary||'添加自定义网站（需审阅）'}</summary>
+        <PageSiteUpgrade upgrade={model.siteUpgrade}/>
+      </details>}
     </section>}
     {managed&&<section className="ec-detail-card ec-page-management">
-      <h3>版本与管理</h3>
-      <p>{model.installationText} · 修订：r{model.version}</p>
+      <div className="ec-page-management-head">
+        <h3>设置与管理</h3>
+        <span className="ec-page-version">r{model.version}</span>
+      </div>
       {model.pageControl.officialBlock&&<p className="ec-page-release-block" role="status">
         官方发行仍受限：{model.pageControl.officialBlock}
       </p>}
       <DetailActions model={model}/>
     </section>}
-    {model.kind==='page'&&(managed?
-      <details className="ec-detail-card ec-page-diagnostics">
-        <summary>权限、安装身份与技术诊断</summary>
-        <PageDiagnostics info={model.pageInfo}/>
-      </details>:
-      <section className="ec-detail-card">
-        <h3>Chrome 注册与数据</h3>
-        <PageDiagnostics info={model.pageInfo}/>
-      </section>)}
+    {model.kind==='page'&&model.pageInfo&&<details className="ec-detail-card ec-page-diagnostics">
+      <summary>权限、版本与技术信息</summary>
+      <p>{model.installationText} · 修订：r{model.version}</p>
+      <PageDiagnostics info={model.pageInfo}/>
+    </details>}
   </>;
 }
 

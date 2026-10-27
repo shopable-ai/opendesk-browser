@@ -340,8 +340,7 @@
 .ec-site-upgrade button{justify-self:start;max-width:100%}
 
 
-/* R1.4: two independently installed AI Page Programs share this trusted
- * management presentation, never a second UI Host or enable-state store. */
+/* R1.7: shared trusted Page management UI; no new Host or enable store. */
 .ec-page-control{padding:var(--space-3);background:var(--od-paper)}
 .ec-page-control .ec-page-main{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);min-height:46px}
 .ec-page-main-copy{flex:1;min-width:0}
@@ -355,6 +354,11 @@
 .ec-page-control-actions{display:flex;flex-wrap:wrap;gap:var(--space-2);margin-top:var(--space-3)}
 .ec-page-control-actions button{min-height:38px}
 .ec-page-management .ec-detail-actions{margin:8px 0 0}
+.ec-page-management-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-2)}
+.ec-page-management-head h3{margin:0}
+.ec-page-version{font-size:var(--od-note-size);color:var(--od-sub);white-space:nowrap}
+.ec-page-sites .ec-sites{margin:8px 0 4px}
+.ec-detail-description{margin:9px 0 12px}
 .ec-page-release-block{overflow-wrap:anywhere}
 .ec-site-review-details,.ec-page-diagnostics{min-width:0}
 .ec-site-review-details{margin-top:var(--space-3);border-top:1px solid var(--od-line);padding-top:var(--space-2)}
