@@ -2,7 +2,7 @@
 // Polling publishes UI only. Explicit storage admission stays in this exact
 // Workspace owner; it never installs, executes npm or grants installed rights.
 import {readToolSnapshot,NATIVE_TOOL_PREVIEW_ROOT,previewStorageKey} from './tool-snapshot.js';
-import {openPreviewSession,updatePreviewSession,panelPreviewStorageKey,panelPreviewPointer} from '../ui/sidebar-tools/preview-session.js';
+import {openPreviewSession,updatePreviewSession,panelPreviewStorageKey} from '../ui/sidebar-tools/preview-session.js';
 import {previewStatusKey} from '../ui/sidebar-tools/live-preview.js';
 import {createToolDevelopmentStorageOwner} from './tool-development-storage.js';
 
@@ -25,7 +25,7 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
   if(!['tab','sidepanel'].includes(surface)||surface==='sidepanel'&&
     (!Number.isSafeInteger(windowId)||windowId<0))throw new Error('E_TOOL_PREVIEW_SURFACE');
   let closed=false,opened=null,snapshot=null,timer=null,queued=Promise.resolve(),starting=null,stopping=null;
-  let developmentCurrent=null,lastPointerRefresh=0;
+  let developmentCurrent=null;
   const pointerKey=surface==='sidepanel'?panelPreviewStorageKey(windowId):null;
   const development=createToolDevelopmentStorageOwner({api,lockManager,now,assertCurrent,
     getCurrent:()=>closed?null:developmentCurrent,
@@ -103,11 +103,6 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
         await updatePreviewSession({api:previewApi,previewId:opened.previewId,workspaceId,sourceId,snapshot,now:now()});
       }
       readyDevelopment();
-      if(pointerKey&&now()-lastPointerRefresh>60000){
-        await assertCurrent();if(closed)return;
-        await api.storage.session.set({[pointerKey]:panelPreviewPointer(opened.previewId,windowId,now())});
-        lastPointerRefresh=now();
-      }
       await report('实时开发预览 · '+snapshot.sha256.slice(0,12)+' · 未安装');
     }catch(error){
       invalidateDevelopment();
@@ -145,7 +140,6 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
       snapshot=next;
       opened=await openPreviewSession({api:previewApi,workspaceId,sourceId,snapshot,
         now:now(),surface,windowId});
-      lastPointerRefresh=now();
       if(removedTabs.has(opened.tabId)){void stop();return;}
       removedTabs.clear();
       if(closed)return;
