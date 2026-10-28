@@ -4,6 +4,7 @@ import {readFile,realpath,lstat,mkdir,writeFile,rename,rm} from 'node:fs/promise
 import {resolve,dirname,relative} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
+import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../src/platform/host/send-queue-admission.js';
 import {validatePageInstallPackage,PAGE_INSTALL_INPUT_LIMIT} from '../src/scripting/user-scripts/page-install-package.js';
 import {OFFICIAL_PAGE_SOURCE_PATH,OFFICIAL_PAGE_CATALOG_PATH,OFFICIAL_PAGE_RELEASE_SCHEMA,
   officialPagePackagePath,validateOfficialPageSources,validateOfficialPageReleases}
@@ -47,7 +48,8 @@ async function approvedFile(root,row){
 export async function officialPageInputs(root=ROOT){
   root=await realpath(root);
   const rows=(await readOfficialPageSources(root)).programs;
-  return [OFFICIAL_PAGE_SOURCE_PATH,...await Promise.all(rows.filter(row=>row.publication==='approved')
+  return [OFFICIAL_PAGE_SOURCE_PATH,...await Promise.all(rows.filter(row=>row.publication==='approved'||
+    row.programId===SEND_QUEUE_PIN.pageProgramId)
     .map(async row=>relative(root,(await approvedFile(root,row)).path)))].sort();
 }
 export async function createOfficialPageResources({root=ROOT}={}){
@@ -62,6 +64,17 @@ export async function createOfficialPageResources({root=ROOT}={}){
       installationPolicy:row.installationPolicy};
     if(row.publication==='blocked'){
       apps.push({...descriptor,status:'blocked',blockedReason:row.blockedReason});
+      // A single reviewed pre-release product may offer explicit local review.
+      // The official descriptor remains blocked; the general official loader
+      // still refuses installation. No code is run or granted by copying bytes.
+      if(row.programId===SEND_QUEUE_PIN.pageProgramId){
+        const {bytes}=await approvedFile(root,row);
+        const pkg=await validatePageInstallPackage(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));
+        if(!exactScope(pkg,row)||!admitsPinnedQueuePage(pkg)||
+          pkg.version!==SEND_QUEUE_PIN.pageVersion||pkg.packageHash!==SEND_QUEUE_PIN.pagePackageHash)
+          fail('Send Queue 审阅候选与精确准入不符');
+        resources.set(officialPagePackagePath(row.programId),bytes);
+      }
       continue;
     }
     const {bytes}=await approvedFile(root,row);

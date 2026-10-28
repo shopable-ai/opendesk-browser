@@ -6,13 +6,15 @@
 
 ## 当前阶段与下一条操作（2026-10-29）
 
-官方目录仍为 **blocked**，真实核心链尚未通过。2026-10-29 已解除第 13 个工具的安装容量阻塞，经原安装审阅成功安装项目内唯一 `ai-send-queue` 0.1.13 JSON，并从「扩展」打开真实 React 侧栏；原 12 个工具保留。该侧栏报告当前网页尚未执行获准的队列程序，不能据此声明真实队列可用。
+R5.11 已在本任务独占的 Mac Chrome for Testing 156 中，经「扩展 → AI 消息发送队列 → 联合安装 / 更新审阅」一次确认安装 Tool `0.1.15` 与 Page `0.1.13/r13`，原入口返回两份安装记录已读回；重新进入已安装详情确认「侧栏：已启用；网页能力：已注册」。Tool 固定包 SHA-256 为 `ef5a8d512783b99dd96e6eba0eda24aadbe9f3f3842cf716e1782f2657de9fea`；Page sourceHash 为 `2e33a179ff03ba02810827ce6bc56482a3ae90d4da9b93805870334b6962e8de`，packageHash 为 `c63d0b0321826eabf5340f06a96d435a6983fc982371e2bede440941c9a30720`。
 
-日常 Page 仍为 `0.1.13/r12`。正常管理界面的执行回执证明初始化在皇冠图片校验处失败：打包器已将相对图片 URL 内嵌为 data URL，而产品代码只接受相对路径。本轮修复使两种来源都核对同一声明图片字节，并生成 sourceHash `2e33a179ff03ba02810827ce6bc56482a3ae90d4da9b93805870334b6962e8de` 的 r13 候选。正常更新被 `E_PAGE_CLEANUP_PENDING` 拒绝，尚未安装；旧实例所在两页已在核对并保留未发送草稿后刷新，随后 CUA 控制持续超时，清理终态与再次更新尚未验证。
+首次隔离安装明确因 Chrome 未允许用户脚本而停止，没有继续安装侧栏；通过 Chrome 原生「允许运行用户脚本」后，在独立 Profile 完成上述安装。清理状态未知和失败原生回执都不能放行后续安装或显示完成；旧 `0.1.13` Tool 可审阅精确候选联合升级，但不因此获得当前队列管理权。随后复核修复了联合审阅准备和失败异步读回期间的重复提交窗口，新增延迟回归，联合安装 18 项、Page 导入与队列产品管理 64 项定向测试通过；这两项时序修复尚无更新后原生复验。
 
-日常环境继续使用原 `npm run dev` 与 `dist/development`，扩展 ID 与 Native 配对保留。独立测试会话已有真实回复 READY，这只证明网站入口可用。下一条操作是核对旧实例清理状态，经原审阅链安装 r13，再完成真实入队和双端同步。
+本次复用既有 `npm run dev` 的 `dist/development`，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；未覆盖共享输出、重配 Native 或使用旧静态包。该运行证据属于持续开发，不能替代冻结 production 验收。独占 `test-chatgpt-02` 的 ChatGPT 当前停在 Cloudflare 真人验证，尚未取得可用会话；真实两条消息入队、网页/侧栏同步、FIFO 发送均为 **NOT_TESTED**。实际侧栏保持不可用状态，没有伪造队列或自动发送。
 
-当前实测范围、候选身份、CI 失败与下一步见 [R5.10 验收记录](ACCEPTANCE-R5.10.zh-CN.md)。本地晋升与 Git 提交不代表公开发布；Tool 未加入公开官方目录，Page Catalog 保持 blocked。
+用户随后明确允许使用系统 Chrome；已创建本任务独立 ChatGPT 测试标签页，但浏览器 DOM、截图和准确路径的原生窗口读取持续超时，仅能读取标签元数据，未取得可操作页面。此为当前测试连接阻塞，不能据此判定队列产品故障。未重启或关闭用户 Chrome，未提取个人 Profile Cookie；本任务隔离 CFT 已正常退出。
+
+Tool 已加入内置候选目录，Page 公开发行仍为 **blocked**，审阅候选不代表公开上架。[R5.10 验收记录](ACCEPTANCE-R5.10.zh-CN.md) 保留历史范围，不代表本次候选。下一条尚未完成的操作是在用户已授权的系统 Chrome 取得可操作测试页后，核对网页入队与侧栏同步，再验证安全 FIFO；不重跑已通过的引擎测试代替这项证据。
 
 本轮优先真实核心链：Page 入队 → Sidebar 同步 → 跨端暂停/恢复 → FIFO 发送与真实回复确认。先修复实际失败，再选择相关检查；完整验收、评分、宽度/缩放矩阵、production 发布和全量 CI 延期。
 
@@ -22,7 +24,7 @@
 - Sidebar Tool ID：`ai-send-queue`；`src/sidebar/App.jsx` 和 `style.css` 为唯一正式 React UI；消息合同：`src/shared/queue-contract.js`。不创建第二份队列、第二个 React Root 或第二套 Host。
 - Page 皇冠和队列采用已批准的 R5.4 CSS 和 `crown-premium.webp`，不改皇冠偏移、旋转、尺寸、不叠新图层。
 - 编辑为取回 ChatGPT 原生输入框；FIFO、草稿、IME、附件、会话身份和 unknown-effect 不重发是强制安全栅栏。
-- `preview/index.html` 是唯一 R5.4 网页端设计预览；**预览与 CI 编译不等于真实发送**。
+- `preview/index.html` 保留唯一 R5.4 设计，并接入正式 React 构建及明确标识的模拟 Owner；**预览与 CI 编译不等于真实发送**。
 
 ## R5.10 本轮落地的真实代码
 

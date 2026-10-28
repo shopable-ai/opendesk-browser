@@ -4,7 +4,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tool
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {loadOfficialPageCatalog} from '../scripting/user-scripts/official-page-catalog.js';
 import {installedPageEnableAction,setInstalledPageProgramEnabled} from './installed-page-tools.js';
-import {composeExtensionEntries,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeInstalledPageControl} from './extension-center-model.js';
+import {composeExtensionEntries,isPinnedQueueRelease,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeInstalledPageControl} from './extension-center-model.js';
 import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage} from './app-localization.js';
@@ -14,6 +14,7 @@ import {loadMarketChannel} from '../marketplace/external.js';
 import {readMarketInstallStatus} from '../marketplace/status.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
 import {SCROLL_CONFIG_PROGRAM_ID,scrollProgramUrlMatches} from '../scripting/user-scripts/scroll-config-contract.js';
+import {loadSendQueuePageCandidate,queuePageIdentity,sameQueuePageIdentity} from './send-queue-product.js';
 import {SEND_QUEUE_PIN} from '../platform/host/send-queue-admission.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
@@ -47,6 +48,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     row.description===readingTocCatalog.messages['zh-CN'].description?
       uiMessage(readingTocCatalog,language(),'description'):row.description||'';
   const installedAppUsage=row=>{
+    if(row.queueProduct)return row.queueProduct.summary+' 官方发布仍受原目录状态限制；候选审阅不代表上架。';
     if(row.id===SEND_QUEUE_PIN.toolId&&row.enabled===false)
       return '队列管理界面已停用；已安装的网页发送能力由 Page 单独运行，不会因此自动停用。';
     if(row.id===SEND_QUEUE_PIN.toolId&&row.stateKnown===false)
@@ -71,10 +73,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   };
   // "Application" is a product identity; Page/Sidebar is the run mode.
   // This changes presentation only, never installed IDs or Authority records.
-  const typeOf=row=>row.kind==='page'?'应用 · 网页增强':'应用 · 侧边栏';
+  const typeOf=row=>row.queueProduct?'应用 · 网页与侧栏':row.kind==='page'?'应用 · 网页增强':'应用 · 侧边栏';
   const all=()=>composeExtensionEntries({installed,pages,official:appStatusKnown?official:[],
     pageReleases:pageStatusKnown?officialPages:[],
-    enabled,appStatusKnown,cleanupPendingIds:[...pendingCleanups],
+    enabled,appStatusKnown,pageStatusKnown,cleanupPendingIds:[...pendingCleanups],
     queueToolHash:sources[SEND_QUEUE_PIN.toolId]?.sha256??null});
   const find=key=>all().find(row=>row.key===key);
   const pageIdentity=row=>{
@@ -215,7 +217,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       menuItems.push({id:actionId,label,onClick:activate});
     };
     if(row.kind==='app'){
-      if(row.stateKnown!==false&&typeof sidebarTools.toggleEnabled==='function')
+      if(row.queueProduct){
+        add('管理产品…',()=>openDetail(key,'more'),'product');
+      }
+      if(!row.queueProduct&&row.stateKnown!==false&&typeof sidebarTools.toggleEnabled==='function')
         add(row.enabled?'停用应用':'启用应用',event=>{
           if(pendingKey)return;
           // Dispatch under the originating trusted click, before any Promise
@@ -251,7 +256,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         },'toggle');
       if(row.stateKnown!==false)
         add('设置与权限…',()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings');
-      if(row.update&&row.release)add('审阅新版…',()=>openReview(row.key),'update');
+      if(row.queueReviewRelease)
+        add('联合安装 / 更新审阅…',event=>{void reviewQueueProduct(row,event);},'queue-review');
+      else if(row.update&&row.release)add('审阅新版…',()=>openReview(row.key),'update');
     }else if(row.kind==='page'){
       if(row.stateKnown!==false)add(installedPageEnableAction(row.record.installed).label,
         event=>{void togglePage(row,event);},'toggle');
@@ -259,7 +266,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       add('前往开发',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
     add('查看详情',()=>openDetail(key,'more'),'detail');
-    if(row.stateKnown!==false)
+    if(row.stateKnown!==false&&!row.queueProduct)
       add('卸载…',event=>openListUninstallReview(row.key,event),'uninstall');
     extensionList.renderRowMenu(menuItems,{
       key,title:titleOf(row),trigger,onClose:closeRowMenu
@@ -272,7 +279,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const review=listUninstallReview;
     extensionList.renderUninstall?.(review?{
       title:'卸载「'+review.title+'」？',
-      text:review.kind==='page'
+      text:review.kind==='queue'?'将依次撤销网页能力与侧栏安装。任一步失败立即停止，不自动重试；网页中的旧效果可能需要刷新。':review.kind==='page'
         ?'将停止该网页增强自动运行并移除本机安装记录；不会删除网站自己的数据。'
         :review.id===SEND_QUEUE_PIN.toolId&&find(review.key)?.pageCompanion?.installed
           ?'本操作仅卸载队列管理界面；已安装的 Page 网页发送能力仍保留，可在「网页增强」中单独停用或卸载。不会自动迁移或覆盖消息。'
@@ -284,6 +291,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }:null);
   }
   function matchesListReview(row,review){
+    if(review?.kind==='queue')return Boolean(row?.installed&&row.queueProduct&&
+      sameSidebarToolPackage(row.record,review.package)&&
+      (review.pageIdentity?sameQueuePageIdentity(find('page:'+SEND_QUEUE_PIN.pageProgramId)?.record?.installed,review.pageIdentity):
+        !find('page:'+SEND_QUEUE_PIN.pageProgramId)?.installed));
     return Boolean(row?.installed&&row.kind===review?.kind&&
       (review.kind==='page'?samePageIdentity(row,review.identity):
         sameSidebarToolPackage(row.record,review.package)));
@@ -320,6 +331,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     // Page uses the existing generation-bound native unregister + receipt
     // readback below. No alternate authority or duplicate removal sequence.
     if(review.kind==='page')return confirmPageUninstall(event);
+    if(review.kind==='queue')return removeQueueProduct(review,event);
     busy=true;pendingKey=review.key;draw();
     let outcome,operationError,readback=false;
     try{
@@ -510,6 +522,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   // The original trusted review owns installation; selecting never executes tool JS.
   function openReview(key){
     const row=find(key);if(!row||row.kind!=='app'||!row.release)return;
+    if(row.queueReviewRelease)return;
     if(row.cleanupPending){message('此应用卸载清理未完成，请先恢复清理，再重新审阅安装。','error');return;}
     backIfNeeded();
     if(!sidebarTools.openOfficialReview(row.id))openMarket(row.release);
@@ -523,7 +536,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   }
   // An installed, enabled, verified app may open; all other rows lead to details.
   function openRow(key){
-    const row=find(key);if(disposed||!row||busy||pendingKey||(scope!=='available'&&!row.installed))return;
+    const row=find(key);if(disposed||!row||busy||pendingKey||(scope!=='available'&&!row.installed&&!row.queueProduct?.pageInstalled))return;
     if(resolveExtensionRowIntent(row)==='detail'){openDetail(key,'main');return;}
     if(resolveExtensionPrimaryAction(row)?.id==='open'){
       try{
@@ -533,7 +546,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
   }
   function openDetail(key,returnAction='main'){
-    const row=find(key);if(disposed||!row||(scope!=='available'&&!row.installed))return;
+    const row=find(key);if(disposed||!row||(scope!=='available'&&!row.installed&&!row.queueProduct?.pageInstalled))return;
     closeRowMenu();
     clearActionMessage();
     selectedInstalled=row.installed;uninstallReview=null;siteUpgradeError='';
@@ -712,12 +725,29 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         onClick(event);
       }});
       if(row.kind==='app'){
+        if(row.queueReviewRelease)
+          add('联合安装 / 更新审阅','queue-review',event=>{void reviewQueueProduct(row,event);});
+        if(row.queueProduct){
+          add('审阅网页候选 / 更新','queue-page-review',event=>{void reviewQueuePage(event);});
+          const companion=find('page:'+SEND_QUEUE_PIN.pageProgramId);
+          if(companion?.installed){
+            add(installedPageEnableAction(companion.record.installed).label,'queue-page-toggle',
+              event=>{void togglePage(companion,event);});
+            add('卸载网页能力…','queue-page-remove',event=>openUninstallReview(companion,event));
+          }
+          if(row.installed&&row.stateKnown!==false){
+            add(row.queueProduct.state==='ready'?'停用整个产品':'恢复整个产品','queue-toggle',event=>{void toggleQueueProduct(row,event);});
+            if(row.queueProduct.state!=='ready')add('停用整个产品','queue-disable',
+              event=>{void toggleQueueProduct(row,event,false);});
+            add('卸载整个产品…','queue-remove',event=>openQueueUninstall(row,event));
+          }
+        }
         if(!row.installed){
           if(row.cleanupPending)
             add('恢复卸载清理','cleanup',event=>{void retryCleanup(row,event);});
-          else add('审阅并安装','install',()=>openReview(row.key));
+          else if(!row.queueProduct&&!row.queueReviewRelease)add('审阅并安装','install',()=>openReview(row.key));
         }else{
-          if(row.pageCompanion){
+          if(row.pageCompanion&&!row.queueProduct){
             add('网页能力','page-setup',()=>{
               const other=find('page:'+SEND_QUEUE_PIN.pageProgramId);
               if(other?.installed){openDetail(other.key,'main');return;}
@@ -728,7 +758,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           }
           if(row.stateKnown!==false)
             add('设置与权限','settings',()=>{backIfNeeded();sidebarTools.openSettings(row.id);});
-          if(row.update&&row.release)add('审阅新版','update',()=>openReview(row.key));
+          if(row.update&&row.release&&!row.queueProduct&&!row.queueReviewRelease)add('审阅新版','update',()=>openReview(row.key));
         }
       }else if(row.kind==='page'&&!row.installed){
         if(row.release?.status==='available')add('审阅并安装','install',()=>openPageReview(row.key));
@@ -764,7 +794,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         }:null,
         installed:row.installed,cleanupPending:row.cleanupPending,
         version:row.version,source:sources[row.id]||null,
-        usageText:row.kind==='app'&&row.installed?installedAppUsage(row):'',
+        usageText:row.kind==='app'&&(row.installed||row.queueProduct)?installedAppUsage(row):'',
         sites:page?.pageRules?.matches||(row.kind==='page'?row.release?.sites:[])||[],
         scrollManager:row.kind==='page'&&row.installed&&row.id===SCROLL_CONFIG_PROGRAM_ID?(()=>{
           const pinned=pageIdentity(row);
@@ -866,7 +896,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         }:null,
         appDataText:row.kind==='app'&&row.installed?
           '应用存储用量：未知（没有可信的单应用 Chrome 存储统计）。':'',
-        installationText:row.installed?
+        installationText:row.queueProduct?row.queueProduct.summary:row.installed?
           ('本机已安装 · '+(row.stateKnown===false?'状态待核对':
             row.kind==='page'&&row.enabled&&
               (page?.nativeState!=='registered'||page?.authorization?.status!=='active'||page?.error)
@@ -878,6 +908,127 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       });
       return;
     }
+  }
+  async function reviewQueueProduct(row,event){
+    if(!event?.isTrusted||disposed||busy||pendingKey||!isPinnedQueueRelease(row.queueReviewRelease)||
+      row.queueReviewRelease!==row.release||row.cleanupPending||!appStatusKnown||!pageStatusKnown)return;
+    busy=true;pendingKey=row.key;draw();if(selectedKey)renderDetail();
+    try{
+      const pkg=await loadSendQueuePageCandidate({api});
+      if(disposed)return;
+      const current=find(row.key);
+      if(current?.installed!==row.installed||current?.release!==row.release||
+        !isPinnedQueueRelease(current?.queueReviewRelease)||
+        row.installed&&!sameSidebarToolPackage(current.record,row.record))
+        throw new Error('产品安装身份或固定发行已变化，请重新审阅');
+      backIfNeeded();
+      // One original ImportSheet confirmation owns both existing installers.
+      // Missing facade fails closed; never fall back to two permission reviews.
+      if(sidebarTools.openSendQueueProductReview?.(pkg,row.release)!==true)
+        throw new Error('联合安装审阅暂不可用；请先处理当前草稿或其他安装审阅');
+      message('已打开产品统一版本与权限审阅；尚未安装，官方 Page 发布仍为 blocked。','info');
+    }catch(error){message((error.code||'E_QUEUE_REVIEW')+'：'+String(error.message||error),'error');}
+    finally{busy=false;pendingKey=null;if(!disposed){draw();if(selectedKey)renderDetail();}}
+  }
+  async function reviewQueuePage(event){
+    if(!event?.isTrusted||disposed||busy||pendingKey)return;
+    busy=true;draw();if(selectedKey)renderDetail();
+    try{
+      const pkg=await loadSendQueuePageCandidate({api});
+      if(disposed)return;
+      // The original import review owns validation, Chrome consent and CAS.
+      const text=JSON.stringify(pkg);
+      backIfNeeded();
+      if(sidebarTools.openImportFiles?.([{name:'ai-send-queue.opendesk-page.json',
+        size:new TextEncoder().encode(text).byteLength,text:async()=>text}])!==true)
+        throw new Error('请先处理当前草稿或安装审阅');
+      message('已打开固定网页候选审阅；官方发布仍为 blocked，尚未安装。','info');
+      return true;
+    }catch(error){message((error.code||'E_QUEUE_CANDIDATE')+'：'+String(error.message||error),'error');return false;}
+    finally{busy=false;if(!disposed){draw();if(selectedKey)renderDetail();}}
+  }
+  function openQueueUninstall(row,event){
+    if(!event?.isTrusted||disposed||busy||pendingKey||listUninstallReview||!row.queueProduct||
+      !appStatusKnown||!pageStatusKnown)return;
+    const page=find('page:'+SEND_QUEUE_PIN.pageProgramId);
+    const identity=queuePageIdentity(page?.record?.installed);
+    if(page?.installed&&!identity){message('网页安装身份不完整，不能联合卸载。','error');return;}
+    listUninstallReview=Object.freeze({key:row.key,id:row.id,kind:'queue',title:titleOf(row),
+      package:structuredClone(row.record),pageIdentity:identity});
+    syncListUninstallReview();
+  }
+  async function removeQueueProduct(review,event){
+    busy=true;pendingKey=review.key;draw();if(selectedKey)renderDetail();
+    try{
+      if(review.pageIdentity){
+        const receipt=await client.request('uninstallPageProgram',review.pageIdentity);
+        const read=await refresh();
+        if(receipt?.error||receipt?.uninstalled!==true||receipt.nativeState!=='unregistered'||
+          receipt.manifestHash!==review.pageIdentity.manifestHash||
+          receipt.installationId!==review.pageIdentity.installationId||
+          (receipt.managedCleanup&&receipt.managedCleanup.state!=='retired')||
+          !read||find('page:'+SEND_QUEUE_PIN.pageProgramId)?.installed)
+          throw new Error('网页卸载未完整确认；侧栏保留，请核对部分状态');
+      }
+      const current=find(review.key);
+      if(!current?.installed||!sameSidebarToolPackage(current.record,review.package))
+        throw new Error('侧栏安装身份已变化，停止联合卸载');
+      const outcome=await sidebarTools.uninstallFromList(review.id,review.package,event);
+      const read=await refresh();
+      if(outcome!==true||!read||find(review.key)?.installed||pendingCleanups.has(review.id)||
+        find('page:'+SEND_QUEUE_PIN.pageProgramId)?.installed)
+        throw new Error('侧栏卸载或清理未完整确认，请核对部分状态');
+      message('两份安装记录均已读回确认卸载；旧网页效果可能需要刷新。','success');
+    }catch(error){
+      await refresh();
+      message((error.code||'E_QUEUE_PARTIAL')+'：'+String(error.message||error)+'；不会自动重试。','error');
+    }finally{
+      busy=false;pendingKey=null;listUninstallReview=null;
+      if(!disposed){draw();if(selectedKey)renderDetail();}
+    }
+  }
+  async function toggleQueueProduct(row,event,desiredEnabled){
+    if(!event?.isTrusted||disposed||busy||pendingKey||!row.queueProduct||
+      !appStatusKnown||!pageStatusKnown)return;
+    const page=find('page:'+SEND_QUEUE_PIN.pageProgramId),identity=queuePageIdentity(page?.record?.installed);
+    const target=desiredEnabled??(row.queueProduct.state!=='ready');
+    if(page?.installed?!sameQueuePageIdentity(page.record.installed,row.pageCompanion.identity):row.pageCompanion.installed){
+      message('网页安装身份已变化，请重新审阅产品状态。','error');return;
+    }
+    if(!identity&&(target||page?.installed)){message('网页能力缺失或安装身份不完整，请先审阅安装。','error');return;}
+    // Never auto-upgrade an unreviewed revision while restoring the product.
+    if(target&&row.pageCompanion.state==='version-mismatch'){
+      message('网页版本不匹配，请先审阅固定候选。','error');return;
+    }
+    busy=true;pendingKey=row.key;draw();if(selectedKey)renderDetail();
+    try{
+      if(identity&&(page.enabled!==target||page.record.installed.nativeState!==(target?'registered':'disabled')||
+        page.record.installed.authorization?.status!==(target?'active':'disabled')||
+        page.record.installed.error||page.record.installed.managedCleanup?.state==='unknown')){
+        const receipt=await setInstalledPageProgramEnabled({api,client,row:page.record,enabled:target});
+        const read=await refresh(),current=find(page.key)?.record?.installed;
+        if(!receipt||receipt.error||!read||current?.authorization?.installationId!==identity.installationId||
+          current.manifestHash!==identity.manifestHash||current.enabled!==target||current.error||
+          current.managedCleanup?.state==='unknown'||current.nativeState!==(target?'registered':'disabled')||
+          current.authorization?.status!==(target?'active':'disabled'))
+          throw new Error('网页启停尚未确认，侧栏保持原状态');
+      }
+      const current=find(row.key);
+      if(!current?.installed||!sameSidebarToolPackage(current.record,row.record)||current.enabled!==row.enabled)
+        throw new Error('侧栏安装或启停状态已变化，请重新核对');
+      const outcome=current.enabled===target?true:await sidebarTools.toggleEnabled(row.id,event);
+      const read=await refresh();
+      const confirmed=find('page:'+SEND_QUEUE_PIN.pageProgramId)?.record?.installed;
+      const pageConfirmed=identity?confirmed?.manifestHash===identity.manifestHash&&
+        confirmed?.authorization?.installationId===identity.installationId&&confirmed.enabled===target&&
+        confirmed.nativeState===(target?'registered':'disabled')&&
+        confirmed.authorization?.status===(target?'active':'disabled')&&!confirmed.error&&
+        confirmed.managedCleanup?.state!=='unknown':!confirmed;
+      if(outcome!==true||!read||find(row.key)?.enabled!==target||!pageConfirmed)
+        throw new Error('侧栏启停尚未确认，请核对部分状态和未保存草稿');
+      message('已从两份安装记录确认产品'+(target?'恢复':'停用')+'；没有迁移或重发消息。','success');
+    }catch(error){await refresh();message((error.code||'E_QUEUE_PARTIAL')+'：'+String(error.message||error)+'；不会自动重试。','error');}
+    finally{busy=false;pendingKey=null;if(!disposed){draw();if(selectedKey)renderDetail();}}
   }
   function openUninstallReview(row,event){
     if(!event?.isTrusted||busy||pendingKey||row?.kind!=='page')return;

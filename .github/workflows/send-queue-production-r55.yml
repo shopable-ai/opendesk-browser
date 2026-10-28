@@ -1,4 +1,4 @@
-name: Send Queue R5.8 Page and React candidate CI
+name: Send Queue R5.11 joint installation and React candidate CI
 on:
   push:
     branches: [main]
@@ -10,6 +10,15 @@ on:
       - 'examples/sidebar-tools/ai-send-queue/tests/**'
       - 'examples/sidebar-tools/ai-send-queue/package.json'
       - 'official-pages/sources.json'
+      - 'official-tools/catalog.json'
+      - 'src/ui/extension-center*.js'
+      - 'src/ui/send-queue-product.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'scripts/build-official-pages.mjs'
+      - 'tests/environment/send-queue-product-installation.test.mjs'
+      - 'examples/sidebar-tools/ai-send-queue/tool.config.json'
+      - 'examples/sidebar-tools/ai-send-queue/vite.config.mjs'
+      - 'examples/sidebar-tools/ai-send-queue/*.opendesk-*.json'
       - 'src/platform/host/send-queue-admission.js'
       - 'src/ui/trusted-bookmark-admission.js'
       - 'wxt.config.mjs'
@@ -19,7 +28,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: send-queue-r58-source-bound-main
+  group: send-queue-r511-source-bound-main
   cancel-in-progress: false
 jobs:
   test-build-candidates:
@@ -41,26 +50,27 @@ jobs:
           for f in main site engine view remote; do
             node --check "examples/sidebar-tools/ai-send-queue/src/page/$f.js"
           done
-          node --test examples/sidebar-tools/ai-send-queue/tests/*.test.mjs
           node scripts/validate-program-project.mjs examples/sidebar-tools/ai-send-queue
           node examples/sidebar-tools/ai-send-queue/scripts/sync-crown-preview.mjs --check
       - name: Build actual React Tool and fixed install candidate
         run: |
           npm run --prefix examples/sidebar-tools/ai-send-queue build
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-send-queue --out "$RUNNER_TEMP/ai-send-queue.opendesk-tool.json"
-          # Review the exact canonical candidate digest before advancing the fixed Host pin.
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-send-queue --check-project
+          node --test examples/sidebar-tools/ai-send-queue/tests/*.test.mjs
+          # Candidate bytes must match the reviewed Host pin; no implicit promotion.
           sha256sum "$RUNNER_TEMP/ai-send-queue.opendesk-tool.json"
       - name: Preserve blocked React Tool candidate
         uses: actions/upload-artifact@v4
         with:
-          name: send-queue-r58-blocked-react-candidate
+          name: send-queue-r511-blocked-react-candidate
           path: ${{ runner.temp }}/ai-send-queue.opendesk-tool.json
           if-no-files-found: error
           retention-days: 14
       - name: Preserve canonical R5.4 preview source for reviewed Sidebar rendering
         uses: actions/upload-artifact@v4
         with:
-          name: send-queue-r510-canonical-preview
+          name: send-queue-r511-canonical-preview
           path: examples/sidebar-tools/ai-send-queue/preview/index.html
           if-no-files-found: error
           retention-days: 14
@@ -121,12 +131,14 @@ jobs:
       - name: Save build evidence independently of repository publication
         uses: actions/upload-artifact@v4
         with:
-          name: send-queue-r58-blocked-page-candidate
+          name: send-queue-r511-blocked-page-candidate
           path: examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json
           if-no-files-found: error
           retention-days: 14
       # Separate from the fast blocked candidate build. This uses the real
       # MV3 runtime and Chrome UI, not a Page/SDK simulation. No publishing.
+      - name: Check joint product projection and blocked candidate assets
+        run: node --test tests/environment/send-queue-product-installation.test.mjs tests/environment/official-page-catalog-r124.test.mjs
       - name: Compile pinned official React prerequisites for real Chrome Host
         run: |
           node scripts/build-adblock-react.mjs
@@ -144,16 +156,16 @@ jobs:
         id: nativeChrome
         with:
           chrome-version: '155.0.8059.39'
-      - name: Install real React Tool, inspect Page-missing state and reject same-ID spoof
+      - name: Install one product with one approval, inspect native readback and reject same-ID spoof
         env:
           CHROME_BIN: ${{ steps.nativeChrome.outputs.chrome-path }}
-        run: xvfb-run -a node examples/sidebar-tools/ai-send-queue/scripts/ci-installed-chromium.mjs artifacts/send-queue-r58-installed-chromium
+        run: xvfb-run -a node examples/sidebar-tools/ai-send-queue/scripts/ci-installed-chromium.mjs artifacts/send-queue-r511-installed-chromium
       - name: Preserve real installed Chrome receipts, if any
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: send-queue-r58-installed-chromium-evidence
-          path: artifacts/send-queue-r58-installed-chromium/
+          name: send-queue-r511-installed-chromium-evidence
+          path: artifacts/send-queue-r511-installed-chromium/
           if-no-files-found: warn
           retention-days: 14
       # The currently blocked Page candidate is an audit artifact only.

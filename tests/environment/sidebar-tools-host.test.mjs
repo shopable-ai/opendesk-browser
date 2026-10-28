@@ -876,7 +876,7 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null,chromePermissions=null,hostReply=null}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null,chromePermissions=null,hostReply=null,foundationClient=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
@@ -897,7 +897,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     async remove(key){store.delete(key);}
   }}};
   if(chromePermissions)api.permissions=chromePermissions;
-  const host=createSidebarTools({api,doc,view,currentPageTarget:target,lockManager:locks,fetcher,trustedBookmarkPilot,trustedPromptPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  const host=createSidebarTools({api,doc,view,currentPageTarget:target,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedPromptPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
@@ -3807,4 +3807,182 @@ for(const destination of ['detail','list','settings'])test('R1.8 previous instal
   navigate();
   assert.match(f.elements['sidebar-tool-status'].textContent,/安装记录读取失败/);
   assert.equal(f.elements['sidebar-tool-status'].hidden,false);
+});
+
+// Joint queue review: exercise the real Host actions and Tool installer. Only
+// Chrome permissions and the Page Authority transport are component doubles.
+async function queueReviewFixture(t,{mode='success',existingTool=false}={}){
+  const tool=await officialToolFixture('ai-send-queue');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const pkg=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url),'utf8'));
+  const calls=[],store=new Map([[SIDEBAR_TOOL_STORE,existingTool?[tool]:[]]]);
+  let pages=[],granted=false,toolWritten=false,inClick=false,toolAttempted=false;
+  const pendingRead=deferred(),readEntered=deferred();
+  const receipt={programId:pkg.programId,version:pkg.version,revision:pkg.revision,sourceHash:pkg.sourceHash,
+    manifestHash:'a'.repeat(64),pageRules:pkg.pageRules,enabled:true,nativeState:'registered',
+    authorization:{installationId:'queue-component-install',generation:1,status:'active'}};
+  if(mode==='page-cleanup-unknown')receipt.managedCleanup={state:'unknown',scope:'managed-ui-only'};
+  if(mode==='page-blocked'){
+    receipt.nativeState='blocked';receipt.error={code:'E_NATIVE',message:'原生注册失败'};
+  }
+  const f=await hostFixture(t,{store,startTool:false,
+    chromePermissions:{contains:async()=>granted,request(request){
+      assert.equal(inClick,true,'permission request must start synchronously inside the trusted click');
+      assert.deepEqual(request,{origins:['https://chatgpt.com/*']});calls.push('permission');
+      granted=mode!=='permission-denied';return Promise.resolve(granted);
+    }},
+    getHook(key){if(key===SIDEBAR_TOOL_STORE&&toolWritten){
+      calls.push('tool-readback');
+      if(mode==='tool-unknown')throw new Error('tool readback unavailable');
+    }
+      if(key===CAPTURE_SITE_STORE&&toolWritten&&mode==='tool-refresh')throw new Error('capture list unavailable');
+    },
+    setHook(values){if(values[SIDEBAR_TOOL_STORE]){
+      calls.push('tool-write');
+      toolAttempted=true;
+      if(mode==='tool-failure'||mode==='tool-failure-pending')throw new Error('disk full');
+      toolWritten=true;
+    }},
+    foundationClient:{async request(operation,args){
+      if(operation==='listPagePrograms'){
+        calls.push('page-readback');
+        if(mode==='review-pending'||(mode==='tool-failure-pending'&&toolAttempted)){
+          readEntered.resolve();await pendingRead.promise;
+        }
+        if(mode==='final-page-race'&&toolWritten)return {catalog:[],installed:[{...receipt,authorization:{...receipt.authorization,generation:2}}]};
+        if(mode==='final-page-cleanup-unknown'&&toolWritten)
+          return {catalog:[],installed:[{...receipt,managedCleanup:{state:'unknown',scope:'managed-ui-only'}}]};
+        return {catalog:[],installed:structuredClone(pages)};
+      }
+      assert.equal(operation,'importPageInstallPackage');calls.push('page-import');
+      assert.deepEqual(args,{package:pkg,expectedInstalledManifestHash:null,expectedGeneration:null});
+      if(mode==='page-unknown')throw Object.assign(new Error('Page result unknown'),{code:'E_EFFECT_UNKNOWN'});
+      if(mode!=='page-missing')pages=[receipt];
+      if(mode==='tool-race')store.set(SIDEBAR_TOOL_STORE,[{...tool,version:'9.0.0'}]);
+      return structuredClone(receipt);
+    }}});
+  const review=async(value=pkg,selectedRelease=release)=>{
+    assert.equal(f.host.openSendQueueProductReview(value,selectedRelease),true);
+    await settle(()=>f.elements['sidebar-tool-install'].textContent==='确认联合安装 / 更新'||
+      Boolean(f.elements['sidebar-tool-file-error'].textContent));
+  };
+  const click=(event={isTrusted:true})=>{
+    inClick=true;
+    try{f.emit(f.elements['sidebar-tool-install'],'click',event);}finally{inClick=false;}
+  };
+  return {...f,tool,pkg,release,calls,review,click,pendingRead,readEntered,status:f.elements['page-install-import-status']};
+}
+
+test('queue joint review: Page review must finish before either installer can run',async t=>{
+  const f=await queueReviewFixture(t,{mode:'review-pending'});
+  f.host.openSendQueueProductReview(f.pkg,f.release);
+  await f.readEntered.promise;
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  f.click();await pause();
+  assert.equal(f.calls.includes('tool-write'),false);
+  assert.equal(f.calls.includes('page-import'),false);
+  f.pendingRead.resolve();
+  await settle(()=>f.elements['sidebar-tool-install'].textContent==='确认联合安装 / 更新');
+  assert.equal(f.elements['sidebar-tool-install'].disabled,false);
+});
+
+test('queue joint review: failed Tool write keeps approval consumed throughout asynchronous readback',async t=>{
+  const f=await queueReviewFixture(t,{mode:'tool-failure-pending'});await f.review();f.click();
+  await f.readEntered.promise;
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  f.click();await pause();await pause();
+  assert.equal(f.calls.filter(c=>c==='page-import').length,1);
+  assert.equal(f.calls.filter(c=>c==='tool-write').length,1);
+  f.pendingRead.resolve();
+  await settle(()=>f.status.attributes['data-state']==='pending-review');
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+});
+
+test('queue joint review: one synchronous confirmation installs Page then Tool and reads both back',async t=>{
+  const f=await queueReviewFixture(t);await f.review();
+  assert.equal(f.calls.includes('page-import'),false);
+  f.click();f.click();
+  await settle(()=>f.elements['sidebar-tool-import'].hidden||f.status.attributes['data-state']==='pending-review');
+  assert.match(f.elements['sidebar-tool-status'].textContent,/联合安装记录已读回/);
+  assert.equal(f.host.hasInstallReview(),false);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[f.tool]);
+  assert.equal(f.calls.filter(c=>c==='permission').length,1);
+  assert.equal(f.calls.filter(c=>c==='page-import').length,1);
+  assert.equal(f.calls.filter(c=>c==='tool-write').length,1);
+  const permission=f.calls.indexOf('permission'),page=f.calls.indexOf('page-import'),tool=f.calls.indexOf('tool-write');
+  assert.ok(permission<page&&page<tool);
+  assert.ok(f.calls.slice(page+1,tool).includes('page-readback'));
+  assert.ok(f.calls.slice(tool+1).includes('tool-readback'));
+  assert.equal(f.calls.at(-1),'page-readback');
+});
+
+test('queue joint review: identical installed Tool is read without rewriting it',async t=>{
+  const f=await queueReviewFixture(t,{existingTool:true});await f.review();f.click();
+  await settle(()=>!f.host.hasInstallReview());
+  assert.match(f.elements['sidebar-tool-status'].textContent,/联合安装记录已读回/);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[f.tool]);
+  assert.equal(f.calls.includes('tool-write'),false);
+  assert.equal(f.calls.filter(c=>c==='page-import').length,1);
+});
+
+for(const mode of ['page-unknown','page-missing','page-cleanup-unknown','page-blocked',
+  'tool-failure','tool-unknown','tool-refresh','tool-race','final-page-race','final-page-cleanup-unknown'])
+  test('queue joint review: '+mode+' preserves partial state and cannot replay approval',async t=>{
+    const f=await queueReviewFixture(t,{mode});await f.review();f.click();
+    await settle(()=>f.status.attributes['data-state']==='pending-review');
+    assert.match(f.status.textContent,/联合安装部分完成或结果未知/);
+    assert.equal(f.status.hidden,false);
+    assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+    const codes={'page-unknown':'E_EFFECT_UNKNOWN','page-missing':'E_PAGE_INSTALL_READBACK',
+      'page-cleanup-unknown':'E_PAGE_INSTALL_PENDING','page-blocked':'E_PAGE_INSTALL_PENDING',
+      'tool-failure':'E_HOST_STORAGE_QUOTA','tool-unknown':'E_OUTCOME_UNKNOWN',
+      'tool-refresh':'E_PAGE_INSTALL','tool-race':'E_TOOL_CHANGED','final-page-race':'E_QUEUE_PARTIAL',
+      'final-page-cleanup-unknown':'E_PAGE_INSTALL_PENDING'};
+    assert.ok(f.status.textContent.includes(codes[mode]),f.status.textContent);
+    assert.doesNotMatch(f.elements['sidebar-tool-status'].textContent,/联合安装记录已读回/);
+    if(mode.startsWith('page-'))assert.equal(f.calls.includes('tool-write'),false);
+    const imports=f.calls.filter(c=>c==='page-import').length,writes=f.calls.filter(c=>c==='tool-write').length;
+    f.click();await pause();await pause();
+    assert.equal(f.calls.filter(c=>c==='page-import').length,imports);
+    assert.equal(f.calls.filter(c=>c==='tool-write').length,writes);
+  });
+
+test('queue joint review: denied permission and synthetic click cannot reach either installer',async t=>{
+  const f=await queueReviewFixture(t,{mode:'permission-denied'});await f.review();
+  f.click({isTrusted:false});await settle(()=>f.status.attributes['data-state']==='pending-review');
+  assert.deepEqual(f.calls.filter(c=>c!=='page-readback'),[]);
+  await f.review();f.click();await settle(()=>f.status.attributes['data-state']==='permission-denied');
+  assert.deepEqual(f.calls.filter(c=>c!=='page-readback'),['permission']);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[]);
+});
+
+test('queue joint review: parallel Tool change before confirmation invalidates the reviewed baseline',async t=>{
+  const f=await queueReviewFixture(t);await f.review();
+  f.store.set(SIDEBAR_TOOL_STORE,[{...f.tool,version:'9.0.0'}]);f.click();
+  await settle(()=>f.status.attributes['data-state']==='pending-review');
+  assert.match(f.status.textContent,/E_TOOL_CHANGED/);
+  assert.equal(f.calls.includes('page-import'),false);assert.equal(f.calls.includes('tool-write'),false);
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,'9.0.0');
+});
+
+test('queue joint review: fixed Page and Tool hashes reject mismatched candidates',async t=>{
+  const f=await queueReviewFixture(t);
+  await f.review({...f.pkg,packageHash:'0'.repeat(64)});
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.ok(f.elements['sidebar-tool-file-error'].textContent);
+  await f.review(f.pkg,{...f.release,sha256:'0'.repeat(64)});
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.ok(f.elements['sidebar-tool-file-error'].textContent);
+  assert.equal(f.calls.includes('page-import'),false);assert.equal(f.calls.includes('tool-write'),false);
+});
+
+test('queue joint review: closing the review invalidates its previous confirmation',async t=>{
+  const f=await queueReviewFixture(t);await f.review();
+  f.emit(f.elements['sidebar-tool-import-close'],'click',{isTrusted:true});
+  assert.equal(f.host.hasInstallReview(),false);
+  f.click();await pause();await pause();
+  assert.equal(f.calls.includes('permission'),false);
+  assert.equal(f.calls.includes('page-import'),false);assert.equal(f.calls.includes('tool-write'),false);
+  f.host.dispose();
+  assert.throws(()=>f.host.openSendQueueProductReview(f.pkg,f.release),/E_SIDEBAR_TOOL_VIEW_DISPOSED/);
 });

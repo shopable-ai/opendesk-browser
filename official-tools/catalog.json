@@ -3,6 +3,13 @@
   "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
   "tools": [
     {
+      "id": "ai-send-queue",
+      "project": "examples/sidebar-tools/ai-send-queue",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "packageFile": "ai-send-queue.opendesk-tool.json"
+    },
+    {
       "id": "ai-knowledge-answers",
       "project": "examples/sidebar-tools/ai-knowledge-answers",
       "kind": "sidebar-tool",

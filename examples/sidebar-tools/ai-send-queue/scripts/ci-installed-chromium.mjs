@@ -22,7 +22,8 @@ await mkdir(out,{recursive:true});
 const extension=resolve(process.env.SEND_QUEUE_EXTENSION_PATH||'dist/development');
 const candidate=resolve(process.env.SEND_QUEUE_CANDIDATE_PATH||
   'artifacts/app-ci/ai-send-queue/candidate.opendesk-tool.json');
-const pageCandidate=resolve('examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json');
+const pageCandidate=resolve(process.env.SEND_QUEUE_PAGE_CANDIDATE_PATH||
+  'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json');
 const headed=process.env.SEND_QUEUE_HEADED||'false';
 assert.ok(['0','1','false','true'].includes(headed),'SEND_QUEUE_HEADED must be 0, 1, false or true');
 const headless=!(headed==='1'||headed==='true');
@@ -119,36 +120,46 @@ async function importTool(file,expectVersion){
   report.events.push('HOST_USER_GESTURE_INSTALL_'+expectVersion);
   return installed;
 }
-// The same native import sheet reviews a Page JSON and requests origin permission
-// under a real click. This is not a synthetic Page Host or a simulated install.
-async function importPage(file){
+// Install through the single product entry and one original ImportSheet click.
+// Both Authority readback and Tool durable bytes must succeed before UI completion.
+async function importProduct(){
   await click(host,'#extension-center-more');
-  await until(()=>evalJs(host,'!document.querySelector("#extension-center-menu")?.hidden'),'Page import menu');
-  await click(host,'#extension-center-import');
-  await cdp('DOM.enable',{},host);
-  const {root}=await cdp('DOM.getDocument',{depth:1},host);
-  const {nodeId}=await cdp('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-file'},host);
-  assert.ok(nodeId,'real Page import input');
-  await cdp('DOM.setFileInputFiles',{nodeId,files:[file]},host);
+  await click(host,'[data-ec-scope="available"]');
+  await click(host,'#extension-center-more');
+  const row='#extension-center-list button[data-extension-key="app:ai-send-queue"][data-extension-action="main"]';
+  await until(()=>evalJs(host,'document.querySelectorAll(\'#extension-center-list [data-extension-key="page:opendesk.ai-send-queue"]\').length===0'),
+    'one product in unified list');
+  await click(host,row);
+  await click(host,'[data-ec-detail-action="queue-review"]');
   const reviewed=await until(()=>evalJs(host,
     '(()=>{const p=document.querySelector("#sidebar-tool-preview");'+
     'const t=document.querySelector("#sidebar-tool-preview-version")?.textContent;'+
-    'return p&&!p.hidden&&t?.includes("r12")&&!document.querySelector("#sidebar-tool-install")?.disabled?'+
-    '{title:document.querySelector("#sidebar-tool-preview-title")?.textContent,version:t}:null})()'),
-    'Page candidate review');
-  assert.equal(reviewed.title?.trim(),'AI 消息发送队列');
+    'return p&&!p.hidden&&t?.includes('+JSON.stringify('侧栏 v'+SEND_QUEUE_PIN.toolVersion)+')&&'+
+    't.includes('+JSON.stringify('网页 v'+SEND_QUEUE_PIN.pageVersion)+')&&'+
+    '!document.querySelector("#sidebar-tool-install")?.disabled?'+
+    '{version:t,scope:document.querySelector("#sidebar-tool-preview-capabilities")?.textContent}:null})()'),
+    'joint version and permission review');
+  report.jointReview=reviewed;
   await click(host,'#sidebar-tool-install');
+  report.events.push('ONE_PRODUCT_REVIEW_ONE_CONFIRM');
   const receipt=await until(()=>evalJs(host,
     '(()=>{const s=document.querySelector("#page-install-import-status");'+
     'return s?.dataset.state==="installed"&&s.dataset.installationId&&s.dataset.manifestHash?'+
     '{state:s.dataset.state,id:s.dataset.installationId,hash:s.dataset.manifestHash,text:s.textContent}:null})()'),
-    'Page Authority and native Chrome registration readback',45000);
-  assert.match(receipt.text,/r12/);
+    'joint Page Authority and Tool durable readback',45000);
+  const installed=await storedPackage('ai-send-queue');
+  assert.equal(installed?.version,SEND_QUEUE_PIN.toolVersion);
+  assert.equal(identity(installed).serializedSha256,SEND_QUEUE_PIN.toolPackageSha256);
+  report.pageReceipt=receipt;
   report.pageInstalled=true;
   report.pageReadback='PASS_PAGE_AUTHORITY_REGISTERED';
-  report.events.push('REAL_PAGE_USER_GESTURE_INSTALL','REAL_PAGE_AUTHORITY_READBACK');
-  await click(host,'#sidebar-tool-import-close');
-  return receipt;
+  report.jointInstallation='PASS_ONE_REVIEW_TWO_READBACKS';
+  report.events.push('REAL_PAGE_AUTHORITY_READBACK','REAL_TOOL_DURABLE_READBACK');
+  // Return to verified installed scope. No second approval or Tool file import.
+  await click(host,'#extension-center-more');
+  await click(host,'[data-ec-scope="smart"]');
+  await click(host,'#extension-center-more');
+  return installed;
 }
 async function openTool(){
   await until(()=>evalJs(host,
@@ -202,11 +213,12 @@ try{
   report.candidateIdentity={...identity(tool),path:candidate,fileSha256:sha(bytes)};
   assert.equal(sha(bytes),SEND_QUEUE_PIN.toolPackageSha256,'source-bound candidate');
   assert.equal(sha(Buffer.from(serializeSidebarToolPackage(tool))),SEND_QUEUE_PIN.toolPackageSha256);
-  assert.equal(tool.version,'0.1.13');
+  assert.equal(tool.version,SEND_QUEUE_PIN.toolVersion);
   const pagePackage=await validatePageInstallPackage(JSON.parse(await readFile(pageCandidate,'utf8')));
   assert.equal(pagePackage.programId,SEND_QUEUE_PIN.pageProgramId);
   assert.equal(pagePackage.revision,SEND_QUEUE_PIN.pageRevision);
   assert.equal(pagePackage.sourceHash,SEND_QUEUE_PIN.pageSourceHash,'Page source-bound candidate');
+  assert.equal(pagePackage.packageHash,SEND_QUEUE_PIN.pagePackageHash,'Page package-bound candidate');
   const manifestBytes=await readFile(join(extension,'manifest.json'));
   report.manifestSha256=sha(manifestBytes);
   const manifest=JSON.parse(manifestBytes.toString('utf8'));
@@ -276,11 +288,11 @@ try{
     'single real React extension list');
   await click(host,'#tab-tools');
   await until(()=>evalJs(host,'!document.querySelector("#workbench-tools")?.hidden'),'extension center visible');
-  const installed=await importTool(candidate,'0.1.13');
+  const installed=await importProduct();
   assert.equal(sha(Buffer.from(serializeSidebarToolPackage(installed))),SEND_QUEUE_PIN.toolPackageSha256);
   report.installedIdentity=identity(installed);
   const installedReadback=await storedPackage('ai-send-queue');
-  assert.equal(installedReadback?.version,'0.1.13');
+  assert.equal(installedReadback?.version,SEND_QUEUE_PIN.toolVersion);
   assert.deepEqual(identity(installedReadback),identity(tool),'installed exact-byte readback');
   report.installedReadbackIdentity=identity(installedReadback);
   const active=await openTool();
@@ -294,15 +306,6 @@ try{
   await click(host,'#sidebar-tool-back');
   await until(()=>evalJs(host,'!document.querySelector("#sidebar-tool-frame iframe")'),
     'tool frame closes');
-  await importPage(pageCandidate);
-  const bothInstalled=await openTool();
-  const withoutWebsite=await getQueue(bothInstalled);
-  assert.equal(withoutWebsite.ok,true,'both installed packages retain trusted Host access');
-  assert.equal(withoutWebsite.value.status,'unavailable','Page registration cannot invent an active ChatGPT document');
-  report.events.push('REAL_BOTH_PACKAGES_INSTALLED_NO_CHATGPT_TARGET');
-  await click(host,'#sidebar-tool-back');
-  await until(()=>evalJs(host,'!document.querySelector("#sidebar-tool-frame iframe")'),
-    'tool frame closes after combined installation');
   // A tool re-open is not a Side Panel re-open. Exercise the native Chrome
   // lifecycle and prove the old SIDE_PANEL document actually disappeared.
   await evalJs(bootstrap,'chrome.sidePanel.close({windowId:'+JSON.stringify(windowId)+'})');
@@ -347,10 +350,10 @@ try{
   // A different same-ID installation may be reviewed, but may NEVER inherit
   // queue RPC authority merely from matching its ID and declared capability.
   await click(host,'#sidebar-tool-back');
-  const forged=validateSidebarToolPackage({...tool,version:'0.1.14'});
+  const forged=validateSidebarToolPackage({...tool,version:'999.0.0'});
   const malicious=join(profile,'same-id-unpinned.opendesk-tool.json');
   await writeFile(malicious,serializeSidebarToolPackage(forged));
-  const forgedInstalled=await importTool(malicious,'0.1.14');
+  const forgedInstalled=await importTool(malicious,'999.0.0');
   assert.deepEqual(identity(forgedInstalled),identity(forged),'same-id forged bytes installed');
   report.sameIdIdentity=identity(forgedInstalled);
   const fakeFrame=await openTool();

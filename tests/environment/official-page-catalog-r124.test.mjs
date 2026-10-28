@@ -24,13 +24,17 @@ test('R1.2.4 official Page source keeps exact independent IDs, sites and blocked
     ['https://chatgpt.com/*'],['https://chatgpt.com/*']
   ]);
   assert.deepEqual(source.programs.map(row=>row.publication),['blocked','blocked','blocked']);
-  assert.deepEqual(await officialPageInputs(),[OFFICIAL_PAGE_SOURCE_PATH]);
+  assert.deepEqual(await officialPageInputs(),[
+    'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',OFFICIAL_PAGE_SOURCE_PATH]);
   for(const row of source.programs)assert.match(row.blockedReason,/./);
 });
 
-test('R1.2.4 blocked Page discovery packages metadata only, never fake executable bundles',async()=>{
+test('blocked discovery stays metadata only while exact queue review bytes remain separate',async()=>{
   const {catalog,resources}=await createOfficialPageResources();
-  assert.deepEqual([...resources.keys()],[OFFICIAL_PAGE_CATALOG_PATH]);
+  const candidatePath='official-pages/opendesk.ai-send-queue/opendesk.ai-send-queue.opendesk-page.json';
+  assert.deepEqual([...resources.keys()],[candidatePath,OFFICIAL_PAGE_CATALOG_PATH]);
+  assert.deepEqual(resources.get(candidatePath),await readFile(
+    'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json'));
   assert.equal(catalog.apps.length,3);
   for(const row of catalog.apps){
     assert.equal(row.kind,'page-program');
@@ -70,5 +74,7 @@ test('R1.2.4 extension-origin catalog fetch never authorizes a blocked install',
   assert.deepEqual(await loadOfficialPageCatalog({api,fetcher}),catalog);
   await assert.rejects(loadOfficialPagePackage(catalog.apps[0],{api,fetcher}),
     {code:'E_PAGE_RELEASE_CHANGED'});
-  assert.equal(requests.length,2,'blocked candidate only reads catalog, never package bytes');
+  await assert.rejects(loadOfficialPagePackage(catalog.apps[2],{api,fetcher}),
+    {code:'E_PAGE_RELEASE_CHANGED'});
+  assert.equal(requests.length,3,'blocked candidates only read catalog, never package bytes');
 });

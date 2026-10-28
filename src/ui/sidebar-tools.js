@@ -17,7 +17,7 @@ import {permissionPattern} from '../environment.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
 import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../scripting/user-scripts/page-install-package.js';
-import {admitsPinnedQueueTool} from '../platform/host/send-queue-admission.js';
+import {SEND_QUEUE_PIN,admitsPinnedQueueTool,admitsPinnedQueuePage} from '../platform/host/send-queue-admission.js';
 import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 import {loadOfficialPagePackage} from '../scripting/user-scripts/official-page-catalog.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
@@ -123,7 +123,16 @@ const FULL_HEIGHT_OFFICIAL_TOOLS=new Set([
 // No user code, markup, or CSS is ever inserted into this extension document.
 export function createSidebarTools(options={}) {
   if(!options.view)throw new Error('E_SIDEBAR_TOOLS_VIEW_REQUIRED');
-  return options.view.connect(()=>createSidebarToolsController(options));
+  let controller,closed=false;
+  const host=options.view.connect(()=>(controller=createSidebarToolsController(options)));
+  return Object.freeze({...host,
+    openSendQueueProductReview(...args){
+      if(closed)throw new Error('E_SIDEBAR_TOOL_VIEW_DISPOSED');
+      if(!controller)throw new Error('E_SIDEBAR_TOOL_RUNTIME_NOT_READY');
+      return controller.openSendQueueProductReview(...args);
+    },
+    dispose(){closed=true;return host.dispose();}
+  });
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
@@ -208,7 +217,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let bookmarkNavigation=null,bookmarkNavigationBack=null;
   const actionReview=view.fields["sidebar-tool-action-review"],actionSummary=view.fields["sidebar-tool-action-summary"];
   const actionContinue=view.fields["sidebar-tool-action-continue"],actionCancel=view.fields["sidebar-tool-action-cancel"];
-  let pendingAction=null,pendingPage=null;
+  let pendingAction=null,pendingPage=null,pendingProduct=null;
   const cookieImportGate=createCookieImportIntentGate();
   const cookieWriteGate=createCookieWriteIntentGate();
   const cookieClearGate=createCookieClearIntentGate();
@@ -759,7 +768,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
   function resetReview() {
-    pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;pendingPage=null;
+    pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;pendingPage=null;pendingProduct=null;
     patchToolField(view, pageInstallStatus, {textContent: ''});patchToolField(view, pageInstallStatus, {hidden: true});
     setToolFieldAttribute(view, pageInstallStatus, 'data-state', null);
     setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', null);setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', null);
@@ -882,8 +891,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   // chrome.storage may reorder object properties; compare the validated schema values.
   const samePackage=sameSidebarToolPackage;
-  function canCommitReview(){
-    if(!pending||busy||disposed)return false;
+  function canCommitReview({withinProduct=false}={}){
+    if(!pending||(busy&&!withinProduct)||disposed)return false;
     const previous=toolById(pending.id);
     if(Boolean(previous)!==Boolean(pendingBaseline)||
       (previous&&!samePackage(previous,pendingBaseline)))return false;
@@ -1811,6 +1820,44 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   function openImportFiles(files){
     if(!openImport())return false;
     reviewDroppedFiles(files);
+    return true;
+  }
+  // One trusted review, two existing installers. This grants no shared identity
+  // or new runtime: the exact Page and Tool each retain their own CAS/receipt.
+  function openSendQueueProductReview(pagePackage,release){
+    if(!release||release.toolId!==SEND_QUEUE_PIN.toolId||!openImport())return false;
+    const selection=++fileSelection;
+    resetReview();setFileError();notice('正在核对两份固定候选与安装记录…');
+    void (async()=>{
+      try{
+        const pkg=await validatePageInstallPackage(pagePackage);
+        if(!admitsPinnedQueuePage(pkg)||pkg.version!==SEND_QUEUE_PIN.pageVersion||
+          pkg.packageHash!==SEND_QUEUE_PIN.pagePackageHash)throw new Error('网页候选与已审阅准入不符');
+        const {tool,release:checked}=await loadOfficialTool(release,{api,fetcher});
+        if(!admitsPinnedQueueTool(tool,await sidebarToolPackageHash(tool)))
+          throw new Error('侧栏候选与已审阅准入不符');
+        if(disposed||selection!==fileSelection)return;
+        await reviewCandidate(tool,'联合产品侧栏候选',checked,selection,{deferConfirmation:true});
+        if(disposed||selection!==fileSelection)return;
+        if(pendingBaseline&&!samePackage(tool,pendingBaseline)&&
+          versionOrder(tool.version,pendingBaseline.version)<=0)
+          throw new Error('侧栏候选不能同版本替换或降级；原安装和数据保留');
+        await reviewPagePackage(pkg,{name:'联合产品网页候选'},selection,{deferConfirmation:true});
+        if(disposed||selection!==fileSelection)return;
+        pendingProduct={tool,release:checked,baseline:pendingBaseline};
+        patchToolField(view,previewVersion,{textContent:'侧栏 v'+tool.version+' · 网页 v'+pkg.version+' · r'+pkg.revision});
+        patchToolField(view,previewDescription,{textContent:'一个 AI 消息发送队列产品。一次审阅并确认两份安装；消息与发送仅由网页内存队列管理。'});
+        patchToolField(view,previewCapabilities,{textContent:'侧栏：'+tool.capabilities.map(readableCapability).join('、')+
+          '；网页：'+pageHostPermissionOrigins(pkg.pageRules.matches).join('、')+'，仅顶层 USER_SCRIPT、'+pkg.pageRules.matches.join('、')});
+        patchToolField(view,previewSource,{textContent:'已审核精确候选 · 官方 Page 公开发行仍 blocked，真实发送待验证'});
+        patchToolField(view,previewFile,{textContent:'侧栏 SHA-256：'+checked.sha256+'；网页 sourceHash：'+pkg.sourceHash+'；网页 packageHash：'+pkg.packageHash});
+        patchToolField(view,updateImpact,{textContent:'两份安装分别读回。失败停止并显示部分状态，不回滚或重放未知操作；更新保留原有停用状态。'});
+        patchToolField(view,installButton,{textContent:'确认联合安装 / 更新',disabled:false});
+      }catch(error){
+        if(disposed||selection!==fileSelection)return;
+        resetReview();setFileError((error.code||'E_QUEUE_REVIEW')+'：'+String(error.message||error));
+      }
+    })();
     return true;
   }
   // Official Page discovery uses exactly the same review, Chrome permission
@@ -3601,7 +3648,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }));
     render();notice(allow?'已恢复 '+origin+' 的目录':'已停用 '+origin+' 的目录');
   }
-  async function reviewCandidate(candidate,sourceLabel,release=null,selection=fileSelection){
+  async function reviewCandidate(candidate,sourceLabel,release=null,selection=fileSelection,{deferConfirmation=false}={}){
     requireToolRuntime(candidate);
     // A local file may contain the exact bundled official release. Its file
     // name/ID cannot establish provenance; reuse the catalog's byte/hash check
@@ -3662,7 +3709,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, updateWarning, {hidden: !risks.length});
       const identical=samePackage(candidate,previous);
       patchToolField(view, installButton, {textContent: identical?'已安装相同工具':'确认更新'});
-      patchToolField(view, installButton, {disabled: identical});
+      patchToolField(view, installButton, {disabled: deferConfirmation||identical});
       if(release&&!identical&&change<=0){
         patchToolField(view, installButton, {disabled: true});
         patchToolField(view, updateWarning, {hidden: false});
@@ -3673,11 +3720,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         ?'安装所需权限 · 请核对':'无需额外权限'});
       patchToolField(view, permissionDetails, {open: candidate.capabilities.length>0});
       patchToolField(view, installButton, {textContent: '确认安装'});
-      patchToolField(view, installButton, {disabled: false});
+      patchToolField(view, installButton, {disabled: deferConfirmation});
     }
     patchToolField(view, preview, {hidden: false});
   }
-  async function reviewPagePackage(value,file,selection) {
+  async function reviewPagePackage(value,file,selection,{deferConfirmation=false}={}) {
     const pkg=await validatePageInstallPackage(value);
     if(disposed||selection!==fileSelection)return;
     if(!foundationClient?.request||!pageConsent)throw new Error('网页增强安装服务未连接，请重新打开 OpenDesk。');
@@ -3749,9 +3796,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view, permissionDetails, {open:true});
     }
     patchToolField(view, installButton, {textContent: installed?.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash?'确认安装并核对':installed?'确认更新':'确认安装'});
-    patchToolField(view, installButton, {disabled: false});patchToolField(view, preview, {hidden: false});
+    patchToolField(view, installButton, {disabled: deferConfirmation});patchToolField(view, preview, {hidden: false});
   }
-  function showPageInstallReceipt(pkg,result) {
+  function requireConfirmedPageInstall(pkg,result) {
     // The original Page Authority checks getScripts for both active and
     // intentionally disabled installs. Neither state grants new permissions.
     const active=result?.enabled===true&&result.nativeState==='registered'&&
@@ -3760,9 +3807,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       result.authorization?.status==='disabled';
     if(result?.programId!==pkg.programId||result.revision!==pkg.revision||result.sourceHash!==pkg.sourceHash||
        !result.authorization?.installationId||!result.manifestHash||!(active||disabled)||result.error||
+       (result.managedCleanup&&result.managedCleanup.state!=='retired')||
        JSON.stringify(result.pageRules)!==JSON.stringify(pkg.pageRules))
       throw Object.assign(new Error(result?.error?.message||'安装尚未获得确认的原生状态，请核对扩展详情。'),
         {code:'E_PAGE_INSTALL_PENDING'});
+    return {disabled};
+  }
+  function showPageInstallReceipt(pkg,result) {
+    const {disabled}=requireConfirmedPageInstall(pkg,result);
     setToolFieldAttribute(view, pageInstallStatus, 'data-state', disabled?'installed-disabled':'installed');
     setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', result.authorization.installationId);
     setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', result.manifestHash);
@@ -3777,7 +3829,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   async function installPagePackage(event) {
     if(!pendingPage||busy||disposed||installButton.disabled)return;
-    const reviewed=pendingPage,selection=fileSelection,{pkg,installed}=reviewed;
+    const reviewed=pendingPage,product=pendingProduct,selection=fileSelection,{pkg,installed}=reviewed;
     // Request missing Chrome permissions synchronously from the real Install click.
     const permission=pageConsent.confirm(event,{origins:pageHostPermissionOrigins(pkg.pageRules.matches)});
     busy=true;patchToolField(view, installButton, {disabled: true});patchToolField(view, fileInput, {disabled: true});patchToolField(view, importClose, {disabled: true});
@@ -3787,6 +3839,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     try{
       await permission;
       if(disposed||selection!==fileSelection)return;
+      if(product){
+        await verifyReviewedOfficialTool(product.release,product.tool,{api,fetcher});
+        const tools=requireCompleteInstalledSidebarTools((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+        const current=tools.find(row=>row.id===product.tool.id);
+        if(Boolean(current)!==Boolean(product.baseline)||(current&&!samePackage(current,product.baseline)))
+          throw Object.assign(new Error('侧栏安装记录已变化，请重新审阅整个产品'),{code:'E_TOOL_CHANGED'});
+        if(disposed||selection!==fileSelection)return;
+      }
       installationRequested=true;
       const result=await foundationClient.request('importPageInstallPackage',{package:pkg,
         expectedInstalledManifestHash:installed?.manifestHash??null,
@@ -3805,12 +3865,41 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          recorded.authorization?.generation!==result?.authorization?.generation)
         throw Object.assign(new Error('安装回执尚未从已安装列表读回；请核对状态，系统不会自动重试。'),
           {code:'E_PAGE_INSTALL_READBACK'});
+      if(product){
+        // Matching failed receipts are still failures. Confirm native readiness
+        // and managed cleanup before the second installer can issue a write.
+        requireConfirmedPageInstall(pkg,result);
+        requireConfirmedPageInstall(pkg,recorded);
+        // Reuse the existing Tool installer and source/epoch/CAS guards under
+        // the same visible approval. An identical Tool needs only readback.
+        if(!samePackage(product.tool,product.baseline)){
+          const accepted=await install({keepReview:true});
+          if(!accepted)throw Object.assign(new Error('网页已提交，侧栏未确认；请从产品详情核对部分安装'),{code:'E_QUEUE_PARTIAL'});
+        }
+        if(disposed)return;
+        const tools=requireCompleteInstalledSidebarTools((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+        if(!tools.some(row=>samePackage(row,product.tool)))
+          throw Object.assign(new Error('网页已提交，侧栏持久安装记录未读回'),{code:'E_QUEUE_PARTIAL'});
+        // The Tool write can yield to another window; re-read the Page too.
+        const finalPages=await foundationClient.request('listPagePrograms',{});
+        const finalPage=finalPages?.installed?.find(row=>row.programId===pkg.programId);
+        if(!finalPage||finalPage.manifestHash!==recorded.manifestHash||
+          finalPage.authorization?.installationId!==recorded.authorization.installationId||
+          finalPage.authorization?.generation!==recorded.authorization.generation)
+          throw Object.assign(new Error('两份安装之间网页身份已变化，请核对部分状态'),{code:'E_QUEUE_PARTIAL'});
+        showPageInstallReceipt(pkg,finalPage);
+        setImportOpen(false);
+        notice('联合安装记录已读回：侧栏 v'+product.tool.version+'；网页 v'+pkg.version+'（r'+pkg.revision+'）。'+
+          (finalPage.enabled?'打开或刷新 ChatGPT 后核对网页队列。':'网页原有停用状态已保留，可在产品详情恢复。'));
+        return;
+      }
       showPageInstallReceipt(pkg,recorded);
       setImportOpen(false);
       notice((installed?'已更新':'已安装')+'网页增强「'+pkg.title+'」v'+pkg.version+
         (recorded.enabled?'；打开或刷新目标网页即可使用。':'；原有停用状态已保留。'));
     }catch(error){
       if(disposed||selection!==fileSelection)return;
+      patchToolField(view, installButton, {disabled:true});
       // A stored readback alone cannot prove that this request registered in Chrome.
       // Query the original receipt, keep an explicit pending state, and never replay.
       let readback='';
@@ -3824,7 +3913,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }catch{/* Preserve the original failure; no mutation replay. */}
       const permissionDenied=!installationRequested&&error?.code==='E_PERMISSION';
       setToolFieldAttribute(view, pageInstallStatus, 'data-state', permissionDenied?'permission-denied':'pending-review');
-      patchToolField(view, pageInstallStatus, {textContent: (error?.code||'E_PAGE_INSTALL')+'：'+String(error?.message||error)+
+      patchToolField(view, pageInstallStatus, {textContent: (product&&installationRequested?'联合安装部分完成或结果未知。':'')+(error?.code||'E_PAGE_INSTALL')+'：'+String(error?.message||error)+
         (permissionDenied?' 可再次点击确认或重新选择文件；尚未开始安装。':
           readback+' 请核对扩展中的安装状态；未自动重试安装。')});
       patchToolField(view, installButton, {textContent: permissionDenied?'重新确认安装':'需要核对',
@@ -3884,8 +3973,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
     }
   }
-  async function install() {
-    if(!canCommitReview()||installButton.disabled)return;
+  async function install({keepReview=false}={}) {
+    if(!canCommitReview({withinProduct:keepReview})||(!keepReview&&installButton.disabled))return;
     busy=true;patchToolField(view, installButton, {disabled: true});patchToolField(view, fileInput, {disabled: true});patchToolField(view, importClose, {disabled: true});
     let accepted=null,officialTocInstalled=false;
     try{
@@ -3938,6 +4027,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const capture=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE];
       captureGrants=capture||{};
     }catch(error){
+      // The joint review owns the consumed approval and partial-state receipt.
+      // Clearing here increments fileSelection and would silence its catch.
+      if(keepReview)throw error;
       if(['E_TOOL_CHANGED','E_OUTCOME_UNKNOWN'].includes(error?.code)){
         clearImport();setFileError(error.message+(error.code==='E_OUTCOME_UNKNOWN'?'；请核对已安装列表与本机事务记录。本次批准已撤销，不会自动重试。':''));
         await loadInstalled();return;
@@ -3948,10 +4040,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       setFileError((error?.code||'E_TOOL_INSTALL')+'：'+String(error?.message||error));
       return;
     }finally{
-      busy=false;patchToolField(view, fileInput, {disabled: false});patchToolField(view, importClose, {disabled: false});
-      patchToolField(view, installButton, {disabled: !canCommitReview()});render();
+      // A joint install owns busy and its consumed approval through both
+      // installers and all readbacks, including asynchronous error recovery.
+      if(!keepReview){
+        busy=false;patchToolField(view, fileInput, {disabled: false});patchToolField(view, importClose, {disabled: false});
+        patchToolField(view, installButton, {disabled: !canCommitReview()});render();
+      }
     }
     if(!accepted||disposed)return;
+    if(keepReview)return accepted;
     setImportOpen(false);render();focusToolInList(accepted.id);
     notice(officialTocInstalled?
       '阅读目录已安装。符合条件的网页自动显示目录，无需再启用或逐站授权；“打开”仅查看侧边栏目录。':
@@ -4509,7 +4606,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw new Error('当前应用有未保存内容或正在保存。请关闭安装浮层，先保存或取消编辑，再继续更新；草稿已保留。');
     },
     hasInstallReview:()=>importPanel.hidden===false,
-    openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openPagePackageReview,openImport,openImportFiles,openReadOnlyPreview,
+    openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openPagePackageReview,openSendQueueProductReview,openImport,openImportFiles,openReadOnlyPreview,
     stopReadOnlyPreview(){if(!readOnlyPreview)return false;suspendTool();return true;},
     isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;

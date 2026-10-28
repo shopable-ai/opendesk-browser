@@ -31,26 +31,24 @@ test('production CSS and exact selected C WebP match the standalone preview byte
  const inlineCss=css.replace('url("crown-premium.webp")','url("data:image/webp;base64,'+art.a+'")');
  assert.equal(find('<style id="program-css">\n','</style>'),inlineCss);
 });
-test('preview is offline and retains main queue interactions without A/B switches',()=>{
+test('single HTTP preview retains the locked crown and consumes official React build',()=>{
+ const boot=file('preview/boot.js').toString();
  assert.match(html,/SEND QUEUE · 交互预览/);
- assert.doesNotMatch(html,/R5\.2 · SELECTED C/);
- assert.doesNotMatch(html,/<(?:script|link)\b[^>]+(?:src|href)\s*=\s*["'](?:https?:|\.\.?\/)/i);
- assert.doesNotMatch(html,/url\(["']?\.\.?\//);
- for(const id of ['blue','native','draft','more','reset','sizes','widths','themes','finish','sample-add'])
+ assert.match(html,/<script type="module" src=".\/boot.js"><\/script>/);
+ assert.doesNotMatch(html,/<(?:script|link)\b[^>]+(?:src|href)\s*=\s*["']https?:/i);
+ for(const id of ['blue','native','draft','more','reset','sizes','widths','themes','finish','sample-add','unknown','sidebar-frame'])
    assert.ok(html.includes('id="'+id+'"'),'missing main preview '+id);
  for(const id of ['angle','scale','x','y'])
    assert.ok(tuner.includes('id="'+id+'"'),'missing separate tuner '+id);
  assert.doesNotMatch(html,/id="angle"|id="scale"|id="restore-style"|id="toggle-pause"/);
- assert.match(html,/action==='pause'/);
- for(const op of ["if(action==='edit')","if(action==='remove')","if(action==='now')"]) assert.ok(html.includes(op),'missing queue action '+op);
- assert.doesNotMatch(html,/A · 三尖精简款|B · 低矮宽檐款|C · 多尖游戏款/);
- assert.match(html,/window\.__sendQueuePreview/);
- assert.match(html,/draft\.value\.length\)/);
- assert.match(html,/expanded\?items:items\.slice\(0,3\)/);
- assert.match(html,/items\.length<=3/);
+ assert.match(boot,/src\/page\/engine.js/);
+ assert.match(boot,/dist\/tool.js/);
+ assert.doesNotMatch(boot,/createRoot\(|function App\(/);
+ assert.match(boot,/window\.__sendQueuePreview/);
+ assert.match(boot,/state.expanded\?items:items.slice\(0,3\)/);
+ assert.match(boot,/items.length<=3/);
  assert.match(html,/pointer-events:none/);
  assert.match(html,/data-value="440">440<\/button><button type="button" data-value="520">520<\/button>/);
- assert.match(html,/id="widths"/);
 });
 
 test('front-only two-layer crown does not hide send arrow or consume pointer hits',()=>{
