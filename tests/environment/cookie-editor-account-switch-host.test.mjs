@@ -260,6 +260,53 @@ test('SW saves directly at revision zero and switches after service restart with
   await assert.rejects(f.dispatch('status'),{code:'E_TOOL_CHANGED'});
 });
 
+test('trusted account descriptions persist without Cookie reads, writes or reload',async t=>{
+  const f=await serviceFixture(t);
+  let reads=0,reloads=0;
+  const nativeRead=f.api.cookies.getAll,nativeReload=f.api.tabs.reload;
+  f.api.cookies.getAll=(...args)=>{reads++;return nativeRead(...args);};
+  f.api.tabs.reload=(...args)=>{reloads++;return nativeReload(...args);};
+  const created=await f.dispatch('create',{
+    revision:0,displayName:'工作账号',description:'  团队  日常使用 '
+  });
+  assert.equal(created.accounts[0].description,'团队 日常使用');
+  assert.equal(created.accounts[0].cookieCount,1);
+  assert.equal(created.accounts[0].version,1);
+  const {alias}=created.accounts[0];
+  const oldStored=structuredClone(f.records.get(COOKIE_ACCOUNT_STORE_KEY).accounts[0].cookies);
+  const readsAfterCreate=reads;
+  const edited=await f.dispatch('rename',{
+    revision:1,alias,accountVersion:1,displayName:'工作账号',
+    description:'客服团队日常使用'
+  });
+  assert.equal(edited.revision,2);
+  assert.equal(edited.accounts[0].description,'客服团队日常使用');
+  assert.equal(edited.accounts[0].version,1,'metadata-only edit keeps switch fence');
+  assert.equal(reads,readsAfterCreate,'metadata-only edit cannot capture Cookies');
+  assert.equal(f.writes(),0,'metadata-only edit cannot write Cookies');
+  assert.equal(reloads,0,'metadata-only edit cannot reload a page');
+  assert.deepEqual(f.records.get(COOKIE_ACCOUNT_STORE_KEY).accounts[0].cookies,oldStored);
+  assert.equal((await f.dispatch('status')).accounts[0].description,'客服团队日常使用');
+  assert.doesNotMatch(JSON.stringify(edited),/fiction|cookies|ciphertext|key/);
+  const renamed=await f.dispatch('rename',{
+    revision:2,alias,accountVersion:1,displayName:'工作账号（客服）',
+    description:'新描述'
+  });
+  assert.equal(renamed.accounts[0].version,2,'existing name-change version policy remains');
+  assert.equal(renamed.accounts[0].description,'新描述');
+  assert.equal(reads,readsAfterCreate);
+  assert.equal(f.writes(),0);
+  await assert.rejects(f.dispatch('rename',{
+    revision:3,alias,accountVersion:2,displayName:'工作账号（客服）',
+    description:'a'.repeat(121)
+  }),{code:'E_ACCOUNT_DESCRIPTION'});
+  await assert.rejects(f.dispatch('rename',{
+    revision:2,alias,accountVersion:2,displayName:'旧操作',
+    description:'过期草稿'
+  }),{code:'E_VAULT_CONFLICT'});
+  assert.equal((await f.dispatch('status')).accounts[0].description,'新描述');
+});
+
 test('fixed SW install forwards Foundation storage and exposes cleanup only to its caller',async t=>{
   const f=await serviceFixture(t);let listener;
   f.api.runtime.onMessage={addListener:fn=>{listener=fn;}};
