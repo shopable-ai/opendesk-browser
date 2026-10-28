@@ -1163,6 +1163,23 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       const scripts=await native.getScripts({ids:[latest.nativeId]});
       invariant(scripts.length===1&&nativeEqual(scripts[0],desired.script),
         'E_PAGE_AUTHORIZATION','原生 USER_SCRIPT 注册身份不一致');
+      // Re-read immediately before the native dispatch: the Side Panel can
+      // switch tabs while a storage/permission/native read is pending. A
+      // readback *after* executing would be too late to prevent the effect.
+      const [dispatchTab,dispatchFrames,dispatchSelected]=await Promise.all([
+        api.tabs.get(tab.id),api.webNavigation.getAllFrames({tabId:tab.id}),
+        api.tabs.query({active:true,windowId:target.expectedWindowId})]);
+      const dispatchFrame=dispatchFrames?.find(value=>value.frameId===0&&
+        value.documentId===target.documentId);
+      invariant(dispatchTab?.id===target.tabId&&
+        dispatchTab.windowId===target.expectedWindowId&&dispatchTab.active===true&&
+        dispatchTab.incognito===false&&!dispatchTab.pendingUrl&&
+        dispatchTab.url===target.expectedUrl&&dispatchSelected?.length===1&&
+        dispatchSelected[0]?.id===target.tabId&&
+        dispatchFrame?.url===target.expectedUrl&&!dispatchFrame.errorOccurred&&
+        (!dispatchFrame.documentLifecycle||dispatchFrame.documentLifecycle==='active')&&
+        permissionEpoch(latest)===epoch,
+        'E_DOCUMENT_STALE','队列操作前活动标签页或原文档已改变');
       const completion=Promise.resolve(native.execute({target:{tabId:tab.id,
         documentIds:[frame.documentId]},world:'USER_SCRIPT',
         worldId:execution.managedUI.worldId,js:[{code:js}]}));
@@ -1184,14 +1201,17 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     invariant(value&&typeof value==='object'&&
       ['ready','stale','unavailable','wrong-session'].includes(value.status)&&
       JSON.stringify(value).length<=48000,'E_QUEUE_RESULT','队列结果格式或长度无效');
-    const [latest,afterTab,afterFrames]=await Promise.all([
+    const [latest,afterTab,afterFrames,afterSelected]=await Promise.all([
       scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
         key(INSTALL_KEY_KIND,namespace,SEND_QUEUE_PROGRAM_ID))),
-      api.tabs.get(tab.id),api.webNavigation.getAllFrames({tabId:tab.id})]);
+      api.tabs.get(tab.id),api.webNavigation.getAllFrames({tabId:tab.id}),
+      api.tabs.query({active:true,windowId:target.expectedWindowId})]);
     invariant(latest?.token===row.token&&latest.manifestHash===row.manifestHash&&
       latest.authorization?.generation===row.authorization.generation&&
       latest.nativeState==='registered'&&active(latest)&&permissionEpoch(latest)===epoch&&
-      afterTab?.url===target.expectedUrl&&!afterTab.pendingUrl&&afterTab.active===true&&
+      afterTab?.id===target.tabId&&afterTab.windowId===target.expectedWindowId&&
+      afterTab.url===target.expectedUrl&&!afterTab.pendingUrl&&afterTab.active===true&&
+      afterSelected?.length===1&&afterSelected[0]?.id===target.tabId&&
       afterFrames?.some(value=>value.frameId===0&&value.documentId===frame.documentId&&
         value.url===target.expectedUrl&&!value.errorOccurred),
       'E_DOCUMENT_STALE','队列回执后网页或授权已变化');
