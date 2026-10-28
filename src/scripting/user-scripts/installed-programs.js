@@ -15,6 +15,7 @@ import {buildScrollSiteUpgradePackage,scrollSiteRevision} from './scroll-site-up
 import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION,SCROLL_CONFIG_EMPTY,normalizeScrollConfig,scrollSiteInstallMatches,scrollProgramUrlMatches,scrollPathMatches} from './scroll-config-contract.js';
 import {pageProgramUrlMatches} from './page-program-rules.js';
 import {PAGE_FRAME_ACTION} from './page-frame-runtime.js';
+import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../../../examples/sidebar-tools/ai-send-queue/trusted/admission.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const PAGE_STORE="frameworkKV",
   PAGE_INSTALL_TAG="page-installed-v1",
@@ -29,7 +30,7 @@ export const PAGE_BOOT_PROTOCOL='opendesk.page-installed.boot.v1';
 export const PAGE_BOOT_WORLD='opendesk-page-installed-bootstrap-v1';
 const PREFIX='opendesk-page-boot-';
 const ACCESS_CHANGED='访问受限，请检查安装并恢复访问';
-const SEND_QUEUE_PROGRAM_ID='opendesk.ai-send-queue';
+const SEND_QUEUE_PROGRAM_ID=SEND_QUEUE_PIN.pageProgramId;
 const key=(kind,ns,...identity)=>'page-'+kind+':'+canonical([ns,...identity]);
 const fields=(value,allowed,required=allowed)=>invariant(value&&typeof value==='object'&&!Array.isArray(value)&&
   Object.keys(value).every(k=>allowed.includes(k))&&required.every(k=>Object.hasOwn(value,k)),
@@ -1119,7 +1120,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const row=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
       key(INSTALL_KEY_KIND,namespace,SEND_QUEUE_PROGRAM_ID)));
     invariant(row?.tag===PAGE_INSTALL_TAG&&row.programId===SEND_QUEUE_PROGRAM_ID&&
-      row.revision>=12&&active(row)&&row.nativeState==='registered'&&!row.error,
+      admitsPinnedQueuePage(row)&&active(row)&&row.nativeState==='registered'&&!row.error,
       'E_QUEUE_PAGE_NOT_READY','网页队列需要安装和启用新版受信 USER_SCRIPT');
     const epoch=permissionEpoch(row);
     await requireSiteGrant(row);

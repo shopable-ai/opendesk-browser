@@ -17,6 +17,7 @@ import {permissionPattern} from '../environment.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
 import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../scripting/user-scripts/page-install-package.js';
+import {admitsPinnedQueueTool} from '../../examples/sidebar-tools/ai-send-queue/trusted/admission.js';
 import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 import {loadOfficialPagePackage} from '../scripting/user-scripts/official-page-catalog.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
@@ -1917,7 +1918,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Exact product-scoped request; the Tool cannot select a Chrome tab or inject JS.
     // Host rechecks both the tool package epoch and Page Authority before delivery.
     if(operation==='sendQueue.snapshot'||operation==='sendQueue.command'){
-      if(tool.id!=='ai-send-queue'||!tool.capabilities.includes('currentPage.read'))
+      if(!admitsPinnedQueueTool(tool,await sidebarToolPackageHash(tool)))
         throw Object.assign(new Error('工具无权控制网页队列'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
       const read=operation==='sendQueue.snapshot',command=payload?.command;
       if(read){
