@@ -27,7 +27,7 @@ test('standalone tuner derives temporary defaults from formal CSS without modify
  assert.match(tuner,/for\(const key of keys\)preview\.style\.removeProperty\(key\)/);
  assert.match(tuner,/\$\('reset'\)\.addEventListener\('click',reset\)/);
  assert.match(tuner,/\$\('angle'\)\.value=String\(official\.angle\)/);
- assert.match(html,/tools\/crown-tuner\.html/);
+ assert.doesNotMatch(html,/tools\/crown-tuner\.html/);
  assert.doesNotMatch(html,/id="angle"|id="scale"|id="restore-style"/);
 });
 
@@ -36,7 +36,8 @@ test('preview keeps three initial rows, expansion, conservative draft protection
  assert.match(html,/items\.length<=3/);
  assert.match(html,/aria-expanded/);
  assert.match(html,/输入框已有草稿：不会覆盖/);
- assert.match(html,/暂停队列/);
+ assert.match(html,/暂停此条/);
+ assert.doesNotMatch(html,/队列已暂停|id="toggle-pause"/);
  assert.match(html,/模拟 AI 回复完成/);
 });
 

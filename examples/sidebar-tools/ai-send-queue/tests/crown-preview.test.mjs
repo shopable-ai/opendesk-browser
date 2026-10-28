@@ -36,11 +36,12 @@ test('preview is offline and retains main queue interactions without A/B switche
  assert.doesNotMatch(html,/R5\.2 · SELECTED C/);
  assert.doesNotMatch(html,/<(?:script|link)\b[^>]+(?:src|href)\s*=\s*["'](?:https?:|\.\.?\/)/i);
  assert.doesNotMatch(html,/url\(["']?\.\.?\//);
- for(const id of ['blue','native','draft','more','reset','sizes','widths','themes','finish','toggle-pause','sample-add'])
+ for(const id of ['blue','native','draft','more','reset','sizes','widths','themes','finish','sample-add'])
    assert.ok(html.includes('id="'+id+'"'),'missing main preview '+id);
  for(const id of ['angle','scale','x','y'])
    assert.ok(tuner.includes('id="'+id+'"'),'missing separate tuner '+id);
- assert.doesNotMatch(html,/id="angle"|id="scale"|id="restore-style"/);
+ assert.doesNotMatch(html,/id="angle"|id="scale"|id="restore-style"|id="toggle-pause"/);
+ assert.match(html,/action==='pause'/);
  for(const op of ["if(action==='edit')","if(action==='remove')","if(action==='now')"]) assert.ok(html.includes(op),'missing queue action '+op);
  assert.doesNotMatch(html,/A · 三尖精简款|B · 低矮宽檐款|C · 多尖游戏款/);
  assert.match(html,/window\.__sendQueuePreview/);
