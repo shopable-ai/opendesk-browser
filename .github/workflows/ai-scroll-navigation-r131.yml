@@ -40,7 +40,7 @@ jobs:
       - name: Affected Node and Page Authority regressions
         run: |
           set -euo pipefail
-          node --test tests/environment/chatgpt-jump-top.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs tests/environment/ai-scroll-config-r132.test.mjs tests/environment/ai-scroll-site-upgrade-r133.test.mjs tests/environment/ai-scroll-release-r134.test.mjs tests/environment/page-program-library.test.mjs tests/environment/page-install-package.test.mjs tests/environment/extension-center-official-pages-r124.test.mjs tests/environment/sidebar-tools-view.test.mjs tests/environment/ai-scroll-install-ui-r134.test.mjs tests/environment/ai-scroll-site-detail-ui-r134.test.mjs examples/programs/chatgpt-jump-top/tests/*.test.mjs
+          node --test tests/environment/chatgpt-jump-top.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs tests/environment/ai-scroll-config-r132.test.mjs tests/environment/ai-scroll-site-upgrade-r133.test.mjs tests/environment/ai-scroll-release-r134.test.mjs tests/environment/page-program-library.test.mjs tests/environment/page-install-package.test.mjs tests/environment/extension-center-official-pages-r124.test.mjs tests/environment/sidebar-tools-view.test.mjs tests/environment/ai-scroll-install-ui-r134.test.mjs tests/environment/ai-scroll-site-detail-ui-r134.test.mjs tests/environment/ai-scroll-react-manager-r38.test.mjs examples/programs/chatgpt-jump-top/tests/*.test.mjs
           node scripts/validate-program-project.mjs examples/programs/chatgpt-jump-top
       - name: Reuse production Program Builder and Page Installer
         run: |
