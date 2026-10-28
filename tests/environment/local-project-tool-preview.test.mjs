@@ -52,7 +52,7 @@ test('file-only Develop preview uses the existing catalog and installed metadata
   const f=fixture(t);await settle();
   assert.equal(f.owner.canAttemptRun(),false);
   assert.equal(f.find('local-project-preview').disabled,false);
-  assert.match(f.find('local-project-status').textContent,/可打开文件工作区.*实时开发预览/);
+  assert.match(f.find('local-project-status').textContent,/可打开文件工作区.*在侧栏调试/);
   assert.deepEqual(f.find('local-project-tool').options.map(row=>row.value),['',tool.id]);
   assert.equal(f.find('local-project-tool').options[1].label,tool.title+' · v'+tool.version);
   assert.deepEqual(f.effects,[]);
