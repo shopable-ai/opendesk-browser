@@ -87,6 +87,11 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     const timer=window.setTimeout(()=>setImportNotice(null),3500);
     return ()=>window.clearTimeout(timer);
   },[importNotice]);
+  React.useEffect(()=>{
+    if(accountNotice?.kind!=='success')return;
+    const timer=window.setTimeout(()=>setAccountNotice(null),4000);
+    return ()=>window.clearTimeout(timer);
+  },[accountNotice]);
   const snapshot=view||controller.snapshot();
   const busy=Boolean(snapshot.busy||working);
   const locked=busy||accountBusy||Boolean(confirmation);
@@ -231,11 +236,14 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     return ()=>{active=false;};
   },[adapter,mode,section,target?.origin]);
   const accountAction=(action,payload={},success='账号已更新')=>{
-    if(accountInFlight.current||modeRef.current!=='browser'||!target?.origin||
-       !accountState?.unlocked)return;
+    if(accountInFlight.current)return Promise.resolve(false);
+    if(modeRef.current!=='browser'||!target?.origin||!accountState?.unlocked){
+      setAccountNotice({kind:'error',text:'账号服务尚未就绪，未执行保存。'});
+      return Promise.resolve(false);
+    }
     accountInFlight.current=true;
     if(action==='switch'||
-      (['delete','update'].includes(action)&&payload.alias===verifiedAccount.current?.alias))
+      (action==='delete'&&payload.alias===verifiedAccount.current?.alias))
       verifiedAccount.current=null;
     // Start the Host request in the original button/change gesture. The
     // privileged parent independently observes userActivation synchronously.
@@ -275,13 +283,33 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       }else{
         if(typeof receipt?.configured!=='boolean'||!Array.isArray(receipt.accounts))
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+        const created=action==='create'
+          ?receipt.accounts.find(item=>item.origin===requestedOrigin&&
+            item.displayName===payload.displayName&&
+            !accountState.accounts.some(before=>before.alias===item.alias))
+          :null;
+        if(action==='create'&&!created)
+          throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+        if(action==='update'&&verifiedAccount.current?.alias===payload.alias){
+          const updated=receipt.accounts.find(item=>item.alias===payload.alias&&
+            item.origin===requestedOrigin);
+          if(!updated)throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+          // The trusted service only accepts updates with matching exact
+          // Cookie slots. This is applied-snapshot evidence, not login proof.
+          verifiedAccount.current={...verifiedAccount.current,
+            version:updated.version,rows:JSON.stringify(controller.snapshot().rows)};
+        }
         acceptAccountState(receipt);
+        const message=action==='update'&&receipt.unchanged===true
+          ?'Cookie 已是最新，无需重复保存。':success;
         setAccountNotice({kind:'success',text:receipt.preview===true
-          ?'预览模拟：'+success+'（未写入真实账号）':success});
+          ?'预览模拟：'+message+'（未写入真实账号）':message});
+        if(action==='create')return {ok:true,alias:created.alias};
       }
       return true;
     }).catch(error=>{
       if(!sameAccountContext())return false;
+      if(action==='update')verifiedAccount.current=null;
       const code=String(error?.code||'E_ACCOUNT_HOST');
       const hints={
         E_OUTCOME_UNKNOWN:action==='switch'?'可能发生部分 Cookie 写入，请手动核对，勿直接重复切换。'
@@ -294,7 +322,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         E_COOKIE_PARTITION:'Cookie 分区已变化，请重新检查目标标签页及授权。',
         E_COOKIE_STORE:'当前标签页的 Cookie Store 不匹配。',
         E_SITE_GRANT_REQUIRED:'网站 Cookie 授权失效，请在工具可信设置中恢复。',
-        E_ACCOUNT_EMPTY:'当前站点没有可保存或切换的 Cookie。'
+        E_ACCOUNT_EMPTY:'当前站点没有可保存或切换的 Cookie。',
+        E_ACCOUNT_NAME_TAKEN:'账号名称已存在，请换一个名称。',
+        E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED:'当前 Cookie 的 Domain、Path、Store 或 Partition 范围已变化；旧快照未覆盖。'
       };
       setAccountNotice({kind:'error',text:(hints[code]||'本次操作未确认，请检查权限或账号状态。')+
         '（'+code+'）'});
@@ -665,13 +695,27 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         autoEnabled={accountState?.settings?.autoEnabled===true}
         autoRefresh={accountState?.settings?.autoRefresh!==false}
         previewOnly={accountState?.preview===true}
-        busy={accountBusy||locked} feedback={accountNotice}
+        busy={accountBusy||locked}
+        feedback={accountNotice?.kind==='error'?accountNotice:null}
+        cookieDetails={snapshot.phase==='ready'?snapshot.rows.slice(0,100).map(row=>({
+          id:row.id,name:row.name,domain:row.domain,path:row.path,
+          storeId:row.storeId,partition:row.partitionKey?.topLevelSite||''
+        })):[]}
         onCreate={displayName=>accountAction('create',{displayName},'已保存当前账号快照。')}
         onSwitch={item=>accountAction('switch',{alias:item.alias})}
         onRename={(item,displayName)=>accountAction('rename',{
           alias:item.alias,accountVersion:item.version,displayName},'账号已重命名。')}
-        onUpdate={item=>accountAction('update',{
-          alias:item.alias,accountVersion:item.version},'已更新账号快照。')}
+        onUpdate={item=>{
+          const proof=verifiedAccount.current,live=controller.snapshot();
+          if(!proof||proof.alias!==item.alias||proof.version!==item.version||
+            proof.epoch!==live.epoch||proof.url!==live.target?.url||
+            live.phase!=='ready'||live.syncStale){
+            setAccountNotice({kind:'error',text:'无法确认当前 Cookie 仍属于该账号；未覆盖旧快照。请先核对并切换账号。'});
+            return Promise.resolve(false);
+          }
+          return accountAction('update',{
+            alias:item.alias,accountVersion:item.version},'已更新账号快照。');
+        }}
         onDelete={item=>accountAction('delete',{
           alias:item.alias,accountVersion:item.version},'账号快照已删除。')}
         onToggleAuto={enabled=>accountAction('setAutoEnabled',{enabled},'自动切换设置已更新。')}
@@ -703,6 +747,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':'od-alert--warning')}>
       {snapshot.message}</p>}
     {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
+    {section==='accounts'&&accountNotice?.kind==='success'&&<div
+      role="status" className="cookie-import-toast">{accountNotice.text}</div>}
     {panel!=='import'&&importNotice&&<div
       role={importNotice.kind==='error'?'alert':'status'}
       className={'cookie-import-toast'+
