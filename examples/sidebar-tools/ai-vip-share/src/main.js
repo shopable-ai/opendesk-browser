@@ -528,7 +528,7 @@
       productionEndpoints?'从会员卡查询服务返回的账号与权益；登录、绑定由正式账号服务提供。':
         '正式账号服务未配置，暂不能登录、绑定或查询权益。');
     set('feature-redeem',endpoints?'账号核验后显示输入框；先预检再确认。兑换记录随权益刷新，结果未知时使用「核对上次兑换」。':
-      '正式兑换服务未配置，输入框暂不显示；专属链接和旧设备激活也不能代替兑换服务。');
+      '正式兑换服务未配置，兑换输入框仅可查看、不可提交；专属链接和旧设备激活也不能代替兑换服务。');
     set('feature-cookie',localMode?'仅演示测试站点。激活后从服务器取得公司共享账号；不能自选目标账号；确认写入后到测试站核对实际账号。':
       COOKIE_TARGETS.length?'仅接收已批准目标的有效交付，逐项确认写入后到目标页面核对。':
         '生产目标未配置；收到有效交付后才可核对目标并确认写入。');
@@ -1042,6 +1042,20 @@
       }
       return;
     }
+    // A reviewed link may never be consumed after leaving its approved source.
+    // The trusted user's confirmation is necessary but not sufficient.
+    if(activationHintCode){
+      busy=true;renderRedeem();
+      try{
+        if(activationCodeFromPage(await storeRequest('currentPage.info'))!==activationHintCode)
+          fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化');
+      }catch{
+        pending=null;code.value='';activationHintCode=null;activationHint.hidden=true;
+        redeemNotice('激活页面已变化或权限无法核验，未提交兑换；请重新预检。',true);
+        busy=false;renderRedeem();return;
+      }
+      busy=false;renderRedeem();
+    }
     const previewNow=estimatedServerNow();
     if(pending.accountId!==snapshot.account.id||previewNow===null||
       pending.expiresAt<=previewNow){
@@ -1078,6 +1092,8 @@
     redeemNotice('正在持久保存兑换事务，再提交服务端；请勿重复操作。');
     try{
       await beginRecovery(accountId,key,redemptionIntent); // Write-ahead and verified readback.
+      if(activationHintCode&&activationCodeFromPage(await storeRequest('currentPage.info'))!==activationHintCode)
+        fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化，保留事务以便核对');
       if(automatic&&activationCodeFromPage(await storeRequest('currentPage.info'))!==urlCode)
         fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化；保留事务供核对，不会提交');
       const submitNow=estimatedServerNow();
