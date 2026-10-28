@@ -37,6 +37,17 @@ test('build receipt binds tool JS/CSS to this source revision',async()=>{
     assert.equal(ready.files['dist/'+name].bytes,bytes.length);
     assert.equal(ready.files['dist/'+name].sha256,hash(bytes));
   }
+  for(const name of ['src/App.jsx','src/main.jsx','src/model.js','src/style.css']){
+    assert.ok(ready.sources?.[name],'source-bound receipt missing '+name);
+  }
+  assert.ok(Object.keys(ready.sources).length<=32);
+  for(const [name,record] of Object.entries(ready.sources)){
+    assert.match(name,/^[A-Za-z0-9][A-Za-z0-9._/-]*$/);
+    assert.ok(!name.split('/').some(part=>part==='.'||part==='..'));
+    const bytes=await readFile(resolve(project,name));
+    assert.equal(record.bytes,bytes.length,'stale source bytes: '+name);
+    assert.equal(record.sha256,hash(bytes),'stale compiled source: '+name);
+  }
 });
 test('source-bound dual preview matches the native and pinned browser asset bytes',async()=>{
   const receipt=JSON.parse(await readFile(resolve(preview,'receipt.json')));

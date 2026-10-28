@@ -12,6 +12,19 @@
 - `src/model.js`：可单测的无 DOM 业务合同；`src/App.jsx`：正式交互和 SDK 请求；`src/main.jsx`：独立 Root 和清理。
 - 从 `@opendesk/ui` 复用 Button、IconButton、Card、CardContent。React/ReactDOM 由 OpenDesk 浏览器既有共享 Runtime 提供，不随工具重复打包。
 
+## AI 连续开发（不更新正式安装包）
+
+在真正的 Mac 项目中，Codex 修改本应用的 `src/`；项目级 Vite 只编译本应用，原 Native watcher 只校验并发布完成的快照。**它们是不同的 watcher**，在启动前先检查是否已有进程，不重复启动，也不覆盖 Browser 的 `dist/development`：
+
+```sh
+# 终端一：仅当项目尚无 Vite watch 进程时启动。
+npm run watch --prefix examples/sidebar-tools/quick-notes-react
+# 终端二：仅当本项目尚无 stage watch 进程时启动。
+node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react
+```
+
+Vite 产物由 source-bound `dist/build-ready.json` 证明；stage 只在完整回执通过且源码未漂移时发布 SHA 快照。编译失败不会把错误产物当作新快照，也不会修改 `quick-notes-react.opendesk-tool.json`。**当前原有 Workspace 入口仍打开独立标签页；这里的连续构建不等于已实现真实 Side Panel 内嵌调试或 SDK 写入。**
+
 ## 先测试再安装：Mac main
 
 从仓库根目录执行；使用已有 watcher 时**不要覆盖正在运行的 dist/development**，应先检查它对应的 Chrome 与扩展构建。项目内的 JSX 编译不重构整个浏览器。

@@ -34,8 +34,11 @@ async function readInputs(){
   return rows;
 }
 async function run(){
-  // A failed stage must never expose the last successful build as current.
-  await rm(output,{force:true,recursive:true});
+  // The immutable native watcher snapshots share .opendesk-preview/<tool-id>.
+  // Reset ONLY this side-by-side comparison's files, never the live snapshot
+  // directory or any other process's staged content-addressed package.
+  const comparisonFiles=['browser','react.css','native.html','native.css','native.js','receipt.json'];
+  await Promise.all(comparisonFiles.map(name=>rm(resolve(output,name),{force:true,recursive:true})));
   const before=await readInputs();
   const readyBytes=await readFile(resolve(project,'dist/build-ready.json'));
   const ready=JSON.parse(readyBytes);
@@ -84,7 +87,7 @@ async function run(){
     await write(resolve(output,name),contents);
   const after=await readInputs();
   if(JSON.stringify(before)!==JSON.stringify(after)){
-    await rm(output,{recursive:true,force:true});
+    await Promise.all(comparisonFiles.map(name=>rm(resolve(output,name),{recursive:true,force:true})));
     throw Error('Preview sources changed during staging');
   }
   await write(resolve(output,'receipt.json'),JSON.stringify({
