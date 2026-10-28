@@ -135,6 +135,7 @@ test('a source without sourceId cannot request auto preview, while file workspac
 test('double click creates one intent; a later selection cannot retarget the captured source',async t=>{
   const gate=deferred(),f=fixture(t,{sessionGate:gate});await settle();
   f.find('local-project-preview').fire('click');f.find('local-project-preview').fire('click');
+  await settle();
   assert.equal(f.sessionWrites.length,1);
   f.choose('local-project-tool',tool.id);gate.resolve();await settle();
   assert.equal(f.effects.length,1);assertPreview(f,0,null);
