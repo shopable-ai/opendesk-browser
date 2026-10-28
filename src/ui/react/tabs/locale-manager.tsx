@@ -102,6 +102,7 @@ export default function LocaleManager({model}){
   const reload=async id=>{
     const state=await service.reload();
     if(alive.current){setPacks(readPacks(id,state));setServiceStatus(state.status);}
+    return state;
   };
   React.useEffect(()=>{
     let current=true;
@@ -253,7 +254,7 @@ export default function LocaleManager({model}){
       <section className="od-locale-section od-stack" aria-label={t('globalLabel')}>
         <h3>{t('globalLabel')}</h3>
         <label className="od-locale-field" htmlFor="od-locale-global">
-          <span className="od-locale-label">{t('globalLabel')}</span>
+          <span className="od-locale-label">{t('uiLanguage')}</span>
           <select id="od-locale-global" className="od-field" value={preference}
             disabled={busy||!localeController||globalUnknown} onChange={event=>{
               if(localeController?.getError?.()?.code==='E_UI_LOCALE_OUTCOME_UNKNOWN')return;
@@ -335,8 +336,8 @@ export default function LocaleManager({model}){
           <div className="od-locale-actions">
             <Button ref={deleteRef} variant="danger" disabled={busy||!ready} onClick={()=>void run(async()=>{
               await service.remove(pendingDelete.toolId,pendingDelete.locale);
-              await reload(pendingDelete.toolId);
-              if(service.exportPack(pendingDelete.toolId,pendingDelete.locale))
+              const verified=await reload(pendingDelete.toolId);
+              if(verified.status!=='ready'||service.exportPack(pendingDelete.toolId,pendingDelete.locale))
                 throw localError('readbackFailed');
               setPendingDelete(false);setNotice({key:'deleted'});
             })}>{t('confirmDelete')}</Button>
@@ -409,8 +410,8 @@ export default function LocaleManager({model}){
       <div className="od-locale-actions">
         <Button variant="primary" disabled={busy||!canInstall} onClick={()=>void run(async()=>{
           await service.install(preview.pack,preview.tool);
-          await reload(preview.pack.toolId);
-          if(JSON.stringify(service.exportPack(preview.pack.toolId,preview.pack.targetLocale))!==JSON.stringify(preview.pack))
+          const verified=await reload(preview.pack.toolId);
+          if(verified.status!=='ready'||JSON.stringify(service.exportPack(preview.pack.toolId,preview.pack.targetLocale))!==JSON.stringify(preview.pack))
             throw localError('readbackFailed');
           setPreview(null);setView('packs');setNotice({key:'packSaved'});
         })}>{overwrite?t('confirmOverwrite'):t('confirmImport')}</Button>
