@@ -247,9 +247,17 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       verifiedAccount.current=null;
     // Start the Host request in the original button/change gesture. The
     // privileged parent independently observes userActivation synchronously.
-    const intent=adapter.accountRequest(action,{
-      ...payload,revision:accountState.revision
-    });
+    let intent;
+    try{
+      intent=adapter.accountRequest(action,{
+        ...payload,revision:accountState.revision
+      });
+    }catch(error){
+      accountInFlight.current=false;
+      setAccountNotice({kind:'error',text:'账号请求未能发出；未保存。('+
+        String(error?.code||'E_ACCOUNT_HOST')+')'});
+      return Promise.resolve(false);
+    }
     const requestedOrigin=target.origin;
     const requestedEpoch=controller.snapshot().epoch;
     const sameAccountContext=()=>{
