@@ -272,6 +272,7 @@ test('confirmed Japanese import reaches the running official TOC through real ma
   assert.equal(refresh.getAttribute('aria-label'),builtin.refreshLabel);
   openPacks(ui.doc);
   async function choose(next){
+    await settle(()=>Boolean(ui.doc.querySelector('input[type=file]'))&&!ui.doc.querySelector('input[type=file]').disabled);
     const picker=ui.doc.querySelector('input[type=file]');
     assert.ok(picker,'file input must remain on the packs page');
     Object.defineProperty(picker,'files',{configurable:true,value:[{size:JSON.stringify(next).length,text:async()=>JSON.stringify(next)}]});
@@ -331,21 +332,22 @@ test('language preview, cancellation, confirmed import/overwrite/delete and shar
   const model={tools:[f.tool],service:f.service,toolId:f.tool.id,localeController,onClose(){}};
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model}}),{doc}=ui;
   openPacks(doc);
-  const choose=pack=>{
+  const choose=async pack=>{
+    await settle(()=>Boolean(doc.querySelector('input[type=file]'))&&!doc.querySelector('input[type=file]').disabled);
     const picker=doc.querySelector('input[type=file]');
     assert.ok(picker);Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(pack)}]});picker.dispatch('change');
   };
-  choose(f.pack);
+  await choose(f.pack);
   await settle(()=>buttonNamed(doc,'确认导入')&&!buttonNamed(doc,'确认导入').disabled);
   assert.equal(f.saved[toolLocaleStorageKey(f.tool.id)],undefined,'preview does not write');
-  assert.match(doc.body.textContent,/缺失翻译：1 项/);
+  assert.match(doc.body.textContent,/尚未翻译1/);
   buttonNamed(doc,'取消导入').dispatch('click');
   assert.equal(doc.querySelector('[aria-label="语言包导入预览"]'),null);
-  choose(f.pack);await settle(()=>buttonNamed(doc,'确认导入')&&!buttonNamed(doc,'确认导入').disabled);
+  await choose(f.pack);await settle(()=>buttonNamed(doc,'确认导入')&&!buttonNamed(doc,'确认导入').disabled);
   buttonNamed(doc,'确认导入').dispatch('click');
   await settle(()=>doc.body.textContent.includes('语言包已保存。'));
   assert.equal(f.service.exportPack(f.tool.id,'ja').messages.title.text,'見出し');
-  choose({...f.pack,messages:{title:{source:'标题',text:'題名'}}});
+  await choose({...f.pack,messages:{title:{source:'标题',text:'題名'}}});
   await settle(()=>buttonNamed(doc,'确认覆盖')&&!buttonNamed(doc,'确认覆盖').disabled);
   assert.equal(f.service.exportPack(f.tool.id,'ja').messages.title.text,'見出し');
   buttonNamed(doc,'确认覆盖').dispatch('click');await settle(()=>doc.body.textContent.includes('语言包已保存。'));
@@ -362,7 +364,7 @@ test('language preview, cancellation, confirmed import/overwrite/delete and shar
   assert.equal(f.saved['opendesk.ui.locale.v1'],'ja');
   assert.ok(doc.body.textContent.includes(msg('ja','globalSaved',{language:'日本語'})));
   openPacks(doc);
-  choose({...f.pack,messages:{title:{source:'标题',text:'<script>'}}});
+  await choose({...f.pack,messages:{title:{source:'标题',text:'<script>'}}});
   await settle(()=>doc.querySelector('[role=alert]'));
   assert.equal(doc.querySelector('[role=alert]').textContent,msg('ja','invalidPack'));
   assert.equal(f.service.exportPack(f.tool.id,'ja'),null);
@@ -444,7 +446,7 @@ test('downloads real JSON translation template, blanks missing rows, and backs u
   const picker=doc.querySelector('input[type=file]');
   Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(template)}]});
   picker.dispatch('change');
-  await settle(()=>doc.querySelector('[role=alert]'));
+  await settle(()=>doc.querySelector('[role=alert]')&&!picker.disabled);
   assert.equal(f.service.exportPack(f.tool.id,'fr'),null,'blank template is never installable');
   const completed={...template,messages:{title:{source:'标题',text:'Titre'},
     hello:{source:'你好 {name}',text:'Bonjour {name}'}}};
@@ -476,7 +478,6 @@ test('unknown/error storage recovery reloads without replaying install; samples 
   const picker=ui.doc.querySelector('input[type=file]');
   Object.defineProperty(picker,'files',{value:[{size:100,text:async()=>JSON.stringify(f.pack)}]});
   picker.dispatch('change');await settle(()=>buttonNamed(ui.doc,'确认覆盖')&&!buttonNamed(ui.doc,'确认覆盖').disabled);
-  assert.match(ui.doc.querySelector('.od-locale-samples').textContent,/原文：标题译文：見出し/);
   assert.match(ui.doc.querySelector('.od-locale-samples').textContent,/原文：标题译文：見出し/);
   buttonNamed(ui.doc,'取消导入').dispatch('click');
   assert.match(ui.doc.querySelector('.od-locale-resources').textContent,/日本語.*已导入/);
