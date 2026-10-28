@@ -55,7 +55,8 @@ const tools=await compile('../../src/ui/react/tabs/tools.tsx',{...deps,'../compo
 const {default:LocaleManager}=await import(await compile('../../src/ui/react/tabs/locale-manager.tsx',{
   ...deps,'../components/ui/button.tsx':button,'./tools.tsx':tools,'./locale-manager.css':'data:text/javascript,export{}',
   '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href,
-  '../../sidebar-tools/locale-packs.js':new URL('../../src/ui/sidebar-tools/locale-packs.js',import.meta.url).href
+  '../../sidebar-tools/locale-packs.js':new URL('../../src/ui/sidebar-tools/locale-packs.js',import.meta.url).href,
+  '../../sidebar-tools/storage-state.js':new URL('../../src/ui/sidebar-tools/storage-state.js',import.meta.url).href
 }));
 const tick=()=>new Promise(resolve=>setTimeout(resolve,10));
 async function settle(check){for(let i=0;i<100&&!check();i++)await tick();assert.ok(check(),'UI did not settle');}
@@ -370,6 +371,32 @@ test('language preview, cancellation, confirmed import/overwrite/delete and shar
   await settle(()=>doc.querySelector('[role=alert]'));
   assert.equal(doc.querySelector('[role=alert]').textContent,msg('ja','invalidPack'));
   assert.equal(f.service.exportPack(f.tool.id,'ja'),null);
+});
+
+test('confirmed import and overwrite accept Chrome storage readback with reordered object keys',async t=>{
+  const f=await setup(t),get=f.api.storage.local.get;
+  const reorder=value=>Array.isArray(value)?value.map(reorder):value&&typeof value==='object'?
+    Object.fromEntries(Object.keys(value).sort().map(key=>[key,reorder(value[key])])):value;
+  f.api.storage.local.get=async keys=>reorder(await get(keys));
+  const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[f.tool],toolId:f.tool.id,service:f.service,onClose(){}}}}),{doc}=ui;
+  openPacks(doc);
+  const pack={...f.pack,messages:{title:{text:'見出し',source:'标题'},
+    hello:{text:'こんにちは {name}',source:'你好 {name}'}}};
+  async function confirm(value,label){
+    const picker=doc.querySelector('input[type=file]');
+    Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(value)}]});
+    picker.dispatch('change');await settle(()=>buttonNamed(doc,label)&&!buttonNamed(doc,label).disabled);
+    buttonNamed(doc,label).dispatch('click');
+    await settle(()=>doc.getElementById('od-locale-pack-tool')&&doc.body.textContent.includes('语言包已保存。'));
+    assert.deepEqual(f.service.exportPack(f.tool.id,'ja'),value);
+    assert.equal(f.service.getToolLocale(f.tool.id),null,'import preserves the existing display preference');
+    assert.equal(doc.querySelector('[role=alert]'),null);
+  }
+  assert.notEqual(JSON.stringify(pack),JSON.stringify(reorder(pack)),'fixture reproduces Chrome key ordering');
+  await confirm(pack,'确认导入');
+  const changed=structuredClone(pack);changed.messages.title.text='題名';
+  await confirm(changed,'确认覆盖');
 });
 
 test('JSON drop auto-detects another installed extension and rejects oversized files before parsing',async t=>{

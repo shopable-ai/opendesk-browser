@@ -2,6 +2,7 @@ import * as React from 'react';
 import {Button,IconButton} from '../components/ui/button.tsx';
 import {localeManagerLocale,localeManagerText} from '../../locale-manager-localization.js';
 import {LOCALE_PACK_MAX_BYTES} from '../../sidebar-tools/locale-packs.js';
+import {sameStorageValue} from '../../sidebar-tools/storage-state.js';
 
 const languageNames={auto:'auto',en:'English','zh-CN':'简体中文','zh-TW':'繁體中文',ja:'日本語'};
 const failureText=(failure,t)=>{
@@ -405,7 +406,7 @@ export default function LocaleManager({model}){
         <Button variant="primary" disabled={busy||!canInstall} onClick={()=>void run(async()=>{
           await service.install(preview.pack,preview.tool);
           const verified=await reload(preview.pack.toolId);
-          if(verified.status!=='ready'||JSON.stringify(service.exportPack(preview.pack.toolId,preview.pack.targetLocale))!==JSON.stringify(preview.pack))
+          if(verified.status!=='ready'||!sameStorageValue(service.exportPack(preview.pack.toolId,preview.pack.targetLocale),preview.pack))
             throw localError('readbackFailed');
           setPreview(null);setView('packs');setNotice({key:'packSaved'});
         })}>{overwrite?t('confirmOverwrite'):t('confirmImport')}</Button>
