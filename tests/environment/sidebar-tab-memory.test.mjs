@@ -109,7 +109,7 @@ test('full-size catalog and standalone tool pages never write Side Panel prefere
 });
 
 test('untrusted and unsupported stored values cannot become navigable pages',async()=>{
-  for(const bad of ['catalog','missing','__proto__','<script>','debug',null,42,{view:'tools'}]){
+  for(const bad of ['catalog','app-debug','missing','__proto__','<script>','debug',null,42,{view:'tools'}]){
     const f=fixture({store:storage({[KEY]:bad})});
     await f.memory.restore();
     assert.equal(f.selected,'tasks');
@@ -173,10 +173,12 @@ test('the real shell only restores the Side Panel and ignores navigation rejecte
   assert.match(shell,/if\(actualSidePanel\|\|!tab\?\.id\)\{[\s\S]*?tabMemory\.restore\(\)/);
   assert.match(shell,/onTabSelected:\(view,options\)=>tabMemory\.record\(view,options\)/);
   const navigateStart=work.indexOf('function navigate(name,{initial=false}={})');
-  const veto=work.indexOf("if(toolsViewListener?.(name==='tools' && !catalogSurface,name)===false)return false;",navigateStart);
+  const veto=work.indexOf("if(toolsViewListener?.((name==='tools'||name==='app-debug')&&!catalogSurface,name)===false)return false;",navigateStart);
   const recorded=work.indexOf('onTabSelected?.(name,{initial});',navigateStart);
   assert.ok(navigateStart>=0 && veto>navigateStart && recorded>veto);
   assert.match(work,/navigate\('tasks',\{initial:true\}\);update\(\)/);
+  assert.match(work,/name==='app-debug'&&!isAppDebugAllowed\(\)/);
+  assert.match(shell,/onStopAppDebug:\(\)=>void stopPanelDevelopment\(\)/);
 });
 
 test('R32 Cloud selection persists and restores through normal Side Panel navigation',async()=>{
