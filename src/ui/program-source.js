@@ -1,3 +1,4 @@
+import {CONTROLLER_SOURCE_LIMIT,CONTROLLER_AUTHORING_LIMIT,CONTROLLER_DRAFT_LIMIT} from '../platform/source-budgets.js';
 import {patchDeveloperField,developerOptions} from './develop-view.js';
 import {validatePageSource,PAGE_BUNDLE_LIMITS} from '../scripting/user-scripts/page-bundle.js';
 import {inspectPageFrameSource,PAGE_FRAME_DRAFT_LIMIT} from '../scripting/user-scripts/page-frame-resources.js';
@@ -7,9 +8,9 @@ import {digest,digestUtf8, invariant} from '../platform/protocol.js';
 export const PROGRAM_DRAFT_FORMAT = 'opendesk.program-draft.v1';
 export const PROGRAM_DRAFT_LIMIT = 512000;
 export const PROGRAM_DRAFT_V2_FORMAT='opendesk.program-draft.v2';
-// File-read/transport ceiling only; validateProgramDraft keeps the old budgets
-// unless the Page source contains a strictly validated frame container.
-export const PROGRAM_DRAFT_INPUT_LIMIT=PAGE_FRAME_DRAFT_LIMIT;
+// File-read ceiling only; validateProgramDraft enforces separate Controller,
+// plain Page and strictly validated Page-frame source/envelope budgets.
+export const PROGRAM_DRAFT_INPUT_LIMIT=Math.max(PAGE_FRAME_DRAFT_LIMIT,CONTROLLER_DRAFT_LIMIT);
 const bytes = value => new TextEncoder().encode(value).length;
 // Source snapshots cannot grant execution privileges. Component projects may
 // display official JSX/SFC files; their frozen program.js is what executes.
@@ -33,7 +34,8 @@ export async function validateProgramDraft(input) {
   const framed=value.runtimeKind==='page-userscript'&&typeof value.sourceUtf8==='string'&&inspectPageFrameSource(value.sourceUtf8);
   fields(value.authoring,v2?['files','remoteLock']:['files']);
   invariant((value?.format === PROGRAM_DRAFT_FORMAT||v2&&value.runtimeKind==='page-userscript'), 'E_PROGRAM_DRAFT', '需要本地程序草稿包');
-  const envelopeLimit=framed?PAGE_FRAME_DRAFT_LIMIT:v2?PAGE_BUNDLE_LIMITS.draftBytes:PROGRAM_DRAFT_LIMIT;
+  const controller=value.runtimeKind==='controller';
+  const envelopeLimit=controller?CONTROLLER_DRAFT_LIMIT:framed?PAGE_FRAME_DRAFT_LIMIT:v2?PAGE_BUNDLE_LIMITS.draftBytes:PROGRAM_DRAFT_LIMIT;
   invariant(bytes(JSON.stringify(value)) <= envelopeLimit, 'E_LIMIT',`程序草稿包超过 ${envelopeLimit} 字节`);
   invariant(['controller','page-userscript'].includes(value.runtimeKind), 'E_PROGRAM_KIND', '未知程序运行环境');
   const component=value.project.entryMode==='component';
@@ -43,7 +45,7 @@ export async function validateProgramDraft(input) {
   invariant(typeof value.project.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value.project.id) &&
     typeof value.project.version === 'string' && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/.test(value.project.version) && pathIsLocal(value.project.entry,component),
   'E_PROGRAM_DRAFT', '项目身份或入口无效');
-  const executableLimit = value.runtimeKind === 'controller' ? 65536 : 100000;
+  const executableLimit = controller ? CONTROLLER_SOURCE_LIMIT : 100000;
   invariant(typeof value.sourceUtf8==='string'&&value.sourceUtf8.trim(),'E_LIMIT','执行产物必须为非空文本');
   const bundle=v2||framed?await validatePageSource(value.sourceUtf8,{plainLimit:100000}):null;
   if(v2){
@@ -94,7 +96,9 @@ export async function validateProgramDraft(input) {
         'E_PROGRAM_SOURCE','组件源码图不能混用 React JSX 与 Vue SFC');
     }
     total += bytes(file.sourceUtf8);
-    invariant(total <= 256000, 'E_LIMIT', '源码快照超过 256000 字节');
+    const authoringLimit=controller?CONTROLLER_AUTHORING_LIMIT:256000;
+    invariant(total <= authoringLimit, 'E_LIMIT', `源码快照超过 ${authoringLimit} 字节`);
+    if(controller)invariant(bytes(file.sourceUtf8)<=CONTROLLER_SOURCE_LIMIT,'E_LIMIT','Controller 作者源文件超过单文件预算');
     invariant(file.sha256 === await digestUtf8(file.sourceUtf8), 'E_PROGRAM_HASH', '源码快照 SHA-256 不一致：' + file.path);
     Object.freeze(file);
   }

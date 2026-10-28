@@ -6,7 +6,7 @@ export function initSandbox() {
   const createURL = URL.createObjectURL.bind(URL), revokeURL = URL.revokeObjectURL.bind(URL);
   const add = window.addEventListener.bind(window), remove = window.removeEventListener.bind(window);
   const extensionOrigin = 'chrome-extension://' + location.host;
-  const urls = new Set(), probes = new Set(); let host, current;
+  const urls = new Set(), probes = new Set(); let host, current, retiring = false;
   const parentWindow = parent;
   let parentAccess = false; try { void parentWindow.document; parentAccess = true; } catch {}
   parentWindow.postMessage({kind: 'sandbox-ready', origin: self.origin, extensionAPI: !!globalThis.chrome?.runtime?.id, parentAccess}, '*');
@@ -26,7 +26,7 @@ export function initSandbox() {
     });
   }
   async function cleanup(reason) {
-    const owner = current; if (!owner) return; current = undefined;
+    const owner = current; if (!owner) return; retiring = true; current = undefined;
     owner.worker.onmessage = null; owner.worker.onerror = null; owner.channel.port1.onmessage = null;
     const terminateMonoMs = performance.now(), terminateAt = Date.now(); owner.terminate();
     owner.channel.port1.close(); owner.channel.port2.close(); revokeURL(owner.url); urls.delete(owner.url);
@@ -39,7 +39,18 @@ export function initSandbox() {
     if (host || event.source !== parentWindow || event.origin !== extensionOrigin || event.data?.kind !== 'bind-host' || event.ports.length !== 1) return;
     remove('message', bind); host = event.ports[0];
     host.onmessage = async ({data}) => {
-      if (data.kind === 'retire') { if (current?.identity.runId === data.runId && current.identity.ownerEpoch === data.ownerEpoch) void cleanup(data.reason); return; }
+      if (data.kind === 'retire') {
+        if (current?.identity.runId === data.runId && current.identity.ownerEpoch === data.ownerEpoch) void cleanup(data.reason);
+        else if (!current && !retiring && typeof data.runId === 'string' && data.runId && Number.isSafeInteger(data.ownerEpoch) && data.ownerEpoch > 0) {
+          // Stop may reach the bound port while the host is still loading the
+          // Worker source. Confirm this realm's actual empty state and fence
+          // any queued start before acknowledging retirement.
+          retiring = true;
+          host.postMessage({kind: 'retired', runId: data.runId, ownerEpoch: data.ownerEpoch, reason: data.reason,
+            workerNeverCreated: true, retiredAt: Date.now(), baseline: {workers: 0, ports: 0, blobURLs: urls.size, probeWorkers: probes.size}});
+        }
+        return;
+      }
       if (data.kind === 'reply') {
         if (current?.identity.runId === data.runId && current.identity.ownerEpoch === data.ownerEpoch) current.channel.port1.postMessage(data); return;
       }
@@ -55,7 +66,7 @@ export function initSandbox() {
           host.postMessage({kind: 'resource-positive', runId: owner.identity.runId, ownerEpoch: owner.identity.ownerEpoch, url: owner.url, positive: owner.positive});
         } return;
       }
-      if (data.kind !== 'start' || current || typeof data.workerSource !== 'string') return;
+      if (data.kind !== 'start' || current || retiring || typeof data.workerSource !== 'string') return;
       const identity = Object.freeze(structuredClone(data.identity));
       const url = createURL(new Blob([data.workerSource], {type: 'text/javascript'})); urls.add(url);
       const worker = new NativeWorker(url, {name: 'OpenDesk-Control-' + identity.runId});

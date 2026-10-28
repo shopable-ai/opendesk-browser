@@ -1,3 +1,4 @@
+import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../source-budgets.js';
 import {assertTaskDelegationApp} from '../tasks/delegation-installation.js';
 import {sameTaskPin,normalizeDelegatedTask} from '../tasks/delegation-contract.js';
 import {createNetworkService} from '../chrome/network.js';
@@ -484,10 +485,17 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const draftSourceUtf8 = isDraft ? variant.sourceUtf8 : undefined;
     if (isDraft) {
       invariant(typeof draftSourceUtf8 === 'string' &&
-        new TextEncoder().encode(draftSourceUtf8).byteLength <= BUDGETS.maxRawFrameBytes - 8192,
-        'E_LIMIT', 'Draft source exceeds safe host message budget');
-      // Reject unpaired surrogates, preserving an exact UTF-8 hash contract.
-      encodeValue(draftSourceUtf8);
+        new TextEncoder().encode(draftSourceUtf8).byteLength <= CONTROLLER_SOURCE_LIMIT,
+        'E_LIMIT', 'Draft source exceeds Controller source budget');
+      // Only executable source gets the source allowance. Metadata and params
+      // retain the ordinary admitted envelope and value codec limits.
+      invariant(new TextEncoder().encode(canonical({...request,source:{kind:'draft',sourceUtf8:''}},wireCanonicalOptions)).byteLength <=
+        BUDGETS.maxRawFrameBytes,'E_LIMIT','Controller admission metadata exceeds host message budget');
+      invariant(new TextEncoder().encode(JSON.stringify(request)).byteLength <=
+        TASK_PACKAGE_LIMIT,'E_LIMIT','Controller source admission envelope exceeds budget');
+      // Escaped source uses the bounded source envelope, never the ordinary
+      // value allowance. Reject unpaired surrogates before accepting its hash.
+      encodeValue(draftSourceUtf8,{maxBytes:TASK_PACKAGE_LIMIT});
     } else {
       id(saved.scriptId);
       invariant(Number.isSafeInteger(saved.revision) && saved.revision > 0 &&

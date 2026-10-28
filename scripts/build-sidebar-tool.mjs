@@ -81,7 +81,7 @@ export async function createSidebarToolPackage(projectPath) {
     fail('unsupported shared UI runtime');
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||
      Object.keys(meta).some(key=>!(v2
-       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy','initialData']
+       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy','initialData','delegatedTasks']
        :['id','version','title','description','capabilities','files','assets','locales','uiRuntime','backgroundPolicy']).includes(key))||
      (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
@@ -163,6 +163,7 @@ export async function createSidebarToolPackage(projectPath) {
     ...(meta.backgroundPolicy!==undefined?{backgroundPolicy:meta.backgroundPolicy}:{}),
     ...(v2?{requires:meta.requires,contributes:meta.contributes,...(scripts.length?{scripts}:{}),
       ...(background?{background}:{}),
+      ...(meta.delegatedTasks!==undefined?{delegatedTasks:meta.delegatedTasks}:{}),
       ...(meta.initialData!==undefined?{initialData:meta.initialData}:{})}:{})});
   return pkg;
 }

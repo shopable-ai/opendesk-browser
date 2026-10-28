@@ -1,45 +1,19 @@
 {
   "format": "scrapyjs-browser-consumption.v1",
-  "webpack": "5.111.1",
-  "profile": "controlled-page-single",
+  "profile": "complete-browser-sdk",
   "inputs": {
-    "browser-entry.mjs": "b744b4313b48e1d3742d071bd59f977b67b324206af21c6956183dfe8c6fd63c",
-    "browser-loader.cjs": "cd00d3f5b50d9188e252f67418dd66541aba2729b7a324a6d150445c59be0b9f",
-    "build-browser.mjs": "9751a190c8849ac22035278324495abf72181e69a24678808167e0aeaf974486",
+    "build-browser.mjs": "ece3a2c6b1e9fe59f82e3de010458d7bdb85a92fa31caaa316bcedae586a54bb",
+    "../vendor/scrapyjs/browser.original.js": "c7a266c1bd5f34ba5e5a85d163c0573fc1d5afb60c07d0ce46af8393e7ada4be",
     "../vendor/scrapyjs/provenance.json": "ee2b7ff6a03a9314335dc9daea93275407123b6258a9a128d4e89dc2be2c8dcc"
   },
-  "sourceSha256": "279325f91121680c67bf625bb75e3cbea9467bed6fdb015bde6e8b6ab7cc1b4f",
-  "sourceBytes": 60675,
   "upstreamBrowserSha256": "c7a266c1bd5f34ba5e5a85d163c0573fc1d5afb60c07d0ce46af8393e7ada4be",
-  "thirdPartyRuntimeModules": [],
-  "deferred": [
-    "node-files",
-    "http-download",
-    "html-cheerio",
-    "rule-following",
-    "processing",
-    "validation"
-  ],
-  "modules": [
-    "engine/browser-entry.mjs",
-    "vendor/scrapyjs/src/core/BaseSpider.js",
-    "vendor/scrapyjs/src/core/ChromeSpider.js",
-    "vendor/scrapyjs/src/core/CloseSpider.js",
-    "vendor/scrapyjs/src/core/CrawlSpider.js",
-    "vendor/scrapyjs/src/core/Pipeline.js",
-    "vendor/scrapyjs/src/core/RunFailure.js",
-    "vendor/scrapyjs/src/core/Scheduler.js",
-    "vendor/scrapyjs/src/core/Scrapy.js",
-    "vendor/scrapyjs/src/core/Spider.js",
-    "vendor/scrapyjs/src/exporter/ExportManager.js",
-    "vendor/scrapyjs/src/exporter/FeedExport.js",
-    "vendor/scrapyjs/src/http/Request.js",
-    "vendor/scrapyjs/src/http/Response.js",
-    "vendor/scrapyjs/src/item/Item.js",
-    "vendor/scrapyjs/src/item/ItemLoader.js",
-    "vendor/scrapyjs/src/item/item-loader-extraction.js",
-    "vendor/scrapyjs/src/middleware/ChromeDownloaderMiddleware.js",
-    "vendor/scrapyjs/src/middleware/DownloaderMiddlewareManager.js",
-    "vendor/scrapyjs/src/middleware/IDownloaderMiddleware.js"
-  ]
+  "sourceSha256": "10285bffc48ee5f7d5defd6d852c8b87659824cc711bd42004f717600a7d3020",
+  "sourceBytes": 1137057,
+  "compression": false,
+  "removedModules": [],
+  "exportModules": {
+    "sdk": 44,
+    "extraction": 4849
+  },
+  "thirdPartyNotices": "vendor/scrapyjs/THIRD_PARTY_LICENSES.txt"
 }

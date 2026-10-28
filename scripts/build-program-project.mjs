@@ -1,3 +1,4 @@
+import {CONTROLLER_SOURCE_LIMIT,CONTROLLER_AUTHORING_LIMIT,CONTROLLER_DRAFT_LIMIT} from '../src/platform/source-budgets.js';
 // OpenDesk multi-file ESM project compiler. Local build adapter only:
 // no install, no Chrome permission, no additional browser execution engine.
 import {readFile,writeFile,mkdir,mkdtemp,rm,realpath} from 'node:fs/promises';
@@ -276,16 +277,18 @@ async function npmLockHash(root){
 }
 
 function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode,remoteLock}){
-  const inspected=inspectPageSource(sourceUtf8,{plainLimit:SOURCE_LIMIT});
+  const controller=project.runtimeKind==='controller';
+  const sourceLimit=controller?CONTROLLER_SOURCE_LIMIT:SOURCE_LIMIT;
+  const inspected=controller?null:inspectPageSource(sourceUtf8,{plainLimit:SOURCE_LIMIT});
   const bundle=inspected?.descriptor,framed=Boolean(inspected?.resources);
   const files=before.sourceFiles.map(({path,sourceUtf8,sha256})=>({path,sourceUtf8,sha256}));
   const byteLength=Buffer.byteLength(sourceUtf8,'utf8');
-  ensure(bundle||framed||byteLength<=SOURCE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft runtime source exceeds UI import limit',
+  ensure(bundle||framed||byteLength<=sourceLimit,'E_PROJECT_DRAFT_LIMIT','Draft runtime source exceeds UI import limit',
     {project:project.id,phase:'draft',location:'program.js'});
   ensure(files.length<=AUTHORING_FILE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft authoring file count exceeds UI import limit',
     {project:project.id,phase:'draft'});
   const total=files.reduce((sum,file)=>sum+Buffer.byteLength(file.sourceUtf8,'utf8'),0);
-  ensure(total<=AUTHORING_TOTAL_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft authoring source exceeds UI import limit',
+  ensure(total<=(controller?CONTROLLER_AUTHORING_LIMIT:AUTHORING_TOTAL_LIMIT),'E_PROJECT_DRAFT_LIMIT','Draft authoring source exceeds UI import limit',
     {project:project.id,phase:'draft'});
   const draft={
     format:bundle?'opendesk.program-draft.v2':DRAFT_VERSION,
@@ -297,7 +300,7 @@ function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode,remoteLock
     authoring:{files,...(bundle?{remoteLock}:{})}
   };
   const bytes=Buffer.byteLength(JSON.stringify(draft,null,2)+'\n','utf8');
-  ensure(bytes<=(framed?PAGE_FRAME_DRAFT_LIMIT:bundle?PAGE_BUNDLE_LIMITS.draftBytes:ENVELOPE_LIMIT),'E_PROJECT_DRAFT_LIMIT','Draft envelope exceeds UI import limit',
+  ensure(bytes<=(controller?CONTROLLER_DRAFT_LIMIT:framed?PAGE_FRAME_DRAFT_LIMIT:bundle?PAGE_BUNDLE_LIMITS.draftBytes:ENVELOPE_LIMIT),'E_PROJECT_DRAFT_LIMIT','Draft envelope exceeds UI import limit',
     {project:project.id,phase:'draft'});
   return draft;
 }
@@ -402,7 +405,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
     if(project.runtimeKind==='controller'&&project.libraries?.length)
       sourceUtf8=project.libraries.map(id=>'// @opendesk-lib '+id).join('\n')+'\n'+sourceUtf8;
     const bytes=Buffer.from(sourceUtf8,'utf8');
-    const limit=project.runtimeKind==='page-userscript'?SOURCE_LIMIT:65536;
+    const limit=project.runtimeKind==='page-userscript'?SOURCE_LIMIT:CONTROLLER_SOURCE_LIMIT;
     if(project.runtimeKind==='page-userscript')await validatePageSource(sourceUtf8,{plainLimit:SOURCE_LIMIT});
     ensure(bytes.length>0&&(project.remoteDependencies||before.pageFrames?.length||bytes.length<=limit),'E_PROJECT_OUTPUT_LIMIT',
       'Program build output exceeds the current execution chain limit',

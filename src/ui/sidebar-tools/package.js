@@ -1,3 +1,4 @@
+import {normalizeTaskDelegations} from '../../platform/tasks/delegation-contract.js';
 import {validateToolLocalization,verifyToolLocalization} from './localization.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {normalizeSidebarToolBackgroundPolicy,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3} from './background-policy.js';
@@ -15,12 +16,12 @@ export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:3
 const MAX_PACKAGE_BYTES = 320000;
 const LIMITS = Object.freeze({title:80,description:300,html:64000,css:120000,js:220000});
 const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.open','page.toc','page.clip','user.export','page.capture','knowledge.store','time.review','focus.control','ai.access','adblock.control']);
-const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
+const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'tasks.run','page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',MANAGED_SITE_BUDGET_CAPABILITY,
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
 const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy','localization']);
-const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData','background']);
+const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData','background','delegatedTasks']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
 const plain = value => value!==null && typeof value==='object' && !Array.isArray(value) &&
@@ -50,6 +51,10 @@ export function validateSidebarToolPackage(value) {
   if (unsupportedCapabilities.length) {
     const names=unsupportedCapabilities.slice(0,4).map(item=>item.length>80?item.slice(0,80)+'…':item).join('、');
     fail('工具能力声明超出当前支持范围：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+'。请核对工具包格式，并更新 OpenDesk Browser 扩展后重新导入。');
+  }
+  if(value.capabilities.includes('tasks.run')||value.delegatedTasks!==undefined){
+    if(!v2||!value.capabilities.includes('tasks.run'))fail('固定任务委托必须在 v2 包中审阅 tasks.run');
+    normalizeTaskDelegations(value.delegatedTasks);
   }
   if(value.background!==undefined){
     const background=value.background;
@@ -172,6 +177,7 @@ export function serializeSidebarToolPackage(value){
   // A version-matched v2 contribution must have ONE canonical digest regardless
   // of object-key order; never let storage reordering revoke or inherit grants.
   if(isV2){
+    if(tool.delegatedTasks!==undefined)stable.delegatedTasks=normalizeTaskDelegations(tool.delegatedTasks).map(({taskId,version,manifestHash,contentHash})=>({taskId,version,manifestHash,contentHash}));
     if(tool.background!==undefined)stable.background={
       kind:tool.background.kind,js:tool.background.js,sha256:tool.background.sha256
     };

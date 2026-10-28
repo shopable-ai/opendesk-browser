@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {webcrypto} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 const html = await read('../src/index.html');
@@ -11,7 +12,7 @@ async function view(request) {
     events:{}, addEventListener(name,handler){this.events[name]=handler;}}]));
   let pagehide, interval, state;
   const root = {querySelector:selector=>nodes.get(selector.slice(1)),addEventListener(){},removeEventListener(){}};
-  const context=vm.createContext({TextEncoder,URL,OpenDeskTool:{root,request,setState:value=>{state=value;}},
+  const context=vm.createContext({TextEncoder,URL,crypto:webcrypto,OpenDeskTool:{root,request,setState:value=>{state=value;}},
     setInterval:fn=>{interval=fn;return 1;},clearInterval:()=>{interval=null;},addEventListener:(name,fn)=>{pagehide=fn;}});
   scripts.forEach(script=>vm.runInContext(script,context)); await settle();
   return {nodes,get state(){return state;},close:()=>pagehide(),get interval(){return interval;}};
@@ -33,14 +34,14 @@ test('UI stop before start receipt addresses same run and displays honest result
     calls.push([op,payload]);
     if(op==='storage.get')return {value:null,etag:'a'};
     if(op==='currentPage.info')return {status:'available',url:'http://127.0.0.1:43111/demo-form.html',title:'<untrusted title>'};
-    if(op==='tasks.start')return new Promise(r=>{receipt=r;});
-    if(op==='tasks.stop')return {runId:'same',accepted:true,retired:false};
-    if(op==='tasks.read')return {runId:'same',status:'stopped',engineStatus:'cancelled',retired:false,result:{data:[{title:'real'}],stats:{},engine:{status:'cancelled'}}};
-    if(op==='file.download')return {downloadId:1};
+    if(op==='tasks.start')return new Promise(r=>{receipt=()=>r({clientRequestId:payload.clientRequestId,runId:'same',state:'running'});});
+    if(op==='tasks.stop')return {clientRequestId:payload.clientRequestId,runId:null,state:'stopping'};
+    if(op==='tasks.read')return payload.taskId?{task:{taskId:payload.taskId}}:{clientRequestId:payload.clientRequestId,runId:'same',state:'stopped',retirementState:'pending',value:{data:[{title:'real'}],stats:{},engine:{status:'cancelled'}}};
+    if(op==='browser.downloads.text')return {started:true};
   });
   v.nodes.get('start').events.click();await settle();assert.equal(v.nodes.get('stop').disabled,false);
-  v.nodes.get('stop').events.click();receipt({runId:'same',status:'running'});await settle();
-  assert.equal(calls.find(([op])=>op==='tasks.stop')[1].runId,'same');
+  v.nodes.get('stop').events.click();await settle();assert.ok(calls.find(([op])=>op==='tasks.stop'),'Stop is sent before the start reply');receipt();await settle();
+  assert.equal(calls.find(([op])=>op==='tasks.stop')[1].clientRequestId,calls.find(([op])=>op==='tasks.start')[1].clientRequestId);
   assert.equal(v.nodes.get('stop-status').textContent,'已受理');assert.equal(v.nodes.get('retired-status').textContent,'尚未确认');
   assert.match(v.nodes.get('result').textContent,/real/);assert.equal(v.nodes.get('page-title').textContent,'<untrusted title>');
   await v.nodes.get('download-json').events.click();await settle();

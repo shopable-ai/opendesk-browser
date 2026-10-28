@@ -1,4 +1,5 @@
-import {BUDGETS, canonical, digest, digestUtf8, invariant} from '../protocol.js';
+import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../source-budgets.js';
+import {canonical, digest, digestUtf8, invariant} from '../protocol.js';
 
 export const TASK_PACKAGE_FORMAT = 'opendesk.task-package.v1';
 export const TASK_MANIFEST_FORMAT = 'opendesk.task.v1';
@@ -166,8 +167,8 @@ export function validateTaskManifest(manifest) {
 export async function verifyTaskPackage(value) {
   object(value,['format','manifest','manifestHash','sourceUtf8']);
   invariant(value.format===TASK_PACKAGE_FORMAT && typeof value.sourceUtf8==='string' &&
-    new TextEncoder().encode(value.sourceUtf8).byteLength<=Math.min(65536,BUDGETS.maxRawFrameBytes-8192) &&
-    JSON.stringify(value).length<=100000,'E_LIMIT','Invalid or oversized task package');
+    new TextEncoder().encode(value.sourceUtf8).byteLength<=CONTROLLER_SOURCE_LIMIT &&
+    new TextEncoder().encode(JSON.stringify(value)).byteLength<=TASK_PACKAGE_LIMIT,'E_LIMIT','Invalid or oversized task package');
   validateTaskManifest(value.manifest);
   invariant(SHA256.test(value.manifestHash) &&
     await digest(value.manifest)===value.manifestHash,'E_HASH','Task manifest checksum mismatch');

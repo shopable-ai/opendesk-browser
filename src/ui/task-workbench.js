@@ -1,3 +1,4 @@
+import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../platform/source-budgets.js';
 import {createMyWorkbenchView} from './my-workbench-view.js';
 import {SIDEPANEL_DOCUMENT_PATH} from '../tool-document-url.js';
 import {patchDeveloperField,developerAction} from './develop-view.js';
@@ -556,7 +557,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const project=[PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format) ? await validateProgramDraft(parsed) : null;
     if(!project&&parsed&&parsed.format!==TASK_PACKAGE_FORMAT)
       throw {code:'E_TASK_FILE_KIND',message:'支持任务包 opendesk.task-package.v1、程序草稿 JSON 或 .js 源码；扩展包请到「扩展」导入'};
-    if(!project && file.size>100000)throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
+    if(!project && file.size>(parsed?TASK_PACKAGE_LIMIT:CONTROLLER_SOURCE_LIMIT))throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
     if(project || file.name.toLowerCase().endsWith('.js')) {
       const draft=project || sourceUtf8;
       if(catalogSurface) {

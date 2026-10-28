@@ -7,7 +7,7 @@
   let draftValid = true, editing = false, shownConfig = '', shownTarget;
   function message(id, text) {el(id).textContent = text; el(id).hidden = !text;}
   function render(state) {
-    const busy = state.phase === 'starting' || (Boolean(state.runId) && !state.retired);
+    const busy = state.phase === 'starting' || (Boolean(state.clientRequestId) && !state.retired);
     const config = JSON.stringify(state.config, null, 2);
     if (!editing && config !== shownConfig) {el('config-json').value = config; shownConfig = config; el('target-url').value = state.config.url;}
     if (shownTarget !== state.target) {
@@ -22,8 +22,9 @@
     el('target-url').disabled = state.saving;
     el('load-config').disabled = state.saving;
     el('use-saved').disabled = state.saving;
-    el('refresh-run').disabled = !state.runId || state.retired;
+    el('refresh-run').disabled = !state.clientRequestId || state.retired;
     el('download-json').disabled = state.result == null;
+    el('download-csv').disabled = !Array.isArray(state.result?.data);
     el('host-status').textContent = state.host;
     el('engine-status').textContent = state.engine;
     el('stop-status').textContent = state.stopAccepted ? '已受理' : state.stopRequested ? '已请求，等待确认' : '未请求';
@@ -57,6 +58,7 @@
   });
   el('refresh-run').addEventListener('click', () => app.refresh());
   el('download-json').addEventListener('click', () => app.download());
+  el('download-csv').addEventListener('click', () => app.download('csv'));
   const onPageChanged = () => app.refreshTarget();
   root.addEventListener('opendesk-page-changed', onPageChanged);
   // Poll only real host status; this timer never advances the engine or invents results.

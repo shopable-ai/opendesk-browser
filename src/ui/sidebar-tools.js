@@ -1,3 +1,5 @@
+import {createTaskDelegationHost} from '../platform/host/task-delegation.js';
+import {TASK_DELEGATION_OPERATIONS,taskDelegationReview} from '../platform/tasks/delegation-contract.js';
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation,browserOperation} from '../framework/sdk/browser-contract.js';
@@ -136,7 +138,7 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
   const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
   function toolLocaleContext(tool){
     const requested=localeController?.getLocale?.()||'zh-CN';
@@ -261,6 +263,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let knowledgeDirty=false;
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
+  let taskDelegationHost=null;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let developmentStorage=null;
   let bookmarkFallbackNotice='';
@@ -374,6 +377,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'storage.local':'保存此工具的数据',
     'currentPage.read':'读取当前网页标题和地址',
     'tasks.open':'打开已安装任务',
+    'tasks.run':'运行已审阅的固定任务、读取结果及停止原实例',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
     'page.clip':'按点击读取当前网页的正文或选区，安装后直接可用',
     'user.export':'复制文本或请求文件下载',
@@ -959,6 +963,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return response.data;
   }
   function destroyFrame() {
+    if(taskDelegationHost){void taskDelegationHost.dispose();taskDelegationHost=null;}
     developmentStorage?.revoke();developmentStorage=null;
     if(promptHost){const previous=promptHost;promptHost=null;previous.dispose();}
     // Also retire a failed Prompt admission's installation-scoped Provider.
@@ -1968,6 +1973,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(operation==='currentPage.info'&&tool.capabilities.includes('currentPage.read'))
         return {status:'unavailable',message:'只读开发预览没有绑定业务网页'};
       throw new Error('开发预览不允许真实写入、打开任务或控制网页');
+    }
+    if(TASK_DELEGATION_OPERATIONS.includes(operation)){
+      if(!frame||source!==frame.contentWindow||!runHost||!tool.capabilities.includes('tasks.run'))
+        throw Object.assign(new Error('固定任务委托不可用'),{code:'E_CAPABILITY'});
+      await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
+      assertSession(source,token);
+      taskDelegationHost ||= createTaskDelegationHost({api,client:foundationClient,host:runHost,
+        currentPageTarget,appId:tool.id,instanceId:token,assertInstance:()=>assertSession(source,token)});
+      const response=await taskDelegationHost.request(operation,payload,{verifiedUserActivation:verifiedGesture});
+      assertSession(source,token);
+      return response;
     }
     // Exact product-scoped request; the Tool cannot select a Chrome tab or inject JS.
     // Host rechecks both the tool package epoch and Page Authority before delivery.
@@ -3215,7 +3231,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       message.operation==='cookieEditor.import.begin'||
       message.operation==='cookieEditor.write.begin'||
       message.operation==='cookieEditor.clear.begin'||
-      message.operation==='cookieEditor.export.begin')&&
+      message.operation==='cookieEditor.export.begin'||message.operation==='tasks.start')&&
       globalThis.navigator?.userActivation?.isActive===true;
     const exportGrantEpoch=message.operation==='cookieEditor.export.begin'
       ?cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.grantEpoch:null;
@@ -3675,7 +3691,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
     patchToolField(view, previewTitle, {textContent: candidate.title});
     patchToolField(view, previewVersion, {textContent: 'v'+candidate.version});
-    patchToolField(view, previewDescription, {textContent: candidate.description+(candidate.background?
+    patchToolField(view, previewDescription, {textContent: candidate.description+taskDelegationReview(candidate)+(candidate.background?
       '\n后台运行：仅按已批准计划访问本应用授权的数据。':'')});
     patchToolField(view, previewCapabilities, {textContent: candidate.capabilities.length
       ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力'});

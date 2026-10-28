@@ -93,8 +93,9 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
             claim.identity.appBinding?.appId !== appId || claim.identity.runId !== claim.runId || claim.target !== null)))
         throw new FoundationError('E_OWNER', 'Authority claim does not match the requested run profile and app');
       if (disposed || local.controller.signal.aborted) {
-        await controls.stopControllerRun({runId: claim.runId, requestId: crypto.randomUUID(), reason: 'E_HOST_CLOSED'});
-        throw new FoundationError('E_HOST_CLOSED', 'RunHost closed during admission');
+        const reason = disposed ? 'E_HOST_CLOSED' : local.controller.signal.reason?.code || 'E_CANCELLED';
+        await controls.stopControllerRun({runId: claim.runId, requestId: crypto.randomUUID(), reason});
+        throw new FoundationError(reason, disposed ? 'RunHost closed during admission' : 'RunHost admission cancelled');
       }
       const context = createRunContext({identity: claim.identity, revision: claim.revision, target: claim.target,
         transport: {request: envelope => controls.controllerOperation({envelope})}, signal: local.controller.signal,
@@ -113,7 +114,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       if (admitted && !local.control) {
         error.runId=admitted.runId;error.resultId=admitted.resultId;
         local.context?.dispose(); contextResources.delete(local.context); local.runId=admitted.runId;
-        local.settlementRequest={runId:admitted.runId,requestId:`${admitted.runId}:finish`,status:disposed?'host-closed':'error',
+        local.settlementRequest={runId:admitted.runId,requestId:`${admitted.runId}:finish`,status:disposed?'host-closed':error.code==='E_CANCELLED'?'stopped':'error',
           error:{code:error.code||'E_CONTROL_EXECUTION',message:error.message},workerRetired:true};
         try {lastCompletion=Promise.resolve(await settleController(local));}
         catch (settlementError) {local.pendingSettlement=true;local.finishAttempted=true;

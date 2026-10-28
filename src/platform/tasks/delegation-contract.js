@@ -38,3 +38,9 @@ export function normalizeTaskDelegationRequest(operation,value){
 export function sameTaskPin(a,b){
   return ['taskId','version','manifestHash','contentHash'].every(key=>a?.[key]===b?.[key]);
 }
+
+export function taskDelegationReview(tool){
+  if(tool.delegatedTasks===undefined)return '';
+  return '\n固定任务（可运行、读取结果及停止）：\n'+normalizeTaskDelegations(tool.delegatedTasks)
+    .map(pin=>`${pin.taskId} v${pin.version} · manifest SHA-256：${pin.manifestHash} · source SHA-256：${pin.contentHash}`).join('\n');
+}

@@ -74,6 +74,22 @@ async function harness(t){
   return h;
 }
 
+test('trusted installation review exposes the exact fixed Task approval before install',async t=>{
+  const h=await harness(t);
+  const pin={taskId:'fixed.capture',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+  const candidate={...tool,format:'opendesk.sidebar-tool.v2',capabilities:['tasks.run'],
+    requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},delegatedTasks:[pin]};
+  globalThis.__marketTrustedTestLoad=async()=>({tool:candidate,release:{sha256:await sidebarToolPackageHash(candidate)}});
+  await h.start();
+  assert.deepEqual(h.buttons(),['确认安装','取消安装']);
+  assert.deepEqual(h.model.details.capabilityCodes,['tasks.run']);
+  for(const value of Object.values(pin)){
+    assert.ok(h.model.details.description.includes(value));
+    assert.ok(h.model.summary.join('\n').includes(value));
+  }
+  assert.equal(h.values[SIDEBAR_TOOL_STORE],undefined);
+});
+
 test('one generic review explains capabilities and persists cancellation before completion',async t=>{
   const h=await harness(t);await h.start();
   assert.deepEqual(h.buttons(),['确认安装','取消安装']);

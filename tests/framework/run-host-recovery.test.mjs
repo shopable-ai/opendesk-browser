@@ -19,6 +19,38 @@ function clientWithController(controller) {
   };
 }
 
+for (const cancelled of [true, false]) test(`RunHost ${cancelled ? 'cancels' : 'closes'} a pending admission without creating or replaying its Worker`, async () => {
+  let releaseClaim, entered, workers = 0;
+  const admissionEntered = new Promise(resolve => { entered = resolve; });
+  const events = [];
+  const controller = {
+    startControllerRun: () => { entered(); return new Promise(resolve => { releaseClaim = resolve; }); },
+    stopControllerRun: async request => { events.push(['stop', request.reason]); return {state: 'stopping'}; },
+    finishControllerRun: async request => {
+      events.push(['finish', request.status, request.error.code, request.workerRetired]);
+      return {run: {runId: request.runId, state: cancelled ? 'stopped' : 'interrupted'}, result: {runId: request.runId}};
+    },
+    retireControllerTarget: async request => { events.push(['retire', request.runId]); return {state: 'released'}; }
+  };
+  const host = createRunHost({api, client: clientWithController(controller), document: undefined,
+    controllerFactory: () => { workers++; throw new Error('Cancelled source must never execute'); }, templateModuleFactory: null});
+  const pending = host.start({requestId: 'pending-start', source: {kind: 'draft', sourceUtf8: 'return false;'},
+    params: {}, target: {mode: 'borrowed', tabId: 1, frameId: 0, documentId: 'doc'}});
+  await admissionEntered;
+  if (cancelled) assert.equal(host.cancelStart('pending-start'), true);
+  else host.dispose();
+  releaseClaim({runId: 'pending-run', resultId: 'pending-result'});
+  await assert.rejects(pending, error => {
+    assert.equal(error.code, cancelled ? 'E_CANCELLED' : 'E_HOST_CLOSED');
+    assert.equal(error.runId, 'pending-run'); assert.equal(error.resultId, 'pending-result'); return true;
+  });
+  await host.completion;
+  assert.equal(workers, 0);
+  assert.equal(host.currentRun, null);
+  assert.deepEqual(events, [['stop', cancelled ? 'E_CANCELLED' : 'E_HOST_CLOSED'],
+    ['finish', cancelled ? 'stopped' : 'host-closed', cancelled ? 'E_CANCELLED' : 'E_HOST_CLOSED', true], ['retire', 'pending-run']]);
+});
+
 test('RunHost recovers a durable finish result after the finish response is lost, then retires once', async () => {
   const events = [];
   const result = {tag: 'controller-result', runId: 'run-one', resultId: 'result-one', state: 'completed',

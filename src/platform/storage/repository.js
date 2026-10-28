@@ -1,3 +1,4 @@
+import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../source-budgets.js';
 import {BUDGETS, CONTRACT_VERSION, FoundationError, canonical, digest, digestUtf8, invariant, newId, sameIdentity, validate} from '../protocol.js';
 import {STORE_NAMES, storageError} from './idb.js';
 import {commandKey} from '../journal.js';
@@ -407,10 +408,10 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
     },
     async commitScriptRevision(sourceContext, input) {
       const request = clone(input); checkId(request.scriptId);
-      invariant(typeof request.sourceUtf8 === 'string' && encoder.encode(request.sourceUtf8).byteLength <= BUDGETS.maxRawFrameBytes,
+      invariant(typeof request.sourceUtf8 === 'string' && encoder.encode(request.sourceUtf8).byteLength <= CONTROLLER_SOURCE_LIMIT,
         'E_SCHEMA', 'Script source UTF8 exceeds limit');
       // Validate surrogates before hashing exact bytes, not JSON string syntax.
-      encodeValue(request.sourceUtf8);
+      encodeValue(request.sourceUtf8,{maxBytes:TASK_PACKAGE_LIMIT});
       invariant(Number.isSafeInteger(request.expectedRevision) && request.expectedRevision >= 0, 'E_REVISION', 'Expected revision required');
       const contentHash = await digestUtf8(request.sourceUtf8);
       if (request.contentHash !== undefined) invariant(request.contentHash === contentHash, 'E_HASH', 'Script bytes hash mismatch');

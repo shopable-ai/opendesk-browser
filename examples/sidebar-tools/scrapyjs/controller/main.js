@@ -11,6 +11,8 @@ export default async function main() {
   normalizeConfig(itemConfig); // Real SDK grammar, before navigation.
   const facade=controlledPage(page);
   class ControlledDownloader extends ChromeDownloaderMiddleware {
+    // goto owns navigation; the old waitForNavigation check was unused.
+    async _ensurePage() { return facade; }
     shouldCaptureHtml() { return false; }
   }
   const engine=new Scrapy({

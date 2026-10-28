@@ -1,3 +1,4 @@
+import {CONTROLLER_SOURCE_LIMIT,CONTROLLER_AUTHORING_LIMIT} from '../src/platform/source-budgets.js';
 // Offline authoring check only. This does NOT bundle, install, grant
 // permissions, or run program source.
 import {readFile,realpath,stat} from 'node:fs/promises';
@@ -261,7 +262,7 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     if(graph.has(file))return;
     ensure(graph.size<64,'E_PROJECT_LIMIT','At most 64 static source modules are supported',
       context(projectLabel,'validate',file));
-    const bytes=await read(file,256*1024,context(projectLabel,'validate',file));
+    const bytes=await read(file,p.runtimeKind==='controller'?CONTROLLER_SOURCE_LIMIT:256*1024,context(projectLabel,'validate',file));
     const text=decode(bytes,context(projectLabel,'validate',file),true);
     ensure(!parseUserScriptDependencies(text).hasHeader,'E_PROJECT_SOURCE_MODE',
       'ESM package projects must not include a UserScript metadata header',
@@ -399,8 +400,9 @@ export async function validateProgramProject(input,{readProjectFile}={}){
 
   const sourceFiles=[...graph.values()].sort((a,b)=>a.path.localeCompare(b.path));
   const sources=sourceFiles.map(({path,bytes,sha256})=>({path,bytes,sha256}));
-  ensure(sources.reduce((n,row)=>n+row.bytes,0)<=128*1024,'E_PROJECT_LIMIT',
-    'Tracked ESM source must fit the 128 KiB authoring limit',
+  const authoringLimit=p.runtimeKind==='controller'?CONTROLLER_AUTHORING_LIMIT:128*1024;
+  ensure(sources.reduce((n,row)=>n+row.bytes,0)<=authoringLimit,'E_PROJECT_LIMIT',
+    `Tracked ESM source exceeds the ${authoringLimit} byte authoring limit`,
     context(projectLabel,'validate',p.entry));
 
   return {

@@ -1,3 +1,4 @@
+import {encodeValue as encodeDelegationValue} from '../../src/platform/page-port/codec.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -876,7 +877,7 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null,chromePermissions=null,hostReply=null,foundationClient=null}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
@@ -897,7 +898,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     async remove(key){store.delete(key);}
   }}};
   if(chromePermissions)api.permissions=chromePermissions;
-  const host=createSidebarTools({api,doc,view,currentPageTarget:target,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedPromptPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  const host=createSidebarTools({api,doc,view,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedPromptPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
@@ -3807,6 +3808,78 @@ for(const destination of ['detail','list','settings'])test('R1.8 previous instal
   navigate();
   assert.match(f.elements['sidebar-tool-status'].textContent,/安装记录读取失败/);
   assert.equal(f.elements['sidebar-tool-status'].hidden,false);
+});
+
+const delegatedPin={taskId:'fixed-capture',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+const delegatedInstall={...delegatedPin,installationId:'12345678-1234-4123-8123-123456789abc',generation:1};
+async function delegationHostFixture(t,{startGate=null}={}){
+  const tool={...sample,format:'opendesk.sidebar-tool.v2',id:'delegation-demo',capabilities:['tasks.run'],
+    requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},delegatedTasks:[delegatedPin]};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'app-epoch'}]]);
+  const calls=[],stops=[],cancels=[];
+  const target={capture:()=>({tabId:2,frameId:0,documentId:'real-document',url:'https://example.com/',windowId:1}),revalidate:async()=>{}};
+  const runHost={start:async request=>{calls.push(request);if(startGate)await startGate.promise;return {runId:'original-run',resultId:'original-result'};},
+    cancelStart:id=>cancels.push(id),stop:async request=>{stops.push(request);return {};},
+    controller:{snapshotControllerRun:async()=>({run:{runId:'original-run',resultId:'original-result',state:'completed',retirementState:'released'},
+      results:[{runId:'original-run',resultId:'original-result',outcome:{ok:true,valueWire:encodeDelegationValue({data:[1,2,3]})}}]})}};
+  const previous=Object.getOwnPropertyDescriptor(globalThis.navigator,'userActivation');
+  Object.defineProperty(globalThis.navigator,'userActivation',{configurable:true,value:{isActive:true}});
+  t.after(()=>{if(previous)Object.defineProperty(globalThis.navigator,'userActivation',previous);else delete globalThis.navigator.userActivation;});
+  const f=await hostFixture(t,{tool,store,target,runHost,foundationClient:{request:async operation=>{
+    assert.equal(operation,'resolveInstalledTask');return {...delegatedInstall,scriptId:'task:fixed-capture:1.0.0',revision:1,manifest:{deadlineMs:30000}};
+  }}});
+  const rpc=async(operation,payload,id)=>{f.ask(operation,payload,id);await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.requestId===id);};
+  return {...f,tool,calls,stops,cancels,rpc};
+}
+test('fixed Task public iframe dispatch start/read/stop keeps the same App mounted and decodes its result',async t=>{
+  const f=await delegationHostFixture(t),frame=f.frame;
+  const metadata=await f.rpc('tasks.read',{taskId:delegatedPin.taskId},'describe');
+  assert.equal(metadata.ok,true);assert.deepEqual(metadata.result,{task:delegatedInstall});
+  const started=await f.rpc('tasks.start',{task:metadata.result.task,clientRequestId:'original-client',params:{}},'start');
+  assert.equal(started.ok,true);assert.equal(started.result.runId,'original-run');assert.equal(f.calls.length,1);
+  const read=await f.rpc('tasks.read',{clientRequestId:'original-client'},'read');
+  assert.equal(read.ok,true);assert.deepEqual(read.result.value,{data:[1,2,3]});assert.equal(read.result.retirementState,'released');
+  const stopped=await f.rpc('tasks.stop',{clientRequestId:'original-client'},'stop');
+  assert.equal(stopped.ok,true);assert.equal(stopped.result.value,null);assert.equal(stopped.result.result,null);
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);assert.equal(f.focused,0);
+  assert.ok(f.stops.every(row=>row.runId==='original-run'));
+  f.host.closeTool();await pause();assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.ok(f.stops.length>=2,'closing the original iframe retires its own delegation');
+});
+test('fixed Task public dispatch refuses non-user start and runId spoofing',async t=>{
+  const f=await delegationHostFixture(t);globalThis.navigator.userActivation.isActive=false;
+  const reply=await f.rpc('tasks.start',{task:delegatedInstall,clientRequestId:'no-gesture',params:{}},'start');
+  assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_USER_GESTURE_REQUIRED');assert.equal(f.calls.length,0);
+  const spoof=await f.rpc('tasks.stop',{runId:'foreign-run'},'spoof');assert.equal(spoof.ok,false);assert.equal(f.stops.length,0);
+});
+test('fixed Task public dispatch can cancel before its start reply without replacing iframe',async t=>{
+  const gate=deferred(),f=await delegationHostFixture(t,{startGate:gate});
+  f.ask('tasks.start',{task:delegatedInstall,clientRequestId:'pending-client',params:{}},'start');
+  await settle(()=>f.calls.length===1);
+  const stop=await f.rpc('tasks.stop',{clientRequestId:'pending-client'},'stop');assert.equal(stop.ok,true);
+  assert.equal(stop.result.state,'stopping');assert.equal(f.cancels.length,1);gate.resolve();
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='start'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='start').ok,false);
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
+  assert.ok(f.stops.some(row=>row.runId==='original-run'));
+});
+test('fixed Task public dispatch refuses cached results after App generation changes',async t=>{
+  const f=await delegationHostFixture(t);
+  await f.rpc('tasks.start',{task:delegatedInstall,clientRequestId:'original-client',params:{}},'start');
+  const first=await f.rpc('tasks.read',{clientRequestId:'original-client'},'first');assert.equal(first.ok,true);
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'new-app-epoch'});
+  const stale=await f.rpc('tasks.read',{clientRequestId:'original-client'},'stale');assert.equal(stale.ok,false);
+  assert.equal(stale.result,undefined);
+});
+test('fixed Task local installation review shows approved ID, version and both hashes',async t=>{
+  const f=await delegationHostFixture(t);f.host.closeTool();
+  f.emit(f.elements['sidebar-tool-import-trigger'],'click');
+  const next={...f.tool,version:'1.0.1'},text=JSON.stringify(next);
+  f.selectFile({name:'delegation.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>f.elements['sidebar-tool-preview'].hidden===false);
+  const review=f.elements['sidebar-tool-preview-description'].textContent;
+  for(const value of [delegatedPin.taskId,delegatedPin.version,delegatedPin.manifestHash,delegatedPin.contentHash])assert.ok(review.includes(value));
 });
 
 // Joint queue review: exercise the real Host actions and Tool installer. Only

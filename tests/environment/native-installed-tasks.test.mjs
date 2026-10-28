@@ -14,6 +14,11 @@ import {createRunHost} from '../../src/run-host.js';
 import {createNativeAgentService} from '../../src/native-agent/service-worker.js';
 import {AGENT_ENABLED_KEY,agentDigest,agentValidateRequest} from '../../src/native-agent/protocol.js';
 import {requestShape} from '../../native-agent/wire.mjs';
+import {readTaskDelegationApp} from '../../src/platform/tasks/delegation-installation.js';
+import {CONTROLLER_SOURCE_LIMIT} from '../../src/platform/source-budgets.js';
+import {BUDGETS} from '../../src/platform/protocol.js';
+import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
 // Node component fixture adapted from k3-controller-authority; Chrome callbacks are doubles.
 function serialStore() {
@@ -120,6 +125,62 @@ async function installedTaskFixture({permissions=['page.automation'],deadlineMs=
   return {...f,operation,base,resolved,manifest,installPackage,startTask,installClaim};
 }
 
+
+test('Controller source-specific admission accepts exact large source with bounded metadata',async()=>{
+  const sourceOf=bytes=>'/*'+'x'.repeat(bytes-13)+'*/return 1;';
+  assert.equal(Buffer.byteLength(sourceOf(1146776)),1146776);
+  for(const sourceUtf8 of [
+    sourceOf(1146776),
+    sourceOf(CONTROLLER_SOURCE_LIMIT),
+    '/*'+'\u0001'.repeat(100000)+'*/return 1;'
+  ]){
+    const f=await fixture();
+    const request={requestId:crypto.randomUUID(),source:{kind:'draft',sourceUtf8},paramsWire:encodeValue({}),
+      target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:Date.now()+30000};
+    const claim=await f.authority.startControllerRun(request,f.sender);
+    assert.equal(claim.sourceUtf8,sourceUtf8);assert.equal(claim.revision.sourceHash,await digestUtf8(sourceUtf8));
+    assert.equal((await f.authority.startControllerRun(request,f.sender)).runId,claim.runId);
+  }
+});
+
+test('Controller source allowance preserves UTF-8, admission metadata and ordinary value limits',async()=>{
+  const f=await fixture();
+  const request={requestId:crypto.randomUUID(),source:{kind:'draft',sourceUtf8:'return 1;'},paramsWire:encodeValue({}),
+    target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:Date.now()+30000};
+  for(const sourceUtf8 of ['x'.repeat(CONTROLLER_SOURCE_LIMIT+1),'中'.repeat(Math.ceil(CONTROLLER_SOURCE_LIMIT/3))])
+    await assert.rejects(f.authority.startControllerRun({...request,source:{kind:'draft',sourceUtf8}},f.sender),{code:'E_LIMIT'});
+  await assert.rejects(f.authority.startControllerRun({...request,source:{kind:'draft',sourceUtf8:'\u0001'.repeat(800000)}},f.sender),{code:'E_LIMIT'});
+  await assert.rejects(f.authority.startControllerRun({...request,source:{kind:'draft',sourceUtf8:'\ud800'}},f.sender),{code:'E_VALUE_SERIALIZATION'});
+  await assert.rejects(f.authority.startControllerRun({...request,paramsWire:encodeValue({text:'x'.repeat(BUDGETS.maxRawFrameBytes)})},f.sender),{code:'E_LIMIT'});
+  assert.throws(()=>encodeValue('x'.repeat(BUDGETS.maxBatchBytes)),{code:'E_VALUE_SERIALIZATION'});
+  assert.equal(BUDGETS.maxRawFrameBytes,131072);assert.equal(BUDGETS.maxBatchBytes,262144);
+  assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);
+});
+
+test('fixed Task delegation Authority denies effects and durable results after App revocation and regrant',async()=>{
+  const f=await installedTaskFixture();
+  const pin=Object.fromEntries(['taskId','version','manifestHash','contentHash'].map(key=>[key,f.resolved[key]]));
+  const tool={format:'opendesk.sidebar-tool.v2',id:'delegation-authority-test',version:'1.0.0',title:'Delegation',description:'Authority regression',
+    capabilities:['tasks.run'],delegatedTasks:[pin],html:'<main>Run</main>',css:'',js:'void 0;',
+    requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}};
+  const local={[SIDEBAR_TOOL_STORE]:[tool],[TOOL_REVOCATION_EPOCHS_STORE]:{[tool.id]:'epoch-one'}};
+  f.api.storage={local:{get:async keys=>Object.fromEntries(keys.map(key=>[key,structuredClone(local[key])]))}};
+  const task=Object.fromEntries(['taskId','version','manifestHash','contentHash','installationId','generation'].map(key=>[key,f.resolved[key]]));
+  const binding={...await readTaskDelegationApp(f.api,tool.id),instanceId:'original-opaque-frame',task};
+  const run=await f.startTask(f.resolved,{taskDelegation:binding});
+  await f.authority.controllerOperation({envelope:f.operation(run,'packaged','title')},f.sender);
+  local[SIDEBAR_TOOL_ENABLE_STORE]={[tool.id]:false};
+  await assert.rejects(f.authority.controllerOperation({envelope:f.operation(run,'packaged','title')},f.sender),{code:'E_TOOL_DISABLED'});
+  assert.ok((await f.authority.snapshotControllerRun({runId:run.runId},f.sender)).resultDeliveryDenied.includes(run.runId));
+  local[SIDEBAR_TOOL_ENABLE_STORE]={[tool.id]:true};local[TOOL_REVOCATION_EPOCHS_STORE][tool.id]='epoch-two';
+  await assert.rejects(f.authority.controllerOperation({envelope:f.operation(run,'packaged','title')},f.sender),{code:'E_PERMISSION'});
+  await assert.rejects(f.finish(run),{code:'E_PERMISSION'});
+  await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  const snapshot=await f.authority.snapshotControllerRun({runId:run.runId},f.sender);
+  assert.equal(snapshot.results.length,0);assert.ok(snapshot.resultDeliveryDenied.includes(run.runId));
+  const next={...await readTaskDelegationApp(f.api,tool.id),instanceId:'new-opaque-frame',task:{...task,generation:999}};
+  await assert.rejects(f.startTask(f.resolved,{taskDelegation:next}),{code:'E_REVISION'});
+});
 
 async function adapterFixture(t,options){
   const f=await installedTaskFixture(options);

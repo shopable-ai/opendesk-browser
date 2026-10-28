@@ -1,3 +1,4 @@
+import {taskDelegationReview} from '../platform/tasks/delegation-contract.js';
 import {OFFICIAL_COLLECTIONS,officialMarketApps,getOfficialCollection} from './catalog.js';
 import {initMarketInstall} from './install.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
@@ -19,7 +20,7 @@ const TRANSFER_FORMAT='opendesk.market.transfer.v1';
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const CAPABILITY_NAMES={
   'storage.local':'保存该工具的本机数据','currentPage.read':'读取用户当前网页的标题和地址',
-  'tasks.open':'打开已安装任务','page.toc':'读取可用网站的标题目录',
+  'tasks.open':'打开已安装任务','tasks.run':'运行固定任务、读取结果及停止原实例','page.toc':'读取可用网站的标题目录',
   'page.clip':'按网站授权读取正文或选区','user.export':'复制内容或下载文件',
   'page.capture':'授权后在 ChatGPT 页面提供保存按钮',
   'knowledge.store':'管理本机知识收件箱',
@@ -466,7 +467,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     const current=review.baseline,tool=review.tool,samePackage=Boolean(current&&sameSidebarToolPackage(current,tool));
     parent.append(para('发布者：OpenDesk · 制品来源：当前扩展内的官方发行包。网站只负责提出安装请求。','minor'));
     parent.append(para('当前：'+(current?'v'+current.version:'未安装')+' → 发行：v'+tool.version));
-    parent.append(para('申请能力：'+capabilityNames(tool.capabilities)));
+    parent.append(para('申请能力：'+(capabilityNames(tool.capabilities)+taskDelegationReview(tool))));
     if(current){
       const added=tool.capabilities.filter(v=>!current.capabilities.includes(v));
       parent.append(para('新增能力：'+capabilityNames(added)+'；原工具数据保留。','minor'));
@@ -673,11 +674,11 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
           else if(row.baseline){
             if(provenance[tool.id]?.marketId!==app.id||compareToolVersions(tool.version,row.baseline.version)<=0){
               row.status='blocked';row.reason='来源或版本差异，需要先单独审阅';
-            }else row.reason='将保留原工具数据；申请能力：'+capabilityNames(tool.capabilities)+
+            }else row.reason='将保留原工具数据；申请能力：'+(capabilityNames(tool.capabilities)+taskDelegationReview(tool))+
               '；新增能力：'+capabilityNames(tool.capabilities.filter(value=>!row.baseline.capabilities.includes(value)));
           }else if(state.installed.length+count>=MAX_INSTALLED_TOOLS){
             row.status='blocked';row.reason='超过本机 '+MAX_INSTALLED_TOOLS+' 个工具上限';
-          }else{count++;row.reason='申请能力：'+capabilityNames(tool.capabilities);}
+          }else{count++;row.reason='申请能力：'+(capabilityNames(tool.capabilities)+taskDelegationReview(tool));}
           if(row.status==='ready')await verifyMarketplaceToolRuntime({api,tool});
         }catch(e){row.status='blocked';row.reason=(e.code||'E_PACKAGE')+' '+e.message;}
         rows.push(row);

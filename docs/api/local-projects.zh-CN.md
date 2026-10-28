@@ -4,6 +4,12 @@
 
 [返回总入口](README.md)。短脚本用单文件；需要相对模块、CSS/图片、npm 或 HTTPS 时使用目录项目。保存只改变下次明确运行的输入，已入场运行和旧结果保持冻结。
 
+## Controller 源码容量（2026-10-29）
+
+Controller 本地项目与固定 Task 复用原 builder、RunHost 和受控 Worker，允许包含完整本地浏览器 SDK，不要求压缩或裁剪原功能。容量唯一实现为 `src/platform/source-budgets.js`：单个作者源文件和最终可执行源码各 ≤2 MiB，作者源链合计 ≤4 MiB，Task JSON 信封 ≤4 MiB，Controller 程序草稿 JSON 信封 ≤12 MiB。均以 UTF-8 字节计；信封单独计入转义、元数据及重复保存的源码，不保证任意最坏转义的源码都能装入信封。达到源码上限但信封超限仍拒绝，不截断、不静默压缩。
+
+导入、源码快照、构建输出、Task 包和源码修订存储保持原 SHA-256、身份、CAS、权限与撤权校验。来源快照只供审阅，不能充当执行授权；真正执行的是冻结的 `program.js`。这些是源码专用预算，不扩大 Page、参数/结果、业务存储、网络、Chrome 权限或通用 RPC/frame 配额。Node 构建和包校验不证明真实 Worker/Chrome 已通过；运行证据须绑定同候选。
+
 ## Go 原生单文件 Provider（无需 Node Host）
 
 从 2026-10-10 的 Go 候选开始，**已安装且已经绑定真实扩展 ID 的 OpenDesk** 能自己读取一个用户明确授权的 `.js/.mjs` 文件，通过原 Native Messaging v1 `projects.list/project.resolve` 让 Sidebar 列出和读取该脚本。Chrome 仍执行原 RunHost/Controller/Page，不存在第二个 Go 网页执行器。

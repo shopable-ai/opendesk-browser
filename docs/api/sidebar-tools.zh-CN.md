@@ -41,6 +41,7 @@
 | 可选内容 | 源配置 → 最终包 | 运行边界 |
 | --- | --- | --- |
 | v2 SDK 与贡献 | 源配置声明 `format: "opendesk.sidebar-tool.v2"`、`requires`、`contributes`，保留到最终包 | 具体名称与许可见 [Browser SDK](browser-sdk.zh-CN.md)，不是直接授权 |
+| v2 固定 Task 委托 | `capabilities` 声明 `tasks.run`，顶层 `delegatedTasks` 保留到最终包 | 每个 pin 为 `{taskId,version,manifestHash,contentHash}`；安装时审阅固定身份，运行合同见下文 |
 | v2 多 JS 依赖 | `files.dependencies`：最多 8 个有序、不重复的固定 Classic 文件；构建成 `scripts` 中的 name/sha256/code | 沙箱校验字节后依序加载，再运行主 js；v1 不接受 dependencies/scripts，不开放任意后台 JS |
 | v2 App Service（R1.4） | `files.background`：独立本地 Classic JS 入口；生成顶层 `background: {kind,js,sha256}` | 与 UI `js/scripts` 分离；安装前校验源码摘要，不赋予特权 Background/Chrome 权限；详见下节 |
 | 固定 Shared UI | v1/v2 均可显式声明 `uiRuntime: "opendesk.react-ui.v1"`，同名字段进入包 | 只选择已支持的固定沙箱 React/UI 资源；工具在自己的文档创建 Root，没有宿主 Chrome 权限 |
@@ -119,7 +120,7 @@ await OpenDeskTool.request('browser.scheduler.create', {
 
 **Browser SDK v2 不是自动授权**：已有工具可以按当前 [Browser SDK API、可调用状态与 v2 菜单合同](browser-sdk.zh-CN.md) 声明受审的 `requires.browserSdk`、`contributes.contextMenus` 和相应 capability；例如 Cookie Editor、Bookmark Manager、Prompt Shortcuts 的真实配置已分别声明受控 Cookie、Bookmark、`page.prompts`/原生菜单能力，但这些能力**不等于所有新第三方工具均已取得原生访问权限**。新增工具必须根据公开能力状态（IMPLEMENTED/HOST_ONLY/NOT_EXPOSED/PLANNED）、权限和安装身份逐项审核；不能把 Browser SDK v2 错误简化成只有下述基础 `request` 操作。
 
-**公开能力分级**：下文 `storage.local`、`currentPage.read`、`tasks.open`、`user.export` 是普通第三方可审阅的基础 capability；`page.toc/page.clip/page.capture/knowledge.store/time.review` 为受限一方固定服务，不是任意网页 DOM 或通用 Chrome API。没有公开的页面操作、跨域抓取、Native 文件写入或任意宿主消息，不得通过声明一个 JSON capability 伪装成已支持。缺失能力记 `SDK_GAP_NOT_PROVEN` 并提交复现，由平台按通用价值审查；无安全授权时记 `BLOCKED`。
+**公开能力分级**：下文 `storage.local`、`currentPage.read`、`tasks.open`、`user.export` 是普通第三方可审阅的基础 capability；v2 另可审阅 `tasks.run` 的固定已安装 Task pins。`page.toc/page.clip/page.capture/knowledge.store/time.review` 为受限一方固定服务，不是任意网页 DOM 或通用 Chrome API。除下述经原 Task Authority 执行的固定委托外，没有向沙箱直接开放任意页面操作、跨域抓取、Native 文件写入或任意宿主消息，不得通过声明一个 JSON capability 伪装成已支持。缺失能力记 `SDK_GAP_NOT_PROVEN` 并提交复现，由平台按通用价值审查；无安全授权时记 `BLOCKED`。
 
 ## 2. 工具的运行 API
 
@@ -153,12 +154,37 @@ await OpenDeskTool.request('browser.scheduler.create', {
 | `storage.local` | `storage.set`：`{key,value,ifMatch?}` | `{saved:true}`；若提供 `ifMatch`，按相同工具 Web Lock 下的 ETag 防冲突写入 |
 | `currentPage.read` | `currentPage.info` | `{status:'available',title,url}` 或 `{status:'unavailable',message}`；只提供当前目标标题/URL |
 | `tasks.open` | `tasks.open`：`{taskId}` | 聚焦已安装、已启用任务的 UI，不执行/停止任务 |
-| `user.export` | `clipboard.writeText`：`{text}` | 环境允许时复制纯文本，成功返回 `{copied:true}` |
-| `user.export` | `file.download`：`{text,filename}` | 请求 Chrome 下载安全文件名的 `.md` / `.txt` / `.json` 纯文本；返回 `{downloadId}` 不能单独证明真实落盘 |
+| `user.export` | `browser.clipboard.writeText`：`{text}` | 环境允许时复制纯文本，成功返回 `{copied:true}` |
+| `user.export` | `browser.downloads.text`：`{text,filename}` | 请求 Chrome 下载安全文件名的 `.md` / `.txt` / `.json` / `.csv` 纯文本；返回 `{started:true}` 仅表示下载已发起，不证明真实落盘 |
 
 普通 `storage.local` 当前最多 32 个键，每项 JSON ≤8,192 字节，工具数据对象总 JSON ≤32,768 字节。`key` 须以英文字母开头，仅允许英文字母/数字/点/下划线/连字符，最长 60 字符。`withEtag/ifMatch` 是可选的条件更新；发生冲突应重新读回并让用户决定，不自动覆盖。
 
-`clipboard.writeText`、`file.download` 的文本须非空且 UTF-8 ≤150,000 bytes。`file.download` 仅允许不含路径分隔符等危险字符的 `.md`、`.txt` 或 `.json` 文件名（长度 ≤90）；一般网络下载、二进制文件和任意绝对路径写入都**不是**此 API 的能力。工具不使用宿主的任意网络代理。
+`browser.clipboard.writeText`、`browser.downloads.text` 的文本须非空且 UTF-8 ≤150,000 bytes。`browser.downloads.text` 仅允许不含路径分隔符等危险字符、且不以点开头的 `.md`、`.txt`、`.json` 或 `.csv` 文件名（长度 ≤90）；一般网络下载、二进制文件和任意绝对路径写入都**不是**此 API 的能力。工具不使用宿主的任意网络代理。
+
+### 固定已安装 Controller Task 委托（v2）
+
+App 在 `tool.config.json` 声明 `format: "opendesk.sidebar-tool.v2"`、capability `tasks.run` 和顶层 `delegatedTasks: [{taskId,version,manifestHash,contentHash}]`，沿用 v2 `requires/contributes`。pins 为 1–16 项、Task ID 不重复；版本为确切三段版本，两项 hash 为实际制品的 64 位小写十六进制 SHA-256，不接受 `latest` 或额外字段。原 builder 保留该字段，安装审阅显示每项 ID、版本和两项 hash，pins 参与 App 包身份。Task 需经原流程独立安装和授权；App 安装不代替 Task 安装，也不扩大其网站范围。
+
+| `OpenDeskTool.request` operation | 精确 payload | 返回 |
+| --- | --- | --- |
+| `tasks.read` | `{taskId}` | `{task: {taskId,version,manifestHash,contentHash,installationId,generation}}`，仅解析已审阅的固定 Task，不返回源码 |
+| `tasks.start` | `{clientRequestId,task,params}` | 下述运行快照；`task` 必须使用 metadata 返回的完整安装 pin |
+| `tasks.read` | `{clientRequestId}` | 同一 App iframe 请求对应的运行快照 |
+| `tasks.stop` | `{clientRequestId}` | 取消/停止原请求，返回快照；不接受 `runId` 或任意目标 |
+
+`clientRequestId` 由 App 在发起 start 前生成，仅允许英文字母、数字、点、下划线、冒号、连字符，长度 1–80。同一 iframe 内不得将同 ID 用于另一请求；提前 Stop 留下取消标记，晚到的 start 不会重新运行。`params` 须符合 Task 自己的 schema，canonical JSON ≤8,192 UTF-8 bytes、深度 ≤12；例如固定采集 Task 可接收 primitive 字段 `{url,configJson,waitForSelector,timeoutMs}`。
+
+运行快照为 `{clientRequestId,runId,resultId,state,retirementState,result,value}`。admission 前运行/结果 ID 可为 `null`；`result` 是原 Controller 持久结果，成功结果的 `value` 已由 Host 解码，App 无需解析内部 `valueWire`。SDK Promise 直接返回该对象，拒绝时抛带 `code` 的错误。Stop 回包的 `result/value` 固定为 `null`，后续 read 仍须通过授权；只有 `retirementState === 'released'` 证明原运行已释放。`unknown` 表示结果或副作用未知，不自动重放 start。
+
+真实 Run 点击时由可信父宿主采样用户激活，沙箱不能自报手势。可提前读取 metadata，但 start 必须来自真实用户动作；Stop 可在 start 回包前使用原 `clientRequestId` 发出。Host 绑定原 iframe、App 包 hash/撤权代次，以及 Task 的固定版本/hash/`installationId/generation`，捕获并重验可信当前网页的 tab/frame/document/URL/window 身份。start/read/stop 不走 `tasks.open`，不切换或销毁 iframe。关闭 App 时只取消其原请求/停止其原实例；撤权或身份变化后，页面效果和缓存/持久结果均拒绝，重新授权不继承旧运行。
+
+#### SDK Gate 记录（2026-10-29）
+
+本轮通用缺口已证实：旧公开文档只有 `tasks.open`；旧宿主该分支调用 `focusInstalledTask` 后 `suspendTool()` → `destroyFrame()`，不能保留组合 App UI。旧 package validator 不接受新 capability/字段，尝试声明委托得到 `E_TOOL_SCHEMA`。业务 iframe 无法合法取得原 RunHost、可信网页目标或 Task 安装身份/代次，因此不能在工具目录内部补出同实例运行、提前取消和确定结果；通用价值是任意受审 App 可组合固定已安装 Controller Task，而非加入采集业务判断。
+
+实现继续使用原 Registry → Host → Authority → 唯一 RunHost → 持久结果链，按 saved-source 引用执行固定 Task；不经 App RPC 传源码，不另建 runner、安装器或授权层，不借草稿/Native 绕过安装。变更范围为 `src/platform/tasks/delegation-{contract,installation}.js`、`src/platform/host/task-delegation.js`、原 `controller-methods.js/run-host.js`，原 `sidebar-tools.js/tool-shell.js/sidebar-tools/package.js`、builder、marketplace 安装审阅及定向 tests。草稿入口的公共源码预算修复独立约束 source admission envelope，不扩大普通 RPC 参数、结果或 frame 预算。
+
+可复核测试位于 [委托合同与 RunHost](../../tests/environment/task-delegation.test.mjs)、[包与原 builder](../../tests/environment/task-delegation-package.test.mjs)、[真实宿主 RPC 组件](../../tests/environment/sidebar-tools-host.test.mjs)、[安装审阅](../../tests/environment/market-trusted-install.test.mjs)、[原安装 Task Authority](../../tests/environment/native-installed-tasks.test.mjs) 和 [Controller Authority](../../tests/framework/k3-controller-authority.test.mjs)。本轮组件证据覆盖固定 pin、手势、同 iframe、提前取消、原实例 Stop、撤权效果及结果拒绝；最新 Authority/安装 Task/委托回归 215/215 PASS，不代表真实 Chrome 同 App 原生链已通过，原生结果须另据实际记录。
 
 ### 官方固定网页增强能力（不是任意 DOM API）
 
@@ -267,6 +293,6 @@ v1/v2 JSON 直接导入既有工具安装器，无需开发者另编译 Chrome �
 
 安装/更新仍绑定规范包 SHA-256 和撤销代际；Browser 请求同时带挂载包摘要，在 SW 排队及安装锁后再次复核。菜单注销清除旧启动票据，关闭/实例替换不能继续领取；来源文档、网站批准、Chrome 权限及 TTL 每次复核。工具 JS 等启动绑定 ACK 后运行。普通网页的 Page SDK 只做本地能力发现，不能注册特权菜单或调用 Native Host。
 
-规范 `browser.clipboard.writeText` / `browser.downloads.text` 与便捷层共用原 `user.export`、安装锁和服务；旧操作保持兼容。菜单授权通过可信详情按钮与 Chrome 原生权限，不新增工具 alert/confirm/prompt。
+规范 `browser.clipboard.writeText` / `browser.downloads.text` 与便捷层共用原 `user.export`、安装锁和服务；`OpenDeskTool.request()` 使用这两个规范操作名。菜单授权通过可信详情按钮与 Chrome 原生权限，不新增工具 alert/confirm/prompt。
 
 R1.3 历史实施、组件和原生状态及精确候选见 [R1.3 总表](../framework/workstreams/browser-sdk-r13-20261011.md)。该记录曾引用的 `browser-sdk-r13-acceptance.json` 已不在当前 main，不能据失效链接确认验收；后续能力和当前可调用状态查 [Browser SDK](browser-sdk.zh-CN.md)。组件通过不能提升为原生菜单、F3 或 ZIP 通过。

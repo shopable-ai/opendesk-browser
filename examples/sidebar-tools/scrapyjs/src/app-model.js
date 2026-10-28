@@ -3,6 +3,9 @@
   const DEFAULT_URL = 'http://127.0.0.1:43111/demo-form.html';
   const DEFAULT_CONFIG = {url: DEFAULT_URL, itemConfig: {_listContainer: '#sample-list', _listItem: 'li', title: '.::text'}};
   const copy = value => JSON.parse(JSON.stringify(value));
+  // The public codec and Chrome Storage may reorder object keys during readback.
+  const configValue = value => JSON.stringify(value, (_key, row) => row && typeof row === 'object' && !Array.isArray(row)
+    ? Object.fromEntries(Object.keys(row).sort().map(key => [key, row[key]])) : row);
   const terminal = new Set(['completed', 'failed', 'stopped', 'cancelled']);
   function validateConfig(value) {
     const object = v => v && typeof v === 'object' && !Array.isArray(v);
@@ -48,11 +51,11 @@
   }
   function createApp(sdk, onChange = () => {}) {
     const state = {config: copy(DEFAULT_CONFIG), target: null, phase: 'idle', host: '尚未连接', engine: '尚未运行', runId: null,
-      result: null, snapshot: null, error: '', notice: '', stopRequested: false, stopAccepted: false, retired: false,
+      clientRequestId: null, result: null, snapshot: null, error: '', notice: '', stopRequested: false, stopAccepted: false, retired: false,
       dirty: false, saving: false, storageReady: false, conflict: null};
     let etag, revision = 0, loadGeneration = 0, pageGeneration = 0, disposed = false, stopping = false, reading = false;
     const emit = () => { if (!disposed) onChange(state); };
-    const active = () => Boolean(state.runId) && !state.retired;
+    const active = () => Boolean(state.clientRequestId) && !state.retired;
     function touch() {state.dirty = true; revision++; emit();}
     function edit(value) {state.config = validateConfig(value); touch();}
     async function refreshTarget() {
@@ -96,9 +99,9 @@
       state.saving = true; emit();
       try {
         await sdk.save(savedConfig, etag);
-        // set returns no ETag: read back, verify exact value before accepting the new revision.
+        // Verify the full value before accepting the readback ETag for the next CAS write.
         const record = await sdk.load();
-        if (!record || !Object.hasOwn(record, 'etag') || JSON.stringify(record.value) !== JSON.stringify(savedConfig)) {
+        if (!record || !Object.hasOwn(record, 'etag') || configValue(record.value) !== configValue(savedConfig)) {
           state.storageReady = false; throw new Error('保存后版本已变化，请重新读取；草稿保留');
         }
         etag = record.etag;
@@ -111,7 +114,9 @@
       } finally {state.saving = false; emit();}
     }
     function apply(snapshot) {
-      if (!snapshot || snapshot.runId !== state.runId) throw new Error('任务响应身份不匹配');
+      if (!snapshot || snapshot.clientRequestId !== state.clientRequestId ||
+          (state.runId && snapshot.runId !== state.runId)) throw new Error('任务响应身份不匹配');
+      if (snapshot.runId) state.runId = snapshot.runId;
       state.snapshot = snapshot; state.host = String(snapshot.status || '状态未知');
       state.engine = String(snapshot.engineStatus || snapshot.result?.engine?.status || '未报告');
       if (Object.hasOwn(snapshot, 'result')) state.result = snapshot.result;
@@ -123,7 +128,7 @@
     async function refresh() {
       if (!active() || reading || disposed) return;
       reading = true;
-      try {apply(await sdk.read(state.runId)); state.error = '';}
+      try {apply(await sdk.read(state.clientRequestId)); state.error = '';}
       catch (error) {state.error = error.message;}
       finally {reading = false; emit();}
     }
@@ -132,8 +137,10 @@
       if (!active() || stopping || state.stopAccepted || disposed) return;
       stopping = true;
       try {
-        const receipt = await sdk.stop(state.runId);
-        if (receipt?.runId !== state.runId) throw new Error('停止响应身份不匹配');
+        const receipt = await sdk.stop(state.clientRequestId);
+        if (receipt?.clientRequestId !== state.clientRequestId ||
+            (state.runId && receipt.runId !== state.runId)) throw new Error('停止响应身份不匹配');
+        if (receipt.runId) state.runId = receipt.runId;
         state.stopAccepted = receipt.accepted === true;
         if (!state.stopAccepted) throw new Error('停止未确认受理，请刷新原实例状态');
         state.phase = 'stopping'; state.host = '停止已受理';
@@ -149,30 +156,34 @@
         const config = validateConfig(state.config), expected = targetUrl(url);
         if (!state.target || new URL(expected).origin !== new URL(state.target.url).origin) throw new Error('目标 URL 必须与可信当前网页同源，请刷新当前网页');
         state.phase = 'starting'; state.stopRequested = false; state.stopAccepted = false;
-        state.retired = false; state.runId = null; state.result = null; state.snapshot = null; state.engine = '等待引擎'; emit();
+        state.retired = false; state.runId = null; state.clientRequestId = null; state.result = null; state.snapshot = null; state.engine = '等待引擎'; emit();
+        await sdk.prepare();
         const generation = pageGeneration;
         const info = await sdk.currentPage();
         if (generation !== pageGeneration || info?.status !== 'available' || targetUrl(info.url) !== state.target?.url) throw new Error('当前网页已变化，请重新确认目标');
         if (state.stopRequested || disposed) {state.phase = 'idle'; state.notice = '已取消，未发起任务'; return;}
         sent = true;
-        const receipt = await sdk.start({...config, url: expected}, state.target.url);
+        state.clientRequestId = crypto.randomUUID(); emit();
+        const receipt = await sdk.start({...config, url: expected}, state.target.url, state.clientRequestId);
+        if (receipt?.clientRequestId !== state.clientRequestId) throw new Error('开始响应身份不匹配');
         if (!receipt || typeof receipt.runId !== 'string' || !receipt.runId) {
           state.phase = 'unknown'; throw new Error('开始结果未知，缺少运行身份；请勿重复开始');
         }
         state.runId = receipt.runId; state.phase = 'running'; state.host = String(receipt.status || '已受理');
-        if (state.stopRequested) await stop();
+        if (state.stopRequested && !state.stopAccepted) await stop();
         if (!disposed) await refresh();
       } catch (error) {
         if (state.phase === 'starting') state.phase = sent ? 'unknown' : 'idle';
         state.error = error.message;
+        if (sent && state.stopRequested && !disposed) await refresh();
       } finally {emit();}
     }
-    async function download() {
+    async function download(format = 'json') {
       try {
         if (!state.snapshot || state.result == null) throw new Error('尚无可导出的真实结果');
-        const receipt = await sdk.download(state.snapshot);
-        if (!Number.isInteger(receipt?.downloadId)) throw new Error('下载请求结果未知');
-        state.notice = '已请求下载完整 JSON，请在浏览器下载列表确认'; state.error = '';
+        const receipt = await sdk.download(state.snapshot, format);
+        if (receipt?.started !== true) throw new Error('下载请求结果未知');
+        state.notice = '已请求下载完整 ' + format.toUpperCase() + '，请在浏览器下载列表确认'; state.error = '';
       } catch (error) {state.error = error.message;}
       emit();
     }

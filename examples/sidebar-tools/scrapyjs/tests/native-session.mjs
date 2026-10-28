@@ -28,6 +28,12 @@ export async function launchOwned({root,out,binary,extension=join(root,'dist/dev
   const owned=await mkdtemp(join(out,'cft-'));
   const snapshot=join(owned,'extension'),profile=join(owned,'profile');
   await mkdir(profile,{mode:0o700});
+  // A stable partial directory during a watcher publication is not a runnable extension.
+  await until(async()=>{
+    const manifest=JSON.parse(await readFile(join(extension,'manifest.json'),'utf8'));
+    return manifest.background?.service_worker&&
+      (await readFile(join(extension,manifest.background.service_worker))).length>0;
+  },'complete extension publication (manifest + service worker)',45000);
   const before=await treeIdentity(extension);
   await cp(extension,snapshot,{recursive:true,errorOnExist:true,force:false});
   const after=await treeIdentity(extension),copy=await treeIdentity(snapshot);
@@ -50,6 +56,7 @@ export async function launchOwned({root,out,binary,extension=join(root,'dist/dev
     await writeFile(join(owned,'chrome-stderr.log'),errors.join(''));
   }
   function call(method,params={},sessionId){return new Promise((ok,fail)=>{
+    if(ws?.readyState!==WebSocket.OPEN){fail(Error('Owned CDP is closed'));return;}
     const id=++seq,timer=setTimeout(()=>{pending.delete(id);fail(Error('CDP timeout '+method));},25000);
     pending.set(id,{ok,fail,timer});ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));
   });}
@@ -75,26 +82,40 @@ export async function launchOwned({root,out,binary,extension=join(root,'dist/dev
     return {call,attach,close,metadata,events};
   }catch(error){await close();throw error;}
 }
-export async function click(session,selector){
+export async function click(session,selector,depth=0){
+  assert(depth<12,'Disclosure could not be opened: '+selector);
   // Expand only existing disclosure ancestors through real input.
   const summary=await session.read(`(()=>{let e=document.querySelector(${JSON.stringify(selector)});if(!e)return null;
     const a=[];for(let p=e.parentElement;p;p=p.parentElement)if(p.matches('details:not([open])'))a.push(p);
     const d=a.at(-1);if(!d)return null;const s=d.querySelector(':scope > summary');
     s.scrollIntoView({block:'center'});const r=s.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
-  if(summary){await pointer(session,summary);return click(session,selector);}
+  if(summary){await pointer(session,summary);return click(session,selector,depth+1);}
   const box=await until(()=>session.read(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});
     if(!e||e.disabled)return null;e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();
     const x=r.x+r.width/2,y=r.y+r.height/2;return r.width&&r.height&&x>0&&y>0&&x<innerWidth&&y<innerHeight&&
     e.contains(document.elementFromPoint(x,y))?{x,y}:null})()`),'clickable '+selector);
   await pointer(session,box);
 }
-async function pointer(s,{x,y}){for(const type of ['mouseMoved','mousePressed','mouseReleased'])
-  await s.call('Input.dispatchMouseEvent',{type,x,y,button:'left',...(type==='mouseMoved'?{}:{clickCount:1})});}
+async function pointer(s,{x,y}){
+  if(s.inputHost){
+    const point=await s.inputHost.read(`(async()=>{const f=document.querySelector(${JSON.stringify(s.inputOwnerSelector)});if(!f)throw Error('Actual iframe owner missing');
+      for(let p=f.parentElement;p;p=p.parentElement){const r=f.getBoundingClientRect(),py=r.top+${y};
+        if(p.scrollHeight>p.clientHeight&&/(auto|scroll)/.test(getComputedStyle(p).overflowY))p.scrollTop+=py-innerHeight/2;}
+      // Scroll offsets update before the compositor's cross-process iframe hit test.
+      await new Promise(ok=>requestAnimationFrame(()=>requestAnimationFrame(ok)));
+      const r=f.getBoundingClientRect(),x=r.left+f.clientLeft+${x},y=r.top+f.clientTop+${y};
+      return {x,y,hit:document.elementFromPoint(x,y)===f};})()`);
+    assert(point.hit,'Mapped pointer must hit the original iframe: '+JSON.stringify(point));
+    ({x,y}=point);s=s.inputHost;
+  }
+  for(const type of ['mouseMoved','mousePressed','mouseReleased'])
+    await s.call('Input.dispatchMouseEvent',{type,x,y,button:'left',...(type==='mouseMoved'?{}:{clickCount:1})});
+}
 export async function fill(session,selector,text){
   await click(session,selector);
   // Select authored text only; Input.insertText emits the real browser edit event.
   await session.read(`document.querySelector(${JSON.stringify(selector)}).select()`);
-  await session.call('Input.insertText',{text});
+  await (session.inputHost||session).call('Input.insertText',{text});
   assert.equal(await session.read(`document.querySelector(${JSON.stringify(selector)}).value`),text);
 }
 export async function fileInput(session,selector,file){
@@ -124,8 +145,8 @@ export async function enableUserScripts(browser,extensionId){
   await until(()=>tab.read('!!('+expression+')'),'Chrome actual userScripts toggle');
   await browser.call('Target.activateTarget',{targetId:tab.targetId});
   if(!await tab.read('('+expression+').checked')){
-    const box=await tab.read(`(()=>{const e=(${expression});e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
-    assert(box.x>0&&box.y>0);await pointer(tab,box);
+    await tab.read('('+expression+').focus()');
+    for(const type of ['keyDown','keyUp'])await tab.call('Input.dispatchKeyEvent',{type,key:' ',code:'Space',windowsVirtualKeyCode:32});
   }
   try { await until(()=>tab.read('('+expression+').checked===true'),'Chrome userScripts opt-in committed',5000); } catch(error) { throw Error(error.message+' '+JSON.stringify(await tab.read(`(()=>{const e=(${expression});return {html:e.outerHTML,rect:e.getBoundingClientRect().toJSON(),url:location.href,text:document.body.innerText,detail:document.querySelector('extensions-manager').shadowRoot.querySelector('extensions-detail-view').shadowRoot.innerHTML.slice(-6500)}})()`))); }
   await browser.call('Target.closeTarget',{targetId:tab.targetId});

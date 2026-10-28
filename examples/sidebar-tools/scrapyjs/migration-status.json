@@ -1,0 +1,467 @@
+{
+  "format": "scrapyjs-migration-status.v1",
+  "fullMigrationComplete": false,
+  "sourceLedger": ".omx/plans/scrapyjs-migration-source-function-ledger-20261028.md",
+  "scope": "本轮六个核心可用交付里程碑；完整迁移另按32项记录",
+  "features": [
+    {
+      "id": "F01",
+      "operation": "打开采集应用、选择目标网页、配置/结果同一界面",
+      "source": "scrapyJsChrome/www/popup_crawl.html:1；scrapyJsChrome/www/popup_crawl.js:918",
+      "destination": "src/",
+      "dependencies": "原 Sidebar App 安装、可信目标和固定 Task 委托",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "同 App 目标/配置/结果真实通过；多网页切换未验证"
+    },
+    {
+      "id": "F02",
+      "operation": "字段配置、分页参数、延迟、profile和配置锁",
+      "source": "scrapyJsChrome/www/popup_crawl.js:1623；scrapyJsChrome/assets/js/ai/crawl-profile.js:1",
+      "destination": "src/app-model.js",
+      "dependencies": "声明式 schema 与原引擎选择器语法",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "声明式字段配置与真实运行通过；分页、延迟、profile/锁未开放"
+    },
+    {
+      "id": "F03",
+      "operation": "命名任务保存、切换、自动保存、重绑定",
+      "source": "scrapyJsChrome/www/popup_crawl.js:1840；scrapyJsChrome/assets/js/ai/crawl-task-store.js:1",
+      "destination": "src/; adapters/app-sdk.js",
+      "dependencies": "原 storage.get/set、ETag",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "单配置条件保存与重开真实通过，codec 顺序差异不再误报；命名任务、切换、自动保存未实现"
+    },
+    {
+      "id": "F04",
+      "operation": "重开已保存网址与恢复界面",
+      "source": "scrapyJsChrome/www/popup_crawl.js:2041；scrapyJsChrome/assets/js/ai/run-journal.js:1",
+      "destination": "src/; adapters/",
+      "dependencies": "可信目标重新捕获、原运行历史",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "配置重开真实通过；打开已保存网址、历史/可靠恢复未实现"
+    },
+    {
+      "id": "F05",
+      "operation": "开始采集：popup→background→引擎→原界面回包",
+      "source": "scrapyJsChrome/www/popup_crawl.js:1207；scrapyJsChrome/background.js:15596；scrapyJs/src/core/Scrapy.js:112",
+      "destination": "controller/main.js; adapters/app-sdk.js",
+      "dependencies": "固定安装 Task、原 Authority/RunHost/Worker",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "固定已安装 Task 在同 App 启动，通过原 Authority/RunHost/Worker 返回真实记录"
+    },
+    {
+      "id": "F06",
+      "operation": "Page导航/等待/提取facade与background↔Page回程",
+      "source": "scrapyJsChrome/assets/js/plugins/ChromePage.js:1；scrapyJs/src/middleware/ChromeDownloaderMiddleware.js:12；scrapyJs/src/item/item-loader-extraction.js:93",
+      "destination": "adapters/page.js",
+      "dependencies": "原受控 Page/Locator",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "受控 Page 首链导航/等待/提取真实通过；未模拟旧 ChromePage，完整导航场景未验证"
+    },
+    {
+      "id": "F07",
+      "operation": "真实列表/字段提取、属性href与数据类型",
+      "source": "scrapyJs/src/item/ItemLoader.js:1；scrapyJs/src/item/item-loader-extraction.js:1；scrapyJs/src/item/Item.js:1",
+      "destination": "engine/; src/",
+      "dependencies": "完整浏览器 SDK 的 ItemLoader/提取 callback",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "原列表3条文本及顺序真实通过；属性、嵌套、其他数据类型未原生验证"
+    },
+    {
+      "id": "F08",
+      "operation": "选择字段/表格/下一页按钮与Esc取消",
+      "source": "scrapyJsChrome/www/popup_crawl.js:2376；scrapyJsChrome/assets/js/core/selection-request.js:28；scrapyJsChrome/assets/js/core/selection-content.js:1",
+      "destination": "page/",
+      "dependencies": "独立安装 Page Program 与结构化配置交付",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现"
+    },
+    {
+      "id": "F09",
+      "operation": "选择器生成/验证、位置选择指纹",
+      "source": "scrapyJsChrome/assets/js/plugins/scrapy/selectorUtils.js:1；scrapyJsChrome/assets/js/ai/selector-contract.js:1",
+      "destination": "page/; src/",
+      "dependencies": "Page Authority、选择器结构化配置",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现"
+    },
+    {
+      "id": "F10",
+      "operation": "高亮、列表检测、换表、XPath与表格提取",
+      "source": "scrapyJsChrome/assets/js/plugins/scrapy/ListSelector.js:1；scrapyJsChrome/assets/js/plugins/scrapy/listDetector.js:1；scrapyJsChrome/assets/js/plugins/scrapy/tableDataExtractor.js:1；scrapyJsChrome/assets/js/plugins/scrapy/uiManager.js:1",
+      "destination": "page/; engine/",
+      "dependencies": "原 Page document；表格与 XPath 原算法",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现可视能力；首链 XPath 自身文本不代表整项完成"
+    },
+    {
+      "id": "F11",
+      "operation": "打开录制器、选网页、开始/停止/清空/预览动作",
+      "source": "scrapyJsChrome/www/recorder-entry.js:1；scrapyJsChrome/www/recorder.js:1；scrapyJsChrome/assets/js/recorder/session.js:5",
+      "destination": "page/; src/",
+      "dependencies": "独立 Page Program、录制会话和 App 目标",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现，保留来源未跟踪 recorder 资产"
+    },
+    {
+      "id": "F12",
+      "operation": "普通输入fill、click、末次fill合并与有界动作",
+      "source": "scrapyJsChrome/assets/js/recorder/content.js:234；scrapyJsChrome/assets/js/recorder/actions.js:92；scrapyJsChrome/assets/js/recorder/session.js:94",
+      "destination": "page/; controller/",
+      "dependencies": "有界动作记录、受控 Page/Locator",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现，不把网页事件处理器升为可信 Host"
+    },
+    {
+      "id": "F13",
+      "operation": "录制世界与导航生命周期",
+      "source": "scrapyJsChrome/assets/js/recorder/session.js:57；scrapyJsChrome/assets/js/recorder/session.js:127；scrapyJsChrome/assets/js/recorder/content.js:311",
+      "destination": "page/; adapters/",
+      "dependencies": "Page 程序导航、document 身份和 dispose",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现"
+    },
+    {
+      "id": "F14",
+      "operation": "录制动作受控回放",
+      "source": "scrapyJsChrome/assets/js/recorder/session.js:77；scrapyJsChrome/assets/js/plugins/ChromePage.js:596；scrapyJsChrome/assets/js/recorder/actions.js:127",
+      "destination": "controller/; adapters/",
+      "dependencies": "原 Controller Task、Page 目标与效果查询",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现，未知效果不重放"
+    },
+    {
+      "id": "F15",
+      "operation": "录制复制代码和JSON导出",
+      "source": "scrapyJsChrome/www/recorder.js:1；scrapyJsChrome/assets/js/recorder/actions.js:141",
+      "destination": "src/; adapters/",
+      "dependencies": "原公开复制/文本下载与用户手势",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现录制数据导出"
+    },
+    {
+      "id": "F16",
+      "operation": "下一页点击导航、滚动分页、去重/终止条件",
+      "source": "scrapyJs/src/core/ChromeSpider.js:70；scrapyJsChrome/www/popup_crawl.js:2715",
+      "destination": "engine/; adapters/",
+      "dependencies": "串行导航确认、去重与结束策略",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "完整原 SDK 已保留；业务入口未迁入"
+    },
+    {
+      "id": "F17",
+      "operation": "列表发现详情、详情队列与重试入口",
+      "source": "scrapyJsChrome/assets/js/ai/list-detail-checkpoint.js:139；scrapyJsChrome/www/list-detail-checkpoint-view.js:1；scrapyJs/src/task/runCheckpointTasks.js:1",
+      "destination": "engine/; src/; adapters/",
+      "dependencies": "详情队列、范围校验与原效果状态",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "完整原 SDK 已保留；业务入口未迁入"
+    },
+    {
+      "id": "F18",
+      "operation": "暂停/继续",
+      "source": "scrapyJs/src/core/Scrapy.js:250；scrapyJs/src/core/Scheduler.js:1；scrapyJsChrome/www/popup_crawl.js:2802",
+      "destination": "controller/; src/",
+      "dependencies": "原 RunHost 生命周期和引擎暂停机制",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "完整原 SDK 已保留；暂停继续按钮未实现"
+    },
+    {
+      "id": "F19",
+      "operation": "Stop、启动回包前取消、退休与清理",
+      "source": "scrapyJsChrome/background.js:15834；scrapyJs/src/core/Scrapy.js:76；scrapyJsChrome/assets/js/recorder/session.js:24",
+      "destination": "src/app-model.js; adapters/app-sdk.js",
+      "dependencies": "原 RunHost Stop、clientRequestId 取消、退休读回",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "同 App 原 Stop 与启动回包前取消均真实通过，原实例 stopped/released；未重复 Start/Stop 或重放未知效果"
+    },
+    {
+      "id": "F20",
+      "operation": "字段处理/Pipeline、验证与可逆配置修改",
+      "source": "scrapyJs/src/core/Pipeline.js:1；scrapyJs/src/ai/Processing.js:1；scrapyJs/src/ai/BrowserValidation.js:1；scrapyJsChrome/www/popup_crawl.js:1523",
+      "destination": "engine/; src/",
+      "dependencies": "原 Processing/Pipeline/BrowserValidation、配置版本",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "完整原 SDK 已保留；业务编辑/验证流程未迁入"
+    },
+    {
+      "id": "F21",
+      "operation": "统计、质量、partial/failed/交付状态",
+      "source": "scrapyJs/src/core/Scrapy.js:109；scrapyJsChrome/www/popup_crawl.js:954；scrapyJsChrome/assets/js/ai/result-quality.js:1",
+      "destination": "src/; controller/main.js",
+      "dependencies": "原 getRunStats/runResult/持久结果",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "首链宿主/引擎状态及原持久结果真实通过；质量、partial 额外场景未验证"
+    },
+    {
+      "id": "F22",
+      "operation": "长任务、检查点、崩溃后恢复",
+      "source": "scrapyJs/src/task/runCheckpointTasks.js:1；scrapyJsChrome/assets/js/ai/list-detail-checkpoint.js:1；scrapyJsChrome/assets/js/ai/run-journal.js:1",
+      "destination": "adapters/; controller/",
+      "dependencies": "阶段需要时再补 CAS、提交/effect 查询、分片和 lease",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现可靠恢复；原检查点算法保留"
+    },
+    {
+      "id": "F23",
+      "operation": "计划/多次分段运行",
+      "source": "scrapyJs/src/core/Scheduler.js:1；scrapyJsChrome/assets/js/ai/list-detail-checkpoint.js:179",
+      "destination": "adapters/; src/",
+      "dependencies": "复用原 Task 计划，不新增调度器",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未实现采集调度业务"
+    },
+    {
+      "id": "F24",
+      "operation": "结果预览、CSV/JSON/复制",
+      "source": "scrapyJsChrome/www/popup_crawl.js:2676；scrapyJsChrome/www/popup_crawl.js:188；scrapyJs/src/exporter/ExportManager.js:131",
+      "destination": "src/; adapters/app-sdk.js",
+      "dependencies": "browser.downloads.text、user.export、原点击手势",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "JSON完整快照20227bytes、CSV真实3条记录58bytes均下载completed并读取文件核对；复制、大结果分片未实现"
+    },
+    {
+      "id": "F25",
+      "operation": "引擎memory collector、delivery、abort与release",
+      "source": "scrapyJs/src/exporter/FeedExport.js:1；scrapyJs/src/exporter/ExportManager.js:1；scrapyJs/src/core/Scrapy.js:117",
+      "destination": "engine/; controller/",
+      "dependencies": "原 Scrapy memory collector、delivery、原 RunHost 退休",
+      "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "首链原 Scrapy 数组返回、统计、memory delivery 及原 RunHost 退休真实通过；其他交付模式未验证"
+    },
+    {
+      "id": "F26",
+      "operation": "AI建议/采样/校验/撤销/修复",
+      "source": "scrapyJsChrome/assets/js/ai/service-client.js:1；scrapyJsChrome/www/ai-selector-assist.js:1；scrapyJs/src/ai/Workflow.js:1；scrapyJs/src/ai/Provider.js:1",
+      "destination": "src/; engine/; adapters/",
+      "dependencies": "原 AIConfig、明确数据范围、可逆配置修订",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "完整原 SDK 保留；AI 产品流程未迁入"
+    },
+    {
+      "id": "F27",
+      "operation": "配方浏览/创建/版本身份与规则链接提取",
+      "source": "scrapyJsChrome/src/recipe-runtime/runtime.js:1；scrapyJsChrome/src/recipe-runtime/contract.js:1；scrapyJs/src/core/Rule.js:1；scrapyJs/src/link/LinkExtractor.js:1",
+      "destination": "src/; engine/",
+      "dependencies": "配方身份/版本、原规则链接提取",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "完整原 SDK 保留；配方 UI 未实现"
+    },
+    {
+      "id": "F28",
+      "operation": "Headers/任意Code/HTTP sink/代理下载",
+      "source": "scrapyJs/src/middleware/DownloaderMiddleware.js:1；scrapyJs/src/middleware/ProxyMiddleware.js:1；scrapyJs/src/exporter/ExportManager.js:306；scrapyJsChrome/www/popup_crawl.js:210",
+      "destination": "engine/; adapters/",
+      "dependencies": "逐项核实公开能力/权限；任意 Code 不作为首链配置",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未开放；不把完整 SDK 中的实现视为已授权特权"
+    },
+    {
+      "id": "F29",
+      "operation": "Node文件/NodeCheckpointStore及CLI后端",
+      "source": "scrapyJs/src/task/NodeCheckpointStore.js:1；scrapyJs/src/middleware/ScopedDownloader.js:1",
+      "destination": "来源 scrapyJs 仓库",
+      "dependencies": "未来必要时使用原已授权 Provider",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "本轮不迁移 Node 文件/CLI 专用功能，来源只读保留"
+    },
+    {
+      "id": "F30",
+      "operation": "旧扩展全站注入/共享window bridge/权限安装层",
+      "source": "scrapyJsChrome/manifest.json:1；scrapyJsChrome/background-sw.js:93；scrapyJsChrome/background.js:17848",
+      "destination": "原 OpenDesk Authority/Host/Registry/RunHost",
+      "dependencies": "原安装和执行世界合同",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "旧权限/共享 window 层由原 OpenDesk 基础设施替代，不复制"
+    },
+    {
+      "id": "F31",
+      "operation": "未跟踪录制/选择器/检查点样本与断言资产",
+      "source": "scrapyJsChrome/test/recorder-content.test.cjs:1；scrapyJsChrome/test/recorder-session.test.cjs:1；scrapyJsChrome/test/list-detail-checkpoint.test.cjs:1；scrapyJsChrome/test/fixtures/production-checkpoint/expected.json:1",
+      "destination": "page/; tests/; adapters/",
+      "dependencies": "迁入对应业务前重新核对来源 hash/dirty 归属",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "来源样本保留未改；未全部迁入/执行"
+    },
+    {
+      "id": "F32",
+      "operation": "testMonkey及未映射开发辅助",
+      "source": "scrapyJsChrome/assets/js/plugins/testMonkey.esm.js:1",
+      "destination": "tests/（待逐项判定）",
+      "dependencies": "确认实际用户价值及来源归属",
+      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
+      "detail": "未映射开发辅助不进入运行候选，来源保留"
+    }
+  ],
+  "coreMilestones": {
+    "scope": "2026-10-29 development core only",
+    "completed": 6,
+    "total": 6,
+    "percent": 100,
+    "items": [
+      {
+        "operation": "完整浏览器 SDK 在原 Controller Worker 执行",
+        "status": "PASS"
+      },
+      {
+        "operation": "同一 App 可信目标与声明式配置",
+        "status": "PASS"
+      },
+      {
+        "operation": "同一 App 启动固定已安装 Task",
+        "status": "PASS"
+      },
+      {
+        "operation": "同一 App 查看原运行真实结果与业务状态",
+        "status": "PASS"
+      },
+      {
+        "operation": "原 Stop、启动回包前取消与退休确认",
+        "status": "PASS_OBSERVED"
+      },
+      {
+        "operation": "配置保存重开及小结果 JSON/CSV 完整下载",
+        "status": "PASS_FILE_BYTES"
+      }
+    ]
+  },
+  "coreEvidence": {
+    "scope": "DEVELOPMENT_REAL_CFT_ORIGINAL_CONTROLLER",
+    "report": "artifacts/scrapyjs/native-driver/app-core-observed-cancel-20261029/report.json",
+    "reportSha256": "b9d16cdcbd8e0825e6de644eb1c11b2ce2b3b39951e6bdc8eb7bf06657273a70",
+    "finishedAt": "2026-10-28T18:17:51.774Z",
+    "chrome": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "extensionSource": "dist/development",
+    "snapshot": "a771dbe40c2186369ccd356083b6925ce78aa5ed83c56374a606e1bd56215518",
+    "exactBuildSources": [
+      {
+        "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "swSha256": "6f2e2823838399edf47808676c843f01032b5750b8348fd2b05f0c23888fc40e",
+        "sourceEvidence": {
+          "src/platform/source-budgets.js": "0849d313da5a3ce044fd4a00253f641cdd24a5a0d2bbe4f1c69249c8568b691b",
+          "src/platform/host/controller-methods.js": "35de6ee9d803298d65b01d17f21d49d7b91c5e77fa36748e6781a87399917d13"
+        }
+      },
+      {
+        "bundle": "ui/tool-shell.js",
+        "sha256": "1a2b4f0c2ea0a4f774db0cc9d633c21fd7924d8e3cc0924419889d61c919a55f",
+        "sourceEvidence": {
+          "src/run-host.js": "a9d00aad75f08981a3e5039adea9ccd1d50cbee9cdd66a33fcc2980747508544"
+        }
+      },
+      {
+        "bundle": "scripting/sandbox/sandbox.js",
+        "sha256": "507b9c9eb5a71c62938bf50d0ec5ba82a52585b62805297d321db296a1434e15",
+        "sourceEvidence": {
+          "src/scripting/sandbox/sandbox.js": "e0494ea93dd825906c4d7cb508073e2798eb98ecbabcc657018479f266248f00"
+        }
+      }
+    ],
+    "originalSdk": {
+      "file": "examples/sidebar-tools/scrapyjs/vendor/scrapyjs/browser.original.js",
+      "bytes": 1136734,
+      "sha256": "c7a266c1bd5f34ba5e5a85d163c0573fc1d5afb60c07d0ce46af8393e7ada4be"
+    },
+    "taskSource": {
+      "file": "artifacts/scrapyjs/program-full/program.js",
+      "bytes": 1146776,
+      "sha256": "91683b92d21aaee8a98c70c95d9edfc4cb2d7221dba4aab62632a753bbcfc0f2"
+    },
+    "taskPackage": {
+      "file": "artifacts/scrapyjs/program-full/program.opendesk-task.json",
+      "bytes": 1199779,
+      "sha256": "205e1ede8fbde1b1d7f82d68a85c08a7ae93bcd2e36ee5b440e1440c8b22773e"
+    },
+    "appPackage": {
+      "file": "examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "bytes": 26797,
+      "sha256": "a3d4b87dcce3e28d8d2ef0d14d0e59c891432c2cd363b8ad0de1d493df09e179"
+    },
+    "checks": {
+      "originalWorker": "PASS",
+      "scrapyEngine": "PASS",
+      "taskInstall": "PASS_UI_RECEIPT",
+      "sameApp": "PASS",
+      "missingSelectorStop": "PASS_SAME_APP",
+      "cancelBeforeReply": "PASS_OBSERVED",
+      "saveReopen": "PASS",
+      "jsonDownload": "PASS_FILE_BYTES",
+      "csvDownload": "PASS_FILE_BYTES"
+    },
+    "sameApp": {
+      "clientRequestId": "a1900de9-5141-4ae3-8cbe-8808a3cd30a5",
+      "runId": "93003640-9c75-4314-8723-f4d57db18669",
+      "resultId": "d1f4286b-8564-4239-8bd6-ab1959ffeb19",
+      "state": "completed",
+      "retirementState": "released",
+      "sourceHash": "91683b92d21aaee8a98c70c95d9edfc4cb2d7221dba4aab62632a753bbcfc0f2"
+    },
+    "normalStop": {
+      "clientRequestId": "d179296b-fbbf-4e8c-9f6e-e2a222fdaf3a",
+      "runId": "869a79dd-389e-426f-a900-5fa6dd52e387",
+      "resultId": "c6205885-bc51-4bb0-89f0-6353f79a69ba",
+      "state": "stopped",
+      "retirementState": "released",
+      "sourceHash": "91683b92d21aaee8a98c70c95d9edfc4cb2d7221dba4aab62632a753bbcfc0f2"
+    },
+    "earlyCancel": {
+      "clientRequestId": "66f397f3-67f8-4cae-8eea-3c7264007daf",
+      "runId": "a23c0e1b-0cc0-4dbd-b61e-0677832f7d96",
+      "resultId": "0679e9fa-8b42-49b5-b3e2-5f982bebf046",
+      "state": "stopped",
+      "retirementState": "released",
+      "sourceHash": "91683b92d21aaee8a98c70c95d9edfc4cb2d7221dba4aab62632a753bbcfc0f2",
+      "instance": "6aabbe1d-fbe1-40f1-a5b3-3b134a5d3940",
+      "starts": 1,
+      "stops": 1,
+      "stopClickOrder": 2,
+      "startReplyOrder": 4,
+      "startReplyCode": "E_CANCELLED"
+    },
+    "downloads": [
+      {
+        "format": "json",
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-driver/app-core-observed-cancel-20261029/downloads/app-gO6qGU/7e47c583-a9cb-4e23-84ea-5e8185c452f5",
+        "requestedFilename": "scrapyjs-result.json",
+        "suggestedFilename": "download.json",
+        "guid": "7e47c583-a9cb-4e23-84ea-5e8185c452f5",
+        "completion": {
+          "guid": "7e47c583-a9cb-4e23-84ea-5e8185c452f5",
+          "totalBytes": 20227,
+          "receivedBytes": 20227,
+          "state": "completed",
+          "filePath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-driver/app-core-observed-cancel-20261029/downloads/app-gO6qGU/7e47c583-a9cb-4e23-84ea-5e8185c452f5"
+        },
+        "sha256": "fb8c57f4d978f96b970833ec947cb9d6a0e3e79c7b0c107f69f74f1f244783b8",
+        "size": 20227
+      },
+      {
+        "format": "csv",
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-driver/app-core-observed-cancel-20261029/downloads/app-gO6qGU/16d796ea-d4b6-464e-865c-7099bc088927",
+        "requestedFilename": "scrapyjs-result.csv",
+        "suggestedFilename": "download.csv",
+        "guid": "16d796ea-d4b6-464e-865c-7099bc088927",
+        "completion": {
+          "guid": "16d796ea-d4b6-464e-865c-7099bc088927",
+          "totalBytes": 58,
+          "receivedBytes": 58,
+          "state": "completed",
+          "filePath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-driver/app-core-observed-cancel-20261029/downloads/app-gO6qGU/16d796ea-d4b6-464e-865c-7099bc088927"
+        },
+        "sha256": "7474b3c40f96f3fbeb49cfd7ebc5ac7cee19b8d4f9a152ee0e26695abb7c12a9",
+        "size": 58
+      }
+    ],
+    "ownedBrowserReleased": true,
+    "productionAcceptance": "NOT_TESTED",
+    "nativeUpgradeAndRevocation": "NOT_TESTED",
+    "full32FeatureAcceptance": "NOT_TESTED",
+    "validationGap": "旧 tests/framework/k3-sandbox-error-forwarding.test.mjs 的6项用例被过时 Worker URL 夹具在进入沙箱前拒绝（E_RESOURCE_URL_UNSUPPORTED）；未修改产品来源校验或扩大修复。新沙箱退休与原 RunHost 恢复定向回归10/10 PASS。"
+  }
+}

@@ -7,7 +7,8 @@
   "capabilities": [
     "storage.local",
     "currentPage.read",
-    "user.export"
+    "user.export",
+    "tasks.run"
   ],
   "files": {
     "html": "src/index.html",
@@ -23,5 +24,13 @@
   },
   "contributes": {
     "contextMenus": []
-  }
+  },
+  "delegatedTasks": [
+    {
+      "taskId": "scrapyjs.capture",
+      "version": "0.1.0",
+      "manifestHash": "0f29804bb32e7ad70b8abedb9e267fb3070389c2cbc84d3108f2325bc517dfd1",
+      "contentHash": "91683b92d21aaee8a98c70c95d9edfc4cb2d7221dba4aab62632a753bbcfc0f2"
+    }
+  ]
 }

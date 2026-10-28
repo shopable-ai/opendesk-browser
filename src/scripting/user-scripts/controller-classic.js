@@ -1,11 +1,12 @@
+import {CONTROLLER_SOURCE_LIMIT} from '../../platform/source-budgets.js';
 // Controller Classic reuses the standard userscript @require source declaration.
 // No custom OpenDesk syntax, network, storage or code execution in this parser.
 const err=(code,message)=>Object.assign(new Error(message||code),{code});
 const SHA=/^[a-f0-9]{64}$/;
 const FIXED=/(?:^|[\/@._-])v?\d+\.\d+\.\d+(?:[-+][a-z0-9.-]+)?(?=\/|[._-]|$)|(?:^|\/)[a-f0-9]{40}(?=\/|$)/i;
 export function parseControllerClassicDependencies(sourceUtf8){
-  if(typeof sourceUtf8!=='string'||new TextEncoder().encode(sourceUtf8).byteLength>128*1024)
-    throw err('E_CONTROLLER_CLASSIC_SOURCE','Controller source must be UTF-8 text of at most 128 KiB');
+  if(typeof sourceUtf8!=='string'||new TextEncoder().encode(sourceUtf8).byteLength>CONTROLLER_SOURCE_LIMIT)
+    throw err('E_CONTROLLER_CLASSIC_SOURCE','Controller source must be UTF-8 text of at most '+CONTROLLER_SOURCE_LIMIT+' bytes');
   const requires=[],seen=new Set();
   for(const [lineIndex,line] of sourceUtf8.split(/\r?\n/).entries()){
     if(/^\s*\/\/\s*@opendesk-classic\b/.test(line))
