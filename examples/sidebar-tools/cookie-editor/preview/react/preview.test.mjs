@@ -420,3 +420,49 @@ test('R3.7 dev serves current CSS and source receipts while static auditing rema
  assert.ok(contract.scenario.fixedTime);
  assert.ok(contract.inventory.styleKeys.includes('stroke'));
 });
+
+
+test('R2.6 mock account create receipts, no-op snapshots and exact scope drift',async()=>{
+  const mock=createMockSdk({scenario:'accountsFirst'});
+  const origin='https://shop.example.com';
+  try{
+    const created=await mock.request('cookieAccount.create',{
+      origin,revision:0,displayName:'新账号 1'
+    });
+    assert.equal(created.accounts.length,1);
+    assert.equal(created.accounts[0].cookieCount,8);
+    const account=created.accounts[0];
+    const unchanged=await mock.request('cookieAccount.update',{
+      origin,revision:created.revision,alias:account.alias,accountVersion:account.version
+    });
+    assert.equal(unchanged.unchanged,true);
+    assert.equal(unchanged.revision,created.revision);
+    await assert.rejects(mock.request('cookieAccount.create',{
+      origin,revision:created.revision,displayName:'新账号 1'
+    }),error=>error.code==='E_ACCOUNT_NAME_TAKEN');
+    await mock.browser.cookies.set({
+      url:origin+'/',name:'new_cookie',value:'fictional-only',
+      path:'/',storeId:'0',secure:true,httpOnly:false,sameSite:'lax'
+    });
+    await assert.rejects(mock.request('cookieAccount.update',{
+      origin,revision:created.revision,alias:account.alias,accountVersion:account.version
+    }),error=>error.code==='E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED');
+    const reloaded=await mock.request('cookieAccount.status',{origin});
+    assert.equal(reloaded.accounts[0].version,account.version);
+    assert.equal(reloaded.revision,created.revision);
+  }finally{mock.dispose();}
+});
+
+test('R2.6 mock failed account create never produces success receipt',async()=>{
+  const mock=createMockSdk({scenario:'accountsFirst'});
+  const origin='https://shop.example.com';
+  try{
+    mock.setFailure('save');
+    await assert.rejects(mock.request('cookieAccount.create',{
+      origin,revision:0,displayName:'新账号 1'
+    }),error=>error.code==='E_ACCOUNT_STORAGE_UNAVAILABLE');
+    const status=await mock.request('cookieAccount.status',{origin});
+    assert.equal(status.accounts.length,0);
+    assert.equal(status.revision,0);
+  }finally{mock.dispose();}
+});
