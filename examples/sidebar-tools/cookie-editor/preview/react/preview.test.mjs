@@ -71,6 +71,14 @@ test('authorization preview presents one clearly scoped grant action',async()=>{
   const trustedCss=await read('../../trusted/host.css');
   assert.match(trustedCss,/min-height:236px;padding:36px clamp\(16px,6vw,28px\)/);
   assert.match(trustedCss,/max-width:360px/);
+  // The grant preview is outside the product; the official trusted Host
+  // routes first-use consent separately from the ordinary permissions panel.
+  const trustedUi=await read('../../../../../src/ui/react/tabs/tool-host.tsx');
+  assert.match(trustedUi,/const cookieFirstUse=/);
+  assert.match(trustedUi,/sidebar-tool-cookie-permissions/);
+  assert.match(trustedUi,/!cookieFirstUse/);
+  assert.match(css,/\.preview-global-grant\{min-height:236px;padding:36px clamp\(16px,6vw,28px\)/);
+  assert.match(css,/\.preview-global-grant button\{min-height:40px;width:100%;max-width:360px\}/);
 });
 
 test('committed standalone React preview reflects the one-action consent UI',async()=>{
@@ -236,7 +244,8 @@ test('one-source import previews then confirms inside the mounted list',async()=
  ]);
  assert.match(component,/className="cookie-import-workspace"/);
  assert.match(component,/role="region" aria-labelledby=\{headingId\}/);
- assert.doesNotMatch(component,/cookie-import-dismiss-layer|aria-modal="true"/);
+ assert.match(component,/onKeyDown=\{cancelFromKeys\}/);
+ assert.doesNotMatch(component,/role="dialog"|aria-modal|cookie-import-dismiss-layer/);
  assert.match(app,/importOpen=\{panel==='import'\}/);
  assert.doesNotMatch(app,/panel===null&&<CookieEditorView/);
  assert.match(component,/onBeforeSubmit\?\.\(\)===false/);
@@ -252,6 +261,10 @@ test('one-source import previews then confirms inside the mounted list',async()=
  assert.match(component,/preview\?'确认导入':'预览导入'/);
  assert.match(component,/invalidatePreview\(\); \/\/ A confirmation is single use/);
  assert.doesNotMatch(css,/height:min\(510px|height:calc\(100% - 32px\)/);
+ assert.match(css,/\.cookie-import-workspace\{\s*position:relative;box-sizing:border-box/);
+ assert.match(css,/\.cookie-import-body\{\s*display:grid;gap:8px/);
+ assert.match(css,/\.cookie-import-footer\{\s*display:grid;gap:8px/);
+ assert.doesNotMatch(css,/cookie-import-dismiss-layer|cookie-sheet-enter/);
  assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/controller\.executeImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/cookie-import-toast/);

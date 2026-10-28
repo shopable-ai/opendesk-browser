@@ -402,6 +402,7 @@
 .cookie-editor-react .cookie-account-avatar--mint{background:var(--od-cookie-mint-bg);color:var(--od-cookie-mint-ink)}
 .cookie-editor-react .cookie-account-card-text{display:grid;gap:2px;min-width:0;flex:1}
 .cookie-editor-react .cookie-account-card-text strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cookie-editor-react .cookie-account-description{display:block;min-width:0;color:var(--od-ink);font-size:11px;line-height:1.4;opacity:.88;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-card-text small{color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .cookie-account-applied{
   flex:none;color:var(--od-positive);font-size:10px;white-space:nowrap;
@@ -441,6 +442,8 @@
 .cookie-editor-react .cookie-account-inline{display:grid;gap:10px;min-width:0;padding:11px;border:1px solid var(--od-line);border-radius:9px;background:var(--od-paper)}
 .cookie-editor-react .cookie-account-name-field{display:grid;gap:5px;font-size:11px;font-weight:600}
 .cookie-editor-react .cookie-account-name-field input{width:100%;font-weight:400}
+.cookie-editor-react .cookie-account-description-field small{font-size:10px;font-weight:400;color:var(--od-sub)}
+.cookie-editor-react .cookie-account-description-field textarea{width:100%;min-height:60px;max-height:140px;resize:vertical;line-height:1.5;font-weight:400}
 .cookie-editor-react .cookie-account-inline>p{color:var(--od-sub);line-height:1.6}
 .cookie-editor-react .cookie-account-form-actions{justify-content:flex-end}
 .cookie-editor-react .cookie-account-inline-controls{display:flex;flex-wrap:wrap;gap:var(--space-2);min-width:0;align-items:center}

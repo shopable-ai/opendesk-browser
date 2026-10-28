@@ -77,6 +77,7 @@ jobs:
           node --check src/ui/sidebar-tools/installation.js
           node --test \
             tests/environment/cookie-editor-account-vault.test.mjs \
+            examples/sidebar-tools/cookie-editor/tests/account-description.test.mjs \
             tests/environment/cookie-editor-account-switch-url.test.mjs \
             tests/environment/cookie-editor-account-switch-host.test.mjs
       - name: R5.24 independent trusted grant and native Host regressions

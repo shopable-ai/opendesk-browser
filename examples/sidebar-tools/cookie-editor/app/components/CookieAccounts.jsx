@@ -32,6 +32,7 @@ export function CookieAccounts({
   const [menuPosition,setMenuPosition]=React.useState({left:8,top:8});
   const [inline,setInline]=React.useState(null);
   const [draft,setDraft]=React.useState('');
+  const [descriptionDraft,setDescriptionDraft]=React.useState('');
   const [formAttempted,setFormAttempted]=React.useState(false);
   const [localError,setLocalError]=React.useState('');
   const [justSavedAlias,setJustSavedAlias]=React.useState(null);
@@ -47,9 +48,15 @@ export function CookieAccounts({
   const draftFocusReturn=React.useRef(false);
   const resumedRevision=React.useRef(resumeRevision);
   const draftInput=React.useRef(null);
+  const descriptionInput=React.useRef(null);
   const autoHeading=React.useRef(null);
-  const draftDirty=Boolean(inline&&inline.kind!=='delete'&&
-    draft!==(inline.initialName||''));
+  const normalizedDescription=descriptionDraft.trim().replace(/\s+/g,' ');
+  const metadataChanged=Boolean(inline?.kind==='rename'&&(
+    draft.trim()!==inline.item.displayName||
+    normalizedDescription!==String(inline.item.description||'')));
+  const draftDirty=Boolean(inline&&inline.kind!=='delete'&&(
+    draft!==(inline.initialName||'')||
+    descriptionDraft!==(inline.initialDescription||'')));
   React.useEffect(()=>{onDirty?.(draftDirty);},[draftDirty,onDirty]);
   React.useEffect(()=>()=>onDirty?.(false),[onDirty]);
   React.useEffect(()=>{
@@ -109,19 +116,22 @@ export function CookieAccounts({
     setMenuId(null);
     setFormAttempted(false);setLocalError('');
     let initialName=kind==='rename'?item.displayName:'';
+    const initialDescription=kind==='rename'?String(item.description||''):'';
     if(kind==='create'){
       const used=new Set(accounts.map(account=>account.displayName));
       let n=1;
       while(used.has('新账号 '+n))n++;
       initialName='新账号 '+n;
     }
-    setInline({kind,item,initialName});
+    setInline({kind,item,initialName,initialDescription});
     setDraft(initialName);
+    setDescriptionDraft(initialDescription);
   };
   const closeInline=(savedAlias=null)=>{
     formReturn.current={alias:savedAlias||inline?.item?.alias};
     if(savedAlias)setJustSavedAlias(savedAlias);
-    setInline(null);setDraft('');setLocalError('');onDirty?.(false);
+    setInline(null);setDraft('');setDescriptionDraft('');
+    setLocalError('');onDirty?.(false);
   };
   const cancelInline=()=>{
     if(busy)return;
@@ -140,16 +150,22 @@ export function CookieAccounts({
         setLocalError('账号名称已存在，请换一个名称。');
         draftInput.current?.focus();return;
       }
+      if(descriptionDraft.length>120){
+        setLocalError('账号描述不能超过 120 字。');
+        descriptionInput.current?.focus();return;
+      }
     }
+    if(inline.kind==='rename'&&!metadataChanged){closeInline();return;}
     savingRef.current=true;
     try{
       let result;
-      if(inline.kind==='create')result=onCreate?.(name);
-      if(inline.kind==='rename'&&name!==inline.item.displayName)
-        result=onRename?.(inline.item,name);
+      if(inline.kind==='create')result=onCreate?.(name,normalizedDescription);
+      if(inline.kind==='rename')result=onRename?.(inline.item,name,normalizedDescription);
       if(inline.kind==='delete')result=onDelete?.(inline.item);
       const receipt=await result;
-      if(receipt===true||receipt?.ok===true)closeInline(receipt?.alias||null);
+      if(receipt===true||receipt?.ok===true)
+        closeInline(inline.kind==='delete'?null:
+          (receipt?.alias||inline.item?.alias||null));
       else if(receipt===undefined)setLocalError('账号服务未响应，未保存。');
       // false is accompanied by the Host/Controller's explicit error feedback.
     }catch{
@@ -204,7 +220,7 @@ export function CookieAccounts({
       ?{status:'blocked',code:'E_SITE_ADAPTER_REQUIRED'}:check);
   };
   const actions=item=>[
-    ['重命名','edit',()=>startInline('rename',item),Boolean(onRename)],
+    ['编辑账号','edit',()=>startInline('rename',item),Boolean(onRename)],
     ['更新快照','refresh',()=>onUpdate?.(item),
       Boolean(onUpdate)&&switchReady&&item.alias===currentAlias],
     ['生成切换链接','link',()=>onCopyLink?.(item,linkFor(item)),
@@ -292,10 +308,10 @@ export function CookieAccounts({
         <CookieIconButton name="undo" label="返回账号" appearance="quiet"
           disabled={busy} onClick={cancelInline}/>
         <h2>{inline.kind==='create'?'添加账号':
-          inline.kind==='rename'?'重命名账号':'删除账号快照'}</h2>
+          inline.kind==='rename'?'编辑账号':'删除账号快照'}</h2>
         {inline.kind!=='delete'&&<CookieIconButton name="save" label="保存账号"
           appearance="quiet" disabled={busy||!draft.trim()||
-            inline.kind==='rename'&&draft.trim()===inline.item.displayName}
+            (inline.kind==='rename'&&!metadataChanged)}
           onClick={()=>void commitInline()}/>}
       </header>
       <div className="cookie-account-inline" role="group" aria-label="账号操作"
@@ -314,6 +330,15 @@ export function CookieAccounts({
             placeholder="例如：工作账号"
             onChange={event=>{setDraft(event.target.value);setLocalError('');}}/>
         </label>:<p>删除「{inline.item.displayName}」的本机快照，不会删除网站中的 Cookie。</p>}
+        {inline.kind!=='delete'&&<label className="cookie-account-name-field cookie-account-description-field">
+          <span>账号描述 <small>（选填）</small></span>
+          <textarea className="od-field" aria-label="账号描述（选填）"
+            ref={descriptionInput} rows={2} maxLength={120}
+            autoComplete="off" spellCheck={false} disabled={busy}
+            placeholder="例如：客服团队日常使用（请勿填写密码或 Cookie）"
+            value={descriptionDraft}
+            onChange={event=>{setDescriptionDraft(event.target.value);setLocalError('');}}/>
+        </label>}
         {inline.kind==='create'&&<div className="cookie-account-scope">
           <strong>默认关联当前授权网站的全部可用 Cookie</strong>
           <small>可信 Host 会在保存时重新读取并核对站点、Store、Partition 和权限。</small>
@@ -329,7 +354,7 @@ export function CookieAccounts({
             </ul>
           </details>
         </div>}
-        {inline.kind==='rename'&&<p>只修改显示名称，不改变 Cookie 或网址别名。</p>}
+        {inline.kind==='rename'&&<p>只修改名称和本机描述，不改变 Cookie、账号别名或切换链接。</p>}
         {localError&&<p role="alert" className="cookie-account-feedback is-error">{localError}</p>}
         {formAttempted&&feedback&&<p role={feedback.kind==='error'?'alert':'status'}
           className={'cookie-account-feedback'+(feedback.kind==='error'?' is-error':'')}>{feedback.text}</p>}
@@ -343,7 +368,8 @@ export function CookieAccounts({
     </div>
   </section>;
   const filtered=accounts.filter(item=>
-    String(item.displayName||'').toLowerCase().includes(query.toLowerCase()));
+    [item.displayName,item.description].some(value=>
+      String(value||'').toLowerCase().includes(query.toLowerCase())));
   return <section className="cookie-account-page od-surface" aria-label="账号"
     id="cookie-product-panel-accounts" role="tabpanel"
     aria-labelledby="cookie-product-tab-accounts" ref={list}>
@@ -398,7 +424,9 @@ export function CookieAccounts({
         </span>
         <div className="cookie-account-card-text">
           <strong>{item.displayName}</strong>
-          <small>{Number.isSafeInteger(item.cookieCount)?item.cookieCount+' 条 Cookie · ':''}本机快照</small>
+          {item.description&&<span className="cookie-account-description"
+            title={item.description}>{item.description}</span>}
+          <small>{Number.isSafeInteger(item.cookieCount)?item.cookieCount+' 条关联 Cookie · ':''}完整快照</small>
         </div>
         {item.alias===currentAlias
           ?<span className="cookie-account-applied"

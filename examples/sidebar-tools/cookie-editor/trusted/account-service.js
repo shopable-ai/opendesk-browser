@@ -13,7 +13,8 @@ import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {createCookieService} from '../../../../src/platform/chrome/cookies.js';
 import {inspectAccountSwitchUrl} from '../app/domain/account-switch-url.js';
 import {createCookieAccountVault} from './account-vault.js';
-import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_EFFECTS,COOKIE_ACCOUNT_SEEN_KEY} from './account-contract.js';
+import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_EFFECTS,COOKIE_ACCOUNT_SEEN_KEY,
+  normalizeAccountDescription} from './account-contract.js';
 
 export {COOKIE_ACCOUNT_PROTOCOL} from './account-contract.js';
 const ID='cookie-editor',MAX_COOKIES=100,MAX_ACCOUNTS=48,SEEN_KEY=COOKIE_ACCOUNT_SEEN_KEY;
@@ -112,9 +113,9 @@ export function planAccountCookieEffects(current,expected){
   ];
 }
 function meta(account){
-  const {alias,origin,displayName,version,allowAuto}=account;
-  return {alias,origin,displayName,version,allowAuto,
-    cookieCount:account.cookieCount,siteLabel:new URL(origin).hostname,
+  const {alias,origin,displayName,description,version,allowAuto,cookieCount}=account;
+  return {alias,origin,displayName,description,version,allowAuto,
+    cookieCount,siteLabel:new URL(origin).hostname,
     siteUrl:origin+'/'};
 }
 // A repeat of an auto-switch URL is never a new intent merely because time passed.
@@ -403,7 +404,8 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
         if(data.accounts.some(item=>item.origin===origin&&
           item.displayName===displayName))throw fail('E_ACCOUNT_NAME_TAKEN');
         const alias='acct_'+crypto.randomUUID().replace(/-/g,'').slice(0,20);
-        data.accounts.push({alias,origin,displayName,version:1,
+        const description=normalizeAccountDescription(payload.description);
+        data.accounts.push({alias,origin,displayName,description,version:1,
           cookies:capture,allowAuto:false});
       }else if(operation==='rename'){
         const name=String(payload.displayName||'').trim();
@@ -411,7 +413,12 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
         if(data.accounts.some(item=>item.origin===origin&&
           item.alias!==selected.alias&&item.displayName===name))
           throw fail('E_ACCOUNT_NAME_TAKEN');
-        selected.displayName=name;selected.version++;
+        const changedName=selected.displayName!==name;
+        const description=normalizeAccountDescription(payload.description,
+          selected.description??'');
+        selected.displayName=name;selected.description=description;
+        // Description-only edits must not invalidate snapshot / auto-switch fences.
+        if(changedName)selected.version++;
       }else if(operation==='update'){
         selected.cookies=capture;selected.version++;
       }else if(operation==='delete'){
