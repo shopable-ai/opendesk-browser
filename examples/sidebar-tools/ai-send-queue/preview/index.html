@@ -120,6 +120,6 @@ $('themes').addEventListener('click',e=>{const b=e.target.closest('button[data-v
 $('reset').addEventListener('click',()=>{items=[];seq=0;busy=true;expanded=false;$('draft').value='';document.body.dataset.theme='light';select('themes','light');$('theme-out').textContent='浅色';$('unit').style.setProperty('--preview-width','400px');$('width-out').textContent='400px';select('widths','400');size=34;$('unit').className='unit size-34';select('sizes','34');readOfficial();render();toast('已恢复正式方案 C · 空队列')});
 const art=JSON.parse($('crown-variants').textContent);const check=new Image();check.onload=()=>{artworkLoaded=true};check.onerror=()=>{artworkError=true;toast('皇冠 WebP 资源无法加载')};check.src='data:image/webp;base64,'+art.a;
 items=[];seq=0;render();readOfficial();for(const [group,value] of [['sizes',34],['widths',400],['themes','light']])select(group,value);
-window.__sendQueuePreview=()=>({items:items.map(x=>({...x})),busy,paused,size,theme:document.body.dataset.theme,artworkLoaded,artworkError,official:{...official}});
+window.__sendQueuePreview=()=>({items:items.map(x=>({...x})),busy,pausedRows:items.filter(x=>x.paused).map(x=>x.id),size,theme:document.body.dataset.theme,artworkLoaded,artworkError,official:{...official}});
 })();
 </script></body></html>

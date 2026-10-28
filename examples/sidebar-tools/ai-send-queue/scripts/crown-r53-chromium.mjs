@@ -4,9 +4,9 @@ import {spawn,execFileSync} from 'node:child_process';
 import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {tmpdir} from 'node:os';
-const root=resolve('.'),src='examples/programs/chatgpt-send-queue/preview/index.html';
+const root=resolve('.'),previous='examples/programs/chatgpt-send-queue/preview/index.html',src='examples/sidebar-tools/ai-send-queue/preview/index.html';
 const dir=resolve(process.argv[2]||'artifacts/send-queue-crown-r54');
-const before=execFileSync('git',['show','633c9326ffc3ca2e45e95ffa7e7b6cb1ba74e499:'+src],{encoding:'utf8',maxBuffer:8e6});
+const before=execFileSync('git',['show','633c9326ffc3ca2e45e95ffa7e7b6cb1ba74e499:'+previous],{encoding:'utf8',maxBuffer:8e6});
 const after=await readFile(join(root,src),'utf8');
 assert.match(before,/R5\.3 CROWN-FIT-BEGIN/);assert.match(after,/R5\.4 CROWN-USER-FIT-BEGIN/);
 const profile=await mkdtemp(join(tmpdir(),'sq-crown-'));
@@ -42,7 +42,7 @@ async function alpha(){return ev('(async()=>{const a=JSON.parse(document.querySe
 async function capture(name,clip){const r=await cdp('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:false,...(clip?{clip:{...clip,scale:1}}:{})});
   await writeFile(join(dir,name+'.png'),Buffer.from(r.data,'base64'));
   if(/^(before|after)-(34|42)-light-400-crop$/.test(name))console.log('CROWN_IMAGE_BASE64 '+name+' '+r.data)}
-async function smoke(){const r=await ev('(()=>{const q=s=>document.querySelector(s);q("#draft").value="第四条测试";q("#blue").click();const n=window.__sendQueuePreview().items.length,clear=!q("#draft").value,hidden=q("#rows").children.length===3;q("#more").click();const open=q("#rows").children.length;q("#rows [data-id=q4][data-action=remove]")?.click();const removed=window.__sendQueuePreview().items.length;q("#toggle-pause").click();const paused=window.__sendQueuePreview().paused;q("#toggle-pause").click();const resumed=window.__sendQueuePreview().paused;q("#reset").click();return {n,clear,hidden,open,removed,paused,resumed,reset:window.__sendQueuePreview().items.length,empty:q("#queue").classList.contains("sq-empty"),cue:q("#rows").textContent}})()');
+async function smoke(){const r=await ev('(()=>{const q=s=>document.querySelector(s);q("#draft").value="第四条测试";q("#blue").click();const n=window.__sendQueuePreview().items.length,clear=!q("#draft").value,hidden=q("#rows").children.length===3;q("#more").click();const open=q("#rows").children.length;q("#rows [data-id=q4][data-action=remove]")?.click();const removed=window.__sendQueuePreview().items.length;q("#rows [data-id=q1] [data-action=pause]").click();const paused=window.__sendQueuePreview().items.find(x=>x.id==="q1").paused;q("#rows [data-id=q1] [data-action=resume]").click();const resumed=window.__sendQueuePreview().items.find(x=>x.id==="q1").paused;q("#reset").click();return {n,clear,hidden,open,removed,paused,resumed,reset:window.__sendQueuePreview().items.length,empty:q("#queue").classList.contains("sq-empty"),cue:q("#rows").textContent}})()');
   assert.deepEqual(r,{n:4,clear:true,hidden:true,open:4,removed:3,paused:true,resumed:false,reset:0,empty:true,cue:'···'});console.log('CROWN_QUEUE_INTERACTION_PASS '+JSON.stringify(r))}
 try{await mkdir(dir,{recursive:true});
   chrome=spawn(process.env.CHROME_BIN||'chromium',['--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'],{stdio:'ignore'});
