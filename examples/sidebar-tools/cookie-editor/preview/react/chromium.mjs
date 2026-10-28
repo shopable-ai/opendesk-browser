@@ -669,7 +669,7 @@ try{
   await page.getByText('新账号 1',{exact:true}).waitFor();
   assert.equal(await page.locator('[data-account-alias]').count(),1);
   assert.equal(await page.locator('.cookie-account-card.is-just-saved').count(),1);
-  await page.locator('.cookie-import-toast').getByText(/已保存当前账号快照/).waitFor();
+  await page.locator('.cookie-import-toast').filter({hasText:/已保存当前账号快照/}).waitFor();
   await button('保存当前 Cookie 为账号').click();
   assert.equal(await nameInput.inputValue(),'新账号 2');
   await button('保存账号').click();
