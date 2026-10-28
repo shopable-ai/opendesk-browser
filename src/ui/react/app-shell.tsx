@@ -68,6 +68,9 @@ export function SidebarAppShell({
               onClick={onStopAppDebug}>停止调试</button>
           </div>}
           <div id="sidebar-tool-list-view" hidden={activeTab==='app-debug'||(toolSnapshot.fields['sidebar-tool-display']?.hidden===false&&!isPanelPreview)}>
+            {activeTab==='tools'&&isPanelPreview&&<p className="hint" role="status">
+              应用调试正在运行；打开已安装应用前，请先在「应用调试」停止。
+            </p>}
             <section id="extension-center" aria-label="扩展管理">
               <ExtensionCenterPage {...extensionProps}/>
             </section>

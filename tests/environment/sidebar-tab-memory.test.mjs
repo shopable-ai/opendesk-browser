@@ -201,6 +201,7 @@ test('R1.2 Side Panel keeps one development iframe across normal tabs (source co
   assert.match(shell,/const keepDeveloperPreview=verifiedSidePanel&&Boolean\(panelPreviewId\)&&\s+sidebarTools\.isPreviewActive\(\)/);
   assert.doesNotMatch(shell,/destination==='develop'&&sidebarTools\.isPreviewActive\(\)/);
   assert.match(app,/concealed=\{activeTab==='tools'&&isPanelPreview\}/);
+  assert.match(app,/应用调试正在运行；打开已安装应用前/);
   assert.equal((app.match(/<ToolHost\s/g)||[]).length,1,'the trusted shell has one ToolHost');
   assert.match(host,/className="sidebar-tool-host od-stack" hidden=\{concealed\}/);
   assert.match(host,/forceHidden=\{debugPreview\}/);
