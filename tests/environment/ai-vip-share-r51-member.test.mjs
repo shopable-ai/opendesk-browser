@@ -660,10 +660,14 @@ for(const kind of ['shop','desktop'])test(`R2.8 fixed HTTPS ${kind} requires tru
 
 test('R2.7 unconfigured state omits phantom metrics but keeps approved promotion UI visible',async()=>{
   const e=await runtime();
-  for(const id of ['member-facts','secondary-metrics','history-details','redeem-form',
+  for(const id of ['member-facts','secondary-metrics','history-details',
     'proxy-toggle','refresh'])
     assert.equal(node(e,id).hidden,true,id+' must be absent from the visible empty state');
   assert.equal(node(e,'remaining').textContent,'');
+  assert.equal(node(e,'member-empty').hidden,false);
+  assert.equal(node(e,'redeem-form').hidden,false,'disabled input remains visible');
+  assert.equal(node(e,'redeem-code').disabled,true);
+  assert.equal(node(e,'redeem').disabled,true);
   assert.equal(node(e,'shop-section').hidden,false);
   assert.equal(node(e,'desktop-promo').hidden,false);
   assert(!node(e,'account-name').textContent.includes('待核验'));
@@ -717,7 +721,9 @@ test('R5.9.4 guest and verified no-subscription state do not show phantom stats'
       data:member({account,entitlements:[]})})});
     for(const id of ['member-facts','secondary-metrics','history-details'])
       assert.equal(node(e,id).hidden,true);
-    assert.equal(node(e,'redeem-form').hidden,isGuest);
+    assert.equal(node(e,'redeem-form').hidden,false);
+    assert.equal(node(e,'redeem-code').disabled,isGuest);
+    assert.equal(node(e,'member-empty').hidden,false);
     assert.equal(node(e,'remaining').textContent,'');
   }
 });

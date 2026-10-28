@@ -10,7 +10,10 @@ const note=document.getElementById('preview-note');
 const tell=message=>{note.textContent=message+'（只修改隔离演示，未操作 Chrome。）';};
 
 const scene=document.getElementById('preview-scene');
-const allowed=new Set(['member','session','redeem','quota','expired','guest','error','offline']);
+const allowed=new Set([
+  'first','empty','unconfigured','error','member','expired','link','permission',
+  'proxy-on','conflict','stop-pending','session','redeem','quota','guest','offline'
+]);
 const requested=new URL(location.href).searchParams.get('scene');
 scene.value=allowed.has(requested)?requested:'member';
 scene.addEventListener('change',()=>{
@@ -18,6 +21,8 @@ scene.addEventListener('change',()=>{
   const url=new URL(location.href);
   if(scene.value==='member')url.searchParams.delete('scene');
   else url.searchParams.set('scene',scene.value);
+  url.searchParams.set('width',width.value);
+  if(theme.value!=='system')url.searchParams.set('theme',theme.value);
   location.assign(url.href); // A new isolated Fixture, never a real account transition.
 });
 
@@ -26,6 +31,8 @@ width.addEventListener('change',()=>{
   if(!['320','360','390','400','440','520'].includes(width.value))return;
   document.documentElement.style.setProperty('--frame-width',width.value+'px');
 });
+const savedWidth=new URL(location.href).searchParams.get('width');
+if(['320','360','390','400','440','520'].includes(savedWidth))width.value=savedWidth;
 width.dispatchEvent(new Event('change'));
 
 document.getElementById('preview-fill-code').addEventListener('click',()=>{
@@ -36,6 +43,24 @@ document.getElementById('preview-fill-code').addEventListener('click',()=>{
   input.focus({preventScroll:true});
   tell('体验激活码已填入；预检与最终确认仍需在正式产品界面主动点击');
 });
+document.getElementById('preview-member-failure').addEventListener('click',()=>{
+  const button=document.getElementById('preview-member-failure');
+  const failed=button.getAttribute('aria-pressed')!=='true';
+  fixture.setMemberFailure(failed);
+  button.setAttribute('aria-pressed',String(failed));
+  button.textContent=failed?'恢复会员查询':'模拟会员查询中断';
+  tell(failed?'会员连接已模拟中断；点会员卡的刷新检查历史资料保留但新操作锁定':
+    '模拟会员服务已恢复；点会员卡刷新重新核验');
+});
+const theme=document.getElementById('preview-theme');
+theme.addEventListener('change',()=>{
+  if(theme.value==='system')delete document.documentElement.dataset.previewTheme;
+  else document.documentElement.dataset.previewTheme=theme.value;
+});
+const savedTheme=new URL(location.href).searchParams.get('theme');
+if(['light','dark'].includes(savedTheme)){
+  theme.value=savedTheme;theme.dispatchEvent(new Event('change'));
+}
 document.getElementById('preview-cookie').addEventListener('change',event=>{
   fixture.cookieOutcome=event.target.value;
   tell('下一次 Cookie 逐项写入将返回「'+event.target.selectedOptions[0].text+'」');

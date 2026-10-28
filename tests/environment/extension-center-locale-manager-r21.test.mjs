@@ -110,8 +110,7 @@ test('daily tool choices save their scope, follow the default only when requeste
     tools:[f.tool],toolId:f.tool.id,service:f.service,localeController,onClose(){}}}}),{doc}=ui;
   const select=doc.getElementById('od-locale-tool-language');
   const status=()=>doc.getElementById('od-locale-tool-status').textContent;
-  assert.equal(doc.getElementById('od-locale-tool'),null);
-  assert.match(doc.body.textContent,/当前工具：语言测试工具/);
+  assert.equal(doc.getElementById('od-locale-tool').value,f.tool.id,'selected extension stays visible');
   assert.equal(doc.querySelector('#od-locale-target'),null,'template target is not on the daily page');
   assert.match(status(),/日本語.*仅此工具/);
   for(const [value,label] of [['zh-CN','简体中文'],['en','English'],['ja','日本語']]){
@@ -663,7 +662,7 @@ for(const locale of ['zh-CN','en','ja']){
     const text=(key,params)=>msg(locale,key,params);
     const button=key=>buttonNamed(doc,text(key));
     const before=structuredClone(f.saved);
-    assert.ok(doc.body.textContent.includes(text('globalLabel')));
+    assert.ok(doc.body.textContent.includes(text('uiLanguage')));
     assert.ok(doc.body.textContent.includes(text('extensionLanguage')));
     assert.ok(doc.body.textContent.includes(text('managePacks')));
     assert.equal(doc.querySelector('[role=dialog]'),null,'full subpage, not uninstall confirmation');
@@ -882,4 +881,36 @@ test('large valid backup stays within the file admission budget and can be reimp
   buttonNamed(doc,'确认覆盖').dispatch('click');
   await settle(()=>doc.getElementById('od-locale-pack-tool')&&!doc.querySelector('input[type=file]').disabled);
   assert.deepEqual(f.saved[toolLocaleStorageKey(f.tool.id)].packs.ja,pack);
+});
+
+test('R5.26 renders R5.23 full-click JSON drop target without duplicate controls',async t=>{
+  const f=await setup(t);
+  const {doc}=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[f.tool],toolId:f.tool.id,service:f.service,onClose(){}}}});
+  assert.equal(doc.querySelector('#od-locale-global').closest('.od-locale-field')
+    .querySelector('.od-locale-label').textContent,'OpenDesk');
+  assert.equal(doc.querySelector('#od-locale-tool').value,f.tool.id);
+  openPacks(doc);
+  const zone=doc.querySelector('button.od-locale-drop-zone');
+  assert.ok(zone,'the entire import rectangle is one native button');
+  assert.equal(zone.querySelector('button'),null,'no inner select-file button');
+  assert.equal(zone.getAttribute('aria-describedby'),'od-locale-import-hint');
+  assert.ok(doc.getElementById('od-locale-import-hint').textContent.includes('256 KiB'));
+  assert.equal(doc.querySelectorAll('#od-locale-target').length,0,'no target selector outside composer');
+  assert.equal(doc.querySelector('.od-locale-compose-toggle').getAttribute('aria-expanded'),'false');
+  doc.querySelector('.od-locale-compose-toggle').dispatch('click');
+  assert.equal(doc.querySelector('.od-locale-compose-toggle').getAttribute('aria-expanded'),'true');
+  assert.ok(doc.getElementById('od-locale-target'),'target exists only after composer opens');
+});
+
+test('R5.26 responsive contract follows R5.23 container threshold and immutable source hash',async()=>{
+  const css=await readFile(new URL('../../src/ui/react/tabs/locale-manager.css',import.meta.url),'utf8');
+  assert.match(css,/container-type:inline-size/);
+  assert.match(css,/@container\(max-width:270px\)/);
+  assert.doesNotMatch(css,/@media\(max-width:440px\)/,'320-440px sidebars must keep inline fields');
+  assert.match(css,/\.od-locale-drop-zone\{display:flex/);
+  const baseline=await readFile(new URL('../../prototypes/sidebar/locale-manager/index.html',import.meta.url));
+  const {createHash}=await import('node:crypto');
+  assert.equal(createHash('sha256').update(baseline).digest('hex'),
+    '696fa6a556fefc3dcf4ba4cec9ddc0f397fc69ebb97f0b01df760a40e5467a61');
 });

@@ -5,6 +5,7 @@ import {LOCALE_PACK_MAX_BYTES} from '../../sidebar-tools/locale-packs.js';
 import {sameStorageValue} from '../../sidebar-tools/storage-state.js';
 
 const languageNames={auto:'auto',en:'English','zh-CN':'简体中文','zh-TW':'繁體中文',ja:'日本語'};
+const packLanguageNames={fr:'Français',de:'Deutsch',es:'Español'};
 const failureText=(failure,t)=>{
   if(failure?.localeMessage)return t(failure.localeMessage);
   const code=failure?.code||'';
@@ -51,12 +52,12 @@ export default function LocaleManager({model}){
   const [globalError,setGlobalError]=React.useState(()=>localeController?.getError?.()||null);
   const globalUnknown=globalError?.code==='E_UI_LOCALE_OUTCOME_UNKNOWN';
   const importRef=React.useRef(null),previewRef=React.useRef(null),deleteRef=React.useRef(null),headingRef=React.useRef(null);
-  const fileRef=React.useRef(null),alive=React.useRef(true),operation=React.useRef(false);
+  const fileRef=React.useRef(null),dragDepth=React.useRef(0),alive=React.useRef(true),operation=React.useRef(false);
   const tool=tools.find(item=>item.id===toolId);
   const [globalLocale,setGlobalLocale]=React.useState(()=>localeController?.getLocale?.()||'zh-CN');
   const panelLocale=localeManagerLocale(globalLocale);
   const t=(key,parameters={})=>localeManagerText(panelLocale,key,parameters);
-  const languageName=value=>value==='auto'?t('auto'):languageNames[value]||value;
+  const languageName=value=>value==='auto'?t('auto'):languageNames[value]||packLanguageNames[value]||value;
   const localError=key=>Object.assign(new Error(key),{localeMessage:key});
   let available=[],toolPreference=null,catalog=null,localeReadError=null;
   try{
@@ -136,7 +137,7 @@ export default function LocaleManager({model}){
     if(pack?.format!=='opendesk.locale-pack.v1')throw localError('fileFormat');
     await previewPack(pack);
   });
-  const selectTool=value=>{setToolId(value);setPreview(null);setPendingDelete(false);setNotice('');};
+  const selectTool=value=>{setToolId(value);setPacks([]);setPreview(null);setPendingDelete(false);setNotice('');setError('');setDragOver(false);dragDepth.current=0;};
   const targetChanged=value=>{setTarget(value);setPendingDelete(false);};
   const changeToolLanguage=value=>{if(!ready)return;void run(async()=>{
     await service.setToolLocale(toolId,value==='follow'?null:value);
@@ -246,9 +247,9 @@ export default function LocaleManager({model}){
     </header>
     {view==='settings'&&<div className="od-locale-view od-stack">
       <section className="od-locale-section od-stack" aria-label={t('globalLabel')}>
-        <h3>{t('globalLabel')}</h3>
+        <h3>{t('uiLanguage')}</h3>
         <label className="od-locale-field" htmlFor="od-locale-global">
-          <span className="od-locale-label">{t('uiLanguage')}</span>
+          <span className="od-locale-label">OpenDesk</span>
           <select id="od-locale-global" className="od-field" value={preference}
             disabled={busy||!localeController||globalUnknown} onChange={event=>{
               if(localeController?.getError?.()?.code==='E_UI_LOCALE_OUTCOME_UNKNOWN')return;
@@ -265,15 +266,14 @@ export default function LocaleManager({model}){
       </section>
       <section className="od-locale-section od-stack" aria-label={t('extensionLanguage')}>
         <h3>{t('extensionLanguage')}</h3>
-        {model.toolId?<p className="od-locale-caption">{t('currentTool',{title:currentToolTitle})}</p>:
-          <label className="od-locale-field" htmlFor="od-locale-tool">
-            <span className="od-locale-label">{t('chooseTool')}</span>
-            <select id="od-locale-tool" className="od-field" value={toolId} disabled={busy||!tools.length}
-              onChange={event=>selectTool(event.currentTarget.value)}>
-              {!tools.length&&<option value="">{t('noTools')}</option>}
-              {tools.map(item=><option key={item.id} value={item.id}>{item.title||item.name||item.id}</option>)}
-            </select>
-          </label>}
+        <label className="od-locale-field" htmlFor="od-locale-tool">
+          <span className="od-locale-label">{t('extensionLabel')}</span>
+          <select id="od-locale-tool" className="od-field" value={toolId} disabled={busy||!tools.length}
+            onChange={event=>selectTool(event.currentTarget.value)}>
+            {!tools.length&&<option value="">{t('noTools')}</option>}
+            {tools.map(item=><option key={item.id} value={item.id}>{item.title||item.name||item.id}</option>)}
+          </select>
+        </label>
         {tool?.localization?<label className="od-locale-field" htmlFor="od-locale-tool-language">
           <span className="od-locale-label">{t('displayLanguage')}</span>
           <select id="od-locale-tool-language" className="od-field" value={localeReadError?'unreadable':toolPreference||'follow'}
@@ -293,23 +293,24 @@ export default function LocaleManager({model}){
             t('missingText',{count:catalog.missing.length})}
         </p>}
       </section>
-      <Button className="od-locale-nav" onClick={()=>{setView('packs');setError('');setNotice('');}}>
-        <span><strong>{t('managePacks')}</strong><small>{t('managePacksHint')}</small></span>
-        <span aria-hidden="true">›</span>
+      <Button variant="quiet" className="od-locale-nav" onClick={()=>{setView('packs');setError('');setNotice('');}}>
+        <span className="od-locale-nav-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3z"/></svg></span>
+        <span className="od-locale-nav-copy"><strong>{t('managePacks')}</strong><small>{t('managePacksHint')}</small></span>
+        <svg className="od-locale-nav-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
       </Button>
     </div>}
     {view==='packs'&&<div className="od-locale-view od-stack">
       <section className="od-locale-section od-stack">
         <label className="od-locale-field" htmlFor="od-locale-pack-tool">
-          <span className="od-locale-label">{t('chooseTool')}</span>
+          <span className="od-locale-label">{t('extensionLabel')}</span>
           <select id="od-locale-pack-tool" className="od-field" value={toolId}
             disabled={busy||!tools.length} onChange={event=>selectTool(event.currentTarget.value)}>
             {!tools.length&&<option value="">{t('noTools')}</option>}
             {tools.map(item=><option key={item.id} value={item.id}>{item.title||item.name||item.id}</option>)}
           </select>
         </label>
-        <div className="od-locale-section-head"><h3>{t('importedPacks')}</h3><span className="od-locale-caption">{packs.length}</span></div>
-        {packs.length?<div className="od-locale-resources" role="list" aria-label={t('installed')}>
+        <div className="od-locale-section-head"><h3>{t('importedPacks')}</h3><span className="od-locale-caption">{t('packCount',{count:packs.length})}</span></div>
+        {packs.length?<div className="od-locale-resources" role="list" aria-label={t('importedPacks')}>
           {resourceRows.filter(row=>row.pack).map(row=><div className="od-locale-resource" key={row.language} role="listitem">
             <div className="od-locale-resource-copy">
               <strong>{languageName(row.language)} <small>{row.language}</small></strong>
@@ -328,6 +329,7 @@ export default function LocaleManager({model}){
         </div>:<p className="od-locale-caption">{t('noImportedPacks')}</p>}
         {pendingDelete&&<div className="od-locale-inline-confirm od-stack" role="group" aria-label={t('deleteLabel')}>
           <strong>{t('deleteQuestion',{title:pendingDelete.title,locale:pendingDelete.locale})}</strong>
+          <p className="od-locale-caption">{t('deleteHint')}</p>
           <div className="od-locale-actions">
             <Button ref={deleteRef} variant="danger" disabled={busy||!ready} onClick={()=>void run(async()=>{
               await service.remove(pendingDelete.toolId,pendingDelete.locale,pendingDelete.review);
@@ -342,21 +344,41 @@ export default function LocaleManager({model}){
       </section>
       <section className="od-locale-section od-stack" aria-label={t('importSection')}>
         <h3>{t('importSection')}</h3>
-        <div className="od-locale-drop-zone" data-over={dragOver}
-          onDragEnter={event=>{if(Array.from(event.dataTransfer?.types||[]).includes('Files')){event.preventDefault();setDragOver(true);}}}
-          onDragOver={event=>{event.preventDefault();event.dataTransfer.dropEffect='copy';}}
-          onDragLeave={()=>setDragOver(false)}
-          onDrop={event=>{event.preventDefault();event.stopPropagation();setDragOver(false);readFile(Array.from(event.dataTransfer.files||[]));}}>
-          <Button ref={importRef} disabled={busy||!service||serviceStatus!=='ready'||Boolean(localeReadError)}
-            onClick={()=>fileRef.current?.click()}>{t('selectJson')}</Button>
-          <p className="od-locale-caption">{t('importZoneHint')}</p>
-        </div>
+        <button type="button" className="od-locale-drop-zone" ref={importRef} data-over={dragOver}
+          aria-describedby="od-locale-import-hint"
+          disabled={busy||!ready}
+          onClick={()=>fileRef.current?.click()}
+          onDragEnter={event=>{
+            if(!Array.from(event.dataTransfer?.types||[]).includes('Files'))return;
+            event.preventDefault();dragDepth.current++;setDragOver(true);
+          }}
+          onDragOver={event=>{
+            if(!Array.from(event.dataTransfer?.types||[]).includes('Files'))return;
+            event.preventDefault();event.dataTransfer.dropEffect='copy';
+          }}
+          onDragLeave={event=>{
+            if(!Array.from(event.dataTransfer?.types||[]).includes('Files'))return;
+            dragDepth.current=Math.max(0,dragDepth.current-1);
+            if(!dragDepth.current)setDragOver(false);
+          }}
+          onDrop={event=>{
+            if(!Array.from(event.dataTransfer?.types||[]).includes('Files'))return;
+            event.preventDefault();event.stopPropagation();
+            dragDepth.current=0;setDragOver(false);
+            if(ready&&!busy)readFile(Array.from(event.dataTransfer.files||[]));
+          }}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M4 18v3h16v-3"/></svg>
+          <span className="od-locale-import-copy"><strong>{t('selectJson')}</strong>
+            <small id="od-locale-import-hint">{t('importZoneHint')}</small></span>
+        </button>
         <input ref={fileRef} type="file" accept=".json,application/json" aria-label={t('fileLabel')} hidden
           disabled={busy||!service||serviceStatus!=='ready'} onChange={event=>{
             readFile(event.currentTarget.files);event.currentTarget.value='';
           }}/>
         <Button variant="quiet" className="od-locale-compose-toggle" aria-expanded={composeOpen}
-          onClick={()=>setComposeOpen(value=>!value)}>{t('createToggle')} <span aria-hidden="true">{composeOpen?'⌄':'›'}</span></Button>
+          onClick={()=>setComposeOpen(value=>!value)}>{t('createToggle')}
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </Button>
         {composeOpen&&<div className="od-locale-compose od-stack">
           <h3>{t('createTitle')}</h3>
           <label className="od-locale-field" htmlFor="od-locale-target">
@@ -382,12 +404,17 @@ export default function LocaleManager({model}){
     </div>}
     {view==='preview'&&preview&&<div className="od-locale-view od-stack" aria-label={t('previewLabel')}>
       <section className="od-locale-section od-stack">
-        <h3 ref={previewRef} tabIndex={-1}>{canInstall?t('validationOk'):t('validationBlocked')}</h3>
+        <h3 className="od-locale-validation" data-valid={canInstall} ref={previewRef} tabIndex={-1}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">{canInstall?
+            <path d="m4 12 5 5L20 6"/>:
+            <><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4v.1"/></>}</svg>
+          {canInstall?t('validationOk'):t('validationBlocked')}
+        </h3>
         <dl className="od-locale-facts">
-          <div><dt>{t('chooseTool')}</dt><dd>{preview.tool.title||preview.pack.toolId} ({preview.pack.toolId})</dd></div>
-          <div><dt>{t('targetLabel')}</dt><dd>{languageName(preview.pack.targetLocale)} ({preview.pack.targetLocale})</dd></div>
+          <div><dt>{t('extensionLabel')}</dt><dd>{preview.tool.title||preview.pack.toolId} ({preview.pack.toolId})</dd></div>
+          <div><dt>{t('languageLabel')}</dt><dd>{languageName(preview.pack.targetLocale)} ({preview.pack.targetLocale})</dd></div>
           <div><dt>{t('entryLabel')}</dt><dd>{Object.keys(preview.pack.messages).length}</dd></div>
-          <div><dt>{t('hashLabel')}</dt><dd>{importPreview.hashMatches?t('hashOk'):t('hashBad')}<small className="od-locale-hash">{preview.pack.sourceCatalogHash}</small></dd></div>
+          <div><dt>{t('hashLabel')}</dt><dd title={preview.pack.sourceCatalogHash}>{importPreview.hashMatches?t('hashOk'):t('hashBad')}</dd></div>
           <div><dt>{t('placeholderLabel')}</dt><dd>{t('placeholderOk')}</dd></div>
           <div><dt>{t('missingLabel')}</dt><dd>{importPreview.missing.length}</dd></div>
         </dl>

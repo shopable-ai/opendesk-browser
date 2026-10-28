@@ -40,7 +40,7 @@ test('member-first product structure reuses official Shared UI and never clones 
   for(const name of ['Button','IconButton','Card','CardContent'])
     assert.match(view,new RegExp('\\b'+name+'\\b'));
   const order=['ai-vip-brand','ai-vip-membership','ai-vip-redeem',
-    'ai-vip-cookie-section','ai-vip-shop','ai-vip-proxy','ai-vip-desktop-promo'];
+    'ai-vip-shop','ai-vip-proxy','ai-vip-cookie-section','ai-vip-desktop-promo'];
   const indices=order.map(v=>view.indexOf(v));
   assert(indices.every((v,i)=>v>0&&(i===0||v>indices[i-1])));
   assert.doesNotMatch(view,/<h1\b|功能与接入状态|服务与开发信息|本地开发|演示步骤|ai-vip-feature-|ai-vip-local-connect|公司共享账号|ai-vip-shared-section|ai-vip-shared-account/);

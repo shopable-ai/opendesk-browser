@@ -158,30 +158,47 @@ try{
  // its catalog and pack service are the existing preview-isolated adapter.
  await cdp('Page.navigate',{url:pathToFileURL(preview).href+'?tab=tools&width=360&theme=light'});
  await waitFor('document.documentElement.dataset.previewBootScript==="ready" && '+
-  '!!document.getElementById("extension-center-language-settings")');
- await pointer('#extension-center-language-settings');
- await waitFor('document.querySelectorAll("#od-locale-global option").length===5 && '+
-  '!!document.querySelector("#od-locale-tool-language")');
- const languageState=await evalJs('(()=>({options:[...document.querySelectorAll("#od-locale-tool-language option")].map(x=>x.value),'+
-   'current:document.getElementById("od-locale-tool-language")?.value,preview:!!document.querySelector(".od-locale-manager")}))()');
- assert.ok(languageState.preview,'Production LocaleManager never rendered');
- assert.ok(languageState.options.includes('follow'),'Extension language must support following OpenDesk');
- assert.ok(languageState.options.length>=2,'Demo tool must expose valid installed source locale');
- report.checks.push('real LocaleManager renders global five-way and effective tool language Select');
- await pointer('.od-locale-maintenance > summary');
- await waitFor('document.querySelector(".od-locale-maintenance")?.open===true && '+
-   '!!document.querySelector("#od-locale-target")');
- const advanced=await evalJs('(()=>({target:document.getElementById("od-locale-target")?.value,'+
-   'import:!!document.querySelector(".od-locale-maintenance input[type=file]"),'+
-   'languageRows:document.querySelectorAll(".od-locale-resource").length}))()');
- assert.equal(advanced.import,true,'Advanced sheet must present a real file picker');
- report.checks.push('real advanced language sheet and tool-target BCP47 field');
- await key('Escape',27);
- await waitFor('document.querySelector(".od-locale-maintenance")?.open===false');
- report.checks.push('advanced sheet Escape returns to daily languages');
- await key('Escape',27);
- await waitFor('!document.querySelector(".od-locale-manager")');
- report.checks.push('final Escape dismisses trusted Host dialog');
+    '!!document.getElementById("extension-center-more")');
+  await pointer('#extension-center-more');
+  await waitFor('document.getElementById("extension-center-menu")?.hidden===false');
+  await pointer('#extension-center-language-settings');
+  await waitFor('document.querySelectorAll("#od-locale-global option").length===5 && '+
+    '!!document.querySelector("#od-locale-tool-language")');
+  const languageState=await evalJs('(()=>({options:[...document.querySelectorAll("#od-locale-tool-language option")].map(x=>x.value),'+
+    'current:document.getElementById("od-locale-tool-language")?.value,'+
+    'preview:!!document.querySelector(".od-locale-manager"),'+
+    'inline:getComputedStyle(document.querySelector("#od-locale-global").closest(".od-locale-field")).gridTemplateColumns}))()');
+  assert.ok(languageState.preview,'Production LocaleManager never rendered');
+  assert.ok(languageState.options.includes('follow'),'Extension language must support following OpenDesk');
+  assert.ok(languageState.options.length>=2,'Demo tool must expose valid installed source locale');
+  assert.match(languageState.inline,/76px/,'360px settings must retain R5.23 inline form layout');
+  report.checks.push('R5.26 LocaleManager renders five global choices, follow and inline fields');
+  {
+    const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(join(artifactDir,'locale-settings-360-light.png'),Buffer.from(shot.data,'base64'));
+  }
+  await pointer('.od-locale-nav');
+  await waitFor('!!document.getElementById("od-locale-pack-tool") && '+
+    '!!document.querySelector("button.od-locale-drop-zone")');
+  const packs=await evalJs('(()=>({zone:!!document.querySelector("button.od-locale-drop-zone"),'+
+    'file:!!document.querySelector("input[type=file]"),target:!!document.getElementById("od-locale-target")}))()');
+  assert.equal(packs.zone,true,'Entire dashed import area must be a clickable button');
+  assert.equal(packs.file,true,'Pack page must preserve the native JSON file picker');
+  assert.equal(packs.target,false,'Composer target must stay hidden by default');
+  {
+    const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(join(artifactDir,'locale-packs-360-light.png'),Buffer.from(shot.data,'base64'));
+  }
+  await pointer('.od-locale-compose-toggle');
+  await waitFor('document.querySelector(".od-locale-compose-toggle")?.getAttribute("aria-expanded")==="true" && '+
+    '!!document.querySelector("#od-locale-target")');
+  report.checks.push('R5.26 clickable JSON drop zone and collapsed language-template composer');
+  await key('Escape',27);
+  await waitFor('!!document.getElementById("od-locale-global")');
+  report.checks.push('Escape returns from pack subpage to language settings');
+  await key('Escape',27);
+  await waitFor('!document.querySelector(".od-locale-manager")');
+  report.checks.push('final Escape closes trusted React language page');
  assert.deepEqual(report.exceptions,[],'React runtime raised unexpected exceptions');
  report.result='PASS';
  await writeFile(join(artifactDir,'gallery-result.json'),JSON.stringify(report,null,2)+'\n');

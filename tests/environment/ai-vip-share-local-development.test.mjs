@@ -171,13 +171,15 @@ test('feature status explains hidden production controls without granting develo
   const e=await runtime({developmentProfile:null});
   assert.match(e.get('service-mode').textContent,/正式服务未配置/);
   assert.match(e.get('feature-member').textContent,/账号服务未配置/);
-  assert.match(e.get('feature-redeem').textContent,/输入框暂不显示/);
+  assert.match(e.get('feature-redeem').textContent,/输入框仅可查看、不可提交/);
   assert.match(e.get('feature-cookie').textContent,/生产目标未配置/);
   assert.match(e.get('feature-shop').textContent,/商城地址未配置/);
   assert.match(e.get('feature-proxy').textContent,/生产代理未配置/);
   assert.match(e.get('demo-availability').textContent,/旧开发版或包来源不匹配/);
   assert.equal(e.get('local-development').hidden,true);
-  assert.equal(e.get('redeem-form').hidden,true);
+  assert.equal(e.get('redeem-form').hidden,false,'disabled form keeps first-install layout');
+  assert.equal(e.get('redeem-code').disabled,true);
+  assert.equal(e.get('redeem').disabled,true);
   assert.equal(e.calls.length,0);assert.equal(e.cookieCalls.length,0);assert.equal(e.proxyCalls.length,0);
 });
 
@@ -712,33 +714,33 @@ const ACTIVATION='aiVipActivationR140';
 const activationPage=(code='DEMO-VIP-01')=>({status:'available',url:ORIGIN+'/activate?activation_code='+encodeURIComponent(code)});
 const posts=(e,path)=>e.calls.filter(row=>row.method==='POST'&&row.url.endsWith(path));
 
-test('URL activation uses Host page metadata, one shared flow, a durable salted claim and explicit Cookie review',async()=>{
+test('trusted activation URL fills a manual draft; never automatically submits voucher or Cookie',async()=>{
   const e=await runtime({currentPage:activationPage(),pollTimers:true});
   assert.equal(e.timers.length,1);assert.equal(e.timers[0].ms,1200);
-  assert.equal(e.calls.length,0,'installing/opening the sandbox is not activation authority');
+  assert.equal(e.calls.length,0,'opening the sandbox is not an activation');
   await e.click('local-connect');await e.checkPage();
-  assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,1);
-  assert.equal(posts(e,'/preview')[0].data.code,'DEMO-VIP-01');
+  assert.equal(e.get('redeem-code').value,'DEMO-VIP-01');
+  assert.equal(e.get('activation-hint').hidden,false);
+  assert.equal(posts(e,'/preview').length,0,'URL cannot preflight without a user action');
+  assert.equal(posts(e,'/redeem').length,0,'URL cannot redeem without a user action');
+  assert.equal(e.store.get(ACTIVATION),undefined,'legacy URL-claim writes are no longer required');
+  for(let i=0;i<3;i++)await e.checkPage();
+  assert.equal(posts(e,'/preview').length,0);
+  await e.preview();assert.equal(posts(e,'/preview').length,1);
+  assert.equal(e.get('redeem-preview').hidden,false);
+  assert.equal(e.fixture.ledger.size,0);
+  await e.click('redeem-confirm',false);assert.equal(posts(e,'/redeem').length,0);
+  await e.click('redeem-confirm');assert.equal(posts(e,'/redeem').length,1);
   assert.equal(e.fixture.ledger.size,1);
-  assert.equal(e.get('shared-account').textContent,'公司共享账号 A');
-  assert.equal(e.cookieCalls.length,0,'URL input cannot silently approve the Cookie batch');
-  const record=e.store.get(ACTIVATION);
-  assert.deepEqual(Object.keys(record).sort(),['salt','schemaVersion','seen']);
-  assert.equal(record.schemaVersion,1);assert.equal(record.seen.length,1);
-  assert.equal(record.seen[0],createHash('sha256').update(record.salt+'\nDEMO-VIP-01').digest('hex'));
-  assert(!JSON.stringify([...e.store.values()]).includes('DEMO-VIP-01'));
-  assert(!JSON.stringify(e.storageCalls).includes('activation_code'));
-  await e.click('cookie-install',false);assert.equal(e.cookieCalls.length,0);
+  assert.equal(e.cookieCalls.length,0,'voucher confirmation does not approve Cookie');
   await e.click('cookie-install');assert.equal(e.cookieCalls.length,1);
   assert.equal(e.store.get(COOKIE_KEY).sharedAccountId,'shared-a');
-  assert.equal(e.tabCalls.at(-1).url,ORIGIN+'/session/');
-  assert.doesNotMatch(e.get('shared-status').textContent,/登录成功/,'writing Cookies is not target-page identity evidence');
-  for(let i=0;i<3;i++)await e.checkPage();
-  assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,1);
+  assert.doesNotMatch(e.get('shared-status').textContent,/登录成功/);
   const reopened=await runtime({store:e.store,fixture:e.fixture,currentPage:activationPage()});
   await reopened.checkPage();
-  assert.equal(posts(reopened,'/preview').length,0);assert.equal(posts(reopened,'/redeem').length,0);
-  assert.equal(reopened.cookieCalls.length,0,'reopen never replays the batch or activation');
+  assert.equal(posts(reopened,'/preview').length,0);
+  assert.equal(posts(reopened,'/redeem').length,0);
+  assert.equal(reopened.cookieCalls.length,0);
 });
 
 test('manual activation rejects synthetic click, Enter, submit and confirmation events',async()=>{
@@ -789,170 +791,103 @@ test('URL parser and live entry reject other origins, paths, malformed or repeat
   await production.checkPage();assert.equal(production.pageCalls.length,0);assert.equal(production.calls.length,0);
 });
 
-test('duplicate URL observations and trusted manual actions coalesce while activation preflight is in flight',async()=>{
+test('polling an activation link cannot start another request while a manual preflight is pending',async()=>{
   const entered=deferred(),resume=deferred();
   const e=await runtime({currentPage:activationPage(),network:async(args,fixture)=>{
     if(args.url.endsWith('/preview')){entered.resolve();await resume.promise;}
     return fixtureRequest(fixture,{...args,headers:args.config.headers});
   }});
-  await e.click('local-connect');
-  const running=e.activation.checkActivationPage();await entered.promise;
-  await e.checkPage();await e.preview();await e.click('redeem-confirm');
-  assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,0);
-  resume.resolve();await running;await e.flush();
-  assert.equal(posts(e,'/redeem').length,1);assert.equal(e.store.get(ACTIVATION).seen.length,1);
+  await e.click('local-connect');await e.checkPage();
+  assert.equal(posts(e,'/preview').length,0);
+  const pending=e.preview();await entered.promise;
+  await e.checkPage();await e.checkPage();
+  assert.equal(posts(e,'/preview').length,1);
+  assert.equal(posts(e,'/redeem').length,0);
+  resume.resolve();await pending;
+  // preview() only waits for its synthetic event-loop flush, not for the held
+  // Provider response. Observe the real review state before confirming.
+  for(let attempt=0;attempt<10&&e.get('redeem-preview').hidden;attempt++)await e.flush();
+  assert.equal(e.get('redeem-preview').hidden,false,'delayed preflight must render the reviewed voucher');
+  assert.equal(e.get('redeem-confirm').disabled,false,'manual confirmation must become available');
+  assert.equal(e.fixture.ledger.size,0);
+  await e.click('redeem-confirm');assert.equal(posts(e,'/redeem').length,1);
 });
 
-test('URL activation cannot interrupt a manual preview or an in-flight Cookie write',async()=>{
-  const entered=deferred(),resume=deferred();
-  const e=await runtime({currentPage:activationPage('DEMO-VIP-02'),cookieSetMany:async args=>{
-    entered.resolve();await resume.promise;
-    return {saved:args.cookies.length,verified:args.cookies.length,
-      results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
-  }});
-  await e.click('local-connect');await e.preview();await e.checkPage();
-  assert.equal(posts(e,'/preview').length,1);assert.equal(e.store.get(ACTIVATION),undefined);
-  await e.click('redeem-confirm');
-  e.get('cookie-install').listeners.click({isTrusted:true});await entered.promise;
-  await e.checkPage();assert.equal(posts(e,'/redeem').length,1);assert.equal(e.store.get(ACTIVATION),undefined);
-  resume.resolve();await e.flush();assert.equal(e.cookieCalls.length,1);
+test('closing an approved activation page removes its draft without a POST or write-ahead journal',async()=>{
+  const e=await runtime({currentPage:activationPage()});
+  await e.click('local-connect');await e.checkPage();
+  assert.equal(e.get('redeem-code').value,'DEMO-VIP-01');
+  e.setPage({status:'available',url:ORIGIN+'/session/'});
+  await e.checkPage();
+  assert.equal(e.get('redeem-code').value,'');
+  assert.equal(e.get('activation-hint').hidden,true);
+  assert.equal(posts(e,'/preview').length,0);
+  assert.equal(posts(e,'/redeem').length,0);
+  assert.equal(e.store.get(RECOVERY)??null,null);
+  e.setPage(activationPage());await e.checkPage();
+  assert.equal(e.get('redeem-code').value,'DEMO-VIP-01');
 });
 
-test('unknown or partial Cookie outcomes block both activation entries across reopening',async()=>{
+test('activation origin change or revoked read permission before manual confirmation prevents redemption',async()=>{
+  for(const page of [{status:'available',url:ORIGIN+'/session/'},{status:'unavailable'}]){
+    const e=await runtime({currentPage:activationPage()});
+    await e.click('local-connect');await e.checkPage();await e.preview();
+    assert.equal(posts(e,'/preview').length,1);
+    e.setPage(page);await e.click('redeem-confirm');
+    assert.equal(posts(e,'/redeem').length,0,'no irreversible voucher side effect');
+    assert.equal(e.store.get(RECOVERY)??null,null);
+    assert.equal(e.cookieCalls.length,0);
+    assert.match(e.get('redeem-status').textContent,/未提交兑换/);
+  }
+});
+
+test('unknown or partial Cookie outcomes prohibit additional manual or URL-initiated redemption',async()=>{
   for(const outcome of ['unknown','partial']){
     const e=await runtime({currentPage:activationPage('DEMO-VIP-02'),cookieSetMany:async()=>{
       if(outcome==='unknown')throw Error('ack lost');
-      return {saved:1,verified:1,stopped:true,results:[{index:0,saved:true,verified:true},
+      return {saved:1,verified:1,stopped:true,results:[
+        {index:0,saved:true,verified:true},
         {index:1,saved:false,verified:false,code:'E_GRANT_REVOKED'}]};
     }});
-    await e.click('local-connect');await e.preview();await e.click('redeem-confirm');await e.click('cookie-install');
+    await e.click('local-connect');await e.preview('DEMO-VIP-01');
+    await e.click('redeem-confirm');await e.click('cookie-install');
     assert.equal(e.store.get(COOKIE_KEY).state,outcome);
     await e.checkPage();await e.preview('DEMO-VIP-02');await e.click('redeem-confirm');
     assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,1);
-    assert.equal(e.store.get(ACTIVATION),undefined);
     const reopened=await runtime({fixture:e.fixture,store:e.store,currentPage:activationPage('DEMO-VIP-02')});
     await reopened.checkPage();await reopened.preview('DEMO-VIP-02');await reopened.click('redeem-confirm');
-    assert.equal(posts(reopened,'/preview').length,0);assert.equal(posts(reopened,'/redeem').length,0);
+    assert.equal(posts(reopened,'/preview').length,0);
+    assert.equal(posts(reopened,'/redeem').length,0);
     assert.equal(reopened.cookieCalls.length,0);
   }
 });
 
-test('URL unknown activation result keeps the claim and transaction; reopen permits only explicit status reconciliation',async()=>{
-  const e=await runtime({currentPage:activationPage(),network:async(args,fixture)=>fixtureRequest(fixture,{...args,
-    headers:{...args.config.headers,...(args.url.endsWith('/redeem')?{'X-Fixture-Drop-Ack':'1'}:{})}})});
-  await e.click('local-connect');await e.checkPage();
-  assert.equal(e.fixture.ledger.size,1);assert(e.store.get(RECOVERY));assert(e.store.get(ACTIVATION));
-  assert.equal(e.cookieCalls.length,0);assert.doesNotMatch(e.get('redeem-status').textContent,/已确认兑换成功/);
+test('unknown voucher receipt keeps a recoverable durable journal and never silently resubmits',async()=>{
+  const e=await runtime({currentPage:activationPage(),network:async(args,fixture)=>
+    fixtureRequest(fixture,{...args,headers:{...args.config.headers,
+      ...(args.url.endsWith('/redeem')?{'X-Fixture-Drop-Ack':'1'}:{})}})});
+  await e.click('local-connect');await e.checkPage();await e.preview();
+  await e.click('redeem-confirm');
+  assert.equal(e.fixture.ledger.size,1);assert(e.store.get(RECOVERY));
+  assert.equal(e.cookieCalls.length,0);
+  assert.doesNotMatch(e.get('redeem-status').textContent,/已确认兑换成功/);
   const reopened=await runtime({fixture:e.fixture,store:e.store,currentPage:activationPage()});
   await reopened.checkPage();assert.equal(posts(reopened,'/redeem').length,0);
   await reopened.click('recovery-check');assert.equal(reopened.store.get(RECOVERY),null);
   await reopened.checkPage();assert.equal(posts(reopened,'/redeem').length,0);
-  assert.equal(posts(reopened,'/preview').length,0);assert.equal(e.fixture.ledger.size,1);
 });
 
-test('URL preview network failure retains its claim and never auto-retries on polling or reopening',async()=>{
-  const e=await runtime({currentPage:activationPage(),network:async(args,fixture)=>{
-    if(args.url.endsWith('/preview'))throw Error('network unavailable');
-    return fixtureRequest(fixture,{...args,headers:args.config.headers});
-  }});
-  await e.click('local-connect');await e.checkPage();await e.checkPage();
-  assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,0);
-  assert.equal(e.store.get(RECOVERY)??null,null);assert(e.store.get(ACTIVATION));
-  const reopened=await runtime({fixture:e.fixture,store:e.store,currentPage:activationPage()});
-  await reopened.checkPage();assert.equal(posts(reopened,'/preview').length,0);
-});
-
-test('URL changes during preview or final member recheck cancel automatic activation before consumption',async()=>{
-  for(const point of ['preview','member']){
-    let observe=false;
-    const e=await runtime({currentPage:activationPage(),network:async(args,fixture)=>{
-      const reply=await fixtureRequest(fixture,{...args,headers:args.config.headers});
-      if(observe&&args.url.endsWith(point==='preview'?'/preview':'/member'))e.setPage({status:'available',url:ORIGIN+'/session/'});
-      return reply;
-    }});
-    await e.click('local-connect');observe=true;await e.checkPage();
-    assert.equal(posts(e,'/preview').length,1);assert.equal(posts(e,'/redeem').length,0);
-    assert.equal(e.fixture.ledger.size,0);assert.equal(e.cookieCalls.length,0);
-    assert.equal(e.store.get(RECOVERY)??null,null);
-    e.setPage(activationPage());await e.checkPage();assert.equal(posts(e,'/preview').length,1,'changed-page claim stays consumed');
-  }
-});
-
-test('URL claim is verified before requests and failed, conflicting or uncertain persistence never triggers activation',async()=>{
-  for(const kind of ['conflict','lost-ack','mismatch']){
-    const e=await runtime({currentPage:activationPage(),afterStorageSet:(payload,store)=>{
-      if(payload.key!==ACTIVATION)return;
-      if(kind==='mismatch')store.delete(ACTIVATION);
-      else throw Object.assign(Error('claim persistence unconfirmed'),{code:kind==='conflict'?'E_STORAGE_CONFLICT':'E_OUTCOME_UNKNOWN'});
-    }});
-    await e.click('local-connect');await e.checkPage();
-    assert.equal(posts(e,'/preview').length,0);assert.equal(posts(e,'/redeem').length,0);
-    assert.equal(e.store.get(RECOVERY)??null,null);assert.equal(e.cookieCalls.length,0);
-    if(kind!=='mismatch'){
-      const reopened=await runtime({fixture:e.fixture,store:e.store,currentPage:activationPage()});
-      await reopened.checkPage();assert.equal(posts(reopened,'/preview').length,0);
-    }
-  }
-});
-
-test('malformed or full URL claim journal fails closed instead of clearing fingerprints',async()=>{
-  const invalid=[{}, {schemaVersion:1,salt:'salt',seen:['bad']},
-    {schemaVersion:2,salt:'salt',seen:[]},{schemaVersion:1,salt:'salt',seen:[],code:'forbidden'},
-    {schemaVersion:1,salt:'salt',seen:Array.from({length:64},(_,i)=>createHash('sha256').update(String(i)).digest('hex'))}];
-  for(const record of invalid){
-    const e=await runtime({currentPage:activationPage(),store:new Map([[ACTIVATION,record]])});
-    await e.click('local-connect');await e.checkPage();
-    assert.equal(posts(e,'/preview').length,0);assert.deepEqual(e.store.get(ACTIVATION),record);
-  }
-});
-
-test('revocation or URL change during claim persistence prevents activation without clearing the claim',async()=>{
-  for(const kind of ['revocation','page']){
-    const e=await runtime({currentPage:activationPage(),afterStorageSet:async payload=>{
-      if(payload.key!==ACTIVATION)return;
-      if(kind==='page')e.setPage({status:'available',url:ORIGIN+'/session/'});
-      else{e.setStatus({...released,developmentProfile:null});await e.click('proxy-refresh');}
-    }});
-    await e.click('local-connect');await e.checkPage();
-    assert(e.store.get(ACTIVATION));assert.equal(posts(e,'/preview').length,0);
-    assert.equal(posts(e,'/redeem').length,0);assert.equal(e.cookieCalls.length,0);
-  }
-});
-
-test('concurrent open tools share a CAS claim so one activation URL produces at most one server transaction',async()=>{
-  const store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN});
-  const first=await runtime({store,fixture,currentPage:activationPage()});await first.click('local-connect');
-  const second=await runtime({store,fixture,currentPage:activationPage()});
-  await Promise.all([first.checkPage(),second.checkPage()]);
-  assert.equal(posts(first,'/preview').length+posts(second,'/preview').length,1);
-  assert.equal(posts(first,'/redeem').length+posts(second,'/redeem').length,1);
-  assert.equal(fixture.ledger.size,1);assert.equal(store.get(ACTIVATION).seen.length,1);
-});
-
-test('URL change while redemption journal is being persisted stops consumption and retains status-only recovery',async()=>{
+test('source changes after durable voucher-intent persistence retain recovery without POST',async()=>{
   const e=await runtime({currentPage:activationPage(),afterStorageSet:payload=>{
     if(payload.key===RECOVERY&&payload.value)e.setPage({status:'available',url:ORIGIN+'/session/'});
   }});
-  await e.click('local-connect');await e.checkPage();
+  await e.click('local-connect');await e.checkPage();await e.preview();await e.click('redeem-confirm');
   assert.equal(posts(e,'/preview').length,1);
-  assert.equal(posts(e,'/redeem').length,0,'changed activation page must be checked after awaited persistence');
-  assert(e.store.get(RECOVERY),'persisted intent remains available for explicit status reconciliation');
+  assert.equal(posts(e,'/redeem').length,0);
+  assert(e.store.get(RECOVERY),'unknown post-intent outcome must remain reconcile-only');
   assert.equal(e.cookieCalls.length,0);
-  e.setPage(activationPage());await e.checkPage();assert.equal(posts(e,'/redeem').length,0);
+  await e.checkPage();assert.equal(posts(e,'/redeem').length,0);
 });
-
-test('URL activation accepts canonical Host key ordering in persisted claim readback',async()=>{
-  const e=await runtime({currentPage:activationPage(),afterStorageSet:(payload,store)=>{
-    if(payload.key===ACTIVATION)store.set(ACTIVATION,Object.fromEntries(Object.entries(payload.value)
-      .sort(([left],[right])=>left.localeCompare(right))));
-  }});
-  await e.click('local-connect');await e.checkPage();
-  assert.equal(posts(e,'/redeem').length,1);
-  assert.equal(e.get('shared-account').textContent,'公司共享账号 A');
-  assert.equal(e.cookieCalls.length,0);
-  await e.checkPage();assert.equal(posts(e,'/redeem').length,1);
-});
-
 
 test('consumed activation clears Host draft state after the reviewed Cookie write',async()=>{
   const e=await runtime();await e.click('local-connect');

@@ -32,11 +32,15 @@ export default function VipApp(){
           <div className="ai-vip-account-row">
             <span className="ai-vip-avatar" aria-hidden="true">AI</span>
             <div className="ai-vip-account-copy">
-              <strong id="ai-vip-account-name">暂无法查询账号与会员权益</strong>
+              <strong id="ai-vip-account-name">正在核验会员信息</strong>
               <span id="ai-vip-product-name" hidden></span>
             </div>
             <IconButton label="刷新会员信息" id="ai-vip-refresh" className="ai-vip-refresh" type="button" title="刷新会员信息" aria-label="刷新会员信息" hidden disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"/><path d="M21 20v-5h-5"/></svg></IconButton>
           </div>
+          <p id="ai-vip-member-empty" className="ai-vip-member-empty" hidden>
+            <span id="ai-vip-member-empty-text"></span>{' '}
+            <button type="button" id="ai-vip-focus-redeem" className="ai-vip-inline-action" hidden>前往兑换</button>
+          </p>
           <div id="ai-vip-member-facts" className="ai-vip-member-facts" hidden>
             <p id="ai-vip-metric-label" className="ai-vip-metric-caption">剩余会员时间</p>
           <div className="ai-vip-metric-line">
@@ -60,6 +64,9 @@ export default function VipApp(){
         <h2 id="ai-vip-redeem-title">兑换激活</h2>
         <p className="ai-vip-redeem-subtitle">输入兑换码或使用专属激活链接，领取对应权益。</p>
         <p id="ai-vip-redeem-intro" className="ai-vip-note" hidden>先核对权益，再确认兑换。</p>
+        <div id="ai-vip-activation-hint" className="ai-vip-link-hint" hidden>
+          <strong>已识别专属激活链接 · 待确认</strong><p id="ai-vip-activation-detail"></p>
+        </div>
         <form id="ai-vip-redeem-form" className="ai-vip-redeem-form" noValidate hidden>
           <label className="ai-vip-sr-only" htmlFor="ai-vip-redeem-code">激活码</label>
           <div className="ai-vip-redeem-inputs">
@@ -94,16 +101,6 @@ export default function VipApp(){
         <p id="ai-vip-redeem-fine" className="ai-vip-fine-print" hidden>确认兑换后才会领取权益。</p>
       </section>
 
-      <section id="ai-vip-cookie-section" className="ai-vip-review" aria-labelledby="ai-vip-cookie-title" hidden>
-        <h2 id="ai-vip-cookie-title">网站会话</h2>
-        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
-        <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
-        <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
-        <Button id="ai-vip-cookie-install" className="od-button od-button--secondary" type="button" disabled>确认应用网站会话</Button>
-        <Button id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
-        <Button id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
-      </section>
-    
       <section id="ai-vip-shop-section" className="ai-vip-shop" aria-label="更多商品">
         <Button id="ai-vip-shop-open" className="od-button od-button--secondary ai-vip-shop-link" type="button">查看更多商品 ↗</Button>
         <p id="ai-vip-shop-status" className="ai-vip-fine-print" role="status" aria-live="polite" hidden></p>
@@ -123,6 +120,16 @@ export default function VipApp(){
         <Button variant="primary" id="ai-vip-proxy-toggle" className="od-button ai-vip-primary ai-vip-proxy-toggle" type="button" hidden disabled>启用代理</Button>
         <div id="ai-vip-proxy-alert" className="ai-vip-proxy-alert" hidden><p id="ai-vip-proxy-alert-text"></p></div>
       </section>
+      <section id="ai-vip-cookie-section" className="ai-vip-review" aria-labelledby="ai-vip-cookie-title" hidden>
+        <h2 id="ai-vip-cookie-title">网站会话</h2>
+        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
+        <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
+        <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
+        <Button id="ai-vip-cookie-install" className="od-button od-button--secondary" type="button" disabled>确认应用网站会话</Button>
+        <Button id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
+        <Button id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
+      </section>
+    
       <section id="ai-vip-desktop-promo" className="ai-vip-desktop-promo" aria-labelledby="ai-vip-desktop-title">
         <div className="ai-vip-desktop-main">
           <span className="ai-vip-desktop-icon" aria-hidden="true">
@@ -133,7 +140,7 @@ export default function VipApp(){
           <div className="ai-vip-desktop-copy">
             <p className="ai-vip-desktop-label"><strong>电脑端推荐</strong><span>推广</span></p>
             <h2 id="ai-vip-desktop-title">推荐 AI 代理电脑客户端</h2>
-            <p>需要电脑端独立 VPN 方案？可前往产品官网了解客户端与购买方式。</p>
+            <p>需要电脑端独立网络方案？可前往官网了解相关产品。</p>
           </div>
         </div>
         <Button id="ai-vip-desktop-open" className="od-button od-button--secondary ai-vip-desktop-cta" type="button">了解桌面客户端 ↗</Button>
