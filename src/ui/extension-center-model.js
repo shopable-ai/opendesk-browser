@@ -1,5 +1,6 @@
 // Read-only unified view of existing installed registries and bundled official releases.
 import {sidebarToolPackageHash} from './sidebar-tools/package.js';
+import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../../examples/sidebar-tools/ai-send-queue/trusted/admission.js';
 import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_SITE_REVISION_BASE}
   from '../scripting/user-scripts/scroll-config-contract.js';
 
@@ -17,9 +18,22 @@ const newer=(a,b)=>{
   for(let i=0;i<3;i++){if(aa[i]!==bb[i])return aa[i]>bb[i];}
   return false;
 };
-export function composeExtensionEntries({installed=[],pages=[],official=[],pageReleases=[],enabled={},appStatusKnown=true,pageStatusKnown=true,cleanupPendingIds=[]}={}){
+export function composeExtensionEntries({installed=[],pages=[],official=[],pageReleases=[],enabled={},appStatusKnown=true,pageStatusKnown=true,cleanupPendingIds=[],queueToolHash=null}={}){
   const entries=[],releases=new Map(official.map(row=>[row.toolId,row])),ids=new Set();
   const pendingCleanups=new Set(cleanupPendingIds);
+  // Do not hide an installed Page unless the Companion App has the exact
+  // source-bound package digest; an arbitrary same-ID Tool earns no ownership.
+  const reviewedQueue=installed.some(tool=>
+    tool?.id===SEND_QUEUE_PIN.toolId&&tool.version===SEND_QUEUE_PIN.toolVersion)&&
+    queueToolHash===SEND_QUEUE_PIN.toolPackageSha256;
+  const pageRecord=pages.find(row=>(row?.installed??row)?.programId===SEND_QUEUE_PIN.pageProgramId);
+  const page=pageRecord?.installed??pageRecord;
+  const status=!pageStatusKnown?'unknown':!page?.manifestHash?'missing':
+    !admitsPinnedQueuePage(page)?'version-mismatch':page.enabled!==true?'disabled':
+    page.nativeState!=='registered'||page.authorization?.status!=='active'||page.error?
+      'restricted':'registered';
+  const companion=Object.freeze({programId:SEND_QUEUE_PIN.pageProgramId,
+    state:status,revision:page?.revision??null,installed:Boolean(page?.manifestHash)});
   for(const tool of installed){
     if(!tool?.id||ids.has(tool.id))continue;
     ids.add(tool.id);
@@ -27,7 +41,8 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],pageR
     entries.push({key:'app:'+tool.id,id:tool.id,kind:'app',title:tool.title,
       description:tool.description,version:tool.version,installed:true,cleanupPending:false,
       enabled:appStatusKnown?enabled[tool.id]!==false:null,stateKnown:appStatusKnown,
-      release,update:!!release&&newer(release.version,tool.version),record:tool});
+      release,update:!!release&&newer(release.version,tool.version),record:tool,
+      ...(reviewedQueue&&tool.id===SEND_QUEUE_PIN.toolId?{pageCompanion:companion}:{})});
   }
   const pageIds=new Set(),pageReleaseById=new Map(pageReleases.map(row=>[row.programId,row]));
   // "pages" is the Authority's installed collection, not the development
@@ -167,9 +182,15 @@ export function describeInstalledPageControl(page,installedPrograms=[]){
 
 export function filterExtensionEntries(entries,{query='',kind='all',scope='smart'}={}){
   const needle=lower(query);
+  // Default list: one product. The explicit Page filter retains the
+  // original independently revocable Page Authority controls.
+  const hasQueueApp=entries.some(row=>row.kind==='app'&&row.installed&&
+    row.id===SEND_QUEUE_PIN.toolId&&row.pageCompanion);
   // Default/legacy scopes project only verified installed entries. Search never
   // escalates into Catalog discovery; uninstalled releases require an explicit scope.
-  return entries.filter(row=>(kind==='all'||row.kind===kind)&&
+  return entries.filter(row=>!(kind==='all'&&hasQueueApp&&
+      row.kind==='page'&&row.id===SEND_QUEUE_PIN.pageProgramId)&&
+    (kind==='all'||row.kind===kind)&&
     (scope==='available'?(!row.installed||row.update===true):row.installed===true)&&
     (!needle||[row.title,row.description,row.id,String(row.version),EXTENSION_SEARCH_ALIASES[row.id]].some(s=>lower(s).includes(needle))));
 }
