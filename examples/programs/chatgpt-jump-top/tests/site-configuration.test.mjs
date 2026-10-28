@@ -42,7 +42,7 @@ async function settings(api,prepare=()=>{}) {
   await settle();
   const shadow=f.doc.querySelector('[data-opendesk-ai-scroll-navigation="settings"]').shadowRoot;
   const el=id=>shadow.getElementById(id);
-  return {...f,ui,el,testBoth(){f.click(el('test-top'));f.click(el('test-bottom'));}};
+  return {...f,ui,el};
 }
 function storage(){
   let value={version:1,sites:[structuredClone(rule)]},etag='one',writes=0;
@@ -78,29 +78,29 @@ test('configured click rejects selector ambiguity or SPA scope change after reso
     assert.equal(f.calls.length,0);
   }
 });
-test('saving revalidates tested DOM identities before writing',async()=>{
-  const api=storage(),f=await settings(api);f.testBoth();
+test('one-click save revalidates current DOM before writing',async()=>{
+  const api=storage(),f=await settings(api);
   f.main.replaceWith(f.main.cloneNode(true));
   f.click(f.el('save'));await settle();assert.equal(api.writes,0);
 });
 test('unknown write requires explicit reread before another save',async()=>{
   const api=storage();let attempts=0;
   api.write=async()=>{attempts++;throw Object.assign(Error('reply lost'),{code:'E_CONFIG_UNKNOWN'});};
-  const f=await settings(api);f.testBoth();f.click(f.el('save'));await settle();
+  const f=await settings(api);f.click(f.el('save'));await settle();
   f.click(f.el('save'));await settle();assert.equal(attempts,1);
   assert.match(f.el('status').textContent,/UNKNOWN/);
-  f.click(f.el('reload'));await settle();f.testBoth();f.click(f.el('save'));await settle();
+  f.click(f.el('reload'));await settle();f.click(f.el('save'));await settle();
   assert.equal(attempts,2);
 });
 test('CAS conflict preserves draft and persisted configuration; confirmed save restores on refresh',async()=>{
-  const api=storage(),f=await settings(api);f.testBoth();
+  const api=storage(),f=await settings(api);
   const write=api.write;
   api.write=async()=>{throw Object.assign(Error('conflict'),{code:'E_CONFIG_CONFLICT'});};
   f.click(f.el('save'));await settle();
   assert.match(f.el('status').textContent,/E_CONFIG_CONFLICT/);
   assert.equal(f.el('main').value,'#thread');
   assert.equal(f.ui.activeRule().mainSelector,'#thread');
-  api.write=write;f.click(f.el('reload'));await settle();f.testBoth();f.click(f.el('save'));await settle();
+  api.write=write;f.click(f.el('reload'));await settle();f.click(f.el('save'));await settle();
   assert.match(f.el('status').textContent,/已保存/);
   f.owner.dispose();const fresh=await settings(api);
   assert.equal(fresh.el('main').value,'#thread');assert.deepEqual(fresh.ui.activeRule(),rule);
@@ -153,7 +153,7 @@ test('lost confirmation after a persisted write does not replay and reread recov
   const api=storage(),read=api.read;
   let reads=0;
   api.read=async()=>{if(++reads===2)throw Error('confirmation lost');return read();};
-  const f=await settings(api);f.testBoth();f.click(f.el('save'));await settle();
+  const f=await settings(api);f.click(f.el('save'));await settle();
   assert.equal(api.writes,1);assert.match(f.el('status').textContent,/未确认保存/);
   f.click(f.el('save'));await settle();assert.equal(api.writes,1);
   f.click(f.el('reload'));await settle();
@@ -163,7 +163,7 @@ test('lost confirmation after a persisted write does not replay and reread recov
 test('save cannot accept an acknowledgement for a different candidate',async()=>{
   const api=storage();
   api.write=async()=>({etag:'one',value:{version:1,sites:[]}});
-  const f=await settings(api);f.testBoth();f.click(f.el('save'));await settle();
+  const f=await settings(api);f.click(f.el('save'));await settle();
   assert.match(f.el('status').textContent,/E_CONFIG_UNKNOWN/);
   assert.equal(f.ui.activeRule().mainSelector,'#thread');
 });
@@ -179,14 +179,14 @@ test('startup and settings reads singleflight; unknown writes unlock only after 
   const first=f.ui.read(),second=f.ui.read();
   assert.equal(first,second);assert.equal(reads,1,'opening settings joins startup read');
   resolveStartup({value:structuredClone(value),etag:'one'});await first;
-  f.testBoth();f.click(f.el('save'));await settle();
+  f.click(f.el('save'));await settle();
   await f.ui.read();assert.equal(reads,1,'read cannot overlap write');
   resolveWrite({});await settle();
   await second;f.click(f.el('launch'));f.click(f.el('save'));await settle();
   assert.equal(attempts,1);assert.equal(reads,1,'launch does not clear unknown write fence');
   assert.match(f.el('status').textContent,/E_CONFIG_UNKNOWN/);
   f.click(f.el('reload'));await settle();assert.equal(reads,2);
-  f.testBoth();f.click(f.el('save'));await settle();assert.equal(attempts,2);
+  f.click(f.el('save'));await settle();assert.equal(attempts,2);
   resolveWrite({});await settle();
   // A completion from an obsolete lifecycle must never publish config changes.
   let finishRead,changes=0;
@@ -227,7 +227,7 @@ test('configured conversation rejects a middle message across a real inner scrol
   }
 });
 
-test('unchanged existing rules can be disabled without live DOM tests while edits and enabling still require them',async()=>{
+test('disabling unchanged rules skips DOM checks while edits and enabling require valid DOM',async()=>{
   for(const mode of ['detached','short','conflict','changed','new','enable']){
     const api=storage();
     if(mode==='new')api.read=async()=>({value:{version:1,sites:[]},etag:'one'});
@@ -247,7 +247,7 @@ test('unchanged existing rules can be disabled without live DOM tests while edit
     if(mode==='changed')f.el('messages').value='.changed';
     f.click(f.el('save'));await settle();
     if(['changed','new','enable'].includes(mode)){
-      assert.equal(attempts,0,mode);assert.match(f.el('status').textContent,/测试顶部和底部/);
+      assert.equal(attempts,0,mode);assert.match(f.el('status').textContent,/选择器|匹配|滚动/);
     }else if(mode==='conflict'){
       assert.equal(attempts,1);assert.equal(api.writes,0);assert.match(f.el('status').textContent,/E_CONFIG_CONFLICT/);
       assert.equal(f.ui.activeRule().enabled,true,'conflict preserves existing active rule');
@@ -288,8 +288,14 @@ test('visual scroll picking resolves the actual document root from legal content
     const down=f.dispatch('pointerdown'),click=f.dispatch('click');
     assert.ok(down.prevented&&down.stopped&&click.prevented&&click.stopped);
     assert.equal(f.doc.querySelector(f.el('scroller').value),f.doc.scrollingElement);
-    f.testBoth();f.click(f.el('save'));await settle();
+    f.click(f.el('save'));await settle();
     assert.equal(api.writes,1);
+    assert.deepEqual(f.calls,[],'save cannot scroll the page');
+    const stored=(await api.read()).value.sites[0];
+    const binding=resolveConfiguredConversation(stored,f.doc,f.win);
+    assert.ok(binding);
+    assert.equal(scrollConfiguredEdge(binding,'top',f.doc,f.win),true);
+    assert.equal(scrollConfiguredEdge(binding,'bottom',f.doc,f.win),true);
     assert.deepEqual(f.calls.map(c=>[c.top,c.left]),[[0,23],[2300,23]]);
     for(const root of [f.doc.documentElement,f.doc.body]){
       f.doc.elementFromPoint=()=>root;
@@ -461,3 +467,87 @@ for(const end of ['pointerup','pointercancel']){
     f.owner.dispose();
   });
 }
+
+
+test('R3.7 one-click save does not scroll and confirms Host readback',async()=>{
+  const api=storage(),f=await settings(api);
+  const before=f.main.scrollTop;
+  f.click(f.el('save'));await settle();
+  assert.equal(api.writes,1);
+  assert.equal(f.calls.length,0);
+  assert.equal(f.main.scrollTop,before);
+  assert.match(f.el('status').textContent,/已保存/);
+  assert.equal((await api.read()).value.sites[0].mainSelector,'#thread');
+  assert.equal(f.el('test-top'),null);
+  assert.equal(f.el('test-bottom'),null);
+  assert.equal(f.el('pick-messages').getAttribute('aria-label'),'在网页点选消息节点');
+  assert.equal(f.el('pick-anchor').getAttribute('aria-label'),'在网页点选按钮锚点');
+});
+test('R3.7 invalid path, CSS, hidden messages and no scrolling reject save',async()=>{
+  for(const mode of ['path','css','hidden','short']){
+    const api=storage(),f=await settings(api);
+    if(mode==='path')f.el('path').value='/unrelated';
+    if(mode==='css')f.el('messages').value='article[';
+    if(mode==='hidden'){const article=f.main.firstElementChild.cloneNode(true);
+      article.style.display='none';f.main.append(article);}
+    if(mode==='short')f.main.scrollHeight=f.main.clientHeight;
+    f.click(f.el('save'));await settle();
+    assert.equal(api.writes,0,mode);
+    assert.equal(f.calls.length,0,mode);
+    assert.equal(f.el('status').dataset.error,'true',mode);
+  }
+});
+test('R3.7 real message group and anchor picking persist CSS',async()=>{
+  const api=storage(),f=await settings(api);
+  f.doc.elementFromPoint=()=>f.main.firstElementChild;
+  f.click(f.el('pick-messages'));f.dispatch('pointermove');
+  assert.equal(f.el('outline').style.display,'block');
+  f.dispatch('pointerdown');f.dispatch('click');
+  assert.equal(f.el('messages').value,'article');
+  const anchor=f.doc.createElement('button');anchor.id='scroll-action-anchor';f.main.append(anchor);
+  f.doc.elementFromPoint=()=>anchor;
+  f.click(f.el('pick-anchor'));f.dispatch('pointerdown');f.dispatch('click');
+  assert.equal(f.el('anchor').value,'#scroll-action-anchor');
+  f.click(f.el('save'));await settle();
+  assert.equal(api.writes,1);
+  const saved=(await api.read()).value.sites[0];
+  assert.equal(saved.messageSelector,'article');
+  assert.equal(saved.anchorSelector,'#scroll-action-anchor');
+  assert.equal(f.calls.length,0);
+});
+test('R3.7 Esc cancels picking without clearing the CSS draft',async()=>{
+  const f=await settings(storage());
+  f.el('messages').value='article';
+  f.click(f.el('pick-messages'));
+  assert.equal(f.dispatch('keydown',{key:'Escape'}).prevented,true);
+  assert.equal(f.el('messages').value,'article');
+  assert.equal(f.el('pick').hidden,true);
+  assert.equal(f.el('panel').hidden,false);
+});
+test('R3.7 prohibited editable hits cannot overwrite anchor or message',async()=>{
+  const f=await settings(storage()),input=f.doc.createElement('textarea');
+  f.main.append(input);f.doc.elementFromPoint=()=>input;
+  f.el('anchor').value='#kept';
+  f.click(f.el('pick-anchor'));f.dispatch('pointerdown');f.dispatch('click');
+  assert.equal(f.el('anchor').value,'#kept');
+  f.click(f.el('pick-messages'));f.dispatch('pointerdown');f.dispatch('click');
+  assert.equal(f.el('messages').value,'article');
+});
+test('R3.7 unknown write reread preserves draft instead of silently replacing it',async()=>{
+  const api=storage();
+  api.write=async()=>{throw Object.assign(Error('lost'),{code:'E_CONFIG_UNKNOWN'});};
+  const f=await settings(api);f.el('path').value='/c/one';
+  f.click(f.el('save'));await settle();
+  assert.match(f.el('status').textContent,/E_CONFIG_UNKNOWN/);
+  f.click(f.el('reload'));await settle();
+  assert.equal(f.el('path').value,'/c/one');
+  assert.match(f.el('status').textContent,/草稿/);
+});
+test('R3.7 path editing updates old rule instead of creating a second one',async()=>{
+  const api=storage(),f=await settings(api);
+  f.el('path').value='/c/one';
+  f.click(f.el('save'));await settle();
+  const saved=(await api.read()).value;
+  assert.equal(saved.sites.length,1);
+  assert.equal(saved.sites[0].pathScope,'/c/one');
+});
