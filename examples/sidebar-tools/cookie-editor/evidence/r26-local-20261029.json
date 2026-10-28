@@ -65,119 +65,120 @@
   "build": {
     "formalCommand": "node scripts/build-cookie-editor-react.mjs",
     "previewCommand": "npm run build (cwd examples/sidebar-tools/cookie-editor/preview/react)",
-    "buildId": "a6adb9fd2447535bfb622805e123acca8caafb0ab648d2487b7efd976a901c4a",
+    "buildId": "a5ecd0a86a188709ce37f2229ec4c00de61df225108d02d59b7040d221553d09",
     "files": {
       "dist/tool.js": {
-        "bytes": 143004,
-        "sha256": "cf801fb8b25581e08591ba21b45812369e01d63e3e1233f573ca56e910d276f2"
+        "bytes": 144440,
+        "sha256": "54b92745377e82b1658f4c80ab465f63d1354657a83e590fcc5d8d737c77d5e1"
       },
       "dist/tool.css": {
-        "bytes": 60283,
-        "sha256": "8a8d307fe5dbb8e3b0a190d2188468b23ad10a6a76872d052b7414cc33cab353"
+        "bytes": 60750,
+        "sha256": "0b0c90da0b4a317886ad648a312ec434a50223269ef3d0e5e387717692657ade"
       }
     },
     "preview": {
-      "bytes": 660306,
-      "sha256": "1ce24fca1f9e897eb971e8041fae4da1f65bbba3bf85ddd174888708110e7765"
+      "bytes": 663666,
+      "sha256": "baae4893aadd846b59b3fb21b164d2f20a20abdea656601888784dfe9e3586ec"
     },
-    "previewRebuiltIdenticalToHead": false,
     "reactVersion": "19.2.0",
     "sharedReactRuntimeSha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758",
-    "runtimeCheck": "PASS: shared runtime, no bundled duplicate React",
+    "runtimeCheck": "PASS: existing shared runtime; no duplicate bundled React",
     "previewSourceCheck": "R520_PREVIEW_MATCH",
-    "change": "仅3个现有秘密输入增加通用 data-sensitive 标记；原 Vite 编译，不维护第二套 JSX。"
+    "change": "由当前 main 的正式 JSX 经既有 Vite 构建；整合 R2.7 账号描述，保留已修复回执和敏感输入标记。"
   },
   "package": {
     "path": "cookie-editor.opendesk-tool.json",
-    "version": "2.0.47",
-    "bytes": 223961,
-    "sha256": "027252fb8113a3fcfb1791133b00ac2121de34485d4a7ba2f403a4d09b752209",
+    "version": "2.0.48",
+    "bytes": 225932,
+    "sha256": "c1ea0615d312cdcda3f3e4dffa4f4641a2f4d14246cd0112110499b319da8137",
     "flow": "原 build-sidebar-tool.mjs --out candidate → 定向包门禁 → --promote-from candidate → --check-project",
     "sourceCheck": "PROJECT_PACKAGE_MATCH",
     "toolId": "cookie-editor",
     "permissionsChanged": false
   },
   "native": {
-    "status": "CORE_DELTA_PASS_WITH_GAPS",
+    "status": "CURRENT_CORE_DELTA_PASS_WITH_GAPS",
     "mode": "development",
     "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
     "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
     "browser": "Chrome/155.0.8059.39",
-    "installedVersion": "2.0.47",
-    "installedPackageSha256": "027252fb8113a3fcfb1791133b00ac2121de34485d4a7ba2f403a4d09b752209",
-    "boundary": "真实 Mac headed CFT、已安装扩展、实际 Side Panel 与可信 Host；虚构本地 HttpOnly Cookie。非个人 Chrome、非 production。",
-    "valueDelta2046": {
-      "hostGitBlobAtStart": "50f6270c3dfb052e9f20795c61b699480a9622a3",
-      "swSha256AtStart": "52840e511bec83a2dcaf8d9da83629390870721df47be5e3ccaaae4eff321a75",
-      "passed": [
-        "网站 HTTP 响应改变 Cookie 值后更新当前快照",
-        "无变化提示无需重复保存",
-        "切换可信回读恢复更新后的值",
-        "Path 增加导致 E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED",
-        "拒绝后旧快照仍可切换并回读",
-        "空 Cookie 保存 E_ACCOUNT_EMPTY 且名称草稿保留"
-      ]
-    },
-    "passed2047": [
-      "在扩展中心审阅并更新 2.0.46→2.0.47，权限未变化",
-      "旧账号保留，默认新账号2顶部保存后列表可见",
-      "撤权销毁 iframe，账号名称在有界内存恢复区可复制",
-      "撤权后恢复区不含刚输入的虚构导入秘密"
+    "installedVersion": "2.0.48",
+    "installedPackageSha256": "c1ea0615d312cdcda3f3e4dffa4f4641a2f4d14246cd0112110499b319da8137",
+    "boundary": "真实 Mac headed CFT + 已安装扩展 + 实际 Side Panel + 可信 Host；本轮专用 Profile 与虚构本地 HttpOnly Cookie，非个人 Chrome、非 production。",
+    "passed": [
+      "actual-entry",
+      "official-installed-open",
+      "current-account-established",
+      "native-value-only-snapshot-update",
+      "native-value-update-noop",
+      "native-updated-snapshot-switch-readback",
+      "native-scope-drift-rejected",
+      "native-rejected-update-preserves-old-snapshot",
+      "native-save-failure-retains-draft",
+      "native-2048-account-save",
+      "native-revoke-draft-preserved",
+      "native-2048-revoke-excludes-import-secret"
     ],
+    "rawReport": "native-current-2048/report.json",
+    "scope": "Current 2.0.48 integrated React and trusted Host core delta: save, value update, no-op, verified switch, Path drift, failed save and revoke draft/secret exclusion",
+    "sourceBinding": {
+      "serviceBlobAtStart": "db6aad9e0f8936fcb735f6ff605f274399c6404b",
+      "serviceBlobAtEnd": "db6aad9e0f8936fcb735f6ff605f274399c6404b",
+      "swSha256AtStart": "e5afc3f9e296c2b9cf92bb184452bfe2ec28f54890dd8b5fb2e2e7261afef93c",
+      "swSha256AtEnd": "e5afc3f9e296c2b9cf92bb184452bfe2ec28f54890dd8b5fb2e2e7261afef93c",
+      "workingServiceUncommitted": true,
+      "committedServiceBlob": "796f1cd801cd011d77c236ba2e55ad2fe75df366"
+    },
+    "compiledMapEvidence": "native-current-2048/source-binding.json",
     "observedAfterFix": {
-      "version": "2.0.47",
-      "packageSha256": "027252fb8113a3fcfb1791133b00ac2121de34485d4a7ba2f403a4d09b752209",
-      "hostSourceSha256": "56815c3d21c5473f90b073d1de9d9baea9d48171bcd230972cd7c623a9620572",
-      "hostBundleSha256": "5cdccfc416409a95fe7a6a7d49733bdcc39d8734c42ebadb0a87ecde849655bb",
-      "serviceGitBlob": "d2956d67f1fd21d1de44ba5056a2b38b4e4b928e",
-      "sourceHead": "6c28425c41362d6334accf376beba25ab70d3b79",
+      "version": "2.0.48",
+      "packageSha256": "c1ea0615d312cdcda3f3e4dffa4f4641a2f4d14246cd0112110499b319da8137",
+      "hostSourceSha256": "51b4693fbb707d1fc87f9435aeb833ded66ff04a6f619b5a06eacdbefb3e723d",
+      "hostBundleSha256": "fbeae2c877a64e6195591a1e8bb4fb0b24014a07748724d03ec31e7c19543da6",
+      "serviceGitBlob": "db6aad9e0f8936fcb735f6ff605f274399c6404b",
+      "sourceHead": "5feebf52586736558e1e29d73aa32089dd7c6b09",
       "developmentConnection": {
-        "text": "开发服务已连接 · 构建指纹 c3805feb5eb6；保存源码后自动安全更新。",
-        "identity": "扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；构建 revision：c3805feb5eb6c427127c5514c65f23e6910ad5e4922b892690d23f8bfc82e92e。这不证明已打开的网页重新注入了 SDK。"
+        "text": "开发服务已连接 · 构建指纹 1a5ac4781d61；保存源码后自动安全更新。",
+        "identity": "扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；构建 revision：1a5ac4781d617bd4840f371e53602423fb865f46966dfa1a78785142380994c9。这不证明已打开的网页重新注入了 SDK。"
       },
       "nativeBoundary": "headed Mac CFT; actual installed extension + trusted Host, fictional local website; development only"
     },
-    "sourceBindingCaveat": "afterFix.serviceGitBlob 是结束时工作区观察，不能证明与已加载 SW 一致；并行 owner 正在改账号服务及 Cookie remove。账号值更新证据仅绑定本次开始的50f6270候选；本次两行 UI Host 修复的编译映射已核对。未把并行最终代码冒称通过。",
-    "observedDefects": [
+    "driverObservations": [
       {
-        "case": "native-revoke-draft-preserved",
-        "beforeFix": {
-          "iframeDestroyed": true,
-          "draftVisible": false,
-          "hasAccountName": false
-        },
-        "cause": "Cookie revocation called destroyFrame directly instead of existing inert draft retirement"
+        "case": "scope-restore-navigation",
+        "classification": "CDP parent target click did not reach reopened OOPIF; continued with native Input to actual iframe target; no Cookie action replayed"
       }
     ],
-    "finishedAt": "2026-10-28T19:01:18.292Z",
     "cleanup": {
       "status": "PASS",
       "pidAliveAfterExit": false,
       "profileRemoved": true,
       "ownedHttpFixtureClosed": true
     },
+    "finishedAt": "2026-10-28T19:21:48.397Z",
     "screenshots": [
-      "native-value-reviewed/value-update-receipt.png",
-      "native-value-reviewed/updated-snapshot-applied.png",
-      "native-value-reviewed/scope-drift-rejected.png",
-      "native-value-reviewed/save-failure-draft-retained.png",
-      "native-value-reviewed/final-account-saved.png",
-      "native-value-reviewed/revoke-draft-preserved-after.png",
-      "native-value-reviewed/revoke-no-secret-after.png"
+      "native-current-2048/value-update-receipt.png",
+      "native-current-2048/updated-snapshot-applied.png",
+      "native-current-2048/scope-drift-rejected.png",
+      "native-current-2048/save-failure-draft-retained.png",
+      "native-current-2048/final-account-saved.png",
+      "native-current-2048/revoke-draft-preserved-after.png",
+      "native-current-2048/revoke-no-secret-after.png"
     ],
-    "rawReport": "native-value-reviewed/report.json"
+    "sourceBindingCaveat": "本次原生增量绑定已审查的工作区 Host db6aad9（含另一 owner 的共享域/精确删除未提交改动）。提交的基线 service 为796f1cd；两者独立来源门禁均通过，不能把工作区原生证据改称已提交基线的独立实测。"
   },
   "gaps": [
     {
       "area": "visual",
-      "status": "GAP",
+      "status": "HISTORICAL_GAP_DEFERRED",
       "approvedHtmlGitBlob": "107fdf3469d3b7dd3af295cd89e67edf611172bc",
       "sourceLock": "MATCH",
       "lockedDifferences": 56,
       "missing": 3,
       "infrastructureErrors": 0,
       "result": "来源一致不等于视觉通过。已查看本轮截图，预览外壳、当前账号提示、文案和数据差异保留；用户缩小范围后延期修复。",
-      "report": "visual/report-light-380.json"
+      "report": "visual/report-light-380.json",
+      "historicalCandidate": "previous2046"
     },
     {
       "area": "generic-app-updater",
@@ -200,11 +201,11 @@
     "320/360/380/400/440/520px、200%、主题及键盘矩阵",
     "完整旧 Chromium 驱动回归",
     "八维独立评分及综合均分",
-    "并行账号服务及精确删除最终源码/来源pin/最新构建的一致验收",
-    "远端R2.7与本地main整合后的重新构建/原生验收"
+    "提交基线796f1cd的独立原生实测（本轮实际Host为工作区db6aad9）",
+    "2.0.48跨站隔离、分享与完整重启原生重测（旧候选对应结果仅保留历史，不冒充当前候选）"
   ],
   "localArtifacts": "artifacts/cookie-editor-r26-local-20261029/",
-  "preserved": "仅 main；保留他人已暂存/未提交改动与原60611 watcher。关闭本轮自建 CFT、删除其临时Profile、关闭其 HTTP fixture；原43111服务未动。",
+  "preserved": "仅main；保留所有并行未提交改动及两个来源pin的并行工作区增量。复用既有23597 watcher，不停止/覆盖其输出；本轮CFT已退出，专用Profile已删除，HTTP fixture已关闭，原43111服务未动。",
   "continuationDelta": {
     "baseCommit": "6017fb8e505c98e00605f2ebbaf6b9855944c4ba",
     "scope": "仅补当前账号的 value-only 原生更新，不恢复已延期矩阵。",
@@ -321,7 +322,7 @@
       "rawReport": "native/report.json"
     }
   },
-  "updatedAt": "2026-10-28T19:03:14.507Z",
+  "updatedAt": "2026-10-28T19:22:57.418877+00:00",
   "coreDelta2047": {
     "fixes": [
       {
@@ -389,28 +390,215 @@
     }
   },
   "currentSourceLock": {
-    "status": "GAP_DEFERRED",
-    "approvedHtmlGitBlob": "107fdf3469d3b7dd3af295cd89e67edf611172bc",
+    "status": "MATCH",
+    "approvedHtmlGitBlob": "94e518247e812f80b5b65e06966a443310777743",
     "actualHtmlGitBlob": "94e518247e812f80b5b65e06966a443310777743",
-    "reason": "并行 main 提交6c28425c4更新了主HTML；旧来源锁MATCH仅属于先前快照。本轮不修改并行原型或降低锁以制造视觉通过。正式React预览自身源码检查通过。"
+    "visualVerdict": "NOT_TESTED_CURRENT_CANDIDATE",
+    "reason": "main 已包含当前 R2.5.4 HTML 来源锁。来源匹配不能代替视觉通过；旧候选56项差异/3项缺失仅保留历史，本轮按最新范围延期矩阵。"
   },
   "mainIntegration": {
-    "status": "GAP_MERGE_BLOCKED_BY_PARALLEL_DIRTY_FILES",
-    "localHeadBeforeOwnCommit": "b8190cff59a68462357e295987efb1e9169493a8",
-    "remoteHead": "8e82540996daec57b1eccd145606350636a99311",
-    "divergence": "6\t6",
-    "change": "刷新远端得到6个R2.7账号描述提交，包含App、Accounts、contract/service/Vault与Host；这些尚未合入本轮已测试候选。",
-    "constraint": "本地可信账号服务仍有其他owner未提交修改，保留其改动；禁止reset/强推/分支/worktree。",
-    "attempt": {
-      "command": "git merge --no-commit --no-ff origin/main",
-      "result": "REFUSED_BEFORE_MERGE",
-      "files": [
-        "examples/sidebar-tools/cookie-editor/trusted/account-service.js",
-        "tests/environment/cookie-editor-account-switch-host.test.mjs"
+    "status": "RESOLVED",
+    "integrationCommit": "5feebf52586736558e1e29d73aa32089dd7c6b09",
+    "remoteIntegrated": true,
+    "previousAttempt": {
+      "status": "GAP_MERGE_BLOCKED_BY_PARALLEL_DIRTY_FILES",
+      "localHeadBeforeOwnCommit": "b8190cff59a68462357e295987efb1e9169493a8",
+      "remoteHead": "8e82540996daec57b1eccd145606350636a99311",
+      "divergence": "6\t6",
+      "change": "刷新远端得到6个R2.7账号描述提交，包含App、Accounts、contract/service/Vault与Host；这些尚未合入本轮已测试候选。",
+      "constraint": "本地可信账号服务仍有其他owner未提交修改，保留其改动；禁止reset/强推/分支/worktree。",
+      "attempt": {
+        "command": "git merge --no-commit --no-ff origin/main",
+        "result": "REFUSED_BEFORE_MERGE",
+        "files": [
+          "examples/sidebar-tools/cookie-editor/trusted/account-service.js",
+          "tests/environment/cookie-editor-account-switch-host.test.mjs"
+        ],
+        "reason": "Git报告这些并行未提交文件将被覆盖；未stash、重置、覆盖或代为提交。其余本轮源码/生成包/证据已保存到本地main。",
+        "fixCommit": "7d6fd9a1f",
+        "mergeState": "NO_MERGE_IN_PROGRESS"
+      }
+    },
+    "action": "并行 main owner 已完成远端整合，本轮 merge 返回 Already up to date。精确暂存的两个并行文件安全恢复且备份 hashes 一致。",
+    "preservedStash": "97fd2734a9025e77da71332a60917b46f36a2fd4",
+    "preservedFiles": [
+      "examples/sidebar-tools/cookie-editor/trusted/account-service.js",
+      "tests/environment/cookie-editor-account-switch-host.test.mjs"
+    ],
+    "backupManifest": "main-integration-preserve/manifest.json",
+    "constraint": "保持main，不reset、建分支、worktree或PR；不覆盖、提交、删除其他owner改动或备份。"
+  },
+  "previous2047": {
+    "build": {
+      "formalCommand": "node scripts/build-cookie-editor-react.mjs",
+      "previewCommand": "npm run build (cwd examples/sidebar-tools/cookie-editor/preview/react)",
+      "buildId": "a6adb9fd2447535bfb622805e123acca8caafb0ab648d2487b7efd976a901c4a",
+      "files": {
+        "dist/tool.js": {
+          "bytes": 143004,
+          "sha256": "cf801fb8b25581e08591ba21b45812369e01d63e3e1233f573ca56e910d276f2"
+        },
+        "dist/tool.css": {
+          "bytes": 60283,
+          "sha256": "8a8d307fe5dbb8e3b0a190d2188468b23ad10a6a76872d052b7414cc33cab353"
+        }
+      },
+      "preview": {
+        "bytes": 660306,
+        "sha256": "1ce24fca1f9e897eb971e8041fae4da1f65bbba3bf85ddd174888708110e7765"
+      },
+      "previewRebuiltIdenticalToHead": false,
+      "reactVersion": "19.2.0",
+      "sharedReactRuntimeSha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758",
+      "runtimeCheck": "PASS: shared runtime, no bundled duplicate React",
+      "previewSourceCheck": "R520_PREVIEW_MATCH",
+      "change": "仅3个现有秘密输入增加通用 data-sensitive 标记；原 Vite 编译，不维护第二套 JSX。"
+    },
+    "package": {
+      "path": "cookie-editor.opendesk-tool.json",
+      "version": "2.0.47",
+      "bytes": 223961,
+      "sha256": "027252fb8113a3fcfb1791133b00ac2121de34485d4a7ba2f403a4d09b752209",
+      "flow": "原 build-sidebar-tool.mjs --out candidate → 定向包门禁 → --promote-from candidate → --check-project",
+      "sourceCheck": "PROJECT_PACKAGE_MATCH",
+      "toolId": "cookie-editor",
+      "permissionsChanged": false
+    },
+    "native": {
+      "status": "CORE_DELTA_PASS_WITH_GAPS",
+      "mode": "development",
+      "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "browser": "Chrome/155.0.8059.39",
+      "installedVersion": "2.0.47",
+      "installedPackageSha256": "027252fb8113a3fcfb1791133b00ac2121de34485d4a7ba2f403a4d09b752209",
+      "boundary": "真实 Mac headed CFT、已安装扩展、实际 Side Panel 与可信 Host；虚构本地 HttpOnly Cookie。非个人 Chrome、非 production。",
+      "valueDelta2046": {
+        "hostGitBlobAtStart": "50f6270c3dfb052e9f20795c61b699480a9622a3",
+        "swSha256AtStart": "52840e511bec83a2dcaf8d9da83629390870721df47be5e3ccaaae4eff321a75",
+        "passed": [
+          "网站 HTTP 响应改变 Cookie 值后更新当前快照",
+          "无变化提示无需重复保存",
+          "切换可信回读恢复更新后的值",
+          "Path 增加导致 E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED",
+          "拒绝后旧快照仍可切换并回读",
+          "空 Cookie 保存 E_ACCOUNT_EMPTY 且名称草稿保留"
+        ]
+      },
+      "passed2047": [
+        "在扩展中心审阅并更新 2.0.46→2.0.47，权限未变化",
+        "旧账号保留，默认新账号2顶部保存后列表可见",
+        "撤权销毁 iframe，账号名称在有界内存恢复区可复制",
+        "撤权后恢复区不含刚输入的虚构导入秘密"
       ],
-      "reason": "Git报告这些并行未提交文件将被覆盖；未stash、重置、覆盖或代为提交。其余本轮源码/生成包/证据已保存到本地main。",
-      "fixCommit": "7d6fd9a1f",
-      "mergeState": "NO_MERGE_IN_PROGRESS"
+      "observedAfterFix": {
+        "version": "2.0.47",
+        "packageSha256": "027252fb8113a3fcfb1791133b00ac2121de34485d4a7ba2f403a4d09b752209",
+        "hostSourceSha256": "56815c3d21c5473f90b073d1de9d9baea9d48171bcd230972cd7c623a9620572",
+        "hostBundleSha256": "5cdccfc416409a95fe7a6a7d49733bdcc39d8734c42ebadb0a87ecde849655bb",
+        "serviceGitBlob": "d2956d67f1fd21d1de44ba5056a2b38b4e4b928e",
+        "sourceHead": "6c28425c41362d6334accf376beba25ab70d3b79",
+        "developmentConnection": {
+          "text": "开发服务已连接 · 构建指纹 c3805feb5eb6；保存源码后自动安全更新。",
+          "identity": "扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；构建 revision：c3805feb5eb6c427127c5514c65f23e6910ad5e4922b892690d23f8bfc82e92e。这不证明已打开的网页重新注入了 SDK。"
+        },
+        "nativeBoundary": "headed Mac CFT; actual installed extension + trusted Host, fictional local website; development only"
+      },
+      "sourceBindingCaveat": "afterFix.serviceGitBlob 是结束时工作区观察，不能证明与已加载 SW 一致；并行 owner 正在改账号服务及 Cookie remove。账号值更新证据仅绑定本次开始的50f6270候选；本次两行 UI Host 修复的编译映射已核对。未把并行最终代码冒称通过。",
+      "observedDefects": [
+        {
+          "case": "native-revoke-draft-preserved",
+          "beforeFix": {
+            "iframeDestroyed": true,
+            "draftVisible": false,
+            "hasAccountName": false
+          },
+          "cause": "Cookie revocation called destroyFrame directly instead of existing inert draft retirement"
+        }
+      ],
+      "finishedAt": "2026-10-28T19:01:18.292Z",
+      "cleanup": {
+        "status": "PASS",
+        "pidAliveAfterExit": false,
+        "profileRemoved": true,
+        "ownedHttpFixtureClosed": true
+      },
+      "screenshots": [
+        "native-value-reviewed/value-update-receipt.png",
+        "native-value-reviewed/updated-snapshot-applied.png",
+        "native-value-reviewed/scope-drift-rejected.png",
+        "native-value-reviewed/save-failure-draft-retained.png",
+        "native-value-reviewed/final-account-saved.png",
+        "native-value-reviewed/revoke-draft-preserved-after.png",
+        "native-value-reviewed/revoke-no-secret-after.png"
+      ],
+      "rawReport": "native-value-reviewed/report.json"
     }
+  },
+  "testsEvidenceBoundary": "此前测试结果保留其原候选边界；当前整合候选的增量见 coreDelta2048，不以旧测试或截图替代本轮证据。",
+  "coreDelta2048": {
+    "scope": "只处理 main 整合后当前正式 React/安装候选及账号核心回归；不恢复低相关性测试或正式验收矩阵。",
+    "tests": [
+      {
+        "command": "node --test tests/environment/cookie-editor-account-switch-host.test.mjs tests/environment/cookie-editor-account-ui-receipt.test.mjs tests/environment/cookie-editor-account-vault.test.mjs examples/sidebar-tools/cookie-editor/tests/account-description.test.mjs",
+        "result": "PASS",
+        "passed": 45,
+        "log": "main-merged-accounts.log"
+      },
+      {
+        "command": "node --test --test-name-pattern='R5.25 Cookie grant revocation|R2.6 Cookie settings revoke|R26 remote disable retains|R5.25 Cookie Editor settings keeps|R5.38 forged clear size' tests/environment/sidebar-tools-host.test.mjs",
+        "result": "PASS",
+        "passed": 5,
+        "log": "main-merged-recovery.log"
+      },
+      {
+        "command": "node --test --test-name-pattern='R2.6 actual draft bridge' tests/environment/sidebar-tool-export-bridge-host.test.mjs",
+        "result": "PASS",
+        "passed": 1,
+        "log": "main-merged-secret.log"
+      },
+      {
+        "command": "node --test --test-name-pattern='R2.6|R2.7' examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs",
+        "result": "PASS",
+        "passed": 4,
+        "log": "preview-2048-accounts.log"
+      },
+      {
+        "command": "node --test --test-name-pattern='canonical packer rejects|built React JSX|canonical packer emits' tests/environment/cookie-editor-react-build.test.mjs",
+        "result": "PASS",
+        "passed": 3,
+        "log": "package-2048-targeted.log"
+      },
+      {
+        "command": "node --test --test-name-pattern='checked-in' tests/environment/cookie-editor-react-build.test.mjs",
+        "result": "PASS",
+        "passed": 1,
+        "log": "formal-package-2048.log"
+      },
+      {
+        "command": "node --test tests/environment/cookie-account-provenance-r134.test.mjs",
+        "result": "PASS",
+        "passed": 6,
+        "log": "provenance-2048.log"
+      },
+      {
+        "command": "node --test artifacts/cookie-editor-r26-local-20261029/committed-pin-check/staged-provenance.test.mjs",
+        "result": "PASS",
+        "passed": 6,
+        "log": "provenance-committed-2048.log"
+      }
+    ],
+    "review": {
+      "reviewer": "Locke",
+      "result": "COMMENT; no actionable findings",
+      "reviewedGitBlobs": {
+        "contract": "1d17f897014a4c4e2876018994a6daaea255c835",
+        "vault": "bf9cd090b7ba805de70bfdea271b8143fb18ed50",
+        "workingService": "db6aad9e0f8936fcb735f6ff605f274399c6404b",
+        "committedService": "796f1cd801cd011d77c236ba2e55ad2fe75df366"
+      },
+      "boundary": "独立复核 description/count 增量；共享域/精确删除沿用其 owner 的已有审查；没有完整 LSP 或独立八维评分。"
+    },
+    "commitBoundary": "仅更新当前 main 的来源 pins 和工具版本、正式生成包、预览及证据。两个 pin 文件以 index 中的 committedService=796f1cd 提交；工作区继续保留另一 owner 的 db6aad9 pin 与 service 变更，不代为提交。"
   }
 }

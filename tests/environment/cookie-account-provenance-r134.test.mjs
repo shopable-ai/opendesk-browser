@@ -15,9 +15,9 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 // No source is executed, transformed, built or installed by these tests.
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
-  'trusted/account-contract.js':'2d89c25a96ebc49524127659290c2d0a45c3bf5e',
-  'trusted/account-service.js':'a972ab43f9da8f50e2413c2f7166cf1cb82534dd',
-  'trusted/account-vault.js':'27b29c56bbabf9760ef14b66bcf8ce185bd649f1',
+  'trusted/account-contract.js':'1d17f897014a4c4e2876018994a6daaea255c835',
+  'trusted/account-service.js':'796f1cd801cd011d77c236ba2e55ad2fe75df366',
+  'trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };
 const contract='trusted/account-contract.js';
