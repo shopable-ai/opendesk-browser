@@ -201,7 +201,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
         selected.displayName=String(payload.displayName).slice(0,64);
       }
       if(action==='update'){
-        const cookieId=row=>JSON.stringify([row.name,row.domain?.replace(/^\\./,'').toLowerCase(),
+        const cookieId=row=>JSON.stringify([row.name,row.domain?.replace(/^\./,'').toLowerCase(),
           row.path,row.storeId,row.partitionKey?.topLevelSite||null,
           Boolean(row.partitionKey?.hasCrossSiteAncestor)]);
         const keys=list=>list.map(cookieId).sort();
