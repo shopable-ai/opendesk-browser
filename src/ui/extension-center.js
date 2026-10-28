@@ -13,6 +13,7 @@ import {loadMarketChannel} from '../marketplace/external.js';
 import {readMarketInstallStatus} from '../marketplace/status.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
 import {SCROLL_CONFIG_PROGRAM_ID,scrollProgramUrlMatches} from '../scripting/user-scripts/scroll-config-contract.js';
+import {SEND_QUEUE_PIN} from '../../examples/sidebar-tools/ai-send-queue/trusted/admission.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,currentPageTarget,localeController=null,toolLocaleService=null,extensionList=null}){
@@ -45,6 +46,16 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     row.description===readingTocCatalog.messages['zh-CN'].description?
       uiMessage(readingTocCatalog,language(),'description'):row.description||'';
   const installedAppUsage=row=>{
+    if(row.pageCompanion){
+      const state=row.pageCompanion.state;
+      if(state==='missing')return '管理界面已安装，网页发送能力尚未安装。请在「网页能力」入口审阅 Page 安装包。';
+      if(state==='version-mismatch')return '网页能力不是已审阅的 R5.8 版本；旧授权和队列不会自动迁移。';
+      if(state==='disabled')return '网页能力已停用；可进入「网页能力」管理现有授权。';
+      if(state==='restricted'||state==='unknown')
+        return '网页能力授权或原生注册未核实；管理界面不能发送消息。';
+      if(state==='registered')
+        return '管理界面与网页能力均已安装启用；当前对话是否正在运行仍需打开应用核查。';
+    }
     if(row.enabled===false&&!readingTocOfficial(row))
       return '应用已停用；可在设置与权限中恢复。';
     if(!readingTocOfficial(row))
@@ -58,7 +69,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   const typeOf=row=>row.kind==='page'?'应用 · 网页增强':'应用 · 侧边栏';
   const all=()=>composeExtensionEntries({installed,pages,official:appStatusKnown?official:[],
     pageReleases:pageStatusKnown?officialPages:[],
-    enabled,appStatusKnown,pageStatusKnown,cleanupPendingIds:[...pendingCleanups]});
+    enabled,appStatusKnown,cleanupPendingIds:[...pendingCleanups],
+    queueToolHash:sources[SEND_QUEUE_PIN.toolId]?.sha256??null});
   const find=key=>all().find(row=>row.key===key);
   const pageIdentity=row=>{
     const p=row?.kind==='page'?row.record?.installed:null;
@@ -254,7 +266,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       title:'卸载「'+review.title+'」？',
       text:review.kind==='page'
         ?'将停止该网页增强自动运行并移除本机安装记录；不会删除网站自己的数据。'
-        :'将卸载该应用并清理其本地数据与网站授权；此操作不可撤销。',
+        :review.id===SEND_QUEUE_PIN.toolId&&find(review.key)?.pageCompanion?.installed
+          ?'本操作仅卸载队列管理界面；已安装的 Page 网页发送能力仍保留，可在「网页增强」中单独停用或卸载。不会自动迁移或覆盖消息。'
+          :'将卸载该应用并清理其本地数据与网站授权；此操作不可撤销。',
       busy:Boolean(busy||pendingKey),
       identity:{key:review.key,kind:review.kind,version:review.kind==='page'
         ?find(review.key)?.version:review.package?.version},
@@ -331,7 +345,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       row.kind==='page'&&row.record?.installed?.managedCleanup?.state==='unknown'?'受管界面清理待核对':
       row.kind==='page'&&row.record?.installed?.nativeState==='blocked'?'原生注册待恢复':
       row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended'?'网站访问受限':
-      row.enabled===false?'已停用':row.update?'可更新':
+      row.enabled===false?'已停用':
+      row.pageCompanion&&row.pageCompanion.state!=='registered'?'网页发送能力未就绪':
+      row.update?'可更新':
       row.kind==='page'&&row.record?.installed?.nativeState&&
         row.record.installed.nativeState!=='registered'?'注册待核对':'';
     return reason?reason+' · '+descriptionOf(row):descriptionOf(row);
@@ -693,6 +709,15 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             add('恢复卸载清理','cleanup',event=>{void retryCleanup(row,event);});
           else add('审阅并安装','install',()=>openReview(row.key));
         }else{
+          if(row.pageCompanion){
+            add('网页能力','page-setup',()=>{
+              const other=find('page:'+SEND_QUEUE_PIN.pageProgramId);
+              if(other?.installed){openDetail(other.key,'main');return;}
+              backIfNeeded();
+              if(sidebarTools.openImport?.()!==true)
+                message('请打开扩展导入区审阅 Page 候选包；当前没有已批准的自动安装发行。','error');
+            });
+          }
           if(row.stateKnown!==false)
             add('设置与权限','settings',()=>{backIfNeeded();sidebarTools.openSettings(row.id);});
           if(row.update&&row.release)add('审阅新版','update',()=>openReview(row.key));
