@@ -166,6 +166,10 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     if(!['create','rename','update','delete','switch','setAutoEnabled','setAutoRefresh','allowAlias'].includes(action))
       throw error('E_ACCOUNT_REQUEST');
     if(payload.revision!==demoAccounts.revision)throw error('E_VAULT_CONFLICT');
+    if(['create','update'].includes(action)&&['save','unknown'].includes(failure)){
+      const attempted=failure;failure='';onFailureConsumed();
+      throw error(attempted==='unknown'?'E_OUTCOME_UNKNOWN':'E_ACCOUNT_STORAGE_UNAVAILABLE');
+    }
     const origin='https://'+currentSite;
     const selected=demoAccounts.accounts.find(item=>item.alias===payload.alias&&item.origin===origin);
     if(action==='switch'){
