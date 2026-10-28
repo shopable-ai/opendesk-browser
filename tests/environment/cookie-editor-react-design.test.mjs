@@ -57,6 +57,9 @@ test('inline import stays before Cookie rows inside the mounted list scroll area
   ]);
   assert.match(css,/height:100dvh/);
   assert.match(css,/\.cookie-import-workspace/);
+  assert.match(css,/\.cookie-editor-react\{[^}]*background:var\(--od-paper\)/);
+  assert.match(css,/\.cookie-import-workspace\{\s*position:relative/);
+  assert.doesNotMatch(css,/cookie-import-dismiss-layer|cookie-sheet-enter/);
   assert.match(css,/\.cookie-react-view>\.cookie-list/);
   assert.match(css,/\.cookie-offline/);
   assert.doesNotMatch(app,/panel===null&&<CookieEditorView/);

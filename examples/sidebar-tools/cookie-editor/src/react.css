@@ -54,7 +54,7 @@
 :scope .od-icon-button--quiet[aria-pressed=true]{background:var(--od-brand-bg);color:var(--od-brand)}
 }
 /* Cookie-specific geometry; common controls and focus come from shared primitives. */
-.cookie-editor-react{container-type:inline-size;width:100%;min-width:0;max-width:860px;margin:0 auto;padding:0;color:var(--od-ink);font:var(--od-body-size)/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+.cookie-editor-react{container-type:inline-size;width:100%;min-width:0;max-width:860px;margin:0 auto;padding:0;color:var(--od-ink);background:var(--od-paper);font:var(--od-body-size)/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
 .cookie-editor-react svg{width:17px;height:17px;flex:none}
 .cookie-editor-react input,.cookie-editor-react textarea,.cookie-editor-react select{max-width:100%}
 .cookie-editor-react input,.cookie-editor-react textarea{min-width:0}
@@ -290,42 +290,34 @@
 .cookie-editor-react .cookie-editor-actions>.cookie-react-icon{flex:0 0 36px}
 
 
-/* R5.36: the list stays mounted and inert. The sheet hugs its content;
-   only overflowing sheet content scrolls, not the header/actions. */
+/* The approved import region shares the existing Cookie list scroll area. */
 .cookie-editor-react .cookie-editor-workspace{position:relative}
-.cookie-editor-react .cookie-import-dismiss-layer{
-  position:absolute;inset:0;z-index:4;background:color-mix(in srgb,var(--od-ink) 5%,transparent);
-}
 .cookie-editor-react .cookie-import-workspace{
-  position:absolute;inset-inline:var(--space-2);bottom:var(--space-2);z-index:5;
-  box-sizing:border-box;height:auto;max-height:calc(100% - var(--space-2));
-  min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;
-  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+  position:relative;box-sizing:border-box;min-width:0;
+  display:grid;gap:9px;margin:0 12px 10px;padding:11px;
+  border:1px solid var(--od-line);border-left:2px solid var(--od-brand);border-radius:9px;
   background:var(--od-paper);color:var(--od-ink);
-  box-shadow:0 12px 32px color-mix(in srgb,var(--od-ink) 18%,transparent);
 }
 .cookie-editor-react .cookie-import-heading{
-  flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
-  gap:var(--space-2);padding:var(--space-3);border-bottom:1px solid var(--od-line);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
 }
-.cookie-editor-react .cookie-import-heading h2{font-size:16px;line-height:1.45;font-weight:650;margin:0}
+.cookie-editor-react .cookie-import-heading h2{font-size:12px;line-height:1.45;font-weight:650;margin:0}
 .cookie-editor-react .cookie-import-body{
-  display:flex;flex:0 1 auto;flex-direction:column;gap:var(--space-3);min-height:0;
-  padding:var(--space-3);overflow-y:auto;overscroll-behavior:contain;
+  display:grid;gap:8px;min-width:0;
 }
-.cookie-editor-react .cookie-import-dropzone{flex:0 0 auto}
+.cookie-editor-react .cookie-import-file-picker{justify-self:start}
+.cookie-editor-react .cookie-import-file-picker.is-dragging{outline:2px solid var(--od-brand)}
 .cookie-editor-react .cookie-import-paste{
-  display:flex;flex-direction:column;gap:var(--space-2);min-width:0;
-  font-size:var(--od-note-size);color:var(--od-sub);
+  display:grid;gap:6px;min-width:0;font-size:11px;color:var(--od-sub);
 }
 .cookie-editor-react .cookie-import-paste textarea{
-  width:100%;min-width:0;min-height:90px;max-height:none;resize:vertical;
+  width:100%;min-width:0;min-height:90px;resize:vertical;
   font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
   font-size:12px;color:var(--od-ink);
 }
+.cookie-editor-react .cookie-import-overwrite{display:flex;align-items:center;gap:6px;font-size:11px}
 .cookie-editor-react .cookie-import-footer{
-  flex:0 0 auto;display:grid;gap:var(--space-2);min-width:0;
-  padding:var(--space-3);border-top:1px solid var(--od-line);
+  display:grid;gap:8px;min-width:0;
 }
 .cookie-editor-react .cookie-import-inline-notice{
   max-height:64px;overflow-y:auto;overflow-wrap:anywhere;
@@ -349,20 +341,11 @@
   border-radius:var(--radius-control);box-shadow:0 6px 18px color-mix(in srgb,var(--od-ink) 16%,transparent);
 }
 .cookie-editor-react .cookie-import-toast--error{border-color:var(--od-danger,var(--od-line))}
-.cookie-editor-react .cookie-import-selected{flex:0 0 auto;margin:0;font-size:var(--od-note-size);overflow-wrap:anywhere}
-@media(max-height:520px){
-  .cookie-editor-react .cookie-import-heading,.cookie-editor-react .cookie-import-footer{padding:var(--space-2)}
-  .cookie-editor-react .cookie-import-body{padding:var(--space-2);gap:var(--space-2)}
-  .cookie-editor-react .cookie-import-paste textarea{min-height:72px}
-}
+.cookie-editor-react .cookie-import-selected{margin:0;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.cookie-editor-react .cookie-import-selected p{margin:0 0 6px}
+.cookie-editor-react .cookie-import-selected ul{margin:0;padding-left:18px}
 @media(max-width:350px){
   .cookie-editor-react .cookie-import-actions>button{flex:1 1 0;min-width:0}
-}
-@media(prefers-reduced-motion:no-preference){
-  .cookie-editor-react .cookie-import-workspace{animation:cookie-sheet-enter .16s ease-out both}
-  /* The first animation frame must remain inside the 8px bottom inset. A
-     larger downward offset escapes a short Chrome sidebar before settling. */
-  @keyframes cookie-sheet-enter{from{transform:translateY(4px);opacity:.92}to{transform:translateY(0);opacity:1}}
 }
 
 /* R5.23: the trusted Side Panel sizes the iframe; this app fills that viewport
