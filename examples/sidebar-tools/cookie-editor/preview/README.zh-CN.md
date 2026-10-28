@@ -1,4 +1,8 @@
-# 当前预览入口（2026-10-27）
+# 当前预览入口（2026-10-29）
+
+- **唯一主原型：R2.5.4 `preview/cookie-editor.html`**（2026-10-29；正式 `main` 提交 `932a1e70d6ea65a0b79764a7d299a8237c541bbb`）。已确认交互：账号顶部当前快照无背景更新图标，账号列表恢复已应用/切换/更多；新建账号默认选中全部 Cookie、明细可展开，顶部保存成功后返回列表并提示底部 Toast；分享配置匿名链接排在指定用户之前且默认选中。此文件是独立 HTML 模拟数据，**不代表正式 React/可信 Cookie 写入已同步完成**。
+- **后续实施规则**：仅以该主原型作为设计/交互契约，对照 `app/`、`trusted/`、`src/react.css` 的正式既有实现做增量接线；禁止从模拟脚本复制虚构 Cookie、绕开 Host/SDK，禁止创建平行 Mock。历史截图、旧版本原型、视觉审计锁及旧测试证据不得冒充该基线的正式通过。
+
 
 - **最新经用户交互评审的 HTML 视觉参考：** [cookie-editor.html](./cookie-editor.html)。六个 Tab（Cookie / 账号 / 企业 / 市场 / 定制 / 圈子）、Cookie Expiration、账号分享七档链接有效期、匿名领取 1/3/5/10 次，以及订阅/外部社群入口；这是**原生 HTML/CSS/JavaScript 模拟原型，非 React，不访问真实 Cookie 或可信 Host**。
 - **正式产品同源 React 预览：** [react/index.html](./react/index.html)，必须从 `../app/`、`../src/react.css`、`react/src/` 构建生成，预览虚构数据来自 SDK Mock，不能直接修改生成后的 HTML 代替源码修改。
