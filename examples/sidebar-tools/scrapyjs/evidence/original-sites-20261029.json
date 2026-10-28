@@ -735,5 +735,12 @@
     "nativeUpgradeAndRevocation": "NOT_TESTED",
     "fullMigrationComplete": false,
     "previousEvidence": "Historical versions retain their original scope; not relabeled as v1.3.0 pass"
+  },
+  "fixtureFormatting": {
+    "nativeTestedSha256": "6c6f08bf17140fa94b2987a48cba81c17f1eb3daeddeda353bf327acf585e4b8",
+    "committedSha256": "62b5c7a8e5435ef2895504587dcce79ca356dde8e2374be21fc1b34c2ec4e863",
+    "nativeTestedCopy": "artifacts/scrapyjs/original-sites-20261029/fixtures-tested/douban-books.html",
+    "change": "Whitespace-only lines normalized; no non-whitespace line changed",
+    "check": "Independent DOM extraction proves all20x4 raw fields byte-for-byte identical before/after; full20x11 expected checked again by original-sites.test.mjs"
   }
 }

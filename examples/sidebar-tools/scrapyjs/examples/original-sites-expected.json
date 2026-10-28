@@ -9,7 +9,8 @@
       "Keep only the original list container and its descendants in a UTF-8 HTML document; discard surrounding navigation/pagination.",
       "Remove script/style/link/img/iframe/object/embed/media/source elements and event handlers, inline styles and remote resource attributes; retain list structure, text and link/title attributes.",
       "Use simple class selectors instead of ancestor/nth-of-type chains; remove stale profile configSignature; preserve rowShape, fieldRequirements and processing.",
-      "Live entries have no historical expectedData or strict row count; parent native DOM oracle derives expected rows after normal load. Historical access failures are transient evidence, not a current live verdict."
+      "Live entries have no historical expectedData or strict row count; parent native DOM oracle derives expected rows after normal load. Historical access failures are transient evidence, not a current live verdict.",
+      "Normalize whitespace-only lines in the committed Douban fixture; every selected raw field remains byte-for-byte equal before/after. Native-tested bytes preserved separately."
     ],
     "sources": [
       {
@@ -73,7 +74,7 @@
     "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
     "fixture": {
       "path": "fixtures/douban-books.html",
-      "sha256": "6c6f08bf17140fa94b2987a48cba81c17f1eb3daeddeda353bf327acf585e4b8"
+      "sha256": "62b5c7a8e5435ef2895504587dcce79ca356dde8e2374be21fc1b34c2ec4e863"
     },
     "data": [
       {
