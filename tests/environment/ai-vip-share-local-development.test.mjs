@@ -804,6 +804,11 @@ test('polling an activation link cannot start another request while a manual pre
   assert.equal(posts(e,'/preview').length,1);
   assert.equal(posts(e,'/redeem').length,0);
   resume.resolve();await pending;
+  // preview() only waits for its synthetic event-loop flush, not for the held
+  // Provider response. Observe the real review state before confirming.
+  for(let attempt=0;attempt<10&&e.get('redeem-preview').hidden;attempt++)await e.flush();
+  assert.equal(e.get('redeem-preview').hidden,false,'delayed preflight must render the reviewed voucher');
+  assert.equal(e.get('redeem-confirm').disabled,false,'manual confirmation must become available');
   assert.equal(e.fixture.ledger.size,0);
   await e.click('redeem-confirm');assert.equal(posts(e,'/redeem').length,1);
 });
