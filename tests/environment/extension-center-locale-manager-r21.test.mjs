@@ -413,7 +413,7 @@ test('file selection/drop routes locale data away from code installer, including
   assert.equal(toolbar.localeManager.session,before);
 });
 
-test('exports real JSON data and missing AI tasks for an arbitrary target language',async t=>{
+test('downloads real JSON translation template, blanks missing rows, and backs up imported packs',async t=>{
   const f=await setup(t),ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],service:f.service,toolId:f.tool.id,onClose(){}}}}),{doc,window}=ui;
   const originalCreate=URL.createObjectURL,originalRevoke=URL.revokeObjectURL;
@@ -425,21 +425,38 @@ test('exports real JSON data and missing AI tasks for an arbitrary target langua
   };
   t.after(()=>{URL.createObjectURL=originalCreate;URL.revokeObjectURL=originalRevoke;
     window.HTMLElement.prototype.click=originalClick;});
-  const target=doc.querySelector('input[list]');target.value='fr';target.dispatch('input');
-  buttonNamed(doc,'导出缺失翻译 AI 任务').dispatch('click');
+  const before=structuredClone(f.saved);
+  openPacks(doc);
+  doc.querySelector('.od-locale-compose-toggle').dispatch('click');
+  selectValue(doc.getElementById('od-locale-target'),'fr');
+  buttonNamed(doc,'下载翻译模板').dispatch('click');
   await settle(()=>downloads.length===1);
-  const task=JSON.parse(await downloads[0].blob.text());
-  assert.equal(task.pack.targetLocale,'fr');assert.equal(task.pack.toolId,f.tool.id);
-  assert.equal(Object.keys(task.pack.messages).length,2);
-  assert.match(downloads[0].filename,/\.fr\.translation-task\.json$/);
-  assert.equal(f.service.exportPack(f.tool.id,'fr'),null,'task export never installs translations');
+  const template=JSON.parse(await downloads[0].blob.text());
+  assert.equal(template.format,'opendesk.locale-pack.v1');
+  assert.equal(template.targetLocale,'fr');assert.equal(template.toolId,f.tool.id);
+  assert.equal(template.sourceCatalogHash,f.tool.localization.sourceCatalogHash);
+  assert.equal(Object.keys(template.messages).length,2);
+  assert.deepEqual(template.messages.title,{source:'标题',text:''});
+  assert.deepEqual(template.messages.hello,{source:'你好 {name}',text:''});
+  assert.match(downloads[0].filename,/\.fr\.locale-template\.json$/);
+  assert.deepEqual(f.saved,before,'template export only reads trusted catalog');
   await settle(()=>!doc.querySelector('input[type=file]').disabled);
   const picker=doc.querySelector('input[type=file]');
-  Object.defineProperty(picker,'files',{value:[{size:100,text:async()=>JSON.stringify({...f.pack,targetLocale:'fr'})}]});
-  picker.dispatch('change');await settle(()=>buttonNamed(doc,'确认导入')&&!buttonNamed(doc,'确认导入').disabled);
-  buttonNamed(doc,'确认导入').dispatch('click');await settle(()=>doc.body.textContent.includes('语言包已保存。'));
-  buttonNamed(doc,'导出语言包').dispatch('click');await settle(()=>downloads.length===2);
-  assert.equal(JSON.parse(await downloads[1].blob.text()).targetLocale,'fr');
+  Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(template)}]});
+  picker.dispatch('change');
+  await settle(()=>doc.querySelector('[role=alert]'));
+  assert.equal(f.service.exportPack(f.tool.id,'fr'),null,'blank template is never installable');
+  const completed={...template,messages:{title:{source:'标题',text:'Titre'},
+    hello:{source:'你好 {name}',text:'Bonjour {name}'}}};
+  Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(completed)}]});
+  picker.dispatch('change');
+  await settle(()=>buttonNamed(doc,'确认导入')&&!buttonNamed(doc,'确认导入').disabled);
+  buttonNamed(doc,'确认导入').dispatch('click');
+  await settle(()=>Boolean(f.service.exportPack(f.tool.id,'fr'))&&doc.getElementById('od-locale-pack-tool'));
+  resourceAction(doc,'fr',0).dispatch('click');
+  await settle(()=>downloads.length===2);
+  assert.deepEqual(JSON.parse(await downloads[1].blob.text()),completed);
+  assert.equal(f.service.getToolLocale(f.tool.id),null,'import and backup never select the display language');
 });
 
 test('unknown/error storage recovery reloads without replaying install; samples and pack choices remain text',async t=>{
@@ -455,14 +472,16 @@ test('unknown/error storage recovery reloads without replaying install; samples 
   buttonNamed(ui.doc,'重新核对存储').dispatch('click');
   await settle(()=>ui.doc.body.textContent.includes('已重新核对存储'));
   assert.equal(reloads,1);assert.equal(installs,0);
+  openPacks(ui.doc);
   const picker=ui.doc.querySelector('input[type=file]');
   Object.defineProperty(picker,'files',{value:[{size:100,text:async()=>JSON.stringify(f.pack)}]});
   picker.dispatch('change');await settle(()=>buttonNamed(ui.doc,'确认覆盖')&&!buttonNamed(ui.doc,'确认覆盖').disabled);
   assert.match(ui.doc.querySelector('.od-locale-samples').textContent,/原文：标题译文：見出し/);
-  const packChoice=[...ui.doc.querySelectorAll('[aria-label="已安装语言包"] button')]
-    .find(node=>node.querySelector('strong')?.textContent==='日本語');
-  assert.ok(packChoice);assert.match(packChoice.textContent,/已导入/);packChoice.dispatch('click');
-  assert.equal(ui.doc.querySelector('input[list]').value,'ja');
+  assert.match(ui.doc.querySelector('.od-locale-samples').textContent,/原文：标题译文：見出し/);
+  buttonNamed(ui.doc,'取消导入').dispatch('click');
+  assert.match(ui.doc.querySelector('.od-locale-resources').textContent,/日本語.*已导入/);
+  assert.equal(service.getToolLocale(f.tool.id),null,'recovery and import preview never change language');
+
 });
 
 test('closing from tool settings restores that specific opener',async t=>{
@@ -474,9 +493,9 @@ test('closing from tool settings restores that specific opener',async t=>{
         returnFocusSelector:'#sidebar-tool-language-manage',onClose(){ui.state.open=false;ui.paint();}}}));
   }
   ui=createExtensionCenterDOM(t,{component:SettingsFixture});
-  buttonNamed(ui.doc,'关闭').dispatch('click');
-  assert.equal(ui.doc.querySelector('[role=dialog]'),null);
-  assert.equal(ui.doc.activeElement.id,'sidebar-tool-language-manage');
+  backLocale(ui.doc);
+  await settle(()=>ui.doc.querySelector('.od-locale-manager')===null&&
+    ui.doc.activeElement?.id==='sidebar-tool-language-manage');
 });
 
 test('React file picker and drop surface forward the selected files to the same classifier',t=>{
