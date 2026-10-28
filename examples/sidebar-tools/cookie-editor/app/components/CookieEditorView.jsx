@@ -279,11 +279,11 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
   return <div className="list-toolbar">
     <strong>Cookie <span>{count}</span></strong>
     <div className="toolbar-actions">
-      <Action name="download" label="导入 Cookie" appearance="quiet" onClick={onImport}
+      <Action name="upload" label="导入 Cookie" appearance="quiet" onClick={onImport}
         expanded={importOpen}
         controls={importOpen?"cookie-import-drawer":undefined}
         disabled={busy||importOpen||readonly||typeof onImport!=='function'}/>
-      <Action name="upload" label="导出 Cookie" appearance="quiet" onClick={onExport}
+      <Action name="download" label="导出 Cookie" appearance="quiet" onClick={onExport}
         buttonRef={exportButton} haspopup="dialog" expanded={exportOpen}
         controls={exportOpen?exportPopupId:undefined}
         disabled={busy||typeof onExport!=='function'}/>
