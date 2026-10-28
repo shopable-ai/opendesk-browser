@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/build-program-project.mjs examples/programs/chatgpt-jump-top --out "$RUNNER_TEMP/ai-scroll-nav-build"
-          node scripts/build-page-install-package.mjs --input "$RUNNER_TEMP/ai-scroll-nav-build/program.opendesk-draft.json" --out examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json --revision 7 --title "AI 对话滚动导航"
+          node scripts/build-page-install-package.mjs --input "$RUNNER_TEMP/ai-scroll-nav-build/program.opendesk-draft.json" --out examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json --revision 8 --title "AI 对话滚动导航"
       - name: Verify byte identity, revision, scope and blocked release
         run: |
           set -euo pipefail
@@ -65,8 +65,8 @@ jobs:
           ]);
           const value=await validatePageInstallPackage(JSON.parse(current));
           assert.equal(value.programId,'opendesk.ai-scroll-navigation');
-          assert.equal(value.version,'0.4.6');
-          assert.equal(value.revision,7);
+          assert.equal(value.version,'0.4.8');
+          assert.equal(value.revision,8);
           const frozenBytes=execFileSync('git',['show',`${process.env.AI_SCROLL_INPUT_HEAD}:${root}/ai-scroll-navigation.opendesk-page.json`]);
           const frozen=JSON.parse(frozenBytes);
           assert.equal(frozen.programId,value.programId,'frozen package identity changed');
@@ -86,10 +86,11 @@ jobs:
           assert.ok(entry&&entry.publication==='blocked');
           assert.ok((entry.version==='0.4.1'&&entry.revision===2)||
             (entry.version==='0.4.2'&&entry.revision===3)||
+            (entry.version==='0.4.6'&&entry.revision===7)||
             (entry.version===value.version&&entry.revision===value.revision));
           entry.version=value.version;
           entry.revision=value.revision;
-          entry.blockedReason='0.4.6/r7 已完成受安装授权约束的网站配置源码与正式构建；自定义站点扩权安装及新包真实 Chrome/Mac、三站操作仍缺证据，官方目录继续阻断发行。';
+          entry.blockedReason='0.4.8/r8 已完成受安装授权约束的网站配置源码与正式构建；自定义站点扩权安装及新包真实 Chrome/Mac、三站操作仍缺证据，官方目录继续阻断发行。';
           await writeFile('official-pages/sources.json',JSON.stringify(publication,null,2)+'\n');
           const record={programId:value.programId,version:value.version,
             revision:value.revision,sourceHash:value.sourceHash,packageHash:value.packageHash,
@@ -147,7 +148,7 @@ jobs:
           const packagePath='examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json';
           const packageBytes=await readFile(packagePath),pkg=JSON.parse(packageBytes);
           assert.equal(pkg.programId,id);
-          assert.equal(pkg.revision,7);
+          assert.equal(pkg.revision,8);
           const frozenBytes=execFileSync('git',['show',`${process.env.AI_SCROLL_INPUT_HEAD}:${packagePath}`]);
           const frozen=JSON.parse(frozenBytes);
           assert.equal(frozen.programId,pkg.programId,'frozen package identity changed');
@@ -183,7 +184,7 @@ jobs:
             git diff --cached --check "$latest"
             tree="$(git write-tree)"
             package_commit="$(git commit-tree "$tree" -p "$latest" \
-              -m 'Keep AI Scroll 0.4.6/r7 install bytes aligned with verified inputs' \
+              -m 'Keep AI Scroll 0.4.8/r8 install bytes aligned with verified inputs' \
               -m 'Constraint: Official publication remains blocked pending native evidence.
           Confidence: high
           Scope-risk: narrow
@@ -199,7 +200,7 @@ jobs:
       - name: Preserve verified package and matching release record
         uses: actions/upload-artifact@v4
         with:
-          name: ai-scroll-navigation-0.4.6-r7
+          name: ai-scroll-navigation-0.4.8-r8
           path: |
             examples/programs/chatgpt-jump-top/ai-scroll-navigation.opendesk-page.json
             official-pages/sources.json

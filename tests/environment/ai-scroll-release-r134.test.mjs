@@ -19,8 +19,8 @@ const packagePath='examples/programs/chatgpt-jump-top/ai-scroll-navigation.opend
 const catalogPath='official-pages/sources.json';
 const id='opendesk.ai-scroll-navigation';
 const row={programId:id,version:'0.4.1',revision:2,publication:'blocked'};
-const desired={...row,version:'0.4.6',revision:7};
-const pkg={programId:id,version:'0.4.6',revision:7,sourceHash:'a'.repeat(64),packageHash:'b'.repeat(64)};
+const desired={...row,version:'0.4.8',revision:8};
+const pkg={programId:id,version:'0.4.8',revision:8,sourceHash:'a'.repeat(64),packageHash:'b'.repeat(64)};
 const catalog=(entry= row,other='original')=>({schema:'test',programs:[entry,{programId:'other',version:other}]});
 const write=(root,path,value)=>{mkdirSync(dirname(join(root,path)),{recursive:true});
   writeFileSync(join(root,path),typeof value==='string'?value:JSON.stringify(value,null,2)+'\n');};
@@ -60,10 +60,10 @@ function fixture(t,initialPackage={...pkg,version:'0.4.1',revision:2},initialCat
     remoteFile(path){return JSON.parse(git(author,'show',`refs/remotes/origin/main:${path}`));}};
 }
 
-test('official r7 uses reserved-range guard and a matching hash record without native claims',()=>{
-  assert.match(workflow,/--revision 7 /);
-  assert.match(verify,/value.version,'0.4.6'/);
-  assert.match(verify,/value.revision,7/);
+test('official r8 uses reserved-range guard and a matching hash record without native claims',()=>{
+  assert.match(workflow,/--revision 8 /);
+  assert.match(verify,/value.version,'0.4.8'/);
+  assert.match(verify,/value.revision,8/);
   assert.match(verify,/value.revision<1_000_000_000/);
   assert.match(verify,/sourceHash:value.sourceHash,packageHash:value.packageHash/);
   assert.match(verify,/chromeNative:'NOT_TESTED',macNative:'NOT_TESTED'/);
@@ -207,14 +207,14 @@ test('Node CI includes affected install, catalog and tool-local regressions',()=
 
 for(const stage of ['publish','verify']){
   for(const [label,initial,error] of [
-    ['same r7 with different source',{...pkg,sourceUtf8:'committed A'},/identical raw package bytes/],
-    ['same r7 with only different formatting',JSON.stringify(pkg),/identical raw package bytes/],
+    ['same r8 with different source',{...pkg,sourceUtf8:'committed A'},/identical raw package bytes/],
+    ['same r8 with only different formatting',JSON.stringify(pkg),/identical raw package bytes/],
     ['revision rollback',{...pkg,revision:pkg.revision+1},/revision rollback/],
     ['dynamic reserved revision',{...pkg,revision:1_000_000_000},/dynamic reserved revision/]
   ]){
     test(`${stage} rejects frozen ${label} in a real Git fixture`,t=>{
       const f=fixture(t,initial,catalog(desired));
-      if(label==='same r7 with different source')write(f.runner,packagePath,{...pkg,sourceUtf8:'rebuilt B'});
+      if(label==='same r8 with different source')write(f.runner,packagePath,{...pkg,sourceUtf8:'rebuilt B'});
       const before=git(f.author,'rev-parse','origin/main');
       const result=stage==='publish'?f.run():f.runVerify();
       assert.notEqual(result.status,0,result.stdout+result.stderr);
@@ -224,14 +224,14 @@ for(const stage of ['publish','verify']){
       assert.equal(git(f.runner,'rev-parse','HEAD'),f.base);
     });
   }
-  test(`${stage} accepts frozen r2 to r7 upgrade`,t=>{
+  test(`${stage} accepts frozen r2 to r8 upgrade`,t=>{
     const f=fixture(t),result=stage==='publish'?f.run():f.runVerify();
     assert.equal(result.status,0,result.stdout+result.stderr);
     if(stage==='publish'){
       git(f.author,'fetch','origin','main');assert.deepEqual(f.remoteFile(packagePath),pkg);
     }
   });
-  test(`${stage} accepts identical frozen r7 without replacing package bytes`,t=>{
+  test(`${stage} accepts identical frozen r8 without replacing package bytes`,t=>{
     const f=fixture(t,pkg,catalog(desired)),before=git(f.author,'rev-parse','origin/main');
     const result=stage==='publish'?f.run():f.runVerify();
     assert.equal(result.status,0,result.stdout+result.stderr);
