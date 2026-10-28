@@ -829,6 +829,6 @@
 .cookie-editor-react .cookie-account-scope li strong{font-weight:650;min-width:0}
 .cookie-editor-react .cookie-account-scope li small{overflow-wrap:anywhere;min-width:0}
 .cookie-editor-react .cookie-account-card.is-just-saved{
-  outline:2px solid var(--od-cookie-brand-ink);outline-offset:-2px;
+  outline:2px solid var(--od-brand);outline-offset:-2px;
   border-radius:7px
 }
