@@ -8,7 +8,7 @@ const base=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const file=path=>readFileSync(resolve(base,path));
 const css=file('assets/queue.css').toString(),img=file('assets/crown-premium.webp');
 const html=file('preview/index.html').toString();
-const tuner=file('preview/tools/crown-tuner.html').toString();
+const tuner=file('legacy/preview/crown-tuner-r53.html').toString();
 const find=(start,end)=>{const i=html.indexOf(start),j=html.indexOf(end,i+start.length);assert.ok(i>=0&&j>i,'missing region '+start);return html.slice(i+start.length,j)};
 test('selected C WebP is the only packaged crown image: valid, alpha capable and small',()=>{
  assert.equal(img.toString('ascii',0,4),'RIFF');
