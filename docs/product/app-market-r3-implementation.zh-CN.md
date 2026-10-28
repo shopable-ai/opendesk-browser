@@ -2,6 +2,8 @@
 
 2026-10-11。此处记录源码范围，不代表生产 Chrome 或 Mac Native 验收通过。
 
+> **2026-10-29 商业方案补充（仅提案）：** [Market／Pass／Creator／License 商业模式 R1](app-market-commercial-model-r1.zh-CN.md)提出作者独立销售、平台会员分成及激活服务。本文件依然是**应用市场源码实现事实入口**；在线作者身份、收费商品、真实订单、会员池与分账均不能因为该设计被写成已上线能力，现有可信 Catalog/安装器/权限体系不变。
+
 扩展内入口：Side Panel「工具」→「应用市场」，独立页面 ui/marketplace.html。详情支持固定版本、发布者、主要功能、权限、适用网站与运行位置。媒体现为明确标注的界面结构示意，不是正式截图或视频。
 
 R4.5 的官方源码登记位于 `official-tools/catalog.json`，包含 reading-toc、web-markdown-clipper、quick-notes、markdown-workbench、knowledge-inbox 五个可选候选。版本、能力与代码来自 `examples/sidebar-tools/<id>/` 的经过校验配置及源码；`src/marketplace/catalog.js` 仅保留展示文案与不可变套装定义，不再重复维护发行版本或包路径。

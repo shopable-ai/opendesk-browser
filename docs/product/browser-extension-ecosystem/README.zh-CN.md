@@ -1,5 +1,7 @@
 > **2026-10-21 · Commercial Strategy R1.2（VALIDATION-FIRST）**：商业决策仍为 **A：先验证图文保存首次结果；B：并行寻找预算买家；C：获合法 CSV 后再动手**。S0 已完成 [真实源码可复用/缺口矩阵](commercial-opportunity-framework.zh-CN.md) 和 [22 家公开竞品任务/付费边界补核](competitor-research.zh-CN.md)；[US/JP 关键词、三项 EXP 和 S0–S4 实验门](distribution-and-validation.zh-CN.md) 仍是预注册。**正式图片离线交付未实现；Chrome Native、竞品直接操作、真实用户、订单、CAC 均未验证**。保持原 84 OPP、8 EXP、15 场景/30 子集，无新框架或第二账本。
 
+> **2026-10-29 商业提案增量（不改变现有商业验证优先级）：** [Market／Pass／Creator／License：开发者销售、统一会员、创作者收益与授权](../app-market-commercial-model-r1.zh-CN.md)。这是一份拟议平台模式和待验证分成机制；不新增 OPP/EXP 账本，也不把会员、真实支付、在线第三方发行或分账写成已完成。
+
 > **商业北极星 R1.2（2026-10-21）：** [原始免费获客→SaaS/企业服务目标、五个商业问题、四项关键任务和七条长期决策](commercial-opportunity-framework.zh-CN.md)已固化；[R1.2 跨行业可复制续接 GOAL](next-goals.zh-CN.md)保留 A 自助激活/B 企业买方并行/C 合法数据条件验证的完整商业优先级；执行仍沿用 [R1.1 S0–S4](distribution-and-validation.zh-CN.md)。**市场实测、收入、CPC/CAC 仍 MISSING**，不要将 AI 图文保存降格为公司唯一目标。
 
 > **当前商业研究下一步（2026-10-20，R1.1 执行决策）：** 已把上一轮 R1.0 的判断整理为[下一阶段 S0–S4 执行清单、结果证据门、失败退出条件](distribution-and-validation.zh-CN.md)。先核查已有 AI 图文保存正式代码并验证图片文件真实持久化（EXP-003），并行寻找企业受控工作流的有预算采购人（EXP-001）；卖家文件对账（EXP-005）以合法数据许可为前提。**均未进入真实客户实验/付费投放**；US/JP 关键词 CPC、CAC、收入仍是 MISSING。只更新原有 OPP/EXP，不创建第二商业账本。
