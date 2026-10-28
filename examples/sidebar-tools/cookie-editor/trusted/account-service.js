@@ -89,8 +89,9 @@ export function inspectAccountSnapshotUpdate(saved,current){
   if(!Array.isArray(saved)||!Array.isArray(current)||
      saved.length>MAX_COOKIES||current.length>MAX_COOKIES)
     throw fail('E_ACCOUNT_COOKIE_SCOPE');
-  const savedIds=saved.map(cookieId).sort();
-  const currentIds=current.map(cookieId).sort();
+  const snapshotId=row=>JSON.stringify([cookieId(row),Boolean(row.hostOnly)]);
+  const savedIds=saved.map(snapshotId).sort();
+  const currentIds=current.map(snapshotId).sort();
   if(new Set(savedIds).size!==savedIds.length||
      new Set(currentIds).size!==currentIds.length||
      !same(savedIds,currentIds))throw fail('E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED');
