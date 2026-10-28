@@ -2,7 +2,7 @@
 // Polling publishes UI only. Explicit storage admission stays in this exact
 // Workspace owner; it never installs, executes npm or grants installed rights.
 import {readToolSnapshot,NATIVE_TOOL_PREVIEW_ROOT,previewStorageKey} from './tool-snapshot.js';
-import {openPreviewSession,updatePreviewSession} from '../ui/sidebar-tools/preview-session.js';
+import {openPreviewSession,updatePreviewSession,panelPreviewStorageKey,panelPreviewPointer} from '../ui/sidebar-tools/preview-session.js';
 import {previewStatusKey} from '../ui/sidebar-tools/live-preview.js';
 import {createToolDevelopmentStorageOwner} from './tool-development-storage.js';
 
@@ -19,9 +19,14 @@ export function validateToolWatchStatus(text,toolId,now=Date.now()){
     throw new Error('构建状态身份或字段无效');
   return {...value,stale:now-updatedAt>15000};
 }
-export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,assertCurrent,nativeAuthority=null,lockManager=globalThis.navigator?.locks,onStatus=()=>{},now=Date.now,intervalMs=1500}){
+export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,assertCurrent,
+  nativeAuthority=null,surface='tab',windowId=null,lockManager=globalThis.navigator?.locks,
+  onStatus=()=>{},now=Date.now,intervalMs=1500}){
+  if(!['tab','sidepanel'].includes(surface)||surface==='sidepanel'&&
+    (!Number.isSafeInteger(windowId)||windowId<0))throw new Error('E_TOOL_PREVIEW_SURFACE');
   let closed=false,opened=null,snapshot=null,timer=null,queued=Promise.resolve(),starting=null,stopping=null;
-  let developmentCurrent=null;
+  let developmentCurrent=null,lastPointerRefresh=0;
+  const pointerKey=surface==='sidepanel'?panelPreviewStorageKey(windowId):null;
   const development=createToolDevelopmentStorageOwner({api,lockManager,now,assertCurrent,
     getCurrent:()=>closed?null:developmentCurrent,
     verifySnapshot:async sha256=>{
@@ -70,6 +75,14 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
     if(closed||!opened)return;
     try{
       await assertCurrent();if(closed)return;
+      if(pointerKey){
+        // Another explicit same-window development session takes ownership;
+        // an older Workspace must never reclaim this Panel or its grant.
+        const pointer=(await api.storage.session.get(pointerKey))[pointerKey];
+        if(pointer?.previewId!==opened.previewId){
+          invalidateDevelopment();return await report('此窗口已切换到另一开发会话',true);
+        }
+      }
       const status=validateToolWatchStatus(await readText(NATIVE_TOOL_PREVIEW_ROOT+'/'+toolId+'/status.json'),toolId,now());
       if(closed)return;
       // Revoke BEFORE publishing or deferring a changed snapshot. UI dirty
@@ -90,6 +103,11 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
         await updatePreviewSession({api:previewApi,previewId:opened.previewId,workspaceId,sourceId,snapshot,now:now()});
       }
       readyDevelopment();
+      if(pointerKey&&now()-lastPointerRefresh>60000){
+        await assertCurrent();if(closed)return;
+        await api.storage.session.set({[pointerKey]:panelPreviewPointer(opened.previewId,windowId,now())});
+        lastPointerRefresh=now();
+      }
       await report('实时开发预览 · '+snapshot.sha256.slice(0,12)+' · 未安装');
     }catch(error){
       invalidateDevelopment();
@@ -102,25 +120,32 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
   };
   function stop(){
     if(stopping)return stopping;
-    closed=true;development.dispose();clearTimeout(timer);api.tabs.onRemoved?.removeListener(removed);
+    closed=true;development.dispose();clearTimeout(timer);
+    if(surface==='tab')api.tabs.onRemoved?.removeListener(removed);
     stopping=queued.then(async()=>{
       if(!opened)return;
       const id=opened.previewId;opened=null;
       await api.storage.session.set({[previewStatusKey(id)]:{text:'开发会话已停止 · 保留上次成功预览',error:true,updatedAt:now()}}).catch(()=>{});
       await api.storage.session.remove(previewStorageKey(id)).catch(()=>{});
+      if(pointerKey){
+        const pointer=(await api.storage.session.get(pointerKey).catch(()=>({})))[pointerKey];
+        if(pointer?.previewId===id)await api.storage.session.remove(pointerKey).catch(()=>{});
+      }
     });
     return stopping;
   }
   function start(){
     if(closed)return Promise.reject(new Error('开发会话已停止'));
     if(starting)return starting;
-    api.tabs.onRemoved?.addListener(removed);
+    if(surface==='tab')api.tabs.onRemoved?.addListener(removed);
     starting=enqueue(async()=>{
       await assertCurrent();if(closed)return;
       const next=await readToolSnapshot({toolId,readText});
       await assertCurrent();if(closed)return;
       snapshot=next;
-      opened=await openPreviewSession({api:previewApi,workspaceId,sourceId,snapshot,now:now()});
+      opened=await openPreviewSession({api:previewApi,workspaceId,sourceId,snapshot,
+        now:now(),surface,windowId});
+      lastPointerRefresh=now();
       if(removedTabs.has(opened.tabId)){void stop();return;}
       removedTabs.clear();
       if(closed)return;
