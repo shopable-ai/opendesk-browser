@@ -632,6 +632,101 @@ test('R3.1 UNKNOWN remains terminal when no receipt or multiple replies are pres
  }finally{rt.dispose();}
 });
 
+for(const scenario of ['receipt text mismatch','customer text changed','customer scope changed','receipt ID collision']){
+ test(`R3.1 read-only recovery remains UNKNOWN for ${scenario}`,async()=>{
+  const {api,target,site}=lab({failSend:true});
+  const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+    readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+  const inbound=customer('几天内可以退款');
+  try{
+    await rt.start({event:{isTrusted:true}});
+    site.messages.push(inbound);
+    await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','fixed answer before unknown send');
+    await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+      {code:'E_KB_DEMO_OUTCOME_UNKNOWN'});
+    assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+    rt.pause();
+    const receipt={messageId:'kb_msg_00000000-0000-4000-b000-000000000003',
+      threadId:inbound.threadId,direction:'agent',scope:'',replyTo:inbound.messageId,
+      text:rt.snapshot().records[0].answer,createdAt:'2026-10-26T00:01:00.000Z'};
+    site.messages.push(receipt);
+    if(scenario==='receipt text mismatch')receipt.text='与原答案不同的网页回复';
+    if(scenario==='customer text changed')site.messages[0]={...inbound,text:'退款到账需要几天'};
+    if(scenario==='customer scope changed')site.messages[0]={...inbound,scope:'changed-scope'};
+    // Keep exactly one reply to the original customer: only ID uniqueness fails.
+    if(scenario==='receipt ID collision')site.messages.push(customer('另一条客户消息','',receipt.messageId));
+    assert.equal(site.messages.filter(row=>row.direction==='agent'&&row.replyTo===inbound.messageId).length,1);
+    const reads=site.readCalls;
+    const result=await rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId});
+    assert.equal(site.readCalls,reads+1,'recovery independently reads the fixture');
+    assert.deepEqual(result,{status:'UNKNOWN',code:'E_KB_DEMO_NO_UNIQUE_RECEIPT',readOnly:true});
+    assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+    assert.equal(rt.snapshot().confirmed,0,'invalid evidence cannot become CONFIRMED');
+    rt.resume();
+    await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+      {code:'E_KB_TEST_NO_ANSWER'});
+    assert.equal(site.sendCalls,1,'invalid evidence never authorizes another send');
+  }finally{rt.dispose();}
+ });
+}
+
+for(const interruption of ['stop','document replacement']){
+ test(`R3.1 independent recovery read rejects ${interruption} before accepting a matching receipt`,async()=>{
+  const {api,target,site}=lab({failSend:true});
+  const execute=api.scripting.executeScript,revalidate=target.revalidate;
+  let holdRead=false,releaseRead,pending,documentReplaced=false;
+  api.scripting.executeScript=async options=>{
+    const result=await execute(options);
+    if(holdRead&&options.args[0].operation==='read')
+      await new Promise(resolve=>{releaseRead=resolve;});
+    return result;
+  };
+  target.revalidate=async bound=>{
+    if(documentReplaced)throw Object.assign(new Error('fixture document replaced'),{code:'E_DOCUMENT_STALE'});
+    return revalidate(bound);
+  };
+  const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
+    readLibrary:async()=>({value:library,etag}),assertLive:()=>{}});
+  const inbound=customer('几天内可以退款');
+  try{
+    await rt.start({event:{isTrusted:true}});
+    site.messages.push(inbound);
+    await until(()=>rt.snapshot().records[0]?.status==='ANSWERED_FIXED','fixed answer before interrupted recovery');
+    await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+      {code:'E_KB_DEMO_OUTCOME_UNKNOWN'});
+    assert.equal(rt.snapshot().records[0].status,'UNKNOWN');
+    rt.pause();
+    site.messages.push({messageId:'kb_msg_00000000-0000-4000-b000-000000000003',
+      threadId:inbound.threadId,direction:'agent',scope:'',replyTo:inbound.messageId,
+      text:rt.snapshot().records[0].answer,createdAt:'2026-10-26T00:01:00.000Z'});
+    const reads=site.readCalls;
+    holdRead=true;
+    pending=rt.reconcile({event:{isTrusted:true},messageId:inbound.messageId});
+    const rejected=assert.rejects(pending,
+      {code:interruption==='stop'?'E_KB_DEMO_STOPPED':'E_DOCUMENT_STALE'});
+    await until(()=>typeof releaseRead==='function','independent receipt read in flight');
+    assert.equal(site.readCalls,reads+1);
+    if(interruption==='stop')rt.stop('stopped during independent recovery read');
+    else documentReplaced=true;
+    holdRead=false;releaseRead();
+    await rejected;
+    assert.equal(rt.snapshot().records[0].status,'UNKNOWN','late matching evidence must stay unknown');
+    assert.equal(rt.snapshot().confirmed,0,'retired document evidence cannot become CONFIRMED');
+    if(interruption==='stop')assert.throws(()=>rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+      {code:'E_KB_TEST_PAUSED'});
+    else{
+      rt.resume();
+      await assert.rejects(rt.confirm({event:{isTrusted:true},messageId:inbound.messageId}),
+        {code:'E_KB_TEST_NO_ANSWER'});
+    }
+    assert.equal(site.sendCalls,1,'interrupted recovery cannot resend');
+  }finally{
+    holdRead=false;releaseRead?.();
+    await pending?.catch(()=>{});rt.dispose();
+  }
+ });
+}
+
 test('R3.1 read-only receipt recovery requires trusted click and an UNKNOWN original message',async()=>{
  const {api,target,site}=lab();
  const rt=createLocalKnowledgeTestRuntime({api,currentPageTarget:target,model,
