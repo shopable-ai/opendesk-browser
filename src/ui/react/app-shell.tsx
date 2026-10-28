@@ -1,6 +1,7 @@
 import {TaskCatalogPage} from './tabs/task-catalog.tsx';
 import * as React from 'react';
 import {SidebarNavigation} from './tabs/navigation.tsx';
+import {translateUiText} from '../../i18n/strings.js';
 import {ExtensionCenterPage} from './tabs/tools.tsx';
 import {CloudConnectionPage} from './tabs/cloud.tsx';
 import {DeveloperPage,DeveloperDock} from './tabs/develop.tsx';
@@ -14,6 +15,7 @@ import {DebugPage} from './tabs/debug.tsx';
 const emptyToolSnapshot={fields:{}};
 const readEmptyTool=()=>emptyToolSnapshot;
 const subscribeEmptyTool=()=>()=>{};
+const defaultUiLocale=()=> 'zh-CN';
 
 export function SidebarAppShell({
   activeTab='tasks',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{},
@@ -23,8 +25,12 @@ export function SidebarAppShell({
   providerSettingsOpen=false,onOpenProviderSettings=()=>{},onCloseProviderSettings=()=>{},
   onOpenNativeSettings=null,nativeConnection=null,
   debugModel={},debugActions={},development=null,
-  browserHistoryModel=null,browserHistoryActions=null
+  browserHistoryModel=null,browserHistoryActions=null,localeController=null
 }){
+  // The existing trusted preference owner drives the entire React shell without remounts.
+  const uiLocale=React.useSyncExternalStore(localeController?.subscribe??subscribeEmptyTool,
+    localeController?.getLocale??defaultUiLocale,localeController?.getLocale??defaultUiLocale);
+  React.useEffect(()=>{document.documentElement.lang=uiLocale;},[uiLocale]);
   React.useSyncExternalStore(myView.subscribe,myView.getSnapshot,myView.getSnapshot);
   const developerSnapshot=React.useSyncExternalStore(developerView.subscribe,developerView.getSnapshot,developerView.getSnapshot);
   const toolSnapshot=React.useSyncExternalStore(toolView?.subscribe??subscribeEmptyTool,
@@ -40,11 +46,11 @@ export function SidebarAppShell({
   const runDock=myView.data.runDock??{taskHidden:activeTab!=='tasks',developHidden:activeTab!=='develop',
     hidden:!['tasks','develop'].includes(activeTab),stopOnly:false};
   return <>
-    <nav className="workbench-nav" role="tablist" aria-label="工作台"
-      aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签"
+    <nav className="workbench-nav" role="tablist" aria-label={translateUiText('sidebar.navigation',{},uiLocale)}
+      aria-description={translateUiText('sidebar.navigationHint',{},uiLocale)}
       data-debug-enabled={debugEnabled?'true':undefined}>
       <SidebarNavigation activeTab={activeTab} debugEnabled={debugEnabled}
-        appDebugEnabled={appDebugEnabled} onNavigate={onNavigate}/>
+        appDebugEnabled={appDebugEnabled} locale={uiLocale} onNavigate={onNavigate}/>
     </nav>
     <main id="workspace-content">
       <div id="site-access-recovery" className="row" role="status" hidden={siteAccess.data.websites!==false}>
