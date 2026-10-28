@@ -1,8 +1,8 @@
 // Exact pre-release source-bound admission for one product, not an official publication.
 // A manually imported same-ID package MUST NOT inherit queue control authority.
 export const SEND_QUEUE_PIN=Object.freeze({
-  toolId:'ai-send-queue',toolVersion:'0.1.15',
-  toolPackageSha256:'ef5a8d512783b99dd96e6eba0eda24aadbe9f3f3842cf716e1782f2657de9fea',
+  toolId:'ai-send-queue',toolVersion:'0.1.16',
+  toolPackageSha256:'b1ddcc7245c414e1e8dc94b7c3d671c20ddbf9b77d4155cbeb819b643a014236',
   pageProgramId:'opendesk.ai-send-queue',pageVersion:'0.1.13',pageRevision:13,
   pagePackageHash:'c63d0b0321826eabf5340f06a96d435a6983fc982371e2bede440941c9a30720',
   pageSourceHash:'2e33a179ff03ba02810827ce6bc56482a3ae90d4da9b93805870334b6962e8de'

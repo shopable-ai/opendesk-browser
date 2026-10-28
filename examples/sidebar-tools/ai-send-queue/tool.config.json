@@ -1,8 +1,8 @@
 {
   "id": "ai-send-queue",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "title": "AI 消息发送队列",
-  "description": "管理已安装 ChatGPT 网页程序的内存发送队列；仅经授权操作当前对话。",
+  "description": "在 ChatGPT 网页输入框管理发送队列；侧栏提供使用说明。",
   "capabilities": [
     "currentPage.read"
   ],

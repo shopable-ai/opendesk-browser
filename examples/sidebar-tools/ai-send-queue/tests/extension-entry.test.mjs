@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {composeExtensionEntries,filterExtensionEntries}
   from '../../../../src/ui/extension-center-model.js';
 import {SEND_QUEUE_PIN} from '../../../../src/platform/host/send-queue-admission.js';
-const tool={id:SEND_QUEUE_PIN.toolId,version:SEND_QUEUE_PIN.toolVersion,title:'AI 消息发送队列',
+const tool={id:SEND_QUEUE_PIN.toolId,version:SEND_QUEUE_PIN.toolVersion,uiRuntime:'opendesk.react-ui.v1',title:'AI 消息发送队列',
   description:'管理已安装的网页队列',capabilities:['currentPage.read']};
 const page={programId:SEND_QUEUE_PIN.pageProgramId,revision:13,title:'AI 消息发送队列',
   manifestHash:'manifest',sourceHash:SEND_QUEUE_PIN.pageSourceHash,

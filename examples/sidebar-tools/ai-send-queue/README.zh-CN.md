@@ -1,32 +1,28 @@
-# AI 消息发送队列 · R5.10 交接与真实验收边界
+# AI 消息发送队列
 
-**原始目标：** 用户在 ChatGPT 正在回复时预先编写多条消息，由唯一 Page USER_SCRIPT 内存队列依 FIFO 顺序在原生输入安全、原生消息入站确认后自动发送下一条；正式 React Sidebar 只通过可信 Host 对该队列读取和逐条操作。扩展中心要以一个独立应用完成 Page + Sidebar 的安装、打开、更新、停用、卸载，授权安全边界不合并。
+**原始目标：** 用户在 ChatGPT 正在回复时预先编写多条消息，由唯一 Page USER_SCRIPT 内存队列依 FIFO 顺序在原生输入安全、原生消息入站确认后自动发送下一条；侧栏仅提供网页使用提示，不显示或读取队列数据。扩展中心要以一个独立应用完成 Page + Sidebar 的安装、打开、更新、停用、卸载，授权安全边界不合并。
 
 唯一产品根目录：`examples/sidebar-tools/ai-send-queue/`。R5.7 提交 `607f708d` 已完成目录合并。禁止再次迁移原 `examples/programs/chatgpt-send-queue/`。
 
-## 当前阶段与下一条操作（2026-10-29）
+## 当前范围（2026-10-29 最新要求）
 
-R5.11 已在本任务独占的 Mac Chrome for Testing 156 中，经「扩展 → AI 消息发送队列 → 联合安装 / 更新审阅」一次确认安装 Tool `0.1.15` 与 Page `0.1.13/r13`，原入口返回两份安装记录已读回；重新进入已安装详情确认「侧栏：已启用；网页能力：已注册」。Tool 固定包 SHA-256 为 `ef5a8d512783b99dd96e6eba0eda24aadbe9f3f3842cf716e1782f2657de9fea`；Page sourceHash 为 `2e33a179ff03ba02810827ce6bc56482a3ae90d4da9b93805870334b6962e8de`，packageHash 为 `c63d0b0321826eabf5340f06a96d435a6983fc982371e2bede440941c9a30720`。
+用户明确侧栏不需要显示队列数据，并要求收敛测试。Tool `0.1.16` 仅提示在 ChatGPT 网页输入框使用皇冠按钮；移除侧栏的消息列表、状态、逐条操作、读取请求和轮询。扩展中心沿用原有安装、更新、停用和卸载入口；网页 `0.1.13/r13`、单一 Page 内存队列和发送安全栅栏均未变更。
 
-首次隔离安装明确因 Chrome 未允许用户脚本而停止，没有继续安装侧栏；通过 Chrome 原生「允许运行用户脚本」后，在独立 Profile 完成上述安装。清理状态未知和失败原生回执都不能放行后续安装或显示完成；旧 `0.1.13` Tool 可审阅精确候选联合升级，但不因此获得当前队列管理权。随后复核修复了联合审阅准备和失败异步读回期间的重复提交窗口，新增延迟回归，联合安装 18 项、Page 导入与队列产品管理 64 项定向测试通过；这两项时序修复尚无更新后原生复验。
+本次只验证侧栏源码、React 构建、安装包同源和精确来源准入，不再执行双端同步、关闭重开、FIFO、production、评分或完整测试矩阵。下方历史验收和待办不构成本轮执行清单。Tool 正式包已更新；本次新版本实际 Chrome 更新与展示为 **NOT_TESTED**。
 
-本次复用既有 `npm run dev` 的 `dist/development`，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；未覆盖共享输出、重配 Native 或使用旧静态包。该运行证据属于持续开发，不能替代冻结 production 验收。独占 `test-chatgpt-02` 的 ChatGPT 当前停在 Cloudflare 真人验证，尚未取得可用会话；真实两条消息入队、网页/侧栏同步、FIFO 发送均为 **NOT_TESTED**。实际侧栏保持不可用状态，没有伪造队列或自动发送。
+此前在系统 Chrome 156 经现有联合安装入口，已真实安装 Tool `0.1.15` 与 Page `0.1.13/r13`。真实网页已入队两条暂停消息；旧版侧栏同队列读回、跨端暂停/恢复及关闭重开已观察到。收尾时实读到第一条测试消息已收到真实回复，第二条仍为暂停，随后已通过网页删除；原生输入框为空。完整双条 FIFO 真实回复为 **NOT_TESTED**。这些是旧版证据，不代表 `0.1.16` 已安装。原始记录保留在本地忽略的 `artifacts/ai-send-queue-r511/`。
 
-用户随后明确允许使用系统 Chrome；已创建本任务独立 ChatGPT 测试标签页，但浏览器 DOM、截图和准确路径的原生窗口读取持续超时，仅能读取标签元数据，未取得可操作页面。此为当前测试连接阻塞，不能据此判定队列产品故障。未重启或关闭用户 Chrome，未提取个人 Profile Cookie；本任务隔离 CFT 已正常退出。
-
-Tool 已加入内置候选目录，Page 公开发行仍为 **blocked**，审阅候选不代表公开上架。[R5.10 验收记录](ACCEPTANCE-R5.10.zh-CN.md) 保留历史范围，不代表本次候选。下一条尚未完成的操作是在用户已授权的系统 Chrome 取得可操作测试页后，核对网页入队与侧栏同步，再验证安全 FIFO；不重跑已通过的引擎测试代替这项证据。
-
-本轮优先真实核心链：Page 入队 → Sidebar 同步 → 跨端暂停/恢复 → FIFO 发送与真实回复确认。先修复实际失败，再选择相关检查；完整验收、评分、宽度/缩放矩阵、production 发布和全量 CI 延期。
+日常扩展仍使用既有持续开发 `dist/development`，真实 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`。本轮没有重建整个 Browser、覆盖共享输出或切换 Profile。Tool 来自唯一正式 JSON，精确 SHA-256 由既有打包器生成后同步至 `src/platform/host/send-queue-admission.js`，未放宽身份或权限校验。Page 公开发行继续为 **blocked**。
 
 ## 不可漂移的合同
 
 - Page ID：`opendesk.ai-send-queue`，唯一队列与发送状态机：`src/page/engine.js`；ChatGPT DOM：`src/page/site.js`；远端协议：`src/page/remote.js`。
-- Sidebar Tool ID：`ai-send-queue`；`src/sidebar/App.jsx` 和 `style.css` 为唯一正式 React UI；消息合同：`src/shared/queue-contract.js`。不创建第二份队列、第二个 React Root 或第二套 Host。
+- Sidebar Tool ID：`ai-send-queue`；`src/sidebar/App.jsx` 和 `style.css` 为唯一正式 React UI；页面既有消息合同：`src/shared/queue-contract.js`。侧栏仅展示使用提示，不请求队列数据；不创建第二份队列、第二个 React Root 或第二套 Host。
 - Page 皇冠和队列采用已批准的 R5.4 CSS 和 `crown-premium.webp`，不改皇冠偏移、旋转、尺寸、不叠新图层。
 - 编辑为取回 ChatGPT 原生输入框；FIFO、草稿、IME、附件、会话身份和 unknown-effect 不重发是强制安全栅栏。
 - `preview/index.html` 保留唯一 R5.4 设计，并接入正式 React 构建及明确标识的模拟 Owner；**预览与 CI 编译不等于真实发送**。
 
-## R5.10 本轮落地的真实代码
+## R5.10 历史实现（侧栏数据展示已被最新要求取代）
 
 - `cdbfd2a`：正式 React 消息行收敛成紧凑正文/状态、暂停或恢复、提前发送，以及有键盘 Esc/焦点的更多菜单（编辑取回、上移、下移、删除）。保留 Host 协议及版本 CAS。
 - `eed0f76`、`42b6589`：380px 优先布局、窄屏自适应、共用深浅色设计变量；清理了不存在的主题和圆角 Token，统一至 `--od-ink`、`--od-paper`、`--radius-surface`。
@@ -45,7 +41,7 @@ Tool 已加入内置候选目录，Page 公开发行仍为 **blocked**，审阅�
 - `scripts/ci-installed-chromium.mjs` 联合安装新增代码仍待成功的实际 Chrome 运行证据；Page DOM 真实发送、macOS 已登录 ChatGPT、Side Panel 关闭重开后的真实同步，均 **NOT_TESTED**。
 - `preview/index.html` 尚未由正式 React 构建驱动双端联动；不得把旧 Page 离线预览当作已完成的 React 页面。
 
-## 后续待办（按当前阶段选择）
+## 历史待办（本轮不执行）
 
 以下保留远端待办，不作为当前核心链的前置清单；完整验收、评分、production 发布及全量 CI 继续延期。
 
