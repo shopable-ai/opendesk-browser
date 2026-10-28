@@ -87,6 +87,15 @@ test('old source hash reuses exact original rows only, reports stale and missing
   assert.equal(evaluated.hashMatches,false);
   assert.deepEqual(evaluated.messages,{hello:'Salut',count:'Nombre {count}'});
   assert.deepEqual(evaluated.stale,['other','removed']);assert.deepEqual(evaluated.missing,['other']);
+  const env=host(tool),service=createToolLocaleService(env);await service.ready;
+  const before=structuredClone(env.values);
+  await assert.rejects(service.install(value,tool),{code:'E_LOCALE_PACK_STALE'});
+  const sameHash=pack(tool);sameHash.messages.other={source:'Old other',text:'Autre'};
+  await assert.rejects(service.install(sameHash,tool),{code:'E_LOCALE_PACK_STALE'});
+  const unknown=pack(tool);unknown.messages.removed={source:'Removed',text:'Supprimé'};
+  await assert.rejects(service.install(unknown,tool),{code:'E_LOCALE_PACK_STALE'});
+  assert.deepEqual(env.values,before,'rejected packs never reach storage');
+  service.dispose();
 });
 
 test('custom > official > source; independent state, manual task export, upgrade preserves matching translations',async()=>{
@@ -276,8 +285,6 @@ test('write notification refresh cannot clear unknown or dispatch the queued sec
 test('partial AI export roundtrip preserves valid custom and official rows while ordinary imports still replace',async()=>{
   const tool=await fixture(),env=host(tool),service=createToolLocaleService(env);await service.ready;
   const partial=pack(tool);delete partial.messages.hello;
-  partial.messages.removed={source:'Deleted source',text:'Supprimé'};
-  partial.sourceCatalogHash='0'.repeat(64);
   await service.install(partial,tool);
   const task=service.exportTranslationTask(tool,'fr');
   assert.deepEqual(task.translationKeys,['other']);
