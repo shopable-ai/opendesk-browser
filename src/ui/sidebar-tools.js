@@ -4524,7 +4524,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw new Error('当前应用有未保存内容或正在保存。请关闭安装浮层，先保存或取消编辑，再继续更新；草稿已保留。');
     },
     hasInstallReview:()=>importPanel.hidden===false,
-    openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openPagePackageReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
+    openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openPagePackageReview,openImport,openImportFiles,openReadOnlyPreview,
+    stopReadOnlyPreview(){if(!readOnlyPreview)return false;suspendTool();return true;},
+    isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();
