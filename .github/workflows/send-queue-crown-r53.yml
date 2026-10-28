@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'examples/programs/chatgpt-send-queue/**'
+      - 'examples/sidebar-tools/ai-send-queue/**'
       - '.github/workflows/send-queue-crown-r53.yml'
   workflow_dispatch:
 permissions:
@@ -21,14 +21,14 @@ jobs:
           node-version: '22'
       - name: Verify Send Queue core and crown tests
         run: |
-          node --check examples/programs/chatgpt-send-queue/scripts/crown-r53-chromium.mjs
-          node --test examples/programs/chatgpt-send-queue/tests/*.test.mjs
+          node --check examples/sidebar-tools/ai-send-queue/scripts/crown-r53-chromium.mjs
+          node --test examples/sidebar-tools/ai-send-queue/tests/*.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Render actual offline HTML in Chrome at deviceScaleFactor 1
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node examples/programs/chatgpt-send-queue/scripts/crown-r53-chromium.mjs artifacts/send-queue-crown-r54
+        run: node examples/sidebar-tools/ai-send-queue/scripts/crown-r53-chromium.mjs artifacts/send-queue-crown-r54
       - name: Preserve before/after 1:1 screenshots and alpha measurements
         if: always()
         uses: actions/upload-artifact@v4

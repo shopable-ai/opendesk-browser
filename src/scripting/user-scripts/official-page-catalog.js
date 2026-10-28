@@ -12,7 +12,7 @@ const scopes=Object.freeze({
     sites:['https://chatgpt.com/*','https://chat.deepseek.com/*','https://gemini.google.com/*'],policy:'reviewed',packageFile:'ai-scroll-navigation.opendesk-page.json'}),
   'opendesk.ai-reply-mindmap':Object.freeze({project:'examples/programs/chatgpt-mindmap',
     sites:['https://chatgpt.com/*'],policy:'on-demand',packageFile:'ai-reply-mindmap.opendesk-page.json'}),
-  'opendesk.ai-send-queue':Object.freeze({project:'examples/programs/chatgpt-send-queue',
+  'opendesk.ai-send-queue':Object.freeze({project:'examples/sidebar-tools/ai-send-queue',
     sites:['https://chatgpt.com/*'],policy:'reviewed',packageFile:'ai-send-queue.opendesk-page.json'})
 });
 const error=(code,message)=>Object.assign(new Error(message),{code});

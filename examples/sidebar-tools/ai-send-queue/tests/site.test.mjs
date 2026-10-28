@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createChatGPTSite} from '../src/site.js';
-import {createQueueEngine} from '../src/engine.js';
+import {createChatGPTSite} from '../src/page/site.js';
+import {createQueueEngine} from '../src/page/engine.js';
 
 // Adapter contract tests only. These stubs do not prove ChatGPT selectors or
 // React input acceptance; those require the live USER_SCRIPT run.

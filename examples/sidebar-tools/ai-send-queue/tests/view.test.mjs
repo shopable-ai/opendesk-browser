@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createQueueView} from '../src/view.js';
+import {createQueueView} from '../src/page/view.js';
 
 // A small, independent DOM/flow fixture. Rectangles are explicit CSS-pixel
 // inputs, not a replica of ChatGPT markup or a claim of browser rendering QA.

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createSendQueueRemote,SEND_QUEUE_REMOTE_GLOBAL} from '../src/remote.js';
+import {createSendQueueRemote,SEND_QUEUE_REMOTE_GLOBAL} from '../src/page/remote.js';
 
 function fixture(){
   const world={},destructors=[];let active=true,route='c/12345678',phase='waiting';

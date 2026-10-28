@@ -34,7 +34,11 @@ async function approvedFile(root,row){
   if(row.programId==='opendesk.ai-reply-mindmap')
     fail('XMind 资源再分发许可尚未通过独立生产门禁，禁止晋升正式安装');
   const directory=resolve(root,row.project);
-  if(await realpath(directory)!==directory||!directory.startsWith(root+'/examples/programs/'))
+  // Exact single-product exception, not a generalized publication permission.
+  const oneQueueProduct=row.programId==='opendesk.ai-send-queue'&&
+    directory===resolve(root,'examples/sidebar-tools/ai-send-queue');
+  if(await realpath(directory)!==directory||
+    !(directory.startsWith(root+'/examples/programs/')||oneQueueProduct))
     fail('项目目录越过许可的 Page 源码范围');
   const path=resolve(directory,row.packageFile);
   if(!path.startsWith(directory+'/'))fail('正式包路径越界');

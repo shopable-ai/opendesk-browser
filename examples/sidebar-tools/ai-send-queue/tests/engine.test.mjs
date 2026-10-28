@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createQueueEngine} from '../src/engine.js';
-import {createChatGPTSite} from '../src/site.js';
+import {createQueueEngine} from '../src/page/engine.js';
+import {createChatGPTSite} from '../src/page/site.js';
 
 function fixture() {
   const state={now:0,route:'c/12345678-1234-1234-1234-123456789abc',

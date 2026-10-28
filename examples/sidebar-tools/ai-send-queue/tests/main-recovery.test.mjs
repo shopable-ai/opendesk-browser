@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 
 // Exercise the real entry's action wiring without sending a website message.
-const entry=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
+const entry=await readFile(new URL('../src/page/main.js',import.meta.url),'utf8');
 function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'private draft',
   reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false}={}){
   const calls={preflight:0,clear:0,enqueued:0,ticks:0,pauses:0,restores:0,toasts:[],

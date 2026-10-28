@@ -41,7 +41,7 @@ test('preview keeps three initial rows, expansion, conservative draft protection
 });
 
 test('production queue view retains original three-item window and no crown behavior change',()=>{
- const view=text('src/view.js');
+ const view=text('src/page/view.js');
  assert.ok(view.includes('state.expanded?items:items.slice(0,3)'));
  assert.ok(view.includes('if(items.length>3)'));
  assert.ok(view.includes("'展开其余 '+(items.length-3)+' 条'"));
