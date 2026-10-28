@@ -58,6 +58,106 @@ async function navigate(width,theme='light'){
    deviceScaleFactor:1,mobile:false});
  await cdp('Page.navigate',{url:pathToFileURL(preview).href+'?tab=tools&ui=showcase&width='+width+'&theme='+theme});
  await waitFor('document.documentElement.dataset.previewBootScript==="ready" && '+
+  '!!document.querySelector("#od-preview-gallery [data-od-showcase-tab=controls]")');
+ const measured=await evalJs('(()=>{const stage=document.getElementById("od-sidebar-preview-stage");'+
+  'const gallery=document.getElementById("od-preview-gallery");'+
+  'const r=stage.getBoundingClientRect();return {width:r.width,stageOverflow:stage.scrollWidth-stage.clientWidth,'+
+  'galleryOverflow:gallery.scrollWidth-gallery.clientWidth,boot:document.documentElement.dataset.previewBootScript,'+
+  'proof:document.querySelector("meta[name=od-preview-proof]")?.content}})()');
+ assert.ok(Math.abs(measured.width-width)<=3,'Real inner width mismatch '+JSON.stringify({width,measured}));
+ assert.ok(measured.stageOverflow<=2&&measured.galleryOverflow<=2,
+  'Horizontal overflow '+JSON.stringify({width,measured}));
+ assert.equal(measured.proof,'UI_PREVIEW_ONLY');
+ report.widths.push({width,theme,measured});
+ const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+ await writeFile(join(artifactDir,'gallery-'+width+'-'+theme+'.png'),Buffer.from(shot.data,'base64'));
+}
+async function pointer(selector){
+ const point=await evalJs('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
+  'if(!n)return null;n.scrollIntoView({block:"center",inline:"nearest"});'+
+  'const r=n.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height}})()');
+ assert.ok(point&&point.width>0&&point.height>0,'Target missing or hidden: '+selector);
+ await pause(90);
+ const hit=await evalJs('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
+  'const r=n.getBoundingClientRect();const t=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);'+
+  'return Boolean(t&&(t===n||n.contains(t)))})()');
+ assert.ok(hit,'Pointer hit-test failed: '+selector);
+ await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:point.x,y:point.y});
+ await cdp('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',clickCount:1});
+ await cdp('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',clickCount:1});
+}
+async function key(k,keyCode=0){
+ await cdp('Input.dispatchKeyEvent',{type:'keyDown',key:k,code:k,windowsVirtualKeyCode:keyCode,nativeVirtualKeyCode:keyCode});
+ await cdp('Input.dispatchKeyEvent',{type:'keyUp',key:k,code:k,windowsVirtualKeyCode:keyCode,nativeVirtualKeyCode:keyCode});
+}
+try{
+ chrome=spawn(chromeBin,['--headless=new','--no-sandbox','--disable-gpu',
+  '--disable-dev-shm-usage','--no-first-run','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'],
+  {stdio:['ignore','ignore','pipe']});
+ exit=new Promise(done=>chrome.once('close',done));
+ const stderr=[];
+ chrome.stderr.on('data',v=>{stderr.push(v.toString().slice(-500));if(stderr.length>15)stderr.shift();});
+ let port=0;
+ for(let i=0;i<150;i++){
+   try{port=Number((await readFile(join(profile,'DevToolsActivePort'),'utf8')).split('\n')[0]);}catch{}
+   if(port)break;
+   if(chrome.exitCode!==null)throw Error('Chromium crashed '+stderr.join(''));
+   await pause(100);
+ }
+ assert.ok(port,'Missing Chromium debugging port '+stderr.join(''));
+ const targets=await (await fetch('http://127.0.0.1:'+port+'/json/list')).json();
+ const target=targets.find(v=>v.type==='page');
+ assert.ok(target?.webSocketDebuggerUrl,'Chromium page CDP missing');
+ socket=new WebSocket(target.webSocketDebuggerUrl);
+ await new Promise((ok,bad)=>{socket.addEventListener('open',ok,{once:true});
+    socket.addEventListener('error',bad,{once:true});});
+ socket.addEventListener('message',event=>{
+   const message=JSON.parse(event.data);
+   if(message.method==='Runtime.exceptionThrown')
+     report.exceptions.push(message.params?.exceptionDetails?.exception?.description||'Runtime.exceptionThrown');
+   const waiter=pending.get(message.id);if(!waiter)return;
+   pending.delete(message.id);
+   message.error?waiter.bad(Error(JSON.stringify(message.error))):waiter.ok(message.result);
+ });
+ await cdp('Runtime.enable');await cdp('Page.enable');
+ report.chrome=(await cdp('Browser.getVersion')).product;
+ for(const width of [320,360,400,440,960])await navigate(width);
+ await pointer('#od-preview-gallery [data-od-showcase-tab=layers]');
+ await waitFor('!!document.querySelector("#od-preview-gallery [role=tabpanel] .od-demo-floating") || '+
+  '!!document.querySelector("#od-preview-gallery [role=tabpanel] .od-demo-actions")');
+ report.checks.push('real tab pointer changes React panel');
+ await pointer('#od-preview-gallery [role=tabpanel] .od-demo-actions .od-button');
+ await waitFor('!!document.querySelector("[role=menu]")');
+ report.checks.push('React Aria Menu opens by pointer');
+ await key('Escape',27);
+ await waitFor('!document.querySelector("[role=menu]")');
+ report.checks.push('Menu Escape dismissal');
+ await pointer('#od-preview-gallery [role=tabpanel] .od-demo-actions .od-button--danger');
+ await waitFor('!!document.querySelector(".od-uninstall-dialog[role=dialog]")');
+ await key('Escape',27);
+ await waitFor('!document.querySelector(".od-uninstall-dialog[role=dialog]")');
+ report.checks.push('Dialog opens and Escape closes');
+ await pointer('#od-preview-gallery [data-od-showcase-tab=controls]');
+ await waitFor('!!document.querySelector("#od-preview-gallery #od-demo-panel-controls")');
+ const pre=await evalJs('document.querySelector("#od-preview-gallery input[type=search]")?.value');
+ await pointer('#od-preview-gallery input[type=search]');
+ await cdp('Input.insertText',{text:'abcdef'});
+ await waitFor('document.querySelector("#od-preview-gallery input[type=search]")?.value==="abcdef"');
+ await pointer('#od-preview-gallery .od-input-action[aria-label="清空搜索"]');
+ await waitFor('document.querySelector("#od-preview-gallery input[type=search]")?.value===""');
+ report.checks.push('text input and trailing clear action');
+ const state=await evalJs('document.querySelector("#od-preview-gallery [data-slot=switch]")?.getAttribute("data-selected")');
+ assert.equal(typeof state,'string','Switch exists with React Aria state');
+ await pointer('#od-preview-gallery [data-slot=switch]');
+ const changed=await evalJs('document.querySelector("#od-preview-gallery [data-slot=switch]")?.getAttribute("data-selected")');
+ assert.notEqual(changed,state,'Switch must truly toggle');
+ report.checks.push('Switch toggles committed React state');
+ await navigate(360,'dark');
+ report.checks.push('dark theme source-bound token preview');
+ // Exercise the actual production LocaleManager inside the offline React root;
+ // its catalog and pack service are the existing preview-isolated adapter.
+ await cdp('Page.navigate',{url:pathToFileURL(preview).href+'?tab=tools&width=360&theme=light'});
+ await waitFor('document.documentElement.dataset.previewBootScript==="ready" && '+
     '!!document.getElementById("extension-center-more")');
   await pointer('#extension-center-more');
   await waitFor('document.getElementById("extension-center-menu")?.hidden===false');
