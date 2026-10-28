@@ -1,5 +1,46 @@
 # Bookmark Manager · 正式 React 与 Classic 兼容工具
 
+## 当前入口与版本来源（2026-10-28）
+
+正式安装包为 **0.3.14**。`bookmark-manager.opendesk-tool.json` 按 `tool.config.json.files` 打包 Classic 沙箱 HTML/CSS/JS；正式 React UI 的唯一业务源为 `src/react/App.jsx`，由 Browser 固定入口静态编译。**JSON 的更新时间不能证明 React UI 已更新。**
+
+本次查明旧界面回归：0.3.13、0.3.14 已发布到包，可信 React 准入却仍单独写死 0.3.12。即使来源正确，新包也会被拒绝并退回 Classic。现在准入版本从同一 `tool.config.json` 在 Browser **编译时**取得；完整包 SHA、固定官方 Catalog、安装来源、启停和撤权代际仍必须全部一致。它不接受动态安装包自报的版本来取得可信权限。
+
+现有 `app:update`、本工具 `app.ci.json` 和 React CI 触发路径已纳入准入回归。以后包版本变化必须同时验证预期 React 入口；只证明包同源或 Classic 功能正常不够。独立 JSON 无法更新已运行 Browser 的静态代码，旧 Browser/缺失官方来源/非官方包仍走原隔离路径。本次同时修复兼容提示被沙箱 `ready` 消息清空的问题：新 Browser 会说明版本不匹配或来源核验失败，以及应通过原官方入口更新；历史 Browser 必须先更新，无法由新 JSON 补上这条提示。
+
+Classic 的 `src/index.html`、`src/style.css`、`src/main.js` 仍被正式打包与隔离入口消费；`model.js`、`service.js` 被两个入口共用，不属于可删除的旧副本。旧预览和原型仍被 CI/文档消费，没有发现可直接删除的无用业务副本。本轮删除失效的手工版本副本，不改包字节、权限范围、书签数据或历史验收资产。
+
+### 本次如何测试
+
+1. 保持本仓库原开发目录 `dist/development`，从侧栏「调试 → 本地开发服务」确认已连接及对应构建指纹。原持续开发客户端会在其他任务和草稿安全收尾后应用更新；若仍是历史静态 Browser，先由 Browser 维护者更新本体，不能只导入 JSON。
+2. 打开「扩展」检查书签管理版本。已经是 0.3.14 且官方来源有效时，不需要重新导入同一 JSON；旧版本通过原官方市场审阅更新至 0.3.14，保留原安装与数据。若界面提示缺失官方来源，使用原有「审阅官方来源」流程核对，不手改安装记录。
+3. 重新打开书签管理，检查正式 React 界面、搜索、新建表单及取消。先做这些无书签写入的操作即可验证本次界面分流修复。仅重导 JSON 不会更新旧 Browser 中的静态准入代码。
+4. 如果更新后提示完整书签访问失效，在原工具设置确认同一应用的书签访问后再打开。授权绑定版本与安装代际，更新包不能沿用旧代际授权；不修改存储绕过它。
+
+本轮真实日常 Chrome 已通过原官方入口将 0.3.12 原位更新为 0.3.14，官方包 SHA-256 为 `ff681516aeb5826fc66f8472d69baa6557cb2722f421d3811bdaadb1655e43c7`。恢复同一应用既有范围授权后，正式 React 打开、搜索、新建表单、取消通过；没有新增、修改或删除书签。兼容提示修复编入后，这条核心链也在最终候选中再次通过。
+
+最终扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，侧栏实读开发服务已连接、构建指纹 `746c1fecdfa5167fe31ac07a48015d12f5af9bad869aecf1448e647c8a2c8936`，与 `dist/development/development-update.json` 一致；对应 `ui/sidebar-tool-host.js` SHA-256 为 `cf17fa3c4ec03f370f10639d4aaaca6e03a1777b03cb4c929b26d0af9cd83774`。本机截图与 AX 原始记录位于忽略的 `artifacts/bookmark-admission-20261028/`，不作为已提交证据。依用户要求从侧栏完成运行候选核验，没有独立读回 Chrome 配置中的磁盘加载路径。兼容负例及保存、删除、来源、停用、卸载、撤权检查有定向 Node/Host 证据；未在日常安装中伪造失效来源。生产验收及评分未执行。
+
+### JSON 导入闭环目标与关键测试条件（2026-10-28）
+
+目标：在配套 Browser 中，从目录唯一正式 JSON 安装后进入正式 React，完成真实书签读写与重开；版本、官方来源或安装身份不满足时保留隔离和明确提示。JSON 不承载 Browser 静态 React 更新。本轮以核心操作可用为完成条件，不含 production 发布、评分、缩放或宽度专项。
+
+| 关键条件 | 本轮结果与证据边界 |
+| --- | --- |
+| 本地文件匹配完整官方发行，安装前显示版本与权限；安装本身不运行工具 | 隔离 Mac CFT 全新导入 0.3.14，显示“OpenDesk 官方发行 · 安装包已校验”，确认后在列表等待打开；Host 自动检查安装不挂载 React |
+| 首次书签授权独立可见；授权后进入正式 React | 独立空白 Profile 完成 Chrome optional 书签权限及工具授权，正式 React 树可读；未操作日常个人书签 |
+| 新建、编辑、保存、搜索及关闭重开可用 | 新建 localhost 测试书签，编辑中文名称，搜索命中一条，返回列表重开后保留相同名称和 URL |
+| 未保存草稿返回可继续编辑；取消不写入 | 顶部返回出现放弃确认，“继续编辑”保留输入，“取消”退出且未增加节点 |
+| 同一 JSON 重复导入不改变安装身份、授权和数据 | 原生界面禁用“已安装相同工具”；取消后重开无需再授权，记录保留；Host 检查 epoch、权限记录、来源和应用数据不变，仍走 React |
+| 删除必须单次确认，取消保留记录；撤权后旧树不可见 | 原生删除确认后取消；撤权后重新打开仍在权限入口，恢复同范围授权后记录恢复。实际永久删除未执行 |
+| 官方升级保留数据且打开 React；篡改或非官方替换失败关闭 | Host 检查旧版导入升级、更换安装代际、React 挂载，以及安装前再次核对包字节；来源冲突保留原安装。负例未在日常 Chrome 中注入 |
+
+新增 Host 回归补齐了原先“只检查安装、不检查随后打开”的缺口，并纳入现有 Bookmark CI 名称过滤。测试夹具不会自动发出 Chrome `storage.onChanged`；升级测试显式投递真实存储回执后核对新代际，未放宽产品来源检查。
+
+本次原生环境为持续开发目录 `dist/development`，侧栏实读服务已连接，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，revision `51f32102be522177fcb66680709472e5655731633f92a72dd3f3e5e0a6357786`；Host 文件 SHA 与上一条记录相同。隔离 CFT 为 155.0.8059.39，使用独立临时空白 Profile，未替换日常 Chrome 的扩展。正式 JSON 保持 0.3.14 及上方 SHA，不为测试改动重复升版或覆盖 watcher。原始 AX、截图、启动报告和结果在本机忽略目录 `artifacts/bookmark-import-core-20261028/`；这是本地开发运行证据，不是已提交的 production 验收。
+
+**以下各节是对应日期和候选的历史记录；其中“当前”“待验收”只描述当时状态，不覆盖上方现行入口。**
+
 ## 0.3.14 · 市场 R6.10 沙箱状态修复（2026-10-28）
 
 本轮市场候选实际运行原 Classic 隔离界面。修复保存成功或搜索后仍被通用 input 监听误标为未保存、导致卸载被拦的问题：通过公开 `OpenDeskTool.setState({dirty,busy})` 上报真实草稿和写入状态；未保存草稿、写入中及未知结果继续保留保护。ID、权限和公共宿主均未改变，未调整可信 React 准入锁。
@@ -66,7 +107,7 @@
 
 候选身份、原始收据、历史失败、独立评分与同步状态见[本轮唯一验证账本](evidence/r351-local-20261020/summary.json)。下文 R3.4 及更早内容均为各自历史候选，不覆盖本轮状态。
 
-## R3.4 当前验证（2026-10-20）
+## R3.4 历史验证（2026-10-20）
 
 **当前状态：本地 Mac 原生 A–H 核心流程通过；`BOOKMARK_MANAGER_RELEASE_BLOCKED`，尚未宣称十维 95+ 或正式发布。** 下文 R2/R3 历史 `NATIVE_NOT_TESTED` 仅描述当时状态。
 
@@ -91,11 +132,11 @@
 - R2.8 历史候选初始 SHA-256 为 `16792a707abfba8b1d6564fa0ad7b671e59aea4e3679594fd5c4bc259e8765b2`，只在 Git 历史中保留；当前 `preview/index.html` 不再是该旧快照。正式 UI 仍由 `src/` 和 `tool.config.json` 决定。
 - 下一轮视觉优化先对照这个保存版本提出新候选并征得确认，不得误删、迁移到非扩展目录或无理由覆盖归档版本；所有评审、版本和来源都记录在 `REQUIREMENTS.zh-CN.md` 中。
 
-## 当前 R11.2 合同与安装状态
+## R11.2 历史合同与安装状态（2026-10-15）
 
 2026-10-15 的 R11.2 提交 `b63c9e3c` 为正式 Registry、Schema、Host、独立 `browser.bookmarks.full` 和安装工具的可信书签授权按钮完成了**源码接线**。独立 Full 与 Owned 的 `browser.bookmarks.createOwned/removeOwned` 是不同权限；Chrome manifest 已声明 optional `bookmarks`，安装工具的声明并不等于用户已批准 Full 或 Chrome 权限。
 
-- 当前工具版本 **0.3.8**（R2.8 待原生验收）：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。安装包更新需按现有流程重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
+- 当时工具版本 **0.3.8**（R2.8 待原生验收）：`capabilities: ["browser.bookmarks.full", "currentPage.read"]`。安装包更新需按现有流程重新审阅；Full Bookmarks 授权和 Chrome optional 权限仍独立申请。
 - **已在 `official-tools/catalog.json` 正式登记为 optional**。发行构建器必须生成签名固定的本地官方资源，用户通过「扩展」中心审阅、安装、授权、打开。源码登记不等于在用户 Chrome 中安装；Node/CI 成功也不是 Native PASS。
 - 不满足 Full Capability 状态、Host 权限、包身份或可信回执时，客户端失败关闭并隐藏已失权树；新增识别 `E_BOOKMARK_FULL_CONSENT_REQUIRED` / `E_TOOL_CHANGED` / `E_OWNER` 并在写入失败时清屏，不会回退至 Owned 能力伪造全量结果。
 - **已删除旧 `src/bookmark-manager/` 及内置书签面板与专属 R1 CI**。业务消费者仅存在于独立工具，公共 SDK / Host / Chrome Drivers 仍保留；Git 历史保存旧实现，不创建兼容副本。

@@ -29,25 +29,28 @@ test('App Shell preserves a Page preview Stop across tabs and restores the idle 
   assert.equal(doc.getElementById('site-access-recovery').hidden,false);
 });
 
-test('market LIST failure remains visible with no pending entries and clears after refresh',async()=>{
+test('pending market requests and list errors do not insert content into any workbench tab',async()=>{
   const {SidebarAppShell,createSidebarToolsView}=await loadSidebarReact();
   const toolView=createSidebarToolsView(),developerView=createDeveloperView(),myView=createMyWorkbenchView();
-  const render=()=>parseHTML(renderToStaticMarkup(React.createElement(SidebarAppShell,{
-    developerView,myView,toolView
+  const render=activeTab=>parseHTML(renderToStaticMarkup(React.createElement(SidebarAppShell,{
+    activeTab,developerView,myView,toolView
   }))).document;
   try{
-    toolView.setMarketInstall({pending:[],error:'LIST 失败 <script>不可执行</script>'});
-    const section=render().querySelector('[aria-label="待审阅的市场安装"]');
-    assert.ok(section);assert.match(section.querySelector('[role="status"]').textContent,/无法读取/);
-    assert.equal(section.querySelector('[role="alert"]').textContent,'LIST 失败 <script>不可执行</script>');
-    assert.equal(section.querySelector('script'),null);
-    assert.deepEqual([...section.querySelectorAll('button')].map(node=>node.textContent),['重试']);
-    toolView.setMarketInstall({pending:[],error:''});
-    assert.equal(render().querySelector('[aria-label="待审阅的市场安装"]'),null);
+    const pending=[{reviewId:'review-alpha',subject:{kind:'app',marketId:'opendesk/alpha',version:'1.0.0'}}];
+    for(const state of [{pending,error:''},{pending:[],error:'LIST 失败 <script>不可执行</script>'}]){
+      toolView.setMarketInstall(state);
+      for(const activeTab of ['tasks','tools','workflow','develop','cloud']){
+        const doc=render(activeTab);
+        assert.equal(doc.querySelector('.workbench-nav').nextElementSibling.id,'workspace-content');
+        assert.equal(doc.querySelector('[aria-label="待审阅的市场安装"]'),null);
+        assert.doesNotMatch(doc.documentElement.textContent,/opendesk\/alpha|审阅安装|LIST 失败/);
+      }
+      assert.deepEqual(toolView.getSnapshot().market,{...state,review:null},'presentation must not discard pending transactions');
+    }
   }finally{toolView.dispose();developerView.dispose?.();myView.dispose?.();}
 });
 
-test('market retry calls refresh and same-version pending buttons open their distinct review IDs',async()=>{
+test('market state updates leave the app workspace intact while the original review still dispatches confirmation',async()=>{
   const {SidebarAppShell,createSidebarToolsView}=await loadSidebarReact();
   const toolView=createSidebarToolsView(),developerView=createDeveloperView(),myView=createMyWorkbenchView();
   const {document,window}=parseHTML('<html><body><div id="mount"></div></body></html>');
@@ -55,24 +58,35 @@ test('market retry calls refresh and same-version pending buttons open their dis
   Object.assign(globalThis,{window,document,IS_REACT_ACT_ENVIRONMENT:true});
   const {createRoot}=await import('react-dom/client'),root=createRoot(document.getElementById('mount'));
   const calls=[];
-  toolView.connectMarketInstall({refresh:()=>calls.push('refresh'),open:id=>calls.push(id)});
-  const section=()=>document.querySelector('[aria-label="待审阅的市场安装"]');
+  toolView.connectMarketInstall({act:id=>calls.push(id)});
+  toolView.patch('sidebar-tool-display',{hidden:false});
+  toolView.patch('sidebar-tool-title',{textContent:'Markdown 工作台'});
   try{
-    toolView.setMarketInstall({pending:[],error:'首次 LIST 失败'});
-    await React.act(async()=>root.render(React.createElement(SidebarAppShell,{developerView,myView,toolView})));
-    await React.act(async()=>section().querySelector('button').dispatchEvent(new window.Event('click',{bubbles:true})));
-    assert.deepEqual(calls,['refresh']);
-    await React.act(async()=>toolView.setMarketInstall({error:'',pending:[
-      {reviewId:'review-alpha',subject:{kind:'app',marketId:'opendesk/alpha',version:'1.0.0'}},
-      {reviewId:'review-beta',title:'应用 B',subject:{kind:'app',marketId:'opendesk/beta',version:'1.0.0'}}
-    ]}));
-    const buttons=[...section().querySelectorAll('button')];
-    assert.deepEqual(buttons.map(node=>node.textContent),[
-      'opendesk/alpha · v1.0.0 · 审阅安装','应用 B · opendesk/beta · v1.0.0 · 审阅安装'
-    ]);
-    assert.equal(section().querySelector('[role="alert"]'),null);
-    for(const button of buttons)await React.act(async()=>button.dispatchEvent(new window.Event('click',{bubbles:true})));
-    assert.deepEqual(calls,['refresh','review-alpha','review-beta']);
+    await React.act(async()=>root.render(React.createElement(SidebarAppShell,{activeTab:'tools',developerView,myView,toolView})));
+    const workspace=document.getElementById('sidebar-tool-display');
+    for(const error of ['', '首次 LIST 失败']){
+      await React.act(async()=>toolView.setMarketInstall({error,pending:[
+        {reviewId:'review-alpha',subject:{kind:'app',marketId:'opendesk/alpha',version:'1.0.0'}}
+      ]}));
+      assert.equal(document.getElementById('sidebar-tool-display'),workspace);
+      assert.equal(workspace.hidden,false);
+      assert.equal(document.querySelector('[aria-label="待审阅的市场安装"]'),null);
+      assert.doesNotMatch(document.body.textContent,/opendesk\/alpha|首次 LIST 失败/);
+      assert.deepEqual(calls,[],'pending updates must not initiate installation');
+    }
+    await React.act(async()=>toolView.setMarketInstall({review:{title:'Markdown 工作台',phase:'review',busy:false,
+      summary:['固定版本 1.0.0'],technical:[],actions:[{id:'install',label:'确认安装'}]}}));
+    const dialog=document.querySelector('#sidebar-tool-import');
+    assert.equal(dialog.getAttribute('role'),'dialog');
+    assert.equal(document.querySelectorAll('#sidebar-tool-import').length,1);
+    const confirm=[...dialog.querySelectorAll('button')].find(button=>button.textContent==='确认安装');
+    assert.ok(confirm);
+    await React.act(async()=>confirm.dispatchEvent(new window.Event('click',{bubbles:true})));
+    assert.deepEqual(calls,['install']);
+    await React.act(async()=>toolView.setMarketInstall({review:null}));
+    assert.equal(document.getElementById('sidebar-tool-display'),workspace);
+    assert.equal(workspace.hidden,false);
+    assert.equal(document.querySelector('[aria-label="待审阅的市场安装"]'),null);
   }finally{
     await React.act(async()=>root.unmount());
     toolView.dispose();developerView.dispose?.();myView.dispose?.();

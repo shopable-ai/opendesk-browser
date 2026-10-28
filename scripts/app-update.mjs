@@ -36,8 +36,13 @@ function installAdvice(id,output,version,sha){
   console.log('  应用: '+id+'  版本: '+version+'  SHA-256: '+sha);
   console.log('  文件: '+output);
   console.log('  状态: PACKAGE_READY_INSTALL_NOT_TESTED');
-  console.log('  打开 OpenDesk →「扩展」→「更多操作」→「导入本地工具包」；');
-  console.log('  核对应用 ID、版本和权限变化后确认「更新」，不要先卸载。');
+  if(id==='bookmark-manager'){
+    console.log('  书签管理请从原官方入口「审阅新版」原位更新，核对官方来源；不要先卸载。');
+    console.log('  正式 React 界面由 Browser 静态编译，需与应用版本配套；重复导入 JSON 不会更新该界面。');
+  }else{
+    console.log('  打开 OpenDesk →「扩展」→「更多操作」→「导入本地工具包」；');
+    console.log('  核对应用 ID、版本和权限变化后确认「更新」，不要先卸载。');
+  }
   console.log('  重新打开应用并验证修改，数据、权限、实际安装均需真实 Chrome 核验。');
   console.log('  若修改了 trusted/ 网页悬浮层、SW/Host，JSON 更新不包含这些代码；');
   console.log('  请由 Browser 维护者单独更新插件本体，再刷新目标网页。');
@@ -92,6 +97,8 @@ async function updateApp(id,{check=false}={}){
     const tests=['tests/environment/sidebar-tools.test.mjs'];
     if(id==='reading-toc')tests.push('tests/environment/reading-toc-r41.test.mjs',
       'tests/environment/reading-toc-placement-r42.test.mjs');
+    if(id==='bookmark-manager')tests.push('tests/environment/bookmark-manager-r306-trusted-react.test.mjs',
+      'tests/environment/bookmark-manager-r33-default-react.test.mjs');
     console.log('运行工具定向测试: '+tests.join(' '));
     runNode(['--test',...tests]);
     // Reject a source change during testing even when the old candidate was valid.

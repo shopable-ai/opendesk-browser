@@ -268,6 +268,44 @@ for(const id of ['web-markdown-clipper','prompt-shortcuts'])test('R2.2 revoked '
   assert.equal(actions(),before);
 });
 
+for(const version of ['0.3.12','99.0.0',null])test('Bookmark compatibility notice survives sandbox ready: '+(version||'missing official source'),async t=>{
+  const official=await officialToolFixture('bookmark-manager');
+  const tool=version?{...official,version}:official;
+  let mounts=0;
+  const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),
+    trustedBookmarkPilot:{enabled:true,componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,
+      mount(){mounts++;return ()=>{};}}});
+  f.host.openTool(tool.id);
+  await settle(()=>f.elements['sidebar-tool-frame'].children.length===1);
+  const frame=f.elements['sidebar-tool-frame'].children[0];
+  await frame.onload();
+  const loaded=frame.contentWindow.sent[0];
+  f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
+    protocol:loaded.protocol,toolId:tool.id,instance:loaded.instance,kind:'status',state:'ready'}});
+  const status=f.elements['sidebar-tool-status'];
+  assert.equal(mounts,0,'rejected packages never execute in the trusted root');
+  assert.equal(status.hidden,false,'ready must not erase the explanation of the old UI');
+  assert.match(status.textContent,/兼容界面/);
+  if(version){
+    assert.ok(status.textContent.includes('v'+version));
+    assert.match(status.textContent,/Browser.*配套版本/);
+  }else assert.match(status.textContent,/官方来源.*安装身份/);
+});
+
+test('Bookmark explicit sandbox launch does not invent an admission failure',async t=>{
+  const tool=await officialToolFixture('bookmark-manager');
+  const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),
+    trustedBookmarkPilot:{enabled:true,componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,
+      mount(){assert.fail('explicit sandbox launch cannot mount the trusted component');}}});
+  f.host.openTool(tool.id,{launchGate:Promise.resolve()});
+  const frame=f.elements['sidebar-tool-frame'].children[0];
+  await frame.onload();
+  const loaded=frame.contentWindow.sent[0];
+  f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
+    protocol:loaded.protocol,toolId:tool.id,instance:loaded.instance,kind:'status',state:'ready'}});
+  assert.equal(f.elements['sidebar-tool-status'].hidden,true);
+});
+
 test('R2.2 admitted native Bookmark reuses its current page and keeps settings and epoch boundaries',async t=>{
   const tool=await officialToolFixture('bookmark-manager');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
@@ -1158,7 +1196,9 @@ test('local official import updates the reviewed release and preserves app data'
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===candidate.id);
   const previous={...candidate,version:'0.3.11',js:'void 0;'};
   const data={note:'keep local data'},dataKey=sidebarToolStorageKey(candidate.id);
-  const f=await hostFixture(t,{startTool:false,store:new Map([
+  const mounts=[];
+  const f=await hostFixture(t,{startTool:false,trustedBookmarkPilot:{enabled:true,
+    componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,mount(options){mounts.push(options);return ()=>{};}},store:new Map([
     [SIDEBAR_TOOL_STORE,[previous]],[dataKey,data],
     [TOOL_REVOCATION_EPOCHS_STORE,{[candidate.id]:'old-install'}],
     [MARKET_PROVENANCE_STORE,{[candidate.id]:{marketId:release.id,
@@ -1179,6 +1219,47 @@ test('local official import updates the reviewed release and preserves app data'
   });
   assert.notEqual(f.store.get(TOOL_REVOCATION_EPOCHS_STORE)[candidate.id],'old-install');
   assert.equal(f.runtime.frameRoot.children.length,0,'installation cannot run the app');
+  assert.equal(mounts.length,0,'review and installation cannot mount React');
+  // The storage stub does not emit Chrome's onChanged receipt automatically.
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:f.store.get(TOOL_REVOCATION_EPOCHS_STORE)}});
+  f.host.openTool(candidate.id);
+  await settle(()=>mounts.length===1&&f.runtime.frameRoot.dataset.bookmarkTrusted==='true');
+  assert.equal(mounts[0].installEpoch,f.store.get(TOOL_REVOCATION_EPOCHS_STORE)[candidate.id]);
+  assert.equal(f.runtime.frameRoot.children.length,0,'the exact official import opens React without a sandbox');
+  assert.deepEqual(f.store.get(dataKey),data,'opening React preserves existing app data');
+});
+
+test('local official import of identical bytes prevents reinstall and retains the React owner',async t=>{
+  const tool=await officialToolFixture('bookmark-manager');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const epoch='identical-local-import',dataKey=sidebarToolStorageKey(tool.id),data={note:'keep'};
+  const provenance={[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}};
+  const grants={[tool.id]:{version:tool.version,installEpoch:epoch,bookmarkFull:true,
+    packageHash:await sidebarToolPackageHash(tool)}};
+  const mounts=[];
+  const f=await hostFixture(t,{startTool:false,trustedBookmarkPilot:{enabled:true,
+    componentVersion:TRUSTED_BOOKMARK_COMPONENT_VERSION,mount(options){mounts.push(options);return ()=>{};}},store:new Map([
+      [SIDEBAR_TOOL_STORE,[tool]],[dataKey,data],[TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}],
+      [MARKET_PROVENANCE_STORE,provenance],[BROWSER_MENU_GRANTS_STORE,grants]
+    ])});
+  f.host.openImport();
+  const text=JSON.stringify(tool);
+  f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  assert.match(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'已安装相同工具');
+  f.emit(f.elements['sidebar-tool-import-close'],'click');
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[tool]);
+  assert.deepEqual(f.store.get(MARKET_PROVENANCE_STORE),provenance);
+  assert.deepEqual(f.store.get(BROWSER_MENU_GRANTS_STORE),grants);
+  assert.deepEqual(f.store.get(dataKey),data);
+  assert.equal(f.store.get(TOOL_REVOCATION_EPOCHS_STORE)[tool.id],epoch);
+  assert.equal(mounts.length,0);
+  f.host.openTool(tool.id);
+  await settle(()=>mounts.length===1&&f.runtime.frameRoot.dataset.bookmarkTrusted==='true');
+  assert.equal(mounts[0].installEpoch,epoch);
+  assert.equal(f.runtime.frameRoot.children.length,0);
 });
 
 test('unverified local replacement reports the source conflict and preserves the official install',async t=>{

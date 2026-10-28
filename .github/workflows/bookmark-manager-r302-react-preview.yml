@@ -5,6 +5,12 @@ on:
     paths:
       - 'package.json'
       - 'package-lock.json'
+      - 'examples/sidebar-tools/bookmark-manager/tool.config.json'
+      - 'examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json'
+      - 'examples/sidebar-tools/bookmark-manager/app.ci.json'
+      - 'examples/sidebar-tools/bookmark-manager/src/index.html'
+      - 'examples/sidebar-tools/bookmark-manager/src/style.css'
+      - 'examples/sidebar-tools/bookmark-manager/src/main.js'
       - 'examples/sidebar-tools/bookmark-manager/preview/react/**'
       - 'examples/sidebar-tools/bookmark-manager/src/react/**'
       - 'examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs'
@@ -37,6 +43,7 @@ on:
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/environment/sidebar-tools-view.test.mjs'
       - 'scripts/bundle-provenance.mjs'
+      - 'scripts/app-update.mjs'
       - '.github/workflows/bookmark-manager-r302-react-preview.yml'
   workflow_dispatch:
 permissions:
@@ -80,8 +87,8 @@ jobs:
           node scripts/build-adblock-react.mjs
           node scripts/build-stay-focus-react.mjs
           node scripts/build-cookie-editor-react.mjs
-      - name: Official save intent and sandbox deletion boundaries
-        run: node --test --test-name-pattern='R3.4' tests/environment/sidebar-tools-host.test.mjs
+      - name: Bookmark compatibility notices, official save intent and sandbox deletion boundaries
+        run: node --test --test-name-pattern='R3.4|Bookmark (compatibility notice|explicit sandbox)|local official import|unverified local replacement' tests/environment/sidebar-tools-host.test.mjs
       - name: Confirm shared provider and legacy Workflow regressions
         run: node --test tests/environment/workflow-provider-facade.test.mjs tests/environment/workflow-responses.test.mjs tests/environment/workflow-local-codex.test.mjs
       - name: Check formal source

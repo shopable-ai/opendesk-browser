@@ -1,0 +1,8 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "ui",
+  "node": [
+    "tests/environment/bookmark-manager-r306-trusted-react.test.mjs",
+    "tests/environment/bookmark-manager-r33-default-react.test.mjs"
+  ]
+}

@@ -38,8 +38,8 @@
       "programId": "opendesk.ai-send-queue",
       "project": "examples/programs/chatgpt-send-queue",
       "packageFile": "ai-send-queue.opendesk-page.json",
-      "version": "0.1.11",
-      "revision": 10,
+      "version": "0.1.12",
+      "revision": 11,
       "title": "AI 消息发送队列",
       "description": "ChatGPT 主动入队的 FIFO 顺序发送与未知结果保护。",
       "sites": [
@@ -47,7 +47,7 @@
       ],
       "installationPolicy": "reviewed",
       "publication": "blocked",
-      "blockedReason": "0.1.11/r10 收敛 R5.5 皇冠 WebP Shadow DOM Data URL、空队列中性背景和原生圆角保护；必须以同源构建、源码/资源/安装包一致性及真实 Mac Chrome 发信、深浅主题与 200% 缩放证据完成验收。当前完整生命周期及真实 Mac 验收未完成；禁止自动公开发行，旧版本和旧身份不自动迁移。"
+      "blockedReason": "0.1.12/r11 沿用 R5.5 皇冠 WebP Shadow DOM Data URL、空队列中性背景和原生圆角保护，并重新测试构建正式 JSON；当前同候选真实 Mac Chrome 安装、发信和完整生命周期验收未完成，禁止自动公开发行，旧版本和旧身份不自动迁移。"
     }
   ]
 }

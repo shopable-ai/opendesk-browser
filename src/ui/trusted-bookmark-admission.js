@@ -4,10 +4,19 @@
 import {matchesOfficialRelease,officialPackagePath} from '../sidebar-tools/official-catalog.js';
 import {sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
+import bookmarkConfig from '../../examples/sidebar-tools/bookmark-manager/tool.config.json' with {type:'json'};
 
 export const TRUSTED_BOOKMARK_ID='bookmark-manager';
-export const TRUSTED_BOOKMARK_VERSION='0.3.12';
+// Fixed at Browser build time from the same source as the official package.
+// Never derive this from an installed payload or a remote market response.
+export const TRUSTED_BOOKMARK_VERSION=bookmarkConfig.version;
 export const TRUSTED_BOOKMARK_COMPONENT_VERSION='R3.3';
+export function bookmarkSandboxNotice(version){
+ if(version!==TRUSTED_BOOKMARK_VERSION)return '当前使用兼容界面：已安装 v'+version+
+  '，此 Browser 的正式 React 界面匹配 v'+TRUSTED_BOOKMARK_VERSION+
+  '。请将 Browser 与官方书签应用更新至配套版本后重新打开；重复导入同一 JSON 不会更新 Browser 界面。';
+ return '当前使用兼容界面：官方来源或安装身份未通过核验。请在扩展列表的管理菜单中审阅官方来源或新版后重新打开；若仍出现，请更新 Browser。';
+}
 const validHash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 const own=value=>value&&typeof value==='object'&&!Array.isArray(value)
   ?value[TRUSTED_BOOKMARK_ID]:null;

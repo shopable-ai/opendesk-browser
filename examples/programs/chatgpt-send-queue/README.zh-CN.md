@@ -1,6 +1,8 @@
 # OpenDesk Send Queue · ChatGPT 网页增强
 
-Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · 范围仅 `https://chatgpt.com/*` · 当前待验收候选版本 `0.1.11`、r10；下述 r9 为历史实测。
+Program ID: `opendesk.ai-send-queue` · `page-userscript` · `USER_SCRIPT` · 范围仅 `https://chatgpt.com/*` · 当前可导入候选版本 `0.1.12`、r11；下述 r9 为历史实测。
+
+2026-10-28 测试后版本更新：`0.1.11/r10` → `0.1.12/r11`。171 项项目测试和 16 项 Page 安装包/官方目录定向测试全部通过，入口语法、项目配置、预览 CSS/WebP 同源检查通过，再以既有 production Program 编译器与 Page 安装包构建器重建 [最新 JSON](ai-send-queue.opendesk-page.json)。除固定源码中的 `@version` 外，执行源码与 r10 完全一致；本次不增加功能、权限或站点。新包 `sourceHash` 为 `72ba47200a5eaba5733079c72f510175ce960cf1d96f6fd7494dd2709eec93ac`，`packageHash` 为 `12f1d9f4ae7507b137aa809444c0395da5f59619bdd201d9d5d31db3631513aa`。已校验正式 JSON 与候选字节、编译源码及当前项目资源一致；沿用原 Page 导入入口审阅更新，未执行本次 Chrome 安装或真实发送，均为 `NOT_TESTED`，官方目录继续 `publication: blocked`。后续仍复用现有 `send-queue-production-r55.yml` 的先测试、后构建与包校验流程；版本和修订号由本项目 `package.json` 与 `official-pages/sources.json` 同步声明。
 
 2026-10-27 R5.5 增量：原皇冠 WebP 与最新空队列 CSS 均采用既有源码；将候选身份升为 0.1.11/r10，由原生产编译和官方 Page 安装格式生成新包，不覆盖历史 r9 内容指纹。发布清单继续设置 `publication: blocked`；源码静态检查、CI Chromium 离线画面和真实 Mac Chrome 安装、发送、200% 缩放必须分开记证，未验证项目保留 `NOT_TESTED`。皇冠几何和原生输入框样式不重新设计。
 

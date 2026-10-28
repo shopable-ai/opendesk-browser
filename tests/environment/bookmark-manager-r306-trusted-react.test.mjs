@@ -26,16 +26,27 @@ test('R3.0.6 only the exact official, enabled, current installed package enters 
  const args={tool,installed:[tool],release,provenance:{[tool.id]:source},
   enableRecords:{},epochs:{[tool.id]:'epoch-valid'},expectedEpoch:'epoch-valid'};
  assert.equal(await admitsTrustedBookmark(args),true);
+ // Even mutually consistent remote metadata cannot select another version
+ // of the statically compiled Browser component.
+ const futureTool={...tool,version:'99.0.0'};
+ const futureCanonical=serializeSidebarToolPackage(futureTool);
+ const futureHash=createHash('sha256').update(futureCanonical,'utf8').digest('hex');
  const cases=[
   {...args,tool:{...tool,js:tool.js+';globalThis.evil=true;'}},
   {...args,tool:{...tool,id:'another-tool'}},
   {...args,tool:{...tool,version:'0.3.7'}},
+  {...args,tool:futureTool,installed:[futureTool],
+   release:{...release,version:futureTool.version,sha256:futureHash,bytes:Buffer.byteLength(futureCanonical)},
+   provenance:{[tool.id]:{...source,version:futureTool.version,sha256:futureHash}}},
   {...args,installed:[]},
+  {...args,release:{...release,version:'0.3.12'}},
   {...args,release:{...release,sha256:'f'.repeat(64)}},
   {...args,release:{...release,id:'third-party/bookmark-manager'}},
   {...args,enableRecords:{[tool.id]:false}},
   {...args,epochs:{[tool.id]:'epoch-revoked'}},
   {...args,expectedEpoch:'epoch-stale'},
+  {...args,provenance:{}},
+  {...args,provenance:{[tool.id]:{...source,version:'0.3.12'}}},
   {...args,provenance:{[tool.id]:{...source,marketId:'third-party/bookmark-manager'}}},
   {...args,provenance:{[tool.id]:{...source,extra:'unknown'}}}
  ];

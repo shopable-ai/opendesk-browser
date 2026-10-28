@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/app-ci.yml'
       - 'scripts/app-ci.mjs'
+      - 'scripts/app-update.mjs'
       - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/build-official-tools.mjs'
       - 'scripts/stage-sidebar-tool.mjs'
@@ -19,6 +20,8 @@ on:
       - 'tests/framework/**'
       - 'src/sidebar-tools/**'
       - 'src/ui/sidebar-tools/**'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/trusted-bookmark-admission.js'
       - 'src/ui/react/**'
       - 'src/platform/**'
       - 'src/entrypoints/sidebar-tool-host.js'

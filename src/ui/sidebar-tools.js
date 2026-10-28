@@ -64,7 +64,7 @@ import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION,
 import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../examples/sidebar-tools/time-review/trusted/trusted-admission.js';
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
-  trustedBookmarkProvenanceChanged} from './trusted-bookmark-admission.js';
+  trustedBookmarkProvenanceChanged,bookmarkSandboxNotice} from './trusted-bookmark-admission.js';
 import {admitsTrustedKnowledge,TRUSTED_KNOWLEDGE_ID,TRUSTED_KNOWLEDGE_VERSION,
   trustedKnowledgeProvenanceChanged} from './trusted-knowledge-admission.js';
 
@@ -253,6 +253,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let clipGrants={},clipSiteEpoch=0;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let developmentStorage=null;
+  let bookmarkFallbackNotice='';
   let frameExportPort=null;
   let promptHost=null;
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0,revocationReadError=false;
@@ -956,6 +957,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     toolDirty=false;toolSaving=false;frameDraft='';clipPage=null;
     toolNavigation=null;navigationAllowed=false;
     bookmarkNavigation=null;bookmarkNavigationBack=null;
+    bookmarkFallbackNotice='';
     nativePending=false;
     if(nativeUI){const old=nativeUI;nativeUI=null;try{old.dispose();}catch{}}
     if(frame){frame.onload=null;frame.remove();frame=null;}
@@ -1506,7 +1508,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(disposed||active!==tool||instance!==token)return;
         if(!admitted){
           mountTool(tool,{forceSandbox:true});
-          notice('当前安装包未通过官方身份与安装代际核验，已隔离到原有沙箱界面。');
+          bookmarkFallbackNotice=bookmarkSandboxNotice(tool.version);
+          notice(bookmarkFallbackNotice);
           return;
         }
         try{
@@ -3065,7 +3068,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(message.kind==='status'){
       if(message.state==='ready'){
-        notice('');reportReadyOpen(message.instance);
+        // Sandbox readiness cannot erase why the official React route was
+        // rejected. Package readiness and trusted admission are separate.
+        notice(bookmarkFallbackNotice);
+        reportReadyOpen(message.instance);
         if(active?.id===ADBLOCK_ID&&pendingAdblockSettingsInstance===message.instance){
           pendingAdblockSettingsInstance=null;
           event.source.postMessage({protocol:'opendesk.adblock.ui.v1',
