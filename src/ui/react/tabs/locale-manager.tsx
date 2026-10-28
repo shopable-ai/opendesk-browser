@@ -4,7 +4,8 @@ import {localeManagerLocale,localeManagerText} from '../../locale-manager-locali
 import {LOCALE_PACK_MAX_BYTES} from '../../sidebar-tools/locale-packs.js';
 import {sameStorageValue} from '../../sidebar-tools/storage-state.js';
 
-const languageNames={auto:'auto',en:'English','zh-CN':'简体中文','zh-TW':'繁體中文',ja:'日本語',fr:'Français',de:'Deutsch',es:'Español'};
+const languageNames={auto:'auto',en:'English','zh-CN':'简体中文','zh-TW':'繁體中文',ja:'日本語'};
+const packLanguageNames={fr:'Français',de:'Deutsch',es:'Español'};
 const failureText=(failure,t)=>{
   if(failure?.localeMessage)return t(failure.localeMessage);
   const code=failure?.code||'';
@@ -56,7 +57,7 @@ export default function LocaleManager({model}){
   const [globalLocale,setGlobalLocale]=React.useState(()=>localeController?.getLocale?.()||'zh-CN');
   const panelLocale=localeManagerLocale(globalLocale);
   const t=(key,parameters={})=>localeManagerText(panelLocale,key,parameters);
-  const languageName=value=>value==='auto'?t('auto'):languageNames[value]||value;
+  const languageName=value=>value==='auto'?t('auto'):languageNames[value]||packLanguageNames[value]||value;
   const localError=key=>Object.assign(new Error(key),{localeMessage:key});
   let available=[],toolPreference=null,catalog=null,localeReadError=null;
   try{
