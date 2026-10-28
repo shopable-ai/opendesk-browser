@@ -1,6 +1,6 @@
 // Actual OpenDesk MV3, real native Side Panel and opaque sandbox.
-// The R5.8 Page program is intentionally NOT installed in this test.
-// Verify real UI/import/reopen and exact-byte grant fencing; no SDK mock.
+// Verify both installation worlds under the original Chrome Host and Page Authority.
+// A missing real ChatGPT conversation still prevents Page RPC; no SDK mock.
 // Native Mac sending remains NOT_TESTED.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
@@ -11,14 +11,16 @@ import {createHash} from 'node:crypto';
 import {SIDEBAR_TOOL_STORE,serializeSidebarToolPackage,validateSidebarToolPackage}
   from '../../../../src/ui/sidebar-tools/package.js';
 import {SEND_QUEUE_PIN} from '../../../../src/platform/host/send-queue-admission.js';
+import {validatePageInstallPackage} from '../../../../src/scripting/user-scripts/page-install-package.js';
 const delay=ms=>new Promise(ok=>setTimeout(ok,ms));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const out=resolve(process.argv[2]||'artifacts/app-ci/ai-send-queue/installed');
 await mkdir(out,{recursive:true});
 const extension=resolve('dist/development');
 const candidate=resolve('artifacts/app-ci/ai-send-queue/candidate.opendesk-tool.json');
-const report={scope:'REAL_CHROME_MV3_SIDE_PANEL',simulatedSDK:false,macChromeTested:false,
-  liveChatGPTSending:'NOT_TESTED',pageInstalled:false,read:'NOT_TESTED',
+const pageCandidate=resolve('examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json');
+const report={scope:'REAL_CHROME_MV3_BOTH_INSTALLATIONS',simulatedSDK:false,macChromeTested:false,
+  liveChatGPTSending:'NOT_TESTED',pageInstalled:false,pageReadback:'NOT_TESTED',read:'NOT_TESTED',
   nativePanelReopen:'NOT_TESTED',unauthorizedSameId:'NOT_TESTED',status:'RUNNING',events:[]};
 let chrome,profile,socket,host,extId,seq=0;const pending=new Map(),sessions=new Map();
 const exceptions=[];
@@ -88,6 +90,37 @@ async function importTool(file,expectVersion){
   report.events.push('HOST_USER_GESTURE_INSTALL_'+expectVersion);
   return installed;
 }
+// The same native import sheet reviews a Page JSON and requests origin permission
+// under a real click. This is not a synthetic Page Host or a simulated install.
+async function importPage(file){
+  await click(host,'#extension-center-more');
+  await until(()=>evalJs(host,'!document.querySelector("#extension-center-menu")?.hidden'),'Page import menu');
+  await click(host,'#extension-center-import');
+  await cdp('DOM.enable',{},host);
+  const {root}=await cdp('DOM.getDocument',{depth:1},host);
+  const {nodeId}=await cdp('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-file'},host);
+  assert.ok(nodeId,'real Page import input');
+  await cdp('DOM.setFileInputFiles',{nodeId,files:[file]},host);
+  const reviewed=await until(()=>evalJs(host,
+    '(()=>{const p=document.querySelector("#sidebar-tool-preview");'+
+    'const t=document.querySelector("#sidebar-tool-preview-version")?.textContent;'+
+    'return p&&!p.hidden&&t?.includes("r12")&&!document.querySelector("#sidebar-tool-install")?.disabled?'+
+    '{title:document.querySelector("#sidebar-tool-preview-title")?.textContent,version:t}:null})()'),
+    'Page candidate review');
+  assert.equal(reviewed.title?.trim(),'AI 消息发送队列');
+  await click(host,'#sidebar-tool-install');
+  const receipt=await until(()=>evalJs(host,
+    '(()=>{const s=document.querySelector("#page-install-import-status");'+
+    'return s?.dataset.state==="installed"&&s.dataset.installationId&&s.dataset.manifestHash?'+
+    '{state:s.dataset.state,id:s.dataset.installationId,hash:s.dataset.manifestHash,text:s.textContent}:null})()'),
+    'Page Authority and native Chrome registration readback',45000);
+  assert.match(receipt.text,/r12/);
+  report.pageInstalled=true;
+  report.pageReadback='PASS_PAGE_AUTHORITY_REGISTERED';
+  report.events.push('REAL_PAGE_USER_GESTURE_INSTALL','REAL_PAGE_AUTHORITY_READBACK');
+  await click(host,'#sidebar-tool-import-close');
+  return receipt;
+}
 async function openTool(){
   await until(()=>evalJs(host,
     '!!document.querySelector(\'#extension-center-list button[data-extension-key="app:ai-send-queue"][data-extension-action="primary"]\')'),
@@ -117,6 +150,10 @@ try{
   assert.equal(sha(bytes),SEND_QUEUE_PIN.toolPackageSha256,'source-bound candidate');
   assert.equal(sha(Buffer.from(serializeSidebarToolPackage(tool))),SEND_QUEUE_PIN.toolPackageSha256);
   assert.equal(tool.version,'0.1.13');
+  const pagePackage=await validatePageInstallPackage(JSON.parse(await readFile(pageCandidate,'utf8')));
+  assert.equal(pagePackage.programId,SEND_QUEUE_PIN.pageProgramId);
+  assert.equal(pagePackage.revision,SEND_QUEUE_PIN.pageRevision);
+  assert.equal(pagePackage.sourceHash,SEND_QUEUE_PIN.pageSourceHash,'Page source-bound candidate');
   const manifest=JSON.parse(await readFile(join(extension,'manifest.json'),'utf8'));
   assert.equal(manifest.manifest_version,3);
   profile=await mkdtemp(join(tmpdir(),'sq-native-ui-'));
@@ -186,6 +223,15 @@ try{
   await click(host,'#sidebar-tool-back');
   await until(()=>evalJs(host,'!document.querySelector("#sidebar-tool-frame iframe")'),
     'tool frame closes');
+  await importPage(pageCandidate);
+  const bothInstalled=await openTool();
+  const withoutWebsite=await getQueue(bothInstalled);
+  assert.equal(withoutWebsite.ok,true,'both installed packages retain trusted Host access');
+  assert.equal(withoutWebsite.value.status,'unavailable','Page registration cannot invent an active ChatGPT document');
+  report.events.push('REAL_BOTH_PACKAGES_INSTALLED_NO_CHATGPT_TARGET');
+  await click(host,'#sidebar-tool-back');
+  await until(()=>evalJs(host,'!document.querySelector("#sidebar-tool-frame iframe")'),
+    'tool frame closes after combined installation');
   // A tool re-open is not a Side Panel re-open. Exercise the native Chrome
   // lifecycle and prove the old SIDE_PANEL document actually disappeared.
   await evalJs(bootstrap,'chrome.sidePanel.close({windowId:'+JSON.stringify(windowId)+'})');
@@ -250,6 +296,7 @@ try{
   try{chrome?.kill();await delay(300);
     if(profile)await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:150});
   }catch(error){report.cleanupError=String(error);}
-  console.log(JSON.stringify({status:report.status,read:report.read,spoof:report.unauthorizedSameId,
+  console.log(JSON.stringify({status:report.status,pageInstalled:report.pageInstalled,
+    pageReadback:report.pageReadback,read:report.read,spoof:report.unauthorizedSameId,
     events:report.events,nativePanelReopen:report.nativePanelReopen,error:report.error},null,2));
 }
