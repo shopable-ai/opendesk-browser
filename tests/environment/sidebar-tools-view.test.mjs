@@ -150,7 +150,7 @@ test('market review and success use one dialog with clear facts and no repeated 
   assert.doesNotMatch(dialog.textContent,/本次新增/,'first install does not repeat the same permission list');
   view.setMarketInstall({review:{...view.getSnapshot().market.review,
     details:{...details,previousVersion:'0.9.0',previousDisabled:true,addedCapabilities:[]}}});
-  assert.match(render().querySelector('#sidebar-tool-import').textContent,/已停用的应用更新后仍保持停用/);
+  assert.match(render().querySelector('#sidebar-tool-import').textContent,/当前应用已停用，更新后仍保持停用/);
   view.setMarketInstall({review:{...view.getSnapshot().market.review,phase:'installed',
     message:'已安装 v1.0.0，可以直接打开使用。',technical:[],
     actions:[{id:'open',label:'打开使用'},{id:'done',label:'完成'}]}});
