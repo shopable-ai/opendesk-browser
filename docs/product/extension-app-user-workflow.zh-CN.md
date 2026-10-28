@@ -16,7 +16,7 @@
 
 这适合你与 AI 一起改自己的应用。具体可从 [Quick Notes React 的手动步骤](../../examples/sidebar-tools/quick-notes-react/README.md#现在手动试改一个字符就看到界面变化)开始；[更新原理与工具链现状](../api/sidebar-tool-development.zh-CN.md#保存以后为什么会更新)解释了编译、预览和 SDK 的分工。
 
-**普通用户无需 Browser 源码来安装/运行应用，但目前仅安装 OpenDesk 还不足以获得完整的本地 React 连续开发工具。** 当前示例的编译/预览/打包命令仍有仓库依赖。将它们作为可独立使用的官方开发工具交付，是接下来需要完善的部分；不能把维护者现有的仓库环境当成普通用户已经具备的能力。修改 Browser 内置共享组件则另属维护者工作。
+**普通用户无需 Browser 源码来安装/运行应用，但目前仅安装 OpenDesk 还不足以获得完整的本地 React 连续开发工具。** Quick Notes React 现在可用应用目录内的依赖和命令独立编译，见[具体步骤](../../examples/sidebar-tools/quick-notes-react/README.md#只有应用源码时哪些步骤能独立使用)；把编译结果送到真实侧栏的预览监听和打包工具仍需维护者的仓库环境。把原有工具链独立分发是接下来需要完善的部分，目前没有已发布的独立 npm CLI。修改 Browser 内置共享组件则另属维护者工作。
 
 ## 如何知道是否真的更新成功
 

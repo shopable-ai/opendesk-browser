@@ -17,6 +17,8 @@
 在真正的 Mac 项目中，Codex 修改本应用的 `src/`；项目级 Vite 只编译本应用，原 Native watcher 只校验并发布完成的快照。**它们是不同的 watcher**，在启动前先检查是否已有进程，不重复启动，也不覆盖 Browser 的 `dist/development`：
 
 ```sh
+# 新环境首次准备应用编译依赖；已有正常监听时无需重装或重启。
+npm ci --ignore-scripts --no-audit --no-fund --prefix examples/sidebar-tools/quick-notes-react
 # 终端一：仅当项目尚无 Vite watch 进程时启动。
 npm run watch --prefix examples/sidebar-tools/quick-notes-react
 # 终端二：仅当本项目尚无 stage watch 进程时启动。
@@ -24,6 +26,24 @@ node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react
 ```
 
 Vite 产物由 source-bound `dist/build-ready.json` 证明；stage 只在完整回执通过且源码未漂移时发布 SHA 快照。编译失败不会把错误产物当作新快照，也不会修改 `quick-notes-react.opendesk-tool.json`。实际入口为「开发 → 本地项目 → quick-notes-react → 在侧栏调试」：Native Workspace 标签页保留目录与会话归属，应用显示在同窗口真实 Side Panel。点击「在侧栏调试」即可使用 `storage.get/set`，不再单独批准存储或显示“已批准”状态；开发数据在内部与正式安装版分开。同一来源、工具和能力范围内，成功 JSX 快照使用新实例重新校验，沿用本次调试意图；Stop、归属变化、断连、范围变化或未知写入结果不会自动重启或重放写入。网页信息仍按原目标和能力范围核验。
+
+## 只有应用源码时，哪些步骤能独立使用
+
+本项目已声明自己的固定版本 Vite 和 [package-lock.json](package-lock.json)，`build` / `watch` 不再引用 Browser 仓库的 `../../../node_modules`。拿到应用目录后，在 Node.js 22.12+ 环境中可直接编译：
+
+```sh
+# 在你自己的 quick-notes-react 目录中执行，目录不必放在 Browser 仓库内。
+npm ci --ignore-scripts --no-audit --no-fund
+npm run build
+# 持续修改时使用；已有本项目 watch 时不重复启动。
+npm run watch
+```
+
+这会生成本应用的 `dist/tool.js`、`dist/tool.css` 和 `dist/build-ready.json`。React 与 `@opendesk/ui` 仍是 OpenDesk 沙箱提供的共享运行时，无需再安装一份 React，也不能直接把这些文件当作普通网页打开。
+
+2026-10-29 已在仓库外临时目录验证独立安装、编译、保存 JSX 后的 watch 更新，以及源码/产物摘要匹配；原仓库 stager 也接受该外部项目并生成快照。这证明应用编译与外部目录可用，未证明 stage 已独立发行；本次没有操作 Chrome 或重新验证安装。
+
+**编译独立可用，连续侧栏调试工具尚未独立交付。** `stage:preview`、`compare` 是仓库内的维护者对照预览；Native 快照监听和正式 JSON 打包也仍使用 Browser 仓库脚本。仅复制本应用目录还不能独立完成「保存 → 真实侧栏更新」。目前可由维护者用原 `watch-sidebar-tool.mjs` 指向你的应用绝对路径，你在原 Native 界面连接并授权该目录后再进入侧栏调试。后续最小交付是把原 stage/watch/打包器及所需固定资源一起分发为开发工具，详见[现有能力与剩余缺口](../../../docs/api/sidebar-tool-development.zh-CN.md#没有-browser-源码普通用户能否这样开发)；当前没有可宣称已发布的独立 npm CLI。
 
 ## 现在手动试：改一个字符就看到界面变化
 

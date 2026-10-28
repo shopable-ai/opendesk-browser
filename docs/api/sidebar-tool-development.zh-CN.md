@@ -307,12 +307,17 @@ App.jsx / style.css
 | --- | --- |
 | 安装、打开已生成的应用包 | 安装支持该运行时的 OpenDesk，经原安装审阅即可；不需要 Browser 源码 |
 | 编辑自己应用的 HTML/CSS/JS 或 React/Vue | 业务源码归自己的目录；React/Vue 要有自身编译工具，SDK 由宿主提供 |
+| 只拿到 Quick Notes React 应用目录，编译自己的 JSX/CSS | 已可使用应用自己的固定 Vite 和锁文件，执行 `npm ci --ignore-scripts --no-audit --no-fund`、`npm run build` 或 `npm run watch`；不依赖 Browser 的 node_modules |
 | 像本示例一样连续保存并在真实侧栏更新 | 还需要 Native 目录连接及可用的 stage/watch/打包工具；当前这些脚本位于仓库中，不能声称只装扩展便已具备完整体验 |
 | 修改共享组件、宿主或新增原生特权 | 由 Browser 维护者修改并更新扩展，普通作者不需要也不应为自己的 UI 修改宿主 |
 
-具体缺口可直接从现有文件看到：Quick Notes React 的 `package.json` 通过 `../../../node_modules/vite` 使用仓库 Vite；`watch-sidebar-tool.mjs` 通过 stager 调用原打包器；打包器目前静态导入仓库 Schema/Catalog/本地化与共享样式源。因此简单复制 Quick Notes 目录到仓库外，还不能原样复用本节全部命令。`react-starter` 已声明自己的 Vite 依赖，但这不等于 stage/pack 工具已独立交付。
+Quick Notes React 已消除编译命令中的 `../../../node_modules/vite` 路径依赖，具体命令见[应用 README](../../examples/sidebar-tools/quick-notes-react/README.md#只有应用源码时哪些步骤能独立使用)。这只解决应用编译；`react`、`react/jsx-runtime` 和 `@opendesk/ui` 仍按已有配置外置，由支持该运行时的 OpenDesk 提供。
 
-后续应让已安装 OpenDesk + Native + 独立应用项目 + 官方开发工具即可完成同一闭环，复用现有编译/打包/预览协议；不复制第二套 Host/Authority，不要求普通用户下载 Browser 业务源码，也不虚构尚未发布的 npm 包或 CLI 命令。本节记录当前可用方式与实际缺口，不把后续目标写成已交付。
+剩余依赖是具体的：`watch-sidebar-tool.mjs` 导入 stager，stager 调用原 `build-sidebar-tool.mjs`；打包器静态导入包校验器、Catalog、本地化和安装版本比较模块，规范样式编译还读取 `src/ui/design-tokens.css` 与 `design-system.css`。应用自己的 `stage:preview` / `compare` 也仍是仓库内对照预览。因此只复制应用目录，即使 Vite 已编译成功，也还不能自行生成 Native 预览快照或正式安装包。
+
+当前由维护者协助时，应用可留在仓库外：维护者运行 `node /实际路径/opendesk-browser/scripts/watch-sidebar-tool.mjs /实际路径/你的应用`；用户在原 Native Workspace 连接该应用目录后，点击「在侧栏调试」。这仍依赖维护者持有工具链，不能当作普通用户已获得独立开发工具的证明，也不会额外要求存储批准。
+
+最小下一步是将**原有** stage/watch/打包入口与必要校验、Catalog 和固定公共样式资源一起打成可分发开发工具，验证其在没有 Browser 仓库的目录中能从完成回执发布同一 Native 快照，再确定下载与版本配套方式。保留现有包格式、来源校验、Native 目录授权及 Host/Authority；不复制第二套运行或安装机制。目前这项独立分发尚未交付，也没有已发布的 npm CLI。本节区分已能独立编译的步骤与尚未独立交付的工具，不要求普通用户下载 Browser 业务源码。
 
 ### D. 官方可选工具 / 可信宿主修改：完整扩展链路
 

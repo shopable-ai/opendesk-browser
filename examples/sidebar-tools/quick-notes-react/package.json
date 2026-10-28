@@ -5,9 +5,12 @@
   "type": "module",
   "engines": {"node": ">=22.12.0"},
   "scripts": {
-    "build": "node ../../../node_modules/vite/bin/vite.js build --config vite.config.mjs",
-    "watch": "node ../../../node_modules/vite/bin/vite.js build --watch --config vite.config.mjs",
+    "build": "vite build --config vite.config.mjs",
+    "watch": "vite build --watch --config vite.config.mjs",
     "stage:preview": "node scripts/stage-preview.mjs",
     "compare": "node scripts/compare.mjs"
+  },
+  "devDependencies": {
+    "vite": "7.3.6"
   }
 }
