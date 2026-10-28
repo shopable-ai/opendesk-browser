@@ -29,6 +29,8 @@ import {createUiLocaleController} from './app-localization.js';
 import {createToolLocaleService} from './sidebar-tools/locale-packs.js';
 import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {subscribePreviewSession} from './sidebar-tools/live-preview.js';
+import {panelPreviewStorageKey,validatePanelPreviewPointer,validatePreviewSession} from './sidebar-tools/preview-session.js';
+import {previewStorageKey} from '../native-agent/tool-snapshot.js';
 import {createToolDevelopmentControls} from './sidebar-tools/development-controls.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {AGENT_CONFIG_PROTOCOL} from '../native-agent/protocol.js';
@@ -87,6 +89,7 @@ if(!historyUI?.createTaskWorkbench||!historyUI?.createScheduledTaskWorkbench)
   throw new Error('E_TRUSTED_TASK_UI_MISSING');
 const {createTaskWorkbench,createScheduledTaskWorkbench}=historyUI;
 let trustedHistoryWorkbench=null,shellClosed=false,verifiedSidePanel=false,panelToolIntents=null,marketPanelIntents=null,livePreview=null,toolDevelopmentControls=null,marketInstallSheet=null;
+let panelPreviewId=null,panelPreviewKey=null,panelPreviewListener=null,panelPreviewEpoch=0;
 // Do not construct or query the privileged History controller while Extensions
 // (or any ordinary tab) is active. Leaving Debug also clears private results.
 function syncTrustedHistory(view=pendingReactTab){
@@ -158,11 +161,13 @@ const nativeConnection=Object.freeze({
 extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
   nativeConnection,
   openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
-  onNavigate:view=>reactNavigationRequest?.(view)??false});
+  onNavigate:view=>reactNavigationRequest?.(view)??false,
+  onStopAppDebug:()=>void stopPanelDevelopment()});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
   onTaskInstalled:taskId=>void scheduleUI?.onInstalled(taskId),
-  debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
+  debugEnabled,isAppDebugAllowed:()=>verifiedSidePanel&&Boolean(panelPreviewId),
+  onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();},
   onTabSelected:(view,options)=>tabMemory.record(view,options),
   reactNavigation,myView,developerView});
 extensionList.renderNavigation(pendingReactTab);
@@ -299,10 +304,13 @@ let cloudHosting=null;
 debugWorkbench=debugEnabled?createDebugWorkbench({client:foundationClient,host:scriptEditor.host,reactUI:extensionList}):null;
 window.addEventListener('pagehide',()=>cloudHosting?.dispose(),{once:true});
 taskWorkbench.connectToolsView((visible,destination)=>{
-  const accepted=sidebarTools.setVisible(visible,destination);
-  if(visible&&accepted!==false){
+  // The one ToolHost stays mounted while returning to Develop. No second
+  // sandbox/React root and no lost in-app draft on a normal tab switch.
+  const keepDeveloperPreview=verifiedSidePanel&&Boolean(panelPreviewId)&&
+    destination==='develop'&&sidebarTools.isPreviewActive();
+  const accepted=sidebarTools.setVisible(visible||keepDeveloperPreview,destination);
+  if(visible&&destination==='tools'&&accepted!==false)
     void extensionCenter.refresh();
-  }
   return accepted;
 });
 const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
@@ -331,6 +339,94 @@ const draftImportListener=(message,sender,sendResponse)=>{
   return false;
 };
 chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=true;
+// Side Panel only: window-scoped locator selects a Native-verified source-bound
+// session, not a storage grant. The existing ToolHost is the sole sandbox owner.
+function panelPreviewStatus(text,error=false){
+  toolView.patch('sidebar-tool-readonly-banner',{
+    textContent:text+'。未安装；开发态 SDK 尚未授权，不会使用正式工具数据。',
+    hidden:false,data:{state:error?'error':'readonly'}});
+}
+function detachPanelPreview({clearTab=true}={}){
+  ++panelPreviewEpoch;
+  livePreview?.dispose();livePreview=null;
+  panelPreviewId=null;
+  if(sidebarTools.isPreviewActive())sidebarTools.stopReadOnlyPreview();
+  if(clearTab){
+    if(document.documentElement.dataset.opendeskTab==='app-debug')
+      taskWorkbench.navigate('develop');
+    extensionList.setAppDebugEnabled(false);
+  }
+}
+async function stopPanelDevelopment(){
+  if(!verifiedSidePanel||!panelPreviewId||!panelPreviewKey||shellClosed)return;
+  if(sidebarTools.isPreviewEditing()){
+    panelPreviewStatus('此应用有未保存内容，请先保存或结束编辑再停止',true);
+    return;
+  }
+  const expected=panelPreviewId,key=panelPreviewKey;
+  detachPanelPreview();
+  panelPreviewStatus('应用调试已停止；原安装版与本地源码未修改',false);
+  try{
+    const pointer=(await chrome.storage.session.get(key))[key];
+    if(pointer?.previewId===expected)await chrome.storage.session.remove(key);
+  }catch(error){console.warn('Side Panel preview pointer cleanup',error);}
+}
+async function attachPanelPreview(windowId){
+  if(!verifiedSidePanel||shellClosed)return;
+  const key=panelPreviewStorageKey(windowId);
+  panelPreviewKey=key;
+  const read=async()=>{
+    const ticket=++panelPreviewEpoch;
+    try{
+      if(shellClosed||!verifiedSidePanel)return;
+      // The same extension document may run in other windows. Revalidate
+      // Chrome's current window before accepting a published locator.
+      const currentWindow=await chrome.windows.getCurrent();
+      if(shellClosed||ticket!==panelPreviewEpoch||currentWindow?.id!==windowId)return;
+      const raw=(await chrome.storage.session.get(key))[key];
+      if(shellClosed||ticket!==panelPreviewEpoch)return;
+      if(!raw){
+        if(panelPreviewId)detachPanelPreview();
+        return;
+      }
+      const pointer=validatePanelPreviewPointer(raw,windowId);
+      const record=(await chrome.storage.session.get(previewStorageKey(pointer.previewId)))[previewStorageKey(pointer.previewId)];
+      validatePreviewSession(record,pointer.previewId);
+      if(shellClosed||ticket!==panelPreviewEpoch||!verifiedSidePanel)return;
+      if(panelPreviewId===pointer.previewId)return;
+      if(panelPreviewId&&sidebarTools.isPreviewEditing()){
+        panelPreviewStatus('原预览有未保存内容；请先保存后再进入新调试会话',true);
+        return;
+      }
+      detachPanelPreview({clearTab:false});
+      panelPreviewId=pointer.previewId;
+      extensionList.setAppDebugEnabled(true);
+      // Switch through TaskWorkbench's existing navigation/draft veto. A
+      // rejected switch leaves the current editor intact, not a fake preview.
+      if(taskWorkbench.navigate('app-debug')===false){
+        panelPreviewStatus('当前页面暂不能离开；开发会话已就绪，请保存后打开「应用调试」',true);
+        return;
+      }
+      const preview=subscribePreviewSession({api:chrome,previewId:pointer.previewId,
+        mount:tool=>sidebarTools.openReadOnlyPreview(tool),
+        isActive:()=>sidebarTools.isPreviewActive(),
+        isDirty:()=>sidebarTools.isPreviewEditing(),
+        onStatus:panelPreviewStatus,
+        onInvalidate:()=>panelPreviewStatus('正在重新核验开发快照；旧预览权限已失效',true)});
+      livePreview=preview;
+      await preview.ready;
+    }catch(error){
+      if(shellClosed||ticket!==panelPreviewEpoch)return;
+      panelPreviewStatus('应用调试尚不可用：'+String(error.message||error).slice(0,160),true);
+      if(panelPreviewId)detachPanelPreview();
+    }
+  };
+  panelPreviewListener=(changes,area)=>{
+    if(area==='session'&&changes[key])void read();
+  };
+  chrome.storage.onChanged.addListener(panelPreviewListener);
+  await read();
+}
 /* The same authorized sidepanel.html can be opened in a full Chrome tab.
  * A tab is the complete local catalog; the Side Panel stays lightweight.
  * No new document allowlist, authority, or storage instance is introduced.
@@ -371,6 +467,10 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
     if(actualSidePanel){
       await sidebarTools.ready;
       if(shellClosed)return;
+      const panelWindow=await chrome.windows.getCurrent();
+      if(Number.isSafeInteger(panelWindow?.id))
+        void attachPanelPreview(panelWindow.id).catch(error=>
+          panelPreviewStatus('应用调试连接失败：'+String(error.message||error),true));
       marketInstallSheet=createMarketInstallSheet({api:chrome,view:toolView,
         assertCanInstall:id=>sidebarTools.assertCanInstallMarketTool(id),
         hasOtherReview:()=>sidebarTools.hasInstallReview()||Boolean(document.querySelector('[role="dialog"][aria-modal="true"]')),
@@ -564,6 +664,8 @@ Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.
 listen(window, 'pagehide', () => {
   fixedPageChatBridge.dispose();
   marketInstallSheet?.dispose();
+  ++panelPreviewEpoch;
+  if(panelPreviewListener)chrome.storage.onChanged.removeListener(panelPreviewListener);
   livePreview?.dispose();
   toolDevelopmentControls?.dispose();
   disposeDevelopment?.();
