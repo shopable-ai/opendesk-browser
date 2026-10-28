@@ -758,7 +758,7 @@ function onProfileSubmit(e){
   d.accounts.push(a);
  }
  Object.assign(a,{snapshot,count:snapshot.length,sourceSite:site,scope:chosen.length===eligible.length?'full':'partial',updated:'刚刚',shared:false,authenticated:false});
- d.active=a.id;d.phase='ready';d.lastHandled='';
+ d.active=a.scope==='full'?a.id:null;d.phase=a.scope==='full'?'ready':'edited';d.lastHandled='';
  profileForm=null;render();
  toast('已将 '+snapshot.length+' 条模拟 Cookie 关联至「'+a.name+'」'+(a.scope==='partial'?'；部分快照不可切换':'；可模拟切换'));
 }
