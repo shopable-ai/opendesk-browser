@@ -35,6 +35,7 @@ const moduleSource = compiled.code.replace('"react"', JSON.stringify(import.meta
   .replace('"react-dom"',JSON.stringify(import.meta.resolve('react-dom')))
   .replace('"./tools.tsx"',JSON.stringify(toolsModule))
   .replace('"./trusted-settings.tsx"',JSON.stringify(settingsModuleURL))
+  .replace('"../components/ui/button.tsx"',JSON.stringify(buttonModule))
   // Relative imports cannot resolve inside the test's data: module. Compile
   // the same real component with absolute React references for this fixture.
   .replace('"../components/conversation.tsx"',JSON.stringify(conversationModule));
