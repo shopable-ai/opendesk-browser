@@ -46,6 +46,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     row.description===readingTocCatalog.messages['zh-CN'].description?
       uiMessage(readingTocCatalog,language(),'description'):row.description||'';
   const installedAppUsage=row=>{
+    if(row.id===SEND_QUEUE_PIN.toolId&&row.enabled===false)
+      return '队列管理界面已停用；已安装的网页发送能力由 Page 单独运行，不会因此自动停用。';
+    if(row.id===SEND_QUEUE_PIN.toolId&&row.stateKnown===false)
+      return '队列管理界面状态尚未核对；不能声称整个产品就绪。';
     if(row.pageCompanion){
       const state=row.pageCompanion.state;
       if(state==='missing')return '管理界面已安装，网页发送能力尚未安装。请在「网页能力」入口审阅 Page 安装包。';
