@@ -1,40 +1,44 @@
-/* Trusted language manager: advanced resources share the existing modal focus/Host. */
-.od-uninstall-dialog.od-locale-shell{width:min(100%,520px);box-sizing:border-box}
-.od-locale-shell:has(.od-locale-maintenance[open]){height:min(660px,calc(100dvh - 24px));overflow:hidden}
-.od-locale-manager{min-width:0;gap:var(--space-3)}
-.od-locale-manager .od-locale-daily{gap:var(--space-2);min-width:0}
-.od-locale-manager .od-locale-field{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);align-items:center;gap:var(--space-2);min-width:0;font-size:var(--od-note-size);font-weight:600}
-.od-locale-manager .od-field{width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:36px;font-weight:400}
-.od-locale-manager .od-locale-actions{display:flex;flex-wrap:wrap;gap:var(--space-2);min-width:0}
-.od-locale-manager .od-locale-actions[hidden]{display:none}
-.od-locale-manager .od-locale-actions>button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
-.od-locale-manager p,.od-locale-manager h3{margin:0;overflow-wrap:anywhere}
-.od-locale-manager .od-locale-preview{display:grid;min-width:0;gap:var(--space-2)}
-.od-locale-manager .od-locale-caption{font-size:var(--od-meta-size);color:var(--od-sub)}
-.od-locale-manager .od-locale-assistive{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.od-locale-manager .od-locale-samples{display:grid;gap:var(--space-1);margin:0;min-width:0}
-.od-locale-manager .od-locale-samples dt{font-weight:600;overflow-wrap:anywhere}
-.od-locale-manager .od-locale-samples dd{display:grid;gap:var(--space-1);margin:0 0 var(--space-2);overflow-wrap:anywhere}
-.od-locale-manager .od-locale-recovery{display:grid;gap:var(--space-2);min-width:0}
-.od-locale-maintenance{min-width:0}
-.od-locale-maintenance>summary{cursor:pointer;padding:var(--space-2) 0;font-size:var(--od-body-size);font-weight:600;color:var(--od-accent-ink)}
-.od-locale-maintenance>summary:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
-.od-locale-maintenance[open]{position:absolute;z-index:2;inset:0;display:flex;flex-direction:column;min-height:0;padding:var(--space-3);box-sizing:border-box;overflow-y:auto;background:var(--od-paper);border-radius:var(--radius-surface)}
-.od-locale-maintenance[open]>summary{position:sticky;top:calc(-1 * var(--space-3));z-index:2;flex:none;list-style:none;border-bottom:1px solid var(--od-line);background:var(--od-paper);padding:var(--space-2);margin:calc(-1 * var(--space-3)) calc(-1 * var(--space-3)) var(--space-2)}
-.od-locale-maintenance[open]>summary::marker{content:''}
-.od-locale-maintenance[open]>summary::-webkit-details-marker{display:none}
-.od-locale-maintenance[open]>summary::before{content:'‹';font-size:20px;line-height:14px;margin-right:8px}
-.od-locale-manager .od-locale-sheet-body{gap:var(--space-3)}
-.od-locale-resources{display:grid;border:1px solid var(--od-line);border-radius:var(--radius-control);overflow:hidden}
-.od-locale-resource{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:var(--space-1);align-items:center;border-top:1px solid var(--od-line);padding:4px 6px;min-width:0}
+/* R5.24 trusted React subpage. All values come from shared OpenDesk tokens. */
+.ec-locale-page{min-width:0;width:100%;box-sizing:border-box}
+.od-locale-manager{box-sizing:border-box;min-width:0;display:grid;gap:var(--space-4);padding:var(--od-page-gutter,var(--space-3))}
+.od-locale-heading{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.od-locale-heading .od-page-title{min-width:0;overflow-wrap:anywhere;margin:0}
+.od-locale-view,.od-locale-section{min-width:0;gap:var(--space-3)}
+.od-locale-section{display:grid;padding-bottom:var(--space-3);border-bottom:1px solid var(--od-line)}
+.od-locale-section>h3,.od-locale-section-head h3{margin:0;font-size:var(--od-body-size);font-weight:600}
+.od-locale-section-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
+.od-locale-field{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);align-items:center;gap:var(--space-2);min-width:0}
+.od-locale-field .od-field{box-sizing:border-box;min-width:0;width:100%;max-width:100%;min-height:36px}
+.od-locale-label{font-size:var(--od-note-size);font-weight:600}
+.od-locale-caption{font-size:var(--od-meta-size);color:var(--od-sub);margin:0;overflow-wrap:anywhere}
+.od-locale-nav{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);width:100%;min-width:0;text-align:left}
+.od-locale-nav span:first-child{display:grid;gap:var(--space-1);min-width:0}
+.od-locale-nav small{font-size:var(--od-meta-size);font-weight:400;white-space:normal;color:var(--od-sub)}
+.od-locale-nav span:last-child{font-size:20px}
+.od-locale-resources{display:grid;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);overflow:hidden}
+.od-locale-resource{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2);border-top:1px solid var(--od-line);min-width:0}
 .od-locale-resource:first-child{border-top:0}
-.od-locale-resource .od-locale-resource-select{display:grid;justify-items:start;text-align:left;align-content:center;min-width:0;padding:5px 8px;border:0;background:transparent;color:var(--od-ink)}
-.od-locale-resource-select[aria-pressed="true"]{background:var(--od-muted);outline:1px solid var(--od-line)}
-.od-locale-resource-select strong{font-size:var(--od-body-size);font-weight:600}
-.od-locale-resource-select small{font-size:var(--od-meta-size);color:var(--od-sub);font-weight:400}
-.od-locale-resource-count{font-size:var(--od-meta-size);color:var(--od-sub);white-space:nowrap;font-variant-numeric:tabular-nums}
-.od-locale-resource .od-locale-resource-export{font-size:var(--od-note-size);padding:5px 8px;min-height:30px}
-@media(max-width:560px){
- .od-locale-manager .od-locale-field{grid-template-columns:minmax(0,1fr);gap:4px}
- .od-uninstall-dialog.od-locale-shell{padding:var(--space-3)}
-}
+.od-locale-resource-copy{display:grid;gap:var(--space-1);min-width:0;overflow-wrap:anywhere}
+.od-locale-resource-copy strong{font-size:var(--od-body-size)}
+.od-locale-resource-copy small{font-size:var(--od-meta-size);font-weight:400;color:var(--od-sub)}
+.od-locale-resource-actions{display:flex;align-items:center;gap:var(--space-1);flex:none}
+.od-locale-resource-actions .od-icon-button{flex:none}
+.od-locale-drop-zone{display:grid;justify-items:center;text-align:center;gap:var(--space-2);padding:var(--space-4) var(--space-2);border:1px dashed var(--od-input-border,var(--od-line));border-radius:var(--radius-control);background:var(--od-muted);min-width:0}
+.od-locale-drop-zone[data-over="true"]{outline:2px solid var(--od-focus);outline-offset:-2px}
+.od-locale-compose-toggle{display:flex;justify-content:space-between;gap:var(--space-2);width:100%;text-align:left}
+.od-locale-compose{display:grid;gap:var(--space-3);min-width:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control)}
+.od-locale-compose h3{margin:0;font-size:var(--od-body-size)}
+.od-locale-actions{display:flex;flex-wrap:wrap;gap:var(--space-2);min-width:0}
+.od-locale-actions button{min-width:0;white-space:normal}
+.od-locale-inline-confirm,.od-locale-recovery{display:grid;gap:var(--space-2);min-width:0}
+.od-locale-inline-confirm{padding:var(--space-3);background:var(--od-muted);border-radius:var(--radius-control)}
+.od-locale-facts{margin:0;display:grid;gap:0;min-width:0}
+.od-locale-facts>div{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:var(--space-2);padding:var(--space-2) 0;border-bottom:1px solid var(--od-line)}
+.od-locale-facts dt{color:var(--od-sub);font-size:var(--od-meta-size)}
+.od-locale-facts dd{margin:0;overflow-wrap:anywhere}
+.od-locale-hash{display:block;color:var(--od-sub);font-size:var(--od-meta-size);overflow-wrap:anywhere}
+.od-locale-samples{display:grid;gap:var(--space-2);margin:0;min-width:0}
+.od-locale-samples dt{font-weight:600;overflow-wrap:anywhere}
+.od-locale-samples dd{display:grid;gap:var(--space-1);margin:0;padding-bottom:var(--space-2);border-bottom:1px solid var(--od-line);overflow-wrap:anywhere}
+@media(max-width:440px){.od-locale-field,.od-locale-facts>div{grid-template-columns:minmax(0,1fr);gap:var(--space-1)}}
+@media(pointer:coarse){.od-locale-resource-actions .od-icon-button{min-width:44px;min-height:44px}}
