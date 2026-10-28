@@ -72,7 +72,7 @@ export function CookieValueField({inputRef,inputValue,onChange,disabled=false,
         aria-describedby={[describedBy,hintId].filter(Boolean).join(' ')} className="od-field"
         ref={inputRef} type="text" autoComplete="off" autoCapitalize="off"
         autoCorrect="off" spellCheck={false}
-        data-cookie-secret-input="true" maxLength={maxLength}
+        data-cookie-secret-input="true" data-sensitive="true" maxLength={maxLength}
         disabled={disabled} placeholder={placeholder} onChange={onChange}
         {...(inputValue===undefined?{}:{value:inputValue})}/>
       {showClear&&!disabled&&typeof onClear==='function'&&

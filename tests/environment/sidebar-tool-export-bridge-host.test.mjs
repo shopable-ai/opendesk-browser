@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {runInNewContext} from 'node:vm';
+import {createRequire} from 'node:module';
+import {buildSync} from 'esbuild';
 import {parseHTML} from 'linkedom';
 import {initSidebarToolSandbox,sidebarToolRequestTimeout,ADBLOCK_CONFIRM_OPERATIONS,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
@@ -44,7 +46,7 @@ class Events {
 
 // Node cannot manufacture Chromium trusted clicks. This double models the
 // unforgeable WebIDL getters and dispatch lifetime; native Chrome is NOT_TESTED.
-function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'frame-1',tool},port=new Port(),send=()=>{},timers={setTimeout,clearTimeout},clock={now:()=>performance.now()}}={}){
+function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'frame-1',tool},port=new Port(),send=()=>{},timers={setTimeout,clearTimeout},clock={now:()=>performance.now()},draftRoot}={}){
   if(!port.peer){port.peer=new Port();port.peer.peer=port;}
   const states=new WeakMap();let eventSequence=0;
   class NativeEvent {
@@ -55,7 +57,7 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
     stopImmediatePropagation(){this.stopped=true;}
   }
   const win=new Events(),root=new Events(),status={dataset:{}},publicMessages=[];
-  Object.assign(root,{replaceChildren(){},querySelectorAll:()=>[],getBoundingClientRect:()=>({top:0,bottom:100})});
+  Object.assign(root,{replaceChildren(){},querySelectorAll:selector=>draftRoot?.querySelectorAll(selector)||[],getBoundingClientRect:()=>({top:0,bottom:100})});
   const parent={postMessage(message){publicMessages.push(message);send(message);}};
   const node=()=>({append(){},addEventListener(){}});
   // Run the real timeout lookup in the tool's realm: passing an outer-realm
@@ -99,6 +101,35 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
     async dispose(){win.emit('pagehide',{});await Promise.all(pending);}
   };
 }
+
+test('R2.6 actual draft bridge retains account names but excludes React Cookie values and import text',async()=>{
+  const require=createRequire(import.meta.url),React=require('react');
+  const {renderToStaticMarkup}=require('react-dom/server');
+  const built=buildSync({stdin:{contents:`
+    export {CookieValueField} from './examples/sidebar-tools/cookie-editor/app/components/CookieEditorView.jsx';
+    export {default as CookieImport} from './examples/sidebar-tools/cookie-editor/app/components/CookieImport.jsx';`,
+    resolveDir:new URL('../..',import.meta.url).pathname},bundle:true,write:false,
+    platform:'node',format:'cjs',external:['react','@opendesk/ui']}).outputFiles[0].text;
+  const module={exports:{}};
+  new Function('require','module','exports',built)(id=>id==='@opendesk/ui'
+    ?{Button:props=>React.createElement('button',props)}:require(id),module,module.exports);
+  const {CookieValueField,CookieImport}=module.exports;
+  const html=renderToStaticMarkup(React.createElement(React.Fragment,null,
+    React.createElement('input',{'aria-label':'账号名称',defaultValue:'保留账号草稿'}),
+    React.createElement(CookieValueField,{}),React.createElement(CookieImport,{})));
+  const {document}=parseHTML('<html><body><main>'+html+'</main></body></html>');
+  const root=document.querySelector('main');
+  root.querySelector('[aria-label="Cookie 值"]').value='fictional-value-not-for-recovery';
+  root.querySelector('#cookie-import-source').value='sid=fictional-import-not-for-recovery';
+  const b=sandbox({draftRoot:root});
+  try{
+    b.win.OpenDeskTool.setState({dirty:true,busy:false});
+    const draft=b.publicMessages.find(row=>row.kind==='draft');
+    assert.ok(draft,'the real bridge collector must run');
+    assert.match(draft.text,/保留账号草稿/);
+    assert.doesNotMatch(draft.text,/fictional-value|fictional-import/);
+  }finally{await b.dispose();}
+});
 
 test('bridge: read-only locale data updates in place even when the selected language stays the same',async()=>{
   const localization=await createToolLocalization({sourceLocale:'zh-CN',messages:{'zh-CN':{title:'目录'},ja:{title:'目次'}}});

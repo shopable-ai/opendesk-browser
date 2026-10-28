@@ -695,7 +695,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // that hidden instance once, so the first successful grant opens a fresh
         // Cookie list without another manual reload. Keep an in-use editor.
         if(revoke&&tool.id==='cookie-editor'){
-          destroyFrame();tocSettingsOpen=true;render();
+          retireUntrustedTool();
         }else if(!revoke&&tool.id==='cookie-editor'&&
           ((!frame&&!nativeUI&&!nativePending)||(!wasUsable||restoreChrome)))
           mountTool(tool);
@@ -3307,7 +3307,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       // transient decrypted input, rather than merely hiding the iframe.
       if(active?.id==='cookie-editor'&&!readOnlyPreview&&frame&&
         !cookieHasManageGrant(active,websiteOrigin(currentPageTarget?.snapshot?.url))){
-        destroyFrame();tocSettingsOpen=true;
+        retireUntrustedTool();
         notice('Cookie 管理授权已失效，请重新审阅当前网站权限。',true);
       }
       if(active?.id===TRUSTED_BOOKMARK_ID&&nativeUI?.kind==='bookmark'){

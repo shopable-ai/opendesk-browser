@@ -183,7 +183,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
           <textarea id="cookie-import-source" ref={sourceRef}
             className="od-field" rows={4} aria-label="粘贴 Cookie 内容"
             placeholder="JSON、Cookie Header 或 Netscape"
-            autoComplete="off" spellCheck={false} data-cookie-secret-input="true"
+            autoComplete="off" spellCheck={false} data-cookie-secret-input="true" data-sensitive="true"
             disabled={disabled||busy||uncertain}
             onInput={event=>{
               invalidatePreview();

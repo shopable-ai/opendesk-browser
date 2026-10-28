@@ -165,7 +165,7 @@ export default function CookieOfflineWorkspace({initialTarget,adapter,onDirty=()
               fileInput.current.value='';
           }
         }}/></label>
-      <label>文本 <textarea className="od-field" ref={importText} data-cookie-secret-input="true"
+      <label>文本 <textarea className="od-field" ref={importText} data-cookie-secret-input="true" data-sensitive="true"
         rows={5} autoComplete="off"
         onInput={()=>{mark(true);importPlan.current=null;setPreview(null);}}/></label>
       {preview&&<p role="status">总计 {preview.total}，可导入 {preview.accepted}，跳过 {preview.skipped}</p>}

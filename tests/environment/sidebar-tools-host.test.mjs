@@ -3675,6 +3675,10 @@ test('R5.25 Cookie grant revocation destroys the prior iframe instead of exposin
   const store=await verifiedCookieStore(tool,saved.cookieAllSites);
   const f=await hostFixture(t,{tool,store}),frame=f.frame;
   await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
+  const draft='账号名称\n保留失败草稿';
+  for(const data of [{kind:'draft',text:draft},{kind:'edit-state',dirty:true,busy:false}])
+    f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
+      protocol:f.loaded.protocol,toolId:tool.id,instance:f.loaded.instance,...data}});
   const revoked={...store.get(BROWSER_MENU_GRANTS_STORE)[tool.id],cookieAllSites:null};
   f.store.set(BROWSER_MENU_GRANTS_STORE,{[tool.id]:revoked});
   f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:{[tool.id]:revoked}}});
@@ -3682,6 +3686,40 @@ test('R5.25 Cookie grant revocation destroys the prior iframe instead of exposin
   assert.equal(f.elements['sidebar-tool-cookie-permissions'].hidden,false);
   assert.equal(f.runtime.frameRoot.children.length,0,'revocation must destroy the old execution instance');
   assert.equal(frame.onload,null,'retired iframe cannot load again');
+  assert.equal(f.elements['sidebar-tool-retired-draft'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,draft,
+    'external revocation retains the existing bounded inert text recovery');
+  assert.equal(JSON.stringify([...store]).includes('保留失败草稿'),false,
+    'recovery stays in Host memory rather than ordinary storage');
+});
+
+test('R2.6 Cookie settings revoke retains the inert account draft after its storage event',async t=>{
+  cookieTestLocation(t);
+  const tool=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
+  const grant={storeId:'0',grantEpoch:'r26-draft',read:true,values:true,valueConsent:true,
+    write:true,observe:true,clear:true};
+  const store=await verifiedCookieStore(tool,grant),calls=[];
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true},
+    hostReply:cookieHostReceipt(tool,store,calls)});
+  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
+  const frame=f.frame,draft='账号名称\n保留撤权草稿';
+  for(const data of [{kind:'draft',text:draft},{kind:'edit-state',dirty:true,busy:false}])
+    f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
+      protocol:f.loaded.protocol,toolId:tool.id,instance:f.loaded.instance,...data}});
+  assert.equal(f.host.openSettings(tool.id),true);
+  await settle(()=>!f.elements['sidebar-tool-cookie-site-toggle'].disabled);
+  f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
+  await settle(()=>calls.length===1&&f.runtime.frameRoot.children.length===0);
+  assert.equal(calls[0].enabled,false);
+  assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieAllSites.read,false);
+  assert.equal(frame.onload,null);
+  assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,draft);
+  f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:store.get(BROWSER_MENU_GRANTS_STORE)}});
+  assert.equal(f.runtime.frameRoot.children.length,0,'the old instance remains retired');
+  assert.equal(f.elements['sidebar-tool-retired-draft'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,draft,
+    'the subsequent storage receipt cannot overwrite the preserved text');
+  assert.equal(JSON.stringify([...store]).includes('保留撤权草稿'),false);
 });
 
 
