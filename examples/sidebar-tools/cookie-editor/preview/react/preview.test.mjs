@@ -68,9 +68,14 @@ test('authorization preview presents one clearly scoped grant action',async()=>{
   assert.match(react,/onClick=\{grant\}>允许管理所有网站 Cookie<\/button>/);
   assert.doesNotMatch(react,/preview-grant-icon|首次允许一次|<small>/);
   assert.doesNotMatch(css,/preview-grant-icon|preview-global-grant small/);
-  const trustedCss=await read('../../../../../src/ui/tool-shell.css');
-  assert.match(trustedCss,/min-height:236px;padding:36px clamp\(16px,6vw,28px\)/);
-  assert.match(trustedCss,/max-width:360px/);
+  // The grant preview is outside the product; the official trusted Host
+  // routes first-use consent separately from the ordinary permissions panel.
+  const trustedUi=await read('../../../../../src/ui/react/tabs/tool-host.tsx');
+  assert.match(trustedUi,/const cookieFirstUse=/);
+  assert.match(trustedUi,/sidebar-tool-cookie-permissions/);
+  assert.match(trustedUi,/!cookieFirstUse/);
+  assert.match(css,/\.preview-global-grant\{min-height:236px;padding:36px clamp\(16px,6vw,28px\)/);
+  assert.match(css,/\.preview-global-grant button\{min-height:40px;width:100%;max-width:360px\}/);
 });
 
 test('committed standalone React preview reflects the one-action consent UI',async()=>{
@@ -228,15 +233,16 @@ test('scene disposal retires metadata sync and releases pending reads',async()=>
 });
 
 
-test('one-source import lives in a bottom sheet while the list stays mounted',async()=>{
+test('one-source import stays inline inside the mounted Cookie list',async()=>{
  const [component,app,css]=await Promise.all([
   read('../../app/components/CookieImport.jsx'),
   read('../../app/CookieEditorApp.jsx'),
   read('../../src/react.css')
  ]);
  assert.match(component,/className="cookie-import-workspace"/);
- assert.match(component,/role="dialog" aria-modal="true"/);
- assert.match(component,/cookie-import-dismiss-layer/);
+ assert.match(component,/role="region" aria-labelledby=\{headingId\}/);
+ assert.match(component,/onKeyDown=\{cancelFromKeys\}/);
+ assert.doesNotMatch(component,/role="dialog"|aria-modal|cookie-import-dismiss-layer/);
  assert.match(app,/importOpen=\{panel==='import'\}/);
  assert.doesNotMatch(app,/panel===null&&<CookieEditorView/);
  assert.match(component,/onBeforeSubmit\?\.\(\)===false/);
@@ -247,9 +253,10 @@ test('one-source import lives in a bottom sheet while the list stays mounted',as
  assert.match(component,/className="cookie-import-overwrite"/);
  assert.match(component,/<span>覆盖已有 Cookie<\/span>/);
  assert.doesNotMatch(component,/默认不覆盖|\|\|overwrite/);
- assert.match(css,/height:auto;max-height:calc\(100% - var\(--space-2\)\)/);
- assert.match(css,/display:flex;flex:0 1 auto;flex-direction:column/);
- assert.doesNotMatch(css,/height:min\(510px|height:calc\(100% - 32px\)/);
+ assert.match(css,/\.cookie-import-workspace\{\s*position:relative;box-sizing:border-box/);
+ assert.match(css,/\.cookie-import-body\{\s*display:grid;gap:8px/);
+ assert.match(css,/\.cookie-import-footer\{\s*display:grid;gap:8px/);
+ assert.doesNotMatch(css,/cookie-import-dismiss-layer|cookie-sheet-enter/);
  assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/controller\.executeImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/cookie-import-toast/);
