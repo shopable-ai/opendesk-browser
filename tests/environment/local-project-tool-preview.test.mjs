@@ -26,7 +26,7 @@ function fixture(t,{files=[workspace],saved={},sessionGate,installed=[tool]}={})
   let nativeConnected=true;
   const session={},sessionWrites=[];
   const store={[KEY]:saved,[SIDEBAR_TOOL_STORE]:structuredClone(installed)};
-  const api={runtime:{getURL:()=>base},tabs:{
+  const api={runtime:{getURL:()=>base},windows:{getCurrent:async()=>({id:12})},tabs:{
     create:async value=>{effects.push(['create',value]);},
     query:()=>assert.fail('must not query or navigate an existing workspace'),
     update:()=>assert.fail('must not navigate an existing workspace')},
@@ -83,6 +83,7 @@ function assertPreview(f,index,toolId,expectedSource=source){
   assert.equal(target.searchParams.has('previewTool'),false);
   const value=f.session['opendesk.tool-workspace-preview.intent.v1:'+id];
   assert.equal(value.sourceId,expectedSource);assert.equal(value.toolId,toolId);
+  assert.equal(value.surface,'sidepanel');assert.equal(value.windowId,12);
   assert.ok(value.expiresAt>Date.now()&&value.expiresAt<=Date.now()+60000);
 }
 
@@ -174,7 +175,7 @@ test('existing React Develop fragment renders preview fields and starter guidanc
   try{
     const html=renderToStaticMarkup(React.createElement(DevelopProvider,{view:model},React.createElement(DevelopLocalProject)));
     for(const id of ['local-project-tool','local-project-tool-bind','local-project-preview','local-project-tool-pointer'])assert.match(html,new RegExp('id="'+id+'"'));
-    assert.match(html,/独立本地项目/);assert.match(html,/实时开发预览 ↗/);
+    assert.match(html,/独立本地项目/);assert.match(html,/在侧栏调试 ↗/);
     assert.match(html,/保存源码关联/);assert.doesNotMatch(html,/保存显示关联/);
     assert.match(html,/关联只记住此工具要打开的目录，不证明它是正式安装包的源码，也不授予安装权限/);
     assert.match(html,/react-starter\/README.md/);assert.match(html,/npm run build:watch/);assert.match(html,/scripts\/watch-sidebar-tool.mjs/);
