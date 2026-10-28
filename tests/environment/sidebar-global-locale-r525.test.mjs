@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as React from 'react';
 import {parseHTML} from 'linkedom';
 import {translateUiText} from '../../src/i18n/strings.js';
+import {translateSidebarNavigation} from '../../src/i18n/sidebar-navigation.js';
 import {verifyLocaleCatalogs} from '../../src/i18n/index.js';
 import {loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
 
@@ -22,6 +23,7 @@ test('R5.25 four language catalogs contain all trusted navigation strings',()=>{
     for(const key of ['sidebar.navigation','sidebar.navigationHint',...tabs.map(row=>row[2])]){
       const text=translateUiText(key,{},locale);
       assert.ok(text&&text!=='Translation unavailable',locale+': '+key);
+      assert.equal(translateSidebarNavigation(key,locale),text);
     }
   }
 });
@@ -50,14 +52,14 @@ test('R5.25 changing OpenDesk default language updates the real React tablist wi
     for(const locale of ['zh-CN','en','ja','zh-TW','zh-CN']){
       await React.act(async()=>{language=locale;for(const notify of subscribers)notify(locale);});
       const nav=document.querySelector('nav.workbench-nav');
-      assert.equal(nav.getAttribute('aria-label'),translateUiText('sidebar.navigation',{},locale));
-      assert.equal(nav.getAttribute('aria-description'),translateUiText('sidebar.navigationHint',{},locale));
+      assert.equal(nav.getAttribute('aria-label'),translateSidebarNavigation('sidebar.navigation',locale));
+      assert.equal(nav.getAttribute('aria-description'),translateSidebarNavigation('sidebar.navigationHint',locale));
       assert.equal(document.documentElement.lang,locale);
       for(const [id,key,messageKey] of tabs){
         const node=document.getElementById(id);
         assert.equal(node,originalTabs.get(id),'React must preserve existing tab DOM');
         assert.equal(node.dataset.workbenchTab,key,'route keys must remain unchanged');
-        assert.equal(node.textContent,translateUiText(messageKey,{},locale));
+        assert.equal(node.textContent,translateSidebarNavigation(messageKey,locale));
         assert.equal(node.getAttribute('aria-selected'),String(key==='workflow'));
       }
       assert.equal(document.getElementById('workspace-content').isConnected,true);

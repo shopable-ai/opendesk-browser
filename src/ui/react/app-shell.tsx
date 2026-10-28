@@ -1,7 +1,7 @@
 import {TaskCatalogPage} from './tabs/task-catalog.tsx';
 import * as React from 'react';
 import {SidebarNavigation} from './tabs/navigation.tsx';
-import {translateUiText} from '../../i18n/strings.js';
+import {translateSidebarNavigation} from '../../i18n/sidebar-navigation.js';
 import {ExtensionCenterPage} from './tabs/tools.tsx';
 import {CloudConnectionPage} from './tabs/cloud.tsx';
 import {DeveloperPage,DeveloperDock} from './tabs/develop.tsx';
@@ -46,8 +46,8 @@ export function SidebarAppShell({
   const runDock=myView.data.runDock??{taskHidden:activeTab!=='tasks',developHidden:activeTab!=='develop',
     hidden:!['tasks','develop'].includes(activeTab),stopOnly:false};
   return <>
-    <nav className="workbench-nav" role="tablist" aria-label={translateUiText('sidebar.navigation',{},uiLocale)}
-      aria-description={translateUiText('sidebar.navigationHint',{},uiLocale)}
+    <nav className="workbench-nav" role="tablist" aria-label={translateSidebarNavigation('sidebar.navigation',uiLocale)}
+      aria-description={translateSidebarNavigation('sidebar.navigationHint',uiLocale)}
       data-debug-enabled={debugEnabled?'true':undefined}>
       <SidebarNavigation activeTab={activeTab} debugEnabled={debugEnabled}
         appDebugEnabled={appDebugEnabled} locale={uiLocale} onNavigate={onNavigate}/>

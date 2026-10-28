@@ -2,15 +2,6 @@
 // New locale packs use the same semantic keys and named {placeholders}.
 export default Object.freeze({
   "common.language": "界面语言",
-  "sidebar.navigation": "工作台",
-  "sidebar.navigationHint": "较窄时可以横向滚动；左右方向键以及 Home、End 切换页签",
-  "sidebar.tab.tasks": "我的",
-  "sidebar.tab.tools": "扩展",
-  "sidebar.tab.workflow": "工作流",
-  "sidebar.tab.develop": "开发",
-  "sidebar.tab.appDebug": "应用调试",
-  "sidebar.tab.cloud": "云控",
-  "sidebar.tab.debug": "调试",
   "workspace.documentTitle": "OpenDesk · 本地文件工作区",
   "workspace.heading": "本地文件工作区",
   "workspace.connecting": "正在连接",

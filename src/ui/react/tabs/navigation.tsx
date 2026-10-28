@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {translateUiText} from '../../../i18n/strings.js';
+import {translateSidebarNavigation} from '../../../i18n/sidebar-navigation.js';
 
 // Trusted shell navigation only. Business admission, active runs, permissions,
 // persistence and extension lifecycles remain in TaskWorkbench and their Hosts.
@@ -62,7 +62,7 @@ export function SidebarNavigation({activeTab='tasks',debugEnabled=false,appDebug
         }
       }}
       onKeyDown={event=>{if(index>=0)onKeyDown(event,index);}}>
-      {translateUiText(tab.messageKey,{},locale)}
+      {translateSidebarNavigation(tab.messageKey,locale)}
     </button>;
   })}</>;
 }
