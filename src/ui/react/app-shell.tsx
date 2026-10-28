@@ -16,7 +16,7 @@ const readEmptyTool=()=>emptyToolSnapshot;
 const subscribeEmptyTool=()=>()=>{};
 
 export function SidebarAppShell({
-  activeTab='tasks',debugEnabled=false,onNavigate=()=>{},
+  activeTab='tasks',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{},
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
   developerView,myView,myAgent=null,toolView=null,workflowController=null,providerSettings=null,
   providerSettingsOpen=false,onOpenProviderSettings=()=>{},onCloseProviderSettings=()=>{},
@@ -40,7 +40,7 @@ export function SidebarAppShell({
       aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签"
       data-debug-enabled={debugEnabled?'true':undefined}>
       <SidebarNavigation activeTab={activeTab} debugEnabled={debugEnabled}
-        onNavigate={onNavigate}/>
+        appDebugEnabled={appDebugEnabled} onNavigate={onNavigate}/>
     </nav>
     <main id="workspace-content">
       <div id="site-access-recovery" className="row" role="status" hidden={siteAccess.data.websites!==false}>
@@ -53,10 +53,12 @@ export function SidebarAppShell({
       </div>
       <TaskCatalogPage view={myView} hidden={activeTab!=='catalog'} standalone={activeTab==='catalog'}/>
       <MyTasksPage view={myView} agent={myAgent} hidden={activeTab!=='tasks'}/>
-      <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools"
-        className="od-page" data-workbench-page="tools" hidden={activeTab!=='tools'}>
+      <div id="workbench-tools" role="tabpanel"
+        aria-labelledby={activeTab==='app-debug'?'tab-app-debug':'tab-tools'}
+        className="od-page" data-workbench-page={activeTab==='app-debug'?'app-debug':'tools'}
+        hidden={activeTab!=='tools'&&activeTab!=='app-debug'}>
         <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具">
-          <div id="sidebar-tool-list-view" hidden={toolSnapshot.fields['sidebar-tool-display']?.hidden===false}>
+          <div id="sidebar-tool-list-view" hidden={activeTab==='app-debug'||toolSnapshot.fields['sidebar-tool-display']?.hidden===false}>
             <section id="extension-center" aria-label="扩展管理">
               <ExtensionCenterPage {...extensionProps}/>
             </section>
