@@ -24,7 +24,8 @@ function harness({legacy=false,origin='https://chatgpt.com',frame=false}={}){
     createChatGPTSite(){calls.sites++;return site;},
     createQueueEngine(){calls.engines++;return {tick(){calls.ticks++;}};},
     createQueueView(options){calls.views++;actions=options.actions;
-      return {place(){},render(){},hide(){},hasRecovery(){return false;}};}});
+      return {place(){},render(){},hide(){},hasRecovery(){return false;}};},
+    createSendQueueRemote:()=>({changed(){}})});
   vm.runInContext(source.replace(/^import .*;\n/gm,'').replace('export default async function main','async function main'),context);
   return {calls,legacyHost,run:()=>context.main(),setLegacy(value){legacy=value;},
     poll(){interval();},get actions(){return actions;}};

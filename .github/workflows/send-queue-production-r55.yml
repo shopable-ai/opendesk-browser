@@ -101,45 +101,9 @@ jobs:
           path: examples/programs/chatgpt-send-queue/ai-send-queue.opendesk-page.json
           if-no-files-found: error
           retention-days: 14
-      - name: Commit only the rebuilt install package to main (non-forcing)
+      # The currently blocked Page candidate is an audit artifact only.
+      # A source push must never silently rewrite the frozen 0.1.12/r11 JSON.
+      - name: Keep blocked install candidate unpromoted
         run: |
-          set -euo pipefail
-          FILE=examples/programs/chatgpt-send-queue/ai-send-queue.opendesk-page.json
-          git add -- "$FILE"
-          if git diff --cached --quiet; then
-            echo 'Formal package already matches compiled source'
-            exit 0
-          fi
-          test "$(git diff --cached --name-only)" = "$FILE"
-          git -c user.name='github-actions[bot]' \
-            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'Keep the installable queue aligned with the verified safety revision' \
-              -m 'Constraint: Preserve immutable prior revisions and the existing Page installer' \
-              -m 'Confidence: high' \
-              -m 'Scope-risk: narrow' \
-              -m 'Tested: Source tests, production compilation, package identity and awaited integrity validation' \
-              -m 'Not-tested: Native Mac installation, upgrade and message sending'
-          # Rebase only our single package commit. A concurrent change to the
-          # program, release manifest or package is a hard fail, never overwrite.
-          BASE_SHA="$GITHUB_SHA"
-          for attempt in 1 2 3; do
-            git fetch --no-tags origin main
-            if ! git diff --quiet "$BASE_SHA" origin/main -- \
-              examples/programs/chatgpt-send-queue/src \
-              examples/programs/chatgpt-send-queue/assets \
-              examples/programs/chatgpt-send-queue/preview \
-              examples/programs/chatgpt-send-queue/scripts \
-              examples/programs/chatgpt-send-queue/tests \
-              examples/programs/chatgpt-send-queue/package.json \
-              official-pages/sources.json "$FILE"; then
-              echo 'Concurrent Send Queue source/package change; refusing publication'
-              exit 1
-            fi
-            git rebase origin/main
-            if git push origin HEAD:main; then
-              echo 'Page package pushed by normal fast-forward'
-              exit 0
-            fi
-          done
-          echo 'Concurrent main changes prevented safe publish; package artifact retained'
-          exit 1
+          echo 'BLOCKED: candidate built and uploaded for review only.'
+          echo 'No git add, commit, push or implicit package upgrade.'
