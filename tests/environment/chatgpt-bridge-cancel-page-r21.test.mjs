@@ -229,6 +229,29 @@ test('view button follows this running identity and never chooses a target or re
   h.page.dispose();
 });
 
+test('late view failure stays visible after completion and verified result preview belongs to the current request',async()=>{
+  const execution=Promise.withResolvers(),viewing=Promise.withResolvers();
+  const h=harness({execute:()=>execution.promise,'show-execution-page':()=>viewing.promise});
+  await h.prepare();await h.click(2);await flush();
+  const progress={protocol:'opendesk.chatgpt.bridge.r12.v1',kind:'progress',requestId:id,sourceUrl:source.url,
+    mode:'manual',stage:'running',taskId:'page.read.fixed',runId:'run-real'};
+  const sender={id:'extid',url:'chrome-extension://extid/sidepanel.html?hostInstanceId=owner'};
+  h.receive(progress,sender);
+  const view=h.buttons.find(button=>button.textContent==='查看执行页面');
+  const pendingView=view.listeners.click({isTrusted:true});
+  const result=h.nodes.find(node=>node.tag==='pre'&&node.getAttribute('aria-label')==='本次脚本返回值');
+  h.receive({...progress,stage:'result-ready',requestId:'other-request',resultPreview:'wrong result'},sender);
+  assert.equal(result.hidden,true);
+  h.receive({...progress,stage:'result-ready',resultPreview:'<script>untrusted text</script>',resultId:'result-real'},sender);
+  assert.match(result.textContent,/<script>untrusted text<\/script>/);
+  execution.resolve({runId:'run-real',sent:true,aiReplyObserved:true,resultPreview:'verified result'});await flush();
+  viewing.reject(Object.assign(new Error('执行页面已经导航'),{code:'E_BRIDGE_TARGET'}));await pendingView;
+  assert.match(h.nodes.filter(node=>node.className==='status')[1].textContent,/E_BRIDGE_TARGET.*已经导航/);
+  assert.match(h.status.textContent,/已完成，资源已释放/);
+  assert.match(result.textContent,/verified result/);
+  await h.prepare();assert.equal(result.hidden,true);h.page.dispose();
+});
+
 test('late manual and auto authorizations cannot dispatch execute or overwrite cancellation',async()=>{
   for(const button of [1,2]){
     const authorization=Promise.withResolvers();
@@ -439,7 +462,7 @@ test('appended adoption button needs a trusted click and adopts without nonce ec
   assert.equal(execution.adoptedRequest.installation.scriptId,installation.scriptId);
   assert.deepEqual(execution.adoptedRequest.args,{length:200});
   const selection=h.nodes.find(node=>node.className==='selection');
-  assert.match(selection.textContent,/本次脚本：custom\.read/);
+  assert.match(selection.textContent,/本次任务：custom\.read @ 1\.0\.0/);
   assert.match(selection.textContent,/https:\/\/example\.com\/article/);
   assert.match(selection.textContent,/"length":200/);h.page.dispose();
 });

@@ -85,16 +85,11 @@ export function CookieValueField({inputRef,inputValue,onChange,disabled=false,
 export function CookieImportDropzone({dragging=false,fileName='',maxSize='150 KB',
   disabled=false,onPick,onDragEnter,onDragOver,onDragLeave,onDrop}){
   return <button type="button"
-    className={'import-dropzone cookie-import-dropzone od-button od-button--secondary'+
+    className={'cookie-import-file-picker od-button od-button--secondary cookie-button--compact'+
       (dragging?' is-dragging':'')}
-    aria-label="选择或拖入 Cookie 文件" disabled={disabled} onClick={onPick}
+    aria-label="选择或拖入 Cookie 文件" title={"JSON / TXT · 最大 "+maxSize} disabled={disabled} onClick={onPick}
     onDragEnter={onDragEnter} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
-    <span className="dropzone-symbol"><CookieIcon name="upload"/></span>
-    <span className="dropzone-copy">
-      <strong>{dragging?'松开即可读取文件':fileName?'拖入新文件替换，或点击选择':
-        '拖入 Cookie 文件，或点击选择'}</strong>
-      <small>JSON / TXT · 最大 {maxSize}</small>
-    </span>
+    {dragging?'松开即可读取文件':fileName?'选择其他文件':'选择文件（可选）'}
   </button>;
 }
 // Two directly visible formats, with native buttons and keyboard-accessible tabs.
@@ -285,7 +280,7 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
     <strong>Cookie <span>{count}</span></strong>
     <div className="toolbar-actions">
       <Action name="download" label="导入 Cookie" appearance="quiet" onClick={onImport}
-        haspopup="dialog" expanded={importOpen}
+        expanded={importOpen}
         controls={importOpen?"cookie-import-drawer":undefined}
         disabled={busy||importOpen||readonly||typeof onImport!=='function'}/>
       <Action name="upload" label="导出 Cookie" appearance="quiet" onClick={onExport}
@@ -347,9 +342,10 @@ export function cookieRowExpiryLabel(row,nowSeconds=Date.now()/1000){
 }
 export function CookieRows({
   rows=[],totalCount=rows.length,selected=null,onSelect=()=>{},
-  pinnedNote=false,newEditor=null,renderEditor=null,idPrefix='editor-',site=''
+  pinnedNote=false,beforeRows=null,newEditor=null,renderEditor=null,idPrefix='editor-',site=''
 }){
   return <section className="cookie-list" aria-label="Cookie 列表">
+    {beforeRows}
     {newEditor}
     {pinnedNote&&<p className="pinned-note">当前编辑项不符合筛选条件，暂时保留显示。</p>}
     {rows.map(row=>{
@@ -396,7 +392,7 @@ export function CookieEditorView({
   query='',onQuery=()=>{},filter='all',onFilter=()=>{},sort='source',
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,exportOpen=false,
-  exportContent=null,onCloseExport,importOpen=false,
+  exportContent=null,onCloseExport,importOpen=false,importContent=null,
   editor=null,newEditor=null,busy=false,readonly=false,page=1,pageSize=40,onPage=()=>{},showSiteBar=true
 }){
   const matching=row=>[row.name,row.domain,row.path].some(value=>
@@ -414,7 +410,7 @@ export function CookieEditorView({
   const currentPage=visible.slice((safePage-1)*pageSize,safePage*pageSize);
   // Keep expanded editor reachable even when the filter or page changes.
   if(current&&!currentPage.includes(current))currentPage.unshift(current);
-  return <main className="cookie-react-view" aria-label="Cookie Editor" inert={importOpen}>
+  return <main className="cookie-react-view" aria-label="Cookie Editor">
     {showSiteBar&&<CookieSiteBar site={site} readonly={readonly} busy={busy}
       syncStale={syncStale} onRefresh={onRefresh}/>}
     {/* Keep search accessible in one click while the export popover is open.
@@ -427,7 +423,7 @@ export function CookieEditorView({
       exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
       importOpen={importOpen} busy={busy} readonly={readonly}/>
     <CookieRows site={site} rows={currentPage} totalCount={rows.length} selected={selected}
-      newEditor={newEditor}
+      beforeRows={importContent} newEditor={newEditor}
       onSelect={id=>onSelect(id===selected?null:id)} renderEditor={editor}
       idPrefix="cookie-react-editor-"/>
     {pages>1&&<nav className="cookie-pages" aria-label="Cookie 分页">

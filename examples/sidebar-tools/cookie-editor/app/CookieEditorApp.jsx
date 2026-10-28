@@ -611,6 +611,22 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       {snapshot.phase==='ready'&&<div className="od-surface cookie-editor-workspace">
         <CookieEditorView site={target?.hostname||''} showSiteBar={false} syncStale={snapshot.syncStale}
           importOpen={panel==='import'}
+          importContent={panel==='import'?<CookieImport disabled={locked}
+            notice={importNotice} onImportText={importFromText} onNotice={noteImport}
+            onPendingChange={value=>{importDirtyRef.current=value;}}
+            onBeforeSubmit={()=>{
+              if(!dirtyRef.current)return true;
+              noteImport('请先保存或取消当前 Cookie 编辑草稿，再提交导入。');
+              return false;
+            }}
+            onBeginImport={beginImportIntent}
+            onClose={({committed=false}={})=>{
+              if(locked&&!committed)return;
+              restoreImportFocus.current=true;
+              importDirtyRef.current=false;
+              if(!committed){controller.discardImport();finishImportIntent(activeImportRef.current);}
+              setPanel(null);
+            }}/>:null}
           rows={snapshot.rows} selected={selected} onSelect={select}
           onRefresh={()=>guarded(refresh)}
           query={query} onQuery={v=>{setQuery(v);setPage(1);}}
@@ -637,22 +653,6 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
             disabled={locked} readValue={controller.readValue} onSave={save}
             onDirty={setDirty} onCancel={()=>{setSelected(null);setDirty(false);}}
             onDelete={remove}/>}/>
-        {panel==='import'&&<CookieImport disabled={locked}
-          notice={importNotice} onImportText={importFromText} onNotice={noteImport}
-          onPendingChange={value=>{importDirtyRef.current=value;}}
-          onBeforeSubmit={()=>{
-            if(!dirtyRef.current)return true;
-            noteImport('请先保存或取消当前 Cookie 编辑草稿，再提交导入。');
-            return false;
-          }}
-          onBeginImport={beginImportIntent}
-          onClose={({committed=false}={})=>{
-            if(locked&&!committed)return;
-            restoreImportFocus.current=true;
-            importDirtyRef.current=false;
-            if(!committed){controller.discardImport();finishImportIntent(activeImportRef.current);}
-            setPanel(null);
-          }}/>}
       </div>}
       </section>}
       {section==='accounts'&&<CookieAccounts

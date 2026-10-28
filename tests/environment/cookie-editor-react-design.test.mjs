@@ -47,11 +47,12 @@ test('real React app relies on shared buttons, fields and surfaces',async()=>{
   for(const src of files.slice(2))assert.doesNotMatch(src,/<button\b/);
 });
 
-test('R5.34 keeps the sidebar list mounted under the responsive import sheet',async()=>{
-  const [css,app,importer,host]=await Promise.all([
+test('inline import stays before Cookie rows inside the mounted list scroll area',async()=>{
+  const [css,app,importer,view,host]=await Promise.all([
     readFile(root+'src/react.css','utf8'),
     readFile(root+'app/CookieEditorApp.jsx','utf8'),
     readFile(root+'app/components/CookieImport.jsx','utf8'),
+    readFile(root+'app/components/CookieEditorView.jsx','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8')
   ]);
   assert.match(css,/height:100dvh/);
@@ -61,9 +62,16 @@ test('R5.34 keeps the sidebar list mounted under the responsive import sheet',as
   assert.doesNotMatch(app,/panel===null&&<CookieEditorView/);
   assert.match(app,/importOpen=\{panel==='import'\}/);
   assert.match(importer,/<section ref={workspaceRef}/);
-  assert.match(importer,/role="dialog" aria-modal="true"/);
-  assert.match(css,/\.cookie-import-workspace\{[^}]*position:absolute/s);
-  assert.match(css,/\.cookie-import-dismiss-layer/);
+  assert.match(app,/importContent=\{panel==='import'\?<CookieImport/);
+  assert.match(view,/beforeRows=\{importContent\} newEditor=\{newEditor\}/);
+  assert.match(view,/className="cookie-list" aria-label="Cookie 列表">\s*\{beforeRows\}\s*\{newEditor\}/);
+  assert.ok(view.indexOf('<CookieToolbar count=')<view.indexOf('<CookieRows site='));
+  assert.match(importer,/role="region" aria-labelledby=\{headingId\}/);
+  assert.doesNotMatch(importer,/aria-modal|role="dialog"|cookie-import-dismiss-layer|event\.key[!=]+\s*['"]Tab['"]|document\.activeElement/);
+  assert.doesNotMatch(view,/inert=\{importOpen\}|haspopup="dialog" expanded=\{importOpen\}/);
+  assert.match(importer,/if\(event\.key!=='Escape'\)return;\s*event\.preventDefault\(\);event\.stopPropagation\(\);close\(\)/);
+  assert.match(view,/cookie-import-file-picker od-button od-button--secondary cookie-button--compact/);
+  assert.doesNotMatch(view,/className="dropzone-symbol"|className="dropzone-copy"/);
   assert.doesNotMatch(importer,/<dialog\b|showModal\(/);
   assert.match(host,/const fitCookieFrame=/);
   assert.match(host,/if\(active\?\.id==='cookie-editor'\)\{fitCookieFrame\(\);return;\}/);

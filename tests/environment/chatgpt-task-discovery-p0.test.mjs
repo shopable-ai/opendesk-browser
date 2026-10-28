@@ -80,6 +80,7 @@ function pageHarness({taskId='page.read.fixed',args={},targetUrl='https://httpbi
     if(msg.kind==='bind-preapproved-task')return {ok:true,data:bindReply({...prepared(),expiresAt:grant.expiresAt,baseline:grant.baseline})};
     if(msg.kind==='adopt-task')return {ok:true,data:prepared()};
     if(msg.kind==='execute')return {ok:true,data:{sent:true,aiReplyObserved:true,runId:'run-p0',resultId:'result-p0'}};
+    if(msg.kind==='revoke-request')return {ok:true,data:{requestId:msg.requestId,revoked:true}};
     return {ok:true,data:{}};
   }}};
   const page=initChatGPTFixedBridgePage({api,doc,win,site:{inspect:()=>({...snap})},readPage:identity});
@@ -200,4 +201,15 @@ test('P0 page ignores a non-task continuation and preserves its completed result
   h.poll();await flush();
   assert.equal(h.sends.filter(msg=>msg.kind==='adopt-task').length,1);
   assert.equal(status.textContent,receipt);h.page.dispose();
+});
+
+test('a malformed preapproved candidate can be revoked without stopping a run that never started',async()=>{
+  const h=pageHarness();await h.selectInstalled();await h.click(6);
+  h.intent.protocol='malformed';h.next();await flush();
+  assert.equal(h.sends.filter(row=>row.kind==='execute').length,0);
+  await h.click(3);
+  assert.equal(h.sends.filter(row=>row.kind==='cancel').length,0);
+  assert.equal(h.sends.filter(row=>row.kind==='revoke-request').length,1);
+  assert.match(h.nodes.find(node=>node.className==='status').textContent,/授权已撤销；不会执行/);
+  assert.equal(h.buttons[6].disabled,false);h.page.dispose();
 });

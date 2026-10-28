@@ -151,3 +151,39 @@ R5.3 历史 job [122237112711](https://github.com/shopable-ai/opendesk-browser/a
 - 当前同一 Side Panel 实际读到“开发服务已连接”，revision仍为 `fc1a87c1f566cd5f679e623ff9594b912cb73178bb4da72b2e768561a5cb1023`，扩展ID和 `dist/development` 沿用原环境；`dev-connection-after-zoom-recovery.*`。没有重启或覆盖 dev watcher，没有新 production 构建。
 - 新标签页和校准后的鼠标坐标下，原生分隔线拖动仍未产生可见宽度变化（`native-divider-drag-after-new-tab.*`）。跨本轮及前两轮尝试，辅助动作、方向键、拖动均未解除这一控制阻塞。不能用普通网页 viewport、CSS变换或静态预览填充真实 Side Panel 的精确宽度／缩放／触屏验收，也不能据驱动无效判定产品CSS损坏。其余尺寸和触屏仍为 NOT_TESTED；没有新的产品差异需要修改源码。
 - dev核心操作和定向修复已有证据；剩余完整原生验收需要可实际控制侧栏尺寸、缩放和触屏的测试入口，以及仍缺失的逐应用原生异常证据。R4完整日志仍需有权读取的外部状态，已阻断的新思维导图发行也不由本轮绕过。当前无法在既定边界内完成这些项目；R1.8不标记完成，八维及算术平均保持 NOT_SCORED。仅新增运行证据记录，不重复输入未变的自动测试。
+
+## 续接实测：dev 核心测试收尾（2026-10-28）
+
+本次按用户最新要求完成 **dev 核心功能测试**，不恢复前文的完整正式验收目标。当前未复现阻断列表、普通应用直达、原管理入口或通用 Page 详情的新故障；AI 滚动导航的旧受管界面清理仍为 `unknown`，单独保留为未确认，不能称全部清理成功。核心测试已完成，不等于 R1.8 全量正式验收完成。
+
+### 本次运行身份与操作
+
+- 开始实读 `main` / `3481c02b47f2eb98319af0f74055c3243c56a5ea`，领先 `origin/main` 11 个提交，暂存区为空。两个正式产品文件 `src/ui/sidebar-tools.js`、`src/ui/extension-center.js` 与该 HEAD 无差异。本次没有新增产品源码修复、构建或安装。
+- 复用原 `node scripts/dev.mjs` PID7390，43119/43120 仍监听；43111 原测试页服务保留。没有启动第二 writer，没有停止或覆盖已有服务。
+- 实际操作的 Side Panel 仍为扩展 `ccfcjegpkdlgbclopjmadlcjedelidmf`，`hostInstanceId=d76900ef-7316-4a7b-96d5-c0ee6c0e913f`。调试页本次重新实读“开发服务已连接”，revision `fc1a87c1f566cd5f679e623ff9594b912cb73178bb4da72b2e768561a5cb1023`，与交接时一致。加载目录 `dist/development` 复用前述 `actual-dev-load-path.*` 原生证据；本次连接读回不单独证明加载路径或网页重新注入。
+- 继续接收的 Google Chrome 本地实验台窗口，真实页面为 `http://127.0.0.1:43111/demo-form.html`。首次观察在同一 host 的 Cookie 原业务界面，随后返回列表并开始指定的最短书签操作链；未操作其他窗口、inspector 或 debugger。
+
+| 核心操作 | 结果 | 证据时点 |
+| --- | --- | --- |
+| 书签管理：主体直达 → 返回 → 更多 → 设置与权限 | PASS；原沙箱业务加载书签，返回后焦点落在书签管理菜单；原设置读回工具 on，既有书签授权保留 | 本次执行；停用 → 详情 → 原设置恢复复用上次有效证据 |
+| Cookie Editor：主体直达、更多、停用后详情、原设置恢复 | PASS；恢复后的启用状态保留 | 复用上次有效证据；本次起始还实际观察到原 Cookie 业务界面 |
+| AdBlock：主体直达、更多、停用后详情、原设置恢复 | PASS；原业务全局保护 off 未更改 | 复用上次有效证据 |
+| Web Markdown Clipper：主体直达、更多、停用后详情、原设置恢复 | PASS | 复用上次有效证据 |
+| Prompt Shortcuts：主体直达、更多、停用后详情、原设置恢复 | PASS | 复用上次有效证据 |
+| AI 对话滚动导航：正式统一详情、单一主开关、可信刷新 | PASS；开关 off、授权 disabled、Chrome 注册 disabled；受管界面清理 unknown，未确认成功 | 本次执行；没有切换启用、更新、重装或扩权 |
+| 已安装历史 ChatGPT 思维导图：统一详情、单一主开关、范围与状态 | PASS；历史读回 active / registered，仅 ChatGPT 范围；不代表新官方发行包通过 | 复用上次有效证据 `mindmap-detail.*` / `mindmap-secondary.*` |
+| 非 AI Page UI Basic：通用详情、停用/Space 恢复、真实页面标题与输入读取 | PASS；没有 AI 专属网站配置；临时安装已完成原身份可信卸载 | 复用上次有效证据；没有为复测重新安装 |
+
+### AI 清理未知项的本次核对
+
+本次先使用原“刷新可信状态”，再正常刷新自己的标准测试页并再次读取。两次均维持 off / disabled / disabled，受管界面清理仍为 `unknown`；安装身份为 `0f356e39-c6a2-4694-81e7-18ce3dbc2e1d`，固定源码 SHA `3d1157f6e92ff1e77d8ec56a7c1ccf7dacf57d67ade13343e3b8fd11ac429da6`。既有三 AI 站点与本地实验页匹配范围保持原样，没有新增授权。
+
+当前可确认的是停用与 Chrome 注册读回，以及详情如实展示未知状态。当前页面没有观察到该 AI 导航界面；原有 Reading TOC 仍在，不能将其视为 AI 导航残留。这个观察不能证明所有旧 Document 的效果已清理。只读核对现有 Authority 说明：导航只是清理状态重查提示，不能单凭一次页面刷新证明所有原 Document 死亡；未知状态不允许直接恢复执行。没有证据将此归为新 UI 缺陷，也没有绕过原身份/清理守卫。未确认的清理会影响后续恢复或升级的就绪判断，本次保留有意停用状态，不宣称其恢复流程已通过。
+
+### 证据、保护状态与结论
+
+- 本次原生证据在既有 `artifacts/extension-center-r18/native-dev/`：`core-resume-bookmark-business.*`、`core-resume-bookmark-return.ax.txt`、`core-resume-bookmark-more.ax.txt`、`core-resume-bookmark-settings.*`、`core-resume-dev-connection.*`、`core-resume-ai-scroll-trusted.*`、`core-resume-ai-scroll-after-page-refresh.*`、`core-resume-extension-list-final.*`。业务、可信状态、连接与最终列表保留完整 AX；返回/菜单另有操作时 AX。最终为14项扩展列表，焦点回到 AI 滚动导航详情按钮。
+- 复用已有中心/行操作/React 详情78/78、用户指定36/36、Host定向63/63、R33.3边界3/3及源码 check 的各自证据范围；本次没有源码变化或对应新失败，不重复这些自动测试，也不把它们称为本次新执行或同一冻结候选的全量原生验收。
+- 原六个并行修改均保留。执行中又观察到其他任务修改 `examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx`、`app/components/CookieEditorView.jsx`、`app/components/CookieImport.jsx` 及 `tests/environment/cookie-editor-react-design.test.mjs`，同样未触碰或纳入本轮。本次只补充本记录和被忽略的原生证据，没有为了产生新 SHA 而提交产品变更。
+- **失败/未知分类**：本次无新增已确认核心产品故障；AI 旧受管界面清理为未确认。旧尺寸驱动阻塞、R4完整日志读取受限、Stay Focus两条索引404及旧无关断言保留原分类，不据此扩写产品修复或宣称零错误。
+- **本轮 dev 核心功能测试：完成，保留上述清理未知项。全量正式验收：继续延期。** production冻结/构建/发布、宽度/侧栏200%/触屏/完整主题、逐应用全量原生异常矩阵与95分评分均未执行，不报PASS。原对话旧goal的blocked状态只复用交接观察，本次没有读取、修改、迁移、暂停或完成它，也没有新建goal。

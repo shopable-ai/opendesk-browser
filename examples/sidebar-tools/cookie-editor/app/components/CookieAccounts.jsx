@@ -34,6 +34,7 @@ export function CookieAccounts({
   const [draft,setDraft]=React.useState('');
   const [formAttempted,setFormAttempted]=React.useState(false);
   const passphrase=React.useRef(null);
+  const vaultPanel=React.useRef(null);
   const [testUrl,setTestUrl]=React.useState('');
   const [testResult,setTestResult]=React.useState(null);
   const trigger=React.useRef(null);
@@ -101,8 +102,14 @@ export function CookieAccounts({
   const commitPassword=()=>{
     const input=passphrase.current;
     if(!input||typeof onUnlock!=='function'||busy)return;
+    if(!input.reportValidity())return;
     const password=input.value;input.value='';
     if(password.length>=12)onUnlock(password);
+  };
+  const openVault=()=>{
+    if(!vaultPanel.current)return;
+    vaultPanel.current.open=true;
+    passphrase.current?.focus();
   };
   const startInline=(kind,item=null)=>{
     setMenuId(null);
@@ -299,14 +306,15 @@ export function CookieAccounts({
     id="cookie-product-panel-accounts" role="tabpanel"
     aria-labelledby="cookie-product-tab-accounts" ref={list}>
     <div className="cookie-account-content">
-      {vaultReady&&<div className="cookie-account-current" aria-label="当前账号状态">
+      <div className="cookie-account-current" aria-label="当前账号状态">
         <span className={avatarClass(accounts.find(item=>item.alias===currentAlias))} aria-hidden="true">{String(accounts.find(item=>item.alias===currentAlias)?.displayName||'?').slice(0,1)}</span>
         <div><small>{currentAlias?'当前已应用的快照（非登录验证）':'当前账号状态'}</small>
-          <strong>{accounts.find(item=>item.alias===currentAlias)?.displayName||'待核对'}</strong></div>
+          <strong>{accounts.find(item=>item.alias===currentAlias)?.displayName||
+            (!vaultReady?(configured?'仓库已锁定':'尚未保存账号'):'待核对')}</strong></div>
         <span className="cookie-account-current-status" title="最近一次可信切换回读，不代表网站已经登录">
-          {currentAlias?'当前':'待核对'}
+          {currentAlias?'当前':!vaultReady?'未解锁':'待核对'}
         </span>
-      </div>}
+      </div>
       <label className="cookie-account-setting">
         <span><strong>切换后自动刷新网页</strong>
           <small title="仅目标标签页 · 回读确认后刷新；未保存的网页内容可能丢失">仅目标标签页 · 未保存的网页内容可能丢失</small></span>
@@ -315,38 +323,42 @@ export function CookieAccounts({
           disabled={busy||!switchReady||typeof onToggleRefresh!=='function'}
           onChange={event=>onToggleRefresh?.(event.target.checked)}/>
       </label>
-      {!vaultReady&&<div className="cookie-account-unlock">
-        <label htmlFor="cookie-account-passphrase">
-          <strong>{configured?'解锁本机账号仓库':'首次设置账号仓库口令'}</strong>
-          <small>至少 12 个字符；仅用于本机加密，不保存到网页或账号列表。请妥善保管，丢失后无法解密原快照。</small>
-        </label>
-        <div className="cookie-account-inline-controls">
+      {!vaultReady&&<details className="cookie-account-vault" ref={vaultPanel}
+        onToggle={event=>{if(!event.currentTarget.open&&passphrase.current)passphrase.current.value='';}}>
+        <summary><CookieIcon name="lock"/><strong>本机加密仓库</strong>
+          <span>{configured?'解锁':'设置口令'}</span><CookieIcon name="chevron"/></summary>
+        <form className="cookie-account-unlock" onSubmit={event=>{
+          event.preventDefault();commitPassword();
+        }}>
+          <label htmlFor="cookie-account-passphrase">
+            <strong>{configured?'解锁账号快照':'设置本机加密口令'}</strong>
+            <small>保存账号前设置，之后解锁复用。至少 12 个字符；口令丢失后无法解密快照。</small>
+          </label>
+          <div className="cookie-account-inline-controls">
           <input id="cookie-account-passphrase" className="od-field"
-            type="password" ref={passphrase} autoComplete="new-password"
-            aria-label="账号仓库口令" disabled={busy}
-            onKeyDown={event=>{if(event.key==='Enter'){event.preventDefault();commitPassword();}}}/>
-          <button className="od-button od-button--primary" type="button"
-            disabled={busy||typeof onUnlock!=='function'}
-            onClick={commitPassword}>{configured?'解锁':'设置并解锁'}</button>
-        </div>
-      </div>}
+            type="password" ref={passphrase} minLength={12} required
+            autoComplete={configured?'current-password':'new-password'}
+            aria-label="账号仓库口令" disabled={busy}/>
+          <button className="od-button od-button--primary cookie-button--compact" type="submit"
+            disabled={busy||typeof onUnlock!=='function'}>{configured?'解锁':'设置并解锁'}</button>
+          </div>
+          <p className="cookie-account-empty">口令仅用于本机加密，不发送到网页。解锁前不会读取或切换登录 Cookie。</p>
+        </form>
+      </details>}
       {feedback&&<p role={feedback.kind==='error'?'alert':'status'}
         className={'cookie-account-feedback'+(feedback.kind==='error'?' is-error':'')}>
         {feedback.text}
       </p>}
-      {!vaultReady&&<p className="cookie-account-notice" role="status">
-        加密仓库保持锁定。解锁前不会读取、保存或切换任何登录 Cookie。
-      </p>}
       <header className="cookie-account-header" aria-label="已保存账号操作">
-        <strong>已保存账号 <span className="cookie-account-count">{accounts.length}</span></strong>
+        <strong>已保存账号 <span className="cookie-account-count">{!vaultReady&&configured?'—':accounts.length}</span></strong>
         <div className="cookie-account-actions">
           <CookieIconButton name="settings" label="管理自动切换规则" appearance="quiet"
             onClick={openSettings}/>
           {vaultReady&&<CookieIconButton name="lock" label="锁定账号仓库" appearance="quiet"
             disabled={busy||typeof onLock!=='function'} onClick={()=>onLock?.()}/>}
           <CookieIconButton name="plus" label="保存当前 Cookie 为账号" appearance="quiet"
-            disabled={busy||!vaultReady||typeof onCreate!=='function'}
-            onClick={()=>startInline('create')}/>
+            disabled={busy||typeof onCreate!=='function'||!vaultReady&&typeof onUnlock!=='function'}
+            onClick={()=>vaultReady?startInline('create'):openVault()}/>
         </div>
       </header>
       {(accounts.length>3||query.length>0)&&<input className="od-field cookie-account-search"
@@ -398,8 +410,22 @@ export function CookieAccounts({
       </div>}
       {!filtered.length&&<p className="cookie-account-empty">
         {accounts.length?'没有匹配的账号。':
-          '尚无账号快照。解锁后可保存当前网站的 Cookie 账号。'}
+          !vaultReady&&configured?'解锁后查看本站已保存账号。':'此网站尚未保存账号。'}
       </p>}
+      {accounts.length===0&&!query&&<section className="cookie-account-examples"
+        aria-label="账号布局示例">
+        <div className="cookie-account-example-heading"><strong>账号示例</strong><small>仅展示布局 · 非真实账号</small></div>
+        <div className="cookie-account-list">
+          {['工作账号','个人账号','备用账号'].map((name,index)=><article
+            className="cookie-account-card" key={name}>
+            <span className={'cookie-account-avatar cookie-account-avatar--'+['violet','coral','mint'][index]} aria-hidden="true">{name.slice(0,1)}</span>
+            <div className="cookie-account-card-text"><strong>{name}</strong><small>示例占位 · 尚未保存快照</small></div>
+            <button type="button" className="od-button od-button--secondary cookie-button--compact cookie-button--row-action"
+              disabled aria-label={'切换'+name+'（示例不可用）'}>切换</button>
+            <CookieIconButton name="more" label={name+'更多操作（示例不可用）'} appearance="quiet" disabled/>
+          </article>)}
+        </div>
+      </section>}
       <CookieMembershipRecommendations origin={origin}/>
       <p className="cookie-account-security-note">
         每个网站独立管理账号。快照保存在本机加密仓库，可能包含登录凭据；分享配置与切换链接不包含 Cookie 或 Session Token。

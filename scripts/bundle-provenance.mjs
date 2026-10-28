@@ -69,8 +69,10 @@ function reviewedCompiledAdblock(target,path,root){
 // installer/Host closures for account messages and verified uninstall cleanup.
 const compiledCookieAccountInputs=Object.freeze({
   'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'7e9256f6702a159d4a5840a548b2c8380bafd8df',
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'b57da4f8aef6920dd74393187dcf89bac769d6be',
-  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'6684942c6382801bd7e79b343091b897ef868737',
+  // Exact four-field fence equality also tolerates storage key reordering.
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'6227027e10e5dc0c7934d3d9ba7171dde6f37cd5',
+  // Validated envelope readback accepts Chrome's object-key reordering only.
+  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'85b5b7f849eb2c95c17e5e2efdf6c0393cdae89e',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 });
 const cookieAccountContractTargets=new Set([

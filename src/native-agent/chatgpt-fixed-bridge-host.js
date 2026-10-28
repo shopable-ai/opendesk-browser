@@ -452,7 +452,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       taskId:intent.taskId,args:normalized.request.args,...selectionScope(normalized.request),candidate});
     if(reply?.ok!==true)throw fail(reply?.error?.code||'E_BRIDGE_OUTCOME_UNKNOWN',
       reply?.error?.message||'采用回执未知，禁止重新生成请求');
-    return {...reply.data,candidate};
+    return {...reply.data,candidate,taskName:normalized.installed.manifest.title};
   };
   const authorizeTask=async(message,sender)=>{
     if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||message.kind!=='authorize-task'||
@@ -541,11 +541,11 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       assertActive(active);
       const targetUrl=request.installation?request.targetUrl:
         request.taskId===BAIDU_TASK_ID?baiduSearchTarget(request):FIXED_PAGE_URL;
-      const progress=(stage,installed)=>{
+      const progress=(stage,installed,result={})=>{
         // Feedback is observational only. It cannot grant permission or retry
         // an action, and is sent solely to the original exact document.
         void api.tabs.sendMessage(source.tabId,{protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'progress',
-          requestId:request.requestId,sourceUrl:source.url,mode:message.mode,stage,
+          requestId:request.requestId,sourceUrl:source.url,mode:message.mode,stage,...result,
           taskId:request.taskId,scriptId:installed.scriptId,revision:installed.revision,
           targetUrl,...(active.runId?{runId:active.runId}:{})},
         {documentId:source.documentId}).catch(()=>{});
@@ -609,7 +609,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
       const durable=verifyChatGPTTaskDurableResult(snapshot,claim.runId,installed,request);
       if(terminal.result?.resultId!==durable.resultId)
         throw fail('E_BRIDGE_RESULT','完成回执与持久记录的结果身份不同');
-      progress('result-ready',installed);
+      const resultPreview=JSON.stringify(durable.value,null,2).slice(0,2000);
+      progress('result-ready',installed,{resultId:durable.resultId,resultPreview});
       await assertSource(source,sender);
       await assertReply(source,message);
       assertActive(active);
@@ -634,7 +635,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
         throw fail(delivered?.error?.code||'E_BRIDGE_SEND_UNKNOWN',
           delivered?.error?.message||'未观察到原 ChatGPT 对话新增的用户消息；禁止补发');
       return Object.freeze({taskId:request.taskId,runId:durable.runId,
-        resultId:durable.resultId,revision:durable.revision,
+        resultId:durable.resultId,resultPreview,revision:durable.revision,
         sourceHash:durable.sourceHash,
         ...(!request.installation&&request.taskId===BAIDU_TASK_ID?{taskStatus:durable.value.status,
           resultCount:durable.value.count}:{}),

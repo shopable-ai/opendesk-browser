@@ -5,7 +5,7 @@ import {CookieImportDropzone,CookieIconButton} from './CookieEditorView.jsx';
 
 const MAX_FILE=8*1024*1024;
 
-// One responsive bottom sheet within the same mounted list; Controller still owns all writes.
+// Inline import within the mounted list scroll area; Controller still owns all writes.
 // Raw Cookie values live only in a DOM textarea / local async stack, never React state.
 // The Controller performs the existing permission, preflight and verified Host writes.
 export default function CookieImport({disabled=false,onClose,onImportText,onBeginImport,onNotice,
@@ -40,7 +40,6 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const [confirmDiscard,setConfirmDiscard]=React.useState(false);
   React.useLayoutEffect(()=>{
     active.current=true;
-    const workspace=workspaceRef.current;
     sourceRef.current?.focus({preventScroll:true});
     return ()=>{
       active.current=false;
@@ -145,28 +144,13 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     stagedFile.current=file;setStagedName(file.name.slice(0,100));
     setConfirmDiscard(false);onNotice?.(null);onPendingChange?.(true);
   };
-  const keepFocus=event=>{
-    if(event.key==='Escape'){
-      event.preventDefault();event.stopPropagation();close();return;
-    }
-    if(event.key!=='Tab')return;
-    const all=Array.from(workspaceRef.current?.querySelectorAll(
-      'button:not(:disabled),textarea:not(:disabled),input:not(:disabled):not([type=file])')||[])
-      .filter(el=>el.getClientRects().length>0);
-    if(!all.length)return;
-    const first=all[0],last=all[all.length-1];
-    if(event.shiftKey&&(document.activeElement===first||!workspaceRef.current.contains(document.activeElement))){
-      event.preventDefault();last.focus();
-    }else if(!event.shiftKey&&(document.activeElement===last||!workspaceRef.current.contains(document.activeElement))){
-      event.preventDefault();first.focus();
-    }
+  const cancelFromKeys=event=>{
+    if(event.key!=='Escape')return;
+    event.preventDefault();event.stopPropagation();close();
   };
-  return <>
-    <div className="cookie-import-dismiss-layer" aria-hidden="true"
-      onPointerDown={event=>{event.preventDefault();close();}}/>
-    <section ref={workspaceRef} id="cookie-import-drawer" className="cookie-import-workspace"
-      role="dialog" aria-modal="true" aria-labelledby={headingId}
-      onKeyDown={keepFocus}>
+  return <section ref={workspaceRef} id="cookie-import-drawer" className="cookie-import-workspace"
+      role="region" aria-labelledby={headingId}
+      onKeyDown={cancelFromKeys}>
       <header className="cookie-import-heading">
         <h2 id={headingId}>导入 Cookie</h2>
         <CookieIconButton name="close" label="关闭导入" disabled={disabled||busy}
@@ -253,6 +237,5 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
           </Button>
         </div>
       </div>
-    </section>
-  </>;
+    </section>;
 }

@@ -452,6 +452,19 @@
 
 /* Encrypted account vault: one compact first-party form, never a second UI. */
 .cookie-editor-react .cookie-account-unlock{display:grid;gap:var(--space-2);min-width:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-muted)}
+.cookie-editor-react .cookie-account-vault{margin:0 0 var(--space-3);min-width:0;border:1px solid var(--od-line);border-radius:9px;overflow:hidden}
+.cookie-editor-react .cookie-account-vault>summary{display:flex;align-items:center;gap:var(--space-2);min-height:36px;padding:var(--space-2) 10px;cursor:pointer;font-size:11.5px;list-style:none}
+.cookie-editor-react .cookie-account-vault>summary::-webkit-details-marker{display:none}
+.cookie-editor-react .cookie-account-vault>summary>strong{flex:1;min-width:0;font-weight:600}
+.cookie-editor-react .cookie-account-vault>summary>span{font-size:11px;color:var(--od-brand)}
+.cookie-editor-react .cookie-account-vault>summary>svg{width:14px;height:14px;color:var(--od-sub)}
+.cookie-editor-react .cookie-account-vault[open]>summary>svg:last-child{transform:rotate(180deg)}
+.cookie-editor-react .cookie-account-vault>summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:-2px}
+.cookie-editor-react .cookie-account-vault .cookie-account-unlock{border:0;border-top:1px solid var(--od-line);border-radius:0}
+.cookie-editor-react .cookie-account-examples{display:grid;gap:var(--space-2);margin-top:var(--space-3);min-width:0}
+.cookie-editor-react .cookie-account-example-heading{display:flex;gap:var(--space-2);justify-content:space-between;align-items:baseline}
+.cookie-editor-react .cookie-account-example-heading>strong{font-size:12px;font-weight:600}
+.cookie-editor-react .cookie-account-example-heading>small{font-size:10.5px;color:var(--od-sub)}
 .cookie-editor-react .cookie-account-form-page h2{margin:0 0 12px;font-size:13px;line-height:1.5}
 .cookie-editor-react .cookie-account-inline{display:grid;gap:10px;min-width:0;padding:11px;border:1px solid var(--od-line);border-radius:9px;background:var(--od-paper)}
 .cookie-editor-react .cookie-account-name-field{display:grid;gap:5px;font-size:11px;font-weight:600}
@@ -617,6 +630,8 @@
 .cookie-editor-react .cookie-business-usage-row>div>*{
   overflow-wrap:anywhere;
 }
+.cookie-editor-react .cookie-business-usage-row>.cookie-business-usage-line{align-items:flex-start}
+.cookie-editor-react .cookie-business-usage-value{flex:none;white-space:nowrap;font-size:10.5px;font-weight:700}
 .cookie-editor-react .cookie-business-usage-row small,
 .cookie-editor-react .cookie-business-usage>p,
 .cookie-editor-react .cookie-business-muted{

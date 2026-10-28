@@ -21,9 +21,9 @@ const sampleUsage=[
   {name:'AI API · 客服项目',value:'¥1,280 / ¥2,000',current:1280,total:2000,note:'预算消耗模拟数据'}
 ];
 const channels=[
-  {id:'telegram',name:'Telegram',tag:'行业资讯与交流',info:'讨论 AI 工具使用、行业信息和资源线索。'},
-  {id:'discord',name:'Discord',tag:'开发者与工作流',info:'讨论 AI 工程化、自动化工作流程和实践经验。'},
-  {id:'wechat',name:'微信',tag:'中文交流与合作',info:'讨论企业使用经验、商务合作及其他信息。'}
+  {id:'telegram',name:'Telegram',tag:'行业信息 · 资源交流',info:'交流 AI 产品动态、合规资源线索及行业经验。'},
+  {id:'discord',name:'Discord',tag:'开发实践 · 技术协作',info:'讨论自动化方案、扩展开发及工具使用。'},
+  {id:'wechat',name:'微信',tag:'中文社群 · 商务交流',info:'交流企业需求、产品实践与业务合作信息。'}
 ];
 function Page({id,children}){
   return <section className="cookie-business-panel cookie-account-page od-surface"
@@ -43,31 +43,34 @@ function FeatureList({items}){
     </article>)}
   </div>;
 }
-export function CookieEnterprisePanel({previewMode=false,onCustomize=()=>{}}){
+export function CookieEnterprisePanel({onCustomize=()=>{}}){
   return <Page id="enterprise"><div className="cookie-business-content">
     <Hero eyebrow="ENTERPRISE · 企业工作区" title="让团队 AI 账号更好管理">
       集中查看企业已有的 AI 工作区、部门席位与预算概况。让成员更快找到获授权的入口，
       减少人工统计、反复询问和账号维护成本。
     </Hero>
-    <h3>团队常见场景</h3><FeatureList items={enterpriseFeatures}/>
+    <div className="cookie-business-heading"><h3>团队常见场景</h3></div>
+    <FeatureList items={enterpriseFeatures}/>
     <div className="cookie-business-heading"><h3>企业资源概览</h3>
-      <small>{previewMode?'虚构示例 · 非实时':'尚未接入企业数据'}</small>
+      <small>虚构示例 · 非实时</small>
     </div>
-    {previewMode?<div className="cookie-business-usage" aria-label="虚构企业席位与预算数据">
+    <div className="cookie-business-usage" aria-label="虚构企业席位与预算数据" aria-describedby="cookie-enterprise-data-note">
       {sampleUsage.map(item=><article className="cookie-business-usage-row" key={item.name}>
-        <div><strong>{item.name}</strong><strong>{item.value}</strong></div>
+        <div className="cookie-business-usage-line"><strong>{item.name}</strong>
+          <span className="cookie-business-usage-value">{item.value}</span></div>
         <small>{item.note}</small>
         <progress value={item.current} max={item.total} aria-label={item.name+'模拟占用比例'}/>
       </article>)}
       <article className="cookie-business-usage-row">
-        <div><strong>其他 AI 服务 · 研发团队</strong><strong>未接入</strong></div>
+        <div className="cookie-business-usage-line"><strong>其他 AI 服务 · 研发团队</strong>
+          <span className="cookie-business-usage-value">未接入</span></div>
         <small>暂无可用管理数据</small>
         <div className="cookie-business-usage-empty" aria-label="未接入管理数据"/>
       </article>
-      <p>示例席位、预算不代表 ChatGPT 对话次数额度。真实数据需企业授权和官方接口。</p>
-    </div>:<p className="cookie-business-muted">
-      尚未接入真实企业账号、席位或使用额度。需要由组织授权并使用服务商支持的正式接口。
-    </p>}
+    </div>
+    <p className="cookie-business-muted" id="cookie-enterprise-data-note">
+      示例席位和预算数据不代表 ChatGPT 的消息额度。真实数据取决于企业授权和服务商开放的接口。
+    </p>
     <section className="cookie-business-callout">
       <strong>需要更多企业席位？</strong>
       <p>优先使用服务商官方订阅渠道。定制的工作流程可独立咨询，不引入审批系统。</p>
@@ -77,6 +80,7 @@ export function CookieEnterprisePanel({previewMode=false,onCustomize=()=>{}}){
         <button type="button" className="od-button od-button--quiet" onClick={onCustomize}>了解企业定制</button>
       </div>
     </section>
+    <p className="cookie-business-muted">目前仅为企业功能布局演示，未接入真实企业账号、后台或用量数据。</p>
   </div></Page>;
 }
 export function CookieCustomizePanel({onCommunity=()=>{},draft,onDraftChange,onCopyBrief,previewMode=false}){
@@ -120,7 +124,8 @@ export function CookieCustomizePanel({onCommunity=()=>{},draft,onDraftChange,onC
         <button className="od-button od-button--quiet cookie-button--compact" type="button" onClick={onCommunity}>查看社群渠道<CookieIcon name="right"/></button>
       </div>}
     </section>
-    <h3>为企业解决什么问题</h3><FeatureList items={customFeatures}/>
+    <div className="cookie-business-heading"><h3>为企业解决什么问题</h3></div>
+    <FeatureList items={customFeatures}/>
     <section className="cookie-business-callout">
       <strong>可以从哪些场景起步？</strong>
       <p>例如客服知识问答、运营内容整理、研发 AI 辅助；从一个真实场景逐步增加。</p>
@@ -130,9 +135,12 @@ export function CookieCustomizePanel({onCommunity=()=>{},draft,onDraftChange,onC
       <p>不需要注册或审批，生成说明即可用于人工沟通。</p>
       <label>最关注的方向
         <select className="od-field" value={need} onChange={e=>updateDraft({need:e.target.value,brief:''})}>
-          {['一套 AI 资源覆盖更多工作场景','企业多账号与团队使用入口',
-            'AI 用量、席位与预算可视化','云端与本地 AI 工作流程']
-            .map(option=><option key={option} value={option}>{option}</option>)}
+          {[
+            ['一套 AI 资源覆盖更多工作场景','一套 AI 资源做更多事'],
+            ['企业多账号与团队使用入口','多账号与团队使用'],
+            ['AI 用量、席位与预算可视化','用量与成本概览'],
+            ['云端与本地 AI 工作流程','云端 / 本地 AI 工作流']
+          ].map(([value,label])=><option key={value} value={value}>{label}</option>)}
         </select>
       </label>
       <label>你的场景（选填）
@@ -153,6 +161,7 @@ export function CookieCustomizePanel({onCommunity=()=>{},draft,onDraftChange,onC
       <p>OpenCodex、Headroom、云端 AI、本地模型等是可讨论的方向，不表示已经集成或承诺兼容。
         所有账号使用仍需遵守平台授权、企业数据政策和席位规则。</p>
     </details>
+    <p className="cookie-business-muted">定制页为方案介绍与本机需求草稿，实际产品能力、接入方式、报价与交付需另行确认。</p>
   </div></Page>;
 }
 export function CookieCommunityPanel(){
@@ -186,6 +195,7 @@ export function CookieCommunityPanel(){
       <strong>信息在社群中交流</strong>
       <p>外部社群中的资讯和合作机会需自行核验；OpenDesk 不托管交易，也不提供登录凭据买卖渠道。</p>
     </section>
+    <p className="cookie-business-muted">本页为社群入口占位。群组链接与微信联系方式尚未配置，不代表已经有真实社群或客服。</p>
   </div></Page>;
 }
 

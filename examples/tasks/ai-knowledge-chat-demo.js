@@ -50,9 +50,14 @@
     card.dataset.createdAt=message.createdAt;
     card.dataset.scope=message.scope||'';
     if(message.replyTo)card.dataset.replyTo=message.replyTo;
+    const avatar=document.createElement('span');avatar.className='message-avatar';
+    avatar.setAttribute('aria-hidden','true');
+    avatar.textContent=message.direction==='customer'?'客':'我';
+    const body=document.createElement('div');body.className='message-body';
     const meta=document.createElement('div');meta.className='message-meta';
     const origin=document.createElement('span');
-    origin.textContent=message.direction==='customer'?'客户':'客服';
+    origin.textContent=message.direction==='customer'
+      ?'客户 '+(message.threadId==='thread_demo_01'?'A':'B'):'我 · 客服';
     const time=document.createElement('time');
     time.dateTime=message.createdAt;
     time.textContent=new Date(message.createdAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
@@ -60,7 +65,8 @@
     const bubble=document.createElement('p');
     bubble.setAttribute('data-message-text','');
     bubble.textContent=message.text;
-    card.append(meta,bubble);
+    body.append(meta,bubble);
+    card.append(avatar,body);
     if(message.direction==='customer'){
       card.tabIndex=0;
       card.setAttribute('role','button');
