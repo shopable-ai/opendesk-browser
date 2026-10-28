@@ -335,7 +335,7 @@ export function CookieAccounts({
           <textarea className="od-field" aria-label="账号描述（选填）"
             ref={descriptionInput} rows={2} maxLength={120}
             autoComplete="off" spellCheck={false} disabled={busy}
-            placeholder="例如：客服团队日常使用（请勿填写密码或 Cookie）"
+            placeholder="例如：客服团队日常使用"
             value={descriptionDraft}
             onChange={event=>{setDescriptionDraft(event.target.value);setLocalError('');}}/>
         </label>}
@@ -354,7 +354,7 @@ export function CookieAccounts({
             </ul>
           </details>
         </div>}
-        {inline.kind==='rename'&&<p>只修改名称和本机描述，不改变 Cookie、账号别名或切换链接。</p>}
+        {inline.kind==='rename'&&<p>只修改名称和描述，不修改 Cookie。</p>}
         {localError&&<p role="alert" className="cookie-account-feedback is-error">{localError}</p>}
         {formAttempted&&feedback&&<p role={feedback.kind==='error'?'alert':'status'}
           className={'cookie-account-feedback'+(feedback.kind==='error'?' is-error':'')}>{feedback.text}</p>}
@@ -426,7 +426,6 @@ export function CookieAccounts({
           <strong>{item.displayName}</strong>
           {item.description&&<span className="cookie-account-description"
             title={item.description}>{item.description}</span>}
-          <small>{Number.isSafeInteger(item.cookieCount)?item.cookieCount+' 条关联 Cookie · ':''}完整快照</small>
         </div>
         {item.alias===currentAlias
           ?<span className="cookie-account-applied"
