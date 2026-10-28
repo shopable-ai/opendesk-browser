@@ -377,3 +377,31 @@
   .ec-page-main .od-shared-switch{margin-inline:3px}
   .ec-page-control-actions{flex-direction:column;align-items:stretch}
 }
+
+
+/* AI Scroll: React detail uses the same Host-owned card typography and spacing. */
+.ec-scroll-site-manager{display:grid;gap:12px;min-width:0}
+.ec-scroll-site-manager h3{margin:0}
+.ec-scroll-title{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.ec-scroll-title>span{font-size:12px;opacity:.68}
+.ec-scroll-home,.ec-scroll-editor{display:grid;gap:12px;min-width:0}
+.ec-scroll-builtins{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
+.ec-scroll-builtins li{border:1px solid var(--od-border,#cad2de);border-radius:9px;padding:5px 9px;font-size:12px}
+.ec-scroll-saved{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.ec-scroll-saved li{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:9px 10px;border:1px solid var(--od-border,#cad2de);border-radius:10px}
+.ec-scroll-saved li>div{display:grid;min-width:0;gap:2px}
+.ec-scroll-saved strong,.ec-scroll-saved span{overflow-wrap:anywhere;font-size:12px}
+.ec-scroll-saved span{opacity:.7}
+.ec-scroll-editor>label:not(.ec-scroll-enabled){display:grid;gap:5px;min-width:0;font-size:12px;font-weight:600}
+.ec-scroll-editor input:not([type=checkbox]){width:100%;min-width:0;min-height:36px;border:1px solid var(--od-border,#9aa8b9);border-radius:9px;padding:7px 9px;background:var(--od-input-bg,transparent);color:inherit;font:inherit}
+.ec-scroll-origin,.ec-scroll-selector{display:flex;gap:8px;align-items:center;min-width:0}
+.ec-scroll-origin>input,.ec-scroll-selector>input{flex:1}
+.ec-scroll-selector .od-icon-button{width:36px;min-width:36px;height:36px;padding:7px;display:grid;place-items:center}
+.ec-scroll-selector svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.8;fill:none}
+.ec-scroll-enabled{display:flex;align-items:center;gap:8px;font-size:12px}
+.ec-scroll-save{width:100%;justify-content:center}
+.ec-scroll-delete{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
+.ec-scroll-notice,.ec-scroll-error{margin:0;overflow-wrap:anywhere;font-size:12px}
+.ec-scroll-error{color:var(--od-danger,#be3434)}
+@media(max-width:360px){.ec-scroll-origin,.ec-scroll-selector{gap:6px}.ec-scroll-saved li{padding:8px}}
+@media(pointer:coarse){.ec-scroll-selector .od-icon-button{width:44px;min-width:44px;height:44px}}

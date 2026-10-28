@@ -228,6 +228,9 @@ input[readonly]{background:#f4f6f9;color:#64738b}
 export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
   let current={version:1,sites:[]},etag='0',busy=false,closed=false,loaded=false,selecting=null,resetArmed=false,editingKey=null;
   let operationEpoch=0,readFlight=null,readRequired=false;
+  // A one-shot selection response is visible only to the installed USER_SCRIPT
+  // world. The page and React never receive a general messaging capability.
+  let sidebarPickDone=null;
   const host=doc.createElement('div');
   host.setAttribute(OWN,'settings');
   host.style.cssText='position:fixed;z-index:2147483604;pointer-events:none';
@@ -384,8 +387,9 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
       doc.addEventListener('keydown',releaseKey,true);
     }
   }
-  function beginPick(field){
-    if(busy||selecting||!['main','scroller','messages','anchor'].includes(field))return;
+  function beginPick(field,{external=false,mainSelector=''}={}){
+    if(busy||selecting||!['main','scroller','messages','anchor'].includes(field))return false;
+    if(external&&typeof mainSelector==='string')el('main').value=mainSelector;
     el('panel').hidden=true;selecting=field;el('pick').hidden=false;
     const identify=event=>{
       const hit=doc.elementFromPoint?.(event.clientX,event.clientY);
@@ -422,19 +426,71 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
       event.preventDefault();event.stopImmediatePropagation();
       if(event.type!=='pointerdown'||event.isTrusted!==true)return;
       const selected=identify(event);
-      stopPick({consumeClick:true,gesture:event});el('panel').hidden=false;
-      if(!selected?.selector){say('未找到符合要求的可见目标；请重新选择。',true);return;}
+      const done=sidebarPickDone;sidebarPickDone=null;
+      stopPick({consumeClick:true,gesture:event});el('panel').hidden=Boolean(done);
+      if(!selected?.selector){
+        say('未找到符合要求的可见目标；请重新选择。',true);
+        done?.({state:'invalid'});return;
+      }
       el(field).value=selected.selector;invalidate();
       say(field==='messages'?'已选取 '+selected.count+' 个消息节点；保存时会验证滚动范围。':
         '已选取目标：'+selected.selector);
+      done?.({state:'selected',field,selector:selected.selector,count:selected.count||1});
     };
     keys=event=>{if(event.key==='Escape'){
-      event.preventDefault();stopPick();el('panel').hidden=false;
-      el(field==='scroller'?'pick-scroll':'pick-'+field).focus();
+      event.preventDefault();
+      const done=sidebarPickDone;sidebarPickDone=null;
+      stopPick();el('panel').hidden=Boolean(done);
+      done?.({state:'cancelled'});
+      if(!done)el(field==='scroller'?'pick-scroll':'pick-'+field).focus();
     }};
     doc.addEventListener('pointermove',move,true);
     for(const event of ['pointerdown','click','contextmenu'])doc.addEventListener(event,block,true);
     doc.addEventListener('keydown',keys,true);
+    return true;
+  }
+  // Only the original exact-document Installed Page executor can access this
+  // object in its isolated USER_SCRIPT world. No window.postMessage or DOM
+  // bridge is introduced and the original picker owns the pointer listeners.
+  if(api&&win===win.top){
+    const editor=Object.freeze({
+      validate(rule){
+        const error=validateLiveRule(rule,doc,win);
+        return error?{ok:false,error}:{ok:true};
+      },
+      pick({field,mainSelector}={}){
+        if(typeof mainSelector!=='string'||mainSelector.length>256||
+            /[\u0000-\u001f\u007f{};]/.test(mainSelector)||
+            !['main','scroller','messages','anchor'].includes(field))
+          return Promise.resolve({state:'invalid'});
+        if(closed||sidebarPickDone||busy||selecting)
+          return Promise.resolve({state:'busy'});
+        return new Promise(resolve=>{
+          let timeout=null;
+          const finish=value=>{
+            if(timeout!==null)win.clearTimeout(timeout);
+            resolve(value);
+          };
+          sidebarPickDone=finish;
+          if(!beginPick(field,{external:true,mainSelector})){
+            sidebarPickDone=null;finish({state:'busy'});return;
+          }
+          timeout=win.setTimeout(()=>{
+            if(sidebarPickDone!==finish)return;
+            sidebarPickDone=null;stopPick();el('panel').hidden=true;
+            finish({state:'timeout'});
+          },30000);
+        });
+      }
+    });
+    Object.defineProperty(globalThis,'__opendeskAiScrollEditorV1',
+      {configurable:true,value:editor});
+    owner.onDispose(()=>{
+      if(globalThis.__opendeskAiScrollEditorV1===editor)
+        delete globalThis.__opendeskAiScrollEditorV1;
+      const done=sidebarPickDone;sidebarPickDone=null;
+      done?.({state:'closed'});
+    });
   }
   owner.on(el('launch'),'click',event=>{if(event.isTrusted!==true)return;
     statusScope();el('panel').hidden=false;el('close').focus();if(!loaded&&!readRequired)void read();});

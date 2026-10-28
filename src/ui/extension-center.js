@@ -12,7 +12,7 @@ import {PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {loadMarketChannel} from '../marketplace/external.js';
 import {readMarketInstallStatus} from '../marketplace/status.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
-import {SCROLL_CONFIG_PROGRAM_ID} from '../scripting/user-scripts/scroll-config-contract.js';
+import {SCROLL_CONFIG_PROGRAM_ID,scrollProgramUrlMatches} from '../scripting/user-scripts/scroll-config-contract.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,currentPageTarget,localeController=null,toolLocaleService=null,extensionList=null}){
@@ -27,7 +27,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   let sources={};
   let catalogError='',pageCatalogError='',dataError='',statusOrigin='loading',hasLoaded=false,query='',kind='all',scope='smart',selectedKey=null,selectedInstalled=null;
   let listScroll=0,focusKey=null,focusAction=null,detailFocusAction=null,selectedIdentity=null,uninstallReview=null,listUninstallReview=null;
-  let siteUpgradeError='';
+  let siteUpgradeError='',scrollDraft=null,scrollAwaitingReview=false;
   let pageDiscovery=null,discoveryGeneration=0;
   let marketDiscoveryAvailable=false,discoveryChannelGeneration=0;
   const language=()=>localeController?.getLocale?.()||'zh-CN';
@@ -576,8 +576,14 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     try{return Boolean(sidebarTools.openTool(id,{userInitiated:true}));}
     catch(error){message((error?.code||'E_TOOL_OPEN')+'：'+String(error?.message||error),'error');return false;}
   }
-  function back(){
+  function back(reason){
     if(disposed)return;
+    // A real discarded draft is the only normal navigation that needs a guard.
+    if(reason!==true&&scrollDraft&&selectedKey==='page:'+SCROLL_CONFIG_PROGRAM_ID){
+      const confirm=doc.defaultView?.confirm;
+      if(typeof confirm!=='function'||!confirm('放弃未保存的网站设置？'))return;
+      scrollDraft=null;scrollAwaitingReview=false;
+    }
     clearActionMessage();
     selectedKey=null;selectedInstalled=null;selectedIdentity=null;detailFocusAction=null;uninstallReview=null;
     extensionList.renderView('list');
@@ -611,6 +617,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       backIfNeeded();
       if(sidebarTools.openPagePackageReview?.(pkg,values.origin.trim())!==true)
         throw Object.assign(new Error('原 Page Installer 审阅入口当前不可用'),{code:'E_SITE_REVIEW'});
+      if(scrollDraft)scrollAwaitingReview=true;
+      return true;
     }catch(error){
       if(!disposed){
         const description=(error?.code||'E_SITE_REVIEW')+'：'+String(error?.message||error);
@@ -621,6 +629,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       busy=false;
       if(!disposed){if(selectedKey)renderDetail();else draw();}
     }
+    return false;
   }
   function renderDetail(){
     if(disposed)return;
@@ -724,6 +733,77 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         version:row.version,source:sources[row.id]||null,
         usageText:row.kind==='app'&&row.installed?installedAppUsage(row):'',
         sites:page?.pageRules?.matches||(row.kind==='page'?row.release?.sites:[])||[],
+        scrollManager:row.kind==='page'&&row.installed&&row.id===SCROLL_CONFIG_PROGRAM_ID?(()=>{
+          const pinned=pageIdentity(row);
+          const request={programId:pinned.programId,manifestHash:pinned.manifestHash,
+            installationId:pinned.installationId,expectedGeneration:pinned.expectedGeneration};
+          const ensure=()=>{
+            if(disposed||!samePageIdentity(find(row.key),pinned))
+              throw Object.assign(new Error('安装身份已变化，请重新打开应用'),{code:'E_REVISION'});
+          };
+          const target=async()=>{
+            if(!currentPageTarget)throw Object.assign(new Error('当前窗口网页状态不可用'),{code:'E_DOCUMENT_STALE'});
+            const captured=currentPageTarget.capture();
+            const live=await currentPageTarget.revalidate(captured);
+            return {tabId:live.tabId,frameId:0,documentId:live.documentId,
+              expectedUrl:live.url,expectedWindowId:live.windowId};
+          };
+          return {
+            identityKey:pinned.manifestHash+':'+pinned.expectedGeneration,
+            resumeDraft:scrollDraft?{...scrollDraft}:null,
+            async onCurrentPage(){
+              if(!currentPageTarget)throw Object.assign(new Error('当前网页不可用'),{code:'E_DOCUMENT_STALE'});
+              const live=await currentPageTarget.refresh();
+              if(live.status!=='available')throw Object.assign(
+                new Error(live.message||'当前窗口没有可用网页'),{code:live.reason||'E_DOCUMENT_STALE'});
+              return live.origin;
+            },
+            builtIn:['ChatGPT','DeepSeek','Gemini'],
+            isApproved(origin,pathScope){
+              try{
+                const url=new URL(origin);
+                return url.origin===origin&&scrollProgramUrlMatches(page.pageRules,
+                  origin+(pathScope||'/'));
+              }catch{return false;}
+            },
+            disabledReason:!page?.enabled?'已停用；请先启用应用':
+              page?.authorization?.status!=='active'||page?.nativeState!=='registered'||page?.error?
+                '尚未获得有效的网站授权与原生注册':null,
+            async onRead(){ensure();return client.request('readScrollSiteConfig',request);},
+            onDraftChange(draft,editKey){
+              if(draft)scrollDraft={...draft,editKey:editKey??null};
+              else {scrollDraft=null;scrollAwaitingReview=false;}
+            },
+            async onPick(field,origin,mainSelector,event){
+              if(event?.isTrusted!==true)throw Object.assign(new Error('请由真实网页操作发起点选'),{code:'E_GESTURE'});
+              ensure();const where=await target();
+              if(new URL(where.expectedUrl).origin!==new URL(origin).origin)
+                throw Object.assign(new Error('请先在当前窗口打开正在配置的网站'),{code:'E_CONFIG_SCOPE'});
+              ensure();return client.request('pickScrollSiteElement',{...request,target:where,field,mainSelector});
+            },
+            async onSave(rule,etag,editKey,event){
+              if(event?.isTrusted!==true)throw Object.assign(new Error('请单击保存网站'),{code:'E_GESTURE'});
+              ensure();
+              if(rule!==null&&!scrollProgramUrlMatches(page.pageRules,rule.origin+rule.pathScope)){
+                scrollDraft={...rule,editKey:editKey??null};
+                const reviewed=await reviewScrollSite(
+                  {origin:rule.origin,pathScope:rule.pathScope},event,pinned);
+                if(!reviewed)throw Object.assign(new Error('尚未完成新网站的安装权限审阅'),{code:'E_SITE_REVIEW'});
+                return {review:true};
+              }
+              const where=rule===null?null:await target();ensure();
+              const result=await client.request('saveScrollSiteRule',{
+                ...request,target:where,rule,etag,editKey:editKey??null});
+              if(typeof result?.etag!=='string'||!Array.isArray(result?.value?.sites))
+                throw Object.assign(new Error('可信写入回执不完整'),{code:'E_CONFIG_UNKNOWN'});
+              const confirmed=await client.request('readScrollSiteConfig',request);
+              if(confirmed?.etag!==result.etag||JSON.stringify(confirmed.value)!==JSON.stringify(result.value))
+                throw Object.assign(new Error('保存后的持久化读回不一致，请先刷新核对'),{code:'E_CONFIG_UNKNOWN'});
+              scrollDraft=null;scrollAwaitingReview=false;
+              return confirmed;
+            }
+          };
+        })():null,
         siteUpgrade:row.kind==='page'&&row.installed&&row.id===SCROLL_CONFIG_PROGRAM_ID?{
           // Only the trusted scroll-site review provides this capability.
           title:'添加自定义 AI 网站',
@@ -915,7 +995,18 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     else if(statusOrigin==='read'||statusOrigin==='loading'||statusOrigin==='catalog')
       message(catalogError||pageCatalogError?'官方目录部分暂不可用：'+[catalogError,pageCatalogError].filter(Boolean).join('；'):'',
         catalogError||pageCatalogError?'error':'info',catalogError||pageCatalogError?'catalog':'read');
-    draw();if(selectedKey)renderDetail();
+    draw();
+    if(scrollAwaitingReview&&scrollDraft&&!selectedKey){
+      const updated=find('page:'+SCROLL_CONFIG_PROGRAM_ID);
+      const installation=updated?.record?.installed;
+      if(updated?.installed&&installation?.authorization?.status==='active'&&
+        installation.nativeState==='registered'&&
+        scrollProgramUrlMatches(installation.pageRules,scrollDraft.origin+scrollDraft.pathScope)){
+        scrollAwaitingReview=false;
+        openDetail(updated.key,'main');
+      }
+    }
+    if(selectedKey)renderDetail();
     return appReadback?appStatusKnown:pageReadback?pageStatusKnown:!dataError;
   }
   async function readOfficial(){
@@ -957,7 +1048,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   });
   void localeController?.ready?.then(syncLanguage);
   extensionList.connectBack(back);
-  function backIfNeeded(){if(selectedKey)back();}
+  function backIfNeeded(){if(selectedKey)back(true);}
   const storageChanged=(changes,area)=>{
     if(area==='local'&&(SIDEBAR_TOOL_STORE in changes||SIDEBAR_TOOL_ENABLE_STORE in changes||MARKET_PROVENANCE_STORE in changes||
       TOOL_CLEANUP_STORE in changes||
