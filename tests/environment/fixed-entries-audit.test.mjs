@@ -175,8 +175,8 @@ test('fixed UI host budgets apply only to their exact outputs in both modes',()=
   assert.equal(entryByteBudget('ui/tool-shell.js','development'),3*1024*1024);
   assert.equal(entryByteBudget('sw.js','production'),1024*1024);
   assert.equal(entryByteBudget('sw.js','development'),1536*1024);
-  assert.equal(entryByteBudget('ui/sidebar-tool-host.js','production'),516*1024);
-  assert.equal(entryByteBudget('ui/sidebar-tool-host.js','development'),516*1024);
+  assert.equal(entryByteBudget('ui/sidebar-tool-host.js','production'),1024*1024);
+  assert.equal(entryByteBudget('ui/sidebar-tool-host.js','development'),1024*1024);
   for(const target of ['agents/page-relay.js','libs/packages/axios.js','ui/sidebar-tool-host-copy.js']){
     assert.equal(entryByteBudget(target,'production'),512*1024);
     assert.equal(entryByteBudget(target,'development'),512*1024);
@@ -202,8 +202,20 @@ test('Side Panel host 2 MiB soft review and 3 MiB hard limit apply to exact outp
   setBytes(BUILD_POLICY.toolShellProductionBytes+1);
   assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
 });
+test('Sidebar Tool Host allows 1 MiB and rejects one byte above its exact-entry cap',()=>{
+  const f=fixture(),path='ui/sidebar-tool-host.js';
+  const setBytes=bytes=>{
+    f.receipt.bundleModules.find(row=>row.target===path).bytes=bytes;
+    f.measured[path].bytes=bytes;
+    f.receipt.report.files.find(row=>row.path===path).bytes=bytes;
+  };
+  setBytes(1024*1024);
+  assert.equal(summarizeFixedEntries(f.receipt,f.measured).entries.find(row=>row.path===path).remainingBytes,0);
+  setBytes(1024*1024+1);
+  assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
+});
 test('other fixed entries still receive 320 KiB review and fail closed above 512 KiB',()=>{
-  const f=fixture(),path='ui/sidebar-tool-host.js',row=f.receipt.bundleModules.find(item=>item.target===path);
+  const f=fixture(),path='agents/page-relay.js',row=f.receipt.bundleModules.find(item=>item.target===path);
   const setBytes=bytes=>{
     row.bytes=bytes;f.measured[path].bytes=bytes;
     f.receipt.report.files.find(item=>item.path===path).bytes=bytes;

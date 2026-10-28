@@ -1901,6 +1901,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
     render();
   }
+  function currentPageInfo(target){
+    return target?.status==='available'
+      ?{status:'available',title:String(target.title||'').slice(0,512),url:String(target.url||'').slice(0,4096)}
+      :{status:'unavailable',reasonCode:String(target?.reason||'E_NO_ACTIVE_TAB').slice(0,64),
+        message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
+  }
   async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportGrantEpoch=null,directExportPort=null,assertWrite=null) {
     assertSession(source,token);
     if(!readOnlyPreview)await assertSidebarToolEnabled(api,tool.id);
@@ -1908,6 +1914,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(readOnlyPreview){
       if(developmentStorage&&['storage.get','storage.set'].includes(operation)&&tool.capabilities.includes('storage.local'))
         return developmentStorage.request(operation,payload,token);
+      if(developmentStorage&&operation==='currentPage.info'&&tool.capabilities.includes('currentPage.read')){
+        await developmentStorage.request(operation,{},token);
+        assertSession(source,token);
+        const target=currentPageTarget?.snapshot;
+        if(target?.status!=='available')return currentPageInfo(target);
+        const captured=currentPageTarget.capture();
+        await currentPageTarget.revalidate(captured);
+        await developmentStorage.request(operation,{},token);
+        assertSession(source,token);
+        return currentPageInfo(captured);
+      }
       // Mock reads only. No Chrome storage or Native/Task invocation from code
       // under development, even when an installed tool shares this ID.
       if(operation==='storage.get'&&tool.capabilities.includes('storage.local')&&
@@ -2950,13 +2967,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return response.data;
       }
 
-      if(operation==='currentPage.info'){
-        const target=currentPageTarget?.snapshot;
-        return target?.status==='available'
-          ?{status:'available',title:String(target.title||'').slice(0,512),url:String(target.url||'').slice(0,4096)}
-          :{status:'unavailable',reasonCode:String(target?.reason||'E_NO_ACTIVE_TAB').slice(0,64),
-            message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
-      }
+      if(operation==='currentPage.info')return currentPageInfo(currentPageTarget?.snapshot);
       if(operation==='toc.snapshot'||operation==='toc.navigate'){
         if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||!api.tabs?.sendMessage)
           throw new Error('当前网页的目录服务不可用');

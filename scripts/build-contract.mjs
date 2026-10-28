@@ -54,10 +54,11 @@ export const PACKAGE_ENTRIES = Object.freeze({
 // cap in both production and development, with a non-blocking 2 MiB review line.
 // This is an engineering budget, not a Chrome size limit, runtime permission
 // grant or security exemption.
-// The existing Sidebar Tool Host measured 525,455 bytes with the market Sheet
-// mutual-exclusion/dirty guards and original installer. Give only this audited
-// fixed entry 4 KiB above the ordinary cap; keep every code/source scan intact.
-export const SIDEBAR_TOOL_HOST_BYTES=516*1024;
+// The Sidebar Tool Host combines the existing installer, audited tool services
+// and isolated development bridge. Give this fixed entry 1 MiB in both modes
+// rather than repeatedly tuning the previous 516 KiB cap for small additions.
+// WXT and package verification consume this same limit; all source/CSP checks remain.
+export const SIDEBAR_TOOL_HOST_BYTES=1024*1024;
 export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 3 * 1024 * 1024, toolShellDevelopmentBytes: 3 * 1024 * 1024, toolShellReviewBytes: 2 * 1024 * 1024, serviceWorkerProductionBytes: 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 1536 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
 // Existing reader/CLI limits, shared by the build and package verifier. These
 // are separate from the unchanged generated-entry budget above.

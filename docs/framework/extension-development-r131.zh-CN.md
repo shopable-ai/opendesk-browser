@@ -42,7 +42,7 @@ npm run dev
 
 如果此前已从同一个目录加载过 `build:dev` 的静态包，在首次切换到持续开发时，点击扩展卡片的「重新加载」一次，再打开 Sidebar。以后保留同一加载目录，不需重复安装或打包 ZIP。
 
-若已安装工具打开后显示“该文件可能已被移至别处、修改或删除”，先检查加载目录里的 `manifest.json`、`sidepanel.html` 和 `sidebar-tools/sandbox.html`。WXT 全量构建失败可能只留下部分 JS，工具 JSON 本身仍然有效；修复日志中的构建错误，再恢复同一个 `npm run dev`，无需卸载工具。可信工作台的开发包预算为 1088 KiB，给开发连接与状态代码保留 32 KiB 余量；正式包按已测候选采用 1056 KiB 有界预算（理由见 R23 的 2026-10-21 测量记录）。构建和包验证共用 `scripts/build-contract.mjs` 的门禁，CSP、来源锁定及其他入口限制继续生效。
+若已安装工具打开后显示“该文件可能已被移至别处、修改或删除”，先检查加载目录里的 `manifest.json`、`sidepanel.html` 和 `sidebar-tools/sandbox.html`。WXT 全量构建失败可能只留下部分 JS，工具 JSON 本身仍然有效；修复日志中的构建错误，再恢复同一个 `npm run dev`，无需卸载工具。当前可信工作台 `ui/tool-shell.js` 在两种模式下的硬预算为 3 MiB（2 MiB 提醒线）；Sidebar Tool Host `ui/sidebar-tool-host.js` 在两种模式下统一为 1 MiB，替代原 516 KiB 小幅例外。这些是项目工程预算，不是 Chrome 体积限制；普通生成入口仍为 512 KiB，SW 生产为 1 MiB、开发为 1.5 MiB。构建和包验证共用 `scripts/build-contract.mjs` 的门禁，CSP、来源锁定及其他入口限制继续生效。
 
 日常源码开发始终使用上述 `dist/development`。`~/.opendesk-browser/extensions/local-dev-<会话标识>` 是历史会话手工复制的静态安装包，`npm run dev` 不会更新它。隔离验收包只加载到验收专属 CFT/Profile，不替换日常 Chrome 的开发扩展；不要为日常修复再复制到一个新目录。
 
@@ -92,6 +92,14 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 
 打开 `http://127.0.0.1:43111/demo-form.html`。此 HTTP 服务仅提供测试网页。
 
+## React 应用与共享 UI 的简单检查
+
+日常开发只选受影响的一条最短操作链，不遍历全部 SDK：在真实 Side Panel 的本地应用中读取/保存一条隔离测试记录；修改应用 JSX 的可见文字后恢复；涉及共享 UI 时，再对实际使用的一个共享组件做一次可见变更及恢复。应用项目的 Vite/stage watcher 与 Browser 的 `npm run dev` 各自复用已有实例。
+
+`@opendesk/ui` 的沙箱组件通过固定 `src/entrypoints/sidebar-shared-ui.js` 从唯一 `src/ui/react/components/ui/` 提供，复用同一组件源码不等于共享特权。应用 JSX 快照替换、共享 UI 资源更新、可信 React 工作台更新和 iframe 内 SDK 调用应分别记录。共享 UI/可信 React 改动按依赖入口触发安全刷新或扩展重载；重载后重新打开界面属于现有机制，不冒称原地 React Fast Refresh。
+
+没有新失败、代码变化或证据失效时复用已有结果；全量 SDK、正式包验收及评分只在明确要求时执行。应用级操作见 [Quick Notes React](../../examples/sidebar-tools/quick-notes-react/README.md)。
+
 ## 停止、恢复与排错
 
 在开发终端按 Ctrl+C。输出目录保留；监听队列和写入释放后终端显示 `Stopped`。再运行 `npm run dev` 恢复服务。停止服务不会重放任务。
@@ -123,3 +131,8 @@ npm run verify
 `official-tools/catalog.json` 登记可信项目，正式与开发构建从 `examples/sidebar-tools/<id>/` 的声明输入生成 `.wxt/public/official-tools/...` 和最终 `dist/{production,development}/official-tools/...`。`npm run dev` 监听这些输入并沿用原发布队列，失败不发布新就绪标记；Catalog 结构变更先生成资源再刷新 WXT 的资产清单。生成不安装、不执行工具，也不改变网站许可；旧安装更新仍须审核。详见 [官方 Catalog API](../api/official-tools-catalog.zh-CN.md)。
 
 官方目录的数据修改及工具增删只刷新其自有资源清单，沿原子写入队列发布，不触发 WXT 重启或清空 `dist/development`。所有工具共用的 `sidebar-tools/sandbox.html` 保持可用；纯目录/JSON 更新也不重载现有工具页。源码、构建配置或可信运行时代码的更新仍按上文安全刷新合同处理。本规则修复了目录变化可能造成共享沙箱短暂缺失的开发环境问题，不代表已经复现并确认每一次 Chrome 文件丢失报错。
+
+
+### 本地应用调试入口简化（2026-10-29）
+
+「开发 → 本地项目 → 在侧栏调试」直接进入开发会话，不增加隔离存储的第二次批准、独立停止按钮或“已批准”提示。隔离数据、来源/窗口/实例核验和停止后的失效仍在原 Host 内处理；退出统一用「停止调试」。详见[工具开发说明](../api/sidebar-tool-development.zh-CN.md#直接调试与开发数据隔离2026-10-29)。

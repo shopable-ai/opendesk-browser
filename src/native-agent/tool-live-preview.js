@@ -27,22 +27,34 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
   let closed=false,opened=null,snapshot=null,timer=null,queued=Promise.resolve(),starting=null,stopping=null;
   let developmentCurrent=null;
   const pointerKey=surface==='sidepanel'?panelPreviewStorageKey(windowId):null;
-  const development=createToolDevelopmentStorageOwner({api,lockManager,now,assertCurrent,
+  async function assertDevelopmentOwner(){
+    await assertCurrent();
+    if(closed||!developmentCurrent)throw new Error('开发会话已停止');
+    if(pointerKey){
+      const workspaceTab=await api.tabs.getCurrent?.();
+      const pointer=(await api.storage.session.get(pointerKey))[pointerKey];
+      if(closed||workspaceTab?.windowId!==windowId||pointer?.previewId!==developmentCurrent.previewId){
+        invalidateDevelopment();
+        throw new Error('Side Panel 开发窗口或会话已失效');
+      }
+    }
+  }
+  const development=createToolDevelopmentStorageOwner({api,lockManager,now,assertCurrent:assertDevelopmentOwner,
     getCurrent:()=>closed?null:developmentCurrent,
     verifySnapshot:async sha256=>{
       const status=validateToolWatchStatus(await readText(NATIVE_TOOL_PREVIEW_ROOT+'/'+toolId+'/status.json'),toolId,now());
       const latest=await readToolSnapshot({toolId,readText});
       if(status.stale||status.state!=='ready'||status.sha256!==sha256||latest.sha256!==sha256){
-        invalidateDevelopment();throw new Error('构建或源码快照已变化，请重新批准');
+        invalidateDevelopment(true);throw new Error('构建或源码快照已变化，请重新打开调试');
       }
     }});
-  function invalidateDevelopment(){
+  function invalidateDevelopment(canRebind=false){
     if(developmentCurrent?.available)developmentCurrent={...developmentCurrent,available:false};
-    development.revoke('源码、构建或目录连接已变化，请重新批准');
+    development.revoke('源码、构建或目录连接已变化，请重新打开调试',canRebind);
   }
   function readyDevelopment(){
     if(developmentCurrent?.available&&developmentCurrent.sha256===snapshot.sha256)return;
-    developmentCurrent={...opened,sourceId,tool:snapshot.tool,sha256:snapshot.sha256,available:true,nativeAuthority};
+    developmentCurrent={...opened,surface,windowId,sourceId,tool:snapshot.tool,sha256:snapshot.sha256,available:true,nativeAuthority};
   }
   const removedTabs=new Set();
   // Recheck at the existing handoff's commit boundary too: its async session
@@ -61,6 +73,12 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
         if(closed||tab?.windowId!==windowId||pointer?.previewId!==opened.previewId)
           throw new Error('Side Panel 开发窗口或会话已失效');
       }
+      // storage.onChanged can mount the Panel before this set() resolves.
+      // Prepare its exact owner first; admission still verifies the committed
+      // pointer, Native authority and snapshot before releasing tool code.
+      const id=opened?.previewId??values[pointerKey]?.previewId;
+      const next=id&&values[previewStorageKey(id)];
+      if(pointerKey&&next)developmentCurrent={...next,surface,windowId,available:true,nativeAuthority};
       return api.storage.session.set(values);
     }
   }}};
@@ -106,7 +124,7 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
       if(closed)return;
       // Revoke BEFORE publishing or deferring a changed snapshot. UI dirty
       // state and mount delays can never extend the old instance's grant.
-      if(status.stale||status.state!=='ready'||status.sha256!==snapshot.sha256)invalidateDevelopment();
+      if(status.stale||status.state!=='ready'||status.sha256!==snapshot.sha256)invalidateDevelopment(!status.stale&&status.state!=='stopped');
       if(status.stale||status.state==='stopped')return await report('构建连接已停止 · 保留上次成功预览',true);
       if(status.state==='building')return await report('正在编译 · 保留上次成功预览');
       if(status.state==='error')return await report('编译失败 · 保留上次成功预览：'+status.message,true);

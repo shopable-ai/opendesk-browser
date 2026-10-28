@@ -23,9 +23,21 @@ npm run watch --prefix examples/sidebar-tools/quick-notes-react
 node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react
 ```
 
-Vite 产物由 source-bound `dist/build-ready.json` 证明；stage 只在完整回执通过且源码未漂移时发布 SHA 快照。编译失败不会把错误产物当作新快照，也不会修改 `quick-notes-react.opendesk-tool.json`。**当前原有 Workspace 入口仍打开独立标签页；这里的连续构建不等于已实现真实 Side Panel 内嵌调试或 SDK 写入。**
+Vite 产物由 source-bound `dist/build-ready.json` 证明；stage 只在完整回执通过且源码未漂移时发布 SHA 快照。编译失败不会把错误产物当作新快照，也不会修改 `quick-notes-react.opendesk-tool.json`。实际入口为「开发 → 本地项目 → quick-notes-react → 在侧栏调试」：Native Workspace 标签页保留目录与会话归属，应用显示在同窗口真实 Side Panel。点击「在侧栏调试」即可使用 `storage.get/set`，不再单独批准存储或显示“已批准”状态；开发数据在内部与正式安装版分开。同一来源、工具和能力范围内，成功 JSX 快照使用新实例重新校验，沿用本次调试意图；Stop、归属变化、断连、范围变化或未知写入结果不会自动重启或重放写入。网页信息仍按原目标和能力范围核验。
 
-## 先测试再安装：Mac main
+## 日常最小验证（2026-10-29）
+
+当前先确认几个基本 SDK 调用与开发更新，不遍历全部 SDK：
+
+1. 在真实 Side Panel 调试界面读取、保存一条隔离笔记，按需读取一次标准测试页标题/地址。
+2. 修改本项目 `src/App.jsx` 的可见文字，确认现有 Vite/stage watcher 更新真实侧栏，再恢复源码。双更新与编译失败保留已有证据可复用，不反复重测。
+3. 本应用还使用 `@opendesk/ui` 的共享 Button/Card 等组件。共享组件源自 `src/ui/react/components/ui/`，通过固定 `sidebar-shared-ui` 入口提供给沙箱；需另做一次相关组件的可见变更/恢复检查。它可能触发 Browser 的安全刷新或重载，不承诺 React Fast Refresh 或保留原 iframe。
+
+React JSX、共享 UI 资源与 iframe 内 SDK 是不同链路；任何一项没有真实可见证据都不能由另一项代替。只运行本次失败或改动直接涉及的定向检查。2026-10-29 已在真实侧栏完成隔离读写、标准页标题/地址、JSX 可见更新/恢复和共享 CardContent 可见更新/恢复。两处临时源码均已逐字节恢复；共享资源变更经过 Browser 安全重载后从原入口重开，不承诺原 iframe 或 session 数据跨扩展重载保留。不为此进入全 SDK、正式安装、评分或全量回归。
+
+## 正式安装前的可选验证：Mac main
+
+以下是明确进入安装/正式验收时才使用的步骤，不是日常修改、热更新或本轮收尾的前置条件。
 
 从仓库根目录执行；使用已有 watcher 时**不要覆盖正在运行的 dist/development**，应先检查它对应的 Chrome 与扩展构建。项目内的 JSX 编译不重构整个浏览器。
 
@@ -60,7 +72,7 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --c
 
 未执行 Mac 构建、宿主 E2E、Chrome 真实安装或资源采样的环节，必须写 `NOT_TESTED`，不得把本项目的预览或模拟 SDK 当作 PASS。详细公平性、分项评分与验收门槛见 `COMPARISON.zh-CN.md`。
 
-## 实际扩展 Host SDK 交叉验收
+## 实际扩展 Host SDK 交叉验收（本轮延期）
 
 沿用 `scripts/tests/quick-notes-react-r21-installed-chrome.mjs`：在**隔离临时 Chrome Profile** 中加载真正的 OpenDesk MV3 扩展，核验 Chrome 返回的 `SIDE_PANEL` 上下文和最终 `hostInstanceId` URL，从扩展中心经真实审阅安装 React 工具（原生 Quick Notes 若已预装则验证原版包 SHA）。普通 `tool.html` 标签页只显示任务目录，不能替代真实 Side Panel。
 

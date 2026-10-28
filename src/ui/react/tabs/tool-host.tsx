@@ -463,10 +463,6 @@ export function ToolHost({view,concealed=false,debugPreview=false}) {
 {"开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。"}
 </ToolField>
 <ToolField as="p" id="sidebar-tool-development-status" className="sidebar-tool-status" role="status" hidden={true}/>
-<div className="od-toolbar">
-<ToolField as="button" type="button" id="sidebar-tool-development-approve" className="od-button" hidden={true}>{"批准隔离存储调试"}</ToolField>
-<ToolField as="button" type="button" id="sidebar-tool-development-stop" className="od-button od-button--secondary" hidden={true}>{"停止存储调试"}</ToolField>
-</div>
 <section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/>{cookieFirstUse&&<CookieSettings onRevoke={actions.revoke}/>}<div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
 {"打开工具"}
 </ToolField>

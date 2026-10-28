@@ -343,12 +343,13 @@ chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=tr
 // session, not a storage grant. The existing ToolHost is the sole sandbox owner.
 function panelPreviewStatus(text,error=false){
   toolView.patch('sidebar-tool-readonly-banner',{
-    textContent:text+'。未安装；开发态 SDK 尚未授权，不会使用正式工具数据。',
+    textContent:text+'。未安装；调试使用隔离测试数据，不会使用正式工具数据。',
     hidden:false,data:{state:error?'error':'readonly'}});
 }
 function detachPanelPreview({clearTab=true}={}){
   ++panelPreviewEpoch;
   livePreview?.dispose();livePreview=null;
+  toolDevelopmentControls?.dispose();toolDevelopmentControls=null;
   panelPreviewId=null;
   if(sidebarTools.isPreviewActive())sidebarTools.stopReadOnlyPreview();
   if(clearTab){
@@ -408,12 +409,19 @@ async function attachPanelPreview(windowId){
         panelPreviewStatus('当前页面暂不能离开；开发会话已就绪，请保存后打开「应用调试」',true);
         return;
       }
+      const controls=createToolDevelopmentControls({api:chrome,view:toolView,tools:sidebarTools,
+        surface:'sidepanel',windowId});
+      toolDevelopmentControls=controls;
       const preview=subscribePreviewSession({api:chrome,previewId:pointer.previewId,
-        mount:tool=>sidebarTools.openReadOnlyPreview(tool),
+        mount:(_tool,value)=>controls.mount(value),
+        onSnapshot:value=>controls.snapshot(value),
         isActive:()=>sidebarTools.isPreviewActive(),
         isDirty:()=>sidebarTools.isPreviewEditing(),
         onStatus:panelPreviewStatus,
-        onInvalidate:()=>panelPreviewStatus('正在重新核验开发快照；旧预览权限已失效',true)});
+        onInvalidate:()=>{
+          controls.invalidate();
+          panelPreviewStatus('正在重新核验开发快照；旧预览权限已失效',true);
+        }});
       livePreview=preview;
       await preview.ready;
     }catch(error){
@@ -590,11 +598,11 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       if(shellClosed)return;
       toolDevelopmentControls=createToolDevelopmentControls({api:chrome,view:toolView,tools:sidebarTools});
       livePreview=subscribePreviewSession({api:chrome,previewId,
-        mount:tool=>sidebarTools.openReadOnlyPreview(tool),
+        mount:(_tool,value)=>toolDevelopmentControls.mount(value),
         onInvalidate:()=>toolDevelopmentControls.invalidate(),onSnapshot:value=>toolDevelopmentControls.snapshot(value),
         isActive:()=>sidebarTools.isPreviewActive(),isDirty:()=>sidebarTools.isPreviewEditing(),
         onStatus:(text,error)=>toolView.patch('sidebar-tool-readonly-banner',{
-          textContent:text+'。沙箱隔离；存储调试需单独批准，网页和其他能力仍被禁止。',hidden:false,data:{state:error?'error':'readonly'}})});
+          textContent:text+'。调试数据与正式工具数据分开。',hidden:false,data:{state:error?'error':'readonly'}})});
       await livePreview.ready;
     }catch(error){
       if(shellClosed)return;

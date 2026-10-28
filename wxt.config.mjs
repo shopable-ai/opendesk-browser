@@ -96,7 +96,8 @@ export default defineConfig({
           return {code:code.replace(listener,''),map:null};
         }
       });
-      // Other generated JS retains its 512 KiB production cap; production SW
+      // The Sidebar Tool Host has a 1 MiB cap; other generated JS retains
+      // its 512 KiB production cap. Production SW
       // has a 1 MiB hard gate (512 KiB advisory), development SW 1.5 MiB.
       // 320 KiB remains advisory for other generated entries. Neither the
       // fixed IIFE allowlist nor CSP/package/security checks are weakened.

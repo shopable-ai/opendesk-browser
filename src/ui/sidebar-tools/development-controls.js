@@ -1,57 +1,53 @@
-// Trusted controls in the existing React ToolHost. No tool-supplied event can
-// approve storage, and approval always remounts through the original Host.
+// Opening the existing debug entry supplies the intent. The Host still admits
+// each new sandbox against the exact source, capabilities and Native owner.
 import {createDevelopmentStorageSession} from './development-session.js';
-export function createToolDevelopmentControls({api,view,tools,createSession=createDevelopmentStorageSession}){
-  let current=null,storageSession=null,closed=false,starting=false;
-  const status=(text,error=false)=>view.patch('sidebar-tool-development-status',{
-    textContent:text,hidden:false,data:{state:error?'error':'readonly'}});
-  function render(){
-    if(closed)return;
-    const active=storageSession?.approved===true;
-    view.patch('sidebar-tool-development-approve',{hidden:!current||!current.tool.capabilities.includes('storage.local')||active,disabled:starting});
-    view.patch('sidebar-tool-development-stop',{hidden:!storageSession,disabled:false});
-  }
+export function createToolDevelopmentControls({api,view,tools,surface='tab',windowId=null,createSession=createDevelopmentStorageSession}){
+  let storageSession=null,closed=false,openedScope=null,blocked=false;
+  const scope=value=>JSON.stringify([value.previewId,value.workspaceId,value.sourceId,value.tool.id,
+    [...value.tool.capabilities].sort()]);
+  const status=(text='')=>view.patch('sidebar-tool-development-status',{
+    textContent:text,hidden:!text,data:{state:'error'}});
   function invalidate(){
-    current=null;starting=false;
-    const old=storageSession;storageSession=null;old?.revoke('快照、构建或连接变化，隔离存储批准已撤销');
-    render();
+    // Keep the callback attached while retiring: a pending write can make the
+    // outcome unknown, in which case a later build must not restart the app.
+    storageSession?.revoke('调试快照或连接已变化',true);
+    storageSession=null;
   }
   function snapshot(value){
-    if(closed)return;
-    current=value;render();
-    if(value.tool.capabilities.includes('storage.local'))status(
-      '隔离存储调试：'+value.tool.title+' · '+value.sourceId+' · SHA '+value.sha256+
-      '。批准后重新打开当前界面；测试数据仅保留在本次浏览器会话，与正式数据分开。');
+    if(closed||!openedScope)return;
+    if(openedScope!==scope(value))return mount(value);
+    if(!blocked&&!storageSession&&value.tool.capabilities.includes('storage.local')&&!tools.isPreviewEditing())
+      return mount(value);
   }
-  const releaseApprove=view.bind('sidebar-tool-development-approve','click',event=>{
-    if(closed||event?.isTrusted!==true||starting||!current||storageSession?.approved)return;
+  function mount(value){
+    if(closed||blocked)return false;
+    if(openedScope&&openedScope!==scope(value)){
+      blocked=true;invalidate();status('调试来源或能力范围已变化，请停止调试后重新打开。');return false;
+    }
     if(tools.isPreviewEditing()){
-      status('请先结束当前编辑或保存，再批准重新打开预览；当前内容保留。',true);return;
+      status('请先保存或结束当前编辑；当前内容保留。');return false;
     }
-    const approvedSnapshot=current;
-    starting=true;
-    const old=storageSession;storageSession=null;old?.revoke();
-    const candidate=createSession({api,session:approvedSnapshot,onState:(active,reason)=>{
+    openedScope=scope(value);
+    invalidate();
+    if(blocked)return false;
+    status();
+    if(!value.tool.capabilities.includes('storage.local'))return tools.openReadOnlyPreview(value.tool);
+    const candidate=createSession({api,session:{...value,surface,windowId},onState:(active,reason,details)=>{
       if(closed||storageSession!==candidate)return;
-      starting=false;status(reason,!active);render();
+      if(active){status();return;}
+      if(details?.canRebind!==true)blocked=true;
+      storageSession=null;status(reason);
     }});
-    storageSession=candidate;render();
-    status('正在核验当前源码和目录授权，并启动新的隔离界面…');
+    storageSession=candidate;
     try{
-      if(tools.openReadOnlyPreview(approvedSnapshot.tool,{developmentSession:candidate})===false)
+      if(tools.openReadOnlyPreview(value.tool,{developmentSession:candidate})===false)
         throw new Error('当前界面尚不能安全重新打开');
+      return true;
     }catch(error){
-      candidate.revoke();storageSession=null;starting=false;status(String(error.message||error),true);render();
+      blocked=true;invalidate();status(String(error.message||error));return false;
     }
-  });
-  const releaseStop=view.bind('sidebar-tool-development-stop','click',event=>{
-    if(closed||event?.isTrusted!==true)return;
-    const old=storageSession;storageSession=null;old?.revoke();starting=false;
-    status('隔离存储调试已停止；测试数据保留，重新打开需再次批准。');render();
-  });
-  return Object.freeze({invalidate,snapshot,dispose(){
-    if(closed)return;invalidate();closed=true;releaseApprove();releaseStop();
-    for(const key of ['sidebar-tool-development-approve','sidebar-tool-development-stop','sidebar-tool-development-status'])
-      view.patch(key,{hidden:true});
+  }
+  return Object.freeze({invalidate,snapshot,mount,dispose(){
+    if(closed)return;closed=true;invalidate();status();
   }});
 }

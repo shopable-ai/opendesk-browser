@@ -147,6 +147,33 @@ test('live owner revokes the old iframe before awaiting a changed snapshot, inde
   release.resolve();await checking;
 });
 
+test('Side Panel can admit its first iframe during publication and each changed snapshot',async t=>{
+  const f=fixture(),responses=[];f.api.runtime.id='test';f.api.runtime.onConnect=event();
+  const documentUrl='chrome-extension://test/sidepanel.html?hostInstanceId=host-1';
+  f.api.runtime.getContexts=async()=>[{contextType:'SIDE_PANEL',documentUrl,frameId:0,incognito:false,
+    documentId:'document-1',contextId:'context-1',tabId:-1,windowId:-1}];
+  f.publish('void 0;',['storage.local']);
+  const live=f.live(t,{surface:'sidepanel',windowId:12,
+    nativeAuthority:{devLeaseEpoch:1,sessionId:'native',leaseEpoch:''}});
+  f.changed.addListener(changes=>{
+    const row=Object.entries(changes).find(([,change])=>change.newValue?.format==='opendesk.tool-preview-session.v1');
+    if(!row?.[1].newValue)return;
+    const value=row[1].newValue;
+    const port={name:TOOL_DEVELOPMENT_STORAGE_PORT+value.previewId,
+      sender:{id:'test',url:documentUrl,documentId:'document-1',frameId:0,documentLifecycle:'active'},
+      onMessage:event(),onDisconnect:event(),postMessage(message){
+        if(message.type==='result')port.result(message);},disconnect(){this.onDisconnect.emit();}};
+    f.api.runtime.onConnect.emit(port);
+    assert.equal(port.onMessage.size,1,'owner must listen before the publishing set resolves');
+    responses.push(new Promise(resolve=>{port.result=resolve;port.onMessage.emit({type:'approve',requestId:1,
+      sha256:value.sha256,instance:'22222222-2222-4222-8222-222222222222',surface:'sidepanel',windowId:12,
+      hostInstanceId:'host-1',documentId:'document-1',contextId:'context-1'});}));
+  });
+  await live.start();assert.equal((await responses[0]).ok,true);
+  f.publish('void 1;',['storage.local']);await live.check();
+  assert.equal(responses.length,2);assert.equal((await responses[1]).ok,true);
+});
+
 test('stop during asynchronous start drains the handoff before removing its record',async t=>{
   const f=fixture();f.publish();const entered=gate(),release=gate();
   const create=f.api.tabs.create;

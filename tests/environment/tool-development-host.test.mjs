@@ -15,46 +15,42 @@ const gate=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {p
 const preview={previewId:'00000000-0000-4000-8000-000000000001',sourceId:'source-'+ 'a'.repeat(24),sha256:'a'.repeat(64),
   tool:{id:'notes-test',title:'测试笔记',capabilities:['storage.local']}};
 
-test('trusted controls approve the displayed SHA with a new mount; forged clicks, editing and invalidated snapshots cannot approve',()=>{
-  const view=createSidebarToolsView(),mounts=[],sessions=[];let editing=false;
+test('opening debug admits the displayed snapshot without a second approval or success notice',()=>{
+  const view=createSidebarToolsView(),mounts=[],sessions=[];let editing=true;
   const controls=createToolDevelopmentControls({view,api:{},tools:{isPreviewEditing:()=>editing,
-    openReadOnlyPreview:(...args)=>mounts.push(args)},createSession:options=>{
+    openReadOnlyPreview:(...args)=>{mounts.push(args);return true;}},createSession:options=>{
       const session={approved:false,revoke(){session.approved=false;},options};sessions.push(session);return session;
     }});
-  controls.snapshot(preview);
-  const click=isTrusted=>view.dispatch('sidebar-tool-development-approve','click',{isTrusted});
-  click(false);assert.equal(sessions.length,0);
-  editing=true;click(true);assert.equal(sessions.length,0);
-  editing=false;click(true);assert.equal(sessions.length,1);assert.equal(mounts.length,1);
-  assert.equal(mounts[0][1].developmentSession,sessions[0]);
+  assert.equal(controls.mount(preview),false);assert.equal(sessions.length,0,'editing is preserved');
+  editing=false;assert.equal(controls.mount(preview),true);
+  assert.equal(sessions.length,1);assert.equal(mounts[0][1].developmentSession,sessions[0]);
   assert.equal(sessions[0].options.session.sha256,preview.sha256);
-  click(true);assert.equal(sessions.length,1,'approval cannot duplicate while mounting');
-  sessions[0].approved=true;sessions[0].options.onState(true,'approved');
-  controls.invalidate();click(true);assert.equal(sessions.length,1);
-  assert.equal(sessions[0].approved,false);
-  controls.snapshot({...preview,sha256:'b'.repeat(64)});click(true);
-  assert.equal(sessions[1].options.session.sha256,'b'.repeat(64));
-  controls.dispose();view.dispose();
+  sessions[0].approved=true;sessions[0].options.onState(true,'ready');
+  controls.snapshot(preview);assert.equal(sessions.length,1);
+  assert.equal(view.fields['sidebar-tool-development-status'].hidden,true);
+  assert.equal(view.fields['sidebar-tool-development-approve'],undefined);
+  assert.equal(view.fields['sidebar-tool-development-stop'],undefined);
+  controls.dispose();assert.equal(sessions[0].approved,false);view.dispose();
 });
 
-test('invalidating an approval before iframe load releases the next explicit approval',()=>{
+test('same-scope rebuild creates a fresh session without another click',()=>{
   const view=createSidebarToolsView(),sessions=[];
   const controls=createToolDevelopmentControls({view,api:{},tools:{isPreviewEditing:()=>false,
     openReadOnlyPreview:()=>true},createSession:options=>{
-      const session={approved:false,revoked:false,revoke(){session.revoked=true;options.onState(false,'stopped');}};
+      const session={approved:false,options,revoked:false,revoke(reason,canRebind){session.revoked=true;
+        options.onState(false,reason,{canRebind});}};
       sessions.push(session);return session;
     }});
-  controls.snapshot(preview);
-  const click=()=>view.dispatch('sidebar-tool-development-approve','click',{isTrusted:true});
-  click();assert.equal(sessions.length,1);
+  controls.mount(preview);assert.equal(sessions.length,1);
   controls.invalidate();assert.equal(sessions[0].revoked,true);
-  controls.snapshot({...preview,sha256:'b'.repeat(64)});click();
-  assert.equal(sessions.length,2,'next snapshot does not retain the previous starting flag');
+  controls.snapshot({...preview,sha256:'b'.repeat(64)});
+  assert.equal(sessions.length,2);assert.equal(sessions[1].options.session.sha256,'b'.repeat(64));
   controls.dispose();view.dispose();
 });
 
-async function hostFixture(t){
+async function hostFixture(t,{currentPageTarget,capabilities}={}){
   const tool=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json',import.meta.url),'utf8'));
+  if(capabilities){tool.capabilities=capabilities;if(tool.contributes)tool.contributes.contextMenus=[];}
   const {window,document}=parseHTML('<html><body></body></html>');
   const previous=globalThis.window;globalThis.window=window;t.after(()=>{globalThis.window=previous;});
   const view=createSidebarToolsView(),frames=[],sessionValues={},localValues={
@@ -66,12 +62,13 @@ async function hostFixture(t){
       async set(){assert.fail('preview cannot write local');}
     },session:{async get(key){return {[key]:structuredClone(sessionValues[key])};},
       async set(values){writes++;Object.assign(sessionValues,structuredClone(values));}}}};
-  const doc={documentElement:document.documentElement,getElementById:id=>document.getElementById(id),
+  const doc={addEventListener:(...args)=>document.addEventListener(...args),
+    removeEventListener:(...args)=>document.removeEventListener(...args),documentElement:document.documentElement,getElementById:id=>document.getElementById(id),
     createElement(tag){assert.equal(tag,'iframe');const frame=document.createElement(tag),messages=[];
       const source={postMessage(message){messages.push(message);frame.reply?.(message);}};
       Object.defineProperty(frame,'contentWindow',{value:source});frame.messages=messages;frames.push(frame);return frame;}};
   const tools=createSidebarTools({api,doc,view,fetcher:async()=>new Response('',{status:404}),
-    currentPageTarget:{snapshot:{status:'unavailable'},subscribe:()=>()=>{}},taskWorkbench:{setToolActive(){}}});
+    currentPageTarget:currentPageTarget||{snapshot:{status:'unavailable'},subscribe:()=>()=>{}},taskWorkbench:{setToolActive(){}}});
   tools.setVisible(true);
   const nodes={frameRoot:document.createElement('div'),settingsControl:document.createElement('button')};
   document.body.append(nodes.frameRoot);const detach=view.attachRuntime(nodes);await tools.ready;
@@ -82,7 +79,7 @@ async function hostFixture(t){
   let lockTail=Promise.resolve();const lockManager={request(_name,work){const next=lockTail.then(work);lockTail=next.catch(()=>{});return next;}};
   function developmentSession(barrier=Promise.resolve()){
     let token=null;return {async start(value){await barrier;token=value;},revoke(){token=null;},
-      request(operation,payload,value){assert.equal(value,token);return executeDevelopmentStorage({api,
+      request(operation,payload,value){assert.equal(value,token);if(operation==='currentPage.info')return Promise.resolve({authorized:true});return executeDevelopmentStorage({api,
         sourceId:preview.sourceId,toolId:tool.id,lockManager,operation,payload:JSON.parse(JSON.stringify(payload)),
         authorize:async()=>{assert.equal(value,token);},assertCommit:()=>assert.equal(value,token)});}};
   }
@@ -136,4 +133,63 @@ test('actual Prompt source saves 你好 through the existing preview Host and se
   await assert.rejects(second.request('tasks.open',{taskId:'test'}),/开发预览/);
   assert.equal(f.readKeys.flat().includes(sidebarToolStorageKey(f.tool.id)),false,'same-ID formal data is not read');
   f.assertLocal();
+});
+
+
+test('scope changes, Stop, and unknown results prevent automatic restart',()=>{
+  function fixture({unknownOnRevoke=false}={}){
+    const view=createSidebarToolsView(),sessions=[],mounts=[];
+    const controls=createToolDevelopmentControls({view,api:{},surface:'sidepanel',windowId:12,
+      tools:{isPreviewEditing:()=>false,openReadOnlyPreview:(...args)=>{mounts.push(args);return true;}},
+      createSession:options=>{const session={approved:false,options,revoke(reason,canRebind){
+        session.approved=false;options.onState(false,reason,{canRebind:canRebind&&!unknownOnRevoke});}};
+        sessions.push(session);return session;}});
+    controls.mount(preview);return {view,sessions,mounts,controls};
+  }
+  const f=fixture();
+  assert.equal(f.sessions[0].options.session.surface,'sidepanel');
+  assert.equal(f.sessions[0].options.session.windowId,12);
+  f.sessions[0].options.onState(false,'unknown write',{canRebind:false});
+  f.controls.invalidate();assert.equal(f.controls.mount({...preview,sha256:'c'.repeat(64)}),false);
+  f.controls.snapshot(preview);assert.equal(f.sessions.length,1,'unknown write never replays code');
+  f.controls.dispose();assert.equal(f.controls.mount(preview),false);f.view.dispose();
+  const pending=fixture({unknownOnRevoke:true});
+  pending.controls.invalidate();pending.controls.snapshot({...preview,sha256:'b'.repeat(64)});
+  assert.equal(pending.sessions.length,1,'retiring a pending write keeps its unknown-result fence');
+  pending.controls.dispose();pending.view.dispose();
+  for(const patch of [{sourceId:'other-source'},{workspaceId:'other-workspace'},
+    {previewId:'other-preview'},{tool:{...preview.tool,id:'other-tool'}},
+    {tool:{...preview.tool,capabilities:['storage.local','currentPage.read']}}]){
+    const next=fixture();next.controls.invalidate();
+    assert.equal(next.controls.mount({...preview,...patch}),false);
+    next.controls.snapshot({...preview,...patch});next.controls.mount(preview);
+    assert.equal(next.sessions.length,1,'changed scope cannot inherit the opened debug session');
+    next.controls.dispose();next.view.dispose();
+  }
+});
+
+test('preview currentPage.info uses existing target capture/revalidation and fences each request',async t=>{
+  let captureCount=0,checks=0,stale=false;
+  const target={status:'available',title:'Demo form',url:'http://127.0.0.1:43111/demo-form.html'};
+  const currentPageTarget={snapshot:target,subscribe:()=>()=>{},capture(){captureCount++;return target;},
+    async revalidate(value){assert.equal(value,target);checks++;if(stale)throw new Error('网页已变化');}};
+  const f=await hostFixture(t,{currentPageTarget,capabilities:['storage.local','currentPage.read']});
+  const session=f.developmentSession(),operations=[],original=session.request;
+  session.request=(...args)=>{operations.push(args[0]);return original(...args);};
+  f.tools.openReadOnlyPreview(f.tool,{developmentSession:session});
+  const frame=f.frames.at(-1);await frame.onload();const loaded=frame.messages.find(row=>row.kind==='load');
+  async function request(id){
+    f.send(frame,{protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance:loaded.instance,toolId:f.tool.id,
+      requestId:id,operation:'currentPage.info',payload:{}});await settle();
+    return frame.messages.find(row=>row.kind==='response'&&row.requestId===id);
+  }
+  const success=await request('page-1');assert.equal(success.ok,true);
+  assert.deepEqual(JSON.parse(JSON.stringify(success.result)),target);
+  assert.deepEqual(operations,['currentPage.info','currentPage.info']);
+  assert.equal(captureCount,1);assert.equal(checks,1);
+  stale=true;const rejected=await request('page-2');assert.equal(rejected.ok,false);
+  assert.match(rejected.error.message,/网页已变化/);
+  assert.equal(operations.length,3,'stale navigation never reaches the final authorization');
+  session.revoke();const stopped=await request('page-3');assert.equal(stopped.ok,false);
+  assert.equal(f.writes,0);f.assertLocal();
 });

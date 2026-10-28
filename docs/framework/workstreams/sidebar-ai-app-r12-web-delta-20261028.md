@@ -54,3 +54,29 @@
 - 证据：artifacts/sidebar-ai-app-r13-local-20261028/stop-fixed.png、stop-fixed.ax.txt、stop-after-next-build.ax.txt。第二个真实 Chrome 窗口 hostInstanceId dfb1ef89-044a-426c-adc6-4521d4e3ac3f 初开不继承应用调试，显式经正式入口后才能显示；证据 second-window-isolated.png/.ax.txt。Workspace 移窗操作尚未得到最终确认，不标 PASS。
 - 共享 dev owner「完成 AI 队列 R5.10 验收」已明确当前不依赖日常 ccfc 扩展 NativeAgent，原生断连验证可在协调范围内继续，但本轮交接前尚未执行。保留原服务运行。P0 生命周期仍为 PARTIAL；SDK 真实联调 BLOCKED，P1/P2 未实施，不作八维正式评分。
 - 用户要求创建新对话继续。接收方先完成跨窗口 owner 替换、Native 断连与旧实例失效，再进入 Side Panel 真实 SDK。准备交接时原对话 goal 最新实读为 paused（本轮未调用状态修改工具）；创建不会自动迁移或完成它，原对话移交后不重复操作接收方资源。
+
+
+## R1.3 LOCAL · 生命周期、基本 SDK 与当前收尾范围（2026-10-28）
+
+- 最新用户要求：不测试所有 SDK，几个基本接口成功、开发更新正常即可；另需覆盖 React 与 Shared UI 的简单更新检查。随后更新开发文档并创建新对话继续完善。全 SDK、全量矩阵、正式安装包晋升、production 验收和 95+ 评分均延期，不能从旧 GOAL 自动恢复。
+- 真实操作已确认：Workspace 移至其他窗口会停止旧会话；同窗口新的 Workspace 会替换旧 owner；通过现有设置停用/恢复 Native 后旧预览不会复活。只验证了正常断连/重连，不声称进程崩溃验收。证据在 `artifacts/sidebar-ai-app-r13-local-20261028/` 的 `workspace-move-confirmed`、`workspace-move-old-panel-retired`、`owner-replacement-old-workspace`、`native-disconnected`、`native-reconnected-old-panel-retired` 对应可访问树/截图。此前双 JSX 更新、错误保留及恢复证据继续有效，不重复执行。
+- 开发授权已适配真实 SIDE_PANEL：绑定可信 Host 的窗口、document/context/hostInstanceId、Workspace/source/快照 SHA/Native 会话/lease；`sender.tab` 不适用于该文档，Chrome context 的 tabId/windowId=-1 不得充当业务窗口。Native 尚未有 CLI attach 时的显式空字符串 leaseEpoch 依原合同严格比对，不能错拒，也不将其视作通配符。
+- 安全更新使用新实例重校验；同来源、工具和能力范围可沿用本次调试意图。Stop、实际 owner/Native 失效、来源/权限变化以及未知写入结果清除意图，不能自动批准或重放写入。隔离数据仅保留当前浏览器会话，正式安装数据不变。
+- 真实基本 SDK：可信界面批准后 React 应用可编辑，保存「你好 · R1.3-LOCAL 隔离笔记」后显示一条笔记和「已保存到本机」。这证明本次 `storage.get/set` 基本链成功，不等于全 SDK 或跨重启持久化验收。证据 `p1-sdk-save.ax.txt/.png`。`currentPage.info` 曾返回旧只读结果；已定位当时 Host 构建被体积门禁拒绝，Chrome 仍使用旧产物，不能把该结果宣称新桥接失败或成功。
+- 用户明确允许合理扩大 Host 预算。唯一配置 `scripts/build-contract.mjs` 的 `SIDEBAR_TOOL_HOST_BYTES` 从 516 KiB 调为 1 MiB，开发/生产同值；WXT、audit 与包校验共用该值，AST/CSP/来源/身份/权限检查不变。当前源码含 basic page info 桥接；新产物与真实调用需在 watcher 恢复后复验。仅改配置不证明运行成功。
+- 定向测试：在预算调整前，本次 owner/session/preview 三文件 108/108 PASS；补充预算与 Host 检查 26/26 PASS，见 `handoff-targeted-checks.txt`，包含 Host 1 MiB/+1 byte 边界。共享 dev 配置自动 restart 一度仍使用依赖缓存中的旧预算。原 watcher owner 已移交服务给「继续 AI 消息发送队列 R5.10 实机同步与验收」（`01a1831f-9060-76b3-b98d-758dceea4006`），已向接收 owner 发出安全重启同一服务的协调请求；未另开 writer。交接前最后检查，自动 restart 清理后 `dist/development/ui/sidebar-tool-host.js` 缺失，说明当前入口仍需恢复，不能报告热更新整体正常。
+- 下一条未完成操作：确认同一 dev watcher 采用 1 MiB 并生成 Host 新产物；在正式入口做一次网页信息基本调用、批准后的 React JSX 更新/恢复，以及共享 UI 单个组件可见更新/恢复。已有未批准 JSX 双更新不可代替批准后重绑检查；iframe/应用 JSX 不可代替共享组件资源更新。完成这些最小检查并更新本记录即收尾，不扩正式验收。
+- 交接准备时本对话 `01a1831a-0dee-7662-b5ad-37933df4416c` 的 goal 实读为空；更早来源对话的 goal 上次记录 paused，当前跨对话状态未知。创建不会自动迁移或结束旧 goal；接收 owner 负责后续文件与浏览器，本对话移交后不重复操作。
+
+
+## R1.3 LOCAL · 基本联调完成与取消重复批准（2026-10-29）
+
+- 当前用户纠偏：开发不应再添加独立的隔离存储批准步骤。已删除「批准隔离存储调试」「停止存储调试」两个按钮和常驻“已批准”提示；点击「在侧栏调试」直接进入可用会话，统一用原「停止调试」退出。未新增 Host、Authority 或安装流程。
+- 原 dev owner 已明确移交管理权；只安全停止失效的原 node93865 后，恢复唯一 `npm run dev`（本次观察 node18415，npm18395），输出仍为 `dist/development`。真实 Chrome 扩展仍为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，调试页确认开发服务连接。恢复 revision `31a97aaa03affc85516693e2c874b88c12f11f572fba65328bdb48f0c8eff8f1`；Host 为 528503 bytes，已通过现有 1 MiB 门禁。
+- 基本 SDK 在真实 Side Panel 已完成：`storage.get/set` 保存中文笔记；切到标准测试页后 `currentPage.info` 显示真实标题 `OpenDesk Browser · Browser Test Lab` 和 `http://127.0.0.1:43111/demo-form.html`。证据 `r13-resume-basic-sdk.ax.txt/.png`。
+- JSX 可见文字更新到「我的笔记 · 已批准 JSX 更新」后自动重绑新 iframe，仍可保存；恢复原源码后回到原快照 `0f811a7bfe3cacee1dc5bdb1b7f999f9c1bd8b39cb0b639af5771fd97efcc557`。这组证据产生于取消按钮前，不能伪称为取消后的同候选更新验收；新入口的同范围重绑另由本次定向测试覆盖。证据 `r13-resume-approved-jsx`、`r13-resume-jsx-restored` 对应可访问树/截图。
+- 共享 `CardContent` 临时文字「Shared UI · R1.3 检查」由固定 `sidebar-shared-ui.js` 更新后在真实沙箱可见。该修改触发既有扩展安全重载，重新从原入口打开后验证，没有承诺保留原 iframe 或跨重载的 session 数据。App.jsx 与 card.tsx 均已逐字节恢复，分别为 SHA `b07a5bc8859c92e27c5eb5acf9c0e8c510a6cb32a4b2ebbcc0cb9901b9b427cb`、`66e89f8da4d0645c7741b518e74c93982af2f1ef65cbc1411bbc908aef8ea363`；最终可见界面无临时文字。证据 `r13-resume-shared-ui-visible.ax.txt/.png` 和 `no-extra-approval-evidence.json`。
+- 取消按钮后的首次实测暴露发布时序缺陷：侧栏可在 `storage.session.set` 返回前发起准入，而 owner 尚未准备对应快照，出现超时。最小修复在原发布边界先准备精确 owner，准入仍核对已提交窗口 pointer、Native authority 和当前源码。新增首次/更新发布竞态用例；不通过重试写入或放宽身份核验掩盖问题。
+- 最终真实操作：从「开发 → 本地项目 → 在侧栏调试」直接进入可编辑应用，无额外批准；保存「你好 · 直接进入调试」后显示「已保存到本机」。hostInstanceId `2e46905d-7db9-4c0c-bf1e-d14bd41e3f45`，revision `a0ad448e46e088fc1874a0861632ea7a28adb393d73ad44f3cccc87819ac41e0`。证据 `r13-no-extra-approval-saved.ax.txt/.png`。当前轮仅证明这条最小核心链，未执行全 SDK 或正式验收。
+- 受影响 owner/session/preview 定向验证 109/109 PASS；保留来源/窗口/document/context/实例、Stop、撤权、ETag、正式数据隔离和未知写入不重放保护。预算的既有 26/26 PASS 证据未失效，不重复执行。回执 `no-extra-approval-checks.tap`；`git diff --check` 通过。
+- 官方 helper 已释放 native UI 锁，并通知「AI 发送队列 · 核心功能续接」可接续操作。Vite/stage/dev watcher 保持运行；本对话接下来仅文档与安全提交，不触发共享源码重载。全 SDK、production、正式包和 95+ 继续延期；核心收尾不自动恢复历史正式验收。

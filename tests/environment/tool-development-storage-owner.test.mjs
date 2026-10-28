@@ -27,17 +27,24 @@ function locks(){
 
 // Both ends clone and asynchronously deliver messages, as runtime.Port does.
 // No production handler, admission check, storage executor or client is stubbed.
-function fixture(t,{senderPatch={},name,timeoutMs=10000}={}){
+function fixture(t,{senderPatch={},name,timeoutMs=10000,panel=false}={}){
   const data={},pairs=[],sent=[],reads=[],sets=[],states=[];
-  const controls={assertHook:async()=>{},verifyHook:async()=>{},setHook:async()=>{},beforePost:()=>{}};
+  const controls={assertHook:async()=>{},verifyHook:async()=>{},setHook:async()=>{},beforePost:()=>{},contextHook:async()=>{},windowId:1};
   let current={previewId,tabId:7,sourceId,tool:{id:'quick-notes',capabilities:['storage.local']},
     sha256,available:true,nativeAuthority:{devLeaseEpoch:1,sessionId:'native-session',leaseEpoch:'lease-3'}};
+  if(panel)current={...current,surface:'sidepanel',windowId:1,tool:{...current.tool,capabilities:['storage.local','currentPage.read']}};
   let clock=Date.now(),localAccesses=0,nativeCalls=0,snapshotCalls=0;
   const sender={id:extensionId,url:`chrome-extension://${extensionId}/sidepanel.html?hostInstanceId=host-1&previewId=${previewId}`,
     tab:{id:7,windowId:1,incognito:false},documentId:'33333333-3333-4333-8333-333333333333',
     frameId:0,documentLifecycle:'active',...senderPatch};
+  if(panel){delete sender.tab;sender.url=`chrome-extension://${extensionId}/sidepanel.html?hostInstanceId=host-1`;
+    Object.assign(sender,senderPatch);}
+  const contexts=[{contextType:'SIDE_PANEL',documentUrl:sender.url,frameId:0,incognito:false,
+    documentId:sender.documentId,contextId:'context-1',windowId:-1,tabId:-1}];
   const onConnect=event();
   const api={runtime:{id:extensionId,getURL:path=>`chrome-extension://${extensionId}/${path}`,onConnect,
+    async getContexts(filter){assert.deepEqual(filter,{contextTypes:['SIDE_PANEL'],documentUrls:[sender.url]});
+      await controls.contextHook();return structuredClone(contexts);},
     connect(options){
       const pair={closed:false},portName=name??options.name;
       function endpoint(side){return {name:portName,...(side==='owner'?{sender:structuredClone(sender)}:{}),
@@ -52,7 +59,7 @@ function fixture(t,{senderPatch={},name,timeoutMs=10000}={}){
       };}
       pair.owner=endpoint('owner');pair.client=endpoint('client');pairs.push(pair);
       queueMicrotask(()=>onConnect.emit(pair.owner));return pair.client;
-    }},storage:{session:{
+    }},windows:{async getCurrent(){return {id:controls.windowId,incognito:false};}},storage:{session:{
       async get(key){reads.push(key);return Object.hasOwn(data,key)?{[key]:structuredClone(data[key])}:{};},
       async set(rows){sets.push(structuredClone(rows));Object.assign(data,structuredClone(rows));await controls.setHook();}
     },get local(){localAccesses++;assert.fail('development grants must never access storage.local');}}};
@@ -62,11 +69,11 @@ function fixture(t,{senderPatch={},name,timeoutMs=10000}={}){
   let owner=createToolDevelopmentStorageOwner(options);
   const clients=[];
   function client(){
-    const value=createDevelopmentStorageSession({api,session:{previewId,sha256:current.sha256},timeoutMs,
+    const value=createDevelopmentStorageSession({api,session:{previewId,sha256:current.sha256,...(panel?{surface:'sidepanel',windowId:1}:{})},timeoutMs,documentUrl:sender.url,
       onState:(...args)=>states.push(args)});clients.push(value);return value;
   }
   t.after(()=>{for(const value of clients)value.revoke();owner.dispose();});
-  return {api,data,pairs,sent,reads,sets,states,controls,client,
+  return {api,data,pairs,sent,reads,sets,states,controls,client,contexts,
     get current(){return current;},set current(value){current=value;},
     get owner(){return owner;},get localAccesses(){return localAccesses;},
     get nativeCalls(){return nativeCalls;},get snapshotCalls(){return snapshotCalls;},
@@ -187,7 +194,7 @@ test('snapshot verification failure never grants storage access',async t=>{
 for(const [label,patch] of [
   ['missing leaseEpoch',{leaseEpoch:undefined}],
   ['zero leaseEpoch',{leaseEpoch:0}],
-  ['empty leaseEpoch',{leaseEpoch:''}],
+
   ['numeric leaseEpoch',{leaseEpoch:3}],
   ['missing sessionId',{sessionId:undefined}],
   ['zero sessionId',{sessionId:0}],
@@ -348,4 +355,183 @@ test('owner revocation before approval result delivery rejects the stale generat
   await assert.rejects(read(client),{code:'E_PREVIEW_GRANT'});
   assert.equal(f.sent.some(row=>row.side==='client'&&row.message.type==='storage'),false);
   assert.equal(f.reads.length,0);assert.equal(f.sets.length,0);
+});
+
+
+test('Side Panel native -1 context binds trusted Host window proof and round-trips storage',async t=>{
+  const {f,client}=await approved(t,{panel:true});
+  const admission=f.sent.find(row=>row.side==='client'&&row.message.type==='approve').message;
+  assert.equal(admission.windowId,1);assert.equal(admission.contextId,'context-1');
+  assert.equal(f.pairs[0].owner.sender.tab,undefined);
+  assert.equal(new URL(f.pairs[0].owner.sender.url).searchParams.has('previewId'),false);
+  await write(client,(await read(client)).etag);assert.equal((await read(client)).value,'你好');
+  const reads=f.reads.length,calls=f.nativeCalls;
+  assert.deepEqual(await client.assertCurrent(instance),{authorized:true});
+  assert.deepEqual(await client.request('currentPage.info',{},instance),{authorized:true});
+  assert.equal(f.reads.length,reads);assert.ok(f.nativeCalls>calls);
+  assert.equal(f.sets.length,1);
+});
+
+for(const [label,patch] of [
+  ['wrong native window',{windowId:2}],['native tab',{tabId:7}],
+  ['child context',{frameId:1}],['incognito',{incognito:true}],
+  ['inactive context',{documentLifecycle:'cached'}],['wrong URL',{documentUrl:'https://example.com'}],
+  ['missing context id',{contextId:''}],['wrong document',{documentId:'replacement'}]
+])test(`Side Panel rejects ${label} before Native/storage admission`,async t=>{
+  const f=fixture(t,{panel:true});Object.assign(f.contexts[0],patch);
+  await assert.rejects(f.client().start(instance),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.nativeCalls,0);assert.equal(f.reads.length,0);assert.equal(f.sets.length,0);
+});
+
+for(const count of [0,2])test(`Side Panel rejects ${count} exact contexts`,async t=>{
+  const f=fixture(t,{panel:true});if(count===0)f.contexts.length=0;else f.contexts.push({...f.contexts[0]});
+  await assert.rejects(f.client().start(instance),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.nativeCalls,0);assert.equal(f.sets.length,0);
+});
+
+test('Side Panel requires actual Host window to match shell session window',async t=>{
+  const f=fixture(t,{panel:true});f.controls.windowId=2;
+  await assert.rejects(f.client().start(instance),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.pairs.length,0);assert.equal(f.nativeCalls,0);
+});
+
+for(const patch of [
+  {tab:{id:7,windowId:1}},
+  {url:`chrome-extension://${extensionId}/sidepanel.html?hostInstanceId=host-1&previewId=${previewId}`}
+])test('Side Panel rejects sender tab or locator even when context matches',async t=>{
+  const f=fixture(t,{panel:true,senderPatch:patch});
+  await assert.rejects(f.client().start(instance),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.nativeCalls,0);assert.equal(f.sets.length,0);
+});
+
+for(const field of ['documentId','contextId'])test(`Side Panel async ${field} replacement blocks commit`,async t=>{
+  const {f,client}=await approved(t,{panel:true});let changed=false;
+  f.controls.assertHook=async()=>{if(!changed){changed=true;f.contexts[0][field]='replacement';}};
+  await assert.rejects(write(client,hash(null)),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.sets.length,0);assert.equal(f.reads.length,0);assert.equal(client.approved,false);
+});
+
+test('Side Panel context replacement during approval rejects late approval',async t=>{
+  const f=fixture(t,{panel:true});f.controls.verifyHook=async()=>{f.contexts[0].contextId='replacement';};
+  await assert.rejects(f.client().start(instance),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.sets.length,0);
+});
+
+test('Side Panel async context lookup cannot survive owner revocation',async t=>{
+  const {f,client}=await approved(t,{panel:true}),entered=deferred(),release=deferred();
+  t.after(()=>release.resolve());
+  f.controls.contextHook=async()=>{entered.resolve();await release.promise;};
+  const rejected=assert.rejects(write(client,hash(null)),{code:'E_OUTCOME_UNKNOWN'});
+  await entered.promise;f.owner.revoke();release.resolve();await rejected;await flush();
+  assert.equal(f.sets.length,0);assert.equal(f.reads.length,0);
+});
+
+test('Side Panel in-place Native lease changes invalidate grant',async t=>{
+  const {f,client}=await approved(t,{panel:true});
+  f.current.nativeAuthority.leaseEpoch='new-lease';
+  await assert.rejects(read(client),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.reads.length,0);assert.equal(f.sets.length,0);
+});
+
+
+test('Side Panel missing sender documentId resolves only through exact native context',async t=>{
+  const f=fixture(t,{panel:true,senderPatch:{documentId:undefined}});
+  f.contexts[0].documentId='native-document';
+  const client=f.client();await client.start(instance);
+  assert.equal((await read(client)).value,null);
+});
+
+for(const field of ['documentId','contextId','windowId','hostInstanceId'])
+  test(`Side Panel owner independently rejects forged transport ${field}`,async t=>{
+    const f=fixture(t,{panel:true});
+    const port=f.api.runtime.connect({name:TOOL_DEVELOPMENT_STORAGE_PORT+previewId});await flush();
+    const response=await rawRequest(port,{type:'approve',requestId:1,sha256,instance,
+      surface:'sidepanel',windowId:1,documentId:f.contexts[0].documentId,contextId:'context-1',
+      hostInstanceId:'host-1',[field]:field==='windowId'?2:'forged'});
+    assert.equal(response.ok,false);assert.equal(response.error.code,'E_PREVIEW_GRANT');
+    assert.equal(f.nativeCalls,0);assert.equal(f.reads.length,0);assert.equal(f.sets.length,0);
+  });
+
+test('Side Panel owner independently rejects ambiguous native contexts',async t=>{
+  const f=fixture(t,{panel:true});f.contexts.push({...f.contexts[0]});
+  const port=f.api.runtime.connect({name:TOOL_DEVELOPMENT_STORAGE_PORT+previewId});await flush();
+  const response=await rawRequest(port,{type:'approve',requestId:1,sha256,instance,
+    surface:'sidepanel',windowId:1,documentId:f.contexts[0].documentId,contextId:'context-1',hostInstanceId:'host-1'});
+  assert.equal(response.ok,false);assert.equal(f.nativeCalls,0);assert.equal(f.sets.length,0);
+});
+
+test('Side Panel owner window change invalidates approval synchronously',async t=>{
+  const {f,client}=await approved(t,{panel:true});f.current={...f.current,windowId:2};
+  await assert.rejects(write(client,hash(null)),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.reads.length,0);assert.equal(f.sets.length,0);
+});
+
+test('Side Panel owner assertion rechecks Workspace and panel pointer before each authorization',async t=>{
+  const {f,client}=await approved(t,{panel:true});let calls=0;
+  f.controls.assertHook=async()=>{if(++calls===2)throw Object.assign(Error('panel pointer replaced'),{code:'E_OWNER'});};
+  await assert.rejects(write(client,hash(null)),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(calls,2);assert.equal(f.sets.length,0);assert.equal(client.approved,false);
+});
+
+test('Side Panel approval rejects in-place Native lease replacement during snapshot await',async t=>{
+  const f=fixture(t,{panel:true});
+  f.controls.verifyHook=async()=>{f.current.nativeAuthority.leaseEpoch='replacement';};
+  await assert.rejects(f.client().start(instance),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.sets.length,0);
+});
+
+
+test('Side Panel currentPage.info requires matching approved instance and rechecks Native owner',async t=>{
+  const f=fixture(t,{panel:true}),client=f.client();
+  await assert.rejects(client.request('currentPage.info',{},instance),{code:'E_PREVIEW_GRANT'});
+  await client.start(instance);
+  await assert.rejects(client.request('currentPage.info',{},previewId),{code:'E_PREVIEW_GRANT'});
+  f.controls.assertHook=async()=>{throw Object.assign(Error('Native disconnected'),{code:'E_NATIVE_DISCONNECTED'});};
+  await assert.rejects(client.request('currentPage.info',{},instance));
+  assert.equal(client.approved,false);assert.equal(f.reads.length,0);assert.equal(f.sets.length,0);
+});
+
+test('Side Panel replacement after write dispatch reports unknown without replay',async t=>{
+  const {f,client}=await approved(t,{panel:true});
+  f.controls.setHook=async()=>{f.contexts[0].documentId='replacement';};
+  await assert.rejects(write(client,hash(null)),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.sets.length,1);assert.equal(client.approved,false);
+  await assert.rejects(write(client,hash(null)),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.sent.filter(row=>row.side==='client'&&row.message.operation==='storage.set').length,1);
+});
+
+
+test('currentPage.info denies undeclared capability without reading a page',async t=>{
+  const {f,client}=await approved(t,{panel:true});
+  f.current.tool.capabilities=['storage.local'];
+  await assert.rejects(client.request('currentPage.info',{},instance),{code:'E_CAPABILITY'});
+  assert.equal(f.sets.length,0);
+});
+
+test('snapshot revocation may rebind consent, but an in-flight write always forbids replay',async t=>{
+  for(const writing of [false,true]){
+    const {f,client}=await approved(t,{panel:true});
+    const entered=deferred(),release=deferred();
+    t.after(()=>release.resolve());
+    let saving;
+    if(writing){
+      const first=await read(client);
+      f.controls.setHook=async()=>{entered.resolve();await release.promise;};
+      saving=assert.rejects(write(client,first.etag),{code:'E_OUTCOME_UNKNOWN'});await entered.promise;
+    }
+    f.owner.revoke('new snapshot',true);await new Promise(resolve=>setImmediate(resolve));
+    if(saving)await saving;
+    assert.equal(f.states.at(-1)[2].canRebind,!writing);
+    release.resolve();
+  }
+});
+
+
+test('durable read-only source binds explicit empty CLI lease and rejects a later CLI lease',async t=>{
+  const f=fixture(t,{panel:true});f.current.nativeAuthority.leaseEpoch='';
+  const client=f.client();await client.start(instance);
+  assert.equal((await read(client)).value,null);assert.ok(f.nativeCalls>=3);
+  f.current.nativeAuthority={...f.current.nativeAuthority,leaseEpoch:'new-cli-lease'};
+  await assert.rejects(read(client),{code:'E_PREVIEW_GRANT'});
+  assert.equal(f.sets.length,0);
 });
