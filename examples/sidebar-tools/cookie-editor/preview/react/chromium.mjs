@@ -690,6 +690,48 @@ try{
   await page.getByText(/E_ACCOUNT_STORAGE_UNAVAILABLE/).waitFor();
   await reset();
  });
+ await test('R2.7 descriptions create, edit, retain on failure and render only when present',async()=>{
+  await scene('accountsFirst');
+  await button('保存当前 Cookie 为账号').click();
+  const displayName=page.getByRole('textbox',{name:'账号名称',exact:true});
+  const description=page.getByRole('textbox',{name:'账号描述（选填）',exact:true});
+  await displayName.fill('工作账号');
+  await description.fill('客服团队日常使用');
+  await button('保存账号').click();
+  const card=page.locator('.cookie-account-card').filter({hasText:'工作账号'});
+  await card.locator('.cookie-account-description').waitFor();
+  assert.equal(await card.locator('.cookie-account-description').innerText(),'客服团队日常使用');
+  assert.match(await card.innerText(),/条关联 Cookie · 完整快照/);
+  await card.getByRole('button',{name:'工作账号更多操作'}).click();
+  await page.getByRole('menuitem',{name:'编辑账号'}).click();
+  assert.equal(await displayName.inputValue(),'工作账号');
+  assert.equal(await description.inputValue(),'客服团队日常使用');
+  await description.fill('仅修改本机描述');
+  await openLab();
+  await page.getByTestId('failure').selectOption('save');
+  await lab.locator('summary').click();
+  await button('保存账号').click();
+  assert.equal(await description.inputValue(),'仅修改本机描述');
+  assert.equal(await page.locator('.cookie-account-card').count(),0);
+  await button('保存账号').click();
+  await card.locator('.cookie-account-description').waitFor();
+  assert.equal(await card.locator('.cookie-account-description').innerText(),'仅修改本机描述');
+  await button('保存当前 Cookie 为账号').click();
+  await button('保存账号').click();
+  assert.equal(await page.locator('.cookie-account-card').count(),2);
+  assert.equal(await page.locator('.cookie-account-description').count(),1);
+ });
+ await test('R2.7 account search matches descriptions',async()=>{
+  await scene('accountsDemo');
+  await button('保存当前 Cookie 为账号').click();
+  await page.getByRole('textbox',{name:'账号描述（选填）',exact:true})
+    .fill('唯一描述搜索关键字');
+  await button('保存账号').click();
+  const search=page.getByRole('searchbox',{name:'搜索账号'});
+  await search.fill('唯一描述搜索关键字');
+  assert.equal(await page.locator('.cookie-account-card').count(),1);
+  assert.equal(await page.locator('.cookie-account-description').innerText(),'唯一描述搜索关键字');
+ });
  await test('blocked/loading/empty/read-only scenes come from SDK responses',async()=>{
   await scene('first');await button('允许管理所有网站 Cookie').waitFor();
   assert.equal(await page.locator('.cookie-row').count(),0);

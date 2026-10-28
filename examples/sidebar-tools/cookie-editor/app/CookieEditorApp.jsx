@@ -296,8 +296,15 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
             item.displayName===payload.displayName&&
             !accountState.accounts.some(before=>before.alias===item.alias))
           :null;
-        if(action==='create'&&!created)
+        if(action==='create'&&(!created||created.description!==payload.description))
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+        if(action==='rename'){
+          const edited=receipt.accounts.find(item=>item.alias===payload.alias&&
+            item.origin===requestedOrigin);
+          if(!edited||edited.displayName!==payload.displayName||
+            edited.description!==payload.description)
+            throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+        }
         if(action==='update'&&verifiedAccount.current?.alias===payload.alias){
           const updated=receipt.accounts.find(item=>item.alias===payload.alias&&
             item.origin===requestedOrigin);
@@ -332,6 +339,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         E_SITE_GRANT_REQUIRED:'网站 Cookie 授权失效，请在工具可信设置中恢复。',
         E_ACCOUNT_EMPTY:'当前站点没有可保存或切换的 Cookie。',
         E_ACCOUNT_NAME_TAKEN:'账号名称已存在，请换一个名称。',
+        E_ACCOUNT_DESCRIPTION:'账号描述无效或超过 120 字；未保存。',
         E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED:'当前 Cookie 的 Domain、Path、Store 或 Partition 范围已变化；旧快照未覆盖。'
       };
       setAccountNotice({kind:'error',text:(hints[code]||'本次操作未确认，请检查权限或账号状态。')+
@@ -709,10 +717,12 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           id:row.id,name:row.name,domain:row.domain,path:row.path,
           storeId:row.storeId,partition:row.partitionKey?.topLevelSite||''
         })):[]}
-        onCreate={displayName=>accountAction('create',{displayName},'已保存当前账号快照。')}
+        onCreate={(displayName,description)=>accountAction('create',{
+          displayName,description},'已保存当前账号快照。')}
         onSwitch={item=>accountAction('switch',{alias:item.alias})}
-        onRename={(item,displayName)=>accountAction('rename',{
-          alias:item.alias,accountVersion:item.version,displayName},'账号已重命名。')}
+        onRename={(item,displayName,description)=>accountAction('rename',{
+          alias:item.alias,accountVersion:item.version,displayName,description},
+          '账号信息已更新。')}
         onUpdate={item=>{
           const proof=verifiedAccount.current,live=controller.snapshot();
           if(!proof||proof.alias!==item.alias||proof.version!==item.version||

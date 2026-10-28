@@ -31,6 +31,9 @@ function checkData(value){
       seen.has(account.alias)||typeof account.displayName!=='string'||
       account.displayName.trim()!==account.displayName||
       account.displayName.length<1||account.displayName.length>64||
+      (account.description!==undefined&&
+        (typeof account.description!=='string'||account.description.length>120||
+         /[\x00-\x1f\x7f]/.test(account.description)))||
       typeof account.origin!=='string'||account.origin.length>320||
       !Array.isArray(account.cookies)||account.cookies.length>100||
       typeof account.allowAuto!=='boolean'||!checkRevision(account.version))
@@ -77,7 +80,9 @@ function checkRecord(row){
   if(utf8(JSON.stringify(row)).length>MAX_PLAIN_BYTES)throw fail('E_VAULT_LIMIT');
   return row;
 }
-const dataOf=row=>({revision:row.revision,accounts:row.accounts,settings:row.settings});
+const dataOf=row=>({revision:row.revision,
+  accounts:row.accounts.map(item=>({...item,description:item.description??''})),
+  settings:row.settings});
 export function createCookieAccountVault({api=globalThis.chrome,storage,
   cryptoImpl=globalThis.crypto}={}){
   let serial=Promise.resolve();
@@ -160,8 +165,9 @@ export function createCookieAccountVault({api=globalThis.chrome,storage,
   const status=()=>exclusive(async()=>{
     const {data,legacyLocked}=await load();
     return {configured:true,unlocked:true,legacyLocked,revision:data.revision,
-      accounts:data.accounts.map(({alias,origin,displayName,version,allowAuto})=>
-        ({alias,origin,displayName,version,allowAuto})),settings:{
+      accounts:data.accounts.map(({alias,origin,displayName,description,version,allowAuto,cookies})=>
+        ({alias,origin,displayName,description,version,allowAuto,
+          cookieCount:cookies.length})),settings:{
         autoRefresh:data.settings.autoRefresh,autoEnabled:data.settings.autoEnabled}};
   });
   async function update(expectedRevision,change){

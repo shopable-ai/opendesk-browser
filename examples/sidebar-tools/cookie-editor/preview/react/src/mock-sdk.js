@@ -1,5 +1,6 @@
 // Fictional transport only. Policy and parsing belong to the real app/ Controller and Domain.
 import {key,sameNativeSlot} from '../../../app/domain/cookie-model.js';
+import {normalizeAccountDescription} from '../../../trusted/account-contract.js';
 export const demoSite='shop.example.com';
 export const demoSites=Object.freeze([demoSite,'docs.example.org','store.example.net']);
 const partitionKey={topLevelSite:'https://partner.example.net',hasCrossSiteAncestor:false};
@@ -67,7 +68,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  const accountMeta=()=>({...clone(demoAccounts),
    accounts:demoAccounts.unlocked?demoAccounts.accounts
      .filter(item=>item.origin==='https://'+currentSite)
-     .map(item=>({...item,cookieCount:demoSnapshots.get(item.alias)?.length||0,
+     .map(item=>({...item,description:item.description??'',
+       cookieCount:demoSnapshots.get(item.alias)?.length||0,
        siteLabel:currentSite,siteUrl:'https://'+currentSite+'/'})):[],
    autoRuntimeReady:demoAccounts.unlocked,preview:true
  });
@@ -166,7 +168,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     if(!['create','rename','update','delete','switch','setAutoEnabled','setAutoRefresh','allowAlias'].includes(action))
       throw error('E_ACCOUNT_REQUEST');
     if(payload.revision!==demoAccounts.revision)throw error('E_VAULT_CONFLICT');
-    if(['create','update'].includes(action)&&['save','unknown'].includes(failure)){
+    if(['create','rename','update'].includes(action)&&['save','unknown'].includes(failure)){
       const attempted=failure;failure='';onFailureConsumed();
       throw error(attempted==='unknown'?'E_OUTCOME_UNKNOWN':'E_ACCOUNT_STORAGE_UNAVAILABLE');
     }
@@ -189,7 +191,9 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
       const alias='acct_preview_'+String(demoAccounts.revision+1).padStart(3,'0');
       demoAccounts.configured=true;
       demoAccounts.accounts.push({alias,origin,
-        displayName:String(payload.displayName).slice(0,64),version:1,allowAuto:false});
+        displayName:String(payload.displayName).slice(0,64),
+        description:normalizeAccountDescription(payload.description),
+        version:1,allowAuto:false});
       demoSnapshots.set(alias,clone(rows));
     }else if(['rename','update','delete','allowAlias'].includes(action)){
       if(!selected)throw error('E_ACCOUNT_NOT_FOUND');
@@ -198,7 +202,12 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
         if(demoAccounts.accounts.some(item=>item.origin===origin&&
           item.alias!==selected.alias&&item.displayName===payload.displayName))
           throw error('E_ACCOUNT_NAME_TAKEN');
-        selected.displayName=String(payload.displayName).slice(0,64);
+        const editedName=String(payload.displayName).slice(0,64);
+        const changedName=editedName!==selected.displayName;
+        selected.description=normalizeAccountDescription(payload.description,
+          selected.description??'');
+        selected.displayName=editedName;
+        if(changedName)selected.version++;
       }
       if(action==='update'){
         const cookieId=row=>JSON.stringify([row.name,row.domain?.replace(/^\./,'').toLowerCase(),
@@ -218,7 +227,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
         demoSnapshots.delete(selected.alias);
       }
       if(action==='allowAlias')selected.allowAuto=payload.enabled===true;
-      selected.version++;
+      if(action!=='rename')selected.version++;
     }else if(action==='setAutoEnabled'||action==='setAutoRefresh'){
       demoAccounts.settings[action==='setAutoEnabled'?'autoEnabled':'autoRefresh']=
         payload.enabled===true;

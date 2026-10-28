@@ -12,3 +12,13 @@ export const COOKIE_ACCOUNT_OPERATIONS=Object.freeze([
 export const COOKIE_ACCOUNT_EFFECTS=Object.freeze(
   COOKIE_ACCOUNT_OPERATIONS.filter(name=>name!=='status')
 );
+
+// Pure metadata validation; the trusted service calls this before Vault writes.
+// Old RPC clients may omit description. No extra account authority is granted.
+export function normalizeAccountDescription(value,prior=''){
+  if(value===undefined)return prior;
+  if(typeof value!=='string'||value.length>120||
+    /[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(value))
+    throw Object.assign(new Error('E_ACCOUNT_DESCRIPTION'),{code:'E_ACCOUNT_DESCRIPTION'});
+  return value.trim().replace(/\s+/g,' ');
+}
