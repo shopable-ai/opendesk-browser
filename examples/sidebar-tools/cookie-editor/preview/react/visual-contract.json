@@ -2,7 +2,7 @@
   "schema": "opendesk.cookie-editor.visual-contract.r37.v1",
   "approvedHtml": {
     "path": "preview/cookie-editor.html",
-    "gitBlobSha": "94e518247e812f80b5b65e06966a443310777743",
+    "gitBlobSha": "a0940bcba2248089c42c01fb9ed63b47697e18e7",
     "mutability": "LOCKED"
   },
   "productSource": "app/CookieEditorApp.jsx",

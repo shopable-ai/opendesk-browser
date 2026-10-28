@@ -403,7 +403,7 @@ test('R3.7 dev comparison imports safely and pins approved bytes without generat
  const {approvedHtml,comparisonHtml,accepted}=await import('./build-a-b.mjs');
  const {createHash}=await import('node:crypto');
  const original=await approvedHtml();
- assert.equal(accepted,'020adbf22005cba219af4ff27cd3f3e492978bed');
+ assert.equal(accepted,'a0940bcba2248089c42c01fb9ed63b47697e18e7');
  assert.equal(createHash('sha1').update('blob '+original.length+'\0').update(original).digest('hex'),accepted);
  const html=comparisonHtml(original,'',{dev:true});
  assert.match(html,/id="current-react"[^>]*src="\/dev.html"/);

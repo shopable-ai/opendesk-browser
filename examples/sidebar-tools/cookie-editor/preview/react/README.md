@@ -3,7 +3,7 @@
 在本目录使用 Node 24 运行 `npm run dev`，固定监听 `127.0.0.1:43134`，端口占用直接失败。
 
 - `/dev.html` 由 Vite 直接转换现有 `src/main.jsx` → 同一正式 `app/CookieEditorApp.jsx`；不读取旧生成 `index.html`。
-- `/a-b-dev.html` 复用 `build-a-b.mjs` 的 wrapper 函数；左侧严格验证认可 HTML Blob `020adbf22005cba219af4ff27cd3f3e492978bed`，右侧同源加载 `/dev.html`，不生成 `a-b.html`。
+- `/a-b-dev.html` 复用 `build-a-b.mjs` 的 wrapper 函数；左侧严格验证认可 HTML Blob `a0940bcba2248089c42c01fb9ed63b47697e18e7`，右侧同源加载 `/dev.html`，不生成 `a-b.html`。
 - `/dev-product.css` 每次请求重新执行 `compileSharedToolCss` / `canonicalThemeOverride`，读取当前 `src/react.css`、唯一 tokens 和共享组件样式；这些源及固定运行时变更触发 dev 页面刷新。
 - 固定 React 19.2.0 与已有 `dist/development/sidebar-shared-ui.js` 只读复用，不构建 Shared UI，不写 extension watcher 输出。
 - `/dev-source.json` 返回当前 App、预览源码、样式、固定运行时的逐文件 SHA-256、聚合 `sourceHash` 和 `generatedHtmlUsed: false`。dev 证据不能标成静态构建或原生安装 PASS。
