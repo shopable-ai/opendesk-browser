@@ -11,6 +11,7 @@ const failureText=(failure,t)=>{
   if(code.includes('RECOVERY_REQUIRED'))return t('recoveryRequired');
   if(code==='E_TOOL_CHANGED')return t('toolChanged');
   if(code==='E_TOOL_NO_LOCALIZATION')return t('noLocalization');
+  if(code==='E_LOCALE_PACK_STALE')return t('staleRejected');
   if(code.includes('QUOTA'))return t('quota');
   if(code==='E_UI_LOCALE_STORAGE')return t('localeStorage');
   if(failure instanceof SyntaxError)return t('invalidJson');
@@ -33,7 +34,7 @@ export default function LocaleManager({model}){
   const {service,localeController}=model;
   const tools=model.tools||[];
   const [toolId,setToolId]=React.useState(model.toolId||tools[0]?.id||'');
-  const [target,setTarget]=React.useState('en');
+  const [target,setTarget]=React.useState('ja');
   const [view,setView]=React.useState(model.importPack?'packs':'settings');
   const [composeOpen,setComposeOpen]=React.useState(false);
   const [customLocale,setCustomLocale]=React.useState('');
@@ -71,10 +72,6 @@ export default function LocaleManager({model}){
   const requested=toolPreference||globalLocale;
   const effective=catalog?.locale;
   const missingLanguage=Boolean(effective&&effective!==requested);
-  const updateTargetForTool=()=>{
-    if(!preview&&!model.importPack)setTarget(effective||'en');
-  };
-  React.useEffect(updateTargetForTool,[toolId,serviceStatus]);
   const report=failure=>setError(()=>failure);
   React.useEffect(()=>{alive.current=true;return ()=>{alive.current=false;};},[]);
   const syncGlobal=()=>{
@@ -160,9 +157,6 @@ export default function LocaleManager({model}){
     downloadLocaleData(pack,toolId+'.'+language+'.locale-template.json');
     setNotice({key:'templateDone'});
   });
-  const installedPack=packs.find(pack=>pack.targetLocale===target);
-  const locales=[...new Set(['en','zh-CN','zh-TW','ja',tool?.localization?.sourceLocale,
-    ...Object.keys(tool?.localization?.messages||{}),...packs.map(pack=>pack.targetLocale)].filter(Boolean))];
   // Only the verified service/catalog can claim translated and missing entries.
   const sourceLocale=tool?.localization?.sourceLocale;
   const totalEntries=Object.keys(tool?.localization?.messages?.[sourceLocale]||{}).length;
@@ -178,11 +172,6 @@ export default function LocaleManager({model}){
     return {language,pack,translated:totalEntries-missing,stale,
       origin:language===sourceLocale?'sourceResource':pack?'importedPack':'builtinPack'};
   }):[];
-  let targetMissing=null;
-  if(ready&&target&&target!==sourceLocale){
-    try{targetMissing=service.exportTranslationTask(tool,target).translationKeys.length;}
-    catch{/* The installed service owns BCP47/source validation. */}
-  }
   React.useLayoutEffect(()=>{
     if(view==='preview'&&preview)previewRef.current?.focus({preventScroll:true});
     else if(pendingDelete)deleteRef.current?.focus({preventScroll:true});
