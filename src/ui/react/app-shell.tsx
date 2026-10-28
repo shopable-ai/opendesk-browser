@@ -17,6 +17,7 @@ const subscribeEmptyTool=()=>()=>{};
 
 export function SidebarAppShell({
   activeTab='tasks',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{},
+  onStopAppDebug=()=>{},
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
   developerView,myView,myAgent=null,toolView=null,workflowController=null,providerSettings=null,
   providerSettingsOpen=false,onOpenProviderSettings=()=>{},onCloseProviderSettings=()=>{},
@@ -58,6 +59,11 @@ export function SidebarAppShell({
         className="od-page" data-workbench-page={activeTab==='app-debug'?'app-debug':'tools'}
         hidden={activeTab!=='tools'&&activeTab!=='app-debug'}>
         <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具">
+          {activeTab==='app-debug'&&<div className="od-toolbar" role="group" aria-label="应用调试控制">
+            <span className="hint">本地快照 · 未安装</span>
+            <button type="button" className="od-button od-button--secondary"
+              onClick={onStopAppDebug}>停止调试</button>
+          </div>}
           <div id="sidebar-tool-list-view" hidden={activeTab==='app-debug'||toolSnapshot.fields['sidebar-tool-display']?.hidden===false}>
             <section id="extension-center" aria-label="扩展管理">
               <ExtensionCenterPage {...extensionProps}/>
