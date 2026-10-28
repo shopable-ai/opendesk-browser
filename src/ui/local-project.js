@@ -119,7 +119,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       !row?'selection-needed':backgroundError||preparation?.state==='source-error'?'source-error':
       ready?'ready':'preparing'}});
     patchDeveloperField(view,status,{textContent:!local?'':checking?'正在检查本机连接…':message||(
-      row?.fileOnly?(workspaceOpenError?.bindingId===row.bindingId?workspaceOpenError.message:'所选目录已连接，可打开文件工作区或点击「实时开发预览 ↗」。预览不要求可运行源码 Provider，不会安装工具或运行 npm。'+(programsFor(row).length>1?'运行程序时请选择具体入口。':'')):
+      row?.fileOnly?(workspaceOpenError?.bindingId===row.bindingId?workspaceOpenError.message:'所选目录已连接，可打开文件工作区或点击「在侧栏调试 ↗」。预览不要求可运行源码 Provider，不会安装工具或运行 npm。'+(programsFor(row).length>1?'运行程序时请选择具体入口。':'')):
       !connected&&workspaces.length?'请选择已授权项目；等待该项目的运行入口与源码 Provider 就绪。':
       !connected?(nativeConnected?sourceUnavailable:'本地项目服务未连接；已授权的项目仍保留，恢复 Native 后自动检查。'):
       !projects.length?'暂无可运行的已授权项目。目录授权使用 opendesk browser dev .；单文件授权使用 opendesk browser project add。':
@@ -401,7 +401,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     // The trusted click hands off through the existing one-shot session intent.
     // No existing Workspace is navigated, preserving its current source/draft.
     void openToolPreviewWorkspace({api,sourceId,toolId:toolId||null,surface:'sidepanel'})
-      .catch(error=>{if(!disposed)pointerMessage='未能打开实时开发预览：'+errorText(error,'E_WORKSPACE_OPEN');})
+      .catch(error=>{if(!disposed)pointerMessage='未能打开侧栏应用调试：'+errorText(error,'E_WORKSPACE_OPEN');})
       .finally(()=>{previewOpening=false;if(!disposed)render();});
   });
   function openWorkspace(event){
