@@ -6,7 +6,7 @@
     "examples/sidebar-tools/ai-send-queue/scripts/stage-react-candidate.mjs"
   ],
   "browser": [
-    "examples/sidebar-tools/ai-send-queue/scripts/crown-r53-chromium.mjs"
+    "examples/sidebar-tools/ai-send-queue/scripts/ci-current-chromium.mjs"
   ],
   "extraCandidate": "artifacts/sidebar-tools/ai-send-queue/react-candidate.opendesk-tool.json"
 }

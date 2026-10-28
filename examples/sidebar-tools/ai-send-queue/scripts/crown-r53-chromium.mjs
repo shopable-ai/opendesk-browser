@@ -6,9 +6,11 @@ import {resolve,join} from 'node:path';
 import {tmpdir} from 'node:os';
 const root=resolve('.'),previous='examples/programs/chatgpt-send-queue/preview/index.html',src='examples/sidebar-tools/ai-send-queue/preview/index.html';
 const dir=resolve(process.argv[2]||'artifacts/send-queue-crown-r54');
-const before=execFileSync('git',['show','633c9326ffc3ca2e45e95ffa7e7b6cb1ba74e499:'+previous],{encoding:'utf8',maxBuffer:8e6});
+const currentOnly=process.argv.includes('--current-only'); // Explicit, non-historical App CI.
+const before=currentOnly?null:execFileSync('git',['show','633c9326ffc3ca2e45e95ffa7e7b6cb1ba74e499:'+previous],{encoding:'utf8',maxBuffer:8e6});
 const after=await readFile(join(root,src),'utf8');
-assert.match(before,/R5\.3 CROWN-FIT-BEGIN/);assert.match(after,/R5\.4 CROWN-USER-FIT-BEGIN/);
+if(before)assert.match(before,/R5\.3 CROWN-FIT-BEGIN/);
+assert.match(after,/R5\.4 CROWN-USER-FIT-BEGIN/);
 const profile=await mkdtemp(join(tmpdir(),'sq-crown-'));
 let chrome,ws,seq=0;const calls=new Map(),sleep=ms=>new Promise(ok=>setTimeout(ok,ms));
 function cdp(method,params={}){let id=++seq;return new Promise((ok,fail)=>{
@@ -47,9 +49,9 @@ async function smoke(){const r=await ev('(()=>{const q=s=>document.querySelector
 try{await mkdir(dir,{recursive:true});
   chrome=spawn(process.env.CHROME_BIN||'chromium',['--headless=new','--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--user-data-dir='+profile,'--remote-debugging-port=0','about:blank'],{stdio:'ignore'});
   await connect();const version=(await cdp('Browser.getVersion')).product;const samples=[];let oldAlpha;const selected=new Map();
-  for(const [rev,html] of [['before',before],['after',after]]){await load(html);const geometry=await alpha();
+  for(const [rev,html] of [...(before?[['before',before]]:[]),['after',after]]){await load(html);const geometry=await alpha();
     if(rev==='before')oldAlpha=geometry;else {
-      assert.deepEqual(geometry,oldAlpha,'unexpected WebP change');
+      if(before)assert.deepEqual(geometry,oldAlpha,'unexpected WebP change');
       // R5.5 starts genuinely empty; capture and verify both neutral themes
       // before using the already shipped "show 3 examples" preview action.
       const empty=await ev('(()=>{const q=s=>document.querySelector(s),bg=()=>getComputedStyle(q("#queue")).backgroundColor;const cue=q("#rows").textContent;const light=bg();q("#themes [data-value=dark]").click();const dark=bg();q("#themes [data-value=light]").click();return {n:window.__sendQueuePreview().items.length,empty:q("#queue").classList.contains("sq-empty"),cue,light,dark}})()');
@@ -72,7 +74,7 @@ try{await mkdir(dir,{recursive:true});
       assert.ok(m.hit&&m.artwork&&m.pointer==='none',name+' hit/asset');
       const scene=[size,theme,width].join(':');
       if(rev==='before')selected.set(scene,m);
-      else {
+      else if(before) {
         const comparison=[size,theme,width===520?440:width].join(':');
         const prev=selected.get(comparison);assert.ok(prev,'missing selected scene '+comparison);
         for(const key of ['w','h','x','y','angle'])
@@ -91,6 +93,6 @@ try{await mkdir(dir,{recursive:true});
     }
     if(rev==='after')await smoke();
   }
-  await writeFile(join(dir,'metrics.json'),JSON.stringify({evidence:'SOURCE_BOUND_CHROMIUM',chrome:version,deviceScaleFactor:1,macChromeTested:false,samples},null,2));
-  console.log('CROWN_R54_BROWSER_PASS '+samples.length+' genuine HTML scenes '+version);
+  await writeFile(join(dir,'metrics.json'),JSON.stringify({evidence:currentOnly?'CURRENT_ONLY_CHROMIUM':'SOURCE_BOUND_CHROMIUM',baselineCompared:!currentOnly,chrome:version,deviceScaleFactor:1,macChromeTested:false,samples},null,2));
+  console.log((currentOnly?'CROWN_CURRENT_ONLY_BROWSER_PASS ':'CROWN_R54_BROWSER_PASS ')+samples.length+' genuine HTML scenes '+version);
 }finally{try{ws?.close()}catch{}try{chrome?.kill()}catch{}await sleep(250);await rm(profile,{recursive:true,force:true})}
