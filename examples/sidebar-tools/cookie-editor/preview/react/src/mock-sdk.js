@@ -67,7 +67,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  const accountMeta=()=>({...clone(demoAccounts),
    accounts:demoAccounts.unlocked?demoAccounts.accounts
      .filter(item=>item.origin==='https://'+currentSite)
-     .map(item=>({...item,siteLabel:currentSite,siteUrl:'https://'+currentSite+'/'})):[],
+     .map(item=>({...item,cookieCount:demoSnapshots.get(item.alias)?.length||0,
+       siteLabel:currentSite,siteUrl:'https://'+currentSite+'/'})):[],
    autoRuntimeReady:demoAccounts.unlocked,preview:true
  });
  const seedRows=hostname=>{
@@ -179,6 +180,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     }
     if(action==='create'){
       if(!payload.displayName||!rows.length)throw error('E_ACCOUNT_EMPTY');
+      if(demoAccounts.accounts.some(item=>item.origin===origin&&
+        item.displayName===payload.displayName))throw error('E_ACCOUNT_NAME_TAKEN');
       const alias='acct_preview_'+String(demoAccounts.revision+1).padStart(3,'0');
       demoAccounts.configured=true;
       demoAccounts.accounts.push({alias,origin,
@@ -187,8 +190,24 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     }else if(['rename','update','delete','allowAlias'].includes(action)){
       if(!selected)throw error('E_ACCOUNT_NOT_FOUND');
       if(selected.version!==payload.accountVersion)throw error('E_VAULT_CONFLICT');
-      if(action==='rename')selected.displayName=String(payload.displayName).slice(0,64);
-      if(action==='update')demoSnapshots.set(selected.alias,clone(rows));
+      if(action==='rename'){
+        if(demoAccounts.accounts.some(item=>item.origin===origin&&
+          item.alias!==selected.alias&&item.displayName===payload.displayName))
+          throw error('E_ACCOUNT_NAME_TAKEN');
+        selected.displayName=String(payload.displayName).slice(0,64);
+      }
+      if(action==='update'){
+        const cookieId=row=>JSON.stringify([row.name,row.domain?.replace(/^\\./,'').toLowerCase(),
+          row.path,row.storeId,row.partitionKey?.topLevelSite||null,
+          Boolean(row.partitionKey?.hasCrossSiteAncestor)]);
+        const keys=list=>list.map(cookieId).sort();
+        const previous=demoSnapshots.get(selected.alias)||[];
+        if(JSON.stringify(keys(previous))!==JSON.stringify(keys(rows)))
+          throw error('E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED');
+        if(JSON.stringify(previous)===JSON.stringify(rows))
+          return {...accountMeta(),unchanged:true};
+        demoSnapshots.set(selected.alias,clone(rows));
+      }
       if(action==='delete'){
         if(demoAccounts.currentAlias===selected.alias)demoAccounts.currentAlias=null;
         demoAccounts.accounts.splice(demoAccounts.accounts.indexOf(selected),1);
