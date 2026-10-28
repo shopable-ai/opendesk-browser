@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as React from 'react';
-import {createRoot} from 'react-dom/client';
 import {parseHTML} from 'linkedom';
 import {translateUiText} from '../../src/i18n/strings.js';
 import {verifyLocaleCatalogs} from '../../src/i18n/index.js';
@@ -33,6 +32,7 @@ test('R5.25 changing OpenDesk default language updates the real React tablist wi
   const keys=['window','document','IS_REACT_ACT_ENVIRONMENT'];
   const originals=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
   Object.assign(globalThis,{window,document,IS_REACT_ACT_ENVIRONMENT:true});
+  const {createRoot}=await import('react-dom/client');
   const root=createRoot(document.getElementById('mount'));
   const developerView=createDeveloperView(),myView=createMyWorkbenchView();
   const subscribers=new Set();
