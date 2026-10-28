@@ -243,7 +243,7 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   let initialized = 0, disposed = 0, editing = false;
   const calls = [];
  const methods = ['openTool', 'openSettings', 'toggleEnabled', 'uninstallFromList', 'retryUninstallCleanup', 'openOfficialReview', 'openOfficialPageReview', 'openPagePackageReview',
-    'openImport', 'openReadOnlyPreview', 'openInTab', 'closeTool'];
+    'openImport', 'openReadOnlyPreview', 'stopReadOnlyPreview', 'openInTab', 'closeTool'];
   const facade = view.connect(() => {
     initialized++;
     for (const node of Object.values(view.runtime)) assert.equal(node.ownerDocument, document);

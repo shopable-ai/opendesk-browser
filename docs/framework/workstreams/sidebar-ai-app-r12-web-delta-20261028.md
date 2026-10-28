@@ -45,3 +45,12 @@
 - 真实失败：调试运行时「扩展 → 导入扩展」被 openImport 的 active 条件拒绝。最小修复只允许只读开发预览期间打开原抽屉；已安装应用的 active 拒绝仍保留。新增两项定向测试，先复现一失败一通过，修复后连同原导入用例为 3/3 PASS；真实 Chrome 复验抽屉可见、取消后预览仍在。未执行安装操作或改写正式数据。
 - 证据集中在 artifacts/sidebar-ai-app-r13-local-20261028/visible-react-evidence.json，包含每次 JSX 源码 SHA、buildId、快照 SHA 与对应 .png/.ax.txt；sidepanel-chrome-context.png/.ax.txt 为 Chrome 实际上下文回执。入口恢复后的 Host 差量安全重载产生新 hostInstanceId 0e82b2ce-a943-4047-84ca-6609e0289400，随后从正式入口重建会话并复验导入；不把新实例冒充原双更新实例。
 - 目前已证明双更新、编译错误保留/恢复和导航；Stop、跨窗口、断连与旧请求失效仍在执行，P0 尚未整体完成。SDK 仍未授权，真实存储/ETag 为 BLOCKED；P1/P2 尚未开始。八维正式验收未评分，不给综合 95+。
+
+## R1.3 LOCAL · Stop 转接修复与续接边界（2026-10-28）
+
+- 真实失败：点击「停止调试」后更新订阅已断开，但旧 iframe、应用调试 Tab 和窗口 pointer 仍在。定位到 React view façade 漏转发现有 controller.stopReadOnlyPreview，导致 detachPanelPreview 中途抛错；不重写 Host 或停止逻辑，只补一处方法转发。
+- 定向验证：原 React runtime refs 用例增加 Stop 转发后先复现 TypeError，修复后 sidebar-tools-view.test.mjs 13/13 PASS；新增 controller Stop 测试 1/1 PASS，确认移除 iframe、旧实例请求无回复、重复 Stop 无副作用且未触及正式存储。
+- 原 dev watcher 自动发布 revision 5e7f6efeb643d9692546275309ea8728dfb7d5c2158129095165e91d08d925ac。真实新 hostInstanceId e844c1dd-7a45-40ca-8524-1fc5d065f2b6 点击 Stop 后退回「开发」，应用调试 Tab 和旧界面均消失；随后 JSX 临时改为「Stop 隔离检查」并发布新快照 7403c6a0ce930d1af41bcbea991b8096728bd463263500bb20dce65e78597f3d，旧预览没有恢复。App.jsx 已恢复，无正式源码或安装包变更。
+- 证据：artifacts/sidebar-ai-app-r13-local-20261028/stop-fixed.png、stop-fixed.ax.txt、stop-after-next-build.ax.txt。第二个真实 Chrome 窗口 hostInstanceId dfb1ef89-044a-426c-adc6-4521d4e3ac3f 初开不继承应用调试，显式经正式入口后才能显示；证据 second-window-isolated.png/.ax.txt。Workspace 移窗操作尚未得到最终确认，不标 PASS。
+- 共享 dev owner「完成 AI 队列 R5.10 验收」已明确当前不依赖日常 ccfc 扩展 NativeAgent，原生断连验证可在协调范围内继续，但本轮交接前尚未执行。保留原服务运行。P0 生命周期仍为 PARTIAL；SDK 真实联调 BLOCKED，P1/P2 未实施，不作八维正式评分。
+- 用户要求创建新对话继续。接收方先完成跨窗口 owner 替换、Native 断连与旧实例失效，再进入 Side Panel 真实 SDK。准备交接时原对话 goal 最新实读为 paused（本轮未调用状态修改工具）；创建不会自动迁移或完成它，原对话移交后不重复操作接收方资源。

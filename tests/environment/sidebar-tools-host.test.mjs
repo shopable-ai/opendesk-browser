@@ -1794,6 +1794,24 @@ test('uninstalled read-only preview cannot write, run Task or invoke page operat
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
 });
 
+test('stopping a read-only preview removes its frame and ignores the retired instance',async t=>{
+  const f=await hostFixture(t,{startTool:false});
+  f.host.openReadOnlyPreview(sample);
+  const frame=f.elements['sidebar-tool-frame'].children[0];
+  await frame.onload();const loaded=frame.contentWindow.sent[0];
+  assert.equal(f.host.stopReadOnlyPreview(),true);
+  assert.equal(f.host.isPreviewActive(),false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  const replies=frame.contentWindow.sent.length;
+  globalThis.window.emit('message',{source:frame.contentWindow,origin:'null',
+    data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,
+      kind:'request',requestId:'retired-preview',operation:'storage.get',payload:{key:'note'}}});
+  await pause();await pause();
+  assert.equal(frame.contentWindow.sent.length,replies,'retired preview receives no response');
+  assert.equal(f.host.stopReadOnlyPreview(),false,'Stop is idempotent');
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+});
+
 test('R18.1 conditional writes atomically reject a stale full-array replacement',async t=>{
   const f=await hostFixture(t);
   const response=async id=>{
