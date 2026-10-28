@@ -290,10 +290,9 @@ function ScrollSiteManager({model}){
     return ()=>{live=false;};
   },[model.identityKey]);
   const change=(key,value)=>{
-    setDraft(current=>{
-      const next={...(current||EMPTY_SCROLL_SITE),[key]:value};
-      ref.current.onDraftChange(next,editingKey);return next;
-    });
+    const next={...(draft||EMPTY_SCROLL_SITE),[key]:value};
+    setDraft(next);
+    ref.current.onDraftChange(next,editingKey);
     setError('');setNotice('');
   };
   const open=(item=null)=>{

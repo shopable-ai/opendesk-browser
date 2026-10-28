@@ -143,13 +143,13 @@ test('market review and success use one dialog with clear facts and no repeated 
   let doc=render(),dialog=doc.querySelector('#sidebar-tool-import');
   assert.equal(doc.querySelectorAll('#sidebar-tool-import').length,1);
   assert.equal(dialog.getAttribute('role'),'dialog');
-  assert.equal(dialog.querySelector('dd:last-child').textContent,'v1.0.0');
-  assert.match(dialog.querySelector('.od-market-facts').textContent,/http:\/\/127.0.0.1:43132/);
-  assert.equal(dialog.querySelectorAll('[aria-label="申请权限"]').length,1);
+  assert.equal(dialog.querySelector('.od-market-version-numbers strong')?.textContent,'v1.0.0');
+  assert.match(dialog.querySelector('.od-market-publisher').textContent,/127.0.0.1:43132/);
+  assert.equal(dialog.querySelectorAll('section[aria-labelledby="od-market-permissions-title"]').length,1);
   assert.equal(dialog.querySelector('img'),null,'market description stays escaped');
   assert.doesNotMatch(dialog.textContent,/本次新增/,'first install does not repeat the same permission list');
   view.setMarketInstall({review:{...view.getSnapshot().market.review,
-    details:{...details,previousVersion:'0.9.0',addedCapabilities:[]}}});
+    details:{...details,previousVersion:'0.9.0',previousDisabled:true,addedCapabilities:[]}}});
   assert.match(render().querySelector('#sidebar-tool-import').textContent,/已停用的应用更新后仍保持停用/);
   view.setMarketInstall({review:{...view.getSnapshot().market.review,phase:'installed',
     message:'已安装 v1.0.0，可以直接打开使用。',technical:[],
@@ -157,8 +157,8 @@ test('market review and success use one dialog with clear facts and no repeated 
   doc=render();dialog=doc.querySelector('#sidebar-tool-import');
   assert.equal(doc.querySelectorAll('#sidebar-tool-import').length,1);
   assert.equal(dialog.dataset.phase,'installed');
-  assert.equal(dialog.querySelector('[aria-label="申请权限"]'),null);
-  assert.equal(dialog.querySelector('.od-disclosure'),null);
+  assert.equal(dialog.querySelector('section[aria-labelledby="od-market-permissions-title"]'),null);
+  assert.ok(dialog.querySelector('.od-market-advanced'),'advanced release provenance remains available after install');
   assert.doesNotMatch(dialog.textContent,/确认安装|取消安装|关闭可稍后继续/);
   assert.deepEqual([...dialog.querySelectorAll('.od-market-footer button')].map(node=>node.textContent),['打开使用','完成']);
   view.dispose();
@@ -446,6 +446,8 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
       return document.getElementById(id);
     },
     querySelectorAll: selector => document.querySelectorAll(selector),
+    addEventListener: (...args) => document.addEventListener(...args),
+    removeEventListener: (...args) => document.removeEventListener(...args),
     createElement(tag) {
       assert.equal(tag, 'iframe', 'the Host may create only its real sandbox transport');
       return document.createElement(tag);
