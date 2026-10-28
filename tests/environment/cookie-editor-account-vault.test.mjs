@@ -89,7 +89,8 @@ test('valid trusted session key migrates once, preserving old ciphertext and rev
   const f=storageFixture(),{row,data}=await legacy(f);
   const store=create(f),status=await store.status();
   assert.equal(status.legacyLocked,false);assert.equal(status.revision,7);
-  assert.deepEqual((await store.read()).accounts,data.accounts);
+  assert.deepEqual((await store.read()).accounts,
+    data.accounts.map(item=>({...item,description:''})));
   assert.deepEqual(f.local.get(COOKIE_ACCOUNT_VAULT_KEY),row);
   assert.ok(f.access.includes('session'));
   f.session.clear();delete f.api.storage.session;
