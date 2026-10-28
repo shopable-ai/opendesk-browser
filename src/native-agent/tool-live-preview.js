@@ -76,6 +76,10 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
     try{
       await assertCurrent();if(closed)return;
       if(pointerKey){
+        // The Native Workspace tab must still belong to the very window that
+        // explicitly opened this Side Panel preview. Moving it revokes authority.
+        const workspaceTab=await api.tabs.getCurrent?.();
+        if(workspaceTab?.windowId!==windowId)throw new Error('开发 Workspace 已离开原窗口');
         // Another explicit same-window development session takes ownership;
         // an older Workspace must never reclaim this Panel or its grant.
         const pointer=(await api.storage.session.get(pointerKey))[pointerKey];
