@@ -31,7 +31,7 @@ const mockOutcomes={
 };
 
 export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
-  const [recipientType,setRecipientType]=React.useState('named');
+  const [recipientType,setRecipientType]=React.useState('anonymous');
   const [recipient,setRecipient]=React.useState('');
   const [expiry,setExpiry]=React.useState('1d');
   const [maxClaims,setMaxClaims]=React.useState('1');
@@ -59,11 +59,11 @@ export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
         <fieldset className="cookie-share-options">
           <legend>邀请方式</legend>
           <label><input type="radio" name="cookie-share-recipient"
-            checked={recipientType==='named'} onChange={()=>updateType('named')}/>
-            指定用户</label>
-          <label><input type="radio" name="cookie-share-recipient"
             checked={recipientType==='anonymous'} onChange={()=>updateType('anonymous')}/>
             匿名邀请</label>
+          <label><input type="radio" name="cookie-share-recipient"
+            checked={recipientType==='named'} onChange={()=>updateType('named')}/>
+            指定用户</label>
         </fieldset>
         {recipientType==='named'&&<label className="cookie-share-field">
           指定用户邮箱
