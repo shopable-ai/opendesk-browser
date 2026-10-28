@@ -91,6 +91,12 @@ export default async function main({assets}={}) {
           !window.confirm('发送结果可能已生效。请先检查原对话。确定仍要删除这条消息吗？'))return;
         engine.remove(id);
       },
+      pause(id){
+        if(!engine.pause(id))notify('此消息正在发送或状态未知，暂不能暂停');
+      },
+      resume(id){
+        if(!engine.resume(id))notify('此消息正在发送或状态未知，暂不能恢复');
+      },
       sendNow(id){
         if(view?.hasRecovery()){
           notify('请先复制未入队的原草稿，再强制发送');return;

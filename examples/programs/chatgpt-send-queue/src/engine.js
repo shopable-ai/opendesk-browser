@@ -6,7 +6,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     expanded:false,inFlight:null,answerGate:null,lastConfirmed:null,forceId:null};
   let sequence=0, idleSince=null;
   const emit=()=>change(view());
-  const current=()=>items[0]||null;
+  const current=()=>items.find(item=>item.state!=='paused')||null;
   const markUnknown=(why)=>{
     if(state.inFlight) {state.inFlight.item.state='unknown';state.inFlight.phase='unknown';}
     state.phase='unknown';state.reason=why;
@@ -45,6 +45,19 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     if (state.phase==='waiting') state.reason='';
     emit();return true;
   }
+  // Pausing keeps this row's ID and order; only the dispatcher skips it.
+  function pause(id) {
+    const item=items.find(v=>v.id===id);
+    if(!item||item.state!=='queued'||state.phase==='unknown'||
+      state.inFlight?.item===item)return false;
+    item.state='paused';idleSince=null;emit();return true;
+  }
+  function resume(id) {
+    const item=items.find(v=>v.id===id);
+    if(!item||item.state!=='paused'||state.phase==='unknown'||
+      state.inFlight?.item===item)return false;
+    item.state='queued';idleSince=null;emit();return true;
+  }
   function remove(id) {
     const item=items.find(v=>v.id===id);
     if(!item || (state.inFlight?.item===item && state.inFlight.phase!=='unknown'))return false;
@@ -63,7 +76,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   function move(id,toIndex) {
     const i=items.findIndex(v=>v.id===id);
     if(i<0||toIndex<0||toIndex>=items.length||state.inFlight?.item===items[i])return false;
-    const [item]=items.splice(i,1);items.splice(toIndex,0,item);emit();return true;
+    const [item]=items.splice(i,1);items.splice(toIndex,0,item);idleSince=null;emit();return true;
   }
   // 'Edit' means reclaiming one unsent item into the official composer.
   // Removal is atomic from the queue's perspective and never a send request.
@@ -78,6 +91,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
   function requestNow(id) {
     const item=items.find(v=>v.id===id);
     if(!item || state.phase==='unknown' || state.inFlight)return {ok:false};
+    if(item.state==='paused')return {ok:false,reason:'请先恢复这条消息'};
+    if(item.state!=='queued')return {ok:false};
     const snap=site.inspect();
     if(!snap.ok || snap.route!==state.route)return {ok:false,reason:'会话已变化'};
     if(snap.rich || snap.composing || snap.draft!=='')return {ok:false,reason:'请先处理原生草稿、附件或输入法'};
@@ -87,7 +102,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     move(id,0);state.reason='';idleSince=null;emit();return {ok:true};
   }
   function confirmForceStop(id) {
-    if(state.phase==='unknown' || state.inFlight || !items.some(v=>v.id===id))return false;
+    if(state.phase==='unknown' || state.inFlight || !items.some(v=>v.id===id&&v.state==='queued'))return false;
     const snap=site.inspect();
     if(!snap.ok || snap.route!==state.route || snap.rich || snap.composing || snap.draft!=='')return false;
     return beginForceStop(items.find(v=>v.id===id),snap);
@@ -210,6 +225,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
       emit();
     }
     if(state.inFlight || !items.length)return;
+    const eligible=current();
+    if(!eligible){idleSince=null;return;}
     if(!canSubmit){idleSince=null;return;}
     if(snap.busy || !snap.idle || (snap.assistants.length>0&&!snap.answerComplete) || snap.rich || snap.composing || snap.draft!=='') {
       const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.composing?'等待输入法完成':snap.draft!==''?'原生草稿非空，等待用户处理':'等待当前回复结束';
@@ -218,8 +235,8 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}}) {
     }
     if(idleSince===null)idleSince=t;
     if(t-idleSince<IDLE_MS)return;
-    state.reason='';startSubmit(snap,current());
+    state.reason='';startSubmit(snap,eligible);
   }
-  return Object.freeze({view,checkEnqueue,enqueue,wait,uncertain,remove,reclaim,move,
+  return Object.freeze({view,checkEnqueue,enqueue,wait,uncertain,pause,resume,remove,reclaim,move,
     toggleExpanded,requestNow,confirmForceStop,tick});
 }

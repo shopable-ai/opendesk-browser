@@ -771,7 +771,7 @@ for(const failure of ['mayHaveWritten','throw']) {
 }
 
 
-test('submission availability blocks prepare and commit without a pause API',()=>{
+test('submission availability blocks prepare and commit independently of row pause',()=>{
   const {state,engine,step}=fixture();
   engine.enqueue('one',state.route);
   step(100,{busy:false,complete:true},{canSubmit:false});
@@ -785,8 +785,8 @@ test('submission availability blocks prepare and commit without a pause API',()=
   step(2900);
   assert.equal(state.clicks,1);
   assert.equal('paused' in engine.view(),false);
-  assert.equal(engine.pause,undefined);
-  assert.equal(engine.resume,undefined);
+  assert.equal(typeof engine.pause,'function');
+  assert.equal(typeof engine.resume,'function');
 });
 
 for(const unavailable of ['navigation','editor']) {
@@ -885,4 +885,71 @@ test('stopped reply cannot prepare while submission is unavailable and recovers 
   step(2600);step(2700);
   assert.equal(state.clicks,1);
   assert.deepEqual(state.committedTexts,['one']);
+});
+
+test('per-item pause skips that row while preserving FIFO among active messages',()=>{
+  const {state,engine,step}=fixture();
+  engine.enqueue('first',state.route);engine.enqueue('second',state.route);engine.enqueue('third',state.route);
+  assert.equal(engine.pause('q1'),true);
+  assert.deepEqual(engine.view().items.map(i=>[i.id,i.state]),[['q1','paused'],['q2','queued'],['q3','queued']]);
+  step(100,{busy:false,complete:true});step(1300);step(2000);
+  assert.deepEqual(state.committedTexts,['second']);
+  step(2100,{ack:true,users:1});step(2300,{ack:false,busy:true,complete:false});
+  step(3100,{busy:false,complete:true,answers:2});step(4500);step(5700);step(6400);
+  assert.deepEqual(state.committedTexts,['second','third']);
+  assert.deepEqual(engine.view().items.map(i=>[i.id,i.state]),[['q1','paused'],['q3','sending']]);
+});
+
+test('all-paused queue never prepares a send, resume re-enters its existing position',()=>{
+  const {state,engine,step}=fixture();
+  engine.enqueue('A',state.route);engine.enqueue('B',state.route);
+  assert.equal(engine.pause('q1'),true);assert.equal(engine.pause('q2'),true);
+  for(const t of [100,1400,4000,10000])step(t,{busy:false,complete:true});
+  assert.equal(state.prepareCount,0);assert.equal(state.clicks,0);
+  assert.equal(engine.resume('q2'),true);
+  step(11000);step(12200);step(13000);
+  assert.deepEqual(state.committedTexts,['B']);
+  assert.equal(engine.view().items[0].state,'paused');
+  assert.equal(engine.view().items[0].id,'q1');
+});
+
+test('pause and resume never steal an in-flight or uncertain item',()=>{
+  const {state,engine,step}=fixture();
+  engine.enqueue('A',state.route);engine.enqueue('B',state.route);
+  step(100,{busy:false,complete:true});step(1400);
+  assert.equal(engine.pause('q1'),false,'prepared item is immutable');
+  assert.equal(engine.pause('q2'),true,'next unsent item may be paused');
+  step(2100,{failClick:true});
+  assert.equal(engine.view().items[0].state,'unknown');
+  assert.equal(engine.resume('q2'),false,'unknown state retains global safety fence');
+  assert.equal(engine.pause('q2'),false);
+  step(22000);
+  assert.equal(state.clicks,1);
+});
+
+test('paused items cannot be sent now until explicitly resumed',()=>{
+  const {state,engine,step}=fixture();
+  engine.enqueue('A',state.route);engine.enqueue('B',state.route);
+  assert.equal(engine.pause('q1'),true);
+  const rejected=engine.requestNow('q1');
+  assert.equal(rejected.ok,false);
+  assert.match(rejected.reason,/恢复/);
+  assert.equal(engine.confirmForceStop('q1'),false);
+  assert.equal(engine.resume('q1'),true);
+  assert.equal(engine.requestNow('q1').ok,true);
+  step(100,{busy:false,complete:true});step(1400);step(2100);
+  assert.deepEqual(state.committedTexts,['A']);
+});
+
+test('reordering resets idle eligibility and does not unpause a message',()=>{
+  const {state,engine,step}=fixture();
+  engine.enqueue('A',state.route);engine.enqueue('B',state.route);engine.enqueue('C',state.route);
+  engine.pause('q2');
+  step(100,{busy:false,complete:true});step(800);
+  assert.equal(engine.move('q3',0),true);
+  step(1300);
+  assert.equal(state.prepareCount,0,'move requires a new stable-idle observation');
+  step(2500);step(2800);
+  assert.deepEqual(state.committedTexts,['C']);
+  assert.equal(engine.view().items.find(x=>x.id==='q2').state,'paused');
 });

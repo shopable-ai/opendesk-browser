@@ -1,6 +1,8 @@
 // Managed Shadow DOM UI; never replace or resize ChatGPT's original composer.
 const ICON={send:'<path d="M12 19V5m-6 6 6-6 6 6"/>',
   now:'<path d="M12 19V5m-6 6 6-6 6 6M4 20h16"/>',
+  pause:'<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+  resume:'<path d="M8 5v14l11-7Z"/>',
   edit:'<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z"/>',
   status:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/>',
   remove:'<path d="M18 6 6 18M6 6l12 12"/>'};
@@ -104,6 +106,8 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
         const b=e.target.closest?.('button[data-action]');if(!b)return;
         switch(b.dataset.action){
           case 'now':actions.sendNow(b.dataset.id);break;
+          case 'pause':actions.pause(b.dataset.id);break;
+          case 'resume':actions.resume(b.dataset.id);break;
           case 'edit':actions.edit(b.dataset.id);break;
           case 'remove':actions.remove(b.dataset.id);break;
           case 'more':engine.toggleExpanded();break;
@@ -239,7 +243,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
     for(const [i,item] of shown.entries()){
       const unknown=item.state==='unknown'||
         (state.inFlight?.id===item.id&&state.inFlight.phase==='unknown');
-      const row=element(doc,'div','sq-row'+(unknown?' sq-unknown':''));
+      const row=element(doc,'div','sq-row'+(unknown?' sq-unknown':'')+(item.state==='paused'?' sq-paused':''));
       row.setAttribute('role','listitem');row.dataset.idRow=item.id;row.tabIndex=0;
       row.draggable=item.state!=='sending'&&!unknown;
       row.title='Alt + 上下方向键调整顺序';
@@ -251,9 +255,11 @@ export function createQueueView({owner,createPageUI,assets,engine,actions}){
       }else row.append(element(doc,'span','sq-index',String(i+1)));
       const text=element(doc,'span','sq-text',item.text);text.title=item.text;row.append(text);
       const ops=element(doc,'div','sq-ops');
-      for(const [key,label] of [['now','强制发送'],['edit','取回输入框编辑'],['remove','删除']]){
+      for(const [key,label] of [[item.state==='paused'?'resume':'pause',item.state==='paused'?'恢复此条':'暂停此条'],
+        ['now','提前发送'],['edit','取回输入框编辑'],['remove','删除']]){
         const b=action(doc,key,label,item.id);
-        if((item.state==='sending'||unknown)&&key!=='remove')b.disabled=true;
+        if(((item.state==='sending'||unknown||state.inFlight?.id===item.id)&&key!=='remove')||
+          (item.state==='paused'&&key==='now'))b.disabled=true;
         ops.append(b);
       }
       row.append(ops);rows.append(row);

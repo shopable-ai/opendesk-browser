@@ -161,7 +161,7 @@ test('docks to visible shared rounded surface, not form or editor-only/transpare
   assert.deepEqual([...h.form.style.values],originalStyles);assert.equal(h.surface.style.values.size,0);
   for(let i=0;i<3;i++){assert.equal(h.view.place(h.snap),true);assert.deepEqual(h.ui('list').host.getBoundingClientRect(),box);}
   const force=panel(h).querySelectorAll('button').find(node=>node.dataset.action==='now');
-  assert.equal(force.title,'强制发送');assert.equal(force.getAttribute('aria-label'),'强制发送');
+  assert.equal(force.title,'提前发送');assert.equal(force.getAttribute('aria-label'),'提前发送');
   h.ui('list').listeners.find(x=>x.event==='click').callback({target:{closest:()=>force},stopPropagation(){}});
   assert.deepEqual(h.calls,['q1']);
   h.dispose();assert.deepEqual([...h.form.style.values],originalStyles);
@@ -311,4 +311,21 @@ test('single-line row allows only the added action width without shrinking the n
   assert.equal(h.editor.getBoundingClientRect().width,488);
   assert.equal(h.native.getBoundingClientRect().width,34);
   h.view.hide();assert.equal(h.editor.getBoundingClientRect().width,528);
+});
+
+test('one paused row has only its own resume action and cannot send early',()=>{
+  const h=fixture();
+  assert.equal(h.view.place(h.snap),true);
+  h.state({items:[{id:'q1',text:'paused',state:'paused'},
+    {id:'q2',text:'active',state:'queued'}],phase:'waiting',inFlight:null});
+  h.view.render();
+  const rows=panel(h).querySelectorAll('[data-id-row]');
+  assert.equal(rows[0].className,'sq-row sq-paused');
+  const first=rows[0].querySelectorAll('button');
+  const second=rows[1].querySelectorAll('button');
+  assert.ok(first.some(b=>b.dataset.action==='resume'&&!b.disabled));
+  assert.ok(!first.some(b=>b.dataset.action==='pause'));
+  assert.ok(first.some(b=>b.dataset.action==='now'&&b.disabled));
+  assert.ok(second.some(b=>b.dataset.action==='pause'&&!b.disabled));
+  assert.ok(second.some(b=>b.dataset.action==='now'&&!b.disabled));
 });
