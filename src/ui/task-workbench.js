@@ -18,7 +18,8 @@ const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正�
 const textValue=formatTaskValue;
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
-  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,onNavigate,onTabSelected,onTaskInstalled,
+  document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,
+  isAppDebugAllowed=()=>false,onNavigate,onTabSelected,onTaskInstalled,
   reactNavigation=null,developerView=null,myView=createMyWorkbenchView({document:doc})}) {
   const get=id=>doc.getElementById(id),ui=id=>myView.field(id);
   // A React Side Panel has no standalone catalog controls. Its installed
@@ -117,8 +118,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function navigate(name,{initial=false}={}) {
     // Previous Discover URLs now open the local task search in My.
     if(name==='discover')name='tasks';
-    if(name==='debug'&&!debugEnabled)return false;
-    if(!['tasks','workflow','develop','tools','cloud','catalog','debug'].includes(name))return;
+    if(name==='debug'&&!debugEnabled||name==='app-debug'&&!isAppDebugAllowed())return false;
+    if(!['tasks','workflow','develop','app-debug','tools','cloud','catalog','debug'].includes(name))return;
     if(name==='catalog'&&!catalogSurface) {
       // Package import and installation live only in a separate full-size
       // extension tab. Sidebar Discover is a view of installed local tasks.
@@ -126,7 +127,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return;
     }
     // Ask the live tool before changing panes or destroying its editor.
-    if(toolsViewListener?.(name==='tools' && !catalogSurface,name)===false)return false;
+    if(toolsViewListener?.((name==='tools'||name==='app-debug')&&!catalogSurface,name)===false)return false;
     reactNavigation?.select(name);
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
