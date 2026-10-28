@@ -102,6 +102,16 @@ test('R3.8 new Origin enters existing installer review and does not write a site
   assert.equal(f.reviews.length,1);
   assert.deepEqual(f.saved().value.sites,[]);
 });
+test('R3.8 new site may request permission before any CSS is known',async t=>{
+  const f=await fixture(t),manager=f.state.detailModel.scrollManager;
+  const withoutSelectors={...sample,origin:'https://new-ai.example',pathScope:'/talk',
+    mainSelector:'',scrollSelector:'',messageSelector:'',anchorSelector:''};
+  assert.equal(manager.isApproved(withoutSelectors.origin,withoutSelectors.pathScope),false);
+  const review=await manager.onSave(withoutSelectors,'0',null,{isTrusted:true});
+  assert.equal(review.review,true,'first grant is not mislabeled as a saved rule');
+  assert.equal(f.reviews.length,1);
+  assert.equal(f.requests.filter(r=>r.method==='saveScrollSiteRule').length,0);
+});
 test('R3.8 guards false gestures and stale installation identities before mutation',async t=>{
   const f=await fixture(t),manager=f.state.detailModel.scrollManager;
   await assert.rejects(()=>manager.onSave(sample,'0',null,{isTrusted:false}),e=>e.code==='E_GESTURE');

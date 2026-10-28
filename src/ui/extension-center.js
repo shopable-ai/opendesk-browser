@@ -753,6 +753,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             resumeDraft:scrollDraft?{...scrollDraft}:null,
             currentPage:currentPageTarget?.snapshot||null,
             builtIn:['ChatGPT','DeepSeek','Gemini'],
+            isApproved(origin,pathScope){
+              try{
+                const url=new URL(origin);
+                return url.origin===origin&&scrollProgramUrlMatches(page.pageRules,
+                  origin+(pathScope||'/'));
+              }catch{return false;}
+            },
             disabledReason:!page?.enabled?'已停用；请先启用应用':
               page?.authorization?.status!=='active'||page?.nativeState!=='registered'||page?.error?
                 '尚未获得有效的网站授权与原生注册':null,

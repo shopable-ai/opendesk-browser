@@ -339,7 +339,10 @@ function ScrollSiteManager({model}){
           mainSelector:draft.mainSelector.trim(),scrollSelector:draft.scrollSelector.trim(),
           messageSelector:draft.messageSelector.trim(),anchorSelector:draft.anchorSelector.trim(),
           enabled:Boolean(draft.enabled)};
-        if(!rule.mainSelector||!rule.scrollSelector)
+        // A new Origin needs Installer approval BEFORE DOM selection is legal.
+        // Do not force users to invent CSS for a site they cannot yet access.
+        if(model.isApproved(rule.origin,rule.pathScope)&&
+          (!rule.mainSelector||!rule.scrollSelector))
           throw new Error('对话主区域和滚动容器为必填项');
       }
       const saved=await ref.current.onSave(rule,snapshot.etag,editingKey,event.nativeEvent);
@@ -379,7 +382,8 @@ function ScrollSiteManager({model}){
         autoComplete="off" disabled={busy} placeholder="/" onChange={e=>change('pathScope',e.target.value)}/></label>
       {SCROLL_CSS_FIELDS.map(([key,label,field])=><label key={key}>{label}
         <div className="ec-scroll-selector"><input type="text" value={draft[key]} maxLength={256}
-          required={key==='mainSelector'||key==='scrollSelector'} spellCheck={false}
+          required={(key==='mainSelector'||key==='scrollSelector')&&
+            model.isApproved(draft.origin,draft.pathScope)} spellCheck={false}
           autoComplete="off" disabled={busy} placeholder={key==='anchorSelector'?'不填则自动定位':'CSS 或真实网页点选'}
           onChange={e=>change(key,e.target.value)}/>
           <IconButton type="button" disabled={busy} label={'在当前网页选取'+label}
