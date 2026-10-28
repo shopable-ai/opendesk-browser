@@ -184,5 +184,33 @@
     "八维独立评分及综合均分"
   ],
   "localArtifacts": "artifacts/cookie-editor-r26-local-20261029/",
-  "preserved": "原 main 并行提交/本地改动、原 dist/development watcher 和既有 fixture server 均保留；只关闭本轮自建 CFT。"
+  "preserved": "原 main 并行提交/本地改动、原 dist/development watcher 和既有 fixture server 均保留；只关闭本轮自建 CFT。",
+  "continuationDelta": {
+    "baseCommit": "6017fb8e505c98e00605f2ebbaf6b9855944c4ba",
+    "scope": "仅补当前账号的 value-only 原生更新，不恢复已延期矩阵。",
+    "status": "NOT_TESTED",
+    "attempts": [
+      {
+        "report": "native-value/report.json",
+        "result": "入口建立后旧 CDP session 失效；启动器已终止并清理专用 Profile。",
+        "cleanup": "PASS"
+      },
+      {
+        "report": "native-value-retry/report.json",
+        "result": "实际预安装 2.0.46，并完成虚构 HttpOnly Cookie 的账号保存和可信切换。执行网站值变化步骤时扩展 SW/Side Panel targets 消失，CDP session 被拒绝，未取得更新回执。",
+        "cleanup": "PASS"
+      }
+    ],
+    "parallelHostSource": {
+      "path": "trusted/account-service.js",
+      "workingBlob": "50f6270c3dfb052e9f20795c61b699480a9622a3",
+      "reviewedPin": "a972ab43f9da8f50e2413c2f7166cf1cb82534dd",
+      "pinMatches": false,
+      "syntax": "PASS",
+      "change": "外部并行父域 Cookie 支持变更，83 additions / 36 deletions；保留并未纳入本轮提交。"
+    },
+    "classification": "当前共享 Host 源码与已审查候选不一致，且实际会话已卸载；不能将本轮尝试记为值更新功能 PASS，也不能据此判定产品故障。",
+    "next": "待并行 Host 变更完成审查、同源产物稳定后，仅重做 value-only 更新及切换回读。现有 2.0.46 历史实测仍只证明相应候选。",
+    "preserved": "未修改并行 Host、未停止原 watcher；两次专用 CFT 进程均退出、临时 Profile 和本轮 HTTP fixture 均已清理。"
+  }
 }
