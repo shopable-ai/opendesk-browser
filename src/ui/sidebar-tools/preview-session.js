@@ -6,7 +6,7 @@ import {previewStorageKey} from '../../native-agent/tool-snapshot.js';
 export const PREVIEW_SESSION_FORMAT='opendesk.tool-preview-session.v1';
 const SHA=/^[a-f0-9]{64}$/,SOURCE=/^source-[a-f0-9]{24}$/;
 const WORKSPACE=/^workspace-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
-const UUID=/^[a-f0-9]{8}-(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 export const SIDE_PANEL_PREVIEW_FORMAT='opendesk.tool-preview-panel.v1';
 export function panelPreviewStorageKey(windowId){
   if(!Number.isSafeInteger(windowId)||windowId<0)fail('invalid Side Panel window');
