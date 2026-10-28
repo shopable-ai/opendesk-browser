@@ -29,6 +29,7 @@ export const PAGE_BOOT_PROTOCOL='opendesk.page-installed.boot.v1';
 export const PAGE_BOOT_WORLD='opendesk-page-installed-bootstrap-v1';
 const PREFIX='opendesk-page-boot-';
 const ACCESS_CHANGED='访问受限，请检查安装并恢复访问';
+const SEND_QUEUE_PROGRAM_ID='opendesk.ai-send-queue';
 const key=(kind,ns,...identity)=>'page-'+kind+':'+canonical([ns,...identity]);
 const fields=(value,allowed,required=allowed)=>invariant(value&&typeof value==='object'&&!Array.isArray(value)&&
   Object.keys(value).every(k=>allowed.includes(k))&&required.every(k=>Object.hasOwn(value,k)),
@@ -1092,6 +1093,110 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const next={version:1,sites:[...before.value.sites.filter(r=>r!==source),rule]};
     return persistScrollConfig(row,next,request.etag,epoch);
   }
+  // Fixed, authenticated USER_SCRIPT dispatch: no caller-provided code or browser world.
+  async function sendQueueOperation(request,sender){
+    const operation=request?.operation,mutating=operation!=='snapshot';
+    invariant(['snapshot','pause','resume','now','edit','remove','move'].includes(operation),
+      'E_QUEUE_SCHEMA','未知队列操作');
+    fields(request,mutating?
+      ['operation','target','instance','revision','id',...(operation==='move'?['index']:[])]:
+      ['operation','target']);
+    const target=request.target;
+    fields(target,['tabId','frameId','documentId','expectedUrl','expectedWindowId']);
+    invariant(Number.isSafeInteger(target.tabId)&&target.tabId>=0&&target.frameId===0&&
+      typeof target.documentId==='string'&&target.documentId.length>0&&target.documentId.length<=256&&
+      typeof target.expectedUrl==='string'&&target.expectedUrl.length<=2048&&
+      Number.isSafeInteger(target.expectedWindowId)&&target.expectedWindowId>=0,
+      'E_QUEUE_SCHEMA','目标网页文档无效');
+    if(mutating){
+      invariant(typeof request.instance==='string'&&/^[A-Za-z0-9-]{1,128}$/.test(request.instance)&&
+        Number.isSafeInteger(request.revision)&&request.revision>=0&&
+        typeof request.id==='string'&&/^q[1-9]\d{0,8}$/.test(request.id),
+        'E_QUEUE_SCHEMA','消息身份或队列版本无效');
+      if(operation==='move')invariant(Number.isInteger(request.index)&&
+        request.index>=0&&request.index<20,'E_QUEUE_SCHEMA','队列位置无效');
+    }
+    const row=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
+      key(INSTALL_KEY_KIND,namespace,SEND_QUEUE_PROGRAM_ID)));
+    invariant(row?.tag===PAGE_INSTALL_TAG&&row.programId===SEND_QUEUE_PROGRAM_ID&&
+      row.revision>=12&&active(row)&&row.nativeState==='registered'&&!row.error,
+      'E_QUEUE_PAGE_NOT_READY','网页队列需要安装和启用新版受信 USER_SCRIPT');
+    const epoch=permissionEpoch(row);
+    await requireSiteGrant(row);
+    const [tab,frames,selected]=await Promise.all([
+      api.tabs.get(target.tabId),api.webNavigation.getAllFrames({tabId:target.tabId}),
+      api.tabs.query({active:true,windowId:target.expectedWindowId})]);
+    const frame=frames?.find(value=>value.frameId===0&&value.documentId===target.documentId);
+    invariant(tab?.id===target.tabId&&tab.windowId===target.expectedWindowId&&tab.active===true&&
+      !tab.incognito&&!tab.pendingUrl&&tab.url===target.expectedUrl&&
+      selected?.length===1&&selected[0].id===tab.id&&
+      frame?.url===target.expectedUrl&&!frame.errorOccurred&&
+      (!frame.documentLifecycle||frame.documentLifecycle==='active')&&
+      new URL(target.expectedUrl).origin==='https://chatgpt.com'&&
+      installedURLMatches(row,frame.url),'E_DOCUMENT_STALE','当前 ChatGPT 主文档已变化');
+    const execution=(await read(tx=>tx.all(PAGE_STORE))).filter(value=>
+      value?.tag==='page-execution-v1'&&value.namespace===namespace&&
+      value.programId===SEND_QUEUE_PROGRAM_ID&&value.tabId===tab.id&&
+      value.documentId===frame.documentId&&value.browserSessionIncarnation===session)
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))[0];
+    invariant(execution?.state==='completed'&&execution.manifestHash===row.manifestHash&&
+      execution.sourceHash===row.sourceHash&&
+      execution.installationId===row.authorization.installationId&&
+      execution.grantGeneration===row.authorization.generation&&
+      typeof execution.managedUI?.worldId==='string',
+      'E_QUEUE_PAGE_NOT_READY','当前网页未执行获准的队列程序，请刷新后检查');
+    const input={operation,...(mutating?{instance:request.instance,revision:request.revision,
+      id:request.id,...(operation==='move'?{index:request.index}:{})}:{})};
+    const js='(()=>{const fn=globalThis.__opendeskAiSendQueueV1;return typeof fn==="function"?'+
+      'fn('+JSON.stringify(input)+'):'+
+      JSON.stringify({status:'unavailable',reason:'队列程序尚未初始化'})+';})()';
+    const launched=await ordered(async()=>{
+      const latest=await scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
+        key(INSTALL_KEY_KIND,namespace,SEND_QUEUE_PROGRAM_ID)));
+      invariant(latest?.token===row.token&&latest.manifestHash===row.manifestHash&&
+        latest.authorization?.generation===row.authorization.generation&&
+        latest.nativeState==='registered'&&active(latest)&&permissionEpoch(latest)===epoch,
+        'E_PAGE_AUTHORIZATION','队列授权或安装已发生改变');
+      await requireSiteGrant(latest);
+      const native=await nativeAPI(),desired=await descriptor(latest);
+      const scripts=await native.getScripts({ids:[latest.nativeId]});
+      invariant(scripts.length===1&&nativeEqual(scripts[0],desired.script),
+        'E_PAGE_AUTHORIZATION','原生 USER_SCRIPT 注册身份不一致');
+      const completion=Promise.resolve(native.execute({target:{tabId:tab.id,
+        documentIds:[frame.documentId]},world:'USER_SCRIPT',
+        worldId:execution.managedUI.worldId,js:[{code:js}]}));
+      completion.catch(()=>{});
+      return {completion};
+    });
+    let results;
+    try{results=await launched.completion;}
+    catch(error){
+      if(mutating)throw new FoundationError(PAGE_UNKNOWN_ERROR,
+        '队列操作回执未知，请读取最新状态，禁止自动重复');
+      throw error;
+    }
+    invariant(Array.isArray(results)&&results.length===1&&results[0]?.frameId===0&&
+      results[0]?.documentId===frame.documentId&&results[0]?.error===undefined,
+      mutating?PAGE_UNKNOWN_ERROR:'E_QUEUE_PAGE_NOT_READY',
+      '网页未返回有效的队列执行回执');
+    const value=results[0].result;
+    invariant(value&&typeof value==='object'&&
+      ['ready','stale','unavailable','wrong-session'].includes(value.status)&&
+      JSON.stringify(value).length<=48000,'E_QUEUE_RESULT','队列结果格式或长度无效');
+    const [latest,afterTab,afterFrames]=await Promise.all([
+      scoped(sender,'readonly',tx=>tx.get(PAGE_STORE,
+        key(INSTALL_KEY_KIND,namespace,SEND_QUEUE_PROGRAM_ID))),
+      api.tabs.get(tab.id),api.webNavigation.getAllFrames({tabId:tab.id})]);
+    invariant(latest?.token===row.token&&latest.manifestHash===row.manifestHash&&
+      latest.authorization?.generation===row.authorization.generation&&
+      latest.nativeState==='registered'&&active(latest)&&permissionEpoch(latest)===epoch&&
+      afterTab?.url===target.expectedUrl&&!afterTab.pendingUrl&&afterTab.active===true&&
+      afterFrames?.some(value=>value.frameId===0&&value.documentId===frame.documentId&&
+        value.url===target.expectedUrl&&!value.errorOccurred),
+      'E_DOCUMENT_STALE','队列回执后网页或授权已变化');
+    await requireSiteGrant(latest);
+    return value;
+  }
   function handleBoot(message,sender,source='page_auto',manualReceiptId=null,manualHostDocumentId=null){
     if(message?.action==='page-config')return handlePageConfig(message,sender);
     if(message?.action===PAGE_FRAME_ACTION)return frameBoot(message,sender);
@@ -1162,5 +1267,5 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return {...response,receiptId};
   }
   return Object.freeze({importPageInstallPackage,prepareScrollSitePackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
-    listPagePrograms,runInstalledPageProgram,readScrollSiteConfig,pickScrollSiteElement,saveScrollSiteRule,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
+    listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,saveScrollSiteRule,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
 }
