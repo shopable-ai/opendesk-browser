@@ -22,7 +22,11 @@
 | React 与 SDK 运行一致性 | 当前包真实渲染及代理状态刷新 PASS；有副作用的 SDK 分支 NOT_TESTED | NOT_SCORED |
 | 构建、权限与发布质量 | 候选同源、安装摘要与权限差异核对 PASS；当前冻结 production 与业务发布门禁未完成 | NOT_SCORED |
 
-不以局部 PASS 代替完整维度，不生成缺乏完整实测的分数或算术平均分。历史 157 项 Node 与 12 状态 Chromium 结果按原验证级别保留，本轮没有重复执行矩阵。Cookie Editor 当前 `account-service.js` 已通过现有 `describeBundle` 的只读来源准入检查；旧哈希阻断本次未再复现，**不代表全仓构建 PASS**，也没有因此修改其源码 / pin 或重建共享输出。
+不以局部 PASS 代替完整维度，不生成缺乏完整实测的分数或算术平均分。历史 157 项 Node 与 12 状态 Chromium 结果按原验证级别保留，本轮没有重复执行完整矩阵。
+
+按用户随后要求复用既有测试程序，本轮定向运行会员、local-development 和代理 UI 三个现有测试文件中的 **24 个核心安全用例，24/24 PASS**。覆盖两步兑换与取消、未知兑换和写前持久化、激活链接仅填草稿及来源拒绝、Cookie 明确意图 / 撤权 / unknown 禁止重放，以及 START 晚响应、Provider 缺失 / 过期时 STOP、未知控制权恢复。该运行只在 Node/VM 与内存 fixture 中执行，不启动浏览器或端口，不修改安装包、来源 pin 或真实 Cookie / 代理；**不替代上述真实 Provider、Cookie 交付、代理 START/STOP 或非空升级数据的 NOT_TESTED**。本机完整日志为 `artifacts/ai-vip-share-r211-local-20261029/core-safety-node.tap`。
+
+Cookie Editor 的 `account-service.js` 在本轮只读检查时通过现有 `describeBundle` 来源准入；该快照中未复现旧哈希阻断，**不代表全仓构建 PASS**，也没有因此修改其源码 / pin 或重建共享输出。其他 owner 后续修改不在本次准入结论范围内。
 
 本轮未复现需修复的 AI VIP Share 业务源码问题，仅补充本节验收事实。原生界面观察与截图位于本次 Codex 对话工具记录；本机 `artifacts/ai-vip-share-r211-local-20261029/observations.json` 是带候选身份的代理观察摘要，不冒充原始 AX dump 或独立原生复测。唯一正式 JSON 仍为 **1.4.1**，SHA-256 `70cd5025eb63940cb678ffe47f4d2c580aeff6e2807e8dddfebef8544b3c2827`；未晋升、未发布。下一步由业务和可信配置 owner 提供当前候选获审的服务 / 目标 / 代理范围，再补上述核心分支及非空升级恢复证据。
 
