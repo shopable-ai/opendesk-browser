@@ -25,6 +25,22 @@ node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react
 
 Vite 产物由 source-bound `dist/build-ready.json` 证明；stage 只在完整回执通过且源码未漂移时发布 SHA 快照。编译失败不会把错误产物当作新快照，也不会修改 `quick-notes-react.opendesk-tool.json`。实际入口为「开发 → 本地项目 → quick-notes-react → 在侧栏调试」：Native Workspace 标签页保留目录与会话归属，应用显示在同窗口真实 Side Panel。点击「在侧栏调试」即可使用 `storage.get/set`，不再单独批准存储或显示“已批准”状态；开发数据在内部与正式安装版分开。同一来源、工具和能力范围内，成功 JSX 快照使用新实例重新校验，沿用本次调试意图；Stop、归属变化、断连、范围变化或未知写入结果不会自动重启或重放写入。网页信息仍按原目标和能力范围核验。
 
+## 现在手动试：改一个字符就看到界面变化
+
+AI 已启动或确认已有监听时直接使用，不再启动第二份。Chrome 进入「开发 → 本地项目 → quick-notes-react → 在侧栏调试」，在 VS Code 打开 [src/App.jsx](src/App.jsx)，搜索第 261 行附近的 `我的笔记`：
+
+1. 将标签文字改为 `我的笔记 · 手动修改`，按 Cmd+S。
+2. 等编译与快照发布完成，在真实侧栏看到新标签；无需安装、导入或刷新浏览器。
+3. 把文字改回并保存，看到原标签恢复。若应用里有未保存笔记，先保存或结束编辑，才能自动替换界面。
+
+样式入口是 [src/style.css](src/style.css)；React 挂载及 SDK 接线是 [src/main.jsx](src/main.jsx)。先只改自己的 UI 文件，不改应用 ID 或能力，也不改 Browser 共享组件。完整[手动步骤、更新原理及无 Browser 源码的现状](../../../docs/api/sidebar-tool-development.zh-CN.md#手动改文字观察真实侧栏quick-notes-react)见统一开发规范。
+
+```sh
+# 仓库根执行，只打开编辑器，不修改源码。
+code --new-window examples/sidebar-tools/quick-notes-react \
+  --goto examples/sidebar-tools/quick-notes-react/src/App.jsx:261
+```
+
 ## 日常最小验证（2026-10-29）
 
 当前先确认几个基本 SDK 调用与开发更新，不遍历全部 SDK：

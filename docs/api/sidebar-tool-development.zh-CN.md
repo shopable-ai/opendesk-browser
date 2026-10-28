@@ -259,6 +259,61 @@ node ../../../scripts/watch-sidebar-tool.mjs "$PWD"
 
 `dist/build-ready.json` 的 `buildId`、JS/CSS SHA 和字节数与上次成功构建相符后，stage 才接受编译结果。watcher 不触发 npm、不会自动装到 Chrome、不会给网页增权；编译失败保留上一份快照。不要写一个不停重跑 `vite build --watch && pack` 或自动安装的“热更新”脚本。
 
+#### 手动改文字，观察真实侧栏（Quick Notes React）
+
+这一轮先体验「编辑文件 → 保存 → 看到变化」，不用安装候选或执行整套测试。当前仓库示例为 `examples/sidebar-tools/quick-notes-react/`，关键文件如下：
+
+| 文件 | 用途 | 建议先改什么 |
+| --- | --- | --- |
+| [src/App.jsx](../../examples/sidebar-tools/quick-notes-react/src/App.jsx) | 应用界面、事件及 SDK 调用 | 搜索 `我的笔记`，改成 `我的笔记 · 手动修改` |
+| [src/style.css](../../examples/sidebar-tools/quick-notes-react/src/style.css) | 这个应用自己的布局 | 熟悉文字更新后再调本应用间距 |
+| [src/main.jsx](../../examples/sidebar-tools/quick-notes-react/src/main.jsx) | 挂载 React 根、连接公开 SDK、退出清理 | 先阅读，无需为改文字修改 |
+| [tool.config.json](../../examples/sidebar-tools/quick-notes-react/tool.config.json) | 应用 ID、能力与产物入口 | 文字测试不改 ID、能力或版本 |
+| [vite.config.mjs](../../examples/sidebar-tools/quick-notes-react/vite.config.mjs) | JSX/CSS 编译及完成回执 | 只需了解它负责应用编译 |
+
+1. 由 AI/维护者检查并保留两个应用监听：本项目 `npm run watch`（本示例的命令名）和仓库根 `node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react`。缺哪个才启动哪个，不重复运行。浏览器维护者自己的 `npm run dev` 是另一条链，普通应用作者不应被要求启动它。
+2. Chrome 打开「开发 → 本地项目 → quick-notes-react → 在侧栏调试」。首次来源目录连接仍走原 Native 授权；已经连接的项目直接打开，不另加存储批准。
+3. 在 VS Code 编辑 `src/App.jsx` 中标签文字 `我的笔记`，按 Cmd+S。不要在笔记输入框留未保存草稿；若已有草稿，先保存或按应用原操作结束编辑，随后新界面自动替换。
+4. 等本项目编译和快照发布完成，真实侧栏标签应变成 `我的笔记 · 手动修改`。这一步无需刷新 Chrome、重复导入 JSON 或升级应用。看不到变化时先看是否有编译错误/未保存草稿，再检查两个原监听，不先重建 Browser。
+5. 将文字改回 `我的笔记` 并保存，看到原标签恢复。应用数据仍与正式安装版分开；退出用「停止调试」。
+
+维护者可用以下命令打开应用目录、样式和关键 JSX 行；行号只是定位辅助，以搜索文字为准：
+
+```sh
+code --new-window examples/sidebar-tools/quick-notes-react \
+  --goto examples/sidebar-tools/quick-notes-react/src/App.jsx:261
+```
+
+#### 保存以后为什么会更新
+
+```text
+App.jsx / style.css
+  → 应用 Vite watch 编译 JSX/CSS，写 dist 与 build-ready.json
+  → stage watcher 检查完整产物/源码，发布本地不可变预览快照
+  → 原 Native Workspace 按已授权目录读取并通知同一预览会话
+  → 原 ToolHost 核验身份与范围，重新挂载应用 sandbox iframe
+  → 新界面通过 OpenDeskTool.request 调用受支持的 SDK
+```
+
+两个应用监听各做一件事：Vite 编译，stage watcher 发布；后者不帮你运行 npm，也不安装应用。React 和 `@opendesk/ui` 的运行时由已安装的 OpenDesk 提供，应用 JSX 是自己的源码。当前机制是新快照替换应用 iframe，**不是 Vite HTTP 开发页或 React Fast Refresh**；不能承诺保留 React 内存状态。应用主动保存的开发数据来自隔离 session，正式安装数据不参与这条链。
+
+修改 [共享 Card 组件](../../src/ui/react/components/ui/card.tsx) 则属于 Browser 维护工作：它由固定 `sidebar-shared-ui` 入口编译，可能安全重载整个扩展，重载后从原入口重开应用。只改自己的 UI 文案/布局时，在自己的项目里改即可。共享组件源码不是普通应用作者的日常编辑入口，多人共用浏览器时不要混在本次手动文字测试中修改。
+
+#### 没有 Browser 源码，普通用户能否这样开发
+
+**运行自己的应用和调用公开 SDK 不要求持有 Browser 源码；当前仓库示例的开发工具链尚未完整独立发行。** 两件事应区分：
+
+| 事情 | 当前条件 |
+| --- | --- |
+| 安装、打开已生成的应用包 | 安装支持该运行时的 OpenDesk，经原安装审阅即可；不需要 Browser 源码 |
+| 编辑自己应用的 HTML/CSS/JS 或 React/Vue | 业务源码归自己的目录；React/Vue 要有自身编译工具，SDK 由宿主提供 |
+| 像本示例一样连续保存并在真实侧栏更新 | 还需要 Native 目录连接及可用的 stage/watch/打包工具；当前这些脚本位于仓库中，不能声称只装扩展便已具备完整体验 |
+| 修改共享组件、宿主或新增原生特权 | 由 Browser 维护者修改并更新扩展，普通作者不需要也不应为自己的 UI 修改宿主 |
+
+具体缺口可直接从现有文件看到：Quick Notes React 的 `package.json` 通过 `../../../node_modules/vite` 使用仓库 Vite；`watch-sidebar-tool.mjs` 通过 stager 调用原打包器；打包器目前静态导入仓库 Schema/Catalog/本地化与共享样式源。因此简单复制 Quick Notes 目录到仓库外，还不能原样复用本节全部命令。`react-starter` 已声明自己的 Vite 依赖，但这不等于 stage/pack 工具已独立交付。
+
+后续应让已安装 OpenDesk + Native + 独立应用项目 + 官方开发工具即可完成同一闭环，复用现有编译/打包/预览协议；不复制第二套 Host/Authority，不要求普通用户下载 Browser 业务源码，也不虚构尚未发布的 npm 包或 CLI 命令。本节记录当前可用方式与实际缺口，不把后续目标写成已交付。
+
 ### D. 官方可选工具 / 可信宿主修改：完整扩展链路
 
 维护 `examples/sidebar-tools/<id>/` 中的配置、源码和声明图片；新官方候选在根目录 Catalog 登记，已有工具内容更新不必修改 UI 或资源路径映射。
