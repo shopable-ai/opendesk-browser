@@ -90,7 +90,9 @@ test('R3.8 trusted save needs write and readback; UI cannot claim navigation suc
   assert.equal(receipt.etag,'after-save');
   assert.deepEqual(receipt.value.sites,[sample]);
   assert.equal(f.requests.filter(r=>r.method==='saveScrollSiteRule').length,1);
-  assert.equal(f.requests.filter(r=>r.method==='readScrollSiteConfig').length,1);
+  const writeAt=f.requests.findIndex(r=>r.method==='saveScrollSiteRule');
+  assert.ok(f.requests.slice(writeAt+1).some(r=>r.method==='readScrollSiteConfig'),
+    'a fresh Host readback must follow the successful write');
   assert.equal(f.reviews.length,0);
 });
 test('R3.8 new Origin enters existing installer review and does not write a site rule',async t=>{
