@@ -53,6 +53,14 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
     async set(values){
       await assertCurrent();
       if(closed)throw new Error('开发会话已停止');
+      // The initial handoff publishes pointer + snapshot together. Every
+      // subsequent write must still belong to its exact Side Panel window.
+      if(pointerKey&&opened){
+        const tab=await api.tabs.getCurrent?.();
+        const pointer=(await api.storage.session.get(pointerKey))[pointerKey];
+        if(closed||tab?.windowId!==windowId||pointer?.previewId!==opened.previewId)
+          throw new Error('Side Panel 开发窗口或会话已失效');
+      }
       return api.storage.session.set(values);
     }
   }}};
@@ -79,12 +87,19 @@ export function createToolLivePreview({api,toolId,workspaceId,sourceId,readText,
         // The Native Workspace tab must still belong to the very window that
         // explicitly opened this Side Panel preview. Moving it revokes authority.
         const workspaceTab=await api.tabs.getCurrent?.();
-        if(workspaceTab?.windowId!==windowId)throw new Error('开发 Workspace 已离开原窗口');
+        if(workspaceTab?.windowId!==windowId){
+          invalidateDevelopment();
+          await report('开发 Workspace 已离开原窗口；旧会话已停止',true);
+          // Stop asynchronously: this check already owns the serialized queue.
+          void stop();return;
+        }
         // Another explicit same-window development session takes ownership;
         // an older Workspace must never reclaim this Panel or its grant.
         const pointer=(await api.storage.session.get(pointerKey))[pointerKey];
         if(pointer?.previewId!==opened.previewId){
-          invalidateDevelopment();return await report('此窗口已切换到另一开发会话',true);
+          invalidateDevelopment();
+          await report('此窗口已切换到另一开发会话；旧会话已停止',true);
+          void stop();return;
         }
       }
       const status=validateToolWatchStatus(await readText(NATIVE_TOOL_PREVIEW_ROOT+'/'+toolId+'/status.json'),toolId,now());

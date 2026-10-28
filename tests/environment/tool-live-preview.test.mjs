@@ -378,20 +378,53 @@ test('same-window Side Panel receives two immutable Native snapshots without ope
   assert.equal(f.removed.size,0);
 });
 
-test('moving the Native Workspace or replacing this window preview fails closed',async t=>{
-  const f=fixture(),first=f.publish(),live=f.live(t,{surface:'sidepanel',windowId:12});
+test('moving a Native Workspace away stops its Side Panel session permanently',async t=>{
+  const f=fixture(),first=f.publish(),messages=[],live=f.live(t,{
+    surface:'sidepanel',windowId:12,onStatus:text=>messages.push(text)
+  });
   const opened=await live.start(),key=previewStorageKey(opened.previewId),pointerKey=panelPreviewStorageKey(12);
-  const second=f.publish('void 1;');
+  f.publish('void 1;');
   f.api.tabs.getCurrent=async()=>({id:45,windowId:99});
-  await live.check();
-  assert.equal(f.stored.get(key).sha256,first.sha256);
-  assert.match(f.stored.get(previewStatusKey(opened.previewId)).text,/Workspace 已离开原窗口/);
+  await live.check();await live.stop();
+  assert.ok(messages.some(text=>text.includes('Workspace 已离开原窗口')));
+  assert.equal(live.preview,null);assert.equal(f.stored.has(key),false);assert.equal(f.stored.has(pointerKey),false);
   f.api.tabs.getCurrent=async()=>({id:45,windowId:12});
-  const replacing={...f.stored.get(pointerKey),previewId:'00000000-0000-4000-8000-000000000099'};
-  await f.api.storage.session.set({[pointerKey]:replacing});
   await live.check();
-  assert.equal(f.stored.get(key).sha256,first.sha256);
-  assert.match(f.stored.get(previewStatusKey(opened.previewId)).text,/已切换到另一开发会话/);
+  assert.equal(f.stored.has(key),false,'returning to the old window must not resurrect the session');
+  assert.equal(first.sha256!==f.publish('void 1;').sha256,true);
+});
+
+test('a newer Side Panel session retires the old owner without deleting the new pointer',async t=>{
+  const f=fixture(),first=f.publish(),messages=[],live=f.live(t,{
+    surface:'sidepanel',windowId:12,onStatus:text=>messages.push(text)
+  });
+  const opened=await live.start(),key=previewStorageKey(opened.previewId),pointerKey=panelPreviewStorageKey(12);
+  const replacement={...f.stored.get(pointerKey),previewId:'00000000-0000-4000-8000-000000000099'};
+  await f.api.storage.session.set({[pointerKey]:replacement});
+  f.publish('void 1;');
+  await live.check();await live.stop();
+  assert.ok(messages.some(text=>text.includes('已切换到另一开发会话')));
+  assert.equal(live.preview,null);assert.equal(f.stored.has(key),false);
+  assert.deepEqual(f.stored.get(pointerKey),replacement,'the old owner cannot erase the new owner');
+  assert.notEqual(first.sha256,f.publish('void 1;').sha256);
+});
+
+test('async snapshot commit cannot publish after Side Panel owner takeover',async t=>{
+  const f=fixture(),first=f.publish(),pointerKey=panelPreviewStorageKey(12);
+  let hijack=false;
+  const live=f.live(t,{surface:'sidepanel',windowId:12,readText:async path=>{
+    const value=f.disk.get(path);
+    if(hijack&&path.endsWith('/latest.json')){
+      hijack=false;
+      const prior=f.stored.get(pointerKey);
+      await f.api.storage.session.set({[pointerKey]:{...prior,previewId:'00000000-0000-4000-8000-000000000099'}});
+    }
+    return value;
+  }});
+  const opened=await live.start(),key=previewStorageKey(opened.previewId);
+  f.publish('void 1;');hijack=true;
+  await live.check();
+  assert.equal(f.stored.get(key).sha256,first.sha256,
+    'changed Native bytes must not be published after their owner is replaced');
   await live.stop();
-  assert.deepEqual(f.stored.get(pointerKey),replacing,'old Workspace may not remove new owner pointer');
 });
