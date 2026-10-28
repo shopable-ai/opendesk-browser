@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('.',import.meta.url));
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 function receiptPlugin(){
-  const names=['src/sidebar/main.jsx','src/sidebar/App.jsx','src/sidebar/style.css'];
+  const names=['src/sidebar/main.jsx','src/sidebar/App.jsx','src/sidebar/style.css','src/shared/queue-contract.js'];
   return {name:'send-queue-source-bound-receipt',apply:'build',
     generateBundle(_,bundle){
       const chunks=Object.values(bundle).filter(row=>row.type==='chunk');

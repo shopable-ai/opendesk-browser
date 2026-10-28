@@ -1,4 +1,5 @@
 // Fixed operations in the Page USER_SCRIPT world. No persistent storage or second sender.
+import {QUEUE_COMMANDS,QUEUE_MEMORY_ONLY} from '../shared/queue-contract.js';
 export const SEND_QUEUE_REMOTE_GLOBAL='__opendeskAiSendQueueV1';
 const PREVIEW_LIMIT=600;
 export function createSendQueueRemote({owner,site,engine,actions,
@@ -19,13 +20,13 @@ export function createSendQueueRemote({owner,site,engine,actions,
       inFlight:state.inFlight?{id:state.inFlight.id,phase:state.inFlight.phase}:null,
       items:state.items.map(item=>({id:item.id,state:item.state,
         text:item.text.slice(0,PREVIEW_LIMIT),length:item.text.length})),
-      memoryOnly:true};
+      memoryOnly:QUEUE_MEMORY_ONLY};
   }
   function invoke(request){
     if(!request||typeof request!=='object'||Array.isArray(request)||
       typeof request.operation!=='string')return unavailable('无效的队列请求');
     if(request.operation==='snapshot')return snapshot();
-    if(!['pause','resume','now','edit','remove','move'].includes(request.operation))
+    if(!QUEUE_COMMANDS.includes(request.operation))
       return unavailable('不支持的队列操作');
     const before=snapshot();
     if(before.status!=='ready')return before;

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {Card,CardContent,IconButton} from '@opendesk/ui';
+import {QUEUE_READ,QUEUE_WRITE,QUEUE_COMMANDS} from '../shared/queue-contract.js';
 
 const STATUS_TEXT={
   queued:'待发送',paused:'此条已暂停',sending:'发送中',unknown:'结果未知',waiting:'等待中'
@@ -49,7 +50,7 @@ export default function App({request,hostRoot}){
     pendingRead.current=true;
     const generation=epoch.current;
     try{
-      const next=await request('sendQueue.snapshot',{});
+      const next=await request(QUEUE_READ,{});
       if(alive.current&&generation===epoch.current)apply(next);
     }catch(error){
       if(alive.current&&generation===epoch.current)
@@ -75,10 +76,10 @@ export default function App({request,hostRoot}){
   const command=async(name,row,index)=>{
     const snapshot=current.current;
     if(pendingWrite.current||snapshot.status!=='ready'||!row||
-      snapshot.phase==='unknown')return;
+      (snapshot.phase==='unknown'||!QUEUE_COMMANDS.includes(name)))return;
     pendingWrite.current=true;setBusy(row.id+':'+name);setNotice('');
     try{
-      const result=await request('sendQueue.command',{
+      const result=await request(QUEUE_WRITE,{
         command:name,id:row.id,instance:snapshot.instance,revision:snapshot.revision,
         ...(name==='move'?{index}:{})
       });

@@ -5,7 +5,7 @@ import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const text=path=>readFileSync(resolve(root,path),'utf8');
-const css=text('assets/queue.css'),html=text('preview/index.html'),tuner=text('preview/tools/crown-tuner.html');
+const css=text('assets/queue.css'),html=text('preview/index.html'),tuner=text('legacy/preview/crown-tuner-r53.html');
 const declared=(key)=>{const found=css.match(new RegExp('--sq-crown-'+key+':(-?\\d+(?:\\.\\d+)?)(px|deg)'));assert.ok(found,'missing '+key);return Number(found[1]);};
 
 test('34/42 use CSS-owned artwork geometry, not frozen historical slider numbers',()=>{
@@ -21,7 +21,7 @@ test('34/42 use CSS-owned artwork geometry, not frozen historical slider numbers
  assert.match(css,/\.sq-crown\{[^}]*pointer-events:none/);
 });
 
-test('standalone tuner derives temporary defaults from formal CSS without modifying main preview',()=>{
+test('archived tuner remembers R5.3 calibration without modifying the formal R5.4 preview',()=>{
  assert.match(tuner,/function readBase\(\)/);
  assert.match(tuner,/getComputedStyle\(preview\)/);
  assert.match(tuner,/for\(const key of keys\)preview\.style\.removeProperty\(key\)/);
