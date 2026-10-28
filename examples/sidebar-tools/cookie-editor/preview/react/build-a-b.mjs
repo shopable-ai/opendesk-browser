@@ -7,7 +7,7 @@ import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const here=dirname(fileURLToPath(import.meta.url));
-export const accepted='020adbf22005cba219af4ff27cd3f3e492978bed';
+export const accepted='94e518247e812f80b5b65e06966a443310777743';
 export async function approvedHtml(){
  const original=await readFile(resolve(here,'../cookie-editor.html'));
  const sha=createHash('sha1').update('blob '+original.length+'\0').update(original).digest('hex');
