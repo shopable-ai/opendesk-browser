@@ -20,7 +20,7 @@ function mount(section='accounts'){
   let metadata={configured:true,unlocked:true,revision:1,accounts:[alpha,beta],settings:{autoRefresh:false}};
   let respond=async action=>action==='status'?structuredClone(metadata):
     action==='switch'?{switched:true,verified:true,reloadRequested:false}:
-    action==='lock'?{locked:true}:structuredClone(metadata);
+    structuredClone(metadata);
   const React={
     useRef(value){const i=cursor++;return slots[i]??={current:value};},
     useState(value){const i=cursor++;if(!(i in slots))slots[i]=value;
@@ -74,19 +74,35 @@ test('verified Alpha/Beta switch survives its metadata refresh and unchanged pas
   await app.action('onSwitch',alpha);
   assert.equal(app.accounts().currentAlias,alpha.alias);
   assert.equal(app.controller.snapshot().epoch,epoch);
-  assert.equal(app.accounts().vaultReady,true);
+  assert.equal(app.accounts().accountReady,true);
   await app.sync();assert.equal(app.accounts().currentAlias,alpha.alias);
   await app.action('onSwitch',beta);
   assert.equal(app.accounts().currentAlias,beta.alias);
 });
 
-test('site/permission invalidation, lock and delete clear the verified alias',async()=>{
-  for(const action of ['page','permission','lock','delete']){
+test('first account creation uses the trusted save action without password or lock handlers',async()=>{
+  const app=mount();await app.flush();
+  const calls=[];
+  app.setResponse(async(action,payload)=>{
+    calls.push({action,payload});
+    return {configured:true,unlocked:true,revision:2,accounts:[alpha,beta]};
+  });
+  assert.equal(app.accounts().onUnlock,undefined);
+  assert.equal(app.accounts().onLock,undefined);
+  await app.action('onCreate','New account');
+  assert.equal(calls.length,1);
+  assert.equal(calls[0].action,'create');
+  assert.equal(calls[0].payload.displayName,'New account');
+  assert.equal(calls[0].payload.revision,1);
+  assert.equal('passphrase' in calls[0].payload,false);
+});
+
+test('site/permission invalidation and delete clear the verified alias',async()=>{
+  for(const action of ['page','permission','delete']){
     const app=mount();await app.flush();await app.action('onSwitch',alpha);
     assert.equal(app.accounts().currentAlias,alpha.alias);
     if(action==='page'){app.setUrl('https://other.example/');await app.event('opendesk-page-changed');}
     if(action==='permission'){app.setPermission(false);await app.event('opendesk-cookie-grants-changed');}
-    if(action==='lock')await app.action('onLock');
     if(action==='delete'){
       app.setResponse(async()=>({configured:true,unlocked:true,revision:2,accounts:[beta]}));
       await app.action('onDelete',alpha);
@@ -106,8 +122,8 @@ test('outside metadata changes and unrelated epoch loads retire the alias',async
   }
 });
 
-test('a failed second switch and an unconfirmed lock retire earlier verified evidence',async()=>{
-  for(const handler of ['onSwitch','onLock']){
+test('a failed second switch retires earlier verified evidence',async()=>{
+  for(const handler of ['onSwitch']){
     const app=mount();await app.flush();await app.action('onSwitch',alpha);
     assert.equal(app.accounts().currentAlias,alpha.alias);
     app.setResponse(async()=>{throw Object.assign(Error('unknown'),{code:'E_OUTCOME_UNKNOWN'});});
@@ -119,7 +135,7 @@ test('Host metadata cannot establish a current alias; changed account versions r
   const app=mount();await app.flush();
   app.setResponse(async()=>({configured:true,unlocked:true,revision:2,
     accounts:[{...alpha,version:2},beta],currentAlias:alpha.alias}));
-  await app.action('onUnlock','not-a-real-password');
+  await app.action('onRename',alpha,'Renamed Alpha');
   assert.equal(app.accounts().currentAlias,null);
   app.setResponse(async action=>action==='switch'?{switched:true,verified:true,reloadRequested:false}:
     {configured:true,unlocked:true,revision:3,accounts:[{...alpha,version:3},beta]});
@@ -143,18 +159,16 @@ test('stale and unverified switch receipts never claim an alias',async()=>{
   }
 });
 
-test('unknown results distinguish switch, lock and non-switch vault operations',async()=>{
+test('unknown results distinguish Cookie writes from account storage changes',async()=>{
   for(const [handler,args,pattern] of [
-    ['onUnlock',['not-a-real-password'],/账号仓库.*未确认/],
-    ['onCreate',['Alpha'],/账号仓库.*未确认/],
-    ['onLock',[],/锁定回执未确认/],
+    ['onCreate',['Alpha'],/账号保存.*未确认/],
     ['onSwitch',[alpha],/可能发生部分 Cookie 写入/]
   ]){
     const app=mount();await app.flush();
     app.setResponse(async()=>{throw Object.assign(Error('unknown'),{code:'E_OUTCOME_UNKNOWN'});});
     await app.action(handler,...args);
     assert.match(app.accounts().feedback.text,pattern);
-    if(handler==='onUnlock'||handler==='onCreate')assert.doesNotMatch(app.accounts().feedback.text,/Cookie 写入/);
+    if(handler==='onCreate')assert.doesNotMatch(app.accounts().feedback.text,/Cookie 写入/);
   }
 });
 

@@ -1983,7 +1983,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!payload||typeof payload!=='object'||Array.isArray(payload))
         throw Object.assign(new Error('账号操作参数无效'),{code:'E_ACCOUNT_REQUEST'});
       const fields={
-        status:[],unlock:['passphrase'],lock:[],
+        status:[],
         create:['displayName','revision'],
         rename:['alias','accountVersion','displayName','revision'],
         update:['alias','accountVersion','revision'],
@@ -3628,7 +3628,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // name/ID cannot establish provenance; reuse the catalog's byte/hash check
     // and the existing official install revalidation instead.
     if(!release){
-      const official=officialReleases.find(row=>row.toolId===candidate.id&&row.version===candidate.version);
+      // A long-lived sidebar may predate the bundled release. Refresh before
+      // matching local bytes; a failed refresh cannot reuse stale provenance.
+      await loadOfficial();
+      if(disposed||selection!==fileSelection)return;
+      const official=officialLoaded&&officialReleases.find(row=>row.toolId===candidate.id&&row.version===candidate.version);
       if(official&&await matchesOfficialRelease(official,candidate)){
         release=official;sourceLabel+=' · 来源：已核对内置官方发行';
       }

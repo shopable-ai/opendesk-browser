@@ -32,7 +32,7 @@ const text=node=>!node||typeof node!=='object'?String(node??''):node.children.ma
 const find=(tree,predicate)=>nodes(tree).find(predicate);
 
 test('first use retains three inert account examples without claiming saved snapshots',()=>{
-  const tree=CookieAccounts({onCreate(){},onUnlock(){}});
+  const tree=CookieAccounts({accountReady:true,onCreate(){}});
   const examples=find(tree,n=>n.props['aria-label']==='账号布局示例');
   assert.ok(examples);
   assert.match(text(examples),/仅展示布局 · 非真实账号/);
@@ -44,47 +44,31 @@ test('first use retains three inert account examples without claiming saved snap
   }
   assert.equal(nodes(examples).some(n=>n.props['data-account-alias']),false);
   assert.match(text(find(tree,n=>n.props['aria-label']==='已保存账号操作')),/已保存账号 0/);
-  const vault=find(tree,n=>n.type==='details');
-  assert.equal(vault.props.open,undefined);
-  assert.match(text(vault),/设置本机加密口令/);
+  assert.equal(find(tree,n=>n.type==='input'&&n.props.type==='password'),undefined);
+  assert.equal(find(tree,n=>n.props.className==='cookie-account-vault'),undefined);
+  assert.equal(find(tree,n=>n.props['aria-label']==='锁定账号仓库'),undefined);
+  assert.equal(find(tree,n=>n.props['aria-label']==='保存当前 Cookie 为账号').props.disabled,false);
 });
 
-test('locked save opens and focuses the vault without creating or switching an account',()=>{
-  let operations=0,focus=0;
-  const tree=CookieAccounts({configured:true,onCreate(){operations++;},onUnlock(){operations++;},onSwitch(){operations++;}});
-  const vault=find(tree,n=>n.type==='details');
-  const input=find(tree,n=>n.type==='input'&&n.props.type==='password');
-  vault.props.ref.current={open:false};
-  input.props.ref.current={value:'',focus(){focus++;}};
+test('save stays unavailable until trusted account metadata is ready',()=>{
+  let operations=0;
+  const tree=CookieAccounts({onCreate(){operations++;},onSwitch(){operations++;}});
   const save=find(tree,n=>n.props['aria-label']==='保存当前 Cookie 为账号');
-  assert.equal(save.props.disabled,false);
-  save.props.onClick();
-  assert.equal(vault.props.ref.current.open,true);
-  assert.equal(focus,1);
+  assert.equal(save.props.disabled,true);
   assert.equal(operations,0);
-  assert.match(text(find(tree,n=>n.props['aria-label']==='已保存账号操作')),/已保存账号 —/);
+  assert.match(text(tree),/正在读取账号/);
 });
 
-test('vault submission validates before unlocking and clears the DOM secret on submit or collapse',()=>{
-  const received=[];
-  const tree=CookieAccounts({onUnlock:value=>received.push(value)});
-  const input=find(tree,n=>n.type==='input'&&n.props.type==='password');
-  const form=find(tree,n=>n.type==='form');
-  const vault=find(tree,n=>n.type==='details');
-  const submit=()=>form.props.onSubmit({preventDefault(){}});
-  assert.equal(input.props.required,true);
-  assert.equal(input.props.minLength,12);
-  const field={value:'short',reportValidity:()=>false};input.props.ref.current=field;
-  submit();assert.deepEqual(received,[]);
-  field.value='fictional-layout-passphrase';field.reportValidity=()=>true;
-  submit();assert.deepEqual(received,['fictional-layout-passphrase']);assert.equal(field.value,'');
-  field.value='discard-this-draft';vault.props.onToggle({currentTarget:{open:false}});
-  assert.equal(field.value,'');
+test('unreadable legacy snapshots are disclosed without restoring password management',()=>{
+  const tree=CookieAccounts({accountReady:true,legacyLocked:true,onCreate(){}});
+  assert.match(text(tree),/旧版加密快照.*保留.*未迁移/);
+  assert.equal(find(tree,n=>n.type==='input'&&n.props.type==='password'),undefined);
+  assert.equal(find(tree,n=>n.props['aria-label']==='保存当前 Cookie 为账号').props.disabled,false);
 });
 
 test('real account metadata replaces examples and preserves locked switch controls',()=>{
   const account={alias:'fixture_account',displayName:'Saved fixture'};
-  const tree=CookieAccounts({accounts:[account],configured:true,vaultReady:true,switchReady:false,onSwitch(){}});
+  const tree=CookieAccounts({accounts:[account],accountReady:true,switchReady:false,onSwitch(){}});
   assert.equal(find(tree,n=>n.props['aria-label']==='账号布局示例'),undefined);
   assert.ok(find(tree,n=>n.props['data-account-alias']===account.alias));
   assert.equal(find(tree,n=>n.type==='button'&&text(n)==='切换').props.disabled,true);

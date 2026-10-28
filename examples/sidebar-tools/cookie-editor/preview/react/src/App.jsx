@@ -40,10 +40,9 @@ export default function App(){
     <label>场景 <select data-testid="scenario" value={scene} onChange={e=>useScene(e.target.value)}>
      <option value="accountsDemo">3 个虚构账号（默认）</option>
      <option value="approvedParity">认可 HTML A/B 数据（保留分区身份）</option>
-     <option value="accountsLocked">仓库锁定 / 首次使用</option>
+     <option value="accountsFirst">首次保存账号</option>
      <option value="accountSwitchFail">账号切换失败</option>
      <option value="accountSwitchUnknown">账号切换结果未知</option>
-     <option value="accountLockUnknown">账号锁定回执未知</option>
      <option value="ready">Cookie 已授权</option><option value="first">首次全站授权</option>
      <option value="noPage">无活动网页</option><option value="restricted">受限网页</option>
      <option value="switching">正在切站</option><option value="chromeDenied">Chrome 权限缺失</option>
@@ -80,8 +79,8 @@ export default function App(){
   <section className="cookie-app" aria-label="Cookie Editor 虚构数据预览" hidden={settingsOpen} ref={setHostRoot}>
    {hostRoot&&(granted
     ?<CookieEditorApp key={scene+':'+revision} request={mock.request} hostRoot={hostRoot}
-      previewMode initialSection={['accountsLocked','accountSwitchFail',
-        'accountSwitchUnknown','accountLockUnknown'].includes(scene)?'accounts':'cookie'}/>
+      previewMode initialSection={['accountsFirst','accountSwitchFail',
+        'accountSwitchUnknown'].includes(scene)?'accounts':'cookie'}/>
     :<section className="preview-global-grant" aria-labelledby="preview-grant-title">
       <h2 id="preview-grant-title">Cookie 访问授权</h2>
       <p>允许管理普通 HTTP/HTTPS 网站的 Cookie；敏感值单独授权。</p>

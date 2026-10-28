@@ -1229,6 +1229,65 @@ test('local official import updates the reviewed release and preserves app data'
   assert.deepEqual(f.store.get(dataKey),data,'opening React preserves existing app data');
 });
 
+test('local official import refreshes a catalog published after the sidebar opened',async t=>{
+  const candidate=await officialToolFixture('bookmark-manager');
+  const {catalog}=await officialFixtures();
+  const release=catalog.apps.find(row=>row.toolId===candidate.id);
+  const previous={...candidate,version:'0.0.1',js:'void 0;'};
+  const oldRelease={...release,version:previous.version,sha256:await sidebarToolPackageHash(previous)};
+  const provenance={[candidate.id]:{marketId:release.id,version:previous.version,sha256:oldRelease.sha256}};
+  const dataKey=sidebarToolStorageKey(candidate.id),data={note:'keep across catalog refresh'};
+  let published=false;
+  const f=await hostFixture(t,{startTool:false,store:new Map([
+    [SIDEBAR_TOOL_STORE,[previous]],[MARKET_PROVENANCE_STORE,provenance],[dataKey,data]
+  ]),fetcher:async(url,options)=>{
+    if(!published&&url.endsWith('/official-tools/catalog.json'))
+      return new Response(JSON.stringify({...catalog,apps:catalog.apps.map(row=>row.toolId===candidate.id?oldRelease:row)}));
+    return officialFixtureFetch(url,options);
+  }});
+  published=true;
+  f.host.openImport();
+  const text=JSON.stringify(candidate);
+  f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  assert.match(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[previous],'refresh only prepares a review');
+  f.emit(f.elements['sidebar-tool-install'],'click');
+  await settle(()=>f.elements['sidebar-tool-import'].hidden);
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,candidate.version);
+  assert.deepEqual(f.store.get(MARKET_PROVENANCE_STORE)[candidate.id],{
+    marketId:release.id,version:release.version,sha256:release.sha256
+  });
+  assert.deepEqual(f.store.get(dataKey),data);
+  assert.equal(f.runtime.frameRoot.children.length,0,'refresh and installation cannot run the app');
+});
+
+test('local official import cannot reuse a cached catalog when its refresh fails',async t=>{
+  const candidate=await officialToolFixture('bookmark-manager');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===candidate.id);
+  const previous={...candidate,version:'0.0.1',js:'void 0;'};
+  const provenance={[candidate.id]:{marketId:release.id,version:previous.version,
+    sha256:await sidebarToolPackageHash(previous)}};
+  const dataKey=sidebarToolStorageKey(candidate.id),data={note:'keep on failure'};
+  let unavailable=false;
+  const f=await hostFixture(t,{startTool:false,store:new Map([
+    [SIDEBAR_TOOL_STORE,[previous]],[MARKET_PROVENANCE_STORE,provenance],[dataKey,data]
+  ]),fetcher:async(url,options)=>unavailable&&url.endsWith('/official-tools/catalog.json')
+    ?new Response('missing',{status:404}):officialFixtureFetch(url,options)});
+  unavailable=true;
+  f.host.openImport();
+  const text=JSON.stringify(candidate);
+  f.selectFile({name:'bookmark-manager.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  assert.doesNotMatch(f.elements['sidebar-tool-preview-file'].textContent,/已核对内置官方发行/);
+  f.emit(f.elements['sidebar-tool-install'],'click');
+  await settle(()=>!f.elements['sidebar-tool-file-error'].hidden);
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/E_PUBLISHER_CONFLICT/);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[previous]);
+  assert.deepEqual(f.store.get(MARKET_PROVENANCE_STORE),provenance);
+  assert.deepEqual(f.store.get(dataKey),data);
+});
+
 test('local official import of identical bytes prevents reinstall and retains the React owner',async t=>{
   const tool=await officialToolFixture('bookmark-manager');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);

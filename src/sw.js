@@ -41,7 +41,10 @@ try{installManagedSiteBudgetService({api:chrome});}catch(e){console.warn('E_SITE
 try{installStayFocusService({api:chrome});}catch(e){console.warn('E_STAY_FOCUS_HOST_LOAD',e);}
 try{installAdblockService({api:chrome});}catch(e){console.warn('E_ADBLOCK_HOST_LOAD',e);}
 try{installAiAccessService({api:chrome});}catch(e){console.warn('E_AI_ACCESS_HOST_LOAD',e);}
-try{installCookieAccountService({api:chrome});}catch(e){console.warn('E_COOKIE_ACCOUNT_HOST_LOAD',e?.code||'E_ACCOUNT');}
+let cookieAccounts;
+try{cookieAccounts=installCookieAccountService({api:chrome,
+  storage:async()=>(await foundation).storage});}
+catch(e){console.warn('E_COOKIE_ACCOUNT_HOST_LOAD',e?.code||'E_ACCOUNT');}
 const recoverManagedProxy=()=>void reconcileManagedProxy(chrome).catch(error=>
   console.warn('E_MANAGED_PROXY_RECOVER',error?.code||'E_PROXY'));
 chrome.runtime.onStartup?.addListener(recoverManagedProxy);
@@ -49,7 +52,13 @@ chrome.runtime.onInstalled?.addListener(recoverManagedProxy);
 chrome.alarms?.onAlarm?.addListener(alarm=>{if(alarm?.name===MANAGED_PROXY_ALARM)recoverManagedProxy();});
 recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
-const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
+const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true,
+  onToolUninstalled:async({toolId})=>{
+    if(toolId==='cookie-editor'){
+      if(!cookieAccounts)throw Object.assign(Error('E_ACCOUNT_HOST'),{code:'E_ACCOUNT_HOST'});
+      await cookieAccounts.cleanup();
+    }
+  }});
 const analyticsNamespace='tool:'+chrome.runtime.id;
 installAnalyticsHost({api:chrome,loadAuthority:async({since}={})=>
   readAnalyticsAuthorityProjection({storage:(await foundation).storage,api:chrome,since}),

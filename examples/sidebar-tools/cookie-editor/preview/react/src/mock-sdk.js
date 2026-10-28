@@ -42,8 +42,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  let currentSite=demoSite,globalGrant=scenario!=='first';
  const siteRows=new Map([[demoSite,rows]]);
  // Preview-only account fixture. No real account, Cookie, Host or storage.
- const accountDemo=parity||['accountsDemo','accountSwitchFail','accountSwitchUnknown','accountLockUnknown','accountsLocked'].includes(scenario);
- const unlockedDemo=accountDemo&&scenario!=='accountsLocked';
+ const accountDemo=parity||['accountsDemo','accountSwitchFail','accountSwitchUnknown'].includes(scenario);
  const fictionalAccounts=parity?[
    {alias:'work',origin:'https://'+demoSite,displayName:'工作账号',version:1,allowAuto:false},
    {alias:'personal',origin:'https://'+demoSite,displayName:'个人账号',version:1,allowAuto:false},
@@ -53,12 +52,11 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
    {alias:'personal',origin:'https://'+demoSite,displayName:'个人账号',version:1,allowAuto:false},
    {alias:'qa',origin:'https://'+demoSite,displayName:'测试账号',version:1,allowAuto:true}
  ];
- let demoVault=accountDemo
-   ?{configured:true,unlocked:unlockedDemo,revision:3,currentAlias:unlockedDemo?'work':null,
+ let demoAccounts=accountDemo
+   ?{configured:true,unlocked:true,revision:3,currentAlias:'work',
      accounts:fictionalAccounts,settings:{autoRefresh:true,autoEnabled:false}}
-   :{configured:false,unlocked:false,revision:0,currentAlias:null,
+   :{configured:true,unlocked:true,revision:0,currentAlias:null,
      accounts:[],settings:{autoRefresh:true,autoEnabled:false}};
- let demoPassphrase=unlockedDemo?'preview-only-passphrase':null;
  const demoSnapshots=new Map();
  if(accountDemo)for(const item of fictionalAccounts){
    // HTML supplies counts 8/8/7, not saved Cookie contents. The backup subset
@@ -66,11 +64,11 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
    const snapshot=parity?rows.slice(0,item.alias==='backup'?7:8):fictionalCookies();
    demoSnapshots.set(item.alias,clone(snapshot));
  }
- const accountMeta=()=>({...clone(demoVault),
-   accounts:demoVault.unlocked?demoVault.accounts
+ const accountMeta=()=>({...clone(demoAccounts),
+   accounts:demoAccounts.unlocked?demoAccounts.accounts
      .filter(item=>item.origin==='https://'+currentSite)
      .map(item=>({...item,siteLabel:currentSite,siteUrl:'https://'+currentSite+'/'})):[],
-   autoRuntimeReady:demoVault.unlocked,preview:true
+   autoRuntimeReady:demoAccounts.unlocked,preview:true
  });
  const seedRows=hostname=>{
   if(scenario==='empty')return [];
@@ -164,38 +162,26 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     if(scenario==='hostClosed')throw error('E_HOST_CLOSED');
     const action=operation.slice('cookieAccount.'.length);
     if(action==='status')return accountMeta();
-    if(action==='unlock'){
-      if(typeof payload.passphrase!=='string'||payload.passphrase.length<12)
-        throw error('E_VAULT_PASSPHRASE');
-      if(demoPassphrase!==null&&payload.passphrase!==demoPassphrase)
-        throw error('E_VAULT_LOCKED_OR_CORRUPT');
-      demoPassphrase=payload.passphrase;
-      demoVault.configured=true;demoVault.unlocked=true;
-      return accountMeta();
-    }
-    if(action==='lock'){
-      // A negative Host receipt must leave the demonstration vault untouched.
-      if(scenario==='accountLockUnknown')return {locked:false};
-      demoVault.unlocked=false;demoVault.currentAlias=null;return {locked:true};
-    }
-    if(!demoVault.unlocked)throw error('E_VAULT_LOCKED');
-    if(payload.revision!==demoVault.revision)throw error('E_VAULT_CONFLICT');
+    if(!['create','rename','update','delete','switch','setAutoEnabled','setAutoRefresh','allowAlias'].includes(action))
+      throw error('E_ACCOUNT_REQUEST');
+    if(payload.revision!==demoAccounts.revision)throw error('E_VAULT_CONFLICT');
     const origin='https://'+currentSite;
-    const selected=demoVault.accounts.find(item=>item.alias===payload.alias&&item.origin===origin);
+    const selected=demoAccounts.accounts.find(item=>item.alias===payload.alias&&item.origin===origin);
     if(action==='switch'){
       if(!selected)throw error('E_ACCOUNT_NOT_FOUND');
       if(scenario==='accountSwitchUnknown')throw error('E_OUTCOME_UNKNOWN');
       if(scenario==='accountSwitchFail')throw error('E_SITE_GRANT_REQUIRED');
       rows=clone(demoSnapshots.get(selected.alias)||[]);
-      demoVault.currentAlias=selected.alias;
+      demoAccounts.currentAlias=selected.alias;
       record('previewAccountSwitch',{alias:selected.alias,fixture:true});
-      return {switched:true,verified:true,reloadRequested:demoVault.settings.autoRefresh,
+      return {switched:true,verified:true,reloadRequested:demoAccounts.settings.autoRefresh,
         preview:true};
     }
     if(action==='create'){
       if(!payload.displayName||!rows.length)throw error('E_ACCOUNT_EMPTY');
-      const alias='acct_preview_'+String(demoVault.revision+1).padStart(3,'0');
-      demoVault.accounts.push({alias,origin,
+      const alias='acct_preview_'+String(demoAccounts.revision+1).padStart(3,'0');
+      demoAccounts.configured=true;
+      demoAccounts.accounts.push({alias,origin,
         displayName:String(payload.displayName).slice(0,64),version:1,allowAuto:false});
       demoSnapshots.set(alias,clone(rows));
     }else if(['rename','update','delete','allowAlias'].includes(action)){
@@ -204,17 +190,17 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
       if(action==='rename')selected.displayName=String(payload.displayName).slice(0,64);
       if(action==='update')demoSnapshots.set(selected.alias,clone(rows));
       if(action==='delete'){
-        if(demoVault.currentAlias===selected.alias)demoVault.currentAlias=null;
-        demoVault.accounts.splice(demoVault.accounts.indexOf(selected),1);
+        if(demoAccounts.currentAlias===selected.alias)demoAccounts.currentAlias=null;
+        demoAccounts.accounts.splice(demoAccounts.accounts.indexOf(selected),1);
         demoSnapshots.delete(selected.alias);
       }
       if(action==='allowAlias')selected.allowAuto=payload.enabled===true;
       selected.version++;
     }else if(action==='setAutoEnabled'||action==='setAutoRefresh'){
-      demoVault.settings[action==='setAutoEnabled'?'autoEnabled':'autoRefresh']=
+      demoAccounts.settings[action==='setAutoEnabled'?'autoEnabled':'autoRefresh']=
         payload.enabled===true;
     }else throw error('E_ACCOUNT_REQUEST');
-    demoVault.revision++;
+    demoAccounts.revision++;
     record('previewAccountMutation',{action,fixture:true});
     return accountMeta();
    }

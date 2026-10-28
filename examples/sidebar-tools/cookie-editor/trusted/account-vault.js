@@ -1,15 +1,14 @@
-// First-party Cookie Editor vault. This file is compiled into the trusted MV3
-// worker, never into the installed React/sandbox bundle or the Browser SDK.
-// Persistent storage contains authenticated ciphertext only. The AES key is
-// passphrase-derived and retained in trusted, memory-only Chrome session storage.
-import {COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY}
+// First-party Cookie account storage, compiled only into the trusted MV3 worker.
+// Cookie values stay in the existing Foundation frameworkKV, never in metadata.
+// The old vault is read-only: an existing trusted session key may recover it.
+import {COOKIE_ACCOUNT_STORE_KEY,COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY}
   from './account-contract.js';
-export {COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY} from './account-contract.js';
+export {COOKIE_ACCOUNT_STORE_KEY,COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY}
+  from './account-contract.js';
 const FORMAT=1,ITERATIONS=420000,MAX_PLAIN_BYTES=512000;
 const fail=(code)=>Object.assign(new Error(code),{code});
 const enc=new TextEncoder(),dec=new TextDecoder('utf-8',{fatal:true});
 const utf8=value=>enc.encode(value);
-const b64=bytes=>btoa(Array.from(bytes,byte=>String.fromCharCode(byte)).join(''));
 const raw=value=>{
   if(typeof value!=='string'||value.length>800000||!/^[A-Za-z0-9+/]*={0,2}$/.test(value))
     throw fail('E_VAULT_CORRUPT');
@@ -51,25 +50,6 @@ function envelope(value){
     throw fail('E_VAULT_CORRUPT');
   return value;
 }
-function sameEnvelope(left,right){
-  try{envelope(left);envelope(right);}catch{return false;}
-  // Chrome storage may reorder object keys. Compare the complete validated
-  // envelope, retaining exact values and rejecting missing or extra fields.
-  const fields=['format','iterations','salt','iv','ciphertext'];
-  return Object.keys(left).length===fields.length&&
-    Object.keys(right).length===fields.length&&fields.every(field=>
-      Object.hasOwn(left,field)&&Object.hasOwn(right,field)&&left[field]===right[field]);
-}
-async function derive(password,salt,subtle){
-  if(typeof password!=='string'||password.length<12||password.length>256||
-    utf8(password).length>512)throw fail('E_VAULT_PASSPHRASE');
-  const base=await subtle.importKey('raw',utf8(password),'PBKDF2',false,['deriveBits']);
-  const bits=await subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',
-    iterations:ITERATIONS,salt},base,256);
-  return new Uint8Array(bits);
-}
-const importAes=(bytes,subtle)=>subtle.importKey('raw',bytes,
-  {name:'AES-GCM',length:256},false,['encrypt','decrypt']);
 async function openVault(row,key,subtle){
   envelope(row);
   try{
@@ -82,17 +62,23 @@ async function openVault(row,key,subtle){
     throw fail('E_VAULT_LOCKED_OR_CORRUPT');
   }
 }
-async function seal(data,key,salt,cryptoImpl){
-  const content=utf8(JSON.stringify(checkData(data)));
-  if(content.length>MAX_PLAIN_BYTES)throw fail('E_VAULT_LIMIT');
-  const iv=cryptoImpl.getRandomValues(new Uint8Array(12));
-  const cipher=new Uint8Array(await cryptoImpl.subtle.encrypt({
-    name:'AES-GCM',iv,additionalData:utf8('opendesk.cookie-editor.vault.v1')
-  },key,content));
-  return {format:FORMAT,iterations:ITERATIONS,salt:b64(salt),iv:b64(iv),
-    ciphertext:b64(cipher)};
+// Compare complete records independently of storage object key order.
+function same(left,right){
+  if(left===right)return true;
+  if(Array.isArray(left)||Array.isArray(right))return Array.isArray(left)&&
+    Array.isArray(right)&&left.length===right.length&&left.every((v,i)=>same(v,right[i]));
+  return plain(left)&&plain(right)&&Object.keys(left).length===Object.keys(right).length&&
+    Object.keys(left).every(key=>Object.hasOwn(right,key)&&same(left[key],right[key]));
 }
-export function createCookieAccountVault({api=globalThis.chrome,
+function checkRecord(row){
+  if(!plain(row)||row.format!==FORMAT||typeof row.legacyMigrated!=='boolean'||
+     Object.keys(row).length!==5)throw fail('E_VAULT_CORRUPT');
+  checkData(row);
+  if(utf8(JSON.stringify(row)).length>MAX_PLAIN_BYTES)throw fail('E_VAULT_LIMIT');
+  return row;
+}
+const dataOf=row=>({revision:row.revision,accounts:row.accounts,settings:row.settings});
+export function createCookieAccountVault({api=globalThis.chrome,storage,
   cryptoImpl=globalThis.crypto}={}){
   let serial=Promise.resolve();
   const exclusive=task=>{
@@ -100,104 +86,105 @@ export function createCookieAccountVault({api=globalThis.chrome,
     serial=run.catch(()=>{});
     return run;
   };
-  async function session(){
-    if(!api?.storage?.session?.get||!api.storage.session?.setAccessLevel)
-      throw fail('E_VAULT_SESSION_UNAVAILABLE');
-    await api.storage.session.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});
-    const value=(await api.storage.session.get(COOKIE_ACCOUNT_SESSION_KEY))
-      [COOKIE_ACCOUNT_SESSION_KEY];
-    return value?.format===FORMAT&&typeof value.key==='string'&&
-      raw(value.key).length===32?value:null;
-  }
-  async function keyFor(){
-    const value=await session();
-    if(!value)throw fail('E_VAULT_LOCKED');
-    const row=(await api.storage.local.get(COOKIE_ACCOUNT_VAULT_KEY))[COOKIE_ACCOUNT_VAULT_KEY];
-    if(!row||value.salt!==row.salt)throw fail('E_VAULT_LOCKED');
-    return {row:envelope(row),key:await importAes(raw(value.key),cryptoImpl.subtle)};
-  }
-  const read=async()=>{
-    const {row,key}=await keyFor();
-    return openVault(row,key,cryptoImpl.subtle);
-  };
-  async function status(){
-    const saved=(await api.storage.local.get(COOKIE_ACCOUNT_VAULT_KEY))
-      [COOKIE_ACCOUNT_VAULT_KEY];
-    if(!saved)return {configured:false,unlocked:false,revision:0,
-      accounts:[],settings:empty().settings};
-    envelope(saved);
+  async function trustedStorage(){
     try{
-      const data=await read();
-      return {configured:true,unlocked:true,revision:data.revision,
-        accounts:data.accounts.map(({alias,origin,displayName,version,allowAuto})=>
-          ({alias,origin,displayName,version,allowAuto})),
-        settings:{...data.settings}};
-    }catch(error){
-      if(error?.code!=='E_VAULT_LOCKED'&&
-         error?.code!=='E_VAULT_SESSION_UNAVAILABLE')throw error;
-      return {configured:true,unlocked:false,revision:null,
-        accounts:[],settings:empty().settings};
+      const service=await storage?.();
+      if(typeof service?.transaction!=='function'||service.readOnly===true)
+        throw fail('E_ACCOUNT_STORAGE_UNAVAILABLE');
+      return service;
+    }catch{throw fail('E_ACCOUNT_STORAGE_UNAVAILABLE');}
+  }
+  const get=async(area,key)=>(await area.get(key))[key];
+  async function stored(service){
+    try{return await service.transaction(['frameworkKV'],'readonly',
+      tx=>tx.get('frameworkKV',COOKIE_ACCOUNT_STORE_KEY));}
+    catch{throw fail('E_ACCOUNT_STORAGE_UNAVAILABLE');}
+  }
+  async function legacyRow(){
+    try{
+      if(!api?.storage?.local?.get)throw fail('E_ACCOUNT_STORAGE_UNAVAILABLE');
+      return await get(api.storage.local,COOKIE_ACCOUNT_VAULT_KEY);
+    }catch{throw fail('E_ACCOUNT_STORAGE_UNAVAILABLE');}
+  }
+  async function recoverLegacy(row){
+    try{
+      envelope(row);
+      const area=api?.storage?.session;
+      if(!area?.get||!area?.setAccessLevel||!cryptoImpl?.subtle)return null;
+      await area.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});
+      const value=await get(area,COOKIE_ACCOUNT_SESSION_KEY);
+      if(value?.format!==FORMAT||value.salt!==row.salt||raw(value.key).length!==32)
+        return null;
+      const key=await cryptoImpl.subtle.importKey('raw',raw(value.key),
+        {name:'AES-GCM',length:256},false,['decrypt']);
+      return await openVault(row,key,cryptoImpl.subtle);
+    }catch{return null;} // Preserve unreadable legacy bytes without claiming migration.
+  }
+  async function write(service,original,replacement){
+    let attempted=false,changed;
+    try{
+      changed=await service.transaction(['frameworkKV'],'readwrite',async tx=>{
+        // Compare and write under Foundation's single native transaction lock.
+        if(!same(await tx.get('frameworkKV',COOKIE_ACCOUNT_STORE_KEY),original))return false;
+        attempted=true;
+        await tx.put('frameworkKV',replacement,COOKIE_ACCOUNT_STORE_KEY);
+        return true;
+      });
+    }catch{throw fail(attempted?'E_OUTCOME_UNKNOWN':'E_ACCOUNT_STORAGE_UNAVAILABLE');}
+    if(changed!==true)throw fail('E_VAULT_CONFLICT');
+    try{
+      if(!same(await stored(service),replacement))throw fail('E_OUTCOME_UNKNOWN');
+    }catch{throw fail('E_OUTCOME_UNKNOWN');} // Do not retry uncertain commits or readbacks.
+  }
+  async function load(){
+    const service=await trustedStorage();
+    let row=await stored(service);
+    const legacy=await legacyRow();
+    if(row!==undefined){
+      checkRecord(row);
+      return {service,row,data:dataOf(row),legacyLocked:legacy!==undefined&&!row.legacyMigrated};
     }
-  }
-  async function unlock(password){
-    return exclusive(async()=>{
-      if(!cryptoImpl?.subtle||!cryptoImpl?.getRandomValues)
-        throw fail('E_VAULT_CRYPTO_UNAVAILABLE');
-      // Refuse to create a vault without ephemeral trusted key storage.
-      await session();
-      let saved=(await api.storage.local.get(COOKIE_ACCOUNT_VAULT_KEY))
-        [COOKIE_ACCOUNT_VAULT_KEY];
-      const salt=saved?raw(envelope(saved).salt):
-        cryptoImpl.getRandomValues(new Uint8Array(16));
-      const bytes=await derive(password,salt,cryptoImpl.subtle);
-      const key=await importAes(bytes,cryptoImpl.subtle);
-      if(saved){
-        await openVault(saved,key,cryptoImpl.subtle);
-      }else{
-        saved=await seal(empty(),key,salt,cryptoImpl);
-        await api.storage.local.set({[COOKIE_ACCOUNT_VAULT_KEY]:saved});
-        const confirmed=(await api.storage.local.get(COOKIE_ACCOUNT_VAULT_KEY))
-          [COOKIE_ACCOUNT_VAULT_KEY];
-        if(!sameEnvelope(confirmed,saved))
-          throw fail('E_OUTCOME_UNKNOWN');
+    if(legacy!==undefined){
+      const recovered=await recoverLegacy(legacy);
+      if(recovered){
+        const replacement=checkRecord({format:FORMAT,...recovered,legacyMigrated:true});
+        if(!same(await legacyRow(),legacy))throw fail('E_VAULT_CONFLICT');
+        await write(service,row,replacement);
+        row=replacement;
+        return {service,row,data:dataOf(row),legacyLocked:false};
       }
-      await api.storage.session.set({[COOKIE_ACCOUNT_SESSION_KEY]:
-        {format:FORMAT,salt:saved.salt,key:b64(bytes)}});
-      const result=await status();
-      if(!result.unlocked)throw fail('E_VAULT_LOCKED');
-      return result;
-    });
+    }
+    return {service,row,data:empty(),legacyLocked:legacy!==undefined};
   }
-  async function lock(){
-    return exclusive(async()=>{
-      if(!api?.storage?.session?.remove)throw fail('E_VAULT_SESSION_UNAVAILABLE');
-      await api.storage.session.remove(COOKIE_ACCOUNT_SESSION_KEY);
-      if((await api.storage.session.get(COOKIE_ACCOUNT_SESSION_KEY))
-        [COOKIE_ACCOUNT_SESSION_KEY]!==undefined)throw fail('E_OUTCOME_UNKNOWN');
-      return {locked:true};
-    });
-  }
+  const read=()=>exclusive(async()=>structuredClone((await load()).data));
+  const status=()=>exclusive(async()=>{
+    const {data,legacyLocked}=await load();
+    return {configured:true,unlocked:true,legacyLocked,revision:data.revision,
+      accounts:data.accounts.map(({alias,origin,displayName,version,allowAuto})=>
+        ({alias,origin,displayName,version,allowAuto})),settings:{
+        autoRefresh:data.settings.autoRefresh,autoEnabled:data.settings.autoEnabled}};
+  });
   async function update(expectedRevision,change){
     if(!checkRevision(expectedRevision))throw fail('E_VAULT_REVISION');
     return exclusive(async()=>{
-      const {row,key}=await keyFor();
-      const original=await openVault(row,key,cryptoImpl.subtle);
-      if(original.revision!==expectedRevision)throw fail('E_VAULT_CONFLICT');
-      const next=structuredClone(original);
+      const {service,row,data}=await load();
+      if(data.revision!==expectedRevision)throw fail('E_VAULT_CONFLICT');
+      const next=structuredClone(data);
       await change(next);
       next.revision++;
-      const replacement=await seal(next,key,raw(row.salt),cryptoImpl);
-      const before=(await api.storage.local.get(COOKIE_ACCOUNT_VAULT_KEY))
-        [COOKIE_ACCOUNT_VAULT_KEY];
-      if(!sameEnvelope(before,row))
-        throw fail('E_VAULT_CONFLICT');
-      await api.storage.local.set({[COOKIE_ACCOUNT_VAULT_KEY]:replacement});
-      const after=(await api.storage.local.get(COOKIE_ACCOUNT_VAULT_KEY))
-        [COOKIE_ACCOUNT_VAULT_KEY];
-      if(!sameEnvelope(after,replacement))
-        throw fail('E_OUTCOME_UNKNOWN');
+      const replacement=checkRecord({format:FORMAT,...next,legacyMigrated:row?.legacyMigrated??false});
+      await write(service,row,replacement);
       return next.revision;
     });
   }
-  return Object.freeze({status,read,unlock,lock,update});
+  const clear=()=>exclusive(async()=>{
+    const service=await trustedStorage();
+    try{
+      await service.transaction(['frameworkKV'],'readwrite',
+        tx=>tx.delete('frameworkKV',COOKIE_ACCOUNT_STORE_KEY));
+      if(await stored(service)!==undefined)throw fail('E_OUTCOME_UNKNOWN');
+    }catch{throw fail('E_OUTCOME_UNKNOWN');}
+    return {cleared:true};
+  });
+  return Object.freeze({status,read,update,clear});
 }

@@ -655,22 +655,17 @@ try{
   await row('embedded_pref').waitFor();assert.equal(await page.locator('.cookie-row').count(),2);
   assert.equal(await row('analytics_consent').count(),1);await reset();
  });
- await test('account Vault lock requires an affirmative trusted receipt',async()=>{
-  await scene('accountLockUnknown');
-  await button('锁定账号仓库').waitFor();
-  await button('锁定账号仓库').click();
-  await page.getByText(/账号仓库锁定回执未确认/).waitFor();
-  assert.equal(await button('锁定账号仓库').count(),1,
-    'ambiguous lock must retain the last confirmed unlocked view');
-  assert.equal(await page.getByText('账号仓库已锁定。').count(),0);
-  await scene('accountsDemo');
-  // Scene reset follows the approved Cookie-first baseline; account controls
-  // are intentionally not on the hidden tab.
-  await page.getByRole('tab',{name:'账号',exact:true}).click();
-  await button('锁定账号仓库').waitFor();
-  await button('锁定账号仓库').click();
-  await page.getByText('账号仓库已锁定。').waitFor();
-  await page.getByRole('button',{name:'解锁',exact:true}).waitFor();
+ await test('first account saves directly without a vault or password',async()=>{
+  await scene('accountsFirst');
+  await button('保存当前 Cookie 为账号').waitFor();
+  assert.equal(await page.locator('.cookie-account-vault,input[type="password"]').count(),0);
+  assert.equal(await button('锁定账号仓库').count(),0);
+  await button('保存当前 Cookie 为账号').click();
+  await page.getByRole('textbox',{name:'账号名称'}).fill('First local account');
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.getByText('First local account',{exact:true}).waitFor();
+  assert.equal(await page.locator('[data-account-alias]').count(),1);
+  await page.screenshot({path:join(output,'accounts-without-vault.png'),fullPage:true});
  });
  await test('blocked/loading/empty/read-only scenes come from SDK responses',async()=>{
   await scene('first');await button('允许管理所有网站 Cookie').waitFor();

@@ -224,9 +224,9 @@ export async function cleanupUninstalledToolLocked(api,id){
     await removeVerifiedKey(api,toolLocaleStorageKey(id));
     if(id==='prompt-shortcuts')await removeVerifiedKey(api,PROMPT_ASSET_STORE);
     if(id==='cookie-editor'){
-      // Explicit uninstall retires the encrypted account vault AND the live
-      // session key/fence, with verified removal under the existing durable
-      // uninstall journal. Ordinary upgrades retain the vault unchanged.
+      // The trusted cleanup receipt above retires current accounts. Remove
+      // legacy encrypted data and session state under the same journal;
+      // ordinary upgrades retain all account data.
       await removeVerifiedKey(api,COOKIE_ACCOUNT_VAULT_KEY);
       await removeVerifiedStorageKey(api.storage.session,COOKIE_ACCOUNT_SESSION_KEY,
         '卸载 Cookie 账号加密会话');

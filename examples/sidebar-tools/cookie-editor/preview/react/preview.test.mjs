@@ -338,13 +338,16 @@ test('R2.6 fictional account scenes expose three redacted accounts without touch
   assert.equal(ops.length,1);
   assert.equal(ops[0].args.fixture,true);
  }finally{demo.dispose();}
- const locked=createMockSdk({scenario:'accountsLocked'});
+ const first=createMockSdk({scenario:'accountsFirst'});
  try{
-  const state=await locked.request('cookieAccount.status',{});
-  assert.equal(state.configured,true);
-  assert.equal(state.unlocked,false);
+  const state=await first.request('cookieAccount.status',{});
+  assert.equal(state.unlocked,true);
   assert.deepEqual(state.accounts,[]);
- }finally{locked.dispose();}
+  const saved=await first.request('cookieAccount.create',{revision:state.revision,displayName:'First local account'});
+  assert.equal(saved.accounts[0].displayName,'First local account');
+  await assert.rejects(first.request('cookieAccount.unlock',{}),{code:'E_ACCOUNT_REQUEST'});
+  await assert.rejects(first.request('cookieAccount.lock',{}),{code:'E_ACCOUNT_REQUEST'});
+ }finally{first.dispose();}
  for(const [scenario,code] of [
   ['accountSwitchFail','E_SITE_GRANT_REQUIRED'],
   ['accountSwitchUnknown','E_OUTCOME_UNKNOWN']
@@ -370,7 +373,7 @@ test('R3.2 market and account invite share one formal App but never create produ
  assert.match(product,/initialSection='cookie'/);
  assert.match(product,/\['cookie','Cookie'\],\['accounts','账号'\],\['enterprise','企业'\]/);
  assert.match(preview,/React\.useState\('accountsDemo'\)/);
- assert.match(preview,/initialSection=\{\['accountsLocked'/);
+ assert.match(preview,/initialSection=\{\['accountsFirst'/);
  assert.doesNotMatch(preview,/initialSection=\{\['accountsDemo'/);
  assert.match(preview,/<CookieEditorApp\b/);
  assert.match(accounts,/<CookieAccountShare account=\{shareItem\} previewOnly=\{previewOnly\}/);

@@ -20,8 +20,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const [mode,setMode]=React.useState('browser');
   const [section,setSection]=React.useState(initialSection);
   const [accountRoute,setAccountRoute]=React.useState('list');
-  // Only trusted, redacted account metadata may enter React. The encrypted
-  // snapshot, Cookie values and vault key never cross the Host boundary.
+  // Only trusted, redacted account metadata may enter React. Raw snapshots
+  // and Cookie values never cross the Host boundary.
   const [accountState,setAccountState]=React.useState(null);
   const [accountBusy,setAccountBusy]=React.useState(false);
   const [accountDirty,setAccountDirty]=React.useState(false);
@@ -232,16 +232,15 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   },[adapter,mode,section,target?.origin]);
   const accountAction=(action,payload={},success='账号已更新')=>{
     if(accountInFlight.current||modeRef.current!=='browser'||!target?.origin||
-       (action!=='unlock'&&action!=='lock'&&!accountState?.unlocked))return;
+       !accountState?.unlocked)return;
     accountInFlight.current=true;
-    if(action==='switch'||action==='lock'||
+    if(action==='switch'||
       (['delete','update'].includes(action)&&payload.alias===verifiedAccount.current?.alias))
       verifiedAccount.current=null;
     // Start the Host request in the original button/change gesture. The
     // privileged parent independently observes userActivation synchronously.
     const intent=adapter.accountRequest(action,{
-      ...payload,...(action==='unlock'||action==='lock'?{}:
-        {revision:accountState.revision})
+      ...payload,revision:accountState.revision
     });
     const requestedOrigin=target.origin;
     const requestedEpoch=controller.snapshot().epoch;
@@ -273,15 +272,6 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           try{await controller.syncMetadata();}
           finally{verified.refreshing=false;}
         }
-      }else if(action==='lock'){
-        // A trusted affirmative receipt is required before marking the vault locked.
-        if(receipt?.locked!==true)
-          throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
-        setAccountState(previous=>previous?{
-          ...previous,unlocked:false,accounts:[],currentAlias:null,revision:null,
-          settings:{autoEnabled:false,autoRefresh:true}
-        }:null);
-        setAccountNotice({kind:'success',text:'账号仓库已锁定。'});
       }else{
         if(typeof receipt?.configured!=='boolean'||!Array.isArray(receipt.accounts))
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
@@ -294,12 +284,11 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       if(!sameAccountContext())return false;
       const code=String(error?.code||'E_ACCOUNT_HOST');
       const hints={
-        E_OUTCOME_UNKNOWN:action==='lock'
-          ?'账号仓库锁定回执未确认；请核对实际状态，勿假定已锁定。'
-          :action==='switch'?'可能发生部分 Cookie 写入，请手动核对，勿直接重复切换。'
-          :'账号仓库操作结果未确认；请先读取并核对仓库状态，勿直接重复操作。',
+        E_OUTCOME_UNKNOWN:action==='switch'?'可能发生部分 Cookie 写入，请手动核对，勿直接重复切换。'
+          :'账号保存结果未确认；请先重新打开账号页核对，勿直接重复操作。',
         E_REFRESH_OUTCOME_UNKNOWN:'Cookie 切换已尝试，但网页刷新结果未确认，请手动核对。',
-        E_VAULT_LOCKED_OR_CORRUPT:'口令不正确或加密仓库损坏，原数据未覆盖。',
+        E_VAULT_CORRUPT:'本机账号数据无法读取，原数据未覆盖。',
+        E_ACCOUNT_STORAGE_UNAVAILABLE:'本机账号存储不可用，请检查扩展状态。',
         E_VAULT_CONFLICT:'另一个操作已修改账号，请重新打开账号页读取最新状态。',
         E_ACCOUNT_PARENT_DOMAIN_UNSUPPORTED:'本站使用跨子域 Cookie，当前安全模式不支持完整快照。',
         E_COOKIE_PARTITION:'Cookie 分区已变化，请重新检查目标标签页及授权。',
@@ -307,7 +296,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         E_SITE_GRANT_REQUIRED:'网站 Cookie 授权失效，请在工具可信设置中恢复。',
         E_ACCOUNT_EMPTY:'当前站点没有可保存或切换的 Cookie。'
       };
-      setAccountNotice({kind:'error',text:(hints[code]||'本次操作未确认，请检查权限或仓库状态。')+
+      setAccountNotice({kind:'error',text:(hints[code]||'本次操作未确认，请检查权限或账号状态。')+
         '（'+code+'）'});
       return false;
     }).finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
@@ -667,9 +656,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           snapshot.epoch===verifiedAccount.current.epoch&&target?.url===verifiedAccount.current.url&&
           accountState.accounts.some(item=>item.alias===verifiedAccount.current.alias&&
             item.version===verifiedAccount.current.version)?verifiedAccount.current.alias:null}
-        configured={accountState?.configured===true}
         route={accountRoute} onRoute={setAccountRoute}
-        vaultReady={accountState?.unlocked===true} switchReady={
+        accountReady={accountState?.unlocked===true}
+        legacyLocked={accountState?.legacyLocked===true} switchReady={
           accountState?.unlocked===true&&snapshot.phase==='ready'}
         autoRuntimeReady={accountState?.autoRuntimeReady===true&&
           accountState?.unlocked===true}
@@ -677,8 +666,6 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         autoRefresh={accountState?.settings?.autoRefresh!==false}
         previewOnly={accountState?.preview===true}
         busy={accountBusy||locked} feedback={accountNotice}
-        onUnlock={passphrase=>accountAction('unlock',{passphrase},'账号仓库已解锁。')}
-        onLock={()=>accountAction('lock')}
         onCreate={displayName=>accountAction('create',{displayName},'已保存当前账号快照。')}
         onSwitch={item=>accountAction('switch',{alias:item.alias})}
         onRename={(item,displayName)=>accountAction('rename',{

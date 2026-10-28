@@ -609,11 +609,6 @@
       "reason": "应用快照仅表示可信写入回读，不意味着网站登录成功；不复用 HTML 模拟成功文本"
     },
     {
-      "id": "secure-vault",
-      "status": "SAFETY_EXCEPTION",
-      "reason": "正式 React 受本机加密仓库锁定与敏感值授权限制，不能复制原版可用状态"
-    },
-    {
       "id": "demo-site-picker",
       "status": "PREVIEW_ONLY",
       "reason": "原版可切换的模拟站点下拉属于实验台；正式站点由可信 Host 提供"

@@ -92,7 +92,7 @@ async function inventory(page,selector){
    ['accounts-heading','.account-head,.cookie-account-header'],['accounts','.accounts-list,.cookie-account-list'],
    ['membership','.membership-block,.cookie-business-membership'],['site','.sitebar,.site-bar'],['tabs','.tabs,.cookie-product-tabs'],
    ['filter','.filterbar,.filter-panel'],['search','.searchbar'],['toolbar','.toolbar,.list-toolbar'],['cookies','.cookie-list'],
-   ['accounts-note','.note,.cookie-account-security-note'],['account-feedback','.status,.cookie-account-feedback,.cookie-account-unlock,.cookie-account-notice']
+   ['accounts-note','.note,.cookie-account-security-note'],['account-feedback','.status,.cookie-account-feedback,.cookie-account-notice']
   ];
   const controlRole=el=>(['button','switch','tab','menuitem','checkbox','radio','textbox','searchbox','combobox','slider','spinbutton'].includes(el.getAttribute('role'))?el.getAttribute('role'):'')||(el.matches('button')?'button':el.matches('input')?({checkbox:'checkbox',search:'searchbox'}[el.type]||'textbox'):el.matches('select')?'combobox':el.matches('textarea')?'textbox':el.matches('a')?'link':el.matches('summary')?'disclosure':'');
   const label=el=>norm(el.getAttribute('aria-label')||(el.labels?.length?[...el.labels].map(x=>x.textContent).join(' '):el.getAttribute('title')||el.textContent));
@@ -170,7 +170,7 @@ function inventoryDiff(html,react,scene){
    if(gap.length)diffs.push({...scene,id:old.key,status:'LOCKED',kind:property==='rect'?'RECT':property==='style'?'COMPUTED_STYLE':'CONTROL_STATE',properties:gap,html:left,react:right});
   }
  }
- for(const node of current.values())diffs.push({...scene,id:node.key,status:(node.label==='锁定账号仓库'||node.owner==='锁定账号仓库')?'SAFETY_EXCEPTION':'LOCKED',kind:node.kind+'_EXTRA',html:null,react:node,reason:(node.label==='锁定账号仓库'||node.owner==='锁定账号仓库')?'原型没有本机加密仓库锁定；额外安全功能须审阅，未获视觉批准。':undefined});
+ for(const node of current.values())diffs.push({...scene,id:node.key,status:'LOCKED',kind:node.kind+'_EXTRA',html:null,react:node});
 }
 async function sample(page,selector,icon=false){
  const node=page.locator(selector).first();
@@ -211,7 +211,7 @@ if(selfTest){
  check([base],[{...base,style:{...base.style,borderTopWidth:'1px'}}]);assert.equal(diffs.length,0,'transparent border does not paint');
  check([base],[{...base,style:{...base.style,borderTopWidth:'1px',borderTopColor:'rgb(0, 0, 0)'}}]);assert.equal(diffs[0].kind,'COMPUTED_STYLE','opaque border remains a gap');
  check([base],[{...base,state:{expanded:'false'}}]);assert.equal(diffs[0].kind,'STATE_ENHANCEMENT');
- check([],[{...base,kind:'ICON',owner:'锁定账号仓库'}]);assert.equal(diffs[0].status,'SAFETY_EXCEPTION');
+ check([],[{...base,kind:'ICON',owner:'额外操作'}]);assert.equal(diffs[0].status,'LOCKED');
  const domain={...base,entity:'analytics_consent',text:'到期 · .example.com'};
  check([domain],[{...domain,text:domain.text+' · 跨子域',style:{...base.style,color:'rgb(1, 1, 1)'}}]);assert.equal(diffs.find(d=>d.kind==='STATIC_COPY').status,'SAFETY_EXCEPTION');assert.equal(diffs.find(d=>d.kind==='COMPUTED_STYLE').status,'LOCKED');
  console.log('R37_MATCHER_SELF_TEST_PASS 8 cases');process.exit(0);
@@ -279,7 +279,7 @@ try{
    }
    if(tab==='accounts'){
      // Match the prototype's applied snapshot through the normal mock action;
-     // configured vault metadata alone is not a verified switch receipt.
+     // saved account metadata alone is not a verified switch receipt.
      await reactPage.locator('[data-account-alias="work"]').getByRole('button',{name:'切换',exact:true}).click();
      await reactPage.locator('[data-account-alias="work"].is-current').waitFor({state:'visible'});
    }

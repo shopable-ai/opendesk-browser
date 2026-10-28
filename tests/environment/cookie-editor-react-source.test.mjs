@@ -248,18 +248,17 @@ test('R5.38 clearing Host-only cookies uses first React dialog confirmation, not
 const sourceHost=()=>readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
 const getHostGate=()=>readFile(new URL('../../src/ui/sidebar-tools/cookie-clear-intent.js',import.meta.url),'utf8');
 
-test('Vault lock and async account UI require current trusted receipts',async()=>{
- const [app,mock,preview,chromium]=await Promise.all([
-  get('app/CookieEditorApp.jsx'),get('preview/react/src/mock-sdk.js'),
-  get('preview/react/src/App.jsx'),get('preview/react/chromium.mjs')
+test('account actions retain current trusted receipts without password management',async()=>{
+ const [app,accounts,mock]=await Promise.all([
+  get('app/CookieEditorApp.jsx'),get('app/components/CookieAccounts.jsx'),
+  get('preview/react/src/mock-sdk.js')
  ]);
- assert.match(app,/if\(receipt\?\.locked!==true\)/);
  assert.match(app,/live\.epoch===requestedEpoch/);
  assert.match(app,/if\(!sameAccountContext\(\)\)return/);
  assert.match(app,/if\(!sameCopyContext\(\)\)return/);
- assert.match(mock,/accountLockUnknown/);
- assert.match(preview,/accountLockUnknown/);
- assert.match(chromium,/account Vault lock requires an affirmative trusted receipt/);
+ assert.doesNotMatch(app,/onUnlock|onLock|passphrase/);
+ assert.doesNotMatch(accounts,/本机加密仓库|cookie-account-vault|onUnlock|onLock|type="password"/);
+ assert.doesNotMatch(mock,/action==='(?:unlock|lock)'|passphrase/);
 });
 
 test('The account product layout has no preview-only teaching banner',async()=>{

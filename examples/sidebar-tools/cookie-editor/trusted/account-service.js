@@ -1,5 +1,5 @@
 // Fixed trusted Cookie Editor service, running only in the existing MV3 SW.
-// No Cookie values or decryption key ever pass to an installed tool, React,
+// No Cookie values or legacy decryption key ever pass to an installed tool, React,
 // ordinary Browser SDK storage, URL, website, or telemetry.
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
   from '../../../../src/ui/sidebar-tools/package.js';
@@ -117,8 +117,8 @@ export function sameAccountAutoSwitchFence(actual,expected){
     fields.every(field=>Object.hasOwn(actual,field)&&Object.hasOwn(expected,field)&&
       actual[field]===expected[field]);
 }
-export function createCookieAccountService({api=globalThis.chrome}={}){
-  const vault=createCookieAccountVault({api});
+export function createCookieAccountService({api=globalThis.chrome,storage}={}){
+  const vault=createCookieAccountVault({api,storage});
   const cookieDriver=createCookieService({api,authorize: async({url},context)=>{
     if(!context?.approved||new URL(url).origin!==context.origin)
       throw fail('E_ACCOUNT_COOKIE_SCOPE');
@@ -338,11 +338,6 @@ export function createCookieAccountService({api=globalThis.chrome}={}){
     if(MUTATIONS.has(operation)&&message.trustedClick!==true)
       throw fail('E_USER_GESTURE_REQUIRED');
     const origin=originOf(payload.origin);
-    if(operation==='unlock'){
-      await vault.unlock(payload.passphrase);
-      return statusFor(origin);
-    }
-    if(operation==='lock')return vault.lock();
     if(operation==='status')return statusFor(origin);
     const {revision}=payload;
     if(!Number.isSafeInteger(revision)||revision<0)
@@ -425,6 +420,9 @@ export function createCookieAccountService({api=globalThis.chrome}={}){
         // Persist a trusted per-tab fence BEFORE native Cookie effects.
         // No TTL: after expiry, an old URL could replay an uncertain write.
         // A deliberate manual switch or changed account version can re-arm.
+        // The Foundation account store does not initialize session access.
+        // Keep the existing automatic-effect fence restricted to trusted contexts.
+        await api.storage.session.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});
         const state=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
         const id=String(event.tabId),prior=state[id];
         if(autoSwitchFenceBlocks(prior,{
@@ -456,10 +454,11 @@ export function createCookieAccountService({api=globalThis.chrome}={}){
       });
     }catch{/* Never retry, navigate, log account names or expose Cookie bytes. */}
   }
-  return Object.freeze({dispatch,navigation});
+  // Fixed SW lifecycle hook only; never admitted by the account RPC contract.
+  return Object.freeze({dispatch,navigation,cleanup:()=>vault.clear()});
 }
-export function installCookieAccountService({api=globalThis.chrome}={}){
-  const service=createCookieAccountService({api});
+export function installCookieAccountService({api=globalThis.chrome,storage}={}){
+  const service=createCookieAccountService({api,storage});
   api.runtime?.onMessage?.addListener((message,sender,respond)=>{
     if(message?.protocol!==COOKIE_ACCOUNT_PROTOCOL)return false;
     void service.dispatch(message,sender).then(data=>respond({ok:true,data}),

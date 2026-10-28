@@ -121,7 +121,7 @@ export async function recoverHostTab({api, storage, session, authority, consumer
 }
 
 export async function createFoundationBroker({api = chrome, ports = new Map(), clock = {now:()=>Date.now()}, indexedDB = globalThis.indexedDB,
-  templateConsumer,downloadEventsAttached=false} = {}) {
+  templateConsumer,downloadEventsAttached=false,onToolUninstalled} = {}) {
   // The fixed SW package must never opt back into the legacy Template consumer
   // after its storage methods were eliminated at build time.
   if (!INCLUDE_DORMANT_TEMPLATE_RUNTIME && templateConsumer !== undefined)
@@ -216,8 +216,13 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
       invariant(authority.cloud,'E_CAPABILITY','Cloud service is not installed');
       return authority.cloud.cloudObserve(message.payload ?? {});
     }
-    if(message.type==='cleanupUninstalledToolSchedules')
-      return authority.schedules.cleanupUninstalledToolSchedules(message.payload??{},sender);
+    if(message.type==='cleanupUninstalledToolSchedules'){
+      const receipt=await authority.schedules.cleanupUninstalledToolSchedules(message.payload??{},sender);
+      // Fixed SW cleanup runs only after the existing Installer identity,
+      // absent-tool and durable uninstall-journal checks have succeeded.
+      await onToolUninstalled?.(receipt);
+      return receipt;
+    }
     sender = await resolveToolSender(api, sender);
     invariant(isToolSender(api,sender),'E_OWNER','Only actual packaged tool documents may invoke foundation services');
     const runnerSender=sender.url===api.runtime.getURL(CLOUD_RUNNER_DOCUMENT_PATH);
