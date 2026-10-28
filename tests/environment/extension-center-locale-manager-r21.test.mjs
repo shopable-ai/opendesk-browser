@@ -270,15 +270,18 @@ test('confirmed Japanese import reaches the running official TOC through real ma
   scroll.scrollTop=37;heading.focus();
   const refresh=toc.querySelector('#toc-refresh'),builtin=tool.localization.messages.ja;
   assert.equal(refresh.getAttribute('aria-label'),builtin.refreshLabel);
-  const picker=ui.doc.querySelector('input[type=file]');
+  openPacks(ui.doc);
   async function choose(next){
+    const picker=ui.doc.querySelector('input[type=file]');
+    assert.ok(picker,'file input must remain on the packs page');
     Object.defineProperty(picker,'files',{configurable:true,value:[{size:JSON.stringify(next).length,text:async()=>JSON.stringify(next)}]});
     picker.dispatch('change');
-    await settle(()=>Boolean(buttonNamed(ui.doc,'确认导入')||buttonNamed(ui.doc,'确认覆盖'))&&!picker.disabled);
+    await settle(()=>Boolean(buttonNamed(ui.doc,'确认导入')||buttonNamed(ui.doc,'确认覆盖')));
   }
   async function confirm(label){
     buttonNamed(ui.doc,label).dispatch('click');
-    await settle(()=>ui.doc.body.textContent.includes('语言包已保存。')&&!picker.disabled);
+    await settle(()=>ui.doc.body.textContent.includes('语言包已保存。'));
+    assert.ok(ui.doc.getElementById('od-locale-pack-tool'));
   }
   await choose(pack);
   assert.equal(refresh.getAttribute('aria-label'),builtin.refreshLabel,'preview does not affect the running UI');
@@ -295,17 +298,18 @@ test('confirmed Japanese import reaches the running official TOC through real ma
   assert.equal(sandbox.doc.documentElement.lang,'ja','same language updates the live catalog');
   const invalid=structuredClone(updated);invalid.messages.refreshLabel.text='\u3000\u00a0';
   const writesBeforeInvalid=writes.length;
-  Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(invalid)}]});
-  picker.dispatch('change');await settle(()=>ui.doc.querySelector('[role=alert]'));
+  const invalidPicker=ui.doc.querySelector('input[type=file]');
+  Object.defineProperty(invalidPicker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(invalid)}]});
+  invalidPicker.dispatch('change');await settle(()=>ui.doc.querySelector('[role=alert]'));
   assert.equal(refresh.getAttribute('aria-label'),'目次を再読み込み','invalid data cannot blank the running button');
   assert.equal(writes.length,writesBeforeInvalid,'invalid import cannot overwrite the saved catalog');
   const partial=structuredClone(updated);delete partial.messages.refreshLabel;
   await choose(partial);await confirm('确认覆盖');
   await settle(()=>refresh.getAttribute('aria-label')===builtin.refreshLabel);
   assert.equal(toc.querySelector('.toc-panel').getAttribute('aria-label'),pack.messages.panelLabel.text,'missing custom text falls back to built-in Japanese');
-  buttonNamed(ui.doc,'删除语言包…').dispatch('click');buttonNamed(ui.doc,'取消删除').dispatch('click');
+  resourceAction(ui.doc,'ja',1).dispatch('click');buttonNamed(ui.doc,'取消删除').dispatch('click');
   assert.ok(service.exportPack(tool.id,'ja'));
-  buttonNamed(ui.doc,'删除语言包…').dispatch('click');buttonNamed(ui.doc,'确认删除').dispatch('click');
+  resourceAction(ui.doc,'ja',1).dispatch('click');buttonNamed(ui.doc,'确认删除').dispatch('click');
   await settle(()=>ui.doc.body.textContent.includes('语言包已删除。'));
   assert.equal(toc.querySelector('.toc-panel').getAttribute('aria-label'),builtin.panelLabel);
   assert.equal(service.exportPack(tool.id,'ja'),null);
@@ -326,8 +330,11 @@ test('language preview, cancellation, confirmed import/overwrite/delete and shar
   const localeController=createUiLocaleController(f.api,{storage:()=>null,languages:['zh-CN']});await localeController.ready;t.after(()=>localeController.dispose());
   const model={tools:[f.tool],service:f.service,toolId:f.tool.id,localeController,onClose(){}};
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model}}),{doc}=ui;
-  const picker=doc.querySelector('input[type=file]');
-  const choose=pack=>{Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(pack)}]});picker.dispatch('change');};
+  openPacks(doc);
+  const choose=pack=>{
+    const picker=doc.querySelector('input[type=file]');
+    assert.ok(picker);Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(pack)}]});picker.dispatch('change');
+  };
   choose(f.pack);
   await settle(()=>buttonNamed(doc,'确认导入')&&!buttonNamed(doc,'确认导入').disabled);
   assert.equal(f.saved[toolLocaleStorageKey(f.tool.id)],undefined,'preview does not write');
@@ -343,16 +350,18 @@ test('language preview, cancellation, confirmed import/overwrite/delete and shar
   assert.equal(f.service.exportPack(f.tool.id,'ja').messages.title.text,'見出し');
   buttonNamed(doc,'确认覆盖').dispatch('click');await settle(()=>doc.body.textContent.includes('语言包已保存。'));
   assert.equal(f.service.exportPack(f.tool.id,'ja').messages.title.text,'題名');
-  buttonNamed(doc,'删除语言包…').dispatch('click');
+  resourceAction(doc,'ja',1).dispatch('click');
   buttonNamed(doc,'取消删除').dispatch('click');assert.ok(f.service.exportPack(f.tool.id,'ja'));
-  buttonNamed(doc,'删除语言包…').dispatch('click');buttonNamed(doc,'确认删除').dispatch('click');
+  resourceAction(doc,'ja',1).dispatch('click');buttonNamed(doc,'确认删除').dispatch('click');
   await settle(()=>doc.body.textContent.includes('语言包已删除。'));
   assert.equal(f.service.exportPack(f.tool.id,'ja'),null);
+  backLocale(doc);
   const select=doc.getElementById('od-locale-global');
   Object.defineProperty(select,'value',{configurable:true,value:'ja',writable:true});select.dispatch('change');
-  await settle(()=>localeController.getPreference()==='ja'&&!picker.disabled);
+  await settle(()=>localeController.getPreference()==='ja');
   assert.equal(f.saved['opendesk.ui.locale.v1'],'ja');
   assert.ok(doc.body.textContent.includes(msg('ja','globalSaved',{language:'日本語'})));
+  openPacks(doc);
   choose({...f.pack,messages:{title:{source:'标题',text:'<script>'}}});
   await settle(()=>doc.querySelector('[role=alert]'));
   assert.equal(doc.querySelector('[role=alert]').textContent,msg('ja','invalidPack'));
@@ -363,6 +372,7 @@ test('blank-label feedback explains source fallback without reporting storage co
   const f=await setup(t);await f.service.install(f.pack,f.tool);
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],service:f.service,toolId:f.tool.id,onClose(){}}}}),{doc}=ui;
+  openPacks(doc);
   const before=structuredClone(f.saved),picker=doc.querySelector('input[type=file]');
   const invalid=structuredClone(f.pack);invalid.messages.title.text='\u3000\u00a0';
   Object.defineProperty(picker,'files',{value:[{size:100,text:async()=>JSON.stringify(invalid)}]});
