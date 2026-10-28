@@ -29,6 +29,9 @@ export function SidebarAppShell({
   const developerSnapshot=React.useSyncExternalStore(developerView.subscribe,developerView.getSnapshot,developerView.getSnapshot);
   const toolSnapshot=React.useSyncExternalStore(toolView?.subscribe??subscribeEmptyTool,
     toolView?.getSnapshot??readEmptyTool,toolView?.getSnapshot??readEmptyTool);
+  // Debug and Extensions share a single ToolHost. Conceal (do not unmount)
+  // its live preview while showing the installed-app list.
+  const isPanelPreview=appDebugEnabled&&toolSnapshot.fields['sidebar-tool-readonly-banner']?.hidden===false;
   const siteAccess=developerSnapshot.fields['site-access-status'];
   const siteGrant=developerSnapshot.fields['site-access-grant'];
   // Page/React/Vue previews retain Stop authority outside Controller RunHost.
@@ -64,12 +67,13 @@ export function SidebarAppShell({
             <button type="button" className="od-button od-button--secondary"
               onClick={onStopAppDebug}>停止调试</button>
           </div>}
-          <div id="sidebar-tool-list-view" hidden={activeTab==='app-debug'||toolSnapshot.fields['sidebar-tool-display']?.hidden===false}>
+          <div id="sidebar-tool-list-view" hidden={activeTab==='app-debug'||(toolSnapshot.fields['sidebar-tool-display']?.hidden===false&&!isPanelPreview)}>
             <section id="extension-center" aria-label="扩展管理">
               <ExtensionCenterPage {...extensionProps}/>
             </section>
           </div>
-          {toolView&&<ToolHost view={toolView}/>}
+          {toolView&&<ToolHost view={toolView} concealed={activeTab==='tools'&&isPanelPreview}
+            debugPreview={activeTab==='app-debug'&&isPanelPreview}/>}
         </section>
       </div>
       <WorkflowPage controller={workflowController} active={activeTab==='workflow'}

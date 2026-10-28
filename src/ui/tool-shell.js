@@ -304,10 +304,10 @@ let cloudHosting=null;
 debugWorkbench=debugEnabled?createDebugWorkbench({client:foundationClient,host:scriptEditor.host,reactUI:extensionList}):null;
 window.addEventListener('pagehide',()=>cloudHosting?.dispose(),{once:true});
 taskWorkbench.connectToolsView((visible,destination)=>{
-  // The one ToolHost stays mounted while returning to Develop. No second
-  // sandbox/React root and no lost in-app draft on a normal tab switch.
+  // Keep the same sandbox instance across ordinary React tab switches. The
+  // existing trusted ToolHost only changes visibility, never its ownership.
   const keepDeveloperPreview=verifiedSidePanel&&Boolean(panelPreviewId)&&
-    destination==='develop'&&sidebarTools.isPreviewActive();
+    sidebarTools.isPreviewActive();
   const accepted=sidebarTools.setVisible(visible||keepDeveloperPreview,destination);
   if(visible&&destination==='tools'&&accepted!==false)
     void extensionCenter.refresh();

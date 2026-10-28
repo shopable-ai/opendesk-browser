@@ -1763,6 +1763,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
+    if(readOnlyPreview){notice('本地应用正在调试；请先进入「应用调试」停止调试，再打开安装版应用。',true);return false;}
     if(installedReadError||revocationReadError){notice('安装记录读取失败，请刷新核对后再打开应用。',true);return;}
     // An OD rail click on the already-open app must not remount its live UI,
     // discard its draft or introduce a redundant leave-confirmation dialog.
@@ -1795,6 +1796,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // owns site grants, enable/disable, version details and uninstall reviews.
   function openSettings(id){
     if(disposed||busy||!visible||installedReadError)return false;
+    if(readOnlyPreview){notice('本地应用正在调试；请先进入「应用调试」停止调试，再打开安装版设置。',true);return false;}
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return false;}
     // Opening permissions for the already-running Cookie Editor is a view
