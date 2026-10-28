@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {createToolLivePreview,validateToolWatchStatus} from '../../src/native-agent/tool-live-preview.js';
 import {previewStorageKey} from '../../src/native-agent/tool-snapshot.js';
+import {panelPreviewStorageKey} from '../../src/ui/sidebar-tools/preview-session.js';
 import {subscribePreviewSession,previewStatusKey} from '../../src/ui/sidebar-tools/live-preview.js';
 import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 import {TOOL_DEVELOPMENT_STORAGE_PORT} from '../../src/native-agent/tool-development-storage.js';
@@ -32,7 +33,8 @@ function fixture(){
       changed.emit(changes,'session');
     },
     async remove(k){const oldValue=stored.get(k);stored.delete(k);writes.push(['remove',k]);changed.emit({[k]:{oldValue}},'session');}
-  }},tabs:{onRemoved:removed,async create(row){tabs.push(row);return {id:tabs.length+90};}}};
+  }},tabs:{onRemoved:removed,async getCurrent(){return {id:45,windowId:12};},
+    async create(row){tabs.push(row);return {id:tabs.length+90};}}};
   function publish(js='void 0;',capabilities=[]){
     const tool={format:'opendesk.sidebar-tool.v1',id:toolId,version:'1.0.0',title:'Live',
       description:'Read only',capabilities,html:'<main>Live</main>',css:'',js};
@@ -354,3 +356,42 @@ for(const failure of ['false','throw']){
     assert.deepEqual(messages.at(-1),['recovered heartbeat',false],'successful mount clears the prior error');
   });
 }
+
+test('same-window Side Panel receives two immutable Native snapshots without opening a preview tab',async t=>{
+  const f=fixture(),first=f.publish(),live=f.live(t,{surface:'sidepanel',windowId:12});
+  const opened=await live.start(),storageKey=previewStorageKey(opened.previewId);
+  const pointerKey=panelPreviewStorageKey(12),pointer=f.stored.get(pointerKey);
+  assert.equal(opened.surface,'sidepanel');assert.equal(opened.tabId,null);
+  assert.equal(f.tabs.length,0);
+  assert.equal(pointer.previewId,opened.previewId);
+  assert.equal(f.stored.get(storageKey).sha256,first.sha256);
+  const second=f.publish('void 1;');await live.check();
+  assert.equal(f.stored.get(storageKey).sha256,second.sha256);
+  const third=f.publish('void 2;');await live.check();
+  assert.equal(f.stored.get(storageKey).sha256,third.sha256);
+  f.status('error',third.sha256,'JSX build failed');await live.check();
+  assert.equal(f.stored.get(storageKey).sha256,third.sha256,'compile error must retain last complete snapshot');
+  f.status('ready',third.sha256);await live.check();
+  await live.stop();
+  assert.equal(f.stored.has(storageKey),false);
+  assert.equal(f.stored.has(pointerKey),false);
+  assert.equal(f.removed.size,0);
+});
+
+test('moving the Native Workspace or replacing this window preview fails closed',async t=>{
+  const f=fixture(),first=f.publish(),live=f.live(t,{surface:'sidepanel',windowId:12});
+  const opened=await live.start(),key=previewStorageKey(opened.previewId),pointerKey=panelPreviewStorageKey(12);
+  const second=f.publish('void 1;');
+  f.api.tabs.getCurrent=async()=>({id:45,windowId:99});
+  await live.check();
+  assert.equal(f.stored.get(key).sha256,first.sha256);
+  assert.match(f.stored.get(previewStatusKey(opened.previewId)).text,/Workspace 已离开原窗口/);
+  f.api.tabs.getCurrent=async()=>({id:45,windowId:12});
+  const replacing={...f.stored.get(pointerKey),previewId:'00000000-0000-4000-8000-000000000099'};
+  await f.api.storage.session.set({[pointerKey]:replacing});
+  await live.check();
+  assert.equal(f.stored.get(key).sha256,first.sha256);
+  assert.match(f.stored.get(previewStatusKey(opened.previewId)).text,/已切换到另一开发会话/);
+  await live.stop();
+  assert.deepEqual(f.stored.get(pointerKey),replacing,'old Workspace may not remove new owner pointer');
+});
