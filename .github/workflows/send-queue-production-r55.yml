@@ -10,6 +10,7 @@ on:
       - 'examples/sidebar-tools/ai-send-queue/tests/**'
       - 'examples/sidebar-tools/ai-send-queue/package.json'
       - 'official-pages/sources.json'
+      - 'src/platform/host/send-queue-admission.js'
       - '.github/workflows/send-queue-production-r55.yml'
   workflow_dispatch:
 permissions:
@@ -111,6 +112,35 @@ jobs:
           name: send-queue-r58-blocked-page-candidate
           path: examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json
           if-no-files-found: error
+          retention-days: 14
+      # Separate from the fast blocked candidate build. This uses the real
+      # MV3 runtime and Chrome UI, not a Page/SDK simulation. No publishing.
+      - name: Compile pinned official React prerequisites for real Chrome Host
+        run: |
+          node scripts/build-adblock-react.mjs
+          node scripts/build-stay-focus-react.mjs
+          node scripts/build-cookie-editor-react.mjs
+          npm --prefix examples/sidebar-tools/ai-vip-share run build
+      - name: Build original OpenDesk MV3 extension (no alternate Host)
+        run: |
+          npm run build:dev
+          mkdir -p artifacts/app-ci/ai-send-queue
+          cp "$RUNNER_TEMP/ai-send-queue.opendesk-tool.json" artifacts/app-ci/ai-send-queue/candidate.opendesk-tool.json
+      - uses: browser-actions/setup-chrome@v2
+        id: nativeChrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Install real React Tool, inspect Page-missing state and reject same-ID spoof
+        env:
+          CHROME_BIN: ${{ steps.nativeChrome.outputs.chrome-path }}
+        run: xvfb-run -a node examples/sidebar-tools/ai-send-queue/scripts/ci-installed-chromium.mjs artifacts/send-queue-r58-installed-chromium
+      - name: Preserve real installed Chrome receipts, if any
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: send-queue-r58-installed-chromium-evidence
+          path: artifacts/send-queue-r58-installed-chromium/
+          if-no-files-found: warn
           retention-days: 14
       # The currently blocked Page candidate is an audit artifact only.
       # A source push must never silently rewrite the frozen 0.1.12/r11 JSON.
