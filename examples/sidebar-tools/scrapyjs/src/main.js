@@ -7,7 +7,11 @@
   const sdk = globalThis.ScrapyAppSdk.createSdk((operation, payload) => tool.request(operation, payload));
   let draftValid = true, editing = false, shownConfig = '', shownTarget, shownRows, shownEditorConfig='';
   let shownEpoch = 0, shownProfiles = '', naming = null, actionFocus;
-  const restoreActionFocus = () => (typeof actionFocus === 'string' ? root.querySelector(actionFocus) : actionFocus)?.focus?.();
+  const restoreActionFocus = () => {
+    const target = typeof actionFocus === 'string' ? root.querySelector(actionFocus) : actionFocus;
+    const folded = target?.closest?.('details:not([open])');
+    (folded?.querySelector('summary') || target)?.focus?.();
+  };
   function message(id, text) {el(id).textContent = text; el(id).hidden = !text;}
   function render(state) {
     const busy = state.phase === 'starting' || (Boolean(state.clientRequestId) && !state.retired);
@@ -32,6 +36,8 @@
     }
     const current = state.records.find(row=>row.id === state.selectedId);
     el('profile-current').textContent = (current?.name || '未保存配置') + (state.dirty ? ' · 未保存' : '');
+    const fieldCount = Object.keys(state.config.itemConfig).filter(key=>!key.startsWith('_')).length;
+    el('config-summary').textContent = fieldCount+' 个字段 · '+(state.config.nextPageSelector ? '分页' : '当前页')+(state.config.detail ? ' + 详情' : '');
     el('new-profile').disabled = managementLocked;
     el('copy-profile').disabled = managementLocked || !draftValid || Boolean(pendingEditors.size);
     el('rename-profile').disabled = managementLocked || !current || state.dirty;
@@ -64,7 +70,8 @@
       el('record-summary').textContent=Array.isArray(shownRows)?'共 '+rows.length+' 条记录'+(rows.length>50?'，表格显示前 50 条；完整记录见 JSON / 下载':''):'尚无记录';
       const table=el('record-table');table.replaceChildren();
       if(rows.length){
-        const keys=[...new Set(rows.flatMap(row=>Object.keys(row)))];
+        const allKeys=[...new Set(rows.flatMap(row=>Object.keys(row)))];
+        const keys=allKeys.includes('title')?['title',...allKeys.filter(key=>key!=='title')]:allKeys;
         const head=document.createElement('thead'),tr=document.createElement('tr');
         for(const key of keys){const th=document.createElement('th');th.scope='col';th.textContent=key;tr.append(th);}head.append(tr);table.append(head);
         const body=document.createElement('tbody');
@@ -76,7 +83,9 @@
       shownTarget = state.target; el('target-url').value = state.config.url;
       el('page-title').textContent = state.target?.title || '当前网页不可用';
     }
-    el('start').disabled = locked || state.phase === 'unknown' || !state.target || !draftValid || Boolean(pendingEditors.size);
+    let targetMatches = false;
+    try {targetMatches = Boolean(state.target) && new URL(state.config.url).origin === new URL(state.target.url).origin;} catch {}
+    el('start').disabled = locked || state.phase === 'unknown' || !targetMatches || !draftValid || Boolean(pendingEditors.size);
     el('stop').disabled = !busy || state.retired || state.stopAccepted;
     el('save-config').disabled = managementLocked || !draftValid || Boolean(pendingEditors.size);
     el('save-config').textContent = state.saving ? '保存中…' : state.dirty || !draftValid ? '保存配置 · 未保存' : '保存配置';
@@ -87,6 +96,37 @@
     el('refresh-run').disabled = !state.clientRequestId || state.retired;
     el('download-json').disabled = state.result == null;
     el('download-csv').disabled = !Array.isArray(state.result?.data);
+    el('export-actions').hidden = state.result == null;
+    const rows = Array.isArray(state.result?.data) ? state.result.data : [];
+    el('record-scroll').hidden = !rows.length;
+    el('table-help').hidden = !rows.length;
+    el('result-empty').hidden = rows.length > 0;
+    el('result-empty').textContent = state.result == null
+      ? busy ? '采集中，记录将在任务返回后显示。' : '开始采集后，在这里查看记录和下载结果。'
+      : Array.isArray(state.result.data) ? '本次结果没有记录，可展开运行详情查看原因。' : '本次结果没有表格数据，可查看原始结果或下载完整 JSON。';
+    let status = targetMatches ? '准备采集' : '请确认采集目标', tone = '';
+    if (state.phase === 'unknown') {status = '运行状态待确认'; tone = 'error';}
+    else if (state.phase === 'starting') status = '正在准备采集…';
+    else if (busy) status = state.stopRequested ? '正在停止 · 等待原实例退出' : '正在采集…';
+    else if (state.retired) {
+      const host = state.snapshot?.status, engine = state.result?.engine?.status;
+      if (host === 'completed' && engine === 'completed' && state.result?.list?.engine?.status !== 'partial') {status = '采集完成'; tone = 'success';}
+      else if (engine === 'partial' || state.result?.list?.engine?.status === 'partial') status = '采集结束 · 含部分结果';
+      else if (['stopped','cancelled'].includes(host) || engine === 'cancelled') status = '采集已停止';
+      else {status = '采集结束 · 请查看运行详情'; tone = 'error';}
+    }
+    el('run-summary').textContent = status;
+    el('run-summary').setAttribute('data-tone',tone);
+    let help = '';
+    if (state.phase === 'unknown') help = '开始结果未知，请刷新原实例状态；不要重复开始。';
+    else if (!draftValid) help = '完整 JSON 有误，请展开「编辑采集规则 → 高级 · 完整 JSON」修正。';
+    else if (pendingEditors.size) help = '有未应用的'+[pendingEditors.has('fields')?'字段':'',pendingEditors.has('crawl')?'分页与详情':''].filter(Boolean).join('、')+'编辑，请先点击对应的「应用」按钮。';
+    else if (!state.target) help = '请先打开目标网页，再刷新当前网页。';
+    else if (!busy && !targetMatches) help = '目标网址与当前网页不同源，请切换到目标网站后刷新当前网页。';
+    else if (state.saving) help = '正在保存配置，请稍候。';
+    else if (naming || state.pendingAction) help = '请先完成或取消上方的配置操作。';
+    message('run-help', help);
+    el('config-json').setAttribute('aria-invalid',String(!draftValid));
     el('host-status').textContent = state.host;
     el('engine-status').textContent = state.engine;
     el('stop-status').textContent = state.stopAccepted ? '已受理' : state.stopRequested ? '已请求，等待确认' : '未请求';

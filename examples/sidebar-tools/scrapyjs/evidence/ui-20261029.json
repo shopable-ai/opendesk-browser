@@ -1,0 +1,169 @@
+{
+  "status": "PASS_SCOPED",
+  "phase": "CORE_APP_UI_DEVELOPMENT",
+  "finishedAt": "2026-10-28T20:48:45.281Z",
+  "scope": "scrapyjs App operation hierarchy, target feedback, folded editors/management, run feedback and readable/exportable results",
+  "before": {
+    "version": "1.3.0",
+    "packageSha256": "ead8d02d51b719c64cf9a524c039bc3ec080d4511f6c4af4b03de36d1688a205",
+    "friction": [
+      "Full JSON pushes Start below the normal initial viewport",
+      "Save/copy/rename/delete share equal visual weight",
+      "Technical states and raw JSON precede or crowd result reading"
+    ]
+  },
+  "after": {
+    "version": "1.3.1",
+    "changes": [
+      "Saved configuration and target precede the visible primary Start action",
+      "Management, structured editors, complete JSON and diagnostics remain available in disclosures",
+      "Wrong-origin, unapplied edit, invalid JSON and unknown-run reasons remain beside Start",
+      "Completion waits for retirement and reports partial/stopping distinctly",
+      "Title column appears first without dropping any field; exports retain the original data order",
+      "Result table has sticky headings, alternating rows and an explicit horizontal-scroll hint",
+      "Cancel restores focus to the visible management summary when its action is folded"
+    ]
+  },
+  "packages": {
+    "app": {
+      "path": "examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "bytes": 60354,
+      "sha256": "691842c130eebd6c45075ba8465f27e9bd3b5da89a9b49872a4d08f42d35e96a"
+    },
+    "task": {
+      "path": "examples/sidebar-tools/scrapyjs/controller/scrapyjs.opendesk-task.json",
+      "bytes": 517510,
+      "sha256": "cc386bfab69e55db5f3a9832f80340bab9c3ce8291bd044ceb19702dcff2a092"
+    },
+    "taskPin": {
+      "taskId": "scrapyjs.capture",
+      "version": "0.3.0",
+      "manifestHash": "1bec7362a33d4aeb4ce051d2eed699aa4876e3c7ae82efc536005f287340f53a",
+      "contentHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f"
+    },
+    "promotion": "PROJECT_PACKAGE_PROMOTED",
+    "sourceMatch": "PROJECT_PACKAGE_MATCH",
+    "taskUnchanged": true,
+    "capabilitiesUnchanged": true
+  },
+  "component": {
+    "status": "PASS",
+    "tests": 13,
+    "command": "SCRAPYJS_CANDIDATE=artifacts/scrapyjs/ui-20261029/candidate.opendesk-tool.json node --test examples/sidebar-tools/scrapyjs/tests/app-view.test.mjs examples/sidebar-tools/scrapyjs/tests/package.test.mjs",
+    "syntax": "node --check examples/sidebar-tools/scrapyjs/src/main.js",
+    "coverage": [
+      "Existing UI contracts including Stop before receipt, malformed draft and profile guards",
+      "Host terminal is not runtime retirement",
+      "Partial/empty results and complete fields",
+      "Source-order CSV despite title-first table",
+      "Hidden-editor correction reasons",
+      "Wrong-site target guard and recovery"
+    ]
+  },
+  "native": {
+    "status": "PASS_SCOPED",
+    "environment": "visible owned Mac CFT; immutable static development extension; no dev-server connection or production claim",
+    "loadedExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/cft-rahcun/extension",
+    "extensionId": "odhjgeemoddgghjjmpafhmbjgeknfpdb",
+    "extensionInputSha256": "edc1bbb7b03b57100adf5653ff61c77d91c598e9ff4eb18d72ed0a15ce70fe00",
+    "report": {
+      "path": "artifacts/scrapyjs/ui-20261029/report.json",
+      "bytes": 646891,
+      "sha256": "d0b9a5ad87e660d95fe02c8aa53d03f6472f609f7b1bde12394b36726ff3fe59"
+    },
+    "finalChecks": {
+      "folded-management-focus-restored": {
+        "name": "SUMMARY",
+        "parent": "profile-management",
+        "folded": true
+      },
+      "final-results-check": {
+        "rows": 20,
+        "fields": 11,
+        "downloads": "JSON+CSV byte checked",
+        "completed": true
+      },
+      "final-management-check": {
+        "saved": true,
+        "cancelFocus": true,
+        "rename": true,
+        "copy": true,
+        "delete": true,
+        "reopened": true,
+        "originalProfilesPreserved": true
+      },
+      "final-stop-check": {
+        "sameRunStopped": true,
+        "retirement": "released",
+        "state": "stopped"
+      }
+    },
+    "scope": [
+      "Original import/review/update from installed App1.3.0 without uninstall",
+      "Four old configs and complete JSON retained",
+      "Save/rename/copy/delete confirmation/cancel/switch/destroy/reopen",
+      "Wrong-origin Start blocked before task dispatch",
+      "20 historical Douban rows, all11 fields, title-first table",
+      "JSON and CSV actual file downloads, every byte/field verified",
+      "Same original Stop run/client identity reaches stopped/released",
+      "Folded management cancel restores visible summary focus",
+      "Normal-window light and dark result screenshots"
+    ],
+    "reusedIntermediateUiEvidence": "Structured attribute editing and invalid/unapplied draft cancel were exercised before the final small focus-return patch; same handlers also covered by current component tests",
+    "ownedBrowserReleased": true
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/scrapyjs/ui-20261029/before.png",
+      "bytes": 123851,
+      "sha256": "515f5036c37c0a91e0548a6bd1baa149a514823f24b2f78508272ead1284ac11"
+    },
+    {
+      "path": "artifacts/scrapyjs/ui-20261029/after-ready.png",
+      "bytes": 134516,
+      "sha256": "8319dffac5609c5b6f4353a0dedb429a07151bac18131202b0ab34f0e1d2cd05"
+    },
+    {
+      "path": "artifacts/scrapyjs/ui-20261029/after-target-check.png",
+      "bytes": 133978,
+      "sha256": "29c27e9e57f08bbc9e950c556c53236fd578a3e9288687cfcc916e54cac68799"
+    },
+    {
+      "path": "artifacts/scrapyjs/ui-20261029/after-results.png",
+      "bytes": 153955,
+      "sha256": "2b9f61d4da35449854e66d689df4c70d13141be4d4b0fb867e103d654ca0f631"
+    },
+    {
+      "path": "artifacts/scrapyjs/ui-20261029/after-results-dark.png",
+      "bytes": 165467,
+      "sha256": "5e5002e475f796977268d9d09a93e2059a399610815f4a7d789365a96988df92"
+    },
+    {
+      "path": "artifacts/scrapyjs/ui-20261029/after-stopping.png",
+      "bytes": 138149,
+      "sha256": "68b533805e7cd2ee6a35ee8a51110150a7a7de343a44ff314ca3e956f7e68543"
+    }
+  ],
+  "resources": {
+    "dailyExtension": "dist/development untouched",
+    "demo": "existing 127.0.0.1:43111 retained",
+    "fixtureMapping": "owned mapping removed after checks",
+    "sourceRepositories": "scrapyJs and scrapyJsChrome untouched",
+    "platform": "No source/Host/Authority/Registry/runner changes"
+  },
+  "review": {
+    "status": "NO_BLOCKERS",
+    "lowFocusFinding": "Fixed; native final candidate SUMMARY focus verified"
+  },
+  "notTested": [
+    "Daily Chrome update",
+    "Production acceptance",
+    "Formal upgrade/revocation lifecycle matrix",
+    "All32 features",
+    "95+ scoring",
+    "Width/zoom matrix",
+    "Stress testing",
+    "Repeat live Douban/CSDN business matrix"
+  ],
+  "fullMigrationComplete": false
+}

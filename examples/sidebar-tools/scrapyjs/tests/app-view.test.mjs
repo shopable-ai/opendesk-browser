@@ -149,3 +149,63 @@ test('invalid JSON and every unapplied editor survive cancelled switch/new/delet
   assert.equal(v.nodes.get('field-selector').value,'');assert.equal(v.nodes.get('next-selector').value,'');
   assert.equal(v.nodes.get('detail-fields').value,'{}');assert.equal(v.nodes.get('start').disabled,false);v.close();
 });
+
+async function resultView(data, engine='completed', retirementState='released') {
+  const calls=[];
+  const snapshot={clientRequestId:null,runId:'ui-result',state:'completed',retirementState,value:{data,engine:{status:engine}}};
+  const v=await view(async(op,payload)=>{
+    calls.push([op,payload]);
+    if(op==='storage.get')return {value:null,etag:'0'};
+    if(op==='currentPage.info')return {status:'available',url:'http://127.0.0.1:43111/demo-form.html',title:'Demo'};
+    if(op==='tasks.read')return payload.taskId?{task:{id:'scrapyjs.capture'}}:{...snapshot};
+    if(op==='tasks.start'){snapshot.clientRequestId=payload.clientRequestId;return {clientRequestId:payload.clientRequestId,runId:snapshot.runId,state:'running'};}
+    if(op==='browser.downloads.text')return {started:true};
+    throw Error('Unexpected '+op);
+  });
+  await press(v,'start');
+  return {...v,calls,snapshot};
+}
+test('main status waits for retirement; readable table retains all fields and exports retain source order',async()=>{
+  const data=[{url:'https://example.test/book',author:'Ada',title:'A book',price:12}];
+  const v=await resultView(data,'completed','pending');
+  assert.equal(v.nodes.get('run-summary').textContent,'正在采集…');
+  assert.equal(v.nodes.get('start').disabled,true);
+  v.snapshot.retirementState='released';await press(v,'refresh-run');
+  assert.equal(v.nodes.get('run-summary').textContent,'采集完成');
+  assert.equal(v.nodes.get('record-scroll').hidden,false);assert.equal(v.nodes.get('table-help').hidden,false);
+  const [head,body]=v.nodes.get('record-table').children;
+  assert.deepEqual(head.children[0].children.map(n=>n.textContent),['title','url','author','price']);
+  assert.deepEqual(body.children[0].children.map(n=>n.textContent),['A book','https://example.test/book','Ada','12']);
+  assert.equal(v.nodes.get('export-actions').hidden,false);assert.equal(v.nodes.get('result-empty').hidden,true);
+  await press(v,'download-csv');
+  assert.equal(v.calls.find(([op])=>op==='browser.downloads.text')[1].text,'"url","author","title","price"\r\n"https://example.test/book","Ada","A book","12"');
+  await press(v,'new-profile');
+  assert.equal(v.nodes.get('record-scroll').hidden,true);assert.equal(v.nodes.get('table-help').hidden,true);
+  assert.equal(v.nodes.get('export-actions').hidden,true);assert.equal(v.nodes.get('result-empty').hidden,false);
+  assert.equal(v.nodes.get('result').textContent,'尚无结果');v.close();
+});
+test('partial and empty results are described without claiming complete capture',async()=>{
+  const partial=await resultView([{url:'u',author:'Ada',price:12}],'partial');
+  assert.equal(partial.nodes.get('run-summary').textContent,'采集结束 · 含部分结果');
+  assert.deepEqual(partial.nodes.get('record-table').children[0].children[0].children.map(n=>n.textContent),['url','author','price']);partial.close();
+  const empty=await resultView([]);
+  assert.equal(empty.nodes.get('record-scroll').hidden,true);assert.equal(empty.nodes.get('result-empty').hidden,false);
+  assert.match(empty.nodes.get('result-empty').textContent,/没有记录/);assert.equal(empty.nodes.get('export-actions').hidden,false);empty.close();
+});
+test('run help exposes unapplied and invalid drafts outside the folded editors',async()=>{
+  const request=async op=>op==='storage.get'?{value:null,etag:'0'}:{status:'available',url:'http://127.0.0.1:43111/demo-form.html',title:'Demo'};
+  const fields=await view(request);fields.nodes.get('field-selector').value='.pending';fields.nodes.get('field-selector').events.input();
+  assert(fields.nodes.get('start').disabled);assert.equal(fields.nodes.get('run-help').hidden,false);
+  assert.match(fields.nodes.get('run-help').textContent,/未应用.*字段/);fields.close();
+  const json=await view(request);json.nodes.get('config-json').value='{"unfinished';json.nodes.get('config-json').events.input();
+  assert.equal(json.nodes.get('config-json').attributes['aria-invalid'],'true');
+  assert.match(json.nodes.get('run-help').textContent,/JSON 有误/);assert(json.nodes.get('start').disabled);json.close();
+});
+test('wrong-site configs explain the target mismatch and same-origin edits restore Start',async()=>{
+  const v=await view(async op=>op==='storage.get'?{value:null,etag:'0'}:{status:'available',url:'http://127.0.0.1:43111/demo-form.html',title:'Demo'});
+  const json=v.nodes.get('config-json'),config=JSON.parse(json.value);
+  json.value=JSON.stringify({...config,url:'https://book.douban.com/tag/test'});json.events.input();
+  assert(v.nodes.get('start').disabled);assert.match(v.nodes.get('run-help').textContent,/不同源/);
+  json.value=JSON.stringify(config);json.events.input();
+  assert.equal(v.nodes.get('start').disabled,false);assert.equal(v.nodes.get('run-help').hidden,true);v.close();
+});

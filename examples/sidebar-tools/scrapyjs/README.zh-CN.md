@@ -1,6 +1,6 @@
 # scrapyJs 采集应用
 
-本批提供原豆瓣图书、CSDN 专栏的当前页配置，保留原字段、BrowserValidation 和豆瓣出版信息拆分。命名配置的新建、保存、复制、切换、重命名和删除继续可用；此前字段/分页/列表详情证据保留。完整 32 项迁移仍为 `fullMigrationComplete=false`。完整原浏览器 SDK 保持原样；来源 `scrapyJs` / `scrapyJsChrome` 仓库只读。
+当前 App 1.3.1 改进配置、目标、运行及结果的操作层次；已有豆瓣图书、CSDN 专栏当前页配置继续保留原字段、BrowserValidation 和豆瓣出版信息拆分。命名配置的新建、保存、复制、切换、重命名和删除继续可用；此前字段/分页/列表详情证据保留。完整 32 项迁移仍为 `fullMigrationComplete=false`。完整原浏览器 SDK 保持原样；来源 `scrapyJs` / `scrapyJsChrome` 仓库只读。
 
 业务只在本目录维护。App 运行在原 opaque iframe，固定 `scrapyjs.capture` Task 运行在原 Controller Worker，使用词法 `page/params`。没有新执行器、宿主或安装器。固定 Task v0.3.0 批准的精确 origin 为 `http://127.0.0.1:43111`、`https://book.douban.com`、`https://download.csdn.net`。安装审阅完整范围，不为每个配置创建 Task；Chrome 网站权限及当前目标 Authority 继续独立检查。
 
@@ -9,14 +9,22 @@
 两个包需分别经原入口审阅安装：
 
 1. 「开发」/原任务目录导入 `controller/scrapyjs.opendesk-task.json`，验证固定源码并安装 Task v0.3.0。
-2. 「扩展」导入本目录唯一正式 App `scrapyjs.opendesk-tool.json` v1.3.0；它精确委托上述 Task v0.3.0。保留同 ID 的配置，更新时不先卸载。
+2. 「扩展」导入本目录唯一正式 App `scrapyjs.opendesk-tool.json` v1.3.1；它精确委托上述 Task v0.3.0。保留同 ID 的配置，更新时不先卸载。
 3. 打开标准页面 `http://127.0.0.1:43111/demo-form.html`，打开采集 App、刷新目标。默认读取 `#sample-list` 的直接 `li`；`.::text` 是原引擎自身文本语法。
-4. 展开「字段与属性」，填写列表容器和列表项；可选填写字段名、CSS 选择器及文本/属性类型，点击「应用字段」。同名更新，其他字段保留。
-5. 需要时展开「分页与列表详情」。填写下一页 CSS、页数上限和去重字段；详情需列表 URL 字段、双方共同身份字段和详情 `itemConfig`。点击「应用分页与详情」，然后开始。
+4. 展开「编辑采集规则 → 字段与属性」，填写列表容器和列表项；可选填写字段名、CSS 选择器及文本/属性类型，点击「应用字段」。同名更新，其他字段保留。
+5. 需要时展开「编辑采集规则 → 分页与列表详情」。填写下一页 CSS、页数上限和去重字段；详情需列表 URL 字段、双方共同身份字段和详情 `itemConfig`。点击「应用分页与详情」，然后开始。
+
+### App 1.3.1 操作界面
+
+常用路径为「选择配置 → 确认目标 → 开始采集」。规则摘要显示字段数及当前页/分页/详情模式；字段、分页与详情、完整 JSON 均在「编辑采集规则」内，完整 JSON 保留所有声明式设置。复制、重命名、删除收在「配置管理」，保存保留在当前配置旁。目标网址与当前网页不同源时，主操作旁提示先切换网站、刷新当前网页，并禁用开始；真正的目标及权限仍由原任务链重新核验。
+
+主操作下显示准备、采集、等待停止/退出、完成或部分结果；未应用字段、无效 JSON 和未知运行状态的处理提示不随编辑器折叠。Stop 受理与原实例退休仍独立判断。结果区优先显示条数、表格及 JSON/CSV 下载；存在 `title` 时仅将其在表格中提前，其他字段、原始结果及导出内容完整保留。表格有横向滚动提示、固定表头和交替行背景，宿主/引擎/Stop/退休诊断及原始快照在「运行详情与原始结果」。
+
+本次独立可见 Mac CFT 使用上一批不变静态开发扩展快照，通过原导入审阅链从 App 1.3.0 更新 1.3.1，Task 0.3.0 未变。当前候选定向检查及真实操作见 `evidence/ui-20261029.json`；原始报告与截图位于 `artifacts/scrapyjs/ui-20261029/`。旧业务及安全证据继续复用，未重跑全部线上案例，也不代表日常 Chrome 已更新或 production 验收通过。
 
 ### 豆瓣图书与 CSDN 原例
 
-`examples/original-sites.js` 导出四份完整配置，顺序为豆瓣历史样本、CSDN 历史样本、豆瓣线上、CSDN 线上。将所需条目的 `config` 完整 JSON 粘贴到 App，保存为命名配置；打开对应网址、刷新目标、开始采集。可用下面的本地命令取得线上豆瓣 JSON，索引改为 `3` 即为 CSDN：
+`examples/original-sites.js` 导出四份完整配置，顺序为豆瓣历史样本、CSDN 历史样本、豆瓣线上、CSDN 线上。将所需条目的 `config` 完整 JSON 粘贴到「编辑采集规则 → 高级 · 完整 JSON」，保存为命名配置；打开对应网址、刷新目标、开始采集。可用下面的本地命令取得线上豆瓣 JSON，索引改为 `3` 即为 CSDN：
 
 ```sh
 node --input-type=module -e 'import {originalSites} from "./examples/sidebar-tools/scrapyjs/examples/original-sites.js"; console.log(JSON.stringify(originalSites[2].config,null,2))'
@@ -31,7 +39,7 @@ node --input-type=module -e 'import {originalSites} from "./examples/sidebar-too
 ### 命名配置
 
 - 初次升级时，原单配置显示为「默认配置」，内容保留；读取不写入，下一次明确保存才转为命名记录。
-- 「新建配置」创建默认草稿，编辑后「保存配置」填写名称。「另存为 / 复制」将当前有效配置保存为独立记录，原记录不变。
+- 「＋ 新建」创建默认草稿，编辑后「保存配置」填写名称。「配置管理 → 另存为 / 复制」将当前有效配置保存为独立记录，原记录不变。
 - 点击已保存的名称切换；最后选中的已保存记录会在销毁 App 再打开后恢复。「重命名」用于已保存且没有脏草稿的记录；有修改先保存。名称忽略首尾空格、按 NFC 规范化，大小写不敏感的同名会明确拒绝。
 - 切换、新建或删除遇到未保存 JSON / 未应用字段、分页、详情编辑时，先确认丢弃；取消保留原内容与选择。删除总需确认，删完最后一份后显示可继续编辑的默认草稿。复制和新配置名称表单也可取消或按 Escape。
 - 保存、切换、重命名和删除共用原 ETag 条件写入。发生冲突或保存回执未知时保留草稿和远端列表，禁止自动重试；「读取保存版本」只读远端，「用保存版本替换草稿」经确认后采用远端完整列表。需要的本地草稿应先复制到外部文本。
@@ -79,7 +87,7 @@ App 唯一正式包先候选测试，再经原 `--promote-from` 原子晋升和 
 
 ```sh
 # Task 范围或源码变化时，先按原 program build/验证/安装链冻结新 Task 并同步精确 pin。
-# 本批 Task 0.3.0 与 App 1.3.0；以下 App 打包须使用当前已核对 Task。
+# 当前 Task 0.3.0 与 App 1.3.1；以下 App 打包须使用当前已核对 Task。
 node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --out artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json
 SCRAPYJS_CANDIDATE=artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json node --test examples/sidebar-tools/scrapyjs/tests/{profiles,app-model,app-view,package}.test.mjs
 # 测试通过后才执行：
