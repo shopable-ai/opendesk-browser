@@ -307,10 +307,11 @@ function ScrollSiteManager({model}){
     ref.current.onDraftChange(null,null);
     setDraft(null);setEditingKey(null);setError('');setNotice('');setConfirmDelete(false);
   };
-  const current=()=>{
-    const target=model.currentPage;
-    if(target?.status!=='available'){setError('当前窗口没有可用的 HTTP(S) 网页。');return;}
-    change('origin',target.origin);
+  const current=async()=>{
+    try{
+      const origin=await ref.current.onCurrentPage();
+      change('origin',origin);
+    }catch(e){setError((e?.code||'E_DOCUMENT_STALE')+'：'+(e?.message||e));}
   };
   const pick=async(field,event)=>{
     if(busy||!draft)return;

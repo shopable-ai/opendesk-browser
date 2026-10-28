@@ -751,7 +751,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           return {
             identityKey:pinned.manifestHash+':'+pinned.expectedGeneration,
             resumeDraft:scrollDraft?{...scrollDraft}:null,
-            currentPage:currentPageTarget?.snapshot||null,
+            async onCurrentPage(){
+              if(!currentPageTarget)throw Object.assign(new Error('当前网页不可用'),{code:'E_DOCUMENT_STALE'});
+              const live=await currentPageTarget.refresh();
+              if(live.status!=='available')throw Object.assign(
+                new Error(live.message||'当前窗口没有可用网页'),{code:live.reason||'E_DOCUMENT_STALE'});
+              return live.origin;
+            },
             builtIn:['ChatGPT','DeepSeek','Gemini'],
             isApproved(origin,pathScope){
               try{

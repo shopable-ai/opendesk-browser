@@ -990,7 +990,13 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       frame?.url===target.expectedUrl&&!frame.errorOccurred&&
       (!frame.documentLifecycle||frame.documentLifecycle==='active')&&
       installedURLMatches(row,frame.url),'E_DOCUMENT_STALE','当前页已改变或不在批准范围内');
-    const execution=row.lastExecution;
+    // Each open AI tab owns a different installed execution world. Never
+    // assume the installation's lastExecution points to the active document.
+    const execution=(await read(tx=>tx.all(PAGE_STORE)))
+      .filter(entry=>entry?.tag==='page-execution-v1'&&entry.namespace===namespace&&
+        entry.programId===row.programId&&entry.tabId===tab.id&&
+        entry.documentId===frame.documentId)
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))[0];
     invariant(execution?.state==='completed'&&execution.programId===row.programId&&
       execution.manifestHash===row.manifestHash&&
       execution.installationId===row.authorization.installationId&&
@@ -1029,11 +1035,17 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       programId:SCROLL_CONFIG_PROGRAM_ID,manifestHash:row.manifestHash,
       installationId:row.authorization.installationId,
       expectedGeneration:row.authorization.generation},sender);
-    invariant(current.token===row.token&&current.lastExecution?.managedUI?.worldId===execution.managedUI.worldId,
-      'E_PAGE_AUTHORIZATION','点选期间安装身份已发生变化');
-    const renewedTab=await api.tabs.get(target.tabId);
-    invariant(renewedTab?.url===target.expectedUrl&&!renewedTab.pendingUrl,
-      'E_DOCUMENT_STALE','点选期间网页已经导航，不能采用旧结果');
+    const confirmedExecution=await read(tx=>tx.get(PAGE_STORE,execution.executionKey));
+    invariant(current.token===row.token&&confirmedExecution?.state==='completed'&&
+      confirmedExecution.managedUI?.worldId===execution.managedUI.worldId&&
+      confirmedExecution.installationId===row.authorization.installationId,
+      'E_PAGE_AUTHORIZATION','点选期间安装执行身份已发生变化');
+    const [renewedTab,renewedFrames]=await Promise.all([
+      api.tabs.get(target.tabId),api.webNavigation.getAllFrames({tabId:target.tabId})]);
+    invariant(renewedTab?.url===target.expectedUrl&&!renewedTab.pendingUrl&&
+      renewedFrames?.some(value=>value.frameId===0&&
+        value.documentId===target.documentId&&value.url===target.expectedUrl&&
+        !value.errorOccurred),'E_DOCUMENT_STALE','点选期间网页已经导航，不能采用旧结果');
     return results[0].result;
   }
   async function pickScrollSiteElement(request,sender){

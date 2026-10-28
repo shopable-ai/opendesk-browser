@@ -42,6 +42,7 @@ async function fixture(t){
     storage:{local:{get:async()=>({[SIDEBAR_TOOL_STORE]:[],
       [SIDEBAR_TOOL_ENABLE_STORE]:{}})},onChanged:{addListener(){},removeListener(){}}}};
   const currentPageTarget={snapshot:target,capture:()=>({...target}),
+    refresh:async()=>({...target}),
     revalidate:async()=>({...target}),subscribe:()=>()=>{}};
   const sidebarTools={openPagePackageReview(...args){reviews.push(args);return true;}};
   const ui=createExtensionCenter({api,client,doc,extensionList:adapter,
