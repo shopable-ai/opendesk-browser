@@ -16,7 +16,7 @@ export function fictionalCookies(){
   {...b,name:'embedded_pref',value:'enabled',sameSite:'no_restriction',partitionKey}
  ];
 }
-// A/B fixture from approved HTML blob 020adbf22005cba219af4ff27cd3f3e492978bed.
+// A/B fixture retains historical fictional data. R2.5.4 HTML is the current UI baseline.
 // HTML has metadata only: values remain fictional. It specifies neither storeId
 // nor a precise PartitionKey; retain explicit simulated identities from the
 // safety fixture rather than silently flattening the partitioned Cookie.
