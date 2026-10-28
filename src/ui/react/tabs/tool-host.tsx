@@ -183,7 +183,7 @@ export function ToolHost({view,concealed=false,debugPreview=false}) {
     };
   },[importOpen,marketReview !== null,view]);
   const context = React.useMemo(() => ({view, snapshot, refs}), [view, snapshot]);
-  return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack" hidden={concealed}><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden={true}>
+  return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack"><ToolField as="section" id="sidebar-tool-action-review" className="sidebar-tool-action-review od-surface" role="group" aria-label="确认当前工具操作" hidden={true}>
 <ToolField as="p" id="sidebar-tool-action-summary" role="status">
 
 </ToolField>
@@ -410,7 +410,7 @@ export function ToolHost({view,concealed=false,debugPreview=false}) {
 </ToolField>}
 </ImportSheet>
 
-<ToolField as="section" id="sidebar-tool-display" className="sidebar-tool-display" aria-label="当前工具界面" hidden={true}>
+<ToolField as="section" id="sidebar-tool-display" forceHidden={concealed} className="sidebar-tool-display" aria-label="当前工具界面" hidden={true}>
 <div className="sidebar-tool-view-head od-toolbar od-page-head">
 <ToolField as="button" type="button" id="sidebar-tool-back" forceHidden={debugPreview} className="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表">
 <svg viewBox="0 0 24 24" aria-hidden="true">

@@ -16,3 +16,8 @@
 - 扩展列表补充开发预览期间无法打开安装版应用的可见提示，避免隐藏 ToolHost 内的错误不可见。
 - 相关 GitHub Actions 的 `Sidebar R1 P0 targeted checks` 在本轮检查时仍为 QUEUED（R1.1: `40696929458`；R1.2: `40700155278`）。队列不是 PASS。
 - 不具备本机 Mac Chrome/Native 工作区和源文件实时操作；未取得与 SHA 匹配的两次可见 JSX 变更证据，也未完成 P1 SDK ETag。优先让本地 Codex 使用真实 Chrome 跑定向测试和最短双更新链，不提前扩展架构。
+
+### 扩展管理可用性补正
+
+- 原 ToolHost 同时拥有导入抽屉与活动应用：不能通过给整个 ToolHost 根节点设置 `hidden` 来隐藏调试 iframe，否则「扩展」的安装导入也会不可见。
+- 同一 React ToolHost 始终挂载，导航至扩展管理时只对 `#sidebar-tool-display` 应用可逆隐藏；导入抽屉仍可正常呈现。普通标签页切换不销毁原 iframe，启动安装版应用仍须先 Stop 开发预览。
