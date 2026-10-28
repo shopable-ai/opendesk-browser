@@ -21,3 +21,21 @@ test('React Tool is one root, calls Host only, and has no parallel sender',async
   assert.match(shared,/sendQueue\.command/);
   assert.doesNotMatch(ui,/localStorage|sessionStorage|chrome\.storage|site\.prepare|site\.commit/);
 });
+
+test('compact Sidebar uses real shared tokens and preserves keyboard per-row actions',async()=>{
+  const [css,tokens,ui]=await Promise.all([
+    source('src/sidebar/style.css'),
+    readFile(new URL('../../../src/ui/design-tokens.css',dir),'utf8'),
+    source('src/sidebar/App.jsx')
+  ]);
+  const names=[...new Set(Array.from(css.matchAll(/var\((--[a-z0-9-]+)/gi),match=>match[1]))];
+  assert.ok(names.length>=5,'production theme variables must be present');
+  for(const name of names)assert.ok(tokens.includes(name),'undefined OpenDesk theme token: '+name);
+  assert.match(css,/max-width:\s*360px/);
+  assert.match(css,/max-width:\s*260px/);
+  assert.match(ui,/aria-expanded=\{expanded\}/);
+  assert.match(ui,/event\.key==='Escape'/);
+  for(const action of ['pause','resume','now','edit','move','remove'])
+    assert.ok(ui.includes(action),'missing per-item action '+action);
+  assert.doesNotMatch(ui,/队列已暂停 · 不会自动发送/);
+});
