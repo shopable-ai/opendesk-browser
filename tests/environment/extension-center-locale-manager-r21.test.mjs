@@ -370,6 +370,32 @@ test('language preview, cancellation, confirmed import/overwrite/delete and shar
   assert.equal(f.service.exportPack(f.tool.id,'ja'),null);
 });
 
+test('JSON drop auto-detects another installed extension and rejects oversized files before parsing',async t=>{
+  const f=await setup(t);
+  const other={...f.tool,id:'locale-other',title:'另一个已安装扩展'};
+  f.saved[SIDEBAR_TOOL_STORE]=[f.tool,other];await f.service.reload();
+  const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[f.tool,other],toolId:f.tool.id,service:f.service,onClose(){}}}}),{doc}=ui;
+  openPacks(doc);
+  const picker=doc.querySelector('input[type=file]');
+  Object.defineProperty(picker,'files',{configurable:true,value:[{size:262145,text(){throw Error('too large must not be read');}}]});
+  picker.dispatch('change');
+  await settle(()=>doc.querySelector('[role=alert]')&&!picker.disabled);
+  assert.match(doc.querySelector('[role=alert]').textContent,/256 KiB/);
+  assert.equal(f.service.exportPack(other.id,'fr'),null);
+  const pack={...f.pack,toolId:other.id,targetLocale:'fr'};
+  doc.querySelector('.od-locale-drop-zone').dispatch('drop',{dataTransfer:{
+    types:['Files'],files:[{size:100,text:async()=>JSON.stringify(pack)}]}});
+  await settle(()=>buttonNamed(doc,'确认导入')&&!buttonNamed(doc,'确认导入').disabled);
+  const preview=doc.querySelector('[aria-label="语言包导入预览"]');
+  assert.match(preview.textContent,/另一个已安装扩展/);assert.match(preview.textContent,/fr/);
+  assert.equal(f.service.exportPack(other.id,'fr'),null,'preview must be read-only');
+  buttonNamed(doc,'确认导入').dispatch('click');
+  await settle(()=>Boolean(f.service.exportPack(other.id,'fr'))&&doc.getElementById('od-locale-pack-tool'));
+  assert.equal(f.service.exportPack(f.tool.id,'fr'),null,'original extension never receives the imported pack');
+  assert.equal(f.service.getToolLocale(other.id),null,'import never switches detected extension language');
+});
+
 test('blank-label feedback explains source fallback without reporting storage corruption',async t=>{
   const f=await setup(t);await f.service.install(f.pack,f.tool);
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
