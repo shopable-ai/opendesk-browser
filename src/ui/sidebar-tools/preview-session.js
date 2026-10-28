@@ -16,7 +16,7 @@ export function validatePanelPreviewPointer(value,windowId,now=Date.now()){
   if(!plain(value)||value.format!==SIDE_PANEL_PREVIEW_FORMAT||
     Object.keys(value).sort().join(',')!=='createdAt,format,previewId,windowId'||
     value.windowId!==windowId||!UUID.test(value.previewId)||
-    !Number.isSafeInteger(value.createdAt)||value.createdAt>now||now-value.createdAt>10*60*1000)
+    !Number.isSafeInteger(value.createdAt)||value.createdAt>now)
     fail('Side Panel preview was not explicitly opened in this window');
   return Object.freeze({...value});
 }
