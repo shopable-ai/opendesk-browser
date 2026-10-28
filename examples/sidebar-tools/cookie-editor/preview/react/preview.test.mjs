@@ -466,3 +466,14 @@ test('R2.6 mock failed account create never produces success receipt',async()=>{
     assert.equal(status.revision,0);
   }finally{mock.dispose();}
 });
+
+
+test('R2.6 canonical HTML and official React share the corrected import/export icon directions',async()=>{
+  const [html,react]=await Promise.all([
+    read('../cookie-editor.html'),read('../../app/components/CookieEditorView.jsx')
+  ]);
+  assert.ok(html.includes("btn('import','导入 Cookie','up')"));
+  assert.ok(html.includes("btn('export','导出 Cookie','down')"));
+  assert.match(react,/<Action name="upload" label="导入 Cookie"/);
+  assert.match(react,/<Action name="download" label="导出 Cookie"/);
+});
