@@ -1,7 +1,7 @@
 /* @opendesk-shared-design */
 /* Official React 19 Tool: compact per-message management; no second queue. */
 @scope (.send-queue-app){
-:scope{box-sizing:border-box;width:100%;min-width:0;margin:0;padding:12px;color:var(--od-text)}
+:scope{box-sizing:border-box;width:100%;min-width:0;margin:0;padding:12px;color:var(--od-ink)}
 .send-queue-head{display:flex;align-items:center;gap:8px;padding:0 0 12px;border-bottom:1px solid var(--od-line)}
 .send-queue-context{flex:1;min-width:0}
 .send-queue-origin{font-size:13px;font-weight:650;line-height:1.35}
@@ -12,25 +12,25 @@
 .send-queue-phase{text-align:right;min-width:0;overflow-wrap:anywhere}
 .send-queue-phase.is-unknown{color:var(--od-negative);font-weight:600}
 .send-queue-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-.send-queue-row.od-shared-card{display:block;min-width:0;border:1px solid var(--od-line);border-radius:var(--od-radius-md);box-shadow:none}
+.send-queue-row.od-shared-card{display:block;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);box-shadow:none}
 .send-queue-row:has(.send-queue-menu){position:relative;z-index:2}
 .send-queue-row .od-shared-card-content{padding:9px 10px}
 .send-queue-row.is-paused{opacity:.84}
 .send-queue-row-layout{display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:start;gap:8px;min-width:0}
-.send-queue-number{display:grid;place-items:center;width:20px;height:20px;border-radius:6px;background:var(--od-muted);color:var(--od-text);font-size:11px;line-height:1;font-variant-numeric:tabular-nums}
+.send-queue-number{display:grid;place-items:center;width:20px;height:20px;border-radius:6px;background:var(--od-muted);color:var(--od-ink);font-size:11px;line-height:1;font-variant-numeric:tabular-nums}
 .send-queue-row-body{min-width:0}
 .send-queue-row-head{display:flex;align-items:center;gap:8px;min-width:0;color:var(--od-sub);font-size:11px;line-height:20px}
 .send-queue-item-state{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .send-queue-item-state.state-unknown{color:var(--od-negative);font-weight:650}
 .send-queue-length{white-space:nowrap;font-variant-numeric:tabular-nums}
-.send-queue-message{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap;margin:3px 0 0;font-size:13px;line-height:1.48;color:var(--od-text)}
+.send-queue-message{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap;margin:3px 0 0;font-size:13px;line-height:1.48;color:var(--od-ink)}
 .send-queue-primary-actions{display:flex;align-items:center;gap:2px;white-space:nowrap}
 .send-queue-primary-actions .icon-button{display:grid;place-items:center;width:28px;min-width:28px;height:28px;padding:5px;border-radius:8px}
 .send-queue-primary-actions .icon-button svg{display:block;width:16px;height:16px}
 .send-queue-primary-actions .icon-button:disabled{opacity:.35}
 .send-queue-more-wrap{position:relative}
-.send-queue-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:5;display:grid;grid-template-columns:1fr;gap:2px;width:min(200px,calc(100vw - 28px));padding:5px;border:1px solid var(--od-line);border-radius:var(--od-radius-md);background:var(--od-surface,var(--od-bg,#fff));box-shadow:0 8px 24px rgb(0 0 0 / .12)}
-.send-queue-menu-action{display:flex;align-items:center;gap:9px;width:100%;min-height:36px;padding:6px 9px;border:0;border-radius:8px;background:transparent;text-align:left;white-space:normal;color:var(--od-text);font:inherit;font-size:12px;line-height:1.3;cursor:pointer}
+.send-queue-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:5;display:grid;grid-template-columns:1fr;gap:2px;width:min(200px,calc(100vw - 28px));padding:5px;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);box-shadow:0 8px 24px rgb(0 0 0 / .12)}
+.send-queue-menu-action{display:flex;align-items:center;gap:9px;width:100%;min-height:36px;padding:6px 9px;border:0;border-radius:8px;background:transparent;text-align:left;white-space:normal;color:var(--od-ink);font:inherit;font-size:12px;line-height:1.3;cursor:pointer}
 .send-queue-menu-action svg{width:15px;height:15px;flex:none}
 .send-queue-menu-action:hover,.send-queue-menu-action:focus-visible{background:var(--od-muted)}
 .send-queue-menu-action:disabled{opacity:.35;cursor:not-allowed}
