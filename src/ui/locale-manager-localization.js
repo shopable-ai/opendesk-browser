@@ -317,7 +317,7 @@ const catalog={
       "validationBlocked": "ファイルの検証に失敗",
       "entryLabel": "翻訳項目",
       "hashLabel": "原文ハッシュ",
-      "hashOk": "一致",
+      "hashOk": "一致しています",
       "hashBad": "不一致・更新が必要",
       "placeholderLabel": "プレースホルダー",
       "placeholderOk": "一致（検証済み）",
