@@ -8,6 +8,12 @@
 - 固定 React 19.2.0 与已有 `dist/development/sidebar-shared-ui.js` 只读复用，不构建 Shared UI，不写 extension watcher 输出。
 - `/dev-source.json` 返回当前 App、预览源码、样式、固定运行时的逐文件 SHA-256、聚合 `sourceHash` 和 `generatedHtmlUsed: false`。dev 证据不能标成静态构建或原生安装 PASS。
 
+若共享 dev 输出正由其他 writer 更新，可用 `COOKIE_PREVIEW_SHARED_UI=dist/production/sidebar-shared-ui.js` 指向已有运行时再启动本目录 dev。路径相对仓库根目录，仍只读复用；来源记录包含实际文件哈希，不证明该 Browser 产物已包含当前可信代码。
+
+### 2026-10-28 · 删除仓库交互
+
+当前共享 App 不再显示本机加密仓库、口令、解锁或锁定。`accountsFirst` 场景从空账号开始，Chromium 定向用例 `first account saves directly` 已完成点击「＋」、命名和保存。此预览采用虚构 SDK；真实持久化、安装与 Chrome Cookie 结果需分别验证。旧场景和下面历史记录不作为新流程的原生证据。
+
 ### 2026-10-28 · 其余五页的 dev 核心操作
 
 Cookie 页沿用已有结果，本轮按账号 → 企业 → 市场 → 定制 → 圈子推进同一 React 源码：
