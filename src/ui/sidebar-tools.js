@@ -1988,13 +1988,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         setAutoRefresh:['enabled','revision'],
         allowAlias:['alias','accountVersion','enabled','revision']
       }[action];
-      if(!fields||Object.keys(payload).some(field=>!fields.includes(field))||
+      // Description is optional for historic account clients. All other
+      // caller-supplied fields remain strictly allowlisted.
+      const optionalFields=(action==='create'||action==='rename')?['description']:[];
+      if(!fields||Object.keys(payload).some(field=>
+        !fields.includes(field)&&!optionalFields.includes(field))||
          fields.some(field=>!Object.hasOwn(payload,field)))
         throw Object.assign(new Error('账号操作字段不符合协议'),{code:'E_ACCOUNT_REQUEST'});
       const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
       if(!origin)throw Object.assign(new Error('当前没有活动的 HTTP(S) 网站'),
         {code:'E_DOCUMENT_CHANGED'});
-      const data={origin,...Object.fromEntries(fields.map(field=>[field,payload[field]]))};
+      const data={origin,...Object.fromEntries(fields.map(field=>[field,payload[field]])),
+        ...(Object.hasOwn(payload,'description')?{description:payload.description}:{})};
       if(['create','update','switch'].includes(action)){
         const {captured,document}=captureCookieImportDocument('账号');
         await currentPageTarget.revalidate(captured);
