@@ -198,11 +198,11 @@ test('R1.2 Side Panel keeps one development iframe across normal tabs (source co
     readFile('src/ui/react/tabs/tool-host.tsx','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8')
   ]);
-  assert.match(shell,/const keepDeveloperPreview=verifiedSidePanel&&Boolean\\(panelPreviewId\\)&&\\s+sidebarTools\\.isPreviewActive\\(\\)/);
-  assert.doesNotMatch(shell,/destination==='develop'&&sidebarTools\\.isPreviewActive\\(\\)/);
-  assert.match(app,/concealed=\\{activeTab==='tools'&&isPanelPreview\\}/);
-  assert.equal((app.match(/<ToolHost\\s/g)||[]).length,1,'the trusted shell has one ToolHost');
-  assert.match(host,/className="sidebar-tool-host od-stack" hidden=\\{concealed\\}/);
-  assert.match(host,/forceHidden=\\{debugPreview\\}/);
-  assert.match(tools,/if\\(readOnlyPreview\\)\\{notice\\('本地应用正在调试/);
+  assert.match(shell,/const keepDeveloperPreview=verifiedSidePanel&&Boolean\(panelPreviewId\)&&\s+sidebarTools\.isPreviewActive\(\)/);
+  assert.doesNotMatch(shell,/destination==='develop'&&sidebarTools\.isPreviewActive\(\)/);
+  assert.match(app,/concealed=\{activeTab==='tools'&&isPanelPreview\}/);
+  assert.equal((app.match(/<ToolHost\s/g)||[]).length,1,'the trusted shell has one ToolHost');
+  assert.match(host,/className="sidebar-tool-host od-stack" hidden=\{concealed\}/);
+  assert.match(host,/forceHidden=\{debugPreview\}/);
+  assert.match(tools,/if\(readOnlyPreview\)\{notice\('本地应用正在调试/);
 });
