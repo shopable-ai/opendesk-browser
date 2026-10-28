@@ -278,7 +278,8 @@ test('R6.2 installation help starts on HTTP and explains the automatic trusted c
   assert.match(html,/打开面板不表示已批准/);
   assert.match(html,/本市场指定的扩展 ID/);
   assert(html.includes('a'.repeat(32)));
-  assert.match(html,/安装成功以真实本机记录为准/);
+  assert.match(html,/网页成功回执仅说明本次事务完成/);
+  assert.match(html,/当前安装与使用请在 OpenDesk 侧边栏核对/);
 });
 
 test('R6.1 multiple cards use distinct fixed intents; double-click has one in-flight request and retry is idempotent',async()=>{

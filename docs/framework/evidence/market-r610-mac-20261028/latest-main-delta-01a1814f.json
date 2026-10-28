@@ -1,0 +1,388 @@
+{
+  "schema": "opendesk.market.r610.delta-verification.v1",
+  "checkedAt": "2026-10-28T07:16:46.657203+00:00",
+  "startHead": "9b1b5ece00dd767e3bb2515e0f2bb168d5b6f37d",
+  "verifiedHead": "f81fea7b3b028d8695cbcde3225e2e3d8a8edbec",
+  "branch": "main",
+  "remoteObservedHead": "2b51fe0b2f20b5ffab490018202702b8a633a564",
+  "remoteIsAncestor": true,
+  "sourceImplementationCommit": "b208dbc8fcf50559a96f3b8c0752df96d908695d",
+  "relevantPostImplementationDiff": [
+    "src/ui/extension-center.js"
+  ],
+  "inheritedAcceptance": "acceptance-receipt.json",
+  "receiptHashChecks": [
+    {
+      "path": "build-final2.log",
+      "pass": true
+    },
+    {
+      "path": "build-evidence/build-development.json",
+      "pass": true
+    },
+    {
+      "path": "market-serve-final.log",
+      "pass": true
+    },
+    {
+      "path": "bookmark-served-identity.json",
+      "pass": true
+    },
+    {
+      "path": "bookmark-update-readback.json",
+      "pass": true
+    },
+    {
+      "path": "bookmark-v14-core.json",
+      "pass": true
+    },
+    {
+      "path": "uninstall-v13-blocked-readback.json",
+      "pass": true
+    },
+    {
+      "path": "uninstall-v14-readback.json",
+      "pass": true
+    },
+    {
+      "path": "website-after-uninstall.json",
+      "pass": true
+    },
+    {
+      "path": "real-language-entry.json",
+      "pass": true
+    },
+    {
+      "path": "runtime-input-readback.json",
+      "pass": true
+    },
+    {
+      "path": "market-targeted.tap",
+      "pass": true
+    },
+    {
+      "path": "page-install.tap",
+      "pass": true
+    },
+    {
+      "path": "client-final.tap",
+      "pass": true
+    },
+    {
+      "path": "trusted-controls.tap",
+      "pass": true
+    },
+    {
+      "path": "clipper-release.tap",
+      "pass": true
+    },
+    {
+      "path": "bookmark-regression.tap",
+      "pass": true
+    },
+    {
+      "path": "bookmark-promote.json",
+      "pass": true
+    },
+    {
+      "path": "bookmark-project-check.json",
+      "pass": true
+    },
+    {
+      "path": "language-final.tap",
+      "pass": true
+    },
+    {
+      "path": "language-targeted-final.tap",
+      "pass": true
+    },
+    {
+      "path": "preview-contract-final.tap",
+      "pass": true
+    },
+    {
+      "path": "preview-source-final.json",
+      "pass": true
+    },
+    {
+      "path": "preview-final-normal.json",
+      "pass": true
+    },
+    {
+      "path": "preview-keyboard-footer-200.json",
+      "pass": true
+    },
+    {
+      "path": "preview-open-path.json",
+      "pass": true
+    },
+    {
+      "path": "preview-result-gates.json",
+      "pass": true
+    },
+    {
+      "path": "preview-locale-market.json",
+      "pass": true
+    },
+    {
+      "path": "ci-query.json",
+      "pass": true
+    },
+    {
+      "path": "integration-owner-commit-recheck.tap",
+      "pass": true
+    },
+    {
+      "path": "independent-review-final.json",
+      "pass": true
+    }
+  ],
+  "inheritedNativeCandidate": {
+    "pid": 46224,
+    "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/market-r610-mac-20261028/cft-profile",
+    "executable": "/private/tmp/OpenDesk Market R610 CFT.app/Contents/MacOS/Google Chrome for Testing",
+    "bundleId": "com.opendesk.testing.market-r610",
+    "extension": "/private/tmp/opendesk-market-r610-whjsrhs5/dist/development",
+    "origin": "http://127.0.0.1:43134",
+    "endpoint": "ws://127.0.0.1:60557/devtools/browser/63d5607e-82a4-4ae5-b7b0-271056fde20f",
+    "mode": "STATIC_DEVELOPMENT",
+    "watcher": false,
+    "packageHash": "51d0bf0a96751abf70d0edbaaf2840bbb9aba79293892c5fb613c3173cc0167e"
+  },
+  "inheritedRealLoop": {
+    "initialInstall": "0.3.13 PASS",
+    "initialSaveAndSearch": "PASS",
+    "initialUninstall": "FAIL_DIRTY_FALSE_POSITIVE_PRESERVED",
+    "reviewedUpdate": "0.3.13 to 0.3.14 PASS",
+    "updatedSaveReadbackSearch": "PASS",
+    "updatedDirectUninstall": "PASS",
+    "uninstalledIframeCount": 0,
+    "uninstalledLocalDataKeys": [],
+    "nativeMessagingGranted": false,
+    "chromeBookmarksRetained": true,
+    "webCurrentInstalledFalseClaim": false
+  },
+  "newBrowserActions": 0,
+  "browserEvidenceIsNotCurrentWholeHeadPass": true,
+  "marketBuild": {
+    "status": "PASS",
+    "buildId": "3231bc5bb69a1586174cdb08af28075b0ff318a192314819887a91236a34333f",
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/market-r610-delta-01a1814f/site",
+    "sourceInputCount": 80,
+    "sourceInputDrift": [],
+    "apps": 13,
+    "releases": 38,
+    "currentKnowledgeVersion": "0.1.7",
+    "historicalKnowledge015ConflictReproduced": false,
+    "serverStarted": false
+  },
+  "newTests": [
+    {
+      "name": "market-site-client selected transaction/duplicate/uninstall/native boundary",
+      "pass": 6,
+      "fail": 0,
+      "evidence": "artifacts/market-r610-delta-01a1814f/market-targeted.tap",
+      "evidenceClass": "NODE_COMPONENT_TESTED"
+    },
+    {
+      "name": "R4.8 stopped app detail delta",
+      "pass": 1,
+      "fail": 0,
+      "evidence": "artifacts/market-r610-delta-01a1814f/stopped-app.tap",
+      "evidenceClass": "NODE_COMPONENT_TESTED"
+    },
+    {
+      "name": "current focused market navigation step after stale help assertion correction",
+      "pass": 139,
+      "fail": 0,
+      "evidence": "artifacts/market-r610-delta-01a1814f/market-navigation-after.tap",
+      "evidenceClass": "NODE_COMPONENT_TESTED",
+      "overlapsEarlierSix": true
+    }
+  ],
+  "bookmarkPackage": {
+    "version": "0.3.14",
+    "bytes": 89438,
+    "sha256": "ff681516aeb5826fc66f8472d69baa6557cb2722f421d3811bdaadb1655e43c7",
+    "matchesNativeTestedPackage": true
+  },
+  "productSourceChangesThisPass": [],
+  "preservedResources": [
+    "43132 Python pid81835 old market",
+    "43134 Vite pid78587 Cookie preview",
+    "43119/43120 daily watcher pid7390",
+    "other chat browser profiles, uncommitted work and source ownership"
+  ],
+  "outOfScope": [
+    "repeating the completed representative-app native loop",
+    "repeating inherited preview matrix without relevant input changes",
+    "full repository regressions",
+    "production/CWS/public channel release"
+  ],
+  "knownReviewRisk": {
+    "severity": "MEDIUM",
+    "status": "BASELINE_SOURCE_FINDING_NOT_RUNTIME_REPRODUCED",
+    "location": "src/marketplace/external.js",
+    "description": "Consumed terminal handoffs may be retained permanently and exhaust the 64 intent limit. No stress loop was run and no capacity/safety rules were changed."
+  },
+  "ci": {
+    "currentLocalHead": {
+      "sha": "f81fea7b3b028d8695cbcde3225e2e3d8a8edbec",
+      "totalRuns": 45,
+      "status": "NOT_ALL_GREEN",
+      "marketRuns": [
+        {
+          "id": 40648679484,
+          "name": "Marketplace R6.9.1 trusted Side Panel navigation",
+          "head": "f81fea7b3b028d8695cbcde3225e2e3d8a8edbec",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40648679484"
+        },
+        {
+          "id": 40648679359,
+          "name": "OpenDesk official catalog R4.5 and market R3 native Chrome",
+          "head": "f81fea7b3b028d8695cbcde3225e2e3d8a8edbec",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40648679359"
+        }
+      ],
+      "marketRunDetails": [
+        {
+          "id": 40648679484,
+          "jobs": [
+            {
+              "id": 122683395927,
+              "name": "market-r691",
+              "conclusion": "failure",
+              "failed": [
+                "Verify market panel routing, external client compatibility and identity gates"
+              ]
+            }
+          ]
+        },
+        {
+          "id": 40648679359,
+          "jobs": [
+            {
+              "id": 122683395477,
+              "name": "market-production-native",
+              "conclusion": "failure",
+              "failed": [
+                "Validate fixed releases, provenance isolation and migrations"
+              ]
+            },
+            {
+              "id": 122683395714,
+              "name": "market-r5-http-native (ubuntu-latest)",
+              "conclusion": "failure",
+              "failed": [
+                "R5 handoff, installer, immutable archive and client state components"
+              ]
+            },
+            {
+              "id": 122683395761,
+              "name": "market-r5-http-native (macos-15)",
+              "conclusion": "failure",
+              "failed": [
+                "R5 handoff, installer, immutable archive and client state components"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "remoteHeadAtFirstObservation": {
+      "sha": "2b51fe0b2f20b5ffab490018202702b8a633a564",
+      "marketRun": [
+        {
+          "id": 40562508114,
+          "name": "OpenDesk official catalog R4.5 and market R3 native Chrome",
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40562508114"
+        }
+      ],
+      "failedSteps": [
+        {
+          "job": "market-r5-http-native (ubuntu-latest)",
+          "conclusion": "failure",
+          "failed": [
+            "R5 handoff, installer, immutable archive and client state components"
+          ]
+        },
+        {
+          "job": "market-r5-http-native (macos-15)",
+          "conclusion": "failure",
+          "failed": [
+            "R5 handoff, installer, immutable archive and client state components"
+          ]
+        },
+        {
+          "job": "market-production-native",
+          "conclusion": "failure",
+          "failed": [
+            "Validate fixed releases, provenance isolation and migrations"
+          ]
+        }
+      ]
+    },
+    "latestHeadAppearsInRemoteActions": true,
+    "focusedFailure": {
+      "run": 40648679484,
+      "job": 122683395927,
+      "pass": 138,
+      "fail": 1,
+      "cause": "R6.2 installation help test asserted the retired wording instead of the current transaction-only receipt contract",
+      "localReproduction": "help-before.tap FAIL",
+      "localAfter": "market-navigation-after.tap 139/139 PASS",
+      "remoteRerun": "NOT_TESTED"
+    },
+    "broadFailureClassification": {
+      "run": 40648679359,
+      "observed": [
+        "missing generated dist/tool.css",
+        "market cut-point/source-shape assertions",
+        "legacy help copy and other expected UI states"
+      ],
+      "status": "RAW_FAILURES_PRESERVED_NOT_ALL_CLASSIFIED_OR_FIXED",
+      "releaseVerification": "NOT_ALL_GREEN",
+      "scopeDecision": "No full CI repair or all-app native loop after completed representative-app acceptance"
+    }
+  },
+  "testOnlyChangesThisPass": [
+    "tests/environment/market-page-discovery-r61.test.mjs"
+  ],
+  "independentReview": {
+    "agent": "Averroes",
+    "agentId": "01a18155-c8d9-7030-9776-cee9671b3870",
+    "verdict": "COMMENT",
+    "scope": "Finite source/evidence audit, not release approval",
+    "scoresOutOf100": {
+      "product": 94,
+      "ux": 94,
+      "reactArchitecture": 94,
+      "installationSecurity": 94,
+      "lifecycle": 93,
+      "testEvidence": 90,
+      "maintainability": 92,
+      "crossChatDedup": 97
+    },
+    "arithmeticMean": 93.5,
+    "everyDimensionAtLeast95": false,
+    "languageEvidence": "Current tools.tsx, locale manager and styles match the frozen inputs; menu opens the existing manager. Language persistence/restart/full package import not demonstrated.",
+    "previewEvidence": "Current final HTML matches and 115 source inputs plus two aggregate input digests match; inherited UI_PREVIEW_ONLY. At 200%, viewport is 600x530 and widths are preview-container selections, not physical Side Panel widths.",
+    "baselineCapacityFindingRuntimeReproduced": false
+  },
+  "finalStatus": "CORE_LOOP_INHERITED_PASS_FINAL_ACCEPTANCE_INCOMPLETE",
+  "finalAcceptanceMissing": [
+    "all eight dimensions >=95",
+    "latest main full native candidate acceptance",
+    "production five-tab candidate acceptance",
+    "native cancel/failure/duplicate/unknown fault matrix",
+    "language persistence/restart/full language-pack import",
+    "latest full CI success"
+  ],
+  "publicRelease": "BLOCKED_REVIEWED_HTTPS_AND_CWS_CHANNEL_NOT_CONFIGURED"
+}

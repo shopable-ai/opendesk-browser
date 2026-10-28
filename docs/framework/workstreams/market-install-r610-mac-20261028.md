@@ -81,3 +81,43 @@
 - `INCOMPLETE`：八维门槛及冻结后相关 main 差量的原生证据；历史集成失败已定向复验通过，但整组未再次执行。没有第二市场、Installer、SDK、状态库，没有桌面安装器。
 
 独立浏览器和 43134 服务保留供查看；具体路径/Profile/PID/端点见本机 `browser-owner.json` 和收据。代表应用闭环完成后停止扩展验收范围。
+
+## 2026-10-28 最新 main 差量复核（01a1814f）
+
+本次开始 main 为 `9b1b5ece00dd767e3bb2515e0f2bb168d5b6f37d`，验证输入最终核对至并行提交后的 `f81fea7b3b028d8695cbcde3225e2e3d8a8edbec`。首次远端 main 读回 `2b51fe0b2f20b5ffab490018202702b8a633a564` 是本地祖先；后续 GitHub Actions 已有 f81 候选运行。只在 main 工作，无分支、worktree、PR、桌面安装器或第二安装层。
+
+### 已有成果与本次实际修改
+
+- 原实现提交 `b208dbc8f` 已包含语言入口迁入「更多 → 语言与翻译」、事务回执、书签 dirty 修复及唯一 0.3.14 正式包。本次没有重复修改产品源码或安装应用。
+- 核对原验收索引的 **31 份原始文件：字节数及 SHA-256 全部匹配**；书签正式包仍为 89438 字节、`ff681516aeb5826fc66f8472d69baa6557cb2722f421d3811bdaadb1655e43c7`。继承上文真实 Mac CFT155 的审阅安装、更新、写入、搜索、卸载、本机清理及 Native Messaging 为 false 的证据；没有新开浏览器或重放安装链。
+- 当前 tools/client/status/external/panel/Installer 与冻结快照对应文件一致。b208 至 f81 的本任务相关产品差量仅 `extension-center.js` 两行停用说明，原生结果仍绑定原静态 development 候选，不能宣称整个最新 HEAD 的真实 Chrome 验收通过。
+- 本次唯一测试修改为 `tests/environment/market-page-discovery-r61.test.mjs`：最新市场导航 CI 仍要求已退役的“安装成功以真实本机记录为准”。本机先重现失败，再改为同时核对“网页成功回执仅说明本次事务完成”和“当前安装与使用请在 OpenDesk 侧边栏核对”；保留现有 HTTP、扩展 ID、侧栏审阅和未批准语义检查，未为断言恢复长期网页安装态。
+
+### 新执行的最小验证
+
+- 原市场 builder 使用独立输出 `artifacts/market-r610-delta-01a1814f/site`，**PASS：13 应用、38 发行**；siteBuildId `3231bc5bb69a1586174cdb08af28075b0ff318a192314819887a91236a34333f`。80 项来源输入在 f81 后重核无漂移。Knowledge 当前推荐 0.1.7，归档 0.1.5 保留，旧同版冲突没有再现。没有启动 HTTP 服务或覆盖日常 dist。
+- 市场事务/双击/卸载/Native 边界选定检查 **6/6 PASS**；停用说明的 R4.8 单项 **1/1 PASS**。
+- 修正帮助断言后，执行与失败 CI 同一步骤的五文件导航组：`market-panel-navigation-r691`、`market-page-panel-navigation-r691`、`market-site-client-r5`、`market-panel-handoff`、`market-page-discovery-r61`，**139/139 PASS**。该组包含上述6项，不相加宣传覆盖率。均为 Node 检查，不能替代真实浏览器。
+- `git diff --check` 通过。本次没有固定运行时代码变更，未重复扩展整包构建、全仓测试或原生矩阵。
+
+### 语言、预览与资源边界
+
+独立 reviewer 核对当前预览 HTML 与最终预览逐字节一致，115 项源码及两项汇总输入摘要匹配。继承五档容器宽度 × 明暗的10项默认缩放及10项实际200%预览检查、语言管理器呈现和市场入口提示；仍只标 `UI_PREVIEW_ONLY`。200%收据的浏览器 viewport 为600×530，320/360/400/440/520 是预览容器选择值，**不能据此宣称已安装 Side Panel 的物理宽度与200%重排均通过**。完整语言切换持久化、重启及语言包导入链未补测。
+
+开始时43132为旧市场 Python PID81835，43134已由 Cookie 预览 Vite PID78587占用，日常 watcher PID7390监听43119/43120；这些是本次观察，不沿用上文旧 owner 状态，也未重启或占用它们。其他对话的 Cookie、ChatGPT、Knowledge 修改由原 owner 提交，本次未覆盖、重打包或暂存。
+
+### CI、独立评分及完成结论
+
+最新 f81 的市场导航 [40648679484](https://github.com/shopable-ai/opendesk-browser/actions/runs/40648679484) 原结果为138 PASS / 1 FAIL；本机139/139复验不能改写远端结果，本次补丁尚无远端 CI PASS。更广市场 [40648679359](https://github.com/shopable-ai/opendesk-browser/actions/runs/40648679359) 仍失败，原日志包含生成资源 `dist/tool.css` 缺失、观察器源码形状和旧 UI 预期等问题；未全部分类修复，不称“均与任务无关”或全绿。未为旧清单恢复全应用验收。
+
+本次只读审计另指出基线 `external.js` 对 consumed 终态交接的保留可能累计耗尽64条容量；标 `MEDIUM / SOURCE_FINDING_NOT_RUNTIME_REPRODUCED`。它不阻断已完成代表链，本次未运行累计64次压力循环或更改容量、安全、重放规则，作为后续可靠性风险保留。
+
+独立 reviewer Averroes 的有限范围评分（各100分，非发布批准）：
+
+| 产品 | UX | React架构 | 安装安全 | 生命周期 | 测试证据 | 维护性 | 跨对话去重 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 94 | 94 | 94 | 94 | 93 | 90 | 92 | 97 |
+
+算术平均 **748 ÷ 8 = 93.50**；不替换上文历史评分，不为95分扩张任务。结论仍为 **代表应用核心闭环 PASS；R6.10 八维最终验收未完成，不能宣布最终 MVP 验收通过**。最新整包原生候选、正式 production、原生异常矩阵、语义诊断及完整语言链保留 `NOT_TESTED`；公众 HTTPS/CWS 通道继续 `PUBLIC_RELEASE_BLOCKED`。
+
+本次结构化证据：[latest-main-delta-01a1814f.json](../evidence/market-r610-mac-20261028/latest-main-delta-01a1814f.json)。本机新日志保存在 `artifacts/market-r610-delta-01a1814f/`；成功闭环不重复，收尾不启动后续自动化。
