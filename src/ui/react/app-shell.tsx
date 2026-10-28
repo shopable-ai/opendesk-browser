@@ -16,7 +16,8 @@ const readEmptyTool=()=>emptyToolSnapshot;
 const subscribeEmptyTool=()=>()=>{};
 
 export function SidebarAppShell({
-  activeTab='tasks',debugEnabled=false,onNavigate=()=>{},
+  activeTab='tasks',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{},
+  onStopAppDebug=()=>{},
   extensionProps={},cloudModel={},cloudRequestsModel={},cloudSetupModel={},cloudPageModel={},
   developerView,myView,myAgent=null,toolView=null,workflowController=null,providerSettings=null,
   providerSettingsOpen=false,onOpenProviderSettings=()=>{},onCloseProviderSettings=()=>{},
@@ -28,6 +29,9 @@ export function SidebarAppShell({
   const developerSnapshot=React.useSyncExternalStore(developerView.subscribe,developerView.getSnapshot,developerView.getSnapshot);
   const toolSnapshot=React.useSyncExternalStore(toolView?.subscribe??subscribeEmptyTool,
     toolView?.getSnapshot??readEmptyTool,toolView?.getSnapshot??readEmptyTool);
+  // Debug and Extensions share a single ToolHost. Conceal (do not unmount)
+  // its live preview while showing the installed-app list.
+  const isPanelPreview=appDebugEnabled&&toolSnapshot.fields['sidebar-tool-readonly-banner']?.hidden===false;
   const siteAccess=developerSnapshot.fields['site-access-status'];
   const siteGrant=developerSnapshot.fields['site-access-grant'];
   // Page/React/Vue previews retain Stop authority outside Controller RunHost.
@@ -40,7 +44,7 @@ export function SidebarAppShell({
       aria-description="较窄时可以横向滚动；左右方向键以及 Home、End 切换页签"
       data-debug-enabled={debugEnabled?'true':undefined}>
       <SidebarNavigation activeTab={activeTab} debugEnabled={debugEnabled}
-        onNavigate={onNavigate}/>
+        appDebugEnabled={appDebugEnabled} onNavigate={onNavigate}/>
     </nav>
     <main id="workspace-content">
       <div id="site-access-recovery" className="row" role="status" hidden={siteAccess.data.websites!==false}>
@@ -53,15 +57,26 @@ export function SidebarAppShell({
       </div>
       <TaskCatalogPage view={myView} hidden={activeTab!=='catalog'} standalone={activeTab==='catalog'}/>
       <MyTasksPage view={myView} agent={myAgent} hidden={activeTab!=='tasks'}/>
-      <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools"
-        className="od-page" data-workbench-page="tools" hidden={activeTab!=='tools'}>
+      <div id="workbench-tools" role="tabpanel"
+        aria-labelledby={activeTab==='app-debug'?'tab-app-debug':'tab-tools'}
+        className="od-page" data-workbench-page={activeTab==='app-debug'?'app-debug':'tools'}
+        hidden={activeTab!=='tools'&&activeTab!=='app-debug'}>
         <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具">
-          <div id="sidebar-tool-list-view" hidden={toolSnapshot.fields['sidebar-tool-display']?.hidden===false}>
+          {activeTab==='app-debug'&&<div className="od-toolbar" role="group" aria-label="应用调试控制">
+            <span className="hint">本地快照 · 未安装</span>
+            <button type="button" className="od-button od-button--secondary"
+              onClick={onStopAppDebug}>停止调试</button>
+          </div>}
+          <div id="sidebar-tool-list-view" hidden={activeTab==='app-debug'||(toolSnapshot.fields['sidebar-tool-display']?.hidden===false&&!isPanelPreview)}>
+            {activeTab==='tools'&&isPanelPreview&&<p className="hint" role="status">
+              应用调试正在运行；打开已安装应用前，请先在「应用调试」停止。
+            </p>}
             <section id="extension-center" aria-label="扩展管理">
               <ExtensionCenterPage {...extensionProps}/>
             </section>
           </div>
-          {toolView&&<ToolHost view={toolView}/>}
+          {toolView&&<ToolHost view={toolView} concealed={activeTab==='tools'&&isPanelPreview}
+            debugPreview={activeTab==='app-debug'&&isPanelPreview}/>}
         </section>
       </div>
       <WorkflowPage controller={workflowController} active={activeTab==='workflow'}

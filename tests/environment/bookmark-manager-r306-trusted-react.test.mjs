@@ -22,8 +22,16 @@ test('Bookmark release config, packed catalog and compiled Browser admission adv
  const row=source.tools.find(item=>item.id===TRUSTED_BOOKMARK_ID);
  assert.ok(row,'the official source catalog must include Bookmark Manager');
  const config=JSON.parse(await read(row.project+'/tool.config.json'));
- // Exercise the next PATCH too: a hard-coded version matching today's package
- // would otherwise pass until the next release brought the Classic UI back.
+ assert.equal(TRUSTED_BOOKMARK_VERSION,config.version,
+   'direct Node admission pin must match the reviewed source release');
+ const admissionSource=await read('src/ui/trusted-bookmark-admission.js');
+ const wxt=await read('wxt.config.mjs');
+ assert.doesNotMatch(admissionSource,/import\s+.*bookmark-manager\/tool\.config\.json/,
+   'privileged Host may not import another App configuration');
+ assert.match(wxt,/__OPENDESK_TRUSTED_BOOKMARK_VERSION__:JSON\.stringify\(trustedBookmarkVersion\)/,
+   'the real MV3 compiler must inject the exact source version');
+ // Exercise the next PATCH too: Browser compile-time injection must advance
+ // with the source release, while older installed Browser builds fail closed.
  for(const version of [config.version,nextPatchVersion(config.version)])await t.test(version,async t=>{
   const root=await realpath(await mkdtemp(join(tmpdir(),'bookmark-release-')));
   t.after(()=>rm(root,{recursive:true,force:true}));
@@ -45,13 +53,14 @@ test('Bookmark release config, packed catalog and compiled Browser admission adv
   assert.equal(release.bytes,bytes.length);
   assert.equal(release.sha256,createHash('sha256').update(bytes).digest('hex'));
   const bundled=await buildBrowserModule({configFile:false,publicDir:false,logLevel:'silent',
-   plugins:[{name:'bookmark-release-config',enforce:'pre',load(id){
-    if(id===resolve(row.project,'tool.config.json'))return JSON.stringify(candidateConfig);
-   }}],
+   define:{__OPENDESK_TRUSTED_BOOKMARK_VERSION__:JSON.stringify(version)},
    build:{write:false,minify:false,lib:{entry:resolve('src/ui/trusted-bookmark-admission.js'),formats:['es']}}
   });
   const chunks=(Array.isArray(bundled)?bundled:[bundled]).flatMap(result=>result.output);
   assert.equal(chunks.length,1,'admission must compile to one self-contained module');
+  assert.ok(chunks.every(chunk=>Object.keys(chunk.modules||{}).every(id=>
+    !id.includes('/bookmark-manager/tool.config.json'))),
+   'official App config JSON cannot enter the trusted Browser module graph');
   const compiled=await import('data:text/javascript;base64,'+Buffer.from(chunks[0].code).toString('base64'));
   assert.equal(compiled.TRUSTED_BOOKMARK_VERSION,version,'Browser must compile the same release version');
   const args={tool,release,installed:[tool],enableRecords:{},

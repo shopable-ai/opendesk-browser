@@ -76,7 +76,7 @@ function MarketCapabilityRow({code,isNew=false}){
 
 
 
-export function ToolHost({view}) {
+export function ToolHost({view,concealed=false,debugPreview=false}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
   const marketReview = snapshot.market?.review ?? null;
   const marketReviewRef = React.useRef(marketReview);
@@ -410,9 +410,9 @@ export function ToolHost({view}) {
 </ToolField>}
 </ImportSheet>
 
-<ToolField as="section" id="sidebar-tool-display" className="sidebar-tool-display" aria-label="当前工具界面" hidden={true}>
+<ToolField as="section" id="sidebar-tool-display" forceHidden={concealed} className="sidebar-tool-display" aria-label="当前工具界面" hidden={true}>
 <div className="sidebar-tool-view-head od-toolbar od-page-head">
-<ToolField as="button" type="button" id="sidebar-tool-back" className="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表">
+<ToolField as="button" type="button" id="sidebar-tool-back" forceHidden={debugPreview} className="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="m14 5-7 7 7 7M7 12h14">
 
@@ -764,11 +764,11 @@ function BookmarkSettings() {
   </ToolField>;
 }
 
-function ToolField({as:Tag='div', id, children, nodeRef, ...props}) {
+function ToolField({as:Tag='div', id, children, nodeRef, forceHidden=false, ...props}) {
   const {view, snapshot, refs} = React.useContext(ToolContext), state = snapshot.fields[id];
   if (!state) throw new Error('E_SIDEBAR_TOOL_FIELD: ' + id);
   const ref = React.useCallback(node => {if (node) refs.current.set(id, node); else refs.current.delete(id); nodeRef?.(node);}, [refs, id, nodeRef]);
-  const attrs = {...props, id, ref, hidden: state.hidden, title: state.title ?? props.title,
+  const attrs = {...props, id, ref, hidden: state.hidden||forceHidden, title: state.title ?? props.title,
     className: state.className ?? props.className, ...state.attributes};
   for (const [key, value] of Object.entries(state.data)) attrs['data-' + key.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] = value;
   if (Tag === 'button') {attrs.disabled = state.disabled; attrs.type = props.type || 'button'; attrs.onClick = event => view.dispatch(id, 'click', event.nativeEvent);}

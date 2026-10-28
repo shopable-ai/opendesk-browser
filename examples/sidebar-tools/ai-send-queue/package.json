@@ -1,0 +1,38 @@
+{
+  "name": "@opendesk-examples/ai-send-queue",
+  "version": "0.1.13",
+  "private": true,
+  "type": "module",
+  "description": "One OpenDesk Send Queue product: Page USER_SCRIPT FIFO sender and trusted React Sidebar control.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build": "node ../../../node_modules/vite/bin/vite.js build --config vite.config.mjs",
+    "watch": "node ../../../node_modules/vite/bin/vite.js build --watch --config vite.config.mjs"
+  },
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "opendesk.ai-send-queue",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/page/main.js",
+    "pageRules": {
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    },
+    "assets": [
+      {
+        "path": "assets/queue.css",
+        "kind": "css"
+      },
+      {
+        "path": "assets/crown-premium.webp",
+        "kind": "image"
+      }
+    ]
+  }
+}

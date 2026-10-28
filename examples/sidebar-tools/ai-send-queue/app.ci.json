@@ -1,0 +1,12 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "react-candidate",
+  "build": "auto",
+  "afterBuild": [
+    "examples/sidebar-tools/ai-send-queue/scripts/stage-react-candidate.mjs"
+  ],
+  "browser": [
+    "examples/sidebar-tools/ai-send-queue/scripts/ci-current-chromium.mjs"
+  ],
+  "extraCandidate": "artifacts/sidebar-tools/ai-send-queue/react-candidate.opendesk-tool.json"
+}

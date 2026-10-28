@@ -1,24 +1,28 @@
-name: Send Queue R5.5 formal source and install package
+name: Send Queue R5.8 Page and React candidate CI
 on:
   push:
     branches: [main]
     paths:
-      - 'examples/programs/chatgpt-send-queue/src/**'
-      - 'examples/programs/chatgpt-send-queue/assets/**'
-      - 'examples/programs/chatgpt-send-queue/preview/**'
-      - 'examples/programs/chatgpt-send-queue/scripts/**'
-      - 'examples/programs/chatgpt-send-queue/tests/**'
-      - 'examples/programs/chatgpt-send-queue/package.json'
+      - 'examples/sidebar-tools/ai-send-queue/src/**'
+      - 'examples/sidebar-tools/ai-send-queue/assets/**'
+      - 'examples/sidebar-tools/ai-send-queue/preview/**'
+      - 'examples/sidebar-tools/ai-send-queue/scripts/**'
+      - 'examples/sidebar-tools/ai-send-queue/tests/**'
+      - 'examples/sidebar-tools/ai-send-queue/package.json'
       - 'official-pages/sources.json'
+      - 'src/platform/host/send-queue-admission.js'
+      - 'src/ui/trusted-bookmark-admission.js'
+      - 'wxt.config.mjs'
+      - 'tests/environment/bookmark-manager-r306-trusted-react.test.mjs'
       - '.github/workflows/send-queue-production-r55.yml'
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 concurrency:
-  group: send-queue-r55-formal-main
+  group: send-queue-r58-source-bound-main
   cancel-in-progress: false
 jobs:
-  test-build-publish:
+  test-build-candidates:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -34,19 +38,30 @@ jobs:
       - name: Check actual Page Program sources
         run: |
           set -euo pipefail
-          for f in main site engine view; do
-            node --check "examples/programs/chatgpt-send-queue/src/$f.js"
+          for f in main site engine view remote; do
+            node --check "examples/sidebar-tools/ai-send-queue/src/page/$f.js"
           done
-          node --test examples/programs/chatgpt-send-queue/tests/*.test.mjs
-          node scripts/validate-program-project.mjs examples/programs/chatgpt-send-queue
-          node examples/programs/chatgpt-send-queue/scripts/sync-crown-preview.mjs --check
+          node --test examples/sidebar-tools/ai-send-queue/tests/*.test.mjs
+          node scripts/validate-program-project.mjs examples/sidebar-tools/ai-send-queue
+          node examples/sidebar-tools/ai-send-queue/scripts/sync-crown-preview.mjs --check
+      - name: Build actual React Tool and fixed install candidate
+        run: |
+          npm run --prefix examples/sidebar-tools/ai-send-queue build
+          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-send-queue --out "$RUNNER_TEMP/ai-send-queue.opendesk-tool.json"
+      - name: Preserve blocked React Tool candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: send-queue-r58-blocked-react-candidate
+          path: ${{ runner.temp }}/ai-send-queue.opendesk-tool.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Resolve blocked candidate identity from official catalog
         run: |
           node --input-type=module <<'NODE' >> "$GITHUB_ENV"
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           const catalog=JSON.parse(readFileSync('official-pages/sources.json','utf8'));
-          const manifest=JSON.parse(readFileSync('examples/programs/chatgpt-send-queue/package.json','utf8'));
+          const manifest=JSON.parse(readFileSync('examples/sidebar-tools/ai-send-queue/package.json','utf8'));
           const entry=catalog.programs.find(row=>row.programId==='opendesk.ai-send-queue');
           assert.ok(entry,'missing official catalog entry');
           assert.equal(entry.version,manifest.version);
@@ -55,12 +70,12 @@ jobs:
           console.log('SEND_QUEUE_REVISION='+entry.revision);
           NODE
       - name: Compile actual Program with the existing production builder
-        run: npm run build:program -- examples/programs/chatgpt-send-queue --out "$RUNNER_TEMP/send-queue-build"
+        run: npm run build:program -- examples/sidebar-tools/ai-send-queue --out "$RUNNER_TEMP/send-queue-build"
       - name: Build canonical Page install package with existing installer format
         run: |
           node scripts/build-page-install-package.mjs \
             --input "$RUNNER_TEMP/send-queue-build/program.opendesk-draft.json" \
-            --out examples/programs/chatgpt-send-queue/ai-send-queue.opendesk-page.json \
+            --out examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json \
             --revision "$SEND_QUEUE_REVISION" --title "AI 消息发送队列"
       - name: Validate package identity and compiled source integrity
         run: |
@@ -69,7 +84,7 @@ jobs:
           import {readFile} from 'node:fs/promises';
           import {createHash} from 'node:crypto';
           import {validatePageInstallPackage} from './src/scripting/user-scripts/page-install-package.js';
-          const dir='examples/programs/chatgpt-send-queue/';
+          const dir='examples/sidebar-tools/ai-send-queue/';
           const pkg=JSON.parse(await readFile(dir+'ai-send-queue.opendesk-page.json','utf8'));
           const manifest=JSON.parse(await readFile(dir+'package.json','utf8'));
           const catalog=JSON.parse(await readFile('official-pages/sources.json','utf8'));
@@ -97,49 +112,44 @@ jobs:
       - name: Save build evidence independently of repository publication
         uses: actions/upload-artifact@v4
         with:
-          name: send-queue-r55-formal-package
-          path: examples/programs/chatgpt-send-queue/ai-send-queue.opendesk-page.json
+          name: send-queue-r58-blocked-page-candidate
+          path: examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json
           if-no-files-found: error
           retention-days: 14
-      - name: Commit only the rebuilt install package to main (non-forcing)
+      # Separate from the fast blocked candidate build. This uses the real
+      # MV3 runtime and Chrome UI, not a Page/SDK simulation. No publishing.
+      - name: Compile pinned official React prerequisites for real Chrome Host
         run: |
-          set -euo pipefail
-          FILE=examples/programs/chatgpt-send-queue/ai-send-queue.opendesk-page.json
-          git add -- "$FILE"
-          if git diff --cached --quiet; then
-            echo 'Formal package already matches compiled source'
-            exit 0
-          fi
-          test "$(git diff --cached --name-only)" = "$FILE"
-          git -c user.name='github-actions[bot]' \
-            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'Keep the installable queue aligned with the verified safety revision' \
-              -m 'Constraint: Preserve immutable prior revisions and the existing Page installer' \
-              -m 'Confidence: high' \
-              -m 'Scope-risk: narrow' \
-              -m 'Tested: Source tests, production compilation, package identity and awaited integrity validation' \
-              -m 'Not-tested: Native Mac installation, upgrade and message sending'
-          # Rebase only our single package commit. A concurrent change to the
-          # program, release manifest or package is a hard fail, never overwrite.
-          BASE_SHA="$GITHUB_SHA"
-          for attempt in 1 2 3; do
-            git fetch --no-tags origin main
-            if ! git diff --quiet "$BASE_SHA" origin/main -- \
-              examples/programs/chatgpt-send-queue/src \
-              examples/programs/chatgpt-send-queue/assets \
-              examples/programs/chatgpt-send-queue/preview \
-              examples/programs/chatgpt-send-queue/scripts \
-              examples/programs/chatgpt-send-queue/tests \
-              examples/programs/chatgpt-send-queue/package.json \
-              official-pages/sources.json "$FILE"; then
-              echo 'Concurrent Send Queue source/package change; refusing publication'
-              exit 1
-            fi
-            git rebase origin/main
-            if git push origin HEAD:main; then
-              echo 'Page package pushed by normal fast-forward'
-              exit 0
-            fi
-          done
-          echo 'Concurrent main changes prevented safe publish; package artifact retained'
-          exit 1
+          node scripts/build-adblock-react.mjs
+          node scripts/build-stay-focus-react.mjs
+          node scripts/build-cookie-editor-react.mjs
+          npm --prefix examples/sidebar-tools/ai-vip-share run build
+      - name: Guard original fixed Host provenance and source-version injection
+        run: node --test tests/environment/bookmark-manager-r306-trusted-react.test.mjs tests/environment/bundle-provenance.test.mjs
+      - name: Build original OpenDesk MV3 extension (no alternate Host)
+        run: |
+          npm run build:dev
+          mkdir -p artifacts/app-ci/ai-send-queue
+          cp "$RUNNER_TEMP/ai-send-queue.opendesk-tool.json" artifacts/app-ci/ai-send-queue/candidate.opendesk-tool.json
+      - uses: browser-actions/setup-chrome@v2
+        id: nativeChrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Install real React Tool, inspect Page-missing state and reject same-ID spoof
+        env:
+          CHROME_BIN: ${{ steps.nativeChrome.outputs.chrome-path }}
+        run: xvfb-run -a node examples/sidebar-tools/ai-send-queue/scripts/ci-installed-chromium.mjs artifacts/send-queue-r58-installed-chromium
+      - name: Preserve real installed Chrome receipts, if any
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: send-queue-r58-installed-chromium-evidence
+          path: artifacts/send-queue-r58-installed-chromium/
+          if-no-files-found: warn
+          retention-days: 14
+      # The currently blocked Page candidate is an audit artifact only.
+      # A source push must never silently rewrite the frozen 0.1.12/r11 JSON.
+      - name: Keep blocked install candidate unpromoted
+        run: |
+          echo 'BLOCKED: candidate built and uploaded for review only.'
+          echo 'No git add, commit, push or implicit package upgrade.'

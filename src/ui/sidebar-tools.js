@@ -17,6 +17,7 @@ import {permissionPattern} from '../environment.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
 import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../scripting/user-scripts/page-install-package.js';
+import {admitsPinnedQueueTool} from '../platform/host/send-queue-admission.js';
 import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 import {loadOfficialPagePackage} from '../scripting/user-scripts/official-page-catalog.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
@@ -1762,6 +1763,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     
     cancelRemovalReview();
     if(disposed||busy||!visible)return;
+    if(readOnlyPreview){notice('本地应用正在调试；请先进入「应用调试」停止调试，再打开安装版应用。',true);return false;}
     if(installedReadError||revocationReadError){notice('安装记录读取失败，请刷新核对后再打开应用。',true);return;}
     // An OD rail click on the already-open app must not remount its live UI,
     // discard its draft or introduce a redundant leave-confirmation dialog.
@@ -1794,6 +1796,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // owns site grants, enable/disable, version details and uninstall reviews.
   function openSettings(id){
     if(disposed||busy||!visible||installedReadError)return false;
+    if(readOnlyPreview){notice('本地应用正在调试；请先进入「应用调试」停止调试，再打开安装版设置。',true);return false;}
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return false;}
     // Opening permissions for the already-running Cookie Editor is a view
@@ -1913,6 +1916,55 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(operation==='currentPage.info'&&tool.capabilities.includes('currentPage.read'))
         return {status:'unavailable',message:'只读开发预览没有绑定业务网页'};
       throw new Error('开发预览不允许真实写入、打开任务或控制网页');
+    }
+    // Exact product-scoped request; the Tool cannot select a Chrome tab or inject JS.
+    // Host rechecks both the tool package epoch and Page Authority before delivery.
+    if(operation==='sendQueue.snapshot'||operation==='sendQueue.command'){
+      if(!admitsPinnedQueueTool(tool,await sidebarToolPackageHash(tool)))
+        throw Object.assign(new Error('工具无权控制网页队列'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
+      const read=operation==='sendQueue.snapshot',command=payload?.command;
+      if(read){
+        if(!payload||Object.keys(payload).length!==0)
+          throw Object.assign(new Error('只读队列请求格式错误'),{code:'E_SCHEMA'});
+      }else{
+        const expected=command==='move'?['command','id','index','instance','revision']:
+          ['command','id','instance','revision'];
+        if(!payload||!['pause','resume','now','edit','remove','move'].includes(command)||
+          Object.keys(payload).sort().join(',')!==expected.sort().join(',')||
+          typeof payload.instance!=='string'||!/^[A-Za-z0-9-]{1,128}$/.test(payload.instance)||
+          typeof payload.id!=='string'||!/^q[1-9]\d{0,8}$/.test(payload.id)||
+          !Number.isSafeInteger(payload.revision)||payload.revision<0||
+          command==='move'&&(!Number.isInteger(payload.index)||payload.index<0||payload.index>=20))
+          throw Object.assign(new Error('消息身份或队列版本无效'),{code:'E_SCHEMA'});
+      }
+      const [stored,epochs]=await Promise.all([
+        api.storage.local.get(SIDEBAR_TOOL_STORE),
+        api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
+      if(!requireCompleteInstalledSidebarTools(stored[SIDEBAR_TOOL_STORE])
+        .some(row=>samePackage(row,tool))||
+        (epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
+        throw Object.assign(new Error('安装或授权已变更'),{code:'E_TOOL_CHANGED'});
+      assertSession(source,token);
+      const selected=currentPageTarget?.capture?.();
+      if(!selected||selected.origin!=='https://chatgpt.com')
+        return {status:'unavailable',reason:'请先打开 ChatGPT 的实际对话'};
+      const result=await foundationClient.request('sendQueueOperation',{
+        operation:read?'snapshot':command,
+        target:{tabId:selected.tabId,frameId:0,documentId:selected.documentId,
+          expectedUrl:selected.url,expectedWindowId:selected.windowId},
+        ...(read?{}:{instance:payload.instance,revision:payload.revision,
+          id:payload.id,...(command==='move'?{index:payload.index}:{})})
+      });
+      await currentPageTarget.revalidate(selected);
+      await assertSidebarToolEnabled(api,tool.id);
+      const verified=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+      if(!requireCompleteInstalledSidebarTools(verified[SIDEBAR_TOOL_STORE])
+        .some(row=>samePackage(row,tool))||
+        (verified[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
+        throw Object.assign(new Error('工具请求期间身份已改变'),{code:'E_TOOL_CHANGED'});
+      assertSession(source,token);
+      return {...result,target:{tabId:selected.tabId,documentId:selected.documentId,
+        url:selected.url,title:selected.title}};
     }
     // Existing reviewed Side Panel Host is the only transport into the fixed
     // MV3 account service. Never trust caller-supplied grants, tab selectors,
@@ -4474,7 +4526,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw new Error('当前应用有未保存内容或正在保存。请关闭安装浮层，先保存或取消编辑，再继续更新；草稿已保留。');
     },
     hasInstallReview:()=>importPanel.hidden===false,
-    openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openPagePackageReview,openImport,openImportFiles,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
+    openTool,openSettings,toggleEnabled,uninstallFromList,retryUninstallCleanup,openOfficialReview,openOfficialPageReview,openPagePackageReview,openImport,openImportFiles,openReadOnlyPreview,
+    stopReadOnlyPreview(){if(!readOnlyPreview)return false;suspendTool();return true;},
+    isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,isPreviewEditing:()=>readOnlyPreview&&(toolDirty||toolSaving),openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     cookieImportGate.revoke();cookieWriteGate.revoke();cookieClearGate.revoke();cookieExportGate.revoke();cancelActionReview();destroyFrame();fileSelection++;disposed=true;visible=false;pageConsent?.dispose();
     timePermissions?.dispose();focusPermissions?.dispose();aiPermissions?.dispose();

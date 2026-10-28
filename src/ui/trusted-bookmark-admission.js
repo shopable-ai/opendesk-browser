@@ -4,12 +4,16 @@
 import {matchesOfficialRelease,officialPackagePath} from '../sidebar-tools/official-catalog.js';
 import {sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {requireToolEnableRecords} from './sidebar-tools/lifecycle.js';
-import bookmarkConfig from '../../examples/sidebar-tools/bookmark-manager/tool.config.json' with {type:'json'};
 
 export const TRUSTED_BOOKMARK_ID='bookmark-manager';
-// Fixed at Browser build time from the same source as the official package.
-// Never derive this from an installed payload or a remote market response.
-export const TRUSTED_BOOKMARK_VERSION=bookmarkConfig.version;
+// Build configuration injects ONLY the reviewed source version as a literal;
+// the App's executable config stays outside every privileged fixed bundle.
+// Direct Node imports use the current source-pinned fallback. The regression
+// test requires it to match the App's version and proves next-PATCH injection.
+// Neither value is read from an installed payload or a market response.
+export const TRUSTED_BOOKMARK_VERSION=
+  typeof __OPENDESK_TRUSTED_BOOKMARK_VERSION__==='string'
+    ?__OPENDESK_TRUSTED_BOOKMARK_VERSION__:'0.3.14';
 export const TRUSTED_BOOKMARK_COMPONENT_VERSION='R3.3';
 export function bookmarkSandboxNotice(version){
  if(version!==TRUSTED_BOOKMARK_VERSION)return '当前使用兼容界面：已安装 v'+version+

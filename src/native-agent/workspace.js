@@ -46,7 +46,8 @@ export function createWorkspaceController({api=globalThis.chrome,client,
   let pendingSource=/^source-[a-f0-9]{24}$/.test(query.get('sourceId')||'')?query.get('sourceId'):'';
   const previewSource=pendingSource;
   const requestedPreviewIntent=query.get('previewIntent')||'';
-  let requestedToolPreview='',pendingToolPreview=!!previewSource&&!!requestedPreviewIntent;
+  let requestedToolPreview='',requestedToolSurface='tab',requestedToolWindowId=null;
+  let pendingToolPreview=!!previewSource&&!!requestedPreviewIntent;
   let current=null,workspaceId=requested,busy=false,connected=false,view='preview',previewTimer,closed=false,creationPending=null,chatEdit;
   let history=[],refreshGeneration=0,pendingRefresh=false,fileState={};
   let treeFolders=new Map(),treeIdentity='',treeRevision=0;
@@ -432,8 +433,12 @@ export function createWorkspaceController({api=globalThis.chrome,client,
     // again below, and no business action or installed grant is replayed.
     if(pendingToolPreview&&authorityFor()?.sourceId===previewSource){
       pendingToolPreview=false;
-      const intent=await consumeToolPreviewIntent({api,id:requestedPreviewIntent,sourceId:previewSource,lockManager});
+      const currentTab=await api.tabs.getCurrent?.();
+      const intent=await consumeToolPreviewIntent({api,id:requestedPreviewIntent,sourceId:previewSource,
+        windowId:currentTab?.windowId??null,lockManager});
       requestedToolPreview=intent.toolId||'auto';
+      requestedToolSurface=intent.surface;
+      requestedToolWindowId=intent.windowId;
       await previewSidebarTool();
     }
   }
@@ -447,6 +452,9 @@ export function createWorkspaceController({api=globalThis.chrome,client,
       if(liveToolPreview?.preview){
         if(requestedToolPreview&&requestedToolPreview!=='auto'&&liveToolPreview.preview.toolId!==requestedToolPreview)
           throw {code:'E_TOOL_PREVIEW_ID',message:'当前预览与所选扩展不匹配，请重新绑定源码。'};
+        if(liveToolPreview.preview.surface==='sidepanel'){
+          toolPreviewStatus('当前已连接 Side Panel 应用调试；原 Native 构建监测仍在运行。');return;
+        }
         await api.tabs.update(liveToolPreview.preview.tabId,{active:true});return;
       }
       await assertAuthority(authority);
@@ -457,7 +465,8 @@ export function createWorkspaceController({api=globalThis.chrome,client,
       if(requestedToolPreview&&requestedToolPreview!=='auto'&&toolId!==requestedToolPreview)
         throw {code:'E_TOOL_PREVIEW_ID',message:'所选源码的工具 ID 与已安装扩展不匹配；未打开预览，也未改变安装版。'};
       const preview=createToolLivePreview({api,toolId,workspaceId:ws,sourceId:authority.sourceId,
-        nativeAuthority:Object.freeze({...authority}),lockManager,
+        nativeAuthority:Object.freeze({...authority}),surface:requestedToolSurface,
+        windowId:requestedToolWindowId,lockManager,
         assertCurrent:()=>assertAuthority(authority),onStatus:toolPreviewStatus,readText:async path=>{
         if(closed||workspaceId!==ws||!sameAuthority(authority,authorityFor()))
           throw {code:'E_FILES_SESSION',message:'读取期间目录身份或授权已经变化'};
@@ -619,7 +628,8 @@ export function createWorkspaceController({api=globalThis.chrome,client,
     if(!await leaveImportedDraft()||closed)return;
     await liveToolPreview?.stop();liveToolPreview=null;
     chatEdit.invalidate('已切换工作区，旧请求和提案已失效，原草稿保留。');
-    pendingToolPreview=false;requestedToolPreview='';pendingSource='';workspaceId=selected;current=null;resetFileTree();renderPreview();
+    pendingToolPreview=false;requestedToolPreview='';requestedToolSurface='tab';requestedToolWindowId=null;
+    pendingSource='';workspaceId=selected;current=null;resetFileTree();renderPreview();
     toolPreviewStatus('已切换工作区；请再次明确点击以读取该目录的工具构建。');
     if(!demo)api.storage?.local?.set({[HISTORY_KEY]:{workspaces:history,selection:workspaceId}}).catch(()=>{});
     if(connected&&workspaceAccess.has(workspaceId))await refreshFileTree();

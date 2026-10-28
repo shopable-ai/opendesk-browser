@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {openPreviewSession,updatePreviewSession,validatePreviewSession,PREVIEW_SESSION_FORMAT} from '../../src/ui/sidebar-tools/preview-session.js';
+import {openPreviewSession,updatePreviewSession,validatePreviewSession,PREVIEW_SESSION_FORMAT,
+  panelPreviewStorageKey,validatePanelPreviewPointer,SIDE_PANEL_PREVIEW_FORMAT} from '../../src/ui/sidebar-tools/preview-session.js';
 import {previewStorageKey} from '../../src/native-agent/tool-snapshot.js';
 const id='00000000-0000-4000-8000-000000000001';
 const tool={format:'opendesk.sidebar-tool.v1',id:'demo-preview',version:'1.0.0',
@@ -53,4 +54,26 @@ test('hot update cannot switch preview to another Native workspace or tool ident
   const same=await updatePreviewSession({api,previewId:id,workspaceId,sourceId,snapshot:newer,now:100800});
   assert.equal(same.updated,false);
   assert.equal(writes.length,2);
+});
+
+// A real Side Panel is not a Chrome tab. The window-only pointer selects a
+// read-only existing preview; possessing it must never install or grant SDK.
+test('Side Panel session opens without a second tab and rejects cross-window or forged locators',async()=>{
+  const stored=new Map(),now=100000,windowId=12;
+  const api={storage:{session:{
+    async set(items){for(const [k,v] of Object.entries(items))stored.set(k,structuredClone(v));},
+    async remove(key){stored.delete(key);}
+  }},tabs:{create:async()=>assert.fail('Side Panel should not open a second preview tab')}};
+  const result=await openPreviewSession({api,workspaceId,sourceId,snapshot,now,id,
+    surface:'sidepanel',windowId});
+  assert.equal(result.surface,'sidepanel');assert.equal(result.windowId,windowId);
+  assert.equal(result.tabId,null);assert.equal(result.installed,false);
+  const pointer=stored.get(panelPreviewStorageKey(windowId));
+  assert.equal(pointer.format,SIDE_PANEL_PREVIEW_FORMAT);
+  assert.equal(validatePanelPreviewPointer(pointer,windowId,now).previewId,id);
+  assert.equal(validatePreviewSession(stored.get(previewStorageKey(id)),id,now).tool.id,tool.id);
+  assert.throws(()=>validatePanelPreviewPointer(pointer,13,now),/preview/);
+  assert.throws(()=>validatePanelPreviewPointer({...pointer,untrusted:true},windowId,now),/preview/);
+  assert.throws(()=>validatePanelPreviewPointer({...pointer,previewId:'not-a-uuid'},windowId,now),/preview/);
+  assert.throws(()=>panelPreviewStorageKey(-1),/window/);
 });

@@ -7,6 +7,7 @@ const TABS=Object.freeze([
   {key:'tools',id:'tab-tools',label:'扩展'},
   {key:'workflow',id:'tab-workflow',label:'工作流'},
   {key:'develop',id:'tab-develop',label:'开发'},
+  {key:'app-debug',id:'tab-app-debug',label:'应用调试'},
   {key:'cloud',id:'tab-cloud',label:'云控'},
   {key:'debug',id:'tab-debug',label:'调试'}
 ]);
@@ -21,8 +22,9 @@ export function sidebarKeyboardDestination(key,index,tabs){
   return next<0?null:tabs[next];
 }
 
-export function SidebarNavigation({activeTab='tasks',debugEnabled=false,onNavigate=()=>{}}){
-  const available=TABS.filter(tab=>tab.key!=='debug'||debugEnabled);
+export function SidebarNavigation({activeTab='tasks',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{}}){
+  const available=TABS.filter(tab=>(tab.key!=='debug'||debugEnabled)&&
+    (tab.key!=='app-debug'||appDebugEnabled));
   const navigate=key=>onNavigate(key)!==false;
   const onKeyDown=(event,index)=>{
     const destination=sidebarKeyboardDestination(event.key,index,available);
@@ -40,11 +42,12 @@ export function SidebarNavigation({activeTab='tasks',debugEnabled=false,onNaviga
   },[activeTab]);
   return <>{TABS.map(tab=>{
     const index=available.findIndex(value=>value.key===tab.key);
-    const isDebug=tab.key==='debug',selected=tab.key===activeTab;
+    const isHidden=tab.key==='debug'&&!debugEnabled||tab.key==='app-debug'&&!appDebugEnabled;
+    const selected=tab.key===activeTab;
     return <button key={tab.key} type="button" id={tab.id} role="tab"
       data-workbench-tab={tab.key} aria-selected={selected}
-      aria-controls={'workbench-'+tab.key}
-      hidden={isDebug&&!debugEnabled}
+      aria-controls={tab.key==='app-debug'?'workbench-tools':'workbench-'+tab.key}
+      hidden={isHidden}
       tabIndex={selected?0:-1}
       onClick={event=>{
         // A rejected mouse activation has already moved native focus to this

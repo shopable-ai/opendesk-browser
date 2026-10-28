@@ -229,7 +229,17 @@ export function createToolLocaleService({api=globalThis.chrome,lockManager=globa
     dispose(){closed=true;listeners.clear();api?.storage?.onChanged?.removeListener(onChange);},
     getToolLocale(id){return state.tools[toolId(id)]?.locale??null;},getCatalog,getAvailableLocales,
     preview:evaluateLocalePack,
-    install(input,tool){const pack=parseLocalePack(input,tool);return mutate(tool.id,tool,(row)=>({...row,packs:{...row.packs,[pack.targetLocale]:pack}}));},
+    install(input,tool){
+      const pack=parseLocalePack(input,tool);
+      return mutate(tool.id,tool,(row,current)=>{
+        // Admission must be repeated inside the tool -> catalog lock, against
+        // the verified *current installed* catalog, not merely a UI preview.
+        const checked=evaluateLocalePack(pack,current);
+        if(!checked.hashMatches||checked.stale.length)
+          fail('Source catalog changed or locale entries are stale','E_LOCALE_PACK_STALE');
+        return {...row,packs:{...row.packs,[pack.targetLocale]:checked.pack}};
+      });
+    },
     remove(id,language){locale(language);return mutate(id,null,row=>{delete row.packs[language];return row;});},
     exportPack(id,language){locale(language);return structuredClone(state.tools[toolId(id)]?.packs[language]??null);},
     setToolLocale(id,language){if(language!==null)locale(language);return mutate(id,null,row=>({...row,locale:language}));},

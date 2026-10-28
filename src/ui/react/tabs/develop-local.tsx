@@ -22,7 +22,7 @@ export function DevelopLocalProject(){
           <DevelopField as="select" id="local-project-tool" className="od-field" aria-describedby="local-project-tool-pointer"/>
           <div className="od-toolbar">
             <DevelopField as="button" id="local-project-tool-bind" type="button" className="od-button od-button--secondary">保存源码关联</DevelopField>
-            <DevelopField as="button" id="local-project-preview" type="button" className="od-button od-button--secondary">实时开发预览 ↗</DevelopField>
+            <DevelopField as="button" id="local-project-preview" type="button" className="od-button od-button--secondary">在侧栏调试 ↗</DevelopField>
           </div>
           <DevelopField as="p" id="local-project-tool-pointer" className="hint" role="status" aria-live="polite"/>
           <p className="hint">关联只记住此工具要打开的目录，不证明它是正式安装包的源码，也不授予安装权限。</p>
@@ -99,7 +99,7 @@ export function DevelopLocalProject(){
                 <li>
                   Sidebar Tool 从 <code>examples/sidebar-tools/react-starter/README.md</code> 的现有示例开始；
                   在项目目录运行 <code>npm run build:watch</code>，另一个终端运行
-                  <code>node ../../../scripts/watch-sidebar-tool.mjs "$PWD"</code>，再选择目录并点击「实时开发预览 ↗」。
+                  <code>node ../../../scripts/watch-sidebar-tool.mjs "$PWD"</code>，再选择目录并点击「在侧栏调试 ↗」。
                   这些命令由开发者执行，此入口不会运行 npm 或安装工具。
                 </li>
               </ol>

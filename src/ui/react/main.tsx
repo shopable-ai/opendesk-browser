@@ -48,7 +48,7 @@ function PromptSandboxBusiness({dock,onRequest}){
 // presentation snapshots and actions; installed tool code stays in its sandbox.
 const mountedDocuments=new WeakSet();
 
-export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
+export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebug=()=>{},
   developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null,
   providerSettings=null,openNativeSettings=null,nativeConnection=null,previewContents=null}={}){
   const mount=doc.getElementById('opendesk-react-app');
@@ -61,7 +61,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
   const previewPortal=doc.querySelector('meta[name="od-preview-proof"][content="UI_PREVIEW_ONLY"]')
     ?doc.getElementById('od-preview-gallery'):null;
   mountedDocuments.add(doc);
-  let disposed=false,navigationTab=initialTab,workflowController=null,myAgent=null,settingsOpen=false;
+  let disposed=false,navigationTab=initialTab,appDebugEnabled=false,workflowController=null,myAgent=null,settingsOpen=false;
   let extensionView='list',onExtensionBack=()=>{},menuKey=null,detailModel=null,uninstallModel=null;
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
   let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
@@ -98,9 +98,9 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     flushSync(()=>root.render(<>
       <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
       <SidebarAppShell activeTab={navigationTab}
-        debugEnabled={debugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
+        debugEnabled={debugEnabled} appDebugEnabled={appDebugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
-        onNavigate={onNavigate} extensionProps={extensionProps}
+        onNavigate={onNavigate} onStopAppDebug={onStopAppDebug} extensionProps={extensionProps}
         providerSettings={providerSettings} providerSettingsOpen={settingsOpen}
         onOpenNativeSettings={openNativeSettings} nativeConnection={nativeConnection}
         onOpenProviderSettings={openSharedProviderSettings}
@@ -151,9 +151,18 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
     owner:'extension-list',navigationMounted:true,appShellMounted:true,debugMounted:debugEnabled,
     openProviderSettings:openSharedProviderSettings,
     cloudPageMounted:true,cloudOverviewMounted:true,
+    setAppDebugEnabled(allowed){
+      if(disposed)return;
+      const next=allowed===true;
+      if(appDebugEnabled===next)return;
+      appDebugEnabled=next;
+      if(!next&&navigationTab==='app-debug')navigationTab='develop';
+      paint();
+    },
     renderNavigation(view){
       if(disposed)return;
-      if(!['tasks','tools','workflow','develop','cloud','catalog','debug'].includes(view)||view==='debug'&&!debugEnabled)
+      if(!['tasks','tools','workflow','develop','app-debug','cloud','catalog','debug'].includes(view)||
+        view==='debug'&&!debugEnabled||view==='app-debug'&&!appDebugEnabled)
         throw new Error('E_REACT_NAVIGATION_SNAPSHOT');
       if(navigationTab===view)return;
       if(navigationTab==='cloud'&&view!=='cloud')cloudPageModel.onHide?.();

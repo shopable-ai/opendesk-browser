@@ -1,0 +1,35 @@
+/* @opendesk-shared-design */
+/* One React 19 tool in the official OpenDesk Side Panel design system. */
+@scope (.send-queue-app){
+:scope{width:100%;min-width:0;margin:0;padding:var(--space-3);box-sizing:border-box;color:var(--od-text)}
+.send-queue-head{display:flex;align-items:center;gap:var(--space-2);padding:0 0 var(--space-3);border-bottom:1px solid var(--od-line)}
+.send-queue-context{flex:1;min-width:0}
+.send-queue-origin{font-size:var(--od-note-size);font-weight:600}
+.send-queue-route{color:var(--od-sub);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.send-queue-summary{display:flex;justify-content:space-between;gap:var(--space-2);font-size:12px;color:var(--od-sub);padding:var(--space-3) 0;min-width:0}
+.send-queue-phase{text-align:right;min-width:0;overflow-wrap:anywhere}
+.send-queue-phase.is-unknown{color:var(--od-negative);font-weight:600}
+.send-queue-list{display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-3)}
+.send-queue-row.od-shared-card{display:block;min-width:0;border-radius:var(--od-radius-md);box-shadow:none}
+.send-queue-row .od-shared-card-content{padding:var(--space-3)}
+.send-queue-row.is-paused{opacity:.78}
+.send-queue-row-head{display:flex;align-items:center;gap:var(--space-2);font-size:12px;color:var(--od-sub)}
+.send-queue-number{display:grid;place-items:center;width:20px;height:20px;flex:none;border-radius:6px;background:var(--od-muted);color:var(--od-text);font-variant-numeric:tabular-nums}
+.send-queue-item-state{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.send-queue-length{white-space:nowrap;font-variant-numeric:tabular-nums}
+.send-queue-message{font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;max-height:6.2em;overflow:hidden;margin:var(--space-2) 0}
+.send-queue-actions{display:flex;gap:4px;align-items:center;flex-wrap:nowrap;overflow:hidden}
+.send-queue-actions .icon-button{width:32px;height:32px;min-width:32px;padding:5px}
+.send-queue-actions .icon-button svg,.send-queue-head .icon-button svg{width:17px;height:17px}
+.send-queue-action-space{flex:1}
+.send-queue-empty{padding:var(--space-4) var(--space-2);font-size:13px;line-height:1.6;color:var(--od-sub);overflow-wrap:anywhere}
+.send-queue-notice{font-size:12px;line-height:1.5;padding:var(--space-2);color:var(--od-negative);overflow-wrap:anywhere}
+.send-queue-footer{padding:var(--space-3) 0 0;border-top:1px solid var(--od-line)}
+.send-queue-detail-trigger{font:inherit;font-size:12px;border:0;padding:4px 0;color:var(--od-sub);background:transparent;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.send-queue-detail-trigger:focus-visible{outline:2px solid var(--od-focus);outline-offset:3px}
+.send-queue-footnote{font-size:12px;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
+@media(max-width:360px){.send-queue-app{padding:var(--space-2)}.send-queue-row .od-shared-card-content{padding:var(--space-2)}.send-queue-actions .icon-button{width:30px;height:30px;min-width:30px;padding:4px}.send-queue-actions{gap:2px}}
+@media(max-width:320px){.send-queue-actions .icon-button{width:28px;height:30px;min-width:28px}}
+@media(min-width:520px){.send-queue-app{max-width:520px;margin-inline:auto}}
+
+}

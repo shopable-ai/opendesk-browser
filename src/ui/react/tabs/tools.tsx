@@ -709,7 +709,8 @@ export function ExtensionCenterPage({
   toolbarModel=null,detailModel=null,uninstallModel=null,feedbackModel=null,recoveryModel=null,discoveryModel=null,
   statusModel=null,menuKey=null,rowMenuModel=null,view='list',onBack=()=>{}
 }){
-  const detailVisible=view==='detail';
+  const languageVisible=Boolean(toolbarModel?.localeManager);
+  const detailVisible=view==='detail'&&!languageVisible;
   const showWebDiscovery=toolbarModel?.scope==='available'&&toolbarModel?.kind!=='page'&&
     toolbarModel?.marketDiscoveryAvailable===true;
   const detailRef=React.useRef(null),pageRef=React.useRef(null);
@@ -717,20 +718,20 @@ export function ExtensionCenterPage({
   const fileDragDepth=React.useRef(0);
   const isFileDrag=event=>Array.from(event.dataTransfer?.types||[]).includes('Files');
   const onDragEnter=event=>{
-    if(!isFileDrag(event))return;
+    if(languageVisible||!isFileDrag(event))return;
     event.preventDefault();fileDragDepth.current++;setFileOver(true);
   };
   const onDragOver=event=>{
-    if(!isFileDrag(event))return;
+    if(languageVisible||!isFileDrag(event))return;
     event.preventDefault();event.dataTransfer.dropEffect='copy';
   };
   const onDragLeave=event=>{
-    if(!isFileDrag(event))return;
+    if(languageVisible||!isFileDrag(event))return;
     fileDragDepth.current=Math.max(0,fileDragDepth.current-1);
     if(!fileDragDepth.current)setFileOver(false);
   };
   const onDrop=event=>{
-    if(!isFileDrag(event))return;
+    if(languageVisible||!isFileDrag(event))return;
     event.preventDefault();event.stopPropagation();
     fileDragDepth.current=0;setFileOver(false);
     toolbarModel?.onImportFiles?.(Array.from(event.dataTransfer.files||[]));
@@ -753,7 +754,7 @@ export function ExtensionCenterPage({
   return <div className="ec-drop-surface"
     onDragEnter={onDragEnter} onDragOver={onDragOver}
     onDragLeave={onDragLeave} onDrop={onDrop}>
-    <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible}>
+    <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible||languageVisible}>
       <div className="ec-toolbar"><ExtensionToolbar model={toolbarModel}/></div>
       <ExtensionDiscovery model={showWebDiscovery?discoveryModel:null}
         showEntry={showWebDiscovery} onDiscover={toolbarModel?.onDiscover}/>
@@ -818,9 +819,11 @@ export function ExtensionCenterPage({
           {uninstallModel?.busy?'正在卸载…':'确认卸载'}</Button>
       </div>
     </UninstallDialog>
-    {toolbarModel?.localeManager&&<React.Suspense fallback={<p role="status">{localeManagerText(toolbarModel.localeManager.localeController?.getLocale?.()||'zh-CN','busy')}</p>}>
-      <LocaleManager key={toolbarModel.localeManager.session} model={toolbarModel.localeManager}/>
-    </React.Suspense>}
+    {languageVisible&&<section id="extension-center-locale" className="ec-locale-page" aria-label="语言与翻译">
+      <React.Suspense fallback={<p role="status">{localeManagerText(toolbarModel.localeManager.localeController?.getLocale?.()||'zh-CN','busy')}</p>}>
+        <LocaleManager key={toolbarModel.localeManager.session} model={toolbarModel.localeManager}/>
+      </React.Suspense>
+    </section>}
     {rowMenuModel&&<ExtensionRowMenu model={rowMenuModel}/>}
     <p id="extension-center-status" className="ec-message" role="status"
       aria-live="polite" data-state={statusModel?.state||'info'}
