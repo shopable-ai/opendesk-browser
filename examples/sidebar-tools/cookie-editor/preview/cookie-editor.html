@@ -28,6 +28,37 @@
 .note{font-size:10.5px;color:var(--muted);line-height:1.65;margin:13px 1px 0}.note b{color:var(--fg)}.status{margin:0 0 11px;padding:11px;border-radius:9px;border:1px solid var(--line);font-size:11px}.status strong{display:block;font-size:11.5px;margin-bottom:4px}.status p{margin:0 0 8px;color:var(--muted)}.status.warn{background:var(--warn-bg);color:var(--amber)}.status.error{background:color-mix(in srgb,var(--red) 7%,var(--bg));color:var(--red)}.status.good{background:color-mix(in srgb,var(--green) 6%,var(--bg));color:var(--green)}.status .links{display:flex;gap:7px;flex-wrap:wrap}.status .links button{border:1px solid var(--line);border-radius:6px;background:var(--bg);font-size:10px;padding:5px 8px;color:var(--fg)}.status .links button.primary{background:#356bd9;color:white;border-color:#356bd9}
 .advanced{margin:14px 0 0;border:1px solid var(--line);border-radius:9px;overflow:hidden}.advanced>summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;font-size:11px;font-weight:680;padding:10px;color:var(--fg)}.advanced>summary::-webkit-details-marker{display:none}.advanced>summary .hint{font-weight:400;color:var(--muted);font-size:10px}.advanced .content{border-top:1px solid var(--line);padding:11px;display:grid;gap:10px}.toggleline{display:flex;gap:8px;align-items:flex-start;font-size:11px}.toggleline input{margin-top:2px;accent-color:#356bd9}.inline-input{display:flex;gap:6px;min-width:0}.inline-input input{flex:1;min-width:0}.inline-input button{flex:none}.url-help{display:grid;gap:7px}.url-help code{word-break:break-all;background:var(--soft);font-size:10px;border-radius:6px;padding:7px;color:var(--fg);display:block}.url-help .field-note{margin:0}
 .footer{flex:none;min-height:27px;padding:6px 13px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;gap:9px}
+
+/* Account → Cookie linkage, retained inside the existing R2.2 visual surface. */
+.snapshot-source-hint{display:flex;align-items:flex-start;gap:5px;font-size:10px;line-height:1.55;color:var(--muted);margin:8px 2px 0}
+.snapshot-source-hint svg{width:14px;height:14px;flex:none;margin-top:1px}
+.snapshot-title{display:flex;align-items:center;gap:8px;margin:1px 0 13px}
+.snapshot-title>div{display:grid;gap:3px;min-width:0}
+.snapshot-title strong{font-size:13px}
+.snapshot-title small,.snapshot-context small{font-size:10px;color:var(--muted);line-height:1.5}
+.snapshot-form{display:grid;gap:10px}
+.snapshot-context{display:grid;gap:3px;border:1px solid var(--line);border-radius:8px;background:var(--soft);padding:9px 10px;min-width:0}
+.snapshot-context .label{font-size:10px;color:var(--muted)}
+.snapshot-context strong{font-size:11.5px;overflow-wrap:anywhere}
+.snapshot-picker-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
+.snapshot-picker-head strong{font-size:11.5px}
+.snapshot-picker-actions{display:flex;gap:10px}
+.snapshot-picker-actions .link-btn{font-size:10.5px}
+.snapshot-options{display:grid;border:1px solid var(--line);border-radius:9px;max-height:244px;overflow:auto}
+.snapshot-option{display:flex;align-items:center;gap:9px;min-height:48px;padding:8px 9px;border-bottom:1px solid var(--line);cursor:pointer}
+.snapshot-option:last-child{border-bottom:0}
+.snapshot-option:hover,.snapshot-option:focus-within{background:var(--soft)}
+.snapshot-option>input{width:15px;height:15px;accent-color:#356bd9;flex:none}
+.snapshot-info{display:grid;gap:3px;flex:1;min-width:0}
+.snapshot-info strong,.snapshot-readonly strong{font-size:11.5px;overflow-wrap:anywhere}
+.snapshot-info small,.snapshot-readonly small{font-size:9.5px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+.snapshot-badge{font-size:9px;color:var(--muted);background:var(--soft);border-radius:4px;padding:2px 4px}
+.snapshot-counter{font-size:10.5px;font-weight:650;color:var(--fg)}
+.snapshot-warning{padding:8px 9px;border-radius:7px;background:var(--warn-bg);color:var(--amber);font-size:10px;line-height:1.55;margin:0}
+.snapshot-readlist{display:grid;border:1px solid var(--line);border-radius:9px;max-height:340px;overflow:auto}
+.snapshot-readonly{display:grid;gap:3px;padding:9px 10px;border-bottom:1px solid var(--line)}
+.snapshot-readonly:last-child{border-bottom:0}
+@media(max-width:340px){.snapshot-options{max-height:200px}.snapshot-option{padding:7px}.snapshot-title{margin-bottom:10px}}
 /* Fast switch stays on the account surface: a native accessible switch, not a modal. */
 .auto-refresh-setting{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:49px;padding:9px 10px;margin-top:10px;border:1px solid var(--line);border-radius:9px;background:var(--soft);cursor:pointer}
 .auto-refresh-setting .setting-label{display:block;font-size:11.5px;font-weight:700;line-height:1.4}
@@ -252,12 +283,27 @@ const fixture=(host)=>[
  {id:host+'t',name:'theme',domain:host,path:'/',httpOnly:false,secure:false,sameSite:'Lax',session:false,expirationDate:unixAfterDays(30)},
  {id:host+'l',name:'locale',domain:host,path:'/',httpOnly:false,secure:false,sameSite:'Lax',session:false,expirationDate:unixAfterDays(7)},
  {id:host+'c',name:'cart_count',domain:host,path:'/shop',httpOnly:false,secure:true,sameSite:'Strict',session:true},
- {id:host+'a',name:'analytics_consent',domain:'.example.com',path:'/',httpOnly:false,secure:true,sameSite:'None',session:false,expirationDate:unixAfterDays(90)},
+ {id:host+'a',name:'analytics_consent',domain:host==='shop.example.com'?'.example.com':host,path:'/',httpOnly:false,secure:true,sameSite:'None',session:false,expirationDate:unixAfterDays(90)},
  {id:host+'e',name:'embedded_pref',domain:host,path:'/',httpOnly:false,secure:true,sameSite:'None',session:true,partition:true},
  {id:host+'x',name:'long_optional_cookie_for_layout_checks',domain:host,path:'/',httpOnly:false,secure:false,sameSite:'Lax',session:true}
 ];
-const profile=(id,name,alias,count,color='violet')=>({id,name,alias,count,color,updated:'今天',shared:false,authenticated:true});
-const seed=()=>({'shop.example.com':{cookies:fixture('shop.example.com'),accounts:[profile('work','工作账号','work',8,'violet'),profile('personal','个人账号','personal',8,'coral'),profile('backup','备用账号','backup',7,'mint')],active:'work',phase:'ready',refreshOnSwitch:true,auto:{enabled:false,mode:'hash',allowed:[]},lastHandled:''},'docs.example.org':{cookies:fixture('docs.example.org').slice(0,4),accounts:[profile('docswork','文档账号','docswork',4,'mint'),profile('docsprivate','私人账号','private',4,'coral')],active:'docswork',phase:'ready',refreshOnSwitch:true,auto:{enabled:false,mode:'hash',allowed:[]},lastHandled:''},'chatgpt.com':{cookies:fixture('chatgpt.com'),accounts:[profile('aiwork','团队工作区（模拟）','aiwork',8,'mint'),profile('aipersonal','个人空间（模拟）','aipersonal',7,'violet')],active:'aiwork',phase:'ready',refreshOnSwitch:true,auto:{enabled:false,mode:'hash',allowed:[]},lastHandled:''}});
+function cloneCookies(items){return items.map(c=>({...c,...(c.partitionKey?{partitionKey:{...c.partitionKey}}:{})}));}
+function normalizeDemoCookie(c,host){
+ const o={...c,storeId:String(c.storeId||'0'),value:c.value??('preview-only:'+host+':'+c.id)};
+ if(o.partition)o.partitionKey={topLevelSite:'https://'+host};else delete o.partitionKey;
+ return o;
+}
+function profile(id,name,alias,count,color='violet'){return {id,name,alias,count,color,updated:'今天',shared:false,authenticated:false,sourceSite:null,scope:null,snapshot:[]};}
+function seedSite(host,people,active,limit=8){
+ const base=fixture(host).slice(0,limit).map(c=>normalizeDemoCookie(c,host));
+ const accounts=people.map(p=>({...p,sourceSite:host,scope:'full',count:base.length,snapshot:base.map(c=>({...c,value:'preview-only:'+host+':'+p.alias+':'+c.id, ...(c.partitionKey?{partitionKey:{...c.partitionKey}}:{})}))}));
+ return {cookies:cloneCookies(accounts.find(a=>a.id===active).snapshot),accounts,active,phase:'ready',refreshOnSwitch:true,auto:{enabled:false,mode:'hash',allowed:[]},lastHandled:''};
+}
+function seed(){return {
+ 'shop.example.com':seedSite('shop.example.com',[profile('work','工作账号','work',8,'violet'),profile('personal','个人账号','personal',8,'coral'),profile('backup','备用账号','backup',8,'mint')],'work'),
+ 'docs.example.org':seedSite('docs.example.org',[profile('docswork','文档账号','docswork',4,'mint'),profile('docsprivate','私人账号','private',4,'coral')],'docswork',4),
+ 'chatgpt.com':seedSite('chatgpt.com',[profile('aiwork','团队工作区（模拟）','aiwork',8,'mint'),profile('aipersonal','个人空间（模拟）','aipersonal',8,'violet')],'aiwork')
+};}
 let db=seed(),site='shop.example.com',tab='cookies',search='',filter='all',filtersOpen=false,cookieOpened='',editingNew=false,draft=null,menuOpen='',exportOpen=false,exportFormat='json',includeValues=false,importOpen=false,route='main',previousScroll=0,marketQuery='',marketFilter='all',testUrl='',autoResult='',profileForm=null,pendingInvite=null,sheet=null,busy=false,toastText='',toastHandle=null,lastFocused=null,generatedLink='',pendingShare=null,receiverMode=false,redeemedNonces=new Set(),membershipOpen=false,customContactOpen=false,communitySelected='';
 // Official plan pages are outbound links, not resale offers or an in-app payment processor.
 const memberServices=[
@@ -275,6 +321,49 @@ const communityChannels=[
 ];
 const customContact={email:''}; // Set a genuine business inbox at release; do not invent one.
 const data=()=>db[site],account=id=>data().accounts.find(a=>a.id===id),activeAccount=()=>account(data().active);
+function cookieBelongsToSite(c,host){
+ if(!c||typeof c.name!=='string'||!c.name||typeof c.domain!=='string'||typeof c.path!=='string')return false;
+ const domain=c.domain.toLowerCase().replace(/^\./,''),h=host.toLowerCase();
+ return domain===h||h.endsWith('.'+domain);
+}
+function availableCookies(){
+ const now=Date.now()/1000;
+ return data().cookies.filter(c=>cookieBelongsToSite(c,site)&&(c.session||!Number.isFinite(c.expirationDate)||c.expirationDate>now));
+}
+function cookieIdentity(c){
+ return JSON.stringify([c.name,c.domain.toLowerCase(),c.path,String(c.storeId||'0'),c.partitionKey?.topLevelSite||'']);
+}
+function cookieScopeText(c){
+ const store='Store '+String(c.storeId||'0');
+ const partition=c.partitionKey?.topLevelSite?' · Partition '+c.partitionKey.topLevelSite:'';
+ return c.domain+c.path+' · '+store+partition+(c.httpOnly?' · HttpOnly':'');
+}
+function snapshotIssue(a,host=site){
+ if(!a||a.shared||!Array.isArray(a.snapshot)||!a.snapshot.length)return '尚未关联可恢复的 Cookie 快照';
+ if(a.scope!=='full')return '仅保存部分 Cookie，不能安全切换；请更新为可访问范围全量快照';
+ if(a.sourceSite!==host)return '账号快照所属网站不一致';
+ const keys=new Set();
+ for(const c of a.snapshot){
+  if(!cookieBelongsToSite(c,host))return '快照包含非本站 Cookie';
+  if(!c.session&&Number.isFinite(c.expirationDate)&&c.expirationDate<=Date.now()/1000)return '快照包含已过期 Cookie，请更新快照';
+  const k=cookieIdentity(c);
+  if(keys.has(k))return '快照包含重复的 Cookie 身份';
+  keys.add(k);
+ }
+ return null;
+}
+function markCookiesChanged(){
+ if(data().phase!=='unknown'){data().active=null;data().phase='edited';}
+}
+function updateSelectionCounters(){
+ if(!profileForm||!['new','update'].includes(profileForm.kind))return;
+ const options=[...$('viewAccounts').querySelectorAll('[data-snapshot-cookie]')];
+ const checked=options.filter(x=>x.checked);
+ profileForm.selected=checked.map(x=>x.dataset.snapshotCookie);
+ const label=$('selectionCount');if(label)label.textContent='已选择 '+checked.length+' / '+options.length+' 条';
+ const warning=$('partialSnapshotWarning');if(warning)warning.hidden=checked.length===options.length||checked.length===0;
+ const btn=$('saveSnapshot');if(btn){btn.disabled=checked.length===0||data().phase==='unknown';btn.textContent=(profileForm.kind==='update'?'更新关联':'保存并关联')+' '+checked.length+' 条 Cookie';}
+}
 function toast(msg){toastText=msg;const el=$('toast');el.hidden=!msg;el.textContent=msg;if(toastHandle)clearTimeout(toastHandle);if(msg)toastHandle=setTimeout(()=>{el.hidden=true;toastText='';},3400);}
 function closeMenu(){if(menuOpen){const id=menuOpen;menuOpen='';renderAccounts();requestAnimationFrame(()=>root.querySelector(`[data-action="menu"][data-id="${id}"]`)?.focus({preventScroll:true}));}}
 function humanState(){
@@ -293,14 +382,41 @@ function renderMembershipCard(){
   <p class="membership-disclaimer">仅连接服务商官方订阅页。价格及权益以官网为准；不售卖账户、密码、Cookie 或共享席位。</p>
  </div></section>`;
 }
-function renderAccounts(){if(tab!=='accounts')return;if(route==='auto'){renderAutoSettings();return;}const d=data();if(profileForm){renderProfileForm();return;}const a=activeAccount();
-const current=`<div class="current-strip"><div class="avatar ${a?.color||'grey'}">${htmlEscape((a?.name||'?').slice(0,1))}</div><div class="flex"><span class="label">当前已应用的快照（非登录验证）</span><strong>${htmlEscape(a?.name||'待核对')}</strong></div><span class="pill">${d.phase==='unknown'?'未知':'当前'}</span></div>`;
-const rows=d.accounts.map(a=>`<div class="account-row ${a.id===d.active?'current':''}" data-id="${htmlEscape(a.id)}"><div class="avatar ${a.color}">${htmlEscape(a.name.slice(0,1))}</div><div class="account-title"><strong>${htmlEscape(a.name)}</strong><small>${a.shared?'已添加配置 · 需网站登录':a.count+' 条快照 · '+a.updated}</small></div>${a.id===d.active?'<span class="current-mark">● 已应用</span>':`<button type="button" class="textbtn" data-action="switch" data-id="${htmlEscape(a.id)}" ${a.shared?'disabled title="该邀请不包含 Cookie，需自行登录"':''}>切换</button>`}<button class="iconbtn" type="button" data-action="menu" data-id="${htmlEscape(a.id)}" title="${htmlEscape(a.name)}更多操作" aria-label="${htmlEscape(a.name)}更多操作" aria-haspopup="menu" aria-expanded="${menuOpen===a.id}">${icon('more')}</button>${menuOpen===a.id?`<div class="account-pop" role="menu" aria-label="${htmlEscape(a.name)}操作"><button role="menuitem" data-action="rename" data-id="${htmlEscape(a.id)}">${icon('edit')}重命名</button><button role="menuitem" data-action="update-profile" data-id="${htmlEscape(a.id)}">${icon('refresh')}更新快照</button><button role="menuitem" data-action="copy-switch" data-id="${htmlEscape(a.id)}">${icon('link')}生成切换链接</button><button role="menuitem" data-action="share" data-id="${htmlEscape(a.id)}">${icon('share')}分享账号配置</button><hr><button class="danger" role="menuitem" data-action="delete-profile" data-id="${htmlEscape(a.id)}">${icon('trash')}删除快照</button></div>`:''}</div>`).join('');
-$('viewAccounts').innerHTML=`<div class="accounts-content">${humanState()}${current}<label class="auto-refresh-setting" for="refreshOnSwitch"><span><span class="setting-label">切换后自动刷新网页</span><span class="setting-help">仅目标标签页 · 未保存的网页内容可能丢失</span></span><input id="refreshOnSwitch" type="checkbox" role="switch" aria-label="切换后自动刷新网页" aria-checked="${d.refreshOnSwitch}" ${d.refreshOnSwitch?'checked':''}></label><div class="account-head"><strong>已保存账号 <small>${d.accounts.length}</small></strong><div class="right">${btn('auto-toggle','管理自动切换规则','settings')}${btn('save-profile','保存当前 Cookie 为账号','plus')}</div></div><div class="accounts-list">${rows||'<div class="empty">此网站尚未保存账号</div>'}</div>${renderMembershipCard()}<p class="note">每个网站独立管理账号。Cookie 快照可能包含登录凭据，不通过分享链接传递。</p></div>`;
+function renderAccounts(){
+ if(tab!=='accounts')return;
+ if(route==='auto'){renderAutoSettings();return;}
+ const d=data();
+ if(profileForm){renderProfileForm();return;}
+ const a=activeAccount(),eligible=availableCookies();
+ const current=`<div class="current-strip"><div class="avatar ${a?.color||'grey'}">${htmlEscape((a?.name||'?').slice(0,1))}</div><div class="flex"><span class="label">当前 Cookie 关联的快照（不代表网站已登录）</span><strong>${htmlEscape(a?.name||(d.phase==='unknown'?'待核对':'未关联账号'))}</strong></div><span class="pill">${d.phase==='unknown'?'未知':a?'已关联':'未关联'}</span></div>`;
+ const source=`<p class="snapshot-source-hint">${icon('shield')} 本站可关联 ${eligible.length} 条 Cookie · 保存时选择具体条目，快照与其他账号独立</p>`;
+ const rows=d.accounts.map(a=>{
+  const issue=snapshotIssue(a),valid=!issue;
+  const primary=a.id===d.active?'<span class="current-mark">● 已应用</span>':`<button type="button" class="textbtn" data-action="switch" data-id="${htmlEscape(a.id)}" ${!valid?`disabled title="${htmlEscape(issue)}"`:''}>切换</button>`;
+  const meta=a.shared?'仅配置 · 待关联 Cookie':`${a.snapshot?.length||0} 条 Cookie · ${a.scope==='full'?'完整快照':'部分快照'} · ${a.updated}`;
+  return `<div class="account-row ${a.id===d.active?'current':''}" data-id="${htmlEscape(a.id)}"><div class="avatar ${a.color}">${htmlEscape(a.name.slice(0,1))}</div><div class="account-title"><strong>${htmlEscape(a.name)}</strong><small>${htmlEscape(meta)}</small></div>${primary}<button class="iconbtn" type="button" data-action="menu" data-id="${htmlEscape(a.id)}" title="${htmlEscape(a.name)}更多操作" aria-label="${htmlEscape(a.name)}更多操作" aria-haspopup="menu" aria-expanded="${menuOpen===a.id}">${icon('more')}</button>${menuOpen===a.id?`<div class="account-pop" role="menu" aria-label="${htmlEscape(a.name)}操作"><button role="menuitem" data-action="view-profile" data-id="${htmlEscape(a.id)}">${icon('search')}查看关联 Cookie</button><button role="menuitem" data-action="update-profile" data-id="${htmlEscape(a.id)}">${icon('refresh')}更新关联 Cookie</button><button role="menuitem" data-action="rename" data-id="${htmlEscape(a.id)}">${icon('edit')}重命名</button><button role="menuitem" data-action="copy-switch" data-id="${htmlEscape(a.id)}" ${!valid?'disabled':''}>${icon('link')}生成切换链接</button><button role="menuitem" data-action="share" data-id="${htmlEscape(a.id)}">${icon('share')}分享账号配置</button><hr><button class="danger" role="menuitem" data-action="delete-profile" data-id="${htmlEscape(a.id)}">${icon('trash')}删除快照</button></div>`:''}</div>`;
+ }).join('');
+ $('viewAccounts').innerHTML=`<div class="accounts-content">${humanState()}${current}${source}<label class="auto-refresh-setting" for="refreshOnSwitch"><span><span class="setting-label">切换后自动刷新网页</span><span class="setting-help">仅目标标签页 · 未保存的网页内容可能丢失</span></span><input id="refreshOnSwitch" type="checkbox" role="switch" aria-label="切换后自动刷新网页" aria-checked="${d.refreshOnSwitch}" ${d.refreshOnSwitch?'checked':''}></label><div class="account-head"><strong>已保存账号 <small>${d.accounts.length}</small></strong><div class="right">${btn('auto-toggle','管理自动切换规则','settings')}${btn('save-profile','保存当前 Cookie 为账号','plus')}</div></div><div class="accounts-list">${rows||'<div class="empty">此网站尚未保存账号</div>'}</div>${renderMembershipCard()}<p class="note">账号仅绑定当前授权网站、Store 与 Partition 范围。此 HTML 使用虚构数据与内存状态，不加密或持久化；正式版使用既有可信加密仓库。分享链接永不包含 Cookie。</p></div>`;
 }
-function renderProfileForm(){let isRename=profileForm.kind==='rename',a=isRename?account(profileForm.id):null;
-$('viewAccounts').innerHTML=`<div class="accounts-content"><strong style="font-size:13px">${isRename?'重命名账号':'保存当前网站账号'}</strong><form id="profileForm" class="editor" style="margin:12px 0 0"><label class="field">显示名称<input maxlength="28" id="profileName" autocomplete="off" placeholder="例如：工作账号" value="${htmlEscape(a?.name||'')}"></label>${!isRename?'<p class="field-note">本原型只创建模拟账号元数据。正式产品必须使用可信存储与敏感值授权。</p>':'<p class="field-note">只修改显示名称，不改变 Cookie 或网址别名。</p>'}<p class="error" id="profileError" role="alert" hidden></p><div class="editor-actions"><button class="textbtn" type="button" data-action="cancel-profile">取消</button><button class="textbtn primary" type="submit">保存</button></div></form></div>`;}
-function renderAutoSettings(){const d=data(),usable=d.accounts.filter(a=>!a.shared);const opts=usable.map(a=>`<label class="rule-account"><input type="checkbox" data-allow="${htmlEscape(a.alias)}" ${d.auto.allowed.includes(a.alias)?'checked':''} ${!d.auto.enabled?'disabled':''}><span class="rule-account-name"><strong>${htmlEscape(a.name)}</strong><small>别名 <code>${htmlEscape(a.alias)}</code></small></span></label>`).join('');
+function renderProfileForm(){
+ const kind=profileForm.kind,a=profileForm.id?account(profileForm.id):null;
+ if(kind==='view'){
+  const list=a?.snapshot||[],issue=snapshotIssue(a);
+  const items=list.map(c=>`<div class="snapshot-readonly"><strong>${htmlEscape(c.name)}</strong><small>${htmlEscape(cookieScopeText(c))}</small><small>${c.session?'Session':htmlEscape(formatExpiry(c))} · ${htmlEscape(c.sameSite||'Lax')} · ${c.secure?'Secure':'非 Secure'}</small></div>`).join('');
+  $('viewAccounts').innerHTML=`<div class="accounts-content"><div class="snapshot-title"><button class="iconbtn" type="button" data-action="cancel-profile" aria-label="返回账号">${icon('back')}</button><div><strong>${htmlEscape(a?.name||'账号')}</strong><small>关联 Cookie · 仅展示脱敏属性</small></div></div><div class="snapshot-context"><strong>${list.length} 条已保存的 Cookie</strong><small>${htmlEscape(a?.sourceSite||site)} · ${a?.scope==='full'?'可访问范围全量':'部分关联'} · ${htmlEscape(a?.updated||'')}</small></div>${issue?`<p class="snapshot-warning">${htmlEscape(issue)}</p>`:''}<div class="snapshot-readlist">${items||'<div class="empty">尚未关联 Cookie。可从当前网站重新选择。</div>'}</div><div class="editor-actions" style="margin-top:12px"><button class="textbtn" type="button" data-action="cancel-profile">返回</button><button class="textbtn primary" type="button" data-action="update-profile" data-id="${htmlEscape(a?.id||'')}">重新关联</button></div><p class="note">Cookie 值仅在演示内存中使用虚构占位；不展示、不复制，不会登录网站。</p></div>`;
+  return;
+ }
+ if(kind==='rename'){
+  $('viewAccounts').innerHTML=`<div class="accounts-content"><strong style="font-size:13px">重命名账号</strong><form id="profileForm" class="editor" style="margin:12px 0 0"><label class="field">显示名称<input maxlength="28" id="profileName" autocomplete="off" value="${htmlEscape(a?.name||'')}"></label><p class="field-note">只修改名称，不改变关联的 Cookie 或网址别名。</p><p class="cookie-edit-error" id="profileError" role="alert" hidden></p><div class="editor-actions"><button class="textbtn" type="button" data-action="cancel-profile">取消</button><button class="textbtn primary" type="submit">保存</button></div></form></div>`;
+  return;
+ }
+ const available=availableCookies(),selected=new Set(profileForm.selected||available.map(c=>c.id));
+ const count=available.filter(c=>selected.has(c.id)).length;
+ const excluded=data().cookies.length-available.length;
+ const items=available.map(c=>`<label class="snapshot-option"><input type="checkbox" data-snapshot-cookie="${htmlEscape(c.id)}" ${selected.has(c.id)?'checked':''}><span class="snapshot-info"><strong>${htmlEscape(c.name)}</strong><small>${htmlEscape(cookieScopeText(c))}</small></span>${c.httpOnly?'<span class="snapshot-badge">H</span>':''}${c.partitionKey?'<span class="snapshot-badge">P</span>':''}</label>`).join('');
+ $('viewAccounts').innerHTML=`<div class="accounts-content"><div class="snapshot-title"><button class="iconbtn" type="button" data-action="cancel-profile" aria-label="返回账号">${icon('back')}</button><div><strong>${kind==='update'?'更新账号关联':'添加账号'}</strong><small>从当前网站 Cookie 保存独立快照</small></div></div><form id="profileForm" class="snapshot-form"><div class="snapshot-context"><span class="label">数据来源</span><strong>${htmlEscape(site)}</strong><small>当前已读取的本站 Cookie · 模拟 Store / Partition 身份</small></div>${kind==='new'?`<label class="field">账号名称<input maxlength="28" id="profileName" required autocomplete="off" placeholder="例如：工作账号" value="${htmlEscape(profileForm.name||'')}"></label>`:`<div class="snapshot-context"><span class="label">将更新</span><strong>${htmlEscape(a?.name||'')}</strong><small>替换此账号的旧快照，不影响其他已保存账号</small></div>`}<div class="snapshot-picker-head"><strong>关联 Cookie</strong><div class="snapshot-picker-actions"><button class="link-btn" type="button" data-action="snapshot-all">全选</button><button class="link-btn" type="button" data-action="snapshot-none">清空</button></div></div><p class="field-note">按 Cookie 名称、Domain、Path、Store、Partition 精确绑定；无法仅凭名称判断是否包含登录态。</p><div class="snapshot-options" role="group" aria-label="选择关联的 Cookie">${items||'<div class="empty">当前网站没有可关联的 Cookie</div>'}</div><div id="selectionCount" class="snapshot-counter" role="status">已选择 ${count} / ${available.length} 条</div><p class="snapshot-warning" id="partialSnapshotWarning" ${count===available.length||count===0?'hidden':''}>只保存部分 Cookie 可以备份，但不能安全执行账号切换。若需切换，请选择当前可访问范围的全部 Cookie。</p>${excluded?`<p class="field-note">另有 ${excluded} 条非本站或已过期条目，已排除。</p>`:''}<p class="field-note">HTML 原型仅在内存中保存虚构 Cookie 值；正式版需要可信 Host 读取、授权和加密存储，不会推断网站是否登录成功。</p><p class="cookie-edit-error" id="profileError" role="alert" hidden></p><div class="editor-actions"><button class="textbtn" type="button" data-action="cancel-profile">取消</button><button class="textbtn primary" id="saveSnapshot" type="submit" ${!count||data().phase==='unknown'?'disabled':''}>${kind==='update'?'更新关联':'保存并关联'} ${count} 条 Cookie</button></div></form></div>`;
+}
+function renderAutoSettings(){const d=data(),usable=d.accounts.filter(a=>!snapshotIssue(a));const opts=usable.map(a=>`<label class="rule-account"><input type="checkbox" data-allow="${htmlEscape(a.alias)}" ${d.auto.allowed.includes(a.alias)?'checked':''} ${!d.auto.enabled?'disabled':''}><span class="rule-account-name"><strong>${htmlEscape(a.name)}</strong><small>别名 <code>${htmlEscape(a.alias)}</code></small></span></label>`).join('');
 $('viewAccounts').innerHTML=`<div class="subpage" aria-label="管理自动切换规则"><div class="subhead"><button class="iconbtn" type="button" data-action="back-account" aria-label="返回账号列表" title="返回账号列表">${icon('back')}</button><div><strong>管理自动切换</strong><small>${htmlEscape(site)} · 本机规则</small></div></div><div class="subbody"><section class="rule-card"><label class="auto-refresh-setting sub-switch" for="autoEnabled"><span><span class="setting-label">允许 URL 自动切换</span><span class="setting-help">默认关闭；仅匹配当前站点、白名单账号</span></span><input type="checkbox" id="autoEnabled" role="switch" aria-checked="${d.auto.enabled}" ${d.auto.enabled?'checked':''}></label></section><section class="rule-card"><div class="rule-heading">1. 选择链接形式</div><div class="mode-grid"><label class="mode-option ${d.auto.mode==='hash'?'chosen':''}"><input type="radio" name="autoMode" value="hash" ${d.auto.mode==='hash'?'checked':''}><span><strong># Fragment <em>推荐</em></strong><small>地址栏锚点，不随 HTTP 请求发送</small></span></label><label class="mode-option ${d.auto.mode==='query'?'chosen':''}"><input type="radio" name="autoMode" value="query" ${d.auto.mode==='query'?'checked':''}><span><strong>? Query</strong><small>兼容参数式链接，可能进入站点日志</small></span></label></div></section><section class="rule-card"><div class="rule-heading">2. 允许切换的账号</div><p class="rule-desc">仅勾选的本机账号可由 URL 触发；未授权共享配置不会参与切换。</p><div class="rule-accounts">${opts||'<p class="rule-desc">请先保存账号</p>'}</div></section><section class="rule-card"><div class="rule-heading">3. 验证规则</div><label class="field" for="autoLinkInput">测试 URL<input id="autoLinkInput" type="url" spellcheck="false" autocomplete="off" placeholder="https://${htmlEscape(site)}/#od-account=work" value="${htmlEscape(testUrl||buildSwitchUrl(usable[0]))}"></label><div class="rule-buttons"><button class="textbtn primary" type="button" data-action="simulate-url">模拟访问并切换</button><button class="textbtn" type="button" data-action="copy-auto-example">复制示例</button></div><p class="rule-feedback" role="status">${htmlEscape(autoResult||'需要启用开关并选择账号，方能通过对应 URL 切换。')}</p></section><p class="note">切换成功后由账号页「自动刷新」开关决定是否刷新目标网页。目标标签页已变化、结果未知或回读不一致时，必须停止。URL 绝不携带 Cookie 值。</p></div></div>`;
 }
 // Public lightweight discovery, intentionally separate from company-specific deployments.
@@ -445,7 +561,6 @@ function render(){const d=data();$('sitePick').value=site;$('mainTabs').hidden=r
 function changeTab(next){if(busy)return;if(next===tab&&route==='main')return;tab=next;route='main';profileForm=null;menuOpen='';exportOpen=false;importOpen=false;cookieOpened='';editingNew=false;draft=null;$('panelScroll').scrollTop=0;render();}
 function modal(kind,params={}){if(busy)return;lastFocused=document.activeElement;sheet={kind,...params};const a=sheet.id?account(sheet.id):null;let title='',content='',label='确认',danger=false;
 if(kind==='delete'){title='删除「'+htmlEscape(a.name)+'」？';content='<p class="desc">只删除本机保存的账号快照，不会退出网站，也不会清空浏览器 Cookie。</p>';label='删除';danger=true;}
-if(kind==='update'){title='更新「'+htmlEscape(a.name)+'」快照？';content='<p class="desc">使用当前页面 Cookie 替换所选快照。此处仅演示操作结果。</p>';label='更新';}
 if(kind==='remove-cookie'){title='删除 Cookie？';content='<p class="desc">此操作仅删除当前预览中的虚构 Cookie 条目。</p>';label='删除';danger=true;}
 if(kind==='clear'){title='清理本站 Cookie？';content='<p class="desc">仅清理本预览的虚构数据；正式产品须通过可信 Host 确认精确作用范围。</p>';label='清理';danger=true;}
 if(kind==='share'){title='分享「'+htmlEscape(a.name)+'」';content=`<div class="fields"><p class="desc">分享<strong>账号配置邀请</strong>，不共享登录 Cookie、密码或网站会话。</p><div class="share-audience" role="radiogroup" aria-label="分享对象"><label><input type="radio" name="shareAudience" value="named" checked>指定用户</label><label><input type="radio" name="shareAudience" value="link">匿名链接</label></div><label class="field" id="recipientField">接收方用户名<input id="recipient" placeholder="例如：@teammate" maxlength="35" autocomplete="off"></label><p id="anonymousHint" class="share-note" hidden>无需填写接收方。任何持有链接的人都可查看并领取账号配置（不含 Cookie 或登录态）。</p><div class="share-config-grid" id="shareConfig"><label class="field">链接有效期<select id="shareValidity" aria-describedby="shareLongHelp"><option value="1h">1 小时</option><option value="1d" selected>1 天</option><option value="7d">7 天</option><option value="1mo">1 个月</option><option value="3mo">3 个月</option><option value="6mo">6 个月</option><option value="1y">1 年</option></select></label><label class="field" id="shareLimitField" hidden>最多领取<select id="shareUses" disabled aria-describedby="shareLimitHelp"><option value="1" selected>1 次</option><option value="3">3 次</option><option value="5">5 次</option><option value="10">10 次</option></select></label></div><p class="share-limit-help" id="shareLimitHelp">指定用户仅有 1 个领取名额，不需要额外设置次数。</p><p class="share-limit-help" id="shareLongHelp" hidden>长期链接更容易被转发。正式版应支持随时撤销；建议设置较少领取名额。</p><div class="impact">正式版须由服务端生成不可猜测的令牌，并支持接收验证、过期、撤销和审计。此处是元数据演示。</div><p class="error" id="shareError" role="alert" hidden></p></div>`;label='生成邀请链接';}
@@ -455,39 +570,38 @@ if(kind==='switch-link'){title='此账号的 URL 切换链接';let url=buildSwit
 $('sheetTitle').textContent=title;$('sheetContent').innerHTML=content;$('confirmSheet').textContent=label;$('confirmSheet').classList.toggle('danger',danger);$('cancelSheet').hidden=kind==='share-ready'||kind==='switch-link';$('backdrop').hidden=false;$('panelScroll').inert=true;requestAnimationFrame(()=>$('sheet').focus());}
 function closeModal(){sheet=null;$('backdrop').hidden=true;$('panelScroll').inert=false;lastFocused?.focus?.({preventScroll:true});lastFocused=null;render();}
 function performSwitch(id,automated=false){
-  const a=account(id);
-  if(!a||a.shared){toast('该配置没有可恢复的 Cookie，请先通过网站登录');return;}
-  if(busy||data().phase==='unknown'){toast('请先核对当前 Cookie 状态');return;}
-  const originalSite=site,s=data(),fault=$('labFault').value;
-  const originalAlias=a.alias;
-  busy=true;menuOpen='';render();
-  toast(automated?'正在按 URL 切换账号…':'正在切换到「'+a.name+'」…');
-  setTimeout(()=>{
-    busy=false;
-    if(site!==originalSite||!s.accounts.some(v=>v.id===id&&v.alias===originalAlias)){
-      s.phase='unknown';s.active=null;
-      toast('目标页面或账号已变化，请先核对 Cookie');
-    }else if(fault==='write'||fault==='unknown'){
-      s.phase='unknown';s.active=null;
-      toast(fault==='unknown'?'切换结果未知，未自动刷新或重试':'Cookie 写入失败，未刷新网页');
-    }else{
-      // A real Host must verify Cookie readback and target tab identity before reload.
-      s.active=id;
-      if(!s.refreshOnSwitch){
-        s.phase='needs-refresh';
-        toast('已切换到「'+a.name+'」，请手动刷新目标网页');
-      }else if(fault==='reload'){
-        s.phase='refresh-failed';
-        toast('已切换到「'+a.name+'」，自动刷新失败，请手动刷新网页');
-      }else{
-        s.phase='refreshed';
-        toast('已切换到「'+a.name+'」并模拟刷新（登录未验证）');
-      }
-    }
-    $('labFault').value='none';
-    // Preserve current scroll and the URL-settings position; no drawer and no jump.
-    render();
-  },350);
+ const a=account(id),problem=snapshotIssue(a);
+ if(problem){toast(problem);return;}
+ if(busy||data().phase==='unknown'){toast('请先核对当前 Cookie 状态');return;}
+ const originalSite=site,s=data(),fault=$('labFault').value,originalAlias=a.alias;
+ const expected=cloneCookies(a.snapshot);
+ busy=true;menuOpen='';render();
+ toast(automated?'正在按 URL 模拟应用账号快照…':'正在模拟切换到「'+a.name+'」…');
+ setTimeout(()=>{
+  busy=false;
+  if(site!==originalSite||!s.accounts.some(v=>v.id===id&&v.alias===originalAlias)){
+   s.phase='unknown';s.active=null;toast('目标页面或账号已变化，请先核对 Cookie');
+  }else if(fault==='write'||fault==='unknown'){
+   s.phase='unknown';s.active=null;
+   toast(fault==='unknown'?'切换结果未知，未自动刷新或重试':'Cookie 写入失败，未刷新网页');
+  }else{
+   const keep=s.cookies.filter(c=>!cookieBelongsToSite(c,originalSite));
+   s.cookies=[...keep,...cloneCookies(expected)];
+   const readback=s.cookies.filter(c=>cookieBelongsToSite(c,originalSite));
+   const exact=readback.length===expected.length&&expected.every(c=>{
+    const matching=readback.filter(x=>cookieIdentity(x)===cookieIdentity(c));
+    return matching.length===1&&matching[0].value===c.value;
+   });
+   if(!exact){s.phase='unknown';s.active=null;toast('Cookie 模拟回读不一致，已停止；未刷新网页');}
+   else{
+    s.active=id;
+    if(!s.refreshOnSwitch){s.phase='needs-refresh';toast('已模拟应用「'+a.name+'」的 '+expected.length+' 条 Cookie；请手动刷新网页');}
+    else if(fault==='reload'){s.phase='refresh-failed';toast('Cookie 模拟回读一致，但刷新失败，请手动刷新网页');}
+    else{s.phase='refreshed';toast('已模拟应用 '+expected.length+' 条 Cookie 并刷新（未验证网站登录）');}
+   }
+  }
+  $('labFault').value='none';render();
+ },350);
 }
 function buildSwitchUrl(a){if(!a)return '';const u=new URL('https://'+site+'/');const mode=data().auto.mode;if(mode==='query')u.searchParams.set('od-account',a.alias);else u.hash='od-account='+encodeURIComponent(a.alias);return u.href;}
 function validateUrl(text){let u;try{u=new URL(text);}catch{return {error:'请输入完整的 https:// 网站 URL'};}if(u.protocol!=='https:'||u.hostname!==site||u.username||u.password)return{error:'网站必须精确匹配当前目标主机，不允许跨站自动切换'};
@@ -499,6 +613,7 @@ const a=data().accounts.find(x=>x.alias===alias);if(!a)return{error:'本机未�
 if(!data().auto.enabled)return{error:'此网站尚未启用 URL 自动切换'};
 if(!data().auto.allowed.includes(alias))return{error:'该账号未在允许自动切换的名单中'};
 if(data().phase==='unknown')return{error:'当前 Cookie 状态未知，自动切换已被阻止'};
+ const issue=snapshotIssue(a);if(issue)return{error:issue};
 return{account:a,rule:site+'|'+mode+'|'+alias};}
 function simulateUrl(text){const result=validateUrl(text);autoResult=result.error?'未执行：'+result.error:'已匹配：'+result.account.name+'，模拟应用快照';if(result.account){if(data().lastHandled===result.rule&&data().active===result.account.id){autoResult='已处理相同目标，无需再次写入';render();return;}data().lastHandled=result.rule;performSwitch(result.account.id,true);}else{render();}}
 async function copyText(text,sourceId){try{if(!navigator.clipboard?.writeText)throw Error('UNAVAILABLE');await navigator.clipboard.writeText(text);toast('已复制到剪贴板');}catch{if(sourceId){const el=$(sourceId);el?.focus();el?.select();}toast('当前浏览器不允许写入剪贴板，请手动复制已选中的内容');}}
@@ -577,13 +692,15 @@ if(action==='open-cookie'){cookieOpened=cookieOpened===id?'':id;editingNew=false
 if(action==='cancel-cookie'){cookieOpened='';editingNew=false;render();return;}
 if(action==='remove-cookie'){modal('remove-cookie',{id});return;}
 if(action==='clear'){modal('clear');return;}
-if(action==='save-profile'){profileForm={kind:'new'};menuOpen='';render();$('profileName')?.focus();return;}
+if(action==='save-profile'){profileForm={kind:'new',selected:availableCookies().map(c=>c.id)};menuOpen='';render();$('profileName')?.focus();return;}
+ if(action==='snapshot-all'||action==='snapshot-none'){const on=action==='snapshot-all';for(const c of $('viewAccounts').querySelectorAll('[data-snapshot-cookie]'))c.checked=on;updateSelectionCounters();return;}
+ if(action==='view-profile'){menuOpen='';profileForm={kind:'view',id};render();return;}
 if(action==='cancel-profile'){profileForm=null;render();return;}
 if(action==='auto-toggle'){previousScroll=$('panelScroll').scrollTop;route='auto';menuOpen='';$('panelScroll').scrollTop=0;render();requestAnimationFrame(()=>$('viewAccounts .subhead .iconbtn')?.focus({preventScroll:true}));return;}
 if(action==='menu'){const opening=menuOpen!==id;menuOpen=opening?id:'';render();requestAnimationFrame(()=>{if(opening)root.querySelector('.account-pop [role="menuitem"]')?.focus({preventScroll:true});else root.querySelector(`[data-action="menu"][data-id="${id}"]`)?.focus({preventScroll:true});});return;}
 if(action==='switch'){menuOpen='';performSwitch(id);return;}
 if(action==='rename'){menuOpen='';profileForm={kind:'rename',id};render();$('profileName')?.focus();return;}
-if(action==='update-profile'){menuOpen='';modal('update',{id});return;}
+if(action==='update-profile'){menuOpen='';profileForm={kind:'update',id,selected:availableCookies().map(c=>c.id)};render();$('saveSnapshot')?.focus();return;}
 if(action==='delete-profile'){menuOpen='';modal('delete',{id});return;}
 if(action==='copy-switch'){menuOpen='';modal('switch-link',{id});return;}
 if(action==='share'){menuOpen='';modal('share',{id});return;}
@@ -604,7 +721,8 @@ $('viewCookies').addEventListener('click',e=>{const el=e.target.closest('[data-a
 $('sheetContent').addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(el)handleAction(el.dataset.action,el);});
 $('sheetContent').addEventListener('change',e=>{if(e.target.name==='shareAudience'||e.target.id==='shareValidity')updateShareSettings();});
 $('viewAccounts').addEventListener('change',e=>{const el=e.target;
-if(el.id==='refreshOnSwitch'){data().refreshOnSwitch=el.checked;render();requestAnimationFrame(()=>$('refreshOnSwitch')?.focus({preventScroll:true}));toast(el.checked?'已开启切换后自动刷新':'已关闭自动刷新，切换后请手动刷新');}
+if(el.matches('[data-snapshot-cookie]')){updateSelectionCounters();}
+ else if(el.id==='refreshOnSwitch'){data().refreshOnSwitch=el.checked;render();requestAnimationFrame(()=>$('refreshOnSwitch')?.focus({preventScroll:true}));toast(el.checked?'已开启切换后自动刷新':'已关闭自动刷新，切换后请手动刷新');}
 else if(el.id==='autoEnabled'){data().auto.enabled=el.checked;autoResult='';render();requestAnimationFrame(()=>$('autoEnabled')?.focus({preventScroll:true}));}
 else if(el.name==='autoMode'){const chosen=el.value;data().auto.mode=chosen;autoResult='';testUrl='';render();requestAnimationFrame(()=>root.querySelector('input[name="autoMode"][value="'+chosen+'"]')?.focus({preventScroll:true}));}
 else if(el.dataset.allow){let key=el.dataset.allow;data().auto.allowed=el.checked?[...new Set([...data().auto.allowed,key])]:data().auto.allowed.filter(x=>x!==key);render();requestAnimationFrame(()=>root.querySelector('[data-allow="'+key+'"]')?.focus({preventScroll:true}));}
@@ -613,7 +731,38 @@ $('viewAccounts').addEventListener('input',e=>{if(e.target.id==='autoLinkInput')
 $('viewMarket').addEventListener('input',e=>{if(e.target.id==='marketSearch'){marketQuery=e.target.value;const pos=e.target.selectionStart;renderMarket();const el=$('marketSearch');el?.focus();el?.setSelectionRange(pos,pos);}});
 $('viewCustom').addEventListener('input',e=>{if(e.target.id==='customNote')customForm.note=e.target.value;});
 $('viewCustom').addEventListener('change',e=>{if(e.target.id==='customNeed')customForm.need=e.target.value;});
-$('viewAccounts').addEventListener('submit',e=>{if(e.target.id!=='profileForm')return;e.preventDefault();const value=$('profileName').value.trim(),err=$('profileError'),d=data();if(!value||value.length>28||d.accounts.some(a=>a.name===value&&a.id!==profileForm.id)){err.textContent='请输入 1–28 字且与当前网站不重复的名称';err.hidden=false;return;}if(profileForm.kind==='rename')account(profileForm.id).name=value;else{let n=d.accounts.length+1;d.accounts.push(profile('new'+n+Date.now(),value,'profile_'+n,d.cookies.length,'mint'));}profileForm=null;render();toast('演示账号已保存');});
+function onProfileSubmit(e){
+ if(e.target.id!=='profileForm')return;
+ e.preventDefault();
+ const d=data(),kind=profileForm?.kind,err=$('profileError');
+ const bad=message=>{if(err){err.textContent=message;err.hidden=false;}};
+ if(!['new','update','rename'].includes(kind))return;
+ const value=(kind==='update'?account(profileForm.id)?.name:$('profileName')?.value.trim())||'';
+ if(!value||value.length>28||d.accounts.some(a=>a.name===value&&a.id!==profileForm.id)){bad('请输入 1–28 字且与当前网站不重复的名称');return;}
+ if(kind==='rename'){
+  const a=account(profileForm.id);if(!a){bad('账号不存在');return;}
+  a.name=value;profileForm=null;render();toast('已更新账号名称（Cookie 不变）');return;
+ }
+ if(d.phase==='unknown'){bad('当前 Cookie 状态未知，请先核对后再关联');return;}
+ const selected=new Set([...$('viewAccounts').querySelectorAll('[data-snapshot-cookie]:checked')].map(el=>el.dataset.snapshotCookie));
+ const eligible=availableCookies(),chosen=eligible.filter(c=>selected.has(c.id));
+ if(!chosen.length){bad('请至少选择一条当前网站可关联的 Cookie');return;}
+ const snapshot=cloneCookies(chosen.map(c=>normalizeDemoCookie(c,site)));
+ const identities=new Set(snapshot.map(cookieIdentity));
+ if(identities.size!==snapshot.length){bad('选择中存在 Cookie 身份重复，请检查 Domain / Path / Store / Partition');return;}
+ let a=kind==='update'?account(profileForm.id):null;
+ if(kind==='update'&&!a){bad('目标账号不存在');return;}
+ if(kind==='new'){
+  let n=1;while(d.accounts.some(a=>a.alias==='profile_'+n))n++;
+  a=profile('new'+Date.now(),value,'profile_'+n,0,'mint');
+  d.accounts.push(a);
+ }
+ Object.assign(a,{snapshot,count:snapshot.length,sourceSite:site,scope:chosen.length===eligible.length?'full':'partial',updated:'刚刚',shared:false,authenticated:false});
+ d.active=a.id;d.phase='ready';d.lastHandled='';
+ profileForm=null;render();
+ toast('已将 '+snapshot.length+' 条模拟 Cookie 关联至「'+a.name+'」'+(a.scope==='partial'?'；部分快照不可切换':'；可模拟切换'));
+}
+$('viewAccounts').addEventListener('submit',onProfileSubmit);
 $('viewCookies').addEventListener('input',e=>{if(e.target.id==='searchCookie'){search=e.target.value;const pos=e.target.selectionStart;renderCookies();const input=$('searchCookie');input?.focus();input?.setSelectionRange(pos,pos);}else if(e.target.id==='editExpiryAt'){updateExpirationFields();}});
 $('viewCookies').addEventListener('change',e=>{if(['editExpirationMode','editDuration','editExpiryAt'].includes(e.target.id))updateExpirationFields();});
 $('viewCookies').addEventListener('submit',e=>{
@@ -651,8 +800,8 @@ $('viewCookies').addEventListener('submit',e=>{
  if(mode!=='session')updated.expirationDate=expirationDate;
  let c=data().cookies.find(x=>x.id===oldid);
  if(c){Object.assign(c,updated);if(updated.session)delete c.expirationDate;}
- else data().cookies.push({id:site+Date.now(),...updated});
- cookieOpened='';editingNew=false;render();toast('仅保存模拟 Cookie 元数据；未写入 Chrome');
+ else data().cookies.push({id:site+Date.now(),...updated,storeId:'0',value:'preview-only:new-cookie'});
+ markCookiesChanged();cookieOpened='';editingNew=false;render();toast('已修改模拟 Cookie；请重新保存账号关联');
 });
 $('tabCookies').onclick=()=>changeTab('cookies');$('tabAccounts').onclick=()=>changeTab('accounts');$('tabEnterprise').onclick=()=>changeTab('enterprise');$('tabMarket').onclick=()=>changeTab('market');$('tabCustom').onclick=()=>changeTab('custom');$('tabCircle').onclick=()=>changeTab('circle');
 $('mainTabs').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)||busy)return;const tabs=['cookies','accounts','enterprise','market','custom','circle'];const at=tabs.indexOf(tab);const next=e.key==='Home'?0:e.key==='End'?tabs.length-1:(at+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;e.preventDefault();changeTab(tabs[next]);$('mainTabs').querySelector('[aria-selected="true"]')?.focus();});
@@ -665,10 +814,9 @@ $('cancelSheet').onclick=()=>closeModal();$('backdrop').onclick=e=>{if(e.target=
 $('confirmSheet').onclick=()=>{if(!sheet)return;const {kind,id}=sheet;
 if(kind==='share'){const audience=$('sheetContent').querySelector('input[name="shareAudience"]:checked')?.value||'named';const recipient=$('recipient').value.trim(),error=$('shareError');if(audience==='named'&&!/^@[a-z0-9_-]{2,30}$/i.test(recipient)){error.hidden=false;error.textContent='指定用户模式需输入有效的 @用户名';return;}const validity=$('shareValidity').value,uses=audience==='named'?1:Number($('shareUses').value);if(!shareValidityLabels[validity]||![1,3,5,10].includes(uses)){error.hidden=false;error.textContent='请选择有效期与领取次数';return;}createShareLink(audience,recipient,validity,uses);return;}
 if(kind==='receive'){const err=$('receiverError');if(pendingInvite.audience!=='link'){const val=$('currentRecipient')?.value.trim();if(val!==pendingInvite.to){err.hidden=false;err.textContent='接收方与邀请指定用户不一致（仅演示匹配）';return;}}if(pendingInvite.exp<Date.now()){err.hidden=false;err.textContent='演示邀请已过期';return;}if(redeemedNonces.has(pendingInvite.nonce)){err.hidden=false;err.textContent='已在本次演示中领取过该邀请';return;}redeemedNonces.add(pendingInvite.nonce);site=pendingInvite.site;const d=data();let existing=d.accounts.find(x=>x.alias===pendingInvite.alias&&x.shared);if(!existing){d.accounts.push({...profile('shared'+Date.now(),pendingInvite.name+'（共享）',pendingInvite.alias,0,'grey'),shared:true,authenticated:false,updated:'刚刚'});}closeModal();tab='accounts';render();toast('账号配置已添加；需要通过网站官方方式自行登录');if(location.hash.startsWith('#od-share=')){try{history.replaceState(null,'',location.pathname+location.search);}catch{ /* about:blank preview context */ }}return;}
-if(kind==='delete'){const d=data();d.accounts=d.accounts.filter(a=>a.id!==id);d.auto.allowed=d.auto.allowed.filter(alias=>d.accounts.some(a=>a.alias===alias));if(d.active===id){d.active=null;d.phase='ready';}closeModal();toast('仅删除模拟账号快照');return;}
-if(kind==='update'){const a=account(id);if(a){a.updated='刚刚';a.count=data().cookies.length;}closeModal();toast('已更新模拟账号快照');return;}
-if(kind==='remove-cookie'){data().cookies=data().cookies.filter(c=>c.id!==id);cookieOpened='';closeModal();toast('模拟 Cookie 已删除');return;}
-if(kind==='clear'){data().cookies=[];closeModal();toast('模拟 Cookie 已清理');return;}
+if(kind==='delete'){const d=data();d.accounts=d.accounts.filter(a=>a.id!==id);d.auto.allowed=d.auto.allowed.filter(alias=>d.accounts.some(a=>a.alias===alias));if(d.active===id){d.active=null;d.phase='edited';}closeModal();toast('仅删除模拟账号快照');return;}
+if(kind==='remove-cookie'){data().cookies=data().cookies.filter(c=>c.id!==id);markCookiesChanged();cookieOpened='';closeModal();toast('模拟 Cookie 已删除；当前账号关联已解除');return;}
+if(kind==='clear'){data().cookies=[];markCookiesChanged();closeModal();toast('模拟 Cookie 已清理；已保存快照不受影响');return;}
 closeModal();};
 $('sheet').addEventListener('keydown',e=>{if(e.key!=='Tab')return;const els=[...$('sheet').querySelectorAll('button:not([hidden]):not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')];if(!els.length)return;const first=els[0],last=els[els.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(sheet){e.preventDefault();closeModal();}else if(menuOpen){e.preventDefault();closeMenu();}else if(exportOpen){exportOpen=false;render();}else if(route==='auto'){route='main';render();}}});
