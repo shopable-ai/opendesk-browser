@@ -76,8 +76,9 @@ function MarketCapabilityRow({code,isNew=false}){
 
 
 
-export function ToolHost({view,concealed=false,debugPreview=false}) {
+export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
+  const previewStatus=snapshot.fields['sidebar-tool-readonly-banner'];
   const marketReview = snapshot.market?.review ?? null;
   const marketReviewRef = React.useRef(marketReview);
   marketReviewRef.current = marketReview;
@@ -410,6 +411,21 @@ export function ToolHost({view,concealed=false,debugPreview=false}) {
 </ToolField>}
 </ImportSheet>
 
+<aside className="sidebar-tool-development-panel od-stack" aria-label="OpenDesk 开发工具"
+  hidden={concealed||previewStatus.hidden!==false}>
+  <div className="od-toolbar" role="group" aria-label="应用调试控制">
+    <details className="od-disclosure od-disclosure--flat sidebar-tool-development-info">
+      <summary>OpenDesk 开发信息</summary>
+      <ToolField as="p" id="sidebar-tool-readonly-banner" className="hint" role="note" hidden={true}/>
+      <p className="hint">调试使用隔离测试数据，不会使用正式应用数据。</p>
+    </details>
+    {debugPreview&&<Button variant="secondary" onClick={onStopDebug}>停止调试</Button>}
+  </div>
+  {previewStatus.data?.state==='error'&&!previewStatus.hidden&&
+    <p className="sidebar-tool-status" data-state="error" role="status">{previewStatus.textContent}</p>}
+  <ToolField as="p" id="sidebar-tool-development-status" className="sidebar-tool-status" role="status" hidden={true}/>
+</aside>
+
 <ToolField as="section" id="sidebar-tool-display" forceHidden={concealed} className="sidebar-tool-display" aria-label="当前工具界面" hidden={true}>
 <div className="sidebar-tool-view-head od-toolbar od-page-head">
 <ToolField as="button" type="button" id="sidebar-tool-back" forceHidden={debugPreview} className="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表">
@@ -459,10 +475,6 @@ export function ToolHost({view,concealed=false,debugPreview=false}) {
 </div>
 
 </div>
-<ToolField as="p" id="sidebar-tool-readonly-banner" className="sidebar-tool-status" data-state="readonly" role="note" hidden={true}>
-{"开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。"}
-</ToolField>
-<ToolField as="p" id="sidebar-tool-development-status" className="sidebar-tool-status" role="status" hidden={true}/>
 <section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/>{cookieFirstUse&&<CookieSettings onRevoke={actions.revoke}/>}<div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
 {"打开工具"}
 </ToolField>

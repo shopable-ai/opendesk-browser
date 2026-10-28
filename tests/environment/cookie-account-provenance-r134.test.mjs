@@ -9,14 +9,15 @@ import {parse} from 'acorn';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 
-// Independently recorded audited 883058080 bytes. Git fixtures let an older
-// working tree verify the new pin without rewriting another owner's service.
+// Independently reviewed cdfe6e3d6 bytes plus the uninstall-race repair: the flow uses
+// trusted Foundation storage and preserves the legacy encrypted record.
+// Git fixtures verify exact approval without rewriting another owner's service.
 // No source is executed, transformed, built or installed by these tests.
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
-  'trusted/account-contract.js':'7e9256f6702a159d4a5840a548b2c8380bafd8df',
-  'trusted/account-service.js':'6227027e10e5dc0c7934d3d9ba7171dde6f37cd5',
-  'trusted/account-vault.js':'85b5b7f849eb2c95c17e5e2efdf6c0393cdae89e',
+  'trusted/account-contract.js':'2d89c25a96ebc49524127659290c2d0a45c3bf5e',
+  'trusted/account-service.js':'51c667b6d8613e7b0e115d4cf4922e588311c64e',
+  'trusted/account-vault.js':'c52bb9db27c7fd2811981d0d7a6ae8118351be09',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };
 const contract='trusted/account-contract.js';
@@ -120,9 +121,12 @@ test('R134: audited Cookie closure uses only static imports and a pure shared co
 
 test('R134: the pre-fence service is rejected, and working-tree drift never inherits approval',t=>{
   const root=fixture(t),name='trusted/account-service.js';
-  const old=execFileSync('git',['cat-file','blob','c2fc72b60d661a09718303da9048eff3324ee6ef']);
-  assert.notEqual(blob(old),pins[name]);writeFileSync(resolve(root,prefix+name),old);
-  assert.throws(()=>describe(root,prefix+name,'sw.js'),/Trusted Cookie account source changed/);
+  for(const oldPin of ['c2fc72b60d661a09718303da9048eff3324ee6ef',
+    '6227027e10e5dc0c7934d3d9ba7171dde6f37cd5','5aab9035b98ce29e3fadc7ac466836b5a72be70c']){
+    const old=execFileSync('git',['cat-file','blob',oldPin]);
+    assert.notEqual(blob(old),pins[name]);writeFileSync(resolve(root,prefix+name),old);
+    assert.throws(()=>describe(root,prefix+name,'sw.js'),/Trusted Cookie account source changed/);
+  }
   for(const [name,pin] of Object.entries(pins)){
     const target=name===contract?'ui/sidebar-tool-host.js':'sw.js';
     if(blob(readFileSync(resolve(prefix+name)))===pin)

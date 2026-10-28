@@ -676,7 +676,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
             }else row.reason='将保留原工具数据；申请能力：'+capabilityNames(tool.capabilities)+
               '；新增能力：'+capabilityNames(tool.capabilities.filter(value=>!row.baseline.capabilities.includes(value)));
           }else if(state.installed.length+count>=MAX_INSTALLED_TOOLS){
-            row.status='blocked';row.reason='超过本机 12 个工具上限';
+            row.status='blocked';row.reason='超过本机 '+MAX_INSTALLED_TOOLS+' 个工具上限';
           }else{count++;row.reason='申请能力：'+capabilityNames(tool.capabilities);}
           if(row.status==='ready')await verifyMarketplaceToolRuntime({api,tool});
         }catch(e){row.status='blocked';row.reason=(e.code||'E_PACKAGE')+' '+e.message;}

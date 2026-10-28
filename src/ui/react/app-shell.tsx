@@ -69,11 +69,6 @@ export function SidebarAppShell({
         className="od-page" data-workbench-page={activeTab==='app-debug'?'app-debug':'tools'}
         hidden={activeTab!=='tools'&&activeTab!=='app-debug'}>
         <section id="sidebar-tools" className="sidebar-tools" aria-label="自定义工具">
-          {activeTab==='app-debug'&&<div className="od-toolbar" role="group" aria-label="应用调试控制">
-            <span className="hint">本地快照 · 未安装</span>
-            <button type="button" className="od-button od-button--secondary"
-              onClick={onStopAppDebug}>停止调试</button>
-          </div>}
           <div id="sidebar-tool-list-view" hidden={activeTab==='app-debug'||(toolSnapshot.fields['sidebar-tool-display']?.hidden===false&&!isPanelPreview&&!localeOpen)}>
             {activeTab==='tools'&&isPanelPreview&&<p className="hint" role="status">
               应用调试正在运行；打开已安装应用前，请先在「应用调试」停止。
@@ -83,7 +78,7 @@ export function SidebarAppShell({
             </section>
           </div>
           {toolView&&<ToolHost view={toolView} concealed={activeTab==='tools'&&(isPanelPreview||localeOpen)}
-            debugPreview={activeTab==='app-debug'&&isPanelPreview}/>}
+            debugPreview={activeTab==='app-debug'&&isPanelPreview} onStopDebug={onStopAppDebug}/>}
         </section>
       </div>
       <WorkflowPage controller={workflowController} active={activeTab==='workflow'}

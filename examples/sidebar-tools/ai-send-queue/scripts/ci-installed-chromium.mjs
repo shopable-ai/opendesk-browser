@@ -8,6 +8,7 @@ import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
+import {createServer} from 'node:http';
 import {SIDEBAR_TOOL_STORE,serializeSidebarToolPackage,validateSidebarToolPackage}
   from '../../../../src/ui/sidebar-tools/package.js';
 import {SEND_QUEUE_PIN} from '../../../../src/platform/host/send-queue-admission.js';
@@ -16,13 +17,21 @@ const delay=ms=>new Promise(ok=>setTimeout(ok,ms));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const out=resolve(process.argv[2]||'artifacts/app-ci/ai-send-queue/installed');
 await mkdir(out,{recursive:true});
-const extension=resolve('dist/development');
-const candidate=resolve('artifacts/app-ci/ai-send-queue/candidate.opendesk-tool.json');
+// Optional independent production snapshot; defaults preserve the existing CI run.
+// SEND_QUEUE_HEADED=1 (or true) removes --headless=new.
+const extension=resolve(process.env.SEND_QUEUE_EXTENSION_PATH||'dist/development');
+const candidate=resolve(process.env.SEND_QUEUE_CANDIDATE_PATH||
+  'artifacts/app-ci/ai-send-queue/candidate.opendesk-tool.json');
 const pageCandidate=resolve('examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json');
+const headed=process.env.SEND_QUEUE_HEADED||'false';
+assert.ok(['0','1','false','true'].includes(headed),'SEND_QUEUE_HEADED must be 0, 1, false or true');
+const headless=!(headed==='1'||headed==='true');
 const report={scope:'REAL_CHROME_MV3_BOTH_INSTALLATIONS',simulatedSDK:false,macChromeTested:false,
+  extension,candidate,platform:process.platform,headless,chromeVersion:null,
+  manifestSha256:null,extensionId:null,screenshots:{},
   liveChatGPTSending:'NOT_TESTED',pageInstalled:false,pageReadback:'NOT_TESTED',read:'NOT_TESTED',
   nativePanelReopen:'NOT_TESTED',unauthorizedSameId:'NOT_TESTED',status:'RUNNING',events:[]};
-let chrome,profile,socket,host,extId,seq=0;const pending=new Map(),sessions=new Map();
+let chrome,profile,socket,host,extId,demoServer,seq=0;const pending=new Map(),sessions=new Map();
 const exceptions=[];
 function cdp(method,params={},sessionId=null){
   return new Promise((ok,fail)=>{
@@ -62,6 +71,26 @@ async function click(sessionId,selector){
   for(const type of ['mouseMoved','mousePressed','mouseReleased'])
     await cdp('Input.dispatchMouseEvent',{type,x:at.x,y:at.y,button:'left',
       ...(type==='mouseMoved'?{}:{clickCount:1})},sessionId);
+}
+async function screenshot(name,frame,readback){
+  const expected=readback.ok?readback.value.reason:readback.message;
+  assert.ok(expected,'Host supplied visible state reason');
+  const visibleStatus=await until(()=>evalJs(frame,
+    `(()=>{const e=document.querySelector('.send-queue-empty[role="status"]');`+
+    'return e&&e.getClientRects().length&&e.textContent.trim()==='+JSON.stringify(expected)+
+    '?e.textContent.trim():null})()'),'rendered '+name);
+  await cdp('Page.bringToFront',{},host);
+  if(!headless)assert.equal(await evalJs(host,'document.visibilityState'),'visible');
+  const shot=await cdp('Page.captureScreenshot',{format:'png'},host);
+  const bytes=Buffer.from(shot.data,'base64');
+  assert.ok(bytes.length>0,'real screenshot '+name);
+  const file=join(out,name+'.png');
+  await writeFile(file,bytes);
+  report.screenshots[name]={path:file,sha256:sha(bytes),visibleStatus};
+}
+function identity(value){
+  return {id:value.id,version:value.version,
+    serializedSha256:sha(Buffer.from(serializeSidebarToolPackage(value)))};
 }
 async function storedPackage(id){
   return evalJs(host,'chrome.storage.local.get('+JSON.stringify(SIDEBAR_TOOL_STORE)+
@@ -123,9 +152,9 @@ async function importPage(file){
 }
 async function openTool(){
   await until(()=>evalJs(host,
-    '!!document.querySelector(\'#extension-center-list button[data-extension-key="app:ai-send-queue"][data-extension-action="primary"]\')'),
+    '!!document.querySelector(\'#extension-center-list button[data-extension-key="app:ai-send-queue"][data-extension-action="main"]\')'),
     'installed product primary action');
-  await click(host,'#extension-center-list button[data-extension-key="app:ai-send-queue"][data-extension-action="primary"]');
+  await click(host,'#extension-center-list button[data-extension-key="app:ai-send-queue"][data-extension-action="main"]');
   const target=await until(async()=>{
     const all=(await cdp('Target.getTargets')).targetInfos;
     return all.find(x=>x.type==='iframe'&&x.url.startsWith('chrome-extension://'+extId+'/')&&
@@ -136,9 +165,17 @@ async function openTool(){
     'document.querySelector("#tool-status")?.dataset.state==="ready"&&'+
     '!!document.querySelector(".send-queue-app")'),'React 19 Sidebar render');
   const info=await evalJs(frame,
-    '({sdk:typeof OpenDeskTool?.request,chrome:typeof globalThis.chrome,'+
+    '({sdk:typeof OpenDeskTool?.request,origin:globalThis.origin,'+
+    'runtime:typeof globalThis.chrome?.runtime,storage:typeof globalThis.chrome?.storage,'+
+    'cookies:typeof globalThis.chrome?.cookies,permissions:typeof globalThis.chrome?.permissions,'+
+    'tabs:typeof globalThis.chrome?.tabs,userScripts:typeof globalThis.chrome?.userScripts,'+
     'react:globalThis.OpenDeskPageReact?.version,rows:document.querySelectorAll(".send-queue-row").length})');
-  assert.deepEqual(info,{sdk:'function',chrome:'undefined',react:'19.2.0',rows:0});
+  // Chrome can expose a harmless web chrome namespace; native APIs and the
+  // extension origin must remain unavailable in the actual manifest sandbox.
+  report.sandboxReadbacks??=[];report.sandboxReadbacks.push(info);
+  assert.deepEqual(info,{sdk:'function',origin:'null',runtime:'undefined',storage:'undefined',
+    cookies:'undefined',permissions:'undefined',tabs:'undefined',userScripts:'undefined',
+    react:'19.2.0',rows:0});
   return frame;
 }
 async function getQueue(frame){
@@ -146,7 +183,23 @@ async function getQueue(frame){
     'value=>({ok:true,value}),error=>({ok:false,code:error.code,message:error.message}))');
 }
 try{
+  // Use the repository's real manual-test page as the active HTTP target.
+  // An extension/about:blank tab is correctly rejected before queue admission.
+  const demoUrl='http://127.0.0.1:43111/demo-form.html';
+  const demoBytes=await readFile(new URL('../../../tasks/demo-form.html',import.meta.url));
+  let existingDemo;
+  try{const response=await fetch(demoUrl,{signal:AbortSignal.timeout(2000)});
+    if(response.ok)existingDemo=Buffer.from(await response.arrayBuffer());}catch{}
+  if(existingDemo)assert.equal(sha(existingDemo),sha(demoBytes),'existing standard demo server');
+  else{
+    demoServer=createServer((request,response)=>{
+      if(request.url!=='/demo-form.html'){response.writeHead(404);response.end();return;}
+      response.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});response.end(demoBytes);
+    });
+    await new Promise((ok,fail)=>{demoServer.once('error',fail);demoServer.listen(43111,'127.0.0.1',ok);});
+  }
   const bytes=await readFile(candidate),tool=validateSidebarToolPackage(JSON.parse(bytes));
+  report.candidateIdentity={...identity(tool),path:candidate,fileSha256:sha(bytes)};
   assert.equal(sha(bytes),SEND_QUEUE_PIN.toolPackageSha256,'source-bound candidate');
   assert.equal(sha(Buffer.from(serializeSidebarToolPackage(tool))),SEND_QUEUE_PIN.toolPackageSha256);
   assert.equal(tool.version,'0.1.13');
@@ -154,13 +207,15 @@ try{
   assert.equal(pagePackage.programId,SEND_QUEUE_PIN.pageProgramId);
   assert.equal(pagePackage.revision,SEND_QUEUE_PIN.pageRevision);
   assert.equal(pagePackage.sourceHash,SEND_QUEUE_PIN.pageSourceHash,'Page source-bound candidate');
-  const manifest=JSON.parse(await readFile(join(extension,'manifest.json'),'utf8'));
+  const manifestBytes=await readFile(join(extension,'manifest.json'));
+  report.manifestSha256=sha(manifestBytes);
+  const manifest=JSON.parse(manifestBytes.toString('utf8'));
   assert.equal(manifest.manifest_version,3);
   profile=await mkdtemp(join(tmpdir(),'sq-native-ui-'));
   const args=['--disable-gpu','--disable-dev-shm-usage','--no-first-run','--use-mock-keychain',
     '--no-default-browser-check','--password-store=basic','--user-data-dir='+profile,
     '--remote-debugging-port=0','--disable-extensions-except='+extension,
-    '--load-extension='+extension,'--headless=new','about:blank'];
+    '--load-extension='+extension,...(headless?['--headless=new']:[]),'about:blank'];
   if(process.getuid?.()===0||process.env.GITHUB_ACTIONS==='true')args.unshift('--no-sandbox');
   chrome=spawn(process.env.CHROME_BIN||'chromium',args,{stdio:['ignore','ignore','pipe']});
   let processError;chrome.once('error',e=>{processError=e;});
@@ -181,15 +236,25 @@ try{
     if(p){pending.delete(m.id);m.error?p.fail(Error(m.error.message)):p.ok(m.result);}
     if(m.method==='Runtime.exceptionThrown')exceptions.push(m.params.exceptionDetails?.text||'exception');
   });
+  report.chromeVersion=await cdp('Browser.getVersion');
   await cdp('Target.setDiscoverTargets',{discover:true});
   const worker=await until(async()=>{
     const all=(await cdp('Target.getTargets')).targetInfos;
     return all.find(t=>t.type==='service_worker'&&t.url.includes('/'+manifest.background.service_worker));
   },'installed MV3 service worker');
   extId=new URL(worker.url).host;
+  report.extensionId=extId;
   const bootstrapTab=await cdp('Target.createTarget',{url:'chrome-extension://'+extId+'/sidepanel.html'});
   const bootstrap=await attach(bootstrapTab.targetId);
   const windowId=await evalJs(bootstrap,'chrome.windows.getCurrent().then(x=>x.id)');
+  const contentTab=await cdp('Target.createTarget',{url:demoUrl});
+  const content=await attach(contentTab.targetId);
+  await until(()=>evalJs(content,'location.href==='+JSON.stringify(demoUrl)+
+    '&&document.readyState==="complete"'),'real HTTP demo document');
+  await cdp('Page.bringToFront',{},content);
+  report.activePage=await until(()=>evalJs(bootstrap,
+    'chrome.tabs.query({active:true,windowId:'+JSON.stringify(windowId)+'}).then(xs=>'+
+    'xs.find(x=>x.url==='+JSON.stringify(demoUrl)+')||null)'),'active HTTP Chrome tab');
   const open=await cdp('Runtime.evaluate',{
     expression:'chrome.sidePanel.open({windowId:'+JSON.stringify(windowId)+'})',
     userGesture:true,awaitPromise:true,returnByValue:true},bootstrap);
@@ -213,11 +278,17 @@ try{
   await until(()=>evalJs(host,'!document.querySelector("#workbench-tools")?.hidden'),'extension center visible');
   const installed=await importTool(candidate,'0.1.13');
   assert.equal(sha(Buffer.from(serializeSidebarToolPackage(installed))),SEND_QUEUE_PIN.toolPackageSha256);
-  assert.equal((await storedPackage('ai-send-queue'))?.version,'0.1.13');
+  report.installedIdentity=identity(installed);
+  const installedReadback=await storedPackage('ai-send-queue');
+  assert.equal(installedReadback?.version,'0.1.13');
+  assert.deepEqual(identity(installedReadback),identity(tool),'installed exact-byte readback');
+  report.installedReadbackIdentity=identity(installedReadback);
   const active=await openTool();
   const result=await getQueue(active);
+  report.initialQueueReadback=result;
   assert.equal(result.ok,true,'pinned tool may reach the trusted Host');
   assert.equal(result.value.status,'unavailable','no ChatGPT document is selected');
+  await screenshot('installed-react-page-unavailable',active,result);
   report.read='PASS_TRUSTED_HOST_PAGE_UNAVAILABLE';
   report.events.push('REAL_SIDE_PANEL_REACT_OPEN','REAL_HOST_REFUSES_MISSING_PAGE');
   await click(host,'#sidebar-tool-back');
@@ -263,8 +334,14 @@ try{
   await until(()=>evalJs(host,'!document.querySelector("#workbench-tools")?.hidden'),
     'reopened extension center');
   const returned=await openTool(),readBack=await getQueue(returned);
+  report.reopenedQueueReadback=readBack;
   assert.equal(readBack.ok,true,'pinned Tool reopens under the new Side Panel instance');
   assert.equal(readBack.value.status,'unavailable','missing Page remains visibly unavailable');
+  const reopenedPackage=await storedPackage('ai-send-queue');
+  assert.deepEqual(identity(reopenedPackage),identity(tool),'reopened exact-byte readback');
+  report.reopenedReadbackIdentity=identity(reopenedPackage);
+  report.panelDocuments={closed:context.documentId,reopened:reopenedContext.documentId};
+  await screenshot('native-panel-reopened',returned,readBack);
   report.nativePanelReopen='PASS_NATIVE_CLOSE_REOPEN';
   report.events.push('REAL_SIDE_PANEL_REOPEN');
   // A different same-ID installation may be reviewed, but may NEVER inherit
@@ -273,16 +350,26 @@ try{
   const forged=validateSidebarToolPackage({...tool,version:'0.1.14'});
   const malicious=join(profile,'same-id-unpinned.opendesk-tool.json');
   await writeFile(malicious,serializeSidebarToolPackage(forged));
-  await importTool(malicious,'0.1.14');
+  const forgedInstalled=await importTool(malicious,'0.1.14');
+  assert.deepEqual(identity(forgedInstalled),identity(forged),'same-id forged bytes installed');
+  report.sameIdIdentity=identity(forgedInstalled);
   const fakeFrame=await openTool();
   const blocked=await getQueue(fakeFrame);
+  report.sameIdQueueReadback=blocked;
   assert.equal(blocked.ok,false);
   assert.equal(blocked.code,'E_TOOL_CAPABILITY_REQUIRED');
+  const finalReadback=await storedPackage('ai-send-queue');
+  assert.deepEqual(identity(finalReadback),identity(forged),'final same-id readback');
+  report.finalReadbackIdentity=identity(finalReadback);
+  await screenshot('same-id-forgery-denied',fakeFrame,blocked);
   report.unauthorizedSameId='PASS_DENIED_BY_PINNED_BYTES';
   report.events.push('REAL_HOST_DENIED_SAME_ID_TAMPER');
   assert.deepEqual(exceptions,[],'no unexpected extension runtime exception');
   report.status='PASS';
+  report.macChromeTested=process.platform==='darwin'&&!headless&&
+    !/HeadlessChrome/i.test(report.chromeVersion.product+' '+report.chromeVersion.userAgent);
 }catch(error){
+  report.macChromeTested=false;
   report.status='FAIL';report.error=String(error.stack||error);process.exitCode=1;
   if(host&&socket?.readyState===WebSocket.OPEN){
     try{report.hostView=await evalJs(host,'document.body?.innerText.slice(0,2200)');}catch{}
@@ -291,11 +378,16 @@ try{
   }
 }finally{
   report.exceptions=exceptions;
-  await writeFile(join(out,'result.json'),JSON.stringify(report,null,2)+'\n');
+  // This CDP socket belongs only to the Chrome spawned with our temporary profile.
+  if(chrome&&socket?.readyState===WebSocket.OPEN){
+    try{await cdp('Browser.close');}catch{}
+  }
   try{socket?.close();}catch{}
   try{chrome?.kill();await delay(300);
     if(profile)await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:150});
   }catch(error){report.cleanupError=String(error);}
+  if(demoServer)await new Promise(ok=>demoServer.close(ok));
+  await writeFile(join(out,'result.json'),JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify({status:report.status,pageInstalled:report.pageInstalled,
     pageReadback:report.pageReadback,read:report.read,spoof:report.unauthorizedSameId,
     events:report.events,nativePanelReopen:report.nativePanelReopen,error:report.error},null,2));

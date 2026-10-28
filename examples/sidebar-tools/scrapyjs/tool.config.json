@@ -1,0 +1,27 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "scrapyjs",
+  "version": "1.0.0",
+  "title": "scrapyjs 采集",
+  "description": "配置并运行固定采集任务，查看真实状态、停止原实例、保存配置及下载完整 JSON。",
+  "capabilities": [
+    "storage.local",
+    "currentPage.read",
+    "user.export"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js",
+    "dependencies": [
+      "adapters/app-sdk.js",
+      "src/app-model.js"
+    ]
+  },
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  }
+}

@@ -1,3 +1,5 @@
+import {assertTaskDelegationApp} from '../tasks/delegation-installation.js';
+import {sameTaskPin,normalizeDelegatedTask} from '../tasks/delegation-contract.js';
 import {createNetworkService} from '../chrome/network.js';
 import {normalizeMethod, SDK_METHODS} from '../../framework/sdk/registry.js';
 import {FoundationError, BUDGETS, invariant, newId, canonical, digest, digestUtf8} from '../protocol.js';
@@ -77,6 +79,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   const tx = (mode, work, names = stores) => storage.transaction([...new Set(names)], mode, work);
   const now = () => clock.now();
   async function requireRunGrants(run) {
+    if(run.taskDelegation)await assertTaskDelegationApp(api,run.taskDelegation);
     for (const origin of runOrigins(run)) {
       try { await requireGrant(api, origin); }
       catch (error) {
@@ -244,7 +247,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     // Native queries are outside the IDB transaction; recheck the durable fence before delivery.
     await tx(RUN_READ,async transaction=>{
       await currentHost(transaction,host,sender);
-      for (const run of snapshot.runs) if ((await transaction.get(RUN_STORE,run.runId))?.resultDeliveryRevoked) denied.add(run.runId);
+      for (const run of snapshot.runs) {
+        const current=await transaction.get(RUN_STORE,run.runId);
+        if(current?.resultDeliveryRevoked)denied.add(run.runId);
+        if(run.taskDelegation){try{await assertRunTaskAuthorization(transaction,current);}catch{denied.add(run.runId);}}
+      }
     });
     // Cover an event waiting for its durable transaction, without comparing
     // historical document/Worker epochs or hiding results after navigation.
@@ -359,7 +366,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     return ready;
   }
+  async function withTaskDelegation(binding,work){
+    if(!binding)return work();
+    const locks=globalThis.navigator?.locks;
+    invariant(locks?.request,'E_TOOL_LOCK');
+    return locks.request('opendesk.sidebar-tools:tool:'+binding.appId,async()=>{
+      await assertTaskDelegationApp(api,binding);
+      return work();
+    });
+  }
   async function startControllerRun(request, sender) {
+    request=structuredClone(request);
+    return withTaskDelegation(request?.taskDelegation,()=>startControllerRunDelegated(request,sender));
+  }
+  async function startControllerRunDelegated(request, sender) {
     return withRunAdmissionLock(()=>startControllerRunLocked(request,sender),{allowWithoutLocks:api!==globalThis.chrome});
   }
   async function startControllerRunLocked(request, sender) {
@@ -435,7 +455,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const admissionStartedAt=now();
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','cloudRequestId','scheduledFireId','expectedScheduleOwner'],
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','taskDelegation','cloudRequestId','scheduledFireId','expectedScheduleOwner'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
@@ -449,6 +469,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     const saved = isDraft ? null : variant || request;
     const isInstalledTask = !isDraft && saved.scriptId?.startsWith('task:');
+    if(request.taskDelegation){
+      invariant(isInstalledTask&&!request.cloudRequestId&&!request.scheduledFireId,'E_PERMISSION');
+      normalizeDelegatedTask(request.taskDelegation.task,true);
+      await assertTaskDelegationApp(api,request.taskDelegation);
+    }
     invariant(isInstalledTask?Object.hasOwn(request,'expectedTaskGeneration')&&Object.hasOwn(request,'expectedTaskInstallationId'):
       !Object.hasOwn(request,'expectedTaskGeneration')&&!Object.hasOwn(request,'expectedTaskInstallationId'),
       'E_REVISION','安装任务必须绑定点击时的安装身份和授权代次');
@@ -493,6 +518,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         scriptId:saved.scriptId,contentHash:saved.contentHash,
         origin:selectedOrigin || observed.allowedOrigin,params:runParams,migrate:true,builtinIdentity:environment,
         expectedGeneration:request.expectedTaskGeneration,expectedInstallationId:request.expectedTaskInstallationId}):null;
+      if(request.taskDelegation){
+        const pin=request.taskDelegation.task,installation=installedTask.installation;
+        invariant(sameTaskPin(pin,{...installation,contentHash:saved.contentHash})&&
+          pin.installationId===installation.authorization?.installationId&&
+          pin.generation===installation.authorization?.generation,'E_REVISION');
+      }
       if(installedTask)invariant(request.deadlineAt<=admissionStartedAt+
         (installedTask.candidate.package.manifest.deadlineMs??30000),CONTROLLER_TIMEOUT_ERROR,
         'Installed Task deadline exceeds its reviewed manifest limit');
@@ -518,6 +549,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         ...(installedTask?{installedTaskAuthorization:{taskId:installedTask.installation.taskId,
           version:installedTask.installation.version,manifestHash:installedTask.installation.manifestHash,
           authorization:installedTask.installation.authorization}}:{}),
+        ...(request.taskDelegation?{taskDelegation:structuredClone(request.taskDelegation)}:{}),
         ...(scheduledFire?{scheduledFireId:scheduledFire.fireId}:{}),
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
         paramsWire: structuredClone(request.paramsWire), selection: structuredClone(request.target),
@@ -609,7 +641,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       ['cookies','setCookie','deleteCookie','uploadFromUrl'].includes(operation.method)),
       'E_CAPABILITY','此安装任务未声明宿主网络或 Cookie 能力');
   }
-  async function controllerOperation(request, sender) {
+  async function controllerOperation(request,sender){
+    const runId=request?.envelope?.identity?.runId;
+    id(runId);
+    const host=await assertHost(sender);
+    const run=await tx(RUN_READ,async transaction=>owner(transaction,await transaction.get(RUN_STORE,runId),host,sender));
+    return withTaskDelegation(run.taskDelegation,()=>controllerOperationDelegated(request,sender));
+  }
+  async function controllerOperationDelegated(request, sender) {
     fields(request, ['envelope'], ['envelope']);
     const envelope = structuredClone(request.envelope);
     fields(envelope, ['requestId', 'identity', 'revision', 'target', 'operation'], ['requestId', 'identity', 'revision', 'target', 'operation']);

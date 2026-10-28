@@ -360,17 +360,16 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
     if(!Number.isSafeInteger(revision)||revision<0)
       throw fail('E_VAULT_REVISION');
     if(operation==='switch'){
-      // The account list is re-read inside the exclusive effect lock.
-      return exclusive(async()=>{
+      // The whole dispatch already holds the exclusive lifecycle lock.
+      {
         const data=await vault.read();
         if(data.revision!==revision)throw fail('E_VAULT_CONFLICT');
         const account=data.accounts.find(x=>x.alias===payload.alias&&x.origin===origin);
         if(!account)throw fail('E_ACCOUNT_NOT_FOUND');
         return runSwitch(account,record,payload.document,
           {refresh:data.settings.autoRefresh});
-      });
+      }
     }
-    return exclusive(async()=>{
     let capture=null;
     if(['create','update'].includes(operation)){
       const grant=grantFor(record.siteRecord,origin,true);
@@ -428,7 +427,6 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
     const value=await statusFor(origin);
     if(value.revision!==changed)throw fail('E_OUTCOME_UNKNOWN');
     return value;
-    });
   }
   async function navigation(event){
     try{
@@ -451,7 +449,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
       const frame=await api.webNavigation.getFrame({tabId:event.tabId,frameId:0});
       const document={tabId:event.tabId,documentId:frame?.documentId,url:event.url};
       await validateDocument(document,origin,true);
-      await exclusive(async()=>{
+      {
         // Persist a trusted per-tab fence BEFORE native Cookie effects.
         // No TTL: after expiry, an old URL could replay an uncertain write.
         // A deliberate manual switch or changed account version can re-arm.
@@ -486,11 +484,17 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
           // Keep the original in-flight fence: no background auto-retry.
           throw fail('E_OUTCOME_UNKNOWN');
         }
-      });
+      }
     }catch{/* Never retry, navigate, log account names or expose Cookie bytes. */}
   }
   // Fixed SW lifecycle hook only; never admitted by the account RPC contract.
-  return Object.freeze({dispatch,navigation,cleanup:()=>vault.clear()});
+  // Queue from entry, including authorization and capture: cleanup must drain
+  // older requests before deleting data, and later installs can then start fresh.
+  return Object.freeze({
+    dispatch:(message,sender)=>exclusive(()=>dispatch(message,sender)),
+    navigation:event=>exclusive(()=>navigation(event)),
+    cleanup:()=>exclusive(()=>vault.clear())
+  });
 }
 export function installCookieAccountService({api=globalThis.chrome,storage}={}){
   const service=createCookieAccountService({api,storage});

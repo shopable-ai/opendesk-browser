@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createQueueView} from '../src/page/view.js';
+import {buildAssetRecords} from '../../../../scripts/program-assets.mjs';
 
 // A small, independent DOM/flow fixture. Rectangles are explicit CSS-pixel
 // inputs, not a replica of ChatGPT markup or a claim of browser rendering QA.
@@ -35,7 +36,7 @@ class Node {
     ...child.querySelectorAll(selector)]);}
   getBoundingClientRect(){return this.measure?.()||rect(0,0,0,0);}
 }
-function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=false}={}){
+function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=false,assetRecords}={}){
   const doc={defaultView:{getComputedStyle:node=>node.computed,matchMedia:()=>({matches:coarse})},
     createElement:tag=>new Node(doc,tag),createElementNS:(_ns,tag)=>new Node(doc,tag)};
   doc.body=new Node(doc,'body');
@@ -90,7 +91,8 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
       destroy(){active=false;host.remove();}};
     managed.push(ui);return ui;
   };
-  const owner={content:{ownerDocument:doc},getAsset:path=>path.endsWith('.webp')?
+  const owner={content:{ownerDocument:doc},getAsset:path=>assetRecords?
+    (assetRecords[path].kind==='image'?assetRecords[path].url:assetRecords[path].text):path.endsWith('.webp')?
     'data:image/webp;base64,ZmFrZQ==':'.sq-crown{background:url("crown-premium.webp") center/contain no-repeat}',
     onDispose:fn=>disposals.push(fn),setTimeout(){}};
   const engine={view:()=>state,wait:reason=>waits.push(reason)};
@@ -270,6 +272,21 @@ test('the crown in the production Shadow DOM uses the packaged WebP data URL',()
   assert.doesNotMatch(stylesheet,/url\("crown-premium\.webp"\)/);
   assert.match(h.ui('list').styles.join('\n'),/crown-premium\.webp/);
   h.dispose();
+});
+
+test('the view accepts the actual packager CSS and requires the exact declared crown bytes',async()=>{
+  const assets=[{path:'assets/queue.css',kind:'css'},{path:'assets/crown-premium.webp',kind:'image'}];
+  const bytes=new Map(await Promise.all(assets.map(async asset=>[
+    asset.path,await readFile(new URL('../'+asset.path,import.meta.url))])));
+  const records=buildAssetRecords(assets,bytes);
+  assert.ok(records['assets/queue.css'].text.includes(records['assets/crown-premium.webp'].url));
+  const h=fixture({assetRecords:records});
+  assert.equal(h.view.place(h.snap),true);
+  assert.ok(h.ui('button').styles.join('\n').includes(records['assets/crown-premium.webp'].url));
+  h.dispose();
+  const mismatched=structuredClone(records);
+  mismatched['assets/crown-premium.webp'].url='data:image/webp;base64,ZmFrZQ==';
+  assert.throws(()=>fixture({assetRecords:mismatched}),/crown image is missing or invalid/);
 });
 
 test('preview bundles the exact official WebP and keeps reset colors neutral',async()=>{

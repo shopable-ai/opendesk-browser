@@ -52,7 +52,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     return startScraping(request);
   }
   async function startController(request) {
-    const {profile, appId, scriptId, revision, contentHash, source, params, target, networkOrigins = [], expectedTaskGeneration, expectedTaskInstallationId, cloudRequestId, scheduledFireId, expectedScheduleOwner,
+    const {profile, appId, scriptId, revision, contentHash, source, params, target, networkOrigins = [], expectedTaskGeneration, expectedTaskInstallationId, taskDelegation, cloudRequestId, scheduledFireId, expectedScheduleOwner,
       deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()} = request;
     const appService = profile === 'app-service';
     if (appService && Object.keys(request).some(key =>
@@ -72,16 +72,18 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       ...(networkOrigins.length ? {networkOrigins: structuredClone(networkOrigins)} : {}),
       ...(expectedTaskGeneration!==undefined?{expectedTaskGeneration}:{}),
       ...(expectedTaskInstallationId!==undefined?{expectedTaskInstallationId}:{}),
+      ...(taskDelegation?{taskDelegation:structuredClone(taskDelegation)}:{}),
       ...(cloudRequestId?{cloudRequestId}:{}),
       ...(scheduledFireId?{scheduledFireId}:{}),
       ...(expectedScheduleOwner!==undefined?{expectedScheduleOwner}:{})};
-    const local = {controllerRun: true, state: 'preparing', controller: new AbortController()};
+    const local = {controllerRun: true, requestId, state: 'preparing', controller: new AbortController()};
     let admitted, admissionDone;
     const admission = new Promise(resolve => { admissionDone = resolve; }); admissions.add(admission);
     active = local;
     try {
       await client.ready;
       if (disposed) throw new FoundationError('E_HOST_CLOSED', 'RunHost disposed during admission');
+      if (local.controller.signal.aborted) throw new FoundationError('E_CANCELLED', 'RunHost admission cancelled');
       const claim = await controls.startControllerRun(admissionRequest);
       local.runId = claim.runId;
       if (claim.duplicate) throw new FoundationError('E_EFFECT_UNKNOWN', 'Existing run is observable; its script is never replayed');
@@ -109,6 +111,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       return claim;
     } catch (error) {
       if (admitted && !local.control) {
+        error.runId=admitted.runId;error.resultId=admitted.resultId;
         local.context?.dispose(); contextResources.delete(local.context); local.runId=admitted.runId;
         local.settlementRequest={runId:admitted.runId,requestId:`${admitted.runId}:finish`,status:disposed?'host-closed':'error',
           error:{code:error.code||'E_CONTROL_EXECUTION',message:error.message},workerRetired:true};
@@ -285,6 +288,11 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     handshake:{contractVersion:CONTRACT_VERSION,contractHash:CONTRACT_HASH}, productionRunHostImplemented:true,
     controller: controls, artifactResources, get completion() { return lastCompletion; }, get currentRun() { return active?.runId || null; },
     get executionPending(){return Boolean(active)||admissions.size>0;},
+    cancelStart(requestId) {
+      if (!active?.controllerRun || active.requestId !== requestId || active.control) return false;
+      active.controller.abort(new FoundationError('E_CANCELLED','Admission cancelled'));
+      return true;
+    },
     start, stop, subscribe:listener=>{observers.add(listener);return()=>observers.delete(listener);},
     resourceSnapshot: () => ({client: client.resourceSnapshot?.() ?? {}, blobs: artifactResources.resourceSnapshot?.() ?? {},
       controllers:[...controllerResources].map(control=>control.resourceSnapshot?.() || {}),

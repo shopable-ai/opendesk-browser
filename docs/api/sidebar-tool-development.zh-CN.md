@@ -132,7 +132,7 @@ dist/production/、dist/development/           # 整个 Chrome 扩展构建产�
 - `version` 使用非负整数的 `major.minor.patch`（例如 `1.0.1`，不能带 `v`、预发布标签）；更新用户可见功能/权限/数据结构时明确升级版本、审查兼容性。版本号与代码哈希是不同维度。
 - `title/description/capabilities/files/assets` 属于 **tool.config.json 源清单**；最终包的基础字段为 `format/id/version/title/description/capabilities/html/css/js`；v2 的 `requires/contributes/scripts`、显式 `uiRuntime` 等受限字段按 [公开工具 API](sidebar-tools.zh-CN.md) 及当前 Schema 校验，不能将这份基础列表当作全部版本的字段全集。不要给严格 JSON 加 `permissions`、`native`、`packageUrl`、`marketId` 等未实现的字段。
 - `files` 的 html/css/js 三个源路径均为项目根下的相对路径；v2 可选 dependencies 按上文受限顺序构建，v1 不接受该字段。打包器会检查路径穿越和软链接越界；`assets` 最多 16 个、每张不超过 96 KiB，允许 PNG/JPEG/WebP。通过 `{{asset:assets/icon.png}}` 引用，打包器嵌为 `data:` URL；不是 HTTP/CDN 资源。
-- 当前合同：最终包最大 **320,000 UTF-8 字节**；HTML ≤64,000、CSS ≤120,000、JS ≤220,000 **字符**，打包器对输入源码还有字节预算。最多同时安装 12 个工具。以代码实时限制为准，不能为了通过校验任意放大预算。
+- 当前合同：最终包最大 **320,000 UTF-8 字节**；HTML ≤64,000、CSS ≤120,000、JS ≤220,000 **字符**，打包器对输入源码还有字节预算。最多同时安装 13 个工具，依据见 [R32.3 安装数量复核](../architecture/browser-ui-r23.zh-CN.md#2026-10-29安装数量的最小开发扩容)。以代码实时限制为准，不能为了通过校验任意放大预算。
 - 改代码但不改变版本时可以生成不同的**开发快照**；正式包内容变化时，晋升要求版本高于已有正式包，同版本不同字节与降级都会拒绝。正式安装/更新仍审查新包字节、所申请能力和升级策略，不把“相同版本”当“已审批”。
 
 ## 4. 唯一编程入口与能力规则
@@ -233,6 +233,8 @@ AI 验证应直接修改当前业务项目：先保存一处真实 CSS 并观察
 #### 直接调试与开发数据隔离（2026-10-29）
 
 在已连接的本地项目点击「在侧栏调试」，即可进入界面并使用声明范围内的 `storage.get/set`；不增加“批准隔离存储调试”、单独停止存储或常驻“已批准”状态。退出统一使用原有「停止调试」。
+
+预览画布只展示应用标题和应用自身界面。实时预览状态、快照 SHA、未安装状态及数据隔离说明统一放在画布外的「OpenDesk 开发信息」中，默认折叠；「停止调试」保留在同一宿主工具栏。编译失败、连接中断、未保存编辑和准入失效等异常在画布外直接显示，不因折叠而隐藏。展开信息或更新状态不得重建应用 iframe 或清除草稿；应用标题的只读上下文仍保留在辅助说明中。
 
 实现沿用 **原 sandbox → 原预览 Host → 精确绑定的 Workspace owner → 原 Native authority 逐请求核验 → 隔离 session 存储**。每个 iframe 执行前仍核对真实文档、窗口、source/tool、SHA、实例和 Native 会话/租约；数据不借用同 ID 安装权限，不读写正式 local 数据，也不开放 `files.*`。Side Panel 声明 `currentPage.read` 时，`currentPage.info` 复用原目标捕获和导航复查。
 

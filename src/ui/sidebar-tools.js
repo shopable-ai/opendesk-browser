@@ -984,6 +984,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   // The only admission for privileged Time Review rendering. Built-in code
   // never consumes the installed package's html/css/js as executable input.
+  async function installedAdmissionState(){
+    const saved=await api.storage.local.get([
+      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE]);
+    return {installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
+      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
+      provenance:saved[MARKET_PROVENANCE_STORE]};
+  }
   async function admittedNativeTimeReview(tool,expectedEpoch){
     if(nativeTimeReview?.version!==TRUSTED_TIME_REVIEW_VERSION||
        typeof nativeTimeReview.mount!=='function')return false;
@@ -994,14 +1001,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const release=officialReleases.find(row=>row.toolId===TIME_REVIEW_ID&&
       row.version===TRUSTED_TIME_REVIEW_VERSION);
     if(!release)return false;
-    const saved=await api.storage.local.get([
-      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE
-    ]);
-    return admitsTrustedTimeReview({tool,release,expectedEpoch,
-      installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
-      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],
-      epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
-      provenance:saved[MARKET_PROVENANCE_STORE]});
+    return admitsTrustedTimeReview({tool,release,expectedEpoch,...await installedAdmissionState()});
   }
   async function requestNativeTimeReview(tool,token,epoch,operation,payload={},event=null){
     const current=()=>!disposed&&instance===token&&active===tool&&!readOnlyPreview&&
@@ -1041,13 +1041,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const release=officialReleases.find(row=>row.toolId===TRUSTED_BOOKMARK_ID&&
       row.version===TRUSTED_BOOKMARK_VERSION);
     if(!release)return false;
-    const saved=await api.storage.local.get([
-      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE]);
-    return admitsTrustedBookmark({tool,release,expectedEpoch,
-      installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
-      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],
-      epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
-      provenance:saved[MARKET_PROVENANCE_STORE]});
+    return admitsTrustedBookmark({tool,release,expectedEpoch,...await installedAdmissionState()});
   }
   async function requestTrustedBookmark(tool,token,epoch,operation,payload={}){
     const current=()=>!disposed&&!readOnlyPreview&&active===tool&&instance===token&&
@@ -1069,26 +1063,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(!officialLoaded||officialError)return false;
     const release=officialReleases.find(row=>row.toolId===PROMPT_ID&&row.version===TRUSTED_PROMPT_VERSION);
     if(!release)return false;
-    const saved=await api.storage.local.get([
-      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE
-    ]);
-    return admitsTrustedPrompt({tool,release,expectedEpoch,
-      installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
-      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],
-      epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
-      provenance:saved[MARKET_PROVENANCE_STORE]});
+    return admitsTrustedPrompt({tool,release,expectedEpoch,...await installedAdmissionState()});
   }
   async function admittedNativeKnowledge(tool,expectedEpoch){
     if(trustedKnowledgePilot?.enabled!==true||typeof trustedKnowledgePilot.mount!=='function')return false;
     if(!officialLoaded&&!officialError)await officialReady;
     if(!officialLoaded||officialError)return false;
     const release=officialReleases.find(row=>row.toolId===TRUSTED_KNOWLEDGE_ID&&row.version===TRUSTED_KNOWLEDGE_VERSION);
-    const saved=await api.storage.local.get([
-      SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,MARKET_PROVENANCE_STORE]);
-    return admitsTrustedKnowledge({tool,release,expectedEpoch,
-      installed:requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]),
-      enableRecords:saved[SIDEBAR_TOOL_ENABLE_STORE],epochs:saved[TOOL_REVOCATION_EPOCHS_STORE],
-      provenance:saved[MARKET_PROVENANCE_STORE]});
+    return admitsTrustedKnowledge({tool,release,expectedEpoch,...await installedAdmissionState()});
   }
   function trustedBookmarkSDK(tool,token,epoch){
     const request=(operation,payload={})=>requestTrustedBookmark(tool,token,epoch,operation,payload);
@@ -1901,6 +1883,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
     render();
   }
+  async function assertInstalledTool(tool,epoch,message){
+    const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+    if(!requireCompleteInstalledSidebarTools(saved[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool))||
+      (saved[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==epoch)
+      throw Object.assign(new Error(message),{code:'E_TOOL_CHANGED'});
+  }
   function currentPageInfo(target){
     return target?.status==='available'
       ?{status:'available',title:String(target.title||'').slice(0,512),url:String(target.url||'').slice(0,4096)}
@@ -1954,13 +1942,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           command==='move'&&(!Number.isInteger(payload.index)||payload.index<0||payload.index>=20))
           throw Object.assign(new Error('消息身份或队列版本无效'),{code:'E_SCHEMA'});
       }
-      const [stored,epochs]=await Promise.all([
-        api.storage.local.get(SIDEBAR_TOOL_STORE),
-        api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
-      if(!requireCompleteInstalledSidebarTools(stored[SIDEBAR_TOOL_STORE])
-        .some(row=>samePackage(row,tool))||
-        (epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
-        throw Object.assign(new Error('安装或授权已变更'),{code:'E_TOOL_CHANGED'});
+      await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
       assertSession(source,token);
       const selected=currentPageTarget?.capture?.();
       if(!selected||selected.origin!=='https://chatgpt.com')
@@ -1974,11 +1956,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       });
       await currentPageTarget.revalidate(selected);
       await assertSidebarToolEnabled(api,tool.id);
-      const verified=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
-      if(!requireCompleteInstalledSidebarTools(verified[SIDEBAR_TOOL_STORE])
-        .some(row=>samePackage(row,tool))||
-        (verified[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
-        throw Object.assign(new Error('工具请求期间身份已改变'),{code:'E_TOOL_CHANGED'});
+      await assertInstalledTool(tool,revocationEpoch,'工具请求期间身份已改变');
       assertSession(source,token);
       return {...result,target:{tabId:selected.tabId,documentId:selected.documentId,
         url:selected.url,title:selected.title}};
@@ -2706,10 +2684,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // Download driver. SW cannot use navigator.clipboard; no sandbox
         // receives native browser access or may bypass the one-use Host intent.
         await assertSidebarToolEnabled(api,tool.id);
-        const exportState=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
-        if(!requireCompleteInstalledSidebarTools(exportState[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool))||
-           (exportState[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
-          throw Object.assign(new Error('导出期间工具身份或安装代际已变化'),{code:'E_TOOL_CHANGED'});
+        await assertInstalledTool(tool,revocationEpoch,'导出期间工具身份或安装代际已变化');
         if(cookieExportContext){
           const saved=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE]?.[tool.id];
           const grant=saved?.cookieAllSites??saved?.cookieSites?.[cookieExportContext.origin];
@@ -2887,11 +2862,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           authorize:async()=>{
             assertSession(source,token);
             await assertSidebarToolEnabled(api,PROMPT_ID);
-            const current=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
-            if(!requireCompleteInstalledSidebarTools(current[SIDEBAR_TOOL_STORE])
-              .some(row=>samePackage(row,tool))||
-              (current[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
-              throw Object.assign(new Error('工具在图片保存过程中被更新或卸载'),{code:'E_TOOL_CHANGED'});
+            await assertInstalledTool(tool,revocationEpoch,'工具在图片保存过程中被更新或卸载');
             assertSession(source,token);
           }});
       }
@@ -2904,10 +2875,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           authorize:async()=>{
             assertSession(source,token);
             await assertSidebarToolEnabled(api,tool.id);
-            const state=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
-            if(!requireCompleteInstalledSidebarTools(state[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool))||
-              (state[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
-              throw Object.assign(new Error('工具已更新、禁用或卸载，请重新打开'),{code:'E_TOOL_CHANGED'});
+            await assertInstalledTool(tool,revocationEpoch,'工具已更新、禁用或卸载，请重新打开');
             assertSession(source,token);
           },etagFor});
       }

@@ -4,6 +4,18 @@
 
 唯一产品根目录：`examples/sidebar-tools/ai-send-queue/`。R5.7 提交 `607f708d` 已完成目录合并。禁止再次迁移原 `examples/programs/chatgpt-send-queue/`。
 
+## 当前阶段与下一条操作（2026-10-29）
+
+官方目录仍为 **blocked**，真实核心链尚未通过。2026-10-29 已解除第 13 个工具的安装容量阻塞，经原安装审阅成功安装项目内唯一 `ai-send-queue` 0.1.13 JSON，并从「扩展」打开真实 React 侧栏；原 12 个工具保留。该侧栏报告当前网页尚未执行获准的队列程序，不能据此声明真实队列可用。
+
+日常 Page 仍为 `0.1.13/r12`。正常管理界面的执行回执证明初始化在皇冠图片校验处失败：打包器已将相对图片 URL 内嵌为 data URL，而产品代码只接受相对路径。本轮修复使两种来源都核对同一声明图片字节，并生成 sourceHash `2e33a179ff03ba02810827ce6bc56482a3ae90d4da9b93805870334b6962e8de` 的 r13 候选。正常更新被 `E_PAGE_CLEANUP_PENDING` 拒绝，尚未安装；旧实例所在两页已在核对并保留未发送草稿后刷新，随后 CUA 控制持续超时，清理终态与再次更新尚未验证。
+
+日常环境继续使用原 `npm run dev` 与 `dist/development`，扩展 ID 与 Native 配对保留。独立测试会话已有真实回复 READY，这只证明网站入口可用。下一条操作是核对旧实例清理状态，经原审阅链安装 r13，再完成真实入队和双端同步。
+
+当前实测范围、候选身份、CI 失败与下一步见 [R5.10 验收记录](ACCEPTANCE-R5.10.zh-CN.md)。本地晋升与 Git 提交不代表公开发布；Tool 未加入公开官方目录，Page Catalog 保持 blocked。
+
+本轮优先真实核心链：Page 入队 → Sidebar 同步 → 跨端暂停/恢复 → FIFO 发送与真实回复确认。先修复实际失败，再选择相关检查；完整验收、评分、宽度/缩放矩阵、production 发布和全量 CI 延期。
+
 ## 不可漂移的合同
 
 - Page ID：`opendesk.ai-send-queue`，唯一队列与发送状态机：`src/page/engine.js`；ChatGPT DOM：`src/page/site.js`；远端协议：`src/page/remote.js`。
@@ -20,7 +32,9 @@
 - `b673adb`：新增 CSS Token 与操作可达性回归断言；这是静态回归，不能替代视觉截图。
 - CI 工作流导出候选包的规范 SHA-256 和唯一历史 HTML 供审计，不自动发布。
 
-## 当前证据与阻断（不得伪造完成）
+## 远端交接时的证据与阻断（历史观察）
+
+以下为远端交接记录；当前安装、候选与下一条操作以上述本地进度及验收记录为准，不重复执行已有有效证据。
 
 - 一次既有 GitHub Actions `40729363693`：队列 193 个 Node 用例通过，React 候选构建、Page r12 编译、安装包身份和 SHA 校验成功；**不是**双端实时联调。
 - 同一次运行在共享 Host provenance 验证失败：`examples/programs/chatgpt-jump-top/src/conversation.js` 的 Prompt Shortcuts 固定来源变更未审核重锁。此为跨产品安全门禁，`build:dev` 与 Chrome 安装阶段被跳过；不得通过关闭门禁解决。
@@ -29,7 +43,9 @@
 - `scripts/ci-installed-chromium.mjs` 联合安装新增代码仍待成功的实际 Chrome 运行证据；Page DOM 真实发送、macOS 已登录 ChatGPT、Side Panel 关闭重开后的真实同步，均 **NOT_TESTED**。
 - `preview/index.html` 尚未由正式 React 构建驱动双端联动；不得把旧 Page 离线预览当作已完成的 React 页面。
 
-## 下一轮只做未完成增量
+## 后续待办（按当前阶段选择）
+
+以下保留远端待办，不作为当前核心链的前置清单；完整验收、评分、production 发布及全量 CI 继续延期。
 
 1. 从最新 main 复核运行记录与新增 CI 脚本；修复本产品测试缺陷，跨产品 provenance 由对应所有者按原始审核流程修复。
 2. 使用正式 Vite + Tool packer 构建精确候选、核对 SHA-256，审计后更新唯一 Host pin，再以真实 MV3 Chromium 验证 **两份**安装回执和受信 RPC。
@@ -37,7 +53,9 @@
 4. 解决官方 Tool 与 Page 两个独立候选的**统一用户安装流程**；未完成真实 Mac 发送验收前保持 Page blocked，不向用户冒称整个产品安装成功。
 5. Mac Chrome 已登录 ChatGPT：两条排队消息按序入站，单条暂停/恢复、提前发送、取回编辑、删除、排序、IME/附件、unknown-effect 不重发；保留带时间和版本的真实截图/日志。实测后才允许审批发布。
 
-## 本地执行入口（真实 Mac，非模型模拟）
+## 本地命令参考
+
+以下为按改动选择的本地命令参考，不是本轮必须顺次执行的清单：
 
 ```bash
 node --test examples/sidebar-tools/ai-send-queue/tests/*.test.mjs
@@ -48,3 +66,5 @@ npm run build:dev
 ```
 
 仅在 `main` 上提交，不创建分支、Worktree 或 PR；不交付 ZIP；明确区分已通过的源码测试、模拟 Chrome、正式原生安装与 Mac ChatGPT 发送证据。
+
+两份候选分别经过既有安装/权限流程。已完成的安装证据按准确输入复用；后续从真实 ChatGPT 会话继续，避免重复重建或用预览假数据替代联调。

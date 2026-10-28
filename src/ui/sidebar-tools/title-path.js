@@ -34,7 +34,7 @@ export function formatSidebarToolHeading(options={}){
   const readOnly=typeof options.readOnlyLabel==='string'?options.readOnlyLabel.trim():'';
   const suffix=readOnly?` · ${readOnly}`:'';
   return {
-    visible:`${page||tool}${suffix}`,
+    visible:page||tool,
     context:`${tool}${fullPage?' / '+fullPage:''}${suffix}`
   };
 }

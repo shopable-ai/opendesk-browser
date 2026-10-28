@@ -59,20 +59,22 @@ function reviewedCompiledAdblock(target,path,root){
   return hash;
 }
 
-// R134 Cookie account source review against 883058080: fixed SW imports the
-// service, encrypted vault and pure root-fragment URL parser. The service keeps
+// R5.10 review of cdfe6e3d6 and its uninstall-race repair: the approved account
+// flow uses trusted Foundation storage and preserves legacy encrypted bytes.
+// Fixed SW imports the service, vault and pure root-fragment URL parser, keeping
 // official package/hash/epoch, trusted Sender, site/Cookie permission and exact
 // Document/Store/Partition checks; b57da4f also fences DIFFERENT automatic
-// intents while a tab's native write outcome is unresolved. Never approve the
-// older service bytes. No installed package code or new permission is admitted.
+// intents while a tab's native write outcome is unresolved. Full requests and
+// cleanup now share the existing queue so an old capture cannot revive deleted
+// accounts. No installed package code or new permission is admitted.
 // Only the pure RPC/storage-key contract reaches the enumerated shared
 // installer/Host closures for account messages and verified uninstall cleanup.
 const compiledCookieAccountInputs=Object.freeze({
-  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'7e9256f6702a159d4a5840a548b2c8380bafd8df',
+  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'2d89c25a96ebc49524127659290c2d0a45c3bf5e',
   // Exact four-field fence equality also tolerates storage key reordering.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'6227027e10e5dc0c7934d3d9ba7171dde6f37cd5',
-  // Validated envelope readback accepts Chrome's object-key reordering only.
-  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'85b5b7f849eb2c95c17e5e2efdf6c0393cdae89e',
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'51c667b6d8613e7b0e115d4cf4922e588311c64e',
+  // Compare/readback stays within Foundation; old ciphertext remains read-only.
+  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'c52bb9db27c7fd2811981d0d7a6ae8118351be09',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 });
 const cookieAccountContractTargets=new Set([
@@ -215,8 +217,6 @@ const compiledPromptShortcutInputs=Object.freeze({
   'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'96290d6c96b957bf530c37f67bb74ddbc4b8d6fb',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
-  // Shared with the standalone diagnostic harness; never an installed package import.
-  'examples/programs/chatgpt-jump-top/src/conversation.js':'ea1dcb3114175c2b79e134df1794a1fdd93460c9',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
   'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'5f0184b28abe5d8e03855f9c130d45faba807d1e'
 });
@@ -225,11 +225,9 @@ const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.j
 // contract there for owner-scoped uninstall cleanup, never the asset Host or UI.
 const promptAssetContractTargets=new Set([...promptFixedTargets,'ui/marketplace.js']);
 const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);
-const promptJumpTargets=new Set(['agents/page-relay.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
   const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js'?promptAssetContractTargets:
-    path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:
-    path==='examples/programs/chatgpt-jump-top/src/conversation.js'?promptJumpTargets:promptFixedTargets;
+    path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:promptFixedTargets;
   if(!targets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)

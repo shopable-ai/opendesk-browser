@@ -5,9 +5,25 @@ import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId,managedSiteV3RuleRange,
   from '../../src/platform/chrome/managed-site-v3-rules.js';
 import {normalizeManagedSiteV3Commit,assertManagedSiteV3ModelRef,canonicalManagedSiteV3ModelBytes}
   from '../../src/framework/sdk/site-budget-v3-policy.js';
+import {MAX_INSTALLED_TOOLS} from '../../src/ui/sidebar-tools/package.js';
+import {MANAGED_SITE_BUDGET_RULE_FIRST,MANAGED_SITE_BUDGET_RULES_PER_OWNER}
+  from '../../src/platform/chrome/browser-managed-site-budget.js';
 const site=(host,{subdomains=true,enabled=true,pool='g:shared',limitMs=60000}={})=>({
   host,subdomains,enabled,pool,conditions:[{type:'counter-limit',limitMs}]});
 const plan=(sites,whitelist=[])=>({kind:'site-budget.v3',enabled:true,sites,whitelist});
+test('every install slot has a bounded v3 rule range disjoint from v2 and peers',()=>{
+  const v2Last=MANAGED_SITE_BUDGET_RULE_FIRST+MAX_INSTALLED_TOOLS*MANAGED_SITE_BUDGET_RULES_PER_OWNER-1;
+  const ranges=Array.from({length:MAX_INSTALLED_TOOLS},(_,slot)=>managedSiteV3RuleRange(slot));
+  assert.ok(v2Last<ranges[0].first);
+  for(let slot=1;slot<ranges.length;slot++)assert.ok(ranges[slot-1].last<ranges[slot].first);
+  const lastSlot=MAX_INSTALLED_TOOLS-1,last=ranges.at(-1);
+  const rules=desiredManagedSiteV3Rules(plan([site('example.com')]),{'g:shared':60000},1234567,lastSlot);
+  assert.equal(rules[0].id,last.first);
+  assert.ok(isManagedSiteV3RuleId(lastSlot,last.last));
+  assert.equal(isManagedSiteV3RuleId(lastSlot,last.last+1),false);
+  for(const slot of [-1,MAX_INSTALLED_TOOLS,0.5])
+    assert.throws(()=>managedSiteV3RuleRange(slot),{code:'E_MANAGED_DNR_SCOPE'});
+});
 test('v3 native DNR uses fixed disjoint owner IDs and rejects unbounded code',()=>{
   const policy=plan([site('example.com'),site('sub.example.com',{enabled:false})],['safe.example.net']);
   const rules=desiredManagedSiteV3Rules(policy,{'g:shared':60000},1234567,1);

@@ -384,6 +384,8 @@
 .sidebar-tool-status[data-state=error]{color:var(--od-negative)}
 .sidebar-tool-status[data-state=success]{color:var(--od-positive)}
 .sidebar-tool-status[data-state=unknown]{color:var(--od-warning)}
+.sidebar-tool-development-panel{padding-bottom:var(--space-2);border-bottom:1px solid var(--od-line)}
+.sidebar-tool-development-info{flex:1;min-width:0}
 .sidebar-tool-inline-remove{margin-top:8px;padding:10px 12px;min-width:0;border:1px solid var(--od-negative);background:var(--od-paper);border-radius:var(--radius-control)}
 .sidebar-tool-inline-remove[hidden]{display:none!important}
 .sidebar-tool-inline-remove p{margin:0 0 8px;font-size:12px;line-height:1.5;color:var(--od-negative);overflow-wrap:anywhere}

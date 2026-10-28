@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createContextMenuHost,formatBrowserMenuTitle} from '../../src/platform/chrome/context-menus.js';
 import {sidebarToolPackageHash,validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from '../../src/ui/sidebar-tools/package.js';
 import {BROWSER_MENU_ROOT,BROWSER_MENU_GRANTS_STORE,BROWSER_MENU_MATERIALIZED_STORE}
   from '../../src/framework/sdk/browser-contract.js';
 import {BROWSER_MENU_LAUNCH_STORE,BROWSER_MENU_SOURCE_PROTOCOL,BROWSER_MENU_SELECTION_PROTOCOL} from '../../src/framework/sdk/browser-contract.js';
@@ -95,6 +95,21 @@ const menuCall=async(f,host,operation,args={})=>host.handleTool({operation,args,
   toolId:f.tool.id,toolVersion:f.tool.version,packageHash:await sidebarToolPackageHash(f.tool),
   installEpoch:f.local.get(TOOL_REVOCATION_EPOCHS_STORE)?.[f.tool.id]??null,
   toolInstance:instance,hostInstanceId:instance},hostSender);
+
+test('menus accept every installed tool slot and still reject overflow or duplicate identities',async()=>{
+  const f=await fixture({approved:false}),host=f.host();
+  const tools=Array.from({length:MAX_INSTALLED_TOOLS},(_,i)=>({...structuredClone(f.tool),id:'menu-tool-'+i}));
+  f.local.set(SIDEBAR_TOOL_STORE,tools);
+  assert.deepEqual(await host.synchronize(),{enabled:true,count:MAX_INSTALLED_TOOLS});
+  assert.equal(f.menus.size,MAX_INSTALLED_TOOLS);
+  const before=structuredClone([...f.menus]);
+  for(const rows of [[...tools,{...structuredClone(f.tool),id:'overflow-tool'}],
+    [...tools.slice(0,-1),tools[0]]]){
+    f.local.set(SIDEBAR_TOOL_STORE,rows);
+    await assert.rejects(host.synchronize(),{code:'E_STORAGE_CORRUPT'});
+    assert.deepEqual([...f.menus],before,'invalid registries must not remove existing menus');
+  }
+});
 
 test('rich selection is fetched only after a verified native click and consumed with the same ticket',async()=>{
   for(const warm of [false,true]){

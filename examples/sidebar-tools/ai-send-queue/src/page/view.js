@@ -79,15 +79,15 @@ function composerSurface(editor,nativeButton,form,win){
 }
 export function createQueueView({owner,createPageUI,assets,engine,actions}){
   const doc=owner.content.ownerDocument,css=owner.getAsset('assets/queue.css');
-  // addStyle() injects a <style> into the page Shadow DOM. A relative WebP
-  // URL there resolves against chatgpt.com, not our Program asset directory.
-  // Resolve the already packaged image through the trusted asset API instead.
+  // The Program packager already inlines declared CSS images. Direct source
+  // adapters can retain the relative reference; both must use these exact bytes.
   const crownImage=owner.getAsset('assets/crown-premium.webp');
   const imageRef='url("crown-premium.webp")';
+  const packagedImageRef=`url("${crownImage}")`;
   if(typeof crownImage!=='string'||!/^data:image\/webp;base64,[a-z0-9+/=]+$/i.test(crownImage)||
-    !css.includes(imageRef))
+    typeof css!=='string'||(!css.includes(imageRef)&&!css.includes(packagedImageRef)))
     throw new Error('Packaged Send Queue crown image is missing or invalid');
-  const buttonCss=css.replace(imageRef,`url("${crownImage}")`);
+  const buttonCss=css.replace(imageRef,packagedImageRef);
   let list=null,button=null,root=null,blue=null,toastNode=null,toastToken=0;
   let lastSignature='',recoveryText=null,recoveryReason='';
   function reset(){

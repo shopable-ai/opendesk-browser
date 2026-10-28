@@ -5,7 +5,7 @@ import {composeExtensionEntries,filterExtensionEntries}
 import {SEND_QUEUE_PIN} from '../../../../src/platform/host/send-queue-admission.js';
 const tool={id:SEND_QUEUE_PIN.toolId,version:SEND_QUEUE_PIN.toolVersion,title:'AI 消息发送队列',
   description:'管理已安装的网页队列',capabilities:['currentPage.read']};
-const page={programId:SEND_QUEUE_PIN.pageProgramId,revision:12,title:'AI 消息发送队列',
+const page={programId:SEND_QUEUE_PIN.pageProgramId,revision:13,title:'AI 消息发送队列',
   manifestHash:'manifest',sourceHash:SEND_QUEUE_PIN.pageSourceHash,
   enabled:true,nativeState:'registered',authorization:{status:'active'},
   pageRules:{matches:['https://chatgpt.com/*'],excludeMatches:[],world:'USER_SCRIPT',

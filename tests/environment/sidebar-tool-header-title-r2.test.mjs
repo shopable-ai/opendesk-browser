@@ -24,7 +24,9 @@ test('root names and concise child actions keep complete semantic context',()=>{
     [{toolTitle:'书签管理',pageTitle:'首页'},'书签管理','书签管理'],
     [{toolTitle:'书签管理',pageTitle:'编辑书签',isSettings:true},'设置','书签管理 / 设置'],
     [{toolTitle:'书签管理',pageTitle:'编辑书签',readOnlyLabel:'只读预览'},
-      '编辑 · 只读预览','书签管理 / 编辑书签 · 只读预览']
+      '编辑','书签管理 / 编辑书签 · 只读预览'],
+    [{toolTitle:'网页笔记 · React',readOnlyLabel:'只读预览'},
+      '网页笔记 · React','网页笔记 · React · 只读预览']
   ];
   for(const [options,visible,context] of cases){
     assert.deepEqual(formatSidebarToolHeading(options),{visible,context});

@@ -90,6 +90,8 @@ async function hostFixture(t,{currentPageTarget,capabilities}={}){
 test('existing Host waits for development admission before dispatching any tool code and drops old iframe initialization',async t=>{
   const f=await hostFixture(t),barrier=gate();
   f.tools.openReadOnlyPreview(f.tool,{developmentSession:f.developmentSession(barrier.promise)});
+  assert.equal(f.view.fields['sidebar-tool-title'].textContent,f.tool.title,'preview metadata does not alter the application title');
+  assert.match(f.view.fields['sidebar-tool-title'].attributes['aria-label'],/只读预览/,'accessibility retains preview context');
   const old=f.frames.at(-1),loading=old.onload();
   assert.equal(old.messages.some(row=>row.kind==='load'),false);
   f.tools.openReadOnlyPreview(f.tool);const current=f.frames.at(-1);await current.onload();

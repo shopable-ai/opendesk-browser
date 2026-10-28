@@ -274,3 +274,37 @@ test('fixed SW install forwards Foundation storage and exposes cleanup only to i
   assert.equal(f.records.has(COOKIE_ACCOUNT_STORE_KEY),false);
   assert.deepEqual(f.records.get('other-tool'),unrelated);
 });
+
+for(const pausedAt of ['capture','authorization'])
+test(`cleanup drains first create paused at ${pausedAt} without account resurrection`,{timeout:2000},async t=>{
+  const f=await serviceFixture(t);
+  const service=createCookieAccountService({api:f.api,storage:f.storage});
+  const entered=Promise.withResolvers(),release=Promise.withResolvers();
+  t.after(()=>release.resolve());
+  const target=pausedAt==='capture'?f.api.cookies:f.api.runtime;
+  const method=pausedAt==='capture'?'getAll':'getContexts';
+  const originalMethod=target[method];
+  let first=true;
+  target[method]=async(...args)=>{
+    if(first){first=false;entered.resolve();await release.promise;}
+    return originalMethod(...args);
+  };
+  const creating=service.dispatch(f.message('create',{revision:0,displayName:'清理前账号'}),f.sender);
+  await entered.promise;
+  const cleaning=service.cleanup();
+  // Drain ready promises while the older request remains explicitly paused.
+  await new Promise(resolve=>setImmediate(resolve));
+  release.resolve();
+  await Promise.all([creating,cleaning]);
+  assert.equal(f.records.has(COOKIE_ACCOUNT_STORE_KEY),false,
+    'cleanup must not finish before an older capture can recreate the account store');
+  assert.equal(f.writes(),0,'capture and cleanup must not write native Cookies');
+  f.state[TOOL_REVOCATION_EPOCHS_STORE]['cookie-editor']='new-install';
+  f.state[BROWSER_MENU_GRANTS_STORE]['cookie-editor'].installEpoch='new-install';
+  await assert.rejects(service.dispatch(f.message('status'),f.sender),{code:'E_TOOL_CHANGED'});
+  const message=f.message('create',{revision:0,displayName:'清理后合法账号'});
+  message.installEpoch='new-install';
+  const saved=await service.dispatch(message,f.sender);
+  assert.equal(saved.revision,1);
+  assert.deepEqual(saved.accounts.map(row=>row.displayName),['清理后合法账号']);
+});

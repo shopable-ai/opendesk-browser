@@ -343,7 +343,7 @@ chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=tr
 // session, not a storage grant. The existing ToolHost is the sole sandbox owner.
 function panelPreviewStatus(text,error=false){
   toolView.patch('sidebar-tool-readonly-banner',{
-    textContent:text+'。未安装；调试使用隔离测试数据，不会使用正式工具数据。',
+    textContent:text,
     hidden:false,data:{state:error?'error':'readonly'}});
 }
 function detachPanelPreview({clearTab=true}={}){
@@ -602,7 +602,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
         onInvalidate:()=>toolDevelopmentControls.invalidate(),onSnapshot:value=>toolDevelopmentControls.snapshot(value),
         isActive:()=>sidebarTools.isPreviewActive(),isDirty:()=>sidebarTools.isPreviewEditing(),
         onStatus:(text,error)=>toolView.patch('sidebar-tool-readonly-banner',{
-          textContent:text+'。调试数据与正式工具数据分开。',hidden:false,data:{state:error?'error':'readonly'}})});
+          textContent:text,hidden:false,data:{state:error?'error':'readonly'}})});
       await livePreview.ready;
     }catch(error){
       if(shellClosed)return;

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {SEND_QUEUE_PIN,admitsPinnedQueueTool,admitsPinnedQueuePage}
   from '../../../../src/platform/host/send-queue-admission.js';
 const app={id:'ai-send-queue',version:'0.1.13',uiRuntime:'opendesk.react-ui.v1',capabilities:['currentPage.read']};
-const page={programId:'opendesk.ai-send-queue',revision:12,sourceHash:SEND_QUEUE_PIN.pageSourceHash,
+const page={programId:'opendesk.ai-send-queue',revision:13,sourceHash:SEND_QUEUE_PIN.pageSourceHash,
   pageRules:{matches:['https://chatgpt.com/*'],excludeMatches:[],world:'USER_SCRIPT',
     runAt:'document_idle',allFrames:false}};
 test('only the exact built React package may request queue control',()=>{
@@ -20,6 +20,7 @@ test('Page source and site grant remain exact and never trust an expanded same-I
   assert.equal(admitsPinnedQueuePage(page),true);
   for(const bad of [
     {...page,revision:11},
+    {...page,revision:12},
     {...page,sourceHash:'0'.repeat(64)},
     {...page,pageRules:{...page.pageRules,matches:['https://chatgpt.com/*','https://example.com/*']}},
     {...page,pageRules:{...page.pageRules,world:'MAIN'}},

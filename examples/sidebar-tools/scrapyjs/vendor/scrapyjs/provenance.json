@@ -1,0 +1,204 @@
+{
+  "format": "scrapyjs-source-pin.v1",
+  "sourceRepository": "/Users/shopme/Documents/workspace/scrapyJs",
+  "sourceHead": "0ec0aa34aefe95b1315e8cdb22428756293f4f3d",
+  "browserSha256": "c7a266c1bd5f34ba5e5a85d163c0573fc1d5afb60c07d0ce46af8393e7ada4be",
+  "authorization": "Owner authorized migration in the current task; third-party notices retained.",
+  "inputs": [
+    {
+      "file": "src/ai/BrowserValidation.js",
+      "sha256": "5489bc47f6d44a6248db682b113265315324fa72d37f5f13deef565aa7e3b954",
+      "bytes": 13704
+    },
+    {
+      "file": "src/ai/ConfigExecutor.js",
+      "sha256": "bd7103d3e1c4cbb6f08c96eea02fe8217833afde0f6a94f0811ff6cfb1228aa2",
+      "bytes": 8594
+    },
+    {
+      "file": "src/ai/EngineFingerprint.js",
+      "sha256": "0b29820f408ac803604da424b55f5e91df8fd1e3ad1e7476089fa276ac538bae",
+      "bytes": 812
+    },
+    {
+      "file": "src/ai/Processing.js",
+      "sha256": "1858c333d7556adcc672ab611e9f26a5e78ab9a426b7638e257a74539a66dd9b",
+      "bytes": 4852
+    },
+    {
+      "file": "src/ai/Provider.js",
+      "sha256": "be6963aab9394cd69dcfa0a05d5bf2b605fc70ab3ab1280e5581220949ddb513",
+      "bytes": 2096
+    },
+    {
+      "file": "src/ai/Publication.js",
+      "sha256": "3dc1fff8e44558738594530b3021fd7dcc102747b86d9c2fd1f746a28198113e",
+      "bytes": 2136
+    },
+    {
+      "file": "src/ai/TaskSpec.js",
+      "sha256": "443a6e423105d4a8fcdc1c1203fe98de6045783d4a7ddb4a15e0f87c1ead7495",
+      "bytes": 15803
+    },
+    {
+      "file": "src/ai/Workflow.js",
+      "sha256": "84f41e10859676c01bbffc8ea1dc03b8c698779c1f107d06040aaed18a52e0aa",
+      "bytes": 27706
+    },
+    {
+      "file": "src/ai/index.js",
+      "sha256": "57440f42839628297cadaee48e0d73084cff4220450fd9fe5dfd448d3e3dda36",
+      "bytes": 763
+    },
+    {
+      "file": "src/core/BaseSpider.js",
+      "sha256": "f02d9f315909a3f01c1b8fc96d8e4575e2b0083f855b69d9347a1793179e5a7b",
+      "bytes": 1781
+    },
+    {
+      "file": "src/core/ChromeSpider.js",
+      "sha256": "4a5bdedd7f2aace05cd09b4efbad393b1c3d6dbc6c5a69694a69fbe391463612",
+      "bytes": 11447
+    },
+    {
+      "file": "src/core/CloseSpider.js",
+      "sha256": "214d53bbfb676254cc3c0cb91074f90c4d865c4dc8eab0a18a3119de67f51793",
+      "bytes": 2024
+    },
+    {
+      "file": "src/core/CrawlSpider.js",
+      "sha256": "f63433c5c388c70be410f17842604bf74d5663301ad19a20727050689088dffa",
+      "bytes": 1770
+    },
+    {
+      "file": "src/core/ListSpider.js",
+      "sha256": "5654be5848b67dcd48792b98336a83293e204176df26a3b1eadfccd89f0694ef",
+      "bytes": 4673
+    },
+    {
+      "file": "src/core/Pipeline.js",
+      "sha256": "485756437de0d2a49d4828cbbe6bdc1bad7a1661b248bf2363ee391924c66e03",
+      "bytes": 2078
+    },
+    {
+      "file": "src/core/Rule.js",
+      "sha256": "3636d69a4258f98f36c08057e14140077ef6c28e804d173beeb4541a13774aea",
+      "bytes": 2695
+    },
+    {
+      "file": "src/core/RunFailure.js",
+      "sha256": "5b63144e31284f59807674496165dd62d022018bd171b86ea9df183b148e9086",
+      "bytes": 1068
+    },
+    {
+      "file": "src/core/Scheduler.js",
+      "sha256": "8ad9f16d1443b40e4168008c9e6bfda196b24aecf6aea9be47022b5e7b8c71a5",
+      "bytes": 18564
+    },
+    {
+      "file": "src/core/Scrapy.js",
+      "sha256": "9d4bbc0fd4c6cb5731eb99485d6c94456e584dbafa1b4aa4525e5cfece430efc",
+      "bytes": 14075
+    },
+    {
+      "file": "src/core/Spider.js",
+      "sha256": "f5eec8717ab1e7a957ae8da7a89a2cddf6e365216c0907fb259a7438f079f70a",
+      "bytes": 196
+    },
+    {
+      "file": "src/exporter/ExportManager.js",
+      "sha256": "a62171e72ba357249ea781ed25e425230c506f5eb45fbe3052873e94d9678ef4",
+      "bytes": 12823
+    },
+    {
+      "file": "src/exporter/FeedExport.js",
+      "sha256": "e9b38cbe7a0fea79490d9b80c4749a45093a5f6f0a51119ec307b82ba6796b30",
+      "bytes": 11526
+    },
+    {
+      "file": "src/http/Request.js",
+      "sha256": "a9ff647cf08cbb9cb907b6a2809b8be6819fbdf972c5f985c31a7459e48af2e5",
+      "bytes": 4003
+    },
+    {
+      "file": "src/http/Response.js",
+      "sha256": "95879a650eb21d3c0a6f4f34e28549683044d566f57d1613ff41ff70bad163c9",
+      "bytes": 1043
+    },
+    {
+      "file": "src/index.js",
+      "sha256": "48ca3165403c5a35139a107e6470f3b383ded0ee87fe8f60900536e944cb613b",
+      "bytes": 4088
+    },
+    {
+      "file": "src/item/Item.js",
+      "sha256": "098542af571a3f7787c4756a14b8da17def05943207464e36a92027274c71ec9",
+      "bytes": 1313
+    },
+    {
+      "file": "src/item/ItemLoader.js",
+      "sha256": "6d6d0b1769c44ac79460242f8abc6ed00740edd8c2bb2256a50b5dcac11fd48c",
+      "bytes": 4720
+    },
+    {
+      "file": "src/item/item-loader-extraction.js",
+      "sha256": "104335b009fd9c7436c6e4b9a0351d545b65c6db83c719306a2e8e31eb0df8b1",
+      "bytes": 9917
+    },
+    {
+      "file": "src/item/parse-page.js",
+      "sha256": "f670afac5fc6e2b81138cc1f17ae4f6d21b72810addace91c604a38e4c10d30a",
+      "bytes": 5625
+    },
+    {
+      "file": "src/link/LinkExtractor.js",
+      "sha256": "e93bc0452622b52bc74c775b46b984c5605ecd265a77d685a7ebbee209315ddb",
+      "bytes": 5294
+    },
+    {
+      "file": "src/middleware/ChromeDownloaderMiddleware.js",
+      "sha256": "b7d2c981832c4cae4b77465047b439d2f13bad2ac62d133b17117754cac8b94f",
+      "bytes": 4553
+    },
+    {
+      "file": "src/middleware/DownloaderMiddleware.js",
+      "sha256": "54e42929cecd0c682727f7dab04798e2729f3d383bae5fb2265a8d7a2a535196",
+      "bytes": 6286
+    },
+    {
+      "file": "src/middleware/DownloaderMiddlewareManager.js",
+      "sha256": "5bd4dd8ae4943c8eb7cb85e44ecb382499195a0356a16c6ade9fbe1da8041a1d",
+      "bytes": 2217
+    },
+    {
+      "file": "src/middleware/IDownloaderMiddleware.js",
+      "sha256": "910c8face60696ef29800c66424395e9a9406a0ac8f183b85978341364c04fc0",
+      "bytes": 619
+    },
+    {
+      "file": "src/middleware/ProxyMiddleware.js",
+      "sha256": "b401e6a915929fac19368e60c973de57bde87dd1ecda029b866fdcb701e84295",
+      "bytes": 19190
+    },
+    {
+      "file": "src/middleware/ScopedDownloader.js",
+      "sha256": "fc2e86e0024a101094c0e8c294729ef9685d56c285e5b14517b9465d85eb771d",
+      "bytes": 6452
+    },
+    {
+      "file": "src/script/ScriptOutput.js",
+      "sha256": "baef3c85ea321fe5dca648651175ec90d86f66410f15b284f0d79b240364f774",
+      "bytes": 13892
+    },
+    {
+      "file": "src/task/NodeCheckpointStore.js",
+      "sha256": "e62a897781f0224fc543548f6efb5877b0aabf6284aa414d7b3bed8cddd78dbd",
+      "bytes": 6130
+    },
+    {
+      "file": "src/task/runCheckpointTasks.js",
+      "sha256": "636d462df4119c9f682f9ac1ca8e955889ea448f1bfd66508daa3a6857b6ce5f",
+      "bytes": 1614
+    }
+  ]
+}

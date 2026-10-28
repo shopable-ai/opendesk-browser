@@ -182,8 +182,8 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   const fixtures=[
     ['trusted/model.js','730496110c2ebc316eb74e1c29ac66dc74d60561'],
     ['trusted/policy.js','4c6f608a26e0d69278c18a0afda94b3c8ce8274c'],
-    // R4.3 independent review approved quota persistence and dock geometry/observer fixes.
-    ['trusted/page.js','cb7dcbd4733ba546c4b50790433f1b3cb4e3fd6f'],
+    // Existing exact approval includes the restored first-party OD rail entry.
+    ['trusted/page.js','96290d6c96b957bf530c37f67bb74ddbc4b8d6fb'],
     ['trusted/asset-contract.js','86e95bff786e52efb9089f97126542430f39a716'],
     // Exact approval was updated by bffde8f49 after the audited asset recovery fix 3d75d1a13.
     ['trusted/asset-host.js','b960044deb5e7d059c26d5d520f912c0b72c7b0e']
@@ -203,9 +203,7 @@ test('R1.4 provenance pins only audited trusted tool modules to exact fixed entr
   assert.throws(()=>examined('trusted/rail-open.js','ui/sidebar-tool-host.js'),
     /Historical\/user\/vendor code cannot enter/);
   const jump='../../programs/chatgpt-jump-top/src/conversation.js';
-  assert.equal(examined(jump,'agents/page-relay.js').reviewedFirstPartyBlob,
-    '77139704bc9e918f97840a3a34756a07deb3a32c');
-  for(const target of ['sw.js','ui/sidebar-tool-host.js']){
+  for(const target of ['agents/page-relay.js','sw.js','ui/sidebar-tool-host.js']){
     assert.throws(()=>examined(jump,target),/Historical\/user\/vendor code cannot enter/);
   }
   assert.throws(()=>examined('src/main.js','agents/page-relay.js'),

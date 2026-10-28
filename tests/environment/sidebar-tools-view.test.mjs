@@ -132,6 +132,47 @@ test('SSR contains import, execution display and trusted reviews, with one owner
 });
 
 
+test('preview metadata belongs to collapsed developer tools outside the application canvas',()=>{
+  const view=createSidebarToolsView();
+  const status='实时开发预览 · 0f811a7bfe3c · 未安装';
+  view.patch('sidebar-tool-display',{hidden:false});
+  view.patch('sidebar-tool-readonly-banner',{hidden:false,textContent:status});
+  const render=props=>parseHTML(renderToStaticMarkup(React.createElement(ToolHost,{view,...props}))).document;
+  const document=render({debugPreview:true});
+  const info=document.querySelector('.sidebar-tool-development-panel');
+  const details=info.querySelector('details');
+  const canvas=document.getElementById('sidebar-tool-display');
+  assert.equal(info.hidden,false);
+  assert.equal(details.hasAttribute('open'),false);
+  assert.equal(details.querySelector('#sidebar-tool-readonly-banner').textContent,status);
+  assert.match(details.textContent,/隔离测试数据/);
+  assert.equal(canvas.querySelector('#sidebar-tool-readonly-banner,#sidebar-tool-development-status'),null);
+  assert.doesNotMatch(canvas.textContent,/实时开发预览|未安装|隔离测试数据/);
+  assert.equal(info.querySelector('button').textContent,'停止调试');
+  assert.equal(info.querySelector('[role="status"]:not([hidden])'),null);
+  assert.equal(render({concealed:true}).querySelector('.sidebar-tool-development-panel').hidden,true);
+  view.patch('sidebar-tool-readonly-banner',{hidden:true});
+  assert.equal(render().querySelector('.sidebar-tool-development-panel').hidden,true,'installed tools have no developer chrome');
+  view.dispose();
+});
+
+test('preview failures remain visible outside the canvas while developer information is collapsed',()=>{
+  const view=createSidebarToolsView();
+  for(const message of ['编译失败 · 保留上次成功预览','开发连接中断 · 保留上次成功预览','当前预览有未保存内容']){
+    view.patch('sidebar-tool-readonly-banner',{hidden:false,textContent:message,data:{state:'error'}});
+    view.patch('sidebar-tool-development-status',{hidden:false,textContent:'Native 会话已失效'});
+    const {document}=parseHTML(renderToStaticMarkup(React.createElement(ToolHost,{view})));
+    const info=document.querySelector('.sidebar-tool-development-panel');
+    assert.equal(info.querySelector('details').hasAttribute('open'),false);
+    const statuses=[...info.querySelectorAll('[role="status"]')];
+    assert.deepEqual(statuses.map(node=>node.textContent),[message,'Native 会话已失效']);
+    assert.ok(statuses.every(node=>!node.hidden&&!node.closest('details')));
+    assert.equal(document.getElementById('sidebar-tool-display')
+      .querySelector('#sidebar-tool-readonly-banner,#sidebar-tool-development-status')===null,true);
+  }
+  view.dispose();
+});
+
 test('market review and success use one dialog with clear facts and no repeated permission review',()=>{
   const view=createSidebarToolsView();
   const details={version:'1.0.0',previousVersion:null,origin:'http://127.0.0.1:43132',
@@ -278,6 +319,21 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   facade.uninstallFromList('alpha',baseline,event);
   assert.deepEqual(calls.at(-1),['uninstallFromList','alpha',baseline,event]);
   const frame = view.runtime.frameRoot.firstChild, trusted = document.getElementById('trusted-business-owner');
+  let stopped=0;
+  await React.act(async()=>{
+    view.patch('sidebar-tool-readonly-banner',{hidden:false,textContent:'实时开发预览 · aaaaaaaaaaaa · 未安装'});
+    root.render(React.createElement(ToolHost,{view,debugPreview:true,onStopDebug:()=>{stopped++;}}));
+  });
+  const developerInfo=document.querySelector('.sidebar-tool-development-info');
+  developerInfo.open=true;
+  await React.act(async()=>{
+    view.patch('sidebar-tool-readonly-banner',{textContent:'实时开发预览 · bbbbbbbbbbbb · 未安装'});
+  });
+  assert.equal(document.querySelector('.sidebar-tool-development-info'),developerInfo);
+  assert.equal(developerInfo.open,true,'status updates preserve the disclosure');
+  assert.equal(view.runtime.frameRoot.firstChild,frame,'developer information cannot remount the sandbox');
+  document.querySelector('.sidebar-tool-development-panel button').click();
+  assert.equal(stopped,1,'Stop still dispatches to its original owner');
   const focused = [], scrolls = [];
   document.getElementById('sidebar-tool-back').focus = options => focused.push(options);
   document.getElementById('sidebar-tool-back').scrollIntoView = options => scrolls.push(options);

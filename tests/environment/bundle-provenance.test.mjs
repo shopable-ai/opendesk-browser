@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure,trustedBookmarkStyle} from '../../scripts/bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
+import {PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
 const root='/repo';
 test('fixed Bookmark CSS keeps its exact source pin after leaving the JS bundle',async t=>{
   const css=trustedBookmarkStyle();
@@ -295,20 +296,12 @@ test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed ou
   assert.throws(()=>make('sw.js',root),/Trusted Prompt Shortcuts source changed/);
 });
 
-test('Prompt Shortcuts jump uses one reviewed source only in the Page Relay',async ctx=>{
+test('independent Scroll Page source cannot regain privileged fixed output admission',()=>{
   const path='examples/programs/chatgpt-jump-top/src/conversation.js';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
-  assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,
-    'ea1dcb3114175c2b79e134df1794a1fdd93460c9');
-  for(const target of ['sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'])
+  for(const target of Object.keys(PACKAGE_ENTRIES).map(name=>name+'.js'))
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
-  const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-jump-pin-')));
-  ctx.after(()=>rm(root,{recursive:true,force:true}));
-  const file=join(root,path);
-  await mkdir(join(root,'examples/programs/chatgpt-jump-top/src'),{recursive:true});
-  await writeFile(file,(await readFile(resolve(path),'utf8'))+'\n// unreviewed edit\n');
-  assert.throws(()=>make('agents/page-relay.js',root),/Trusted Prompt Shortcuts source changed/);
 });
 
 test('removed Prompt Shortcuts site bindings cannot regain privileged output admission',async ctx=>{

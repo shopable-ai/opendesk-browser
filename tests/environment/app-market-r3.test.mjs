@@ -152,7 +152,34 @@ test('same release is idempotent; stale baseline and author conflicts fail close
     baseline:candidate,reviewApproved:true,market:{...identity(),operationId:'cccccccc-bbbb-4ccc-8ddd-eeeeeeeeeeee'}}),
     e=>e.code==='E_PUBLISHER_CONFLICT');
 });
-test('12-tool capacity rejects excess without deleting existing installations',async()=>{
+test('a thirteenth tool preserves the first twelve installations and their data',async()=>{
+  const {api,locks,values}=browser();
+  const existing=Array.from({length:12},(_,i)=>tool('note'+i));
+  values[SIDEBAR_TOOL_STORE]=structuredClone(existing);
+  for(const entry of existing)values[sidebarToolStorageKey(entry.id)]={draft:'Keep '+entry.id};
+  const candidate=tool('queue-control');
+  await installReviewedSidebarTool({api,lockManager:locks,candidate,baseline:null,reviewApproved:true});
+  assert.deepEqual(values[SIDEBAR_TOOL_STORE].slice(0,12),existing);
+  assert.deepEqual(values[SIDEBAR_TOOL_STORE][12],candidate);
+  for(const entry of existing)
+    assert.deepEqual(values[sidebarToolStorageKey(entry.id)],{draft:'Keep '+entry.id});
+});
+test('full capacity still permits a reviewed same-ID update and exact reopen',async()=>{
+  const {api,locks,values}=browser();
+  const existing=Array.from({length:MAX_INSTALLED_TOOLS},(_,i)=>tool('note'+i));
+  values[SIDEBAR_TOOL_STORE]=structuredClone(existing);
+  const original=existing[0],candidate={...original,version:'1.0.3'};
+  values[sidebarToolStorageKey(original.id)]={draft:'Retain at capacity'};
+  await installReviewedSidebarTool({api,lockManager:locks,candidate,baseline:original,
+    reviewApproved:true,approveUpdate:async()=>true});
+  assert.equal(values[SIDEBAR_TOOL_STORE].length,MAX_INSTALLED_TOOLS);
+  assert.deepEqual(values[SIDEBAR_TOOL_STORE].slice(1),existing.slice(1));
+  assert.deepEqual(values[sidebarToolStorageKey(original.id)],{draft:'Retain at capacity'});
+  const same=await installReviewedSidebarTool({api,lockManager:locks,candidate,
+    baseline:candidate,reviewApproved:true});
+  assert.equal(same.state,'already-installed');
+});
+test('tool capacity rejects excess without deleting existing installations',async()=>{
   const {api,locks,values}=browser();
   values[SIDEBAR_TOOL_STORE]=Array.from({length:MAX_INSTALLED_TOOLS},(_,i)=>tool('note'+i));
   await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool('extra'),baseline:null,

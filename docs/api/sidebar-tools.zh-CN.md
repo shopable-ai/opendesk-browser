@@ -225,7 +225,7 @@ await OpenDeskTool.request('browser.scheduler.create', {
 
 扩容仅解除 Chrome 对宿主存储的常规小容量上限，**不放宽产品自身限制**：
 
-- 最多安装 **12** 个工具；单工具包最大 **320,000 UTF-8 字节**。
+- 最多安装 **13** 个工具；单工具包最大 **320,000 UTF-8 字节**。数量预算依据见 [R32.3 安装数量复核](../architecture/browser-ui-r23.zh-CN.md#2026-10-29安装数量的最小开发扩容)。
 - 普通工具的单项数据最多 **8,192 字节**、全工具最多 **32,768 字节**，每个工具最多 **32** 个字段。
 - 知识收件箱独立保留 **200 条 / 总数据 4 MiB**；不得用普通工具 32 KiB 限制替代。
 - `E_TOOL_CAPACITY` / `E_TOOL_LIMIT` / `E_TOOL_DATA_LIMIT` 属于产品限额；`E_HOST_STORAGE_QUOTA` / `E_HOST_STORAGE_WRITE` 属于宿主写入/设备环境问题；`E_STORAGE_CONFLICT` 是版本核对失败；`E_OUTCOME_UNKNOWN` 是读回不足以判断已发生的效果。

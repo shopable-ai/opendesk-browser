@@ -1,0 +1,119 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFile} from 'node:fs/promises';
+const context = vm.createContext({TextEncoder, URL});
+for (const path of ['../adapters/app-sdk.js', '../src/app-model.js']) vm.runInContext(await readFile(new URL(path, import.meta.url), 'utf8'), context);
+const {createApp, validateConfig, DEFAULT_CONFIG} = context.ScrapyAppModel;
+const plain = v => JSON.parse(JSON.stringify(v));
+const deferred = () => {let resolve, reject; const promise = new Promise((a,b) => {resolve=a;reject=b;}); return {promise,resolve,reject};};
+const page = {status:'available', url:'http://127.0.0.1:43111/demo-form.html', title:'Demo'};
+function setup(overrides = {}) {
+  const calls = [];
+  const sdk = {currentPage: async () => page, start: async () => ({runId:'original',status:'running'}),
+    read: async runId => ({runId,status:'running',engineStatus:'extracting',retired:false}),
+    stop: async runId => {calls.push(runId); return {runId,accepted:true,retired:false};},
+    load: async () => ({value:null,etag:'initial'}), save: async () => ({saved:true}), download: async () => ({downloadId:1}), ...overrides};
+  return {app:createApp(sdk),calls,sdk};
+}
+test('input only accepts bounded declarative configuration', () => {
+  assert.deepEqual(plain(validateConfig(DEFAULT_CONFIG)),plain(DEFAULT_CONFIG));
+  assert.equal(validateConfig({...DEFAULT_CONFIG,timeoutMs:60000}).timeoutMs,60000);
+  assert.throws(()=>validateConfig({...DEFAULT_CONFIG,timeoutMs:60001}),/60000/);
+  for (const value of [null, [], {...DEFAULT_CONFIG, code:'alert(1)'}, {...DEFAULT_CONFIG,url:'file:///etc/passwd'},
+    {...DEFAULT_CONFIG,itemConfig:{_listContainer: ''}}, {...DEFAULT_CONFIG,timeoutMs:60001},
+    {...DEFAULT_CONFIG,itemConfig:{title:{selector:'a',read:'execute'}}}]) assert.throws(() => validateConfig(value));
+  const native = {...DEFAULT_CONFIG,itemConfig:{_listContainer:'#sample-list',_listItem:'li',title:':scope::text',nested:{href:{selector:'a',read:'attr',attr:'href',cardinality:'one'}}}};
+  assert.deepEqual(plain(validateConfig(native)),native);
+});
+test('target URL must match trusted current page; changed target never starts', async () => {
+  let started=0; const {app,sdk}=setup({start:async()=>{started++;}});
+  await app.refreshTarget(); await app.start('https://example.com'); assert.equal(started,0); assert.match(app.state.error,/当前网页/);
+  sdk.currentPage=async()=>({...page,url:'https://example.org'});
+  await app.start(page.url); assert.equal(started,0); assert.equal(app.state.phase,'idle');
+});
+test('cancel before target check finishes does not issue start', async () => {
+  const {app,sdk}=setup(); await app.refreshTarget(); const check=deferred(); sdk.currentPage=()=>check.promise;
+  const run=app.start(page.url); await app.stop(); check.resolve(page); await run;
+  assert.equal(app.state.runId,null); assert.equal(app.state.phase,'idle');
+});
+test('cancel before start receipt stops the original run once and waits for retirement', async () => {
+  const pending=deferred(), sent=deferred(); const {app,calls,sdk}=setup({start:()=>{sent.resolve();return pending.promise;}});
+  await app.refreshTarget(); const run=app.start(page.url); await sent.promise; await app.stop();
+  pending.resolve({runId:'original',status:'running'}); await run;
+  assert.deepEqual(calls,['original']); assert.equal(app.state.stopAccepted,true); assert.equal(app.state.retired,false);
+  await app.stop(); assert.equal(calls.length,1);
+  sdk.read=async runId=>({runId,status:'stopped',engineStatus:'cancelled',retired:false,result:{items:[]}});
+  await app.refresh(); assert.equal(app.state.retired,false); assert.equal(app.state.phase,'stopping');
+  sdk.read=async runId=>({runId,status:'stopped',retired:true}); await app.refresh(); assert.equal(app.state.retired,true);
+});
+test('mismatched result identities are rejected and never rendered', async () => {
+  const {app}=setup({read:async()=>({runId:'other',result:{secret:true}})});
+  await app.refreshTarget(); await app.start(page.url); assert.equal(app.state.result,null); assert.match(app.state.error,/身份/);
+});
+test('unknown start outcome blocks replay', async () => {
+  let calls=0; const {app}=setup({start:async()=>{calls++;throw new Error('response lost');}});
+  await app.refreshTarget(); await app.start(page.url); await app.start(page.url);
+  assert.equal(calls,1); assert.equal(app.state.phase,'unknown');
+});
+test('host terminal status alone cannot confirm retirement or fabricate engine state', async () => {
+  const {app}=setup({read:async runId=>({runId,status:'completed',result:{items:[{text:'real'}]}})});
+  await app.refreshTarget(); await app.start(page.url);
+  assert.equal(app.state.retired,false); assert.equal(app.state.engine,'未报告'); assert.equal(app.state.result.items[0].text,'real');
+});
+test('conditional storage survives reopen and preserves edited draft during initial load', async () => {
+  let record={value:null,etag:'a'}; const writes=[];
+  const sdk={load:async()=>plain(record),save:async(value,etag)=>{writes.push(etag);record={value:plain(value),etag:'b'};return {saved:true};}};
+  const {app}=setup(sdk); await app.load(); app.edit({...DEFAULT_CONFIG,timeoutMs:5000}); await app.save();
+  assert.deepEqual(writes,['a']); assert.equal(app.state.dirty,false);
+  const reopened=setup(sdk).app; await reopened.load(); assert.equal(reopened.state.config.timeoutMs,5000);
+  const pending=deferred(), loading=setup({load:()=>pending.promise}).app;
+  const read=loading.load(); loading.edit({...DEFAULT_CONFIG,timeoutMs:8000}); pending.resolve(record); await read;
+  assert.equal(loading.state.config.timeoutMs,8000); assert.equal(loading.state.conflict.config.timeoutMs,5000);
+});
+test('storage conflict retains draft, reads current version and never overwrites automatically', async () => {
+  let reads=0,writes=0; const {app}=setup({load:async()=>({value:reads++ ? {...DEFAULT_CONFIG,timeoutMs:7000}:null,etag:String(reads)}),
+    save:async()=>{writes++;throw new Error('E_STORAGE_CONFLICT');}});
+  await app.load(); app.edit({...DEFAULT_CONFIG,timeoutMs:3000}); await app.save();
+  assert.equal(app.state.config.timeoutMs,3000); assert.equal(app.state.conflict.config.timeoutMs,7000); assert.equal(writes,1);
+  await app.save(); assert.equal(writes,1); app.useSaved(); assert.equal(app.state.config.timeoutMs,7000); assert.equal(app.state.dirty,false);
+});
+test('SDK adapter uses bounded conditional storage and complete JSON download', async () => {
+  const calls=[]; const sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push([op,payload]);return {saved:true,downloadId:2};});
+  await sdk.save({selector:'x'},null); assert.equal(calls[0][1].ifMatch,null);
+  await assert.rejects(sdk.save({x:'中'.repeat(3000)},'a'),/8192/);
+  await sdk.download({items:[{text:'完整'}]}); assert.equal(calls.at(-1)[1].filename,'scrapyjs-result.json');
+  await assert.rejects(sdk.download({items:['中'.repeat(51000)]}),/150000/);
+  assert.equal(calls.length,2);
+});
+test('SDK task requests have no arbitrary execution or caller-selected tab ID', async () => {
+  const calls=[];const sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push([op,plain(payload)]);return {};});
+  await sdk.start(DEFAULT_CONFIG,page.url);await sdk.stop('original');await sdk.read('original');
+  assert.deepEqual(calls.map(([op])=>op),['tasks.start','tasks.stop','tasks.read']);
+  assert.equal(calls[0][1].taskId,'scrapyjs.capture');assert.equal(calls[0][1].expectedUrl,page.url);
+  assert.equal('tabId' in calls[0][1],false);assert.equal('code' in calls[0][1],false);
+  assert.equal(calls[0][1].params.configJson,JSON.stringify(DEFAULT_CONFIG.itemConfig));
+  assert.ok(Object.values(calls[0][1].params).every(value=>['string','number','boolean'].includes(typeof value)));
+  assert.throws(()=>validateConfig({...DEFAULT_CONFIG,itemConfig:{title:'中'.repeat(1400)}}),/4096/);
+});
+test('default list config uses native SDK XPath self context for direct-text li records', async () => {
+  const {createRequire}=await import('node:module');
+  const require=createRequire(import.meta.url);
+  const {normalizeConfig,extractRecords}=require('../vendor/scrapyjs/src/item/item-loader-extraction.js');
+  const normalized=normalizeConfig(plain(DEFAULT_CONFIG.itemConfig));
+  assert.equal(normalized.listSelector,'#sample-list');assert.equal(normalized.itemSelector,'li');
+  assert.equal(normalized.fields[0].field.selector,'.');assert.equal(normalized.fields[0].field.xpath,true);
+  assert.equal(normalized.fields[0].field.attr,'text');
+  // Execute the unchanged source callback. Test DOM provides only each li's own text,
+  // no descendants; XPath '.' returns its actual context, unlike querySelectorAll(':scope').
+  const fixture=await readFile(new URL('../../../../examples/tasks/demo-form.html',import.meta.url),'utf8');
+  const list=fixture.match(/<ul id="sample-list"[^>]*>([\s\S]*?)<\/ul>/)[1];
+  const titles=[...list.matchAll(/<li>([^<]*)<\/li>/g)].map(match=>match[1]);
+  const nodes=titles.map(textContent=>({textContent,nodeType:1,children:[],contains(node){return node===this;},matches:selector=>selector==='li',querySelectorAll:()=>[]}));
+  const container={children:nodes};
+  const document={querySelectorAll:selector=>selector==='#sample-list'?[container]:selector==='li'?nodes:[],
+    evaluate(selector,node){assert.equal(selector,'.');return {snapshotLength:1,snapshotItem:()=>node};}};
+  const dom=vm.createContext({document,XPathResult:{ORDERED_NODE_SNAPSHOT_TYPE:7},config:normalized});
+  const result=vm.runInContext('('+extractRecords.toString()+')(config)',dom);
+  assert.deepEqual(plain(result.records),titles.map(title=>({title})));
+});
