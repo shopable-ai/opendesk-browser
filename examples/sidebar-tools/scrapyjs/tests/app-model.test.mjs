@@ -17,6 +17,12 @@ function setup(overrides = {}) {
     load: async () => ({value:null,etag:'initial'}), save: async () => ({saved:true}), download: async () => ({started:true}), ...overrides};
   return {app:createApp(sdk),calls,sdk};
 }
+test('bounded list detail run exposes partial list outcome alongside detail completion',async()=>{
+  const {app}=setup({read:async clientRequestId=>({clientRequestId,runId:'original',status:'completed',engineStatus:'completed',retired:true,
+    result:{data:[{id:'A'}],engine:{status:'completed'},list:{engine:{status:'partial',stopReason:'page_limit'}}}})});
+  await app.refreshTarget();await app.start(page.url);await app.refresh();
+  assert.match(app.state.engine,/列表 partial \(page_limit\)/);assert.deepEqual(plain(app.state.result.data),[{id:'A'}]);
+});
 test('input only accepts bounded declarative configuration', () => {
   assert.deepEqual(plain(validateConfig(DEFAULT_CONFIG)),plain(DEFAULT_CONFIG));
   assert.equal(validateConfig({...DEFAULT_CONFIG,timeoutMs:60000}).timeoutMs,60000);
@@ -153,4 +159,17 @@ test('default list config uses native SDK XPath self context for direct-text li 
   const dom=vm.createContext({document,XPathResult:{ORDERED_NODE_SNAPSHOT_TYPE:7},config:normalized});
   const result=vm.runInContext('('+extractRecords.toString()+')(config)',dom);
   assert.deepEqual(plain(result.records),titles.map(title=>({title})));
+});
+
+test('pagination/detail grammar reaches exact Task params without executable strings or unbounded options',async()=>{
+  const {pagination,listDetail}=await import('../examples/configs.js');
+  for(const config of [pagination,listDetail])assert.deepEqual(plain(validateConfig(config)),config);
+  for(const detail of [{...listDetail.detail,code:'eval()'},{...listDetail.detail,urlField:'absent'},
+    {...listDetail.detail,numberFields:['missing']}])assert.throws(()=>validateConfig({...listDetail,detail}));
+  assert.throws(()=>validateConfig({...pagination,maxPages:11}));
+  const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push([op,plain(payload)]);return payload.taskId?{task:{taskId:payload.taskId}}:{clientRequestId:payload.clientRequestId,state:'running'};});
+  await sdk.prepare();await sdk.start(listDetail,listDetail.url,'id');
+  const params=calls.at(-1)[1].params;
+  assert.deepEqual(JSON.parse(params.configJson),listDetail.itemConfig);
+  assert.deepEqual(JSON.parse(params.optionsJson).detail,listDetail.detail);
 });

@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "scrapyjs",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "title": "scrapyjs 采集",
-  "description": "配置并运行固定采集任务，查看真实状态、停止原实例、保存配置及下载完整 JSON。",
+  "description": "编辑字段、属性、分页与列表详情，运行固定采集任务，查看记录并保存和下载。",
   "capabilities": [
     "storage.local",
     "currentPage.read",
@@ -28,9 +28,9 @@
   "delegatedTasks": [
     {
       "taskId": "scrapyjs.capture",
-      "version": "0.1.0",
-      "manifestHash": "0f29804bb32e7ad70b8abedb9e267fb3070389c2cbc84d3108f2325bc517dfd1",
-      "contentHash": "91683b92d21aaee8a98c70c95d9edfc4cb2d7221dba4aab62632a753bbcfc0f2"
+      "version": "0.2.1",
+      "manifestHash": "033617f17a27566f942ecfacf0adf7ed4a3e4878801e406bd10f4d8e6b9b71e6",
+      "contentHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
     }
   ]
 }

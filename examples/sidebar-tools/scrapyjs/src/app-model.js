@@ -10,7 +10,7 @@
   function validateConfig(value) {
     const object = v => v && typeof v === 'object' && !Array.isArray(v);
     if (!object(value)) throw new Error('配置必须是 JSON 对象');
-    if (Object.keys(value).some(key => !['url', 'itemConfig', 'waitForSelector', 'timeoutMs'].includes(key))) throw new Error('配置只允许 url、itemConfig、waitForSelector、timeoutMs，不接受执行代码');
+    if (Object.keys(value).some(key => !['url', 'itemConfig', 'waitForSelector', 'timeoutMs', 'nextPageSelector', 'maxPages', 'dedupeKey', 'detail', 'validation', 'fieldRequirements', 'processing'].includes(key))) throw new Error('仅接受字段、分页、详情和处理的声明式配置，不接受执行代码');
     targetUrl(value.url);
     if (!object(value.itemConfig) || !Object.keys(value.itemConfig).length) throw new Error('itemConfig 必须是非空对象');
     // Preserve native SDK selector/descriptor/nested-field grammar. Engine owns CSS/XPath parsing.
@@ -39,6 +39,24 @@
     if (!Object.keys(value.itemConfig).some(key => !['_listContainer', '_listItem'].includes(key))) throw new Error('至少需要一个采集字段');
     if (value.waitForSelector !== undefined && (typeof value.waitForSelector !== 'string' || !value.waitForSelector.trim())) throw new Error('waitForSelector 必须是非空选择器');
     if (value.timeoutMs !== undefined && (!Number.isInteger(value.timeoutMs) || value.timeoutMs < 1 || value.timeoutMs > 60000)) throw new Error('timeoutMs 必须是 1–60000 的整数');
+    if (value.nextPageSelector !== undefined && (typeof value.nextPageSelector !== 'string' || !value.nextPageSelector.trim() || value.nextPageSelector.length > 1024 || /^\(?\.?\//.test(value.nextPageSelector))) throw new Error('下一页必须是 CSS 选择器');
+    if (value.maxPages !== undefined && (!Number.isInteger(value.maxPages) || value.maxPages < 1 || value.maxPages > 10)) throw new Error('页数上限必须是 1–10');
+    if (value.dedupeKey !== undefined && (typeof value.dedupeKey !== 'string' || value.dedupeKey.startsWith('_') || !Object.hasOwn(value.itemConfig,value.dedupeKey))) throw new Error('去重字段必须是已有字段');
+    if (value.detail !== undefined) {
+      const d=value.detail;
+      if (!object(d) || Object.keys(d).some(k=>!['urlField','identityField','itemConfig','waitForSelector','numberFields'].includes(k)) ||
+          !object(d.itemConfig) || [d.urlField,d.identityField].some(k=>typeof k!=='string'||k.startsWith('_')||!Object.hasOwn(value.itemConfig,k)) ||
+          !Object.hasOwn(d.itemConfig,d.identityField)) throw new Error('详情必须绑定列表 URL 字段和共同身份字段');
+      walk(d.itemConfig);
+      if(Object.keys(d.itemConfig).some(k=>!k.startsWith('_')&&k!==d.identityField&&Object.hasOwn(value.itemConfig,k))) throw new Error('详情字段不能覆盖列表字段');
+      if(d.numberFields!==undefined && (!Array.isArray(d.numberFields)||d.numberFields.length>20||d.numberFields.some(k=>typeof k!=='string'||k.startsWith('_')||!Object.hasOwn(d.itemConfig,k)))) throw new Error('数字处理字段必须是已有详情字段');
+      if(d.waitForSelector!==undefined && (typeof d.waitForSelector!=='string'||!d.waitForSelector.trim()||d.waitForSelector.length>1024)) throw new Error('详情等待选择器无效');
+    }
+    if (value.validation !== undefined && (!object(value.validation)||Object.keys(value.validation).some(k=>!['version','rowShape'].includes(k))||value.validation.version!==1||typeof value.validation.rowShape!=='string')) throw new Error('校验需要 version:1 与 rowShape');
+    if (value.fieldRequirements !== undefined && (!value.validation||!Array.isArray(value.fieldRequirements)||value.fieldRequirements.length>20||value.fieldRequirements.some(r=>!object(r)||Object.keys(r).some(k=>!['key','required','valueType'].includes(k))||!Object.hasOwn(value.itemConfig,r.key)||typeof r.required!=='boolean'||!['text','number','date','url','image'].includes(r.valueType)))) throw new Error('字段校验配置无效');
+    if (value.processing !== undefined && (!object(value.processing)||Object.keys(value.processing).some(k=>!['version','rules'].includes(k))||value.processing.version!==1||!Array.isArray(value.processing.rules)||value.processing.rules.length>8||value.processing.rules.some(r=>!object(r)||Object.keys(r).some(k=>!['op','field'].includes(k))||r.op!=='splitPublication'||!Object.hasOwn(value.itemConfig,r.field)))) throw new Error('仅支持原引擎 splitPublication 处理规则');
+    const {url,itemConfig,waitForSelector,timeoutMs,...options}=value;
+    if(new TextEncoder().encode(JSON.stringify(options)).byteLength>4096) throw new Error('分页、详情与处理配置超过 4096 字节');
     if (new TextEncoder().encode(JSON.stringify(value.itemConfig)).byteLength > 4096) throw new Error('itemConfig 超过 configJson 的 4096 字节上限');
     if (new TextEncoder().encode(JSON.stringify(value)).byteLength > 8192) throw new Error('配置超过 8192 字节');
     return copy(value);
@@ -119,6 +137,7 @@
       if (snapshot.runId) state.runId = snapshot.runId;
       state.snapshot = snapshot; state.host = String(snapshot.status || '状态未知');
       state.engine = String(snapshot.engineStatus || snapshot.result?.engine?.status || '未报告');
+      if(snapshot.result?.list?.engine?.status==='partial')state.engine+=' · 列表 partial ('+snapshot.result.list.engine.stopReason+')';
       if (Object.hasOwn(snapshot, 'result')) state.result = snapshot.result;
       state.retired = snapshot.retired === true;
       // Terminal host state is not evidence that the original runtime has retired.

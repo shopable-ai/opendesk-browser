@@ -1,0 +1,1674 @@
+{
+  "format": "scrapyjs-core-example-evidence.v1",
+  "recordedAt": "2026-10-28T18:57:09.851Z",
+  "phase": "CORE_DEVELOPMENT",
+  "claim": "原SDK/Controller四脚本入口及同一opaque App三种配置的核心流程；不代表完整32项或正式验收",
+  "fullMigrationComplete": false,
+  "sourcePolicy": {
+    "upstreamRepositories": "READ_ONLY_WITH_EXISTING_DIRTY_AND_UNTRACKED_PRESERVED",
+    "businessOwner": "examples/sidebar-tools/scrapyjs/",
+    "newHostRunnerInstaller": false,
+    "platformSourceChangedByThisTask": false,
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ]
+  },
+  "packages": {
+    "task": {
+      "file": "examples/sidebar-tools/scrapyjs/controller/scrapyjs.opendesk-task.json",
+      "bytes": 1209125,
+      "sha256": "a2752fff2644679e9fd590044fb109ae4f040f4e6f8026ca049901ca65e600de"
+    },
+    "taskVersion": "0.2.1",
+    "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa",
+    "manifestHash": "033617f17a27566f942ecfacf0adf7ed4a3e4878801e406bd10f4d8e6b9b71e6",
+    "app": {
+      "file": "examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "bytes": 38975,
+      "sha256": "ea1be2ec0f3ed46fdd1387eaa9a997215af10d4be7e71ba52b514ed04b8cf220"
+    },
+    "appVersion": "1.1.1",
+    "rootProjectRebuild": {
+      "file": "artifacts/scrapyjs/program-core-20261029-final/artifact.json",
+      "bytes": 3221,
+      "sha256": "198dc2c94653bd44e24c0aeace0dc0d6e687fd89c75e4fcbc0ddb0eebbe82c9b"
+    },
+    "sameCompilerTaskBytes": "PASS"
+  },
+  "oracle": {
+    "file": "examples/sidebar-tools/scrapyjs/examples/expected.json",
+    "bytes": 8875,
+    "sha256": "9aff63e9f657fa71bdf46f8b823f9612d5952dc867f5a7fce1b6d623119503ea"
+  },
+  "inputs": [
+    {
+      "file": "examples/sidebar-tools/scrapyjs/fixtures/detail-A.html",
+      "bytes": 284,
+      "sha256": "a4fc13d829882e3272e3d76c2ee73871badaab78f2faed2cb1d3f76891fd49ac"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/fixtures/detail-B.html",
+      "bytes": 284,
+      "sha256": "fcb4d1f5181979f554fcd71a06615a1ecc8bc0c82674d2500dad78eca9c1c407"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/fixtures/detail-C.html",
+      "bytes": 285,
+      "sha256": "8bb01969c76f68f499e38c186aa4e1f2a84451ac2f6ec7625c803ec945648c37"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/fixtures/detail-fixture-cache.html",
+      "bytes": 338,
+      "sha256": "4dba87551f27d3d73875719b40bc2a96916d3ae48a935516c73ce6063abb2485"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/fixtures/detail-fixture-empty.html",
+      "bytes": 313,
+      "sha256": "7aabd348ac41ed9dc5315e8677be16377d71b55acfe9b49f73dfc94a3f025b41"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/fixtures/detail-fixture-tools.html",
+      "bytes": 338,
+      "sha256": "5439b1860f82c721c003a558ff0df2d3010121b2cfa308f11b7eaa7837c0ee11"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/fixtures/list-1.html",
+      "bytes": 1678,
+      "sha256": "4383257f499bf26c979ae2fd242558615e0595e607dad51e6f639302c952b9ad"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/fixtures/list-2.html",
+      "bytes": 995,
+      "sha256": "f92f22bc8647d6c754e3cf601886aa36ba85668555dd00d1039d55e14df109df"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/examples/configs.js",
+      "bytes": 1669,
+      "sha256": "1a69da7dd4f5d331f59fc8a85b19a75a66830c2a3adb2de87b800324f62c552e"
+    }
+  ],
+  "driverInputs": [
+    {
+      "file": "examples/sidebar-tools/scrapyjs/tests/native-examples.mjs",
+      "bytes": 15880,
+      "sha256": "3dd73717a4987d46475322b22cae987c8e9fef7750ed4d141046ee3d1d41f86e"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/tests/native-example-app.mjs",
+      "bytes": 22058,
+      "sha256": "a579eb7f008526585fe3d90112972ce8fbf1fa16150b2c2df19d4e37a8426ecc"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/tests/native-session.mjs",
+      "bytes": 11912,
+      "sha256": "952553da3a5509e284a7657045da66b4bd598694abf86710c195d2b03533a336"
+    },
+    {
+      "file": "examples/sidebar-tools/scrapyjs/tests/build-examples.mjs",
+      "bytes": 3351,
+      "sha256": "789f26d2475672546cdbf496459c3348eea758e75e9051899b0a4ba627e9ad0b"
+    }
+  ],
+  "scriptEvidence": {
+    "report": {
+      "file": "artifacts/scrapyjs/native-examples/core-d-20261029/report.json",
+      "bytes": 185918,
+      "sha256": "ce400edf6ce08679a8cc53baaa9ed6c79c346d7c436f2736cb6cf8c43e9bd5ca"
+    },
+    "reportOverallStatus": "BLOCKED",
+    "scopeNote": "四脚本均PASS；报告整体BLOCKED源于其后App驱动未选中原生下拉框。App使用独立成功报告，不改写该整体状态。",
+    "environment": {
+      "extensionSnapshotSha256": "540674e69b8fa2fec74ece70a3a02e030dde70c360be6ce2738a2e9766582e27",
+      "mode": "COPIED_DEVELOPMENT_WATCHER_OUTPUT_OWNED_CFT_PROFILE",
+      "sourceDirectory": "dist/development",
+      "chrome": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/155.0.8059.39",
+        "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "jsVersion": "15.5.35.20"
+      },
+      "sidePanel": {
+        "extensionId": "pnfmjifdpjplandddenkochbcnbagmpe",
+        "context": {
+          "contextId": "3809c8f4-93bc-4f8a-a3cb-ef70714877d5",
+          "contextType": "SIDE_PANEL",
+          "documentId": "D16326D0A78D22B8008716B318AC661D",
+          "documentOrigin": "chrome-extension://pnfmjifdpjplandddenkochbcnbagmpe",
+          "documentUrl": "chrome-extension://pnfmjifdpjplandddenkochbcnbagmpe/sidepanel.html?hostInstanceId=5f22687d-6016-44c7-a24c-2a03c060a6c0",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      },
+      "ownedBrowser": {
+        "pid": 12479,
+        "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/core-d-20261029/cft-DcMVCT/profile",
+        "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/core-d-20261029/cft-DcMVCT/extension",
+        "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "args": [
+          "--headless=new",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--use-mock-keychain",
+          "--password-store=basic",
+          "--remote-debugging-address=127.0.0.1",
+          "--remote-debugging-port=0",
+          "--user-data-dir=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/core-d-20261029/cft-DcMVCT/profile",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/core-d-20261029/cft-DcMVCT/extension",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/core-d-20261029/cft-DcMVCT/extension",
+          "about:blank"
+        ],
+        "inputSha256": "540674e69b8fa2fec74ece70a3a02e030dde70c360be6ce2738a2e9766582e27",
+        "owned": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/core-d-20261029/cft-DcMVCT"
+      },
+      "ownedBrowserReleased": true
+    },
+    "taskInstall": "PASS_UI_RECEIPT",
+    "taskReceipt": "已安装 scrapyjs.capture · v0.2.1"
+  },
+  "scripts": [
+    {
+      "name": "fields",
+      "status": "PASS_SCOPED",
+      "inputs": {
+        "source": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/fields/program.js",
+          "bytes": 1158119,
+          "sha256": "7a3131449f3f57557021c25c6c7f9958ada925ea5f977d94e08b1d9807408fc8"
+        },
+        "params": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "encoding": "JSON.stringify"
+        },
+        "build": [
+          {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/fields/program.js.map",
+            "bytes": 1397408,
+            "sha256": "1e8e30f4bda2bdc95348689bfbcec9a508fe0d89e5da1e62f631471be6c3649f"
+          },
+          {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/fields/artifact.json",
+            "bytes": 3729,
+            "sha256": "e3dee9c82c671fab2736a273045d11134dca4fe88887b5847ed0bb27beef5c71"
+          }
+        ],
+        "draft": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/fields/program.opendesk-draft.json",
+          "bytes": 2410954,
+          "sha256": "4edd1c5fe922b98c558f4fbf5237f7b88304d91a3d40aad107136ea913d5452d"
+        }
+      },
+      "params": {},
+      "identity": {
+        "runId": "ddeb72ca-7022-4697-a669-a983f96c765f",
+        "resultId": "92ec1144-9550-4bdd-bd93-f254361f293b",
+        "state": "completed",
+        "retirementState": "released",
+        "sourceHash": "7a3131449f3f57557021c25c6c7f9958ada925ea5f977d94e08b1d9807408fc8"
+      },
+      "actualData": [
+        {
+          "description": "Remote cache example",
+          "language": "C#",
+          "name": "FIXTURE-CACHE",
+          "stars": "12k",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html"
+        },
+        {
+          "description": "Developer tools example",
+          "language": "",
+          "name": "FIXTURE-TOOLS",
+          "stars": "17",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html"
+        },
+        {
+          "description": "",
+          "language": "",
+          "name": "FIXTURE-EMPTY",
+          "stars": "",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html"
+        }
+      ],
+      "expectedData": [
+        {
+          "name": "FIXTURE-CACHE",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html",
+          "language": "C#",
+          "stars": "12k",
+          "description": "Remote cache example"
+        },
+        {
+          "name": "FIXTURE-TOOLS",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html",
+          "language": "",
+          "stars": "17",
+          "description": "Developer tools example"
+        },
+        {
+          "name": "FIXTURE-EMPTY",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html",
+          "language": "",
+          "stars": "",
+          "description": ""
+        }
+      ],
+      "audit": {
+        "detailUrls": [],
+        "duplicates": 0,
+        "listUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html"
+        ]
+      },
+      "engine": {
+        "closeReason": null,
+        "counts": {
+          "accepted": 3,
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "discarded": 0,
+          "emitted": 3,
+          "filtered": 0,
+          "ignored": 0,
+          "pending": 0,
+          "preacceptFailed": 0,
+          "processingPending": 0,
+          "rejected": 0
+        },
+        "delivery": {
+          "accepted": 3,
+          "ackLevel": "memory",
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "outputPath": null,
+          "pending": 0,
+          "tempPath": null
+        },
+        "elapsedMs": 1331,
+        "error": null,
+        "finishTime": 1793213545941,
+        "itemCount": 3,
+        "metadataPersisted": null,
+        "pageCount": 1,
+        "recoveredErrors": [],
+        "runId": "mvsh1mea-1",
+        "secondaryErrors": [],
+        "startTime": 1793213544610,
+        "status": "completed",
+        "stopReason": "single_page"
+      }
+    },
+    {
+      "name": "pagination",
+      "status": "PASS_SCOPED",
+      "inputs": {
+        "source": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/pagination/program.js",
+          "bytes": 1157793,
+          "sha256": "c84d10f645b72e38b1b13d8c434aeb34da001be204708fb1ff1dd1212e2a0d06"
+        },
+        "params": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "encoding": "JSON.stringify"
+        },
+        "build": [
+          {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/pagination/program.js.map",
+            "bytes": 1397173,
+            "sha256": "080a234444bdb66ca8d810d15caabc79466dbe91729a704f4c0e2996faeebda9"
+          },
+          {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/pagination/artifact.json",
+            "bytes": 3753,
+            "sha256": "538546bca6f148827b9514a0f4ba0e1b264622c97494634b14ef2a902d042a23"
+          }
+        ],
+        "draft": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/pagination/program.opendesk-draft.json",
+          "bytes": 2410446,
+          "sha256": "08129e3de63f8c62d770d5b825281e225050eec02e6dba0c30d34d58b2433c8f"
+        }
+      },
+      "params": {},
+      "identity": {
+        "runId": "fe0dc529-a9a0-4938-8e1a-ecdc0de6a0d5",
+        "resultId": "8581037b-91fa-417a-ba04-5fad1c606dfd",
+        "state": "completed",
+        "retirementState": "released",
+        "sourceHash": "c84d10f645b72e38b1b13d8c434aeb34da001be204708fb1ff1dd1212e2a0d06"
+      },
+      "actualData": [
+        {
+          "description": "Remote cache example",
+          "language": "C#",
+          "name": "fixture-cache",
+          "stars": "12k",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html"
+        },
+        {
+          "description": "Developer tools example",
+          "language": "",
+          "name": "fixture-tools",
+          "stars": "17",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html"
+        },
+        {
+          "description": "",
+          "language": "",
+          "name": "fixture-empty",
+          "stars": "",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html"
+        }
+      ],
+      "expectedData": [
+        {
+          "name": "fixture-cache",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html",
+          "language": "C#",
+          "stars": "12k",
+          "description": "Remote cache example"
+        },
+        {
+          "name": "fixture-tools",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html",
+          "language": "",
+          "stars": "17",
+          "description": "Developer tools example"
+        },
+        {
+          "name": "fixture-empty",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html",
+          "language": "",
+          "stars": "",
+          "description": ""
+        }
+      ],
+      "audit": {
+        "detailUrls": [],
+        "duplicates": 2,
+        "listUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-2.html"
+        ]
+      },
+      "engine": {
+        "closeReason": null,
+        "counts": {
+          "accepted": 3,
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "discarded": 0,
+          "emitted": 5,
+          "filtered": 2,
+          "ignored": 0,
+          "pending": 0,
+          "preacceptFailed": 0,
+          "processingPending": 0,
+          "rejected": 0
+        },
+        "delivery": {
+          "accepted": 3,
+          "ackLevel": "memory",
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "outputPath": null,
+          "pending": 0,
+          "tempPath": null
+        },
+        "elapsedMs": 3215,
+        "error": null,
+        "finishTime": 1793213550495,
+        "itemCount": 3,
+        "metadataPersisted": null,
+        "pageCount": 2,
+        "recoveredErrors": [],
+        "runId": "mvsh1ogg-1",
+        "secondaryErrors": [],
+        "startTime": 1793213547280,
+        "status": "completed",
+        "stopReason": "site_exhausted"
+      }
+    },
+    {
+      "name": "list-detail",
+      "status": "PASS_SCOPED",
+      "inputs": {
+        "source": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/list-detail/program.js",
+          "bytes": 1157796,
+          "sha256": "5be58ba655196e0f027b064dc319a52532ee826c49ec261ef5f6015400a2d31b"
+        },
+        "params": {
+          "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "encoding": "JSON.stringify"
+        },
+        "build": [
+          {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/list-detail/program.js.map",
+            "bytes": 1397174,
+            "sha256": "8d32e9c872bccdec05095bc74cc64d7e268bd4ccf550017ab9a6799622da2503"
+          },
+          {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/list-detail/artifact.json",
+            "bytes": 3759,
+            "sha256": "df53844e9f0910e57cf0068e67dd15ebf33d1537549c022ddd23b21dee3ecc6e"
+          }
+        ],
+        "draft": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/list-detail/program.opendesk-draft.json",
+          "bytes": 2410452,
+          "sha256": "045c171c0472a5110529fee8338c5ed2451c4acfee693aa0c8aac2ef843a9f56"
+        }
+      },
+      "params": {},
+      "identity": {
+        "runId": "bac132aa-c8d1-4408-a699-58af539f31fb",
+        "resultId": "b871930e-ffd1-46db-ba2a-30a09569dfb2",
+        "state": "completed",
+        "retirementState": "released",
+        "sourceHash": "5be58ba655196e0f027b064dc319a52532ee826c49ec261ef5f6015400a2d31b"
+      },
+      "actualData": [
+        {
+          "author": "Ada",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+          "id": "A",
+          "price": 19.9,
+          "title": "Alpha"
+        },
+        {
+          "author": "Ben",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+          "id": "B",
+          "price": 25,
+          "title": "Beta"
+        },
+        {
+          "author": "Cara",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+          "id": "C",
+          "price": 30,
+          "title": "Gamma"
+        }
+      ],
+      "expectedData": [
+        {
+          "id": "A",
+          "title": "Alpha",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+          "author": "Ada",
+          "price": 19.9
+        },
+        {
+          "id": "B",
+          "title": "Beta",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+          "author": "Ben",
+          "price": 25
+        },
+        {
+          "id": "C",
+          "title": "Gamma",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+          "author": "Cara",
+          "price": 30
+        }
+      ],
+      "audit": {
+        "detailUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html"
+        ],
+        "duplicates": 1,
+        "listUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-2.html"
+        ]
+      },
+      "engine": {
+        "closeReason": null,
+        "counts": {
+          "accepted": 3,
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "discarded": 0,
+          "emitted": 3,
+          "filtered": 0,
+          "ignored": 0,
+          "pending": 0,
+          "preacceptFailed": 0,
+          "processingPending": 0,
+          "rejected": 0
+        },
+        "delivery": {
+          "accepted": 3,
+          "ackLevel": "memory",
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "outputPath": null,
+          "pending": 0,
+          "tempPath": null
+        },
+        "elapsedMs": 2239,
+        "error": null,
+        "finishTime": 1793213557899,
+        "itemCount": 3,
+        "metadataPersisted": null,
+        "pageCount": 3,
+        "recoveredErrors": [],
+        "runId": "mvsh1ux8-2",
+        "secondaryErrors": [],
+        "startTime": 1793213555660,
+        "status": "completed",
+        "stopReason": null
+      },
+      "list": {
+        "engine": {
+          "closeReason": null,
+          "counts": {
+            "accepted": 3,
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "discarded": 0,
+            "emitted": 4,
+            "filtered": 1,
+            "ignored": 0,
+            "pending": 0,
+            "preacceptFailed": 0,
+            "processingPending": 0,
+            "rejected": 0
+          },
+          "delivery": {
+            "accepted": 3,
+            "ackLevel": "memory",
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "outputPath": null,
+            "pending": 0,
+            "tempPath": null
+          },
+          "elapsedMs": 3751,
+          "error": null,
+          "finishTime": 1793213555660,
+          "itemCount": 3,
+          "metadataPersisted": null,
+          "pageCount": 2,
+          "recoveredErrors": [],
+          "runId": "mvsh1s11-1",
+          "secondaryErrors": [],
+          "startTime": 1793213551909,
+          "status": "completed",
+          "stopReason": "site_exhausted"
+        },
+        "stats": {
+          "closeReason": null,
+          "counts": {
+            "accepted": 3,
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "discarded": 0,
+            "emitted": 4,
+            "filtered": 1,
+            "ignored": 0,
+            "pending": 0,
+            "preacceptFailed": 0,
+            "processingPending": 0,
+            "rejected": 0
+          },
+          "delivery": {
+            "accepted": 3,
+            "ackLevel": "memory",
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "outputPath": null,
+            "pending": 0,
+            "tempPath": null
+          },
+          "elapsedMs": 3751,
+          "error": null,
+          "finishTime": 1793213555660,
+          "itemCount": 3,
+          "metadataPersisted": null,
+          "pageCount": 2,
+          "recoveredErrors": [],
+          "runId": "mvsh1s11-1",
+          "secondaryErrors": [],
+          "startTime": 1793213551909,
+          "status": "completed",
+          "stopReason": "site_exhausted"
+        }
+      }
+    },
+    {
+      "name": "capture",
+      "status": "PASS_SCOPED",
+      "inputs": {
+        "source": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/capture/program.js",
+          "bytes": 1155767,
+          "sha256": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
+        },
+        "params": {
+          "sha256": "7f4a412bed8c1ebcc512fb80e31657b39db7771828d3e42c57f4492c8c7c6c3c",
+          "encoding": "JSON.stringify"
+        },
+        "build": [
+          {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/capture/program.js.map",
+            "bytes": 1395550,
+            "sha256": "b12289daa7a34e157ba7445cf7e0f6391d25df23f5df59c558ebc97d6637c87e"
+          },
+          {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/capture/artifact.json",
+            "bytes": 3221,
+            "sha256": "198dc2c94653bd44e24c0aeace0dc0d6e687fd89c75e4fcbc0ddb0eebbe82c9b"
+          }
+        ],
+        "draft": {
+          "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/examples-core-20261029-d/capture/program.opendesk-draft.json",
+          "bytes": 2406884,
+          "sha256": "a722230ed4c885a7ff0701d1fd18e0eadf18e9f9e1aac189fe1f54c9f2bffde9"
+        }
+      },
+      "params": {
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+        "configJson": "{\"_listContainer\":\".catalog\",\"_listItem\":\"article\",\"id\":\".id::text\",\"title\":\".title::text\",\"detailUrl\":\"a.title::href\"}",
+        "waitForSelector": ".catalog > article",
+        "timeoutMs": 10000,
+        "optionsJson": "{\"nextPageSelector\":\"a.next\",\"maxPages\":5,\"dedupeKey\":\"id\",\"detail\":{\"urlField\":\"detailUrl\",\"identityField\":\"id\",\"waitForSelector\":\".detail > article\",\"itemConfig\":{\"_listContainer\":\".detail\",\"_listItem\":\"article\",\"id\":\".id::text\",\"author\":\".author::text\",\"price\":\".price::text\"},\"numberFields\":[\"price\"]}}"
+      },
+      "identity": {
+        "runId": "fdffc623-b0ee-4a16-9d8a-9057085a67cb",
+        "resultId": "ec47598a-a295-47e2-a749-59de3d1c8dc3",
+        "state": "completed",
+        "retirementState": "released",
+        "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
+      },
+      "actualData": [
+        {
+          "author": "Ada",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+          "id": "A",
+          "price": 19.9,
+          "title": "Alpha"
+        },
+        {
+          "author": "Ben",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+          "id": "B",
+          "price": 25,
+          "title": "Beta"
+        },
+        {
+          "author": "Cara",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+          "id": "C",
+          "price": 30,
+          "title": "Gamma"
+        }
+      ],
+      "expectedData": [
+        {
+          "id": "A",
+          "title": "Alpha",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+          "author": "Ada",
+          "price": 19.9
+        },
+        {
+          "id": "B",
+          "title": "Beta",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+          "author": "Ben",
+          "price": 25
+        },
+        {
+          "id": "C",
+          "title": "Gamma",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+          "author": "Cara",
+          "price": 30
+        }
+      ],
+      "audit": {
+        "detailUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html"
+        ],
+        "duplicates": 1,
+        "listUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-2.html"
+        ]
+      },
+      "engine": {
+        "closeReason": null,
+        "counts": {
+          "accepted": 3,
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "discarded": 0,
+          "emitted": 3,
+          "filtered": 0,
+          "ignored": 0,
+          "pending": 0,
+          "preacceptFailed": 0,
+          "processingPending": 0,
+          "rejected": 0
+        },
+        "delivery": {
+          "accepted": 3,
+          "ackLevel": "memory",
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "outputPath": null,
+          "pending": 0,
+          "tempPath": null
+        },
+        "elapsedMs": 2168,
+        "error": null,
+        "finishTime": 1793213565112,
+        "itemCount": 3,
+        "metadataPersisted": null,
+        "pageCount": 3,
+        "recoveredErrors": [],
+        "runId": "mvsh20jk-2",
+        "secondaryErrors": [],
+        "startTime": 1793213562944,
+        "status": "completed",
+        "stopReason": null
+      },
+      "list": {
+        "engine": {
+          "closeReason": null,
+          "counts": {
+            "accepted": 3,
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "discarded": 0,
+            "emitted": 4,
+            "filtered": 1,
+            "ignored": 0,
+            "pending": 0,
+            "preacceptFailed": 0,
+            "processingPending": 0,
+            "rejected": 0
+          },
+          "delivery": {
+            "accepted": 3,
+            "ackLevel": "memory",
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "outputPath": null,
+            "pending": 0,
+            "tempPath": null
+          },
+          "elapsedMs": 3652,
+          "error": null,
+          "finishTime": 1793213562944,
+          "itemCount": 3,
+          "metadataPersisted": null,
+          "pageCount": 2,
+          "recoveredErrors": [],
+          "runId": "mvsh1xq4-1",
+          "secondaryErrors": [],
+          "startTime": 1793213559292,
+          "status": "completed",
+          "stopReason": "site_exhausted"
+        },
+        "stats": {
+          "closeReason": null,
+          "counts": {
+            "accepted": 3,
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "discarded": 0,
+            "emitted": 4,
+            "filtered": 1,
+            "ignored": 0,
+            "pending": 0,
+            "preacceptFailed": 0,
+            "processingPending": 0,
+            "rejected": 0
+          },
+          "delivery": {
+            "accepted": 3,
+            "ackLevel": "memory",
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "outputPath": null,
+            "pending": 0,
+            "tempPath": null
+          },
+          "elapsedMs": 3652,
+          "error": null,
+          "finishTime": 1793213562944,
+          "itemCount": 3,
+          "metadataPersisted": null,
+          "pageCount": 2,
+          "recoveredErrors": [],
+          "runId": "mvsh1xq4-1",
+          "secondaryErrors": [],
+          "startTime": 1793213559292,
+          "status": "completed",
+          "stopReason": "site_exhausted"
+        }
+      }
+    }
+  ],
+  "appEvidence": {
+    "report": {
+      "file": "artifacts/scrapyjs/native-examples/app-d-driver5-20261029/report.json",
+      "bytes": 1998661,
+      "sha256": "c4cb08570d71674f301e1c692645577d211585e51316ff7f80630b010f0b6817"
+    },
+    "reportOverallStatus": "PASS_SCOPED",
+    "environment": {
+      "extensionSnapshotSha256": "25e83e55d80436b16dc28fae5efa7c2c354c1a65d81fa721cfb1ace3abbe83a0",
+      "mode": "COPIED_DEVELOPMENT_WATCHER_OUTPUT_OWNED_CFT_PROFILE",
+      "sourceDirectory": "dist/development",
+      "chrome": {
+        "protocolVersion": "1.3",
+        "product": "Chrome/155.0.8059.39",
+        "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "jsVersion": "15.5.35.20"
+      },
+      "sidePanel": {
+        "extensionId": "fijapefdiflkdbinfbphafefoeflghkk",
+        "context": {
+          "contextId": "e85781f0-c29c-40f0-b6f8-23689a6da8b2",
+          "contextType": "SIDE_PANEL",
+          "documentId": "71EDC73F844E42DD3763FA73996D7F9B",
+          "documentOrigin": "chrome-extension://fijapefdiflkdbinfbphafefoeflghkk",
+          "documentUrl": "chrome-extension://fijapefdiflkdbinfbphafefoeflghkk/sidepanel.html?hostInstanceId=a84c9730-7a8b-4a8f-9566-ac1b3ccb35c6",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      },
+      "ownedBrowser": {
+        "pid": 14864,
+        "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/cft-MJURzB/profile",
+        "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/cft-MJURzB/extension",
+        "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "args": [
+          "--headless=new",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--use-mock-keychain",
+          "--password-store=basic",
+          "--remote-debugging-address=127.0.0.1",
+          "--remote-debugging-port=0",
+          "--user-data-dir=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/cft-MJURzB/profile",
+          "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/cft-MJURzB/extension",
+          "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/cft-MJURzB/extension",
+          "about:blank"
+        ],
+        "inputSha256": "25e83e55d80436b16dc28fae5efa7c2c354c1a65d81fa721cfb1ace3abbe83a0",
+        "owned": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/cft-MJURzB"
+      },
+      "ownedBrowserReleased": true
+    },
+    "taskInstall": "PASS_UI_RECEIPT",
+    "taskReceipt": "已安装 scrapyjs.capture · v0.2.1",
+    "package": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "sha256": "ea1be2ec0f3ed46fdd1387eaa9a997215af10d4be7e71ba52b514ed04b8cf220",
+      "bytes": 38975,
+      "taskPin": {
+        "taskId": "scrapyjs.capture",
+        "version": "0.2.1",
+        "manifestHash": "033617f17a27566f942ecfacf0adf7ed4a3e4878801e406bd10f4d8e6b9b71e6",
+        "contentHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
+      }
+    },
+    "sameInstance": {
+      "targetId": "5BFE8A157141A00D2CCA94CCF7FB5E90",
+      "url": "chrome-extension://fijapefdiflkdbinfbphafefoeflghkk/sidebar-tools/sandbox.html",
+      "eventCursor": 353
+    },
+    "saveReopen": "PASS",
+    "jsonDownload": "PASS_FILE_BYTES",
+    "download": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/downloads/example-app-6Nf9vn/ec3bac54-9a3d-4c64-acea-913b203222ab",
+      "bytes": 46312,
+      "sha256": "3866b782e39ca1855b725fc6d406b0d3a5b5caf5b99ff275cca37290b048b7ef",
+      "guid": "ec3bac54-9a3d-4c64-acea-913b203222ab",
+      "suggestedFilename": "download.json",
+      "completion": {
+        "guid": "ec3bac54-9a3d-4c64-acea-913b203222ab",
+        "totalBytes": 46312,
+        "receivedBytes": 46312,
+        "state": "completed",
+        "filePath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/downloads/example-app-6Nf9vn/ec3bac54-9a3d-4c64-acea-913b203222ab"
+      }
+    },
+    "isolation": "Observed origin null, chrome.storage undefined, OpenDeskTool.request function",
+    "selectDriverResolution": "Arrow keys did not change even standalone native select in owned headless CFT. Real Input char 属 + Enter selected 属性; no value setter, synthetic change, app storage or installer bypass.",
+    "visualObservation": {
+      "screenshot": {
+        "file": "artifacts/scrapyjs/native-examples/app-d-driver5-20261029/panel.png",
+        "bytes": 28813,
+        "sha256": "7de28a82712c20f69a68cf009e1fe28ddfce95dcad40aba22b25836244a33c08"
+      },
+      "verdict": "核心操作可见可点击；表格可见性和全字段另有三组实际DOM读回。未评分或执行宽度/缩放矩阵。"
+    }
+  },
+  "appScenarios": [
+    {
+      "name": "fields",
+      "status": "PASS_SCOPED",
+      "config": {
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+        "waitForSelector": "[data-listview-component=\"items-list\"] > li",
+        "timeoutMs": 10000,
+        "itemConfig": {
+          "_listContainer": "[data-listview-component=\"items-list\"]",
+          "_listItem": "li",
+          "name": "[data-listview-item-title-container] h3 a, [data-listview-item-title-container] h4 a",
+          "url": "[data-listview-item-title-container] h3 a, [data-listview-item-title-container] h4 a::href",
+          "language": "[class*=\"PrimaryLanguageName\"]",
+          "stars": "a[href$=\"/stargazers\"]",
+          "description": ".repos-list-description"
+        },
+        "validation": {
+          "version": 1,
+          "rowShape": "li"
+        },
+        "fieldRequirements": [
+          {
+            "key": "name",
+            "required": true,
+            "valueType": "text"
+          },
+          {
+            "key": "url",
+            "required": true,
+            "valueType": "url"
+          },
+          {
+            "key": "language",
+            "required": false,
+            "valueType": "text"
+          },
+          {
+            "key": "stars",
+            "required": false,
+            "valueType": "text"
+          },
+          {
+            "key": "description",
+            "required": false,
+            "valueType": "text"
+          }
+        ]
+      },
+      "configSha256": "64bb6d9e28324bb806c9522330f5b8b53d47c74dbec3ac20a0bbc62d6e60a4a3",
+      "identity": {
+        "clientRequestId": "0e3ed939-e40c-45bf-b7ce-329d66471d8f",
+        "runId": "215b410f-46d6-41a2-8a39-a6af6b1ef5b8",
+        "resultId": "6b58acf7-e2c0-4699-9fd1-b8349ba1150e",
+        "state": "completed",
+        "retirementState": "released"
+      },
+      "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa",
+      "structuredEditors": {
+        "field": {
+          "key": "url",
+          "selector": "[data-listview-item-title-container] h3 a, [data-listview-item-title-container] h4 a",
+          "read": "attr",
+          "attr": "href"
+        },
+        "fieldApply": "PASS",
+        "crawlApply": "PASS",
+        "pendingGuards": "PASS",
+        "unchangedConfig": "PASS"
+      },
+      "actualData": [
+        {
+          "description": "Remote cache example",
+          "language": "C#",
+          "name": "fixture-cache",
+          "stars": "12k",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html"
+        },
+        {
+          "description": "Developer tools example",
+          "language": "",
+          "name": "fixture-tools",
+          "stars": "17",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html"
+        },
+        {
+          "description": "",
+          "language": "",
+          "name": "fixture-empty",
+          "stars": "",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html"
+        }
+      ],
+      "expectedData": [
+        {
+          "name": "fixture-cache",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html",
+          "language": "C#",
+          "stars": "12k",
+          "description": "Remote cache example"
+        },
+        {
+          "name": "fixture-tools",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html",
+          "language": "",
+          "stars": "17",
+          "description": "Developer tools example"
+        },
+        {
+          "name": "fixture-empty",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html",
+          "language": "",
+          "stars": "",
+          "description": ""
+        }
+      ],
+      "audit": {
+        "detailUrls": [],
+        "duplicates": 0,
+        "listUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html"
+        ]
+      },
+      "engine": {
+        "closeReason": null,
+        "counts": {
+          "accepted": 3,
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "discarded": 0,
+          "emitted": 3,
+          "filtered": 0,
+          "ignored": 0,
+          "pending": 0,
+          "preacceptFailed": 0,
+          "processingPending": 0,
+          "rejected": 0
+        },
+        "delivery": {
+          "accepted": 3,
+          "ackLevel": "memory",
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "outputPath": null,
+          "pending": 0,
+          "tempPath": null
+        },
+        "elapsedMs": 3401,
+        "error": null,
+        "finishTime": 1793213809660,
+        "itemCount": 3,
+        "metadataPersisted": null,
+        "pageCount": 1,
+        "recoveredErrors": [],
+        "runId": "mvsh78ab-1",
+        "secondaryErrors": [],
+        "startTime": 1793213806259,
+        "status": "completed",
+        "stopReason": "single_page"
+      },
+      "recordTable": {
+        "summary": "共 3 条记录",
+        "table": {
+          "visible": true,
+          "headers": [
+            "description",
+            "language",
+            "name",
+            "stars",
+            "url"
+          ],
+          "rows": [
+            [
+              "Remote cache example",
+              "C#",
+              "fixture-cache",
+              "12k",
+              "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html"
+            ],
+            [
+              "Developer tools example",
+              "",
+              "fixture-tools",
+              "17",
+              "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html"
+            ],
+            [
+              "",
+              "",
+              "fixture-empty",
+              "",
+              "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html"
+            ]
+          ]
+        },
+        "check": "PASS"
+      }
+    },
+    {
+      "name": "pagination",
+      "status": "PASS_SCOPED",
+      "config": {
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+        "waitForSelector": "[data-listview-component=\"items-list\"] > li",
+        "timeoutMs": 10000,
+        "itemConfig": {
+          "_listContainer": "[data-listview-component=\"items-list\"]",
+          "_listItem": "li",
+          "name": "[data-listview-item-title-container] h3 a, [data-listview-item-title-container] h4 a",
+          "url": "[data-listview-item-title-container] h3 a, [data-listview-item-title-container] h4 a::href",
+          "language": "[class*=\"PrimaryLanguageName\"]",
+          "stars": "a[href$=\"/stargazers\"]",
+          "description": ".repos-list-description"
+        },
+        "validation": {
+          "version": 1,
+          "rowShape": "li"
+        },
+        "fieldRequirements": [
+          {
+            "key": "name",
+            "required": true,
+            "valueType": "text"
+          },
+          {
+            "key": "url",
+            "required": true,
+            "valueType": "url"
+          },
+          {
+            "key": "language",
+            "required": false,
+            "valueType": "text"
+          },
+          {
+            "key": "stars",
+            "required": false,
+            "valueType": "text"
+          },
+          {
+            "key": "description",
+            "required": false,
+            "valueType": "text"
+          }
+        ],
+        "nextPageSelector": "a[data-component=\"Pagination.NextPage\"][rel=\"next\"]",
+        "maxPages": 5,
+        "dedupeKey": "url"
+      },
+      "configSha256": "b14611c4a39dc7553e5fd3f88f3904c82c35a48f4cc896e516c0d97e1e021080",
+      "identity": {
+        "clientRequestId": "708275df-2258-4cce-80dc-44cd7812e6b7",
+        "runId": "75e90442-d0c8-46ca-9b9a-b17a43dd5a85",
+        "resultId": "c7d75353-1f47-4a81-b765-5a30fd07eca5",
+        "state": "completed",
+        "retirementState": "released"
+      },
+      "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa",
+      "structuredEditors": {
+        "field": {
+          "key": "url",
+          "selector": "[data-listview-item-title-container] h3 a, [data-listview-item-title-container] h4 a",
+          "read": "attr",
+          "attr": "href"
+        },
+        "fieldApply": "PASS",
+        "crawlApply": "PASS",
+        "pendingGuards": "PASS",
+        "unchangedConfig": "PASS"
+      },
+      "actualData": [
+        {
+          "description": "Remote cache example",
+          "language": "C#",
+          "name": "fixture-cache",
+          "stars": "12k",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html"
+        },
+        {
+          "description": "Developer tools example",
+          "language": "",
+          "name": "fixture-tools",
+          "stars": "17",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html"
+        },
+        {
+          "description": "",
+          "language": "",
+          "name": "fixture-empty",
+          "stars": "",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html"
+        }
+      ],
+      "expectedData": [
+        {
+          "name": "fixture-cache",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html",
+          "language": "C#",
+          "stars": "12k",
+          "description": "Remote cache example"
+        },
+        {
+          "name": "fixture-tools",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html",
+          "language": "",
+          "stars": "17",
+          "description": "Developer tools example"
+        },
+        {
+          "name": "fixture-empty",
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html",
+          "language": "",
+          "stars": "",
+          "description": ""
+        }
+      ],
+      "audit": {
+        "detailUrls": [],
+        "duplicates": 2,
+        "listUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-2.html"
+        ]
+      },
+      "engine": {
+        "closeReason": null,
+        "counts": {
+          "accepted": 3,
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "discarded": 0,
+          "emitted": 5,
+          "filtered": 2,
+          "ignored": 0,
+          "pending": 0,
+          "preacceptFailed": 0,
+          "processingPending": 0,
+          "rejected": 0
+        },
+        "delivery": {
+          "accepted": 3,
+          "ackLevel": "memory",
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "outputPath": null,
+          "pending": 0,
+          "tempPath": null
+        },
+        "elapsedMs": 7122,
+        "error": null,
+        "finishTime": 1793213819299,
+        "itemCount": 3,
+        "metadataPersisted": null,
+        "pageCount": 2,
+        "recoveredErrors": [],
+        "runId": "mvsh7cup-1",
+        "secondaryErrors": [],
+        "startTime": 1793213812177,
+        "status": "completed",
+        "stopReason": "site_exhausted"
+      },
+      "recordTable": {
+        "summary": "共 3 条记录",
+        "table": {
+          "visible": true,
+          "headers": [
+            "description",
+            "language",
+            "name",
+            "stars",
+            "url"
+          ],
+          "rows": [
+            [
+              "Remote cache example",
+              "C#",
+              "fixture-cache",
+              "12k",
+              "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html"
+            ],
+            [
+              "Developer tools example",
+              "",
+              "fixture-tools",
+              "17",
+              "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html"
+            ],
+            [
+              "",
+              "",
+              "fixture-empty",
+              "",
+              "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html"
+            ]
+          ]
+        },
+        "check": "PASS"
+      }
+    },
+    {
+      "name": "list-detail",
+      "status": "PASS_SCOPED",
+      "config": {
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+        "waitForSelector": ".catalog > article",
+        "timeoutMs": 10000,
+        "itemConfig": {
+          "_listContainer": ".catalog",
+          "_listItem": "article",
+          "id": ".id::text",
+          "title": ".title::text",
+          "detailUrl": "a.title::href"
+        },
+        "nextPageSelector": "a.next",
+        "maxPages": 5,
+        "dedupeKey": "id",
+        "detail": {
+          "urlField": "detailUrl",
+          "identityField": "id",
+          "waitForSelector": ".detail > article",
+          "itemConfig": {
+            "_listContainer": ".detail",
+            "_listItem": "article",
+            "id": ".id::text",
+            "author": ".author::text",
+            "price": ".price::text"
+          },
+          "numberFields": [
+            "price"
+          ]
+        }
+      },
+      "configSha256": "e128ba541f743f0d040307a0ff5097aa59347ae7d9b1f0e21a60091e0e4478c6",
+      "identity": {
+        "clientRequestId": "3dcbac86-ce34-4853-8762-3a44e2c3cd18",
+        "runId": "cff21272-80f8-44eb-82cc-591c83d413db",
+        "resultId": "0002df4c-2470-4fa3-918c-121b451750f9",
+        "state": "completed",
+        "retirementState": "released"
+      },
+      "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa",
+      "structuredEditors": {
+        "field": {
+          "key": "detailUrl",
+          "selector": "a.title",
+          "read": "attr",
+          "attr": "href"
+        },
+        "fieldApply": "PASS",
+        "crawlApply": "PASS",
+        "pendingGuards": "PASS",
+        "unchangedConfig": "PASS"
+      },
+      "actualData": [
+        {
+          "author": "Ada",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+          "id": "A",
+          "price": 19.9,
+          "title": "Alpha"
+        },
+        {
+          "author": "Ben",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+          "id": "B",
+          "price": 25,
+          "title": "Beta"
+        },
+        {
+          "author": "Cara",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+          "id": "C",
+          "price": 30,
+          "title": "Gamma"
+        }
+      ],
+      "expectedData": [
+        {
+          "id": "A",
+          "title": "Alpha",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+          "author": "Ada",
+          "price": 19.9
+        },
+        {
+          "id": "B",
+          "title": "Beta",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+          "author": "Ben",
+          "price": 25
+        },
+        {
+          "id": "C",
+          "title": "Gamma",
+          "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+          "author": "Cara",
+          "price": 30
+        }
+      ],
+      "audit": {
+        "detailUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html"
+        ],
+        "duplicates": 1,
+        "listUrls": [
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+          "http://127.0.0.1:43111/scrapyjs-fixtures/list-2.html"
+        ]
+      },
+      "engine": {
+        "closeReason": null,
+        "counts": {
+          "accepted": 3,
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "discarded": 0,
+          "emitted": 3,
+          "filtered": 0,
+          "ignored": 0,
+          "pending": 0,
+          "preacceptFailed": 0,
+          "processingPending": 0,
+          "rejected": 0
+        },
+        "delivery": {
+          "accepted": 3,
+          "ackLevel": "memory",
+          "committed": 3,
+          "deliveryUnknown": 0,
+          "outputPath": null,
+          "pending": 0,
+          "tempPath": null
+        },
+        "elapsedMs": 2653,
+        "error": null,
+        "finishTime": 1793213828483,
+        "itemCount": 3,
+        "metadataPersisted": null,
+        "pageCount": 3,
+        "recoveredErrors": [],
+        "runId": "mvsh7ndy-2",
+        "secondaryErrors": [],
+        "startTime": 1793213825830,
+        "status": "completed",
+        "stopReason": null
+      },
+      "list": {
+        "engine": {
+          "closeReason": null,
+          "counts": {
+            "accepted": 3,
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "discarded": 0,
+            "emitted": 4,
+            "filtered": 1,
+            "ignored": 0,
+            "pending": 0,
+            "preacceptFailed": 0,
+            "processingPending": 0,
+            "rejected": 0
+          },
+          "delivery": {
+            "accepted": 3,
+            "ackLevel": "memory",
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "outputPath": null,
+            "pending": 0,
+            "tempPath": null
+          },
+          "elapsedMs": 4372,
+          "error": null,
+          "finishTime": 1793213825829,
+          "itemCount": 3,
+          "metadataPersisted": null,
+          "pageCount": 2,
+          "recoveredErrors": [],
+          "runId": "mvsh7k0h-1",
+          "secondaryErrors": [],
+          "startTime": 1793213821457,
+          "status": "completed",
+          "stopReason": "site_exhausted"
+        },
+        "stats": {
+          "closeReason": null,
+          "counts": {
+            "accepted": 3,
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "discarded": 0,
+            "emitted": 4,
+            "filtered": 1,
+            "ignored": 0,
+            "pending": 0,
+            "preacceptFailed": 0,
+            "processingPending": 0,
+            "rejected": 0
+          },
+          "delivery": {
+            "accepted": 3,
+            "ackLevel": "memory",
+            "committed": 3,
+            "deliveryUnknown": 0,
+            "outputPath": null,
+            "pending": 0,
+            "tempPath": null
+          },
+          "elapsedMs": 4372,
+          "error": null,
+          "finishTime": 1793213825829,
+          "itemCount": 3,
+          "metadataPersisted": null,
+          "pageCount": 2,
+          "recoveredErrors": [],
+          "runId": "mvsh7k0h-1",
+          "secondaryErrors": [],
+          "startTime": 1793213821457,
+          "status": "completed",
+          "stopReason": "site_exhausted"
+        }
+      },
+      "recordTable": {
+        "summary": "共 3 条记录",
+        "table": {
+          "visible": true,
+          "headers": [
+            "author",
+            "detailUrl",
+            "id",
+            "price",
+            "title"
+          ],
+          "rows": [
+            [
+              "Ada",
+              "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+              "A",
+              "19.9",
+              "Alpha"
+            ],
+            [
+              "Ben",
+              "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+              "B",
+              "25",
+              "Beta"
+            ],
+            [
+              "Cara",
+              "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+              "C",
+              "30",
+              "Gamma"
+            ]
+          ]
+        },
+        "check": "PASS"
+      }
+    }
+  ],
+  "componentChecks": {
+    "status": "PASS_SCOPED",
+    "tests": 37,
+    "files": [
+      "app-model.test.mjs",
+      "app-view.test.mjs",
+      "capture-config.test.mjs",
+      "page-adapter.test.mjs",
+      "engine.test.mjs",
+      "package.test.mjs"
+    ],
+    "scope": [
+      "声明式语法/Origin/权限边界",
+      "精确Task pin与正式包同源",
+      "原SDK字节不变",
+      "ETag及未应用草稿保护",
+      "身份错配/未知效果拒绝重放",
+      "page_limit保留partial与数据",
+      "相对详情base URI",
+      "锚点保留点击",
+      "列表设置独立应用/保存草稿控件同步",
+      "严格价格Pipeline拒绝坏值"
+    ],
+    "distinction": "Node不是原生证据；page_limit/relative-base/hash-control分支本批仅组件验证。"
+  },
+  "previousCandidate": "migration-status.json.coreEvidence (Task0.1.0/App1.0.0 historical only)",
+  "deferred": [
+    "full32FeatureAcceptance",
+    "productionAcceptance",
+    "nativeUpgradeAndRevocation",
+    "currentCandidateNativeStopAndCSV",
+    "scrollPagination",
+    "XPathPagination",
+    "checkpointRecovery",
+    "retryManager",
+    "splitPublicationNativeExample",
+    "visualSelectionAndRecorder",
+    "AIRecipesAndScheduling",
+    "95PlusScore",
+    "zoomAndWidthMatrix",
+    "stressTest"
+  ],
+  "cleanup": {
+    "ownedCFTsReleased": true,
+    "canonicalFixtureMapping": "temporary symlink, removed during closeout",
+    "watcher": "No stop/restart/build-overwrite by this task. Lock token bb4817ed-2b64-45fe-ad7b-39c8af40d18e unchanged; prior PID60611 absent at final read-only check, owner/runtime state unknown. Native proof uses frozen copied development snapshots.",
+    "demoServer": "Existing PID68658 preserved",
+    "dailyChrome": "untouched"
+  }
+}

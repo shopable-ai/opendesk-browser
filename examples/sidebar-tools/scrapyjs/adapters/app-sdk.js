@@ -21,7 +21,10 @@
         if (!task) throw new Error('固定 Task 尚未确认安装身份');
         const configJson = JSON.stringify(config.itemConfig);
         if (bytes(configJson) > 4096) throw new Error('itemConfig 超过 configJson 的 4096 字节上限');
-        const params = {url: config.url, configJson, waitForSelector: config.waitForSelector || '', timeoutMs: config.timeoutMs ?? 30000};
+        const {url:configuredUrl,itemConfig,waitForSelector,timeoutMs,...options}=config;
+        const optionsJson=JSON.stringify(options);
+        if(bytes(optionsJson)>4096)throw new Error('分页、详情与处理配置超过 4096 字节');
+        const params = {url: configuredUrl, configJson, optionsJson, waitForSelector: waitForSelector || '', timeoutMs: timeoutMs ?? 30000};
         return project(await request('tasks.start', {task, clientRequestId, params}));
       },
       read: async clientRequestId => project(await request('tasks.read', {clientRequestId})),

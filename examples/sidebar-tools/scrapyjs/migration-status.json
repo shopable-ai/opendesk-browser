@@ -2,7 +2,7 @@
   "format": "scrapyjs-migration-status.v1",
   "fullMigrationComplete": false,
   "sourceLedger": ".omx/plans/scrapyjs-migration-source-function-ledger-20261028.md",
-  "scope": "本轮六个核心可用交付里程碑；完整迁移另按32项记录",
+  "scope": "当前批：先迁移原脚本示例，再接字段/属性、分页、列表详情和记录表格；32项完整迁移继续分层记录",
   "features": [
     {
       "id": "F01",
@@ -11,16 +11,62 @@
       "destination": "src/",
       "dependencies": "原 Sidebar App 安装、可信目标和固定 Task 委托",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "同 App 目标/配置/结果真实通过；多网页切换未验证"
+      "detail": "同 App 的目标、配置、记录表格已接线；本批 App 原生结果见 currentBatch，不以脚本代替 UI。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "同一App可信目标/配置/结果表格",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F02",
       "operation": "字段配置、分页参数、延迟、profile和配置锁",
       "source": "scrapyJsChrome/www/popup_crawl.js:1623；scrapyJsChrome/assets/js/ai/crawl-profile.js:1",
-      "destination": "src/app-model.js",
+      "destination": "src/; controller/capture.js",
       "dependencies": "声明式 schema 与原引擎选择器语法",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "声明式字段配置与真实运行通过；分页、延迟、profile/锁未开放"
+      "detail": "字段文本/属性、CSS分页与上限、去重、列表详情配置已接线；延迟/profile/锁未实现。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "字段属性与分页详情控件应用/未应用保护",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F03",
@@ -29,7 +75,30 @@
       "destination": "src/; adapters/app-sdk.js",
       "dependencies": "原 storage.get/set、ETag",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "单配置条件保存与重开真实通过，codec 顺序差异不再误报；命名任务、切换、自动保存未实现"
+      "detail": "单配置条件保存与重开真实通过，codec 顺序差异不再误报；命名任务、切换、自动保存未实现",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "单配置条件保存/销毁iframe后重开；无命名任务/自动保存",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F04",
@@ -38,7 +107,30 @@
       "destination": "src/; adapters/",
       "dependencies": "可信目标重新捕获、原运行历史",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "配置重开真实通过；打开已保存网址、历史/可靠恢复未实现"
+      "detail": "配置重开真实通过；打开已保存网址、历史/可靠恢复未实现",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "恢复配置；不自动开网页或恢复运行",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F05",
@@ -47,7 +139,32 @@
       "destination": "controller/main.js; adapters/app-sdk.js",
       "dependencies": "固定安装 Task、原 Authority/RunHost/Worker",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "固定已安装 Task 在同 App 启动，通过原 Authority/RunHost/Worker 返回真实记录"
+      "detail": "固定已安装 Task 在同 App 启动，通过原 Authority/RunHost/Worker 返回真实记录",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "PASS_SCOPED",
+          "scope": "fixed Task main",
+          "evidence": "evidence/core-examples-20261029.json#scripts"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "同一App三次不同身份启动固定Task",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F06",
@@ -56,16 +173,64 @@
       "destination": "adapters/page.js",
       "dependencies": "原受控 Page/Locator",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "受控 Page 首链导航/等待/提取真实通过；未模拟旧 ChromePage，完整导航场景未验证"
+      "detail": "受控 Page 导航、等待、提取及两页详情链在 Controller 原生通过；普通按钮/锚点点击和 base URI 定向组件回归，其他导航未验证。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "PASS_SCOPED",
+          "scope": "fields, pagination, list-detail, capture",
+          "evidence": "evidence/core-examples-20261029.json#scripts"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F07",
       "operation": "真实列表/字段提取、属性href与数据类型",
       "source": "scrapyJs/src/item/ItemLoader.js:1；scrapyJs/src/item/item-loader-extraction.js:1；scrapyJs/src/item/Item.js:1",
-      "destination": "engine/; src/",
+      "destination": "engine/; controller/capture.js; src/",
       "dependencies": "完整浏览器 SDK 的 ItemLoader/提取 callback",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "原列表3条文本及顺序真实通过；属性、嵌套、其他数据类型未原生验证"
+      "detail": "原 ItemLoader 的列表文本、href、可空字段经真实 DOM 提取，全部黄金字段逐一一致；嵌套/其他数据类型未逐项原生验证。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "PASS_SCOPED",
+          "scope": "fields, pagination",
+          "evidence": "evidence/core-examples-20261029.json#scripts"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "文本/href/可空字段和数字全部黄金一致",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F08",
@@ -74,7 +239,28 @@
       "destination": "page/",
       "dependencies": "独立安装 Page Program 与结构化配置交付",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现"
+      "detail": "未实现",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F09",
@@ -83,7 +269,28 @@
       "destination": "page/; src/",
       "dependencies": "Page Authority、选择器结构化配置",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现"
+      "detail": "未实现",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F10",
@@ -92,7 +299,28 @@
       "destination": "page/; engine/",
       "dependencies": "原 Page document；表格与 XPath 原算法",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现可视能力；首链 XPath 自身文本不代表整项完成"
+      "detail": "未实现可视能力；首链 XPath 自身文本不代表整项完成",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F11",
@@ -101,7 +329,28 @@
       "destination": "page/; src/",
       "dependencies": "独立 Page Program、录制会话和 App 目标",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现，保留来源未跟踪 recorder 资产"
+      "detail": "未实现，保留来源未跟踪 recorder 资产",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F12",
@@ -110,7 +359,28 @@
       "destination": "page/; controller/",
       "dependencies": "有界动作记录、受控 Page/Locator",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现，不把网页事件处理器升为可信 Host"
+      "detail": "未实现，不把网页事件处理器升为可信 Host",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F13",
@@ -119,7 +389,28 @@
       "destination": "page/; adapters/",
       "dependencies": "Page 程序导航、document 身份和 dispose",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现"
+      "detail": "未实现",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F14",
@@ -128,7 +419,28 @@
       "destination": "controller/; adapters/",
       "dependencies": "原 Controller Task、Page 目标与效果查询",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现，未知效果不重放"
+      "detail": "未实现，未知效果不重放",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F15",
@@ -137,25 +449,96 @@
       "destination": "src/; adapters/",
       "dependencies": "原公开复制/文本下载与用户手势",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现录制数据导出"
+      "detail": "未实现录制数据导出",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F16",
       "operation": "下一页点击导航、滚动分页、去重/终止条件",
       "source": "scrapyJs/src/core/ChromeSpider.js:70；scrapyJsChrome/www/popup_crawl.js:2715",
-      "destination": "engine/; adapters/",
+      "destination": "controller/capture.js; adapters/page.js; src/",
       "dependencies": "串行导航确认、去重与结束策略",
-      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "完整原 SDK 已保留；业务入口未迁入"
+      "status": "SCRIPT_AND_APP_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "真实两页链接翻页、跨页去重、自然 site_exhausted 终止通过。页数上限保留 partial/page_limit 及已采记录通过组件回归；滚动分页和XPath翻页延期。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "PASS_SCOPED",
+          "scope": "pagination",
+          "evidence": "evidence/core-examples-20261029.json#scripts"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "两页链接分页、去重2条、自然终止；无滚动分页",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F17",
       "operation": "列表发现详情、详情队列与重试入口",
       "source": "scrapyJsChrome/assets/js/ai/list-detail-checkpoint.js:139；scrapyJsChrome/www/list-detail-checkpoint-view.js:1；scrapyJs/src/task/runCheckpointTasks.js:1",
-      "destination": "engine/; src/; adapters/",
+      "destination": "controller/capture.js; src/",
       "dependencies": "详情队列、范围校验与原效果状态",
-      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "完整原 SDK 已保留；业务入口未迁入"
+      "status": "SCRIPT_AND_APP_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "真实列表两页到三条详情，URL/ID关联与价格Pipeline全部黄金一致。复用原 BaseSpider/Request/Scheduler 串行详情；重试、检查点与恢复未交付。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "PASS_SCOPED",
+          "scope": "list-detail, capture",
+          "evidence": "evidence/core-examples-20261029.json#scripts"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "两页列表到三条URL/ID匹配详情及严格价格",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F18",
@@ -164,7 +547,28 @@
       "destination": "controller/; src/",
       "dependencies": "原 RunHost 生命周期和引擎暂停机制",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "完整原 SDK 已保留；暂停继续按钮未实现"
+      "detail": "完整原 SDK 已保留；暂停继续按钮未实现",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F19",
@@ -173,25 +577,96 @@
       "destination": "src/app-model.js; adapters/app-sdk.js",
       "dependencies": "原 RunHost Stop、clientRequestId 取消、退休读回",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "同 App 原 Stop 与启动回包前取消均真实通过，原实例 stopped/released；未重复 Start/Stop 或重放未知效果"
+      "detail": "旧候选原Stop/回包前取消原生通过；本批身份/未知效果/退休保护组件回归、正常完成实例released原生通过。本批未重测Stop/取消原生操作。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F20",
       "operation": "字段处理/Pipeline、验证与可逆配置修改",
       "source": "scrapyJs/src/core/Pipeline.js:1；scrapyJs/src/ai/Processing.js:1；scrapyJs/src/ai/BrowserValidation.js:1；scrapyJsChrome/www/popup_crawl.js:1523",
-      "destination": "engine/; src/",
+      "destination": "controller/capture.js; examples/; src/",
       "dependencies": "原 Processing/Pipeline/BrowserValidation、配置版本",
-      "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "完整原 SDK 已保留；业务编辑/验证流程未迁入"
+      "status": "SCRIPT_AND_APP_NATIVE_PASS_FULL_FEATURE_PARTIAL",
+      "detail": "原 Pipeline 大写、BrowserValidation/fieldRequirements、严格价格转换经脚本原生通过；processing配置仅开放/校验，完整处理编辑器及原生splitPublication未验证。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "PASS_SCOPED",
+          "scope": "fields Pipeline + BrowserValidation; list-detail decimal Pipeline",
+          "evidence": "evidence/core-examples-20261029.json#scripts"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "BrowserValidation和严格价格；无通用Pipeline编辑器",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F21",
       "operation": "统计、质量、partial/failed/交付状态",
       "source": "scrapyJs/src/core/Scrapy.js:109；scrapyJsChrome/www/popup_crawl.js:954；scrapyJsChrome/assets/js/ai/result-quality.js:1",
-      "destination": "src/; controller/main.js",
+      "destination": "src/; controller/capture.js",
       "dependencies": "原 getRunStats/runResult/持久结果",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "首链宿主/引擎状态及原持久结果真实通过；质量、partial 额外场景未验证"
+      "detail": "原持久结果中宿主/引擎/退休和统计保留；completed脚本原生通过，page_limit partial保留及UI标识经组件验证。质量编辑与失败场景延期。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "PASS_SCOPED",
+          "scope": "original engine completed stats",
+          "evidence": "evidence/core-examples-20261029.json#scripts"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "completed统计与released；partial仅组件验证",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F22",
@@ -200,7 +675,28 @@
       "destination": "adapters/; controller/",
       "dependencies": "阶段需要时再补 CAS、提交/effect 查询、分片和 lease",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现可靠恢复；原检查点算法保留"
+      "detail": "未实现可靠恢复；原检查点算法保留",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F23",
@@ -209,7 +705,28 @@
       "destination": "adapters/; src/",
       "dependencies": "复用原 Task 计划，不新增调度器",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未实现采集调度业务"
+      "detail": "未实现采集调度业务",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F24",
@@ -218,7 +735,30 @@
       "destination": "src/; adapters/app-sdk.js",
       "dependencies": "browser.downloads.text、user.export、原点击手势",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "JSON完整快照20227bytes、CSV真实3条记录58bytes均下载completed并读取文件核对；复制、大结果分片未实现"
+      "detail": "本批三场景表格全部字段与黄金一致；完整JSON46312bytes下载completed并读回。CSV58bytes旧候选证据保留，当前未重测CSV；复制/大结果分片延期。",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "三行全字段表格、JSON46312字节下载并读回；当前CSV未重测",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F25",
@@ -227,7 +767,32 @@
       "destination": "engine/; controller/",
       "dependencies": "原 Scrapy memory collector、delivery、原 RunHost 退休",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "首链原 Scrapy 数组返回、统计、memory delivery 及原 RunHost 退休真实通过；其他交付模式未验证"
+      "detail": "首链原 Scrapy 数组返回、统计、memory delivery 及原 RunHost 退休真实通过；其他交付模式未验证",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "SCOPED"
+        },
+        "componentTested": {
+          "status": "SCOPED"
+        },
+        "scriptNative": {
+          "status": "PASS_SCOPED",
+          "scope": "array return, memory delivery and original retirement",
+          "evidence": "evidence/core-examples-20261029.json#scripts"
+        },
+        "uiWired": {
+          "status": "SCOPED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "PASS_SCOPED",
+          "scope": "原引擎memory结果及Host实例released；无其他交付模式",
+          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+        }
+      }
     },
     {
       "id": "F26",
@@ -236,7 +801,28 @@
       "destination": "src/; engine/; adapters/",
       "dependencies": "原 AIConfig、明确数据范围、可逆配置修订",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "完整原 SDK 保留；AI 产品流程未迁入"
+      "detail": "完整原 SDK 保留；AI 产品流程未迁入",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F27",
@@ -245,7 +831,28 @@
       "destination": "src/; engine/",
       "dependencies": "配方身份/版本、原规则链接提取",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "完整原 SDK 保留；配方 UI 未实现"
+      "detail": "完整原 SDK 保留；配方 UI 未实现",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F28",
@@ -254,7 +861,28 @@
       "destination": "engine/; adapters/",
       "dependencies": "逐项核实公开能力/权限；任意 Code 不作为首链配置",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未开放；不把完整 SDK 中的实现视为已授权特权"
+      "detail": "未开放；不把完整 SDK 中的实现视为已授权特权",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F29",
@@ -263,7 +891,28 @@
       "destination": "来源 scrapyJs 仓库",
       "dependencies": "未来必要时使用原已授权 Provider",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "本轮不迁移 Node 文件/CLI 专用功能，来源只读保留"
+      "detail": "本轮不迁移 Node 文件/CLI 专用功能，来源只读保留",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "完整原浏览器SDK + 只读来源仓库；保留不等于对应产品已迁入"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F30",
@@ -272,7 +921,28 @@
       "destination": "原 OpenDesk Authority/Host/Registry/RunHost",
       "dependencies": "原安装和执行世界合同",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "旧权限/共享 window 层由原 OpenDesk 基础设施替代，不复制"
+      "detail": "旧权限/共享 window 层由原 OpenDesk 基础设施替代，不复制",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F31",
@@ -281,7 +951,28 @@
       "destination": "page/; tests/; adapters/",
       "dependencies": "迁入对应业务前重新核对来源 hash/dirty 归属",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "来源样本保留未改；未全部迁入/执行"
+      "detail": "来源样本保留未改；未全部迁入/执行",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     },
     {
       "id": "F32",
@@ -290,11 +981,32 @@
       "destination": "tests/（待逐项判定）",
       "dependencies": "确认实际用户价值及来源归属",
       "status": "NOT_IMPLEMENTED_OR_DEFERRED",
-      "detail": "未映射开发辅助不进入运行候选，来源保留"
+      "detail": "未映射开发辅助不进入运行候选，来源保留",
+      "evidenceLayers": {
+        "sourcePreserved": {
+          "status": "RETAINED",
+          "scope": "原扩展资产留在只读来源仓库；未删除或伪称已vendored"
+        },
+        "sourceWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "componentTested": {
+          "status": "NOT_TESTED"
+        },
+        "scriptNative": {
+          "status": "NOT_TESTED"
+        },
+        "uiWired": {
+          "status": "NOT_IMPLEMENTED_OR_DEFERRED"
+        },
+        "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED"
+        }
+      }
     }
   ],
   "coreMilestones": {
-    "scope": "2026-10-29 development core only",
+    "scope": "HISTORICAL Task0.1.0/App1.0.0 only; not current batch percentage",
     "completed": 6,
     "total": 6,
     "percent": 100,
@@ -462,6 +1174,18 @@
     "productionAcceptance": "NOT_TESTED",
     "nativeUpgradeAndRevocation": "NOT_TESTED",
     "full32FeatureAcceptance": "NOT_TESTED",
-    "validationGap": "旧 tests/framework/k3-sandbox-error-forwarding.test.mjs 的6项用例被过时 Worker URL 夹具在进入沙箱前拒绝（E_RESOURCE_URL_UNSUPPORTED）；未修改产品来源校验或扩大修复。新沙箱退休与原 RunHost 恢复定向回归10/10 PASS。"
+    "validationGap": "旧 tests/framework/k3-sandbox-error-forwarding.test.mjs 的6项用例被过时 Worker URL 夹具在进入沙箱前拒绝（E_RESOURCE_URL_UNSUPPORTED）；未修改产品来源校验或扩大修复。新沙箱退休与原 RunHost 恢复定向回归10/10 PASS。",
+    "candidateScope": "HISTORICAL_TASK_0.1.0_APP_1.0.0_ONLY"
+  },
+  "currentBatch": {
+    "evidence": "evidence/core-examples-20261029.json",
+    "phase": "CORE_DEVELOPMENT",
+    "fullFeatureAcceptance": "NOT_TESTED",
+    "productionAcceptance": "NOT_TESTED",
+    "scriptNative": "PASS_SCOPED",
+    "uiNative": "PASS_SCOPED",
+    "appVersion": "1.1.1",
+    "taskVersion": "0.2.1",
+    "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
   }
 }

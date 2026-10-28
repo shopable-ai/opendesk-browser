@@ -1,0 +1,336 @@
+{
+  "schemaVersion": 1,
+  "origin": "http://127.0.0.1:43111",
+  "mountPath": "/scrapyjs-fixtures/",
+  "listUrls": [
+    "http://127.0.0.1:43111/scrapyjs-fixtures/list-1.html",
+    "http://127.0.0.1:43111/scrapyjs-fixtures/list-2.html"
+  ],
+  "github": {
+    "itemConfig": {
+      "_listContainer": "[data-listview-component=\"items-list\"]",
+      "_listItem": "li",
+      "name": "[data-listview-item-title-container] h3 a, [data-listview-item-title-container] h4 a",
+      "url": "[data-listview-item-title-container] h3 a, [data-listview-item-title-container] h4 a::href",
+      "language": "[class*=\"PrimaryLanguageName\"]",
+      "stars": "a[href$=\"/stargazers\"]",
+      "description": ".repos-list-description"
+    },
+    "fieldRequirements": [
+      {
+        "key": "name",
+        "required": true,
+        "valueType": "text"
+      },
+      {
+        "key": "url",
+        "required": true,
+        "valueType": "url"
+      },
+      {
+        "key": "language",
+        "required": false,
+        "valueType": "text"
+      },
+      {
+        "key": "stars",
+        "required": false,
+        "valueType": "text"
+      },
+      {
+        "key": "description",
+        "required": false,
+        "valueType": "text"
+      }
+    ],
+    "waitForSelector": "[data-listview-component=\"items-list\"] > li",
+    "nextPageSelector": "a[data-component=\"Pagination.NextPage\"][rel=\"next\"]",
+    "pages": [
+      {
+        "path": "/scrapyjs-fixtures/list-1.html",
+        "records": [
+          {
+            "name": "fixture-cache",
+            "url": "/scrapyjs-fixtures/detail-fixture-cache.html",
+            "language": "C#",
+            "stars": "12k",
+            "description": "Remote cache example"
+          },
+          {
+            "name": "fixture-tools",
+            "url": "/scrapyjs-fixtures/detail-fixture-tools.html",
+            "language": "",
+            "stars": "17",
+            "description": "Developer tools example"
+          },
+          {
+            "name": "fixture-empty",
+            "url": "/scrapyjs-fixtures/detail-fixture-empty.html",
+            "language": "",
+            "stars": "",
+            "description": ""
+          }
+        ]
+      },
+      {
+        "path": "/scrapyjs-fixtures/list-2.html",
+        "records": [
+          {
+            "name": "fixture-tools",
+            "url": "/scrapyjs-fixtures/detail-fixture-tools.html",
+            "language": "",
+            "stars": "17",
+            "description": "Developer tools example"
+          },
+          {
+            "name": "fixture-empty",
+            "url": "/scrapyjs-fixtures/detail-fixture-empty.html",
+            "language": "",
+            "stars": "",
+            "description": ""
+          }
+        ]
+      }
+    ],
+    "rawRecordCount": 5,
+    "identity": [
+      "url"
+    ],
+    "uniqueRecordCount": 3,
+    "uniqueRecords": [
+      {
+        "name": "fixture-cache",
+        "url": "/scrapyjs-fixtures/detail-fixture-cache.html",
+        "language": "C#",
+        "stars": "12k",
+        "description": "Remote cache example"
+      },
+      {
+        "name": "fixture-tools",
+        "url": "/scrapyjs-fixtures/detail-fixture-tools.html",
+        "language": "",
+        "stars": "17",
+        "description": "Developer tools example"
+      },
+      {
+        "name": "fixture-empty",
+        "url": "/scrapyjs-fixtures/detail-fixture-empty.html",
+        "language": "",
+        "stars": "",
+        "description": ""
+      }
+    ],
+    "resolvedUniqueRecords": [
+      {
+        "name": "fixture-cache",
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-cache.html",
+        "language": "C#",
+        "stars": "12k",
+        "description": "Remote cache example"
+      },
+      {
+        "name": "fixture-tools",
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-tools.html",
+        "language": "",
+        "stars": "17",
+        "description": "Developer tools example"
+      },
+      {
+        "name": "fixture-empty",
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-fixture-empty.html",
+        "language": "",
+        "stars": "",
+        "description": ""
+      }
+    ]
+  },
+  "listDetail": {
+    "listItemConfig": {
+      "_listContainer": ".catalog",
+      "_listItem": "article",
+      "id": ".id::text",
+      "title": ".title::text",
+      "detailUrl": "a.title::href"
+    },
+    "detailItemConfig": {
+      "_listContainer": ".detail",
+      "_listItem": "article",
+      "id": ".id::text",
+      "author": ".author::text",
+      "price": ".price::text"
+    },
+    "states": {
+      "ready": ".ready",
+      "empty": ".empty",
+      "login": ".login",
+      "error": ".error",
+      "allowEmpty": false
+    },
+    "pagination": {
+      "kind": "nextHref",
+      "selector": "a.next",
+      "attr": "href",
+      "disabledSelector": ".disabled",
+      "endSelector": ".end",
+      "missingNextIsEnd": false
+    },
+    "pages": [
+      {
+        "path": "/scrapyjs-fixtures/list-1.html",
+        "records": [
+          {
+            "id": "A",
+            "title": "Alpha",
+            "detailUrl": "/scrapyjs-fixtures/detail-A.html"
+          },
+          {
+            "id": "B",
+            "title": "Beta",
+            "detailUrl": "/scrapyjs-fixtures/detail-B.html"
+          }
+        ]
+      },
+      {
+        "path": "/scrapyjs-fixtures/list-2.html",
+        "records": [
+          {
+            "id": "A",
+            "title": "Alpha",
+            "detailUrl": "/scrapyjs-fixtures/detail-A.html"
+          },
+          {
+            "id": "C",
+            "title": "Gamma",
+            "detailUrl": "/scrapyjs-fixtures/detail-C.html"
+          }
+        ]
+      }
+    ],
+    "identity": [
+      "id"
+    ],
+    "urlFields": [
+      "detailUrl"
+    ],
+    "matchFields": [
+      "id"
+    ],
+    "rawRecordCount": 4,
+    "uniqueRecordCount": 3,
+    "uniqueRecords": [
+      {
+        "id": "A",
+        "title": "Alpha",
+        "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html"
+      },
+      {
+        "id": "B",
+        "title": "Beta",
+        "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html"
+      },
+      {
+        "id": "C",
+        "title": "Gamma",
+        "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html"
+      }
+    ],
+    "details": [
+      {
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+        "records": [
+          {
+            "id": "A",
+            "author": "Ada",
+            "price": "19.90"
+          }
+        ]
+      },
+      {
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+        "records": [
+          {
+            "id": "B",
+            "author": "Ben",
+            "price": "25.00"
+          }
+        ]
+      },
+      {
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+        "records": [
+          {
+            "id": "C",
+            "author": "Cara",
+            "price": "30.00"
+          }
+        ]
+      }
+    ],
+    "mergedBeforePipeline": [
+      {
+        "id": "A",
+        "title": "Alpha",
+        "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+        "author": "Ada",
+        "price": "19.90"
+      },
+      {
+        "id": "B",
+        "title": "Beta",
+        "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+        "author": "Ben",
+        "price": "25.00"
+      },
+      {
+        "id": "C",
+        "title": "Gamma",
+        "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+        "author": "Cara",
+        "price": "30.00"
+      }
+    ],
+    "afterPipeline": [
+      {
+        "id": "A",
+        "title": "Alpha",
+        "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-A.html",
+        "author": "Ada",
+        "price": 19.9
+      },
+      {
+        "id": "B",
+        "title": "Beta",
+        "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-B.html",
+        "author": "Ben",
+        "price": 25.0
+      },
+      {
+        "id": "C",
+        "title": "Gamma",
+        "detailUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/detail-C.html",
+        "author": "Cara",
+        "price": 30.0
+      }
+    ],
+    "pipeline": {
+      "source": "scrapyJs/examples/list-detail/common.cjs#normalize",
+      "pricePattern": "^\\d+(?:\\.\\d{1,2})?$",
+      "conversion": "Number(price)",
+      "invalidPriceError": "PRICE_FORMAT"
+    },
+    "associationErrors": {
+      "wrongDetailId": "DETAIL_MISMATCH",
+      "sameIdDifferentRow": "DUPLICATE_ID_CONFLICT",
+      "differentIdsSameDetailUrl": "DETAIL_URL_SHARED"
+    }
+  },
+  "pagination": {
+    "listPageCount": 2,
+    "firstSeenOrder": true,
+    "terminalPath": "/scrapyjs-fixtures/list-2.html",
+    "terminalNextHref": null,
+    "terminalEndSelector": ".end",
+    "naturalEnd": true,
+    "uniqueDetailRequestCount": 3
+  }
+}

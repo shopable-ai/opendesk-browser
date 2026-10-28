@@ -8,9 +8,33 @@
   </section>
   <section aria-labelledby="config-heading">
     <div class="toolbar"><h2 id="config-heading">采集配置</h2><button id="save-config" type="button">保存配置</button></div>
-    <label for="config-json">JSON 配置</label>
+    <details id="field-editor">
+      <summary>字段与属性</summary>
+      <label for="list-container">列表容器选择器</label><input id="list-container" type="text">
+      <label for="list-item">列表项选择器</label><input id="list-item" type="text">
+      <p id="field-summary" class="secondary"></p>
+      <label for="field-key">字段名（同名字段会更新）</label><input id="field-key" type="text" autocomplete="off">
+      <label for="field-selector">字段 CSS 选择器</label><input id="field-selector" type="text" placeholder="例如 .title">
+      <label for="field-read">读取内容</label><select id="field-read"><option value="text">文本</option><option value="attr">属性</option></select>
+      <label for="field-attr">属性名称</label><input id="field-attr" type="text" placeholder="例如 href、src、title" disabled>
+      <button id="apply-field" type="button">应用字段</button>
+    </details>
+    <details id="crawl-editor">
+      <summary>分页与列表详情</summary>
+      <label for="next-selector">下一页 CSS 选择器（留空为单页）</label><input id="next-selector" type="text">
+      <label for="max-pages">页数安全上限</label><input id="max-pages" type="number" min="1" max="10" value="5">
+      <label for="dedupe-key">去重字段（留空保留全部）</label><input id="dedupe-key" type="text">
+      <label for="detail-enabled"><input id="detail-enabled" type="checkbox">采集列表对应详情</label>
+      <label for="detail-url-field">列表中的详情 URL 字段</label><input id="detail-url-field" type="text">
+      <label for="detail-id-field">列表与详情共同的身份字段</label><input id="detail-id-field" type="text">
+      <label for="detail-fields">详情 itemConfig JSON</label><textarea id="detail-fields" rows="5" spellcheck="false"></textarea>
+      <label for="detail-numbers">按严格小数转换的详情字段（逗号分隔）</label><input id="detail-numbers" type="text" placeholder="例如 price">
+      <button id="apply-crawl" type="button">应用分页与详情</button>
+      <p class="secondary">链接翻页沿原导航授权；最多 10 页、100 条详情。身份不符或同一身份内容冲突会报错。</p>
+    </details>
+    <label for="config-json">完整 JSON 配置</label>
     <textarea id="config-json" spellcheck="false" rows="10" aria-describedby="config-help config-error"></textarea>
-    <p id="config-help" class="secondary">完整参数包含 url、itemConfig，可选 waitForSelector、timeoutMs。_listContainer / _listItem 定义列表；.::text 读取当前项文本。itemConfig 序列化后最多 4096 字节。</p>
+    <p id="config-help" class="secondary">字段支持文本与属性；分页可选 nextPageSelector、maxPages、dedupeKey，详情用 detail；校验与处理可在 JSON 中配置。_listContainer / _listItem 定义列表；.::text 读取当前项文本。itemConfig 序列化后最多 4096 字节。</p>
     <p id="config-error" role="alert" hidden></p>
     <div id="conflict" hidden>
       <p>保存版本与草稿冲突。草稿仍保留，请先复制需要的内容再选择。</p>
@@ -28,6 +52,8 @@
       <dt>实例退休</dt><dd id="retired-status">尚无运行</dd>
     </dl>
     <p id="app-error" role="alert" hidden></p><p id="app-notice" role="status" hidden></p>
+    <p id="record-summary" role="status">尚无记录</p>
+    <div class="table-scroll" tabindex="0" aria-label="采集记录"><table id="record-table"></table></div>
     <pre id="result" tabindex="0" aria-label="真实任务结果">尚无结果</pre>
     <div class="toolbar"><button id="download-json" type="button" disabled>下载完整 JSON</button><button id="download-csv" type="button" disabled>下载 CSV</button></div>
   </section>

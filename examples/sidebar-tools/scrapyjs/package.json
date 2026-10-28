@@ -1,14 +1,60 @@
 {
-  "name":"scrapyjs-capture", "version":"0.1.0", "private":true, "type":"module",
-  "description":"scrapyJs controlled single-page capture in OpenDesk",
-  "opendesk":{
-    "format":"opendesk.project.v1", "id":"scrapyjs.capture", "runtimeKind":"controller", "sourceFormat":"esm", "entry":"controller/main.js",
-    "siteOrigins":["http://127.0.0.1:43111"], "permissions":["page.automation"], "deadlineMs":90000,
-    "paramsSchema":{"type":"object","additionalProperties":false,"required":["url","configJson"],"properties":{
-      "url":{"type":"string","title":"网页地址","maxLength":2048},
-      "configJson":{"type":"string","title":"选择器配置 JSON","maxLength":4096},
-      "waitForSelector":{"type":"string","title":"等待选择器","maxLength":1024,"default":"#sample-list li"},
-      "timeoutMs":{"type":"integer","title":"等待上限（毫秒）","minimum":1,"maximum":60000,"default":30000}
-    }}
+  "name": "scrapyjs-capture",
+  "version": "0.2.1",
+  "private": true,
+  "type": "module",
+  "description": "scrapyJs controlled fields, pagination and list-detail capture",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "scrapyjs.capture",
+    "runtimeKind": "controller",
+    "sourceFormat": "esm",
+    "entry": "controller/main.js",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "deadlineMs": 90000,
+    "paramsSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "configJson"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "title": "网页地址",
+          "maxLength": 2048
+        },
+        "configJson": {
+          "type": "string",
+          "title": "选择器配置 JSON",
+          "maxLength": 4096
+        },
+        "waitForSelector": {
+          "type": "string",
+          "title": "等待选择器",
+          "maxLength": 1024,
+          "default": "#sample-list li"
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "title": "等待上限（毫秒）",
+          "minimum": 1,
+          "maximum": 60000,
+          "default": 30000
+        },
+        "optionsJson": {
+          "type": "string",
+          "title": "分页、详情与处理配置 JSON",
+          "maxLength": 4096,
+          "default": "{}"
+        }
+      }
+    }
   }
 }

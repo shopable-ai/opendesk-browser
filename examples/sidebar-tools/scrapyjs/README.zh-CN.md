@@ -1,67 +1,70 @@
 # scrapyJs 采集应用
 
-当前交付为单页核心链，未来业务维护只在本目录。来源仓库保持只读；完整来源源码、输入摘要和第三方通知在 `vendor/scrapyjs/`。本次核心链不代表完整迁移完成。
+本批已在真实 OpenDesk Controller 中跑通字段文本/属性、Pipeline 与 BrowserValidation、两页列表去重及自然终止、列表详情关联和价格处理。完整 32 项迁移仍为 `fullMigrationComplete=false`。完整原浏览器 SDK 保持原样；来源 `scrapyJs` / `scrapyJsChrome` 仓库只读。
 
-应用运行在原 opaque iframe；固定 `scrapyjs.capture` Task 在原 Controller Worker 中使用词法 `page/params`。Task 与应用分别经原安装器审阅安装，不能把应用 JSON 当成 Task。Task 当前批准网站仅 `http://127.0.0.1:43111`，其他网站需另一次明确的 Task 范围审阅。
+业务只在本目录维护。App 运行在原 opaque iframe，固定 `scrapyjs.capture` Task 运行在原 Controller Worker，使用词法 `page/params`。没有新执行器、宿主或安装器。批准网站仍只有 `http://127.0.0.1:43111`；不能直接拿此 Task 采集外站。
 
-## 使用
+## 安装与使用
 
-打开标准页面 `http://127.0.0.1:43111/demo-form.html`，在同一采集应用刷新当前网页，确认地址和配置，然后开始。默认读取 `#sample-list` 的直接 `li` 子项；字段 `.::text` 是原引擎的 XPath 自身文本语法。可以改选择器，但不能输入任意执行代码。
+两个包需分别经原入口审阅安装：
 
-运行期间可停止原实例。界面分别显示宿主状态、引擎业务状态、Stop 受理及运行退休；宿主 completed 不替代引擎交付状态。结果来自原运行关联，没有示例数据兜底。开始结果未知时不能重复点击开始。
+1. 「开发」/原任务目录导入 `controller/scrapyjs.opendesk-task.json`，验证固定源码并安装 Task v0.2.1。
+2. 「扩展」导入本目录唯一正式 App `scrapyjs.opendesk-tool.json` v1.1.1；它精确委托上述 Task。保留同 ID 的配置，更新时不先卸载。
+3. 打开标准页面 `http://127.0.0.1:43111/demo-form.html`，打开采集 App、刷新目标。默认读取 `#sample-list` 的直接 `li`；`.::text` 是原引擎自身文本语法。
+4. 展开「字段与属性」，填写列表容器和列表项；可选填写字段名、CSS 选择器及文本/属性类型，点击「应用字段」。同名更新，其他字段保留。
+5. 需要时展开「分页与列表详情」。填写下一页 CSS、页数上限和去重字段；详情需列表 URL 字段、双方共同身份字段和详情 `itemConfig`。点击「应用分页与详情」，然后开始。
 
-配置使用原 `storage.get/set` 及 ETag；冲突保留草稿，不覆盖他人版本。完整小结果可请求 JSON 下载，当前 `browser.downloads.text` 回执仅表示下载已开始。原公开能力支持 `.csv`，CSV 按真实记录字段导出，JSON 保留完整结果及状态。
+未应用的表单编辑阻止运行与保存。完整 JSON 保留原选择器/嵌套字段语法，也可填写原 `validation` / `fieldRequirements` / `processing`；配置只接收数据。表格呈现真实记录，完整快照仍保留。宿主、引擎、Stop 受理和实例退休分别显示；结果未知时禁止重复开始。原 Stop、配置 ETag 冲突保护和 JSON/CSV 下载继续使用已有链路。
 
-安装使用两个独立包：先通过原任务目录导入、核对真实运行证据并安装 `artifacts/scrapyjs/program-full/program.opendesk-task.json`；再在「扩展」导入本目录唯一正式包 `scrapyjs.opendesk-tool.json`，审阅固定 Task 的版本、源码 SHA 与能力。App 包不携带第二个执行器。正式 App 为 v1.0.0，SHA-256 `a3d4b87dcce3e28d8d2ef0d14d0e59c891432c2cd363b8ad0de1d493df09e179`。
+分页链接通过公开 `page.goto()` 推进原目标会话；普通 DOM 链接点击会因文档替换触发安全栅栏，不能直接沿用旧扩展的点击导航。按钮与同文档锚点仍使用公开 Locator，保留点击处理器；链接按当前文档 base URI 解析。分页只开放 CSS，最多 10 页；达到上限时保留已采集数据及 partial/page_limit，不伪称自然结束；详情最多 100 条、串行执行，严格核对 URL 与 ID，不静默重试。相同身份而内容不同报错；重复详情 URL、详情覆盖列表字段、错误 ID、非法价格均拒绝。详情 `numberFields` 使用来源示例的严格小数 Pipeline。滚动分页、XPath 翻页、断点恢复和重试管理未交付。
 
-## 本轮核心交付证据（2026-10-29）
+## 先脚本验证，再接 UI
 
-本轮核心里程碑 **6/6，100%**；完整来源32项迁移仍为 `fullMigrationComplete=false`，不能将核心百分比当成完整迁移进度。
+可复制的零参数 ESM 入口：
 
-| 实际操作 | 结果 |
-| --- | --- |
-| 完整浏览器 SDK 在原 Controller Worker 执行 | PASS；完整源码无压缩、无删模块 |
-| 同 App 刷新可信目标并填写声明式配置 | PASS；opaque iframe 无直接 Chrome storage |
-| 同 App 启动固定已安装 Task | PASS；原 Task 与 App 各自审阅安装 |
-| 同 App 查看真实记录、引擎和宿主状态 | PASS；三条记录与独立网页 oracle 同序，原结果 completed/released |
-| Stop 与启动回包前取消 | PASS；原运行 stopped/released；可信 Stop 顺序2，匹配 Start 回包顺序4，仅一次 Start/Stop |
-| 保存重开及完整 JSON/CSV 下载 | PASS；配置原 ETag 读回；JSON 20227 bytes、CSV 58 bytes 均完成并读取文件核对 |
-
-环境为原 watcher 的 `dist/development` 不变快照，在本任务独立 Mac CFT 155.0.8059.39/Profile 中运行，测试结束已关闭所属浏览器，日常 Chrome 和 watcher 未替换。原始报告为 `artifacts/scrapyjs/native-driver/app-core-observed-cancel-20261029/report.json`；固定源码、包、快照摘要、原运行/结果身份、事件顺序与下载摘要保存在本目录 `migration-status.json`。JSON 与实际完整快照深比较，CSV 与独立网页三条记录逐行比较，SDK 的“已请求下载”回执没有单独冒充文件完成。
-
-本轮修复配置 codec 改变对象键顺序导致的错误读回失败、Worker 创建前 Stop 无退休回执，以及准入中取消误记宿主关闭。定向 App/引擎/包测试25项、沙箱退休与 RunHost 恢复测试10项通过。旧 `k3-sandbox-error-forwarding.test.mjs` 六项用例在进入沙箱前因过时 Worker URL 夹具收到 `E_RESOURCE_URL_UNSUPPORTED`，本轮保留该验证缺口，未放宽来源校验。production、原生升级/撤权和完整32项验收仍为 `NOT_TESTED`。
-
-## 构建与边界
-
-```sh
-node examples/sidebar-tools/scrapyjs/engine/build-browser.mjs
-node scripts/build-program-project.mjs examples/sidebar-tools/scrapyjs --mode development --out artifacts/scrapyjs/program-full
-node --test examples/sidebar-tools/scrapyjs/tests/engine.test.mjs examples/sidebar-tools/scrapyjs/tests/app-model.test.mjs examples/sidebar-tools/scrapyjs/tests/app-view.test.mjs
-```
-
-`engine/browser.js` 消费完整 `vendor/scrapyjs/browser.original.js`。原浏览器 SDK 为 1,136,734 bytes，SHA-256 `c7a266c1bd5f34ba5e5a85d163c0573fc1d5afb60c07d0ce46af8393e7ada4be`；仅把 classic IIFE 原有的 CommonJS 导出作为词法值返回，再声明命名 ESM 导出。包装后 1,137,057 bytes；没有压缩、删模块、假 window、Node 能力模拟或第二执行器。第三方通知保留在 `vendor/scrapyjs/THIRD_PARTY_LICENSES.txt`。
-
-完整 SDK 保留原 Scrapy/Scheduler/Spider/Request/Item、回调、数组返回、统计、memory delivery，以及后续处理、验证、规则、暂停、检查点等实现。首链 Controller 只接受声明式字段配置，串行提取，无未知效果重试。显式注入受控 Page，原 `goto` 负责导航；适配层覆盖旧 downloader 对未使用 `waitForNavigation` 的要求，实际方法均委托原 Page。
-
-按用户最新容量授权，原公共链采用有界源码预算：源码 2 MiB、作者源链 4 MiB、Task JSON 4 MiB、Controller 草稿 JSON 12 MiB。参数、结果、普通 frame 与业务存储配额不随之扩大。固定 Task 的无压缩构建命令为：
-
-```sh
-node scripts/build-program-project.mjs examples/sidebar-tools/scrapyjs --mode development --out artifacts/scrapyjs/program-full
-```
-
-原构建产物 `program.js` 为 1,146,776 bytes，sourceHash `91683b92d21aaee8a98c70c95d9edfc4cb2d7221dba4aab62632a753bbcfc0f2`；App 的 `delegatedTasks` 精确绑定其 manifestHash/contentHash。Task 与 App 各走原审阅安装链。临时候选只说明构建通过，实际 Worker、安装与同 App 操作证据单独记录。Sidebar 正式包由唯一 `build-sidebar-tool.mjs` 构建候选、测试，再 `--promote-from`，不手改正式 JSON。
-
-## 后续完整迁移
-
-| 保留能力 | 维护位置与依赖 | 当前状态 |
+| 脚本 | 输入与独立预期 | 本批真实 Controller 结果 |
 | --- | --- | --- |
-| 可视选择、高亮、表格、XPath 选择器生成 | `page/` 独立 Installed Page Program，原受控结构化配置通道 | 未实现；XPath 文本提取不等于可视选择迁移 |
-| 录制、回放、选择器修复 | `page/` 录制，`controller/` 受控回放；保留来源脏工作区资产 | 未实现 |
-| 分页、导航确认、列表详情 | `engine/`、`adapters/`；串行 Page 与导航身份 | 未开放；完整 SDK 已保留 |
-| 字段规则、处理、质量验证 | `engine/`、配置与结果 UI | 未开放；完整 SDK 已保留，业务入口尚未开放 |
-| 统计与完整结果、CSV/复制 | `src/`、`adapters/`；合法格式及下载合同 | 核心统计/小结果JSON/CSV 已原生验证；复制和大结果分片后续 |
-| 暂停、继续、长任务 | `controller/` 与原 RunHost；效果状态查询 | 未开放；原引擎能力保留 |
-| 检查点、恢复、跨次调度 | `adapters/`；对应阶段再补 CAS、原提交/effect 查询、分片与业务 lease | 未实现；未知效果不重放 |
-| Node 文件与 Node 专用后端 | 来源仓库继续维护；未来必要时走现有授权 Provider | 本轮不迁移 |
+| `examples/fields.js` | GitHub 旧例三行；文本、href、可空属性；名称经原 Pipeline 大写 | 三行全部字段一致；BrowserValidation 运行，URL 绝对化；completed/released |
+| `examples/pagination.js` | 两页共五行，两个重复；首次出现顺序三条 | 两页、三条、重复 2；`site_exhausted` 自然终止 |
+| `examples/list-detail.js` | 旧 catalog 的 A/B/C、Ada/Ben/Cara、19.90/25.00/30.00；列表有 A 重复 | 三条 URL/ID 正确关联，价格为 19.9/25/30；列表和详情原引擎均 completed |
+| `controller/main.js` | 同样的声明式详情参数，作为固定 Task | 与上述完整黄金一致；经原验证/安装链安装 |
 
-完整来源功能编号与证据补充仍见 `.omx/plans/scrapyjs-migration-source-function-ledger-20261028.md`；其中“本轮仅设计”描述是历史阶段，不限制本次实施。本目录中的实现和运行证据才是当前产品进度依据。无语音控制、production 全验收、评分、宽度/缩放或压力测试。
+输入、输出和来源差异见 `fixtures/README.md`、`examples/expected.json`。旧 Node HTTP 例子的 PASS 不作浏览器证据；这里用原 ChromeSpider / BaseSpider / Request / Scheduler / ItemLoader / Pipeline，在受控网页世界执行真实 DOM 提取。
+
+复现时保留既有 `npm run dev` watcher、标准 demo 服务和日常 Chrome，使用独立 CFT/Profile 的不变开发快照：
+
+```sh
+# 前提：canonical demo 服务正在 127.0.0.1:43111 提供 examples/tasks。
+# 仅添加有所有权检查的临时映射，不修改 demo-form.html 或重启服务。
+node examples/sidebar-tools/scrapyjs/tests/fixture-mount.mjs mount
+node examples/sidebar-tools/scrapyjs/tests/build-examples.mjs artifacts/scrapyjs/my-examples
+node examples/sidebar-tools/scrapyjs/tests/native-examples.mjs --suite=artifacts/scrapyjs/my-examples/suite.json --out=artifacts/scrapyjs/my-native-run
+node examples/sidebar-tools/scrapyjs/tests/fixture-mount.mjs unmount
+```
+
+`build-examples.mjs` 为每个入口准备独立源码快照，并调用现有 `build-program-project.mjs`；它不运行引擎。原「开发」入口导入固定草稿并显式 Run，原持久结果绑定 sourceHash/runId/resultId/retirement。`params` 可传 `url`，仍须原任务范围和页面授权。
+
+原始脚本报告：`artifacts/scrapyjs/native-examples/core-d-20261029/report.json`。可提交的证据摘要与每项证据层级见 `migration-status.json` 和 `evidence/core-examples-20261029.json`。本批 App 独立成功报告为 `artifacts/scrapyjs/native-examples/app-d-driver5-20261029/report.json`：同一 App 的三组字段/分页/详情配置应用、未应用保护、三条全字段表格、保存后销毁并重开、完整 JSON 46,312 字节下载读回均通过。前一报告整体 BLOCKED 是后续 App 下拉框驱动失败，四个脚本结果本身均 PASS；未改写历史状态。
+
+## 包与最小检查
+
+App 唯一正式包先候选测试，再经原 `--promote-from` 原子晋升和 `--check-project` 同源核对。Task 源码/manifest 改动则重新冻结、运行、验证、安装，并同步 App 的精确委托；不静默更新已安装 Revision。
+
+```sh
+node scripts/build-program-project.mjs examples/sidebar-tools/scrapyjs --mode development --out artifacts/scrapyjs/my-task
+node --test examples/sidebar-tools/scrapyjs/tests/*.test.mjs
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --out artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json
+# 测试通过后才执行：
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --promote-from artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --check-project
+```
+
+完整原 SDK 为 1,136,734 bytes，SHA-256 `c7a266c1bd5f34ba5e5a85d163c0573fc1d5afb60c07d0ce46af8393e7ada4be`。`engine/browser.js` 只把 classic IIFE 已有导出转为词法 ESM；无压缩、删模块、假 window/DOM 或 Node 能力模拟。通知见 `vendor/scrapyjs/THIRD_PARTY_LICENSES.txt`。无需为日常业务重新生成这份未变 SDK。
+
+Task v0.2.1 sourceHash `dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa`，manifestHash `033617f17a27566f942ecfacf0adf7ed4a3e4878801e406bd10f4d8e6b9b71e6`。App 和 Task 包摘要从同源检查及证据账本读取。
+
+## 尚未完成
+
+可视选择/高亮/表格选择与选择器生成、录制/回放、完整处理/质量编辑、命名任务/profile、暂停/继续、检查点恢复/调度、AI/配方、复制与大结果体验仍待后续。Rule/LinkExtractor/runCheckpointTasks 等完整实现保留不等于已在 OpenDesk 逐项运行。原 `processing.splitPublication` 已开放配置与组件校验，本批未做对应原生样本，不宣称它已通过原生验收。
+
+上轮 v0.1.0 六项单页核心证据保留在 `migration-status.json.coreEvidence`，包括正常 Stop、回包前取消和 JSON/CSV 文件下载。它们是旧候选证据，不提升为新候选的全量验收。旧 `k3-sandbox-error-forwarding.test.mjs` 的过时 Worker URL 夹具缺口继续保留，未放宽来源校验。本轮延期 production、升级/撤权正式验收、完整 32 项验收、95+ 评分、宽度/缩放矩阵及压力测试。Node 文件/CLI 专用功能本轮不迁。
