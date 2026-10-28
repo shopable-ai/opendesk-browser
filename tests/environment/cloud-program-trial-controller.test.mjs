@@ -46,7 +46,7 @@ async function fixture(t,programPackage=pkg){
       return {run:{tag:'controller-run',runId,resultId,
         revision:{sourceHash:pkg.manifest.program.sourceHash},
         state:'completed',retirementState:'released',workerRetired:true,
-        target:{allowedOrigin:origin}},
+        target:{allowedOrigin:actual.origin}},
         results:[{tag:'controller-result',runId,resultId,state:'completed',
           revision:{sourceHash:pkg.manifest.program.sourceHash},outcome:{ok:true}}]};
     }
@@ -55,7 +55,8 @@ async function fixture(t,programPackage=pkg){
     if(method==='listTaskCatalog')return {catalog:[],installed:[]};
     if(method==='getTaskCandidate')return {stage:taskStage,manifestHash:pkg.manifestHash,package:pkg};
     if(method==='importTaskPackage')return {taskId:pkg.manifest.taskId,version:pkg.manifest.version};
-    if(method==='verifyTaskCandidate')return {verification:{sourceHash:pkg.manifest.program.sourceHash}};
+    if(method==='verifyTaskCandidate')return {verification:{sourceHash:pkg.manifest.program.sourceHash,
+      manifestHash:pkg.manifestHash,origin:actual.origin}};
     if(method==='makeTaskAvailable'){taskStage='available';return {stage:taskStage,manifestHash:pkg.manifestHash};}
     if(method==='installTask')return {taskId:pkg.manifest.taskId,version:pkg.manifest.version};
     throw Error('Unexpected operation: '+method);
@@ -70,7 +71,7 @@ async function fixture(t,programPackage=pkg){
     reactUI:{cloudPageMounted:true,renderCloudPage(next){snapshot=next;}}});
   t.after(()=>view.dispose());
   await flush();await flush();
-  return {calls,actual,model:()=>snapshot,host};
+  return {calls,actual,model:()=>snapshot,host,client};
 }
 
 test('Reviewed JS goes through one original draft RunHost and explicitly gated native verification and install',async t=>{
@@ -138,5 +139,50 @@ test('frozen cloud draft trial honors reviewed 120s deadline and defaults to 30s
     const request=starts[0][1],duration=deadlineMs??30000;
     assert(request.deadlineAt>=before+duration&&request.deadlineAt<=after+duration);
     assert.deepEqual(request.source,{kind:'draft',sourceUtf8:candidate.sourceUtf8});
+  }
+});
+
+
+test('Cloud delivery explicitly rejects a multi-origin package without trial, import or first-origin fallback',async t=>{
+  const multi=await createTaskPackage({...pkg.manifest,
+    siteOrigins:['https://first.example',origin,'https://third.example']},pkg.sourceUtf8);
+  const f=await fixture(t,multi);
+  await f.model().programs.onRefresh();await f.model().programs.onReview(deliveryId);
+  assert.match(f.model().pairing.status,/E_CLOUD_UNSUPPORTED_SCOPE/);
+  assert.match(f.model().pairing.status,/不支持多 origin/);
+  assert.equal(f.model().programs.review,null);
+  await f.model().programs.onTrial(deliveryId,'{}',{isTrusted:true});
+  await f.model().programs.onImport(deliveryId);
+  for(const method of ['host.start','importTaskPackage','verifyTaskCandidate','makeTaskAvailable','installTask'])
+    assert.equal(f.calls.some(([name])=>name===method),false,method);
+});
+
+test('Cloud trial refuses another origin receipt or verification identity drift',async t=>{
+  const multi=pkg;
+  for(const drift of ['run-origin','proof-origin','manifest-hash']){
+    const f=await fixture(t,multi);
+    await f.model().programs.onRefresh();await f.model().programs.onReview(deliveryId);
+    if(drift==='run-origin'){
+      const read=f.client.controller.snapshotControllerRun;
+      f.client.controller.snapshotControllerRun=async input=>{
+        const value=await read(input);value.run.target.allowedOrigin='https://other.example';return value;
+      };
+    }else{
+      const request=f.client.request;
+      f.client.request=async(method,input)=>{
+        const value=await request(method,input);
+        if(method==='verifyTaskCandidate'){
+          if(drift==='proof-origin')value.verification.origin='https://other.example';
+          else value.verification.manifestHash='0'.repeat(64);
+        }
+        return value;
+      };
+    }
+    await f.model().programs.onTrial(deliveryId,'{}',{isTrusted:true});
+    await f.model().programs.onImport(deliveryId);
+    if(drift==='run-origin')assert.equal(f.model().programs.trial.canVerify,false);
+    else await f.model().programs.onVerifyTrial();
+    assert.equal(f.calls.some(([method])=>method==='makeTaskAvailable'),false,drift);
+    assert.equal(f.calls.some(([method])=>method==='installTask'),false,drift);
   }
 });

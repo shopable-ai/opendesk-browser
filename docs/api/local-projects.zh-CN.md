@@ -113,7 +113,7 @@ export async function readSummary(page) {
 
 ## 参数、Page 规则和资产
 
-Controller siteOrigins 恰好一个，permissions 至少为 `["page.automation"]`；需要安装后 AppStorage 时显式声明 `["page.automation","storage.persistent"]`。该权限仅允许 AppStorage 的 getItem/setItem/removeItem/clear，不开放 Chrome local、HTTP、Cookie 或 Native。已安装 Task 按 namespace + 稳定 taskId 隔离存储、跨版本保留；开发草稿旧记录不自动迁入。paramsSchema 验证 run 参数。示例只允许 `{}`，不能向它传 value。需要 value 时在自己的项目 schema 声明数字字段，在零参数 `main()` 中直接读取 `params.value`。Sidebar 本地参数与手工草稿参数分开保存。
+Controller siteOrigins 接受 1–8 个唯一 canonical 精确 HTTP(S) origin（无 credentials、路径、末尾斜杠、query、fragment），或仅本地开发使用恰好单项 `["<all_urls>"]`；不允许通配与精确 origin 混合。permissions 至少为 `["page.automation"]`；需要安装后 AppStorage 时显式声明 `["page.automation","storage.persistent"]`。该权限仅允许 AppStorage 的 getItem/setItem/removeItem/clear，不开放 Chrome local、HTTP、Cookie 或 Native。已安装 Task 按 namespace + 稳定 taskId 隔离存储、跨版本保留；开发草稿旧记录不自动迁入。paramsSchema 验证 run 参数。示例只允许 `{}`，不能向它传 value。需要 value 时在自己的项目 schema 声明数字字段，在零参数 `main()` 中直接读取 `params.value`。Sidebar 本地参数与手工草稿参数分开保存。
 
 Controller 可声明可选 `deadlineMs`，整数 1000–120000，未声明默认30000。它与权限、源码、网站及参数合同一起冻结进入 Task manifestHash，并在安装审阅中展示；共享 Authority 拒绝超出已安装任务审阅期限的运行。更长的项目编译预算不等于无限运行，也不允许绕过 Stop、撤权或未知副作用保护。以上新合同有定向 Node 覆盖；真实安装/Native 证据须按具体候选另验。
 
@@ -172,3 +172,8 @@ Node Resolver 可在源码保存后自动准备。在 `projects.list` 包含 `pr
 Browser 的正式开发页使用 `canAttemptRun` 对源码错误、失联、版本不兼容与状态读取失败做按钮级拦截；Run 的正式 `project.resolve` 仍重新检查 UTF-8 字节数、SHA-256、当前 `bindingId`、`providerEpoch` 与 Controller/Page 运行类型。**当已注册 Provider 在 `projects.list` 提供权威 `preparation.sourceHash/sourceRevision` 时，Run 前后版本不一致直接报 `E_DEV_CONFLICT`，不转用旧缓存或静默自动重试。** 只读源码核验的诊断文案标注「不代表已执行」，真实运行结果以原 RunHost 与 Page/Controller 回执为准。
 
 当前 Go `master` 的 `internal/browserbridge/host_dev_multi_unix.go` 仍在 `readCatalog` 将 Node 发出的 `preparation` 字段丢弃，并在聚合 `projects.list` 时只重建来源身份与运行类型。因此 Browser 缺少元数据的兼容性读取**仅能证明读取时的字节**，不能保证 Codex 随后保存的文件会在无事件时自动被发现，更不能把后台只读 Resolve 判定为已执行。恢复这一闭环必须与 GOAL 2 在 Go 聚合原协议中透传经过 schema 校验的准备摘要，避免复制 Provider、额外持续编译或越权文件监听；该 Go 修改不在 Browser `main` 写入授权内。Mac 已安装程序、真实多客户端连接、真实 Chrome 权限/执行与测试网页验收在有对应机器证据前仍标记 `NOT_TESTED`。
+
+
+本地精确多 origin 列表打包时原样进入固定 Task manifest 并绑定 manifestHash；安装 Task 禁止通配。在列表内任一 origin 上，同一固定源码的成功 Controller run、持久结果与匹配 native receipt 即可通过 `verifyTaskCandidate({taskId,version,runId})` 进入 verified，再 Available/安装；安装审阅覆盖完整列表。`verification.origin` 保留真实验证站点；该证据证明共享源码成功运行，不证明其他站点的业务成功。localhost fixture 必须在列表内，其他站点不可达/WAF 不增加安装前置条件。原单 origin 调用保持可用。本地 `<all_urls>` 不作为安装授权，仍按原安装审阅收窄为精确站点。
+
+每次运行与委托仍检查真实目标 origin、固定 Revision/manifestHash、安装身份及代际。列表不授予 Chrome 网站权限，不扩充 networkOrigins，也不绕过跨站导航的原目标 session/Authority、升级撤权及未知副作用栅栏。

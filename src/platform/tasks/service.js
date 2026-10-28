@@ -8,6 +8,9 @@ import {installedKey, taskKey, taskScriptId, scriptStorageKey,
 
 const candidateStates = new Set(['candidate','verified','available']);
 function requireCurrentLibraries(candidate){
+  if(candidate?.package?.manifest.siteOrigins.length>1)
+    invariant(candidate.package.manifest.siteOrigins.includes(candidate.verification?.origin),
+      'E_VERIFICATION','Task verification must come from a declared exact origin');
   invariant(candidate?.verification?.builtinAbi===BUILTIN_ABI,
     'E_BUILTIN_VERSION_UNAVAILABLE','任务所验证的内置库版本已更改；请创建新任务版本并重新验证');
 }
@@ -170,7 +173,7 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       invariant(run?.tag==='controller-run' && run.namespace===ns && run.state==='completed' &&
         run.retirementState==='released' && run.workerRetired===true &&
         run.revision?.sourceHash===hash && !run.resultDeliveryRevoked &&
-        run.target?.allowedOrigin===manifest.siteOrigins[0] &&
+        manifest.siteOrigins.includes(run.target?.allowedOrigin) &&
         result?.tag==='controller-result' && result.resultId===run.resultId &&
         result.namespace===ns && result.runId===run.runId &&
         result.state==='completed' && result.outcome?.ok===true &&
@@ -193,7 +196,7 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
             envelope.identity.hostInstanceId!==run.hostInstanceId ||
             envelope.identity.hostDocumentId!==run.hostDocumentId ||
             envelope.revision?.sourceHash!==hash ||
-            envelope.target?.allowedOrigin!==manifest.siteOrigins[0]) continue;
+            envelope.target?.allowedOrigin!==run.target.allowedOrigin) continue;
         const receipt=value.nativeReceipts?.find(item=>item.stage==='result' &&
           item.requestId===envelope.requestId && item.receipt?.requestId===envelope.requestId);
         if (!receipt) continue;
@@ -204,6 +207,8 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       invariant(effects.length>0,'E_VERIFICATION','Exact successful native page-effect receipt is required');
       assertBuiltinIdentity(row.builtinIdentity,run.builtinIdentity);
       assertBuiltinIdentity(row.builtinIdentity,result.builtinIdentity);
+      // This proves fixed-source execution on the recorded origin. Installation
+      // reviews the complete manifest scope; it does not claim every site worked.
       row.stage='verified';
       row.verification={runId:run.runId,resultId:result.resultId,sourceHash:hash,builtinIdentity:current,builtinAbi:run.builtinAbi,
         manifestHash:row.package.manifestHash,origin:run.target.allowedOrigin,
@@ -315,6 +320,8 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       const row=await tx.get(TASK_STORE,installedKey(ns,request.taskId));
       invariant(row?.tag==='task-installed-v1' && row.enabled,'E_PERMISSION','Task is disabled or not installed');
       const stored=validCandidate(await tx.get(TASK_STORE,taskKey(ns,row.taskId,row.version)),ns);
+      // Metadata resolution has no execution target. A representative member
+      // checks installation integrity here; run admission checks the REAL origin.
       const {candidate}=await assertInstalledTask(tx,ns,{scriptId:row.scriptId,
         contentHash:stored.package.manifest.program.sourceHash,
         origin:stored.package.manifest.siteOrigins[0],builtinIdentity:current});

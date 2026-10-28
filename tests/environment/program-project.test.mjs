@@ -133,3 +133,24 @@ test('assets can be listed and hashed but never silently injected',async()=>{
     await assert.rejects(validateProgramProject(root),rejects('E_PROJECT_PATH'));
   });
 });
+
+
+test('Controller project validator accepts multi-origin and rejects mixed, duplicate and oversized scope',async()=>{
+  await fixture(async(root,pkg)=>{
+    delete pkg.opendesk.pageRules;
+    Object.assign(pkg.opendesk,{runtimeKind:'controller',permissions:['page.automation'],
+      paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false}});
+    for(const siteOrigins of [['https://a.example','https://b.example','http://localhost:43111'],
+      Array.from({length:8},(_,i)=>`https://s${i}.example`),['<all_urls>']]){
+      pkg.opendesk.siteOrigins=siteOrigins;
+      await writeFile(join(root,'package.json'),JSON.stringify(pkg));
+      assert.equal((await validateProgramProject(root)).runtimeKind,'controller');
+    }
+    for(const siteOrigins of [[],['https://a.example','https://a.example'],
+      ['<all_urls>','https://a.example'],Array.from({length:9},(_,i)=>`https://s${i}.example`)]){
+      pkg.opendesk.siteOrigins=siteOrigins;
+      await writeFile(join(root,'package.json'),JSON.stringify(pkg));
+      await assert.rejects(validateProgramProject(root),rejects('E_PROJECT_PERMISSION'));
+    }
+  });
+});

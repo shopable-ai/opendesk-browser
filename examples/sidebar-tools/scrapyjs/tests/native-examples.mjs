@@ -159,7 +159,7 @@ try{
       appConfigs=JSON.parse(await readFile(report.inputs.appConfigs.path,'utf8'));
     }
     assert(Array.isArray(appConfigs)&&appConfigs.length,'--app-configs must contain a nonempty JSON array');
-    report.inputs.appDriver=await input(fileURLToPath(new URL('./native-example-app.mjs',import.meta.url)));
+    report.inputs.appDriver=await input(fileURLToPath(new URL(opt('app-lane')==='original-sites'?'./native-sites-app.mjs':'./native-example-app.mjs',import.meta.url)));
     report.inputs.appPackage=await input(opt('app-package'));
   }
   const suite=JSON.parse(await readFile(report.inputs.suite.path,'utf8'));
@@ -179,7 +179,7 @@ try{
   const extension=resolve(opt('extension')||join(root,'dist/development'));
   const binary=resolve(opt('chrome')||process.env.CHROME_FOR_TESTING_BIN||join(root,'tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'));
   // Snapshot existing output only; never rebuild, reload daily Chrome, or stop a shared watcher.
-  browser=await launchOwned({root,out,binary,extension});
+  browser=await launchOwned({root,out,binary,extension,headless:!process.argv.includes('--headed')});
   await record('owned-browser',browser.metadata);report.buildSha256=browser.metadata.inputSha256;
   await record('chrome-version',await browser.call('Browser.getVersion'));
   view=await openNativePanel(browser,demoUrl);
@@ -194,12 +194,14 @@ try{
     report.scenarios.find(row=>row.name===opt('task-scenario')):report.scenarios.at(-1));
   if(opt('app-package')){
     for(const identity of [report.inputs.appDriver,report.inputs.appPackage,report.inputs.appConfigs])if(identity.path)await unchanged(identity);
-    const {runExampleApp}=await import('./native-example-app.mjs');
+    assert(!opt('app-lane')||opt('app-lane')==='original-sites','Unknown App lane');
+    const {runExampleApp}=opt('app-lane')==='original-sites'?
+      await import('./native-sites-app.mjs'):await import('./native-example-app.mjs');
     await runExampleApp({browser,view,candidate:opt('app-package'),configs:appConfigs,out,report,record,taskPackage:opt('task-package')});
     for(const identity of [report.inputs.appDriver,report.inputs.appPackage,report.inputs.appConfigs])if(identity.path)await unchanged(identity);
   }
   await unchanged(report.inputs.suite);await unchanged(report.inputs.driver);
-  report.status='PASS_SCOPED';
+  report.status=report.app==='PARTIAL_EXTERNAL_BLOCKER'?'PARTIAL_EXTERNAL_BLOCKER':'PASS_SCOPED';
 }catch(error){
   report.status='BLOCKED';report.error={message:error.message,stack:error.stack};process.exitCode=1;
   const pending=report.scenarios.find(row=>row.status==='RUNNING');if(pending){pending.status='FAIL';pending.error=error.message;}

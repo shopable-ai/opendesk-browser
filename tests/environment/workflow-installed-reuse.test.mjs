@@ -198,3 +198,22 @@ test('new Task intent and DOM result claims are schema-bound and tamper-evident'
     intent:{templates:['搜索 {keyword}，核对结果'],
       resultTexts:['静态文字 1','静态文字 2']}}),{code:'E_SCHEMA'});
 });
+
+
+test('multi-origin installed reuse matches the actual non-first origin without losing fixed identity',()=>{
+  const data=fixture(),manifest=data.catalog[0].manifest;
+  manifest.siteOrigins=['https://first.example',target.origin,'https://third.example'];
+  const request='搜索 lens，打开 Lens Y 商品详情，核对名称和价格';
+  const selected=route(request,data);
+  assert.equal(selected.state,'MATCH');
+  assert.equal(selected.candidate.sourceHash,manifest.program.sourceHash);
+  assert.equal(selected.candidate.revision,manifest.program.revision);
+  assert.deepEqual(selected.candidate.expected,{version:'1.0.0',manifestHash:'b'.repeat(64),
+    generation:2,installationId:'installed-2'});
+  assert.equal(route(request,data,{...target,origin:'https://outside.example'}).state,'NO_MATCH');
+  data.installed[0].manifestHash='c'.repeat(64);
+  assert.equal(route(request,data).state,'BLOCKED');
+  data.installed[0].manifestHash='b'.repeat(64);
+  manifest.siteOrigins=[target.origin,target.origin];
+  assert.equal(route(request,data).state,'NO_MATCH');
+});

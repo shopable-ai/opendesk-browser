@@ -100,6 +100,10 @@ run.deadlineMs 默认 30000，范围 1000–120000；到期以 E_TIMEOUT 收尾�
 
 ## 已安装 Task 的存储与调用
 
+Task `siteOrigins` 接受 1–8 个唯一 canonical 精确 HTTP(S) origin；拒绝空、重复、超限、credentials、路径、opaque origin 与通配（包括 `<all_urls>`）。在列表内任一 origin 上，同一固定源码的成功 run、持久结果及匹配 native receipt 即可通过 `verifyTaskCandidate({taskId,version,runId})` 进入 verified → Available → 安装；安装审阅覆盖完整列表。`verification.origin` 记录真实验证站点，不表示其余站点运行成功，localhost fixture 也必须在列表内。单 origin 旧流程保持可用。证据绑定 sourceHash、manifestHash 和内置运行库身份；改动列表须新版本重新验证。安装/委托逐次校验真实目标 origin、固定 Revision 与安装代际，跨站 navigation 继续走原目标 session/Authority，列表不扩充网络授权。
+
+固定 ChatGPT bridge 的单站 intent 入口和 Cloud 程序交付审阅入口暂不接收多 origin Task，分别明确返回 `E_BRIDGE_UNSUPPORTED_SCOPE` / `E_CLOUD_UNSUPPORTED_SCOPE`；不会自动选择列表首项。多 origin 的本地项目审阅安装和带真实目标的 Task/委托运行遵守上述通用合同。
+
 Task 默认只有 `page.automation`。需使用 AppStorage 的任务在固定 manifest 中显式声明 `storage.persistent`；只开放 getItem/setItem/removeItem/clear 四个 AppStorage 方法，不因名称相同的能力标记开放 Chrome local、HTTP、Cookie 或 Native。存储按 namespace + 稳定 taskId 隔离，同一任务跨版本保留；草稿旧记录不自动迁入，脚本不能指定其他任务的存储作用域。
 
 Task manifest 的可选 `deadlineMs` 为1000–120000整数，默认30000；安装审阅显示权限与期限，全部受 manifestHash 绑定。「我的」和本地项目按该声明启动；安装版共享 Authority 强制该上限，外部调用只能缩短。Stop、撤权及资源退役合同保持有效。

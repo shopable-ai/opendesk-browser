@@ -21,7 +21,7 @@ export async function treeIdentity(root,excluded=new Set()) {
   }}
   await walk(root);return {sha256:sha(JSON.stringify(rows)),files:rows};
 }
-export async function launchOwned({root,out,binary,extension=join(root,'dist/development'),seedProfile}) {
+export async function launchOwned({root,out,binary,extension=join(root,'dist/development'),seedProfile,headless=true}) {
   const outputRoot=resolve(root,'artifacts/scrapyjs');
   assert(resolve(out).startsWith(outputRoot+sep),'Evidence must stay in artifacts/scrapyjs');
   await mkdir(out,{recursive:true});
@@ -62,7 +62,7 @@ export async function launchOwned({root,out,binary,extension=join(root,'dist/dev
   // task-owned artifacts snapshot; retain a byte-identical evidence copy in this run.
   const loadedExtension=seedProfile?await realpath(extension):snapshot;
   if(seedProfile)assert(loadedExtension.startsWith((await realpath(outputRoot))+sep),'Seeded extension must be an artifacts/scrapyjs snapshot');
-  const args=['--headless=new','--no-first-run','--no-default-browser-check','--use-mock-keychain',
+  const args=[...(headless?['--headless=new']:[]),'--no-first-run','--no-default-browser-check','--use-mock-keychain',
     '--password-store=basic','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--disable-extensions-except='+loadedExtension,'--load-extension='+loadedExtension,'about:blank'];
   const child=spawn(binary,args,{stdio:['ignore','ignore','pipe']});

@@ -8,7 +8,7 @@ import {digest, digestUtf8} from '../../src/platform/protocol.js';
 import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
 import {createTaskPackage, verifyTaskPackage, validateTaskParams, taskScriptId, taskKey, installedKey,
   TASK_MANIFEST_FORMAT} from '../../src/platform/tasks/contract.js';
-import {assertInstalledTask, taskMethods} from '../../src/platform/tasks/service.js';
+import {assertInstalledTask, assertRunTaskAuthorization, taskMethods} from '../../src/platform/tasks/service.js';
 import {selectInstalledTaskRoute} from '../../src/ui/workflow/installed-task-reuse.js';
 
 // Repository/authority component test only. This is not a Chrome native receipt.
@@ -340,4 +340,82 @@ test('Task optional storage and bounded deadline are closed and covered by manif
     ['page.automation','network'],['page.automation','storage.session'],['page.automation','cookies'],
     ['page.automation','storage.persistent','network']])
     await assert.rejects(createTaskPackage({...original.manifest,permissions},source),{code:'E_PERMISSION'});
+});
+
+
+test('Task exact origin list rejects noncanonical, wildcard, duplicate and over-limit scope',async()=>{
+  const base=await example();
+  const eight=Array.from({length:8},(_,i)=>`https://s${i}.example`);
+  assert.deepEqual((await createTaskPackage({...base.manifest,siteOrigins:eight},source)).manifest.siteOrigins,eight);
+  for(const siteOrigins of [[],['<all_urls>'],['<all_urls>','https://a.example'],[''],
+    ['https://a.example','https://a.example'],[...eight,'https://ninth.example'],['https://user@a.example'],
+    ['https://*.example'],['http://*'],['https://a.example/path'],['https://a.example/'],['https://a.example:443'],['null'],['data:text/plain,x']])
+    await assert.rejects(createTaskPackage({...base.manifest,siteOrigins},source),errorCode('E_PERMISSION'));
+});
+
+test('multi-origin Task verifies shared source on one declared origin and preserves origin and revocation fences',async()=>{
+  const f=fixture(),base=await example();
+  const origins=['https://a.example','https://b.example','http://localhost:43111'];
+  const pkg=await createTaskPackage({...base.manifest,siteOrigins:origins},source);
+  const request={taskId:pkg.manifest.taskId,version:pkg.manifest.version};
+  await f.send('importTaskPackage',{package:pkg});
+  const hash=pkg.manifest.program.sourceHash;
+  async function proof(origin,index,{receipt=true,effectOrigin=origin}={}){
+    const runId='multi-run-'+index,resultId='multi-result-'+index,requestId='multi-op-'+index;
+    const run={builtinIdentity:environment,builtinAbi:BUILTIN_ABI,tag:'controller-run',runId,resultId,
+      namespace:f.namespace,scriptId:'draft:multi',hostInstanceId:'multi-host',hostDocumentId:'multi-doc',
+      state:'completed',retirementState:'released',workerRetired:true,
+      revision:{sourceHash:hash},target:{allowedOrigin:origin}};
+    await f.tx.put('runs',run,runId);
+    await f.tx.put('results',{builtinIdentity:environment,tag:'controller-result',resultId,runId,
+      namespace:f.namespace,state:'completed',revision:{sourceHash:hash},outcome:{ok:true}},resultId);
+    const envelope={requestId,identity:{tag:'controller-run',runId,scriptId:run.scriptId,
+      hostInstanceId:run.hostInstanceId,hostDocumentId:run.hostDocumentId,contentHash:hash},
+      revision:{sourceHash:hash},target:{allowedOrigin:effectOrigin},operation:{kind:'packaged',method:'click',args:[]}};
+    const reply={requestId,value:{kind:'undefined'}};
+    await f.tx.put('commandJournal',{tag:'controller-operation',runId,state:'durable',envelope,reply,
+      requestDigest:await digest(envelope,{maxDepth:48}),
+      nativeReceipts:receipt?[{stage:'result',requestId,receipt:reply}]:[]},requestId);
+    return f.send('verifyTaskCandidate',{...request,runId});
+  }
+  const available=()=>f.send('makeTaskAvailable',{...request,manifestHash:pkg.manifestHash});
+  const install=()=>f.send('installTask',{...request,manifestHash:pkg.manifestHash,expectedInstalledVersion:null});
+  await assert.rejects(proof(origins[2],2,{receipt:false}),errorCode('E_VERIFICATION'));
+  await assert.rejects(proof(origins[2],3,{effectOrigin:origins[1]}),errorCode('E_VERIFICATION'));
+  await assert.rejects(proof('https://outside.example',4),errorCode('E_VERIFICATION'));
+  await assert.rejects(available(),errorCode('E_VERIFICATION'));
+  await assert.rejects(install(),errorCode('E_VERIFICATION'));
+  // A declared localhost fixture proves shared source, not remote-site success.
+  const verified=await proof(origins[2],1);
+  assert.equal(verified.stage,'verified');
+  assert.equal(verified.verification.origin,origins[2]);
+  assert.equal(verified.verification.manifestHash,pkg.manifestHash);
+  await available();await install();
+  const resolved=await f.send('resolveInstalledTask',{taskId:request.taskId});
+  assert.deepEqual(resolved.manifest.siteOrigins,origins);
+  const admission={scriptId:resolved.scriptId,contentHash:hash,builtinIdentity:environment,params:{name:'Alice'}};
+  for(const origin of origins)await assertInstalledTask(f.tx,f.namespace,{...admission,origin});
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{...admission,origin:'https://outside.example'}),errorCode('E_PERMISSION'));
+  // A proof from outside the manifest must close every entry point.
+  const key=taskKey(f.namespace,request.taskId,request.version),candidate=await f.tx.get('frameworkKV',key);
+  const incomplete=structuredClone(candidate);incomplete.verification.origin='https://outside.example';
+  await f.tx.put('frameworkKV',incomplete,key);
+  await assert.rejects(available(),errorCode('E_VERIFICATION'));
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{...admission,origin:origins[0]}),errorCode('E_VERIFICATION'));
+  await assert.rejects(f.send('setInstalledTaskEnabled',{...request,enabled:false,
+    expectedGeneration:resolved.generation,expectedInstallationId:resolved.installationId}),errorCode('E_VERIFICATION'));
+  await f.tx.put('frameworkKV',candidate,key);
+  const installation=await f.tx.get('frameworkKV',installedKey(f.namespace,request.taskId));
+  const active={tag:'controller-run',runId:'multi-installed-active',namespace:f.namespace,scriptId:resolved.scriptId,
+    state:'running',builtinAbi:BUILTIN_ABI,cancelSeq:0,ownerEpoch:1,runRevision:1,eventSeq:1,
+    installedTaskAuthorization:{taskId:request.taskId,version:request.version,manifestHash:pkg.manifestHash,
+      authorization:structuredClone(installation.authorization)}};
+  await f.tx.put('runs',active,active.runId);
+  await assertRunTaskAuthorization(f.tx,active);
+  await f.send('setInstalledTaskEnabled',{...request,enabled:false,
+    expectedGeneration:resolved.generation,expectedInstallationId:resolved.installationId});
+  for(const origin of origins)
+    await assert.rejects(assertInstalledTask(f.tx,f.namespace,{...admission,origin}),errorCode('E_PERMISSION'));
+  await assert.rejects(assertRunTaskAuthorization(f.tx,active),errorCode('E_PERMISSION'));
+  assert.equal((await f.tx.get('runs',active.runId)).state,'stopping');
 });

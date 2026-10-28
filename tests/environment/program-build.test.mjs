@@ -212,3 +212,20 @@ test('a frozen output directory rejects replacement without quietly publishing n
   await assert.rejects(buildProgramProject('examples/programs/page-heading',{outputDirectory:out}),
     errorCode('E_BUILD_IMMUTABLE'));
 });
+
+
+test('multi-origin Controller packaging preserves the exact list and immutable manifest hash',async t=>{
+  const root=await temp();t.after(()=>rm(root,{recursive:true,force:true}));
+  const pkg=JSON.parse(await readFile('examples/programs/controller-title/package.json','utf8'));
+  pkg.opendesk.siteOrigins=['https://a.example','http://localhost:43111','https://b.example'];
+  await mkdir(join(root,'src'));
+  await writeFile(join(root,'package.json'),JSON.stringify(pkg));
+  await writeFile(join(root,'src/main.js'),'export default async function main(){return await page.title();}');
+  const out=join(root,'output');
+  const artifact=await buildProgramProject(root,{outputDirectory:out});
+  const candidate=await verifyTaskPackage(JSON.parse(await readFile(join(out,'program.opendesk-task.json'),'utf8')));
+  assert.equal(artifact.candidateFile,'program.opendesk-task.json');
+  assert.deepEqual(candidate.manifest.siteOrigins,pkg.opendesk.siteOrigins);
+  const changed=structuredClone(candidate);changed.manifest.siteOrigins.pop();
+  await assert.rejects(verifyTaskPackage(changed),errorCode('E_HASH'));
+});

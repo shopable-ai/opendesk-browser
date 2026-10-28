@@ -1,3 +1,4 @@
+import {validExactSiteOrigins} from '../local-project-site-scope.js';
 import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../source-budgets.js';
 import {canonical, digest, digestUtf8, invariant} from '../protocol.js';
 
@@ -140,15 +141,8 @@ export function validateTaskManifest(manifest) {
     VERSION.test(manifest.version) && manifest.version.length<=24,'E_SCHEMA','Unsupported task version');
   for(const key of ['title','author','source']) label(manifest[key],key==='title'?100:160);
   label(manifest.description,800);
-  invariant(Array.isArray(manifest.siteOrigins) && manifest.siteOrigins.length===1,'E_PERMISSION',
-    'Task v1 verifies exactly one website origin');
-  for (const origin of manifest.siteOrigins) {
-    let url;
-    try {url=new URL(origin);} catch {invariant(false,'E_PERMISSION','Task site must be a valid HTTP(S) origin');}
-    invariant(['http:','https:'].includes(url.protocol) && url.href === origin+'/' &&
-      url.origin===origin && !url.username && !url.password && !url.hash && !url.search &&
-      !['*','null'].includes(origin),'E_PERMISSION','Only one precise HTTP(S) origin is allowed');
-  }
+  invariant(validExactSiteOrigins(manifest.siteOrigins),'E_PERMISSION',
+    'Task requires 1–8 unique canonical exact HTTP(S) origins');
   invariant(Array.isArray(manifest.permissions) && manifest.permissions.length>=1 && manifest.permissions.length<=2 &&
     manifest.permissions[0]==='page.automation' &&
     (manifest.permissions.length===1 || manifest.permissions[1]==='storage.persistent'),

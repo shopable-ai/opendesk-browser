@@ -1,3 +1,4 @@
+import {validExactSiteOrigins} from '../../platform/local-project-site-scope.js';
 // Presentation-only one-shot handoff between Workflow Side Panel and the existing
 // full-page Task Catalog. NEVER verifies/installs a Task or authorizes a run.
 // The catalog MUST re-read the authoritative Candidate and preserve every user click.
@@ -36,8 +37,7 @@ export function matchTaskReviewHandoff(row,windowId,catalog,now=Date.now()){
   if(!validateTaskReviewHandoff(row,windowId,now)||!Array.isArray(catalog))return null;
   const matches=catalog.filter(item=>item?.taskId===row.taskId&&item.version===row.version&&
     item.manifestHash===row.manifestHash&&item.manifest?.program?.sourceHash===row.sourceHash&&
-    Array.isArray(item.manifest.siteOrigins)&&item.manifest.siteOrigins.length===1&&
-    item.manifest.siteOrigins[0]===row.siteOrigin);
+    validExactSiteOrigins(item.manifest.siteOrigins)&&item.manifest.siteOrigins.includes(row.siteOrigin));
   if(matches.length!==1)return null;
   // Identity-only preselection. Import/Verify/Available/Install continue through
   // the original Authority and trusted user-consent UI.

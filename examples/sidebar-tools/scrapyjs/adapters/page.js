@@ -1,4 +1,5 @@
 // A facade over the admitted page. No window, ChromePage global or fake DOM.
+import {allowedUrl} from './capture-policy.js';
 export function controlledPage(page) {
   for (const name of ['url','goto','content','waitForSelector','evaluate']) {
     if (typeof page?.[name] !== 'function') throw new Error('Missing controlled page method: '+name);
@@ -19,8 +20,7 @@ export function controlledPage(page) {
         if(href){
           // Full-document links must use the public authorized navigation handshake.
           const current=new URL(await page.url());
-          const url=new URL(href,await page.evaluate(()=>document.baseURI));
-          if(url.origin!=='http://127.0.0.1:43111'||url.username||url.password)throw new Error('E_CAPTURE_ORIGIN');
+          const url=new URL(allowedUrl(href,await page.evaluate(()=>document.baseURI)));
           if(url.origin!==current.origin||url.pathname!==current.pathname||url.search!==current.search)
             return page.goto(url.href,{waitUntil:'domcontentloaded'});
         }

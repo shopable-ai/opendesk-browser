@@ -1,0 +1,739 @@
+{
+  "status": "PASS_SCOPED",
+  "owner": "01a18418-5fe3-7cb3-8db2-f637f5aedefa",
+  "scope": "Original Douban and CSDN current-page capture through the scrapyjs App; fixture and live evidence are separate",
+  "resources": {
+    "output": "artifacts/scrapyjs/original-sites-20261029",
+    "browser": "task-owned CFT/Profile only",
+    "dailyExtension": "dist/development left untouched; no active repo watcher observed",
+    "demo": "reuse existing 127.0.0.1:43111 PID 68658",
+    "fixtureMapping": "Owned symlink removed after run; existing demo service preserved"
+  },
+  "sdkGap": {
+    "status": "PROVEN",
+    "missingCapability": "One immutable Task usable on a bounded explicit list of exact website origins",
+    "publicContract": "docs/api/local-projects.zh-CN.md and docs/api/controller.zh-CN.md updated; existing Task Authority accepts 1–8 canonical exact origins",
+    "reproduction": "node scripts/validate-program-project.mjs examples/sidebar-tools/scrapyjs -> E_PROJECT_PERMISSION with localhost, book.douban.com and download.csdn.net",
+    "whyBusinessCannotSolve": "Project validator and Task Authority reject multiple origins before business source runs; one Task per saved config or all_urls would violate requested identity/scope",
+    "generalValue": "Any reviewed Controller workflow that operates on several explicitly approved websites",
+    "minimumApi": "1–8 unique canonical exact HTTP(S) origins in the existing siteOrigins array; local development wildcard remains single-entry and cannot be installed",
+    "security": "Keep original manifest/source hashing, immutable Revision, current target/document Authority, review, revocation and unknown-effect fences; no new runtime or permissions",
+    "native": "PASS_ORIGINAL_TASK_INSTALL_AND_THREE_DECLARED_ORIGINS"
+  },
+  "deferred": [
+    "full 32-feature migration",
+    "production acceptance",
+    "95+ scoring",
+    "stress testing",
+    "UI redesign",
+    "width/zoom matrix"
+  ],
+  "finishedAt": "2026-10-28T20:23:01.694Z",
+  "phase": "CORE_DEVELOPMENT",
+  "packages": {
+    "app": {
+      "path": "examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "bytes": 54074,
+      "sha256": "ead8d02d51b719c64cf9a524c039bc3ec080d4511f6c4af4b03de36d1688a205"
+    },
+    "task": {
+      "path": "examples/sidebar-tools/scrapyjs/controller/scrapyjs.opendesk-task.json",
+      "bytes": 517510,
+      "sha256": "cc386bfab69e55db5f3a9832f80340bab9c3ce8291bd044ceb19702dcff2a092"
+    },
+    "appVersion": "1.3.0",
+    "taskVersion": "0.3.0",
+    "pin": {
+      "taskId": "scrapyjs.capture",
+      "version": "0.3.0",
+      "manifestHash": "1bec7362a33d4aeb4ce051d2eed699aa4876e3c7ae82efc536005f287340f53a",
+      "contentHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f"
+    },
+    "promotion": "PROJECT_PACKAGE_PROMOTED then PROJECT_PACKAGE_MATCH; shipped-package test PASS"
+  },
+  "originalExamples": {
+    "scope": "CURRENT_PAGE_ONLY_NO_PAGINATION_OR_DETAILS",
+    "sourceProvenance": "examples/original-sites-expected.json#metadata",
+    "fixtures": {
+      "douban": {
+        "rows": 20,
+        "fields": 11,
+        "oracle": "Original full script.json, cross-checked with historical page.html"
+      },
+      "csdn": {
+        "rows": 9,
+        "fields": 7,
+        "oracle": "All9 original DOM rows; first5 cross-checked with old run preview"
+      }
+    },
+    "liveOracle": "Current live DOM immediately before App run; independent publication-contract parser, no Scrapy output used as expected data"
+  },
+  "native": {
+    "report": {
+      "path": "artifacts/scrapyjs/original-sites-20261029/app-c/report.json",
+      "bytes": 4286808,
+      "sha256": "e2ae087379593879016739b55619327a05aae439448e62e0c0365b6829b58619"
+    },
+    "mode": "STATIC_DEVELOPMENT",
+    "chrome": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "browser": {
+      "pid": 67475,
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/cft-rahcun/profile",
+      "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/cft-rahcun/extension",
+      "loadedExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/cft-rahcun/extension",
+      "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "args": [
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/cft-rahcun/profile",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/cft-rahcun/extension",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/cft-rahcun/extension",
+        "about:blank"
+      ],
+      "inputSha256": "edc1bbb7b03b57100adf5653ff61c77d91c598e9ff4eb18d72ed0a15ce70fe00",
+      "owned": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/cft-rahcun"
+    },
+    "snapshot": {
+      "path": "artifacts/scrapyjs/original-sites-20261029/snapshot-receipt.json",
+      "bytes": 158060,
+      "sha256": "f55f09cddb0bc721c64dbe56c62ab27e86bbba56119f0932a05f4a217444154c"
+    },
+    "packageVerification": {
+      "path": "artifacts/scrapyjs/original-sites-20261029/browser-package-verification.json",
+      "bytes": 28010,
+      "sha256": "2da9ddd3013481ab9599e78585ccf68391d9dfe7a6a6c28e2287e39486c6542b"
+    },
+    "taskInstall": "PASS_UI_RECEIPT",
+    "taskVerificationRunId": "387e9cd2-03e6-48a1-8b65-88e4e5bfb42e",
+    "app": "PASS",
+    "switchOwnership": "PASS_SWITCH_CLEARS_RESULTS_AND_REOPEN_RETAINS_FULL_SITE_CONFIG",
+    "ownedBrowserReleased": true,
+    "scenarios": [
+      {
+        "name": "fixtureDouban",
+        "kind": "fixture",
+        "status": "PASS_CURRENT_PAGE",
+        "startedAt": "2026-10-28T20:22:19.769Z",
+        "finishedAt": "2026-10-28T20:22:24.956Z",
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/douban-books.html",
+        "title": "douban-books original list fixture",
+        "config": {
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/douban-books.html",
+          "waitForSelector": "ul.subject-list > li.subject-item",
+          "timeoutMs": 30000,
+          "maxPages": 1,
+          "itemConfig": {
+            "_listContainer": "ul.subject-list",
+            "_listItem": "li.subject-item",
+            "publication": "div.pub",
+            "rating": "span.rating_nums",
+            "title": "div.info h2 a::title",
+            "url": "div.info h2 a::href"
+          },
+          "validation": {
+            "version": 1,
+            "rowShape": "li.subject-item"
+          },
+          "fieldRequirements": [
+            {
+              "key": "title",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "url",
+              "required": true,
+              "valueType": "url"
+            },
+            {
+              "key": "publication",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "rating",
+              "required": false,
+              "valueType": "text"
+            }
+          ],
+          "processing": {
+            "version": 1,
+            "rules": [
+              {
+                "op": "splitPublication",
+                "field": "publication"
+              }
+            ]
+          }
+        },
+        "rows": 20,
+        "fields": [
+          "author",
+          "currency",
+          "price",
+          "publication",
+          "publication_date",
+          "publication_raw",
+          "publisher",
+          "rating",
+          "title",
+          "translator",
+          "url"
+        ],
+        "firstRecord": {
+          "author": "邹欣",
+          "currency": "CNY",
+          "price": 99.8,
+          "publication": "邹欣 / 人民邮电出版社 / 2026-6 / 99.80元",
+          "publication_date": "2026-06",
+          "publication_raw": "邹欣 / 人民邮电出版社 / 2026-6 / 99.80元",
+          "publisher": "人民邮电出版社",
+          "rating": "9.5",
+          "title": "构建之法——现代软件工程（第四版）",
+          "translator": null,
+          "url": "https://book.douban.com/subject/38524000/"
+        },
+        "lastRecord": {
+          "author": "[美] Grady Booch、[美] Robert A.Maksimchuk、[美] Michael W.Engle、[美] Bobbi J.Young",
+          "currency": "CNY",
+          "price": 99,
+          "publication": "[美] Grady Booch、[美] Robert A.Maksimchuk、[美] Michael W.Engle、[美] Bobbi J.Young / 王海鹏、潘加宇 / 电子工业出版社 / 2012-7 / 99.00元",
+          "publication_date": "2012-07",
+          "publication_raw": "[美] Grady Booch、[美] Robert A.Maksimchuk、[美] Michael W.Engle、[美] Bobbi J.Young / 王海鹏、潘加宇 / 电子工业出版社 / 2012-7 / 99.00元",
+          "publisher": "电子工业出版社",
+          "rating": "9.2",
+          "title": "面向对象分析与设计",
+          "translator": "王海鹏、潘加宇",
+          "url": "https://book.douban.com/subject/11509672/"
+        },
+        "profile": {
+          "id": "aec11a3c-6418-4b38-8b15-4c43dc408a2d",
+          "name": "fixtureDouban",
+          "selected": true
+        },
+        "saveReopen": "PASS",
+        "identity": {
+          "clientRequestId": "85d636a2-3542-4f39-9a07-c9d1f0bc78d0",
+          "runId": "f8084b71-555a-4ef8-af71-1c1024bd971a",
+          "resultId": "293c7219-16dd-4f8f-8bdb-f8510704132c",
+          "state": "completed",
+          "retirementState": "released"
+        },
+        "sourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f",
+        "engine": {
+          "status": "completed",
+          "pageCount": 1,
+          "committed": 20
+        },
+        "table": "PASS_ALL_CELLS",
+        "exports": {
+          "json": {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/site-downloads-YxvBMa/3f23dcf6-5939-427b-89d4-4a8fa81949b7",
+            "bytes": 97168,
+            "sha256": "6b6d142075fa3f3013eaf20a7e9845312dcf2b6a543c6e8dcac65fa9f8ccd803",
+            "filename": "download.json",
+            "completion": "completed",
+            "check": "PASS_FILE_BYTES"
+          },
+          "csv": {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/site-downloads-YxvBMa/f0fae1af-60f8-4015-add6-0384e401ad5c",
+            "bytes": 6978,
+            "sha256": "11b1a38c9edb905b3cf8c5e25d340dd227985f27e38bde1f81ab93cb8e5b26c3",
+            "filename": "download.csv",
+            "completion": "completed",
+            "check": "PASS_FILE_BYTES"
+          }
+        }
+      },
+      {
+        "name": "fixtureCsdn",
+        "kind": "fixture",
+        "status": "PASS_CURRENT_PAGE",
+        "startedAt": "2026-10-28T20:22:24.962Z",
+        "finishedAt": "2026-10-28T20:22:29.242Z",
+        "url": "http://127.0.0.1:43111/scrapyjs-fixtures/csdn.html",
+        "title": "csdn original list fixture",
+        "config": {
+          "url": "http://127.0.0.1:43111/scrapyjs-fixtures/csdn.html",
+          "waitForSelector": "div.file-content > div.course-list",
+          "timeoutMs": 30000,
+          "maxPages": 1,
+          "itemConfig": {
+            "_listContainer": "div.file-content",
+            "_listItem": "div.course-list",
+            "title": "a.title.line::text",
+            "url": "a.title.line::href",
+            "description": "div.desc.line-2::text",
+            "price_text": "span.price::text",
+            "metrics_text": "span.text.ml-24::text",
+            "author_display": "span.text.flex-1::text",
+            "membership": "div.vip > span::text"
+          },
+          "validation": {
+            "version": 1,
+            "rowShape": "div.course-list"
+          },
+          "fieldRequirements": [
+            {
+              "key": "title",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "url",
+              "required": true,
+              "valueType": "url"
+            },
+            {
+              "key": "description",
+              "required": false,
+              "valueType": "text"
+            },
+            {
+              "key": "price_text",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "metrics_text",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "author_display",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "membership",
+              "required": false,
+              "valueType": "text"
+            }
+          ]
+        },
+        "rows": 9,
+        "fields": [
+          "author_display",
+          "description",
+          "membership",
+          "metrics_text",
+          "price_text",
+          "title",
+          "url"
+        ],
+        "firstRecord": {
+          "author_display": "| 点云侠",
+          "description": "以实战为线索，逐步了解点云处理的每一个算子。本专栏和python点云处理专栏均为记录本人点云处理的学习笔记，基本了解每一篇博客的算法原理和参数调试。所有代码均可复制粘贴后运行。",
+          "membership": "",
+          "metrics_text": "284 节 · 8938 人已学",
+          "price_text": "¥19.9",
+          "title": "PCL学习",
+          "url": "https://download.csdn.net/blog/column/9913573"
+        },
+        "lastRecord": {
+          "author_display": "| 解答前端问题~疑难杂症",
+          "description": "花钱订阅后，如果问题依旧没解决，可以直接后台私信，协助你直至解决哦~只限前端开发问题！",
+          "membership": "",
+          "metrics_text": "385 节 · 4384 人已学",
+          "price_text": "¥9.9",
+          "title": "付费后可协助解决 - 前端组件与功能",
+          "url": "https://download.csdn.net/blog/column/12189034"
+        },
+        "profile": {
+          "id": "0ff754c8-0fba-4574-a7e9-5dc6f3db0f5c",
+          "name": "fixtureCsdn",
+          "selected": true
+        },
+        "saveReopen": "PASS",
+        "identity": {
+          "clientRequestId": "7d76fd97-49c4-46a1-bf6a-3474e97cde4e",
+          "runId": "34255eb4-dd5c-40d6-b4f1-cd76c7d421df",
+          "resultId": "ef3f4b7b-923d-4d1c-ad28-856154d626d4",
+          "state": "completed",
+          "retirementState": "released"
+        },
+        "sourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f",
+        "engine": {
+          "status": "completed",
+          "pageCount": 1,
+          "committed": 9
+        },
+        "table": "PASS_ALL_CELLS",
+        "exports": {
+          "json": {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/site-downloads-YxvBMa/89ad6331-856b-4b13-942c-6c2dd4262c61",
+            "bytes": 47263,
+            "sha256": "31e6aff56b051c00c03d7a12008690e0bacee2c2157392b2ef90fa1a77b4cccb",
+            "filename": "download.json",
+            "completion": "completed",
+            "check": "PASS_FILE_BYTES"
+          },
+          "csv": {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/site-downloads-YxvBMa/51c17700-9eb4-4ea3-a260-3e7a4e72c815",
+            "bytes": 3479,
+            "sha256": "f3f8177f66ac514c21cd69cae116c2969255758834fa4d738e5ce0fa878c382a",
+            "filename": "download.csv",
+            "completion": "completed",
+            "check": "PASS_FILE_BYTES"
+          }
+        }
+      },
+      {
+        "name": "liveDouban",
+        "kind": "live",
+        "status": "PASS_CURRENT_PAGE",
+        "startedAt": "2026-10-28T20:22:29.250Z",
+        "finishedAt": "2026-10-28T20:22:41.459Z",
+        "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
+        "title": "豆瓣图书标签: 编程",
+        "config": {
+          "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
+          "waitForSelector": "ul.subject-list > li.subject-item",
+          "timeoutMs": 30000,
+          "maxPages": 1,
+          "itemConfig": {
+            "_listContainer": "ul.subject-list",
+            "_listItem": "li.subject-item",
+            "publication": "div.pub",
+            "rating": "span.rating_nums",
+            "title": "div.info h2 a::title",
+            "url": "div.info h2 a::href"
+          },
+          "validation": {
+            "version": 1,
+            "rowShape": "li.subject-item"
+          },
+          "fieldRequirements": [
+            {
+              "key": "title",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "url",
+              "required": true,
+              "valueType": "url"
+            },
+            {
+              "key": "publication",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "rating",
+              "required": false,
+              "valueType": "text"
+            }
+          ],
+          "processing": {
+            "version": 1,
+            "rules": [
+              {
+                "op": "splitPublication",
+                "field": "publication"
+              }
+            ]
+          }
+        },
+        "rows": 20,
+        "fields": [
+          "author",
+          "currency",
+          "price",
+          "publication",
+          "publication_date",
+          "publication_raw",
+          "publisher",
+          "rating",
+          "title",
+          "translator",
+          "url"
+        ],
+        "firstRecord": {
+          "author": "黄佳",
+          "currency": "CNY",
+          "price": 79.8,
+          "publication": "黄佳 / 人民邮电出版社 / 2026-5 / 79.80元",
+          "publication_date": "2026-05",
+          "publication_raw": "黄佳 / 人民邮电出版社 / 2026-5 / 79.80元",
+          "publisher": "人民邮电出版社",
+          "rating": "8.8",
+          "title": "Claude Code实战 Harness工程之道",
+          "translator": null,
+          "url": "https://book.douban.com/subject/38445510/"
+        },
+        "lastRecord": {
+          "author": "[德] 索斯藤·鲍尔",
+          "currency": "CNY",
+          "price": 99.8,
+          "publication": "[德] 索斯藤·鲍尔 / 廖彬 / 人民邮电出版社 / 2022-6-1 / 99.80元",
+          "publication_date": "2022-06-01",
+          "publication_raw": "[德] 索斯藤·鲍尔 / 廖彬 / 人民邮电出版社 / 2022-6-1 / 99.80元",
+          "publisher": "人民邮电出版社",
+          "rating": "9.2",
+          "title": "用Go语言自制编译器",
+          "translator": "廖彬",
+          "url": "https://book.douban.com/subject/35909089/"
+        },
+        "profile": {
+          "id": "280282bb-e6e0-438b-9546-89767fe208bb",
+          "name": "liveDouban",
+          "selected": true
+        },
+        "saveReopen": "PASS",
+        "identity": {
+          "clientRequestId": "d8f9c7a5-d043-444d-8f90-b8fc1393b05b",
+          "runId": "9a368c8f-d7ff-4840-ab30-a3e6e6cc182e",
+          "resultId": "13c57f10-c091-407c-a221-25059504ad4e",
+          "state": "completed",
+          "retirementState": "released"
+        },
+        "sourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f",
+        "engine": {
+          "status": "completed",
+          "pageCount": 1,
+          "committed": 20
+        },
+        "table": "PASS_ALL_CELLS",
+        "exports": {
+          "json": {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/site-downloads-YxvBMa/e0d0d4af-1a2b-45e1-9c9b-213b0eca4143",
+            "bytes": 97770,
+            "sha256": "d63ec84fcf516eeecb1c2a6d55b7d752b543dd06aa3aedd91ab391f914d6875d",
+            "filename": "download.json",
+            "completion": "completed",
+            "check": "PASS_FILE_BYTES"
+          },
+          "csv": {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/site-downloads-YxvBMa/0c6d3651-7023-4e6c-a363-a7c197421bc2",
+            "bytes": 7166,
+            "sha256": "392e9e384e1773674948218332367cbac771ba365c0e09f20ca5cfa09de75183",
+            "filename": "download.csv",
+            "completion": "completed",
+            "check": "PASS_FILE_BYTES"
+          }
+        }
+      },
+      {
+        "name": "liveCsdn",
+        "kind": "live",
+        "status": "PASS_CURRENT_PAGE",
+        "startedAt": "2026-10-28T20:22:41.472Z",
+        "finishedAt": "2026-10-28T20:23:00.758Z",
+        "url": "https://download.csdn.net/list/blog/100-0-0-0-5-1.html",
+        "title": "IT技术在线图文专栏-CSDN文库",
+        "config": {
+          "url": "https://download.csdn.net/list/blog/100-0-0-0-5-1.html",
+          "waitForSelector": "div.file-content > div.course-list",
+          "timeoutMs": 30000,
+          "maxPages": 1,
+          "itemConfig": {
+            "_listContainer": "div.file-content",
+            "_listItem": "div.course-list",
+            "title": "a.title.line::text",
+            "url": "a.title.line::href",
+            "description": "div.desc.line-2::text",
+            "price_text": "span.price::text",
+            "metrics_text": "span.text.ml-24::text",
+            "author_display": "span.text.flex-1::text",
+            "membership": "div.vip > span::text"
+          },
+          "validation": {
+            "version": 1,
+            "rowShape": "div.course-list"
+          },
+          "fieldRequirements": [
+            {
+              "key": "title",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "url",
+              "required": true,
+              "valueType": "url"
+            },
+            {
+              "key": "description",
+              "required": false,
+              "valueType": "text"
+            },
+            {
+              "key": "price_text",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "metrics_text",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "author_display",
+              "required": true,
+              "valueType": "text"
+            },
+            {
+              "key": "membership",
+              "required": false,
+              "valueType": "text"
+            }
+          ]
+        },
+        "rows": 9,
+        "fields": [
+          "author_display",
+          "description",
+          "membership",
+          "metrics_text",
+          "price_text",
+          "title",
+          "url"
+        ],
+        "firstRecord": {
+          "author_display": "| 点云侠",
+          "description": "以实战为线索，逐步了解点云处理的每一个算子。本专栏和python点云处理专栏均为记录本人点云处理的学习笔记，基本了解每一篇博客的算法原理和参数调试。所有代码均可复制粘贴后运行。",
+          "membership": "",
+          "metrics_text": "284 节 · 8944 人已学",
+          "price_text": "¥19.9",
+          "title": "PCL学习",
+          "url": "https://download.csdn.net/blog/column/9913573"
+        },
+        "lastRecord": {
+          "author_display": "| 解答前端问题~疑难杂症",
+          "description": "花钱订阅后，如果问题依旧没解决，可以直接后台私信，协助你直至解决哦~只限前端开发问题！",
+          "membership": "",
+          "metrics_text": "385 节 · 4384 人已学",
+          "price_text": "¥9.9",
+          "title": "付费后可协助解决 - 前端组件与功能",
+          "url": "https://download.csdn.net/blog/column/12189034"
+        },
+        "profile": {
+          "id": "91ad4e75-fd8f-4201-9c3d-d2558dd19239",
+          "name": "liveCsdn",
+          "selected": true
+        },
+        "saveReopen": "PASS",
+        "identity": {
+          "clientRequestId": "d92ff88c-91f3-4913-bf49-ddcc94b3fb96",
+          "runId": "17172bcb-82f8-435f-aa31-440d5f003aa8",
+          "resultId": "bde830d5-76a7-434d-98d2-15a09ea8683d",
+          "state": "completed",
+          "retirementState": "released"
+        },
+        "sourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f",
+        "engine": {
+          "status": "completed",
+          "pageCount": 1,
+          "committed": 9
+        },
+        "table": "PASS_ALL_CELLS",
+        "exports": {
+          "json": {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/site-downloads-YxvBMa/7d804a90-c75e-4406-bf09-ac0e5279a88f",
+            "bytes": 47275,
+            "sha256": "67f6412c3a1957d034a79f1d8c27a142cb1a81d171acad6be4ff841f5f218f62",
+            "filename": "download.json",
+            "completion": "completed",
+            "check": "PASS_FILE_BYTES"
+          },
+          "csv": {
+            "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/original-sites-20261029/app-c/site-downloads-YxvBMa/b4247ae0-35e4-4c9f-a8cd-fa48fab7373d",
+            "bytes": 3479,
+            "sha256": "dfdd8afb0b0c69c656d85ee3ebfbda9042381ba5b1c7709600d1691b2964f4c0",
+            "filename": "download.csv",
+            "completion": "completed",
+            "check": "PASS_FILE_BYTES"
+          }
+        }
+      }
+    ]
+  },
+  "checks": [
+    {
+      "scope": "JSON URL sync, exact capture scopes and page adapter",
+      "result": "17 PASS",
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/{app-view,capture-config,page-adapter}.test.mjs"
+    },
+    {
+      "scope": "App model and candidate package pin/reproducibility",
+      "result": "18 PASS",
+      "command": "SCRAPYJS_CANDIDATE=<candidate> SCRAPYJS_TASK_CANDIDATE=<new Task> node --test examples/sidebar-tools/scrapyjs/tests/{app-model,package}.test.mjs"
+    },
+    {
+      "scope": "Independent original fixture configs and full expected records",
+      "result": "6 PASS",
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/original-sites.test.mjs"
+    },
+    {
+      "scope": "Multi-origin Task/project, schema, workflows and explicit unsupported consumers",
+      "result": "143 PASS; 1 pre-existing assertion conflict",
+      "log": {
+        "path": "artifacts/scrapyjs/original-sites-20261029/platform-checks.tap",
+        "bytes": 15830,
+        "sha256": "c47f46457f4e067fa70ff465a844c9e1b0462262f44ac3fd61e19a40a42cc3d6"
+      },
+      "knownFailure": "chatgpt-fixed-bridge-r12.test.mjs:211 rejects trusted Side Panel revoke; unchanged current trigger gate permits it. Independently reproduced; not modified or treated as product failure."
+    },
+    {
+      "scope": "Controller ESM and multi-origin project build",
+      "result": "2 PASS",
+      "command": "node --test --test-name-pattern='Controller ESM|multi-origin Controller' tests/environment/program-build.test.mjs"
+    },
+    {
+      "scope": "Existing reviewed Page resource list and blocked install protections",
+      "result": "4 PASS",
+      "log": {
+        "path": "artifacts/scrapyjs/original-sites-20261029/page-resource-checks.tap",
+        "bytes": 507,
+        "sha256": "1c4e69a90962618a711f98e46d435427c41ca178619f307d78a76d9d07c5851d"
+      }
+    },
+    {
+      "scope": "Promoted App/Task identity and package reproducibility",
+      "result": "1 PASS",
+      "log": {
+        "path": "artifacts/scrapyjs/original-sites-20261029/promoted-package-checks.tap",
+        "bytes": 218,
+        "sha256": "4fcc65ebf2f94d0426ce85eee9bf27b445c77b6a9fee09fdbac2a902a069b9ee"
+      }
+    }
+  ],
+  "repairs": [
+    "Valid full JSON edit now synchronizes target URL before Start",
+    "Bounded exact origin list supported in existing Controller project and Task contracts; genuine run origin checked for native receipts",
+    "Capture policy approves only localhost, book.douban.com and download.csdn.net; no source change to vendored engine",
+    "Package verifier resource paths now come from existing reviewed builder resources; byte verification and blocked release remain unchanged"
+  ],
+  "preservedFailures": [
+    {
+      "report": "artifacts/scrapyjs/original-sites-20261029/app-a/report.json",
+      "classification": "DRIVER_INPUT",
+      "reason": "Verification suite passed capture object rather than existing paramsSchema; corrected driver input only"
+    },
+    {
+      "report": "artifacts/scrapyjs/original-sites-20261029/app-b/report.json",
+      "classification": "DRIVER_ASSERTION",
+      "reason": "Expected internal processing counter absent from public getRunStats; full20 output correct. Current driver verifies public committed/pageCount and all output fields."
+    }
+  ],
+  "boundaries": {
+    "dailyChromeUpdated": false,
+    "watcherStarted": false,
+    "productionAcceptance": "NOT_TESTED",
+    "full32Migration": "NOT_TESTED",
+    "nativeUpgradeAndRevocation": "NOT_TESTED",
+    "fullMigrationComplete": false,
+    "previousEvidence": "Historical versions retain their original scope; not relabeled as v1.3.0 pass"
+  }
+}

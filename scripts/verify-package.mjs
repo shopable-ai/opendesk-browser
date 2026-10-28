@@ -13,8 +13,7 @@ import {BROWSER_EDITION_RECORD,STANDARD_BROWSER_NAME,DEVELOPER_BROWSER_NAME,BROW
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
 import {trustedToolShellStyle} from './bundle-provenance.mjs';
 import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';
-import {readOfficialPageSources,createOfficialPageResources} from './build-official-pages.mjs';
-import {OFFICIAL_PAGE_CATALOG_PATH,officialPagePackagePath} from '../src/scripting/user-scripts/official-page-catalog.js';
+import {createOfficialPageResources} from './build-official-pages.mjs';
 import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
 import {resolveMarketChannel,marketExternalConnectable,MARKET_CHANNEL_PATH} from './market-channel.mjs';
 const require = createRequire(import.meta.url);
@@ -97,9 +96,9 @@ const frameworkJS=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output);
 const frameworkLicenses=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.licensePath);
 const officialSource=await readOfficialSources();
 const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];
-const officialPageSource=await readOfficialPageSources();
-const officialPagePaths=[OFFICIAL_PAGE_CATALOG_PATH,...officialPageSource.programs
-  .filter(row=>row.publication==='approved').map(row=>officialPagePackagePath(row.programId))];
+// The builder also admits one exact pinned local-review resource while its
+// catalog descriptor stays blocked. Verify that same reviewed resource set.
+const officialPagePaths=[...(await createOfficialPageResources()).resources.keys()];
 // A "standard" package cannot smuggle a dormant compiler: the verifier
 // rejects ANY unlisted file, including both ESM assets and MIT notices.
 function editionFiles(edition){

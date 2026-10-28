@@ -1,5 +1,6 @@
 // Pure candidate selection; the existing Catalog/TaskWorkbench/RunHost keep authority.
 import {validateTaskParams,checkTaskIntent} from '../../platform/tasks/contract.js';
+import {validExactSiteOrigins} from '../../platform/local-project-site-scope.js';
 import {simpleCommerceReplayGoal} from './segment-replay.js';
 
 const hashPattern=/^[a-f0-9]{64}$/;
@@ -113,7 +114,7 @@ export function selectInstalledTaskRoute({request,target,catalog,installed}={}){
         if(declared)break;
       }
       if(!declared)continue;
-      if(manifest.siteOrigins?.length!==1||manifest.siteOrigins[0]!==target.origin)continue;
+      if(!validExactSiteOrigins(manifest.siteOrigins)||!manifest.siteOrigins.includes(target.origin))continue;
       if(row.enabled!==true||candidate.stage!=='available'||
         candidate.manifestHash!==row.manifestHash||
         typeof row.installationId!=='string'||!row.installationId||

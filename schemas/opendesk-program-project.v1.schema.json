@@ -189,13 +189,25 @@
               "const": "controller"
             },
             "siteOrigins": {
-              "description": "One exact HTTP(S) origin, or <all_urls> for local development on all HTTP(S) sites. Installed Tasks require a site-specific review.",
+              "description": "1–8 unique canonical exact HTTP(S) origins, or only <all_urls> for local development. Canonical URL semantics are enforced by validate-program-project.mjs. Installed Tasks prohibit wildcards and review the full origin list.",
               "type": "array",
               "minItems": 1,
-              "maxItems": 1,
-              "items": {
-                "type": "string"
-              }
+              "maxItems": 8,
+              "uniqueItems": true,
+              "oneOf": [
+                {
+                  "maxItems": 1,
+                  "items": {
+                    "const": "<all_urls>"
+                  }
+                },
+                {
+                  "items": {
+                    "type": "string",
+                    "pattern": "^https?://[^*/?#@\\s]+$"
+                  }
+                }
+              ]
             },
             "permissions": {
               "type": "array",

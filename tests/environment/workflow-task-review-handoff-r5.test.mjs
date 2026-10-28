@@ -64,3 +64,20 @@ test('a candidate without a trusted successful run preselects only; still requir
   const row=matchTaskReviewHandoff(hint,7,catalog,now);
   assert.ok(!('verified' in row)&&!('installed' in row));
 });
+
+
+test('multi-origin review matches a non-first site only under the same manifest and source pins',()=>{
+  const hint=create(),multi=structuredClone(catalog);
+  multi[0].manifest.siteOrigins=['https://first.test',hint.siteOrigin,'http://localhost:43111'];
+  assert.deepEqual(matchTaskReviewHandoff(hint,7,multi,now),
+    {candidateKey:'wf-a01b2345@1.0.1',runId:'run-trusted-01'});
+  assert.equal(matchTaskReviewHandoff(create({siteOrigin:'https://outside.test'}),7,multi,now),null);
+  multi[0].manifestHash='c'.repeat(64);
+  assert.equal(matchTaskReviewHandoff(hint,7,multi,now),null);
+  multi[0].manifestHash=manifestHash;
+  multi[0].manifest.program.sourceHash='d'.repeat(64);
+  assert.equal(matchTaskReviewHandoff(hint,7,multi,now),null);
+  multi[0].manifest.program.sourceHash=sourceHash;
+  multi[0].manifest.siteOrigins.push(hint.siteOrigin);
+  assert.equal(matchTaskReviewHandoff(hint,7,multi,now),null);
+});

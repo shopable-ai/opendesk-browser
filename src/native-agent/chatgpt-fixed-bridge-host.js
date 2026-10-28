@@ -276,6 +276,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     catalog??=await client.request('listTaskCatalog',{});
     const row=catalog?.installed?.find(item=>item.taskId===taskId);
     const candidate=catalog?.catalog?.find(item=>item.taskId===taskId&&item.version===row?.version);
+    if(Array.isArray(candidate?.manifest?.siteOrigins)&&candidate.manifest.siteOrigins.length>1)
+      throw fail('E_BRIDGE_UNSUPPORTED_SCOPE','此固定桥入口暂不支持多 origin Task；请使用明确目标的原 Task 运行入口');
     if(!row||!candidate||row.enabled!==true||candidate.stage!=='available'||
       candidate.manifestHash!==row.manifestHash||candidate.manifest?.taskId!==taskId||
       candidate.manifest.version!==row.version||
@@ -302,6 +304,8 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     const catalog=await client.request('listTaskCatalog',{});
     const row=catalog?.installed?.find(item=>item.taskId===taskId);
     const candidate=catalog?.catalog?.find(item=>item.taskId===taskId&&item.version===task.version);
+    if(Array.isArray(candidate?.manifest?.siteOrigins)&&candidate.manifest.siteOrigins.length>1)
+      throw fail('E_BRIDGE_UNSUPPORTED_SCOPE','此固定桥入口暂不支持多 origin Task；请使用明确目标的原 Task 运行入口');
     if(!row||!candidate||row.enabled!==true||candidate.stage!=='available'||
       row.version!==task.version||candidate.manifestHash!==task.manifestHash||
       row.manifestHash!==task.manifestHash||
@@ -354,7 +358,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
           description:manifest.description,siteOrigins:[...manifest.siteOrigins],
           paramsSchema:structuredClone(manifest.paramsSchema),installation:installationOf(installed)});
       }catch(error){
-        if(!['E_BRIDGE_INSTALL','E_BRIDGE_REVISION','E_PERMISSION','E_BUILTIN_VERSION_UNAVAILABLE'].includes(error.code))throw error;
+        if(!['E_BRIDGE_INSTALL','E_BRIDGE_REVISION','E_BRIDGE_UNSUPPORTED_SCOPE','E_PERMISSION','E_BUILTIN_VERSION_UNAVAILABLE'].includes(error.code))throw error;
         unavailable.push({taskId:row.taskId,reason:error.message});
       }
     }

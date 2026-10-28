@@ -201,7 +201,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     });
   }
   const cloudErrorText=e=>{let code=/^E_[A-Z0-9_]{1,60}$/.test(String(e?.code))?e.code:'E_CLOUD';
-    const help={E_DELIVERY:'交付程序身份或源码校验失败，请刷新后核对',
+    const help={E_CLOUD_UNSUPPORTED_SCOPE:'此云控交付入口暂不支持多 origin Task，请使用本地项目审阅安装入口',
+      E_DELIVERY:'交付程序身份或源码校验失败，请刷新后核对',
       E_DELIVERY_REVIEW_REQUIRED:'请先查看并核对完整源码，再接收待验证任务',
       E_HASH:'远程源码哈希验证失败；程序未导入',
       E_VERIFICATION:'试运行尚无成功的原生页面操作回执；请查看原始 Run 再重试',
@@ -333,6 +334,9 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     if(disposed||answer?.deliveryId!==deliveryId)throw {code:'E_DELIVERY'};
     const pkg=await verifyTaskPackage(answer.package);
     if(!matchesCloudProgramDescriptor(row,deliveryId,pkg))throw {code:'E_DELIVERY'};
+    // The existing Cloud inbox delivery contract is single-origin. Do not
+    // turn broader Task scope into an implicit new remote delivery product.
+    if(pkg.manifest.siteOrigins.length!==1)throw {code:'E_CLOUD_UNSUPPORTED_SCOPE'};
     let previousVersion=null,previousSource=null;
     if(typeof client.request==='function'){
       try{
@@ -423,7 +427,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
     catch{throw {code:'E_PARAMS'};}
     const trial={deliveryId,title:manifest.title,taskId:manifest.taskId,
       version:manifest.version,manifestHash:pkg.manifestHash,
-      sourceHash:manifest.program.sourceHash,siteOrigins:[...manifest.siteOrigins],
+      sourceHash:manifest.program.sourceHash,siteOrigins:[...manifest.siteOrigins],targetOrigin:captured.origin,
       runId:null,state:'preparing',message:'正在验证目标网页并申请一次性 Run',
       imported:false,success:false,verified:false,available:false,installed:false,
       permissionPrepared:false};
@@ -449,7 +453,7 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
         item.resultId===run?.resultId);
       const proven=run?.runId===claim.runId&&run?.revision?.sourceHash===trial.sourceHash&&
         run.state==='completed'&&run.retirementState==='released'&&
-        run.workerRetired===true&&run.target?.allowedOrigin===manifest.siteOrigins[0]&&
+        run.workerRetired===true&&run.target?.allowedOrigin===trial.targetOrigin&&
         result?.state==='completed'&&result?.revision?.sourceHash===trial.sourceHash&&
         result?.outcome?.ok===true&&completed?.pendingSettlement!==true;
       trial.success=proven===true;
@@ -498,7 +502,8 @@ export function createCloudHosting({client,host,document:doc=globalThis.document
       throw {code:'E_REVISION'};
     const verified=await client.request('verifyTaskCandidate',{
       taskId:trial.taskId,version:trial.version,runId:trial.runId});
-    if(disposed||lastTrial!==trial||verified?.verification?.sourceHash!==trial.sourceHash)
+    if(disposed||lastTrial!==trial||verified?.verification?.sourceHash!==trial.sourceHash||
+      verified.verification.manifestHash!==trial.manifestHash||verified.verification.origin!==trial.targetOrigin)
       throw {code:'E_VERIFICATION'};
     const available=await client.request('makeTaskAvailable',{
       taskId:trial.taskId,version:trial.version,manifestHash:trial.manifestHash});

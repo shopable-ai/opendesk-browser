@@ -2,7 +2,7 @@
   "format": "scrapyjs-migration-status.v1",
   "fullMigrationComplete": false,
   "sourceLedger": ".omx/plans/scrapyjs-migration-source-function-ledger-20261028.md",
-  "scope": "当前批：App 命名采集配置的保存、切换与复用；沿用固定Task0.2.1。32项完整迁移继续分层记录。",
+  "scope": "当前批：豆瓣/CSDN 原例在 App 配置、保存重开、采集、查看与 JSON/CSV 导出；历史样本与线上分开，固定Task0.3.0精确三站点。完整32项迁移延期。",
   "features": [
     {
       "id": "F01",
@@ -40,6 +40,12 @@
           "scope": "同一App可信目标/配置/结果表格",
           "evidence": "evidence/core-examples-20261029.json#appScenarios",
           "appVersion": "1.1.1"
+        },
+        "uiNativeOriginalSites130": {
+          "status": "PASS_SCOPED",
+          "appVersion": "1.3.0",
+          "scope": "Same App current target, full JSON configuration and result view",
+          "evidence": "evidence/original-sites-20261029.json#native"
         }
       }
     },
@@ -79,6 +85,12 @@
           "scope": "字段属性与分页详情控件应用/未应用保护",
           "evidence": "evidence/core-examples-20261029.json#appScenarios",
           "appVersion": "1.1.1"
+        },
+        "uiNativeOriginalSites130": {
+          "status": "PASS_SCOPED",
+          "appVersion": "1.3.0",
+          "scope": "Full original itemConfig/validation/processing data saved; current-page only, no new pagination/profile policies",
+          "evidence": "evidence/original-sites-20261029.json#native"
         }
       }
     },
@@ -120,6 +132,12 @@
           "scope": "单配置条件保存/销毁iframe后重开；无命名任务/自动保存",
           "evidence": "evidence/core-examples-20261029.json#appScenarios",
           "appVersion": "1.1.1"
+        },
+        "uiNativeOriginalSites130": {
+          "status": "PASS_SCOPED",
+          "appVersion": "1.3.0",
+          "scope": "Four named configs saved, switched and reopened; no autosave or automatic rebind",
+          "evidence": "evidence/original-sites-20261029.json#native"
         }
       }
     },
@@ -159,6 +177,12 @@
           "scope": "恢复配置；不自动开网页或恢复运行",
           "evidence": "evidence/core-examples-20261029.json#appScenarios",
           "appVersion": "1.1.1"
+        },
+        "uiNativeOriginalSites130": {
+          "status": "PASS_SCOPED",
+          "appVersion": "1.3.0",
+          "scope": "Saved config and selected record survive App destruction/reopen; no automatic website reopening",
+          "evidence": "evidence/original-sites-20261029.json#native"
         }
       }
     },
@@ -200,6 +224,12 @@
           "scope": "同一App三次不同身份启动固定Task",
           "evidence": "evidence/core-examples-20261029.json#appScenarios",
           "appVersion": "1.1.1"
+        },
+        "uiNativeOriginalSites130": {
+          "status": "PASS_SCOPED",
+          "appVersion": "1.3.0",
+          "scope": "Same installed Task0.3.0 on three approved origins with distinct durable run/result/request identities",
+          "evidence": "evidence/original-sites-20261029.json#native"
         }
       }
     },
@@ -232,6 +262,12 @@
         },
         "uiNativeCurrentCandidate": {
           "status": "NOT_TESTED"
+        },
+        "uiNativeOriginalSites130": {
+          "status": "PASS_SCOPED",
+          "appVersion": "1.3.0",
+          "scope": "Controlled navigation/wait/extraction for the two original current-page examples",
+          "evidence": "evidence/original-sites-20261029.json#native"
         }
       }
     },
@@ -271,6 +307,12 @@
           "scope": "文本/href/可空字段和数字全部黄金一致",
           "evidence": "evidence/core-examples-20261029.json#appScenarios",
           "appVersion": "1.1.1"
+        },
+        "uiNativeOriginalSites130": {
+          "status": "PASS_SCOPED",
+          "appVersion": "1.3.0",
+          "scope": "All20x11 Douban and9x7 CSDN fields match independent fixture/live expectations",
+          "evidence": "evidence/original-sites-20261029.json#native"
         }
       }
     },
@@ -688,6 +730,12 @@
           "scope": "BrowserValidation和严格价格；无通用Pipeline编辑器",
           "evidence": "evidence/core-examples-20261029.json#appScenarios",
           "appVersion": "1.1.1"
+        },
+        "uiNativeOriginalSites130": {
+          "status": "PASS_SCOPED",
+          "appVersion": "1.3.0",
+          "scope": "Original BrowserValidation and Douban splitPublication retain documented fields/types/edge cases",
+          "evidence": "evidence/original-sites-20261029.json#native"
         }
       }
     },
@@ -824,6 +872,12 @@
           "scope": "三行全字段表格、JSON46312字节下载并读回；当前CSV未重测",
           "evidence": "evidence/core-examples-20261029.json#appScenarios",
           "appVersion": "1.1.1"
+        },
+        "uiNativeOriginalSites130": {
+          "status": "PASS_SCOPED",
+          "appVersion": "1.3.0",
+          "scope": "All result table cells and actual JSON/CSV download bytes match durable data",
+          "evidence": "evidence/original-sites-20261029.json#native"
         }
       }
     },
@@ -1250,6 +1304,27 @@
     "candidateScope": "HISTORICAL_TASK_0.1.0_APP_1.0.0_ONLY"
   },
   "currentBatch": {
+    "evidence": "evidence/original-sites-20261029.json",
+    "phase": "CORE_DEVELOPMENT",
+    "scope": "Original Douban and CSDN current-page examples through App; fixture/live separate",
+    "fullFeatureAcceptance": "NOT_TESTED",
+    "productionAcceptance": "NOT_TESTED",
+    "scriptNative": "PASS_SCOPED",
+    "uiNative": "PASS_SCOPED",
+    "appVersion": "1.3.0",
+    "taskVersion": "0.3.0",
+    "sourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f",
+    "appPackageSha256": "ead8d02d51b719c64cf9a524c039bc3ec080d4511f6c4af4b03de36d1688a205",
+    "fixtureRows": {
+      "douban": 20,
+      "csdn": 9
+    },
+    "liveRows": {
+      "douban": 20,
+      "csdn": 9
+    }
+  },
+  "previousBatch": {
     "evidence": "evidence/named-configs-20261029.json",
     "phase": "CORE_DEVELOPMENT",
     "scope": "Named App config CRUD, reuse, draft/CAS/run ownership guards",
@@ -1262,15 +1337,30 @@
     "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa",
     "appPackageSha256": "612d34f92ff03b739251469c80f750a5e78992ed42332836432a0cd4a22313ab"
   },
-  "previousBatch": {
-    "evidence": "evidence/core-examples-20261029.json",
-    "phase": "CORE_DEVELOPMENT",
-    "fullFeatureAcceptance": "NOT_TESTED",
-    "productionAcceptance": "NOT_TESTED",
-    "scriptNative": "PASS_SCOPED",
-    "uiNative": "PASS_SCOPED",
-    "appVersion": "1.1.1",
-    "taskVersion": "0.2.1",
-    "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
-  }
+  "batchHistory": [
+    {
+      "evidence": "evidence/core-examples-20261029.json",
+      "phase": "CORE_DEVELOPMENT",
+      "fullFeatureAcceptance": "NOT_TESTED",
+      "productionAcceptance": "NOT_TESTED",
+      "scriptNative": "PASS_SCOPED",
+      "uiNative": "PASS_SCOPED",
+      "appVersion": "1.1.1",
+      "taskVersion": "0.2.1",
+      "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
+    },
+    {
+      "evidence": "evidence/named-configs-20261029.json",
+      "phase": "CORE_DEVELOPMENT",
+      "scope": "Named App config CRUD, reuse, draft/CAS/run ownership guards",
+      "fullFeatureAcceptance": "NOT_TESTED",
+      "productionAcceptance": "NOT_TESTED",
+      "scriptNative": "REUSED_UNCHANGED_TASK_0.2.1",
+      "uiNative": "PASS_SCOPED",
+      "appVersion": "1.2.0",
+      "taskVersion": "0.2.1",
+      "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa",
+      "appPackageSha256": "612d34f92ff03b739251469c80f750a5e78992ed42332836432a0cd4a22313ab"
+    }
+  ]
 }

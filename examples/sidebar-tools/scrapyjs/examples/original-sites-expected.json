@@ -1,0 +1,431 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "sourceRepository": "scrapyJsChrome",
+    "sourceRootAtCapture": "/Users/shopme/Documents/workspace/scrapyJsChrome/",
+    "scope": "CURRENT_PAGE_ONLY_NO_PAGINATION_OR_DETAILS",
+    "oracle": "Douban: original script.json full 20 records, raw fields cross-checked against original page.html. CSDN: all 9 original page.html rows independently read with Cheerio; first 5 cross-checked against run.json pageValidation.data. No new Scrapy engine output used.",
+    "adaptations": [
+      "Keep only the original list container and its descendants in a UTF-8 HTML document; discard surrounding navigation/pagination.",
+      "Remove script/style/link/img/iframe/object/embed/media/source elements and event handlers, inline styles and remote resource attributes; retain list structure, text and link/title attributes.",
+      "Use simple class selectors instead of ancestor/nth-of-type chains; remove stale profile configSignature; preserve rowShape, fieldRequirements and processing.",
+      "Live entries have no historical expectedData or strict row count; parent native DOM oracle derives expected rows after normal load. Historical access failures are transient evidence, not a current live verdict."
+    ],
+    "sources": [
+      {
+        "path": "examples/douban-books/task.json",
+        "bytes": 6602,
+        "sha256": "8430e4d331d8e15b8c5588b37c3bb9016903932c6a82e41c6c3883b3231dc4e0"
+      },
+      {
+        "path": "examples/douban-books/crawl.js",
+        "bytes": 1810,
+        "sha256": "2db249b810de15b7097c28b006cc838b9df4cc4b25b127e0c8cf6fc9f949dc25"
+      },
+      {
+        "path": "examples/douban-books/page.html",
+        "bytes": 65811,
+        "sha256": "f172bf2296bda1400968ed2a2e91f09134b715c525c36f350331ac498b0b72ea"
+      },
+      {
+        "path": "examples/douban-books/run.json",
+        "bytes": 90098,
+        "sha256": "14f9b711c1c712f28104e7ba555dc4a7de4837cc8b17a971e2af41091d8e27d9"
+      },
+      {
+        "path": "examples/douban-books/script.json",
+        "bytes": 10845,
+        "sha256": "e3cbd6e4cc4a90ee22740175a23b762deaf21d23db138087c84f30ddf9238d12"
+      },
+      {
+        "path": "examples/douban-books/script.csv",
+        "bytes": 6520,
+        "sha256": "12c17365ff2e483a2ae68d14301497ce5bee5bbc33a713831b24d91dea6b3d92"
+      },
+      {
+        "path": "examples/csdn/task.json",
+        "bytes": 14436,
+        "sha256": "91346b0f579b58866633d8e7d0c2a35501b3820a905c0bd6f73d66d337e77d1b"
+      },
+      {
+        "path": "examples/csdn/crawl.js",
+        "bytes": 2286,
+        "sha256": "6432fd172fd743fb1ad7021a92a28674ebd923e7a068631f69f5ca62551bb30e"
+      },
+      {
+        "path": "examples/csdn/page.html",
+        "bytes": 14905,
+        "sha256": "7b27ebb0b7c7bd95e9d0081693819ff92fa885735f875a1bdb14a0a29e452199"
+      },
+      {
+        "path": "examples/csdn/run.json",
+        "bytes": 76736,
+        "sha256": "d66c2c4d4526a923340c6b429e6842ba86fa8ac985b3057b19f9280f66fcb416"
+      },
+      {
+        "path": "test/douban-books-example.test.cjs",
+        "bytes": 13726,
+        "sha256": "19d9802edb0cf337b07bc3d584527a7d2a58dee63742d6fec4d71d8139e45488"
+      }
+    ]
+  },
+  "doubanBooks": {
+    "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
+    "fixture": {
+      "path": "fixtures/douban-books.html",
+      "sha256": "6c6f08bf17140fa94b2987a48cba81c17f1eb3daeddeda353bf327acf585e4b8"
+    },
+    "data": [
+      {
+        "publication": "邹欣 / 人民邮电出版社 / 2026-6 / 99.80元",
+        "rating": "9.5",
+        "title": "构建之法——现代软件工程（第四版）",
+        "url": "https://book.douban.com/subject/38524000/",
+        "publication_raw": "邹欣 / 人民邮电出版社 / 2026-6 / 99.80元",
+        "author": "邹欣",
+        "translator": null,
+        "publisher": "人民邮电出版社",
+        "publication_date": "2026-06",
+        "price": 99.8,
+        "currency": "CNY"
+      },
+      {
+        "publication": "姜伟生 / 清华大学出版社 / 2024-5-1 / 268元",
+        "rating": "8.9",
+        "title": "编程不难",
+        "url": "https://book.douban.com/subject/36860643/",
+        "publication_raw": "姜伟生 / 清华大学出版社 / 2024-5-1 / 268元",
+        "author": "姜伟生",
+        "translator": null,
+        "publisher": "清华大学出版社",
+        "publication_date": "2024-05-01",
+        "price": 268,
+        "currency": "CNY"
+      },
+      {
+        "publication": "[美]约翰·奥斯特豪特（John Ousterhout） / 茹炳晟 / 人民邮电出版社 / 2024-11 / 69.80元",
+        "rating": "9.0",
+        "title": "软件设计的哲学",
+        "url": "https://book.douban.com/subject/37119755/",
+        "publication_raw": "[美]约翰·奥斯特豪特（John Ousterhout） / 茹炳晟 / 人民邮电出版社 / 2024-11 / 69.80元",
+        "author": "[美]约翰·奥斯特豪特（John Ousterhout）",
+        "translator": "茹炳晟",
+        "publisher": "人民邮电出版社",
+        "publication_date": "2024-11",
+        "price": 69.8,
+        "currency": "CNY"
+      },
+      {
+        "publication": "阿尔·斯维加特（Al Sweigart） / 袁国忠 / 人民邮电出版社 / 2025-11 / 109.8元",
+        "rating": "9.0",
+        "title": "Python编程快速上手——让烦琐工作自动化（第3版）",
+        "url": "https://book.douban.com/subject/37870127/",
+        "publication_raw": "阿尔·斯维加特（Al Sweigart） / 袁国忠 / 人民邮电出版社 / 2025-11 / 109.8元",
+        "author": "阿尔·斯维加特（Al Sweigart）",
+        "translator": "袁国忠",
+        "publisher": "人民邮电出版社",
+        "publication_date": "2025-11",
+        "price": 109.8,
+        "currency": "CNY"
+      },
+      {
+        "publication": "黄佳 / 人民邮电出版社 / 2026-6 / 69.80元",
+        "rating": "9.3",
+        "title": "SDD实战：规范驱动开发之道",
+        "url": "https://book.douban.com/subject/38536885/",
+        "publication_raw": "黄佳 / 人民邮电出版社 / 2026-6 / 69.80元",
+        "author": "黄佳",
+        "translator": null,
+        "publisher": "人民邮电出版社",
+        "publication_date": "2026-06",
+        "price": 69.8,
+        "currency": "CNY"
+      },
+      {
+        "publication": "[越] 奇普·萱 / 宝玉 / 人民邮电出版社 / 2026-2-2 / 159.80元",
+        "rating": "8.7",
+        "title": "AI工程",
+        "url": "https://book.douban.com/subject/38236657/",
+        "publication_raw": "[越] 奇普·萱 / 宝玉 / 人民邮电出版社 / 2026-2-2 / 159.80元",
+        "author": "[越] 奇普·萱",
+        "translator": "宝玉",
+        "publisher": "人民邮电出版社",
+        "publication_date": "2026-02-02",
+        "price": 159.8,
+        "currency": "CNY"
+      },
+      {
+        "publication": "黄佳 / 人民邮电出版社 / 2026-5 / 79.80元",
+        "rating": "9.0",
+        "title": "Claude Code实战 Harness工程之道",
+        "url": "https://book.douban.com/subject/38445510/",
+        "publication_raw": "黄佳 / 人民邮电出版社 / 2026-5 / 79.80元",
+        "author": "黄佳",
+        "translator": null,
+        "publisher": "人民邮电出版社",
+        "publication_date": "2026-05",
+        "price": 79.8,
+        "currency": "CNY"
+      },
+      {
+        "publication": "[美] 侯世达 / 严勇、刘皓明、莫大伟 / 商务印书馆 / 1997-5 / 88.00元",
+        "rating": "9.4",
+        "title": "哥德尔、艾舍尔、巴赫",
+        "url": "https://book.douban.com/subject/1291204/",
+        "publication_raw": "[美] 侯世达 / 严勇、刘皓明、莫大伟 / 商务印书馆 / 1997-5 / 88.00元",
+        "author": "[美] 侯世达",
+        "translator": "严勇、刘皓明、莫大伟",
+        "publisher": "商务印书馆",
+        "publication_date": "1997-05",
+        "price": 88,
+        "currency": "CNY"
+      },
+      {
+        "publication": "Scott Rosenberg / 韩磊 / 电子工业出版社 / 2011-6 / 59.00元",
+        "rating": "7.8",
+        "title": "梦断代码",
+        "url": "https://book.douban.com/subject/6526454/",
+        "publication_raw": "Scott Rosenberg / 韩磊 / 电子工业出版社 / 2011-6 / 59.00元",
+        "author": "Scott Rosenberg",
+        "translator": "韩磊",
+        "publisher": "电子工业出版社",
+        "publication_date": "2011-06",
+        "price": 59,
+        "currency": "CNY"
+      },
+      {
+        "publication": "熊辉 廖方宇 等 / 生活·读书·新知三联书店 / 2026-4 / 58.00元",
+        "rating": "8.0",
+        "title": "算法之问",
+        "url": "https://book.douban.com/subject/38407054/",
+        "publication_raw": "熊辉 廖方宇 等 / 生活·读书·新知三联书店 / 2026-4 / 58.00元",
+        "author": "熊辉 廖方宇 等",
+        "translator": null,
+        "publisher": "生活·读书·新知三联书店",
+        "publication_date": "2026-04",
+        "price": 58,
+        "currency": "CNY"
+      },
+      {
+        "publication": "理查德 / 黄陇、李虎 / 机械工业出版社 / 2008-5 / 99.00元",
+        "rating": "9.3",
+        "title": "Windows核心编程",
+        "url": "https://book.douban.com/subject/3106542/",
+        "publication_raw": "理查德 / 黄陇、李虎 / 机械工业出版社 / 2008-5 / 99.00元",
+        "author": "理查德",
+        "translator": "黄陇、李虎",
+        "publisher": "机械工业出版社",
+        "publication_date": "2008-05",
+        "price": 99,
+        "currency": "CNY"
+      },
+      {
+        "publication": "（美）罗斯（Russinovich,M.E.）、（美）所罗门（Solomon,D.A.） / 潘爱民 / 电子工业出版社 / 2007-4 / 99.00元",
+        "rating": "9.1",
+        "title": "深入解析Windows操作系统",
+        "url": "https://book.douban.com/subject/2031396/",
+        "publication_raw": "（美）罗斯（Russinovich,M.E.）、（美）所罗门（Solomon,D.A.） / 潘爱民 / 电子工业出版社 / 2007-4 / 99.00元",
+        "author": "（美）罗斯（Russinovich,M.E.）、（美）所罗门（Solomon,D.A.）",
+        "translator": "潘爱民",
+        "publisher": "电子工业出版社",
+        "publication_date": "2007-04",
+        "price": 99,
+        "currency": "CNY"
+      },
+      {
+        "publication": "Azat Mardan、Morten Barklund / Manning Publication / 2023-7 / USD 47.99",
+        "rating": "",
+        "title": "React Quickly, Second Edition",
+        "url": "https://book.douban.com/subject/36497816/",
+        "publication_raw": "Azat Mardan、Morten Barklund / Manning Publication / 2023-7 / USD 47.99",
+        "author": "Azat Mardan、Morten Barklund",
+        "translator": null,
+        "publisher": "Manning Publication",
+        "publication_date": "2023-07",
+        "price": 47.99,
+        "currency": "USD"
+      },
+      {
+        "publication": "Alfred V. Aho、Monica S.Lam、Ravi Sethi、Jeffrey D. Ullman / 赵建华、郑滔、戴新宇 / 机械工业出版社 / 2008年12月 / 89.00元",
+        "rating": "9.0",
+        "title": "编译原理",
+        "url": "https://book.douban.com/subject/3296317/",
+        "publication_raw": "Alfred V. Aho、Monica S.Lam、Ravi Sethi、Jeffrey D. Ullman / 赵建华、郑滔、戴新宇 / 机械工业出版社 / 2008年12月 / 89.00元",
+        "author": "Alfred V. Aho、Monica S.Lam、Ravi Sethi、Jeffrey D. Ullman",
+        "translator": "赵建华、郑滔、戴新宇",
+        "publisher": "机械工业出版社",
+        "publication_date": "2008-12",
+        "price": 89,
+        "currency": "CNY"
+      },
+      {
+        "publication": "Neal Ford、Mark Richards、Pramod Sadalage、Zhamak Dehghani / O'Reilly Media / 2021-11-16 / O'Reilly Media",
+        "rating": "9.1",
+        "title": "Software Architecture: The Hard Parts",
+        "url": "https://book.douban.com/subject/35587139/",
+        "publication_raw": "Neal Ford、Mark Richards、Pramod Sadalage、Zhamak Dehghani / O'Reilly Media / 2021-11-16 / O'Reilly Media",
+        "author": "Neal Ford、Mark Richards、Pramod Sadalage、Zhamak Dehghani",
+        "translator": null,
+        "publisher": "O'Reilly Media",
+        "publication_date": "2021-11-16",
+        "price": null,
+        "currency": null
+      },
+      {
+        "publication": "[美] 埃里克·马瑟斯 / 袁国忠 / 人民邮电出版社 / 2016-7-1 / 89.00元",
+        "rating": "9.1",
+        "title": "Python编程",
+        "url": "https://book.douban.com/subject/26829016/",
+        "publication_raw": "[美] 埃里克·马瑟斯 / 袁国忠 / 人民邮电出版社 / 2016-7-1 / 89.00元",
+        "author": "[美] 埃里克·马瑟斯",
+        "translator": "袁国忠",
+        "publisher": "人民邮电出版社",
+        "publication_date": "2016-07-01",
+        "price": 89,
+        "currency": "CNY"
+      },
+      {
+        "publication": "匙亮旭 / 电子工业出版社 / 2026-3 / 139.00",
+        "rating": "",
+        "title": "LangChain 1.0智能体开发实战：基于LangChain、LangGraph与Deep Agent构建AI Agent",
+        "url": "https://book.douban.com/subject/38408804/",
+        "publication_raw": "匙亮旭 / 电子工业出版社 / 2026-3 / 139.00",
+        "author": "匙亮旭",
+        "translator": null,
+        "publisher": "电子工业出版社",
+        "publication_date": "2026-03",
+        "price": 139,
+        "currency": null
+      },
+      {
+        "publication": "李多多（@莫尔索） / 人民邮电出版社 / 2024-4-9 / 69.8",
+        "rating": "8.0",
+        "title": "LangChain编程",
+        "url": "https://book.douban.com/subject/36853573/",
+        "publication_raw": "李多多（@莫尔索） / 人民邮电出版社 / 2024-4-9 / 69.8",
+        "author": "李多多（@莫尔索）",
+        "translator": null,
+        "publisher": "人民邮电出版社",
+        "publication_date": "2024-04-09",
+        "price": 69.8,
+        "currency": null
+      },
+      {
+        "publication": "章淼 / 电子工业出版社 / 2022-3 / 100.00元",
+        "rating": "7.4",
+        "title": "代码的艺术：用工程思维驱动软件开发",
+        "url": "https://book.douban.com/subject/35779634/",
+        "publication_raw": "章淼 / 电子工业出版社 / 2022-3 / 100.00元",
+        "author": "章淼",
+        "translator": null,
+        "publisher": "电子工业出版社",
+        "publication_date": "2022-03",
+        "price": 100,
+        "currency": "CNY"
+      },
+      {
+        "publication": "[美] Grady Booch、[美] Robert A.Maksimchuk、[美] Michael W.Engle、[美] Bobbi J.Young / 王海鹏、潘加宇 / 电子工业出版社 / 2012-7 / 99.00元",
+        "rating": "9.2",
+        "title": "面向对象分析与设计",
+        "url": "https://book.douban.com/subject/11509672/",
+        "publication_raw": "[美] Grady Booch、[美] Robert A.Maksimchuk、[美] Michael W.Engle、[美] Bobbi J.Young / 王海鹏、潘加宇 / 电子工业出版社 / 2012-7 / 99.00元",
+        "author": "[美] Grady Booch、[美] Robert A.Maksimchuk、[美] Michael W.Engle、[美] Bobbi J.Young",
+        "translator": "王海鹏、潘加宇",
+        "publisher": "电子工业出版社",
+        "publication_date": "2012-07",
+        "price": 99,
+        "currency": "CNY"
+      }
+    ]
+  },
+  "csdn": {
+    "url": "https://download.csdn.net/list/blog/100-0-0-0-5-1.html",
+    "fixture": {
+      "path": "fixtures/csdn.html",
+      "sha256": "d0c1c82839956be82f9ddcf09da6add1fc3667bdeb57b8ca682345dcdde102a7"
+    },
+    "data": [
+      {
+        "title": "PCL学习",
+        "url": "https://download.csdn.net/blog/column/9913573",
+        "description": "以实战为线索，逐步了解点云处理的每一个算子。本专栏和python点云处理专栏均为记录本人点云处理的学习笔记，基本了解每一篇博客的算法原理和参数调试。所有代码均可复制粘贴后运行。",
+        "price_text": "¥19.9",
+        "metrics_text": "284 节 · 8938 人已学",
+        "author_display": "| 点云侠",
+        "membership": ""
+      },
+      {
+        "title": "100天精通Python",
+        "url": "https://download.csdn.net/blog/column/11466020",
+        "description": "全网最细Python零基础入门教程，全栈系列课程包括：基础篇、进阶篇、数据分析篇、可视化篇、爬虫篇等，适合零基础和进阶提升的同学。一次订阅永久有效，订阅专栏后进专栏答疑群，免费领取80G零基础教学视频、专业问题答疑和小伙伴们共同进步！",
+        "price_text": "¥9.9",
+        "metrics_text": "123 节 · 8268 人已学",
+        "author_display": "| 小满大王i",
+        "membership": ""
+      },
+      {
+        "title": "R语言大学作业",
+        "url": "https://download.csdn.net/blog/column/11518748",
+        "description": "R语言学术和知识总结，赠送大学大作业数据分析报告docx，可以找我，帮助了很多大学生期末的大作业如果需要做辅导和作业，请联系vx：RunsenLiu。说明下，复杂的，要花很多时间的，要收费。",
+        "price_text": "¥9.9",
+        "metrics_text": "1436 节 · 6787 人已学",
+        "author_display": "| Mrrunsen",
+        "membership": "超级会员免费看"
+      },
+      {
+        "title": "AutoSAR入门到精通系列讲解",
+        "url": "https://download.csdn.net/blog/column/9291827",
+        "description": "最全最详细的AutoSAR系列教程；将深奥的AutoSAR知识进行分解；实践篇章手把手教学DaVinci软件；深入浅出的讲解其中原理，通俗易懂。",
+        "price_text": "¥89.9",
+        "metrics_text": "93 节 · 6681 人已学",
+        "author_display": "| 雪云飞星",
+        "membership": ""
+      },
+      {
+        "title": "python点云处理",
+        "url": "https://download.csdn.net/blog/column/10071616",
+        "description": "郑重声明：本专栏为个人学习笔记，open3d相关代码适用于Open3D 0.15.2版本及以上。",
+        "price_text": "¥19.9",
+        "metrics_text": "282 节 · 6599 人已学",
+        "author_display": "| 点云侠",
+        "membership": ""
+      },
+      {
+        "title": "Python基础课程",
+        "url": "https://download.csdn.net/blog/column/10993679",
+        "description": "官方优质专栏top1，已购买专栏人数超过5707，活动秒杀价19.9，火热订阅中（活动结束恢复原价99.9），系统讲解Python基础知识和实用的Python库，并且分享多年实践大模型使用经验和Debug的最佳实践。每一篇均来自亲身实践，并配有完整截图，逐步展示操作流程。近期更新openclaw中。",
+        "price_text": "¥19.9",
+        "metrics_text": "632 节 · 5708 人已学",
+        "author_display": "| 爱编程的喵喵",
+        "membership": ""
+      },
+      {
+        "title": "2026最新华为OD机试真题题解",
+        "url": "https://download.csdn.net/blog/column/12225173",
+        "description": "5 年深耕华为OD机考，数千学员的上岸首选！告别低效刷题，直击核心考点！保姆级思路拆解 + 实测通关的原创代码，订阅即享全专栏机考真题文章一键解锁，免费赠送历年面试真题！更有独家在线 OJ 平台， 复刻实战场景！订阅后私信，即刻开通权益，助你轻松拿下 Offer！",
+        "price_text": "¥59.9",
+        "metrics_text": "1384 节 · 4906 人已学",
+        "author_display": "| 算法大师",
+        "membership": ""
+      },
+      {
+        "title": "+ UniApp【订阅后帮您1对1解决问题】",
+        "url": "https://download.csdn.net/blog/column/9720466",
+        "description": "【付费订阅专栏后，帮您1对1解决开发中遇到的难题或BUG排查服务，直接私信我即可】",
+        "price_text": "¥9.9",
+        "metrics_text": "216 节 · 4672 人已学",
+        "author_display": "| 云码(订阅后可咨询)",
+        "membership": ""
+      },
+      {
+        "title": "付费后可协助解决 - 前端组件与功能",
+        "url": "https://download.csdn.net/blog/column/12189034",
+        "description": "花钱订阅后，如果问题依旧没解决，可以直接后台私信，协助你直至解决哦~只限前端开发问题！",
+        "price_text": "¥9.9",
+        "metrics_text": "385 节 · 4384 人已学",
+        "author_display": "| 解答前端问题~疑难杂症",
+        "membership": ""
+      }
+    ]
+  }
+}

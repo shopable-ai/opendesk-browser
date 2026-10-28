@@ -721,3 +721,17 @@ test('unreadable session storage blocks healthy admission but does not skip loca
   const restarted=createChatGPTBridgeTriggerLedger({storage:h.storage});
   await assert.rejects(restarted.reserve(context),{code:'E_BRIDGE_REPLAY'});
 });
+
+
+test('fixed bridge explicitly refuses multi-origin scope before adoption, authority or first-origin execution',async()=>{
+  const h=harness();
+  h.candidate.manifest.siteOrigins=['https://first.example','https://example.com'];
+  await assert.rejects(adopt(h),{code:'E_BRIDGE_UNSUPPORTED_SCOPE'});
+  const catalog=await h.bridge.listTasks({protocol,kind:'list-tasks'},h.sender);
+  assert.deepEqual(catalog.tasks,[]);
+  assert.equal(catalog.unavailable.length,1);
+  assert.match(catalog.unavailable[0].reason,/不支持多 origin/);
+  assert.equal(h.events.gates.length,0);
+  assert.equal(h.events.starts.length,0);
+  assert.equal(h.events.updates.length,0);
+});

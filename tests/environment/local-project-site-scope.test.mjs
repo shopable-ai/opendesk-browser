@@ -25,6 +25,18 @@ test('Controller project scope accepts one exact origin or explicit all-sites de
   for(const origins of [['<all_urls>'],['https://a.example'],['http://127.0.0.1:43111']])
     assert.equal(validControllerProjectOrigins(origins),true);
   for(const origins of [undefined,[],['*'],['https://*.example/*'],['https://a.example/'],
-    ['https://user:pass@a.example'],['file://'],['<all_urls>','https://a.example']])
+    ['https://user:pass@a.example'],['https://*.example'],['http://*'],['file://'],['<all_urls>','https://a.example']])
     assert.equal(validControllerProjectOrigins(origins),false);
+});
+
+
+test('Controller exact list is bounded, unique and grants only listed canonical origins',()=>{
+  const origins=Array.from({length:8},(_,i)=>`https://site${i}.example`);
+  assert.equal(validControllerProjectOrigins(origins),true);
+  for(const origin of origins)assert.equal(localProjectAllowsOrigin({runtimeKind:'controller',siteOrigins:origins},origin),true);
+  assert.equal(localProjectAllowsOrigin({runtimeKind:'controller',siteOrigins:origins},'https://outside.example'),false);
+  for(const invalid of [Array(1),[...origins,'https://ninth.example'],[origins[0],origins[0]],
+    [''],['https://user@site.example'],['https://site.example/path'],['null'],['about:blank'],
+    ['https://site.example?x'],['https://site.example#x'],['<all_urls>',...origins]])
+    assert.equal(validControllerProjectOrigins(invalid),false,JSON.stringify(invalid));
 });

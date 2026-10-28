@@ -21,6 +21,23 @@ async function view(request) {
   scripts.forEach(script=>vm.runInContext(script,context)); await settle();
   return {nodes,get state(){return state;},close:()=>pagehide(),get interval(){return interval;}};
 }
+test('JSON URL edits synchronize the actual Start target and preserve current-page identity checks',async()=>{
+  const url='https://book.douban.com/tag/test',calls=[];
+  const v=await view(async(op,payload)=>{
+    calls.push([op,payload]);
+    if(op==='storage.get')return {value:null,etag:'a'};
+    if(op==='currentPage.info')return {status:'available',url,title:'Books'};
+    if(op==='tasks.read')return {task:{id:'scrapyjs.capture'}};
+    if(op==='tasks.start')return {clientRequestId:payload.clientRequestId,runId:'books-run',state:'running'};
+    throw Error('Unexpected '+op);
+  });
+  const editor=v.nodes.get('config-json');editor.value=JSON.stringify({url,itemConfig:{title:'h2::text'}});editor.events.input();
+  assert.equal(v.nodes.get('target-url').value,url);
+  v.nodes.get('start').events.click();await settle();
+  const started=calls.find(([op])=>op==='tasks.start');assert(started,'Valid JSON URL must reach the original Task admission');
+  assert.equal(started[1].params.url,url);assert.equal(v.nodes.get('config-error').textContent,'');
+  v.close();
+});
 test('real UI preserves malformed draft during initial storage reply and protects close', async () => {
   let resolve;
   const storage=new Promise(r=>{resolve=r;});

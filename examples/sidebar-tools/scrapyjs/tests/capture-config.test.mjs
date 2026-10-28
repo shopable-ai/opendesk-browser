@@ -3,9 +3,12 @@ import assert from 'node:assert/strict';
 import {allowedUrl,validateCapture,decimalFields,runCapture} from '../controller/capture.js';
 import {fields,pagination,listDetail} from '../examples/configs.js';
 const copy=x=>JSON.parse(JSON.stringify(x));
-test('native configuration grammar validates before browser work; explicit local origin remains fixed',()=>{
+test('native configuration grammar validates before browser work; only three explicit origins are allowed',()=>{
   for(const config of [fields,pagination,listDetail])assert.equal(validateCapture(copy(config)).url,fields.url);
   for(const url of ['https://github.com/microsoft','http://127.0.0.1:43112/','http://u:p@127.0.0.1:43111/','javascript:alert(1)'])
+    assert.throws(()=>allowedUrl(url),/E_CAPTURE_ORIGIN/);
+  for(const url of ['https://book.douban.com/tag/test','https://download.csdn.net/list/blog/test'])assert.equal(allowedUrl(url),url);
+  for(const url of ['https://www.douban.com/','https://blog.csdn.net/','http://book.douban.com/','https://book.douban.com.evil.test/','https://u:p@download.csdn.net/'])
     assert.throws(()=>allowedUrl(url),/E_CAPTURE_ORIGIN/);
   for(const change of [{code:'return []'},{nextPageSelector:'//a'},{maxPages:11},{dedupeKey:'missing'},
     {fieldRequirements:[],validation:undefined},{processing:{version:1,rules:[{op:'eval',field:'name'}]}}])

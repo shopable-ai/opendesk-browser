@@ -147,14 +147,13 @@ function metadata(pkg,projectLabel){
       p.libraries.every(id=>id==='axios'&&BUILTIN_RUNTIME_CATALOG.libraries.axios.worlds.includes('CONTROLLER')),
       'E_PROJECT_LIBRARIES','Controller currently supports only opt-in, Broker-bound Axios',
       {...details,location:'package.json#opendesk.libraries'});
-    ensure(Array.isArray(p.siteOrigins)&&p.siteOrigins.length===1&&
-      Array.isArray(p.permissions)&&p.permissions.length>=1&&p.permissions.length<=2&&p.permissions[0]==='page.automation'&&
+    ensure(Array.isArray(p.permissions)&&p.permissions.length>=1&&p.permissions.length<=2&&p.permissions[0]==='page.automation'&&
       (p.permissions.length===1||p.permissions[1]==='storage.persistent'),
       'E_PROJECT_PERMISSION','Controller projects require page.automation and optional storage.persistent only',
       {...details,location:'package.json#opendesk.permissions'});
     ensure(validControllerProjectOrigins(p.siteOrigins),
-      'E_PROJECT_PERMISSION','Controller site origin must be one exact HTTP(S) origin or <all_urls> for local development',
-      {...details,location:'package.json#opendesk.siteOrigins[0]'});
+      'E_PROJECT_PERMISSION','Controller sites must be 1–8 unique canonical exact HTTP(S) origins or only <all_urls> for local development',
+      {...details,location:'package.json#opendesk.siteOrigins'});
     ensure(p.deadlineMs===undefined||Number.isSafeInteger(p.deadlineMs)&&p.deadlineMs>=1000&&p.deadlineMs<=120000,
       'E_PROJECT_SCHEMA','Controller deadlineMs must be an integer from 1000 to 120000',
       {...details,location:'package.json#opendesk.deadlineMs'});

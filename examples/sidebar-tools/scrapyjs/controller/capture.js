@@ -1,14 +1,10 @@
 import sdk,{Scrapy,ChromeSpider,ChromeDownloaderMiddleware,ItemLoader,Item,Request,normalizeConfig} from '../engine/browser.js';
 import {controlledPage} from '../adapters/page.js';
+import {allowedUrl} from '../adapters/capture-policy.js';
+export {allowedUrl} from '../adapters/capture-policy.js';
 
-const ORIGIN='http://127.0.0.1:43111';
 const clone=value=>JSON.parse(JSON.stringify(value));
 const fail=code=>{throw Object.assign(new Error(code),{code});};
-export function allowedUrl(value,base) {
-  const url=new URL(value,base);
-  if(url.origin!==ORIGIN||url.username||url.password)fail('E_CAPTURE_ORIGIN');
-  return url.href;
-}
 export function validateCapture(config) {
   const keys=['url','itemConfig','waitForSelector','timeoutMs','nextPageSelector','maxPages','dedupeKey','detail','validation','fieldRequirements','processing'];
   if(!config||Array.isArray(config)||typeof config!=='object'||Object.keys(config).some(key=>!keys.includes(key)))fail('E_CAPTURE_CONFIG');

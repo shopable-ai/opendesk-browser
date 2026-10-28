@@ -102,7 +102,8 @@
   el('config-json').addEventListener('input', () => {
     editing = true;
     try {
-      app.edit(JSON.parse(el('config-json').value)); draftValid = true; message('config-error', '');
+      app.edit(JSON.parse(el('config-json').value)); el('target-url').value = app.state.config.url;
+      draftValid = true; message('config-error', '');
     } catch (error) {draftValid = false; app.touch(); message('config-error', error.message);}
     editing = false; shownConfig = JSON.stringify(app.state.config, null, 2); render(app.state);
   });
