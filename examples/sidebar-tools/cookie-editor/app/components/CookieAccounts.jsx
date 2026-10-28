@@ -22,7 +22,7 @@ export function CookieAccounts({
   origin='',accounts=[],currentAlias=null,route='list',onRoute=()=>{},
   accountReady=false,legacyLocked=false,switchReady=false,autoRuntimeReady=false,
   busy=false,feedback=null,previewOnly=false,resumeRevision=0,
-  autoEnabled=false,autoRefresh=true,
+  autoEnabled=false,autoRefresh=true,cookieDetails=[],
   onCreate,onSwitch,onRename,onUpdate,onDelete,onShare,onDirty,onDiscardRequest,
   onToggleAuto,onToggleRefresh,onAllowAlias,onCopyLink
 }){
@@ -33,6 +33,9 @@ export function CookieAccounts({
   const [inline,setInline]=React.useState(null);
   const [draft,setDraft]=React.useState('');
   const [formAttempted,setFormAttempted]=React.useState(false);
+  const [localError,setLocalError]=React.useState('');
+  const [justSavedAlias,setJustSavedAlias]=React.useState(null);
+  const savingRef=React.useRef(false);
   const [testUrl,setTestUrl]=React.useState('');
   const [testResult,setTestResult]=React.useState(null);
   const trigger=React.useRef(null);
@@ -46,9 +49,14 @@ export function CookieAccounts({
   const draftInput=React.useRef(null);
   const autoHeading=React.useRef(null);
   const draftDirty=Boolean(inline&&inline.kind!=='delete'&&
-    draft!==(inline.kind==='rename'?inline.item.displayName:''));
+    draft!==(inline.initialName||''));
   React.useEffect(()=>{onDirty?.(draftDirty);},[draftDirty,onDirty]);
   React.useEffect(()=>()=>onDirty?.(false),[onDirty]);
+  React.useEffect(()=>{
+    if(!justSavedAlias)return;
+    const timer=window.setTimeout(()=>setJustSavedAlias(null),4500);
+    return ()=>window.clearTimeout(timer);
+  },[justSavedAlias]);
   React.useLayoutEffect(()=>{
     if(route==='auto')autoHeading.current?.focus({preventScroll:true});
   },[route]);
@@ -99,13 +107,21 @@ export function CookieAccounts({
   },[menuId]);
   const startInline=(kind,item=null)=>{
     setMenuId(null);
-    setFormAttempted(false);
-    setInline({kind,item});
-    setDraft(kind==='rename'?item.displayName:'');
+    setFormAttempted(false);setLocalError('');
+    let initialName=kind==='rename'?item.displayName:'';
+    if(kind==='create'){
+      const used=new Set(accounts.map(account=>account.displayName));
+      let n=1;
+      while(used.has('新账号 '+n))n++;
+      initialName='新账号 '+n;
+    }
+    setInline({kind,item,initialName});
+    setDraft(initialName);
   };
-  const closeInline=()=>{
-    formReturn.current={alias:inline?.item?.alias};
-    setInline(null);setDraft('');onDirty?.(false);
+  const closeInline=(savedAlias=null)=>{
+    formReturn.current={alias:savedAlias||inline?.item?.alias};
+    if(savedAlias)setJustSavedAlias(savedAlias);
+    setInline(null);setDraft('');setLocalError('');onDirty?.(false);
   };
   const cancelInline=()=>{
     if(busy)return;
@@ -114,14 +130,31 @@ export function CookieAccounts({
     }else closeInline();
   };
   const commitInline=async()=>{
-    if(!inline||busy)return;
-    setFormAttempted(true);
-    let result;
-    if(inline.kind==='create'&&draft.trim())result=onCreate?.(draft.trim());
-    if(inline.kind==='rename'&&draft.trim()&&draft.trim()!==inline.item.displayName)
-      result=onRename?.(inline.item,draft.trim());
-    if(inline.kind==='delete')result=onDelete?.(inline.item);
-    if(await result===true)closeInline();
+    if(!inline||busy||savingRef.current)return;
+    setFormAttempted(true);setLocalError('');
+    const name=draft.trim();
+    if(inline.kind!=='delete'){
+      if(!name){setLocalError('请输入账号名称。');draftInput.current?.focus();return;}
+      if(accounts.some(account=>account.displayName===name&&
+        account.alias!==inline.item?.alias)){
+        setLocalError('账号名称已存在，请换一个名称。');
+        draftInput.current?.focus();return;
+      }
+    }
+    savingRef.current=true;
+    try{
+      let result;
+      if(inline.kind==='create')result=onCreate?.(name);
+      if(inline.kind==='rename'&&name!==inline.item.displayName)
+        result=onRename?.(inline.item,name);
+      if(inline.kind==='delete')result=onDelete?.(inline.item);
+      const receipt=await result;
+      if(receipt===true||receipt?.ok===true)closeInline(receipt?.alias||null);
+      else if(receipt===undefined)setLocalError('账号服务未响应，未保存。');
+      // false is accompanied by the Host/Controller's explicit error feedback.
+    }catch{
+      setLocalError('账号操作失败，请核对账号状态；未确认成功。');
+    }finally{savingRef.current=false;}
   };
   const positionMenu=button=>{
     const rect=button.getBoundingClientRect();
@@ -172,7 +205,8 @@ export function CookieAccounts({
   };
   const actions=item=>[
     ['重命名','edit',()=>startInline('rename',item),Boolean(onRename)],
-    ['更新快照','refresh',()=>onUpdate?.(item),Boolean(onUpdate)],
+    ['更新快照','refresh',()=>onUpdate?.(item),
+      Boolean(onUpdate)&&switchReady&&item.alias===currentAlias],
     ['生成切换链接','link',()=>onCopyLink?.(item,linkFor(item)),
       Boolean(onCopyLink)&&Boolean(linkFor(item))],
     ['分享账号配置','share',()=>setShareItem(item),true],
@@ -188,6 +222,7 @@ export function CookieAccounts({
       action();
     }}><CookieIcon name={icon}/><span>{label}</span></button>
     </React.Fragment>);
+  const currentItem=accounts.find(item=>item.alias===currentAlias);
   if(shareItem)return <CookieAccountShare account={shareItem} previewOnly={previewOnly}
     onBack={()=>setShareItem(null)}/>;
   if(route==='auto')return <section className="cookie-account-page od-surface"
@@ -253,8 +288,16 @@ export function CookieAccounts({
     id="cookie-product-panel-accounts" role="tabpanel"
     aria-labelledby="cookie-product-tab-accounts" ref={list}>
     <div className="cookie-account-content cookie-account-form-page">
-      <h2>{inline.kind==='create'?'保存当前网站账号':
-        inline.kind==='rename'?'重命名账号':'确认删除账号快照'}</h2>
+      <header className="cookie-account-header cookie-account-form-header">
+        <CookieIconButton name="undo" label="返回账号" appearance="quiet"
+          disabled={busy} onClick={cancelInline}/>
+        <h2>{inline.kind==='create'?'添加账号':
+          inline.kind==='rename'?'重命名账号':'删除账号快照'}</h2>
+        {inline.kind!=='delete'&&<CookieIconButton name="save" label="保存账号"
+          appearance="quiet" disabled={busy||!draft.trim()||
+            inline.kind==='rename'&&draft.trim()===inline.item.displayName}
+          onClick={()=>void commitInline()}/>}
+      </header>
       <div className="cookie-account-inline" role="group" aria-label="账号操作"
         aria-busy={busy} onKeyDown={event=>{
           if(event.key==='Enter'&&event.target===draftInput.current){
@@ -264,25 +307,38 @@ export function CookieAccounts({
             event.preventDefault();event.stopPropagation();cancelInline();
           }
         }}>
-        {inline.kind!=='delete'?<label className="cookie-account-name-field">显示名称
+        {inline.kind!=='delete'?<label className="cookie-account-name-field">账号名称
           <input type="text" className="od-field" aria-label="账号名称"
-            value={draft} maxLength={64} ref={draftInput} autoComplete="off"
-            disabled={busy} autoFocus placeholder="例如：工作账号"
-            onChange={event=>setDraft(event.target.value)}/>
+            value={draft} maxLength={inline.kind==='create'?28:64}
+            ref={draftInput} autoComplete="off" disabled={busy}
+            placeholder="例如：工作账号"
+            onChange={event=>{setDraft(event.target.value);setLocalError('');}}/>
         </label>:<p>删除「{inline.item.displayName}」的本机快照，不会删除网站中的 Cookie。</p>}
-        {inline.kind!=='delete'&&<p>{inline.kind==='rename'
-          ?'只修改显示名称，不改变 Cookie 或网址别名。'
-          :'将当前网站的 Cookie 保存为本机账号快照，可能包含登录凭据。'}</p>}
+        {inline.kind==='create'&&<div className="cookie-account-scope">
+          <strong>默认关联当前授权网站的全部可用 Cookie</strong>
+          <small>可信 Host 会在保存时重新读取并核对站点、Store、Partition 和权限。</small>
+          <details>
+            <summary>Cookie 明细（只读 · 当前页面 {cookieDetails.length} 条）</summary>
+            <ul>
+              {cookieDetails.map((row,index)=><li key={row.id||index}>
+                <strong>{row.name}</strong>
+                <small>{row.domain}{row.path} · Store {row.storeId}
+                  {row.partition?' · '+row.partition:''}</small>
+              </li>)}
+              {!cookieDetails.length&&<li>尚无可显示的 Cookie 元数据。</li>}
+            </ul>
+          </details>
+        </div>}
+        {inline.kind==='rename'&&<p>只修改显示名称，不改变 Cookie 或网址别名。</p>}
+        {localError&&<p role="alert" className="cookie-account-feedback is-error">{localError}</p>}
         {formAttempted&&feedback&&<p role={feedback.kind==='error'?'alert':'status'}
           className={'cookie-account-feedback'+(feedback.kind==='error'?' is-error':'')}>{feedback.text}</p>}
-        <div className="cookie-account-inline-controls cookie-account-form-actions">
+        {inline.kind==='delete'&&<div className="cookie-account-inline-controls cookie-account-form-actions">
           <button className="od-button od-button--quiet cookie-button--compact" type="button"
             disabled={busy} onClick={cancelInline}>取消</button>
-          <button className={'od-button cookie-button--compact '+(inline.kind==='delete'?'od-button--danger':'od-button--primary')}
-            type="button" onClick={()=>void commitInline()} disabled={busy||inline.kind!=='delete'&&(!draft.trim()||
-              inline.kind==='rename'&&draft.trim()===inline.item.displayName)}>
-            {inline.kind==='delete'?'删除快照':'保存'}</button>
-        </div>
+          <button className="od-button od-button--danger cookie-button--compact"
+            type="button" onClick={()=>void commitInline()} disabled={busy}>删除快照</button>
+        </div>}
       </div>
     </div>
   </section>;
@@ -293,13 +349,18 @@ export function CookieAccounts({
     aria-labelledby="cookie-product-tab-accounts" ref={list}>
     <div className="cookie-account-content">
       <div className="cookie-account-current" aria-label="当前账号状态">
-        <span className={avatarClass(accounts.find(item=>item.alias===currentAlias))} aria-hidden="true">{String(accounts.find(item=>item.alias===currentAlias)?.displayName||'?').slice(0,1)}</span>
-        <div><small>{currentAlias?'当前已应用的快照（非登录验证）':'当前账号状态'}</small>
-          <strong>{accounts.find(item=>item.alias===currentAlias)?.displayName||
+        <span className={avatarClass(currentItem)} aria-hidden="true">
+          {String(currentItem?.displayName||'?').slice(0,1)}</span>
+        <div><small>{currentItem?'当前已应用的快照（非登录验证）':'当前账号状态'}</small>
+          <strong>{currentItem?.displayName||
             (!accountReady?'正在读取账号':accounts.length?'待核对':'尚未保存账号')}</strong></div>
-        <span className="cookie-account-current-status" title="最近一次可信切换回读，不代表网站已经登录">
-          {currentAlias?'当前':!accountReady?'读取中':'待核对'}
-        </span>
+        {currentItem
+          ?<CookieIconButton name="refresh" appearance="quiet"
+            label={'更新'+currentItem.displayName+'的 Cookie 快照'}
+            disabled={busy||!switchReady||typeof onUpdate!=='function'}
+            onClick={()=>onUpdate?.(currentItem)}/>
+          :<span className="cookie-account-current-status" title="无已验证账号切换收据">
+            {!accountReady?'读取中':'待核对'}</span>}
       </div>
       <label className="cookie-account-setting">
         <span><strong>切换后自动刷新网页</strong>
@@ -330,12 +391,14 @@ export function CookieAccounts({
         type="search" placeholder="搜索账号" aria-label="搜索账号"
         value={query} onChange={event=>setQuery(event.target.value)}/>}
       {filtered.length>0&&<div className="cookie-account-list" aria-label="已保存账号">
-      {filtered.map(item=><article key={item.alias} data-account-alias={item.alias} className={'cookie-account-card'+(item.alias===currentAlias?' is-current':'')}>
+      {filtered.map(item=><article key={item.alias} data-account-alias={item.alias} className={'cookie-account-card'+(item.alias===currentAlias?' is-current':'')+
+          (item.alias===justSavedAlias?' is-just-saved':'')}>
         <span className={avatarClass(item)} aria-hidden="true">
           {String(item.displayName||'?').slice(0,1)}
         </span>
         <div className="cookie-account-card-text">
-          <strong>{item.displayName}</strong><small>本机快照 · {item.alias}</small>
+          <strong>{item.displayName}</strong>
+          <small>{Number.isSafeInteger(item.cookieCount)?item.cookieCount+' 条 Cookie · ':''}本机快照</small>
         </div>
         {item.alias===currentAlias
           ?<span className="cookie-account-applied"

@@ -11,6 +11,7 @@ const shapes={
   clock:<><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>,
   globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/></>,
   refresh:<><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></>,
+  save:<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></>,
   search:<><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></>,
   filter:<path d="M4 7h16M7 12h10M10 17h4"/>,
   download:<path d="M12 4v15m-5-5 5 5 5-5M4 20v2h16v-2"/>,
@@ -279,11 +280,11 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
   return <div className="list-toolbar">
     <strong>Cookie <span>{count}</span></strong>
     <div className="toolbar-actions">
-      <Action name="download" label="导入 Cookie" appearance="quiet" onClick={onImport}
+      <Action name="upload" label="导入 Cookie" appearance="quiet" onClick={onImport}
         expanded={importOpen}
         controls={importOpen?"cookie-import-drawer":undefined}
         disabled={busy||importOpen||readonly||typeof onImport!=='function'}/>
-      <Action name="upload" label="导出 Cookie" appearance="quiet" onClick={onExport}
+      <Action name="download" label="导出 Cookie" appearance="quiet" onClick={onExport}
         buttonRef={exportButton} haspopup="dialog" expanded={exportOpen}
         controls={exportOpen?exportPopupId:undefined}
         disabled={busy||typeof onExport!=='function'}/>

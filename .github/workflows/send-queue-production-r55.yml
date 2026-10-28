@@ -48,11 +48,20 @@ jobs:
         run: |
           npm run --prefix examples/sidebar-tools/ai-send-queue build
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-send-queue --out "$RUNNER_TEMP/ai-send-queue.opendesk-tool.json"
+          # Review the exact canonical candidate digest before advancing the fixed Host pin.
+          sha256sum "$RUNNER_TEMP/ai-send-queue.opendesk-tool.json"
       - name: Preserve blocked React Tool candidate
         uses: actions/upload-artifact@v4
         with:
           name: send-queue-r58-blocked-react-candidate
           path: ${{ runner.temp }}/ai-send-queue.opendesk-tool.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve canonical R5.4 preview source for reviewed Sidebar rendering
+        uses: actions/upload-artifact@v4
+        with:
+          name: send-queue-r510-canonical-preview
+          path: examples/sidebar-tools/ai-send-queue/preview/index.html
           if-no-files-found: error
           retention-days: 14
       - name: Resolve blocked candidate identity from official catalog

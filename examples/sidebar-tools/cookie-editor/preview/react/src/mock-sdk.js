@@ -16,7 +16,7 @@ export function fictionalCookies(){
   {...b,name:'embedded_pref',value:'enabled',sameSite:'no_restriction',partitionKey}
  ];
 }
-// A/B fixture from approved HTML blob 020adbf22005cba219af4ff27cd3f3e492978bed.
+// A/B fixture retains historical fictional data. R2.5.4 HTML is the current UI baseline.
 // HTML has metadata only: values remain fictional. It specifies neither storeId
 // nor a precise PartitionKey; retain explicit simulated identities from the
 // safety fixture rather than silently flattening the partitioned Cookie.
@@ -67,7 +67,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
  const accountMeta=()=>({...clone(demoAccounts),
    accounts:demoAccounts.unlocked?demoAccounts.accounts
      .filter(item=>item.origin==='https://'+currentSite)
-     .map(item=>({...item,siteLabel:currentSite,siteUrl:'https://'+currentSite+'/'})):[],
+     .map(item=>({...item,cookieCount:demoSnapshots.get(item.alias)?.length||0,
+       siteLabel:currentSite,siteUrl:'https://'+currentSite+'/'})):[],
    autoRuntimeReady:demoAccounts.unlocked,preview:true
  });
  const seedRows=hostname=>{
@@ -165,6 +166,10 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     if(!['create','rename','update','delete','switch','setAutoEnabled','setAutoRefresh','allowAlias'].includes(action))
       throw error('E_ACCOUNT_REQUEST');
     if(payload.revision!==demoAccounts.revision)throw error('E_VAULT_CONFLICT');
+    if(['create','update'].includes(action)&&['save','unknown'].includes(failure)){
+      const attempted=failure;failure='';onFailureConsumed();
+      throw error(attempted==='unknown'?'E_OUTCOME_UNKNOWN':'E_ACCOUNT_STORAGE_UNAVAILABLE');
+    }
     const origin='https://'+currentSite;
     const selected=demoAccounts.accounts.find(item=>item.alias===payload.alias&&item.origin===origin);
     if(action==='switch'){
@@ -179,6 +184,8 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     }
     if(action==='create'){
       if(!payload.displayName||!rows.length)throw error('E_ACCOUNT_EMPTY');
+      if(demoAccounts.accounts.some(item=>item.origin===origin&&
+        item.displayName===payload.displayName))throw error('E_ACCOUNT_NAME_TAKEN');
       const alias='acct_preview_'+String(demoAccounts.revision+1).padStart(3,'0');
       demoAccounts.configured=true;
       demoAccounts.accounts.push({alias,origin,
@@ -187,8 +194,24 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     }else if(['rename','update','delete','allowAlias'].includes(action)){
       if(!selected)throw error('E_ACCOUNT_NOT_FOUND');
       if(selected.version!==payload.accountVersion)throw error('E_VAULT_CONFLICT');
-      if(action==='rename')selected.displayName=String(payload.displayName).slice(0,64);
-      if(action==='update')demoSnapshots.set(selected.alias,clone(rows));
+      if(action==='rename'){
+        if(demoAccounts.accounts.some(item=>item.origin===origin&&
+          item.alias!==selected.alias&&item.displayName===payload.displayName))
+          throw error('E_ACCOUNT_NAME_TAKEN');
+        selected.displayName=String(payload.displayName).slice(0,64);
+      }
+      if(action==='update'){
+        const cookieId=row=>JSON.stringify([row.name,row.domain?.replace(/^\./,'').toLowerCase(),
+          row.path,row.storeId,row.partitionKey?.topLevelSite||null,
+          Boolean(row.partitionKey?.hasCrossSiteAncestor),Boolean(row.hostOnly)]);
+        const keys=list=>list.map(cookieId).sort();
+        const previous=demoSnapshots.get(selected.alias)||[];
+        if(JSON.stringify(keys(previous))!==JSON.stringify(keys(rows)))
+          throw error('E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED');
+        if(JSON.stringify(previous)===JSON.stringify(rows))
+          return {...accountMeta(),unchanged:true};
+        demoSnapshots.set(selected.alias,clone(rows));
+      }
       if(action==='delete'){
         if(demoAccounts.currentAlias===selected.alias)demoAccounts.currentAlias=null;
         demoAccounts.accounts.splice(demoAccounts.accounts.indexOf(selected),1);

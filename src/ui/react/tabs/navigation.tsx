@@ -1,15 +1,16 @@
 import * as React from 'react';
+import {translateSidebarNavigation} from '../../../i18n/sidebar-navigation.js';
 
 // Trusted shell navigation only. Business admission, active runs, permissions,
 // persistence and extension lifecycles remain in TaskWorkbench and their Hosts.
 const TABS=Object.freeze([
-  {key:'tasks',id:'tab-my-tasks',label:'我的'},
-  {key:'tools',id:'tab-tools',label:'扩展'},
-  {key:'workflow',id:'tab-workflow',label:'工作流'},
-  {key:'develop',id:'tab-develop',label:'开发'},
-  {key:'app-debug',id:'tab-app-debug',label:'应用调试'},
-  {key:'cloud',id:'tab-cloud',label:'云控'},
-  {key:'debug',id:'tab-debug',label:'调试'}
+  {key:'tasks',id:'tab-my-tasks',messageKey:'sidebar.tab.tasks'},
+  {key:'tools',id:'tab-tools',messageKey:'sidebar.tab.tools'},
+  {key:'workflow',id:'tab-workflow',messageKey:'sidebar.tab.workflow'},
+  {key:'develop',id:'tab-develop',messageKey:'sidebar.tab.develop'},
+  {key:'app-debug',id:'tab-app-debug',messageKey:'sidebar.tab.appDebug'},
+  {key:'cloud',id:'tab-cloud',messageKey:'sidebar.tab.cloud'},
+  {key:'debug',id:'tab-debug',messageKey:'sidebar.tab.debug'}
 ]);
 
 // Pure keyboard route shared by the production React handler and Node semantic tests.
@@ -22,7 +23,7 @@ export function sidebarKeyboardDestination(key,index,tabs){
   return next<0?null:tabs[next];
 }
 
-export function SidebarNavigation({activeTab='tasks',debugEnabled=false,appDebugEnabled=false,onNavigate=()=>{}}){
+export function SidebarNavigation({activeTab='tasks',debugEnabled=false,appDebugEnabled=false,locale='zh-CN',onNavigate=()=>{}}){
   const available=TABS.filter(tab=>(tab.key!=='debug'||debugEnabled)&&
     (tab.key!=='app-debug'||appDebugEnabled));
   const navigate=key=>onNavigate(key)!==false;
@@ -61,7 +62,7 @@ export function SidebarNavigation({activeTab='tasks',debugEnabled=false,appDebug
         }
       }}
       onKeyDown={event=>{if(index>=0)onKeyDown(event,index);}}>
-      {tab.label}
+      {translateSidebarNavigation(tab.messageKey,locale)}
     </button>;
   })}</>;
 }

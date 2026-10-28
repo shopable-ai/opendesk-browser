@@ -655,17 +655,40 @@ try{
   await row('embedded_pref').waitFor();assert.equal(await page.locator('.cookie-row').count(),2);
   assert.equal(await row('analytics_consent').count(),1);await reset();
  });
- await test('first account saves directly without a vault or password',async()=>{
+ await test('R2.6 account creation awaits Host receipt, increments names, highlights row',async()=>{
   await scene('accountsFirst');
   await button('保存当前 Cookie 为账号').waitFor();
   assert.equal(await page.locator('.cookie-account-vault,input[type="password"]').count(),0);
   assert.equal(await button('锁定账号仓库').count(),0);
   await button('保存当前 Cookie 为账号').click();
-  await page.getByRole('textbox',{name:'账号名称'}).fill('First local account');
-  await page.getByRole('button',{name:'保存',exact:true}).click();
-  await page.getByText('First local account',{exact:true}).waitFor();
+  const nameInput=page.getByRole('textbox',{name:'账号名称'});
+  assert.equal(await nameInput.inputValue(),'新账号 1');
+  assert.equal(await page.locator('.cookie-account-scope details').getAttribute('open'),null);
+  assert.equal(await button('保存账号').count(),1);
+  await button('保存账号').click();
+  await page.getByText('新账号 1',{exact:true}).waitFor();
   assert.equal(await page.locator('[data-account-alias]').count(),1);
-  await page.screenshot({path:join(output,'accounts-without-vault.png'),fullPage:true});
+  assert.equal(await page.locator('.cookie-account-card.is-just-saved').count(),1);
+  await page.locator('.cookie-import-toast').filter({hasText:/已保存当前账号快照/}).waitFor();
+  await button('保存当前 Cookie 为账号').click();
+  assert.equal(await nameInput.inputValue(),'新账号 2');
+  await button('保存账号').click();
+  await page.getByText('新账号 2',{exact:true}).waitFor();
+  assert.equal(await page.locator('[data-account-alias]').count(),2);
+  await page.screenshot({path:join(output,'accounts-r26-create-twice.png'),fullPage:true});
+ });
+ await test('R2.6 failed account save preserves input and does not invent a row',async()=>{
+  await scene('accountsFirst');
+  await button('保存当前 Cookie 为账号').click();
+  await openLab();
+  await page.getByTestId('failure').selectOption('save');
+  await lab.locator('summary').click();
+  await button('保存账号').click();
+  await page.getByRole('textbox',{name:'账号名称'}).waitFor();
+  assert.equal(await page.getByRole('textbox',{name:'账号名称'}).inputValue(),'新账号 1');
+  assert.equal(await page.locator('[data-account-alias]').count(),0);
+  await page.getByText(/E_ACCOUNT_STORAGE_UNAVAILABLE/).waitFor();
+  await reset();
  });
  await test('blocked/loading/empty/read-only scenes come from SDK responses',async()=>{
   await scene('first');await button('允许管理所有网站 Cookie').waitFor();

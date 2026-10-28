@@ -1,17 +1,14 @@
 // Shared internationalization for trusted OpenDesk pages (not untrusted installed tools).
 // A locale affects UI strings only. Native protocol fields, paths, signatures and file bytes are never transformed.
 import {UI_LOCALE_STORE,UI_LOCALE_SUPPORTED,normalizeUiLocale,resolveGlobalUiLocale,createUiLocaleController} from '../ui/app-localization.js';
-import en from './locales/en.js';
-import zhCN from './locales/zh-CN.js';
-import zhTW from './locales/zh-TW.js';
-import ja from './locales/ja.js';
+import {CATALOGS,translateUiText} from './strings.js';
 
 export const LOCALE_STORAGE_KEY=UI_LOCALE_STORE;
 export const SUPPORTED_LOCALES=UI_LOCALE_SUPPORTED;
 export const LOCALE_NAMES=Object.freeze({en:'English','zh-CN':'简体中文','zh-TW':'繁體中文',ja:'日本語'});
-export const CATALOGS=Object.freeze({en,'zh-CN':zhCN,'zh-TW':zhTW,ja});
-const canonical=Object.keys(en);
-const bySource=new Map(Object.entries(zhCN).map(([key,value])=>[value,key]));
+export {CATALOGS};
+const canonical=Object.keys(CATALOGS.en);
+const bySource=new Map(Object.entries(CATALOGS['zh-CN']).map(([key,value])=>[value,key]));
 
 export const normalizeLocale=normalizeUiLocale;
 export const resolveLocale=resolveGlobalUiLocale;
@@ -21,13 +18,7 @@ export const getLocalePreference=controller.getPreference;
 export const getLocaleError=controller.getError;
 export function translate(key,params={},locale=getLocale()){
   // Fallback never reveals the raw internal key. CI verifies all locale keys.
-  const template=CATALOGS[locale]?.[key]??en[key];
-  if(typeof template!=='string')return 'Translation unavailable';
-  return template.replace(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g,(_,name)=>{
-    const value=params?.[name];
-    if(value===undefined||value===null)return '';
-    return typeof value==='number'?new Intl.NumberFormat(locale).format(value):String(value);
-  });
+  return translateUiText(key,params,locale);
 }
 export function localizeLiteral(value,locale=getLocale()){
   // Only explicit, known source messages: never translate arbitrary user file data.

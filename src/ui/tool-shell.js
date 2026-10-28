@@ -159,7 +159,7 @@ const nativeConnection=Object.freeze({
 });
 // Create the complete interface before controllers attach their real hosts.
 extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
-  nativeConnection,
+  nativeConnection,localeController,
   openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
   onNavigate:view=>reactNavigationRequest?.(view)??false,
   onStopAppDebug:()=>void stopPanelDevelopment()});
