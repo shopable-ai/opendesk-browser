@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {createToolLocalization} from '../../src/ui/sidebar-tools/localization.js';
 import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from '../../src/ui/sidebar-tools/package.js';
 import {LOCALE_PACK_FORMAT,parseLocalePack,evaluateLocalePack,createToolLocaleService,
@@ -328,4 +329,30 @@ test('explicit recovery permits fresh requests but never revives the old mutatio
   assert.equal(settled[1].reason?.code,'E_LOCALE_RECOVERY_REQUIRED');
   assert.equal(writes,1);assert.equal(env.values[toolLocaleStorageKey(tool.id)].locale,'fr');
   await service.setToolLocale(tool.id,'de');assert.equal(writes,2);service.dispose();
+});
+
+test('delete confirmation cannot remove a replaced pack or a reinstalled tool generation',async()=>{
+  for(const change of ['pack','epoch','package']){
+    const tool=await fixture(),env=host(tool),service=createToolLocaleService(env);
+    env.values[TOOL_REVOCATION_EPOCHS_STORE]={[tool.id]:'original-install'};
+    await service.ready;await service.install(pack(tool),tool);
+    const review=structuredClone({tool,pack:service.exportPack(tool.id,'fr'),epoch:'original-install'});
+    if(change==='pack')env.values[toolLocaleStorageKey(tool.id)].packs.fr.messages.hello.text='Nouveau';
+    if(change==='epoch')env.values[TOOL_REVOCATION_EPOCHS_STORE][tool.id]='reinstalled';
+    if(change==='package')env.values[SIDEBAR_TOOL_STORE][0].version='1.0.1';
+    const before=structuredClone(env.values);
+    await assert.rejects(service.remove(tool.id,'fr',review),{code:'E_TOOL_CHANGED'},change);
+    assert.deepEqual(env.values,before,change+' must remain read-only');
+    service.dispose();
+  }
+});
+
+test('delete accepts the same reviewed resource after storage reorders object keys',async()=>{
+  const tool=await fixture(),env=host(tool),service=createToolLocaleService(env);
+  await service.ready;await service.install(pack(tool),tool);
+  const review={tool,pack:service.exportPack(tool.id,'fr'),epoch:null};
+  const key=toolLocaleStorageKey(tool.id),current=env.values[key].packs.fr;
+  env.values[key].packs.fr=Object.fromEntries(Object.entries(current).reverse());
+  await service.remove(tool.id,'fr',review);
+  assert.equal(env.values[key].packs.fr,undefined);service.dispose();
 });

@@ -9,6 +9,7 @@ import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage} from './app-localization.js';
 import {PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
+import {LOCALE_PACK_MAX_BYTES} from './sidebar-tools/locale-packs.js';
 import {loadMarketChannel} from '../marketplace/external.js';
 import {readMarketInstallStatus} from '../marketplace/status.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
@@ -124,7 +125,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         const text=await file.text();
         let value;
         try{value=JSON.parse(text);}catch{return null;}
-        return value?.format==='opendesk.locale-pack.v1'?value:null;
+        if(value?.format!=='opendesk.locale-pack.v1')return null;
+        if(file.size>LOCALE_PACK_MAX_BYTES||new TextEncoder().encode(text).byteLength>LOCALE_PACK_MAX_BYTES)
+          throw new Error('语言包文件超过 256 KiB 大小上限。');
+        return value;
       }));
       if(disposed)return;
       if(packs.some(Boolean)){

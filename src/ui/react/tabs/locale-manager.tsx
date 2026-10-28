@@ -24,7 +24,7 @@ const failureText=(failure,t)=>{
 
 // Downloads contain data only. No tool source, generated code or AI is executed.
 export function downloadLocaleData(value,filename,doc=document){
-  const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));
+  const url=URL.createObjectURL(new Blob([JSON.stringify(value)],{type:'application/json'}));
   const anchor=doc.createElement('a');anchor.href=url;anchor.download=filename;
   doc.body.append(anchor);anchor.click();anchor.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -174,6 +174,7 @@ export default function LocaleManager({model}){
       origin:language===sourceLocale?'sourceResource':pack?'importedPack':'builtinPack'};
   }):[];
   React.useLayoutEffect(()=>{
+    if(headingRef.current?.closest('[hidden],[inert]'))return;
     if(view==='preview'&&preview)previewRef.current?.focus({preventScroll:true});
     else if(pendingDelete)deleteRef.current?.focus({preventScroll:true});
     else headingRef.current?.focus({preventScroll:true});
@@ -193,18 +194,6 @@ export default function LocaleManager({model}){
     if(view==='packs'){setView('settings');return;}
     model.onClose?.();
   };
-  React.useEffect(()=>{
-    const onKey=event=>{
-      if(event.key!=='Escape'||busy)return;
-      event.preventDefault();event.stopPropagation();
-      if(pendingDelete)setPendingDelete(false);
-      else if(view==='preview'){setPreview(null);setView('packs');}
-      else if(view==='packs')setView('settings');
-      else model.onClose?.();
-    };
-    document.addEventListener('keydown',onKey,true);
-    return ()=>document.removeEventListener('keydown',onKey,true);
-  },[view,pendingDelete,busy,model.onClose]);
   React.useEffect(()=>{
     const selector=model.returnFocusSelector||'#extension-center-search';
     return ()=>setTimeout(()=>{
@@ -240,7 +229,11 @@ export default function LocaleManager({model}){
         })}>{t('recheck')}</Button>
       </div>}
   </>;
-  return <div className="od-locale-manager od-page" aria-label={t('title')}>
+  return <div className="od-locale-manager od-page" aria-label={t('title')} onKeyDown={event=>{
+    if(event.key!=='Escape'||busy||event.defaultPrevented||event.nativeEvent.isComposing||
+      event.currentTarget.closest('[hidden],[inert]'))return;
+    event.preventDefault();event.stopPropagation();back();
+  }}>
     <header className="od-page-head od-locale-heading">
       <IconButton label={view==='settings'?t('backToExtensions'):view==='packs'?t('backToDaily'):t('backToPacks')}
         disabled={busy} onClick={back}>
@@ -325,7 +318,8 @@ export default function LocaleManager({model}){
               <IconButton label={t('backup')+' '+languageName(row.language)} disabled={busy||!ready}
                 onClick={()=>exportPack(row.language)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 18v3h16v-3"/></svg></IconButton>
               <IconButton label={t('delete')+' '+languageName(row.language)} disabled={busy||!ready}
-                onClick={()=>setPendingDelete({toolId,locale:row.language,title:currentToolTitle})}>
+                onClick={()=>setPendingDelete({toolId,locale:row.language,title:currentToolTitle,
+                  review:structuredClone({tool,pack:row.pack,epoch:service.getState().epochs?.[toolId]??null})})}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7M10 11v6m4-6v6"/></svg>
               </IconButton>
             </div>
@@ -335,7 +329,7 @@ export default function LocaleManager({model}){
           <strong>{t('deleteQuestion',{title:pendingDelete.title,locale:pendingDelete.locale})}</strong>
           <div className="od-locale-actions">
             <Button ref={deleteRef} variant="danger" disabled={busy||!ready} onClick={()=>void run(async()=>{
-              await service.remove(pendingDelete.toolId,pendingDelete.locale);
+              await service.remove(pendingDelete.toolId,pendingDelete.locale,pendingDelete.review);
               const verified=await reload(pendingDelete.toolId);
               if(verified.status!=='ready'||service.exportPack(pendingDelete.toolId,pendingDelete.locale))
                 throw localError('readbackFailed');

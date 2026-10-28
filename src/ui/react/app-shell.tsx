@@ -32,6 +32,7 @@ export function SidebarAppShell({
   // Debug and Extensions share a single ToolHost. Conceal (do not unmount)
   // its live preview while showing the installed-app list.
   const isPanelPreview=appDebugEnabled&&toolSnapshot.fields['sidebar-tool-readonly-banner']?.hidden===false;
+  const localeOpen=Boolean(extensionProps.toolbarModel?.localeManager);
   const siteAccess=developerSnapshot.fields['site-access-status'];
   const siteGrant=developerSnapshot.fields['site-access-grant'];
   // Page/React/Vue previews retain Stop authority outside Controller RunHost.
@@ -67,7 +68,7 @@ export function SidebarAppShell({
             <button type="button" className="od-button od-button--secondary"
               onClick={onStopAppDebug}>停止调试</button>
           </div>}
-          <div id="sidebar-tool-list-view" hidden={activeTab==='app-debug'||(toolSnapshot.fields['sidebar-tool-display']?.hidden===false&&!isPanelPreview)}>
+          <div id="sidebar-tool-list-view" hidden={activeTab==='app-debug'||(toolSnapshot.fields['sidebar-tool-display']?.hidden===false&&!isPanelPreview&&!localeOpen)}>
             {activeTab==='tools'&&isPanelPreview&&<p className="hint" role="status">
               应用调试正在运行；打开已安装应用前，请先在「应用调试」停止。
             </p>}
@@ -75,7 +76,7 @@ export function SidebarAppShell({
               <ExtensionCenterPage {...extensionProps}/>
             </section>
           </div>
-          {toolView&&<ToolHost view={toolView} concealed={activeTab==='tools'&&isPanelPreview}
+          {toolView&&<ToolHost view={toolView} concealed={activeTab==='tools'&&(isPanelPreview||localeOpen)}
             debugPreview={activeTab==='app-debug'&&isPanelPreview}/>}
         </section>
       </div>

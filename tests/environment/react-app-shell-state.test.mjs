@@ -93,3 +93,33 @@ test('market state updates leave the app workspace intact while the original rev
     for(const [key,descriptor] of originals){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
   }
 });
+
+test('language settings conceal the existing ToolHost and restore the same runtime and settings',async()=>{
+  const {SidebarAppShell,createSidebarToolsView}=await loadSidebarReact();
+  const toolView=createSidebarToolsView(),developerView=createDeveloperView(),myView=createMyWorkbenchView();
+  const {document,window}=parseHTML('<html><body><div id="mount"></div></body></html>');
+  const originals=new Map(['window','document','IS_REACT_ACT_ENVIRONMENT'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  Object.assign(globalThis,{window,document,IS_REACT_ACT_ENVIRONMENT:true});
+  const {createRoot}=await import('react-dom/client'),root=createRoot(document.getElementById('mount'));
+  toolView.patch('sidebar-tool-display',{hidden:false});
+  toolView.patch('sidebar-tool-settings-view',{hidden:false});
+  const render=localeManager=>React.act(async()=>root.render(React.createElement(SidebarAppShell,{
+    activeTab:'tools',developerView,myView,toolView,extensionProps:{toolbarModel:{localeManager}}
+  })));
+  try{
+    await render(null);
+    const host=document.getElementById('sidebar-tool-display'),frame=document.getElementById('sidebar-tool-frame');
+    const marker=document.createElement('iframe');frame.append(marker);
+    await render({session:1,tools:[],onClose(){}});
+    assert.equal(document.getElementById('sidebar-tool-list-view').hidden,false,'language page ancestor must be visible');
+    assert.equal(host.hidden,true);
+    assert.equal(document.getElementById('sidebar-tool-frame'),frame);assert.equal(frame.firstChild,marker);
+    await render(null);
+    assert.equal(host.hidden,false);assert.equal(frame.firstChild,marker);
+    assert.equal(document.getElementById('sidebar-tool-settings-view').hidden,false);
+    assert.equal(toolView.getSnapshot().fields['sidebar-tool-display'].hidden,false,'presentation must not rewrite runtime state');
+  }finally{
+    await React.act(async()=>root.unmount());toolView.dispose();
+    for(const [key,descriptor] of originals){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+  }
+});

@@ -87,7 +87,9 @@ export function createExtensionCenterDOM(t,{component=ExtensionCenterPage,props=
     renderFeedback:'feedbackModel',renderStatus:'statusModel',renderView:'view',connectBack:'onBack',setMenuKey:'menuKey'}))
     adapter[method]=value=>{state[key]=value;paint();};
   adapter.renderRowMenu=(items,options)=>{state.rowMenuModel=items.length?{...options,items}:null;paint();};
-  t.after(()=>{activate();disposed=true;flushSync(()=>root.unmount());
+  t.after(async()=>{activate();disposed=true;flushSync(()=>root.unmount());
+    // Drain deferred focus restoration while this fixture still owns document.
+    await new Promise(resolve=>setTimeout(resolve,0));
     globalThis.window=original.window||initial.window;globalThis.document=original.document;});
   return {doc,window,adapter,state,paint};
 }

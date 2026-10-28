@@ -2,7 +2,8 @@
 import {canonicalUiLocale,resolveUiLocale} from '../app-localization.js';
 import {validateToolLocalization,verifyToolLocalization} from './localization.js';
 import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,validateSidebarToolPackage,serializeSidebarToolPackage} from './package.js';
-import {writeVerifiedLocalValue} from './storage-state.js';
+import {writeVerifiedLocalValue,sameStorageValue} from './storage-state.js';
+import {TOOL_REVOCATION_EPOCHS_STORE,requireToolRevocationEpochs} from './lifecycle.js';
 
 export const LOCALE_PACK_FORMAT='opendesk.locale-pack.v1';
 export const LOCALE_PACK_STORE='opendesk.sidebar-tools.locales.v1:'; // Per-tool key prefix, not a shared map.
@@ -122,7 +123,7 @@ export function resolveToolLocaleState(tool,storedState,globalLocale){
 // Lock order matches Installer exactly: tool -> catalog. Per-tool independent keys
 // allow confirmed uninstall cleanup under those same locks, with no lock inversion.
 export function createToolLocaleService({api=globalThis.chrome,lockManager=globalThis.navigator?.locks}={}){
-  let closed=false,state={status:'loading',tools:{},error:null};
+  let closed=false,state={status:'loading',tools:{},epochs:{},error:null};
   let recoveryGeneration=0,recoveryError=null;
   const listeners=new Set();
   const snapshot=()=>structuredClone(state);
@@ -149,18 +150,19 @@ export function createToolLocaleService({api=globalThis.chrome,lockManager=globa
       const key=toolLocaleStorageKey(tool.id);
       rows[tool.id]=readStore((await api.storage.local.get(key))[key],tool.id);
     }
-    return rows;
+    const epochs=requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
+    return {tools:rows,epochs};
   }
   async function refresh(recover=false){
     active();
     const generation=recoveryGeneration;
     try{
       await lock(null,async()=>{
-        const rows=await loadLocked();active();
+        const loaded=await loadLocked();active();
         // Storage events refresh the projection, never acknowledge an uncertain
         // operation. An explicit reload cannot recover a newer failure either.
         if(recover&&generation===recoveryGeneration)recoveryError=null;
-        state={status:recoveryError?'unknown':'ready',tools:rows,error:recoveryError};
+        state={...loaded,status:recoveryError?'unknown':'ready',error:recoveryError};
       });
       notify();return snapshot();
     }catch(cause){
@@ -170,7 +172,7 @@ export function createToolLocaleService({api=globalThis.chrome,lockManager=globa
     }
   }
   const reload=()=>refresh(true);
-  async function mutate(id,expected,update){
+  async function mutate(id,expected,update,expectedEpoch=undefined){
     const generation=recoveryGeneration;
     await ready.catch(()=>{});active();
     const requireRecovered=()=>{
@@ -185,6 +187,11 @@ export function createToolLocaleService({api=globalThis.chrome,lockManager=globa
         const tool=(await installed()).find(row=>row.id===id);
         if(!tool||expected&&serializeSidebarToolPackage(tool)!==serializeSidebarToolPackage(expected))
           fail('Tool updated or uninstalled; reopen management','E_TOOL_CHANGED');
+        if(expectedEpoch!==undefined){
+          const epochs=requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
+          if((epochs[id]??null)!==expectedEpoch)
+            fail('Tool installation changed; reopen management','E_TOOL_CHANGED');
+        }
         if(tool.localization)await verifyToolLocalization(tool.localization);
         const key=toolLocaleStorageKey(id),raw=(await api.storage.local.get(key))[key];
         const next=await update(readStore(raw,id),tool);
@@ -199,7 +206,7 @@ export function createToolLocaleService({api=globalThis.chrome,lockManager=globa
           }
           throw cause;
         }
-        state={status:'ready',tools:{...state.tools,[id]:next},error:null};
+        state={...state,status:'ready',tools:{...state.tools,[id]:next},error:null};
       });
       notify();return snapshot();
     }catch(cause){
@@ -216,7 +223,7 @@ export function createToolLocaleService({api=globalThis.chrome,lockManager=globa
     return availableLocales(readStore(state.tools[tool.id],tool.id),metadata(tool));
   }
   const onChange=(changes,area)=>{
-    if(area==='local'&&(Object.hasOwn(changes,SIDEBAR_TOOL_STORE)||Object.keys(changes).some(key=>key.startsWith(TOOL_LOCALE_STORE_PREFIX))))
+    if(area==='local'&&(Object.hasOwn(changes,SIDEBAR_TOOL_STORE)||Object.hasOwn(changes,TOOL_REVOCATION_EPOCHS_STORE)||Object.keys(changes).some(key=>key.startsWith(TOOL_LOCALE_STORE_PREFIX))))
       void refresh().catch(()=>{});
   };
   api?.storage?.onChanged?.addListener(onChange);
@@ -240,7 +247,15 @@ export function createToolLocaleService({api=globalThis.chrome,lockManager=globa
         return {...row,packs:{...row.packs,[pack.targetLocale]:checked.pack}};
       });
     },
-    remove(id,language){locale(language);return mutate(id,null,row=>{delete row.packs[language];return row;});},
+    remove(id,language,review=null){
+      locale(language);
+      const expected=structuredClone(review??{pack:state.tools[id]?.packs[language]??null,epoch:state.epochs[id]??null});
+      return mutate(id,expected.tool??null,row=>{
+        if(!sameStorageValue(row.packs[language]??null,expected.pack))
+          fail('Locale pack changed; reopen management','E_TOOL_CHANGED');
+        delete row.packs[language];return row;
+      },expected.epoch);
+    },
     exportPack(id,language){locale(language);return structuredClone(state.tools[toolId(id)]?.packs[language]??null);},
     setToolLocale(id,language){if(language!==null)locale(language);return mutate(id,null,row=>({...row,locale:language}));},
     exportTranslationTask(tool,language){

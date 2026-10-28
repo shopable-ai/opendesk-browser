@@ -180,6 +180,7 @@ test('back navigation cancels delete confirmation without deleting custom resour
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],toolId:f.tool.id,service,onClose(){}}}}),{doc}=ui;
   openPacks(doc);
+  await settle(()=>Boolean(resourceAction(doc,'ja',1)));
   resourceAction(doc,'ja',1).dispatch('click');
   assert.ok(doc.querySelector('[aria-label="删除语言包确认"]'));
   backLocale(doc);
@@ -194,11 +195,11 @@ test('Escape is layered: import preview -> packs -> settings -> close',async t=>
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],toolId:f.tool.id,service:f.service,importPack:f.pack,onClose(){closes++;}}}}),{doc}=ui;
   await settle(()=>buttonNamed(doc,'确认导入'));
-  doc.dispatch('keydown',{key:'Escape'});
+  doc.querySelector('.od-locale-manager').dispatch('keydown',{key:'Escape'});
   assert.ok(doc.getElementById('od-locale-pack-tool'));
-  doc.dispatch('keydown',{key:'Escape'});
+  doc.querySelector('.od-locale-manager').dispatch('keydown',{key:'Escape'});
   assert.ok(doc.getElementById('od-locale-global'));
-  doc.dispatch('keydown',{key:'Escape'});
+  doc.querySelector('.od-locale-manager').dispatch('keydown',{key:'Escape'});
   assert.equal(closes,1);
 });
 
@@ -360,7 +361,8 @@ test('language preview, cancellation, confirmed import/overwrite/delete and shar
   backLocale(doc);
   const select=doc.getElementById('od-locale-global');
   Object.defineProperty(select,'value',{configurable:true,value:'ja',writable:true});select.dispatch('change');
-  await settle(()=>localeController.getPreference()==='ja');
+  await settle(()=>localeController.getPreference()==='ja'&&
+    doc.body.textContent.includes(msg('ja','globalSaved',{language:'日本語'})));
   assert.equal(f.saved['opendesk.ui.locale.v1'],'ja');
   assert.ok(doc.body.textContent.includes(msg('ja','globalSaved',{language:'日本語'})));
   openPacks(doc);
@@ -428,6 +430,12 @@ test('file selection/drop routes locale data away from code installer, including
     extensionList:adapter,toolLocaleService:f.service,sidebarTools:{openImportFiles(files){calls.push(files);return true;}},taskWorkbench:{}});
   t.after(()=>center.dispose());await center.refresh();
   const file=value=>({size:100,text:async()=>JSON.stringify(value)});
+  const oversized=JSON.stringify(f.pack)+' '.repeat(262144);
+  for(const size of [Buffer.byteLength(oversized),100]){
+    await toolbar.onImportFiles([{size,text:async()=>oversized}]);
+    assert.equal(toolbar.localeManager,null,'oversized raw language data must not reach preview');
+  }
+  assert.match(ui.doc.getElementById('extension-center-status').textContent,/256 KiB/);
   await toolbar.onImportFiles([file(f.pack)]);
   assert.equal(calls.length,0);assert.equal(toolbar.localeManager.importPack.targetLocale,'ja');
   await toolbar.onImportFiles([file(f.pack),file(app)]);assert.equal(calls.length,0);
@@ -765,11 +773,11 @@ for(const locale of ['en','ja']){
     const statuses=[...doc.querySelectorAll('[role=status]')].map(node=>node.textContent);
     assert.ok(statuses.includes(msg(locale,'busy')));
     assert.ok(!statuses.some(text=>text.includes('正在卸载')),'language page has no uninstall-specific busy label');
-    doc.dispatch('keydown',{key:'Escape'});assert.equal(closes,0);
+    doc.querySelector('.od-locale-manager').dispatch('keydown',{key:'Escape'});assert.equal(closes,0);
     assert.equal(doc.querySelector('.od-locale-heading button').disabled,true);
     finish();await settle(()=>!doc.getElementById('od-locale-global').disabled);
     assert.ok(doc.body.textContent.includes(msg(locale,'toolSavedOnly',{language:locale==='en'?'English':'简体中文'})));
-    doc.dispatch('keydown',{key:'Escape'});assert.equal(closes,1);
+    doc.querySelector('.od-locale-manager').dispatch('keydown',{key:'Escape'});assert.equal(closes,1);
   });
 }
 
@@ -799,3 +807,52 @@ for(const panelLocale of ['en','ja'])for(const customName of [false,true]){
     assert.ok(doc.body.textContent.includes(msg('zh-CN','currentTool',{title:customName?f.tool.title:'标题'})));
   });
 }
+
+test('hidden language page ignores Escape and keeps its reviewed subpage',async t=>{
+  const f=await setup(t);let closes=0;
+  const {doc}=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[f.tool],toolId:f.tool.id,service:f.service,onClose(){closes++;}}}});
+  openPacks(doc);
+  const panel=doc.querySelector('.od-locale-manager');
+  panel.parentElement.hidden=true;
+  const event=panel.dispatch('keydown',{key:'Escape'});
+  assert.equal(event.defaultPrevented,false);
+  assert.ok(doc.getElementById('od-locale-pack-tool'));
+  assert.equal(closes,0);
+  panel.parentElement.hidden=false;
+  panel.parentElement.inert=true;
+  assert.equal(panel.dispatch('keydown',{key:'Escape'}).defaultPrevented,false);
+  panel.parentElement.inert=false;
+  assert.equal(panel.dispatch('keydown',{key:'Escape',isComposing:true}).defaultPrevented,false);
+  assert.ok(doc.getElementById('od-locale-pack-tool'));
+  panel.dispatch('keydown',{key:'Escape'});
+  assert.ok(doc.getElementById('od-locale-global'));
+});
+
+test('large valid backup stays within the file admission budget and can be reimported',async t=>{
+  const f=await setup(t);
+  const source=Object.fromEntries(Array.from({length:112},(_,i)=>['entry'+i,'原'.repeat(380)]));
+  f.tool.localization=await createToolLocalization({sourceLocale:'zh-CN',messages:{'zh-CN':source}});
+  f.saved[SIDEBAR_TOOL_STORE]=[f.tool];await f.service.reload();
+  const pack={...f.pack,sourceCatalogHash:f.tool.localization.sourceCatalogHash,
+    messages:Object.fromEntries(Object.entries(source).map(([key,value])=>[key,{source:value,text:'訳'.repeat(380)}]))};
+  await f.service.install(pack,f.tool);
+  const {doc,window}=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[f.tool],service:f.service,toolId:f.tool.id,onClose(){}}}});
+  const originalCreate=URL.createObjectURL,originalRevoke=URL.revokeObjectURL,originalClick=window.HTMLElement.prototype.click;
+  let backup;
+  URL.createObjectURL=blob=>{backup=blob;return 'blob:large-backup';};URL.revokeObjectURL=()=>{};
+  window.HTMLElement.prototype.click=function(){if(this.tagName!=='A')originalClick.call(this);};
+  t.after(()=>{URL.createObjectURL=originalCreate;URL.revokeObjectURL=originalRevoke;window.HTMLElement.prototype.click=originalClick;});
+  openPacks(doc);await settle(()=>resourceAction(doc,'ja',0));resourceAction(doc,'ja',0).dispatch('click');
+  await settle(()=>backup);
+  assert.ok(backup.size<=262144,'a valid backup must remain importable');
+  const picker=doc.querySelector('input[type=file]');
+  await settle(()=>!picker.disabled);
+  Object.defineProperty(picker,'files',{value:[{size:backup.size,text:()=>backup.text()}]});picker.dispatch('change');
+  await settle(()=>buttonNamed(doc,'确认覆盖')&&!buttonNamed(doc,'确认覆盖').disabled);
+  assert.deepEqual(f.service.preview(JSON.parse(await backup.text()),f.tool).pack,pack);
+  buttonNamed(doc,'确认覆盖').dispatch('click');
+  await settle(()=>doc.getElementById('od-locale-pack-tool')&&!doc.querySelector('input[type=file]').disabled);
+  assert.deepEqual(f.saved[toolLocaleStorageKey(f.tool.id)].packs.ja,pack);
+});
