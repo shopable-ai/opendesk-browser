@@ -1,5 +1,31 @@
 # AI VIP Share · 独立 Sidebar Tool
 
+## R2.11-LOCAL · 当前候选已真实升级和打开，业务验收仍未完成（2026-10-29）
+
+**真实 Mac Chrome 安装 / 打开为 PASS；1.4.1 → 1.4.2 同 ID 升级为 PASS；正式发布为 BLOCKED。** 本轮使用新窗口，通过现有「扩展 → 导入扩展」安装仓库正式 1.4.1，再通过「管理 → 审阅新版 → 确认更新」升级到当前 1.4.2，未卸载重装、未操作第二次通用启用。升级审阅显示权限未变化，新旧完整摘要分别与候选、正式 JSON 一致。当前候选不是下方 R2.8 或 R2.3 的旧 1.4.2 字节。
+
+- 当前候选：`artifacts/sidebar-tools/ai-vip-share/candidate.opendesk-tool.json`，91,195 字节，SHA-256 / packageHash **`bb5c0ead515ba9c8dcaaa091dc86a6cae48550270344e024d2193b64166400b0`**；React buildId `98ab726877cda3bbffb4290bb3d665e6d6a6ebf3a2bdc92ab37ec1f97e35e292`。原打包器验证 build-ready，并确认当前源码可重现相同规范包字节。
+- 真实环境：Mac Chrome for Testing **149.0.7827.55**，Profile `/Users/shopme/Library/Application Support/Google/Chrome for Testing/Default`；扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。从 Chrome 扩展详情页核对加载目录为本仓库 `dist/development`；调试页显示开发服务已连接，观察到 revision `1a5ac4781d617bd4840f371e53602423fb865f46966dfa1a78785142380994c9`。这是持续开发环境，不是冻结 production 验收包。
+- 已安装的正式 React 页面真实显示会员、兑换、商品、AI 网站访问和客户端推广区；未观察到白屏。服务未配置时如实显示会员信息不可用，不推断未激活或到期；兑换输入、清空和预检禁用。点击代理状态刷新后仍不能启用；两个推广按钮分别提示网址未配置 / 未审核，没有导航或虚假成功。
+- Side Panel 真实关闭重开后，新 Host instance 下仍可打开同一 1.4.2 和未配置状态。Cookie 网站设置保持未授权；没有授予站点权限、写入 Cookie 或启用代理。该观察不等于 Host 拒绝非法写入、Cookie unknown 恢复或代理 STOP 已测。
+
+**剩余必要前提：** 四项 `BUSINESS_ENDPOINTS`、生产激活链接规则及 `COOKIE_TARGETS` 为空，批准的生产代理 endpoint / profile 缺失；开发 profile 仍仅匹配已审阅 1.4.0 的 `043e97c5…`，没有借用旧批准或修改来源 pin。因此当前候选的真实会员 / 额度 / 历史、兑换输入与人工确认、专属链接、未知事务禁止重放、Cookie 授权 / 恢复、代理 START / STOP / 冲突 / 未知释放仍为 **BLOCKED / NOT_TESTED**。本轮旧版没有可操作的非空业务配置和事务，升级后的非空数据及 Cookie journal 保留为 **NOT_TESTED**；整浏览器重启也未测。
+
+| 八维 | 本轮证据与缺口 | 正式评分 |
+| --- | --- | --- |
+| 真实安装与启动 | 原安装器安装、升级、React 打开和面板重开 PASS | NOT_SCORED |
+| 会员状态正确性 | 未配置状态 PASS；真实账号 / 权益 / 额度 NOT_TESTED | NOT_SCORED |
+| 兑换交互与事务安全 | 未配置入口禁用 PASS；真实事务及人工确认 NOT_TESTED | NOT_SCORED |
+| Cookie 授权与恢复 | 未授权 UI 状态可见；真实拒绝 / 交付 / unknown 恢复 NOT_TESTED | NOT_SCORED |
+| 代理控制与 STOP | 状态刷新与未配置限制 PASS；START / STOP / 冲突 / 恢复 NOT_TESTED | NOT_SCORED |
+| 升级与持久化 | 同 ID 升级和面板重开 PASS；非空旧数据及 journal 保留 NOT_TESTED | NOT_SCORED |
+| React 与 SDK 运行一致性 | 当前包真实渲染及代理状态刷新 PASS；有副作用的 SDK 分支 NOT_TESTED | NOT_SCORED |
+| 构建、权限与发布质量 | 候选同源、安装摘要与权限差异核对 PASS；当前冻结 production 与业务发布门禁未完成 | NOT_SCORED |
+
+不以局部 PASS 代替完整维度，不生成缺乏完整实测的分数或算术平均分。历史 157 项 Node 与 12 状态 Chromium 结果按原验证级别保留，本轮没有重复执行矩阵。Cookie Editor 当前 `account-service.js` 已通过现有 `describeBundle` 的只读来源准入检查；旧哈希阻断本次未再复现，**不代表全仓构建 PASS**，也没有因此修改其源码 / pin 或重建共享输出。
+
+本轮未复现需修复的 AI VIP Share 业务源码问题，仅补充本节验收事实。原生界面观察与截图位于本次 Codex 对话工具记录；本机 `artifacts/ai-vip-share-r211-local-20261029/observations.json` 是带候选身份的代理观察摘要，不冒充原始 AX dump 或独立原生复测。唯一正式 JSON 仍为 **1.4.1**，SHA-256 `70cd5025eb63940cb678ffe47f4d2c580aeff6e2807e8dddfebef8544b3c2827`；未晋升、未发布。下一步由业务和可信配置 owner 提供当前候选获审的服务 / 目标 / 代理范围，再补上述核心分支及非空升级恢复证据。
+
 ## R2.8 扩展内安装续接状态（2026-10-28）
 
 **下一步仍是 OpenDesk Browser「扩展」内审阅安装 / 同 ID 升级并打开工具，当前为 `BLOCKED / NOT_TESTED`。** 本轮浏览器能力清单没有 Side Panel 安装控制入口；交接中记录的 `chrome://extensions/` 安全策略拒绝未解除，未换用其他浏览器面、CDP、命令或私有接口绕过。没有执行新的扩展安装或新窗口核心操作，也没有确认实际启用扩展的 ID、加载目录或持续开发连接。约定日常目录仍为 `dist/development`；其他 owner 的浏览器、Profile、watcher 和输出均保留。下方 R2.3 的旧候选原生证据不适用于本候选。
