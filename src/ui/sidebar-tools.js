@@ -17,7 +17,7 @@ import {permissionPattern} from '../environment.js';
 import {scheduleSpecFromExpression} from '../platform/tasks/schedule-time.js';
 import {PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT,PROGRAM_DRAFT_INPUT_LIMIT} from './program-source.js';
 import {PAGE_INSTALL_FORMAT,validatePageInstallPackage} from '../scripting/user-scripts/page-install-package.js';
-import {admitsPinnedQueueTool} from '../../examples/sidebar-tools/ai-send-queue/trusted/admission.js';
+import {admitsPinnedQueueTool} from '../platform/host/send-queue-admission.js';
 import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-authorization.js';
 import {loadOfficialPagePackage} from '../scripting/user-scripts/official-page-catalog.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';

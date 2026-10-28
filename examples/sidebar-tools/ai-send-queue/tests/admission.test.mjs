@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {SEND_QUEUE_PIN,admitsPinnedQueueTool,admitsPinnedQueuePage}
-  from '../trusted/admission.js';
+  from '../../../../src/platform/host/send-queue-admission.js';
 const app={id:'ai-send-queue',version:'0.1.13',uiRuntime:'opendesk.react-ui.v1',capabilities:['currentPage.read']};
 const page={programId:'opendesk.ai-send-queue',revision:12,sourceHash:SEND_QUEUE_PIN.pageSourceHash,
   pageRules:{matches:['https://chatgpt.com/*'],excludeMatches:[],world:'USER_SCRIPT',

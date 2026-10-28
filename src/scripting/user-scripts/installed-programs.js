@@ -15,7 +15,7 @@ import {buildScrollSiteUpgradePackage,scrollSiteRevision} from './scroll-site-up
 import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION,SCROLL_CONFIG_EMPTY,normalizeScrollConfig,scrollSiteInstallMatches,scrollProgramUrlMatches,scrollPathMatches} from './scroll-config-contract.js';
 import {pageProgramUrlMatches} from './page-program-rules.js';
 import {PAGE_FRAME_ACTION} from './page-frame-runtime.js';
-import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../../../examples/sidebar-tools/ai-send-queue/trusted/admission.js';
+import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../../platform/host/send-queue-admission.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const PAGE_STORE="frameworkKV",
   PAGE_INSTALL_TAG="page-installed-v1",

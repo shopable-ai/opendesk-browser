@@ -1,6 +1,6 @@
 // Read-only unified view of existing installed registries and bundled official releases.
 import {sidebarToolPackageHash} from './sidebar-tools/package.js';
-import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../../examples/sidebar-tools/ai-send-queue/trusted/admission.js';
+import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../platform/host/send-queue-admission.js';
 import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_SITE_REVISION_BASE}
   from '../scripting/user-scripts/scroll-config-contract.js';
 

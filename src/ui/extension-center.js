@@ -13,7 +13,7 @@ import {loadMarketChannel} from '../marketplace/external.js';
 import {readMarketInstallStatus} from '../marketplace/status.js';
 import {discoverCurrentPageMarketInstall} from '../marketplace/discovery.js';
 import {SCROLL_CONFIG_PROGRAM_ID,scrollProgramUrlMatches} from '../scripting/user-scripts/scroll-config-contract.js';
-import {SEND_QUEUE_PIN} from '../../examples/sidebar-tools/ai-send-queue/trusted/admission.js';
+import {SEND_QUEUE_PIN} from '../platform/host/send-queue-admission.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,currentPageTarget,localeController=null,toolLocaleService=null,extensionList=null}){

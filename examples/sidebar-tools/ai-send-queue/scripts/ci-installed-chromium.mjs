@@ -10,7 +10,7 @@ import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {SIDEBAR_TOOL_STORE,serializeSidebarToolPackage,validateSidebarToolPackage}
   from '../../../../src/ui/sidebar-tools/package.js';
-import {SEND_QUEUE_PIN} from '../trusted/admission.js';
+import {SEND_QUEUE_PIN} from '../../../../src/platform/host/send-queue-admission.js';
 const delay=ms=>new Promise(ok=>setTimeout(ok,ms));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const out=resolve(process.argv[2]||'artifacts/app-ci/ai-send-queue/installed');
