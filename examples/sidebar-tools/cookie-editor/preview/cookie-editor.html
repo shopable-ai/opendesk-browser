@@ -29,6 +29,13 @@
 .advanced{margin:14px 0 0;border:1px solid var(--line);border-radius:9px;overflow:hidden}.advanced>summary{display:flex;align-items:center;justify-content:space-between;list-style:none;cursor:pointer;font-size:11px;font-weight:680;padding:10px;color:var(--fg)}.advanced>summary::-webkit-details-marker{display:none}.advanced>summary .hint{font-weight:400;color:var(--muted);font-size:10px}.advanced .content{border-top:1px solid var(--line);padding:11px;display:grid;gap:10px}.toggleline{display:flex;gap:8px;align-items:flex-start;font-size:11px}.toggleline input{margin-top:2px;accent-color:#356bd9}.inline-input{display:flex;gap:6px;min-width:0}.inline-input input{flex:1;min-width:0}.inline-input button{flex:none}.url-help{display:grid;gap:7px}.url-help code{word-break:break-all;background:var(--soft);font-size:10px;border-radius:6px;padding:7px;color:var(--fg);display:block}.url-help .field-note{margin:0}
 .footer{flex:none;min-height:27px;padding:6px 13px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;gap:9px}
 
+
+.snapshot-source-choices{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.snapshot-source-choices .textbtn{font-size:10.5px;min-height:35px;padding:7px 6px}
+.snapshot-import{display:grid;gap:9px;border:1px dashed var(--line);border-radius:9px;padding:10px}
+.snapshot-import textarea{min-height:76px;resize:vertical}
+.snapshot-import .textbtn{justify-self:start}
+@media(max-width:340px){.snapshot-source-choices .textbtn{font-size:10px}}
 /* Account → Cookie linkage, retained inside the existing R2.2 visual surface. */
 .snapshot-source-hint{display:flex;align-items:flex-start;gap:5px;font-size:10px;line-height:1.55;color:var(--muted);margin:8px 2px 0}
 .snapshot-source-hint svg{width:14px;height:14px;flex:none;margin-top:1px}
@@ -340,6 +347,7 @@ function cookieScopeText(c){
 }
 function snapshotIssue(a,host=site){
  if(!a||a.shared||!Array.isArray(a.snapshot)||!a.snapshot.length)return '尚未关联可恢复的 Cookie 快照';
+ if(a.scope==='offline')return '离线导入仅保留演示元数据；请在真实网站授权读取后更新关联';
  if(a.scope!=='full')return '仅保存部分 Cookie，不能安全切换；请更新为可访问范围全量快照';
  if(a.sourceSite!==host)return '账号快照所属网站不一致';
  const keys=new Set();
@@ -354,6 +362,56 @@ function snapshotIssue(a,host=site){
 }
 function markCookiesChanged(){
  if(data().phase!=='unknown'){data().active=null;data().phase='edited';}
+}
+function loadOfflineCookies(raw){
+ if(typeof raw!=='string'||raw.length>250000)throw Error('输入过大或文件内容不可读取（上限 250 KB）');
+ const text=raw.trim();if(!text)throw Error('请粘贴 Cookie 元数据或选择文件');
+ let records=[];
+ if(text.startsWith('[')||text.startsWith('{')){
+  let parsed;try{parsed=JSON.parse(text);}catch{throw Error('JSON 格式无效');}
+  records=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.cookies)?parsed.cookies:null);
+  if(!records)throw Error('JSON 须为 Cookie 数组或包含 cookies 数组');
+ }else if(text.includes('\t')||text.startsWith('# Netscape')){
+  records=text.split(/\r?\n/).filter(line=>line.trim()&&(!line.startsWith('#')||line.startsWith('#HttpOnly_'))).map(line=>{
+   const [rawDomain,sub,path,secure,expiry,name]=line.split('\t');
+   return {domain:rawDomain?.replace(/^#HttpOnly_/,''),path,secure:secure==='TRUE',httpOnly:line.startsWith('#HttpOnly_'),session:!Number(expiry),expirationDate:Number(expiry)||undefined,name};
+  });
+ }else{
+  records=text.replace(/^Cookie:\s*/i,'').split(';').map(pair=>{
+   const at=pair.indexOf('=');return at>0?{name:pair.slice(0,at).trim(),domain:site,path:'/'}:null;
+  });
+ }
+ if(records.length>200)throw Error('一次最多解析 200 条 Cookie');
+ const kept=[],keys=new Set();
+ let skipped=0;
+ for(const rec of records){
+  const name=rec&&typeof rec.name==='string'?rec.name.trim():'';
+  const domain=rec&&typeof rec.domain==='string'&&rec.domain.trim()?rec.domain.trim():site;
+  const path=rec&&typeof rec.path==='string'&&rec.path.trim()?rec.path.trim():'/';
+  const part=rec?.partitionKey?.topLevelSite;
+  if(!name||name.length>128||/[;\r\n=]/.test(name)||!path.startsWith('/')||name==='Path'||name==='HttpOnly'||name==='Secure'||(part&&(!/^https:\/\//i.test(part)||typeof part!=='string'))){skipped++;continue;}
+  const expirationDate=Number(rec?.expirationDate);
+  const persistent=rec?.session===false&&Number.isFinite(expirationDate)&&expirationDate>0;
+  const c={id:'offline-'+kept.length+'-'+Date.now(),name,domain,path,storeId:String(rec?.storeId||'0'),secure:Boolean(rec?.secure),httpOnly:Boolean(rec?.httpOnly),sameSite:['Lax','Strict','None'].includes(rec?.sameSite)?rec.sameSite:'Lax',session:!persistent,value:'preview-only:offline:'+kept.length};
+  if(persistent)c.expirationDate=expirationDate;
+  if(part){c.partition=true;c.partitionKey={topLevelSite:part};}
+  if(!cookieBelongsToSite(c,site)||(!c.session&&c.expirationDate<=Date.now()/1000)||keys.has(cookieIdentity(c))){skipped++;continue;}
+  keys.add(cookieIdentity(c));kept.push(c);
+ }
+ return {items:kept,skipped,parsed:records.length};
+}
+function attachOfflinePayload(raw){
+ if(!profileForm||profileForm.source!=='file')return;
+ try{
+  const result=loadOfflineCookies(raw);
+  profileForm.imported=result.items;
+  profileForm.selected=result.items.map(c=>c.id);
+  profileForm.importMessage='已预检 '+result.parsed+' 条，当前网站可关联 '+result.items.length+' 条'+(result.skipped?'；跳过 '+result.skipped+' 条不匹配/重复/过期项':'')+'。仅保留虚构元数据，不读取或保存真实值。';
+ }catch(e){
+  profileForm.imported=[];profileForm.selected=[];
+  profileForm.importMessage=e.message||'文件解析失败';
+ }
+ renderProfileForm();
 }
 function updateSelectionCounters(){
  if(!profileForm||!['new','update'].includes(profileForm.kind))return;
@@ -393,7 +451,7 @@ function renderAccounts(){
  const rows=d.accounts.map(a=>{
   const issue=snapshotIssue(a),valid=!issue;
   const primary=a.id===d.active?'<span class="current-mark">● 已应用</span>':`<button type="button" class="textbtn" data-action="switch" data-id="${htmlEscape(a.id)}" ${!valid?`disabled title="${htmlEscape(issue)}"`:''}>切换</button>`;
-  const meta=a.shared?'仅配置 · 待关联 Cookie':`${a.snapshot?.length||0} 条 Cookie · ${a.scope==='full'?'完整快照':'部分快照'} · ${a.updated}`;
+  const meta=a.shared?'仅配置 · 待关联 Cookie':`${a.snapshot?.length||0} 条 Cookie · ${a.scope==='full'?'完整快照':a.scope==='offline'?'离线待验证':'部分快照'} · ${a.updated}`;
   return `<div class="account-row ${a.id===d.active?'current':''}" data-id="${htmlEscape(a.id)}"><div class="avatar ${a.color}">${htmlEscape(a.name.slice(0,1))}</div><div class="account-title"><strong>${htmlEscape(a.name)}</strong><small>${htmlEscape(meta)}</small></div>${primary}<button class="iconbtn" type="button" data-action="menu" data-id="${htmlEscape(a.id)}" title="${htmlEscape(a.name)}更多操作" aria-label="${htmlEscape(a.name)}更多操作" aria-haspopup="menu" aria-expanded="${menuOpen===a.id}">${icon('more')}</button>${menuOpen===a.id?`<div class="account-pop" role="menu" aria-label="${htmlEscape(a.name)}操作"><button role="menuitem" data-action="view-profile" data-id="${htmlEscape(a.id)}">${icon('search')}查看关联 Cookie</button><button role="menuitem" data-action="update-profile" data-id="${htmlEscape(a.id)}">${icon('refresh')}更新关联 Cookie</button><button role="menuitem" data-action="rename" data-id="${htmlEscape(a.id)}">${icon('edit')}重命名</button><button role="menuitem" data-action="copy-switch" data-id="${htmlEscape(a.id)}" ${!valid?'disabled':''}>${icon('link')}生成切换链接</button><button role="menuitem" data-action="share" data-id="${htmlEscape(a.id)}">${icon('share')}分享账号配置</button><hr><button class="danger" role="menuitem" data-action="delete-profile" data-id="${htmlEscape(a.id)}">${icon('trash')}删除快照</button></div>`:''}</div>`;
  }).join('');
  $('viewAccounts').innerHTML=`<div class="accounts-content">${humanState()}${current}${source}<label class="auto-refresh-setting" for="refreshOnSwitch"><span><span class="setting-label">切换后自动刷新网页</span><span class="setting-help">仅目标标签页 · 未保存的网页内容可能丢失</span></span><input id="refreshOnSwitch" type="checkbox" role="switch" aria-label="切换后自动刷新网页" aria-checked="${d.refreshOnSwitch}" ${d.refreshOnSwitch?'checked':''}></label><div class="account-head"><strong>已保存账号 <small>${d.accounts.length}</small></strong><div class="right">${btn('auto-toggle','管理自动切换规则','settings')}${btn('save-profile','保存当前 Cookie 为账号','plus')}</div></div><div class="accounts-list">${rows||'<div class="empty">此网站尚未保存账号</div>'}</div>${renderMembershipCard()}<p class="note">账号仅绑定当前授权网站、Store 与 Partition 范围。此 HTML 使用虚构数据与内存状态，不加密或持久化；正式版使用既有可信加密仓库。分享链接永不包含 Cookie。</p></div>`;
@@ -403,18 +461,20 @@ function renderProfileForm(){
  if(kind==='view'){
   const list=a?.snapshot||[],issue=snapshotIssue(a);
   const items=list.map(c=>`<div class="snapshot-readonly"><strong>${htmlEscape(c.name)}</strong><small>${htmlEscape(cookieScopeText(c))}</small><small>${c.session?'Session':htmlEscape(formatExpiry(c))} · ${htmlEscape(c.sameSite||'Lax')} · ${c.secure?'Secure':'非 Secure'}</small></div>`).join('');
-  $('viewAccounts').innerHTML=`<div class="accounts-content"><div class="snapshot-title"><button class="iconbtn" type="button" data-action="cancel-profile" aria-label="返回账号">${icon('back')}</button><div><strong>${htmlEscape(a?.name||'账号')}</strong><small>关联 Cookie · 仅展示脱敏属性</small></div></div><div class="snapshot-context"><strong>${list.length} 条已保存的 Cookie</strong><small>${htmlEscape(a?.sourceSite||site)} · ${a?.scope==='full'?'可访问范围全量':'部分关联'} · ${htmlEscape(a?.updated||'')}</small></div>${issue?`<p class="snapshot-warning">${htmlEscape(issue)}</p>`:''}<div class="snapshot-readlist">${items||'<div class="empty">尚未关联 Cookie。可从当前网站重新选择。</div>'}</div><div class="editor-actions" style="margin-top:12px"><button class="textbtn" type="button" data-action="cancel-profile">返回</button><button class="textbtn primary" type="button" data-action="update-profile" data-id="${htmlEscape(a?.id||'')}">重新关联</button></div><p class="note">Cookie 值仅在演示内存中使用虚构占位；不展示、不复制，不会登录网站。</p></div>`;
+  $('viewAccounts').innerHTML=`<div class="accounts-content"><div class="snapshot-title"><button class="iconbtn" type="button" data-action="cancel-profile" aria-label="返回账号">${icon('back')}</button><div><strong>${htmlEscape(a?.name||'账号')}</strong><small>关联 Cookie · 仅展示脱敏属性</small></div></div><div class="snapshot-context"><strong>${list.length} 条已保存的 Cookie</strong><small>${htmlEscape(a?.sourceSite||site)} · ${a?.scope==='full'?'可访问范围全量':a?.scope==='offline'?'离线待验证':'部分关联'} · ${htmlEscape(a?.updated||'')}</small></div>${issue?`<p class="snapshot-warning">${htmlEscape(issue)}</p>`:''}<div class="snapshot-readlist">${items||'<div class="empty">尚未关联 Cookie。可从当前网站重新选择。</div>'}</div><div class="editor-actions" style="margin-top:12px"><button class="textbtn" type="button" data-action="cancel-profile">返回</button><button class="textbtn primary" type="button" data-action="update-profile" data-id="${htmlEscape(a?.id||'')}">重新关联</button></div><p class="note">Cookie 值仅在演示内存中使用虚构占位；不展示、不复制，不会登录网站。</p></div>`;
   return;
  }
  if(kind==='rename'){
   $('viewAccounts').innerHTML=`<div class="accounts-content"><strong style="font-size:13px">重命名账号</strong><form id="profileForm" class="editor" style="margin:12px 0 0"><label class="field">显示名称<input maxlength="28" id="profileName" autocomplete="off" value="${htmlEscape(a?.name||'')}"></label><p class="field-note">只修改名称，不改变关联的 Cookie 或网址别名。</p><p class="cookie-edit-error" id="profileError" role="alert" hidden></p><div class="editor-actions"><button class="textbtn" type="button" data-action="cancel-profile">取消</button><button class="textbtn primary" type="submit">保存</button></div></form></div>`;
   return;
  }
- const available=availableCookies(),selected=new Set(profileForm.selected||available.map(c=>c.id));
+ const fromFile=profileForm.source==='file';
+ const available=fromFile?(profileForm.imported||[]):availableCookies();
+ const selected=new Set(profileForm.selected||available.map(c=>c.id));
  const count=available.filter(c=>selected.has(c.id)).length;
- const excluded=data().cookies.length-available.length;
+ const excluded=fromFile?0:data().cookies.length-available.length;
  const items=available.map(c=>`<label class="snapshot-option"><input type="checkbox" data-snapshot-cookie="${htmlEscape(c.id)}" ${selected.has(c.id)?'checked':''}><span class="snapshot-info"><strong>${htmlEscape(c.name)}</strong><small>${htmlEscape(cookieScopeText(c))}</small></span>${c.httpOnly?'<span class="snapshot-badge">H</span>':''}${c.partitionKey?'<span class="snapshot-badge">P</span>':''}</label>`).join('');
- $('viewAccounts').innerHTML=`<div class="accounts-content"><div class="snapshot-title"><button class="iconbtn" type="button" data-action="cancel-profile" aria-label="返回账号">${icon('back')}</button><div><strong>${kind==='update'?'更新账号关联':'添加账号'}</strong><small>从当前网站 Cookie 保存独立快照</small></div></div><form id="profileForm" class="snapshot-form"><div class="snapshot-context"><span class="label">数据来源</span><strong>${htmlEscape(site)}</strong><small>当前已读取的本站 Cookie · 模拟 Store / Partition 身份</small></div>${kind==='new'?`<label class="field">账号名称<input maxlength="28" id="profileName" required autocomplete="off" placeholder="例如：工作账号" value="${htmlEscape(profileForm.name||'')}"></label>`:`<div class="snapshot-context"><span class="label">将更新</span><strong>${htmlEscape(a?.name||'')}</strong><small>替换此账号的旧快照，不影响其他已保存账号</small></div>`}<div class="snapshot-picker-head"><strong>关联 Cookie</strong><div class="snapshot-picker-actions"><button class="link-btn" type="button" data-action="snapshot-all">全选</button><button class="link-btn" type="button" data-action="snapshot-none">清空</button></div></div><p class="field-note">按 Cookie 名称、Domain、Path、Store、Partition 精确绑定；无法仅凭名称判断是否包含登录态。</p><div class="snapshot-options" role="group" aria-label="选择关联的 Cookie">${items||'<div class="empty">当前网站没有可关联的 Cookie</div>'}</div><div id="selectionCount" class="snapshot-counter" role="status">已选择 ${count} / ${available.length} 条</div><p class="snapshot-warning" id="partialSnapshotWarning" ${count===available.length||count===0?'hidden':''}>只保存部分 Cookie 可以备份，但不能安全执行账号切换。若需切换，请选择当前可访问范围的全部 Cookie。</p>${excluded?`<p class="field-note">另有 ${excluded} 条非本站或已过期条目，已排除。</p>`:''}<p class="field-note">HTML 原型仅在内存中保存虚构 Cookie 值；正式版需要可信 Host 读取、授权和加密存储，不会推断网站是否登录成功。</p><p class="cookie-edit-error" id="profileError" role="alert" hidden></p><div class="editor-actions"><button class="textbtn" type="button" data-action="cancel-profile">取消</button><button class="textbtn primary" id="saveSnapshot" type="submit" ${!count||data().phase==='unknown'?'disabled':''}>${kind==='update'?'更新关联':'保存并关联'} ${count} 条 Cookie</button></div></form></div>`;
+ $('viewAccounts').innerHTML=`<div class="accounts-content"><div class="snapshot-title"><button class="iconbtn" type="button" data-action="cancel-profile" aria-label="返回账号">${icon('back')}</button><div><strong>${kind==='update'?'更新账号关联':'添加账号'}</strong><small>从当前网站 Cookie 保存独立快照</small></div></div><form id="profileForm" class="snapshot-form"><div class="snapshot-source-choices" role="group" aria-label="账号 Cookie 来源"><button type="button" data-action="account-source" data-value="site" class="textbtn ${!fromFile?'primary':''}" aria-pressed="${!fromFile}">当前网站 Cookie</button><button type="button" data-action="account-source" data-value="file" class="textbtn ${fromFile?'primary':''}" aria-pressed="${fromFile}">导入离线文件</button></div>${fromFile?`<div class="snapshot-import"><label class="field">Cookie 文件（JSON / Header / Netscape）<input id="accountImportFile" type="file" accept=".json,.txt,.cookies,text/plain,application/json"></label><label class="field">或粘贴内容<textarea id="accountImportText" autocomplete="off" spellcheck="false" placeholder="仅用于虚构数据预演；请勿粘贴真实登录 Cookie"></textarea></label><button type="button" class="textbtn" data-action="account-parse">预检并选择 Cookie</button><p class="field-note" role="status">${htmlEscape(profileForm.importMessage||'解析仅在本页内存完成；含真实值的输入会被丢弃，不会保存到账号。')}</p></div>`:''}<div class="snapshot-context"><span class="label">数据来源</span><strong>${htmlEscape(site)}</strong><small>${fromFile?'离线文件元数据 · 不会写入浏览器，也不能直接切换':'当前已读取的本站 Cookie · 模拟 Store / Partition 身份'}</small></div>${kind==='new'?`<label class="field">账号名称<input maxlength="28" id="profileName" required autocomplete="off" placeholder="例如：工作账号" value="${htmlEscape(profileForm.name||'')}"></label>`:`<div class="snapshot-context"><span class="label">将更新</span><strong>${htmlEscape(a?.name||'')}</strong><small>替换此账号的旧快照，不影响其他已保存账号</small></div>`}<div class="snapshot-picker-head"><strong>关联 Cookie</strong><div class="snapshot-picker-actions"><button class="link-btn" type="button" data-action="snapshot-all">全选</button><button class="link-btn" type="button" data-action="snapshot-none">清空</button></div></div><p class="field-note">按 Cookie 名称、Domain、Path、Store、Partition 精确绑定；${fromFile?'离线导入不包含可恢复的真实 Cookie 值。':'无法仅凭名称判断是否包含登录态。'}</p><div class="snapshot-options" role="group" aria-label="选择关联的 Cookie">${items||'<div class="empty">当前网站没有可关联的 Cookie</div>'}</div><div id="selectionCount" class="snapshot-counter" role="status">已选择 ${count} / ${available.length} 条</div><p class="snapshot-warning" id="partialSnapshotWarning" ${count===available.length||count===0?'hidden':''}>只保存部分 Cookie 可以备份，但不能安全执行账号切换。若需切换，请选择当前可访问范围的全部 Cookie。</p>${excluded?`<p class="field-note">另有 ${excluded} 条非本站或已过期条目，已排除。</p>`:''}<p class="field-note">HTML 原型仅在内存中使用虚构 Cookie 值；${fromFile?'离线导入可保存为待验证账号，但不得直接切换。':'正式版需要可信 Host 读取、授权和加密存储，不会推断网站是否登录成功。'}</p><p class="cookie-edit-error" id="profileError" role="alert" hidden></p><div class="editor-actions"><button class="textbtn" type="button" data-action="cancel-profile">取消</button><button class="textbtn primary" id="saveSnapshot" type="submit" ${!count||data().phase==='unknown'?'disabled':''}>${kind==='update'?'更新关联':'保存并关联'} ${count} 条 Cookie</button></div></form></div>`;
 }
 function renderAutoSettings(){const d=data(),usable=d.accounts.filter(a=>!snapshotIssue(a));const opts=usable.map(a=>`<label class="rule-account"><input type="checkbox" data-allow="${htmlEscape(a.alias)}" ${d.auto.allowed.includes(a.alias)?'checked':''} ${!d.auto.enabled?'disabled':''}><span class="rule-account-name"><strong>${htmlEscape(a.name)}</strong><small>别名 <code>${htmlEscape(a.alias)}</code></small></span></label>`).join('');
 $('viewAccounts').innerHTML=`<div class="subpage" aria-label="管理自动切换规则"><div class="subhead"><button class="iconbtn" type="button" data-action="back-account" aria-label="返回账号列表" title="返回账号列表">${icon('back')}</button><div><strong>管理自动切换</strong><small>${htmlEscape(site)} · 本机规则</small></div></div><div class="subbody"><section class="rule-card"><label class="auto-refresh-setting sub-switch" for="autoEnabled"><span><span class="setting-label">允许 URL 自动切换</span><span class="setting-help">默认关闭；仅匹配当前站点、白名单账号</span></span><input type="checkbox" id="autoEnabled" role="switch" aria-checked="${d.auto.enabled}" ${d.auto.enabled?'checked':''}></label></section><section class="rule-card"><div class="rule-heading">1. 选择链接形式</div><div class="mode-grid"><label class="mode-option ${d.auto.mode==='hash'?'chosen':''}"><input type="radio" name="autoMode" value="hash" ${d.auto.mode==='hash'?'checked':''}><span><strong># Fragment <em>推荐</em></strong><small>地址栏锚点，不随 HTTP 请求发送</small></span></label><label class="mode-option ${d.auto.mode==='query'?'chosen':''}"><input type="radio" name="autoMode" value="query" ${d.auto.mode==='query'?'checked':''}><span><strong>? Query</strong><small>兼容参数式链接，可能进入站点日志</small></span></label></div></section><section class="rule-card"><div class="rule-heading">2. 允许切换的账号</div><p class="rule-desc">仅勾选的本机账号可由 URL 触发；未授权共享配置不会参与切换。</p><div class="rule-accounts">${opts||'<p class="rule-desc">请先保存账号</p>'}</div></section><section class="rule-card"><div class="rule-heading">3. 验证规则</div><label class="field" for="autoLinkInput">测试 URL<input id="autoLinkInput" type="url" spellcheck="false" autocomplete="off" placeholder="https://${htmlEscape(site)}/#od-account=work" value="${htmlEscape(testUrl||buildSwitchUrl(usable[0]))}"></label><div class="rule-buttons"><button class="textbtn primary" type="button" data-action="simulate-url">模拟访问并切换</button><button class="textbtn" type="button" data-action="copy-auto-example">复制示例</button></div><p class="rule-feedback" role="status">${htmlEscape(autoResult||'需要启用开关并选择账号，方能通过对应 URL 切换。')}</p></section><p class="note">切换成功后由账号页「自动刷新」开关决定是否刷新目标网页。目标标签页已变化、结果未知或回读不一致时，必须停止。URL 绝不携带 Cookie 值。</p></div></div>`;
@@ -692,7 +752,9 @@ if(action==='open-cookie'){cookieOpened=cookieOpened===id?'':id;editingNew=false
 if(action==='cancel-cookie'){cookieOpened='';editingNew=false;render();return;}
 if(action==='remove-cookie'){modal('remove-cookie',{id});return;}
 if(action==='clear'){modal('clear');return;}
-if(action==='save-profile'){profileForm={kind:'new',selected:availableCookies().map(c=>c.id)};menuOpen='';render();$('profileName')?.focus();return;}
+if(action==='save-profile'){profileForm={kind:'new',source:'site',selected:availableCookies().map(c=>c.id)};menuOpen='';render();$('profileName')?.focus();return;}
+ if(action==='account-source'){if(!profileForm)return;profileForm.source=button.dataset.value==='file'?'file':'site';profileForm.imported=profileForm.imported||[];profileForm.selected=profileForm.source==='file'?profileForm.imported.map(c=>c.id):availableCookies().map(c=>c.id);profileForm.importMessage='';renderProfileForm();return;}
+ if(action==='account-parse'){attachOfflinePayload($('accountImportText')?.value||'');return;}
  if(action==='snapshot-all'||action==='snapshot-none'){const on=action==='snapshot-all';for(const c of $('viewAccounts').querySelectorAll('[data-snapshot-cookie]'))c.checked=on;updateSelectionCounters();return;}
  if(action==='view-profile'){menuOpen='';profileForm={kind:'view',id};render();return;}
 if(action==='cancel-profile'){profileForm=null;render();return;}
@@ -700,7 +762,7 @@ if(action==='auto-toggle'){previousScroll=$('panelScroll').scrollTop;route='auto
 if(action==='menu'){const opening=menuOpen!==id;menuOpen=opening?id:'';render();requestAnimationFrame(()=>{if(opening)root.querySelector('.account-pop [role="menuitem"]')?.focus({preventScroll:true});else root.querySelector(`[data-action="menu"][data-id="${id}"]`)?.focus({preventScroll:true});});return;}
 if(action==='switch'){menuOpen='';performSwitch(id);return;}
 if(action==='rename'){menuOpen='';profileForm={kind:'rename',id};render();$('profileName')?.focus();return;}
-if(action==='update-profile'){menuOpen='';profileForm={kind:'update',id,selected:availableCookies().map(c=>c.id)};render();$('saveSnapshot')?.focus();return;}
+if(action==='update-profile'){menuOpen='';profileForm={kind:'update',id,source:'site',selected:availableCookies().map(c=>c.id)};render();$('saveSnapshot')?.focus();return;}
 if(action==='delete-profile'){menuOpen='';modal('delete',{id});return;}
 if(action==='copy-switch'){menuOpen='';modal('switch-link',{id});return;}
 if(action==='share'){menuOpen='';modal('share',{id});return;}
@@ -721,7 +783,8 @@ $('viewCookies').addEventListener('click',e=>{const el=e.target.closest('[data-a
 $('sheetContent').addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(el)handleAction(el.dataset.action,el);});
 $('sheetContent').addEventListener('change',e=>{if(e.target.name==='shareAudience'||e.target.id==='shareValidity')updateShareSettings();});
 $('viewAccounts').addEventListener('change',e=>{const el=e.target;
-if(el.matches('[data-snapshot-cookie]')){updateSelectionCounters();}
+if(el.id==='accountImportFile'){const file=el.files?.[0];if(!file)return;if(file.size>250000){attachOfflinePayload('x'.repeat(250001));return;}file.text().then(content=>{if(profileForm?.source==='file')attachOfflinePayload(content);}).catch(()=>attachOfflinePayload(''));return;}
+ if(el.matches('[data-snapshot-cookie]')){updateSelectionCounters();}
  else if(el.id==='refreshOnSwitch'){data().refreshOnSwitch=el.checked;render();requestAnimationFrame(()=>$('refreshOnSwitch')?.focus({preventScroll:true}));toast(el.checked?'已开启切换后自动刷新':'已关闭自动刷新，切换后请手动刷新');}
 else if(el.id==='autoEnabled'){data().auto.enabled=el.checked;autoResult='';render();requestAnimationFrame(()=>$('autoEnabled')?.focus({preventScroll:true}));}
 else if(el.name==='autoMode'){const chosen=el.value;data().auto.mode=chosen;autoResult='';testUrl='';render();requestAnimationFrame(()=>root.querySelector('input[name="autoMode"][value="'+chosen+'"]')?.focus({preventScroll:true}));}
@@ -745,9 +808,9 @@ function onProfileSubmit(e){
  }
  if(d.phase==='unknown'){bad('当前 Cookie 状态未知，请先核对后再关联');return;}
  const selected=new Set([...$('viewAccounts').querySelectorAll('[data-snapshot-cookie]:checked')].map(el=>el.dataset.snapshotCookie));
- const eligible=availableCookies(),chosen=eligible.filter(c=>selected.has(c.id));
+ const eligible=profileForm.source==='file'?(profileForm.imported||[]):availableCookies(),chosen=eligible.filter(c=>selected.has(c.id));
  if(!chosen.length){bad('请至少选择一条当前网站可关联的 Cookie');return;}
- const snapshot=cloneCookies(chosen.map(c=>normalizeDemoCookie(c,site)));
+ const snapshot=cloneCookies(chosen.map(c=>profileForm.source==='file'?{...c,value:'preview-only:offline:'+c.id}:normalizeDemoCookie(c,site)));
  const identities=new Set(snapshot.map(cookieIdentity));
  if(identities.size!==snapshot.length){bad('选择中存在 Cookie 身份重复，请检查 Domain / Path / Store / Partition');return;}
  let a=kind==='update'?account(profileForm.id):null;
@@ -757,10 +820,10 @@ function onProfileSubmit(e){
   a=profile('new'+Date.now(),value,'profile_'+n,0,'mint');
   d.accounts.push(a);
  }
- Object.assign(a,{snapshot,count:snapshot.length,sourceSite:site,scope:chosen.length===eligible.length?'full':'partial',updated:'刚刚',shared:false,authenticated:false});
- d.active=a.scope==='full'?a.id:null;d.phase=a.scope==='full'?'ready':'edited';d.lastHandled='';
+ Object.assign(a,{snapshot,count:snapshot.length,sourceSite:site,scope:profileForm.source==='file'?'offline':chosen.length===eligible.length?'full':'partial',updated:'刚刚',shared:false,authenticated:false});
+ if(a.scope!=='offline'){d.active=a.scope==='full'?a.id:null;d.phase=a.scope==='full'?'ready':'edited';d.lastHandled='';}
  profileForm=null;render();
- toast('已将 '+snapshot.length+' 条模拟 Cookie 关联至「'+a.name+'」'+(a.scope==='partial'?'；部分快照不可切换':'；可模拟切换'));
+ toast('已将 '+snapshot.length+' 条 Cookie 元数据关联至「'+a.name+'」'+(a.scope==='offline'?'；离线待验证，不可切换':a.scope==='partial'?'；部分快照不可切换':'；可模拟切换'));
 }
 $('viewAccounts').addEventListener('submit',onProfileSubmit);
 $('viewCookies').addEventListener('input',e=>{if(e.target.id==='searchCookie'){search=e.target.value;const pos=e.target.selectionStart;renderCookies();const input=$('searchCookie');input?.focus();input?.setSelectionRange(pos,pos);}else if(e.target.id==='editExpiryAt'){updateExpirationFields();}});
