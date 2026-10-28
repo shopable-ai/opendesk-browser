@@ -48,6 +48,8 @@ jobs:
         run: |
           npm run --prefix examples/sidebar-tools/ai-send-queue build
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-send-queue --out "$RUNNER_TEMP/ai-send-queue.opendesk-tool.json"
+          # Review the exact canonical candidate digest before advancing the fixed Host pin.
+          sha256sum "$RUNNER_TEMP/ai-send-queue.opendesk-tool.json"
       - name: Preserve blocked React Tool candidate
         uses: actions/upload-artifact@v4
         with:
