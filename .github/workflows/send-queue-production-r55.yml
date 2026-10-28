@@ -57,6 +57,13 @@ jobs:
           path: ${{ runner.temp }}/ai-send-queue.opendesk-tool.json
           if-no-files-found: error
           retention-days: 14
+      - name: Preserve canonical R5.4 preview source for reviewed Sidebar rendering
+        uses: actions/upload-artifact@v4
+        with:
+          name: send-queue-r510-canonical-preview
+          path: examples/sidebar-tools/ai-send-queue/preview/index.html
+          if-no-files-found: error
+          retention-days: 14
       - name: Resolve blocked candidate identity from official catalog
         run: |
           node --input-type=module <<'NODE' >> "$GITHUB_ENV"
