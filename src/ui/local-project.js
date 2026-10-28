@@ -400,7 +400,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     previewOpening=true;pointerMessage='';render();
     // The trusted click hands off through the existing one-shot session intent.
     // No existing Workspace is navigated, preserving its current source/draft.
-    void openToolPreviewWorkspace({api,sourceId,toolId:toolId||null})
+    void openToolPreviewWorkspace({api,sourceId,toolId:toolId||null,surface:'sidepanel'})
       .catch(error=>{if(!disposed)pointerMessage='未能打开实时开发预览：'+errorText(error,'E_WORKSPACE_OPEN');})
       .finally(()=>{previewOpening=false;if(!disposed)render();});
   });
