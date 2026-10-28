@@ -203,7 +203,7 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
       if(action==='update'){
         const cookieId=row=>JSON.stringify([row.name,row.domain?.replace(/^\./,'').toLowerCase(),
           row.path,row.storeId,row.partitionKey?.topLevelSite||null,
-          Boolean(row.partitionKey?.hasCrossSiteAncestor)]);
+          Boolean(row.partitionKey?.hasCrossSiteAncestor),Boolean(row.hostOnly)]);
         const keys=list=>list.map(cookieId).sort();
         const previous=demoSnapshots.get(selected.alias)||[];
         if(JSON.stringify(keys(previous))!==JSON.stringify(keys(rows)))
