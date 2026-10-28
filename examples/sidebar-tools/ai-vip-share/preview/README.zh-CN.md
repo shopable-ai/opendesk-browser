@@ -39,3 +39,11 @@ npm run build:preview --prefix examples/sidebar-tools/ai-vip-share
 ```
 
 历史静态原型归档于 [`archive/r57.html`](archive/r57.html)，不作为当前产品验收依据。Chromium Fixture PASS 不等于已安装扩展或真实 Chrome Cookie/代理/第三方网站身份通过；宿主来源锁失败不允许绕过。
+
+## R2.9：首次安装、未激活与授权状态
+
+正式同源交互入口仍为 [`index.html`](index.html)，调用唯一正式 `src/App.jsx`、`src/main.js`、`src/style.css`；未创建第二套业务 React。预览中的 12 状态包括首次安装、账号无权益、Provider 未配置、会员连接异常、会员有效、到期、专属激活链接待确认、代理权限缺失、代理启用、控制权冲突、STOP 结果未确认及服务器交付的网站会话。原有会员额度、兑换流程、Cookie 三种写入结果回归测试仍然保留。
+
+预览外壳新增宽度、外观和会员断线场景控制；这些控制和虚构 SDK 数据不进入正式 JSON。断线测试必须保留最后核验的权益与兑换历史，同时锁住新兑换、新网站会话与代理 START；不应锁住 STOP。专属激活链接必须通过 Host 受信来源校验，仅带入待确认表单，不能自动兑换。
+
+商业 Provider、正式激活来源、商城/电脑客户端 URL 和生产代理接入仍需配置；构建通过不等于 Mac Chrome 安装、第三方网站 Cookie 及代理验收。

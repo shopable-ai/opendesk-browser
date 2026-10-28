@@ -27,15 +27,19 @@ export function installPreviewFixture(root){
   // Only the preview owns this scenario selector. The installed package
   // cannot import this file, enable localhost or obtain a developmentProfile.
   const scene=new URL(location.href).searchParams.get('scene');
-  const offline=scene==='offline',serviceError=scene==='error';
+  const offline=['offline','unconfigured'].includes(scene);
+  let serviceError=scene==='error';
   const values=new Map();
   if(!offline)values.set('aiVipLocalDevelopmentR136',{schemaVersion:1,enabled:true});
-  let granted=!['redeem','offline','guest'].includes(scene),assigned='A',serial=0,lastReceipt=null;
+  let granted=!['redeem','empty','first','link','offline','unconfigured','guest','error'].includes(scene);
+  let assigned='A',serial=0,lastReceipt=null;
   let proxyState=idle(),proxyScenario='disabled',stopResolve=null;
   const devProfile=Object.freeze({endpoint:{scheme:'http',host:'127.0.0.1',port:7897},
     domains:[...DOMAIN_LIST]});
   const store=async(op,args)=>{
-    if(op==='currentPage.info')return {status:'unavailable'};
+    if(op==='currentPage.info')return scene==='link'?
+      {status:'available',url:ORIGIN+'/activate?activation_code=DEMO-VIP-01'}:
+      {status:'unavailable'};
     if(!args||typeof args.key!=='string')throw Error('E_FIXTURE_STORAGE');
     const before=values.has(args.key)?values.get(args.key):null;
     if(op==='storage.get')return {value:clone(before),etag:fakeHash(before)};
@@ -45,9 +49,9 @@ export function installPreviewFixture(root){
   };
   const member=()=>({
     schemaVersion:1,serverNow:Date.now(),
-    account:scene==='guest'?{state:'guest'}:
+    account:['guest','first'].includes(scene)?{state:'guest'}:
       {state:'bound',id:'preview-member',displayNameMasked:'vip***@example.test'},
-    entitlements:scene==='guest'?[]:scene==='expired'?[{...time(),
+    entitlements:['guest','first'].includes(scene)?[]:scene==='expired'?[{...time(),
       status:'expired',expiresAt:Date.now()-86400000}]:
       granted?(scene==='quota'?[quota(),access()]:[time(),quota(),access()]):[],
     redemptions:granted?[{redemptionId:'demo-r1',skuTitle:'AI 会员体验权益',
@@ -113,11 +117,13 @@ export function installPreviewFixture(root){
       getStatus:async()=>({...clone(proxyState),
         ...(offline?{}:{developmentProfile:clone(devProfile)})}),
       requestEnable:async()=>{
+        if(proxyState.permission===false)throw Error('E_CHROME_PERMISSION_REQUIRED');
         if(proxyScenario==='conflict')throw Error('E_PREVIEW_OWNER');
         proxyState=owned();return clone(proxyState);
       },
       requestDisable:async()=>{
         if(proxyScenario==='pending')return new Promise(resolve=>{stopResolve=resolve;});
+        if(proxyScenario==='ack-unknown')throw Error('E_PREVIEW_STOP_UNCONFIRMED');
         proxyState=idle();return clone(proxyState);
       }
     }},
@@ -130,16 +136,22 @@ export function installPreviewFixture(root){
   const preview={
     cookieOutcome:'success',
     activate(){granted=true;},
+    setMemberFailure(value){serviceError=Boolean(value);},
     switchAccount(){assigned=assigned==='A'?'B':'A';return assigned;},
-    setProxyScenario(scene){
-      proxyScenario=scene;
-      proxyState=scene==='enabled'||scene==='pending'?owned():
-        scene==='conflict'?{state:'conflict',control:'controlled_by_other_extensions',
-          permission:true,canStop:false,reason:null}:idle();
+    setProxyScenario(next){
+      proxyScenario=next==='stop-pending'?'ack-unknown':next;
+      proxyState=['enabled','pending','proxy-on'].includes(next)?owned():
+        next==='stop-pending'?{state:'unavailable',control:'controlled_by_this_extension',
+          permission:true,canStop:true,reason:'E_STOP_PENDING'}:
+        next==='conflict'?{state:'conflict',control:'controlled_by_other_extensions',
+          permission:true,canStop:false,reason:null}:
+        next==='permission'?{...idle(),permission:false}:idle();
     },
     releaseStop(){proxyScenario='disabled';proxyState=idle();
       const done=stopResolve;stopResolve=null;done?.(clone(proxyState));}
   };
+  if(['proxy-on','conflict','stop-pending','permission'].includes(scene))
+    preview.setProxyScenario(scene==='proxy-on'?'enabled':scene);
   globalThis.OpenDeskTool=Object.freeze({root,request:store,setState:()=>{}});
   globalThis.OpenDeskSDK=Object.freeze({browser:api});
   return preview;

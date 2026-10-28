@@ -397,6 +397,46 @@ async function run(){
       await capture(width,theme,'matrix-'+scene+'-'+width+'-'+theme);
   }
   result.checks.push('eight states × six widths × two themes; unknown Cookie stays locked and pending STOP never reports success');
+  // R2.9: all twelve states use the installed app's real React root.
+  const scenesR29=[['first','未登录'],['empty','尚未开通'],['unconfigured','服务未配置'],
+    ['error','无法核验'],['member','权益有效'],['expired','已到期'],
+    ['link','尚未开通'],['permission','权益有效'],['proxy-on','权益有效'],
+    ['conflict','权益有效'],['stop-pending','权益有效'],['session','权益有效']];
+  for(const [scene,badge] of scenesR29){
+    await cdp('Page.navigate',{url:url+'?scene='+scene});
+    await until('document.getElementById("ai-vip-member-state")?.textContent==='+JSON.stringify(badge),'R2.9 '+scene);
+    assert.equal(await evaluate('document.querySelectorAll("#tool-app .ai-vip").length'),1);
+    if(['first','empty','unconfigured','error'].includes(scene))
+      assert.equal(await evaluate('document.getElementById("ai-vip-member-facts").hidden'),true);
+    if(scene==='link'){
+      await until('document.getElementById("ai-vip-activation-hint")?.hidden===false','link awaits consent');
+      assert.equal(await evaluate('document.getElementById("ai-vip-redeem-code").value'),'DEMO-VIP-01');
+      assert.equal(await evaluate('document.getElementById("ai-vip-redeem-preview").hidden'),true);
+    }
+    if(scene==='permission')
+      await until('document.getElementById("ai-vip-proxy-state")?.textContent==="未授权"','native permission missing');
+    if(scene==='conflict')
+      await until('document.getElementById("ai-vip-proxy-state")?.textContent==="控制权冲突"','proxy owner conflict');
+    if(scene==='stop-pending')
+      await until('document.getElementById("ai-vip-proxy-state")?.textContent==="停用待确认"','STOP not acknowledged');
+    if(scene==='session'){
+      await until('document.getElementById("ai-vip-cookie-section")?.hidden===false','authorized session');
+      assert.equal(await evaluate('document.getElementById("ai-vip-cookie-install").disabled'),true);
+    }
+    for(const theme of ['light','dark'])for(const width of [320,360,390,400,440,520])
+      await capture(width,theme,'r29-'+scene+'-'+width+'-'+theme);
+  }
+  await cdp('Page.navigate',{url:url+'?scene=member'});
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="权益有效"','before transient failure');
+  await click('#preview-controls > summary');
+  await click('#preview-member-failure');
+  await click('#ai-vip-refresh');
+  await until('document.getElementById("ai-vip-member-state")?.textContent==="查询失败"','stale member display');
+  assert.equal(await evaluate('document.getElementById("ai-vip-member-facts").hidden'),false);
+  assert.equal(await evaluate('document.getElementById("ai-vip-history-details").hidden'),false);
+  assert.equal(await evaluate('document.getElementById("ai-vip-redeem").disabled'),true);
+  assert.equal(await evaluate('document.getElementById("ai-vip-proxy-toggle").hidden'),true);
+  result.checks.push('12 React scenes x 6 widths x 2 themes; stale validated data read-only');
   // Capture the real HTML visual baseline for side-by-side human review;
   // no fabricated pixel-parity score and no mock replacement of React.
   await cdp('Emulation.setDeviceMetricsOverride',{width:1024,height:1460,deviceScaleFactor:1,mobile:false});
