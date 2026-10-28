@@ -5,7 +5,7 @@ import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {planAccountCookieEffects,validateAccountCookieRow,
   sameAccountAutoSwitchAttempt,autoSwitchFenceBlocks,sameAccountAutoSwitchFence,
-  createCookieAccountService,installCookieAccountService}
+  createCookieAccountService,installCookieAccountService,inspectAccountSnapshotUpdate}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
 import {readFile} from 'node:fs/promises';
 
@@ -241,6 +241,7 @@ test('SW saves directly at revision zero and switches after service restart with
   assert.equal((await f.dispatch('status')).unlocked,true);
   const saved=await f.dispatch('create',{revision:0,displayName:'示例账号'});
   assert.equal(saved.revision,1);assert.equal(saved.accounts.length,1);
+  assert.equal(saved.accounts[0].cookieCount,1);
   assert.doesNotMatch(JSON.stringify(saved),/fiction|cookies|ciphertext|key/);
   const alias=saved.accounts[0].alias;
   assert.equal(f.records.get(COOKIE_ACCOUNT_STORE_KEY).accounts[0].cookies[0].value,'fiction');
@@ -307,4 +308,38 @@ test(`cleanup drains first create paused at ${pausedAt} without account resurrec
   const saved=await service.dispatch(message,f.sender);
   assert.equal(saved.revision,1);
   assert.deepEqual(saved.accounts.map(row=>row.displayName),['清理后合法账号']);
+});
+
+
+test('R2.6 snapshot update rejects every exact scope change and recognizes a no-op',()=>{
+  const row=original();
+  assert.equal(inspectAccountSnapshotUpdate([row],[{...row}]),'unchanged');
+  assert.equal(inspectAccountSnapshotUpdate([row],[{...row,value:'renewed'}]),'changed');
+  for(const changed of [{domain:'other.example.com'},{path:'/other'},
+    {hostOnly:false},{storeId:'1'},
+    {partitionKey:{topLevelSite:'https://example.com',hasCrossSiteAncestor:false}}]){
+    assert.throws(()=>inspectAccountSnapshotUpdate([row],[{...row,...changed}]),
+      {code:'E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED'});
+  }
+});
+
+test('R2.6 trusted save counts stay redacted and updates write only changed snapshots',async t=>{
+  const f=await serviceFixture(t);
+  const first=await f.dispatch('create',{revision:0,displayName:'新账号 1'});
+  const account=first.accounts[0];
+  assert.equal(account.cookieCount,1);
+  assert.doesNotMatch(JSON.stringify(first),/fiction|"cookies"|"value"/);
+  const payload={revision:first.revision,alias:account.alias,accountVersion:account.version};
+  const before=structuredClone(f.records.get(COOKIE_ACCOUNT_STORE_KEY));
+  const noOp=await f.dispatch('update',payload);
+  assert.equal(noOp.unchanged,true);assert.equal(noOp.revision,first.revision);
+  assert.deepEqual(f.records.get(COOKIE_ACCOUNT_STORE_KEY),before);
+  f.setCookie('renewed');
+  const updated=await f.dispatch('update',payload);
+  assert.equal(updated.revision,first.revision+1);
+  assert.equal(updated.accounts[0].version,account.version+1);
+  assert.equal(f.records.get(COOKIE_ACCOUNT_STORE_KEY).accounts[0].cookies[0].value,'renewed');
+  assert.equal(f.writes(),0,'capturing a snapshot never writes native Cookies');
+  await assert.rejects(f.dispatch('create',{revision:updated.revision,displayName:'新账号 1'}),
+    {code:'E_ACCOUNT_NAME_TAKEN'});
 });

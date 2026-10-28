@@ -114,7 +114,7 @@ export function planAccountCookieEffects(current,expected){
 function meta(account){
   const {alias,origin,displayName,version,allowAuto}=account;
   return {alias,origin,displayName,version,allowAuto,
-    cookieCount:account.cookies.length,siteLabel:new URL(origin).hostname,
+    cookieCount:account.cookieCount,siteLabel:new URL(origin).hostname,
     siteUrl:origin+'/'};
 }
 // A repeat of an auto-switch URL is never a new intent merely because time passed.

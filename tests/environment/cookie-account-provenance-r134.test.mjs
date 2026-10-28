@@ -16,8 +16,8 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
   'trusted/account-contract.js':'2d89c25a96ebc49524127659290c2d0a45c3bf5e',
-  'trusted/account-service.js':'51c667b6d8613e7b0e115d4cf4922e588311c64e',
-  'trusted/account-vault.js':'c52bb9db27c7fd2811981d0d7a6ae8118351be09',
+  'trusted/account-service.js':'a972ab43f9da8f50e2413c2f7166cf1cb82534dd',
+  'trusted/account-vault.js':'27b29c56bbabf9760ef14b66bcf8ce185bd649f1',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };
 const contract='trusted/account-contract.js';

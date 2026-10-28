@@ -160,8 +160,8 @@ export function createCookieAccountVault({api=globalThis.chrome,storage,
   const status=()=>exclusive(async()=>{
     const {data,legacyLocked}=await load();
     return {configured:true,unlocked:true,legacyLocked,revision:data.revision,
-      accounts:data.accounts.map(({alias,origin,displayName,version,allowAuto})=>
-        ({alias,origin,displayName,version,allowAuto})),settings:{
+      accounts:data.accounts.map(({alias,origin,displayName,version,allowAuto,cookies})=>
+        ({alias,origin,displayName,version,allowAuto,cookieCount:cookies.length})),settings:{
         autoRefresh:data.settings.autoRefresh,autoEnabled:data.settings.autoEnabled}};
   });
   async function update(expectedRevision,change){

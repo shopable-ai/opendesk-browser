@@ -68,7 +68,7 @@ test('authorization preview presents one clearly scoped grant action',async()=>{
   assert.match(react,/onClick=\{grant\}>允许管理所有网站 Cookie<\/button>/);
   assert.doesNotMatch(react,/preview-grant-icon|首次允许一次|<small>/);
   assert.doesNotMatch(css,/preview-grant-icon|preview-global-grant small/);
-  const trustedCss=await read('../../../../../src/ui/tool-shell.css');
+  const trustedCss=await read('../../trusted/host.css');
   assert.match(trustedCss,/min-height:236px;padding:36px clamp\(16px,6vw,28px\)/);
   assert.match(trustedCss,/max-width:360px/);
 });
@@ -228,15 +228,15 @@ test('scene disposal retires metadata sync and releases pending reads',async()=>
 });
 
 
-test('one-source import lives in a bottom sheet while the list stays mounted',async()=>{
+test('one-source import previews then confirms inside the mounted list',async()=>{
  const [component,app,css]=await Promise.all([
   read('../../app/components/CookieImport.jsx'),
   read('../../app/CookieEditorApp.jsx'),
   read('../../src/react.css')
  ]);
  assert.match(component,/className="cookie-import-workspace"/);
- assert.match(component,/role="dialog" aria-modal="true"/);
- assert.match(component,/cookie-import-dismiss-layer/);
+ assert.match(component,/role="region" aria-labelledby=\{headingId\}/);
+ assert.doesNotMatch(component,/cookie-import-dismiss-layer|aria-modal="true"/);
  assert.match(app,/importOpen=\{panel==='import'\}/);
  assert.doesNotMatch(app,/panel===null&&<CookieEditorView/);
  assert.match(component,/onBeforeSubmit\?\.\(\)===false/);
@@ -247,8 +247,10 @@ test('one-source import lives in a bottom sheet while the list stays mounted',as
  assert.match(component,/className="cookie-import-overwrite"/);
  assert.match(component,/<span>覆盖已有 Cookie<\/span>/);
  assert.doesNotMatch(component,/默认不覆盖|\|\|overwrite/);
- assert.match(css,/height:auto;max-height:calc\(100% - var\(--space-2\)\)/);
- assert.match(css,/display:flex;flex:0 1 auto;flex-direction:column/);
+ assert.match(css,/position:relative;box-sizing:border-box;min-width:0/);
+ assert.match(component,/previewRef\.current\)confirmImport\(\);else void preparePreview\(\)/);
+ assert.match(component,/preview\?'确认导入':'预览导入'/);
+ assert.match(component,/invalidatePreview\(\); \/\/ A confirmation is single use/);
  assert.doesNotMatch(css,/height:min\(510px|height:calc\(100% - 32px\)/);
  assert.match(app,/controller\.previewImport\(text,'auto',overwrite,\{allSites:true\}\)/);
  assert.match(app,/controller\.executeImport\(text,'auto',overwrite,\{allSites:true\}\)/);
@@ -396,7 +398,7 @@ test('R3.7 dev comparison imports safely and pins approved bytes without generat
  const {approvedHtml,comparisonHtml,accepted}=await import('./build-a-b.mjs');
  const {createHash}=await import('node:crypto');
  const original=await approvedHtml();
- assert.equal(accepted,'020adbf22005cba219af4ff27cd3f3e492978bed');
+ assert.equal(accepted,JSON.parse(await read('./visual-contract.json')).approvedHtml.gitBlobSha);
  assert.equal(createHash('sha1').update('blob '+original.length+'\0').update(original).digest('hex'),accepted);
  const html=comparisonHtml(original,'',{dev:true});
  assert.match(html,/id="current-react"[^>]*src="\/dev.html"/);

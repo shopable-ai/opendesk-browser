@@ -72,9 +72,9 @@ function reviewedCompiledAdblock(target,path,root){
 const compiledCookieAccountInputs=Object.freeze({
   'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'2d89c25a96ebc49524127659290c2d0a45c3bf5e',
   // Exact four-field fence equality also tolerates storage key reordering.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'51c667b6d8613e7b0e115d4cf4922e588311c64e',
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'a972ab43f9da8f50e2413c2f7166cf1cb82534dd',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
-  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'c52bb9db27c7fd2811981d0d7a6ae8118351be09',
+  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'27b29c56bbabf9760ef14b66bcf8ce185bd649f1',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 });
 const cookieAccountContractTargets=new Set([

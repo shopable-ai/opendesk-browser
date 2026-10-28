@@ -31,7 +31,7 @@ function mount(section='accounts'){
     useLayoutEffect(fn,deps){this.useEffect(fn,deps);},
     createElement(type,props,...children){return {type,props:props||{},children:children.flat(Infinity)};}
   };
-  const window={setInterval:fn=>{const id=Symbol();timers.set(id,fn);return id;},
+  const window={setTimeout:()=>Symbol(),clearTimeout(){},setInterval:fn=>{const id=Symbol();timers.set(id,fn);return id;},
     clearInterval:id=>timers.delete(id),addEventListener(){},removeEventListener(){}};
   const document={visibilityState:'visible',addEventListener(){},removeEventListener(){}};
   const adapter={targetFor:async()=>parseTarget(url),checkRead:async()=>({callableNow:permission}),
@@ -131,7 +131,7 @@ test('a failed second switch retires earlier verified evidence',async()=>{
   }
 });
 
-test('Host metadata cannot establish a current alias; changed account versions retire receipt evidence',async()=>{
+test('Host metadata cannot establish a current alias; verified current snapshot update retains it',async()=>{
   const app=mount();await app.flush();
   app.setResponse(async()=>({configured:true,unlocked:true,revision:2,
     accounts:[{...alpha,version:2},beta],currentAlias:alpha.alias}));
@@ -142,7 +142,7 @@ test('Host metadata cannot establish a current alias; changed account versions r
   await app.action('onSwitch',{...alpha,version:2});
   assert.equal(app.accounts().currentAlias,alpha.alias);
   await app.action('onUpdate',{...alpha,version:2});
-  assert.equal(app.accounts().currentAlias,null);
+  assert.equal(app.accounts().currentAlias,alpha.alias);
 });
 
 test('stale and unverified switch receipts never claim an alias',async()=>{
