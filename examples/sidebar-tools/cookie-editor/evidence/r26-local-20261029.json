@@ -395,11 +395,22 @@
     "reason": "并行 main 提交6c28425c4更新了主HTML；旧来源锁MATCH仅属于先前快照。本轮不修改并行原型或降低锁以制造视觉通过。正式React预览自身源码检查通过。"
   },
   "mainIntegration": {
-    "status": "GAP",
+    "status": "GAP_MERGE_BLOCKED_BY_PARALLEL_DIRTY_FILES",
     "localHeadBeforeOwnCommit": "b8190cff59a68462357e295987efb1e9169493a8",
     "remoteHead": "8e82540996daec57b1eccd145606350636a99311",
     "divergence": "6\t6",
     "change": "刷新远端得到6个R2.7账号描述提交，包含App、Accounts、contract/service/Vault与Host；这些尚未合入本轮已测试候选。",
-    "constraint": "本地可信账号服务仍有其他owner未提交修改，保留其改动；禁止reset/强推/分支/worktree。"
+    "constraint": "本地可信账号服务仍有其他owner未提交修改，保留其改动；禁止reset/强推/分支/worktree。",
+    "attempt": {
+      "command": "git merge --no-commit --no-ff origin/main",
+      "result": "REFUSED_BEFORE_MERGE",
+      "files": [
+        "examples/sidebar-tools/cookie-editor/trusted/account-service.js",
+        "tests/environment/cookie-editor-account-switch-host.test.mjs"
+      ],
+      "reason": "Git报告这些并行未提交文件将被覆盖；未stash、重置、覆盖或代为提交。其余本轮源码/生成包/证据已保存到本地main。",
+      "fixCommit": "7d6fd9a1f",
+      "mergeState": "NO_MERGE_IN_PROGRESS"
+    }
   }
 }
