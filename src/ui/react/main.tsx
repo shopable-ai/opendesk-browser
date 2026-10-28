@@ -48,7 +48,7 @@ function PromptSandboxBusiness({dock,onRequest}){
 // presentation snapshots and actions; installed tool code stays in its sandbox.
 const mountedDocuments=new WeakSet();
 
-export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
+export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebug=()=>{},
   developerView=createDeveloperView(),myView=createMyWorkbenchView(),toolView=null,
   providerSettings=null,openNativeSettings=null,nativeConnection=null,previewContents=null}={}){
   const mount=doc.getElementById('opendesk-react-app');
@@ -100,7 +100,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,
       <SidebarAppShell activeTab={navigationTab}
         debugEnabled={debugEnabled} appDebugEnabled={appDebugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
-        onNavigate={onNavigate} extensionProps={extensionProps}
+        onNavigate={onNavigate} onStopAppDebug={onStopAppDebug} extensionProps={extensionProps}
         providerSettings={providerSettings} providerSettingsOpen={settingsOpen}
         onOpenNativeSettings={openNativeSettings} nativeConnection={nativeConnection}
         onOpenProviderSettings={openSharedProviderSettings}
