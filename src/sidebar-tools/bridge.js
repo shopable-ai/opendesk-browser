@@ -29,6 +29,7 @@ export function sidebarToolRequestTimeout(operation,toolId){
  return (toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation))||
    (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||
    (toolId==='time-review'&&['time.start','time.clear'].includes(operation))||
+    (toolId==='ai-send-queue'&&operation==='sendQueue.command')||
    browserOperation(operation)?.requiresUserGesture===true?120000:8000;
 }
 export function initSidebarToolSandbox() {
@@ -162,7 +163,8 @@ export function initSidebarToolSandbox() {
         const uncertain=exporting||toolId==='web-markdown-clipper'&&
           ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)||
           toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
-          toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status';
+          toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status'||
+           toolId==='ai-send-queue'&&operation==='sendQueue.command';
         reject(exportError(uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT',
           exporting?'导出回执超时，结果未知；请核对实际结果，勿自动重试':uncertain?
           '确认或 DNR 回读超时，结果未知；请重新读取后台状态与 Chrome 规则，不要重复提交':'工具请求超时'));

@@ -1914,6 +1914,55 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return {status:'unavailable',message:'只读开发预览没有绑定业务网页'};
       throw new Error('开发预览不允许真实写入、打开任务或控制网页');
     }
+    // Exact product-scoped request; the Tool cannot select a Chrome tab or inject JS.
+    // Host rechecks both the tool package epoch and Page Authority before delivery.
+    if(operation==='sendQueue.snapshot'||operation==='sendQueue.command'){
+      if(tool.id!=='ai-send-queue'||!tool.capabilities.includes('currentPage.read'))
+        throw Object.assign(new Error('工具无权控制网页队列'),{code:'E_TOOL_CAPABILITY_REQUIRED'});
+      const read=operation==='sendQueue.snapshot',command=payload?.command;
+      if(read){
+        if(!payload||Object.keys(payload).length!==0)
+          throw Object.assign(new Error('只读队列请求格式错误'),{code:'E_SCHEMA'});
+      }else{
+        const expected=command==='move'?['command','id','index','instance','revision']:
+          ['command','id','instance','revision'];
+        if(!payload||!['pause','resume','now','edit','remove','move'].includes(command)||
+          Object.keys(payload).sort().join(',')!==expected.sort().join(',')||
+          typeof payload.instance!=='string'||!/^[A-Za-z0-9-]{1,128}$/.test(payload.instance)||
+          typeof payload.id!=='string'||!/^q[1-9]\d{0,8}$/.test(payload.id)||
+          !Number.isSafeInteger(payload.revision)||payload.revision<0||
+          command==='move'&&(!Number.isInteger(payload.index)||payload.index<0||payload.index>=20))
+          throw Object.assign(new Error('消息身份或队列版本无效'),{code:'E_SCHEMA'});
+      }
+      const [stored,epochs]=await Promise.all([
+        api.storage.local.get(SIDEBAR_TOOL_STORE),
+        api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
+      if(!requireCompleteInstalledSidebarTools(stored[SIDEBAR_TOOL_STORE])
+        .some(row=>samePackage(row,tool))||
+        (epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
+        throw Object.assign(new Error('安装或授权已变更'),{code:'E_TOOL_CHANGED'});
+      assertSession(source,token);
+      const selected=currentPageTarget?.capture?.();
+      if(!selected||selected.origin!=='https://chatgpt.com')
+        return {status:'unavailable',reason:'请先打开 ChatGPT 的实际对话'};
+      const result=await foundationClient.request('sendQueueOperation',{
+        operation:read?'snapshot':command,
+        target:{tabId:selected.tabId,frameId:0,documentId:selected.documentId,
+          expectedUrl:selected.url,expectedWindowId:selected.windowId},
+        ...(read?{}:{instance:payload.instance,revision:payload.revision,
+          id:payload.id,...(command==='move'?{index:payload.index}:{})})
+      });
+      await currentPageTarget.revalidate(selected);
+      await assertSidebarToolEnabled(api,tool.id);
+      const verified=await api.storage.local.get([SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+      if(!requireCompleteInstalledSidebarTools(verified[SIDEBAR_TOOL_STORE])
+        .some(row=>samePackage(row,tool))||
+        (verified[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null)!==revocationEpoch)
+        throw Object.assign(new Error('工具请求期间身份已改变'),{code:'E_TOOL_CHANGED'});
+      assertSession(source,token);
+      return {...result,target:{tabId:selected.tabId,documentId:selected.documentId,
+        url:selected.url,title:selected.title}};
+    }
     // Existing reviewed Side Panel Host is the only transport into the fixed
     // MV3 account service. Never trust caller-supplied grants, tab selectors,
     // gesture assertions, document identity or Cookie value payloads.
