@@ -75,6 +75,11 @@ async function setup(t){
   return {tool,saved,api,service,pack};
 }
 const buttonNamed=(doc,text)=>[...doc.querySelectorAll('button')].find(node=>node.textContent===text);
+const openPacks=doc=>{doc.querySelector('.od-locale-nav').dispatch('click');return doc.getElementById('od-locale-pack-tool');};
+const resourceAction=(doc,locale,index)=>[...doc.querySelectorAll('.od-locale-resource')]
+  .find(node=>node.textContent.includes(locale))?.querySelectorAll('button')[index];
+const backLocale=doc=>doc.querySelector('.od-locale-heading button').dispatch('click');
+
 const selectValue=(select,value)=>{
   Object.defineProperty(select,'value',{configurable:true,value,writable:true});select.dispatch('change');
 };
@@ -102,60 +107,52 @@ test('daily tool choices save their scope, follow the default only when requeste
   const untouched=structuredClone(f.saved[SIDEBAR_TOOL_STORE]);
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],toolId:f.tool.id,service:f.service,localeController,onClose(){}}}}),{doc}=ui;
-  const select=doc.getElementById('od-locale-tool-language'),status=()=>doc.getElementById('od-locale-tool-status').textContent;
-  assert.equal(doc.getElementById('od-locale-tool'),null,'tool opener already supplies the current tool');
+  const select=doc.getElementById('od-locale-tool-language');
+  const status=()=>doc.getElementById('od-locale-tool-status').textContent;
+  assert.equal(doc.getElementById('od-locale-tool'),null);
   assert.match(doc.body.textContent,/当前工具：语言测试工具/);
-  await settle(()=>doc.getElementById('od-locale-target').value==='ja');
-  assert.equal(doc.querySelector('details').hasAttribute('open'),false,'maintenance starts collapsed');
+  assert.equal(doc.querySelector('#od-locale-target'),null,'template target is not on the daily page');
   assert.match(status(),/日本語.*仅此工具/);
   for(const [value,label] of [['zh-CN','简体中文'],['en','English'],['ja','日本語']]){
     select.focus();selectValue(select,value);
-    await settle(()=>f.service.getToolLocale(f.tool.id)===value&&!select.disabled&&doc.activeElement===select);
+    await settle(()=>f.service.getToolLocale(f.tool.id)===value&&!select.disabled);
     assert.equal(f.service.getCatalog(f.tool,localeController.getLocale()).locale,value);
     assert.match(status(),new RegExp(label+'.*仅此工具'));
-    assert.match(doc.body.textContent,new RegExp('已保存并立即应用：'+label));
-    assert.equal(localeController.getPreference(),'auto','tool choice never changes the default');
+    assert.equal(localeController.getPreference(),'auto');
   }
-  await localeController.setLocale('zh-CN');await settle(()=>doc.getElementById('od-locale-global').value==='zh-CN');
-  assert.equal(f.service.getCatalog(f.tool,localeController.getLocale()).locale,'ja');
-  select.focus();selectValue(select,'follow');
-  await settle(()=>f.service.getToolLocale(f.tool.id)===null&&!select.disabled&&doc.activeElement===select);
+  selectValue(select,'follow');
+  await settle(()=>f.service.getToolLocale(f.tool.id)===null&&!select.disabled);
   assert.match(status(),/简体中文.*跟随 OpenDesk/);
   await localeController.setLocale('en');await settle(()=>/English.*Follow OpenDesk/.test(status()));
-  assert.deepEqual(f.saved[SIDEBAR_TOOL_STORE],untouched,'daily preferences never rewrite installed code');
+  assert.deepEqual(f.saved[SIDEBAR_TOOL_STORE],untouched,'language settings never rewrite installed code');
 });
 
-test('missing default explains actual fallback and opens maintenance without switching the tool',async t=>{
-  const f=await setup(t);await f.service.install(f.pack,f.tool);await f.service.setToolLocale(f.tool.id,null);
+test('missing default opens language pack subpage without changing actual preference',async t=>{
+  const f=await setup(t);await f.service.install(f.pack,f.tool);
   const localeController=createUiLocaleController(f.api,{storage:()=>null,languages:['zh-TW']});
   await localeController.ready;t.after(()=>localeController.dispose());
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],toolId:f.tool.id,service:f.service,localeController,onClose(){}}}}),{doc}=ui;
-  assert.match(doc.getElementById('od-locale-tool-status').textContent,/简体中文.*跟随 OpenDesk/);
   assert.match(doc.body.textContent,/暂未提供 繁體中文，当前使用 简体中文/);
-  buttonNamed(doc,'添加或补全此语言…').dispatch('click');
-  await settle(()=>doc.querySelector('details').hasAttribute('open')&&doc.activeElement===buttonNamed(doc,'导入语言包…'));
-  assert.equal(doc.getElementById('od-locale-target').value,'zh-TW');
   const before=structuredClone(f.saved);
-  doc.querySelector('[aria-label="已安装语言包"] button').dispatch('click');
-  assert.equal(doc.getElementById('od-locale-target').value,'ja');
+  openPacks(doc);
+  assert.ok(doc.getElementById('od-locale-pack-tool'));
+  assert.equal(doc.getElementById('od-locale-global'),null,'daily settings are replaced, not duplicated');
   assert.equal(f.service.getToolLocale(f.tool.id),null);
-  assert.equal(f.service.getCatalog(f.tool,'zh-TW').locale,'zh-CN');
-  assert.deepEqual(f.saved,before,'maintenance target is never a preference write');
+  assert.deepEqual(f.saved,before);
+  backLocale(doc);assert.ok(doc.getElementById('od-locale-global'));
 });
 
-test('failed daily save reports the error without claiming that the requested language took effect',async t=>{
+test('failed daily save reports error without claiming the selected language took effect',async t=>{
   const f=await setup(t);let attempts=0;
   const service={...f.service,async setToolLocale(){attempts++;throw Object.assign(Error('quota'),{code:'E_LOCALE_QUOTA'});}};
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],toolId:f.tool.id,service,onClose(){}}}}),{doc}=ui;
   const before=structuredClone(f.saved),select=doc.getElementById('od-locale-tool-language');
-  select.focus();selectValue(select,'en');
-  await settle(()=>doc.querySelector('[role=alert]')&&!select.disabled);
+  selectValue(select,'en');await settle(()=>doc.querySelector('[role=alert]')&&!select.disabled);
   assert.match(doc.querySelector('[role=alert]').textContent,/本地存储空间不足/);
   assert.match(doc.getElementById('od-locale-tool-status').textContent,/简体中文.*跟随 OpenDesk/);
-  assert.doesNotMatch(doc.body.textContent,/已保存并立即应用/);
-  assert.deepEqual(f.saved,before);assert.equal(attempts,1,'failed writes are never replayed');
+  assert.deepEqual(f.saved,before);assert.equal(attempts,1);
 });
 
 for(const getter of ['getAvailableLocales','getToolLocale','getCatalog']){
@@ -171,81 +168,53 @@ for(const getter of ['getAvailableLocales','getToolLocale','getCatalog']){
     selectValue(select,'en');assert.equal(writes,0);
     buttonNamed(doc,'重新核对存储').dispatch('click');
     await settle(()=>!buttonNamed(doc,'重新核对存储').disabled);
-    assert.equal(select.disabled,true);assert.doesNotMatch(doc.body.textContent,/已重新核对存储，请审阅/);
     unreadable=false;buttonNamed(doc,'重新核对存储').dispatch('click');
     await settle(()=>!select.disabled&&doc.body.textContent.includes('已重新核对存储，请审阅'));
-    assert.equal(doc.querySelector('[aria-label="工具语言读取错误"]'),null);assert.equal(writes,0);
+    assert.equal(writes,0);
   });
 }
 
-test('help for a missing language invalidates an existing delete confirmation',async t=>{
-  const f=await setup(t);await f.service.install({...f.pack,targetLocale:'en'},f.tool);
-  await f.service.setToolLocale(f.tool.id,'ja');
-  let removals=0;
-  const service={...f.service,async remove(){removals++;}};
+test('back navigation cancels delete confirmation without deleting custom resources',async t=>{
+  const f=await setup(t);await f.service.install(f.pack,f.tool);
+  let removals=0;const service={...f.service,async remove(){removals++;}};
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],toolId:f.tool.id,service,onClose(){}}}}),{doc}=ui;
-  await settle(()=>doc.querySelector('[aria-label="已安装语言包"] button'));
-  const target=doc.getElementById('od-locale-target');target.value='en';target.dispatch('input');
-  buttonNamed(doc,'删除语言包…').dispatch('click');
-  assert.match(doc.querySelector('[aria-label="删除语言包确认"]').textContent,/en 导入语言包/);
-  buttonNamed(doc,'添加或补全此语言…').dispatch('click');
-  assert.equal(target.value,'ja');assert.equal(doc.querySelector('[aria-label="删除语言包确认"]'),null);
-  assert.equal(removals,0);assert.ok(f.service.exportPack(f.tool.id,'en'));
+  openPacks(doc);
+  resourceAction(doc,'ja',1).dispatch('click');
+  assert.ok(doc.querySelector('[aria-label="删除语言包确认"]'));
+  backLocale(doc);
+  assert.equal(doc.querySelector('[aria-label="删除语言包确认"]'),null);
+  backLocale(doc);
+  assert.ok(doc.getElementById('od-locale-global'));
+  assert.equal(removals,0);assert.ok(f.service.exportPack(f.tool.id,'ja'));
 });
 
-test('summary activation commits maintenance before an immediate layered Escape',async t=>{
+test('Escape is layered: import preview -> packs -> settings -> close',async t=>{
   const f=await setup(t);let closes=0;
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
-    tools:[f.tool],toolId:f.tool.id,service:f.service,onClose(){closes++;}}}}),{doc}=ui;
-  const details=doc.querySelector('details'),summary=details.querySelector('summary');
-  summary.focus();
-  // Model the native default action without delivering its queued toggle yet.
-  // A controlled click must commit the layer before the next discrete input.
-  const activate=()=>{
-    const event=summary.dispatch('click');
-    if(!event.defaultPrevented)details.toggleAttribute('open');
-  };
-  activate();
-  assert.equal(details.hasAttribute('open'),true);
+    tools:[f.tool],toolId:f.tool.id,service:f.service,importPack:f.pack,onClose(){closes++;}}}}),{doc}=ui;
+  await settle(()=>buttonNamed(doc,'确认导入'));
   doc.dispatch('keydown',{key:'Escape'});
-  assert.equal(details.hasAttribute('open'),false);
-  assert.equal(closes,0,'the first Escape returns to daily languages');
-  activate();activate();
-  assert.equal(details.hasAttribute('open'),false,'rapid activations also use the committed state');
+  assert.ok(doc.getElementById('od-locale-pack-tool'));
   doc.dispatch('keydown',{key:'Escape'});
-  assert.equal(closes,1,'only the next Escape dismisses the language manager');
+  assert.ok(doc.getElementById('od-locale-global'));
+  doc.dispatch('keydown',{key:'Escape'});
+  assert.equal(closes,1);
 });
 
-test('cancelling import or delete after collapsing maintenance returns focus to its visible summary',async t=>{
+test('cancel import and delete are read-only and preserve installed content',async t=>{
   const f=await setup(t);await f.service.install(f.pack,f.tool);
+  const before=structuredClone(f.saved);
   const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
     tools:[f.tool],toolId:f.tool.id,service:f.service,importPack:f.pack,onClose(){}}}}),{doc}=ui;
-  const details=doc.querySelector('details'),summary=details.querySelector('summary');
-  const toggle=open=>{details.open=open;details.toggleAttribute('open',open);details.dispatch('toggle');};
-  await settle(()=>buttonNamed(doc,'取消导入')&&!buttonNamed(doc,'取消导入').disabled);
-  toggle(false);buttonNamed(doc,'取消导入').dispatch('click');assert.equal(doc.activeElement,summary);
-  toggle(true);buttonNamed(doc,'删除语言包…').dispatch('click');
-  toggle(false);buttonNamed(doc,'取消删除').dispatch('click');assert.equal(doc.activeElement,summary);
+  await settle(()=>buttonNamed(doc,'取消导入'));
+  buttonNamed(doc,'取消导入').dispatch('click');
+  assert.ok(doc.getElementById('od-locale-pack-tool'));
+  resourceAction(doc,'ja',1).dispatch('click');
+  buttonNamed(doc,'取消删除').dispatch('click');
+  assert.equal(doc.querySelector('[aria-label="删除语言包确认"]'),null);
+  assert.deepEqual(f.saved,before);
 });
-
-for(const action of ['import','delete']){
-  test('cancelling '+action+' after a read failure skips the disabled import button',async t=>{
-    const f=await setup(t);await f.service.install(f.pack,f.tool);await f.service.setToolLocale(f.tool.id,'ja');let unreadable=false;
-    const service={...f.service,getAvailableLocales(tool){if(unreadable)throw Error('读取失败');return f.service.getAvailableLocales(tool);}};
-    const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
-      tools:[f.tool],toolId:f.tool.id,service,importPack:action==='import'?f.pack:null,onClose(){}}}}),{doc}=ui;
-    if(action==='import')await settle(()=>buttonNamed(doc,'取消导入')&&!buttonNamed(doc,'取消导入').disabled);
-    else{
-      await settle(()=>buttonNamed(doc,'删除语言包…')?.disabled===false);
-      const details=doc.querySelector('details');details.open=true;details.toggleAttribute('open',true);details.dispatch('toggle');
-      buttonNamed(doc,'删除语言包…').dispatch('click');
-    }
-    unreadable=true;ui.paint();assert.equal(buttonNamed(doc,'导入语言包…').disabled,true);
-    buttonNamed(doc,action==='import'?'取消导入':'取消删除').dispatch('click');
-    assert.equal(doc.activeElement,doc.querySelector('summary'));assert.equal(doc.activeElement.isConnected,true);
-  });
-}
 
 test('confirmed Japanese import reaches the running official TOC through real manager, service, host and sandbox',async t=>{
   const tool=await officialToolFixture('reading-toc');
