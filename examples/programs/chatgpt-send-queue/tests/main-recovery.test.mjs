@@ -37,7 +37,8 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
   const ctx=vm.createContext({window:win,document:doc,
     createPageUI:()=>owner,createChatGPTSite:()=>site,
     createQueueEngine:()=>engine,
-    createQueueView:options=>{actions=options.actions;return view;}});
+    createQueueView:options=>{actions=options.actions;return view;},
+     createSendQueueRemote:()=>({changed(){}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace('export default async function main','async function main'),ctx);
   return {calls,snap,state,listeners,setLegacy(value){legacy=value;},retire(){active=false;},

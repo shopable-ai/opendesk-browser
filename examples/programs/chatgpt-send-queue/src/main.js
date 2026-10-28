@@ -2,6 +2,7 @@ import {createPageUI} from '@opendesk/ui';
 import {createChatGPTSite} from './site.js';
 import {createQueueEngine} from './engine.js';
 import {createQueueView} from './view.js';
+import {createSendQueueRemote} from './remote.js';
 
 const ID='opendesk.ai-send-queue';
 // A separate installation must never take over the legacy in-memory queue.
@@ -26,9 +27,9 @@ export default async function main({assets}={}) {
   const site=createChatGPTSite({isComposing:()=>composing});
   owner.on(document,'compositionstart',()=>{composing=true;},true);
   owner.on(document,'compositionend',()=>{composing=false;compositionEndedAt=Date.now();},true);
-  let view=null,engine;
+  let view=null,engine,remote=null;
   try{
-    engine=createQueueEngine({site,change:()=>view?.render()});
+    engine=createQueueEngine({site,change:()=>{remote?.changed();view?.render();}});
     const notify=message=>view?.toast(message);
     const actions={
       enqueue(){
@@ -62,52 +63,59 @@ export default async function main({assets}={}) {
         // composer and cancel its queued-send authorization.
         const state=engine.view(),item=state.items.find(x=>x.id===id);
         if(!item || state.inFlight || ['unknown','sending','confirmed'].includes(item.state)){
-          notify('这条消息正在发送或结果未知，暂不能取回');return;
+          notify('这条消息正在发送或结果未知，暂不能取回');return false;
         }
         const snap=site.inspect();
         if(!snap.ok||snap.route!==state.route){
-          notify('请返回原对话后再取回');return;
+          notify('请返回原对话后再取回');return false;
         }
         if(snap.rich||snap.draft!==''){
           notify('输入框已有草稿或附件，请先发送或加入队列');
-          snap.editor?.focus();return;
+          snap.editor?.focus();return false;
         }
         const result=site.reclaimToComposer(item.text,snap);
         if(!result.ok){
           if(result.mayHaveWritten)engine.uncertain(id,'取回状态未确认，请核对输入框与原对话后删除该条，避免重复发送',snap);
-          notify(result.reason||'无法安全取回，请检查输入框');return;
+          notify(result.reason||'无法安全取回，请检查输入框');return false;
         }
         // Only after the original composer read-back confirms the exact text,
         // remove the item so it cannot later auto-send from the queue.
         if(!engine.reclaim(id)){
           engine.uncertain(id,'队列状态已改变，请核对输入框与原对话后删除该条',snap);
-          notify('消息已放入输入框，但队列状态不确定');return;
+          notify('消息已放入输入框，但队列状态不确定');return false;
         }
-        notify('已取回到输入框，取消排队');
+        notify('已取回到输入框，取消排队');return true;
       },
       remove(id){
         const state=engine.view();
         if(state.inFlight?.id===id&&state.inFlight.phase==='unknown'&&
-          !window.confirm('发送结果可能已生效。请先检查原对话。确定仍要删除这条消息吗？'))return;
-        engine.remove(id);
+          !window.confirm('发送结果可能已生效。请先检查原对话。确定仍要删除这条消息吗？'))return false;
+        return engine.remove(id);
       },
       pause(id){
-        if(!engine.pause(id))notify('此消息正在发送或状态未知，暂不能暂停');
+        const ok=engine.pause(id);
+        if(!ok)notify('此消息正在发送或状态未知，暂不能暂停');
+        return ok;
       },
       resume(id){
-        if(!engine.resume(id))notify('此消息正在发送或状态未知，暂不能恢复');
+        const ok=engine.resume(id);
+        if(!ok)notify('此消息正在发送或状态未知，暂不能恢复');
+        return ok;
       },
       sendNow(id){
         if(view?.hasRecovery()){
-          notify('请先复制未入队的原草稿，再强制发送');return;
+          notify('请先复制未入队的原草稿，再强制发送');return false;
         }
         const result=engine.requestNow(id);
         if(!result.ok)notify(result.reason||'当前状态不能强制发送');
+        return result.ok;
       }
     };
     view=createQueueView({owner,createPageUI,assets,engine,
       actions:Object.fromEntries(Object.entries(actions).map(([name,action])=>
         [name,(...args)=>{if(owner.active()&&!retireForLegacy())return action(...args);}] ))});
+    // The fixed remote adapter is in USER_SCRIPT, not the website's JS world.
+    remote=createSendQueueRemote({owner,site,engine,actions,retireForLegacy});
     // One managed capture listener follows React editor replacements. Intercept
     // only a plain Enter that the visible native controls prove cannot send.
     owner.on(document,'keydown',event=>{
