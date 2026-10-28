@@ -11,6 +11,9 @@
   const byId=id=>root.querySelector('#'+id);
   const memberCard=byId('ai-vip-member-card');
   const memberFacts=byId('ai-vip-member-facts');
+  const memberEmpty=byId('ai-vip-member-empty'),memberEmptyText=byId('ai-vip-member-empty-text');
+  const focusRedeem=byId('ai-vip-focus-redeem');
+  const activationHint=byId('ai-vip-activation-hint'),activationDetail=byId('ai-vip-activation-detail');
   const secondaryMetrics=byId('ai-vip-secondary-metrics');
   const historyDetails=byId('ai-vip-history-details');
   const redeemIntro=byId('ai-vip-redeem-intro');
@@ -60,7 +63,8 @@
     previewPanel,previewTitle,previewDescription,previewAccount,cancel,
     recoveryPanel,recoveryStatus,recoveryCheck,shop,shopStatus,
     metricLabel,meter,meterBar,redeemForm,codeClear,confirm,
-    memberCard,memberFacts,historyDetails,redeemIntro,redeemFine,
+    memberCard,memberFacts,memberEmpty,memberEmptyText,focusRedeem,activationHint,activationDetail,
+    historyDetails,redeemIntro,redeemFine,
     shopSection,proxySection,desktopSection,desktopOpen,desktopStatus]
       .some(element=>!element))return;
 
@@ -131,6 +135,8 @@
   const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
+  // Stale validated facts are display-only, not authority for new operations.
+  let memberVerifiedFresh=false,activationHintCode=null,activationSeen=null;
   let recoveryReady=false,busy=false,seq=0;
   let refreshProxyPresentation=()=>{};
   let developmentProfile=null,developmentRead=0,localMode=false,localConnecting=false;
@@ -257,7 +263,7 @@
   }
   async function requestSharedSession(){
     const selected=assignedShared();
-    if(!selected||busy||sharedBusy||cookieBusy||!endpoints||!cookieReady||(cookieFault&&!cookieFaultRecoverable)||
+    if(!selected||!memberVerifiedFresh||busy||sharedBusy||cookieBusy||!endpoints||!cookieReady||(cookieFault&&!cookieFaultRecoverable)||
       ['unknown','partial'].includes(cookieRecord?.state))return;
     if(cookieFaultRecoverable){cookieFault='';cookieFaultRecoverable=false;}
     const generation=++sharedGeneration,revision=serviceRevision,accountId=snapshot?.account.id;
@@ -551,6 +557,7 @@
     endpoints=development?LOCAL_ENDPOINTS:productionEndpoints;
     ++serviceRevision;++seq;
     snapshot=null;serverSampleAt=null;pending=null;code.value='';busy=false;
+    memberVerifiedFresh=false;activationHintCode=null;activationSeen=null;activationHint.hidden=true;
     cookiePending=null;renderCookies();
     renderBusinessConfiguration();
     renderLocalDevelopment();
@@ -761,7 +768,7 @@
     const primary=effective.find(e=>e.type==='time')||effective[0]||entitlements[0]||null;
     const view=account.state==='guest'?'guest':effective.length?'active':
       entitlements.length?'inactive':'empty';
-    memberCard.setAttribute('data-view',view);
+    memberCard.setAttribute('data-view',memberVerifiedFresh?view:'stale');
     const exhausted=entitlements.some(e=>e.status==='exhausted'||
       (['quota','credit'].includes(e.type)&&e.remaining===0));
     const expired=entitlements.some(e=>e.status==='expired'||
@@ -774,8 +781,12 @@
     accountName.textContent=account.state==='bound'?account.name:'尚未绑定会员账号';
     accountName.hidden=false;
     productName.textContent=primary?primary.title:
-      account.state==='guest'?'请先使用正式产品账号登录或绑定。':'可使用兑换码激活会员权益。';
+      account.state==='guest'?'请通过正式会员服务关联账号。':'当前没有可用会员权益。';
     productName.hidden=false;
+    memberEmpty.hidden=Boolean(primary);
+    memberEmptyText.textContent=account.state==='guest'?
+      '账号关联后可查看权益及兑换记录。':'目前没有已生效的会员权益。';
+    focusRedeem.hidden=account.state!=='bound'||!memberVerifiedFresh;
     memberFacts.hidden=!primary||account.state!=='bound';
     memberFacts.setAttribute('data-kind',primary?.type||'none');
     meter.hidden=true;meterBar.style.width='0%';
@@ -827,21 +838,27 @@
       dateLabel(item.at)+' · '+(item.status==='redeemed'?'已兑换':'已撤销')+
       (item.masked?' · '+item.masked:'')));
     refresh.hidden=false;refresh.disabled=false;
+    if(!memberVerifiedFresh){
+      memberState.textContent='查询失败';memberState.setAttribute('data-tone','warn');
+      productName.textContent=(primary?'上次核验：'+primary.title:'上次查询到的会员账号')+' · 当前状态待核验';
+      focusRedeem.hidden=true;verified.hidden=false;
+      verified.textContent='上次服务端核验 · '+dateLabel(serverNow)+'（当前状态待核验）';
+    }
     if(recovery&&account.id!==recovery.accountId)
       redeemNotice('当前账号与未确认兑换归属不同。请切回原账号核对，不会继承权益。',true);
     else if(!busy&&!recovery&&!recoveryFault){
       if(account.state==='guest')redeemNotice('登录并绑定账号后可使用兑换码。');
-      else if(/服务未配置|服务接入后|核验中|会员无法核验|兑换已暂停/.test(redeemStatus.textContent))
+      else if(memberVerifiedFresh&&/服务未配置|服务接入后|核验中|会员无法核验|兑换已暂停/.test(redeemStatus.textContent))
         redeemNotice('输入兑换码并预检，确认后再领取。');
     }
     renderRedeem();
   }
   function renderRedeem(){
-    const accountReady=Boolean(endpoints)&&snapshot?.account.state==='bound';
+    const accountReady=memberVerifiedFresh&&Boolean(endpoints)&&snapshot?.account.state==='bound';
     const locked=Boolean(recovery||recoveryFault);
     const allowed=accountReady&&!busy&&!cookieBusy&&cookieReady&&!cookieFault&&recoveryReady&&!locked&&
       !['unknown','partial'].includes(cookieRecord?.state);
-    const showForm=accountReady&&!locked;
+    const showForm=!locked; // Disabled input remains visible in empty states.
     redeemForm.hidden=!showForm;
     // The live redeem-status below the form owns the single instructional line.
     // Keep legacy nodes inert for test/recovery compatibility, with no spacing.
@@ -853,6 +870,7 @@
     redeem.textContent=busy?'正在处理…':'预检激活';
     confirm.disabled=!allowed||!pending;
     previewPanel.hidden=!pending;
+    activationHint.hidden=!activationHintCode||Boolean(pending)||!memberVerifiedFresh;
     cancel.hidden=!pending;
     cancel.disabled=busy;
     codeClear.disabled=code.disabled||!code.value;
@@ -903,6 +921,7 @@
     const floor=snapshot&&serverSampleAt!==null?
       snapshot.serverNow+Math.max(0,performance.now()-serverSampleAt):data.serverNow;
     snapshot={...data,serverNow:Math.max(data.serverNow,floor)};
+    memberVerifiedFresh=true;
     if(cookiePending?.accountId!==data.account.id)cookiePending=null;
     serverSampleAt=performance.now();
     if(pending&&pending.accountId!==data.account.id){
@@ -914,14 +933,17 @@
   async function refreshMember(){
     if(!endpoints||busy)return;
     const current=++seq;
-    busy=true;refresh.disabled=true;
-    memberCard.setAttribute('data-view','loading');
-    memberState.textContent='核验中';
-    accountName.textContent='正在读取会员信息';
-    accountName.hidden=false;
-    productName.textContent='';productName.hidden=true;
-    memberFacts.hidden=true;verified.hidden=true;
-    secondaryMetrics.hidden=true;historyDetails.hidden=true;
+    const hadPrevious=Boolean(snapshot);
+    busy=true;memberVerifiedFresh=false;refresh.disabled=true;
+    memberCard.setAttribute('data-view','loading');memberState.textContent='核验中';
+    if(!hadPrevious){
+      accountName.textContent='正在读取会员信息';accountName.hidden=false;
+      productName.textContent='';productName.hidden=true;
+      memberFacts.hidden=true;verified.hidden=true;
+      secondaryMetrics.hidden=true;historyDetails.hidden=true;memberEmpty.hidden=true;
+    }else{
+      productName.textContent='正在更新上次已核验信息…';productName.hidden=false;
+    }
     renderRedeem();
     try{
       const data=verifiedMember(await businessRequest('GET',endpoints.member));
@@ -929,21 +951,24 @@
       acceptMemberSnapshot(data);
     }catch(error){
       if(current!==seq)return;
-      snapshot=null;serverSampleAt=null;
+      memberVerifiedFresh=false;
       invalidateShared();cookiePending=null;
-      pending=null;code.value='';
-      memberCard.setAttribute('data-view','failed');
-      memberState.textContent='无法核验';
-      memberState.setAttribute('data-tone','warn');
-      accountName.textContent='会员服务暂时不可用';
-      productName.textContent='请检查网络或权限，然后刷新重试。';
-      productName.hidden=false;
-      memberFacts.hidden=true;verified.hidden=true;
-      secondaryMetrics.hidden=true;historyDetails.hidden=true;
-      remaining.textContent='';unit.textContent='';expiry.textContent='';
-      meter.hidden=true;meterBar.style.width='0%';
-      meter.removeAttribute('aria-valuenow');
-      secondaryMetrics.textContent='';clear(history);historyCount.textContent='';
+      pending=null;code.value='';activationHintCode=null;activationHint.hidden=true;
+      if(snapshot){
+        renderMember(); // stale last-validated server data, never action authorization
+      }else{
+        memberCard.setAttribute('data-view','failed');
+        memberState.textContent='无法核验';memberState.setAttribute('data-tone','warn');
+        accountName.textContent='会员信息暂不可用';
+        productName.textContent='会员服务连接异常，请检查网络后重试。';
+        productName.hidden=false;memberEmpty.hidden=false;
+        memberEmptyText.textContent='目前无法判断会员是否有效，未将它视为未激活或已到期。';
+        focusRedeem.hidden=true;memberFacts.hidden=true;verified.hidden=true;
+        secondaryMetrics.hidden=true;historyDetails.hidden=true;
+        remaining.textContent='';unit.textContent='';expiry.textContent='';
+        meter.hidden=true;meterBar.style.width='0%';meter.removeAttribute('aria-valuenow');
+        secondaryMetrics.textContent='';clear(history);historyCount.textContent='';
+      }
       if(recovery)redeemNotice('会员身份暂无法核验，上次兑换仍待核对；不可再次提交。',true);
       else if(redeemStatus.textContent.includes('服务端已确认兑换成功'))
         redeemNotice('服务端已确认兑换成功，但权益刷新失败；请稍后刷新查看最新数据。');
@@ -985,7 +1010,7 @@
   }
   // Both entry points use this private flow. URL input never fabricates a trusted event.
   async function runActivation(value,automatic=false,urlCode=value){
-    if(busy||cookieBusy||!cookieReady||cookieFault||!endpoints||!recoveryReady||
+    if(busy||cookieBusy||!memberVerifiedFresh||!cookieReady||cookieFault||!endpoints||!recoveryReady||
       recovery||recoveryFault||['unknown','partial'].includes(cookieRecord?.state)||snapshot?.account.state!=='bound')return;
     if(!pending){
       if(!/^[A-Za-z0-9._-]{6,120}$/.test(value))return;
@@ -1062,7 +1087,7 @@
       const result=await businessRequest('POST',endpoints.voucherRedeem,{
         previewId,accountId,idempotencyKey:key});
       validateReceipt(result,key);
-      pending=null;code.value='';
+      pending=null;code.value='';activationHintCode=null;activationHint.hidden=true;
       // Valid receipt is authoritative; failed journal clearing keeps a lock.
       await clearRecovered(key);
       cookiePending=null;cookieFault='';
@@ -1126,13 +1151,21 @@
   refresh.addEventListener('click',event=>{
     if(event?.isTrusted===true)void refreshMember();
   });
+  focusRedeem.addEventListener('click',event=>{
+    if(event?.isTrusted!==true||code.disabled)return;
+    redeemForm.scrollIntoView?.({block:'nearest',behavior:'smooth'});
+    code.focus?.({preventScroll:true});
+  });
   code.addEventListener('input',()=>{
+    if(activationHintCode&&code.value.trim()!==activationHintCode){
+      activationHintCode=null;activationHint.hidden=true;
+    }
     redeemNotice('兑换内容需先由服务端预检，确认后才会提交。');
     renderRedeem();
   });
   codeClear.addEventListener('click',event=>{
     if(event?.isTrusted!==true||code.disabled)return;
-    code.value='';
+    code.value='';activationHintCode=null;activationHint.hidden=true;
     redeemNotice('兑换码已清空，尚未提交。');
     renderRedeem();
     code.focus?.();
@@ -1156,7 +1189,7 @@
   recoveryCheck.addEventListener('click',event=>{void checkRecoveryClick(event);});
   function cancelPendingPreview(){
     if(busy||!pending)return;
-    pending=null;code.value='';
+    pending=null;code.value='';activationHintCode=null;activationHint.hidden=true;
     redeemNotice('已取消本次预检，未提交任何兑换。');
     renderRedeem();
     code.focus?.({preventScroll:true});
@@ -1212,24 +1245,30 @@
     return revision===serviceRevision;
   }
   async function checkActivationPage(){
-    if(urlChecking||busy||cookieBusy||sharedBusy||pending||cookiePending||!endpoints||
-      !recoveryReady||recovery||recoveryFault||!cookieReady||cookieFault||
-      ['unknown','partial'].includes(cookieRecord?.state)||snapshot?.account.state!=='bound')return;
-    urlChecking=true;
-    const revision=serviceRevision;
+    if(urlChecking||busy||cookieBusy||sharedBusy||pending||cookiePending||
+      !memberVerifiedFresh||!endpoints||!recoveryReady||recovery||recoveryFault||
+      !cookieReady||cookieFault||['unknown','partial'].includes(cookieRecord?.state)||
+      snapshot?.account.state!=='bound')return;
+    urlChecking=true;const revision=serviceRevision;
     try{
       const info=await storeRequest('currentPage.info');
-      if(revision!==serviceRevision)return;
-      const value=activationCodeFromPage(info);
-      if(!value||!await claimActivation(value,revision))return;
-      // Metadata can change while the recovery claim is being saved.
-      const latest=await storeRequest('currentPage.info');
-      if(revision!==serviceRevision||activationCodeFromPage(latest)!==value||busy||cookieBusy||pending)return;
-      redeemNotice('已识别允许网站的激活参数，正在请求服务器分配账号…');
-      await runActivation(value,true);
-    }catch{
-      redeemNotice('自动激活尚未完成；请核对网络、当前网页读取权限和恢复记录。未确认的操作不会自动重试。',true);
-    }finally{urlChecking=false;}
+      if(revision!==serviceRevision||!memberVerifiedFresh)return;
+      const value=activationCodeFromPage(info); // exact Host-verified origin and route
+      if(!value){
+        if(activationHintCode){
+          if(code.value===activationHintCode)code.value='';
+          activationHintCode=null;activationHint.hidden=true;renderRedeem();
+        }
+        activationSeen=null;return;
+      }
+      if(value===activationSeen)return;
+      activationSeen=value;activationHintCode=value;code.value=value;
+      activationDetail.textContent='已批准来源的激活码 '+value.slice(0,3)+'****'+value.slice(-2)+
+        ' 已带入；请预检并确认，不会自动领取。';
+      redeemNotice('激活链接已识别。请预检并确认，不会自动领取。');
+      renderRedeem();
+    }catch{/* No page permission never issues a voucher POST. */}
+    finally{urlChecking=false;}
   }
   const shopSdk=window.OpenDeskSDK?.browser?.tabs;
   shopSection.hidden=false;
@@ -1286,7 +1325,7 @@
       typeof APPROVED_PROXY_ENDPOINT.host==='string'&&
       Number.isSafeInteger(APPROVED_PROXY_ENDPOINT.port)?APPROVED_PROXY_ENDPOINT:null;
     const safeEndpoint=()=>localMode&&developmentProfile?developmentProfile.endpoint:approvedEndpoint;
-    const hasEntitlement=()=>Boolean(endpoints&&snapshot&&estimatedServerNow()!==null&&
+    const hasEntitlement=()=>Boolean(memberVerifiedFresh&&endpoints&&snapshot&&estimatedServerNow()!==null&&
       snapshot.account?.state==='bound'&&(localMode?
         snapshot.redemptions.some(row=>row.status==='redeemed')&&snapshot.entitlements.some(row=>
           row.type==='feature'&&row.featureId==='local-managed-proxy'&&row.status==='active'):
@@ -1300,17 +1339,22 @@
     const released=state=>validState(state)&&state.state==='disabled'&&
       state.canStop===false&&state.permission===true&&state.control==='controllable_by_this_extension';
     const canStop=()=>stopRequired||starting||current?.canStop===true;
+    const needsNativePermission=()=>validState(current)&&current.state==='disabled'&&
+      current.permission===false&&current.canStop===false&&
+      current.control==='controllable_by_this_extension';
     localSwitchBlocked=()=>canStop()||stopping;
     const paint=()=>{
       const stop=canStop();
       const ready=!stop&&!starting&&!stopping&&!reading&&
-        typeof sdk?.requestEnable==='function'&&safeEndpoint()&&hasEntitlement()&&released(current);
+        typeof sdk?.requestEnable==='function'&&safeEndpoint()&&hasEntitlement()&&
+        (released(current)||needsNativePermission());
       const controlIssue=stopRequired||['conflict','unavailable'].includes(current?.state)||
         Boolean(notice&&stop);
       status.textContent=stopping?'正在停用':starting?'启用待确认':
-        stopRequired?'停用待确认':!sdk?'不可用':
+        stopRequired||current?.reason==='E_STOP_PENDING'?'停用待确认':!sdk?'不可用':
         notice&&!current?'状态异常':!current?'检测中':
-        current.state==='disabled'?(stopConfirmed&&released(current)?'已停止':'未启用'):
+        current.state==='disabled'?(current.permission===false?'未授权':
+          stopConfirmed&&released(current)?'已停止':'未启用'):
         ({enabled:'已启用',conflict:'控制权冲突',unavailable:'状态异常'})[current.state];
       toggle.setAttribute('data-action',stop?'stop':'start');
       toggle.classList.toggle('od-button--secondary',stop);
@@ -1335,6 +1379,7 @@
       else if(!safeEndpoint())detail.textContent='代理服务尚未接入，暂不能启用。';
       else if(!hasEntitlement())detail.textContent=localMode?
         '请先完成会员激活，取得网站访问权益。':'需要经过服务端核验的有效会员权益。';
+      else if(needsNativePermission())detail.textContent='尚未授予浏览器代理权限；点击启用时由 Chrome 按需请求授权。';
       else if(!current)detail.textContent='正在检测浏览器代理状态。';
       else detail.textContent='启用后可访问已批准的 AI 网站。';
       renderLocalDevelopment();
@@ -1373,7 +1418,7 @@
     refreshDevelopmentAvailability=update;
     async function start(){
       if(starting||stopping||reading||canStop()||!safeEndpoint()||!hasEntitlement()||
-        !released(current)||typeof sdk?.requestEnable!=='function')return;
+        (!released(current)&&!needsNativePermission())||typeof sdk?.requestEnable!=='function')return;
       const token=++operation;++readSequence;reading=false;
       starting=true;stopRequired=true;stopConfirmed=false;notice='启用请求在途，仍可主动请求 STOP。';paint();
       try{
@@ -1423,12 +1468,14 @@
     memberCard.setAttribute('data-view','unconfigured');
     memberState.textContent='服务未配置';
     memberState.setAttribute('data-tone','neutral');
-    accountName.textContent='暂无法查询账号与会员权益';
+    accountName.textContent='会员信息暂不可用';
     accountName.hidden=false;
-    productName.textContent='';productName.hidden=true;
-    memberFacts.hidden=true;verified.hidden=true;
+    productName.textContent='正式会员服务尚未接入';productName.hidden=false;
+    memberEmpty.hidden=false;
+    memberEmptyText.textContent='这并不表示会员未激活或已到期。服务接入后才能查询真实状态。';
+    focusRedeem.hidden=true;memberFacts.hidden=true;verified.hidden=true;
     secondaryMetrics.hidden=true;historyDetails.hidden=true;
-    redeemNotice('会员服务接入后可使用兑换码。');
+    redeemNotice('会员服务尚未接入，当前无法预检或兑换。');
     refresh.hidden=true;refresh.disabled=true;
     }else{
     refresh.hidden=false;
