@@ -376,7 +376,7 @@ async function attachPanelPreview(windowId){
   const key=panelPreviewStorageKey(windowId);
   panelPreviewKey=key;
   const read=async()=>{
-    const ticket=++panelPreviewEpoch;
+    let ticket=++panelPreviewEpoch;
     try{
       if(shellClosed||!verifiedSidePanel)return;
       // The same extension document may run in other windows. Revalidate
@@ -399,6 +399,7 @@ async function attachPanelPreview(windowId){
         return;
       }
       detachPanelPreview({clearTab:false});
+      ticket=panelPreviewEpoch;
       panelPreviewId=pointer.previewId;
       extensionList.setAppDebugEnabled(true);
       // Switch through TaskWorkbench's existing navigation/draft veto. A
