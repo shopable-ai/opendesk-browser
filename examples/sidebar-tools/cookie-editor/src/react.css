@@ -802,3 +802,33 @@
  .cookie-editor-react .cookie-expiration-compact{padding:var(--space-2)}
  .cookie-editor-react .cookie-expiration-mode{grid-template-columns:minmax(0,1fr) minmax(0,130px)}
 }
+
+
+/* R2.6 account form and verified quick-update parity; shared tokens only. */
+.cookie-editor-react .cookie-account-form-header{margin-bottom:12px}
+.cookie-editor-react .cookie-account-form-header h2{margin:0;min-width:0;flex:1}
+.cookie-editor-react .cookie-account-form-header .od-icon-button{flex:none}
+.cookie-editor-react .cookie-account-scope{
+  display:grid;gap:7px;min-width:0;padding:10px;
+  border:1px solid var(--od-line);border-radius:9px;background:var(--od-paper)
+}
+.cookie-editor-react .cookie-account-scope>strong{font-size:var(--od-note-size);line-height:1.5}
+.cookie-editor-react .cookie-account-scope>small{font-size:var(--od-meta-size);color:var(--od-sub);line-height:1.55}
+.cookie-editor-react .cookie-account-scope details{min-width:0;border-top:1px solid var(--od-line);padding-top:7px}
+.cookie-editor-react .cookie-account-scope summary{cursor:pointer;font-size:var(--od-note-size);line-height:1.5}
+.cookie-editor-react .cookie-account-scope ul{
+  list-style:none;margin:7px 0 0;padding:0;max-height:180px;overflow:auto;
+  display:grid;gap:0;min-width:0
+}
+.cookie-editor-react .cookie-account-scope li{
+  display:grid;gap:2px;min-width:0;padding:7px 0;
+  border-bottom:1px solid var(--od-line);font-size:var(--od-meta-size);
+  overflow-wrap:anywhere
+}
+.cookie-editor-react .cookie-account-scope li:last-child{border:0}
+.cookie-editor-react .cookie-account-scope li strong{font-weight:650;min-width:0}
+.cookie-editor-react .cookie-account-scope li small{overflow-wrap:anywhere;min-width:0}
+.cookie-editor-react .cookie-account-card.is-just-saved{
+  outline:2px solid var(--od-cookie-brand-ink);outline-offset:-2px;
+  border-radius:7px
+}
