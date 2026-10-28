@@ -11,6 +11,9 @@ on:
       - 'examples/sidebar-tools/ai-send-queue/package.json'
       - 'official-pages/sources.json'
       - 'src/platform/host/send-queue-admission.js'
+      - 'src/ui/trusted-bookmark-admission.js'
+      - 'wxt.config.mjs'
+      - 'tests/environment/bookmark-manager-r306-trusted-react.test.mjs'
       - '.github/workflows/send-queue-production-r55.yml'
   workflow_dispatch:
 permissions:
@@ -121,6 +124,8 @@ jobs:
           node scripts/build-stay-focus-react.mjs
           node scripts/build-cookie-editor-react.mjs
           npm --prefix examples/sidebar-tools/ai-vip-share run build
+      - name: Guard original fixed Host provenance and source-version injection
+        run: node --test tests/environment/bookmark-manager-r306-trusted-react.test.mjs tests/environment/bundle-provenance.test.mjs
       - name: Build original OpenDesk MV3 extension (no alternate Host)
         run: |
           npm run build:dev

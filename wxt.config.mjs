@@ -20,6 +20,12 @@ const aiLocalTest=process.env.OPENDESK_BUILD_MODE==='development'&&process.env.O
 const aiLocalPackageHash=aiLocalTest?await sidebarToolPackageHash(
   await createSidebarToolPackage(resolve('examples/sidebar-tools/ai-vip-share'))):null;
 const schemaSpecializer=createSchemaSpecializer(protocolSchema);
+// Build-time metadata only: the Bookmark config JSON must never be imported
+// into the fixed Sidebar Host's runtime module graph.
+const trustedBookmarkVersion=JSON.parse(readFileSync(
+  new URL('./examples/sidebar-tools/bookmark-manager/tool.config.json',import.meta.url),'utf8')).version;
+if(typeof trustedBookmarkVersion!=='string'||!/^\d+\.\d+\.\d+$/.test(trustedBookmarkVersion))
+  throw Error('Invalid trusted Bookmark Manager source version');
 const manifest = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8'));
 delete manifest.manifest_version;
 delete manifest.background; // Generated from the actual WXT background entry.
@@ -34,7 +40,7 @@ export default defineConfig({
   webExt: {disabled: true},
   dev: {reloadCommand: false, server: {host:'127.0.0.1',port:outputGuardPort(process.env.OPENDESK_DEV_PORT??43119)}},
   manifest: structuredClone(manifest),
-  vite: () => ({resolve:{dedupe:['react','react-dom']},define:{__OPENDESK_MARKET_ORIGIN__:JSON.stringify(resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||'production'}).origin),__OPENDESK_AI_LOCAL_TEST__:JSON.stringify(aiLocalTest),__OPENDESK_AI_LOCAL_PACKAGE_HASH__:JSON.stringify(aiLocalPackageHash),__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer')},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
+  vite: () => ({resolve:{dedupe:['react','react-dom']},define:{__OPENDESK_MARKET_ORIGIN__:JSON.stringify(resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||'production'}).origin),__OPENDESK_AI_LOCAL_TEST__:JSON.stringify(aiLocalTest),__OPENDESK_AI_LOCAL_PACKAGE_HASH__:JSON.stringify(aiLocalPackageHash),__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer'),__OPENDESK_TRUSTED_BOOKMARK_VERSION__:JSON.stringify(trustedBookmarkVersion)},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
     'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},
