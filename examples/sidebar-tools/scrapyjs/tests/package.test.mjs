@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {checkSidebarToolProjectPackage} from '../../../../scripts/build-sidebar-tool.mjs';
+import {checkSidebarToolProjectPackage,createSidebarToolPackage,encodeSidebarToolPackage} from '../../../../scripts/build-sidebar-tool.mjs';
 const tool=new URL('../',import.meta.url);
 const sha=x=>createHash('sha256').update(x).digest('hex');
 test('single promoted App is reproducible and delegates only to the shipped fixed Task revision',async()=>{
-  const checked=await checkSidebarToolProjectPackage(tool.pathname);
-  assert.equal(checked.status,'PROJECT_PACKAGE_MATCH');
-  const app=JSON.parse(await readFile(new URL('scrapyjs.opendesk-tool.json',tool)));
+  const candidate=process.env.SCRAPYJS_CANDIDATE;
+  if(candidate)assert.equal(sha(await readFile(candidate)),sha(encodeSidebarToolPackage(await createSidebarToolPackage(tool.pathname))));
+  else assert.equal((await checkSidebarToolProjectPackage(tool.pathname)).status,'PROJECT_PACKAGE_MATCH');
+  const app=JSON.parse(await readFile(candidate || new URL('scrapyjs.opendesk-tool.json',tool)));
   const task=JSON.parse(await readFile(new URL('controller/scrapyjs.opendesk-task.json',tool)));
   assert.deepEqual(task.manifest.siteOrigins,['http://127.0.0.1:43111']);
   assert.deepEqual(task.manifest.permissions,['page.automation']);

@@ -7,7 +7,25 @@
     <p id="target-help" class="secondary">仅允许当前可信目标同源 URL，导航还需任务 siteOrigins 批准。</p>
   </section>
   <section aria-labelledby="config-heading">
-    <div class="toolbar"><h2 id="config-heading">采集配置</h2><button id="save-config" type="button">保存配置</button></div>
+    <div class="toolbar"><h2 id="config-heading">采集配置</h2><button id="new-profile" type="button">新建配置</button></div>
+    <div id="profile-list" class="toolbar" role="group" aria-label="已保存配置"></div>
+    <p id="profile-current" role="status" tabindex="-1">未保存配置</p>
+    <div class="toolbar">
+      <button id="save-config" type="button">保存配置</button>
+      <button id="copy-profile" type="button">另存为 / 复制</button>
+      <button id="rename-profile" type="button">重命名</button>
+      <button id="delete-profile" type="button">删除配置</button>
+    </div>
+    <div id="profile-naming" role="group" aria-labelledby="profile-name-heading" hidden>
+      <label id="profile-name-heading" for="profile-name">配置名称</label>
+      <input id="profile-name" type="text" autocomplete="off" maxlength="120" aria-describedby="profile-name-error">
+      <p id="profile-name-error" role="alert" hidden></p>
+      <div class="toolbar"><button id="profile-name-submit" type="button">保存名称</button><button id="profile-name-cancel" type="button">取消</button></div>
+    </div>
+    <div id="profile-confirm" role="group" aria-labelledby="profile-confirm-text" hidden>
+      <p id="profile-confirm-text"></p>
+      <div class="toolbar"><button id="profile-confirm-accept" type="button">确认</button><button id="profile-confirm-cancel" type="button">取消</button></div>
+    </div>
     <details id="field-editor">
       <summary>字段与属性</summary>
       <label for="list-container">列表容器选择器</label><input id="list-container" type="text">
@@ -37,7 +55,7 @@
     <p id="config-help" class="secondary">字段支持文本与属性；分页可选 nextPageSelector、maxPages、dedupeKey，详情用 detail；校验与处理可在 JSON 中配置。_listContainer / _listItem 定义列表；.::text 读取当前项文本。itemConfig 序列化后最多 4096 字节。</p>
     <p id="config-error" role="alert" hidden></p>
     <div id="conflict" hidden>
-      <p>保存版本与草稿冲突。草稿仍保留，请先复制需要的内容再选择。</p>
+      <p>存储尚未就绪或版本冲突。当前草稿仍保留；替换将采用远端的完整配置列表，请先复制需要的草稿。</p>
       <button id="load-config" type="button">读取保存版本</button>
       <button id="use-saved" type="button" hidden>用保存版本替换草稿</button>
     </div>
@@ -45,6 +63,7 @@
   </section>
   <section aria-labelledby="result-heading">
     <div class="toolbar"><h2 id="result-heading">运行结果</h2><button id="refresh-run" type="button">刷新状态</button></div>
+    <p id="run-profile" class="secondary">尚无运行</p>
     <dl class="status-grid" aria-live="polite">
       <dt>宿主</dt><dd id="host-status">尚未连接</dd>
       <dt>引擎</dt><dd id="engine-status">尚未运行</dd>

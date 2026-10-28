@@ -31,6 +31,7 @@
       stop: async clientRequestId => project(await request('tasks.stop', {clientRequestId})),
       load: () => request('storage.get', {key: STORAGE_KEY, withEtag: true}),
       async save(value, etag) {
+        if (!(etag === null || typeof etag === 'string')) throw new Error('缺少 ETag，禁止无条件保存');
         if (bytes(JSON.stringify(value)) > 8192) throw new Error('配置超过 8192 字节，未保存');
         const result = await request('storage.set', {key: STORAGE_KEY, value, ifMatch: etag});
         if (result?.saved !== true) throw new Error('保存结果未知，请保留草稿并重新读取');

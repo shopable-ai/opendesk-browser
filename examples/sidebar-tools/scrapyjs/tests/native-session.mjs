@@ -1,7 +1,7 @@
 // Real CDP transport for this lane's owned CFT only. Never connects to an existing profile.
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {readFile,writeFile,mkdir,mkdtemp,readdir,lstat,cp} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,mkdtemp,readdir,lstat,cp,realpath,readlink} from 'node:fs/promises';
 import {resolve,join,relative,sep} from 'node:path';
 import {createHash} from 'node:crypto';
 import {WebSocket} from 'ws';
@@ -12,22 +12,40 @@ export async function until(fn,label,ms=20000) {
   while(Date.now()<end){try{const value=await fn();if(value)return value;}catch(e){last=e;}await pause(100);}
   throw Error(label+' timed out'+(last?' :: '+last.message:''));
 }
-export async function treeIdentity(root) {
+export async function treeIdentity(root,excluded=new Set()) {
   const rows=[];
   async function walk(dir){for(const name of (await readdir(dir)).sort()){
-    const file=join(dir,name),st=await lstat(file);
+    const file=join(dir,name);if(excluded.has(relative(root,file)))continue;const st=await lstat(file);
     assert(!st.isSymbolicLink(),'Snapshot refuses symlinks: '+file);
     if(st.isDirectory())await walk(file);else if(st.isFile())rows.push([relative(root,file),sha(await readFile(file))]);
   }}
   await walk(root);return {sha256:sha(JSON.stringify(rows)),files:rows};
 }
-export async function launchOwned({root,out,binary,extension=join(root,'dist/development')}) {
+export async function launchOwned({root,out,binary,extension=join(root,'dist/development'),seedProfile}) {
   const outputRoot=resolve(root,'artifacts/scrapyjs');
   assert(resolve(out).startsWith(outputRoot+sep),'Evidence must stay in artifacts/scrapyjs');
   await mkdir(out,{recursive:true});
+  assert((await realpath(out)).startsWith((await realpath(outputRoot))+sep),'Evidence cannot escape artifacts/scrapyjs via a symlink');
   const owned=await mkdtemp(join(out,'cft-'));
   const snapshot=join(owned,'extension'),profile=join(owned,'profile');
-  await mkdir(profile,{mode:0o700});
+  let seedIdentity;
+  if(seedProfile){
+    const allowed=await realpath(outputRoot),source=await realpath(resolve(seedProfile));
+    assert(source.startsWith(allowed+sep),'Seed Profile must stay strictly inside artifacts/scrapyjs');
+    assert(!resolve(out).startsWith(source+sep),'Output must not be inside the seed Profile');
+    // Only closed, task-owned profiles may be cloned. Never follow Chrome singleton links.
+    const skip=new Set(['SingletonLock','SingletonSocket','SingletonCookie','DevToolsActivePort','RunningChromeVersion']);
+    try{
+      const lock=await readlink(join(source,'SingletonLock')),pid=Number(lock.match(/-(\d+)$/)?.[1]);
+      assert(Number.isSafeInteger(pid)&&pid>0,'Cannot establish seed lock owner');
+      try{process.kill(pid,0);assert.fail('Seed Profile owner is still alive: '+pid);}catch(error){if(error.code!=='ESRCH')throw error;}
+    }catch(error){if(error.code!=='ENOENT')throw error;}
+    seedIdentity=await treeIdentity(source,skip);
+    await cp(source,profile,{recursive:true,errorOnExist:true,force:false,filter:file=>!skip.has(relative(source,file))});
+    assert.equal((await treeIdentity(source,skip)).sha256,seedIdentity.sha256,'Seed Profile changed while copying');
+    assert.equal((await treeIdentity(profile)).sha256,seedIdentity.sha256,'Copied seed bytes must match');
+    seedIdentity={path:source,...seedIdentity};
+  }else await mkdir(profile,{mode:0o700});
   // A stable partial directory during a watcher publication is not a runnable extension.
   await until(async()=>{
     const manifest=JSON.parse(await readFile(join(extension,'manifest.json'),'utf8'));
@@ -40,14 +58,18 @@ export async function launchOwned({root,out,binary,extension=join(root,'dist/dev
   assert.equal(before.sha256,after.sha256,'Watcher changed input while copying; never run a mixed snapshot');
   assert.equal(copy.sha256,before.sha256);
   await writeFile(join(owned,'input-identity.json'),JSON.stringify({extension,before},null,2));
+  // Path-derived unpacked IDs must survive seeded runs. The source is an immutable
+  // task-owned artifacts snapshot; retain a byte-identical evidence copy in this run.
+  const loadedExtension=seedProfile?await realpath(extension):snapshot;
+  if(seedProfile)assert(loadedExtension.startsWith((await realpath(outputRoot))+sep),'Seeded extension must be an artifacts/scrapyjs snapshot');
   const args=['--headless=new','--no-first-run','--no-default-browser-check','--use-mock-keychain',
     '--password-store=basic','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
-    '--user-data-dir='+profile,'--disable-extensions-except='+snapshot,'--load-extension='+snapshot,'about:blank'];
+    '--user-data-dir='+profile,'--disable-extensions-except='+loadedExtension,'--load-extension='+loadedExtension,'about:blank'];
   const child=spawn(binary,args,{stdio:['ignore','ignore','pipe']});
   const errors=[];child.stderr.on('data',b=>errors.push(String(b)));let launchError;
   child.on('error',e=>{launchError=e;});
   let ws,seq=0;const pending=new Map(),events=[];
-  const metadata={pid:child.pid,profile,snapshot,binary,args,inputSha256:copy.sha256,owned};
+  const metadata={pid:child.pid,profile,snapshot,loadedExtension,binary,args,inputSha256:copy.sha256,owned,...(seedIdentity?{seedProfile:seedIdentity}:{})};
   async function close(){
     if(ws?.readyState===1){try{await call('Browser.close');}catch{}}
     ws?.close();

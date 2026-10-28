@@ -67,15 +67,79 @@
     if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error('请选择普通 HTTP(S) 当前网页');
     return url.href;
   }
+  const MAX_PROFILES = 10;
+  const storageBytes = value => new TextEncoder().encode(JSON.stringify(value)).byteLength;
+  function profileName(value) {
+    if (typeof value !== 'string') throw new Error('请填写配置名称');
+    const name = value.normalize('NFC').trim();
+    if (!name || Array.from(name).length > 60 || new TextEncoder().encode(name).byteLength > 180 || /[\u0000-\u001f\u007f]/.test(name))
+      throw new Error('配置名称需为 1–60 个字符、最多 180 UTF-8 字节，不能含控制字符');
+    return name;
+  }
+  function validateCatalog(value) {
+    if (!value || Array.isArray(value) || value.schemaVersion !== 1 ||
+        Object.keys(value).some(k => !['schemaVersion','selectedId','records'].includes(k)) ||
+        !Array.isArray(value.records) || value.records.length > MAX_PROFILES) throw new Error('配置记录格式无效，最多 10 份');
+    const ids = new Set(), names = new Set();
+    const records = value.records.map(row => {
+      if (!row || Array.isArray(row) || Object.keys(row).some(k => !['id','name','config'].includes(k)) ||
+          typeof row.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(row.id) || ids.has(row.id))
+        throw new Error('配置记录身份无效或重复');
+      const name = profileName(row.name), key = name.toLowerCase();
+      if (names.has(key)) throw new Error('已有同名配置，请使用不同名称');
+      ids.add(row.id); names.add(key);
+      return {id: row.id, name, config: validateConfig(row.config)};
+    });
+    if (records.length ? !ids.has(value.selectedId) : value.selectedId !== null) throw new Error('选中的配置记录不存在');
+    const catalog = {schemaVersion: 1, selectedId: value.selectedId, records};
+    if (storageBytes(catalog) > 8192) throw new Error('全部命名配置超过 8192 字节，未保存；请减少配置数量或内容');
+    return catalog;
+  }
+  function readCatalog(value) {
+    if (value == null) return {schemaVersion: 1, selectedId: null, records: []};
+    if (Object.hasOwn(value, 'schemaVersion')) return validateCatalog(value);
+    // Keep old single-config bytes untouched until an explicit conditional save.
+    return {schemaVersion: 1, selectedId: 'legacy-default', records: [{id: 'legacy-default', name: '默认配置', config: validateConfig(value)}]};
+  }
   function createApp(sdk, onChange = () => {}) {
     const state = {config: copy(DEFAULT_CONFIG), target: null, phase: 'idle', host: '尚未连接', engine: '尚未运行', runId: null,
       clientRequestId: null, result: null, snapshot: null, error: '', notice: '', stopRequested: false, stopAccepted: false, retired: false,
-      dirty: false, saving: false, storageReady: false, conflict: null};
+      dirty: false, saving: false, storageReady: false, conflict: null,
+      records: [], selectedId: null, profileEpoch: 0, pendingAction: null, runProfile: null};
     let etag, revision = 0, loadGeneration = 0, pageGeneration = 0, disposed = false, stopping = false, reading = false;
+    let catalog = readCatalog(null);
     const emit = () => { if (!disposed) onChange(state); };
     const active = () => Boolean(state.clientRequestId) && !state.retired;
-    function touch() {state.dirty = true; revision++; emit();}
-    function edit(value) {state.config = validateConfig(value); touch();}
+    const busy = () => state.saving || state.phase === 'starting' || state.phase === 'unknown' || active();
+    function touch() {
+      if (busy() || state.pendingAction || disposed) throw new Error('保存或运行期间不能修改配置');
+      state.dirty = true; revision++; emit();
+    }
+    function edit(value) {
+      if (busy() || state.pendingAction || disposed) throw new Error('保存或运行期间不能修改配置');
+      state.config = validateConfig(value); touch();
+    }
+    function clearRun() {
+      Object.assign(state, {runId: null, clientRequestId: null, result: null, snapshot: null, runProfile: null,
+        phase: 'idle', host: state.target ? '当前网页已连接' : '尚未连接', engine: '尚未运行', stopRequested: false, stopAccepted: false, retired: false});
+    }
+    function selectLocal(id, dirty = false) {
+      const row = catalog.records.find(row => row.id === id);
+      state.selectedId = row?.id ?? null; state.config = copy(row?.config ?? DEFAULT_CONFIG);
+      state.dirty = dirty; state.pendingAction = null; state.profileEpoch++; revision++;
+      clearRun();
+    }
+    function adopt(next) {
+      catalog = copy(next); state.records = copy(next.records); selectLocal(next.selectedId);
+      state.storageReady = true; state.conflict = null;
+    }
+    function writable() {
+      if (busy() || disposed || state.pendingAction) return false;
+      if (!state.storageReady || state.conflict) {
+        state.error = '请先读取保存版本，解决存储冲突后再保存或切换'; emit(); return false;
+      }
+      return true;
+    }
     async function refreshTarget() {
       const generation = ++pageGeneration;
       state.target = null; emit();
@@ -88,48 +152,110 @@
       } catch (error) {if (generation === pageGeneration) {state.target = null; state.host = error.message;}}
       emit();
     }
-    async function load({replace = false} = {}) {
+    async function load({preserve = false} = {}) {
+      if (busy() || disposed || state.pendingAction) return;
       const before = revision, generation = ++loadGeneration;
       try {
         const record = await sdk.load();
         if (disposed || generation !== loadGeneration) return;
-        if (!record || !Object.hasOwn(record, 'etag')) throw new Error('存储未返回 ETag，禁止覆盖');
-        const config = record.value == null ? copy(DEFAULT_CONFIG) : validateConfig(record.value);
-        if (before !== revision || (state.dirty && !replace)) {
-          state.conflict = {config, etag: record.etag}; state.notice = '已读到保存版本；草稿仍保留';
+        if (!record || !(record.etag === null || typeof record.etag === 'string')) throw new Error('存储未返回 ETag，禁止覆盖');
+        const saved = readCatalog(record.value);
+        if (preserve || busy() || before !== revision || state.dirty) {
+          state.conflict = {catalog: saved, config: copy(saved.records.find(row => row.id === saved.selectedId)?.config ?? DEFAULT_CONFIG), etag: record.etag};
+          state.notice = '已读到保存版本；草稿仍保留';
         } else {
-          etag = record.etag; state.config = config; state.dirty = false; state.conflict = null; state.storageReady = true;
+          etag = record.etag; adopt(saved); state.error = '';
           state.notice = '已读取保存配置';
         }
-      } catch (error) {state.error = error.message;}
+      } catch (error) {if (generation === loadGeneration && !disposed) {state.storageReady = false; state.error = error.message;}}
       emit();
     }
     function useSaved() {
-      if (!state.conflict) return;
-      state.config = state.conflict.config; etag = state.conflict.etag; state.conflict = null;
-      state.storageReady = true; state.dirty = false; revision++; emit();
+      if (!state.conflict || busy() || state.pendingAction || disposed) return;
+      if (state.dirty) {state.pendingAction = {type: 'saved'}; emit(); return;}
+      acceptSaved();
     }
-    async function save() {
-      if (state.saving) return;
+    function acceptSaved() {
+      const saved = state.conflict;
+      if (!saved) return;
+      etag = saved.etag; adopt(saved.catalog); state.error = ''; state.notice = '已读取保存配置'; emit();
+    }
+    async function commit(next, accepted, notice) {
+      if (!writable()) return false;
       state.error = ''; state.notice = '';
-      if (!state.storageReady || state.conflict) {state.error = '请先读取保存版本，解决存储冲突后再保存'; emit(); return;}
-      const before = revision, savedConfig = validateConfig(state.config);
+      try {next = validateCatalog(next);} catch (error) {state.error = error.message; emit(); return false;}
+      ++loadGeneration;
       state.saving = true; emit();
       try {
-        await sdk.save(savedConfig, etag);
+        await sdk.save(next, etag);
         // Verify the full value before accepting the readback ETag for the next CAS write.
         const record = await sdk.load();
-        if (!record || !Object.hasOwn(record, 'etag') || configValue(record.value) !== configValue(savedConfig)) {
-          state.storageReady = false; throw new Error('保存后版本已变化，请重新读取；草稿保留');
+        if (!record || !(record.etag === null || typeof record.etag === 'string') || configValue(record.value) !== configValue(next)) {
+          throw new Error('保存后版本已变化，请重新读取；草稿保留');
         }
+        if (disposed) return false;
+        catalog = next; state.records = copy(next.records);
         etag = record.etag;
-        if (before === revision) state.dirty = false;
-        state.notice = '配置已保存，可关闭后重开';
+        accepted(); state.notice = notice;
+        return true;
       } catch (error) {
         state.error = error.message; state.storageReady = false;
         // A conflict is never retried as an unconditional write.
-        await load();
+        state.saving = false;
+        await load({preserve: true});
+        return false;
       } finally {state.saving = false; emit();}
+    }
+    function nextRecord(name, id, config) {
+      const row = {id, name, config};
+      const records = catalog.records.some(row => row.id === id) ? catalog.records.map(saved => saved.id === id ? row : saved) : [...catalog.records, row];
+      return {schemaVersion: 1, selectedId: id, records};
+    }
+    async function save(name) {
+      if (!writable()) return false;
+      const current = catalog.records.find(row => row.id === state.selectedId);
+      return commit(nextRecord(current?.name ?? name ?? '默认配置', current?.id ?? crypto.randomUUID(), state.config), () => {
+        state.selectedId = catalog.selectedId; state.dirty = false; revision++;
+      }, '配置已保存，可关闭后重开');
+    }
+    async function copyProfile(name) {
+      if (!writable()) return false;
+      return commit(nextRecord(name, crypto.randomUUID(), state.config), () => selectLocal(catalog.selectedId), '配置已保存为独立副本');
+    }
+    async function renameProfile(name) {
+      if (!writable() || !state.selectedId) return false;
+      if (state.dirty) {state.error = '请先保存当前草稿，再重命名'; emit(); return false;}
+      const next = copy(catalog); next.records.find(row => row.id === state.selectedId).name = name;
+      return commit(next, () => {revision++;}, '配置已重命名');
+    }
+    async function performAction(action) {
+      if (action.type === 'saved') {acceptSaved(); return true;}
+      if (!writable()) return false;
+      if (action.type === 'new') {selectLocal(null, true); state.error = ''; state.notice = '新配置尚未保存，请编辑后命名保存'; emit(); return true;}
+      if (action.type === 'select') {
+        if (!catalog.records.some(row => row.id === action.id)) return false;
+        const next = {...copy(catalog), selectedId: action.id};
+        if (catalog.selectedId === action.id) {selectLocal(action.id); state.notice = '已切换配置'; emit(); return true;}
+        return commit(next, () => selectLocal(action.id), '已切换配置');
+      }
+      const records = catalog.records.filter(row => row.id !== action.id);
+      const next = {schemaVersion: 1, records, selectedId: records[0]?.id ?? null};
+      return commit(next, () => selectLocal(next.selectedId), '配置已删除');
+    }
+    function requestAction(action) {
+      if (!writable()) return false;
+      if (action.type === 'select' && state.selectedId === action.id) return false;
+      if (state.dirty || action.type === 'delete') {state.pendingAction = action; emit(); return false;}
+      return performAction(action);
+    }
+    const newProfile = () => requestAction({type: 'new'});
+    const selectProfile = id => requestAction({type: 'select', id});
+    const deleteProfile = () => state.selectedId ? requestAction({type: 'delete', id: state.selectedId}) : false;
+    function cancelAction() {state.pendingAction = null; emit();}
+    async function confirmAction() {
+      if (!state.pendingAction || busy() || disposed) return false;
+      const action = state.pendingAction; state.pendingAction = null;
+      return performAction(action);
     }
     function apply(snapshot) {
       if (!snapshot || snapshot.clientRequestId !== state.clientRequestId ||
@@ -168,13 +294,16 @@
       finally {stopping = false; emit();}
     }
     async function start(url) {
-      if (['starting', 'unknown'].includes(state.phase) || active() || disposed) return;
+      if (busy() || state.pendingAction || disposed) return;
       state.error = ''; state.notice = '';
       let sent = false;
       try {
         const config = validateConfig(state.config), expected = targetUrl(url);
         if (!state.target || new URL(expected).origin !== new URL(state.target.url).origin) throw new Error('目标 URL 必须与可信当前网页同源，请刷新当前网页');
         state.phase = 'starting'; state.stopRequested = false; state.stopAccepted = false;
+        // A read begun before this run must not clear its identity/result, even after retirement.
+        revision++;
+        state.runProfile = {id: state.selectedId, name: state.records.find(row => row.id === state.selectedId)?.name ?? '未保存配置'};
         state.retired = false; state.runId = null; state.clientRequestId = null; state.result = null; state.snapshot = null; state.engine = '等待引擎'; emit();
         await sdk.prepare();
         const generation = pageGeneration;
@@ -206,8 +335,9 @@
       } catch (error) {state.error = error.message;}
       emit();
     }
-    return {state, edit, touch, refreshTarget, load, useSaved, save, start, stop, refresh, download,
+    return {state, edit, touch, refreshTarget, load, useSaved, save, copyProfile, renameProfile, newProfile, selectProfile, deleteProfile,
+      cancelAction, confirmAction, start, stop, refresh, download,
       dispose() {disposed = true; pageGeneration++;}};
   }
-  globalThis.ScrapyAppModel = Object.freeze({createApp, validateConfig, DEFAULT_CONFIG});
+  globalThis.ScrapyAppModel = Object.freeze({createApp, validateConfig, validateCatalog, DEFAULT_CONFIG, MAX_PROFILES});
 })();

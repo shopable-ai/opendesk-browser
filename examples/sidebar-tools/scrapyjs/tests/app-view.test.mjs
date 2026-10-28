@@ -9,6 +9,7 @@ const scripts = await Promise.all(['../adapters/app-sdk.js','../src/app-model.js
 const settle = async () => {for(let i=0;i<20;i++) await Promise.resolve();};
 async function view(request) {
   const createNode=()=>({value:'',textContent:'',hidden:false,disabled:false,checked:false,children:[],
+    attributes:{},setAttribute(name,value){this.attributes[name]=value;},
     events:{},addEventListener(name,handler){this.events[name]=handler;},
     append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;}});
   const nodes = new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,createNode()]));
@@ -28,7 +29,8 @@ test('real UI preserves malformed draft during initial storage reply and protect
   resolve({value:null,etag:'a'}); await settle();
   assert.equal(editor.value,'{"unfinished'); assert.equal(v.state.dirty,true); assert.equal(v.nodes.get('start').disabled,true);
   assert.equal(v.nodes.get('use-saved').hidden,false);
-  v.nodes.get('use-saved').events.click(); assert.equal(v.nodes.get('start').disabled,false);assert.equal(v.state.dirty,false);
+  v.nodes.get('use-saved').events.click(); v.nodes.get('profile-confirm-accept').events.click();await settle();
+  assert.equal(v.nodes.get('start').disabled,false);assert.equal(v.state.dirty,false);
   v.close();assert.equal(v.interval,null);
 });
 test('UI stop before start receipt addresses same run and displays honest result/download states', async () => {
@@ -78,6 +80,55 @@ test('replacing a pending structured draft refreshes unchanged saved controls',a
   v.nodes.get('next-selector').value='a.next';v.nodes.get('next-selector').events.input();
   resolve({value:null,etag:'a'});await settle();
   v.nodes.get('use-saved').events.click();
+  v.nodes.get('profile-confirm-accept').events.click();await settle();
   assert.equal(v.nodes.get('next-selector').value,'');assert.equal(v.nodes.get('start').disabled,false);
   assert.equal(JSON.parse(v.nodes.get('config-json').value).nextPageSelector,undefined);v.close();
+});
+
+async function namedView(){
+  let row={value:{url:'http://127.0.0.1:43111/demo-form.html',itemConfig:{_listContainer:'#sample-list',_listItem:'li',a:'.::text'}},etag:'0'};
+  const writes=[];
+  const v=await view(async(op,payload)=>{
+    if(op==='storage.get')return JSON.parse(JSON.stringify(row));
+    if(op==='storage.set'){
+      assert.equal(payload.ifMatch,row.etag);writes.push(payload);
+      row={value:JSON.parse(JSON.stringify(payload.value)),etag:String(Number(row.etag)+1)};return {saved:true};
+    }
+    return {status:'available',url:'http://127.0.0.1:43111/demo-form.html',title:'Demo'};
+  });
+  return {...v, get state(){return v.state;},writes,get saved(){return row.value;}};
+}
+const press=async(v,id)=>{v.nodes.get(id).events.click();await settle();};
+const nameSubmit=async(v,name)=>{v.nodes.get('profile-name').value=name;await v.nodes.get('profile-name-submit').events.click();await settle();};
+test('named UI creates independent copies, rejects duplicate names and restores the selected JSON and controls',async()=>{
+  const v=await namedView();await press(v,'copy-profile');await nameSubmit(v,'B');
+  assert(v.nodes.get('profile-naming').hidden);assert.equal(v.saved.records.length,2);
+  const b={url:'http://127.0.0.1:43111/demo-form.html',itemConfig:{_listContainer:'#sample-list',_listItem:'li',b:'.::text'},nextPageSelector:'a.next',maxPages:3};
+  v.nodes.get('config-json').value=JSON.stringify(b);v.nodes.get('config-json').events.input();await press(v,'save-config');
+  const first=v.nodes.get('profile-list').children.find(n=>n.textContent==='默认配置');first.events.click();await settle();
+  assert.equal(v.nodes.get('next-selector').value,'');assert.equal(JSON.parse(v.nodes.get('config-json').value).itemConfig.a,'.::text');
+  v.nodes.get('profile-list').children.find(n=>n.textContent==='B').events.click();await settle();
+  assert.deepEqual(JSON.parse(v.nodes.get('config-json').value),b);assert.equal(v.nodes.get('next-selector').value,'a.next');
+  await press(v,'rename-profile');await nameSubmit(v,'默认配置');assert.match(v.nodes.get('profile-name-error').textContent,/同名/);
+  assert.equal(v.nodes.get('profile-naming').hidden,false);await nameSubmit(v,'B renamed');
+  assert.equal(v.saved.records[0].name,'默认配置');assert.equal(v.saved.records[1].name,'B renamed');
+  assert.equal(v.saved.records[0].config.itemConfig.a,'.::text');v.close();
+});
+test('invalid JSON and every unapplied editor survive cancelled switch/new/delete; accepting new resets all editors',async()=>{
+  const v=await namedView();await press(v,'copy-profile');await nameSubmit(v,'B');
+  const json=v.nodes.get('config-json');json.value='{"unfinished';json.events.input();
+  for(const action of [()=>v.nodes.get('profile-list').children[0].events.click(),()=>v.nodes.get('new-profile').events.click(),()=>v.nodes.get('delete-profile').events.click()]){
+    const selected=v.saved.selectedId;action();await settle();assert.equal(v.nodes.get('profile-confirm').hidden,false);
+    await press(v,'profile-confirm-cancel');assert.equal(json.value,'{"unfinished');assert.equal(v.saved.selectedId,selected);
+  }
+  await press(v,'new-profile');await press(v,'profile-confirm-accept');
+  await press(v,'save-config');await nameSubmit(v,'C');
+  for(const [id,value] of [['field-selector','a.pending'],['next-selector','a.next'],['detail-fields','{"unfinished']]){
+    v.nodes.get(id).value=value;v.nodes.get(id).events.input();
+    const original=json.value;await press(v,'delete-profile');await press(v,'profile-confirm-cancel');
+    assert.equal(v.nodes.get(id).value,value);assert.equal(json.value,original);assert.equal(v.nodes.get('save-config').disabled,true);
+  }
+  await press(v,'new-profile');await press(v,'profile-confirm-accept');
+  assert.equal(v.nodes.get('field-selector').value,'');assert.equal(v.nodes.get('next-selector').value,'');
+  assert.equal(v.nodes.get('detail-fields').value,'{}');assert.equal(v.nodes.get('start').disabled,false);v.close();
 });

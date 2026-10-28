@@ -1,0 +1,254 @@
+{
+  "format": "opendesk.scrapyjs.named-config-evidence.v1",
+  "phase": "CORE_DEVELOPMENT",
+  "scope": "Named App business configs; fixed Controller Task unchanged",
+  "appCandidate": {
+    "path": "artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json",
+    "bytes": 54020,
+    "sha256": "612d34f92ff03b739251469c80f750a5e78992ed42332836432a0cd4a22313ab",
+    "version": "1.2.0",
+    "taskPin": {
+      "taskId": "scrapyjs.capture",
+      "version": "0.2.1",
+      "manifestHash": "033617f17a27566f942ecfacf0adf7ed4a3e4878801e406bd10f4d8e6b9b71e6",
+      "contentHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
+    }
+  },
+  "taskPackage": {
+    "path": "examples/sidebar-tools/scrapyjs/controller/scrapyjs.opendesk-task.json",
+    "bytes": 1209125,
+    "sha256": "a2752fff2644679e9fd590044fb109ae4f040f4e6f8026ca049901ca65e600de"
+  },
+  "originalSdk": {
+    "path": "examples/sidebar-tools/scrapyjs/vendor/scrapyjs/browser.original.js",
+    "bytes": 1136734,
+    "sha256": "c7a266c1bd5f34ba5e5a85d163c0573fc1d5afb60c07d0ce46af8393e7ada4be"
+  },
+  "sourceSemantics": {
+    "path": "/Users/shopme/Documents/workspace/scrapyJsChrome/assets/js/ai/crawl-task-store.js",
+    "bytes": 5801,
+    "sha256": "1765dfee5b21362f4f1b4c03d42bdbedeb28d06486b32c1a4477fbc34756409e",
+    "ownership": "READ_ONLY",
+    "retained": "Independent record id/name/profile and persisted selected record",
+    "changes": "Existing SDK budget: reject rather than silently slice records or skip invalid saved content; no source tabId or automatic rebind"
+  },
+  "storage": {
+    "key": "capture-config",
+    "schemaVersion": 1,
+    "maxRecords": 10,
+    "maxTotalUtf8Bytes": 8192,
+    "legacyRead": "NO_WRITE",
+    "concurrency": "Single CAS envelope plus full readback verification; no unconditional retry"
+  },
+  "componentChecks": {
+    "status": "PASS",
+    "command": "SCRAPYJS_CANDIDATE=artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json node --test examples/sidebar-tools/scrapyjs/tests/{profiles,app-model,app-view,package}.test.mjs",
+    "tests": 36,
+    "failed": 0,
+    "scope": [
+      "legacy explicit migration",
+      "independent save/copy/rename/select/delete and reopen",
+      "dirty JSON/fields/pagination/detail cancellation",
+      "bounded names/count/aggregate bytes and corrupt saved records",
+      "ETag conflict/unknown write without replay",
+      "concurrent save lock and late read protection before and after run retirement",
+      "immutable run ownership and result clearing",
+      "unchanged Task pin/permissions and source-identical App package"
+    ]
+  },
+  "targetedReview": {
+    "status": "PASS_AFTER_FIX",
+    "fixed": "Initial storage read arriving after run retirement now retains run identity, result and export snapshot",
+    "notTested": "LSP diagnostics unavailable"
+  },
+  "baseline": {
+    "status": "PASS_SINGLE_CONFIG_NAMED_MANAGEMENT_GAP",
+    "report": "artifacts/scrapyjs/native-profiles/baseline-20261029-d/report.json",
+    "reportIdentity": {
+      "path": "artifacts/scrapyjs/native-profiles/baseline-20261029-d/report.json",
+      "bytes": 48743,
+      "sha256": "3514b7b01db946239f004fa342de2316f4d6cc5bdb79c5a21ab8e03461329e58"
+    }
+  },
+  "native": {
+    "status": "PASS_SCOPED",
+    "reports": [
+      {
+        "path": "artifacts/scrapyjs/native-profiles/candidate-20261029-c/report.json",
+        "bytes": 352540,
+        "sha256": "908a93b48bdb705162c9211b57eb8bc83a99da63bd92e4496afecc03edfb2159"
+      },
+      {
+        "path": "artifacts/scrapyjs/native-profiles/supplement-20261029-a/report.json",
+        "bytes": 139436,
+        "sha256": "17c3249901b2c62dfbccbff3cef5b98811bbdbdbf4e3d378f0c1448e00df16c8"
+      }
+    ],
+    "finishedAt": "2026-10-28T19:26:29.447Z",
+    "checks": {
+      "legacyUpgradeWithoutUninstall": "PASS",
+      "legacyInitializationWithoutWrite": "PASS",
+      "newAndNameSave": "PASS",
+      "independentCopyAndRename": "PASS",
+      "NfcAndDuplicateNameRejection": "PASS",
+      "A_BSwitchAndDestroyedIframeReopen": "PASS",
+      "deleteConfirmCancelAndCommit": "PASS",
+      "invalidJsonAndUnappliedFieldCancelSwitchNewDelete": "PASS",
+      "unappliedCrawlCancelSwitchNewDelete": "PASS",
+      "confirmedSwitchResynchronizesEditors": "PASS",
+      "completeLegacyAttributesPaginationDetailRoundTrip": "PASS",
+      "activeRunManagementLock": "PASS",
+      "resultClearedOnSwitch": "PASS",
+      "A_BDifferentExpectedFieldsAndOriginalDurableIdentities": "PASS"
+    },
+    "chrome": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "sidePanel": {
+      "extensionId": "fijapefdiflkdbinfbphafefoeflghkk",
+      "context": {
+        "contextId": "5b3f61d2-407c-490f-8339-6cbb25c26264",
+        "contextType": "SIDE_PANEL",
+        "documentId": "09F192F9FDC8C55F21C735A745C85181",
+        "documentOrigin": "chrome-extension://fijapefdiflkdbinfbphafefoeflghkk",
+        "documentUrl": "chrome-extension://fijapefdiflkdbinfbphafefoeflghkk/sidepanel.html?hostInstanceId=fa6f4f58-3d9c-4516-bc7d-b07bf26f8456",
+        "frameId": 0,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      }
+    },
+    "ownedBrowser": {
+      "pid": 39943,
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-profiles/candidate-20261029-c/cft-wOwZzF/profile",
+      "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-profiles/candidate-20261029-c/cft-wOwZzF/extension",
+      "loadedExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/cft-MJURzB/extension",
+      "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "inputSha256": "25e83e55d80436b16dc28fae5efa7c2c354c1a65d81fa721cfb1ace3abbe83a0"
+    },
+    "supplementOwnedBrowser": {
+      "pid": 41221,
+      "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-profiles/supplement-20261029-a/cft-T2b9dQ/profile",
+      "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-profiles/supplement-20261029-a/cft-T2b9dQ/extension",
+      "loadedExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/native-examples/app-d-driver5-20261029/cft-MJURzB/extension",
+      "binary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "inputSha256": "25e83e55d80436b16dc28fae5efa7c2c354c1a65d81fa721cfb1ace3abbe83a0"
+    },
+    "ownedBrowsersReleased": true,
+    "runtime": "Static development snapshot; no HMR; daily Chrome and watcher unchanged",
+    "runs": [
+      {
+        "profile": {
+          "id": "24ab0289-06b6-4606-9342-22a9e2f98635",
+          "name": "Demo A renamed"
+        },
+        "expectedData": [
+          {
+            "label": "产品设计"
+          },
+          {
+            "label": "浏览器技术"
+          },
+          {
+            "label": "交互体验"
+          }
+        ],
+        "actualData": [
+          {
+            "label": "产品设计"
+          },
+          {
+            "label": "浏览器技术"
+          },
+          {
+            "label": "交互体验"
+          }
+        ],
+        "runId": "b5f656d1-4699-43a9-a949-57e6da694c8b",
+        "resultId": "2d3192e3-3f85-4cd9-82db-0b0c47080b91",
+        "clientRequestId": "277e2fc9-ad3a-462f-8e4a-25aec9019995",
+        "state": "completed",
+        "retirementState": "released",
+        "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
+      },
+      {
+        "profile": {
+          "id": "028dc9bd-0b02-4c4e-b515-a8b15a288761",
+          "name": "Demo B"
+        },
+        "expectedData": [
+          {
+            "topic": "产品设计"
+          },
+          {
+            "topic": "浏览器技术"
+          },
+          {
+            "topic": "交互体验"
+          }
+        ],
+        "actualData": [
+          {
+            "topic": "产品设计"
+          },
+          {
+            "topic": "浏览器技术"
+          },
+          {
+            "topic": "交互体验"
+          }
+        ],
+        "runId": "ad5f5279-8781-45d0-91ad-0149abc5e780",
+        "resultId": "365aa3c7-ce16-41ea-bdfd-1272286914e4",
+        "clientRequestId": "f0e068a4-7f59-4930-bf07-82bab58530d6",
+        "state": "completed",
+        "retirementState": "released",
+        "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa"
+      }
+    ],
+    "componentOnly": [
+      "ETag conflict/unknown receipt and concurrent writes",
+      "count/size/corrupt-record rejection",
+      "late initial read after run retirement",
+      "unapplied detail JSON guard"
+    ],
+    "limits": "Only fixed localhost demo; no new Task installation/revision; original installed 0.2.1 reused."
+  },
+  "previousFailedNativeReports": [
+    "artifacts/scrapyjs/native-profiles/candidate-20261029-a/report.json",
+    "artifacts/scrapyjs/native-profiles/candidate-20261029-b/report.json"
+  ],
+  "failuresRetained": "Original candidate name button lacked click handling and sandbox rejected form submission. Final App uses explicit button click and Enter without allow-forms. Old reports are unchanged.",
+  "packagePromotion": {
+    "status": "PROJECT_PACKAGE_PROMOTED_AND_MATCH",
+    "package": {
+      "path": "examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "bytes": 54020,
+      "sha256": "612d34f92ff03b739251469c80f750a5e78992ed42332836432a0cd4a22313ab"
+    },
+    "nativeCandidateSha256": "612d34f92ff03b739251469c80f750a5e78992ed42332836432a0cd4a22313ab",
+    "method": "Original packer --promote-from then --check-project"
+  },
+  "fullMigrationComplete": false,
+  "notTested": [
+    "production acceptance",
+    "complete upgrade/revocation lifecycle",
+    "current native Stop and CSV",
+    "full 32 feature acceptance",
+    "95+ scoring",
+    "width/zoom matrices",
+    "load or adversarial campaigns"
+  ],
+  "ownershipGate": {
+    "type": "Sidebar Tool UI business records",
+    "writeScope": "examples/sidebar-tools/scrapyjs/",
+    "publicSdk": "Existing storage.get/set with ETag and fixed tasks.run delegation",
+    "platformSourceChanged": false,
+    "fixedTaskChanged": false,
+    "sourceRepositoriesChanged": false
+  }
+}

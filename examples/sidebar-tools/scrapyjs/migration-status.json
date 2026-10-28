@@ -2,7 +2,7 @@
   "format": "scrapyjs-migration-status.v1",
   "fullMigrationComplete": false,
   "sourceLedger": ".omx/plans/scrapyjs-migration-source-function-ledger-20261028.md",
-  "scope": "当前批：先迁移原脚本示例，再接字段/属性、分页、列表详情和记录表格；32项完整迁移继续分层记录",
+  "scope": "当前批：App 命名采集配置的保存、切换与复用；沿用固定Task0.2.1。32项完整迁移继续分层记录。",
   "features": [
     {
       "id": "F01",
@@ -31,8 +31,15 @@
         },
         "uiNativeCurrentCandidate": {
           "status": "PASS_SCOPED",
+          "appVersion": "1.2.0",
+          "scope": "Original App UI, config switching, honest run ownership and clearing old results",
+          "evidence": "evidence/named-configs-20261029.json#native"
+        },
+        "uiNativeApp111": {
+          "status": "PASS_SCOPED",
           "scope": "同一App可信目标/配置/结果表格",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -43,7 +50,7 @@
       "destination": "src/; controller/capture.js",
       "dependencies": "声明式 schema 与原引擎选择器语法",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "字段文本/属性、CSS分页与上限、去重、列表详情配置已接线；延迟/profile/锁未实现。",
+      "detail": "字段文本/属性、CSS分页与上限、去重、列表详情配置保持；命名配置复用已接线并有定向组件证据。来源 profile 的延迟/配置锁运行策略仍未实现。",
       "evidenceLayers": {
         "sourcePreserved": {
           "status": "RETAINED",
@@ -63,8 +70,15 @@
         },
         "uiNativeCurrentCandidate": {
           "status": "PASS_SCOPED",
+          "appVersion": "1.2.0",
+          "scope": "Complete legacy fields/attributes/pagination/detail preserved and controls synchronized; no source-profile runtime policies",
+          "evidence": "evidence/named-configs-20261029.json#native"
+        },
+        "uiNativeApp111": {
+          "status": "PASS_SCOPED",
           "scope": "字段属性与分页详情控件应用/未应用保护",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -75,7 +89,7 @@
       "destination": "src/; adapters/app-sdk.js",
       "dependencies": "原 storage.get/set、ETag",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "单配置条件保存与重开真实通过，codec 顺序差异不再误报；命名任务、切换、自动保存未实现",
+      "detail": "命名配置新建、保存、复制、切换、重命名、确认删除、旧单配置升级与销毁重开均原生通过；JSON/字段/分页取消保护与运行锁原生通过，详情编辑/有界容量/CAS/并发保存及迟到读取保护有定向组件证据。不是平台Task管理器；自动保存和自动重绑定未实现。",
       "evidenceLayers": {
         "sourcePreserved": {
           "status": "RETAINED",
@@ -85,7 +99,9 @@
           "status": "SCOPED"
         },
         "componentTested": {
-          "status": "SCOPED"
+          "status": "SCOPED",
+          "scope": "Named configs, bounded CAS, draft and concurrent save/run guards",
+          "evidence": "evidence/named-configs-20261029.json#componentChecks"
         },
         "scriptNative": {
           "status": "NOT_TESTED"
@@ -95,8 +111,15 @@
         },
         "uiNativeCurrentCandidate": {
           "status": "PASS_SCOPED",
+          "appVersion": "1.2.0",
+          "scope": "Named config new/save/copy/select/rename/delete, cancellation, legacy upgrade and persistence; no autosave or automatic rebind",
+          "evidence": "evidence/named-configs-20261029.json#native"
+        },
+        "uiNativeApp111": {
+          "status": "PASS_SCOPED",
           "scope": "单配置条件保存/销毁iframe后重开；无命名任务/自动保存",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -107,7 +130,7 @@
       "destination": "src/; adapters/",
       "dependencies": "可信目标重新捕获、原运行历史",
       "status": "CORE_NATIVE_PASS_FULL_FEATURE_PARTIAL",
-      "detail": "配置重开真实通过；打开已保存网址、历史/可靠恢复未实现",
+      "detail": "命名列表、配置内容及选中记录在销毁App后重开原生恢复；打开已保存网址、历史/可靠运行恢复未实现。",
       "evidenceLayers": {
         "sourcePreserved": {
           "status": "RETAINED",
@@ -127,8 +150,15 @@
         },
         "uiNativeCurrentCandidate": {
           "status": "PASS_SCOPED",
+          "appVersion": "1.2.0",
+          "scope": "Saved config list/current selection after actual iframe destruction and reopen; no automatic page reopen or run resume",
+          "evidence": "evidence/named-configs-20261029.json#native"
+        },
+        "uiNativeApp111": {
+          "status": "PASS_SCOPED",
           "scope": "恢复配置；不自动开网页或恢复运行",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -161,8 +191,15 @@
         },
         "uiNativeCurrentCandidate": {
           "status": "PASS_SCOPED",
+          "appVersion": "1.2.0",
+          "scope": "A/B start the same original installed Task, distinct fields, durable run/result/request identities and released instances",
+          "evidence": "evidence/named-configs-20261029.json#native"
+        },
+        "uiNativeApp111": {
+          "status": "PASS_SCOPED",
           "scope": "同一App三次不同身份启动固定Task",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -226,9 +263,14 @@
           "status": "SCOPED"
         },
         "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED",
+          "appVersion": "1.2.0"
+        },
+        "uiNativeApp111": {
           "status": "PASS_SCOPED",
           "scope": "文本/href/可空字段和数字全部黄金一致",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -500,9 +542,14 @@
           "status": "SCOPED"
         },
         "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED",
+          "appVersion": "1.2.0"
+        },
+        "uiNativeApp111": {
           "status": "PASS_SCOPED",
           "scope": "两页链接分页、去重2条、自然终止；无滚动分页",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -534,9 +581,14 @@
           "status": "SCOPED"
         },
         "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED",
+          "appVersion": "1.2.0"
+        },
+        "uiNativeApp111": {
           "status": "PASS_SCOPED",
           "scope": "两页列表到三条URL/ID匹配详情及严格价格",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -628,9 +680,14 @@
           "status": "SCOPED"
         },
         "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED",
+          "appVersion": "1.2.0"
+        },
+        "uiNativeApp111": {
           "status": "PASS_SCOPED",
           "scope": "BrowserValidation和严格价格；无通用Pipeline编辑器",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -662,9 +719,14 @@
           "status": "SCOPED"
         },
         "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED",
+          "appVersion": "1.2.0"
+        },
+        "uiNativeApp111": {
           "status": "PASS_SCOPED",
           "scope": "completed统计与released；partial仅组件验证",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -754,9 +816,14 @@
           "status": "SCOPED"
         },
         "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED",
+          "appVersion": "1.2.0"
+        },
+        "uiNativeApp111": {
           "status": "PASS_SCOPED",
           "scope": "三行全字段表格、JSON46312字节下载并读回；当前CSV未重测",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -788,9 +855,14 @@
           "status": "SCOPED"
         },
         "uiNativeCurrentCandidate": {
+          "status": "NOT_TESTED",
+          "appVersion": "1.2.0"
+        },
+        "uiNativeApp111": {
           "status": "PASS_SCOPED",
           "scope": "原引擎memory结果及Host实例released；无其他交付模式",
-          "evidence": "evidence/core-examples-20261029.json#appScenarios"
+          "evidence": "evidence/core-examples-20261029.json#appScenarios",
+          "appVersion": "1.1.1"
         }
       }
     },
@@ -1178,6 +1250,19 @@
     "candidateScope": "HISTORICAL_TASK_0.1.0_APP_1.0.0_ONLY"
   },
   "currentBatch": {
+    "evidence": "evidence/named-configs-20261029.json",
+    "phase": "CORE_DEVELOPMENT",
+    "scope": "Named App config CRUD, reuse, draft/CAS/run ownership guards",
+    "fullFeatureAcceptance": "NOT_TESTED",
+    "productionAcceptance": "NOT_TESTED",
+    "scriptNative": "REUSED_UNCHANGED_TASK_0.2.1",
+    "uiNative": "PASS_SCOPED",
+    "appVersion": "1.2.0",
+    "taskVersion": "0.2.1",
+    "sourceHash": "dfc2dfec08656ec8956db24220256a7753407e4095c9d7def109b20aa8d0d2fa",
+    "appPackageSha256": "612d34f92ff03b739251469c80f750a5e78992ed42332836432a0cd4a22313ab"
+  },
+  "previousBatch": {
     "evidence": "evidence/core-examples-20261029.json",
     "phase": "CORE_DEVELOPMENT",
     "fullFeatureAcceptance": "NOT_TESTED",

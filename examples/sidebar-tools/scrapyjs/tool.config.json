@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "scrapyjs",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "title": "scrapyjs 采集",
-  "description": "编辑字段、属性、分页与列表详情，运行固定采集任务，查看记录并保存和下载。",
+  "description": "保存、切换和复用命名采集配置，编辑字段、分页与详情，运行固定采集任务并查看和下载记录。",
   "capabilities": [
     "storage.local",
     "currentPage.read",

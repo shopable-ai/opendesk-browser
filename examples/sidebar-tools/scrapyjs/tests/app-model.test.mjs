@@ -93,7 +93,7 @@ test('save readback accepts the original codec object ordering and keeps the new
 test('a genuinely changed post-save value retains the draft and blocks another write', async () => {
   let record={value:null,etag:'initial'},writes=0;
   const {app}=setup({load:async()=>plain(record),save:async value=>{
-    writes++;record={value:{...plain(value),timeoutMs:7000},etag:'other-writer'};return {saved:true};
+    writes++;const remote=plain(value);remote.records[0].config.timeoutMs=7000;record={value:remote,etag:'other-writer'};return {saved:true};
   }});
   await app.load();app.edit({...DEFAULT_CONFIG,timeoutMs:5000});await app.save();
   assert.match(app.state.error,/保存后版本已变化/);assert.equal(app.state.config.timeoutMs,5000);
@@ -105,12 +105,13 @@ test('storage conflict retains draft, reads current version and never overwrites
     save:async()=>{writes++;throw new Error('E_STORAGE_CONFLICT');}});
   await app.load(); app.edit({...DEFAULT_CONFIG,timeoutMs:3000}); await app.save();
   assert.equal(app.state.config.timeoutMs,3000); assert.equal(app.state.conflict.config.timeoutMs,7000); assert.equal(writes,1);
-  await app.save(); assert.equal(writes,1); app.useSaved(); assert.equal(app.state.config.timeoutMs,7000); assert.equal(app.state.dirty,false);
+  await app.save(); assert.equal(writes,1); app.useSaved(); await app.confirmAction(); assert.equal(app.state.config.timeoutMs,7000); assert.equal(app.state.dirty,false);
 });
 test('SDK adapter uses bounded conditional storage and complete JSON download', async () => {
   const calls=[]; const sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push([op,payload]);return {saved:true,started:true};});
   await sdk.save({selector:'x'},null); assert.equal(calls[0][1].ifMatch,null);
   await assert.rejects(sdk.save({x:'中'.repeat(3000)},'a'),/8192/);
+  await assert.rejects(sdk.save({selector:'x'},undefined),/ETag/);
   await sdk.download({items:[{text:'完整'}]}); assert.equal(calls.at(-1)[1].filename,'scrapyjs-result.json');
   await assert.rejects(sdk.download({items:['中'.repeat(51000)]}),/150000/);
   assert.equal(calls.length,2);

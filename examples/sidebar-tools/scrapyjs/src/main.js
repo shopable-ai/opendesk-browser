@@ -6,9 +6,47 @@
   const pendingEditors=new Set();
   const sdk = globalThis.ScrapyAppSdk.createSdk((operation, payload) => tool.request(operation, payload));
   let draftValid = true, editing = false, shownConfig = '', shownTarget, shownRows, shownEditorConfig='';
+  let shownEpoch = 0, shownProfiles = '', naming = null, actionFocus;
+  const restoreActionFocus = () => (typeof actionFocus === 'string' ? root.querySelector(actionFocus) : actionFocus)?.focus?.();
   function message(id, text) {el(id).textContent = text; el(id).hidden = !text;}
   function render(state) {
     const busy = state.phase === 'starting' || (Boolean(state.clientRequestId) && !state.retired);
+    if (shownEpoch !== state.profileEpoch) {
+      shownEpoch = state.profileEpoch; pendingEditors.clear(); draftValid = true;
+      shownConfig = ''; shownEditorConfig = ''; message('config-error','');
+      for (const id of ['field-key','field-selector','field-attr']) el(id).value = '';
+      el('field-read').value = 'text';
+    }
+    const locked = busy || state.saving || Boolean(naming) || Boolean(state.pendingAction);
+    const managementLocked = locked || !state.storageReady || Boolean(state.conflict);
+    const profiles = JSON.stringify([state.records.map(({id,name})=>({id,name})),state.selectedId,managementLocked]);
+    if (profiles !== shownProfiles) {
+      shownProfiles = profiles; el('profile-list').replaceChildren();
+      for (const row of state.records) {
+        const button = document.createElement('button'); button.type = 'button'; button.textContent = row.name;
+        button.setAttribute('data-profile-id',row.id); button.setAttribute('aria-pressed',String(row.id === state.selectedId));
+        button.disabled = managementLocked;
+        button.addEventListener('click',()=>{actionFocus='[data-profile-id="'+row.id+'"]';app.selectProfile(row.id);
+          if(app.state.pendingAction)el('profile-confirm-cancel').focus?.();}); el('profile-list').append(button);
+      }
+    }
+    const current = state.records.find(row=>row.id === state.selectedId);
+    el('profile-current').textContent = (current?.name || '未保存配置') + (state.dirty ? ' · 未保存' : '');
+    el('new-profile').disabled = managementLocked;
+    el('copy-profile').disabled = managementLocked || !draftValid || Boolean(pendingEditors.size);
+    el('rename-profile').disabled = managementLocked || !current || state.dirty;
+    el('delete-profile').disabled = managementLocked || !current;
+    el('profile-confirm').hidden = !state.pendingAction;
+    const action = state.pendingAction;
+    el('profile-confirm-text').textContent = !action ? '' : action.type === 'delete'
+      ? '确认删除「'+current.name+'」？'+(state.dirty?'未保存的 JSON 或未应用编辑也将丢弃。':'')
+      : '未保存的 JSON 或未应用编辑将丢弃。确认'+({new:'新建配置',select:'切换配置',saved:'用远端完整列表替换草稿'}[action.type])+'？';
+    el('profile-confirm-accept').disabled = busy || state.saving;
+    el('profile-confirm-cancel').disabled = busy || state.saving;
+    el('profile-naming').hidden = !naming;
+    el('profile-name').disabled = busy || state.saving;
+    el('profile-name-submit').disabled = busy || state.saving;
+    el('profile-name-cancel').disabled = busy || state.saving;
     const config = JSON.stringify(state.config, null, 2);
     if(!editing && !pendingEditors.size && config!==shownEditorConfig){
       shownEditorConfig=config;
@@ -19,8 +57,8 @@
       el('detail-enabled').checked=Boolean(d);el('detail-url-field').value=d?.urlField||'';el('detail-id-field').value=d?.identityField||'';
       el('detail-fields').value=JSON.stringify(d?.itemConfig||{},null,2);el('detail-numbers').value=(d?.numberFields||[]).join(',');
     }
-    for(const id of ['list-container','list-item','field-key','field-selector','field-read','apply-field','next-selector','max-pages','dedupe-key','detail-enabled','detail-url-field','detail-id-field','detail-fields','detail-numbers','apply-crawl'])el(id).disabled=state.saving||!draftValid;
-    el('field-attr').disabled=state.saving||!draftValid||el('field-read').value!=='attr';
+    for(const id of ['list-container','list-item','field-key','field-selector','field-read','apply-field','next-selector','max-pages','dedupe-key','detail-enabled','detail-url-field','detail-id-field','detail-fields','detail-numbers','apply-crawl'])el(id).disabled=locked||!draftValid;
+    el('field-attr').disabled=locked||!draftValid||el('field-read').value!=='attr';
     if(shownRows!==state.result?.data){
       shownRows=state.result?.data;const rows=Array.isArray(shownRows)?shownRows:[];
       el('record-summary').textContent=Array.isArray(shownRows)?'共 '+rows.length+' 条记录'+(rows.length>50?'，表格显示前 50 条；完整记录见 JSON / 下载':''):'尚无记录';
@@ -38,14 +76,14 @@
       shownTarget = state.target; el('target-url').value = state.config.url;
       el('page-title').textContent = state.target?.title || '当前网页不可用';
     }
-    el('start').disabled = busy || state.phase === 'unknown' || !state.target || !draftValid || Boolean(pendingEditors.size);
+    el('start').disabled = locked || state.phase === 'unknown' || !state.target || !draftValid || Boolean(pendingEditors.size);
     el('stop').disabled = !busy || state.retired || state.stopAccepted;
-    el('save-config').disabled = state.saving || !draftValid || !state.storageReady || Boolean(state.conflict) || Boolean(pendingEditors.size);
+    el('save-config').disabled = managementLocked || !draftValid || Boolean(pendingEditors.size);
     el('save-config').textContent = state.saving ? '保存中…' : state.dirty || !draftValid ? '保存配置 · 未保存' : '保存配置';
-    el('config-json').disabled = state.saving || Boolean(pendingEditors.size);
-    el('target-url').disabled = state.saving;
-    el('load-config').disabled = state.saving;
-    el('use-saved').disabled = state.saving;
+    el('config-json').disabled = locked || Boolean(pendingEditors.size);
+    el('target-url').disabled = locked || Boolean(pendingEditors.size);
+    el('load-config').disabled = locked;
+    el('use-saved').disabled = locked;
     el('refresh-run').disabled = !state.clientRequestId || state.retired;
     el('download-json').disabled = state.result == null;
     el('download-csv').disabled = !Array.isArray(state.result?.data);
@@ -54,10 +92,11 @@
     el('stop-status').textContent = state.stopAccepted ? '已受理' : state.stopRequested ? '已请求，等待确认' : '未请求';
     el('retired-status').textContent = state.retired ? '已确认退休' : busy ? '尚未确认' : '尚无运行';
     el('result').textContent = state.snapshot ? JSON.stringify(state.snapshot, null, 2) : '尚无结果';
+    el('run-profile').textContent = state.runProfile ? '本次运行配置：'+state.runProfile.name : '尚无运行';
     message('app-error', state.error); message('app-notice', state.notice);
     el('conflict').hidden = state.storageReady && !state.conflict;
     el('use-saved').hidden = !state.conflict;
-    tool.setState?.({dirty: state.dirty || !draftValid || Boolean(pendingEditors.size), busy: busy || state.saving});
+    tool.setState?.({dirty: state.dirty || !draftValid || Boolean(pendingEditors.size) || Boolean(naming), busy: busy || state.saving});
   }
   const app = globalThis.ScrapyAppModel.createApp(sdk, render);
   el('config-json').addEventListener('input', () => {
@@ -112,10 +151,39 @@
   el('refresh-target').addEventListener('click', () => app.refreshTarget());
   el('start').addEventListener('click', () => app.start(el('target-url').value));
   el('stop').addEventListener('click', () => app.stop());
-  el('save-config').addEventListener('click', () => app.save());
+  function openNaming(type, source) {
+    actionFocus=el(source); naming=type; const current=app.state.records.find(row=>row.id===app.state.selectedId);
+    el('profile-name').value = type === 'rename' ? current.name : type === 'copy' ? (current?.name || '配置')+' 副本' : '';
+    el('profile-name-heading').textContent = type === 'rename' ? '重命名配置' : type === 'copy' ? '保存独立副本' : '保存新配置';
+    message('profile-name-error',''); render(app.state); el('profile-name').focus?.();
+  }
+  function closeNaming() {naming=null; render(app.state); restoreActionFocus();}
+  el('save-config').addEventListener('click', () => app.state.selectedId ? app.save() : openNaming('save','save-config'));
+  el('copy-profile').addEventListener('click',()=>openNaming('copy','copy-profile'));
+  el('rename-profile').addEventListener('click',()=>openNaming('rename','rename-profile'));
+  el('profile-name-cancel').addEventListener('click',closeNaming);
+  async function submitName() {
+    const method={save:'save',copy:'copyProfile',rename:'renameProfile'}[naming];
+    if (!method) return;
+    const success=await app[method](el('profile-name').value);
+    if (success) closeNaming(); else {message('profile-name-error',app.state.error); el('profile-name').focus?.();}
+  }
+  el('profile-name-submit').addEventListener('click',submitName);
+  el('profile-name').addEventListener('keydown',event=>{
+    if(event.key==='Enter' && !event.isComposing){event.preventDefault();submitName();}
+  });
+  for (const [id,method] of [['new-profile','newProfile'],['delete-profile','deleteProfile']])
+    el(id).addEventListener('click',()=>{actionFocus=el(id);app[method]();if(app.state.pendingAction)el('profile-confirm-cancel').focus?.();});
+  el('profile-confirm-cancel').addEventListener('click',()=>{app.cancelAction();restoreActionFocus();});
+  el('profile-confirm-accept').addEventListener('click',async()=>{await app.confirmAction();el('profile-current').focus?.();});
+  root.addEventListener('keydown',event=>{
+    if (event.key !== 'Escape' || app.state.saving) return;
+    if (naming) {event.preventDefault();closeNaming();}
+    else if (app.state.pendingAction) {event.preventDefault();app.cancelAction();restoreActionFocus();}
+  });
   el('load-config').addEventListener('click', () => app.load());
   el('use-saved').addEventListener('click', () => {
-    pendingEditors.clear();draftValid = true; shownConfig = ''; shownEditorConfig=''; message('config-error', ''); app.useSaved();
+    actionFocus=el('use-saved'); app.useSaved();
   });
   el('refresh-run').addEventListener('click', () => app.refresh());
   el('download-json').addEventListener('click', () => app.download());
