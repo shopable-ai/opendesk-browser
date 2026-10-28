@@ -48,7 +48,7 @@ async function fixture(t){
     sidebarTools,taskWorkbench:{},currentPageTarget});
   t.after(()=>ui.dispose());
   await ui.refresh();
-  const row=state.rowsModel.rows.find(r=>r.id===id);
+  const row=state.rowsModel.rows.find(r=>r.key==='page:'+id);
   assert.ok(row);
   const entry=[...doc.querySelectorAll('button[data-extension-key]')]
     .find(button=>button.dataset.extensionKey===row.key&&
