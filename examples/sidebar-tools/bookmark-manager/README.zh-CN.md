@@ -1,5 +1,21 @@
 # Bookmark Manager · 正式 React 与 Classic 兼容工具
 
+## 旧代码清理与防复发计划（2026-10-28）
+
+本轮只处理书签应用及其现有打包/CI 入口：先用定向回归保护行为，再删除已被当前 React 预览替代且没有运行消费者的旧驱动与失效入口，最后核对剩余引用。历史验收原始证据保留在原目录和 Git 中；当前源码绑定预览继续使用同一 `src/react/App.jsx`。
+
+防复发检查贯穿同一配置、现有打包器生成的包、官方 Catalog 及 Browser 编译后的 React 准入版本；`app:update` 晋升前运行此版本联动回归，提交后的原 React CI 再以 `--check-project` 核对正式 JSON，并执行 Host 的导入后打开回归。安装、生命周期、Catalog、打包器及夹具变化都触发专用 CI，不能只验包结构或静态入口文字。
+
+行为保护条件：安装不运行，精确官方包打开 React；升级保留数据并更新代际；重复导入不重装；旧版、来源缺失、篡改、停用和撤权均不获得可信入口。草稿、保存、删除确认与未知写入沿用现有保护。Classic 是旧版/非官方包的隔离路径，`model.js`、`service.js` 是两个入口共用业务源，不能当作重复实现删除。不会为清理新增兼容层、安装器或依赖，也不运行生产验收、评分或尺寸矩阵。
+
+清理结果：删除无人调用的 `preview/r302-chrome.mjs`、`r303-chrome.mjs`、`r3041-chrome.mjs` 及仅被后者使用的 `chrome-zoom-x11.py`；退役只针对旧 R2.9 格式且已一直跳过的 CI 与 `r29-chrome.mjs`。展示页改指向当前驱动，需求文档标明旧入口已退役，Classic 包测试的版本改读配置。当前 React 预览仍走 `preview/react/run-chrome.mjs` → `preview/r304-chrome.mjs`；`preview/index.html` 是历史预览及构建模板，保留原资产，不再维护旧执行器。
+
+新增回归用原 Vite 在内存中编译准入模块，分别验证当前配置与下一 PATCH；用原官方资源生成器核对包、Catalog 版本和完整摘要，再检查精确包可准入、旧 Browser 拒绝未来版本。它不写 `dist/development`，也不把模块编译或 Mock Host 通过冒充原生通过。实际 UI、Host 准入逻辑和正式包输入未改变，复用下方已完成的 0.3.14 隔离 Mac 导入及 React 运行证据；本次未重跑原生 Chrome。正式 JSON 仍为 0.3.14，字节与 SHA 均不变。
+
+本轮最小验证：Classic/共享模型/React 生命周期与来源三份回归在删除前后均 51/51 通过；导入→React、重复导入、保存/删除审批与撤权 Host 检查 18/18 通过；版本联动、默认 React 及更新流程检查 14/14 通过。正式 JSON `--check-project`、更新只读检查、修改文件语法、CI YAML、展示页目标链接和 `git diff --check` 均通过；未执行生产构建、线上 CI 或新一轮原生验收。
+
+独立审查后保留原本地更新边界：Host 集成夹具会读取其他工具的编译产物，因此只在原先已准备这些产物的 CI 中运行；本地 `app:update` 不因新增检查而要求预编译无关应用。版本联动测试的官方目录仅包含本工具，临时输入验证后自动清理。
+
 ## 当前入口与版本来源（2026-10-28）
 
 正式安装包为 **0.3.14**。`bookmark-manager.opendesk-tool.json` 按 `tool.config.json.files` 打包 Classic 沙箱 HTML/CSS/JS；正式 React UI 的唯一业务源为 `src/react/App.jsx`，由 Browser 固定入口静态编译。**JSON 的更新时间不能证明 React UI 已更新。**
@@ -8,7 +24,7 @@
 
 现有 `app:update`、本工具 `app.ci.json` 和 React CI 触发路径已纳入准入回归。以后包版本变化必须同时验证预期 React 入口；只证明包同源或 Classic 功能正常不够。独立 JSON 无法更新已运行 Browser 的静态代码，旧 Browser/缺失官方来源/非官方包仍走原隔离路径。本次同时修复兼容提示被沙箱 `ready` 消息清空的问题：新 Browser 会说明版本不匹配或来源核验失败，以及应通过原官方入口更新；历史 Browser 必须先更新，无法由新 JSON 补上这条提示。
 
-Classic 的 `src/index.html`、`src/style.css`、`src/main.js` 仍被正式打包与隔离入口消费；`model.js`、`service.js` 被两个入口共用，不属于可删除的旧副本。旧预览和原型仍被 CI/文档消费，没有发现可直接删除的无用业务副本。本轮删除失效的手工版本副本，不改包字节、权限范围、书签数据或历史验收资产。
+Classic 的 `src/index.html`、`src/style.css`、`src/main.js` 仍被正式打包与隔离入口消费；`model.js`、`service.js` 被两个入口共用，不属于可删除的旧副本。当前预览链继续复用正式业务源；无消费者的旧驱动及过时 CI 已按上方计划清除，不改包字节、权限范围、书签数据或历史验收资产。
 
 ### 本次如何测试
 

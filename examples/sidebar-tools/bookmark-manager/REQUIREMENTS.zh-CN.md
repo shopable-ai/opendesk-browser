@@ -186,7 +186,7 @@
 - 本轮先在 bookmark-manager/preview/react/ 范围创建 React UI 候选：同一 Tree 状态支持 360/400/960px，完整内存树上搜索、按可视窗口渲染；命中项不受虚拟行遗漏影响。随后继续与平台成熟 Tree / Menu 方案独立评估，不能把当前项目级控件冒充已封版 UI Kit。
 - 正式 model.js / service.js 与现有 scripts/preview/bookmark-manager-mock.js 被嵌入同一个 sandbox iframe；写操作继续经过 BookmarkR2Service 和真实模型校验，并读回确认，不复制 Host 授权或递归删除。
 - build-preview.mjs 使用本地固定 Vite 输出替换唯一 preview/index.html 中的内层运行内容，保留现有外部 Shell、manifest 与 iframe 外默认折叠诊断。无 CDN、无 allow-same-origin、无外部网络，sourceBound=false、nativeVerified=false。
-- R2.9 Chromium 测试及断言保留为旧格式回归；React 使用 preview/r302-chrome.mjs 和专属 GitHub Actions。旧测试不得错误通过或错误判定新格式。
+- 历史 R2.9 `preview/r29-chrome.mjs` 及其旧工作流、React R3.0.2 `preview/r302-chrome.mjs` 均已退役；当前默认 Chromium 驱动链为 `preview/react/run-chrome.mjs` → `preview/r304-chrome.mjs`。历史原始事实与证据保留在本文件及 Git 历史中；当前驱动不是历史 PASS 证据，历史结果也不得作为当前候选 PASS。
 - 基线行为包括只读选择、显式编辑、创建类型隔离、草稿变更保护、全树搜索、目录过滤、菜单 Escape、真实 Mock 读回与失败保留；保留第 9.3 节规定的所有安全缺陷回归。
 
 ### 10.2 验证和晋升

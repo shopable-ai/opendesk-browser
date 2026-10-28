@@ -39,7 +39,8 @@ test('R2.4 official optional registration replaces all legacy host/UI/CI paths',
 test('R11.2 builds with v2 packer and independently declares Full Bookmark permission',async()=>{
   const pkg=await createSidebarToolPackage(root);
   assert.equal(pkg.id,'bookmark-manager');
-  assert.equal(pkg.version,'0.3.11');
+  const config=JSON.parse(await src('tool.config.json'));
+  assert.equal(pkg.version,config.version);
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['browser.bookmarks.full','currentPage.read']);
   assert.equal(pkg.scripts.length,2);

@@ -26,8 +26,11 @@ on:
       - 'src/ui/workflow/ai-plan.js'
       - 'src/ui/react/tabs/workflow.tsx'
       - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/**'
       - 'src/ui/sidebar-tools-view.js'
       - 'src/ui/trusted-bookmark-admission.js'
+      - 'src/sidebar-tools/official-catalog.js'
+      - 'official-tools/catalog.json'
       - 'src/ui/tool-shell.js'
       - 'tests/environment/bookmark-manager-r31-trusted-lifecycle.test.mjs'
       - 'tests/environment/bookmark-manager-r308-clickable-detail-url.test.mjs'
@@ -41,9 +44,13 @@ on:
       - 'tests/environment/opendesk-conversation-r16-authorization.test.mjs'
       - 'tests/environment/conversation-r111-style-watch.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
+      - 'tests/helpers/official-tools.mjs'
       - 'tests/environment/sidebar-tools-view.test.mjs'
       - 'scripts/bundle-provenance.mjs'
+      - 'scripts/build-official-tools.mjs'
+      - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/app-update.mjs'
+      - 'scripts/app-update-plan.mjs'
       - '.github/workflows/bookmark-manager-r302-react-preview.yml'
   workflow_dispatch:
 permissions:
@@ -62,6 +69,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify the single import JSON matches the current release sources
+        run: node scripts/build-sidebar-tool.mjs examples/sidebar-tools/bookmark-manager --check-project
       - name: Official admission, React lifecycle, clickable URL and sandbox regression
         run: |
           node --test \

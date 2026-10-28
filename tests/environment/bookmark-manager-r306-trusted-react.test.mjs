@@ -1,9 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdtemp,mkdir,writeFile,rm,realpath} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {resolve} from 'node:path';
+import {resolve,join,dirname} from 'node:path';
+import {tmpdir} from 'node:os';
+import {build as buildBrowserModule} from 'vite';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
+import {createOfficialToolResources,readOfficialSources} from '../../scripts/build-official-tools.mjs';
+import {nextPatchVersion} from '../../scripts/app-update-plan.mjs';
+import {OFFICIAL_CATALOG_PATH} from '../../src/sidebar-tools/official-catalog.js';
 import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {
  admitsTrustedBookmark,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_ID,
@@ -11,6 +16,52 @@ import {
 } from '../../src/ui/trusted-bookmark-admission.js';
 
 const read=path=>readFile(resolve(path),'utf8');
+
+test('Bookmark release config, packed catalog and compiled Browser admission advance together',async t=>{
+ const source=await readOfficialSources();
+ const row=source.tools.find(item=>item.id===TRUSTED_BOOKMARK_ID);
+ assert.ok(row,'the official source catalog must include Bookmark Manager');
+ const config=JSON.parse(await read(row.project+'/tool.config.json'));
+ // Exercise the next PATCH too: a hard-coded version matching today's package
+ // would otherwise pass until the next release brought the Classic UI back.
+ for(const version of [config.version,nextPatchVersion(config.version)])await t.test(version,async t=>{
+  const root=await realpath(await mkdtemp(join(tmpdir(),'bookmark-release-')));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const write=async(path,bytes)=>{
+   const target=join(root,path);await mkdir(dirname(target),{recursive:true});await writeFile(target,bytes);
+  };
+  const candidateConfig={...config,version};
+  await write(OFFICIAL_CATALOG_PATH,JSON.stringify({...source,tools:[row]}));
+  await write(row.project+'/tool.config.json',JSON.stringify(candidateConfig));
+  for(const path of [config.files.html,config.files.css,config.files.js,
+   ...(config.files.dependencies||[]),...(config.assets||[])])
+   await write(row.project+'/'+path,await readFile(row.project+'/'+path));
+  // Use the production catalog generator, restricted to this one real project.
+  // Never build unrelated Apps or write into a live Browser output directory.
+  const {catalog,resources}=await createOfficialToolResources({root});
+  const release=catalog.apps[0],bytes=resources.get(release.packagePath);
+  const tool=JSON.parse(bytes.toString('utf8'));
+  assert.equal(tool.version,version);assert.equal(release.version,version);
+  assert.equal(release.bytes,bytes.length);
+  assert.equal(release.sha256,createHash('sha256').update(bytes).digest('hex'));
+  const bundled=await buildBrowserModule({configFile:false,publicDir:false,logLevel:'silent',
+   plugins:[{name:'bookmark-release-config',enforce:'pre',load(id){
+    if(id===resolve(row.project,'tool.config.json'))return JSON.stringify(candidateConfig);
+   }}],
+   build:{write:false,minify:false,lib:{entry:resolve('src/ui/trusted-bookmark-admission.js'),formats:['es']}}
+  });
+  const chunks=(Array.isArray(bundled)?bundled:[bundled]).flatMap(result=>result.output);
+  assert.equal(chunks.length,1,'admission must compile to one self-contained module');
+  const compiled=await import('data:text/javascript;base64,'+Buffer.from(chunks[0].code).toString('base64'));
+  assert.equal(compiled.TRUSTED_BOOKMARK_VERSION,version,'Browser must compile the same release version');
+  const args={tool,release,installed:[tool],enableRecords:{},
+   epochs:{[tool.id]:'release-epoch'},expectedEpoch:'release-epoch',
+   provenance:{[tool.id]:{marketId:release.id,version,sha256:release.sha256}}};
+  assert.equal(await compiled.admitsTrustedBookmark(args),true,'the generated official package must enter React');
+  if(version!==config.version)
+   assert.equal(await admitsTrustedBookmark(args),false,'an older Browser must reject a future release');
+ });
+});
 
 test('R3.0.6 only the exact official, enabled, current installed package enters static React',async()=>{
  const tool=await createSidebarToolPackage(resolve('examples/sidebar-tools/bookmark-manager'));
