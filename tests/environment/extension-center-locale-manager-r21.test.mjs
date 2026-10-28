@@ -127,6 +127,43 @@ test('daily tool choices save their scope, follow the default only when requeste
   assert.deepEqual(f.saved[SIDEBAR_TOOL_STORE],untouched,'language settings never rewrite installed code');
 });
 
+test('language settings select the first localized tool when installed tools arrive after opening',async t=>{
+  const f=await setup(t);await f.service.install(f.pack,f.tool);
+  const before=structuredClone(f.saved);
+  const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[],service:f.service,onClose(){}}}}),{doc}=ui;
+  assert.equal(doc.getElementById('od-locale-tool-language'),null);
+  ui.state.model={...ui.state.model,tools:[f.tool]};ui.paint();
+  await settle(()=>Boolean(doc.getElementById('od-locale-tool-language'))&&
+    !doc.getElementById('od-locale-tool-language').disabled);
+  assert.equal(doc.getElementById('od-locale-tool').value,f.tool.id);
+  openPacks(doc);
+  await settle(()=>Boolean(resourceAction(doc,'日本語',0)));
+  assert.equal(doc.querySelector('input[type=file]').disabled,false);
+  assert.deepEqual(f.saved,before,'late selection only reads existing language data');
+});
+
+test('changing and deleting one extension locale preserves another extension namespace',async t=>{
+  const f=await setup(t),other={...f.tool,id:'locale-other',title:'另一个已安装扩展'};
+  f.saved[SIDEBAR_TOOL_STORE]=[f.tool,other];await f.service.reload();
+  await f.service.install(f.pack,f.tool);
+  await f.service.install({...f.pack,toolId:other.id,targetLocale:'fr'},other);
+  await f.service.setToolLocale(other.id,'fr');
+  const otherBefore=structuredClone(f.saved[toolLocaleStorageKey(other.id)]);
+  const {doc}=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[f.tool,other],toolId:f.tool.id,service:f.service,onClose(){}}}});
+  const select=doc.getElementById('od-locale-tool-language');
+  selectValue(select,'ja');
+  await settle(()=>f.service.getToolLocale(f.tool.id)==='ja'&&!select.disabled);
+  assert.deepEqual(f.saved[toolLocaleStorageKey(other.id)],otherBefore,'language selection is isolated');
+  openPacks(doc);resourceAction(doc,'日本語',1).dispatch('click');
+  buttonNamed(doc,'确认删除').dispatch('click');
+  await settle(()=>f.service.exportPack(f.tool.id,'ja')===null&&buttonNamed(doc,'确认删除')===undefined);
+  assert.deepEqual(f.saved[toolLocaleStorageKey(other.id)],otherBefore,'deletion preserves the other namespace');
+  assert.equal(f.service.getToolLocale(other.id),'fr');
+  assert.ok(f.service.exportPack(other.id,'fr'));
+});
+
 test('missing default opens language pack subpage without changing actual preference',async t=>{
   const f=await setup(t);await f.service.install(f.pack,f.tool);
   const localeController=createUiLocaleController(f.api,{storage:()=>null,languages:['zh-TW']});
@@ -422,6 +459,26 @@ test('JSON drop auto-detects another installed extension and rejects oversized f
   await settle(()=>Boolean(f.service.exportPack(other.id,'fr'))&&doc.getElementById('od-locale-pack-tool'));
   assert.equal(f.service.exportPack(f.tool.id,'fr'),null,'original extension never receives the imported pack');
   assert.equal(f.service.getToolLocale(other.id),null,'import never switches detected extension language');
+});
+
+test('malformed JSON from the file picker reports validation failure without a storage write',async t=>{
+  const f=await setup(t);await f.service.install(f.pack,f.tool);
+  const before=structuredClone(f.saved),set=f.api.storage.local.set;
+  let writes=0;
+  f.api.storage.local.set=async values=>{writes++;return set(values);};
+  const {doc}=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
+    tools:[f.tool],toolId:f.tool.id,service:f.service,onClose(){}}}});
+  openPacks(doc);
+  const picker=doc.querySelector('input[type=file]');
+  await settle(()=>!picker.disabled);
+  Object.defineProperty(picker,'files',{value:[{size:16,text:async()=>'{ invalid JSON }'}]});
+  picker.dispatch('change');
+  await settle(()=>doc.querySelector('[role=alert]')&&!picker.disabled);
+  assert.equal(doc.querySelector('[role=alert]').textContent,msg('zh-CN','invalidJson'));
+  assert.equal(doc.querySelector('[aria-label="语言包导入预览"]'),null);
+  assert.equal(writes,0,'invalid JSON never reaches the storage mutation path');
+  assert.deepEqual(f.saved,before,'the installed pack and preferences stay intact');
+  assert.equal(f.service.getState().status,'ready');
 });
 
 test('blank-label feedback explains source fallback without reporting storage corruption',async t=>{
@@ -889,6 +946,8 @@ test('R5.26 renders R5.23 full-click JSON drop target without duplicate controls
     tools:[f.tool],toolId:f.tool.id,service:f.service,onClose(){}}}});
   assert.equal(doc.querySelector('#od-locale-global').closest('.od-locale-field')
     .querySelector('.od-locale-label').textContent,'OpenDesk');
+  assert.deepEqual([...doc.querySelectorAll('#od-locale-global option')].map(option=>option.value),
+    ['auto','en','zh-CN','zh-TW','ja'],'pack language names must not expand global UI preferences');
   assert.equal(doc.querySelector('#od-locale-tool').value,f.tool.id);
   openPacks(doc);
   const zone=doc.querySelector('button.od-locale-drop-zone');

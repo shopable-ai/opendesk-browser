@@ -76,6 +76,10 @@ export default function LocaleManager({model}){
   const missingLanguage=Boolean(effective&&effective!==requested);
   const report=failure=>setError(()=>failure);
   React.useEffect(()=>{alive.current=true;return ()=>{alive.current=false;};},[]);
+  React.useEffect(()=>{
+    // Installed tools can arrive after this page has opened.
+    if(!toolId&&tools.length)setToolId(tools[0].id);
+  },[tools,toolId]);
   const syncGlobal=()=>{
     setGlobalLocale(localeController?.getLocale?.()||'zh-CN');
     setPreference(localeController?.getPreference?.()||'auto');
