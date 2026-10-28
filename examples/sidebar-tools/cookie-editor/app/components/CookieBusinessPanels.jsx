@@ -6,14 +6,14 @@ import {CookieIcon} from './CookieEditorView.jsx';
 // Never pass raw Cookies, password, session tokens or vault secrets to these panels.
 const enterpriseFeatures=[
   ['部门与项目分组','把企业已有的账号资源按团队整理，快速了解归属和负责人。','users'],
-  ['已授权入口快速使用','减少重复查找和切换；每个人只使用自己有权限的账号与工作区。','refresh'],
-  ['席位、用量与成本概览','有官方数据时展示席位和预算；没有数据的服务保持「未接入」。','clock']
+  ['已授权入口快速使用','减少重复查找和切换；每个人只使用自己拥有权限的账号与工作区。','refresh'],
+  ['席位、用量与成本概览','有可用官方数据时展示席位和预算；没有数据的服务保持「未接入」。','clock']
 ];
 const customFeatures=[
-  ['一个工作入口，覆盖更多任务','把获授权的 AI 工具用于内容整理、资料分析、问答和重复工作，降低操作成本。','share'],
-  ['多账号与团队灵活管理','不同部门、项目快速找到对应工作区；归属清晰，不依赖共享密码。','users'],
-  ['看清额度与使用效果','汇总合法可用的席位、预算与使用数据，无法获取的额度不猜测。','clock'],
-  ['符合企业自己的工作方式','先解决少量高频任务，不另外建立审批或 OA 系统。','settings']
+  ['一个工作入口，覆盖更多任务','把同一批获授权的 AI 工具用于内容整理、资料分析、问答和重复工作，降低团队的操作成本。','share'],
+  ['多账号与团队灵活管理','不同部门、不同项目快速找到对应的工作区；账号归属清晰，不依赖人工台账和共享密码。','users'],
+  ['看清额度与使用效果','按合法可用的数据来源汇总席位、预算与使用状态，方便调整资源配置；无法获取的额度不猜测。','clock'],
+  ['符合企业自己的工作方式','从少量高频任务开始，按行业、组织规模和已有工具灵活定制，不另建繁重的审批或 OA 系统。','settings']
 ];
 const sampleUsage=[
   {name:'ChatGPT · 运营团队',value:'6 / 10 席位',current:6,total:10,note:'已分配席位 · 非对话次数额度'},
@@ -46,8 +46,7 @@ function FeatureList({items}){
 export function CookieEnterprisePanel({onCustomize=()=>{}}){
   return <Page id="enterprise"><div className="cookie-business-content">
     <Hero eyebrow="ENTERPRISE · 企业工作区" title="让团队 AI 账号更好管理">
-      集中查看企业已有的 AI 工作区、部门席位与预算概况。让成员更快找到获授权的入口，
-      减少人工统计、反复询问和账号维护成本。
+      集中查看企业已有的 ChatGPT 等 AI 工作区、部门席位与预算概况。让员工更快找到自己获授权的入口，减少人工统计、反复询问和账号维护成本。
     </Hero>
     <div className="cookie-business-heading"><h3>团队常见场景</h3></div>
     <FeatureList items={enterpriseFeatures}/>
@@ -108,8 +107,7 @@ export function CookieCustomizePanel({onCommunity=()=>{},draft,onDraftChange,onC
   };
   return <Page id="custom"><div className="cookie-business-content">
     <Hero eyebrow="CUSTOM · 企业 AI 定制" title="同一批 AI 资源，创造更多工作价值">
-      让企业已有的合法授权 AI 资源用于内容创作、知识问答、客服辅助、研发和办公，
-      减少重复复制、频繁切换与人工维护，让每一份 AI 投入发挥更大价值。
+      让企业已经合规授权的 ChatGPT 与其他 AI 资源，不只停留在聊天窗口，而是服务内容创作、知识问答、客服辅助、研发和日常办公。减少重复复制、频繁切换与人工维护，让每一份 AI 投入用得更充分。
     </Hero>
     <section className="cookie-business-callout cookie-business-contact-strip">
       <div><strong>按团队需求配置 AI 工作方式</strong>
@@ -126,9 +124,9 @@ export function CookieCustomizePanel({onCommunity=()=>{},draft,onDraftChange,onC
     </section>
     <div className="cookie-business-heading"><h3>为企业解决什么问题</h3></div>
     <FeatureList items={customFeatures}/>
-    <section className="cookie-business-callout">
+    <section className="cookie-business-callout cookie-business-value-lead">
       <strong>可以从哪些场景起步？</strong>
-      <p>例如客服知识问答、运营内容整理、研发 AI 辅助；从一个真实场景逐步增加。</p>
+      <p>例如让客服团队更快调用知识问答，让运营团队自动整理内容，让研发团队复用 AI 辅助流程；先做好一个真实场景，再逐步增加。</p>
     </section>
     <section className="cookie-business-inquiry" aria-label="企业定制需求意向">
       <h3>说说你最想节省的工作</h3>
@@ -168,8 +166,7 @@ export function CookieCommunityPanel(){
   const [expanded,setExpanded]=React.useState('');
   return <Page id="circle"><div className="cookie-business-content">
     <Hero eyebrow="CIRCLE · 外部社群" title="加入圈子，发现更多价值信息">
-      Telegram、Discord、微信等外部社群可讨论 AI 使用经验、行业信息与合作线索。
-      扩展不承载站内聊天、话题发布或交易。
+      在 Telegram、Discord、微信等已有社群里讨论 AI 使用经验、行业动态、合作与资源线索。扩展只提供外部联系方式，不承载站内聊天、话题发布或交易。
     </Hero>
     <div className="cookie-business-features">
       {channels.map(channel=><article className="cookie-business-channel" key={channel.id} aria-label={channel.name}>
@@ -193,7 +190,7 @@ export function CookieCommunityPanel(){
     </div>
     <section className="cookie-business-callout cookie-business-circle-note">
       <strong>信息在社群中交流</strong>
-      <p>外部社群中的资讯和合作机会需自行核验；OpenDesk 不托管交易，也不提供登录凭据买卖渠道。</p>
+      <p>高价值资料、合作机会或交易线索由外部社群独立讨论和核验。OpenDesk 不托管交易、不担保第三方信息，也不提供账号凭据或 Cookie 的买卖渠道。</p>
     </section>
     <p className="cookie-business-muted">本页为社群入口占位。群组链接与微信联系方式尚未配置，不代表已经有真实社群或客服。</p>
   </div></Page>;

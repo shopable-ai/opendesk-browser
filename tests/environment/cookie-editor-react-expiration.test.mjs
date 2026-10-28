@@ -85,10 +85,11 @@ test('actual React form preserves untouched fractional expiry and reports local 
   assert.match(inline,/unchangedExpiry/);
   assert.match(inline,/row\.expirationDate:parsed\.seconds/);
   assert.match(inline,/parseLocalExpiration/);
-  assert.match(fields,/过期时间（Expiration）/);
-  assert.match(fields,/夏令时重复或不存在/);
+  assert.match(fields,/<span>有效期<small>Expiration<\/small><\/span>/);
+  assert.match(fields,/到期日期和时间（本机时区）/);
+  assert.match(fields,/aria-invalid=\{\/过期时间\|本地时间\|夏令时\/\.test\(error\)/);
   assert.match(fields,/compareCookieExpiration\(a,b\)/);
-  assert.match(app,/\['cookie','Cookie'\],\['accounts','账号'\],\['market','市场'\]/);
+  assert.match(app,/\['cookie','Cookie'\],\['accounts','账号'\],\['enterprise','企业'\],\s*\['market','市场'\],\['custom','定制'\],\['circle','圈子'\]/);
   assert.doesNotMatch(app,/\['cookie','Cookie\s+\d+/);
 });
 

@@ -261,6 +261,11 @@ try{
      await reactPage.locator('.row-trigger').first().waitFor({state:'visible'});
      await reactPage.locator('.demo-lab>summary').click();
    }
+   // Each scene starts from the Cookie view: React unmounts its list when a
+   // business tab is selected, while the prototype retains its hidden DOM.
+   await oldPage.locator('#tabCookies').click();
+   await reactPage.locator('#cookie-product-tab-cookie').click();
+   await reactPage.locator('.row-trigger').first().waitFor({state:'visible'});
    const fixtureNames=await Promise.all([
      oldPage.locator('.cookie-key strong').allTextContents(),
      reactPage.locator('.row-text strong').allTextContents()
@@ -271,6 +276,12 @@ try{
      await reactPage.locator('#cookie-product-tab-'+tab).click();
      await oldPage.locator('#view'+(tab==='cookie'?'Cookies':tabLabels[tab])).waitFor({state:'visible'});
      await reactPage.locator('#cookie-product-panel-'+tab).waitFor({state:'visible'});
+   }
+   if(tab==='accounts'){
+     // Match the prototype's applied snapshot through the normal mock action;
+     // configured vault metadata alone is not a verified switch receipt.
+     await reactPage.locator('[data-account-alias="work"]').getByRole('button',{name:'切换',exact:true}).click();
+     await reactPage.locator('[data-account-alias="work"].is-current').waitFor({state:'visible'});
    }
    const referenceViewport=await oldPage.locator('#panel').evaluate(root=>{
     const site=root.querySelector('.sitebar').getBoundingClientRect(),scroll=root.querySelector('#panelScroll').getBoundingClientRect();

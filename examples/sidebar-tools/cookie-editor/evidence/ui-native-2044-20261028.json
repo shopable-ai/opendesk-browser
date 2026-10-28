@@ -1,0 +1,175 @@
+{
+  "schema": "opendesk.cookie-editor.ui-native-evidence.v1",
+  "date": "2026-10-28",
+  "stage": "CORE_DEVELOPMENT_AND_MANUAL_INSTALL_PACKAGE",
+  "result": "PACKAGE_INSTALLED_CORE_IMPORT_PASS_VISUAL_GAP_REMAINS",
+  "package": {
+    "path": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+    "id": "cookie-editor",
+    "version": "2.0.44",
+    "bytes": 221911,
+    "sha256": "421bea2335b3d4c448873a604a5b0b212838a806db156de620567490644e51f1",
+    "sameSource": "PROJECT_PACKAGE_MATCH",
+    "capabilitiesChanged": false,
+    "canonicalCandidateTestsPromote": true,
+    "officialDevelopmentCatalogBytesMatch": true
+  },
+  "source": {
+    "approvedHtmlGitBlob": "020adbf22005cba219af4ff27cd3f3e492978bed",
+    "approvedHtmlUnchanged": true,
+    "buildId": "73a97ae9250b0ab246b172b31a875e7b2e33647eb036de50de004fe40ec6c740",
+    "files": {
+      "dist/tool.js": {
+        "bytes": 141048,
+        "sha256": "00990b6dbc6453d088f7c63814210db00aa40facb34811887c0df7b47c2115e9"
+      },
+      "dist/tool.css": {
+        "bytes": 60259,
+        "sha256": "e5e01a037453cd09bae3a073ae09449ede51149277ecf52f28b19299842b3e4e"
+      }
+    },
+    "changes": [
+      "Restore approved business-page prose and wrapping.",
+      "Align business hero, feature icons, card spacing, community note and inquiry form.",
+      "Keep account examples inert and real account metadata authoritative.",
+      "Repair preview scene reset, verified mock switch action and page-scoped reference selectors."
+    ]
+  },
+  "environment": {
+    "mode": "CONTINUOUS_DEVELOPMENT",
+    "browser": "Chrome for Testing 155.0.8059.39",
+    "app": "/tmp/OpenDesk Cookie UI CFT.app",
+    "profile": "/Users/shopme/.opendesk-browser/dev-profiles/cookie-ui-01a18118-b047a7c92bda",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "devService": "existing watcher on 43119; connected was observed before dedicated-instance restart",
+    "testPage": "http://127.0.0.1:43111/demo-form.html",
+    "sourcePreview": "http://127.0.0.1:43134/dev.html",
+    "parallelServicesPreserved": true
+  },
+  "native": {
+    "install": {
+      "status": "PASS",
+      "method": "Existing official review/update UI, 2.0.43 to 2.0.44; no uninstall.",
+      "digestMatchedReview": true,
+      "runtimeVersionRead": "2.0.44",
+      "permissionNote": "Current localhost site was explicitly authorized through existing tool settings after update; all-sites permission was not granted.",
+      "resolvedEnvironmentIssue": "Earlier local import publisher rejection and stale official catalog integrity rejection left the prior installation intact. Restarted only the owned dedicated instance with its original extension flags, then the official update succeeded."
+    },
+    "sixPages": {
+      "status": "CAPTURED_AND_REVIEWED",
+      "tabs": [
+        "Cookie",
+        "账号",
+        "企业",
+        "市场",
+        "定制",
+        "圈子"
+      ],
+      "scope": "Normal window, default zoom, primary layout and visible content. Not complete pixel parity."
+    },
+    "import": {
+      "status": "PASS",
+      "steps": [
+        "Open inline import.",
+        "Enter fictional Cookie header.",
+        "Preview shows one pending item, current list remains empty and no Cookie value is rendered in preview.",
+        "Explicit confirm imports one item.",
+        "Independent browser cookie readback matches."
+      ],
+      "readback": [
+        {
+          "name": "od_ui_01a18212_final",
+          "value": "fictional-current",
+          "domain": "127.0.0.1",
+          "path": "/",
+          "session": true
+        }
+      ]
+    },
+    "historical2043": {
+      "status": "PASS_FOR_2.0.43_ONLY",
+      "checks": [
+        "Inline import preview and invalidation on input edit.",
+        "Dirty cancel/continue retains input and restores focus.",
+        "Confirm import and create Session Cookie; independently read back fictional values."
+      ],
+      "sessionNote": "Those Session Cookies expired when the dedicated browser restarted; their absence was not treated as package data loss."
+    },
+    "accountSwitchOn2044": "NOT_TESTED; no configured vault in this profile. Historical 2.0.42 native evidence remains version-scoped; fresh receipt/placeholder tests cover the affected layout protections.",
+    "leftOpen": "Cookie tab with one fictional Session Cookie; no vault credentials entered."
+  },
+  "targetedValidation": [
+    {
+      "command": "node --test tests/environment/cookie-editor-react-design.test.mjs tests/environment/cookie-editor-react-expiration.test.mjs",
+      "passed": 12
+    },
+    {
+      "command": "node --test tests/environment/cookie-editor-layout-placeholders.test.mjs tests/environment/cookie-editor-account-ui-receipt.test.mjs",
+      "passed": 15
+    },
+    {
+      "command": "npm run app:update -- cookie-editor",
+      "packageTestsPassed": 8,
+      "result": "Candidate passed gates and was promoted by the original packer."
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project",
+      "result": "PROJECT_PACKAGE_MATCH"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "visualAudit": {
+    "status": "GAP",
+    "scope": "Six default scenes, one fixed preview viewport and light theme; source Vite plus Mock SDK. No width/zoom matrix.",
+    "counts": {
+      "total": 282,
+      "locked": 274,
+      "testInfra": 0,
+      "missing": 50,
+      "emptyIcons": 0
+    },
+    "kinds": {
+      "STATE_ENHANCEMENT": 2,
+      "STATIC_COPY": 31,
+      "RECT": 119,
+      "COMPUTED_STYLE": 24,
+      "COPY_EXTRA": 38,
+      "CONTROL_EXTRA": 6,
+      "ICON_EXTRA": 5,
+      "ICON_PATH_DIFFERENCE": 7,
+      "COPY_MISSING": 37,
+      "ICON_MISSING": 8,
+      "CONTROL_MISSING": 5
+    },
+    "errors": [],
+    "directSelectorStyleOrMissingDiffs": 0,
+    "note": "Primary layout was visually reviewed in preview and installed app. Generic inventory still reports copy, icon, control and geometry/style differences, including real production metadata/safety additions and ordinal matching differences. These remain GAP; counts do not establish complete parity or missing product functionality.",
+    "remainingExamples": [
+      "Enterprise action buttons and some text/control typography differ from prototype.",
+      "Generic inventory pairs some business headings by ordinal across different DOM structures.",
+      "Real account/vault state and Cookie domain metadata intentionally differ from simulated prototype."
+    ]
+  },
+  "artifacts": {
+    "localRoot": "artifacts/cookie-editor-ui-01a18212",
+    "installedMontage": "installed-2044-six-pages.png",
+    "installedPages": "installed-2044-{cookie,accounts,enterprise,market,custom,circle}-full.png",
+    "installedAccessibility": "installed-2044-{cookie,accounts,enterprise,market,custom,circle}.txt",
+    "closeout": "installed-2044-closeout.txt",
+    "importPreview": "installed-2044-import-preview-full.png",
+    "cookieReadback": "cookie-readback-2044.json",
+    "sourceAudit": "preview-current/report-light-380.json"
+  },
+  "deferred": {
+    "production": "NOT_TESTED",
+    "completeVisualParity": "GAP",
+    "independentScore": "NOT_SCORED",
+    "fullRegression": "NOT_TESTED",
+    "zoomAndPhysicalWidthMatrix": "OUT_OF_SCOPE",
+    "realEnterpriseMarketCommunityServices": "NOT_CONNECTED"
+  }
+}

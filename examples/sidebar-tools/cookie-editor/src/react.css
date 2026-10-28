@@ -378,7 +378,7 @@
 .cookie-editor-react .cookie-account-header>strong{font-size:12px;font-weight:730}
 .cookie-editor-react .cookie-account-header h2{flex:1;margin:0;font-size:15px;line-height:1.4}
 .cookie-editor-react .cookie-account-actions{display:flex;align-items:center;gap:var(--space-1);min-width:0}
-.cookie-editor-react .cookie-account-count{color:var(--od-sub);font-weight:400}
+.cookie-editor-react .cookie-account-count{color:var(--od-sub);font-size:10px;font-weight:400}
 .cookie-editor-react .cookie-account-content{display:grid;gap:var(--space-2);min-width:0;padding:11px 13px 22px}
 .cookie-editor-react .cookie-account-content h3{margin:var(--space-2) 0 0;font-size:13px}
 .cookie-editor-react #cookie-product-panel-accounts .cookie-account-content{gap:0}
@@ -555,7 +555,7 @@
 }
 .cookie-editor-react .cookie-business-hero{
   display:grid;gap:6px;min-width:0;
-  background:var(--od-muted);border-radius:var(--radius-surface);padding:14px 12px;
+  background:var(--od-muted);border-radius:10px;padding:14px 12px;
 }
 .cookie-editor-react .cookie-business-hero small{
   color:var(--od-brand);letter-spacing:.06em;font-size:9px;font-weight:750;
@@ -566,7 +566,7 @@
 }
 .cookie-editor-react .cookie-business-heading{
   display:flex;gap:var(--space-2);align-items:baseline;justify-content:space-between;
-  min-width:0;
+  min-width:0;margin-bottom:-3px;
 }
 .cookie-editor-react .cookie-business-heading>small{
   flex:none;font-size:var(--od-meta-size);color:var(--od-sub);
@@ -591,8 +591,9 @@
   width:31px;height:31px;border-radius:8px;
   color:var(--od-brand);background:var(--od-cookie-brand-bg);font-size:12px;font-weight:700;
 }
-.cookie-editor-react .cookie-business-feature strong,
-.cookie-editor-react .cookie-business-channel strong{font-size:11.5px}
+.cookie-editor-react .cookie-business-feature .cookie-business-symbol{width:29px;height:29px}
+.cookie-editor-react .cookie-business-feature strong{font-size:11.5px;line-height:1.4}
+.cookie-editor-react .cookie-business-channel strong{font-size:12px}
 .cookie-editor-react .cookie-business-feature p,
 .cookie-editor-react .cookie-business-channel p{
   margin:0;font-size:10.5px;line-height:1.6;color:var(--od-sub);
@@ -600,7 +601,7 @@
 }
 .cookie-editor-react .cookie-business-usage{
   display:grid;gap:0;min-width:0;overflow:hidden;
-  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+  border:1px solid var(--od-line);border-radius:10px;
 }
 .cookie-editor-react .cookie-business-usage-row{
   display:grid;gap:5px;min-width:0;padding:10px 11px;
@@ -665,6 +666,13 @@
   width:100%;min-width:0;font-weight:400;
 }
 .cookie-editor-react .cookie-business-inquiry textarea{min-height:74px}
+.cookie-editor-react .cookie-business-value-lead{border:0;border-radius:0;padding:10px 0 4px;gap:6px}
+.cookie-editor-react .cookie-business-value-lead>strong{font-size:12px}
+.cookie-editor-react .cookie-business-value-lead>p{font-size:10.5px;line-height:1.65}
+.cookie-editor-react .cookie-business-inquiry{gap:9px;padding:11px;border-radius:9px}
+.cookie-editor-react .cookie-business-inquiry label{gap:5px;font-size:11px;font-weight:650}
+.cookie-editor-react .cookie-business-inquiry :is(select,textarea){font-family:inherit;font-size:12px;border-radius:7px}
+.cookie-editor-react .cookie-business-inquiry textarea{min-height:68px;line-height:1.5}
 .cookie-editor-react .cookie-business-inquiry small{color:var(--od-sub);font-size:var(--od-meta-size)}
 .cookie-editor-react .cookie-business-disclosure{
   padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);
@@ -673,7 +681,14 @@
 .cookie-editor-react .cookie-business-disclosure p{
   margin:var(--space-2) 0 0;line-height:1.6;color:var(--od-sub);font-size:var(--od-note-size);
 }
-.cookie-editor-react .cookie-business-channel{display:grid;gap:var(--space-2)}
+.cookie-editor-react #cookie-product-panel-circle .cookie-business-features{gap:9px}
+.cookie-editor-react #cookie-product-panel-circle .cookie-business-hero,
+.cookie-editor-react #cookie-product-panel-market .cookie-business-hero{gap:5px;padding-bottom:12px}
+.cookie-editor-react #cookie-product-panel-circle .cookie-business-hero p,
+.cookie-editor-react #cookie-product-panel-market .cookie-business-hero p{line-height:1.55}
+.cookie-editor-react .cookie-market-page .searchbox input{border-radius:0}
+.cookie-editor-react .cookie-business-channel{display:grid;gap:var(--space-2);padding:11px;border-radius:10px}
+.cookie-editor-react .cookie-business-channel .cookie-business-avatar{width:30px;height:30px;border-radius:9px;font-weight:800}
 .cookie-editor-react .cookie-business-channel-top{
   display:flex;align-items:center;gap:var(--space-2);min-width:0;
 }
@@ -687,9 +702,9 @@
 .cookie-editor-react .cookie-business-channel .cookie-business-channel-detail{
   padding:8px 9px;border-radius:7px;background:var(--od-bg);
 }
-.cookie-editor-react .cookie-business-circle-note{padding:11px}
+.cookie-editor-react .cookie-business-circle-note{padding:11px;border:0;border-radius:9px;background:var(--od-muted);gap:5px}
 .cookie-editor-react .cookie-business-circle-note>strong{font-size:11.5px}
-.cookie-editor-react .cookie-business-circle-note>p{font-size:10.5px}
+.cookie-editor-react .cookie-business-circle-note>p{font-size:10.5px;line-height:1.65}
 @media(max-width:350px){
  .cookie-editor-react .cookie-business-content{padding:var(--space-2)}
  .cookie-editor-react .cookie-business-feature{padding:var(--space-2)}

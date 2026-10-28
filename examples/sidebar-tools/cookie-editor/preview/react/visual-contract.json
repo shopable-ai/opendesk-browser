@@ -309,7 +309,7 @@
       "id": "enterprise-hero",
       "tab": "enterprise",
       "status": "LOCKED",
-      "html": ".custom-hero",
+      "html": "#viewEnterprise .custom-hero",
       "react": ".cookie-business-hero",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -326,7 +326,7 @@
       "id": "enterprise-feature",
       "tab": "enterprise",
       "status": "LOCKED",
-      "html": ".custom-feature",
+      "html": "#viewEnterprise .custom-feature",
       "react": ".cookie-business-feature",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -342,7 +342,7 @@
       "id": "enterprise-feature-icon",
       "tab": "enterprise",
       "status": "LOCKED",
-      "html": ".custom-feature .market-symbol svg",
+      "html": "#viewEnterprise .custom-feature .market-symbol svg",
       "react": ".cookie-business-feature .cookie-business-symbol svg",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -356,7 +356,7 @@
       "id": "enterprise-usage",
       "tab": "enterprise",
       "status": "LOCKED",
-      "html": ".custom-usage",
+      "html": "#viewEnterprise .custom-usage",
       "react": ".cookie-business-usage",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -370,7 +370,7 @@
       "id": "market-hero",
       "tab": "market",
       "status": "LOCKED",
-      "html": ".market-lead",
+      "html": "#viewMarket .market-lead",
       "react": ".cookie-business-hero",
       "source": "app/components/CookieAccountExperiences.jsx",
       "css": "src/react.css",
@@ -386,7 +386,7 @@
       "id": "market-search",
       "tab": "market",
       "status": "LOCKED",
-      "html": "#marketSearch",
+      "html": "#viewMarket #marketSearch",
       "react": "input[aria-label='搜索市场功能']",
       "source": "app/components/CookieAccountExperiences.jsx",
       "css": "src/react.css",
@@ -400,7 +400,7 @@
       "id": "market-feature",
       "tab": "market",
       "status": "LOCKED",
-      "html": ".market-item",
+      "html": "#viewMarket .market-item",
       "react": ".cookie-market-resource",
       "source": "app/components/CookieAccountExperiences.jsx",
       "css": "src/react.css",
@@ -414,7 +414,7 @@
       "id": "market-item-icon",
       "tab": "market",
       "status": "LOCKED",
-      "html": ".market-item .market-symbol svg",
+      "html": "#viewMarket .market-item .market-symbol svg",
       "react": ".cookie-market-resource .cookie-market-resource-head svg",
       "source": "app/components/CookieAccountExperiences.jsx",
       "css": "src/react.css",
@@ -428,7 +428,7 @@
       "id": "custom-hero",
       "tab": "custom",
       "status": "LOCKED",
-      "html": ".custom-hero",
+      "html": "#viewCustom .custom-hero",
       "react": ".cookie-business-hero",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -445,7 +445,7 @@
       "id": "custom-feature",
       "tab": "custom",
       "status": "LOCKED",
-      "html": ".custom-feature",
+      "html": "#viewCustom .custom-feature",
       "react": ".cookie-business-feature",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -461,7 +461,7 @@
       "id": "custom-feature-icon",
       "tab": "custom",
       "status": "LOCKED",
-      "html": ".custom-feature .market-symbol svg",
+      "html": "#viewCustom .custom-feature .market-symbol svg",
       "react": ".cookie-business-feature .cookie-business-symbol svg",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -475,7 +475,7 @@
       "id": "circle-hero",
       "tab": "circle",
       "status": "LOCKED",
-      "html": ".market-lead",
+      "html": "#viewCircle .market-lead",
       "react": ".cookie-business-hero",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -491,7 +491,7 @@
       "id": "circle-channel",
       "tab": "circle",
       "status": "LOCKED",
-      "html": ".circle-channel",
+      "html": "#viewCircle .circle-channel",
       "react": ".cookie-business-channel",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -506,7 +506,7 @@
       "id": "circle-avatar",
       "tab": "circle",
       "status": "DYNAMIC",
-      "html": ".circle-channel .community-avatar",
+      "html": "#viewCircle .circle-channel .community-avatar",
       "react": ".cookie-business-channel .cookie-business-avatar",
       "source": "app/components/CookieBusinessPanels.jsx",
       "css": "src/react.css",
@@ -548,7 +548,7 @@
       "tab": "enterprise",
       "id": "enterprise-title",
       "status": "LOCKED",
-      "html": ".custom-hero h2",
+      "html": "#viewEnterprise .custom-hero h2",
       "react": ".cookie-business-hero h2",
       "value": "让团队 AI 账号更好管理"
     },
@@ -556,15 +556,15 @@
       "tab": "enterprise",
       "id": "enterprise-feature-title",
       "status": "LOCKED",
-      "html": ".custom-section-head h3",
-      "react": ".cookie-business-content>h3",
+      "html": "#viewEnterprise .custom-section-head h3",
+      "react": ".cookie-business-heading h3",
       "value": "团队常见场景"
     },
     {
       "tab": "market",
       "id": "market-title",
       "status": "LOCKED",
-      "html": ".market-lead>strong",
+      "html": "#viewMarket .market-lead>strong",
       "react": ".cookie-business-hero h2",
       "value": "发现实用功能与配置示例"
     },
@@ -572,7 +572,7 @@
       "tab": "market",
       "id": "market-search-placeholder",
       "status": "LOCKED",
-      "html": "#marketSearch",
+      "html": "#viewMarket #marketSearch",
       "react": "input[aria-label='搜索市场功能']",
       "attr": "placeholder",
       "value": "搜索功能、模板或场景"
@@ -581,7 +581,7 @@
       "tab": "custom",
       "id": "custom-title",
       "status": "LOCKED",
-      "html": ".custom-hero h2",
+      "html": "#viewCustom .custom-hero h2",
       "react": ".cookie-business-hero h2",
       "value": "同一批 AI 资源，创造更多工作价值"
     },
@@ -589,15 +589,15 @@
       "tab": "custom",
       "id": "custom-feature-title",
       "status": "LOCKED",
-      "html": ".custom-section-head h3",
-      "react": ".cookie-business-content>h3",
+      "html": "#viewCustom .custom-section-head h3",
+      "react": ".cookie-business-heading h3",
       "value": "为企业解决什么问题"
     },
     {
       "tab": "circle",
       "id": "circle-title",
       "status": "LOCKED",
-      "html": ".market-lead>strong",
+      "html": "#viewCircle .market-lead>strong",
       "react": ".cookie-business-hero h2",
       "value": "加入圈子，发现更多价值信息"
     }
@@ -667,24 +667,24 @@
     },
     "enterprise": {
       "html": [
-        ".custom-hero",
-        ".custom-section-head",
-        ".custom-features",
-        ".custom-usage"
+        "#viewEnterprise .custom-hero",
+        "#viewEnterprise .custom-section-head",
+        "#viewEnterprise .custom-features",
+        "#viewEnterprise .custom-usage"
       ],
       "react": [
         ".cookie-business-hero",
-        ".cookie-business-content>h3",
+        ".cookie-business-heading h3",
         ".cookie-business-features",
         ".cookie-business-usage"
       ]
     },
     "market": {
       "html": [
-        ".market-lead",
-        ".market-search",
-        ".market-filters",
-        ".market-list"
+        "#viewMarket .market-lead",
+        "#viewMarket .market-search",
+        "#viewMarket .market-filters",
+        "#viewMarket .market-list"
       ],
       "react": [
         ".cookie-business-hero",
@@ -695,23 +695,23 @@
     },
     "custom": {
       "html": [
-        ".custom-hero",
-        ".custom-contact-strip",
-        ".custom-section-head",
-        ".custom-features"
+        "#viewCustom .custom-hero",
+        "#viewCustom .custom-contact-strip",
+        "#viewCustom .custom-section-head",
+        "#viewCustom .custom-features"
       ],
       "react": [
         ".cookie-business-hero",
         ".cookie-business-callout",
-        ".cookie-business-content>h3",
+        ".cookie-business-heading h3",
         ".cookie-business-features"
       ]
     },
     "circle": {
       "html": [
-        ".market-lead",
-        ".circle-channel-list",
-        ".circle-info"
+        "#viewCircle .market-lead",
+        "#viewCircle .circle-channel-list",
+        "#viewCircle .circle-info"
       ],
       "react": [
         ".cookie-business-hero",

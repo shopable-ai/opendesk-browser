@@ -135,8 +135,7 @@ export function CookieAccountMarket({onExperience=()=>{},onEnterprise=()=>{}}){
       <header className="cookie-business-hero">
         <small>MARKET · 轻量体验</small>
         <h2>发现实用功能与配置示例</h2>
-        <p>从多账号管理、快捷切换到 Cookie 有效期，点击即可在当前产品中体验。
-           企业多部门、席位与用量管理在「企业」中查看。</p>
+        <p>从个人多账号、快捷切换到 Cookie 有效期，点击即可在当前产品中体验。企业多部门账号、席位与用量管理统一放在「企业」中。</p>
       </header>
       <div className="searchbox">
         <span className="cookie-search-symbol"><CookieIcon name="search"/></span>
