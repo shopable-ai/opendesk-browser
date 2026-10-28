@@ -83,6 +83,21 @@ function validateRows(rows,host,storeId,partition){
 }
 // Pure, deterministic operation plan. Every input row has already passed
 // exact host, Store and Partition checks; this never touches native Cookies.
+// A no-op must not advance vault versions, and a changed Cookie identity set
+// must not silently overwrite a saved account. Both arrays are trusted-only.
+export function inspectAccountSnapshotUpdate(saved,current){
+  if(!Array.isArray(saved)||!Array.isArray(current)||
+     saved.length>MAX_COOKIES||current.length>MAX_COOKIES)
+    throw fail('E_ACCOUNT_COOKIE_SCOPE');
+  const savedIds=saved.map(cookieId).sort();
+  const currentIds=current.map(cookieId).sort();
+  if(new Set(savedIds).size!==savedIds.length||
+     new Set(currentIds).size!==currentIds.length||
+     !same(savedIds,currentIds))throw fail('E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED');
+  // Slot equality alone does not establish website login identity. The
+  // presentation also requires a recent verified account-switch receipt.
+  return same(saved,current)?'unchanged':'changed';
+}
 export function planAccountCookieEffects(current,expected){
   if(!Array.isArray(current)||!Array.isArray(expected)||
      current.length>MAX_COOKIES||expected.length>MAX_COOKIES)
@@ -361,6 +376,19 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
       capture=await cookiesFor(scoped);
       if(!capture.length)throw fail('E_ACCOUNT_EMPTY');
     }
+    if(operation==='update'){
+      // Review the persisted version before any mutation. A renewed value or
+      // expiry is allowed only when every exact Store/Partition/Domain/Path
+      // Cookie identity still matches the captured scope.
+      const latest=await vault.read();
+      if(latest.revision!==revision)throw fail('E_VAULT_CONFLICT');
+      const source=latest.accounts.find(item=>
+        item.alias===payload.alias&&item.origin===origin);
+      if(!source)throw fail('E_ACCOUNT_NOT_FOUND');
+      if(source.version!==payload.accountVersion)throw fail('E_VAULT_CONFLICT');
+      if(inspectAccountSnapshotUpdate(source.cookies,capture)==='unchanged')
+        return {...await statusFor(origin),unchanged:true};
+    }
     const changed=await vault.update(revision,data=>{
       const selected=data.accounts.find(item=>item.alias===payload.alias&&item.origin===origin);
       if(['rename','update','delete','allowAlias'].includes(operation)){
@@ -371,12 +399,17 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
         const displayName=String(payload.displayName||'').trim();
         if(displayName.length<1||displayName.length>64||data.accounts.length>=MAX_ACCOUNTS)
           throw fail('E_ACCOUNT_NAME');
+        if(data.accounts.some(item=>item.origin===origin&&
+          item.displayName===displayName))throw fail('E_ACCOUNT_NAME_TAKEN');
         const alias='acct_'+crypto.randomUUID().replace(/-/g,'').slice(0,20);
         data.accounts.push({alias,origin,displayName,version:1,
           cookies:capture,allowAuto:false});
       }else if(operation==='rename'){
         const name=String(payload.displayName||'').trim();
         if(!name||name.length>64)throw fail('E_ACCOUNT_NAME');
+        if(data.accounts.some(item=>item.origin===origin&&
+          item.alias!==selected.alias&&item.displayName===name))
+          throw fail('E_ACCOUNT_NAME_TAKEN');
         selected.displayName=name;selected.version++;
       }else if(operation==='update'){
         selected.cookies=capture;selected.version++;
