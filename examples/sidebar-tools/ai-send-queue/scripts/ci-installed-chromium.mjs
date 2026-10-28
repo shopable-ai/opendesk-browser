@@ -19,7 +19,7 @@ const extension=resolve('dist/development');
 const candidate=resolve('artifacts/app-ci/ai-send-queue/candidate.opendesk-tool.json');
 const report={scope:'REAL_CHROME_MV3_SIDE_PANEL',simulatedSDK:false,macChromeTested:false,
   liveChatGPTSending:'NOT_TESTED',pageInstalled:false,read:'NOT_TESTED',
-  unauthorizedSameId:'NOT_TESTED',status:'RUNNING',events:[]};
+  nativePanelReopen:'NOT_TESTED',unauthorizedSameId:'NOT_TESTED',status:'RUNNING',events:[]};
 let chrome,profile,socket,host,extId,seq=0;const pending=new Map(),sessions=new Map();
 const exceptions=[];
 function cdp(method,params={},sessionId=null){
@@ -186,7 +186,40 @@ try{
   await click(host,'#sidebar-tool-back');
   await until(()=>evalJs(host,'!document.querySelector("#sidebar-tool-frame iframe")'),
     'tool frame closes');
-  await openTool();
+  // A tool re-open is not a Side Panel re-open. Exercise the native Chrome
+  // lifecycle and prove the old SIDE_PANEL document actually disappeared.
+  await evalJs(bootstrap,'chrome.sidePanel.close({windowId:'+JSON.stringify(windowId)+'})');
+  await until(()=>evalJs(bootstrap,
+    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(xs=>'+
+    '!xs.some(x=>x.documentId==='+JSON.stringify(context.documentId)+'))'),
+    'native Side Panel document closed');
+  report.events.push('REAL_NATIVE_SIDE_PANEL_CLOSED');
+  const reopened=await cdp('Runtime.evaluate',{
+    expression:'chrome.sidePanel.open({windowId:'+JSON.stringify(windowId)+'})',
+    userGesture:true,awaitPromise:true,returnByValue:true},bootstrap);
+  if(reopened.exceptionDetails)throw Error('NATIVE_PANEL_REOPEN '+reopened.exceptionDetails.text);
+  const reopenedContext=await until(()=>evalJs(bootstrap,
+    'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(xs=>xs.find(x=>'+
+    'x.documentUrl?.startsWith('+JSON.stringify('chrome-extension://'+extId+'/sidepanel.html')+')&&'+
+    'new URL(x.documentUrl).searchParams.has("hostInstanceId")&&'+
+    'x.documentId!=='+JSON.stringify(context.documentId)+')||null)'),
+    'new native Side Panel document');
+  const reopenedTarget=await until(async()=>{
+    const all=(await cdp('Target.getTargets')).targetInfos;
+    return all.find(x=>x.url===reopenedContext.documentUrl&&x.targetId!==bootstrapTab.targetId);
+  },'reopened native panel target');
+  host=await attach(reopenedTarget.targetId);
+  await cdp('Page.enable',{},host);
+  await until(()=>evalJs(host,
+    'document.querySelector("#extension-center-list")?.dataset.opendeskReactOwner==="extension-list"'),
+    'reopened native React extension list');
+  await click(host,'#tab-tools');
+  await until(()=>evalJs(host,'!document.querySelector("#workbench-tools")?.hidden'),
+    'reopened extension center');
+  const returned=await openTool(),readBack=await getQueue(returned);
+  assert.equal(readBack.ok,true,'pinned Tool reopens under the new Side Panel instance');
+  assert.equal(readBack.value.status,'unavailable','missing Page remains visibly unavailable');
+  report.nativePanelReopen='PASS_NATIVE_CLOSE_REOPEN';
   report.events.push('REAL_SIDE_PANEL_REOPEN');
   // A different same-ID installation may be reviewed, but may NEVER inherit
   // queue RPC authority merely from matching its ID and declared capability.
@@ -218,5 +251,5 @@ try{
     if(profile)await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:150});
   }catch(error){report.cleanupError=String(error);}
   console.log(JSON.stringify({status:report.status,read:report.read,spoof:report.unauthorizedSameId,
-    events:report.events,error:report.error},null,2));
+    events:report.events,nativePanelReopen:report.nativePanelReopen,error:report.error},null,2));
 }
