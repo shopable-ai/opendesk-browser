@@ -1823,7 +1823,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return true;
   }
   function openImport(){
-    if(disposed||busy||!visible||active||view.getSnapshot().market?.review)return false;
+    if(disposed||busy||!visible||(active&&!readOnlyPreview)||view.getSnapshot().market?.review)return false;
     setImportOpen(true);notice('');return true;
   }
   function openImportFiles(files){

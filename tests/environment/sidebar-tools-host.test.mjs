@@ -2184,6 +2184,30 @@ test('import state actions preserve the installed registry and never start a san
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),before);
 });
 
+test('read-only development preview survives opening and cancelling extension import',async t=>{
+  const f=await hostFixture(t,{startTool:false}),before=structuredClone(f.store.get(SIDEBAR_TOOL_STORE));
+  f.host.openReadOnlyPreview(sample);
+  const frame=f.runtime.frameRoot.firstElementChild;
+  await frame.onload();
+  const loaded=frame.contentWindow.sent.length;
+  assert.equal(f.host.openImport(),true);
+  assert.equal(f.elements['sidebar-tool-import'].hidden,false);
+  assert.equal(f.runtime.frameRoot.firstElementChild,frame);
+  f.emit(f.elements['sidebar-tool-import-close'],'click');
+  assert.equal(f.elements['sidebar-tool-import'].hidden,true);
+  assert.equal(f.runtime.frameRoot.firstElementChild,frame);
+  assert.equal(frame.contentWindow.sent.length,loaded,'import cannot reload the live preview');
+  assert.equal(f.host.isPreviewActive(),true);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),before);
+});
+
+test('extension import still refuses to replace an active installed application',async t=>{
+  const f=await hostFixture(t),frame=f.runtime.frameRoot.firstElementChild;
+  assert.equal(f.host.openImport(),false);
+  assert.equal(f.elements['sidebar-tool-import'].hidden,true);
+  assert.equal(f.runtime.frameRoot.firstElementChild,frame);
+});
+
 test('R4.5 two official review windows share the original installation lock and reject stale approvals',async t=>{
   const originalWindow=globalThis.window,originalConfirm=globalThis.confirm;
   const store=new Map(),locks=sharedLocks(),release=(await officialFixtures()).catalog.apps[0];

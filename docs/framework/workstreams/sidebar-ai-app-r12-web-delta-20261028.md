@@ -35,3 +35,13 @@
 - 原始本机回执：`artifacts/sidebar-ai-app-r13-local-20261028/entry-evidence.json`、`local-project-preview-after.tap`、`quick-notes-source-receipt.tap`。真实 Chrome 原生截图与可访问树在本对话工具记录中；未声称存在本地截图文件。
 - 本轮工程状态：`SOURCE_DONE=PARTIAL / BUILD_PASS=PARTIAL`（工具编译成功，Browser 输出阻断）`/ PREVIEW_PASS=BLOCKED / SDK_PASS=BLOCKED / MAC_CHROME_PASS=PARTIAL`（只核对了真实入口、加载身份与 Native 连接）。八维正式验收及平均分均 `NOT_SCORED`；未获得成功运行、双更新和 SDK 证据前不宣称 95+。
 - 下一条最小操作：共享 dev owner 恢复同目录完整输出后，从「开发 → 本地项目 → 在侧栏调试」继续，取得真实 `SIDE_PANEL` 身份并做两次 App.jsx 可见变更、编译错误保留及恢复；P0 通过前不实施 P1 Owner 改造或正式包晋升。
+
+## R1.3 LOCAL · 真实侧栏双更新与导入修复（2026-10-28 23:12 CST）
+
+- 用户授权跨对话协调后，共享恢复 owner 使用原 npm run dev 恢复同一 dist/development（PID 93865），未改加载路径或扩展 ID。完整输出回执为 b31330650b6a55464f44d8805e31060aef9fc9baa2de4ef74c5a03e65e14920f；本对话保留 Quick Notes React 的两个原 watcher。
+- 从真实「开发 → 本地项目 → quick-notes-react → 在侧栏调试」进入。Chrome 自身 runtime.getContexts 实际返回 SIDE_PANEL，documentId 96B07635DFEFAEB4B18BF7D1658456EB、contextId 5ca5eab1-0da0-41ba-8096-00876ee3879e；windows.getCurrent 实际返回窗口 560068725。hostInstanceId a5c94ad6-39f4-4f62-aa80-a9860f166d7d 在两次更新和错误恢复中不变。Chrome context 的 tabId/windowId 均为 -1，不能把它们当独立标签页身份。
+- 同一 Side Panel 中将 App.jsx 标签依次改为「我的笔记 · R1.3 更新一／二」，两次均无需重导入、安装或手动刷新，真实可见。快照依次为 8acb289d5ef3381ce367cb840af4f0f17a506d3a6dc3c142a74a35a78c2ae3c1 与 fd494f9434f1e66203e54fc84f2ea9d97d3652276a31192e639d30ecbb9878e3。故意引入 labelBROKEN JSX 错误后，界面和 latest 保留第二个成功快照，显示编译失败；恢复原标签后自动回到 0f811a7bfe3cacee1dc5bdb1b7f999f9c1bd8b39cb0b639af5771fd97efcc557。临时 App.jsx 改动已全部恢复。
+- 实测「开发／应用调试／我的／扩展／工作流／云控」往返成功；未执行的开发草稿返回后保留，测试后恢复原空草稿和本地项目选择。
+- 真实失败：调试运行时「扩展 → 导入扩展」被 openImport 的 active 条件拒绝。最小修复只允许只读开发预览期间打开原抽屉；已安装应用的 active 拒绝仍保留。新增两项定向测试，先复现一失败一通过，修复后连同原导入用例为 3/3 PASS；真实 Chrome 复验抽屉可见、取消后预览仍在。未执行安装操作或改写正式数据。
+- 证据集中在 artifacts/sidebar-ai-app-r13-local-20261028/visible-react-evidence.json，包含每次 JSX 源码 SHA、buildId、快照 SHA 与对应 .png/.ax.txt；sidepanel-chrome-context.png/.ax.txt 为 Chrome 实际上下文回执。入口恢复后的 Host 差量安全重载产生新 hostInstanceId 0e82b2ce-a943-4047-84ca-6609e0289400，随后从正式入口重建会话并复验导入；不把新实例冒充原双更新实例。
+- 目前已证明双更新、编译错误保留/恢复和导航；Stop、跨窗口、断连与旧请求失效仍在执行，P0 尚未整体完成。SDK 仍未授权，真实存储/ETag 为 BLOCKED；P1/P2 尚未开始。八维正式验收未评分，不给综合 95+。
