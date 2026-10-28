@@ -701,7 +701,9 @@ try{
   const card=page.locator('.cookie-account-card').filter({hasText:'工作账号'});
   await card.locator('.cookie-account-description').waitFor();
   assert.equal(await card.locator('.cookie-account-description').innerText(),'客服团队日常使用');
-  assert.match(await card.innerText(),/条关联 Cookie · 完整快照/);
+  assert.deepEqual(await card.locator('.cookie-account-card-text > *').allInnerTexts(),
+    ['工作账号','客服团队日常使用']);
+  assert.equal(await card.locator('.cookie-account-card-text small').count(),0);
   await card.getByRole('button',{name:'工作账号更多操作'}).click();
   await page.getByRole('menuitem',{name:'编辑账号'}).click();
   assert.equal(await displayName.inputValue(),'工作账号');
@@ -720,9 +722,13 @@ try{
   await button('保存账号').click();
   assert.equal(await page.locator('.cookie-account-card').count(),2);
   assert.equal(await page.locator('.cookie-account-description').count(),1);
+  const withoutDescription=page.locator('.cookie-account-card').filter({hasText:'新账号 1'});
+  assert.deepEqual(await withoutDescription.locator('.cookie-account-card-text > *').allInnerTexts(),['新账号 1']);
+  await page.screenshot({path:join(output,'accounts-r27-name-description.png'),fullPage:true});
  });
  await test('R2.7 account search matches descriptions',async()=>{
   await scene('accountsDemo');
+  await page.getByRole('tab',{name:'账号',exact:true}).click();
   await button('保存当前 Cookie 为账号').click();
   await page.getByRole('textbox',{name:'账号描述（选填）',exact:true})
     .fill('唯一描述搜索关键字');

@@ -1,0 +1,286 @@
+{
+  "schema": "opendesk.cookie-editor.incremental-ui-delivery.v1",
+  "date": "2026-10-29",
+  "phase": "CORE_INCREMENTAL",
+  "result": "PACKAGE_READY_INSTALL_NOT_TESTED",
+  "integration": {
+    "branch": "main",
+    "baseCommit": "2123a0b2ab581885821821f743df551fb178330b",
+    "mergedRemoteCommit": "b41a160624011d70ad4076b333adf47b5f5c96c6",
+    "remoteChanges": [
+      "4b0d501fe",
+      "b41a160624011d70ad4076b333adf47b5f5c96c6"
+    ],
+    "scope": [
+      "Account cards show name and optional description only",
+      "Shorter account description and edit hints",
+      "Approved HTML uses the matching single visual-contract lock",
+      "Search test clicks the Account tab after resetting the default Cookie scene"
+    ],
+    "hostServiceChangedByThisTask": false
+  },
+  "package": {
+    "path": "cookie-editor.opendesk-tool.json",
+    "version": "2.0.49",
+    "bytes": 225733,
+    "sha256": "d66adea964d55189698fd8472c442422fdad0ce80757d909ebe5d1e513c65f5b",
+    "promoted": true,
+    "sourceMatch": true,
+    "installed": false
+  },
+  "build": {
+    "buildId": "363f1a83da411fb971cd46ef28e6adde47c4c1bc5865cf58b398d0efe6bce8d8",
+    "files": {
+      "dist/tool.js": {
+        "bytes": 144249,
+        "sha256": "611d367255c30190373fc52f43df0f834fb44323e74dc8f4c8f53f89a7737134"
+      },
+      "dist/tool.css": {
+        "bytes": 60750,
+        "sha256": "0b0c90da0b4a317886ad648a312ec434a50223269ef3d0e5e387717692657ade"
+      }
+    },
+    "sourceReceipts": {
+      "app/entries/official.jsx": {
+        "bytes": 809,
+        "sha256": "05b0f52fd6e5287cfb407a4d4faccc7f325c948610aab598e6a8752935672f90"
+      },
+      "app/CookieEditorApp.jsx": {
+        "bytes": 39984,
+        "sha256": "29a1565672e6baa70ffbf6def62cebd0bd50a3ce1559f6ae87c0b595d74bfead"
+      },
+      "app/adapters/browser-sdk.js": {
+        "bytes": 7173,
+        "sha256": "7134ac6f7fed82099689a7c60043c846f394d8d02fcc08596590779380bf98ea"
+      },
+      "app/controller/cookie-controller.js": {
+        "bytes": 29571,
+        "sha256": "099d034a28b9957b960788d7152f343bbfa15743ea939f6bbb1355037bc0b43e"
+      },
+      "app/domain/cookie-model.js": {
+        "bytes": 15947,
+        "sha256": "f23d69c34b7ce2b5cad13666cf9ff164d81111c18b0948636f22975f3fe2d0ad"
+      },
+      "app/domain/account-switch-url.js": {
+        "bytes": 3295,
+        "sha256": "1eb91f609324b0bcaaaac7bdb69489e3f418b049ea69ebcc0bd0c7f3ce520a04"
+      },
+      "app/components/CookieEditorView.jsx": {
+        "bytes": 25486,
+        "sha256": "dc4e267ea4760883e4d259b6bf6a4235a206d67d8f4b3f3429af0f8713c7cb8e"
+      },
+      "app/components/CookieAccounts.jsx": {
+        "bytes": 26204,
+        "sha256": "44de39abb839683194f605cd4f04f68f0b78de900c18e14396827416655748e7"
+      },
+      "app/components/CookieAccountExperiences.jsx": {
+        "bytes": 10218,
+        "sha256": "307ab37131614e71f82812515b8e2f14493ec5201ff8054b1b4f7e4ea88b3e87"
+      },
+      "app/components/CookieBusinessPanels.jsx": {
+        "bytes": 16159,
+        "sha256": "1cd308a1432f84d8575fa87becb63038ba0275fba2e00e5b04c37eb26fc5b0e9"
+      },
+      "app/components/CookieInlineEditor.jsx": {
+        "bytes": 10725,
+        "sha256": "4fd7db60c3ac50e5744fb3d320cc1062d2247bc56c999403e1dd29637303c530"
+      },
+      "app/components/CookieClearDialog.jsx": {
+        "bytes": 2119,
+        "sha256": "784bf13e8ad9db31594c230c5099d381f5395052fc1b3c0b2aba2d482e0e1a6c"
+      },
+      "app/components/CookieImport.jsx": {
+        "bytes": 11307,
+        "sha256": "abba878f70139c29ec9cde74ece34e0274da839b082d0bdac918a0ec3575e43c"
+      },
+      "app/components/CookieExport.jsx": {
+        "bytes": 3035,
+        "sha256": "a2e4e69cb28feef3f76850ec9c2ab02e13dc23b205ba6c226c928a4c6c41151f"
+      },
+      "app/components/CookiePermissions.jsx": {
+        "bytes": 2931,
+        "sha256": "ffbcbba2c6ce6a2ae3abe9dfa8440f10583e3f8f94d6ccc4e205e3543d67b2a3"
+      },
+      "app/components/CookieOfflineWorkspace.jsx": {
+        "bytes": 12106,
+        "sha256": "d0e7db9c0269df448cc0d57dfabf121a1c8f40956bb1080e40734579a6995fe9"
+      },
+      "src/react.css": {
+        "bytes": 60750,
+        "sha256": "0b0c90da0b4a317886ad648a312ec434a50223269ef3d0e5e387717692657ade"
+      },
+      "src/root.html": {
+        "bytes": 75,
+        "sha256": "320222648f7d8cc2871878b0d4a9124db75f5dee712a77a8f75d314f0d459bfa"
+      },
+      "vite.config.mjs": {
+        "bytes": 3925,
+        "sha256": "85f45d99a499d5e566a996627811874a4b81f9ce0b2785cc50b5634276fd5bb1"
+      },
+      "package.json": {
+        "bytes": 393,
+        "sha256": "d712df377c856d6cdbd49bc1584a0936bec1044b85e2601247baef48812b9f9a"
+      }
+    },
+    "sharedReactRuntime": {
+      "bytes": 193163,
+      "sha256": "d1eec2e96ed42046ad543a10af7de992aee633ac06017f44f6b917e36451c758"
+    }
+  },
+  "preview": {
+    "path": "preview/react/index.html",
+    "bytes": 663410,
+    "sha256": "54735c2649bf600677e1a5b797babc15e7ec2682205ddf676f7440f7e42ba525",
+    "approvedHtmlBlob": "a0940bcba2248089c42c01fb9ed63b47697e18e7",
+    "mode": "OFFLINE_SHARED_APP_MOCK_SDK",
+    "browser": "155.0.8059.39",
+    "casesPassed": [
+      "R2.7 descriptions create, edit, retain on failure and render only when present",
+      "R2.7 account search matches descriptions"
+    ],
+    "errors": [],
+    "network": [],
+    "screenshot": "artifacts/cookie-editor-ui-integration-20261029/preview-2049/accounts-r27-name-description.png"
+  },
+  "checks": [
+    {
+      "command": "node scripts/build-cookie-editor-react.mjs",
+      "result": "PASS",
+      "log": "artifacts/cookie-editor-ui-integration-20261029/react-build.log"
+    },
+    {
+      "cwd": "examples/sidebar-tools/cookie-editor/preview/react",
+      "command": "npm run build",
+      "result": "PASS",
+      "log": "artifacts/cookie-editor-ui-integration-20261029/preview-build.log"
+    },
+    {
+      "command": "node --test --test-name-pattern 'R3.7 dev comparison imports safely' examples/sidebar-tools/cookie-editor/preview/react/preview.test.mjs",
+      "result": "PASS",
+      "passed": 1,
+      "log": "artifacts/cookie-editor-ui-integration-20261029/source-lock.log"
+    },
+    {
+      "command": "node --test --test-name-pattern 'canonical packer rejects|built React JSX|canonical packer emits' tests/environment/cookie-editor-react-build.test.mjs",
+      "result": "PASS",
+      "passed": 3,
+      "log": "artifacts/cookie-editor-ui-integration-20261029/package-gates.log"
+    },
+    {
+      "command": "node build-preview.mjs --check",
+      "cwd": "examples/sidebar-tools/cookie-editor/preview/react",
+      "result": "PASS"
+    },
+    {
+      "command": "CHROME_BIN=<existing CFT 155.0.8059.39 binary> node examples/sidebar-tools/cookie-editor/preview/react/chromium.mjs artifacts/cookie-editor-ui-integration-20261029/preview-2049 --test-match '^R2\\.7'",
+      "result": "FIRST_CASE_PASS_SECOND_CASE_DRIVER_FAILURE",
+      "log": "artifacts/cookie-editor-ui-integration-20261029/preview-accounts-cft155.log"
+    },
+    {
+      "command": "CHROME_BIN=<existing CFT 155.0.8059.39 binary> node examples/sidebar-tools/cookie-editor/preview/react/chromium.mjs artifacts/cookie-editor-ui-integration-20261029/preview-2049-search --test-match '^R2\\.7 account search'",
+      "result": "PASS_AFTER_DRIVER_FIX",
+      "passed": 1,
+      "log": "artifacts/cookie-editor-ui-integration-20261029/preview-search-fixed.log"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --out artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json",
+      "result": "PASS",
+      "log": "artifacts/cookie-editor-ui-integration-20261029/candidate.log"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --promote-from artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json",
+      "result": "PASS",
+      "log": "artifacts/cookie-editor-ui-integration-20261029/promote.log"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project",
+      "result": "PASS",
+      "log": "artifacts/cookie-editor-ui-integration-20261029/check-project.log"
+    },
+    {
+      "command": "node --test --test-name-pattern 'checked-in official React package matches' tests/environment/cookie-editor-react-build.test.mjs",
+      "result": "PASS",
+      "passed": 1,
+      "log": "artifacts/cookie-editor-ui-integration-20261029/formal-package.log"
+    }
+  ],
+  "resolvedObservations": [
+    {
+      "kind": "ENVIRONMENT",
+      "observation": "Default Playwright headless binary was absent",
+      "resolution": "Used existing repository CFT 155 binary, no download or personal profile"
+    },
+    {
+      "kind": "DRIVER",
+      "observation": "Search test reset to the default Cookie tab and tried an Account action without opening its tab",
+      "resolution": "Added the real Account tab click; search case passed. Product default tab unchanged."
+    }
+  ],
+  "review": {
+    "agent": "Schrodinger",
+    "scope": "Seven changed UI/preview files and minimal test driver fix",
+    "result": "NO_ACTIONABLE_INCREMENTAL_DEFECT",
+    "kind": "READ_ONLY_STATIC_REVIEW",
+    "hostServiceReviewed": false
+  },
+  "trustedSourceBoundary": {
+    "committed": {
+      "account-contract.js": "1d17f897014a4c4e2876018994a6daaea255c835",
+      "account-vault.js": "bf9cd090b7ba805de70bfdea271b8143fb18ed50",
+      "account-service.js": "796f1cd801cd011d77c236ba2e55ad2fe75df366"
+    },
+    "workingTree": {
+      "account-contract.js": "1d17f897014a4c4e2876018994a6daaea255c835",
+      "account-vault.js": "bf9cd090b7ba805de70bfdea271b8143fb18ed50",
+      "account-service.js": "db6aad9e0f8936fcb735f6ff605f274399c6404b"
+    },
+    "parallelSourceAndPinsCommittedByThisTask": false,
+    "provenanceTests": "REUSED_UNCHANGED_INPUT_EVIDENCE_NOT_RERUN"
+  },
+  "historicalNativeEvidence": {
+    "index": "evidence/r26-local-20261029.json",
+    "version": "2.0.48",
+    "serviceWorkingTreeBlob": "db6aad9e0f8936fcb735f6ff605f274399c6404b",
+    "boundary": "Historical native results bind 2.0.48 and working-tree db6aad9, not a native proof for 2.0.49 or committed 796f1cd."
+  },
+  "parallelProtection": {
+    "manifest": "artifacts/cookie-editor-ui-integration-20261029/preserve-before.json",
+    "unchangedProtectedFiles": [
+      "examples/sidebar-tools/cookie-editor/README.zh-CN.md",
+      "examples/sidebar-tools/cookie-editor/trusted/account-service.js",
+      "scripts/bundle-provenance.mjs",
+      "src/platform/chrome/browser-cookie-host.js",
+      "src/platform/chrome/cookies.js",
+      "src/ui/react/tabs/locale-manager.tsx",
+      "tests/environment/browser-sdk-r8-cookies.test.mjs",
+      "tests/environment/browser-sdk-r9-installed-cookies.test.mjs",
+      "tests/environment/cookie-account-provenance-r134.test.mjs",
+      "tests/environment/cookie-editor-account-switch-host.test.mjs",
+      "tests/environment/browser-cookie-exact-remove.test.mjs",
+      "tests/environment/cookie-editor-account-parent-domain.test.mjs"
+    ],
+    "parallelFilesChangedSinceInitialSnapshot": [
+      "tests/environment/extension-center-locale-manager-r21.test.mjs"
+    ],
+    "stash97fd273Preserved": true,
+    "commitIndex": "Temporary GIT_INDEX_FILE derived from HEAD; exactly the nine delivery files; shared index entries left intact",
+    "allOtherOwnerFilesExcludedFromThisCommitIndex": true
+  },
+  "runtime": {
+    "extensionOutput": "dist/development",
+    "watcherPid": 23597,
+    "watcherRetained": true,
+    "connection": "NOT_RECHECKED_THIS_UI_ONLY_TASK",
+    "cftUsage": "Headless offline preview only; closed in driver finally block; no installed extension or personal profile used"
+  },
+  "gaps": {
+    "nativeInstalled2049": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "realLoginSites": "NOT_TESTED",
+    "fullLifecycleAndNativeFailureMatrix": "NOT_TESTED",
+    "widthZoomThemeKeyboardMatrices": "NOT_TESTED",
+    "independentEightDimensionScore": "NOT_SCORED",
+    "shareBackend": "NOT_DEPLOYED_NO_VALID_LINKS_EXPECTED"
+  },
+  "scopeStop": "Core UI integration and related incremental checks complete; no full acceptance or host regressions added."
+}
