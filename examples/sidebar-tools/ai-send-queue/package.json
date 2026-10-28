@@ -1,0 +1,13 @@
+{
+  "name": "@opendesk-examples/ai-send-queue",
+  "private": true,
+  "version": "0.1.13",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "node ../../../node_modules/vite/bin/vite.js build --config vite.config.mjs",
+    "watch": "node ../../../node_modules/vite/bin/vite.js build --watch --config vite.config.mjs"
+  }
+}

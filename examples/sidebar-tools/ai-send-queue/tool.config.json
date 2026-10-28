@@ -1,0 +1,15 @@
+{
+  "id": "ai-send-queue",
+  "version": "0.1.13",
+  "title": "AI 消息发送队列",
+  "description": "管理已安装 ChatGPT 网页程序的内存发送队列；仅经授权操作当前对话。",
+  "capabilities": [
+    "currentPage.read"
+  ],
+  "uiRuntime": "opendesk.react-ui.v1",
+  "files": {
+    "html": "src/sidebar/root.html",
+    "css": "dist/tool.css",
+    "js": "dist/tool.js"
+  }
+}
