@@ -1059,17 +1059,17 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const before=await readScrollConfig();
     invariant(before.etag===request.etag,'E_CONFIG_CONFLICT','规则已被其他窗口修改，请读取并核对');
     const source=request.editKey===null?null:before.value.sites.find(r=>
-      r.origin+'\\n'+r.pathScope===request.editKey);
+      r.origin+'\n'+r.pathScope===request.editKey);
     invariant(request.editKey===null||source,'E_CONFIG_CONFLICT','原始规则已经改变');
     if(request.rule===null){
       invariant(source,'E_CONFIG_SCHEMA','删除必须指向已存在的规则');
       return persistScrollConfig(row,{version:1,sites:before.value.sites.filter(r=>r!==source)},request.etag,epoch);
     }
     const rule=normalizeScrollConfig({version:1,sites:[request.rule]}).sites[0];
-    const page=new URL(request.target.expectedUrl),key=rule.origin+'\\n'+rule.pathScope;
+    const page=new URL(request.target.expectedUrl),key=rule.origin+'\n'+rule.pathScope;
     invariant(rule.origin===page.origin&&scrollPathMatches(rule.pathScope,page.pathname),
       'E_CONFIG_SCOPE','请在目标网站的适用路径中保存');
-    invariant(!before.value.sites.some(r=>r.origin+'\\n'+r.pathScope===key&&r!==source),
+    invariant(!before.value.sites.some(r=>r.origin+'\n'+r.pathScope===key&&r!==source),
       'E_CONFIG_CONFLICT','同一网站路径已经有规则');
     const unchangedDisabled=source&&!rule.enabled&&
       ['mainSelector','scrollSelector','messageSelector','anchorSelector'].every(k=>source[k]===rule[k]);

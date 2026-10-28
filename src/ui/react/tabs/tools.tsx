@@ -259,6 +259,152 @@ function ManagedPageControl({control,title}){
   </section>;
 }
 
+const EMPTY_SCROLL_SITE=Object.freeze({
+  origin:'',pathScope:'/',mainSelector:'',scrollSelector:'',
+  messageSelector:'',anchorSelector:'',enabled:true
+});
+const SCROLL_CSS_FIELDS=[
+  ['mainSelector','对话主区域','main'],
+  ['scrollSelector','滚动容器','scroller'],
+  ['messageSelector','消息节点（可选）','messages'],
+  ['anchorSelector','按钮锚点（可选）','anchor']
+];
+function ScrollSiteManager({model}){
+  const [snapshot,setSnapshot]=React.useState(null);
+  const [loading,setLoading]=React.useState(true);
+  const [error,setError]=React.useState('');
+  const [notice,setNotice]=React.useState('');
+  const [busy,setBusy]=React.useState(false);
+  const [editingKey,setEditingKey]=React.useState(model.resumeDraft?.editKey??null);
+  const [draft,setDraft]=React.useState(model.resumeDraft||null);
+  const [confirmDelete,setConfirmDelete]=React.useState(false);
+  const ref=React.useRef(model);ref.current=model;
+  React.useEffect(()=>{
+    let live=true;setLoading(true);
+    ref.current.onRead().then(value=>{
+      if(!live)return;
+      if(value?.value?.version!==1||!Array.isArray(value.value.sites)||
+        typeof value.etag!=='string')throw new Error('可信配置读回格式错误');
+      setSnapshot(value);setError('');setLoading(false);
+    }).catch(e=>{if(live){setError('读取失败：'+(e?.code||e?.message||e));setLoading(false);}});
+    return ()=>{live=false;};
+  },[model.identityKey]);
+  const change=(key,value)=>{
+    setDraft(current=>{
+      const next={...(current||EMPTY_SCROLL_SITE),[key]:value};
+      ref.current.onDraftChange(next,editingKey);return next;
+    });
+    setError('');setNotice('');
+  };
+  const open=(item=null)=>{
+    const value=item?{...item}:{...EMPTY_SCROLL_SITE};
+    const key=item?item.origin+'\n'+item.pathScope:null;
+    setEditingKey(key);setDraft(value);setNotice('');setError('');setConfirmDelete(false);
+  };
+  const cancel=()=>{
+    const saved=editingKey?snapshot?.value?.sites?.find(x=>x.origin+'\n'+x.pathScope===editingKey):null;
+    if(draft&&JSON.stringify(draft)!==JSON.stringify(saved||EMPTY_SCROLL_SITE)&&
+      typeof window!=='undefined'&&window.confirm&&!window.confirm('放弃未保存的网站更改？'))return;
+    ref.current.onDraftChange(null,null);
+    setDraft(null);setEditingKey(null);setError('');setNotice('');setConfirmDelete(false);
+  };
+  const current=()=>{
+    const target=model.currentPage;
+    if(target?.status!=='available'){setError('当前窗口没有可用的 HTTP(S) 网页。');return;}
+    change('origin',target.origin);
+  };
+  const pick=async(field,event)=>{
+    if(busy||!draft)return;
+    setBusy(true);setError('');setNotice('请在当前网页悬停并单击目标；Esc 取消。');
+    try{
+      const result=await ref.current.onPick(field,draft.origin,draft.mainSelector,event.nativeEvent);
+      if(result?.state==='selected'&&typeof result.selector==='string'){
+        change(({main:'mainSelector',scroller:'scrollSelector',
+          messages:'messageSelector',anchor:'anchorSelector'})[field],result.selector);
+        setNotice('已从当前网页选取真实 CSS：'+result.selector);
+      }else if(result?.state==='cancelled')setNotice('已取消点选，其他输入保持不变。');
+      else throw new Error(result?.state==='timeout'?'点选已超时，请重新选取':'目标不可选或网页已变化，请重新选取');
+    }catch(e){setError((e?.code||'E_PICK')+'：'+(e?.message||e));setNotice('');}
+    finally{setBusy(false);}
+  };
+  const submit=async(event,remove=false)=>{
+    event.preventDefault();if(busy||!snapshot||!draft)return;
+    setError('');setNotice('');setBusy(true);
+    try{
+      let rule=null;
+      if(!remove){
+        const url=new URL(draft.origin);
+        if(!['http:','https:'].includes(url.protocol)||url.username||url.password)
+          throw new Error('网站地址必须是有效的 HTTP(S) 地址');
+        rule={origin:url.origin,pathScope:draft.pathScope.trim()||'/',
+          mainSelector:draft.mainSelector.trim(),scrollSelector:draft.scrollSelector.trim(),
+          messageSelector:draft.messageSelector.trim(),anchorSelector:draft.anchorSelector.trim(),
+          enabled:Boolean(draft.enabled)};
+        if(!rule.mainSelector||!rule.scrollSelector)
+          throw new Error('对话主区域和滚动容器为必填项');
+      }
+      const saved=await ref.current.onSave(rule,snapshot.etag,editingKey,event.nativeEvent);
+      if(saved?.review){setNotice('已转入原安装器审阅权限；授权后返回编辑，不代表保存成功。');return;}
+      if(saved?.value?.version!==1||typeof saved.etag!=='string')
+        throw new Error('缺少持久化确认');
+      setSnapshot(saved);setDraft(null);setEditingKey(null);setConfirmDelete(false);
+      setNotice(remove?'已删除规则并确认持久化。':'已保存网站并从可信 Host 读回；导航运行需在网页另外验证。');
+    }catch(e){setError((e?.code||'E_SITE_SAVE')+'：'+(e?.message||e)+
+      '。草稿保留；未知写入不能自动重试，请重新读取核对。');}
+    finally{setBusy(false);}
+  };
+  return <section className="ec-detail-card ec-scroll-site-manager" aria-label="AI 对话滚动导航 · 网站管理">
+    {!draft?<div className="ec-scroll-home">
+      <div className="ec-scroll-title"><h3>内置网站</h3><span>已有适配</span></div>
+      <ul className="ec-scroll-builtins">{model.builtIn.map(name=><li key={name}>{name}</li>)}</ul>
+      <div className="ec-scroll-title"><h3>自定义网站</h3>
+        <Button type="button" disabled={busy||loading||Boolean(model.disabledReason)}
+          onClick={()=>open()}>添加网站</Button></div>
+      {loading?<p role="status">正在从可信 Host 读取规则…</p>:
+        snapshot?.value?.sites?.length?<ul className="ec-scroll-saved">
+          {snapshot.value.sites.map(site=><li key={site.origin+site.pathScope}>
+            <div><strong>{site.origin}</strong><span>{site.pathScope}</span></div>
+            <Button type="button" disabled={Boolean(model.disabledReason)||busy}
+              onClick={()=>open(site)}>编辑</Button>
+          </li>)}</ul>:<p>尚未添加自定义网站。</p>}
+    </div>:<form className="ec-scroll-editor" onSubmit={submit}>
+      <div className="ec-scroll-title"><h3>{editingKey?'编辑网站':'添加网站'}</h3>
+        <Button type="button" disabled={busy} onClick={cancel}>返回</Button></div>
+      <label>网站地址
+        <div className="ec-scroll-origin"><input type="url" value={draft.origin} maxLength={256}
+          placeholder="https://example.com" autoComplete="off" required
+          disabled={busy} onChange={e=>change('origin',e.target.value)}/>
+          <Button type="button" disabled={busy} onClick={current}>当前页</Button></div>
+      </label>
+      <label>适用路径<input value={draft.pathScope} maxLength={512} required
+        autoComplete="off" disabled={busy} placeholder="/" onChange={e=>change('pathScope',e.target.value)}/></label>
+      {SCROLL_CSS_FIELDS.map(([key,label,field])=><label key={key}>{label}
+        <div className="ec-scroll-selector"><input type="text" value={draft[key]} maxLength={256}
+          required={key==='mainSelector'||key==='scrollSelector'} spellCheck={false}
+          autoComplete="off" disabled={busy} placeholder={key==='anchorSelector'?'不填则自动定位':'CSS 或真实网页点选'}
+          onChange={e=>change(key,e.target.value)}/>
+          <IconButton type="button" disabled={busy} label={'在当前网页选取'+label}
+            title={'选取'+label} onClick={event=>void pick(field,event)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/>
+              <circle cx="12" cy="12" r="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+          </IconButton>
+        </div></label>)}
+      <label className="ec-scroll-enabled"><input type="checkbox" checked={draft.enabled}
+        onChange={e=>change('enabled',e.target.checked)} disabled={busy}/>启用此规则</label>
+      <Button type="submit" className="ec-scroll-save" disabled={busy||loading||Boolean(model.disabledReason)}>
+        {busy?'正在核对…':'保存网站'}</Button>
+      {editingKey&&<div className="ec-scroll-delete">
+        {!confirmDelete?<Button type="button" disabled={busy} onClick={()=>setConfirmDelete(true)}>删除此规则…</Button>:
+          <><span>删除这条网站规则？</span>
+            <Button type="button" disabled={busy} onClick={e=>void submit(e,true)}>确认删除</Button>
+            <Button type="button" disabled={busy} onClick={()=>setConfirmDelete(false)}>取消</Button></>}
+      </div>}
+    </form>}
+    {model.disabledReason&&<p role="status">{model.disabledReason}</p>}
+    {notice&&<p role="status" className="ec-scroll-notice">{notice}</p>}
+    {error&&<p role="alert" className="ec-scroll-error">{error}</p>}
+  </section>;
+}
 function PageSiteUpgrade({upgrade}){
   return <form className="ec-site-upgrade" aria-label={upgrade.title||'添加自定义网站'}
     onSubmit={event=>{
@@ -346,6 +492,7 @@ export function ExtensionDetail({model,container}){
     </div>
     {model.description&&<p className="ec-detail-description">{model.description}</p>}
     {managed&&<ManagedPageControl control={model.pageControl} title={model.title}/>}
+    {model.scrollManager&&<ScrollSiteManager key={model.scrollManager.identityKey} model={model.scrollManager}/>}
     {!managed&&<DetailActions model={model}/>}
     {!managed&&<section className="ec-detail-card">
       <h3>安装与来源</h3>
@@ -360,7 +507,7 @@ export function ExtensionDetail({model,container}){
           '正式安装必须在现有应用市场审阅固定包和能力清单。'}</p>}
       </>}
     </section>}
-    {model.kind==='page'&&(sites.length>0||model.siteUpgrade)&&<section className="ec-detail-card ec-page-sites">
+    {model.kind==='page'&&!model.scrollManager&&(sites.length>0||model.siteUpgrade)&&<section className="ec-detail-card ec-page-sites">
       <h3>适用网站</h3>
       {sites.length>0&&<ul className="ec-sites">{sites.map(site=><li key={site}>{site}</li>)}</ul>}
       {model.suspended&&<p role="status">网站访问受限，需按原授权流程恢复。</p>}
