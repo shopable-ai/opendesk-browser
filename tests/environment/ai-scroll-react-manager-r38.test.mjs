@@ -19,7 +19,7 @@ async function fixture(t){
     nativeState:'registered',authorization:{
       status:'active',generation:3,installationId:'installation-r8'},
     pageRules:{matches:['https://chatgpt.com/*','https://chat.deepseek.com/*',
-      'https://gemini.google.com/*'],excludeMatches:[]}};
+      'https://gemini.google.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
   const target={status:'available',windowId:9,tabId:11,frameId:0,documentId:'document-1',
     url:'https://chatgpt.com/c/example',origin:'https://chatgpt.com'};
   const requests=[],reviews=[];
