@@ -590,7 +590,7 @@ test('actual extension page and lazy locale manager compile without an unreferen
 
 // These are DOM-emulator interactions, not native Chrome evidence.
 for(const locale of ['zh-CN','en','ja']){
-  test('trusted panel renders and operates entirely in '+locale+' independently of the tool pack',async t=>{
+  test('trusted panel presents and operates in '+locale+' independently of tool resources',async t=>{
     const f=await setup(t);
     await f.service.install(f.pack,f.tool);
     await f.service.setToolLocale(f.tool.id,'en');
@@ -598,37 +598,45 @@ for(const locale of ['zh-CN','en','ja']){
     await controller.ready;t.after(()=>controller.dispose());
     const ui=createExtensionCenterDOM(t,{component:LocaleManager,props:{model:{
       tools:[f.tool],toolId:f.tool.id,service:f.service,localeController:controller,onClose(){}}}}),{doc}=ui;
-    const text=(key,params)=>msg(locale,key,params),button=key=>buttonNamed(doc,text(key));
+    const text=(key,params)=>msg(locale,key,params);
+    const button=key=>buttonNamed(doc,text(key));
     const before=structuredClone(f.saved);
     assert.ok(doc.body.textContent.includes(text('globalLabel')));
-    assert.ok(doc.body.textContent.includes(text('toolHint')));
-    assert.equal(doc.querySelector('summary').textContent,text('maintenance'));
-    assert.ok(button('close'));assert.ok(button('import'));
+    assert.ok(doc.body.textContent.includes(text('extensionLanguage')));
+    assert.ok(doc.body.textContent.includes(text('managePacks')));
+    assert.equal(doc.querySelector('[role=dialog]'),null,'full subpage, not uninstall confirmation');
+    assert.equal(doc.querySelector('details'),null,'no legacy maintenance disclosure');
+    openPacks(doc);
+    assert.ok(doc.body.textContent.includes(text('packPageTitle')));
     assert.equal(doc.querySelector('input[type=file]').getAttribute('aria-label'),text('fileLabel'));
-    const target=doc.getElementById('od-locale-target');target.value='ja';target.dispatch('input');
+    assert.ok(doc.body.textContent.includes(text('importedPacks')));
     assert.equal(f.service.getToolLocale(f.tool.id),'en');assert.deepEqual(f.saved,before);
-    assert.ok([...doc.querySelectorAll('datalist option')].some(node=>node.value==='ja'));
-    const picker=doc.querySelector('input[type=file]');
-    const choose=()=>{Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(f.pack)}]});picker.dispatch('change');};
+    const choose=()=>{
+      const picker=doc.querySelector('input[type=file]');
+      Object.defineProperty(picker,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(f.pack)}]});
+      picker.dispatch('change');
+    };
     choose();await settle(()=>button('confirmOverwrite')&&!button('confirmOverwrite').disabled);
     assert.ok(doc.querySelector('[aria-label="'+text('previewLabel')+'"]'));
-    assert.equal(doc.activeElement.textContent,text('preview'));
+    assert.ok(doc.body.textContent.includes(text('validationOk')));
     assert.ok(doc.body.textContent.includes(text('overwriteHint')));
-    assert.ok(doc.querySelector('.od-locale-samples').textContent.includes('見出し'),'imported content remains literal data');
+    assert.ok(doc.querySelector('.od-locale-samples').textContent.includes('見出し'),
+      'imported content remains literal text, not HTML');
     button('cancelImport').dispatch('click');assert.deepEqual(f.saved,before);
     choose();await settle(()=>button('confirmOverwrite')&&!button('confirmOverwrite').disabled);
     button('confirmOverwrite').dispatch('click');
-    await settle(()=>doc.body.textContent.includes(text('packSaved',{language:'English'}))&&!picker.disabled);
+    await settle(()=>doc.body.textContent.includes(text('packSaved',{language:'English'})));
     assert.equal(f.service.getToolLocale(f.tool.id),'en');assert.equal(controller.getPreference(),'auto');
-    button('delete').dispatch('click');
+    resourceAction(doc,'ja',1).dispatch('click');
     assert.ok(doc.body.textContent.includes(text('deleteQuestion',{title:f.tool.title,locale:'ja'})));
     button('cancelDelete').dispatch('click');assert.ok(f.service.exportPack(f.tool.id,'ja'));
-    button('delete').dispatch('click');button('confirmDelete').dispatch('click');
-    await settle(()=>doc.body.textContent.includes(text('deleted'))&&!picker.disabled);
+    resourceAction(doc,'ja',1).dispatch('click');button('confirmDelete').dispatch('click');
+    await settle(()=>doc.body.textContent.includes(text('deleted')));
     assert.equal(f.service.exportPack(f.tool.id,'ja'),null);
     const next=locale==='en'?'ja':'en';
-    await controller.setLocale(next);await settle(()=>doc.body.textContent.includes(msg(next,'deleted')));
-    assert.equal(doc.body.textContent.includes(text('deleted')),false,'existing feedback is retranslated');
+    await controller.setLocale(next);
+    await settle(()=>doc.body.textContent.includes(msg(next,'deleted')));
+    assert.equal(doc.body.textContent.includes(text('deleted')),false,'feedback is retranslated');
     assert.equal(f.service.getToolLocale(f.tool.id),'en');
   });
 }
@@ -729,9 +737,9 @@ for(const locale of ['en','ja']){
     await settle(()=>doc.getElementById('od-locale-global').disabled);
     const statuses=[...doc.querySelectorAll('[role=status]')].map(node=>node.textContent);
     assert.ok(statuses.includes(msg(locale,'busy')));
-    assert.ok(!statuses.some(text=>text.includes('正在卸载')),'shared confirmation shell must use the localized busy label');
+    assert.ok(!statuses.some(text=>text.includes('正在卸载')),'language page has no uninstall-specific busy label');
     doc.dispatch('keydown',{key:'Escape'});assert.equal(closes,0);
-    assert.equal(buttonNamed(doc,msg(locale,'close')).disabled,true);
+    assert.equal(doc.querySelector('.od-locale-heading button').disabled,true);
     finish();await settle(()=>!doc.getElementById('od-locale-global').disabled);
     assert.ok(doc.body.textContent.includes(msg(locale,'toolSavedOnly',{language:locale==='en'?'English':'简体中文'})));
     doc.dispatch('keydown',{key:'Escape'});assert.equal(closes,1);
