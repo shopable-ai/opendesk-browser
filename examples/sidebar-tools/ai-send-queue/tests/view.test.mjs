@@ -298,7 +298,7 @@ test('product preview keeps the original crown and moves calibration to a separa
   const tool=await readFile(new URL('../preview/tools/crown-tuner.html',import.meta.url),'utf8');
   assert.match(html,/mark\.textContent='···'/);
   assert.match(html,/显示 3 条示例消息/);
-  assert.match(html,/tools\/crown-tuner\.html/);
+  assert.doesNotMatch(html,/tools\/crown-tuner\.html/);
   assert.doesNotMatch(html,/id="angle"|id="scale"|detail-native/);
   assert.match(tool,/\.\.\/\.\.\/assets\/queue\.css/);
   assert.match(tool,/class="sq-crown"/);
