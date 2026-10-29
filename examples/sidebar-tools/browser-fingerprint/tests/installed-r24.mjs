@@ -319,7 +319,8 @@ try{
   const status=()=>appRead('document.querySelector(".fp-status-title")?.textContent?.trim()');
   const action=index=>click('.fp-bottom-actions button:nth-child('+index+')',sandbox);
   async function cycle(name,expected){
-    const item={preset:name};
+    const item={preset:name,progress:'STARTED_NOT_PASSED'};
+    evidence.cycles.push(item); // Retain partial observations on any failure.
     const initialState=await status();
     assert(initialState==='尚未应用'||initialState.includes('恢复'),'previous cycle not finished');
     await action(1);
@@ -346,6 +347,7 @@ try{
     item.nativeReceiptText=(await appRead('document.querySelector(".fp-notice")?.textContent'))||'';
     const applied=await independent();
     item.applied=applied;
+    item.progress='APPLIED_INDEPENDENT_VALUES_CAPTURED';
     assert.equal(applied.documentId,baseline.documentId,'native change must stay in original document');
     assert.equal(applied.debuggerAttached,true,'real Chrome debugger attachment required');
     assert(applied.values.ua.includes(expected.ua),'User-Agent remains unchanged');
@@ -356,6 +358,12 @@ try{
     await action(2);
     await until(async()=>['有限字段已验证','部分结果 / 存在差异'].includes(await status()),
       'independent Host readback after native apply');
+    // React commits the verified status before its asynchronous history write;
+    // only then does it switch to Results and mount the source-qualified rows.
+    await until(()=>appRead('(()=>{const panel=document.querySelector(".fp-check-list");'+
+      'return panel&&panel.getClientRects().length>0&&'+
+      'document.querySelector(".fp-tabs button[aria-selected=true]")?.textContent?.trim()==="网页验证"})()'),
+      'real React results page after verified status');
     const readbackText=await appRead('document.body.innerText');
     assert(readbackText.includes('网页读回与差异')&&
       readbackText.includes('目标网页运行环境'),
@@ -365,6 +373,7 @@ try{
       'UI reported UA must match independently observed UA');
     item.verifiedStatus=await status();
     item.readbackRows=rows;
+    item.progress='INDEPENDENT_APPLY_READBACK_VERIFIED';
     await action(3);
     await until(async()=>String(await status()).includes('待读回'),'restore native detach receipt');
     item.afterDetach=await independent();
@@ -382,7 +391,7 @@ try{
     assert.deepEqual(restored.values.viewport,baseline.values.viewport,'original viewport not restored');
     assert(['调试已停止 · 恢复有限验证','已独立核验恢复'].includes(item.restorationStatus),
       'restore_unknown is NOT a PASS');
-    evidence.cycles.push(item);
+    item.progress='COMPLETE_INDEPENDENT_RESTORE_VERIFIED';
     evidence.checks.push('R24_'+name+'_REAL_APPLY_READBACK_RESTORE_PASS');
   }
 
