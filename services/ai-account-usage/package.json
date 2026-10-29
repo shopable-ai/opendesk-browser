@@ -1,0 +1,11 @@
+{
+  "name": "opendesk-ai-account-usage-probe",
+  "private": true,
+  "version": "0.1.1",
+  "type": "module",
+  "engines": {"node": ">=22.12.0"},
+  "scripts": {
+    "probe": "node cli.mjs",
+    "test": "node --test ../../tests/ai-account-usage-probe.test.mjs"
+  }
+}
