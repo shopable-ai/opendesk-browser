@@ -176,7 +176,7 @@ try{
 
   await click('运行记录');
   await until('document.querySelectorAll(".fp-log").length>=1','run record');
-  assert.equal(await evaluate('document.querySelector(".fp-log")?.textContent.includes("环境修改未开放")'),true);
+  assert.equal(await evaluate('document.querySelector(".fp-log")?.textContent.includes("未对网页执行操作")'),true);
   assert.equal(await evaluate('document.querySelector(".fp-legacy")?.textContent.includes("旧版只读检测")'),true);
   evidence.checks.push('PERSISTED_OPERATIONS_AND_LEGACY_DIAGNOSTICS_RETAINED');
 
