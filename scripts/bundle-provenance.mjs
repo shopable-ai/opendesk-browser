@@ -69,10 +69,15 @@ function reviewedCompiledAdblock(target,path,root){
 // accounts. No installed package code or new permission is admitted.
 // Only the pure RPC/storage-key contract reaches the enumerated shared
 // installer/Host closures for account messages and verified uninstall cleanup.
+// 2026-10-29: reviewed exact metadata-only account creation and first
+// association changes. Create still checks installed identity, live Document,
+// Vault revision and readback; Cookie effects retain exact site permission,
+// Store/Partition, user gesture and account version checks. Empty accounts
+// never enter the automatic-switch whitelist. No new source or privilege.
 const compiledCookieAccountInputs=Object.freeze({
-  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'1d17f897014a4c4e2876018994a6daaea255c835',
+  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'f2b539b1255ba7ad56070015cd889986b50eeac7',
   // Reviewed shared-domain restore, literal identities and exact partition reads.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'db6aad9e0f8936fcb735f6ff605f274399c6404b',
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'57e1ca85271355944f6f94098b97f0d8973dc448',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
   'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
