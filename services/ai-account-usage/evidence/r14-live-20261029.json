@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "scope": "R1.4-LIVE",
+  "startedAt": "2026-10-29T14:29:09.128Z",
+  "mode": "COOKIE_ONLY",
+  "credentialSource": "USER_AUTHORIZED_EXISTING_LOCAL_EXPORT",
+  "inputPersistedByHarness": false,
+  "authorizationHeaderUsed": false,
+  "retries": 0,
+  "identitySource": "SEPARATE_COOKIE_ONLY_SESSION_PREFLIGHT",
+  "expectedWorkspaceSource": "PREEXISTING_ACCOUNT_COOKIE",
+  "requests": [
+    {
+      "purpose": "identity-preflight",
+      "path": "/api/auth/session",
+      "method": "GET",
+      "httpStatus": 403,
+      "contentType": "text/html",
+      "edgeChallenge": true
+    }
+  ],
+  "G1": "NOT_PASSED",
+  "G2": "NOT_TESTED",
+  "officialPageComparison": "NOT_TESTED",
+  "chromeLoginUnchanged": "NOT_TESTED",
+  "cookieEditorVaultUnchanged": "NOT_TESTED",
+  "input": {
+    "cookieRows": 32,
+    "partitionedRowsExcluded": 1
+  },
+  "stopReason": "SESSION_HTTP_403_STOPPED",
+  "sourceFileUnchanged": true,
+  "finishedAt": "2026-10-29T14:29:10.309Z",
+  "candidate": {
+    "gitHead": "4173cc6ccfe81fc9e95d0ee31fa2b5729e8caa0f",
+    "branch": "main",
+    "productionRuntimeModified": false,
+    "files": {
+      "services/ai-account-usage/probe.mjs": "a0ba57ada56488b040bc58df2731e283eb627a97a9524054551d7ac96ff8a262",
+      "services/ai-account-usage/read-api.mjs": "83c875452e4c59b20ac8f7ba7cd828973acca59e865080ae3a55962e070489dd",
+      "services/ai-account-usage/domain.mjs": "9b006ff2cac857a67b3a1f5a0c0afab161991e63c365a0e499e97fdaa6f9a415",
+      "services/ai-account-usage/sampling.mjs": "9c39550fdef7a4b5a37afed0d8248a5763acd8f8ea45cd475ff54fc29e0fb54b",
+      "services/ai-account-usage/history-store.mjs": "08f1107e3b428941fd919f4a83be78de61328aa5403acc56272214f79b461dee",
+      "services/ai-account-usage/collector.mjs": "aa711fb30ffd1dfce662667bd663bc9b1fcc69e3a751200a6147f287616c082f",
+      "services/ai-account-usage/cli.mjs": "6608b4cfe6c8fa074983662d253a08c8bea10514b87d4effb49ea03f38d4b0cb",
+      "tests/ai-account-usage-probe.test.mjs": "c8476bef0874de4f958b4e1ad90a95bc011c455e0d6a165cf205cc34f2482ad0",
+      "tests/ai-account-usage-backend.test.mjs": "ed4e1230086928951b370370c7c8a259df7c24ae8dd78414987d05739535607c"
+    }
+  },
+  "offlineVerification": {
+    "command": "node --test tests/ai-account-usage-probe.test.mjs tests/ai-account-usage-backend.test.mjs",
+    "passed": 27,
+    "failed": 0,
+    "liveEvidence": false
+  },
+  "liveVerification": {
+    "authorizedSnapshotSources": 1,
+    "httpRequests": 1,
+    "quotaEndpointRequests": 0,
+    "matchedAccountIdentities": 0,
+    "quotaWindowsRead": 0,
+    "sessionHttpStatus": 403,
+    "quotaHttpStatus": null,
+    "retryCount": 0
+  },
+  "scopeClarifications": [
+    "User explicitly authorized the existing local JSON instead of requiring Cookie Editor Vault provenance for this single-account attempt.",
+    "One pre-network input check found the workspace-selector cookie was non-Secure; it was used only as expected workspace metadata, never converted to a Secure cookie or added to network headers. No HTTP request was sent in that check.",
+    "No Chrome Cookie write, Vault write, Native update, Host update, persistent proxy change, alternate endpoint or OAuth fallback was performed. Independent Chrome login and Vault before/after validation were not performed.",
+    "The 403 response carried cf-mitigated: challenge. This proves an edge challenge on the session request; it does not prove that application authentication requires an additional token.",
+    "No raw Cookie, session body, token, user email, user ID, workspace ID or response body is included.",
+    "G2 was not started because G1 did not pass."
+  ],
+  "localHarness": "artifacts/ai-account-usage-r14-live-01a187ff/run-cookie-only.mjs",
+  "legalAuthenticationAlternatives": [
+    {
+      "mode": "CHATGPT_SIGN_IN",
+      "documentation": "https://learn.chatgpt.com/docs/auth",
+      "status": "NOT_TESTED",
+      "limitation": "Evaluate application eligibility and integration terms; no promise of subscription quota API access."
+    },
+    {
+      "mode": "CODEX_APP_SERVER_RATE_LIMITS",
+      "documentation": "https://learn.chatgpt.com/docs/app-server#6-rate-limits-chatgpt",
+      "status": "NOT_TESTED",
+      "limitation": "Requires supported authenticated integration; do not reuse or expose unrelated Codex credentials."
+    },
+    {
+      "mode": "API_KEY",
+      "documentation": "https://learn.chatgpt.com/docs/auth#sign-in-with-an-api-key",
+      "status": "NOT_TESTED",
+      "limitation": "Platform API billing is distinct from ChatGPT subscription quotas."
+    }
+  ],
+  "transport": {
+    "runtime": "Node.js v24.16.0",
+    "proxySource": "EXISTING_MACOS_SYSTEM_PROXY",
+    "proxyScope": "THIS_NODE_PROCESS_ONLY",
+    "persistentConfigurationChanged": false
+  },
+  "independentReview": {
+    "role": "code-reviewer",
+    "verdict": "NO_EVIDENCE_OVERCLAIM_OR_CREDENTIAL_VALUE_DISCLOSURE_FOUND",
+    "scale": 100,
+    "scores": {
+      "realQuotaQuery": {
+        "score": null,
+        "status": "NOT_SCORED",
+        "evidence": "Session preflight failed with 403/challenge; quota endpoint NOT_TESTED."
+      },
+      "twoAccountIsolation": {
+        "score": null,
+        "status": "NOT_TESTED"
+      },
+      "security": {
+        "score": null,
+        "status": "NOT_SCORED",
+        "evidence": "Stop and output boundaries reviewed; full Chrome/Vault invariance and integration security NOT_TESTED."
+      },
+      "dataAccuracy": {
+        "score": null,
+        "status": "NOT_TESTED"
+      },
+      "integrationReadiness": {
+        "score": null,
+        "status": "NOT_SCORED",
+        "evidence": "G1 not passed; G2 and production G3 integration incomplete."
+      }
+    },
+    "arithmeticMean": null,
+    "meanStatus": "NOT_SCORED_INSUFFICIENT_MEASURED_SCORES",
+    "R15RealDataIntegration": "NOT_READY"
+  },
+  "goalLifecycle": {
+    "lastObservedStatus": "active",
+    "completed": false,
+    "reason": "G1/G2 success criteria remain unmet. This attempt stopped on 403 and must not be automatically replayed."
+  }
+}

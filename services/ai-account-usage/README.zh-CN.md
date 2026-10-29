@@ -1,6 +1,8 @@
 # OpenDesk Browser · AI 账号额度管理中心 R1.2（后端核心）
 
-**进度：本地逻辑和模拟 HTTP 测试通过；真实单账号 Cookie-only 请求 `LIVE_NOT_TESTED`。** 本文档不把模型测试数据、HTML 模拟或本地 Node 的 HTTP 夹具当作已查询到真实额度。
+**进度：本地逻辑和模拟 HTTP 测试通过；R1.4-LIVE 的单账号会话预检收到 HTTP 403 / Cloudflare challenge，已停止；真实额度接口及双账号仍 `NOT_TESTED`。** 本文档不把模型测试数据、HTML 模拟或本地 Node 的 HTTP 夹具当作已查询到真实额度。
+
+2026-10-29 22:29（北京时间），用户明确授权直接读取既有本机 Cookie JSON，先用 Cookie-only `GET /api/auth/session` 发现该快照的身份，再交给原 CLI 校验额度。该唯一真实请求返回 `403`、`text/html` 和 `cf-mitigated: challenge`，故未继续请求 `/backend-api/wham/usage`、未重试、未使用 Access Token 或认证替代。账号身份匹配数和额度窗口数均为 0；G1 未通过，G2 未启动。原 JSON 的 SHA-256 前后相同；Chrome 登录状态及 Cookie Editor Vault 未做独立前后验证。该结果只能证明当前 Node 出口的会话请求遇到边缘挑战，不能证明 Cookie-only 普遍不可行或必须增加 Token。两组既有测试本轮为 27/27 PASS；它们不替代真实验收。[脱敏实测证据](evidence/r14-live-20261029.json) 记录候选源码哈希、状态和停止边界，不包含 Cookie、Token、账号身份或原始响应。
 
 ## 产品边界
 
@@ -67,7 +69,7 @@ const api = await startReadApi({store});
 
 - 离线定向测试：`node --test tests/ai-account-usage-probe.test.mjs tests/ai-account-usage-backend.test.mjs`。
 - 单账号真实 Cookie-only：仅在管理员自己 Mac 上，经授权从 Cookie Editor 选定的快照传入一次性 `cli.mjs`（stdin 管道，输入只保留在可信本地）。先前 `R1.1` 的 CLI 实验方式继续有效。不得把任何真实 Cookie、Access Token 或包含这些值的请求日志上传到 GitHub/ChatGPT/CI。
-- `G1 LIVE_NOT_TESTED`：必须获取真实 `quotaHttpStatus/sessionHttpStatus`、确认 userId 和 quota account_id 完整匹配，且看到一组真实时窗后才能判定 Cookie-only OK。若 401/403/429，应停止尝试，不以 OAuth/Bearer 的成功冒充 Cookie-only。
+- `G1 NOT_PASSED`：本次身份预检为 403 / challenge，额度接口 `NOT_TESTED`。仍须获取真实 `quotaHttpStatus/sessionHttpStatus`、确认 userId 和 quota account_id 完整匹配，且看到一组真实时窗后才能判定 Cookie-only OK。若 401/403/429，应停止尝试，不以 OAuth/Bearer 的成功冒充 Cookie-only。
 - `G2 LIVE_NOT_TESTED`：至少两个真实账号、独立 Snapshot、身份无串号，并验证 Chrome 原 Cookie/登录状态/Vault 未修改。离线双账号单测不等于 G2。
 - `G3 NOT_IMPLEMENTED`：正式 Cookie Editor Trusted Host → Native 的秘密数据桥接，授权绑定和撤销、后台采样启动/停用、React 同源 Session 及生产安装/升级验证。不能把测试注入提供者用于正式发布。
 - 计划/订阅来源：`plan_type` 是内部响应（非官方承诺稳定的开放接口）；会员到期时间没有经过验证的可靠 Cookie-only 返回路径，因此目前仅支持管理员录入并标注来源。
