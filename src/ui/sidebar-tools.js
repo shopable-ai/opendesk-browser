@@ -1,4 +1,5 @@
 import {createSidebarToolAIAdapter,validateSidebarToolAIRequest} from './ai/sidebar-tool-adapter.js';
+import {createLocalTaskBridge,pickLocalTaskCredential,validateLocalTaskRequest} from '../platform/host/local-tasks.js';
 import {createTaskDelegationHost} from '../platform/host/task-delegation.js';
 import {TASK_DELEGATION_OPERATIONS,taskDelegationReview} from '../platform/tasks/delegation-contract.js';
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
@@ -79,6 +80,10 @@ export function checkSidebarToolRequestBudget(message){
   let serialized;
   try{serialized=JSON.stringify(message);}catch{return {ok:false,code:'E_SCHEMA'};}
   if(typeof serialized!=='string')return {ok:false,code:'E_SCHEMA'};
+  if(message?.operation==='localTasks.request'){
+    try{validateLocalTaskRequest(message.payload);return serialized.length-JSON.stringify(message.payload).length<=512?{ok:true}:{ok:false,code:'E_LIMIT'};}
+    catch{return {ok:false,code:'E_LOCAL_SCHEMA'};}
+  }
   if(message?.operation==='ai.generate'){
     try{validateSidebarToolAIRequest(message.payload);}
     catch{return {ok:false,code:'E_AI_REQUEST'};}
@@ -383,6 +388,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   listeners.push(()=>doc.removeEventListener('click',clearNavigationNotice,true));
   const capabilities=Object.freeze({
     'ai.generate':'经可信确认向当前 AI Provider 发送本次请求与上下文（可能产生费用）',
+    'localTasks':'经首次可信配对和精确目标审阅，调用本机任务服务；读取、停止和导出自身任务',
     'storage.local':'保存此工具的数据',
     'currentPage.read':'读取当前网页标题和地址',
     'browser.page.environment.read':'只读检测已授权当前网页的 UA、语言、时区、视口、屏幕及像素比',
@@ -990,8 +996,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     return response.data;
   }
   let sidebarAI=null;
+  let localTaskBridge=null;
   function destroyFrame() {
     sidebarAI?.dispose();sidebarAI=null;
+    localTaskBridge=null;
     if(taskDelegationHost){void taskDelegationHost.dispose();taskDelegationHost=null;}
     developmentStorage?.revoke();developmentStorage=null;
     if(promptHost){const previous=promptHost;promptHost=null;previous.dispose();}
@@ -1763,7 +1771,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           if(frameExportPort!==port||!sameInstance(source,token))return;
           const message=event.data,id=Number(message?.requestId);
           if(message?.kind!=='request'||
-             !['browser.clipboard.writeText','browser.downloads.text'].includes(message.operation)||
+             !['browser.clipboard.writeText','browser.downloads.text','localTasks.export'].includes(message.operation)||
              typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId)||
              !Number.isSafeInteger(id)||id<=lastRequest)return;
           lastRequest=id;
@@ -2000,6 +2008,31 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(operation==='currentPage.info'&&tool.capabilities.includes('currentPage.read'))
         return {status:'unavailable',message:'只读开发预览没有绑定业务网页'};
       throw new Error('开发预览不允许真实写入、打开任务或控制网页');
+    }
+    if(['localTasks.request','localTasks.export'].includes(operation)){
+      if(!tool.capabilities.includes('localTasks'))throw Object.assign(Error('缺少 localTasks 权限'),{code:'E_CAPABILITY'});
+      const authorized=async()=>{
+        assertSession(source,token);
+        await assertInstalledTool(tool,revocationEpoch,'本地任务安装身份已变化');
+        await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);
+      };
+      await authorized();
+      localTaskBridge ||= createLocalTaskBridge({api,toolId:tool.id,
+        owner:tool.id+':'+String(revocationEpoch)+':'+await sidebarToolPackageHash(tool),
+        assertAuthorized:authorized,fetcher,
+        lock:work=>locked('local-tasks:'+tool.id,work),
+        pickCredential:()=>pickLocalTaskCredential(doc),
+        confirm:({scope,paired,choose})=>requestBrowserClick({toolId:tool.id,
+          message:'允许「'+tool.title+'」通过本机任务服务访问 '+scope+'？配置及目标会发送到本机服务；任务可在关闭侧栏后继续。'+(paired?'':'请选择手动启动服务时生成的配对 JSON，凭证仅由可信宿主保管。'),
+          button:paired?'允许此目标范围':'选择配对文件并允许',run:()=>choose()})});
+      if(operation==='localTasks.export'){
+        if(!tool.capabilities.includes('user.export'))throw Object.assign(Error('缺少 user.export 权限'),{code:'E_CAPABILITY'});
+        if(directExportPort!==null&&directExportPort===frameExportPort)
+          return localTaskBridge.export(payload);
+        return requestBrowserClick({toolId:tool.id,button:'导出此任务结果',
+          message:'导出「'+tool.title+'」在本机服务保存的原任务结果？',run:()=>localTaskBridge.export(payload)});
+      }
+      return localTaskBridge.request(payload);
     }
     if(['ai.info','ai.generate','ai.cancel'].includes(operation)){
       if(!tool.capabilities.includes('ai.generate'))throw Object.assign(new Error('缺少 ai.generate 权限'),{code:'E_CAPABILITY'});

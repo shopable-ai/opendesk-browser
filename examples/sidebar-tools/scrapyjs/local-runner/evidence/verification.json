@@ -1,0 +1,48 @@
+{
+  "verifiedAt": "2026-10-29T19:30:00.664597+00:00",
+  "scope": "examples/sidebar-tools/scrapyjs/local-runner/",
+  "branch": "main",
+  "headAtVerification": "6c80dec1ebabffae58e4f72f92626d278469c000",
+  "tests": 16,
+  "commands": [
+    {
+      "command": ".venv/bin/python -m unittest discover -s tests -p test_dsl.py -v",
+      "log": "review-dsl-green.txt",
+      "exitCode": 0,
+      "tests": 10
+    },
+    {
+      "command": ".venv/bin/python -m unittest discover -s tests -p test_service.py -k review -v",
+      "log": "review-http-green.txt",
+      "exitCode": 0,
+      "tests": 6
+    }
+  ],
+  "parserMocked": false,
+  "secretEvidenceIncluded": false,
+  "reviewEvidence": "evidence/review-data-proof.json",
+  "priorPhaseEvidence": "evidence/pre-review-verification.json",
+  "sourceSha256": {
+    ".gitignore": "e9cb10966bb3389910b138d478807ce046495d5547af81c9aae5ba3886ceeebb",
+    "README.md": "20dd25740156f3000ff0e9b70dae48a8232b8c0c01acf34d7835a564b9da6829",
+    "requirements.txt": "40f216e5cd80432a9fa8f74c8049d149f102f48627befcb982f7c5cb2f6fa1ff",
+    "scrapyjs_runner/__init__.py": "c35cfb236627608a89446f15d9a2d2323f8c228a86cbce27b91e436249c0e916",
+    "scrapyjs_runner/__main__.py": "e912bfc7b21d757670d1fe3ffc33e0b635201c99ca258a0da3f37f6acf755925",
+    "scrapyjs_runner/dsl.py": "14797a781d4f09a6bcd3c8d97a0bac205b52aee3564a1958f640adc147425a31",
+    "scrapyjs_runner/errors.py": "fe35ff38adcb91d6706e6591a69f5f1fa7a73cd365aca168228bd40952be534e",
+    "scrapyjs_runner/manager.py": "ecdade08717500cd05c22a8536725111e90bc50e30ca1b3dc75efe22e54a9069",
+    "scrapyjs_runner/security.py": "e72d1983a434c6569f1e15c9b9560bb7a05f25e104e87edb555bda8c663c928b",
+    "scrapyjs_runner/service.py": "45ad6c24216d888f7f0ca24317239f4525db8d45e68d6d94f973114aabc62330",
+    "scrapyjs_runner/storage.py": "95f136c8746200e056529f32d842dded3fadb3daefa92466dcf56fa6a03970ad",
+    "scrapyjs_runner/worker.py": "7516a3a94417dabd9606ab47887f0f75f7973ac00bb423c41c13c094ea663ecd",
+    "tests/test_dsl.py": "b50b7ccea9f1b21f4b8f177b73582dc8f277687da3d147b61965518c4c568bd9",
+    "tests/test_security.py": "8d48cac5f8ea83169aaf9b464207ff159bd9d35e8cd08c197cf33404a82d85e1",
+    "tests/test_service.py": "96693bf714d0b042c1aa4e424220376c7a7aa3a1623d757b8f6e82eac018b291"
+  },
+  "notTested": [
+    "1800-second wall-clock exhaustion",
+    "50-page exhaustion",
+    "Host integration and final candidate build after these data fixes",
+    "production Chrome release acceptance"
+  ]
+}

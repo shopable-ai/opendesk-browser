@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
 import {loadPreviewRuntime} from './build-preview.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
-const runtime=await loadPreviewRuntime({});
+const runtime=await loadPreviewRuntime({compilePreview:process.env.SCRAPYJS_PREVIEW_COMPILE==='1'});
 const named={
  react:'Children,Component,Fragment,Profiler,PureComponent,StrictMode,Suspense,cloneElement,createContext,createElement,createRef,forwardRef,isValidElement,lazy,memo,startTransition,use,useActionState,useCallback,useContext,useDebugValue,useDeferredValue,useEffect,useEffectEvent,useId,useImperativeHandle,useInsertionEffect,useLayoutEffect,useMemo,useOptimistic,useReducer,useRef,useState,useSyncExternalStore,useTransition,version',
  'react/jsx-runtime':'Fragment,jsx,jsxs',

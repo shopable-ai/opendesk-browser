@@ -1,0 +1,132 @@
+{
+  "level": "PYTHON_INTEGRATION",
+  "transport": "production Host adapter with test-double installation/storage",
+  "REAL_HOST": "NOT_TESTED",
+  "MAC_CHROME": "NOT_TESTED",
+  "AI_PROVIDER": "NOT_TESTED",
+  "previews": [
+    {
+      "previewPages": 1,
+      "runId": "ff9c5fa8-f574-41c6-a5d7-2312955b8485",
+      "configHash": "sha256:4982fb557ea6564f73d86834981481be04ffb8fce18f778bb5d004a77107006d",
+      "pagesVisited": 1,
+      "recordsCount": 1,
+      "workerExited": true,
+      "records": [
+        {
+          "price": "1.50",
+          "title": "图书 1"
+        }
+      ]
+    },
+    {
+      "previewPages": 2,
+      "runId": "fe35cd1b-6ac4-4ddd-8719-8cea12d33adf",
+      "configHash": "sha256:4982fb557ea6564f73d86834981481be04ffb8fce18f778bb5d004a77107006d",
+      "pagesVisited": 2,
+      "recordsCount": 2,
+      "workerExited": true,
+      "records": [
+        {
+          "price": "1.50",
+          "title": "图书 1"
+        },
+        {
+          "price": "2.50",
+          "title": "图书 2"
+        }
+      ]
+    },
+    {
+      "previewPages": 3,
+      "runId": "a1f249f5-8671-4535-aaee-7d906cdec48e",
+      "configHash": "sha256:4982fb557ea6564f73d86834981481be04ffb8fce18f778bb5d004a77107006d",
+      "pagesVisited": 3,
+      "recordsCount": 3,
+      "workerExited": true,
+      "records": [
+        {
+          "price": "1.50",
+          "title": "图书 1"
+        },
+        {
+          "price": "2.50",
+          "title": "图书 2"
+        },
+        {
+          "price": "3.50",
+          "title": "图书 3"
+        }
+      ]
+    }
+  ],
+  "full": {
+    "runId": "ce0f349d-648d-40c4-b85d-a2d37b6e3bd1",
+    "previewRunId": "a1f249f5-8671-4535-aaee-7d906cdec48e",
+    "configHash": "sha256:4982fb557ea6564f73d86834981481be04ffb8fce18f778bb5d004a77107006d",
+    "pagesVisited": 3,
+    "recordsCount": 3
+  },
+  "stop": {
+    "runId": "265dbe77-2697-486a-b2f4-f3d7def0ad93",
+    "status": "stopped",
+    "workerExited": true,
+    "requestsAfterStop": 0,
+    "pagesVisited": 1
+  },
+  "reopen": {
+    "sameRunId": "ce0f349d-648d-40c4-b85d-a2d37b6e3bd1",
+    "approvals": 1
+  },
+  "sources": {
+    "src/platform/host/local-tasks.js": "4dde1635f0484dc52e511a96c8e33ec7ec0de7e62a176ab2f4f0c1d00da696c2",
+    "examples/sidebar-tools/scrapyjs/src/local-runner-client.js": "196606ac963e2a95c127ce6e7f8d5c4dea1ee16db9fce817982411535de42779",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py": "14797a781d4f09a6bcd3c8d97a0bac205b52aee3564a1958f640adc147425a31",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/security.py": "e72d1983a434c6569f1e15c9b9560bb7a05f25e104e87edb555bda8c663c928b",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/manager.py": "ecdade08717500cd05c22a8536725111e90bc50e30ca1b3dc75efe22e54a9069",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py": "7516a3a94417dabd9606ab47887f0f75f7973ac00bb423c41c13c094ea663ecd",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/storage.py": "95f136c8746200e056529f32d842dded3fadb3daefa92466dcf56fa6a03970ad",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/service.py": "45ad6c24216d888f7f0ca24317239f4525db8d45e68d6d94f973114aabc62330",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/__main__.py": "e912bfc7b21d757670d1fe3ffc33e0b635201c99ca258a0da3f37f6acf755925"
+  },
+  "health": {
+    "status": "ok",
+    "service": "scrapyjs-local-runner",
+    "version": "1.7.0",
+    "scraplingVersion": "0.5"
+  },
+  "jsonl": {
+    "savedAndReadBack": true,
+    "bytes": 108
+  },
+  "csv": {
+    "savedAndReadBack": true,
+    "bytes": 58
+  },
+  "busyRejectRecovery": {
+    "actualHttp409": true,
+    "pointerRestored": true,
+    "automaticRetry": false,
+    "explicitRetryRunId": "2f4fd460-47e9-40b9-9f82-ffe301b2a6b9"
+  },
+  "hostSessionRestart": {
+    "originalRunId": "265dbe77-2697-486a-b2f4-f3d7def0ad93",
+    "renewedAfter401": true,
+    "repeatedApproval": false,
+    "replayedCreate": false
+  },
+  "revocation": "confirmed",
+  "status": "PASS",
+  "sourcesAfter": {
+    "src/platform/host/local-tasks.js": "4dde1635f0484dc52e511a96c8e33ec7ec0de7e62a176ab2f4f0c1d00da696c2",
+    "examples/sidebar-tools/scrapyjs/src/local-runner-client.js": "196606ac963e2a95c127ce6e7f8d5c4dea1ee16db9fce817982411535de42779",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py": "14797a781d4f09a6bcd3c8d97a0bac205b52aee3564a1958f640adc147425a31",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/security.py": "e72d1983a434c6569f1e15c9b9560bb7a05f25e104e87edb555bda8c663c928b",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/manager.py": "ecdade08717500cd05c22a8536725111e90bc50e30ca1b3dc75efe22e54a9069",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py": "7516a3a94417dabd9606ab47887f0f75f7973ac00bb423c41c13c094ea663ecd",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/storage.py": "95f136c8746200e056529f32d842dded3fadb3daefa92466dcf56fa6a03970ad",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/service.py": "45ad6c24216d888f7f0ca24317239f4525db8d45e68d6d94f973114aabc62330",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/__main__.py": "e912bfc7b21d757670d1fe3ffc33e0b635201c99ca258a0da3f37f6acf755925"
+  },
+  "sourceStable": true
+}

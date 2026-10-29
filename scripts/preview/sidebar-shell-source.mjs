@@ -13,7 +13,7 @@ const selectors=Object.freeze([
   '.workbench-nav button[aria-selected=true]{',
   '.workbench-nav button:focus-visible{',
   '.sidebar-tool-view-head{',
-  '.sidebar-tool-view-head strong{',
+  '.sidebar-tool-view-head>strong{',
   '.sidebar-tool-view-head .sidebar-tool-icon-action{',
   '.sidebar-tool-view-head .sidebar-tool-icon-action:disabled{',
   '.sidebar-tool-view-head button:focus-visible,',
@@ -42,7 +42,11 @@ export function extractSidebarPreviewShell(html,css){
   const settings=$('#sidebar-tool-settings-view');
   if(settings.length!==1||settings.find('#sidebar-tool-open-tab').length!==1)
     fail('React settings action missing: sidebar-tool-open-tab');
-  if(navigation.find('[role=tab]').length!==6)fail('unexpected real Side Panel tab count');
+  const tabs=navigation.find('[role=tab]').map((_,node)=>$(node).attr('id')).get();
+  const required=['tab-my-tasks','tab-tools','tab-workflow','tab-develop','tab-cloud'];
+  const allowed=[...required,'tab-app-debug','tab-debug'];
+  if(required.some(id=>!tabs.includes(id))||new Set(tabs).size!==tabs.length||tabs.some(id=>!allowed.includes(id)))
+    fail('unexpected real Side Panel tab contract');
   const nav=navigation.toString(),head=toolbar.toString();
   // Production CSS may intentionally repeat a selector for later overrides.
   // Preserve every reviewed one-line rule in source order, so the preview

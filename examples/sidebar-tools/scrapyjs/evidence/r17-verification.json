@@ -1,0 +1,126 @@
+{
+  "date": "2026-10-30",
+  "phase": "implementation and local integration; native acceptance pending",
+  "uniqueBusinessSource": "examples/sidebar-tools/scrapyjs",
+  "package": {
+    "version": "1.7.0",
+    "sha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
+    "installed": false,
+    "taskRevisionUnchanged": "0.4.0"
+  },
+  "levels": {
+    "UNIT": "PASS (scoped tests only)",
+    "PYTHON_INTEGRATION": "PASS",
+    "CHROMIUM": "SIMULATED_REACT_INTERACTION_ONLY",
+    "REAL_HOST": "NOT_TESTED",
+    "MAC_CHROME": "NOT_TESTED",
+    "REAL_SITE": "NOT_TESTED"
+  },
+  "checks": {
+    "python": {
+      "command": ".venv/bin/python -m unittest discover -s tests -v",
+      "cwd": "examples/sidebar-tools/scrapyjs/local-runner",
+      "tests": 26,
+      "status": "PASS",
+      "rawLog": "artifacts/scrapyjs/r17-python-final.log"
+    },
+    "clientAndAi": {
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/{local-runner-client,ai-request,ai-config}.test.mjs",
+      "tests": 30,
+      "status": "PASS"
+    },
+    "hostIdentityAndRaces": {
+      "command": "node --test tests/environment/local-task-bridge.test.mjs",
+      "tests": 7,
+      "status": "PASS"
+    },
+    "package": {
+      "status": "PROJECT_PACKAGE_MATCH",
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --check-project"
+    },
+    "hostHttp": {
+      "status": "PASS",
+      "sourceStable": true,
+      "evidence": "r17-local-host-integration.json",
+      "busyRejectRecovery": {
+        "actualHttp409": true,
+        "pointerRestored": true,
+        "automaticRetry": false,
+        "explicitRetryRunId": "2f4fd460-47e9-40b9-9f82-ffe301b2a6b9"
+      },
+      "sessionRestart": {
+        "originalRunId": "265dbe77-2697-486a-b2f4-f3d7def0ad93",
+        "renewedAfter401": true,
+        "repeatedApproval": false,
+        "replayedCreate": false
+      }
+    },
+    "pythonLifecycle": {
+      "evidence": "../local-runner/evidence/service-proof.json",
+      "stopPids": [
+        31733
+      ],
+      "originalPidsExited": true,
+      "restartNoReplay": true
+    },
+    "previewShell": {
+      "tests": 2,
+      "status": "PASS (affected extraction/rejection checks only)"
+    }
+  },
+  "sourcesAtFinalVerification": {
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/__init__.py": "c35cfb236627608a89446f15d9a2d2323f8c228a86cbce27b91e436249c0e916",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/__main__.py": "e912bfc7b21d757670d1fe3ffc33e0b635201c99ca258a0da3f37f6acf755925",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py": "14797a781d4f09a6bcd3c8d97a0bac205b52aee3564a1958f640adc147425a31",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/errors.py": "fe35ff38adcb91d6706e6591a69f5f1fa7a73cd365aca168228bd40952be534e",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/manager.py": "ecdade08717500cd05c22a8536725111e90bc50e30ca1b3dc75efe22e54a9069",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/security.py": "e72d1983a434c6569f1e15c9b9560bb7a05f25e104e87edb555bda8c663c928b",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/service.py": "45ad6c24216d888f7f0ca24317239f4525db8d45e68d6d94f973114aabc62330",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/storage.py": "95f136c8746200e056529f32d842dded3fadb3daefa92466dcf56fa6a03970ad",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py": "7516a3a94417dabd9606ab47887f0f75f7973ac00bb423c41c13c094ea663ecd",
+    "examples/sidebar-tools/scrapyjs/src/local-runner-client.js": "196606ac963e2a95c127ce6e7f8d5c4dea1ee16db9fce817982411535de42779",
+    "src/platform/host/local-tasks.js": "4dde1635f0484dc52e511a96c8e33ec7ec0de7e62a176ab2f4f0c1d00da696c2"
+  },
+  "notTested": [
+    "real ai.generate provider response and send review inside installed Mac extension",
+    "React click to real Host to Python",
+    "installed side panel close/reopen while active worker",
+    "native Chrome downloads saved and independently read",
+    "native 200% browser zoom and full width/theme matrix",
+    "50-page exhaustion / 1800-second wall-time wait / Mac sleep-resume",
+    "production build or release"
+  ],
+  "environmentBlocker": {
+    "mode": "existing development watcher",
+    "path": "dist/development",
+    "actualChromeLoadedPath": "NOT_TESTED",
+    "extensionId": "NOT_TESTED",
+    "serveClientConnection": "NOT_TESTED",
+    "observedLogError": "Workspace/static publish failed: 官方工具身份、源码路径或安装策略无效",
+    "ownerLog": ".runtime/integration-20261029-01a1884d/browser-dev-development-resume.log",
+    "action": "Coordinate with existing watcher owner; do not replace profile, output or source pins"
+  },
+  "knownBaselineFailures": {
+    "suite": "sidebar-tools-host.test.mjs",
+    "scope": "Prompt/Cookie admission/source pin assertions in broader host suite",
+    "status": "FAIL / deferred outside this change",
+    "note": "No blanket full-suite PASS; unrelated concurrent changes preserved."
+  },
+  "failedAttemptsPreserved": [
+    "artifacts/scrapyjs/r17-local-host-integration-failed-wait.json",
+    "artifacts/scrapyjs/r17-local-host-integration-failed-rate.json",
+    "artifacts/scrapyjs/r17-package-tests.log",
+    "artifacts/scrapyjs/r17-preview-build.log"
+  ],
+  "scores": {
+    "security": 84,
+    "reactAccessibility": 90,
+    "aiBoundary": 91,
+    "dataSemantics": 92,
+    "architectureLifecycle": 90,
+    "evidenceReproducibility": 88,
+    "mean": 89.16666666666667,
+    "status": "PROVISIONAL_NOT_NATIVE_ACCEPTANCE"
+  },
+  "dependencyLockSha256": "1382c83e216015b5596b5715f40042de098960ee62a3783752546ad9de8203ec"
+}

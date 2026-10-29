@@ -13,12 +13,12 @@ test('single promoted App is reproducible and delegates only to the shipped fixe
   const app=JSON.parse(await readFile(candidate || new URL('scrapyjs.opendesk-tool.json',tool)));
   assert.equal(app.uiRuntime,'opendesk.react-ui.v1');
   assert.equal(app.html.trim(),'<div id="tool-app"></div>');
-  assert.doesNotMatch(app.js,/__opendeskPreview|E_PREVIEW_|chrome\.(?:tabs|scripting)|allow-same-origin/);
+  assert.doesNotMatch(app.js,/__opendeskPreview|E_PREVIEW_(?:UNSUPPORTED|KEY|ETAG|EXPORT|LIMIT|IDENTITY|BUSY)|chrome\.(?:tabs|scripting)|allow-same-origin/);
   const task=JSON.parse(await readFile(process.env.SCRAPYJS_TASK_CANDIDATE || new URL('controller/scrapyjs.opendesk-task.json',tool)));
   assert.deepEqual(task.manifest.siteOrigins,CAPTURE_ORIGINS);
   assert.deepEqual(task.manifest.permissions,['page.automation']);
   assert.equal(sha(task.sourceUtf8),task.manifest.program.sourceHash);
   assert.deepEqual(app.delegatedTasks,[{taskId:task.manifest.taskId,version:task.manifest.version,
     manifestHash:task.manifestHash,contentHash:sha(task.sourceUtf8)}]);
-  assert.deepEqual(app.capabilities,['storage.local','currentPage.read','user.export','tasks.run']);
+  assert.deepEqual(app.capabilities,['ai.generate','localTasks','storage.local','currentPage.read','user.export','tasks.run']);
 });

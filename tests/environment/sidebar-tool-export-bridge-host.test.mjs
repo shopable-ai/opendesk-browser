@@ -162,6 +162,18 @@ test('bridge: one synchronous export per native click; private handshake and pub
   }finally{await b.dispose();}
 });
 
+test('local task exports share the original one-click private export gate',async()=>{
+  const b=sandbox();
+  try{
+    b.click(()=>{void b.request('localTasks.export',{runId:'run-1',format:'csv'});void b.request(download,{text:'second',filename:'two.txt'});});
+    assert.equal(b.port.sent.length,1);
+    assert.equal(b.port.sent[0].operation,'localTasks.export');
+    b.synthetic(()=>void b.request('localTasks.export',{runId:'run-1',format:'jsonl'}));
+    assert.equal(b.port.sent.length,1,'synthetic events require the original Host review');
+    assert.equal(b.publicMessages.filter(row=>row.kind==='request').length,2);
+  }finally{await b.dispose();}
+});
+
 test('bridge: a label-forwarded trusted click cannot replenish one consumed input',async()=>{
   const b=sandbox();
   try{

@@ -1,0 +1,1097 @@
+{
+  "credentialInit": {
+    "format": "opendesk.local-task-credential.v1",
+    "endpoint": "http://127.0.0.1:62559",
+    "fileMode": "0600",
+    "directoryMode": "0700",
+    "secretCharacters": 64,
+    "secretPrinted": false
+  },
+  "1-page": {
+    "snapshot": {
+      "completeness": {
+        "href": {
+          "nonEmpty": 1,
+          "ratio": 0.5,
+          "total": 2
+        },
+        "id": {
+          "nonEmpty": 2,
+          "ratio": 1.0,
+          "total": 2
+        },
+        "missing": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 2
+        },
+        "nested": {
+          "nonEmpty": 1,
+          "ratio": 0.5,
+          "total": 2
+        },
+        "tags": {
+          "nonEmpty": 1,
+          "ratio": 0.5,
+          "total": 2
+        },
+        "title": {
+          "nonEmpty": 2,
+          "ratio": 1.0,
+          "total": 2
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "href": "a::href",
+          "id": "b::text",
+          "missing": ".absent::text",
+          "nested": {
+            "link": {
+              "cardinality": "one",
+              "read": "text",
+              "selector": "a"
+            }
+          },
+          "tags": {
+            "cardinality": "many",
+            "read": "text",
+            "selector": "i"
+          },
+          "title": "h2::text"
+        },
+        "maxPages": 3,
+        "nextPageSelector": "a.next",
+        "url": "http://127.0.0.1:62558/page/1"
+      },
+      "configHash": "sha256:d772c09f66b8c78cb24fdc8740d2478f422f51925ff288c8872430de4a16a430",
+      "errors": [],
+      "fields": [
+        "id",
+        "title",
+        "href",
+        "tags",
+        "missing",
+        "nested"
+      ],
+      "mode": "preview",
+      "pagesVisited": 1,
+      "previewPassed": true,
+      "previewRunId": null,
+      "recordsCount": 2,
+      "requestId": "b4ef94e3a9cfe962",
+      "runId": "51c09209-17fa-4fa8-9b17-3bd73a535127",
+      "scope": "http://127.0.0.1:62558",
+      "status": "COMPLETED",
+      "stopReason": "PREVIEW_LIMIT",
+      "workerExited": true
+    },
+    "records": [
+      {
+        "href": "/detail/1",
+        "id": "1",
+        "missing": "",
+        "nested": {
+          "link": "链接1"
+        },
+        "tags": [
+          "A",
+          "B"
+        ],
+        "title": "第1页, \"甲\" & 乙"
+      },
+      {
+        "href": "",
+        "id": "1b",
+        "missing": "",
+        "nested": {
+          "link": ""
+        },
+        "tags": [],
+        "title": "空值1"
+      }
+    ],
+    "jsonlEveryFieldEqual": true,
+    "csvEveryFieldEqual": true
+  },
+  "2-page": {
+    "snapshot": {
+      "completeness": {
+        "href": {
+          "nonEmpty": 2,
+          "ratio": 0.5,
+          "total": 4
+        },
+        "id": {
+          "nonEmpty": 4,
+          "ratio": 1.0,
+          "total": 4
+        },
+        "missing": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 4
+        },
+        "nested": {
+          "nonEmpty": 2,
+          "ratio": 0.5,
+          "total": 4
+        },
+        "tags": {
+          "nonEmpty": 2,
+          "ratio": 0.5,
+          "total": 4
+        },
+        "title": {
+          "nonEmpty": 4,
+          "ratio": 1.0,
+          "total": 4
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "href": "a::href",
+          "id": "b::text",
+          "missing": ".absent::text",
+          "nested": {
+            "link": {
+              "cardinality": "one",
+              "read": "text",
+              "selector": "a"
+            }
+          },
+          "tags": {
+            "cardinality": "many",
+            "read": "text",
+            "selector": "i"
+          },
+          "title": "h2::text"
+        },
+        "maxPages": 3,
+        "nextPageSelector": "a.next",
+        "url": "http://127.0.0.1:62558/page/1"
+      },
+      "configHash": "sha256:d772c09f66b8c78cb24fdc8740d2478f422f51925ff288c8872430de4a16a430",
+      "errors": [],
+      "fields": [
+        "id",
+        "title",
+        "href",
+        "tags",
+        "missing",
+        "nested"
+      ],
+      "mode": "preview",
+      "pagesVisited": 2,
+      "previewPassed": true,
+      "previewRunId": null,
+      "recordsCount": 4,
+      "requestId": "176c3725d1d637e7",
+      "runId": "86e6f682-f5e8-4915-b876-6f001a7f6b89",
+      "scope": "http://127.0.0.1:62558",
+      "status": "COMPLETED",
+      "stopReason": "PREVIEW_LIMIT",
+      "workerExited": true
+    },
+    "records": [
+      {
+        "href": "/detail/1",
+        "id": "1",
+        "missing": "",
+        "nested": {
+          "link": "链接1"
+        },
+        "tags": [
+          "A",
+          "B"
+        ],
+        "title": "第1页, \"甲\" & 乙"
+      },
+      {
+        "href": "",
+        "id": "1b",
+        "missing": "",
+        "nested": {
+          "link": ""
+        },
+        "tags": [],
+        "title": "空值1"
+      },
+      {
+        "href": "/detail/2",
+        "id": "2",
+        "missing": "",
+        "nested": {
+          "link": "链接2"
+        },
+        "tags": [
+          "A",
+          "B"
+        ],
+        "title": "第2页, \"甲\" & 乙"
+      },
+      {
+        "href": "",
+        "id": "2b",
+        "missing": "",
+        "nested": {
+          "link": ""
+        },
+        "tags": [],
+        "title": "空值2"
+      }
+    ],
+    "jsonlEveryFieldEqual": true,
+    "csvEveryFieldEqual": true
+  },
+  "3-page": {
+    "snapshot": {
+      "completeness": {
+        "href": {
+          "nonEmpty": 3,
+          "ratio": 0.5,
+          "total": 6
+        },
+        "id": {
+          "nonEmpty": 6,
+          "ratio": 1.0,
+          "total": 6
+        },
+        "missing": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 6
+        },
+        "nested": {
+          "nonEmpty": 3,
+          "ratio": 0.5,
+          "total": 6
+        },
+        "tags": {
+          "nonEmpty": 3,
+          "ratio": 0.5,
+          "total": 6
+        },
+        "title": {
+          "nonEmpty": 6,
+          "ratio": 1.0,
+          "total": 6
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "href": "a::href",
+          "id": "b::text",
+          "missing": ".absent::text",
+          "nested": {
+            "link": {
+              "cardinality": "one",
+              "read": "text",
+              "selector": "a"
+            }
+          },
+          "tags": {
+            "cardinality": "many",
+            "read": "text",
+            "selector": "i"
+          },
+          "title": "h2::text"
+        },
+        "maxPages": 3,
+        "nextPageSelector": "a.next",
+        "url": "http://127.0.0.1:62558/page/1"
+      },
+      "configHash": "sha256:d772c09f66b8c78cb24fdc8740d2478f422f51925ff288c8872430de4a16a430",
+      "errors": [],
+      "fields": [
+        "id",
+        "title",
+        "href",
+        "tags",
+        "missing",
+        "nested"
+      ],
+      "mode": "preview",
+      "pagesVisited": 3,
+      "previewPassed": true,
+      "previewRunId": null,
+      "recordsCount": 6,
+      "requestId": "e20b9938a8f6cfad",
+      "runId": "1605e625-3c6e-424e-b4e9-62283eaf6a15",
+      "scope": "http://127.0.0.1:62558",
+      "status": "COMPLETED",
+      "stopReason": "NO_NEXT_PAGE",
+      "workerExited": true
+    },
+    "records": [
+      {
+        "href": "/detail/1",
+        "id": "1",
+        "missing": "",
+        "nested": {
+          "link": "链接1"
+        },
+        "tags": [
+          "A",
+          "B"
+        ],
+        "title": "第1页, \"甲\" & 乙"
+      },
+      {
+        "href": "",
+        "id": "1b",
+        "missing": "",
+        "nested": {
+          "link": ""
+        },
+        "tags": [],
+        "title": "空值1"
+      },
+      {
+        "href": "/detail/2",
+        "id": "2",
+        "missing": "",
+        "nested": {
+          "link": "链接2"
+        },
+        "tags": [
+          "A",
+          "B"
+        ],
+        "title": "第2页, \"甲\" & 乙"
+      },
+      {
+        "href": "",
+        "id": "2b",
+        "missing": "",
+        "nested": {
+          "link": ""
+        },
+        "tags": [],
+        "title": "空值2"
+      },
+      {
+        "href": "/detail/3",
+        "id": "3",
+        "missing": "",
+        "nested": {
+          "link": "链接3"
+        },
+        "tags": [
+          "A",
+          "B"
+        ],
+        "title": "第3页, \"甲\" & 乙"
+      },
+      {
+        "href": "",
+        "id": "3b",
+        "missing": "",
+        "nested": {
+          "link": ""
+        },
+        "tags": [],
+        "title": "空值3"
+      }
+    ],
+    "jsonlEveryFieldEqual": true,
+    "csvEveryFieldEqual": true
+  },
+  "full": {
+    "sameConfigHash": true,
+    "exportReadbackEveryFieldEqual": true,
+    "snapshot": {
+      "completeness": {
+        "href": {
+          "nonEmpty": 3,
+          "ratio": 0.5,
+          "total": 6
+        },
+        "id": {
+          "nonEmpty": 6,
+          "ratio": 1.0,
+          "total": 6
+        },
+        "missing": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 6
+        },
+        "nested": {
+          "nonEmpty": 3,
+          "ratio": 0.5,
+          "total": 6
+        },
+        "tags": {
+          "nonEmpty": 3,
+          "ratio": 0.5,
+          "total": 6
+        },
+        "title": {
+          "nonEmpty": 6,
+          "ratio": 1.0,
+          "total": 6
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "href": "a::href",
+          "id": "b::text",
+          "missing": ".absent::text",
+          "nested": {
+            "link": {
+              "cardinality": "one",
+              "read": "text",
+              "selector": "a"
+            }
+          },
+          "tags": {
+            "cardinality": "many",
+            "read": "text",
+            "selector": "i"
+          },
+          "title": "h2::text"
+        },
+        "maxPages": 3,
+        "nextPageSelector": "a.next",
+        "url": "http://127.0.0.1:62558/page/1"
+      },
+      "configHash": "sha256:d772c09f66b8c78cb24fdc8740d2478f422f51925ff288c8872430de4a16a430",
+      "errors": [],
+      "fields": [
+        "id",
+        "title",
+        "href",
+        "tags",
+        "missing",
+        "nested"
+      ],
+      "mode": "full",
+      "pagesVisited": 3,
+      "previewPassed": false,
+      "previewRunId": "9606e0c0-08c1-47d7-a1c1-8f7c81c8996d",
+      "recordsCount": 6,
+      "requestId": "85926ddcc72ed9f6",
+      "runId": "426fec42-3e19-406c-80c7-101c2242a3c8",
+      "scope": "http://127.0.0.1:62558",
+      "status": "COMPLETED",
+      "stopReason": "NO_NEXT_PAGE",
+      "workerExited": true
+    },
+    "exactPreviewEnforced": true,
+    "requestRecoveryNoReplay": true,
+    "sameOwnerSessionRefresh": true
+  },
+  "security": {
+    "authOriginOwnerScope": true,
+    "bodyLimit": true,
+    "robotsDeniedBeforeDownload": true,
+    "redirectScopeDenied": true,
+    "redirectRobotsDenied": true,
+    "responseLimit": true
+  },
+  "recordBudget": {
+    "snapshot": {
+      "completeness": {
+        "href": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 2000
+        },
+        "id": {
+          "nonEmpty": 2000,
+          "ratio": 1.0,
+          "total": 2000
+        },
+        "missing": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 2000
+        },
+        "nested": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 2000
+        },
+        "tags": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 2000
+        },
+        "title": {
+          "nonEmpty": 2000,
+          "ratio": 1.0,
+          "total": 2000
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "href": "a::href",
+          "id": "b::text",
+          "missing": ".absent::text",
+          "nested": {
+            "link": {
+              "cardinality": "one",
+              "read": "text",
+              "selector": "a"
+            }
+          },
+          "tags": {
+            "cardinality": "many",
+            "read": "text",
+            "selector": "i"
+          },
+          "title": "h2::text"
+        },
+        "maxPages": 3,
+        "url": "http://127.0.0.1:62558/bulk/1"
+      },
+      "configHash": "sha256:a9a054c355ca2510d5f027ef90c9fb31def9fca5e0b41299d2bc868de6272dec",
+      "errors": [],
+      "fields": [
+        "id",
+        "title",
+        "href",
+        "tags",
+        "missing",
+        "nested"
+      ],
+      "mode": "full",
+      "pagesVisited": 1,
+      "previewPassed": false,
+      "previewRunId": "ea059c42-1a18-409b-a7d8-daa858ad36d2",
+      "recordsCount": 2000,
+      "requestId": "d60ef5bc7c3f8623",
+      "runId": "14f84d44-3d99-4840-a3e1-4ee1b6c7c092",
+      "scope": "http://127.0.0.1:62558",
+      "status": "COMPLETED",
+      "stopReason": "RECORD_LIMIT",
+      "workerExited": true
+    },
+    "nonErrorStop": true,
+    "previewStillUsable": true
+  },
+  "lifecycle": {
+    "diskJsonlRecoveredEveryFieldEqual": true,
+    "stopped": {
+      "completeness": {
+        "href": {
+          "nonEmpty": 1,
+          "ratio": 0.5,
+          "total": 2
+        },
+        "id": {
+          "nonEmpty": 2,
+          "ratio": 1.0,
+          "total": 2
+        },
+        "missing": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 2
+        },
+        "nested": {
+          "nonEmpty": 1,
+          "ratio": 0.5,
+          "total": 2
+        },
+        "tags": {
+          "nonEmpty": 1,
+          "ratio": 0.5,
+          "total": 2
+        },
+        "title": {
+          "nonEmpty": 2,
+          "ratio": 1.0,
+          "total": 2
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "href": "a::href",
+          "id": "b::text",
+          "missing": ".absent::text",
+          "nested": {
+            "link": {
+              "cardinality": "one",
+              "read": "text",
+              "selector": "a"
+            }
+          },
+          "tags": {
+            "cardinality": "many",
+            "read": "text",
+            "selector": "i"
+          },
+          "title": "h2::text"
+        },
+        "maxPages": 3,
+        "nextPageSelector": "a.next",
+        "url": "http://127.0.0.1:62558/slow/1"
+      },
+      "configHash": "sha256:ec6f075e142dd009223ea66c8058799bd433c5a3813daa33e04041f4bbc43bfd",
+      "errors": [],
+      "fields": [
+        "id",
+        "title",
+        "href",
+        "tags",
+        "missing",
+        "nested"
+      ],
+      "mode": "full",
+      "pagesVisited": 1,
+      "previewPassed": false,
+      "previewRunId": "d1de4130-c025-4e09-a948-3e27d6b250cb",
+      "recordsCount": 2,
+      "requestId": "9a393b3cc6a208f9",
+      "runId": "cdaae4f1-1117-4382-b22b-93b825643f66",
+      "scope": "http://127.0.0.1:62558",
+      "status": "STOPPED",
+      "stopReason": "STOP_REQUESTED",
+      "workerExited": true
+    },
+    "afterRestart": {
+      "completeness": {
+        "href": {
+          "nonEmpty": 1,
+          "ratio": 0.5,
+          "total": 2
+        },
+        "id": {
+          "nonEmpty": 2,
+          "ratio": 1.0,
+          "total": 2
+        },
+        "missing": {
+          "nonEmpty": 0,
+          "ratio": 0.0,
+          "total": 2
+        },
+        "nested": {
+          "nonEmpty": 1,
+          "ratio": 0.5,
+          "total": 2
+        },
+        "tags": {
+          "nonEmpty": 1,
+          "ratio": 0.5,
+          "total": 2
+        },
+        "title": {
+          "nonEmpty": 2,
+          "ratio": 1.0,
+          "total": 2
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "href": "a::href",
+          "id": "b::text",
+          "missing": ".absent::text",
+          "nested": {
+            "link": {
+              "cardinality": "one",
+              "read": "text",
+              "selector": "a"
+            }
+          },
+          "tags": {
+            "cardinality": "many",
+            "read": "text",
+            "selector": "i"
+          },
+          "title": "h2::text"
+        },
+        "maxPages": 3,
+        "nextPageSelector": "a.next",
+        "url": "http://127.0.0.1:62558/slow/1"
+      },
+      "configHash": "sha256:ec6f075e142dd009223ea66c8058799bd433c5a3813daa33e04041f4bbc43bfd",
+      "errors": [],
+      "fields": [
+        "id",
+        "title",
+        "href",
+        "tags",
+        "missing",
+        "nested"
+      ],
+      "mode": "full",
+      "pagesVisited": 1,
+      "previewPassed": false,
+      "previewRunId": "d1de4130-c025-4e09-a948-3e27d6b250cb",
+      "recordsCount": 2,
+      "requestId": "7502100c1ed9e0ac",
+      "runId": "962e7465-9dd8-4079-ae4a-286d5779f718",
+      "scope": "http://127.0.0.1:62558",
+      "status": "INTERRUPTED",
+      "stopReason": "SERVICE_RESTART",
+      "workerExited": true
+    },
+    "recordsPersisted": true,
+    "restartNoReplay": true,
+    "stoppedOriginalPids": [
+      31733
+    ],
+    "interruptedOriginalPids": [
+      31756
+    ],
+    "originalPidsExited": true
+  },
+  "revoke": {
+    "revoked": true,
+    "workerExited": true
+  },
+  "limits": {
+    "chunkedBodyBounded": true,
+    "sessionRateLimited": true
+  },
+  "reviewBaseURI": [
+    {
+      "seed": "/review/base/list",
+      "expectedNext": "/review/catalog/2",
+      "requests": [
+        "/robots.txt",
+        "/review/base/list",
+        "/review/catalog/2"
+      ],
+      "snapshot": {
+        "completeness": {
+          "id": {
+            "nonEmpty": 2,
+            "ratio": 1.0,
+            "total": 2
+          }
+        },
+        "config": {
+          "itemConfig": {
+            "_listContainer": "#rows",
+            "_listItem": "li",
+            "id": "b::text"
+          },
+          "maxPages": 3,
+          "nextPageSelector": "a.next",
+          "url": "http://127.0.0.1:62558/review/base/list"
+        },
+        "configHash": "sha256:16b2e930f08a9197c18a2842d596b6fea17a91c0fa60b4261e96cf3a767230b7",
+        "errors": [],
+        "fields": [
+          "id"
+        ],
+        "mode": "preview",
+        "pagesVisited": 2,
+        "previewPassed": true,
+        "previewRunId": null,
+        "recordsCount": 2,
+        "requestId": "6d7ea03c018f89d9",
+        "runId": "6780b678-50ae-439c-8c1a-69de7530adca",
+        "scope": "http://127.0.0.1:62558",
+        "status": "COMPLETED",
+        "stopReason": "NO_NEXT_PAGE",
+        "workerExited": true
+      },
+      "records": [
+        {
+          "id": "FIRST"
+        },
+        {
+          "id": "SECOND"
+        }
+      ]
+    },
+    {
+      "seed": "/review/entry",
+      "expectedNext": "/review/final/catalog/2",
+      "requests": [
+        "/robots.txt",
+        "/review/entry",
+        "/review/final/list",
+        "/review/final/catalog/2"
+      ],
+      "snapshot": {
+        "completeness": {
+          "id": {
+            "nonEmpty": 2,
+            "ratio": 1.0,
+            "total": 2
+          }
+        },
+        "config": {
+          "itemConfig": {
+            "_listContainer": "#rows",
+            "_listItem": "li",
+            "id": "b::text"
+          },
+          "maxPages": 3,
+          "nextPageSelector": "a.next",
+          "url": "http://127.0.0.1:62558/review/entry"
+        },
+        "configHash": "sha256:85bca3bd552e3406ad14c2b94981ca07a1117ab8c816028036010522539f2819",
+        "errors": [],
+        "fields": [
+          "id"
+        ],
+        "mode": "preview",
+        "pagesVisited": 2,
+        "previewPassed": true,
+        "previewRunId": null,
+        "recordsCount": 2,
+        "requestId": "571f89fb714b08a9",
+        "runId": "182a375b-b85d-4449-9973-f3935287bef1",
+        "scope": "http://127.0.0.1:62558",
+        "status": "COMPLETED",
+        "stopReason": "NO_NEXT_PAGE",
+        "workerExited": true
+      },
+      "records": [
+        {
+          "id": "FIRST"
+        },
+        {
+          "id": "SECOND"
+        }
+      ]
+    }
+  ],
+  "reviewCrossScopeBase": {
+    "requests": [
+      "/robots.txt",
+      "/review/cross-base"
+    ],
+    "snapshot": {
+      "completeness": {
+        "id": {
+          "nonEmpty": 1,
+          "ratio": 1.0,
+          "total": 1
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "id": "b::text"
+        },
+        "maxPages": 3,
+        "nextPageSelector": "a.next",
+        "url": "http://127.0.0.1:62558/review/cross-base"
+      },
+      "configHash": "sha256:a80663f4b567465c628ad7d404acff27088c87caf9f37949697ad7fd39a9a603",
+      "errors": [
+        {
+          "code": "SCOPE_MISMATCH",
+          "message": "config.url and every request must match token.scope"
+        }
+      ],
+      "fields": [
+        "id"
+      ],
+      "mode": "preview",
+      "pagesVisited": 1,
+      "previewPassed": false,
+      "previewRunId": null,
+      "recordsCount": 1,
+      "requestId": "c6c57b5539b8a7ac",
+      "runId": "db9bc178-3655-4eac-9048-703b7a9762b5",
+      "scope": "http://127.0.0.1:62558",
+      "status": "FAILED",
+      "stopReason": "SCOPE_MISMATCH",
+      "workerExited": true
+    }
+  },
+  "reviewRedirectDuplicate": {
+    "requests": [
+      "/robots.txt",
+      "/review/loop/list",
+      "/review/loop/alias",
+      "/review/loop/list"
+    ],
+    "snapshot": {
+      "completeness": {
+        "id": {
+          "nonEmpty": 1,
+          "ratio": 1.0,
+          "total": 1
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "id": "b::text"
+        },
+        "maxPages": 3,
+        "nextPageSelector": "a.next",
+        "url": "http://127.0.0.1:62558/review/loop/list"
+      },
+      "configHash": "sha256:5ce26df982b57024b7ce3bf59311f9c55165857b0a412fe59f0abc0a33330d6a",
+      "errors": [
+        {
+          "code": "PAGINATION_LOOP",
+          "message": "PAGINATION_LOOP"
+        }
+      ],
+      "fields": [
+        "id"
+      ],
+      "mode": "preview",
+      "pagesVisited": 1,
+      "previewPassed": false,
+      "previewRunId": null,
+      "recordsCount": 1,
+      "requestId": "5f0e46406e9e672c",
+      "runId": "1ea3ddf2-727c-453a-a1cc-39baf7f92dfe",
+      "scope": "http://127.0.0.1:62558",
+      "status": "FAILED",
+      "stopReason": "PAGINATION_LOOP",
+      "workerExited": true
+    },
+    "export": [
+      {
+        "id": "FIRST"
+      }
+    ]
+  },
+  "reviewInitialAlias": {
+    "snapshot": {
+      "completeness": {
+        "id": {
+          "nonEmpty": 2,
+          "ratio": 1.0,
+          "total": 2
+        }
+      },
+      "config": {
+        "itemConfig": {
+          "_listContainer": "#rows",
+          "_listItem": "li",
+          "id": "b::text"
+        },
+        "maxPages": 3,
+        "nextPageSelector": "a.next",
+        "url": "http://127.0.0.1:62558/review/start-alias"
+      },
+      "configHash": "sha256:2726a262b908588a635d7c0f9cbba61c87299bca2579209d36ac7badd59d36c2",
+      "errors": [],
+      "fields": [
+        "id"
+      ],
+      "mode": "preview",
+      "pagesVisited": 2,
+      "previewPassed": true,
+      "previewRunId": null,
+      "recordsCount": 2,
+      "requestId": "797cfbfd61036192",
+      "runId": "8159f7a3-d882-4674-99a4-b6eeb4324ce0",
+      "scope": "http://127.0.0.1:62558",
+      "status": "COMPLETED",
+      "stopReason": "NO_NEXT_PAGE",
+      "workerExited": true
+    }
+  },
+  "reviewDisabledClasses": [
+    {
+      "requests": [
+        "/robots.txt",
+        "/review/disabled-is"
+      ],
+      "snapshot": {
+        "completeness": {
+          "id": {
+            "nonEmpty": 1,
+            "ratio": 1.0,
+            "total": 1
+          }
+        },
+        "config": {
+          "itemConfig": {
+            "_listContainer": "#rows",
+            "_listItem": "li",
+            "id": "b::text"
+          },
+          "maxPages": 3,
+          "nextPageSelector": "a.next",
+          "url": "http://127.0.0.1:62558/review/disabled-is"
+        },
+        "configHash": "sha256:43ac86d81688d7e699daae8277f9e3b78145fcd802dce3af7b8aa2bed588b281",
+        "errors": [],
+        "fields": [
+          "id"
+        ],
+        "mode": "preview",
+        "pagesVisited": 1,
+        "previewPassed": true,
+        "previewRunId": null,
+        "recordsCount": 1,
+        "requestId": "05cbc039264851b4",
+        "runId": "8847353f-b097-4097-8b3d-01b9e4b6fa61",
+        "scope": "http://127.0.0.1:62558",
+        "status": "COMPLETED",
+        "stopReason": "NO_NEXT_PAGE",
+        "workerExited": true
+      }
+    },
+    {
+      "requests": [
+        "/robots.txt",
+        "/review/disabled-ant"
+      ],
+      "snapshot": {
+        "completeness": {
+          "id": {
+            "nonEmpty": 1,
+            "ratio": 1.0,
+            "total": 1
+          }
+        },
+        "config": {
+          "itemConfig": {
+            "_listContainer": "#rows",
+            "_listItem": "li",
+            "id": "b::text"
+          },
+          "maxPages": 3,
+          "nextPageSelector": "a.next",
+          "url": "http://127.0.0.1:62558/review/disabled-ant"
+        },
+        "configHash": "sha256:6df5d1b3d75cedfbceec3dea208faf2e066a1836bddef483b93e9f681e93d413",
+        "errors": [],
+        "fields": [
+          "id"
+        ],
+        "mode": "preview",
+        "pagesVisited": 1,
+        "previewPassed": true,
+        "previewRunId": null,
+        "recordsCount": 1,
+        "requestId": "4dc078250feaa2e0",
+        "runId": "7b9c0bca-ebcf-49db-9a83-b5b39449d207",
+        "scope": "http://127.0.0.1:62558",
+        "status": "COMPLETED",
+        "stopReason": "NO_NEXT_PAGE",
+        "workerExited": true
+      }
+    }
+  ],
+  "runtime": {
+    "python": "3.11.15",
+    "scrapling": "0.5",
+    "fixtureOrigin": "http://127.0.0.1:62558",
+    "endpoint": "http://127.0.0.1:62559"
+  }
+}

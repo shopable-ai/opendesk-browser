@@ -1,0 +1,268 @@
+{
+  "schema": "opendesk.independent-security-final-followup.v1",
+  "review_id": "r17-review-security-final-followup",
+  "review_date": "2026-10-30",
+  "output": "examples/sidebar-tools/scrapyjs/evidence/r17-review-security-final-followup.json",
+  "scope": {
+    "source_read_allowlist": [
+      "src/platform/host/local-tasks.js",
+      "src/ui/sidebar-tools.js",
+      "src/ui/sidebar-tools/installation.js",
+      "tests/environment/local-task-bridge.test.mjs",
+      "docs/api/local-task-bridge.zh-CN.md"
+    ],
+    "focus": "只复核前轮两个P2及notCreated/unknown分类边界；复用未变更的身份、撤权、导出可信点击接线证据。",
+    "source_modified": false,
+    "previous_reviews_modified": false,
+    "branch_created": false,
+    "commit_created": false,
+    "real_network": false,
+    "real_download": false,
+    "real_browser": false,
+    "excluded": "ClientCAS UI owner仍实现中，不读取范围外业务源码；不扩大为全仓、打包、正式Chrome验收或Prompt/Cookie pin基线修复。"
+  },
+  "source_snapshot": {
+    "sha256": {
+      "src/platform/host/local-tasks.js": "4dde1635f0484dc52e511a96c8e33ec7ec0de7e62a176ab2f4f0c1d00da696c2",
+      "src/ui/sidebar-tools.js": "3a60a7f1915bb061c6dcbfb492b29bbdc7d40d8d6ec384a9a8b714acdb89bda1",
+      "src/ui/sidebar-tools/installation.js": "54cb50eed69feee23d25e06c41dea2f576adfebb66bc522cfaa7f8343e708eb4",
+      "tests/environment/local-task-bridge.test.mjs": "1c0fb1d6be18924d545c0179be8fb7c70c77052ffac3d7dc29ef0d74152ca0bf",
+      "docs/api/local-task-bridge.zh-CN.md": "09e834e6ba2937fb8c8e8bb1390f81e86893040c891b95e722027ef3d32f3502"
+    },
+    "prior_review_sha256": {
+      "examples/sidebar-tools/scrapyjs/evidence/r17-review-security.json": "3d2b95ee7b3dabcb4ad0a0b85ac63240389103f241ec28e0c1327e4b8cc8db86",
+      "examples/sidebar-tools/scrapyjs/evidence/r17-review-security-followup.json": "63c3fde69234259a35d347fc05098534d6afb16d6f32daa5b1cd0e7d90021029"
+    },
+    "matches_files_at_publication": true,
+    "publication_drift": []
+  },
+  "decision": {
+    "status": "BRIDGE_SOURCE_CANDIDATE_READY_FOR_FREEZE_WITH_EXPLICIT_NOT_TESTED_LIMITS",
+    "new_p0_found": 0,
+    "new_p1_found": 0,
+    "reviewed_followup_p2_fixed": 2,
+    "previous_p1_status": "原4个P1在前轮源码/Node层闭合；本轮7项测试继续通过，未发现这次修复重新打开直接路径。",
+    "meaning": "本结论仅表示已审桥接源码快照可作冻结候选；没有执行冻结、安装、发布或真实Chrome验收。",
+    "client_cas_ui_recovery": "IMPLEMENTATION_IN_PROGRESS_NOT_TESTED",
+    "real_host_chrome": "NOT_TESTED",
+    "provisional_score": 84,
+    "formal_score": null,
+    "formal_95_plus_awarded": false
+  },
+  "closures": [
+    {
+      "id": "FOLLOWUP-P2-001",
+      "status": "FIXED_SOURCE_AND_IN_MEMORY",
+      "location": {
+        "path": "src/platform/host/local-tasks.js",
+        "start_line": 148,
+        "end_line": 150
+      },
+      "verified": "export捕获E_LOCAL_SESSION后删除对应scope的session；下一次状态GET直接续建会话成功。",
+      "observed": {
+        "original_export_error": "E_LOCAL_SESSION",
+        "next_read": "PASS",
+        "session_posts": 2,
+        "scope_approvals": 1,
+        "start_posts": 1,
+        "downloads": 0
+      },
+      "probe": "export_401_then_next_read_recovers"
+    },
+    {
+      "id": "FOLLOWUP-P2-002",
+      "status": "FIXED_SOURCE_AND_IN_MEMORY",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 99,
+          "end_line": 100
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 112,
+          "end_line": 123
+        }
+      ],
+      "verified": "身份持久写后、启动fetch前assertAuthorized失败时，在同一local-tasks锁内清除unresolved并记录该请求notCreated墓碑；新iframe可按原requestId获得本地E_LOCAL_NOT_CREATED，随后新ID能启动。",
+      "observed": {
+        "original_start_posts": 0,
+        "not_created_tombstone": true,
+        "unresolved_cleared": true,
+        "by_request_network_calls": 0,
+        "new_request_after_reopen": "PASS",
+        "scope_approvals": 1
+      },
+      "limit": "这里验证的是Host可信账本与重新打开后的桥接调用；ClientCAS UI如何消费错误、按owner/revision进行CAS恢复仍未测试。",
+      "probe": "known_unsent_frame_close_tombstone_and_reopen"
+    }
+  ],
+  "not_created_unknown_boundary": {
+    "locations": [
+      {
+        "path": "src/platform/host/local-tasks.js",
+        "start_line": 55,
+        "end_line": 60
+      },
+      {
+        "path": "src/platform/host/local-tasks.js",
+        "start_line": 97,
+        "end_line": 128
+      }
+    ],
+    "verified_cases": [
+      {
+        "http": 409,
+        "service_code": "WORKER_BUSY",
+        "result": "E_LOCAL_NOT_CREATED",
+        "tombstone": true,
+        "unknown_fence_cleared": true
+      },
+      {
+        "http": 422,
+        "service_code": "INVALID_CONFIG",
+        "result": "E_LOCAL_NOT_CREATED",
+        "tombstone": true,
+        "unknown_fence_cleared": true
+      },
+      {
+        "http": 409,
+        "service_code": "IDEMPOTENCY_CONFLICT",
+        "result": "E_LOCAL_UNKNOWN",
+        "replacement_id_blocked": true
+      },
+      {
+        "http": 502,
+        "service_code": "WORKER_BUSY",
+        "result": "E_LOCAL_UNKNOWN",
+        "replacement_id_blocked": true
+      },
+      {
+        "failure": "模拟TimeoutError",
+        "result": "E_LOCAL_UNKNOWN",
+        "replacement_id_blocked": true
+      }
+    ],
+    "source_checks": "HTTP 409/422且命中固定预创建拒绝代码才走notCreated；IDEMPOTENCY_CONFLICT不在白名单。原requestId留档不删除，超时后不能靠换ID绕过未知栅栏。",
+    "service_contract_limit": "已验证Host分类行为，不等于验证真实服务每个白名单错误均发生在副作用之前。服务代码不在本审查读取范围；该语义仍由服务owner证据承担。"
+  },
+  "verification": {
+    "command": "node --test tests/environment/local-task-bridge.test.mjs",
+    "tests_total": 7,
+    "passed": 7,
+    "failed": 0,
+    "result": "PASS",
+    "targeted_diagnostics": [
+      {
+        "id": "export_401_then_next_read_recovers",
+        "status": "PASS_IN_MEMORY",
+        "sessionPosts": 2,
+        "approvals": 1,
+        "startPosts": 1,
+        "downloads": 0
+      },
+      {
+        "id": "known_unsent_frame_close_tombstone_and_reopen",
+        "status": "PASS_IN_MEMORY",
+        "originalStartPosts": 0,
+        "notCreatedTombstone": true,
+        "unresolvedCleared": true,
+        "localByRequestCode": "E_LOCAL_NOT_CREATED",
+        "newRequestStartsAfterReopen": true,
+        "approvals": 1
+      },
+      {
+        "id": "not_created_boundary_busy",
+        "status": "PASS_IN_MEMORY",
+        "error": "E_LOCAL_NOT_CREATED",
+        "knownNotCreated": true,
+        "unknownFenceRetained": false
+      },
+      {
+        "id": "not_created_boundary_invalid_config",
+        "status": "PASS_IN_MEMORY",
+        "error": "E_LOCAL_NOT_CREATED",
+        "knownNotCreated": true,
+        "unknownFenceRetained": false
+      },
+      {
+        "id": "not_created_boundary_idempotency_conflict",
+        "status": "PASS_IN_MEMORY",
+        "error": "E_LOCAL_UNKNOWN",
+        "knownNotCreated": false,
+        "unknownFenceRetained": true
+      },
+      {
+        "id": "not_created_boundary_wrong_status",
+        "status": "PASS_IN_MEMORY",
+        "error": "E_LOCAL_UNKNOWN",
+        "knownNotCreated": false,
+        "unknownFenceRetained": true
+      },
+      {
+        "id": "not_created_boundary_timeout",
+        "status": "PASS_IN_MEMORY",
+        "error": "E_LOCAL_UNKNOWN",
+        "knownNotCreated": false,
+        "unknownFenceRetained": true
+      }
+    ],
+    "diagnostic_scope": "只执行两个已改P2的恢复正例和其影响的notCreated/unknown负例；没有重跑未变更helper、全仓或正式验收。",
+    "node": "v24.15.0",
+    "network": "NONE_ALL_FETCHES_SIMULATED",
+    "real_host_chrome": "NOT_TESTED",
+    "production_build": "NOT_RUN_OUT_OF_SCOPE"
+  },
+  "retained_limits": [
+    "ClientCAS UI owner仍在实现中：未确认其按原requestId、owner/epoch及revision消费E_LOCAL_NOT_CREATED，也未执行真实UI恢复。",
+    "真实Host/Chrome、可信导出port发送侧的点击消费/unknown标记、Chrome下载迟到回执均未由本审查执行。",
+    "服务端owner/scope/跨域/重定向/DNS/内网隔离及白名单错误的真实前置拒绝语义未独立读取或验证。",
+    "session401恢复修复不等同master/endpoint轮换后的安全重配对；原始条件性恢复缺口仍保留。",
+    "128条身份历史容量与失败升级前旧配对退役仍是此前观察；本轮不扩展处理。"
+  ],
+  "scoring": {
+    "status": "PROVISIONAL_SOURCE_AND_NODE_ONLY",
+    "dimensions": [
+      {
+        "dimension": "端点与loopback约束",
+        "score": 84
+      },
+      {
+        "dimension": "凭证隔离",
+        "score": 88
+      },
+      {
+        "dimension": "任务身份与owner/scope",
+        "score": 88
+      },
+      {
+        "dimension": "撤权与生命周期",
+        "score": 88
+      },
+      {
+        "dimension": "未知副作用与防重放",
+        "score": 88
+      },
+      {
+        "dimension": "服务与取消恢复",
+        "score": 80
+      },
+      {
+        "dimension": "可信意图与重复确认",
+        "score": 88
+      },
+      {
+        "dimension": "资源与导出收尾",
+        "score": 84
+      },
+      {
+        "dimension": "证据充分性",
+        "score": 70
+      }
+    ],
+    "overall": 84,
+    "method": "九维非加权平均四舍五入；仅为当前源码与Node层暂定评分。",
+    "formal_score": null,
+    "formal_95_plus_awarded": false
+  }
+}

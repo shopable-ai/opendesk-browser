@@ -1,0 +1,22 @@
+test_dot_reads_current_item_without_losing_nested_or_suffix_rules (test_dsl.CurrentItemTests.test_dot_reads_current_item_without_losing_nested_or_suffix_rules) ... ok
+test_missing_auto_many_and_empty_list (test_dsl.DslTests.test_missing_auto_many_and_empty_list) ... ok
+test_one_rejects_duplicates (test_dsl.DslTests.test_one_rejects_duplicates) ... ok
+test_real_scrapling_preserves_original_itemloader_values_and_direct_children (test_dsl.DslTests.test_real_scrapling_preserves_original_itemloader_values_and_direct_children) ... ok
+test_unsupported_is_explicit_not_silently_discarded (test_dsl.DslTests.test_unsupported_is_explicit_not_silently_discarded) ... ok
+test_explicit_init_atomically_creates_private_json_and_never_overwrites (test_security.CredentialInitTests.test_explicit_init_atomically_creates_private_json_and_never_overwrites) ... ok
+test_init_refuses_public_directory_symlinks_and_invalid_existing_secret (test_security.CredentialInitTests.test_init_refuses_public_directory_symlinks_and_invalid_existing_secret) ... ok
+test_master_file_requires_json_endpoint_and_owner_only_permissions (test_security.SecurityTests.test_master_file_requires_json_endpoint_and_owner_only_permissions) ... ok
+test_private_dns_mixed_answers_and_unapproved_loopback_denied (test_security.SecurityTests.test_private_dns_mixed_answers_and_unapproved_loopback_denied) ... ok
+test_scope_and_url_credentials_cannot_escape (test_security.SecurityTests.test_scope_and_url_credentials_cannot_escape) ... ok
+test_10_real_one_two_three_pages_and_every_export_field (test_service.ServiceTests.test_10_real_one_two_three_pages_and_every_export_field) ... ok
+test_20_full_requires_exact_preview_and_request_lookup_never_replays (test_service.ServiceTests.test_20_full_requires_exact_preview_and_request_lookup_never_replays) ... ok
+test_30_auth_origin_owner_scope_body_robots_and_redirect (test_service.ServiceTests.test_30_auth_origin_owner_scope_body_robots_and_redirect) ... ok
+test_35_record_budget_stops_normally_and_preview_remains_usable (test_service.ServiceTests.test_35_record_budget_stops_normally_and_preview_remains_usable) ... ok
+test_40_stop_waits_and_restart_interrupts_without_replay (test_service.ServiceTests.test_40_stop_waits_and_restart_interrupts_without_replay) ... ok
+test_50_revoke_waits_and_invalidates_only_owner (test_service.ServiceTests.test_50_revoke_waits_and_invalidates_only_owner) ... ok
+test_55_chunked_body_is_bounded_and_sessions_rate_limited (test_service.ServiceTests.test_55_chunked_body_is_bounded_and_sessions_rate_limited) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 24.079s
+
+OK

@@ -1,0 +1,65 @@
+{
+  "review":"ScrapyJS R1.7 independent lifecycle and evidence review",
+  "reviewedAt":"2026-10-30T03:15:45.292923+08:00",
+  "status":"PROVISIONAL_P1_FOUND",
+  "scope":"指定四个 Python 模块、client、集成脚本与报告、R1.7 主文档及 local-runner README；发现 P1 后立即结束",
+  "method":"只读源码与既有证据；额外执行一次纯内存 client 负向探针，无网络、浏览器、服务或子任务",
+  "dimensions":{
+    "architecture_lifecycle_maintainability":{
+      "provisionalScore":80,"scale":"0..100","status":"PROVISIONAL",
+      "basis":"单 worker、spawn/lease/boot fence、SQLite 页级事务、父进程监督和 stop/kill/join 有明确职责；已确认拒绝请求后的客户端恢复缺口阻断主流程。",
+      "strengths":["HTTP/侧栏断连与 worker 解耦；requestId 幂等且未知 POST 不重放","退出后才 workerExited；重启保守 INTERRUPTED；记录与镜像可恢复"],
+      "limits":["服务重启/父进程崩溃/负向真实证据待 Python agent 补充，未在本轮重跑","密集单行控制流与通用 WORKER_ERROR 降低诊断性，但不能据此判产品失败"]
+    },
+    "verification_evidence_delivery_reproducibility":{
+      "provisionalScore":78,"scale":"0..100","status":"PROVISIONAL",
+      "basis":"既有真实 Python 与 production transport 集成报告支持核心确定性流程；安装/storage/授权回调是测试替身，尚非真实 Host/Mac/AI 交付。",
+      "strengths":["1/2/3 页独立黄金与 full 精确 hash/previewRunId 绑定","新 client/adapter 读取原 run、一次确认、采到一页后 Stop 且后续 400ms 无页面 HTTP","JSONL 独立文件全量读回；CSV 文件读回；撤权调用成功"],
+      "limits":["报告无运行命令、时间、源码/正式包/依赖锁指纹；本评审的观察 hash 不能追溯证明旧报告同候选","CSV 仅查包含末条文本，未逐字段解析比对；导出绕过 localTasks.export/Chrome downloads"]
+    }
+  },
+  "highPriorityIssues":[
+    {"id":"R17-LC-P1-01","priority":"P1","status":"CONFIRMED_READ_ONLY_CLIENT_PROBE",
+     "title":"明确拒绝创建后，持久空 runId 指针令客户端无法再次创建",
+     "locations":["src/local-runner-client.js:102","src/local-runner-client.js:110-116","src/local-runner-client.js:83-89","local-runner/scrapyjs_runner/manager.py:100-103"],
+     "trigger":"服务已有其他活跃 worker，新建收到 WORKER_BUSY/409；manager 在 store.create 前返回拒绝，原 requestId 查询为 404。",
+     "cause":"client 先 persist 指针；catch 丢弃明确拒绝并统一按未知处理；restore 404 保留该指针，snapshot=null；后续 start 永远命中 E_RUN_BUSY。公开 client 无结束该拒绝指针的入口。",
+     "impact":"临时占用解除后，重新读取/重开 client 仍不能恢复创建，只能外部干预持久状态；不是正在运行的原 worker 应继续保留这一正常保护。",
+     "probe":{"firstCreate":"E_RUN_UNKNOWN","restore":"NOT_FOUND","newRequest":"E_RUN_BUSY","postCalls":1,"durablePointer":{"requestId":"review-declined-1","runId":null,"mode":"preview"}},
+     "needed":"区分已确认未创建与真正副作用未知；前者安全结束原拒绝指针并允许新 requestId，后者继续仅查询原请求；不得自动重放 POST。",
+     "testGap":"覆盖真实 WORKER_BUSY/校验拒绝和明确 Host 取消后，再读/重开/新 requestId 恢复；丢失响应和超时仍不得放开重放。"},
+    {"id":"R17-EV-P2-01","priority":"P2","title":"现有集成报告缺少交付候选来源绑定",
+     "locations":["tests/local-host-integration.mjs:61","tests/local-host-integration.mjs:103","artifacts/scrapyjs/r17-local-host-integration.json"],
+     "impact":"无法独立确认报告对应哪份源码、依赖、正式包或复现命令；工作区仍有并行开发。",
+     "needed":"后续证据生成记录实际命令、依赖锁/运行环境、源码与包 hash、开始结束时间；不得将本轮观察 hash 冒充历史执行 provenance。"}
+  ],
+  "existingEvidence":{
+    "file":"artifacts/scrapyjs/r17-local-host-integration.json",
+    "reportedLevel":"PYTHON_INTEGRATION","reportedPythonResult":"PASS",
+    "configHash":"sha256:10e97f687b4093cb5d87774d9c1c0490f935e444b667c85c6668166f03f793b0",
+    "observed":"报告的三个 preview/full configHash 相同；reopen 原 full runId；Stop pagesVisited=1、workerExited=true、requestsAfterStop=0；JSONL/CSV savedAndReadBack=true；revocation=confirmed。",
+    "boundary":"复用既有结果，本轮未重跑 Python。production transport 经真实 HTTP；安装、storage、assertAuthorized、confirm、lock 仍是测试替身。",
+    "REAL_HOST":"NOT_TESTED","MAC_CHROME":"NOT_TESTED","AI_PROVIDER":"NOT_TESTED","productionInstall":"NOT_TESTED"
+  },
+  "testGaps":[
+    {"priority":"P1","case":"明确拒绝/取消后的持久指针恢复，和真正未知 POST 不重放同时验证","status":"MISSING_IN_REVIEWED_INTEGRATION"},
+    {"priority":"P2","case":"服务硬重启后原 run 变 INTERRUPTED、保留已提交记录、不再 HTTP、不重放；父进程退出及清理失败","status":"PYTHON_AGENT_PENDING_NOT_REVIEWED"},
+    {"priority":"P2","case":"正在采集时撤权后的 worker 退出、token 拒绝和不再 HTTP；当前集成在 Stop 后才 revoke","status":"MISSING_IN_REVIEWED_INTEGRATION"},
+    {"priority":"P2","case":"关闭客户端时仍活跃的 worker 持续采集，新 client 重新绑定同 run；当前 reopen 只覆盖已完成 full","status":"MISSING_IN_REVIEWED_INTEGRATION"},
+    {"priority":"P2","case":"完整 full 独立黄金与 CSV 逐字段/嵌套/空值读回；可信下载实际落盘；拒绝/未知回执恢复","status":"PARTIAL_OR_NOT_TESTED"},
+    {"priority":"P2","case":"真实 AI→可信 Host→Mac Chrome 安装/授权/停止/下载与同候选复现","status":"NOT_TESTED"}
+  ],
+  "observationHashesAtWrite":{
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/manager.py":"ecdade08717500cd05c22a8536725111e90bc50e30ca1b3dc75efe22e54a9069",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/storage.py":"95f136c8746200e056529f32d842dded3fadb3daefa92466dcf56fa6a03970ad",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py":"cb5c584165da7203aab7d9fefd1b151250397c1d3a5ee0c3dd522e3bfb198ec6",
+    "examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/service.py":"45ad6c24216d888f7f0ca24317239f4525db8d45e68d6d94f973114aabc62330",
+    "examples/sidebar-tools/scrapyjs/src/local-runner-client.js":"44856c7271b522f83c7be9039dce2047462b8fff8e0a943854056af118cfcc93",
+    "examples/sidebar-tools/scrapyjs/tests/local-host-integration.mjs":"03ac3d6d3b188c8ecd41ba1a4361c4fd2e6f122e2fbb41cbbca0151aaec98619",
+    "examples/sidebar-tools/scrapyjs/R1.7-LOCAL-RUNNER.zh-CN.md":"d950fdb8f691dbb908dd6da87ffdf567401fa2b1a9a8ced7e880fa3e69c3ce20",
+    "examples/sidebar-tools/scrapyjs/local-runner/README.md":"20dd25740156f3000ff0e9b70dae48a8232b8c0c01acf34d7835a564b9da6829",
+    "artifacts/scrapyjs/r17-local-host-integration.json":"073f23b828bf2f1210842cc6fc060cf1e10fdede52f9b0b0eb6574163cc0606a"
+  },
+  "hashBoundary":"以上仅为写评审时读取的文件 hash，不是既有测试执行时来源证明。",
+  "decision":"P1 立即返回；两个评分仅为暂定，整体及真实 AI/Host/Mac 不标 PASS 或 95+；不改源码、不提交。"
+}

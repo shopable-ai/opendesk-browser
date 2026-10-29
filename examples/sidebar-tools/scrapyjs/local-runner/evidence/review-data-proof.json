@@ -1,0 +1,435 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-29T19:30:00.664597+00:00",
+  "reviewSource": "examples/sidebar-tools/scrapyjs/evidence/r17-review-data.json",
+  "writableScope": "examples/sidebar-tools/scrapyjs/local-runner/",
+  "findings": [
+    {
+      "id": "R17-DATA-001",
+      "status": "FIXED_COMPONENT_PASS",
+      "cases": [
+        "sibling +/~ stay outside the row",
+        "ancestor-qualified ul li b resolves correctly",
+        "Document selects html root",
+        "Element :scope bound to the actual row without escape",
+        "dot self retained"
+      ]
+    },
+    {
+      "id": "R17-DATA-002",
+      "status": "FIXED_REAL_HTTP_PASS",
+      "cases": [
+        "first base[href], ignoring target-only base and later hrefs",
+        "relative base resolved against redirected final URL",
+        "cross-scope base denied without next-page request"
+      ]
+    },
+    {
+      "id": "R17-DATA-003",
+      "status": "FIXED_REAL_HTTP_PASS",
+      "cases": [
+        "requested and visited-final URL sets separated",
+        "duplicate final document rejected before extract/commit",
+        "pages/records/completeness/JSONL retain only the first page",
+        "initial redirect and ordinary pagination remain valid"
+      ]
+    },
+    {
+      "id": "R17-DATA-004",
+      "status": "FIXED_COMPONENT_PASS",
+      "cases": [
+        "nested selector field preserves object/list values"
+      ]
+    },
+    {
+      "id": "R17-DATA-005",
+      "status": "FIXED_REAL_HTTP_PASS",
+      "cases": [
+        "is-disabled final page",
+        "ant-pagination-disabled final page",
+        "no disabled next-page request"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "command": ".venv/bin/python -m unittest discover -s tests -p test_dsl.py -v",
+      "log": "review-dsl-green.txt",
+      "exitCode": 0,
+      "tests": 10
+    },
+    {
+      "command": ".venv/bin/python -m unittest discover -s tests -p test_service.py -k review -v",
+      "log": "review-http-green.txt",
+      "exitCode": 0,
+      "tests": 6
+    }
+  ],
+  "scraplingVersion": "0.5",
+  "parserMocked": false,
+  "httpEvidence": {
+    "reviewBaseURI": [
+      {
+        "seed": "/review/base/list",
+        "expectedNext": "/review/catalog/2",
+        "requests": [
+          "/robots.txt",
+          "/review/base/list",
+          "/review/catalog/2"
+        ],
+        "snapshot": {
+          "completeness": {
+            "id": {
+              "nonEmpty": 2,
+              "ratio": 1.0,
+              "total": 2
+            }
+          },
+          "config": {
+            "itemConfig": {
+              "_listContainer": "#rows",
+              "_listItem": "li",
+              "id": "b::text"
+            },
+            "maxPages": 3,
+            "nextPageSelector": "a.next",
+            "url": "http://127.0.0.1:58432/review/base/list"
+          },
+          "configHash": "sha256:782e3f5f1717bac79aa0040d740e29b9ee471e757ea46a27526e13620e0b2615",
+          "errors": [],
+          "fields": [
+            "id"
+          ],
+          "mode": "preview",
+          "pagesVisited": 2,
+          "previewPassed": true,
+          "previewRunId": null,
+          "recordsCount": 2,
+          "requestId": "7734a285c4a689ed",
+          "runId": "32d9cd60-f0c0-4f76-a6b2-f1fb1e82d787",
+          "scope": "http://127.0.0.1:58432",
+          "status": "COMPLETED",
+          "stopReason": "NO_NEXT_PAGE",
+          "workerExited": true
+        },
+        "records": [
+          {
+            "id": "FIRST"
+          },
+          {
+            "id": "SECOND"
+          }
+        ]
+      },
+      {
+        "seed": "/review/entry",
+        "expectedNext": "/review/final/catalog/2",
+        "requests": [
+          "/robots.txt",
+          "/review/entry",
+          "/review/final/list",
+          "/review/final/catalog/2"
+        ],
+        "snapshot": {
+          "completeness": {
+            "id": {
+              "nonEmpty": 2,
+              "ratio": 1.0,
+              "total": 2
+            }
+          },
+          "config": {
+            "itemConfig": {
+              "_listContainer": "#rows",
+              "_listItem": "li",
+              "id": "b::text"
+            },
+            "maxPages": 3,
+            "nextPageSelector": "a.next",
+            "url": "http://127.0.0.1:58432/review/entry"
+          },
+          "configHash": "sha256:efdb2cb70b54624b05f80b46914fbcd5362f447590216b89b573571777def6f2",
+          "errors": [],
+          "fields": [
+            "id"
+          ],
+          "mode": "preview",
+          "pagesVisited": 2,
+          "previewPassed": true,
+          "previewRunId": null,
+          "recordsCount": 2,
+          "requestId": "b30a13362b6d0365",
+          "runId": "27fe81b6-627e-42db-b26c-c2cfa1c38bbb",
+          "scope": "http://127.0.0.1:58432",
+          "status": "COMPLETED",
+          "stopReason": "NO_NEXT_PAGE",
+          "workerExited": true
+        },
+        "records": [
+          {
+            "id": "FIRST"
+          },
+          {
+            "id": "SECOND"
+          }
+        ]
+      }
+    ],
+    "reviewCrossScopeBase": {
+      "requests": [
+        "/robots.txt",
+        "/review/cross-base"
+      ],
+      "snapshot": {
+        "completeness": {
+          "id": {
+            "nonEmpty": 1,
+            "ratio": 1.0,
+            "total": 1
+          }
+        },
+        "config": {
+          "itemConfig": {
+            "_listContainer": "#rows",
+            "_listItem": "li",
+            "id": "b::text"
+          },
+          "maxPages": 3,
+          "nextPageSelector": "a.next",
+          "url": "http://127.0.0.1:58432/review/cross-base"
+        },
+        "configHash": "sha256:6b591cb811ee6431cbc8aa11348ae7247bec540b4d719299cb8f121537755750",
+        "errors": [
+          {
+            "code": "SCOPE_MISMATCH",
+            "message": "config.url and every request must match token.scope"
+          }
+        ],
+        "fields": [
+          "id"
+        ],
+        "mode": "preview",
+        "pagesVisited": 1,
+        "previewPassed": false,
+        "previewRunId": null,
+        "recordsCount": 1,
+        "requestId": "8da1029bd3297c72",
+        "runId": "8a3c7203-7ea9-4686-8824-11653ed7e3d9",
+        "scope": "http://127.0.0.1:58432",
+        "status": "FAILED",
+        "stopReason": "SCOPE_MISMATCH",
+        "workerExited": true
+      }
+    },
+    "reviewRedirectDuplicate": {
+      "requests": [
+        "/robots.txt",
+        "/review/loop/list",
+        "/review/loop/alias",
+        "/review/loop/list"
+      ],
+      "snapshot": {
+        "completeness": {
+          "id": {
+            "nonEmpty": 1,
+            "ratio": 1.0,
+            "total": 1
+          }
+        },
+        "config": {
+          "itemConfig": {
+            "_listContainer": "#rows",
+            "_listItem": "li",
+            "id": "b::text"
+          },
+          "maxPages": 3,
+          "nextPageSelector": "a.next",
+          "url": "http://127.0.0.1:58432/review/loop/list"
+        },
+        "configHash": "sha256:7cc62475f686e331ddb1a2c98d8b227d912e1a5ed3265d8957f04e59ce5bf038",
+        "errors": [
+          {
+            "code": "PAGINATION_LOOP",
+            "message": "PAGINATION_LOOP"
+          }
+        ],
+        "fields": [
+          "id"
+        ],
+        "mode": "preview",
+        "pagesVisited": 1,
+        "previewPassed": false,
+        "previewRunId": null,
+        "recordsCount": 1,
+        "requestId": "2b28f75dcc65088c",
+        "runId": "c0bcdfbf-c252-48a9-9786-de5daf8dc3c2",
+        "scope": "http://127.0.0.1:58432",
+        "status": "FAILED",
+        "stopReason": "PAGINATION_LOOP",
+        "workerExited": true
+      },
+      "export": [
+        {
+          "id": "FIRST"
+        }
+      ]
+    },
+    "reviewInitialAlias": {
+      "snapshot": {
+        "completeness": {
+          "id": {
+            "nonEmpty": 2,
+            "ratio": 1.0,
+            "total": 2
+          }
+        },
+        "config": {
+          "itemConfig": {
+            "_listContainer": "#rows",
+            "_listItem": "li",
+            "id": "b::text"
+          },
+          "maxPages": 3,
+          "nextPageSelector": "a.next",
+          "url": "http://127.0.0.1:58432/review/start-alias"
+        },
+        "configHash": "sha256:97d33e44b256c1da23b81d84d1ffe5992ab504bd8bdf99e5fb4212eda61b346e",
+        "errors": [],
+        "fields": [
+          "id"
+        ],
+        "mode": "preview",
+        "pagesVisited": 2,
+        "previewPassed": true,
+        "previewRunId": null,
+        "recordsCount": 2,
+        "requestId": "e38e6a3429fc112a",
+        "runId": "24d23d86-6cf4-4a73-a683-41f66f639aa2",
+        "scope": "http://127.0.0.1:58432",
+        "status": "COMPLETED",
+        "stopReason": "NO_NEXT_PAGE",
+        "workerExited": true
+      }
+    },
+    "reviewDisabledClasses": [
+      {
+        "requests": [
+          "/robots.txt",
+          "/review/disabled-is"
+        ],
+        "snapshot": {
+          "completeness": {
+            "id": {
+              "nonEmpty": 1,
+              "ratio": 1.0,
+              "total": 1
+            }
+          },
+          "config": {
+            "itemConfig": {
+              "_listContainer": "#rows",
+              "_listItem": "li",
+              "id": "b::text"
+            },
+            "maxPages": 3,
+            "nextPageSelector": "a.next",
+            "url": "http://127.0.0.1:58432/review/disabled-is"
+          },
+          "configHash": "sha256:329123268a7fbe06fd72b8ba426306cb6572be8fb39a21cf47caf45b6f211d94",
+          "errors": [],
+          "fields": [
+            "id"
+          ],
+          "mode": "preview",
+          "pagesVisited": 1,
+          "previewPassed": true,
+          "previewRunId": null,
+          "recordsCount": 1,
+          "requestId": "f0bc24e57a1e7d2c",
+          "runId": "393e3383-a3c7-4dad-92a2-9e9331ec1d3d",
+          "scope": "http://127.0.0.1:58432",
+          "status": "COMPLETED",
+          "stopReason": "NO_NEXT_PAGE",
+          "workerExited": true
+        }
+      },
+      {
+        "requests": [
+          "/robots.txt",
+          "/review/disabled-ant"
+        ],
+        "snapshot": {
+          "completeness": {
+            "id": {
+              "nonEmpty": 1,
+              "ratio": 1.0,
+              "total": 1
+            }
+          },
+          "config": {
+            "itemConfig": {
+              "_listContainer": "#rows",
+              "_listItem": "li",
+              "id": "b::text"
+            },
+            "maxPages": 3,
+            "nextPageSelector": "a.next",
+            "url": "http://127.0.0.1:58432/review/disabled-ant"
+          },
+          "configHash": "sha256:13dc50605fa3e172cc660bafa1675a8e62a491702e3a1df4d32c37f46c382dd5",
+          "errors": [],
+          "fields": [
+            "id"
+          ],
+          "mode": "preview",
+          "pagesVisited": 1,
+          "previewPassed": true,
+          "previewRunId": null,
+          "recordsCount": 1,
+          "requestId": "44c469419d2ff767",
+          "runId": "0f64944b-6482-4e12-80bd-2a5babe0273f",
+          "scope": "http://127.0.0.1:58432",
+          "status": "COMPLETED",
+          "stopReason": "NO_NEXT_PAGE",
+          "workerExited": true
+        }
+      }
+    ],
+    "runtime": {
+      "python": "3.11.15",
+      "scrapling": "0.5",
+      "fixtureOrigin": "http://127.0.0.1:58432",
+      "endpoint": "http://127.0.0.1:58435"
+    }
+  },
+  "sourceSha256": {
+    ".gitignore": "e9cb10966bb3389910b138d478807ce046495d5547af81c9aae5ba3886ceeebb",
+    "README.md": "20dd25740156f3000ff0e9b70dae48a8232b8c0c01acf34d7835a564b9da6829",
+    "requirements.txt": "40f216e5cd80432a9fa8f74c8049d149f102f48627befcb982f7c5cb2f6fa1ff",
+    "scrapyjs_runner/__init__.py": "c35cfb236627608a89446f15d9a2d2323f8c228a86cbce27b91e436249c0e916",
+    "scrapyjs_runner/__main__.py": "e912bfc7b21d757670d1fe3ffc33e0b635201c99ca258a0da3f37f6acf755925",
+    "scrapyjs_runner/dsl.py": "14797a781d4f09a6bcd3c8d97a0bac205b52aee3564a1958f640adc147425a31",
+    "scrapyjs_runner/errors.py": "fe35ff38adcb91d6706e6591a69f5f1fa7a73cd365aca168228bd40952be534e",
+    "scrapyjs_runner/manager.py": "ecdade08717500cd05c22a8536725111e90bc50e30ca1b3dc75efe22e54a9069",
+    "scrapyjs_runner/security.py": "e72d1983a434c6569f1e15c9b9560bb7a05f25e104e87edb555bda8c663c928b",
+    "scrapyjs_runner/service.py": "45ad6c24216d888f7f0ca24317239f4525db8d45e68d6d94f973114aabc62330",
+    "scrapyjs_runner/storage.py": "95f136c8746200e056529f32d842dded3fadb3daefa92466dcf56fa6a03970ad",
+    "scrapyjs_runner/worker.py": "7516a3a94417dabd9606ab47887f0f75f7973ac00bb423c41c13c094ea663ecd",
+    "tests/test_dsl.py": "b50b7ccea9f1b21f4b8f177b73582dc8f277687da3d147b61965518c4c568bd9",
+    "tests/test_security.py": "8d48cac5f8ea83169aaf9b464207ff159bd9d35e8cd08c197cf33404a82d85e1",
+    "tests/test_service.py": "96693bf714d0b042c1aa4e424220376c7a7aa3a1623d757b8f6e82eac018b291"
+  },
+  "notTested": [
+    "1800-second wall-clock exhaustion",
+    "50-page exhaustion",
+    "Host integration and final candidate build after these data fixes",
+    "production Chrome release acceptance"
+  ],
+  "handoff": {
+    "sourceAndTestsFrozen": true,
+    "nextOwner": "coordinating main agent",
+    "nextAction": "final candidate build",
+    "branchesCreated": false,
+    "commitsCreated": false
+  }
+}

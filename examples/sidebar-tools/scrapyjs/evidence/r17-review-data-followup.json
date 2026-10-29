@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "scrapyjs-r1.7-independent-data-followup",
+  "reviewedAt": "2026-10-29T19:32:41.900824+00:00",
+  "localDate": "2026-10-30",
+  "scope": "仅复核原 R17-DATA-001..005；未扩大审查/测试范围。",
+  "previousReport": "examples/sidebar-tools/scrapyjs/evidence/r17-review-data.json",
+  "verdict": "原3项P1、2项P2在本次限定复核中关闭；无剩余原P1/P2。",
+  "dataSemanticsScore": {"previous":65,"current":92,"max":100,"provisional":true,"dimension":"数据语义","method":"独立审查暂评，非测试通过率或正式发布评分；未知项不计PASS。"},
+  "findings": [
+    {"id":"R17-DATA-001","originalPriority":1,"status":"CLOSED_TARGETED_RETEST","code":"dsl.py:121-174,193","evidence":"Document区分文档/元素；全局CSS匹配后只返回当前行后代，:scope绑定当前行；兄弟串读、祖先限定、html根和:scope 4项定向测试均通过。"},
+    {"id":"R17-DATA-002","originalPriority":1,"status":"CLOSED_SOURCE_AND_EXISTING_HTTP_PROOF","code":"worker.py:70-76","tests":[60,61],"evidence":"首个base[href]结合最终响应URL解析；已有HTTP证据请求/catalog/2及/final/catalog/2，均FIRST/SECOND两条；越域base仅访问原页面后SCOPE_MISMATCH。"},
+    {"id":"R17-DATA-003","originalPriority":1,"status":"CLOSED_SOURCE_AND_EXISTING_HTTP_PROOF","code":"worker.py:35-46,77","tests":[62],"evidence":"最终URL在提取/提交前检查；已有HTTP证据循环仅提交1页1条，完整度1/1、JSONL单条；首次别名重定向仍可正常完成2页。"},
+    {"id":"R17-DATA-004","originalPriority":2,"status":"CLOSED_TARGETED_RETEST","code":"dsl.py:102","evidence":"只有selector值为字符串才视为descriptor；嵌套selector字段保留对象及数组；对应定向测试通过。"},
+    {"id":"R17-DATA-005","originalPriority":2,"status":"CLOSED_SOURCE_AND_EXISTING_HTTP_PROOF","code":"worker.py:64","tests":[63],"evidence":"识别is-disabled和ant-pagination-disabled；两项已有HTTP证据均1页1条、COMPLETED/NO_NEXT_PAGE，无额外翻页请求。"}
+  ],
+  "executedThisFollowup": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -B -m unittest tests.test_dsl.ReviewScopeTests -v",
+    "cwd": "examples/sidebar-tools/scrapyjs/local-runner",
+    "result": "PASS",
+    "tests": 5,
+    "durationSeconds": 0.013,
+    "output": "Ran 5 tests in 0.013s; OK",
+    "serviceTestsRerun": false,
+    "serversStarted": false,
+    "fullSuiteRun": false
+  },
+  "reusedHttpEvidence": {
+    "path": "examples/sidebar-tools/scrapyjs/local-runner/evidence/service-proof.json",
+    "provenance": "Python owner已有真实loopback HTTP/worker执行证据；本轮只读核对当前实现、test60..63断言及对应结果。",
+    "keys": ["reviewBaseURI","reviewCrossScopeBase","reviewRedirectDuplicate","reviewInitialAlias","reviewDisabledClasses"],
+    "runtime": {"python":"3.11.15","scrapling":"0.5"},
+    "sourceBinding": "下方记录本轮读取文件SHA；原service-proof未内嵌源码SHA，不能据此证明冻结安装包与HTTP执行候选逐字节相同。"
+  },
+  "reviewedSnapshot": [
+    {"path":"examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/dsl.py","sha256":"14797a781d4f09a6bcd3c8d97a0bac205b52aee3564a1958f640adc147425a31"},
+    {"path":"examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/worker.py","sha256":"7516a3a94417dabd9606ab47887f0f75f7973ac00bb423c41c13c094ea663ecd"},
+    {"path":"examples/sidebar-tools/scrapyjs/local-runner/scrapyjs_runner/storage.py","sha256":"95f136c8746200e056529f32d842dded3fadb3daefa92466dcf56fa6a03970ad"},
+    {"path":"examples/sidebar-tools/scrapyjs/local-runner/tests/test_dsl.py","sha256":"b50b7ccea9f1b21f4b8f177b73582dc8f277687da3d147b61965518c4c568bd9"},
+    {"path":"examples/sidebar-tools/scrapyjs/local-runner/tests/test_service.py","sha256":"96693bf714d0b042c1aa4e424220376c7a7aa3a1623d757b8f6e82eac018b291"},
+    {"path":"examples/sidebar-tools/scrapyjs/local-runner/evidence/service-proof.json","sha256":"7ea3da4422a2e56217b4ede72bacebcd035d7493ac6b20b38739ea88c9074008"}
+  ],
+  "remainingLimitations": [
+    {"item":"真实CSV导出、嵌套数组及引号换行全链回读","status":"NOT_TESTED_IN_THIS_FOLLOWUP","detail":"test60..63不覆盖CSV；不将JSONL单条证据提升为CSV通过。"},
+    {"item":"磁盘硬崩溃/恢复、1800秒超时、64MiB总存储边界","status":"NOT_TESTED_IN_THIS_FOLLOWUP"},
+    {"item":"原预算和通用JSONL/list/null语义","status":"PRIOR_LIMITED_EVIDENCE_ONLY","detail":"沿用原报告定向结果；本轮未重跑，也不宣称新候选全量回归。"},
+    {"item":"真实Mac Chrome/Native/正式冻结包验收","status":"NOT_TESTED"},
+    {"item":"attr=text保留别名、空去重身份合并及显式null cardinality差异","status":"UNCHANGED_LEGACY_OR_POLICY_CAVEATS","detail":"沿用原报告非新增缺陷观察；未纳入原DATA001..005的关闭结论。"}
+  ],
+  "mutations": {"sourceCode":false,"branches":false,"commits":false,"onlyWrittenFile":"examples/sidebar-tools/scrapyjs/evidence/r17-review-data-followup.json"}
+}

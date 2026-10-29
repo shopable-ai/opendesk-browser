@@ -22,7 +22,7 @@ const escape = value => String(value).replaceAll('&', '&amp;').replaceAll('<', '
 const fail = message => {throw Error('E_SCRAPYJS_PREVIEW: ' + message);};
 const same = (bytes, row) => row?.sha256 === sha(bytes) && row?.bytes === Buffer.byteLength(bytes);
 
-export async function buildPreview({scenario = 'success', runtimeDir, runtimeReceipt, out} = {}) {
+export async function buildPreview({scenario = 'success', runtimeDir, runtimeReceipt, out,compilePreview=false} = {}) {
   if (!SCENARIOS.includes(scenario)) fail('unsupported scenario');
   const sources = {};
   async function record(path) {
@@ -30,7 +30,7 @@ export async function buildPreview({scenario = 'success', runtimeDir, runtimeRec
     sources[path] = fingerprint(bytes);
     return bytes;
   }
-  const {react, shared, provenance: runtimeEvidence} = await loadPreviewRuntime({runtimeDir, runtimeReceipt, record});
+  const {react, shared, provenance: runtimeEvidence} = await loadPreviewRuntime({runtimeDir, runtimeReceipt, record,compilePreview});
   const snapshotVerified = runtimeEvidence.receiptStatus === 'COMPILED_AND_PACKAGE_VERIFIED';
   await record(fileURLToPath(new URL('./runtime.mjs', import.meta.url)));
   const pkg = await createSidebarToolPackage(project);
@@ -100,7 +100,7 @@ export async function buildPreview({scenario = 'success', runtimeDir, runtimeRec
       '<aside class="preview-meta"><p class="preview-provenance">Shared UI 来源状态：' +
       escape(runtimeEvidence.receiptStatus) + (snapshotVerified ?
         '；原构建：' + escape(runtimeEvidence.normalBuildCommand) +
-        '；后续编译与包验证完成；WXT passed：false' : '；WXT passed：true') +
+        '；后续编译与包验证完成；WXT passed：false' : '；WXT passed：'+String(runtimeEvidence.wxtPassed)) +
       '</p></aside><div class="preview-stage">')
     .replace('模拟预览 · 非真实安装、权限或网络执行', '纯模拟 · 保存仅在内存 · 任务不采集网页 · 导出仅下载模拟结果')
     .replace('<meta charset="utf-8">', '<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src data: \'unsafe-inline\'; style-src data: \'unsafe-inline\'; img-src data:; frame-src \'self\' about:; connect-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">');
@@ -118,11 +118,11 @@ export async function buildPreview({scenario = 'success', runtimeDir, runtimeRec
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  const options = {}, names = {'--scenario': 'scenario', '--out': 'out', '--runtime-dir': 'runtimeDir', '--runtime-receipt': 'runtimeReceipt'};
+  const options = {}, names = {'--scenario': 'scenario', '--out': 'out', '--runtime-dir': 'runtimeDir', '--runtime-receipt': 'runtimeReceipt','--compile-preview-runtime':'compilePreview'};
   for (let index = 2; index < process.argv.length; index += 2) {
     const name = names[process.argv[index]], value = process.argv[index + 1];
     if (!name || !value || value.startsWith('--')) fail('usage: node preview/build-preview.mjs [--scenario success] [--out DIR] [--runtime-dir DIR --runtime-receipt FILE]');
-    options[name] = value;
+    options[name] = name==='compilePreview'?value==='true':value;
   }
   console.log(JSON.stringify(await buildPreview(options), null, 2));
 }

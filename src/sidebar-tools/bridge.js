@@ -27,6 +27,7 @@ export function sidebarToolRequestTimeout(operation,toolId){
  // First-use exact-site review has a separate 90s budget. Native collection
  // still times out after 3s, and no late receipt is accepted.
  if(operation==='ai.generate')return 190000;
+ if(operation==='localTasks.request'||operation==='localTasks.export')return 180000;
  if(operation==='browser.page.readEnvironment')return 100000;
  if(toolId==='web-markdown-clipper'&&operation.startsWith('clipNotes.'))
    return ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)?60000:30000;
@@ -145,7 +146,7 @@ export function initSidebarToolSandbox() {
   const consumeExportClick=operation=>{
     const clickTimeStamp=exportClick&&timeStampGetter?apply(timeStampGetter,exportClick,[]):null;
     const direct=exportPort&&!disposed&&timeStampGetter&&
-      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')&&
+      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export')&&
       exportClick&&apply(trustedGetter,exportClick,[])===true&&
       apply(currentTargetGetter,exportClick,[])!==null&&
       finite(clickTimeStamp)&&!apply(setHas,consumedClickTimeStamps,[clickTimeStamp]);
@@ -163,7 +164,7 @@ export function initSidebarToolSandbox() {
       const timeout=later(()=>{
         apply(mapDelete,waiting,[requestId]);
         // Once sent the Host may already have committed the effect.
-        const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
+        const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export';
         const uncertain=exporting||toolId==='web-markdown-clipper'&&
           ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)||
           toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||

@@ -1,0 +1,746 @@
+{
+  "schema": "opendesk.independent-security-review.v1",
+  "review_id": "r17-review-security",
+  "review_date": "2026-10-30",
+  "timezone": "Asia/Shanghai",
+  "language": "zh-CN",
+  "decision": "CHANGES_REQUIRED",
+  "scope": {
+    "source_read_allowlist": [
+      "src/platform/host/local-tasks.js",
+      "src/ui/sidebar-tools.js",
+      "src/ui/sidebar-tools/installation.js",
+      "tests/environment/local-task-bridge.test.mjs",
+      "docs/api/local-task-bridge.zh-CN.md"
+    ],
+    "ui_scope": "仅新增 localTasks 接线、关联私有导出 MessagePort 接入及其既有身份/可信确认路径。",
+    "installation_scope": "仅新增撤权钩子及其启停、卸载、升级调用顺序与锁。",
+    "output": "examples/sidebar-tools/scrapyjs/evidence/r17-review-security.json",
+    "source_changes": false,
+    "branch_creation": false,
+    "commits": false,
+    "real_services_contacted": false,
+    "real_browser_started": false,
+    "other_task_data_accessed": false,
+    "constraints": "不读取本机任务服务实现、沙箱 SDK 发送方、其他任务信息、浏览器 Profile 或 Native 配置；所有诊断为无网络、无下载、无实际服务重启的合成输入。修复由主 agent 执行。",
+    "explicitly_deferred": "既有 stage 的 Prompt/Cookie pin 基线失败不检查、不修改；不扩大全仓范围。"
+  },
+  "source_snapshot": {
+    "sha256": {
+      "src/platform/host/local-tasks.js": "f98ad67229ea2b0eb03dcfba141d79d2fdfab24fbc98c5f49db1847c18a2de4e",
+      "src/ui/sidebar-tools.js": "3a60a7f1915bb061c6dcbfb492b29bbdc7d40d8d6ec384a9a8b714acdb89bda1",
+      "src/ui/sidebar-tools/installation.js": "0e8009794f733dd42e75023e688413116385595fa4c97c5060722d5b5c02f972",
+      "tests/environment/local-task-bridge.test.mjs": "a4641e75fde7f15f436f308cb928d3c3f4d5a23a5a0c651d94b77d33395f8f4f",
+      "docs/api/local-task-bridge.zh-CN.md": "09e834e6ba2937fb8c8e8bb1390f81e86893040c891b95e722027ef3d32f3502"
+    },
+    "baseline_sidebar_sha256": "b29da53ed3bd38a2c661f8c6cf249011f4551c0113e276a4ae9e04c81b44d3b1",
+    "sidebar_changed_during_review": true,
+    "update_reviewed": "已按用户补充核查最新 localTasks.export 的 user.export、当前私有 MessagePort 分支和可信点击回退；无关 diff 不在审查范围。",
+    "pinning": "Host 内存诊断导入最新 local-tasks.js 字节快照；导出接线诊断抽取 sidebar-tools.js 原分支，摘要与 source_snapshot.sha256 一致。",
+    "applicability": "结论只绑定这些源码摘要；后续主 agent 修改需按受影响发现复核，不代表新源码已通过。",
+    "baseline_host_sha256": "954dfcf0313e387e44f00b7ba5e53ad966568acb6b700521d91c9b033eed2dca",
+    "host_changed_during_review": true,
+    "host_update_reviewed": "主 agent 增加 stable 存储比较、旧 owner 拒绝与删除后的可信记录回读；相关内存诊断及 4 项现有测试已对新摘要复跑。6 项发现仍成立；新增删除回读没有封住回读完成后的旧写入。"
+  },
+  "summary": {
+    "confirmed_findings": 6,
+    "priorities": {
+      "P1": 4,
+      "P2": 2
+    },
+    "conditional_boundary_checks": 1,
+    "real_host": "NOT_TESTED",
+    "chrome": "NOT_TESTED",
+    "formal_security_score": null,
+    "provisional_overall_score": 62,
+    "highest_priority": [
+      "R17-SEC-001",
+      "R17-SEC-002",
+      "R17-SEC-003",
+      "R17-SEC-004"
+    ],
+    "caution": "这里的 REPRODUCED 均指原源码加模拟存储/fetch/依赖的内存诊断；没有证明真实服务接受撤权后请求、重复创建真实 Worker 或发生跨 owner/跨域泄漏。",
+    "p0_found": 0
+  },
+  "findings": [
+    {
+      "id": "R17-SEC-001",
+      "priority": "P1",
+      "severity": "high",
+      "title": "__proto__ 请求身份不能留档，可绕过相同 requestId 的启动防重放",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 19,
+          "end_line": 23
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 69,
+          "end_line": 69
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 84,
+          "end_line": 96
+        }
+      ],
+      "trigger": "已安装工具有 localTasks 且目标已获审阅。提交 POST /v1/runs，body.requestId='__proto__'，随后再次发送完全相同请求。",
+      "root_cause": "id 正则允许 __proto__；requests/runs 使用普通 {}。requests['__proto__']=scope 的字符串赋值不会建立自有属性，persist 的相等性检查也不会发现身份缺失，Object.hasOwn 在第二次仍为 false。",
+      "observed": "内存诊断发送了 2 次启动 POST，requests 对 __proto__ 没有自有持久记录。原请求的 by-request 所有权读取还会读到原型值，无法作为正确的原 scope 对账。",
+      "impact": "Host 宣称的先留档再副作用及同 ID 不重放失效。实际是否产生重复 Worker 取决于未审查服务端的持久幂等实现；即使服务幂等，Host 的防重放和恢复合同仍已破坏。",
+      "evidence": {
+        "probe_id": "prototype_request_replay",
+        "status": "REPRODUCED_IN_MEMORY",
+        "start_post_count": 2,
+        "durable_request_entry": false
+      },
+      "recommendation": "使用可安全承载任意合法 ID 的自有键字典或显式 defineProperty，所有 requests/runs 读取都做 Object.hasOwn；对存储反序列化后也执行同样约束。可以同时拒绝危险原型键，但不要把仅用正则作为完整修复。",
+      "targeted_verification": "覆盖 __proto__/constructor/toString 的启动留档、重放拒绝、by-request 对账和 runId 读/停/导出；第二次相同启动不得发出 POST。",
+      "native_status": "NOT_TESTED"
+    },
+    {
+      "id": "R17-SEC-002",
+      "priority": "P1",
+      "severity": "high",
+      "title": "任务写入和撤权不共锁，撤权确认后旧请求可恢复凭证并继续发包",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 62,
+          "end_line": 62
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 79,
+          "end_line": 96
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 119,
+          "end_line": 125
+        },
+        {
+          "path": "src/ui/sidebar-tools.js",
+          "start_line": 2020,
+          "end_line": 2023
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 94,
+          "end_line": 95
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 221,
+          "end_line": 225
+        }
+      ],
+      "trigger": "旧请求已经通过 prepare 的最后一次授权检查，在保存新的 requestId 时暂停。另一路停用/卸载完成 /revoke 并删除 pairing 记录，再放行旧 storage.set。",
+      "root_cause": "请求用 opendesk.sidebar-tools:local-tasks:<id> 锁，安装生命周期用 :tool:<id>/:catalog；revokeLocalTasks 不参与任务锁。persist 可在清理后回写旧 owner/secret/scopes，且保存到发出启动 POST 之间没有再次授权检查。",
+      "observed": "模拟 revoke 确认 revoked=true、workerExited=true 后记录已消失；释放旧写入后，记录重新出现，且在 assertAuthorized 已会拒绝的状态下仍发出了 1 次启动 POST；之后才向调用方报告 revoked。 新增的撤权删除回读也已先确认 key 不存在，仍未阻止之后的旧写入。",
+      "impact": "本机可信凭证清理被旧请求撤销，Host 撤权前后发包合同失效。真实服务若拒绝旧 token，可阻止实际启动，但不能修复本地记录复活；真实服务的迟到请求及 owner 重新建立 session 防线尚未验证。",
+      "evidence": {
+        "probe_id": "revocation_vs_durable_start_race",
+        "status": "REPRODUCED_IN_MEMORY",
+        "record_resurrected": true,
+        "posts_after_authority_revoked": 1
+      },
+      "recommendation": "让请求持久写入与撤权使用一致的每工具生命周期栅栏及锁序，撤权意图先持久化，禁止旧代际回写；在每次远程副作用前再次核对当前身份，并在 frame/epoch 退役时取消尚未提交的操作。服务端也要让 revoke 回执覆盖迟到请求和已退役 owner 的 session。不能只删除内存引用。",
+      "targeted_verification": "通过可控存储屏障覆盖保存中停用/卸载/升级；确认撤权后无旧凭证复活和新 POST，迟到回包不能绑定 run；保留真正未知启动的只读恢复身份。",
+      "native_status": "NOT_TESTED"
+    },
+    {
+      "id": "R17-SEC-003",
+      "priority": "P1",
+      "severity": "high",
+      "title": "本地撤权失败会跳过同工具其他独立服务与计划的收尾",
+      "locations": [
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 82,
+          "end_line": 88
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 125,
+          "end_line": 133
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 221,
+          "end_line": 247
+        }
+      ],
+      "trigger": "工具同时使用 localTasks 与其他已有原生服务或计划；停用/卸载时配对服务离线、凭证失效或 revoke 回执未知。",
+      "root_cause": "新增 await revokeLocalTasks 被放在顺序收尾的首项；抛错后既有 stopStayFocus/stopAdblock/stopAiAccess/stopManagedSiteBudget/stopManagedProxy 都不会调用。卸载也在 retireUninstalledToolSchedules 和其余服务清理前提前抛错。",
+      "observed": "用 installation.js 中原 stopInstalledToolOwnedServices 函数体和模拟依赖验证：revoke 抛错时只调用了 revokeLocalTasks，后续 5 个停止函数均未调用。",
+      "impact": "一个可离线的本机服务成为所有其他撤权步骤的单点阻塞。禁用标志已保存并不证明原生资源已停止；实际残留哪些资源取决于工具已启用的能力，本审查没有读取其运行状态。",
+      "evidence": {
+        "probe_id": "revoke_failure_skips_independent_native_cleanup",
+        "status": "REPRODUCED_EXACT_HELPER_WITH_STUB_DEPENDENCIES",
+        "skipped_services": 5
+      },
+      "recommendation": "在保留 durable pending-cleanup 的前提下尽力完成相互独立的停止步骤，按原锁序执行并聚合错误；本地 revoke 未知不能伪报退出或清除凭证，也不应阻止计划和其他服务退役。只在全部必要收尾被确认后清理最终 journal。",
+      "targeted_verification": "注入离线/401/workerExited=false，断言其他独立清理仍被调用，失败的 owner 保留待清理身份，恢复不能重新启用未收尾资源。",
+      "native_status": "NOT_TESTED"
+    },
+    {
+      "id": "R17-SEC-004",
+      "priority": "P1",
+      "severity": "high",
+      "title": "启动结果未知仅封住原 ID，换新 requestId 即可重新启动而不先对账",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 69,
+          "end_line": 69
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 87,
+          "end_line": 96
+        },
+        {
+          "path": "docs/api/local-task-bridge.zh-CN.md",
+          "start_line": 11,
+          "end_line": 11
+        }
+      ],
+      "trigger": "服务已经接受启动，但响应丢失或响应无法解析，Host 返回 E_LOCAL_UNKNOWN；同一安装随即使用另一个 requestId 提交同目标和配置。",
+      "root_cause": "requests 只保存 scope，没有 dispatched/unknown/reconciled 状态；启动检查只拒绝 Object.hasOwn 的同一 ID。没有对未知启动建立恢复栅栏，也不要求先按原 ID 查询。",
+      "observed": "模拟服务先接受第一个启动再丢失回包；换 ID 后又接受第二个启动。两次间没有 by-request 查询，也没有新的可信用户决策。",
+      "impact": "与文档“确认没有原任务前不能重新创建”不符。会自动换 ID 重试的 UI/AI 可造成重复执行；实际服务是否同时运行两个 Worker 未测试。Host 自身未自动重试同 ID，这一点不能替代未知结果恢复。",
+      "evidence": {
+        "probe_id": "unknown_post_new_request_id",
+        "status": "REPRODUCED_IN_MEMORY",
+        "accepted_start_count": 2,
+        "by_request_reconciliations": 0
+      },
+      "recommendation": "持久保存未知副作用状态及原请求身份；同 owner/相关 scope 的替代启动先经只读对账和明确的恢复决策，不以换 ID 消除未知。独立新任务应有可区分的新用户意图，不能把不确定的重试当成新任务；查询 404 的缺失判定还需服务端持久性/服务代际保证。",
+      "targeted_verification": "模拟服务已提交但网络断开、坏 JSON、服务重启；原 ID 与自动生成新 ID 的替代重试均不能再发启动 POST，直到安全完成原请求对账。",
+      "native_status": "NOT_TESTED"
+    },
+    {
+      "id": "R17-SEC-005",
+      "priority": "P2",
+      "severity": "medium",
+      "title": "服务重启后的失效 session 无恢复，master 轮换后配对与撤权形成死结",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 49,
+          "end_line": 49
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 63,
+          "end_line": 79
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 93,
+          "end_line": 94
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 119,
+          "end_line": 125
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 128,
+          "end_line": 133
+        },
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 694,
+          "end_line": 698
+        }
+      ],
+      "trigger": "服务重启丢失内存 session，而 Host 的 expiresAt 尚未到期；或重新启动的服务使用新 master secret/endpoint，旧 pairing 仍在 storage。",
+      "root_cause": "服务 401 未使缓存 session 失效，后续请求继续复用它。已有 row 时 confirm.choose 固定返回 null，没有选择新凭证的受信恢复入口；重新打开也只用旧 master 建立 session，撤权/升级又必须先用该旧 master 成功调用 revoke。",
+      "observed": "模拟 session 丢失后连续 2 次查询均为 E_LOCAL_SERVICE，session 建立次数仍为 1。模拟 master 轮换并重建 bridge 后，查询、新启动和 revoke 都失败，文件选择器调用总数仍为 1，旧记录保留。",
+      "impact": "重启可能中断进度、Stop 和清理。若真实服务始终持久保存 master 与 session，则对应触发条件不成立；指定文件没有证明该策略。没有执行真实重启，不应把重启/手改 storage 当作用户修复步骤。",
+      "evidence": {
+        "probe_ids": [
+          "service_restart_invalidates_cached_token",
+          "rotated_master_has_no_repair_path"
+        ],
+        "status": "REPRODUCED_WITH_INJECTED_RESTART_AND_ROTATION_CONDITIONS"
+      },
+      "recommendation": "明确服务身份/代际与凭证持久性合同；安全只读请求遇明确认证失败可退役缓存并受控刷新 session。未知 POST 仍按原 requestId 对账，禁止自动重放。提供可信的故障恢复/重配对路径，保留旧 owner 待清理证据，不能静默覆盖旧凭证或伪报旧 Worker 退出。",
+      "targeted_verification": "分别覆盖 session 失效、master 轮换、端口变化与服务暂不可达；正常进度/Stop 不重复授权，新 session 不能重放启动，故障恢复可解释且不抹去未确认清理的 owner。",
+      "native_status": "NOT_TESTED"
+    },
+    {
+      "id": "R17-SEC-006",
+      "priority": "P2",
+      "severity": "medium",
+      "title": "已用 requestId 改目标后会先弹确认并建 session，最后才拒绝重放",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 84,
+          "end_line": 90
+        },
+        {
+          "path": "src/ui/sidebar-tools.js",
+          "start_line": 2025,
+          "end_line": 2027
+        }
+      ],
+      "trigger": "同一安装已在目标 A 使用 requestId X，再将 X 配合尚未批准的目标 B 提交启动。",
+      "root_cause": "prepare(scope) 的可信范围确认、持久化和 /session POST 在已用 requestId 检查之前执行。",
+      "observed": "第二个请求最终 E_LOCAL_REPLAY，但已产生第 2 次范围确认及第 2 次 /session；真正启动 POST 仍只有 1 次。",
+      "impact": "用户会为必定被拒绝的操作额外授权并留下新 scope。未发现正常同范围进度/Stop 或同 owner 重新打开会重复确认；这些路径的内存验证通过，不能因此要求每次 Stop 审阅。",
+      "evidence": {
+        "probe_id": "duplicate_confirmation_before_replay_check",
+        "status": "REPRODUCED_IN_MEMORY",
+        "approvals": 2,
+        "session_posts": 2,
+        "start_posts": 1
+      },
+      "recommendation": "在当前安装身份和已保存请求表核验后、进入 prepare 前拒绝已用 requestId；对账只复用原请求绑定的 scope，不能让重放请求扩展授权范围。",
+      "targeted_verification": "原 ID 加新 targetOrigin 应无确认、无新 session、无新增 scope；正常轮询/Stop 和重新打开仍只复用原批准范围。",
+      "native_status": "NOT_TESTED"
+    }
+  ],
+  "conditional_boundary_checks": [
+    {
+      "id": "R17-COND-001",
+      "priority_if_condition_holds": "P1",
+      "title": "任意 body.owner/scope 和跨域 URL 会被转发，实际隔离完全依赖服务端",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 19,
+          "end_line": 21
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 75,
+          "end_line": 75
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 93,
+          "end_line": 93
+        },
+        {
+          "path": "docs/api/local-task-bridge.zh-CN.md",
+          "start_line": 5,
+          "end_line": 5
+        },
+        {
+          "path": "docs/api/local-task-bridge.zh-CN.md",
+          "start_line": 15,
+          "end_line": 15
+        }
+      ],
+      "status": "HOST_FORWARDING_CONFIRMED_SERVICE_AUTHORIZATION_NOT_TESTED",
+      "trigger": "targetOrigin 为已批准的 A，而 body.owner 是其他 owner、body.scope=B、body.config.url 指向 B。",
+      "observed": "Host 接受载荷并转发；/session 使用可信 owner 与 scope A，但 /runs body 仍含伪造 owner/scope 和 B 的 URL。",
+      "interpretation": "这是具体可达的输入边界，不足以单独证明越权。文档已明确要求服务端按 session 复核真实 owner/scope、URL/DNS/重定向/内网；若实现覆盖所有入口并以 token 的身份为权威，这些载荷应被拒绝，不能把泛型 body 原样转发直接认定为已发生跨域或 owner 注入。",
+      "failure_condition": "服务端将 body.owner/scope 覆盖 session 身份，或只校验声明的 targetOrigin、没有约束真实 URL/重定向/DNS；这时可形成 owner 冒充、跨域或内网访问。",
+      "recommendation": "在通用协议层保留可信身份字段的唯一来源，拒绝会参与权限判定的客户端 owner/token/endpoint 等保留字段；业务 URL 解析继续由独立服务 owner 实现。服务端必须在启动、by-request、状态、records、stop、export 全部入口验证 token 的 owner 和 scope，并约束跳转与内网，不能只检查浏览器 Origin。",
+      "required_evidence": "由主 agent 在服务所有权范围提供身份覆盖负例、跨 owner runId/requestId、跨域/重定向/内网负例及真实 Host 调用证据；本审查不扩大源码读取范围。",
+      "probe_id": "untrusted_body_owner_and_cross_origin_forwarding"
+    }
+  ],
+  "export_click_update_review": {
+    "status": "HOST_SOURCE_AND_ISOLATED_DISPATCH_PASS_ISSUER_AND_CHROME_NOT_TESTED",
+    "locations": [
+      {
+        "path": "src/ui/sidebar-tools.js",
+        "start_line": 1766,
+        "end_line": 1785
+      },
+      {
+        "path": "src/ui/sidebar-tools.js",
+        "start_line": 2012,
+        "end_line": 2035
+      },
+      {
+        "path": "src/ui/sidebar-tools.js",
+        "start_line": 3314,
+        "end_line": 3320
+      },
+      {
+        "path": "src/ui/sidebar-tools.js",
+        "start_line": 3423,
+        "end_line": 3434
+      },
+      {
+        "path": "src/ui/sidebar-tools.js",
+        "start_line": 898,
+        "end_line": 918
+      },
+      {
+        "path": "src/platform/host/local-tasks.js",
+        "start_line": 113,
+        "end_line": 115
+      }
+    ],
+    "confirmed": [
+      "localTasks.export 同时要求 localTasks 与 user.export；缺少 user.export 时不会调用 bridge.export。",
+      "Host 仅将真实闭包参数 directExportPort 与当前 frameExportPort 相等视为私有直通；普通 window 消息不能通过 payload 自报该参数。",
+      "私有 port 入口绑定捕获的 source/token、当前 port 和单调 requestId；统一消息入口仍检查 opaque origin、真实 frame/source、协议与 toolId，dispatch 核对启用、安装和 epoch。",
+      "普通消息或错误 port 会进入既有 requestBrowserClick；既有确认执行处检查 event.isTrusted。",
+      "进度/Stop 仍走 localTasks.request，不要求 user.export，也没有新增加导出确认。",
+      "Host 导出分支收到 E_LOCAL_UNKNOWN 不自动重试；非整数下载回执已有 E_LOCAL_UNKNOWN。"
+    ],
+    "not_verified": [
+      "发送方私有 port 的真实点击发放、单次消费、载荷绑定及 unknown 导出标记不在允许读取的五个文件内，未读取其实现。",
+      "仅在 Host 接线中没有看到持久的导出 unknown 标记；不能把用户描述当成发送方实现已获验证，也不能据此断言发送方缺失。",
+      "真实 MessagePort 泄漏/重放、真实 click、Chrome 下载异常或迟到回执及安装代际变化均未在浏览器执行。",
+      "download API Promise 拒绝路径没有在本审查证明一定会分类为 unknown；发送方是否对可能已启动的失败保持保守标记仍需其 owner 验证。"
+    ],
+    "probe": {
+      "id": "new_export_host_dispatch_gate",
+      "result": "PASS_EXTRACTED_BRANCH_WITH_STUBBED_AUTHORITY_AND_BRIDGE",
+      "sourceSha256": "3a60a7f1915bb061c6dcbfb492b29bbdc7d40d8d6ec384a9a8b714acdb89bda1",
+      "cases": {
+        "missingUserExport": {
+          "exports": 0,
+          "requests": 0,
+          "reviews": 0,
+          "error": "E_CAPABILITY"
+        },
+        "publicMessage": {
+          "exports": 0,
+          "requests": 0,
+          "reviews": 1,
+          "result": {
+            "reviewRequired": true
+          }
+        },
+        "wrongPort": {
+          "exports": 0,
+          "requests": 0,
+          "reviews": 1,
+          "result": {
+            "reviewRequired": true
+          }
+        },
+        "privatePort": {
+          "exports": 1,
+          "requests": 0,
+          "reviews": 0,
+          "result": {
+            "started": true
+          }
+        },
+        "progressOrStopRequest": {
+          "exports": 0,
+          "requests": 1,
+          "reviews": 0,
+          "result": {
+            "synthetic": true
+          }
+        },
+        "unknownExportNoAutomaticRetry": {
+          "exports": 1,
+          "requests": 0,
+          "reviews": 0,
+          "error": "E_LOCAL_UNKNOWN"
+        },
+        "revokedFrame": {
+          "exports": 0,
+          "requests": 0,
+          "reviews": 0,
+          "error": "E_FRAME"
+        }
+      },
+      "limitations": [
+        "模拟原接线分支与注入依赖，未执行真实 DOM/MessagePort/Chrome 下载。",
+        "私有port的真实点击发放与unknown导出标记的发送方实现不在五个允许文件内，未读取，NOT_TESTED。"
+      ]
+    },
+    "effect_on_findings": "新增可信点击与 user.export 已补上 Host 层的导出许可分支。原底层导出并发观察降为条件性资源观察，不计入当前可由普通沙箱自动触发的高优先漏洞。"
+  },
+  "observations": [
+    {
+      "id": "R17-OBS-001",
+      "title": "底层 export 不经过 request 的并发/速率闸门",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 100,
+          "end_line": 115
+        },
+        {
+          "path": "src/ui/sidebar-tools.js",
+          "start_line": 2028,
+          "end_line": 2033
+        },
+        {
+          "path": "src/ui/sidebar-tools.js",
+          "start_line": 3423,
+          "end_line": 3427
+        }
+      ],
+      "status": "UNIT_LEVEL_REPRODUCED_HOST_REACHABILITY_WITH_NEW_CLICK_GATE_NOT_TESTED",
+      "observed": "直接调用原 bridge.export 的隔离诊断中可同时进入 5 个模拟导出 fetch；request 的 inFlight>=2 不覆盖 export。每路上限 32 MiB，且 chunks、合并数组和 Blob 可能同时占内存。",
+      "limitation": "最新 Host 要求可信点击 port 或可信确认；未审查发送方的并发/点击消费策略，不能推断普通脚本可自动制造 120 个真实导出，也未执行大内存分配或崩溃测试。",
+      "recommendation": "可复用同一有界并发控制覆盖 export，并设置全局预算和退役取消；只在真实点击入口确实允许并发超限时升级为可触发的安全发现。",
+      "evidence": {
+        "probe_id": "export_bypasses_request_concurrency_limit",
+        "concurrent_synthetic_exports": 5,
+        "large_allocations": false,
+        "real_downloads": false
+      }
+    },
+    {
+      "id": "R17-OBS-002",
+      "title": "128 条 request 留档上限没有正常回收合同",
+      "locations": [
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 88,
+          "end_line": 90
+        }
+      ],
+      "status": "REPRODUCED_WITH_SYNTHETIC_128_ENTRY_LEDGER",
+      "observed": "保留同一 owner 的 128 条历史请求后，新 ID 永久 E_LOCAL_LIMIT；现有允许接口没有完成记录退役路径。",
+      "recommendation": "设计不丢失防重放事实的历史身份/活动任务分离或安全代际轮转；不能通过随意删除 tombstone 或清空 pairing 修复。",
+      "priority": "P2_OPERATIONAL_NOT_IN_HIGH_PRIORITY_SECURITY_COUNT"
+    },
+    {
+      "id": "R17-OBS-003",
+      "title": "升级在 registry commit 前删除旧配对，后续安装失败会让旧安装失去已审阅状态",
+      "locations": [
+        {
+          "path": "src/ui/sidebar-tools/installation.js",
+          "start_line": 694,
+          "end_line": 699
+        },
+        {
+          "path": "src/platform/host/local-tasks.js",
+          "start_line": 119,
+          "end_line": 125
+        }
+      ],
+      "status": "SOURCE_ONLY",
+      "trigger": "旧工具有 localTasks，revoke 成功清除记录后 commitInstalledSidebarTools 明确失败。",
+      "impact": "旧包仍安装但旧任务已停、scopes/凭证留档已移除；再次使用会重配对/重确认。未证明越权，只是失败升级的生命周期/体验退化。",
+      "recommendation": "把服务退役及配对变更纳入现有安装事务的可恢复状态，保留足够旧 owner 与审阅事实；不要将失败升级伪报成旧状态完全未变。"
+    }
+  ],
+  "verification": {
+    "existing_tests": {
+      "command": "node --test tests/environment/local-task-bridge.test.mjs",
+      "status": "PASS",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "meaning": "仅证明该文件现有断言；未修改测试。"
+    },
+    "existing_test_gaps": [
+      {
+        "location": {
+          "path": "tests/environment/local-task-bridge.test.mjs",
+          "start_line": 32,
+          "end_line": 41
+        },
+        "gap": "测试名说 survive reopening，但没有创建第二个 bridge；本审查另加了纯内存 reopening 诊断。"
+      },
+      {
+        "location": {
+          "path": "tests/environment/local-task-bridge.test.mjs",
+          "start_line": 42,
+          "end_line": 46
+        },
+        "gap": "unknown POST 测试没有注入实际接收后丢回包，只测成功后的相同 ID 拒绝。"
+      },
+      {
+        "location": {
+          "path": "tests/environment/local-task-bridge.test.mjs",
+          "start_line": 48,
+          "end_line": 53
+        },
+        "gap": "撤权测试是先撤权后查询，没有与持久写入竞争，也未验证服务故障时其他收尾。"
+      },
+      {
+        "location": {
+          "path": "tests/environment/local-task-bridge.test.mjs",
+          "start_line": 1,
+          "end_line": 53
+        },
+        "gap": "没有新的导出 user.export/可信 port/回退、服务重启、body owner/跨域负例。"
+      }
+    ],
+    "in_memory_probes": [
+      {
+        "id": "prototype_request_replay",
+        "result": "REPRODUCED",
+        "startPostCount": 2,
+        "ownDurableRequestRecord": false
+      },
+      {
+        "id": "unknown_post_new_request_id",
+        "result": "REPRODUCED",
+        "acceptedStartCount": 2,
+        "byRequestReconciliationCount": 0
+      },
+      {
+        "id": "revocation_vs_durable_start_race",
+        "result": "REPRODUCED_WITH_NEW_DELETE_READBACK",
+        "recordResurrected": true,
+        "startPostsAfterAuthorityRevoked": 1
+      },
+      {
+        "id": "service_restart_invalidates_cached_token",
+        "result": "REPRODUCED",
+        "repeated401": 2,
+        "sessionPostCount": 1
+      },
+      {
+        "id": "rotated_master_has_no_repair_path",
+        "result": "REPRODUCED",
+        "errors": [
+          "E_LOCAL_SERVICE",
+          "E_LOCAL_SERVICE",
+          "E_LOCAL_SERVICE"
+        ],
+        "credentialPickerCalls": 1
+      },
+      {
+        "id": "duplicate_confirmation_before_replay_check",
+        "result": "REPRODUCED",
+        "approvals": 2,
+        "sessionPosts": 2,
+        "startPosts": 1
+      },
+      {
+        "id": "untrusted_body_owner_and_cross_origin_forwarding",
+        "result": "HOST_FORWARDING_CONFIRMED_SERVICE_EFFECT_NOT_TESTED",
+        "trustedSessionScope": "https://review-a.example",
+        "untrustedBodyTargetOrigin": "https://review-b.example"
+      },
+      {
+        "id": "permanent_request_ledger_capacity",
+        "result": "REPRODUCED_WITH_SYNTHETIC_128_ENTRY_LEDGER"
+      },
+      {
+        "id": "reopen_same_owner_same_scope_no_duplicate_confirmation",
+        "result": "PASS_IN_MEMORY",
+        "approvals": 1,
+        "stopCovered": true
+      },
+      {
+        "id": "export_bypasses_request_concurrency_limit",
+        "result": "REPRODUCED_UNIT_ONLY",
+        "concurrentSyntheticExports": 5
+      }
+    ],
+    "additional_probes": [
+      {
+        "id": "revoke_failure_skips_independent_native_cleanup",
+        "status": "REPRODUCED_EXACT_HELPER_WITH_STUB_DEPENDENCIES",
+        "called": [
+          "revokeLocalTasks"
+        ],
+        "skipped": [
+          "stopStayFocusForTool",
+          "stopAdblockForTool",
+          "stopAiAccessForTool",
+          "stopManagedSiteBudgetForTool",
+          "stopManagedProxyForTool"
+        ]
+      },
+      {
+        "id": "export_bypasses_request_concurrency_limit",
+        "status": "REPRODUCED_UNIT_ONLY",
+        "concurrent_synthetic_exports": 5,
+        "network": false,
+        "downloads": false,
+        "large_allocations": false
+      }
+    ],
+    "export_dispatch_diagnostic": "7 种接线分支结果已包含在 export_click_update_review.probe；原分支+模拟 Authority/bridge，不等同完整 Host 端到端。",
+    "no_repeat_checks": "Host 存储逻辑在审查中变化后，重跑了相关 4 项测试及身份持久化诊断；未变化的导出接线与安装收尾复用原有有效证据。",
+    "production_build": "NOT_RUN_OUT_OF_SCOPE",
+    "real_service_restart": "NOT_TESTED",
+    "real_host": "NOT_TESTED",
+    "chrome_native": "NOT_TESTED",
+    "service_authority_implementation": "NOT_READ_OUT_OF_SCOPE",
+    "export_issuer_implementation": "NOT_READ_OUT_OF_SCOPE",
+    "main_agent_reported_evidence": {
+      "reported_by": "主 agent，经用户于本次对话转述",
+      "reported_result": "真实 HTTP transport 已 PASS 1/2/3 full、恢复、Stop、导出及撤权。",
+      "status": "REPORTED_PASS_NOT_INDEPENDENTLY_REVIEWED",
+      "raw_evidence_read": false,
+      "effect_on_review": "尊重该真实 HTTP 结果；未提供本轮四项 P1 的具体负例/竞争原始证据，故不据此关闭已复现发现。其结果不等同本审查执行了真实 Host/Chrome。"
+    }
+  },
+  "scoring": {
+    "scale": {
+      "min": 0,
+      "max": 100
+    },
+    "status": "PROVISIONAL_SOURCE_AND_IN_MEMORY_ONLY",
+    "formal_score": null,
+    "formal_95_plus_awarded": false,
+    "dimensions": [
+      {
+        "dimension": "端点、固定 loopback 与传输约束",
+        "score": 84,
+        "basis": "固定 127.0.0.1、路径白名单、禁止跳转、响应字节预算；无真实 Host/Chrome 网络证据。"
+      },
+      {
+        "dimension": "凭证隔离与最小暴露",
+        "score": 80,
+        "basis": "secret/session 保留可信存储和闭包，正常响应未见泄露；撤权竞争可恢复本应删除的旧凭证。"
+      },
+      {
+        "dimension": "任务身份与 owner/scope 隔离",
+        "score": 63,
+        "basis": "可信 owner 由 tool/epoch/hash 构造，但普通对象原型键可破坏身份留档，真实服务隔离未审。"
+      },
+      {
+        "dimension": "撤权、安装与生命周期",
+        "score": 40,
+        "basis": "异锁竞争及首项撤权失败中断其他资源收尾均有内存/原函数诊断。"
+      },
+      {
+        "dimension": "未知副作用与防重放",
+        "score": 45,
+        "basis": "先保存普通 ID 及同 ID 拒绝有基础，但 __proto__ 与换 ID 绕过未知恢复。"
+      },
+      {
+        "dimension": "服务重启与故障恢复",
+        "score": 45,
+        "basis": "失效 session 不退役，master 轮换无可用的安全重配对/清理路径。"
+      },
+      {
+        "dimension": "可信用户意图与重复确认",
+        "score": 82,
+        "basis": "新导出 Host 的 user.export+私有 port+可信回退通过分支验证；进度/Stop 无新增审阅。新范围重放仍先确认后拒绝，发送方 unknown 标记未审。"
+      },
+      {
+        "dimension": "资源预算与导出收尾",
+        "score": 65,
+        "basis": "单响应有上限，底层 export 并发未统一限制；新点击保护下的真实可达性及 Chrome 下载未测。"
+      },
+      {
+        "dimension": "安全证据充分性",
+        "score": 52,
+        "basis": "现有 4 项测试与针对性内存诊断可用，无真实 Host/Chrome/服务端隔离和撤权证据。"
+      }
+    ],
+    "aggregate": {
+      "score": 62,
+      "method": "九个暂定维度非加权平均后四舍五入；不是正式安全验收分。"
+    },
+    "elevation_requirements": "先修复 P1 并复核对应诊断；真实服务 Authority、可信点击发放与 unknown 保护、同候选 Host/Chrome 生命周期和身份负例通过前，不给 95+ 正式分。"
+  },
+  "recommended_fix_order": [
+    "修复 requests/runs 自有键语义，堵住 __proto__ 留档/重放失效。",
+    "统一请求与撤权的生命周期栅栏，阻止旧凭证回写和撤权后发出启动请求。",
+    "让本地服务撤权失败仍能完成其他独立原生/计划收尾，并保留正确待清理记录。",
+    "为未知启动保留状态并按原 requestId 只读对账，不能自动换 ID 重新执行。",
+    "补充安全 session 失效/重配对恢复；把已用 ID 校验移到范围确认前。",
+    "保留新增导出可信点击保护；由发送方 owner 验证点击消费与 unknown 标记，并按实际可达性处理导出并发。"
+  ]
+}

@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve, join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {PAGE_FRAMEWORK_RUNTIMES} from '../../../../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_IMPORTS} from '../../../../src/libs/page-frameworks/contract.js';
 
 const repo = fileURLToPath(new URL('../../../../', import.meta.url));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -15,8 +15,9 @@ const fail = message => {throw Error('E_SCRAPYJS_PREVIEW: ' + message);};
 export async function loadPreviewRuntime({
   runtimeDir = join(repo, 'artifacts/scrapyjs/original-sites-20261029/browser-source/dist/development'),
   runtimeReceipt = join(repo, 'artifacts/scrapyjs/original-sites-20261029/snapshot-receipt.json'),
-  record = readFile
+  record = readFile, compilePreview = false
 } = {}) {
+  if(compilePreview)return compileCurrentPreviewRuntime(record);
   // A verified snapshot retains the failed normal build history. Its linked
   // diagnostic supplies compilation evidence; the later package report supplies
   // verification evidence. Neither is relabelled as a passed WXT build.
@@ -64,4 +65,34 @@ export async function loadPreviewRuntime({
   if (!same(react, reactContract)) fail('React runtime differs from fixed registry SHA');
   await record(join(repo, 'src/libs/page-frameworks/contract.js'));
   return {react, shared, provenance: {...runtimeEvidence, reactVersion: reactContract.version}};
+}
+
+// Explicit preview-only fallback when this Mac has no historical Browser build
+// attachment. Compile the SAME fixed Shared UI entry; never claim WXT/package PASS.
+async function compileCurrentPreviewRuntime(record){
+  const {build}=await import('esbuild');
+  const entry=join(repo,'src/entrypoints/sidebar-shared-ui.js');
+  const inputs={};
+  const result=await build({entryPoints:[entry],bundle:true,write:false,minify:true,
+    format:'iife',platform:'browser',target:'es2022',jsx:'automatic',metafile:true,
+    plugins:[{name:'preview-fixed-runtime-adapter',setup(builder){
+      builder.onResolve({filter:/^wxt\/utils\/define-unlisted-script$/},()=>({path:'wxt-preview-entry',namespace:'preview-runtime'}));
+      builder.onResolve({filter:/^react(?:\/jsx-runtime)?$/},args=>({path:args.path,namespace:'preview-runtime'}));
+      builder.onLoad({filter:/.*/,namespace:'preview-runtime'},args=>({contents:args.path==='wxt-preview-entry'?
+        'export const defineUnlistedScript=initialize=>initialize();':
+        'const value=globalThis.OpenDeskPageReact;export default value;export const {'+PAGE_FRAMEWORK_IMPORTS.react[args.path].join(',')+'}=value;',loader:'js'}));
+      builder.onResolve({filter:/\.css\?raw$/},args=>({path:resolve(args.resolveDir,args.path.slice(0,-4)),namespace:'preview-css'}));
+      builder.onLoad({filter:/.*/,namespace:'preview-css'},async args=>{
+        const data=await record(args.path);inputs[args.path]={bytes:data.length,sha256:sha(data)};
+        return {contents:'export default '+JSON.stringify(data.toString()),loader:'js'};
+      });
+    }}]});
+  for(const name of Object.keys(result.metafile.inputs))if(!name.startsWith('preview-')){
+    const file=resolve(repo,name),data=await record(file);inputs[file]={bytes:data.length,sha256:sha(data)};
+  }
+  const contract=PAGE_FRAMEWORK_RUNTIMES.react,react=await record(join(repo,contract.source));
+  if(!same(react,contract))fail('React runtime differs from fixed registry SHA');
+  return {react,shared:Buffer.from(result.outputFiles[0].contents),provenance:{
+    receiptStatus:'PREVIEW_COMPONENTS_COMPILED',wxtPassed:false,publishedRuntime:'NOT_TESTED',
+    reactVersion:contract.version,sourceEntry:'src/entrypoints/sidebar-shared-ui.js',inputs}};
 }

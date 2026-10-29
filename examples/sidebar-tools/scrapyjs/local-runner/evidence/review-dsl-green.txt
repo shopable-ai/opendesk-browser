@@ -1,0 +1,15 @@
+test_dot_reads_current_item_without_losing_nested_or_suffix_rules (test_dsl.CurrentItemTests.test_dot_reads_current_item_without_losing_nested_or_suffix_rules) ... ok
+test_missing_auto_many_and_empty_list (test_dsl.DslTests.test_missing_auto_many_and_empty_list) ... ok
+test_one_rejects_duplicates (test_dsl.DslTests.test_one_rejects_duplicates) ... ok
+test_real_scrapling_preserves_original_itemloader_values_and_direct_children (test_dsl.DslTests.test_real_scrapling_preserves_original_itemloader_values_and_direct_children) ... ok
+test_unsupported_is_explicit_not_silently_discarded (test_dsl.DslTests.test_unsupported_is_explicit_not_silently_discarded) ... ok
+test_review_ancestor_qualified_css_keeps_only_current_row_descendants (test_dsl.ReviewScopeTests.test_review_ancestor_qualified_css_keeps_only_current_row_descendants) ... ok
+test_review_document_html_root_is_selectable (test_dsl.ReviewScopeTests.test_review_document_html_root_is_selectable) ... ok
+test_review_nested_field_named_selector_remains_nested (test_dsl.ReviewScopeTests.test_review_nested_field_named_selector_remains_nested) ... ok
+test_review_scope_pseudo_is_bound_to_each_row_and_cannot_escape (test_dsl.ReviewScopeTests.test_review_scope_pseudo_is_bound_to_each_row_and_cannot_escape) ... ok
+test_review_sibling_combinators_never_read_another_row (test_dsl.ReviewScopeTests.test_review_sibling_combinators_never_read_another_row) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.032s
+
+OK

@@ -300,3 +300,6 @@ R1.3 历史实施、组件和原生状态及精确候选见 [R1.3 总表](../fra
 ### 通用结构化 AI 请求
 
 安装能力 `ai.generate` 提供 `ai.info` / `ai.generate` / `ai.cancel`；先读取 generation，发送时以 `providerGeneration` 原样绑定。每次发送经过可信 Host 的真实点击确认。完整字段、容量、取消与证据语义见 [Sidebar Tool AI bridge](sidebar-tools-ai.zh-CN.md)。
+### 受限本机长任务（v2 增量）
+
+工具可声明 `localTasks`，通过原 `OpenDeskTool.request` 使用首次可信配对、精确目标审阅及自身任务读取/停止/导出。凭证不进入沙箱，也不开放任意 localhost。完整端点、预算、未知结果及撤权合同见 [本地任务桥接](local-task-bridge.zh-CN.md)。
