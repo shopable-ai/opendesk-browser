@@ -6,7 +6,7 @@ import {ORIGINAL_CONFIG,BUILTIN_PRESETS,CONFIG_FIELDS,copyConfig,
   emptyVerification,validConfig} from './env-config.js';
 import {readPresets,savePreset,deletePreset,readRuns,appendRun} from './presets.js';
 import {applyEnvironment,verifyEnvironment,restoreEnvironment,
-  ACTIVE_STATES,classifyFailure} from './run-session.js';
+  ACTIVE_STATES,classifyFailure,classifyRestoration} from './run-session.js';
 
 const stamp=()=>new Date().toISOString();
 const ident=prefix=>prefix+(globalThis.crypto?.randomUUID?.()||
@@ -17,7 +17,8 @@ const labels=Object.freeze({
   blocked:'环境修改未开放',denied:'授权被拒绝',failed:'执行失败',
   unknown:'执行结果未知',invalidated:'目标网页已失效',
   restoring:'已请求恢复 · 待读回',restore_unknown:'恢复结果未知',
-  restored_verified:'已独立核验恢复'
+  restored_verified:'已独立核验恢复',
+  restored_limited:'调试已停止 · 恢复有限验证'
 });
 const stateDescription=Object.freeze({
   idle:'当前只展示目标环境，任何参数尚未影响网页。',
@@ -25,14 +26,15 @@ const stateDescription=Object.freeze({
   applied_unverified:'已有绑定当前网页的可信执行回执，但还没有独立验证。',
   verified_limited:'仅已确认的字段显示一致，其他字段不能推定成功。',
   partial:'至少一项不一致或无法核验，不能报告完整生效。',
-  blocked:'正式 Host 未提供受审的环境修改接口。配置可以保存，但不会修改网页。',
+  blocked:'当前安装或 Chrome 调试权限不支持修改此网页；配置保存不代表环境已生效。',
   denied:'本次授权被拒绝，未获得成功回执。',
   failed:'受信任执行明确失败。',
   unknown:'执行结果不能确认，禁止自动再次应用。',
   invalidated:'导航、关闭或撤权后，旧文档引用不能再用于新网页。',
   restoring:'可信 Host 已受理恢复，仍须独立读回原始值。',
   restore_unknown:'尚不能证明原始环境已经恢复，不得宣称恢复成功。',
-  restored_verified:'可信 Host 已按原始基线独立核验所需字段。'
+  restored_verified:'可信 Host 已按原始基线独立核验所需字段。',
+  restored_limited:'Chrome 调试已解除，可核对的网页字段恢复；请求头没有独立网络证据，不能声称完整恢复。'
 });
 const readableError=error=>{
   const code=String(error?.code||'');
@@ -115,7 +117,7 @@ function Modal({title,children,onCancel,actions}){
     </div>
   </div>;
 }
-function Report({rows,verification,config,origin,preview,onCopy,onExport,busy}){
+function Report({rows,verification,nativeResults=[],config,origin,preview,onCopy,onExport,busy}){
   const matches=rows.filter(row=>row.status==='match').length;
   const mismatches=rows.filter(row=>row.status==='mismatch').length;
   const unverified=rows.length-matches-mismatches;
@@ -128,7 +130,7 @@ function Report({rows,verification,config,origin,preview,onCopy,onExport,busy}){
         <div><small>不一致</small><strong>{mismatches} 项</strong></div>
         <div><small>未验证</small><strong>{unverified} 项</strong></div>
       </div>
-      <p className="fp-secondary">原始值尚未由可信 Host 采集时，不得以预设「系统原值」冒充真实基线。</p>
+      <p className="fp-secondary">原始值来自应用前独立采集；网络请求语言、定位和 IP 缺少独立证据时不算一致。</p>
       <div className="fp-actions fp-report-actions">
         <Button variant="secondary" disabled={!verification||!!busy}
           onClick={onCopy}><Glyph name="copy"/>复制报告</Button>
@@ -145,12 +147,15 @@ function Report({rows,verification,config,origin,preview,onCopy,onExport,busy}){
           <div className="fp-section-head"><strong>{row.label}</strong>
             <span className={'fp-tag fp-tag-'+row.status}>{readStatus(row.status)}</span></div>
           <div className="fp-verification-values">
-            <div><small>原始值</small><span>尚无可信基线读回</span></div>
+            <div><small>原始值</small><span>{row.baseline??'尚无可信基线'}</span></div>
             <div><small>目标值</small><span>{row.expected}</span></div>
             <div><small>实际读取值</small><span>{row.observed??'—'}</span></div>
           </div>
           <p className="fp-secondary">来源：{sourceLabel(row.source)}
-            {row.reason?' · '+row.reason:''}</p>
+            {row.reason?' · '+row.reason:''}
+            {nativeResults.find(item=>item.key===row.key)?' · 原生执行：'+({
+              applied:'已受理',unknown:'结果未知',unsupported:'不支持'
+            }[nativeResults.find(item=>item.key===row.key)?.status]||'未知'):''}</p>
         </div>)}
       </div>
       <p className="fp-secondary">适用目标：{origin||'未绑定'}。切换国家预设不会修改公网 IP、物理屏幕或 Chrome 用户 Profile。</p>
@@ -169,7 +174,7 @@ export default function App({adapter,preview=false}){
   const [session,setSession]=React.useState(null);
   const [verification,setVerification]=React.useState(null);
   const [notice,setNotice]=React.useState({type:'info',
-    text:'先选择环境并保存预设。只有受审可信 Host 接入后才允许真实应用。'});
+    text:'请选择环境，然后应用到当前授权网页。应用回执不代表已验证，请随后独立读回。'});
   const [dialog,setDialog]=React.useState(null);
   const [draftAction,setDraftAction]=React.useState(null);
   const [presetNameInput,setPresetNameInput]=React.useState('');
@@ -329,7 +334,14 @@ export default function App({adapter,preview=false}){
       activeSession.current=next;setSession(next);
       setStatus('applied_unverified');
       warn('可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。','warning');
-      await record('apply','applied_unverified','可信 Host 应用回执已确认；等待网页读回','trusted-browser-host');
+      const native=next.fieldResults||[];
+      const applied=native.filter(x=>x.status==='applied').length;
+      const uncertain=native.filter(x=>x.status==='unknown').length;
+      const unsupported=native.filter(x=>x.status==='unsupported').length;
+      await record('apply','applied_unverified',
+        '原生已受理 '+applied+' 字段，结果未知 '+uncertain+
+        ' 字段，不支持 '+unsupported+' 字段；尚未独立读回',
+        'trusted-browser-host');
     }catch(error){
       const kind=classifyFailure(error,'apply');
       if(!mounted.current)return;
@@ -355,17 +367,19 @@ export default function App({adapter,preview=false}){
       if(restore){
         // A full checked baseline is necessary. A limited or missing observation
         // never permits a claim that Chrome has restored its original state.
-        const expected=['ua','uaCH','language','acceptLanguage','timezone',
-          'geolocation','viewport'];
-        const confirmed=expected.every(key=>result.rows.find(row=>
-          row.key===key)?.status==='match');
-        setStatus(confirmed?'restored_verified':'restore_unknown');
-        if(confirmed){activeSession.current=null;setSession(null);}
-        warn(confirmed?'可信 Host 已独立核验原始环境的全部受控字段。':
-          '只得到有限恢复证据；尚不能确认全部原始值，恢复保持未知。',
-          confirmed?'success':'warning');
-        await record('restore',confirmed?'restored_verified':'restore_unknown',
-          confirmed?'独立基线读回已确认':'有限字段读回不足以证明恢复',
+        const outcome=classifyRestoration(result);
+        setStatus(outcome);
+        if(outcome!=='restore_unknown'){activeSession.current=null;setSession(null);}
+        warn(outcome==='restored_verified'?
+          '所有受控字段的原始基线已独立核验。':
+          outcome==='restored_limited'?
+          'Chrome 调试已停止、网页字段已恢复；HTTP 请求语言没有独立网络证据。':
+          '读回仍有不一致或未知字段；不能宣称完成恢复。',
+          outcome==='restored_verified'?'success':'warning');
+        await record('restore',outcome,
+          outcome==='restored_verified'?'原始环境已独立核验':
+          outcome==='restored_limited'?'调试已停止；网页字段恢复，但网络头未验证':
+          '恢复无法核验或受控字段仍不一致',
           'trusted-browser-host');
       }else{
         setStatus(result.status);
@@ -417,7 +431,8 @@ export default function App({adapter,preview=false}){
       source:verification.source,
       generatedAt:stamp(),capturedAt:verification.capturedAt,
       origin:origin||null,mode:verification.kind,status,
-      configuration:verification.kind==='restore'?ORIGINAL_CONFIG:config,
+      configuration:session?.config||config,
+      controlledKeys:verification.controlledKeys||[],
       rows:verification.rows,
       caveat:'仅明确标记的可信独立读回字段被验证；不承诺公网 IP/Profile/反检测。'
     },null,2);
@@ -490,7 +505,7 @@ export default function App({adapter,preview=false}){
           <span className="fp-tag">单标签页</span></div>
         <div className="fp-pair"><div><small>配置目标</small><strong>当前授权网页</strong></div>
           <div><small>执行授权</small><strong>可信 Host 审核</strong></div></div>
-        <p className="fp-secondary">当前 SDK 尚未开放原生环境修改。任何设置都不会通过本应用 iframe 的 navigator 或不受审查的 JS 注入伪造成功。</p>
+        <p className="fp-secondary">应用配置会调用当前 Tab 的可信 Chrome Debugger 执行器。Chrome 调试权限需安装时批准；当前网站还需单独明确授权。部分字段可能无法独立验证。</p>
       </CardContent></Card>
       <details className="fp-capabilities"><summary>高级能力与边界</summary>
         <p>WebRTC、Canvas、WebGL：不承诺反检测；公网 IP、代理、独立 Profile：不在当前 Tab 模拟范围内。</p>
@@ -498,7 +513,7 @@ export default function App({adapter,preview=false}){
       </details>
     </>:null}
     {view==='results'?<Report rows={rows} verification={verification}
-      config={config} origin={origin} preview={preview} busy={busy}
+      nativeResults={session?.fieldResults||[]} config={config} origin={origin} preview={preview} busy={busy}
       onCopy={()=>void output('copy')} onExport={()=>void output('download')}/>:null}
     {view==='history'?<>
       <Card><CardContent className="fp-card">

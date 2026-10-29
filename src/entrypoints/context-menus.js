@@ -20,6 +20,9 @@ export default defineUnlistedScript(() => {
     host.noteNavigation(details.tabId,details.frameId);
     observe(host.invalidateTab(details.tabId,details.frameId),'document invalidation');
   });
+  api.tabs.onActivated?.addListener(({tabId,windowId})=>{
+    host.noteActiveTab(tabId,windowId);
+  });
   api.tabs.onRemoved.addListener(tabId=>{
     host.noteNavigation(tabId,0);
     void host.invalidateTab(tabId).catch(error=>reportBrowserCleanupError(error,{

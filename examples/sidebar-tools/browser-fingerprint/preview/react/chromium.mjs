@@ -160,7 +160,7 @@ try{
   await click('应用配置');
   await until('document.querySelector(".fp-status-title")?.textContent.includes("环境修改未开放")',
     'blocked native apply');
-  assert.equal(await evaluate('document.querySelector(".fp-status-note")?.textContent.includes("不会修改网页")'),true);
+  assert.equal(await evaluate('document.querySelector(".fp-status-note")?.textContent.includes("配置保存不代表环境已生效")'),true);
   assert.equal(await evaluate('document.querySelectorAll(".fp-bottom-actions button")[1]?.disabled'),true);
   assert.equal(await evaluate('document.querySelectorAll(".fp-bottom-actions button")[2]?.disabled'),true);
   await until('JSON.parse(localStorage.getItem("opendesk.fingerprint.r21.preview-only.v1")||"{}")["fingerprint.r21.runs.v1"]?.items?.length===1',

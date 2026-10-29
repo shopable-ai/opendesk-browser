@@ -35,7 +35,7 @@ function entry(operation,capability,contexts,chromePermissions,effect,risk,siteS
   return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
     maxRequestBytes:['browser.clipboard.writeText','browser.downloads.text'].includes(operation)?170000:
       operation==='browser.siteBudget.setPolicy'?80000:shared.maxRequestBytes,
-    maxResponseBytes:operation==='browser.page.readEnvironment'?8192:
+    maxResponseBytes:['browser.page.readEnvironment','browser.fingerprint.readback'].includes(operation)?8192:
      ['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:
      operation==='browser.capabilities.list'?32000:
       operation==='browser.siteBudget.getStatus'||operation==='browser.siteBudget.setPolicy'?80000:shared.maxResponseBytes,
@@ -54,6 +54,10 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.launch.consume':entry('browser.launch.consume','browser.contextMenu',tool,[],'read','high','clicked-document','IMPLEMENTED','single-use-60s'),
   'browser.page.getContext':entry('browser.page.getContext','currentPage.read',tool,[],'read','low','current-page'),
   'browser.page.readEnvironment':entry('browser.page.readEnvironment','browser.page.environment.read',tool,['scripting','webNavigation'],'read','medium','approved-current-document'),
+  // Audited high-risk, one current document and per-origin explicit consent.
+  'browser.fingerprint.apply':entry('browser.fingerprint.apply','browser.fingerprint.control',tool,['debugger','scripting','webNavigation'],'write','high','approved-current-document','IMPLEMENTED','session'),
+  'browser.fingerprint.readback':entry('browser.fingerprint.readback','browser.fingerprint.control',tool,['scripting','webNavigation'],'read','high','owned-fingerprint-session','IMPLEMENTED','session'),
+  'browser.fingerprint.restore':entry('browser.fingerprint.restore','browser.fingerprint.control',tool,['debugger','webNavigation'],'write','high','owned-fingerprint-session','IMPLEMENTED','session'),
   'browser.page.getSelection':entry('browser.page.getSelection','browser.contextMenu',tool,[],'read','high','clicked-document'),
   'browser.clipboard.writeText':entry('browser.clipboard.writeText','user.export',tool,[],'write','medium'),
   'browser.downloads.text':entry('browser.downloads.text','user.export',tool,['downloads'],'write','medium'),
@@ -334,6 +338,29 @@ export function normalizeBrowserOperation(operation,args={}){
       fields(args,['confirm'],['confirm']);
       if(args.confirm!==true)throw fail('E_SCHEMA','Explicit tool-only clear confirmation required');
       return {confirm:true};
+    case 'browser.fingerprint.apply': {
+      fields(args,['tabRef','documentRef','config'],['tabRef','documentRef','config']);
+      if(![args.tabRef,args.documentRef].every(v=>typeof v==='string'&&/^[A-Za-z0-9_-]{16,160}$/.test(v)))
+        throw fail('E_SCHEMA','Opaque current-page references required');
+      const choices={ua:['native','windows','mac','linux'],lang:['system','zh-CN','en-US','de-DE','ja-JP'],
+        tz:['system','Asia/Shanghai','America/New_York','Europe/Berlin','Asia/Tokyo'],
+        geo:['off','nyc','berlin','tokyo'],viewport:['native','desktop','mobile']};
+      if(!args.config||typeof args.config!=='object'||Array.isArray(args.config)||
+        Object.keys(args.config).sort().join(',')!==Object.keys(choices).sort().join(',')||
+        Object.keys(choices).some(key=>!choices[key].includes(args.config[key])))
+        throw fail('E_SCHEMA','Unapproved fingerprint configuration');
+      return {tabRef:args.tabRef,documentRef:args.documentRef,config:{...args.config}};
+    }
+    case 'browser.fingerprint.readback':
+      fields(args,['sessionRef','documentRef','mode'],['sessionRef','documentRef','mode']);
+      if(![args.sessionRef,args.documentRef].every(v=>typeof v==='string'&&/^[A-Za-z0-9_-]{16,160}$/.test(v))||
+         !['applied','restore'].includes(args.mode))throw fail('E_SCHEMA');
+      return {...args};
+    case 'browser.fingerprint.restore':
+      fields(args,['sessionRef','documentRef'],['sessionRef','documentRef']);
+      if(![args.sessionRef,args.documentRef].every(v=>typeof v==='string'&&/^[A-Za-z0-9_-]{16,160}$/.test(v)))
+        throw fail('E_SCHEMA');
+      return {...args};
     case 'browser.page.readEnvironment':
       fields(args,['tabRef','documentRef'],['tabRef','documentRef']);
       if(![args.tabRef,args.documentRef].every(value=>typeof value==='string'&&/^[A-Za-z0-9_-]{16,160}$/.test(value)))throw fail('E_SCHEMA','Opaque current-page document references required');

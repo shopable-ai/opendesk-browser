@@ -34,7 +34,7 @@ function parsePresets(value){
 }
 const statuses=new Set(['idle','blocked','denied','failed','unknown','invalidated',
   'applying','applied_unverified','verified_limited','partial','restoring',
-  'restore_unknown','restored_verified']);
+  'restore_unknown','restored_verified','restored_limited']);
 const kinds=new Set(['apply','verify','restore','target','preset']);
 const sources=new Set(['client-precheck','trusted-browser-host','client-unknown']);
 const validRecord=row=>plain(row)&&Object.keys(row).sort().join(',')===

@@ -69,8 +69,10 @@ export function checkedVerification(config,receipt,{sessionRef,documentRef}){
   return empty.map(x=>{
     const row=byKey.get(x.key);
     return Object.freeze(row?{...x,
+      baseline:typeof row.baseline==='string'?row.baseline.slice(0,512):null,
+      expected:typeof row.expected==='string'?row.expected.slice(0,512):x.expected,
       observed:typeof row.observed==='string'?row.observed.slice(0,512):null,
-      source:row.source,status:row.status,
+      controlled:row.controlled===true,source:row.source,status:row.status,
       reason:typeof row.reason==='string'?row.reason.slice(0,100):null}:x);
   });
 }

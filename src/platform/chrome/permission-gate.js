@@ -12,6 +12,8 @@ export const REQUIRED_BROWSER_API_PERMISSIONS = Object.freeze([
   "downloads",
   "tabs",
   "webNavigation",
+  // Sensitive install/upgrade permission; separate site-specific consent still required.
+  "debugger",
   "userScripts",
   "cookies",
   "notifications",
