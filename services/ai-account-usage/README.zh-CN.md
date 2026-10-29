@@ -25,7 +25,7 @@
 - `subscription.tierLabel/multiplier/membershipExpiresAt/nextBillingAt/source`：管理员**手工录入** `ADMIN_ENTERED`，与服务端证据独立显示。会员有效期与下一账单日是两回事；没有数据就 `null`，不得用 quota `resetsAt` 伪造。
 - `windows[]`：每个 `windowKey` 包括 `slot`、`kind`（按窗口长度区分）、`durationSeconds`、`usedPercent`、`remainingPercent`、`resetsAt`、`observedAt`；不合并不同限额窗口。历史可保留其他时长旧窗口，但账号当前视图仅显示**上次成功请求**真实返回的窗口。
 - `lastAttempt.status` 与 `lastSuccessAt` 分开：新一次读取失败，旧结果仍可查看，但属于过期历史，不代表当前实时额度。
-- `rollovers[]`：比较前后服务端预计重置时间。只在实际跨过先前预计时间时标记 `CROSSED_PREDICTED_RESET`；此前日期移动仅为 `FORECAST_MOVED_UNCONFIRMED`。无法据此宣称“官方主动重置”。
+- `rollovers[]`：比较前后服务端预计重置时间。仅在跨过先前预计时间、重置预告时间向后显著移动，且使用计数下降（或保持零使用）三者同时满足时，标记 `CROSSED_PREDICTED_RESET`；证据不足分别标记 `CROSSED_BUT_UNVERIFIED` 或 `FORECAST_MOVED_UNCONFIRMED`。不能据此宣称“官方主动重置”。
 - `nearResetUnusedEstimatePercent`：只有采样接近预期重置时间（短窗口 ≤15min、长窗口 ≤2h）并在后续观察到跨越时才写入；否则 `null`。这是**重置前最后观测剩余额度的近似估计**，不是确切浪费数量。
 - `insights[]`：按账号、按窗口，提供最近 N 个闭合周期的近重置样本均值、≥80% 的次数、缺失证据次数；不同额度窗口与不同账号不能简单汇总为一个“浪费百分比”。
 
