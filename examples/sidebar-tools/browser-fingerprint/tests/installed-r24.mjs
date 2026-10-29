@@ -326,6 +326,7 @@ try{
       'const results=await chrome.scripting.executeScript({target:{tabId:tab.id},world:"MAIN",'+
       'func:()=>({url:location.href,ua:navigator.userAgent,'+
       'uaCH:navigator.userAgentData?.platform??null,language:navigator.language,'+
+      'languages:[...navigator.languages],'+
       'timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,'+
       'viewport:{width:innerWidth,height:innerHeight}})});'+
       'const targets=await chrome.debugger.getTargets();'+
@@ -387,6 +388,7 @@ try{
     assert(applied.values.ua.includes(expected.ua),'User-Agent remains unchanged');
     assert.equal(applied.values.uaCH,expected.uaCH,'low-entropy UA-CH platform');
     assert.equal(applied.values.language,expected.language,'JS navigator.language');
+    assert.equal(applied.values.languages[0],expected.language,'JS navigator.languages[0]');
     assert.equal(applied.values.timezone,expected.timezone,'Intl timezone');
     assert.deepEqual(applied.values.viewport,expected.viewport,'MAIN world viewport');
     await action(2);
@@ -463,7 +465,7 @@ try{
     item.restored=restored;
     assert.equal(restored.documentId,baseline.documentId);
     assert.equal(restored.debuggerAttached,false);
-    for(const key of ['ua','uaCH','language','timezone'])
+    for(const key of ['ua','uaCH','language','languages','timezone'])
       assert.deepEqual(restored.values[key],baseline.values[key],'restoration mismatch: '+key);
     assert.deepEqual(restored.values.viewport,baseline.values.viewport,'original viewport not restored');
     // The React status changes BEFORE the asynchronous history write and

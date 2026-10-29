@@ -275,11 +275,24 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     const t=await target(s.refs,owner,'browser.fingerprint.restore');
     if(!same(t,s.target))throw fail('E_DOCUMENT_CHANGED');
     s.stage='restoring';
+    // Chrome can retain the language override in navigator.languages after
+    // navigator.language reverts. Explicitly clear the language-affecting
+    // commands of this confirmed session; readback still decides success.
+    let languageClearError=null;
+    if(s.attached&&s.config.lang!=='system'){
+      try{
+        await api.debugger.sendCommand(client(s),'Emulation.setUserAgentOverride',{userAgent:''});
+        await api.debugger.sendCommand(client(s),'Emulation.setLocaleOverride',{locale:''});
+      }catch(error){languageClearError=error;}
+    }
     try{
+      // Even when a clear is uncertain, detach once for safety; never replay.
       if(s.attached)await api.debugger.detach(client(s));
       s.attached=false;tabs.delete(t.tabId);
       if(s.expireHandle!==undefined)unschedule(s.expireHandle);
     }catch{throw fail('E_OUTCOME_UNKNOWN','Debugger detach not confirmed; restore unknown');}
+    if(languageClearError)
+      throw fail('E_OUTCOME_UNKNOWN','Language clear not confirmed; debugger detached; no replay');
     return {accepted:true,source:'trusted-browser-host',sessionRef,documentRef};
   }
   function invalidateInactiveTab(windowId,activeTabId){
