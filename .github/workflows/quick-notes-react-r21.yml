@@ -4,7 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/quick-notes-react-r21.yml'
-      - 'examples/sidebar-tools/quick-notes-react/**'
+      - 'projects/quick-notes-react/**'
       - 'projects/quick-notes/**'
       - 'tests/environment/sidebar-quick-notes-react-*.test.mjs'
       - 'scripts/tests/quick-notes-react-r21-preview-chrome.mjs'
@@ -33,8 +33,8 @@ jobs:
       - name: Native baseline and pure React model unit tests
         run: |
           node --test tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-quick-notes-react-r21.test.mjs
-          node --check examples/sidebar-tools/quick-notes-react/src/model.js
-          node --check examples/sidebar-tools/quick-notes-react/scripts/stage-preview.mjs
+          node --check projects/quick-notes-react/src/model.js
+          node --check projects/quick-notes-react/scripts/stage-preview.mjs
           node --check scripts/tests/quick-notes-react-r21-installed-chrome.mjs
       - name: Build the fixed shared runtime in the existing MV3 host
         run: npm run build:dev
@@ -42,14 +42,14 @@ jobs:
         env:
           OPENDESK_SHARED_UI_EXTENSION_DIR: dist/development
         run: |
-          npm run build --prefix examples/sidebar-tools/quick-notes-react
-          npm run stage:preview --prefix examples/sidebar-tools/quick-notes-react
+          npm run build --prefix projects/quick-notes-react
+          npm run stage:preview --prefix projects/quick-notes-react
           node --test tests/environment/sidebar-quick-notes-react-pack-r21.test.mjs
       - name: Encode separate native and React installation candidates
         run: |
           node scripts/build-sidebar-tool.mjs projects/quick-notes --out artifacts/sidebar-tools/quick-notes/native-candidate.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
-          OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development node examples/sidebar-tools/quick-notes-react/scripts/compare.mjs > artifacts/quick-notes-implementation-comparison.json
+          node scripts/build-sidebar-tool.mjs projects/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
+          OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development node projects/quick-notes-react/scripts/compare.mjs > artifacts/quick-notes-implementation-comparison.json
           node --test tests/environment/sidebar-quick-notes-react-r22-compare.test.mjs
       - uses: browser-actions/setup-chrome@v2
         id: chrome
@@ -67,8 +67,8 @@ jobs:
           node scripts/tests/quick-notes-react-r21-installed-chrome.mjs artifacts/sidebar-tools/quick-notes-react/installed-chrome
       - name: Promote React package ONLY in tested ephemeral CI checkout
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --promote-from artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --check-project
+          node scripts/build-sidebar-tool.mjs projects/quick-notes-react --promote-from artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/quick-notes-react --check-project
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -77,9 +77,9 @@ jobs:
           retention-days: 14
           include-hidden-files: true
           path: |
-            examples/sidebar-tools/quick-notes-react/quick-notes-react.opendesk-tool.json
-            examples/sidebar-tools/quick-notes-react/dist/
-            examples/sidebar-tools/quick-notes-react/.opendesk-preview/
+            projects/quick-notes-react/quick-notes-react.opendesk-tool.json
+            projects/quick-notes-react/dist/
+            projects/quick-notes-react/.opendesk-preview/
             artifacts/sidebar-tools/quick-notes/
             artifacts/sidebar-tools/quick-notes-react/
             artifacts/quick-notes-implementation-comparison.json

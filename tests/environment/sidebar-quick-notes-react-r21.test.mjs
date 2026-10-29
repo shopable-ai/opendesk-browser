@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
 import {itemBytes,recoverNotes,validNote,noteLabel,pageInfoFrom,proposedSave,
-  proposedDelete,MAX_NOTES,STORAGE_KEY} from '../../examples/sidebar-tools/quick-notes-react/src/model.js';
+  proposedDelete,MAX_NOTES,STORAGE_KEY} from '../../projects/quick-notes-react/src/model.js';
 const repo=new URL('../../',import.meta.url);
 const read=path=>readFile(new URL(path,repo),'utf8');
 const ETAG='a'.repeat(64);
@@ -12,11 +12,11 @@ const create=(data={})=>proposedSave({notes:[],selectedId:null,text:'中文笔�
 test('native identity remains independent from Shared UI identity',async()=>{
   const [original,react,boot,jsx,vite,html]=await Promise.all([
     read('projects/quick-notes/tool.config.json').then(JSON.parse),
-    read('examples/sidebar-tools/quick-notes-react/tool.config.json').then(JSON.parse),
-    read('examples/sidebar-tools/quick-notes-react/src/main.jsx'),
-    read('examples/sidebar-tools/quick-notes-react/src/App.jsx'),
-    read('examples/sidebar-tools/quick-notes-react/vite.config.mjs'),
-    read('examples/sidebar-tools/quick-notes-react/src/root.html')]);
+    read('projects/quick-notes-react/tool.config.json').then(JSON.parse),
+    read('projects/quick-notes-react/src/main.jsx'),
+    read('projects/quick-notes-react/src/App.jsx'),
+    read('projects/quick-notes-react/vite.config.mjs'),
+    read('projects/quick-notes-react/src/root.html')]);
   assert.equal(original.id,'quick-notes');
   // The independent native app may release new versions without invalidating
   // React source/SDK parity tests. Its ID and storage owner remain unchanged.
@@ -122,9 +122,9 @@ test('page attachment opt-in, offline preservation and URL classification',()=>{
 });
 test('preview SDK cannot be confused with real installed RPC',async()=>{
   const [preview,main,stage]=await Promise.all([
-    read('examples/sidebar-tools/quick-notes-react/preview/sdk-preview.js'),
-    read('examples/sidebar-tools/quick-notes-react/src/main.jsx'),
-    read('examples/sidebar-tools/quick-notes-react/scripts/stage-preview.mjs')]);
+    read('projects/quick-notes-react/preview/sdk-preview.js'),
+    read('projects/quick-notes-react/src/main.jsx'),
+    read('projects/quick-notes-react/scripts/stage-preview.mjs')]);
   assert.match(preview,/PREVIEW ONLY/);
   assert.match(preview,/store=\{notes:null,note:null\}/);
   assert.doesNotMatch(main,/sdk-preview|localStorage|sessionStorage/);
@@ -153,9 +153,9 @@ test('host source cannot import Quick Notes React business or duplicate its runt
       'framework must not load Quick Notes React business dynamically: '+file.pathname);
   }
   const [app,entry,model]=await Promise.all([
-    read('examples/sidebar-tools/quick-notes-react/src/App.jsx'),
-    read('examples/sidebar-tools/quick-notes-react/src/main.jsx'),
-    read('examples/sidebar-tools/quick-notes-react/src/model.js')
+    read('projects/quick-notes-react/src/App.jsx'),
+    read('projects/quick-notes-react/src/main.jsx'),
+    read('projects/quick-notes-react/src/model.js')
   ]);
   assert.match(entry,/globalThis\.OpenDeskTool/);
   assert.match(entry,/bridge\.request/);

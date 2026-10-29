@@ -37,10 +37,10 @@
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
 npm run build:dev
-npm run build --prefix examples/sidebar-tools/quick-notes-react
-OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development npm run stage:preview --prefix examples/sidebar-tools/quick-notes-react
+npm run build --prefix projects/quick-notes-react
+OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development npm run stage:preview --prefix projects/quick-notes-react
 node --test tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-quick-notes-react-r21.test.mjs tests/environment/sidebar-quick-notes-react-pack-r21.test.mjs
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs projects/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
 node --test tests/environment/sidebar-quick-notes-react-r22-compare.test.mjs
 ```
 
@@ -54,7 +54,7 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 OPENDESK_SHARED_UI_EXTENSION_DIR=artifacts/sidebar-tools/quick-notes-react/r23/host-verified OPENDESK_QN_HEADFUL=1 node scripts/tests/quick-notes-react-r21-installed-chrome.mjs artifacts/sidebar-tools/quick-notes-react/r23/mac-final-canonical
 ```
 
-结果：**真实 Mac 原生 Side Panel 自动化 PASS，34 条操作记录**。Chrome 返回 `SIDE_PANEL` 与带 `hostInstanceId` 的真实扩展 URL；独立临时 Profile，未访问用户原生笔记，`simulatedSDK:false`。原始记录见[本轮证据 JSON](../../../docs/framework/workstreams/quick-notes-react-r23-mac-evidence-20261019.json)。
+结果：**真实 Mac 原生 Side Panel 自动化 PASS，34 条操作记录**。Chrome 返回 `SIDE_PANEL` 与带 `hostInstanceId` 的真实扩展 URL；独立临时 Profile，未访问用户原生笔记，`simulatedSDK:false`。原始记录见[本轮证据 JSON](../../docs/framework/workstreams/quick-notes-react-r23-mac-evidence-20261019.json)。
 
 - 双安装：两个 ID/版本/包 SHA 核验；分别写入、关闭重开及浏览器完整重启；React 写入、更新、卸载后原生数据摘要仍相同。
 - 核心数据：新建、编辑、删除、多条切换、16 条与 8 KiB；ETag 冲突、真实 Host 超时导致的结果未知均保留草稿；HTTP(S) 网页关联通过。
@@ -67,9 +67,9 @@ OPENDESK_SHARED_UI_EXTENSION_DIR=artifacts/sidebar-tools/quick-notes-react/r23/h
 晋升与同源验证均 PASS：
 
 ```sh
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --promote-from artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --check-project
-shasum -a 256 examples/sidebar-tools/quick-notes-react/quick-notes-react.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs projects/quick-notes-react --promote-from artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs projects/quick-notes-react --check-project
+shasum -a 256 projects/quick-notes-react/quick-notes-react.opendesk-tool.json
 ```
 
 ## CI 与未验证范围

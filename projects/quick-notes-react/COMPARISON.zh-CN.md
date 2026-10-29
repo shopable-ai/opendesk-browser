@@ -4,7 +4,7 @@
 
 | | 原生 HTML/JS | React 19 + Shared UI |
 | --- | --- | --- |
-| 工程目录 | `examples/sidebar-tools/quick-notes/` | `examples/sidebar-tools/quick-notes-react/` |
+| 工程目录 | `projects/quick-notes/` | `projects/quick-notes-react/` |
 | 工具 ID | `quick-notes` | `quick-notes-react` |
 | 初始配置版本 | `1.1.9` | `1.0.0` |
 | 授权能力 | `storage.local`、`currentPage.read`、`tasks.open` | 完全相同 |
@@ -32,7 +32,7 @@
 
 ## 资源、开发成本与公平性
 
-`npm run compare --prefix examples/sidebar-tools/quick-notes-react` 在构建完成后输出机器可读 JSON，包括原生/React 编译后 JS、CSS、完整 UTF-8 工具包字节；区分原生 HTML 和混合业务 DOM JS、React 的 Model/JSX/Bootstrap/CSS 手写行数。**不能把原生混写的 main.js 当成全是纯业务行。**
+`npm run compare --prefix projects/quick-notes-react` 在构建完成后输出机器可读 JSON，包括原生/React 编译后 JS、CSS、完整 UTF-8 工具包字节；区分原生 HTML 和混合业务 DOM JS、React 的 Model/JSX/Bootstrap/CSS 手写行数。**不能把原生混写的 main.js 当成全是纯业务行。**
 
 Shared UI 的浏览器固定 React 和 CSS/组件资源并不免费：报告需单列其实际字节，解释「仅单工具成本」与「多个已安装工具可复用的公共成本」。若测 React 自打包基线，只更换相同 JSX 的依赖打包策略，不长期维护第三个 Quick Notes。
 
