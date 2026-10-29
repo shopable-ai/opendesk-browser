@@ -73,7 +73,7 @@ async function boundedJson(response) {
   } catch { return {error: 'BAD_JSON'}; }
 }
 
-function windowsFrom(data) {
+function windowsFrom(data, atMs) {
   // The internal API has exposed both a direct rate_limit object and a
   // newer wrapped rate_limits.rate_limit shape. Never merge independent buckets.
   const bucket = object(data?.rate_limit) ? data.rate_limit :
@@ -85,12 +85,13 @@ function windowsFrom(data) {
     if (raw == null) continue;
     if (!object(raw) || !Number.isFinite(raw.used_percent) || raw.used_percent < 0 || raw.used_percent > 100 ||
         !Number.isInteger(raw.limit_window_seconds) || raw.limit_window_seconds <= 0 ||
-        !Number.isSafeInteger(raw.reset_at) || raw.reset_at <= 0 ||
-        !Number.isFinite(new Date(raw.reset_at * 1000).getTime())) return null;
+        (raw.reset_at == null && (!Number.isSafeInteger(raw.reset_after_seconds) || raw.reset_after_seconds < 0))) return null;
+    const resetMs = raw.reset_at != null ? raw.reset_at * 1000 : atMs + raw.reset_after_seconds * 1000;
+    if (!Number.isFinite(resetMs) || resetMs <= 0 || !Number.isFinite(new Date(resetMs).getTime())) return null;
     const durationSeconds = raw.limit_window_seconds;
     windows.push({key, durationSeconds, usedPercent: raw.used_percent,
       remainingPercent: Math.round((100 - raw.used_percent) * 100) / 100,
-      resetsAt: new Date(raw.reset_at * 1000).toISOString()});
+      resetsAt: new Date(resetMs).toISOString()});
   }
   return windows.length > 0 ? windows : null;
 }
@@ -149,7 +150,7 @@ export async function probeCookieOnly({snapshot, expectedIdentity, fetchImpl = g
     return result('UNAVAILABLE', quota.status >= 300 && quota.status < 400 ? 'REDIRECT_BLOCKED' : 'QUOTA_HTTP_ERROR', base);
   const quotaBody = await boundedJson(quota);
   if (quotaBody.error) return result('SCHEMA_UNKNOWN', `QUOTA_${quotaBody.error}`, base);
-  const windows = windowsFrom(quotaBody.data);
+  const windows = windowsFrom(quotaBody.data, Date.parse(checkedAt));
   if (!windows) return result('SCHEMA_UNKNOWN', 'QUOTA_WINDOWS_UNRECOGNIZED', base);
 
   let session;
@@ -175,6 +176,8 @@ export async function probeCookieOnly({snapshot, expectedIdentity, fetchImpl = g
   return result('OK', 'COOKIE_ONLY_CONFIRMED', {
     ...base, sessionUserVerified: true, workspaceVerified: true,
     workspaceEvidence: 'QUOTA_ACCOUNT_ID',
+    planType: typeof quotaBody.data.plan_type === 'string' &&
+      /^[A-Za-z0-9_ -]{1,40}$/.test(quotaBody.data.plan_type) ? quotaBody.data.plan_type : null,
     windows, lastSuccessAt: checkedAt
   });
 }
