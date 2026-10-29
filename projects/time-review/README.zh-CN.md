@@ -45,7 +45,7 @@ JSON 导出继续包含原汇总与设置，另包含分类和已保存的分钟
 ## 构建与验收（必须在实际仓库执行）
 
 - node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs
-- npm run build:sidebar-tool -- examples/sidebar-tools/time-review
+- npm run build:sidebar-tool -- projects/time-review
 - npm run check
 - npm run build
 - npm run build:dev
@@ -59,7 +59,7 @@ Mac Chrome 155 对 Time Review 1.3.1 的真实内容导出、同名文件防覆�
 
 旧 `src-bex` 的全站鼠标/键盘监听、最长网页分钟归属和原始 POST 不会重新注入本工具。迁移矩阵与隐私缺陷详见 [LEGACY-DISTILLATION.zh-CN.md](LEGACY-DISTILLATION.zh-CN.md)。R1.4 的同步队列和 HTTPS 幂等协议当前仅为本地准备模块及隔离测试，**未连接生产服务器，也不会上传任何本机历史记录**；尚无可展示的云同步登录/开启按钮。日汇总、六分类、Canvas V3、导出仍以已验收的 R1.3.1 本地产品为准。
 
-专项测试：`node --test tests/environment/time-review-r14-sync-outbox.test.mjs`。工作流状态见 [time-review-r14.md](../../../docs/framework/workstreams/time-review-r14.md)；只有服务端确认幂等契约、可信连接/权限以及实际 Chrome/HTTPS 验收后才可开放可选云同步。
+专项测试：`node --test tests/environment/time-review-r14-sync-outbox.test.mjs`。工作流状态见 [time-review-r14.md](../../docs/framework/workstreams/time-review-r14.md)；只有服务端确认幂等契约、可信连接/权限以及实际 Chrome/HTTPS 验收后才可开放可选云同步。
 
 ## R1.5 站点授权与 Host 能力合同（2026-10-13）
 
@@ -71,7 +71,7 @@ Mac Chrome 155 对 Time Review 1.3.1 的真实内容导出、同名文件防覆�
 - 暂停保留汇总；卸载会依正式工具安装器的清理机制删除本工具独立的本机数据，先导出备份。重新安装不继承之前的网站授权。
 - 可选云同步仍仅有独立的本机准备队列和 HTTPS 适配器；没有经验证的生产账号、幂等服务器 ACK 和原生对账，**默认本地、不登录、不上传**，故不显示虚假的同步开关。
 
-专项回归：`node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-r15-site-grants.test.mjs`。当前候选的 Node、构建、真实 Mac Chrome 结论以及 Git SHA 应以 [R1.5 工作流](../../../docs/framework/workstreams/time-review-r15.md) 中绑定的结果为准；历史 R1.3/R1.4 通过不自动迁移为新包 PASS。
+专项回归：`node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-r15-site-grants.test.mjs`。当前候选的 Node、构建、真实 Mac Chrome 结论以及 Git SHA 应以 [R1.5 工作流](../../docs/framework/workstreams/time-review-r15.md) 中绑定的结果为准；历史 R1.3/R1.4 通过不自动迁移为新包 PASS。
 
 ## R1.6：什么情况下仍有 iframe？
 

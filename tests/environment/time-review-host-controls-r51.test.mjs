@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
+import {createTimeReviewPermissionControls} from '../../projects/time-review/trusted/host-controls.js';
 import {makeTimeReviewReact} from './time-review-host-controls-fixture.mjs';
 
 const find=(root,id)=>{
@@ -80,7 +80,7 @@ test('R1.5.1 sandbox start stays inline until genuine trusted Host confirmation'
   assert.match(block,/requestBrowserClick\(\{/);
   assert.match(block,/runTrustedTimeReviewOperation\('time\.start',\{\},event\)/);
   assert.match(block,/assertSession\(source,token\)/);
-  const index=await readFile('examples/sidebar-tools/time-review/src/index.html','utf8');
+  const index=await readFile('projects/time-review/src/index.html','utf8');
   const header=index.slice(index.indexOf('<header class="review-top">'),index.indexOf('</header>'));
   assert.match(header,/id="start"/);
   assert.match(header,/id="pause"/);
@@ -146,7 +146,7 @@ test('R1.5.1 trusted authorization uses React-owned siblings and ordered CSS',as
 test('trusted Time Review updates refresh only the identity-bound sandbox UI',async t=>{
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   const bridge=await readFile('src/sidebar-tools/bridge.js','utf8');
-  const script=await readFile('examples/sidebar-tools/time-review/src/main.js','utf8');
+  const script=await readFile('projects/time-review/src/main.js','utf8');
   assert.match(host,/kind:'state-changed',instance,toolId:tool\.id/);
   assert.match(host,/frame\?\.contentWindow&&active\?\.id===TIME_REVIEW_ID/);
   assert.match(bridge,/event\.source!==parent/);

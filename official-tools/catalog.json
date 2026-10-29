@@ -48,7 +48,7 @@
     },
     {
       "id": "time-review",
-      "project": "examples/sidebar-tools/time-review",
+      "project": "projects/time-review",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },

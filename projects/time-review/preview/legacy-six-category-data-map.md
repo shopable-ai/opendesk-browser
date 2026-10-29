@@ -9,7 +9,7 @@
 - [原版分类管理 time-review-config.vue](https://github.com/shopable-ai/todo-user/blob/main/src/modules/todo/views/time-review-config.vue)：按日期筛选，域名/程序级别分类，通过 `actionConfig.add({path,type})` 保存。
 - [旧版分钟合并 UtilFragment.ts](https://github.com/shopable-ai/todo-user/blob/main/src/modules/todo/utils/UtilFragment.ts)：`times2Dic` 展开到 0–1439 分钟，`times2type` 统计六类；这和直接把所有 duration 相加不同。
 - [简体中文文案 zh-CN.ts](https://github.com/shopable-ai/todo-user/blob/main/src/modules/todo/locale/zh-CN.ts)：解释生产、学习、聊天、娱乐、生活及四象限含义。
-- [历史后台 TimeReview.ts](../../docs/contracts/source-snapshots/todo-src-bex/src-bex/TimeReview.ts)：活动记录上传，不是整套报告读取与分类 UI。
+- [历史后台 TimeReview.ts](../../../docs/contracts/source-snapshots/todo-src-bex/src-bex/TimeReview.ts)：活动记录上传，不是整套报告读取与分类 UI。
 
 ## 2. 类别合同（保留原编号）
 

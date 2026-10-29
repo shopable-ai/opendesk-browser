@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createTimeReviewService} from '../../examples/sidebar-tools/time-review/trusted/service.js';
+import {createTimeReviewService} from '../../projects/time-review/trusted/service.js';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {timeReviewPackageHash,TIME_REVIEW_PROTOCOL,TIME_REVIEW_SESSION} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
+import {timeReviewPackageHash,TIME_REVIEW_PROTOCOL,TIME_REVIEW_SESSION} from '../../projects/time-review/trusted/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {TIME_REVIEW_KEY,emptyReview} from '../../examples/sidebar-tools/time-review/trusted/model.js';
+import {TIME_REVIEW_KEY,emptyReview} from '../../projects/time-review/trusted/model.js';
 
 function emitter(){
   const listeners=new Set();
@@ -16,7 +16,7 @@ function locks(){
 }
 async function makeFixture(){
   let clock=new Date(2026,9,11,10).getTime(),permission=true;
-  const tool=await createSidebarToolPackage('examples/sidebar-tools/time-review'),hash=await timeReviewPackageHash(tool);
+  const tool=await createSidebarToolPackage('projects/time-review'),hash=await timeReviewPackageHash(tool);
   const local={[SIDEBAR_TOOL_STORE]:[tool],
     [TIME_REVIEW_KEY]:{...emptyReview(),siteGrants:{allSites:true,origins:[]}}},session={},alarms=new Map();
   const area=data=>({

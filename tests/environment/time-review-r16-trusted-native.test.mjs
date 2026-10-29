@@ -1,12 +1,12 @@
 import {settingsReactFixture} from '../helpers/trusted-settings-react-fixture.mjs';
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
-import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
-import {TIME_REVIEW_KEY} from '../../examples/sidebar-tools/time-review/trusted/model.js';
+import {createTimeReviewPermissionControls} from '../../projects/time-review/trusted/host-controls.js';
+import {TIME_REVIEW_KEY} from '../../projects/time-review/trusted/model.js';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../examples/sidebar-tools/time-review/trusted/trusted-admission.js';
+import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../projects/time-review/trusted/trusted-admission.js';
 import {serializeSidebarToolPackage,validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 
 function fixture(){
@@ -56,8 +56,8 @@ test('R1.6 first install with null epoch is admitted only for the exact reviewed
 test('R1.6 source uses one static first-party UI; other tools retain the opaque sandbox',async t=>{
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   const entry=await readFile('src/entrypoints/sidebar-tool-host.js','utf8');
-  const native=await readFile('examples/sidebar-tools/time-review/trusted/trusted-native-ui.js','utf8');
-  const main=await readFile('examples/sidebar-tools/time-review/src/main.js','utf8');
+  const native=await readFile('projects/time-review/trusted/trusted-native-ui.js','utf8');
+  const main=await readFile('projects/time-review/src/main.js','utf8');
   const markup=await renderSidebarFixture();
   assert.match(host,/sidebar-tools\/sandbox\.html/);
   assert.match(host,/admitsTrustedTimeReview/);

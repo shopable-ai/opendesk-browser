@@ -8,7 +8,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {setTimeout as sleep} from 'node:timers/promises';
 
-const root=path.resolve('examples/sidebar-tools/time-review/src');
+const root=path.resolve('projects/time-review/src');
 const output=path.resolve(process.argv[2]||'artifacts/time-review-r13-visual');
 const [html,css,js]=await Promise.all(['index.html','style.css','main.js'].map(p=>readFile(path.join(root,p),'utf8')));
 const categories=[360000,3600000,1800000,720000,720000,0];

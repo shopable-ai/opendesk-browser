@@ -4,7 +4,7 @@ on:
     paths:
       - 'src/time-review/**'
       - 'src/ui/sidebar-tools.js'
-      - 'examples/sidebar-tools/time-review/**'
+      - 'projects/time-review/**'
       - 'tests/environment/time-review-r12.test.mjs'
       - 'tests/environment/time-review-r13*.test.mjs'
       - 'tests/framework/time-review-r13-visual.mjs'
@@ -30,8 +30,8 @@ jobs:
         run: npm run check
       - name: Build versioned Time Review package without bypassing budget
         run: |
-          npm run build:sidebar-tool -- examples/sidebar-tools/time-review
-          node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';import {createHash} from 'node:crypto';const version=JSON.parse(readFileSync('examples/sidebar-tools/time-review/tool.config.json','utf8')).version;const file='artifacts/sidebar-tools/time-review/'+version+'/time-review.opendesk-tool.json';const b=readFileSync(file);const p=validateSidebarToolPackage(JSON.parse(b));if(p.id!=='time-review'||p.version!==version||p.capabilities.join(',')!=='time.review,user.export')throw Error('Time Review package identity drift');console.log('TIME_REVIEW_PACKAGE',b.length,createHash('sha256').update(b).digest('hex'))"
+          npm run build:sidebar-tool -- projects/time-review
+          node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';import {createHash} from 'node:crypto';const version=JSON.parse(readFileSync('projects/time-review/tool.config.json','utf8')).version;const file='artifacts/sidebar-tools/time-review/'+version+'/time-review.opendesk-tool.json';const b=readFileSync(file);const p=validateSidebarToolPackage(JSON.parse(b));if(p.id!=='time-review'||p.version!==version||p.capabilities.join(',')!=='time.review,user.export')throw Error('Time Review package identity drift');console.log('TIME_REVIEW_PACKAGE',b.length,createHash('sha256').update(b).digest('hex'))"
       - name: Both MV3 builds and verified packages
         run: |
           npm run build
