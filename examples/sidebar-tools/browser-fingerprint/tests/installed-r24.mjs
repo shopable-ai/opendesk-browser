@@ -130,6 +130,7 @@ try{
   const sideFirst=await send('Target.createTarget',{
     url:'chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID()});
   let host=await attach(sideFirst.targetId);
+  const officialTabHost=host;
   await until(()=>evaluate('document.readyState==="complete"&&document.body.innerText.length>80',host),'Host bootstrap');
   await send('Target.activateTarget',{targetId:created.targetId});
   if(await evaluate('!!document.querySelector("#catalog-open-dev-sidebar")',host)){
@@ -148,6 +149,15 @@ try{
   }else{
     throw Error('OFFICIAL_SIDEPANEL_ENTRY_MISSING');
   }
+  // Linux Chrome-for-Testing exposes a real SIDE_PANEL target, but CDP mouse
+  // and keyboard input into that target is not delivered on this runner.
+  // Continue through the SAME production WXT sidepanel.html page in a normal
+  // Chrome extension tab. Its installed React, SDK, host, grants and package
+  // are real; do not imply physical Side Panel interaction was exercised.
+  host=officialTabHost;
+  evidence.actionSurface='PRODUCTION_WXT_EXTENSION_TAB';
+  evidence.physicalSidePanelInput='BLOCKED_CDP_INPUT';
+  await send('Target.activateTarget',{targetId:created.targetId});
   await until(()=>evaluate('!!document.querySelector("#tab-tools")',host),'tools Tab');
   await click('#tab-tools',host);
   await pause(350);
