@@ -100,7 +100,7 @@
 
 ## Browser Fingerprint HTTP 诊断页（2026-10-30，独立作用域）
 
-- Status: Active。以下仅约束 Browser Fingerprint 诊断页，保留上方阅读目录设计和并行工作。
+- Status: 本地页面核验及独立评审完成，八项最低95、平均97；见 `examples/sidebar-tools/browser-fingerprint/evidence/http-diagnostic-20261030.zh-CN.md`。以下仅约束 Browser Fingerprint 诊断页，保留上方阅读目录设计和并行工作。
 - Source of truth: 用户明确选择独立 HTTP 诊断页，并要求已完成的扩展不过度修改。依据：`examples/sidebar-tools/browser-fingerprint/README.zh-CN.md`、R27、`src/ui/design-tokens.css`、d57 Host 实测。
 - Brand / Product goals: 清晰、克制、以网页实际值为信任依据。HTTP 网页自行采集 UA、低熵 UA-CH、语言、时区和视口；扩展仍负责配置/应用/停止/可信报告。不是反关联或网络身份认证产品。
 - Personas and jobs: QA / 本地化测试人员在同一目标 Tab 上观察应用前、应用后、停止后的真实差异。

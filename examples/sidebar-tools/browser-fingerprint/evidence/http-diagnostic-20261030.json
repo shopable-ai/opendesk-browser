@@ -1,0 +1,197 @@
+{
+  "schema": "opendesk.fingerprint-http-evidence.v1",
+  "date": "2026-10-30",
+  "scope": "Independent HTTP diagnostic page only",
+  "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+  "websiteSourceCommit": "cc544c4bf",
+  "host": {
+    "sourceCommit": "d57bc6c681a01cd76433cc880c71453d6a72c0c5",
+    "mode": "production static acceptance package",
+    "packageHash": "86fa5c0e50a32c87108ce54da23317669e476ebd7b50e2e6ace00363cdb80fa4",
+    "extensionId": "nohbijocppfnjliinhdfnclbddljobfe",
+    "browser": "Chrome for Testing 154.0.8037.92",
+    "os": "macOS"
+  },
+  "tool": {
+    "version": "0.2.2",
+    "candidateSha256": "b0d48d86f35eec9edc53d3d308737f496e58bb91013af11138fd1f76e5e5ee19",
+    "unchangedDuringWebsiteWork": true,
+    "formalPackageVersion": "0.2.1"
+  },
+  "cycles": [
+    {
+      "stage": "http-baseline",
+      "at": "2026-10-29T16:31:48.118Z",
+      "documentId": "25A45D6C10826132C8FC59C7843CFD30",
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "summary": "0 项变化 · 9 项与基线一致 · 0 项不可比较",
+      "debuggerAttached": false
+    },
+    {
+      "stage": "http-de-applied",
+      "at": "2026-10-29T16:32:38.294Z",
+      "documentId": "25A45D6C10826132C8FC59C7843CFD30",
+      "values": {
+        "language": "de-DE",
+        "languages": [
+          "de-DE"
+        ],
+        "timezone": "Europe/Berlin",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "summary": "5 项变化 · 4 项与基线一致 · 0 项不可比较",
+      "debuggerAttached": true
+    },
+    {
+      "stage": "http-de-restored",
+      "at": "2026-10-29T16:33:30.444Z",
+      "documentId": "25A45D6C10826132C8FC59C7843CFD30",
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "summary": "0 项变化 · 9 项与基线一致 · 0 项不可比较",
+      "debuggerAttached": false
+    },
+    {
+      "stage": "http-us-applied",
+      "at": "2026-10-29T16:46:05.958Z",
+      "documentId": "053D24B918ACB2484D434EDD11DF973F",
+      "values": {
+        "language": "en-US",
+        "languages": [
+          "en-US"
+        ],
+        "timezone": "America/New_York",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "Windows",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "summary": "8 项变化 · 1 项与基线一致 · 0 项不可比较",
+      "debuggerAttached": true
+    },
+    {
+      "stage": "http-us-restored",
+      "at": "2026-10-29T16:48:03.608Z",
+      "documentId": "053D24B918ACB2484D434EDD11DF973F",
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "summary": "0 项变化 · 9 项与基线一致 · 0 项不可比较",
+      "debuggerAttached": false
+    }
+  ],
+  "finalValidation": {
+    "at": "2026-10-29T16:42:43.082Z",
+    "input": "MACOS_CUA_NATIVE_UI_ONLY",
+    "observer": "PASSIVE_CDP_AND_HOST_SCRIPTING_READ_ONLY",
+    "checks": {
+      "snapshotStable": true,
+      "samplingContinued": true,
+      "pausedReturnSameDocument": true,
+      "pausedReturnKeepsTimestamp": true,
+      "pausedReturnKeepsBaseline": true,
+      "pausedReturnKeepsAutoOff": true
+    },
+    "hashes": {
+      "examples/tasks/browser-fingerprint.html": "2d8b4a2c7af3b3c3773c07a413c6a9d7eef481cea630fe19f81f026f802827f5",
+      "examples/tasks/browser-fingerprint/model.mjs": "659f1bb8aeebd582ca63bcfccd0e516b2df2eb5bf38b57957415c689b425ea06",
+      "examples/tasks/browser-fingerprint/page.mjs": "c2983413300fa6651adb68060920ecce303fce2359ccdbffdf6f3f9f61ad8a54",
+      "examples/tasks/browser-fingerprint/page.css": "c20f43b3070aa5838a8cca6804bde96ffedcdafdc15857d5d48180ceddeeabd7",
+      "examples/sidebar-tools/browser-fingerprint/tests/web-diagnostic.test.mjs": "484075510754944b9945155e5aadb1497f303aee2467c2e3283ee6aa7cbb2f48"
+    },
+    "sourceEdits": "Standalone page only; no extension or tool package edits",
+    "node": {
+      "pass": 16,
+      "fail": 0,
+      "log": "http-node.log",
+      "beforeFixTwoRegressions": "http-events-before.log"
+    },
+    "screenshots": [
+      "http-final-full.png",
+      "http-keyboard-focus.png"
+    ],
+    "limits": [
+      "Clipboard success UI observed; clipboard bytes not independently read",
+      "Copy rejection path covered by Node event test",
+      "Screen reader session not executed",
+      "Width/zoom matrix OUT_OF_SCOPE",
+      "Not a Host or release acceptance"
+    ]
+  },
+  "review": {
+    "kind": "Independent Codex code-reviewer; not external certification",
+    "agentId": "01a18883-6f7d-7502-9972-6b691448cb44",
+    "nickname": "Fermat",
+    "scores": {
+      "functionality": 97,
+      "realExecution": 97,
+      "dataConsistency": 98,
+      "lifecycle": 97,
+      "permissionSafety": 98,
+      "interactionAccessibility": 95,
+      "installationCompatibility": 98,
+      "testEvidence": 96
+    },
+    "arithmeticMean": 97,
+    "minimum": 95,
+    "targetMet": true,
+    "remainingRequiredFindings": 0,
+    "closedFindings": [
+      "Automatic sampling no longer rewrites selectable JSON snapshots",
+      "Paused BFCache return no longer forces a sample"
+    ],
+    "formalReviewStatus": "COMMENT: reviewer LSP unavailable; no remaining required page change"
+  },
+  "rawEvidenceDirectory": "artifacts/fingerprint-r25/mac154-d57",
+  "limits": [
+    "Page score does not assert full Host/lifecycle/release acceptance",
+    "HTTP Accept-Language UNVERIFIABLE; Geolocation UNSUPPORTED",
+    "Daily extension/watchers untouched",
+    "Original R2.5 release goal remains active; no formal 0.2.2 promotion in this page scope"
+  ]
+}
