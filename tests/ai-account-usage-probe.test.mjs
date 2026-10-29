@@ -121,3 +121,12 @@ test('never mutates saved cookie snapshot', async()=>{
   await probeCookieOnly({...input,expectedIdentity:{userId:'u',accountId:'workspace-1'},fetchImpl:fake(json(quota),json(user('u')))});
   assert.deepEqual(input.snapshot,before);
 });
+
+test('recognizes wrapped rate_limits.rate_limit and rejects invalid reset dates', async()=>{
+  const input=account('a','u');
+  const good=await probeCookieOnly({...input,expectedIdentity:{userId:'u',accountId:'workspace-1'},fetchImpl:fake(json({account_id:'workspace-1',rate_limits:{rate_limit:quota.rate_limit}}),json(user('u')))});
+  assert.equal(good.status,'OK');
+  assert.equal(good.windows.length,2);
+  const bad=await probeCookieOnly({...input,fetchImpl:fake(json({...quota,rate_limit:{primary_window:{used_percent:2,limit_window_seconds:18000,reset_at:9000000000000000}}}),json(user('u')))});
+  assert.equal(bad.status,'SCHEMA_UNKNOWN');
+});
