@@ -160,6 +160,9 @@ R2.5 交互参考页至少应有两层导航（**预览外壳专用，不加入�
 
 以上规范是**目标行为**，不是本轮已经完成八维产品验收的证明。数值随真实 CSS 修改而更新；视觉例外须能指向现有正式使用场景并有对照。
 
+
+**可选布局密度（2026-10-29）：** Browser Fingerprint R2.0 的紧凑视觉已归档为 [Compact Settings Recipe](./extension-ui-layout-recipes-r25.zh-CN.md) 的 **3.5 节**，是 P02/P07/P11/P13 的组合示例而不是新 Token、基础组件或全局主题。正式布局仍采用本节语义 Token、34px IconButton/36px 输入基线；R2.0 预览的 31px/35px 及硬编码色板不能直接照搬。`DESIGN_REFERENCE_ONLY`，未接入正式 React。
+
 ### 组件来源分级（不能误导 AI）
 
 - `SHARED_REACT`：现有 `components/ui/button.tsx`、`card.tsx`、`switch.tsx` 可供合适的可信 React 消费者导入。
