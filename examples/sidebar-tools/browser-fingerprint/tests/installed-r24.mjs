@@ -456,6 +456,15 @@ try{
       throw error;
     }
     item.afterDetach=await independent();
+    // Capture both language APIs immediately after detach, before the Host
+    // readback. Chrome can restore navigator.language while retaining a
+    // stale acceptLanguage override in navigator.languages.
+    item.postDetachLanguageEvidence={
+      navigatorLanguage:item.afterDetach.values.language,
+      navigatorLanguages:item.afterDetach.values.languages,
+      originalLanguage:baseline.values.language,
+      originalLanguages:baseline.values.languages
+    };
     assert.equal(item.afterDetach.debuggerAttached,false,'debugger must detach before restoration verification');
     await action(2);
     await until(async()=>['调试已停止 · 恢复有限验证','已独立核验恢复','恢复结果未知'].includes(await status()),
