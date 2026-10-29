@@ -38,7 +38,8 @@ function fixtureRequest(fixture,{method,url,data,headers}){
 }
 async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN}),
   developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
-  performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false}={}){
+  performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false,
+  developmentControls=false}={}){
   // Historical VM business tests simulate a development panel that now exists
   // ONLY in the test harness, not in the installable React product DOM.
   const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status',
@@ -50,6 +51,8 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   assert(testOnly.every(id=>!ids.has(id)),
     'Development/account allocation diagnostics must not appear in shipped App.jsx');
   const nodes=new Map([...ids,...testOnly].map(id=>[id,node(id)]));
+  let rootReady=!developmentControls,createdControls=0,removedControls=0,release;
+  if(developmentControls)for(const id of ['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status'])nodes.delete(id);
   const calls=[],storageCalls=[],proxyCalls=[],cookieCalls=[],tabCalls=[],pageCalls=[],timers=[],toolStates=[];
   let page=currentPage??{status:'unavailable'};
   let current={...released,...(developmentProfile?{developmentProfile}: {})};
@@ -82,7 +85,7 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   const managed={getStatus:async()=>getStatus?getStatus():clone(current),
     requestEnable:async args=>{proxyCalls.push({action:'enable',...clone(args)});current={...owned,developmentProfile};return clone(current)},
     requestDisable:async()=>{proxyCalls.push({action:'disable'});current={...released,developmentProfile};return clone(current)}};
-  const window={OpenDeskTool:{root:{querySelector:id=>nodes.get(id.slice(1))},request:storage,
+  const window={OpenDeskTool:{root:{querySelector:id=>rootReady?nodes.get(id.slice(1)):null},request:storage,
     setState:state=>toolStates.push(clone(state))},
     OpenDeskSDK:{browser:{network:{request},proxy:{managed},cookies:{setMany:async args=>{
       cookieCalls.push(clone(args));return cookieSetMany?cookieSetMany(args):{
@@ -99,10 +102,20 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     '  window.__activationTests={activationCodeFromPage,checkActivationPage,claimActivation:value=>claimActivation(value,serviceRevision)};\n'+anchor);
   vm.runInNewContext(instrumented,{window,document:{createElement:()=>node()},URL,Date,Intl,performance:performanceClock,
     TextEncoder,Uint8Array,crypto:{randomUUID,subtle:webcrypto.subtle}}, {timeout:2000});
+  if(developmentControls){
+    rootReady=true;
+    release=window.__OpenDeskVipStart({createDevelopmentControls(){
+      createdControls++;
+      for(const id of ['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status'])nodes.set(id,node(id));
+      return {section:nodes.get('ai-vip-local-development'),button:nodes.get('ai-vip-local-connect'),
+        status:nodes.get('ai-vip-local-status'),dispose(){removedControls++;}};
+    }});
+  }
   await flush();
   const get=name=>nodes.get('ai-vip-'+name);
   const click=async(name,trusted=true)=>{get(name).listeners.click({isTrusted:trusted});await flush()};
   return {store,fixture,get,click,calls,storageCalls,proxyCalls,cookieCalls,tabCalls,pageCalls,timers,toolStates,
+    release,developmentView:()=>({created:createdControls,removed:removedControls}),
     activation:window.__activationTests,setPage(value){page=value},
     async checkPage(){await window.__activationTests.checkActivationPage();await flush();},
     async preview(value='DEMO-VIP-01'){
@@ -110,6 +123,45 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
       get('redeem-form').listeners.submit({isTrusted:true,preventDefault(){}});await flush();
     },setStatus(value){current=value},flush};
 }
+
+test('installed controller creates optional development controls only for the approved SDK profile and connects the real fixture',async()=>{
+  for(const developmentProfile of [null,{...profile,domains:[...domains,'example.com']},
+    {...profile,endpoint:{...profile.endpoint,host:'localhost'}}]){
+    const e=await runtime({developmentProfile,developmentControls:true,
+      store:new Map([[PREFERENCE,{schemaVersion:1,enabled:true}]])});
+    assert.equal(e.developmentView().created,0);
+    assert.equal(e.get('local-connect'),undefined);
+    assert.equal(e.calls.length,0);
+    assert.equal(e.get('member-state').textContent,'服务未配置');
+    e.release();
+  }
+  const e=await runtime({developmentControls:true});
+  assert.equal(e.developmentView().created,1);
+  assert.equal(e.get('local-development').hidden,false);
+  assert.equal(e.calls.length,0);
+  await e.click('local-connect',false);assert.equal(e.calls.length,0);
+  await e.click('local-connect');
+  assert.equal(e.get('member-state').textContent,'尚未开通');
+  await e.preview();assert.equal(e.fixture.ledger.size,0);
+  await e.click('redeem-cancel');assert.equal(e.fixture.ledger.size,0);
+  await e.preview();await e.click('redeem-confirm');
+  assert.equal(e.fixture.ledger.size,1);
+  assert.equal(e.get('member-state').textContent,'权益有效');
+  e.setStatus({...released,developmentProfile:null});
+  await e.click('proxy-refresh');
+  assert.equal(e.get('local-development').hidden,true);
+  assert.equal(e.get('member-state').textContent,'服务未配置');
+  assert.equal(e.fixture.ledger.size,1);
+  e.release();assert.equal(e.developmentView().removed,1);
+});
+
+test('a late profile response after controller disposal cannot create a development view',async()=>{
+  const pending=deferred();
+  const e=await runtime({developmentControls:true,getStatus:()=>pending.promise});
+  e.release();pending.resolve({...released,developmentProfile:profile});await flush();
+  assert.equal(e.developmentView().created,0);
+  assert.equal(e.calls.length,0);
+});
 
 test('local development requires trusted exact profile and explicit opt-in; production ignores saved selection',async()=>{
   for(const developmentProfile of [null,{...profile,endpoint:{...profile.endpoint,scheme:'https'}},
@@ -149,7 +201,7 @@ test('real fixture preview/confirm grants development feature, refreshes member 
   assert.equal(e.store.get(RECOVERY),null);
   const journal=e.storageCalls.find(row=>row.operation==='storage.set'&&row.key===RECOVERY&&row.value);
   assert.equal(journal.value.schemaVersion,2);assert.equal(journal.value.serviceOrigin,ORIGIN);
-  assert.equal(journal.value.packageVersion,'1.4.2');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
+  assert.equal(journal.value.packageVersion,'1.4.4');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
   await e.click('proxy-toggle');
   assert.deepEqual(e.proxyCalls,[{action:'enable',config:profile}]);
   assert.equal(e.get('proxy-toggle').attributes['data-action'],'stop');
@@ -584,6 +636,33 @@ test('Cookie delivery waits for explicit user intent, uses public setMany, recor
   assert.equal(reopened.get('cookie-install').hidden,true);
   await e.click('proxy-toggle');await e.click('proxy-toggle');
   assert.equal(e.store.get(COOKIE_KEY).state,'success');assert.equal(e.cookieCalls.length,1);
+});
+test('explicit Cookie confirmation cancellation stays unsubmitted and permits only a fresh manual attempt',async()=>{
+  let cancel=true,writes=0;
+  const e=await cookieRuntime({cookieSetMany:async args=>{
+    if(cancel)throw Object.assign(Error('Host confirmation cancelled before submission'),{code:'E_COOKIE_NOT_SUBMITTED'});
+    writes++;
+    return {saved:args.cookies.length,verified:args.cookies.length,
+      results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
+  }});
+  await e.click('cookie-install');
+  assert.equal(writes,0);assert.equal(e.store.get(COOKIE_KEY).state,'failed');
+  assert.equal(e.get('cookie-install').disabled,false);
+  assert.match(e.get('cookie-status').textContent,/已取消 Cookie 确认.*未提交/);
+  await e.flush();assert.equal(e.cookieCalls.length,1,'no automatic retry');
+  cancel=false;await e.click('cookie-install');
+  assert.equal(writes,1);assert.equal(e.store.get(COOKIE_KEY).state,'success');
+});
+test('generic SDK cancellation can follow a write and must remain unknown after reopen',async()=>{
+  const e=await cookieRuntime({cookieSetMany:async()=>{
+    throw Object.assign(Error('SDK document closed after dispatch'),{code:'E_CANCELLED'});
+  }});
+  await e.click('cookie-install');
+  assert.equal(e.store.get(COOKIE_KEY).state,'unknown');
+  assert.equal(e.get('cookie-install').hidden,true);
+  const reopened=await runtime({store:e.store,fixture:e.fixture});
+  assert.equal(reopened.cookieCalls.length,0);
+  assert.match(reopened.get('cookie-status').textContent,/未知.*禁止重放/);
 });
 test('Cookie parser refuses cross-origin, script fields, store/partition overrides, invalid times and oversized data before SDK',async()=>{
   const mutations=[d=>{d.targetUrl='https://chatgpt.com/'},d=>{d.targetUrl=ORIGIN+'/session/?token=x'},

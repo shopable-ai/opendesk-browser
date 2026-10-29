@@ -2819,7 +2819,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               if(!approval?.ok)throw Object.assign(new Error(approval?.error?.message||'Cookie intent denied'),{
                 code:approval?.error?.code||'E_BROWSER'});
               return approval.data.approvalRef;
-            }});
+            }}).catch(error=>{
+              // This promise only approves the exact batch. The Cookie RPC
+              // below has not been dispatched. Do not map later SDK/Host
+              // cancellation, which may follow an actual write, to this code.
+              if(operation==='browser.cookies.setMany'&&error?.code==='E_CANCELLED')
+                throw Object.assign(new Error('Cookie batch confirmation cancelled before submission'),
+                  {code:'E_COOKIE_NOT_SUBMITTED'});
+              throw error;
+            });
           assertSession(source,token);
           envelope.approvalRef=ref;
         }

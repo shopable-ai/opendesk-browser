@@ -8,6 +8,7 @@ const root=fileURLToPath(new URL('.',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export const AI_VIP_REACT_SOURCES=[
   'src/index.html','src/App.jsx','src/main.jsx','src/main.js','src/style.css',
+  'dev/local-test/connection.js',
   'tool.config.json','package.json','vite.config.mjs'
 ];
 const fingerprint=bytes=>({bytes:bytes.length,sha256:hash(bytes)});

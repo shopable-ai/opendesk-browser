@@ -2,7 +2,7 @@
   "name": "opendesk-ai-vip-share",
   "private": true,
   "type": "module",
-  "version": "1.4.2",
+  "version": "1.4.4",
   "scripts": {
     "build": "node ../../../node_modules/vite/bin/vite.js build --config vite.config.mjs",
     "build:preview": "node ../../../node_modules/vite/bin/vite.js build --config preview/vite.config.mjs"

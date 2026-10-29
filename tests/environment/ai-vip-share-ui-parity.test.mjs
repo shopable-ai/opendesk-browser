@@ -71,11 +71,11 @@ test('redemption stays review-first and unresolved side effects retain journals'
 
 test('formal package references one compiled React UI and immutable business safeguards',async()=>{
   assert.equal(config.id,'ai-vip-share');
-  assert.equal(config.version,'1.4.2');
+  assert.equal(config.version,'1.4.4');
   assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
   assert.deepEqual(config.files,{html:'src/index.html',css:'dist/tool.css',js:'dist/tool.js'});
   const pkg=await createSidebarToolPackage(base);
-  assert.equal(pkg.version,'1.4.2');
+  assert.equal(pkg.version,'1.4.4');
   assert.equal(pkg.html.trim(),'<div id="tool-app"></div>');
   assert.match(pkg.js,/OpenDeskPageReact/);
   assert.match(pkg.js,/OpenDeskSidebarUI/);

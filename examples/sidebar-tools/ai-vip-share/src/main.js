@@ -3,7 +3,7 @@
 (function(){
   'use strict';
   let started=false,release=()=>{};
-  function mountController(){
+  function mountController({createDevelopmentControls}={}){
   if(started)return release;
   const root=window.OpenDeskTool?.root;
   if(!root||!root.querySelector?.('#ai-vip-member-card'))return null;
@@ -51,8 +51,9 @@
   const shop=byId('ai-vip-shop-open'),shopStatus=byId('ai-vip-shop-status');
   const desktopOpen=byId('ai-vip-desktop-open'),desktopStatus=byId('ai-vip-desktop-status');
   const desktopSection=byId('ai-vip-desktop-promo');
-  const localSection=byId('ai-vip-local-development');
-  const localConnect=byId('ai-vip-local-connect'),localStatus=byId('ai-vip-local-status');
+  let localSection=byId('ai-vip-local-development');
+  let localConnect=byId('ai-vip-local-connect'),localStatus=byId('ai-vip-local-status');
+  let developmentControls=null,disposed=false;
   const cookieSection=byId('ai-vip-cookie-section'),cookieStatus=byId('ai-vip-cookie-status');
   const cookieInstall=byId('ai-vip-cookie-install'),cookieResults=byId('ai-vip-cookie-results');
   const sharedSection=byId('ai-vip-shared-section'),sharedAssigned=byId('ai-vip-shared-account');
@@ -130,9 +131,9 @@
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.2';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.4';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4']);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
@@ -359,7 +360,8 @@
       failed:'Cookie 未写入。请检查目标网站的 Chrome 权限与工具设置授权；修复后可主动重试有效交付。',
       unknown:'Cookie 操作结果未知或恢复记录未确认；已禁止重放，请在目标页面人工核对。'};
     cookieStatus.textContent=cookieFault||(cookieBusy?'正在核对授权与网站会话，请勿重复操作。':
-      record&&(!cookiePending||record.deliveryId===cookiePending.deliveryId)?labels[record.state]:
+      record&&(!cookiePending||record.deliveryId===cookiePending.deliveryId)?
+        (record.state==='failed'&&sharedNotice.startsWith('已取消 Cookie 确认')?sharedNotice:labels[record.state]):
         cookiePending?'已收到网站会话，目标网站：'+new URL(cookiePending.targetUrl).host+'。应用前请核对授权。':
         sharedBusy?'正在获取网站会话…':sharedNotice.startsWith('未取得有效')?
           '暂未取得有效网站会话，请检查授权后重试。':'尚未应用网站会话。');
@@ -478,10 +480,12 @@
         cookieFaultRecoverable=!started&&error?.code==='E_COOKIE_DELIVERY';
         // Before invocation there can be no Cookie effect. The SDK also rejects
         // schema/budget/permission preflight before its per-item write loop.
-        if(marker&&(!started||['E_SITE_GRANT_REQUIRED','E_CHROME_PERMISSION_REQUIRED','E_SCHEMA','E_LIMIT'].includes(error?.code))){
+        if(marker&&(!started||['E_COOKIE_NOT_SUBMITTED','E_SITE_GRANT_REQUIRED','E_CHROME_PERMISSION_REQUIRED','E_SCHEMA','E_LIMIT'].includes(error?.code))){
           try{await saveCookieRecord({...marker.value,state:'failed',results:[]},marker);}
           catch{cookieFault='Cookie 写入恢复记录无法确认，已禁止重放。';cookiePending=null;}
           if(!started){cookiePending=null;cookieFault='Cookie 写入未提交：交付已过期、账号或服务状态已变化。';}
+          else if(error?.code==='E_COOKIE_NOT_SUBMITTED')
+            sharedNotice='已取消 Cookie 确认，未提交写入；有效交付可由你重新确认，不会自动重试。';
         }else{
           cookiePending=null;
           cookieFault=started?'Cookie 写入结果未知，已禁止重放；请在目标页面人工核对。':
@@ -505,8 +509,15 @@
       record.schemaVersion===1);
   }
   function renderLocalDevelopment(){
-    // The production React view has no development/fixture UI.
-    // Old isolated VM harnesses may provide these optional nodes.
+    if(disposed)return;
+    // Only the source-reviewed SDK profile admits these optional controls;
+    // production and unapproved packages never construct a development view.
+    if(developmentProfile&&!localSection&&typeof createDevelopmentControls==='function'){
+      developmentControls=createDevelopmentControls();
+      localSection=developmentControls.section;localConnect=developmentControls.button;
+      localStatus=developmentControls.status;
+      localConnect.addEventListener('click',connectLocalDevelopment);
+    }
     renderFeatureStatus();
     if(!localSection||!localConnect||!localStatus)return;
     localSection.hidden=!developmentProfile;
@@ -584,7 +595,7 @@
     if(localChoice&&recoveryReady&&recoveryMatchesService(recovery,true))changeBusinessMode(true);
     renderLocalDevelopment();
   }
-  localConnect?.addEventListener('click',event=>{
+  function connectLocalDevelopment(event){
     if(event?.isTrusted!==true||localConnect.disabled||localConnecting||busy||cookieBusy)return;
     const selected=!localMode;
     localConnecting=true;localNotice='正在核对可信开发配置与本地选择…';renderLocalDevelopment();
@@ -609,7 +620,8 @@
         localNotice='未能连接或切换本地开发服务。请核对开发配置、工具存储及待核对兑换记录。';
       }finally{localConnecting=false;renderLocalDevelopment();}
     })();
-  });
+  }
+  localConnect?.addEventListener('click',connectLocalDevelopment);
   function validRecovery(raw){
     if(raw===null)return null;
     const development=raw?.schemaVersion===2;
@@ -1510,6 +1522,9 @@
     window.setInterval(()=>{void checkActivationPage();},1200):null;
   renderRedeem();
   release=()=>{
+    disposed=true;
+    localConnect?.removeEventListener?.('click',connectLocalDevelopment);
+    developmentControls?.dispose();
     if(activationTimer!==null)window.clearInterval?.(activationTimer);
     ++serviceRevision;++sharedGeneration;++seq;
   };

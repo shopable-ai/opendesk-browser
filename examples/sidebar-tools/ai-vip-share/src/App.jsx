@@ -4,11 +4,11 @@ import {Button,IconButton,Card,CardContent} from '@opendesk/ui';
 // This is the installable app's only UI tree. The v1.4.2 compatibility
 // controller mounts after React commits. Preview and developer controls
 // are never children of the installable product UI.
-export default function VipApp(){
+export default function VipApp({createDevelopmentControls}={}){
   React.useLayoutEffect(()=>{
-    const dispose=globalThis.__OpenDeskVipStart?.();
+    const dispose=globalThis.__OpenDeskVipStart?.({createDevelopmentControls});
     return ()=>dispose?.();
-  },[]);
+  },[createDevelopmentControls]);
   return (
     <main className="ai-vip" aria-label="AI VIP Share 会员与权益中心">
       <header className="ai-vip-brand" aria-label="AI VIP Share">
