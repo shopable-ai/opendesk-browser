@@ -1,0 +1,45 @@
+name: Browser Fingerprint R2.1 - focused Node and React
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/browser-fingerprint/**'
+      - '.github/workflows/browser-fingerprint-r21.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fingerprint-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned root build dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R2.1 Node - presets, CAS, fail-closed Host and existing A-grade history
+        run: npm --prefix examples/sidebar-tools/browser-fingerprint test
+      - name: R2.1 production React IIFE and source hash receipts
+        run: npm --prefix examples/sidebar-tools/browser-fingerprint run build
+      - name: Confirm native debugger remains ungranted and unclaimed
+        run: |
+          node --input-type=module -e "import {readFileSync} from 'node:fs'; const manifest=JSON.parse(readFileSync('manifest.json','utf8')); const config=JSON.parse(readFileSync('examples/sidebar-tools/browser-fingerprint/tool.config.json','utf8')); if(manifest.permissions?.includes('debugger')||manifest.optional_permissions?.includes('debugger')||config.capabilities.some(x=>x==='browser.fingerprint'))throw Error('R21 Native permission unexpectedly exposed'); console.log('FINGERPRINT_R21_NATIVE_NOT_AVAILABLE_YET');"
+      - name: Save isolated build evidence (not Chrome or web readback)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-fingerprint-r21-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            examples/sidebar-tools/browser-fingerprint/dist/build-ready.json
+            examples/sidebar-tools/browser-fingerprint/dist/tool.js
+            examples/sidebar-tools/browser-fingerprint/dist/tool.css
