@@ -1,13 +1,25 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "browser-fingerprint",
-  "version": "0.1.0",
-  "title": "浏览器环境检测",
-  "description": "只读 QA 诊断：已核验页面信息、部分证据快照、历史比较及本地报告。",
-  "capabilities": ["currentPage.read", "storage.local", "user.export"],
-  "requires": {"browserSdk": "1.0.0"},
-  "contributes": {"contextMenus": []},
+  "version": "0.2.0",
+  "title": "浏览器指纹",
+  "description": "环境预设、配置管理、独立验证与恢复工作台。原生环境修改须使用受审可信 Host；未接入时拒绝假成功。",
+  "capabilities": [
+    "currentPage.read",
+    "storage.local",
+    "user.export"
+  ],
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "contributes": {
+    "contextMenus": []
+  },
   "uiRuntime": "opendesk.react-ui.v1",
-  "files": {"html": "src/index.html", "css": "dist/tool.css", "js": "dist/tool.js"},
+  "files": {
+    "html": "src/index.html",
+    "css": "dist/tool.css",
+    "js": "dist/tool.js"
+  },
   "assets": []
 }
