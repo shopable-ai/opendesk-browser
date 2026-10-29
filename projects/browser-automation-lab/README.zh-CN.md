@@ -4,6 +4,21 @@
 >
 > 产品 ID（建议）：`browser-automation-lab`。名称为专家建议，尚待 UI 评审确认。正式产品未来只在 `projects/<id>/` 维护业务源码，不向旧 `examples/programs/` 或 `examples/sidebar-tools/` 添加新产品。
 
+## R1.1 优先决策：市场产品定位（2026-10-29）
+
+**最新用户澄清优先于 R1.0 的狭义故障描述**：Cloudflare、Chrome for Testing 与自动化提示只是发现需求的例子，**不是必须解决的验收目标**。产品应面向一般 Chrome 用户、自动化开发者、QA/本地化测试人员，提供可独立使用的**真实特征检测 + 有界参数调整 + 差异验证**，再按需兼容 AI/Node 浏览器启动方式。
+
+- **产品名称与唯一 ID**：仍建议 **Automation Lab / 自动化环境实验室**，`browser-automation-lab`。属于 OpenDesk 内的独立 Sidebar Tool；不要因为命名包含 Automation 就把它改成只能检测 Puppeteer 的工具。
+- **市场参照**：User-Agent Switcher and Manager、Canvas Fingerprint Defender、Bullshield、Chameleon Fingerprint Shield、All Fingerprint Defender、Spoof Me 等 Chrome Web Store 产品，以及 Puppeteer Stealth / Rebrowser Patches / Camoufox / GoLogin。来源、商店规模和链接已保存在 [市场研究](docs/research/sources-2026-10-29.md#f-r11-市场竞品与自动化依赖包对比2026-10-29)；商家效果主张均非独立验证。
+- **3 个主 Tab**：`检测`（网页层与已连接启动器信息；真实来源及状态）｜`配置`（可用字段、预设、应用、撤销；复用 Browser Fingerprint 的实际 SDK）｜`记录`（原始/期望/读回/恢复、差异、脱敏导出）。顶栏设置 Icon-only，辅助入口“打开独立检测网页”。首屏不能只显示一个抽象“风险总分”。
+- **扩展自身即可完成的核心体验**：授权当前网站 → 检查网页环境 → 选择受控配置 → 对当前 Tab 应用 → 独立读回验证 → 撤销并核对恢复。仅展示可信 Host 已声明可实现的字段；不支持或未授权时清楚标明，不能仅展示一个会切换的模拟开关。
+- **用户若使用 Node/AI 启动 Chrome**：明确当前 Side Panel 扩展是否存在于那个**具体的浏览器/Profile/Tab**。日常 Chrome 安装不自动复制到新创建的 Chrome for Testing Profile；需采用 Puppeteer 支持的扩展启用/安装接口，或在受支持的 Playwright/Chromium Persistent Context 加载，或连接已经安装的授权浏览器。发布前按版本实测，不保证所有发行版与 Headless 都支持。
+- **可选启动器适配器（P1）**：只上报有证据的启动渠道（standard Chrome / CFT / Chromium）、运行模式、自动化框架和扩展实际加载状态。网页与普通 Sidebar Tool 无法凭空读取进程命令行、改变 Chrome 原生自动化信息栏或替换浏览器二进制。统一诊断结果标 `webpage-js` / `trusted-host` / `launcher-attested` / `server-echo` / `unknown`，不能混合来源做肯定判断。
+- **不做承诺**：不能保证通过 Cloudflare、验证码或第三方访问控制；不提供任意 CDP/远程改写指令、不收集账号 Token/Cookie、不把 JS 覆盖称为原生系统修改。Chrome Web Store 发布须遵守最低权限与真实目的披露。
+- **落地路径**：P0 最小场景 HTML 可交互预览 → 单一 React UI/检测网页 → 真实授权 Tab 受控配置与读回 → 停止恢复 → 定向 Node/浏览器验收。P1 才评估启动器适配、更多可验证指纹字段和独立 MV3 商店包装。当前 `DESIGN_ONLY / NOT_TESTED`，前次 Browser Fingerprint 测试成绩不能直接算成本工具通过。
+
+**选择理由**：纯检测产品差异度低；纯随机 spoof 易产生字段冲突；直接做独立反检测浏览器超出 MV3 能力与既有 Host 范围。“OpenDesk Side Panel 主体 + 复用 SDK + 独立自检网页 + 可选 Launcher Bridge”在用户价值、研发成本和可验证性之间更均衡。具体竞争资料见上方研究文档。
+
 ## 1. 用户要解决的问题
 
 AI、Node.js、Playwright、Puppeteer 等工具启动 Chrome 时，开发者需要区分三件事：
