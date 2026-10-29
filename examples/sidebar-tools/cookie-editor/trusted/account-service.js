@@ -460,11 +460,26 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
       }
     }
     let capture=null,captureScope=null;
-    if(['create','update'].includes(operation)){
-      const grant=grantFor(record.siteRecord,origin,true);
-      captureScope=await scope(payload.document,origin,grant,false,record);
-      capture=await cookiesFor(captureScope);
-      if(!capture.length)throw fail('E_ACCOUNT_EMPTY');
+    if(['create','update','attach'].includes(operation)){
+      // A user may save an account name before this website sets any Cookie,
+      // or before granting Cookie access. Metadata-only creation has no
+      // privileged Cookie read/write effect, but still needs a live document.
+      if(operation==='create')await validateDocument(payload.document,origin);
+      let grant=null;
+      try{grant=grantFor(record.siteRecord,origin,true);}
+      catch(error){
+        if(operation!=='create'||error?.code!=='E_SITE_GRANT_REQUIRED')throw error;
+      }
+      if(grant){
+        try{captureScope=await scope(payload.document,origin,grant,false,record);}
+        catch(error){
+          if(operation!=='create'||error?.code!=='E_SITE_GRANT_REQUIRED')throw error;
+        }
+        if(captureScope)capture=await cookiesFor(captureScope);
+      }
+      // Only the explicit first association/update needs a nonempty snapshot.
+      if(operation!=='create'&&(!capture||!capture.length))
+        throw fail('E_ACCOUNT_EMPTY');
     }
     if(operation==='update'){
       // Review the persisted version before any mutation. A renewed value or
@@ -482,8 +497,13 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
     if(captureScope)await assertScope(captureScope);
     const changed=await vault.update(revision,async data=>{
       if(captureScope)await assertScope(captureScope);
+      else if(operation==='create'){
+        // Recheck page and installation before metadata-only commit.
+        await validateDocument(payload.document,origin);
+        await installed(message);
+      }
       const selected=data.accounts.find(item=>item.alias===payload.alias&&item.origin===origin);
-      if(['rename','update','delete','allowAlias'].includes(operation)){
+      if(['rename','update','attach','delete','allowAlias'].includes(operation)){
         if(!selected)throw fail('E_ACCOUNT_NOT_FOUND');
         if(selected.version!==payload.accountVersion)throw fail('E_VAULT_CONFLICT');
       }
@@ -496,7 +516,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
         const alias='acct_'+crypto.randomUUID().replace(/-/g,'').slice(0,20);
         const description=normalizeAccountDescription(payload.description);
         data.accounts.push({alias,origin,displayName,description,version:1,
-          cookies:capture,allowAuto:false});
+          cookies:capture??[],allowAuto:false});
       }else if(operation==='rename'){
         const name=String(payload.displayName||'').trim();
         if(!name||name.length>64)throw fail('E_ACCOUNT_NAME');
@@ -511,10 +531,16 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
         if(changedName)selected.version++;
       }else if(operation==='update'){
         selected.cookies=capture;selected.version++;
+      }else if(operation==='attach'){
+        // First association is a separate, explicit gesture. Never replace
+        // a previously saved snapshot through this path.
+        if(selected.cookies.length)throw fail('E_ACCOUNT_ALREADY_LINKED');
+        selected.cookies=capture;selected.version++;selected.allowAuto=false;
       }else if(operation==='delete'){
         data.accounts.splice(data.accounts.indexOf(selected),1);
       }else if(operation==='allowAlias'){
         if(typeof payload.enabled!=='boolean')throw fail('E_ACCOUNT_REQUEST');
+        if(payload.enabled&&!selected.cookies.length)throw fail('E_ACCOUNT_EMPTY');
         selected.allowAuto=payload.enabled;selected.version++;
       }else if(operation==='setAutoEnabled'||operation==='setAutoRefresh'){
         if(typeof payload.enabled!=='boolean')throw fail('E_ACCOUNT_REQUEST');
@@ -537,7 +563,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
       const record=await installed();
       const data=await vault.read();
       if(!data.settings.autoEnabled)return;
-      const allow=data.accounts.filter(x=>x.origin===origin&&x.allowAuto).map(x=>x.alias);
+      const allow=data.accounts.filter(x=>x.origin===origin&&x.allowAuto&&x.cookies.length>0).map(x=>x.alias);
       const tested=inspectAccountSwitchUrl(url.href,{expectedOrigin:origin,
         enabled:true,approvedFragment:true,allowedAliases:allow});
       if(tested.status!=='eligible')return;
