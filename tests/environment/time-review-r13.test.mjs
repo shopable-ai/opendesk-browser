@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   emptyReview,readReview,settleReview,reviewSummary,reviewDay,reviewClassify,
   reviewCategory,reviewExport,localDay,MAX_MINUTE_ROWS
-} from '../../examples/sidebar-tools/time-review/trusted/model.js';
+} from '../../projects/time-review/trusted/model.js';
 
 const checkpoint=(at,host='example.com',session='session')=>({
   at,host,session,tabId:1,windowId:2,offset:new Date(at).getTimezoneOffset()

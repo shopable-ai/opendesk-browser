@@ -71,7 +71,7 @@
 | 受信任 Time Review Host | 浏览器观察、唯一结算、持久队列、同步发送、身份确认及生命周期恢复 | 让旧脚本/iframe 获得自己的强权限执行器 |
 | 服务端（未来） | 认证、原子 revision upsert、持久 ACK、设备/账号去重、删除与对账 | 在客户端成功前反复加法累计分钟时长 |
 
-- 修改 `examples/sidebar-tools/time-review/src/*` 且不改协议/权限的 UI，可独立重新打包工具，遵守已安装 packageHash/epoch 升级语义。
+- 修改 `projects/time-review/src/*` 且不改协议/权限的 UI，可独立重新打包工具，遵守已安装 packageHash/epoch 升级语义。
 - 修改 `src/time-review/**`、`src/sw.js`、`src/ui/sidebar-tools.js` 或新 `host_permissions` **必须重新构建并安装整个 OpenDesk Browser 扩展**；工具包更新**不会**自动替换可信 Host。
 - 不增加另一套 SDK、Scheduler、Storage/Permission Store 或第二个 Time Review 后台。不要复制 `src-bex/background.ts`，也不要恢复其全站注入、全局 Axios defaults、Socket、eval、CSP 修改或过量 host permissions。
 
@@ -94,4 +94,4 @@ R1.5 为 `opendesk.time-review.v1` 添加可选且默认拒绝的 `siteGrants`�
 
 ## R1.5.1 工具升级（2026-10-13）
 
-工具包正式版本推进为 `1.5.1`（`examples/sidebar-tools/time-review/tool.config.json`）；`time.review/1.5.0` 是另一层独立、保持不变的可信 Host API 协议版本。旧安装包 `1.5.0` 的正式市场更新需要版本单调前进，不能用同版本不同 packageHash 悄悄替换。新版前端 CSS/HTML/JS、授权 UX 更新会改变 packageHash；可信后台依照已有绑定撤销旧包运行授权，用户须主动在新包再次点击可信开始；有效的原有独立站点授权范围和历史日统计不会因此自动扩大或删除。没有增加旧脚本全站注入，云同步依然禁止。
+工具包正式版本推进为 `1.5.1`（`projects/time-review/tool.config.json`）；`time.review/1.5.0` 是另一层独立、保持不变的可信 Host API 协议版本。旧安装包 `1.5.0` 的正式市场更新需要版本单调前进，不能用同版本不同 packageHash 悄悄替换。新版前端 CSS/HTML/JS、授权 UX 更新会改变 packageHash；可信后台依照已有绑定撤销旧包运行授权，用户须主动在新包再次点击可信开始；有效的原有独立站点授权范围和历史日统计不会因此自动扩大或删除。没有增加旧脚本全站注入，云同步依然禁止。

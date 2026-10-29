@@ -2,14 +2,14 @@ import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createTimeReviewService,installTimeReviewService} from '../../examples/sidebar-tools/time-review/trusted/service.js';
-import {TIME_REVIEW_KEY,emptyReview,readReview} from '../../examples/sidebar-tools/time-review/trusted/model.js';
+import {createTimeReviewService,installTimeReviewService} from '../../projects/time-review/trusted/service.js';
+import {TIME_REVIEW_KEY,emptyReview,readReview} from '../../projects/time-review/trusted/model.js';
 import {TIME_REVIEW_PROTOCOL,TIME_REVIEW_HOST_API,timeReviewPackageHash,timeReviewSiteOrigin,
-  changeTimeReviewSiteGrants,requireTimeReviewSiteGrants} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
+  changeTimeReviewSiteGrants,requireTimeReviewSiteGrants} from '../../projects/time-review/trusted/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {createTimeReviewPermissionControls} from '../../examples/sidebar-tools/time-review/trusted/host-controls.js';
+import {createTimeReviewPermissionControls} from '../../projects/time-review/trusted/host-controls.js';
 import {makeTimeReviewReact,TIME_CONTROL_IDS} from './time-review-host-controls-fixture.mjs';
 
 function lockManager(){
@@ -29,7 +29,7 @@ function area(data){
 }
 async function fixture({preexisting}={}){
   let at=new Date(2026,9,13,12).getTime(),url='https://alpha.example/article?search=secret';
-  const tool=await createSidebarToolPackage('examples/sidebar-tools/time-review');
+  const tool=await createSidebarToolPackage('projects/time-review');
   const hash=await timeReviewPackageHash(tool);
   const local={[SIDEBAR_TOOL_STORE]:[tool]},session={},alarms=new Map();
   if(preexisting)local[TIME_REVIEW_KEY]=structuredClone(preexisting);
@@ -274,7 +274,7 @@ test('R1.5 unrelated Chrome origin removal does not revoke Time Review site cons
 });
 
 test('R1.5.1 official tool package version advances without changing the trusted Host API',async t=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/time-review');
+  const pkg=await createSidebarToolPackage('projects/time-review');
   assert.equal(pkg.version,'1.6.0');
   assert.equal(TIME_REVIEW_HOST_API,'time.review/1.5.0');
 });

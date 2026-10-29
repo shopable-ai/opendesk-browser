@@ -49,12 +49,12 @@
 
 ## 源码证据
 
-- [历史 TimeReview.ts](../../docs/contracts/source-snapshots/todo-src-bex/src-bex/TimeReview.ts)
-- [历史 background.ts](../../docs/contracts/source-snapshots/todo-src-bex/src-bex/background.ts)
-- [历史 detect_focus.js](../../docs/contracts/source-snapshots/todo-src-bex/src-bex/assets/js/detect_focus.js)
-- [历史 my-content-script.ts](../../docs/contracts/source-snapshots/todo-src-bex/src-bex/my-content-script.ts)
-- [Side Panel 工具开发合同](../../docs/api/sidebar-tool-development.zh-CN.md)
-- [官方工具目录](../../official-tools/catalog.json)（截至本次核查，未登记 Time Review）
+- [历史 TimeReview.ts](../../../docs/contracts/source-snapshots/todo-src-bex/src-bex/TimeReview.ts)
+- [历史 background.ts](../../../docs/contracts/source-snapshots/todo-src-bex/src-bex/background.ts)
+- [历史 detect_focus.js](../../../docs/contracts/source-snapshots/todo-src-bex/src-bex/assets/js/detect_focus.js)
+- [历史 my-content-script.ts](../../../docs/contracts/source-snapshots/todo-src-bex/src-bex/my-content-script.ts)
+- [Side Panel 工具开发合同](../../../docs/api/sidebar-tool-development.zh-CN.md)
+- [官方工具目录](../../../official-tools/catalog.json)（截至本次核查，未登记 Time Review）
 
 ## 后续实施与验收
 

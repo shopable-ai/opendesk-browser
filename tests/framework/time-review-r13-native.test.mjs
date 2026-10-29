@@ -9,8 +9,8 @@ import {mkdtemp,mkdir,readFile,writeFile,rm,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
-import {reviewExport} from '../../examples/sidebar-tools/time-review/trusted/model.js';
-import {TIME_REVIEW_ALARM,timeReviewPackageHash} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
+import {reviewExport} from '../../projects/time-review/trusted/model.js';
+import {TIME_REVIEW_ALARM,timeReviewPackageHash} from '../../projects/time-review/trusted/policy.js';
 import {setTimeout as sleep} from 'node:timers/promises';
 import {attachVerifiedSidePanel} from './helpers/verified-side-panel-native.mjs';
 
@@ -309,7 +309,7 @@ test('Time Review R1.9 actual Mac Chrome native product acceptance',{skip:!NATIV
   const pkgFile=path.join(EXTENSION,'official-tools/time-review/time-review.opendesk-tool.json');
   const pkgBytes=await readFile(pkgFile),pkg=JSON.parse(pkgBytes);
   assert.equal(pkg.id,'time-review');
-  const sourceConfig=JSON.parse(await readFile('examples/sidebar-tools/time-review/tool.config.json','utf8'));
+  const sourceConfig=JSON.parse(await readFile('projects/time-review/tool.config.json','utf8'));
   const releaseCatalog=JSON.parse(await readFile(path.join(EXTENSION,'official-tools/catalog.json'),'utf8'));
   const release=releaseCatalog.apps.find(row=>row.toolId==='time-review');
   assert.equal(pkg.version,sourceConfig.version);assert.equal(pkg.version,release.version);

@@ -16,14 +16,14 @@ on:
       - 'scripts/bundle-provenance.mjs'
       - 'src/entrypoints/sidebar-tool-host.js'
       - 'tests/framework/time-review-r13-visual.mjs'
-      - 'examples/sidebar-tools/time-review/**'
+      - 'projects/time-review/**'
       - 'tests/environment/time-review-*.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - '.github/workflows/time-review-r13-native.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'examples/sidebar-tools/time-review/**'
+      - 'projects/time-review/**'
       - 'src/time-review/**'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools-view.js'
@@ -61,9 +61,7 @@ jobs:
         # Compile with the same reviewed Vite builders as scripts/build.mjs
         # before Node tests; never weaken the fail-closed stage checker.
         run: |
-          node scripts/build-adblock-react.mjs
-          node scripts/build-stay-focus-react.mjs
-          node scripts/build-cookie-editor-react.mjs
+          npm run pretest
       - name: Real Node R1.8 Time Review and Side Panel host regressions
         id: regressions
         run: |
@@ -88,7 +86,7 @@ jobs:
         run: |
           set -o pipefail
           {
-            npm run build:sidebar-tool -- examples/sidebar-tools/time-review
+            npm run build:sidebar-tool -- projects/time-review
             npm run check
             npm run build
             npm run build:dev
@@ -101,7 +99,7 @@ jobs:
           {
             printf 'git_sha=%s\n' "$GITHUB_SHA"
             node --version
-            tool_version="$(node -p 'require("./examples/sidebar-tools/time-review/tool.config.json").version')"
+            tool_version="$(node -p 'require("./projects/time-review/tool.config.json").version')"
             for file in \
               "artifacts/sidebar-tools/time-review/$tool_version/time-review.opendesk-tool.json" \
               dist/production/official-tools/time-review/time-review.opendesk-tool.json \
@@ -146,8 +144,8 @@ jobs:
           node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs tests/environment/time-review-host-controls-r51.test.mjs tests/environment/time-review-r14-sync-outbox.test.mjs tests/environment/time-review-r15-site-grants.test.mjs tests/environment/time-review-r16-trusted-native.test.mjs
       - name: Build standalone Time Review package and verify source/pack limits
         run: |
-          npm run build:sidebar-tool -- examples/sidebar-tools/time-review
-          TOOL_VERSION="$(node -p 'require("./examples/sidebar-tools/time-review/tool.config.json").version')"
+          npm run build:sidebar-tool -- projects/time-review
+          TOOL_VERSION="$(node -p 'require("./projects/time-review/tool.config.json").version')"
           shasum -a 256 "artifacts/sidebar-tools/time-review/$TOOL_VERSION/time-review.opendesk-tool.json"
       - name: Build and verify both Production and Development Chrome MV3 packages
         run: |

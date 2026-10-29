@@ -13,8 +13,8 @@ import {FIXED_OUTPUTS} from './build-contract.mjs';
 // reviewed Git blob; edits require an explicit build-boundary review. The
 // separate runtime admission still validates the exact official release.
 const compiledTimeReviewInputs=Object.freeze({
-  'examples/sidebar-tools/time-review/src/index.html':'fcaec7808b606c8f4484e20bd4c82a7d66e66fa5',
-  'examples/sidebar-tools/time-review/src/main.js':'c0d8dc0ce6d42a0ff08ce8012dec3e66a2840ed0'
+  'projects/time-review/src/index.html':'fcaec7808b606c8f4484e20bd4c82a7d66e66fa5',
+  'projects/time-review/src/main.js':'c0d8dc0ce6d42a0ff08ce8012dec3e66a2840ed0'
 });
 function reviewedCompiledTimeReview(target,path,root){
   if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledTimeReviewInputs,path))return null;
@@ -296,14 +296,14 @@ const compiledAppOwnedBackgroundInputs=Object.freeze({
   'examples/sidebar-tools/ai-vip-share/trusted/provider-config.js':'d09c57ef4bbc96f406bb2092feb9ff9b2465cf43',
   'examples/sidebar-tools/ai-vip-share/trusted/service.js':'861861cfea1a02ccf4e7c3535372c4aba389a30c',
   'examples/sidebar-tools/ai-vip-share/trusted/tool-host.js':'5fe63cd1351f29e59c77da914e9cd5ef87a2ae4e',
-  'examples/sidebar-tools/time-review/trusted/host-controls.js':'8157ad15d99dd43d21836e5654c3eba5b13b1c6c',
-  'examples/sidebar-tools/time-review/trusted/model.js':'ef7cb2281334b7161c39f68a768992e3527b9d5c',
-  'examples/sidebar-tools/time-review/trusted/policy.js':'d5127624c129bd29533f37e24eedab3216f396db',
-  'examples/sidebar-tools/time-review/trusted/service.js':'3dfd773fa8cf38deeb23a5d5f9f56d0b27e11ff6',
-  'examples/sidebar-tools/time-review/trusted/sync-outbox.js':'d00c7d7c4d3507b6fda21347a4c87d900979e3a2',
-  'examples/sidebar-tools/time-review/trusted/sync-transport.js':'b09f943f2b176b2da2162df1174cd0758f593c56',
-  'examples/sidebar-tools/time-review/trusted/trusted-admission.js':'23ae6cb70c60dc45776c3fe199c4a6af646b790c',
-  'examples/sidebar-tools/time-review/trusted/trusted-native-ui.js':'d9aae298be73fac262490cd943c531414bf8d3d4'
+  'projects/time-review/trusted/host-controls.js':'8157ad15d99dd43d21836e5654c3eba5b13b1c6c',
+  'projects/time-review/trusted/model.js':'ef7cb2281334b7161c39f68a768992e3527b9d5c',
+  'projects/time-review/trusted/policy.js':'d5127624c129bd29533f37e24eedab3216f396db',
+  'projects/time-review/trusted/service.js':'87e438ee574bc4180123b1dec2cd4cf6be369f50',
+  'projects/time-review/trusted/sync-outbox.js':'d00c7d7c4d3507b6fda21347a4c87d900979e3a2',
+  'projects/time-review/trusted/sync-transport.js':'b09f943f2b176b2da2162df1174cd0758f593c56',
+  'projects/time-review/trusted/trusted-admission.js':'78943bff60eaa423c77ecfb56db26a64ae73cd76',
+  'projects/time-review/trusted/trusted-native-ui.js':'d9aae298be73fac262490cd943c531414bf8d3d4'
 });
 function reviewedCompiledAppOwnedBackground(target,path,root){
   // App-owned privileged services are not sandbox, third-party library or
@@ -411,7 +411,7 @@ function reviewedCompiledReadingToc(target,path,root){
 // shared stylesheet. These exact presentation-only blobs enter only the
 // existing React root; this grants no installed package/source admission.
 const compiledHostStyleInputs=Object.freeze({
-  'examples/sidebar-tools/time-review/trusted/host.css':'fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6',
+  'projects/time-review/trusted/host.css':'fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6',
   'projects/bookmark-manager/trusted/host.css':'5bbe841558c86389994defd93f6077aa928a9cf9',
   'examples/sidebar-tools/cookie-editor/trusted/host.css':'b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f',
   'examples/sidebar-tools/ai-vip-share/trusted/host.css':'634786710c463671b9c24c424725bf6c7ff4ec8e',

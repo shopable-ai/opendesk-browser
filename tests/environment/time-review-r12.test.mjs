@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createTimeReviewService,installTimeReviewService} from '../../examples/sidebar-tools/time-review/trusted/service.js';
-import {emptyReview,readReview,settleReview,reviewSummary,reviewHost,reviewSettings,reviewExport,TIME_REVIEW_KEY,localDay} from '../../examples/sidebar-tools/time-review/trusted/model.js';
-import {TIME_REVIEW_PROTOCOL,TIME_REVIEW_ALARM,TIME_REVIEW_SESSION,timeReviewPackageHash} from '../../examples/sidebar-tools/time-review/trusted/policy.js';
+import {createTimeReviewService,installTimeReviewService} from '../../projects/time-review/trusted/service.js';
+import {emptyReview,readReview,settleReview,reviewSummary,reviewHost,reviewSettings,reviewExport,TIME_REVIEW_KEY,localDay} from '../../projects/time-review/trusted/model.js';
+import {TIME_REVIEW_PROTOCOL,TIME_REVIEW_ALARM,TIME_REVIEW_SESSION,timeReviewPackageHash} from '../../projects/time-review/trusted/policy.js';
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {recordToolUninstall,cleanupUninstalledToolLocked,installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
@@ -13,7 +13,7 @@ const lockManager=()=>{const work=new Map();return {request(name,fn){const next=
 async function fixture(){
   let at=new Date(2026,9,11,12).getTime(),idle='active',permission=true,origin=true,focused=true,incognito=false;
   let tab={id:11,windowId:2,active:true,url:'https://example.com/path?secret=never-store'};
-  const tool=await createSidebarToolPackage('examples/sidebar-tools/time-review');
+  const tool=await createSidebarToolPackage('projects/time-review');
   const initialHash=await timeReviewPackageHash(tool);
   // Legacy behavioral fixtures begin with a separately consented site scope.
   // R1.5 zero-consent migration and refusal cases live in time-review-r15-site-grants.
@@ -235,7 +235,7 @@ test('unrelated tool installation never revokes an active Time Review checkpoint
   hosted.dispose();
 });
 test('official tool uses reviewed capability and optional catalog; MV3 permissions and fixed host',async()=>{
-  const tool=validateSidebarToolPackage(await createSidebarToolPackage('examples/sidebar-tools/time-review'));assert.deepEqual(tool.capabilities,['time.review','user.export']);
+  const tool=validateSidebarToolPackage(await createSidebarToolPackage('projects/time-review'));assert.deepEqual(tool.capabilities,['time.review','user.export']);
   const catalog=JSON.parse(await readFile('official-tools/catalog.json','utf8'));assert.equal(catalog.tools.find(row=>row.id==='time-review').installationPolicy,'optional');
   const manifest=JSON.parse(await readFile('manifest.json','utf8'));assert(manifest.permissions.includes('alarms'));assert(manifest.optional_permissions.includes('idle'));assert(!manifest.permissions.includes('idle'));
 });
