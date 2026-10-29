@@ -23,7 +23,7 @@ export function CookieAccounts({
   accountReady=false,legacyLocked=false,switchReady=false,autoRuntimeReady=false,
   busy=false,feedback=null,previewOnly=false,resumeRevision=0,
   autoEnabled=false,autoRefresh=true,cookieDetails=[],
-  onCreate,onSwitch,onRename,onUpdate,onDelete,onShare,onDirty,onDiscardRequest,
+  onCreate,onSwitch,onRename,onUpdate,onAttach,onDelete,onShare,onDirty,onDiscardRequest,
   onToggleAuto,onToggleRefresh,onAllowAlias,onCopyLink
 }){
   const [query,setQuery]=React.useState('');
@@ -82,7 +82,7 @@ export function CookieAccounts({
       const alias=formReturn.current.alias;
       const control=alias
         ?list.current?.querySelector('[data-account-alias="'+CSS.escape(alias)+'"] [aria-haspopup="menu"]')
-        :list.current?.querySelector('[aria-label="保存当前 Cookie 为账号"]');
+        :list.current?.querySelector('[aria-label="添加账号"]');
       control?.focus({preventScroll:true});formReturn.current=null;
     }
   },[route,inline,busy,resumeRevision]);
@@ -196,11 +196,11 @@ export function CookieAccounts({
     setMenuId(null);setTestResult(null);onRoute('auto');
   };
   const closeSettings=()=>{returning.current=true;onRoute('list');};
-  const allowlist=accounts.filter(item=>item.allowAuto===true).map(item=>item.alias);
+  const allowlist=accounts.filter(item=>item.allowAuto===true&&item.cookieCount>0).map(item=>item.alias);
   const avatarClass=item=> 'cookie-account-avatar cookie-account-avatar--'+
     (item?['violet','coral','mint','grey'][accounts.indexOf(item)%4]:'grey');
   const linkFor=item=>{
-    if(!autoRuntimeReady||!autoEnabled||!item.allowAuto)return null;
+    if(!autoRuntimeReady||!autoEnabled||!item.allowAuto||item.cookieCount===0)return null;
     try{
       return createAccountSwitchUrl(item.siteUrl||origin+'/',item.alias,{
         expectedOrigin:origin,approvedFragment:true
@@ -221,12 +221,16 @@ export function CookieAccounts({
   };
   const actions=item=>[
     ['编辑账号','edit',()=>startInline('rename',item),Boolean(onRename)],
-    ['更新快照','refresh',()=>onUpdate?.(item),
-      Boolean(onUpdate)&&switchReady&&item.alias===currentAlias],
+    ...(item.cookieCount===0
+      ?[['关联当前 Cookie','refresh',()=>onAttach?.(item),
+        Boolean(onAttach)&&switchReady]]
+      :[['更新快照','refresh',()=>onUpdate?.(item),
+        Boolean(onUpdate)&&switchReady&&item.alias===currentAlias]]),
     ['生成切换链接','link',()=>onCopyLink?.(item,linkFor(item)),
       Boolean(onCopyLink)&&Boolean(linkFor(item))],
     ['分享账号配置','share',()=>setShareItem(item),true],
-    ['删除快照','trash',()=>startInline('delete',item),Boolean(onDelete)]
+    [item.cookieCount===0?'删除账号':'删除快照','trash',
+      ()=>startInline('delete',item),Boolean(onDelete)]
   ].map(([label,icon,action,available])=><React.Fragment key={label}>
     {icon==='trash'&&<div className="cookie-account-menu-separator" role="separator"/>}
     <button type="button"
@@ -266,8 +270,9 @@ export function CookieAccounts({
       {accounts.length?accounts.map(item=><label key={item.alias}
         className="cookie-account-setting">
         <span>{item.displayName}<small>{item.alias}</small></span>
-        <input type="checkbox" role="switch" checked={item.allowAuto===true}
-          disabled={busy||!accountReady||!autoRuntimeReady||typeof onAllowAlias!=='function'}
+        <input type="checkbox" role="switch" checked={item.allowAuto===true&&item.cookieCount>0}
+          disabled={busy||!accountReady||!autoRuntimeReady||
+            item.cookieCount===0||typeof onAllowAlias!=='function'}
           onChange={event=>onAllowAlias?.(item,event.target.checked)}/>
       </label>):<p className="cookie-account-empty">暂无已保存的账号快照。</p>}
       <h3>账号切换链接</h3>
@@ -329,7 +334,7 @@ export function CookieAccounts({
             ref={draftInput} autoComplete="off" disabled={busy}
             placeholder="例如：工作账号"
             onChange={event=>{setDraft(event.target.value);setLocalError('');}}/>
-        </label>:<p>删除「{inline.item.displayName}」的本机快照，不会删除网站中的 Cookie。</p>}
+        </label>:<p>删除「{inline.item.displayName}」的本机账号记录，不会删除网站中的 Cookie。</p>}
         {inline.kind!=='delete'&&<label className="cookie-account-name-field cookie-account-description-field">
           <span>账号描述 <small>（选填）</small></span>
           <textarea className="od-field" aria-label="账号描述（选填）"
@@ -340,8 +345,8 @@ export function CookieAccounts({
             onChange={event=>{setDescriptionDraft(event.target.value);setLocalError('');}}/>
         </label>}
         {inline.kind==='create'&&<div className="cookie-account-scope">
-          <strong>默认关联当前授权网站的全部可用 Cookie</strong>
-          <small>可信 Host 会在保存时重新读取并核对站点、Store、Partition 和权限。</small>
+          <strong>关联当前网站 Cookie（可选）</strong>
+          <small>没有 Cookie 也可以保存账号，稍后再关联。已授权的 Cookie 仍由可信 Host 读取和验证。</small>
           <details>
             <summary>Cookie 明细（只读 · 当前页面 {cookieDetails.length} 条）</summary>
             <ul>
@@ -362,7 +367,8 @@ export function CookieAccounts({
           <button className="od-button od-button--quiet cookie-button--compact" type="button"
             disabled={busy} onClick={cancelInline}>取消</button>
           <button className="od-button od-button--danger cookie-button--compact"
-            type="button" onClick={()=>void commitInline()} disabled={busy}>删除快照</button>
+            type="button" onClick={()=>void commitInline()} disabled={busy}>
+            {inline.item?.cookieCount===0?'删除账号':'删除快照'}</button>
         </div>}
       </div>
     </div>
@@ -408,7 +414,7 @@ export function CookieAccounts({
         <div className="cookie-account-actions">
           <CookieIconButton name="settings" label="管理自动切换规则" appearance="quiet"
             onClick={openSettings}/>
-          <CookieIconButton name="plus" label="保存当前 Cookie 为账号" appearance="quiet"
+          <CookieIconButton name="plus" label="添加账号" appearance="quiet"
             disabled={busy||!accountReady||typeof onCreate!=='function'}
             onClick={()=>startInline('create')}/>
         </div>
@@ -427,12 +433,14 @@ export function CookieAccounts({
           {item.description&&<span className="cookie-account-description"
             title={item.description}>{item.description}</span>}
         </div>
-        {item.alias===currentAlias
-          ?<span className="cookie-account-applied"
-            title="最近一次可信切换确认；不代表网站已经登录">● 已应用</span>
-          :<button type="button" className="od-button od-button--secondary cookie-button--compact cookie-button--row-action"
-            disabled={busy||!switchReady||typeof onSwitch!=='function'}
-            onClick={()=>onSwitch?.(item)}>切换</button>}
+        {item.cookieCount===0
+          ?<span className="cookie-account-unlinked" title="账号已保存，尚未关联 Cookie">未关联</span>
+          :item.alias===currentAlias
+            ?<span className="cookie-account-applied"
+              title="最近一次可信切换确认；不代表网站已经登录">● 已应用</span>
+            :<button type="button" className="od-button od-button--secondary cookie-button--compact cookie-button--row-action"
+              disabled={busy||!switchReady||typeof onSwitch!=='function'}
+              onClick={()=>onSwitch?.(item)}>切换</button>}
         <div className="cookie-account-menu-anchor">
           <button type="button" className="od-icon-button od-icon-button--quiet"
             disabled={busy||!accountReady}
