@@ -130,3 +130,16 @@ test('recognizes wrapped rate_limits.rate_limit and rejects invalid reset dates'
   const bad=await probeCookieOnly({...input,fetchImpl:fake(json({...quota,rate_limit:{primary_window:{used_percent:2,limit_window_seconds:18000,reset_at:9000000000000000}}}),json(user('u')))});
   assert.equal(bad.status,'SCHEMA_UNKNOWN');
 });
+
+test('successful quota query captures provider plan type and reset_after_seconds fallback without guessing membership', async()=>{
+  const input=account('a','u');
+  const raw={account_id:'workspace-1',plan_type:'pro',rate_limit:{primary_window:{used_percent:35,
+    limit_window_seconds:604800,reset_after_seconds:120}}};
+  const output=await probeCookieOnly({...input,expectedIdentity:{userId:'u',accountId:'workspace-1'},
+    fetchImpl:fake(json(raw),json(user('u'))),clock:()=>1890000000000});
+  assert.equal(output.status,'OK');
+  assert.equal(output.planType,'pro');
+  assert.equal(output.windows[0].durationSeconds,604800);
+  assert.equal(output.windows[0].resetsAt,new Date(1890000120000).toISOString());
+  assert.equal(output.membershipExpiresAt,undefined);
+});
