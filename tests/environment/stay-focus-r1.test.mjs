@@ -82,7 +82,7 @@ test('R5.9 existing Chrome idle permission never causes another native prompt',a
 });
 test('R3.1 Stay Focus CI resolves the current package version instead of pinning old artifacts',()=>{
   const workflow=readFileSync(new URL('../../.github/workflows/stay-focus-r1.yml',import.meta.url),'utf8');
-  assert.match(workflow,/examples\/sidebar-tools\/stay-focus\/tool\.config\.json/);
+  assert.match(workflow,/projects\/stay-focus\/tool\.config\.json/);
   assert.match(workflow,/artifacts\/sidebar-tools\/stay-focus\/\$version\/stay-focus\.opendesk-tool\.json/);
   assert.doesNotMatch(workflow,/artifacts\/sidebar-tools\/stay-focus\/1\.0\.0\//);
 });
@@ -598,7 +598,7 @@ test('R5.1 portable preview embeds the exact installable Stay Focus HTML/CSS/JS'
   assert.equal(embedded.runtime.kind,'PREVIEW_SHARED_UI_ADAPTER_NOT_NATIVE');
   assert.equal(embedded.runtime.reactVersion,'19.2.0');
   assert.equal(embedded.runtime.react,readFileSync(
-    new URL('../../../src/libs/page-frameworks/react-19.2.0.js',base),'utf8'));
+    new URL('../../src/libs/page-frameworks/react-19.2.0.js',base),'utf8'));
   assert.equal(embedded.runtime.adapter,readFileSync(
     new URL('preview/ui-adapter.js',base),'utf8'));
   assert.match(embedded.runtime.css,/od-shared-switch/);

@@ -52,9 +52,9 @@ test('trusted entrypoints consume app-owned sources with stable Chrome restricti
 });
 test('privileged service imports shared platform contracts rather than old product folders',()=>{
   const service=read(app+'trusted/service.js'),host=read(app+'trusted/tool-host.js');
-  assert.match(service,/from '\.\.\/\.\.\/\.\.\/\.\.\/src\/sidebar-tools\/sender\.js'/);
+  assert.match(service,/from '\.\.\/\.\.\/\.\.\/src\/sidebar-tools\/sender\.js'/);
   for(const content of [service,host]){
-    assert.match(content,/from '\.\.\/\.\.\/\.\.\/\.\.\/src\/ui\/sidebar-tools\/package\.js'/);
+    assert.match(content,/from '\.\.\/\.\.\/\.\.\/src\/ui\/sidebar-tools\/package\.js'/);
     assert.doesNotMatch(content,/from '\.\.\/ui\/sidebar-tools\//);
   }
 });
