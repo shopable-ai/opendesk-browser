@@ -17,7 +17,8 @@ function fixture(){
       (!d.name||d.name===row.name)&&
       (!d.storeId||d.storeId===row.storeId)&&
       JSON.stringify(row.partitionKey??null)===JSON.stringify(d.partitionKey??null)&&
-      (d.domain?row.domain===d.domain:new URL(d.url).hostname===row.domain&&
+      (!d.path||d.path===row.path)&&
+      (d.domain?row.domain.replace(/^\./,'')===d.domain:new URL(d.url).hostname===row.domain&&
         new URL(d.url).pathname.startsWith(row.path))));},
     set(d,cb){calls.push('set');const value={name:d.name,value:d.value,
       domain:d.domain??new URL(d.url).hostname,
@@ -26,7 +27,7 @@ function fixture(){
         sameSite:d.sameSite??'unspecified',session:d.expirationDate===undefined,
         ...(d.expirationDate!==undefined?{expirationDate:d.expirationDate}:{}),
       ...(d.partitionKey?{partitionKey:d.partitionKey}:{})};
-      const same=row=>row.name===value.name&&row.domain===value.domain&&row.path===value.path&&
+      const same=row=>row.name===value.name&&row.domain===value.domain&&row.hostOnly===value.hostOnly&&row.path===value.path&&
         row.storeId===value.storeId&&JSON.stringify(row.partitionKey??null)===JSON.stringify(value.partitionKey??null);
       for(let i=records.length-1;i>=0;i--)if(same(records[i]))records.splice(i,1);
       if(d.expirationDate===0){
@@ -263,4 +264,61 @@ test('R8 exact write readback preserves literal Cookie Path '+path,async()=>{
   assert.equal(saved.verified,true);
   assert.equal(saved.cookie.path,path);
   assert.equal(f.calls.filter(method=>method==='set').length,1);
+});
+
+for(const domain of ['example.org','.example.org'])
+for(const path of ['/account','/a/../b','/account?x'])
+test('R8 trusted exact remove bypasses native selection: '+domain+' '+path,async()=>{
+  const f=fixture();
+  const chosen={name:'sid',value:'PRIVATE',domain,path,hostOnly:false,storeId:'0'};
+  const hostOnly={...chosen,domain:'example.org',hostOnly:true,value:'HOST'};
+  const shorter={...hostOnly,path:'/',value:'ROOT'};
+  f.records.push(hostOnly,chosen,shorter);
+  f.api.cookies.get=()=>{throw Error('Exact remove must not use single selection');};
+  const queries=[],getAll=f.api.cookies.getAll;
+  f.api.cookies.getAll=(query,cb)=>{queries.push(query);getAll(query,cb);};
+  assert.deepEqual(await f.service.remove({url,name:'sid',storeId:'0'},
+    {...context,expectedCookieIdentity:{...chosen}}),{removed:true,verified:true});
+  assert.deepEqual(f.records,[hostOnly,shorter]);
+  assert.deepEqual(queries,Array.from({length:2},()=>({domain:'example.org',name:'sid',path,storeId:'0'})));
+  assert.equal(f.calls.filter(x=>x==='set').length,1);
+});
+
+for(const patch of [{name:'other'},{domain:'foreign.org'},{path:'/missing'},{hostOnly:false},
+  {storeId:'other'},{partitionKey:writePartition}])
+test('R8 expected identity mismatch never writes '+JSON.stringify(patch),async()=>{
+  const f=fixture(),row={name:'sid',domain:'example.org',path:'/',hostOnly:true,storeId:'0'};
+  f.records.push(row);
+  // Ignore native filters to prove that the driver checks the entire receipt.
+  f.api.cookies.getAll=(_d,cb)=>cb(f.records);
+  await assert.rejects(f.service.remove({url,name:'sid',storeId:'0'},
+    {...context,expectedCookieIdentity:{...row,...patch}}));
+  assert.equal(f.calls.includes('set'),false);
+  assert.deepEqual(f.records,[row]);
+});
+
+test('R8 exact remove rechecks revocation after lookup before writing',async()=>{
+  const f=fixture(),row={name:'sid',domain:'example.org',path:'/',hostOnly:true,storeId:'0'};
+  f.records.push(row);
+  f.api.cookies.getAll=(_d,cb)=>{f.revoke();cb([row]);};
+  await assert.rejects(f.service.remove({url,name:'sid',storeId:'0'},
+    {...context,expectedCookieIdentity:row}),reject('E_PERMISSION'));
+  assert.equal(f.calls.includes('set'),false);
+});
+
+for(const failure of ['receipt','readback','revoked'])
+test('R8 exact remove unknown '+failure+' never replays expiration',async()=>{
+  const f=fixture(),row={name:'sid',domain:'example.org',path:'/a/../b',hostOnly:true,storeId:'0'};
+  f.records.push(row);
+  const set=f.api.cookies.set;
+  f.api.cookies.set=(d,cb)=>set(d,result=>{
+    if(failure==='revoked')f.revoke();
+    if(failure==='readback')f.records.push(row);
+    cb(result);
+  });
+  if(failure==='receipt')f.loseReceipt();
+  await assert.rejects(f.service.remove({url,name:'sid',storeId:'0'},
+    {...context,expectedCookieIdentity:row}),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.calls.filter(x=>x==='set').length,1);
+  assert.equal(f.calls.includes('remove'),false);
 });

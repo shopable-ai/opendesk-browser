@@ -459,3 +459,19 @@ test('R1.12 Cloud forged installation/version/Result mapping is not counted',asy
     'numeric fixture must not pass for a real installed Task version');
   assert.equal(value.projectionGap,true);
 });
+
+
+test('Sidebar authority projects every tool beyond thirteen without losing enable state',async()=>{
+  const {storage,api,sidebarTools,sidebarEnabled}=authorityDB();
+  sidebarTools.splice(0,sidebarTools.length,...Array.from({length:24},(_,i)=>({id:'inventory-tool-'+i})));
+  sidebarEnabled['inventory-tool-23']=false;
+  const value=await readAnalyticsAuthorityProjection({storage,api,now:()=>NOW});
+  assert.equal(value.inventoryTypes.sidebar.installed,24);
+  assert.equal(value.inventoryTypes.sidebar.enabled,23);
+  assert.equal(value.inventoryTypes.sidebar.disabled,1);
+  assert.deepEqual(value.inventoryItems.filter(row=>row.type==='sidebar').map(row=>row.identity),
+    sidebarTools.map(row=>row.id));
+  assert.equal(value.inventoryItems.find(row=>row.identity==='inventory-tool-23').status,'disabled');
+  sidebarTools.push(sidebarTools[0]);
+  await assert.rejects(readAnalyticsAuthorityProjection({storage,api,now:()=>NOW}),/Sidebar installation authority/);
+});

@@ -10,6 +10,20 @@ const site=(host,subdomains=false)=>({host,subdomains,enabled:true,
   pool:'s:'+host,conditions:[{type:'counter-limit',limitMs:60000}]});
 const policy=(sites,enabled=true)=>({kind:'site-budget.v3',enabled,
   sites,whitelist:[]});
+test('review records beyond thirteen retain independent app identity and revocation',()=>{
+  const wanted=policy([site('example.com')]);
+  let saved;
+  for(let i=0;i<32;i++)saved=extendReviewedManagedSiteScopes(saved,{
+    id:'scope-fixture-'+i,installEpoch:epoch+'-'+i,packageHash:hash,policy:wanted});
+  assert.equal(Object.keys(saved).length,32);
+  assert.equal(reviewedManagedSiteScopeCovers(saved,'scope-fixture-31',epoch+'-31',hash,wanted),true);
+  assert.equal(hasReviewedManagedSiteScopes(saved,'scope-fixture-31',epoch+'-30',hash),false);
+  const corrupt={...saved,'scope-fixture-31':{...saved['scope-fixture-31'],packageHash:'bad'}};
+  assert.equal(reviewedManagedSiteScopeCovers(corrupt,'scope-fixture-0',epoch+'-0',hash,wanted),false);
+  assert.throws(()=>extendReviewedManagedSiteScopes(corrupt,{
+    id:'scope-fixture-32',installEpoch:epoch,packageHash:hash,policy:wanted}),
+    {code:'E_SITE_SCOPE_CORRUPT'});
+});
 test('an extension-wide native grant never substitutes app+epoch+hash-specific review',()=>{
   const wanted=policy([site('video.example.com',true)]);
   assert.equal(MANAGED_SITE_REVIEWED_SCOPE_STORE,'opendesk.browser.site-budget.reviewed-sites.v1');

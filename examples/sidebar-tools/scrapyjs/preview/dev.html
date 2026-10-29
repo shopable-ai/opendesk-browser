@@ -1,0 +1,6 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>scrapyjs · 热更新交互预览</title>
+<style>body{margin:0;font:14px/1.5 system-ui,sans-serif;background:#f5f7fb;color:#1b2c49}header{max-width:800px;margin:16px auto;padding:0 16px}header p{margin:4px 0}iframe{display:block;width:420px;max-width:100%;height:860px;border:1px solid #e1e8f1;border-radius:12px;margin:16px auto;background:white}</style></head><body>
+<header><strong>scrapyjs · 持续开发 / Vite HMR</strong><p>模拟预览：保存仅在内存，任务不采集网页，下载只含模拟数据。编辑 JSX / CSS 后更新界面，不生成安装包。</p><label>模拟场景 <select id="scrapyjs-preview-scenario"><option>success</option><option>empty</option><option>error</option><option>loading</option><option>permission-denied</option><option>untrusted</option></select></label></header>
+<iframe id="opendesk-preview-frame" title="scrapyjs 模拟 App" sandbox="allow-scripts allow-downloads" src="/preview/dev-frame.html"></iframe>
+<script type="module">const picker=document.querySelector('select');picker.addEventListener('change',()=>document.querySelector('iframe').src='/preview/dev-frame.html?scenario='+picker.value);</script>
+</body></html>

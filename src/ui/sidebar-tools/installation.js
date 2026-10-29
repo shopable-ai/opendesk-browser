@@ -1,6 +1,6 @@
 // One installation transaction path for Side Panel and Marketplace.
 // This is the EXISTING v1 tool registry and authority, not a second runner.
-import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage,sidebarToolPackageHash,verifySidebarToolBackground} from './package.js';
+import {SIDEBAR_TOOL_STORE, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage,sidebarToolPackageHash,verifySidebarToolBackground} from './package.js';
 import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../sidebar-tools/official-reading-toc.js';
 export {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {BROWSER_MENU_GRANTS_STORE,BOOKMARK_OWNED_STORE_PREFIX} from '../../framework/sdk/browser-contract.js';
@@ -51,7 +51,7 @@ export function sameSidebarToolPackage(a,b) {
 export function admittedSidebarToolPackages(rows) {
   if(!Array.isArray(rows))return [];
   const seen=new Set();
-  return rows.slice(0,MAX_INSTALLED_TOOLS).flatMap(row=>{
+  return rows.flatMap(row=>{
     try{const tool=validateSidebarToolPackage(row);if(seen.has(tool.id))return [];seen.add(tool.id);return [tool];}
     catch{return [];}
   });
@@ -64,13 +64,13 @@ export function compareToolVersions(a,b) {
   }
   return 0;
 }
-// Every mutation and recovery must reject malformed, duplicate and overflowed
+// Every mutation and recovery must reject malformed and duplicate
 // rows. Silently filtering them would erase the original registry on next set.
 export function requireCompleteInstalledSidebarTools(rows){
   if(rows===undefined)return [];
   const admitted=admittedSidebarToolPackages(rows);
   if(!Array.isArray(rows)||admitted.length!==rows.length)
-    throw error('本机工具安装记录损坏、重复或超过产品限制；已停止修改以保护原始数据','E_STORAGE_CORRUPT');
+    throw error('本机工具安装记录损坏或重复；已停止修改以保护原始数据','E_STORAGE_CORRUPT');
   return admitted;
 }
 export async function getInstalledSidebarTools(api) {
@@ -549,8 +549,6 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     if(!existing&&(await getPendingToolCleanups(api))[tool.id])
       throw error('上次卸载仍有未完成的数据或权限清理；请先恢复清理后重新审阅安装',
         'E_TOOL_UNINSTALL_CLEANUP');
-    if(!existing&&installed.length>=MAX_INSTALLED_TOOLS)
-      throw error('最多安装 '+MAX_INSTALLED_TOOLS+' 个工具','E_TOOL_CAPACITY');
     if(existing){
       // Only the exact, journaled Stay Focus 1.0.10 -> public v3 handoff
       // below may cross this historical native-owner boundary. Every other

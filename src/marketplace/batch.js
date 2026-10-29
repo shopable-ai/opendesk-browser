@@ -1,6 +1,5 @@
 // Batch coordination around the existing Sidebar tool installer.
 // No executable packages, grants, preferences, or private tool content belong here.
-import {MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
 
 export const MARKET_BATCH_STORE='opendesk.market.batch.v1';
 const COLLECTION_IDS=new Set(['reading-kit','my-selection']);
@@ -21,7 +20,7 @@ export function readMarketBatch(value) {
     !COLLECTION_IDS.has(value.collectionId)||!Number.isSafeInteger(value.revision)||
     value.revision<1||!Number.isSafeInteger(value.updatedAt)||value.updatedAt<0||
     (value.batchId!=null&&!UUID.test(value.batchId))||
-    !Array.isArray(value.items)||value.items.length<1||value.items.length>MAX_INSTALLED_TOOLS)
+    !Array.isArray(value.items)||value.items.length<1)
     throw error('E_BATCH_SCHEMA','已有批次记录不符合受限格式；请保留原记录排查，禁止覆盖');
   const ids=new Set(),items=[];
   for(const item of value.items){
@@ -44,7 +43,7 @@ export function createMarketBatch(collection,rows,{releases=[],idFactory=()=>cry
   if(!plain(collection)||!COLLECTION_IDS.has(collection.id)||!Number.isSafeInteger(collection.revision)||
     collection.revision<1||!Array.isArray(collection.members)||
     !Array.isArray(rows)||rows.length!==collection.members.length||
-    rows.length<1||rows.length>MAX_INSTALLED_TOOLS)
+    rows.length<1)
     throw error('E_BATCH_PLAN','套装快照或预检结果不完整');
   const batch={batchId:idFactory(),collectionId:collection.id,revision:collection.revision,
     updatedAt:now(),items:rows.map((row,index)=>{

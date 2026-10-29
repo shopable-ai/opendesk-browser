@@ -48,6 +48,19 @@ test('HTTPS-only release endpoint, and explicit loopback for test harness',()=>{
   assert.equal(validAnalyticsEndpoint('https://example.com/v1/events?token=secret'),false);
   assert.equal(validAnalyticsEndpoint('http://127.0.0.1:1234/v1/events',{allowLoopback:true}),true);
 });
+test('inventory beyond thirteen retains sorted unique IDs and the batch byte budget',()=>{
+  const installedTools=Array.from({length:32},(_,i)=>'inventory-tool-'+i).sort();
+  const event={...sample('app.inventory'),toolId:'opendesk',source:'host',
+    channel:'extension',installedTools};
+  assert.deepEqual(validateAnalyticsEvent(event,{now}).installedTools,installedTools);
+  assert.equal(validateAnalyticsBatch({version:ANALYTICS_VERSION,events:[event]},{now}).length,1);
+  for(const ids of [[...installedTools,installedTools.at(-1)],installedTools.toReversed(),
+    [...installedTools,'invalid id']])
+    assert.throws(()=>validateAnalyticsEvent({...event,installedTools:ids},{now}),{code:'E_ANALYTICS_SCHEMA'});
+  const large={...event,installedTools:Array.from({length:1000},(_,i)=>'inventory-fixture-'+i).sort()};
+  assert.throws(()=>validateAnalyticsBatch({version:ANALYTICS_VERSION,events:[large]},{now}),
+    {code:'E_ANALYTICS_LIMIT'});
+});
 test('default off, explicit opt-in, bounded queue, and revoke clears install identity',async()=>{
   const api=chromeStorage();
   let clock=now;let attempts=0;

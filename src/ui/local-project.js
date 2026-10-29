@@ -1,7 +1,7 @@
 import {patchDeveloperField,developerOptions,appendDeveloperOptions,developerAttribute,developerAction,focusDeveloperField} from './develop-view.js';
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 import {sourceLabel,sourceName} from '../native-agent/source-label.js';
-import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,serializeSidebarToolPackage} from './sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,serializeSidebarToolPackage} from './sidebar-tools/package.js';
 import {openToolPreviewWorkspace} from './sidebar-tools/workspace-preview-intent.js';
 
 const KEY='opendesk.local-project.selection.v1';
@@ -50,7 +50,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     try{
       const value=(await api.storage?.local?.get(SIDEBAR_TOOL_STORE))?.[SIDEBAR_TOOL_STORE];
       const ids=new Set();
-      if(Array.isArray(value)&&value.length<=MAX_INSTALLED_TOOLS)metadata=(await Promise.all(value.map(async item=>{
+      if(Array.isArray(value))metadata=(await Promise.all(value.map(async item=>{
         try{
           const serialized=serializeSidebarToolPackage(item);
           if(ids.has(item.id))return null;ids.add(item.id);

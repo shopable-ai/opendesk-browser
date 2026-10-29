@@ -11,7 +11,6 @@ export const SIDEBAR_TOOL_DATA_PREFIX = 'opendesk.sidebar-tools.data.v1:';
 export const SIDEBAR_TOOL_PROTOCOL = 'opendesk.sidebar-tool.bridge.v1';
 export const SIDEBAR_TOOL_SHARED_UI_RUNTIME='opendesk.react-ui.v1';
 export const SIDEBAR_TOOL_BACKGROUND_KIND='opendesk.app-service.v1';
-export const MAX_INSTALLED_TOOLS = 13;
 export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:32768,maxKeys:32});
 const MAX_PACKAGE_BYTES = 320000;
 const LIMITS = Object.freeze({title:80,description:300,html:64000,css:120000,js:220000});

@@ -106,12 +106,15 @@ export async function launchOwned({root,out,binary,extension=join(root,'dist/dev
 }
 export async function click(session,selector,depth=0){
   assert(depth<12,'Disclosure could not be opened: '+selector);
-  // Expand only existing disclosure ancestors through real input.
-  const summary=await session.read(`(()=>{let e=document.querySelector(${JSON.stringify(selector)});if(!e)return null;
-    const a=[];for(let p=e.parentElement;p;p=p.parentElement)if(p.matches('details:not([open])'))a.push(p);
-    const d=a.at(-1);if(!d)return null;const s=d.querySelector(':scope > summary');
-    s.scrollIntoView({block:'center'});const r=s.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
-  if(summary){await pointer(session,summary);return click(session,selector,depth+1);}
+  // Enter the App's visible rules tab before locating one of its editors.
+  if(await session.read(`Boolean(document.querySelector(${JSON.stringify(selector)})?.closest('#rules-editor[hidden]'))`))
+    await click(session,'#tab-rules',depth+1);
+  // Prepare disclosure visibility before real target input. This is DOM driver
+  // setup, not evidence of physically toggling an offscreen macOS disclosure.
+  await session.read(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});
+    for(let p=e?.parentElement;p;p=p.parentElement)
+      if(p.matches('details')&&!p.querySelector(':scope > summary')?.contains(e))p.open=true;
+  })()`);
   const box=await until(()=>session.read(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});
     if(!e||e.disabled)return null;e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();
     const x=r.x+r.width/2,y=r.y+r.height/2;return r.width&&r.height&&x>0&&y>0&&x<innerWidth&&y<innerHeight&&
@@ -173,4 +176,14 @@ export async function enableUserScripts(browser,extensionId){
   try { await until(()=>tab.read('('+expression+').checked===true'),'Chrome userScripts opt-in committed',5000); } catch(error) { throw Error(error.message+' '+JSON.stringify(await tab.read(`(()=>{const e=(${expression});return {html:e.outerHTML,rect:e.getBoundingClientRect().toJSON(),url:location.href,text:document.body.innerText,detail:document.querySelector('extensions-manager').shadowRoot.querySelector('extensions-detail-view').shadowRoot.innerHTML.slice(-6500)}})()`))); }
   await browser.call('Target.closeTarget',{targetId:tab.targetId});
   return {control:'chrome://extensions actual allow-user-scripts cr-toggle',checked:true};
+}
+
+// Standard DOM select interaction (as in Playwright selectOption), not a physical
+// macOS menu click. Keep old button-based App snapshots readable for seed lanes.
+export async function selectProfile(session,id){
+  if(!await session.read('!!document.querySelector("#profile-list")?.options'))
+    return click(session,'#profile-list button[data-profile-id='+JSON.stringify(id)+']');
+  await session.read(`(()=>{const select=document.querySelector('#profile-list');
+    if(select.disabled||![...select.options].some(o=>o.value===${JSON.stringify(id)}&&!o.disabled))throw Error('Profile is unavailable');
+    select.value=${JSON.stringify(id)};select.dispatchEvent(new Event('change',{bubbles:true}));})()`);
 }

@@ -1,7 +1,7 @@
 // Trusted host data only. Never evaluate translations or expose this store through tool storage.
 import {canonicalUiLocale,resolveUiLocale} from '../app-localization.js';
 import {validateToolLocalization,verifyToolLocalization} from './localization.js';
-import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,validateSidebarToolPackage,serializeSidebarToolPackage} from './package.js';
+import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,serializeSidebarToolPackage} from './package.js';
 import {writeVerifiedLocalValue,sameStorageValue} from './storage-state.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,requireToolRevocationEpochs} from './lifecycle.js';
 
@@ -138,7 +138,7 @@ export function createToolLocaleService({api=globalThis.chrome,lockManager=globa
   async function installed(){
     const raw=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
     if(raw===undefined)return [];
-    if(!Array.isArray(raw)||raw.length>MAX_INSTALLED_TOOLS)fail('Invalid installed tool registry','E_STORAGE_CORRUPT');
+    if(!Array.isArray(raw))fail('Invalid installed tool registry','E_STORAGE_CORRUPT');
     const tools=raw.map(validateSidebarToolPackage);
     if(new Set(tools.map(tool=>tool.id)).size!==tools.length)fail('Duplicate installed tool','E_STORAGE_CORRUPT');
     return tools;

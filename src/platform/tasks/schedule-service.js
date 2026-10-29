@@ -1,7 +1,7 @@
 import {canonical,invariant} from '../protocol.js';
 import {permissionPattern,isToolSender,resolveToolSender} from '../../environment.js';
 import {BROWSER_OPERATIONS} from '../../framework/sdk/browser-contract.js';
-import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage,MAX_INSTALLED_TOOLS} from '../../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage} from '../../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords,TOOL_CLEANUP_STORE,requirePendingToolCleanups} from '../../ui/sidebar-tools/lifecycle.js';
 import {createScheduleRepository} from './schedule-repository.js';
 import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH,CLOUD_RUNNER_DOCUMENT_PATH} from '../../tool-document-url.js';
@@ -75,7 +75,7 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     const raw=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
     // Missing/unreadable state is not proof of an uninstall.
     if(raw===undefined)return new Set();
-    invariant(Array.isArray(raw)&&raw.length<=MAX_INSTALLED_TOOLS,'E_STORAGE_CORRUPT','Installed scheduler tool registry is corrupt');
+    invariant(Array.isArray(raw),'E_STORAGE_CORRUPT','Installed scheduler tool registry is corrupt');
     let ids;
     try{ids=raw.map(tool=>validateSidebarToolPackage(tool).id);}
     catch{invariant(false,'E_STORAGE_CORRUPT','Installed scheduler tool registry is corrupt');}
@@ -192,7 +192,7 @@ export function createScheduleService({storage,api,clock,session,assertHost,emit
     const pending=requirePendingToolCleanups(local[TOOL_CLEANUP_STORE]);
     invariant(Object.hasOwn(pending,request.toolId),'E_OWNER','No pending uninstall authorizes schedule cleanup');
     const raw=local[SIDEBAR_TOOL_STORE];
-    invariant(Array.isArray(raw)&&raw.length<=MAX_INSTALLED_TOOLS,'E_STORAGE_CORRUPT','Installed tool registry is unavailable');
+    invariant(Array.isArray(raw),'E_STORAGE_CORRUPT','Installed tool registry is unavailable');
     let ids;
     try{ids=raw.map(tool=>validateSidebarToolPackage(tool).id);}
     catch{invariant(false,'E_STORAGE_CORRUPT','Installed tool registry is corrupt');}

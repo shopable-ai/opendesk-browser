@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import {readFile,mkdtemp} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
-import {click,fill,fileInput,until,sha} from './native-session.mjs';
+import {click,fill,fileInput,until,sha,selectProfile} from './native-session.mjs';
 import {decodeValue} from '../../../../src/platform/page-port/codec.js';
 
 export function parseCsv(text){
@@ -43,7 +43,7 @@ export async function runExampleApp({browser,view,candidate,configs,out,report,r
  const state=()=>frame.read(`({error:document.querySelector('#app-error')?.textContent,configError:document.querySelector('#config-error')?.textContent,
   notice:document.querySelector('#app-notice')?.textContent,result:document.querySelector('#result')?.textContent,
   config:document.querySelector('#config-json')?.value,targetUrl:document.querySelector('#target-url')?.value,
-  runProfile:document.querySelector('#run-profile')?.textContent,profiles:[...document.querySelectorAll('#profile-list button')].map(e=>({id:e.dataset.profileId,name:e.textContent,selected:e.getAttribute('aria-pressed')==='true'}))})`);
+  runProfile:document.querySelector('#run-profile')?.textContent,profiles:[...document.querySelectorAll('#profile-list option[value]:not([value=""]),#profile-list button')].map(e=>({id:e.value||e.dataset.profileId,name:e.textContent,selected:e.selected??(e.getAttribute('aria-pressed')==='true')}))})`);
  async function open(){
   await click(host,'button[data-extension-key="app:scrapyjs"][data-extension-action="main"]');
   const t=await until(async()=>{const ts=(await browser.call('Target.getTargets')).targetInfos.filter(t=>t.type==='iframe'&&t.url.startsWith('chrome-extension://'+view.extensionId+'/')&&t.url.includes('/sidebar-tools/sandbox.html'));return ts.length===1?ts[0]:null;},'original App iframe');
@@ -114,7 +114,7 @@ export async function runExampleApp({browser,view,candidate,configs,out,report,r
    row.exports={json:await download('json',snapshot),csv:await download('csv',snapshot)};row.status='PASS_CURRENT_PAGE';row.finishedAt=new Date().toISOString();await record('site-pass',row);
   }
   for(const row of [evidence.scenarios[0],evidence.scenarios.at(-1)]){
-   await click(frame,'#profile-list button[data-profile-id='+JSON.stringify(row.profile.id)+']');
+   await selectProfile(frame,row.profile.id);
    await until(async()=>{const s=await state();return s.notice.includes('已切换配置')?s:null;},'switch saved site config');
    let s=await state();assert.deepEqual(JSON.parse(s.config),row.config);assert.equal(s.result,'尚无结果');
    await reopen();s=await state();assert.deepEqual(JSON.parse(s.config),row.config);assert.equal(s.profiles.find(p=>p.selected).id,row.profile.id);

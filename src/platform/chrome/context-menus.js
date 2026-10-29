@@ -25,13 +25,13 @@ import {chromeCall} from './tabs.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
-import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,MAX_INSTALLED_TOOLS,validateSidebarToolPackage,sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
 // The installer owns the revocation store. Keep the SW's menu listener small:
  // importing installation.js here would bundle the entire tool installer in SW.
 const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
 function requireCompleteInstalledSidebarTools(rows){
   if(rows===undefined)return [];
-  if(!Array.isArray(rows)||rows.length>MAX_INSTALLED_TOOLS)throw failure('E_STORAGE_CORRUPT','Installed tool registry is invalid');
+  if(!Array.isArray(rows))throw failure('E_STORAGE_CORRUPT','Installed tool registry is invalid');
   const seen=new Set();
   return rows.map(row=>{
     const tool=validateSidebarToolPackage(row);

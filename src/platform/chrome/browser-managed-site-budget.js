@@ -1,7 +1,7 @@
 // One precompiled finite site-budget capability in the existing MV3 Service Worker.
 // The original Sidebar Tool registry/epoch is authoritative. This is only a
 // native-resource ledger, not another app installer, scheduler or JS runtime.
-import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash,MAX_INSTALLED_TOOLS}
+import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash}
   from '../../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../ui/sidebar-tools/lifecycle.js';
@@ -16,7 +16,7 @@ import {normalizeManagedSiteV3Policy,normalizeManagedSiteV3Usage,
   normalizeManagedSiteV3Commit,assertManagedSiteV3ModelRef,
   selectedManagedSiteV3,evaluateManagedSiteV3,MANAGED_SITE_V3_OBSERVATION_GAP_MS}
   from './managed-site-v3-policy.js';
-import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId,managedSiteV3BlockedPath}
+import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId,managedSiteV3BlockedPath,MANAGED_SITE_DNR_OWNER_SLOTS}
   from './managed-site-v3-rules.js';
 import {writeVerifiedLocalValue,sameStorageValue} from '../../ui/sidebar-tools/storage-state.js';
 import {isSidebarToolHostSender} from '../../sidebar-tools/sender.js';
@@ -34,7 +34,7 @@ export const MANAGED_SITE_BUDGET_ALARM='opendesk.browser.site-budget.tick.v1';
 const SESSION_KEY='opendesk.browser.site-budget.session.v1';
 export const MANAGED_SITE_BUDGET_RULE_FIRST=752000;
 export const MANAGED_SITE_BUDGET_RULES_PER_OWNER=40;
-const CAPACITY=MAX_INSTALLED_TOOLS, PERIOD=0.5;
+const CAPACITY=MANAGED_SITE_DNR_OWNER_SLOTS, PERIOD=0.5;
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const plain=value=>value&&typeof value==='object'&&!Array.isArray(value)&&
@@ -274,7 +274,7 @@ export function createManagedSiteBudgetService({
         const native=permission.dnr?await api.declarativeNetRequest.getDynamicRules():[];
         for(let candidate=0;candidate<CAPACITY;candidate++)
           if(!used.has(candidate)&&!native.some(rule=>owns(candidate,rule.id)||isManagedSiteV3RuleId(candidate,rule.id))){slot=candidate;break;}
-        if(slot<0)fail('E_TOOL_CAPACITY','受管网站规则资源已满或待清理');
+        if(slot<0)fail('E_MANAGED_DNR_CAPACITY','受管网站规则资源已满或待清理');
         nextRow=kind===SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V3?
           initialV3(slot,auth.epoch,source,packageHash,at):initial(slot,auth.epoch,source,packageHash,at);
       }
@@ -524,7 +524,7 @@ export function createManagedSiteBudgetService({
   async function sync(id,opts={}){return ownerLock(id,()=>reconcileLocked(id,opts));}
   async function run({boot=false}={}){
     const installed=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
-    if(installed!==undefined&&(!Array.isArray(installed)||installed.length>CAPACITY||
+    if(installed!==undefined&&(!Array.isArray(installed)||
        installed.some(row=>{try{validateSidebarToolPackage(row);return false;}catch{return true;}})))
       fail('E_STORAGE_CORRUPT','安装目录损坏，不能猜测后台所有者');
     const {ledger}=await resourceRead();
@@ -718,7 +718,7 @@ export async function stageManagedSiteV3MigrationLocked(api,{
           isManagedSiteV3RuleId(candidate,rule.id)))continue;
       slot=candidate;break;
     }
-    if(slot<0)fail('E_TOOL_CAPACITY','公共网站规则范围已满或存在未恢复资源');
+    if(slot<0)fail('E_MANAGED_DNR_CAPACITY','公共网站规则范围已满或存在未恢复资源');
     const staged={...initialV3(slot,epoch,source,packageHash,Date.now()),
       policy:commit.desiredPolicy,modelRef,sealedModel:commit.sealedModel,
       desiredPolicyRev:1,appliedPolicyRev:0,status:'reconciling',

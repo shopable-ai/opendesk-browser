@@ -175,7 +175,9 @@ export default function ReadOnlyDiagnostics({adapter,preview=false,coreOnly=true
         if(status.callableNow!==true)throw Object.assign(Error('读取权限已失效，请重新检测。'),{code:status.reasonCode||'E_PERMISSION'});
       }catch(error){if(!cancelled){setReading(null);setNotice({type:'warning',text:errorLabel(error)});}}
       finally{checking=false;}
-    },1000);
+    // Two SDK queries per check; leave room within the Host's 120/minute
+    // budget for user detection and its document checks while kept open.
+    },2500);
     return ()=>{cancelled=true;clearInterval(timer);};
   },[reading,adapter,coreOnly]);
   async function save(){

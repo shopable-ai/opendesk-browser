@@ -22,7 +22,7 @@
 ## 2. 现有代码和仅 UI 工作必须分开
 
 - `examples/sidebar-tools/reading-toc`、`quick-notes`、`web-markdown-clipper`、`cookie-editor`、`time-review` 说明已有示例/工具源码；需要按各自 workstream 查真实能力和验证，不因此认定已发布或拥有全部 API。
-- `src/ui/sidebar-tools/package.js` 当前 `MAX_INSTALLED_TOOLS=12`，这是既有沙箱设计边界，**不能**用“全网几百工具”简单解释为无限同时安装；研究存储索引、分组、按需激活/卸载和 UI 虚拟化之后再变更。
+- 2026-10-29 用户已取消框架安装总数上限，`MAX_INSTALLED_TOOLS` 已移除。安装与运行资源分别管理；空间按实际字节使用和写入结果处理，未来 VIP 数量权益属于产品策略。仍保留包校验、身份和原生能力的独立资源保护。
 - 现有 `browser-contract.js` 登记的接口并非全部可调用，工作流中已有 10/32 实现登记、候选 Chrome 0/32 的历史快照；未来以最新 `browser-sdk-status.md` 为准。
 - UI 应复用 `src/ui/design-tokens.css`、`docs/architecture/ui-layout-conventions-r27.zh-CN.md`；普通 Side Panel 保持当前 Tab 结构。增加工具入口优先放「工具」目录内的搜索、分类和管理，不新建多个一级 Tab。
 

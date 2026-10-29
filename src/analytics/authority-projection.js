@@ -1,7 +1,7 @@
 import {permissionPattern} from '../environment.js';
 import {canonical} from '../platform/protocol.js';
 import {taskScriptId} from '../platform/tasks/contract.js';
-import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_BACKGROUND_KIND} from '../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_BACKGROUND_KIND} from '../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from '../ui/sidebar-tools/lifecycle.js';
 import {readAppServiceInstallation} from '../platform/tasks/app-service-installation.js';
 // Read-only projection of the original Page/Task/Scheduler authorities.
@@ -54,7 +54,7 @@ export async function readAnalyticsAuthorityProjection({storage,api,now=()=>Date
   if(typeof api.storage?.local?.get!=='function')throw new Error('Sidebar authority unavailable');
   const local=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE]);
   const sidebarRows=local[SIDEBAR_TOOL_STORE]??[];
-  if(!Array.isArray(sidebarRows)||sidebarRows.length>MAX_INSTALLED_TOOLS||
+  if(!Array.isArray(sidebarRows)||
      sidebarRows.some(row=>!sidebarId.test(row?.id||'')||row.id==='opendesk')||
      new Set(sidebarRows.map(row=>row.id)).size!==sidebarRows.length)
     throw new Error('Invalid Sidebar installation authority');

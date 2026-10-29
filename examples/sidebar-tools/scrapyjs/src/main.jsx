@@ -1,0 +1,10 @@
+import * as React from 'react';
+import {createRoot} from 'react-dom/client';
+import App from './App.jsx';
+import './style.css';
+const target=globalThis.OpenDeskTool?.root?.querySelector('#tool-app');
+if(!target)throw Error('E_SCRAPYJS_REACT_ROOT');
+const root=createRoot(target);
+root.render(<App/>);
+let released=false;
+globalThis.addEventListener('pagehide',()=>{if(!released){released=true;root.unmount();}},{once:true});

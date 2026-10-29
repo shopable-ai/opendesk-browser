@@ -1,5 +1,15 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 共享域账号快照与恢复修复（2026-10-29）
+
+固定可信账号服务通用支持合法共享域 Cookie，例如在 `www.csdn.net` 保存包含 `.csdn.net` 的账号，保留原 Domain、literal Path、Store、Partition 及 HostOnly 属性。同名同 Path 的 HostOnly 与 Domain Cookie 分别保存和切换。复用已有全站完整管理授权，或当前站点与精确父域各自的管理授权，并核对 Chrome 权限；共享 Cookie 本身仍会影响使用它的其他子域会话。
+
+保存会检查已授权父域的各 Path，不再要求该域先有匹配当前页面路径的 Cookie。域候选以 Chrome 返回的当前文档 schemeful site 为界，不猜“最后两级域名”，不将兄弟主机或其他 Partition 纳入快照。注销后即使所有实时 Cookie 已消失，也可恢复可信服务此前保存的账号；快照不提供新权限，仍须通过当前授权、Store、Partition 和原文档核验。
+
+未分区与原生当前精确分区分别读取，避免 Chrome 默认查询只返回未分区 Cookie 而静默漏收；保留分区的 topLevelSite 与 hasCrossSiteAncestor。保存、切换和写入回读时重新检查安装及授权代际，缺失或变化时停止；未知写入不自动重试。精确删除按完整身份选取和回读，避免同名 Cookie 的原生单条选择或 URL 规范化阻挡合法操作。Cookie 值继续仅留在可信服务和 Foundation 存储。
+
+本轮修复在 Browser 固定可信后台及原 Cookie 驱动；只导入工具 JSON 不会更新后台。**真实 CSDN / Chrome 扩展界面仍为 NOT_TESTED**：此前 Computer Use 安全策略已阻止访问扩展页面，本轮不绕过。源码、定向回归、独立审查、来源校验及产物状态见 [本轮工作记录](../../../docs/framework/workstreams/cookie-editor-csdn-20261029-01a183bf.md)。并行 UI/工具包更新单独维护，不作为该后台修复已生效的证明。
+
 ## 当前核心增量：R2.6 · 2.0.46（2026-10-29）
 
 按最新要求，本轮只完成账号核心闭环和相关增量验证。修复可信保存回执访问已脱敏 Cookie 数组的问题：计数在 Vault 内计算，React 只收到 `cookieCount`。预览复用正式 JSX，经原 Vite 流水线重建，生成字节与当前 HEAD 一致；未维护第二套 JSX。

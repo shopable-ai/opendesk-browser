@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {createToolLocalization} from '../../src/ui/sidebar-tools/localization.js';
-import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {LOCALE_PACK_FORMAT,parseLocalePack,evaluateLocalePack,createToolLocaleService,
   toolLocaleStorageKey,LOCALE_PACK_MAX_BYTES,resolveToolLocaleState,LOCALE_PACK_STORE} from '../../src/ui/sidebar-tools/locale-packs.js';
 
@@ -234,12 +234,16 @@ test('install atomically persists resources without changing follow or independe
   assert.equal(service.getCatalog(tool,'fr').messages.hello,'Salut');service.dispose();
 });
 
-test('registry limit follows package constant and custom projection supports more than twelve total languages',async()=>{
+test('registry accepts more than thirteen tools and custom projection supports more than twelve total languages',async()=>{
   const tool=await fixture(),env=host(tool);
-  env.values[SIDEBAR_TOOL_STORE]=Array.from({length:MAX_INSTALLED_TOOLS},(_,i)=>({...tool,id:'fixture-'+i}));
+  env.values[SIDEBAR_TOOL_STORE]=Array.from({length:24},(_,i)=>({...tool,id:'fixture-'+i}));
   const service=createToolLocaleService(env);await service.ready;
-  assert.equal(Object.keys(service.getState().tools).length,MAX_INSTALLED_TOOLS);
+  assert.equal(Object.keys(service.getState().tools).length,24);
   env.values[SIDEBAR_TOOL_STORE].push({...tool,id:'fixture-overflow'});
+  await service.reload();
+  assert.equal(Object.keys(service.getState().tools).length,25);
+  assert.ok(service.getState().tools['fixture-overflow']);
+  env.values[SIDEBAR_TOOL_STORE].push(env.values[SIDEBAR_TOOL_STORE][0]);
   await assert.rejects(service.reload(),{code:'E_STORAGE_CORRUPT'});service.dispose();
   const languages=['en','fr','de','es','it','ja','ko','pt','ru','ar','nl','sv'];
   const localized={...tool,localization:await createToolLocalization({sourceLocale:'en',

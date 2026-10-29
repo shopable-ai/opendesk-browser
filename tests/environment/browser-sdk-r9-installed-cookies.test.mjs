@@ -272,7 +272,7 @@ test('R9 native set/readback and precise removal never target another path or Co
   assert(f.state.records.some(row=>row.name==='sid'&&row.path==='/'));
   assert(f.state.records.some(row=>row.name==='foreign'&&row.storeId==='1'));
   await assert.rejects(f.run('remove',{name:'sid',domain:'other.test',path:'/'}),
-    reject('E_COOKIE_NOT_FOUND'));
+    reject('E_COOKIE_SCOPE'));
 });
 
 test('R9 host-only site cleanup is previewed, count-fenced and preserves domain/other store',async()=>{
@@ -310,38 +310,33 @@ test('R9 exact expiration preserves same-name Store, Partition and domain peers 
   assert.equal(f.state.values,false,'Deleting a selected Cookie does not require values permission');
 });
 test('R9 exact identity race preserves the same-name root sibling before expiration',async()=>{
-  const f=fixture(),get=f.api.cookies.get,selections=[];
+  const f=fixture(),getAll=f.api.cookies.getAll;
   const sibling=f.state.records.find(row=>row.name==='sid'&&row.path==='/');
-  let gets=0,result,failure;
-  f.api.cookies.get=(details,callback)=>{
-    // Host scans with getAll and validates /account with get; the second get
-    // is Driver's pre-expiration selection, after Host validation.
-    // Rename cleanup uses this same exact removal boundary after saving a copy.
-    if(++gets===2){
-      assert.deepEqual(selections,['/account']);
+  let scans=0;
+  f.api.cookies.getAll=(details,callback)=>{
+    // The second exact scan is Driver's pre-expiration identity lookup.
+    if(++scans===2)
       f.state.records=f.state.records.filter(row=>!(row.name==='sid'&&row.path==='/account'));
-    }
-    return get(details,row=>{selections.push(row?.path??null);callback(row);});
+    return getAll(details,callback);
   };
-  try{
-    result=await f.run('remove',{name:'sid',domain:'shop.example.test',path:'/account'});
-  }catch(error){failure=error;}
-  assert.equal(selections[1],'/','The raced native lookup must select the surviving sibling');
+  await assert.rejects(f.run('remove',{name:'sid',domain:'shop.example.test',path:'/account'}),
+    reject('E_COOKIE_AMBIGUOUS'));
+  assert.equal(scans,2);
   assert(f.state.records.includes(sibling),'The root sibling must survive the exact identity race');
-  assert.equal(sibling.path,'/');
   assert.equal(sibling.value,'PRIVATE_ROOT');
-  assert(!f.state.native.includes('set'),'A changed native selection must not dispatch expiration');
-  assert(!f.state.native.includes('remove'),'A changed native selection must not dispatch native remove');
-  if(failure)assert.equal(failure.code,'E_COOKIE_AMBIGUOUS');
-  else assert.equal(result.removed,false,'An absent exact target may only return no deletion');
+  assert(!f.state.native.includes('set'));
+  assert(!f.state.native.includes('remove'));
+  assert(!f.state.native.includes('get'));
 });
 test('R9 revocation during the pre-delete native lookup dispatches no expiration',async()=>{
-  const f=fixture(),get=f.api.cookies.get;
-  f.api.cookies.get=(details,callback)=>get(details,row=>{
-    f.state.allowed=false;
-    callback(row);
+  const f=fixture(),getAll=f.api.cookies.getAll;
+  let scans=0;
+  f.api.cookies.getAll=(details,callback)=>getAll(details,rows=>{
+    if(++scans===2)f.state.allowed=false;
+    callback(rows);
   });
   await assert.rejects(f.run('remove',{name:'sid',domain:'shop.example.test',path:'/account'}),reject('E_GRANT_REVOKED'));
+  assert.equal(scans,2);
   assert(!f.state.native.includes('set'));
   assert(!f.state.native.includes('remove'));
   assert(f.state.records.some(row=>row.name==='sid'&&row.path==='/account'&&row.value==='PRIVATE_ACCOUNT'));

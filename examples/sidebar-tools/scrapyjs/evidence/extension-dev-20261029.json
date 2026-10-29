@@ -1,0 +1,366 @@
+{
+  "status": "BLOCKED_BROWSER_AUTOMATION_CORE_NOT_COMPLETED",
+  "observedAt": "2026-10-29T15:57:37.804778+08:00",
+  "phase": "real_extension_continuous_development_and_live_site_core",
+  "branch": "main",
+  "environment": {
+    "mode": "CONTINUOUS_DEVELOPMENT",
+    "edition": "Developer",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "loadedPathEvidence": "Chrome extension details showed ~/文稿/workspace/opendesk-browser/dist/development",
+    "extensionEnabled": true,
+    "sidePanelDocument": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=95151c89-aaab-4a0a-b1ad-7e718bd501aa",
+    "developmentConnection": "CONNECTED_OBSERVED_IN_REAL_SIDE_PANEL",
+    "observedRevision": "a027ccf15cbba0bf138d114492f8b1d24a10f5e5a478ea529ca64741050627c7",
+    "rootWatcherPid": 95314,
+    "rootWatcherPorts": [
+      43119,
+      43120
+    ],
+    "nativeDoctor": {
+      "connected": true,
+      "nativeConnected": true,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf"
+    },
+    "nativeAllowedOrigins": [
+      "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+    ],
+    "browserProfileOwnership": "NOT_VERIFIED_NO_EXISTING_PROFILE_CLOSED_OR_RESTARTED"
+  },
+  "app": {
+    "buildReady": {
+      "format": "opendesk.ui-build-ready.v1",
+      "buildId": "400d3c6c5b4dee4022101e38df8de657fac2031706521218461415a17c7ec1f4",
+      "sources": {
+        "adapters/app-sdk.js": {
+          "bytes": 3570,
+          "sha256": "f51486c311536344e2b7e94753ecba62e10134fe94cee32646337de2e818f73c"
+        },
+        "package.json": {
+          "bytes": 1898,
+          "sha256": "03e0b51ded74c17d047c9f431b5408aa4703e7fb4dc700c7d0d4d23bde65676d"
+        },
+        "src/App.jsx": {
+          "bytes": 22730,
+          "sha256": "27f5a093cabdb6fb328e0784af39c2aeacbced3e09be6389d1bd3766a709eb13"
+        },
+        "src/app-model.js": {
+          "bytes": 24027,
+          "sha256": "83869951a617cb28b98b076e2867dbeb06abe64fac9a0a4b37d5c6fdcb2ffa15"
+        },
+        "src/editor.js": {
+          "bytes": 2617,
+          "sha256": "ee85b593522df53e6af73b2a5ac90fe17609e3397492779b2673b65a284f27b9"
+        },
+        "src/index.html": {
+          "bytes": 26,
+          "sha256": "8eaf427812eabbe6e47fbbb159c1d9e7a2dd68d544332fca1a2cea7a8e19d5cc"
+        },
+        "src/main.jsx": {
+          "bytes": 425,
+          "sha256": "ca02c029a2fc6c22819dd90b80ea3e8e8479507d6f95c7e60396e2b47084aaf9"
+        },
+        "src/style.css": {
+          "bytes": 4453,
+          "sha256": "852012563e1a4c9ba86cd7fc608a4e8051943399635256663636e0cdae73eb2f"
+        },
+        "tool.config.json": {
+          "bytes": 966,
+          "sha256": "54685a771183119f7fb6a99c9586f4767a14f60e4eb7b75fff7468d3de8f267c"
+        },
+        "vite.config.mjs": {
+          "bytes": 3632,
+          "sha256": "720f0263f0eaa07de0f8ed5c4cf3898ca0400783ce88cb3a6c96019e5b3b3c20"
+        }
+      },
+      "files": {
+        "dist/tool.css": {
+          "bytes": 4269,
+          "sha256": "69d7440ca3217e526613e5ab7569951309a2d424fdea71c52ebb862721749e29"
+        },
+        "dist/tool.js": {
+          "bytes": 22064,
+          "sha256": "26050fcf7c4bd03e7cf3032a43bc29496b9c0050d74f1cacad877765732e6c59"
+        }
+      }
+    },
+    "candidate": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json",
+      "bytes": 56687,
+      "sha256": "055e93055b6621728ac896d18414055c4c1cf64dfb5970f386628903e20f2795",
+      "version": "1.5.0",
+      "installed": false,
+      "promoted": false
+    },
+    "formal": {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "version": "1.3.1",
+      "sha256": "691842c130eebd6c45075ba8465f27e9bd3b5da89a9b49872a4d08f42d35e96a",
+      "modifiedThisTurn": false
+    },
+    "stage": {
+      "state": "STAGED_NOT_INSTALLED",
+      "sha256": "055e93055b6621728ac896d18414055c4c1cf64dfb5970f386628903e20f2795",
+      "nativeLatest": "opendesk-tool-preview/scrapyjs/latest.json"
+    },
+    "ownedServices": [
+      {
+        "kind": "app-vite-build-watch",
+        "pid": 15684,
+        "execSessionId": 24145
+      },
+      {
+        "kind": "app-stage-watch",
+        "pid": 11538,
+        "execSessionId": 73203
+      },
+      {
+        "kind": "native-directory-cli",
+        "pid": 15353,
+        "execSessionId": 54877,
+        "workspaceId": "workspace-7c4a29d8-4e9c-37d7-1850-61e3cf60aee6",
+        "programState": "E_PROJECT_SCHEMA_FILE_WORKSPACE_AVAILABLE"
+      }
+    ],
+    "legacyMockPid": 96157,
+    "developmentContract": "Native debug snapshot supports isolated session storage and currentPage.info; installed-task delegation/download require installed App. No Host or Authority changed."
+  },
+  "changesThisTurn": [
+    "package.json: dev now compiles/watches app; dev:mock retains explicitly simulated web preview",
+    "README.zh-CN.md: real extension flow, separate watchers, debug delegation limits and evidence levels",
+    "INTERACTIONS.zh-CN.md: latest phase and command corrections"
+  ],
+  "verification": [
+    {
+      "command": "npm run dev --prefix examples/sidebar-tools/scrapyjs",
+      "status": "BUILD_PASS_WATCHING"
+    },
+    {
+      "command": "node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/scrapyjs",
+      "status": "SOURCE_BOUND_STAGE_PASS"
+    },
+    {
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/app-view.test.mjs",
+      "status": "PASS",
+      "tests": 5,
+      "proves": "field edits preserve unrelated and advanced rules; collision/invalid rule checks; pagination/detail round-trip"
+    },
+    {
+      "command": "SCRAPYJS_CANDIDATE=artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json node --test examples/sidebar-tools/scrapyjs/tests/package.test.mjs",
+      "status": "PASS",
+      "tests": 1,
+      "proves": "current source package reproducibility, sandbox runtime, exact Task pins and capabilities"
+    },
+    {
+      "command": "git diff --check -- examples/sidebar-tools/scrapyjs",
+      "status": "PASS"
+    }
+  ],
+  "blocker": {
+    "action": "Acquire Native Workspace chrome-extension page using browser automation",
+    "result": "REJECTED_BY_BROWSER_URL_POLICY",
+    "reason": "Only http: and https: allowed; tool explicitly prohibited indirect execution, raw CDP, alternate browser surfaces or other workaround.",
+    "requestedHumanAction": "Chrome 开发→本地项目→scrapyjs→在侧栏调试，报告界面或报错原文",
+    "publicDoubanTabAttempt": "TIMED_OUT_OUTCOME_UNKNOWN_NO_RETRY",
+    "recovery": "No CDP/alternate UI workaround used after policy rejection."
+  },
+  "core": {
+    "reactVisibleInActualExtension": "NOT_TESTED",
+    "jsxCssVisibleUpdateAndRestore": "NOT_TESTED",
+    "doubanCurrentReactCapture": "NOT_TESTED",
+    "csdnCurrentReactCapture": "NOT_TESTED",
+    "currentDomOracle": "NOT_TESTED",
+    "csvJsonDownloadReadback": "NOT_TESTED",
+    "realSavedConfigReopenAndDraftProtection": "NOT_TESTED",
+    "realRunEditProtectionAndSameInstanceStop": "NOT_TESTED"
+  },
+  "deferred": [
+    "formal package promotion",
+    "production",
+    "full lifecycle acceptance",
+    "95+ scoring",
+    "full SDK/host suites",
+    "width/zoom matrices"
+  ],
+  "screenshots": "NOT_SAVED_THIS_TURN",
+  "committed": false,
+  "pushed": false,
+  "latestContinuation": {
+    "observedAt": "2026-10-29T16:11:10.060156+08:00",
+    "goalThreadId": "01a186b4-2ec6-78d2-acf0-1ce90a390ff2",
+    "goalStatus": "active",
+    "requestedEntry": "工具栏 Side Panel → 开发 → 本地项目 → scrapyjs → 在侧栏调试",
+    "branch": "main",
+    "servicesRechecked": {
+      "browserWatcherPid": 95314,
+      "browserWatcherPorts": [
+        43119,
+        43120
+      ],
+      "appCompileWatcherPid": 15684,
+      "appStageWatcherPid": 11538,
+      "previousDirectoryCliPid15353Present": false
+    },
+    "nativeDoctor": {
+      "connected": true,
+      "nativeConnected": true,
+      "enabled": true,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "hostRegistrationCount": 1
+    },
+    "candidateSha256": "055e93055b6621728ac896d18414055c4c1cf64dfb5970f386628903e20f2795",
+    "formalSha256": "691842c130eebd6c45075ba8465f27e9bd3b5da89a9b49872a4d08f42d35e96a",
+    "changes": [
+      "README.zh-CN.md: persisted current goal, operation-based success conditions and missing evidence"
+    ],
+    "verification": "Documentation/evidence checks only; app source and artifacts unchanged, prior 6 targeted checks reused. No product build or browser action.",
+    "browserPolicy": "Existing refusal explicitly forbids alternate surfaces or CDP workaround; user-selected navigation route recorded, no bypass attempted.",
+    "sidePanelAndSiteCore": "NOT_TESTED",
+    "nextRequiredObservation": "Current interface or exact error after human opens Side Panel → 开发 → 本地项目 → scrapyjs → 在侧栏调试"
+  },
+  "newOwnerIntake": {
+    "observedAt": "2026-10-29T16:37:36.653450+08:00",
+    "threadId": "01a186cc-38d5-7592-a41c-089eb98f2d9e",
+    "branch": "main",
+    "head": "8d263038e67677683e1fdb0ed05b62f99b32cf3e",
+    "requestedEntry": "Chrome 工具栏 → Side Panel → 开发 → 本地项目 → scrapyjs → 在侧栏调试",
+    "environment": {
+      "configuredMode": "CONTINUOUS_DEVELOPMENT",
+      "outputPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "rootWatcher": {
+        "pid": 95314,
+        "present": true,
+        "listeningPorts": [
+          43119,
+          43120
+        ]
+      },
+      "appCompileWatcher": {
+        "pid": 15684,
+        "present": true
+      },
+      "appStageWatcher": {
+        "pid": 11538,
+        "present": true
+      },
+      "legacyMockWatcher": {
+        "pid": 96157,
+        "present": true
+      },
+      "canonicalDemoServer": {
+        "pid": 68658,
+        "present": true
+      },
+      "actualLoadedPath": "NOT_RECHECKED_BY_UI",
+      "actualSidePanelServeConnection": "NOT_RECHECKED_BY_UI",
+      "profileExclusiveOwnership": "UNKNOWN_NO_BROWSER_RESTARTED_OR_CLOSED"
+    },
+    "nativeDoctor": {
+      "connected": true,
+      "nativeConnected": true,
+      "enabled": true,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "requestId": "a69e33e2-fbc4-4e01-a359-813f17332ddf",
+      "hostRegistrations": [
+        "1a871787-b30d-4a4b-bdbb-ee7974b68d28"
+      ],
+      "manifestAllowedOrigins": [
+        "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+      ]
+    },
+    "artifactIdentity": {
+      "buildId": "400d3c6c5b4dee4022101e38df8de657fac2031706521218461415a17c7ec1f4",
+      "buildReceiptSourceAndOutputHashes": "MATCH_CURRENT_DISK_BYTES",
+      "candidateVersion": "1.5.0",
+      "candidateSha256": "055e93055b6621728ac896d18414055c4c1cf64dfb5970f386628903e20f2795",
+      "formalVersion": "1.3.1",
+      "formalSha256": "691842c130eebd6c45075ba8465f27e9bd3b5da89a9b49872a4d08f42d35e96a",
+      "stageAndInstallState": "NOT_RECHECKED_NO_MUTATION"
+    },
+    "toolCapability": {
+      "inventoryCall": "cua.getState()",
+      "nativeAppApiListed": true,
+      "policyReleaseEvidence": "NONE_GENERIC_API_DOCUMENTATION_DOES_NOT_RELEASE_PRIOR_DENIAL",
+      "extensionPageTakeoverAttempted": false,
+      "alternateNativeOrCdpWorkaroundAttempted": false,
+      "sidePanelUnavailableProductClaim": false,
+      "publicDoubanTab": {
+        "id": "560068890",
+        "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
+        "inventoryTitle": "豆瓣图书标签: 编程",
+        "creationOutcome": "TAB_FOUND_IN_CURRENT_INVENTORY",
+        "readCall": "cua.getTab('560068890', {browser:'chrome'})",
+        "readResult": "Tab 560068890 is already part of browser session 01a1869e-3e63-7de1-8ea3-6ca9e3d30184",
+        "domRead": "NOT_PERFORMED_SESSION_OWNERSHIP",
+        "duplicateCreated": false
+      }
+    },
+    "result": "CORE_NOT_COMPLETED_TOOL_ACCESS_UNRESOLVED_NO_PRODUCT_DEFECT_REPRODUCED",
+    "productSourceChanged": false,
+    "buildOrTestsRerun": false,
+    "formalPromotion": false,
+    "realCoreChecks": "NOT_TESTED",
+    "nextRequiredCapability": "A permitted control path for the requested real Side Panel operation; no release of the prior alternate-surface prohibition was returned.",
+    "verification": "Read-only service, Native pairing and disk identity checks. No UI product behavior PASS claimed."
+  },
+  "nativeEntryRecheck": {
+    "observedAt": "2026-10-29T17:05:42.068684+08:00",
+    "reason": "User challenged the earlier stop; check the requested native toolbar path instead of treating Workspace URL denial as a global Side Panel prohibition.",
+    "correction": "Prior newOwnerIntake inferred too broad a block. The original Workspace tab refusal is retained; the distinct native Side Panel path was successfully operated.",
+    "nativeToolbar": {
+      "appPath": "/Applications/Google Chrome.app",
+      "actualBundleId": "com.google.chrome.for.testing",
+      "actualVersion": "149.0.7827.55",
+      "openedSidePanel": true,
+      "sidePanelHostInstanceId": "79cac09a-cc07-4e96-8a0b-1ddbd70cb889",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedPathObserved": "~/文稿/workspace/opendesk-browser/dist/development",
+      "developmentService": "CONNECTED_OBSERVED_IN_REAL_SIDE_PANEL",
+      "buildRevision": "9c8523d1487f419dd4705fc1beb55fe57d9e218b4bb4bc5301339781f31e9920",
+      "entered": "开发 → 本地项目",
+      "currentFailure": "E_DEV_DISCONNECTED：本地开发连接尚未建立",
+      "debugButton": "DISABLED_NO_AUTHORIZED_PROJECT_LIST",
+      "refreshProjects": "NO_CHANGE",
+      "nativeSettings": "已启用 · 当前离线",
+      "nativeRedetect": "STILL_OFFLINE",
+      "nativePermissionOrPairingChanged": false
+    },
+    "dailyChrome": {
+      "appPath": "/Users/shopme/Applications/Google Chrome.app",
+      "bundleId": "com.google.Chrome",
+      "processId": 80636,
+      "nativeHostProcessId": 40873,
+      "nativeHostParentProcessId": 80636,
+      "nativeConnection": "EXISTING_HOST_PROCESS_BELONGS_TO_DAILY_CHROME",
+      "bundleIdLookup": "AMBIGUOUS_MULTIPLE_APP_BUNDLES",
+      "nativePathLookupResults": [
+        {
+          "timeoutMs": 30000,
+          "result": "js execution timed out; kernel reset, rerun your request"
+        },
+        {
+          "timeoutMs": 60000,
+          "result": "js execution timed out; kernel reset, rerun your request"
+        },
+        {
+          "timeoutMs": 30000,
+          "changedCondition": "own simple public demo tab opened first",
+          "result": "js execution timed out; kernel reset, rerun your request"
+        }
+      ],
+      "publicDemoTab": {
+        "id": "560068892",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "result": "CREATED_AND_READ_BY_CUA",
+        "scrapyjsBehaviorEvidence": false
+      }
+    },
+    "currentBlocker": "Native CUA app-state reads time out for the connected daily Chrome; controllable CFT is a different instance with Native offline. No current URL policy denial was returned by the successful native Side Panel actions.",
+    "notProductDefect": "scrapyjs React UI has not been opened; no reproducible scrapyjs defect established.",
+    "protectedResources": "No browser restarted or closed, no manifests edited, no new pairing, no second watcher, no formal promotion, no Framework changes.",
+    "core": "SCRAPYJS_REACT_UI_AND_RUN_CHECKS_NOT_TESTED",
+    "productSourceChanged": false,
+    "documentationChanged": "README narrowed the historical refusal to its actual scope and records the observed instance/timeout blocker."
+  }
+}

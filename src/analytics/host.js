@@ -2,7 +2,7 @@
 import {ANALYTICS_PROTOCOL,ANALYTICS_ALARM,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_DISCLOSURE_VERSION,ANALYTICS_PROMPT_TOOL_ID as PROMPT_ID} from './contract.js';
 import {ANALYTICS_INGEST_URL} from './config.js';
 import {createAnalyticsCollector} from './collector.js';
-import {SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolRevocationEpochs,sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
 import {MARKET_PROVENANCE_STORE} from '../sidebar-tools/official-reading-toc.js';
 import {READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE,
@@ -66,7 +66,7 @@ export function installAnalyticsHost({api=globalThis.chrome,endpoint=ANALYTICS_I
     const rows=stored[SIDEBAR_TOOL_STORE];
     if(rows!==undefined&&!Array.isArray(rows))return {recorded:false};
     const ids=(rows||[]).map(row=>row?.id);
-    if(ids.length>MAX_INSTALLED_TOOLS||ids.some(id=>!idPattern.test(id||''))||
+    if(ids.some(id=>!idPattern.test(id||''))||
       new Set(ids).size!==ids.length)return {recorded:false};
     return collector.record({event:'app.inventory',toolId:'opendesk',source:'host',
       channel:'extension',installedTools:ids.sort()});

@@ -82,6 +82,16 @@ function fixture(installed=[tool()]){
     tick:ms=>{time+=ms;},setUrl:v=>{url=v;},allow:v=>{permissions=v;},
     fault:v=>{dropNative=v;},faultAlarm:v=>{dropAlarm=v;}};
 }
+test('native policy reconciliation works with more installed tools than DNR owner slots',async()=>{
+  const others=Array.from({length:32},(_,i)=>({format:'opendesk.sidebar-tool.v1',
+    id:'ordinary-tool-'+i,version:'1.0.0',title:'Ordinary tool',description:'No native policy',
+    capabilities:[],html:'<main>Ready</main>',css:'',js:'void 0;'}));
+  const f=fixture([tool(),...others]);
+  await f.service.dispatch(await f.msg('setPolicy',{...settings,expectedRev:0}),f.sender);
+  await f.service.run({boot:true});
+  assert.equal(f.local.get(MANAGED_SITE_BUDGET_STORE)[id].status,'applied');
+  assert.equal(f.local.get(SIDEBAR_TOOL_STORE).length,33);
+});
 test('compatibility probe admits the original live Side Panel installer before installation',async()=>{
   const f=fixture([]);
   const result=await f.service.dispatch({protocol:MANAGED_SITE_BUDGET_PROTOCOL,

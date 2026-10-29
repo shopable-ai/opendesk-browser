@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {launchOwned,openNativePanel,until,click,fill,fileInput,sha} from './native-session.mjs';
+import {launchOwned,openNativePanel,until,click,fill,fileInput,sha,selectProfile} from './native-session.mjs';
 import {decodeValue} from '../../../../src/platform/page-port/codec.js';
 const root=fileURLToPath(new URL('../../../../',import.meta.url));
 const opt=name=>process.argv.find(a=>a.startsWith('--'+name+'='))?.slice(name.length+3);
@@ -19,7 +19,7 @@ async function record(label,value){report.events.push({label,value,at:new Date()
 async function ui(){return frame.read(`(()=>{const g=id=>document.getElementById(id);return {
  config:g('config-json')?.value,error:g('app-error')?.textContent,configError:g('config-error')?.textContent,
  notice:g('app-notice')?.textContent,current:g('profile-current')?.textContent,runProfile:g('run-profile')?.textContent,
- result:g('result')?.textContent,nameError:g('profile-name-error')?.textContent,profiles:Array.from(document.querySelectorAll('#profile-list button[data-profile-id]'),e=>({id:e.dataset.profileId,name:e.textContent,pressed:e.getAttribute('aria-pressed')})),
+ result:g('result')?.textContent,nameError:g('profile-name-error')?.textContent,profiles:Array.from(document.querySelectorAll('#profile-list option[value]:not([value=""]),#profile-list button[data-profile-id]'),e=>({id:e.value||e.dataset.profileId,name:e.textContent,pressed:e.selected===undefined?e.getAttribute('aria-pressed'):String(e.selected)})),
  naming:!!g('profile-naming')&&!g('profile-naming').hidden,confirm:!!g('profile-confirm')&&!g('profile-confirm').hidden,
  field:g('field-key')?.value,selector:g('field-selector')?.value,
  controls:Array.from(document.querySelectorAll('#field-editor input,#field-editor select,#crawl-editor input,#crawl-editor textarea'),e=>({id:e.id,value:e.value,checked:e.checked})),
@@ -93,7 +93,7 @@ async function upgradeAndTest(seed,previous){
   await record('original-storage-envelope',{request,value,bytes:Buffer.byteLength(JSON.stringify(value))});return value;
  }
  async function named(action,name){await click(frame,action);await until(async()=>(await ui()).naming,'name form opens');await fill(frame,'#profile-name',name);await click(frame,'#profile-name-submit');await record('name-submit-click',{action,name,state:await ui(),events:await frame.read('globalThis.__profileEvents'),form:await frame.read('({value:document.querySelector("#profile-name").value,form:document.querySelector("#profile-name-submit").form?.outerHTML})'),logs:browser.events.filter(e=>e.sessionId===frame.sessionId&&e.method==='Log.entryAdded')});assert(!browser.events.some(e=>e.sessionId===frame.sessionId&&e.method==='Log.entryAdded'&&e.params.entry.text.includes('Blocked form submission')),'Native sandbox blocked name form submission; trusted button click did not submit');return settled(action==='#rename-profile'?'配置已重命名':'配置已保存');}
- async function choose(id,discard=false){await click(frame,'#profile-list button[data-profile-id='+JSON.stringify(id)+']');if(discard){assert((await ui()).confirm);await click(frame,'#profile-confirm-accept');}const s=await settled('已切换配置');assert.equal(selected(s)?.id,id);assert(!s.configError);assert.equal(s.selector,'','Successful switch clears pending field selector');return s;}
+ async function choose(id,discard=false){await selectProfile(frame,id);if(discard){assert((await ui()).confirm);await click(frame,'#profile-confirm-accept');}const s=await settled('已切换配置');assert.equal(selected(s)?.id,id);assert(!s.configError);assert.equal(s.selector,'','Successful switch clears pending field selector');return s;}
  async function newDraft(){const before=await countWrites();await click(frame,'#new-profile');const s=await ui();assert(!s.confirm);assert(!selected(s));assert.equal(await countWrites(),before,'New draft must not write storage');return s;}
  async function assertConfig(config){
   const s=await ui();assert.deepEqual(JSON.parse(s.config),config);
@@ -107,8 +107,8 @@ async function upgradeAndTest(seed,previous){
   return s;
  }
  async function cancelConfirmation(action){
-  const before=await ui(),writesBefore=await countWrites();await click(frame,action);const pending=await ui();assert(pending.confirm,'Action must use the shared confirmation');
-  await record('confirm-visible',{action,text:await frame.read('document.querySelector("#profile-confirm").innerText')});
+  const before=await ui(),writesBefore=await countWrites();await (typeof action==='function'?action():click(frame,action));const pending=await ui();assert(pending.confirm,'Action must use the shared confirmation');
+  await record('confirm-visible',{action:typeof action==='function'?'profile-selection':action,text:await frame.read('document.querySelector("#profile-confirm").innerText')});
   await click(frame,'#profile-confirm-cancel');const after=await ui();
   for(const k of ['config','current','field','selector','profiles','controls'])assert.deepEqual(after[k],before[k],k+' must survive cancel');
   assert.equal(await countWrites(),writesBefore,'Cancellation must not write');assert(!after.confirm);
@@ -126,9 +126,9 @@ async function upgradeAndTest(seed,previous){
    else await fill(frame,'#next-selector','.pending-next-not-applied');
    let state=await ui();assert(state.disabled.find(e=>e.id==='start').disabled);assert(state.disabled.find(e=>e.id==='save-config').disabled);
    assert(state.disabled.find(e=>e.id==='copy-profile').disabled);assert(state.disabled.find(e=>e.id==='rename-profile').disabled);
-   for(const action of ['#profile-list button[data-profile-id='+JSON.stringify(a.id)+']','#new-profile','#delete-profile'])await cancelConfirmation(action);
+   for(const action of [()=>selectProfile(frame,a.id),'#new-profile','#delete-profile'])await cancelConfirmation(action);
    await record('dirty-cancel-'+mode,await ui());
-   await click(frame,'#profile-list button[data-profile-id='+JSON.stringify(a.id)+']');assert((await ui()).confirm);await click(frame,'#profile-confirm-accept');await settled('已切换配置');
+   await selectProfile(frame,a.id);assert((await ui()).confirm);await click(frame,'#profile-confirm-accept');await settled('已切换配置');
    state=await assertConfig(A);assert(!state.configError);assert.equal(state.field,'');assert.equal(state.selector,'');
    await record('dirty-switch-resynchronized-'+mode,state);await choose(b.id);await assertConfig(B);
   }
@@ -188,7 +188,7 @@ async function upgradeAndTest(seed,previous){
   const locked=await until(async()=>{const state=await ui();return state.disabled.find(e=>e.id==='new-profile')?.disabled?state:null;},'running management lock',5000);
   const editing=['new-profile','copy-profile','rename-profile','delete-profile','save-config','config-json','target-url','list-container','list-item','field-key','field-selector','field-read','field-attr','apply-field','next-selector','max-pages','dedupe-key','detail-enabled','detail-url-field','detail-id-field','detail-fields','detail-numbers','apply-crawl'];
   for(const control of editing)assert.equal(locked.disabled.find(e=>e.id===control)?.disabled,true,'Run locks '+control);
-  assert(await frame.read('Array.from(document.querySelectorAll("#profile-list button")).every(e=>e.disabled)'),'Run locks profile selection');
+  assert(await frame.read(`document.querySelector("#profile-list").options?document.querySelector("#profile-list").disabled:Array.from(document.querySelectorAll("#profile-list button")).every(e=>e.disabled)`),'Run locks profile selection');
   assert(locked.runProfile?.includes(startProfile.name),'Running UI binds starting profile name');await record('running-disabled-guard',{id,profile:startProfile,state:locked});
   const terminal=await until(async()=>{const state=await ui();if(state.error)throw Error(state.error);let snapshot;try{snapshot=JSON.parse(state.result);}catch{return null;}return snapshot.runId&&snapshot.retirementState==='released'?{state,snapshot}:null;},'App original durable completed and released',120000);
   const {snapshot}=terminal,row=snapshot.durableResult;

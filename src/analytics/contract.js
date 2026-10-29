@@ -40,11 +40,11 @@ export function validateAnalyticsEvent(value,{now=Date.now()}={}){
     throw Object.assign(new Error('Expired or future analytics event'),{code:'E_ANALYTICS_TIME'});
   if(value.reason!==undefined&&!reasons.has(value.reason))
     throw Object.assign(new Error('Invalid analytics reason'),{code:'E_ANALYTICS_SCHEMA'});
-  // Only a trusted installation census may carry a short list of tool IDs.
+  // Only a trusted installation census may carry installed tool IDs.
   // Never accept free-form event properties, URLs or business content.
   if(value.event==='app.inventory'){
     const ids=value.installedTools;
-    if(!Array.isArray(ids)||ids.length>12||
+    if(!Array.isArray(ids)||
       ids.some(id=>typeof id!=='string'||!toolId.test(id)||id==='opendesk')||
       ids.some((id,i)=>i>0&&id<=ids[i-1]))
       throw Object.assign(new Error('Invalid installed tool inventory'),{code:'E_ANALYTICS_SCHEMA'});

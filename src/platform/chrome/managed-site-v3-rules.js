@@ -3,7 +3,6 @@
 // here or allow package code to select DNR IDs, Chrome operations or paths.
 import {normalizeManagedSiteV3Policy,normalizeManagedSiteV3Usage,
   evaluateManagedSiteV3,matchesManagedSiteV3Host} from './managed-site-v3-policy.js';
-import {MAX_INSTALLED_TOOLS} from '../../ui/sidebar-tools/package.js';
 
 // Only four fixed Browser-owned destinations, never app supplied.
 const REASONS=Object.freeze({temporary:'session','weekly-window':'schedule',
@@ -14,9 +13,12 @@ export function managedSiteV3BlockedPath(reason){
 }
 export const MANAGED_SITE_V3_RULE_FIRST=753000;
 export const MANAGED_SITE_V3_RULES_PER_OWNER=60;
+// Preserve the allocated native rule ranges and existing owner slots. This
+// resource pool bounds DNR policies only; it never limits tool installation.
+export const MANAGED_SITE_DNR_OWNER_SLOTS=13;
 
 export function managedSiteV3RuleRange(slot){
-  if(!Number.isInteger(slot)||slot<0||slot>=MAX_INSTALLED_TOOLS)
+  if(!Number.isInteger(slot)||slot<0||slot>=MANAGED_SITE_DNR_OWNER_SLOTS)
     throw Object.assign(new Error('Invalid managed rule owner'),{code:'E_MANAGED_DNR_SCOPE'});
   const first=MANAGED_SITE_V3_RULE_FIRST+slot*MANAGED_SITE_V3_RULES_PER_OWNER;
   return {first,last:first+MANAGED_SITE_V3_RULES_PER_OWNER-1};

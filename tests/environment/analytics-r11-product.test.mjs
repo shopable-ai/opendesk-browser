@@ -79,6 +79,19 @@ async function eventually(check){
   }
   throw new Error('Timed out waiting for trusted analytics storage');
 }
+test('Host queues the complete inventory beyond thirteen without an external upload',async()=>{
+  const installed=Array.from({length:32},(_,i)=>({id:'inventory-tool-'+i}));
+  const {api,records}=chromeMock(installed);
+  let uploads=0;
+  const collector=installAnalyticsHost({api,endpoint:'https://analytics.example.test/v1/events',
+    newId:randomUUID,fetcher:async()=>{uploads++;throw Error('Unexpected upload');}});
+  await collector.setConsent(true,{disclosureVersion:ANALYTICS_DISCLOSURE_VERSION});
+  await api.storage.local.set({[SIDEBAR_TOOL_STORE]:installed});
+  await eventually(()=>records.get(ANALYTICS_STATE_KEY)?.queue.some(row=>row.event==='app.inventory'));
+  assert.deepEqual(records.get(ANALYTICS_STATE_KEY).queue
+    .find(row=>row.event==='app.inventory').installedTools,installed.map(row=>row.id).sort());
+  assert.equal(uploads,0);
+});
 test('real top-level Options tab can read consent and revoke while other documents remain rejected',async()=>{
   const {api,send,records}=chromeMock([]);
   const url=api.runtime.getURL('native-agent/settings.html');

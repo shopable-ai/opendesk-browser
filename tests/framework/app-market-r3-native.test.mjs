@@ -559,13 +559,14 @@ test(noChannelOnly?'R6.2 production Chrome: unconfigured channel has no webpage 
   }
 
   // Production-only adapters for the current React list and trusted settings.
-  const {MAX_INSTALLED_TOOLS}=await import('../../src/ui/sidebar-tools/package.js');
+  // This scenario retains a fixed fixture set, not the framework's installation capacity.
+  const retainedReleaseFixtureCount=13;
   const {tocSiteAllowed}=await import('../../examples/sidebar-tools/reading-toc/trusted/policy.js');
   const {installedSiteAllowed}=await import('../../src/ui/sidebar-tools/site-grants.js');
   const omittedId='ai-knowledge-answers';
   assert.equal(catalog.apps.find(row=>row.toolId===omittedId)?.installationPolicy,'optional');
   const retainedReleases=catalog.apps.filter(row=>row.toolId!==omittedId);
-  assert.equal(retainedReleases.length,MAX_INSTALLED_TOOLS);
+  assert.equal(retainedReleases.length,retainedReleaseFixtureCount);
   const prodAction=(id,name='main')=>'button[data-extension-key="app:'+id+'"][data-extension-action="'+name+'"]';
   async function prodList(scope='smart',target=side){
     if(target===side)await openMyTools();
@@ -728,7 +729,6 @@ test(noChannelOnly?'R6.2 production Chrome: unconfigured channel has no webpage 
     await until(async()=>(await browser.send('Target.getTargets')).targetInfos.every(row=>row.type!=='iframe'||!row.url?.includes('/sidebar-tools/sandbox.html')),'market tool sandbox destroyed');
     const capturedRegistry=await installed();
     assert(capturedRegistry.some(row=>row.id===release.toolId&&row.version===release.version));
-    assert(capturedRegistry.length<=MAX_INSTALLED_TOOLS,'individual coverage respects the real capacity');
     Object.assign(evidence.appDetails.at(-1),{scope:'ALL_RELEASES_INDIVIDUALLY',
       uiScreenshot:'app-ui-'+release.toolId+'-'+release.version+'.png',installedIdsAtCapture:capturedRegistry.map(row=>row.id)});
     if(release.toolId===omittedId)await prodUninstall(omittedId);
@@ -737,7 +737,7 @@ test(noChannelOnly?'R6.2 production Chrome: unconfigured channel has no webpage 
   assert.deepEqual(evidence.appDetails.map(row=>row.toolId),catalog.apps.map(row=>row.toolId));
   evidence.installationScopes=[
     {scope:'ALL_RELEASES_INDIVIDUALLY',toolIds:evidence.appDetails.map(row=>row.toolId),screenshots:true,simultaneous:false},
-    {scope:'RETAINED_SET',toolIds:retainedReleases.map(row=>row.toolId),count:retainedReleases.length,capacity:MAX_INSTALLED_TOOLS,omittedAfterScreenshot:omittedId}
+    {scope:'RETAINED_SET',toolIds:retainedReleases.map(row=>row.toolId),count:retainedReleases.length,fixtureCount:retainedReleaseFixtureCount,omittedAfterScreenshot:omittedId}
   ];
   // Preserve the upstream R3.1 real batch/reload acceptance. The old official
   // revision stays immutable; a user-created revision pins current releases.
@@ -913,11 +913,11 @@ test(noChannelOnly?'R6.2 production Chrome: unconfigured channel has no webpage 
     installedVia:'native UI',dataOrigin:'capacity-only fixture'};
   await phase('other-local-json-import');
   await prodUninstall('ai-vip-share');
-  evidence.localFixtureScope={scope:'RETAINED_SET_WITH_LOCAL_FIXTURE',omittedOptional:'ai-vip-share',localTool:'r45-local-tool',capacity:MAX_INSTALLED_TOOLS};
+  evidence.localFixtureScope={scope:'RETAINED_SET_WITH_LOCAL_FIXTURE',omittedOptional:'ai-vip-share',localTool:'r45-local-tool',fixtureCount:retainedReleaseFixtureCount};
   await importPackage({...packages.get('markdown-workbench'),id:'r45-local-tool',title:'R45 本地导入工具'},'other-local-tool');
   await prodOpenTool('r45-local-tool');await back();
   const beforeRestart=await installed();
-  assert.equal(beforeRestart.length,MAX_INSTALLED_TOOLS);
+  assert.equal(beforeRestart.length,retainedReleaseFixtureCount);
   evidence.localFixtureScope.toolIds=beforeRestart.map(row=>row.id);
   await phase('first-complete-chrome-restart');await closeChrome();host=null;side=null;await launch();side=await openPanel();
   assert.deepEqual(await installed(),beforeRestart);await assertNoGrants();await assertNoFrames();

@@ -149,19 +149,21 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
   // After expiring a more specific Cookie, get() may return the surviving
   // same-name Cookie on "/". Read back only the exact deleted identity.
   const sameIdentity=(left,right)=>Boolean(left&&right&&left.name===right.name&&
-    left.domain===right.domain&&left.path===right.path&&left.storeId===right.storeId&&
+    left.domain===right.domain&&left.hostOnly===right.hostOnly&&
+    left.path===right.path&&left.storeId===right.storeId&&
     Boolean(left.partitionKey)===Boolean(right.partitionKey)&&
     (!left.partitionKey||left.partitionKey.topLevelSite===right.partitionKey.topLevelSite&&
       Boolean(left.partitionKey.hasCrossSiteAncestor)===
         Boolean(right.partitionKey.hasCrossSiteAncestor)));
-  const exactExists=async (cookie,url)=>{
-    const query={url,name:cookie.name,
+  const exactRows=async cookie=>{
+    const query={domain:cookie.domain.replace(/^\./,'').toLowerCase(),name:cookie.name,path:cookie.path,
       ...(cookie.storeId?{storeId:cookie.storeId}:{}),
       ...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{})};
     const rows=await native('getAll',query);
     if(!Array.isArray(rows)||rows.length>10000)throw fail('E_CHROME','Invalid exact Cookie readback');
-    return rows.some(row=>sameIdentity(row,cookie));
+    return rows.filter(row=>sameIdentity(row,cookie));
   };
+  const exactExists=async cookie=>(await exactRows(cookie)).length>0;
   async function get(args,context){
     const details=scoped(args,'get');await verified(details.url,'get','pre',context);
     const result=await native('get',details);
@@ -186,6 +188,7 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
       const result=await native('set',details);
       const lookup=new URL(details.url),slash=lookup.pathname.lastIndexOf('/');
       const expected={name:details.name,domain:lookup.hostname,
+        hostOnly:details.domain===undefined,
         path:details.path??(slash>0?lookup.pathname.slice(0,slash):'/'),
         storeId:details.storeId??result?.storeId,partitionKey:details.partitionKey};
       const matchesWrite=cookie=>Boolean(cookie&&typeof cookie.domain==='string'&&
@@ -212,11 +215,24 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
   }
   async function remove(args,context){
     const details=scoped(args,'remove');await verified(details.url,'remove','pre',context);
-    const before=await native('get',details);
+    const expected=context?.expectedCookieIdentity;
+    let before;
+    if(expected){
+      // Trusted exact deletion must use the authorized Cookie host itself.
+      // A child URL does not authorize mutation of a parent Domain Cookie.
+      if(typeof expected.domain!=='string'||
+         expected.domain.replace(/^\./,'').toLowerCase()!==new URL(details.url).hostname||
+         typeof expected.hostOnly!=='boolean'||typeof expected.path!=='string'||
+         !expected.path.startsWith('/')||expected.name!==details.name||
+         typeof expected.storeId!=='string'||!expected.storeId||
+         !sameIdentity(expected,{...expected,storeId:details.storeId??expected.storeId,
+           partitionKey:details.partitionKey}))throw fail('E_COOKIE_SCOPE');
+      const matches=await exactRows(expected);
+      if(matches.length!==1)throw fail('E_COOKIE_AMBIGUOUS','Cookie identity changed before deletion');
+      before=matches[0];
+    }else before=await native('get',details);
     if(!before){await verified(details.url,'remove','post',context);return {removed:false,verified:true};}
     if(!within(before,details.url))throw fail('E_COOKIE_SCOPE');
-    if(context?.expectedCookieIdentity&&!sameIdentity(before,context.expectedCookieIdentity))
-      throw fail('E_COOKIE_AMBIGUOUS','Cookie identity changed before deletion');
     if(typeof api?.cookies?.set!=='function')throw fail('E_CHROME_UNSUPPORTED');
     // Native lookup may await a callback while the tool/site is revoked.
     // Recheck immediately before dispatching the exact expiration.
@@ -224,7 +240,7 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
     try{
       await expireExact(before,details.url);
       await verified(details.url,'remove','post',context);
-      if(await exactExists(before,details.url))throw Error('Exact Cookie still exists after remove');
+      if(await exactExists(before))throw Error('Exact Cookie still exists after remove');
       await verified(details.url,'remove','post',context);
       return {removed:true,verified:true};
     }catch{throw fail('E_OUTCOME_UNKNOWN','Cookie removal effect uncertain; do not automatically retry');}
@@ -266,7 +282,7 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
         await verified(key.url,'remove','pre',context);
         await expireExact(row,key.url);
         await verified(key.url,'remove','post',context);
-        if(await exactExists(row,key.url))throw Error('Exact Cookie still present');
+        if(await exactExists(row))throw Error('Exact Cookie still present');
         await verified(key.url,'remove','post',context);
         removed++;
       }catch{throw fail('E_OUTCOME_UNKNOWN','Partial Cookie site cleanup possible; reconcile before retry');}

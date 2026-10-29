@@ -95,7 +95,7 @@ test('trusted validator rejects Cookie-name separators, whitespace and controls'
 
 test('trusted validator rejects invalid Paths, changes of scope and prefixes',()=>{
   for(const path of ['orders','/bad;path','/bad\r','/bad\n','/bad\t',
-    '/bad\0','/bad\x7f','/bad\\separator']){
+    '/bad\0','/bad\x7f']){
     assert.throws(()=>validateAccountCookieRow(original({path}),
       'example.com','0'),{code:'E_ACCOUNT_COOKIE_SCOPE'});
   }

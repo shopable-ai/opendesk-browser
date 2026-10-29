@@ -68,7 +68,7 @@ Side Panel 既有“我的任务 / 发现 / 开发 / 工作流 / 工具”职责
 
 - 工具包仅接受 `format/id/version/title/description/capabilities/html/css/js`。新增发行者、截图、分类等市场字段应放在包外，不能直接塞进 v1 包。
 - 当前六项能力是 `storage.local`、`currentPage.read`、`tasks.open`、`page.toc`、`page.clip`、`user.export`；不是任意 DOM、HTTP、Chrome、Native 权限。
-- 当前最多安装 12 个工具，单包校验上限 320000 字节。单项工具存储上限 8192 字节，单工具 32 KB、最多 32 个键。市场页必须显示实际容量不足，而不是擅自提高预算。
+- 2026-10-29 起框架不设安装总数上限，未来 VIP 数量权益属于产品策略。单包校验上限 320000 字节；单项工具存储上限 8192 字节，单工具 32 KB、最多 32 个键。市场页显示实际空间使用及写入失败；空间阻塞应定位并合理扩容，不能转换为任意工具数量上限。现行合同见 `docs/api/sidebar-tools.zh-CN.md`。
 - Markdown 工作台关闭 iframe 后可能丢失未导出的编辑内容；首版不能宣传自动保存。草稿保护应作为现有工作台的定向完善。
 - 独立工具 Tab 当前不能安全继承 Side Panel 的来源网页身份；剪藏须在 Side Panel 进行。未来需要显式选择来源 Tab 的合同，不能偷用“最后活动标签页”。
 - Task v1 当前绑定一个精确 HTTP(S) Origin，不具备天然多网站任务授权。

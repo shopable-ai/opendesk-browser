@@ -18,7 +18,7 @@
 | src/platform/host/ 与 chrome/ | 唯一 Broker/Authority、Chrome API adapter | 共享代码但每产品各自 host 授权 | 工具 SDK 与独立扩展的 capability profile 拆分 |
 | src/scripting/user-scripts/installed-programs.js | 实际包含 native getScripts/register/unregister/reconcile 与 Boot 检查 | C 与少数需 UserScript 的 B 可复用 | 必须逐产品验证 Toggle、启动、回滚、撤权 |
 | src/ui/page-component-preparer.js | 可信 Worker 自动准备入口；React/Vue 固定编译资源 | 可复用到需要网页 UI 的产品 | 当前非所有 JSX/SFC 组合已最终 CFT 验收 |
-| src/ui/sidebar-tools/package.js | 工具包格式 v1/v2、capability 白名单、MAX_INSTALLED_TOOLS=12 | 适合 A 的工具包，不是多个独立 B Manifest | 需避免直接把 iframe 工具当扩展特权 |
+| src/ui/sidebar-tools/package.js | 工具包格式 v1/v2、capability 白名单、单包资源校验；无安装总数上限 | 适合 A 的工具包，不是多个独立 B Manifest | 需避免直接把 iframe 工具当扩展特权 |
 | src/marketplace/ 和 market-site/ | 网站发现、受限安装 Intent、可信宿主二次确认 | A/C 可复用发行模型 | 不等于已经有第三方作者审核 SaaS |
 | src/ui/tool.html | 当前五个常显 Tab；云控与调试条件显示 | 设计 Token/可访问性规范可复用 | 行业产品 UI 不应复制所有 Tab |
 | examples/programs/ 和 examples/sidebar-tools/ | 零参数、React/Vue、阅读 TOC、Cookie 编辑器等 Demo | 原型和 Fixture 可复用 | 不能把有目录当发布级 PASS |

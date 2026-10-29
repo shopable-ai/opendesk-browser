@@ -157,15 +157,25 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
     return owned;
   }
   async function remove(target,key){
-    const rows=(await read(target,key)).filter(row=>
-      row.name===key.name&&row.domain===key.domain&&row.path===key.path);
-    if(rows.length!==1)throw error(rows.length?'E_COOKIE_AMBIGUOUS':'E_COOKIE_NOT_FOUND');
-    const cookie=rows[0],url=new URL(target.url);
-    url.pathname=cookie.path||'/';url.search='';url.hash='';
+    const exact=await scope(target,key);
+    if(key.domain.replace(/^\./,'').toLowerCase()!==new URL(target.url).hostname)
+      throw error('E_COOKIE_SCOPE');
     await guard(target);
-    const receipt=await existing.remove({url:url.href,name:cookie.name,
+    const rows=await chromeCall(api,api.cookies,'getAll',{
+      domain:key.domain.replace(/^\./,'').toLowerCase(),name:key.name,path:key.path,...exact});
+    await guard(target);
+    if(!Array.isArray(rows)||rows.length>10000)throw error('E_CHROME');
+    const matches=rows.filter(row=>row.name===key.name&&row.domain===key.domain&&row.path===key.path&&
+      row.storeId===exact.storeId&&Boolean(row.partitionKey)===Boolean(exact.partitionKey)&&
+      (!row.partitionKey||row.partitionKey.topLevelSite===exact.partitionKey.topLevelSite&&
+        Boolean(row.partitionKey.hasCrossSiteAncestor)===Boolean(exact.partitionKey.hasCrossSiteAncestor)));
+    if(matches.length!==1)throw error(matches.length?'E_COOKIE_AMBIGUOUS':'E_COOKIE_NOT_FOUND');
+    const cookie=matches[0];
+    await guard(target);
+    const receipt=await existing.remove({url:target.url,name:cookie.name,
       storeId:cookie.storeId,...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{})},
-      {target,expectedCookieIdentity:{name:cookie.name,domain:cookie.domain,path:cookie.path,storeId:cookie.storeId,
+      {target,expectedCookieIdentity:{name:cookie.name,domain:cookie.domain,hostOnly:cookie.hostOnly,
+        path:cookie.path,storeId:cookie.storeId,
         ...(cookie.partitionKey?{partitionKey:cookie.partitionKey}:{})}});
     return {removed:receipt.removed};
   }
@@ -356,18 +366,17 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       const {ifAbsent,...nativeArgs}=args;
       result=await existing.set({...nativeArgs,storeId},context);
     }else if(op==='browser.cookies.remove'){
-      const target=new URL(args.url);target.pathname=args.path;target.search='';target.hash='';
-      await check('pre',target.href);
-      const found=(await scan({url:target.href,...key,name:args.name}))
+      const domain=args.domain.replace(/^\./,'').toLowerCase();
+      if(domain!==new URL(args.url).hostname)throw error('E_COOKIE_SCOPE');
+      const query={domain,name:args.name,path:args.path,...key};
+      const found=(await scan(query))
         .filter(row=>row.name===args.name&&row.path===args.path&&row.domain===args.domain);
       if(found.length!==1)throw error(found.length?'E_COOKIE_AMBIGUOUS':'E_COOKIE_NOT_FOUND');
-      const chosen=await chromeCall(api,api.cookies,'get',{url:target.href,...key,name:args.name});
-      if(!chosen||chosen.path!==args.path||chosen.domain!==args.domain||!permitted(chosen))
-        throw error('E_COOKIE_AMBIGUOUS','Native selection differs from exact identity');
-      result=await existing.remove({url:target.href,name:args.name,...key},
+      const chosen=found[0];
+      result=await existing.remove({url:args.url,name:args.name,...key},
         {...context,expectedCookieIdentity:redact(chosen)});
-      if((await scan({url:target.href,...key,name:args.name}))
-        .some(row=>row.name===args.name&&row.domain===args.domain&&row.path===args.path))
+      if((await scan(query)).some(row=>row.name===chosen.name&&row.domain===chosen.domain&&
+        row.hostOnly===chosen.hostOnly&&row.path===chosen.path))
         throw error('E_OUTCOME_UNKNOWN','Cookie still exists after native remove');
     }else if(op==='browser.cookies.clearSite'){
       const host=new URL(args.url).hostname;

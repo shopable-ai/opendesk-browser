@@ -16,7 +16,7 @@ const packageDigest=sha=>typeof sha==='string'&&/^[a-f0-9]{64}$/.test(sha);
 const validEpoch=value=>value===null||typeof value==='string'&&value.length>0&&value.length<=100;
 function validated(raw){
   if(raw===undefined)return {};
-  if(!plain(raw)||Object.keys(raw).length>12)fail();
+  if(!plain(raw))fail();
   const records={};
   for(const [id,record] of Object.entries(raw)){
     if(!toolId(id)||!exact(record,['installEpoch','packageHash','sites'])||

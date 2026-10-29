@@ -58,5 +58,11 @@
         }
       }
     }
+  },
+  "scripts": {
+    "build": "node ../../../node_modules/vite/bin/vite.js build --config vite.config.mjs",
+    "preview:build": "node preview/build-preview.mjs",
+    "dev": "node ../../../node_modules/vite/bin/vite.js build --watch --config vite.config.mjs",
+    "dev:mock": "node ../../../node_modules/vite/bin/vite.js --config preview/vite.config.mjs"
   }
 }

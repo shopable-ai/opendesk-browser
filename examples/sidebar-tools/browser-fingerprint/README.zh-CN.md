@@ -55,23 +55,23 @@ npm --prefix examples/sidebar-tools/browser-fingerprint run preview:check
 
 ## 运行与授权
 
-唯一可导入文件为 [browser-fingerprint.opendesk-tool.json](browser-fingerprint.opendesk-tool.json)，工具版本 `0.2.0`。需要同时包含新 SDK 的 OpenDesk Browser；只导入工具 JSON 不能升级 Browser 的可信 Host。当前开发扩展使用本仓库 `dist/development` 与 `npm run dev`。
+唯一可导入文件为 [browser-fingerprint.opendesk-tool.json](browser-fingerprint.opendesk-tool.json)，工具版本 `0.2.1`。需要同时包含新 SDK 的 OpenDesk Browser；只导入工具 JSON 不能升级 Browser 的可信 Host。当前开发扩展使用本仓库 `dist/development` 与 `npm run dev`。
 
 通过「扩展 → 更多 → 导入」审阅安装后打开应用，在普通 HTTP(S) 网页点击检测。首次使用某个网站时，由可信 Host 审阅六字段读取授权；同一安装和网站后续复用授权。Chrome 网站访问权限仍须有效；拒绝、撤权、停用或卸载后不能继续采集。
 
 - `browser.page.getContext`：取得可信 Host 核验的网页上下文与 opaque 文档引用。
 - `browser.page.readEnvironment({tabRef,documentRef})`：固定六字段白名单，只读目标顶层文档 `MAIN` 世界；不接收脚本、URL 或原生 Tab ID。
 - 来源标记为「目标网页 JS · MAIN · 顶层文档」，表示网页观察到的 JS 环境值，不是硬件认证或 HTTP 请求头。
-- 正常值、不可用与未知分别展示；整次未授权或身份失效则拒绝并清除结果。导航和标签切换后，界面在下一次身份检查时清除旧值（约 1 秒）。
+- 正常值、不可用与未知分别展示；整次未授权或身份失效则拒绝并清除结果。导航和标签切换后，界面在下一次身份检查时清除旧值（约 2.5 秒）。每次检查的两次 SDK 查询留出宿主请求预算，避免窗口持续打开后因限流清空读数。
 - 原生采集限时 3 秒、回执最多 8 KiB；首次可信授权另有等待预算。迟到或其他文档的回执不采用。
 
 ## 已验证的当前核心链
 
-真实 Mac Chrome for Testing `154.0.8037.92`（headless）中，通过实际 Chrome `SIDE_PANEL` 和原安装审阅 UI 完成八项检查：安装、拒绝授权无值、等待超过旧 8 秒限制后授权读取、六值与独立目标读取一致、再次检测无需重复授权、导航清除、重新检测新文档、切换 Tab 清除。
+真实 Mac Chrome for Testing `154.0.8037.92` 的 headless 与有界面窗口均通过实际 Chrome `SIDE_PANEL` 和原安装审阅 UI 完成八项检查：安装、拒绝授权无值、等待超过旧 8 秒限制后授权读取、六值与独立目标读取一致、再次检测无需重复授权、导航清除、重新检测新文档、切换 Tab 清除。有界面续测后保留检测结果；系统窗口列表确认该任务窗口在屏幕上且位于前台，开发服务已连接。
 
 本轮定向 Node 测试 120/120、React 构建、同源预览与正式 JSON 同源检查 PASS。Node 中另覆盖文档/安装身份、撤权/卸载、跨站拒绝和超时。证据与边界见 [核心开发结果](evidence/r19-core-development.zh-CN.md)；初次能力缺口保留在 [历史 SDK 审计](evidence/r19-sdk-admission.zh-CN.md)。
 
-这是开发阶段真实核心证据。日常有界面 Mac Chrome、production 候选完整验收、保存/历史/比较/报告闭环及官方 Catalog 发布仍未执行，不宣称完整 R1.9 `READY_FOR_LOCAL_CODEX`。
+这是独立 CFT Profile 的开发阶段真实核心证据。个人日常 Chrome、production 候选完整验收、保存/历史/比较/报告闭环及官方 Catalog 发布仍未执行，不宣称完整 R1.9 `READY_FOR_LOCAL_CODEX`。
 
 ## 源码与定向复现
 
@@ -85,8 +85,16 @@ npm --prefix examples/sidebar-tools/browser-fingerprint run preview:check
 node scripts/build-sidebar-tool.mjs examples/sidebar-tools/browser-fingerprint --check-project
 ```
 
-真实核心脚本复用仓库原 launcher/transport，需要既有 CFT 154、开发扩展及标准演示页面服务；它使用独立临时 Profile，退出后清理浏览器，不操作个人 Chrome 数据：
+真实核心脚本复用仓库原 launcher/transport，需要既有 CFT 154、开发扩展及标准演示页面服务；使用独立临时 Profile，不操作个人 Chrome 数据。默认无界面，完成后清理浏览器：
 
 ```sh
 node examples/sidebar-tools/browser-fingerprint/tests/native-core.mjs
 ```
+
+需要用户实际查看和操作时，在保留 stdin 的终端运行：
+
+```sh
+node examples/sidebar-tools/browser-fingerprint/tests/native-core.mjs --headed --keep-open
+```
+
+`--headed` 通过 Chrome 自身 UI 开启该临时 Profile 的开发者模式，加载固定 `dist/development`；安装与网站授权仍走原产品审阅 UI。`--keep-open` 必须与 `--headed` 一起使用，结束后保留成功结果（失败时保留现场），不会自动关闭窗口。证据目录的 `session.json` 记录本任务进程与 Profile。终端输入 `close` 或向记录的 `driverPid` 发送 `SIGTERM`，由原 launcher 关闭所属浏览器并清理临时 Profile；保留期间不要手动删除该 Profile。

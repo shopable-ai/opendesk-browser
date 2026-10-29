@@ -208,14 +208,14 @@ test('Local rejected preparation keeps its error while Controller history remain
   await controllerResults.read(oldRun.runId,{reveal:true});assert.match(text,/A_OLD_VALUE/);
   assert.equal(f.find('script-task-id').textContent,'runId：'+oldRun.runId);
 });
-function fixture(t,{nativeConnected=true,connected=false,saved,files=[],preparationDelayMs=0}={}){
+function fixture(t,{nativeConnected=true,connected=false,saved,files=[],tools=[],preparationDelayMs=0}={}){
   const developerView=createDeveloperView(),find=developerTestFields(developerView);
   find('local-project-mode').checked=true;
   let state={connected,nativeConnected,providerEpoch:connected?'epoch-a':null},projects=[project],listener;
   const calls=[],writes=[],opened=[];let changes=0,observedSnapshot,publications=0;
   const client={requestLocalProject:async method=>{calls.push(method);return method==='status'?state:method==='workspaces.list'?fileCatalog(files):{providerEpoch:state.providerEpoch,projects};},
     subscribeLocalProjects:callback=>{listener=callback;return ()=>{listener=null;};}};
-  const api={runtime:{getURL:path=>'chrome-extension://test/'+path,openOptionsPage:async()=>opened.push('options')},tabs:{create:async value=>opened.push(value)},storage:{local:{get:async()=>saved?{'opendesk.local-project.selection.v1':saved}:{},set:async value=>{writes.push(value);}}}};
+  const api={runtime:{getURL:path=>'chrome-extension://test/'+path,openOptionsPage:async()=>opened.push('options')},tabs:{create:async value=>opened.push(value)},storage:{local:{get:async()=>({'opendesk.sidebar-tools.installed.v1':tools,...(saved?{'opendesk.local-project.selection.v1':saved}:{})}),set:async value=>{writes.push(value);}}}};
   const view=createLocalProjectView({client,api,view:developerView,onChange:()=>changes++,preparationDelayMs});
   t.after(()=>view.dispose());
   return {view,developerView,api,find,calls,writes,opened,client,setState:value=>{state=value;},setProjects:value=>{projects=value;},setFiles:value=>{files=value;},notify:value=>listener(value),
@@ -1101,4 +1101,14 @@ test('restored directory identity cannot silently change to another source under
     }
     f.view.dispose();
   }
+});
+
+
+test('Local project tool choices retain more than thirteen valid packages and filter invalid or duplicate rows',async t=>{
+  const tools=Array.from({length:24},(_,i)=>({format:'opendesk.sidebar-tool.v1',id:'local-tool-'+i,
+    version:'1.0.0',title:'Local Tool '+i,description:'Local project fixture',capabilities:[],
+    html:'<main>Local</main>',css:'',js:'void 0;'}));
+  const f=fixture(t,{tools:[...tools,tools[0],{...tools[0],id:'invalid-tool',capabilities:['invalid.capability']}]});
+  for(let i=0;i<40&&f.find('local-project-tool').options.length<25;i++)await tick();
+  assert.deepEqual(f.find('local-project-tool').options.map(row=>row.value),['',...tools.map(tool=>tool.id)]);
 });

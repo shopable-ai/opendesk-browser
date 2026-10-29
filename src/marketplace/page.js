@@ -2,7 +2,7 @@ import {taskDelegationReview} from '../platform/tasks/delegation-contract.js';
 import {OFFICIAL_COLLECTIONS,officialMarketApps,getOfficialCollection} from './catalog.js';
 import {initMarketInstall} from './install.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
-import {validateSidebarToolPackage, SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_PREFIX,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage, SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_PREFIX} from '../ui/sidebar-tools/package.js';
 import {readSidebarStorageUsage} from '../ui/sidebar-tools/storage-usage.js';
 import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   installReviewedSidebarTool,recoverMarketOperation,retryUninstalledToolCleanup,
@@ -70,7 +70,7 @@ const collectionHref=item=>'#/collections/'+item.id+'/revisions/'+item.revision;
 export function strictTransfer(value,releases=[]) {
   if(!value||typeof value!=='object'||Array.isArray(value)||
     Object.keys(value).sort().join(',')!=='apps,format'||value.format!==TRANSFER_FORMAT||
-    !Array.isArray(value.apps)||value.apps.length>MAX_INSTALLED_TOOLS)
+    !Array.isArray(value.apps))
     throw fail('迁移清单格式错误或包含额外字段','E_TRANSFER');
   const ids=new Set();
   const apps=value.apps.map(item=>{
@@ -643,7 +643,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       body.append(line);
     }table.append(body);
     const section=elem('section','surface');section.append(add(elem('div','market-table-scroll'),table));
-    section.append(para('预检会逐一核对包、固定版本、容量与权限；明确确认后才逐项安装。成功的项目不会因其他失败被卸载。','minor'));
+    section.append(para('预检会逐一核对包、固定版本、来源与权限；明确确认后才逐项安装。成功的项目不会因其他失败被卸载。','minor'));
     const controls=elem('div','actions');
     const consumed=state.handoff&&state.handoff.consumedAt!==null;
     if(!state.handoff?.recoveryOnly&&!consumed)controls.append(button('预检全部成员',()=>preflightCollection(collection),true));
@@ -661,7 +661,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   async function preflightCollection(collection){
     if(state.busy)return;
     state.busy=true;say('正在逐项校验安装包和现有安装状态…');
-    const rows=[];let count=0;
+    const rows=[];
     try{
       await reloadInstalled();
       const provenance=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
@@ -676,9 +676,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
               row.status='blocked';row.reason='来源或版本差异，需要先单独审阅';
             }else row.reason='将保留原工具数据；申请能力：'+(capabilityNames(tool.capabilities)+taskDelegationReview(tool))+
               '；新增能力：'+capabilityNames(tool.capabilities.filter(value=>!row.baseline.capabilities.includes(value)));
-          }else if(state.installed.length+count>=MAX_INSTALLED_TOOLS){
-            row.status='blocked';row.reason='超过本机 '+MAX_INSTALLED_TOOLS+' 个工具上限';
-          }else{count++;row.reason='申请能力：'+(capabilityNames(tool.capabilities)+taskDelegationReview(tool));}
+          }else{row.reason='申请能力：'+(capabilityNames(tool.capabilities)+taskDelegationReview(tool));}
           if(row.status==='ready')await verifyMarketplaceToolRuntime({api,tool});
         }catch(e){row.status='blocked';row.reason=(e.code||'E_PACKAGE')+' '+e.message;}
         rows.push(row);

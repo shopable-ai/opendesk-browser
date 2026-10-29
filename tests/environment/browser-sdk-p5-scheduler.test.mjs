@@ -284,3 +284,29 @@ test('P5 scheduler fails closed when current installed tool authority changes',a
   await assert.rejects(f.service.cancelOwn({scheduleRef:created.scheduleRef},owner),error('E_TOOL_CHANGED'));
   await assert.rejects(f.service.create(f.request,owner,f.intent),error('E_TOOL_CHANGED'));
 });
+
+
+test('P5 scheduler reconciles and cleans uninstalled schedules with more than thirteen installed tools',async()=>{
+  const f=await fixture(),currentOwner=await f.defaultOwner();
+  const tools=Array.from({length:24},(_,i)=>({...toolPackage,id:'scheduler-peer-'+i}));
+  f.setToolLocal(SIDEBAR_TOOL_STORE,[...tools,toolPackage]);
+  const service=createScheduleService({storage:f.storage,api:f.api,clock:{now:f.now},assertHost:async()=>({}),emitToHost:async()=>{}});
+  const created=await service.create(f.request,currentOwner,f.intent);
+  await service.reconcile();
+  const alarm='opendesk.schedule.v1:'+created.scheduleRef;
+  assert.equal(f.alarms.has(alarm),true);
+  assert.equal((await service.listOwn({},currentOwner)).schedules[0].scheduleRef,created.scheduleRef);
+  const {TOOL_CLEANUP_STORE}=await import('../../src/ui/sidebar-tools/installation.js');
+  f.setToolLocal(SIDEBAR_TOOL_STORE,tools);
+  f.setToolLocal(TOOL_CLEANUP_STORE,{[toolPackage.id]:{version:toolPackage.version,createdAt:f.now()}});
+  const url='chrome-extension://scheduler-ext/ui/marketplace.html',documentId='installer-document';
+  f.api.runtime.getURL=path=>'chrome-extension://scheduler-ext/'+path;
+  f.api.runtime.getContexts=async()=>[{documentId,documentUrl:url,frameId:0,incognito:false,contextType:'TAB',tabId:7}];
+  assert.deepEqual(await service.cleanupUninstalledToolSchedules({toolId:toolPackage.id},
+    {id:'scheduler-ext',url,documentId,frameId:0,tab:{id:7,incognito:false}}),
+    {toolId:toolPackage.id,schedulesRetired:true,alarmsCleared:true});
+  assert.equal(f.alarms.has(alarm),false);
+  f.setToolLocal(SIDEBAR_TOOL_STORE,[...tools,tools[0]]);
+  await assert.rejects(service.cleanupUninstalledToolSchedules({toolId:toolPackage.id},
+    {id:'scheduler-ext',url,documentId,frameId:0,tab:{id:7,incognito:false}}),{code:'E_STORAGE_CORRUPT'});
+});

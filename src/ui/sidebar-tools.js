@@ -24,7 +24,7 @@ import {pageHostPermissionOrigins} from '../scripting/user-scripts/page-install-
 import {loadOfficialPagePackage} from '../scripting/user-scripts/official-page-catalog.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolRevocationEpochs,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
-import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
+import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';

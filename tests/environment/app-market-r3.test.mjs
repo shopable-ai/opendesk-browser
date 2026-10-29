@@ -1,18 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createHash} from 'node:crypto';
-import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,MAX_INSTALLED_TOOLS,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
+import {createHash,randomUUID} from 'node:crypto';
+import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,MARKET_OPERATIONS_STORE,
   MARKET_PROVENANCE_STORE,sameSidebarToolPackage,recordToolUninstall,getPendingToolCleanups,
   cleanupUninstalledToolLocked,retryUninstalledToolCleanup,TOOL_CLEANUP_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 
+import {createMarketBatch,readMarketBatch} from '../../src/marketplace/batch.js';
 import {strictTransfer,verifyMarketplaceToolRuntime} from '../../src/marketplace/page.js';
 import {OFFICIAL_COLLECTIONS,getOfficialCollection,officialMarketApps} from '../../src/marketplace/catalog.js';
 import {officialFixtures} from '../helpers/official-tools.mjs';
 const official=await officialFixtures();
 const OFFICIAL_APPS=officialMarketApps(official.catalog);
 
+// Fixture size exercises counts beyond the former 13-tool cap; it is not a product limit.
+const MANY_TOOLS_FIXTURE_COUNT=24;
 const MARKET_TEST_ID='market-contract-tool';
 const tool=(id=MARKET_TEST_ID,version='1.0.2')=>({format:SIDEBAR_TOOL_FORMAT,id,version,title:'Example '+id,
   description:'A tool for exercising official market v1 installs',capabilities:[],html:'<main>Ready</main>',
@@ -164,27 +167,33 @@ test('a thirteenth tool preserves the first twelve installations and their data'
   for(const entry of existing)
     assert.deepEqual(values[sidebarToolStorageKey(entry.id)],{draft:'Keep '+entry.id});
 });
-test('full capacity still permits a reviewed same-ID update and exact reopen',async()=>{
+test('a registry above thirteen tools permits a reviewed same-ID update and exact reopen',async()=>{
   const {api,locks,values}=browser();
-  const existing=Array.from({length:MAX_INSTALLED_TOOLS},(_,i)=>tool('note'+i));
+  const existing=Array.from({length:MANY_TOOLS_FIXTURE_COUNT},(_,i)=>tool('note'+i));
   values[SIDEBAR_TOOL_STORE]=structuredClone(existing);
   const original=existing[0],candidate={...original,version:'1.0.3'};
-  values[sidebarToolStorageKey(original.id)]={draft:'Retain at capacity'};
+  values[sidebarToolStorageKey(original.id)]={draft:'Retain across update'};
   await installReviewedSidebarTool({api,lockManager:locks,candidate,baseline:original,
     reviewApproved:true,approveUpdate:async()=>true});
-  assert.equal(values[SIDEBAR_TOOL_STORE].length,MAX_INSTALLED_TOOLS);
+  assert.equal(values[SIDEBAR_TOOL_STORE].length,MANY_TOOLS_FIXTURE_COUNT);
   assert.deepEqual(values[SIDEBAR_TOOL_STORE].slice(1),existing.slice(1));
-  assert.deepEqual(values[sidebarToolStorageKey(original.id)],{draft:'Retain at capacity'});
+  assert.deepEqual(values[sidebarToolStorageKey(original.id)],{draft:'Retain across update'});
   const same=await installReviewedSidebarTool({api,lockManager:locks,candidate,
     baseline:candidate,reviewApproved:true});
   assert.equal(same.state,'already-installed');
 });
-test('tool capacity rejects excess without deleting existing installations',async()=>{
+test('adding a tool above thirteen preserves every existing installation and its data',async()=>{
   const {api,locks,values}=browser();
-  values[SIDEBAR_TOOL_STORE]=Array.from({length:MAX_INSTALLED_TOOLS},(_,i)=>tool('note'+i));
-  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate:tool('extra'),baseline:null,
-    reviewApproved:true}),e=>e.code==='E_TOOL_CAPACITY');
-  assert.equal(values[SIDEBAR_TOOL_STORE].length,MAX_INSTALLED_TOOLS);
+  const existing=Array.from({length:MANY_TOOLS_FIXTURE_COUNT},(_,i)=>tool('note'+i));
+  values[SIDEBAR_TOOL_STORE]=structuredClone(existing);
+  for(const entry of existing)values[sidebarToolStorageKey(entry.id)]={draft:'Keep '+entry.id};
+  const candidate=tool('extra');
+  const result=await installReviewedSidebarTool({api,lockManager:locks,candidate,baseline:null,
+    reviewApproved:true});
+  assert.equal(result.state,'installed');
+  assert.deepEqual(values[SIDEBAR_TOOL_STORE],[...existing,candidate]);
+  for(const entry of existing)
+    assert.deepEqual(values[sidebarToolStorageKey(entry.id)],{draft:'Keep '+entry.id});
 });
 test('a lost registry acknowledgement requires explicit finalization even after exact readback',async()=>{
   const {api,locks,values,operations}=browser(),candidate=tool();
@@ -266,6 +275,36 @@ test('data-only transfer rejects script, site grants, tokens, duplicates and unk
     {...safe,apps:[{marketId:'opendesk/reading-toc',version:'0.0.0'}]},
     {...safe,apps:[{marketId:'external/arbitrary',version:'1.0.0'}]}
   ])assert.throws(()=>strictTransfer(altered,OFFICIAL_APPS),e=>e.code==='E_TRANSFER');
+});
+
+test('transfer and batch records accept more than thirteen fixed releases without relaxing validation',()=>{
+  const candidates=Array.from({length:MANY_TOOLS_FIXTURE_COUNT},(_,index)=>tool('batch-tool-'+index));
+  const releases=candidates.map(candidate=>({id:'opendesk/'+candidate.id,version:candidate.version}));
+  const transfer={format:'opendesk.market.transfer.v1',apps:releases.map(app=>({marketId:app.id,version:app.version}))};
+  assert.deepEqual(strictTransfer(transfer,releases),transfer);
+  const collection={id:'my-selection',revision:1,members:releases};
+  const rows=releases.map(app=>({app,status:'ready'}));
+  const batch=createMarketBatch(collection,rows,{releases,idFactory:randomUUID});
+  assert.equal(batch.items.length,MANY_TOOLS_FIXTURE_COUNT);
+  assert.deepEqual(readMarketBatch(structuredClone(batch)),batch);
+  assert.throws(()=>strictTransfer({...transfer,apps:[...transfer.apps,transfer.apps[0]]},releases),{code:'E_TRANSFER'});
+  assert.throws(()=>readMarketBatch({...batch,items:[...batch.items,batch.items[0]]}),{code:'E_BATCH_SCHEMA'});
+  assert.throws(()=>createMarketBatch(collection,rows,{releases:releases.slice(1),idFactory:randomUUID}),{code:'E_BATCH_PLAN'});
+  assert.throws(()=>createMarketBatch(collection,rows.slice(1),{releases,idFactory:randomUUID}),{code:'E_BATCH_PLAN'});
+});
+
+test('a reviewed batch installs more than thirteen fixed releases without truncation',async()=>{
+  const candidates=Array.from({length:MANY_TOOLS_FIXTURE_COUNT},(_,index)=>tool('batch-tool-'+index));
+  const releases=candidates.map(candidate=>({id:'opendesk/'+candidate.id,version:candidate.version}));
+  const collection={id:'my-selection',revision:1,members:releases};
+  const batch=createMarketBatch(collection,releases.map(app=>({app,status:'ready'})),{releases,idFactory:randomUUID});
+  const {api,locks,values}=browser();
+  for(const [index,item] of batch.items.entries()){
+    const result=await installReviewedSidebarTool({api,lockManager:locks,candidate:candidates[index],
+      baseline:null,reviewApproved:true,market:{...identity(candidates[index].id),operationId:item.operationId}});
+    assert.equal(result.state,'installed');
+  }
+  assert.deepEqual(values[SIDEBAR_TOOL_STORE],candidates);
 });
 
 test('R4.5 legacy source adoption requires explicit confirmation and preserves the original private data',async()=>{
@@ -516,12 +555,14 @@ test('orphaned notes are retained when new same-ID installation cannot safely co
   assert.equal(values[SIDEBAR_TOOL_STORE],undefined);
 });
 
-test('installer fails closed on malformed, duplicated or overflowed local registries without erasing any rows',async()=>{
+test('installer fails closed on malformed or duplicated local registries without erasing any rows',async()=>{
   const good=tool(MARKET_TEST_ID),privateKey=sidebarToolStorageKey(good.id);
   const invalid=[good,{...good,id:'invalid id'}];
   const duplicate=[good,structuredClone(good)];
-  const overflow=Array.from({length:MAX_INSTALLED_TOOLS+1},(_,index)=>tool('entry'+index));
-  for(const rows of [invalid,duplicate,overflow,{broken:true}]){
+  const many=Array.from({length:MANY_TOOLS_FIXTURE_COUNT},(_,index)=>tool('entry'+index));
+  const invalidTail=[...many,{...good,id:'invalid id'}];
+  const duplicateTail=[...many,structuredClone(many[0])];
+  for(const rows of [invalid,duplicate,invalidTail,duplicateTail,{broken:true}]){
     const {api,locks,values,operations}=browser();
     values[SIDEBAR_TOOL_STORE]=structuredClone(rows);
     values[privateKey]={draft:'永远不能意外丢失'};
