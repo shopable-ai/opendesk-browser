@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
-const ROOT='examples/sidebar-tools/prompt-shortcuts';
+const ROOT='projects/prompt-shortcuts';
 const file=relative=>readFile(ROOT+'/'+relative,'utf8');
 function between(source,start,end){
   const from=source.indexOf(start),to=source.indexOf(end,from);

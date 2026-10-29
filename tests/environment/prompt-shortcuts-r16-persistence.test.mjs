@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 
-const path='examples/sidebar-tools/prompt-shortcuts/preview/index.html';
+const path='projects/prompt-shortcuts/preview/index.html';
 async function source(){
   const html=await readFile(path,'utf8');
   const match=html.match(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/);

@@ -8,7 +8,7 @@ import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 // Exact installable UI in an isolated Chromium document; no installed extension, Host CSS,
 // production build or real clipboard/storage permission is exercised here.
 const modulePath=process.env.OPENDESK_PLAYWRIGHT_MODULE;
-const project=new URL('../../examples/sidebar-tools/prompt-shortcuts/',import.meta.url);
+const project=new URL('../../projects/prompt-shortcuts/',import.meta.url);
 test('detail text-button icons stay compact while copy/edit and keyboard focus work',{
   skip:modulePath?false:'NOT_TESTED: set OPENDESK_PLAYWRIGHT_MODULE to an existing Playwright module'
 },async t=>{

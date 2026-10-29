@@ -12,7 +12,7 @@ import {installAiAccessService} from '../examples/sidebar-tools/ai-vip-share/tru
 import {installCookieAccountService} from '../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
 import {reconcileManagedProxy,MANAGED_PROXY_ALARM} from './platform/chrome/browser-managed-proxy.js';
 import {createCloudRunnerLifecycle} from './cloud-control/runner-lifecycle.js';
-import {handlePromptRailOpen} from '../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+import {handlePromptRailOpen} from '../projects/prompt-shortcuts/trusted/rail-open.js';
 import {installAnalyticsHost} from './analytics/host.js';
 import {readAnalyticsAuthorityProjection} from './analytics/authority-projection.js';
 import {installedKey as taskInstalledKey} from './platform/tasks/contract.js';

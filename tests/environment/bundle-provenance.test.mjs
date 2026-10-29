@@ -242,7 +242,7 @@ test('R1.3 app-owned trusted background inputs require an exact reviewed Git blo
 
 
 test('Marketplace shares only the byte-pinned Prompt Shortcuts asset identity for uninstall cleanup',async ctx=>{
-  const path='examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
+  const path='projects/prompt-shortcuts/trusted/asset-contract.js';
   const pin='86e95bff786e52efb9089f97126542430f39a716';
   const make=(target,root=process.cwd(),file=path)=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,file)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
@@ -251,11 +251,11 @@ test('Marketplace shares only the byte-pinned Prompt Shortcuts asset identity fo
   for(const target of ['sw.js','ui/tool-shell.js','marketplace/market-host.js','scripting/sandbox/sandbox.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   assert.throws(()=>make('ui/marketplace.js',process.cwd(),
-    'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js'),
+    'projects/prompt-shortcuts/trusted/asset-host.js'),
     /cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-asset-cleanup-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
-  await mkdir(join(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
+  await mkdir(join(root,'projects/prompt-shortcuts/trusted'),{recursive:true});
   await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unsigned change\n');
   assert.throws(()=>make('ui/marketplace.js',root),/Trusted Prompt Shortcuts source changed/);
 });
@@ -280,8 +280,8 @@ test('first-party Clipper full-text notes store is pinned exclusively to the ori
 });
 
 test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed outputs',async ctx=>{
-  const path='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
-  const pin='5f0184b28abe5d8e03855f9c130d45faba807d1e';
+  const path='projects/prompt-shortcuts/trusted/rail-open.js';
+  const pin='3131842ad495be96fcf26c83571f7061bc66c3d7';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   for(const target of ['sw.js','agents/page-relay.js'])
@@ -291,7 +291,7 @@ test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed ou
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-rail-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
   const file=join(root,path);
-  await mkdir(join(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
+  await mkdir(join(root,'projects/prompt-shortcuts/trusted'),{recursive:true});
   await writeFile(file,(await readFile(resolve(path),'utf8'))+'\n// unsigned edit\n');
   assert.throws(()=>make('sw.js',root),/Trusted Prompt Shortcuts source changed/);
 });
@@ -305,7 +305,7 @@ test('independent Scroll Page source cannot regain privileged fixed output admis
 });
 
 test('removed Prompt Shortcuts site bindings cannot regain privileged output admission',async ctx=>{
-  const path='examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js';
+  const path='projects/prompt-shortcuts/trusted/conversation-sites.js';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   const targets=['agents/page-relay.js','sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'];
@@ -313,7 +313,7 @@ test('removed Prompt Shortcuts site bindings cannot regain privileged output adm
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-site-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
-  await mkdir(join(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
+  await mkdir(join(root,'projects/prompt-shortcuts/trusted'),{recursive:true});
   await writeFile(join(root,path),'export const sites = [];\n');
   for(const target of targets)
     assert.throws(()=>make(target,root),/cannot enter a privileged fixed bundle/,

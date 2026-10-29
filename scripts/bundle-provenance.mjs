@@ -216,15 +216,15 @@ export function trustedToolShellStyle(root=process.cwd()){
 const compiledPromptShortcutInputs=Object.freeze({
   // Reviewed dffeec493 model-only delta: discard retired navigation settings;
   // prompt/image handling, current settings and quotas remain unchanged.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'730496110c2ebc316eb74e1c29ac66dc74d60561',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
+  'projects/prompt-shortcuts/trusted/model.js':'730496110c2ebc316eb74e1c29ac66dc74d60561',
+  'projects/prompt-shortcuts/trusted/policy.js':'6a837d85880378262b21b8e51bb18d81e52d0a90',
   // OD entry restored from ed7ceb65; first built-in rail button only, using already pinned SW gesture bridge.
   // No origin, permission, storage, navigation arrows, sender scope or injection surface changed.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'96290d6c96b957bf530c37f67bb74ddbc4b8d6fb',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
+  'projects/prompt-shortcuts/trusted/page.js':'3a9d4aac86b5c5d7ba12e58100b8cdc3e2fbf602',
+  'projects/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
+  'projects/prompt-shortcuts/trusted/asset-host.js':'8de12e8e40c083392a58e07a5cc4a45eab79c56f',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'5f0184b28abe5d8e03855f9c130d45faba807d1e'
+  'projects/prompt-shortcuts/trusted/rail-open.js':'3131842ad495be96fcf26c83571f7061bc66c3d7'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 // Installer is shared by Marketplace. Allow only the byte-pinned asset identity
@@ -232,8 +232,8 @@ const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.j
 const promptAssetContractTargets=new Set([...promptFixedTargets,'ui/marketplace.js']);
 const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
-  const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js'?promptAssetContractTargets:
-    path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:promptFixedTargets;
+  const targets=path==='projects/prompt-shortcuts/trusted/asset-contract.js'?promptAssetContractTargets:
+    path==='projects/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:promptFixedTargets;
   if(!targets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
@@ -415,7 +415,7 @@ const compiledHostStyleInputs=Object.freeze({
   'projects/bookmark-manager/trusted/host.css':'5bbe841558c86389994defd93f6077aa928a9cf9',
   'examples/sidebar-tools/cookie-editor/trusted/host.css':'b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f',
   'examples/sidebar-tools/ai-vip-share/trusted/host.css':'634786710c463671b9c24c424725bf6c7ff4ec8e',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/host.css':'aa08e38ebd56e34c49c1c07be5a1b6727426865b',
+  'projects/prompt-shortcuts/trusted/host.css':'aa08e38ebd56e34c49c1c07be5a1b6727426865b',
   'projects/reading-toc/trusted/host.css':'93db2443725c8fac84dd94585d08d933766c2040'
 });
 function reviewedCompiledHostStyle(target,path,root){

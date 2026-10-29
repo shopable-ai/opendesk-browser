@@ -12,7 +12,7 @@ import {fileURLToPath} from 'node:url';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const out=resolve(process.argv[2]||join(root,'artifacts/prompt-scroll-icons-01a16cdf'));
-const tool='examples/sidebar-tools/prompt-shortcuts/';
+const tool='projects/prompt-shortcuts/';
 const pkg=JSON.parse(await readFile(join(root,tool+'prompt-shortcuts.opendesk-tool.json'),'utf8'));
 const paths=['M5 4h14M12 20V8m-6 6 6-6 6 6','M5 20h14M12 4v12m-6-6 6 6 6-6',
   'M17 11l-5-5-5 5m10 7-5-5-5 5','M7 6l5 5 5-5M7 13l5 5 5-5'];

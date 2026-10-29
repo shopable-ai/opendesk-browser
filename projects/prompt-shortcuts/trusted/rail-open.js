@@ -1,5 +1,5 @@
 // Fixed-source user-gesture bridge for the built-in sites' OD brand button.
-import {createPanelToolIntent,panelToolIntentKey} from '../../../../src/ui/sidebar-tools/panel-tool-intent.js';
+import {createPanelToolIntent,panelToolIntentKey} from '../../../src/ui/sidebar-tools/panel-tool-intent.js';
 // This reuses OpenDesk's existing native Chrome Side Panel, not a second Host.
 // No storage request, timer or promise is allowed before sidePanel.open.
 export const PROMPT_RAIL_OPEN_PROTOCOL='opendesk.prompt-shortcuts.rail-open.v1';

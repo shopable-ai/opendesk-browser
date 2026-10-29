@@ -13,7 +13,7 @@ import {fileURLToPath, pathToFileURL} from 'node:url';
 import {promisify} from 'node:util';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const htmlPath = 'examples/sidebar-tools/prompt-shortcuts/preview/index.html';
+const htmlPath = 'projects/prompt-shortcuts/preview/index.html';
 const html = join(root, htmlPath);
 const out = resolve(process.argv[2] || join(root, 'artifacts/prompt-shortcuts-r41-visual'));
 const viewport = {width: 1440, height: 1200, deviceScaleFactor: 1, mobile: false};
@@ -516,7 +516,7 @@ async function captureRealRailGeometry(page, scene) {
 
   // Real CDP mouse click must insert the complete stored prompt, preserving
   // the existing draft. Checking a button count alone cannot prove this.
-  const seed=JSON.parse(await readFile(join(root,'examples/sidebar-tools/prompt-shortcuts/tool.config.json'),'utf8'))
+  const seed=JSON.parse(await readFile(join(root,'projects/prompt-shortcuts/tool.config.json'),'utf8'))
     .initialData.library.items[0];
   await page.evaluate(()=>{
     window.__r41SubmitCount=0;

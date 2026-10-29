@@ -86,7 +86,7 @@
     },
     {
       "id": "prompt-shortcuts",
-      "project": "examples/sidebar-tools/prompt-shortcuts",
+      "project": "projects/prompt-shortcuts",
       "kind": "sidebar-tool",
       "installationPolicy": "preinstalled"
     }

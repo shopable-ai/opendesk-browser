@@ -58,10 +58,10 @@ import {TIME_REVIEW_KEY} from '../../projects/time-review/trusted/model.js';
 import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
-import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
-import {PROMPT_ASSET_OPERATIONS} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
-import {executePromptAsset} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js';
-import '../../examples/sidebar-tools/prompt-shortcuts/trusted/model.js';
+import {PROMPT_ID,PROMPT_CAPABILITY,PROMPT_PICKER_PROTOCOL,PROMPT_PAGE_OPERATIONS,CHATGPT_ORIGIN,supportedOrigin} from '../../projects/prompt-shortcuts/trusted/policy.js';
+import {PROMPT_ASSET_OPERATIONS} from '../../projects/prompt-shortcuts/trusted/asset-contract.js';
+import {executePromptAsset} from '../../projects/prompt-shortcuts/trusted/asset-host.js';
+import '../../projects/prompt-shortcuts/trusted/model.js';
 import {createTrustedPromptHost} from './conversation/prompt-host.js';
 import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION,
   trustedPromptProvenanceChanged} from './trusted-prompt-admission.js';

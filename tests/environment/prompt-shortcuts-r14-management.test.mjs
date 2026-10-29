@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
 
-const tool='examples/sidebar-tools/prompt-shortcuts';
+const tool='projects/prompt-shortcuts';
 const tick=()=>new Promise(resolve=>setTimeout(resolve,8));
 const settle=async()=>{for(let i=0;i<4;i++)await tick();};
 

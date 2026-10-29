@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const PREVIEW='examples/sidebar-tools/prompt-shortcuts/preview/index.html';
+const PREVIEW='projects/prompt-shortcuts/preview/index.html';
 const load=()=>readFile(PREVIEW,'utf8');
 const script=html=>{
   const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];

@@ -12,7 +12,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocation
 import {toolLocaleStorageKey} from './locale-packs.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../platform/protocol.js';
 import {TIME_REVIEW_KEY} from '../../../projects/time-review/trusted/model.js';
-import {PROMPT_ASSET_STORE} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
+import {PROMPT_ASSET_STORE} from '../../../projects/prompt-shortcuts/trusted/asset-contract.js';
 import {COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
   from '../../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
