@@ -35,7 +35,7 @@ test('R2.8 trusted Host shows one compact first-use consent above the existing C
   assert.match(app,/rows=\{cookieReady\?snapshot\.rows:\[\]\}/);
   assert.match(app,/readonly=\{!cookieReady\} unavailable=\{!cookieReady\}/);
   assert.match(rows,/unavailable\?'尚未读取 Cookie'/);
-  for(const label of ['Cookie','账号','企业','市场','定制','社区'])
+  for(const label of ['Cookie','账号','企业','市场','定制','圈子'])
     assert.ok(app.includes(label),'existing product tab remains available: '+label);
   // Full official Cookie rights still include Values in the one Host grant.
   assert.match(host,/\['values','查看 Cookie 值'\]/);
