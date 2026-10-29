@@ -275,11 +275,27 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     const t=await target(s.refs,owner,'browser.fingerprint.restore');
     if(!same(t,s.target))throw fail('E_DOCUMENT_CHANGED');
     s.stage='restoring';
+    let resetError=null;
+    if(s.attached&&s.attempts.some(row=>row.key==='language')){
+      try{
+        // Chromium can retain the cached navigator.languages array when a
+        // page reads navigator.language first after detach. Restore and collect
+        // the original array under a nonempty override (which keeps the getter
+        // dirty), before detaching and returning
+        // control to independent readers. Do not patch page-owned properties.
+        const languages=s.base.fields.languages.value;
+        if(!Array.isArray(languages)||!languages.length)throw fail('E_BASELINE_UNAVAILABLE');
+        await api.debugger.sendCommand(client(s),'Emulation.setUserAgentOverride',{
+          userAgent:s.base.fields.userAgent.value,acceptLanguage:languages.join(',')});
+        await readPage(s.refs,owner);
+      }catch(error){resetError=error;}
+    }
     try{
       if(s.attached)await api.debugger.detach(client(s));
       s.attached=false;tabs.delete(t.tabId);
       if(s.expireHandle!==undefined)unschedule(s.expireHandle);
     }catch{throw fail('E_OUTCOME_UNKNOWN','Debugger detach not confirmed; restore unknown');}
+    if(resetError)throw fail('E_OUTCOME_UNKNOWN','Language reset not confirmed; debugger detached, verify manually');
     return {accepted:true,source:'trusted-browser-host',sessionRef,documentRef};
   }
   function invalidateInactiveTab(windowId,activeTabId){

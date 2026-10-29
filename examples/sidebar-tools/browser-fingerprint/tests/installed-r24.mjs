@@ -325,7 +325,7 @@ try{
       'if(!tab)throw Error("FIXTURE_TAB_NOT_FOUND");'+
       'const results=await chrome.scripting.executeScript({target:{tabId:tab.id},world:"MAIN",'+
       'func:()=>({url:location.href,ua:navigator.userAgent,'+
-      'uaCH:navigator.userAgentData?.platform??null,language:navigator.language,'+
+      'uaCH:navigator.userAgentData?.platform??null,language:navigator.language,languages:[...navigator.languages],'+
       'timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,'+
       'viewport:{width:innerWidth,height:innerHeight}})});'+
       'const targets=await chrome.debugger.getTargets();'+
@@ -463,7 +463,7 @@ try{
     item.restored=restored;
     assert.equal(restored.documentId,baseline.documentId);
     assert.equal(restored.debuggerAttached,false);
-    for(const key of ['ua','uaCH','language','timezone'])
+    for(const key of ['ua','uaCH','language','languages','timezone'])
       assert.deepEqual(restored.values[key],baseline.values[key],'restoration mismatch: '+key);
     assert.deepEqual(restored.values.viewport,baseline.values.viewport,'original viewport not restored');
     // The React status changes BEFORE the asynchronous history write and

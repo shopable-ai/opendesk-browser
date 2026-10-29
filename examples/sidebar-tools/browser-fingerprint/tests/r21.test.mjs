@@ -5,11 +5,17 @@ import {BUILTIN_PRESETS,validConfig,emptyVerification,checkedVerification,classi
 import {readPresets,savePreset,deletePreset,readRuns,appendRun,PRESETS_KEY,RUNS_KEY} from '../src/presets.js';
 import {applyEnvironment,checkedAck,classifyFailure,restoreEnvironment} from '../src/run-session.js';
 const tag=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
-function fakeHost(){
+const reorderKeys=value=>Array.isArray(value)?value.map(reorderKeys):
+  value&&typeof value==='object'?Object.fromEntries(
+    Object.keys(value).reverse().map(key=>[key,reorderKeys(value[key])])):value;
+const runRow=()=>({id:'r-'+randomUUID(),at:new Date().toISOString(),kind:'restore',
+  status:'restored_limited',origin:'https://qa.example.test',presetName:'美国',
+  detail:'网页字段恢复，网络头未验证',source:'trusted-browser-host'});
+function fakeHost({readValue=value=>value}={}){
   const store=new Map();let loseAck=false;
   return {setLoseAck:()=>loseAck=true,
     store,request:async(name,args)=>{
-      if(name==='storage.get')return {value:structuredClone(store.get(args.key)??null),etag:tag(store.get(args.key)??null)};
+      if(name==='storage.get')return {value:readValue(structuredClone(store.get(args.key)??null)),etag:tag(store.get(args.key)??null)};
       if(name==='storage.set'){
         if(args.ifMatch!==tag(store.get(args.key)??null))
           throw Object.assign(Error('conflict'),{code:'E_STORAGE_CONFLICT'});
@@ -49,6 +55,54 @@ test('CAS rejection and write-ack loss cannot claim saved',async()=>{
   host.setLoseAck();
   await assert.rejects(()=>savePreset(request,{id:null,name:'third',config:BUILTIN_PRESETS.jp.config}),
     {code:'E_OUTCOME_UNKNOWN'});
+});
+test('preset readback accepts deeply reordered object keys',async()=>{
+  const host=fakeHost({readValue:reorderKeys});
+  const config=BUILTIN_PRESETS.de.config;
+  const saved=await savePreset(host.request,{id:null,name:'QA 德国',config});
+  assert.deepEqual(saved.items,[{id:saved.id,name:'QA 德国',config}]);
+  const raw=await host.request('storage.get',{key:PRESETS_KEY});
+  assert.notDeepEqual(Object.keys(raw.value.items[0].config),Object.keys(config));
+});
+test('run readback accepts deeply reordered object keys',async()=>{
+  const host=fakeHost({readValue:reorderKeys});
+  const row=runRow();
+  assert.deepEqual(await appendRun(host.request,row),[row]);
+  const raw=await host.request('storage.get',{key:RUNS_KEY});
+  assert.notDeepEqual(Object.keys(raw.value.items[0]),Object.keys(row));
+});
+test('reordered readback with real field differences remains unknown',async()=>{
+  const host=fakeHost({readValue:value=>{
+    const result=reorderKeys(value);
+    if(result?.items[0]?.config)result.items[0].config.tz='Asia/Tokyo';
+    if(result?.items[0]?.detail)result.items[0].detail='不同的记录';
+    return result;
+  }});
+  await assert.rejects(()=>savePreset(host.request,
+    {id:null,name:'QA 德国',config:BUILTIN_PRESETS.de.config}),{code:'E_OUTCOME_UNKNOWN'});
+  await assert.rejects(()=>appendRun(host.request,runRow()),{code:'E_OUTCOME_UNKNOWN'});
+});
+test('run readback with changed array order remains unknown',async()=>{
+  const host=fakeHost({readValue:value=>{
+    const result=reorderKeys(value);
+    result?.items.reverse();
+    return result;
+  }});
+  await appendRun(host.request,runRow());
+  await assert.rejects(()=>appendRun(host.request,runRow()),{code:'E_OUTCOME_UNKNOWN'});
+});
+test('run write-ack loss remains unknown without retry',async()=>{
+  const host=fakeHost({readValue:reorderKeys});
+  host.setLoseAck();
+  const row=runRow();
+  let writes=0;
+  const request=(name,args)=>{
+    if(name==='storage.set')writes++;
+    return host.request(name,args);
+  };
+  await assert.rejects(()=>appendRun(request,row),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(writes,1);
+  assert.deepEqual(host.store.get(RUNS_KEY).items,[row]);
 });
 test('real run records never include URL query or opaque identifiers',async()=>{
   const host=fakeHost();

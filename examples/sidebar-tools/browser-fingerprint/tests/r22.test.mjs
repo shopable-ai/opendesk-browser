@@ -13,10 +13,11 @@ const owner=Object.freeze({toolId:'browser-fingerprint',toolVersion:'0.2.2',
   packageHash:'a'.repeat(64),epoch:'install-epoch',hostInstanceId:'a'.repeat(36),toolInstance:'b'.repeat(36)});
 const fail=code=>Object.assign(new Error(code),{code});
 function harness({deny=false,failedCommand=null,noHints=false,detachFails=false,
-  reverseViewportKeys=false}={}){
+  reverseViewportKeys=false,staleLanguageCache=false,resetFails=false}={}){
   const original={ua,language:'ja-JP',tz:'Asia/Tokyo',
     viewport:{width:1200,height:700},hints:'macOS'};
   let state=structuredClone(original),attached=false,allowed=!deny;
+  let cachedLanguage=original.language,uaCommands=0;
   const commands=[],listeners=[];
   const api={
     debugger:{
@@ -30,6 +31,7 @@ function harness({deny=false,failedCommand=null,noHints=false,detachFails=false,
         commands.push(method);
         if(failedCommand===method)throw fail('E_CDP_REJECTED');
         if(method==='Emulation.setUserAgentOverride'){
+          if(++uaCommands>1&&resetFails)throw fail('E_CDP_RESET');
           state.ua=args.userAgent;
           if(args.acceptLanguage)state.language=args.acceptLanguage;
           if(args.userAgentMetadata)state.hints=args.userAgentMetadata.platform;
@@ -50,15 +52,17 @@ function harness({deny=false,failedCommand=null,noHints=false,detachFails=false,
   const driver=createFingerprintDriver({api,newRef:()=>sessionRef,
     resolveTarget:async()=>target,
     authorize:async()=>{if(!allowed)throw fail('E_SITE_GRANT_REQUIRED');},
-    readPage:async()=>({tabRef,documentRef,fields:{
+    readPage:async()=>{
+      if(attached)cachedLanguage=state.language;
+      return {tabRef,documentRef,fields:{
       userAgent:{status:'available',value:state.ua},
-      languages:{status:'available',value:[state.language]},
+      languages:{status:'available',value:[staleLanguageCache?cachedLanguage:state.language]},
       timeZone:{status:'available',value:state.tz},
       viewport:{status:'available',value:reverseViewportKeys?
         {height:state.viewport.height,width:state.viewport.width}:state.viewport},
       screen:{status:'available',value:{width:1920,height:1080}},
       devicePixelRatio:{status:'available',value:1}
-    }})
+    }};}
   });
   return {driver,api,commands,get state(){return state;},get attached(){return attached;},
     setAuthorized:value=>{allowed=value;},detachExternally:reason=>{
@@ -117,6 +121,26 @@ test('R2.3 independently observed viewport ignores only property enumeration ord
   await h.driver.restore({sessionRef,documentRef},owner);
   const restored=await h.driver.readback({sessionRef,documentRef,mode:'restore'},owner);
   assert.equal(restored.rows.find(row=>row.key==='viewport').status,'match');
+});
+test('R2.5 stop restores the cached language array before scalar-first page readers',async()=>{
+  const h=harness({staleLanguageCache:true});
+  await h.driver.apply({...refs,config:us},owner);
+  await h.driver.readback({sessionRef,documentRef,mode:'applied'},owner);
+  await h.driver.restore({sessionRef,documentRef},owner);
+  assert.equal(h.attached,false);
+  const restored=await h.driver.readback({sessionRef,documentRef,mode:'restore'},owner);
+  const language=restored.rows.find(x=>x.key==='language');
+  assert.equal(language.observed,'ja-JP');
+  assert.equal(language.status,'match');
+});
+test('R2.5 failed language reset still detaches and cannot replay restore',async()=>{
+  const h=harness({resetFails:true});
+  await h.driver.apply({...refs,config:us},owner);
+  await assert.rejects(h.driver.restore({sessionRef,documentRef},owner),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(h.attached,false);
+  const count=h.commands.length;
+  await assert.rejects(h.driver.restore({sessionRef,documentRef},owner),{code:'E_CONTEXT'});
+  assert.equal(h.commands.length,count);
 });
 test('R2.2 missing site grant prevents debugger attach',async()=>{
   const h=harness({deny:true});

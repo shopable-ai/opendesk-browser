@@ -66,8 +66,12 @@ try{
     ' const ack=await driver.apply({...refs,config},owner);',
     ' const applied=await driver.readback({sessionRef:ack.sessionRef,documentRef,mode:"applied"},owner);',
     ' const stop=await driver.restore({sessionRef:ack.sessionRef,documentRef},owner);',
+    // Match a real page reading the scalar first. Chromium must not leave its
+    // cached languages array at the previously applied country afterwards.
+    ' const independent=await chrome.scripting.executeScript({target:{tabId:identity.tabId},world:"MAIN",',
+    ' func:()=>({language:navigator.language,languages:[...navigator.languages]})});',
     ' const restored=await driver.readback({sessionRef:ack.sessionRef,documentRef,mode:"restore"},owner);',
-    ' return {config,baseline,ack,applied,stop,restored};',
+    ' return {config,baseline,ack,applied,stop,restored,independent};',
     '}',
     'globalThis.fpR23Native={async run(){',
     ' const tab=await chrome.tabs.create({url:"__FIXTURE_URL__",active:true});',
@@ -187,9 +191,11 @@ try{
       assert.equal(run.applied.rows.find(x=>x.key===key)?.status,'unverifiable',
         name+': unsupported/network field falsely marked verified: '+key);
     assert.equal(run.stop.accepted,true);
-    assert.notEqual(run.applied.rows.find(x=>x.key==='ua').baseline,
-      run.applied.rows.find(x=>x.key==='ua').observed,
-      name+': UA did not change from original baseline');
+    assert.deepEqual(run.independent[0].result.languages,run.baseline.fields.languages.value,
+      name+': cached navigator.languages did not restore');
+    assert.equal(run.independent[0].result.language,run.baseline.fields.languages.value[0]);
+    assert(run.applied.rows.find(x=>x.key==='ua').observed.includes(
+      name==='us'?'Windows NT':'Macintosh'),name+': target UA platform not applied');
   }
   evidence.status='PASS_CHROMIUM_NATIVE_DRIVER_ONLY';
   evidence.browser=JSON.parse(await(await fetch('http://127.0.0.1:'+port+'/json/version')).text()).Browser;

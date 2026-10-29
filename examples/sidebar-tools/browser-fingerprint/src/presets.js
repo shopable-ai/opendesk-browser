@@ -8,6 +8,9 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 const plain=v=>v!==null&&typeof v==='object'&&!Array.isArray(v)&&
   [Object.prototype,null].includes(Object.getPrototypeOf(v));
 const bytes=v=>new TextEncoder().encode(JSON.stringify(v)).byteLength;
+// Storage may reorder object keys; array order and field values still matter.
+const storageString=value=>JSON.stringify(value,(_key,item)=>plain(item)?
+  Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 const idOk=id=>typeof id==='string'&&/^p-[A-Za-z0-9_-]{6,72}$/.test(id);
 const validName=name=>typeof name==='string'&&name.trim()===name&&
   name.length>=1&&name.length<=24&&!/[\x00-\x1f\x7f]/.test(name);
@@ -76,7 +79,7 @@ async function commit(request,key,proposed,etag,parse){
   let check;
   try{check=await read(request,key,parse);}
   catch{throw fail('E_OUTCOME_UNKNOWN','存储读回失败，写入结果未知');}
-  if(JSON.stringify(check.value)!==JSON.stringify(proposed))
+  if(storageString(check.value)!==storageString(proposed))
     throw fail('E_OUTCOME_UNKNOWN','读回内容与提交不同');
   return check.value.items;
 }
