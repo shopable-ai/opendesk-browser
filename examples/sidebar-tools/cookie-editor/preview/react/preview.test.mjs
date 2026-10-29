@@ -10,7 +10,7 @@ test('export is an anchored two-tab React popover, never a replacement page',asy
     read('../../app/components/CookieExport.jsx'),
     read('../../src/react.css')
   ]);
-  assert.match(app,/exportContent=\{exportOpen\?<CookieExport/);
+  assert.match(app,/exportContent=\{cookieReady&&exportOpen\?<CookieExport/);
   assert.doesNotMatch(app,/panel==='export'|restoreExportFocus/);
   assert.match(view,/className="cookie-export-popover"/);
   assert.match(view,/haspopup="dialog" expanded=\{exportOpen\}/);
