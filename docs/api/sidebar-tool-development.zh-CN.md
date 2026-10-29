@@ -263,17 +263,17 @@ node ../../../scripts/watch-sidebar-tool.mjs "$PWD"
 
 #### 手动改文字，观察真实侧栏（Quick Notes React）
 
-这一轮先体验「编辑文件 → 保存 → 看到变化」，不用安装候选或执行整套测试。当前仓库示例为 `examples/sidebar-tools/quick-notes-react/`，关键文件如下：
+这一轮先体验「编辑文件 → 保存 → 看到变化」，不用安装候选或执行整套测试。当前仓库示例为 `projects/quick-notes-react/`，关键文件如下：
 
 | 文件 | 用途 | 建议先改什么 |
 | --- | --- | --- |
-| [src/App.jsx](../../examples/sidebar-tools/quick-notes-react/src/App.jsx) | 应用界面、事件及 SDK 调用 | 搜索 `我的笔记`，改成 `我的笔记 · 手动修改` |
-| [src/style.css](../../examples/sidebar-tools/quick-notes-react/src/style.css) | 这个应用自己的布局 | 熟悉文字更新后再调本应用间距 |
-| [src/main.jsx](../../examples/sidebar-tools/quick-notes-react/src/main.jsx) | 挂载 React 根、连接公开 SDK、退出清理 | 先阅读，无需为改文字修改 |
-| [tool.config.json](../../examples/sidebar-tools/quick-notes-react/tool.config.json) | 应用 ID、能力与产物入口 | 文字测试不改 ID、能力或版本 |
-| [vite.config.mjs](../../examples/sidebar-tools/quick-notes-react/vite.config.mjs) | JSX/CSS 编译及完成回执 | 只需了解它负责应用编译 |
+| [src/App.jsx](../../projects/quick-notes-react/src/App.jsx) | 应用界面、事件及 SDK 调用 | 搜索 `我的笔记`，改成 `我的笔记 · 手动修改` |
+| [src/style.css](../../projects/quick-notes-react/src/style.css) | 这个应用自己的布局 | 熟悉文字更新后再调本应用间距 |
+| [src/main.jsx](../../projects/quick-notes-react/src/main.jsx) | 挂载 React 根、连接公开 SDK、退出清理 | 先阅读，无需为改文字修改 |
+| [tool.config.json](../../projects/quick-notes-react/tool.config.json) | 应用 ID、能力与产物入口 | 文字测试不改 ID、能力或版本 |
+| [vite.config.mjs](../../projects/quick-notes-react/vite.config.mjs) | JSX/CSS 编译及完成回执 | 只需了解它负责应用编译 |
 
-1. 由 AI/维护者检查并保留两个应用监听：本项目 `npm run watch`（本示例的命令名）和仓库根 `node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react`。缺哪个才启动哪个，不重复运行。浏览器维护者自己的 `npm run dev` 是另一条链，普通应用作者不应被要求启动它。
+1. 由 AI/维护者检查并保留两个应用监听：本项目 `npm run watch`（本示例的命令名）和仓库根 `node scripts/watch-sidebar-tool.mjs projects/quick-notes-react`。缺哪个才启动哪个，不重复运行。浏览器维护者自己的 `npm run dev` 是另一条链，普通应用作者不应被要求启动它。
 2. Chrome 打开「开发 → 本地项目 → quick-notes-react → 在侧栏调试」。首次来源目录连接仍走原 Native 授权；已经连接的项目直接打开，不另加存储批准。
 3. 在 VS Code 编辑 `src/App.jsx` 中标签文字 `我的笔记`，按 Cmd+S。不要在笔记输入框留未保存草稿；若已有草稿，先保存或按应用原操作结束编辑，随后新界面自动替换。
 4. 等本项目编译和快照发布完成，真实侧栏标签应变成 `我的笔记 · 手动修改`。这一步无需刷新 Chrome、重复导入 JSON 或升级应用。看不到变化时先看是否有编译错误/未保存草稿，再检查两个原监听，不先重建 Browser。
@@ -282,8 +282,8 @@ node ../../../scripts/watch-sidebar-tool.mjs "$PWD"
 维护者可用以下命令打开应用目录、样式和关键 JSX 行；行号只是定位辅助，以搜索文字为准：
 
 ```sh
-code --new-window examples/sidebar-tools/quick-notes-react \
-  --goto examples/sidebar-tools/quick-notes-react/src/App.jsx:261
+code --new-window projects/quick-notes-react \
+  --goto projects/quick-notes-react/src/App.jsx:261
 ```
 
 #### 保存以后为什么会更新
@@ -313,7 +313,7 @@ App.jsx / style.css
 | 像本示例一样连续保存并在真实侧栏更新 | 还需要 Native 目录连接及可用的 stage/watch/打包工具；当前这些脚本位于仓库中，不能声称只装扩展便已具备完整体验 |
 | 修改共享组件、宿主或新增原生特权 | 由 Browser 维护者修改并更新扩展，普通作者不需要也不应为自己的 UI 修改宿主 |
 
-Quick Notes React 已消除编译命令中的 `../../../node_modules/vite` 路径依赖，具体命令见[应用 README](../../examples/sidebar-tools/quick-notes-react/README.md#只有应用源码时哪些步骤能独立使用)。这只解决应用编译；`react`、`react/jsx-runtime` 和 `@opendesk/ui` 仍按已有配置外置，由支持该运行时的 OpenDesk 提供。
+Quick Notes React 已消除编译命令中的 `../../../node_modules/vite` 路径依赖，具体命令见[应用 README](../../projects/quick-notes-react/README.md#只有应用源码时哪些步骤能独立使用)。这只解决应用编译；`react`、`react/jsx-runtime` 和 `@opendesk/ui` 仍按已有配置外置，由支持该运行时的 OpenDesk 提供。
 
 剩余依赖是具体的：`watch-sidebar-tool.mjs` 导入 stager，stager 调用原 `build-sidebar-tool.mjs`；打包器静态导入包校验器、Catalog、本地化和安装版本比较模块，规范样式编译还读取 `src/ui/design-tokens.css` 与 `design-system.css`。应用自己的 `stage:preview` / `compare` 也仍是仓库内对照预览。因此只复制应用目录，即使 Vite 已编译成功，也还不能自行生成 Native 预览快照或正式安装包。
 

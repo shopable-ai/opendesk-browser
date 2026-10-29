@@ -262,7 +262,7 @@ export async function buildSidebarTool(projectPath,{out}={}){
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
   const args=process.argv.slice(2);
-  const path=args[0]&&!args[0].startsWith('--')?args.shift():'examples/sidebar-tools/quick-notes';
+  const path=args[0]&&!args[0].startsWith('--')?args.shift():'projects/quick-notes';
   let operation;
   if(args.length===0)operation=()=>buildSidebarTool(path);
   else if(args.length===2&&args[0]==='--out'&&args[1])

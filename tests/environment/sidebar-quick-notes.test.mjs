@@ -4,14 +4,14 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {createHash} from 'node:crypto';
 
-const script=readFileSync(new URL('../../examples/sidebar-tools/quick-notes/src/main.js',import.meta.url),'utf8');
+const script=readFileSync(new URL('../../projects/quick-notes/src/main.js',import.meta.url),'utf8');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const etag=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
 
 test('Quick Notes source separates index/editor and uses collapsed current-page context',()=>{
-  const html=readFileSync(new URL('../../examples/sidebar-tools/quick-notes/src/index.html',import.meta.url),'utf8');
-  const css=readFileSync(new URL('../../examples/sidebar-tools/quick-notes/src/style.css',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../../projects/quick-notes/src/index.html',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../../projects/quick-notes/src/style.css',import.meta.url),'utf8');
   for(const id of ['notes-list-view','notes-edit-view','back-to-notes','note-list','note-text','page-summary','refresh-page'])
     assert.match(html,new RegExp('id="'+id+'"'));
   assert.match(html,/<details class="page-context/);

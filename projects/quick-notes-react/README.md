@@ -18,11 +18,11 @@
 
 ```sh
 # 新环境首次准备应用编译依赖；已有正常监听时无需重装或重启。
-npm ci --ignore-scripts --no-audit --no-fund --prefix examples/sidebar-tools/quick-notes-react
+npm ci --ignore-scripts --no-audit --no-fund --prefix projects/quick-notes-react
 # 终端一：仅当项目尚无 Vite watch 进程时启动。
-npm run watch --prefix examples/sidebar-tools/quick-notes-react
+npm run watch --prefix projects/quick-notes-react
 # 终端二：仅当本项目尚无 stage watch 进程时启动。
-node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react
+node scripts/watch-sidebar-tool.mjs projects/quick-notes-react
 ```
 
 Vite 产物由 source-bound `dist/build-ready.json` 证明；stage 只在完整回执通过且源码未漂移时发布 SHA 快照。编译失败不会把错误产物当作新快照，也不会修改 `quick-notes-react.opendesk-tool.json`。实际入口为「开发 → 本地项目 → quick-notes-react → 在侧栏调试」：Native Workspace 标签页保留目录与会话归属，应用显示在同窗口真实 Side Panel。点击「在侧栏调试」即可使用 `storage.get/set`，不再单独批准存储或显示“已批准”状态；开发数据在内部与正式安装版分开。同一来源、工具和能力范围内，成功 JSX 快照使用新实例重新校验，沿用本次调试意图；Stop、归属变化、断连、范围变化或未知写入结果不会自动重启或重放写入。网页信息仍按原目标和能力范围核验。
@@ -43,7 +43,7 @@ npm run watch
 
 2026-10-29 已在仓库外临时目录验证独立安装、编译、保存 JSX 后的 watch 更新，以及源码/产物摘要匹配；原仓库 stager 也接受该外部项目并生成快照。这证明应用编译与外部目录可用，未证明 stage 已独立发行；本次没有操作 Chrome 或重新验证安装。
 
-**编译独立可用，连续侧栏调试工具尚未独立交付。** `stage:preview`、`compare` 是仓库内的维护者对照预览；Native 快照监听和正式 JSON 打包也仍使用 Browser 仓库脚本。仅复制本应用目录还不能独立完成「保存 → 真实侧栏更新」。目前可由维护者用原 `watch-sidebar-tool.mjs` 指向你的应用绝对路径，你在原 Native 界面连接并授权该目录后再进入侧栏调试。后续最小交付是把原 stage/watch/打包器及所需固定资源一起分发为开发工具，详见[现有能力与剩余缺口](../../../docs/api/sidebar-tool-development.zh-CN.md#没有-browser-源码普通用户能否这样开发)；当前没有可宣称已发布的独立 npm CLI。
+**编译独立可用，连续侧栏调试工具尚未独立交付。** `stage:preview`、`compare` 是仓库内的维护者对照预览；Native 快照监听和正式 JSON 打包也仍使用 Browser 仓库脚本。仅复制本应用目录还不能独立完成「保存 → 真实侧栏更新」。目前可由维护者用原 `watch-sidebar-tool.mjs` 指向你的应用绝对路径，你在原 Native 界面连接并授权该目录后再进入侧栏调试。后续最小交付是把原 stage/watch/打包器及所需固定资源一起分发为开发工具，详见[现有能力与剩余缺口](../../docs/api/sidebar-tool-development.zh-CN.md#没有-browser-源码普通用户能否这样开发)；当前没有可宣称已发布的独立 npm CLI。
 
 ## 现在手动试：改一个字符就看到界面变化
 
@@ -53,12 +53,12 @@ AI 已启动或确认已有监听时直接使用，不再启动第二份。Chrom
 2. 等编译与快照发布完成，在真实侧栏看到新标签；无需安装、导入或刷新浏览器。
 3. 把文字改回并保存，看到原标签恢复。若应用里有未保存笔记，先保存或结束编辑，才能自动替换界面。
 
-样式入口是 [src/style.css](src/style.css)；React 挂载及 SDK 接线是 [src/main.jsx](src/main.jsx)。先只改自己的 UI 文件，不改应用 ID 或能力，也不改 Browser 共享组件。完整[手动步骤、更新原理及无 Browser 源码的现状](../../../docs/api/sidebar-tool-development.zh-CN.md#手动改文字观察真实侧栏quick-notes-react)见统一开发规范。
+样式入口是 [src/style.css](src/style.css)；React 挂载及 SDK 接线是 [src/main.jsx](src/main.jsx)。先只改自己的 UI 文件，不改应用 ID 或能力，也不改 Browser 共享组件。完整[手动步骤、更新原理及无 Browser 源码的现状](../../docs/api/sidebar-tool-development.zh-CN.md#手动改文字观察真实侧栏quick-notes-react)见统一开发规范。
 
 ```sh
 # 仓库根执行，只打开编辑器，不修改源码。
-code --new-window examples/sidebar-tools/quick-notes-react \
-  --goto examples/sidebar-tools/quick-notes-react/src/App.jsx:261
+code --new-window projects/quick-notes-react \
+  --goto projects/quick-notes-react/src/App.jsx:261
 ```
 
 ## 日常最小验证（2026-10-29）
@@ -81,19 +81,19 @@ React JSX、共享 UI 资源与 iframe 内 SDK 是不同链路；任何一项没
 npm ci --ignore-scripts
 # 若 dist/development 不存在，且当前没有并行开发任务占用它，才运行：
 npm run build:dev
-npm run build --prefix examples/sidebar-tools/quick-notes-react
-OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development npm run stage:preview --prefix examples/sidebar-tools/quick-notes-react
+npm run build --prefix projects/quick-notes-react
+OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development npm run stage:preview --prefix projects/quick-notes-react
 node --test tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-quick-notes-react-r21.test.mjs
 node --test tests/environment/sidebar-quick-notes-react-pack-r21.test.mjs
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/sidebar-tools/quick-notes/native-candidate.opendesk-tool.json
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
-OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development node examples/sidebar-tools/quick-notes-react/scripts/compare.mjs > artifacts/quick-notes-comparison.json
+node scripts/build-sidebar-tool.mjs projects/quick-notes --out artifacts/sidebar-tools/quick-notes/native-candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs projects/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
+OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development node projects/quick-notes-react/scripts/compare.mjs > artifacts/quick-notes-comparison.json
 node --test tests/environment/sidebar-quick-notes-react-r22-compare.test.mjs
 ```
 
 浏览器访问（需确认端口闲置，再以仓库根作为根目录运行 `python3 -m http.server 43129 --bind 127.0.0.1`）：
 
-`http://127.0.0.1:43129/examples/sidebar-tools/quick-notes-react/preview/compare.html`
+`http://127.0.0.1:43129/projects/quick-notes-react/preview/compare.html`
 
 左边由原版**正式源码**生成，右边使用 React **正式 JSX 编译字节**。预览 SDK 为仅驻内存的演示适配，绝对不能用于证明真实数据持久、Host ETag/权限或已安装 Chrome；不会访问原版已有用户数据。
 
@@ -102,8 +102,8 @@ node --test tests/environment/sidebar-quick-notes-react-r22-compare.test.mjs
 全部正式检查通过后才能把 React 候选晋升为根目录唯一安装包：
 
 ```sh
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --promote-from artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --check-project
+node scripts/build-sidebar-tool.mjs projects/quick-notes-react --promote-from artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs projects/quick-notes-react --check-project
 ```
 
 未执行 Mac 构建、宿主 E2E、Chrome 真实安装或资源采样的环节，必须写 `NOT_TESTED`，不得把本项目的预览或模拟 SDK 当作 PASS。详细公平性、分项评分与验收门槛见 `COMPARISON.zh-CN.md`。

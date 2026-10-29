@@ -27,7 +27,7 @@
 
 构建：
 
-    node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/quick-notes-contract.opendesk-tool.json
+    node scripts/build-sidebar-tool.mjs projects/quick-notes --out artifacts/quick-notes-contract.opendesk-tool.json
     node scripts/preview/build-preview.mjs --tool quick-notes --surface side-panel --scenario success --theme light --width 360 --height 760
 
 默认预览：artifacts/previews/quick-notes/side-panel-success-light-360.html。文件可通过 file:// 离线打开；CSS、图像与 JS 皆已内联为 CSS 文本或 data URI。所有网络请求由 iframe CSP 阻止；sandbox 只允许脚本，不授予 allow-same-origin、弹窗、下载或表单。显示的“离线模拟”声明必须保留。

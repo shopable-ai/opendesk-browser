@@ -30,7 +30,7 @@
     },
     {
       "id": "quick-notes",
-      "project": "examples/sidebar-tools/quick-notes",
+      "project": "projects/quick-notes",
       "kind": "sidebar-tool",
       "installationPolicy": "preinstalled"
     },

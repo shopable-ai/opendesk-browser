@@ -210,7 +210,7 @@ try{
   browser=spawn(process.env.CHROME_BIN||'chromium',flags,{stdio:'ignore'});
   browser.on('error',error=>{launchError=error;});
   await connect();
-  const prefix='/examples/sidebar-tools/quick-notes-react/';
+  const prefix='/projects/quick-notes-react/';
   result.cases.push(await exercise('native',prefix+'.opendesk-preview/native.html',port));
   result.cases.push(await exercise('react',prefix+'preview/index.html',port));
   assert.deepEqual(remote,[],'No remote resources');

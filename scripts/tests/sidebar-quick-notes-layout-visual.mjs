@@ -12,7 +12,7 @@ const widths=[160,180,210,220,221,300,320,360,420,520,760,1100];
 const states=['empty','long','expanded','confirm','index'];
 const sourceRoot=resolve(process.env.OPENDESK_SOURCE_ROOT||'.');
 const output=resolve(process.argv[2]||'artifacts/quick-notes-layout-visual');
-const toolRoot=join(sourceRoot,'examples/sidebar-tools/quick-notes');
+const toolRoot=join(sourceRoot,'projects/quick-notes');
 // STATIC_SOURCE_CHROME uses the validated official package, not uncompiled layout CSS.
 const packed=await createSidebarToolPackage(toolRoot);
 const css=packed.css,html=packed.html;
