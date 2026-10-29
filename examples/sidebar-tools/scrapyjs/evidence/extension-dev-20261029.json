@@ -362,5 +362,48 @@
     "core": "SCRAPYJS_REACT_UI_AND_RUN_CHECKS_NOT_TESTED",
     "productSourceChanged": false,
     "documentationChanged": "README narrowed the historical refusal to its actual scope and records the observed instance/timeout blocker."
+  },
+  "openDeskStartupAndSourceReconnect": {
+    "observedAt": "2026-10-29T17:11:20.620820+08:00",
+    "desktopApp": {
+      "path": "/Applications/OpenDesk.app",
+      "alreadyRunning": true,
+      "pid": 23534,
+      "restarted": false,
+      "cuaStateRead": "Computer Use server error -10005: timeoutReached"
+    },
+    "nativeDoctor": {
+      "connected": true,
+      "nativeConnected": true,
+      "enabled": true,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "requestId": "fc77a8bc-ada8-4e25-9ab4-f4deec238411"
+    },
+    "sourceCli": {
+      "command": "opendesk browser dev /Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs",
+      "execSessionId": 77735,
+      "processes": [],
+      "state": "RUNNING_CONNECTED",
+      "workspaceId": "workspace-7c4a29d8-4e9c-37d7-1850-61e3cf60aee6",
+      "access": "read-write, temporary for this CLI lifetime",
+      "scope": "examples/sidebar-tools/scrapyjs only",
+      "programDiagnostic": "E_PROJECT_SCHEMA; file workspace available; no runnable Controller/Page program configured",
+      "workspaceUi": "CLI requested opening the existing Workspace; it was not acquired or operated through browser automation"
+    },
+    "watchersReused": [
+      11538,
+      15684
+    ],
+    "actualCftRecheck": {
+      "sidePanelOpened": true,
+      "hostInstanceId": "2b1e68cf-5967-4cf1-99ec-2950e152b74d",
+      "localProjectList": "DISABLED_NATIVE_DISCONNECTED",
+      "nativeRedetectAfterReconnect": "已启用 · 当前离线"
+    },
+    "macCuaLaunchApp": "NOT_AVAILABLE",
+    "newPairingOrManifestChange": false,
+    "scrapyjsRealCore": "NOT_TESTED",
+    "currentBlocker": "OpenDesk is running and daily Chrome Native is healthy. The controllable CFT instance remains Native offline; native control of daily Chrome is unresolved.",
+    "sourceChangesThisTurn": false
   }
 }
