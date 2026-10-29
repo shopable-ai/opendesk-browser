@@ -75,6 +75,16 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
     );
     CREATE INDEX IF NOT EXISTS idx_pairs_invite ON pair_requests(invite_id);
   `);
+  // Expired/revoked/consumed invites must never retain encrypted sessions or
+  // device pairing public keys indefinitely. Safe to call across restarts.
+  const purge=()=>{
+    db.prepare(`DELETE FROM pair_requests WHERE invite_id IN
+      (SELECT id FROM invitations WHERE revoked=1 OR expires_at<=? OR claims>=max_claims)`)
+      .run(clock());
+    db.prepare(`UPDATE pair_requests SET challenge_hash=NULL,challenge_expires=NULL
+      WHERE challenge_expires IS NOT NULL AND challenge_expires<=?`).run(clock());
+  };
+  purge();
   const find=id=>db.prepare('SELECT * FROM invitations WHERE id=?').get(id);
   const validInvite=id=>{
     if(!ID.test(id))throw fail('E_INVITE_INVALID');
@@ -199,8 +209,9 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
             dsaEncoding:'ieee-p1363'},base64(signature));}catch{}
         if(!verified)throw fail('E_DEVICE_PROOF',403);
         db.prepare('UPDATE invitations SET claims=claims+1 WHERE id=?').run(id);
-        db.prepare(`UPDATE pair_requests SET claimed=1,challenge_hash=NULL,
-          challenge_expires=NULL,ciphertext=NULL WHERE id=?`).run(row.id);
+        // Once an invitation is consumed, remove *all* pending envelopes
+        // and public keys belonging to it, including unselected receivers.
+        db.prepare('DELETE FROM pair_requests WHERE invite_id=?').run(id);
         return {status:'encrypted_claimed',account:metadata(invite),
           packet:{senderPublic:JSON.parse(row.sender_public),iv:row.iv,
             ciphertext:row.ciphertext}};
@@ -210,12 +221,12 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
       return trans(()=>{
         gate(id,managerSecret);
         db.prepare('UPDATE invitations SET revoked=1 WHERE id=?').run(id);
-        db.prepare('UPDATE pair_requests SET ciphertext=NULL WHERE invite_id=?').run(id);
+        db.prepare('DELETE FROM pair_requests WHERE invite_id=?').run(id);
         return {status:'revoked'};
       });
     }
   };
-  return {operations,close:()=>db.close()};
+  return {operations,purge,close:()=>db.close()};
 }
 
 function readJson(req){
@@ -245,8 +256,9 @@ function json(res,status,data){
   res.end(JSON.stringify(data));
 }
 export function createShareHttpServer(relay){
-  return http.createServer(async(req,res)=>{
+  const server=http.createServer(async(req,res)=>{
     try{
+      relay.purge();
       const url=new URL(req.url,'http://local.invalid');
       const path=url.pathname;
       if(req.method==='GET'&&path==='/health')return json(res,200,{status:'ok'});
@@ -259,7 +271,7 @@ export function createShareHttpServer(relay){
           'cache-control':'no-store','referrer-policy':'no-referrer',
           'x-content-type-options':'nosniff',
           'content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"});
-        return res.end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${title}</title><meta name="referrer" content="no-referrer"><style>body{font:16px system-ui;max-width:34rem;margin:12vh auto;padding:1rem;line-height:1.7}code{word-break:break-all}</style><h1>${title}</h1><p>网站：<code>${info.origin.replaceAll('&','&amp;').replaceAll('<','&lt;')}</code></p><p>请打开 OpenDesk Cookie Editor 的「账号 → 领取邀请」，粘贴当前地址完成领取。会话领取需经发送设备确认。</p></html>`);
+        return res.end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${title}</title><meta name="referrer" content="no-referrer"><style>body{font:16px system-ui;max-width:34rem;margin:12vh auto;padding:1rem;line-height:1.7}code{word-break:break-all}</style><h1>${title}</h1><p>网站：<code>${info.origin.replaceAll('&','&amp;').replaceAll('<','&lt;')}</code></p><p>Relay 已创建分享链接，但现有 Cookie Editor 尚未接通领取流程。需安装完成安全接线的 OpenDesk 版本后才能领取；当前页面不会自动登录。</p></html>`);
       }
       const match=/^\/v1\/invites\/([A-Za-z0-9_-]{22,80})(?:\/(pairs|pair|deliver|challenge|claim|revoke))?$/.exec(path);
       if(req.method==='POST'&&path==='/v1/invites')
@@ -284,6 +296,14 @@ export function createShareHttpServer(relay){
       json(res,error?.status||400,{error:{code:error?.code||'E_RELAY'}});
     }
   });
+  // Enforce short retention even when the service receives no requests.
+  let cleanupTimer=null;
+  server.on('listening',()=>{
+    cleanupTimer=setInterval(()=>{try{relay.purge();}catch{/* next request fails closed */}},60_000);
+    cleanupTimer.unref?.();
+  });
+  server.on('close',()=>{if(cleanupTimer)clearInterval(cleanupTimer);});
+  return server;
 }
 const invoked=process.argv[1]&&fileURLToPath(import.meta.url)===resolve(process.argv[1]);
 if(invoked){
@@ -292,6 +312,8 @@ if(invoked){
   const publicOrigin=process.env.SHARE_PUBLIC_ORIGIN||`http://localhost:${port}`;
   const dbPath=process.env.SHARE_DATABASE||resolve('cookie-share-relay.sqlite');
   try{
+    // TLS terminates at the same-host reverse proxy. Never publish raw HTTP on LAN.
+    if(!['127.0.0.1','localhost','::1'].includes(host))throw fail('E_BIND_HOST_UNSAFE');
     const relay=createShareRelay({dbPath,publicOrigin});
     createShareHttpServer(relay).listen(port,host,()=>{
       console.log(`Cookie Share Relay listening on ${host}:${port}; public origin ${publicOrigin}`);
