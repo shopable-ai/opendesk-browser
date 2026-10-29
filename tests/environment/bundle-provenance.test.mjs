@@ -276,8 +276,8 @@ test('Marketplace shares only the byte-pinned Prompt Shortcuts asset identity fo
 });
 
 test('first-party Clipper full-text notes store is pinned exclusively to the original Sidebar Host',async ctx=>{
-  const path='examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js';
-  const pin='a801ebcf0b932cf4a9425588a8e2dbada0de3963';
+  const path='projects/web-markdown-clipper/trusted/notes-store.js';
+  const pin='34547422b3a85be15cfad179e8df5993146c5b80';
   const make=(target,root=process.cwd(),source=path)=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,source)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   assert.equal(make('ui/sidebar-tool-host.js').modules[0].reviewedFirstPartyBlob,pin);
@@ -285,11 +285,11 @@ test('first-party Clipper full-text notes store is pinned exclusively to the ori
     'scripting/sandbox/sandbox.js','scripting/sandbox/worker-runtime.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   assert.throws(()=>make('ui/sidebar-tool-host.js',process.cwd(),
-    'examples/sidebar-tools/web-markdown-clipper/trusted/unreviewed.js'),
+    'projects/web-markdown-clipper/trusted/unreviewed.js'),
     /cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'clip-notes-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
-  await mkdir(join(root,'examples/sidebar-tools/web-markdown-clipper/trusted'),{recursive:true});
+  await mkdir(join(root,'projects/web-markdown-clipper/trusted'),{recursive:true});
   await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unsigned change\n');
   assert.throws(()=>make('ui/sidebar-tool-host.js',root),/Trusted Web Clipper source changed/);
 });
@@ -337,7 +337,7 @@ test('removed Prompt Shortcuts site bindings cannot regain privileged output adm
 
 test('R1.3 pinned shared Markdown converter can only enter the existing Page Relay',async ctx=>{
   const path='examples/shared/markdown/convert.js';
-  const legacy='examples/sidebar-tools/web-markdown-clipper/trusted/convert.js';
+  const legacy='projects/web-markdown-clipper/trusted/convert.js';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:20,originalLength:40}}},root,lock:{packages:{}}});
   const row=make('agents/page-relay.js');
