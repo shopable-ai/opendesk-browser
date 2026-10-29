@@ -1,5 +1,16 @@
 # scrapyJs 采集应用
 
+## 中长期产品规划（2026-10-30）
+
+以下文件保存本轮 AI 爬虫、代理与商业化讨论中的**长期目标与设计决策**。它们均为 **PLANNED / NOT_IMPLEMENTED**，不改变上方真实采集、安装态及候选验收状态：
+
+- [产品目标与分阶段路线图](docs/PRODUCT-ROADMAP.zh-CN.md)：当前基础、差距、P0/P1/P2、1–3 页 AI 试采及后续验收。
+- [AI 引擎、代理与云运行技术架构](docs/AI-ENGINE-PROXY-ARCHITECTURE.zh-CN.md)：Scrapling、Crawl4AI、Apify 等执行适配与安全边界。
+- [商业模式、竞品与上下游服务](docs/COMMERCIALIZATION-COMPETITORS.zh-CN.md)：模板复用、定制开发、维护、代理与收费路径。
+
+**当前不创建新 Runtime、云服务、付费功能或扩展权限；后续按最新 main 实际完成状态增量实施。**
+
+
 ## 本轮最新范围（2026-10-29）
 
 当前源码 1.6.0：本轮目标是改进 React 结果排版，完成真实 AI 配置助手及独立专家 95+ 评审。旧文中 AI 排除/95 延期仅描述历史阶段，以本节与 INTERACTIONS 最新决策为准。正式包仍保留 1.3.1，未晋升；本轮只准备开发候选并走原审阅安装。
