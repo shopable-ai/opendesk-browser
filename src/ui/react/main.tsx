@@ -16,7 +16,7 @@ import timeReviewHostCSS from '../../../examples/sidebar-tools/time-review/trust
 import bookmarkManagerHostCSS from '../../../projects/bookmark-manager/trusted/host.css?raw';
 import cookieEditorHostCSS from '../../../examples/sidebar-tools/cookie-editor/trusted/host.css?raw';
 import aiVipShareHostCSS from '../../../examples/sidebar-tools/ai-vip-share/trusted/host.css?raw';
-import promptShortcutsHostCSS from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/host.css?raw';
+import promptShortcutsHostCSS from '../../../projects/prompt-shortcuts/trusted/host.css?raw';
 import readingTocHostCSS from '../../../examples/sidebar-tools/reading-toc/trusted/host.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
