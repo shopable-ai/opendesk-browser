@@ -119,7 +119,7 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
         (id,origin,display_name,description,mode,expires_at,max_claims,manager_hash,created_at)
         VALUES (?,?,?,?,?,?,?,?,?)`).run(id,origin,displayName,description,mode,
           expiresAt,maxClaims,hex(managerSecret),clock());
-      return {invite:metadata(find(id)),url:`${{publicOrigin}/i/${{id}`,managerSecret};
+      return {invite:metadata(find(id)),url:`${publicOrigin}/i/${id}`,managerSecret};
     },
     public(id){return metadata(validInvite(id));},
     pair(id,body){
@@ -192,7 +192,7 @@ export function createShareRelay({dbPath,publicOrigin,clock=now}={}){
           typeof body.challenge!=='string'||hex(body.challenge)!==row.challenge_hash)
           throw fail('E_CHALLENGE_INVALID',403);
         const signature=limited(body.signature,256);
-        const data=Buffer.from(`opendesk-cookie-share:v1:${{id}:${{row.id}:${{body.challenge}`);
+        const data=Buffer.from(`opendesk-cookie-share:v1:${id}:${row.id}:${body.challenge}`);
         let verified=false;
         try{verified=verify('sha256',data,
           {key:createPublicKey({key:JSON.parse(row.verify_public),format:'jwk'}),
@@ -259,7 +259,7 @@ export function createShareHttpServer(relay){
           'cache-control':'no-store','referrer-policy':'no-referrer',
           'x-content-type-options':'nosniff',
           'content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"});
-        return res.end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${{title}</title><meta name="referrer" content="no-referrer"><style>body{font:16px system-ui;max-width:34rem;margin:12vh auto;padding:1rem;line-height:1.7}code{word-break:break-all}</style><h1>${{title}</h1><p>网站：<code>${{info.origin.replaceAll('&','&amp;').replaceAll('<','&lt;')}</code></p><p>请打开 OpenDesk Cookie Editor 的「账号 → 领取邀请」，粘贴当前地址完成领取。会话领取需经发送设备确认。</p></html>`);
+        return res.end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${title}</title><meta name="referrer" content="no-referrer"><style>body{font:16px system-ui;max-width:34rem;margin:12vh auto;padding:1rem;line-height:1.7}code{word-break:break-all}</style><h1>${title}</h1><p>网站：<code>${info.origin.replaceAll('&','&amp;').replaceAll('<','&lt;')}</code></p><p>请打开 OpenDesk Cookie Editor 的「账号 → 领取邀请」，粘贴当前地址完成领取。会话领取需经发送设备确认。</p></html>`);
       }
       const match=/^\/v1\/invites\/([A-Za-z0-9_-]{22,80})(?:\/(pairs|pair|deliver|challenge|claim|revoke))?$/.exec(path);
       if(req.method==='POST'&&path==='/v1/invites')
@@ -289,12 +289,12 @@ const invoked=process.argv[1]&&fileURLToPath(import.meta.url)===resolve(process.
 if(invoked){
   const host=process.env.SHARE_BIND_HOST||'127.0.0.1';
   const port=Number(process.env.SHARE_PORT||8713);
-  const publicOrigin=process.env.SHARE_PUBLIC_ORIGIN||`http://localhost:${{port}`;
+  const publicOrigin=process.env.SHARE_PUBLIC_ORIGIN||`http://localhost:${port}`;
   const dbPath=process.env.SHARE_DATABASE||resolve('cookie-share-relay.sqlite');
   try{
     const relay=createShareRelay({dbPath,publicOrigin});
     createShareHttpServer(relay).listen(port,host,()=>{
-      console.log(`Cookie Share Relay listening on ${{host}:${{port}; public origin ${{publicOrigin}`);
+      console.log(`Cookie Share Relay listening on ${host}:${port}; public origin ${publicOrigin}`);
     });
   }catch(error){console.error('Relay configuration failed:',error?.code||'E_RELAY');process.exitCode=1;}
 }
