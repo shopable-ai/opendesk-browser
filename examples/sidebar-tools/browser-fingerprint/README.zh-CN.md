@@ -1,3 +1,39 @@
+# Browser Fingerprint R2.2 · 真实网页环境修改（开发待验收）
+
+**原始产品目标（最高优先级）：** 选择环境预设 → 修改并保存 → 对当前明确授权 Tab 应用真实 Chrome 环境覆盖 → 独立读取网页实际值 → 停止并核对恢复。不是只读检测器。R2.0 原型 preview/r20-reference.html 继续作为设计基线，正式 React Root 为 src/App.jsx。
+
+## R2.2 正式源代码已做的增量（2026-10-29）
+
+- Manifest 及 permission-gate.js 声明必需的高敏 debugger 权限。Chrome 不允许动态申请可选 debugger；用户必须经过 Chrome 原生安装/升级提示，另需独立当前网站授权。扩大 Manifest 权限必须经真实安装安全审查，**此版本不得提前发布官方 Catalog**。
+- src/platform/chrome/browser-fingerprint.js：仅固定的 CDP Emulation.setUserAgentOverride、setLocaleOverride、setTimezoneOverride、setDeviceMetricsOverride；调用者不能供应原生 tabId、任意 CDP 命令或可执行 JS。
+- Trusted Host、SDK Registry/Schema、Side Panel 使用已有工具身份、版本、packageHash、installEpoch、TabRef/DocumentRef、实时 Chrome 权限及站点授权。首次可信授权只记录权限而不执行 native 命令；仅在授权后旧文档引用旋转时自动续接一次。
+- 正式 React 三个 Tab 复用，配置应用结果和独立网页读回分离。报告展示原始基线、目标、实际、原生命令逐字段状态及来源。未知命令不能假报网页匹配。
+- 原生 Session：导航、Tab 关闭、切换活动 Tab、权限撤销、安装变化、DevTools 接管时失效并尝试释放本扩展的 debugger；最长 8 分钟租期。恢复必须独立采集原网页值，detach 回执不等于恢复成功。
+- 新增 restored_limited，表示已停止调试、网页受控可观测字段恢复，但未得到网络请求头独立证据，不报告 restored_verified。
+- User-Agent、UA-CH 低熵平台、网页 JS 语言、时区、视口提供真实执行与读回路径。地理位置配置暂 UNSUPPORTED；HTTP Accept-Language 缺网络独立证据时 UNVERIFIABLE；公网 IP、物理屏幕及独立 Profile 不在范围内。
+- 新增 tests/r22.test.mjs 和 CI 权限断言，保留 R1.9/R2.1 原始测试事实。
+
+## R2.2 不能声明完成的环节
+
+1. 旧 browser-fingerprint.opendesk-tool.json 是 0.2.1 预构建静态包；源码 tool.config.json 已是 0.2.2，必须先构建 dist 和 candidate，再安装。不得手工只改旧包版本号制造已安装的假象。
+2. 本轮 Node / React BUILD 的 GitHub Actions 运行结果尚未读回；静态检查或模拟执行不能充当 PASS。
+3. Chromium 真实原生命令及 Mac Chrome 正式安装/原生授权/恢复：NOT_TESTED。
+4. 可信 HTTP 请求头证据、定位独立读回、浏览器重启后恢复以及高敏全局 debugger 权限发行审查仍需专门完成。
+
+## 新增核心验证命令
+
+在本地最新 main 运行 npm ci --ignore-scripts --no-audit --no-fund，然后分别运行：
+
+    npm --prefix examples/sidebar-tools/browser-fingerprint test
+    npm --prefix examples/sidebar-tools/browser-fingerprint run build
+    npm --prefix examples/sidebar-tools/browser-fingerprint run stage:candidate
+
+候选包审阅通过后，在 Mac Chrome 正式安装，分别核验美国环境 apply → 网页读回 → stop → 基线读回；德国环境、拒绝授权、切 Tab、导航、DevTools 接管及撤权。各级证据分开标注 NODE、REACT BUILD、CHROMIUM MOCK、CHROME NATIVE、MAC CHROME INSTALLED，缺证据项为 NOT_TESTED。
+
+---
+
+## 历史 R2.1 基线（以下旧章节的“未接入 debugger”陈述仅指 R2.1 当时状态）
+
 # 浏览器指纹 · Browser Fingerprint R2.1（正式 React）
 
 **产品方向：** 选择环境预设 → 修改参数 → 保存 → 当前授权 Tab 应用 → 独立网页读回 → 停止并核对恢复。**只读检测是辅助工具，不是主产品。**
