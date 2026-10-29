@@ -547,6 +547,34 @@
 
 /* Trusted toolbar keeps #workspace-content's gutter; untrusted tool owns inner gutter.
  * Tool frame outdents to full canvas width; never stack two page gutters. */
+
+/* Cookie Editor R2.8: minimal trusted dialog and post-dismissal grant. */
+.sidebar-tool-cookie-grant-compact{
+  flex:0 0 auto;width:auto;min-width:0;min-height:27px;padding:3px 10px;
+  font-size:11px;line-height:1.35;white-space:nowrap;border-radius:var(--radius-control)
+}
+.sidebar-tool-cookie-consent-overlay{
+  position:fixed;inset:0;z-index:2050;display:flex;align-items:center;
+  justify-content:center;padding:16px;background:rgba(16,26,42,.35)
+}
+.sidebar-tool-cookie-consent-dialog{
+  box-sizing:border-box;display:grid;gap:18px;width:min(100%,310px);min-width:0;
+  padding:16px;background:var(--od-paper);color:var(--od-ink);
+  border:1px solid var(--od-line);border-radius:var(--radius-surface);
+  box-shadow:0 16px 44px rgba(16,26,42,.2)
+}
+.sidebar-tool-cookie-consent-head{display:flex;align-items:center;gap:8px}
+.sidebar-tool-cookie-consent-head h2{
+  flex:1;min-width:0;margin:0;font-size:15px;font-weight:650;line-height:1.4
+}
+.sidebar-tool-cookie-consent-close{
+  display:grid;place-items:center;flex:0 0 28px;width:28px;min-width:28px;
+  height:28px;min-height:28px;padding:3px;background:transparent;border:0
+}
+.sidebar-tool-cookie-consent-close svg{width:17px;height:17px}
+.sidebar-tool-cookie-consent-allow{width:100%;min-height:38px;justify-content:center}
+.sidebar-tool-cookie-consent-overlay button:focus-visible,
+.sidebar-tool-cookie-grant-compact:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 .sidebar-tool-frame{min-width:0;width:calc(100% + var(--od-page-gutter) + var(--od-page-gutter));margin-inline:calc(0px - var(--od-page-gutter))}
 .sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:1600px;border:0;border-radius:0;background:#fff}
 

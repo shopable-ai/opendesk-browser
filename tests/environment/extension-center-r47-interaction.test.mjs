@@ -147,6 +147,10 @@ function openMenuUninstall(f,key){
 test('R5.11 each row has one main target and only an overflow secondary control',async t=>{
   const f=fixture(t);
   await f.ui.refresh();
+  assert.equal(f.list.querySelector('[data-extension-id="app:quick-notes"] .ec-type')?.textContent,'应用',
+    'ordinary app type must not append a redundant side-panel label');
+  assert.equal(f.list.querySelector('[data-extension-id="page:reader"] .ec-type')?.textContent,'应用 · 网页增强',
+    'page program type remains distinct');
   const appButtons=f.buttons('app:quick-notes');
   assert.deepEqual(appButtons.map(n=>n.dataset.extensionAction),['main','more']);
   f.button('app:quick-notes','main').dispatch('click');

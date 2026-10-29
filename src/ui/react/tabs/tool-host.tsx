@@ -96,7 +96,23 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
   const siteShortcutsVisible=['sidebar-tool-visibility','sidebar-tool-context-menu']
     .some(id=>snapshot.fields[id]?.hidden===false);
   // Tool enable/disable is only reachable from trusted Settings, not header actions.
-  const cookieFirstUse=snapshot.fields['sidebar-tool-cookie-permissions']?.data?.mode==='first-use';
+  const cookieGate=snapshot.fields['sidebar-tool-cookie-permissions']?.data||{};
+  const cookieFirstUse=cookieGate.mode==='first-use';
+  const cookieIdentity=cookieGate.identity||'';
+  const [cookieDismissal,setCookieDismissal]=React.useState({identity:'',dismissed:false});
+  const cookieDismissed=cookieDismissal.identity===cookieIdentity&&cookieDismissal.dismissed;
+  const cookieNeedsAuthorization=cookieGate.isCookieEditor===true&&
+    cookieGate.needsAuthorization===true&&cookieGate.hasOrigin===true&&
+    cookieGate.settingsOpen!==true&&!concealed&&!debugPreview&&
+    snapshot.fields['sidebar-tool-display']?.hidden===false;
+  const cookieConsentVisible=cookieNeedsAuthorization&&cookieFirstUse&&!cookieDismissed&&!importOpen;
+  const cookieCompactGrantVisible=cookieNeedsAuthorization&&!cookieConsentVisible&&!importOpen;
+  const dismissCookieConsent=()=>setCookieDismissal({identity:cookieIdentity,dismissed:true});
+  // Pass a real user gesture to the existing trusted Host dispatcher.
+  const requestCookieGrant=event=>{
+    if(cookieConsentVisible)dismissCookieConsent();
+    view.dispatch('sidebar-tool-cookie-site-toggle','click',event.nativeEvent);
+  };
   const permissionVisible=snapshot.fields['sidebar-tool-bookmark-permissions']?.hidden===false||
     (snapshot.fields['sidebar-tool-cookie-permissions']?.hidden===false&&!cookieFirstUse);
   // These are the only editable inputs in this host. Business decisions remain
@@ -439,6 +455,11 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
 </ToolField>
 <ToolField as="strong" id="sidebar-tool-title" className="od-page-title"
   role="heading" aria-level={2}/>
+{cookieCompactGrantVisible&&<button type="button" id="sidebar-tool-cookie-grant-compact"
+  data-cookie-grant-only="true"
+  className="od-button od-button--secondary sidebar-tool-cookie-grant-compact"
+  disabled={snapshot.fields['sidebar-tool-cookie-site-toggle']?.disabled===true}
+  onClick={requestCookieGrant}>授权</button>}
 <ToolField as="button" type="button" id="sidebar-tool-primary-action" className="sidebar-tool-icon-action od-icon-button" title="当前页面操作" aria-label="当前页面操作" hidden={true}>
 <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
 {topAction==='new' ? <path d="M12 5v14M5 12h14"/> :
@@ -475,7 +496,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
 </div>
 
 </div>
-<section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/>{cookieFirstUse&&<CookieSettings onRevoke={actions.revoke}/>}<div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
+<section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/><div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
 {"打开工具"}
 </ToolField>
 <ToolField as="section" id="sidebar-tool-retired-draft" className="sidebar-tool-settings-view od-surface" aria-label="停用前的草稿" hidden={true}>
@@ -687,7 +708,49 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
 
 </ToolField>
 </UninstallDialog>
+{cookieConsentVisible&&<CookieConsentDialog
+  disabled={snapshot.fields['sidebar-tool-cookie-site-toggle']?.disabled===true}
+  onClose={dismissCookieConsent} onAuthorize={requestCookieGrant}/>}
 </div></ToolContext.Provider>;
+}
+
+function CookieConsentDialog({disabled,onClose,onAuthorize}) {
+  const closeRef=React.useRef(null),authorizeRef=React.useRef(null);
+  React.useEffect(()=>{
+    const prior=document.activeElement;
+    (disabled?closeRef.current:authorizeRef.current)?.focus({preventScroll:true});
+    return ()=>{if(prior?.isConnected)prior.focus?.({preventScroll:true});};
+  },[]);
+  const content=<div className="sidebar-tool-cookie-consent-overlay">
+    <section role="dialog" aria-modal="true" aria-labelledby="sidebar-tool-cookie-consent-title"
+      className="sidebar-tool-cookie-consent-dialog"
+      onKeyDown={event=>{
+        if(event.key==='Escape'){event.preventDefault();onClose();return;}
+        if(event.key!=='Tab')return;
+        const buttons=[closeRef.current,authorizeRef.current].filter(node=>node&&!node.disabled);
+        if(!buttons.length)return;
+        if(event.shiftKey&&document.activeElement===buttons[0]){
+          event.preventDefault();buttons.at(-1).focus();
+        }else if(!event.shiftKey&&document.activeElement===buttons.at(-1)){
+          event.preventDefault();buttons[0].focus();
+        }
+      }}>
+      <div className="sidebar-tool-cookie-consent-head">
+        <h2 id="sidebar-tool-cookie-consent-title">Cookie 管理授权</h2>
+        <button type="button" ref={closeRef}
+          className="sidebar-tool-cookie-consent-close od-icon-button"
+          aria-label="关闭授权弹窗" onClick={onClose}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
+            strokeWidth="1.8" strokeLinecap="round"><path d="M5 5l14 14M19 5 5 19"/></svg>
+        </button>
+      </div>
+      <button type="button" id="sidebar-tool-cookie-consent-allow" ref={authorizeRef}
+        data-cookie-grant-only="true"
+        className="od-button od-button--primary sidebar-tool-cookie-consent-allow"
+        disabled={disabled} onClick={onAuthorize}>允许授权</button>
+    </section>
+  </div>;
+  return typeof document==='undefined'?content:createPortal(content,document.body);
 }
 
 function ImportSheet({open,onBackdrop,onFileDrop,blockFiles=false,busy=false,children}) {

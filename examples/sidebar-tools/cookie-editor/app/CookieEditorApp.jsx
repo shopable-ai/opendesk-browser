@@ -209,6 +209,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     }
   },[snapshot.epoch,snapshot.phase]);
   const target=snapshot.target;
+  const cookieReady=snapshot.phase==='ready';
   const acceptAccountState=result=>{
     const verified=verifiedAccount.current;
     if(verified&&(!result.unlocked||!result.accounts.some(item=>
@@ -643,10 +644,10 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       <CookiePermissions phase={snapshot.phase} reason={snapshot.problem} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}
         onOffline={()=>switchMode('offline')}/>
-      {snapshot.phase==='ready'&&<div className="od-surface cookie-editor-workspace">
+      <div className="od-surface cookie-editor-workspace">
         <CookieEditorView site={target?.hostname||''} showSiteBar={false} syncStale={snapshot.syncStale}
           importOpen={panel==='import'}
-          importContent={panel==='import'?<CookieImport disabled={locked}
+          importContent={cookieReady&&panel==='import'?<CookieImport disabled={locked}
             notice={importNotice} onImportText={importFromText} onNotice={noteImport}
             onPendingChange={value=>{importDirtyRef.current=value;}}
             onBeforeSubmit={()=>{
@@ -662,17 +663,18 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
               if(!committed){controller.discardImport();finishImportIntent(activeImportRef.current);}
               setPanel(null);
             }}/>:null}
-          rows={snapshot.rows} selected={selected} onSelect={select}
+          rows={cookieReady?snapshot.rows:[]} selected={cookieReady?selected:null} onSelect={select}
           onRefresh={()=>guarded(refresh)}
           query={query} onQuery={v=>{setQuery(v);setPage(1);}}
           filter={filter} onFilter={v=>{setFilter(v);setPage(1);}}
           sort={sort} onSort={v=>{setSort(v);setPage(1);}}
           expandedFilters={expanded} onToggleFilters={()=>setExpanded(x=>!x)}
-          page={page} onPage={setPage} busy={locked}
+          page={page} onPage={setPage} busy={locked||!cookieReady}
+          readonly={!cookieReady} unavailable={!cookieReady}
           onImport={openImport}
           onExport={()=>{if(!locked)setExportOpen(!exportOpen);}}
-          exportOpen={exportOpen} onCloseExport={closeExport}
-          exportContent={exportOpen?<CookieExport controller={controller} disabled={locked}
+          exportOpen={cookieReady&&exportOpen} onCloseExport={closeExport}
+          exportContent={cookieReady&&exportOpen?<CookieExport controller={controller} disabled={locked}
             onPendingChange={pending=>{exportPending.current=pending;}}
             onDelivered={method=>{
               closeExport(true,true);
@@ -680,15 +682,15 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
             }}
             onClose={()=>closeExport(true)}/>:null}
           onNew={()=>select('new')} onClear={()=>void clear()}
-          clearDisabled={!snapshot.rows.length}
-          newEditor={selected==='new'?<CookieInlineEditor key="new" target={target}
+          clearDisabled={!cookieReady||!snapshot.rows.length}
+          newEditor={cookieReady&&selected==='new'?<CookieInlineEditor key="new" target={target}
             disabled={locked} onSave={save} onDirty={setDirty}
             onCancel={()=>{setSelected(null);setDirty(false);}}/>:null}
-          editor={row=><CookieInlineEditor key={row.id} row={row} target={target}
+          editor={cookieReady?(row=><CookieInlineEditor key={row.id} row={row} target={target}
             disabled={locked} readValue={controller.readValue} onSave={save}
             onDirty={setDirty} onCancel={()=>{setSelected(null);setDirty(false);}}
-            onDelete={remove}/>}/>
-      </div>}
+            onDelete={remove}/>):null}/>
+      </div>
       </section>}
       {section==='accounts'&&<CookieAccounts
         key={(target?.origin||'')+':'+(accountState?.unlocked===true)+':'+accountFormRevision}

@@ -77,36 +77,44 @@ function NativeConnectionCard({nativeConnection,onOpenNativeSettings,doc}){
   status.requiresReload?'浏览器需要重新加载扩展，开关已保持启用。':
   status.connecting?'正在等待 OpenDesk 握手，请勿重复设置。':
   (lastSeen?'上次成功连接：'+lastSeen+'。当前离线，':'已保存启用设置，但当前未连接，')+'请检查本机程序是否运行。';
- return <div className="od-shared-provider-local-card">
+ const statusKind=!nativeConnection?.readStatus||loading||!status?'unknown':
+  !status.enabled?'off':status.nativeConnected?'connected':
+  status.requiresReload?'reload':status.connecting?'connecting':'offline';
+ return <div className="od-shared-provider-local-card" role="group"
+  aria-labelledby="od-shared-provider-native-title">
   <div className="od-shared-provider-local-main">
-   <div className="od-shared-provider-native-state">
-    <strong>OpenDesk 本机连接</strong>
-    <small role="status" aria-live="polite" data-state={status?.nativeConnected?'connected':
-      status?.enabled?'enabled':'off'}>{title}</small>
-   </div>
+   <strong id="od-shared-provider-native-title">OpenDesk 本机连接</strong>
    {nativeConnection?.setEnabled&&
     <Switch aria-label="启用 OpenDesk 本机连接" isSelected={Boolean(status?.enabled)}
      isDisabled={loading||!status} isReadOnly={busy} aria-busy={busy}
      onChange={value=>{void change(value);}}/>}
   </div>
-  <p className="od-shared-provider-native-hint">{hint}</p>
-  <div className="od-shared-provider-local-footer">
-   {nativeConnection?.readStatus&&
-    <button type="button" className="od-button od-button--secondary"
-     disabled={busy} onClick={()=>{polls.current=0;setError('');void refresh();}}>
-     重新检测
-    </button>}
-   {onOpenNativeSettings&&
-    <button type="button" className="od-button od-button--secondary"
-     onClick={event=>{
-      if(!event.nativeEvent?.isTrusted)return;
-      try{void Promise.resolve(onOpenNativeSettings()).catch(ex=>
-       setError('无法打开高级设置：'+String(ex?.message||ex)));}
-      catch(ex){setError('无法打开高级设置：'+String(ex?.message||ex));}
-     }}>高级设置</button>}
+  <div className="od-shared-provider-native-detail">
+   <small className="od-shared-provider-native-status" role="status"
+    aria-live="polite" data-state={statusKind}>{title}</small>
+   <p className="od-shared-provider-native-hint">{hint}</p>
   </div>
   {error&&<p className="od-conversation-error" role="alert">{error}</p>}
-  <p className="od-shared-provider-native-note">连接开关即时生效；下方保存按钮只保存 AI 来源。</p>
+  <div className="od-shared-provider-local-footer">
+   {nativeConnection?.setEnabled&&
+    <small className="od-shared-provider-native-note"
+     title="连接开关即时生效，取消或保存 AI 设置不会回滚连接状态">开关即时生效</small>}
+   <div className="od-shared-provider-local-actions">
+    {nativeConnection?.readStatus&&
+     <button type="button" className="od-button od-button--secondary"
+      disabled={busy} onClick={()=>{polls.current=0;setError('');void refresh();}}>
+      重新检测
+     </button>}
+    {onOpenNativeSettings&&
+     <button type="button" className="od-button od-button--secondary"
+      onClick={event=>{
+       if(!event.nativeEvent?.isTrusted)return;
+       try{void Promise.resolve(onOpenNativeSettings()).catch(ex=>
+        setError('无法打开高级设置：'+String(ex?.message||ex)));}
+       catch(ex){setError('无法打开高级设置：'+String(ex?.message||ex));}
+      }}>高级设置</button>}
+   </div>
+  </div>
  </div>;
 }
 

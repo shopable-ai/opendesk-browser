@@ -545,10 +545,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const managed=cookieHasManageGrant(tool,origin);
     const firstUse=tool?.id==='cookie-editor'&&!managed&&!show&&cookieGrantStatusLoaded;
     const app=(show||firstUse)&&isCookieTool(tool)&&!readOnlyPreview;
+    // The original native Chrome grant is prepared even with Settings closed.
+    if(tool?.id==='cookie-editor'||app)prepareCookieChrome(tool,origin,allSites);
+    const needsAuthorization=tool?.id==='cookie-editor'&&cookieGrantStatusLoaded&&
+      cookieAdmissionState!==null&&(!managed||cookieChromeState?.granted===false);
     patchToolField(view,cookiePermissions,{hidden:!app,
-      data:{mode:firstUse?'first-use':'settings',isCookieEditor:tool?.id==='cookie-editor'}});
-    if(!app)return;
-    prepareCookieChrome(tool,origin,allSites);
+      data:{mode:firstUse?'first-use':'settings',isCookieEditor:tool?.id==='cookie-editor',
+        needsAuthorization,hasOrigin:Boolean(origin),settingsOpen:show,
+        identity:tool?.id==='cookie-editor'?
+          [tool.id,tool.version,revocationEpochs[tool.id]??''].join(':'):''}});
+    // Update the one trusted button even if its Settings card is not mounted.
+    if(!app&&tool?.id!=='cookie-editor')return;
     const record=allSites?cookieAllSiteRecord(tool):cookieSiteBaseRecord(tool,origin);
     const requested=cookieCaps.filter(([cap])=>tool.capabilities.includes('browser.cookies.'+cap)&&
       (tool.id==='cookie-editor'||cap!=='values'));
@@ -671,6 +678,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const restoreChrome=scopeGranted&&cookieChromeState.granted===false;
     const revoke=!restoreChrome&&(allSites?cookieHasBaseGrant(tool):
       cookieHasSiteGrant(tool,origin));
+    // A stale grant-only header/modal render may never act as a revoke.
+    if(revoke&&event.target?.closest?.('button[data-cookie-grant-only="true"]'))return;
     // The shared Chrome gate consumes this genuine click synchronously,
     // before any await. Only missing native permissions trigger a Chrome prompt.
     const nativeRequest=revoke?Promise.resolve(true):requestCookieChrome(event,origin,allSites);
@@ -697,6 +706,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // Cookie list without another manual reload. Keep an in-use editor.
         if(revoke&&tool.id==='cookie-editor'){
           retireUntrustedTool();
+          // Erase private state by replacing the authorized iframe.
+          mountTool(tool);
         }else if(!revoke&&tool.id==='cookie-editor'&&
           ((!frame&&!nativeUI&&!nativePending)||(!wasUsable||restoreChrome)))
           mountTool(tool);
@@ -1233,10 +1244,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               '仅影响 Chrome 原生右键快捷添加'});
     }
     // Visibility-only: retain the existing opaque iframe and its installation identity.
-    frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||legacyAdblock||
-      (active?.id==='cookie-editor'&&!readOnlyPreview&&
-        (!cookieGrantStatusLoaded||cookieAdmissionState===null||
-          !cookieHasManageGrant(active,websiteOrigin(currentPageTarget?.snapshot?.url))));
+    // Unapproved Cookie operations remain gated by the Host, not iframe visibility.
+    frameRoot.hidden=(show&&!trustedInline)||!(frame||nativeUI)||legacyAdblock;
     renderCookieSettings(show);
     patchToolField(view,fullBookmarkSettings,{hidden:!(show&&managed&&isFullBookmarkTool(active))});
     const fullGrant=menuGrants?.[id],currentEpoch=revocationEpochs[id]??null;
@@ -3337,13 +3346,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       render();
     }
     if(Object.hasOwn(changes||{},BROWSER_MENU_GRANTS_STORE)){
+      const previouslyManaged=active?.id==='cookie-editor'&&
+        cookieHasManageGrant(active,websiteOrigin(currentPageTarget?.snapshot?.url));
       menuGrants=changes[BROWSER_MENU_GRANTS_STORE]?.newValue||{};
-      // A revoked Cookie grant destroys the embedded editor, including any
-      // transient decrypted input, rather than merely hiding the iframe.
-      if(active?.id==='cookie-editor'&&!readOnlyPreview&&frame&&
+      // Destroy the old decrypted iframe, then retain a nonprivileged app.
+      if(active?.id==='cookie-editor'&&!readOnlyPreview&&frame&&previouslyManaged&&
         !cookieHasManageGrant(active,websiteOrigin(currentPageTarget?.snapshot?.url))){
         retireUntrustedTool();
-        notice('Cookie 管理授权已失效，请重新审阅当前网站权限。',true);
+        mountTool(active);
+        notice('Cookie 授权已撤销，旧数据已清除。',true);
       }
       if(active?.id===TRUSTED_BOOKMARK_ID&&nativeUI?.kind==='bookmark'){
         const grant=menuGrants?.[TRUSTED_BOOKMARK_ID];
@@ -4572,16 +4583,30 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const officialReady=loadOfficial();
   const preinstallReady=runDefaultPreinstall();
   const ready=Promise.all([enableReady,installedReady,sitesReady,menuReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady,officialReady,preinstallReady]);
-  const menuPermissionsChanged=()=>{
+  const menuPermissionsChanged=(details,removed=false)=>{
     menuStatusKey='';cookieChromeKey='';cookieChromeState=null;
+    if(removed&&active?.id==='cookie-editor'&&!readOnlyPreview&&frame){
+      const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
+      const requested=origin?cookieChromeRequest(origin,cookieAdmissionState===true):null;
+      const affected=details?.permissions?.includes('cookies')||
+        details?.origins?.some(pattern=>requested?.origins.includes(pattern));
+      if(affected){
+        // Native Chrome revocation also clears already-rendered private values.
+        retireUntrustedTool();
+        mountTool(active);
+        notice('Chrome Cookie 权限已撤销，旧数据已清除。',true);
+        return;
+      }
+    }
     if(isCookieTool(active)&&frame&&instance)
       frame.contentWindow?.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
         kind:'cookie-grants-changed',instance,toolId:active.id},'*');
     render();
   };
-  for(const event of [api.permissions?.onAdded,api.permissions?.onRemoved]){
-    event?.addListener?.(menuPermissionsChanged);
-    if(event?.removeListener)listeners.push(()=>event.removeListener(menuPermissionsChanged));
+  for(const [event,removed] of [[api.permissions?.onAdded,false],[api.permissions?.onRemoved,true]]){
+    const listener=details=>menuPermissionsChanged(details,removed);
+    event?.addListener?.(listener);
+    if(event?.removeListener)listeners.push(()=>event.removeListener(listener));
   }
   if(currentPageTarget?.subscribe){
     // revalidate() intentionally observes the same document before and after a

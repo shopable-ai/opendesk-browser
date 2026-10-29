@@ -22,7 +22,7 @@ function content(phase,reason){
   return ['读取 Cookie 失败','请核对授权及 Cookie Store/Partition，按需手动重新检查。',true];
 }
 export default function CookiePermissions({phase,reason,target,disabled,onRetry,onOffline}){
-  if(phase==='ready')return null;
+  if(phase==='ready'||granting.has(reason))return null;
   if(phase==='loading')return <section className="cookie-permission" role="status" aria-live="polite">
     正在读取 Cookie…
   </section>;

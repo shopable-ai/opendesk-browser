@@ -343,7 +343,7 @@ export function cookieRowExpiryLabel(row,nowSeconds=Date.now()/1000){
 }
 export function CookieRows({
   rows=[],totalCount=rows.length,selected=null,onSelect=()=>{},
-  pinnedNote=false,beforeRows=null,newEditor=null,renderEditor=null,idPrefix='editor-',site=''
+  pinnedNote=false,beforeRows=null,newEditor=null,renderEditor=null,idPrefix='editor-',site='',unavailable=false
 }){
   return <section className="cookie-list" aria-label="Cookie 列表">
     {beforeRows}
@@ -383,8 +383,8 @@ export function CookieRows({
       </article>;
     })}
     {rows.length===0&&!newEditor&&<div className="empty-list">
-      <strong>{totalCount===0?'本站暂无 Cookie':'没有匹配的 Cookie'}</strong>
-      <span>{totalCount===0?'可以新建或导入。':'尝试更换关键词或筛选条件。'}</span>
+      <strong>{unavailable?'尚未读取 Cookie':totalCount===0?'本站暂无 Cookie':'没有匹配的 Cookie'}</strong>
+      <span>{unavailable?'授权后显示真实 Cookie 数据。':totalCount===0?'可以新建或导入。':'尝试更换关键词或筛选条件。'}</span>
     </div>}
   </section>;
 }
@@ -394,7 +394,8 @@ export function CookieEditorView({
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,exportOpen=false,
   exportContent=null,onCloseExport,importOpen=false,importContent=null,
-  editor=null,newEditor=null,busy=false,readonly=false,page=1,pageSize=40,onPage=()=>{},showSiteBar=true
+  editor=null,newEditor=null,busy=false,readonly=false,unavailable=false,
+  page=1,pageSize=40,onPage=()=>{},showSiteBar=true
 }){
   const matching=row=>[row.name,row.domain,row.path].some(value=>
     String(value||'').toLowerCase().includes(query.toLowerCase()))&&
@@ -419,12 +420,12 @@ export function CookieEditorView({
     <CookieSearch query={query} onQuery={onQuery}
       expandedFilters={expandedFilters} onToggleFilters={onToggleFilters}
       filter={filter} onFilter={onFilter} sort={sort} onSort={onSort}/>
-    <CookieToolbar count={rows.length} onImport={onImport} onExport={onExport}
+    <CookieToolbar count={unavailable?'—':rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
       exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
       importOpen={importOpen} busy={busy} readonly={readonly}/>
     <CookieRows site={site} rows={currentPage} totalCount={rows.length} selected={selected}
-      beforeRows={importContent} newEditor={newEditor}
+      beforeRows={importContent} newEditor={newEditor} unavailable={unavailable}
       onSelect={id=>onSelect(id===selected?null:id)} renderEditor={editor}
       idPrefix="cookie-react-editor-"/>
     {pages>1&&<nav className="cookie-pages" aria-label="Cookie 分页">
