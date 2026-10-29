@@ -146,7 +146,24 @@ try{
   }
   await until(()=>evaluate('!!document.querySelector("#tab-tools")',host),'tools Tab');
   await click('#tab-tools',host);
+  // React route mount is asynchronous; the first CDP click must not race
+  // the extension-center toolbar render or click a hidden old Tab.
+  try{
+    await until(()=>evaluate('(()=>{const n=document.querySelector("#extension-center-more");'+
+      'if(!n||n.disabled)return false;const r=n.getBoundingClientRect();'+
+      'return r.width>0&&r.height>0})()',host),'visible installed extension center');
+  }catch(error){
+    evidence.routeDebug=await evaluate('({activeTab:document.querySelector("[data-workbench-tab][aria-selected=true]")?.id,'+
+      'workbenchHidden:document.querySelector("#workbench-tools")?.hidden,'+
+      'center:!!document.querySelector("#extension-center"),'+
+      'toolbar:!!document.querySelector("#extension-center-more"),'+
+      'text:document.body.innerText.slice(0,1800)})',host).catch(()=>null);
+    throw error;
+  }
   await click('#extension-center-more',host);
+  await until(()=>evaluate('(()=>{const n=document.querySelector("#extension-center-import");'+
+    'if(!n)return false;const r=n.getBoundingClientRect();return r.width>0&&r.height>0})()',host),
+    'visible install import action');
   await click('#extension-center-import',host);
   await until(()=>evaluate('!!document.querySelector("#sidebar-tool-file")',host),'candidate import input');
   await send('DOM.enable',{},host);
