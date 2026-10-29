@@ -160,6 +160,7 @@ jobs:
           node scripts/build-adblock-react.mjs
           node scripts/build-stay-focus-react.mjs
           node scripts/build-cookie-editor-react.mjs
+          npm run build --prefix examples/sidebar-tools/ai-vip-share
       - name: Audit all official tools and fixed-entry ownership (release blocker)
         run: |
           node --test tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs
