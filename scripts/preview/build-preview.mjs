@@ -5,6 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {resolve,join,dirname} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
+import {officialSourceProjectPath} from '../../src/sidebar-tools/official-catalog.js';
 import {officialDesignSources,canonicalThemeOverride} from './shared-tool-design.mjs';
 import {sidebarPreviewShellSource} from './sidebar-shell-source.mjs';
 import {canonicalAdblockPreviewHost} from './adblock-host-source.mjs';
@@ -63,7 +64,7 @@ export async function generatePreview({
   if(tool==='reading-toc'&&theme!=='light')fail('Reading TOC preview shell is light only');
   if(!Number.isInteger(width)||width<240||width>1440||
     !Number.isInteger(height)||height<320||height>2400)fail('invalid CSS viewport');
-  const project=join(repoRoot,'examples/sidebar-tools',tool);
+  const project=join(repoRoot,officialSourceProjectPath(tool));
   const pkg=await createSidebarToolPackage(project);
   // Respect each existing production CSS contract: some older official tools use
   // canonical shared tokens or a legacy scoped stylesheet; do not silently reskin.

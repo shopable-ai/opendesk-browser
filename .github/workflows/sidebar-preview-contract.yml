@@ -20,7 +20,7 @@ on:
       - 'examples/sidebar-tools/quick-notes/**'
       - 'examples/sidebar-tools/bookmark-manager/**'
       - 'examples/sidebar-tools/adblock/**'
-      - 'examples/sidebar-tools/markdown-workbench/**'
+      - 'projects/markdown-workbench/**'
       - 'examples/sidebar-tools/web-markdown-clipper/**'
       - 'examples/sidebar-tools/knowledge-inbox/**'
       - 'examples/sidebar-tools/ai-knowledge-answers/**'

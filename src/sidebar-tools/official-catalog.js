@@ -27,6 +27,12 @@ const immutableFocusPackage=commit=>
 const gitSha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const error=(message,code='E_OFFICIAL_CATALOG')=>Object.assign(new Error(message),{code});
+// An exact source-location allowlist; migration never authorizes arbitrary repository paths.
+const migratedOfficialToolIds=new Set(['markdown-workbench']);
+export function officialSourceProjectPath(id){
+  if(typeof id!=='string'||!idPattern.test(id))throw error('官方工具资源身份无效');
+  return (migratedOfficialToolIds.has(id)?'projects/':'examples/sidebar-tools/')+id;
+}
 const fields=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&
   Object.keys(value).sort().join(',')===[...keys].sort().join(',');
 function list(value){
@@ -49,7 +55,7 @@ export function validateOfficialSourceCatalog(value){
           (typeof tool.packageFile!=='string'||!idPattern.test(tool.id)||
            !/^[a-z][a-z0-9._-]{0,110}.opendesk-tool.json$/.test(tool.packageFile)))||
         !idPattern.test(tool.id)||
-        typeof tool.id!=='string'||tool.project!=='examples/sidebar-tools/'+tool.id||
+        typeof tool.id!=='string'||tool.project!==officialSourceProjectPath(tool.id)||
         tool.kind!=='sidebar-tool'||!['optional','preinstalled'].includes(tool.installationPolicy)||seen.has(tool.id))
       throw error('官方工具身份、源码路径或安装策略无效');
     seen.add(tool.id);

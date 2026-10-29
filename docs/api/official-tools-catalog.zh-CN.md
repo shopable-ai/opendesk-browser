@@ -15,7 +15,7 @@
 | 单工具本地包 | `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json` | 现有独立打包命令的输出 |
 | 可选独立官方生成输出 | `artifacts/official-tools-release/official-tools/...` | `node scripts/build-official-tools.mjs` 的默认输出 |
 
-当前随扩展发行的八个官方工具是 `reading-toc`、`web-markdown-clipper`、`quick-notes`、`markdown-workbench`、`knowledge-inbox`、`time-review`、`stay-focus`、`cookie-editor`。Catalog 登记的 `examples/sidebar-tools/<id>` 是正式发行源码入口；目录名称不表示其只是演示，也不授予特权。React/Vue starter 继续作为本地开发示例，不因位于 examples 目录就参与官方发行。新增候选只需符合现有包合同、提供可信项目并登记 Catalog；市场展示文案可选，缺省使用真实包标题和描述。
+当前随扩展发行的八个官方工具是 `reading-toc`、`web-markdown-clipper`、`quick-notes`、`markdown-workbench`、`knowledge-inbox`、`time-review`、`stay-focus`、`cookie-editor`。Catalog 已迁移的产品使用 `projects/<id>`，其他尚未迁移的产品仍使用 `examples/sidebar-tools/<id>`，两者均经精确 ID 路径校验；目录名称不表示其只是演示，也不授予特权。React/Vue starter 继续作为本地开发示例，不因位于 examples 目录就参与官方发行。新增候选只需符合现有包合同、提供可信项目并登记 Catalog；市场展示文案可选，缺省使用真实包标题和描述。
 
 不在 `src/sidebar-tools/` 或文档目录保存生成包。已交付工具在自身项目根保留唯一 `<id>.opendesk-tool.json`，按候选验证后显式晋升；它不是每次开发编译都覆盖的临时输出。
 

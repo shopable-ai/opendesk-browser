@@ -1,6 +1,6 @@
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
-import {officialPackagePath} from '../../src/sidebar-tools/official-catalog.js';
+import {officialPackagePath,officialSourceProjectPath} from '../../src/sidebar-tools/official-catalog.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile, mkdtemp, rm} from 'node:fs/promises';
@@ -43,7 +43,7 @@ test('R22 packer is reproducible and matches the official build output',async()=
  try{
   for(const id of tools){
    const target=join(out,id+'.json');
-   const report=await buildSidebarTool('examples/sidebar-tools/'+id,{out:target});
+   const report=await buildSidebarTool(officialSourceProjectPath(id),{out:target});
    assert.equal(report.validated,true);
    const expected=(await officialFixtures()).resources.get(officialPackagePath(id)).toString('utf8');
    const actual=await readFile(target,'utf8');
@@ -188,10 +188,10 @@ test('R22 fixed release inclusion and trusted-site wiring are explicit',async()=
 
 test('R5.2 Markdown Workbench built package has no confirm/alert/prompt or exit modal',async()=>{
  const [source,html,style,config]=await Promise.all([
-  readFile('examples/sidebar-tools/markdown-workbench/src/main.js','utf8'),
-  readFile('examples/sidebar-tools/markdown-workbench/src/index.html','utf8'),
-  readFile('examples/sidebar-tools/markdown-workbench/src/style.css','utf8'),
-  readFile('examples/sidebar-tools/markdown-workbench/tool.config.json','utf8').then(JSON.parse)]);
+  readFile('projects/markdown-workbench/src/main.js','utf8'),
+  readFile('projects/markdown-workbench/src/index.html','utf8'),
+  readFile('projects/markdown-workbench/src/style.css','utf8'),
+  readFile('projects/markdown-workbench/tool.config.json','utf8').then(JSON.parse)]);
  assert.equal(config.version,'1.0.5');
  assert.doesNotMatch(source,/\b(?:confirm|alert|prompt)\s*\(|beforeunload/);
  assert.match(source,/serial!==importSerial/,'late file loads must not overwrite later edits');
@@ -204,7 +204,7 @@ test('R5.2 Markdown Workbench built package has no confirm/alert/prompt or exit 
 });
 
 test('R5.2 Markdown Workbench import and clear are explicit in-page operations',async()=>{
- const source=await readFile('examples/sidebar-tools/markdown-workbench/src/main.js','utf8');
+ const source=await readFile('projects/markdown-workbench/src/main.js','utf8');
  class TestNode {
   constructor(id=''){this.id=id;this.value='';this.textContent='';this.dataset={};this.listeners={};this.hidden=id==='mdw-inline-review';this.children=[];this.files=[];}
   addEventListener(type,fn){(this.listeners[type]??=[]).push(fn);}
