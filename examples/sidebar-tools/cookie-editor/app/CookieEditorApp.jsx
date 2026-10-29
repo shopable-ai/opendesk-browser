@@ -319,8 +319,10 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
             version:updated.version,rows:JSON.stringify(controller.snapshot().rows)};
         }
         acceptAccountState(receipt);
-        const message=action==='update'&&receipt.unchanged===true
-          ?'Cookie 已是最新，无需重复保存。':success;
+        const message=action==='create'&&created?.cookieCount===0
+          ?'账号已保存，尚未关联 Cookie。'
+          :action==='update'&&receipt.unchanged===true
+            ?'Cookie 已是最新，无需重复保存。':success;
         setAccountNotice({kind:'success',text:receipt.preview===true
           ?'预览模拟：'+message+'（未写入真实账号）':message});
         if(action==='create')return {ok:true,alias:created.alias};
@@ -341,7 +343,10 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         E_COOKIE_PARTITION:'Cookie 分区已变化，请重新检查目标标签页及授权。',
         E_COOKIE_STORE:'当前标签页的 Cookie Store 不匹配。',
         E_SITE_GRANT_REQUIRED:'网站 Cookie 授权失效，请在工具可信设置中恢复。',
-        E_ACCOUNT_EMPTY:'当前站点没有可保存或切换的 Cookie。',
+        E_ACCOUNT_EMPTY:action==='attach'
+          ?'当前网站没有可关联的 Cookie；账号仍已保存。'
+          :'当前站点没有可保存或切换的 Cookie。',
+        E_ACCOUNT_ALREADY_LINKED:'账号已关联 Cookie；请刷新账号状态后再操作。',
         E_ACCOUNT_NAME_TAKEN:'账号名称已存在，请换一个名称。',
         E_ACCOUNT_DESCRIPTION:'账号描述无效或超过 120 字；未保存。',
         E_ACCOUNT_SNAPSHOT_SCOPE_CHANGED:'当前 Cookie 的 Domain、Path、Store 或 Partition 范围已变化；旧快照未覆盖。'
@@ -723,7 +728,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           storeId:row.storeId,partition:row.partitionKey?.topLevelSite||''
         })):[]}
         onCreate={(displayName,description)=>accountAction('create',{
-          displayName,description},'已保存当前账号快照。')}
+          displayName,description},'账号及 Cookie 快照已保存。')}
         onSwitch={item=>accountAction('switch',{alias:item.alias})}
         onRename={(item,displayName,description)=>accountAction('rename',{
           alias:item.alias,accountVersion:item.version,displayName,description},
@@ -739,6 +744,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           return accountAction('update',{
             alias:item.alias,accountVersion:item.version},'已更新账号快照。');
         }}
+        onAttach={item=>accountAction('attach',{
+          alias:item.alias,accountVersion:item.version},'已为账号关联当前 Cookie。')}
         onDelete={item=>accountAction('delete',{
           alias:item.alias,accountVersion:item.version},'账号快照已删除。')}
         onToggleAuto={enabled=>accountAction('setAutoEnabled',{enabled},'自动切换设置已更新。')}

@@ -219,14 +219,15 @@ async function serviceFixture(t){
     cookies:{
       getAllCookieStores:async()=>[{id:'0',tabIds:[1]}],
       getPartitionKey:async()=>({partitionKey:{topLevelSite:origin,hasCrossSiteAncestor:false}}),
-      getAll(details,callback){const rows=[structuredClone(cookie)];if(callback)callback(rows);else return Promise.resolve(rows);},
+      getAll(details,callback){const rows=cookie?[structuredClone(cookie)]:[];if(callback)callback(rows);else return Promise.resolve(rows);},
       set(details,callback){writes++;cookie=original({value:details.value});callback(structuredClone(cookie));}
     }};
   const message=(operation,payload={})=>({protocol:COOKIE_ACCOUNT_PROTOCOL,toolId:'cookie-editor',
     operation,packageHash:hash,installEpoch:'epoch',trustedClick:true,payload:{origin,document,...payload}});
   return {api,state,records,storage,sender,message,document,
     dispatch:(operation,payload)=>createCookieAccountService({api,storage}).dispatch(message(operation,payload),sender),
-    setCookie:value=>{cookie=original({value});},revoke:()=>{permitted=false;},writes:()=>writes};
+    setCookie:value=>{cookie=value===null?null:original({value});},
+    revoke:()=>{permitted=false;},writes:()=>writes};
 }
 
 test('removed password operations reject at the SW protocol boundary',async()=>{
@@ -259,6 +260,65 @@ test('SW saves directly at revision zero and switches after service restart with
   assert.equal(f.writes(),1);
   f.state[TOOL_REVOCATION_EPOCHS_STORE]['cookie-editor']='new-epoch';
   await assert.rejects(f.dispatch('status'),{code:'E_TOOL_CHANGED'});
+});
+
+
+test('SW creates, edits and deletes an account when a granted site has zero Cookies',async t=>{
+  const f=await serviceFixture(t);f.setCookie(null);
+  const created=await f.dispatch('create',{
+    revision:0,displayName:'空 Cookie 工作账号',description:'先保存名称'
+  });
+  assert.equal(created.revision,1);
+  assert.equal(created.accounts[0].cookieCount,0);
+  assert.equal(created.accounts[0].description,'先保存名称');
+  assert.equal(created.accounts[0].allowAuto,false);
+  assert.deepEqual(f.records.get(COOKIE_ACCOUNT_STORE_KEY).accounts[0].cookies,[]);
+  const {alias}=created.accounts[0];
+  assert.equal((await f.dispatch('status')).accounts[0].cookieCount,0);
+  await assert.rejects(f.dispatch('switch',{revision:1,alias}),{code:'E_ACCOUNT_EMPTY'});
+  await assert.rejects(f.dispatch('allowAlias',{
+    revision:1,alias,accountVersion:1,enabled:true
+  }),{code:'E_ACCOUNT_EMPTY'});
+  assert.equal((await f.dispatch('rename',{
+    revision:1,alias,accountVersion:1,
+    displayName:'已保存的工作账号',description:'稍后关联'
+  })).accounts[0].cookieCount,0);
+  assert.equal((await f.dispatch('delete',{
+    revision:2,alias,accountVersion:2
+  })).accounts.length,0);
+  assert.equal(f.writes(),0,'empty account lifecycle cannot change native Cookie');
+});
+
+test('SW permits metadata-only creation without a Cookie site grant and explicitly attaches later',async t=>{
+  const f=await serviceFixture(t);
+  const site='https://example.com';
+  f.state[BROWSER_MENU_GRANTS_STORE]['cookie-editor'].cookieSites={};
+  const created=await f.dispatch('create',{
+    revision:0,displayName:'待关联账号',description:'本地先保存'
+  });
+  assert.equal(created.accounts[0].cookieCount,0);
+  const {alias}=created.accounts[0];
+  assert.equal(f.writes(),0);
+  const forged=f.message('attach',{revision:1,alias,accountVersion:1});
+  forged.trustedClick=false;
+  await assert.rejects(createCookieAccountService({api:f.api,storage:f.storage})
+    .dispatch(forged,f.sender),{code:'E_USER_GESTURE_REQUIRED'});
+  await assert.rejects(f.dispatch('attach',{
+    revision:1,alias,accountVersion:1
+  }),{code:'E_SITE_GRANT_REQUIRED'});
+  f.state[BROWSER_MENU_GRANTS_STORE]['cookie-editor'].cookieSites={
+    [site]:{read:true,values:true,write:true,grantEpoch:'new-grant',storeId:'0'}
+  };
+  const attached=await f.dispatch('attach',{revision:1,alias,accountVersion:1});
+  assert.equal(attached.revision,2);
+  assert.equal(attached.accounts[0].cookieCount,1);
+  assert.equal(attached.accounts[0].version,2);
+  assert.equal(f.writes(),0,'attaching snapshots only reads native Cookie');
+  await assert.rejects(f.dispatch('attach',{
+    revision:2,alias,accountVersion:2
+  }),{code:'E_ACCOUNT_ALREADY_LINKED'});
+  assert.equal((await f.dispatch('status')).revision,2,
+    'repeat association must not mutate existing snapshot');
 });
 
 test('trusted account descriptions persist without Cookie reads, writes or reload',async t=>{

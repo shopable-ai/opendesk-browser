@@ -163,9 +163,11 @@ try{
   assert.equal(await evaluate('document.querySelector(".fp-status-note")?.textContent.includes("配置保存不代表环境已生效")'),true);
   assert.equal(await evaluate('document.querySelectorAll(".fp-bottom-actions button")[1]?.disabled'),true);
   assert.equal(await evaluate('document.querySelectorAll(".fp-bottom-actions button")[2]?.disabled'),true);
-  await until('JSON.parse(localStorage.getItem("opendesk.fingerprint.r21.preview-only.v1")||"{}")["fingerprint.r21.runs.v1"]?.items?.length===1',
+  // Saving a custom preset already records a separate history row. The blocked
+  // apply must be present, but the history must not be constrained to one row.
+  await until('JSON.parse(localStorage.getItem("opendesk.fingerprint.r21.preview-only.v1")||"{}")["fingerprint.r21.runs.v1"]?.items?.some(row=>row.kind==="apply"&&row.status==="blocked")',
     'blocked-operation event durably recorded');
-  assert.equal(await evaluate('JSON.parse(localStorage.getItem("opendesk.fingerprint.r21.preview-only.v1"))["fingerprint.r21.runs.v1"].items[0].status'),'blocked');
+  assert.equal(await evaluate('JSON.parse(localStorage.getItem("opendesk.fingerprint.r21.preview-only.v1"))["fingerprint.r21.runs.v1"].items.filter(row=>row.kind==="apply"&&row.status==="blocked").length'),1);
   evidence.checks.push('NATIVE_APPLY_BLOCKED_NO_FALSE_SUCCESS_NO_RETRY');
 
   await click('网页验证');

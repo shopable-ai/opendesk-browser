@@ -12,7 +12,8 @@ const jp=Object.freeze({ua:'mac',lang:'ja-JP',tz:'Asia/Tokyo',geo:'off',viewport
 const owner=Object.freeze({toolId:'browser-fingerprint',toolVersion:'0.2.2',
   packageHash:'a'.repeat(64),epoch:'install-epoch',hostInstanceId:'a'.repeat(36),toolInstance:'b'.repeat(36)});
 const fail=code=>Object.assign(new Error(code),{code});
-function harness({deny=false,failedCommand=null,noHints=false,detachFails=false}={}){
+function harness({deny=false,failedCommand=null,noHints=false,detachFails=false,
+  reverseViewportKeys=false}={}){
   const original={ua,language:'ja-JP',tz:'Asia/Tokyo',
     viewport:{width:1200,height:700},hints:'macOS'};
   let state=structuredClone(original),attached=false,allowed=!deny;
@@ -53,7 +54,8 @@ function harness({deny=false,failedCommand=null,noHints=false,detachFails=false}
       userAgent:{status:'available',value:state.ua},
       languages:{status:'available',value:[state.language]},
       timeZone:{status:'available',value:state.tz},
-      viewport:{status:'available',value:state.viewport},
+      viewport:{status:'available',value:reverseViewportKeys?
+        {height:state.viewport.height,width:state.viewport.width}:state.viewport},
       screen:{status:'available',value:{width:1920,height:1080}},
       devicePixelRatio:{status:'available',value:1}
     }})
@@ -103,6 +105,18 @@ test('R2.2 apply -> independent page readback -> detach -> independent baseline 
     assert.equal(restored.rows.find(row=>row.key===key)?.status,'match',key);
   assert.equal(restored.rows.find(row=>row.key==='acceptLanguage').status,'unverifiable');
   assert.equal(h.commands.at(-1),'detach');
+});
+test('R2.3 independently observed viewport ignores only property enumeration order',async()=>{
+  const h=harness({reverseViewportKeys:true});
+  const ack=await h.driver.apply({...refs,config:us},owner);
+  assert.equal(ack.fieldResults.find(row=>row.key==='viewport').status,'applied');
+  const applied=await h.driver.readback({sessionRef,documentRef,mode:'applied'},owner);
+  const viewport=applied.rows.find(row=>row.key==='viewport');
+  assert.equal(viewport.status,'match');
+  assert.equal(viewport.expected,viewport.observed);
+  await h.driver.restore({sessionRef,documentRef},owner);
+  const restored=await h.driver.readback({sessionRef,documentRef,mode:'restore'},owner);
+  assert.equal(restored.rows.find(row=>row.key==='viewport').status,'match');
 });
 test('R2.2 missing site grant prevents debugger attach',async()=>{
   const h=harness({deny:true});

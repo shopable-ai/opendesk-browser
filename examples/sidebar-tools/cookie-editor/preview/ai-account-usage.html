@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenDesk · AI 账号额度管理中心 R1.3 · 管理员交互预览</title>
+<style>
+:root{font:14px/1.52 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#27374f;background:#f4f6fa;--ink:#26354c;--soft:#697990;--line:#e2e7ef;--panel:#fff;--violet:#645be8;--green:#239c7a;--amber:#bf8219;--red:#c0604a;--blue:#5075bb;--surface:#f7f9fc;--shadow:0 7px 30px rgba(39,54,80,.05)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}button,input,a{font:inherit}button{cursor:pointer}button:disabled{opacity:.48;cursor:not-allowed}button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #7464ee;outline-offset:3px}a{color:inherit;text-decoration:none}svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.layout{max-width:1280px;margin:0 auto;padding:25px 26px 48px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:25px}.brand{display:flex;align-items:center;gap:12px;min-width:0}.logo{width:42px;height:42px;border-radius:13px;background:#645be8;color:#fff;font-size:14px;font-weight:800;display:grid;place-items:center;box-shadow:0 6px 15px rgba(100,91,232,.18)}.brand strong{display:block;font-size:18px;line-height:1.28;font-weight:780;letter-spacing:-.3px}.brand small{color:var(--soft);display:block;margin-top:2px;font-size:12px}.top-actions{display:flex;align-items:center;gap:9px}.chip{background:#f0efff;color:#635bd4;border-radius:8px;font-size:11px;font-weight:680;padding:5px 8px;white-space:nowrap}.button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);border-radius:9px;min-height:35px;padding:7px 12px;color:#3d4d66;background:var(--panel);font-weight:650;font-size:12px;white-space:nowrap}.button:hover{background:#f7f8fc}.button svg{width:15px;height:15px}.button.primary{border-color:var(--violet);background:var(--violet);color:#fff}.button.primary:hover{background:#5850ce}.icon-button{width:34px;height:34px;border:1px solid var(--line);border-radius:9px;background:#fff;display:grid;place-items:center;color:#66778f}.icon-button:hover{background:#f5f6fc}.icon-button svg{width:17px;height:17px}
+.notice{padding:12px 15px;border:1px solid #dcdcf8;background:#f1f0ff;border-radius:12px;color:#58538b;display:flex;gap:10px;align-items:flex-start;font-size:12px;margin-bottom:20px}.notice svg{width:17px;height:17px;margin-top:1px}.notice b{font-weight:770}.notice p{margin:2px 0 0;line-height:1.6}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 11px}.section-title h2{font-size:14px;line-height:1.35;margin:0;font-weight:780}.section-title small{font-size:11px;color:var(--soft)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px}.stat{border:1px solid var(--line);border-radius:13px;padding:15px 17px;background:var(--panel);box-shadow:var(--shadow);min-height:111px}.stat-label{color:var(--soft);font-size:12px}.stat-number{font-size:25px;font-weight:770;line-height:1.25;margin:7px 0 2px;font-variant-numeric:tabular-nums}.stat-foot{color:#8290a2;font-size:11px}.stat.warning .stat-number{color:var(--amber)}.stat.success .stat-number{color:var(--green)}
+.toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}.tabs{display:flex;gap:3px;padding:3px;border-radius:10px;background:#eaeef5}.tab{background:transparent;border:0;border-radius:8px;padding:7px 11px;color:#697a91;font-size:12px;min-height:31px;font-weight:650}.tab[aria-pressed="true"]{background:white;color:#4b51aa;box-shadow:0 1px 4px #21384a1a}.searchbox{position:relative;max-width:280px;width:100%}.searchbox svg{position:absolute;width:16px;height:16px;top:10px;left:10px;color:#8391a4}.searchbox input{width:100%;height:37px;border:1px solid var(--line);background:white;border-radius:10px;padding:8px 10px 8px 34px;outline:none;font-size:12px;color:var(--ink)}.searchbox input:focus{border-color:#8d86ea}
+.table-wrap{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);overflow:hidden}.table-head,.account-row{display:grid;grid-template-columns:minmax(185px,1.35fr) minmax(126px,.9fr) minmax(125px,.9fr) minmax(125px,.9fr) minmax(119px,.9fr) 94px;align-items:center;gap:13px;padding:0 17px}.table-head{height:40px;color:#8792a3;font-size:11px;font-weight:700;background:#fafbfe;border-bottom:1px solid var(--line)}.account-row{min-height:93px;border-bottom:1px solid #e9edf4}.account-row:last-child{border-bottom:0}.person{display:flex;gap:10px;align-items:center;min-width:0}.avatar{width:35px;height:35px;display:grid;place-items:center;border-radius:11px;background:#ebe8ff;color:#6c5acf;font-size:13px;font-weight:750;flex:none}.avatar.mint{background:#e5f6ee;color:#31886c}.avatar.blue{background:#e7eefb;color:#5279b9}.avatar.coral{background:#fff0e8;color:#b56c49}.person-info{min-width:0}.person-info strong{display:block;font-size:12.5px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-weight:760}.person-info span{display:block;color:#8996a8;font-size:11px;margin-top:3px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.metric-label{font-variant-numeric:tabular-nums;font-size:12px;font-weight:760;display:flex;justify-content:space-between}.metric-label small{font-size:10px;color:#8a99aa;font-weight:500}.track{height:6px;width:100%;background:#edf1f6;border-radius:6px;overflow:hidden;margin-top:9px}.fill{height:100%;border-radius:6px;background:#6a83e0}.fill.good{background:#319d80}.fill.warn{background:#e4a954}.muted{font-size:11px;color:#98a3b3}.reset{font-size:12px;font-variant-numeric:tabular-nums}.reset small{display:block;color:#8b98a9;font-size:10.5px;margin-top:4px}.status{font-size:10.5px;font-weight:660;border-radius:6px;padding:5px 7px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}.status.available{color:#278868;background:#e9f7f1}.status.attention{color:#af7c21;background:#fff6df}.status.unknown{color:#8a6f62;background:#f7efe9}.row-action{justify-self:end}
+.bottom-hint{color:#8895a4;font-size:11px;display:flex;justify-content:space-between;gap:10px;padding-top:11px}.empty{padding:36px;text-align:center;color:#8692a6;font-size:12px}
+.overlay{position:fixed;inset:0;z-index:20;display:none;align-items:stretch;justify-content:flex-end;background:#18253d79}.overlay.open{display:flex}.drawer{width:min(430px,100%);background:white;height:100%;overflow-y:auto;box-shadow:-6px 0 35px #25304d21;padding:23px 24px}.drawer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.drawer-title{font-size:19px;font-weight:780;margin:0}.drawer-subtitle{font-size:12px;color:#8290a2;margin-top:5px}.detail-section{margin:22px 0}.detail-section h3{font-size:12px;font-weight:780;margin:0 0 13px}.detail-row{display:flex;justify-content:space-between;gap:12px;color:#78869b;font-size:12px;margin:11px 0}.detail-row strong{color:#37465c;font-weight:690;text-align:right}.detail-card{border:1px solid var(--line);border-radius:11px;padding:15px;margin-top:10px}.detail-card .metric-label{font-size:14px}.detail-card .track{height:8px}.drawer-actions{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}.legend{background:#f8f9fc;border:1px solid #e9edf3;border-radius:10px;padding:12px 14px;color:#78889b;font-size:11px;line-height:1.75}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:30;background:#2d3b54;color:white;padding:10px 16px;border-radius:9px;box-shadow:0 9px 25px #2d3b5440;font-size:12px;max-width:92vw;text-align:center}.toast[hidden]{display:none}
+@media(max-width:1110px){.table-head,.account-row{grid-template-columns:minmax(175px,1.2fr) minmax(110px,1fr) minmax(110px,1fr) 125px 75px}.table-head>div:nth-child(4),.account-row>.weekly{display:none}}
+@media(max-width:850px){.layout{padding:18px 16px 35px}.table-head{display:none}.account-row{grid-template-columns:1fr 1fr;gap:14px;padding:16px;position:relative}.account-row>.person{grid-column:1 / -1}.account-row>.weekly{display:block}.account-row>.reset{grid-column:1}.account-row>.row-action{grid-column:2;align-self:center}.person-info strong{font-size:14px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.layout{padding:15px 12px 28px}.top{align-items:flex-start}.top-actions{flex-direction:column;align-items:flex-end;gap:7px}.brand strong{font-size:15px}.brand small{font-size:11px}.logo{width:36px;height:36px;border-radius:11px}.chip{font-size:10px}.stats{gap:9px}.stat{padding:11px 12px;min-height:91px}.stat-number{font-size:23px}.toolbar{align-items:stretch}.searchbox{max-width:none}.tab{padding:7px 9px}.account-row{gap:13px}.bottom-hint{display:block}.bottom-hint span{display:block;margin-bottom:5px}}
+@media(prefers-reduced-motion:no-preference){.button,.icon-button,.tab{transition:background-color .13s ease,box-shadow .13s ease}}
+
+/* R1.3 — contract-aligned full-page management preview; keeps existing design tokens. */
+:root{--danger:#b65c4e}
+.layout{max-width:1536px}
+.top{margin-bottom:17px}.top-actions{flex-wrap:wrap;justify-content:flex-end}
+.select{height:36px;max-width:100%;border:1px solid var(--line);background:#fff;color:#40516a;border-radius:9px;padding:0 30px 0 11px;font-size:12px;font-weight:600}
+.select:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+.control-label{font-size:11px;color:var(--soft);display:flex;align-items:center;gap:7px}
+.notice{margin-bottom:18px}.stats{margin-bottom:23px}
+.stat{min-height:103px}.stat-number{font-size:26px}
+.stat-foot{line-height:1.5}
+.section{margin-top:25px}.section-title{margin-bottom:12px}
+.section-title h2{font-size:15px}
+.toolbar{align-items:flex-start}
+.toolbar-left,.toolbar-right,.analysis-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.toolbar-right{justify-content:flex-end}
+.tabs{flex-wrap:wrap;gap:2px;max-width:100%}.tab{white-space:nowrap}
+.searchbox{max-width:265px}.searchbox input{height:36px}
+.contract-note{font-size:11px;color:var(--soft);line-height:1.6;margin-top:9px}
+.account-table{overflow:auto;overscroll-behavior-inline:contain}
+.account-table .table-head,.account-table .account-row{
+ display:grid;grid-template-columns:205px 139px 170px 230px 167px 138px 161px 67px;
+ gap:12px;min-width:1330px;padding:0 15px
+}
+.account-table .table-head{height:44px;position:sticky;top:0;z-index:1}
+.account-table .account-row{min-height:115px;padding-top:13px;padding-bottom:13px}
+.account-table .account-row:hover{background:#fcfcff}
+.account-table .person{align-items:flex-start;padding-top:4px}
+.account-table .person-info strong{font-size:13px}
+.account-table .person-info span{white-space:normal;line-height:1.4;margin-top:4px}
+.avatar{width:33px;height:33px}
+.cell{min-width:0;align-self:center;font-size:12px}
+.cell strong{font-weight:750}
+.cell-title{font-size:12px;font-weight:730;line-height:1.45}
+.cell-sub{display:block;font-size:10.5px;color:#8591a3;line-height:1.5;margin-top:3px}
+.cell-detail{margin-top:6px}
+.source{font-size:10px;color:#8693a5}
+.line-group{display:flex;flex-direction:column;gap:9px}
+.mini-window{font-size:11px}
+.mini-window-top{display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:650}
+.mini-window .track{height:5px;margin-top:4px}
+.mini-window small{font-size:10px;font-weight:500;color:#8896a6}
+.mini-window .fill{background:#7184d8}
+.mini-window .fill.good{background:#399d80}.mini-window .fill.warn{background:#dda451}
+.date-line{display:flex;gap:6px;align-items:baseline;line-height:1.42;font-size:11px;white-space:nowrap}
+.date-line .dim{font-size:10px;color:#8592a3;min-width:31px}
+.date-line + .date-line{margin-top:6px}
+.date-line .val{font-weight:650}
+.stale{color:var(--amber)}
+.status{font-size:10.5px;line-height:1.3}
+.status.failure{background:#fff0ed;color:#b35c50}
+.status.pending{background:#f1f2f7;color:#687488}
+.status.unknown{background:#eef2f7;color:#7b8695}
+.status.available{background:#e7f5ef;color:#268368}
+.historic-mini{display:flex;flex-direction:column;gap:7px}
+.historic-mini .value{font-weight:760;font-size:12px}
+.historic-mini .help{font-size:10px;color:var(--soft);display:block}
+.button.row-action{padding:7px 9px;min-height:32px}
+.table-head>div:last-child{text-align:right}
+.meta-pair{display:grid;gap:7px}.meta-pair >div{font-size:11px}
+.meta-pair em{font-size:10px;font-style:normal;color:#8491a2;display:block}
+.meta-pair strong{font-size:11px}
+.analysis-controls .select{min-width:103px}
+.analysis-table{overflow:auto}
+.history-table-head,.history-table-row{
+ display:grid;grid-template-columns:minmax(200px,1.6fr) 100px 112px 105px 110px minmax(210px,1.4fr) 70px;
+ align-items:center;gap:14px;min-width:940px;padding:0 16px
+}
+.history-table-head{height:42px;background:#fafbfe;border-bottom:1px solid var(--line);color:#8592a2;font-size:11px;font-weight:700}
+.history-table-row{min-height:73px;border-bottom:1px solid #edf0f6;font-size:12px;padding-top:11px;padding-bottom:11px}
+.history-table-row:last-child{border-bottom:0}
+.history-table-row .primary{font-weight:740;display:block}.history-table-row .minor{font-size:10.5px;color:#8795a5;display:block;margin-top:3px}
+.insight-big{font-weight:770;font-variant-numeric:tabular-nums;font-size:14px}
+.insight-muted{color:var(--soft);font-size:11px}
+.quality{color:#627791;font-size:10.5px;line-height:1.5}
+.quality.good{color:#247b63}.quality.warning{color:#a17529}
+.empty{padding:48px 16px;font-size:12px;color:#7e8da1}
+.empty strong{display:block;color:#485b76;font-size:14px;margin-bottom:6px}
+.overlay{background:rgba(19,30,49,.46);z-index:50}
+.drawer{width:min(720px,100%);padding:24px 25px 36px}
+.drawer-head{position:sticky;top:-24px;z-index:2;padding:1px 0 14px;background:linear-gradient(#fff 88%,#ffffffec);border-bottom:1px solid #edf0f6}
+.drawer-title{font-size:19px}.detail-section{margin:21px 0}
+.detail-section h3{font-size:13px;margin-bottom:11px}
+.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.detail-box{background:#f9fafd;border:1px solid #e9edf4;border-radius:10px;padding:10px 12px}
+.detail-box .label{font-size:10.5px;color:#8190a1}
+.detail-box .value{font-size:12px;font-weight:700;margin-top:4px;overflow-wrap:anywhere}
+.detail-box .small{font-size:10px;color:#8793a2;margin-top:4px}
+.detail-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.detail-card{margin:0}.detail-card .detail-row{margin:0 0 9px}.detail-card .metric-label{margin-top:9px}
+.detail-card .track{margin-bottom:9px}
+.subheading{font-size:11px;color:#8190a1;margin-top:6px;line-height:1.6}
+.history-choices{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:13px 0}
+.history-choices .tab{border:1px solid #e3e8f0;padding:6px 9px;background:#f9fafd}
+.history-choices .tab[aria-pressed="true"]{border-color:#c4c1f8;background:#efeeff;color:#6059c7}
+.detail-timeline{overflow:auto;border:1px solid var(--line);border-radius:9px}
+.detail-timeline table{width:100%;border-collapse:collapse;min-width:625px;text-align:left}
+.detail-timeline th{background:#f8faff;color:#8290a2;font-size:10.5px;white-space:nowrap}
+.detail-timeline td{font-size:11px;vertical-align:top}
+.detail-timeline th,.detail-timeline td{padding:10px 9px;border-bottom:1px solid #edf0f6}
+.detail-timeline tr:last-child td{border-bottom:0}
+.detail-timeline td small{display:block;color:#8492a2;margin-top:3px}
+.legend{margin-top:12px}
+.footer-note{font-size:11px;color:var(--soft);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:18px}
+.footer-note a{color:#615bd3;text-decoration:underline;text-underline-offset:2px}
+@media(max-width:850px){
+ .account-table .table-head{display:grid}
+ .account-table .account-row{grid-template-columns:205px 139px 170px 230px 167px 138px 161px 67px;gap:12px;position:static}
+ .account-table .account-row>.person{grid-column:auto}
+ .account-table .account-row>.row-action{grid-column:auto}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .toolbar-left,.toolbar-right{width:100%}.toolbar-right{justify-content:flex-start}
+}
+@media(max-width:520px){
+ .top{flex-direction:column;align-items:stretch}.top-actions{align-items:center;flex-direction:row;justify-content:space-between}
+ .stats{gap:8px}.stat{min-height:95px}.stat-number{font-size:23px}
+ .toolbar-left .tabs{width:100%}
+ .searchbox{max-width:100%;flex:1 1 100%}
+ .drawer{padding:18px 15px}.drawer-head{top:-18px}
+ .detail-grid{grid-template-columns:1fr}
+}
+
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">OD</div>
+      <div><strong>AI 账号额度管理中心</strong><small>独立管理员网页 · 套餐、额度窗口与历史利用分析</small></div>
+    </div>
+    <div class="top-actions">
+      <span class="chip">R1.3 · 虚构演示数据</span>
+      <label class="control-label" for="scenario">状态样例
+        <select class="select" id="scenario" aria-label="切换交互演示状态">
+          <option value="mixed">混合账号（默认）</option>
+          <option value="empty">没有账号</option>
+          <option value="no-cookie">Cookie 无效</option>
+          <option value="never">尚未查询</option>
+          <option value="multi">成功 · 多窗口</option>
+          <option value="single">成功 · 单窗口</option>
+          <option value="unknown">套餐与有效期未知</option>
+          <option value="failed">失败 · 保留旧结果</option>
+          <option value="insufficient">缺少可靠采样</option>
+          <option value="high">连续 80% / 90% / 100%</option>
+        </select>
+      </label>
+      <button type="button" class="button" id="refreshAll" title="仅显示原型说明，不执行实际查询">刷新额度</button>
+    </div>
+  </header>
+  <div class="notice" role="note">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v5m0-8h.01"/></svg>
+    <div><b>当前是离线交互预览，页面中所有账号、额度、日期及历史记录均为虚构示例。</b>
+      <p>无真实 Cookie / API 请求，不等于正式 React 已接线。套餐来源、管理员录入与历史估计分开呈现；“估计未使用”不是官方确认的实际浪费。切换右上角状态样例可检查空账号、认证失败、单窗口、历史不足等情况。</p>
+    </div>
+  </div>
+  <div class="section-title"><h2>账号总览</h2><small>摘要仅对当前演示场景计算 · 时间显示为浏览器本地时间</small></div>
+  <section class="stats" aria-label="账号额度摘要">
+    <div class="stat"><div class="stat-label">管理账号</div><div class="stat-number" id="totalCount">—</div><div class="stat-foot">账号标识来自可信账号库</div></div>
+    <div class="stat warning"><div class="stat-label">待认证账号</div><div class="stat-number" id="authCount">—</div><div class="stat-foot">最近尝试要求重新认证</div></div>
+    <div class="stat"><div class="stat-label">未来 2 小时内预计重置</div><div class="stat-number" id="resetCount">—</div><div class="stat-foot">仅最近成功状态 · 按账号去重</div></div>
+    <div class="stat warning"><div class="stat-label">历史低利用率提示</div><div class="stat-number" id="underuseCount">—</div><div class="stat-foot">近 5 周期 ≥3 个可靠样本且均值 ≥80%</div></div>
+  </section>
+
+  <section class="section" aria-labelledby="accountsHeading">
+    <div class="section-title"><h2 id="accountsHeading">账号总表</h2><small id="resultCount">—</small></div>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="tabs" role="group" aria-label="筛选账号状态">
+          <button class="tab" type="button" data-filter="all" aria-pressed="true">全部</button>
+          <button class="tab" type="button" data-filter="PRO" aria-pressed="false">Pro</button>
+          <button class="tab" type="button" data-filter="PLUS" aria-pressed="false">Plus</button>
+          <button class="tab" type="button" data-filter="UNKNOWN" aria-pressed="false">套餐未知</button>
+          <button class="tab" type="button" data-filter="expiry" aria-pressed="false">即将到期</button>
+          <button class="tab" type="button" data-filter="reset" aria-pressed="false">即将重置</button>
+          <button class="tab" type="button" data-filter="underuse" aria-pressed="false">低利用率</button>
+          <button class="tab" type="button" data-filter="failed" aria-pressed="false">查询异常</button>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <label class="searchbox">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
+          <input type="search" id="search" placeholder="搜索名称、描述、套餐或标识" aria-label="搜索账号" autocomplete="off">
+        </label>
+        <label class="control-label" for="accountSort">排序
+          <select id="accountSort" class="select"><option value="name">名称</option><option value="reset">预计重置最早</option><option value="remaining">单窗口最高剩余</option><option value="attempt">最近查询</option></select>
+        </label>
+      </div>
+    </div>
+    <div class="table-wrap account-table" role="region" tabindex="0" aria-label="可横向滚动的账号总表">
+      <div class="table-head" aria-hidden="true"><div>账号 / 描述</div><div>套餐 / 档位</div><div>会员到期 / 下次账单</div><div>各额度窗口剩余</div><div>各窗口预计重置</div><div>最近查询状态</div><div>历史近重置估计</div><div>操作</div></div>
+      <div id="rows"></div>
+    </div>
+    <p class="contract-note">档位可能来自管理员手工录入，不等同于服务端已验证倍率。额度仅显示上次成功响应的各独立窗口；新查询失败时保留旧结果并明确标记为历史，不能当作实时余额。</p>
+  </section>
+
+  <section class="section" aria-labelledby="insightsHeading">
+    <div class="section-title">
+      <div><h2 id="insightsHeading">历史低利用率分析</h2><small>按账号 × 窗口独立计算，不跨窗口汇总百分比</small></div>
+      <div class="analysis-controls">
+        <label class="control-label" for="cycles">周期
+          <select id="cycles" class="select"><option value="5">最近 5 次</option><option value="10">最近 10 次</option></select>
+        </label>
+        <label class="control-label" for="qualityFilter">证据
+          <select id="qualityFilter" class="select"><option value="all">全部</option><option value="reliable">相对充分</option><option value="missing">证据不足</option></select>
+        </label>
+        <label class="control-label" for="insightSort">排序
+          <select id="insightSort" class="select"><option value="average">近重置估计均值 ↓</option><option value="high">≥80% 次数 ↓</option><option value="samples">有效样本数 ↓</option></select>
+        </label>
+      </div>
+    </div>
+    <div class="table-wrap analysis-table" role="region" tabindex="0" aria-label="可横向滚动的历史分析表">
+      <div class="history-table-head" aria-hidden="true"><div>账号与独立额度窗口</div><div>可靠样本</div><div>近重置估计均值</div><div>≥80% 次数</div><div>缺近距采样</div><div>证据质量 / 未证实事件</div><div>操作</div></div>
+      <div id="insightRows"></div>
+    </div>
+    <p class="contract-note">“最近 5/10 次”对应该窗口最近 N 次已验证跨越预计重置的周期；缺失近距采样不算 0%。异常预测移动与未验证跨越不会进入均值。短窗口距预计重置 ≤15 分钟、长窗口 ≤2 小时才可形成近重置估计；这只是最后观测值，不是精确浪费金额。</p>
+  </section>
+  <footer class="footer-note">
+    <span>R1.3 UI · MOCK ONLY · G1/G2 真实 Cookie-only 查询 NOT_TESTED · 正式可信桥接 NOT_IMPLEMENTED</span>
+    <a href="./cookie-editor.html">Cookie Editor 原有交互预览</a>
+  </footer>
+</div>
+<div class="overlay" id="overlay" aria-hidden="true">
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="detailTitle" tabindex="-1">
+    <div class="drawer-head">
+      <div><h2 class="drawer-title" id="detailTitle"></h2><div class="drawer-subtitle" id="detailSubtitle"></div></div>
+      <button class="icon-button" type="button" id="closeDetail" aria-label="关闭账号详情" title="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div id="detailBody"></div>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+
+(function(){
+"use strict";
+// Fixtures mimic the sanitized read API: /accounts, /accounts/:alias/history and
+// /insights. All values are manufactured in the browser, never fetched remotely.
+const H=3600000, NOW=Date.now();
+const dateOffset=hours=>new Date(NOW+hours*H).toISOString();
+const provider=(family,code,multiplier)=>({family:family,code:code,multiplier:multiplier,source:code?"QUOTA_RESPONSE":"UNKNOWN"});
+const sub=(tierLabel,multiplier,expires,bills)=>({tierLabel:tierLabel,multiplier:multiplier,membershipExpiresAt:expires==null?null:dateOffset(expires),nextBillingAt:bills==null?null:dateOffset(bills),source:tierLabel!=null||multiplier!=null||expires!=null||bills!=null?"ADMIN_ENTERED":"UNKNOWN"});
+const attempt=(status,checkedAgo,reason)=>({status:status,reason:reason||"UNSPECIFIED",checkedAt:dateOffset(-checkedAgo),quotaHttpStatus:status==="OK"?200:null,sessionHttpStatus:status==="OK"?200:null});
+const quota=(slot,durationSeconds,remainingPercent,resetHours,observedAgo)=>({
+ windowKey:"codex:"+slot+":"+durationSeconds,slot:slot,kind:durationSeconds>=172800?"LONG_WINDOW":"SHORT_WINDOW",
+ durationSeconds:durationSeconds,usedPercent:100-remainingPercent,remainingPercent:remainingPercent,
+ resetsAt:dateOffset(resetHours),observedAt:dateOffset(-observedAgo)
+});
+const accounts=[
+ {alias:"acct_01",displayName:"研发主账号",description:"开发组常用环境",descriptionSource:"MOCK_ADMIN_ENTRY",
+  providerPlan:provider("PRO","pro",null),subscription:sub("Pro 200",null,240,168),
+  lastAttempt:attempt("OK",.12),lastSuccessAt:dateOffset(-.12),
+  windows:[quota("primary",18000,38,3,.12),quota("secondary",604800,82,92,.12)]},
+ {alias:"acct_02",displayName:"客服团队协作",description:"服务项目使用",descriptionSource:"MOCK_ADMIN_ENTRY",
+  providerPlan:provider("BUSINESS","business",null),subscription:sub(null,null,null,720),
+  lastAttempt:attempt("OK",.2),lastSuccessAt:dateOffset(-.2),
+  windows:[quota("primary",18000,74,12,.2)]},
+ {alias:"acct_03",displayName:"设计试用账号",description:null,descriptionSource:"UNKNOWN",
+  providerPlan:provider("UNKNOWN",null,null),subscription:sub(null,null,null,null),
+  lastAttempt:attempt("AUTH_REQUIRED",.4,"E_AUTH_REQUIRED"),lastSuccessAt:null,windows:[]},
+ {alias:"acct_04",displayName:"备用 Pro 账号",description:"长期低利用率观察",descriptionSource:"MOCK_ADMIN_ENTRY",
+  providerPlan:provider("PRO","pro_20x",20),subscription:sub(null,null,null,null),
+  lastAttempt:attempt("OK",.08),lastSuccessAt:dateOffset(-.08),
+  windows:[quota("primary",18000,94,.55,.08),quota("secondary",604800,67,128,.08)]},
+ {alias:"acct_05",displayName:"待接入账号",description:null,descriptionSource:"UNKNOWN",
+  providerPlan:provider("UNKNOWN",null,null),subscription:sub(null,null,null,null),
+  lastAttempt:null,lastSuccessAt:null,windows:[]},
+ {alias:"acct_06",displayName:"历史查询失败",description:"保留上次成功额度",descriptionSource:"MOCK_ADMIN_ENTRY",
+  providerPlan:provider("PRO","pro",null),subscription:sub(null,10,null,null),
+  lastAttempt:attempt("UNAVAILABLE",.1,"UPSTREAM_UNAVAILABLE"),lastSuccessAt:dateOffset(-27),
+  windows:[quota("primary",18000,88,-5,27),quota("secondary",604800,72,60,27)]}
+];
+const history={};
+function seed(alias,key,entries,periodHours){
+ const rows=entries.map((sample,index)=>{
+  const type=sample.type||"CROSSED_PREDICTED_RESET";
+  const confirmed=type==="CROSSED_PREDICTED_RESET",lead=confirmed?sample.lead*60:null;
+  const close=confirmed && lead<=(periodHours>=48?7200:900);
+  const resetAt=dateOffset(-(entries.length-index)*periodHours);
+  return {accountAlias:alias,windowKey:key,priorResetsAt:resetAt,
+   detectedAt:dateOffset(-(entries.length-index)*periodHours+.3),type:type,
+   lastPreResetSampleAt:confirmed?new Date(Date.parse(resetAt)-lead*1000).toISOString():null,
+   leadSeconds:lead,lastObservedRemainingPercent:confirmed?sample.value:null,
+   nearResetUnusedEstimatePercent:close?sample.value:null,
+   estimateQuality:close?"NEAR_RESET_OBSERVATION":"INSUFFICIENT_EVIDENCE"};
+ });
+ history[alias+"/"+key]={observations:[],rollovers:rows};
+}
+seed("acct_01","codex:primary:18000",[
+ {value:23,lead:8},{value:18,lead:9},{value:42,lead:26},{value:31,lead:7},
+ {value:26,lead:11},{value:19,lead:12},{value:33,lead:23},{value:24,lead:6},
+ {value:28,lead:8},{value:38,lead:10}
+],5);
+seed("acct_01","codex:secondary:604800",[
+ {value:46,lead:65},{value:52,lead:70},{value:42,lead:160},{value:37,lead:45},
+ {value:61,lead:32},{value:44,lead:95}
+],168);
+seed("acct_02","codex:primary:18000",[
+ {value:36,lead:8},{value:51,lead:9},{value:55,lead:12},{value:47,lead:11},{value:58,lead:10}
+],5);
+seed("acct_04","codex:primary:18000",[
+ {value:84,lead:7},{value:91,lead:9},{value:97,lead:8},{value:83,lead:10},
+ {value:88,lead:30},{value:99,lead:11},{value:74,lead:9},
+ {value:80,lead:6},{value:90,lead:7},{value:100,lead:5}
+],5);
+seed("acct_04","codex:secondary:604800",[
+ {value:73,lead:90},{value:83,lead:110},{value:77,lead:150},
+ {value:90,lead:82},{value:67,lead:60}
+],168);
+seed("acct_06","codex:primary:18000",[
+ {value:90,lead:180},
+ {type:"FORECAST_MOVED_UNCONFIRMED"},
+ {value:86,lead:125},
+ {type:"CROSSED_BUT_UNVERIFIED"},
+ {value:88,lead:130}
+],5);
+const $=id=>document.getElementById(id);
+const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=v=>v?new Intl.DateTimeFormat("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(v)):"未知";
+const pct=v=>v==null?"未知":(Number.isInteger(v)?v:v.toFixed(1))+"%";
+const duration=s=>s%86400===0?s/86400+" 天":s%3600===0?s/3600+" 小时":s/60+" 分钟";
+const winLabel=w=>(w.kind==="LONG_WINDOW"?"长窗口 · ":"短窗口 · ")+duration(w.durationSeconds);
+const friendlyKey=k=>{
+ const m=/^codex:(primary|secondary):(\d+)$/.exec(k||"");
+ return m?(Number(m[2])>=172800?"长窗口 · ":"短窗口 · ")+duration(Number(m[2]))+" ("+(m[1]==="primary"?"主":"次")+")":k;
+};
+const stale=a=>a.lastAttempt&&a.lastAttempt.status!=="OK"&&!!a.lastSuccessAt;
+const auth=a=>a.lastAttempt&&["AUTH_REQUIRED","IDENTITY_UNVERIFIED"].includes(a.lastAttempt.status);
+const fail=a=>a.lastAttempt&&a.lastAttempt.status!=="OK";
+const near=a=>!stale(a)&&a.lastAttempt?.status==="OK"&&a.windows.some(w=>Date.parse(w.resetsAt)>NOW&&Date.parse(w.resetsAt)-NOW<=2*H);
+const expiring=a=>a.subscription.membershipExpiresAt&&Date.parse(a.subscription.membershipExpiresAt)>NOW&&Date.parse(a.subscription.membershipExpiresAt)-NOW<=14*24*H;
+function plan(a){
+ const p=a.providerPlan,s=a.subscription;
+ const map={PRO:"Pro",PLUS:"Plus",BUSINESS:"Business",TEAM:"Team",ENTERPRISE:"Enterprise",GO:"Go",FREE:"Free",EDU:"Edu"};
+ return {name:map[p.family]||"未知",code:p.code,rate:p.multiplier==null?null:p.multiplier+"x",tier:s.tierLabel,adminRate:s.multiplier==null?null:s.multiplier+"x"};
+}
+function insight(alias,key,n){
+ const rows=(history[alias+"/"+key]?.rollovers||[]).filter(r=>r.type==="CROSSED_PREDICTED_RESET").slice(-n);
+ const seen=rows.filter(r=>r.nearResetUnusedEstimatePercent!==null);
+ const avg=seen.length?Math.round(100*seen.reduce((sum,r)=>sum+r.nearResetUnusedEstimatePercent,0)/seen.length)/100:null;
+ return {accountAlias:alias,windowKey:key,cyclesObserved:rows.length,cyclesNearReset:seen.length,
+   cyclesWithoutReliableEstimate:rows.length-seen.length,averageNearResetRemainingPercent:avg,
+   highUnusedCycles:seen.filter(r=>r.nearResetUnusedEstimatePercent>=80).length,
+   basis:"NEAR_RESET_SAMPLES_ONLY",notExactWaste:true,
+   unverified:(history[alias+"/"+key]?.rollovers||[]).filter(r=>r.type!=="CROSSED_PREDICTED_RESET").length};
+}
+const keys=a=>[...new Set([...a.windows.map(w=>w.windowKey),...Object.values(history).flatMap(h=>h.rollovers.filter(r=>r.accountAlias===a.alias).map(r=>r.windowKey))])];
+function accountInsights(a,n){return keys(a).map(k=>insight(a.alias,k,n));}
+const enough=i=>i.cyclesNearReset>=3 && i.cyclesNearReset/Math.max(1,i.cyclesObserved)>=.6;
+const underused=a=>accountInsights(a,5).some(i=>enough(i)&&i.averageNearResetRemainingPercent>=80);
+const selected=()=>{const scenario=$("scenario").value;
+ if(scenario==="empty")return [];
+ if(scenario==="no-cookie")return accounts.filter(a=>a.alias==="acct_03");
+ if(scenario==="never")return accounts.filter(a=>a.alias==="acct_05");
+ if(scenario==="multi")return accounts.filter(a=>["acct_01","acct_04"].includes(a.alias));
+ if(scenario==="single")return accounts.filter(a=>a.alias==="acct_02");
+ if(scenario==="unknown")return accounts.filter(a=>a.providerPlan.family==="UNKNOWN");
+ if(scenario==="failed"||scenario==="insufficient")return accounts.filter(a=>a.alias==="acct_06");
+ if(scenario==="high")return accounts.filter(a=>a.alias==="acct_04");
+ return accounts;
+};
+function pill(a){
+ const at=a.lastAttempt;
+ if(!at)return '<span class="status pending">尚未查询</span>';
+ if(at.status==="OK")return '<span class="status available">查询成功（演示）</span>';
+ if(auth(a))return '<span class="status attention">待认证</span>';
+ return '<span class="status failure">查询失败</span>';
+}
+function metric(w){
+ const v=w.remainingPercent;
+ return '<div class="mini-window"><div class="mini-window-top"><span>'+esc(winLabel(w))+'</span><span>'+esc(pct(v))+'</span></div>'+
+ '<div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+v+'" aria-label="'+esc(winLabel(w))+'剩余比例"><div class="fill '+(v>=80?"good":v<=20?"warn":"")+'" style="width:'+v+'%"></div></div>'+
+ '<small>'+esc(w.slot==="primary"?"主额度":"次额度")+' · '+(stale(currentAccount(w))?"历史读数":"观测 "+esc(fmt(w.observedAt)))+'</small></div>';
+}
+function currentAccount(w){return accounts.find(a=>a.windows.includes(w));}
+function statusCell(a){
+ return '<div>'+pill(a)+'</div><span class="cell-sub">尝试 '+esc(fmt(a.lastAttempt?.checkedAt))+'</span>'+
+ '<span class="cell-sub">成功 '+esc(fmt(a.lastSuccessAt))+'</span>'+
+ (stale(a)?'<span class="cell-sub stale">旧数据保留 · 非实时</span>':
+  a.lastAttempt&&a.lastAttempt.status!=="OK"?'<span class="cell-sub">'+esc(a.lastAttempt.status)+'</span>':'');
+}
+function quotaCell(a){
+ if(!a.windows.length)return '<div class="muted">暂无成功查询窗口</div>';
+ return '<div class="line-group">'+a.windows.map(w=>metric(w)).join("")+'</div>';
+}
+function resetCell(a){
+ if(!a.windows.length)return '<span class="muted">未知</span>';
+ return '<div class="line-group">'+a.windows.map(w=>'<div><div class="date-line"><span class="dim">'+esc(w.slot==="primary"?"主":"次")+'</span><strong class="'+(stale(a)?"stale":"")+'">'+esc(fmt(w.resetsAt))+'</strong></div>'+
+ '<span class="cell-sub">'+(stale(a)?"历史预测":"预计重置 · "+(Date.parse(w.resetsAt)<=NOW?"已过预测时间":Math.ceil((Date.parse(w.resetsAt)-NOW)/60000)+" 分钟后"))+'</span></div>').join("")+'</div>';
+}
+function historicalCell(a){
+ const all=accountInsights(a,5);
+ if(!all.length)return '<span class="muted">暂无周期证据</span>';
+ return '<div class="historic-mini">'+all.map(i=>'<div><span class="value">'+(i.averageNearResetRemainingPercent==null?"无法估计":esc(pct(i.averageNearResetRemainingPercent)))+'</span>'+
+ '<span class="help">'+esc(friendlyKey(i.windowKey))+' · '+i.cyclesNearReset+'/'+i.cyclesObserved+' 可靠样本</span></div>').join("")+'</div>';
+}
+function accountRow(a){
+ const p=plan(a);
+ return '<article class="account-row" data-account="'+esc(a.alias)+'">'+
+ '<div class="person"><div class="avatar">'+esc(a.displayName.slice(0,1))+'</div><div class="person-info"><strong>'+esc(a.displayName)+'</strong><span>'+esc(a.description||"描述未提供")+'</span><span class="source">'+esc(a.alias)+'</span></div></div>'+
+ '<div class="cell"><div class="cell-title">'+esc(p.name)+'</div>'+
+ '<span class="cell-sub">'+(p.rate?esc(p.rate)+" · 额度响应":"服务端倍率未知")+'</span>'+(p.adminRate?'<span class="cell-sub">管理员倍率 '+esc(p.adminRate)+'</span>':'')+
+ '<div class="cell-detail">'+(p.tier?'<strong>'+esc(p.tier)+'</strong><span class="cell-sub">管理员录入</span>':'<span class="muted">订阅档位未知</span>')+'</div></div>'+
+ '<div class="cell"><div class="meta-pair"><div><em>会员到期</em><strong>'+esc(fmt(a.subscription.membershipExpiresAt))+'</strong></div><div><em>下次账单</em><strong>'+esc(fmt(a.subscription.nextBillingAt))+'</strong></div></div>'+
+ '<span class="cell-sub">'+(a.subscription.source==="ADMIN_ENTERED"?"管理员录入":"来源未知")+'</span></div>'+
+ '<div class="cell">'+quotaCell(a)+'</div>'+
+ '<div class="cell">'+resetCell(a)+'</div>'+
+ '<div class="cell">'+statusCell(a)+'</div>'+
+ '<div class="cell">'+historicalCell(a)+'</div>'+
+ '<div class="cell"><button type="button" class="button row-action" data-view="'+esc(a.alias)+'">详情</button></div>'+
+ '</article>';
+}
+let activeFilter="all",detailAlias=null,detailWindow=null,detailCycles=5,priorFocus=null;
+function visibleAccounts(){
+ const q=$("search").value.toLocaleLowerCase().trim(),sort=$("accountSort").value;
+ return selected().filter(a=>{
+ const f=activeFilter;
+ const flag=f==="all"||["PRO","PLUS","UNKNOWN"].includes(f)&&a.providerPlan.family===f||
+  f==="expiry"&&expiring(a)||f==="reset"&&near(a)||f==="underuse"&&underused(a)||
+  f==="failed"&&(!a.lastAttempt||a.lastAttempt.status!=="OK");
+ const p=plan(a);
+ return flag&&[a.displayName,a.description,a.alias,p.name,p.tier,p.code].some(x=>String(x||"").toLocaleLowerCase().includes(q));
+ }).sort((a,b)=>{
+  if(sort==="reset"){const t=x=>Math.min(...x.windows.filter(w=>Date.parse(w.resetsAt)>NOW).map(w=>Date.parse(w.resetsAt)),Infinity);return t(a)-t(b)||a.displayName.localeCompare(b.displayName);}
+  if(sort==="remaining"){const t=x=>Math.max(...x.windows.map(w=>w.remainingPercent),-1);return t(b)-t(a);}
+  if(sort==="attempt")return Date.parse(b.lastAttempt?.checkedAt||0)-Date.parse(a.lastAttempt?.checkedAt||0);
+  return a.displayName.localeCompare(b.displayName,"zh-CN");
+ });
+}
+function renderAccounts(){
+ const base=selected(),items=visibleAccounts();
+ $("totalCount").textContent=base.length;
+ $("authCount").textContent=base.filter(auth).length;
+ $("resetCount").textContent=base.filter(near).length;
+ $("underuseCount").textContent=base.filter(underused).length;
+ $("resultCount").textContent="显示 "+items.length+" / "+base.length+" 个账号";
+ $("rows").innerHTML=items.length?items.map(accountRow).join(""):
+ '<div class="empty"><strong>'+(base.length?"没有符合条件的账号":"暂无账号")+'</strong>'+(base.length?"尝试清空搜索或切换筛选。":"账号在 Cookie Editor 创建后才会出现在正式管理中心；此原型不会创建账号。")+'</div>';
+ document.querySelectorAll("[data-filter]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.filter===activeFilter)));
+}
+function historicalRow(a,i){
+ const confident=enough(i);
+ return '<article class="history-table-row">'+
+ '<div><span class="primary">'+esc(a.displayName)+'</span><span class="minor">'+esc(friendlyKey(i.windowKey))+'</span></div>'+
+ '<div><span class="insight-big">'+i.cyclesNearReset+' / '+i.cyclesObserved+'</span><span class="minor">有效 / 已验证</span></div>'+
+ '<div><span class="insight-big">'+(i.averageNearResetRemainingPercent===null?"无法判断":esc(pct(i.averageNearResetRemainingPercent)))+'</span><span class="minor">估计，非实际浪费</span></div>'+
+ '<div><span class="insight-big">'+i.highUnusedCycles+' 次</span><span class="minor">可靠样本中</span></div>'+
+ '<div><span class="insight-big">'+i.cyclesWithoutReliableEstimate+' 次</span><span class="minor">不作为 0%</span></div>'+
+ '<div class="quality '+(confident?"good":"warning")+'">'+(confident?"相对充分（原型阈值）":"证据不足 / 样本有限")+
+ '<span class="minor">未证实事件 '+i.unverified+' 次 · 不参与均值</span></div>'+
+ '<button type="button" class="button row-action" data-view="'+esc(a.alias)+'" data-window="'+esc(i.windowKey)+'">详情</button>'+
+ '</article>';
+}
+function renderInsights(){
+ const n=Number($("cycles").value),q=$("qualityFilter").value,s=$("insightSort").value;
+ let data=selected().flatMap(a=>accountInsights(a,n).map(i=>({a,i}))).filter(x=>
+  q==="all"||q==="reliable"&&enough(x.i)||q==="missing"&&!enough(x.i));
+ data.sort((x,y)=>{
+  const rank=o=>s==="high"?o.highUnusedCycles:s==="samples"?o.cyclesNearReset:o.averageNearResetRemainingPercent??-1;
+  return rank(y.i)-rank(x.i)||x.a.displayName.localeCompare(y.a.displayName,"zh-CN");
+ });
+ $("insightRows").innerHTML=data.length?data.map(x=>historicalRow(x.a,x.i)).join(""):
+ '<div class="empty"><strong>没有对应的历史分析记录</strong>可能尚无成功的额度窗口，或当前证据筛选没有匹配项。</div>';
+}
+function render(){renderAccounts();renderInsights();}
+function fmtDateLong(v){return v?new Intl.DateTimeFormat("zh-CN",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(v)):"未知";}
+function field(label,value,source){
+ return '<div class="detail-box"><div class="label">'+esc(label)+'</div><div class="value">'+esc(value==null?"未知":value)+'</div>'+
+ '<div class="small">'+esc(source||"")+'</div></div>';
+}
+function renderDetail(){
+ const a=accounts.find(x=>x.alias===detailAlias);if(!a)return;
+ const p=plan(a),opts=keys(a);
+ if(detailWindow&&!opts.includes(detailWindow))detailWindow=null;
+ if(!detailWindow)detailWindow=opts[0]||null;
+ $("detailTitle").textContent=a.displayName;
+ $("detailSubtitle").textContent="账号标识 "+a.alias+" · 全部为虚构演示数据";
+ const body=[];
+ body.push('<section class="detail-section"><h3>身份、套餐与管理员订阅信息</h3><div class="detail-grid">');
+ body.push(field("账号描述",a.description||"未提供",a.description?"原型管理员元数据 · 当前 Read API 尚无该字段":"当前 Read API 未返回描述"));
+ body.push(field("服务端套餐类型",p.name+(p.code?" · "+p.code:""),p.code?"QUOTA_RESPONSE（模拟）":"UNKNOWN"));
+ body.push(field("服务端明确倍率",p.rate||"未知",p.rate?"来自 plan_type（模拟）":"不可由 Pro 类型推断"));
+ body.push(field("管理员记录倍率",p.adminRate||"未知",p.adminRate?"ADMIN_ENTERED（模拟）· 与服务端档位独立":"未录入"));
+ body.push(field("管理员记录的订阅档位",p.tier||"未知",a.subscription.source==="ADMIN_ENTERED"?"ADMIN_ENTERED（模拟）":"未录入"));
+ body.push(field("会员到期时间",fmtDateLong(a.subscription.membershipExpiresAt),a.subscription.membershipExpiresAt?"ADMIN_ENTERED（模拟）":"未知，不从重置时间推算"));
+ body.push(field("下次账单日",fmtDateLong(a.subscription.nextBillingAt),a.subscription.nextBillingAt?"ADMIN_ENTERED（模拟）":"与会员到期不同"));
+ body.push('</div></section>');
+ body.push('<section class="detail-section"><h3>查询状态与数据时效</h3><div class="detail-grid">');
+ body.push(field("最近尝试",a.lastAttempt?a.lastAttempt.status+" · "+fmtDateLong(a.lastAttempt.checkedAt):"尚未查询",a.lastAttempt?.reason||"无状态记录"));
+ body.push(field("最近成功查询",fmtDateLong(a.lastSuccessAt),stale(a)?"查询失败后保留历史读数 · 非实时":a.lastSuccessAt?"身份验证通过的成功读数（模拟）":"无有效结果"));
+ body.push('</div></section>');
+ body.push('<section class="detail-section"><h3>独立额度窗口</h3>');
+ if(a.windows.length){
+  body.push('<div class="detail-cards">');
+  a.windows.forEach(w=>body.push('<div class="detail-card"><div class="cell-title">'+esc(winLabel(w))+' ('+esc(w.slot)+')</div>'+
+    '<div class="metric-label"><span>'+esc(pct(w.remainingPercent))+' 剩余</span><small>'+esc(pct(w.usedPercent))+' 已用</small></div>'+
+    '<div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+w.remainingPercent+'" aria-label="独立窗口剩余比例"><div class="fill '+(w.remainingPercent>=80?"good":w.remainingPercent<=20?"warn":"")+'" style="width:'+w.remainingPercent+'%"></div></div>'+
+    '<div class="detail-row"><span>预计重置</span><strong>'+esc(fmtDateLong(w.resetsAt))+'</strong></div>'+
+    '<div class="detail-row"><span>上次观测</span><strong>'+esc(fmtDateLong(w.observedAt))+'</strong></div>'+
+    '<div class="subheading">'+(stale(a)?"仅历史成功样本，不代表现在仍有该额度。":"仅演示：需要可信查询验证，尚未连接真实额度。")+'</div></div>'));
+  body.push('</div>');
+ }else body.push('<div class="legend">没有可显示的成功查询窗口。账号可能尚未查询或需要认证；不能将未知当作 0%。</div>');
+ body.push('</section>');
+ body.push('<section class="detail-section"><h3>历史重置与近重置剩余证据</h3>'+
+  '<div class="subheading">每条记录独立对应一个 windowKey；已观测余额 ≠ 估计未使用 ≠ 实际浪费。未证实的重置时间移动不算正式闭合周期。</div>');
+ if(opts.length){
+  body.push('<div class="history-choices" role="group" aria-label="选择历史额度窗口">'+opts.map(k=>
+   '<button type="button" class="tab" data-detail-window="'+esc(k)+'" aria-pressed="'+String(k===detailWindow)+'">'+esc(friendlyKey(k))+'</button>').join("")+
+   '<label class="control-label" for="detailCycles">周期 <select class="select" id="detailCycles"><option value="5"'+(detailCycles===5?" selected":"")+'>最近 5 条</option><option value="10"'+(detailCycles===10?" selected":"")+'>最近 10 条</option></select></label></div>');
+  const i=insight(a.alias,detailWindow,detailCycles);
+  body.push('<div class="legend">已验证跨越 '+i.cyclesObserved+' 次，其中近重置可靠采样 '+i.cyclesNearReset+
+   ' 次；估计平均剩余 '+(i.averageNearResetRemainingPercent==null?"无法判断":esc(pct(i.averageNearResetRemainingPercent)))+
+   '；≥80% '+i.highUnusedCycles+' 次。缺失 '+i.cyclesWithoutReliableEstimate+' 次不按零计算。统计仅基于最近 '+detailCycles+' 次已验证跨越。</div>');
+  const all=(history[a.alias+"/"+detailWindow]?.rollovers||[]).slice(-detailCycles).reverse();
+  if(all.length){
+   body.push('<div class="detail-timeline"><table><thead><tr><th>预计重置</th><th>最后观测距重置</th><th>已观测剩余</th><th>近重置未使用估计</th><th>证据判定</th></tr></thead><tbody>');
+   all.forEach(r=>{
+    const verified=r.type==="CROSSED_PREDICTED_RESET",known=r.lastObservedRemainingPercent!==null;
+    const type=r.type==="CROSSED_PREDICTED_RESET"?"已验证跨越预计重置":r.type==="CROSSED_BUT_UNVERIFIED"?"跨越但未验证":"预测时间变化，未证实";
+    body.push('<tr><td>'+esc(fmt(r.priorResetsAt))+'</td>'+
+      '<td>'+(r.leadSeconds==null?"未知":Math.round(r.leadSeconds/60)+" 分钟前")+
+       '<small>'+esc(r.lastPreResetSampleAt?fmt(r.lastPreResetSampleAt):"无有效前置观测")+'</small></td>'+
+      '<td>'+(known?esc(pct(r.lastObservedRemainingPercent)):"无法确定")+'</td>'+
+      '<td>'+esc(r.nearResetUnusedEstimatePercent==null?"无法估计":pct(r.nearResetUnusedEstimatePercent))+'</td>'+
+      '<td>'+esc(type)+'<small>'+esc(r.estimateQuality==="NEAR_RESET_OBSERVATION"?"近重置观测 · 估计":"证据不足 · 不计入均值")+'</small></td></tr>');
+   });
+   body.push('</tbody></table></div>');
+  }else body.push('<div class="legend">该窗口没有已记录的跨越或预测变化事件，不能推断额度闲置。</div>');
+ }else body.push('<div class="legend">没有可关联的历史额度窗口。最近 5/10 次平均剩余不可判断。</div>');
+ body.push('</section><div class="legend">契约说明：只读 API 的额度来自已验证响应，订阅日期只能使用管理员明确维护值；React 不可直接持有本机服务秘密令牌，也不可接触 Cookie。此页的“刷新”不发起请求。</div>');
+ $("detailBody").innerHTML=body.join("");
+}
+function openDetail(alias,key){
+ const a=accounts.find(x=>x.alias===alias);if(!a)return;
+ priorFocus=document.activeElement;detailAlias=alias;detailWindow=key||null;detailCycles=Number($("cycles").value);
+ renderDetail();$("overlay").classList.add("open");$("overlay").setAttribute("aria-hidden","false");
+ document.body.style.overflow="hidden";document.querySelector(".drawer").focus();
+}
+function closeDetail(){
+ if(!detailAlias)return;
+ $("overlay").classList.remove("open");$("overlay").setAttribute("aria-hidden","true");
+ document.body.style.overflow="";detailAlias=null;priorFocus?.focus?.();
+}
+let toastTimer;
+function toast(message){
+ $("toast").textContent=message;$("toast").hidden=false;
+ clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").hidden=true,3500);
+}
+document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{activeFilter=b.dataset.filter;renderAccounts();}));
+["search","accountSort"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",renderAccounts));
+["cycles","qualityFilter","insightSort"].forEach(id=>$(id).addEventListener("change",renderInsights));
+$("scenario").addEventListener("change",()=>{
+ closeDetail();activeFilter="all";$("search").value="";$("accountSort").value="name";
+ $("qualityFilter").value="all";render();
+});
+function onView(e){
+ const b=e.target.closest("[data-view]");if(b)openDetail(b.dataset.view,b.dataset.window||null);
+}
+$("rows").addEventListener("click",onView);
+$("insightRows").addEventListener("click",onView);
+$("detailBody").addEventListener("click",e=>{
+ const b=e.target.closest("[data-detail-window]");if(b){detailWindow=b.dataset.detailWindow;renderDetail();}
+});
+$("detailBody").addEventListener("change",e=>{
+ if(e.target.id==="detailCycles"){detailCycles=Number(e.target.value);renderDetail();}
+});
+$("refreshAll").addEventListener("click",()=>toast("交互预览：不会发送额度查询请求。正式接入需要可信 Host 与认证桥接。"));
+$("closeDetail").addEventListener("click",closeDetail);
+$("overlay").addEventListener("click",e=>{if(e.target===$("overlay"))closeDetail();});
+document.addEventListener("keydown",e=>{
+ if(!detailAlias)return;
+ if(e.key==="Escape"){e.preventDefault();closeDetail();return;}
+ if(e.key!=="Tab")return;
+ const nodes=[...document.querySelector(".drawer").querySelectorAll('button:not([disabled]),select:not([disabled])')];
+ if(!nodes.length)return;
+ const first=nodes[0],last=nodes[nodes.length-1];
+ if(e.shiftKey&&(document.activeElement===first||document.activeElement===document.querySelector(".drawer"))){e.preventDefault();last.focus();}
+ else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===document.querySelector(".drawer"))){e.preventDefault();first.focus();}
+});
+render();
+})();
+
+</script>
+</body>
+</html>

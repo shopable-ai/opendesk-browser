@@ -5,8 +5,13 @@ const REF=/^[A-Za-z0-9_-]{16,160}$/;
 const fail=(code,message=code)=>Object.assign(new Error(message),{code});
 const keys=['ua','uaCH','language','acceptLanguage','timezone','geolocation','viewport','publicIp'];
 const source=key=>['acceptLanguage','publicIp'].includes(key)?'network':'page-runtime';
+// Page observers may enumerate viewport keys in a different order from CDP.
+// Keep the strict width/height shape, but compare/display dimensions semantically.
+const isViewport=value=>value&&typeof value==='object'&&!Array.isArray(value)&&
+  Object.keys(value).length===2&&Number.isFinite(value.width)&&Number.isFinite(value.height);
 const display=value=>value===null||value===undefined?null:
-  typeof value==='string'?value:JSON.stringify(value);
+  typeof value==='string'?value:
+  JSON.stringify(isViewport(value)?{width:value.width,height:value.height}:value);
 const same=(a,b)=>['tabId','windowId','documentId','url'].every(key=>a?.[key]===b?.[key]);
 const ownerKey=o=>JSON.stringify([o?.toolId,o?.toolVersion,o?.packageHash,o?.epoch,o?.hostInstanceId,o?.toolInstance]);
 const allowed=Object.freeze({
@@ -78,7 +83,9 @@ function currentValues(reading){
     viewport:reading.fields.viewport.value,publicIp:null};
 }
 const compare=(left,right)=>left!==null&&right!==null&&left!==undefined&&right!==undefined&&
-  JSON.stringify(left)===JSON.stringify(right);
+  (isViewport(left)&&isViewport(right)?
+    left.width===right.width&&left.height===right.height:
+    JSON.stringify(left)===JSON.stringify(right));
 export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
   clock=Date,newRef=()=>crypto.randomUUID(),ttlMs=480000,
   schedule=setTimeout,unschedule=clearTimeout}={}){
