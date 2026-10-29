@@ -236,7 +236,9 @@ try{
     await until(async()=>['有限字段已验证','部分结果 / 存在差异'].includes(await status()),
       'independent Host readback after native apply');
     const readbackText=await appRead('document.body.innerText');
-    assert(readbackText.includes('可信 Browser Host · 独立读回'),'Host readback source not shown');
+    assert(readbackText.includes('网页读回与差异')&&
+      readbackText.includes('目标网页运行环境'),
+      'installed React must render source-qualified independent page rows');
     const rows=await appRead('[...document.querySelectorAll(".fp-check")].map(n=>n.innerText)');
     assert(rows.some(x=>x.includes('User-Agent')&&x.includes(applied.values.ua)),
       'UI reported UA must match independently observed UA');
