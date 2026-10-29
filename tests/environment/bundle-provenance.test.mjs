@@ -7,6 +7,21 @@ import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordB
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
 const root='/repo';
+
+test('migration: unpinned projects cannot enter fixed trusted outputs',()=>{
+  for(const path of [
+    'projects/prompt-shortcuts/trusted/unaudited.js',
+    'projects/adblock/trusted/unaudited.js',
+    'projects/stay-focus/trusted/unaudited.js'
+  ])assert.throws(()=>describeBundle({chunk:{fileName:'sw.js',
+    modules:{[resolve(path)]:{renderedLength:1,originalLength:1}}},
+    lock:{packages:{}}}),/cannot enter a privileged fixed bundle/);
+  const accepted=describeBundle({chunk:{fileName:'sw.js',modules:{
+    [resolve('projects/stay-focus/trusted/service.js')]:{renderedLength:1,originalLength:1}
+  }},lock:{packages:{}}});
+  assert.equal(accepted.modules[0].reviewedFirstPartyBlob,'2e387c7bfdca4add8093489368777b4a651d0c01');
+});
+
 test('fixed Bookmark CSS keeps its exact source pin after leaving the JS bundle',async t=>{
   const css=trustedBookmarkStyle();
   assert.match(css,/\.bm-app\{/);

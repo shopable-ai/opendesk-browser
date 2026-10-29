@@ -471,7 +471,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
       reviewedCompiledReadingToc(chunk.fileName,path,root)||
       reviewedCompiledHostStyle(chunk.fileName,path,root);
-    if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
+    if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|projects\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,
       ...(reviewedSource?{reviewedFirstPartyBlob:reviewedSource}:{})};
