@@ -12,7 +12,7 @@ function fixture({windowId = 7, tabId = 11, documentId = 'doc-a', url = 'https:/
   const tabs = {onActivated:event(), onUpdated:event(), onRemoved:event(),
     query: async query => query.windowId === state.windowId && query.active ? [{id:state.tabId,windowId:state.windowId,active:true,
       incognito:state.incognito,url:state.url,title:state.title,pendingUrl:state.pendingUrl,status:state.status}] : []};
-  const webNavigation = {onBeforeNavigate:event(),onCommitted:event(),onErrorOccurred:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event(),
+  const webNavigation = {onBeforeNavigate:event(),onCommitted:event(),onCompleted:event(),onErrorOccurred:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event(),
     getAllFrames: async ({tabId: id}) => id === state.tabId ? [{frameId:0,documentId:state.documentId,url:state.url,documentLifecycle:'active'}] : []};
   const windows = {onRemoved:event(),getCurrent:async()=>({id:state.windowId,incognito:false})};
   return {state,api:{tabs,webNavigation,windows}};
@@ -45,6 +45,102 @@ test('loading and unloaded tabs never expose their still-visible old document as
     await assert.rejects(target.revalidate(captured), {code: 'E_DOCUMENT_STALE'});
     target.dispose();
   }
+});
+
+test('restricted schemes are classified before loading state without observing a privileged document', async () => {
+  for (const url of ['chrome-extension://example/options.html', 'chrome://settings/', 'file:///example.html']) {
+    for (const status of ['complete', 'loading', 'unloaded']) {
+      const {api, state} = fixture({url}); state.status = status;
+      api.webNavigation.getAllFrames = async () => { throw Error('restricted frames must not be queried'); };
+      const target = createCurrentPageTarget({api}); await target.ready;
+      assert.equal(target.snapshot.reason, 'E_UNSUPPORTED_SCHEME', `${url} ${status}`);
+      assert.throws(() => target.capture(), {code:'E_UNSUPPORTED_SCHEME'});
+      assert.equal(target.snapshot.url, undefined);
+      target.dispose();
+    }
+  }
+});
+
+test('pending destination decides restricted versus navigating state without reusing the old site', async () => {
+  const {api, state} = fixture();
+  const target = createCurrentPageTarget({api}); await target.ready;
+  state.pendingUrl = 'chrome://settings/'; state.status = 'loading';
+  await target.refresh();
+  assert.equal(target.snapshot.reason, 'E_UNSUPPORTED_SCHEME');
+  state.url = 'chrome://settings/'; state.pendingUrl = 'https://next.example/'; state.status = 'complete';
+  await target.refresh();
+  assert.equal(target.snapshot.reason, 'E_DOCUMENT_UNRESOLVED');
+  assert.throws(() => target.capture(), {code:'E_DOCUMENT_UNRESOLVED'});
+  target.dispose();
+});
+
+test('completion recovers a loading observation after commit without another tabs update', async () => {
+  const {api, state} = fixture();
+  const target = createCurrentPageTarget({api}); await target.ready;
+  const captured = target.capture();
+  api.webNavigation.onBeforeNavigate.emit({tabId:11,frameId:0});
+  state.status = 'loading';
+  api.tabs.onUpdated.emit(11, {status:'loading'}, {windowId:7,active:true}); await tick();
+  state.url = 'https://next.example/'; state.documentId = 'doc-next';
+  api.webNavigation.onCommitted.emit({tabId:11,frameId:0}); await tick();
+  assert.throws(() => target.capture(), {code:'E_DOCUMENT_UNRESOLVED'});
+  state.status = 'complete';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await tick();
+  assert.equal(target.snapshot.status, 'available');
+  assert.equal(target.snapshot.documentId, 'doc-next');
+  assert.equal(target.snapshot.origin, 'https://next.example');
+  await assert.rejects(target.revalidate(captured), {code:'E_DOCUMENT_STALE'});
+  target.dispose();
+});
+
+test('a restricted active tab can recover through main-document navigation events only', async () => {
+  const {api, state} = fixture({url:'chrome-extension://example/options.html'});
+  const target = createCurrentPageTarget({api}); await target.ready;
+  assert.equal(target.snapshot.reason, 'E_UNSUPPORTED_SCHEME');
+  state.url = 'https://example.com/'; state.documentId = 'doc-supported';
+  api.webNavigation.onCommitted.emit({tabId:11,frameId:0}); await tick();
+  assert.equal(target.snapshot.status, 'available');
+  assert.equal(target.snapshot.documentId, 'doc-supported');
+  target.dispose();
+});
+
+test('main-frame completion recovers a URL mismatch while unrelated navigation cannot admit it', async () => {
+  const {api, state} = fixture();
+  let frameUrl = state.url;
+  api.webNavigation.getAllFrames = async () => [{frameId:0,documentId:state.documentId,
+    url:frameUrl,documentLifecycle:'active'}];
+  const target = createCurrentPageTarget({api}); await target.ready;
+  state.url = 'https://example.com/next';
+  api.tabs.onUpdated.emit(11, {url:state.url}, {windowId:7,active:true}); await tick();
+  assert.equal(target.snapshot.reason, 'E_DOCUMENT_UNRESOLVED');
+  frameUrl = state.url; state.documentId = 'doc-next';
+  for (const details of [{tabId:12,frameId:0},{tabId:11,frameId:1}]) {
+    api.webNavigation.onCompleted.emit(details); await tick();
+    assert.equal(target.snapshot.reason, 'E_DOCUMENT_UNRESOLVED');
+  }
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await tick();
+  assert.equal(target.snapshot.documentId, 'doc-next');
+  target.dispose();
+});
+
+test('activation retires the old event route before querying the new active tab', async () => {
+  const {api, state} = fixture();
+  const target = createCurrentPageTarget({api}); await target.ready;
+  const query = api.tabs.query;
+  let release, first = true;
+  api.tabs.query = async input => {
+    const selected = await query(input);
+    if (first) { first = false; await new Promise(resolve => { release = resolve; }); }
+    return selected;
+  };
+  state.tabId = 12; state.documentId = 'doc-b'; state.url = 'https://next.example/';
+  api.tabs.onActivated.emit({windowId:7,tabId:12}); await tick();
+  api.webNavigation.onBeforeNavigate.emit({tabId:11,frameId:0});
+  release(); await tick();
+  assert.equal(target.snapshot.status, 'available');
+  assert.equal(target.snapshot.tabId, 12);
+  assert.equal(target.snapshot.documentId, 'doc-b');
+  target.dispose();
 });
 
 test('a tab becoming loading after frame observation fails the final candidate confirmation', async () => {
@@ -108,7 +204,7 @@ test('two Sidebar instances bind independently to their containing browser windo
 
 test('dispose releases all browser event subscriptions', async () => {
   const {api}=fixture(); const target=createCurrentPageTarget({api}); await target.ready;
-  const events=[api.tabs.onActivated,api.tabs.onUpdated,api.tabs.onRemoved,api.webNavigation.onBeforeNavigate,api.webNavigation.onCommitted,api.webNavigation.onErrorOccurred,
+  const events=[api.tabs.onActivated,api.tabs.onUpdated,api.tabs.onRemoved,api.webNavigation.onBeforeNavigate,api.webNavigation.onCommitted,api.webNavigation.onCompleted,api.webNavigation.onErrorOccurred,
     api.webNavigation.onHistoryStateUpdated,api.webNavigation.onReferenceFragmentUpdated,api.windows.onRemoved];
   assert.ok(events.every(item=>item.size===1)); target.dispose(); assert.ok(events.every(item=>item.size===0));
 });
@@ -125,7 +221,10 @@ test('a late revalidation cannot overwrite a newer Current Page observation', as
   const validation=assert.rejects(target.revalidate(captured),{code:'E_DOCUMENT_STALE'});
   await tick(); state.tabId=12; state.documentId='doc-b'; state.title='B';
   await target.refresh(); release(); await validation;
-  assert.equal(target.snapshot.tabId,12); target.dispose();
+  assert.equal(target.snapshot.tabId,12);
+  api.webNavigation.onBeforeNavigate.emit({tabId:12,frameId:0});
+  assert.equal(target.snapshot.status,'unavailable');
+  target.dispose();
 });
 
 test('a disposed Sidebar cannot capture or finish an in-flight candidate validation', async () => {

@@ -211,7 +211,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const target=snapshot.target;
   const cookieReady=snapshot.phase==='ready';
   const pageUnavailable=snapshot.phase==='blocked'&&[
-    'E_UNSUPPORTED_SCHEME','E_INCOGNITO','E_NO_ACTIVE_TAB','E_WINDOW_UNAVAILABLE'
+    'E_UNSUPPORTED_SCHEME','E_INCOGNITO','E_NO_ACTIVE_TAB','E_WINDOW_UNAVAILABLE',
+    'E_DOCUMENT_UNRESOLVED'
   ].includes(snapshot.problem);
   const acceptAccountState=result=>{
     const verified=verifiedAccount.current;

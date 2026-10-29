@@ -18,6 +18,9 @@ function stale(message = '当前网页已变化，请重新点击 Run') {
 export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
   const observers = new Set(), removers = [];
   let disposed = false, windowId = null, sequence = 0, state = resolving(null);
+  // Event routing survives resolving/unavailable snapshots. This ID is never
+  // an admitted target: capture/revalidate still require the exact live document.
+  let observedTabId = null;
 
   const emit = next => {
     state = Object.freeze(next);
@@ -31,23 +34,27 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     event.addListener(listener); removers.push(() => event.removeListener(listener));
   };
 
-  async function observe(boundWindowId) {
+  async function observe(boundWindowId, token) {
     if (!Number.isSafeInteger(boundWindowId) || boundWindowId < 0)
       return unavailable('E_WINDOW_UNAVAILABLE', '无法确定 Sidebar 所属浏览器窗口', boundWindowId);
     const selected = await api.tabs.query({active: true, windowId: boundWindowId});
+    if (!disposed && token === sequence) observedTabId = null;
     if (!Array.isArray(selected) || selected.length !== 1)
       return unavailable('E_NO_ACTIVE_TAB', '当前窗口没有唯一活动网页', boundWindowId);
     const tab = selected[0];
     if (tab.windowId !== boundWindowId || tab.active !== true)
       return unavailable('E_NO_ACTIVE_TAB', '当前活动网页已变化', boundWindowId);
+    if (!disposed && token === sequence) observedTabId = tab.id;
     if (tab.incognito) return unavailable('E_INCOGNITO', '不支持隐身窗口网页', boundWindowId);
-    if (tab.status === 'loading' || tab.status === 'unloaded')
-      return unavailable('E_DOCUMENT_UNRESOLVED', '当前网页尚未完成加载，请等待页面稳定', boundWindowId);
+    // Classify the destination before loading/document checks: restricted pages
+    // cannot become runnable by finishing a load or exposing a main frame.
     let tabUrl;
-    try { tabUrl = pageUrl(tab.url); }
+    try { tabUrl = pageUrl(tab.pendingUrl || tab.url); }
     catch (error) { return unavailable(error.code, error.message, boundWindowId); }
     if (tab.pendingUrl)
       return unavailable('E_DOCUMENT_UNRESOLVED', '当前网页正在导航，请等待页面稳定', boundWindowId);
+    if (tab.status === 'loading' || tab.status === 'unloaded')
+      return unavailable('E_DOCUMENT_UNRESOLVED', '当前网页尚未完成加载，请等待页面稳定', boundWindowId);
 
     const frames = await api.webNavigation.getAllFrames({tabId: tab.id});
     const root = frames?.find(frame => frame.frameId === 0);
@@ -77,14 +84,19 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     const token = ++sequence;
     if (!disposed) emit(resolving(windowId));
     let next;
-    try { next = await observe(windowId); }
+    try { next = await observe(windowId, token); }
     catch (error) { next = unavailable(error.code || 'E_DOCUMENT_UNRESOLVED', error.message || '无法识别当前网页', windowId); }
     if (!disposed && token === sequence) emit(next);
     return next;
   }
 
   function attach() {
-    listen(api.tabs?.onActivated, info => { if (info?.windowId === windowId) void refresh(); });
+    listen(api.tabs?.onActivated, info => {
+      if (info?.windowId !== windowId) return;
+      // Retire the old route synchronously, before the new tabs.query resolves.
+      observedTabId = Number.isSafeInteger(info.tabId) && info.tabId >= 0 ? info.tabId : null;
+      void refresh();
+    });
     listen(api.tabs?.onUpdated, (tabId, change, tab) => {
       if (tab?.windowId !== windowId || (!tab.active && tabId !== state.tabId)) return;
       if (['url', 'pendingUrl', 'status', 'title'].some(key => Object.hasOwn(change || {}, key))) void refresh();
@@ -92,19 +104,21 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     listen(api.tabs?.onRemoved, (tabId, info) => {
       if (info?.windowId === windowId || tabId === state.tabId) void refresh();
     });
-    const navigation = details => { if (details?.frameId === 0 && details.tabId === state.tabId) void refresh(); };
+    const navigation = details => { if (details?.frameId === 0 && details.tabId === observedTabId) void refresh(); };
     listen(api.webNavigation?.onBeforeNavigate, details => {
-      if (details?.frameId !== 0 || details.tabId !== state.tabId) return;
+      if (details?.frameId !== 0 || details.tabId !== observedTabId) return;
       sequence++;
       emit({...unavailable('E_DOCUMENT_UNRESOLVED', '当前网页正在导航，请等待文档加载完成', windowId), tabId: details.tabId});
     });
     listen(api.webNavigation?.onCommitted, navigation);
+    listen(api.webNavigation?.onCompleted, navigation);
     listen(api.webNavigation?.onErrorOccurred, navigation);
     listen(api.webNavigation?.onHistoryStateUpdated, navigation);
     listen(api.webNavigation?.onReferenceFragmentUpdated, navigation);
     listen(api.windows?.onRemoved, removedWindowId => {
       if (removedWindowId !== windowId) return;
-      sequence++; emit(unavailable('E_WINDOW_UNAVAILABLE', 'Sidebar 所属浏览器窗口已关闭', windowId));
+      sequence++; observedTabId = null;
+      emit(unavailable('E_WINDOW_UNAVAILABLE', 'Sidebar 所属浏览器窗口已关闭', windowId));
     });
   }
 
@@ -134,7 +148,7 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     if (!captured || captured.status !== 'available' || captured.windowId !== windowId) throw stale();
     const token = ++sequence;
     let observed;
-    try { observed = await observe(windowId); }
+    try { observed = await observe(windowId, token); }
     catch { throw stale(); }
     if (disposed) throw new EnvironmentError('E_HOST_CLOSED', 'Sidebar 已关闭');
     if (token !== sequence) throw stale();

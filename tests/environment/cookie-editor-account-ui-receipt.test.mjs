@@ -34,7 +34,7 @@ function mount(section='accounts'){
   const window={setTimeout:()=>Symbol(),clearTimeout(){},setInterval:fn=>{const id=Symbol();timers.set(id,fn);return id;},
     clearInterval:id=>timers.delete(id),addEventListener(){},removeEventListener(){}};
   const document={visibilityState:'visible',addEventListener(){},removeEventListener(){}};
-  const adapter={targetFor:async()=>parseTarget(url),checkRead:async()=>({callableNow:permission}),
+  const adapter={targetFor:async()=>({target:parseTarget(url),reasonCode:null}),checkRead:async()=>({callableNow:permission}),
     list:async()=>structuredClone(rows),accountRequest:(action,payload)=>respond(action,payload),
     beginExportIntent:(target,method)=>{copies.push(['begin',target.url,method]);return begin();},
     copy:text=>{copies.push(['copy',text]);return copy();},

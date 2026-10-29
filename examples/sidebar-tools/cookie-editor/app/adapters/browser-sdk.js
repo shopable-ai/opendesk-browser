@@ -44,22 +44,20 @@ export function createCookieSdkAdapter({getBrowser,request}){
       throw Object.assign(Error('E_COOKIE_SDK_NOT_READY'),{code:'E_COOKIE_SDK_NOT_READY'});
     return value;
   };
-  let lastPageReason='E_NO_ACTIVE_TAB';
   async function targetFor(input=''){
-    if(input){lastPageReason=null;return parseTarget(input);}
+    // Keep the target and reason in this request's result; an invalidated
+    // request may finish after a newer current-page lookup.
+    if(input)return {target:parseTarget(input),reasonCode:null};
     const page=await request('currentPage.info');
     if(page?.status!=='available'||typeof page.url!=='string'){
-      lastPageReason=typeof page?.reasonCode==='string'?page.reasonCode:'E_NO_ACTIVE_TAB';
-      return null;
+      return {target:null,
+        reasonCode:typeof page?.reasonCode==='string'?page.reasonCode:'E_NO_ACTIVE_TAB'};
     }
     try{
-      const target=parseTarget(page.url);
-      lastPageReason=null;
-      return target;
+      return {target:parseTarget(page.url),reasonCode:null};
     }catch{
       // Restricted/invalid tab URLs are not granted a substitute Origin.
-      lastPageReason='E_UNSUPPORTED_SCHEME';
-      return null;
+      return {target:null,reasonCode:'E_UNSUPPORTED_SCHEME'};
     }
   }
   async function checkRead(target){
@@ -103,7 +101,7 @@ export function createCookieSdkAdapter({getBrowser,request}){
     return cookie.value;
   }
   return {
-    targetFor,getTargetReason:()=>lastPageReason,checkRead,list,exactList,readValue,
+    targetFor,checkRead,list,exactList,readValue,
     // Fixed first-party account RPC is admitted by the existing trusted Host.
     // No raw Cookie snapshot is returned to this adapter or to React.
     accountRequest:(action,payload={})=>request('cookieAccount.'+action,payload),

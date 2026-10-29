@@ -87,11 +87,12 @@ export function createCookieController({adapter,onChange=()=>{}}){
     notify();
     let at=null;
     try{
-      at=await adapter.targetFor(input);
+      const resolved=await adapter.targetFor(input);
       if(ticket!==epoch||closed)return;
+      at=resolved.target;
       target=at;
       if(!at){
-        phase='blocked';problem=adapter.getTargetReason?.()||'E_NO_ACTIVE_TAB';
+        phase='blocked';problem=resolved.reasonCode||'E_NO_ACTIVE_TAB';
         report('当前没有可读取的普通 HTTP(S) 网页。');return;
       }
       const permission=await adapter.checkRead(at);

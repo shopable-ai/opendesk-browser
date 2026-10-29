@@ -8,7 +8,7 @@ const base={name:'sid',value:'SECRET_FIXTURE',domain:'shop.example.com',path:'/'
   hostOnly:true,storeId:'0',session:true,secure:false,httpOnly:false,sameSite:'lax'};
 const copy=value=>structuredClone(value);
 const deferred=()=>{let resolve,reject;const promise=new Promise((done,fail)=>{resolve=done;reject=fail;});return {resolve,reject,promise};};
-function fixture(){
+function fixture({currentPage=async()=>({status:'available',url:site})}={}){
   let rows=[copy(base)],allow=true;
   const calls=[];
   const cookies={
@@ -41,7 +41,7 @@ function fixture(){
     request:async operation=>operation==='cookieEditor.export.begin'||
       operation==='cookieEditor.clear.begin'?{authorized:true,ref:1}:
       operation==='cookieEditor.export.finish'||operation==='cookieEditor.clear.finish'?
-        {closed:true}:{status:'available',url:site}});
+        {closed:true}:currentPage()});
   const snapshots=[];
   const controller=createCookieController({adapter,onChange:s=>snapshots.push(s)});
   return {browser,cookies,adapter,controller,calls,snapshots,
@@ -857,6 +857,76 @@ test('R5.25 unresolvable current pages show separate reasons without any Cookie 
     assert.equal(calls,1,'no retry loop for '+reasonCode);
     controller.dispose();
   }
+});
+test('current page reason stays bound to its load when an invalidated target reply finishes last',async()=>{
+  for(const oldPage of [
+    {status:'unavailable',reasonCode:'E_DOCUMENT_UNRESOLVED'},
+    {status:'available',url:site}
+  ]){
+    const pending=[];
+    const adapter=createCookieSdkAdapter({getBrowser:()=>assert.fail('blocked pages must not read Cookies'),
+      request:operation=>{
+        assert.equal(operation,'currentPage.info');
+        const read=deferred();pending.push(read);return read.promise;
+      }});
+    const controller=createCookieController({adapter});
+    try{
+      const oldLoad=controller.load();
+      controller.invalidate('当前网页已改变');
+      const newLoad=controller.load();
+      assert.equal(pending.length,2);
+      // Resolve both in one turn: the old adapter continuation runs before the
+      // new controller continuation consumes its own target/reason result.
+      pending[1].resolve({status:'unavailable',reasonCode:'E_UNSUPPORTED_SCHEME'});
+      pending[0].resolve(oldPage);
+      await Promise.all([oldLoad,newLoad]);
+      const state=controller.snapshot();
+      assert.equal(state.phase,'blocked');
+      assert.equal(state.problem,'E_UNSUPPORTED_SCHEME');
+      assert.equal(state.target,null);
+      assert.deepEqual(state.rows,[]);
+      assert.equal(state.busy,false);
+    }finally{controller.dispose();}
+  }
+});
+test('blocked current page reload recovers only the new site and discards a late old Cookie read',async()=>{
+  let page={status:'available',url:site},pageReads=0;
+  const f=fixture({currentPage:async()=>{pageReads++;return page;}});
+  try{
+    await f.controller.load();
+    assert.equal(f.controller.snapshot().rows[0].domain,'shop.example.com');
+    const old=deferred(),started=deferred(),original=f.cookies.getAll;
+    f.cookies.getAll=async()=>{started.resolve();return old.promise;};
+    const oldLoad=f.controller.load();await started.promise;
+    page={status:'unavailable',reasonCode:'E_DOCUMENT_UNRESOLVED'};
+    f.controller.invalidate('当前网页已改变');
+    const firstNewSnapshot=f.snapshots.length,readsBefore=f.calls.length;
+    await f.controller.load();
+    assert.equal(f.controller.snapshot().phase,'blocked');
+    assert.equal(f.controller.snapshot().problem,'E_DOCUMENT_UNRESOLVED');
+    assert.equal(f.controller.snapshot().target,null);
+    assert.deepEqual(f.controller.snapshot().rows,[]);
+    assert.equal(await f.controller.syncMetadata(),false);
+    assert.equal(pageReads,3,'blocked metadata sync never retries currentPage.info');
+    assert.equal(f.calls.length,readsBefore,'blocked pages must not read the old Cookie scope');
+    const nextSite='https://other.example.net/home';
+    page={status:'available',url:nextSite};
+    f.replaceRows([{...base,name:'new-site',domain:'other.example.net',value:'PRIVATE_NEW_SITE'}]);
+    f.cookies.getAll=original;
+    f.cookies.getPartitionKey=async({url})=>({partitionKey:{topLevelSite:new URL(url).origin}});
+    await f.controller.load();
+    assert.equal(pageReads,4,'recovery requires exactly one explicit current-page load');
+    assert.equal(f.controller.snapshot().phase,'ready');
+    assert.equal(f.controller.snapshot().target.url,nextSite);
+    assert.deepEqual(f.controller.snapshot().rows.map(row=>row.name),['new-site']);
+    assert.ok(f.calls.slice(readsBefore).every(([operation,args])=>
+      operation==='getAll'&&args.url===nextSite),'recovery reads only the new URL');
+    old.resolve([{...base,name:'late-old-site',value:'PRIVATE_OLD_SITE'}]);await oldLoad;
+    assert.deepEqual(f.controller.snapshot().rows.map(row=>row.name),['new-site']);
+    assert.ok(f.snapshots.slice(firstNewSnapshot).every(state=>
+      state.rows.every(row=>row.domain==='other.example.net')));
+    assert.doesNotMatch(JSON.stringify(f.snapshots),/SECRET_FIXTURE|PRIVATE_/);
+  }finally{f.controller.dispose();}
 });
 test('R5.25 Host closure is distinct from a missing Cookie grant',async()=>{
   const adapter=createCookieSdkAdapter({getBrowser:()=>null,request:async()=>{

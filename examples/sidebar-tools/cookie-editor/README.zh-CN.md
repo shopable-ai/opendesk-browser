@@ -1,5 +1,23 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 网页状态解析与导航恢复 · 2.0.53（2026-10-29）
+
+本轮按系统 Chrome 反馈修复核心状态链，未进入 production 验收或评分。已复现并修复三类源码缺陷：
+
+- 共享目标解析器先检查加载状态，导致仍报告 loading/unloaded 的受限地址被误分类为 `E_DOCUMENT_UNRESOLVED`。现在先检查当前／待导航地址类型；受限页不查询主文档，也不产生可管理目标。
+- 刷新进入 resolving/unavailable 后丢失事件筛选用的 Tab ID，后续导航通知可能被忽略；也未监听主文档完成事件。现在私有事件路由独立保留，并在活动标签切换时同步更新，防止旧标签后台导航取消新查询。事件只触发重新观察，准入仍须完整 URL、Origin、活动主文档及二次活动标签核验。
+- Cookie 适配器的共享原因变量可被迟到旧请求覆盖。现在每次原子返回目标和原因，Controller 在代次核验后使用同次结果；旧网站 Cookie 回执不能恢复到新网站。
+
+公共缺口已由 `tests/environment/current-page-target.test.mjs` 的失败用例证明：链路为 `src/ui/current-page-target.js → src/ui/sidebar-tools.js currentPage.info → app/adapters/browser-sdk.js → app/controller/cookie-controller.js → CookieEditorApp.jsx`。公开 `currentPage.info` 在不可用时不提供可操作目标，沙箱不能自行调用 Chrome 重新分类，因此仅在原共享解析器修复通用导航问题，没有增加 API、权限、Host 或单工具分支。
+
+受限页仍只显示顶部说明卡片，六个产品 Tab 保留。未解析状态改为「暂时无法确认当前网页」，隐藏无效编辑区，只保留手动「重新检查」，不再显示「离线文件」。其他可恢复错误保留原有恢复入口；没有增加轮询重试或放宽文档绑定。
+
+唯一正式包 [`cookie-editor.opendesk-tool.json`](cookie-editor.opendesk-tool.json)：**2.0.53**，SHA-256 `7aff388a393da03159a77ff90354d2411bab6b4ca6f7911f62ef938f63b71062`。应用原 Vite 编译通过，buildId `50d7021e1c3352b1e3838687b3219358606f4a8046fbd167ed7c06103555cbd4`；经原 `app:update`／打包器生成候选、门禁、显式晋升与源码一致性核对，ID／权限列表不变。
+
+本轮最小验证：共享目标与导航 18/18、真实卡片组件渲染 3/3、Cookie Controller 62/62、适配器权限及分页隔离 4/4、受影响账号回执消费者 11/11、编译产物／来源漂移保护 2/2、原打包门禁 8/8 通过。新增竞态与分类用例先复现失败再修复。同源 JSX + Mock SDK 浏览器预览确认受限／无活动网页无操作按钮、未解析状态单一重查、正常工作区恢复、缺少权限时写入禁用；截图在本机 `artifacts/cookie-editor-page-state-20261029/restricted-card.png`，属于虚构数据证据。2.0.52 记录的三条无关历史静态断言未修改、未重跑，不计为本轮通过。
+
+**PACKAGE_READY_INSTALL_NOT_TESTED / SYSTEM_CHROME_NOT_TESTED**：系统 Chrome 清单可见扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；扩展页面此前被浏览器工具策略拒绝，本轮未绕过该限制。实际加载路径、Cookie 工具版本、开发服务连接及用户故障时的 URL／reasonCode 仍未实读，不能把上述源码复现当作该实例的运行时根因证明。未安装本包，未重编或替换日常 `dist/development`；工具 JSON 仅包含应用代码，共享解析器修复还须经原 Browser 开发更新生效。下一条未验证操作仍是：系统 Chrome 原入口核对身份后，打开受限页的 Cookie Editor，再切换普通 HTTP(S) 网站，确认卡片与真实工作区恢复、旧网站数据清除。production、全量回归及评分继续延期。
+
 ## 受限页面提示优化 · 2.0.52（2026-10-29）
 
 Chrome 内部页、扩展页、隐身窗口及没有活动网页时，Cookie 页正文顶部仅显示一张提示卡片，不再附带「离线文件」按钮或整套禁用的 Cookie 编辑区。卡片复用共享样式，统一标题、正文换行与 12px 留白；普通网站、授权流程及可恢复错误原有操作保留。

@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Button} from '@opendesk/ui';
 
 // Authorization is owned by the trusted Host. This surface only describes the
-// current page/read state and offers a manual check or independent offline mode.
+// current page/read state. Offline files remain independent of page navigation.
 const noPage=new Set(['E_NO_ACTIVE_TAB','E_WINDOW_UNAVAILABLE']);
 const restricted=new Set(['E_UNSUPPORTED_SCHEME','E_INCOGNITO']);
 const granting=new Set(['E_SITE_GRANT_REQUIRED','E_GRANT_REVOKED','E_PERMISSION_REQUIRED']);
@@ -14,7 +14,7 @@ function content(phase,reason){
   if(noPage.has(reason))return ['没有可用的网站','请先打开普通 HTTP/HTTPS 网站；不需要反复重试。',false];
   if(restricted.has(reason))return ['当前页面不可管理 Cookie','Chrome 内部页、扩展页或隐身窗口不支持 Cookie 管理。请切换到普通网站。',false];
   if(reason==='E_DOCUMENT_CHANGED')return ['网页已发生变化','请重新确认活动网页后，再手动检查 Cookie。',true];
-  if(reason==='E_DOCUMENT_UNRESOLVED')return ['网页正在切换','等待页面加载完成；如未自动恢复，可重新检查。',true];
+  if(reason==='E_DOCUMENT_UNRESOLVED')return ['暂时无法确认当前网页','页面加载完成后会自动检查，也可手动重新检查。',true];
   if(granting.has(reason))return ['Cookie 授权未生效','请通过顶部设置检查 Cookie 授权，然后重新检查。',true];
   if(chromeDenied.has(reason))return ['Chrome Cookie 权限不足','请在 Chrome 扩展权限中恢复 Cookie 或网站访问，再重新检查。',true];
   if(hostLost.has(reason))return ['工具宿主不可用','请核对工具启用状态与安装版本，重新打开 Cookie Editor。',true];
@@ -33,7 +33,8 @@ export default function CookiePermissions({phase,reason,target,disabled,onRetry,
     {target&&<p className="cookie-editor-scope">{target.hostname}</p>}
     {canRetry&&<div className="cookie-permission-actions">
       <Button type="button" disabled={disabled} onClick={onRetry}>重新检查</Button>
-      <Button type="button" variant="secondary" disabled={disabled} onClick={onOffline}>离线文件</Button>
+      {reason!=='E_DOCUMENT_UNRESOLVED'&&<Button type="button" variant="secondary"
+        disabled={disabled} onClick={onOffline}>离线文件</Button>}
     </div>}
   </section>;
 }
