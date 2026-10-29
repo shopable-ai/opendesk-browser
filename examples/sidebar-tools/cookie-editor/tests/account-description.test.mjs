@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeAccountDescription,COOKIE_ACCOUNT_STORE_KEY} from '../trusted/account-contract.js';
+import {normalizeAccountDescription,COOKIE_ACCOUNT_STORE_KEY,
+  COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_EFFECTS} from '../trusted/account-contract.js';
 import {createCookieAccountVault} from '../trusted/account-vault.js';
 
 const clone=value=>structuredClone(value);
@@ -59,4 +60,33 @@ test('vault refuses malformed persisted descriptions rather than exposing corrup
   row.accounts[0].description='a'.repeat(121);
   const f=fixture(row);
   await assert.rejects(()=>f.create().read(),{code:'E_VAULT_CORRUPT'});
+});
+
+test('empty account metadata survives trusted Vault readback, rename and deletion',async()=>{
+  const f=fixture(),vault=f.create();
+  const account={alias:'acct_empty_001',origin:'https://shop.example.com',
+    displayName:'工作账号',description:'客服团队日常使用',version:1,
+    allowAuto:false,cookies:[]};
+  assert.equal(await vault.update(0,data=>{data.accounts.push(account);}),1);
+  const initial=await f.create().status();
+  assert.equal(initial.revision,1);
+  assert.equal(initial.accounts[0].cookieCount,0);
+  assert.equal(initial.accounts[0].displayName,'工作账号');
+  assert.equal(initial.accounts[0].description,'客服团队日常使用');
+  assert.equal(initial.accounts[0].allowAuto,false);
+  assert.deepEqual((await vault.read()).accounts[0].cookies,[]);
+  assert.equal(await vault.update(1,data=>{
+    data.accounts[0].displayName='工作账号（改名）';
+    data.accounts[0].description='重新编辑';
+  }),2);
+  assert.equal((await f.create().status()).accounts[0].displayName,'工作账号（改名）');
+  assert.equal((await f.create().status()).accounts[0].cookieCount,0);
+  assert.equal(await vault.update(2,data=>{data.accounts.splice(0,1);}),3);
+  assert.deepEqual((await f.create().status()).accounts,[]);
+});
+
+test('first Cookie association is a trusted-click mutation, not a status read',()=>{
+  assert.ok(COOKIE_ACCOUNT_OPERATIONS.includes('attach'));
+  assert.ok(COOKIE_ACCOUNT_EFFECTS.includes('attach'));
+  assert.equal(COOKIE_ACCOUNT_EFFECTS.includes('status'),false);
 });
