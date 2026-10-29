@@ -410,9 +410,30 @@ try{
     item.progress='INDEPENDENT_APPLY_READBACK_VERIFIED';
     const gestureBefore=await appRead('globalThis.__r24ButtonClicks.length');
     await action(3);
-    await pause(120);
-    item.restoreGestures=await appRead('globalThis.__r24ButtonClicks.slice('+gestureBefore+')');
     try {
+      const trusted=()=>appRead('globalThis.__r24ButtonClicks.slice('+gestureBefore+').some(x=>x.trusted===true&&x.label?.includes("停止"))');
+      let delivered=false;
+      try{delivered=await until(trusted,'trusted X11 restore pointer event',18);}
+      catch{/* No React click was delivered; do not infer a Host side effect. */}
+      if(!delivered){
+        // Safe fallback only when the original gesture never reached React
+        // AND the independent target still has its old attached debugger.
+        // Unknown/detached outcomes must NOT generate a second restore request.
+        const stateBefore=await status();
+        const independentBefore=await independent();
+        item.noPointerRestoreEvidence={stateBefore,debuggerAttached:independentBefore.debuggerAttached};
+        assert(['有限字段已验证','部分结果 / 存在差异'].includes(stateBefore)&&
+          independentBefore.debuggerAttached===true,
+          'RESTORE_UNKNOWN_RETRY_FORBIDDEN: no proven safe fallback');
+        const focused=await appRead('(()=>{const b=document.querySelector(".fp-bottom-actions button:nth-child(3)");'+
+          'if(!b||b.disabled)return false;b.focus();return document.activeElement===b})()');
+        assert(focused,'RESTORE_KEYBOARD_FOCUS_FAILED');
+        xdotool('windowfocus',chromeWindowGeometry().id);
+        xdotool('key','--clearmodifiers','Return');
+        item.restoreInputFallback='NATIVE_X11_KEYBOARD_AFTER_PROVEN_MISSED_POINTER';
+        await until(trusted,'trusted physical keyboard restore event',24);
+      }
+      item.restoreGestures=await appRead('globalThis.__r24ButtonClicks.slice('+gestureBefore+')');
       assert(item.restoreGestures.some(x=>x.trusted===true&&x.label?.includes('停止')),
         'NATIVE_RESTORE_CLICK_NOT_DISPATCHED: no trusted React restore event');
       const result=await until(async()=>{
