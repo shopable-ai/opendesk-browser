@@ -138,7 +138,18 @@ try{
   evidence.actionSurface='PRODUCTION_WXT_EXTENSION_TAB';
   evidence.realSidePanel=false;
   evidence.physicalSidePanelInput='NOT_TESTED';
+  await send('Target.activateTarget',{targetId:appHostPage.targetId});
   await until(()=>evaluate('document.readyState==="complete"&&document.body.innerText.length>80',host),'Host bootstrap');
+  await pause(350);
+  evidence.hostUIDiagnostics=await evaluate('(()=>{const tab=document.querySelector("#tab-tools");'+
+    'const rect=tab?.getBoundingClientRect();return {url:location.href,'+
+    'readyState:document.readyState,viewport:{width:innerWidth,height:innerHeight},'+
+    'tab:tab?{outerHTML:tab.outerHTML.slice(0,500),'+
+    'rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},'+
+    'style:{display:getComputedStyle(tab).display,visibility:getComputedStyle(tab).visibility}}:null,'+
+    'nav:document.querySelector(".workbench-nav")?.outerHTML.slice(0,350),'+
+    'active:document.querySelector("[aria-selected=true]")?.id,'+
+    'body:document.body.innerText.slice(0,1500)}})()',host);
   await until(()=>evaluate('(()=>{const n=document.querySelector("#tab-tools");'+
     'if(!n||n.disabled)return false;const r=n.getBoundingClientRect();'+
     'return r.width>0&&r.height>0})()',host),'visible navigation before install');
