@@ -171,7 +171,12 @@ try{
     assert(x>=win.x&&y>=win.y&&x<win.x+win.width&&y<win.y+win.height,
       'NATIVE_POINT_OUTSIDE_CHROME_WINDOW '+JSON.stringify({selector,x,y,win,viewport}));
     evidence.nativeClicks??=[];
-    evidence.nativeClicks.push({selector,x,y,window:win,viewport,frameOffset});
+    const hostHit=await evaluate('(()=>{const n=document.elementFromPoint('+ (frameOffset.x+point.x)+','+(frameOffset.y+point.y)+');'+
+      'return n?{tag:n.tagName,id:n.id,className:String(n.className).slice(0,80)}:null})()',physicalHost);
+    const sandboxHit=sandboxControl?await evaluate('(()=>{const t=document.querySelector('+JSON.stringify(selector)+');'+
+      'const r=t?.getBoundingClientRect();const n=r&&document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);'+
+      'return {matches:!!n&&(n===t||t.contains(n)),tag:n?.tagName,label:n?.textContent?.trim().slice(0,64)}})()',session):null;
+    evidence.nativeClicks.push({selector,x,y,window:win,viewport,frameOffset,hostHit,sandboxHit});
     xdotool('windowfocus',win.id);
     xdotool('mousemove','--sync',String(x),String(y));
     xdotool('click','--clearmodifiers','1');
@@ -307,6 +312,10 @@ try{
   assert(!(await appRead('document.body.innerText')).includes('离线同源 React 预览'));
   evidence.installedReact=true;
   evidence.checks.push('R24_REAL_REACT_SDK_SANDBOX_PASS');
+  // Passive capture only; never synthesize clicks or mutate React state.
+  await appRead('(()=>{globalThis.__r24ButtonClicks=[];document.addEventListener("click",e=>{'+
+    'const b=e.target.closest?.(".fp-bottom-actions button");if(b){'+
+    'globalThis.__r24ButtonClicks.push({label:b.textContent?.trim(),trusted:e.isTrusted,at:Date.now()})}},true);return true})()');
 
   // Independent observer calls Chrome scripting directly from the test driver.
   // It does NOT use React's target/receipt or the Trusted Host page reader.
@@ -399,8 +408,51 @@ try{
     item.verifiedStatus=await status();
     item.readbackRows=rows;
     item.progress='INDEPENDENT_APPLY_READBACK_VERIFIED';
+    const gestureBefore=await appRead('globalThis.__r24ButtonClicks.length');
     await action(3);
-    await until(async()=>String(await status()).includes('待读回'),'restore native detach receipt');
+    try {
+      const trusted=()=>appRead('globalThis.__r24ButtonClicks.slice('+gestureBefore+').some(x=>x.trusted===true&&x.label?.includes("停止"))');
+      let delivered=false;
+      try{delivered=await until(trusted,'trusted X11 restore pointer event',18);}
+      catch{/* No React click was delivered; do not infer a Host side effect. */}
+      if(!delivered){
+        // Safe fallback only when the original gesture never reached React
+        // AND the independent target still has its old attached debugger.
+        // Unknown/detached outcomes must NOT generate a second restore request.
+        const stateBefore=await status();
+        const independentBefore=await independent();
+        item.noPointerRestoreEvidence={stateBefore,debuggerAttached:independentBefore.debuggerAttached};
+        assert(['有限字段已验证','部分结果 / 存在差异'].includes(stateBefore)&&
+          independentBefore.debuggerAttached===true,
+          'RESTORE_UNKNOWN_RETRY_FORBIDDEN: no proven safe fallback');
+        const focused=await appRead('(()=>{const b=document.querySelector(".fp-bottom-actions button:nth-child(3)");'+
+          'if(!b||b.disabled)return false;b.focus();return document.activeElement===b})()');
+        assert(focused,'RESTORE_KEYBOARD_FOCUS_FAILED');
+        xdotool('windowfocus',chromeWindowGeometry().id);
+        xdotool('key','--clearmodifiers','Return');
+        item.restoreInputFallback='NATIVE_X11_KEYBOARD_AFTER_PROVEN_MISSED_POINTER';
+        await until(trusted,'trusted physical keyboard restore event',24);
+      }
+      item.restoreGestures=await appRead('globalThis.__r24ButtonClicks.slice('+gestureBefore+')');
+      assert(item.restoreGestures.some(x=>x.trusted===true&&x.label?.includes('停止')),
+        'NATIVE_RESTORE_CLICK_NOT_DISPATCHED: no trusted React restore event');
+      const result=await until(async()=>{
+        const label=await status();
+        if(String(label).includes('待读回'))return 'accepted';
+        if(['恢复结果未知','目标网页已失效','授权被拒绝'].includes(label))return 'rejected:'+label;
+        return null;
+      },'restore native detach receipt');
+      assert.equal(result,'accepted','Host restore did not acknowledge '+result);
+    }catch(error){
+      item.restoreFailureDiagnostics={
+        label:await status(),
+        notice:await appRead('document.querySelector(".fp-notice")?.textContent'),
+        debugger:await independent(),
+        trustedGestures:item.restoreGestures,
+        screenHit:evidence.nativeClicks.at(-1)
+      };
+      throw error;
+    }
     item.afterDetach=await independent();
     assert.equal(item.afterDetach.debuggerAttached,false,'debugger must detach before restoration verification');
     await action(2);
@@ -414,8 +466,36 @@ try{
     for(const key of ['ua','uaCH','language','timezone'])
       assert.deepEqual(restored.values[key],baseline.values[key],'restoration mismatch: '+key);
     assert.deepEqual(restored.values.viewport,baseline.values.viewport,'original viewport not restored');
+    // The React status changes BEFORE the asynchronous history write and
+    // setVerification(result). A visible .fp-check-list can still contain the
+    // initial NO_INDEPENDENT_READBACK rows. Wait for the actual verified
+    // report (enabled export action), not just the selected Results tab.
+    // A genuine restore_unknown remains a FAIL; retain its settled Host rows.
+    item.restorationStatusBeforeReport=item.restorationStatus;
+    let reportMountError=null;
+    try{
+      await until(()=>appRead('(()=>{const t=document.querySelector(".fp-tabs button:nth-child(2)");'+
+        'const list=document.querySelector(".fp-check-list");'+
+        'const exportButton=document.querySelector(".fp-report-actions button");'+
+        'return t?.getAttribute("aria-selected")==="true"&&'+
+        'list?.getClientRects().length>0&&exportButton&&!exportButton.disabled})()'),
+        'restoration live Host report mounted after history settled');
+    }catch(error){reportMountError=String(error);}
+    item.restorationReportMounted=reportMountError===null;
+    if(reportMountError)item.restorationReportMountError=reportMountError;
+    item.restorationStatus=await status();
+    item.restorationRows=await appRead('[...document.querySelectorAll(".fp-check")].map(n=>n.innerText)');
+    item.restorationFieldEvidence=await appRead('[...document.querySelectorAll(".fp-check")].map(n=>({'+
+      'name:n.querySelector("strong")?.textContent?.trim(),'+
+      'state:n.querySelector(".fp-tag")?.textContent?.trim(),'+
+      'values:[...n.querySelectorAll(".fp-verification-values span")].map(x=>x.textContent),'+
+      'source:n.querySelector("p.fp-secondary")?.textContent?.trim()}))');
+    item.restorationNotice=await appRead('document.querySelector(".fp-notice")?.textContent');
+    assert(!reportMountError,'RESTORATION_REPORT_NOT_READY: '+reportMountError);
     assert(['调试已停止 · 恢复有限验证','已独立核验恢复'].includes(item.restorationStatus),
-      'restore_unknown is NOT a PASS');
+      'restore_unknown is NOT a PASS: '+JSON.stringify(item.restorationFieldEvidence));
+    assert(item.restorationRows.some(x=>x.includes('User-Agent')&&x.includes(restored.values.ua)),
+      'restoration React report must match the independent original UA');
     item.progress='COMPLETE_INDEPENDENT_RESTORE_VERIFIED';
     evidence.checks.push('R24_'+name+'_REAL_APPLY_READBACK_RESTORE_PASS');
   }
@@ -425,12 +505,13 @@ try{
   // The readback automatically switches to Results. Return to the actual
   // Config tab before selecting Germany via Chrome keyboard events.
   await click('.fp-tabs button:nth-child(1)',sandbox);
-  await until(()=>appRead('!!document.querySelector("select[aria-label=\\\"选择环境预设\\\"]")'),
+  await until(()=>appRead('document.querySelector(".fp-tabs button:nth-child(1)")?.getAttribute("aria-selected")==="true"'+
+    '&&!!document.querySelector(".fp-preset-row select")'),
     'configuration tab after US restoration');
   await click('select[aria-label="选择环境预设"]',sandbox);
   xdotool('key','--clearmodifiers','Down');
   xdotool('key','--clearmodifiers','Return');
-  await until(()=>appRead('document.querySelector("select[aria-label=\\\"选择环境预设\\\"]")?.value==="de"'),
+  await until(()=>appRead('document.querySelector(".fp-preset-row select")?.value==="de"'),
     'German preset selected');
   await cycle('DE',{ua:'Macintosh',uaCH:'macOS',language:'de-DE',
     timezone:'Europe/Berlin',viewport:{width:1366,height:768}});
