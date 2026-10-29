@@ -1,3 +1,17 @@
+# 已归并研究方案：Automation Lab → Browser Fingerprint
+
+> **产品决策更新（2026-10-30）：不再创建 Automation Lab 独立扩展。** 本目录只是先前进行竞品调研和产品设想时建立的**历史设计资料**，并非正式业务源码、可安装工具或待开发的第二个产品。以下原 R1.0/R1.1 内容供差量参考，不得作为新的产品安装 ID、独立应用目录或新的 CDP Host 实施依据。
+>
+> **唯一正式产品：** `browser-fingerprint`（浏览器指纹）。当前 `main` 源码仍位于 `examples/sidebar-tools/browser-fingerprint/`，已迁移的产品统一进入 `projects/<id>/`；Browser Fingerprint 的迁移应由现有项目迁移任务按合同完成，而不是另建 `projects/browser-automation-lab` 的平行业务源。
+>
+> **差量开发只修改原产品：** 复用已有 React、环境预设、受控 Chrome Host、参数应用/读回/恢复、HTTP 独立诊断页和存储。值得新增的只有：(1) 将真实只读检测提升为直达入口，(2) 在经授权的检测链路中扩展自动化状态等网页可观察信号，(3) 必要时对 Canvas/WebGL/跨字段一致性提供来源明确的只读诊断。每项先查已有实现及权限，真实修改后必须独立读回；不要重复开发现有四项环境覆盖能力。
+>
+> **本阶段不包含 Node 适配器、第二 Chrome 扩展、第二安装包、自动化绕过承诺。** 原有 `browser-fingerprint` 工具 ID、用户预设、记录和版本升级契约保持不变；未迁移/未验证项目不得报 PASS。
+>
+> **后续处理**：当原项目迁移到 `projects/browser-fingerprint/` 时，将本目录研究材料去重归档到该产品的 docs/，之后移除这个不再作为产品的占位目录；在迁移前不得自动根据本目录创建新的产品或包。
+
+---
+
 # Automation Lab · 自动化环境实验室（方案草案 R1.0）
 
 > 状态：**DESIGN_ONLY / NOT_TESTED**。2026-10-29 依据用户最新目录决策设立产品资料归属，不代表 React、浏览器扩展、独立网页、原生启动适配器或正式安装包已经实现。
