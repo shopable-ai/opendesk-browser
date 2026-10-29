@@ -275,6 +275,11 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     }catch{throw fail('E_OUTCOME_UNKNOWN','Debugger detach not confirmed; restore unknown');}
     return {accepted:true,source:'trusted-browser-host',sessionRef,documentRef};
   }
+  function invalidateInactiveTab(windowId,activeTabId){
+    for(const s of [...tabs.values()])
+      if(s.target.windowId===windowId&&s.target.tabId!==activeTabId)
+        retire(s,'tab-deactivated');
+  }
   function invalidateTab(tabId){
     const s=tabs.get(tabId);
     if(s)retire(s,'tab-or-document-changed');
@@ -286,6 +291,6 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     for(const s of sessions.values())retire(s,'tool-or-permission-revoked');
     sessions.clear();tabs.clear();
   }
-  return Object.freeze({apply,readback,restore,invalidateTab,revokeAll,
+  return Object.freeze({apply,readback,restore,invalidateTab,invalidateInactiveTab,revokeAll,
     diagnostics:()=>({sessions:sessions.size,attached:tabs.size})});
 }

@@ -597,6 +597,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         }
     }else{recentSourceContexts.delete(key);pendingSourceContexts.delete(key);}
   }
+  // A deactivated tab must not retain a hidden debugger override while the
+  // user works in another page. No new tab receives the old session.
+  const noteActiveTab=(tabId,windowId)=>fingerprintDriver?.invalidateInactiveTab(windowId,tabId);
   const captureEpoch=(tabId,frameId)=>documentEpochs.get(epochKey(tabId,frameId))||0;
   const serial=work=>{const result=chain.catch(()=>{}).then(work);chain=result.catch(()=>{});return result;};
   const runLocked=(id,work)=>{
@@ -1657,5 +1660,5 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       }finally{serviceContexts.delete(owner);}
     });
   }
-  return Object.freeze({synchronize:sync,handleTool,handleService,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,revokeBrowserOperations,noteNavigation,noteSourceContext,receiveSourceContext});
+  return Object.freeze({synchronize:sync,handleTool,handleService,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,revokeBrowserOperations,noteNavigation,noteActiveTab,noteSourceContext,receiveSourceContext});
 }
