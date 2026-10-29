@@ -132,6 +132,8 @@ try{
     });
   }
   await cmd('Runtime.enable');
+  // CDP can attach before Chrome resumes a freshly spawned MV3 worker.
+  await cmd('Runtime.runIfWaitingForDebugger');
   await cmd('Log.enable').catch(()=>{});
   // A newly discovered module service worker can be inspected before its
   // imports and top-level initialization finish. Observe readiness first.
