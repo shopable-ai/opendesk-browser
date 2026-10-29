@@ -40,6 +40,8 @@ try{
   await new Promise((ok,fail)=>{server.once('error',fail);server.listen(0,'127.0.0.1',ok);});
   const fixtureUrl='http://127.0.0.1:'+server.address().port+'/';
   const worker=[
+    'import {createFingerprintDriver} from "./browser-fingerprint.js";',
+    'import {createPageEnvironmentReader} from "./browser-page-environment.js";',
     'const delay=ms=>new Promise(ok=>setTimeout(ok,ms));',
     'const tabRef="T".repeat(32),documentRef="D".repeat(32);',
     'const refs={tabRef,documentRef};',
@@ -56,11 +58,6 @@ try{
     '    frame?.documentId!==identity.documentId||frame?.url!==identity.url)throw Error("E_DOCUMENT_CHANGED");',
     ' return {...identity};',
     '}',
-    // Register the one-shot probe before loading production modules, so
-    // module initialization errors are surfaced as actual Chrome exceptions.
-    'globalThis.fpR23Native={async run(){',
-    ' const {createFingerprintDriver}=await import("./browser-fingerprint.js");',
-    ' const {createPageEnvironmentReader}=await import("./browser-page-environment.js");',
     'const reader=createPageEnvironmentReader({api:chrome,resolveTarget:target,authorize:async()=>true});',
     'const driver=createFingerprintDriver({api:chrome,resolveTarget:target,',
     ' readPage:(args,ctx)=>reader.readEnvironment(args,ctx),authorize:async()=>true});',
@@ -72,6 +69,7 @@ try{
     ' const restored=await driver.readback({sessionRef:ack.sessionRef,documentRef,mode:"restore"},owner);',
     ' return {config,baseline,ack,applied,stop,restored};',
     '}',
+    'globalThis.fpR23Native={async run(){',
     ' const tab=await chrome.tabs.create({url:"__FIXTURE_URL__",active:true});',
     ' let frame;',
     ' for(let i=0;i<100;i++){frame=await chrome.webNavigation.getFrame({tabId:tab.id,frameId:0}).catch(()=>null);',
