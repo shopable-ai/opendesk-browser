@@ -1,7 +1,8 @@
 ## AI 账号额度管理中心 · R1 交互预览（2026-10-29）
 
-- **[Cookie Editor 主预览](./cookie-editor.html)**：保留原 R2.5.4 六 Tab 及账号列表、切换、设置、新建功能，仅在 320–440px 窄侧边栏的「账号 → 已保存账号」右侧新增纯图表 Icon-only 按钮（与原设置、添加按钮同尺寸；保留 aria-label/title），点击直接打开独立网页；未新增 Tab、未改既有 Cookie/账号业务。
+- **[Cookie Editor 主预览](./cookie-editor.html)**：保留原 R2.5.4 六 Tab 及账号列表、切换、设置、新建功能，在 320–440px 窄侧边栏的「账号 → 已保存账号」右侧按条件显示纯图表 Icon-only 入口（与设置、添加图标同尺寸；保留 aria-label/title）：仅当该网站具有已登记的 AI 额度查询能力且存在已保存账号时显示；普通网站、未接入额度能力的 AI 网站和空账号状态不显示。点击在新标签页打开独立网页；未新增 Tab、未改既有 Cookie/账号业务。
 - **[独立额度管理中心](./ai-account-usage.html)**：全屏 HTML 交互预览，包含公司账号总览、5 小时/周额度剩余、重置时间、临近重置与待验证状态、搜索筛选、账号详情、刷新占位。所有账号及百分比均为**虚构设计数据**，刷新不请求真实网络。
+- **按能力显示，非 AI 网站通用入口**：本次静态原型的 `usagePreviewProviders` 是演示注册表，只为 `chatgpt.com` 模拟启用 `codex.rateLimits.read`；`shop.example.com`、`docs.example.org` 和无账号状态不出现额度图标。正式实现不得依赖硬编码网站或「AI」关键词推断，需由独立服务公布已授权、已实现的能力与账户映射。支持该能力但会话过期时仍可打开管理中心显示 AUTH_REQUIRED，不能假装 0%/100%。正式 React 及 Host 接线 NOT_TESTED。
 - **技术方向**：Cookie Editor 仅提供账号入口；独立 Node.js 服务负责本地可信快照同步与逐账号隔离 HTTP 查询；React 网页只获取已脱敏额度数据。Cookie-only 为首选待验证路径，若服务端需短期访问令牌则通过合法会话补充；严禁从独立网页传输或暴露 Cookie、Token，不自动切换当前 Chrome 账号。
 - **当前状态**：DESIGN_PREVIEW_ONLY。未修改正式 React 业务代码；真实 Cookie-only 查询、双账号并发、Node.js 通信、官方额度比对及 Mac Chrome 验收均为 NOT_TESTED。独立页面不是完成数据接入的证据。
 - **侧边栏视觉纠偏**：此前对话附件把 Cookie Editor 错误演示为桌面双栏、左侧竖向菜单；该附件不代表正式原型，已废弃。Cookie Editor 的六个 Tab 必须继续在窄侧边栏顶部横排，只有独立额度后台允许全屏桌面布局。新的额度入口为纯图表 Icon-only 按钮，右侧仍是原有设置、添加图标；正式 React 接线及 Mac Chrome 点击读回未执行。
