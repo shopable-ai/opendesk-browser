@@ -1,10 +1,18 @@
-name: Browser Fingerprint R2.1 - focused Node and React
+name: Browser Fingerprint R2.2 - scoped native Host, Node and React
 
 on:
   push:
     branches: [main]
     paths:
       - 'examples/sidebar-tools/browser-fingerprint/**'
+      - 'src/platform/chrome/browser-fingerprint.js'
+      - 'src/platform/chrome/context-menus.js'
+      - 'src/platform/chrome/permission-gate.js'
+      - 'src/framework/sdk/browser-contract.js'
+      - 'src/framework/sdk/browser-schemas.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/package.js'
+      - 'manifest.json'
       - '.github/workflows/browser-fingerprint-r21.yml'
   workflow_dispatch:
 
@@ -25,18 +33,39 @@ jobs:
           cache: npm
       - name: Install pinned root build dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: R2.1 Node - presets, CAS, fail-closed Host and existing A-grade history
+      - name: R2.1 + R2.2 Node - presets, real-CDP adapter, session and lifecycle guards
         run: npm --prefix examples/sidebar-tools/browser-fingerprint test
-      - name: R2.1 production React IIFE and source hash receipts
+      - name: R2.2 production React IIFE and source hash receipts
         run: npm --prefix examples/sidebar-tools/browser-fingerprint run build
-      - name: Confirm native debugger remains ungranted and unclaimed
+      - name: R2.2 Chrome permission and SDK admission guards
         run: |
-          node --input-type=module -e "import {readFileSync} from 'node:fs'; const manifest=JSON.parse(readFileSync('manifest.json','utf8')); const config=JSON.parse(readFileSync('examples/sidebar-tools/browser-fingerprint/tool.config.json','utf8')); if(manifest.permissions?.includes('debugger')||manifest.optional_permissions?.includes('debugger')||config.capabilities.some(x=>x==='browser.fingerprint'))throw Error('R21 Native permission unexpectedly exposed'); console.log('FINGERPRINT_R21_NATIVE_NOT_AVAILABLE_YET');"
+          node --check src/platform/chrome/browser-fingerprint.js
+          node --check src/platform/chrome/context-menus.js
+          node --check src/ui/sidebar-tools.js
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import {BROWSER_OPERATIONS} from './src/framework/sdk/browser-contract.js';
+          const manifest=JSON.parse(readFileSync('manifest.json','utf8'));
+          const tool=JSON.parse(readFileSync('examples/sidebar-tools/browser-fingerprint/tool.config.json','utf8'));
+          if(!manifest.permissions.includes('debugger')||manifest.optional_permissions.includes('debugger'))
+            throw Error('Debugger must be a native install-time (not optional) permission');
+          if(!tool.capabilities.includes('browser.fingerprint.control'))
+            throw Error('Explicit fingerprint capability missing');
+          for(const name of ['apply','readback','restore']){
+            const op=BROWSER_OPERATIONS['browser.fingerprint.'+name];
+            if(op?.implementation!=='IMPLEMENTED'||op.riskLevel!=='high'||
+               !op.requiredCapabilities.includes('browser.fingerprint.control'))
+              throw Error('Fingerprint control not admitted as reviewed high-risk method: '+name);
+          }
+          if(!BROWSER_OPERATIONS['browser.fingerprint.apply'].requiredChromePermissions.includes('debugger'))
+            throw Error('Missing Chrome install-time debugger authorization');
+          console.log('FINGERPRINT_R22_CHROME_PERMISSION_AND_SDK_GUARDS_PASS');
+          NODE
       - name: Save isolated build evidence (not Chrome or web readback)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: browser-fingerprint-r21-${{ github.sha }}
+          name: browser-fingerprint-r22-${{ github.sha }}
           retention-days: 7
           if-no-files-found: warn
           path: |
