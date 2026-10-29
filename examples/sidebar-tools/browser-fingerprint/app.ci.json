@@ -6,7 +6,6 @@
     "examples/sidebar-tools/browser-fingerprint/preview/react/build-preview.mjs"
   ],
   "browser": [
-    "examples/sidebar-tools/browser-fingerprint/preview/react/chromium.mjs",
-    "examples/sidebar-tools/browser-fingerprint/tests/installed-r24.mjs"
+    "examples/sidebar-tools/browser-fingerprint/preview/react/chromium.mjs"
   ]
 }
