@@ -8,9 +8,9 @@ import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {createSidebarToolPackage,checkCompiledToolBuildReady} from '../../scripts/build-sidebar-tool.mjs';
 import {inspectSidebarToolProject} from '../../scripts/stage-sidebar-tool.mjs';
-import {STAY_FOCUS_REACT_SOURCES} from '../../examples/sidebar-tools/stay-focus/vite.config.mjs';
+import {STAY_FOCUS_REACT_SOURCES} from '../../projects/stay-focus/vite.config.mjs';
 
-const root=resolve('examples/sidebar-tools/stay-focus');
+const root=resolve('projects/stay-focus');
 // Assert every source Vite fingerprints, including the independently owned
 // v3 controller and policy modules; do not silently ignore a new import.
 const sources=[...STAY_FOCUS_REACT_SOURCES];

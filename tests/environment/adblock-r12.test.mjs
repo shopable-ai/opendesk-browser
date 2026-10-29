@@ -10,7 +10,7 @@ import {sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-to
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {installReviewedSidebarTool,setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolCleanup,
   TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
-import {FOCUS_RULE_FIRST} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {FOCUS_RULE_FIRST} from '../../projects/stay-focus/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_STORE,ADBLOCK_PROTOCOL,ADBLOCK_PAGE_PROTOCOL,ADBLOCK_CAPABILITY,
   ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST,ADBLOCK_DNR_CLEANUP_STORE,ADBLOCK_PERMISSION,adblockHost} from '../../projects/adblock/trusted/policy.js';
 import {wantedAdblockRules,clearAdblockRules,reconcileAdblockRules}

@@ -5,7 +5,7 @@ import {createFoundationBroker} from './platform/host/broker.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
 import {reportBrowserCleanupError} from './platform/chrome/lifecycle-errors.js';
-import {installStayFocusService} from '../examples/sidebar-tools/stay-focus/trusted/service.js';
+import {installStayFocusService} from '../projects/stay-focus/trusted/service.js';
 import {installManagedSiteBudgetService} from './platform/chrome/browser-managed-site-budget.js';
 import {installAdblockService} from '../projects/adblock/trusted/service.js';
 import {installAiAccessService} from '../examples/sidebar-tools/ai-vip-share/trusted/service.js';

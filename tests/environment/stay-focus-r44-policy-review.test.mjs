@@ -43,11 +43,11 @@ test('unsupported code or an out-of-contract site is denied before review',()=>{
     {...policy(),defaultSites:['unaudited.example']}),{code:'E_TOOL_POLICY'});
 });
 test('installed Stay Focus offers explicit per-site review, without a sandbox Chrome rule writer',()=>{
-  const app=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
-  const html=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/index.html',import.meta.url),'utf8');
+  const app=readFileSync(new URL('../../projects/stay-focus/src/main.js',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../../projects/stay-focus/src/index.html',import.meta.url),'utf8');
   const host=readFileSync(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
-  const controls=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/trusted/host-controls.js',import.meta.url),'utf8');
-  const controller=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/trusted/focus-controller.js',import.meta.url),'utf8');
+  const controls=readFileSync(new URL('../../projects/stay-focus/trusted/host-controls.js',import.meta.url),'utf8');
+  const controller=readFileSync(new URL('../../projects/stay-focus/trusted/focus-controller.js',import.meta.url),'utf8');
   assert.match(app,/controller\.readStatus\(\)/,
     'React must delegate live status to the reviewed business Controller');
   assert.match(controller,/request\('focus\.status'/,

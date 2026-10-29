@@ -251,18 +251,18 @@ function reviewedCompiledPromptShortcuts(target,path,root){
 // These blob pins intentionally require review when privileged code changes.
 const compiledStayFocusInputs=Object.freeze({
   // R6.10: reviewed b8c0596e4; only two shared presentation class names changed.
-  'examples/sidebar-tools/stay-focus/trusted/react-controls.tsx':'2e490028e19fbb048c2b9aa49073e7ee94100daf',
-  'examples/sidebar-tools/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
-  'examples/sidebar-tools/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
-  'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'65346648494b88fbf434a5a951769edba445c32e',
-  'examples/sidebar-tools/stay-focus/trusted/lifecycle.js':'77afc647cf1345462751964d7c74c2ee8b0fbce2',
-  'examples/sidebar-tools/stay-focus/trusted/model.js':'3634f018d4282af101e408b5acf77d4d08626fe0',
-  'examples/sidebar-tools/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
-  'examples/sidebar-tools/stay-focus/trusted/policy.js':'508056b5ad9e1651efec29fbcfe87676c4fd0495',
-  'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
-  'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'f5bd5722b94a772bb461ff00882ae8cf66ce9d29',
-  'examples/sidebar-tools/stay-focus/trusted/service.js':'b1dc68d94740b704706766ebf3f99c05cec9ad09',
-  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'cb7ac4b76be907d07d699c802fc576de6074d0b9'
+  'projects/stay-focus/trusted/react-controls.tsx':'0c14d175188a33532004be0869fd6b237f9f6fb7',
+  'projects/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
+  'projects/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
+  'projects/stay-focus/trusted/host-controls.js':'65346648494b88fbf434a5a951769edba445c32e',
+  'projects/stay-focus/trusted/lifecycle.js':'77afc647cf1345462751964d7c74c2ee8b0fbce2',
+  'projects/stay-focus/trusted/model.js':'9f92ff1df68e9570cbf1e83c247efedce1f9ae8b',
+  'projects/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
+  'projects/stay-focus/trusted/policy.js':'a62b4ec56ac2754f32f31a016f7cc35b14b1c86d',
+  'projects/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
+  'projects/stay-focus/trusted/rule-ownership.js':'7c063535097df818cca43d76cc5fc77b3987047e',
+  'projects/stay-focus/trusted/service.js':'2e387c7bfdca4add8093489368777b4a651d0c01',
+  'projects/stay-focus/trusted/tool-host.js':'58962523b7c74a49cf51059233a0d43dea7a9685'
 });
 // The shared lifecycle module is statically linked by other approved hosts
 // (including knowledge-host). Reuse AdBlock's exact fixed-output registry:

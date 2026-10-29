@@ -3,16 +3,16 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {validateSidebarToolPackage,serializeSidebarToolPackage,sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {FOCUS_PROTOCOL,FOCUS_STORE,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
-import {focusCatalogForPackage,FOCUS_CATALOG} from '../../examples/sidebar-tools/stay-focus/trusted/catalog.js';
-import {createStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/service.js';
+import {FOCUS_PROTOCOL,FOCUS_STORE,focusPackageHash} from '../../projects/stay-focus/trusted/policy.js';
+import {focusCatalogForPackage,FOCUS_CATALOG} from '../../projects/stay-focus/trusted/catalog.js';
+import {createStayFocusService} from '../../projects/stay-focus/trusted/service.js';
 import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
-import {requestStayFocusOperation} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
+import {requestStayFocusOperation} from '../../projects/stay-focus/trusted/tool-host.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
 // Historical v2 worker tests must never load the current independent v3 app.
 const pinnedV2=()=>JSON.parse(readFileSync(new URL(
-  '../../examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json',import.meta.url),'utf8'));
+  '../../projects/stay-focus/stay-focus.opendesk-tool.json',import.meta.url),'utf8'));
 
 const suggestion={host:'pinterest.com',name:'Pinterest',category:'社交娱乐',suggestLimit:true,quick:true};
 const policy={kind:'site-budget.v1',suggestions:[suggestion]};
@@ -24,9 +24,9 @@ const site=(host,mode='limit',minutes=1)=>({host,subdomains:true,enabled:true,mo
 const at=new Date(2026,9,18,10,0,0).getTime();
 
 test('real Stay Focus install package carries bounded data, no privileged JS',async()=>{
-  const tool=await createSidebarToolPackage('examples/sidebar-tools/stay-focus');
+  const tool=await createSidebarToolPackage('projects/stay-focus');
     const config=JSON.parse(readFileSync(
-    new URL('../../examples/sidebar-tools/stay-focus/tool.config.json',import.meta.url),'utf8'));
+    new URL('../../projects/stay-focus/tool.config.json',import.meta.url),'utf8'));
   assert.equal(tool.version,config.version);
   assert.equal(tool.format,'opendesk.sidebar-tool.v2');
   assert.equal(tool.backgroundPolicy.kind,'site-budget.v3');

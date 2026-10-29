@@ -8,7 +8,7 @@ on:
       - 'src/entrypoints/stay-focus-controls.js'
       - 'src/entrypoints/page-relay.js'
       - 'src/entrypoints/blocked.js'
-      - 'examples/sidebar-tools/stay-focus/**'
+      - 'projects/stay-focus/**'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/**'
       - 'src/ui/tool.html'
@@ -77,9 +77,9 @@ jobs:
         run: node scripts/build-stay-focus-react.mjs
       - name: Stay Focus portable preview - executable syntax and exact source parity
         run: |
-          node --check examples/sidebar-tools/stay-focus/preview/build.mjs
-          node examples/sidebar-tools/stay-focus/preview/build.mjs --check
-          node --check examples/sidebar-tools/stay-focus/src/main.js
+          node --check projects/stay-focus/preview/build.mjs
+          node projects/stay-focus/preview/build.mjs --check
+          node --check projects/stay-focus/src/main.js
       - name: Strict policy, time, DNR and component assertions
         run: |
           node --test tests/environment/managed-site-runtime-contract-r45.test.mjs tests/environment/extension-runtime-r14-lifecycle.test.mjs tests/environment/stay-focus-r45-marketplace-admission.test.mjs tests/environment/managed-site-authority-r44.test.mjs tests/environment/stay-focus-r44-transport.test.mjs tests/environment/stay-focus-r44-policy-review.test.mjs tests/environment/browser-managed-site-policy-r44.test.mjs tests/environment/stay-focus-r41-policy-package.test.mjs tests/environment/stay-focus-r1.test.mjs tests/environment/stay-focus-service-r1.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/stay-focus-extraction-r2.test.mjs tests/environment/stay-focus-build-ready-r58.test.mjs
@@ -88,8 +88,8 @@ jobs:
         run: node scripts/build-stay-focus-app.mjs --reuse-compiled
       - name: Build independent user-installable Stay Focus release
         run: |
-          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus
-          version=$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")
+          npm run build:sidebar-tool -- projects/stay-focus
+          version=$(node -p "JSON.parse(require('fs').readFileSync('projects/stay-focus/tool.config.json','utf8')).version")
           test -s "artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
           sha256sum "artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
       # Staging is confined to the throwaway CI checkout. The committed official
@@ -100,13 +100,13 @@ jobs:
       # against a newly compiled candidate and blocks all independent evidence.
       - name: Stage Node-tested Stay Focus candidate for full build (CI only)
         run: |
-          version=$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")
+          version=$(node -p "JSON.parse(require('fs').readFileSync('projects/stay-focus/tool.config.json','utf8')).version")
           candidate="artifacts/sidebar-tools/stay-focus/$version/stay-focus.opendesk-tool.json"
-          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --promote-from "$candidate"
-          npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus --check-project
-          cmp "$candidate" examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
-          test "$(find examples/sidebar-tools/stay-focus -maxdepth 1 -name '*.opendesk-tool.json' | wc -l)" -eq 1
-          sha256sum examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
+          npm run build:sidebar-tool -- projects/stay-focus --promote-from "$candidate"
+          npm run build:sidebar-tool -- projects/stay-focus --check-project
+          cmp "$candidate" projects/stay-focus/stay-focus.opendesk-tool.json
+          test "$(find projects/stay-focus -maxdepth 1 -name '*.opendesk-tool.json' | wc -l)" -eq 1
+          sha256sum projects/stay-focus/stay-focus.opendesk-tool.json
       - name: Full source security and both production/development WXT packages
         run: |
           npm run check
@@ -116,7 +116,7 @@ jobs:
           sha256sum dist/production/sw.js
           wc -c dist/production/sw.js
           sha256sum dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json
-          cmp "artifacts/sidebar-tools/stay-focus/$(node -p "JSON.parse(require('fs').readFileSync('examples/sidebar-tools/stay-focus/tool.config.json','utf8')).version")/stay-focus.opendesk-tool.json" \
+          cmp "artifacts/sidebar-tools/stay-focus/$(node -p "JSON.parse(require('fs').readFileSync('projects/stay-focus/tool.config.json','utf8')).version")/stay-focus.opendesk-tool.json" \
             dist/production/official-tools/stay-focus/stay-focus.opendesk-tool.json
       - name: Preserve exact candidate for native Mac (not acceptance yet)
         uses: actions/upload-artifact@v4
@@ -127,7 +127,7 @@ jobs:
           path: |
             dist/production/
             artifacts/sidebar-tools/stay-focus/
-            examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json
+            projects/stay-focus/stay-focus.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
       - name: Preserve source/build failure diagnostics

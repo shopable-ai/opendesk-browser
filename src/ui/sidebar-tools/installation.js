@@ -15,7 +15,7 @@ import {TIME_REVIEW_KEY} from '../../../projects/time-review/trusted/model.js';
 import {PROMPT_ASSET_STORE} from '../../../projects/prompt-shortcuts/trusted/asset-contract.js';
 import {COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
   from '../../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
-import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
+import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../projects/stay-focus/trusted/lifecycle.js';
 import {stopAdblockForTool,cleanupUninstalledAdblock,prepareReviewedAdblockUpdate} from '../../../projects/adblock/trusted/lifecycle.js';
 import {ADBLOCK_STORE} from '../../../projects/adblock/trusted/policy.js';
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';

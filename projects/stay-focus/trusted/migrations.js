@@ -5,9 +5,9 @@ import {readFocus} from './model.js';
 import {FOCUS_DEFAULT_GROUP} from './catalog.js';
 import {compileFocusPolicy} from './compile-site-policy.js';
 import {normalizeManagedSiteV3Policy,normalizeManagedSiteV3Usage}
-  from '../../../../src/framework/sdk/site-budget-v3-policy.js';
+  from '../../../src/framework/sdk/site-budget-v3-policy.js';
 import {normalizeManagedSiteV3Notices}
-  from '../../../../src/framework/sdk/site-budget-v3-reminders.js';
+  from '../../../src/framework/sdk/site-budget-v3-reminders.js';
 
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 // The prepared legacy plan is a transaction input, not a mutable draft.

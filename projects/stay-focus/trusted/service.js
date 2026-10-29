@@ -1,22 +1,22 @@
 // Trusted MV3 worker service. No sandbox may call Chrome DNR, idle or tabs.
-import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged}
-  from '../../../../src/ui/sidebar-tools/lifecycle.js';
+  from '../../../src/ui/sidebar-tools/lifecycle.js';
 import {readManagedSiteToolAuthority,assertManagedSiteToolLease}
-  from '../../../../src/platform/host/managed-site-authority.js';
-import {MANAGED_SITE_RUNTIME_CONTRACT} from '../../../../src/platform/host/managed-site-runtime-contract.js';
+  from '../../../src/platform/host/managed-site-authority.js';
+import {MANAGED_SITE_RUNTIME_CONTRACT} from '../../../src/platform/host/managed-site-runtime-contract.js';
 import {SIDEBAR_TOOL_BACKGROUND_POLICY_KIND,SIDEBAR_TOOL_BACKGROUND_POLICY_KIND_V2}
-  from '../../../../src/ui/sidebar-tools/background-policy.js';
-import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
-import {isSidebarToolHostSender,isSidebarToolManagementSender} from '../../../../src/sidebar-tools/sender.js';
+  from '../../../src/ui/sidebar-tools/background-policy.js';
+import {writeVerifiedLocalValue} from '../../../src/ui/sidebar-tools/storage-state.js';
+import {isSidebarToolHostSender,isSidebarToolManagementSender} from '../../../src/sidebar-tools/sender.js';
 import {FOCUS_ID,FOCUS_STORE,FOCUS_PROTOCOL,FOCUS_CAPABILITY,FOCUS_ALARM,FOCUS_SESSION,
   FOCUS_OPERATIONS,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,FOCUS_MAX_SITES,FOCUS_PAGE_NOTICE_PROTOCOL,focusPackageHash,focusHost,focusNextMidnight,focusRemovedOriginAffectsSite,focusError} from './policy.js';
 import {readFocus,emptyFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusReason,
   focusSummary,settleFocus,focusPool,focusDueReminder} from './model.js';
 import {FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES,focusDefaultsForPackage,focusDefaultMinutesForPackage,focusCatalogForPackage} from './catalog.js';
 import {wantedFocusRules,reconcileFocusRules,clearFocusRules} from './rule-host.js';
-import {observeManagedForeground,reconcileManagedSiteExecution,redirectManagedBlockedTabs} from '../../../../src/platform/chrome/browser-managed-site-policy.js';
-import {subscribeManagedSiteActivity} from '../../../../src/platform/chrome/managed-site-lifecycle.js';
+import {observeManagedForeground,reconcileManagedSiteExecution,redirectManagedBlockedTabs} from '../../../src/platform/chrome/browser-managed-site-policy.js';
+import {subscribeManagedSiteActivity} from '../../../src/platform/chrome/managed-site-lifecycle.js';
 
 const hasOnly=(payload,names)=>payload&&typeof payload==='object'&&!Array.isArray(payload)&&
   Object.keys(payload).sort().join(',')===names.slice().sort().join(',');

@@ -7,7 +7,7 @@ import {validateOfficialSourceCatalog} from '../../src/sidebar-tools/official-ca
 
 test('Browser production fingerprint is independent of Focus React/business sources',async()=>{
   const inputs=await officialToolInputs();
-  assert.ok(inputs.includes('examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json'));
+  assert.ok(inputs.includes('projects/stay-focus/stay-focus.opendesk-tool.json'));
   const forbidden=/^examples\/sidebar-tools\/stay-focus\/(?:src\/|trusted\/|vite\.config|tool\.config|dist\/)/;
   assert.ok(!inputs.some(path=>forbidden.test(path)),
     'Browser official release must fingerprint the pinned package, not Focus source');

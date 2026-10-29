@@ -1,6 +1,6 @@
 // Trusted Stay Focus-only DNR ownership and readback; no time model or UI imports.
 import {FOCUS_RULE_FIRST,FOCUS_RULE_LAST,focusError} from './policy.js';
-import {reconcileManagedDynamicRules} from '../../../../src/platform/chrome/browser-managed-site-policy.js';
+import {reconcileManagedDynamicRules} from '../../../src/platform/chrome/browser-managed-site-policy.js';
 export const isFocusRuleId=id=>Number.isInteger(id)&&id>=FOCUS_RULE_FIRST&&id<=FOCUS_RULE_LAST;
 // Chrome can return fields in a different object order. Compare semantic
 // condition/action values rather than serialization order or extra defaults.

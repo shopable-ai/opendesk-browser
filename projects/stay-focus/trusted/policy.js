@@ -1,4 +1,4 @@
-import {normalizeSidebarToolBackgroundPolicy} from '../../../../src/ui/sidebar-tools/background-policy.js';
+import {normalizeSidebarToolBackgroundPolicy} from '../../../src/ui/sidebar-tools/background-policy.js';
 // Product-owned identity, independent of Time Review and the public Browser SDK.
 export const FOCUS_ID='stay-focus';
 export const FOCUS_CAPABILITY='focus.control';
