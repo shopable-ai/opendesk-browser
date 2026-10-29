@@ -1,0 +1,413 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-29T16:31:58.206415+00:00",
+  "phase": "P0_CORE_NATIVE_COMPLETED_FORMAL_DEFERRED",
+  "branchDecision": {
+    "user": "Use main when available, otherwise actual primary branch; preserve unique unmerged work",
+    "core": {
+      "branch": "master",
+      "head": "0ec0aa34aefe95b1315e8cdb22428756293f4f3d",
+      "fastForwardedFrom": "codex/automatic-script-results"
+    },
+    "legacy": {
+      "branch": "main",
+      "head": "3cac230",
+      "fastForwardedFrom": "codex/automatic-script-results",
+      "preservedBranch": "codex/wxt-baseline-20261003",
+      "reason": "contains unique unmerged commits"
+    },
+    "destructiveOperations": false
+  },
+  "runtime": {
+    "chrome": "149.0.7827.55",
+    "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+    "profile": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/Default",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "hostInstanceId": "9f0ebf1b-ae44-4bf5-9fbf-dcb572d77f05",
+    "profileEvidence": "chrome://version native AX",
+    "serveConnected": true,
+    "revision": "2913e20b31e8b8c3d9872611db0d79f30b09b40b6b3e01da89335a34155dc44c",
+    "connectionEvidence": "Side Panel 调试→本地开发服务 native AX",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "pathEvidence": "chrome://extensions/?id=ccfcjegpkdlgbclopjmadlcjedelidmf native AX: unpacked loading from ~/文稿/workspace/opendesk-browser/dist/development",
+    "node": "v24.16.0",
+    "nativeInstance": "scrapyjs-react-01a186cc",
+    "browserMode": "existing sustained development; existing watcher only",
+    "nativeCore": "PASS",
+    "production": "NOT_TESTED",
+    "servicesStopped": false,
+    "uiLeaseReleased": true
+  },
+  "sdk": {
+    "status": "current",
+    "core": "/Users/shopme/Documents/workspace/scrapyJs",
+    "extension": "/Users/shopme/Documents/workspace/scrapyJsChrome",
+    "coreVersion": "1.0.0",
+    "extensionVersion": "3.15.0",
+    "protocolVersion": "1.0",
+    "sourceHash": "4aab93d0bfa384bcc7a6502318cd365ecbab6f15c6cd3620f5c7d63bb83c5daf",
+    "sdkHash": "eeb549541b8d8434d393d1beba869af94fb8680042a8e434b2f86d9ec65cc13e",
+    "targetHash": "eeb549541b8d8434d393d1beba869af94fb8680042a8e434b2f86d9ec65cc13e",
+    "backup": ".sdk-backups/1793288288408-f0ead922-c71f-44c2-be2e-abf4176c7855"
+  },
+  "engine": {
+    "format": "scrapyjs-browser-consumption.v1",
+    "profile": "complete-browser-sdk",
+    "inputs": {
+      "build-browser.mjs": "99084d1dc912d4bb920e690b68d3e1a4fba22ec8255f42ad3f512c01a63e15ba",
+      "../vendor/scrapyjs/browser.original.js": "eeb549541b8d8434d393d1beba869af94fb8680042a8e434b2f86d9ec65cc13e",
+      "../vendor/scrapyjs/provenance.json": "54f23d058ef1eb0b0fe54fa161a85d9730953463968c7411f57ca5f886d5f74b",
+      "../vendor/scrapyjs/browser.original.build.json": "1c3d217b15827b835b2814118ef9cc0ca8372b60351971d40c6191c63b82c77e"
+    },
+    "upstreamBrowserSha256": "eeb549541b8d8434d393d1beba869af94fb8680042a8e434b2f86d9ec65cc13e",
+    "sourceSha256": "9258082089d4b83441004e601adb748eeda37d5e237350e44fc5b30715ad87b3",
+    "sourceBytes": 1141085,
+    "compression": false,
+    "removedModules": [],
+    "exportModules": {
+      "sdk": 44,
+      "extraction": 4849
+    },
+    "thirdPartyNotices": "vendor/scrapyjs/THIRD_PARTY_LICENSES.txt"
+  },
+  "task": {
+    "version": "0.4.0",
+    "sourceHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+    "manifestHash": "b0a7b212f244e16de772e54724f1e039a3c7d2d238b9443031a6f37a61af0e95",
+    "sourceBytes": 506588,
+    "status": "NATIVE_VERIFIED_AVAILABLE_INSTALLED",
+    "file": "examples/sidebar-tools/scrapyjs/controller/scrapyjs.opendesk-task.json",
+    "buildArtifact": "artifacts/scrapyjs/playwright-upgrade-20261029/task-final/artifact.json",
+    "verificationRunId": "bffbb7b7-b910-49f0-88cb-a0bc9510163c",
+    "installedVersion": "0.4.0"
+  },
+  "app": {
+    "version": "1.6.1",
+    "sha256": "7cf0f59d500a0d755389d3310f89b0b0b5e0128164a5dabe41392bc3e310d826",
+    "bytes": 79637,
+    "delegatedTasks": [
+      {
+        "taskId": "scrapyjs.capture",
+        "version": "0.4.0",
+        "manifestHash": "b0a7b212f244e16de772e54724f1e039a3c7d2d238b9443031a6f37a61af0e95",
+        "contentHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e"
+      }
+    ],
+    "file": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/candidate.opendesk-tool.json",
+    "status": "NATIVE_INSTALLED_AND_CORE_TESTED",
+    "buildId": "09ff6be18563dd557256e0ae5231d96c0c9d769c7dea181bf2364e1901d87a29",
+    "changedInputsAtPack": [],
+    "buildCommand": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --out artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/candidate.opendesk-tool.json",
+    "formalPackage": {
+      "version": "1.3.1",
+      "changedByThisLane": false
+    },
+    "previousUninstalledSnapshot": {
+      "version": "1.6.0",
+      "sha256": "44086092509ab8e49edb6c1b76641ccce1fdee447cd748455c85c060f0bcd26d",
+      "bytes": 79278,
+      "delegatedTasks": [
+        {
+          "taskId": "scrapyjs.capture",
+          "version": "0.4.0",
+          "manifestHash": "b0a7b212f244e16de772e54724f1e039a3c7d2d238b9443031a6f37a61af0e95",
+          "contentHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e"
+        }
+      ],
+      "file": "artifacts/scrapyjs/playwright-upgrade-20261029/candidate.opendesk-tool.json",
+      "sourceSnapshot": "artifacts/scrapyjs/playwright-upgrade-20261029/app-source-inputs.json",
+      "changedSinceSnapshot": [],
+      "status": "SNAPSHOT_PACKAGE_VALID_NOT_FOR_INSTALL",
+      "reason": "Parallel UI lane is installing another App 1.6.0 candidate pinned to Task 0.3.0; allocate an unused App version and recompile before installation. This snapshot includes parallel UI/AI work, whose behavior this lane did not verify.",
+      "formalPackage": {
+        "version": "1.3.1",
+        "changedByThisLane": false
+      }
+    }
+  },
+  "verification": [
+    {
+      "behavior": "modern full-document pagination, strict/existential reads, baseURI, unsupported paths",
+      "layer": "core source unit",
+      "result": "PASS",
+      "count": 15,
+      "command": "npx vitest run test/chrome-modern-page.spec.js",
+      "actor": "leader final rerun after review finding",
+      "rawEvidence": "artifacts/scrapyjs/playwright-upgrade-20261029/modern-page-tests.log"
+    },
+    {
+      "behavior": "scheduler Array contract, extraction DSL, fields, detail identity, page limit, adapter origin guard",
+      "layer": "OpenDesk components",
+      "result": "PASS",
+      "count": 19,
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/{engine,page-adapter,extraction-contract,capture-config}.test.mjs",
+      "note": "Separate final engine receipt check passed 5/5 after adding complete upstream source-map validation"
+    },
+    {
+      "behavior": "delayed second batch and empty terminal document through source/frozen Task; unsupported/duplicate next controls",
+      "layer": "DOM/VM components",
+      "result": "PASS",
+      "count": 7,
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/pagination-contract.test.mjs",
+      "log": "artifacts/scrapyjs/playwright-upgrade-20261029/pagination-components.log"
+    },
+    {
+      "behavior": "focus replacement/disabled/hidden/readonly/inert/obscured prevents stale write/replay",
+      "layer": "framework components",
+      "result": "PASS",
+      "scenarios": 6,
+      "command": "node --test --test-name-pattern='fill focus mutations' tests/framework/r5-modern-page-api.test.mjs",
+      "actor": "native debugger Boole"
+    },
+    {
+      "behavior": "existing write admission/read completion/lost commit callback protections",
+      "layer": "framework components",
+      "result": "PASS",
+      "count": 3,
+      "command": "node --test --test-name-pattern='admitted driver stages|completed read-only requests|lost commit callback' tests/framework/r5-modern-page-api.test.mjs",
+      "actor": "native debugger Boole"
+    },
+    {
+      "behavior": "legacy protocol envelope and request identity",
+      "layer": "legacy component",
+      "result": "PASS",
+      "count": 42,
+      "command": "node test/protocol-regression.js"
+    },
+    {
+      "behavior": "full updated SDK with original legacy background and worker contracts",
+      "layer": "legacy VM component",
+      "result": "PASS",
+      "count": 20,
+      "command": "node test/devflow-contract.cjs --mode=required --json",
+      "report": "artifacts/scrapyjs/playwright-upgrade-20261029/legacy-consumer-contract.json"
+    },
+    {
+      "behavior": "new Task package integrity and exact App delegation",
+      "layer": "artifact",
+      "result": "PASS",
+      "note": "verifyTaskPackage and standard App packer roundtrip; not install evidence"
+    },
+    {
+      "behavior": "final SDK, fixed Task and legacy XPath readiness after reviewer finding",
+      "layer": "components",
+      "result": "PASS",
+      "count": 17,
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/{engine,capture-config,pagination-contract}.test.mjs",
+      "log": "artifacts/scrapyjs/playwright-upgrade-20261029/final-components.log"
+    },
+    {
+      "behavior": "fixture mapping and source integrity before native collection",
+      "layer": "local environment",
+      "result": "PASS",
+      "count": 4,
+      "files": [
+        "pagination-batches-1.html",
+        "pagination-batches-2.html",
+        "pagination-batches-empty.html",
+        "pagination-controls.html"
+      ],
+      "mapping": "examples/tasks/scrapyjs-fixtures -> ../sidebar-tools/scrapyjs/fixtures",
+      "note": "Local-only test symlink preserved for saved manual configuration; existing HTTP server not restarted"
+    },
+    {
+      "behavior": "source/frozen Task: complete three-document collection plus button/hash/duplicate/origin rejection",
+      "layer": "real isolated headless Chromium components",
+      "result": "PASS",
+      "count": 10,
+      "command": "SCRAPYJS_PLAYWRIGHT_MODULE='/Users/shopme/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs' SCRAPYJS_CHROMIUM='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing' node examples/sidebar-tools/scrapyjs/tests/pagination-chromium.mjs",
+      "report": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/chromium.json",
+      "initialDriverFailure": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/chromium-initial-driver.json",
+      "note": "Initial driver failed because Playwright evaluate takes one argument and OpenDesk Page takes variadic arguments. Fixed only the disposable test facade. No product source changed in the continuation. Exact rejection codes and zero requests measured here; does not establish OpenDesk Authority/Stop/install."
+    },
+    {
+      "behavior": "same-byte Task verification and exact App update through original native installation UI",
+      "layer": "native CFT 149 / OpenDesk development",
+      "result": "PASS",
+      "appVersion": "1.6.1",
+      "taskVersion": "0.4.0",
+      "verificationRunId": "bffbb7b7-b910-49f0-88cb-a0bc9510163c",
+      "report": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-observations.json"
+    },
+    {
+      "behavior": "installed App: delayed second batch, empty last page, persistent result, CSV/JSON download",
+      "layer": "native CFT 149 / OpenDesk development",
+      "result": "PASS",
+      "runId": "b873eff0-a44b-4f95-bd61-039b84e7c4ee",
+      "resultId": "c711aa31-680b-4148-8874-c39ad3fd3736",
+      "state": "completed",
+      "retirementState": "released",
+      "pageCount": 3,
+      "stopReason": "site_exhausted",
+      "rows": [
+        "A/第一页",
+        "B/首批",
+        "C/第二批"
+      ],
+      "downloads": [
+        "native-pagination.json",
+        "native-pagination.csv"
+      ],
+      "report": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-pagination.json"
+    },
+    {
+      "behavior": "saved configuration survives app destruction/reopen and reruns without AI",
+      "layer": "native CFT 149 / OpenDesk development",
+      "result": "PASS",
+      "savedConfig": "分页完成验证 0.4",
+      "reopened": true,
+      "aiRequest": false,
+      "runId": "aea9a8fe-549c-46c5-9613-8a5c093e2cd5",
+      "resultId": "b340e984-c123-483e-b676-540f87b7117e",
+      "state": "completed",
+      "retirementState": "released",
+      "pageCount": 3,
+      "rowsEqual": true,
+      "download": "native-repeat.json",
+      "report": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-repeat.json"
+    },
+    {
+      "behavior": "Stop the original running instance and confirm retirement",
+      "layer": "native CFT 149 / OpenDesk development",
+      "result": "PASS",
+      "clientRequestId": "981b4fdc-9b9e-4823-9ac4-e0c1757d1043",
+      "runId": "0817871b-4c90-467f-8771-e822fa721152",
+      "resultId": "44ecb888-e0a2-49c8-822a-2005b342329d",
+      "state": "stopped",
+      "retirementState": "released",
+      "accepted": true,
+      "evidence": "Original App run stopped while waiting for absent selector; same snapshot contains persistent matching run/result IDs",
+      "report": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-observations.json",
+      "preliminaryObservation": {
+        "runId": "8e19e1b3-a54b-4610-9924-c3f27e961ef9",
+        "resultId": "f3714495-2866-40a3-b38f-4075f6a1f28a",
+        "state": "failed",
+        "retirementState": "released",
+        "stopAccepted": false,
+        "note": "Absent-marker run had become failed before a Stop receipt was shown. Full error was not expanded; not counted as Stop PASS or product Stop defect. A new deliberate read-only fixture run was then stopped promptly and passed."
+      }
+    },
+    {
+      "behavior": "four rejected next-page controls leave source URL and click count unchanged, runtime released",
+      "layer": "native CFT 149 / OpenDesk development",
+      "result": "PASS",
+      "scenarios": [
+        {
+          "selector": "#button",
+          "clientRequestId": "3d081da0-55bd-412c-88d4-26010c362119",
+          "runId": "9b0ab661-439b-4ca1-b6b7-6b259b694453",
+          "resultId": "b655a60b-f5a8-48a7-a28e-2b2516c1d12a",
+          "state": "failed",
+          "retirementState": "released",
+          "visibleClickCount": 0,
+          "finalUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/pagination-controls.html",
+          "nextNavigationObserved": false
+        },
+        {
+          "selector": "#hash",
+          "clientRequestId": "e0e40537-5506-408d-a96f-3bbf977bedff",
+          "runId": "6020dae8-b4ef-4f2c-b2aa-237d8334cc92",
+          "resultId": "86ac392f-751a-4847-b106-c2d7490a0803",
+          "state": "failed",
+          "retirementState": "released",
+          "visibleClickCount": 0,
+          "finalUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/pagination-controls.html",
+          "nextNavigationObserved": false
+        },
+        {
+          "selector": ".duplicate",
+          "clientRequestId": "e5a6987a-8875-4692-b843-8e319b71f722",
+          "runId": "05391470-a2b8-44b9-b719-4fd1d4100b46",
+          "resultId": "bdc522e2-099a-4e10-9717-2f85b67a8ebb",
+          "state": "failed",
+          "retirementState": "released",
+          "visibleClickCount": 0,
+          "finalUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/pagination-controls.html",
+          "nextNavigationObserved": false
+        },
+        {
+          "selector": "#forbidden",
+          "clientRequestId": "c16758f6-0347-4037-94da-c852850fe46b",
+          "runId": "4a7924e0-b2e3-48b2-81f5-733b0e4cd16c",
+          "resultId": "77696a88-329a-41b1-ba50-625cbac6a43e",
+          "state": "failed",
+          "retirementState": "released",
+          "visibleClickCount": 0,
+          "finalUrl": "http://127.0.0.1:43111/scrapyjs-fixtures/pagination-controls.html",
+          "nextNavigationObserved": false
+        }
+      ],
+      "report": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-observations.json",
+      "limit": "Native AX error is truncated; exact error codes and network-request counts are supplied only by isolated Chromium component evidence."
+    },
+    {
+      "behavior": "existing actual CSDN saved configuration runs under Task 0.4.0",
+      "layer": "native CFT 149 / OpenDesk development",
+      "result": "PASS",
+      "url": "https://download.csdn.net/list/blog/100-0-0-0-5-1.html",
+      "config": "CSDN 核心",
+      "runId": "03151e11-7433-476c-bf59-6160a101f6df",
+      "resultId": "9e7c2f24-2cfa-4d56-8c9b-bc53d2fefc47",
+      "rowCount": 9,
+      "state": "completed",
+      "retirementState": "released",
+      "pageCount": 1,
+      "stopReason": "single_page",
+      "download": "native-csdn.json",
+      "sourceHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+      "report": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-csdn.json",
+      "limit": "single-page check only; no claim of CSDN pagination"
+    }
+  ],
+  "notTested": [
+    "AI configuration generation and parallel UI/AI acceptance in this lane",
+    "focus fix native specialty check",
+    "Node distribution rebuild or tarball consumption",
+    "P1 visual selector generation",
+    "production/formal App promotion/full lifecycle/95+ in this lane",
+    "Task 0.4.0 Douban live run; old version evidence not promoted"
+  ],
+  "observedLimitations": [
+    "Modern next disabled state is an instantaneous snapshot, not a mutation lock.",
+    "performance.timeOrigin must change; unavailable/equal identity is conservatively unsupported.",
+    "Legacy pages without locator retain the historical settling heuristic; this is not the modern completion guarantee."
+  ],
+  "nextAction": "Current core operation chain complete. Keep installed App1.6.1/Task0.4.0 and saved configurations. UI/AI lane resumes its own AI work when authorized; formal promotion/production/P1 remain deferred, not automatic.",
+  "ownership": {
+    "thisLane": "core pagination/downloader; SDK consumption; page adapter; fixed Task; targeted framework focus fix; own tests/docs",
+    "parallelUI": "UI/AI source and existing watchers retained. Last observed UI owner run ended with model-capacity systemError; no message sent and no model change.",
+    "protected": "other uncommitted changes/services retained; no new worktree/PR, no commit/push",
+    "continuation": "Local test mapping, full fixture config, rejection fixture, opt-in Chromium runner, original UI install/run/download/Stop and evidence; no App UI/framework changes.",
+    "uiLease": "Official profiles.py release stale ended-owner lease → acquire current owner → release at completion; no profile process stopped."
+  },
+  "review": {
+    "result": "One legacy XPath readiness regression found and fixed; reviewer confirmed closed",
+    "reviewer": "native code-reviewer Descartes",
+    "independentStaticReview": true
+  },
+  "previousObservation": {
+    "recordedAt": "2026-10-29T15:39:42.332Z",
+    "phase": "P0_SOURCE_AND_COMPONENTS_NATIVE_PENDING",
+    "runtime": {
+      "node": "v24.16.0",
+      "browserMode": "existing sustained development; no extension output replaced",
+      "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "pathConnectionEvidence": "prior owner observation; not freshly rebound by this lane",
+      "nativeInstance": "scrapyjs-react-01a186cc",
+      "chrome": "CFT 149.0.7827.55, occupied by parallel UI lane",
+      "native": "NOT_TESTED",
+      "reason": "Existing preview contains unsaved configuration; CFT foreground changed under another active owner. No takeover or direct extension URL/CDP bypass."
+    }
+  },
+  "nativeObservations": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-observations.json",
+  "artifactSha256": {
+    "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/candidate.opendesk-tool.json": "7cf0f59d500a0d755389d3310f89b0b0b5e0128164a5dabe41392bc3e310d826",
+    "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/chromium.json": "754d1cf8d9429e14ac87cc9d7881d4b8a0897c68b619f6fbe59ab7f52164af78",
+    "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-pagination.json": "6baa6fb10e3dc2920d8fab533b3d2471d76d8ecd6afcc28ffdd6a8d9d03345f9",
+    "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-pagination.csv": "ee39197b73304594cff79c8717380774a702952ef6ad2f2bf3847a8e1f8e0099",
+    "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-repeat.json": "372d775665f8d7420d404a76d752d6cdf70fb2888cdd00938c8f8d955dec99d0",
+    "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-csdn.json": "2d3a5bd30f5afca52f60e8cc3bee31c61ab6b29eb216a1c4af9f23844ea74dee",
+    "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-observations.json": "bf64726a2f5be1bd32671240d4cd90eb11737695b02797e9b66b21d2fdd72d4c"
+  }
+}

@@ -2,7 +2,7 @@
   "format": "scrapyjs-source-pin.v1",
   "sourceRepository": "/Users/shopme/Documents/workspace/scrapyJs",
   "sourceHead": "0ec0aa34aefe95b1315e8cdb22428756293f4f3d",
-  "browserSha256": "c7a266c1bd5f34ba5e5a85d163c0573fc1d5afb60c07d0ce46af8393e7ada4be",
+  "browserSha256": "eeb549541b8d8434d393d1beba869af94fb8680042a8e434b2f86d9ec65cc13e",
   "authorization": "Owner authorized migration in the current task; third-party notices retained.",
   "inputs": [
     {
@@ -57,8 +57,8 @@
     },
     {
       "file": "src/core/ChromeSpider.js",
-      "sha256": "4a5bdedd7f2aace05cd09b4efbad393b1c3d6dbc6c5a69694a69fbe391463612",
-      "bytes": 11447
+      "sha256": "3dcc8bba4be700ce1266091e521c9a70fbb5552994ab5f5b2b673b74ec13e25e",
+      "bytes": 15155
     },
     {
       "file": "src/core/CloseSpider.js",
@@ -157,8 +157,8 @@
     },
     {
       "file": "src/middleware/ChromeDownloaderMiddleware.js",
-      "sha256": "b7d2c981832c4cae4b77465047b439d2f13bad2ac62d133b17117754cac8b94f",
-      "bytes": 4553
+      "sha256": "402d97770ce043479996e9946751188e57477993a502b2305b7ebc1a4ea93c3a",
+      "bytes": 4873
     },
     {
       "file": "src/middleware/DownloaderMiddleware.js",
@@ -200,5 +200,7 @@
       "sha256": "636d462df4119c9f682f9ac1ca8e955889ea448f1bfd66508daa3a6857b6ce5f",
       "bytes": 1614
     }
-  ]
+  ],
+  "sourceHash": "4aab93d0bfa384bcc7a6502318cd365ecbab6f15c6cd3620f5c7d63bb83c5daf",
+  "upstreamBuildReceiptSha256": "1c3d217b15827b835b2814118ef9cc0ca8372b60351971d40c6191c63b82c77e"
 }

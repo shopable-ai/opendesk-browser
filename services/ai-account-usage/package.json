@@ -6,6 +6,9 @@
   "engines": {"node": ">=22.12.0"},
   "scripts": {
     "probe": "node cli.mjs",
-    "test": "node --test ../../tests/ai-account-usage-probe.test.mjs ../../tests/ai-account-usage-backend.test.mjs"
+    "manage": "node manage.mjs",
+    "start": "node manage.mjs serve",
+    "build:web": "node web/build.mjs",
+    "test": "node --test ../../tests/ai-account-usage-probe.test.mjs ../../tests/ai-account-usage-codex.test.mjs ../../tests/ai-account-usage-backend.test.mjs ../../tests/ai-account-usage-profile.test.mjs ../../tests/ai-account-usage-service.test.mjs ../../tests/ai-account-usage-management.test.mjs ../../tests/ai-account-usage-web-ui.test.mjs"
   }
 }

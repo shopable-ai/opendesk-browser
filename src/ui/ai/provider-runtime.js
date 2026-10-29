@@ -4,7 +4,7 @@ import {createWorkflowProviderFacade} from '../workflow/provider.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sources=new Set(['local_codex','cloud_responses','custom_https']);
-const consumers=new Set(['workflow','bookmark','prompt','prompt-edit','tasks','knowledge']);
+const consumers=new Set(['workflow','bookmark','prompt','prompt-edit','tasks','knowledge','sidebar-tools']);
 const idle=()=>({sessionId:null,threadId:null,state:'IDLE',busy:false,resumable:false});
 const endpointOrigin=endpoint=>{
   try{const origin=new URL(endpoint).origin;return origin==='null'?null:origin;}
@@ -71,12 +71,12 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
       throw fail('E_AI_IDENTITY','Provider Lease 身份无效');
     const key=JSON.stringify([consumerId,instanceId,owner,installEpoch]);
     if(leases.has(key))throw fail('E_AI_LEASE_DUPLICATE','此实例已经持有 Provider Lease');
-    let stopped=false,epoch=0,nativePlanner=null;
+    let stopped=false,epoch=0,nativePlanner=null,retiredCleanup=null;
     const pending=new Set();
     const assertOpen=()=>{ensure();if(stopped)throw fail('E_TOOL_CHANGED','消费者已关闭');};
     const native=()=>{
       assertOpen();
-      if(!nativePlanner)nativePlanner=plannerFactory({client});
+      if(!nativePlanner){retiredCleanup=null;nativePlanner=plannerFactory({client});}
       return nativePlanner;
     };
     // Existing workflow facade receives its own stable per-lease planner proxy.
@@ -91,11 +91,19 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     });
     const transport=facadeFactory({localPlanner:planner,conversationPlanner:planner,
       taskConversationPlanner:planner});
-    function invalidate(){
+    function invalidate({waitForCleanup=true}={}){
       epoch++;
+      if(nativePlanner){
+        const retired=nativePlanner;nativePlanner=null;
+        // Keep the exact old-generation receipt reachable after settings publish.
+        try{retiredCleanup=Promise.resolve(retired.cancel());}
+        catch(error){retiredCleanup=Promise.reject(error);}
+        if(waitForCleanup)retiredCleanup=retiredCleanup.finally(()=>retired.dispose());
+        else retired.dispose();
+        void retiredCleanup.catch(()=>{});
+      }
       for(const controller of pending)
         controller.abort(fail('E_MODEL_STALE','Provider 或实例改变，旧结果无效'));
-      if(nativePlanner){nativePlanner.dispose();nativePlanner=null;}
     }
     async function guarded(dispatch,signal){
       assertOpen();
@@ -144,12 +152,12 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
         assertOpen();
         // Start Native cleanup before forwarding abort (which also requests
         // cancellation). Preserve its exact promise, including UNKNOWN outcomes.
-        const cleanup=planner.cancel();
+        const cleanup=retiredCleanup||planner.cancel();
         for(const controller of pending)controller.abort(fail('E_CANCELLED','AI 已停止'));
         return cleanup;
       },
       invalidate,
-      dispose(){if(stopped)return;stopped=true;invalidate();leases.delete(key);}
+      dispose(){if(stopped)return;stopped=true;invalidate({waitForCleanup:false});leases.delete(key);}
     });
     leases.set(key,lease);
     return lease;

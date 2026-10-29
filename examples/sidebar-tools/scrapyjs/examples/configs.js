@@ -10,8 +10,10 @@ export const fields={url,waitForSelector:'[data-listview-component="items-list"]
     {key:'name',required:true,valueType:'text'},{key:'url',required:true,valueType:'url'},
     {key:'language',required:false,valueType:'text'},{key:'stars',required:false,valueType:'text'},
     {key:'description',required:false,valueType:'text'}]};
-export const pagination={...fields,nextPageSelector:'a[data-component="Pagination.NextPage"][rel="next"]',maxPages:5,dedupeKey:'url'};
-export const listDetail={url,waitForSelector:'.catalog > article',timeoutMs:10000,
+// Pagination waits for the page's completion marker, which can exist with zero rows.
+// A first row appearing is only an existential read wait, not page completion.
+export const pagination={...fields,waitForSelector:'.ready',nextPageSelector:'a[data-component="Pagination.NextPage"][rel="next"]',maxPages:5,dedupeKey:'url'};
+export const listDetail={url,waitForSelector:'.ready',timeoutMs:10000,
   itemConfig:{_listContainer:'.catalog',_listItem:'article',id:'.id::text',title:'.title::text',detailUrl:'a.title::href'},
   nextPageSelector:'a.next',maxPages:5,dedupeKey:'id',
   detail:{urlField:'detailUrl',identityField:'id',waitForSelector:'.detail > article',

@@ -6,15 +6,15 @@ import {homedir} from 'node:os';
 import {join, resolve} from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {emptyState, registerAccount, recordProbeResult,
-  listAccounts, accountHistory, underuseInsights, SCHEMA_VERSION} from './domain.mjs';
+  listAccounts, accountHistory, underuseInsights, normalizeIdentity, SCHEMA_VERSION} from './domain.mjs';
 
 const FILE = 'history-v1.json';
 const MAX_FILE_BYTES = 32 * 1024 * 1024;
 const err = code => Object.assign(new Error(code), {code});
 const exact = (o, names) => o && typeof o === 'object' && !Array.isArray(o) &&
   Object.keys(o).every(k => names.includes(k));
-const ACCOUNT_FIELDS = ['displayName','subscription','providerPlan','lastAttempt','lastSuccessAt'];
-const WINDOW_FIELDS = ['accountAlias','observedAt','windowKey','slot','kind','durationSeconds',
+const ACCOUNT_FIELDS = ['displayName','subscription','identity','providerPlan','lastAttempt','lastSuccessAt'];
+const WINDOW_FIELDS = ['accountAlias','mode','limitId','observedAt','windowKey','slot','kind','durationSeconds',
   'usedPercent','remainingPercent','resetsAt'];
 const ROLLOVER_FIELDS = ['accountAlias','windowKey','priorResetsAt','detectedAt','type',
   'lastPreResetSampleAt','leadSeconds','lastObservedRemainingPercent',
@@ -29,17 +29,23 @@ function validateState(state) {
     throw err('E_HISTORY_SCHEMA');
   if (Object.keys(state.accounts).length > 64) throw err('E_HISTORY_SCHEMA');
   for (const [alias,row] of Object.entries(state.accounts)) {
+    try { normalizeIdentity(row.identity); } catch { throw err('E_HISTORY_SCHEMA'); }
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]{2,47}$/.test(alias) || !exact(row,ACCOUNT_FIELDS) ||
         typeof row.displayName !== 'string' || !exact(row.subscription,
           ['tierLabel','multiplier','membershipExpiresAt','nextBillingAt','source']) ||
         !exact(row.providerPlan, ['family','code','multiplier','source']) ||
         (row.lastAttempt !== null && !exact(row.lastAttempt,
-          ['status','reason','checkedAt','quotaHttpStatus','sessionHttpStatus'])))
+          ['mode','status','reason','checkedAt','quotaHttpStatus','sessionHttpStatus'])))
       throw err('E_HISTORY_SCHEMA');
+    if (row.lastAttempt?.mode !== undefined &&
+        !['COOKIE_ONLY','CODEX_OAUTH'].includes(row.lastAttempt.mode)) throw err('E_HISTORY_SCHEMA');
   }
   for (const row of state.observations) {
     if (!exact(row,WINDOW_FIELDS) || !Object.hasOwn(state.accounts,row.accountAlias) ||
-        !Number.isFinite(row.usedPercent) || !Number.isFinite(row.remainingPercent))
+        !Number.isFinite(row.usedPercent) || !Number.isFinite(row.remainingPercent) ||
+        (row.mode !== undefined && !['COOKIE_ONLY','CODEX_OAUTH'].includes(row.mode)) ||
+        (row.limitId !== undefined && (typeof row.limitId !== 'string' ||
+          !/^[A-Za-z0-9_-]{1,64}$/.test(row.limitId))))
       throw err('E_HISTORY_SCHEMA');
   }
   for (const row of state.rollovers) {

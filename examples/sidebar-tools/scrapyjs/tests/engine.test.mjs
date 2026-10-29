@@ -39,6 +39,13 @@ test('browser extraction callback executes outside the Worker/Webpack closure',a
 
 test('retained source snapshots match the recorded hashes',async()=>{
   const pin=JSON.parse(await readFile(new URL('../vendor/scrapyjs/provenance.json',import.meta.url)));
+  const receiptBytes=await readFile(new URL('../vendor/scrapyjs/browser.original.build.json',import.meta.url));
+  const upstream=JSON.parse(receiptBytes);
+  assert.equal(createHash('sha256').update(receiptBytes).digest('hex'),pin.upstreamBuildReceiptSha256);
+  assert.equal(upstream.sourceHash,pin.sourceHash);
+  assert.equal(upstream.sdkHash,pin.browserSha256);
+  assert.deepEqual(pin.inputs.map(row=>row.file).sort(),Object.keys(upstream.inputs).filter(file=>file.startsWith('src/')).sort());
+  for(const row of pin.inputs)assert.equal(row.sha256,upstream.inputs[row.file],row.file);
   for(const row of pin.inputs){const data=await readFile(new URL('../vendor/scrapyjs/'+row.file,import.meta.url));assert.equal(createHash('sha256').update(data).digest('hex'),row.sha256,row.file);}
 });
 

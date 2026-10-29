@@ -44,7 +44,11 @@
           const data = value.result?.data ?? value.value?.data;
           if (!Array.isArray(data)) throw new Error('结果中没有可导出的记录数组');
           const keys = [...new Set(data.flatMap(row => Object.keys(row)))];
-          const cell = v => '"' + String(v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : v).replaceAll('"','""') + '"';
+          const cell = v => {
+            let value=String(v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : v);
+            if(typeof v==='string' && (/^[\s\u0000-\u001f]*[=+@-]/u.test(value)||/^[\t\r\n]/u.test(value)))value="'"+value;
+            return '"'+value.replaceAll('"','""')+'"';
+          };
           text = [keys.map(cell).join(','), ...data.map(row => keys.map(key => cell(row[key])).join(','))].join('\r\n');
           if (!keys.length) throw new Error('没有可导出的字段');
         }

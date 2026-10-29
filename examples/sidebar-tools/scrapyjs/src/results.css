@@ -1,0 +1,20 @@
+/* Shared UI owns tokens and buttons; these rules only arrange result content. */
+.scrapy-results{display:grid;gap:var(--space-2);min-width:0}
+.scrapy-results .scrapy-cell{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap;line-height:1.6;max-height:3.2em}
+.scrapy-results .scrapy-empty{color:var(--od-sub)}
+.scrapy-results .scrapy-kind{display:block;font-size:var(--od-meta-size);font-weight:400;color:var(--od-sub)}
+.scrapy-results .check .scrapy-kind{display:inline}
+.scrapy-results th.scrapy-col-title,.scrapy-results td.scrapy-col-title{min-width:220px;max-width:280px;width:240px}
+.scrapy-results th.scrapy-col-author,.scrapy-results td.scrapy-col-author{min-width:140px;max-width:180px;width:160px}
+.scrapy-results th.scrapy-col-price,.scrapy-results td.scrapy-col-price{min-width:100px;max-width:140px;width:110px;font-variant-numeric:tabular-nums}
+.scrapy-results th.scrapy-col-url,.scrapy-results td.scrapy-col-url{min-width:220px;max-width:280px;width:240px}
+.scrapy-results th.scrapy-col-description,.scrapy-results td.scrapy-col-description{min-width:280px;max-width:360px;width:320px}
+.scrapy-results .scrapy-record-action{min-width:100px;max-width:120px;width:100px}
+.scrapy-results .scrapy-column-list{display:grid;gap:var(--space-3);padding-left:var(--space-4)}
+.scrapy-results .scrapy-column-list li{display:grid;gap:var(--space-2);border-bottom:1px solid var(--od-line);padding-bottom:var(--space-2)}
+.scrapy-results-dialog{color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3);width:min(640px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto}
+.scrapy-results-dialog[open]{display:grid;gap:var(--space-2)}
+.scrapy-results-dialog::backdrop{background:rgb(0 0 0 / .4)}
+.scrapy-results-dialog textarea{width:100%;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.scrapy-results-dialog h2,.scrapy-results-dialog p{margin:0;overflow-wrap:anywhere}
+.scrapy-results-dialog h2{font-size:14px;flex:1}

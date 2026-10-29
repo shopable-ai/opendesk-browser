@@ -303,7 +303,7 @@
         state.phase = 'starting'; state.stopRequested = false; state.stopAccepted = false;
         // A read begun before this run must not clear its identity/result, even after retirement.
         revision++;
-        state.runProfile = {id: state.selectedId, name: state.records.find(row => row.id === state.selectedId)?.name ?? '未保存配置'};
+        state.runProfile = {id: state.selectedId, name: state.records.find(row => row.id === state.selectedId)?.name ?? '未保存配置',url:expected,startedAt:new Date().toISOString(),config:copy(config)};
         state.retired = false; state.runId = null; state.clientRequestId = null; state.result = null; state.snapshot = null; state.engine = '等待引擎'; emit();
         await sdk.prepare();
         const generation = pageGeneration;

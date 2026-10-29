@@ -1,10 +1,11 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "scrapyjs",
-  "version": "1.5.0",
+  "version": "1.6.1",
   "title": "scrapyjs 采集",
   "description": "保存、切换和复用命名采集配置，编辑字段、分页与详情，运行固定采集任务并查看和下载记录。",
   "capabilities": [
+    "ai.generate",
     "storage.local",
     "currentPage.read",
     "user.export",
@@ -28,9 +29,9 @@
   "delegatedTasks": [
     {
       "taskId": "scrapyjs.capture",
-      "version": "0.3.0",
-      "manifestHash": "1bec7362a33d4aeb4ce051d2eed699aa4876e3c7ae82efc536005f287340f53a",
-      "contentHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f"
+      "version": "0.4.0",
+      "manifestHash": "b0a7b212f244e16de772e54724f1e039a3c7d2d238b9443031a6f37a61af0e95",
+      "contentHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e"
     }
   ],
   "uiRuntime": "opendesk.react-ui.v1"

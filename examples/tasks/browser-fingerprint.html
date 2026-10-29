@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>浏览器环境诊断 · OpenDesk</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./browser-fingerprint/page.css">
+  <script type="module" src="./browser-fingerprint/page.mjs"></script>
+</head>
+<body>
+  <header class="topbar"><div><a href="./demo-form.html">OpenDesk / Browser Test Lab</a><span>独立网页读数</span></div></header>
+  <main>
+    <header class="intro">
+      <p class="eyebrow">BROWSER ENVIRONMENT</p>
+      <h1>这个网页看到了什么？</h1>
+      <p>直接读取当前网页的浏览器环境。在扩展中应用或停止环境设置，回到这里观察实际变化。</p>
+      <p class="target">当前目标 <code id="target">正在读取…</code></p>
+    </header>
+
+    <section class="readings" aria-labelledby="readings-title">
+      <header class="section-heading">
+        <div><h2 id="readings-title">当前浏览器环境</h2><p id="sampling">等待首次采集</p></div>
+        <div class="actions">
+          <label class="auto"><input type="checkbox" id="auto" checked>自动读取</label>
+          <button id="refresh" type="button" class="primary">立即读取</button>
+        </div>
+      </header>
+      <div class="summary"><strong id="comparison">正在读取…</strong><span id="baseline-time"></span></div>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="实际值与本页基线对比">
+        <table>
+          <caption class="sr-only">浏览器字段的当前实际值、基线和变化状态</caption>
+          <thead><tr><th scope="col">字段 / 来源</th><th scope="col">当前实际值</th><th scope="col">本页基线</th><th scope="col">对比</th></tr></thead>
+          <tbody id="fields"></tbody>
+        </table>
+      </div>
+      <p class="cache-warning" id="cache-warning" role="status" hidden>语言标量与语言数组不一致，请分别核对；不能据此判定恢复成功。</p>
+      <footer class="report-actions">
+        <button id="baseline" type="button">记录当前值为基线</button>
+        <div class="actions"><button id="copy" type="button">复制报告</button><button id="download" type="button">下载 JSON</button></div>
+      </footer>
+      <p class="baseline-note">基线是本页打开时或手动记录的值，不保证是未经覆盖的原始环境。刷新页面会重建基线。</p>
+    </section>
+    <p id="feedback" role="status" aria-live="polite"></p>
+    <details id="report"><summary>查看原始 JSON 报告</summary><pre id="report-json" tabindex="0" aria-label="可选择复制的 JSON 报告"></pre></details>
+
+    <div class="notes">
+      <section aria-labelledby="steps-title"><h2 id="steps-title">三步核验</h2><ol>
+        <li><strong>应用前</strong>，先停止已有模拟，再打开本页或记录当前值为基线。</li>
+        <li><strong>应用后</strong>，保持本 Tab 为目标，在扩展选择环境并应用；核对本页实际值与预期。</li>
+        <li><strong>停止后</strong>，点击扩展的「停止 / 恢复」；同时核对本页和扩展的独立恢复报告。</li>
+      </ol><p>自动读取每秒一次，不会重新加载页面。切换 Tab 会结束扩展的原 Session；回到本页看到的可能已经是恢复后的值。</p></section>
+      <section aria-labelledby="limits-title"><h2 id="limits-title">读数能说明什么</h2>
+        <p>这些值由本页 JavaScript 直接读取，不接收扩展传来的配置。UA 与低熵 UA-CH 分别展示，不能用它们证明真实操作系统。</p>
+        <dl class="limits"><dt>HTTP Accept-Language</dt><dd>无法验证 · UNVERIFIABLE（无独立网络证据）</dd><dt>Geolocation</dt><dd>不支持 · UNSUPPORTED（不申请定位）</dd><dt>公网 IP / 独立 Profile</dt><dd>本页不采集、不修改</dd></dl>
+        <p>数据只在本页内存中处理；复制和下载由你主动触发，没有远程上传。</p>
+      </section>
+    </div>
+    <noscript>此诊断需要浏览器允许本页 JavaScript。未运行时没有有效读数。</noscript>
+  </main>
+</body>
+</html>

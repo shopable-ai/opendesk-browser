@@ -1,0 +1,12 @@
+<!doctype html><meta charset="utf-8"><title>Pagination completion fixture · two batches</title>
+<main id="rows"></main><a class="next" href="pagination-batches-empty.html">下一页</a>
+<script>
+// First batch remains unchanged for 750ms: a 300/500ms stability heuristic fails.
+setTimeout(()=>document.querySelector('#rows').insertAdjacentHTML('beforeend',
+  '<article><span class="id">B</span><h1>首批</h1></article>'),100);
+setTimeout(()=>{
+  document.querySelector('#rows').insertAdjacentHTML('beforeend',
+    '<article><span class="id">C</span><h1>第二批</h1></article>');
+  document.body.insertAdjacentHTML('beforeend','<div class="page-ready">本页完整</div>');
+},850);
+</script>

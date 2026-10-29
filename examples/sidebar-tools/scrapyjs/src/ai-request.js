@@ -1,0 +1,36 @@
+export function requireGeneration(value){
+  if(!Number.isSafeInteger(value)||value<1)throw Error('AI Provider 身份缺失，请重新读取配置后生成。');
+  return value;
+}
+
+// One user action owns one request. Cancellation also fences read-only preparation.
+export function createAiRequest(request,payload,onInfo=()=>{}){
+  let phase='preparing',cancelled=false;
+  const id=payload.requestId;
+  return {id,
+    get unknown(){return phase==='unknown';},
+    async run(){
+      try{
+        if(JSON.stringify({request:payload.request,context:payload.context}).length>20000)throw Error('发送资料合计超过 20000 字符，请缩短需求、HTML 样本或错误资料；输入已保留。');
+        const info=await request('ai.info',{});
+        if(cancelled)return null;
+        const generation=requireGeneration(info.generation);onInfo(info);
+        phase='sent';
+        const result=await request('ai.generate',{...payload,providerGeneration:generation});
+        if(cancelled)return null;
+        if(result.requestId!==id)throw Error('AI 响应身份不符，未应用。');
+        if(requireGeneration(result.providerGeneration)!==generation)throw Error('AI Provider 已变化，请重新生成。');
+        return result;
+      }catch(error){if(phase==='sent'&&isUnknown(error))phase='unknown';throw error;}
+      finally{if(phase!=='unknown')phase='settled';}
+    },
+    async cancel(){
+      cancelled=true;
+      if(phase==='preparing'||phase==='settled')return {requestId:id,state:'cancelled'};
+      const reply=await request('ai.cancel',{requestId:id});
+      if(reply?.requestId!==id||!['cancelled','completed','failed','unknown'].includes(reply.state))throw Error('停止回执身份或状态无效，原请求仍在等待确认。');
+      return reply;
+    }
+  };
+}
+export const isUnknown=error=>['E_AI_TIMEOUT','E_AI_UNKNOWN','E_AI_OUTCOME_UNKNOWN','E_TOOL_TIMEOUT','E_TIMEOUT'].includes(error?.code);

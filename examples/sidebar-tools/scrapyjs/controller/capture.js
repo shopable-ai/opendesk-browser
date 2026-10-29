@@ -75,7 +75,7 @@ export async function runCapture(input,page,{pipeline}={}) {
   const engine=makeEngine(true);
   const spider=new ListSpider({...config,name:'opendesk_capture',start_urls:[allowedUrl(config.url)],output:null,
     timeout:config.timeoutMs??30000,
-    puppeteerConfig:{waitForSelector:config.waitForSelector,nextPageSelector:config.nextPageSelector,navigationTimeout:config.timeoutMs??30000}});
+    pageConfig:{waitForSelector:config.waitForSelector,nextPageSelector:config.nextPageSelector,navigationTimeout:config.timeoutMs??30000}});
   spider.page=facade;engine.spider=spider;
   const seen=new Map();
   engine.addPipeline(item=>{

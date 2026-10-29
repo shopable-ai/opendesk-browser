@@ -11,7 +11,7 @@ const deny = (res,code,reason)=>{
   res.end(JSON.stringify({error:reason}));
 };
 const secureMatch=(a,b)=>{
-  if (typeof a!=='string' || a.length!==b.length) return false;
+  if (typeof a!=='string' || Buffer.byteLength(a)!==Buffer.byteLength(b)) return false;
   return timingSafeEqual(Buffer.from(a),Buffer.from(b));
 };
 

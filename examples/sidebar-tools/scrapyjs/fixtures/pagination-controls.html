@@ -1,0 +1,20 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Pagination rejection fixture</title>
+<main id="rows"><article><span class="id">A</span><h1>拒绝动作验证</h1></article></main>
+<div class="page-ready">本页完整</div>
+<p>已发生的点击：<output id="action-count">0</output></p>
+<button id="button" type="button">没有 href 的下一页</button>
+<a id="hash" href="#more">同文档下一页</a>
+<a class="duplicate" href="pagination-batches-empty.html">重复下一页 1</a>
+<a class="duplicate" href="pagination-batches-empty.html">重复下一页 2</a>
+<a id="forbidden" href="https://example.invalid/">权限外下一页</a>
+<script>
+// A rejected configuration must leave this visible counter at zero and stay
+// on this document. This fixture never sends a request on its own.
+document.addEventListener('click', event => {
+  if (!event.target.closest('button, a')) return;
+  const counter = document.querySelector('#action-count');
+  counter.value = String(Number(counter.value) + 1);
+});
+</script>

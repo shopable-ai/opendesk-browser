@@ -33,7 +33,7 @@ class ChromeDownloaderMiddleware extends IDownloaderMiddleware {
     }
 
     await this._navigateIfNeeded(page, targetUrl, request, spider);
-    await this._waitForReadyState(page, request);
+    await this._waitForReadyState(page, request, spider);
 
     const shouldCaptureHtml = this.shouldCaptureHtml(request, spider);
     const body = shouldCaptureHtml ? await page.content() : '';
@@ -79,7 +79,7 @@ class ChromeDownloaderMiddleware extends IDownloaderMiddleware {
       );
     }
 
-    for (const method of ['goto', 'waitForNavigation', 'content', 'url']) {
+    for (const method of ['goto', 'content', 'url']) {
       if (typeof page[method] !== 'function') {
         throw new Error(
           `ChromePage instance is missing required method "${method}".`
@@ -124,12 +124,19 @@ class ChromeDownloaderMiddleware extends IDownloaderMiddleware {
     return true;
   }
 
-  async _waitForReadyState(page, request) {
-    const selector = request.waitForSelector || request.meta?.waitForSelector;
+  async _waitForReadyState(page, request, spider) {
+    const modern = typeof page.locator === 'function';
+    // Legacy Spider selectors may be XPath; ChromeSpider owns their dispatch.
+    const selector = request.waitForSelector || request.meta?.waitForSelector ||
+      (modern ? spider?.pageConfig?.waitForSelector : undefined);
     if (!selector) return;
 
     const timeout = request.meta?.waitTimeout || request.timeout || this.defaultTimeout;
-    await page.waitForSelector(selector, { timeout });
+    if (modern) {
+      await page.locator(selector).first().waitFor({ state: 'attached', timeout });
+    } else {
+      await page.waitForSelector(selector, { timeout });
+    }
   }
 
   _normalizeUrl(url) {

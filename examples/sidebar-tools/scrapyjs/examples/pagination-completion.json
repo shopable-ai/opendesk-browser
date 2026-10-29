@@ -1,0 +1,13 @@
+{
+  "url": "http://127.0.0.1:43111/scrapyjs-fixtures/pagination-batches-1.html",
+  "itemConfig": {
+    "_listContainer": "#rows",
+    "_listItem": "article",
+    "id": ".id::text",
+    "title": "h1::text"
+  },
+  "waitForSelector": ".page-ready",
+  "timeoutMs": 10000,
+  "nextPageSelector": "a.next",
+  "maxPages": 5
+}

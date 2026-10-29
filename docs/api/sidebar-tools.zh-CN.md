@@ -296,3 +296,7 @@ v1/v2 JSON 直接导入既有工具安装器，无需开发者另编译 Chrome �
 规范 `browser.clipboard.writeText` / `browser.downloads.text` 与便捷层共用原 `user.export`、安装锁和服务；`OpenDeskTool.request()` 使用这两个规范操作名。菜单授权通过可信详情按钮与 Chrome 原生权限，不新增工具 alert/confirm/prompt。
 
 R1.3 历史实施、组件和原生状态及精确候选见 [R1.3 总表](../framework/workstreams/browser-sdk-r13-20261011.md)。该记录曾引用的 `browser-sdk-r13-acceptance.json` 已不在当前 main，不能据失效链接确认验收；后续能力和当前可调用状态查 [Browser SDK](browser-sdk.zh-CN.md)。组件通过不能提升为原生菜单、F3 或 ZIP 通过。
+
+### 通用结构化 AI 请求
+
+安装能力 `ai.generate` 提供 `ai.info` / `ai.generate` / `ai.cancel`；先读取 generation，发送时以 `providerGeneration` 原样绑定。每次发送经过可信 Host 的真实点击确认。完整字段、容量、取消与证据语义见 [Sidebar Tool AI bridge](sidebar-tools-ai.zh-CN.md)。

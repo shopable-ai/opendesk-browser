@@ -12,6 +12,22 @@ const MAX_LEAD_SECONDS = duration => duration >= 172_800 ? 2 * 3600 : 15 * 60;
 export const validateAlias = x => typeof x === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{2,47}$/.test(x);
 export const emptyState = () => ({schemaVersion: SCHEMA_VERSION, accounts: {}, observations: [], rollovers: []});
 
+// Business profile only. Cached claims remain labelled as cached, even after the
+// server independently confirms the user/account IDs. No JWT is persisted.
+export function normalizeIdentity(input) {
+  if (input == null) return null;
+  const fields = ['userId','accountId','email','emailSource','displayName','displayNameSource','observedAt'];
+  if (!isObject(input) || Object.keys(input).some(k=>!fields.includes(k)) ||
+      ![input.userId,input.accountId].every(x=>typeof x==='string' && /^[A-Za-z0-9_.:@|+-]{1,256}$/.test(x)) ||
+      typeof input.email !== 'string' || input.email.length>320 || !/^[^\s@]+@[^\s@]+$/.test(input.email) ||
+      !['USAGE_RESPONSE','OAUTH_CACHE'].includes(input.emailSource) || !iso(input.observedAt) ||
+      (input.displayName !== null && (typeof input.displayName!=='string' || !input.displayName.trim() ||
+        input.displayName.length>128 || /[\x00-\x1f\x7f]/.test(input.displayName))) ||
+      !(input.displayName===null ? input.displayNameSource==='UNKNOWN' :
+        ['USAGE_RESPONSE','OAUTH_CACHE'].includes(input.displayNameSource))) throw fail('E_ACCOUNT_IDENTITY');
+  return Object.fromEntries(fields.map(k=>[k,input[k]]));
+}
+
 export function normalizeProviderPlan(raw) {
   const planCode = typeof raw === 'string' && /^[A-Za-z0-9_ -]{1,40}$/.test(raw) ? raw.trim().toLowerCase() : null;
   if (!planCode) return {family: 'UNKNOWN', code: null, multiplier: null, source: 'UNKNOWN'};
@@ -45,6 +61,7 @@ export function registerAccount(state, {alias, displayName, subscription} = {}) 
   next.accounts[alias] = {
     displayName,
     subscription: normalizeSubscription(subscription),
+    identity: next.accounts[alias]?.identity ?? null,
     providerPlan: next.accounts[alias]?.providerPlan ?? normalizeProviderPlan(null),
     lastAttempt: next.accounts[alias]?.lastAttempt ?? null,
     lastSuccessAt: next.accounts[alias]?.lastSuccessAt ?? null
@@ -54,12 +71,15 @@ export function registerAccount(state, {alias, displayName, subscription} = {}) 
 
 function cleanWindow(window) {
   if (!isObject(window) || !/^(primary|secondary)$/.test(window.key) ||
+      (window.limitId !== undefined && (typeof window.limitId !== 'string' ||
+        !/^[A-Za-z0-9_-]{1,64}$/.test(window.limitId))) ||
       !Number.isInteger(window.durationSeconds) || window.durationSeconds < 60 ||
       window.durationSeconds > 366 * 86400 || !percentage(window.usedPercent) ||
       !percentage(window.remainingPercent) ||
       Math.abs(100 - window.usedPercent - window.remainingPercent) > 0.011 ||
       !iso(window.resetsAt)) throw fail('E_QUOTA_WINDOW_INVALID');
-  return {windowKey: `codex:${window.key}:${window.durationSeconds}`,
+  const limitId = window.limitId ?? 'codex';
+  return {windowKey: `${limitId}:${window.key}:${window.durationSeconds}`, limitId,
     slot: window.key, kind: window.durationSeconds >= 172_800 ? 'LONG_WINDOW' : 'SHORT_WINDOW',
     durationSeconds: window.durationSeconds, usedPercent: window.usedPercent,
     remainingPercent: window.remainingPercent, resetsAt: window.resetsAt};
@@ -67,12 +87,13 @@ function cleanWindow(window) {
 
 function cleanAttempt(result) {
   if (!isObject(result) || !['OK','AUTH_REQUIRED','SCHEMA_UNKNOWN','RATE_LIMITED',
-    'UNAVAILABLE','IDENTITY_UNVERIFIED'].includes(result.status) || result.mode !== 'COOKIE_ONLY' ||
+    'UNAVAILABLE','IDENTITY_UNVERIFIED'].includes(result.status) ||
+    !['COOKIE_ONLY','CODEX_OAUTH'].includes(result.mode) ||
     !iso(result.checkedAt)) throw fail('E_PROBE_RESULT');
   const reason = typeof result.reason === 'string' && /^[A-Z0-9_]{1,80}$/.test(result.reason)
     ? result.reason : 'UNSPECIFIED';
   const http = x => Number.isInteger(x) && x >= 100 && x <= 599 ? x : null;
-  return {status: result.status, reason, checkedAt: result.checkedAt,
+  return {mode: result.mode, status: result.status, reason, checkedAt: result.checkedAt,
     quotaHttpStatus: http(result.quotaHttpStatus), sessionHttpStatus: http(result.sessionHttpStatus)};
 }
 
@@ -88,14 +109,26 @@ export function recordProbeResult(state, alias, result) {
     account.lastAttempt = attempt;
     return next; // Failure is retained without clearing last success or pretending usage=0.
   }
-  if (result.sessionUserVerified !== true || result.workspaceVerified !== true ||
-      result.workspaceEvidence !== 'QUOTA_ACCOUNT_ID' ||
-      !Array.isArray(result.windows) || result.windows.length < 1 || result.windows.length > 2)
+  const identityVerified = result.mode === 'COOKIE_ONLY'
+    ? result.workspaceEvidence === 'QUOTA_ACCOUNT_ID'
+    : result.workspaceEvidence === 'OAUTH_USAGE_USER_AND_ACCOUNT_IDS' &&
+      result.identityEvidence === 'OAUTH_TOKEN_CLAIMS_AND_USAGE_RESPONSE_USER_ACCOUNT_IDS';
+  if (result.sessionUserVerified !== true || result.workspaceVerified !== true || !identityVerified ||
+      !Array.isArray(result.windows) || result.windows.length < 1 ||
+      result.windows.length > (result.mode === 'COOKIE_ONLY' ? 2 : 32))
     throw fail('E_PROBE_UNVERIFIED');
   const windows = result.windows.map(cleanWindow);
+  if (result.identity != null) {
+    const identity = normalizeIdentity(result.identity);
+    if (result.mode !== 'CODEX_OAUTH' || identity.observedAt !== attempt.checkedAt) throw fail('E_ACCOUNT_IDENTITY');
+    if (account.identity && (identity.userId !== account.identity.userId || identity.accountId !== account.identity.accountId ||
+        identity.email.toLowerCase() !== account.identity.email.toLowerCase())) throw fail('E_ACCOUNT_IDENTITY_CHANGED');
+    account.identity = identity;
+  }
   if (new Set(windows.map(x=>x.windowKey)).size !== windows.length) throw fail('E_QUOTA_DUPLICATE');
   const plan = normalizeProviderPlan(result.planType);
-  const samples = windows.map(x => ({accountAlias: alias, observedAt: attempt.checkedAt, ...x}));
+  const samples = windows.map(x => ({accountAlias: alias, mode: result.mode,
+    observedAt: attempt.checkedAt, ...x}));
 
   for (const sample of samples) {
     const prior = next.observations.findLast(x => x.accountAlias === alias && x.windowKey === sample.windowKey);
@@ -136,18 +169,19 @@ export function listAccounts(state) {
   return Object.entries(state.accounts).map(([alias, account]) => {
     const latest = state.observations.filter(x=>x.accountAlias === alias && x.observedAt === account.lastSuccessAt);
     const windows = [...new Map(latest.map(x=>[x.windowKey,x])).values()]
-      .map(({windowKey,slot,kind,durationSeconds,usedPercent,remainingPercent,resetsAt,observedAt})=>
-        ({windowKey,slot,kind,durationSeconds,usedPercent,remainingPercent,resetsAt,observedAt}));
-    return {alias, displayName: account.displayName, providerPlan: account.providerPlan,
+      .map(({windowKey,limitId,mode,slot,kind,durationSeconds,usedPercent,remainingPercent,resetsAt,observedAt})=>
+        ({windowKey,limitId:limitId ?? 'codex',mode:mode ?? 'COOKIE_ONLY',slot,kind,durationSeconds,
+          usedPercent,remainingPercent,resetsAt,observedAt}));
+    return {alias, displayName: account.displayName, identity: account.identity ?? null, providerPlan: account.providerPlan,
       subscription: account.subscription, lastSuccessAt: account.lastSuccessAt,
-      lastAttempt: account.lastAttempt, windows};
+      lastAttempt: account.lastAttempt ? {mode:'COOKIE_ONLY',...account.lastAttempt} : null, windows};
   });
 }
 
 export function accountHistory(state, alias, {limit=100, windowKey=null}={}) {
   if (!validateAlias(alias) || !Object.hasOwn(state.accounts,alias)) throw fail('E_ACCOUNT_UNKNOWN');
   if (!Number.isInteger(limit) || limit < 1 || limit > 500) throw fail('E_LIMIT');
-  if (windowKey !== null && (typeof windowKey !== 'string' || !/^codex:(primary|secondary):\d{2,8}$/.test(windowKey)))
+  if (windowKey !== null && (typeof windowKey !== 'string' || !/^[A-Za-z0-9_-]{1,64}:(primary|secondary):\d{2,8}$/.test(windowKey)))
     throw fail('E_WINDOW_KEY');
   const chosen = x=>x.accountAlias === alias && (windowKey===null || x.windowKey===windowKey);
   return {observations:state.observations.filter(chosen).slice(-limit),

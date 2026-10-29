@@ -96,7 +96,7 @@ local-controller 首次 MCP 顶层 value 应为 `{version:1,title:"OpenDesk Brow
 
 Stop 走原 RunHost，停止原因 E_CANCELLED；完成回执后继续查询原 runId 确认终态与 released。它不撤销已发生的点击、请求、提交或下载。Stop 丢 ACK 时只读查原结果，不能自动重发 Stop。
 
-run.deadlineMs 默认 30000，范围 1000–120000；到期以 E_TIMEOUT 收尾。Locator 等待默认 30 秒，单次 timeout 上限 120 秒，同时受运行期限约束；timeout:0 是立即到期。未知 native effect/缺回执/撤权仍保守拦截。[断连恢复](dependencies-and-errors.zh-CN.md#断连和未知结果)。
+run.deadlineMs 默认 30000，范围 1000–120000；到期以 E_TIMEOUT 收尾。Locator 等待默认 30 秒，单次 timeout 上限 120 秒，同时受运行期限约束；timeout:0 取消局部超时，仍受运行期限约束。未知 native effect/缺回执/撤权仍保守拦截。[断连恢复](dependencies-and-errors.zh-CN.md#断连和未知结果)。
 
 ## 已安装 Task 的存储与调用
 

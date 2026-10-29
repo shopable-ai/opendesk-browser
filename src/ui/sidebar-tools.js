@@ -1,3 +1,4 @@
+import {createSidebarToolAIAdapter,validateSidebarToolAIRequest} from './ai/sidebar-tool-adapter.js';
 import {createTaskDelegationHost} from '../platform/host/task-delegation.js';
 import {TASK_DELEGATION_OPERATIONS,taskDelegationReview} from '../platform/tasks/delegation-contract.js';
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
@@ -78,6 +79,13 @@ export function checkSidebarToolRequestBudget(message){
   let serialized;
   try{serialized=JSON.stringify(message);}catch{return {ok:false,code:'E_SCHEMA'};}
   if(typeof serialized!=='string')return {ok:false,code:'E_SCHEMA'};
+  if(message?.operation==='ai.generate'){
+    try{validateSidebarToolAIRequest(message.payload);}
+    catch{return {ok:false,code:'E_AI_REQUEST'};}
+    const payload=JSON.stringify(message.payload);
+    // Allow the same field budgets as the adapter, plus only a bounded envelope.
+    return serialized.length-payload.length<=512?{ok:true}:{ok:false,code:'E_LIMIT'};
+  }
   const operation=typeof message?.operation==='string'?browserOperation(message.operation):null;
   if(operation){
     let input;
@@ -138,7 +146,7 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
   const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
   function toolLocaleContext(tool){
     const requested=localeController?.getLocale?.()||'zh-CN';
@@ -374,6 +382,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   doc.addEventListener('click',clearNavigationNotice,true);
   listeners.push(()=>doc.removeEventListener('click',clearNavigationNotice,true));
   const capabilities=Object.freeze({
+    'ai.generate':'经可信确认向当前 AI Provider 发送本次请求与上下文（可能产生费用）',
     'storage.local':'保存此工具的数据',
     'currentPage.read':'读取当前网页标题和地址',
     'browser.page.environment.read':'只读检测已授权当前网页的 UA、语言、时区、视口、屏幕及像素比',
@@ -880,15 +889,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     pendingAction=null;patchToolField(view, actionReview, {hidden: true});
     await choice.run(event); // Do not defer actual Chrome user activation.
   }
-  function requestBrowserClick({message,button,toolId,run}){
+  function requestBrowserClick({message,button,toolId,run,signal=null}){
     if(disposed||busy)return Promise.reject(Object.assign(new Error('Tool UI unavailable'),{code:'E_HOST_CLOSED'}));
     return new Promise((resolve,reject)=>{
       let settled=false,timer=null;
       const settle=(ok,value)=>{
         if(settled)return;settled=true;clearTimeout(timer);
+        signal?.removeEventListener('abort',abortReview);
         if(ok)resolve(value);else reject(value);
       };
+      const abortReview=()=>{if(pendingAction?.cancel===cancel)cancelActionReview();else cancel();};
       const cancel=()=>settle(false,Object.assign(new Error('Browser action cancelled'),{code:'E_CANCELLED'}));
+      signal?.addEventListener('abort',abortReview,{once:true});
+      if(signal?.aborted){abortReview();return;}
       requestActionReview({message,button,toolId,cancel,run:event=>{
         if(!event?.isTrusted){cancel();return;}
         // Expiration only applies while approval has not been clicked. Once
@@ -976,7 +989,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       },'*');
     return response.data;
   }
+  let sidebarAI=null;
   function destroyFrame() {
+    sidebarAI?.dispose();sidebarAI=null;
     if(taskDelegationHost){void taskDelegationHost.dispose();taskDelegationHost=null;}
     developmentStorage?.revoke();developmentStorage=null;
     if(promptHost){const previous=promptHost;promptHost=null;previous.dispose();}
@@ -1985,6 +2000,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(operation==='currentPage.info'&&tool.capabilities.includes('currentPage.read'))
         return {status:'unavailable',message:'只读开发预览没有绑定业务网页'};
       throw new Error('开发预览不允许真实写入、打开任务或控制网页');
+    }
+    if(['ai.info','ai.generate','ai.cancel'].includes(operation)){
+      if(!tool.capabilities.includes('ai.generate'))throw Object.assign(new Error('缺少 ai.generate 权限'),{code:'E_CAPABILITY'});
+      await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
+      assertSession(source,token);
+      sidebarAI ||= createSidebarToolAIAdapter({providerRuntime,instanceId:token,
+        installEpoch:revocationEpoch==null?null:String(revocationEpoch),
+        assertCurrent:()=>{assertSession(source,token);if(readOnlyPreview||frameRevocationEpoch!==revocationEpoch||
+          revocationEpochs[tool.id]!==revocationEpoch||!sidebarToolEnabled(enableRecords,tool.id))
+          throw Object.assign(new Error('工具授权已变化'),{code:'E_TOOL_CHANGED'});},
+        confirm:(data,signal)=>requestBrowserClick({signal,toolId:tool.id,button:'发送给此 AI Provider',
+          message:'本次 AI 接收方与完整发送数据：\n'+JSON.stringify(data,null,2),
+          run:async()=>{await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
+            await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);return true;}})});
+      return sidebarAI.request(operation,payload);
     }
     if(TASK_DELEGATION_OPERATIONS.includes(operation)){
       if(!frame||source!==frame.contentWindow||!runHost||!tool.capabilities.includes('tasks.run'))

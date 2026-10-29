@@ -97,3 +97,21 @@
 ## Open questions
 - 基线未复现多个悬浮挂载；Side Panel 与网页各有一个合法展示面。基线实际安装1.0.10，新候选1.0.11须经原可信更新流程核对。
 - 基线约70仅为历史体验初评。当前复现明确包含固定 CONTENTS、日语设置中文、旧眼睛按钮竖排与显示控制重复，不能称为正式评分。
+
+## Browser Fingerprint HTTP 诊断页（2026-10-30，独立作用域）
+
+- Status: Active。以下仅约束 Browser Fingerprint 诊断页，保留上方阅读目录设计和并行工作。
+- Source of truth: 用户明确选择独立 HTTP 诊断页，并要求已完成的扩展不过度修改。依据：`examples/sidebar-tools/browser-fingerprint/README.zh-CN.md`、R27、`src/ui/design-tokens.css`、d57 Host 实测。
+- Brand / Product goals: 清晰、克制、以网页实际值为信任依据。HTTP 网页自行采集 UA、低熵 UA-CH、语言、时区和视口；扩展仍负责配置/应用/停止/可信报告。不是反关联或网络身份认证产品。
+- Personas and jobs: QA / 本地化测试人员在同一目标 Tab 上观察应用前、应用后、停止后的真实差异。
+- Information architecture: Browser Test Lab 链接 → 独立诊断页；顶部目标来源及采集状态 → 实际值与基线对比 → 可展开的核验步骤/能力边界。主要动作：立即读取、暂停自动读取、记录基线、复制/下载报告。
+- Design principles: 本页值不消费扩展配置/消息；读取标量语言后读取完整数组，显露缓存不一致；基线只称“本页基线”，不能假定打开时未被覆盖；差异仅表示变化，不推定预设成功。
+- Visual language / Components: R27 单 gutter、14px 正文、4/8/12/16/24px 间距；独立 CSS 映射 canonical Tokens，不加载可信 Host 样式或 Tailwind；原生 button/checkbox/details，表格包含字段、当前值、基线及状态。实际值为视觉主体，无装饰图。
+- Accessibility: WCAG AA 相关项；语义表头/标题、可见焦点、文字状态；自动刷新不替换控件/抢焦点，不逐秒朗读时间戳；复制失败提供可选原文，保留键盘操作。
+- Responsive behavior: 正常 Mac 窗口与默认缩放；长 UA 自然换行，表格局部滚动。专项宽度/缩放矩阵 OUT_OF_SCOPE。
+- Interaction states: 首次采集后建立本页基线；单字段异常显示不可读取，不伪造值；隐藏页暂停采集，回到前台读新值；手动暂停可随时立即读；基线仅内存保留，刷新页面重新建立；复制失败可展开报告手动复制。
+- Content voice: 中文优先，英文技术字段保留；“变化 / 与基线一致 / 不可读取”不写 PASS。HTTP Accept-Language 为 UNVERIFIABLE；Geolocation UNSUPPORTED；不采集公网 IP。
+- Implementation constraints: 新增普通静态 HTTP 页面及自身资源，不使用 Chrome/SDK/特权注入、远程依赖、持久存储或遥测，不改扩展工具字节与 Host。复用现有 43111 静态服务；不重建 Browser。目标版本仍 0.2.2。
+- Test/screenshot expectations: 单字段异常、完整数组差异和不可读取不能判一致的最小行为测试；真实 Mac 页面读取/暂停/基线/复制/导出及德国应用/停止可见验证；独立 reviewer 对源码、实测证据和截图评分。
+- Review rubric: 功能、真实执行、数据一致性、生命周期、权限安全、交互、安装兼容、测试证据各100分，均≥95才称此页评审达标；缺证据记 NOT_TESTED，页评分不替代扩展发行验收。
+- Open questions: 用户已选择独立 HTTP 页；任意网页悬浮面板不在本轮。新页公开托管地址未指定，先交付可访问本地 HTTP URL。

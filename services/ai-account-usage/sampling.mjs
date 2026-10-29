@@ -8,6 +8,8 @@ export function nextSampleDecision(account, nowMs=Date.now()) {
     return {dueAt:null,reason:'PAUSED_AUTH'};
   if (status==='RATE_LIMITED') return {dueAt:null,reason:'PAUSED_RATE_LIMIT'};
   if (status==='SCHEMA_UNKNOWN') return {dueAt:null,reason:'PAUSED_SCHEMA'};
+  if (account.lastAttempt?.mode==='CODEX_OAUTH' && status!=='OK')
+    return {dueAt:null,reason:'PAUSED_OAUTH_ATTEMPT'};
   const prior=account.lastAttempt?.checkedAt ? Date.parse(account.lastAttempt.checkedAt) : null;
   if (prior===null || !Number.isFinite(prior)) return {dueAt:new Date(nowMs).toISOString(),reason:'FIRST_SAMPLE'};
   const resets=(account.windows||[]).map(x=>Date.parse(x.resetsAt)).filter(Number.isFinite);

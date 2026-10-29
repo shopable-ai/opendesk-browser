@@ -232,6 +232,44 @@ test('admitted driver stages replace existing value, re-resolve repaint, click o
     assert.equal(f.dom.submits,1);
   } finally {f.dispose();}
 });
+test('fill focus mutations stop after the focus effect without replay',async t=>{
+  for (const mode of ['replacement','disabled','hidden','readonly','inert','obscured']) await t.test(mode,async()=>{
+    const f=fixture({duplicateCommit:true});
+    try {
+      const input=f.dom.input, original=input.value;
+      const replacement=new Element('input',{id:'keyword',type:'search',value:'fresh'});
+      replacement.box={...input.box};
+      let focuses=0;
+      input.onEvent=null;
+      replacement.focus=()=>{focuses++;};
+      input.focus=()=>{
+        focuses++;
+        if(mode==='replacement') input.replaceWith(replacement);
+        else if(mode==='disabled') input.disabled=true;
+        else if(mode==='hidden') input.setAttribute('hidden','');
+        else if(mode==='readonly') input.readOnly=true;
+        else if(mode==='inert') input.inert=true;
+        else input.setAttribute('data-pointer-events','none');
+      };
+      await assert.rejects(f.context.page.locator('#keyword').fill('wanted',{timeout:400}),{
+        code:'E_ACTION_STATE_NOT_REACHED'});
+      assert.equal(focuses,1,'focus is an effect and must not be replayed');
+      assert.equal(f.commits,1,'no fresh commit after focus changed the target');
+      assert.equal(input.value,original,'do not write the detached or newly non-actionable input');
+      assert.equal(replacement.value,'fresh','do not fill the replacement automatically');
+      assert.deepEqual(input.events,[]);
+      assert.deepEqual(replacement.events,[]);
+      const outcome=f.receipts.filter(row=>row.stage==='tabs.sendMessage' && row.receipt.value)
+        .map(row=>decodeValue(row.receipt.value)).find(value=>value?.committed!==undefined);
+      assert.equal(outcome?.committed,true,'the confirmed focus must be recorded as an effect');
+      assert.equal(outcome?.stateReached,false);
+      assert.equal(f.receipts.filter(row=>row.stage==='locator.commitIntent').length,1);
+      assert.equal(f.receipts.some(row=>row.stage==='locator.commitNoEffect' || row.stage==='packaged.finalFailure'),false,
+        'a post-focus failure is not proof of no effect');
+    } finally {f.dispose();}
+  });
+});
+
 test('duplicate semantic match fails strictly; no click effects',async()=>{
   const f=fixture();
   try {

@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "scope": "R1.4-LIVE-CODEX-OAUTH",
+  "mode": "CODEX_OAUTH",
+  "startedAt": "2026-10-29T15:08:36.593842Z",
+  "credentialSource": "USER_AUTHORIZED_EXISTING_CODEX_AUTH",
+  "requests": [
+    {
+      "purpose": "codex-usage",
+      "method": "GET",
+      "path": "/backend-api/wham/usage",
+      "httpStatus": 200,
+      "contentType": "application/json"
+    }
+  ],
+  "retries": 0,
+  "refreshRequests": 0,
+  "rawResponsePersisted": false,
+  "G1": "PASS",
+  "G2": "NOT_TESTED",
+  "officialPageComparison": "NOT_TESTED",
+  "chromeLoginUnchanged": "NOT_TESTED",
+  "cookieEditorVaultUnchanged": "NOT_TESTED",
+  "membershipExpiresAt": null,
+  "membershipExpirySource": "UNKNOWN",
+  "sourceReference": {
+    "upstreamVerified": true,
+    "appServerNoRetrySafe": false,
+    "cliVersion": "0.164.0",
+    "tag": "rust-v0.164.0",
+    "commit": "6aaac694803004a63c6f393d153c96d22521a6b9",
+    "url": "https://chatgpt.com/backend-api/wham/usage",
+    "userAgent": "codex-cli",
+    "requestSource": "https://github.com/openai/codex/blob/6aaac694803004a63c6f393d153c96d22521a6b9/codex-rs/backend-client/src/client/rate_limit_resets.rs#L124-L128",
+    "headersSource": "https://github.com/openai/codex/blob/6aaac694803004a63c6f393d153c96d22521a6b9/codex-rs/backend-client/src/client.rs#L269-L289",
+    "identitySource": "https://github.com/openai/codex/blob/6aaac694803004a63c6f393d153c96d22521a6b9/codex-rs/app-server/src/request_processors/account_processor.rs#L1227-L1237"
+  },
+  "cachedIdentity": {
+    "accountIdConsistent": true,
+    "userIdConsistent": true,
+    "emailConsistent": true,
+    "accessNotExpired": true,
+    "jwtSignatureIndependentlyVerified": false,
+    "source": "LOCAL_OAUTH_TOKEN_CLAIMS"
+  },
+  "serverIdentity": {
+    "accountIdPresent": true,
+    "userIdPresent": true,
+    "accountIdMatches": true,
+    "userIdMatches": true,
+    "emailReturned": true
+  },
+  "identityEvidence": "OAUTH_TOKEN_CLAIMS_AND_USAGE_RESPONSE_USER_ACCOUNT_IDS",
+  "planType": "pro",
+  "cachedPlanMatchesServer": true,
+  "windows": [
+    {
+      "key": "primary",
+      "durationSeconds": 604800,
+      "usedPercent": 78,
+      "remainingPercent": 22,
+      "resetsAt": "2026-11-04T06:35:41.000Z"
+    }
+  ],
+  "sourceAuthUnchanged": true,
+  "sourceCookieFileUnchanged": true,
+  "finishedAt": "2026-10-29T15:08:38.532032Z",
+  "executionPath": "SINGLE_PYTHON_STDLIB_HTTPS_GET",
+  "coverage": {
+    "mainRateLimit": "ONE_REAL_WINDOW",
+    "additionalBuckets": "NOT_CAPTURED",
+    "chatgptAllModelQuotas": "NOT_TESTED",
+    "serverEmailCompared": false,
+    "cachedSubscriptionExpiryUsed": false
+  },
+  "transport": {
+    "proxySource": "EXISTING_MACOS_SYSTEM_PROXY",
+    "proxyScope": "THIS_REQUEST_ONLY",
+    "persistentConfigurationChanged": false,
+    "redirectsFollowed": 0,
+    "tlsVerification": true
+  },
+  "liveVerification": {
+    "authorizedAccounts": 1,
+    "httpRequests": 1,
+    "quotaEndpointRequests": 1,
+    "matchedAccountIdentities": 1,
+    "quotaWindowsRead": 1,
+    "refreshRequests": 0,
+    "retryCount": 0,
+    "nodeAdapterLive": "NOT_TESTED"
+  },
+  "historyRoundTrip": {
+    "status": "PASS",
+    "source": "SANITIZED_REAL_SNAPSHOT_NO_NETWORK_REPLAY",
+    "alias": "codex_local_01",
+    "store": "EXISTING_HISTORY_STORE",
+    "directoryPermissions": "0700",
+    "filePermissions": "0600",
+    "reopenedReadback": "PASS",
+    "authenticatedReadApiHttpStatus": 200,
+    "readApiClosed": true,
+    "newCredentialVault": false
+  },
+  "candidate": {
+    "gitHeadAtRecording": "c955e86f1e5302489d40dec3c31232a923d1cf65",
+    "branch": "main",
+    "liveHarnessSha256": "1378aa89cc2724223f3e33a7043ff4f2ce215aac43b786e6b5b5e42a4aecf061",
+    "backendFilesAfterAdaptation": {
+      "services/ai-account-usage/codex-oauth.mjs": "90a1cd1110800baac12a8b185b4faba88cfa8a1cf32334b01cc7dcbb2a7f9ce1",
+      "services/ai-account-usage/cli.mjs": "aa52ae6952631c1f3222023716f08c7398df3f0bb07fbbf8c6a012a74838282f",
+      "services/ai-account-usage/collector.mjs": "a04fc6b05ffab2425025e89a21d94b3b6b8dad4201e682feccb23a9f1ec8cb8d",
+      "services/ai-account-usage/domain.mjs": "674e97e9b7e8966714b8c83d82909845ad7809769a9732b4e669d057d7ae9e62",
+      "services/ai-account-usage/history-store.mjs": "963d255e590922b7afff868f63eb78322b2a96ae882c55a672f4dafbf059126d",
+      "services/ai-account-usage/sampling.mjs": "a8ea162cc8b233d57f472220097b49f0c1bb48e2ab39ac7777f2df6c987419f2",
+      "services/ai-account-usage/read-api.mjs": "83c875452e4c59b20ac8f7ba7cd828973acca59e865080ae3a55962e070489dd",
+      "tests/ai-account-usage-codex.test.mjs": "5682c99b825f662963b7442da551bf0135ba7ce4ef422b844dea73c0a591478a",
+      "tests/ai-account-usage-backend.test.mjs": "b1b98e8b9802a88a0294863be997ac9a3b639217c7765ed031221320cd746309",
+      "tests/ai-account-usage-probe.test.mjs": "c8476bef0874de4f958b4e1ad90a95bc011c455e0d6a165cf205cc34f2482ad0"
+    },
+    "backendMatchesLiveHarnessImplementation": false,
+    "note": "Live protocol proven by Python harness; Node adapter verified offline only."
+  },
+  "offlineVerification": {
+    "passed": 38,
+    "failed": 0,
+    "command": "node --test tests/ai-account-usage-codex.test.mjs tests/ai-account-usage-backend.test.mjs tests/ai-account-usage-probe.test.mjs",
+    "liveEvidence": false
+  },
+  "cookieOnly": {
+    "G1": "NOT_PASSED",
+    "sessionHttpStatus": 403,
+    "challenge": true,
+    "quotaEndpoint": "NOT_TESTED",
+    "evidence": "r14-live-20261029.json",
+    "oauthDoesNotSupersede": true
+  },
+  "remaining": [
+    "SECOND_AUTHORIZED_ACCOUNT_NOT_AVAILABLE",
+    "NODE_TARGET_NETWORK_AND_AUTH_LIFECYCLE_NOT_TESTED",
+    "CHROME_LOGIN_AND_COOKIE_EDITOR_VAULT_INVARIANCE_NOT_TESTED",
+    "OFFICIAL_PAGE_COMPARISON_NOT_TESTED",
+    "TRUSTED_PROVIDER_AND_REACT_SESSION_NOT_IMPLEMENTED"
+  ],
+  "R15RealDataIntegration": "NOT_READY",
+  "previousGoal": {
+    "sourceThread": "01a187ff-150e-7193-b053-5c8a0f786047",
+    "lastHandoffObservedStatus": "blocked",
+    "modifiedByThisChat": false,
+    "currentCrossThreadStatus": "UNKNOWN"
+  },
+  "independentReview": {
+    "role": "code-reviewer",
+    "scope": "OAuth adapter, existing backend integration, tests and sanitized live evidence",
+    "actionableFindings": 0,
+    "scores": {
+      "realQuotaQuery": {
+        "score": 100,
+        "scale": 100,
+        "basis": "SINGLE_ACCOUNT_QUERY_CHECKLIST_7_OF_7",
+        "scope": "Python protocol single-account result only",
+        "checks": [
+          "AUTHORIZED_SOURCE",
+          "HTTP_200",
+          "SERVER_USER_AND_ACCOUNT_IDS_MATCH",
+          "REAL_WINDOW",
+          "PERCENTAGES",
+          "RESET_TIME",
+          "EXPLICIT_AUTH_MODE"
+        ]
+      },
+      "twoAccountIsolation": {
+        "score": null,
+        "status": "NOT_TESTED"
+      },
+      "security": {
+        "score": null,
+        "status": "NOT_TESTED",
+        "reason": "Stop and output boundaries checked; Chrome login/Vault invariance not tested."
+      },
+      "dataAccuracy": {
+        "score": null,
+        "status": "NOT_TESTED",
+        "reason": "Main window fields and arithmetic checked; official page comparison and additional bucket coverage not tested."
+      },
+      "integrationReadiness": {
+        "score": null,
+        "status": "NOT_TESTED",
+        "reason": "History/read API round-trip checked; Node target network, trusted provider and React session not tested."
+      }
+    },
+    "arithmeticMean": null,
+    "meanStatus": "NOT_SCORED_INSUFFICIENT_MEASURED_SCORES",
+    "limitations": [
+      "BOUNDED_REVIEW_NOT_FULL_ARCHITECTURE_APPROVAL",
+      "NODE_ADAPTER_LIVE_NOT_TESTED"
+    ]
+  },
+  "verification": {
+    "backendHashesStillMatch": true,
+    "credentialValueLeakScan": "PASS",
+    "localEvidenceLinks": "PASS",
+    "diffWhitespace": "PASS"
+  }
+}

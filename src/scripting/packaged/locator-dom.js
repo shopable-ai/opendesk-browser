@@ -289,6 +289,12 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
       return {committed:true, stateReached:el.value === op.value};
     }
     el.focus();
+    check();
+    // Focus handlers may synchronously replace or disable the input. Focus is
+    // already a page effect: never report no-effect and invite a fresh commit.
+    const focused = locate(doc, descriptor);
+    if (!el.isConnected || focused.length !== 1 || focused[0] !== el || actionability(el, op, doc, win))
+      return {committed:true, stateReached:false};
     if (el.value !== op.value) {
       inputValue(el, op.value, win);
       const data = op.value ? op.value : null;

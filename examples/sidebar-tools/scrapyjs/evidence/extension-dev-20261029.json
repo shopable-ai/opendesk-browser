@@ -1,32 +1,93 @@
 {
-  "status": "BLOCKED_BROWSER_AUTOMATION_CORE_NOT_COMPLETED",
-  "observedAt": "2026-10-29T15:57:37.804778+08:00",
+  "status": "CORE_PASS_GOAL_COMPLETE",
+  "currentGoal": {
+    "threadId": "01a1880c-2137-7d53-974f-2d85d04090af",
+    "createdAt": "2026-10-29T14:25:08Z",
+    "status": "complete",
+    "objective": "真实 React 侧栏配置编辑保存；同源码 App 与固定 Task 原安装；豆瓣/CSDN 当前页采集、独立内容/表格核对、JSON/CSV 落盘读回和原实例 Stop。",
+    "authority": "README.zh-CN.md#当前目标与关键测试条件2026-10-29",
+    "connectionRole": "PREREQUISITE_ONLY_NOT_COMPLETION",
+    "nextUserOperation": "核心完成；可继续在已安装 App 使用保存的配置。未自动进入正式包晋升或 production。",
+    "conditions": [
+      {
+        "operation": "当前 React 加载及 JSX/CSS 更新还原",
+        "status": "PASS",
+        "evidence": "Same-source earlier real local Side Panel evidence reused; source/build/candidate hashes unchanged"
+      },
+      {
+        "operation": "命名配置保存重开、字段保留与存储隔离",
+        "status": "PASS",
+        "evidence": "Earlier installed 1.5.0 and isolated development storage checks reused"
+      },
+      {
+        "operation": "坏 JSON、未应用字段/分页草稿及取消切换",
+        "status": "PASS",
+        "evidence": "Earlier same-source installed React checks reused"
+      },
+      {
+        "operation": "同源码 App 原安装与固定 Task 验证安装",
+        "status": "PASS",
+        "evidence": "App 1.5.0 installed; fixed Task 0.3.0 new successful demo trial → 核对运行证据 → 设为本地可用 → 安装确定版本"
+      },
+      {
+        "operation": "豆瓣及可访问 CSDN 当前页面内容→记录→表格，运行完成并退休",
+        "status": "PASS",
+        "evidence": "Douban 20 rows/11 fields; CSDN 9 rows/7 fields; independent native AX and all nonempty table cells; both completed/released"
+      },
+      {
+        "operation": "同次完整 JSON/CSV 真正落盘读回",
+        "status": "PASS",
+        "evidence": "Both sites original downloads archived; every CSV field equals corresponding JSON result; UI/native page comparison checksums match"
+      },
+      {
+        "operation": "运行编辑锁、结果归属与原实例 Stop",
+        "status": "PASS",
+        "evidence": "Config/editor/start locked while running; switching clears previous result; original Stop same request/run/result IDs stopped/released"
+      }
+    ],
+    "completionRule": "七项核心条件已有真实证据；开发结果不等于正式发布验收。",
+    "deferred": [
+      "正式包晋升",
+      "production",
+      "完整生命周期与95+",
+      "全量SDK/宿主回归",
+      "宽度/缩放矩阵"
+    ],
+    "nativeGoalUpdate": {
+      "status": "complete",
+      "timeUsedSeconds": 1107,
+      "tokenBudget": null,
+      "oldThreadGoalNotMutated": true
+    }
+  },
+  "observedAt": "2026-10-29T22:43:11.905723+08:00",
   "phase": "real_extension_continuous_development_and_live_site_core",
   "branch": "main",
   "environment": {
-    "mode": "CONTINUOUS_DEVELOPMENT",
+    "mode": "STATIC_DEVELOPMENT_OUTPUT_AT_NORMAL_DEV_PATH",
     "edition": "Developer",
     "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
     "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
     "loadedPathEvidence": "Chrome extension details showed ~/文稿/workspace/opendesk-browser/dist/development",
     "extensionEnabled": true,
-    "sidePanelDocument": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=95151c89-aaab-4a0a-b1ad-7e718bd501aa",
-    "developmentConnection": "CONNECTED_OBSERVED_IN_REAL_SIDE_PANEL",
-    "observedRevision": "a027ccf15cbba0bf138d114492f8b1d24a10f5e5a478ea529ca64741050627c7",
-    "rootWatcherPid": 95314,
-    "rootWatcherPorts": [
-      43119,
-      43120
-    ],
+    "sidePanelDocument": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=6ca0bdf5-bb18-45d9-9579-23c209df96b4",
+    "developmentConnection": "NOT_REESTABLISHED_THIS_TURN; previous watchers absent at handoff; no source iteration required",
+    "observedRevision": "35192800cdbe5ff9d0ad478f1843135ba17c4861ad5e406de850e8a3dde4e64a",
+    "rootWatcherPid": null,
+    "rootWatcherPorts": [],
     "nativeDoctor": {
       "connected": true,
       "nativeConnected": true,
-      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf"
+      "enabled": true,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "requestId": "fe5db6d8-b389-4df7-801b-d5c0f57efccc"
     },
     "nativeAllowedOrigins": [
       "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
     ],
-    "browserProfileOwnership": "NOT_VERIFIED_NO_EXISTING_PROFILE_CLOSED_OR_RESTARTED"
+    "browserProfileOwnership": "CFT_REAL_PROFILE_OBSERVED_AND_USER_AUTHORIZED_INDEPENDENT_NATIVE_INSTANCE",
+    "nativeInstance": "scrapyjs-react-01a186cc",
+    "allowUserScripts": true
   },
   "app": {
     "buildReady": {
@@ -90,7 +151,7 @@
       "bytes": 56687,
       "sha256": "055e93055b6621728ac896d18414055c4c1cf64dfb5970f386628903e20f2795",
       "version": "1.5.0",
-      "installed": false,
+      "installed": true,
       "promoted": false
     },
     "formal": {
@@ -124,12 +185,11 @@
       }
     ],
     "legacyMockPid": 96157,
-    "developmentContract": "Native debug snapshot supports isolated session storage and currentPage.info; installed-task delegation/download require installed App. No Host or Authority changed."
+    "developmentContract": "Native debug snapshot supports isolated session storage and currentPage.info; installed-task delegation/download require installed App. No Host or Authority changed.",
+    "ownedServicesObservation": "HISTORICAL_PROCESS_IDS; handoff found these watchers/CLIs absent; no services restarted during core continuation"
   },
   "changesThisTurn": [
-    "package.json: dev now compiles/watches app; dev:mock retains explicitly simulated web preview",
-    "README.zh-CN.md: real extension flow, separate watchers, debug delegation limits and evidence levels",
-    "INTERACTIONS.zh-CN.md: latest phase and command corrections"
+    "README.zh-CN.md and evidence/extension-dev-20261029.json only; no product source, fixed Task, candidate or formal package changes"
   ],
   "verification": [
     {
@@ -158,22 +218,22 @@
     }
   ],
   "blocker": {
-    "action": "Acquire Native Workspace chrome-extension page using browser automation",
-    "result": "REJECTED_BY_BROWSER_URL_POLICY",
-    "reason": "Only http: and https: allowed; tool explicitly prohibited indirect execution, raw CDP, alternate browser surfaces or other workaround.",
-    "requestedHumanAction": "Chrome 开发→本地项目→scrapyjs→在侧栏调试，报告界面或报错原文",
-    "publicDoubanTabAttempt": "TIMED_OUT_OUTCOME_UNKNOWN_NO_RETRY",
-    "recovery": "No CDP/alternate UI workaround used after policy rejection."
+    "status": "NONE_IN_CURRENT_CORE_SCOPE",
+    "previousChromeUserScripts": "RESOLVED_BY_EXPLICIT_USER_AUTHORIZATION",
+    "previousCsdnCaptcha": "CONTENT_VISIBLE_BEFORE_AGENT_CHALLENGE_ACTION; no CAPTCHA action or challenge refresh performed",
+    "previousExtensionUrlPolicy": "Historical denial preserved; no direct extension URL acquisition or CDP used"
   },
   "core": {
-    "reactVisibleInActualExtension": "NOT_TESTED",
-    "jsxCssVisibleUpdateAndRestore": "NOT_TESTED",
-    "doubanCurrentReactCapture": "NOT_TESTED",
-    "csdnCurrentReactCapture": "NOT_TESTED",
-    "currentDomOracle": "NOT_TESTED",
-    "csvJsonDownloadReadback": "NOT_TESTED",
-    "realSavedConfigReopenAndDraftProtection": "NOT_TESTED",
-    "realRunEditProtectionAndSameInstanceStop": "NOT_TESTED"
+    "reactVisibleInActualExtension": "PASS_INSTALLED_AND_LOCAL_DEVELOPMENT",
+    "jsxCssVisibleUpdateAndRestore": "PASS_REAL_SIDE_PANEL_SAME_SESSION_AUTO_UPDATE_EXACT_RESTORE",
+    "doubanCurrentReactCapture": "PASS_COMPLETED_RELEASED",
+    "csdnCurrentReactCapture": "PASS_COMPLETED_RELEASED",
+    "currentDomOracle": "PASS_SAME_CFT_NATIVE_AX_CURRENT_CONTENT_AND_ALL_NONEMPTY_TABLE_CELLS",
+    "csvJsonDownloadReadback": "PASS_BOTH_SITES_ALL_FIELDS_ACTUAL_FILES",
+    "realSavedConfigReopenAndDraftProtection": "PASS_INSTALLED_1_5_0",
+    "realRunEditProtectionAndSameInstanceStop": "PASS_ORIGINAL_REQUEST_STOPPED_RELEASED",
+    "developmentStorageIsolation": "PASS_REAL_DEVELOPMENT_SESSION_VS_INSTALLED_NAMESPACE",
+    "fixedTaskVerificationAndInstallation": "PASS_ORIGINAL_CHAIN_SAME_SOURCE_0_3_0"
   },
   "deferred": [
     "formal package promotion",
@@ -383,7 +443,9 @@
       "command": "opendesk browser dev /Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs",
       "execSessionId": 77735,
       "processes": [],
-      "state": "RUNNING_CONNECTED",
+      "state": "EXITED_NATIVE_NOT_READY",
+      "exitCode": 1,
+      "subsequentError": "E_NATIVE_NOT_READY: 初始化或运行期间 Native 连接已断开，本次临时接入已停止",
       "workspaceId": "workspace-7c4a29d8-4e9c-37d7-1850-61e3cf60aee6",
       "access": "read-write, temporary for this CLI lifetime",
       "scope": "examples/sidebar-tools/scrapyjs only",
@@ -404,6 +466,700 @@
     "newPairingOrManifestChange": false,
     "scrapyjsRealCore": "NOT_TESTED",
     "currentBlocker": "OpenDesk is running and daily Chrome Native is healthy. The controllable CFT instance remains Native offline; native control of daily Chrome is unresolved.",
-    "sourceChangesThisTurn": false
+    "sourceChangesThisTurn": false,
+    "latestRecovery": {
+      "observedAt": "2026-10-29T17:18:52.936309+08:00",
+      "desktopApp": {
+        "path": "/Applications/OpenDesk.app",
+        "previousPid23534Gone": true,
+        "launch": "cua.getApp('/Applications/OpenDesk.app')",
+        "launchUiObservation": "Computer Use server error -10005: timeoutReached",
+        "verifiedRunningPid": 53819
+      },
+      "nativeDoctor": {
+        "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "bridgeVersion": 1,
+        "nativeConnected": true,
+        "enabled": true,
+        "hostRegistrations": [],
+        "connected": true,
+        "requestId": "15f6f917-63da-47f9-9c76-e5a990c541a5",
+        "nativeHostPid": 48587,
+        "nativeHostParentDailyChromePid": 80636
+      },
+      "sourceCli": {
+        "execSessionId": 21596,
+        "pid": 50151,
+        "state": "RUNNING_AFTER_RECONNECT_NO_FURTHER_ERROR_OBSERVED",
+        "initialNativeHandshake": "CONNECTED",
+        "workspaceId": "workspace-7c4a29d8-4e9c-37d7-1850-61e3cf60aee6",
+        "programDiagnostic": "E_PROJECT_SCHEMA; file workspace remains available; Sidebar Tool has no runnable Controller/Page manifest",
+        "workspaceList": "Temporary CLI sources are excluded from permanent workspace grants by documented contract"
+      },
+      "watchers": {
+        "11538": "RUNNING",
+        "15684": "RUNNING",
+        "95314": "RUNNING"
+      },
+      "actualSidePanel": {
+        "entry": "Native toolbar → 开发 → 本地项目",
+        "browser": "CFT 149 at /Applications/Google Chrome.app",
+        "hostInstanceId": "6ca0bdf5-bb18-45d9-9579-23c209df96b4",
+        "native": "DISCONNECTED",
+        "provider": "NOT_READY",
+        "error": "E_DEV_DISCONNECTED",
+        "debugButton": "DISABLED"
+      },
+      "result": "OpenDesk launched and source CLI recovered; daily Chrome Native connected. Real scrapyjs UI remains NOT_TESTED because native CUA access to daily Chrome times out; controllable CFT is Native offline.",
+      "productSourceChanged": false
+    }
+  },
+  "installedCoreContinuation": {
+    "observedAt": "2026-10-29T17:47:50.280160+08:00",
+    "lane": "Real native CFT Side Panel; installed same-source development candidate; no Native connection required for this lane",
+    "candidate": {
+      "id": "scrapyjs",
+      "version": "1.5.0",
+      "sha256": "055e93055b6621728ac896d18414055c4c1cf64dfb5970f386628903e20f2795",
+      "sourceBuildId": "400d3c6c5b4dee4022101e38df8de657fac2031706521218461415a17c7ec1f4",
+      "sourceAndOutputHashes": "RECHECKED_MATCH_DISK"
+    },
+    "browser": {
+      "app": "/Applications/Google Chrome.app",
+      "version": "CFT 149.0.7827.55",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "sidePanelHostInstanceId": "6ca0bdf5-bb18-45d9-9579-23c209df96b4",
+      "native": "OFFLINE",
+      "entry": "Native toolbar → 扩展 → 导入扩展 → choose candidate in macOS file chooser → original review → 确认安装 → 打开"
+    },
+    "review": {
+      "observedCanonicalPackageSha": "055e93055b6621728ac896d18414055c4c1cf64dfb5970f386628903e20f2795",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "user.export",
+        "tasks.run"
+      ],
+      "taskPin": {
+        "id": "scrapyjs.capture",
+        "version": "0.3.0",
+        "manifestHash": "1bec7362a33d4aeb4ce051d2eed699aa4876e3c7ae82efc536005f287340f53a",
+        "sourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f"
+      },
+      "installed": "UI confirmed 已安装 and list count 7→8",
+      "formalPackagePromoted": false
+    },
+    "installedReactDisplay": "PASS; header v1.5.0 and actual React configuration/data UI observed",
+    "configurationChecks": [
+      {
+        "operation": "Save 核心验证 A then return to extension list (destroy iframe) and reopen",
+        "status": "PASS",
+        "observed": "核心验证 A restored with 配置已保存"
+      },
+      {
+        "operation": "Add label field, apply, inspect full JSON, save",
+        "status": "PASS",
+        "observed": {
+          "itemConfig": {
+            "_listContainer": "#sample-list",
+            "_listItem": "li",
+            "title": ".::text",
+            "label": ".::text"
+          },
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        }
+      },
+      {
+        "operation": "Create independent 核心验证 B copy then switch back to saved A",
+        "status": "PASS",
+        "observed": "A still contains title and label; B retained separately"
+      }
+    ],
+    "draftChecks": [
+      {
+        "operation": "Unapplied label field across data/rules tabs",
+        "status": "PASS",
+        "observed": "name label and selector . retained; save and run disabled"
+      },
+      {
+        "operation": "Invalid full JSON across tabs",
+        "status": "PASS",
+        "observed": "{ invalid-core-draft retained with parse error; save and run disabled"
+      },
+      {
+        "operation": "Switch B→A with invalid JSON, cancel",
+        "status": "PASS",
+        "observed": "selected B and exact invalid JSON retained"
+      },
+      {
+        "operation": "Unapplied pagination .core-next-draft across tabs",
+        "status": "PASS",
+        "observed": "selector retained; save/run disabled; full JSON editing disabled"
+      },
+      {
+        "operation": "Switch B→A with pagination draft, cancel",
+        "status": "PASS",
+        "observed": "B and .core-next-draft retained"
+      },
+      {
+        "operation": "Explicitly confirm discard of own test draft and switch to A",
+        "status": "PASS",
+        "observed": "A selected, saved title and label retained, pagination cleared, run enabled"
+      }
+    ],
+    "currentState": "Installed 1.5.0 with saved A/B and 豆瓣核心; fixed Task pending original same-source verification/install; script execution permission question pending; CSDN CAPTCHA observed",
+    "remaining": [
+      "Development preview storage isolation and visible JSX/CSS update/restore",
+      "Fixed Task installation and live Douban/CSDN runs",
+      "Table/DOM and downloaded bytes comparison",
+      "Running config lock and original-instance Stop"
+    ],
+    "productSourceChanged": false,
+    "fixedTaskAdmission": {
+      "taskId": "scrapyjs.capture",
+      "version": "0.3.0",
+      "manifestHash": "1bec7362a33d4aeb4ce051d2eed699aa4876e3c7ae82efc536005f287340f53a",
+      "sourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f",
+      "import": "PASS_UNVERIFIED_CANDIDATE_ONLY",
+      "draft": "artifacts/scrapyjs/original-sites-20261029/program/program.opendesk-draft.json",
+      "draftRawSha256": "1179afcadc084706120920b8150316522cba2c33a08a5cd0c4ad5c6e15414594",
+      "draftSourceMatchesTask": true,
+      "trial": {
+        "runId": "945f880d-d5c3-4a9e-8835-949eee336e9f",
+        "target": "http://127.0.0.1:43111/demo-form.html",
+        "state": "FAILED",
+        "retirementUI": "资源已释放",
+        "error": "E_USER_SCRIPTS_UNAVAILABLE",
+        "message": "浏览器未开放用户脚本执行能力；不会自动重放任务",
+        "chromeSettingObserved": {
+          "allowUserScripts": false,
+          "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+          "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development"
+        },
+        "automaticallyReplayed": false
+      },
+      "next": "Await requested confirmation for Chrome user-script execution setting; continue independent page access and development-entry checks",
+      "installed": false
+    },
+    "onlinePreparation": {
+      "douban": {
+        "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
+        "browserTitle": "豆瓣图书标签: 编程",
+        "access": "PASS",
+        "independentObservation": "Native AX: current subject list contains 20 book entries, first Claude Code实战 Harness工程之道, last 用Go语言自制编译器; not a fixed expected count",
+        "config": "originalSites[2] exact config entered in real full JSON editor",
+        "savedName": "豆瓣核心",
+        "saveUI": "配置已保存，可关闭后重开",
+        "capture": "NOT_TESTED"
+      },
+      "csdn": {
+        "url": "https://download.csdn.net/list/blog/100-0-0-0-5-1.html",
+        "browserTitle": "请进行安全验证(Security Verification)",
+        "access": "BLOCKED_SITE_CAPTCHA",
+        "observed": "请拖动滑块完成拼图",
+        "captchaAttempted": false,
+        "capture": "NOT_TESTED"
+      }
+    }
+  },
+  "nativeEntryRecoveryFollowup": {
+    "observedAt": "2026-10-29T10:06:03.883939+00:00",
+    "previousTurnClassification": "PROGRESS_REAL_INSTALLED_REACT_CHECKS_AND_SAME_SOURCE_TRIAL",
+    "dailyChrome": {
+      "pid": 80636,
+      "nativeHostPid": 48587,
+      "nativeUIRead": "CUA_GET_APP_TIMED_OUT_AT_40_SECONDS_KERNEL_RESET",
+      "restarted": false
+    },
+    "cft": {
+      "pid": 92347,
+      "version": "149.0.7827.55",
+      "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome for Testing",
+      "profileObservedInChromeVersion": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/Default",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "connectionEnabled": true,
+      "redetectUI": "已启用 · 当前离线",
+      "nativeManifest": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+      "nativeManifestExists": false
+    },
+    "dailyRegistration": {
+      "manifest": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+      "exists": true,
+      "launcher": "/Users/shopme/.opendesk-browser/native-agent-r1/native-host",
+      "allowedExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "modified": false
+    },
+    "proposedIsolatedInstance": {
+      "id": "scrapyjs-react-01a186cc",
+      "doctor": "NOT_INSTALLED_ROOT_MISSING",
+      "setupExecuted": false,
+      "authorization": "ASKED_PENDING",
+      "reason": "Project parallel rules prohibit unapproved Native pairing changes; existing daily pairing retained"
+    },
+    "watchersVerifiedLive": [
+      11538,
+      15684,
+      95314
+    ],
+    "directoryCliVerifiedLive": 50151,
+    "pending": {
+      "chromeUserScripts": "AWAITING_USER_CONFIRMATION",
+      "isolatedCftNativePairing": "AWAITING_USER_CONFIRMATION"
+    },
+    "productSourceChanged": false,
+    "resolvedBy": "nativeRegistrationAndReactDevelopmentContinuation; prior observations retained as history"
+  },
+  "nativeRegistrationAndReactDevelopmentContinuation": {
+    "observedAt": "2026-10-29T10:18:02.290482+00:00",
+    "classification": "PROGRESS_CORE_LOCAL_REACT_OPERATIONS_VERIFIED",
+    "goalStatus": "active",
+    "authorization": "用户明确回复：允许独立注册并继续本地调试",
+    "native": {
+      "instance": "scrapyjs-react-01a186cc",
+      "officialCLI": "/Applications/OpenDesk.app/Contents/MacOS/opendesk browser setup",
+      "browser": "cft",
+      "userDataDir": "/Users/shopme/Library/Application Support/Google/Chrome for Testing",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "setupExitCode": 0,
+      "installed": true,
+      "connectedInOriginalSettingsUI": true,
+      "authenticatedDoctor": {
+        "connected": true,
+        "enabled": true,
+        "nativeConnected": true,
+        "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "hostRegistrationCount": 2
+      },
+      "dailyManifestUnchangedSHA256": "b35761354417a8e24e0e69d10f729c4bf0b67bc595563b72651cce1e0ae0f37f"
+    },
+    "directoryCLI": {
+      "execSessionId": 41342,
+      "workspaceId": "workspace-68299749-e4bf-ddf3-fa63-c22109726a7a",
+      "sourceId": "source-a7f47ad5b7ea71ce48c45070",
+      "root": "/Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs",
+      "status": "LIVE_FILE_WORKSPACE_AVAILABLE",
+      "runnableProgram": "E_PROJECT_SCHEMA; not required for Sidebar App preview",
+      "autoOpen": "E_PROFILE_TARGET; used original Develop Side Panel action"
+    },
+    "react": {
+      "entry": "Side Panel → 开发 → 本地项目 → scrapyjs → 在侧栏调试",
+      "version": "1.5.0",
+      "baselineSHA256": "055e93055b6621728ac896d18414055c4c1cf64dfb5970f386628903e20f2795",
+      "changedSHA256": "88bb685336fb276638030d89aef0d5366866a73df9fabe2cde6e56635375ea15",
+      "changedBuildId": "0278d52108f02ead1b30632bdc76830d4b00163cbab8535767d382b0ccc730c7",
+      "changedVisibleHeading": "采集配置 · JSX 更新验证 · CSS 更新验证",
+      "initialInterruption": "First preview stopped receiving signals; refreshed original connection and explicitly reopened Develop preview. No framework edits.",
+      "sameSessionAutomaticUpdate": "PASS; changed snapshot and both markers appeared without reopening",
+      "sameSessionAutomaticRestore": "PASS; baseline snapshot and original heading returned without reopening",
+      "restoredBuildId": "400d3c6c5b4dee4022101e38df8de657fac2031706521218461415a17c7ec1f4",
+      "restoredReceiptSHA256": "3a12f57b60551131e7ca39c9d4c2ba898f1397f58971a92dd89af4d1428b67f2",
+      "restoredSources": {
+        "src/App.jsx": "27f5a093cabdb6fb328e0784af39c2aeacbced3e09be6389d1bd3766a709eb13",
+        "src/style.css": "852012563e1a4c9ba86cd7fc608a4e8051943399635256663636e0cdae73eb2f"
+      },
+      "previewStoppedViaOriginalButton": true
+    },
+    "storageIsolation": {
+      "status": "PASS",
+      "initialDevelopmentRecords": [],
+      "developmentOnlySavedName": "本地隔离验证",
+      "developmentRemountAndSnapshotUpdateRetainedRecord": true,
+      "installedNamesAfterDevelopment": [
+        "核心验证 A",
+        "核心验证 B",
+        "豆瓣核心"
+      ],
+      "developmentNameAbsentFromInstalled": true,
+      "installedSelectedName": "豆瓣核心"
+    },
+    "browserDevelopmentConnection": {
+      "status": "CONNECTED_OBSERVED_REAL_DEBUG_TAB",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "revision": "35192800cdbe5ff9d0ad478f1843135ba17c4861ad5e406de850e8a3dde4e64a",
+      "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "loadedPathEvidence": "Previously observed in actual CFT extension details; same extension ID retained"
+    },
+    "nextState": {
+      "activeSite": "Douban programming books real page",
+      "installedApp": "1.5.0 · 豆瓣核心 · 准备采集",
+      "task": "0.3.0 imported/unverified; failed same-source run remains failed/released, no replay",
+      "pendingConfirmation": "Chrome 允许运行用户脚本; prior question unanswered",
+      "csdn": "BLOCKED_SITE_CAPTCHA",
+      "downloads": "NOT_TESTED",
+      "stop": "NOT_TESTED"
+    },
+    "sourceChangesRetained": false,
+    "formalPackagePromoted": false,
+    "productionAcceptance": "DEFERRED"
+  },
+  "blockedAudit": {
+    "observedAt": "2026-10-29T10:20:36.513623+00:00",
+    "previousTurnClassification": "PROGRESS_REAL_REACT_UPDATE_RESTORE_AND_STORAGE_ISOLATION",
+    "currentTurnClassification": "BLOCKER_REVALIDATED_NO_DEPENDENT_RUN_DISPATCHED",
+    "condition": "Chrome userScripts permission remains off; action-time confirmation unanswered",
+    "consecutiveGoalTurns": [
+      "01a18701-524f-7af2-b141-2e0cd48ded0d",
+      "01a1871a-ed88-7a81-9715-a576dc6cfe9c",
+      "01a1872b-5d11-7ec2-bd03-6c568d23e4b2"
+    ],
+    "freshNativeUIObservation": {
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedPath": "~/文稿/workspace/opendesk-browser/dist/development",
+      "allowUserScripts": false
+    },
+    "nativeGoalUpdateResult": "blocked",
+    "completedCoreEvidencePreserved": true,
+    "remaining": [
+      "fixed Task verification and original installation",
+      "Douban current capture and independent result/table comparison",
+      "accessible CSDN current capture, currently CAPTCHA blocked",
+      "same-run JSON/CSV downloads and readback",
+      "running configuration locks, result ownership and same-instance Stop"
+    ],
+    "resumeAction": "On explicit Chrome userScripts authorization, enable only current CFT extension setting and intentionally start a fresh fixed-source Task trial; do not replay old failed run"
+  },
+  "handoffPreparation": {
+    "observedAt": "2026-10-29T22:20:12+08:00",
+    "branch": "main",
+    "head": "882226f14274c90a8a3165794674230d17ab1f13",
+    "oldGoalReadStatus": "blocked",
+    "scope": "Prepare new local Codex chat; no product build/test/run",
+    "candidateAndBaseline": "UNCHANGED_MATCHING_CURRENT_JSX_CSS_AND_RECEIPT",
+    "nativeInstance": "scrapyjs-react-01a186cc",
+    "nativeDoctor": "CONNECTED_ENABLED_NATIVE_CONNECTED_EXTENSION_ID_MATCH",
+    "previousWatchersAndDirectoryCLIs": "NOT_PRESENT_IN_CURRENT_PROCESS_LIST",
+    "previousDevPorts": {
+      "43119": "NO_LISTENER",
+      "43120": "NO_LISTENER",
+      "43127": "NO_LISTENER"
+    },
+    "protectedLiveProcesses": {
+      "dailyChrome": 80636,
+      "dailyNativeHost": 48587,
+      "cft": 92347,
+      "cftNativeHost": 6699,
+      "openDesk": 53819,
+      "demoServer": 68658
+    },
+    "unrelatedDirtyFiles": [
+      "examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx",
+      "examples/sidebar-tools/cookie-editor/app/components/CookiePermissions.jsx",
+      "src/ui/current-page-target.js",
+      "tests/environment/cookie-editor-react-controller.test.mjs",
+      "tests/environment/current-page-target.test.mjs"
+    ],
+    "pendingAuthorization": "Chrome 允许运行用户脚本; Native registration already explicitly authorized and completed",
+    "newThreadCreatedAtThisObservation": false
+  },
+  "previousGoals": [
+    {
+      "threadId": "01a186cc-38d5-7592-a41c-089eb98f2d9e",
+      "createdAt": "2026-10-29T09:30:58.000Z",
+      "status": "blocked",
+      "objective": "真实侧栏中的当前 React 应用完成配置编辑与保存、豆瓣及可访问 CSDN 当前页采集、结果表格、JSON/CSV 下载读回和原实例 Stop。",
+      "authority": "README.zh-CN.md#当前目标与关键测试条件2026-10-29",
+      "connectionRole": "PREREQUISITE_ONLY_NOT_COMPLETION",
+      "nextUserOperation": "Chrome 用户脚本授权回复后：固定 Task 同源码显式运行 → 原证据核对 → 安装 → React App 豆瓣采集",
+      "conditions": [
+        {
+          "operation": "当前 React 侧栏显示与 JSX/CSS 可见更新及还原",
+          "status": "PASS",
+          "reason": "Real Side Panel local development: current source snapshot, JSX and CSS visible auto-update and exact restoration verified in one live session; current extension serve connected"
+        },
+        {
+          "operation": "配置保存重开及字段编辑保留无关规则",
+          "status": "PASS",
+          "scope": "Installed 1.5.0: save/reopen and two-field preservation; local development saved configuration survived remount/update and did not appear in installed storage"
+        },
+        {
+          "operation": "坏 JSON、未应用草稿及取消切换保护",
+          "status": "PASS",
+          "scope": "Installed 1.5.0 candidate: bad JSON, field/paging drafts across tabs and cancelled native dropdown switches; save/run disabled"
+        },
+        {
+          "operation": "豆瓣真实当前页采集、独立 DOM 与表格对应、运行退休",
+          "status": "BLOCKED",
+          "reason": "Same-source Task trial failed/released with E_USER_SCRIPTS_UNAVAILABLE; Chrome permission confirmation remains unanswered"
+        },
+        {
+          "operation": "可访问 CSDN 同一当前页核心链；访问限制如实记录",
+          "status": "BLOCKED",
+          "reason": "Live CSDN page presents slider CAPTCHA before content; no capture or challenge attempted"
+        },
+        {
+          "operation": "同次结果完整 JSON/CSV 落盘逐值读回",
+          "status": "NOT_TESTED"
+        },
+        {
+          "operation": "运行配置锁定、结果归属、原实例 Stop 受理和退休",
+          "status": "NOT_TESTED"
+        }
+      ],
+      "completionRule": "核心证据未齐全时保持未完成；不以连接恢复、Mock、历史候选或 Node PASS 替代。",
+      "deferred": [
+        "正式包晋升",
+        "production",
+        "完整生命周期与95+",
+        "全量SDK/宿主回归",
+        "宽度/缩放矩阵"
+      ]
+    }
+  ],
+  "previousEnvironmentObservation": {
+    "mode": "CONTINUOUS_DEVELOPMENT",
+    "edition": "Developer",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "loadedPathEvidence": "Chrome extension details showed ~/文稿/workspace/opendesk-browser/dist/development",
+    "extensionEnabled": true,
+    "sidePanelDocument": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=6ca0bdf5-bb18-45d9-9579-23c209df96b4",
+    "developmentConnection": "CONNECTED_OBSERVED_IN_REAL_SIDE_PANEL",
+    "observedRevision": "35192800cdbe5ff9d0ad478f1843135ba17c4861ad5e406de850e8a3dde4e64a",
+    "rootWatcherPid": 95314,
+    "rootWatcherPorts": [
+      43119,
+      43120
+    ],
+    "nativeDoctor": {
+      "connected": true,
+      "nativeConnected": true,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf"
+    },
+    "nativeAllowedOrigins": [
+      "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+    ],
+    "browserProfileOwnership": "CFT_REAL_PROFILE_OBSERVED_AND_USER_AUTHORIZED_INDEPENDENT_NATIVE_INSTANCE"
+  },
+  "previousChangesThisTurn": [
+    "package.json: dev now compiles/watches app; dev:mock retains explicitly simulated web preview",
+    "README.zh-CN.md: real extension flow, separate watchers, debug delegation limits and evidence levels",
+    "INTERACTIONS.zh-CN.md: latest phase and command corrections"
+  ],
+  "historicalEntryBlocker": {
+    "action": "Acquire Native Workspace chrome-extension page using browser automation",
+    "result": "REJECTED_BY_BROWSER_URL_POLICY",
+    "reason": "Only http: and https: allowed; tool explicitly prohibited indirect execution, raw CDP, alternate browser surfaces or other workaround.",
+    "requestedHumanAction": "Chrome 开发→本地项目→scrapyjs→在侧栏调试，报告界面或报错原文",
+    "publicDoubanTabAttempt": "TIMED_OUT_OUTCOME_UNKNOWN_NO_RETRY",
+    "recovery": "No CDP/alternate UI workaround used after policy rejection."
+  },
+  "coreContinuation01a1880c": {
+    "observedAt": "2026-10-29T22:43:11.905723+08:00",
+    "threadId": "01a1880c-2137-7d53-974f-2d85d04090af",
+    "headAtIntake": "882226f14274c90a8a3165794674230d17ab1f13",
+    "branch": "main",
+    "productSourceChanged": false,
+    "formalPackagePromoted": false,
+    "environment": {
+      "mode": "STATIC_DEVELOPMENT_OUTPUT_AT_NORMAL_DEV_PATH",
+      "edition": "Developer",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "loadedPathEvidence": "Chrome extension details showed ~/文稿/workspace/opendesk-browser/dist/development",
+      "extensionEnabled": true,
+      "sidePanelDocument": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=6ca0bdf5-bb18-45d9-9579-23c209df96b4",
+      "developmentConnection": "NOT_REESTABLISHED_THIS_TURN; previous watchers absent at handoff; no source iteration required",
+      "observedRevision": "35192800cdbe5ff9d0ad478f1843135ba17c4861ad5e406de850e8a3dde4e64a",
+      "rootWatcherPid": null,
+      "rootWatcherPorts": [],
+      "nativeDoctor": {
+        "connected": true,
+        "nativeConnected": true,
+        "enabled": true,
+        "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "requestId": "fe5db6d8-b389-4df7-801b-d5c0f57efccc"
+      },
+      "nativeAllowedOrigins": [
+        "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+      ],
+      "browserProfileOwnership": "CFT_REAL_PROFILE_OBSERVED_AND_USER_AUTHORIZED_INDEPENDENT_NATIVE_INSTANCE",
+      "nativeInstance": "scrapyjs-react-01a186cc",
+      "allowUserScripts": true
+    },
+    "identity": {
+      "candidateVersion": "1.5.0",
+      "candidateSha256": "055e93055b6621728ac896d18414055c4c1cf64dfb5970f386628903e20f2795",
+      "buildId": "400d3c6c5b4dee4022101e38df8de657fac2031706521218461415a17c7ec1f4",
+      "fixedTaskVersion": "0.3.0",
+      "fixedTaskSourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f",
+      "fixedTaskManifestHash": "1bec7362a33d4aeb4ce051d2eed699aa4876e3c7ae82efc536005f287340f53a",
+      "fixedTaskRawSha256": "cc386bfab69e55db5f3a9832f80340bab9c3ce8291bd044ceb19702dcff2a092",
+      "sourceReceiptOutputsCandidateAndTask": "MATCHED_DISK_BYTES; no rebuild or source changes"
+    },
+    "userScriptsAuthorization": {
+      "userReply": "允许开启并继续固定 Task 验证",
+      "action": "Enabled current CFT extension 允许运行用户脚本; observed Value 1",
+      "oldFailedRunAutomaticallyReplayed": false
+    },
+    "fixedTaskAdmission": {
+      "runId": "63b452f5-b7f5-44fe-9487-dbe006334b9d",
+      "sourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f",
+      "target": "http://127.0.0.1:43111/demo-form.html",
+      "state": "completed",
+      "retirementUI": "资源已释放",
+      "records": [
+        "产品设计",
+        "浏览器技术",
+        "交互体验"
+      ],
+      "resultId": "NOT_RETAINED_IN_SUMMARY; no invented identifier",
+      "originalReviewChain": [
+        "核对运行证据: 本机持久运行及页面原生回执",
+        "设为本地可用",
+        "安装确定版本"
+      ],
+      "installedVersion": "0.3.0"
+    },
+    "douban": {
+      "downloads": {
+        "json": {
+          "source": "/Users/shopme/Downloads/scrapyjs-result.json",
+          "archive": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/react-core-20261029-01a1880c/douban-result.json",
+          "bytes": 97770,
+          "sha256": "7f470fa9083740492a608ea5898afd53bdb45ecb449b892bec69138bba8497db"
+        },
+        "csv": {
+          "source": "/Users/shopme/Downloads/scrapyjs-result.csv",
+          "archive": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/react-core-20261029-01a1880c/douban-result.csv",
+          "bytes": 7166,
+          "sha256": "392e9e384e1773674948218332367cbac771ba365c0e09f20ca5cfa09de75183"
+        }
+      },
+      "clientRequestId": "5cf3fd32-0e65-4641-8d49-70840db8a965",
+      "runId": "1e4c5df5-d8ae-45dc-9746-31dd75627570",
+      "resultId": "5b799bb4-2912-4e0a-b6a6-a9d6e2b07156",
+      "state": "completed",
+      "retirementState": "released",
+      "records": 20,
+      "csvColumns": [
+        "author",
+        "currency",
+        "price",
+        "publication",
+        "publication_date",
+        "publication_raw",
+        "publisher",
+        "rating",
+        "title",
+        "translator",
+        "url"
+      ],
+      "uiColumns": [
+        "title",
+        "author",
+        "currency",
+        "price",
+        "publication",
+        "publication_date",
+        "publication_raw",
+        "publisher",
+        "rating",
+        "translator",
+        "url"
+      ],
+      "csvAllFieldsEqual": true,
+      "nativeAxTableFingerprint": "c3ea6d0982d37e7f",
+      "nativeAxDataRowsFingerprint": "69cc6fa8c21274f6",
+      "nativeAxSourceFingerprint": "da22479aa06ac46b",
+      "durableSourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f"
+    },
+    "csdn": {
+      "downloads": {
+        "json": {
+          "source": "/Users/shopme/Downloads/scrapyjs-result (1).json",
+          "archive": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/react-core-20261029-01a1880c/csdn-result.json",
+          "bytes": 47275,
+          "sha256": "be7e3d894d750cdd2b1dab2f7c35dcc70e33848dd61c404f3afc3461aa247a91"
+        },
+        "csv": {
+          "source": "/Users/shopme/Downloads/scrapyjs-result (1).csv",
+          "archive": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/react-core-20261029-01a1880c/csdn-result.csv",
+          "bytes": 3479,
+          "sha256": "dfdd8afb0b0c69c656d85ee3ebfbda9042381ba5b1c7709600d1691b2964f4c0"
+        }
+      },
+      "clientRequestId": "0cf26979-ac5d-4dfb-9a39-c12df00837d9",
+      "runId": "2320b540-dd4f-4d43-aa68-87a3bd4a53ab",
+      "resultId": "ece09df3-2317-418b-a020-0459df564395",
+      "state": "completed",
+      "retirementState": "released",
+      "records": 9,
+      "csvColumns": [
+        "author_display",
+        "description",
+        "membership",
+        "metrics_text",
+        "price_text",
+        "title",
+        "url"
+      ],
+      "uiColumns": [
+        "title",
+        "author_display",
+        "description",
+        "membership",
+        "metrics_text",
+        "price_text",
+        "url"
+      ],
+      "csvAllFieldsEqual": true,
+      "nativeAxTableFingerprint": "398e8fb91de99cc2",
+      "nativeAxSourceFingerprint": "41591b2a3438ef90",
+      "emptyCellHandling": "AX omits empty cells; absent website membership normalized to null for comparison; JSON and CSV retain empty string",
+      "durableSourceHash": "12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f"
+    },
+    "independentOracle": {
+      "method": "Native AX of same CFT website, separate from isolated App table and exported result; no browser JS property probe",
+      "douban": "20 current website title/URL/publication/rating values independently parsed; publication fields derived independently; all nonempty cells of 20 table rows match",
+      "csdn": "9 current website list entries independently parsed including description, price, metrics, author separator and membership; all nonempty cells match",
+      "emptyCells": "Native AX omits empty cells; JSON/CSV readback verifies exact empty/null values",
+      "countIsDynamic": true,
+      "fingerprints": "FNV-1a 64 over JS JSON.stringify/UTF-16 code units for cross-surface comparison only; file SHA-256 recorded separately",
+      "readbackDriverCorrection": "Initial CSDN checksum used CSV alphabetical columns for UI title-first grid and null vs empty membership; corrected comparison shape; CSV all-field equality already passed; no product change"
+    },
+    "csdnAccess": {
+      "url": "https://download.csdn.net/list/blog/100-0-0-0-5-1.html",
+      "initial": "BLOCKED_SITE_CAPTCHA",
+      "userReply": "允许尝试本次安全验证",
+      "afterReplyBeforeAnyChallengeAction": "NORMAL_SITE_CONTENT_VISIBLE",
+      "captchaAttempted": false,
+      "challengeRefreshed": false,
+      "causeOfAccessRecovery": "UNKNOWN_NOT_INFERRED"
+    },
+    "resultOwnership": {
+      "status": "PASS",
+      "operation": "Switch 豆瓣核心 → 核心验证 A",
+      "observed": "尚无运行 / 尚无记录 / 尚无结果; prior export buttons removed"
+    },
+    "stop": {
+      "status": "PASS",
+      "profile": "原实例 Stop 验证",
+      "target": "http://127.0.0.1:43111/demo-form.html",
+      "waitForSelector": "#scrapyjs-stop-verification-pending",
+      "timeoutMs": 30000,
+      "usesSameFixedTask": true,
+      "clientRequestId": "c5e7de6d-b7d4-4358-9361-43e996ee9203",
+      "runId": "3e5b6ebd-6491-4609-bf20-08a163d8e00c",
+      "resultId": "d718f151-5046-4ed4-ae1e-71845d6b9924",
+      "whileRunningDisabled": [
+        "new/select/save/copy/rename/delete config",
+        "refresh target/start",
+        "field buttons/inputs/apply",
+        "full JSON"
+      ],
+      "stopRemainedEnabled": true,
+      "originalStopClicked": true,
+      "sameIdsBeforeAfter": true,
+      "state": "stopped",
+      "retirementState": "released",
+      "stopAcceptedUI": "已受理",
+      "retirementUI": "已确认退休",
+      "result": null,
+      "editingUnlockedAfterStop": true
+    },
+    "evidenceDirectory": "artifacts/scrapyjs/react-core-20261029-01a1880c",
+    "verificationScope": "Only current real core behavior, file readback and documentation validation; existing same-source targeted checks reused; no full build/regression/production/promotion/95+/width/zoom tests",
+    "historicalSections": "Earlier continuation, permissions, service and goal observations retained as historical; currentGoal/core/coreContinuation01a1880c are current",
+    "documentationValidation": "PASS: JSON parse, all seven conditions, source/output/candidate/formal hashes, local Markdown links, archived file SHA-256 and git diff --check"
   }
 }

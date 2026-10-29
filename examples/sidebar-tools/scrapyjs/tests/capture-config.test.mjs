@@ -29,6 +29,7 @@ test('original decimal Pipeline preserves list/detail association and rejects in
 function componentPage(){
   let url='http://127.0.0.1:43111/list.html';const visits=[];
   return {visits,url:async()=>url,goto:async next=>{url=next;visits.push(next);},content:async()=>'',waitForSelector:async()=>{},
+    locator:()=>({first:()=>({waitFor:async()=>{}})}),
     evaluate:async(callback,config)=>config?{records:url.endsWith('detail.html')?[{id:'A',author:'Ada'}]:[{id:'A',link:'detail.html'}]}:'http://127.0.0.1:43111/nested/'};
 }
 test('intentional page limit returns collected records with original partial result',async()=>{

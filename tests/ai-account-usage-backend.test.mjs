@@ -142,6 +142,68 @@ test('two accounts remain isolated with own histories and timestamps',async()=>{
   }finally{await f.cleanup();}
 });
 
+test('OAuth history preserves authentication mode and independent quota buckets',async()=>{
+  const f=await fixture();try{
+    await f.store.register({alias:'oauth_01',displayName:'OAuth account'});
+    const data={...ok(),mode:'CODEX_OAUTH',reason:'CODEX_OAUTH_CONFIRMED',
+      workspaceEvidence:'OAUTH_USAGE_USER_AND_ACCOUNT_IDS',
+      identityEvidence:'OAUTH_TOKEN_CLAIMS_AND_USAGE_RESPONSE_USER_ACCOUNT_IDS'};
+    data.windows.push({...data.windows[0],limitId:'codex_other',usedPercent:70,remainingPercent:30});
+    await assert.rejects(f.store.record('oauth_01',{...data,identityEvidence:'CACHE_ONLY'}),/E_PROBE_UNVERIFIED/);
+    await f.store.record('oauth_01',data);
+    const row=(await f.store.accounts())[0];
+    assert.equal(row.lastAttempt.mode,'CODEX_OAUTH');
+    assert.equal(row.windows.length,2);
+    assert.deepEqual(row.windows.map(w=>w.windowKey),['codex:primary:18000','codex_other:primary:18000']);
+    assert.ok(row.windows.every(w=>w.mode==='CODEX_OAUTH'));
+    const history=await f.store.history('oauth_01',{windowKey:'codex_other:primary:18000'});
+    assert.equal(history.observations.length,1);
+    assert.equal(history.observations[0].remainingPercent,30);
+    assert.ok(!(await readFile(join(f.directory,'history-v1.json'),'utf8')).includes('this MUST NOT persist'));
+    assert.equal((await new HistoryStore({directory:f.directory}).accounts())[0].lastAttempt.mode,'CODEX_OAUTH');
+  }finally{await f.cleanup();}
+});
+
+test('collector keeps OAuth authorization and mode separate from Cookie-only',async()=>{
+  const f=await fixture();try{
+    await f.store.register({alias:'oauth_01',displayName:'OAuth account'});
+    const data={...ok(),mode:'CODEX_OAUTH',reason:'CODEX_OAUTH_CONFIRMED',
+      workspaceEvidence:'OAUTH_USAGE_USER_AND_ACCOUNT_IDS',
+      identityEvidence:'OAUTH_TOKEN_CLAIMS_AND_USAGE_RESPONSE_USER_ACCOUNT_IDS'};
+    const loadAuthorizedAccount=async alias=>({alias,authorized:true,snapshot:{accessToken:'LOCAL_ONLY'},
+      expectedIdentity:{userId:'user',accountId:'account'}});
+    const collector=createCollector({store:f.store,mode:'CODEX_OAUTH',loadAuthorizedAccount,probe:async()=>data});
+    const row=await collector.refresh('oauth_01');
+    assert.equal(row.lastAttempt.mode,'CODEX_OAUTH');
+    assert.ok(!JSON.stringify(row).includes('LOCAL_ONLY'));
+    const mixed=createCollector({store:f.store,mode:'CODEX_OAUTH',clock:()=>101000000,
+      loadAuthorizedAccount,probe:async()=>ok({at:101000})});
+    const failed=await mixed.refresh('oauth_01');
+    assert.equal(failed.lastAttempt.mode,'CODEX_OAUTH');
+    assert.equal(failed.lastAttempt.status,'UNAVAILABLE');
+    assert.equal(failed.lastSuccessAt,data.checkedAt);
+    const denied=createCollector({store:f.store,mode:'CODEX_OAUTH',clock:()=>102000000,
+      loadAuthorizedAccount:async()=>({authorized:false}),probe:async()=>{throw Error('must not call');}});
+    assert.equal((await denied.refresh('oauth_01')).lastAttempt.status,'AUTH_REQUIRED');
+  }finally{await f.cleanup();}
+});
+
+test('existing history without mode/limitId still loads with explicit Cookie-only projection',async()=>{
+  const f=await fixture();try{
+    await f.store.register({alias:'acct_01',displayName:'A'});
+    await f.store.record('acct_01',ok());
+    const path=join(f.directory,'history-v1.json');
+    const state=JSON.parse(await readFile(path,'utf8'));
+    delete state.accounts.acct_01.lastAttempt.mode;
+    for(const row of state.observations){delete row.mode;delete row.limitId;}
+    await writeFile(path,JSON.stringify(state),{mode:0o600});
+    const row=(await new HistoryStore({directory:f.directory}).accounts())[0];
+    assert.equal(row.lastAttempt.mode,'COOKIE_ONLY');
+    assert.equal(row.windows[0].mode,'COOKIE_ONLY');
+    assert.equal(row.windows[0].limitId,'codex');
+  }finally{await f.cleanup();}
+});
+
 test('reject symlink data directory and unknown fields in persisted state',async()=>{
   const f=await fixture();try{
     const linked=join(f.root,'linked');
@@ -216,6 +278,8 @@ test('sampling planner pauses auth/429 and plans near-reset catch-up without ret
   assert.equal(Date.parse(far.dueAt),107200000);
   for(const status of ['AUTH_REQUIRED','RATE_LIMITED','SCHEMA_UNKNOWN','IDENTITY_UNVERIFIED'])
     assert.equal(nextSampleDecision({...base,lastAttempt:{...base.lastAttempt,status}},104000000).dueAt,null);
+  assert.equal(nextSampleDecision({...base,lastAttempt:{...base.lastAttempt,mode:'CODEX_OAUTH',
+    status:'UNAVAILABLE'}},104000000).dueAt,null);
   const f=await fixture();try{
     await f.store.register({alias:'acct_01',displayName:'A'});
     await f.store.register({alias:'acct_02',displayName:'B'});

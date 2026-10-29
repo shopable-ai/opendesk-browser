@@ -9,6 +9,7 @@ class ChromeSpider extends CrawlSpider {
     super(config);
     this.page = null;
     this.puppeteerConfig = config.puppeteerConfig || {};
+    this.pageConfig = { ...this.puppeteerConfig, ...config.pageConfig };
     this.lastPageSignature = '';
     this.seenPageSignatures = new Set();
     if (Object.prototype.hasOwnProperty.call(config, 'validation')) {
@@ -88,8 +89,8 @@ class ChromeSpider extends CrawlSpider {
       const currentUrl = await page.url();
       console.log(`Parsing page: ${currentUrl}`);
 
-      if (this.puppeteerConfig.waitForSelector) {
-        await this.waitForSelector(page, this.puppeteerConfig.waitForSelector);
+      if (this.pageConfig.waitForSelector) {
+        await this.waitForSelector(page, this.pageConfig.waitForSelector);
       }
 
       let itemConfig = this.config.itemConfig;
@@ -156,12 +157,15 @@ class ChromeSpider extends CrawlSpider {
   }
 
   async goToNextPage(page) {
-    const { nextPageSelector, navigationTimeout = 30000, waitForSelector } = this.puppeteerConfig || {};
+    const { nextPageSelector, navigationTimeout = 30000, waitForSelector, nextPageMode = 'navigate' } = this.pageConfig;
     if (!nextPageSelector) {
       this.recordStopReason('single_page');
       return false;
     }
     if (!Number.isFinite(navigationTimeout) || navigationTimeout <= 0) throw new Error('navigationTimeout must be positive');
+    if (typeof page.locator === 'function' && nextPageMode !== 'navigate') {
+      throw Object.assign(new Error('Modern click pagination has no supported completion signal; use navigate with a full-document href'), { code: 'NOT_SUPPORTED' });
+    }
     const next = await this.findElement(page, nextPageSelector);
     if (!next) {
       this.recordStopReason('site_exhausted');
@@ -186,6 +190,10 @@ class ChromeSpider extends CrawlSpider {
       this.recordStopReason('site_exhausted');
       return false;
     }
+    if (typeof page.locator === 'function') {
+      return this.navigateModernPage(page, next, { navigationTimeout, waitForSelector });
+    }
+    // Legacy bridge only: heuristic content settling is not a modern completion guarantee.
     const region = this.config.itemConfig?._listContainer || null;
     const capture = () => page.evaluate(function transitionSnapshot(selector, xpath, itemSelector) {
       const element = selector ? xpath ? document.evaluate(selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue : document.querySelector(selector) : document.body;
@@ -241,6 +249,42 @@ class ChromeSpider extends CrawlSpider {
     throw Object.assign(new Error('Next-page click did not produce a confirmed page transition'), { code: 'PAGE_TRANSITION_TIMEOUT' });
   }
 
+  async navigateModernPage(page, next, { navigationTimeout, waitForSelector }) {
+    const unsupported = message => Object.assign(new Error(message), { code: 'NOT_SUPPORTED' });
+    if (!waitForSelector || this.isXPath(waitForSelector)) {
+      throw unsupported('Modern pagination requires a CSS waitForSelector completion marker, including for empty pages');
+    }
+    const href = await next.getAttribute('href');
+    const current = new URL(await page.url());
+    if (!href) throw unsupported('Same-document asynchronous pagination has no supported completion signal');
+    const baseURI = await page.evaluate(function documentBaseURI() { return document.baseURI; });
+    const target = new URL(href, baseURI);
+    const withoutHash = url => { const copy = new URL(url); copy.hash = ''; return copy.href; };
+    if (!['http:', 'https:'].includes(target.protocol) || withoutHash(target) === withoutHash(current)) {
+      throw unsupported('Modern pagination requires a full-document next-page link');
+    }
+    const deadline = Date.now() + navigationTimeout;
+    const before = await page.evaluate(function documentIdentity() { return performance.timeOrigin; });
+    await page.goto(target.href, { timeout: navigationTimeout, waitUntil: 'domcontentloaded' });
+    const after = await page.evaluate(function documentIdentity() { return performance.timeOrigin; });
+    if (!Number.isFinite(before) || !Number.isFinite(after) || before === after) {
+      throw unsupported('Navigation did not establish a new document; same-document pagination is unsupported');
+    }
+    if (this.scrapy?.shouldClose(false)) { this.recordCloseReason(); return false; }
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) throw Object.assign(new Error('Page transition timed out'), { code: 'PAGE_TRANSITION_TIMEOUT' });
+    await this.waitForSelector(page, waitForSelector, { timeout: remaining });
+    const delay = Number(this.config.delay || 0);
+    if (!Number.isFinite(delay) || delay < 0) throw new Error('delay must be a nonnegative finite number');
+    const delayUntil = Date.now() + delay;
+    while (Date.now() < delayUntil) {
+      if (this.scrapy?.shouldClose(false)) { this.recordCloseReason(); return false; }
+      await new Promise(resolve => setTimeout(resolve, Math.min(50, delayUntil - Date.now())));
+    }
+    if (this.scrapy?.shouldClose(false)) { this.recordCloseReason(); return false; }
+    return true;
+  }
+
   // Utility function to detect if the selector is an XPath
   isXPath(selector) {
     return selector.startsWith('//') ||
@@ -253,6 +297,14 @@ class ChromeSpider extends CrawlSpider {
 
   // Function to find elements using either CSS or XPath
   async findElement(page, selector) {
+    if (typeof page.locator === 'function') {
+      if (this.isXPath(selector)) throw Object.assign(new Error('Modern selectors must be CSS'), { code: 'NOT_SUPPORTED' });
+      const locator = page.locator(selector);
+      const count = await locator.count();
+      if (!count) return null;
+      if (count !== 1) throw Object.assign(new Error('Selector must match exactly one element'), { code: 'E_LOCATOR_STRICT' });
+      return locator;
+    }
     if (this.isXPath(selector)) {
       // XPath selector
       const elements = await page.$x(selector);
@@ -265,6 +317,10 @@ class ChromeSpider extends CrawlSpider {
 
   // Function to wait for selector using either CSS or XPath
   async waitForSelector(page, selector, options = {}) {
+    if (typeof page.locator === 'function') {
+      if (this.isXPath(selector)) throw Object.assign(new Error('Modern selectors must be CSS'), { code: 'NOT_SUPPORTED' });
+      return page.locator(selector).first().waitFor({ ...options, state: 'attached' });
+    }
     if (this.isXPath(selector)) {
       // Wait for XPath selector
       await page.waitForXPath(selector, options);

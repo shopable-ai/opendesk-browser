@@ -140,6 +140,15 @@ test('SDK task requests pin the installed revision and correlate pre-reply cance
   assert.ok(Object.values(calls[0][1].params).every(value=>['string','number','boolean'].includes(typeof value)));
   assert.throws(()=>validateConfig({...DEFAULT_CONFIG,itemConfig:{title:'中'.repeat(1400)}}),/4096/);
 });
+test('CSV escapes formula prefixes in fields and values while JSON retains original data',async()=>{
+  const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push(plain(payload));return {started:true};});
+  const data=[{'=key':'=1+1',plus:'+cmd',minus:'-1+2',at:'@SUM(A1)',tab:'\tcommand',newline:'\rcommand',space:'  =1',number:-2,plain:'a=b'}];
+  const snapshot={result:{data}},before=JSON.stringify(snapshot);
+  await sdk.download(snapshot,'csv');const csv=calls.at(-1).text;
+  for(const value of ['=key','=1+1','+cmd','-1+2','@SUM(A1)','\tcommand','\rcommand','  =1'])assert.ok(csv.includes('"\''+value+'"'),value);
+  assert.ok(csv.includes('"-2"'));assert.ok(csv.includes('"a=b"'));
+  await sdk.download(snapshot);assert.equal(calls.at(-1).text,JSON.stringify(snapshot,null,2));assert.equal(JSON.stringify(snapshot),before);
+});
 test('default list config uses native SDK XPath self context for direct-text li records', async () => {
   const {createRequire}=await import('node:module');
   const require=createRequire(import.meta.url);
