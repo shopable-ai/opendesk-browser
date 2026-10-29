@@ -265,7 +265,11 @@ try{
 
   await cycle('US',{ua:'Windows NT',uaCH:'Windows',language:'en-US',
     timezone:'America/New_York',viewport:{width:1366,height:768}});
-  // Select the German preset using the real Chrome keyboard event path.
+  // The readback automatically switches to Results. Return to the actual
+  // Config tab before selecting Germany via Chrome keyboard events.
+  await click('.fp-tabs button:nth-child(1)',sandbox);
+  await until(()=>appRead('!!document.querySelector("select[aria-label=\\\"选择环境预设\\\"]")'),
+    'configuration tab after US restoration');
   await click('select[aria-label="选择环境预设"]',sandbox);
   for(const type of ['rawKeyDown','keyUp'])
     await send('Input.dispatchKeyEvent',{type,key:'ArrowDown',code:'ArrowDown',
