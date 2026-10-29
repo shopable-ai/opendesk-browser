@@ -147,6 +147,13 @@ try{
       '({href:location.href,chrome:typeof chrome,bootstrap:typeof globalThis.fpR23Native})',
       returnByValue:true});
     evidence.bootstrap=inspect.result?.value||null;
+    const imported=await cmd('Runtime.evaluate',{expression:
+      '(async()=>{const out={debugger:typeof chrome.debugger,manifest:chrome.runtime.getManifest().permissions};'+
+      'for(const file of ["background.js","browser-fingerprint.js","browser-page-environment.js"]){'+
+      'try{const mod=await import(chrome.runtime.getURL(file));out[file]={ok:true,keys:Object.keys(mod)};}'+
+      'catch(e){out[file]={error:String(e),stack:String(e.stack).slice(0,800)};}}return out;})()',
+      awaitPromise:true,returnByValue:true});
+    evidence.importDiagnostics=imported.result?.value||imported.exceptionDetails?.text||null;
     evidence.runtimeEvents=runtimeEvents.slice(-10);
     evidence.chromeStderr=stderr.slice(-3500);
     throw Error('NATIVE_WORKER_MODULE_BOOTSTRAP_MISSING '+JSON.stringify(evidence.bootstrap));
@@ -187,6 +194,7 @@ try{
   evidence.chromeStderr=stderr.slice(-8000);
   console.error(evidence.error);
   if(evidence.bootstrap)console.error('R23_BOOTSTRAP '+JSON.stringify(evidence.bootstrap));
+  if(evidence.importDiagnostics)console.error('R23_IMPORT_DIAGNOSTICS '+JSON.stringify(evidence.importDiagnostics));
   if(evidence.runtimeEvents?.length)console.error('R23_RUNTIME_EVENTS '+JSON.stringify(evidence.runtimeEvents));
   if(stderr)console.error('R23_CHROME_STDERR '+stderr.slice(-3500));
   process.exitCode=1;
