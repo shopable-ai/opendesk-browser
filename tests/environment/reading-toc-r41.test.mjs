@@ -10,7 +10,7 @@ import {websiteOrigin,changeTocGrant,tocGrantAllowed,changeTocSiteAllowed,tocSit
   READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../projects/reading-toc/trusted/policy.js';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
-import {changeClipGrant,clipGrantAllowed} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
+import {changeClipGrant,clipGrantAllowed} from '../../projects/web-markdown-clipper/trusted/policy.js';
 
 const pack={format:'opendesk.sidebar-tool.v1',id:'reading-toc',version:'1.0.0',
   title:'阅读目录',description:'Trusted host only',capabilities:['page.toc'],

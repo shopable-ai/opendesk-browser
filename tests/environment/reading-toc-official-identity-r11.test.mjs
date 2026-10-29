@@ -20,7 +20,7 @@ const verifyOfficialReadingToc=(installed,provenance)=>verifyInstalledReadingToc
 
 // Immutable official release, independent of the currently promoted package.
 const historical=JSON.parse(execFileSync('git',['show',
-  'cb1643a66f8a7d588b301cd38e2fd2c5ce6d5cb2:projects/reading-toc/reading-toc.opendesk-tool.json'],
+  'cb1643a66f8a7d588b301cd38e2fd2c5ce6d5cb2:examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json'],
   {cwd:new URL('../..',import.meta.url),encoding:'utf8'}));
 const historicalHash='8d6bf170c92f3093de34f1401f49897d9734f740a0deef87076666a548cc39f0';
 const historicalSource=()=>({[pin.id]:{

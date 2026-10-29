@@ -344,9 +344,9 @@ function reviewedCompiledSharedMarkdown(target,path,root){
 // Only byte-reviewed first-party Clipper page/policy sources enter fixed
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
-  'examples/sidebar-tools/web-markdown-clipper/trusted/page.js':'24c9a9b38965bc1a02931a243a99a5bd9edc5cab',
-  'examples/sidebar-tools/web-markdown-clipper/trusted/policy.js':'35b60045acd85bc021f25e9e97b5de3474e44d08',
-  'examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js':'a801ebcf0b932cf4a9425588a8e2dbada0de3963'
+  'projects/web-markdown-clipper/trusted/page.js':'24c9a9b38965bc1a02931a243a99a5bd9edc5cab',
+  'projects/web-markdown-clipper/trusted/policy.js':'35b60045acd85bc021f25e9e97b5de3474e44d08',
+  'projects/web-markdown-clipper/trusted/notes-store.js':'a801ebcf0b932cf4a9425588a8e2dbada0de3963'
 });
 function reviewedCompiledWebClipper(target,path,root){
   // Notes storage is the reviewed first-party Clipper-only service imported by
@@ -379,14 +379,14 @@ function reviewedCompiledWebClipper(target,path,root){
 // packages or another privileged Host. Page algorithms/renderers are limited
 // to Page Relay; the policy and generated locale are fixed-host shared.
 const compiledReadingTocInputs=Object.freeze({
-  'examples/sidebar-tools/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
-  'examples/sidebar-tools/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
-  'examples/sidebar-tools/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
-  'examples/sidebar-tools/reading-toc/trusted/page.js':'558571f1d95e2ac3eec1212b9ee78bb396678582',
-  'examples/sidebar-tools/reading-toc/trusted/view.js':'e79fe3289544f09f13ebd5c26a382e70526be3f6',
-  'examples/sidebar-tools/reading-toc/trusted/policy.js':'16a4f6693afaa807811d53f30adf32aa31ffbd13',
-  'examples/sidebar-tools/reading-toc/trusted/locales.generated.js':'ffdfc72c479bb16ef27e60eda26255b43870e4ae',
-  'examples/sidebar-tools/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'
+  'projects/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
+  'projects/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
+  'projects/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
+  'projects/reading-toc/trusted/page.js':'558571f1d95e2ac3eec1212b9ee78bb396678582',
+  'projects/reading-toc/trusted/view.js':'e79fe3289544f09f13ebd5c26a382e70526be3f6',
+  'projects/reading-toc/trusted/policy.js':'16a4f6693afaa807811d53f30adf32aa31ffbd13',
+  'projects/reading-toc/trusted/locales.generated.js':'8e1458eb0325a897514e7bfaf6aad14a474dfeff',
+  'projects/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'
 });
 function reviewedCompiledReadingToc(target,path,root){
   if(!Object.hasOwn(compiledReadingTocInputs,path))return null;
@@ -416,7 +416,7 @@ const compiledHostStyleInputs=Object.freeze({
   'examples/sidebar-tools/cookie-editor/trusted/host.css':'b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f',
   'examples/sidebar-tools/ai-vip-share/trusted/host.css':'634786710c463671b9c24c424725bf6c7ff4ec8e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/host.css':'aa08e38ebd56e34c49c1c07be5a1b6727426865b',
-  'examples/sidebar-tools/reading-toc/trusted/host.css':'93db2443725c8fac84dd94585d08d933766c2040'
+  'projects/reading-toc/trusted/host.css':'93db2443725c8fac84dd94585d08d933766c2040'
 });
 function reviewedCompiledHostStyle(target,path,root){
   if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledHostStyleInputs,path))return null;

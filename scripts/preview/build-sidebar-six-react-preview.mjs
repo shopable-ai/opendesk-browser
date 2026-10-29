@@ -33,14 +33,14 @@ const inputs=[
   'src/ui/workflow/workflow-ui-state.js','src/ui/react/tabs/workflow.tsx',
   'src/ui/react/preview/shared-ai-preview.js','src/ui/conversation/draft-suggestion.js',
   'src/ui/react/preview/locale-preview.js',
-  'examples/sidebar-tools/reading-toc/tool.config.json','examples/sidebar-tools/reading-toc/locales.json',
-  'examples/sidebar-tools/reading-toc/src/index.html','examples/sidebar-tools/reading-toc/src/style.css',
-  'examples/sidebar-tools/reading-toc/src/main.js',
+  'projects/reading-toc/tool.config.json','projects/reading-toc/locales.json',
+  'projects/reading-toc/src/index.html','projects/reading-toc/src/style.css',
+  'projects/reading-toc/src/main.js',
   'src/ui/react/tabs/my-agent.tsx','src/ui/react/tabs/my-agent.css',
   'src/ui/react/tabs/tasks.tsx','src/ui/react/tabs/my-page.tsx',
   'src/ui/react/tabs/schedule.tsx','src/ui/react/tabs/cloud.tsx','src/ui/react/tabs/debug.tsx',
   'scripts/preview/build-sidebar-six-react-preview.mjs','scripts/preview/clipper-stage.mjs','scripts/preview/shared-tool-design.mjs',
-  ...clipperStagePaths,'examples/sidebar-tools/web-markdown-clipper/tool.config.json','package.json','package-lock.json'
+  ...clipperStagePaths,'projects/web-markdown-clipper/tool.config.json','package.json','package-lock.json'
 ];
 const must=(ok,message)=>{if(!ok)throw Error('E_SIX_TAB_PREVIEW: '+message);};
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -558,7 +558,7 @@ export async function generateSidebarSixReactPreview(){
   const sources=new Map(initial),entry=join(temp,'preview-entry.mjs'),bundle=join(temp,'bundle');
   const clipperStage=generateClipperStage(sources,{compiledCss:await compileSharedToolCss(sources.get(clipperStagePaths[1]).toString())});
   try{
-    const clipperVersion=JSON.parse(await readFile(join(root,'examples/sidebar-tools/web-markdown-clipper/tool.config.json'),'utf8')).version;
+    const clipperVersion=JSON.parse(await readFile(join(root,'projects/web-markdown-clipper/tool.config.json'),'utf8')).version;
     const localeTool=await createSidebarToolPackage(join(root,'examples/sidebar-tools/reading-toc'));
     await writeFile(entry,previewEntry.replace('CLIPPER_STAGE_DOCUMENT',JSON.stringify(clipperStage)).replace('CLIPPER_TOOL_VERSION',clipperVersion)
       .replace('LOCALE_PREVIEW_TOOL',JSON.stringify(localeTool)));
@@ -704,7 +704,7 @@ export async function generateSidebarSixReactPreview(){
 export async function buildSidebarSixReactPreview({check=false,outputPath=output}={}){
   const result=await generateSidebarSixReactPreview();
   const target=resolve(outputPath);
-  const stageTarget=join(root,'examples/sidebar-tools/web-markdown-clipper/preview/stage.html');
+  const stageTarget=join(root,'projects/web-markdown-clipper/preview/stage.html');
   if(check){
     let current='';try{current=await readFile(target,'utf8');}catch{}
     must(current===result.html,'generated index.html missing or stale');

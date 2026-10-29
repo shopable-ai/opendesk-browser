@@ -1,11 +1,11 @@
 import {createHash} from 'node:crypto';
 
 export const clipperStagePaths=[
-  'examples/sidebar-tools/web-markdown-clipper/src/index.html',
-  'examples/sidebar-tools/web-markdown-clipper/src/style.css',
-  'examples/sidebar-tools/web-markdown-clipper/src/notes.js',
-  'examples/sidebar-tools/web-markdown-clipper/src/main.js',
-  'examples/sidebar-tools/web-markdown-clipper/preview/mock-host.js',
+  'projects/web-markdown-clipper/src/index.html',
+  'projects/web-markdown-clipper/src/style.css',
+  'projects/web-markdown-clipper/src/notes.js',
+  'projects/web-markdown-clipper/src/main.js',
+  'projects/web-markdown-clipper/preview/mock-host.js',
   'src/ui/design-tokens.css','scripts/preview/shared-tool-design.mjs'
 ];
 

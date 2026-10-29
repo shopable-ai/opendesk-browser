@@ -27,10 +27,10 @@ import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION} from '../../src/ui/trusted-p
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,getPendingToolCleanups,installReviewedSidebarTool,
   TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
-import {CLIP_SITE_STORE} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
+import {CLIP_SITE_STORE} from '../../projects/web-markdown-clipper/trusted/policy.js';
 import {installedSiteAllowed,changeInstalledSiteAccess} from '../../src/ui/sidebar-tools/site-grants.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
-import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_PLACEMENT_PREFIX,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_PLACEMENT_PREFIX,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../projects/reading-toc/trusted/policy.js';
 import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 import {parseHTML} from 'linkedom';
 
