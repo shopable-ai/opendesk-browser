@@ -83,7 +83,9 @@ try{
   ].join('\n').replaceAll('__FIXTURE_URL__',fixtureUrl);
   await writeFile(join(extension,'opendesk-fingerprint-native-r23-worker.js'),worker);
   browser=spawn(process.env.CHROME_BIN||'chromium',[
-    '--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-first-run',
+    // Use an actual headed Chrome window under CI's Xvfb. HeadlessChrome
+    // deliberately has a different UA and is not an ordinary user baseline.
+    '--no-sandbox','--disable-dev-shm-usage','--no-first-run',
     '--disable-gpu','--remote-debugging-port=0','--user-data-dir='+profile,
     '--disable-extensions-except='+extension,'--load-extension='+extension,
     'about:blank'
