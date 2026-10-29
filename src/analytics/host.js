@@ -7,7 +7,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolRevoca
 import {MARKET_PROVENANCE_STORE} from '../sidebar-tools/official-reading-toc.js';
 import {READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE,
   verifyOfficialReadingToc,tocGrantAllowed,readingTocPageAllowed}
-  from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+  from '../../projects/reading-toc/trusted/policy.js';
 
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const uuidPattern=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
