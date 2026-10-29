@@ -107,7 +107,7 @@ try{
   const attach=async id=>(await send('Target.attachToTarget',{targetId:id,flatten:true})).sessionId;
   async function evaluate(expression,session){
     const r=await send('Runtime.evaluate',
-      {expression,returnByValue:true,awaitPromise:true,userGesture:true},session);
+      {expression,returnByValue:true,awaitPromise:true},session);
     if(r.exceptionDetails)throw Error('JS_EXCEPTION '+JSON.stringify(r.exceptionDetails).slice(0,700));
     return r.result?.value;
   }
@@ -140,12 +140,29 @@ try{
       'const r=n.getBoundingClientRect();return r.width>0&&r.height>0?'+
       '{x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height}:null})()',session);
     assert(point,'CONTROL_NOT_CLICKABLE '+selector);
-    const frameOffset=physicalSessions.get(session)==='sandbox'
-      ?await evaluate('(()=>{const n=document.querySelector("#sidebar-tool-frame iframe");'+
-        'if(!n)return null;const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}})()',physicalHost)
-      :{x:0,y:0};
+    const frame=()=>evaluate('(()=>{const n=document.querySelector("#sidebar-tool-frame iframe");'+
+      'if(!n)return null;const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}})()',physicalHost);
+    const sandboxControl=physicalSessions.get(session)==='sandbox';
+    let frameOffset=sandboxControl?await frame():{x:0,y:0};
     assert(frameOffset,'INSTALLED_SANDBOX_FRAME_NOT_VISIBLE');
     const viewport=await evaluate('({width:innerWidth,height:innerHeight})',physicalHost);
+    // The installed React iframe grows to fit Results. In Chrome Side Panel,
+    // #workspace-content is the actual scroll owner; scrolling the iframe's
+    // internal document does not bring its bottom controls into the window.
+    for(let attempt=0;sandboxControl&&attempt<4;attempt++){
+      const visibleY=frameOffset.y+point.y;
+      if(visibleY>=55&&visibleY<viewport.height-35)break;
+      const delta=Math.round(visibleY-viewport.height*0.63);
+      const movement=await evaluate('(()=>{const n=document.querySelector("#workspace-content");'+
+        'if(!n)return null;const before=n.scrollTop;n.scrollTop+='+delta+';'+
+        'return {before,after:n.scrollTop,max:n.scrollHeight-n.clientHeight}})()',physicalHost);
+      evidence.nativeScrolls??=[];
+      evidence.nativeScrolls.push({selector,visibleY,delta,movement});
+      await pause(80);
+      frameOffset=await frame();
+      assert(frameOffset,'INSTALLED_SANDBOX_FRAME_LOST_AFTER_SCROLL');
+      if(movement?.after===movement?.before)break;
+    }
     const win=chromeWindowGeometry();
     // Chrome's Side Panel is right- and bottom-aligned in the browser window.
     // The geometry and attempted physical coordinates are retained on failure.
