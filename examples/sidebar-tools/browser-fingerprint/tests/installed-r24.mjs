@@ -127,37 +127,21 @@ try{
   const worker=await attach(originalWorker.targetId);
   const created=await send('Target.createTarget',{url:fixture});
   await until(async()=>{const list=await targets();return list.some(t=>t.targetId===created.targetId&&t.url===fixture)},'fixture tab');
-  const sideFirst=await send('Target.createTarget',{
+  // Use the real WXT sidepanel.html extension page as a visible Chrome tab.
+  // Do NOT open a second physical Side Panel before running the installed App:
+  // on this Linux CFT runner that hides the first document and its CDP inputs.
+  // Installed React, SDK, Host dispatch, package and Chrome permission checks
+  // remain authentic. Physical Side Panel UX is separately NOT_TESTED.
+  const appHostPage=await send('Target.createTarget',{
     url:'chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID()});
-  let host=await attach(sideFirst.targetId);
-  const officialTabHost=host;
-  await until(()=>evaluate('document.readyState==="complete"&&document.body.innerText.length>80',host),'Host bootstrap');
-  await send('Target.activateTarget',{targetId:created.targetId});
-  if(await evaluate('!!document.querySelector("#catalog-open-dev-sidebar")',host)){
-    await click('#catalog-open-dev-sidebar',host);
-    const side=await until(async()=>(await targets()).find(t=>
-      ['page','other'].includes(t.type)&&t.url.includes('/sidepanel.html')&&
-      t.targetId!==sideFirst.targetId),'real Side Panel');
-    host=await attach(side.targetId);
-    // Under headed CFT the Side Panel is its own DevTools target. Chrome must
-    // focus the containing window before native Input events can navigate it.
-    await send('Target.activateTarget',{targetId:side.targetId}).catch(()=>{});
-    await evaluate('chrome.windows.getCurrent().then(w=>chrome.windows.update(w.id,{focused:true}))',host);
-    const contexts=await evaluate('chrome.runtime.getContexts({})',host);
-    assert(contexts.some(c=>c.contextType==='SIDE_PANEL'),'real Chrome SIDE_PANEL context');
-    evidence.realSidePanel=true;
-  }else{
-    throw Error('OFFICIAL_SIDEPANEL_ENTRY_MISSING');
-  }
-  // Linux Chrome-for-Testing exposes a real SIDE_PANEL target, but CDP mouse
-  // and keyboard input into that target is not delivered on this runner.
-  // Continue through the SAME production WXT sidepanel.html page in a normal
-  // Chrome extension tab. Its installed React, SDK, host, grants and package
-  // are real; do not imply physical Side Panel interaction was exercised.
-  host=officialTabHost;
+  let host=await attach(appHostPage.targetId);
   evidence.actionSurface='PRODUCTION_WXT_EXTENSION_TAB';
-  evidence.physicalSidePanelInput='BLOCKED_CDP_INPUT';
-  await send('Target.activateTarget',{targetId:created.targetId});
+  evidence.realSidePanel=false;
+  evidence.physicalSidePanelInput='NOT_TESTED';
+  await until(()=>evaluate('document.readyState==="complete"&&document.body.innerText.length>80',host),'Host bootstrap');
+  await until(()=>evaluate('(()=>{const n=document.querySelector("#tab-tools");'+
+    'if(!n||n.disabled)return false;const r=n.getBoundingClientRect();'+
+    'return r.width>0&&r.height>0})()',host),'visible navigation before install');
   await until(()=>evaluate('!!document.querySelector("#tab-tools")',host),'tools Tab');
   await click('#tab-tools',host);
   await pause(350);
