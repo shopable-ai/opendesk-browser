@@ -325,7 +325,8 @@ try{
       'if(!tab)throw Error("FIXTURE_TAB_NOT_FOUND");'+
       'const results=await chrome.scripting.executeScript({target:{tabId:tab.id},world:"MAIN",'+
       'func:()=>({url:location.href,ua:navigator.userAgent,'+
-      'uaCH:navigator.userAgentData?.platform??null,language:navigator.language,languages:[...navigator.languages],'+
+      'uaCH:navigator.userAgentData?.platform??null,language:navigator.language,'+
+      'languages:[...navigator.languages],'+
       'timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,'+
       'viewport:{width:innerWidth,height:innerHeight}})});'+
       'const targets=await chrome.debugger.getTargets();'+
@@ -387,6 +388,7 @@ try{
     assert(applied.values.ua.includes(expected.ua),'User-Agent remains unchanged');
     assert.equal(applied.values.uaCH,expected.uaCH,'low-entropy UA-CH platform');
     assert.equal(applied.values.language,expected.language,'JS navigator.language');
+    assert.equal(applied.values.languages[0],expected.language,'JS navigator.languages[0]');
     assert.equal(applied.values.timezone,expected.timezone,'Intl timezone');
     assert.deepEqual(applied.values.viewport,expected.viewport,'MAIN world viewport');
     await action(2);
@@ -454,6 +456,15 @@ try{
       throw error;
     }
     item.afterDetach=await independent();
+    // Capture both language APIs immediately after detach, before the Host
+    // readback. Chrome can restore navigator.language while retaining a
+    // stale acceptLanguage override in navigator.languages.
+    item.postDetachLanguageEvidence={
+      navigatorLanguage:item.afterDetach.values.language,
+      navigatorLanguages:item.afterDetach.values.languages,
+      originalLanguage:baseline.values.language,
+      originalLanguages:baseline.values.languages
+    };
     assert.equal(item.afterDetach.debuggerAttached,false,'debugger must detach before restoration verification');
     await action(2);
     await until(async()=>['调试已停止 · 恢复有限验证','已独立核验恢复','恢复结果未知'].includes(await status()),

@@ -278,19 +278,21 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     let resetError=null;
     if(s.attached&&s.attempts.some(row=>row.key==='language')){
       try{
-        // Chromium can retain the cached navigator.languages array when a
-        // page reads navigator.language first after detach. Restore and collect
-        // the original array under a nonempty override (which keeps the getter
-        // dirty), before detaching and returning
-        // control to independent readers. Do not patch page-owned properties.
+        // Warm the original array under a nonempty override: Chromium may
+        // retain navigator.languages when a scalar-first reader follows detach.
         const languages=s.base.fields.languages.value;
         if(!Array.isArray(languages)||!languages.length)throw fail('E_BASELINE_UNAVAILABLE');
         await api.debugger.sendCommand(client(s),'Emulation.setUserAgentOverride',{
           userAgent:s.base.fields.userAgent.value,acceptLanguage:languages.join(',')});
         await readPage(s.refs,owner);
+        // Keep main's explicit clears after refreshing the cached array.
+        await api.debugger.sendCommand(client(s),'Emulation.setUserAgentOverride',
+          {userAgent:'',acceptLanguage:''});
+        await api.debugger.sendCommand(client(s),'Emulation.setLocaleOverride',{locale:''});
       }catch(error){resetError=error;}
     }
     try{
+      // Even when a clear is uncertain, detach once for safety; never replay.
       if(s.attached)await api.debugger.detach(client(s));
       s.attached=false;tabs.delete(t.tabId);
       if(s.expireHandle!==undefined)unschedule(s.expireHandle);

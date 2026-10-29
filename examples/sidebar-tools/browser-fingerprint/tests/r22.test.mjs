@@ -12,7 +12,7 @@ const jp=Object.freeze({ua:'mac',lang:'ja-JP',tz:'Asia/Tokyo',geo:'off',viewport
 const owner=Object.freeze({toolId:'browser-fingerprint',toolVersion:'0.2.2',
   packageHash:'a'.repeat(64),epoch:'install-epoch',hostInstanceId:'a'.repeat(36),toolInstance:'b'.repeat(36)});
 const fail=code=>Object.assign(new Error(code),{code});
-function harness({deny=false,failedCommand=null,noHints=false,detachFails=false,
+function harness({deny=false,failedCommand=null,failedClearCommand=null,noHints=false,detachFails=false,
   reverseViewportKeys=false,staleLanguageCache=false,resetFails=false}={}){
   const original={ua,language:'ja-JP',tz:'Asia/Tokyo',
     viewport:{width:1200,height:700},hints:'macOS'};
@@ -29,13 +29,18 @@ function harness({deny=false,failedCommand=null,noHints=false,detachFails=false,
       async sendCommand({tabId},method,args){
         assert.equal(tabId,71);assert.equal(attached,true);
         commands.push(method);
-        if(failedCommand===method)throw fail('E_CDP_REJECTED');
+        if(failedCommand===method||
+          failedClearCommand===method&&args?.locale==='')throw fail('E_CDP_REJECTED');
         if(method==='Emulation.setUserAgentOverride'){
           if(++uaCommands>1&&resetFails)throw fail('E_CDP_RESET');
-          state.ua=args.userAgent;
-          if(args.acceptLanguage)state.language=args.acceptLanguage;
+          state.ua=args.userAgent||original.ua;
+          if(args.acceptLanguage==='')state.language=original.language;
+          else if(args.acceptLanguage)state.language=args.acceptLanguage;
           if(args.userAgentMetadata)state.hints=args.userAgentMetadata.platform;
         }
+        if(method==='Emulation.setLocaleOverride'&&args.locale==='')
+          assert.equal(state.language,original.language,
+            'Explicitly clear Accept-Language before locale reset');
         if(method==='Emulation.setTimezoneOverride')state.tz=args.timezoneId;
         if(method==='Emulation.setDeviceMetricsOverride')
           state.viewport={width:args.width,height:args.height};
@@ -104,6 +109,8 @@ test('R2.2 apply -> independent page readback -> detach -> independent baseline 
   assert.ok(validated.find(row=>row.key==='ua').baseline);
   assert.equal((await h.driver.restore({sessionRef,documentRef},owner)).accepted,true);
   assert.equal(h.attached,false);
+  assert.deepEqual(h.commands.slice(-3),['Emulation.setUserAgentOverride',
+    'Emulation.setLocaleOverride','detach'],'language overrides explicitly cleared before detach');
   const restored=await h.driver.readback({sessionRef,documentRef,mode:'restore'},owner);
   for(const key of ['ua','uaCH','language','timezone','viewport'])
     assert.equal(restored.rows.find(row=>row.key===key)?.status,'match',key);
@@ -185,6 +192,17 @@ test('R2.2 restore detach failure is not reported as restored',async()=>{
   await assert.rejects(h.driver.restore({sessionRef,documentRef},owner),{code:'E_OUTCOME_UNKNOWN'});
   await assert.rejects(h.driver.readback({sessionRef,documentRef,mode:'applied'},owner),
     {code:'E_CONTEXT'});
+});
+test('R2.4 uncertain language clear detaches without claiming restore success or retrying',async()=>{
+  const h=harness({failedClearCommand:'Emulation.setLocaleOverride'});
+  const ack=await h.driver.apply({...refs,config:us},owner);
+  await assert.rejects(()=>h.driver.restore({sessionRef:ack.sessionRef,documentRef},owner),
+    {code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(h.attached,false);
+  assert.deepEqual(h.commands.slice(-3),['Emulation.setUserAgentOverride',
+    'Emulation.setLocaleOverride','detach']);
+  assert.equal(h.commands.filter(x=>x==='Emulation.setLocaleOverride').length,2,
+    'one apply and one restore clear; no automatic side-effect retry');
 });
 test('R2.2 UA Client Hints unavailable stays unverifiable even if UA matches',async()=>{
   const h=harness({noHints:true});
