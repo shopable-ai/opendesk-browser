@@ -91,8 +91,11 @@
 .cookie-editor-react .cookie-message{overflow-wrap:anywhere;margin:var(--space-2) 0}
 .cookie-editor-react .cookie-message.success{color:var(--od-positive)}
 .cookie-editor-react .cookie-panel>p{margin:0}
-.cookie-editor-react .cookie-permission,.cookie-editor-react .cookie-offline-banner{margin-bottom:var(--space-3)}
-.cookie-editor-react .cookie-permission p,.cookie-editor-react .cookie-offline-banner p{margin:var(--space-2) 0;font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-permission{display:grid;flex:0 0 auto;gap:var(--space-1);min-width:0;margin:var(--space-3);overflow-wrap:anywhere}
+.cookie-editor-react .cookie-permission strong{font-size:var(--od-body-size);font-weight:600}
+.cookie-editor-react .cookie-permission p{margin:0;font-size:var(--od-note-size);line-height:1.6;color:var(--od-sub)}
+.cookie-editor-react .cookie-offline-banner{margin-bottom:var(--space-3)}
+.cookie-editor-react .cookie-offline-banner p{margin:var(--space-2) 0;font-size:var(--od-note-size)}
 .cookie-editor-react .cookie-permission-actions{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;margin-top:var(--space-3)}
 .cookie-editor-react .cookie-confirm{position:relative;z-index:2;margin-top:var(--space-3)}
 .cookie-editor-react .cookie-confirm p{margin:0 0 var(--space-2)}

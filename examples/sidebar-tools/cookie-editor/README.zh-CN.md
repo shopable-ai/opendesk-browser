@@ -1,5 +1,15 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 受限页面提示优化 · 2.0.52（2026-10-29）
+
+Chrome 内部页、扩展页、隐身窗口及没有活动网页时，Cookie 页正文顶部仅显示一张提示卡片，不再附带「离线文件」按钮或整套禁用的 Cookie 编辑区。卡片复用共享样式，统一标题、正文换行与 12px 留白；普通网站、授权流程及可恢复错误原有操作保留。
+
+唯一正式包 [`cookie-editor.opendesk-tool.json`](cookie-editor.opendesk-tool.json) 已通过原 Vite 编译、候选包门禁、显式晋升及源码一致性核对；版本 **2.0.52**，SHA-256 `aeb83b15cdabb3f070b60d2d58c4579a89cb164682e59a5d7b49bea7bf752042`。本轮只修改应用界面与包，不修改 Browser、SDK 或可信 Cookie 服务。
+
+同源 JSX + Mock SDK 预览已检查受限页、无活动网页、正常列表恢复、权限缺失恢复操作和深浅色显示；源码/样式定向检查 18 项及打包门禁 8 项通过。原静态测试另有 3 条既有失败（导入区/导出区表达式缺少现有 `cookieReady` 条件、文件导入断言仍要求立即导入），已核对修改前 HEAD 同样不成立，本轮未改写这些断言。预览截图位于本机 `artifacts/cookie-editor-restricted-card-20261029/restricted-card.png`。
+
+**PACKAGE_READY_INSTALL_NOT_TESTED**：浏览器安全策略拒绝读取 `chrome-extension://` 页面，本轮未安装或复测真实扩展页面。虚构数据预览不作为 Chrome 原生通过证据；下列 2.0.50 等记录仅证明各自历史候选。
+
 ## R2.8-LOCAL · 2.0.50 正式包与增量验收（2026-10-29）
 
 原 R2.8 的六 Tab、极简授权弹窗与可信 Host 实现沿用 `93d6fba88`、`59345ab97`、`5d1fb2e1e`，未重新设计页面或修改已确认原型。此次仅对齐版本、通过原打包器晋升新包，并修正不再符合当前审阅流程的测试断言。

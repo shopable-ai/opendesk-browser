@@ -210,6 +210,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   },[snapshot.epoch,snapshot.phase]);
   const target=snapshot.target;
   const cookieReady=snapshot.phase==='ready';
+  const pageUnavailable=snapshot.phase==='blocked'&&[
+    'E_UNSUPPORTED_SCHEME','E_INCOGNITO','E_NO_ACTIVE_TAB','E_WINDOW_UNAVAILABLE'
+  ].includes(snapshot.problem);
   const acceptAccountState=result=>{
     const verified=verifiedAccount.current;
     if(verified&&(!result.unlocked||!result.accounts.some(item=>
@@ -644,7 +647,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       <CookiePermissions phase={snapshot.phase} reason={snapshot.problem} target={target}
         disabled={busy} onRetry={()=>guarded(refresh)}
         onOffline={()=>switchMode('offline')}/>
-      <div className="od-surface cookie-editor-workspace">
+      {!pageUnavailable&&<div className="od-surface cookie-editor-workspace">
         <CookieEditorView site={target?.hostname||''} showSiteBar={false} syncStale={snapshot.syncStale}
           importOpen={panel==='import'}
           importContent={cookieReady&&panel==='import'?<CookieImport disabled={locked}
@@ -690,7 +693,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
             disabled={locked} readValue={controller.readValue} onSave={save}
             onDirty={setDirty} onCancel={()=>{setSelected(null);setDirty(false);}}
             onDelete={remove}/>):null}/>
-      </div>
+      </div>}
       </section>}
       {section==='accounts'&&<CookieAccounts
         key={(target?.origin||'')+':'+(accountState?.unlocked===true)+':'+accountFormRevision}

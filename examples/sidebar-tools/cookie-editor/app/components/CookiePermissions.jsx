@@ -23,7 +23,7 @@ function content(phase,reason){
 }
 export default function CookiePermissions({phase,reason,target,disabled,onRetry,onOffline}){
   if(phase==='ready'||granting.has(reason))return null;
-  if(phase==='loading')return <section className="cookie-permission" role="status" aria-live="polite">
+  if(phase==='loading')return <section className="cookie-permission od-surface od-surface--padded" role="status" aria-live="polite">
     正在读取 Cookie…
   </section>;
   const [heading,help,canRetry]=content(phase,reason);
@@ -31,9 +31,9 @@ export default function CookiePermissions({phase,reason,target,disabled,onRetry,
     <strong>{heading}</strong>
     <p>{help}</p>
     {target&&<p className="cookie-editor-scope">{target.hostname}</p>}
-    <div className="cookie-permission-actions">
-      {canRetry&&<Button type="button" disabled={disabled} onClick={onRetry}>重新检查</Button>}
+    {canRetry&&<div className="cookie-permission-actions">
+      <Button type="button" disabled={disabled} onClick={onRetry}>重新检查</Button>
       <Button type="button" variant="secondary" disabled={disabled} onClick={onOffline}>离线文件</Button>
-    </div>
+    </div>}
   </section>;
 }
