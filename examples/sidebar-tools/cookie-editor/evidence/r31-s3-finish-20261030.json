@@ -168,5 +168,170 @@
     "reason": "Required latest-candidate Chromium, Mac, two-device LAN and real-site evidence absent; no 95+ assertion"
   },
   "nextUserOperation": "After existing Host/SW gates are fixed, promote with the original packer and load the reviewed continuous-development extension; execute one local A->B->A URL chain first. Session transfer remains blocked until an approved nonextractable-key recovery contract is available.",
-  "goalLifecycle": "Original goal remains active and unmet; this source increment does not mark S3-FINISH complete."
+  "goalLifecycle": "Original goal remains active and unmet; this source increment does not mark S3-FINISH complete.",
+  "continuation20261030": {
+    "sourceHeadBeforeCommit": "a292e33ad50d271fb9b6432318646bf17e67a4ac",
+    "stage": "DEV_IMPORT_AND_SOURCE_BOUNDARY_REPAIRED_TWO_MAC_HTTPS_API_PROVEN_CORE_GOAL_STILL_UNMET",
+    "changes": [
+      "Correct src/analytics/host.js Reading TOC import to existing projects source",
+      "Five exact blob re-pins after old.replaceAll(../../../../src/,../../../src/) and resolved-target equivalence",
+      "Reject unreviewed projects/ paths just as examples/; preserve per-source target, byte-drift and symlink rejection",
+      "Update existing Reading TOC negative test to its actual migrated source path; add arbitrary-project rejection cases"
+    ],
+    "relocationReview": [
+      {
+        "path": "projects/reading-toc/trusted/page.js",
+        "old": "558571f1d95e2ac3eec1212b9ee78bb396678582",
+        "new": "fe9fa7093b570c280bf9f3304002f50eda4bdae9",
+        "relocationOnly": true,
+        "resolvedTargets": [
+          "src/sidebar-tools/sender.js",
+          "src/ui/sidebar-tools/lifecycle.js",
+          "src/ui/sidebar-tools/package.js",
+          "projects/reading-toc/trusted/policy.js",
+          "src/sidebar-tools/official-reading-toc.js",
+          "projects/reading-toc/trusted/model.js",
+          "projects/reading-toc/trusted/view.js",
+          "src/ui/app-localization.js",
+          "src/ui/sidebar-tools/locale-packs.js"
+        ]
+      },
+      {
+        "path": "projects/reading-toc/trusted/view.js",
+        "old": "e79fe3289544f09f13ebd5c26a382e70526be3f6",
+        "new": "af923d91c57904138245b3741c4bbbdb7a873014",
+        "relocationOnly": true,
+        "resolvedTargets": [
+          "projects/reading-toc/trusted/placement.js",
+          "projects/reading-toc/trusted/locales.generated.js",
+          "src/ui/app-localization.js"
+        ]
+      },
+      {
+        "path": "projects/reading-toc/trusted/policy.js",
+        "old": "16a4f6693afaa807811d53f30adf32aa31ffbd13",
+        "new": "2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2",
+        "relocationOnly": true,
+        "resolvedTargets": [
+          "src/ui/sidebar-tools/lifecycle.js",
+          "src/ui/sidebar-tools/site-grants.js",
+          "src/ui/sidebar-tools/package.js",
+          "src/sidebar-tools/official-reading-toc.js"
+        ]
+      },
+      {
+        "path": "projects/reading-toc/trusted/existing-tabs.js",
+        "old": "f5d9882cd1de65ef2ed0115c4d002114575c1058",
+        "new": "e82a3e3b43debfff756180ccf1da110b7dfd8172",
+        "relocationOnly": true,
+        "resolvedTargets": [
+          "projects/reading-toc/trusted/policy.js",
+          "src/ui/sidebar-tools/package.js",
+          "src/ui/sidebar-tools/lifecycle.js",
+          "src/sidebar-tools/official-reading-toc.js"
+        ]
+      },
+      {
+        "path": "projects/web-markdown-clipper/trusted/policy.js",
+        "old": "35b60045acd85bc021f25e9e97b5de3474e44d08",
+        "new": "30b4c35933a813e394eb9173c034b1a21927f6d1",
+        "relocationOnly": true,
+        "resolvedTargets": [
+          "src/ui/sidebar-tools/lifecycle.js",
+          "src/ui/sidebar-tools/package.js",
+          "src/ui/sidebar-tools/site-grants.js"
+        ]
+      }
+    ],
+    "independentReview": {
+      "status": "NO_P1_P2_FINDINGS",
+      "scope": "Five relocation pins, analytics import correction, projects rejection and preserved negative assertions. No WXT/native score."
+    },
+    "checks": [
+      {
+        "command": "node --test --test-name-pattern=\"Reading TOC|privileged entries reject|relocated trusted|prelaunch|trusted repair|repaired tabs\" tests/environment/bundle-provenance.test.mjs tests/environment/reading-toc-prelaunch.test.mjs tests/environment/reading-toc-existing-tabs-r11.test.mjs",
+        "status": "PASS",
+        "pass": 10,
+        "fail": 0,
+        "log": "artifacts/cookie-editor-r31/relocation-gates.log"
+      },
+      {
+        "command": "node --test --test-name-pattern=\"Analytics SW import graph\" tests/environment/analytics-page-scope.test.mjs",
+        "status": "PASS",
+        "pass": 1,
+        "fail": 0,
+        "log": "artifacts/cookie-editor-r31/analytics-import-graph.log"
+      },
+      {
+        "command": "node --test tests/environment/cookie-account-provenance-r134.test.mjs",
+        "status": "PASS",
+        "pass": 6,
+        "fail": 0,
+        "log": "artifacts/cookie-editor-r31/cookie-source-after-boundary.log"
+      },
+      {
+        "command": "node --test tests/environment/analytics-page-scope.test.mjs tests/environment/analytics-r11-authority.test.mjs",
+        "status": "FAIL",
+        "pass": 15,
+        "fail": 60,
+        "log": "artifacts/cookie-editor-r31/dev-unblock-analytics.log",
+        "classification": "Earlier wide diagnostic: source graph pin failure subsequently repaired and now individually passes; consent fixtures still use obsolete setConsent(true) and raise E_ANALYTICS_DISCLOSURE. Unrelated consent logic/assertions were not weakened or changed; no claim of full-suite PASS."
+      },
+      {
+        "command": "Actual src/sw.js esbuild component, production mode, write:false",
+        "status": "COMPILE_PASS_NOT_WXT_BUILD",
+        "bytes": 1087421,
+        "productionSwBudget": 1048576,
+        "scope": "Component compiler result exceeds WXT production byte budget; not a WXT measurement or production PASS. Existing output writer untouched."
+      },
+      {
+        "command": "esbuild emission metadata diagnostic",
+        "scope": "RESOLVER_AND_ESBUILD_ONLY_NOT_WXT",
+        "promptAssetContractBytesInOutput": 161,
+        "result": "Existing Prompt asset-contract stays rejected for SW; no admission widened. Actual WXT outcome not established.",
+        "log": "artifacts/cookie-editor-r31/sw-emission-diagnostic.json"
+      }
+    ],
+    "twoPhysicalMacHttps": {
+      "timestamp": "2026-10-29T19:59:45.318116+00:00",
+      "scope": "TWO_PHYSICAL_MAC_HTTPS_RELAY_API_ONLY",
+      "status": "PASS",
+      "senderHost": "mac4g.local",
+      "receiverHost": "shopme.local",
+      "origin": "https://192.168.30.104:8443",
+      "certificateSha256DER": "98b93064b6121a0edc7c023fe1666d2b4fb07bc60d072d78b8f4f531fdd068bf",
+      "certificateTrust": "Explicit certificate pin via --cacert on both computers; no verification bypass and no OS/browser trust change",
+      "defaultTrustNegativeExit": 60,
+      "invitationCreatedHttpStatus": 201,
+      "receiverClaimHttpStatus": 200,
+      "receiverClaimStatus": "configuration_claimed",
+      "senderRemainingClaims": 0,
+      "inviteUrlSha256": "6d4ab5e304ca67682a669bcb9e6794d129445394d3d8109f90a512715d9119d4",
+      "cookieTransferred": false,
+      "openDeskHostClaim": "NOT_TESTED",
+      "cookieRestore": "NOT_TESTED",
+      "websiteLogin": "NOT_TESTED",
+      "note": "Remote Mac uses different source and existing work is preserved. This does not establish complete TWO_DEVICE_LAN or REAL_SITE acceptance."
+    },
+    "browserAndRuntime": {
+      "currentMacDevelopmentManifest": false,
+      "currentMacDevelopmentSw": false,
+      "existingWatcherPid": 62841,
+      "watcherOwner": "Other task, .runtime/integration-20261029-01a1884d/browser-dev-development-resume.log",
+      "watcherOutput": "Same dist/development and loopback port43119; existing process logs official-catalog rejection while a fresh readOfficialSources succeeds. Stale pre-migration module cache is the current diagnosis, not a verified restart result.",
+      "otherMacSourceHead": "a03a6e1188dbf65a5797e3a47dca63a13be6a1e2",
+      "otherMacDevAndProductionManifests": true,
+      "otherMacSourceAndProcesses": "Not overwritten or restarted",
+      "otherMacDoctorWithJson": "E_SCHEMA; no pairing or manifest edited",
+      "chromeControl": "Chrome internal-tab creation attempt timed out and reset control session; no native Cookie operations performed"
+    },
+    "remaining": [
+      "Safe restart of other-owner existing dev watcher requires coordination/explicit task exception per AGENTS.md",
+      "Current WXT output, actual Chrome path/ID/dev connection and current-candidate A/B URL switch still unverified",
+      "TLS trust is explicit curl leaf-certificate pinning; Chrome/OS trust and OpenDesk Host claim not verified",
+      "Device private-key persistence/recovery contract remains BLOCKED; no ECDH session path implemented",
+      "Formal package promotion, two Profile/width/zoom checks and actual two-device login remain incomplete"
+    ],
+    "goalLifecycle": "Active; not complete. TWO_DEVICE_LAN and REAL_SITE remain NOT_TESTED for the requested full OpenDesk flow."
+  }
 }

@@ -90,7 +90,8 @@ test('partial diagnostic JSON and circular causes cannot leave a stale success m
   assert.equal(JSON.parse(await readFile(join(evidence,'build-production-latest.json'),'utf8')).status,'failed');
 });
 test('privileged entries reject historical, user project and standalone vendor modules',()=>{
-  for(const path of ['examples/programs/sample/main.js','docs/contracts/source-snapshots/lib.js','src/vendor/jquery.js'])
+  for(const path of ['examples/programs/sample/main.js','projects/unreviewed-tool/trusted/policy.js',
+    'projects/reading-toc/trusted/unreviewed.js','docs/contracts/source-snapshots/lib.js','src/vendor/jquery.js'])
     assert.throws(()=>describeBundle({chunk:{fileName:'sw.js',modules:{['/repo/'+path]:{}}},root,lock}),/cannot enter/);
   assert.throws(()=>describeBundle({chunk,root,lock:{packages:{}}}),/missing lock/);
 });
@@ -345,7 +346,7 @@ test('R1.3 pinned shared Markdown converter can only enter the existing Page Rel
 
 test('R1.3 Reading TOC model, overview, placement, page and view require audited Page Relay pins',async ctx=>{
   const names=['overview.js','model.js','placement.js','page.js','view.js'];
-  const prefix='examples/sidebar-tools/reading-toc/trusted/';
+  const prefix='projects/reading-toc/trusted/';
   const make=(target,root=process.cwd(),list=names)=>describeBundle({chunk:{fileName:target,
     modules:Object.fromEntries(list.map(name=>[resolve(root,prefix+name),
       {renderedLength:20,originalLength:100}]))},root,lock:{packages:{}}});
@@ -367,6 +368,31 @@ test('R1.3 Reading TOC model, overview, placement, page and view require audited
       /Trusted Reading TOC source changed/);
     await rm(path);await symlink(resolve(prefix,name),path);
     assert.throws(()=>make('agents/page-relay.js',tmp,[name]),/must not be a symlink/);
+  }
+});
+
+test('relocated trusted policies and tab repair keep exact source, target and symlink fences',async ctx=>{
+  const cases=[
+    ['projects/reading-toc/trusted/policy.js','sw.js','2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2'],
+    ['projects/web-markdown-clipper/trusted/policy.js','sw.js','30b4c35933a813e394eb9173c034b1a21927f6d1'],
+    ['projects/reading-toc/trusted/existing-tabs.js','sidebar-tools/preinstall-intent.js','e82a3e3b43debfff756180ccf1da110b7dfd8172']
+  ];
+  const tmp=await realpath(await mkdtemp(join(tmpdir(),'relocated-trusted-source-')));
+  ctx.after(()=>rm(tmp,{recursive:true,force:true}));
+  for(const [path,target,pin] of cases){
+    const make=(at,root=process.cwd())=>describeBundle({root,lock:{packages:{}},chunk:{
+      fileName:at,modules:{[resolve(root,path)]:{originalLength:100,renderedLength:20}}
+    }});
+    assert.equal(make(target).modules[0].reviewedFirstPartyBlob,pin);
+    assert.throws(()=>make('scripting/sandbox/worker-runtime.js'),/cannot enter a privileged fixed bundle/);
+    if(path.endsWith('/existing-tabs.js'))assert.throws(()=>make('sw.js'),/cannot enter a privileged fixed bundle/);
+    const file=resolve(tmp,path),bytes=await readFile(path);
+    await mkdir(resolve(file,'..'),{recursive:true});await writeFile(file,bytes);
+    assert.equal(make(target,tmp).modules[0].reviewedFirstPartyBlob,pin);
+    await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unreviewed drift\n')]));
+    assert.throws(()=>make(target,tmp),/Trusted .* source changed/);
+    await rm(file);await symlink(resolve(path),file);
+    assert.throws(()=>make(target,tmp),/must not be a symlink/);
   }
 });
 

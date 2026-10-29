@@ -350,7 +350,8 @@ function reviewedCompiledSharedMarkdown(target,path,root){
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
   'projects/web-markdown-clipper/trusted/page.js':'24c9a9b38965bc1a02931a243a99a5bd9edc5cab',
-  'projects/web-markdown-clipper/trusted/policy.js':'35b60045acd85bc021f25e9e97b5de3474e44d08',
+  // Relocation-only parent imports; exact note/site scopes and targets stay fixed.
+  'projects/web-markdown-clipper/trusted/policy.js':'30b4c35933a813e394eb9173c034b1a21927f6d1',
   'projects/web-markdown-clipper/trusted/notes-store.js':'a801ebcf0b932cf4a9425588a8e2dbada0de3963'
 });
 function reviewedCompiledWebClipper(target,path,root){
@@ -383,15 +384,18 @@ function reviewedCompiledWebClipper(target,path,root){
 // compile into EXISTING reviewed fixed outputs, never arbitrary JS, remote
 // packages or another privileged Host. Page algorithms/renderers are limited
 // to Page Relay; the policy and generated locale are fixed-host shared.
+// 2026-10-30 relocation review: four parent-depth import corrections resolve
+// to the same existing src modules after examples/ -> projects/. Business logic,
+// target ownership, permissions and fail-closed source/symlink guards are unchanged.
 const compiledReadingTocInputs=Object.freeze({
   'projects/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
   'projects/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
   'projects/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
-  'projects/reading-toc/trusted/page.js':'558571f1d95e2ac3eec1212b9ee78bb396678582',
-  'projects/reading-toc/trusted/view.js':'e79fe3289544f09f13ebd5c26a382e70526be3f6',
-  'projects/reading-toc/trusted/policy.js':'16a4f6693afaa807811d53f30adf32aa31ffbd13',
+  'projects/reading-toc/trusted/page.js':'fe9fa7093b570c280bf9f3304002f50eda4bdae9',
+  'projects/reading-toc/trusted/view.js':'af923d91c57904138245b3741c4bbbdb7a873014',
+  'projects/reading-toc/trusted/policy.js':'2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2',
   'projects/reading-toc/trusted/locales.generated.js':'8e1458eb0325a897514e7bfaf6aad14a474dfeff',
-  'projects/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'
+  'projects/reading-toc/trusted/existing-tabs.js':'e82a3e3b43debfff756180ccf1da110b7dfd8172'
 });
 function reviewedCompiledReadingToc(target,path,root){
   if(!Object.hasOwn(compiledReadingTocInputs,path))return null;
@@ -476,7 +480,9 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
       reviewedCompiledReadingToc(chunk.fileName,path,root)||
       reviewedCompiledHostStyle(chunk.fileName,path,root);
-    if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
+    // Moving an independent app into projects/ never grants privileged access.
+    // It must retain the same exact reviewed source/target admission as examples/.
+    if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|projects\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,
       ...(reviewedSource?{reviewedFirstPartyBlob:reviewedSource}:{})};
