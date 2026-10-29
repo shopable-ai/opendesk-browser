@@ -466,19 +466,34 @@ try{
     for(const key of ['ua','uaCH','language','timezone'])
       assert.deepEqual(restored.values[key],baseline.values[key],'restoration mismatch: '+key);
     assert.deepEqual(restored.values.viewport,baseline.values.viewport,'original viewport not restored');
-    // Preserve the Host's per-field explanation even when restore_unknown is
-    // returned. Independent Chrome recovery alone must never override a failed
-    // product receipt; the observed rows identify the actual mismatch.
-    // The restored status appears before the async history write completes.
-    // Wait for React to commit the final Results page before leaving it;
-    // otherwise its later setView("results") overwrites our Config click.
-    await until(()=>appRead('(()=>{const t=document.querySelector(".fp-tabs button:nth-child(2)");'+
-      'const list=document.querySelector(".fp-check-list");return t?.getAttribute("aria-selected")==="true"'+
-      '&&list?.getClientRects().length>0})()'),'restoration results mounted');
+    // The React status changes BEFORE the asynchronous history write and
+    // setVerification(result). A visible .fp-check-list can still contain the
+    // initial NO_INDEPENDENT_READBACK rows. Wait for the actual verified
+    // report (enabled export action), not just the selected Results tab.
+    // A genuine restore_unknown remains a FAIL; retain its settled Host rows.
+    item.restorationStatusBeforeReport=item.restorationStatus;
+    let reportMountError=null;
+    try{
+      await until(()=>appRead('(()=>{const t=document.querySelector(".fp-tabs button:nth-child(2)");'+
+        'const list=document.querySelector(".fp-check-list");'+
+        'const exportButton=document.querySelector(".fp-report-actions button");'+
+        'return t?.getAttribute("aria-selected")==="true"&&'+
+        'list?.getClientRects().length>0&&exportButton&&!exportButton.disabled})()'),
+        'restoration live Host report mounted after history settled');
+    }catch(error){reportMountError=String(error);}
+    item.restorationReportMounted=reportMountError===null;
+    if(reportMountError)item.restorationReportMountError=reportMountError;
+    item.restorationStatus=await status();
     item.restorationRows=await appRead('[...document.querySelectorAll(".fp-check")].map(n=>n.innerText)');
+    item.restorationFieldEvidence=await appRead('[...document.querySelectorAll(".fp-check")].map(n=>({'+
+      'name:n.querySelector("strong")?.textContent?.trim(),'+
+      'state:n.querySelector(".fp-tag")?.textContent?.trim(),'+
+      'values:[...n.querySelectorAll(".fp-verification-values span")].map(x=>x.textContent),'+
+      'source:n.querySelector("p.fp-secondary")?.textContent?.trim()}))');
     item.restorationNotice=await appRead('document.querySelector(".fp-notice")?.textContent');
+    assert(!reportMountError,'RESTORATION_REPORT_NOT_READY: '+reportMountError);
     assert(['调试已停止 · 恢复有限验证','已独立核验恢复'].includes(item.restorationStatus),
-      'restore_unknown is NOT a PASS');
+      'restore_unknown is NOT a PASS: '+JSON.stringify(item.restorationFieldEvidence));
     assert(item.restorationRows.some(x=>x.includes('User-Agent')&&x.includes(restored.values.ua)),
       'restoration React report must match the independent original UA');
     item.progress='COMPLETE_INDEPENDENT_RESTORE_VERIFIED';
