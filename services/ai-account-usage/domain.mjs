@@ -103,12 +103,19 @@ export function recordProbeResult(state, alias, result) {
     const oldReset = Date.parse(prior.resetsAt), newReset = Date.parse(sample.resetsAt);
     if (newReset <= oldReset + 60_000) continue;
     // A changed server reset forecast is NOT in itself evidence of a reset.
-    const crossed = Date.parse(sample.observedAt) >= oldReset && Date.parse(prior.observedAt) < oldReset;
+    const boundaryCrossed = Date.parse(sample.observedAt) >= oldReset && Date.parse(prior.observedAt) < oldReset;
+    // A rolling-window forecast can move without a real reset. Require BOTH
+    // a meaningful reset-time jump and a usage counter drop (or stable zero).
+    const usageResetEvidence = sample.usedPercent <= prior.usedPercent - 1 ||
+      (sample.usedPercent === 0 && prior.usedPercent === 0);
+    const resetTimeEvidence = newReset - oldReset >= sample.durationSeconds * 500;
+    const crossed = boundaryCrossed && usageResetEvidence && resetTimeEvidence;
     const leadSeconds = crossed ? Math.max(0, Math.floor((oldReset - Date.parse(prior.observedAt)) / 1000)) : null;
     const closeEnough = crossed && leadSeconds <= MAX_LEAD_SECONDS(sample.durationSeconds);
     next.rollovers.push({accountAlias: alias, windowKey: sample.windowKey,
       priorResetsAt: prior.resetsAt, detectedAt: sample.observedAt,
-      type: crossed ? 'CROSSED_PREDICTED_RESET' : 'FORECAST_MOVED_UNCONFIRMED',
+      type: crossed ? 'CROSSED_PREDICTED_RESET' :
+        boundaryCrossed ? 'CROSSED_BUT_UNVERIFIED' : 'FORECAST_MOVED_UNCONFIRMED',
       lastPreResetSampleAt: crossed ? prior.observedAt : null,
       leadSeconds, lastObservedRemainingPercent: crossed ? prior.remainingPercent : null,
       nearResetUnusedEstimatePercent: closeEnough ? prior.remainingPercent : null,
