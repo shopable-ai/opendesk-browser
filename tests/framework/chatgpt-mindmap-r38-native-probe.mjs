@@ -22,7 +22,7 @@ const {chromium}=await import(args.playwright
 const sha=buffer=>createHash('sha256').update(buffer).digest('hex');
 const out=resolve(args.out);
 const repo=resolve('.');
-const vendorRoot=join(repo,'examples/programs/chatgpt-mindmap');
+const vendorRoot=join(repo,'projects/chatgpt-mindmap');
 const expected=JSON.parse(await readFile(join(vendorRoot,'tests/xmind-provenance.json'),'utf8'));
 const source=await readFile(resolve(args.program),'utf8');
 const artifact=JSON.parse(await readFile(join(resolve(args.program),'..','artifact.json'),'utf8'));

@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'examples/programs/chatgpt-mindmap/**'
+      - 'projects/chatgpt-mindmap/**'
       - 'tests/environment/chatgpt-mindmap-preview.test.mjs'
       - 'tests/environment/chatgpt-mindmap-r1.test.mjs'
       - 'tests/framework/chatgpt-mindmap-xmind-probe.mjs'
@@ -34,12 +34,12 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify original four in-place JS before all source tests
-        run: node examples/programs/chatgpt-mindmap/preview/verify-assets.mjs
+        run: node projects/chatgpt-mindmap/preview/verify-assets.mjs
       - name: Audit exact XMind bytes and verify production license is still blocked
         shell: bash
         run: |
           set -euo pipefail
-          node examples/programs/chatgpt-mindmap/scripts/audit-runtime-license.mjs \
+          node projects/chatgpt-mindmap/scripts/audit-runtime-license.mjs \
             --out "${{ runner.temp }}/r393-license-audit.json"
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
@@ -62,7 +62,7 @@ jobs:
           if-no-files-found: ignore
       - name: Real XMind adapter and preview source/regression checks
         env:
-          XMIND_REFERENCE_DIR: ${{ github.workspace }}/examples/programs/chatgpt-mindmap/preview
+          XMIND_REFERENCE_DIR: ${{ github.workspace }}/projects/chatgpt-mindmap/preview
         run: |
           node --test --test-reporter=spec \
             tests/environment/chatgpt-mindmap-r1.test.mjs \
@@ -74,13 +74,13 @@ jobs:
             tests/environment/page-program-library.test.mjs
       - name: Validate authoring and deterministic program build (not runtime installation)
         run: |
-          node scripts/validate-program-project.mjs examples/programs/chatgpt-mindmap
-          npm run build:program -- examples/programs/chatgpt-mindmap
+          node scripts/validate-program-project.mjs projects/chatgpt-mindmap
+          npm run build:program -- projects/chatgpt-mindmap
       - name: Audit current compiled Program candidate (NOT installed)
         shell: bash
         run: |
           set -euo pipefail
-          node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r36-program-build-audit.json"
+          node projects/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r36-program-build-audit.json"
           test -s "${{ runner.temp }}/r36-program-build-audit.json"
       - name: Upload actual candidate bytes and verified hashes (NOT Chrome installation)
         if: always()
@@ -122,7 +122,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          dir="examples/programs/chatgpt-mindmap/preview"
+          dir="projects/chatgpt-mindmap/preview"
           for name in jszip.min.js polyfill-45b9836beb.min.js xmind-sdk.bundle.js snowbrush-2c2b5d62b5.js; do
             git ls-files --error-unmatch "$dir/$name" > /dev/null
             test -s "$dir/$name"
@@ -135,7 +135,7 @@ jobs:
         shell: bash
         run: |
           node --input-type=module <<'NODE'
-          import {startXmindPreview} from './examples/programs/chatgpt-mindmap/preview/serve.mjs';
+          import {startXmindPreview} from './projects/chatgpt-mindmap/preview/serve.mjs';
           const session=await startXmindPreview();
           try{
             const urls=['/index.html','/chatgpt.html',
@@ -157,7 +157,7 @@ jobs:
           import {spawn} from 'node:child_process';
           import assert from 'node:assert/strict';
           const child=spawn(process.execPath,[
-            'examples/programs/chatgpt-mindmap/preview/serve.mjs','--no-open'
+            'projects/chatgpt-mindmap/preview/serve.mjs','--no-open'
           ],{env:{...process.env,CI:'true'},stdio:['ignore','pipe','pipe']});
           let output='',errors='';
           child.stderr.on('data',b=>{errors+=b;});
@@ -260,8 +260,8 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           npm run build
           node scripts/verify-package.mjs dist/production
-          npm run build:program -- examples/programs/chatgpt-mindmap
-          node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r38-candidate-audit.json"
+          npm run build:program -- projects/chatgpt-mindmap
+          node projects/chatgpt-mindmap/scripts/audit-build.mjs --out "${{ runner.temp }}/r38-candidate-audit.json"
       - name: Prepare real Chromium driver
         shell: bash
         run: |
@@ -327,8 +327,8 @@ jobs:
         run: |
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund
-          npm run build:program -- examples/programs/chatgpt-mindmap
-          node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs
+          npm run build:program -- projects/chatgpt-mindmap
+          node projects/chatgpt-mindmap/scripts/audit-build.mjs
           node --check tests/framework/chatgpt-mindmap-r393-sandbox-probe.mjs
       - name: Prepare unbranded native Chromium test environment
         shell: bash

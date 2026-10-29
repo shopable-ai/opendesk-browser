@@ -11,7 +11,7 @@ import {verifyFixedXmindAssets} from '../preview/serve.mjs';
 import {verifyLicenseReview} from './verify-license-review.mjs';
 
 const project = fileURLToPath(new URL('../', import.meta.url));
-const repository = resolve(project, '../../..');
+const repository = resolve(project, '../..');
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const fail = code => { throw Object.assign(new Error(code), {code}); };
 export const TIMER_GUARD = '(()=>{throw new Error("E_XMIND_STRING_TIMER_UNSUPPORTED");})()';

@@ -7,11 +7,11 @@ import {createHash} from 'node:crypto';
 import {resolve,join,extname,dirname} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
-import {startXmindPreview} from '../../examples/programs/chatgpt-mindmap/preview/serve.mjs';
+import {startXmindPreview} from '../../projects/chatgpt-mindmap/preview/serve.mjs';
 const args=Object.fromEntries(Array.from({length:(process.argv.length-2)/2},(_,i)=>[process.argv[2+i*2].slice(2),process.argv[3+i*2]]));
 for(const key of ['assets','browser','playwright','out'])assert.ok(args[key],`--${key} required`);
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
-const provenance=JSON.parse(await readFile(join(root,'examples/programs/chatgpt-mindmap/tests/xmind-provenance.json'),'utf8'));
+const provenance=JSON.parse(await readFile(join(root,'projects/chatgpt-mindmap/tests/xmind-provenance.json'),'utf8'));
 const assets=new Map();
 for(const row of provenance.assets){
  const data=await readFile(join(resolve(args.assets),row.name));

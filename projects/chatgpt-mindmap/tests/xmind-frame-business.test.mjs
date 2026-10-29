@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {MessageChannel} from 'node:worker_threads';
 import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {validateProgramProject} from '../../../../scripts/validate-program-project.mjs';
+import {validateProgramProject} from '../../../scripts/validate-program-project.mjs';
 import {createXmindFrameRenderer,requireXmindFrameFactory} from '../src/xmind-frame.js';
 import {serveXmindFrame} from '../src/xmind-frame-child.js';
 import {frameEnvelope} from '../src/xmind-frame-protocol.js';

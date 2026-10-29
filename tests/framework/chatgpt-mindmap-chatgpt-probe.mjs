@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {startXmindPreview} from '../../examples/programs/chatgpt-mindmap/preview/serve.mjs';
+import {startXmindPreview} from '../../projects/chatgpt-mindmap/preview/serve.mjs';
 
 const argv=process.argv.slice(2),args={};
 for(let i=0;i<argv.length;i+=2){
@@ -65,7 +65,7 @@ const expectedOutline={
     '- 单独恢复原文，不影响其他回复\n'
 };
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
-const project=resolve('examples/programs/chatgpt-mindmap');
+const project=resolve('projects/chatgpt-mindmap');
 const sourcePaths=[resolve('tests/framework/chatgpt-mindmap-chatgpt-probe.mjs'),
   join(project,'assets/ui.css')];
 for(const directory of ['src','preview'])for(const file of await readdir(join(project,directory)))
@@ -78,7 +78,7 @@ const fingerprint=()=>Promise.all(sourcePaths.map(async path=>{
 report.sourcesBefore=await fingerprint();
 await writeFile(join(out,'fixture-expectations.json'),JSON.stringify({expected,expectedOutline},null,2)+'\n');
 await writeFile(join(out,'chatgpt-fixture.html'),await readFile(
-  resolve('examples/programs/chatgpt-mindmap/preview/chatgpt.html')));
+  resolve('projects/chatgpt-mindmap/preview/chatgpt.html')));
 let browser=null,session=null,success=false;
 try{
   const {chromium}=await import(pathToFileURL(resolve(args.playwright)).href);

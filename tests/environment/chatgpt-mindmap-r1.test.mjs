@@ -1,11 +1,11 @@
 // Historical command retained; the SVG engine and its assertions are removed.
 // DOM fixture and actual SDK tests are separate from native ChatGPT acceptance.
-import '../../examples/programs/chatgpt-mindmap/tests/extract.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/extract-wrapped-lists.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/chatgpt-adapter.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/xmind-answer-registry-lifecycle.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/xmind-adapter.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/xmind-theme-toggle.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/export-r310.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/export-r310-integration.test.mjs';
-import '../../examples/programs/chatgpt-mindmap/tests/xmind-status.test.mjs';
+import '../../projects/chatgpt-mindmap/tests/extract.test.mjs';
+import '../../projects/chatgpt-mindmap/tests/extract-wrapped-lists.test.mjs';
+import '../../projects/chatgpt-mindmap/tests/chatgpt-adapter.test.mjs';
+import '../../projects/chatgpt-mindmap/tests/xmind-answer-registry-lifecycle.test.mjs';
+import '../../projects/chatgpt-mindmap/tests/xmind-adapter.test.mjs';
+import '../../projects/chatgpt-mindmap/tests/xmind-theme-toggle.test.mjs';
+import '../../projects/chatgpt-mindmap/tests/export-r310.test.mjs';
+import '../../projects/chatgpt-mindmap/tests/export-r310-integration.test.mjs';
+import '../../projects/chatgpt-mindmap/tests/xmind-status.test.mjs';

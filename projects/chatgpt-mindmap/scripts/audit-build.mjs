@@ -1,5 +1,5 @@
 // Audits the CURRENT source-matched local Program candidate, not a Chrome installation.
-// Run immediately after: npm run build:program -- examples/programs/chatgpt-mindmap
+// Run immediately after: npm run build:program -- projects/chatgpt-mindmap
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
@@ -7,8 +7,8 @@ import {readFile,readdir,stat,writeFile,mkdir} from 'node:fs/promises';
 import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const repo=resolve(fileURLToPath(new URL('../../../../',import.meta.url)));
-const project=join(repo,'examples/programs/chatgpt-mindmap');
+const repo=resolve(fileURLToPath(new URL('../../../',import.meta.url)));
+const project=join(repo,'projects/chatgpt-mindmap');
 const pkg=JSON.parse(await readFile(join(project,'package.json'),'utf8'));
 const id=pkg.opendesk.id;
 assert.equal(id,'opendesk.chatgpt-mindmap');
