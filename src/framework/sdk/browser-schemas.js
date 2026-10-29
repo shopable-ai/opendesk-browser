@@ -23,6 +23,17 @@ const environmentFields=obj({userAgent:environmentField(str(1024)),languages:env
   timeZone:environmentField(str(128)),viewport:environmentField(environmentSize),screen:environmentField(environmentSize),
   devicePixelRatio:environmentField({type:'number',exclusiveMinimum:0})},
   ['userAgent','languages','timeZone','viewport','screen','devicePixelRatio']);
+const fingerprintConfig=obj({ua:{enum:['native','windows','mac','linux']},
+  lang:{enum:['system','zh-CN','en-US','de-DE','ja-JP']},
+  tz:{enum:['system','Asia/Shanghai','America/New_York','Europe/Berlin','Asia/Tokyo']},
+  geo:{enum:['off','nyc','berlin','tokyo']},viewport:{enum:['native','desktop','mobile']}},
+  ['ua','lang','tz','geo','viewport']);
+const fingerprintField=obj({key:str(24),source:{enum:['page-runtime','network']},
+  baseline:nullableString,expected:nullableString,observed:nullableString,
+  controlled:bool,verified:bool,status:{enum:['match','mismatch','unverifiable','unauthorized']},
+  reason:nullableString},['key','source','controlled','verified','status']);
+const fingerprintResult=obj({key:str(24),status:{enum:['applied','unknown','unsupported']},
+  reasonCode:str(64)},['key','status']);
 const schedulerSpec=obj({kind:str(128),expression:str(256)},['kind','expression']);
 const taskScheduleCreate=obj({taskId:str(128),revision:str(128,'^[1-9][0-9]{0,15}$'),
   schedule:schedulerSpec},['taskId','revision','schedule']);
@@ -138,7 +149,18 @@ const ops=Object.freeze({
    ['ticketId','toolId','actionId','selection','source','expiresAt'])],
  'browser.page.getContext':[empty,obj({status:{enum:['available','unavailable']},
    title:str(512),url:str(4096),message:str(250),tabRef:ref,documentRef:ref},['status'])],
- 'browser.page.readEnvironment':[obj({tabRef:ref,documentRef:ref},['tabRef','documentRef']),
+ 'browser.fingerprint.apply':[obj({tabRef:ref,documentRef:ref,config:fingerprintConfig},['tabRef','documentRef','config']),
+    obj({accepted:bool,source:{const:'trusted-browser-host'},sessionRef:ref,documentRef:ref,
+      controlledKeys:arr(str(24),8),fieldResults:arr(fingerprintResult,8)},
+      ['accepted','source','sessionRef','documentRef','controlledKeys','fieldResults'])],
+  'browser.fingerprint.readback':[obj({sessionRef:ref,documentRef:ref,mode:{enum:['applied','restore']}},['sessionRef','documentRef','mode']),
+    obj({source:{const:'trusted-browser-host'},sessionRef:ref,documentRef:ref,
+      controlledKeys:arr(str(24),8),rows:arr(fingerprintField,8),capturedAt:str(40)},
+      ['source','sessionRef','documentRef','controlledKeys','rows','capturedAt'])],
+  'browser.fingerprint.restore':[obj({sessionRef:ref,documentRef:ref},['sessionRef','documentRef']),
+    obj({accepted:bool,source:{const:'trusted-browser-host'},sessionRef:ref,documentRef:ref},
+      ['accepted','source','sessionRef','documentRef'])],
+  'browser.page.readEnvironment':[obj({tabRef:ref,documentRef:ref},['tabRef','documentRef']),
   obj({tabRef:ref,documentRef:ref,capturedAt:str(40),source:obj({kind:{const:'target-page-js'},world:{const:'MAIN'},frameId:{const:0}},['kind','world','frameId']),
     fields:environmentFields},['tabRef','documentRef','capturedAt','source','fields'])],
  'browser.page.getSelection':[empty,obj({ticketId:str(36),selection:str(16384),

@@ -13,6 +13,7 @@
     "downloads",
     "tabs",
     "webNavigation",
+    "debugger",
     "userScripts",
     "cookies",
     "notifications",

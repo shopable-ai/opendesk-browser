@@ -1,12 +1,13 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "browser-fingerprint",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "title": "浏览器指纹",
-  "description": "环境预设、配置管理、独立验证与恢复工作台。原生环境修改须使用受审可信 Host；未接入时拒绝假成功。",
+  "description": "当前授权网页的受控环境设置、独立验证与恢复。需要 Chrome 调试权限和单网站授权。",
   "capabilities": [
     "currentPage.read",
     "browser.page.environment.read",
+    "browser.fingerprint.control",
     "storage.local",
     "user.export"
   ],
