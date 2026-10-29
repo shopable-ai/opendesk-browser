@@ -49,7 +49,7 @@ test('knowledge tool is a distinct, bounded, reproducible v1 package with explic
   assert.doesNotMatch(pkg.js,/chrome\.(?:runtime|storage|scripting|tabs)|\bfetch\s*\(/);
   const dir=await mkdtemp(join(tmpdir(),'knowledge-package-'));
   try{
-    await buildSidebarTool('examples/sidebar-tools/knowledge-inbox',{out:join(dir,'tool.json')});
+    await buildSidebarTool('projects/knowledge-inbox',{out:join(dir,'tool.json')});
     const built=await readFile(join(dir,'tool.json'),'utf8');
     assert.equal(built,(await officialFixtures()).resources.get(officialPackagePath(pkg.id)).toString('utf8'));
   }finally{await rm(dir,{recursive:true,force:true});}

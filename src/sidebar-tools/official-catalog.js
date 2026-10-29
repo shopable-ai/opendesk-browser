@@ -28,7 +28,7 @@ const gitSha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const error=(message,code='E_OFFICIAL_CATALOG')=>Object.assign(new Error(message),{code});
 // An exact source-location allowlist; migration never authorizes arbitrary repository paths.
-const migratedOfficialToolIds=new Set(['markdown-workbench','quick-notes','bookmark-manager']);
+const migratedOfficialToolIds=new Set(['markdown-workbench','quick-notes','bookmark-manager','knowledge-inbox']);
 export function officialSourceProjectPath(id){
   if(typeof id!=='string'||!idPattern.test(id))throw error('官方工具资源身份无效');
   return (migratedOfficialToolIds.has(id)?'projects/':'examples/sidebar-tools/')+id;

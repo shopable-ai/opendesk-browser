@@ -1,11 +1,11 @@
 # 知识收件箱：源码、打包、调试与验收
 
-> **本页仅补充知识收件箱的专项可信实现**。所有同类型工具必须先遵循 [Side Panel 统一开发规范](../../../docs/api/sidebar-tool-development.zh-CN.md)；公共接口以 [Side Panel API](../../../docs/api/sidebar-tools.zh-CN.md) 与源码为准。普通用户读 [README](README.zh-CN.md)，AI/Codex 读 [AGENTS.md](AGENTS.md) 和 [统一工具开发 Skill](../../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
+> **本页仅补充知识收件箱的专项可信实现**。所有同类型工具必须先遵循 [Side Panel 统一开发规范](../../docs/api/sidebar-tool-development.zh-CN.md)；公共接口以 [Side Panel API](../../docs/api/sidebar-tools.zh-CN.md) 与源码为准。普通用户读 [README](README.zh-CN.md)，AI/Codex 读 [AGENTS.md](AGENTS.md) 和 [统一工具开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
 
 ## 1. 工具项目、内置包和扩展不是同一件事
 
 ```text
-examples/sidebar-tools/knowledge-inbox/
+projects/knowledge-inbox/
   tool.config.json                工具 ID、版本、声明能力、打包文件路径
   src/index.html                  收件箱 HTML
   src/style.css                   收件箱 CSS
@@ -28,7 +28,7 @@ artifacts/sidebar-tools/knowledge-inbox/1.2.7/
 
 | 需求 | 主要文件 | 执行位置与边界 |
 | --- | --- | --- |
-| 列表、详情、分类按钮、草稿编辑 UI | `examples/sidebar-tools/knowledge-inbox/src/{index.html,style.css,main.js}` | Side Panel opaque 沙箱 |
+| 列表、详情、分类按钮、草稿编辑 UI | `projects/knowledge-inbox/src/{index.html,style.css,main.js}` | Side Panel opaque 沙箱 |
 | ChatGPT 回答下的「保存 / Markdown / 更多」 | `src/knowledge/page.js` | 已授权的可信固定 Content Script |
 | 页面增强接线 | `src/entrypoints/page-relay.js` | WXT 打包的受信任入口 |
 | 搜索、格式、数据迁移、去重与容量 | `src/knowledge/model.js` | 受控的数据模型 |
@@ -67,7 +67,7 @@ artifacts/sidebar-tools/knowledge-inbox/1.2.7/
 npm ci --ignore-scripts --no-audit --no-fund
 
 # 修改工具源码后，按需生成本地导入包
-npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox
+npm run build:sidebar-tool -- projects/knowledge-inbox
 
 # 可选：校验整套官方资源，输出为生成目录
 node scripts/build-official-tools.mjs --out artifacts/official-tools-release
@@ -109,10 +109,10 @@ npm run verify
 | 文档读者 | 维护位置 | 需要更新的场景 |
 | --- | --- | --- |
 | 用户 | [README](README.zh-CN.md) | 可见按钮、容量、使用步骤变化 |
-| 开发者 | 本文及 [通用工具 API](../../../docs/api/sidebar-tools.zh-CN.md) | 开发流程、公共 API/能力变化 |
-| 产品人员 | [需求排序与路线图](../../../docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md) | 30 项需求、阶段计划、范围变化 |
-| AI/Codex | [AGENTS.md](AGENTS.md)、[Skill](../../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) | 开发约束、信任边界变化 |
-| 验收人员 | [workstream](../../../docs/framework/workstreams/knowledge-inbox-r1-20261011.md) 及 `evidence/` | 按候选 SHA、包哈希记录原始测试 |
+| 开发者 | 本文及 [通用工具 API](../../docs/api/sidebar-tools.zh-CN.md) | 开发流程、公共 API/能力变化 |
+| 产品人员 | [需求排序与路线图](../../docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md) | 30 项需求、阶段计划、范围变化 |
+| AI/Codex | [AGENTS.md](AGENTS.md)、[Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) | 开发约束、信任边界变化 |
+| 验收人员 | [workstream](../../docs/framework/workstreams/knowledge-inbox-r1-20261011.md) 及 `evidence/` | 按候选 SHA、包哈希记录原始测试 |
 
 受控 Chrome fixture ≠ 线上 ChatGPT；macOS SW 冒烟 ≠ 用户 Mac 的 Native 磁盘写入；构建/提交 ≠ 完整 ZIP/F3 产品验收。
 
@@ -126,4 +126,4 @@ npm run verify
 
 真实 Chrome 200% 缩放需使用 `chrome.tabs.setZoom(tabId,2)`、核对 `getZoom`、等待布局稳定，再用不带裁切范围的 `Page.captureScreenshot`。本轮 Playwright 截图在该缩放下裁掉一半画面，原生截图和实际元素边界已确认区别；保留失败观察，不能据此误修产品。360/400 的 renderer 宽度采样须注明 Emulation，不能称为物理 Side Panel 拖拽宽度；600/1000 也只代表响应式采样。
 
-Native 创建文件只按明确确认点击一次；以实际文件字节数和 SHA-256 读回作为写盘 PASS。错误状态已有旧内容时，必须等待本次操作完成及具体错误码，不能把旧错误当作新操作回执。目录撤销再授权产生新 workspace/lease 身份，旧草稿应保持禁写。具体本轮缺口和原始证据见 [R24 workstream](../../../docs/framework/workstreams/knowledge-inbox-r24-20261011.md)。
+Native 创建文件只按明确确认点击一次；以实际文件字节数和 SHA-256 读回作为写盘 PASS。错误状态已有旧内容时，必须等待本次操作完成及具体错误码，不能把旧错误当作新操作回执。目录撤销再授权产生新 workspace/lease 身份，旧草稿应保持禁写。具体本轮缺口和原始证据见 [R24 workstream](../../docs/framework/workstreams/knowledge-inbox-r24-20261011.md)。

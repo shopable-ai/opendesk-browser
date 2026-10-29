@@ -7,7 +7,7 @@
 | 层次 | 路径 | 维护方式 |
 | --- | --- | --- |
 | 可信官方源码登记 | 仓库根 `official-tools/catalog.json` | 审查后登记稳定 ID、来源项目、运行类型和安装策略 |
-| 工具源码 | `examples/sidebar-tools/<id>/tool.config.json`、`src/`、可选 `assets/` | 版本、能力和内容的权威输入 |
+| 工具源码 | `projects/<id>/tool.config.json`（已迁移）或 `examples/sidebar-tools/<id>/tool.config.json`（未迁移）、`src/`、可选 `assets/` | 版本、能力和内容的权威输入 |
 | 运行框架 | `src/sidebar-tools/bridge.js`、`sandbox.html`、`official-catalog.js` | 宿主静态资源及可信目录解析；不保存生成工具包 |
 | WXT 暂存资源 | `.wxt/public/official-tools/catalog.json`、`.wxt/public/official-tools/<id>/<id>.opendesk-tool.json` | 构建生成，不提交、不手改 |
 | 生产扩展资源 | `dist/production/official-tools/catalog.json`、`dist/production/official-tools/<id>/<id>.opendesk-tool.json` | 实际 Chrome 按需读取的发行资源 |
@@ -26,7 +26,7 @@
 | 字段 | 当前约束 |
 | --- | --- |
 | `id` | 与实际工具配置相同的稳定 ID；必须唯一 |
-| `project` | 固定为 `examples/sidebar-tools/<id>`，不能是 URL、绝对路径或逃逸路径 |
+| `project` | 固定为可信来源策略 `projects/<id>`（已迁移）或 `examples/sidebar-tools/<id>`（未迁移）；不得是 URL、绝对路径或逃逸路径 |
 | `kind` | 当前只接受 `sidebar-tool` |
 | `installationPolicy` | `preinstalled`：仅在明确的新安装事件中可信宿主自动初始化；`optional`：用户在发现/市场中审阅后安装 |
 | `packageFile` | 可选，项目内已验证并晋升的正式 JSON 文件名；发行内容与身份取自该包，开发源码与临时 CSS 不替换它 |

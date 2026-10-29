@@ -1,6 +1,6 @@
 # ChatGPT 知识收件箱
 
-> **普通用户说明**。工具开发和源码目录请读 [开发者指南](DEVELOPMENT.zh-CN.md)；AI/Codex 请读 [AGENTS.md](AGENTS.md) 和 [工具开发 Skill](../../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。需求排序与尚未实现的能力见 [产品文档](../../../docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md)。
+> **普通用户说明**。工具开发和源码目录请读 [开发者指南](DEVELOPMENT.zh-CN.md)；AI/Codex 请读 [AGENTS.md](AGENTS.md) 和 [工具开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。需求排序与尚未实现的能力见 [产品文档](../../docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md)。
 
 复用 OpenDesk Browser 的 `.opendesk-tool.json` 工具机制。在 ChatGPT 回答的官方操作区下面增加保存、Markdown 和更多操作，留下来源清楚、后续可以整理的知识记录。
 
@@ -38,7 +38,7 @@
 页面捕获由扩展固定 content script 按真实点击执行；收件箱沙箱不能任意读取页面，也不能直接使用 Chrome 或 Native API。固定网站范围内复用安装审阅的捕获能力；主动停用网站会移除页面按钮，已收藏内容保留。扩展可信宿主在每次操作时复核工具包哈希、真实 sender/document、站点可用性和当前文档。
 
 ```sh
-npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox
+npm run build:sidebar-tool -- projects/knowledge-inbox
 ```
 
 更新源码后，正式扩展构建自动生成 `dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json` 与 Catalog 摘要，不维护第二份 JSON。该资源默认未安装：官方入口和本地导入都须明确审核，安装批准后直接使用支持网站的固定保存入口；卸载后重启不复装。默认可用规则由新版扩展框架实现，不能只把工具 JSON 导入旧版本就宣称宿主已更新。
@@ -49,7 +49,7 @@ npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox
 
 点击“新建”或“新建第一条知识”后，焦点进入标题框，可以直接输入。编辑和新建均将正文放在前面，分类、标签与备注默认折叠在正文下方；非法输入会明确提示并禁用保存。窄屏默认正文高度固定，避免随沙箱 iframe 高度反复增大。
 
-Mac R24.4 的真实 Chrome、剪贴板、下载及 Native 文件读回证据见 [本轮验收记录](../../../docs/framework/workstreams/knowledge-inbox-r24-20261011.md)。线上 ChatGPT 因本轮未提供登录条件记录为 BLOCKED；受控页面结果不能替代线上验收。
+Mac R24.4 的真实 Chrome、剪贴板、下载及 Native 文件读回证据见 [本轮验收记录](../../docs/framework/workstreams/knowledge-inbox-r24-20261011.md)。线上 ChatGPT 因本轮未提供登录条件记录为 BLOCKED；受控页面结果不能替代线上验收。
 
 ## R1.0 · 优先展示搜索、列表及新建（2026-10-26）
 

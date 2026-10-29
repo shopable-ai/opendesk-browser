@@ -50,7 +50,7 @@ test('R1.0 Clipper help and backups are secondary, while existing actions remain
   assert.equal($('#'+id).length,1,id);
 });
 test('R1.0 Inbox hides secondary filters without removing old controls',async()=>{
- const html=await read('examples/sidebar-tools/knowledge-inbox/src/index.html');
+ const html=await read('projects/knowledge-inbox/src/index.html');
  const $=load(html);
  assert.equal($('#ki-filter-panel:not([open])').length,1);
  for(const id of ['ki-search','ki-new','ki-tag-filter','ki-sort','ki-filters','ki-records','ki-active-filter']){

@@ -367,7 +367,7 @@ npm run verify
 - **交互证据**：列表键盘、焦点或编辑退出受影响时，只验证相关按键、焦点恢复和拒绝丢弃编辑；撤权涉及数据保留时验证已保存记录仍在。进入适用正式验收时，沿用至少两条真实保存记录与 ↑/↓/Home/End/Enter/Esc 的既有门槛。Headless 预览、受控扩展和用户真实站点证据分级；历史 200% 缩放证据保留，不自动要求本轮重测。
 - **真实验收分级**：当前任务进入正式安装验收时，按适用合同检查源码/生成包一致、安全负例、真实 Chrome 安装与 sandbox 交互；开发阶段仅选择能证明当前操作的场景。历史 360/400/600px 明暗截图矩阵仅在本轮明确要求时执行；实际在线 ChatGPT、macOS Native 落盘与系统剪贴板按当前任务所需分别取证，不因 CFT 受控页面 PASS 冒充正式通过，相关未测项标 `NOT_TESTED`。
 
-具体参考 examples/sidebar-tools/knowledge-inbox/src/ 与 tests/framework/knowledge-inbox-native-r1.test.mjs；其他工具只有在出现相同缺口时才按需迁移，不批量重写。
+具体参考 projects/knowledge-inbox/src/ 与 tests/framework/knowledge-inbox-native-r1.test.mjs；其他工具只有在出现相同缺口时才按需迁移，不批量重写。
 
 ## 7. 按改动选择验证；正式验收沿用适用合同
 

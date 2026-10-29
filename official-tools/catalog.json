@@ -42,7 +42,7 @@
     },
     {
       "id": "knowledge-inbox",
-      "project": "examples/sidebar-tools/knowledge-inbox",
+      "project": "projects/knowledge-inbox",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },
