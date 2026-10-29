@@ -6,7 +6,7 @@ import {ORIGINAL_CONFIG,BUILTIN_PRESETS,CONFIG_FIELDS,copyConfig,
   emptyVerification,validConfig} from './env-config.js';
 import {readPresets,savePreset,deletePreset,readRuns,appendRun} from './presets.js';
 import {applyEnvironment,verifyEnvironment,restoreEnvironment,
-  ACTIVE_STATES,classifyFailure} from './run-session.js';
+  ACTIVE_STATES,classifyFailure,classifyRestoration} from './run-session.js';
 
 const stamp=()=>new Date().toISOString();
 const ident=prefix=>prefix+(globalThis.crypto?.randomUUID?.()||
@@ -17,7 +17,8 @@ const labels=Object.freeze({
   blocked:'环境修改未开放',denied:'授权被拒绝',failed:'执行失败',
   unknown:'执行结果未知',invalidated:'目标网页已失效',
   restoring:'已请求恢复 · 待读回',restore_unknown:'恢复结果未知',
-  restored_verified:'已独立核验恢复'
+  restored_verified:'已独立核验恢复',
+  restored_limited:'调试已停止 · 恢复有限验证'
 });
 const stateDescription=Object.freeze({
   idle:'当前只展示目标环境，任何参数尚未影响网页。',
@@ -32,7 +33,8 @@ const stateDescription=Object.freeze({
   invalidated:'导航、关闭或撤权后，旧文档引用不能再用于新网页。',
   restoring:'可信 Host 已受理恢复，仍须独立读回原始值。',
   restore_unknown:'尚不能证明原始环境已经恢复，不得宣称恢复成功。',
-  restored_verified:'可信 Host 已按原始基线独立核验所需字段。'
+  restored_verified:'可信 Host 已按原始基线独立核验所需字段。',
+  restored_limited:'Chrome 调试已解除，可核对的网页字段恢复；请求头没有独立网络证据，不能声称完整恢复。'
 });
 const readableError=error=>{
   const code=String(error?.code||'');
@@ -355,18 +357,19 @@ export default function App({adapter,preview=false}){
       if(restore){
         // A full checked baseline is necessary. A limited or missing observation
         // never permits a claim that Chrome has restored its original state.
-        // Only the HOST's exact controlled fields can establish restoration.
-        // No HTTP-language/IP field is silently assumed to match.
-        const expected=result.controlledKeys;
-        const confirmed=expected.length>0&&expected.every(key=>result.rows.find(row=>
-          row.key===key)?.status==='match');
-        setStatus(confirmed?'restored_verified':'restore_unknown');
-        if(confirmed){activeSession.current=null;setSession(null);}
-        warn(confirmed?'可信 Host 已独立核验原始环境的全部受控字段。':
-          '只得到有限恢复证据；尚不能确认全部原始值，恢复保持未知。',
-          confirmed?'success':'warning');
-        await record('restore',confirmed?'restored_verified':'restore_unknown',
-          confirmed?'独立基线读回已确认':'有限字段读回不足以证明恢复',
+        const outcome=classifyRestoration(result);
+        setStatus(outcome);
+        if(outcome!=='restore_unknown'){activeSession.current=null;setSession(null);}
+        warn(outcome==='restored_verified'?
+          '所有受控字段的原始基线已独立核验。':
+          outcome==='restored_limited'?
+          'Chrome 调试已停止、网页字段已恢复；HTTP 请求语言没有独立网络证据。':
+          '读回仍有不一致或未知字段；不能宣称完成恢复。',
+          outcome==='restored_verified'?'success':'warning');
+        await record('restore',outcome,
+          outcome==='restored_verified'?'原始环境已独立核验':
+          outcome==='restored_limited'?'调试已停止；网页字段恢复，但网络头未验证':
+          '恢复无法核验或受控字段仍不一致',
           'trusted-browser-host');
       }else{
         setStatus(result.status);

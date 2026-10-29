@@ -1,6 +1,5 @@
-// R2.1 gated Browser SDK lifecycle. No page monkey patches or fake Host.
-// These exact methods are RESERVED for a future reviewed native binding.
-// Until admitted in the trusted Browser operation contract, apply is BLOCKED.
+// R2.2 gated Browser SDK lifecycle: fixed trusted Chrome CDP Host only.
+// No page monkey patches, arbitrary CDP operations, or simulated receipts.
 import {validConfig,checkedVerification,classifyVerification} from './env-config.js';
 import {safeContext} from './model.js';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -63,8 +62,32 @@ export async function admitted(adapter,operation,{url,allowSiteConsent=false}={}
     'Chrome 未批准 debugger 调试权限，请重新审阅并安装最新版扩展。':
     '浏览器环境修改尚未对当前网页授权或原生能力不可用');
 }
+async function requireRegistered(adapter,operation){
+  // Keep R2.1's fail-before-page-access guarantee on missing native Host.
+  let state;
+  try{state=await adapter.request('browser.capabilities.getStatus',{operation});}
+  catch{throw fail('E_SERVICE_UNSUPPORTED','可信 Browser Host 未注册环境修改接口');}
+  if(state?.implementation!=='implemented'||state?.authorization?.tool!=='granted')
+    throw fail('E_SERVICE_UNSUPPORTED','当前安装缺少审查通过的环境修改接口');
+}
+export function classifyRestoration(result){
+  const controlled=result?.controlledKeys;
+  if(!Array.isArray(controlled)||controlled.length===0||
+     new Set(controlled).size!==controlled.length)return 'restore_unknown';
+  const byKey=new Map((result?.rows||[]).map(row=>[row.key,row]));
+  if(controlled.every(key=>byKey.get(key)?.status==='match'))return 'restored_verified';
+  // Chrome has detached and independent JS fields match, but no trusted
+  // network request has established the HTTP header's original value.
+  // Record this distinct limited result; never claim full restoration.
+  if(controlled.some(key=>byKey.get(key)?.status==='match')&&
+     controlled.every(key=>byKey.get(key)?.status==='match'||
+       key==='acceptLanguage'&&byKey.get(key)?.status==='unverifiable'))
+    return 'restored_limited';
+  return 'restore_unknown';
+}
 export async function applyEnvironment(adapter,config){
   if(!validConfig(config))throw fail('E_CONFIG','环境参数非法');
+  await requireRegistered(adapter,CONTROL_METHODS.apply);
   async function dispatch(reapproved=false){
     const target=checkedTarget(await adapter.context());
     await admitted(adapter,CONTROL_METHODS.apply,{url:target.volatile.url,
@@ -109,6 +132,7 @@ export async function verifyEnvironment(adapter,session,config,{restore=false}={
     kind:restore?'restore':'apply'};
 }
 export async function restoreEnvironment(adapter,session){
+  await requireRegistered(adapter,CONTROL_METHODS.restore);
   const before=checkedTarget(await adapter.context());
   await admitted(adapter,CONTROL_METHODS.restore,{url:before.volatile.url});
   if(!sameTarget(session.target,before))throw fail('E_DOCUMENT_CHANGED','原始文档已失效；拒绝对新文档执行旧操作');

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createFingerprintDriver} from '../../../../src/platform/chrome/browser-fingerprint.js';
 import {normalizeBrowserOperation,BROWSER_OPERATIONS} from '../../../../src/framework/sdk/browser-contract.js';
 import {checkedVerification} from '../src/env-config.js';
+import {classifyRestoration} from '../src/run-session.js';
 const tabRef='A'.repeat(32),documentRef='B'.repeat(32),sessionRef='C'.repeat(32);
 const target=Object.freeze({tabId:71,windowId:2,documentId:'native-document-71',url:'https://example.com/qa'});
 const ua='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36';
@@ -154,4 +155,16 @@ test('R2.2 UA Client Hints unavailable stays unverifiable even if UA matches',as
   assert.equal(result.rows.find(row=>row.key==='ua').status,'match');
   assert.equal(result.rows.find(row=>row.key==='uaCH').status,'unverifiable');
   await h.driver.restore({sessionRef,documentRef},owner);
+});
+
+test('R2.2 only independently matched fields permit verified restoration',()=>{
+  const rows=['ua','uaCH','language','timezone','viewport'].map(key=>({key,status:'match'}));
+  const controlledKeys=['ua','uaCH','language','acceptLanguage','timezone','viewport'];
+  const limited={controlledKeys,rows:[...rows,{key:'acceptLanguage',status:'unverifiable'}]};
+  assert.equal(classifyRestoration(limited),'restored_limited');
+  assert.equal(classifyRestoration({...limited,rows:[...rows,{key:'acceptLanguage',status:'match'}]}),
+    'restored_verified');
+  assert.equal(classifyRestoration({...limited,rows:rows.map(x=>({...x,status:'mismatch'}))}),
+    'restore_unknown');
+  assert.equal(classifyRestoration({controlledKeys:[],rows:[]}), 'restore_unknown');
 });
