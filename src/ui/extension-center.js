@@ -69,9 +69,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(row.enabled===false)return '阅读目录已被主动停用；可在设置中恢复。';
     return '阅读目录安装后会在符合条件的网页自动显示；无需再次启用或逐站授权。“打开”仅查看侧边栏目录。';
   };
-  // "Application" is a product identity; Page/Sidebar is the run mode.
+  // Keep ordinary applications labeled simply "应用"; the distinct Page kind retains its context.
   // This changes presentation only, never installed IDs or Authority records.
-  const typeOf=row=>row.kind==='page'?'应用 · 网页增强':'应用 · 侧边栏';
+  const typeOf=row=>row.kind==='page'?'应用 · 网页增强':'应用';
   const all=()=>composeExtensionEntries({installed,pages,official:appStatusKnown?official:[],
     pageReleases:pageStatusKnown?officialPages:[],
     enabled,appStatusKnown,cleanupPendingIds:[...pendingCleanups],
