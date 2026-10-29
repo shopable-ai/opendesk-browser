@@ -333,5 +333,61 @@
       "Formal package promotion, two Profile/width/zoom checks and actual two-device login remain incomplete"
     ],
     "goalLifecycle": "Active; not complete. TWO_DEVICE_LAN and REAL_SITE remain NOT_TESTED for the requested full OpenDesk flow."
+  },
+  "continuationAfterPendingWatcherApproval": {
+    "sourceHeadBeforeCommit": "756e947500dfed383935d56918a02af63f6471ea",
+    "nextCoreOperation": "Restore a complete current dist/development and run local saved-account A -> B -> A URLs with sidebar closed.",
+    "concreteFailure": "Existing watcher reached preinstall-intent then could not resolve ../../examples/sidebar-tools/reading-toc/trusted/existing-tabs.js.",
+    "change": "src/entrypoints/preinstall-intent.js now imports the same repairReadingTocOpenTabs/checkReadingTocContentAccess from the already reviewed projects/reading-toc/trusted/existing-tabs.js; no lifecycle, permission or source-lock relaxation.",
+    "checks": [
+      {
+        "command": "node --check src/entrypoints/preinstall-intent.js",
+        "status": "PASS"
+      },
+      {
+        "command": "Resolve all four relative import targets from src/entrypoints/preinstall-intent.js",
+        "status": "PASS",
+        "resolved": 4
+      },
+      {
+        "command": "git diff --check",
+        "status": "PASS"
+      }
+    ],
+    "reusedEvidence": "Existing relocation, tab-repair and source-admission tests remain applicable because the imported reviewed source and runtime operations are unchanged; no broad suite rerun.",
+    "partialDevelopmentSw": {
+      "status": "PARTIAL_OUTPUT_NOT_COMPLETE_BUILD",
+      "bytes": 977345,
+      "sha256": "424aefb25f11205ee03a0f99b36711aca64fe2f0fc34da4937eac3e9e6ef2265",
+      "modifiedUTC": "2026-10-29T20:11:11.137566+00:00",
+      "developmentEntryLimit": 1572864,
+      "productionAcceptance": false
+    },
+    "developmentManifestPresent": false,
+    "developmentUpdatePresent": false,
+    "watcher": {
+      "pid": 62841,
+      "sourceDirectory": "/Users/mac/Documents/workspace/opendesk-browser",
+      "owner": "Other task",
+      "stoppedOrRestartedByThisTask": false,
+      "permissionQuestionFromPreviousTurn": "Unanswered; automatic continuation is not authorization"
+    },
+    "localDoctor": {
+      "connected": false,
+      "installed": false,
+      "reason": "/Users/mac/.opendesk-browser/native-agent-r1 does not exist",
+      "note": "No native pairing/config changes; Native is not asserted as a prerequisite for direct MV3 Cookie switching."
+    },
+    "remaining": [
+      "Complete dev output and verified Chrome extension identity/connection",
+      "Current-candidate local URL A/B switching with sidebar closed",
+      "Approved safe nonextractable private-key persistence/recovery contract",
+      "OpenDesk Host receipt on second Mac, Cookie restore, website login and remaining acceptance gates"
+    ],
+    "goalAudit": {
+      "status": "BLOCKED_NOT_COMPLETE",
+      "consecutiveGoalTurnsWithPrivateKeyRecoveryBlocker": 3,
+      "reason": "Required existing-runtime private-key recovery remains unsupported across all three goal turns; real local core entry still lacks a complete output and another task owns the writer. No further safe independent core action is available after this import repair."
+    }
   }
 }
