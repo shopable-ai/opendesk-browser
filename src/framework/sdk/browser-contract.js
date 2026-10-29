@@ -35,7 +35,8 @@ function entry(operation,capability,contexts,chromePermissions,effect,risk,siteS
   return Object.freeze({...shared,operation,namespace:operation.split('.').slice(0,-1).join('.'),
     maxRequestBytes:['browser.clipboard.writeText','browser.downloads.text'].includes(operation)?170000:
       operation==='browser.siteBudget.setPolicy'?80000:shared.maxRequestBytes,
-    maxResponseBytes:['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:
+    maxResponseBytes:operation==='browser.page.readEnvironment'?8192:
+     ['browser.launch.consume','browser.page.getSelection'].includes(operation)?65536:
      operation==='browser.capabilities.list'?32000:
       operation==='browser.siteBudget.getStatus'||operation==='browser.siteBudget.setPolicy'?80000:shared.maxResponseBytes,
     implementation:state,supportedContexts:Object.freeze(contexts),requiredCapabilities:capability?[capability]:[],
@@ -52,6 +53,7 @@ const MANUAL_BROWSER_OPERATIONS=Object.freeze({
   'browser.contextMenu.unregister':entry('browser.contextMenu.unregister','browser.contextMenu',tool,[],'write','low','approved-origin','IMPLEMENTED','tool-install'),
   'browser.launch.consume':entry('browser.launch.consume','browser.contextMenu',tool,[],'read','high','clicked-document','IMPLEMENTED','single-use-60s'),
   'browser.page.getContext':entry('browser.page.getContext','currentPage.read',tool,[],'read','low','current-page'),
+  'browser.page.readEnvironment':entry('browser.page.readEnvironment','browser.page.environment.read',tool,['scripting','webNavigation'],'read','medium','approved-current-document'),
   'browser.page.getSelection':entry('browser.page.getSelection','browser.contextMenu',tool,[],'read','high','clicked-document'),
   'browser.clipboard.writeText':entry('browser.clipboard.writeText','user.export',tool,[],'write','medium'),
   'browser.downloads.text':entry('browser.downloads.text','user.export',tool,['downloads'],'write','medium'),
@@ -332,6 +334,10 @@ export function normalizeBrowserOperation(operation,args={}){
       fields(args,['confirm'],['confirm']);
       if(args.confirm!==true)throw fail('E_SCHEMA','Explicit tool-only clear confirmation required');
       return {confirm:true};
+    case 'browser.page.readEnvironment':
+      fields(args,['tabRef','documentRef'],['tabRef','documentRef']);
+      if(![args.tabRef,args.documentRef].every(value=>typeof value==='string'&&/^[A-Za-z0-9_-]{16,160}$/.test(value)))throw fail('E_SCHEMA','Opaque current-page document references required');
+      return {tabRef:args.tabRef,documentRef:args.documentRef};
     case 'browser.capabilities.list': case 'browser.contextMenu.getStatus':
     case 'browser.contextMenu.unregister': case 'browser.launch.consume':
     case 'browser.page.getContext': case 'browser.page.getSelection':

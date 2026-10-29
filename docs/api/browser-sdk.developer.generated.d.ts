@@ -83,6 +83,7 @@ export interface OpenDeskBrowserSdk {
   readonly page: {
     readonly getContext: (input?: {  }) => Promise<{ readonly documentRef?: string; readonly message?: string; readonly status: "available" | "unavailable"; readonly tabRef?: string; readonly title?: string; readonly url?: string; }>;
     readonly getSelection: (input?: {  }) => Promise<{ readonly selection: string; readonly selectionMarkdown?: string | null; readonly ticketId: string; }>;
+    readonly readEnvironment: (input: { readonly documentRef: string; readonly tabRef: string; }) => Promise<{ readonly capturedAt: string; readonly documentRef: string; readonly fields: { readonly devicePixelRatio: { readonly reasonCode: null; readonly status: "available"; readonly value: number; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly languages: { readonly reasonCode: null; readonly status: "available"; readonly value: Array<string>; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly screen: { readonly reasonCode: null; readonly status: "available"; readonly value: { readonly height: number; readonly width: number; }; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly timeZone: { readonly reasonCode: null; readonly status: "available"; readonly value: string; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly userAgent: { readonly reasonCode: null; readonly status: "available"; readonly value: string; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly viewport: { readonly reasonCode: null; readonly status: "available"; readonly value: { readonly height: number; readonly width: number; }; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; }; readonly source: { readonly frameId: 0; readonly kind: "target-page-js"; readonly world: "MAIN"; }; readonly tabRef: string; }>;
   };
   readonly proxy: {
     readonly managed: {
@@ -96,8 +97,8 @@ export interface OpenDeskBrowserSdk {
   };
   readonly scheduler: {
     readonly cancelOwn: (input: { readonly scheduleRef: string; }) => Promise<{ readonly cancelled: boolean; }>;
-    readonly create: (input: { readonly revision: string; readonly schedule: { readonly expression: string; readonly kind: string; }; readonly taskId: string; }) => Promise<{ readonly scheduleRef: string; readonly status: "active" | "pending"; }>;
-    readonly listOwn: (input?: {  }) => Promise<{ readonly schedules: Array<{ readonly scheduleRef: string; readonly status: string; readonly taskId: string; }>; }>;
+    readonly create: (input: { readonly revision: string; readonly schedule: { readonly expression: string; readonly kind: string; }; readonly taskId: string; } | { readonly schedule: { readonly expression: string; readonly kind: string; }; readonly service: "background"; }) => Promise<{ readonly scheduleRef: string; readonly status: "active" | "pending"; }>;
+    readonly listOwn: (input?: {  }) => Promise<{ readonly schedules: Array<{ readonly scheduleRef: string; readonly status: string; readonly taskId: string; } | { readonly appId: string; readonly profile: "app-service"; readonly scheduleRef: string; readonly service: "background"; readonly status: string; }>; }>;
   };
   readonly screenshot: {
     readonly captureVisible: (input: { readonly tabRef: string; }) => Promise<{ readonly bytes: number; readonly height: number; readonly status: "started"; readonly width: number; }>;

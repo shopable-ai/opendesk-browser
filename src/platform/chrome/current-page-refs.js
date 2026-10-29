@@ -74,7 +74,12 @@ export function createCurrentPageReferences({api=globalThis.chrome,clock=Date,
       throw fail('E_DOCUMENT_STALE','Current-page reference invalidated during read');
     return {tabId:row.tabId,windowId:row.windowId,documentId:row.documentId,url:row.url};
   }
-  return Object.freeze({issue,verify,
+  // Resolve only Host-issued refs; callers cannot supply native IDs or a URL.
+  async function resolve(source,context){
+    const row=refs.get(source?.tabRef);
+    return verify({...source,url:row?.url},context);
+  }
+  return Object.freeze({issue,verify,resolve,
     invalidateTab:id=>{for(const [ref,row] of refs)if(row.tabId===id)refs.delete(ref)},
     revokeAll:()=>refs.clear(),diagnostics:()=>({references:refs.size})});
 }

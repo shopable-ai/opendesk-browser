@@ -2,6 +2,7 @@ import {isToolSender,resolveToolSender,permissionPattern} from '../../environmen
 import {SIDEPANEL_DOCUMENT_PATH} from '../../tool-document-url.js';
 import {createBrowserTabHost} from './browser-tabs.js';
 import {createCurrentPageReferences} from './current-page-refs.js';
+import {createPageEnvironmentReader} from './browser-page-environment.js';
 import {createNetworkService} from './network.js';
 import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
@@ -401,6 +402,16 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
      return true;
    }
    const currentPageRefs=createCurrentPageReferences({api});
+  const pageEnvironment=createPageEnvironmentReader({api,
+    resolveTarget:(args,context)=>currentPageRefs.resolve(args,context),
+    authorize:async({origin,context})=>{
+      const tool=await verifyBrowserOwner(context,'browser.page.readEnvironment',origin);
+      const {grants,epochs}=await readSources(api),record=grants[tool.id];
+      if(record?.version!==tool.version||record.packageHash!==context.packageHash||
+         record.installEpoch!==(epochs[tool.id]??null)||record.environmentSites?.[origin]!==true)
+        throw failure('E_SITE_GRANT_REQUIRED','Current-page environment site consent required');
+      return true;
+    }});
   const tabHost=createBrowserTabHost({api,authorize:async({operation,origin,context})=>{
     if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)throw failure('E_SITE_GRANT_REQUIRED','Tab origin changed');
     await verifyBrowserOwner(context,operation,origin);
@@ -681,6 +692,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     })();
     const platformSupported=directPresent&&
       (!isMenu||['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation)||menuApiAvailable)&&(
+      operation==='browser.page.readEnvironment'?Boolean(api.scripting?.executeScript&&api.webNavigation?.getFrame&&api.tabs?.query):
       operation==='browser.tabs.create'?Boolean(api.tabs?.create):
       operation==='browser.tabs.activateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
@@ -742,6 +754,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       grantRecord.installEpoch===(sources.epochs[tool.id]??null)&&
       grantRecord.packageHash===await digestTool(tool);
     const desired=identity?.requestedUrl?parsedHttp(identity.requestedUrl)?.origin:null;
+    const environment=operation==='browser.page.readEnvironment';
+    const environmentAllowed=!environment||Boolean(desired&&validGrant&&grantRecord.environmentSites?.[desired]===true&&await chromeSitePermitted(api,desired));
     const downloading=operation==='browser.downloads.download';
     // A site-scoped download cannot be reported callable without the requested
     // exact Origin and currently effective Chrome website permission.
@@ -755,12 +769,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
        await admittedOfficialCookie(tool))&&await chromeSitePermitted(api,origin)
     ))).some(Boolean);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
-      requiredBrowser&&fullBookmarkApproved&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
+      requiredBrowser&&environmentAllowed&&fullBookmarkApproved&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
     const reasonCode=runnable?null:
       op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
       !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':
       !platformSupported?'E_CHROME_UNSUPPORTED':
       !requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
+      !environmentAllowed?'E_SITE_GRANT_REQUIRED':
       !fullBookmarkApproved?'E_BOOKMARK_FULL_CONSENT_REQUIRED':
       needsSite&&!menu?'E_SITE_GRANT_REQUIRED':
       isCookie&&!cookieAuthorized?'E_SITE_GRANT_REQUIRED':
@@ -770,7 +785,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     return {operation,apiVersion:BROWSER_API_VERSION,implementation:op.implementation.toLowerCase().replaceAll('_','-'),
       exposure,platform:platformSupported?'supported':'unsupported',
       authorization:{tool:hasToolCap?'granted':'missing',browser:requiredBrowser?'granted':'missing',
-        site:isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):
+        site:environment?(environmentAllowed?'granted':'missing'):isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):
           downloading?(downloadSiteAllowed?'granted':'missing'):'not-required'},
       callableNow:runnable,requiresUserGesture:op.requiresUserGesture,reasonCode,
       nextAction:runnable?null:!hasToolCap?'update-tool-package':!platformSupported?null:
@@ -798,6 +813,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
          packageHash!==await digestTool(tool))
         throw failure('E_TOOL_CHANGED','Old tool version or revoked instance');
 
+      if(operation==='browser.page.readEnvironment'){
+        return pageEnvironment.readEnvironment(normalizeBrowserOperation(operation,args),{
+          toolId,toolVersion,packageHash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),hostInstanceId,toolInstance});
+      }
       if(cookieCapabilities[operation]){
         const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
         const owner={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
@@ -1092,6 +1112,35 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const output=await currentPageRefs.issue({document,context:ctx});
         await verifyBrowserOwner(ctx,operation);
         return output;
+      }
+      // Only the packaged Host can review/revoke a site, never the sandbox RPC.
+      if(operation==='browser.page.environmentConsent'){
+        if(enabled!==undefined&&typeof enabled!=='boolean')throw failure('E_SCHEMA');
+        const site=parsedHttp(origin);
+        if(!site||site.origin!==origin)throw failure('E_SCHEMA');
+        const source=await readSources(api),tool=admittedTool(source.tools,toolId),hash=await digestTool(tool);
+        const ctx={toolId,toolVersion,packageHash,epoch:installEpoch??null};
+        await verifyBrowserOwner(ctx,'browser.page.readEnvironment',enabled===false?null:origin);
+        const old=source.grants[toolId],same=old?.version===tool.version&&old.packageHash===hash&&
+          old.installEpoch===(source.epochs[toolId]??null);
+        if(enabled===undefined)return {enabled:same&&old.environmentSites?.[origin]===true};
+        if(enabled){
+          // A grant is for the actual current document shown in trusted UI.
+          const issued=await currentPageRefs.issue({document,context:{...ctx,
+            installEpoch:String(installEpoch??'initial-install'),hostInstanceId,toolInstance}});
+          await currentPageRefs.resolve(issued,{...ctx,
+            installEpoch:String(installEpoch??'initial-install'),hostInstanceId,toolInstance});
+          if(new URL(document.url).origin!==origin)throw failure('E_DOCUMENT_STALE');
+        }
+        const record=same?old:{version:tool.version,packageHash:hash,
+          installEpoch:source.epochs[toolId]??null,origins:[],activeActions:[]};
+        const environmentSites={...record.environmentSites};
+        if(enabled)environmentSites[origin]=true;else delete environmentSites[origin];
+        if(Object.keys(environmentSites).length>64)throw failure('E_LIMIT');
+        await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
+          ...source.grants,[toolId]:{...record,environmentSites}});
+        currentPageRefs.revokeAll();
+        return {enabled};
       }
       if(operation==='browser.bookmarks.fullConsent'){
         if(typeof enabled!=='boolean')throw failure('E_SCHEMA','Explicit Full Bookmarks consent decision required');

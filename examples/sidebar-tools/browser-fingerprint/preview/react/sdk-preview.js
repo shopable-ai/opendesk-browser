@@ -6,9 +6,9 @@
   const key='opendesk.fingerprint.a.preview-only.v1';
   const sites=[
     {status:'available',url:'https://qa.example.test/cart',title:'QA 购物车',
-      tabRef:'preview-tab-a',documentRef:'preview-document-a'},
+      tabRef:'preview-tab-aaaaaaaa',documentRef:'preview-document-a'},
     {status:'available',url:'https://shop.example.test/checkout',title:'电商结账页',
-      tabRef:'preview-tab-b',documentRef:'preview-document-b'}
+      tabRef:'preview-tab-bbbbbbbb',documentRef:'preview-document-b'}
   ];
   let current=0,stored=null;
   try{stored=JSON.parse(localStorage.getItem(key)||'null');}catch{stored=null;}
@@ -27,6 +27,13 @@
     root,
     async request(operation,args={}){
       if(operation==='browser.page.getContext')return {...sites[current]};
+      if(operation==='browser.capabilities.getStatus')return {callableNow:true,reasonCode:null};
+      if(operation==='browser.page.readEnvironment')return {
+        tabRef:sites[current].tabRef,documentRef:sites[current].documentRef,capturedAt:new Date().toISOString(),
+        source:{kind:'target-page-js',world:'MAIN',frameId:0},fields:Object.fromEntries(Object.entries({
+          userAgent:'PREVIEW fixture — not a target-page reading',languages:['zh-CN','en'],timeZone:'Asia/Shanghai',
+          viewport:{width:1280,height:720},screen:{width:1920,height:1080},devicePixelRatio:2
+        }).map(([key,value])=>[key,{status:'available',value,reasonCode:null}]))};
       if(operation==='storage.get'){
         if(args.key!=='fingerprint.a.history.v1')throw Error('E_PREVIEW_STORAGE_SCOPE');
         return {value:structuredClone(stored),etag:etag(stored)};

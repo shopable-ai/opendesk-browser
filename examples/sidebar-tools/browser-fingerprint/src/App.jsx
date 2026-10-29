@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Card,CardContent,Button,IconButton} from '@opendesk/ui';
-import {FIELD_DEFINITIONS,makeReading,sameRuntimeTarget,
+import {FIELD_DEFINITIONS,CORE_ENVIRONMENT_KEYS,makeEnvironmentReading,sameRuntimeTarget,
   snapshotFromReading,compareSnapshots,reportJson} from './model.js';
 import {readHistory,saveSnapshot,deleteSnapshot} from './history.js';
 
@@ -13,7 +13,16 @@ const errorLabel=error=>{
     E_OUTCOME_UNKNOWN:'写入结果未知，必须重新读取核对，不能直接重试。',
     E_HISTORY_LIMIT:'已达本地存储上限，请导出并删除旧快照。',
     E_NO_TARGET:'当前网页不可用；请切换到普通 HTTP(S) 页面。',
-    E_CONTEXT:'当前网页身份已失效，请重新检测。'
+    E_CONTEXT:'当前网页身份已失效，请重新检测。',
+    E_DOCUMENT_STALE:'网页已导航或切换，旧读数已丢弃，请重新检测。',
+    E_SITE_GRANT_REQUIRED:'此网站尚未授权读取环境，未采集网页字段。',
+    E_SITE_PERMISSION_REVOKED:'Chrome 网站访问权限已撤销，未采集网页字段。',
+    E_TOOL_CHANGED:'应用已更新或卸载，当前读数已失效。',
+    E_TOOL_DISABLED:'应用已停用，当前读数已失效。',
+    E_USER_CANCELLED:'已取消网站授权，未采集网页字段。',
+    E_CANCELLED:'已取消网站授权，未采集网页字段。',
+    E_TIMEOUT:'网页读取超时，未采用迟到回执。',
+    E_ENVIRONMENT_UNAVAILABLE:'此网页无法执行只读检测，请重试或切换普通网页。'
   };
   return labels[error?.code]||String(error?.message||error||'操作失败').slice(0,200);
 };
@@ -36,16 +45,16 @@ const stampText=date=>{
   const n=Date.parse(date);
   return Number.isFinite(n)?new Date(n).toLocaleString('zh-CN'):'时间未知';
 };
-function FieldList({reading}){
+function FieldList({reading,coreOnly=false}){
   return <div className="fp-fields">
-    {FIELD_DEFINITIONS.map(def=>{
+    {FIELD_DEFINITIONS.filter(def=>!coreOnly||def.kind==='page'||CORE_ENVIRONMENT_KEYS.includes(def.key)).map(def=>{
       const item=reading?.fields?.find(x=>x.key===def.key);
       return <div className="fp-field" key={def.key}>
         <div className="fp-field-head"><strong>{def.label}</strong>
           <span className={'fp-status '+(item?.status==='available'?'fp-ok':'fp-unknown')}>
-            {item?.status==='available'?'已读取':'不可验证'}</span></div>
+            {{available:'已读取',unavailable:'不可用',unauthorized:'未授权',unknown:'未知',not_exposed:'未开放'}[item?.status]||'待检测'}</span></div>
         <div className="fp-value">{item?.status==='available'?display(item.value):'—'}</div>
-        <div className="fp-source">{(item?.source==='host'?'可信 Host · 当前网页':item?.source==='page-js'?'目标网页 JS · 未开放':item?.source)||'尚未检测'}
+        <div className="fp-source">{(item?.source==='host'?'可信 Host · 当前网页':item?.source==='page-js'?'目标网页 JS · 未开放':item?.source==='target-page-js:MAIN'?'目标网页 JS · MAIN · 顶层文档':item?.source==='preview-fixture'?'离线演示替身':item?.source)||'尚未检测'}
           {item?.reason?' · '+(item.reason==='E_SDK'?'没有公开采集接口':item.reason):''}</div>
       </div>;
     })}
@@ -66,7 +75,7 @@ function Comparison({a,b}){
     </div>)}
   </div>;
 }
-export default function App({adapter,preview=false}){
+export default function App({adapter,preview=false,coreOnly=true}){
   const [view,setView]=React.useState('detect');
   const [reading,setReading]=React.useState(null);
   const [history,setHistory]=React.useState([]);
@@ -79,6 +88,7 @@ export default function App({adapter,preview=false}){
   React.useEffect(()=>{
     active.current=true;
     let alive=true;
+    if(coreOnly)return ()=>{active.current=false;revision.current++;};
     const seq=++revision.current;
     operation.current={seq,name:'history'};
     setBusy('history');
@@ -96,7 +106,7 @@ export default function App({adapter,preview=false}){
       if(alive&&revision.current===seq)setBusy('');
     });
     return ()=>{alive=false;active.current=false;revision.current++;};
-  },[adapter]);
+  },[adapter,coreOnly]);
   const safeSet=(seq,fn)=>{if(active.current&&revision.current===seq)fn();};
   const begin=name=>{
     if(!active.current||operation.current)return null;
@@ -133,20 +143,41 @@ export default function App({adapter,preview=false}){
     setReading(null);
     setNotice({type:'info',text:'正在通过可信 SDK 核验网页…'});
     try{
-      const ctx=await adapter.context();
-      const item=makeReading(ctx,{id:ident(),at:stamp(),preview});
-      if(item.volatile.documentRef&&
-        !sameRuntimeTarget(item,await adapter.context()))
-        throw Object.assign(Error('检测期间网页身份发生变化，请重新检测'),{code:'E_CONTEXT'});
+      let ctx=await adapter.context(),receipt;
+      // A new site grant revokes the old refs. Re-read once after that explicit
+      // outcome, without replaying any write or accepting a late old receipt.
+      try{receipt=await adapter.environment(ctx);}
+      catch(error){
+        if(error?.code!=='E_SITE_GRANT_UPDATED')throw error;
+        ctx=await adapter.context();receipt=await adapter.environment(ctx);
+      }
+      const item=makeEnvironmentReading(ctx,receipt,{id:ident(),at:stamp(),preview});
+      if(!sameRuntimeTarget(item,await adapter.context()))
+        throw Object.assign(Error('检测期间网页身份发生变化，请重新检测'),{code:'E_DOCUMENT_STALE'});
       safeSet(seq,()=>{
         setReading(item);
-        setNotice({type:'warning',text:item.volatile.documentRef?
-          '已读取 Host 页面字段；目标网页 JS 环境字段未开放，检测为部分完成。':
-          '已读取部分页面字段，但缺少稳定文档引用，不能保存；请检查 SDK 支持。'});
+        setNotice({type:item.completeness==='core-complete'?'success':'warning',
+          text:preview?'演示字段已显示；不是实际网页检测证据。':item.completeness==='core-complete'?
+            '已读取当前网页六项环境字段。来源：目标顶层文档 JS。':'网页检测已返回；部分字段不可用或未知，请查看逐项状态。'});
       });
     }catch(error){safeSet(seq,()=>setNotice({type:'error',text:errorLabel(error)}));}
     finally{finish(seq);}
   }
+  React.useEffect(()=>{
+    if(!reading||!coreOnly)return;
+    let cancelled=false,checking=false;
+    const timer=setInterval(async()=>{
+      if(checking||cancelled)return;checking=true;
+      try{
+        const context=await adapter.context();
+        if(!sameRuntimeTarget(reading,context))throw Object.assign(Error('网页已切换或导航，请重新检测。'),{code:'E_DOCUMENT_STALE'});
+        const status=await adapter.environmentStatus(context.url);
+        if(status.callableNow!==true)throw Object.assign(Error('读取权限已失效，请重新检测。'),{code:status.reasonCode||'E_PERMISSION'});
+      }catch(error){if(!cancelled){setReading(null);setNotice({type:'warning',text:errorLabel(error)});}}
+      finally{checking=false;}
+    },1000);
+    return ()=>{cancelled=true;clearInterval(timer);};
+  },[reading,adapter,coreOnly]);
   async function save(){
     if(!reading)return;
     const seq=begin('save');if(seq===null)return;
@@ -209,7 +240,7 @@ export default function App({adapter,preview=false}){
   }
   return <main className="fp-app">
     <nav className="fp-tabs" aria-label="浏览器环境检测视图">
-      {['detect','compare','history'].map((id,i)=>
+      {(coreOnly?['detect']:['detect','compare','history']).map((id,i)=>
         <button key={id} type="button" className={view===id?'active':''}
           aria-current={view===id?'page':undefined} onClick={()=>navigate(id)}>
           {['检测','对比','历史'][i]}</button>)}
@@ -219,21 +250,21 @@ export default function App({adapter,preview=false}){
     {view==='detect'?<>
       <Card><CardContent className="fp-card">
         <div className="fp-section-head"><strong>当前环境</strong><span className="fp-caption">{reading?.target.host||'尚未检测'}</span></div>
-        <p className="fp-secondary">只读取经 Host 核验的当前网页上下文。不会修改 UA、时区、IP、代理或 Cookie。</p>
+        <p className="fp-secondary">只读检测当前网页的 UA、语言、时区、视口、屏幕及像素比。不会修改 UA、时区、IP、代理或 Cookie。</p>
         <div className="fp-actions">
           <Button variant="primary" disabled={!!busy} onClick={()=>void detect()}>
             <Glyph name="refresh"/>检测当前网页</Button>
-          <Button variant="secondary" disabled={!!busy||!reading?.volatile?.documentRef} onClick={()=>void save()}>
-            <Glyph name="save"/>保存部分证据</Button>
+          {!coreOnly?<Button variant="secondary" disabled={!!busy||!reading?.volatile?.documentRef} onClick={()=>void save()}>
+            <Glyph name="save"/>保存部分证据</Button>:null}
         </div>
         {reading?<div className="fp-proof">
           <span>采集于 {stampText(reading.capturedAt)}</span>
           <span>{reading.target.identityLevel==='document-ref-observed'?'收到文档引用':'文档身份不可验证'}</span>
-          <span>状态：部分完成</span>
+          <span>状态：{reading.completeness==='core-complete'?'核心六项已返回':'部分字段不可用'}</span>
         </div>:<p className="fp-empty">点击检测后显示每项真实来源与不可用原因。</p>}
       </CardContent></Card>
       <Card><CardContent className="fp-card"><strong>字段与来源</strong>
-        <FieldList reading={reading}/>
+        <FieldList reading={reading} coreOnly={coreOnly}/>
       </CardContent></Card>
     </>:null}
     {view==='compare'?<>

@@ -24,6 +24,9 @@ export const ADBLOCK_CONFIRM_OPERATIONS=Object.freeze([
   'adblock.cosmetic.add','adblock.cosmetic.replace'
 ]);
 export function sidebarToolRequestTimeout(operation,toolId){
+ // First-use exact-site review has a separate 90s budget. Native collection
+ // still times out after 3s, and no late receipt is accepted.
+ if(operation==='browser.page.readEnvironment')return 100000;
  if(toolId==='web-markdown-clipper'&&operation.startsWith('clipNotes.'))
    return ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)?60000:30000;
  return (toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation))||

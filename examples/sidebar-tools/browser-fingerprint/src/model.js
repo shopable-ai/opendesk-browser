@@ -47,6 +47,42 @@ export function makeReading(raw,{id,at,preview=false}){
       identityLevel:p.volatile.documentRef?'document-ref-observed':'url-only'},
     fields,volatile:p.volatile};
 }
+export const CORE_ENVIRONMENT_KEYS=Object.freeze(['userAgent','languages','timeZone','viewport','screen','devicePixelRatio']);
+// Live readings have their own schema. v1 history remains untouched and cannot
+// accidentally accept these values before its explicit migration is designed.
+export function makeEnvironmentReading(raw,receipt,options){
+  const item=makeReading(raw,options),keys=CORE_ENVIRONMENT_KEYS;
+  const exact=(value,names)=>value&&typeof value==='object'&&!Array.isArray(value)&&
+    Object.keys(value).length===names.length&&names.every(name=>Object.hasOwn(value,name));
+  const text=(value,n)=>typeof value==='string'&&new TextEncoder().encode(value).length<=n;
+  const size=value=>exact(value,['width','height'])&&['width','height'].every(k=>Number.isFinite(value[k])&&value[k]>=0);
+  const valid=(key,value)=>key==='userAgent'?text(value,1024):key==='timeZone'?text(value,128):
+    key==='languages'?Array.isArray(value)&&value.length<=16&&value.every(v=>text(v,64)):
+    key==='devicePixelRatio'?Number.isFinite(value)&&value>0:size(value);
+  if(!exact(receipt,['tabRef','documentRef','capturedAt','source','fields'])||
+     !/^[A-Za-z0-9_-]{16,160}$/.test(receipt.tabRef)||
+     !/^[A-Za-z0-9_-]{16,160}$/.test(receipt.documentRef)||
+     receipt.tabRef!==item.volatile.tabRef||receipt.documentRef!==item.volatile.documentRef||
+     typeof receipt.capturedAt!=='string'||!Number.isFinite(Date.parse(receipt.capturedAt))||
+     !exact(receipt.source,['kind','world','frameId'])||receipt.source.kind!=='target-page-js'||
+     receipt.source.world!=='MAIN'||receipt.source.frameId!==0||!exact(receipt.fields,keys)||
+     new TextEncoder().encode(JSON.stringify(receipt)).length>8192)
+    throw fail('E_ENVIRONMENT_RECEIPT','网页采集回执来源或文档身份无效');
+  for(const key of keys){
+    const field=receipt.fields[key];
+    if(!exact(field,['status','value','reasonCode'])||
+       (field.status==='available'?field.reasonCode!==null||!valid(key,field.value):
+        !['unavailable','unknown'].includes(field.status)||field.value!==null||
+        typeof field.reasonCode!=='string'||!/^[A-Z][A-Z0-9_]{0,63}$/.test(field.reasonCode)))
+      throw fail('E_ENVIRONMENT_RECEIPT','网页字段格式无效');
+  }
+  return {...item,schema:'opendesk.browser-fingerprint.reading.a.v2',
+    capturedAt:receipt.capturedAt,completeness:keys.every(k=>receipt.fields[k].status==='available')?'core-complete':'partial',
+    fields:item.fields.map(field=>keys.includes(field.key)?{
+      key:field.key,status:receipt.fields[field.key].status,
+      value:JSON.parse(JSON.stringify(receipt.fields[field.key].value)),
+      source:options.preview?'preview-fixture':'target-page-js:MAIN',reason:receipt.fields[field.key].reasonCode}:field)};
+}
 export function sameRuntimeTarget(reading,raw){
   if(!reading?.volatile?.documentRef)return false;
   try{

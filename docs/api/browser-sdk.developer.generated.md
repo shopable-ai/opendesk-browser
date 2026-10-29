@@ -419,6 +419,14 @@
 - Scope: clicked-document; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
+## OpenDeskSDK.browser.page.readEnvironment
+
+- Signature: `(input: { readonly documentRef: string; readonly tabRef: string; }) => Promise<{ readonly capturedAt: string; readonly documentRef: string; readonly fields: { readonly devicePixelRatio: { readonly reasonCode: null; readonly status: "available"; readonly value: number; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly languages: { readonly reasonCode: null; readonly status: "available"; readonly value: Array<string>; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly screen: { readonly reasonCode: null; readonly status: "available"; readonly value: { readonly height: number; readonly width: number; }; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly timeZone: { readonly reasonCode: null; readonly status: "available"; readonly value: string; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly userAgent: { readonly reasonCode: null; readonly status: "available"; readonly value: string; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; readonly viewport: { readonly reasonCode: null; readonly status: "available"; readonly value: { readonly height: number; readonly width: number; }; } | { readonly reasonCode: string; readonly status: "unavailable" | "unknown"; readonly value: null; }; }; readonly source: { readonly frameId: 0; readonly kind: "target-page-js"; readonly world: "MAIN"; }; readonly tabRef: string; }>`
+- Mode: EXISTING_SERVICE; native: `chrome.scripting.executeScript`, `chrome.webNavigation.getFrame`, `chrome.tabs.query`
+- Capabilities: `browser.page.environment.read`; Chrome permissions: `scripting`, `webNavigation`
+- Scope: approved-current-document; user gesture: not required
+- Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
+
 ## OpenDeskSDK.browser.proxy.managed.getStatus
 
 - Signature: `(input?: {  }) => Promise<{ readonly canStop: boolean; readonly control: "not_controllable" | "controlled_by_other_extensions" | "controllable_by_this_extension" | "controlled_by_this_extension" | "unknown"; readonly permission: boolean; readonly reason: string | null; readonly state: "enabled" | "disabled" | "unavailable" | "conflict"; }>`
@@ -461,7 +469,7 @@
 
 ## OpenDeskSDK.browser.scheduler.create
 
-- Signature: `(input: { readonly revision: string; readonly schedule: { readonly expression: string; readonly kind: string; }; readonly taskId: string; }) => Promise<{ readonly scheduleRef: string; readonly status: "active" | "pending"; }>`
+- Signature: `(input: { readonly revision: string; readonly schedule: { readonly expression: string; readonly kind: string; }; readonly taskId: string; } | { readonly schedule: { readonly expression: string; readonly kind: string; }; readonly service: "background"; }) => Promise<{ readonly scheduleRef: string; readonly status: "active" | "pending"; }>`
 - Mode: EXISTING_SERVICE; native: `chrome.alarms.create`
 - Capabilities: `browser.scheduler`; Chrome permissions: `alarms`
 - Scope: installed fixed task revision, explicit user grant, existing Scheduler service; user gesture: required
@@ -469,7 +477,7 @@
 
 ## OpenDeskSDK.browser.scheduler.listOwn
 
-- Signature: `(input?: {  }) => Promise<{ readonly schedules: Array<{ readonly scheduleRef: string; readonly status: string; readonly taskId: string; }>; }>`
+- Signature: `(input?: {  }) => Promise<{ readonly schedules: Array<{ readonly scheduleRef: string; readonly status: string; readonly taskId: string; } | { readonly appId: string; readonly profile: "app-service"; readonly scheduleRef: string; readonly service: "background"; readonly status: string; }>; }>`
 - Mode: EXISTING_SERVICE; native: `chrome.alarms.getAll`
 - Capabilities: `browser.scheduler`; Chrome permissions: `alarms`
 - Scope: installed tool + task owner only; user gesture: not required

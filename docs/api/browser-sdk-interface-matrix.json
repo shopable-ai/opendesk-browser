@@ -1918,12 +1918,12 @@
       "TRUSTED_HOST_OR_EXISTING_SERVICE": 315,
       "VERSION_GATED": 1
     },
-    "approvedOperations": 77,
-    "approvedRegistered": 75,
+    "approvedOperations": 78,
+    "approvedRegistered": 76,
     "approvedCookieHostOnly": 0,
     "approvedPlannedNew": 0,
-    "nativeMappedApproved": 54,
-    "approvedWithInputAndOutputSchemas": 77,
+    "nativeMappedApproved": 56,
+    "approvedWithInputAndOutputSchemas": 78,
     "approvedTrustedHostImplemented": 2
   },
   "parseErrors": [],
@@ -9298,6 +9298,134 @@
         "denial": "PASS",
         "fullMatrixContractStatus": "NOT_TESTED",
         "scope": "Only listed bounded Node calls/assertions; Native and untested matrix conditions remain open."
+      }
+    },
+    {
+      "id": "browser.page.readEnvironment",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "migrationDecision": "ADD",
+      "sourceRegistry": "src/framework/sdk/browser-contract.js#BROWSER_OPERATIONS",
+      "callSignature": "OpenDeskSDK.browser.page.readEnvironment({tabRef,documentRef})",
+      "returnSignature": "Promise<PageEnvironmentReceipt>",
+      "inputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.page.readEnvironment:input"
+      },
+      "outputSchema": {
+        "sourceRef": "src/framework/sdk/browser-schemas.js#browser.page.readEnvironment:output"
+      },
+      "nativeApis": [
+        "chrome.scripting.executeScript",
+        "chrome.webNavigation.getFrame",
+        "chrome.tabs.query"
+      ],
+      "chromePermissions": [
+        "scripting",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.page.environment.read"
+      ],
+      "siteScope": "approved-current-document",
+      "allowedWorlds": [
+        "sidebar-tool"
+      ],
+      "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
+      "userGesture": false,
+      "maxRequestBytes": 12000,
+      "errors": [
+        "E_SCHEMA",
+        "E_CONTEXT",
+        "E_SERVICE_UNSUPPORTED",
+        "E_TOOL_CAPABILITY_REQUIRED",
+        "E_CHROME_PERMISSION_REQUIRED",
+        "E_SITE_PERMISSION_REVOKED",
+        "E_SITE_GRANT_REQUIRED",
+        "E_USER_GESTURE_REQUIRED",
+        "E_OWNER",
+        "E_TOOL_CHANGED",
+        "E_TOOL_DISABLED",
+        "E_DOCUMENT_STALE",
+        "E_ENVIRONMENT_UNAVAILABLE",
+        "E_TIMEOUT",
+        "E_LIMIT"
+      ],
+      "sdkFile": "src/framework/sdk/browser.js",
+      "registryFile": "src/framework/sdk/browser-contract.js",
+      "schemaFile": "src/framework/sdk/browser-schemas.js",
+      "hostDispatcher": "src/platform/chrome/context-menus.js#createContextMenuHost",
+      "authority": "src/ui/sidebar-tools.js#createSidebarTools + src/platform/chrome/context-menus.js verified sender/intent",
+      "driverFile": "src/platform/chrome/browser-page-environment.js",
+      "lifecycle": "request",
+      "phase": "P1",
+      "status": "SOURCE_WIRED",
+      "verification": {
+        "node": "NODE_PASS",
+        "build": "BUILD_PASS",
+        "native": "NOT_TESTED"
+      },
+      "testContract": {
+        "existing": [
+          "tests/environment/browser-page-environment.test.mjs",
+          "tests/environment/browser-page-environment-host.test.mjs"
+        ],
+        "positive": "Six bounded page-observed MAIN values from exact current top document; Host-stamped source and timestamp",
+        "negative": "No injection for foreign refs, capability/site/Chrome denial; discard navigation, uninstall, revocation and late receipts",
+        "native": "Current development extension + actual tool Detect click on demo-form; formal candidate acceptance deferred"
+      },
+      "maxResponseBytes": 8192,
+      "support": {
+        "desktopChromeMinimum": 138,
+        "chromeFeatureGate": "feature presence + actual source permission check; never fake Chrome>=138 availability for unknown introduced versions",
+        "executionWorlds": [
+          "sidebar-tool"
+        ],
+        "incognito": "DENIED_BY_DEFAULT"
+      },
+      "nativeTestConditions": {
+        "kind": "NATIVE_PASS_REQUIRES_REAL_CHROME",
+        "sameCandidate": [
+          "commitSha",
+          "extensionPackageSha256",
+          "chromeVersion",
+          "extensionId",
+          "realSenderDocumentId",
+          "toolPackageHashAndInstallEpoch",
+          "permissionAndOriginSnapshot",
+          "nativeAckOrEffectId",
+          "workerLifecycleEvidence",
+          "redactedLogs"
+        ],
+        "denials": [
+          "permissionRevoked",
+          "foreignTool",
+          "staleDocument",
+          "badOrigin",
+          "staleEpoch"
+        ],
+        "nodeAndBuildDoNotPromote": true
+      },
+      "mappingKind": "EXISTING_SERVICE",
+      "statusVerificationPolicy": "Current source path and all current evidence statuses are separate; NEVER treat source-wired as native Chrome PASS",
+      "targetFiles": [
+        "src/framework/sdk/browser-contract.js",
+        "src/framework/sdk/browser-schemas.js",
+        "src/platform/chrome/context-menus.js",
+        "src/platform/chrome/current-page-refs.js",
+        "src/platform/chrome/browser-page-environment.js",
+        "src/ui/sidebar-tools.js",
+        "src/ui/sidebar-tools/package.js"
+      ],
+      "currentSchemaAuthority": "src/framework/sdk/browser-schemas.js#operationSchemas ('browser.page.readEnvironment')",
+      "schemaStrategy": "REFERENCE_EXISTING_RUNTIME_SCHEMA; do not duplicate or create inconsistent new schema definition",
+      "approval": {
+        "date": "2026-10-29",
+        "scope": "User authorized completing the previously proposed minimum SDK for core readonly environment detection; snapshots/history/compare/export deferred. No Chrome permission addition."
+      },
+      "scopedNativeEvidence": {
+        "stage": "CORE_DEVELOPMENT",
+        "result": "CORE_PASS",
+        "evidence": "examples/sidebar-tools/browser-fingerprint/evidence/r19-core-development.zh-CN.md",
+        "limits": "Real Mac headless CFT Side Panel core chain only; full nativeTestConditions and production formal acceptance remain NOT_TESTED."
       }
     },
     {
@@ -44308,11 +44436,13 @@
       "batch": "P1",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.page.readEnvironment"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
-      "disposition": "HOST_INTERNAL_NOT_GENERAL_SDK"
+      "disposition": "FIXED_READONLY_COLLECTOR_ONLY_NOT_GENERAL_EXECUTION"
     },
     {
       "nativeApi": "chrome.scripting.getRegisteredContentScripts",
@@ -49278,11 +49408,13 @@
       "batch": "P1",
       "releaseGate": "PINNED_SCHEMA_PRESENT_BUT_MIN_CHROME_AND_CONTEXT_NOT_PER_METHOD_VERIFIED",
       "minChrome": null,
-      "sdkExposure": "NOT_APPROVED_BY_DISCOVERY",
+      "sdkExposure": "APPROVED_SCOPED_OPERATION_MAPPING",
       "runtimeStatus": "NOT_TESTED",
-      "approvedOperationIds": [],
+      "approvedOperationIds": [
+        "browser.page.readEnvironment"
+      ],
       "testGate": "NO_RUNTIME_ACCEPTANCE_CLAIM",
-      "disposition": "DEFERRED_NOT_APPROVED"
+      "disposition": "FIXED_READONLY_COLLECTOR_ONLY_NOT_GENERAL_EXECUTION"
     },
     {
       "nativeApi": "chrome.tabs.reload",
@@ -54391,7 +54523,8 @@
         "browser.tabs.navigateOwned",
         "browser.tabs.pinOwned",
         "browser.tabs.reloadOwned",
-        "browser.tabs.removeOwned"
+        "browser.tabs.removeOwned",
+        "browser.page.readEnvironment"
       ],
       "testGate": "REGISTERED_OR_PLANNED_OPERATION_NEEDS_NODE_BUILD_NATIVE",
       "disposition": "APPROVED_MAPPED_OPERATION"
@@ -59828,10 +59961,10 @@
   "coverageAudit": {
     "seedNativeCatalogEntries": 119,
     "seedNativeCatalogMissing": 0,
-    "registeredOperations": 75,
+    "registeredOperations": 76,
     "trustedCookieHostOperations": 0,
     "approvedNewDesignOperations": 0,
-    "approvedTotal": 77,
+    "approvedTotal": 78,
     "orphanNativeMappings": [],
     "parseErrors": [],
     "sourceFilesTypeOnly": [
@@ -59943,8 +60076,8 @@
     ],
     "completeness": "Known source consumers identified; exhaustive consumer path enumeration cannot be verified without full repository grep. Phase P1 must enumerate and migrate all current consumers before deleting active alias."
   },
-  "currentRegistrySourceSha": "eccd763776e23336512c88c56a5e6065ab52b7ef",
-  "currentSchemaSourceSha": "c4eb636a53652982614e735739d07e292d18aaf5",
+  "currentRegistrySourceSha": "8485ef007b053141c44e1014b3c460049787880c",
+  "currentSchemaSourceSha": "da0dc03e1953f906e4f4d25a4534a599adc43cea",
   "contractRevisions": [
     {
       "date": "2026-10-13",

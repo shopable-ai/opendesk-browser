@@ -13,6 +13,16 @@ const num=(min=0,max=Number.MAX_SAFE_INTEGER)=>({type:'integer',minimum:min,maxi
 const arr=(items,maxItems=100)=>({type:'array',items,maxItems});
 const bool={type:'boolean'},nullableString={anyOf:[str(160),{type:'null'}]};
 const empty=obj();
+// Page-observed values only. These are not hardware attestation or HTTP headers.
+const environmentSize=obj({width:{type:'number',minimum:0},height:{type:'number',minimum:0}},['width','height']);
+const environmentField=value=>({anyOf:[
+  obj({status:{const:'available'},value,reasonCode:{type:'null'}},['status','value','reasonCode']),
+  obj({status:{enum:['unavailable','unknown']},value:{type:'null'},reasonCode:str(64,'^[A-Z][A-Z0-9_]{0,63}$')},['status','value','reasonCode'])
+]});
+const environmentFields=obj({userAgent:environmentField(str(1024)),languages:environmentField(arr(str(64),16)),
+  timeZone:environmentField(str(128)),viewport:environmentField(environmentSize),screen:environmentField(environmentSize),
+  devicePixelRatio:environmentField({type:'number',exclusiveMinimum:0})},
+  ['userAgent','languages','timeZone','viewport','screen','devicePixelRatio']);
 const schedulerSpec=obj({kind:str(128),expression:str(256)},['kind','expression']);
 const taskScheduleCreate=obj({taskId:str(128),revision:str(128,'^[1-9][0-9]{0,15}$'),
   schedule:schedulerSpec},['taskId','revision','schedule']);
@@ -128,6 +138,9 @@ const ops=Object.freeze({
    ['ticketId','toolId','actionId','selection','source','expiresAt'])],
  'browser.page.getContext':[empty,obj({status:{enum:['available','unavailable']},
    title:str(512),url:str(4096),message:str(250),tabRef:ref,documentRef:ref},['status'])],
+ 'browser.page.readEnvironment':[obj({tabRef:ref,documentRef:ref},['tabRef','documentRef']),
+  obj({tabRef:ref,documentRef:ref,capturedAt:str(40),source:obj({kind:{const:'target-page-js'},world:{const:'MAIN'},frameId:{const:0}},['kind','world','frameId']),
+    fields:environmentFields},['tabRef','documentRef','capturedAt','source','fields'])],
  'browser.page.getSelection':[empty,obj({ticketId:str(36),selection:str(16384),
    selectionMarkdown:{anyOf:[str(16384),{type:'null'}]}},['ticketId','selection'])],
  'browser.clipboard.writeText':[obj({text},['text']),obj({copied:bool},['copied'])],

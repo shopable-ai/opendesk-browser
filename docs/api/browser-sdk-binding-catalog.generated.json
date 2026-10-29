@@ -4,8 +4,8 @@
   "generationPolicy": "DERIVED_METADATA_ONLY_NOT_A_PERMISSION_GRANT",
   "chromiumSourceCommit": "b5485910372708cd11d9a814a3e382fe8da57df3",
   "counts": {
-    "approved": 77,
-    "public": 75,
+    "approved": 78,
+    "public": 76,
     "hostOnly": 2
   },
   "bindings": [
@@ -2085,6 +2085,68 @@
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 65536,
+      "lifecycle": "request"
+    },
+    {
+      "operation": "browser.page.readEnvironment",
+      "visibility": "APPROVED_TOOL_REGISTERED",
+      "mode": "CUSTOM",
+      "nativeApis": [
+        "chrome.scripting.executeScript",
+        "chrome.webNavigation.getFrame",
+        "chrome.tabs.query"
+      ],
+      "nativeSignatures": [
+        {
+          "nativeApi": "chrome.scripting.executeScript",
+          "kind": "METHOD",
+          "signature": "static Promise<sequence<InjectionResult>> executeScript( ScriptInjection injection);",
+          "parameters": [],
+          "returnType": "Promise<sequence<InjectionResult>>"
+        },
+        {
+          "nativeApi": "chrome.webNavigation.getFrame",
+          "kind": "METHOD",
+          "signature": "getFrame(details: object): Promise<object>",
+          "parameters": [
+            {
+              "name": "details",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<object>"
+        },
+        {
+          "nativeApi": "chrome.tabs.query",
+          "kind": "METHOD",
+          "signature": "query(queryInfo: object): Promise<array>",
+          "parameters": [
+            {
+              "name": "queryInfo",
+              "type": "object",
+              "optional": false
+            }
+          ],
+          "returnType": "Promise<array>"
+        }
+      ],
+      "runtimeSchema": "src/framework/sdk/browser-schemas.js#browser.page.readEnvironment",
+      "chromePermissions": [
+        "scripting",
+        "webNavigation"
+      ],
+      "toolCapabilities": [
+        "browser.page.environment.read"
+      ],
+      "supportedContexts": [
+        "sidebar-tool"
+      ],
+      "siteScope": "approved-current-document",
+      "userGesture": false,
+      "minChrome": 138,
+      "maxRequestBytes": 12000,
+      "maxResponseBytes": 8192,
       "lifecycle": "request"
     },
     {

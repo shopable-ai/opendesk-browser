@@ -376,6 +376,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const capabilities=Object.freeze({
     'storage.local':'保存此工具的数据',
     'currentPage.read':'读取当前网页标题和地址',
+    'browser.page.environment.read':'只读检测已授权当前网页的 UA、语言、时区、视口、屏幕及像素比',
     'tasks.open':'打开已安装任务',
     'tasks.run':'运行已审阅的固定任务、读取结果及停止原实例',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
@@ -2376,6 +2377,35 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'预算 Worker 拒绝操作'),
           {code:response?.error?.code||'E_SITE_BUDGET'});
         return response.data;
+      }
+      if(operation==='browser.page.readEnvironment'){
+        const captured=currentPageTarget.capture();
+        await currentPageTarget.revalidate(captured);assertSession(source,token);
+        const origin=captured.origin;
+        const consent=async enabled=>{
+          const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+            operation:'browser.page.environmentConsent',hostInstanceId,toolId:tool.id,
+            toolVersion:tool.version,toolInstance:token,installEpoch:revocationEpoch,packageHash,
+            origin,...(enabled===undefined?{}:{enabled}),
+            document:{tabId:captured.tabId,windowId:captured.windowId,documentId:captured.documentId,
+              url:captured.url,origin,title:String(captured.title||'').slice(0,512)}});
+          assertSession(source,token);
+          if(!response?.ok)throw Object.assign(new Error('网页环境读取授权不可用'),
+            {code:response?.error?.code||'E_PERMISSION'});
+          return response.data;
+        };
+        if((await consent()).enabled!==true){
+          await requestBrowserClick({toolId:tool.id,button:'允许此网站只读检测',
+            message:'「'+tool.title+'」请求读取 '+origin+' 的 UA、语言、时区、视口、屏幕尺寸与像素比。仅当前顶层网页，不修改环境。此安装在该网站复用此授权；可在 Chrome 网站权限或停用/卸载应用时撤销。',
+            run:async event=>{
+              if(!event?.isTrusted)throw Object.assign(new Error('需要真实用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
+              await currentPageTarget.revalidate(captured);assertSession(source,token);
+              return consent(true);
+            }});
+          // Grant changes revoke old document refs. The caller may re-read the
+          // current context once; never relabel an old receipt with new refs.
+          throw Object.assign(new Error('网站已授权，请获取新的当前文档引用'),{code:'E_SITE_GRANT_UPDATED'});
+        }
       }
       if(operation==='browser.page.getContext'){
         const target=currentPageTarget?.snapshot;
