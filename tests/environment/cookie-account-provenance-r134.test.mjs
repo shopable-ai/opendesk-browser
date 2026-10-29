@@ -15,8 +15,9 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 // No source is executed, transformed, built or installed by these tests.
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
-  'trusted/account-contract.js':'1d17f897014a4c4e2876018994a6daaea255c835',
-  'trusted/account-service.js':'db6aad9e0f8936fcb735f6ff605f274399c6404b',
+  'trusted/account-contract.js':'144e5104455c453ada4c7e3ba19dbe93c994be0e',
+  'trusted/account-service.js':'3eb464c5906185d4bc3184659d10406e1af99a2a',
+  'trusted/account-share.js':'fa7d51e572364865230688af08db77b3923c855b',
   'trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };
@@ -115,8 +116,9 @@ test('R134: audited Cookie closure uses only static imports and a pure shared co
   assert.deepEqual(deps(contract),[]);
   assert.deepEqual(deps('app/domain/account-switch-url.js'),[]);
   assert.deepEqual([...new Set(deps('trusted/account-vault.js'))],['./account-contract.js']);
+  assert.deepEqual(deps('trusted/account-share.js'),[]);
   assert.deepEqual(deps('trusted/account-service.js').filter(path=>!path.startsWith('../../../../src/')),
-    ['../app/domain/account-switch-url.js','./account-vault.js','./account-contract.js','./account-contract.js']);
+    ['../app/domain/account-switch-url.js','./account-vault.js','./account-share.js','./account-contract.js','./account-contract.js']);
 });
 
 test('R134: the pre-fence service is rejected, and working-tree drift never inherits approval',t=>{

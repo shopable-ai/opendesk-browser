@@ -238,6 +238,18 @@ test('removed password operations reject at the SW protocol boundary',async()=>{
   {code:'E_ACCOUNT_REQUEST'});
 });
 
+test('share operations retain the exact trusted sender and original-click boundary',async t=>{
+  const f=await serviceFixture(t),service=createCookieAccountService({api:f.api,storage:f.storage});
+  for(const operation of COOKIE_ACCOUNT_OPERATIONS.filter(x=>x.startsWith('share'))){
+    const message=f.message(operation,{});message.trustedClick=false;
+    await assert.rejects(service.dispatch(message,f.sender),{code:'E_USER_GESTURE_REQUIRED'});
+    message.trustedClick=true;
+    await assert.rejects(service.dispatch(message,{...f.sender,url:'https://example.com/'}),{code:'E_ACCOUNT_SENDER'});
+    await assert.rejects(service.dispatch({...message,installEpoch:'retired'},f.sender),{code:'E_TOOL_CHANGED'});
+  }
+  assert.equal(f.writes(),0);
+});
+
 test('SW saves directly at revision zero and switches after service restart with metadata-only receipts',async t=>{
   const f=await serviceFixture(t);
   assert.equal((await f.dispatch('status')).unlocked,true);

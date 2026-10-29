@@ -39,7 +39,7 @@ test('Host mints a single exact approval and preserves review for other callers'
   const code=await readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
   assert.match(code,/cookieEditor\.write\.begin/);
   assert.match(code,/cookieWriteGate\.acquire/);
-  assert.match(code,/if\(!importBatchOwner&&!writeIntentOwner\)/);
+  assert.match(code,/if\(!importBatchOwner&&!writeIntentOwner&&!clearIntentOwner\)/);
   assert.match(code,/operation:'browser\.intent\.confirm'/);
   assert.match(code,/matchesOfficialRelease\(release,tool\)/);
 });

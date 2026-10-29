@@ -1,0 +1,172 @@
+{
+  "schema": "opendesk.cookie-editor.r31-stage-evidence.v1",
+  "date": "2026-10-30",
+  "task": "R3.1-S3-FINISH",
+  "overall": "NOT_FINISHED",
+  "stage": "CONFIGURATION_SHARE_SOURCE_WIRED_RELEASE_BLOCKED",
+  "repository": "/Users/mac/Documents/workspace/opendesk-browser",
+  "branch": "main",
+  "sourceHeadBeforeCommit": "c880be64c1208fa922ce1efed81d6b46291cf19e",
+  "userBaseline": "46ff0f117034714d01a2b5049c0a5928ed0c93bf",
+  "ownership": {
+    "type": "audited-first-party-feature",
+    "business": "examples/sidebar-tools/cookie-editor/",
+    "relay": "services/cookie-share-relay/server.mjs reused; landing text only",
+    "runtime": "existing MV3/Foundation/Host; no new runtime"
+  },
+  "completed": [
+    "Real Relay configuration create, inspect, status, revoke and existing-invitation list through fixed trusted RPC",
+    "Manager secret remains in Foundation; explicit metadata projection to React",
+    "HTTPS-only client, exact routes, no redirects/credentials, Chrome origin permission and trusted click",
+    "Empty-Cookie configuration, receiver-local alias, non-overwriting name suffix, no Cookie mutation",
+    "Durable unknown-claim fence, local-save continuation and status-only revision refresh",
+    "Original export intent reused synchronously for invitation copy",
+    "Independent review findings fixed with targeted regressions; reviewed exact-source pins updated"
+  ],
+  "s1": {
+    "status": "NOT_TESTED",
+    "sourceChanged": false,
+    "reason": "History retained; latest candidate lacks actual loaded-extension path/ID/dev connection proof, dist/development manifest.json and sw.js unavailable locally. No fresh A/B close-sidebar/cold-start evidence."
+  },
+  "session": {
+    "status": "BLOCKED",
+    "code": "E_SHARE_DEVICE_KEY_STORAGE_REQUIRED",
+    "evidence": "Real nonextractable ECDH CryptoKey, structuredClone, actual captureBackup encoder rejects E_VERSION / Unsupported backup value",
+    "scope": "NODE storage-contract diagnostic with cursor-delivery double; no native IDB or cryptographic delivery PASS",
+    "unimplemented": [
+      "ECDH/HKDF/AES-GCM Host delivery",
+      "device pairing and identity verification",
+      "recipient Cookie Store/Partition remapping and protected restore",
+      "real website login verification"
+    ],
+    "fallback": "configuration only; no exported private keys or plaintext Cookie sharing"
+  },
+  "levels": {
+    "NODE": "FAIL",
+    "CHROMIUM": "NOT_TESTED",
+    "REAL_RUNHOST": "NOT_TESTED",
+    "MAC_CHROME": "NOT_TESTED",
+    "TWO_DEVICE_LAN": "NOT_TESTED",
+    "REAL_SITE": "NOT_TESTED"
+  },
+  "nodeScope": "Targeted suites pass; shared Host regression and formal package gate still fail, so aggregate NODE is FAIL.",
+  "checks": [
+    {
+      "command": "node --test services/cookie-share-relay/server.test.mjs tests/environment/cookie-editor-account-share.test.mjs tests/environment/cookie-editor-account-switch-url.test.mjs tests/environment/cookie-editor-account-vault.test.mjs tests/environment/cookie-editor-account-switch-host.test.mjs tests/environment/cookie-editor-account-ui-receipt.test.mjs tests/environment/cookie-account-provenance-r134.test.mjs tests/environment/cookie-editor-import-intent.test.mjs tests/environment/cookie-editor-write-intent.test.mjs tests/environment/cookie-editor-clear-intent.test.mjs tests/environment/cookie-editor-export-intent.test.mjs",
+      "status": "PASS",
+      "pass": 158,
+      "fail": 0,
+      "log": "artifacts/cookie-editor-r31/final-node.log"
+    },
+    {
+      "command": "node --test --test-skip-pattern=\"checked-in official|R5.26 React project version|React development import package\" tests/environment/cookie-editor-react-build.test.mjs tests/environment/cookie-editor-react-source.test.mjs",
+      "status": "PASS",
+      "pass": 16,
+      "fail": 0,
+      "excluded": "Three equality-to-old-formal-release checks intentionally deferred until lawful promotion; this is not the full formal package gate.",
+      "log": "artifacts/cookie-editor-r31/react-candidate-gate.log"
+    },
+    {
+      "command": "node --test tests/environment/sidebar-tools-host.test.mjs tests/environment/cookie-editor-import-intent.test.mjs tests/environment/cookie-editor-write-intent.test.mjs tests/environment/cookie-editor-clear-intent.test.mjs tests/environment/cookie-editor-export-intent.test.mjs",
+      "status": "FAIL",
+      "pass": 217,
+      "fail": 10,
+      "log": "artifacts/cookie-editor-r31/host-regression.log",
+      "classification": "Initial combined run: five Prompt version/admission failures; three Cookie Host failures; one clear fixture document variable typo; one stale write-intent guard assertion. Last two minimally corrected; separate intent suite 24/24 now passes. No claim that full shared regression is green."
+    },
+    {
+      "command": "node --import ./artifacts/cookie-editor-r31/head-host-loader.mjs --test --test-name-pattern=\"R5.38 forged clear|R5.37 development Cookie|R5.25 Cookie Editor settings\" tests/environment/sidebar-tools-host.test.mjs",
+      "status": "FAIL",
+      "pass": 0,
+      "fail": 3,
+      "log": "artifacts/cookie-editor-r31/head-host-baseline.log",
+      "scope": "Read-only Node load hook supplies git HEAD original Host, no checkout/worktree or mock PASS. Same three failures reproduce; deferred as pre-existing."
+    },
+    {
+      "command": "node scripts/build-cookie-editor-react.mjs",
+      "status": "PASS",
+      "buildReady": "7184f76b0576b6d825f1054da0785a15c15c76d42d8a7745d44a43e5810df029"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --out artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json",
+      "status": "PASS",
+      "installed": false
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project",
+      "status": "FAIL",
+      "reason": "project installable package differs from current source; no promotion while required gates fail",
+      "log": "artifacts/cookie-editor-r31/official-package-check.log"
+    },
+    {
+      "command": "esbuild actual src/sw.js closure, browser/iife/minified/write:false",
+      "status": "FAIL",
+      "reason": "src/analytics/host.js imports missing ../../examples/sidebar-tools/reading-toc/trusted/policy.js",
+      "classification": "Separate Reading TOC migration blocker, not Relay or Time Review; no source aliases/external stubs used to force a build."
+    },
+    {
+      "command": "esbuild actual trusted/account-service.js closure; production import.meta.env.MODE",
+      "status": "PASS",
+      "componentOnly": true,
+      "kind": "COOKIE_SERVICE_COMPONENT_ONLY_SW_NOT_TESTED",
+      "bytes": 121492,
+      "sha256": "4c668a7aa2a5b8a8ef55d76db1ca0dcd11e0a7dd4aa62fc24379b54c9a3fdd31",
+      "sources": [
+        "examples/sidebar-tools/cookie-editor/trusted/account-contract.js",
+        "examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js",
+        "examples/sidebar-tools/cookie-editor/trusted/account-vault.js",
+        "examples/sidebar-tools/cookie-editor/trusted/account-share.js",
+        "examples/sidebar-tools/cookie-editor/trusted/account-service.js"
+      ]
+    },
+    {
+      "command": "curl --fail --silent --show-error --max-time 8 http://localhost:8713/health",
+      "status": "PASS",
+      "response": {
+        "status": "ok"
+      },
+      "scope": "Development loopback HTTP only; NOT LAN HTTPS"
+    },
+    {
+      "command": "git diff --check; node --check trusted/account-share.js, trusted/account-service.js, src/ui/sidebar-tools.js",
+      "status": "PASS"
+    }
+  ],
+  "packages": {
+    "formal": {
+      "path": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+      "version": "2.0.54",
+      "bytes": 229844,
+      "sha256": "58a102a648c71321c9b4fad42bb744694e79b0d197eb686a1a8fe2dafb047b2d"
+    },
+    "candidate": {
+      "path": "artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json",
+      "version": "2.0.55",
+      "bytes": 240481,
+      "sha256": "70e398b10d40d1a93242f6dbc0d6d7d172faa9d2f6a1d236c7f43a576c91cb07"
+    },
+    "promotion": "NOT_PERFORMED_REQUIRED_GATES_FAIL",
+    "catalog": "Unchanged, continues to consume the sole formal 2.0.54 JSON"
+  },
+  "notTested": [
+    "trusted LAN HTTPS reverse proxy and A/B certificate trust",
+    "two independent Chrome Profiles",
+    "320/360/400/440/520px and 200% browser zoom",
+    "latest-candidate close-sidebar local URL switching, SW cold start, repeated fragment navigation, permission revocation, multiple tabs and SPA router handling",
+    "Mac native Cookie read/write/delete/import/export/manual-switch regression",
+    "real RunHost",
+    "two physical devices",
+    "self-owned site independent logged-in verification"
+  ],
+  "scores": {
+    "MV3": "NOT_SCORED",
+    "backend": "NOT_SCORED",
+    "security": "NOT_SCORED",
+    "UX": "NOT_SCORED",
+    "QA": "NOT_SCORED",
+    "arithmeticMean": null,
+    "reason": "Required latest-candidate Chromium, Mac, two-device LAN and real-site evidence absent; no 95+ assertion"
+  },
+  "nextUserOperation": "After existing Host/SW gates are fixed, promote with the original packer and load the reviewed continuous-development extension; execute one local A->B->A URL chain first. Session transfer remains blocked until an approved nonextractable-key recovery contract is available.",
+  "goalLifecycle": "Original goal remains active and unmet; this source increment does not mark S3-FINISH complete."
+}

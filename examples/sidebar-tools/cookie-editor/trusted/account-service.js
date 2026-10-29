@@ -13,6 +13,7 @@ import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {createCookieService} from '../../../../src/platform/chrome/cookies.js';
 import {inspectAccountSwitchUrl} from '../app/domain/account-switch-url.js';
 import {createCookieAccountVault} from './account-vault.js';
+import {createCookieAccountShare} from './account-share.js';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_EFFECTS,COOKIE_ACCOUNT_SEEN_KEY,
   normalizeAccountDescription} from './account-contract.js';
 
@@ -445,6 +446,16 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
       throw fail('E_USER_GESTURE_REQUIRED');
     const origin=originOf(payload.origin);
     if(operation==='status')return statusFor(origin);
+    if(operation.startsWith('share')){
+      const share=createCookieAccountShare({api,storage,vault,authorize:async()=>{
+        await hostSender(sender,hostDocumentId);await installed(message);
+        if(operation==='shareClaim')await validateDocument(payload.document,origin);
+      }});
+      const result=await share.dispatch(operation,payload,
+        JSON.stringify([message.packageHash,message.installEpoch]));
+      if(operation==='shareClaim')return {...result,...await statusFor(origin)};
+      return result;
+    }
     const {revision}=payload;
     if(!Number.isSafeInteger(revision)||revision<0)
       throw fail('E_VAULT_REVISION');
@@ -654,7 +665,10 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
   return Object.freeze({
     dispatch:(message,sender)=>exclusive(()=>dispatch(message,sender)),
     navigation:event=>exclusive(()=>navigation(event)),
-    cleanup:()=>exclusive(()=>vault.clear())
+    cleanup:()=>exclusive(async()=>{
+      await createCookieAccountShare({api,storage,vault}).clear();
+      return vault.clear();
+    })
   });
 }
 export function installCookieAccountService({api=globalThis.chrome,storage}={}){

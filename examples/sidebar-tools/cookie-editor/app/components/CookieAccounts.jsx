@@ -2,6 +2,7 @@ import * as React from 'react';
 import {CookieIcon,CookieIconButton} from './CookieEditorView.jsx';
 import {createAccountSwitchUrl,inspectAccountSwitchUrl} from '../domain/account-switch-url.js';
 import {CookieAccountShare} from './CookieAccountExperiences.jsx';
+import {CookieAccountReceive} from './CookieAccountSharing.jsx';
 import {CookieMembershipRecommendations} from './CookieBusinessPanels.jsx';
 
 const ruleHelp={
@@ -23,7 +24,7 @@ export function CookieAccounts({
   accountReady=false,legacyLocked=false,switchReady=false,autoRuntimeReady=false,
   busy=false,feedback=null,previewOnly=false,resumeRevision=0,
   autoEnabled=false,autoRefresh=true,cookieDetails=[],
-  onCreate,onSwitch,onRename,onUpdate,onAttach,onDelete,onShare,onDirty,onDiscardRequest,
+  onCreate,onSwitch,onRename,onUpdate,onAttach,onDelete,onShare,onShareRequest,onShareCopy,onDirty,onDiscardRequest,
   onToggleAuto,onToggleRefresh,onAllowAlias,onCopyLink
 }){
   const [query,setQuery]=React.useState('');
@@ -243,7 +244,10 @@ export function CookieAccounts({
     }}><CookieIcon name={icon}/><span>{label}</span></button>
     </React.Fragment>);
   const currentItem=accounts.find(item=>item.alias===currentAlias);
+  if(route==='receive')return <CookieAccountReceive origin={origin} request={onShareRequest}
+    onBack={()=>onRoute('list')}/>;
   if(shareItem)return <CookieAccountShare account={shareItem} previewOnly={previewOnly}
+    request={onShareRequest} copy={onShareCopy}
     onBack={()=>{formReturn.current={alias:shareItem.alias};setShareItem(null);}}/>;
   if(route==='auto')return <section className="cookie-account-page od-surface"
     aria-label="管理自动切换">
@@ -423,6 +427,9 @@ export function CookieAccounts({
       {(accounts.length>3||query.length>0)&&<input className="od-field cookie-account-search"
         type="search" placeholder="搜索账号" aria-label="搜索账号"
         value={query} onChange={event=>setQuery(event.target.value)}/>}
+      {!previewOnly&&<button type="button" className="od-button od-button--secondary"
+        disabled={busy||!accountReady||typeof onShareRequest!=='function'}
+        onClick={()=>onRoute('receive')}>领取分享配置</button>}
       {filtered.length>0&&<div className="cookie-account-list" aria-label="已保存账号">
       {filtered.map(item=><article key={item.alias} data-account-alias={item.alias} className={'cookie-account-card'+(item.alias===currentAlias?' is-current':'')+
           (item.alias===justSavedAlias?' is-just-saved':'')}>
@@ -500,4 +507,3 @@ export function CookieAccounts({
     </div>
   </section>;
 }
-

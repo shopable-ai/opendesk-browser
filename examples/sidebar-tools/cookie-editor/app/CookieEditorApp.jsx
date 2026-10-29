@@ -751,6 +751,38 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           id:row.id,name:row.name,domain:row.domain,path:row.path,
           storeId:row.storeId,partition:row.partitionKey?.topLevelSite||''
         })):[]}
+        onShareRequest={(action,payload)=>{
+          if(accountInFlight.current||modeRef.current!=='browser'||!accountState?.unlocked)
+            return Promise.reject(Object.assign(Error('E_ACCOUNT_REQUEST'),{code:'E_ACCOUNT_REQUEST'}));
+          accountInFlight.current=true;
+          const origin=target?.origin,epoch=controller.snapshot().epoch;
+          let intent;
+          try{intent=adapter.accountRequest(action,{
+            ...payload,...(['shareCreate','shareClaim'].includes(action)?{revision:accountState.revision}:{})
+          });}catch(error){accountInFlight.current=false;return Promise.reject(error);}
+          setAccountBusy(true);
+          return Promise.resolve(intent).then(result=>{
+            if(controller.snapshot().epoch!==epoch||controller.snapshot().target?.origin!==origin)
+              throw Object.assign(Error('E_DOCUMENT_CHANGED'),{code:'E_DOCUMENT_CHANGED'});
+            if(action==='shareClaim')acceptAccountState(result);
+            return result;
+          }).catch(async error=>{
+            if(error?.code==='E_VAULT_CONFLICT'&&controller.snapshot().epoch===epoch&&
+              controller.snapshot().target?.origin===origin){
+              let refreshed=false;
+              try{
+                const value=await adapter.accountRequest('status',{});
+                if(controller.snapshot().epoch===epoch&&controller.snapshot().target?.origin===origin&&
+                  value?.configured===true&&Array.isArray(value.accounts)){
+                  acceptAccountState(value);refreshed=true;
+                }
+              }catch{/* Preserve the conflict; never retry the claim. */}
+              if(refreshed)throw Object.assign(Error('E_SHARE_REVIEW_REQUIRED'),{code:'E_SHARE_REVIEW_REQUIRED'});
+            }
+            throw error;
+          }).finally(()=>{accountInFlight.current=false;setAccountBusy(false);});
+        }}
+        onShareCopy={copyNonSecret}
         onCreate={(displayName,description)=>accountAction('create',{
           displayName,description},'账号及 Cookie 快照已保存。')}
         onSwitch={item=>accountAction('switch',{alias:item.alias})}

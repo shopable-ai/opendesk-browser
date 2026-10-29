@@ -5,9 +5,14 @@ export const COOKIE_ACCOUNT_STORE_KEY='opendesk.cookie-editor.accounts.v1';
 export const COOKIE_ACCOUNT_VAULT_KEY='opendesk.cookie-editor.vault.v1';
 export const COOKIE_ACCOUNT_SESSION_KEY='opendesk.cookie-editor.vault-session.v1';
 export const COOKIE_ACCOUNT_SEEN_KEY='opendesk.cookie-editor.auto-seen.v1';
+export const COOKIE_ACCOUNT_SHARE_FIELDS=Object.freeze({
+  shareCreate:['alias','accountVersion','revision','relayOrigin','expiresInSeconds','maxClaims','mode'],
+  shareStatus:['ref'],shareRevoke:['ref'],shareInspect:['inviteUrl'],
+  shareClaim:['inviteUrl','revision'],shareList:['alias']
+});
 export const COOKIE_ACCOUNT_OPERATIONS=Object.freeze([
   'status','create','rename','update','attach','delete','switch',
-  'setAutoEnabled','setAutoRefresh','allowAlias'
+  'setAutoEnabled','setAutoRefresh','allowAlias',...Object.keys(COOKIE_ACCOUNT_SHARE_FIELDS)
 ]);
 export const COOKIE_ACCOUNT_EFFECTS=Object.freeze(
   COOKIE_ACCOUNT_OPERATIONS.filter(name=>name!=='status')

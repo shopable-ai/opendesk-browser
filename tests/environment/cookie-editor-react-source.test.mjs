@@ -94,7 +94,14 @@ test('R5.25 file selection never starts a Cookie write or trusted import intent'
   assert.match(importer,/const reading=React\.useRef\(false\)/);
   assert.match(importer,/reading\.current=true;setBusy\(true\)/);
   assert.match(importer,/if\(reading\.current\|\|running\.current\|\|disabled\|\|uncertain\)return/);
-  assert.match(importer,/beginIntent\(\);\s*if\(file\)void importFile\(file\)/);
+  const confirmation=importer.slice(importer.indexOf('const confirmImport=()=>{'),
+    importer.indexOf('// File selection and drag/drop only stage'));
+  assert.match(confirmation,/if\(reading\.current\|\|running\.current\|\|disabled\|\|uncertain\|\|!previewRef\.current\?\.ready\)return/);
+  assert.ok(confirmation.indexOf('beginIntent();')>=0);
+  assert.ok(confirmation.indexOf('beginIntent();')<confirmation.indexOf('text=await file.text();'));
+  const selection=importer.slice(importer.indexOf('const stageFile=file=>{'),
+    importer.indexOf('const cancelFromKeys='));
+  assert.doesNotMatch(selection,/beginIntent\(|importText\(|importFile\(/);
   assert.doesNotMatch(importer,/onChange=\{event=>\{void importFile\(/);
   assert.doesNotMatch(importer,/onPick=\{[^\n]*beginIntent\(/);
 });
@@ -208,7 +215,7 @@ test('R5.31 export stays in an anchored React popover, not the old workspace',as
  assert.match(component,/<CookieExportFormatRow /);
  assert.match(component,/<CookieExportActions /);
  assert.match(view,/className="cookie-export-popover"/);
- assert.match(app,/exportContent=\{exportOpen\?<CookieExport/);
+ assert.match(app,/exportContent=\{cookieReady&&exportOpen\?<CookieExport/);
  assert.match(css,/\.cookie-export-popover\{/);
  assert.doesNotMatch(css,/\.cookie-export-workspace\{/);
 });

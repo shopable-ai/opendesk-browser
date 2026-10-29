@@ -271,7 +271,7 @@ export function createShareHttpServer(relay){
           'cache-control':'no-store','referrer-policy':'no-referrer',
           'x-content-type-options':'nosniff',
           'content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"});
-        return res.end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${title}</title><meta name="referrer" content="no-referrer"><style>body{font:16px system-ui;max-width:34rem;margin:12vh auto;padding:1rem;line-height:1.7}code{word-break:break-all}</style><h1>${title}</h1><p>网站：<code>${info.origin.replaceAll('&','&amp;').replaceAll('<','&lt;')}</code></p><p>Relay 已创建分享链接，但现有 Cookie Editor 尚未接通领取流程。需安装完成安全接线的 OpenDesk 版本后才能领取；当前页面不会自动登录。</p></html>`);
+        return res.end(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>${title}</title><meta name="referrer" content="no-referrer"><style>body{font:16px system-ui;max-width:34rem;margin:12vh auto;padding:1rem;line-height:1.7}code{word-break:break-all}</style><h1>${title}</h1><p>网站：<code>${info.origin.replaceAll('&','&amp;').replaceAll('<','&lt;')}</code></p><p>在已接通配置领取的 OpenDesk 版本中：打开上述网站 → Cookie Editor → 账号 → 领取分享配置，将当前邀请链接粘贴到领取入口。旧版本需先更新。本页不会写入 Cookie 或自动登录；配置领取不等于会话移交。</p></html>`);
       }
       const match=/^\/v1\/invites\/([A-Za-z0-9_-]{22,80})(?:\/(pairs|pair|deliver|challenge|claim|revoke))?$/.exec(path);
       if(req.method==='POST'&&path==='/v1/invites')

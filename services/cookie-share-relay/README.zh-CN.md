@@ -29,6 +29,6 @@ node --test services/cookie-share-relay/server.test.mjs
 - `POST /v1/invites/:id/challenge`：生成 60 秒有效质询。
 - `POST /v1/invites/:id/claim`：设备对 `opendesk-cookie-share:v1:<id>:<requestId>:<challenge>` 签名后，单次原子领取密文信封。
 - `POST /v1/invites/:id/revoke`：管理密钥撤销并清空待领取密文。
-- `GET /i/:id`：静态引导页，**当前正式 Cookie Editor 尚未接通领取入口**。页面本身不执行 Cookie 读写，也不会自动登录。
+- `GET /i/:id`：静态引导页，指导接收端在目标网站的「Cookie Editor → 账号 → 领取分享配置」中粘贴链接。配置接线目前仅在 2.0.55 开发候选；2.0.54 正式包尚未包含，不能以源码或本页作为已安装证据。页面本身不执行 Cookie 读写，也不会自动登录。
 
-服务在启动、每次请求和每分钟定时清理已过期/撤销/领取完毕的密文及配对公钥。跨设备必须先人工核对设备指纹，再由可信 Host 完成 ECDH 加密、Cookie Store/Partition 映射、原始会话保护与网站独立登录验证。**服务器接口测试通过不代表浏览器接线或真实登录已通过。** 生产会话分享还需验证接收端身份绑定、加密数据完整性及真实双设备流程。对不允许会话移交的网站，只能领取配置并通过网站正常登录。
+服务在启动、每次请求和每分钟定时清理已过期/撤销/领取完毕的密文及配对公钥。跨设备必须先人工核对设备指纹，再由可信 Host 完成 ECDH 加密、Cookie Store/Partition 映射、原始会话保护与网站独立登录验证。**服务器接口测试通过不代表浏览器接线或真实登录已通过。** 当前 Host 会话路径拒绝 `E_SHARE_DEVICE_KEY_STORAGE_REQUIRED`，现有 Foundation 备份合同不支持非导出 CryptoKey，不能改用明文或导出私钥规避。配置候选、既有回归失败和真实双设备缺口见 [Cookie Editor 当前状态](../../examples/sidebar-tools/cookie-editor/README.zh-CN.md)。对不允许会话移交的网站，只能领取配置并通过网站正常登录。
