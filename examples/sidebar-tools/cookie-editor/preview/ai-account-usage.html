@@ -427,7 +427,7 @@ function accountRow(a){
  return '<article class="account-row" data-account="'+esc(a.alias)+'">'+
  '<div class="person"><div class="avatar">'+esc(a.displayName.slice(0,1))+'</div><div class="person-info"><strong>'+esc(a.displayName)+'</strong><span>'+esc(a.description||"描述未提供")+'</span><span class="source">'+esc(a.alias)+'</span></div></div>'+
  '<div class="cell"><div class="cell-title">'+esc(p.name)+'</div>'+
- '<span class="cell-sub">'+(p.rate?esc(p.rate)+" · 额度响应":"服务端倍率未知")+'</span>'+'<span class="cell-sub">'+(p.adminRate?"管理员倍率 "+esc(p.adminRate):"")+'</span>'+
+ '<span class="cell-sub">'+(p.rate?esc(p.rate)+" · 额度响应":"服务端倍率未知")+'</span>'+(p.adminRate?'<span class="cell-sub">管理员倍率 '+esc(p.adminRate)+'</span>':'')+
  '<div class="cell-detail">'+(p.tier?'<strong>'+esc(p.tier)+'</strong><span class="cell-sub">管理员录入</span>':'<span class="muted">订阅档位未知</span>')+'</div></div>'+
  '<div class="cell"><div class="meta-pair"><div><em>会员到期</em><strong>'+esc(fmt(a.subscription.membershipExpiresAt))+'</strong></div><div><em>下次账单</em><strong>'+esc(fmt(a.subscription.nextBillingAt))+'</strong></div></div>'+
  '<span class="cell-sub">'+(a.subscription.source==="ADMIN_ENTERED"?"管理员录入":"来源未知")+'</span></div>'+
