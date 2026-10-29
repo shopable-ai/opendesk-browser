@@ -416,6 +416,15 @@ try{
     assert.deepEqual(restored.values.viewport,baseline.values.viewport,'original viewport not restored');
     assert(['调试已停止 · 恢复有限验证','已独立核验恢复'].includes(item.restorationStatus),
       'restore_unknown is NOT a PASS');
+    // The restored status appears before the async history write completes.
+    // Wait for React to commit the final Results page before leaving it;
+    // otherwise its later setView("results") overwrites our Config click.
+    await until(()=>appRead('(()=>{const t=document.querySelector(".fp-tabs button:nth-child(2)");'+
+      'const list=document.querySelector(".fp-check-list");return t?.getAttribute("aria-selected")==="true"'+
+      '&&list?.getClientRects().length>0})()'),'restoration results mounted');
+    item.restorationRows=await appRead('[...document.querySelectorAll(".fp-check")].map(n=>n.innerText)');
+    assert(item.restorationRows.some(x=>x.includes('User-Agent')&&x.includes(restored.values.ua)),
+      'restoration React report must match the independent original UA');
     item.progress='COMPLETE_INDEPENDENT_RESTORE_VERIFIED';
     evidence.checks.push('R24_'+name+'_REAL_APPLY_READBACK_RESTORE_PASS');
   }
@@ -425,12 +434,13 @@ try{
   // The readback automatically switches to Results. Return to the actual
   // Config tab before selecting Germany via Chrome keyboard events.
   await click('.fp-tabs button:nth-child(1)',sandbox);
-  await until(()=>appRead('!!document.querySelector("select[aria-label=\\\"选择环境预设\\\"]")'),
+  await until(()=>appRead('document.querySelector(".fp-tabs button:nth-child(1)")?.getAttribute("aria-selected")==="true"'+
+    '&&!!document.querySelector(".fp-preset-row select")'),
     'configuration tab after US restoration');
   await click('select[aria-label="选择环境预设"]',sandbox);
   xdotool('key','--clearmodifiers','Down');
   xdotool('key','--clearmodifiers','Return');
-  await until(()=>appRead('document.querySelector("select[aria-label=\\\"选择环境预设\\\"]")?.value==="de"'),
+  await until(()=>appRead('document.querySelector(".fp-preset-row select")?.value==="de"'),
     'German preset selected');
   await cycle('DE',{ua:'Macintosh',uaCH:'macOS',language:'de-DE',
     timezone:'Europe/Berlin',viewport:{width:1366,height:768}});
