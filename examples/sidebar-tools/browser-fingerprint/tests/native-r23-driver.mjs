@@ -169,6 +169,10 @@ try{
   const runs=result.result.value;
   evidence.results=runs; // Preserve raw evidence even if a field assertion fails.
   for(const [name,run] of [['us',runs.us],['de',runs.de]]){
+    console.log('R23_NATIVE_ROWS '+JSON.stringify({name,fieldResults:run.ack.fieldResults,
+      applied:run.applied.rows,restored:run.restored.rows}).slice(0,10000));
+  }
+  for(const [name,run] of [['us',runs.us],['de',runs.de]]){
     assert.equal(run.ack.accepted,true);
     assert.equal(run.ack.source,'trusted-browser-host');
     for(const key of ['ua','uaCH','language','timezone','viewport']){
