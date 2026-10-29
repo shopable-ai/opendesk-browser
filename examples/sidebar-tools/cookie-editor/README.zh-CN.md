@@ -1,5 +1,20 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## R2.8-LOCAL · 2.0.50 正式包与增量验收（2026-10-29）
+
+原 R2.8 的六 Tab、极简授权弹窗与可信 Host 实现沿用 `93d6fba88`、`59345ab97`、`5d1fb2e1e`，未重新设计页面或修改已确认原型。此次仅对齐版本、通过原打包器晋升新包，并修正不再符合当前审阅流程的测试断言。
+
+- 唯一正式包 [`cookie-editor.opendesk-tool.json`](cookie-editor.opendesk-tool.json)：**2.0.50**，225953 字节，SHA-256 `fe9ec22597abdc3309ef15211bc79cbe1df32be1d4188fd4945af97efc80865e`。`--check-project` 已确认与当前 React 源码／编译收据一致；ID 和权限列表未变。
+- React 编译收据 buildId `32e3afe4a14772df4012b6f8800ae9847bc3f52212f140911316d09e3d267c05`；JS 144463 字节、CSS 60750 字节。工具包不包含可信 Host，Host 仍随 Browser 固定编译。
+- 独立源码快照的 **production MV3 构建及原包验证 PASS**，packageHash `d8b8e1143c58c5222a17bd09043b1c031694cf55fa8273035443c778acaf4de8`。内置 Catalog 的 Cookie Editor 版本、大小、SHA 和包原文均匹配本次正式 JSON。可信账号四项来源 pin 全部匹配，未重置哈希或放宽来源校验。
+- Mac CFT 155.0.8059.39 已从真实 Chrome 扩展菜单进入 production Side Panel，实读工具版本 2.0.50。首次弹窗后方六 Tab 可见；关闭后顶部显示小「授权」，企业页可浏览，Cookie 新建／导入／导出保持禁用；单击授权后自动恢复真实 Cookie 操作，无需另行启用或手动刷新。
+- **本地原生核心流程 PASS**：虚构 Cookie 新建、编辑、重新读取及删除；JSON 导入预览／确认／值读回、下载文件逐字段核对；账号保存、重开持久化与可信切换回执。Host 撤权及 Chrome 网站访问开关关闭后，旧 Cookie 和值清除，六 Tab 保留且写入禁用。缺少 Chrome 权限时，一次点击只出现一个原生弹窗；拒绝、Escape 取消均不假成功，允许后自动恢复真实列表。切换 `127.0.0.1 → localhost` 后旧值消失，重开工具无需再次授权。
+- **边界**：剪贴板复制虽显示成功，后续粘贴出现其他来源的文本，未排除共享剪贴板／驱动干扰，往返验证记 `NOT_TESTED`；文件导出已独立通过。2.0.45 已移除口令／锁定 UI，本轮不恢复旧设计；新存储、旧会话密钥迁移、锁定遗留密文保护定向 3/3 PASS，原生旧密文迁移未测。
+- 独立八维评分平均 **91.5/100**，每维 ≥95 的目标未达成，未发现已证实的本轮核心交付阻断。
+- Node、MV3、来源审核和原生观察分别记录；官方目录全组另有无关 `quick-notes` 正式包与共享 CSS 不一致的断言失败，未修改该包或删除保护。
+
+完整分层结果、资源归属、评分与剩余操作见 [R2.8 本地验收记录](evidence/r28-local-20261029.md)，结构化身份和原生观察转录见 [`evidence/r28-local-20261029.json`](evidence/r28-local-20261029.json)。原始构建／测试日志在本机 `artifacts/sidebar-tools/cookie-editor/r28-local/`；**PASS 仅限已记录的本地核心流程，不代表所有高级场景或全站正式验收通过**。
+
 ## 共享域账号快照与恢复修复（2026-10-29）
 
 固定可信账号服务通用支持合法共享域 Cookie，例如在 `www.csdn.net` 保存包含 `.csdn.net` 的账号，保留原 Domain、literal Path、Store、Partition 及 HostOnly 属性。同名同 Path 的 HostOnly 与 Domain Cookie 分别保存和切换。复用已有全站完整管理授权，或当前站点与精确父域各自的管理授权，并核对 Chrome 权限；共享 Cookie 本身仍会影响使用它的其他子域会话。

@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-29",
+  "scope": "Cookie Editor R2.8-LOCAL / production Mac Chrome core acceptance",
+  "ownerThreadId": "01a186fd-5fa1-7b00-b1f9-ca7bc6895213",
+  "sourceHead": "b60c855f37076d9fe4afa2e56a2b6e63e09874a3",
+  "status": "CORE_NATIVE_PASS_QUALITY_TARGET_NOT_MET",
+  "retainedImplementationCommits": [
+    "93d6fba88051ee3371700b016159add2ad5acbc9",
+    "59345ab972b69f3b73580ec16c76d503cf24765d",
+    "5d1fb2e1e1a484ee5b7f281fdcf3485a79410651"
+  ],
+  "package": {
+    "path": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+    "id": "cookie-editor",
+    "version": "2.0.50",
+    "bytes": 225953,
+    "sha256": "fe9ec22597abdc3309ef15211bc79cbe1df32be1d4188fd4945af97efc80865e",
+    "projectMatch": true,
+    "capabilitiesUnchanged": true
+  },
+  "react": {
+    "status": "PASS",
+    "buildId": "32e3afe4a14772df4012b6f8800ae9847bc3f52212f140911316d09e3d267c05",
+    "jsBytes": 144463,
+    "cssBytes": 60750
+  },
+  "production": {
+    "status": "PASS",
+    "mode": "production",
+    "edition": "standard",
+    "packageHash": "d8b8e1143c58c5222a17bd09043b1c031694cf55fa8273035443c778acaf4de8",
+    "sourceSnapshot": "artifacts/sidebar-tools/cookie-editor/r28-local/source-snapshot",
+    "receipt": "artifacts/sidebar-tools/cookie-editor/r28-local/mv3/build-production.json",
+    "officialPackageBytesMatch": true,
+    "trustedPinsChanged": false
+  },
+  "node": [
+    {
+      "scope": "R2.8 grant",
+      "passed": 5,
+      "failed": 0,
+      "log": "node-grant.log"
+    },
+    {
+      "scope": "controller/domain/grant",
+      "passed": 77,
+      "failed": 0,
+      "log": "node-core.log",
+      "overlapsOtherGroups": true
+    },
+    {
+      "scope": "canonical React packaging",
+      "passed": 4,
+      "failed": 0,
+      "log": "node-package.log"
+    },
+    {
+      "scope": "package promotion gate",
+      "passed": 8,
+      "failed": 0,
+      "log": "package-update-fixed.log"
+    },
+    {
+      "scope": "trusted account provenance",
+      "passed": 6,
+      "failed": 0,
+      "log": "node-provenance.log"
+    },
+    {
+      "scope": "Host denial/external revoke/active revoke",
+      "passed": 3,
+      "failed": 0,
+      "log": "node-host-r28.log",
+      "initialStaleAssertionFailures": 3
+    },
+    {
+      "scope": "new store / legacy session migration / locked legacy ciphertext",
+      "passed": 3,
+      "failed": 0,
+      "log": "node-vault-compat.log"
+    }
+  ],
+  "native": {
+    "status": "PASS",
+    "scope": "requested local core browse/grant/CRUD/deny/cancel/revoke/site switch/account/import/download flows",
+    "browser": "Chrome for Testing 155.0.8059.39 on macOS",
+    "extensionId": "ajdfajmnmpcapbfmofhidjblnmhfemmg",
+    "toolVersionObserved": "2.0.50",
+    "hostInstanceId": "24a9a506-bdd0-45a7-9634-3a98dd98cbc6",
+    "launchReceipt": "artifacts/sidebar-tools/cookie-editor/r28-local/chrome-native-launch.json",
+    "driver": "cua_repl native accessibility and screenshots; real production extension, real Host/Chrome APIs, no Mock SDK",
+    "evidenceKind": "agent transcription of this chat native AX/screenshot tool results; not a machine-generated end-to-end runner receipt; no raw screenshots saved to disk",
+    "sites": [
+      "http://127.0.0.1:43111/demo-form.html",
+      "http://localhost:43111/demo-form.html"
+    ],
+    "observations": [
+      {
+        "step": "first use",
+        "result": "PASS",
+        "observed": "central Cookie 管理授权 dialog, six existing tabs visible in backdrop"
+      },
+      {
+        "step": "close and browse",
+        "result": "PASS",
+        "observed": "header 授权, enterprise page readable; new/import/export disabled, 尚未读取 Cookie"
+      },
+      {
+        "step": "grant with pre-existing Chrome access",
+        "result": "PASS",
+        "observed": "one header click, pending state then real 127.0.0.1 empty list and enabled operations; no extra prompt/enable/refresh"
+      },
+      {
+        "step": "create/read",
+        "result": "PASS",
+        "observed": "od_r28_local_probe saved, list 1, expanded value r28-native-value-v1"
+      },
+      {
+        "step": "edit/read",
+        "result": "PASS",
+        "observed": "saved r28-native-value-v2, explicit reread then expanded value r28-native-value-v2"
+      },
+      {
+        "step": "import",
+        "result": "PASS",
+        "observed": "invalid content preview 0 valid/1 skipped and confirm disabled; valid fake JSON preview 1 valid, confirm, list 2, expanded r28-import-value"
+      },
+      {
+        "step": "download export",
+        "result": "PASS",
+        "observed": "Chrome Save dialog then completed 561 B JSON; file contains both expected names and values",
+        "sha256": "adc663d066e00c6013053b41b4f5ed0bd12dc53cec574c70b14bb1d52eff9676",
+        "localCopy": "artifacts/sidebar-tools/cookie-editor/r28-local/native-export.json"
+      },
+      {
+        "step": "delete/read",
+        "result": "PASS",
+        "observed": "delete od_r28_local_probe, list 1; explicit reread keeps only imported fake Cookie"
+      },
+      {
+        "step": "account save/persist/switch",
+        "result": "PASS",
+        "observed": "saved one fake snapshot; after reopening and returning to original site count 1; with automatic refresh off, switch shows 当前已应用的快照（非登录验证）, ● 已应用, 已验证 Cookie 切换；自动刷新已关闭。"
+      },
+      {
+        "step": "Host revoke",
+        "result": "PASS",
+        "observed": "settings 撤销授权 immediately replaces Cookie workspace, removes old name/value, preserves six tabs; header 授权 and disabled writes; one click restores real list"
+      },
+      {
+        "step": "Chrome revoke",
+        "result": "PASS",
+        "observed": "native extension current-site switch off and Chrome requested reload; old Cookie/name/value cleared, header 授权, writes disabled"
+      },
+      {
+        "step": "native deny",
+        "result": "PASS",
+        "observed": "one header click opens one Chrome more-permissions dialog; 拒绝 leaves UI unprivileged with E_CHROME_PERMISSION_REQUIRED"
+      },
+      {
+        "step": "native cancel",
+        "result": "PASS",
+        "observed": "separate header click opens one dialog; Escape cancels and leaves same safe unprivileged state"
+      },
+      {
+        "step": "native allow and auto recovery",
+        "result": "PASS",
+        "observed": "separate header click opens one dialog; 允许 restores prior web access and automatically shows real imported Cookie, no extra enable/refresh"
+      },
+      {
+        "step": "site switch",
+        "result": "PASS",
+        "observed": "navigate 127.0.0.1 to localhost while fake value expanded; site updates, list 0 and old name/value absent; back returns list 1"
+      },
+      {
+        "step": "grant persistence",
+        "result": "PASS",
+        "observed": "back to extension list then reopen Cookie Editor; localhost real list opens automatically without new grant"
+      }
+    ],
+    "clipboardRoundtrip": {
+      "status": "NOT_TESTED",
+      "observation": "copy toast succeeded but subsequent paste showed unrelated text, including ODS-CODEX test markers from an unknown source. Clipboard interference/driver effects are unresolved; no attributable product defect established; download export verified independently."
+    },
+    "legacyEncryptionLockUi": {
+      "status": "NOT_APPLICABLE",
+      "reason": "existing 2.0.45 removed passphrase/lock UI before R2.8; no old UI restored; three current Foundation/legacy migration/locked ciphertext compatibility tests PASS, native legacy ciphertext migration NOT_TESTED"
+    },
+    "coordination": "initial user-changed conflict paused input; user then explicitly granted exclusive local acceptance control; no external site Cookie writes or real credentials used"
+  },
+  "unrelatedFailure": {
+    "scope": "authored official catalog test",
+    "status": "FAIL",
+    "reason": "quick-notes formal package differs from shared CSS source; Cookie official identity test passes; unrelated package not changed",
+    "log": "node-package.log"
+  },
+  "testLimitations": [
+    "Node counts overlap and are not summed",
+    "native clipboard roundtrip unresolved",
+    "native legacy encrypted-store migration not run; obsolete lock UI not reintroduced",
+    "width/zoom/theme matrices not run"
+  ],
+  "resources": {
+    "dailyDevWatcher": "preserved PID95314 / dist/development",
+    "snapshotBuildGuard": 43124,
+    "nativeTestPid": 82547,
+    "nativeOwner": "current thread; exclusive control authorized by user",
+    "externalProfiles": "preserved"
+  },
+  "scores": {
+    "reviewer": "independent code-reviewer subagent Pauli / 01a18703-1fbd-7801-a499-2e29f2e9bfff",
+    "scope": "read-only source, build receipt and download verification; native observations supplied by primary agent, reviewer did not operate browser",
+    "dimensions": {
+      "功能闭环": 92,
+      "授权交互": 94,
+      "权限隔离": 94,
+      "数据正确性": 92,
+      "生命周期": 92,
+      "可维护性": 90,
+      "构建发行一致性": 93,
+      "验收证据": 85
+    },
+    "arithmeticMean": 91.5,
+    "targetEach": 95,
+    "targetMet": false,
+    "coreDeliveryBlockerFound": false
+  }
+}

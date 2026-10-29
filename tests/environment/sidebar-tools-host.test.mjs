@@ -3537,6 +3537,51 @@ test('R5.37 verified official Cookie Editor requests missing Chrome all-site acc
   assert.equal(grant.valueConsent,true,'values require the persisted consent receipt');
 });
 
+async function assertCookieWorkspaceUnauthorized(f,frame,loaded,url){
+  const messages=[],send=f.api.runtime.sendMessage;
+  f.api.runtime.sendMessage=async message=>{messages.push(message);return send(message);};
+  try{
+    f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
+      protocol:loaded.protocol,toolId:loaded.tool.id,instance:loaded.instance,
+      kind:'request',requestId:'ungranted-write',operation:'browser.cookies.setMany',
+      payload:{url,cookies:[{name:'unauthorized',value:'must-not-write'}]}}});
+    await settle(()=>frame.contentWindow.sent.some(row=>row.requestId==='ungranted-write'));
+    const reply=frame.contentWindow.sent.find(row=>row.requestId==='ungranted-write');
+    assert.equal(reply.ok,false);
+    assert.equal(reply.error.code,'E_SITE_GRANT_REQUIRED');
+    assert.equal(messages.length,0,'the unprivileged UI cannot dispatch a Cookie operation to Host');
+  }finally{f.api.runtime.sendMessage=send;}
+}
+
+async function assertCookieFrameReplaced(f,tool,draft){
+  const frame=f.runtime.frameRoot.children[0];
+  assert.equal(f.runtime.frameRoot.children.length,1,'revocation retains one nonprivileged UI');
+  assert.notEqual(frame,f.frame,'the authorized iframe is destroyed rather than reused');
+  assert.equal(f.frame.parentNode,null);
+  assert.equal(f.frame.onload,null,'retired iframe cannot load again');
+  await frame.onload();
+  const loaded=frame.contentWindow.sent.find(row=>row.kind==='load');
+  assert.ok(loaded);
+  assert.notEqual(loaded.instance,f.loaded.instance,'the old token is retired');
+  const oldMessages=f.frame.contentWindow.sent.length;
+  // Neither the old source nor a replayed old token on the new source has authority.
+  for(const source of [f.frame.contentWindow,frame.contentWindow]){
+    for(const data of [{kind:'draft',text:'stale-sensitive-state'},
+      {kind:'request',requestId:'stale-write',operation:'storage.set',
+        payload:{key:'stale-sensitive-state',value:'must-not-restore'}}])
+      f.win.emit('message',{origin:'null',source,data:{
+        protocol:f.loaded.protocol,toolId:tool.id,instance:f.loaded.instance,...data}});
+  }
+  await pause();
+  assert.equal(f.frame.contentWindow.sent.length,oldMessages,'old iframe receives no reply');
+  assert.equal(frame.contentWindow.sent.some(row=>row.requestId==='stale-write'),false);
+  assert.equal(f.store.has(sidebarToolStorageKey(tool.id)),false,'stale token cannot restore sensitive storage');
+  assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,draft,'stale draft cannot replace inert recovery');
+  assert.equal(JSON.stringify(frame.contentWindow.sent).includes(draft),false,'new sandbox never receives old draft');
+  assert.equal(JSON.stringify(frame.contentWindow.sent).includes('stale-sensitive-state'),false);
+  return {frame,loaded};
+}
+
 test('R5.37 denied Chrome permission retains first-use and never creates a false Host grant',async t=>{
   cookieTestLocation(t);
   const tool=await officialToolFixture('cookie-editor');
@@ -3551,7 +3596,9 @@ test('R5.37 denied Chrome permission retains first-use and never creates a false
     !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
   assert.equal(calls.length,0,'denied Chrome permission must never reach trusted Host');
   assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieAllSites,null);
-  assert.equal(f.elements['sidebar-tool-frame'].hidden,true,'denial cannot uncover Cookie workspace');
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false,'R2.8 denial retains the nonprivileged UI');
+  assert.equal(f.runtime.frameRoot.children[0],f.frame,'denial does not replace the unprivileged instance');
+  await assertCookieWorkspaceUnauthorized(f,f.frame,f.loaded,target.snapshot.url);
 });
 
 test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns and unsaved edits',async t=>{
@@ -3668,13 +3715,16 @@ test('R5.26 disabled Cookie Editor direct settings can re-enable without auto-mo
 });
 
 test('R5.25 Cookie grant revocation destroys the prior iframe instead of exposing stale metadata',async t=>{
+  cookieTestLocation(t);
   const tool=await officialToolFixture('cookie-editor');
   const saved={version:tool.version,installEpoch:null,
     cookieAllSites:{storeId:'0',grantEpoch:'r525-fixture',read:true,values:true,valueConsent:true,
       write:true,observe:true,clear:true}};
   const store=await verifiedCookieStore(tool,saved.cookieAllSites);
-  const f=await hostFixture(t,{tool,store}),frame=f.frame;
-  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
+  const target=cookieTestTarget();
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true}}),frame=f.frame;
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='撤销授权'&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
   const draft='账号名称\n保留失败草稿';
   for(const data of [{kind:'draft',text:draft},{kind:'edit-state',dirty:true,busy:false}])
     f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
@@ -3682,10 +3732,10 @@ test('R5.25 Cookie grant revocation destroys the prior iframe instead of exposin
   const revoked={...store.get(BROWSER_MENU_GRANTS_STORE)[tool.id],cookieAllSites:null};
   f.store.set(BROWSER_MENU_GRANTS_STORE,{[tool.id]:revoked});
   f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:{[tool.id]:revoked}}});
-  assert.equal(f.elements['sidebar-tool-frame'].hidden,true,'revoked grants conceal the live Cookie tree');
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false,'R2.8 revocation retains a fresh nonprivileged UI');
   assert.equal(f.elements['sidebar-tool-cookie-permissions'].hidden,false);
-  assert.equal(f.runtime.frameRoot.children.length,0,'revocation must destroy the old execution instance');
-  assert.equal(frame.onload,null,'retired iframe cannot load again');
+  const next=await assertCookieFrameReplaced(f,tool,draft);
+  await assertCookieWorkspaceUnauthorized(f,next.frame,next.loaded,target.snapshot.url);
   assert.equal(f.elements['sidebar-tool-retired-draft'].hidden,false);
   assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,draft,
     'external revocation retains the existing bounded inert text recovery');
@@ -3709,13 +3759,18 @@ test('R2.6 Cookie settings revoke retains the inert account draft after its stor
   assert.equal(f.host.openSettings(tool.id),true);
   await settle(()=>!f.elements['sidebar-tool-cookie-site-toggle'].disabled);
   f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
-  await settle(()=>calls.length===1&&f.runtime.frameRoot.children.length===0);
+  await settle(()=>calls.length===1&&f.runtime.frameRoot.children[0]!==frame&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
   assert.equal(calls[0].enabled,false);
   assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieAllSites.read,false);
   assert.equal(frame.onload,null);
   assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,draft);
+  const next=await assertCookieFrameReplaced(f,tool,draft);
+  await assertCookieWorkspaceUnauthorized(f,next.frame,next.loaded,target.snapshot.url);
   f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:store.get(BROWSER_MENU_GRANTS_STORE)}});
-  assert.equal(f.runtime.frameRoot.children.length,0,'the old instance remains retired');
+  assert.equal(f.runtime.frameRoot.children.length,1);
+  assert.equal(f.runtime.frameRoot.children[0],next.frame,'storage receipt keeps the fresh nonprivileged instance');
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
   assert.equal(f.elements['sidebar-tool-retired-draft'].hidden,false);
   assert.equal(f.elements['sidebar-tool-retired-draft-text'].value,draft,
     'the subsequent storage receipt cannot overwrite the preserved text');

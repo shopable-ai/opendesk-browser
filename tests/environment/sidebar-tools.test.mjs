@@ -213,7 +213,8 @@ test('R14 Sidebar tool intake requires separate review, install and explicit lau
   assert.match(html,/id="sidebar-tool-file-error"/);
   assert.match(html,/id="sidebar-tool-update-versions"/);
   assert.match(host,/patchToolField\(view, preview, \{hidden: false\}\)/);
-  assert.match(host,/patchToolField\(view, installButton, \{disabled: identical\}\)/);
+  assert.match(host,/patchToolField\(view, installButton, \{disabled: deferConfirmation\|\|identical\}\)/,
+    'an identical package or deferred review must not allow installation');
   assert.match(host,/if\(!visible\)\{setImportOpen\(false\);suspendTool\(\);return;\}/,
     'Leaving Tools closes the trusted Bookmark Manager and retires the installed sandbox');
   assert.doesNotMatch(host,/if\(!active && !listRequested/,'Tools tab may not auto-start a saved mini-app');
