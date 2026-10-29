@@ -16,6 +16,8 @@ on:
       - 'scripts/tests/**'
       - 'examples/sidebar-tools/**'
       - '!examples/sidebar-tools/**/*.opendesk-tool.json'
+      - 'projects/**'
+      - '!projects/**/*.opendesk-tool.json'
       - 'tests/environment/**'
       - 'tests/framework/**'
       - 'src/sidebar-tools/**'
@@ -158,6 +160,9 @@ jobs:
             examples/sidebar-tools/${{ matrix.app }}/dist/
             examples/sidebar-tools/${{ matrix.app }}/src/main.js
             examples/sidebar-tools/${{ matrix.app }}/src/style.css
+            projects/${{ matrix.app }}/dist/
+            projects/${{ matrix.app }}/src/main.js
+            projects/${{ matrix.app }}/src/style.css
             dist/production/
             dist/development/
 
