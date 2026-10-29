@@ -7,7 +7,8 @@ const root=fileURLToPath(new URL('.',import.meta.url));
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const inputs=[
   'tool.config.json','package.json','vite.config.mjs',
-  'src/index.html','src/main.jsx','src/App.jsx','src/style.css',
+  'src/index.html','src/main.jsx','src/App.jsx','src/ReadOnlyDiagnostics.jsx',
+  'src/env-config.js','src/presets.js','src/run-session.js','src/style.css',
   'src/adapter.js','src/model.js','src/history.js'
 ];
 const mark='/* @opendesk-shared-design */';
