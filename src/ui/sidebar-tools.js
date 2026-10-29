@@ -534,7 +534,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // The original native Chrome grant is prepared even with Settings closed.
     if(tool?.id==='cookie-editor'||app)prepareCookieChrome(tool,origin,allSites);
     const needsAuthorization=tool?.id==='cookie-editor'&&cookieGrantStatusLoaded&&
-      cookieAdmissionState!==null&&(!managed||cookieChromeState?.granted===false);
+      cookieAdmissionState!==null&&!enableReadError&&!enableRecordsLoading&&
+      sidebarToolEnabled(enableRecords,tool.id)&&!readOnlyPreview&&
+      (!managed||cookieChromeState?.granted===false);
     patchToolField(view,cookiePermissions,{hidden:!app,
       data:{mode:firstUse?'first-use':'settings',isCookieEditor:tool?.id==='cookie-editor',
         needsAuthorization,hasOrigin:Boolean(origin),settingsOpen:show,

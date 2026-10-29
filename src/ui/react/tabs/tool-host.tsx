@@ -110,7 +110,8 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
   const dismissCookieConsent=()=>setCookieDismissal({identity:cookieIdentity,dismissed:true});
   // Pass a real user gesture to the existing trusted Host dispatcher.
   const requestCookieGrant=event=>{
-    if(cookieConsentVisible)dismissCookieConsent();
+    // Keep the dialog until verified Host readback says the grant is usable.
+    // A native denial leaves this same retry/close surface available.
     view.dispatch('sidebar-tool-cookie-site-toggle','click',event.nativeEvent);
   };
   const permissionVisible=snapshot.fields['sidebar-tool-bookmark-permissions']?.hidden===false||
