@@ -182,10 +182,12 @@ try{
 
   await call('Page.reload',{ignoreCache:true});
   await until('document.querySelectorAll(".fp-app").length===1','React reload');
+  await until('document.querySelectorAll("select[aria-label=\\'选择环境预设\\'] option").length>=6',
+    'saved preset options after reload');
   await click('运行记录');
   await until('document.querySelectorAll(".fp-log").length>=1','run restart-readback');
-  assert.equal(await evaluate('document.querySelectorAll("select[aria-label=\\'选择环境预设\\'] option").length>=6'),true);
   evidence.checks.push('RESTART_READS_STORED_PRESETS_AND_RUN_HISTORY');
+  await click('环境设置');
 
   // Supplemental one-width layout evidence, not a substitute for Native testing.
   await call('Emulation.setDeviceMetricsOverride',
