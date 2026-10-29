@@ -334,7 +334,15 @@ try{
   evidence.baseline=baseline;
   evidence.checks.push('R24_INDEPENDENT_BASELINE_MAIN_WORLD_PASS');
   const status=()=>appRead('document.querySelector(".fp-status-title")?.textContent?.trim()');
-  const action=index=>click('.fp-bottom-actions button:nth-child('+index+')',sandbox);
+  const action=async index=>{
+    // Every action can be disabled while the preceding Host/history request
+    // settles; a status label may become visible before that request finishes.
+    const selector='.fp-bottom-actions button:nth-child('+index+')';
+    await until(()=>appRead('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
+      'return n&&!n.disabled&&n.getClientRects().length>0})()'),
+      'real React action '+index+' enabled');
+    await click(selector,sandbox);
+  };
   async function cycle(name,expected){
     const item={preset:name,progress:'STARTED_NOT_PASSED'};
     evidence.cycles.push(item); // Retain partial observations on any failure.
@@ -395,11 +403,6 @@ try{
     await until(async()=>String(await status()).includes('待读回'),'restore native detach receipt');
     item.afterDetach=await independent();
     assert.equal(item.afterDetach.debuggerAttached,false,'debugger must detach before restoration verification');
-    // React updates the restoring status before recording history. The
-    // independent verification control is disabled while that write settles.
-    await until(()=>appRead('(()=>{const n=document.querySelector(".fp-bottom-actions button:nth-child(2)");'+
-      'return n&&!n.disabled&&n.getBoundingClientRect().width>0})()'),
-      'real React restore readback button enabled');
     await action(2);
     await until(async()=>['调试已停止 · 恢复有限验证','已独立核验恢复','恢复结果未知'].includes(await status()),
       'restoration independent readback');
