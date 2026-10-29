@@ -3,6 +3,7 @@ import {SIDEPANEL_DOCUMENT_PATH} from '../../tool-document-url.js';
 import {createBrowserTabHost} from './browser-tabs.js';
 import {createCurrentPageReferences} from './current-page-refs.js';
 import {createPageEnvironmentReader} from './browser-page-environment.js';
+import {createFingerprintDriver} from './browser-fingerprint.js';
 import {createNetworkService} from './network.js';
 import {createBrowserNetworkObserver} from './browser-network-observe.js';
 import {createBrowserScreenshotHost} from './browser-screenshot.js';
@@ -412,6 +413,21 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         throw failure('E_SITE_GRANT_REQUIRED','Current-page environment site consent required');
       return true;
     }});
+  // Debugger exists only in an extension installed with Chrome's high-risk
+  // permission. Missing native support must not disable all other Browser tools.
+  const fingerprintDriver=api.debugger?.attach&&api.debugger?.sendCommand&&
+    api.debugger?.detach&&api.scripting?.executeScript?
+    createFingerprintDriver({api,
+      resolveTarget:(refs,owner)=>currentPageRefs.resolve(refs,owner),
+      readPage:(refs,owner)=>pageEnvironment.readEnvironment(refs,owner),
+      authorize:async({operation,owner,origin})=>{
+        const tool=await verifyBrowserOwner(owner,operation,origin);
+        const {grants,epochs}=await readSources(api),grant=grants[tool.id];
+        if(grant?.version!==tool.version||grant.packageHash!==owner.packageHash||
+           grant.installEpoch!==(epochs[tool.id]??null)||
+           grant.fingerprintSites?.[origin]!==true)
+          throw failure('E_SITE_GRANT_REQUIRED','Independent fingerprint control consent required');
+      }}):null;
   const tabHost=createBrowserTabHost({api,authorize:async({operation,origin,context})=>{
     if(context.approvedOrigin!==null&&context.approvedOrigin!==origin)throw failure('E_SITE_GRANT_REQUIRED','Tab origin changed');
     await verifyBrowserOwner(context,operation,origin);
@@ -496,6 +512,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     bookmarkHost.revokeAll();
     fullBookmarkHost.revokeAll();
     currentPageRefs.revokeAll();
+    fingerprintDriver?.revokeAll();
     browserIntents.clear();
     for(const controller of activeNetworkRequests)
       controller.abort(failure('E_GRANT_REVOKED','Installed tool authority changed during HTTP request'));
@@ -570,7 +587,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   }
   const epochKey=(tabId,frameId)=>String(tabId)+':'+String(frameId);
   function noteNavigation(tabId,frameId=0){
-    if(frameId===0){networkObserver.invalidateTab(tabId);screenshotResources.revokeTab(tabId);trustedCookies.noteNavigation(tabId);currentPageRefs.invalidateTab(tabId);}
+    if(frameId===0){networkObserver.invalidateTab(tabId);screenshotResources.revokeTab(tabId);trustedCookies.noteNavigation(tabId);currentPageRefs.invalidateTab(tabId);fingerprintDriver?.invalidateTab(tabId);}
     const key=epochKey(tabId,frameId);
     documentEpochs.set(key,(documentEpochs.get(key)||0)+1);
     if(frameId===0){
@@ -693,6 +710,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const platformSupported=directPresent&&
       (!isMenu||['browser.contextMenu.getStatus','browser.contextMenu.unregister'].includes(operation)||menuApiAvailable)&&(
       operation==='browser.page.readEnvironment'?Boolean(api.scripting?.executeScript&&api.webNavigation?.getFrame&&api.tabs?.query):
+      operation.startsWith('browser.fingerprint.')?Boolean(fingerprintDriver&&
+        api.debugger?.attach&&api.debugger?.sendCommand&&api.debugger?.detach):
       operation==='browser.tabs.create'?Boolean(api.tabs?.create):
       operation==='browser.tabs.activateOwned'?Boolean(api.tabs?.get&&api.tabs?.update&&api.webNavigation?.getFrame):
       operation==='browser.tabs.getOwned'||operation==='browser.tabs.listOwned'?Boolean(api.tabs?.get&&api.webNavigation?.getFrame):
@@ -755,7 +774,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       grantRecord.packageHash===await digestTool(tool);
     const desired=identity?.requestedUrl?parsedHttp(identity.requestedUrl)?.origin:null;
     const environment=operation==='browser.page.readEnvironment';
+    const fingerprint=operation.startsWith('browser.fingerprint.');
     const environmentAllowed=!environment||Boolean(desired&&validGrant&&grantRecord.environmentSites?.[desired]===true&&await chromeSitePermitted(api,desired));
+    const fingerprintAllowed=!fingerprint||Boolean(desired&&validGrant&&
+      grantRecord.fingerprintSites?.[desired]===true&&await chromeSitePermitted(api,desired));
     const downloading=operation==='browser.downloads.download';
     // A site-scoped download cannot be reported callable without the requested
     // exact Origin and currently effective Chrome website permission.
@@ -769,13 +791,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
        await admittedOfficialCookie(tool))&&await chromeSitePermitted(api,origin)
     ))).some(Boolean);
     const runnable=op.implementation==='IMPLEMENTED'&&exposure==='allowed'&&platformSupported&&
-      requiredBrowser&&environmentAllowed&&fullBookmarkApproved&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
+      requiredBrowser&&environmentAllowed&&fingerprintAllowed&&fullBookmarkApproved&&(!needsSite||menu)&&(!isCookie||cookieAuthorized)&&downloadSiteAllowed&&hasLaunch&&!frontendOnly;
     const reasonCode=runnable?null:
       op.implementation!=='IMPLEMENTED'?'E_NOT_IMPLEMENTED':
       !hasToolCap?'E_TOOL_CAPABILITY_REQUIRED':
       !platformSupported?'E_CHROME_UNSUPPORTED':
       !requiredBrowser?'E_CHROME_PERMISSION_REQUIRED':
       !environmentAllowed?'E_SITE_GRANT_REQUIRED':
+      !fingerprintAllowed?'E_SITE_GRANT_REQUIRED':
       !fullBookmarkApproved?'E_BOOKMARK_FULL_CONSENT_REQUIRED':
       needsSite&&!menu?'E_SITE_GRANT_REQUIRED':
       isCookie&&!cookieAuthorized?'E_SITE_GRANT_REQUIRED':
@@ -785,7 +808,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     return {operation,apiVersion:BROWSER_API_VERSION,implementation:op.implementation.toLowerCase().replaceAll('_','-'),
       exposure,platform:platformSupported?'supported':'unsupported',
       authorization:{tool:hasToolCap?'granted':'missing',browser:requiredBrowser?'granted':'missing',
-        site:environment?(environmentAllowed?'granted':'missing'):isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):
+        site:fingerprint?(fingerprintAllowed?'granted':'missing'):environment?(environmentAllowed?'granted':'missing'):isMenu?(menu?'granted':'missing'):isCookie?(cookieAuthorized?'granted':'missing'):
           downloading?(downloadSiteAllowed?'granted':'missing'):'not-required'},
       callableNow:runnable,requiresUserGesture:op.requiresUserGesture,reasonCode,
       nextAction:runnable?null:!hasToolCap?'update-tool-package':!platformSupported?null:
@@ -813,6 +836,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
          packageHash!==await digestTool(tool))
         throw failure('E_TOOL_CHANGED','Old tool version or revoked instance');
 
+      if(operation.startsWith('browser.fingerprint.')){
+        if(!fingerprintDriver)throw failure('E_CHROME_UNSUPPORTED','Installed Chrome debugger is unavailable');
+        const checked=normalizeBrowserOperation(operation,args);
+        const owner={toolId,toolVersion,packageHash,epoch:installEpoch??null,
+          installEpoch:String(installEpoch??'initial-install'),hostInstanceId,toolInstance};
+        const method=operation.slice('browser.fingerprint.'.length);
+        return fingerprintDriver[method](checked,owner);
+      }
       if(operation==='browser.page.readEnvironment'){
         return pageEnvironment.readEnvironment(normalizeBrowserOperation(operation,args),{
           toolId,toolVersion,packageHash,epoch:installEpoch??null,
@@ -1114,6 +1145,45 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         return output;
       }
       // Only the packaged Host can review/revoke a site, never the sandbox RPC.
+      if(operation==='browser.fingerprint.controlConsent'){
+        if(enabled!==undefined&&typeof enabled!=='boolean')throw failure('E_SCHEMA');
+        const site=parsedHttp(origin);
+        if(!site||site.origin!==origin)throw failure('E_SCHEMA','Exact target origin required');
+        if(typeof toolInstance!=='string'||!/^[0-9a-f-]{36}$/i.test(toolInstance))
+          throw failure('E_OWNER','Current tool instance required');
+        const source=await readSources(api),tool=admittedTool(source.tools,toolId);
+        if(!sidebarToolEnabled(source.enabled,toolId))throw failure('E_TOOL_DISABLED');
+        const hash=await digestTool(tool),ctx={toolId,toolVersion,packageHash,
+          epoch:installEpoch??null,installEpoch:String(installEpoch??'initial-install'),
+          hostInstanceId,toolInstance};
+        if(hash!==packageHash||tool.version!==toolVersion||
+           (source.epochs[toolId]??null)!==(installEpoch??null))
+          throw failure('E_TOOL_CHANGED','Fingerprint tool package changed');
+        await verifyBrowserOwner(ctx,'browser.fingerprint.apply',enabled===false?null:origin);
+        const old=source.grants[toolId],same=old?.version===tool.version&&old.packageHash===hash&&
+          old.installEpoch===(source.epochs[toolId]??null);
+        if(enabled===undefined)return {enabled:same&&old.fingerprintSites?.[origin]===true};
+        if(enabled){
+          // No sandbox-provided tab ID; this Chrome document is independently
+          // revalidated against the current active tab before granting.
+          const issued=await currentPageRefs.issue({document,context:ctx});
+          await currentPageRefs.resolve(issued,ctx);
+          if(new URL(document.url).origin!==origin)throw failure('E_DOCUMENT_STALE');
+        }
+        const record=same?old:{version:tool.version,packageHash:hash,
+          installEpoch:source.epochs[toolId]??null,origins:[],activeActions:[]};
+        const fingerprintSites={...record.fingerprintSites};
+        const environmentSites={...record.environmentSites};
+        if(enabled){fingerprintSites[origin]=true;environmentSites[origin]=true;}
+        else delete fingerprintSites[origin];
+        if(Object.keys(fingerprintSites).length>64||Object.keys(environmentSites).length>64)
+          throw failure('E_LIMIT','Too many reviewed fingerprint sites');
+        await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{
+          ...source.grants,[toolId]:{...record,fingerprintSites,environmentSites}});
+        currentPageRefs.revokeAll();
+        fingerprintDriver?.revokeAll();
+        return {enabled};
+      }
       if(operation==='browser.page.environmentConsent'){
         if(enabled!==undefined&&typeof enabled!=='boolean')throw failure('E_SCHEMA');
         const site=parsedHttp(origin);
@@ -1530,7 +1600,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     // Cookie site changes revoke only Cookie sessions and ephemeral approvals.
     // Never dispose unrelated owned Tabs/Network/Screenshot on a Cookie grant.
     if(area==='local'&&Object.hasOwn(changes,BROWSER_MENU_GRANTS_STORE)){
-      trustedCookies.revoke();currentPageRefs.revokeAll();
+      trustedCookies.revoke();currentPageRefs.revokeAll();fingerprintDriver?.revokeAll();
     }
     if(area==='local'&&Object.hasOwn(changes,SIDEBAR_TOOL_ENABLE_STORE))
       void revokeLaunches().catch(error=>logger.warn('OpenDesk disabled-tool launch cleanup',error));
@@ -1540,7 +1610,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
        Object.hasOwn(changes,TOOL_REVOCATION_EPOCHS_STORE)))void sync().catch(e=>logger.warn('OpenDesk menu reconcile',e));
   });
   const invalidateTab=(tabId,frameId=0)=>serial(async()=>{
-    if(frameId===0)currentPageRefs.invalidateTab(tabId);
+    if(frameId===0){currentPageRefs.invalidateTab(tabId);fingerprintDriver?.invalidateTab(tabId);}
     const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
     const next={...rows},invalidated=[];
     for(const [id,row] of Object.entries(rows)){
