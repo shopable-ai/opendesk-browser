@@ -1,8 +1,8 @@
 // Reviewed, extension-owned bridge. Routine controls use the once-reviewed
 // official install; sensitive manual CSS editor writes still need trusted review.
-import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
-import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
-import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../../../../src/ui/sidebar-tools/installation.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../../src/ui/sidebar-tools/package.js';
+import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled} from '../../../src/ui/sidebar-tools/lifecycle.js';
+import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../../../src/ui/sidebar-tools/installation.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_SERVICE_VERSION,
   ADBLOCK_OPERATIONS,adblockError,adblockHost} from './policy.js';
 import {validCosmeticSelector} from './cosmetic-policy.js';

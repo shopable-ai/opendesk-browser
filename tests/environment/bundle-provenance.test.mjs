@@ -197,14 +197,14 @@ test('R3.1 symlink substitution cannot bypass trusted Bookmark static pin',async
 });
 
 test('AdBlock session fence is a fixed audited source and rejects byte drift',async t=>{
-  const path='examples/sidebar-tools/adblock/trusted/dnr-session.js';
+  const path='projects/adblock/trusted/dnr-session.js';
   const chunkFor=file=>({fileName:'sw.js',modules:{[file]:{renderedLength:1,originalLength:1}}});
   const accepted=describeBundle({chunk:chunkFor(resolve(path)),lock:{packages:{}}});
-  assert.equal(accepted.modules[0].reviewedFirstPartyBlob,'d3e221eac17261a34751cb8ab035c622eb1b42a8');
+  assert.equal(accepted.modules[0].reviewedFirstPartyBlob,'6cf976c7f89ab6e9aec04bf7bc92b5189e8b3cca');
   const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-adblock-session-pin-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
   const file=join(project,path);
-  await mkdir(join(project,'examples/sidebar-tools/adblock/trusted'),{recursive:true});
+  await mkdir(join(project,'projects/adblock/trusted'),{recursive:true});
   await writeFile(file,(await readFile(resolve(path),'utf8'))+'\n// unreviewed drift\n');
   assert.throws(()=>describeBundle({chunk:chunkFor(file),root:project,lock:{packages:{}}}),
     /Trusted AdBlock source changed/);

@@ -4,11 +4,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {valid,verified,readyToOperate,siteHost,confirmed}
-  from '../../examples/sidebar-tools/adblock/src/model.js';
+  from '../../projects/adblock/src/model.js';
 
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
-const app=()=>read('examples/sidebar-tools/adblock/src/App.jsx');
-const compiled=()=>read('examples/sidebar-tools/adblock/dist/tool.js');
+const app=()=>read('projects/adblock/src/App.jsx');
+const compiled=()=>read('projects/adblock/dist/tool.js');
 const base={installed:true,toolEnabled:true,enabled:true,restartRequired:false,
   currentHost:'news.example.com',currentSite:{status:'ready'},exceptions:[],
   permissions:{dnr:true},rules:{verified:true,ruleIds:[]}};
@@ -116,7 +116,7 @@ test('trusted Host and Chrome DNR APIs are never duplicated inside the tool',asy
 });
 
 test('one React root mounts and unmounts the independent product',async()=>{
-  const entry=await read('examples/sidebar-tools/adblock/src/main.jsx');
+  const entry=await read('projects/adblock/src/main.jsx');
   assert.ok(entry.includes('createRoot('));
   assert.ok(entry.includes('root.unmount()'));
   assert.ok(!entry.includes('host-controls'));

@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ADBLOCK_COSMETIC_STORE,validCosmeticSelector,readCosmeticState,
   addCosmeticRule,removeCosmeticRule,cosmeticForHost,hasCosmeticRule,
-  ADBLOCK_COSMETIC_PICK_TTL_MS} from '../../examples/sidebar-tools/adblock/trusted/cosmetic-policy.js';
-import {adblockElementSelector,createAdblockElementPicker} from '../../examples/sidebar-tools/adblock/trusted/picker.js';
-import {createAdblockCosmeticController} from '../../examples/sidebar-tools/adblock/trusted/cosmetic.js';
+  ADBLOCK_COSMETIC_PICK_TTL_MS} from '../../projects/adblock/trusted/cosmetic-policy.js';
+import {adblockElementSelector,createAdblockElementPicker} from '../../projects/adblock/trusted/picker.js';
+import {createAdblockCosmeticController} from '../../projects/adblock/trusted/cosmetic.js';
 import {writeVerifiedLocalValue} from '../../src/ui/sidebar-tools/storage-state.js';
 
 test('selectors accept stable CSS paths and reject CSS injection',()=>{
@@ -232,7 +232,7 @@ test('an unanswered write expires and only reads back; an unanswered lookup stay
 // R2.4: source-bound workflow checks complement (not replace) real Chrome tests.
 test('R2.4 host review keeps advanced CSS writes behind a separate trusted confirmation',async()=>{
   const {readFile}=await import('node:fs/promises');
-  const host=await readFile(new URL('../../examples/sidebar-tools/adblock/trusted/tool-host.js',import.meta.url),'utf8');
+  const host=await readFile(new URL('../../projects/adblock/trusted/tool-host.js',import.meta.url),'utf8');
   const first=host.indexOf("if(['adblock.cosmetic.pick'");
   const advanced=host.indexOf("if(['adblock.cosmetic.add','adblock.cosmetic.replace'].includes(operation))");
   assert.ok(first>0&&advanced>first,'advanced write branch must remain reachable');
@@ -243,7 +243,7 @@ test('R2.4 host review keeps advanced CSS writes behind a separate trusted confi
 });
 test('R2.4 locate, inspect and temporary display use the existing page and preview protocol',async()=>{
   const {readFile}=await import('node:fs/promises');
-  const root=new URL('../../examples/sidebar-tools/adblock/',import.meta.url);
+  const root=new URL('../../projects/adblock/',import.meta.url);
   const load=(name)=>readFile(new URL(name,root),'utf8');
   const [app,policy,service,page,mock,hostPreview,previewBuilder]=await Promise.all([
     load('src/App.jsx'),load('trusted/policy.js'),load('trusted/service.js'),

@@ -5,7 +5,7 @@ import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
 
 const fail=message=>{throw Error('E_ADBLOCK_REACT_PREVIEW: '+message);};
 export async function canonicalAdblockPreviewHost(){
-  const root=new URL('../../examples/sidebar-tools/adblock/',import.meta.url);
+  const root=new URL('../../projects/adblock/',import.meta.url);
   const [app,pkg]=await Promise.all([
     readFile(new URL('src/App.jsx',root),'utf8'),
     createSidebarToolPackage(new URL(root).pathname)

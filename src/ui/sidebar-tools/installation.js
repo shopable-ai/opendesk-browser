@@ -16,8 +16,8 @@ import {PROMPT_ASSET_STORE} from '../../../projects/prompt-shortcuts/trusted/ass
 import {COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
   from '../../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
-import {stopAdblockForTool,cleanupUninstalledAdblock,prepareReviewedAdblockUpdate} from '../../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
-import {ADBLOCK_STORE} from '../../../examples/sidebar-tools/adblock/trusted/policy.js';
+import {stopAdblockForTool,cleanupUninstalledAdblock,prepareReviewedAdblockUpdate} from '../../../projects/adblock/trusted/lifecycle.js';
+import {ADBLOCK_STORE} from '../../../projects/adblock/trusted/policy.js';
 import {stopAiAccessForTool,cleanupUninstalledAiAccess} from '../../../examples/sidebar-tools/ai-vip-share/trusted/lifecycle.js';
 import {stopManagedProxyForTool} from '../../platform/chrome/browser-managed-proxy.js';
 import {stopManagedSiteBudgetForTool,MANAGED_SITE_BUDGET_STORE} from '../../platform/chrome/browser-managed-site-budget.js';

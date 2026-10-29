@@ -3,9 +3,9 @@
 // without creating another installer, sandbox, registry, authority or Browser SDK.
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {createSidebarTools} from '../ui/sidebar-tools.js';
-import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_OPERATIONS} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
-import {prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
-import {probeAdblockService,runTrustedAdblockOperation,requestAdblockOperation} from '../../examples/sidebar-tools/adblock/trusted/tool-host.js';
+import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_OPERATIONS} from '../../projects/adblock/trusted/policy.js';
+import {prepareAdblockUninstallCleanup} from '../../projects/adblock/trusted/host-controls.js';
+import {probeAdblockService,runTrustedAdblockOperation,requestAdblockOperation} from '../../projects/adblock/trusted/tool-host.js';
 import {trustedTimeReviewUI} from '../../projects/time-review/trusted/trusted-native-ui.js';
 import {AI_ID,AI_CAPABILITY,AI_PROTOCOL,AI_OPERATIONS} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
 import {createAiAccessPermissionControls} from '../../examples/sidebar-tools/ai-vip-share/trusted/host-controls.js';

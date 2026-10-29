@@ -33,18 +33,18 @@ function reviewedCompiledTimeReview(target,path,root){
 // inputs are exact file-blob pinned; the bundle still has a fixed entry point,
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
-  'examples/sidebar-tools/adblock/trusted/dnr-session.js':'d3e221eac17261a34751cb8ab035c622eb1b42a8',
-  'examples/sidebar-tools/adblock/trusted/service.js':'947294e8b961d3417491d1b248c8296228510564',
-  'examples/sidebar-tools/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
-  'examples/sidebar-tools/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
-  'examples/sidebar-tools/adblock/trusted/lifecycle.js':'d63c2b7ea5faa86c9bf39d1b9a935859d55c4636',
-  'examples/sidebar-tools/adblock/trusted/tool-host.js':'fe96d9d1a9b1e737f42c3f875c1622d4cd5ea076',
-  'examples/sidebar-tools/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
-  'examples/sidebar-tools/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',
-  'examples/sidebar-tools/adblock/trusted/cosmetic.js':'da37f1f0e8f40860ac059ef2f43a27daeeb6d3d3',
-  'examples/sidebar-tools/adblock/trusted/page.js':'8a65d7d913b84282cc6d3b5f21eed1caf862b296',
-  'examples/sidebar-tools/adblock/trusted/picker.js':'dd92c939a12a72be2239634bddf8fd878ca153dc',
-  'examples/sidebar-tools/adblock/trusted/cosmetic-policy.js':'65804d9e8455fb9521f789744e4b3d276876b455'
+  'projects/adblock/trusted/dnr-session.js':'6cf976c7f89ab6e9aec04bf7bc92b5189e8b3cca',
+  'projects/adblock/trusted/service.js':'47f424bd9591cb8dac84b03caf04ef8fc2e0ca99',
+  'projects/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
+  'projects/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
+  'projects/adblock/trusted/lifecycle.js':'50143f14fa3a1e9434f5c79bd2df37db83c245bb',
+  'projects/adblock/trusted/tool-host.js':'e5e9962a63bb929560aab4701107dc9e275358a2',
+  'projects/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
+  'projects/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',
+  'projects/adblock/trusted/cosmetic.js':'da37f1f0e8f40860ac059ef2f43a27daeeb6d3d3',
+  'projects/adblock/trusted/page.js':'8f723ff1feb98ee40d680f4e6cf87f39892c1c06',
+  'projects/adblock/trusted/picker.js':'dd92c939a12a72be2239634bddf8fd878ca153dc',
+  'projects/adblock/trusted/cosmetic-policy.js':'65804d9e8455fb9521f789744e4b3d276876b455'
 });
 const preapprovedFixedTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS)]);
 function reviewedCompiledAdblock(target,path,root){

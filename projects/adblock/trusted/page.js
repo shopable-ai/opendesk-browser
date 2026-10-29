@@ -1,6 +1,6 @@
-import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE} from '../../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
-  from '../../../../src/ui/sidebar-tools/lifecycle.js';
+  from '../../../src/ui/sidebar-tools/lifecycle.js';
 import {ADBLOCK_STORE,ADBLOCK_PAGE_PROTOCOL,adblockHost} from './policy.js';
 import {ADBLOCK_COSMETIC_HOSTS,createAdblockCosmeticController} from './cosmetic.js';
 import {ADBLOCK_COSMETIC_STORE,validCosmeticSelector} from './cosmetic-policy.js';

@@ -61,7 +61,7 @@
     },
     {
       "id": "adblock",
-      "project": "examples/sidebar-tools/adblock",
+      "project": "projects/adblock",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },

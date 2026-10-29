@@ -1,5 +1,5 @@
 import {ADBLOCK_PERMISSION,ADBLOCK_DNR_CLEANUP_STORE as cleanupKey,adblockError} from './policy.js';
-import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
+import {writeVerifiedLocalValue} from '../../../src/ui/sidebar-tools/storage-state.js';
 
 const key='opendesk.adblock.dnr-session-ready.v1';
 const valid=value=>Boolean(value)&&typeof value==='object'&&!Array.isArray(value)&&

@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import {resolve} from 'node:path';
 
 test('installed React bundle consumes host-owned runtime and releases its React Root',async()=>{
-  const pkg=await createSidebarToolPackage(resolve('examples/sidebar-tools/adblock'));
+  const pkg=await createSidebarToolPackage(resolve('projects/adblock'));
   const events={},effects=[];let created=0,disposed=0,statusReads=0;
   const target={id:'tool-app'};
   const react={
@@ -39,7 +39,7 @@ test('installed React bundle consumes host-owned runtime and releases its React 
 });
 
 test('sandbox bundle is a React product, not the former restore-only DOM script',async()=>{
-  const pkg=await createSidebarToolPackage(resolve('examples/sidebar-tools/adblock'));
+  const pkg=await createSidebarToolPackage(resolve('projects/adblock'));
   assert.match(pkg.js,/\.createRoot\(/,'compiled React must use host-owned createRoot');
   assert.match(pkg.js,/E_ADBLOCK_REACT_ROOT/,'missing target must fail closed');
   assert.match(pkg.js,/adblock\.enable/);

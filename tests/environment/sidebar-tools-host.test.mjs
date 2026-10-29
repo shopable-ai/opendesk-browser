@@ -10,8 +10,8 @@ import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../exam
 import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/stay-focus/trusted/host-controls.js';
 import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY,AI_OPERATIONS} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
-import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS,ADBLOCK_RULE_FIRST,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
-import {prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
+import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS,ADBLOCK_RULE_FIRST,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from '../../projects/adblock/trusted/policy.js';
+import {prepareAdblockUninstallCleanup} from '../../projects/adblock/trusted/host-controls.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';

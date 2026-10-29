@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {wantedAdblockRules} from '../../examples/sidebar-tools/adblock/trusted/rules.js';
+import {wantedAdblockRules} from '../../projects/adblock/trusted/rules.js';
 import {ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST,ADBLOCK_MAX_EXCEPTIONS}
-  from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+  from '../../projects/adblock/trusted/policy.js';
 
 test('JavBus third-party ad scripts and frames are covered without blocking the site domain',()=>{
   const rule=wantedAdblockRules({enabled:true,exceptions:[]})[0];
