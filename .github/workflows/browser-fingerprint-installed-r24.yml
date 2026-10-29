@@ -1,0 +1,55 @@
+name: Browser Fingerprint R2.4 — installed Chrome GUI acceptance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/sidebar-tools/browser-fingerprint/tests/installed-r24.mjs'
+      - '.github/workflows/browser-fingerprint-installed-r24.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installed-full-chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Restore pinned dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compile official React prerequisites
+        run: |
+          node scripts/build-adblock-react.mjs
+          node scripts/build-stay-focus-react.mjs
+          node scripts/build-cookie-editor-react.mjs
+          npm --prefix examples/sidebar-tools/ai-vip-share run build
+      - name: Build source-bound 0.2.2 candidate and real WXT Host
+        run: node scripts/app-ci.mjs build browser-fingerprint
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Install native X11 pointer driver for actual Chrome Side Panel
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xdotool
+      - name: Actual SIDE_PANEL install, native React apply, MAIN-world readback and restore
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: xvfb-run -a -s '-screen 0 1600x1000x24' node examples/sidebar-tools/browser-fingerprint/tests/installed-r24.mjs artifacts/app-ci/browser-fingerprint/chrome
+      - name: Retain fail-closed GUI evidence and exact candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-fingerprint-r24-installed-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/app-ci/browser-fingerprint/
+            examples/sidebar-tools/browser-fingerprint/dist/
