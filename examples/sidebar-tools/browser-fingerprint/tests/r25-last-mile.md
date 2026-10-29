@@ -1,5 +1,7 @@
 # Browser Fingerprint R2.5 — 德国恢复归因与最小修复
 
+> 最新状态（2026-10-30）：d57 production Host 已在 Mac CFT 154 完成安装、美国/德国应用与恢复，以及切 Tab、刷新、停用、Chrome 网站撤权、卸载和版本升级的原生操作。详见[当前 Mac 证据与发行边界](../evidence/mac-lifecycle-20261030.zh-CN.md)。下文保留旧 Host / CFT 155 的历史记录；旧环境阻断不代表当前 Mac 核心链仍未验证。当前 main 的 App CI 因并行 Time Review 迁移遗留路径在 discovery 失败，正式 0.2.2 尚未晋升。
+
 2026-10-29；产品版本维持 0.2.2；正式安装 JSON 仍为 0.2.1，未晋升。
 
 ## 当前证据与原因

@@ -1,0 +1,1297 @@
+{
+  "schema": "opendesk.fingerprint.mac-lifecycle.v1",
+  "recordedDate": "2026-10-30",
+  "status": "PASS_CORE_AND_OBSERVED_LIFECYCLE; RELEASE_NOT_PROMOTED",
+  "host": {
+    "sourceCommit": "d57bc6c681a01cd76433cc880c71453d6a72c0c5",
+    "packageHash": "86fa5c0e50a32c87108ce54da23317669e476ebd7b50e2e6ace00363cdb80fa4",
+    "mode": "production static acceptance package",
+    "path": "artifacts/fingerprint-r25/acceptance-d57/dist/production",
+    "devServerConnection": "NOT_APPLICABLE",
+    "extensionId": "nohbijocppfnjliinhdfnclbddljobfe",
+    "browser": "Chrome for Testing 154.0.8037.92 macOS arm64",
+    "profile": "artifacts/fingerprint-r25/mac154/profile"
+  },
+  "candidate": {
+    "id": "browser-fingerprint",
+    "version": "0.2.2",
+    "sha256": "b0d48d86f35eec9edc53d3d308737f496e58bb91013af11138fd1f76e5e5ee19",
+    "bytes": 88673
+  },
+  "input": "MACOS_CUA_NATIVE_UI_ONLY; CDP and chrome.scripting are passive observers",
+  "rawRoot": "artifacts/fingerprint-r25/mac154-d57",
+  "sourceHashes": {
+    "src/platform/chrome/browser-fingerprint.js": "6d9a0b57a8404575d4827fdb053a8890d8f674964ee7c5a1648cc3eb2e760c3d",
+    "examples/sidebar-tools/browser-fingerprint/src/App.jsx": "2b067cdddd6ee74d9b240e771310be1a2997061d73498875de0933548cae2e10",
+    "examples/sidebar-tools/browser-fingerprint/src/presets.js": "edbb9dcd4baa656634c002575cbe1ef2c4bc7aad4bf141519c8c15a6f051306b",
+    "examples/sidebar-tools/browser-fingerprint/tool.config.json": "758311755f28f7bc5e3cedead17c4a648bb533a327aa9eb6de8bb154be2152b8"
+  },
+  "checks": {
+    "nativeInstallationAndReact": "PASS",
+    "usAndGermanApplyReadbackRestore": "PASS_LIMITED_FIELDS",
+    "completeLanguagesArrayAfterStop": "PASS_SCALAR_FIRST_THEN_FULL_ARRAY",
+    "tabSwitch": "PASS_SAME_DOCUMENT_RESTORED_AND_STALE_SESSION_REJECTED",
+    "navigation": "PASS_NEW_DOCUMENT_UNOVERRIDDEN_AND_STALE_SESSION_REJECTED",
+    "disable": "PASS_EPOCH_ROTATED_DETACHED_BASELINE_RESTORED",
+    "chromeSitePermissionRevocation": "PASS_NATIVE_RELOAD_COMPLETED_ORIGINS_EMPTY_OLD_READ_DENIED",
+    "uninstall": "PASS_REMOVED_DETACHED_BASELINE_RESTORED",
+    "upgrade021To022": "PASS_REVIEWED_ADDITIONAL_CAPABILITY_NEW_EPOCH_NO_AUTOMATIC_APPLY",
+    "upgradeActiveSession": "NOT_APPLICABLE_021_HAS_NO_FINGERPRINT_CONTROL",
+    "externalDebuggerDetach": "NOT_TESTED_DEVTOOLS_COEXISTS_IN_THIS_CHROME",
+    "ttlTabCloseWorkerTermination": "NOT_TESTED_NATIVE; existing targeted Node coverage only"
+  },
+  "revocationObservation": {
+    "origins": [],
+    "targetAttached": false,
+    "deniedReadback": "读回未确认：浏览器环境修改尚未对当前网页授权或原生能力不可用",
+    "websiteAX": "After Chrome required reload: native macOS UA/UA-CH, zh-CN and full [zh-CN], Asia/Shanghai, 1054x849, DPR2",
+    "passiveReader": "Timed out under revoked permission; did not bypass restriction"
+  },
+  "initialUnknown": {
+    "status": "RETAINED_NOT_REPORTED_AS_PASS",
+    "reason": "First apply request timed out during original consent interaction; no automatic replay; new context/session was later started after reloading and inspecting actual state"
+  },
+  "observations": [
+    {
+      "stage": "installed",
+      "capturedAt": "2026-10-29T16:18:08.789Z",
+      "rawSha256": "3d6d10d52e7532dd95760c87680fccc69a6c6598aa40239e99eb8f3da1c91b92",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "39B69141482F908AB3FB9DD840533CB4",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "尚未应用",
+      "reactNotice": "请选择环境，然后应用到当前授权网页。应用回执不代表已验证，请随后独立读回。",
+      "trustedClicks": []
+    },
+    {
+      "stage": "first-unknown",
+      "capturedAt": "2026-10-29T16:18:34.715Z",
+      "rawSha256": "03bdc3c58eebe65b4c34205736f3918b6a061de9810e894b31a0fc3cdd758747",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "39B69141482F908AB3FB9DD840533CB4",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "执行结果未知",
+      "reactNotice": "工具请求超时",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290697180
+        }
+      ]
+    },
+    {
+      "stage": "switch-before",
+      "capturedAt": "2026-10-29T16:19:42.691Z",
+      "rawSha256": "bf9eda2cb19d578de4f8f284fa61a48fe23c212f0d7957bdfd2773061bedbc2f",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "58C30A8FD45BC369EE4948BB9E610A43",
+      "debuggerAttached": true,
+      "values": {
+        "language": "en-US",
+        "languages": [
+          "en-US"
+        ],
+        "timezone": "America/New_York",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "Windows",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290775466
+        }
+      ]
+    },
+    {
+      "stage": "switch-after",
+      "capturedAt": "2026-10-29T16:19:58.403Z",
+      "rawSha256": "26043b1b4143b913f45e759620cf3dcdb63eff4e73db2acdd9865e6b7a5d073b",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "58C30A8FD45BC369EE4948BB9E610A43",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290775466
+        }
+      ]
+    },
+    {
+      "stage": "switch-stale",
+      "capturedAt": "2026-10-29T16:20:14.334Z",
+      "rawSha256": "d79ae0dbd9876aa72764fe430333be62a253f650d3ab55c5115adc823097c480",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "58C30A8FD45BC369EE4948BB9E610A43",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "目标网页已失效",
+      "reactNotice": "读回未确认：Session invalidated",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290775466
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290805774
+        }
+      ]
+    },
+    {
+      "stage": "de-verified",
+      "capturedAt": "2026-10-29T16:21:27.949Z",
+      "rawSha256": "4b232b455ea485edb7fcf3eb8be7675d9bb06bcc8232f6e2afabf04781def098",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "58C30A8FD45BC369EE4948BB9E610A43",
+      "debuggerAttached": true,
+      "values": {
+        "language": "de-DE",
+        "languages": [
+          "de-DE"
+        ],
+        "timezone": "Europe/Berlin",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "有限字段已验证",
+      "reactNotice": "已验证可用字段；未采集字段不视为一致。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290865854
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290882078
+        }
+      ]
+    },
+    {
+      "stage": "de-restored",
+      "capturedAt": "2026-10-29T16:22:03.392Z",
+      "rawSha256": "a46ac0b1c87b14187504a7a667f1889957097b05f27aa57abcf68ec4c4fdc72a",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "58C30A8FD45BC369EE4948BB9E610A43",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "调试已停止 · 恢复有限验证",
+      "reactNotice": "Chrome 调试已停止、网页字段已恢复；HTTP 请求语言没有独立网络证据。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290865854
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290882078
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793290899405
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290910957
+        }
+      ]
+    },
+    {
+      "stage": "nav-before",
+      "capturedAt": "2026-10-29T16:22:54.578Z",
+      "rawSha256": "0c84ed7a4d75e9b515fa5f53932f356ef62fe4e76e112b7a1188b99d8b713e8d",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "58C30A8FD45BC369EE4948BB9E610A43",
+      "debuggerAttached": true,
+      "values": {
+        "language": "de-DE",
+        "languages": [
+          "de-DE"
+        ],
+        "timezone": "Europe/Berlin",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290865854
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290882078
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793290899405
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290910957
+        },
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290968318
+        }
+      ]
+    },
+    {
+      "stage": "nav-after",
+      "capturedAt": "2026-10-29T16:23:06.809Z",
+      "rawSha256": "b32445b9fe154f54b2f946fcc84838f2790cb7c231be6152e0681defe7878a88",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "DF34D8C77F33D543EEF9263F18E2993A",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290865854
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290882078
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793290899405
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290910957
+        },
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290968318
+        }
+      ]
+    },
+    {
+      "stage": "nav-stale",
+      "capturedAt": "2026-10-29T16:23:54.145Z",
+      "rawSha256": "40a018ec373d2530dac3a3b1671ce6a4e518634a56511c0517da4c491b837299",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "DF34D8C77F33D543EEF9263F18E2993A",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": null,
+      "reactStatus": "目标网页已失效",
+      "reactNotice": "读回未确认：目标文档已失效",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290865854
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290882078
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793290899405
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290910957
+        },
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793290968318
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793290992125
+        }
+      ]
+    },
+    {
+      "stage": "http-us-applied",
+      "capturedAt": "2026-10-29T16:46:05.958Z",
+      "rawSha256": "d66de1a7b4627baa773abf8f09951d759542ca9d05f9ff0084598e87dd717a79",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "053D24B918ACB2484D434EDD11DF973F",
+      "debuggerAttached": true,
+      "values": {
+        "language": "en-US",
+        "languages": [
+          "en-US"
+        ],
+        "timezone": "America/New_York",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "Windows",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": "8 项变化 · 1 项与基线一致 · 0 项不可比较",
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793291530000
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793291592625
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793291600963
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793291620846
+        },
+        {
+          "label": "",
+          "trusted": true,
+          "at": 1793292295060
+        },
+        {
+          "label": "环境设置",
+          "trusted": true,
+          "at": 1793292319810
+        },
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793292344653
+        }
+      ]
+    },
+    {
+      "stage": "http-us-restored",
+      "capturedAt": "2026-10-29T16:48:03.608Z",
+      "rawSha256": "8a44ac49f317c3429bf3cbdcb49e890b05d32f35ef26a848c3e7203f2c04bf5e",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "053D24B918ACB2484D434EDD11DF973F",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": "0 项变化 · 9 项与基线一致 · 0 项不可比较",
+      "reactStatus": "已请求恢复 · 待读回",
+      "reactNotice": "可信 Host 已受理恢复；请点击「网页读回」确认原始基线。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793291530000
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793291592625
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793291600963
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793291620846
+        },
+        {
+          "label": "",
+          "trusted": true,
+          "at": 1793292295060
+        },
+        {
+          "label": "环境设置",
+          "trusted": true,
+          "at": 1793292319810
+        },
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793292344653
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793292412723
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793292422297
+        }
+      ]
+    },
+    {
+      "stage": "revoke-before",
+      "capturedAt": "2026-10-29T16:55:21.554Z",
+      "rawSha256": "8fd5fd111d838d2b71870877a1c181812bd076c80842e419468975997c70e75f",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "053D24B918ACB2484D434EDD11DF973F",
+      "debuggerAttached": true,
+      "values": {
+        "language": "en-US",
+        "languages": [
+          "en-US"
+        ],
+        "timezone": "America/New_York",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "Windows",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": "8 项变化 · 1 项与基线一致 · 0 项不可比较",
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793291530000
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793291592625
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793291600963
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793291620846
+        },
+        {
+          "label": "",
+          "trusted": true,
+          "at": 1793292295060
+        },
+        {
+          "label": "环境设置",
+          "trusted": true,
+          "at": 1793292319810
+        },
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793292344653
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793292412723
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793292422297
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793292497194
+        },
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793292911912
+        }
+      ]
+    },
+    {
+      "stage": "settings-open",
+      "capturedAt": "2026-10-29T16:55:40.600Z",
+      "rawSha256": "e2bdc0622fe6fcb8999f1f4e66dc776ac8730942bcb9b0ae9cecbf81bf87e6c7",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "a053dba2-8b14-4161-8471-10dbae5c195e",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "053D24B918ACB2484D434EDD11DF973F",
+      "debuggerAttached": true,
+      "values": {
+        "language": "en-US",
+        "languages": [
+          "en-US"
+        ],
+        "timezone": "America/New_York",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "Windows",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": "8 项变化 · 1 项与基线一致 · 0 项不可比较",
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": [
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793291530000
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793291592625
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793291600963
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793291620846
+        },
+        {
+          "label": "",
+          "trusted": true,
+          "at": 1793292295060
+        },
+        {
+          "label": "环境设置",
+          "trusted": true,
+          "at": 1793292319810
+        },
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793292344653
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793292412723
+        },
+        {
+          "label": "停止 / 恢复",
+          "trusted": true,
+          "at": 1793292422297
+        },
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793292497194
+        },
+        {
+          "label": "应用配置",
+          "trusted": true,
+          "at": 1793292911912
+        }
+      ]
+    },
+    {
+      "stage": "disabled-after",
+      "capturedAt": "2026-10-29T16:58:24.655Z",
+      "rawSha256": "2d3167f8a57f62327608bcc699354ed74ca05e6a9a8684792e0099f43743f95f",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "ad9517df-7f78-4df1-a67e-d6b06c136340",
+        "enabled": false
+      },
+      "tabId": 1979728551,
+      "documentId": "053D24B918ACB2484D434EDD11DF973F",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": "0 项变化 · 9 项与基线一致 · 0 项不可比较",
+      "reactStatus": null,
+      "reactNotice": null,
+      "trustedClicks": []
+    },
+    {
+      "stage": "chrome-revoke-before",
+      "capturedAt": "2026-10-29T17:00:02.682Z",
+      "rawSha256": "712e149a1490953b4f5d6d9c820c613478936cc40d257010aa217a3ec677233e",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "db2ff29e-6164-4aaa-9eda-eaa7e25d75f0",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "053D24B918ACB2484D434EDD11DF973F",
+      "debuggerAttached": true,
+      "values": {
+        "language": "en-US",
+        "languages": [
+          "en-US"
+        ],
+        "timezone": "America/New_York",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "Windows",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": "8 项变化 · 1 项与基线一致 · 0 项不可比较",
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": []
+    },
+    {
+      "stage": "chrome-revoke-after",
+      "capturedAt": "2026-10-29T17:01:39.285Z",
+      "rawSha256": "3b3ea2d420cde219df99fde4b4ea5f2c672b46da6971e1063d8962d8cd99f80f",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "db2ff29e-6164-4aaa-9eda-eaa7e25d75f0",
+        "enabled": true
+      },
+      "tabId": null,
+      "documentId": null,
+      "debuggerAttached": null,
+      "values": null,
+      "websiteSummary": null,
+      "reactStatus": "授权被拒绝",
+      "reactNotice": "读回未确认：浏览器环境修改尚未对当前网页授权或原生能力不可用",
+      "trustedClicks": [
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793293265893
+        }
+      ]
+    },
+    {
+      "stage": "takeover-before",
+      "capturedAt": "2026-10-29T17:03:24.216Z",
+      "rawSha256": "150cfe7783917b831837cd7dbea5b453b50da0c7b990463f0769d7a2302ecf78",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "db2ff29e-6164-4aaa-9eda-eaa7e25d75f0",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "C593181CB6209F52342A2D13F1BA2F82",
+      "debuggerAttached": true,
+      "values": {
+        "language": "en-US",
+        "languages": [
+          "en-US"
+        ],
+        "timezone": "America/New_York",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "Windows",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": "8 项变化 · 1 项与基线一致 · 0 项不可比较",
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": []
+    },
+    {
+      "stage": "takeover-open",
+      "capturedAt": "2026-10-29T17:03:50.350Z",
+      "rawSha256": "c43078a72c3184e63231d01cd941069909ffce7a0272cfa03bd038baba895bcc",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "db2ff29e-6164-4aaa-9eda-eaa7e25d75f0",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "C593181CB6209F52342A2D13F1BA2F82",
+      "debuggerAttached": true,
+      "values": {
+        "language": "en-US",
+        "languages": [
+          "en-US"
+        ],
+        "timezone": "America/New_York",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "Windows",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": "8 项变化 · 1 项与基线一致 · 0 项不可比较",
+      "reactStatus": "已受理 · 待读回",
+      "reactNotice": "可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。",
+      "trustedClicks": []
+    },
+    {
+      "stage": "uninstall-before",
+      "capturedAt": "2026-10-29T17:04:36.838Z",
+      "rawSha256": "4ead61e6d14ac93ac826c4e7dac124fd5cba43be19806401ce35e7612a591be2",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "db2ff29e-6164-4aaa-9eda-eaa7e25d75f0",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "C593181CB6209F52342A2D13F1BA2F82",
+      "debuggerAttached": true,
+      "values": {
+        "language": "en-US",
+        "languages": [
+          "en-US"
+        ],
+        "timezone": "America/New_York",
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "Windows",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 768,
+          "width": 1366
+        }
+      },
+      "websiteSummary": "7 项变化 · 2 项与基线一致 · 0 项不可比较",
+      "reactStatus": "有限字段已验证",
+      "reactNotice": "已验证可用字段；未采集字段不视为一致。",
+      "trustedClicks": [
+        {
+          "label": "网页读回",
+          "trusted": true,
+          "at": 1793293437329
+        }
+      ]
+    },
+    {
+      "stage": "uninstall-after",
+      "capturedAt": "2026-10-29T17:05:04.847Z",
+      "rawSha256": "6ff8b616a2bb233bb5bc86fd1026405af626beb2799786fc279a7f949a4074a8",
+      "installed": null,
+      "tabId": 1979728551,
+      "documentId": "C593181CB6209F52342A2D13F1BA2F82",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": "0 项变化 · 9 项与基线一致 · 0 项不可比较",
+      "reactStatus": null,
+      "reactNotice": null,
+      "trustedClicks": []
+    },
+    {
+      "stage": "upgrade-old-installed",
+      "capturedAt": "2026-10-29T17:06:25.009Z",
+      "rawSha256": "6ab52e11ddfaafa749df87b059a524e81b835dae5bccb5424d0b0e326c9fd799",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.1",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "3c0bdbbb-bdab-41b9-a934-651a0d1a8408",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "C593181CB6209F52342A2D13F1BA2F82",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": "0 项变化 · 9 项与基线一致 · 0 项不可比较",
+      "reactStatus": null,
+      "reactNotice": null,
+      "trustedClicks": []
+    },
+    {
+      "stage": "upgrade-new-installed",
+      "capturedAt": "2026-10-29T17:07:14.685Z",
+      "rawSha256": "d42878da926704c105750060997e52dfae0bfef4fc911b24df652a1805d7a148",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.2",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "ee6004fe-41c8-47d1-8eed-3b73a05d9310",
+        "enabled": true
+      },
+      "tabId": 1979728551,
+      "documentId": "C593181CB6209F52342A2D13F1BA2F82",
+      "debuggerAttached": false,
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 849,
+          "width": 1054
+        }
+      },
+      "websiteSummary": "0 项变化 · 9 项与基线一致 · 0 项不可比较",
+      "reactStatus": null,
+      "reactNotice": null,
+      "trustedClicks": []
+    }
+  ],
+  "ci": {
+    "checkedSHA": "0431ff39465ec33e7319e57803911eb6bbbb3180",
+    "status": "BLOCKED_EXISTING_CI; DISPATCH_HELD_FOR_FINAL_MAIN_COORDINATION",
+    "run": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40915966478",
+    "blocker": "Confirmed remote migration stale import: src/ui/sidebar-tools/installation.js:14 imports ../../../examples/sidebar-tools/time-review/trusted/model.js, absent at 0431ff39465ec33e7319e57803911eb6bbbb3180. Correct tracked file is projects/time-review/trusted/model.js (migration commit 09cbe7f36).",
+    "candidateReceipt": "NOT_AVAILABLE_FOR_CURRENT_MAIN"
+  },
+  "release": {
+    "status": "NOT_PROMOTED",
+    "formalVersion": "0.2.1",
+    "reason": "Current-main generic App CI discovery failed before app validation; no gated App Release was started"
+  },
+  "scope": {
+    "httpPageReview": "Separate scoped independent review: mean 97, minimum 95; see http-diagnostic-20261030.json",
+    "wholeExtensionScore": "NOT_RESCORED_AS_95; release and unobserved native cases remain explicit",
+    "httpAcceptLanguage": "UNVERIFIABLE",
+    "geolocation": "UNSUPPORTED",
+    "publicIP": "OUT_OF_SCOPE",
+    "dailyChromeAndWatchers": "UNTOUCHED"
+  }
+}

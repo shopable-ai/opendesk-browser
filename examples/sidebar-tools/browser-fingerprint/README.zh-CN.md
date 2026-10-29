@@ -8,6 +8,8 @@
 
 真实 Mac 上美国 Windows 与德国预设的网页变化、停止后回到基线均已核对。诊断页独立评审八项平均 97、最低 95，见[操作证据与评分](evidence/http-diagnostic-20261030.zh-CN.md)。该分数不代表整套 Host/发行验收；正式包仍为 0.2.1，0.2.2 晋升门禁尚未完成。以下 R2.2 和历史章节保留当时状态，以本节及原始证据的具体范围为准。
 
+同一 d57 production Host 的安装、应用与恢复，以及切 Tab、刷新、停用、Chrome 网站撤权、卸载、0.2.1 → 0.2.2 更新已取得[当前 Mac 原生证据](evidence/mac-lifecycle-20261030.zh-CN.md)。DevTools 在该 Chrome 可并存，未证明外部断开；其余未测原生项及当前 CI 旧路径阻断均单独保留，不影响诊断页专项评分，也不视为正式发行通过。
+
 ## R2.2 正式源代码已做的增量（2026-10-29）
 
 - Manifest 及 permission-gate.js 声明必需的高敏 debugger 权限。Chrome 不允许动态申请可选 debugger；用户必须经过 Chrome 原生安装/升级提示，另需独立当前网站授权。扩大 Manifest 权限必须经真实安装安全审查，**此版本不得提前发布官方 Catalog**。
