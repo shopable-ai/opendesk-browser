@@ -264,7 +264,7 @@ function chart(alias,key,n,large,selectedCycle){
   const buttonData=large?'data-inspect="'+idx+'"':'data-cycle="'+idx+'" data-account="'+esc(alias)+'" data-window="'+esc(key)+'"';
   return '<button type="button" class="cycle" '+buttonData+' title="'+esc(label)+'" aria-label="'+esc(label)+'"'+
    (large?' aria-pressed="'+String(selectedCycle===r.priorResetsAt)+'"':'')+'>'+
-   (can?'<span class="cycle-bar '+(v>=80?"high":"")+'" style="height:'+Math.max(2,v)+'%"></span>':
+   (can?'<span class="cycle-bar '+(v>=80?"high":"")+'" style="height:'+v+'%"></span>':
     '<span class="cycle-missing" aria-hidden="true">?</span>')+
    (large?'<span class="cycle-date" aria-hidden="true">'+esc(fmt(r.priorResetsAt).slice(0,5))+'</span>':'')+
    '</button>';
