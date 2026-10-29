@@ -32,7 +32,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   });
   const [accountNotice,setAccountNotice]=React.useState(null);
   const accountInFlight=React.useRef(false);
-  // Session-only evidence of an applied snapshot, never a persisted login claim.
+  // Session-only evidence of an applied or freshly matched snapshot, never login proof.
   const verifiedAccount=React.useRef(null);
   const [offlineInitialSite,setOfflineInitialSite]=React.useState(null);
   const modeRef=React.useRef('browser');
@@ -264,11 +264,14 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       return Promise.resolve(false);
     }
     const requestedOrigin=target.origin;
+    const requestedUrl=target.url;
+    const requestedRows=JSON.stringify(controller.snapshot().rows);
+    const requestedRevision=accountState.revision;
     const requestedEpoch=controller.snapshot().epoch;
     const sameAccountContext=()=>{
       const live=controller.snapshot();
       return modeRef.current==='browser'&&live.epoch===requestedEpoch&&
-        live.target?.origin===requestedOrigin;
+        live.target?.origin===requestedOrigin&&live.target?.url===requestedUrl;
     };
     setAccountBusy(true);setAccountNotice(null);
     return Promise.resolve(intent).then(async receipt=>{
@@ -279,7 +282,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         const account=accountState.accounts.find(item=>item.alias===payload.alias&&
           item.origin===requestedOrigin);
         if(!account)throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
-        const verified={alias:account.alias,version:account.version,
+        const verified={alias:account.alias,version:account.version,kind:'applied',
           epoch:requestedEpoch,url:target.url,rows:JSON.stringify(controller.snapshot().rows),
           refreshing:!receipt.reloadRequested};
         verifiedAccount.current=verified;
@@ -303,6 +306,25 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           :null;
         if(action==='create'&&(!created||created.description!==payload.description))
           throw Object.assign(Error('E_OUTCOME_UNKNOWN'),{code:'E_OUTCOME_UNKNOWN'});
+        if(action==='create'||action==='attach'){
+          const matched=created||receipt.accounts.find(item=>item.alias===payload.alias&&
+            item.origin===requestedOrigin);
+          const proof=receipt.currentSnapshot,live=controller.snapshot();
+          let proofUrl='';
+          try{const url=new URL(proof?.document?.url);proofUrl=url.origin+url.pathname;}catch{}
+          // A saved name/count alone cannot establish the active snapshot.
+          // Only the fixed Host's post-save value comparison supplies this proof.
+          if(matched?.cookieCount>0&&receipt.unlocked===true&&
+            receipt.revision===requestedRevision+1&&
+            proof?.alias===matched.alias&&proof.version===matched.version&&
+            proof.revision===receipt.revision&&proofUrl===requestedUrl&&
+            Number.isSafeInteger(proof.document.tabId)&&
+            typeof proof.document.documentId==='string'&&proof.document.documentId&&
+            live.phase==='ready'&&!live.syncStale&&JSON.stringify(live.rows)===requestedRows){
+            verifiedAccount.current={alias:matched.alias,version:matched.version,kind:'matched',
+              epoch:requestedEpoch,url:requestedUrl,rows:requestedRows,refreshing:false};
+          }
+        }
         if(action==='rename'){
           const edited=receipt.accounts.find(item=>item.alias===payload.alias&&
             item.origin===requestedOrigin);
@@ -713,6 +735,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           snapshot.epoch===verifiedAccount.current.epoch&&target?.url===verifiedAccount.current.url&&
           accountState.accounts.some(item=>item.alias===verifiedAccount.current.alias&&
             item.version===verifiedAccount.current.version)?verifiedAccount.current.alias:null}
+        currentKind={verifiedAccount.current?.kind||'applied'}
         route={accountRoute} onRoute={setAccountRoute}
         accountReady={accountState?.unlocked===true}
         legacyLocked={accountState?.legacyLocked===true} switchReady={

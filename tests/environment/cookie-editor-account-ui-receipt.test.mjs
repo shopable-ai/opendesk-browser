@@ -97,6 +97,69 @@ test('first account creation uses the trusted save action without password or lo
   assert.equal('passphrase' in calls[0].payload,false);
 });
 
+const createdAccount={...alpha,alias:'acct_new',displayName:'New account',description:'',cookieCount:1};
+function creationReceipt(){
+  return {configured:true,unlocked:true,revision:2,accounts:[alpha,beta,createdAccount],
+    currentSnapshot:{alias:createdAccount.alias,version:1,revision:2,
+      document:{tabId:7,documentId:'doc-a',url:'https://example.com/'}}};
+}
+
+test('a trusted post-save match shows the newly created account without claiming a switch',async()=>{
+  const app=mount();await app.flush();
+  app.setResponse(async()=>creationReceipt());
+  await app.action('onCreate','New account','');
+  assert.equal(app.accounts().currentAlias,createdAccount.alias);
+  assert.equal(app.accounts().currentKind,'matched');
+  await app.sync();
+  assert.equal(app.accounts().currentAlias,createdAccount.alias);
+});
+
+test('linking a saved account accepts only its new post-save snapshot proof',async()=>{
+  const app=mount();await app.flush();
+  const receipt=creationReceipt();
+  receipt.accounts=[{...alpha,cookieCount:1,version:2},beta];
+  receipt.currentSnapshot={...receipt.currentSnapshot,alias:alpha.alias,version:2};
+  app.setResponse(async()=>receipt);
+  await app.action('onAttach',alpha);
+  assert.equal(app.accounts().currentAlias,alpha.alias);
+  assert.equal(app.accounts().currentKind,'matched');
+});
+
+test('saved metadata, mismatched proof and stale revisions never identify the current account',async()=>{
+  for(const change of [
+    receipt=>{delete receipt.currentSnapshot;},
+    receipt=>{receipt.accounts[2].cookieCount=0;},
+    receipt=>{receipt.currentSnapshot.alias=alpha.alias;},
+    receipt=>{receipt.currentSnapshot.version=99;},
+    receipt=>{receipt.currentSnapshot.revision=1;},
+    receipt=>{receipt.revision=1;receipt.currentSnapshot.revision=1;},
+    receipt=>{receipt.currentSnapshot.document.url='https://example.com/other';},
+    receipt=>{receipt.currentSnapshot.document.documentId='';}
+  ]){
+    const app=mount();await app.flush();
+    const receipt=structuredClone(creationReceipt());change(receipt);
+    app.setResponse(async()=>receipt);
+    await app.action('onCreate','New account','');
+    assert.equal(app.accounts().currentAlias,null);
+  }
+});
+
+test('a delayed create receipt cannot identify an old page, permission or Cookie view',async()=>{
+  for(const change of ['path','permission','rows']){
+    const app=mount();await app.flush();let release;
+    app.setResponse(action=>action==='create'?new Promise(resolve=>{release=resolve;}):
+      Promise.resolve({configured:true,unlocked:true,revision:1,accounts:[alpha,beta]}));
+    const pending=app.accounts().onCreate('New account','');await app.flush();
+    if(change==='path'){app.setUrl('https://example.com/other');await app.event('opendesk-page-changed');}
+    if(change==='permission'){app.setPermission(false);await app.event('opendesk-cookie-grants-changed');}
+    if(change==='rows'){
+      app.setRows([{name:'changed',domain:'example.com',path:'/',storeId:'0'}]);await app.sync();
+    }
+    release(creationReceipt());await pending;await app.flush();
+    assert.equal(app.accounts().currentAlias,null,change);
+  }
+});
+
 test('site/permission invalidation and delete clear the verified alias',async()=>{
   for(const action of ['page','permission','delete']){
     const app=mount();await app.flush();await app.action('onSwitch',alpha);

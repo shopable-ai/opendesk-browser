@@ -495,6 +495,10 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
         return {...await statusFor(origin),unchanged:true};
     }
     if(captureScope)await assertScope(captureScope);
+    // Retain a metadata-only save response even if subsequent proof reads fail
+    // or a different service instance advances the vault after this commit.
+    const savedStatus=['create','attach'].includes(operation)?await statusFor(origin):null;
+    let savedAccount=null;
     const changed=await vault.update(revision,async data=>{
       if(captureScope)await assertScope(captureScope);
       else if(operation==='create'){
@@ -515,8 +519,9 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
           item.displayName===displayName))throw fail('E_ACCOUNT_NAME_TAKEN');
         const alias='acct_'+crypto.randomUUID().replace(/-/g,'').slice(0,20);
         const description=normalizeAccountDescription(payload.description);
-        data.accounts.push({alias,origin,displayName,description,version:1,
-          cookies:capture??[],allowAuto:false});
+        savedAccount={alias,origin,displayName,description,version:1,
+          cookies:capture??[],allowAuto:false};
+        data.accounts.push(savedAccount);
       }else if(operation==='rename'){
         const name=String(payload.displayName||'').trim();
         if(!name||name.length>64)throw fail('E_ACCOUNT_NAME');
@@ -536,6 +541,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
         // a previously saved snapshot through this path.
         if(selected.cookies.length)throw fail('E_ACCOUNT_ALREADY_LINKED');
         selected.cookies=capture;selected.version++;selected.allowAuto=false;
+        savedAccount=selected;
       }else if(operation==='delete'){
         data.accounts.splice(data.accounts.indexOf(selected),1);
       }else if(operation==='allowAlias'){
@@ -546,8 +552,40 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
         if(typeof payload.enabled!=='boolean')throw fail('E_ACCOUNT_REQUEST');
         data.settings[operation==='setAutoEnabled'?'autoEnabled':'autoRefresh']=payload.enabled;
       }else throw fail('E_ACCOUNT_REQUEST');
+      if(savedAccount){
+        savedStatus.accounts=data.accounts.filter(item=>item.origin===origin)
+          .map(item=>meta({...item,cookieCount:item.cookies.length}));
+        savedStatus.settings={...data.settings};
+      }
     });
-    const value=await statusFor(origin);
+    const value=savedStatus?{...savedStatus,revision:changed}:await statusFor(origin);
+    if(savedAccount){
+      // A saved snapshot is not evidence of the current website identity.
+      // Verify once, under the original scope, without any native write or retry.
+      // A failed proof must never turn a successful save into a failed operation.
+      try{
+        if(!capture?.length)return value;
+        const current=await cookiesFor(captureScope);
+        const snapshotMatches=rows=>same(
+          validateRows(rows,captureScope.host,captureScope.storeId,
+            captureScope.partition,captureScope.parents),capture);
+        if(!snapshotMatches(current))return value;
+        await hostSender(sender,hostDocumentId);
+        await assertScope(captureScope);
+        const latest=await vault.read();
+        const account=latest.accounts.find(item=>item.alias===savedAccount.alias&&
+          item.origin===origin&&item.version===savedAccount.version);
+        if(latest.revision===changed&&account&&snapshotMatches(account.cookies)){
+          await hostSender(sender,hostDocumentId);
+          await assertScope(captureScope);
+          const {tabId,documentId,url}=captureScope.document;
+          const publicUrl=new URL(url);
+          return {...value,currentSnapshot:{alias:account.alias,version:account.version,
+            revision:changed,document:{tabId,documentId,url:publicUrl.origin+publicUrl.pathname}}};
+        }
+      }catch{/* The account was saved; only current-identity proof is unavailable. */}
+      return value;
+    }
     if(value.revision!==changed)throw fail('E_OUTCOME_UNKNOWN');
     return value;
   }

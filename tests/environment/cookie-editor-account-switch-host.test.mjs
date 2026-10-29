@@ -220,6 +220,7 @@ async function serviceFixture(t){
       getAllCookieStores:async()=>[{id:'0',tabIds:[1]}],
       getPartitionKey:async()=>({partitionKey:{topLevelSite:origin,hasCrossSiteAncestor:false}}),
       getAll(details,callback){const rows=cookie?[structuredClone(cookie)]:[];if(callback)callback(rows);else return Promise.resolve(rows);},
+      remove(){writes++;assert.fail('snapshot capture must not remove native Cookies');},
       set(details,callback){writes++;cookie=original({value:details.value});callback(structuredClone(cookie));}
     }};
   const message=(operation,payload={})=>({protocol:COOKIE_ACCOUNT_PROTOCOL,toolId:'cookie-editor',
@@ -243,6 +244,9 @@ test('SW saves directly at revision zero and switches after service restart with
   const saved=await f.dispatch('create',{revision:0,displayName:'示例账号'});
   assert.equal(saved.revision,1);assert.equal(saved.accounts.length,1);
   assert.equal(saved.accounts[0].cookieCount,1);
+  assert.deepEqual(saved.currentSnapshot,{alias:saved.accounts[0].alias,version:1,
+    revision:1,document:f.document});
+  assert.equal(Object.hasOwn(await f.dispatch('status'),'currentSnapshot'),false);
   assert.doesNotMatch(JSON.stringify(saved),/fiction|cookies|ciphertext|key/);
   const alias=saved.accounts[0].alias;
   assert.equal(f.records.get(COOKIE_ACCOUNT_STORE_KEY).accounts[0].cookies[0].value,'fiction');
@@ -272,6 +276,7 @@ test('SW creates, edits and deletes an account when a granted site has zero Cook
   assert.equal(created.accounts[0].cookieCount,0);
   assert.equal(created.accounts[0].description,'先保存名称');
   assert.equal(created.accounts[0].allowAuto,false);
+  assert.equal(Object.hasOwn(created,'currentSnapshot'),false);
   assert.deepEqual(f.records.get(COOKIE_ACCOUNT_STORE_KEY).accounts[0].cookies,[]);
   const {alias}=created.accounts[0];
   assert.equal((await f.dispatch('status')).accounts[0].cookieCount,0);
@@ -297,6 +302,7 @@ test('SW permits metadata-only creation without a Cookie site grant and explicit
     revision:0,displayName:'待关联账号',description:'本地先保存'
   });
   assert.equal(created.accounts[0].cookieCount,0);
+  assert.equal(Object.hasOwn(created,'currentSnapshot'),false);
   const {alias}=created.accounts[0];
   assert.equal(f.writes(),0);
   const forged=f.message('attach',{revision:1,alias,accountVersion:1});
@@ -313,6 +319,8 @@ test('SW permits metadata-only creation without a Cookie site grant and explicit
   assert.equal(attached.revision,2);
   assert.equal(attached.accounts[0].cookieCount,1);
   assert.equal(attached.accounts[0].version,2);
+  assert.deepEqual(attached.currentSnapshot,{alias,version:2,revision:2,document:f.document});
+  assert.doesNotMatch(JSON.stringify(attached),/fiction|"cookies"|"value"/);
   assert.equal(f.writes(),0,'attaching snapshots only reads native Cookie');
   await assert.rejects(f.dispatch('attach',{
     revision:2,alias,accountVersion:2
@@ -320,6 +328,85 @@ test('SW permits metadata-only creation without a Cookie site grant and explicit
   assert.equal((await f.dispatch('status')).revision,2,
     'repeat association must not mutate existing snapshot');
 });
+
+test('snapshot proof exposes only the public document origin and path',async t=>{
+  const f=await serviceFixture(t);
+  f.document.url='https://example.com/account?token=private-token#secret-fragment';
+  const saved=await f.dispatch('create',{revision:0,displayName:'已保存账号'});
+  assert.deepEqual(saved.currentSnapshot.document,{...f.document,url:'https://example.com/account'});
+  assert.doesNotMatch(JSON.stringify(saved),/private-token|secret-fragment/);
+});
+
+for(const operation of ['create','attach']){
+  for(const change of ['value','name','domain','path','storeId','partitionKey','hostOnly',
+    'secure','httpOnly','sameSite','session','expirationDate',
+    'empty','extra','navigation','revoke','grantEpoch','installEpoch','hostDocument',
+    'readError','vaultRevision','vaultReadError','lateRevoke','lateNavigation','lateHostDocument']){
+    test(`${operation} preserves its saved snapshot without proof after ${change}`,async t=>{
+      const f=await serviceFixture(t);
+      let revision=0,payload={revision,displayName:'已保存账号'};
+      if(operation==='attach'){
+        f.setCookie(null);
+        const empty=await f.dispatch('create',payload);
+        revision=empty.revision;
+        payload={revision,alias:empty.accounts[0].alias,accountVersion:1};
+        f.setCookie('fiction');
+      }
+      const read=f.api.cookies.getAll;
+      const expirationDate=Math.floor(Date.now()/1000)+3600;
+      let verificationReads=0;
+      f.api.cookies.getAll=async details=>{
+        const native=await read(details);
+        const rows=change==='expirationDate'?native.map(row=>({
+          ...row,session:false,expirationDate})):native;
+        if((f.records.get(COOKIE_ACCOUNT_STORE_KEY)?.revision??0)<=revision)return rows;
+        verificationReads++;
+        const patches={value:'changed-secret',name:'another-cookie',domain:'other.example.com',
+          path:'/other',storeId:'1',partitionKey:{topLevelSite:'https://example.com',
+            hasCrossSiteAncestor:false},hostOnly:false,secure:false,httpOnly:false,
+          sameSite:'strict',session:false};
+        if(Object.hasOwn(patches,change))return rows.map(row=>({...row,[change]:patches[change]}));
+        if(change==='expirationDate')return rows.map(row=>({...row,expirationDate:expirationDate+60}));
+        if(change==='empty')return [];
+        if(change==='extra')return [...rows,original({name:'extra',value:'extra-secret'})];
+        if(change==='navigation')f.api.webNavigation.getFrame=async()=>({
+          ...f.document,documentId:'new-document',documentLifecycle:'active'});
+        if(change==='revoke')f.revoke();
+        if(change==='grantEpoch')f.state[BROWSER_MENU_GRANTS_STORE]['cookie-editor']
+          .cookieSites['https://example.com'].grantEpoch='replacement-grant';
+        if(change==='installEpoch')f.state[TOOL_REVOCATION_EPOCHS_STORE]['cookie-editor']='replacement-install';
+        if(change==='hostDocument')f.api.runtime.getContexts=async()=>[];
+        if(change==='readError')throw new Error('native proof read failed');
+        if(change==='vaultRevision'&&verificationReads===1)
+          f.records.get(COOKIE_ACCOUNT_STORE_KEY).revision++;
+        if(change==='vaultReadError')f.storageFailure=true;
+        return rows;
+      };
+      const storage=async()=>{
+        if(f.storageFailure)throw new Error('proof storage unavailable');
+        if(verificationReads>0){
+          if(change==='lateRevoke')f.revoke();
+          if(change==='lateNavigation')f.api.webNavigation.getFrame=async()=>({
+            ...f.document,documentId:'new-document',documentLifecycle:'active'});
+          if(change==='lateHostDocument')f.api.runtime.getContexts=async()=>[];
+        }
+        return f.storage();
+      };
+      const result=await createCookieAccountService({api:f.api,storage})
+        .dispatch(f.message(operation,payload),f.sender);
+      assert.ok(verificationReads>0,'failure is injected only after saving');
+      assert.equal(result.revision,revision+1,'receipt retains this successful save');
+      assert.equal(result.accounts[0].version,operation==='create'?1:2);
+      assert.equal(Object.hasOwn(result,'currentSnapshot'),false);
+      assert.doesNotMatch(JSON.stringify(result),/fiction|changed-secret|extra-secret|"cookies"|"value"/);
+      const saved=f.records.get(COOKIE_ACCOUNT_STORE_KEY);
+      assert.deepEqual(saved.accounts[0].cookies,[original(change==='expirationDate'?
+        {session:false,expirationDate}:{})],'saved capture is retained');
+      assert.equal(f.writes(),0,'failed proof must not write native Cookies');
+      assert.ok(verificationReads<=4,'no verification retry');
+    });
+  }
+}
 
 test('trusted account descriptions persist without Cookie reads, writes or reload',async t=>{
   const f=await serviceFixture(t);

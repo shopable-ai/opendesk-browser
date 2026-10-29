@@ -234,7 +234,15 @@ export function createMockSdk({scenario='ready',onFailureConsumed=()=>{}}={}){
     }else throw error('E_ACCOUNT_REQUEST');
     demoAccounts.revision++;
     record('previewAccountMutation',{action,fixture:true});
-    return accountMeta();
+    const result=accountMeta();
+    if(action==='create'){
+      const created=result.accounts.find(item=>item.displayName===payload.displayName);
+      if(created?.cookieCount>0)result.currentSnapshot={
+        alias:created.alias,version:created.version,revision:result.revision,
+        document:{tabId:1,documentId:'preview-document',url:origin+'/'}
+      };
+    }
+    return result;
    }
    if(operation==='currentPage.info'){
     if(scenario==='noPage'||scenario==='restricted'||scenario==='switching')

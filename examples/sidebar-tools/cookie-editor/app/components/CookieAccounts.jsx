@@ -19,7 +19,7 @@ const ruleHelp={
 // This screen renders only metadata. Raw Cookie values stay in the trusted
 // controller/adapter and must never be passed to presentation props.
 export function CookieAccounts({
-  origin='',accounts=[],currentAlias=null,route='list',onRoute=()=>{},
+  origin='',accounts=[],currentAlias=null,currentKind='applied',route='list',onRoute=()=>{},
   accountReady=false,legacyLocked=false,switchReady=false,autoRuntimeReady=false,
   busy=false,feedback=null,previewOnly=false,resumeRevision=0,
   autoEnabled=false,autoRefresh=true,cookieDetails=[],
@@ -85,7 +85,7 @@ export function CookieAccounts({
         :list.current?.querySelector('[aria-label="添加账号"]');
       control?.focus({preventScroll:true});formReturn.current=null;
     }
-  },[route,inline,busy,resumeRevision]);
+  },[route,inline,shareItem,busy,resumeRevision]);
   React.useEffect(()=>{
     if(menuId===null)return;
     const outside=event=>{
@@ -244,7 +244,7 @@ export function CookieAccounts({
     </React.Fragment>);
   const currentItem=accounts.find(item=>item.alias===currentAlias);
   if(shareItem)return <CookieAccountShare account={shareItem} previewOnly={previewOnly}
-    onBack={()=>setShareItem(null)}/>;
+    onBack={()=>{formReturn.current={alias:shareItem.alias};setShareItem(null);}}/>;
   if(route==='auto')return <section className="cookie-account-page od-surface"
     aria-label="管理自动切换">
     <header className="cookie-account-header">
@@ -383,7 +383,8 @@ export function CookieAccounts({
       <div className="cookie-account-current" aria-label="当前账号状态">
         <span className={avatarClass(currentItem)} aria-hidden="true">
           {String(currentItem?.displayName||'?').slice(0,1)}</span>
-        <div><small>{currentItem?'当前已应用的快照（非登录验证）':'当前账号状态'}</small>
+        <div><small>{currentItem?(currentKind==='matched'
+          ?'当前快照（保存时已核对）':'当前已应用的快照（非登录验证）'):'当前账号状态'}</small>
           <strong>{currentItem?.displayName||
             (!accountReady?'正在读取账号':accounts.length?'待核对':'尚未保存账号')}</strong></div>
         {currentItem
@@ -391,8 +392,8 @@ export function CookieAccounts({
             label={'更新'+currentItem.displayName+'的 Cookie 快照'}
             disabled={busy||!switchReady||typeof onUpdate!=='function'}
             onClick={()=>onUpdate?.(currentItem)}/>
-          :<span className="cookie-account-current-status" title="无已验证账号切换收据">
-            {!accountReady?'读取中':'待核对'}</span>}
+          :<span className="cookie-account-current-status" title="尚未确认当前 Cookie 对应哪个已保存快照">
+            {!accountReady?'读取中':accounts.length?'未确认':'未保存'}</span>}
       </div>
       <label className="cookie-account-setting">
         <span><strong>切换后自动刷新网页</strong>
@@ -437,7 +438,10 @@ export function CookieAccounts({
           ?<span className="cookie-account-unlinked" title="账号已保存，尚未关联 Cookie">未关联</span>
           :item.alias===currentAlias
             ?<span className="cookie-account-applied"
-              title="最近一次可信切换确认；不代表网站已经登录">● 已应用</span>
+              title={currentKind==='matched'
+                ?'保存时已核对 Cookie 与快照一致；不代表网站已经登录'
+                :'最近一次可信切换确认；不代表网站已经登录'}>
+                {currentKind==='matched'?'● 已核对':'● 已应用'}</span>
             :<button type="button" className="od-button od-button--secondary cookie-button--compact cookie-button--row-action"
               disabled={busy||!switchReady||typeof onSwitch!=='function'}
               onClick={()=>onSwitch?.(item)}>切换</button>}

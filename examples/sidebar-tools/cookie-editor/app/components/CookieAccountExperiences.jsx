@@ -31,6 +31,8 @@ const mockOutcomes={
 };
 
 export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
+  const heading=React.useRef(null);
+  React.useLayoutEffect(()=>{heading.current?.focus({preventScroll:true});},[]);
   const [recipientType,setRecipientType]=React.useState('anonymous');
   const [recipient,setRecipient]=React.useState('');
   const [expiry,setExpiry]=React.useState('1d');
@@ -41,11 +43,11 @@ export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
     recipient.includes('@')&&recipient.includes('.')&&recipient.length<=254
   );
   return <section className="cookie-account-page od-surface" aria-label="分享配置">
+    <div className="cookie-account-content cookie-share-page">
     <header className="cookie-account-header">
       <CookieIconButton name="undo" label="返回账号" onClick={onBack}/>
-      <h2>分享配置</h2><small className="cookie-market-status">未上线</small>
+      <h2 ref={heading} tabIndex={-1}>分享配置</h2><small className="cookie-market-status">未上线</small>
     </header>
-    <div className="cookie-account-content">
       <p className="cookie-account-notice" role="status">
         {previewOnly
           ?'虚构数据演示：仅预览邀请配置及领取结果，不生成任何真实权限。'
@@ -60,10 +62,10 @@ export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
           <legend>邀请方式</legend>
           <label><input type="radio" name="cookie-share-recipient"
             checked={recipientType==='anonymous'} onChange={()=>updateType('anonymous')}/>
-            匿名邀请</label>
+            <span>匿名链接</span></label>
           <label><input type="radio" name="cookie-share-recipient"
             checked={recipientType==='named'} onChange={()=>updateType('named')}/>
-            指定用户</label>
+            <span>指定用户</span></label>
         </fieldset>
         {recipientType==='named'&&<label className="cookie-share-field">
           指定用户邮箱
@@ -71,7 +73,7 @@ export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
             placeholder="recipient@example.invalid" value={recipient}
             onChange={e=>{setRecipient(e.target.value);setOutcome('');}}/>
         </label>}
-        <div className="cookie-share-row">
+        <div className={'cookie-share-row'+(recipientType==='anonymous'?' is-anonymous':'')}>
           <label className="cookie-share-field">邀请有效期
             <select className="od-field" value={expiry}
               onChange={e=>{setExpiry(e.target.value);setOutcome('');}}>
@@ -93,9 +95,12 @@ export function CookieAccountShare({account,previewOnly=false,onBack=()=>{}}){
         {['3mo','6mo','1y'].includes(expiry)&&<p className="cookie-account-empty">
           长期链接更容易外传；正式版应由服务端按日历月份计算到期时间并允许撤销。
         </p>}
-        <p className="cookie-account-empty">
+        <details className="cookie-share-help">
+          <summary>分享说明</summary>
+          <p className="cookie-account-empty">
           正式分享必须由服务端验证用户、有效期、领取次数及撤销状态；不发送原始 Cookie、密码或 Session Token。
-        </p>
+          </p>
+        </details>
         <div className="cookie-share-actions">
           <button className="od-button od-button--secondary" type="button" onClick={onBack}>取消</button>
           <button className="od-button od-button--primary" type="button"

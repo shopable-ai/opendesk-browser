@@ -76,8 +76,9 @@ function reviewedCompiledAdblock(target,path,root){
 // never enter the automatic-switch whitelist. No new source or privilege.
 const compiledCookieAccountInputs=Object.freeze({
   'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'f2b539b1255ba7ad56070015cd889986b50eeac7',
-  // Reviewed shared-domain restore, literal identities and exact partition reads.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'57e1ca85271355944f6f94098b97f0d8973dc448',
+  // Reviewed shared-domain restore and post-save proof: full snapshot, final
+  // scope/Host fence, redacted URL; proof failure preserves the saved receipt.
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'2efe25ce9ac264bf3ac0e5bad1978375a9ef7280',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
   'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
