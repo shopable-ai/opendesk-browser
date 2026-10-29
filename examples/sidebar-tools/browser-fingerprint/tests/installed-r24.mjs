@@ -445,8 +445,9 @@ try{
     for(const key of ['ua','uaCH','language','timezone'])
       assert.deepEqual(restored.values[key],baseline.values[key],'restoration mismatch: '+key);
     assert.deepEqual(restored.values.viewport,baseline.values.viewport,'original viewport not restored');
-    assert(['调试已停止 · 恢复有限验证','已独立核验恢复'].includes(item.restorationStatus),
-      'restore_unknown is NOT a PASS');
+    // Preserve the Host's per-field explanation even when restore_unknown is
+    // returned. Independent Chrome recovery alone must never override a failed
+    // product receipt; the observed rows identify the actual mismatch.
     // The restored status appears before the async history write completes.
     // Wait for React to commit the final Results page before leaving it;
     // otherwise its later setView("results") overwrites our Config click.
@@ -454,6 +455,9 @@ try{
       'const list=document.querySelector(".fp-check-list");return t?.getAttribute("aria-selected")==="true"'+
       '&&list?.getClientRects().length>0})()'),'restoration results mounted');
     item.restorationRows=await appRead('[...document.querySelectorAll(".fp-check")].map(n=>n.innerText)');
+    item.restorationNotice=await appRead('document.querySelector(".fp-notice")?.textContent');
+    assert(['调试已停止 · 恢复有限验证','已独立核验恢复'].includes(item.restorationStatus),
+      'restore_unknown is NOT a PASS');
     assert(item.restorationRows.some(x=>x.includes('User-Agent')&&x.includes(restored.values.ua)),
       'restoration React report must match the independent original UA');
     item.progress='COMPLETE_INDEPENDENT_RESTORE_VERIFIED';
