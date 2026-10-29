@@ -74,13 +74,19 @@ async function boundedJson(response) {
 }
 
 function windowsFrom(data) {
-  if (!object(data?.rate_limit)) return null;
+  // The internal API has exposed both a direct rate_limit object and a
+  // newer wrapped rate_limits.rate_limit shape. Never merge independent buckets.
+  const bucket = object(data?.rate_limit) ? data.rate_limit :
+    object(data?.rate_limits?.rate_limit) ? data.rate_limits.rate_limit :
+    object(data?.rate_limits) ? data.rate_limits : null;
+  if (!bucket) return null;
   const windows = [];
-  for (const [key, raw] of [['primary', data.rate_limit.primary_window], ['secondary', data.rate_limit.secondary_window]]) {
+  for (const [key, raw] of [['primary', bucket.primary_window], ['secondary', bucket.secondary_window]]) {
     if (raw == null) continue;
     if (!object(raw) || !Number.isFinite(raw.used_percent) || raw.used_percent < 0 || raw.used_percent > 100 ||
         !Number.isInteger(raw.limit_window_seconds) || raw.limit_window_seconds <= 0 ||
-        !Number.isSafeInteger(raw.reset_at) || raw.reset_at <= 0) return null;
+        !Number.isSafeInteger(raw.reset_at) || raw.reset_at <= 0 ||
+        !Number.isFinite(new Date(raw.reset_at * 1000).getTime())) return null;
     const durationSeconds = raw.limit_window_seconds;
     windows.push({key, durationSeconds, usedPercent: raw.used_percent,
       remainingPercent: Math.round((100 - raw.used_percent) * 100) / 100,
