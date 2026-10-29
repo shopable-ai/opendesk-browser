@@ -263,6 +263,20 @@ try{
   await click('#sidebar-tool-install',host);
   const appSelector='[data-extension-key="app:browser-fingerprint"][data-extension-action="main"]';
   await until(()=>evaluate('!!document.querySelector('+JSON.stringify(appSelector)+')',host),'installed App row');
+  // Verify installation from the Chrome extension's independent persistent
+  // registry. The React list alone is not sufficient installation evidence.
+  evidence.installedRecord=await evaluate('(async()=>{const saved=await chrome.storage.local.get(['+
+    '"opendesk.sidebar-tools.installed.v1","opendesk.sidebar-tools.enabled.v1",'+
+    '"opendesk.sidebar-tools.revocation-epochs.v1"]);'+
+    'const pkg=(saved["opendesk.sidebar-tools.installed.v1"]||[]).find(x=>x.id==="browser-fingerprint");'+
+    'const epoch=saved["opendesk.sidebar-tools.revocation-epochs.v1"]?.["browser-fingerprint"]??null;'+
+    'return pkg?{id:pkg.id,version:pkg.version,capabilities:pkg.capabilities,'+
+    'epoch,enabled:saved["opendesk.sidebar-tools.enabled.v1"]?.["browser-fingerprint"]!==false}:null;})()',worker);
+  assert.equal(evidence.installedRecord?.id,'browser-fingerprint');
+  assert.equal(evidence.installedRecord.version,'0.2.2');
+  assert.equal(evidence.installedRecord.enabled,true);
+  assert.equal(typeof evidence.installedRecord.epoch,'string');
+  assert(evidence.installedRecord.capabilities.includes('browser.fingerprint.control'));
   evidence.installedOpenDeskHost=true;
   evidence.checks.push('R24_CANDIDATE_INSTALLED_VIA_OFFICIAL_REVIEW_PASS');
   await click(appSelector,host);
@@ -310,7 +324,11 @@ try{
     assert(initialState==='尚未应用'||initialState.includes('恢复'),'previous cycle not finished');
     await action(1);
     let stage=await until(async()=>{
-      const permission=await evaluate('!!document.querySelector("#sidebar-tool-action-continue")',host);
+      // ToolHost mounts this button permanently; existence is NOT consent.
+      // Require a real, enabled and visibly presented Host review surface.
+      const permission=await evaluate('(()=>{const n=document.querySelector("#sidebar-tool-action-continue");'+
+        'if(!n||n.disabled||n.closest("[hidden]"))return false;const r=n.getBoundingClientRect();'+
+        'return r.width>0&&r.height>0})()',host);
       if(permission)return 'site-consent';
       const label=await status();
       if(label?.includes('已受理'))return 'accepted';
