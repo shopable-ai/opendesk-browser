@@ -395,6 +395,11 @@ try{
     await until(async()=>String(await status()).includes('待读回'),'restore native detach receipt');
     item.afterDetach=await independent();
     assert.equal(item.afterDetach.debuggerAttached,false,'debugger must detach before restoration verification');
+    // React updates the restoring status before recording history. The
+    // independent verification control is disabled while that write settles.
+    await until(()=>appRead('(()=>{const n=document.querySelector(".fp-bottom-actions button:nth-child(2)");'+
+      'return n&&!n.disabled&&n.getBoundingClientRect().width>0})()'),
+      'real React restore readback button enabled');
     await action(2);
     await until(async()=>['调试已停止 · 恢复有限验证','已独立核验恢复','恢复结果未知'].includes(await status()),
       'restoration independent readback');
