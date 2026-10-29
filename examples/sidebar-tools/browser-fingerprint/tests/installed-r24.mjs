@@ -138,6 +138,10 @@ try{
       ['page','other'].includes(t.type)&&t.url.includes('/sidepanel.html')&&
       t.targetId!==sideFirst.targetId),'real Side Panel');
     host=await attach(side.targetId);
+    // Under headed CFT the Side Panel is its own DevTools target. Chrome must
+    // focus the containing window before native Input events can navigate it.
+    await send('Target.activateTarget',{targetId:side.targetId}).catch(()=>{});
+    await evaluate('chrome.windows.getCurrent().then(w=>chrome.windows.update(w.id,{focused:true}))',host);
     const contexts=await evaluate('chrome.runtime.getContexts({})',host);
     assert(contexts.some(c=>c.contextType==='SIDE_PANEL'),'real Chrome SIDE_PANEL context');
     evidence.realSidePanel=true;
@@ -146,6 +150,16 @@ try{
   }
   await until(()=>evaluate('!!document.querySelector("#tab-tools")',host),'tools Tab');
   await click('#tab-tools',host);
+  await pause(350);
+  if(!await evaluate('document.querySelector("#tab-tools")?.getAttribute("aria-selected")==="true"',host)){
+    // A real Chrome keypress is a second way to activate this focusable tab;
+    // .focus() moves focus only and never invokes the action itself.
+    await evaluate('document.querySelector("#tab-tools")?.focus()',host);
+    for(const type of ['rawKeyDown','keyUp'])
+      await send('Input.dispatchKeyEvent',{type,key:'Enter',code:'Enter',windowsVirtualKeyCode:13},host);
+  }
+  await until(()=>evaluate('document.querySelector("#tab-tools")?.getAttribute("aria-selected")==="true"',host),
+    'native navigation to Extensions');
   // React route mount is asynchronous; the first CDP click must not race
   // the extension-center toolbar render or click a hidden old Tab.
   try{
