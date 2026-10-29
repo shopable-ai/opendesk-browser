@@ -31,7 +31,7 @@ try{
     version:'0.0.1',minimum_chrome_version:'138',
     permissions:['debugger','tabs','scripting','webNavigation'],
     host_permissions:['http://127.0.0.1/*'],
-    background:{service_worker:'background.js',type:'module'}
+    background:{service_worker:'opendesk-fingerprint-native-r23-worker.js',type:'module'}
   },null,2));
   server=createServer((req,res)=>{
     res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
@@ -81,7 +81,7 @@ try{
     ' return {identity,us,de};',
     '}};'
   ].join('\n').replaceAll('__FIXTURE_URL__',fixtureUrl);
-  await writeFile(join(extension,'background.js'),worker);
+  await writeFile(join(extension,'opendesk-fingerprint-native-r23-worker.js'),worker);
   browser=spawn(process.env.CHROME_BIN||'chromium',[
     '--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-first-run',
     '--disable-gpu','--remote-debugging-port=0','--user-data-dir='+profile,
@@ -102,7 +102,8 @@ try{
   for(let i=0;i<150;i++){
     const list=await(await fetch('http://127.0.0.1:'+port+'/json/list')).json();
     targetInfo=list.find(t=>t.type==='service_worker'&&
-      t.url.endsWith('/background.js')&&t.url.startsWith('chrome-extension://'));
+      t.url.endsWith('/opendesk-fingerprint-native-r23-worker.js')&&
+      t.url.startsWith('chrome-extension://'));
     if(targetInfo?.webSocketDebuggerUrl)break;
     await sleep(100);
   }
