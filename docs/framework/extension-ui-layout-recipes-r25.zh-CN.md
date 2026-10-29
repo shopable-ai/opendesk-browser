@@ -119,6 +119,81 @@ function humanError(error){
 
 **勿直接把 Bookmark 的错误代码复制到其他 Tool，声称其 SDK 会返回同样结果。** 要按各工具真实合同映射。
 
+### 3.5 Compact Settings · Browser Fingerprint R2.0 可选紧凑布局配方（2026-10-29）
+
+> **状态：`DESIGN_REFERENCE_ONLY / FORMAL_REACT_NOT_INTEGRATED / MAC_CHROME_NOT_TESTED`。** 来源为已评审的 Browser Fingerprint R2.0 离线交互原型：它用独立的 `<style>` 定义局部颜色与布局，**不是**正式 Design System 编译产物，更不能证明“修改浏览器环境”已真实生效。本节把其中可复用的视觉决策写入现有 P02（设置组）、P07（表单）、P11（权限）、P13（恢复）组合，**不增加 P17 或第二套 Token/组件库**。
+
+**适用任务：** 360–440px 内需要“选择预设 → 修改 3–5 项参数 → 查看状态/作用范围 → 执行主操作 → 独立验证或恢复”的工具设置页，如 Browser Fingerprint；也可供其他业务经局部对照后选用。**不适用：** 数据密集表格、长文编辑、需要持续展开的树形导航、宿主已有独立底部 Dock 的页面。现有 Host 顶栏/主 Tab 只出现一次，不复制原型外层的五 Tab、工具标题与评审控制台。
+
+| 视觉项 | R2.0 离线预览 | 正式实现应复用的唯一来源 |
+|---|---|---|
+| 品牌/文字/副文本/背景/边框 | `#315cdb` / `#1d2940` / `#718097` / `#f7f9fc` / `#e6eaf1` | `--od-brand / --od-ink / --od-sub / --od-bg / --od-line`；不可把预览色值写入全局 |
+| 正文、帮助与技术元数据 | 13px，部分提示 10–11px | `--od-body-size` 13px；日常说明 `--od-note-size` 12px；仅技术元数据 `--od-meta-size` 11px |
+| 留白 / 圆角 | 4/8/12/16px；控件 8px、卡片 12px | `--space-1..4`、`--radius-control`、`--radius-surface`；**可选**卡片间距 10px 仅在局部作用域定义 |
+| 图标按钮 / 表单控件 | 31px / 35px | 正式命中区 `--od-icon-size` 34px、输入最小 36px；粗指针下交互目标建议至少 44px |
+| 暗色与状态色 | 预览含局部深色调色板 | 统一取自正式语义 Tokens 的暗色映射；不得复制第二套 `.dark` 色板 |
+
+**布局与交互：**
+
+1. 单一工具页首；已有宿主标题不重复。业务子视图如有需要，用紧凑的等宽分段导航，避免与宿主 Tab 叠加。
+2. 内容滚动区**仅有一个主滚动所有者**，常规水平内边距 12px；卡片之间可选 10px，卡片内 12px；最多一层卡片，不做 Card 套 Card。
+3. 标签保持明确，表单控件 ≥36px，预设选择与少量图标动作同一行；低频“更多参数”折叠，草稿切换必须保护。
+4. 作用范围、所需授权与当前状态可见；未授权、未生效、部分生效、未知、恢复失败不可用绿色假成功。运行中锁定冲突动作。
+5. **只有业务 Tool 自己拥有底部操作区时**，才可用“主操作 / 独立验证 / 停止恢复”约 `1.25fr / 1fr / 1fr` 布局。宿主已有 Dock/工具栏时不得再叠加；320px 文案可缩短或改布局，不能牺牲可触达性。
+6. 普通保存单击生效；删除/撤权才需风险确认。应用成功回执与网页独立读回属于不同证据；结果未知不自动重复产生副作用，恢复请求也不等于恢复成功。
+
+**最小局部样式示例**（布局配方，不是已发布公共 CSS API；由实际 Tool 在自身 `.fp-app` 等作用域中改写，前提是已加载获批准的 Shared UI Tokens/组件合同）：
+
+~~~css
+/* Optional layout-only recipe; no :root/body reset or host stylesheet injection */
+.od-compact-settings {
+  --compact-card-gap: 10px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  color: var(--od-ink);
+  background: var(--od-bg);
+  font-size: var(--od-body-size);
+}
+.od-compact-settings .compact-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-3);
+}
+.od-compact-settings .compact-stack {
+  display: grid;
+  align-content: start;
+  gap: var(--compact-card-gap);
+}
+.od-compact-settings .compact-card {
+  min-width: 0;
+  padding: var(--space-3);
+  background: var(--od-paper);
+  border: 1px solid var(--od-line);
+  border-radius: var(--radius-surface);
+}
+.od-compact-settings .compact-footer {
+  display: grid;
+  grid-template-columns: minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);
+  gap: 6px;
+  padding: 10px var(--space-3);
+  background: var(--od-paper);
+  border-top: 1px solid var(--od-line);
+}
+.od-compact-settings .compact-footer > * { min-width: 0; }
+@media (max-width: 360px) {
+  .od-compact-settings .compact-scroll { padding: var(--space-2); }
+  .od-compact-settings .compact-card { padding: 10px; }
+  .od-compact-settings .compact-footer { gap: var(--space-1); padding: var(--space-2); }
+}
+~~~
+
+**源码所有权及验证：** 正式共享变量来自 `src/ui/design-tokens.css`，Host 原语来自 `src/ui/design-system.css`；这些文件**不能直接注入 Tool iframe 或网页**。独立 React Tool 优先复用已批准的 `@opendesk/ui` Card/Button/IconButton，再以本工具局部样式组织，不扩展 Host 权限。Browser Fingerprint 目前生产目录 `examples/sidebar-tools/browser-fingerprint/src/` 仍是只读检测实现；本 Recipe **不修改业务逻辑、SDK、React 或安装器**。布局视觉、键盘焦点、深浅色、320–520px、200% 及真实 Mac Chrome 均待后续针对具体消费者验证，不将静态示例标作 PASS。
+
+
 ## 4. HTML、React、Vue 的复用边界
 
 | 技术 | 应复用 | 不应复用 |

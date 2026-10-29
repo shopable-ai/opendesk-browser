@@ -41,8 +41,8 @@ const composedCss=Buffer.from(
   'border-bottom:1px solid var(--od-line)}.fp-demo-top select{'+
   'border:1px solid var(--od-line);border-radius:8px;padding:6px}\n');
 const uri=(mime,b)=>'data:'+mime+';base64,'+b.toString('base64');
-const controls='<div class="fp-demo-top"><strong>浏览器环境检测</strong>'+
-  '<span>离线交互预览：SDK 替身，不是网页检测或原生验收</span>'+
+const controls='<div class="fp-demo-top"><strong>浏览器指纹</strong>'+
+  '<span>同源 React 预览：可以保存预设，但不能修改真实 Chrome 环境</span>'+
   '<label>演示网站 <select id="fp-fixture">'+
   '<option value="0">QA 购物车</option><option value="1">电商结账页</option>'+
   '</select></label><span id="fp-fixture-status"></span></div>';

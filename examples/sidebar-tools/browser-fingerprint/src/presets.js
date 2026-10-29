@@ -92,7 +92,9 @@ export async function savePreset(request,{id,name,config}){
   const existing=items.findIndex(row=>row.id===id);
   if(id&&existing===-1)throw fail('E_PRESET_CHANGED','目标预设已删除；请刷新');
   if(existing===-1&&items.length>=20)throw fail('E_PRESET_LIMIT','最多保留 20 个自定义预设');
-  const safe={id:id||'p-'+crypto.randomUUID(),name,config:copyConfig(config)};
+  const created=globalThis.crypto?.randomUUID?.()||
+    (Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));
+  const safe={id:id||'p-'+created,name,config:copyConfig(config)};
   if(existing!==-1)items.splice(existing,1);
   items.unshift(safe);
   const saved=await commit(request,PRESETS_KEY,{schema:PRESETS_SCHEMA,items},etag,parsePresets);

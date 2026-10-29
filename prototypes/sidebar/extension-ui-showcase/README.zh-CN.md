@@ -6,6 +6,9 @@
 
 **可复用现状（截至审计起点 05808f0）：** 共享 React=Button/IconButton、Card/CardContent、Switch；其他由正式 CSS、React Aria、业务 React、沙箱 Tool 提供，且保持真实等级。P01–P16 与六业务复用原页面；R2.8 Tree 是历史业务参考，非同源当前验收。预览编译产物在仓库中存在（约 1.6 MB），但构建输入 SHA 与当前 main 的一致性、320–960px/200%/键盘/Chrome **NOT_TESTED**。禁止把本页编辑或 Node 检查当成产品 95+ 通过。
 
+
+**新收录布局配方（2026-10-29）：** [Compact Settings / Dense Side Panel · Browser Fingerprint R2.0](../../../docs/framework/extension-ui-layout-recipes-r25.zh-CN.md)（第 3.5 节）。提取已评审离线交互预览的单层卡片、12px 内边距、10px 可选卡片间距、紧凑表单、单滚动区及业务独占底部操作栏；颜色/字号/控制尺寸回归正式 `--od-*` Tokens。**仅为 `DESIGN_REFERENCE_ONLY`；没有新增公共 CSS、组件、Atlas、正式 React UI 或环境修改能力，也没有 Mac Chrome 验收。** 以后开发设置型扩展时按 P02/P07/P11/P13 选择使用，不把 R2.0 离线模拟当作真实代码。
+
 ## R3.0 · 真实 React 预览优先与窄屏导航差量（2026-10-27）
 
 - **现有主入口不变：** `prototypes/sidebar/extension-ui-showcase/index.html` → 原 `r27-source-aligned-atlas.html`。没有第二个 Atlas、React Root 或共享组件库。
