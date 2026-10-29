@@ -5,7 +5,7 @@
 // This is NOT the earlier isolated CDP-driver test and never self-grants an App.
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {spawn} from 'node:child_process';
+import {spawn,execFileSync} from 'node:child_process';
 import {readFile,writeFile,mkdtemp,mkdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
@@ -57,7 +57,7 @@ try{
   const fixture='http://127.0.0.1:'+server.address().port+'/';
   chrome=spawn(process.env.CHROME_BIN||'chromium',[
     '--no-sandbox','--disable-dev-shm-usage','--no-first-run','--disable-gpu',
-    '--remote-debugging-port=0','--user-data-dir='+profile,
+    '--remote-debugging-port=0','--window-size=1180,900','--user-data-dir='+profile,
     '--disable-extensions-except='+extension,'--load-extension='+extension,'about:blank'
   ],{stdio:['ignore','ignore','pipe']});
   chrome.stderr.on('data',c=>{stderr=(stderr+String(c)).slice(-8000)});
@@ -111,7 +111,56 @@ try{
     if(r.exceptionDetails)throw Error('JS_EXCEPTION '+JSON.stringify(r.exceptionDetails).slice(0,700));
     return r.result?.value;
   }
+  // Native X11 input is reserved for a verified Chrome SIDE_PANEL target.
+  // It must hit the visible Chrome window; CDP Input on the detached panel
+  // target was accepted by the protocol but did not activate React controls.
+  const physicalSessions=new Map();
+  let physicalHost=null;
+  const xdotool=(...args)=>execFileSync('xdotool',args,{encoding:'utf8',timeout:5000}).trim();
+  function chromeWindowGeometry(){
+    const ids=xdotool('search','--onlyvisible','--pid',String(chrome.pid)).split(/\s+/);
+    const windows=ids.flatMap(id=>{
+      try{
+        const pairs=xdotool('getwindowgeometry','--shell',id).split('\n')
+          .map(line=>line.split('=')).filter(pair=>pair.length===2);
+        const raw=Object.fromEntries(pairs);
+        const rect={id,x:Number(raw.X),y:Number(raw.Y),
+          width:Number(raw.WIDTH),height:Number(raw.HEIGHT)};
+        return rect.width>=600&&rect.height>=500?[rect]:[];
+      }catch{return [];}
+    });
+    const win=windows.sort((a,b)=>b.width*b.height-a.width*a.height)[0];
+    if(!win)throw Error('NATIVE_CHROME_WINDOW_NOT_FOUND');
+    return win;
+  }
+  async function nativeClick(selector,session){
+    if(!physicalHost)throw Error('PHYSICAL_SIDEPANEL_NOT_BOUND');
+    const point=await evaluate('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
+      'if(!n||n.disabled)return null;n.scrollIntoView({block:"center",inline:"nearest"});'+
+      'const r=n.getBoundingClientRect();return r.width>0&&r.height>0?'+
+      '{x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height}:null})()',session);
+    assert(point,'CONTROL_NOT_CLICKABLE '+selector);
+    const frameOffset=physicalSessions.get(session)==='sandbox'
+      ?await evaluate('(()=>{const n=document.querySelector("#sidebar-tool-frame iframe");'+
+        'if(!n)return null;const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height}})()',physicalHost)
+      :{x:0,y:0};
+    assert(frameOffset,'INSTALLED_SANDBOX_FRAME_NOT_VISIBLE');
+    const viewport=await evaluate('({width:innerWidth,height:innerHeight})',physicalHost);
+    const win=chromeWindowGeometry();
+    // Chrome's Side Panel is right- and bottom-aligned in the browser window.
+    // The geometry and attempted physical coordinates are retained on failure.
+    const x=Math.round(win.x+win.width-viewport.width+frameOffset.x+point.x);
+    const y=Math.round(win.y+win.height-viewport.height+frameOffset.y+point.y);
+    assert(x>=win.x&&y>=win.y&&x<win.x+win.width&&y<win.y+win.height,
+      'NATIVE_POINT_OUTSIDE_CHROME_WINDOW '+JSON.stringify({selector,x,y,win,viewport}));
+    evidence.nativeClicks??=[];
+    evidence.nativeClicks.push({selector,x,y,window:win,viewport,frameOffset});
+    xdotool('windowfocus',win.id);
+    xdotool('mousemove','--sync',String(x),String(y));
+    xdotool('click','--clearmodifiers','1');
+  }
   const click=async(selector,session)=>{
+    if(physicalSessions.has(session))return nativeClick(selector,session);
     const point=await evaluate('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');'+
       'if(!n||n.disabled)return null;n.scrollIntoView({block:"center"});'+
       'const r=n.getBoundingClientRect();return r.width&&r.height?'+
@@ -127,45 +176,62 @@ try{
   const worker=await attach(originalWorker.targetId);
   const created=await send('Target.createTarget',{url:fixture});
   await until(async()=>{const list=await targets();return list.some(t=>t.targetId===created.targetId&&t.url===fixture)},'fixture tab');
-  // Use the real WXT sidepanel.html extension page as a visible Chrome tab.
-  // Do NOT open a second physical Side Panel before running the installed App:
-  // on this Linux CFT runner that hides the first document and its CDP inputs.
-  // Installed React, SDK, Host dispatch, package and Chrome permission checks
-  // remain authentic. Physical Side Panel UX is separately NOT_TESTED.
-  const appHostPage=await send('Target.createTarget',{
+  // An ordinary chrome-extension:// tab is CATALOG-ONLY by product design:
+  // [data-opendesk-surface=catalog] hides the workbench navigation. Launch the
+  // actual SIDE_PANEL via its official catalog action (real CDP pointer input).
+  const catalogPage=await send('Target.createTarget',{
     url:'chrome-extension://'+extensionId+'/sidepanel.html?hostInstanceId='+randomUUID()});
-  let host=await attach(appHostPage.targetId);
-  evidence.actionSurface='PRODUCTION_WXT_EXTENSION_TAB';
-  evidence.realSidePanel=false;
-  evidence.physicalSidePanelInput='NOT_TESTED';
-  await send('Target.activateTarget',{targetId:appHostPage.targetId});
-  await until(()=>evaluate('document.readyState==="complete"&&document.body.innerText.length>80',host),'Host bootstrap');
-  await pause(350);
-  evidence.hostUIDiagnostics=await evaluate('(()=>{const tab=document.querySelector("#tab-tools");'+
-    'const rect=tab?.getBoundingClientRect();return {url:location.href,'+
-    'readyState:document.readyState,viewport:{width:innerWidth,height:innerHeight},'+
-    'tab:tab?{outerHTML:tab.outerHTML.slice(0,500),'+
-    'rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},'+
-    'style:{display:getComputedStyle(tab).display,visibility:getComputedStyle(tab).visibility}}:null,'+
-    'nav:document.querySelector(".workbench-nav")?.outerHTML.slice(0,350),'+
+  const catalog=await attach(catalogPage.targetId);
+  await send('Target.activateTarget',{targetId:catalogPage.targetId});
+  await until(()=>evaluate('(()=>{const n=document.querySelector("#catalog-open-dev-sidebar");'+
+    'return n&&!n.disabled&&n.getBoundingClientRect().width>0})()',catalog),
+    'visible official open Side Panel action');
+  await click('#catalog-open-dev-sidebar',catalog);
+  const livePanel=await until(async()=>{
+    const contexts=await evaluate('chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})',catalog);
+    const context=contexts?.find(row=>row.contextType==='SIDE_PANEL'&&
+      row.documentUrl?.startsWith('chrome-extension://'+extensionId+'/sidepanel.html')&&
+      row.documentId&&row.documentLifecycle!=='prerender');
+    if(!context)return null;
+    const target=(await targets()).find(row=>row.targetId!==catalogPage.targetId&&
+      row.url===context.documentUrl&&['page','other'].includes(row.type));
+    return target?{target,context}:null;
+  },'real SIDE_PANEL target and Chrome runtime identity');
+  const host=await attach(livePanel.target.targetId);
+  physicalHost=host;
+  physicalSessions.set(host,'host');
+  evidence.actionSurface='PHYSICAL_CHROME_SIDE_PANEL';
+  evidence.realSidePanel=true;
+  evidence.sidePanelContext={contextType:livePanel.context.contextType,
+    documentUrl:livePanel.context.documentUrl,documentId:livePanel.context.documentId};
+  evidence.physicalSidePanelInput='NATIVE_X11_PENDING';
+  await until(()=>evaluate('document.readyState==="complete"&&'+
+    'document.querySelector("#tab-tools")?.getBoundingClientRect().width>0',host),
+    'actual visible React Side Panel tab');
+  evidence.hostUIDiagnostics=await evaluate('(()=>{const n=document.querySelector("#tab-tools");'+
+    'return {surface:document.documentElement.dataset.opendeskSurface,'+
     'active:document.querySelector("[aria-selected=true]")?.id,'+
-    'body:document.body.innerText.slice(0,1500)}})()',host);
-  await until(()=>evaluate('(()=>{const n=document.querySelector("#tab-tools");'+
-    'if(!n||n.disabled)return false;const r=n.getBoundingClientRect();'+
-    'return r.width>0&&r.height>0})()',host),'visible navigation before install');
-  await until(()=>evaluate('!!document.querySelector("#tab-tools")',host),'tools Tab');
+    'viewport:{width:innerWidth,height:innerHeight},navRect:document.querySelector(".workbench-nav")?.getBoundingClientRect().toJSON(),'+
+    'tabRect:n?.getBoundingClientRect().toJSON(),body:document.body.innerText.slice(0,1000)}})()',host);
+  await evaluate('(()=>{globalThis.__r24NavigationProof=null;'+
+    'document.addEventListener("click",e=>{if(e.target.closest?.("#tab-tools"))'+
+    'globalThis.__r24NavigationProof={isTrusted:e.isTrusted,targetId:e.target.id}},true);return true})()',host);
   await click('#tab-tools',host);
   await pause(350);
   if(!await evaluate('document.querySelector("#tab-tools")?.getAttribute("aria-selected")==="true"',host)){
     // A real Chrome keypress is a second way to activate this focusable tab;
     // .focus() moves focus only and never invokes the action itself.
     await evaluate('document.querySelector("#tab-tools")?.focus()',host);
-    for(const type of ['rawKeyDown','keyUp'])
-      await send('Input.dispatchKeyEvent',{type,key:'Enter',code:'Enter',windowsVirtualKeyCode:13},host);
+    xdotool('key','--clearmodifiers','Return');
   }
   await until(()=>evaluate('document.querySelector("#tab-tools")?.getAttribute("aria-selected")==="true"',host),
     'native navigation to Extensions');
-  // React route mount is asynchronous; the first CDP click must not race
+  const navProof=await evaluate('globalThis.__r24NavigationProof',host);
+  assert.equal(navProof?.isTrusted,true,'physical Side Panel requires trusted native input');
+  evidence.nativeNavigationProof=navProof;
+  evidence.physicalSidePanelInput='X11_NATIVE_TRUSTED';
+  evidence.checks.push('R24_PHYSICAL_SIDEPANEL_NATIVE_TRUSTED_NAVIGATION_PASS');
+  // React route mount is asynchronous; native input must not race
   // the extension-center toolbar render or click a hidden old Tab.
   try{
     await until(()=>evaluate('(()=>{const n=document.querySelector("#extension-center-more");'+
@@ -203,6 +269,7 @@ try{
   const iframe=await until(async()=>(await targets()).find(t=>
     t.type==='iframe'&&t.url.endsWith('/sidebar-tools/sandbox.html')),'installed sandbox');
   const sandbox=await attach(iframe.targetId);
+  physicalSessions.set(sandbox,'sandbox');
   const appRead=expr=>evaluate(expr,sandbox);
   await until(()=>appRead('!!document.querySelector(".fp-app")&&'+
     '!!document.querySelector(".fp-bottom-actions")'),'installed React');
@@ -309,12 +376,8 @@ try{
   await until(()=>appRead('!!document.querySelector("select[aria-label=\\\"选择环境预设\\\"]")'),
     'configuration tab after US restoration');
   await click('select[aria-label="选择环境预设"]',sandbox);
-  for(const type of ['rawKeyDown','keyUp'])
-    await send('Input.dispatchKeyEvent',{type,key:'ArrowDown',code:'ArrowDown',
-      windowsVirtualKeyCode:40},sandbox);
-  for(const type of ['rawKeyDown','keyUp'])
-    await send('Input.dispatchKeyEvent',{type,key:'Enter',code:'Enter',
-      windowsVirtualKeyCode:13},sandbox);
+  xdotool('key','--clearmodifiers','Down');
+  xdotool('key','--clearmodifiers','Return');
   await until(()=>appRead('document.querySelector("select[aria-label=\\\"选择环境预设\\\"]")?.value==="de"'),
     'German preset selected');
   await cycle('DE',{ua:'Macintosh',uaCH:'macOS',language:'de-DE',
