@@ -657,10 +657,10 @@ try{
  });
  await test('R2.6 account creation awaits Host receipt, increments names, highlights row',async()=>{
   await scene('accountsFirst');
-  await button('保存当前 Cookie 为账号').waitFor();
+  await button('添加账号').waitFor();
   assert.equal(await page.locator('.cookie-account-vault,input[type="password"]').count(),0);
   assert.equal(await button('锁定账号仓库').count(),0);
-  await button('保存当前 Cookie 为账号').click();
+  await button('添加账号').click();
   const nameInput=page.getByRole('textbox',{name:'账号名称'});
   assert.equal(await nameInput.inputValue(),'新账号 1');
   assert.equal(await page.locator('.cookie-account-scope details').getAttribute('open'),null);
@@ -669,8 +669,8 @@ try{
   await page.getByText('新账号 1',{exact:true}).waitFor();
   assert.equal(await page.locator('[data-account-alias]').count(),1);
   assert.equal(await page.locator('.cookie-account-card.is-just-saved').count(),1);
-  await page.locator('.cookie-import-toast').filter({hasText:/已保存当前账号快照/}).waitFor();
-  await button('保存当前 Cookie 为账号').click();
+  await page.locator('.cookie-import-toast').filter({hasText:/账号及 Cookie 快照已保存|账号已保存，尚未关联 Cookie/}).waitFor();
+  await button('添加账号').click();
   assert.equal(await nameInput.inputValue(),'新账号 2');
   await button('保存账号').click();
   await page.getByText('新账号 2',{exact:true}).waitFor();
@@ -679,7 +679,7 @@ try{
  });
  await test('R2.6 failed account save preserves input and does not invent a row',async()=>{
   await scene('accountsFirst');
-  await button('保存当前 Cookie 为账号').click();
+  await button('添加账号').click();
   await openLab();
   await page.getByTestId('failure').selectOption('save');
   await lab.locator('summary').click();
@@ -692,7 +692,7 @@ try{
  });
  await test('R2.7 descriptions create, edit, retain on failure and render only when present',async()=>{
   await scene('accountsFirst');
-  await button('保存当前 Cookie 为账号').click();
+  await button('添加账号').click();
   const displayName=page.getByRole('textbox',{name:'账号名称',exact:true});
   const description=page.getByRole('textbox',{name:'账号描述（选填）',exact:true});
   await displayName.fill('工作账号');
@@ -718,7 +718,7 @@ try{
   await button('保存账号').click();
   await card.locator('.cookie-account-description').waitFor();
   assert.equal(await card.locator('.cookie-account-description').innerText(),'仅修改本机描述');
-  await button('保存当前 Cookie 为账号').click();
+  await button('添加账号').click();
   await button('保存账号').click();
   assert.equal(await page.locator('.cookie-account-card').count(),2);
   assert.equal(await page.locator('.cookie-account-description').count(),1);
@@ -729,7 +729,7 @@ try{
  await test('R2.7 account search matches descriptions',async()=>{
   await scene('accountsDemo');
   await page.getByRole('tab',{name:'账号',exact:true}).click();
-  await button('保存当前 Cookie 为账号').click();
+  await button('添加账号').click();
   await page.getByRole('textbox',{name:'账号描述（选填）',exact:true})
     .fill('唯一描述搜索关键字');
   await button('保存账号').click();
