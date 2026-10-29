@@ -16,7 +16,6 @@ const allowed=Object.freeze({
   geo:['off','nyc','berlin','tokyo'],
   viewport:['native','desktop','mobile']
 });
-const VALID_FIELD=/^[a-zA-Z]{2,20}$/;
 function validateConfig(config){
   if(!config||typeof config!=='object'||Array.isArray(config)||
     Object.keys(config).sort().join(',')!==Object.keys(allowed).sort().join(',')||
@@ -81,7 +80,8 @@ function currentValues(reading){
 const compare=(left,right)=>left!==null&&right!==null&&left!==undefined&&right!==undefined&&
   JSON.stringify(left)===JSON.stringify(right);
 export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
-  clock=Date,newRef=()=>crypto.randomUUID(),ttlMs=120000}={}){
+  clock=Date,newRef=()=>crypto.randomUUID(),ttlMs=480000,
+  schedule=setTimeout,unschedule=clearTimeout}={}){
   if(typeof resolveTarget!=='function'||typeof readPage!=='function'||typeof authorize!=='function'||
      !api?.debugger?.attach||!api?.debugger?.sendCommand||!api?.debugger?.detach||
      !api?.scripting?.executeScript)throw fail('E_CHROME_UNSUPPORTED','Chrome debugger and trusted page reader required');
@@ -90,6 +90,7 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
   const client=s=>({tabId:s.target.tabId});
   const retire=(s,reason)=>{
     if(!s)return;
+    if(s.expireHandle!==undefined)unschedule(s.expireHandle);
     s.invalidated=reason;s.stage='invalidated';tabs.delete(s.target.tabId);
     // Retire only our own previously attached debugger. Never target DevTools.
     if(s.attached)void api.debugger.detach(client(s)).catch(()=>{});
@@ -150,6 +151,7 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     const c=validateConfig(config),refs={tabRef,documentRef};
     const t=await target(refs,owner,'browser.fingerprint.apply');
     if(tabs.has(t.tabId))throw fail('E_SESSION_ACTIVE','Stop the existing tab session first');
+    for(const [id,old] of sessions)if(expired(old)){retire(old,'expired');sessions.delete(id);}
     if(sessions.size>16)throw fail('E_LIMIT','Too many fingerprint sessions');
     const base=await snapshot(refs,owner,t);
     const uaPlan=userAgentPlan(base,c),expected=expectedFields(c,base,uaPlan);
@@ -162,6 +164,11 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     try{
       await api.debugger.attach(client(s),'1.3');
       s.attached=true;tabs.set(t.tabId,s);
+      // Chrome 118+ keeps the MV3 worker alive during an active debugger.
+      // Expiry is a STOP safety fence, not an implicit successful restore.
+      s.expireHandle=schedule(()=>{
+        if(sessions.get(ref)===s&&s.attached)retire(s,'lease-expired');
+      },ttlMs);
     }catch(error){
       sessions.delete(ref);
       throw fail('E_CHROME_PERMISSION_REQUIRED','Chrome debugger attach rejected: '+String(error?.message||'unavailable').slice(0,100));
@@ -225,7 +232,7 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     if(!['applied','restore'].includes(mode))throw fail('E_SCHEMA');
     const s=session(sessionRef,owner);
     if(documentRef!==s.refs.documentRef)throw fail('E_DOCUMENT_CHANGED');
-    if(mode==='restore'&&s.stage!=='restoring'&&s.stage!=='restored')
+    if(mode==='restore'&&s.stage!=='restoring'&&s.stage!=='restore_readback')
       throw fail('E_CONTEXT','Restore has not been requested');
     if(mode==='applied'&&s.stage!=='applied_unverified')
       throw fail('E_CONTEXT','Applied tab session is not readable');
@@ -248,7 +255,7 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
             key==='publicIp'?'PUBLIC_IP_OUT_OF_SCOPE':
             !isControlled?'NOT_CONTROLLED':'NO_INDEPENDENT_FIELD_VALUE')};
     });
-    if(mode==='restore')s.stage='restored';
+    if(mode==='restore')s.stage='restore_readback';
     return {source:'trusted-browser-host',sessionRef,documentRef,controlledKeys:controlled,
       rows,capturedAt:observed.capturedAt};
   }
@@ -262,6 +269,7 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     try{
       if(s.attached)await api.debugger.detach(client(s));
       s.attached=false;tabs.delete(t.tabId);
+      if(s.expireHandle!==undefined)unschedule(s.expireHandle);
     }catch{throw fail('E_OUTCOME_UNKNOWN','Debugger detach not confirmed; restore unknown');}
     return {accepted:true,source:'trusted-browser-host',sessionRef,documentRef};
   }
