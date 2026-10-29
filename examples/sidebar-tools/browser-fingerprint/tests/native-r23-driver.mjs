@@ -123,12 +123,23 @@ try{
     });
   }
   await cmd('Runtime.enable');
+  // A newly discovered module service worker can be inspected before its
+  // imports and top-level initialization finish. Observe readiness first.
+  let ready=false;
+  for(let attempt=0;attempt<100;attempt++){
+    const check=await cmd('Runtime.evaluate',{
+      expression:'typeof globalThis.fpR23Native?.run',returnByValue:true});
+    if(check.result?.value==='function'){ready=true;break;}
+    await sleep(100);
+  }
+  assert(ready,'NATIVE_WORKER_MODULE_BOOTSTRAP_MISSING');
   const result=await cmd('Runtime.evaluate',{expression:'globalThis.fpR23Native.run()',
     awaitPromise:true,returnByValue:true});
   if(result.exceptionDetails)throw Error(result.exceptionDetails.exception?.description||
     result.exceptionDetails.text||'NATIVE_WORKER_EXCEPTION');
   assert(result.result?.value,'NATIVE_RESULT_UNAVAILABLE');
   const runs=result.result.value;
+  evidence.results=runs; // Preserve raw evidence even if a field assertion fails.
   for(const [name,run] of [['us',runs.us],['de',runs.de]]){
     assert.equal(run.ack.accepted,true);
     assert.equal(run.ack.source,'trusted-browser-host');
@@ -162,10 +173,15 @@ try{
   await writeFile(join(out,'evidence.json'),JSON.stringify(evidence,null,2)+'\n');
   try{ws?.close();}catch{}
   if(browser){
-    browser.kill('SIGTERM');
-    await Promise.race([new Promise(ok=>browser.once('exit',ok)),sleep(3000)]);
-    if(browser.exitCode===null)browser.kill('SIGKILL');
+    if(browser.exitCode===null&&browser.signalCode===null)browser.kill('SIGTERM');
+    for(let i=0;i<30&&browser.exitCode===null&&browser.signalCode===null;i++)await sleep(100);
+    if(browser.exitCode===null&&browser.signalCode===null)browser.kill('SIGKILL');
+    for(let i=0;i<30&&browser.exitCode===null&&browser.signalCode===null;i++)await sleep(100);
   }
   if(server)await new Promise(ok=>server.close(ok));
-  await rm(temp,{recursive:true,force:true});
+  // Chrome's profile writer can still be finalizing just after process exit.
+  for(let attempt=0;attempt<6;attempt++){
+    try{await rm(temp,{recursive:true,force:true});break;}
+    catch(error){if(attempt===5)throw error;await sleep(250);}
+  }
 }
