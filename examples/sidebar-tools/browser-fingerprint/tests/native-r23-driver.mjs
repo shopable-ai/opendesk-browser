@@ -109,6 +109,12 @@ try{
   assert(targetInfo?.webSocketDebuggerUrl,'NATIVE_TEST_EXTENSION_SERVICE_WORKER_MISSING');
   ws=new WebSocket(targetInfo.webSocketDebuggerUrl);
   await new Promise((ok,fail)=>{ws.addEventListener('open',ok,{once:true});ws.addEventListener('error',fail,{once:true});});
+  const runtimeEvents=[];
+  ws.addEventListener('message',event=>{
+    let value;try{value=JSON.parse(event.data);}catch{return;}
+    if(['Runtime.exceptionThrown','Runtime.consoleAPICalled','Log.entryAdded'].includes(value.method))
+      runtimeEvents.push(JSON.stringify(value.params||{}).slice(0,1600));
+  });
   let serial=0;
   async function cmd(method,params={}){
     return new Promise((ok,fail)=>{
@@ -124,6 +130,7 @@ try{
     });
   }
   await cmd('Runtime.enable');
+  await cmd('Log.enable').catch(()=>{});
   // A newly discovered module service worker can be inspected before its
   // imports and top-level initialization finish. Observe readiness first.
   let ready=false;
@@ -138,6 +145,8 @@ try{
       '({href:location.href,chrome:typeof chrome,bootstrap:typeof globalThis.fpR23Native})',
       returnByValue:true});
     evidence.bootstrap=inspect.result?.value||null;
+    evidence.runtimeEvents=runtimeEvents.slice(-10);
+    evidence.chromeStderr=stderr.slice(-3500);
     throw Error('NATIVE_WORKER_MODULE_BOOTSTRAP_MISSING '+JSON.stringify(evidence.bootstrap));
   }
   const result=await cmd('Runtime.evaluate',{expression:'globalThis.fpR23Native.run()',
@@ -175,6 +184,9 @@ try{
   evidence.error=String(error?.stack||error);
   evidence.chromeStderr=stderr.slice(-8000);
   console.error(evidence.error);
+  if(evidence.bootstrap)console.error('R23_BOOTSTRAP '+JSON.stringify(evidence.bootstrap));
+  if(evidence.runtimeEvents?.length)console.error('R23_RUNTIME_EVENTS '+JSON.stringify(evidence.runtimeEvents));
+  if(stderr)console.error('R23_CHROME_STDERR '+stderr.slice(-3500));
   process.exitCode=1;
 }finally{
   await mkdir(out,{recursive:true});
