@@ -107,7 +107,7 @@ export async function generatePreview({
       fail('clipper bundle no longer matches its existing preview adapter');
     // Reuse its well-tested existing standalone SDK simulation, but keep internal
     // navigation buttons: this canonical Host shell has no clipper navigation bridge.
-    const original=await readFile(new URL('../../examples/sidebar-tools/web-markdown-clipper/preview/mock-host.js',import.meta.url),'utf8');
+    const original=await readFile(new URL('../../projects/web-markdown-clipper/preview/mock-host.js',import.meta.url),'utf8');
     const bridge=" setNavigation({page}={}){post('navigation-state',{page});},";
     const fixture='if(!local.clips){';
     const saved="try{const saved=sessionStorage.getItem(key);if(saved)local=JSON.parse(saved);}catch{/* Isolated demo fallback only. */}";

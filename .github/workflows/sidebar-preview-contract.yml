@@ -21,7 +21,7 @@ on:
       - 'projects/bookmark-manager/**'
       - 'examples/sidebar-tools/adblock/**'
       - 'projects/markdown-workbench/**'
-      - 'examples/sidebar-tools/web-markdown-clipper/**'
+      - 'projects/web-markdown-clipper/**'
       - 'examples/sidebar-tools/knowledge-inbox/**'
       - 'examples/sidebar-tools/ai-knowledge-answers/**'
       - 'tests/environment/four-tools-ux-r1.test.mjs'

@@ -8,7 +8,7 @@ import {compileSharedToolCss} from '../../scripts/preview/shared-tool-design.mjs
 
 test('token-only tool styling compiles the canonical palette without host layout or private colors',async()=>{
   const tokens=await readFile('src/ui/design-tokens.css','utf8');
-  const layout=await readFile('examples/sidebar-tools/web-markdown-clipper/src/style.css','utf8');
+  const layout=await readFile('projects/web-markdown-clipper/src/style.css','utf8');
   const css=await compileSharedToolCss(layout);
   assert.ok(css.includes(tokens));
   assert.doesNotMatch(css,/#workspace-content|\.workbench-nav/);
@@ -78,7 +78,7 @@ test('preview settings retain the iframe and dirty/busy block dangerous navigati
 });
 
 test('sandbox preview actions require the bound parent, origin, protocol and instance',async()=>{
-  const code=await readFile('examples/sidebar-tools/web-markdown-clipper/preview/mock-host.js','utf8');
+  const code=await readFile('projects/web-markdown-clipper/preview/mock-host.js','utf8');
   let receive;const dispatched=[],parent={postMessage(){}};
   const root={dispatchEvent:event=>dispatched.push(event)};
   runInNewContext(code,{parent,document:{documentElement:{dataset:{previewInstance:'current',previewParentOrigin:'http://localhost:43115'}},querySelector:()=>root},

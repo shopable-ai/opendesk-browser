@@ -4,8 +4,8 @@ import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {load} from 'cheerio';
-import {PROMPT_ID} from '../../prompt-shortcuts/trusted/policy.js';
-import {PROMPT_ASSET_OPERATIONS} from '../../prompt-shortcuts/trusted/asset-contract.js';
+import {PROMPT_ID} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+import {PROMPT_ASSET_OPERATIONS} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
 import {
  executeClipNotes,readClipLibrary,CLIP_NOTES_LIMITS,clipSource
 } from '../trusted/notes-store.js';
@@ -236,7 +236,7 @@ test('replaying a note after a lost acknowledgement cannot create a second note'
  assert.equal((await f.run('clipNotes.list')).total,1);
 });
 test('Host request budget admits 150 KB escaped Markdown only for the clipper',async()=>{
- const host=await readFile(new URL('../../../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
+ const host=await readFile(new URL('../../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
  const begin=host.indexOf('export function checkSidebarToolRequestBudget(message)');
  const end=host.indexOf('\n}\n\n// Trusted Side Panel',begin);
  assert.ok(begin>=0&&end>begin,'Host budget function must remain testable');
@@ -355,7 +355,7 @@ test('R1.11 formal controls, preview and installable package use identical offic
  ]);
  const pkg=JSON.parse(pkgRaw);
  assert.equal(pkg.html,html);
- const {compileSharedToolCss}=await import('../../../../scripts/preview/shared-tool-design.mjs');
+ const {compileSharedToolCss}=await import('../../../scripts/preview/shared-tool-design.mjs');
  assert.equal(pkg.css,await compileSharedToolCss(css));
  assert.equal(pkg.js,js);
  assert.equal(pkg.scripts[0].code,notes);

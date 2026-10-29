@@ -1,5 +1,5 @@
-import {sidebarToolStorageKey} from '../../../../src/ui/sidebar-tools/package.js';
-import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
+import {sidebarToolStorageKey} from '../../../src/ui/sidebar-tools/package.js';
+import {writeVerifiedLocalValue} from '../../../src/ui/sidebar-tools/storage-state.js';
 
 // A single tool-owned "clips" library; no cross-tool read or generic SDK quota relaxation.
 export const CLIP_NOTES_OPERATIONS=Object.freeze([

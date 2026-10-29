@@ -9,9 +9,9 @@
     "tests/environment/knowledge-inbox-r1.test.mjs",
     "tests/environment/app-ci.test.mjs",
     "tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs",
-    "examples/sidebar-tools/web-markdown-clipper/tests/ui.test.mjs",
-    "examples/sidebar-tools/web-markdown-clipper/tests/notes.test.mjs",
-    "examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs"
+    "projects/web-markdown-clipper/tests/ui.test.mjs",
+    "projects/web-markdown-clipper/tests/notes.test.mjs",
+    "projects/web-markdown-clipper/tests/navigation-r14.test.mjs"
   ],
   "browser": [
     "tests/framework/markdown-tools-native-r22.test.mjs"

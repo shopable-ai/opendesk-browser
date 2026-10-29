@@ -7,9 +7,9 @@
 本轮核心验证：
 
 ```bash
-node --test examples/sidebar-tools/web-markdown-clipper/tests/navigation-r14.test.mjs
+node --test projects/web-markdown-clipper/tests/navigation-r14.test.mjs
 node scripts/tests/clipper-react-preview-interaction.mjs --core-navigation
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --check-project
+node scripts/build-sidebar-tool.mjs projects/web-markdown-clipper --check-project
 ```
 
 `--core-navigation` 仅验证保存期间导航、继续/放弃草稿及搜索/滚动恢复，不运行旧宽度矩阵。1.2.7 的真实安装更新尚未验证；下方旧版本记录保留历史含义。
@@ -20,15 +20,15 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper 
 
 兼容边界：保留旧存储命名空间、ID、完整 Markdown、Host 读回和同 ID 升级；不得卸载旧版后重装。未接入导航契约的第三方工具使用旧行为。正式包已同步当前源码，标准构建核对和 Mac Chrome 安装升级仍需真实执行，不得以演示预览代替。
 
-真实交互预览：`examples/sidebar-tools/web-markdown-clipper/preview/index.html`，业务 JS/CSS 同源，宿主标题栏及数据为模拟，不代表正式 React Host 和 Chrome 授权通过。
+真实交互预览：`projects/web-markdown-clipper/preview/index.html`，业务 JS/CSS 同源，宿主标题栏及数据为模拟，不代表正式 React Host 和 Chrome 授权通过。
 
 本地关键验收：
 
 ```bash
 cd /Users/shopme/Documents/workspace/opendesk-browser
 git switch main && git pull --ff-only
-node --test tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs examples/sidebar-tools/web-markdown-clipper/tests/*.test.mjs
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --check-project
+node --test tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs projects/web-markdown-clipper/tests/*.test.mjs
+node scripts/build-sidebar-tool.mjs projects/web-markdown-clipper --check-project
 npm run build
 python3 -m http.server 8765 --bind 127.0.0.1
 ```
@@ -54,12 +54,12 @@ python3 -m http.server 8765 --bind 127.0.0.1
 ```bash
 cd /Users/shopme/Documents/workspace/opendesk-browser
 git switch main && git pull --ff-only
-node --test examples/sidebar-tools/web-markdown-clipper/tests/*.test.mjs
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --check-project
+node --test projects/web-markdown-clipper/tests/*.test.mjs
+node scripts/build-sidebar-tool.mjs projects/web-markdown-clipper --check-project
 python3 -m http.server 8765 --bind 127.0.0.1
 ```
 
-预览：`http://127.0.0.1:8765/examples/sidebar-tools/web-markdown-clipper/preview/index.html`。随后使用真实 Chrome **同 ID 升级 1.2.3**，实测保存→主页列表→全文→编辑→删除→重启读回，搜索筛选、320–440px、低高度与缩放。
+预览：`http://127.0.0.1:8765/projects/web-markdown-clipper/preview/index.html`。随后使用真实 Chrome **同 ID 升级 1.2.3**，实测保存→主页列表→全文→编辑→删除→重启读回，搜索筛选、320–440px、低高度与缩放。
 
 ---
 # 历史：Web Markdown Clipper R1.8 · 完整网页保存与「我的摘录」
@@ -106,7 +106,7 @@ python3 -m http.server 8765 --bind 127.0.0.1
 
 然后打开：
 
-`http://127.0.0.1:8765/examples/sidebar-tools/web-markdown-clipper/preview/index.html`
+`http://127.0.0.1:8765/projects/web-markdown-clipper/preview/index.html`
 
 预览舞台直接加载正式 HTML/CSS/JS，含全文阅读、列表、搜索、编辑、删除、夜间/浅色、320/360/400/440 px、200% 缩放及故障注入。**舞台只使用演示会话存储，点击「模拟重开侧栏」仅验证演示数据恢复，不代表已通过真实 Chrome Storage 持久化。**演示复制/下载不写入真实系统。
 
@@ -114,9 +114,9 @@ python3 -m http.server 8765 --bind 127.0.0.1
 
 ```bash
 npm ci
-node --test examples/sidebar-tools/web-markdown-clipper/tests/*.test.mjs
+node --test projects/web-markdown-clipper/tests/*.test.mjs
 node --test tests/environment/markdown-tools-r22.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-storage-unlimited.test.mjs
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/web-markdown-clipper --check-project
+node scripts/build-sidebar-tool.mjs projects/web-markdown-clipper --check-project
 APP_CI_SELECTED=web-markdown-clipper node scripts/app-ci.mjs plan
 node scripts/app-ci.mjs inspect web-markdown-clipper
 node scripts/app-ci.mjs build web-markdown-clipper

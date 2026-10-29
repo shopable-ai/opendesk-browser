@@ -7,11 +7,11 @@ import {setInstalledSidebarToolEnabled,installReviewedSidebarTool,recordToolUnin
 import {tocGrantAllowed,verifyOfficialReadingToc,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
 import {OFFICIAL_READING_TOC_RELEASE,MARKET_PROVENANCE_STORE} from '../../src/sidebar-tools/official-reading-toc.js';
 import {officialToolFixture} from '../helpers/official-tools.mjs';
-import {clipGrantAllowed,CLIP_SITE_STORE} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
+import {clipGrantAllowed,CLIP_SITE_STORE} from '../../projects/web-markdown-clipper/trusted/policy.js';
 import {captureAllowed,CAPTURE_SITE_STORE,KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,knowledgePackageHash} from '../../src/knowledge/policy.js';
 import {createKnowledgeService} from '../../src/knowledge/service.js';
 import {validateKnowledgeHandoff} from '../../src/knowledge/workspace-handoff.js';
-import {initPageClip} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/page.js';
+import {initPageClip} from '../../projects/web-markdown-clipper/trusted/page.js';
 import {inspectScript} from '../../scripts/verify-package.mjs';
 test('existing SW startup resources have exact literal imports, without expanding dynamic execution',()=>{
   for(const path of ['sidebar-tools/preinstall-intent.js','agents/health-host.js','native-agent/transport.js','knowledge/knowledge-host.js'])

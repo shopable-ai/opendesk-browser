@@ -411,7 +411,7 @@ test('offline preview must embed the exact formal HTML and reuse official JS and
  const scripts=[...stage.matchAll(/src="data:text\/javascript;base64,([^"]+)"/g)].map(m=>Buffer.from(m[1],'base64').toString());
  assert.equal(scripts[1],await readFile(new URL('../src/notes.js',import.meta.url),'utf8'));
  assert.equal(scripts[2],source);
- const {compileSharedToolCss}=await import('../../../../scripts/preview/shared-tool-design.mjs');
+ const {compileSharedToolCss}=await import('../../../scripts/preview/shared-tool-design.mjs');
  const css=await compileSharedToolCss(await readFile(new URL('../src/style.css',import.meta.url),'utf8'));
  assert.ok(stage.includes('<style>'+css+'</style>'));
  assert.match(wrapper,/prototypes\/sidebar\/react-preview\/index.html/);

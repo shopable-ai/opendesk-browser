@@ -35,11 +35,13 @@ test('R2.1 migrated official source locations are exact and preserve unmigrated 
   assert.equal(current.tools.find(row=>row.id==='quick-notes').project,'projects/quick-notes');
   assert.equal(current.tools.find(row=>row.id==='bookmark-manager').project,'projects/bookmark-manager');
   assert.equal(current.tools.find(row=>row.id==='knowledge-inbox').project,'projects/knowledge-inbox');
+  assert.equal(current.tools.find(row=>row.id==='web-markdown-clipper').project,'projects/web-markdown-clipper');
   assert.equal(current.tools.find(row=>row.id==='cookie-editor').project,'examples/sidebar-tools/cookie-editor');
   for(const [id,project] of [
     ['cookie-editor','projects/cookie-editor'],
     ['bookmark-manager','examples/sidebar-tools/bookmark-manager'],
     ['knowledge-inbox','examples/sidebar-tools/knowledge-inbox'],
+    ['web-markdown-clipper','examples/sidebar-tools/web-markdown-clipper'],
     ['ai-send-queue','projects/ai-send-queue'],
     ['markdown-workbench','examples/sidebar-tools/markdown-workbench'],
     ['markdown-workbench','projects/markdown-workbench/extra'],

@@ -12,7 +12,7 @@ on:
       - 'native-agent/local-dev/**'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
-      - 'examples/sidebar-tools/web-markdown-clipper/**'
+      - 'projects/web-markdown-clipper/**'
       - 'projects/markdown-workbench/**'
       - 'tests/environment/markdown-tools-r22.test.mjs'
       - 'tests/framework/markdown-tools-native-r22.test.mjs'
@@ -52,7 +52,7 @@ jobs:
           npm run check
       - name: Build exact independently installable tool JSON
         run: |
-          npm run build:sidebar-tool -- examples/sidebar-tools/web-markdown-clipper --out artifacts/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json
+          npm run build:sidebar-tool -- projects/web-markdown-clipper --out artifacts/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json
           npm run build:sidebar-tool -- projects/markdown-workbench --out artifacts/sidebar-tools/markdown-workbench/markdown-workbench.opendesk-tool.json
       - name: WXT strict production and development build and distributable pack
         run: |
