@@ -8,7 +8,7 @@ import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-too
 import {MARKET_PROVENANCE_STORE,TOOL_REVOCATION_EPOCHS_STORE,compareToolVersions} from '../../src/ui/sidebar-tools/installation.js';
 import {OFFICIAL_RELEASE_SCHEMA,OFFICIAL_SOURCE_REPOSITORY,officialPackagePath} from '../../src/sidebar-tools/official-catalog.js';
 
-const bytes=await readFile('examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json');
+const bytes=await readFile('projects/bookmark-manager/bookmark-manager.opendesk-tool.json');
 const tool=JSON.parse(bytes),sha256=createHash('sha256').update(bytes).digest('hex');
 const release={id:'opendesk/'+tool.id,toolId:tool.id,kind:'sidebar-tool',installationPolicy:'optional',
   version:tool.version,packageTitle:tool.title,description:tool.description,capabilities:tool.capabilities,

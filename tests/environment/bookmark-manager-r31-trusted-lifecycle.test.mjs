@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
-const appFile='examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
-const chromeFile='examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs';
+const appFile='projects/bookmark-manager/src/react/App.jsx';
+const chromeFile='projects/bookmark-manager/preview/r304-chrome.mjs';
 const read=file=>readFile(file,'utf8');
 
 test('R3.1 trusted observer subscribes before first full paginated tree snapshot',async()=>{

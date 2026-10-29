@@ -23,7 +23,7 @@ const schemaSpecializer=createSchemaSpecializer(protocolSchema);
 // Build-time metadata only: the Bookmark config JSON must never be imported
 // into the fixed Sidebar Host's runtime module graph.
 const trustedBookmarkVersion=JSON.parse(readFileSync(
-  new URL('./examples/sidebar-tools/bookmark-manager/tool.config.json',import.meta.url),'utf8')).version;
+  new URL('./projects/bookmark-manager/tool.config.json',import.meta.url),'utf8')).version;
 if(typeof trustedBookmarkVersion!=='string'||!/^\d+\.\d+\.\d+$/.test(trustedBookmarkVersion))
   throw Error('Invalid trusted Bookmark Manager source version');
 const manifest = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8'));

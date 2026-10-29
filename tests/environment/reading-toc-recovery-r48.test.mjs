@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
-const packagedScript=async()=>(await createSidebarToolPackage('examples/sidebar-tools/reading-toc')).js;
+const packagedScript=async()=>(await createSidebarToolPackage('projects/reading-toc')).js;
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 class Node{
  constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.attrs=new Map();this.events=new Map();this.style={setProperty(){}};this.dataset={};this.textContent='';this.value='';this.hidden=false;this.disabled=false;}
@@ -69,7 +69,7 @@ test('R4.8 empty snapshot schedules forced second scan for asynchronous headings
 });
 test('R4.8 host responds on read throttling and preserves trusted force re-index',async()=>{
  const host=await readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
- const page=await readFile(new URL('../../examples/sidebar-tools/reading-toc/trusted/page.js',import.meta.url),'utf8');
+ const page=await readFile(new URL('../../projects/reading-toc/trusted/page.js',import.meta.url),'utf8');
  assert.doesNotMatch(host,/lastTocRead/);
  assert.match(host,/rateExceeded=\+\+requestCount>120;/);
  assert.match(host,/if\(rateExceeded\)\{reply\(false/);

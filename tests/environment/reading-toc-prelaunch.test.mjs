@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {READING_TOC_RELEASE_IDENTITY_REQUIRED,verifyOfficialReadingToc,tocGrantAllowed,
   changeTocSiteAllowed,changeTocPageAllowed,readingTocPageAllowed}
-  from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+  from '../../projects/reading-toc/trusted/policy.js';
 
 const tool={format:'opendesk.sidebar-tool.v1',id:'reading-toc',version:'1.0.7',
   title:'阅读目录',description:'Local reader',capabilities:['page.toc'],

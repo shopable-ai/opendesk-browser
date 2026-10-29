@@ -49,8 +49,8 @@ test('framework settings title and back label apply to tools with no business ro
 });
 
 test('clipper keeps data store intact and prioritizes saved content/touch actions',async()=>{
- const notes=await src('examples/sidebar-tools/web-markdown-clipper/src/notes.js');
- const css=await src('examples/sidebar-tools/web-markdown-clipper/src/style.css');
+ const notes=await src('projects/web-markdown-clipper/src/notes.js');
+ const css=await src('projects/web-markdown-clipper/src/style.css');
  assert.match(notes,/cardCopy\(x\)/);
  assert.match(notes,/open.append\(title,excerpt,meta\)/);
  assert.match(notes,/publishNavigation\(\)/);
@@ -58,12 +58,12 @@ test('clipper keeps data store intact and prioritizes saved content/touch action
  assert.match(notes,/showHome\(\{allowBusy:true\}\)/);
  assert.match(css,/\.clip\.clip-hosted \.clip-notes-head/);
  assert.match(css,/@media\(pointer:coarse\)\{\.clip-note-buttons\{opacity:1;pointer-events:auto\}/);
- const source=await src('examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js');
+ const source=await src('projects/web-markdown-clipper/trusted/notes-store.js');
  assert.match(source,/sidebarToolStorageKey\(toolId\)/);
 });
 
 test('official installable package exactly embeds current clipper sources and canonical tokens',async()=>{
- const dir='examples/sidebar-tools/web-markdown-clipper/';
+ const dir='projects/web-markdown-clipper/';
  const meta=JSON.parse(await src(dir+'tool.config.json'));
  const pkg=JSON.parse(await src(dir+'web-markdown-clipper.opendesk-tool.json'));
  assert.equal(pkg.version,meta.version);
@@ -76,19 +76,19 @@ test('official installable package exactly embeds current clipper sources and ca
  assert.equal(pkg.scripts[0].code,await src(dir+meta.files.dependencies[0]));
 });
 test('preview forwards to the only official React root and embeds source-owned navigation actions',async()=>{
- const outer=await src('examples/sidebar-tools/web-markdown-clipper/preview/index.html');
- const stage=await src('examples/sidebar-tools/web-markdown-clipper/preview/stage.html');
+ const outer=await src('projects/web-markdown-clipper/preview/index.html');
+ const stage=await src('projects/web-markdown-clipper/preview/stage.html');
  assert.match(outer,/prototypes\/sidebar\/react-preview\/index.html/);
  assert.doesNotMatch(outer,/demo-tool-head|<iframe/);
  const scripts=[...stage.matchAll(/src="data:text\/javascript;base64,([^"]+)"/g)].map(m=>Buffer.from(m[1],'base64').toString());
  assert.match(scripts[0],/setNavigation\(\{page\}/);
  assert.match(scripts[0],/opendesk-tool-navigation/);
- assert.equal(scripts[1],await src('examples/sidebar-tools/web-markdown-clipper/src/notes.js'));
- assert.equal(scripts[2],await src('examples/sidebar-tools/web-markdown-clipper/src/main.js'));
+ assert.equal(scripts[1],await src('projects/web-markdown-clipper/src/notes.js'));
+ assert.equal(scripts[2],await src('projects/web-markdown-clipper/src/main.js'));
 });
 
 test('navigation business controller exercises real note transitions and guarded draft',async()=>{
- const script=await src('examples/sidebar-tools/web-markdown-clipper/src/notes.js');
+ const script=await src('projects/web-markdown-clipper/src/notes.js');
  const nodes=Object.create(null),pages=[];
  class FakeNode{
   constructor(id=''){this.id=id;this.value='';this.textContent='';this.hidden=false;

@@ -73,7 +73,7 @@ test('Bookmark release config, packed catalog and compiled Browser admission adv
 });
 
 test('R3.0.6 only the exact official, enabled, current installed package enters static React',async()=>{
- const tool=await createSidebarToolPackage(resolve('examples/sidebar-tools/bookmark-manager'));
+ const tool=await createSidebarToolPackage(resolve('projects/bookmark-manager'));
  assert.equal(tool.version,TRUSTED_BOOKMARK_VERSION);
  assert.equal(tool.id,TRUSTED_BOOKMARK_ID);
  const canonical=serializeSidebarToolPackage(tool);
@@ -126,17 +126,17 @@ test('R3.0.6 only the exact official, enabled, current installed package enters 
 test('R3.0.6 one audited JSX source and one React Host root; dynamic iframe intact',async()=>{
  const [react,host,shell,app,css,entry,formal,build,chrome,ignore,wxt]=await Promise.all([
   'src/ui/react/main.tsx','src/ui/sidebar-tools.js','src/ui/tool-shell.js',
-  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx',
-  'examples/sidebar-tools/bookmark-manager/src/react/style.css',
-  'examples/sidebar-tools/bookmark-manager/preview/react/src/main.jsx',
-  'examples/sidebar-tools/bookmark-manager/preview/react/src/formal.jsx',
-  'examples/sidebar-tools/bookmark-manager/preview/react/build-preview.mjs',
-  'examples/sidebar-tools/bookmark-manager/preview/react/run-chrome.mjs',
-  'examples/sidebar-tools/bookmark-manager/preview/.gitignore','wxt.config.mjs'
+  'projects/bookmark-manager/src/react/App.jsx',
+  'projects/bookmark-manager/src/react/style.css',
+  'projects/bookmark-manager/preview/react/src/main.jsx',
+  'projects/bookmark-manager/preview/react/src/formal.jsx',
+  'projects/bookmark-manager/preview/react/build-preview.mjs',
+  'projects/bookmark-manager/preview/react/run-chrome.mjs',
+  'projects/bookmark-manager/preview/.gitignore','wxt.config.mjs'
  ].map(read));
  assert.match(react,/createPortal\(<[\s\S]*BookmarkReactApp/);
  assert.match(react,/mountBookmarkPilot\(/);
- assert.match(react,/import BookmarkReactApp from '\.\.\/\.\.\/\.\.\/examples\/sidebar-tools\/bookmark-manager\/src\/react\/App\.jsx'/);
+ assert.match(react,/import BookmarkReactApp from '\.\.\/\.\.\/\.\.\/projects\/bookmark-manager\/src\/react\/App\.jsx'/);
  assert.doesNotMatch(react,/bookmarkConversationSamples/,'Shared trusted Host must not reintroduce demo shortcuts');
  assert.equal((react.match(/createRoot\(/g)||[]).length,1);
  assert.match(shell,/trustedBookmarkPilot:\{[\s\S]*?enabled:true,/);

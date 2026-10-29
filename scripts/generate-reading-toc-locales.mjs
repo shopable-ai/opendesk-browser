@@ -5,8 +5,8 @@ import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
-export const READING_TOC_LOCALE_SOURCE='examples/sidebar-tools/reading-toc/locales.json';
-export const READING_TOC_LOCALE_MIRROR='examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
+export const READING_TOC_LOCALE_SOURCE='projects/reading-toc/locales.json';
+export const READING_TOC_LOCALE_MIRROR='projects/reading-toc/trusted/locales.generated.js';
 const sourcePath=resolve(READING_TOC_LOCALE_SOURCE),outPath=resolve(READING_TOC_LOCALE_MIRROR);
 const blobHash=raw=>createHash('sha1').update('blob '+Buffer.byteLength(raw)+'\0')
   .update(raw).digest('hex');

@@ -134,3 +134,30 @@ test('Cookie Editor keeps its React classification and discovers browser coverag
   assert.equal(planned.status,0,planned.stderr);
   assert.deepEqual(JSON.parse(planned.stdout).selected,['cookie-editor']);
 });
+
+test('migrated App is discovered from its unique projects source root',()=>{
+  for(const name of ['quick-notes','quick-notes-react','bookmark-manager']){
+    const inspected=cli(['inspect',name]);
+    assert.equal(inspected.status,0,inspected.stderr);
+    assert.equal(JSON.parse(inspected.stdout).app,name);
+    const planned=cli(['plan'],{APP_CI_SELECTED:name});
+    assert.equal(planned.status,0,planned.stderr);
+    assert.deepEqual(JSON.parse(planned.stdout).selected,[name]);
+  }
+});
+test('different directories cannot claim the same App ID in both source namespaces',async()=>{
+  const x=await fixture();
+  const twin=makeId(),shadow=join(ROOT,'projects',twin);
+  try{
+    await mkdir(shadow);
+    await writeFile(join(shadow,'tool.config.json'),JSON.stringify({
+      id:x.name,version:'1.0.0',title:'duplicate owner',files:{html:'src/index.html',css:'src/style.css',js:'src/main.js'}
+    }));
+    const planned=cli(['plan'],{APP_CI_SELECTED:x.name});
+    assert.notEqual(planned.status,0);
+    assert.match(planned.stderr,/duplicate App ID/);
+  }finally{
+    await rm(x.project,{recursive:true,force:true});
+    await rm(shadow,{recursive:true,force:true});
+  }
+});

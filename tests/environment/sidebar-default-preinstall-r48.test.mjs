@@ -6,8 +6,8 @@ import {registerDefaultPreinstall,resumeDefaultPreinstall,DEFAULT_PREINSTALL_STO
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,TOOL_REVOCATION_EPOCHS_STORE,
   recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
-import {READING_TOC_SITE_STORE} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
-import {CLIP_SITE_STORE} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
+import {READING_TOC_SITE_STORE} from '../../projects/reading-toc/trusted/policy.js';
+import {CLIP_SITE_STORE} from '../../projects/web-markdown-clipper/trusted/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {officialFixtures,officialFixtureFetch} from '../helpers/official-tools.mjs';
 import {OFFICIAL_READING_TOC_RELEASE,matchesOfficialReadingToc}

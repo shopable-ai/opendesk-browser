@@ -30,7 +30,7 @@ jobs:
       - run: npm ci
       - name: Stage existing React dependencies for source-level Host tests
         run: |
-          node --input-type=module -e "import {buildAdblockReact} from './scripts/build-adblock-react.mjs'; import {buildStayFocusReact} from './scripts/build-stay-focus-react.mjs'; import {buildCookieEditorReactIfOfficial} from './scripts/build-cookie-editor-react.mjs'; await buildAdblockReact({log:false}); await buildStayFocusReact({log:false}); await buildCookieEditorReactIfOfficial({log:false});"
+          npm run pretest
 
       - name: Prompt business Adapter / Host nonce / ETag / readback
         run: node --test tests/environment/opendesk-conversation-r13-prompt-business.test.mjs tests/environment/opendesk-conversation-r17-prompt-recovery.test.mjs

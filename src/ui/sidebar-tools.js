@@ -11,7 +11,7 @@ import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
   extendReviewedManagedSiteScopes,managedSiteV3RequiredOrigins}
   from '../framework/host/managed-site-reviewed-scopes.js';
 import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
-import readingTocCatalog from '../../examples/sidebar-tools/reading-toc/trusted/locales.generated.js';
+import readingTocCatalog from '../../projects/reading-toc/trusted/locales.generated.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
 import {readingTocHostText} from './reading-toc-settings-localization.js';
 import {createSidePanelOpenCoordinator} from '../platform/chrome/browser-side-panel.js';
@@ -47,9 +47,9 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPA
   websiteOrigin,tocSiteAllowed,tocGrantAllowed,verifyOfficialReadingToc,blockedTocOrigins,changeTocSiteAllowed,READING_TOC_PLACEMENT_PREFIX,
   READING_TOC_VISIBILITY_STORE,readingTocPageScope,readingTocDisplayState,
   changeReadingTocVisibility,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed,
-  disabledTocPages,changeTocPageAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
-import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
-import {CLIP_NOTES_OPERATIONS,executeClipNotes} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js';
+  disabledTocPages,changeTocPageAllowed} from '../../projects/reading-toc/trusted/policy.js';
+import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../../projects/web-markdown-clipper/trusted/policy.js';
+import {CLIP_NOTES_OPERATIONS,executeClipNotes} from '../../projects/web-markdown-clipper/trusted/notes-store.js';
 import {installedSiteAllowed,blockedInstalledOrigins} from './sidebar-tools/site-grants.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';

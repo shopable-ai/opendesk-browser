@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import '../../examples/sidebar-tools/bookmark-manager/src/model.js';
+import '../../projects/bookmark-manager/src/model.js';
 
 const model=globalThis.BookmarkR2Model;
-const source=await readFile(new URL('../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx',import.meta.url),'utf8');
+const source=await readFile(new URL('../../projects/bookmark-manager/src/react/App.jsx',import.meta.url),'utf8');
 const helpers=source.slice(source.indexOf('function isFolder('),source.indexOf('function highlightSearchTitle('));
 const body=source.slice(source.indexOf('export default function App(')+'export default '.length,
   source.indexOf(' return <div className="bm-app"'));

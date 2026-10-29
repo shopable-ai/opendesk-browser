@@ -128,7 +128,7 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  const base='http://127.0.0.1:'+port,version=await(await fetch(base+'/json/version')).json();
  browser=await connect(version.webSocketDebuggerUrl);
  async function open(name){
-  const input=resolve('examples/sidebar-tools/reading-toc/preview',name);
+  const input=resolve('projects/reading-toc/preview',name);
   const contents=await readFile(input,'utf8');assert(contents.includes('opendesk-preview-manifest'));
   const targetId=(await browser.send('Target.createTarget',{url:pathToFileURL(input).href})).targetId;
   // A target may accept a direct WebSocket while Runtime.enable stalls on hosted macOS.
@@ -337,7 +337,7 @@ test('R1.4 real Chrome opens saved file:// bilingual previews and exercises inne
  await until(()=>evaluate(overlay.page,
   'document.getElementById("od-toc-feedback")?.textContent.includes("模拟章节定位：注意事项")'),
   'Physical click of third assistant answer did not reach its own heading');
- const html=await readFile(resolve('examples/sidebar-tools/reading-toc/preview/index.html'),'utf8');
+ const html=await readFile(resolve('projects/reading-toc/preview/index.html'),'utf8');
  const sourceHash=html.match(/"trustedOverlaySourceSha256":"([a-f0-9]{64})"/)?.[1]||null;
  await writeFile(resolve('artifacts/reading-toc-r41/toc-r186-visible-observation.json'),
   JSON.stringify({sourceCommit:process.env.GITHUB_SHA||null,trustedOverlaySourceSha256:sourceHash,

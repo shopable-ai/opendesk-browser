@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import '../../examples/sidebar-tools/bookmark-manager/src/model.js';
+import '../../projects/bookmark-manager/src/model.js';
 
 const model=globalThis.BookmarkR2Model;
-const source=await readFile(new URL('../../examples/sidebar-tools/bookmark-manager/src/react/App.jsx',import.meta.url),'utf8');
+const source=await readFile(new URL('../../projects/bookmark-manager/src/react/App.jsx',import.meta.url),'utf8');
 const start=source.indexOf(' async function save(e)'),end=source.indexOf(' async function removeConfirmed(',start);
 assert.ok(start>=0&&end>start,'execute the actual App Save callback without compiling its JSX');
 const saveSource=source.slice(start,end).trim();

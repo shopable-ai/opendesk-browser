@@ -9,7 +9,7 @@ on:
       - 'src/ui/react/components/conversation-dock.css'
       - 'src/ui/tool-shell.css'
       - 'src/platform/chrome/current-page-refs.js'
-      - 'examples/sidebar-tools/bookmark-manager/src/react/App.jsx'
+      - 'projects/bookmark-manager/src/react/App.jsx'
       - 'tests/environment/opendesk-conversation-*.test.mjs'
       - 'tests/environment/conversation-dock-layout-browser.test.mjs'
       - 'tests/environment/browser-sdk-r124-current-page.test.mjs'
@@ -47,7 +47,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Actual official bookmark tool package from production source
-        run: npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
+        run: npm run build:sidebar-tool -- projects/bookmark-manager
       - name: WXT production build
         run: npm run build
       - name: WXT production package verification

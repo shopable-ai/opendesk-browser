@@ -18,10 +18,10 @@ assert(launch.args.includes('--load-extension='+extension),'Daily development pa
 const [port,route]=(await readFile(launch.profile+'/DevToolsActivePort','utf8')).trim().split('\n');
 const client=await connect('ws://127.0.0.1:'+port+route);
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
-const inputs=['examples/sidebar-tools/bookmark-manager/src/main.js',
-  'examples/sidebar-tools/bookmark-manager/src/service.js',
-  'examples/sidebar-tools/bookmark-manager/src/model.js',
-  'examples/sidebar-tools/bookmark-manager/tool.config.json',
+const inputs=['projects/bookmark-manager/src/main.js',
+  'projects/bookmark-manager/src/service.js',
+  'projects/bookmark-manager/src/model.js',
+  'projects/bookmark-manager/tool.config.json',
   'src/platform/chrome/bookmarks-full.js','src/platform/chrome/current-page-refs.js',
   'src/framework/sdk/browser-schemas.js','src/ui/sidebar-tools.js'];
 const fingerprints=()=>Promise.all(inputs.map(async path=>({path,sha256:hash(await readFile(path))})));

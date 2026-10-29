@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 
-const appFile='examples/sidebar-tools/bookmark-manager/src/react/App.jsx';
-const cssFile='examples/sidebar-tools/bookmark-manager/src/react/style.css';
+const appFile='projects/bookmark-manager/src/react/App.jsx';
+const cssFile='projects/bookmark-manager/src/react/style.css';
 
 test('R3.0.8 bookmark URL is the direct accessible link, with no duplicated footer open control',async()=>{
  const app=await readFile(appFile,'utf8');

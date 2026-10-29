@@ -5,11 +5,11 @@ import {officialMarketApps} from '../../src/marketplace/catalog.js';
 import {officialFixtures} from '../helpers/official-tools.mjs';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 const official=await officialFixtures();
-const generated=encodeSidebarToolPackage(await createSidebarToolPackage('examples/sidebar-tools/knowledge-inbox')).toString('utf8');
+const generated=encodeSidebarToolPackage(await createSidebarToolPackage('projects/knowledge-inbox')).toString('utf8');
 const builtin=official.resources.get('official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json').toString('utf8');
 
 // Static contract tests complement, but never replace, the real CFT iframe test.
-const path='examples/sidebar-tools/knowledge-inbox/';
+const path='projects/knowledge-inbox/';
 const [html,css,js,config]=await Promise.all([
   readFile(path+'src/index.html','utf8'),
   readFile(path+'src/style.css','utf8'),

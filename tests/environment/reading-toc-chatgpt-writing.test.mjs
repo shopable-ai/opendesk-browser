@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
+import {createReadingTocIndex} from '../../projects/reading-toc/trusted/model.js';
 
 // Synthetic semantic headings only. The fixture keeps DOM ancestry, identity,
 // document order and page geometry independent; it does not emulate layout.

@@ -9,9 +9,9 @@
 | **原生 HTML/CSS/JS** | 新手、轻量工具、最小包和最快迭代 | [零参数世界／OpenDeskTool 可导入 Demo](runtime-globals-demo/README.md)、[quick-notes](../../projects/quick-notes/README.md)、[markdown-workbench](../../projects/markdown-workbench/README.md)、[Cookie Editor 本地 UI](cookie-editor/README.zh-CN.md) |
 | **React 预编译** | 组件较多，需要 React 状态/UI | [React Starter](react-starter/README.md)、[Quick Notes React 正式产品](../../projects/quick-notes-react/README.md) |
 | **Vue 预编译** | 组件较多，需要 Vue | [vue-starter](vue-starter/README.md) |
-| **受信任网页目录** | 官方站点授权、可信 Content Script | [reading-toc](reading-toc/README.md) |
-| **受信任网页剪藏** | 文章/选区，按网站独立授权 | [web-markdown-clipper](web-markdown-clipper/README.md) |
-| **受信任 ChatGPT 内容保存** | 官方内容抓取、可信数据服务、Workspace 交接 | [knowledge-inbox](knowledge-inbox/README.zh-CN.md)、[专项开发](knowledge-inbox/DEVELOPMENT.zh-CN.md) |
+| **受信任网页目录** | 官方站点授权、可信 Content Script | [reading-toc](../../projects/reading-toc/README.md) |
+| **受信任网页剪藏** | 文章/选区，按网站独立授权 | [web-markdown-clipper](../../projects/web-markdown-clipper/README.md) |
+| **受信任 ChatGPT 内容保存** | 官方内容抓取、可信数据服务、Workspace 交接 | [knowledge-inbox](../../projects/knowledge-inbox/README.zh-CN.md)、[专项开发](../../projects/knowledge-inbox/DEVELOPMENT.zh-CN.md) |
 
 **源码组织原则（R2.1 迁移期）**：已迁移正式产品的唯一源码位于 `projects/<id>/`，尚未迁移的正式产品暂留 `examples/sidebar-tools/<id>/`；后者目录也保留独立教学工具。不得双份维护同一正式产品。确实需要 Chrome 后台、网页 Content Script、可信授权或 DNR 的产品（如 Stay Focus），继续使用现有 `src/<feature>/` 预编译模块和固定入口；普通工具不需要这些模块。不要把沙箱 UI 运行时脚本注入 SW/Content Script，也不要因目录整齐而改写现有 Catalog、Host、权限或构建器。具体执行世界和单向依赖规则参阅 [统一工具开发规范](../../docs/api/sidebar-tool-development.zh-CN.md#一个项目多种执行环境不是多个插件)。
 

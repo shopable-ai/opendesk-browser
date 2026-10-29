@@ -17,13 +17,13 @@
     },
     {
       "id": "reading-toc",
-      "project": "examples/sidebar-tools/reading-toc",
+      "project": "projects/reading-toc",
       "kind": "sidebar-tool",
       "installationPolicy": "preinstalled"
     },
     {
       "id": "web-markdown-clipper",
-      "project": "examples/sidebar-tools/web-markdown-clipper",
+      "project": "projects/web-markdown-clipper",
       "kind": "sidebar-tool",
       "installationPolicy": "optional",
       "packageFile": "web-markdown-clipper.opendesk-tool.json"
@@ -42,7 +42,7 @@
     },
     {
       "id": "knowledge-inbox",
-      "project": "examples/sidebar-tools/knowledge-inbox",
+      "project": "projects/knowledge-inbox",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },
@@ -80,7 +80,7 @@
     },
     {
       "id": "bookmark-manager",
-      "project": "examples/sidebar-tools/bookmark-manager",
+      "project": "projects/bookmark-manager",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },

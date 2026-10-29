@@ -1,6 +1,6 @@
 // Generic, low-privilege Sidebar App CI. No App IDs, Chrome grants or release credentials here.
 // App-specific test declarations live beside each App, not in GitHub Actions YAML.
-import {readFile,readdir,realpath,stat,mkdir,writeFile} from 'node:fs/promises';
+import {readFile,readdir,realpath,stat,lstat,mkdir,writeFile} from 'node:fs/promises';
 import {resolve,join,dirname,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
@@ -8,7 +8,7 @@ import {spawnSync} from 'node:child_process';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from './build-sidebar-tool.mjs';
 
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
-const APPS=join(ROOT,'examples/sidebar-tools');
+const APP_SOURCE_PARENTS=['projects','examples/sidebar-tools'];
 const SHA=value=>createHash('sha256').update(value).digest('hex');
 const BASE_TESTS=[
   'tests/environment/tool-stage.test.mjs',
@@ -43,7 +43,7 @@ async function sourcePath(name,where){
 }
 // App-owned tests are discovered by directory, not listed in a shared YAML.
 // A newly added *.test.mjs in an App's own tests/ cannot be silently skipped.
-async function ownedTests(name,dir){
+async function ownedTests(name,dir,source){
   const root=join(dir,'tests'),found=[];
   const rootInfo=await stat(root).catch(()=>null);
   if(!rootInfo)return found;
@@ -57,7 +57,7 @@ async function ownedTests(name,dir){
       if(item.isDirectory())await visit(file,depth+1);
       else if(item.isFile()&&item.name.endsWith('.test.mjs')){
         if(found.length>=100)fail('App test budget exceeded');
-        const relativeName='examples/sidebar-tools/'+name+'/tests/'+
+        const relativeName=source+'/tests/'+
           file.slice(root.length+1).split(sep).join('/');
         await sourcePath(relativeName,'App test');
         found.push(relativeName);
@@ -68,25 +68,41 @@ async function ownedTests(name,dir){
   return found.sort();
 }
 
+// One verified source owner per App ID across migrated and legacy namespaces.
 async function projects(){
-  const found=[];
-  for(const row of await readdir(APPS,{withFileTypes:true})){
-    if(!row.isDirectory()||!safeName(row.name))continue;
-    if(await has(join(APPS,row.name,'tool.config.json')))found.push(row.name);
+  const found=new Map(),ids=new Map();
+  for(const parent of APP_SOURCE_PARENTS){
+    const base=join(ROOT,parent),baseInfo=await lstat(base);
+    if(!baseInfo.isDirectory()||(await realpath(base))!==base)
+      fail('unsafe App source namespace '+parent);
+    for(const row of await readdir(base,{withFileTypes:true})){
+      if(row.isSymbolicLink())fail('symlink forbidden in App source namespace: '+parent+'/'+row.name);
+      if(!row.isDirectory()||!safeName(row.name))continue;
+      const dir=join(base,row.name),source=parent+'/'+row.name;
+      if((await realpath(dir))!==dir)fail('App directory is a symlink: '+source);
+      if(!(await has(join(dir,'tool.config.json'))))continue;
+      await sourcePath(source+'/tool.config.json','App identity');
+      const meta=JSON.parse(await readFile(join(dir,'tool.config.json'),'utf8'));
+      if(!safeName(meta.id)||typeof meta.version!=='string')
+        fail('invalid App identity: '+source);
+      if(found.has(row.name))fail('duplicate App directory owner: '+row.name);
+      if(ids.has(meta.id))fail('duplicate App ID: '+meta.id+' ('+ids.get(meta.id)+' and '+source+')');
+      found.set(row.name,{name:row.name,source,dir,meta});
+      ids.set(meta.id,source);
+    }
   }
-  return found.sort();
+  return found;
 }
 function arr(value,label){
   if(!Array.isArray(value)||value.length>100||new Set(value).size!==value.length||
      value.some(x=>typeof x!=='string'))fail('invalid '+label+' tests');
   return value;
 }
-async function load(name){
-  if(!safeName(name)||!(await has(join(APPS,name,'tool.config.json'))))
-    fail('unknown App directory: '+String(name));
-  const dir=join(APPS,name),meta=JSON.parse(await readFile(join(dir,'tool.config.json'),'utf8'));
-  if(!safeName(meta.id)||typeof meta.version!=='string')
-    fail('invalid App identity: '+name);
+async function load(name,sources){
+  if(!safeName(name))fail('unknown App directory: '+String(name));
+  const owner=(sources||await projects()).get(name);
+  if(!owner)fail('unknown App directory: '+String(name));
+  const {dir,source,meta}=owner;
   const file=join(dir,'app.ci.json');
   const declared=await has(file);
   const profile=declared?JSON.parse(await readFile(file,'utf8')):{schema:'opendesk.app-ci.v1',kind:'ui'};
@@ -95,7 +111,7 @@ async function load(name){
      Object.keys(profile).some(k=>!['schema','kind','build','afterBuild','node','browser','native','host','extraCandidate'].includes(k)))
     fail('invalid App CI profile '+name);
   const node=arr(profile.node||[],name+'.node');
-  for(const discovered of await ownedTests(name,dir))
+  for(const discovered of await ownedTests(name,dir,source))
     if(!node.includes(discovered))node.push(discovered);
   profile.node=node;
   const browser=arr(profile.browser||[],name+'.browser');
@@ -138,13 +154,13 @@ async function load(name){
   if(profile.kind==='react-candidate'&&!profile.extraCandidate)
     fail('candidate-only UI must declare its staged artifact');
   for(const file of node){
-    if(!(file.startsWith('tests/environment/')||file.startsWith('examples/sidebar-tools/'+name+'/'))||
+    if(!(file.startsWith('tests/environment/')||file.startsWith(source+'/'))||
       !file.endsWith('.test.mjs'))fail('Node test outside approved source namespace');
     await sourcePath(file,'Node test');
   }
   for(const file of browser){
     if(!(file.startsWith('tests/framework/')||file.startsWith('scripts/tests/')||
-      file.startsWith('examples/sidebar-tools/'+name+'/'))||!file.endsWith('.mjs'))
+      file.startsWith(source+'/'))||!file.endsWith('.mjs'))
       fail('Chrome test outside approved source namespace');
     await sourcePath(file,'Chrome test');
   }
@@ -157,10 +173,10 @@ async function load(name){
   if(typeof profile.build==='string'&&profile.build.startsWith('node:'))
     await sourcePath(profile.build.slice(5),'compiler');
   for(const file of profile.afterBuild||[])await sourcePath(file,'afterBuild');
-  return {name,dir,meta,profile,declared};
+  return {name,source,dir,meta,profile,declared};
 }
 async function plan(){
-  const names=await projects(),selected=process.env.APP_CI_SELECTED||'';
+  const sources=await projects(),names=[...sources.keys()].sort(),selected=process.env.APP_CI_SELECTED||'';
   let wanted=[];
   if(selected){
     wanted=selected==='all'?names:selected.split(',').map(x=>x.trim());
@@ -179,12 +195,12 @@ async function plan(){
       p.startsWith('.github/workflows/app-ci')||p.startsWith('official-tools/')||
       p==='package.json'||p==='package-lock.json'||p==='wxt.config.mjs');
     wanted=shared?names:names.filter(name=>changed.some(p=>
-      p.startsWith('examples/sidebar-tools/'+name+'/')&&!p.endsWith('.opendesk-tool.json')));
+      p.startsWith(sources.get(name).source+'/')&&!p.endsWith('.opendesk-tool.json')));
   }
   if(wanted.length>200)fail('GitHub matrix budget exceeded: select explicit batches; do not silently skip');
-  for(const name of wanted)await load(name);
+  for(const name of wanted)await load(name,sources);
   const native=[];
-  for(const name of wanted)if((await load(name)).profile.native)native.push(name);
+  for(const name of wanted)if((await load(name,sources)).profile.native)native.push(name);
   const output={
     apps:JSON.stringify(wanted),native:JSON.stringify(native),
     has_apps:String(wanted.length>0),has_native:String(native.length>0)};
@@ -212,9 +228,9 @@ async function build(name){
       // Locked project-local Vue/React dependencies may not exist in root npm ci.
       // Installation hooks are disabled; builds run only in read-only CI jobs.
       if(await has(join(x.dir,'package-lock.json')))
-        run('npm',['ci','--prefix','examples/sidebar-tools/'+name,
+        run('npm',['ci','--prefix',x.source,
           '--ignore-scripts','--no-audit','--no-fund']);
-      run('npm',['run','build','--prefix','examples/sidebar-tools/'+name]);
+      run('npm',['run','build','--prefix',x.source]);
     }
     else if(x.meta.uiRuntime==='opendesk.react-ui.v1')fail('missing React compiler');
   }
@@ -239,7 +255,7 @@ async function build(name){
   const head=process.env.GITHUB_SHA||capture('git',['rev-parse','HEAD']);
   if(!/^[0-9a-f]{40}$/.test(head))fail('invalid source commit identity');
   const receipt={schema:'opendesk.app-ci-candidate.v1',sourceCommit:head,
-    project:'examples/sidebar-tools/'+name,id:pkg.id,version:pkg.version,
+    project:x.source,id:pkg.id,version:pkg.version,
     capabilities:pkg.capabilities,sha256:SHA(bytes),bytes:bytes.length,
     output:out,kind:x.profile.kind,status:'BUILT_NOT_TESTED_NOT_RELEASED',
     ...(extra?{extraCandidate:{version:extra.version,sha256:SHA(await readFile(
