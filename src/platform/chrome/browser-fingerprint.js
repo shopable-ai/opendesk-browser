@@ -281,7 +281,8 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     let languageClearError=null;
     if(s.attached&&s.config.lang!=='system'){
       try{
-        await api.debugger.sendCommand(client(s),'Emulation.setUserAgentOverride',{userAgent:''});
+        await api.debugger.sendCommand(client(s),'Emulation.setUserAgentOverride',
+          {userAgent:'',acceptLanguage:''});
         await api.debugger.sendCommand(client(s),'Emulation.setLocaleOverride',{locale:''});
       }catch(error){languageClearError=error;}
     }

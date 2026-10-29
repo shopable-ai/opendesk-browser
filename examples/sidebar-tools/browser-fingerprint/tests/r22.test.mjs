@@ -31,10 +31,14 @@ function harness({deny=false,failedCommand=null,failedClearCommand=null,noHints=
         if(failedCommand===method||
           failedClearCommand===method&&args?.locale==='')throw fail('E_CDP_REJECTED');
         if(method==='Emulation.setUserAgentOverride'){
-          state.ua=args.userAgent;
-          if(args.acceptLanguage)state.language=args.acceptLanguage;
+          state.ua=args.userAgent||original.ua;
+          if(args.acceptLanguage==='')state.language=original.language;
+          else if(args.acceptLanguage)state.language=args.acceptLanguage;
           if(args.userAgentMetadata)state.hints=args.userAgentMetadata.platform;
         }
+        if(method==='Emulation.setLocaleOverride'&&args.locale==='')
+          assert.equal(state.language,original.language,
+            'Explicitly clear Accept-Language before locale reset');
         if(method==='Emulation.setTimezoneOverride')state.tz=args.timezoneId;
         if(method==='Emulation.setDeviceMetricsOverride')
           state.viewport={width:args.width,height:args.height};
