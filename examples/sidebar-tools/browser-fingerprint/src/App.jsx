@@ -117,7 +117,7 @@ function Modal({title,children,onCancel,actions}){
     </div>
   </div>;
 }
-function Report({rows,verification,config,origin,preview,onCopy,onExport,busy}){
+function Report({rows,verification,nativeResults=[],config,origin,preview,onCopy,onExport,busy}){
   const matches=rows.filter(row=>row.status==='match').length;
   const mismatches=rows.filter(row=>row.status==='mismatch').length;
   const unverified=rows.length-matches-mismatches;
@@ -152,7 +152,10 @@ function Report({rows,verification,config,origin,preview,onCopy,onExport,busy}){
             <div><small>实际读取值</small><span>{row.observed??'—'}</span></div>
           </div>
           <p className="fp-secondary">来源：{sourceLabel(row.source)}
-            {row.reason?' · '+row.reason:''}</p>
+            {row.reason?' · '+row.reason:''}
+            {nativeResults.find(item=>item.key===row.key)?' · 原生执行：'+({
+              applied:'已受理',unknown:'结果未知',unsupported:'不支持'
+            }[nativeResults.find(item=>item.key===row.key)?.status]||'未知'):''}</p>
         </div>)}
       </div>
       <p className="fp-secondary">适用目标：{origin||'未绑定'}。切换国家预设不会修改公网 IP、物理屏幕或 Chrome 用户 Profile。</p>
@@ -331,7 +334,14 @@ export default function App({adapter,preview=false}){
       activeSession.current=next;setSession(next);
       setStatus('applied_unverified');
       warn('可信 Host 已受理当前网页环境设置；仍需点击「网页读回」独立验证。','warning');
-      await record('apply','applied_unverified','可信 Host 应用回执已确认；等待网页读回','trusted-browser-host');
+      const native=next.fieldResults||[];
+      const applied=native.filter(x=>x.status==='applied').length;
+      const uncertain=native.filter(x=>x.status==='unknown').length;
+      const unsupported=native.filter(x=>x.status==='unsupported').length;
+      await record('apply','applied_unverified',
+        '原生已受理 '+applied+' 字段，结果未知 '+uncertain+
+        ' 字段，不支持 '+unsupported+' 字段；尚未独立读回',
+        'trusted-browser-host');
     }catch(error){
       const kind=classifyFailure(error,'apply');
       if(!mounted.current)return;
@@ -503,7 +513,7 @@ export default function App({adapter,preview=false}){
       </details>
     </>:null}
     {view==='results'?<Report rows={rows} verification={verification}
-      config={config} origin={origin} preview={preview} busy={busy}
+      nativeResults={session?.fieldResults||[]} config={config} origin={origin} preview={preview} busy={busy}
       onCopy={()=>void output('copy')} onExport={()=>void output('download')}/>:null}
     {view==='history'?<>
       <Card><CardContent className="fp-card">
