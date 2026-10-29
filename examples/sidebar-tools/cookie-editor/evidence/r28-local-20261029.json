@@ -180,8 +180,15 @@
       }
     ],
     "clipboardRoundtrip": {
-      "status": "NOT_TESTED",
-      "observation": "copy toast succeeded but subsequent paste showed unrelated text, including ODS-CODEX test markers from an unknown source. Clipboard interference/driver effects are unresolved; no attributable product defect established; download export verified independently."
+      "status": "PASS",
+      "browser": "macOS Chrome for Testing 155.0.8059.39, second dedicated temporary Profile",
+      "launchReceipt": "artifacts/sidebar-tools/cookie-editor/r28-local/chrome-clipboard-launch.json",
+      "extensionId": "ajdfajmnmpcapbfmofhidjblnmhfemmg",
+      "hostInstanceId": "36c4b817-2ea1-4e4d-af31-049fccd63596",
+      "productionCandidateUnchanged": true,
+      "observation": "Explicitly focused native textarea. Baseline Cmd+C/Cmd+V returned R28-CLIP-BASELINE-01a186fd. Created real local Cookie od_r28_clip_probe=clip-roundtrip-01a186fd through product, exported JSON with product Copy, opened Import, explicitly clicked textarea and pressed native Cmd+V. Actual JSON contained expected name/value/domain. Preview: total 1, importable 1, skipped 0; no import write performed. Test Cookie then deleted through product; list 0.",
+      "priorObservationRetained": "Earlier paste returned unrelated text. No attributable product defect established. This run also observed AX reporting textarea focus while keyboard selection targeted main page until explicit click. No product code changed.",
+      "evidenceKind": "native CUA AX output excerpts transcribed into adjacent markdown; original complete outputs and screenshots in chat tool transcript, no raw screenshots saved to disk"
     },
     "legacyEncryptionLockUi": {
       "status": "NOT_APPLICABLE",
@@ -197,16 +204,17 @@
   },
   "testLimitations": [
     "Node counts overlap and are not summed",
-    "native clipboard roundtrip unresolved",
     "native legacy encrypted-store migration not run; obsolete lock UI not reintroduced",
     "width/zoom/theme matrices not run"
   ],
   "resources": {
-    "dailyDevWatcher": "preserved PID95314 / dist/development",
+    "dailyDevWatcher": "Historical PID95314 / dist/development never stopped or overwritten by this task; PID95314 absent at follow-up read-only check, no action taken.",
     "snapshotBuildGuard": 43124,
     "nativeTestPid": 82547,
     "nativeOwner": "current thread; exclusive control authorized by user",
-    "externalProfiles": "preserved"
+    "externalProfiles": "preserved",
+    "clipboardTestPid": 8834,
+    "clipboardTestCleanup": "Owned PID8834 exited and its temporary Profile was removed by launcher; only this PID received SIGTERM after executable/profile validation."
   },
   "scores": {
     "reviewer": "independent code-reviewer subagent Pauli / 01a18703-1fbd-7801-a499-2e29f2e9bfff",
@@ -224,6 +232,36 @@
     "arithmeticMean": 91.5,
     "targetEach": 95,
     "targetMet": false,
-    "coreDeliveryBlockerFound": false
+    "coreDeliveryBlockerFound": false,
+    "historical": true,
+    "note": "Original review before successful clipboard roundtrip; retained without retroactive score inflation. Follow-up review is separate."
+  },
+  "followupReview": {
+    "reviewer": "independent code-reviewer subagent Gibbs / 01a18729-a199-74f0-9edd-7d1de1f66ea7",
+    "verdict": "COMMENT",
+    "scope": "Read-only current source, build receipts, all 117 production output hashes, formal/builtin JSON bytes, real downloaded JSON, and follow-up three-file evidence. Native operation and cleanup observations supplied by primary agent; reviewer did not operate browser.",
+    "accountP1CompatibilityBriefCheck": "SATISFIED; removed passphrase/lock UI not applicable, Foundation/legacy Node cases and current native account flow sufficient for requested brief regression check; native legacy ciphertext migration remains NOT_TESTED, not current blocker.",
+    "evidenceFollowupClosed": true,
+    "dimensions": {
+      "功能闭环": 95,
+      "授权交互": 95,
+      "权限隔离": 94,
+      "数据正确性": 95,
+      "生命周期": 92,
+      "可维护性": 90,
+      "构建发行一致性": 97,
+      "验收证据": 91
+    },
+    "arithmeticMean": 93.625,
+    "targetEach": 95,
+    "targetMet": false,
+    "deductions": {
+      "权限隔离": "Native revoke observations lack separate step-by-step original material association.",
+      "生命周期": "Existing native revoke/site switch/reopen observations available; follow-up did not add separate lifecycle material.",
+      "可维护性": "Some grant tests rely on source regex, existing configured/unlocked naming retains legacy store semantics.",
+      "验收证据": "Original native observations remain chat tool results and selected AX excerpts, not a machine-generated end-to-end receipt."
+    },
+    "coreDeliveryBlockerFound": false,
+    "productionRepairRecommended": false
   }
 }
