@@ -340,5 +340,21 @@
         "Native legacy ciphertext migration remains NOT_TESTED; not current P1 brief-check blocker."
       ]
     }
+  },
+  "deliveryDecision": {
+    "date": "2026-10-29",
+    "userReply": "按本轮范围交付，保留评分差距",
+    "status": "ACCEPTED_WITH_RECORDED_QUALITY_GAPS",
+    "scope": "Deliver completed P0/P1/P2 work and existing native core evidence; retain independent scores and all untested boundaries. No expansion into test-structure refactoring or extra evidence reruns.",
+    "qualityTargetMet": false,
+    "independentArithmeticMean": 94.5,
+    "remainingRequiredWorkWithinAcceptedScope": [],
+    "retainedFollowups": [
+      "Maintainability 90: source-regex tests and legacy configured/unlocked semantics.",
+      "Evidence 94: selected AX excerpts; full-tree absence cannot be independently recomputed from the archive.",
+      "All previously documented untested coverage and unrelated quick-notes failure remain unchanged."
+    ],
+    "newProductChanges": false,
+    "buildOrBrowserRerun": false
   }
 }
