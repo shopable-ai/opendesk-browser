@@ -1,6 +1,67 @@
-# OpenDesk Browser · AI 账号额度管理中心 R1.4-LIVE（后端核心）
+# OpenDesk Browser · AI 账号额度管理中心 R1.5（本机核心功能）
 
-**进度：单账号 Codex OAuth 已真实查询成功；Cookie-only 保留 403 / challenge 的独立失败记录；双账号隔离仍 `NOT_TESTED`，R1.5 正式 React 数据接线尚未就绪。** 本文档不把模拟 HTTP 测试当作真实账号查询，也不把 OAuth 成功改写为 Cookie-only 成功。
+**进度：参数化 Node 服务、显式账号来源、独立 React 账号列表/详情/手动刷新及私有历史已接通；2026-10-30 00:37 北京时间单账号 Node 查询 HTTP 200。Cookie-only 保留原 403 / challenge 记录，真实双账号隔离仍 `NOT_TESTED`。** 本文档不把模拟 HTTP 测试当作真实账号查询，也不把 OAuth 成功改写为 Cookie-only 成功。
+
+
+## 当前调用入口
+
+在仓库根目录执行。默认 alias `codex_local_01` 映射用户明确授权的 `~/.codex/auth.json`；不需要邮箱参数。仅 `refresh` 会读取认证文件和联系上游，`accounts` / `history` / `serve` 启动不查询上游。
+
+```sh
+# 缓存（本机业务资料，输出可能包含邮箱，请勿上传日志）
+node services/ai-account-usage/manage.mjs accounts --alias codex_local_01
+# 显式单次刷新；只有显式指定才使用该本机 HTTP CONNECT 代理
+node services/ai-account-usage/manage.mjs refresh --alias codex_local_01 --proxy http://127.0.0.1:7897
+node services/ai-account-usage/manage.mjs history --alias codex_local_01 --limit 20
+# 独立管理页，使用已有本地依赖构建，不构建 Chrome 扩展
+npm run build:web --prefix services/ai-account-usage
+node services/ai-account-usage/manage.mjs serve --proxy http://127.0.0.1:7897
+```
+
+打开 `serve` 在**本机终端**打印的一次性 `/pair#pair=…` 链接：有效期 5 分钟、使用后失效，立即从地址栏移除并换成 8 小时 HttpOnly / SameSite=Strict 会话。页面为同源会话入口，不持有只读 API 的服务秘密。服务绑定 `127.0.0.1` 随机端口，可用 `serve --port 43121` 指定空闲端口。关闭服务后会话失效；另一个浏览器须重启服务获取新链接。终端链接属于本机访问凭据，不分享。页面数据只在本机显示；详情含邮箱与账号 ID，不要上传截图。关闭终端/服务停止监听，无自动调度、自动刷新或模型推理。
+
+多账号使用管理员指定的本机 JSON 配置（不放入仓库，不含 Token/Cookie），每份 `path` 必须对应其明确授权的独立账号快照：
+
+```json
+{"accounts":[
+  {"alias":"team_a","displayName":"管理员标签 A","mode":"CODEX_OAUTH","source":{"type":"CODEX_AUTH_FILE","path":"/absolute/authorized-a/auth.json"}},
+  {"alias":"team_b","displayName":"管理员标签 B","mode":"CODEX_OAUTH","source":{"type":"CODEX_AUTH_FILE","path":"/absolute/authorized-b/auth.json"}}
+]}
+```
+
+```sh
+node services/ai-account-usage/manage.mjs refresh --config /absolute/accounts.json --alias team_a --alias team_b
+node services/ai-account-usage/manage.mjs refresh --config /absolute/accounts.json --all
+node services/ai-account-usage/manage.mjs serve --config /absolute/accounts.json
+```
+
+认证文件必须是当前用户拥有的私有普通文件（0600/0400），拒绝末级符号链接、目录、超大文件。不会扫描其他认证目录，不复制或刷新认证，不修改 Chrome 登录。首次从已授权文件提取缓存身份，再由上游双 ID 和邮箱比对验证；成功绑定后，换成另一个账号的文件会在联网前拒绝，不能重用 alias 静默覆盖历史。同一已验证用户/工作区不得再绑定到另一个 alias。更改账号请使用新的 alias 和独立授权。
+
+统一 Node 接口（可信主进程）：
+
+```js
+import {createAccountService} from './services/ai-account-usage/account-service.mjs';
+import {codexAuthFileSource} from './services/ai-account-usage/authorized-sources.mjs';
+const service = createAccountService({accounts:[{
+  alias:'codex_local_01', displayName:'管理员备注', mode:'CODEX_OAUTH',
+  loadAuthorizedAccount:codexAuthFileSource({alias:'codex_local_01',path:'/absolute/authorized/auth.json'})
+}]});
+await service.query({alias:'codex_local_01'}); // operation 默认为 cache
+await service.query({aliases:['codex_local_01'],operation:'refresh'});
+await service.query({alias:'codex_local_01',operation:'history',limit:20});
+```
+
+固定返回 `{results:[{alias,status,account?,history?,error?}]}`；参数格式错误整体拒绝，未知或未授权账号不发请求，账号失败独立返回、继续其他账号。刷新按账号串行执行，每个账号均从自己的授权来源取一次快照。Node 接口保留 Cookie-only 可信提供者注入，易用文件 CLI 当前仅接通明确授权的 Codex OAuth 来源，不会自动切换认证方式。
+
+`account.identity` 包括 `userId/accountId/email/emailSource/displayName/displayNameSource/observedAt`。邮箱先与缓存身份一致才接受；服务端字段标 `USAGE_RESPONSE`，缺失时缓存声明标 `OAUTH_CACHE`，缓存声明没有独立验证 JWT 签名。管理员 `account.displayName` 是独立标签。缺失姓名和会员到期均显示未知，不从重置日期推断。旧历史 `identity` 缺失兼容为 null，失败不清除上次身份和成功窗口。每个额度桶/窗口独立显示；失败、样本超过 15 分钟或重置已过标记“过期样本”，其他仍标“缓存样本”，不宣称实时。
+
+### 本轮证据与边界
+
+2026-10-30 00:37（北京时间），上述 Node 参数化服务经显式 `127.0.0.1:7897` CONNECT、TLS 校验完成 **1 次**固定 GET，HTTP 200；无重试、刷新认证、重定向或全局代理修改。Pro 主窗口为 604800 秒，85% 已用 / 15% 剩余，预计重置 `2026-11-04T06:35:41.000Z`。这是该时刻采样，不代表当前值。服务端邮箱已与 OAuth 绑定邮箱匹配，名称来源是本机 OAuth 缓存；源认证文件哈希不变。归一化资料与历史保存在既有本机私有 HistoryStore，未保存 Token 或原始响应。
+
+真实本机同源配对 → React 列表 → 账号详情/历史 → 搜索/关闭已验证。手动刷新链通过隔离测试和一次真实 Node 查询分别验证；没有为 UI 点击再次请求上游。[脱敏证据](evidence/r15-node-live-20261030.json)。真实双账号 G2、Cookie Editor Vault/Chrome 登录独立前后对照、正式扩展安装、production 验收均 `NOT_TESTED`；不恢复旧“G2 后才允许最小页面”的阶段限制。复杂图表、企业汇总、自动调度与正式发布延期。
+
+## 历史证据（与本轮分开）
 
 2026-10-29 22:29（北京时间），用户明确授权直接读取既有本机 Cookie JSON，先用 Cookie-only `GET /api/auth/session` 发现该快照的身份，再交给原 CLI 校验额度。该唯一真实请求返回 `403`、`text/html` 和 `cf-mitigated: challenge`，故未继续请求 `/backend-api/wham/usage`、未重试、未使用 Access Token 或认证替代。账号身份匹配数和额度窗口数均为 0；G1 未通过，G2 未启动。原 JSON 的 SHA-256 前后相同；Chrome 登录状态及 Cookie Editor Vault 未做独立前后验证。该结果只能证明当前 Node 出口的会话请求遇到边缘挑战，不能证明 Cookie-only 普遍不可行或必须增加 Token。两组既有测试本轮为 27/27 PASS；它们不替代真实验收。[脱敏实测证据](evidence/r14-live-20261029.json) 记录候选源码哈希、状态和停止边界，不包含 Cookie、Token、账号身份或原始响应。
 
@@ -25,13 +86,13 @@
 
 同一真实快照已由现有 `HistoryStore` 保存到本机 `~/.opendesk/ai-account-usage/history-v1.json`，alias 为 `codex_local_01`，目录/文件分别 `0700`/`0600`；重开存储和受认证本机只读 API 均读回相同额度。此操作重放的是脱敏采集结果，不再联系上游，也不代表 Node 网络传输已实测。没有新建凭据 Vault。
 
-R1.5 最小剩余工作：取得第二个独立授权的账号后验证真实隔离与账号切换不变性；验证 Node 在目标网络中的传输路径和认证生命周期；完成可信账号提供者与 React 同源会话接线。当前不启动自动采样、完整看板、正式安装或全量验收。官方文档对本机/开源 App Server 与商业/托管集成作了不同说明；未来部署方式须按实际官方授权渠道确认，不能把本轮本机查询当作商业服务授权。
+上轮 R1.4 剩余项现已由上述 R1.5 核心链推进；第二个独立授权账号的真实隔离与账号切换不变性仍待验证。当前不启动自动采样、完整看板、正式安装或全量验收。官方文档对本机/开源 App Server 与商业/托管集成作了不同说明；未来部署方式须按实际官方授权渠道确认，不能把本轮本机查询当作商业服务授权。
 
 ## 产品边界
 
 - 原目标：公司管理员统一掌握多个 ChatGPT / Codex 账号套餐、剩余额度、重置和订阅状态，并根据近期窗口的使用率识别长期低利用率账号。
 - Cookie Editor 仍是 Cookie 的唯一可信存储；OAuth 使用用户另行授权的既有 Codex 认证来源。Node 只接收**指定账号的一次性内存快照**；不另建 Cookie/Token 仓库，不替换当前 Chrome 登录。
-- React 管理页为**另一条工作线**。已确认视觉入口在 `examples/sidebar-tools/cookie-editor/preview/ai-account-usage.html`，但其中数据、字段、布局均需按本后端契约重新审阅；本轮不修改原型。
+- 独立 React 管理页在 `web/`，复用 `examples/sidebar-tools/cookie-editor/preview/ai-account-usage.html` 的布局方向并按真实数据契约重建；原型仍保留虚构数据，不是产品数据入口。
 
 ## 现有源码
 
@@ -58,7 +119,7 @@ R1.5 最小剩余工作：取得第二个独立授权的账号后验证真实隔
 
 ## 本机只读接口（无公网暴露）
 
-通过可信进程调用 `startReadApi({store})` 后，默认绑定 `127.0.0.1` 随机端口；返回给可信进程的 `secret` **仅供可信 Native/Node 调用，不可传给 React 或网页**。目前没有开放给普通浏览器的认证桥接，也不支持在网页传 Cookie/Token。
+通过可信进程调用 `startReadApi({store})` 后，默认绑定 `127.0.0.1` 随机端口；返回给可信进程的 `secret` **仅供可信 Native/Node 调用，不可传给 React 或网页**。独立管理页通过 `web-server.mjs` 的 HttpOnly 同源会话代理读取；服务秘密不传给浏览器，也不支持在网页传 Cookie/Token。
 
 | 路由 | 返回内容 |
 | --- | --- |
@@ -67,7 +128,7 @@ R1.5 最小剩余工作：取得第二个独立授权的账号后验证真实隔
 | `GET /api/v1/accounts/:alias/history?limit=100&windowKey=...` | 账号历史采样及观察到的跨窗口事件，最长 500 条 |
 | `GET /api/v1/insights?cycles=5&threshold=80` | 近 N 个周期的近重置未使用估计与证据量 |
 
-所有路由 GET-only，并要求可信本机客户端带一次性、不可猜的服务令牌；未知 Origin、Host、无令牌、敏感 Query 参数均拒绝。未来 React 的连接方式必须走独立可信配对/HttpOnly 同源 Session，**不能直接把此服务令牌或上游认证请求头交给页面**。
+所有路由 GET-only，并要求可信本机客户端带一次性、不可猜的服务令牌；未知 Origin、Host、无令牌、敏感 Query 参数均拒绝。当前 React 使用本机一次性配对 / HttpOnly 同源 Session，**不能直接把此服务令牌或上游认证请求头交给页面**。
 
 ### 最小可信主进程使用示例
 
@@ -92,20 +153,20 @@ const api = await startReadApi({store});
 
 ## 本机验证和真实闸门
 
-- 离线定向测试：`npm test --prefix services/ai-account-usage`（本轮 38/38 PASS，包含 OAuth 身份/停止边界、旧 Cookie 行为和历史兼容）。
+- 离线定向测试：`npm test --prefix services/ai-account-usage`（覆盖 OAuth 身份/停止边界、来源绑定、批量隔离、同源会话及旧历史兼容；不调用真实上游）。
 - 单账号真实 Cookie-only：仅在管理员自己 Mac 上，经授权从 Cookie Editor 选定的快照传入一次性 `cli.mjs`（stdin 管道，输入只保留在可信本地）。先前 `R1.1` 的 CLI 实验方式继续有效。不得把任何真实 Cookie、Access Token 或包含这些值的请求日志上传到 GitHub/ChatGPT/CI。
 - `G1 NOT_PASSED`：本次身份预检为 403 / challenge，额度接口 `NOT_TESTED`。仍须获取真实 `quotaHttpStatus/sessionHttpStatus`、确认 userId 和 quota account_id 完整匹配，且看到一组真实时窗后才能判定 Cookie-only OK。若 401/403/429，应停止尝试，不以 OAuth/Bearer 的成功冒充 Cookie-only。
 - `G2 LIVE_NOT_TESTED`：至少两个真实账号、独立 Snapshot、身份无串号，并验证 Chrome 原 Cookie/登录状态/Vault 未修改。离线双账号单测不等于 G2。
-- `G3 NOT_IMPLEMENTED`：正式 Cookie Editor Trusted Host → Native 的秘密数据桥接，授权绑定和撤销、后台采样启动/停用、React 同源 Session 及生产安装/升级验证。不能把测试注入提供者用于正式发布。
+- `G3 NOT_IMPLEMENTED`：正式 Cookie Editor Trusted Host → Native 的秘密数据桥接，授权绑定和撤销、后台采样启动/停用、正式扩展生产安装/升级验证（独立本机 React 同源会话已完成本轮核心验证）。不能把测试注入提供者用于正式发布。
 - 计划/订阅来源：`plan_type` 是内部响应（非官方承诺稳定的开放接口）；会员到期时间没有经过验证的可靠 Cookie-only 返回路径，因此目前仅支持管理员录入并标注来源。
 
-**只有 G1 和 G2 的真实证据成立后，才应开放持续采集与正式 React 数据看板。**
+**持续采集与完整正式看板仍延期；本轮仅开放上述本机最小真实资料/额度页面，不受旧 G2 前置限制。**
 
 ### 显式使用 OAuth 适配器
 
-可信主进程须指定 `createCollector({store, mode:'CODEX_OAUTH', loadAuthorizedAccount})`；提供者只在内存返回 `{alias, authorized:true, snapshot, expectedIdentity}`，并由授权记录固定 alias 与同一账号的绑定。`snapshot` 形状为 `{authMode:'chatgpt', accessToken, idToken, accountId}`，`expectedIdentity` 为 `{userId, accountId, email?}`；不传 Refresh Token。提供者尚未正式接线，不能由普通网页或 HTTP Query 提供这些数据。
+可信主进程须指定 `createCollector({store, mode:'CODEX_OAUTH', loadAuthorizedAccount})`；提供者只在内存返回 `{alias, authorized:true, snapshot, expectedIdentity}`，并由授权记录固定 alias 与同一账号的绑定。`snapshot` 形状为 `{authMode:'chatgpt', accessToken, idToken, accountId}`，`expectedIdentity` 为 `{userId, accountId, email?}`；不传 Refresh Token。Codex 私有文件提供者已由 `authorized-sources.mjs` 接通；不能由普通网页或 HTTP Query 提供这些数据。
 
-原 CLI 默认 Cookie-only；可信 stdin JSON 只有显式 `mode:'CODEX_OAUTH'` 才调用 OAuth。无任何自动认证降级。Node 默认传输使用单次原生 `https.request`，不发现系统代理、不复制 Codex 配置；本机真实 harness 则显式沿用系统 `127.0.0.1:7897`。因此当前 Node 默认网络路径仍需目标环境验证，不能把 Python harness 的联网成功外推给 Node 或自动切换代理。
+原 CLI 默认 Cookie-only；可信 stdin JSON 只有显式 `mode:'CODEX_OAUTH'` 才调用 OAuth。无任何自动认证降级。Node 默认传输使用单次原生 `https.request`，不发现系统代理、不复制 Codex 配置；本机真实 harness 则显式沿用系统 `127.0.0.1:7897`。因此当前 默认直连路径仍未实测；本轮只证明显式 Node CONNECT 路径，不会自动切换代理。
 
 ## 套餐命名与使用条款注意
 
