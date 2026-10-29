@@ -124,39 +124,51 @@
 .od-shared-provider-scroll{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;gap:12px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:16px 19px 23px}
 .od-shared-provider-form .od-shared-provider-segments{width:100%;max-width:none;min-width:0;flex:none;border-radius:11px}
 .od-shared-provider-form .od-shared-provider-segment span{min-height:36px;padding:8px 11px;font-size:12px}
-/* Compact, source-owned Native connection section within the existing AI sheet. */
-.od-shared-provider-local-card{display:grid;gap:0;min-width:0;overflow:hidden;
+/* Native connection is one compact field group: title + switch, real status, then actions. */
+.od-shared-provider-local-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;
  border:1px solid var(--od-line);border-radius:12px;background:var(--od-paper)}
 .od-shared-provider-local-main{display:flex;align-items:center;justify-content:space-between;
- gap:11px;min-width:0;padding:13px 13px 9px}
-.od-shared-provider-native-state{display:flex;align-items:center;gap:6px 9px;flex-wrap:wrap;min-width:0}
-.od-shared-provider-native-state strong{font-size:12.5px;line-height:1.45;font-weight:700}
-.od-shared-provider-native-state small{display:inline-flex;align-items:center;gap:5px;
- min-height:22px;padding:2px 8px;border:1px solid var(--od-line);background:var(--od-muted);
- border-radius:999px;font-size:10.5px;line-height:1.35;color:var(--od-sub);white-space:nowrap}
-.od-shared-provider-native-state small::before{content:"";width:6px;height:6px;flex:none;
+ gap:10px;min-width:0;padding:12px 13px 10px}
+.od-shared-provider-local-main strong{font-size:12.5px;line-height:1.45;font-weight:700;min-width:0}
+.od-shared-provider-native-detail{display:grid;justify-items:start;gap:6px;
+ min-width:0;padding:0 13px 12px}
+.od-shared-provider-native-status{display:inline-flex;align-items:center;gap:5px;
+ max-width:100%;min-height:22px;padding:2px 8px;border:1px solid var(--od-line);
+ border-radius:var(--radius-pill);background:var(--od-muted);font-size:10.5px;
+ line-height:1.35;color:var(--od-sub);overflow-wrap:anywhere}
+.od-shared-provider-native-status::before{content:"";width:6px;height:6px;flex:none;
  border-radius:50%;background:var(--od-input-border)}
-.od-shared-provider-native-state small[data-state="connected"]::before{background:var(--od-positive)}
-.od-shared-provider-native-state small[data-state="enabled"]::before{background:#bf8b2a}
-.od-shared-provider-native-hint{margin:0;padding:0 13px 12px;font-size:11px;
+.od-shared-provider-native-status[data-state="connected"]::before{background:var(--od-positive)}
+.od-shared-provider-native-status[data-state="connecting"]::before,
+.od-shared-provider-native-status[data-state="reload"]::before{background:#bf8b2a}
+.od-shared-provider-native-status[data-state="offline"]::before{background:#b94b57}
+.od-shared-provider-native-hint{margin:0;min-width:0;font-size:11px;
  line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
-.od-shared-provider-local-footer{display:flex;align-items:center;justify-content:flex-start;
- gap:6px;min-width:0;padding:7px 8px 4px;background:var(--od-muted);border-top:1px solid var(--od-line)}
-.od-shared-provider-local-footer .od-button{min-height:32px;max-width:100%;
- padding:5px 7px;border:0;border-radius:7px;background:transparent;
+.od-shared-provider-local-footer{display:flex;align-items:center;flex-wrap:wrap;
+ gap:4px 9px;min-width:0;min-height:42px;padding:6px 9px;
+ background:var(--od-muted);border-top:1px solid var(--od-line)}
+.od-shared-provider-local-actions{display:flex;align-items:center;flex-wrap:wrap;
+ gap:3px;min-width:0;margin-left:auto}
+.od-shared-provider-local-actions .od-button{min-height:32px;max-width:100%;
+ padding:5px 7px;border:0;border-radius:var(--radius-control);background:transparent;
  color:var(--od-brand);font-size:11px;font-weight:650;white-space:nowrap}
-.od-shared-provider-local-footer .od-button:hover{background:var(--od-paper)}
-.od-shared-provider-local-footer .od-button + .od-button{margin-left:auto}
-.od-shared-provider-native-note{margin:0;padding:2px 13px 9px;background:var(--od-muted);
- font-size:10px;line-height:1.4;color:var(--od-sub)}
-.od-shared-provider-local-card .od-conversation-error{margin:0;padding:6px 13px;
- background:var(--od-muted);font-size:11px}
-.od-shared-provider-local-card .od-shared-switch{position:relative;display:inline-flex;align-items:center;flex:none;box-sizing:border-box;width:38px;height:24px;border-radius:999px;background:var(--od-input-border);cursor:pointer;outline:none}
+.od-shared-provider-local-actions .od-button:hover{background:var(--od-paper)}
+.od-shared-provider-native-note{font-size:10px;line-height:1.4;color:var(--od-sub);
+ white-space:nowrap}
+.od-shared-provider-form .od-shared-provider-local-card .od-conversation-error{
+ margin:0;padding:6px 13px;background:var(--od-muted);font-size:11px}
+.od-shared-provider-local-card .od-shared-switch{position:relative;display:inline-flex;
+ align-items:center;flex:none;box-sizing:border-box;width:38px;height:24px;
+ border-radius:999px;background:var(--od-input-border);cursor:pointer;outline:none}
 .od-shared-provider-local-card .od-shared-switch[data-selected]{background:var(--od-brand)}
 .od-shared-provider-local-card .od-shared-switch[data-disabled]{opacity:.5;cursor:not-allowed}
 .od-shared-provider-local-card .od-shared-switch[data-focus-visible]{outline:2px solid var(--od-focus);outline-offset:3px}
-.od-shared-provider-form .od-shared-switch input[type=checkbox]{position:absolute;width:1px;min-width:1px;max-width:1px;height:1px;min-height:1px;margin:0;opacity:0;clip-path:inset(50%)}
-.od-shared-provider-local-card .od-shared-switch-thumb{display:block;box-sizing:border-box;flex:none;width:20px;height:20px;margin-left:2px;border-radius:50%;background:var(--od-paper);box-shadow:0 1px 2px #0003;transform:translateX(0);transition:transform .15s ease}
+.od-shared-provider-form .od-shared-switch input[type=checkbox]{position:absolute;
+ width:1px;min-width:1px;max-width:1px;height:1px;min-height:1px;margin:0;
+ opacity:0;clip-path:inset(50%)}
+.od-shared-provider-local-card .od-shared-switch-thumb{display:block;box-sizing:border-box;
+ flex:none;width:20px;height:20px;margin-left:2px;border-radius:50%;background:var(--od-paper);
+ box-shadow:0 1px 2px #0003;transform:translateX(0);transition:transform .15s ease}
 .od-shared-provider-local-card .od-shared-switch[data-selected] .od-shared-switch-thumb{transform:translateX(14px)}
 .od-shared-provider-remote{display:grid;gap:12px;min-width:0}
 .od-shared-provider-field{display:grid;gap:6px;min-width:0}
@@ -178,7 +190,7 @@
 .od-shared-provider-form .od-conversation-error{padding:5px 0;overflow-wrap:anywhere}
 .od-shared-provider-form .od-shared-provider-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:none;min-height:56px;margin:0;padding:10px 14px;border-top:1px solid var(--od-line);background:var(--od-paper)}
 .od-shared-provider-actions .od-button{flex:none;min-height:36px;padding:7px 13px;font-size:11.5px;font-weight:650}
-@media(max-width:360px){.od-shared-provider-scroll{padding:14px 15px 19px}.od-shared-provider-form .od-shared-provider-segment span{padding:8px 3px;font-size:11.5px}.od-shared-provider-actions{padding:9px 11px}.od-shared-provider-local-main{padding:12px 12px 8px}.od-shared-provider-native-hint{padding:0 12px 10px}.od-shared-provider-local-footer{padding:6px 7px 4px}.od-shared-provider-native-note{padding:2px 12px 9px}}
+@media(max-width:360px){.od-shared-provider-scroll{padding:14px 15px 19px}.od-shared-provider-form .od-shared-provider-segment span{padding:8px 3px;font-size:11.5px}.od-shared-provider-actions{padding:9px 11px}.od-shared-provider-local-main{padding:12px 12px 9px}.od-shared-provider-native-detail{padding:0 12px 11px}.od-shared-provider-local-footer{padding:6px 7px}}
 
-@media(pointer:coarse){.od-shared-provider-local-footer .od-button{min-height:44px}}
+@media(pointer:coarse){.od-shared-provider-local-actions .od-button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.od-shared-provider-local-card .od-shared-switch-thumb{transition:none}}
