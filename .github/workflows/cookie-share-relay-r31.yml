@@ -19,3 +19,8 @@ jobs:
           node-version: '24'
       - name: Test real HTTP endpoints and SQLite persistence
         run: node --test services/cookie-share-relay/server.test.mjs
+      - name: Verify existing local Cookie account URL and trusted Host contracts
+        run: |
+          node --test tests/environment/cookie-editor-account-switch-url.test.mjs \
+            tests/environment/cookie-editor-account-switch-host.test.mjs \
+            tests/environment/cookie-editor-account-vault.test.mjs
