@@ -101,7 +101,8 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     const s=tabs.get(debuggee.tabId);
     if(s){
       s.attached=false;tabs.delete(debuggee.tabId);
-      if(s.stage!=='restoring'&&s.stage!=='restored')
+      if(s.expireHandle!==undefined)unschedule(s.expireHandle);
+      if(s.stage!=='restoring'&&s.stage!=='restore_readback')
         {s.invalidated=reason||'debugger-detached';s.stage='invalidated';}
     }
   };
@@ -169,6 +170,7 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
       s.expireHandle=schedule(()=>{
         if(sessions.get(ref)===s&&s.attached)retire(s,'lease-expired');
       },ttlMs);
+      s.expireHandle?.unref?.(); // Node tests must not be kept open by a native safety lease.
     }catch(error){
       sessions.delete(ref);
       throw fail('E_CHROME_PERMISSION_REQUIRED','Chrome debugger attach rejected: '+String(error?.message||'unavailable').slice(0,100));
