@@ -25,7 +25,7 @@ const stateDescription=Object.freeze({
   applied_unverified:'已有绑定当前网页的可信执行回执，但还没有独立验证。',
   verified_limited:'仅已确认的字段显示一致，其他字段不能推定成功。',
   partial:'至少一项不一致或无法核验，不能报告完整生效。',
-  blocked:'正式 Host 未提供受审的环境修改接口。配置可以保存，但不会修改网页。',
+  blocked:'当前安装或 Chrome 调试权限不支持修改此网页；配置保存不代表环境已生效。',
   denied:'本次授权被拒绝，未获得成功回执。',
   failed:'受信任执行明确失败。',
   unknown:'执行结果不能确认，禁止自动再次应用。',
@@ -128,7 +128,7 @@ function Report({rows,verification,config,origin,preview,onCopy,onExport,busy}){
         <div><small>不一致</small><strong>{mismatches} 项</strong></div>
         <div><small>未验证</small><strong>{unverified} 项</strong></div>
       </div>
-      <p className="fp-secondary">原始值尚未由可信 Host 采集时，不得以预设「系统原值」冒充真实基线。</p>
+      <p className="fp-secondary">原始值来自应用前独立采集；网络请求语言、定位和 IP 缺少独立证据时不算一致。</p>
       <div className="fp-actions fp-report-actions">
         <Button variant="secondary" disabled={!verification||!!busy}
           onClick={onCopy}><Glyph name="copy"/>复制报告</Button>
@@ -145,7 +145,7 @@ function Report({rows,verification,config,origin,preview,onCopy,onExport,busy}){
           <div className="fp-section-head"><strong>{row.label}</strong>
             <span className={'fp-tag fp-tag-'+row.status}>{readStatus(row.status)}</span></div>
           <div className="fp-verification-values">
-            <div><small>原始值</small><span>尚无可信基线读回</span></div>
+            <div><small>原始值</small><span>{row.baseline??'尚无可信基线'}</span></div>
             <div><small>目标值</small><span>{row.expected}</span></div>
             <div><small>实际读取值</small><span>{row.observed??'—'}</span></div>
           </div>
@@ -169,7 +169,7 @@ export default function App({adapter,preview=false}){
   const [session,setSession]=React.useState(null);
   const [verification,setVerification]=React.useState(null);
   const [notice,setNotice]=React.useState({type:'info',
-    text:'先选择环境并保存预设。只有受审可信 Host 接入后才允许真实应用。'});
+    text:'请选择环境，然后应用到当前授权网页。应用回执不代表已验证，请随后独立读回。'});
   const [dialog,setDialog]=React.useState(null);
   const [draftAction,setDraftAction]=React.useState(null);
   const [presetNameInput,setPresetNameInput]=React.useState('');
@@ -355,9 +355,10 @@ export default function App({adapter,preview=false}){
       if(restore){
         // A full checked baseline is necessary. A limited or missing observation
         // never permits a claim that Chrome has restored its original state.
-        const expected=['ua','uaCH','language','acceptLanguage','timezone',
-          'geolocation','viewport'];
-        const confirmed=expected.every(key=>result.rows.find(row=>
+        // Only the HOST's exact controlled fields can establish restoration.
+        // No HTTP-language/IP field is silently assumed to match.
+        const expected=result.controlledKeys;
+        const confirmed=expected.length>0&&expected.every(key=>result.rows.find(row=>
           row.key===key)?.status==='match');
         setStatus(confirmed?'restored_verified':'restore_unknown');
         if(confirmed){activeSession.current=null;setSession(null);}
@@ -417,7 +418,8 @@ export default function App({adapter,preview=false}){
       source:verification.source,
       generatedAt:stamp(),capturedAt:verification.capturedAt,
       origin:origin||null,mode:verification.kind,status,
-      configuration:verification.kind==='restore'?ORIGINAL_CONFIG:config,
+      configuration:session?.config||config,
+      controlledKeys:verification.controlledKeys||[],
       rows:verification.rows,
       caveat:'仅明确标记的可信独立读回字段被验证；不承诺公网 IP/Profile/反检测。'
     },null,2);
@@ -490,7 +492,7 @@ export default function App({adapter,preview=false}){
           <span className="fp-tag">单标签页</span></div>
         <div className="fp-pair"><div><small>配置目标</small><strong>当前授权网页</strong></div>
           <div><small>执行授权</small><strong>可信 Host 审核</strong></div></div>
-        <p className="fp-secondary">当前 SDK 尚未开放原生环境修改。任何设置都不会通过本应用 iframe 的 navigator 或不受审查的 JS 注入伪造成功。</p>
+        <p className="fp-secondary">应用配置会调用当前 Tab 的可信 Chrome Debugger 执行器。Chrome 调试权限需安装时批准；当前网站还需单独明确授权。部分字段可能无法独立验证。</p>
       </CardContent></Card>
       <details className="fp-capabilities"><summary>高级能力与边界</summary>
         <p>WebRTC、Canvas、WebGL：不承诺反检测；公网 IP、代理、独立 Profile：不在当前 Tab 模拟范围内。</p>
