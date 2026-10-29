@@ -407,6 +407,10 @@
 .cookie-editor-react .cookie-account-applied{
   flex:none;color:var(--od-positive);font-size:10px;white-space:nowrap;
 }
+/* Metadata-only accounts are saved, but have no restorable Cookie snapshot. */
+.cookie-editor-react .cookie-account-unlinked{
+  flex:none;color:var(--od-sub);font-size:10px;font-weight:500;white-space:nowrap;
+}
 .cookie-editor-react .cookie-account-security-note{
   margin:13px 1px 0;color:var(--od-sub);font-size:10.5px;line-height:1.65;
 }
