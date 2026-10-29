@@ -226,3 +226,26 @@ test('sampling planner pauses auth/429 and plans near-reset catch-up without ret
     assert.deepEqual(results,[{alias:'acct_01',status:'OK'}]);
   } finally {await f.cleanup();}
 });
+
+
+test('crossing without counter decrease is not a verified reset or waste',async()=>{
+  const f=await fixture();try{
+    await f.store.register({alias:'acct_01',displayName:'A'});
+    await f.store.record('acct_01',ok({at:103600,reset:104000,used:10}));
+    await f.store.record('acct_01',ok({at:104200,reset:122000,used:15}));
+    const h=await f.store.history('acct_01');
+    assert.equal(h.rollovers[0].type,'CROSSED_BUT_UNVERIFIED');
+    assert.equal(h.rollovers[0].nearResetUnusedEstimatePercent,null);
+    assert.deepEqual(await f.store.insights(),[]);
+  }finally{await f.cleanup();}
+});
+
+test('zero-use period can be conservatively noted only after full-size reset advance',async()=>{
+  const f=await fixture();try{
+    await f.store.register({alias:'acct_01',displayName:'A'});
+    await f.store.record('acct_01',ok({at:103600,reset:104000,used:0}));
+    await f.store.record('acct_01',ok({at:104200,reset:122000,used:0}));
+    const h=await f.store.history('acct_01');
+    assert.equal(h.rollovers[0].nearResetUnusedEstimatePercent,100);
+  }finally{await f.cleanup();}
+});
