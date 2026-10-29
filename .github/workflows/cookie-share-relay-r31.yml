@@ -1,0 +1,21 @@
+name: cookie-share-relay-r31
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/cookie-share-relay/**'
+      - '.github/workflows/cookie-share-relay-r31.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  relay-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Test real HTTP endpoints and SQLite persistence
+        run: node --test services/cookie-share-relay/server.test.mjs
