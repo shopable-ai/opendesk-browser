@@ -9,7 +9,7 @@ import {createSidebarToolPackage,encodeSidebarToolPackage} from './build-sidebar
 import {validateSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
 import {inspectSidebarToolProject} from './stage-sidebar-tool.mjs';
 import {validateOfficialSourceCatalog,validateOfficialReleaseCatalog,OFFICIAL_RELEASE_SCHEMA,
-  OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
+  OFFICIAL_CATALOG_PATH,officialPackagePath,officialSourceProjectPath} from '../src/sidebar-tools/official-catalog.js';
 
 export const REPOSITORY_ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -31,7 +31,8 @@ export async function readOfficialSources(root=REPOSITORY_ROOT){
 }
 async function projectPath(root,row){
   const path=resolve(root,row.project),actual=await realpath(path);
-  if(actual!==path||!actual.startsWith(root+'/examples/sidebar-tools/'))fail('official project symlink escaped trusted source: '+row.id);
+  if(actual!==path||path!==resolve(root,officialSourceProjectPath(row.id)))
+    fail('official project symlink escaped trusted source: '+row.id);
   return actual;
 }
 async function prepackedPackage(project,name){

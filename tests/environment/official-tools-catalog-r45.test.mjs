@@ -29,6 +29,22 @@ test('R6.10 clipper keeps the reviewed fixed release despite shared style edits'
 });
 const api={runtime:{getURL:path=>'chrome-extension://abcdefghijklmnopabcdefghijklmnop/'+path}};
 const spec=id=>({id,project:'examples/sidebar-tools/'+id,kind:'sidebar-tool',installationPolicy:'optional'});
+test('R2.1 migrated official source locations are exact and preserve unmigrated roots',async()=>{
+  const current=await readOfficialSources();
+  assert.equal(current.tools.find(row=>row.id==='markdown-workbench').project,'projects/markdown-workbench');
+  assert.equal(current.tools.find(row=>row.id==='cookie-editor').project,'examples/sidebar-tools/cookie-editor');
+  for(const [id,project] of [
+    ['cookie-editor','projects/cookie-editor'],
+    ['ai-send-queue','projects/ai-send-queue'],
+    ['markdown-workbench','examples/sidebar-tools/markdown-workbench'],
+    ['markdown-workbench','projects/markdown-workbench/extra'],
+    ['markdown-workbench','projects/../markdown-workbench']
+  ]){
+    const unsafe=structuredClone(current);
+    unsafe.tools.find(row=>row.id===id).project=project;
+    assert.throws(()=>validateOfficialSourceCatalog(unsafe),/源码路径/);
+  }
+});
 async function fixture(t){
   const root=await mkdtemp(join(tmpdir(),'opendesk-official-r45-'));
   t.after(()=>rm(root,{recursive:true,force:true}));

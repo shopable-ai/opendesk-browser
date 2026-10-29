@@ -5,15 +5,16 @@ import {load} from 'cheerio';
 import {runInNewContext} from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {generatePreview} from '../../scripts/preview/build-preview.mjs';
+import {officialSourceProjectPath} from '../../src/sidebar-tools/official-catalog.js';
 
 const root=new URL('../../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
 const ids=['markdown-workbench','web-markdown-clipper','knowledge-inbox','ai-knowledge-answers'];
 
 test('R1.0 products retain distinct IDs, original entrypoints and their own persisted data contracts',async()=>{
- const configs=await Promise.all(ids.map(id=>read('examples/sidebar-tools/'+id+'/tool.config.json').then(JSON.parse)));
+ const configs=await Promise.all(ids.map(id=>read(officialSourceProjectPath(id)+'/tool.config.json').then(JSON.parse)));
  assert.deepEqual(configs.map(x=>x.id),ids);
- const js=await Promise.all(ids.map(id=>read('examples/sidebar-tools/'+id+'/src/main.js')));
+ const js=await Promise.all(ids.map(id=>read(officialSourceProjectPath(id)+'/src/main.js')));
  assert.match(js[0],/browser\.downloads\.text/);
  assert.match(js[1],/currentPage\.info/);
  assert.match(js[2],/knowledge\.create/);
@@ -22,7 +23,7 @@ test('R1.0 products retain distinct IDs, original entrypoints and their own pers
   'production tools may not add a second database');
 });
 test('R1.0 Markdown edit/preview mode controls cannot accidentally include the data-mode workspace',async()=>{
- const path='examples/sidebar-tools/markdown-workbench/src/';
+ const path=officialSourceProjectPath('markdown-workbench')+'/src/';
  const [html,css,js]=await Promise.all(['index.html','style.css','main.js'].map(x=>read(path+x)));
  const $=load(html);
  assert.equal($('.mdw-modes button[data-mode]').length,3);
@@ -72,7 +73,7 @@ test('R1.0 AI knowledge search uses human-facing citations without pretending to
 });
 for(const id of ids){
  test('R1.0 unified source-bound preview compiles exact packaged '+id+' UI',async()=>{
-  const pkg=await createSidebarToolPackage(new URL('examples/sidebar-tools/'+id+'/',root).pathname);
+  const pkg=await createSidebarToolPackage(new URL(officialSourceProjectPath(id)+'/',root).pathname);
   const preview=await generatePreview({tool:id,scenario:'success',theme:'light',width:360,height:760});
   assert.equal(preview.manifest.tool,id);
   assert.equal(preview.manifest.toolVersion,pkg.version);
