@@ -22,7 +22,7 @@ permissions:
 jobs:
   fingerprint-core:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,7 +61,19 @@ jobs:
             throw Error('Missing Chrome install-time debugger authorization');
           console.log('FINGERPRINT_R22_CHROME_PERMISSION_AND_SDK_GUARDS_PASS');
           NODE
-      - name: Save isolated build evidence (not Chrome or web readback)
+      # Isolated source-driver probe: actual Chrome CDP + independent MAIN-world
+      # values, but NOT the installed OpenDesk SDK/Host/React acceptance test.
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: R2.3 native source-driver smoke (real Chrome, not installed OpenDesk)
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          node --check examples/sidebar-tools/browser-fingerprint/tests/native-r23-driver.mjs
+          xvfb-run -a node examples/sidebar-tools/browser-fingerprint/tests/native-r23-driver.mjs
+      - name: Retain build and source-driver native evidence (not installed OpenDesk)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -72,3 +84,4 @@ jobs:
             examples/sidebar-tools/browser-fingerprint/dist/build-ready.json
             examples/sidebar-tools/browser-fingerprint/dist/tool.js
             examples/sidebar-tools/browser-fingerprint/dist/tool.css
+            artifacts/sidebar-tools/browser-fingerprint/chrome-native-r23/evidence.json
