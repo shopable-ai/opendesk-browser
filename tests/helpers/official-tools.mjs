@@ -10,7 +10,7 @@ export async function officialToolFixture(id){
   if(id==='reading-toc'){
     // Use the committed official package and its production digest gate.
     // Other tools' unbuilt dist must not affect Reading TOC evidence checks.
-    const bytes=await readFile(new URL('../../examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json',import.meta.url));
+    const bytes=await readFile(new URL('../../projects/reading-toc/reading-toc.opendesk-tool.json',import.meta.url));
     const tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
     const pin=OFFICIAL_READING_TOC_RELEASE;
     if(tool.id!==pin.id||tool.version!==pin.version||await sidebarToolPackageHash(tool)!==pin.sha256)
