@@ -2057,6 +2057,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         create:['displayName','revision'],
         rename:['alias','accountVersion','displayName','revision'],
         update:['alias','accountVersion','revision'],
+        attach:['alias','accountVersion','revision'],
         delete:['alias','accountVersion','revision'],
         switch:['alias','revision'],
         setAutoEnabled:['enabled','revision'],
@@ -2075,7 +2076,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         {code:'E_DOCUMENT_CHANGED'});
       const data={origin,...Object.fromEntries(fields.map(field=>[field,payload[field]])),
         ...(Object.hasOwn(payload,'description')?{description:payload.description}:{})};
-      if(['create','update','switch'].includes(action)){
+      if(['create','update','attach','switch'].includes(action)){
         const {captured,document}=captureCookieImportDocument('账号');
         await currentPageTarget.revalidate(captured);
         assertSession(source,token);
