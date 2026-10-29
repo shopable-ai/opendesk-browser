@@ -20,7 +20,7 @@ const evidence={kind:'REAL_CHROME_NATIVE_PRODUCTION_DRIVER_ISOLATED_HARNESS',
   installedOpenDeskHost:false,installedReact:false,macChrome:false,
   uaChScope:'LOW_ENTROPY_PLATFORM_ONLY',httpAcceptLanguage:'UNVERIFIABLE',
   geolocation:'UNSUPPORTED',status:'NOT_TESTED'};
-let browser,server,ws;
+let browser,server,ws,stderr='';
 try{
   await mkdir(extension,{recursive:true});
   await mkdir(out,{recursive:true});
@@ -87,7 +87,8 @@ try{
     '--disable-gpu','--remote-debugging-port=0','--user-data-dir='+profile,
     '--disable-extensions-except='+extension,'--load-extension='+extension,
     'about:blank'
-  ],{stdio:'ignore'});
+  ],{stdio:['ignore','ignore','pipe']});
+  browser.stderr.on('data',chunk=>{stderr=(stderr+String(chunk)).slice(-10000);});
   let port;
   for(let i=0;i<150;i++){
     if(browser.exitCode!==null)throw Error('CHROME_EXITED_BEFORE_READY');
@@ -132,7 +133,13 @@ try{
     if(check.result?.value==='function'){ready=true;break;}
     await sleep(100);
   }
-  assert(ready,'NATIVE_WORKER_MODULE_BOOTSTRAP_MISSING');
+  if(!ready){
+    const inspect=await cmd('Runtime.evaluate',{expression:
+      '({href:location.href,chrome:typeof chrome,bootstrap:typeof globalThis.fpR23Native})',
+      returnByValue:true});
+    evidence.bootstrap=inspect.result?.value||null;
+    throw Error('NATIVE_WORKER_MODULE_BOOTSTRAP_MISSING '+JSON.stringify(evidence.bootstrap));
+  }
   const result=await cmd('Runtime.evaluate',{expression:'globalThis.fpR23Native.run()',
     awaitPromise:true,returnByValue:true});
   if(result.exceptionDetails)throw Error(result.exceptionDetails.exception?.description||
@@ -166,6 +173,7 @@ try{
 }catch(error){
   evidence.status='FAIL';
   evidence.error=String(error?.stack||error);
+  evidence.chromeStderr=stderr.slice(-8000);
   console.error(evidence.error);
   process.exitCode=1;
 }finally{
