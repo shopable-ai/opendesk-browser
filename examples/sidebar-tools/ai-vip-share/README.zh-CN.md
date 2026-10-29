@@ -17,12 +17,14 @@
 | Cookie 未授权、取消与未知保护 | PASS：未授权写入被拒；授权后取消精确两项确认，目标 `/session/` 仍未建立会话。旧版因此误记 unknown；当前版保留该记录并阻止重放 | 真实 Chrome 1.4.3；unknown 跨 1.4.4 更新恢复。取消后可重试的修复尚无当前原生证据 |
 | Cookie 修复和核心状态回归 | PASS：四个工具定向文件 94/94；新增 Host 用例证明确认前取消零派发、再次明确确认仅写一次、派发后取消仍未知 | Node/VM、挂载真实 Host 测试夹具；1.4.4，不代替原生成功交付 |
 | 开发批准、代理范围和生命周期 | PASS：5/5，错误摘要、production/未知 MODE 禁用、安装撤销、所有权、在途 STOP 与晚响应保护 | Node/VM；1.4.4。原生 START / 真实流量 / STOP 仍为 NOT_TESTED |
+| 模拟服务单次消费与会话校验 | PASS：10/10，会员与预检、并发消费、完整双 Cookie、A/B 替换、旧/混合/伪造会话拒绝、丢回执查询、pending/拒绝、账号隔离及来源限制 | Node HTTP 服务夹具；当前源码，独立随机端口，不重启安装态账本 |
+| 两个推广入口未配置 | PASS：在当前 1.4.4 分别点击商品与桌面客户端，出现各自“网址尚未配置或未通过审核”提示；标签页仍为原 3 个，没有导航 | 真实 Chrome；当前 1.4.4，生产获审地址为空，未伪造正式目标 |
 | 实际代理端可达 | PASS：既有 127.0.0.1:7897 CONNECT 200，公开无认证 API 请求返回 401；没有改动所属服务 | 终端网络探测，只证明转发端可达，不证明 Chrome PAC 或付费访问 |
 | 下一条真实操作 | NOT_TESTED：隔离未登录配置 `AI VIP Core 20261030` 已建立，尚未加载扩展。需在此验证 Cookie 取消后再确认、完整会话及代理启停，保留旧配置 unknown | 当前安装候选已准备；隔离安装和新增代理权限待明确确认 |
 
 共享 SDK 修改范围仅为 `src/ui/sidebar-tools.js` 现有 `browser.cookies.setMany` 的可信审阅 Promise：通用 `E_CANCELLED` 同时用于提交前取消和提交后文档关闭，工具自身无法安全地区分。新增 `E_COOKIE_NOT_SUBMITTED` 只在精确批次尚未派发的位置产生，适用于所有批次消费者；不增加 API、权限、Host 或业务特判。公开错误语义见 [`browser-sdk.zh-CN.md`](../../../docs/api/browser-sdk.zh-CN.md#cookie-批次确认取消2026-10-30)，挂载 Host 回归验证这条边界，原始未知保护不放宽。
 
-本机非秘密证据位于 `artifacts/ai-vip-share-core-20261030/`：`server-observations.json`、`tool-regression.tap`、`cookie-cancel.tap`、`development-profile.tap`。额外抽查的旧 Cookie Editor 用例 `R5.37 development Cookie package grants declared capabilities for current site, never all sites` 在授权操作前的 frame 隐藏断言失败；当前 VIP 使用未被该断言阻断，保留为独立待核对项，不报告整组 Host 测试通过。
+本机非秘密证据位于 `artifacts/ai-vip-share-core-20261030/`：`server-observations.json`、`tool-regression.tap`、`cookie-cancel.tap`、`development-profile.tap`、`server-core.tap`。额外抽查的旧 Cookie Editor 用例 `R5.37 development Cookie package grants declared capabilities for current site, never all sites` 在授权操作前的 frame 隐藏断言失败；当前 VIP 使用未被该断言阻断，保留为独立待核对项，不报告整组 Host 测试通过。
 
 ### 先完成的用户操作
 
