@@ -171,7 +171,12 @@ try{
     assert(x>=win.x&&y>=win.y&&x<win.x+win.width&&y<win.y+win.height,
       'NATIVE_POINT_OUTSIDE_CHROME_WINDOW '+JSON.stringify({selector,x,y,win,viewport}));
     evidence.nativeClicks??=[];
-    evidence.nativeClicks.push({selector,x,y,window:win,viewport,frameOffset});
+    const hostHit=await evaluate('(()=>{const n=document.elementFromPoint('+ (frameOffset.x+point.x)+','+(frameOffset.y+point.y)+');'+
+      'return n?{tag:n.tagName,id:n.id,className:String(n.className).slice(0,80)}:null})()',physicalHost);
+    const sandboxHit=sandboxControl?await evaluate('(()=>{const t=document.querySelector('+JSON.stringify(selector)+');'+
+      'const r=t?.getBoundingClientRect();const n=r&&document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);'+
+      'return {matches:!!n&&(n===t||t.contains(n)),tag:n?.tagName,label:n?.textContent?.trim().slice(0,64)}})()',session):null;
+    evidence.nativeClicks.push({selector,x,y,window:win,viewport,frameOffset,hostHit,sandboxHit});
     xdotool('windowfocus',win.id);
     xdotool('mousemove','--sync',String(x),String(y));
     xdotool('click','--clearmodifiers','1');
@@ -307,6 +312,10 @@ try{
   assert(!(await appRead('document.body.innerText')).includes('离线同源 React 预览'));
   evidence.installedReact=true;
   evidence.checks.push('R24_REAL_REACT_SDK_SANDBOX_PASS');
+  // Passive capture only; never synthesize clicks or mutate React state.
+  await appRead('(()=>{globalThis.__r24ButtonClicks=[];document.addEventListener("click",e=>{'+
+    'const b=e.target.closest?.(".fp-bottom-actions button");if(b){'+
+    'globalThis.__r24ButtonClicks.push({label:b.textContent?.trim(),trusted:e.isTrusted,at:Date.now()})}},true);return true})()');
 
   // Independent observer calls Chrome scripting directly from the test driver.
   // It does NOT use React's target/receipt or the Trusted Host page reader.
@@ -399,8 +408,30 @@ try{
     item.verifiedStatus=await status();
     item.readbackRows=rows;
     item.progress='INDEPENDENT_APPLY_READBACK_VERIFIED';
+    const gestureBefore=await appRead('globalThis.__r24ButtonClicks.length');
     await action(3);
-    await until(async()=>String(await status()).includes('待读回'),'restore native detach receipt');
+    await pause(120);
+    item.restoreGestures=await appRead('globalThis.__r24ButtonClicks.slice('+gestureBefore+')');
+    try {
+      assert(item.restoreGestures.some(x=>x.trusted===true&&x.label?.includes('停止')),
+        'NATIVE_RESTORE_CLICK_NOT_DISPATCHED: no trusted React restore event');
+      const result=await until(async()=>{
+        const label=await status();
+        if(String(label).includes('待读回'))return 'accepted';
+        if(['恢复结果未知','目标网页已失效','授权被拒绝'].includes(label))return 'rejected:'+label;
+        return null;
+      },'restore native detach receipt');
+      assert.equal(result,'accepted','Host restore did not acknowledge '+result);
+    }catch(error){
+      item.restoreFailureDiagnostics={
+        label:await status(),
+        notice:await appRead('document.querySelector(".fp-notice")?.textContent'),
+        debugger:await independent(),
+        trustedGestures:item.restoreGestures,
+        screenHit:evidence.nativeClicks.at(-1)
+      };
+      throw error;
+    }
     item.afterDetach=await independent();
     assert.equal(item.afterDetach.debuggerAttached,false,'debugger must detach before restoration verification');
     await action(2);
