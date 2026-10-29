@@ -174,7 +174,7 @@ export default function App({adapter,preview=false}){
   const [draftAction,setDraftAction]=React.useState(null);
   const [presetNameInput,setPresetNameInput]=React.useState('');
   const [busy,setBusy]=React.useState('');
-  const [showInfo,setShowInfo]=React.useState(false);
+  const [legacyOpen,setLegacyOpen]=React.useState(false);
   const busyRef=React.useRef(null);
   const mounted=React.useRef(false);
   const activeSession=React.useRef(null);
@@ -438,8 +438,6 @@ export default function App({adapter,preview=false}){
     finally{finish(kind);}
   }
   const rows=verification?.rows||emptyVerification(config);
-  const statuses={};
-  for(const row of rows)statuses[row.status]=(statuses[row.status]||0)+1;
   return <main className="fp-app">
     <Summary status={status} origin={origin} presetName={session?.presetName||presetName}
       onRefresh={()=>void refreshContext()} refreshDisabled={!!busy}/>
@@ -518,9 +516,9 @@ export default function App({adapter,preview=false}){
         </div>)}
         <p className="fp-secondary">这里只存储状态、来源、网站 Origin 和时间；不存储 Cookie、账号、文档引用或 URL 查询参数。</p>
       </CardContent></Card>
-      <details className="fp-legacy">
+      <details className="fp-legacy" onToggle={event=>setLegacyOpen(event.currentTarget.open)}>
         <summary>旧版只读检测、快照及历史对比</summary>
-        <ReadOnlyDiagnostics adapter={adapter} preview={preview}/>
+        {legacyOpen?<ReadOnlyDiagnostics adapter={adapter} preview={preview}/>:null}
       </details>
     </>:null}
     <div className="fp-bottom-actions">
