@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenDesk · AI 账号额度管理中心 R1 · 独立网页交互预览</title>
+<style>
+:root{font:14px/1.52 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#27374f;background:#f4f6fa;--ink:#26354c;--soft:#697990;--line:#e2e7ef;--panel:#fff;--violet:#645be8;--green:#239c7a;--amber:#bf8219;--red:#c0604a;--blue:#5075bb;--surface:#f7f9fc;--shadow:0 7px 30px rgba(39,54,80,.05)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}button,input,a{font:inherit}button{cursor:pointer}button:disabled{opacity:.48;cursor:not-allowed}button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #7464ee;outline-offset:3px}a{color:inherit;text-decoration:none}svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.layout{max-width:1280px;margin:0 auto;padding:25px 26px 48px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:25px}.brand{display:flex;align-items:center;gap:12px;min-width:0}.logo{width:42px;height:42px;border-radius:13px;background:#645be8;color:#fff;font-size:14px;font-weight:800;display:grid;place-items:center;box-shadow:0 6px 15px rgba(100,91,232,.18)}.brand strong{display:block;font-size:18px;line-height:1.28;font-weight:780;letter-spacing:-.3px}.brand small{color:var(--soft);display:block;margin-top:2px;font-size:12px}.top-actions{display:flex;align-items:center;gap:9px}.chip{background:#f0efff;color:#635bd4;border-radius:8px;font-size:11px;font-weight:680;padding:5px 8px;white-space:nowrap}.button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--line);border-radius:9px;min-height:35px;padding:7px 12px;color:#3d4d66;background:var(--panel);font-weight:650;font-size:12px;white-space:nowrap}.button:hover{background:#f7f8fc}.button svg{width:15px;height:15px}.button.primary{border-color:var(--violet);background:var(--violet);color:#fff}.button.primary:hover{background:#5850ce}.icon-button{width:34px;height:34px;border:1px solid var(--line);border-radius:9px;background:#fff;display:grid;place-items:center;color:#66778f}.icon-button:hover{background:#f5f6fc}.icon-button svg{width:17px;height:17px}
+.notice{padding:12px 15px;border:1px solid #dcdcf8;background:#f1f0ff;border-radius:12px;color:#58538b;display:flex;gap:10px;align-items:flex-start;font-size:12px;margin-bottom:20px}.notice svg{width:17px;height:17px;margin-top:1px}.notice b{font-weight:770}.notice p{margin:2px 0 0;line-height:1.6}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 11px}.section-title h2{font-size:14px;line-height:1.35;margin:0;font-weight:780}.section-title small{font-size:11px;color:var(--soft)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px}.stat{border:1px solid var(--line);border-radius:13px;padding:15px 17px;background:var(--panel);box-shadow:var(--shadow);min-height:111px}.stat-label{color:var(--soft);font-size:12px}.stat-number{font-size:25px;font-weight:770;line-height:1.25;margin:7px 0 2px;font-variant-numeric:tabular-nums}.stat-foot{color:#8290a2;font-size:11px}.stat.warning .stat-number{color:var(--amber)}.stat.success .stat-number{color:var(--green)}
+.toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}.tabs{display:flex;gap:3px;padding:3px;border-radius:10px;background:#eaeef5}.tab{background:transparent;border:0;border-radius:8px;padding:7px 11px;color:#697a91;font-size:12px;min-height:31px;font-weight:650}.tab[aria-pressed="true"]{background:white;color:#4b51aa;box-shadow:0 1px 4px #21384a1a}.searchbox{position:relative;max-width:280px;width:100%}.searchbox svg{position:absolute;width:16px;height:16px;top:10px;left:10px;color:#8391a4}.searchbox input{width:100%;height:37px;border:1px solid var(--line);background:white;border-radius:10px;padding:8px 10px 8px 34px;outline:none;font-size:12px;color:var(--ink)}.searchbox input:focus{border-color:#8d86ea}
+.table-wrap{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);overflow:hidden}.table-head,.account-row{display:grid;grid-template-columns:minmax(185px,1.35fr) minmax(126px,.9fr) minmax(125px,.9fr) minmax(125px,.9fr) minmax(119px,.9fr) 94px;align-items:center;gap:13px;padding:0 17px}.table-head{height:40px;color:#8792a3;font-size:11px;font-weight:700;background:#fafbfe;border-bottom:1px solid var(--line)}.account-row{min-height:93px;border-bottom:1px solid #e9edf4}.account-row:last-child{border-bottom:0}.person{display:flex;gap:10px;align-items:center;min-width:0}.avatar{width:35px;height:35px;display:grid;place-items:center;border-radius:11px;background:#ebe8ff;color:#6c5acf;font-size:13px;font-weight:750;flex:none}.avatar.mint{background:#e5f6ee;color:#31886c}.avatar.blue{background:#e7eefb;color:#5279b9}.avatar.coral{background:#fff0e8;color:#b56c49}.person-info{min-width:0}.person-info strong{display:block;font-size:12.5px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font-weight:760}.person-info span{display:block;color:#8996a8;font-size:11px;margin-top:3px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.metric-label{font-variant-numeric:tabular-nums;font-size:12px;font-weight:760;display:flex;justify-content:space-between}.metric-label small{font-size:10px;color:#8a99aa;font-weight:500}.track{height:6px;width:100%;background:#edf1f6;border-radius:6px;overflow:hidden;margin-top:9px}.fill{height:100%;border-radius:6px;background:#6a83e0}.fill.good{background:#319d80}.fill.warn{background:#e4a954}.muted{font-size:11px;color:#98a3b3}.reset{font-size:12px;font-variant-numeric:tabular-nums}.reset small{display:block;color:#8b98a9;font-size:10.5px;margin-top:4px}.status{font-size:10.5px;font-weight:660;border-radius:6px;padding:5px 7px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}.status.available{color:#278868;background:#e9f7f1}.status.attention{color:#af7c21;background:#fff6df}.status.unknown{color:#8a6f62;background:#f7efe9}.row-action{justify-self:end}
+.bottom-hint{color:#8895a4;font-size:11px;display:flex;justify-content:space-between;gap:10px;padding-top:11px}.empty{padding:36px;text-align:center;color:#8692a6;font-size:12px}
+.overlay{position:fixed;inset:0;z-index:20;display:none;align-items:stretch;justify-content:flex-end;background:#18253d79}.overlay.open{display:flex}.drawer{width:min(430px,100%);background:white;height:100%;overflow-y:auto;box-shadow:-6px 0 35px #25304d21;padding:23px 24px}.drawer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.drawer-title{font-size:19px;font-weight:780;margin:0}.drawer-subtitle{font-size:12px;color:#8290a2;margin-top:5px}.detail-section{margin:22px 0}.detail-section h3{font-size:12px;font-weight:780;margin:0 0 13px}.detail-row{display:flex;justify-content:space-between;gap:12px;color:#78869b;font-size:12px;margin:11px 0}.detail-row strong{color:#37465c;font-weight:690;text-align:right}.detail-card{border:1px solid var(--line);border-radius:11px;padding:15px;margin-top:10px}.detail-card .metric-label{font-size:14px}.detail-card .track{height:8px}.drawer-actions{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}.legend{background:#f8f9fc;border:1px solid #e9edf3;border-radius:10px;padding:12px 14px;color:#78889b;font-size:11px;line-height:1.75}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:30;background:#2d3b54;color:white;padding:10px 16px;border-radius:9px;box-shadow:0 9px 25px #2d3b5440;font-size:12px;max-width:92vw;text-align:center}.toast[hidden]{display:none}
+@media(max-width:1110px){.table-head,.account-row{grid-template-columns:minmax(175px,1.2fr) minmax(110px,1fr) minmax(110px,1fr) 125px 75px}.table-head>div:nth-child(4),.account-row>.weekly{display:none}}
+@media(max-width:850px){.layout{padding:18px 16px 35px}.table-head{display:none}.account-row{grid-template-columns:1fr 1fr;gap:14px;padding:16px;position:relative}.account-row>.person{grid-column:1 / -1}.account-row>.weekly{display:block}.account-row>.reset{grid-column:1}.account-row>.row-action{grid-column:2;align-self:center}.person-info strong{font-size:14px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.layout{padding:15px 12px 28px}.top{align-items:flex-start}.top-actions{flex-direction:column;align-items:flex-end;gap:7px}.brand strong{font-size:15px}.brand small{font-size:11px}.logo{width:36px;height:36px;border-radius:11px}.chip{font-size:10px}.stats{gap:9px}.stat{padding:11px 12px;min-height:91px}.stat-number{font-size:23px}.toolbar{align-items:stretch}.searchbox{max-width:none}.tab{padding:7px 9px}.account-row{gap:13px}.bottom-hint{display:block}.bottom-hint span{display:block;margin-bottom:5px}}
+@media(prefers-reduced-motion:no-preference){.button,.icon-button,.tab{transition:background-color .13s ease,box-shadow .13s ease}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">OD</div>
+      <div><strong>AI 账号额度管理中心</strong><small>OpenDesk · 独立管理后台</small></div>
+    </div>
+    <div class="top-actions">
+      <span class="chip">交互预览 · 虚构数据</span>
+      <button type="button" class="button" id="refreshAll">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></svg>
+        刷新额度
+      </button>
+    </div>
+  </header>
+  <div class="notice" role="note">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v5m0-8h.01"/></svg>
+    <div><b>这里是独立 Web 管理页面的交互预览，不是实际额度。</b>
+      <p>不读取 Cookie、不发送网络请求、不连接 Node.js；按钮用于评审账号筛选、详情和错误状态。正式实现后，所有实际额度必须显示数据来源及采集时间。</p>
+    </div>
+  </div>
+  <div class="section-title"><h2>账号总览</h2><small>工作空间 · 本机账号（设计示例）</small></div>
+  <section class="stats" aria-label="账号额度摘要">
+    <div class="stat"><div class="stat-label">已关联账号</div><div class="stat-number" id="totalCount">4</div><div class="stat-foot">来自 Cookie Editor 的账号标识</div></div>
+    <div class="stat success"><div class="stat-label">有额度样例</div><div class="stat-number" id="sampleCount">3</div><div class="stat-foot">实际接入须完成身份核验</div></div>
+    <div class="stat warning"><div class="stat-label">重置前高剩余</div><div class="stat-number" id="riskCount">1</div><div class="stat-foot">可能需要关注闲置额度</div></div>
+    <div class="stat"><div class="stat-label">待验证会话</div><div class="stat-number" id="unverifiedCount">1</div><div class="stat-foot">Cookie-only 可行性尚未实测</div></div>
+  </section>
+  <div class="section-title"><h2>账号列表</h2><small id="resultCount">4 个账号</small></div>
+  <div class="toolbar">
+    <div class="tabs" role="group" aria-label="筛选账号">
+      <button class="tab" type="button" data-filter="all" aria-pressed="true">全部</button>
+      <button class="tab" type="button" data-filter="reset" aria-pressed="false">即将重置</button>
+      <button class="tab" type="button" data-filter="verify" aria-pressed="false">待验证</button>
+    </div>
+    <label class="searchbox">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
+      <input type="search" id="search" placeholder="搜索账号、团队或套餐" aria-label="搜索账号、团队或套餐" autocomplete="off">
+    </label>
+  </div>
+  <section class="table-wrap" aria-label="账号额度列表">
+    <div class="table-head" aria-hidden="true">
+      <div>账号</div><div>5 小时额度剩余</div><div>周额度剩余</div><div>下次重置</div><div>会话状态</div><div></div>
+    </div>
+    <div id="rows"></div>
+  </section>
+  <footer class="bottom-hint"><span>设计基线 R1 · Cookie/Node/API 均未连接 · 所有示例数值均为虚构</span><a href="./cookie-editor.html">返回 Cookie Editor 交互预览</a></footer>
+</div>
+<div class="overlay" id="overlay">
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="detailTitle" tabindex="-1">
+    <div class="drawer-head">
+      <div><h2 class="drawer-title" id="detailTitle"></h2><div class="drawer-subtitle" id="detailSubtitle"></div></div>
+      <button class="icon-button" type="button" id="closeDetail" aria-label="关闭账号详情" title="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div id="detailBody"></div>
+    <div class="drawer-actions">
+      <button class="button primary" type="button" id="detailRefresh">查询额度</button>
+      <button class="button" type="button" id="detailReturn">返回列表</button>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script>
+(function(){
+"use strict";
+const accounts=[
+ {id:"acct-demo-a",name:"研发账号 A",group:"研发团队",plan:"ChatGPT Pro",color:"violet",five:38,week:82,reset:"约 2 小时后",weeklyReset:"约 4 天后",state:"sample",risk:false,source:"Cookie Editor 本机快照（模拟）"},
+ {id:"acct-demo-b",name:"客服团队 B",group:"客服团队",plan:"ChatGPT Business",color:"mint",five:74,week:15,reset:"约 1 天后",weeklyReset:"约 18 小时后",state:"sample",risk:false,source:"Cookie Editor 本机快照（模拟）"},
+ {id:"acct-demo-c",name:"设计协作 C",group:"设计团队",plan:"ChatGPT Plus",color:"blue",five:null,week:null,reset:"未知",weeklyReset:"未知",state:"unverified",risk:false,source:"Cookie Editor 本机快照（模拟）"},
+ {id:"acct-demo-d",name:"备用账号 D",group:"研发团队",plan:"ChatGPT Pro",color:"coral",five:94,week:67,reset:"约 35 分钟后",weeklyReset:"约 5 天后",state:"sample",risk:true,source:"Cookie Editor 本机快照（模拟）"}
+];
+let filter="all",current=null,priorFocus=null;
+const $=id=>document.getElementById(id);
+const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const metric=(value,large)=>value==null
+ ? '<div class="muted">— <small>尚无数据</small></div>'
+ : '<div class="metric-label"><span>'+value+'%</span><small>剩余</small></div><div class="track" role="progressbar" aria-label="剩余额度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+value+'"><div class="fill '+(value<20?"warn":value>65?"good":"")+'" style="width:'+value+'%"></div></div>';
+const status=a=>a.state==="unverified"
+ ? '<span class="status unknown">待验证</span>'
+ : a.risk?'<span class="status attention">重置临近</span>':'<span class="status available">样例正常</span>';
+function render(){
+  let q=$("search").value.trim().toLowerCase();
+  const items=accounts.filter(a=>(filter==="all"||filter==="reset"&&a.risk||filter==="verify"&&a.state==="unverified")&&
+    [a.name,a.group,a.plan].some(s=>s.toLowerCase().includes(q)));
+  $("totalCount").textContent=accounts.length;
+  $("sampleCount").textContent=accounts.filter(a=>a.state==="sample").length;
+  $("riskCount").textContent=accounts.filter(a=>a.risk).length;
+  $("unverifiedCount").textContent=accounts.filter(a=>a.state==="unverified").length;
+  $("resultCount").textContent=items.length+" 个账号";
+  $("rows").innerHTML=items.length?items.map(a=>
+    '<article class="account-row" data-id="'+esc(a.id)+'">'+
+      '<div class="person"><span class="avatar '+esc(a.color)+'">'+esc(a.name.slice(0,1))+'</span>'+
+       '<div class="person-info"><strong>'+esc(a.name)+'</strong><span>'+esc(a.group)+' · '+esc(a.plan)+'</span></div></div>'+
+      '<div class="metric">'+metric(a.five)+'</div>'+
+      '<div class="metric weekly">'+metric(a.week)+'</div>'+
+      '<div class="reset">'+esc(a.reset)+'<small>'+esc(a.weeklyReset)+'（周）</small></div>'+
+      '<div>'+status(a)+'</div>'+
+      '<button type="button" class="button row-action" data-view="'+esc(a.id)+'">详情</button>'+
+    '</article>').join(""):'<div class="empty">没有符合条件的账号。</div>';
+  document.querySelectorAll("[data-filter]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.filter===filter)));
+}
+function showToast(message){
+ const el=$("toast");el.textContent=message;el.hidden=false;
+ clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>el.hidden=true,4300);
+}
+function openDetail(id){
+ const a=accounts.find(x=>x.id===id);if(!a)return;
+ priorFocus=document.activeElement;current=a;
+ $("detailTitle").textContent=a.name;
+ $("detailSubtitle").textContent=a.group+" · "+a.plan;
+ $("detailBody").innerHTML=
+  '<div class="detail-section"><h3>额度窗口</h3>'+
+    '<div class="detail-card"><div class="detail-row"><span>5 小时额度</span><strong>'+esc(a.reset)+'重置</strong></div>'+metric(a.five,true)+'</div>'+
+    '<div class="detail-card"><div class="detail-row"><span>周额度</span><strong>'+esc(a.weeklyReset)+'重置</strong></div>'+metric(a.week,true)+'</div>'+
+  '</div>'+
+  '<div class="detail-section"><h3>读取状态</h3>'+
+    '<div class="detail-row"><span>账号身份</span><strong>演示 ID：'+esc(a.id)+'</strong></div>'+
+    '<div class="detail-row"><span>数据来源</span><strong>'+esc(a.source)+'</strong></div>'+
+    '<div class="detail-row"><span>最近成功查询</span><strong>未连接 · NOT_TESTED</strong></div>'+
+    '<div class="detail-row"><span>会话验证</span><strong>'+(a.state==="unverified"?"待验证":"示例数据，非真实验证")+'</strong></div>'+
+  '</div>'+
+  '<div class="legend">正式产品要求：每个账号独立 HTTP 会话；身份不匹配停止；未认证显示未知；不从网页接触 Cookie 和 Token。临近重置与高余额只是提示，不自动调度账号使用。</div>';
+ $("overlay").classList.add("open");
+ document.querySelector(".drawer").focus();
+}
+function closeDetail(){ $("overlay").classList.remove("open");current=null;priorFocus?.focus?.(); }
+document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{filter=b.dataset.filter;render();}));
+$("search").addEventListener("input",render);
+$("rows").addEventListener("click",event=>{const b=event.target.closest("[data-view]");if(b)openDetail(b.dataset.view);});
+$("refreshAll").addEventListener("click",()=>showToast("演示预览：没有连接本地服务或请求 OpenAI。正式接线后才执行刷新。"));
+$("detailRefresh").addEventListener("click",()=>showToast("演示预览：账号额度尚未真实查询。"));
+$("detailReturn").addEventListener("click",closeDetail);
+$("closeDetail").addEventListener("click",closeDetail);
+$("overlay").addEventListener("click",e=>{if(e.target===$("overlay"))closeDetail();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&current){e.preventDefault();closeDetail();}});
+render();
+})();
+</script>
+</body>
+</html>
