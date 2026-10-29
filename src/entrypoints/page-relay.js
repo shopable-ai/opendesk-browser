@@ -3,10 +3,10 @@ import {initPageRelay} from '../agents/page-relay.js';
 import {initReadingToc} from '../../projects/reading-toc/trusted/page.js';
 import {initPageClip} from '../../projects/web-markdown-clipper/trusted/page.js';
 import {initKnowledgeCapture} from '../knowledge/page.js';
-import {installFocusPageNotice} from '../../examples/sidebar-tools/stay-focus/trusted/page-notice.js';
+import {installFocusPageNotice} from '../../projects/stay-focus/trusted/page-notice.js';
 import {installManagedSiteNoticePage} from '../platform/chrome/managed-site-notice-page.js';
-import {initPromptShortcuts} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/page.js';
-import {initAdblockCosmetics} from '../../examples/sidebar-tools/adblock/trusted/page.js';
+import {initPromptShortcuts} from '../../projects/prompt-shortcuts/trusted/page.js';
+import {initAdblockCosmetics} from '../../projects/adblock/trusted/page.js';
 export default defineUnlistedScript(() => {
   // Static registration and trusted repair injection may reach the same
   // isolated document. Never create a second set of observers/listeners.

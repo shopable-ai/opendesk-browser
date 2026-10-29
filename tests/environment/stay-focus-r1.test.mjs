@@ -318,7 +318,7 @@ test('DNR write failure and readback corruption are not called successful',async
 });
 test('independent Time Review never imported as model state or authority',async()=>{
   const {FOCUS_STORE}=await import('../../projects/stay-focus/trusted/policy.js');
-  const {TIME_REVIEW_KEY}=await import('../../examples/sidebar-tools/time-review/trusted/model.js');
+  const {TIME_REVIEW_KEY}=await import('../../projects/time-review/trusted/model.js');
   assert.notEqual(FOCUS_STORE,TIME_REVIEW_KEY);
   const {FOCUS_ID}=await import('../../projects/stay-focus/trusted/policy.js');
   assert.equal(FOCUS_ID,'stay-focus');
