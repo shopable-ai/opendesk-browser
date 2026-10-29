@@ -299,6 +299,10 @@ test('SW permits metadata-only creation without a Cookie site grant and explicit
   assert.equal(created.accounts[0].cookieCount,0);
   const {alias}=created.accounts[0];
   assert.equal(f.writes(),0);
+  const forged=f.message('attach',{revision:1,alias,accountVersion:1});
+  forged.trustedClick=false;
+  await assert.rejects(createCookieAccountService({api:f.api,storage:f.storage})
+    .dispatch(forged,f.sender),{code:'E_USER_GESTURE_REQUIRED'});
   await assert.rejects(f.dispatch('attach',{
     revision:1,alias,accountVersion:1
   }),{code:'E_SITE_GRANT_REQUIRED'});
