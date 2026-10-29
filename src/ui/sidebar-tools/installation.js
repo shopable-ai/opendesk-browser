@@ -11,7 +11,7 @@ import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE,requirePendingToolCleanups} from './lifecycle.js';
 import {toolLocaleStorageKey} from './locale-packs.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../platform/protocol.js';
-import {TIME_REVIEW_KEY} from '../../../examples/sidebar-tools/time-review/trusted/model.js';
+import {TIME_REVIEW_KEY} from '../../../projects/time-review/trusted/model.js';
 import {PROMPT_ASSET_STORE} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
 import {COOKIE_ACCOUNT_VAULT_KEY,COOKIE_ACCOUNT_SESSION_KEY,COOKIE_ACCOUNT_SEEN_KEY}
   from '../../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
