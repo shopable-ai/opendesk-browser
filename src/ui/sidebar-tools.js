@@ -2389,6 +2389,46 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           {code:response?.error?.code||'E_SITE_BUDGET'});
         return response.data;
       }
+      if(operation==='browser.fingerprint.apply'){
+        // Chrome debugger is an extension-level install permission, not a
+        // site permission or dynamically requestable optional permission.
+        if(!await api.permissions.contains({permissions:['debugger']}))
+          throw Object.assign(new Error('请在 Chrome 原生安装/升级审阅中批准调试权限'),
+            {code:'E_CHROME_PERMISSION_REQUIRED'});
+        const captured=currentPageTarget.capture();
+        await currentPageTarget.revalidate(captured);assertSession(source,token);
+        const origin=captured.origin;
+        const consent=async enabled=>{
+          const response=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+            operation:'browser.fingerprint.controlConsent',hostInstanceId,
+            toolId:tool.id,toolVersion:tool.version,toolInstance:token,
+            installEpoch:revocationEpoch,packageHash,origin,
+            ...(enabled===undefined?{}:{enabled}),
+            document:{tabId:captured.tabId,windowId:captured.windowId,
+              documentId:captured.documentId,url:captured.url,origin,
+              title:String(captured.title||'').slice(0,512)}});
+          assertSession(source,token);
+          if(!response?.ok)throw Object.assign(new Error(response?.error?.message||
+            '可信 Host 未批准当前网页环境模拟'),{code:response?.error?.code||'E_PERMISSION'});
+          return response.data;
+        };
+        if((await consent()).enabled!==true){
+          await requestBrowserClick({toolId:tool.id,button:'允许当前网站环境模拟',
+            message:'「'+tool.title+'」请求在当前网页 '+origin+
+              ' 使用 Chrome 调试接口修改 UA、语言、时区及视口。仅当前 Tab；可停止恢复；' +
+              '定位、网络请求头和公网 IP 不保证验证。Chrome 可能显示原生调试提示。',
+            run:async event=>{
+              if(!event?.isTrusted)throw Object.assign(new Error('请实际点击可信授权按钮'),
+                {code:'E_USER_GESTURE_REQUIRED'});
+              await currentPageTarget.revalidate(captured);assertSession(source,token);
+              return consent(true);
+            }});
+          // Consent alone has NO CDP effect; it revokes old opaque refs.
+          // The original apply flow may fetch a fresh ref once and continue.
+          throw Object.assign(new Error('授权已记录，请重新取得当前文档引用'),
+            {code:'E_SITE_GRANT_UPDATED'});
+        }
+      }
       if(operation==='browser.page.readEnvironment'){
         const captured=currentPageTarget.capture();
         await currentPageTarget.revalidate(captured);assertSession(source,token);
