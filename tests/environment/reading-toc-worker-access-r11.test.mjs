@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {checkReadingTocContentAccess,chromeSitePattern} from '../../examples/sidebar-tools/reading-toc/trusted/existing-tabs.js';
+import {checkReadingTocContentAccess,chromeSitePattern} from '../../projects/reading-toc/trusted/existing-tabs.js';
 import {READING_TOC_CHROME_ACCESS_PROTOCOL} from '../../src/sidebar-tools/official-reading-toc.js';
 
 test('R1.1 worker accepts only real same-extension top-frame sender and live Chrome permission',async()=>{

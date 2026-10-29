@@ -1,6 +1,6 @@
 import {readTocPlacement,tocViewport,tocClampPoint,tocPlacementFromPoint,tocPlacementPoint} from './placement.js';
 import readingTocCatalog from './locales.generated.js';
-import {uiMessage,resolveUiLocale} from '../../../../src/ui/app-localization.js';
+import {uiMessage,resolveUiLocale} from '../../../src/ui/app-localization.js';
 
 // Same compact R3 layout as the official sandbox tool, but implemented only in
 // trusted extension code. No untrusted website text is parsed as markup.

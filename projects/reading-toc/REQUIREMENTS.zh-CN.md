@@ -68,8 +68,8 @@
 
 ### 2.3 源码绑定
 
-- 唯一双语文案：`examples/sidebar-tools/reading-toc/locales.json` 中 `topTitle`（短 tooltip）、`topLabel`（无障碍名称）以及英文 `source/text`。
-- Side Panel 初始静态按钮：`examples/sidebar-tools/reading-toc/src/index.html`；运行时由 `src/main.js` 的 `paintLanguage()` 覆盖。
+- 唯一双语文案：`projects/reading-toc/locales.json` 中 `topTitle`（短 tooltip）、`topLabel`（无障碍名称）以及英文 `source/text`。
+- Side Panel 初始静态按钮：`projects/reading-toc/src/index.html`；运行时由 `src/main.js` 的 `paintLanguage()` 覆盖。
 - 网页可信浮层：`src/reading-toc/view.js`，`createReadingTocView()` 初始化和 `updateLanguage()` 均应使用 `topTitle` 设置 `title`、`topLabel` 设置 `aria-label`。其它模式保持现有 `*Label`。
 - 可信受审阅副本：**只能**由 `node scripts/generate-reading-toc-locales.mjs --write` 从 `locales.json` 生成 `src/reading-toc/locales.generated.js`，禁止手动更改校验 SHA。
 - 唯一正式可安装包由现有工具包生成器产生，经测试与 `--promote-from` 审核晋升，不手改分发 JSON 或跳过安装升级验证。
@@ -129,10 +129,10 @@
 ## 6. 关联文档
 
 - [工具 README](README.md)：使用方式、迭代记录、构建与预览入口。
-- [历史 R3 标题结构设计](../../../docs/product/reading-toc-structure-r3.zh-CN.md)：主要解释 H1 与回答边界；其三按钮原型已被四模式正式实现取代。
-- [网站/页面设置 R4.8](../../../docs/product/reading-toc-settings-r48.zh-CN.md)：三种设置状态。
-- [R1.8 正式源码与验收](../../../docs/framework/workstreams/reading-toc-r18-source-migration-20261017.md)：四按钮迁移背景和发行门槛。
-- [R1.8.6 Mac 验收阻塞](../../../docs/framework/workstreams/reading-toc-r186-mac-20261018.md)：此前 production 构建与真实安装测试的失败/未测边界。
+- [历史 R3 标题结构设计](../../docs/product/reading-toc-structure-r3.zh-CN.md)：主要解释 H1 与回答边界；其三按钮原型已被四模式正式实现取代。
+- [网站/页面设置 R4.8](../../docs/product/reading-toc-settings-r48.zh-CN.md)：三种设置状态。
+- [R1.8 正式源码与验收](../../docs/framework/workstreams/reading-toc-r18-source-migration-20261017.md)：四按钮迁移背景和发行门槛。
+- [R1.8.6 Mac 验收阻塞](../../docs/framework/workstreams/reading-toc-r186-mac-20261018.md)：此前 production 构建与真实安装测试的失败/未测边界。
 
 ## 7. R1.9.1 版本一致性修复与真实验收边界（2026-10-18）
 

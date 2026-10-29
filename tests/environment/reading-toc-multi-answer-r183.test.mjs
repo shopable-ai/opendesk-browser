@@ -6,8 +6,8 @@ import {generatePreview} from '../../scripts/preview/build-preview.mjs';
 
 // Evaluate the REAL two renderers' visibility expressions. A CSS-only fix
 // cannot pass: with three sources the full mode must return all eight items.
-const sidebarPath='examples/sidebar-tools/reading-toc/src/main.js';
-const overlayPath='examples/sidebar-tools/reading-toc/trusted/view.js';
+const sidebarPath='projects/reading-toc/src/main.js';
+const overlayPath='projects/reading-toc/trusted/view.js';
 const data=[
  {id:'h-20',sourceId:'s-1',label:'回答一 H1',depth:0},
  {id:'h-21',sourceId:'s-1',label:'重复标题',depth:1},
@@ -71,8 +71,8 @@ test('R1.8.3 both official renderers show every assistant turn ONLY in ChatGPT f
 test('R1.8.3 preview supports three genuine source IDs without modifying approved tool toolbar',async()=>{
  const [sidebar,overlay,styles,prototype]=await Promise.all([
   sourceOf(sidebarPath),sourceOf(overlayPath),
-  sourceOf('examples/sidebar-tools/reading-toc/src/style.css'),
-  sourceOf('examples/sidebar-tools/reading-toc/preview/reading-toc-r183-chatgpt-multi-preview.html')
+  sourceOf('projects/reading-toc/src/style.css'),
+  sourceOf('projects/reading-toc/preview/reading-toc-r183-chatgpt-multi-preview.html')
  ]);
  assert.match(sidebar,/source\.hidden=true/,'the old source selector stays hidden');
  assert.match(overlay,/modes\.hidden=false/,

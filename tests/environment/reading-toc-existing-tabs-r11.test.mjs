@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {repairReadingTocOpenTabs,chromeSitePattern,READING_TOC_REPAIR_SCRIPT}
-  from '../../examples/sidebar-tools/reading-toc/trusted/existing-tabs.js';
+  from '../../projects/reading-toc/trusted/existing-tabs.js';
 import {OFFICIAL_READING_TOC_RELEASE,MARKET_PROVENANCE_STORE}
   from '../../src/sidebar-tools/official-reading-toc.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {READING_TOC_SITE_STORE,changeTocSiteAllowed}
-  from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+  from '../../projects/reading-toc/trusted/policy.js';
 const pin=OFFICIAL_READING_TOC_RELEASE;
 function fixture(pkg,provenance=true){
  const state=new Map([[SIDEBAR_TOOL_STORE,[pkg]],...(provenance?

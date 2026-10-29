@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readTocPlacement,tocViewport,tocBounds,tocClampPoint,
-  tocPlacementFromPoint,tocPlacementPoint} from '../../examples/sidebar-tools/reading-toc/trusted/placement.js';
-import {readingTocPlacementKey,READING_TOC_PLACEMENT_PREFIX} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
-import {createReadingTocView} from '../../examples/sidebar-tools/reading-toc/trusted/view.js';
+  tocPlacementFromPoint,tocPlacementPoint} from '../../projects/reading-toc/trusted/placement.js';
+import {readingTocPlacementKey,READING_TOC_PLACEMENT_PREFIX} from '../../projects/reading-toc/trusted/policy.js';
+import {createReadingTocView} from '../../projects/reading-toc/trusted/view.js';
 
 test('R4.2 placement math is bounded, proportional, edge-snapped and input-validated',()=>{
   const viewport={left:0,top:0,width:1200,height:800},size={width:254,height:300};

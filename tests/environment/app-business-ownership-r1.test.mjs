@@ -36,11 +36,11 @@ test('R1.3 fixed bundle accepts only audited app-owned blobs in approved Chrome 
     ['projects/web-markdown-clipper/trusted/page.js','agents/page-relay.js'],
     ['examples/shared/markdown/convert.js','agents/page-relay.js'],
     ['projects/web-markdown-clipper/trusted/policy.js','ui/marketplace.js'],
-    ['examples/sidebar-tools/reading-toc/trusted/page.js','agents/page-relay.js'],
-    ['examples/sidebar-tools/reading-toc/trusted/view.js','agents/page-relay.js'],
-    ['examples/sidebar-tools/reading-toc/trusted/existing-tabs.js','sidebar-tools/preinstall-intent.js'],
-    ['examples/sidebar-tools/reading-toc/trusted/policy.js','ui/marketplace.js'],
-    ['examples/sidebar-tools/reading-toc/trusted/locales.generated.js','ui/tool-shell.js']
+    ['projects/reading-toc/trusted/page.js','agents/page-relay.js'],
+    ['projects/reading-toc/trusted/view.js','agents/page-relay.js'],
+    ['projects/reading-toc/trusted/existing-tabs.js','sidebar-tools/preinstall-intent.js'],
+    ['projects/reading-toc/trusted/policy.js','ui/marketplace.js'],
+    ['projects/reading-toc/trusted/locales.generated.js','ui/tool-shell.js']
   ];
   const check=(name,target)=>describeBundle({chunk:{fileName:target,modules:{
     [resolve(process.cwd(),name)]:{renderedLength:1,originalLength:1}
@@ -50,7 +50,7 @@ test('R1.3 fixed bundle accepts only audited app-owned blobs in approved Chrome 
     assert.throws(()=>check(name,'scripting/packaged/page-session.js'),
       /Historical\/user\/vendor/,name+' cannot enter an unreviewed executable world');
   }
-  assert.throws(()=>check('examples/sidebar-tools/reading-toc/src/main.js','agents/page-relay.js'),
+  assert.throws(()=>check('projects/reading-toc/src/main.js','agents/page-relay.js'),
     /Historical\/user\/vendor/,'arbitrary packaged plugin JavaScript cannot be compiled as trusted');
 });
 

@@ -1,8 +1,8 @@
 # Reading TOC · 与正式源码同源的交互预览
 
-2026-10-25 R23：当前 `index.html`、`reading-toc-r12-overlay-preview.html` 与 `reading-toc-r12-interactive-preview.html` 由原生成器同步到工具包 **1.0.11**，可切换简中、English、日本語；两种展示面均已在本地 CFT 实际操作。可信浮层当前源码归 `examples/sidebar-tools/reading-toc/trusted/`。预览仍模拟 SDK、文章和权限，不能代替安装验收。
+2026-10-25 R23：当前 `index.html`、`reading-toc-r12-overlay-preview.html` 与 `reading-toc-r12-interactive-preview.html` 由原生成器同步到工具包 **1.0.11**，可切换简中、English、日本語；两种展示面均已在本地 CFT 实际操作。可信浮层当前源码归 `projects/reading-toc/trusted/`。预览仍模拟 SDK、文章和权限，不能代替安装验收。
 
-`reading-toc-r23-design.html` 是可编辑设计模拟，原 Switch / 分段布局只保留为设计历史。用户后来将实施收窄为**多语言修复**，未将这份模拟的模式算法、布局或控件替换进产品。方案约束见根目录 `DESIGN.md`；详细操作、截图及独立审查保存在本机 [R23 记录](../../../../docs/framework/workstreams/locale-ux-r23.md) 与 `artifacts/reading-toc-ux-r23/`，按仓库规则不提交会话日志。
+`reading-toc-r23-design.html` 是可编辑设计模拟，原 Switch / 分段布局只保留为设计历史。用户后来将实施收窄为**多语言修复**，未将这份模拟的模式算法、布局或控件替换进产品。方案约束见根目录 `DESIGN.md`；详细操作、截图及独立审查保存在本机 [R23 记录](../../../docs/framework/workstreams/locale-ux-r23.md) 与 `artifacts/reading-toc-ux-r23/`，按仓库规则不提交会话日志。
 
 R23 定向验证：预览源码/字节及三语消息适配 8/8、语言管理 48/48、两个相关 React 渲染检查通过；实际 CFT 已验证三语、跟随/独立、文档重开持久性和导入不切语言。独立证据审阅结论为“限定语言范围可收尾”，未计算完整六维分数。旧 Profile 升级、整个浏览器重启、production 与完整故障原生注入未测；并行移动语言入口后共享开发安全重载中断了补查，新的完整原生往返也未测。不宣称整体 95 分。
 
@@ -12,9 +12,9 @@ R23 定向验证：预览源码/字节及三语消息适配 8/8、语言管理 4
 # 仓库根目录，Node 22+
 npm ci --ignore-scripts
 npm run check
-node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out examples/sidebar-tools/reading-toc/preview/index.html
+node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out projects/reading-toc/preview/index.html
 # Side Panel 辅助验证入口：仍复用正式生成器
-node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --height 760 --out examples/sidebar-tools/reading-toc/preview/reading-toc-r12-interactive-preview.html
+node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --height 760 --out projects/reading-toc/preview/reading-toc-r12-interactive-preview.html
 ```
 
 用 Chrome 打开稳定主入口 `index.html`（默认展示模拟文章与正式 `view.js` 的网页悬浮目录）：可切换 **Side Panel / 网页悬浮目录**、**简体中文 / English**、**有章节 / 无章节 / 加载 / 读取错误 / 无权限**。四种真实目录模式及章节导航使用正式 UI 逻辑，网页悬浮直接使用可信 view/placement 源码（没有额外刷新/归位图标）；页面快照与权限结果仍是离线模拟。辅助 Side Panel 入口用于核对侧边栏原有刷新与导航。无网络、无真正的 Chrome 授权、没有实际网页 DOM 索引或导航。

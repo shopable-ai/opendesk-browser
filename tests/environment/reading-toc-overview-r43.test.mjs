@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {selectReadingTocOverview,TOC_OVERVIEW_TARGET,TOC_OVERVIEW_LIMIT}
-  from '../../examples/sidebar-tools/reading-toc/trusted/overview.js';
-import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
-import {readingTocDisplayMode} from '../../examples/sidebar-tools/reading-toc/trusted/view.js';
+  from '../../projects/reading-toc/trusted/overview.js';
+import {createReadingTocIndex} from '../../projects/reading-toc/trusted/model.js';
+import {readingTocDisplayMode} from '../../projects/reading-toc/trusted/view.js';
 import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
 import {compileToolLocaleCatalog} from '../../src/ui/app-localization.js';
 
@@ -101,13 +101,13 @@ test('R4.3 trusted index publishes per-answer overview, parent identity and stab
 
 test('R4.3 installed tool has the same adaptive UI source and a discoverable patch update',async()=>{
   const [config,bundled,host,extensions,html,css,js]=await Promise.all([
-    readFile('examples/sidebar-tools/reading-toc/tool.config.json','utf8').then(JSON.parse),
+    readFile('projects/reading-toc/tool.config.json','utf8').then(JSON.parse),
     officialToolFixture('reading-toc'),
     readFile('src/ui/sidebar-tools.js','utf8'),
     readFile('src/ui/react/tabs/tools.tsx','utf8'),
-    readFile('examples/sidebar-tools/reading-toc/src/index.html','utf8'),
-    readFile('examples/sidebar-tools/reading-toc/src/style.css','utf8'),
-    readFile('examples/sidebar-tools/reading-toc/src/main.js','utf8')
+    readFile('projects/reading-toc/src/index.html','utf8'),
+    readFile('projects/reading-toc/src/style.css','utf8'),
+    readFile('projects/reading-toc/src/main.js','utf8')
   ]);
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId==='reading-toc');
   assert.equal(config.version,release.version);
@@ -127,7 +127,7 @@ test('R4.3 installed tool has the same adaptive UI source and a discoverable pat
   assert.equal(bundled.html,html);
   assert.equal(bundled.css,css);
   const locales=compileToolLocaleCatalog(JSON.parse(await readFile(
-    'examples/sidebar-tools/reading-toc/locales.json','utf8')));
+    'projects/reading-toc/locales.json','utf8')));
   assert.equal(bundled.js,js.replace('__OPENDESK_TOOL_MESSAGES__',JSON.stringify(locales)));
   assert(!bundled.js.includes('__OPENDESK_TOOL_MESSAGES__'),'runtime gets fixed, verified offline translations');
 });

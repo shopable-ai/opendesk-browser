@@ -55,7 +55,7 @@ Cookie Editor 与 Stay Focus 使用已有 `packageFile` 路径，发行时验证
 
 ```sh
 # 按需生成单工具本地导入包
-npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
+npm run build:sidebar-tool -- projects/reading-toc
 
 # 按需检查整套官方资源的生成结果
 node scripts/build-official-tools.mjs --out artifacts/official-tools-release

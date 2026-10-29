@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {runInNewContext} from 'node:vm';
 
-const project='examples/sidebar-tools/reading-toc';
+const project='projects/reading-toc';
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 
 class Element{

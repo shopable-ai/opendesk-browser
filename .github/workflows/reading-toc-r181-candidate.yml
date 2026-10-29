@@ -4,13 +4,13 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/reading-toc-r181-candidate.yml'
-      - 'examples/sidebar-tools/reading-toc/src/style.css'
+      - 'projects/reading-toc/src/style.css'
       - 'src/reading-toc/view.js'
       - 'tests/environment/reading-toc-placement-r42.test.mjs'
       - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
       - 'tests/environment/reading-toc-localization-preview-r12.test.mjs'
       - 'tests/framework/reading-toc-native-r41.test.mjs'
-      - 'examples/sidebar-tools/reading-toc/preview/index.html'
+      - 'projects/reading-toc/preview/index.html'
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,7 +28,7 @@ jobs:
       - name: Generate v1.0.8 candidate and the two exact official source previews
         run: |
           node scripts/generate-reading-toc-locales.mjs --write
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc
+          node scripts/build-sidebar-tool.mjs projects/reading-toc
           node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --height 760 --out artifacts/reading-toc-r181/reading-toc-r12-interactive-preview.html
           node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --height 760 --out artifacts/reading-toc-r181/reading-toc-r12-overlay-preview.html
           sha256sum artifacts/sidebar-tools/reading-toc/1.0.8/reading-toc.opendesk-tool.json artifacts/reading-toc-r181/*.html
@@ -93,7 +93,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: macOS 1.0.8 package, exact preview and source contract
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc
+          node scripts/build-sidebar-tool.mjs projects/reading-toc
           node --test tests/environment/reading-toc-ai-r18.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-localization-preview-r12.test.mjs
           npm run check
           npm run build

@@ -6,7 +6,7 @@ on:
       - '.github/workflows/reading-toc-r183-finalize.yml'
       - 'tests/environment/reading-toc-multi-answer-r183.test.mjs'
       - 'tests/environment/reading-toc-placement-r42.test.mjs'
-      - 'examples/sidebar-tools/reading-toc/trusted/view.js'
+      - 'projects/reading-toc/trusted/view.js'
       - 'tests/framework/reading-toc-preview-r14-native.test.mjs'
   workflow_dispatch:
 permissions:
@@ -32,7 +32,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p artifacts/reading-toc-r183
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc --out artifacts/reading-toc-r183/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/reading-toc --out artifacts/reading-toc-r183/candidate.opendesk-tool.json
           node --test \
             tests/environment/reading-toc-chatgpt-content-r182.test.mjs \
             tests/environment/reading-toc-multi-answer-r183.test.mjs \
@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          dir=examples/sidebar-tools/reading-toc/preview
+          dir=projects/reading-toc/preview
           for row in 'side-panel reading-toc-r12-interactive-preview.html success' \
             'page-overlay reading-toc-r12-overlay-preview.html success' \
             'page-overlay index.html success' \
@@ -72,8 +72,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc --promote-from artifacts/reading-toc-r183/candidate.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc --check-project
+          node scripts/build-sidebar-tool.mjs projects/reading-toc --promote-from artifacts/reading-toc-r183/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/reading-toc --check-project
           node --test tests/environment/reading-toc-r41.test.mjs
       - name: Fast-forward only the validated package and four preview HTML files
         shell: bash
@@ -85,12 +85,12 @@ jobs:
             exit 1
           }
           git add -- \
-            examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json \
-            examples/sidebar-tools/reading-toc/preview/reading-toc-r12-interactive-preview.html \
-            examples/sidebar-tools/reading-toc/preview/reading-toc-r12-overlay-preview.html \
-            examples/sidebar-tools/reading-toc/preview/index.html \
-            examples/sidebar-tools/reading-toc/preview/reading-toc-r183-source-panel-preview.html \
-            examples/sidebar-tools/reading-toc/preview/reading-toc-r183-source-overlay-preview.html
+            projects/reading-toc/reading-toc.opendesk-tool.json \
+            projects/reading-toc/preview/reading-toc-r12-interactive-preview.html \
+            projects/reading-toc/preview/reading-toc-r12-overlay-preview.html \
+            projects/reading-toc/preview/index.html \
+            projects/reading-toc/preview/reading-toc-r183-source-panel-preview.html \
+            projects/reading-toc/preview/reading-toc-r183-source-overlay-preview.html
           if git diff --cached --quiet; then
             echo 'PROJECT_PACKAGE_AND_PREVIEWS_ALREADY_MATCH'
             exit 0
@@ -108,7 +108,7 @@ jobs:
           if-no-files-found: warn
           path: |
             artifacts/reading-toc-r183/
-            examples/sidebar-tools/reading-toc/preview/reading-toc-r12-*.html
-            examples/sidebar-tools/reading-toc/preview/reading-toc-r183-source-*.html
-            examples/sidebar-tools/reading-toc/preview/reading-toc-r183-chatgpt-multi-preview.html
+            projects/reading-toc/preview/reading-toc-r12-*.html
+            projects/reading-toc/preview/reading-toc-r183-source-*.html
+            projects/reading-toc/preview/reading-toc-r183-chatgpt-multi-preview.html
             artifacts/reading-toc-r41/*.png

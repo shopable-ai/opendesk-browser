@@ -16,8 +16,8 @@ import {
 test('R1.2 trusted locale resource is an exact, audited generated snapshot',async()=>{
   const result=await verifyReadingTocTrustedLocales();
   assert.equal(result.state,'MATCHED');
-  const input=await readFile('examples/sidebar-tools/reading-toc/locales.json','utf8');
-  const output=await readFile('examples/sidebar-tools/reading-toc/trusted/locales.generated.js','utf8');
+  const input=await readFile('projects/reading-toc/locales.json','utf8');
+  const output=await readFile('projects/reading-toc/trusted/locales.generated.js','utf8');
   assert.equal(output,renderReadingTocTrustedLocales(input));
   assert.match(output,/do not edit/);
   assert(!output.includes('import '));
@@ -27,7 +27,7 @@ test('R1.2 trusted locale resource is an exact, audited generated snapshot',asyn
 });
 
 test('R1.2 same validated Side Panel JS/CSS executes in source-derived offline shell',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/reading-toc');
+  const pkg=await createSidebarToolPackage('projects/reading-toc');
   const preview=await generatePreview({tool:'reading-toc',surface:'side-panel',width:360,
     scenario:'success',theme:'light'});
   assert.equal(preview.manifest.tool,'reading-toc');
@@ -52,10 +52,10 @@ test('R1.2 same validated Side Panel JS/CSS executes in source-derived offline s
 
 test('R1.2 source-backed webpage overlay uses actual trusted view+placement and zero privileges',async()=>{
   const original=await Promise.all([
-    readFile('examples/sidebar-tools/reading-toc/trusted/view.js','utf8'),
-    readFile('examples/sidebar-tools/reading-toc/trusted/placement.js','utf8'),
+    readFile('projects/reading-toc/trusted/view.js','utf8'),
+    readFile('projects/reading-toc/trusted/placement.js','utf8'),
     readFile('src/ui/app-localization.js','utf8'),
-    readFile('examples/sidebar-tools/reading-toc/locales.json','utf8')
+    readFile('projects/reading-toc/locales.json','utf8')
   ]);
   const overlay=await readingTocOverlayPreview({scenario:'success'});
   const expected=createHash('sha256').update(JSON.stringify(original)).digest('hex');
@@ -142,16 +142,16 @@ test('R1.3 both generated TOC preview entrypoints contain executable inline JS',
 });
 
 test('R1.4 checked-in interactive previews are byte-reproducible from the current official UI and trusted overlay',async()=>{
- const root='examples/sidebar-tools/reading-toc/preview/';
- const packageData=await createSidebarToolPackage('examples/sidebar-tools/reading-toc');
+ const root='projects/reading-toc/preview/';
+ const packageData=await createSidebarToolPackage('projects/reading-toc');
  const pkgDigest=createHash('sha256').update(JSON.stringify([
   packageData.id,packageData.version,packageData.html,packageData.css,packageData.js
  ])).digest('hex');
  const sourceFiles=await Promise.all([
-  readFile('examples/sidebar-tools/reading-toc/trusted/view.js','utf8'),
-  readFile('examples/sidebar-tools/reading-toc/trusted/placement.js','utf8'),
+  readFile('projects/reading-toc/trusted/view.js','utf8'),
+  readFile('projects/reading-toc/trusted/placement.js','utf8'),
   readFile('src/ui/app-localization.js','utf8'),
-  readFile('examples/sidebar-tools/reading-toc/locales.json','utf8')
+  readFile('projects/reading-toc/locales.json','utf8')
  ]);
  const trustedDigest=createHash('sha256').update(JSON.stringify(sourceFiles)).digest('hex');
  const fixtures=await readFile('scripts/preview/reading-toc-mock.js','utf8');

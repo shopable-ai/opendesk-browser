@@ -14,7 +14,7 @@ on:
       - 'src/ui/sidebar-tools/package.js'
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.css'
-      - 'examples/sidebar-tools/reading-toc/**'
+      - 'projects/reading-toc/**'
       - 'scripts/build-sidebar-tool.mjs'
       - 'scripts/generate-reading-toc-locales.mjs'
       - 'src/ui/app-localization.js'
@@ -69,8 +69,8 @@ jobs:
           # Latest collection must match actual packaged releases; old revisions remain immutable.
           node --test tests/environment/sidebar-tool-enable-r26.test.mjs tests/environment/reading-toc-auth-r41.test.mjs tests/environment/sidebar-default-preinstall-r48.test.mjs tests/environment/extension-center-r4.test.mjs tests/environment/extension-center-r47-interaction.test.mjs
           node --test --test-name-pattern='R5 newest fixed reading kit|R5 immutable archive conflicts' tests/environment/app-market-r5.test.mjs
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/reading-toc --check-project
-          npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc --out artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/reading-toc --check-project
+          npm run build:sidebar-tool -- projects/reading-toc --out artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
           node scripts/preview/build-preview.mjs --tool reading-toc --surface side-panel --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12.html
           node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/reading-toc-r12-overlay.html
           node scripts/preview/build-preview.mjs --tool reading-toc --surface page-overlay --scenario success --theme light --width 360 --out artifacts/previews/reading-toc/index.html

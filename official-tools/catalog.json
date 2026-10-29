@@ -17,7 +17,7 @@
     },
     {
       "id": "reading-toc",
-      "project": "examples/sidebar-tools/reading-toc",
+      "project": "projects/reading-toc",
       "kind": "sidebar-tool",
       "installationPolicy": "preinstalled"
     },

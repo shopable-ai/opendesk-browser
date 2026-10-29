@@ -1,8 +1,8 @@
-import {sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
-import {websiteOrigin,grantedOrigins,changeSiteGrant as changeTocGrant} from '../../../../src/ui/sidebar-tools/site-grants.js';
+import {sidebarToolEnabled} from '../../../src/ui/sidebar-tools/lifecycle.js';
+import {websiteOrigin,grantedOrigins,changeSiteGrant as changeTocGrant} from '../../../src/ui/sidebar-tools/site-grants.js';
 export {websiteOrigin,grantedOrigins,changeTocGrant};
-import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
-import {matchesOfficialReadingToc,OFFICIAL_READING_TOC_RELEASE,OFFICIAL_READING_TOC_RELEASES} from '../../../../src/sidebar-tools/official-reading-toc.js';
+import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../../src/ui/sidebar-tools/package.js';
+import {matchesOfficialReadingToc,OFFICIAL_READING_TOC_RELEASE,OFFICIAL_READING_TOC_RELEASES} from '../../../src/sidebar-tools/official-reading-toc.js';
 
 export const READING_TOC_SITE_STORE='opendesk.sidebar-tools.toc-sites.v1';
 // A distinct storage key per HTTP(S) origin prevents unrelated sites from

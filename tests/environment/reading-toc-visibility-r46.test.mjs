@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {READING_TOC_VISIBILITY_STORE,readingTocPageScope,readingTocDisplayState,
-  changeReadingTocVisibility,changeTocGrant,tocGrantAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+  changeReadingTocVisibility,changeTocGrant,tocGrantAllowed} from '../../projects/reading-toc/trusted/policy.js';
 
 const id='reading-toc';
 const page='https://chatgpt.com/c/one?search=secret#private';

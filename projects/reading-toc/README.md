@@ -33,16 +33,16 @@
 ## 从本地工具包安装
 
 ```sh
-npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
+npm run build:sidebar-tool -- projects/reading-toc
 ```
 
-可导入的已审阅正式包为 `examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.9）。`npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.9/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
+可导入的已审阅正式包为 `projects/reading-toc/reading-toc.opendesk-tool.json`（ID `reading-toc`，v1.0.9）。`npm run build:sidebar-tool -- projects/reading-toc` 会将候选输出到 `artifacts/sidebar-tools/reading-toc/1.0.9/reading-toc.opendesk-tool.json`，**不会自动覆盖**仓库正式便携包。候选经真实测试及摘要核对后，如需替换正式副本，必须按构建器的 `--promote-from` 流程明确提升。官方资源由构建器生成至 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；正式 ID、版本、能力、SHA-256 与 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md) 一起核验。安装、同 ID 更新和卸载仍通过现有可信宿主审核，不会因生成候选自动更改已安装工具。
 
 ## 当前证据与边界
 
 - 受控 Chrome for Testing 155 正式包、原生 Side Panel、官方快捷安装和本地 JSON 导入、精确 Origin 确认、H1–H6 多标题索引、关闭 Side Panel 后网页目录留存、站点撤销，均有自动化原生证据。
 - 真实已登录 ChatGPT、真实知乎、多回答版本切换及用户 Mac 生产 Profile 尚未通过本轮原生验收；模拟 ChatGPT DOM 页面不等于真实站点通过。
-- R1.6 定向 Chrome/Chromium、发行集合和 macOS Actions 的最新证据及未关闭事项，见 [R1.6 验收记录](../../../docs/framework/workstreams/reading-toc-r16-20261016.md)。不可将 CI macOS 通过冒充用户 Mac 已通过，更不可无证据宣称六维独立 95/100。历史 R4.1 记录仍见 `docs/framework/workstreams/reading-toc-r41-real-chrome-20261010.md`。
+- R1.6 定向 Chrome/Chromium、发行集合和 macOS Actions 的最新证据及未关闭事项，见 [R1.6 验收记录](../../docs/framework/workstreams/reading-toc-r16-20261016.md)。不可将 CI macOS 通过冒充用户 Mac 已通过，更不可无证据宣称六维独立 95/100。历史 R4.1 记录仍见 `docs/framework/workstreams/reading-toc-r41-real-chrome-20261010.md`。
 
 ## R4.2 悬浮位置验收
 
@@ -64,7 +64,7 @@ R4.2 改动在可信 Content Script 的悬浮视图与位置存储；R4.3 将官
 
 ```sh
 node --test tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-r41.test.mjs
-npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
+npm run build:sidebar-tool -- projects/reading-toc
 npm run check
 npm run build && node scripts/verify-package.mjs dist/production
 ```
@@ -81,13 +81,13 @@ npm run build && node scripts/verify-package.mjs dist/production
 受影响测试：
 ```sh
 node --test tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-placement-r42.test.mjs
-npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
+npm run build:sidebar-tool -- projects/reading-toc
 npm run build && node scripts/verify-package.mjs dist/production
 ```
 
 受控 Chrome 测试新增了“单 H1 + 20 H2 阅读末尾仍在概览显示当前 H2”，以及从 AI 回答 1 导航到回答 2 后 Sidebar 默认自动跟随的断言。用户 Mac 与真实登录站点仍需独立检查。
 
-R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流](../../../docs/framework/workstreams/official-tools-catalog-r45-20261011.md)；本页早期 Chrome 记录仍绑定原候选。
+R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流](../../docs/framework/workstreams/official-tools-catalog-r45-20261011.md)；本页早期 Chrome 记录仍绑定原候选。
 
 ## R4.6 · 长目录自适应高度与 Side Panel 设置（2026-10-11）
 
@@ -113,13 +113,13 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 
 ## R1.2 双语言 UI 与升级
 
-阅读目录的 Side Panel 沙箱和可信网页悬浮 UI 共享 `locales.json` 的 `zh-CN` / `en` 文案；来源标题与网页标题仍保持原文。用户在「扩展」→「更多操作」选择界面语言，加载后或切换中，当前目录模式、来源、章节、悬浮位置以及未完成的读取请求应继续保留。应用默认中文；工具单条英文缺失时回退中文，所有文字资源离线随正式工具版本发布。权威合同：[Sidebar Tool 本地化](../../../docs/api/sidebar-tool-localization.zh-CN.md)。
+阅读目录的 Side Panel 沙箱和可信网页悬浮 UI 共享 `locales.json` 的 `zh-CN` / `en` 文案；来源标题与网页标题仍保持原文。用户在「扩展」→「更多操作」选择界面语言，加载后或切换中，当前目录模式、来源、章节、悬浮位置以及未完成的读取请求应继续保留。应用默认中文；工具单条英文缺失时回退中文，所有文字资源离线随正式工具版本发布。权威合同：[Sidebar Tool 本地化](../../docs/api/sidebar-tool-localization.zh-CN.md)。
 
 **发行版本（R1.8.6 复核）：** `tool.config.json`、根目录正式安装包、官方 Catalog 的 `reading-kit` revision 7 均指向 **`1.0.8`**。根目录正式 JSON 为 28,481 UTF-8 字节，SHA-256 为 `df3ab8fb74c4b32ae5932333c521f326d72a71256ebfeda412b3d6155f990c42`；CI 已加入 `--check-project` 校验步骤，须以对应 CI 实际结果认定 MATCH；本轮不重复晋升或更改版本。历史 R1.8.1 时尚未晋升的 1.0.7/1.0.8 说明不再代表当前仓库状态。**用户本机 Mac Chrome 1.0.7 → 1.0.8 主动升级、持久化、撤权、回滚与卸载仍须独立验收，不得仅凭发行包一致性宣称通过。**
 
 ### 语言资源与可信悬浮 UI 的边界
 
-- 可编辑唯一源：`examples/sidebar-tools/reading-toc/locales.json`。独立包构建器在 `src/main.js` 中编入校验通过的文案。
+- 可编辑唯一源：`projects/reading-toc/locales.json`。独立包构建器在 `src/main.js` 中编入校验通过的文案。
 - 可信代码使用 `src/reading-toc/locales.generated.js`，由 `node scripts/generate-reading-toc-locales.mjs --write` 确定性生成并带源 blob 摘要；生成后审阅差异再提交。`npm run check`、`npm run build`、`npm run dev` 都会拒绝未经同步的资源，保持 Content Script 安全来源检查。不得在可信 bundle 中直接 import 工具项目。
 - 本地可交互主预览为 [preview/index.html](preview/index.html)，由唯一 `scripts/preview/build-preview.mjs` 官方生成器输出；示例命令见 [preview/README.md](preview/README.md)。它复用正式安装包与可信 `src/reading-toc/view.js`，并不代表真实网站、授权或 Mac Chrome 验收。
 
@@ -162,9 +162,9 @@ R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流]
 
 ## R2.1 · 语言包试点（2026-10-25）
 
-唯一正式包已晋升为 **1.0.10**，官方 pin 同步；源码/包自动验证通过，真实 Chrome 安装仍为 `NOT_TESTED`。详细证据见 [R2.1 交付记录](../../../docs/framework/workstreams/locale-packs-r21-reading-toc.md)。旧章节的 1.0.9 是此前正式基线，不能当作本轮语言包已安装的证据。
+唯一正式包已晋升为 **1.0.10**，官方 pin 同步；源码/包自动验证通过，真实 Chrome 安装仍为 `NOT_TESTED`。详细证据见 [R2.1 交付记录](../../docs/framework/workstreams/locale-packs-r21-reading-toc.md)。旧章节的 1.0.9 是此前正式基线，不能当作本轮语言包已安装的证据。
 
 - `locales.json` 是源文案和已复核英文的唯一作者资源，构建产生只读 `localization` metadata；现有中文原文不改。
 - [日语语言包样例](languages/ja.opendesk-locale.json) 包含 55 条业务 UI 文案，格式 `opendesk.locale-pack.v1`，绑定 `reading-toc` 与源 catalog hash；不是可安装工具包，也不会自动随目录加载。
 - 工具动态展示采用 Host 只读 `OpenDeskTool.messages`，保留内嵌文案兜底；具体接线和测试状态以交付记录为准。不翻译网页章节或宿主权限/安全文案，可信网页悬浮目录也从同一受控 store 原位更新，但须固定 Content Script 已更新并完成官方包验真；真实 Chrome 尚未测试。
-- 作者格式、hash 算法、预算、安全与回退详见 [唯一 R2.1 本地化合同](../../../docs/api/sidebar-tool-localization.zh-CN.md)。Page Program、Controller 等扩展类型以后接入。
+- 作者格式、hash 算法、预算、安全与回退详见 [唯一 R2.1 本地化合同](../../docs/api/sidebar-tool-localization.zh-CN.md)。Page Program、Controller 等扩展类型以后接入。

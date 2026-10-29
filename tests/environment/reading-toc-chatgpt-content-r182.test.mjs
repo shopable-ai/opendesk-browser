@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
+import {createReadingTocIndex} from '../../projects/reading-toc/trusted/model.js';
 
 // Minimal DOM fixture: headings keep their real ancestor/DOM identities, while
 // the assistant's .markdown boundary is separate from turn chrome and role labels.

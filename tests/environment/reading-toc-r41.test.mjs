@@ -5,9 +5,9 @@ import assert from 'node:assert/strict';
 import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {createReadingTocIndex} from '../../examples/sidebar-tools/reading-toc/trusted/model.js';
+import {createReadingTocIndex} from '../../projects/reading-toc/trusted/model.js';
 import {websiteOrigin,changeTocGrant,tocGrantAllowed,changeTocSiteAllowed,tocSiteAllowed,blockedTocOrigins,READING_TOC_SITE_STORE,
-  READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+  READING_TOC_PAGE_RULES_STORE,changeTocPageAllowed,readingTocPageAllowed,disabledTocPages} from '../../projects/reading-toc/trusted/policy.js';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 import {changeClipGrant,clipGrantAllowed} from '../../examples/sidebar-tools/web-markdown-clipper/trusted/policy.js';
@@ -214,7 +214,7 @@ test('R4.1 official JSON is reproducible through existing packer and exact v1 va
   const dir=await mkdtemp(join(tmpdir(),'reading-toc-package-'));
   try{
     const path=join(dir,'reading-toc.opendesk-tool.json');
-    await buildSidebarTool('examples/sidebar-tools/reading-toc',{out:path});
+    await buildSidebarTool('projects/reading-toc',{out:path});
     const actual=JSON.parse(await readFile(path,'utf8'));
     const bundled=await officialToolFixture('reading-toc');
     assert.deepEqual(actual,bundled);

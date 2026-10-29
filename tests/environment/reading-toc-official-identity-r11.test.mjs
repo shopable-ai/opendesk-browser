@@ -8,7 +8,7 @@ import {officialToolFixture} from '../helpers/official-tools.mjs';
 import {OFFICIAL_READING_TOC_RELEASE,matchesOfficialReadingToc,MARKET_PROVENANCE_STORE}
   from '../../src/sidebar-tools/official-reading-toc.js';
 import {tocGrantAllowed,verifyOfficialReadingToc as verifyInstalledReadingToc,changeTocSiteAllowed,changeTocPageAllowed,
-  readingTocPageAllowed} from '../../examples/sidebar-tools/reading-toc/trusted/policy.js';
+  readingTocPageAllowed} from '../../projects/reading-toc/trusted/policy.js';
 import {serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool} from '../../src/ui/sidebar-tools/installation.js';
 
@@ -20,7 +20,7 @@ const verifyOfficialReadingToc=(installed,provenance)=>verifyInstalledReadingToc
 
 // Immutable official release, independent of the currently promoted package.
 const historical=JSON.parse(execFileSync('git',['show',
-  'cb1643a66f8a7d588b301cd38e2fd2c5ce6d5cb2:examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json'],
+  'cb1643a66f8a7d588b301cd38e2fd2c5ce6d5cb2:projects/reading-toc/reading-toc.opendesk-tool.json'],
   {cwd:new URL('../..',import.meta.url),encoding:'utf8'}));
 const historicalHash='8d6bf170c92f3093de34f1401f49897d9734f740a0deef87076666a548cc39f0';
 const historicalSource=()=>({[pin.id]:{
@@ -75,7 +75,7 @@ test('R1.1 committed package pin equals the real official release builder',async
   assert.equal(packaged.version,pin.version);
   assert.equal(digest,pin.sha256);
   assert.deepEqual([release.version,release.sha256,release.id],[pin.version,pin.sha256,pin.marketId]);
-  const tracked=await readFile(new URL('../../examples/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json',import.meta.url));
+  const tracked=await readFile(new URL('../../projects/reading-toc/reading-toc.opendesk-tool.json',import.meta.url));
   assert.equal(createHash('sha256').update(tracked).digest('hex'),pin.sha256);
   assert.match(MARKET_PROVENANCE_STORE,/provenance/);
 });
