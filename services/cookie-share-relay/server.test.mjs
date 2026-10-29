@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createShareRelay,createShareHttpServer} from './server.mjs';
 import {webcrypto} from 'node:crypto';
+import {DatabaseSync} from 'node:sqlite';
 
 const crypto=webcrypto;
 const enc=new TextEncoder();
@@ -47,11 +48,11 @@ test('anonymous configuration claim is atomic, bounded and persists across reope
   });
 });
 test('session delivery requires manager secret and signed device proof',async()=>{
-  await withServer(async({api})=>{
+  await withServer(async({api,file})=>{
     const created=await api('POST','/v1/invites',{origin:site,displayName:'A',
       mode:'session',expiresInSeconds:3600,maxClaims:1});
     const {id}=created.invite;
-    const receiver=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey']);
+    const receiver=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey','deriveBits']);
     const signer=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
     const ecdhPublic=await crypto.subtle.exportKey('jwk',receiver.publicKey);
     const verifyPublic=await crypto.subtle.exportKey('jwk',signer.publicKey);
@@ -60,10 +61,23 @@ test('session delivery requires manager secret and signed device proof',async()=
     assert.equal((await api('GET',`/v1/invites/${id}/pairs`)).error.code,'E_MANAGE_FORBIDDEN');
     const requests=await api('GET',`/v1/invites/${id}/pairs`,undefined,created.managerSecret);
     assert.equal(requests.requests.length,1);
-    const sender=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey']);
+    const sender=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey','deriveBits']);
     const senderPublic=await crypto.subtle.exportKey('jwk',sender.publicKey);
-    const upload={requestId:pairing.requestId,senderPublic,iv:b64(crypto.getRandomValues(new Uint8Array(12))),
-      ciphertext:b64(crypto.getRandomValues(new Uint8Array(64)))};
+    // Test real ECDH -> HKDF -> AES-GCM using entirely synthetic test data.
+    // The relay receives opaque bytes only, never the local shared key.
+    const shared=await crypto.subtle.deriveBits({name:'ECDH',public:receiver.publicKey},
+      sender.privateKey,256);
+    const material=await crypto.subtle.importKey('raw',shared,'HKDF',false,['deriveKey']);
+    const derive=material=>crypto.subtle.deriveKey({name:'HKDF',hash:'SHA-256',
+      salt:enc.encode(id),info:enc.encode('opendesk-cookie-share:v1:'+pairing.requestId)},
+      material,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+    const aes=await derive(material);
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const aad=enc.encode(id+':'+pairing.requestId+':'+site);
+    const synthetic=JSON.stringify({kind:'synthetic-fixture',message:'not a real Cookie'});
+    const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:aad},
+      aes,enc.encode(synthetic));
+    const upload={requestId:pairing.requestId,senderPublic,iv:b64(iv),ciphertext:b64(cipher)};
     assert.equal((await api('POST',`/v1/invites/${id}/deliver`,upload)).error.code,'E_MANAGE_FORBIDDEN');
     assert.equal((await api('POST',`/v1/invites/${id}/deliver`,upload,created.managerSecret)).status,
       'encrypted_ready');
@@ -79,6 +93,19 @@ test('session delivery requires manager secret and signed device proof',async()=
     assert.equal(ok.packet.senderPublic.x,senderPublic.x);
     assert.equal(ok.packet.senderPublic.y,senderPublic.y);
     assert.equal(ok.packet.ciphertext,upload.ciphertext);
+    const senderAtReceiver=await crypto.subtle.importKey('jwk',ok.packet.senderPublic,
+      {name:'ECDH',namedCurve:'P-256'},false,[]);
+    const receiverBits=await crypto.subtle.deriveBits({name:'ECDH',public:senderAtReceiver},
+      receiver.privateKey,256);
+    const receiverMaterial=await crypto.subtle.importKey('raw',receiverBits,'HKDF',false,['deriveKey']);
+    const recovered=await crypto.subtle.decrypt({name:'AES-GCM',
+      iv:Buffer.from(ok.packet.iv,'base64url'),additionalData:aad},
+      await derive(receiverMaterial),Buffer.from(ok.packet.ciphertext,'base64url'));
+    assert.equal(new TextDecoder().decode(recovered),synthetic);
+    const db=new DatabaseSync(file);
+    try{assert.equal(db.prepare('SELECT COUNT(*) AS n FROM pair_requests WHERE invite_id=?')
+      .get(id).n,0,'consumed session clears all receiver public keys and ciphertext');}
+    finally{db.close();}
     assert.equal((await api('POST',`/v1/invites/${id}/claim`,{requestId:pairing.requestId,
       challenge:challenge.challenge,signature:sig})).error.code,'E_INVITE_CONSUMED');
     const raw=JSON.stringify(ok);
@@ -95,5 +122,42 @@ test('expiration and revocation prevent claims and pair registration',async()=>{
       expiresInSeconds:300,maxClaims:3});
     now(1_301_000);
     assert.equal((await api('POST',`/v1/invites/${b.invite.id}/claim`,{})).error.code,'E_INVITE_EXPIRED');
+  });
+});
+
+test('expired or revoked encrypted invites erase stored device keys and envelopes',async()=>{
+  await withServer(async({api,now,file})=>{
+    const pub=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveKey','deriveBits']);
+    const verifier=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+    const ecdhPublic=await crypto.subtle.exportKey('jwk',pub.publicKey);
+    const verifyPublic=await crypto.subtle.exportKey('jwk',verifier.publicKey);
+    const prepare=async()=>{
+      const created=await api('POST','/v1/invites',{origin:site,displayName:'Test',
+        mode:'session',expiresInSeconds:300,maxClaims:1});
+      const id=created.invite.id;
+      const paired=await api('POST',`/v1/invites/${id}/pair`,{ecdhPublic,verifyPublic});
+      assert.equal(paired.code,200);
+      const delivery=await api('POST',`/v1/invites/${id}/deliver`,{
+        requestId:paired.requestId,senderPublic:ecdhPublic,
+        iv:b64(crypto.getRandomValues(new Uint8Array(12))),
+        ciphertext:b64(crypto.getRandomValues(new Uint8Array(32)))},created.managerSecret);
+      assert.equal(delivery.status,'encrypted_ready');
+      return created;
+    };
+    const db=new DatabaseSync(file);
+    const count=id=>db.prepare('SELECT COUNT(*) AS n FROM pair_requests WHERE invite_id=?')
+      .get(id).n;
+    try{
+      const revoked=await prepare();
+      assert.equal(count(revoked.invite.id),1);
+      assert.equal((await api('POST',`/v1/invites/${revoked.invite.id}/revoke`,{},
+        revoked.managerSecret)).status,'revoked');
+      assert.equal(count(revoked.invite.id),0);
+      const expired=await prepare();
+      assert.equal(count(expired.invite.id),1);
+      now(1_301_000);
+      assert.equal((await api('GET',`/v1/invites/${expired.invite.id}`)).error.code,'E_INVITE_EXPIRED');
+      assert.equal(count(expired.invite.id),0);
+    }finally{db.close();}
   });
 });
