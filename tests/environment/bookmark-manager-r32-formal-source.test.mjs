@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import {readFile,access} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {existsSync} from 'node:fs';
-import '../../examples/sidebar-tools/bookmark-manager/src/model.js';
-import '../../examples/sidebar-tools/bookmark-manager/src/service.js';
+import '../../projects/bookmark-manager/src/model.js';
+import '../../projects/bookmark-manager/src/service.js';
 
-const prefix='examples/sidebar-tools/bookmark-manager/';
+const prefix='projects/bookmark-manager/';
 const appPath=prefix+'src/react/App.jsx';
 const cssPath=prefix+'src/react/style.css';
 const files=[prefix+'src/model.js',prefix+'src/service.js',appPath,prefix+'src/react/navigation.js',cssPath];
@@ -66,7 +66,7 @@ test('R1.8 offline fixture chrome is hashed separately from the production React
   'independent sandbox IIFE must not embed trusted Chat UI');
  for(const entry of [preview,formal]){
   assert.match(entry,/import '\.\.\/\.\.\/\.\.\/src\/react\/style\.css';/);
-  assert.match(entry,/import '\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/src\/ui\/react\/components\/conversation-dock\.css';/);
+  assert.match(entry,/import '\.\.\/\.\.\/\.\.\/\.\.\/\.\.\/src\/ui\/react\/components\/conversation-dock\.css';/);
  }
  assert.match(builder,/read\(join\(here,'src\/preview-shell\.css'\)\)/);
  assert.match(builder,/data-preview-shell="offline-only"/);

@@ -1,8 +1,8 @@
 /** @jsx h */
 import React,{useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
-import {Button as OpenDeskButton,IconButton as OpenDeskIconButton} from '../../../../../src/ui/react/components/ui/button.tsx';
-import {bookmarkConversationContext} from '../../../../../src/ui/conversation/bookmark-actions.js';
-import {runBookmarkAgentLoop} from '../../../../../src/ui/conversation/bookmark-agent-loop.js';
+import {Button as OpenDeskButton,IconButton as OpenDeskIconButton} from '../../../../src/ui/react/components/ui/button.tsx';
+import {bookmarkConversationContext} from '../../../../src/ui/conversation/bookmark-actions.js';
+import {runBookmarkAgentLoop} from '../../../../src/ui/conversation/bookmark-agent-loop.js';
 import {bookmarkEditorNavigation} from './navigation.js';
 const model=globalThis.BookmarkR2Model;
 const TREE_ROW_HEIGHT=44;

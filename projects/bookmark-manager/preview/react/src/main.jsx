@@ -1,8 +1,8 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import App from '../../../src/react/App.jsx';
-import {TrustedConversationWorkspace,TrustedConversationHeaderSlot} from '../../../../../../src/ui/react/components/conversation.tsx';
-import '../../../../../../src/ui/react/components/conversation-dock.css';
+import {TrustedConversationWorkspace,TrustedConversationHeaderSlot} from '../../../../../src/ui/react/components/conversation.tsx';
+import '../../../../../src/ui/react/components/conversation-dock.css';
 import '../../../src/react/style.css';
 // Offline-only chrome CSS is injected separately by build-preview.mjs;
 // keep the production App/Dock stylesheet byte-identical to formal builds.

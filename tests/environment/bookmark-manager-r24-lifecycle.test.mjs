@@ -40,7 +40,7 @@ async function ui(){
     createDocumentFragment:()=>new Element()},OpenDeskTool:{root},
     setTimeout:fn=>{const id=++timerId;timers.set(id,fn);return id},
     clearTimeout:id=>timers.delete(id),addEventListener:(name,fn)=>lifecycle.set(name,fn)});
-  runInContext(await readFile('examples/sidebar-tools/bookmark-manager/src/model.js','utf8'),context);
+  runInContext(await readFile('projects/bookmark-manager/src/model.js','utf8'),context);
   const tree=()=>context.BookmarkR2Model.bookmarkTree([{id:'0',title:'root',children:[
     {id:'1',parentId:'0',title:'bar',children:[{id:'10',parentId:'1',index:0,
       title:version?'external title':'reviewed title',url:'https://example.org/'}]}
@@ -65,7 +65,7 @@ async function ui(){
     update:async args=>{writes.push(args)}
   };
   context.BookmarkR2Service={create:()=>service};
-  runInContext(await readFile('examples/sidebar-tools/bookmark-manager/src/main.js','utf8'),context);
+  runInContext(await readFile('projects/bookmark-manager/src/main.js','utf8'),context);
   await settle();
   return {q,root,service,calls,writes,order,timers,
     get reads(){return reads},get observer(){return observer},

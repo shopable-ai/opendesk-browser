@@ -36,7 +36,7 @@ test('R3.3 first Full Bookmarks approval visibly leads into a fresh observer',as
  assert.match(controller,/isFullBookmarkTool\(tool\)&&!bookmarkGranted/);
  assert.match(controller,/browser\.bookmarks\.fullConsent/);
  assert.match(controller,/if\(!hadConsent&&nativeUI\?\.kind==='bookmark'&&!toolDirty&&!toolSaving&&[\s\S]*?mountTool\(tool\)/);
- const app=await read('examples/sidebar-tools/bookmark-manager/src/react/App.jsx');
+ const app=await read('projects/bookmark-manager/src/react/App.jsx');
  const start=app.indexOf("useEffect(()=>{\n  if(mode!=='trusted')return;");
  const effect=app.slice(start,app.indexOf('},[mode,service,load]);',start));
  assert.ok(start>=0&&effect.includes('service.watchStart()'));
@@ -46,9 +46,9 @@ test('R3.3 first Full Bookmarks approval visibly leads into a fresh observer',as
 
 test('R3.3 React does not duplicate the trusted Host deletion review',async()=>{
  const [app,controller,service]=await Promise.all([
-  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx',
+  'projects/bookmark-manager/src/react/App.jsx',
   'src/ui/sidebar-tools.js',
-  'examples/sidebar-tools/bookmark-manager/src/service.js'].map(read));
+  'projects/bookmark-manager/src/service.js'].map(read));
  assert.match(app,/function prepareDelete\(id\)/);
  assert.match(app,/void removeConfirmed\(target\)/);
  assert.doesNotMatch(app,/confirmDelete&&<Confirm/);

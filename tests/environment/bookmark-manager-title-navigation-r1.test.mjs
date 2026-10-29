@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {bookmarkEditorNavigation} from '../../examples/sidebar-tools/bookmark-manager/src/react/navigation.js';
+import {bookmarkEditorNavigation} from '../../projects/bookmark-manager/src/react/navigation.js';
 
 const read=p=>readFile(new URL('../../'+p,import.meta.url),'utf8');
 
@@ -22,7 +22,7 @@ test('real bookmark editor sheet is a child while preview/drawer remains root',(
 
 test('trusted Bookmark App reports editor state and routes shared Back to existing dirty guard',async()=>{
   const [app,host,entry]=await Promise.all([
-    read('examples/sidebar-tools/bookmark-manager/src/react/App.jsx'),
+    read('projects/bookmark-manager/src/react/App.jsx'),
     read('src/ui/sidebar-tools.js'),read('src/ui/react/main.tsx')
   ]);
   assert.match(app,/navigation:bookmarkEditorNavigation\(draft\)/);

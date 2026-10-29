@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'examples/sidebar-tools/bookmark-manager/**'
+      - 'projects/bookmark-manager/**'
       - 'docs/framework/workstreams/bookmark-manager-r2.md'
       - 'scripts/tests/bookmark-manager-r26-preview-chrome.mjs'
       - 'scripts/preview/bookmark-manager-mock.js'
@@ -38,7 +38,7 @@ jobs:
       - name: Shared source and security checks
         run: npm run check
       - name: Independent v2 tool package
-        run: npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
+        run: npm run build:sidebar-tool -- projects/bookmark-manager
       # Reuse the single production-source preview runner independently of the
       # shared AdBlock preview matrix. No second UI, bridge or preview engine.
       # Browser extension building still follows, with every safety gate intact.
@@ -100,13 +100,13 @@ jobs:
       - name: Production bookmark model and editor lifecycle tests
         run: node --test tests/environment/bookmark-manager-r2.test.mjs tests/environment/bookmark-manager-r24-lifecycle.test.mjs
       - name: Build R2.8 official isolated tool package
-        run: npm run build:sidebar-tool -- examples/sidebar-tools/bookmark-manager
+        run: npm run build:sidebar-tool -- projects/bookmark-manager
       - name: Confirm official package never embeds preview laboratory
         run: |
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {createSidebarToolPackage} from './scripts/build-sidebar-tool.mjs';
-          const pkg=await createSidebarToolPackage('examples/sidebar-tools/bookmark-manager');
+          const pkg=await createSidebarToolPackage('projects/bookmark-manager');
           assert.equal(pkg.version,'0.3.8');
           assert.doesNotMatch(pkg.html,/od-preview-bookmark-lab|预览测试辅助工具|data-bookmark-diagnostic/);
           assert.doesNotMatch(pkg.js,/opendesk\.preview\.bookmark\.command|__opendeskBookmarkMockDiagnostic/);

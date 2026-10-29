@@ -118,11 +118,11 @@ function reviewedCompiledCookieAccounts(target,path,root){
 // output or examples module is permitted. Runtime official-release/epoch
 // admission and the dynamic opaque iframe boundary remain independent.
 const compiledBookmarkReactInputs=Object.freeze({
-  'examples/sidebar-tools/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
-  'examples/sidebar-tools/bookmark-manager/src/service.js':'d072ace5379d0d4c8f8cda8d8d172cb60122576e',
-  'examples/sidebar-tools/bookmark-manager/src/react/App.jsx':'30ad858a4007ec4bbc89307f85cb1b47691f71d0',
-  'examples/sidebar-tools/bookmark-manager/src/react/navigation.js':'7fc81215374c240e6eaae7e9e802872d94d5a53d',
-  'examples/sidebar-tools/bookmark-manager/src/react/style.css':'17f342059b2ab8ed4e12529bf547c9646522097b'
+  'projects/bookmark-manager/src/model.js':'34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5',
+  'projects/bookmark-manager/src/service.js':'d072ace5379d0d4c8f8cda8d8d172cb60122576e',
+  'projects/bookmark-manager/src/react/App.jsx':'f8b520988cb3ceed9e0c8739f63ccdeba3d496b5',
+  'projects/bookmark-manager/src/react/navigation.js':'7fc81215374c240e6eaae7e9e802872d94d5a53d',
+  'projects/bookmark-manager/src/react/style.css':'17f342059b2ab8ed4e12529bf547c9646522097b'
 });
 function reviewedCompiledBookmarkReact(target,path,root){
   if(target!=='ui/tool-shell.js'||!Object.hasOwn(compiledBookmarkReactInputs,path))return null;
@@ -174,7 +174,7 @@ function reviewedCompiledKnowledge(target,path,root){
 // The same reviewed CSS source now travels in the existing fixed stylesheet.
 // Compile comments/whitespace only; do not change selectors or scan exceptions.
 export function trustedBookmarkStyle(root=process.cwd()){
-  const path='examples/sidebar-tools/bookmark-manager/src/react/style.css';
+  const path='projects/bookmark-manager/src/react/style.css';
   reviewedCompiledBookmarkReact('ui/tool-shell.js',path,root);
   return transformSync(readFileSync(resolve(root,path),'utf8'),{
     loader:'css',minifyWhitespace:true,legalComments:'none'
@@ -412,7 +412,7 @@ function reviewedCompiledReadingToc(target,path,root){
 // existing React root; this grants no installed package/source admission.
 const compiledHostStyleInputs=Object.freeze({
   'examples/sidebar-tools/time-review/trusted/host.css':'fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6',
-  'examples/sidebar-tools/bookmark-manager/trusted/host.css':'5bbe841558c86389994defd93f6077aa928a9cf9',
+  'projects/bookmark-manager/trusted/host.css':'5bbe841558c86389994defd93f6077aa928a9cf9',
   'examples/sidebar-tools/cookie-editor/trusted/host.css':'b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f',
   'examples/sidebar-tools/ai-vip-share/trusted/host.css':'634786710c463671b9c24c424725bf6c7ff4ec8e',
   'examples/sidebar-tools/prompt-shortcuts/trusted/host.css':'aa08e38ebd56e34c49c1c07be5a1b6727426865b',

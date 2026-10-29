@@ -6,7 +6,7 @@ import {resolve} from 'node:path';
 import {createContext,runInContext,Script} from 'node:vm';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
-const root=resolve('examples/sidebar-tools/bookmark-manager');
+const root=resolve('projects/bookmark-manager');
 const sources=['src/model.js','src/service.js','src/main.js'];
 const src=path=>readFile(resolve(root,path),'utf8');
 const sandbox=async()=>{
@@ -21,7 +21,7 @@ test('R2.4 official optional registration replaces all legacy host/UI/CI paths',
   const release=catalog.tools.filter(row=>row.id==='bookmark-manager');
   assert.equal(release.length,1);
   assert.equal(release[0].installationPolicy,'optional');
-  assert.equal(release[0].project,'examples/sidebar-tools/bookmark-manager');
+  assert.equal(release[0].project,'projects/bookmark-manager');
   for(const old of ['src/bookmark-manager/model.js','src/bookmark-manager/service.js',
     'src/bookmark-manager/trusted-ui.js','src/ui/bookmark-manager.css',
     '.github/workflows/bookmark-manager-r13.yml',

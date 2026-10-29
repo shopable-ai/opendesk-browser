@@ -80,7 +80,7 @@
     },
     {
       "id": "bookmark-manager",
-      "project": "examples/sidebar-tools/bookmark-manager",
+      "project": "projects/bookmark-manager",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },

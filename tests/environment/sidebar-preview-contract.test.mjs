@@ -94,7 +94,7 @@ test('mock bridge stores only in memory, refuses live task actions and preserves
 });
 
 test('bookmark manager R2.5 shares its real package UI with an isolated full-bookmarks mock',async()=>{
-  const project=resolve('examples/sidebar-tools/bookmark-manager');
+  const project=resolve('projects/bookmark-manager');
   const pkg=await createSidebarToolPackage(project);
   assert.match(pkg.css,/^\/\* opendesk\.shared-design\.v1 sha256=/);
   assert.match(pkg.html,/class="od-button/);

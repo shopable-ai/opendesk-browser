@@ -61,7 +61,7 @@ Classic 的 `src/index.html`、`src/style.css`、`src/main.js` 仍被正式打�
 
 本轮市场候选实际运行原 Classic 隔离界面。修复保存成功或搜索后仍被通用 input 监听误标为未保存、导致卸载被拦的问题：通过公开 `OpenDeskTool.setState({dirty,busy})` 上报真实草稿和写入状态；未保存草稿、写入中及未知结果继续保留保护。ID、权限和公共宿主均未改变，未调整可信 React 准入锁。
 
-候选经定向回归后由原打包器晋升目录唯一正式 JSON，版本 **0.3.14**，SHA-256 `ff681516aeb5826fc66f8472d69baa6557cb2722f421d3811bdaadb1655e43c7`，`--check-project` 通过。独立 Mac Chrome for Testing 中完成原市场审阅更新、打开、一次写入确认、Chrome 读回、搜索及直接卸载；安装记录、iframe 和工具本地数据已清除，Chrome 书签保留，Native Messaging 未授权。此次为本地静态 development 候选证据，不代替下文历史 production/React 候选证据。完整身份与限制见 [R6.10 记录](../../../docs/framework/workstreams/market-install-r610-mac-20261028.md)。
+候选经定向回归后由原打包器晋升目录唯一正式 JSON，版本 **0.3.14**，SHA-256 `ff681516aeb5826fc66f8472d69baa6557cb2722f421d3811bdaadb1655e43c7`，`--check-project` 通过。独立 Mac Chrome for Testing 中完成原市场审阅更新、打开、一次写入确认、Chrome 读回、搜索及直接卸载；安装记录、iframe 和工具本地数据已清除，Chrome 书签保留，Native Messaging 未授权。此次为本地静态 development 候选证据，不代替下文历史 production/React 候选证据。完整身份与限制见 [R6.10 记录](../../docs/framework/workstreams/market-install-r610-mac-20261028.md)。
 
 ## R2.2 共享 Header 当前页短标题（2026-10-26，现行覆盖历史 R2.1）
 
@@ -71,7 +71,7 @@ Classic 的 `src/index.html`、`src/style.css`、`src/main.js` 仍被正式打�
 
 以下证据绑定短标题更新前的候选，不证明上方现行短标题已通过原生验收。隔离 Mac Chrome for Testing 中已验证：真实编辑 → 改名未保存 → 顶部返回确认 → 继续编辑 → 设置 → 返回原编辑及输入；新建书签/文件夹、详情和菜单的标题层级、显式放弃、正常保存、Authority 撤销及卸载后的两个旧 Host 清场也有原生记录。新建/编辑区域的可访问名称复用 `bookmarkEditorNavigation(draft).title`，与宿主当前页一致。
 
-本轮修复共享 Host 的旧代际导航失效、重复打开可信 UI 保留实例，以及旧异步恢复失败误清理新工作区；保留原草稿与写入保护。沿用 main 已有 **0.3.12** 包，未重打 JSON、升级版本或操作日常 Profile。指定长标题矩阵包含源码绑定 Chromium/原生回放；原生保存中、未知回执及在途写入撤权未覆盖。用户已要求仅增量检查，不继续扩展验收。证据等级、失败项与独立评分见[R2.2 记录](../../../docs/framework/workstreams/sidebar-tool-title-r22-local-20261026.md)，不宣称八维全部 ≥95；下文保留各历史阶段原结论。
+本轮修复共享 Host 的旧代际导航失效、重复打开可信 UI 保留实例，以及旧异步恢复失败误清理新工作区；保留原草稿与写入保护。沿用 main 已有 **0.3.12** 包，未重打 JSON、升级版本或操作日常 Profile。指定长标题矩阵包含源码绑定 Chromium/原生回放；原生保存中、未知回执及在途写入撤权未覆盖。用户已要求仅增量检查，不继续扩展验收。证据等级、失败项与独立评分见[R2.2 记录](../../docs/framework/workstreams/sidebar-tool-title-r22-local-20261026.md)，不宣称八维全部 ≥95；下文保留各历史阶段原结论。
 
 ## 0.3.12 安装包同步（2026-10-26）
 
@@ -92,7 +92,7 @@ Classic 的 `src/index.html`、`src/style.css`、`src/main.js` 仍被正式打�
 
 该轮实施时正式工具配置为 `0.3.11`，当前包同步状态见上文。从书签管理右上角进入可信“设置”页时，宿主应在原有顶部一行显示 **「书签管理 / 设置」**；返回后恢复「书签管理」和先前的书签工作区，保留未保存草稿与现有权限。根页只显示应用名，不再增加 Nav。**上一轮的历史状态**是所有 Sheet 仅保留内部标题，不改宿主返回栈；上方 R2.1 已把真实新建/编辑 Sheet 纳入可返回层级，详情 PreviewPane 仍不是。
 
-上一轮仅修复可信设置标题，该问题的 owner 是公共 `src/ui/sidebar-tools.js` 的 Host 标题投影，新增纯文本 `src/ui/sidebar-tools/title-path.js`；不是 Bookmark CRUD、SDK 或 React Service 缺陷。**该历史阶段未改书签业务代码；上方 R2.1 已接入可信 React 编辑子页。** 本轮及上一轮均未修改 `tool.config.json`、正式 JSON 包或能力声明，绝不以相同版本重打安装包。 需要 Browser 包含更新后的 Host 才能生效；未执行本地 Chrome 操作前均标记 `NOT_TESTED`。后续依照[导航合同 R2](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)与[产品 UI 规范](../../../docs/product/sidebar-ui-spec.zh-CN.md)维护，业务层若真的新增全页子视图须同步标题与真实返回事件。
+上一轮仅修复可信设置标题，该问题的 owner 是公共 `src/ui/sidebar-tools.js` 的 Host 标题投影，新增纯文本 `src/ui/sidebar-tools/title-path.js`；不是 Bookmark CRUD、SDK 或 React Service 缺陷。**该历史阶段未改书签业务代码；上方 R2.1 已接入可信 React 编辑子页。** 本轮及上一轮均未修改 `tool.config.json`、正式 JSON 包或能力声明，绝不以相同版本重打安装包。 需要 Browser 包含更新后的 Host 才能生效；未执行本地 Chrome 操作前均标记 `NOT_TESTED`。后续依照[导航合同 R2](../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)与[产品 UI 规范](../../docs/product/sidebar-ui-spec.zh-CN.md)维护，业务层若真的新增全页子视图须同步标题与真实返回事件。
 
 
 ## 0.3.11 重装后列表与正式界面恢复（2026-10-24）
@@ -133,12 +133,12 @@ Classic 的 `src/index.html`、`src/style.css`、`src/main.js` 仍被正式打�
 - 补测并修复移动成功、后续更新取消时未明确提示部分写入的问题；实际终止已完成原生创建但尚未回执的 Worker 后，确认未知结果保留草稿、禁重试，Enter 不产生第二条书签。两项恢复均由用户显式刷新核对。
 - 正常打开工具标签页完成 360/400/960、浅深色、实际浏览器 200% 缩放及键盘/ARIA 定向检查；CI 预览的 55 项 Chromium 检查明确使用 Mock Host，不能替代上述原生证据。
 - 正式包保持 `0.3.8`，SHA-256 `0d018dc9fdf46fe8380e25cf0089de7ee746ede63b832b9fa9a53047b32d9c76`。同一打包器逐字节晋升目录唯一 JSON，与生产 Catalog 一致；沙箱包字节及能力未变，未仅修改版本号。
-- [候选身份、A–H 原始结果与剩余发布条件](../../../docs/framework/evidence/bookmark-manager-r34-20261020/summary.json)。未知写入及部分写入恢复的定向回调测试与真实原生故障注入分别记账；十维评分无充分证据时保持 `NOT_SCORED`。
+- [候选身份、A–H 原始结果与剩余发布条件](../../docs/framework/evidence/bookmark-manager-r34-20261020/summary.json)。未知写入及部分写入恢复的定向回调测试与真实原生故障注入分别记账；十维评分无充分证据时保持 `NOT_SCORED`。
 
 
 > **R2.8 历史状态：SOURCE_MIGRATED / OFFICIAL_OPTIONAL_REGISTERED / NATIVE_NOT_TESTED。** 已纳入官方源码目录，不代表用户设备已安装，也不代表 Chrome 原生验收通过。
 
-本项目 `examples/sidebar-tools/bookmark-manager/` 是唯一独立书签工具业务源码：`tool.config.json`、`src/index.html`、`src/style.css`、`src/model.js`、`src/service.js`、`src/main.js`。继续使用官方 Sidebar Tool v2 打包器、Opaque Origin iframe 和 `OpenDeskSDK.browser.bookmarks.*`；没有私有 Host、第二套 SDK 或直接 `chrome.*` 调用。
+本项目 `projects/bookmark-manager/` 是唯一独立书签工具业务源码：`tool.config.json`、`src/index.html`、`src/style.css`、`src/model.js`、`src/service.js`、`src/main.js`。继续使用官方 Sidebar Tool v2 打包器、Opaque Origin iframe 和 `OpenDeskSDK.browser.bookmarks.*`；没有私有 Host、第二套 SDK 或直接 `chrome.*` 调用。
 
 
 ## 需求与预览归档入口（2026-10-15）
@@ -218,7 +218,7 @@ npm run verify
 
 这些命令用于产生静态/Node/Build 证据；GitHub CI 不能替代用户设备上的真实 Chrome 安装、权限手势、事件、并发和生命周期验收。官方 Catalog 和旧宿主清理已在源码阶段执行；原生验收结果仍应独立标记 NOT_TESTED，未经运行不能宣称 95+。
 
-SDK 公共前置项仍跟踪 [Issue #75](https://github.com/shopable-ai/opendesk-browser/issues/75)，本工具的审计与各候选历史在 [Bookmark Manager R2 workstream](../../../docs/framework/workstreams/bookmark-manager-r2.md)。九维 95+ 仅能根据同一最终候选的 Chrome 原生实测分别评分。
+SDK 公共前置项仍跟踪 [Issue #75](https://github.com/shopable-ai/opendesk-browser/issues/75)，本工具的审计与各候选历史在 [Bookmark Manager R2 workstream](../../docs/framework/workstreams/bookmark-manager-r2.md)。九维 95+ 仅能根据同一最终候选的 Chrome 原生实测分别评分。
 
 
 ## R2.8：书签只读选择与外部预览诊断（0.3.8 源码候选）

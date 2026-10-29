@@ -9,7 +9,7 @@ import {createHash} from 'node:crypto';
 import {build} from 'vite';
 import {withMockHostAdapter} from './mock-host-adapter.mjs';
 const here=dirname(fileURLToPath(import.meta.url));
-const toolDir=resolve(here,'../..'),root=resolve(toolDir,'../../..');
+const toolDir=resolve(here,'../..'),root=resolve(toolDir,'../..');
 const conversationR13=process.argv.includes('--conversation-r13');
 const evidence=resolve(process.env.BOOKMARK_REACT_EVIDENCE_DIR||join(here,'.opendesk-preview/chrome-evidence'));
 const out=conversationR13?join(evidence,'formal-candidate'):join(here,'.opendesk-preview/chrome-formal');

@@ -11,7 +11,7 @@ import {build} from 'vite';
 
 const here=dirname(fileURLToPath(import.meta.url));
 const toolDir=resolve(here,'../..');
-const root=resolve(toolDir,'../../..');
+const root=resolve(toolDir,'../..');
 const approved=join(toolDir,'preview/index.html');
 const candidateDir=join(toolDir,'preview');
 const candidate=join(candidateDir,'dev.html');

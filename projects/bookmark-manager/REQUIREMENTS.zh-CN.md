@@ -2,7 +2,7 @@
 
 > **文档状态：R3.0.4 React 单击只读预览候选（仍为 DESIGN_PROTOTYPE_NOT_SOURCE_BOUND）；R3.0.3 编辑抽屉保留；以当前 Chromium CI 为准。**
 >
-> 记录日期：2026-10-15。正式工具 ID：`bookmark-manager`；独立项目：`examples/sidebar-tools/bookmark-manager/`；当前源码包版本：`0.3.8`。
+> 记录日期：2026-10-15。正式工具 ID：`bookmark-manager`；独立项目：`projects/bookmark-manager/`；当前源码包版本：`0.3.8`。
 >
 > **用户对本版的评价：整体质量相对较差，因此本次是保留可回溯版本，不是确认它为最终视觉设计。** 不给出未经实际评审的 95+ 分数，不因 CI PASS 自动升级为 `DESIGN_APPROVED` 或 `NATIVE_PASS`。
 
@@ -81,7 +81,7 @@
 
 | 项目 | 已核实的信息 |
 | --- | --- |
-| 归档预览 | `examples/sidebar-tools/bookmark-manager/preview/index.html` |
+| 归档预览 | `projects/bookmark-manager/preview/index.html` |
 | 原始 CI 源提交 | `f76dab1b75e598805494947cd290a193708f625c` |
 | 对应工具包 | `bookmark-manager@0.3.8` |
 | HTML 源文件大小 | 201,336 字节 |

@@ -6,7 +6,7 @@ import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
-const out=resolve(process.argv[2]||'examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-evidence');
+const out=resolve(process.argv[2]||'projects/bookmark-manager/preview/react/.opendesk-preview/chrome-evidence');
 await mkdir(out,{recursive:true});
 const profile=await mkdtemp(join(out,'chrome-profile-'));
 const chrome=spawn(process.env.CHROME_BIN||'chromium',[
@@ -191,7 +191,7 @@ async function assertRowVisible(ctx,id,label){
   assert.ok(actual.top>=-0.6&&actual.bottom>=-0.6,label+' row must be fully inside tree viewport: '+JSON.stringify(actual));
   return actual;
 }
-const previewPath=resolve(process.env.BOOKMARK_REACT_PREVIEW_HTML||'examples/sidebar-tools/bookmark-manager/preview/index.html');
+const previewPath=resolve(process.env.BOOKMARK_REACT_PREVIEW_HTML||'projects/bookmark-manager/preview/index.html');
 const html=await readFile(previewPath,'utf8');
 assert.match(html,/sandbox="allow-scripts"/);
 assert.doesNotMatch(html,/sandbox="[^"]*allow-same-origin/);

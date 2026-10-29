@@ -5,17 +5,17 @@ on:
     paths:
       - 'package.json'
       - 'package-lock.json'
-      - 'examples/sidebar-tools/bookmark-manager/tool.config.json'
-      - 'examples/sidebar-tools/bookmark-manager/bookmark-manager.opendesk-tool.json'
-      - 'examples/sidebar-tools/bookmark-manager/app.ci.json'
-      - 'examples/sidebar-tools/bookmark-manager/src/index.html'
-      - 'examples/sidebar-tools/bookmark-manager/src/style.css'
-      - 'examples/sidebar-tools/bookmark-manager/src/main.js'
-      - 'examples/sidebar-tools/bookmark-manager/preview/react/**'
-      - 'examples/sidebar-tools/bookmark-manager/src/react/**'
-      - 'examples/sidebar-tools/bookmark-manager/preview/r304-chrome.mjs'
-      - 'examples/sidebar-tools/bookmark-manager/src/model.js'
-      - 'examples/sidebar-tools/bookmark-manager/src/service.js'
+      - 'projects/bookmark-manager/tool.config.json'
+      - 'projects/bookmark-manager/bookmark-manager.opendesk-tool.json'
+      - 'projects/bookmark-manager/app.ci.json'
+      - 'projects/bookmark-manager/src/index.html'
+      - 'projects/bookmark-manager/src/style.css'
+      - 'projects/bookmark-manager/src/main.js'
+      - 'projects/bookmark-manager/preview/react/**'
+      - 'projects/bookmark-manager/src/react/**'
+      - 'projects/bookmark-manager/preview/r304-chrome.mjs'
+      - 'projects/bookmark-manager/src/model.js'
+      - 'projects/bookmark-manager/src/service.js'
       - 'src/ui/react/main.tsx'
       - 'src/ui/react/components/conversation.tsx'
       - 'src/ui/react/components/conversation-dock.css'
@@ -70,7 +70,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify the single import JSON matches the current release sources
-        run: node scripts/build-sidebar-tool.mjs examples/sidebar-tools/bookmark-manager --check-project
+        run: node scripts/build-sidebar-tool.mjs projects/bookmark-manager --check-project
       - name: Official admission, React lifecycle, clickable URL and sandbox regression
         run: |
           node --test \
@@ -152,10 +152,10 @@ jobs:
       - name: Install root and preview pinned dependencies
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
-          cd examples/sidebar-tools/bookmark-manager/preview/react
+          cd projects/bookmark-manager/preview/react
           npm ci --no-audit --no-fund
       - name: Audit non-release IIFE against unchanged sandbox budgets
-        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        working-directory: projects/bookmark-manager/preview/react
         run: |
           npm run preview:budget
           node --input-type=module <<'NODE'
@@ -187,7 +187,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
           include-hidden-files: true
-          path: examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/budget-report.json
+          path: projects/bookmark-manager/preview/react/.opendesk-preview/budget-report.json
   react-chromium:
     runs-on: ubuntu-latest
     timeout-minutes: 22
@@ -199,10 +199,10 @@ jobs:
       - name: Install existing root-pinned build minifier
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Install pinned offline React 19 preview dependencies
-        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        working-directory: projects/bookmark-manager/preview/react
         run: npm ci --no-audit --no-fund
       - name: Build and check exactly the current JSX candidate
-        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        working-directory: projects/bookmark-manager/preview/react
         run: |
           npm run preview:build
           npm run preview:check
@@ -214,12 +214,12 @@ jobs:
       - uses: browser-actions/setup-chrome@v2
         id: chrome
       - name: Real Chromium 320/360/400/440/960 with chat, details, keyboard and CRUD mock fixture
-        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        working-directory: projects/bookmark-manager/preview/react
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: npm run preview:chrome
       - name: Shared Chat Dock real Chromium interaction, two-turn readback and responsive regression
-        working-directory: examples/sidebar-tools/bookmark-manager/preview/react
+        working-directory: projects/bookmark-manager/preview/react
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: npm run preview:chrome -- --conversation-r13
@@ -232,7 +232,7 @@ jobs:
           retention-days: 14
           include-hidden-files: true
           path: |
-            examples/sidebar-tools/bookmark-manager/preview/dev.html
-            examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-formal/formal-mock.html
-            examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/chrome-evidence/
-            examples/sidebar-tools/bookmark-manager/preview/react/.opendesk-preview/budget-report.json
+            projects/bookmark-manager/preview/dev.html
+            projects/bookmark-manager/preview/react/.opendesk-preview/chrome-formal/formal-mock.html
+            projects/bookmark-manager/preview/react/.opendesk-preview/chrome-evidence/
+            projects/bookmark-manager/preview/react/.opendesk-preview/budget-report.json

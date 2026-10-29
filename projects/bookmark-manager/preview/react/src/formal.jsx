@@ -1,7 +1,7 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import App from '../../../src/react/App.jsx';
-import '../../../../../../src/ui/react/components/conversation-dock.css';
+import '../../../../../src/ui/react/components/conversation-dock.css';
 import '../../../src/react/style.css';
 
 // Non-release sandbox feasibility fixture. Mount the original Bookmark App,
