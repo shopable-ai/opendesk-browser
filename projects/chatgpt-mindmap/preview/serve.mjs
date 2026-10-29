@@ -103,7 +103,7 @@ function openLocalPreview(url){
 async function cli(){
   const args=process.argv.slice(2);
   if(args.length>1||(args.length===1&&args[0]!=='--no-open'))
-    throw new Error('Usage: node examples/programs/chatgpt-mindmap/preview/serve.mjs [--no-open]');
+    throw new Error('Usage: node projects/chatgpt-mindmap/preview/serve.mjs [--no-open]');
   const autoOpen=args.length===0;
   const session=await startXmindPreview();
   const interactive=new URL(session.url);

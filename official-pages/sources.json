@@ -21,7 +21,7 @@
     },
     {
       "programId": "opendesk.ai-reply-mindmap",
-      "project": "examples/programs/chatgpt-mindmap",
+      "project": "projects/chatgpt-mindmap",
       "packageFile": "ai-reply-mindmap.opendesk-page.json",
       "version": "0.2.7",
       "revision": 1,

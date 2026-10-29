@@ -5,9 +5,9 @@ import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {PREVIEW_CSP,PREVIEW_ASSETS_DIR,verifyFixedXmindAssets,startXmindPreview}
-  from '../../examples/programs/chatgpt-mindmap/preview/serve.mjs';
+  from '../../projects/chatgpt-mindmap/preview/serve.mjs';
 
-const root=new URL('../../examples/programs/chatgpt-mindmap/',import.meta.url);
+const root=new URL('../../projects/chatgpt-mindmap/',import.meta.url);
 const manifest=JSON.parse(await readFile(new URL('tests/xmind-provenance.json',root),'utf8'));
 
 test('preview HTML loads four real sibling JS and imports shared product modules',async()=>{
@@ -170,7 +170,7 @@ test('R3.5 icon toolbar is product-owned, mobile-capable and nonduplicating',asy
     readFile(new URL('src/view.js',root),'utf8'),
     readFile(new URL('assets/ui.css',root),'utf8'),
     readFile(new URL('src/xmind-adapter.js',root),'utf8'),
-    readFile(new URL('../../../tests/framework/chatgpt-mindmap-chatgpt-probe.mjs',root),'utf8')
+    readFile(new URL('../../tests/framework/chatgpt-mindmap-chatgpt-probe.mjs',root),'utf8')
   ]);
   assert.match(view,/const ICONS=\{/);
   assert.match(view,/createElementNS\('http:\/\/www\.w3\.org\/2000\/svg'/);

@@ -20,7 +20,7 @@ import {verifyXmindZip} from '../src/export.js';
 import {verifyFixedXmindAssets} from '../preview/serve.mjs';
 
 const project = fileURLToPath(new URL('../', import.meta.url));
-const repository = resolve(project, '../../..');
+const repository = resolve(project, '../..');
 const extension = 'chrome-extension://' + 'a'.repeat(32);
 const identity = () => ({sessionId: randomUUID(), instanceId: 'answer-1', revision: 0});
 const tick = () => new Promise(resolve => setImmediate(resolve));
@@ -306,7 +306,7 @@ test('local build labels every artifact, verifies four original SHAs and retains
   assert.throws(() => guardSnowbrush(Buffer.from('eval(task);eval(task)')));
   const inputs = result.inputs.map(input => input.path);
   for (const name of ['answer-registry.js', 'view.js', 'xmind-frame.js', 'xmind-frame-child.js', 'export.js']) {
-    assert(inputs.includes('examples/programs/chatgpt-mindmap/src/' + name));
+    assert(inputs.includes('projects/chatgpt-mindmap/src/' + name));
   }
   assert(!inputs.some(path => path.startsWith('src/') || path.includes('vendor/') || path.includes('node_modules/')));
   const content = await readFile(join(out, 'content.js'), 'utf8');

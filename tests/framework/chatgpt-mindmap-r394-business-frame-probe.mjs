@@ -17,7 +17,7 @@ for(let i=2;i<process.argv.length;i+=2){
 for(const key of ['browser','out'])assert(args[key],'Missing --'+key);
 const {chromium}=await import(args.playwright
   ?pathToFileURL(resolve(args.playwright)).href:'playwright-core');
-const base=resolve('examples/programs/chatgpt-mindmap'),out=resolve(args.out);
+const base=resolve('projects/chatgpt-mindmap'),out=resolve(args.out);
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 await mkdir(out,{recursive:true});
 const temp=await mkdtemp(join(tmpdir(),'odmm-r394-business-'));

@@ -16,7 +16,7 @@ for(const item of ['browser','program','out'])assert(argv[item],'Missing --'+ite
 const {chromium}=await import(argv.playwright
   ?pathToFileURL(resolve(argv.playwright)).href:'playwright-core');
 const out=resolve(argv.out),repo=resolve('.');
-const base=join(repo,'examples/programs/chatgpt-mindmap');
+const base=join(repo,'projects/chatgpt-mindmap');
 const provenance=JSON.parse(await readFile(join(base,'tests/xmind-provenance.json'),'utf8'));
 const source=await readFile(resolve(argv.program),'utf8');
 const artifact=JSON.parse(await readFile(join(resolve(argv.program),'..','artifact.json'),'utf8'));

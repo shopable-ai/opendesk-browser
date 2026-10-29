@@ -4,11 +4,11 @@
 
 新 ID `opendesk.ai-reply-mindmap` 的 **0.2.7/r1** 本机候选已通过原 Page 导入审阅安装，详情为 active / registered，固定源码 `c8156358dfe0009876cc39fdd61a814201619b4f1b9d5cf6f53753af56efa8b8`。同一冻结 Browser 候选中，使用 ChatGPT 已有回复完成两轮打开 XMind、返回原文；第一轮实际看见绘制的画布，第二轮再次出现 XMind 只读画布及操作栏。两次关闭后画布均移除，稳定后的规范化回复 AX 均与基线一致（8357 字符）；不声明 DOM 字节一致或控制台零错误，没有发送消息。
 
-候选仅在本机忽略目录 `artifacts/ai-four-products-r126-content-20261026/mindmap-local-candidate/`，仍为 **LOCAL_VALIDATION_ONLY / distributable=false**；未生成本项目正式 JSON，XMind 分发许可继续 **BLOCKED**。未验证导出、主题、全部生命周期或正式发行。脱敏身份及两轮比对见[四产品工作记录](../../../docs/framework/workstreams/ai-four-products-r125-local-20261026.md)；下方源码交付时“未构建、未安装”是历史状态。
+候选仅在本机忽略目录 `artifacts/ai-four-products-r126-content-20261026/mindmap-local-candidate/`，仍为 **LOCAL_VALIDATION_ONLY / distributable=false**；未生成本项目正式 JSON，XMind 分发许可继续 **BLOCKED**。未验证导出、主题、全部生命周期或正式发行。脱敏身份及两轮比对见[四产品工作记录](../../docs/framework/workstreams/ai-four-products-r125-local-20261026.md)；下方源码交付时“未构建、未安装”是历史状态。
 
 ## R1.2.3 新身份源码交付（2026-10-26）
 
-- **新 Page Program ID：** `opendesk.ai-reply-mindmap`；源码版本仍为 `0.2.7`，新身份首次打包的目标修订为 **r1**。项目目录仍为 `examples/programs/chatgpt-mindmap/`，不因此改路径或扩大 `https://chatgpt.com/*` 授权。
+- **新 Page Program ID：** `opendesk.ai-reply-mindmap`；源码版本仍为 `0.2.7`，新身份首次打包的目标修订为 **r1**。项目目录仍为 `projects/chatgpt-mindmap/`，不因此改路径或扩大 `https://chatgpt.com/*` 授权。
 - 旧 `opendesk.chatgpt-mindmap` 是**另一个安装身份**。旧安装、Authority、Chrome 注册及其 `0.2.7/r8` 包**不会**自动改名、原位升级或迁权；须先人工审阅旧实例停用/卸载和清理，再独立审阅新 ID 安装和站点授权。双装未经原生验证，不声明自动去重。
 - Viewer Theme 写入 `opendesk.ai-reply-mindmap.viewer-theme.v1`。新键不存在时只读使用旧键 `opendesk.chatgpt-mindmap.viewer-theme.v1` 的 light 偏好（其他值默认 dark）；不拷贝/删除旧键或改变旧授权，用户在新程序主动切换时才写新键。旧键保留供恢复。
 - GitHub 业务源码迁移**不等于**可安装产物。仅经既有 `validate-program-project.mjs`、`build:program`、`build-page-install-package.mjs`，在固定新 ID 源码与原始站点范围上生成**不同文件名**的新 Page JSON，核对 `revision/sourceHash/packageHash` 并经安装审阅后才宣称可安装。此处未构建新包，真实 Mac/Chrome 迁移未验收。
@@ -102,7 +102,7 @@ node scripts/build-page-install-package.mjs \
 本地项目预览需要已配对 Native 和该项目 CLI Provider：
 
 ```sh
-opendesk browser dev --read-only /Users/shopme/Documents/workspace/opendesk-browser/examples/programs/chatgpt-mindmap
+opendesk browser dev --read-only /Users/shopme/Documents/workspace/opendesk-browser/projects/chatgpt-mindmap
 ```
 
 ### 上一轮证据结论更正
@@ -118,7 +118,7 @@ opendesk browser dev --read-only /Users/shopme/Documents/workspace/opendesk-brow
 新增薄包装复用 `src/answer-registry.js`、`src/view.js`、原 XMind 子帧协议及三格式导出。业务位于静态 `ISOLATED` content script；扩展 relay 只认证并转交私有 MessagePort；原绘图代码位于无扩展 API、无同源权限的 sandbox。四份原始资源仍先核对固定 SHA，输出记录唯一原有 timer guard 转换及产物 SHA；没有远程代码或开发服务器。
 
 ```sh
-node examples/programs/chatgpt-mindmap/scripts/build-standalone.mjs --local-validation-only --out artifacts/chatgpt-mindmap-standalone/my-local-validation
+node projects/chatgpt-mindmap/scripts/build-standalone.mjs --local-validation-only --out artifacts/chatgpt-mindmap-standalone/my-local-validation
 ```
 
 输出目录必须是仓库已忽略的 `artifacts/` 下尚不存在的目录。通过 Chrome 支持的本机方式：打开 `chrome://extensions` → 开发者模式 → 加载未打包的扩展程序 → 选择生成目录；然后刷新 ChatGPT。当前已实际加载的候选目录为 `artifacts/chatgpt-mindmap-standalone/executor-validation-20261018-final/`，独立扩展 ID `kagejdafejipmdciobcmapdobmiohopf`，隔离 Chrome `155.0.8059.39`，其中未安装 OpenDesk。
@@ -150,7 +150,7 @@ node examples/programs/chatgpt-mindmap/scripts/build-standalone.mjs --local-vali
 当前原目录已声明公开 `pageFrames` 的 `xmind-runtime`。在仓库既有依赖已安装的环境，先执行一次：
 
 ```bash
-cd examples/programs/chatgpt-mindmap
+cd projects/chatgpt-mindmap
 npm run prepare:local
 opendesk browser dev "$PWD"
 ```
@@ -161,9 +161,9 @@ opendesk browser dev "$PWD"
 
 本轮使用仓库既有打包器生成的当前 CLI，保持目录连接；官方脚本构建并更新 `mindmap-local-01a14949` 隔离 Native，原 CFT 隔离扩展也已更新传输合同。全局旧 CLI 和日常扩展未替换。Native 曾在打开文稿目录时阻塞；重启当前用户授权服务、重载本任务扩展后，目录已登记且真实工作台准备、主动 Run 均成功。此系统恢复操作不是正常开发的必需步骤。
 
-第一轮真实运行 Hash `e5ea038e66c93aabe6df451630aa1f4d60b426c5896a68dea8d3a029a1c951ea`。随后仅将关闭按钮改为“返回完整原文”；保存后第二轮 Run 复用自动准备产物（构建 0 次），最新 Hash `234efec852ffdc4cda270c71b1e6b521476ddc2902c7a04d7fc1ac346507ca51`，真实界面已显示新文案。两轮均原生点击最新中文公园计划下方的“思维导图”，显示真正 XMind，关闭后完整原文恢复；49 项原生 AX 正文、标题、列表标记与运行前一致。Node 定向测试 50 项、业务定向测试 17 项及 Go 维护源码 Source/Frozen 测试通过。详细身份、截图和必要运行条件见[续修记录](../../../docs/framework/workstreams/chatgpt-mindmap-local-project-capacity-20261017-01a14969.md)。仅为本地开发主流程验证，正式安装、production/F3/ZIP 等仍为 `NOT_TESTED`。
+第一轮真实运行 Hash `e5ea038e66c93aabe6df451630aa1f4d60b426c5896a68dea8d3a029a1c951ea`。随后仅将关闭按钮改为“返回完整原文”；保存后第二轮 Run 复用自动准备产物（构建 0 次），最新 Hash `234efec852ffdc4cda270c71b1e6b521476ddc2902c7a04d7fc1ac346507ca51`，真实界面已显示新文案。两轮均原生点击最新中文公园计划下方的“思维导图”，显示真正 XMind，关闭后完整原文恢复；49 项原生 AX 正文、标题、列表标记与运行前一致。Node 定向测试 50 项、业务定向测试 17 项及 Go 维护源码 Source/Frozen 测试通过。详细身份、截图和必要运行条件见[续修记录](../../docs/framework/workstreams/chatgpt-mindmap-local-project-capacity-20261017-01a14969.md)。仅为本地开发主流程验证，正式安装、production/F3/ZIP 等仍为 `NOT_TESTED`。
 
-前轮曾生成中文计划但未进入目录业务运行，原记录保留于[前轮工作记录](../../../docs/framework/workstreams/chatgpt-mindmap-local-project-20261017-01a14949.md)。下方手工构建流程及成功截图属于历史路径，不能替代本轮目录流程证据。
+前轮曾生成中文计划但未进入目录业务运行，原记录保留于[前轮工作记录](../../docs/framework/workstreams/chatgpt-mindmap-local-project-20261017-01a14949.md)。下方手工构建流程及成功截图属于历史路径，不能替代本轮目录流程证据。
 
 ## R3.9.6 · 最新状态与续接（2026-10-17）
 
@@ -179,12 +179,12 @@ opendesk browser dev "$PWD"
 
 本轮采用 **本地预编译 → 手工导入 `program.js` → Page 当前网页试运行**。没有开启工作台的「本地项目」，也没有启动 `opendesk browser dev` / `opendesk-dev` 关联业务目录。粘贴后出现「已编译程序 · 无项目源码快照」及 SHA-256、普通输入框隐藏，属于已有只读产物展示；修改仍在本地 `src/` 完成。
 
-这是为本轮固定 XMind 资源调试采用的临时路径，复用原有编译器和 Page UI 固定资源通道。日常开发仍推荐「本地项目 + 目录 CLI」，完整对比见 [本地项目开发指南](../../../docs/api/sidebar-local-projects.zh-CN.md#本地项目与手工导入编译产物的区别)。
+这是为本轮固定 XMind 资源调试采用的临时路径，复用原有编译器和 Page UI 固定资源通道。日常开发仍推荐「本地项目 + 目录 CLI」，完整对比见 [本地项目开发指南](../../docs/api/sidebar-local-projects.zh-CN.md#本地项目与手工导入编译产物的区别)。
 
 本轮 builder 为 [scripts/build-local-preview.mjs](scripts/build-local-preview.mjs)。从仓库根目录执行以下命令，`--out` 必须是尚不存在的新目录；`--compiler-root` 指向已有完整编译器目录，本机本轮复用的路径如下：
 
 ```bash
-node examples/programs/chatgpt-mindmap/scripts/build-local-preview.mjs \
+node projects/chatgpt-mindmap/scripts/build-local-preview.mjs \
   --out artifacts/chatgpt-mindmap-r396-local-frame-20261017/business-local-next \
   --compiler-root artifacts/chatgpt-mindmap-r396-mac-20261017/loader/build-snapshot
 ```
@@ -261,12 +261,12 @@ Snowbrush 精确产物的授权、GSAP 3.5.1 适用条款及完整传递依赖/N
 新增 [preview/index.html](preview/index.html) 与 [预览运行说明](preview/README.md)：它与正式程序**共享** `src/answer-registry.js`、`src/xmind-adapter.js`、`src/xmind-convert.js` 和 `assets/ui.css`，不会另造绘图器或复制一份可能漂移的业务源码。开发者检出最新 `main` 即可运行，四份真实 JS 已直接位于 `preview/` 并由 Git 跟踪，不再需要旧仓库绝对路径：
 
 ```sh
-node examples/programs/chatgpt-mindmap/preview/serve.mjs
-node examples/programs/chatgpt-mindmap/preview/verify-assets.mjs
+node projects/chatgpt-mindmap/preview/serve.mjs
+node projects/chatgpt-mindmap/preview/verify-assets.mjs
 node --test tests/environment/chatgpt-mindmap-preview.test.mjs
 ```
 
-预览服务首先验证四个原始文件的 SHA-256、Git blob、大小和加载顺序，缺失立即失败；仅绑定本地回环地址，不使用 CDN。可以独立验证 A/B/C、320px、折叠/缩放、操作栏重建、流式后快照与 Stop 的全局样式残留。**预览页正向运行不代表生产 USER_SCRIPT 已安装、原 ChatGPT 已测试或分发许可已批准。** R2.1 的实现与下一环节在 [工作流记录](../../../docs/framework/workstreams/chatgpt-mindmap-r21.md)。
+预览服务首先验证四个原始文件的 SHA-256、Git blob、大小和加载顺序，缺失立即失败；仅绑定本地回环地址，不使用 CDN。可以独立验证 A/B/C、320px、折叠/缩放、操作栏重建、流式后快照与 Stop 的全局样式残留。**预览页正向运行不代表生产 USER_SCRIPT 已安装、原 ChatGPT 已测试或分发许可已批准。** R2.1 的实现与下一环节在 [工作流记录](../../docs/framework/workstreams/chatgpt-mindmap-r21.md)。
 
 ## 实际实现
 
@@ -326,9 +326,9 @@ node --test tests/environment/chatgpt-mindmap-preview.test.mjs
 ## 复现与证据等级
 
 ```sh
-node scripts/validate-program-project.mjs examples/programs/chatgpt-mindmap
+node scripts/validate-program-project.mjs projects/chatgpt-mindmap
 node --test tests/environment/chatgpt-mindmap-r1.test.mjs
-npm run build:program -- examples/programs/chatgpt-mindmap
+npm run build:program -- projects/chatgpt-mindmap
 npm run check
 ```
 
@@ -385,7 +385,7 @@ USER_SCRIPT 全部回调，也未解决 Snowbrush 全局样式残留。UI 会明
 
 新增 [preview/chatgpt.html](preview/chatgpt.html) 和 [preview/design.md](preview/design.md)；分别承载模拟 ChatGPT 用户界面与正式设计合同候选。chatgpt.css / chatgpt.js 只实现模拟网站壳，真正的「思维导图」按钮依旧由正式 createAnswerRegistry 自动注入，点击调用原始 XMind 引擎。
 
-本地运行 node examples/programs/chatgpt-mindmap/preview/serve.mjs --no-open，打开输出的 REAL_XMIND_CHATGPT_PREVIEW URL。原有 preview/index.html 与四份固定 JS 完整保留，不创建第二份引擎。设计状态为 **PENDING_USER_CONFIRMATION**，必须先由用户核对按钮位置和导图交互，再允许锁定为产品正式 UI 基准。
+本地运行 node projects/chatgpt-mindmap/preview/serve.mjs --no-open，打开输出的 REAL_XMIND_CHATGPT_PREVIEW URL。原有 preview/index.html 与四份固定 JS 完整保留，不创建第二份引擎。设计状态为 **PENDING_USER_CONFIRMATION**，必须先由用户核对按钮位置和导图交互，再允许锁定为产品正式 UI 基准。
 
 本阶段的模拟页面通过不代表真实登录 ChatGPT、正式隔离运行时、许可批准或 Native 安装已经可用。
 
@@ -399,12 +399,12 @@ USER_SCRIPT 全部回调，也未解决 Snowbrush 全局样式残留。UI 会明
 **构建候选审计命令（在仓库根目录执行）：**
 
 ```sh
-node examples/programs/chatgpt-mindmap/preview/verify-assets.mjs
+node projects/chatgpt-mindmap/preview/verify-assets.mjs
 node --test tests/environment/chatgpt-mindmap-preview.test.mjs
 node --test tests/environment/chatgpt-mindmap-r1.test.mjs
-node scripts/validate-program-project.mjs examples/programs/chatgpt-mindmap
-npm run build:program -- examples/programs/chatgpt-mindmap
-node examples/programs/chatgpt-mindmap/scripts/audit-build.mjs
+node scripts/validate-program-project.mjs projects/chatgpt-mindmap
+npm run build:program -- projects/chatgpt-mindmap
+node projects/chatgpt-mindmap/scripts/audit-build.mjs
 npm run check
 ```
 
@@ -420,7 +420,7 @@ npm run check
 
 ## R3.6 · 完成的源码修复、真实 CI 与仍未关闭的生产约束（2026-10-16）
 
-独立 Program 唯一业务根目录：`examples/programs/chatgpt-mindmap/`；它内部的 `src/` 不是浏览器宿主的 `opendesk-browser/src/`。本轮从未修改宿主业务代码。完整源码调用链、打包模块清单与 SDK 边界见 [R3.6 架构审计](../../../docs/framework/workstreams/chatgpt-mindmap-r36-architecture-audit.md)。
+独立 Program 唯一业务根目录：`projects/chatgpt-mindmap/`；它内部的 `src/` 不是浏览器宿主的 `opendesk-browser/src/`。本轮从未修改宿主业务代码。完整源码调用链、打包模块清单与 SDK 边界见 [R3.6 架构审计](../../docs/framework/workstreams/chatgpt-mindmap-r36-architecture-audit.md)。
 
 已用真实 CI 修复 `reflow` 的 optional chaining 合法断言、容器查询祖先、More 菜单点击宽度/方向键焦点、动态 XMind topic 布局尚未稳定时过早标记 Fit 完成等问题。320px 时保留可读根节点，提供「左右拖动查看分支」提示；**不会**把所有子分支挤到 320px 一屏，因此要以实际横向滚动和真实主题可见范围判断 UX。
 
@@ -438,7 +438,7 @@ npm run check
 - 已按实际容器宽度检查 375/390/400/440/768/1220/1440px 的 ToolBar、根节点和页面滚动；真实 A/B 独立、C 表格/代码/引用、20 次开关、全屏、折叠、暗色、原文恢复、Stop 和移动端更多菜单键盘交互均在专项探针中。测试补充文件仅位于 `tests/framework/chatgpt-mindmap-chatgpt-probe.mjs`；本轮不改浏览器宿主根 `src/`。
 - 最新已通过的源码构建 Hash：`e17e473394c6b8269277ff1373c831346706d03f6bbfb912c759767194f25799`；`sourceBytes=53841`，`status=BUILT_UNVERIFIED`、`installable=false`。正式四份 XMind vendor JS 总计 4,042,573 B **仅用于预览**，受信 Runtime/第三方许可/资源准入/全局 `snowbrush_style` 隔离尚未通过。Mac `dist`、登录 ChatGPT、`chrome.userScripts` 真实注册、撤权、卸载、BFCache 均为 `NOT_TESTED` 或 `BLOCKED`。
 
-详见 [R3.7 验收审计](../../../docs/framework/workstreams/chatgpt-mindmap-r37-acceptance.md)；不要依据本文对生产安装或用户满意度自行填写 95 分。
+详见 [R3.7 验收审计](../../docs/framework/workstreams/chatgpt-mindmap-r37-acceptance.md)；不要依据本文对生产安装或用户满意度自行填写 95 分。
 
 ## R3.8 · 真实 Browser Extension 原生技术验证（2026-10-16）
 
@@ -446,7 +446,7 @@ npm run check
 
 新增 `tests/framework/chatgpt-mindmap-r38-native-probe.mjs` 与专项 Actions 的 `native-user-script-xmind-feasibility` Job：使用**真正 WXT 包和原始编译 Program**，仅在 **CI 一次性测试副本**内载入 Git 已跟踪的四份 SHA 校验 XMind 资源，尝试由真正的 Chrome `chrome.userScripts` 在独立 `USER_SCRIPT` 世界执行。它**没有使用** OpenDesk 的 Verified → Available → Installed Broker，故即使通过也仅能证明 Chrome/XMind 技术可行性，不能称为正式安装。失败保留 JSON 且退出非零；只上传 JSON 和截图，不上传 vendor JS。
 
-更新正式 Page Program 安装管理 UI：把网站授权与 Chrome 原生注册拆分显示，原生注册失败不再出现成功提示，并告知 Chrome 138+ 用户开启「允许用户脚本」。回归测试覆盖这两个状态。完整安全门禁、CI 结果解读和后续阻塞见 [R3.8 原生集成审计](../../../docs/framework/workstreams/chatgpt-mindmap-r38-native-integration.md)。R3.7 Icon 工具栏/移动端产品代码不更换。设计状态继续为 **PENDING_USER_CONFIRMATION**。
+更新正式 Page Program 安装管理 UI：把网站授权与 Chrome 原生注册拆分显示，原生注册失败不再出现成功提示，并告知 Chrome 138+ 用户开启「允许用户脚本」。回归测试覆盖这两个状态。完整安全门禁、CI 结果解读和后续阻塞见 [R3.8 原生集成审计](../../docs/framework/workstreams/chatgpt-mindmap-r38-native-integration.md)。R3.7 Icon 工具栏/移动端产品代码不更换。设计状态继续为 **PENDING_USER_CONFIRMATION**。
 
 ## R3.9.2 · 固定文件可行性已验证，正式生产继续阻塞（2026-10-16）
 
