@@ -263,5 +263,82 @@
     },
     "coreDeliveryBlockerFound": false,
     "productionRepairRecommended": false
+  },
+  "historicalBaselineNote": "Top-level production/native/sourceHead retain the first production candidate. latestMain identifies the subsequent latest-main rebuild and its independently bound native run; identities are not interchangeable.",
+  "latestMain": {
+    "sourceHead": "abc56d3fd330ebe001e6bf9223717d1c5f7da35d",
+    "remoteMainAtFetch": "6bcaf4d67f5a334d9bd6494180c25945b8f60e4d",
+    "mode": "production / standard / MV3",
+    "sourceSnapshot": "artifacts/sidebar-tools/cookie-editor/r28-local/source-snapshot-latest-main",
+    "receipt": "artifacts/sidebar-tools/cookie-editor/r28-local/mv3-latest-main/build-production.json",
+    "buildLog": "artifacts/sidebar-tools/cookie-editor/r28-local/mv3-latest-main.log",
+    "packageHash": "c251e98e9f3086b9bbfe0ab5c4bfe39085adf22f4d5f61a3ecaf4f10da76612b",
+    "status": "PASS",
+    "verifiedOutputs": 117,
+    "outputMismatches": [],
+    "sourceDriftDuringBuild": [],
+    "formalCookiePackageUnchanged": true,
+    "officialBuiltinPackageBytesMatch": true,
+    "trustedAccountPinsUnchanged": true,
+    "mergeImpact": "Remote Fingerprint implementation adds manifest debugger permission, its permission contract and isolated browser.fingerprint.apply Host branch. Existing Cookie dispatch not changed. No debugger/Fingerprint operation used by this acceptance.",
+    "nodeHost": {
+      "status": "PASS",
+      "passed": 3,
+      "failed": 0,
+      "log": "artifacts/sidebar-tools/cookie-editor/r28-local/node-host-latest-main.log",
+      "scope": "R5.37 Chrome denial / R5.25 external revoke / R2.6 settings revoke; rerun because shared Host changed"
+    },
+    "native": {
+      "status": "PASS_LOCAL_CORE",
+      "browser": "macOS Chrome for Testing 155.0.8059.39",
+      "extensionId": "hkohjjlflpkfjagakmamniddcmljdmmd",
+      "hostInstanceId": "c85fa694-5769-456d-a746-0761fca5e70e",
+      "toolVersionObserved": "2.0.50",
+      "record": "r28-latest-main-native-20261029.json",
+      "recordCount": 24,
+      "scope": "browse before grant; real grant/CRUD; Host and Chrome revoke; deny/cancel/allow; site change; reopen grant; product Copy/preview/confirmed import/value readback; account save/switch",
+      "downloadExport": "NOT_REPEATED_ON_LATEST_MAIN; prior candidate real file evidence retained separately",
+      "evidenceKind": "Native CUA AX excerpts and full-tree name/value presence checks with UTC timestamps, copied from this chat outputs; no raw screenshots on disk; not an automated e2e runner receipt."
+    },
+    "cleanup": {
+      "pid": 33726,
+      "executableAndProfileValidated": true,
+      "launcherExitCode": 0,
+      "processExited": true,
+      "temporaryProfileRemoved": true,
+      "testCookieDeletedThroughProduct": true,
+      "otherProfilesWatchersServicesUntouched": true
+    },
+    "review": {
+      "reviewer": "independent code-reviewer Popper / 01a18742-a99b-79d1-a53d-0810c2e7d1bc",
+      "verdict": "COMMENT",
+      "scope": "Read-only independent recomputation of 117 output sizes/hashes and package digest; 752 source inputs match snapshot receipt (744 Git inputs match specified HEAD, 8 local/generated receipt inputs); formal/snapshot/builtin Cookie JSON equality; shared Fingerprint impact and 24 timestamped native AX excerpts. Reviewer did not operate browser or run tests/build.",
+      "dimensions": {
+        "功能闭环": 95,
+        "授权交互": 95,
+        "权限隔离": 95,
+        "数据正确性": 95,
+        "生命周期": 95,
+        "可维护性": 90,
+        "构建发行一致性": 97,
+        "验收证据": 94
+      },
+      "arithmeticMean": 94.5,
+      "targetEach": 95,
+      "targetMet": false,
+      "coreDeliveryBlockerFound": false,
+      "productionRepairRecommended": false,
+      "priorNativeLifecycleAssociationGap": "CLOSED within requested core scope",
+      "remainingDeductions": {
+        "可维护性": "Existing source-regex grant tests and configured/unlocked legacy semantics; no new defect, no production refactor recommended within P2.",
+        "验收证据": "Selected AX excerpts; full AX absence checks retain booleans rather than full tree, so third party cannot recompute absence solely from archived file. Future runs should preserve redacted complete AX; no repeat run requested."
+      },
+      "coverageLimits": [
+        "No concurrent active Fingerprint and Cookie operation test.",
+        "Latest-main download not repeated; prior candidate download remains separately scoped.",
+        "Current account save/switch verified, not account rename/update/delete full matrix.",
+        "Native legacy ciphertext migration remains NOT_TESTED; not current P1 brief-check blocker."
+      ]
+    }
   }
 }

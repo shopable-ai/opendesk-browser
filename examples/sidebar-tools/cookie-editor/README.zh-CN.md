@@ -6,11 +6,12 @@
 
 - 唯一正式包 [`cookie-editor.opendesk-tool.json`](cookie-editor.opendesk-tool.json)：**2.0.50**，225953 字节，SHA-256 `fe9ec22597abdc3309ef15211bc79cbe1df32be1d4188fd4945af97efc80865e`。`--check-project` 已确认与当前 React 源码／编译收据一致；ID 和权限列表未变。
 - React 编译收据 buildId `32e3afe4a14772df4012b6f8800ae9847bc3f52212f140911316d09e3d267c05`；JS 144463 字节、CSS 60750 字节。工具包不包含可信 Host，Host 仍随 Browser 固定编译。
-- 独立源码快照的 **production MV3 构建及原包验证 PASS**，packageHash `d8b8e1143c58c5222a17bd09043b1c031694cf55fa8273035443c778acaf4de8`。内置 Catalog 的 Cookie Editor 版本、大小、SHA 和包原文均匹配本次正式 JSON。可信账号四项来源 pin 全部匹配，未重置哈希或放宽来源校验。
+- 独立源码快照的 **production MV3 构建及原包验证 PASS**，最新 main 候选（源码 `abc56d3fd`，包含远端 `6bcaf4d67`）packageHash `c251e98e9f3086b9bbfe0ab5c4bfe39085adf22f4d5f61a3ecaf4f10da76612b`，117 个产物哈希全匹配。内置 Catalog 的 Cookie Editor 版本、大小、SHA 和包原文均匹配本次正式 JSON。可信账号四项来源 pin 全部匹配，未重置哈希或放宽来源校验。
 - Mac CFT 155.0.8059.39 已从真实 Chrome 扩展菜单进入 production Side Panel，实读工具版本 2.0.50。首次弹窗后方六 Tab 可见；关闭后顶部显示小「授权」，企业页可浏览，Cookie 新建／导入／导出保持禁用；单击授权后自动恢复真实 Cookie 操作，无需另行启用或手动刷新。
-- **本地原生核心流程 PASS**：虚构 Cookie 新建、编辑、重新读取及删除；JSON 导入预览／确认／值读回、下载文件逐字段核对；账号保存、重开持久化与可信切换回执。Host 撤权及 Chrome 网站访问开关关闭后，旧 Cookie 和值清除，六 Tab 保留且写入禁用。缺少 Chrome 权限时，一次点击只出现一个原生弹窗；拒绝、Escape 取消均不假成功，允许后自动恢复真实列表。切换 `127.0.0.1 → localhost` 后旧值消失，重开工具无需再次授权。
-- **剪贴板补验 PASS**：同一 production 候选的新临时 Profile 中，原生复制／粘贴读回 `od_r28_clip_probe` 的完整真实 JSON，导入预览 1 条可导入、0 条跳过。显式点击文本区后正常；此前驱动焦点／其他文本异常保留为历史观察，未据此修改产品代码。2.0.45 已移除口令／锁定 UI，本轮不恢复旧设计；新存储、旧会话密钥迁移、锁定遗留密文保护定向 3/3 PASS，原生旧密文迁移未测。
-- 补验后的独立八维评分平均 **93.625/100**（历史 91.5 保留），每维 ≥95 的目标仍未达成，未发现已证实的本轮核心交付阻断。
+- **本地原生核心流程 PASS**：虚构 Cookie 新建、编辑、重新读取及删除；JSON 导入预览／确认／值读回（最新候选）；下载文件逐字段核对（首次候选，未冒充新候选下载复验）；账号保存、重开持久化与可信切换回执。Host 撤权及 Chrome 网站访问开关关闭后，旧 Cookie 和值清除，六 Tab 保留且写入禁用。缺少 Chrome 权限时，一次点击只出现一个原生弹窗；拒绝、Escape 取消均不假成功，允许后自动恢复真实列表。切换 `127.0.0.1 → localhost` 后旧值消失，重开工具无需再次授权。
+- **首次候选剪贴板补验 PASS**：首次 production 候选的新临时 Profile 中，原生复制／粘贴读回 `od_r28_clip_probe` 的完整真实 JSON，导入预览 1 条可导入、0 条跳过。显式点击文本区后正常；此前驱动焦点／其他文本异常保留为历史观察，未据此修改产品代码。2.0.45 已移除口令／锁定 UI，本轮不恢复旧设计；新存储、旧会话密钥迁移、锁定遗留密文保护定向 3/3 PASS，原生旧密文迁移未测。
+- 最新 main 候选已在独立 Mac Chrome Profile 复验核心流程，扩展 ID `hkohjjlflpkfjagakmamniddcmljdmmd`、Host `c85fa694-5769-456d-a746-0761fca5e70e`。24 条带 UTC 时间的 [原生 AX 摘录](evidence/r28-latest-main-native-20261029.json) 分别关联授权、撤权、拒绝／取消、切站、真实 CRUD、复制／确认导入、账号保存／切换和实际加载路径。共享 Host 三项回归 3/3；远端 Fingerprint 新增的 Browser `debugger` 权限未用于 Cookie。新旧候选身份与下载证据分开保留。
+- 最新候选独立八维评分平均 **94.5/100**（历史 91.5／93.625 保留），每维 ≥95 的目标仍未达成，未发现已证实的本轮核心交付阻断。
 - Node、MV3、来源审核和原生观察分别记录；官方目录全组另有无关 `quick-notes` 正式包与共享 CSS 不一致的断言失败，未修改该包或删除保护。
 
 完整分层结果、资源归属、评分与剩余操作见 [R2.8 本地验收记录](evidence/r28-local-20261029.md)，结构化身份和原生观察转录见 [`evidence/r28-local-20261029.json`](evidence/r28-local-20261029.json)。原始构建／测试日志在本机 `artifacts/sidebar-tools/cookie-editor/r28-local/`；**PASS 仅限已记录的本地核心流程，不代表所有高级场景或全站正式验收通过**。

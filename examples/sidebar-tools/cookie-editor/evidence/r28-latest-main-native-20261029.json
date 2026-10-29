@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "ownerThreadId": "01a186fd-5fa1-7b00-b1f9-ca7bc6895213",
+  "evidenceKind": "Selected native CUA AX lines copied from this chat tool output, retaining indices and UTC observation times; indentation/diff markers omitted. Full-tree presence booleans were computed against the CUA full AX result. This is not an automated e2e runner receipt; original screenshots were not saved to disk.",
+  "sourceHead": "abc56d3fd330ebe001e6bf9223717d1c5f7da35d",
+  "remoteMain": "6bcaf4d67f5a334d9bd6494180c25945b8f60e4d",
+  "productionPackageHash": "c251e98e9f3086b9bbfe0ab5c4bfe39085adf22f4d5f61a3ecaf4f10da76612b",
+  "cookiePackageSha256": "fe9ec22597abdc3309ef15211bc79cbe1df32be1d4188fd4945af97efc80865e",
+  "browser": "macOS Chrome for Testing 155.0.8059.39",
+  "extensionId": "hkohjjlflpkfjagakmamniddcmljdmmd",
+  "hostInstanceId": "c85fa694-5769-456d-a746-0761fca5e70e",
+  "launchReceipt": "artifacts/sidebar-tools/cookie-editor/r28-local/chrome-latest-main-launch.json",
+  "sites": [
+    "http://127.0.0.1:43111/demo-form.html",
+    "http://localhost:43111/demo-form.html"
+  ],
+  "fakeCookie": {
+    "name": "od_r28_latest_main",
+    "initialValue": "latest-main-native-v1",
+    "editedValue": "latest-main-native-v2"
+  },
+  "actionNotes": [
+    "Closed first-use modal, browsed existing six tabs, then clicked header grant once; existing Chrome access produced no redundant native dialog.",
+    "Created/edited/read real local Cookie through the installed product. Host settings revoke removed sensitive UI; regrant restored it.",
+    "Native Chrome current-site switch off, then Chrome-requested reload. Separate grant attempts: one native dialog each; Reject, Escape, then Allow. No false success on denial/cancel.",
+    "With value expanded switched 127.0.0.1 to localhost; full AX confirmed old name/value absent. Reopened tool without another grant, returned to original site.",
+    "Product JSON Copy then explicit native textarea click and Cmd+V; preview then Confirm Import, real value readback. Saved named snapshot and switched with automatic refresh off.",
+    "Deleted disposable Cookie through product. Validated actual installed path/ID. Only owned PID33726 terminated after executable/Profile validation; launcher exited0 and removed temporary Profile."
+  ],
+  "status": "PASS_LOCAL_CORE",
+  "records": [
+    {
+      "step": "sidepanel-loaded",
+      "observedAt": "2026-10-29T10:30:25.645Z",
+      "axExcerpt": "563 HTML 内容 OpenDesk Browser, URL: chrome-extension://hkohjjlflpkfjagakmamniddcmljdmmd/sidepanel.html?hostInstanceId=c85fa694-5769-456d-a746-0761fca5e70e"
+    },
+    {
+      "step": "first-use-modal",
+      "observedAt": "2026-10-29T10:30:41.336Z",
+      "axExcerpt": "564 container Cookie 管理授权\n565 标题 Cookie 管理授权, Value: 2\n567 按钮 关闭授权弹窗\n568 按钮 允许授权"
+    },
+    {
+      "step": "browse-before-grant",
+      "observedAt": "2026-10-29T10:30:48.940Z",
+      "axExcerpt": "576 标题 Cookie Editor · Cookie 管理, Help: Cookie Editor · Cookie 管理 · v2.0.50, Value: 2\n578 按钮 授权\n587 标签 (selected) Cookie, Value: 1\n588 标签 (settable, integer) 账号, Value: 0\n589 标签 (settable, integer) 企业, Value: 0\n590 标签 (settable, integer) 市场, Value: 0\n591 标签 (settable, integer) 定制, Value: 0\n592 标签 (settable, integer) 圈子, Value: 0\n599 按钮 (disabled) 导入 Cookie\n600 弹出式按钮 (disabled) 导出 Cookie\n601 按钮 (disabled) 新建 Cookie\n604 文本 尚未读取 Cookie"
+    },
+    {
+      "step": "grant-automatic-real-readback",
+      "observedAt": "2026-10-29T10:31:06.162Z",
+      "axExcerpt": "601 text Cookie  0\n602 按钮 导入 Cookie\n603 弹出式按钮 导出 Cookie\n604 按钮 新建 Cookie\n607 文本 本站暂无 Cookie"
+    },
+    {
+      "step": "native-create",
+      "observedAt": "2026-10-29T10:31:24.731Z",
+      "axExcerpt": "607 container 网站 127.0.0.1\n608 文本 127.0.0.1\n609 按钮 重新读取 Cookie\n601 text Cookie  1\n610 按钮 od_r28_latest_main 会话 · 结束时间由浏览器决定"
+    },
+    {
+      "step": "native-edit-readback",
+      "observedAt": "2026-10-29T10:32:04.877Z",
+      "axExcerpt": "611 按钮 od_r28_latest_main 会话 · 结束时间由浏览器决定\n612 container 编辑 Cookie od_r28_latest_main\n616 文本栏 (settable) 名称, Value: od_r28_latest_main\n619 文本栏 (settable) Cookie 值, Value: latest-main-native-v2, Placeholder: 留空保留原值"
+    },
+    {
+      "step": "host-revocation-full-AX",
+      "observedAt": "2026-10-29T10:33:07.791Z",
+      "axExcerpt": "280 按钮 授权\n289 标签 (selected) Cookie, Value: 1\n290 标签 (settable, integer) 账号, Value: 0\n291 标签 (settable, integer) 企业, Value: 0\n292 标签 (settable, integer) 市场, Value: 0\n293 标签 (settable, integer) 定制, Value: 0\n294 标签 (settable, integer) 圈子, Value: 0\n300 text Cookie  —\n301 按钮 (disabled) 导入 Cookie\n302 弹出式按钮 (disabled) 导出 Cookie\n303 按钮 (disabled) 新建 Cookie\n306 文本 尚未读取 Cookie",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": false,
+      "cookieV2Present": false
+    },
+    {
+      "step": "chrome-revocation-full-AX",
+      "observedAt": "2026-10-29T10:34:05.600Z",
+      "axExcerpt": "258 按钮 授权\n278 text Cookie  —\n279 按钮 (disabled) 导入 Cookie\n280 弹出式按钮 (disabled) 导出 Cookie\n281 按钮 (disabled) 新建 Cookie\n284 文本 尚未读取 Cookie",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": false,
+      "cookieV2Present": false
+    },
+    {
+      "step": "native-permission-dialog-1",
+      "observedAt": "2026-10-29T10:34:13.615Z",
+      "axExcerpt": "311 表单 “OpenDesk Browser”请求获得更多权限。, Secondary Actions: Raise\n314 标题 “OpenDesk Browser”请求获得更多权限。\n318 文本 读取和更改您在所有网站上的所有数据\n320 按钮 拒绝\n321 按钮 允许"
+    },
+    {
+      "step": "native-denial-full-AX",
+      "observedAt": "2026-10-29T10:34:21.974Z",
+      "axExcerpt": "258 按钮 授权\n278 text Cookie  —\n279 按钮 (disabled) 导入 Cookie\n280 弹出式按钮 (disabled) 导出 Cookie\n281 按钮 (disabled) 新建 Cookie\n284 文本 尚未读取 Cookie\n286 文本 E_CHROME_PERMISSION_REQUIRED：Chrome Cookie 或网站访问权限未确认，请检查扩展的网站访问设置。请检查当前授权状态后重试。",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": false,
+      "cookieV2Present": false
+    },
+    {
+      "step": "native-cancel-full-AX",
+      "observedAt": "2026-10-29T10:34:46.350Z",
+      "axExcerpt": "258 按钮 授权\n278 text Cookie  —\n279 按钮 (disabled) 导入 Cookie\n280 弹出式按钮 (disabled) 导出 Cookie\n281 按钮 (disabled) 新建 Cookie\n284 文本 尚未读取 Cookie\n286 文本 E_CHROME_PERMISSION_REQUIRED：Chrome Cookie 或网站访问权限未确认，请检查扩展的网站访问设置。请检查当前授权状态后重试。",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": false,
+      "cookieV2Present": false
+    },
+    {
+      "step": "native-allow-auto-readback",
+      "observedAt": "2026-10-29T10:35:07.740Z",
+      "axExcerpt": "305 text Cookie  1\n306 按钮 导入 Cookie\n307 弹出式按钮 导出 Cookie\n308 按钮 新建 Cookie\n311 按钮 od_r28_latest_main 会话 · 结束时间由浏览器决定",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": true,
+      "cookieV2Present": false
+    },
+    {
+      "step": "before-site-switch-expanded",
+      "observedAt": "2026-10-29T10:35:14.930Z",
+      "axExcerpt": "305 text Cookie  1\n312 按钮 od_r28_latest_main 会话 · 结束时间由浏览器决定\n317 文本栏 (settable) 名称, Value: od_r28_latest_main\n320 文本栏 (settable) Cookie 值, Value: latest-main-native-v2, Placeholder: 留空保留原值",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": true,
+      "cookieV2Present": true
+    },
+    {
+      "step": "site-switch-clears-old-values",
+      "observedAt": "2026-10-29T10:35:23.137Z",
+      "axExcerpt": "303 text Cookie  0\n304 按钮 导入 Cookie\n305 弹出式按钮 导出 Cookie\n306 按钮 新建 Cookie\n309 文本 本站暂无 Cookie",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": false,
+      "cookieV2Present": false
+    },
+    {
+      "step": "reopen-persisted-grant",
+      "observedAt": "2026-10-29T10:36:07.646Z",
+      "axExcerpt": "303 text Cookie  0\n304 按钮 导入 Cookie\n305 弹出式按钮 导出 Cookie\n306 按钮 新建 Cookie\n309 文本 本站暂无 Cookie",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": false,
+      "cookieV2Present": false
+    },
+    {
+      "step": "return-original-site",
+      "observedAt": "2026-10-29T10:36:09.333Z",
+      "axExcerpt": "303 text Cookie  1\n304 按钮 导入 Cookie\n305 弹出式按钮 导出 Cookie\n306 按钮 新建 Cookie\n309 按钮 od_r28_latest_main 会话 · 结束时间由浏览器决定",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": true,
+      "cookieV2Present": false
+    },
+    {
+      "step": "latest-export-native-paste",
+      "observedAt": "2026-10-29T10:37:07.030Z",
+      "axExcerpt": "\"name\": \"od_r28_latest_main\",\n\"domain\": \"127.0.0.1\",\n\"value\": \"latest-main-native-v2\","
+    },
+    {
+      "step": "latest-import-preview",
+      "observedAt": "2026-10-29T10:37:17.945Z",
+      "axExcerpt": "351 text 共  1  条，可导入  1  条， 跳过  0  条。尚未写入 Cookie，值不在预览中显示。\n357 text od_r28_latest_main  ·  127.0.0.1  ·  /"
+    },
+    {
+      "step": "latest-import-commit",
+      "observedAt": "2026-10-29T10:37:29.613Z",
+      "axExcerpt": "338 按钮 od_r28_latest_main 会话 · 结束时间由浏览器决定\n339 文本 已导入 1 条。"
+    },
+    {
+      "step": "latest-import-value-readback",
+      "observedAt": "2026-10-29T10:37:42.980Z",
+      "axExcerpt": "303 text Cookie  1\n310 按钮 od_r28_latest_main 会话 · 结束时间由浏览器决定\n315 文本栏 (settable) 名称, Value: od_r28_latest_main\n318 文本栏 (settable) Cookie 值, Value: latest-main-native-v2, Placeholder: 留空保留原值",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": true,
+      "cookieV2Present": true
+    },
+    {
+      "step": "latest-account-save",
+      "observedAt": "2026-10-29T10:38:11.645Z",
+      "axExcerpt": "368 text 已保存账号  1\n373 文本 R28 Latest Main\n375 弹出式按钮 R28 Latest Main更多操作\n381 文本 已保存当前账号快照。"
+    },
+    {
+      "step": "latest-account-switch-verified",
+      "observedAt": "2026-10-29T10:38:19.640Z",
+      "axExcerpt": "359 文本 当前已应用的快照（非登录验证）\n360 文本 R28 Latest Main\n381 按钮 (disabled) 更新R28 Latest Main的 Cookie 快照\n382 文本 ● 已应用\n383 文本 已验证 Cookie 切换；自动刷新已关闭。"
+    },
+    {
+      "step": "latest-test-cookie-delete",
+      "observedAt": "2026-10-29T10:38:41.980Z",
+      "axExcerpt": "303 text Cookie  0\n309 文本 本站暂无 Cookie",
+      "fullNativeAXChecked": true,
+      "cookieNamePresent": false,
+      "cookieV2Present": false
+    },
+    {
+      "step": "chrome-installed-path-and-identity",
+      "observedAt": "2026-10-29T10:39:36.902Z",
+      "axExcerpt": "0 标准窗口 扩展程序 - OpenDesk Browser - Google Chrome for Testing, URL: chrome://extensions/?id=hkohjjlflpkfjagakmamniddcmljdmmd, Secondary Actions: Raise\n32 标题 OpenDesk Browser, Value: 1\n36 切换 开启，扩展程序已启用, Value: on\n42 文本 0.1.0\n51 文本 访问页面调试程序后端\n75 链接 ~/文稿/workspace/opendesk-browser/artifacts/sidebar-tools/cookie-editor/r28-local/source-snapshot-latest-main/dist/production"
+    }
+  ],
+  "limitations": [
+    "No native legacy encrypted-store migration; obsolete passphrase/lock UI remains not applicable.",
+    "Latest-main download action not repeated; prior candidate file export remains separate evidence. Latest-main product Copy/import roundtrip passed.",
+    "Remote Fingerprint adds required debugger permission; Cookie did not invoke debugger or Fingerprint.",
+    "No width/zoom/theme or unrelated tools matrix."
+  ]
+}
