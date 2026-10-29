@@ -6,7 +6,7 @@ export const COOKIE_ACCOUNT_VAULT_KEY='opendesk.cookie-editor.vault.v1';
 export const COOKIE_ACCOUNT_SESSION_KEY='opendesk.cookie-editor.vault-session.v1';
 export const COOKIE_ACCOUNT_SEEN_KEY='opendesk.cookie-editor.auto-seen.v1';
 export const COOKIE_ACCOUNT_OPERATIONS=Object.freeze([
-  'status','create','rename','update','delete','switch',
+  'status','create','rename','update','attach','delete','switch',
   'setAutoEnabled','setAutoRefresh','allowAlias'
 ]);
 export const COOKIE_ACCOUNT_EFFECTS=Object.freeze(
