@@ -15,7 +15,7 @@ on:
       - 'src/ui/tool-shell.css'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/installed-page-tools.js'
-      - 'examples/sidebar-tools/quick-notes/**'
+      - 'projects/quick-notes/**'
       - 'tests/environment/sidebar-tool-spacing-contract.test.mjs'
       - 'tests/environment/ui-layout-conventions-r27.test.mjs'
       - 'tests/environment/sidebar-component-contract.test.mjs'

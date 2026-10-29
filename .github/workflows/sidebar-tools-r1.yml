@@ -95,7 +95,7 @@ jobs:
           npm run check
       - name: Build installable offline notes tool JSON
         run: |
-          npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes --out artifacts/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json
+          npm run build:sidebar-tool -- projects/quick-notes --out artifacts/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json
           node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';const p=validateSidebarToolPackage(JSON.parse(readFileSync('artifacts/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json','utf8')));if(!p.html.includes('data:image/png;base64,'))throw Error('Local image was not bundled');console.log('SIDEBAR_TOOL_BUILT_AND_VALIDATED',p.id,p.version)"
       - name: Package runnable sandbox world demo (not installed)
         run: |

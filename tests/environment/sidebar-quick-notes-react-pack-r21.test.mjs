@@ -8,8 +8,8 @@ import {fileURLToPath} from 'node:url';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../src/libs/page-frameworks/contract.js';
 const repo=fileURLToPath(new URL('../../',import.meta.url));
-const project=resolve(repo,'examples/sidebar-tools/quick-notes-react');
-const original=resolve(repo,'examples/sidebar-tools/quick-notes');
+const project=resolve(repo,'projects/quick-notes-react');
+const original=resolve(repo,'projects/quick-notes');
 const preview=resolve(project,'.opendesk-preview');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 test('two real package encoders preserve identity, parity and no duplicated runtime',async()=>{

@@ -40,7 +40,7 @@ test('native tool directory packs JS/CSS/HTML into a portable JSON',async()=>{
   const temp=await mkdtemp(join(tmpdir(),'opendesk-tool-test-'));
   try{
     const path=join(temp,'test.opendesk-tool.json');
-    const report=await buildSidebarTool('examples/sidebar-tools/quick-notes',{out:path});
+    const report=await buildSidebarTool('projects/quick-notes',{out:path});
     assert.equal(report.validated,true);
     assert.equal(report.installed,false);
     const parsed=validateSidebarToolPackage(JSON.parse(await readFile(path,'utf8')));

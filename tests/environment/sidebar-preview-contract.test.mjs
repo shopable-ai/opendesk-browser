@@ -11,7 +11,7 @@ import {assertLayoutOnly,compileSharedToolCss,officialDesignSources,SHARED_DESIG
 import {PREVIEW_INPUTS,previewSourceHashes,assertPreviewLock} from '../../scripts/preview/check-preview-contract.mjs';
 
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
-const project=resolve('examples/sidebar-tools/quick-notes');
+const project=resolve('projects/quick-notes');
 test('real package and offline preview have one compiled visual source and DOM implementation',async()=>{
   const tool=await createSidebarToolPackage(project);
   assert.match(tool.css,/^\/\* opendesk\.shared-design\.v1 sha256=/);
@@ -30,7 +30,7 @@ test('real package and offline preview have one compiled visual source and DOM i
   assert.match(preview.html,/模拟预览 · 非真实安装/);
 });
 test('public token/component CSS is consumed verbatim and follows canonical edits',async()=>{
-  const layout=await read('examples/sidebar-tools/quick-notes/src/style.css');
+  const layout=await read('projects/quick-notes/src/style.css');
   const {tokens,publicRules}=await officialDesignSources();
   const built=await compileSharedToolCss(layout);
   assert.ok(built.includes(tokens));

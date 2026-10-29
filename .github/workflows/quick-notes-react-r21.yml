@@ -5,7 +5,7 @@ on:
     paths:
       - '.github/workflows/quick-notes-react-r21.yml'
       - 'examples/sidebar-tools/quick-notes-react/**'
-      - 'examples/sidebar-tools/quick-notes/**'
+      - 'projects/quick-notes/**'
       - 'tests/environment/sidebar-quick-notes-react-*.test.mjs'
       - 'scripts/tests/quick-notes-react-r21-preview-chrome.mjs'
       - 'scripts/tests/quick-notes-react-r21-installed-chrome.mjs'
@@ -47,7 +47,7 @@ jobs:
           node --test tests/environment/sidebar-quick-notes-react-pack-r21.test.mjs
       - name: Encode separate native and React installation candidates
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/sidebar-tools/quick-notes/native-candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/quick-notes --out artifacts/sidebar-tools/quick-notes/native-candidate.opendesk-tool.json
           node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes-react --out artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json
           OPENDESK_SHARED_UI_EXTENSION_DIR=dist/development node examples/sidebar-tools/quick-notes-react/scripts/compare.mjs > artifacts/quick-notes-implementation-comparison.json
           node --test tests/environment/sidebar-quick-notes-react-r22-compare.test.mjs

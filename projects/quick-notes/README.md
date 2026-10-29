@@ -35,7 +35,7 @@
 修改 `src/index.html`、`src/style.css`、`src/main.js` 或 `assets/mark.png` 后，在仓库根目录运行：
 
 ```sh
-npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes
+npm run build:sidebar-tool -- projects/quick-notes
 node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-tool-spacing-contract.test.mjs
 # 使用已安装的 Chromium / Chrome 检查真实 HTML/CSS 布局
 CHROME_BIN=/path/to/chrome node scripts/tests/sidebar-quick-notes-layout-visual.mjs artifacts/quick-notes-layout-visual

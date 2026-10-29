@@ -11,7 +11,7 @@ const create=(data={})=>proposedSave({notes:[],selectedId:null,text:'中文笔�
   makeId:()=> 'id-1',at:123,...data});
 test('native identity remains independent from Shared UI identity',async()=>{
   const [original,react,boot,jsx,vite,html]=await Promise.all([
-    read('examples/sidebar-tools/quick-notes/tool.config.json').then(JSON.parse),
+    read('projects/quick-notes/tool.config.json').then(JSON.parse),
     read('examples/sidebar-tools/quick-notes-react/tool.config.json').then(JSON.parse),
     read('examples/sidebar-tools/quick-notes-react/src/main.jsx'),
     read('examples/sidebar-tools/quick-notes-react/src/App.jsx'),

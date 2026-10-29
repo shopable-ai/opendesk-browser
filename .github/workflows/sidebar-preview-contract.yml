@@ -17,7 +17,7 @@ on:
       - 'scripts/sidebar-preview-kit.mjs'
       - 'tests/environment/sidebar-preview-kit.test.mjs'
       - 'scripts/tests/sidebar-preview-runtime-chrome.mjs'
-      - 'examples/sidebar-tools/quick-notes/**'
+      - 'projects/quick-notes/**'
       - 'examples/sidebar-tools/bookmark-manager/**'
       - 'examples/sidebar-tools/adblock/**'
       - 'projects/markdown-workbench/**'
@@ -78,7 +78,7 @@ jobs:
         run: node --test tests/environment/sidebar-preview-shell.test.mjs tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-preview-kit.test.mjs tests/environment/browser-tool-creation-workflow-r21.test.mjs tests/environment/adblock-preview-contract.test.mjs tests/environment/four-tools-ux-r1.test.mjs
       - name: Build official tool and offline preview matrix
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out artifacts/quick-notes-preview-proof.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/quick-notes --out artifacts/quick-notes-preview-proof.opendesk-tool.json
           for width in 320 360 400 480; do
             for theme in light dark; do
               node scripts/preview/build-preview.mjs --tool quick-notes --surface side-panel --scenario success --theme "$theme" --width "$width"
