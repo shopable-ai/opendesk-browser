@@ -1,5 +1,7 @@
 # Browser Fingerprint R2.4 — 正式安装验收阻断记录
 
+> 以下为早期历史状态，已被 [R2.5 归因与结果](r25-last-mile.md) 和 [实际证据](r25-evidence.json) 更新。2026-10-29 同候选 Linux 安装全链已 PASS；Mac 原生安装仍因 CFT 文件选择框崩溃 NOT_TESTED。不要重新排查下文已解决的安装入口问题。
+
 时间：2026-10-29。状态：**CHROMIUM_INSTALLED_FULL_CHAIN = BLOCKED**。
 
 ## 原始产品目标

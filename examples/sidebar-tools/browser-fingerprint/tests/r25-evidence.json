@@ -1,0 +1,306 @@
+{
+  "sourceCommit": "5325ab134617a08bf912bee65b0e48f92758ee7f",
+  "candidate": {
+    "id": "browser-fingerprint",
+    "version": "0.2.2",
+    "sha256": "b0d48d86f35eec9edc53d3d308737f496e58bb91013af11138fd1f76e5e5ee19",
+    "bytes": 88673,
+    "capabilities": [
+      "currentPage.read",
+      "browser.page.environment.read",
+      "browser.fingerprint.control",
+      "storage.local",
+      "user.export"
+    ],
+    "sourceCommit": "5325ab134617a08bf912bee65b0e48f92758ee7f"
+  },
+  "installedFullChain": {
+    "status": "PASS",
+    "platform": "Linux Xvfb / CFT155.0.8059.39",
+    "run": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40902874829",
+    "artifactId": 12909799119,
+    "artifactSha256": "993cf11f79a65029095e6ebb948b4aaf813a84324457b09edab63654e162d868",
+    "nativeInput": "X11_NATIVE_TRUSTED",
+    "cycles": [
+      {
+        "preset": "US",
+        "progress": "COMPLETE_INDEPENDENT_RESTORE_VERIFIED",
+        "restoreStatus": "调试已停止 · 恢复有限验证",
+        "postDetachLanguageEvidence": {
+          "navigatorLanguage": "en-US",
+          "navigatorLanguages": [
+            "en-US"
+          ],
+          "originalLanguage": "en-US",
+          "originalLanguages": [
+            "en-US"
+          ]
+        },
+        "restoreGestures": [
+          {
+            "label": "停止 / 恢复",
+            "trusted": true,
+            "at": 1793288234909
+          }
+        ],
+        "restorationFieldEvidence": [
+          {
+            "name": "User-Agent",
+            "state": "一致",
+            "values": [
+              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+            ],
+            "source": "来源：目标网页运行环境"
+          },
+          {
+            "name": "UA Client Hints",
+            "state": "一致",
+            "values": [
+              "Linux",
+              "Linux",
+              "Linux"
+            ],
+            "source": "来源：目标网页运行环境 · LOW_ENTROPY_PLATFORM_ONLY"
+          },
+          {
+            "name": "网页语言",
+            "state": "一致",
+            "values": [
+              "en-US",
+              "en-US",
+              "en-US"
+            ],
+            "source": "来源：目标网页运行环境"
+          },
+          {
+            "name": "HTTP Accept-Language",
+            "state": "无法验证",
+            "values": [
+              "尚无可信基线",
+              "保持原始语言",
+              "—"
+            ],
+            "source": "来源：可信网络层 · NO_TRUSTED_NETWORK_CAPTURE"
+          },
+          {
+            "name": "时区 · Intl",
+            "state": "一致",
+            "values": [
+              "UTC",
+              "UTC",
+              "UTC"
+            ],
+            "source": "来源：目标网页运行环境"
+          },
+          {
+            "name": "地理位置",
+            "state": "无法验证",
+            "values": [
+              "尚无可信基线",
+              "保持原值 / 不模拟",
+              "—"
+            ],
+            "source": "来源：目标网页运行环境 · GEOLOCATION_NOT_VERIFIED"
+          },
+          {
+            "name": "Viewport",
+            "state": "一致",
+            "values": [
+              "{\"width\":794,\"height\":749}",
+              "{\"width\":794,\"height\":749}",
+              "{\"width\":794,\"height\":749}"
+            ],
+            "source": "来源：目标网页运行环境"
+          },
+          {
+            "name": "公网 IP / Proxy",
+            "state": "无法验证",
+            "values": [
+              "尚无可信基线",
+              "本工具不修改",
+              "—"
+            ],
+            "source": "来源：可信网络层 · PUBLIC_IP_OUT_OF_SCOPE"
+          }
+        ],
+        "notice": "Chrome 调试已停止、网页字段已恢复；HTTP 请求语言没有独立网络证据。"
+      },
+      {
+        "preset": "DE",
+        "progress": "COMPLETE_INDEPENDENT_RESTORE_VERIFIED",
+        "restoreStatus": "调试已停止 · 恢复有限验证",
+        "postDetachLanguageEvidence": {
+          "navigatorLanguage": "en-US",
+          "navigatorLanguages": [
+            "en-US"
+          ],
+          "originalLanguage": "en-US",
+          "originalLanguages": [
+            "en-US"
+          ]
+        },
+        "restoreGestures": [
+          {
+            "label": "停止 / 恢复",
+            "trusted": true,
+            "at": 1793288237485
+          }
+        ],
+        "restorationFieldEvidence": [
+          {
+            "name": "User-Agent",
+            "state": "一致",
+            "values": [
+              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+            ],
+            "source": "来源：目标网页运行环境"
+          },
+          {
+            "name": "UA Client Hints",
+            "state": "一致",
+            "values": [
+              "Linux",
+              "Linux",
+              "Linux"
+            ],
+            "source": "来源：目标网页运行环境 · LOW_ENTROPY_PLATFORM_ONLY"
+          },
+          {
+            "name": "网页语言",
+            "state": "一致",
+            "values": [
+              "en-US",
+              "en-US",
+              "en-US"
+            ],
+            "source": "来源：目标网页运行环境"
+          },
+          {
+            "name": "HTTP Accept-Language",
+            "state": "无法验证",
+            "values": [
+              "尚无可信基线",
+              "保持原始语言",
+              "—"
+            ],
+            "source": "来源：可信网络层 · NO_TRUSTED_NETWORK_CAPTURE"
+          },
+          {
+            "name": "时区 · Intl",
+            "state": "一致",
+            "values": [
+              "UTC",
+              "UTC",
+              "UTC"
+            ],
+            "source": "来源：目标网页运行环境"
+          },
+          {
+            "name": "地理位置",
+            "state": "无法验证",
+            "values": [
+              "尚无可信基线",
+              "保持原值 / 不模拟",
+              "—"
+            ],
+            "source": "来源：目标网页运行环境 · GEOLOCATION_NOT_VERIFIED"
+          },
+          {
+            "name": "Viewport",
+            "state": "一致",
+            "values": [
+              "{\"width\":794,\"height\":749}",
+              "{\"width\":794,\"height\":749}",
+              "{\"width\":794,\"height\":749}"
+            ],
+            "source": "来源：目标网页运行环境"
+          },
+          {
+            "name": "公网 IP / Proxy",
+            "state": "无法验证",
+            "values": [
+              "尚无可信基线",
+              "本工具不修改",
+              "—"
+            ],
+            "source": "来源：可信网络层 · PUBLIC_IP_OUT_OF_SCOPE"
+          }
+        ],
+        "notice": "Chrome 调试已停止、网页字段已恢复；HTTP 请求语言没有独立网络证据。"
+      }
+    ]
+  },
+  "states": {
+    "NODE": "PASS",
+    "REACT_BUILD": "PASS",
+    "CHROMIUM_PREVIEW": "PASS_FIXTURE_ONLY",
+    "CHROMIUM_NATIVE_DRIVER": "PASS_MACOS_AND_LINUX_CFT155",
+    "CHROMIUM_INSTALLED_FULL_CHAIN": "PASS_LINUX_XVFB",
+    "MAC_CHROME": "NOT_TESTED_BLOCKED_NATIVE_FILE_CHOOSER_CRASH"
+  },
+  "coreCi": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40902874862",
+  "appCi": {
+    "status": "FAIL_DISCOVERY_BEFORE_APP_VALIDATION",
+    "run": "https://github.com/shopable-ai/opendesk-browser/actions/runs/40902874837",
+    "reason": "E_APP_CI: React App requires an explicit browser test profile; frozen source shows scrapyjs has React runtime without app.ci.json"
+  },
+  "mac": {
+    "status": "BLOCKED_NATIVE_FILE_CHOOSER_CRASH",
+    "owner": "01a1883a-de22-7641-8ac2-7eeb5f926ff5",
+    "sourceCommit": "5325ab134617a08bf912bee65b0e48f92758ee7f",
+    "hostPackageHash": "7ec4b59200db23791ea6fc068a34d8109100a94c74d9ebc47e68d66cb8111b16",
+    "mode": "production",
+    "devConnection": "not applicable; static acceptance package",
+    "hostPath": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/fingerprint-r25/acceptance-main/dist/production",
+    "chromePid": 58609,
+    "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/fingerprint-r25/mac-profile",
+    "appBundleId": "com.opendesk.testing.fingerprint-r25",
+    "candidate": {
+      "version": "0.2.2",
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/fingerprint-r25/mac-candidate.opendesk-tool.json",
+      "bytes": 88673,
+      "sha256": "b0d48d86f35eec9edc53d3d308737f496e58bb91013af11138fd1f76e5e5ee19"
+    },
+    "startedAt": "2026-10-29T15:36:51.178970+00:00",
+    "cycles": [],
+    "extensionId": "igidenlcplgifmloofepgppaldbcngak",
+    "installed": false,
+    "installedReact": false,
+    "macChrome": "NOT_TESTED",
+    "guiCapability": "VERIFIED_NATIVE_AX_AND_POINTER",
+    "reached": "Production real SIDE_PANEL five tabs -> Extensions -> Import -> native file chooser",
+    "error": {
+      "type": "NSInternalInconsistencyException",
+      "message": "-enableWindowReuse was called despite window reuse having already been explicitly enabled.",
+      "exitCode": 133,
+      "crashReport": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/fingerprint-r25/mac-cft-crash.ips"
+    },
+    "resourcesReleased": {
+      "chromeProcessExited": true,
+      "profileRetainedForDiagnosis": true,
+      "dailyWatcherUntouched": true
+    },
+    "endedAt": "2026-10-29T15:44:04.473978+00:00"
+  },
+  "lifecycle": "NATIVE_REMAINDER_NOT_TESTED_P2_NOT_PASSED",
+  "release": "NOT_PROMOTED_FORMAL_JSON_STILL_0.2.1",
+  "httpAcceptLanguage": "UNVERIFIABLE",
+  "geolocation": "UNSUPPORTED",
+  "scores": {
+    "kind": "provisional evidence-based assessment; not independent certification",
+    "functionality": 95,
+    "realExecution": 85,
+    "dataConsistency": 96,
+    "lifecycle": 65,
+    "permissionSafety": 90,
+    "interactionConsistency": 85,
+    "installationCompatibility": 80,
+    "testEvidence": 85,
+    "arithmeticMean": 85.125,
+    "targetMet": false
+  }
+}
