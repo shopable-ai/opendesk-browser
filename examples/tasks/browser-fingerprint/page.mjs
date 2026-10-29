@@ -46,7 +46,6 @@ function render() {
   get('baseline-time').textContent = `本页基线 ${time(baseline.capturedAt)}`;
   get('sampling').textContent = `${get('auto').checked ? '每秒自动读取' : '自动读取已暂停'} · 最近采集 ${time(current.capturedAt)}`;
   get('cache-warning').hidden = !languageCacheMismatch(current);
-  if (get('report').open) get('report-json').textContent = JSON.stringify(report(),null,2);
 }
 function sample() {
   current = readEnvironment(window);
@@ -93,5 +92,7 @@ function startSampling() {
 startSampling();
 document.addEventListener('visibilitychange',() => {if (!document.hidden && get('auto').checked) sample();});
 window.addEventListener('pagehide',() => clearInterval(timer));
-window.addEventListener('pageshow',event => {if (event.persisted) {startSampling();sample();}});
+window.addEventListener('pageshow',event => {
+  if (event.persisted) {startSampling();if (get('auto').checked) sample();}
+});
 sample();
