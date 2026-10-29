@@ -51,13 +51,22 @@ function harness({deny=false,failedCommand=null,failedClearCommand=null,noHints=
         state=structuredClone(original);attached=false;
       }
     },
-    scripting:{executeScript:async()=>[{frameId:0,documentId:target.documentId,
-      result:noHints?null:{platform:state.hints,brands:[{brand:'Chromium',version:'158'}]}}]}
+    scripting:{executeScript:async options=>{
+      if(options?.func?.name==='readLanguagesForCleanup'){
+        assert.deepEqual(options.target,{tabId:71,documentIds:[target.documentId]});
+        assert.equal(options.world,'MAIN');
+        cachedLanguage=state.language;
+        return [{frameId:0,documentId:target.documentId,result:[cachedLanguage]}];
+      }
+      return [{frameId:0,documentId:target.documentId,
+        result:noHints?null:{platform:state.hints,brands:[{brand:'Chromium',version:'158'}]}}];
+    }}
   };
   const driver=createFingerprintDriver({api,newRef:()=>sessionRef,
     resolveTarget:async()=>target,
     authorize:async()=>{if(!allowed)throw fail('E_SITE_GRANT_REQUIRED');},
     readPage:async()=>{
+      if(!allowed)throw fail('E_SITE_GRANT_REQUIRED');
       if(attached)cachedLanguage=state.language;
       return {tabRef,documentRef,fields:{
       userAgent:{status:'available',value:state.ua},
@@ -69,7 +78,7 @@ function harness({deny=false,failedCommand=null,failedClearCommand=null,noHints=
       devicePixelRatio:{status:'available',value:1}
     }};}
   });
-  return {driver,api,commands,get state(){return state;},get attached(){return attached;},
+  return {driver,api,commands,get state(){return state;},get attached(){return attached;},get cachedLanguage(){return cachedLanguage;},
     setAuthorized:value=>{allowed=value;},detachExternally:reason=>{
       for(const listener of listeners)listener({tabId:71},reason);
     }};
@@ -223,4 +232,70 @@ test('R2.2 only independently matched fields permit verified restoration',()=>{
   assert.equal(classifyRestoration({...limited,rows:rows.map(x=>({...x,status:'mismatch'}))}),
     'restore_unknown');
   assert.equal(classifyRestoration({controlledKeys:[],rows:[]}), 'restore_unknown');
+});
+
+test('R2.5 switching tabs clears the original document language cache and invalidates once',async()=>{
+  const h=harness({staleLanguageCache:true});
+  await h.driver.apply({...refs,config:us},owner);
+  await h.driver.readback({sessionRef,documentRef,mode:'applied'},owner);
+  assert.equal(h.cachedLanguage,'en-US');
+  const cleanup=h.driver.invalidateInactiveTab(target.windowId,999);
+  await assert.rejects(h.driver.readback({sessionRef,documentRef,mode:'applied'},owner),
+    {code:'E_TARGET_INVALIDATED'});
+  await cleanup;
+  assert.equal(h.attached,false);
+  assert.equal(h.cachedLanguage,'ja-JP');
+  const count=h.commands.length;
+  await h.driver.invalidateInactiveTab(target.windowId,999);
+  assert.equal(h.commands.length,count,'invalidated effects are never replayed');
+});
+test('R2.5 revocation cleans only the owned debugger without using revoked tool authority',async()=>{
+  const h=harness({staleLanguageCache:true});
+  await h.driver.apply({...refs,config:us},owner);
+  await h.driver.readback({sessionRef,documentRef,mode:'applied'},owner);
+  h.setAuthorized(false);
+  const cleanup=h.driver.revokeAll();
+  await h.driver.revokeAll();
+  await cleanup;
+  assert.equal(h.cachedLanguage,'ja-JP');
+  assert.equal(h.attached,false);
+  assert.equal(h.commands.filter(x=>x==='detach').length,1);
+  await assert.rejects(h.driver.restore({sessionRef,documentRef},owner),{code:'E_OWNER'});
+});
+test('R2.5 uncertain automatic cleanup still detaches once without replay',async()=>{
+  const h=harness({staleLanguageCache:true,resetFails:true});
+  await h.driver.apply({...refs,config:us},owner);
+  const cleanup=h.driver.invalidateInactiveTab(target.windowId,999);
+  await h.driver.revokeAll();
+  await cleanup;
+  assert.equal(h.attached,false);
+  assert.equal(h.commands.filter(x=>x==='detach').length,1);
+});
+
+test('R2.5 revoke racing restore shares one cleanup and cannot acknowledge stale restore',async()=>{
+  const h=harness({staleLanguageCache:true});
+  await h.driver.apply({...refs,config:us},owner);
+  let started,release;
+  const entered=new Promise(resolve=>{started=resolve;});
+  const gate=new Promise(resolve=>{release=resolve;});
+  const send=h.api.debugger.sendCommand;
+  h.api.debugger.sendCommand=async(...args)=>{await send(...args);started();await gate;};
+  const restoring=h.driver.restore({sessionRef,documentRef},owner);
+  await entered;
+  h.setAuthorized(false);
+  const cleanup=h.driver.revokeAll();
+  release();
+  await assert.rejects(restoring,{code:'E_TARGET_INVALIDATED'});
+  await cleanup;
+  assert.equal(h.commands.filter(x=>x==='detach').length,1);
+  assert.equal(h.cachedLanguage,'ja-JP');
+});
+test('R2.5 uncertain automatic detach reserves the tab and cannot replay cleanup',async()=>{
+  const h=harness({detachFails:true});
+  await h.driver.apply({...refs,config:us},owner);
+  await h.driver.invalidateInactiveTab(target.windowId,999);
+  await h.driver.invalidateInactiveTab(target.windowId,999);
+  assert.equal(h.commands.filter(x=>x==='detach').length,1);
+  assert.equal(h.driver.diagnostics().attached,1);
+  await assert.rejects(h.driver.apply({...refs,config:us},owner),{code:'E_SESSION_ACTIVE'});
 });

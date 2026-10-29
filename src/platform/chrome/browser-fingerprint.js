@@ -37,6 +37,9 @@ function readHintsInPage(){
     return {platform:data.platform.slice(0,64),brands};
   }catch{return null;}
 }
+// Fixed cleanup read, bound to the original native document. It returns no
+// page content and does not reuse a revoked tool's SDK authority.
+function readLanguagesForCleanup(){return [...navigator.languages];}
 function userAgentPlan(base,config){
   const ua=base?.fields?.userAgent?.value;
   if(typeof ua!=='string'||!ua)throw fail('E_BASELINE_UNAVAILABLE','Cannot read original User-Agent');
@@ -95,13 +98,52 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
   const sessions=new Map(),tabs=new Map();
   const expired=s=>clock.now()>s.expiresAt;
   const client=s=>({tabId:s.target.tabId});
+  async function resetLanguage(s){
+    if(!s.attached||!s.attempts.some(row=>row.key==='language'))return;
+    const languages=s.base.fields.languages.value;
+    if(!Array.isArray(languages)||!languages.length)throw fail('E_BASELINE_UNAVAILABLE');
+    const send=async(method,params)=>{
+      if(!s.attached||s.documentChanged)throw fail('E_TARGET_INVALIDATED');
+      await api.debugger.sendCommand(client(s),method,params);
+    };
+    await send('Emulation.setUserAgentOverride',{
+      userAgent:s.base.fields.userAgent.value,acceptLanguage:languages.join(',')});
+    const result=await api.scripting.executeScript({
+      target:{tabId:s.target.tabId,documentIds:[s.target.documentId]},
+      world:'MAIN',func:readLanguagesForCleanup});
+    if(result?.length!==1||result[0].frameId!==0||
+       result[0].documentId!==s.target.documentId||!compare(result[0].result,languages))
+      throw fail('E_DOCUMENT_CHANGED');
+    await send('Emulation.setUserAgentOverride',{userAgent:'',acceptLanguage:''});
+    await send('Emulation.setLocaleOverride',{locale:''});
+  }
+  function closeSession(s){
+    if(s.closing)return s.closing;
+    s.closing=(async()=>{
+      let resetError=null;
+      try{
+        if(!s.documentChanged)await resetLanguage(s);
+      }catch(error){resetError=error;}
+      // One close owns all cleanup, even if revoke/navigation races restore.
+      // An unconfirmed detach retains the reservation and is never replayed.
+      try{if(s.attached)await api.debugger.detach(client(s));}
+      catch{throw fail('E_OUTCOME_UNKNOWN','Debugger detach not confirmed; restore unknown');}
+      s.attached=false;
+      if(tabs.get(s.target.tabId)===s)tabs.delete(s.target.tabId);
+      if(s.expireHandle!==undefined)unschedule(s.expireHandle);
+      if(resetError)throw fail('E_OUTCOME_UNKNOWN','Language reset not confirmed; debugger detached, verify manually');
+    })();
+    return s.closing;
+  }
   const retire=(s,reason)=>{
-    if(!s)return;
+    if(!s)return Promise.resolve();
     if(s.expireHandle!==undefined)unschedule(s.expireHandle);
-    s.invalidated=reason;s.stage='invalidated';tabs.delete(s.target.tabId);
-    // Retire only our own previously attached debugger. Never target DevTools.
-    if(s.attached)void api.debugger.detach(client(s)).catch(()=>{});
-    s.attached=false;
+    if(reason==='tab-or-document-changed')s.documentChanged=true;
+    s.invalidated=reason;s.stage='invalidated';
+    // A navigation destroys the old context. Other stops refresh only its
+    // language array before dropping the owned debugger, without reauthorizing
+    // the revoked tool or reading any page content.
+    return closeSession(s).catch(()=>{}); // Never claim a verified restore.
   };
   const onDetach=(debuggee,reason)=>{
     if(!Number.isSafeInteger(debuggee?.tabId))return;
@@ -275,35 +317,16 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
     const t=await target(s.refs,owner,'browser.fingerprint.restore');
     if(!same(t,s.target))throw fail('E_DOCUMENT_CHANGED');
     s.stage='restoring';
-    let resetError=null;
-    if(s.attached&&s.attempts.some(row=>row.key==='language')){
-      try{
-        // Warm the original array under a nonempty override: Chromium may
-        // retain navigator.languages when a scalar-first reader follows detach.
-        const languages=s.base.fields.languages.value;
-        if(!Array.isArray(languages)||!languages.length)throw fail('E_BASELINE_UNAVAILABLE');
-        await api.debugger.sendCommand(client(s),'Emulation.setUserAgentOverride',{
-          userAgent:s.base.fields.userAgent.value,acceptLanguage:languages.join(',')});
-        await readPage(s.refs,owner);
-        // Keep main's explicit clears after refreshing the cached array.
-        await api.debugger.sendCommand(client(s),'Emulation.setUserAgentOverride',
-          {userAgent:'',acceptLanguage:''});
-        await api.debugger.sendCommand(client(s),'Emulation.setLocaleOverride',{locale:''});
-      }catch(error){resetError=error;}
-    }
-    try{
-      // Even when a clear is uncertain, detach once for safety; never replay.
-      if(s.attached)await api.debugger.detach(client(s));
-      s.attached=false;tabs.delete(t.tabId);
-      if(s.expireHandle!==undefined)unschedule(s.expireHandle);
-    }catch{throw fail('E_OUTCOME_UNKNOWN','Debugger detach not confirmed; restore unknown');}
-    if(resetError)throw fail('E_OUTCOME_UNKNOWN','Language reset not confirmed; debugger detached, verify manually');
+    // Warm the original array before explicit clears and detach. A scalar-
+    // first reader can otherwise leave Chromium's JS array cache stale.
+    await closeSession(s);
+    if(s.invalidated)throw fail('E_TARGET_INVALIDATED');
     return {accepted:true,source:'trusted-browser-host',sessionRef,documentRef};
   }
   function invalidateInactiveTab(windowId,activeTabId){
-    for(const s of [...tabs.values()])
-      if(s.target.windowId===windowId&&s.target.tabId!==activeTabId)
-        retire(s,'tab-deactivated');
+    return Promise.all([...tabs.values()].filter(s=>
+      s.target.windowId===windowId&&s.target.tabId!==activeTabId)
+      .map(s=>retire(s,'tab-deactivated')));
   }
   function invalidateTab(tabId){
     const s=tabs.get(tabId);
@@ -313,8 +336,10 @@ export function createFingerprintDriver({api,resolveTarget,readPage,authorize,
         item.invalidated='tab-or-document-changed';
   }
   function revokeAll(){
-    for(const s of sessions.values())retire(s,'tool-or-permission-revoked');
-    sessions.clear();tabs.clear();
+    const cleanup=Promise.all([...sessions.values()].map(s=>
+      retire(s,'tool-or-permission-revoked')));
+    sessions.clear();
+    return cleanup;
   }
   return Object.freeze({apply,readback,restore,invalidateTab,invalidateInactiveTab,revokeAll,
     diagnostics:()=>({sessions:sessions.size,attached:tabs.size})});
