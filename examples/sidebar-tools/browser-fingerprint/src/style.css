@@ -140,3 +140,133 @@
     .fp-bottom-actions{gap:4px}
   }
 }
+
+
+/* R3.2: formal React uses R3.1's configuration-first layout.
+   These local rules only compose Shared UI tokens, never replace Host/SDK styles. */
+@scope (.fp-app) {
+  :scope {min-width:0;gap:9px;padding:0 0 12px;background:var(--od-paper);color:var(--od-ink)}
+  .fp-header {display:flex;align-items:center;gap:9px;min-height:49px;
+    padding:8px 12px;border-bottom:1px solid var(--od-line);min-width:0}
+  .fp-header-logo {display:grid;place-items:center;flex:none;width:30px;height:30px;
+    border-radius:9px;background:var(--od-muted);color:var(--od-brand);font-size:19px}
+  .fp-header-title {display:grid;flex:1;min-width:0;gap:1px}
+  .fp-header-title strong {font-size:13px;line-height:1.25}
+  .fp-header-title small {font-size:10px;color:var(--od-sub);overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .fp-header .od-icon-button {flex:none}
+  .fp-back {flex:none;border:0;border-radius:8px;background:transparent;
+    color:var(--od-ink);font:inherit;font-size:23px;width:30px;height:30px;cursor:pointer}
+  .fp-session {margin:0 11px;padding:9px 10px;border-radius:10px;
+    border:1px solid var(--od-line);background:var(--od-muted);display:grid;gap:4px;min-width:0}
+  .fp-session-head {display:flex;align-items:center;justify-content:space-between;gap:7px;min-width:0}
+  .fp-session-head button {flex:none;min-height:29px;padding:4px 7px;border-radius:8px;
+    font-size:10px;white-space:nowrap}
+  .fp-site {font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+  .fp-session-state {display:flex;align-items:center;gap:6px;font-size:11px;color:var(--od-sub);min-width:0}
+  .fp-session-state > span:nth-child(2) {min-width:0;flex:1}
+  .fp-session-state .od-icon-button {height:25px;width:25px;flex:none}
+  .fp-session-note {font-size:10px;color:var(--od-sub);line-height:1.45;margin:0}
+  .fp-session > small {font-size:10px}
+  .fp-tabs {margin:0 11px;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;
+    border:0;background:var(--od-muted);padding:3px;border-radius:9px}
+  .fp-tabs button {min-width:0;min-height:30px;padding:5px 3px;
+    font-size:11px;font-weight:650;white-space:nowrap}
+  .fp-panel {display:grid;align-content:start;gap:10px;min-width:0;padding:0 12px}
+  .fp-config {gap:9px}
+  .fp-section-head {min-width:0;gap:6px}
+  .fp-section-head strong {font-size:13px}
+  .fp-inline-actions {display:flex;align-items:center;gap:4px;flex:none}
+  .fp-inline-actions .od-icon-button {min-height:29px;width:29px}
+  .fp-mini {background:var(--od-paper);border:1px solid var(--od-line);
+    color:var(--od-ink);border-radius:8px;padding:5px 8px;min-height:29px;
+    font:inherit;font-size:11px;cursor:pointer}
+  .fp-mini:hover,.fp-pro-entry:hover,.fp-external:hover {border-color:var(--od-brand)}
+  .fp-pretitle {font-size:10px;font-weight:650;color:var(--od-sub);margin:0}
+  .fp-quick-presets {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+  .fp-quick-presets button {min-width:0;min-height:33px;white-space:nowrap;border:1px solid var(--od-line);
+    border-radius:8px;background:var(--od-muted);color:var(--od-ink);font:inherit;font-size:11px;
+    font-weight:650;cursor:pointer}
+  .fp-quick-presets button.active {color:var(--od-brand);border-color:var(--od-brand);
+    background:color-mix(in srgb,var(--od-brand) 8%,var(--od-paper))}
+  .fp-editor-caption {display:flex;align-items:center;gap:6px;color:var(--od-sub);font-size:10px;min-width:0}
+  .fp-editor-caption strong {color:var(--od-ink);font-size:11px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+  .fp-editor-caption .fp-tag {padding:2px 5px;font-size:9px;flex:none}
+  .fp-parameter {display:grid;gap:4px;min-width:0}
+  .fp-parameter label {font-size:11px;font-weight:650}
+  .fp-control {width:100%;min-width:0;min-height:33px;border-radius:8px;
+    padding:6px 8px;background:var(--od-paper);color:var(--od-ink)}
+  .fp-parameter small {font-size:10px;line-height:1.45}
+  .fp-parameter-title {border-bottom:1px solid var(--od-line);padding:7px 0}
+  .fp-parameter-title strong {font-size:12px}
+  .fp-link {border:none;background:transparent;color:var(--od-brand);
+    padding:3px 0;font:inherit;font-size:10px;cursor:pointer;text-align:right}
+  .fp-reset-note {font-size:10px;line-height:1.55;color:var(--od-sub);margin:0}
+  .fp-pro-entry {display:flex;align-items:center;justify-content:space-between;gap:8px;
+    width:100%;padding:10px;border:1px solid var(--od-line);background:var(--od-muted);
+    border-radius:9px;color:var(--od-ink);font:inherit;text-align:left;cursor:pointer}
+  .fp-pro-entry span:first-child {display:grid;gap:2px;min-width:0}
+  .fp-pro-entry strong {font-size:11px}
+  .fp-pro-entry small {font-size:10px;color:var(--od-sub)}
+  .fp-pro-entry span:last-child {font-size:20px;color:var(--od-sub)}
+  .fp-bottom-actions {display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+    gap:8px;padding:9px 11px;border-top:1px solid var(--od-line);background:var(--od-paper);
+    margin-top:auto;position:sticky;bottom:0;z-index:2}
+  .fp-bottom-actions button {min-width:0;min-height:36px;font-size:11px;font-weight:700;
+    border-radius:9px;display:flex;align-items:center;gap:5px;justify-content:center;padding:6px}
+  .fp-profile-list {display:grid;border:1px solid var(--od-line);border-radius:10px;overflow:hidden}
+  .fp-profile-row {display:flex;align-items:center;gap:4px;min-width:0;
+    border-bottom:1px solid var(--od-line)}
+  .fp-profile-row:last-child {border-bottom:0}
+  .fp-profile-load {display:flex;align-items:center;gap:7px;flex:1;min-width:0;
+    padding:10px 6px 10px 9px;border:0;background:transparent;color:var(--od-ink);
+    text-align:left;cursor:pointer}
+  .fp-profile-load:hover {background:var(--od-muted)}
+  .fp-profile-icon {width:27px;height:27px;display:grid;place-items:center;
+    background:var(--od-muted);color:var(--od-brand);border-radius:8px;flex:none}
+  .fp-profile-text {display:grid;gap:2px;flex:1;min-width:0}
+  .fp-profile-text strong {font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fp-profile-text small {color:var(--od-sub);font-size:10px;line-height:1.35;overflow-wrap:anywhere}
+  .fp-profile-row .od-icon-button {flex:none;min-width:27px;max-width:27px;padding:0}
+  .fp-profile-row > .od-icon-button:last-child {margin-right:4px}
+  .fp-detect-embedded > .fp-app {margin:0;padding:0;gap:8px;background:transparent}
+  .fp-detect-embedded > .fp-app > .fp-tabs {display:none}
+  .fp-detect-embedded > .fp-app > .fp-preview-note {display:none}
+  .fp-detect-embedded .fp-card {padding:10px}
+  .fp-detect-embedded .fp-panel {padding:0}
+  .fp-detect-limits {border:1px solid var(--od-line);border-radius:9px;padding:0 10px}
+  .fp-detect-limits div {display:flex;justify-content:space-between;gap:8px;
+    font-size:10px;padding:9px 0;border-bottom:1px solid var(--od-line)}
+  .fp-detect-limits div:last-child {border:0}
+  .fp-detect-limits span {color:var(--od-sub)}
+  .fp-detect-limits strong {text-align:right}
+  .fp-pro-table {font-size:10px;border-collapse:collapse;width:100%}
+  .fp-pro-table td,.fp-pro-table th {padding:9px 4px;text-align:left;border-bottom:1px solid var(--od-line)}
+  .fp-pro-table th {font-weight:650;color:var(--od-sub)}
+  .fp-external {display:flex;align-items:center;justify-content:space-between;
+    text-decoration:none;color:var(--od-ink);font-size:11px;border:1px solid var(--od-line);
+    padding:10px;border-radius:9px}
+  .fp-details,.fp-legacy {font-size:11px}
+  .fp-modal-backdrop {z-index:90}
+  :scope button:focus-visible,:scope a:focus-visible,:scope input:focus-visible,
+  :scope select:focus-visible,:scope summary:focus-visible {
+    outline:2px solid var(--od-focus,var(--od-brand));outline-offset:2px}
+  @media(max-width:360px) {
+    :scope {gap:6px}
+    .fp-header {padding:6px 8px}
+    .fp-session {margin:0 6px;padding:7px}
+    .fp-session-head {flex-wrap:wrap}
+    .fp-session-head button {width:100%}
+    .fp-tabs {margin:0 6px;gap:2px}
+    .fp-panel {padding:0 7px;gap:8px}
+    .fp-quick-presets {gap:3px}
+    .fp-quick-presets button {font-size:10px}
+    .fp-profile-load {padding:7px 3px;gap:4px}
+    .fp-profile-row .od-icon-button {min-width:24px;max-width:24px}
+    .fp-bottom-actions {padding:6px;gap:5px}
+  }
+  @media(prefers-reduced-motion:reduce) {
+    :scope *, :scope *::before, :scope *::after {scroll-behavior:auto;transition:none}
+  }
+}

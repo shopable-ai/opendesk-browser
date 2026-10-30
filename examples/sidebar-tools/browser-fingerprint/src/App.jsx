@@ -6,7 +6,7 @@ import {ORIGINAL_CONFIG,BUILTIN_PRESETS,CONFIG_FIELDS,copyConfig,
   validConfig} from './env-config.js';
 import {readPresets,savePreset,deletePreset,readRuns,appendRun} from './presets.js';
 import {applyEnvironment,verifyEnvironment,restoreEnvironment,
-  ACTIVE_STATES,classifyFailure,classifyRestoration,readbackFailureState,sessionActions} from './run-session.js';
+  ACTIVE_STATES,classifyFailure,classifyRestoration,readbackFailureState,sessionActions,sameTarget} from './run-session.js';
 
 const stamp=()=>new Date().toISOString();
 const ident=prefix=>prefix+(globalThis.crypto?.randomUUID?.()||
@@ -80,7 +80,7 @@ function Notice({notice}){
 function Field({fieldKey,value,onChange,disabled,showNote=false}){
   const def=CONFIG_FIELDS[fieldKey];
   return <div className="fp-parameter" key={fieldKey}>
-    <label htmlFor={'fp-param-'+fieldKey}>{def.label}</label>
+    <label htmlFor={'fp-param-'+fieldKey}>{fieldKey==='ua'?'浏览器标识 / UA、UA-CH':def.label}</label>
     <select id={'fp-param-'+fieldKey} className="fp-control" value={value}
       onChange={event=>onChange(fieldKey,event.target.value)} disabled={disabled}>
       {def.values.map(([id,label])=><option value={id} key={id}>{label}</option>)}
@@ -88,24 +88,26 @@ function Field({fieldKey,value,onChange,disabled,showNote=false}){
     {showNote?<small className="fp-secondary">{def.note}</small>:null}
   </div>;
 }
-function Summary({status,origin,presetName,onRefresh,refreshDisabled}){
-  return <Card><CardContent className="fp-card fp-summary">
-    <div className="fp-status-message" role="status" aria-live="polite" aria-atomic="true">
-    <div className="fp-section-head"><strong className="fp-status-title">
-      <span className={'fp-dot '+(['verified_limited','restored_verified','restored_limited'].includes(status)?'fp-dot-ok':
-        status==='denied'||status==='failed'?'fp-dot-error':
-        ['idle','blocked'].includes(status)?'':'fp-dot-warn')}/>
-      {labels[status]||'结果未知'}</strong>
-      <span className="fp-tag">仅当前 Tab</span></div>
-    <p className="fp-status-note">{stateDescription[status]||stateDescription.unknown}</p>
+function Summary({status,origin,presetName,onRefresh,refreshDisabled,canRestore,onRestore,busy}){
+  const attention=['unknown','invalidated','restore_unknown'].includes(status);
+  return <section className="fp-session" aria-label="当前网页执行状态">
+    <div className="fp-session-head">
+      <strong className="fp-site" title={origin||''}>当前网页 · {origin||'尚未绑定可用网页'}</strong>
+      {canRestore?<Button variant="secondary" disabled={!!busy} onClick={onRestore}>
+        {busy==='restore'?'停止并核验中…':'停止并恢复网页'}</Button>:null}
     </div>
-    <div className="fp-context">
-      <span>当前网页 · {origin||'尚未绑定可用网页'}</span>
-      <IconButton label="重新检查当前网页" title="刷新网页身份"
+    <div className="fp-session-state" role="status" aria-live="polite">
+      <span className={'fp-dot '+(['verified_limited','restored_verified','restored_limited'].includes(status)?'fp-dot-ok':
+        ['unknown','restore_unknown','failed'].includes(status)?'fp-dot-error':
+        ['idle','blocked'].includes(status)?'':'fp-dot-warn')}/>
+      <span>{labels[status]||'结果未知'} · 仅当前 Tab</span>
+      <IconButton label="重新检查当前网页身份" title="刷新网页身份"
         disabled={refreshDisabled} onClick={onRefresh}><Glyph name="refresh"/></IconButton>
     </div>
-    {status!=='idle'?<div className="fp-scope-line"><span>本次配置</span><strong>{presetName}</strong></div>:null}
-  </CardContent></Card>;
+    <p className="fp-session-note">{stateDescription[status]||stateDescription.unknown}
+      {attention?' 请人工核对当前网页；不会自动重放旧会话。':''}</p>
+    {status!=='idle'?<small className="fp-secondary">本次会话：{presetName}</small>:null}
+  </section>;
 }
 function Modal({title,children,onCancel,actions}){
   const dialogRef=React.useRef(null);
@@ -169,6 +171,9 @@ function Report({verification,preview,onCopy,onExport,onVerify,canRead,busy}){
 export default function App({adapter,preview=false}){
   const [view,setView]=React.useState('config');
   const [selected,setSelected]=React.useState('us');
+  const [nameDraft,setNameDraft]=React.useState(BUILTIN_PRESETS.us.name);
+  const [page,setPage]=React.useState(null);
+  const [deleteTarget,setDeleteTarget]=React.useState(null);
   const [config,setConfig]=React.useState(()=>copyConfig(BUILTIN_PRESETS.us.config));
   const [dirty,setDirty]=React.useState(false);
   const [presets,setPresets]=React.useState([]);
@@ -180,7 +185,6 @@ export default function App({adapter,preview=false}){
   const [notice,setNotice]=React.useState(null);
   const [dialog,setDialog]=React.useState(null);
   const [draftAction,setDraftAction]=React.useState(null);
-  const [presetNameInput,setPresetNameInput]=React.useState('');
   const [busy,setBusy]=React.useState('');
   const [legacyOpen,setLegacyOpen]=React.useState(false);
   const busyRef=React.useRef(null);
@@ -189,8 +193,9 @@ export default function App({adapter,preview=false}){
   const currentOrigin=React.useRef(null);
   const origin=context.origin;
   const custom=presets.find(row=>row.id===selected);
-  const presetName=BUILTIN_PRESETS[selected]?.name||custom?.name||'自定义环境';
+  const presetName=nameDraft.trim()||'未命名环境';
   const locked=ACTIVE_STATES.includes(status)||!!activeSession.current;
+  const originalConfig=Object.keys(ORIGINAL_CONFIG).every(key=>config[key]===ORIGINAL_CONFIG[key]);
   const {canRead,canRestore}=sessionActions(status,activeSession.current);
 
   React.useEffect(()=>{
@@ -219,6 +224,9 @@ export default function App({adapter,preview=false}){
         setVerification(null);
         setNotice({type:'warning',
           text:'网页身份或授权已变化；当前会话已失效，不能复用旧文档执行操作。'});
+      }else{
+        // A completed session must never be advertised as the new document's state.
+        setStatus('idle');setSession(null);setVerification(null);
       }
       adapter.context().then(raw=>{
         if(!live)return;
@@ -248,7 +256,7 @@ export default function App({adapter,preview=false}){
     const eventOrigin=currentOrigin.current||activeSession.current?.target.origin;
     if(!eventOrigin)return;
     const row={id:ident('r-'),at:stamp(),kind,status:state,origin:eventOrigin,
-      presetName:presetName.slice(0,24),detail:String(detail).slice(0,180),source};
+      presetName:(activeSession.current?.presetName||presetName).slice(0,24),detail:String(detail).slice(0,180),source};
     try{
       const items=await appendRun(adapter.request,row);
       if(mounted.current)setRuns(items);
@@ -262,69 +270,102 @@ export default function App({adapter,preview=false}){
       const info=safeContext(await adapter.context());
       currentOrigin.current=info.origin;
       setContext({origin:info.origin,title:info.title});
-      warn('当前网页身份已重新读取：'+info.origin,'info');
+      if(activeSession.current&&!sameTarget(activeSession.current.target,info)){
+        activeSession.current={...activeSession.current,invalidated:true};
+        setStatus('invalidated');setVerification(null);
+        warn('当前网页不再匹配原有 Session；禁止对新文档重放应用或恢复，请人工核对。','warning');
+      }else{
+        if(!activeSession.current){setStatus('idle');setSession(null);setVerification(null);}
+        warn('当前网页身份已重新读取：'+info.origin,'info');
+      }
     }catch(error){
       currentOrigin.current=null;setContext({origin:null});
       warn('无法读取当前网页：'+readableError(error));
     }finally{finish('target');}
   }
   function assignPreset(value){
-    if(BUILTIN_PRESETS[value]){
-      setSelected(value);setConfig(copyConfig(BUILTIN_PRESETS[value].config));
-    }else if(value==='custom'){
-      setSelected('custom');setConfig(copyConfig(config));
-    }else{
-      const preset=presets.find(row=>row.id===value);
-      if(!preset)return;
-      setSelected(value);setConfig(copyConfig(preset.config));
-    }
-    setDirty(value==='custom');setVerification(null);
+    const builtIn=BUILTIN_PRESETS[value],saved=presets.find(row=>row.id===value);
+    if(!builtIn&&!saved)return;
+    setSelected(value);setConfig(copyConfig((builtIn||saved).config));
+    setNameDraft((builtIn||saved).name);setDirty(false);
+    setPage(null);setView('config');
+    // Reading another form must not erase independent Host verification.
   }
   function discardGuard(action){
-    if(locked){warn('会话未完成；请先独立核对恢复结果。','warning');return;}
-    if(dirty){setDraftAction(()=>action);return;}
-    action();
+    if(busyRef.current){warn('当前操作尚未结束，请完成后再切换草稿。','warning');return;}
+    if(dirty){setDraftAction(()=>action);return;}action();
   }
   function editField(key,value){
-    if(locked)return;
-    setConfig(previous=>({...previous,[key]:value}));
-    setDirty(true);setVerification(null);
+    if(busyRef.current)return;
+    setConfig(previous=>({...previous,[key]:value}));setDirty(true);
   }
-  function openSave(){
-    if(locked)return;
-    setPresetNameInput(custom?.name||'');
-    setDialog('save');
+  function editName(value){
+    if(busyRef.current)return;
+    setNameDraft(value);setDirty(true);
+  }
+  function newEnvironment(){
+    discardGuard(()=>{
+      setSelected('custom');setConfig(copyConfig(ORIGINAL_CONFIG));
+      setNameDraft('自定义环境');setDirty(true);
+      setView('config');setPage(null);
+    });
+  }
+  function duplicateEnvironment(item){
+    // Copying the currently edited draft preserves its changes in the new
+    // profile; switching to a different saved row still needs a discard guard.
+    const source=item||{name:nameDraft,config};
+    const action=()=>{
+      setSelected('custom');setConfig(copyConfig(source.config));
+      setNameDraft((source.name+' 副本').slice(0,24));setDirty(true);
+      setView('config');setPage(null);
+    };
+    if(item)discardGuard(action);
+    else if(!busyRef.current)action();
+  }
+  function resetForm(){
+    if(busyRef.current)return;
+    setConfig(copyConfig(ORIGINAL_CONFIG));setDirty(true);
+    warn('仅将当前表单恢复原始参数；没有调用 Host，也没有恢复网页。','info');
   }
   async function saveCurrent(){
-    const name=presetNameInput.trim();
-    if(!name||name.length>24){
-      warn('请输入 1–24 字的自定义预设名称。');return;
-    }
+    let name=nameDraft.trim();
+    if(!name||name.length>24){warn('环境名称应为 1–24 个字符。');return;}
+    if(!custom&&BUILTIN_PRESETS[selected]?.name===name)
+      name=(name+' 副本').slice(0,24);
     if(!begin('preset'))return;
     try{
       const saved=await savePreset(adapter.request,
-        {id:custom?.id||null,name,config});
+        {id:custom?.id||null,name,config:copyConfig(config)});
       if(!mounted.current)return;
-      setPresets(saved.items);setSelected(saved.id);setDirty(false);
-      setDialog(null);warn('已使用条件写入保存预设，并从可信存储读回确认。','success');
-      await record('preset','idle','预设已保存并读回','client-precheck');
+      setPresets(saved.items);setSelected(saved.id);setNameDraft(name);setDirty(false);
+      warn('环境已保存，并从可信存储读回确认；未改变当前网页。','success');
+      await record('preset','idle','环境档案已保存并读回','client-precheck');
     }catch(error){warn('保存未确认：'+readableError(error));}
     finally{finish('preset');}
   }
   async function removeCurrent(){
-    if(!custom||!begin('preset'))return;
+    const id=deleteTarget;
+    if(!id||!presets.some(row=>row.id===id)||!begin('preset'))return;
     try{
-      const saved=await deletePreset(adapter.request,custom.id);
+      const saved=await deletePreset(adapter.request,id);
       if(!mounted.current)return;
-      setPresets(saved);setSelected('us');setConfig(copyConfig(BUILTIN_PRESETS.us.config));
-      setDirty(false);setDialog(null);
-      warn('自定义预设已删除。','success');
-      await record('preset','idle','自定义预设已删除','client-precheck');
+      setPresets(saved);setDeleteTarget(null);setDialog(null);
+      if(selected===id){setSelected('custom');setDirty(true);}
+      warn('已删除自定义环境档案；当前网页运行状态没有改变。','success');
+      await record('preset','idle','自定义环境档案已删除','client-precheck');
     }catch(error){warn('删除未确认：'+readableError(error));}
     finally{finish('preset');}
   }
+  function requestDelete(id){
+    if(!presets.some(row=>row.id===id))return;
+    setDeleteTarget(id);setDialog('delete');
+  }
+  function selectTab(next){
+    if(busyRef.current)return;
+    setPage(null);setView(next);
+  }
   async function apply(){
-    if(!validConfig(config)||locked||selected==='original'||!begin('apply'))return;
+    if(!validConfig(config)||locked||originalConfig||!begin('apply'))return;
     setStatus('applying');setVerification(null);setNotice(null);
     const frozen=copyConfig(config);
     try{
@@ -467,79 +508,60 @@ export default function App({adapter,preview=false}){
     finally{finish('copy-url');}
   }
   return <main className="fp-app">
-    <Summary status={status} origin={origin} presetName={session?.presetName||presetName}
-      onRefresh={()=>void refreshContext()} refreshDisabled={!!busy}/>
-    <nav className="fp-tabs" role="tablist" aria-label="浏览器指纹功能">
-      {[['config','环境设置'],['history','运行记录']].map(([key,text])=>
+    <header className="fp-header">
+      {page?<button type="button" className="fp-back" onClick={()=>setPage(null)}
+        aria-label="返回主页面">‹</button>:<span className="fp-header-logo" aria-hidden="true">◉</span>}
+      <span className="fp-header-title"><strong>浏览器指纹</strong>
+        <small>Browser Fingerprint · 环境配置</small></span>
+      <IconButton label="设置与诊断" title="设置与诊断" onClick={()=>setPage('settings')}>
+        <Glyph name="info"/></IconButton>
+    </header>
+    <Summary status={status} origin={origin}
+      presetName={session?.presetName||presetName}
+      canRestore={canRestore} onRestore={()=>void restore()}
+      busy={busy} onRefresh={()=>void refreshContext()} refreshDisabled={!!busy}/>
+    <nav className="fp-tabs" role="tablist" aria-label="浏览器指纹主功能">
+      {[['config','配置'],['profiles','我的环境'],['detect','检测']].map(([key,text],index,items)=>
         <button type="button" role="tab" key={key} id={'fp-tab-'+key}
           aria-selected={view===key} aria-controls={'fp-panel-'+key} tabIndex={view===key?0:-1}
-          className={view===key?'active':''} onClick={()=>setView(key)}
+          className={view===key?'active':''} onClick={()=>selectTab(key)}
           onKeyDown={event=>{
             if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
             event.preventDefault();
-            const next=event.key==='Home'?'config':event.key==='End'?'history':view==='config'?'history':'config';
-            setView(next);document.getElementById('fp-tab-'+next)?.focus();
+            const current=items.findIndex(item=>item[0]===view);
+            const target=event.key==='Home'?0:event.key==='End'?items.length-1:
+              (current+(event.key==='ArrowRight'?1:items.length-1))%items.length;
+            selectTab(items[target][0]);
+            event.currentTarget.parentElement?.children?.[target]?.focus();
           }}>{text}</button>)}
     </nav>
-    {preview?<p className="fp-preview-note">离线同源 React 预览：SDK 测试替身不会修改 Chrome，也不能提供真实网页验证。</p>:null}
+    {preview?<p className="fp-preview-note">离线 React 预览只使用测试替身，不修改 Chrome，也不产生真实验证结果。</p>:null}
     <Notice notice={notice}/>
-    {view==='config'?<section className="fp-panel" role="tabpanel" id="fp-panel-config" aria-labelledby="fp-tab-config">
-      <Card><CardContent className="fp-card">
-        <div className="fp-section-head"><strong>环境预设</strong>
-          {dirty?<span className="fp-tag fp-tag-warn">未保存</span>:null}</div>
-        <div className="fp-preset-row">
-          <select className="fp-control" aria-label="选择环境预设" value={selected}
-            disabled={locked||!!busy} onChange={event=>{
-              const value=event.target.value;
-              discardGuard(()=>assignPreset(value));
-            }}>
-            {Object.entries(BUILTIN_PRESETS).map(([key,item])=>
-              <option key={key} value={key}>{item.name}</option>)}
-            <option value="custom">自定义环境 · 未保存</option>
-            {presets.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
-          </select>
-          <IconButton label="新建自定义预设" title="新建自定义预设"
-            disabled={locked||!!busy} onClick={()=>
-              discardGuard(()=>assignPreset('custom'))}>＋</IconButton>
-          <IconButton label="保存当前预设" title="保存预设"
-            disabled={locked||!!busy} onClick={openSave}><Glyph name="save"/></IconButton>
-          <IconButton label="删除当前自定义预设" title="删除自定义预设"
-            disabled={locked||!!busy||!custom} onClick={()=>setDialog('delete')}>
-            <Glyph name="trash"/></IconButton>
-        </div>
-
-      </CardContent></Card>
-      <Card><CardContent className="fp-card">
-
-        {['ua','lang','tz'].map(key=><Field key={key} fieldKey={key}
-          value={config[key]} disabled={locked||!!busy} onChange={editField}/>)}
-        <details className="fp-advanced">
-          <summary>更多参数 · 视口与定位</summary>
-          <Field fieldKey="viewport" value={config.viewport} disabled={locked||!!busy} onChange={editField} showNote/>
-          <Field fieldKey="geo" value={config.geo} disabled onChange={editField}/>
-          <p className="fp-secondary">当前不支持修改地理位置；预设中的定位值不会执行。</p>
-        </details>
-      </CardContent></Card>
-      <Report verification={verification} preview={preview} busy={busy} canRead={canRead}
-        onVerify={()=>void verify()} onCopy={()=>void output('copy')} onExport={()=>void output('download')}/>
+    {page==='pro'?<section className="fp-panel fp-pro" aria-label="完整浏览器环境方案">
+      <div className="fp-section-head"><strong>专业环境方案</strong>
+        <button type="button" className="fp-link" onClick={()=>setPage(null)}>返回配置</button></div>
+      <p className="fp-secondary">当前扩展只修改当前获授权网页的部分环境参数，不等于创建独立浏览器身份。此入口为自愿了解，不影响免费功能。</p>
+      <table className="fp-pro-table"><thead><tr><th>能力</th><th>本扩展</th><th>专业环境产品</th></tr></thead>
+        <tbody>
+          <tr><td>UA / 语言 / 时区 / 视口</td><td>部分支持</td><td>通常支持</td></tr>
+          <tr><td>独立浏览器 Profile</td><td>不支持</td><td>通常支持</td></tr>
+          <tr><td>Cookie / 存储隔离</td><td>不支持</td><td>通常支持</td></tr>
+          <tr><td>代理与公网 IP</td><td>不支持</td><td>依产品配置</td></tr>
+          <tr><td>Canvas / WebGL 修改</td><td>不支持</td><td>依产品配置</td></tr>
+        </tbody></table>
+      <a className="fp-external" href="https://gologin.com/" target="_blank" rel="noopener noreferrer">GoLogin 官方网站 <span aria-hidden="true">↗</span></a>
+      <a className="fp-external" href="https://www.adspower.com/" target="_blank" rel="noopener noreferrer">AdsPower 官方网站 <span aria-hidden="true">↗</span></a>
+      <p className="fp-secondary">本站未与上述厂商声明合作；不收集邮箱或候补申请，不含联盟追踪参数。</p>
+    </section>:page==='settings'?<section className="fp-panel fp-settings" aria-label="设置与诊断">
+      <div className="fp-section-head"><strong>设置与诊断</strong>
+        <button type="button" className="fp-link" onClick={()=>setPage(null)}>返回</button></div>
       <details className="fp-details">
-        <summary>网页检测与使用范围</summary>
-        <p>详细前后对比请打开浏览器环境诊断页。应用前在目标标签页打开，应用后保持该标签页，停止后核对基线。</p>
-        <code className="fp-diagnostic-url">http://127.0.0.1:43111/browser-fingerprint.html</code>
-        <Button variant="secondary" disabled={!!busy} onClick={()=>void copyDiagnosticUrl()}>复制检测页地址</Button>
-        <p>修改仅限当前授权 Tab；切换标签、导航或撤权会结束原会话。调试权限在 Chrome 安装时审阅，网站权限由原授权入口确认。</p>
-        <p>HTTP 请求头未独立验证，定位不支持；不修改公网 IP、代理、物理屏幕或独立 Profile，不保证反检测。</p>
-      </details>
-    </section>:null}
-    {view==='history'?<section className="fp-panel" role="tabpanel" id="fp-panel-history" aria-labelledby="fp-tab-history">
-      <Card><CardContent className="fp-card">
-        <div className="fp-section-head"><strong>配置运行记录</strong>
-          <span className="fp-tag">{runs.length} / 18</span></div>
-        {!runs.length?<p className="fp-empty">尚无运行记录。应用或保存预设后会在这里显示。</p>:null}
+        <summary>运行记录（{runs.length} / 18）</summary>
+        {!runs.length?<p className="fp-empty">暂无运行记录。</p>:null}
         {runs.map(item=><div className="fp-log" key={item.id}>
           <div className="fp-section-head"><strong>{({
             apply:'应用配置',verify:'网页验证',restore:'停止 / 恢复',
-            target:'目标变化',preset:'预设更新'
+            target:'目标变化',preset:'环境档案'
           })[item.kind]||item.kind}</strong>
             <span className="fp-tag">{labels[item.status]||item.status}</span></div>
           <small className="fp-secondary">{dateText(item.at)} · {item.presetName}</small>
@@ -547,42 +569,108 @@ export default function App({adapter,preview=false}){
             <p>{item.detail}</p><small className="fp-secondary">{item.origin} · {sourceLabel(item.source)}</small>
           </details>
         </div>)}
-        <p className="fp-secondary">这里只存储状态、来源、网站 Origin 和时间；不存储 Cookie、账号、文档引用或 URL 查询参数。</p>
-      </CardContent></Card>
-      <details className="fp-legacy" onToggle={event=>setLegacyOpen(event.currentTarget.open)}>
-        <summary>旧版只读检测、快照及历史对比</summary>
-        {legacyOpen?<ReadOnlyDiagnostics adapter={adapter} preview={preview}/>:null}
+        <p className="fp-secondary">记录仅含操作状态、来源、Origin 与时间，不存 Cookie、账号或完整 URL。</p>
       </details>
+      <Report verification={verification} preview={preview} busy={busy} canRead={canRead}
+        onVerify={()=>void verify()} onCopy={()=>void output('copy')} onExport={()=>void output('download')}/>
+      <details className="fp-legacy" onToggle={event=>setLegacyOpen(event.currentTarget.open)}>
+        <summary>旧版只读检测、快照与历史对比</summary>
+        {legacyOpen?<ReadOnlyDiagnostics adapter={adapter} preview={preview} coreOnly={false}/>:null}
+      </details>
+      <details className="fp-details"><summary>授权及恢复边界</summary>
+        <p>只针对当前授权 Tab 与 Document。执行未知或文档失效时不会自动重试；需要人工独立核对。</p>
+        <p>表单重置不等于网页恢复；可信 Host 的停止回执还需要独立读回才能视为已恢复。</p>
+      </details>
+    </section>:view==='config'?<section className="fp-panel fp-config" role="tabpanel" id="fp-panel-config" aria-labelledby="fp-tab-config">
+      <div className="fp-section-head"><strong>环境配置</strong>
+        <div className="fp-inline-actions">
+          <button type="button" className="fp-mini" disabled={!!busy} onClick={newEnvironment}>＋ 新建</button>
+          <IconButton label="复制当前配置" title="复制为新环境" disabled={!!busy}
+            onClick={()=>duplicateEnvironment()}><Glyph name="copy"/></IconButton>
+        </div>
+      </div>
+      <p className="fp-pretitle">快速预设 · 选择后可直接修改参数</p>
+      <div className="fp-quick-presets" role="group" aria-label="内置环境预设">
+        {[['original','原始'],['us','美国'],['de','德国'],['jp','日本']].map(([key,label])=>
+          <button type="button" className={selected===key?'active':''} key={key}
+            aria-pressed={selected===key} disabled={!!busy}
+            onClick={()=>discardGuard(()=>assignPreset(key))}>{label}</button>)}
+      </div>
+      <div className="fp-editor-caption"><span>当前正在编辑</span>
+        <strong title={nameDraft}>{nameDraft||'未命名环境'}</strong>
+        {dirty?<span className="fp-tag fp-tag-warn">未保存</span>:null}
+      </div>
+      <div className="fp-parameter"><label htmlFor="fp-environment-name">环境名称</label>
+        <input id="fp-environment-name" className="fp-control" maxLength={24}
+          value={nameDraft} disabled={!!busy} onChange={event=>editName(event.target.value)}
+          placeholder="例如：日本移动测试"/></div>
+      <div className="fp-section-head fp-parameter-title"><strong>网页环境参数</strong>
+        <button type="button" className="fp-link" disabled={!!busy} onClick={resetForm}>恢复原始参数</button></div>
+      {['ua','lang','tz','viewport'].map(key=><Field key={key} fieldKey={key}
+        value={config[key]} disabled={!!busy} onChange={editField}
+        showNote={key==='ua'}/>)}
+      <details className="fp-details"><summary>地理位置与支持范围</summary>
+        <p>预设定位：{CONFIG_FIELDS.geo.values.find(([key])=>key===config.geo)?.[1]||'保持原值'}。当前 Host 不支持定位修改，预设定位值不会执行。</p>
+        <p>UA-CH 与 UA、HTTP Accept-Language 与网页语言需要分别独立核验；公网 IP、物理屏幕与 TLS 不由本工具修改。</p>
+      </details>
+      <p className="fp-reset-note">「恢复原始参数」只重置表单，不会恢复已修改的网页。恢复网页请使用顶部「停止并恢复网页」。</p>
+      <button type="button" className="fp-pro-entry" onClick={()=>setPage('pro')}>
+        <span><strong>了解完整浏览器环境方案</strong><small>独立 Profile / Cookie 隔离 / 代理 · 自愿了解</small></span>
+        <span aria-hidden="true">›</span>
+      </button>
     </section>:null}
-    <div className="fp-bottom-actions">
-      <Button variant="primary" disabled={!!busy||locked||selected==='original'||!validConfig(config)}
-        onClick={()=>void apply()}>
-        {busy==='apply'?'应用并核验中…':'应用配置'}</Button>
-      <Button variant="secondary" disabled={!!busy||
-        (!canRestore&&!['unknown','invalidated','restore_unknown'].includes(status))}
-        onClick={()=>void restore()}>{busy==='restore'?'停止并核验中…':'停止 / 恢复'}</Button>
-    </div>
-    {draftAction?<Modal title="有尚未保存的预设修改"
+    {!page&&view==='profiles'?<section className="fp-panel fp-profiles" role="tabpanel" id="fp-panel-profiles" aria-labelledby="fp-tab-profiles">
+      <div className="fp-section-head"><strong>我的环境 <small className="fp-secondary">{presets.length}/20</small></strong>
+        <button type="button" className="fp-mini" disabled={!!busy} onClick={newEnvironment}>＋ 新建</button></div>
+      <p className="fp-secondary">这里只管理已保存的自定义环境。点击档案直接载入「配置」，编辑、保存或应用；内置预设仍在「配置」页。</p>
+      <div className="fp-profile-list">
+        {!presets.length?<p className="fp-empty">暂无已保存的环境。到「配置」页新建并保存。</p>:null}
+        {presets.map(item=><div className="fp-profile-row" key={item.id}>
+          <button type="button" className="fp-profile-load" disabled={!!busy}
+            onClick={()=>discardGuard(()=>assignPreset(item.id))}>
+            <span className="fp-profile-icon" aria-hidden="true">▣</span>
+            <span className="fp-profile-text"><strong>{item.name}</strong>
+              <small>{item.config.viewport==='mobile'?'手机':'桌面'} · {item.config.lang} · {item.config.tz}</small></span>
+            <span aria-hidden="true">›</span>
+          </button>
+          <IconButton label={'复制环境 '+item.name} title="复制为新环境" disabled={!!busy}
+            onClick={()=>duplicateEnvironment(item)}><Glyph name="copy"/></IconButton>
+          <IconButton label={'删除环境 '+item.name} title="删除环境" disabled={!!busy}
+            onClick={()=>requestDelete(item.id)}><Glyph name="trash"/></IconButton>
+        </div>)}
+      </div>
+      <p className="fp-secondary">档案不包含 Cookie、代理或独立 Profile。编辑和删除只影响档案，不会修改网页的现有会话。</p>
+    </section>:null}
+    {!page&&view==='detect'?<section className="fp-panel fp-detect" role="tabpanel" id="fp-panel-detect" aria-labelledby="fp-tab-detect">
+      <div className="fp-section-head"><strong>基础环境检测</strong></div>
+      <p className="fp-secondary">点击检测后才读取目标网页的真实环境字段；未采集字段不会推断为已生效。</p>
+      <div className="fp-detect-embedded"><ReadOnlyDiagnostics adapter={adapter} preview={preview} coreOnly/></div>
+      <div className="fp-detect-limits">
+        <div><span>自动化状态信号</span><strong>未采集 · 不推断</strong></div>
+        <div><span>HTTP 请求头 / 公网 IP / TLS</span><strong>未独立验证或不支持</strong></div>
+      </div>
+      <a className="fp-external" href="http://127.0.0.1:43111/browser-fingerprint.html"
+        target="_blank" rel="noopener noreferrer">独立检测网页 <span aria-hidden="true">↗</span></a>
+      <small className="fp-secondary">独立检测页需要本地 HTTP 检测服务已启动；不会被当前扩展自动启动。</small>
+    </section>:null}
+    {!page&&view==='config'?<footer className="fp-bottom-actions">
+      <Button variant="secondary" disabled={!!busy} onClick={()=>void saveCurrent()}>
+        <Glyph name="save"/>{custom?'保存修改':'保存为环境'}</Button>
+      <Button variant="primary" disabled={!!busy||locked||originalConfig||!validConfig(config)}
+        onClick={()=>void apply()}>{busy==='apply'?'应用并核验中…':'应用到当前网页'}</Button>
+    </footer>:null}
+    {draftAction?<Modal title="当前环境有未保存的修改"
       onCancel={()=>setDraftAction(null)}
       actions={<button className="fp-danger" type="button" onClick={()=>{
         const action=draftAction;setDraftAction(null);setDirty(false);action?.();
-      }}>丢弃修改并继续</button>}>
-      <p>更换预设将丢弃当前草稿；已有保存的预设不会被改写。</p>
+      }}>丢弃草稿并继续</button>}>
+      <p>切换环境会丢弃当前未保存的表单草稿，但不会修改网页或覆盖已保存的档案。</p>
     </Modal>:null}
-    {dialog==='save'?<Modal title="保存环境预设" onCancel={()=>setDialog(null)}
-      actions={<button className="fp-primary" type="button" disabled={!!busy}
-        onClick={()=>void saveCurrent()}>保存</button>}>
-      <label className="fp-label" htmlFor="fp-save-name">预设名称</label>
-      <input id="fp-save-name" className="fp-control" maxLength={24}
-        value={presetNameInput} placeholder="例如：德国网页测试"
-        onChange={event=>setPresetNameInput(event.target.value)}
-        onKeyDown={event=>{if(event.key==='Enter')void saveCurrent();}}/>
-      <p className="fp-secondary">仅保存选定参数，不保存 Cookie、账号、授权或代理凭据。</p>
-    </Modal>:null}
-    {dialog==='delete'?<Modal title="删除自定义预设" onCancel={()=>setDialog(null)}
-      actions={<button className="fp-danger" type="button" disabled={!!busy}
-        onClick={()=>void removeCurrent()}>删除预设</button>}>
-      <p>将删除「{custom?.name}」，不会删除历史记录或修改网页。</p>
+    {dialog==='delete'?<Modal title="删除自定义环境" onCancel={()=>{
+      setDialog(null);setDeleteTarget(null);
+    }} actions={<button className="fp-danger" type="button" disabled={!!busy}
+      onClick={()=>void removeCurrent()}>删除</button>}>
+      <p>确定删除「{presets.find(row=>row.id===deleteTarget)?.name||'该环境'}」？此操作只删除档案，不会停止或恢复当前网页。</p>
     </Modal>:null}
   </main>;
 }
