@@ -24,9 +24,9 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Test legacy video recognition and R0.4A engine
         run: node --test tests/environment/video-svip.test.mjs tests/environment/video-svip-ui-r03.test.mjs tests/environment/video-svip-source-r04a.test.mjs
+      - name: Real Chromium click-to-play authorized media demo
+        run: node tests/browser/video-svip-r04a.mjs
       - name: Build Video SVIP sidebar tool
         run: npm run build:sidebar-tool -- projects/video-svip
       - name: Build development extension
         run: npm run build:dev
-      - name: Real Chromium click-to-play authorized media demo
-        run: node tests/browser/video-svip-r04a.mjs
