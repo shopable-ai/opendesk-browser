@@ -225,7 +225,8 @@ function discoverSources(){
  registry.add({sourceId:'official:'+ctx.siteId,type:'OFFICIAL_LINK',
   label:(ctx.siteName||'当前平台')+' · 原站入口',platform:ctx.siteId,
   contentKey,authorization:'UNKNOWN',rights:'UNKNOWN',region:'UNKNOWN',
-  entitlement:memberRecords.some(r=>r.id===ctx.siteId)?'SELF_REPORTED':'UNKNOWN',
+  entitlement:memberRecords.some(r=>r.id===ctx.siteId&&r.expiry>=new Date().toISOString().slice(0,10))?
+   'SELF_REPORTED':'UNKNOWN', // manual record, never provider-verified rights
   availability:'UNKNOWN',verificationLevel:'OFFICIAL_URL',pageUrl:official.href});
  // Media sources exist only in a separately labelled preview; no remote
  // VIP parser or arbitrary media URL is admitted into production.
