@@ -3244,7 +3244,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           assertCurrent:()=>assertSession(source,token),
           assertInstalled:async()=>{
             if(!await admittedOfficialVideoSVIP(tool,revocationEpoch))
-              throw Object.assign(new Error('视频会员需安装已审阅的 0.3.0 官方版本并保持授权'),
+              throw Object.assign(new Error('视频会员需安装已审阅的 0.3.2 官方版本并保持授权'),
                 {code:'E_VIDEO_TRUST'});
           }
         });
@@ -3257,6 +3257,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
              typeof globalThis.crypto?.randomUUID!=='function')
             throw Object.assign(new Error('当前 Chrome 无法监听视频页面变化'),
               {code:'E_VIDEO_WATCH_UNAVAILABLE'});
+          if(currentPageTarget.snapshot?.reason==='E_DOCUMENT_UNRESOLVED'&&
+             typeof currentPageTarget.refresh==='function'){
+            await currentPageTarget.refresh({quiet:true,preserveRetry:true});
+            assertSession(source,token);
+          }
           const target=currentPageTarget.capture();
           const existing=videoSVIPWatchSession;
           if(existing?.source===source&&existing.token===token&&existing.tool===tool&&
@@ -3674,6 +3679,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       catch(error){notice(error.message,true);return;}
       if(active&&!readOnlyPreview&&frameRevocationEpoch!==(revocationEpochs[active.id]??null)){
         navigationAllowed=false;toolNavigation=null;clipPage=null;
+        if(active.id===VIDEO_SVIP_ID)stopVideoSVIPWatch();
         if(nativeUI||nativePending){
           destroyFrame();tocSettingsOpen=true;render();
           notice('可信工具安装代际已撤销；请重新打开已核验工具。',true);

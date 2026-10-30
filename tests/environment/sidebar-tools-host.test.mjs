@@ -918,6 +918,43 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     for(const fn of changed.listeners.get('change')||[])fn(changes,'local');
   },get focused(){return focused;}};
 }
+test('Video SVIP epoch revocation disconnects the DOM-reading watch before old signals can run',async t=>{
+  const tool=await officialToolFixture('video-svip');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const epoch='svip-installed',store=new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:true}],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}]
+  ]);
+  const page={status:'available',windowId:1,tabId:4,frameId:0,documentId:'svip-doc',
+    url:'https://v.qq.com/x/cover/test/abc.html',origin:'https://v.qq.com'};
+  const target={snapshot:page,capture:()=>({...page}),revalidate:async()=>page};
+  const connections=new Set(),messages=new Set(),disconnects=new Set();
+  let disconnected=false;
+  const port={name:'opendesk.video-svip.watch.v1',
+    sender:{id:'test',frameId:0,tab:{id:4},documentId:'svip-doc'},
+    onMessage:{addListener:fn=>messages.add(fn)},onDisconnect:{addListener:fn=>disconnects.add(fn)},
+    disconnect(){if(disconnected)return;disconnected=true;for(const fn of disconnects)fn();}};
+  const f=await hostFixture(t,{tool,store,target,configureApi(api){
+    api.runtime.id='test';
+    api.runtime.onConnect={addListener:fn=>connections.add(fn),removeListener:fn=>connections.delete(fn)};
+    api.permissions={contains:async request=>request.origins?.[0]==='https://v.qq.com/*'};
+    api.webNavigation={getAllFrames:async()=>[{...page}]};
+    api.scripting={executeScript:async req=>{
+      assert.equal(req.args[0],'watch-on');
+      for(const fn of connections)fn(port);
+      for(const fn of messages)fn({nonce:req.args[2],kind:'ready'});
+      return [{frameId:0,documentId:'svip-doc',result:{ok:true,watching:true}}];
+    }};
+  }});
+  f.ask('videoSVIP.watch',{},'svip-watch');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='svip-watch'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='svip-watch').ok,true);
+  assert.equal(disconnected,false);
+  const epochs={[tool.id]:'svip-revoked'};store.set(TOOL_REVOCATION_EPOCHS_STORE,epochs);
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:epochs}});
+  assert.equal(disconnected,true,'the isolated observer must stop reading DOM immediately');
+});
 // Exercise the actual runtime.onMessage receiver and official admission. Only
 // Chrome's injection transport is doubled; pageVideoSpeed has separate tests.
 async function videoShortcutHostFixture(t){

@@ -59,8 +59,8 @@ function reviewedCompiledVideoSpeed(target,path,root){
 // enter ONLY the existing Side Panel Host; never the SW, sandbox or Page Relay.
 // Runtime admission independently checks official package SHA and revoke epoch.
 const compiledVideoSVIPInputs=Object.freeze({
-  'projects/video-svip/trusted/policy.js':'5b479e4e2df81ea7d7bae75c5c5f03fefbe4aecb',
-  'projects/video-svip/trusted/host.js':'5e9e9a70a466ccf64c6a17c65ed5945380fe314c',
+  'projects/video-svip/trusted/policy.js':'39678897d66bc0aa52609952a42a12bff442fc80',
+  'projects/video-svip/trusted/host.js':'a395a0b0a3453993627890cf580061f96e2a8fb5',
   'projects/video-svip/trusted/admission.js':'3b6e07c464cb54d8f65d421dcb580a297a99a431'
 });
 function reviewedCompiledVideoSVIP(target,path,root){

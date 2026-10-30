@@ -1,4 +1,4 @@
-# 视频会员 · Video SVIP R0.3（源码候选，Chrome 待验收）
+# 视频会员 · Video SVIP R0.3.2（dev 核心流程已验证）
 
 正式展示名称：**视频会员**；品牌副名称：**SVIP**（仅品牌识别，不代表已提供超高级会员权益）。
 
@@ -26,12 +26,16 @@ R0.3 在现有 currentPage.read、storage.local 基础上增加固定只读 `pag
 只读取已授权活动网页的有限 DOM 标题、选中集数、页面版本与 URL；用户主动点击分享才复制脱敏链接；本机会员数据仅包含平台 id 与自填到期日期，使用 etag + ifMatch 防并发覆盖，不保存 Cookie、凭据、令牌、视频流 URL 或支付信息。
 未经提供商许可，不销售他人会员权益、不代理共享个人账户、不使用未授权的盗播线路。
 
-## 验收（不能虚报）
-- NODE：node --test tests/environment/video-svip.test.mjs
-- BUILD：npm run build:sidebar-tool -- projects/video-svip；npm run build:dev
-- MAC_CHROME：真实 Chrome 安装后检查原站识别、分享、非视频页、导航、撤权及本机保存/恢复/删除。
-- UI：320/360/400/440/520px、200% 缩放、明暗色与键盘。
-- 播放诊断、稳定备用线路、付费与好友席位：NOT_IMPLEMENTED / NOT_TESTED。
+## 当前开发状态（2026-10-30）
+
+在原 `dist/development`、已连接的 `npm run dev` 和独立 `Video SVIP R031 Accept` Profile 中，已通过官方安装链从 0.3.1 升级至 0.3.2，权限范围未变化、旧会员记录保留。真实操作证据见 [dev 记录](evidence/r032-dev-core-20261030.json)；[旧生产候选记录](evidence/r031-real-sites-20261030.json)独立保留，不作为本次 production 验收。
+
+- 腾讯原指定页面读回「仙逆 / 第164集」，标题与集数可信度均为 high；B 站原番剧页面读回「凡人修仙传 / 第196、197集」，真实选集自动更新。
+- Stop 后选集不会恢复监听，明确点击重新识别才恢复；网站权限撤回后旧结果清空并显示权限不足，恢复原权限后手动识别成功。撤权操作在 0.3.1 dev 实测，0.3.2 只改会员草稿状态与固定版本，未重复该权限操作。
+- 会员日期保存、关闭重开读回、删除已实测。0.3.2 修复保存成功后返回列表仍误报“未保存内容”；未知写入与保存期间新编辑继续保留草稿保护，不自动重放。
+- 定向测试：`node --test tests/environment/video-svip.test.mjs tests/environment/video-svip-ui-r03.test.mjs projects/video-svip/tests/*.test.mjs`，41/41 PASS。正式 JSON 经原打包器候选、测试、晋升与 `--check-project` 同源核对。
+- 日常继续使用已有 watcher；不要全量构建或替换 Chrome 加载目录。现有 watcher 未监听 `projects/` 的官方发行输入，本次通过触发原 Catalog 输入让其同步，并在无草稿/任务时刷新测试实例的旧资源缓存；未修改 watcher，后续独立修复。
+- production、新海外站点、同 URL 换片与延迟旧响应的原生竞态、全 iframe、完整播放/付费权益均未作本轮正式验收；宽度和缩放专项 OUT_OF_SCOPE。播放诊断、备用线路、付费与好友席位仍 NOT_IMPLEMENTED / NOT_TESTED，不进入 R0.4。
 
 ## 命名与扩展商店搜索说明
 
@@ -55,4 +59,4 @@ R0.3 在现有 currentPage.read、storage.local 基础上增加固定只读 `pag
 - 五个国内平台 + YouTube + Netflix 为**待实站验证的适配配置**，本地 HTTP Fixture 单独使用 loopback 域名，不以国外站点猜测为 PASS。
 - 有界 DOM 读取可输出 `recognized` / `needs-confirmation` / `unrecognized` / `unsupported` / `changing`；集数若无法确定只能是 `unknown`。
 - 旧 `memberships` 数据结构、存储 key、条件写入保留；不会读取/搬移旧 `video-pass` 数据或继承旧授权。
-- 本地验收步骤与证据等级请见 `R0.3-ACCEPTANCE.zh-CN.md`。在完成正式 Chromium/Real RunHost、Mac Chrome 和实站验收前，R0.3 仍是**待验收候选**。
+- 本地验收步骤与证据等级请见 `R0.3-ACCEPTANCE.zh-CN.md`。本次只收尾 dev 核心流程；R0.3 的完整正式验收仍未完成。

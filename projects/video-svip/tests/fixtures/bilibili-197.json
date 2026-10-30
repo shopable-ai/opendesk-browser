@@ -1,0 +1,7 @@
+{
+  "sourceUrl": "https://www.bilibili.com/bangumi/play/ep3854821?from_spmid=666.25.episode.0",
+  "activeUrl": "https://www.bilibili.com/zh-Hans/bangumi/play/ep3854821?from_spmid=666.25.episode.0",
+  "observedAt": "2026-10-30 (Asia/Shanghai; exact observation time not supplied)",
+  "provenance": "Minimal reconstruction from leader observed read-only native DevTools DOM fragments. Finite observed fragments, not complete website HTML. DOM accessibility only, not unrestricted playback evidence: leader observed a current-region membership restriction on Bilibili at 03:01. The neighboring link contains only the observed episode number and href. No upstream code, account data or media URLs.",
+  "html": "<!doctype html><html><head><title>凡人修仙传第197集-国创-高清独家在线观看-bilibili-哔哩哔哩</title></head><body><a class=\"mediainfo_mediaTitle__Zyiqh\" title=\"凡人修仙传\">凡人修仙传</a><a href=\"/bangumi/play/ep3854820\">196</a><a class=\"EpisodeVirtualList_numberItem__GLWgO EpisodeVirtualList_activeNumber__Sm49O\" href=\"/bangumi/play/ep3854821\" title=\"197\"><span class=\"EpisodeVirtualList_numberTitle__6SOS6\">197</span><span class=\"EpisodeVirtualList_numberBadge__2JR_S\" style=\"background-color: rgb(251, 114, 153);\">会员</span></a></body></html>"
+}

@@ -54,6 +54,7 @@ function fixture(url=urls.tencent,doc=mockDocument()){
    url,origin:new URL(url).origin};
  const calls=[],state={allowed:true,stale:false,installed:true,doc,url,frames:[top],onCall:null};
  const api={
+   permissions:{contains:async()=>state.allowed},
    webNavigation:{getAllFrames:async()=>state.frames},
    scripting:{executeScript:async req=>{
      calls.push(req);
@@ -204,6 +205,35 @@ test('unsupported pages, wrong document, revoked installation and denied permiss
  const wrong=fixture();wrong.state.frames=[{...wrong.top,documentId:'new-document'}];
  await assert.rejects(requestVideoSVIP({...wrong.options,operation:'videoSVIP.inspect'}),{code:'E_DOCUMENT_STALE'});
  assert.equal(wrong.calls.length,0);
+});
+
+test('withheld website access is rejected before a Chrome injection can remain pending',async()=>{
+ const f=fixture();
+ f.options.api.permissions={contains:async request=>{
+   assert.deepEqual(request,{origins:['https://v.qq.com/*']});
+   return false;
+ }};
+ for(const operation of ['videoSVIP.watch','videoSVIP.inspect']){
+   await assert.rejects(requestVideoSVIP({...f.options,operation,
+     watchNonce:'00000000-0000-0000-0000-000000000001'}),{code:'E_VIDEO_SITE_ACCESS'});
+ }
+ assert.equal(f.calls.length,0);
+});
+
+test('re-identification re-observes a cached transient navigation failure before capturing',async()=>{
+ const f=fixture();let settled=false,refreshes=0;
+ f.options.currentPageTarget={
+   get snapshot(){return settled?f.target:{status:'unavailable',reason:'E_DOCUMENT_UNRESOLVED'};},
+   refresh:async options=>{
+     assert.deepEqual(options,{quiet:true,preserveRetry:true});
+     refreshes++;settled=true;
+   },
+   capture:()=>{if(!settled)throw Object.assign(Error('cached loading'),{code:'E_DOCUMENT_UNRESOLVED'});return {...f.target};},
+   revalidate:async()=>({...f.target})
+ };
+ const result=await requestVideoSVIP({...f.options,operation:'videoSVIP.inspect'});
+ assert.equal(result.recognitionState,'recognized');
+ assert.equal(refreshes,1);assert.equal(f.calls.length,2);
 });
 
 test('iframe is explicitly partial; unrelated frame is never injected into',async()=>{

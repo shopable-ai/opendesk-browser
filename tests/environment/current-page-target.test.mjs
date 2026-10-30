@@ -18,6 +18,226 @@ function fixture({windowId = 7, tabId = 11, documentId = 'doc-a', url = 'https:/
   return {state,api:{tabs,webNavigation,windows}};
 }
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
+const advance = async (t, ms) => { t.mock.timers.tick(ms); await flush(); };
+
+async function retryFixture(t) {
+  t.mock.timers.enable({apis:['setTimeout', 'Date'], now:0});
+  const f = fixture(), query = f.api.tabs.query;
+  let queries = 0;
+  f.api.tabs.query = async input => { queries++; return query(input); };
+  const target = createCurrentPageTarget({api:f.api});
+  t.after(() => target.dispose());
+  await target.ready;
+  return {...f, target, queries:() => queries};
+}
+
+test('an early final completion recovers after loading settles without another browser event', async t => {
+  const {api, state, target} = await retryFixture(t), captured = target.capture();
+  api.webNavigation.onBeforeNavigate.emit({tabId:11,frameId:0});
+  state.status = 'loading'; state.documentId = 'doc-next'; state.url = 'https://next.example/';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+  assert.throws(() => target.capture(), {code:'E_DOCUMENT_UNRESOLVED'});
+  await advance(t, 250);
+  assert.throws(() => target.capture(), {code:'E_DOCUMENT_UNRESOLVED'});
+  state.status = 'complete';
+  await advance(t, 500);
+  assert.equal(target.capture().documentId, 'doc-next');
+  assert.equal(target.capture().origin, 'https://next.example');
+  await assert.rejects(target.revalidate(captured), {code:'E_DOCUMENT_STALE'});
+});
+
+test('navigation re-observation is bounded and does not churn identical unavailable snapshots', async t => {
+  const {api, state, target, queries} = await retryFixture(t);
+  state.status = 'loading';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+  const states = [], unsubscribe = target.subscribe(value => states.push(value));
+  const initialQueries = queries();
+  for (let i = 0; i < 40; i++) await advance(t, 250);
+  assert.ok(queries() > initialQueries, 'navigation must actually schedule re-observation');
+  assert.ok(queries() - initialQueries <= 6, 'the retry budget must terminate');
+  assert.equal(states.length, 1, 'silent retries must not repeatedly invalidate sandbox tickets');
+  const finalQueries = queries(); state.status = 'complete';
+  await advance(t, 20000);
+  assert.equal(queries(), finalQueries);
+  assert.equal(target.snapshot.status, 'unavailable', 'exhaustion cannot admit a document');
+  unsubscribe();
+});
+
+test('explicit quiet re-observation recovers after exhaustion without repeated pending notifications', async t => {
+  const {api, state, target, queries} = await retryFixture(t);
+  state.status = 'loading';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+  for (let i = 0; i < 40; i++) await advance(t, 250);
+  const states = []; target.subscribe(value => states.push(value));
+  await target.refresh({quiet:true,preserveRetry:true});
+  assert.equal(states.length, 1, 'an unchanged pending target must not restart sandbox requests');
+  state.status = 'complete'; state.documentId = 'doc-after-budget';
+  await target.refresh({quiet:true,preserveRetry:true});
+  assert.equal(target.capture().documentId, 'doc-after-budget');
+  assert.deepEqual(states.map(value => value.status), ['unavailable','available']);
+  const finalQueries = queries(); await advance(t, 20000);
+  assert.equal(queries(), finalQueries, 'manual observation must not start a new polling budget');
+});
+
+test('activation and disposal cancel a queued navigation retry', async t => {
+  const {api, state, target, queries} = await retryFixture(t), captured = target.capture();
+  state.status = 'loading';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+  state.tabId = 12; state.documentId = 'doc-other'; state.url = 'https://other.example/'; state.status = 'complete';
+  api.tabs.onActivated.emit({windowId:7,tabId:12}); await flush();
+  const activatedQueries = queries(); await advance(t, 10000);
+  assert.equal(queries(), activatedQueries);
+  assert.equal(target.capture().documentId, 'doc-other');
+  await assert.rejects(target.revalidate(captured), {code:'E_DOCUMENT_STALE'});
+  state.status = 'loading';
+  api.webNavigation.onCompleted.emit({tabId:12,frameId:0}); await flush();
+  target.dispose(); const disposedQueries = queries();
+  await advance(t, 10000);
+  assert.equal(queries(), disposedQueries);
+  assert.throws(() => target.capture(), {code:'E_HOST_CLOSED'});
+});
+
+test('a superseded in-flight retry cannot publish or re-arm after activation or disposal', async t => {
+  for (const action of ['activate', 'dispose']) {
+    await t.test(action, async t => {
+      const {api, state, target, queries} = await retryFixture(t);
+      state.status = 'loading';
+      api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+      const query = api.tabs.query; let release;
+      api.tabs.query = async input => {
+        const selected = await query(input);
+        if (!release) await new Promise(resolve => { release = resolve; });
+        return selected;
+      };
+      await advance(t, 250);
+      assert.equal(typeof release, 'function', 'a retry must be in flight');
+      if (action === 'activate') {
+        state.tabId = 12; state.documentId = 'doc-other'; state.status = 'complete';
+        api.tabs.onActivated.emit({windowId:7,tabId:12}); await flush();
+      } else target.dispose();
+      const snapshot = target.snapshot; release(); await flush();
+      const finalQueries = queries(); await advance(t, 10000);
+      assert.equal(target.snapshot, snapshot);
+      assert.equal(queries(), finalQueries);
+    });
+  }
+});
+
+test('new navigation, navigation error, tab/window removal and explicit refresh cancel old retries', async t => {
+  for (const action of ['onBeforeNavigate', 'onErrorOccurred', 'tabRemoved', 'windowRemoved', 'refresh']) {
+    await t.test(action, async t => {
+      const {api, state, target, queries} = await retryFixture(t);
+      state.status = 'loading';
+      api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+      if (action === 'tabRemoved') api.tabs.onRemoved.emit(11, {windowId:7});
+      else if (action === 'windowRemoved') api.windows.onRemoved.emit(7);
+      else if (action === 'refresh') await target.refresh();
+      else api.webNavigation[action].emit({tabId:11,frameId:0});
+      await flush(); const finalQueries = queries();
+      state.status = 'complete'; await advance(t, 10000);
+      assert.equal(queries(), finalQueries);
+      assert.equal(target.snapshot.status, 'unavailable');
+    });
+  }
+});
+
+test('unsupported, incognito, errored frames and API failures never retry navigation', async t => {
+  for (const failure of ['unsupported', 'incognito', 'frame-error', 'permission', 'unresolved-exception']) {
+    await t.test(failure, async t => {
+      const {api, state, target, queries} = await retryFixture(t);
+      if (failure === 'unsupported') state.url = 'chrome://settings/';
+      if (failure === 'incognito') state.incognito = true;
+      if (failure === 'frame-error') api.webNavigation.getAllFrames = async () => [{frameId:0,errorOccurred:true}];
+      if (failure === 'permission' || failure === 'unresolved-exception')
+        api.webNavigation.getAllFrames = async () => { throw Object.assign(Error('denied'),
+          failure === 'permission' ? {code:'E_PERMISSION'} : {}); };
+      api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+      const finalQueries = queries(); await advance(t, 10000);
+      assert.equal(queries(), finalQueries);
+      assert.equal(target.snapshot.status, 'unavailable');
+    });
+  }
+});
+
+test('stale revalidation cannot consume navigation recovery and successful revalidation stops it', async t => {
+  const {api, state, target, queries} = await retryFixture(t), captured = target.capture();
+  state.status = 'loading';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+  await assert.rejects(target.revalidate(captured), {code:'E_DOCUMENT_STALE'});
+  state.status = 'complete'; state.documentId = 'doc-next';
+  await advance(t, 250);
+  assert.equal(target.capture().documentId, 'doc-next');
+  const current = target.capture(); state.status = 'loading';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+  state.status = 'complete'; await target.revalidate(current);
+  const finalQueries = queries(); await advance(t, 10000);
+  assert.equal(queries(), finalQueries);
+});
+
+test('title-only observations preserve the existing navigation recovery budget', async t => {
+  const {api, state, target} = await retryFixture(t);
+  state.status = 'loading';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+  await advance(t, 250);
+  state.title = 'Updated title';
+  api.tabs.onUpdated.emit(11, {title:state.title}, {windowId:7,active:true}); await flush();
+  state.status = 'complete'; state.documentId = 'doc-settled';
+  await advance(t, 500);
+  assert.equal(target.capture().documentId, 'doc-settled');
+});
+
+test('navigation retries retain main-document URL and lifecycle admission checks', async t => {
+  const {api, state, target} = await retryFixture(t), frames = api.webNavigation.getAllFrames;
+  state.status = 'loading';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+  state.status = 'complete'; state.url = 'https://next.example/'; state.documentId = 'doc-next';
+  api.webNavigation.getAllFrames = async input => (await frames(input)).map(frame => ({...frame,url:'https://old.example/'}));
+  await advance(t, 250);
+  assert.throws(() => target.capture(), {code:'E_DOCUMENT_UNRESOLVED'});
+  api.webNavigation.getAllFrames = async input => (await frames(input)).map(frame => ({...frame,documentLifecycle:'prerender'}));
+  await advance(t, 500);
+  assert.throws(() => target.capture(), {code:'E_DOCUMENT_UNRESOLVED'});
+  api.webNavigation.getAllFrames = frames;
+  await advance(t, 1000);
+  assert.equal(target.capture().documentId, 'doc-next');
+});
+
+test('late timers and in-flight results cannot observe or publish beyond the ten-second budget', async t => {
+  for (const inFlight of [false, true]) {
+    await t.test(inFlight ? 'in-flight result' : 'overdue timer', async t => {
+      const {api, state, target, queries} = await retryFixture(t);
+      state.status = 'loading';
+      api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+      const query = api.tabs.query; let release;
+      if (inFlight) {
+        api.tabs.query = async input => { const selected = await query(input);
+          await new Promise(resolve => { release = resolve; }); return selected; };
+        await advance(t, 250);
+        assert.equal(typeof release, 'function');
+      }
+      const finalQueries = queries(); state.status = 'complete';
+      await advance(t, 10000);
+      if (inFlight) { release(); await flush(); }
+      assert.equal(queries(), finalQueries);
+      assert.equal(target.snapshot.status, 'unavailable');
+    });
+  }
+});
+
+test('incognito discovered by the final retry confirmation is terminal', async t => {
+  const {api, state, target, queries} = await retryFixture(t);
+  state.status = 'loading';
+  api.webNavigation.onCompleted.emit({tabId:11,frameId:0}); await flush();
+  state.status = 'complete';
+  const query = api.tabs.query; let reads = 0;
+  api.tabs.query = async input => (await query(input)).map(tab => ({...tab,incognito:++reads > 1}));
+  await advance(t, 250);
+  const finalQueries = queries();
+  for (const delay of [500, 1000, 2000, 4000]) await advance(t, delay);
+  assert.equal(queries(), finalQueries);
+  assert.equal(target.snapshot.status, 'unavailable');
+});
 
 test('navigation starts invalidate the visible old document before tabs updates and recover after failure or commit', async () => {
   const {api, state} = fixture(), target = createCurrentPageTarget({api});

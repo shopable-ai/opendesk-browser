@@ -21,6 +21,39 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
   // Event routing survives resolving/unavailable snapshots. This ID is never
   // an admitted target: capture/revalidate still require the exact live document.
   let observedTabId = null;
+  const retryDelays = [250, 500, 1000, 2000, 4000];
+  let navigationRetry = null;
+
+  function cancelRetry() {
+    if (navigationRetry) clearTimeout(navigationRetry.timer);
+    navigationRetry = null;
+  }
+
+  function settleRetry(token, observation) {
+    const retry = navigationRetry;
+    if (!retry || disposed || token !== sequence) return;
+    if (!observation.transient || observedTabId !== retry.tabId || Date.now() >= retry.deadline) {
+      cancelRetry(); return;
+    }
+    if (retry.timer !== null) return;
+    const delay = retryDelays[retry.attempt++];
+    if (!delay || Date.now() + delay > retry.deadline) { cancelRetry(); return; }
+    retry.timer = setTimeout(async () => {
+      retry.timer = null;
+      if (disposed || navigationRetry !== retry) return;
+      if (observedTabId !== retry.tabId || Date.now() >= retry.deadline) { cancelRetry(); return; }
+      const nextToken = ++sequence, result = {};
+      let next;
+      try { next = await observe(windowId, nextToken, result); }
+      catch (error) { next = unavailable(error.code || 'E_DOCUMENT_UNRESOLVED', error.message || '无法识别当前网页', windowId); }
+      if (disposed || navigationRetry !== retry || nextToken !== sequence) return;
+      if (observedTabId !== retry.tabId || Date.now() >= retry.deadline) { cancelRetry(); return; }
+      // Re-observation must not repeatedly invalidate the sandbox's pending read
+      // with resolving -> identical unavailable notifications.
+      if (JSON.stringify(next) !== JSON.stringify(state)) emit(next);
+      settleRetry(nextToken, result);
+    }, delay);
+  }
 
   const emit = next => {
     state = Object.freeze(next);
@@ -34,7 +67,11 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     event.addListener(listener); removers.push(() => event.removeListener(listener));
   };
 
-  async function observe(boundWindowId, token) {
+  async function observe(boundWindowId, token, observation = {}) {
+    const transient = message => {
+      observation.transient = true;
+      return unavailable('E_DOCUMENT_UNRESOLVED', message, boundWindowId);
+    };
     if (!Number.isSafeInteger(boundWindowId) || boundWindowId < 0)
       return unavailable('E_WINDOW_UNAVAILABLE', '无法确定 Sidebar 所属浏览器窗口', boundWindowId);
     const selected = await api.tabs.query({active: true, windowId: boundWindowId});
@@ -52,41 +89,51 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     try { tabUrl = pageUrl(tab.pendingUrl || tab.url); }
     catch (error) { return unavailable(error.code, error.message, boundWindowId); }
     if (tab.pendingUrl)
-      return unavailable('E_DOCUMENT_UNRESOLVED', '当前网页正在导航，请等待页面稳定', boundWindowId);
+      return transient('当前网页正在导航，请等待页面稳定');
     if (tab.status === 'loading' || tab.status === 'unloaded')
-      return unavailable('E_DOCUMENT_UNRESOLVED', '当前网页尚未完成加载，请等待页面稳定', boundWindowId);
+      return transient('当前网页尚未完成加载，请等待页面稳定');
 
     const frames = await api.webNavigation.getAllFrames({tabId: tab.id});
     const root = frames?.find(frame => frame.frameId === 0);
-    if (!root || root.errorOccurred || (root.documentLifecycle && root.documentLifecycle !== 'active') ||
-        typeof root.documentId !== 'string' || !root.documentId)
+    if (root?.errorOccurred)
       return unavailable('E_DOCUMENT_UNRESOLVED', '无法确认当前网页的活动主文档', boundWindowId);
+    if (!root || (root.documentLifecycle && root.documentLifecycle !== 'active') ||
+        typeof root.documentId !== 'string' || !root.documentId)
+      return transient('无法确认当前网页的活动主文档');
     let rootUrl;
     try { rootUrl = pageUrl(root.url); }
     catch (error) { return unavailable(error.code, error.message, boundWindowId); }
     if (rootUrl.href !== tabUrl.href)
-      return unavailable('E_DOCUMENT_UNRESOLVED', '标签页与主文档正在切换，未选择旧网页作为回退目标', boundWindowId);
+      return transient('标签页与主文档正在切换，未选择旧网页作为回退目标');
 
     // Close the tabs.query -> webNavigation race: the exact same tab must still
     // be active in this Sidebar's window after the document observation.
     const confirmed = await api.tabs.query({active: true, windowId: boundWindowId});
+    if (confirmed?.[0]?.incognito)
+      return unavailable('E_DOCUMENT_UNRESOLVED', '当前网页在识别过程中发生变化', boundWindowId);
     if (!Array.isArray(confirmed) || confirmed.length !== 1 || confirmed[0].id !== tab.id ||
         confirmed[0].windowId !== boundWindowId || confirmed[0].active !== true || confirmed[0].incognito ||
       confirmed[0].pendingUrl || ['loading', 'unloaded'].includes(confirmed[0].status) || confirmed[0].url !== tab.url)
-      return unavailable('E_DOCUMENT_UNRESOLVED', '当前网页在识别过程中发生变化', boundWindowId);
+      return transient('当前网页在识别过程中发生变化');
 
     return Object.freeze({status: 'available', windowId: boundWindowId, tabId: tab.id, frameId: 0,
       documentId: root.documentId, url: rootUrl.href, origin: rootUrl.origin, title: tab.title || rootUrl.href});
   }
 
-  async function refresh() {
+  async function refresh({retryNavigation = false, preserveRetry = false, quiet = false} = {}) {
     if (disposed) return state;
-    const token = ++sequence;
-    if (!disposed) emit(resolving(windowId));
+    if (!preserveRetry) cancelRetry();
+    const token = ++sequence, observation = {}, deadline = Date.now() + 10000;
+    if (!quiet) emit(resolving(windowId));
     let next;
-    try { next = await observe(windowId, token); }
+    try { next = await observe(windowId, token, observation); }
     catch (error) { next = unavailable(error.code || 'E_DOCUMENT_UNRESOLVED', error.message || '无法识别当前网页', windowId); }
-    if (!disposed && token === sequence) emit(next);
+    if (!disposed && token === sequence) {
+      if (retryNavigation && observation.transient)
+        navigationRetry = {tabId:observedTabId, attempt:0, timer:null, deadline};
+      if (!quiet || JSON.stringify(next) !== JSON.stringify(state)) emit(next);
+      settleRetry(token, observation);
+    }
     return next;
   }
 
@@ -99,24 +146,33 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     });
     listen(api.tabs?.onUpdated, (tabId, change, tab) => {
       if (tab?.windowId !== windowId || (!tab.active && tabId !== state.tabId)) return;
-      if (['url', 'pendingUrl', 'status', 'title'].some(key => Object.hasOwn(change || {}, key))) void refresh();
+      const navigated = ['url', 'pendingUrl', 'status'].some(key => Object.hasOwn(change || {}, key));
+      // Metadata alone neither cancels convergence nor grants it a new budget.
+      if (navigated || Object.hasOwn(change || {}, 'title'))
+        void refresh({retryNavigation:navigated, preserveRetry:!navigated});
     });
     listen(api.tabs?.onRemoved, (tabId, info) => {
       if (info?.windowId === windowId || tabId === state.tabId) void refresh();
     });
-    const navigation = details => { if (details?.frameId === 0 && details.tabId === observedTabId) void refresh(); };
+    const navigation = details => {
+      if (details?.frameId === 0 && details.tabId === observedTabId) void refresh({retryNavigation:true});
+    };
     listen(api.webNavigation?.onBeforeNavigate, details => {
       if (details?.frameId !== 0 || details.tabId !== observedTabId) return;
+      cancelRetry();
       sequence++;
       emit({...unavailable('E_DOCUMENT_UNRESOLVED', '当前网页正在导航，请等待文档加载完成', windowId), tabId: details.tabId});
     });
     listen(api.webNavigation?.onCommitted, navigation);
     listen(api.webNavigation?.onCompleted, navigation);
-    listen(api.webNavigation?.onErrorOccurred, navigation);
+    listen(api.webNavigation?.onErrorOccurred, details => {
+      if (details?.frameId === 0 && details.tabId === observedTabId) void refresh();
+    });
     listen(api.webNavigation?.onHistoryStateUpdated, navigation);
     listen(api.webNavigation?.onReferenceFragmentUpdated, navigation);
     listen(api.windows?.onRemoved, removedWindowId => {
       if (removedWindowId !== windowId) return;
+      cancelRetry();
       sequence++; observedTabId = null;
       emit(unavailable('E_WINDOW_UNAVAILABLE', 'Sidebar 所属浏览器窗口已关闭', windowId));
     });
@@ -146,13 +202,14 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
   async function revalidate(captured) {
     if (disposed) throw new EnvironmentError('E_HOST_CLOSED', 'Sidebar 已关闭');
     if (!captured || captured.status !== 'available' || captured.windowId !== windowId) throw stale();
-    const token = ++sequence;
+    const token = ++sequence, observation = {};
     let observed;
-    try { observed = await observe(windowId, token); }
-    catch { throw stale(); }
+    try { observed = await observe(windowId, token, observation); }
+    catch { if (token === sequence) cancelRetry(); throw stale(); }
     if (disposed) throw new EnvironmentError('E_HOST_CLOSED', 'Sidebar 已关闭');
     if (token !== sequence) throw stale();
     emit(observed);
+    settleRetry(token, observation);
     if (observed.status !== 'available') throw stale(observed.message);
     for (const key of ['windowId', 'tabId', 'frameId', 'documentId', 'url', 'origin'])
       if (observed[key] !== captured[key]) throw stale();
@@ -163,6 +220,6 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     subscribe(observer) { observers.add(observer); observer(state); return () => observers.delete(observer); },
     get snapshot() { return state; }, get windowId() { return windowId; },
     resourceSnapshot: () => ({subscriptions: removers.length}),
-    dispose() { if (disposed) return; disposed = true; sequence++; for (const remove of removers.splice(0)) remove(); observers.clear(); }
+    dispose() { if (disposed) return; disposed = true; cancelRetry(); sequence++; for (const remove of removers.splice(0)) remove(); observers.clear(); }
   });
 }

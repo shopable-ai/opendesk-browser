@@ -10,7 +10,9 @@ const PROVIDERS=Object.freeze([
 ]);
 const SHARE_KEYS=new Set(['vid','v','id','ep','episode','p','bvid','aid','cid','season_id','episode_id']);
 let page=null,memberRecords=[],etag=null,storageReady=false,writing=false;
+let memberDirty=false,memberDraftRevision=0;
 let closed=false,stopped=false,pageEpoch=0,eventTimer=null;
+function reportMemberState(){bridge.setState?.({dirty:memberDirty,busy:writing});}
 function flash(text='',kind=''){
  const node=el('vp-flash');node.textContent=text;node.dataset.kind=kind;node.hidden=!text;
 }
@@ -158,29 +160,39 @@ async function restoreMembers(){
   if(page?.site)el('vp-member-provider').value=page.site.id;
  }catch(error){storageReady=false;renderRecords();flash('本机存储读取失败：'+String(error.message||error).slice(0,120),'error');}
 }
-async function writeMembers(next,success){
+async function writeMembers(next,success,saveDraft=false){
  if(!storageReady||writing||!validRecords(next))return;
- writing=true;renderRecords();
+ const draftRevision=memberDraftRevision;
+ if(saveDraft)memberDirty=true;
+ writing=true;reportMemberState();renderRecords();
  try{
   const result=await request('storage.set',{key:'memberships',value:next,ifMatch:etag});
   if(typeof result?.etag!=='string'||!/^[0-9a-f]{64}$/.test(result.etag))throw Error('保存结果不可核验');
   memberRecords=next;etag=result.etag;flash(success);
+  if(saveDraft&&draftRevision===memberDraftRevision)memberDirty=false;
  }catch(error){
   flash('未确认保存成功；为避免覆盖其他窗口更改，请重开工具核对：'+String(error?.message||error).slice(0,120),'error');
   storageReady=false;
- }finally{writing=false;renderRecords();}
+  memberDirty=true;
+ }finally{writing=false;reportMemberState();renderRecords();}
 }
 async function removeMember(id){
  if(!storageReady||writing)return;
  await writeMembers(memberRecords.filter(row=>row.id!==id),'记录已从本机移除。');
 }
-el('vp-member-form').addEventListener('submit',event=>{
+function saveMember(event){
  event.preventDefault();if(!storageReady||writing)return;
  const id=el('vp-member-provider').value,expiry=el('vp-member-expiry').value;
  if(!PROVIDERS.some(p=>p.id===id)||!validDate(expiry)){flash('请选择网站和有效的到期日期。','error');return;}
  const next=[...memberRecords.filter(row=>row.id!==id),{id,expiry}];
- void writeMembers(next,'到期日期已保存到本机（未验证真实会员权益）。');
+ void writeMembers(next,'到期日期已保存到本机（未验证真实会员权益）。',true);
+}
+for(const kind of ['input','change'])el('vp-member-form').addEventListener(kind,()=>{
+ ++memberDraftRevision;memberDirty=true;reportMemberState();
 });
+// The opaque sandbox forbids native form navigation; save through Storage RPC.
+el('vp-member-save').addEventListener('click',saveMember);
+el('vp-member-form').addEventListener('submit',saveMember);
 for(const tab of root.querySelectorAll('[data-vp-tab]'))tab.addEventListener('click',()=>{
  const mode=tab.dataset.vpTab;
  for(const control of root.querySelectorAll('[data-vp-tab]'))control.setAttribute('aria-pressed',String(control.dataset.vpTab===mode));
