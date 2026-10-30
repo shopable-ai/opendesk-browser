@@ -1,0 +1,5 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "page",
+  "node": ["projects/video-downloader/tests/core.test.mjs"]
+}

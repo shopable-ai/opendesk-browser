@@ -1,0 +1,94 @@
+{
+  "result": "CHROMIUM_SIMULATED_PASS",
+  "checks": [
+    {
+      "name": "healthy unexpired account exposes enabled icon-only query",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "page load never requests upstream",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "reliable pre-reset history loaded",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "query is visibly in progress and locked",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "one POST, independently read account and history",
+      "passed": true,
+      "detail": {
+        "postCount": 1,
+        "accountReads": 1,
+        "historyReads": 3
+      }
+    },
+    {
+      "name": "confirmed cache updated",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "unrelated account remains intact",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "HTTP 429 shows failure rather than success",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "HTTP 429 retains last success and historical evidence",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "HTTP 200 with business error is rejected",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "successful usage survives history GET failure",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "previous seven reliable history entries remain visible",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "drawer uses scoped history fallback without inventing zero",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "readback error never claims UI query success",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "isolated second account unchanged after all operations",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no browser script errors",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "issues": [],
+  "postCount": 5,
+  "source": "services/ai-account-usage/web/main.jsx",
+  "liveProviderRequests": 0,
+  "browserVersion": "156.0.8078.80"
+}

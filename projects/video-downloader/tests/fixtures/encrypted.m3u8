@@ -1,0 +1,6 @@
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-KEY:METHOD=AES-128,URI="https://fixture.example/key"
+#EXTINF:1,
+segment.ts
+#EXT-X-ENDLIST

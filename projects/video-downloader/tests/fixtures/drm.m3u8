@@ -1,0 +1,6 @@
+#EXTM3U
+#EXT-X-VERSION:7
+#EXT-X-KEY:METHOD=SAMPLE-AES,KEYFORMAT="com.apple.streamingkeydelivery",URI="skd://licence"
+#EXTINF:1,
+segment.m4s
+#EXT-X-ENDLIST

@@ -10,6 +10,9 @@ const ticks=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};
 async function setup(){
   const {document,Event}=parseHTML('<html><body>'+html+'</body></html>');
   const root=document.querySelector('main'),states=[];
+  // linkedom lacks media methods used when the R0.4A player resets on inspection.
+  const video=root.querySelector('#vp-owned-video');
+  video.pause=()=>{};video.load=()=>{};
   let resolveWrite,rejectWrite,writes=0;
   const request=async name=>{
     if(name==='storage.get')return {value:[],etag:'a'.repeat(64)};

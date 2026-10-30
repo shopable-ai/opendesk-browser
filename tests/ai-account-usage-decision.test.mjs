@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createDemoApi} from '../services/ai-account-usage/web/demo-data.mjs';
 import {evaluateHistory, reliableEstimate, windowOptions, selectedWindow,
-  canShowWorkspaceGuidance, knownCycles, projectAccountView, summarizeVisibleAccounts} from '../services/ai-account-usage/web/usage-insights.mjs';
+  canShowWorkspaceGuidance, knownCycles, projectAccountView, summarizeVisibleAccounts, retainHistoryOnReadFailure} from '../services/ai-account-usage/web/usage-insights.mjs';
 
 const api=createDemoApi();
 async function sample(alias,windowKey) {
@@ -146,4 +146,20 @@ test('history read failure differs from insufficient evidence and preserves last
   assert.equal(totals.errors,1);
   assert.equal(totals.insufficient,0);
   assert.ok(account.windows.length>0);
+});
+
+test('failed second history GET retains last valid evidence, while a missing cache stays error',async()=>{
+  const {account,history}=await sample('spare_pro');
+  const retained=retainHistoryOnReadFailure({status:'ready',data:history});
+  assert.equal(retained.readError,true);
+  const view=projectAccountView(account,retained,'short');
+  assert.equal(view.state,'attention');
+  assert.equal(view.readError,true);
+  assert.equal(view.summary.reliableCount,7);
+  const counts=summarizeVisibleAccounts([account],{[account.alias]:retained},'short');
+  assert.equal(counts.attention,1);
+  assert.equal(counts.errors,1);
+  assert.equal(counts.loaded,1);
+  assert.equal(retainHistoryOnReadFailure(undefined).status,'error');
+  assert.equal(projectAccountView(account,{status:'error'},'short').state,'error');
 });

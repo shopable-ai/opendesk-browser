@@ -101,6 +101,12 @@
       "project": "projects/video-svip",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
+    },
+    {
+      "id": "video-downloader",
+      "project": "projects/video-downloader",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
     }
   ]
 }

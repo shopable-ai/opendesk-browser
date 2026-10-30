@@ -69,23 +69,32 @@ export function selectedWindow(account, history, scope = 'all') {
 }
 // This same scope-aware projection drives row decisions, totals, filtering and sorting.
 // A missing matching window is NOT a zero-value observation of another window.
+// History read errors must not erase the last valid per-account, per-window evidence.
+export function retainHistoryOnReadFailure(previous) {
+  const data = previous?.data;
+  return data && Array.isArray(data.observations) && Array.isArray(data.rollovers)
+    ? {status:'ready',data,readError:true}
+    : {status:'error',readError:true};
+}
 export function projectAccountView(account, record, scope = 'all') {
   const status = record?.status ?? 'loading';
-  const history = status === 'ready' ? record.data ?? null : null;
+  const history = record?.data && Array.isArray(record.data.observations) &&
+    Array.isArray(record.data.rollovers) ? record.data : null;
+  const readError = status === 'error' || record?.readError === true;
   const choice = selectedWindow(account, history, scope);
   const summary = history && choice ? evaluateHistory(history.rollovers, choice.key) : null;
-  const state = status === 'error' ? 'error' :
-    status !== 'ready' ? 'loading' :
+  const state = readError && !history ? 'error' :
+    !history ? 'loading' :
     !choice && scope !== 'all' ? 'not-applicable' : summary?.decision ?? 'insufficient';
-  return {history, choice, summary, state, status};
+  return {history, choice, summary, state, status, readError};
 }
 export function summarizeVisibleAccounts(accounts, records, scope = 'all') {
   const counts = {total:accounts.length, loaded:0, attention:0, insufficient:0,
     notApplicable:0, errors:0};
   for (const account of accounts) {
     const view = projectAccountView(account, records?.[account.alias], scope);
-    if (view.state === 'error') {counts.errors++;continue;}
-    if (view.state === 'loading') continue;
+    if (view.readError) counts.errors++;
+    if (view.state === 'error' || view.state === 'loading') continue;
     counts.loaded++;
     if (view.state === 'attention') counts.attention++;
     if (view.state === 'insufficient') counts.insufficient++;
