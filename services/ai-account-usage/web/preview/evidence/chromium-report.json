@@ -1,8 +1,8 @@
 {
   "result": "CHROMIUM_PASS",
   "source": "services/ai-account-usage/web/main.jsx",
-  "scriptSHA256": "7e4591ba0344481cd76b6279e3333f1d4feb3a305406f94c34daeda055281e76",
-  "cssSHA256": "133702f77aa52760347a38d475113420c0474d88796c4e0d6cfb42e5e7f2289a",
+  "scriptSHA256": "0d12faa9e50183cdc65c523a3582c79aa674695d34cd3cbf548b9ab58a97b189",
+  "cssSHA256": "0d67666e719e4b227f8098f7dd2d3c55c5e245fec4fff0f875ab28ab30ef68d5",
   "browserVersion": "156.0.8078.80",
   "checks": [
     {
@@ -51,7 +51,7 @@
       "name": "dense desktop rows",
       "passed": true,
       "details": {
-        "desktopHeight": 88.4375
+        "desktopHeight": 92.1875
       }
     },
     {
@@ -153,7 +153,7 @@
         "rowWidth": 366,
         "identityWidth": 338,
         "chartWidth": 338,
-        "rowHeight": 266.125
+        "rowHeight": 282.125
       }
     },
     {
@@ -163,7 +163,7 @@
         "rowWidth": 366,
         "identityWidth": 338,
         "chartWidth": 338,
-        "rowHeight": 266.125
+        "rowHeight": 282.125
       }
     },
     {
