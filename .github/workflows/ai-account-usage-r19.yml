@@ -1,0 +1,73 @@
+name: AI Account Usage R1.9 · React Decision Chromium
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/ai-account-usage/web/**'
+      - 'services/ai-account-usage/package.json'
+      - 'services/ai-account-usage/domain.mjs'
+      - 'services/ai-account-usage/history-store.mjs'
+      - 'services/ai-account-usage/read-api.mjs'
+      - 'services/ai-account-usage/web-server.mjs'
+      - 'tests/ai-account-usage-*.test.mjs'
+      - 'tests/ai-account-usage-chromium-r19.mjs'
+      - '.github/workflows/ai-account-usage-r19.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ai-account-usage-r19-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  production-react-and-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked project packages
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Existing local API and historical contract regressions
+        run: npm test --prefix services/ai-account-usage
+      - name: Build the formal production and synthetic preview from ONE React source
+        run: |
+          npm run build:web --prefix services/ai-account-usage
+          npm run build:web:preview --prefix services/ai-account-usage
+      - name: Check production compiled assets do not embed synthetic account identities
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          import assert from 'node:assert/strict';
+          const p='services/ai-account-usage/web/';
+          const live=await readFile(p+'dist/app.js','utf8');
+          const demo=await readFile(p+'preview-dist/app.js','utf8');
+          const css=await readFile(p+'dist/app.css','utf8');
+          assert.ok(live.length>12000 && css.length>3000 && demo.length>12000);
+          assert.match(demo,/虚构数据/);
+          assert.doesNotMatch(live,/spare\.pro@example\.com/);
+          assert.doesNotMatch(live,/DEMO_FAILURE/);
+          assert.doesNotMatch(live,/https?:\/\/(?:unpkg|cdn\.jsdelivr|cdnjs)\./);
+          console.log('FORMAL_REACT_BUILD_READY',{liveBytes:live.length,previewBytes:demo.length});
+          NODE
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Install Chromium automation harness
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund --no-save --package-lock=false playwright@1.55.0
+      - name: Actual Chrome renderer: interactions, responsive sizes and screenshots
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tests/ai-account-usage-chromium-r19.mjs
+      - name: Archive exact React preview and four screenshot sources
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-account-usage-r19-${{ github.sha }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            services/ai-account-usage/web/preview-dist/
+            artifacts/ai-usage-r19/

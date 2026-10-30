@@ -30,7 +30,7 @@ export function createApi(fetcher = globalThis.fetch) {
   const path = alias => `/api/v1/accounts/${encodeURIComponent(alias)}`;
   return {
     accounts: async () => { const data = await request('/api/v1/accounts'); if (!Array.isArray(data.accounts)) throw new Error('账号列表格式无效。'); return data.accounts; },
-    history: async alias => { const data = await request(`${path(alias)}/history?limit=20`); if (!Array.isArray(data.observations) || !Array.isArray(data.rollovers)) throw new Error('历史格式无效。'); return data; },
+    history: async (alias,{limit=20,windowKey=null}={}) => { const query = new URLSearchParams({limit:String(limit)}); if (windowKey !== null) query.set('windowKey',windowKey); const data = await request(`${path(alias)}/history?${query}`); if (!Array.isArray(data.observations) || !Array.isArray(data.rollovers)) throw new Error('历史格式无效。'); return data; },
     refresh: async alias => { const data = await request(`${path(alias)}/refresh`, 'POST'); if (!data.account || data.account.alias !== alias) throw new Error('刷新结果身份不匹配。'); return data.account; }
   };
 }
