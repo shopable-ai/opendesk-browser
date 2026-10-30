@@ -278,6 +278,7 @@ function paintSources(){
  const status=el('vp-source-status');
  if(status)status.textContent=state.status==='IDLE'&&rows.some(r=>r.source.type==='CATALOG_ONLY')?
   'UNKNOWN · 跨站媒体无可用播放观测协议，不能确认成功或失败':
+  state.status==='IDLE'&&chosen?.openable?'OFFICIAL_LINK_AVAILABLE · 可打开官方入口，播放尚未核验':
   description[state.status]||'等待用户操作';
  const proof=el('vp-source-evidence');
  if(proof){
