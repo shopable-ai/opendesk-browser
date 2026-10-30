@@ -57,7 +57,7 @@ jobs:
       - name: Install Chromium automation harness
         run: |
           npm install --ignore-scripts --no-audit --no-fund --no-save --package-lock=false playwright@1.55.0
-      - name: Actual Chrome renderer: interactions, responsive sizes and screenshots
+      - name: "Actual Chrome renderer: interactions, responsive sizes and screenshots"
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node tests/ai-account-usage-chromium-r19.mjs
