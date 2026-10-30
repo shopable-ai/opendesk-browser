@@ -14,7 +14,7 @@ on:
       - '.github/workflows/ai-account-usage-r19.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: ai-account-usage-r19-${{ github.ref }}
   cancel-in-progress: true
@@ -47,6 +47,13 @@ jobs:
           const css=await readFile(p+'dist/app.css','utf8');
           assert.ok(live.length>12000 && css.length>3000 && demo.length>12000);
           assert.ok(demo.length>live.length+500,'preview must contain isolated synthetic dataset');
+          const standalone=await readFile(p+'preview/index.html','utf8');
+          assert.ok(standalone.length>200000,'single-file preview must bundle actual React JS');
+          assert.match(standalone,/Content-Security-Policy/);
+          assert.match(standalone,/spare\\.pro@example\\.com/);
+          assert.doesNotMatch(standalone,/src="\\.\\/app\\.js"|href="\\.\\/app\\.css"/);
+          assert.doesNotMatch(standalone,/https?:\\/\\/(?:unpkg|cdn\\.jsdelivr|cdnjs)\\./);
+
           assert.doesNotMatch(live,/spare\.pro@example\.com/);
           assert.doesNotMatch(live,/DEMO_FAILURE/);
           assert.doesNotMatch(live,/https?:\/\/(?:unpkg|cdn\.jsdelivr|cdnjs)\./);
@@ -69,6 +76,24 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node tests/ai-account-usage-chromium-r19.mjs
+      - name: Publish source-bound, synthetic HTML preview on existing main only
+        run: |
+          set -euo pipefail
+          test -s services/ai-account-usage/web/preview/index.html
+          latest="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$latest" != "$GITHUB_SHA" ]; then
+            echo "::warning::main moved during validation, refusing stale preview publish"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add services/ai-account-usage/web/preview/index.html
+          if git diff --cached --quiet; then
+            echo "Standalone HTML already matches the validated React build."
+            exit 0
+          fi
+          git commit -m "docs(ai-account-usage): publish verified R1.9 React preview [skip ci]"
+          git push origin HEAD:main
       - name: Archive exact React preview and four screenshot sources
         if: always()
         uses: actions/upload-artifact@v4
@@ -78,4 +103,5 @@ jobs:
           if-no-files-found: warn
           path: |
             services/ai-account-usage/web/preview-dist/
+            services/ai-account-usage/web/preview/index.html
             artifacts/ai-usage-r19/
