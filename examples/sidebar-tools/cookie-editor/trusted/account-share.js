@@ -67,7 +67,7 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
   async function request(origin,path,{body,secret}={}){
     await authorize();
     if(await api.permissions.contains({origins:[origin+'/*']})!==true)
-      throw fail('E_SHARE_PERMISSION_REQUIRED');
+      throw Object.assign(fail('E_SHARE_PERMISSION_REQUIRED'),{shareRequestUnsent:true});
     let response;
     try{
       response=await fetcher(origin+path,{method:body===undefined?'GET':'POST',
@@ -164,7 +164,7 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
     const address=cookieShareAddress(payload.inviteUrl,{invitation:true});
     if(action==='shareInspect'){
       const prior=(await read()).claims.find(x=>x.url===address.url&&x.owner===owner);
-      if(prior){
+      if(prior&&prior.phase!=='unclaimed'){
         // Remote availability cannot settle an earlier local claim. Reopen
         // from the durable receipt, preserving unknown-effect fences.
         if(!['received','applied'].includes(prior.phase))throw fail('E_OUTCOME_UNKNOWN');
@@ -195,23 +195,39 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
       return {status:'configuration_imported',alias:prior.alias,...await vault.status(),
         cookieWriteVerified:false,websiteLoginConfirmed:false};
     }
-    if(prior&&prior.phase!=='received')throw fail('E_OUTCOME_UNKNOWN');
+    if(prior&&!['received','unclaimed'].includes(prior.phase))throw fail('E_OUTCOME_UNKNOWN');
     const before=await vault.read();
     if(before.revision!==payload.revision)throw fail('E_VAULT_CONFLICT');
     if(before.accounts.length>=48&&!before.accounts.some(a=>a.alias===prior?.alias))
       throw fail('E_SHARE_LIMIT');
-    if(!prior){
+    if(!prior||prior.phase==='unclaimed'){
       const invite=metadata(await request(address.origin,'/v1/invites/'+address.id));
       if(invite.id!==address.id||invite.origin!==payload.origin)throw fail('E_SITE_MISMATCH');
       if(invite.mode!=='configuration')throw fail('E_SHARE_DEVICE_KEY_STORAGE_REQUIRED');
       if(invite.expiresAt<=Date.now()||invite.remainingClaims<1)throw fail('E_INVITE_CONSUMED');
       prior=await change(state=>{
+        if(prior){
+          const row=state.claims.find(x=>x.ref===prior.ref&&x.owner===owner&&x.phase==='unclaimed');
+          if(!row)throw fail('E_OUTCOME_UNKNOWN');
+          row.phase='claiming';return row;
+        }
         if(state.claims.length>=48)throw fail('E_SHARE_LIMIT');
         const row={ref:crypto.randomUUID(),owner,url:address.url,phase:'claiming',
           alias:'acct_'+crypto.randomUUID().replaceAll('-','').slice(0,20)};
         state.claims.push(row);return row;
       });
-      const result=await request(address.origin,'/v1/invites/'+address.id+'/claim',{body:{}});
+      let result;
+      try{result=await request(address.origin,'/v1/invites/'+address.id+'/claim',{body:{}});}
+      catch(error){
+        // Only the private preflight receipt proves no POST was dispatched.
+        // Sent requests and lost replies keep their durable unknown fence.
+        if(error?.shareRequestUnsent===true)await change(state=>{
+          const row=state.claims.find(x=>x.ref===prior.ref&&x.owner===owner&&x.phase==='claiming');
+          if(!row)throw fail('E_OUTCOME_UNKNOWN');
+          row.phase='unclaimed';return row;
+        });
+        throw error;
+      }
       let received;try{received=metadata(result.account);}catch{throw fail('E_OUTCOME_UNKNOWN');}
       if(result.status!=='configuration_claimed'||received.id!==invite.id||
         received.origin!==invite.origin||received.mode!=='configuration'||

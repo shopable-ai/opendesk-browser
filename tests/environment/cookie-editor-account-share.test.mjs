@@ -20,7 +20,7 @@ async function fixture(t){
   const server=createShareHttpServer(relay);server.listen(0,'127.0.0.1');await once(server,'listening');
   t.after(async()=>{server.closeAllConnections();await new Promise(r=>server.close(r));relay.close();await rm(dir,{recursive:true});});
   const calls=[],records=new Map();let granted=true,authorized=true,drop=false,commitLost=false;
-  let serial=Promise.resolve(),readHook=()=>{};
+  let serial=Promise.resolve(),readHook=()=>{},responseHook=()=>{};
   const storage=async()=>({transaction(stores,mode,work){
     assert.deepEqual(stores,['frameworkKV']);
     const run=serial.then(async()=>{
@@ -43,7 +43,8 @@ async function fixture(t){
     assert.equal(options.credentials,'omit');calls.push({url,options});
     const reply=await fetch('http://127.0.0.1:'+server.address().port+url.slice(origin.length),options);
     if(drop&&options.method==='POST')throw Error('lost HTTP receipt');
-    return new Response(await reply.text(),{status:reply.status,headers:reply.headers});
+    const text=await reply.text();responseHook(url,options);
+    return new Response(text,{status:reply.status,headers:reply.headers});
   };
   const create=()=>{
     const service=createCookieAccountShare({api,storage,vault,authorize,fetcher});
@@ -57,8 +58,9 @@ async function fixture(t){
     relayOrigin:origin,expiresInSeconds:3600,maxClaims:3,mode:'configuration'};
   return {relay,create,records,calls,vault,saved,payload,origin,
     revoke:()=>{granted=false;},disable:()=>{authorized=false;},
+    grant:()=>{granted=true;},
     drop:()=>{drop=true;},loseCommit:()=>{commitLost=true;},
-    onRead:fn=>{readHook=fn;}};
+    onRead:fn=>{readHook=fn;},onResponse:fn=>{responseHook=fn;}};
 }
 test('share addresses require exact HTTPS origin or invitation path, never credentials or fragments',()=>{
   assert.deepEqual(cookieShareAddress('https://lan.example:8443'),{origin:'https://lan.example:8443'});
@@ -177,6 +179,38 @@ test('reopened inspection preserves an unknown claim fence instead of presenting
     {code:'E_OUTCOME_UNKNOWN'});
   assert.equal(f.calls.length,calls);
   assert.equal((await f.vault.read()).accounts.length,1);
+});
+test('permission revoked before dispatch does not strand an unsent claim after explicit reauthorization',async t=>{
+  const f=await fixture(t),service=f.create();
+  const created=await service.dispatch('shareCreate',{...f.payload,maxClaims:1},'owner');
+  f.onRead(key=>{
+    if(key===COOKIE_SHARE_STORAGE_KEY&&f.records.get(key)?.claims[0]?.phase==='claiming')f.revoke();
+  });
+  const payload={revision:1,inviteUrl:created.url};
+  await assert.rejects(service.dispatch('shareClaim',payload,'owner'),{code:'E_SHARE_PERMISSION_REQUIRED'});
+  assert.equal(f.calls.filter(x=>x.url.endsWith('/claim')).length,0,'permission check stopped the actual POST');
+  f.onRead(()=>{});f.grant();
+  const inspection=await f.create().dispatch('shareInspect',{inviteUrl:created.url},'owner');
+  assert.equal(inspection.invite.remainingClaims,1);
+  const result=await f.create().dispatch('shareClaim',payload,'owner');
+  assert.equal(result.status,'configuration_imported');
+  assert.equal(f.calls.filter(x=>x.url.endsWith('/claim')).length,1);
+  assert.equal(f.records.get(COOKIE_SHARE_STORAGE_KEY).claims.length,1);
+});
+test('permission revoked after a real remote claim retains the unknown fence even after reauthorization',async t=>{
+  const f=await fixture(t),service=f.create();
+  const created=await service.dispatch('shareCreate',{...f.payload,maxClaims:1},'owner');
+  f.onResponse(url=>{if(url.endsWith('/claim'))f.revoke();});
+  const payload={revision:1,inviteUrl:created.url};
+  await assert.rejects(service.dispatch('shareClaim',payload,'owner'),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.calls.filter(x=>x.url.endsWith('/claim')).length,1);
+  assert.equal(f.records.get(COOKIE_SHARE_STORAGE_KEY).claims[0].phase,'claiming');
+  f.onResponse(()=>{});f.grant();
+  await assert.rejects(f.create().dispatch('shareInspect',{inviteUrl:created.url},'owner'),{code:'E_OUTCOME_UNKNOWN'});
+  await assert.rejects(f.create().dispatch('shareClaim',payload,'owner'),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.calls.filter(x=>x.url.endsWith('/claim')).length,1);
+  assert.equal((await f.vault.read()).accounts.length,1);
+  assert.equal(f.relay.operations.public(created.invite.id).remainingClaims,0);
 });
 test('uncertain durable create fence prevents any remote POST and cleanup preserves unrelated account data',async t=>{
   const f=await fixture(t);f.loseCommit();

@@ -85,7 +85,9 @@ const compiledCookieAccountInputs=Object.freeze({
   // Verified same-site manual recovery settles only the unchanged tab fence;
   // its old URL remains blocked. Reopened shares use exact-owner local receipts.
   'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'59235830431e630361fee9a440b9ca9f9d3d0a76',
-  'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'ffd8c426187666081f7e3d0ba62c5d0e5f13f707',
+  // Only a private preflight-unsent receipt can re-arm an unclaimed invite;
+  // dispatched requests and lost replies retain the durable unknown fence.
+  'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'63f6e84bf6fc360210be242247c29d993389ec15',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
   'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'

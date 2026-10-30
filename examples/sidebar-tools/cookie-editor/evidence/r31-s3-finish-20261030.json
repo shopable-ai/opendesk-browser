@@ -685,5 +685,86 @@
       "normalSidePanelReport": "ScrapyJS owner reports ordinary-toolbar Side Panel reachable; cloud owner reports connected UI with old short revision 1d1737183db0. This is inherited connection evidence, not current Cookie candidate/native proof.",
       "cookieChromeOperations": false
     }
+  },
+  "unsentPermissionContinuation20261030": {
+    "recordedAt": "2026-10-30T08:35:42.450343+00:00",
+    "owner": "01a18bd4-fed1-7b71-b10c-6a15a56eb271",
+    "sourceHeadBeforeCommit": "a80fa8fe3789b1f8c5bc141bd5170ec9527f67a6",
+    "operation": "Reauthorize the exact Relay origin, then explicitly continue an invitation whose POST was never dispatched.",
+    "reproducedFailure": "Claiming fence committed; permission denied before fetch; zero remote claim POSTs. Reauthorization still failed E_OUTCOME_UNKNOWN.",
+    "fix": "Only the trusted request preflight can mark its internal error as unsent. Persist unclaimed for that exact owner/ref/phase; a later explicit click re-GETs the invitation and reuses the fence and alias. Dispatched requests never receive this marker.",
+    "review": {
+      "reviewer": "01a18bdc-731d-74f0-8064-e484b40b388a",
+      "status": "NO_P1_P2_FINDINGS_READ_ONLY",
+      "approvedShareGitBlob": "63f6e84bf6fc360210be242247c29d993389ec15",
+      "target": "sw.js only; target, byte-drift and symlink rejection preserved"
+    },
+    "checks": [
+      {
+        "command": "node --test --test-name-pattern=\"permission revoked before dispatch\" tests/environment/cookie-editor-account-share.test.mjs",
+        "exitCode": 1,
+        "status": "REPRODUCED_PRODUCT_DEFECT",
+        "passed": 0,
+        "failed": 1,
+        "log": "artifacts/cookie-editor-r31/unsent-claim-permission-red-20261030.log",
+        "logSha256": "11ef65058937f45fc4ec9f553682f34f8c5fe4e589274ef132b56cc148e3aa17"
+      },
+      {
+        "command": "node --test --test-name-pattern=\"permission revoked before dispatch|lost remote claim|reopened inspection preserves an unknown|revoked permission and changed installed\" tests/environment/cookie-editor-account-share.test.mjs",
+        "exitCode": 0,
+        "status": "TARGETED_NODE_PASS",
+        "passed": 4,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/unsent-claim-permission-green-20261030.log",
+        "logSha256": "52ae7db9818631548ce3e246a18d42abfded0a259747ca304127e8228a63059b"
+      },
+      {
+        "command": "node --test tests/environment/cookie-editor-account-share.test.mjs",
+        "exitCode": 0,
+        "status": "TARGETED_NODE_PASS",
+        "passed": 17,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/claim-permission-targeted-20261030.log",
+        "logSha256": "919d4587ad22e8ffe57d4bb3fc77f2dc4fb18ef0b50ed382047c91aeb67b21d3"
+      },
+      {
+        "command": "node --test tests/environment/cookie-account-provenance-r134.test.mjs",
+        "exitCode": 0,
+        "status": "TARGETED_NODE_PASS",
+        "passed": 6,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/unsent-permission-provenance-20261030.log",
+        "logSha256": "37c3e064b630e5b33c10745d85fedcab99dd177205a7d7a83a5731b1b3d70dd5"
+      }
+    ],
+    "package": {
+      "version": "2.0.56",
+      "sha256": "9bbf1cf7aab6afab95d3f9f63247064dbcdb6e36dac2976cb075abf25e34ab64",
+      "bytes": 240710,
+      "changed": false,
+      "recompiled": false,
+      "promotedAgain": false,
+      "installed": false
+    },
+    "runtime": {
+      "rootBuildPerformed": false,
+      "watcherRestartedByCookieOwner": false,
+      "sharedWriterOwner": "01a18b96-4e45-7971-b993-28d6dde17f60",
+      "writerState": "Owner reports fresh-process preflight only; will coordinate controlled recovery after final source pin. Existing process kept until its safe window.",
+      "coherentCandidate": "NOT_YET_CONFIRMED",
+      "cookieChromeOperation": "NOT_TESTED"
+    },
+    "normalEntry": {
+      "reportedBy": "01a18bd5-be11-7ff2-8d91-e73c88d4e3e8",
+      "screenshotInspected": "artifacts/scrapyjs/r17-manual-demo/dev-service-01a18bd5.png",
+      "observed": "Real normal-toolbar Side Panel with development connected and old short revision1d1737183db0; no visible extension ID/path.",
+      "inputReleasedByScrapy": true,
+      "currentInputCoordinator": "01a18bb3-2243-7e90-93c1-6c9337dbbde7",
+      "nativeEvidenceForCookie": false
+    },
+    "deviceSession": "BLOCKED_E_SHARE_DEVICE_KEY_STORAGE_REQUIRED",
+    "twoDeviceFullChain": "NOT_TESTED",
+    "realSiteLogin": "NOT_TESTED",
+    "overall": "NOT_FINISHED"
   }
 }

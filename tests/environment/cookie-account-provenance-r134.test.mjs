@@ -17,7 +17,7 @@ const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
   'trusted/account-contract.js':'144e5104455c453ada4c7e3ba19dbe93c994be0e',
   'trusted/account-service.js':'59235830431e630361fee9a440b9ca9f9d3d0a76',
-  'trusted/account-share.js':'ffd8c426187666081f7e3d0ba62c5d0e5f13f707',
+  'trusted/account-share.js':'63f6e84bf6fc360210be242247c29d993389ec15',
   'trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };

@@ -60,3 +60,12 @@
 - 未启动扩展构建、未重启watcher、未占Chrome输入或Native。ScrapyJS owner `01a18bd5-be11-7ff2-8d91-e73c88d4e3e8` 已通知可从普通工具栏打开真实Side Panel，正在其授权范围核对身份/连接；此时输入仍归其所有，Cookie等待共享证据和释放，不再把历史管理页拒绝当作所有入口永久不可用。
 - 下一条真实操作仍为核对同一Browser SW/UI及开发连接后，本机A/B保存→白名单→关闭侧栏URL切换与独立读回/刷新。会话加密原阻断、双机完整链与真实网站登录未完成。唯一JSON追加 recoveryContinuation20261030；本轮不评分、不推送、不制作ZIP。
 - 修复与同源包已提交 `cb66ae58badd5ce9a506be72b7b35bfac4ecbb0d`，只含本任务14文件，索引释放。随后为下一条原生操作单次读回开发输出：SW已为978038B、SHA256 `a2c4b02605d2f3faba913004773c19e818f801b4d61461b30e16c658a5a82e5b` 且包含新源码标记，但 development-update 的声明仍为旧SW `424aefb25f11205ee03a0f99b36711aca64fe2f0fc34da4937eac3e9e6ef2265`／旧revision `1d1737183db0...`。这是具体指纹不一致，不是同候选就绪；已交原单writer/guard owner处理，没有写输出或启动构建。云控转述普通侧栏“已连接”及旧短revision不作为本轮Cookie运行身份。Cookie未操作真实网站或Native；Chrome控制能力仍只有普通Tab/viewport，空会话已释放。
+
+## POST 未发送时的权限恢复（同日继续）
+
+- 原writer owner已分类旧marker阻断：先前Cookie React receipt stale，之后是辅助模块可能缓存迁移前来源/路径校验；publicationGuard合法保留旧标记。其他owner暂缓新Native/Run，原62841尚未停止、没有第二writer。本任务不接管该恢复工作。
+- 原服务单项复现：GET邀请后、持久claiming围栏已写入，若Chrome服务权限在POST前撤销，实际远端claim为0次；恢复权限后却永久E_OUTCOME_UNKNOWN。失败日志 artifacts/cookie-editor-r31/unsent-claim-permission-red-20261030.log。
+- 最小后台修复：只有request原权限preflight拒绝时产生内部shareRequestUnsent回执，才能将本owner/ref的claiming变为unclaimed；下一次明确点击先查原Relay实时邀请，再复用同一记录进入claiming。真正发送后的网络异常、丢回执或响应后撤权不带此回执，继续保持未知围栏。没有新RPC、Runtime、存储格式或权限。
+- 原分享服务17项检查PASS，日志 artifacts/cookie-editor-r31/claim-permission-targeted-20261030.log。新增真实Relay领取后撤权反例证明，重新授权后也不发第二次POST；0 POST的权限拒绝则可以明确恢复且只有一条本地记录。2.0.56 UI和唯一正式包未变，不重编/重复晋升。
+- ScrapyJS已释放输入并提供正常侧栏截图，截图实见开发连接及旧短revision1d173；ID/路径仍未可见。新云控输入协调owner为 `01a18bb3-2243-7e90-93c1-6c9337dbbde7`，已同步Cookie需要一致候选后的短段A/B窗口；本任务尚未操作桌面输入。
+- 独立只读审查无P1/P2，允许share blob `63f6e84bf6fc360210be242247c29d993389ec15` 继续仅准入SW；原来源表和来源测试已精确更新，target/漂移/symlink6项PASS。已向原writer owner通知最终源pin和17项结果就绪；其恢复仍自行按Native/草稿安全窗口执行，本任务不操作服务。唯一证据追加 unsentPermissionContinuation20261030，UI包2.0.56字节保持不变。
