@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
-import {instructions,parseProposal,changes,sameConfig} from './ai-config.js';
+import {localRunnerInstructions,parseProposal,changes,sameConfig} from './ai-config.js';
 import {createAiRequest,requireGeneration} from './ai-request.js';
 import {createLocalRunnerClient,configKey,isRunSettled,previewCertified} from './local-runner-client.js';
 import './local-runner.css';
@@ -146,14 +146,14 @@ export default function AiPanel({state,locked,pending,valid,onApply,onClose,onBu
     const page={title:state.target?.url===targetUrl?state.target.title:'用户指定目标',url:new URL(targetUrl).href};
     const generationInput=binding;
     const operation=createAiRequest((op,args)=>tool.request(op,args),{requestId:id,
-      request:requirement.trim()+(correction.trim()?'\n\n本次纠正（保留以上原始需求）：\n'+correction.trim():''),instructions,
+      request:requirement.trim()+(correction.trim()?'\n\n本次纠正（保留以上原始需求）：\n'+correction.trim():''),instructions:localRunnerInstructions,
       context:{page,currentConfig:useConfig?base:{url:page.url,itemConfig:{title:'.::text'}},sample,previousError}},setRecipient);
     active.current=operation;setWorking(true);setUnknown(false);setError('');setNotice('正在等待可信发送审阅与真实 AI 返回…');
     try{
       const result=await operation.run();
       if(!alive.current||active.current!==operation)return;
       if(!result){setNotice('原 AI 请求已结束；停止后返回的内容未应用。');return;}
-      const config=parseProposal(result.proposal,globalThis.ScrapyAppModel.validateConfig,page.url);
+      const config=parseProposal(result.proposal,value=>globalThis.ScrapyAppModel.validateConfig(value,{runtime:'local'}),page.url);
       if(generationInput!==latestBinding.current){setNotice('生成期间输入、原配置或网页已变化，返回内容未应用；原试采仍保留。');return;}
       // onApply's page is the captured workspace target used by its existing stale guard.
       // The user-entered target belongs to the proposal and the AI context, not that guard.

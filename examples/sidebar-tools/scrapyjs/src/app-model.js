@@ -7,7 +7,8 @@
   const configValue = value => JSON.stringify(value, (_key, row) => row && typeof row === 'object' && !Array.isArray(row)
     ? Object.fromEntries(Object.keys(row).sort().map(key => [key, row[key]])) : row);
   const terminal = new Set(['completed', 'failed', 'stopped', 'cancelled']);
-  function validateConfig(value) {
+  function validateConfig(value, {runtime = 'browser'} = {}) {
+    const pageLimit = runtime === 'local' ? 50 : 10;
     const object = v => v && typeof v === 'object' && !Array.isArray(v);
     if (!object(value)) throw new Error('配置必须是 JSON 对象');
     if (Object.keys(value).some(key => !['url', 'itemConfig', 'waitForSelector', 'timeoutMs', 'nextPageSelector', 'maxPages', 'dedupeKey', 'detail', 'validation', 'fieldRequirements', 'processing'].includes(key))) throw new Error('仅接受字段、分页、详情和处理的声明式配置，不接受执行代码');
@@ -40,7 +41,7 @@
     if (value.waitForSelector !== undefined && (typeof value.waitForSelector !== 'string' || !value.waitForSelector.trim())) throw new Error('waitForSelector 必须是非空选择器');
     if (value.timeoutMs !== undefined && (!Number.isInteger(value.timeoutMs) || value.timeoutMs < 1 || value.timeoutMs > 60000)) throw new Error('timeoutMs 必须是 1–60000 的整数');
     if (value.nextPageSelector !== undefined && (typeof value.nextPageSelector !== 'string' || !value.nextPageSelector.trim() || value.nextPageSelector.length > 1024 || /^\(?\.?\//.test(value.nextPageSelector))) throw new Error('下一页必须是 CSS 选择器');
-    if (value.maxPages !== undefined && (!Number.isInteger(value.maxPages) || value.maxPages < 1 || value.maxPages > 10)) throw new Error('页数上限必须是 1–10');
+    if (value.maxPages !== undefined && (!Number.isInteger(value.maxPages) || value.maxPages < 1 || value.maxPages > pageLimit)) throw new Error('页数上限必须是 1–' + pageLimit);
     if (value.dedupeKey !== undefined && (typeof value.dedupeKey !== 'string' || value.dedupeKey.startsWith('_') || !Object.hasOwn(value.itemConfig,value.dedupeKey))) throw new Error('去重字段必须是已有字段');
     if (value.detail !== undefined) {
       const d=value.detail;

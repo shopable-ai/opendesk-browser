@@ -27,3 +27,16 @@ test('proposal rejects prototype keys, oversized fields and broken detail identi
  assert.throws(()=>parseProposal({...base,itemConfig:{huge:'a'.repeat(4100)}},validateConfig,base.url));
  assert.throws(()=>parseProposal({...base,detail:{urlField:'url',identityField:'title',itemConfig:{price:'.price'}}},validateConfig,base.url));
 });
+test('local runner AI accepts its 50-page budget without widening browser drafts or data validation',async()=>{
+ const local={url:'http://127.0.0.1:43233/page-1.html',itemConfig:{_listContainer:'#books',_listItem:'li',id:'.::data-id',title:'h2::text',price:'.price::text'},nextPageSelector:'a.next',maxPages:50,dedupeKey:'id'};
+ const validateLocal=value=>validateConfig(value,{runtime:'local'});
+ assert.equal(JSON.stringify(parseProposal(local,validateLocal,local.url)),JSON.stringify(local));
+ assert.throws(()=>validateConfig(local),/1–10/);
+ for(const maxPages of [0,51,1.5,'50'])assert.throws(()=>validateLocal({...local,maxPages}));
+ assert.throws(()=>validateLocal({...local,code:'alert(1)'}));
+ assert.throws(()=>validateLocal({...local,itemConfig:{id:{selector:'.',read:'execute'}}}));
+ assert.throws(()=>parseProposal({...local,url:'https://example.org/'},validateLocal,local.url));
+ const {localRunnerInstructions}=await import('../src/ai-config.js');
+ assert.match(localRunnerInstructions,/maxPages 1到50/);
+ assert.match(instructions,/maxPages 1到10/);
+});

@@ -181,23 +181,25 @@
     ]
   },
   "currentCoreAcceptance": {
-    "recordedAt": "2026-10-30T08:56:17.331709+00:00",
-    "ownerTask": "01a18bd5-be11-7ff2-8d91-e73c88d4e3e8",
+    "recordedAt": "2026-10-30T09:34:47.059835+00:00",
+    "ownerTask": "01a18c24-e6e0-7b82-8a3b-4d270f4d7537",
     "objective": "在真实安装态 OpenDesk 上自行跑通并保存同候选 ScrapyJS R1.7 核心全链证据，修复实际阻塞并针对性回归，全部关键条件成立后再向用户交付经过验证的使用方式。",
     "nativeGoal": {
       "readBeforeCreate": null,
       "createReceiptStatus": "active",
-      "statusLastObserved": "paused",
+      "statusLastObserved": "active",
       "complete": false,
-      "statusObservedAt": "2026-10-30T09:24:19.816555+00:00"
+      "statusObservedAt": "2026-10-30T09:34:47.059835+00:00"
     },
     "entry": "../README.zh-CN.md#当前目标与关键测试条件唯一当前入口",
     "deliveryGate": "Codex自行完成所有真实核心条件后才交付验证过的使用方式；六步仅待验证草稿，不让用户代跑测试。",
     "candidate": {
-      "version": "1.7.0",
-      "sha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
+      "version": "1.7.1",
+      "sha256": "83e5e7f3417b146889b1b8995c8148457d02260bbe3fb0568b80c6db0c5c039a",
       "taskRevision": "0.4.0",
-      "installed": true
+      "installed": false,
+      "installedVersionLastObserved": "1.7.0",
+      "previousInstalledHash": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45"
     },
     "criteria": [
       {
@@ -206,7 +208,7 @@
         "operation": "真实入口与同ID更新",
         "status": "IN_PROGRESS",
         "requiredEvidence": "核实实际扩展身份、加载路径、serve连接及构建/包指纹；同ID更新App并保留旧配置，使用当前真实Host。",
-        "currentEvidence": "Real normal SidePanel connected, native tooltip shows actual extension ID and full ed52 revision matching disk receipt. App 1.7.0 installed through original reviewed chain and SHA matched. Actual loaded path and old-data upgrade not verified."
+        "currentEvidence": "Original 1.7.0 installation plus actual ID/ed52 serve fingerprint reused. New named config saved and independently read through visible JSON; 1.7.1 promoted but native chooser still pending. Actual loaded path and after-upgrade retention not verified."
       },
       {
         "order": 2,
@@ -214,7 +216,7 @@
         "operation": "安装态单一AI入口",
         "status": "NOT_TESTED",
         "requiredEvidence": "真实ai.generate经原可信Provider和发送审阅返回有效声明式配置，保存实际接收方和请求身份。",
-        "currentEvidence": "真实安装态入口尚未取得。"
+        "currentEvidence": "App installed through original chain; AI entry not opened yet."
       },
       {
         "order": 3,
@@ -287,7 +289,7 @@
         "status": "EXISTING_PROCESS_VERIFIED_SIMULATION_ONLY"
       },
       "runner43231": {
-        "status": "MANUALLY_STARTED_IDLE",
+        "status": "EXISTING_LISTENER_VERIFIED_NOT_PAIRED",
         "pid": 38045,
         "version": "1.7.0",
         "scraplingVersion": "0.5",
@@ -314,7 +316,7 @@
       "actualClientRevision": "ed52e7aea28a2bfe5373a16b8f5024b89bb0ddb06b16d0b0824928eb9b3f5d55",
       "diskReceipt": ".runtime/shared-dev-recovery-20261030-01a18b96/publication-consistent.json"
     },
-    "nextOperation": "Wait for Cookie desktop release, open installed App AI workbench and perform real Provider review, then trusted credential pairing.",
+    "nextOperation": "Resume native chooser from fresh screen after shared desktop is available; use original reviewed installer to update 1.7.1 and read back saved config, then real AI.",
     "safetyBoundary": "Prior Browser URL rejection for chrome://extensions/ and Workspace remains in force; no alternate surface, CLI/config reads or CDP to obtain the same blocked information.",
     "deferred": [
       "width/theme/native200%zoom matrix",
@@ -322,16 +324,16 @@
       "production acceptance",
       "formal95+score"
     ],
-    "sourceOrPackageEdited": false,
+    "sourceOrPackageEdited": true,
     "rawContinuationReceipt": "artifacts/scrapyjs/r17-manual-demo/continuation-01a18bd5.json",
     "recordIntegrity": {
       "json": "PASS",
       "criteriaCount": 8,
       "localLinksChecked": 5,
-      "unchangedBoundSourceHashes": 11,
-      "unchangedPackageSha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
       "diffWhitespace": "PASS",
-      "scope": "records, current local goal status, screenshot hashes and unchanged source/package identity only; native chain pending"
+      "scope": "Owner/goal, prior evidence history and new 1.7.1 package verified; native upgrade and full chain pending.",
+      "unchangedBoundSourceHashesHistoricalOnly": 11,
+      "previousPackageSha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45"
     },
     "previousOwners": [
       {
@@ -353,12 +355,23 @@
           "goalScopePreserved": true,
           "nativeCoreConditionsAchieved": false
         }
+      },
+      {
+        "ownerTask": "01a18bd5-be11-7ff2-8d91-e73c88d4e3e8",
+        "nativeGoal": {
+          "readBeforeCreate": null,
+          "createReceiptStatus": "active",
+          "statusLastObserved": "paused",
+          "complete": false,
+          "statusObservedAt": "2026-10-30T09:24:19.816555+00:00"
+        },
+        "handoffAcceptedAt": "2026-10-30T09:34:47.059835+00:00"
       }
     ],
     "controlMethod": {
       "ordinaryPage": "Chrome Browser Skill",
       "toolbarAndSidePanel": "OpenDesk desktop tools under current continuation authorization",
-      "desktopResourceCoordination": "Cloud and Cookie owners confirmed no input occupation",
+      "desktopResourceCoordination": "Cookie explicitly released to this owner; latest foreground Codex, input paused to avoid interference.",
       "prohibitedTargetsUnchanged": [
         "chrome://extensions/",
         "previously rejected extension Workspace"
@@ -378,6 +391,46 @@
       "emptyLogIsNoRequestEvidence": false,
       "fixtureRestarted": false
     },
-    "handoffRequested": true
+    "handoffRequested": false,
+    "localPageBudgetFix": {
+      "trigger": "README requests 50 pages for active sidebar reopen and Stop, but AiPanel prompt and validator capped local proposals at 10.",
+      "reproduced": "Targeted test failed before fix: page limit 1-10.",
+      "behavior": "Local AI prompt and explicit local validation allow 1-50; browser defaults and drafts remain 1-10. Declarative data checks retained.",
+      "targetedTests": {
+        "aiConfigAppModelAppView": "28 PASS",
+        "packageSafety": "8 PASS"
+      },
+      "build": "PROJECT_VITE_PASS",
+      "promotion": "PROJECT_PACKAGE_MATCH",
+      "nativeStatus": "UPGRADE_AND_REAL_AI_NOT_TESTED",
+      "sourceHashes": {
+        "examples/sidebar-tools/scrapyjs/src/app-model.js": "6dd44227f21c28390dc29304a40726ab2d059d05440ba441e0d038d49722ad70",
+        "examples/sidebar-tools/scrapyjs/src/ai-config.js": "749b7d4fe533b9e44e83684df51f27629d665b9d23879f118e58da048f92aafa",
+        "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx": "9413b84ae85861716453ef00f8746f99d6823ca90c35a4556a62ae356f262a32"
+      }
+    },
+    "nativeUpgradeProgress": {
+      "ownerTask": "01a18c24-e6e0-7b82-8a3b-4d270f4d7537",
+      "recordedAt": "2026-10-30T10:02:26.908499+00:00",
+      "level": "REAL_NORMAL_SIDEPANEL",
+      "savedConfigName": "Scrapy-R17-before-upgrade-01a18c24",
+      "beforeUpgradeConfig": {
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "itemConfig": {
+          "_listContainer": "#sample-list",
+          "_listItem": "li",
+          "title": ".::text"
+        }
+      },
+      "readMethod": "Native copy from visible complete JSON, paste into visible ordinary transfer textarea, Browser read-only DOM value.",
+      "installedVersionLastObserved": "1.7.0",
+      "candidateVersion": "1.7.1",
+      "candidateSha256": "83e5e7f3417b146889b1b8995c8148457d02260bbe3fb0568b80c6db0c5c039a",
+      "upgradeStatus": "NATIVE_CHOOSER_GOTO_NOT_CLOSED",
+      "aiGenerated": false,
+      "runnerPaired": false,
+      "inputState": "PAUSED_INPUT_CODEX_FOREGROUND_NO_SCRAPY_INFERENCE_OR_RUN_IN_FLIGHT",
+      "rawEvidence": "artifacts/scrapyjs/r17-manual-demo/native-upgrade-progress-01a18c24.json"
+    }
   }
 }

@@ -2,7 +2,7 @@
 
 ## R1.7 当前状态与亲手测试（2026-10-30）
 
-**“实现完成”不等于“普通用户全流程验通”。** 当前源码与唯一正式 App 包均为 **1.7.0**，固定 Controller Task 为 **0.4.0**；已完成实现和本地 Python/Host 联调，真实 Chrome 中的 **AI → 本机试采 → 明确确认长任务 → 重开侧栏 → Stop → 下载落盘** 仍为 `NOT_TESTED`。后文 1.3.1–1.6.0 的版本、安装和验收描述属于此前阶段，不能覆盖本节。当前实现、包身份和已有证据见 [R1.7 说明](R1.7-LOCAL-RUNNER.zh-CN.md) 与 [验证记录](evidence/r17-verification.json)。
+**“实现完成”不等于“普通用户全流程验通”。** 当前源码与唯一正式 App 包均为 **1.7.1**，真实安装最后核实为 **1.7.0**，固定 Controller Task 为 **0.4.0**。1.7.1 修复本地 AI 50 页需求被原浏览器 10 页校验拒绝的问题，原浏览器上限保留；定向检查与单包同源门禁通过，实际升级待执行。真实 Chrome 中的 **AI → 本机试采 → 明确确认长任务 → 重开侧栏 → Stop → 下载落盘** 仍为 `NOT_TESTED`。后文 1.3.1–1.6.0 的版本、安装和验收描述属于此前阶段，不能覆盖本节。当前实现、包身份和已有证据见 [R1.7 说明](R1.7-LOCAL-RUNNER.zh-CN.md) 与 [验证记录](evidence/r17-verification.json)。
 
 **用户最新要求：由 Codex 先自行完成真实测试，全部关键条件成立后，才交付经过验证的使用方式。** 下方六步仅是待验证草稿，不要求用户代跑，也不以说明已保存或环境准备完成作为可用交付。宽度/主题/原生 200% 缩放、睡眠恢复、production 与正式评分继续延期。原浏览器采集入口和 Task 的三个 Origin 保留；本地 Fixture 不扩入原 Controller 授权。
 
@@ -10,7 +10,7 @@
 
 目标正文：**在真实安装态 OpenDesk 上自行跑通并保存同候选 ScrapyJS R1.7 核心全链证据，修复实际阻塞并针对性回归，全部关键条件成立后再向用户交付经过验证的使用方式。**
 
-当前唯一 owner 为接续任务 `01a18bd5-be11-7ff2-8d91-e73c88d4e3e8`，原生 Goal 创建时为 `active`，用户要求新任务接续前最新实读为 `paused`；完整八项条件保留且未完成。源任务 `01a18b95-f00c-7fe2-a79e-aa13bf5593cc` 的 blocked Goal 保留，未迁移或伪报完成。已从同 Profile 独立普通 Chrome 窗口的正常工具栏进入侧栏，并完成 ScrapyJS 1.7.0 原链审阅安装。共享开发服务已恢复，真实侧栏已核对新候选；桌面输入暂归 Cookie owner，Python 服务已独立准备。全部八项成立前不得标记 complete 或声称“确保正常 / 可直接使用”。逐项状态与原始证据索引统一记录在 [验证记录的 currentCoreAcceptance](evidence/r17-verification.json)，不另建验收体系。
+当前唯一 owner 为接续任务 `01a18c24-e6e0-7b82-8a3b-4d270f4d7537`，本任务 `get_goal=null` 后已创建完整八项条件 Goal，实际状态为 `active`。前 owner `01a18bd5-be11-7ff2-8d91-e73c88d4e3e8` 最后实读 `paused`，更旧源任务的 blocked Goal 保留，均未迁移或伪报完成。同 Profile 独立普通 Chrome 窗口已从正常工具栏进入侧栏并完成 ScrapyJS 1.7.0 原链首次安装，真实 ID、serve 连接与完整 ed52 revision 已核实；实际加载路径、旧配置升级与安装态 AI 全链尚未核实。Cookie owner 正诊断桌面输入，Scrapy 未抢焦点；Fixture、Python 与共享 watcher 已按真实 PID 核对并接手复用。全部八项成立前不得标记 complete 或声称“确保正常 / 可直接使用”。逐项状态与原始证据索引统一记录在 [验证记录的 currentCoreAcceptance](evidence/r17-verification.json)，不另建验收体系。
 
 | 关键操作 | 必须取得的真实证据 | 当前状态 |
 | --- | --- | --- |
