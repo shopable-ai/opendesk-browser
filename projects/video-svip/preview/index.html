@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Video SVIP · R0.3.2 交互预览（演示数据）</title><link rel="stylesheet" href="../src/style.css">
-<!-- DOM snapshot from src/index.html blob 19483701675783ddc3e3d4287c181ca6afea7718. All existing vp-* IDs retained. Preview-only placement; formal JS/CSS loaded below. -->
+<title>Video SVIP · R0.4A 真实授权媒体交互 Demo</title><link rel="stylesheet" href="../src/style.css">
+<!-- Product main markup is an exact snapshot of ../src/index.html, checked by tests; JS/CSS are shared. -->
 <style>
 *{box-sizing:border-box}body{margin:0;background:#eef2f8;color:#1c2b46;font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .preview-shell{max-width:1020px;margin:auto;padding:28px 22px;min-height:100vh;display:grid;grid-template-columns:228px minmax(0,1fr);gap:30px;align-items:start}
@@ -27,7 +27,7 @@
 #tool-root .vp-main-actions{display:flex;flex-wrap:nowrap;gap:6px;align-items:center}#tool-root #vp-open{flex:1;min-width:0;min-height:36px;gap:7px;font-weight:650;font-size:12px}#tool-root #vp-open svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
 #tool-root .vp-main-actions .vp-icon{width:36px;min-width:36px;height:36px;min-height:36px;flex:none;display:grid;place-items:center;border-radius:8px;border:1px solid var(--od-line);background:var(--od-paper);color:var(--od-ink);padding:0}#tool-root .vp-main-actions .vp-icon:hover:not(:disabled){background:var(--od-soft)}#tool-root .vp-main-actions .vp-icon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}#tool-root #vp-stop{color:var(--od-negative)}#tool-root #vp-open[hidden]{display:none}
 #tool-root .vp-help{border-top:1px solid var(--od-line);padding-top:9px}#tool-root .vp-help summary{font-size:11.5px;color:var(--od-sub)}#tool-root .vp-help p{font-size:11px;line-height:1.55;overflow-wrap:anywhere}
-#tool-root #vp-watch{display:none!important}#tool-root #vp-member{order:2;border:1px solid var(--od-line);border-radius:12px;padding:15px;background:var(--od-paper);display:flex;flex-direction:column;gap:12px}#tool-root #vp-member[hidden]{display:none}#tool-root:has([data-vp-tab=member][aria-pressed=true]) .vp-current{display:none}
+#tool-root #vp-watch{order:2;display:flex!important;flex-direction:column;gap:10px;border:1px solid var(--od-line);border-radius:12px;padding:15px;background:var(--od-paper)}#tool-root #vp-watch[hidden]{display:none!important}#tool-root #vp-member{order:2;border:1px solid var(--od-line);border-radius:12px;padding:15px;background:var(--od-paper);display:flex;flex-direction:column;gap:12px}#tool-root #vp-member[hidden]{display:none}#tool-root:has([data-vp-tab=member][aria-pressed=true]) .vp-current{display:none}
 #tool-root .vp-section-title{font-size:13px}#tool-root .vp-section-title span{font-size:10.5px}#tool-root .vp-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}#tool-root .vp-form input,#tool-root .vp-form select{min-height:37px;border-radius:8px}#tool-root .vp-form label{font-size:11px;gap:5px}#tool-root .vp-form button{grid-column:1/-1;width:100%;height:36px;font-weight:650}
 #tool-root .vp-member-row{border-color:var(--od-line);border-radius:9px;min-height:43px}#tool-root .vp-member-row span{font-variant-numeric:tabular-nums}#tool-root .vp-member-row button{font-size:19px;border-radius:7px}#tool-root .vp-flash{order:3;font-size:11px;overflow-wrap:anywhere}
 #tool-root[data-demo=youtube] #vp-episode,#tool-root[data-demo=unsupported] #vp-episode,#tool-root[data-demo=permission] #vp-episode,#tool-root[data-demo=changing] #vp-episode,#tool-root[data-paused=true] #vp-episode{display:none}
@@ -37,27 +37,50 @@
 </style></head>
 <body><div class="preview-shell">
 <aside class="demo-controls" aria-label="演示场景控制区"><div class="demo-controls-head"><strong>交互预览</strong><span class="demo-badge">演示数据</span></div>
-<p class="demo-caption">切换场景检验 Sidebar 信息层级与恢复操作，不代表实站识别通过。</p>
+<p class="demo-caption">原有识别场景使用模拟 Host；R0.4A 测试使用真实 HTML5 video 与自制媒体事件，不代表商业站点播放通过。</p>
 <div class="demo-label">视频与异常场景</div><div class="demo-scenarios"><button class="demo-case" type="button" data-demo="tencent" aria-pressed="true"><i aria-hidden="true"></i>腾讯视频 · 已识别</button><button class="demo-case" type="button" data-demo="bilibili" aria-pressed="false"><i aria-hidden="true"></i>B 站 · 番剧</button><button class="demo-case" type="button" data-demo="youtube" aria-pressed="false"><i aria-hidden="true"></i>YouTube · 普通视频</button><button class="demo-case" type="button" data-demo="switch" aria-pressed="false"><i aria-hidden="true"></i>同 URL 换片</button><button class="demo-case" type="button" data-demo="total" aria-pressed="false"><i aria-hidden="true"></i>只有总集数</button><button class="demo-case" type="button" data-demo="changing" aria-pressed="false"><i aria-hidden="true"></i>页面切换中</button><button class="demo-case" type="button" data-demo="unsupported" aria-pressed="false"><i aria-hidden="true"></i>不支持页面</button><button class="demo-case" type="button" data-demo="permission" aria-pressed="false"><i aria-hidden="true"></i>网站权限不足</button><button class="demo-case" type="button" data-demo="watchfail" aria-pressed="false"><i aria-hidden="true"></i>自动监听不可用</button><button class="demo-case" type="button" data-demo="iframe" aria-pressed="false"><i aria-hidden="true"></i>iframe 不完整</button><button class="demo-case" type="button" data-demo="storagefail" aria-pressed="false"><i aria-hidden="true"></i>本机记录读取失败</button></div>
+<div class="demo-label">R0.4A · 授权播放（实际视频元素）</div>
+<div class="demo-scenarios">
+<button class="demo-case" type="button" data-demo="r04a-success" aria-pressed="false"><i aria-hidden="true"></i>真实媒体播放</button>
+<button class="demo-case" type="button" data-demo="r04a-fallback" aria-pressed="false"><i aria-hidden="true"></i>失败 → 备用媒体</button>
+<button class="demo-case" type="button" data-demo="r04a-unavailable" aria-pressed="false"><i aria-hidden="true"></i>全部失败</button>
+<button class="demo-case" type="button" data-demo="r04a-unauthorized" aria-pressed="false"><i aria-hidden="true"></i>未授权</button>
+<button class="demo-case" type="button" data-demo="r04a-region" aria-pressed="false"><i aria-hidden="true"></i>地区不符</button>
+<button class="demo-case" type="button" data-demo="r04a-entitlement" aria-pressed="false"><i aria-hidden="true"></i>无权益</button>
+<button class="demo-case" type="button" data-demo="r04a-manual" aria-pressed="false"><i aria-hidden="true"></i>手动选来源</button>
+<button class="demo-case" type="button" data-demo="r04a-unknown" aria-pressed="false"><i aria-hidden="true"></i>iframe 不可观测</button>
+</div>
 <div class="demo-label">布局与主题</div><div class="demo-sizing"><select id="demo-width" aria-label="Sidebar 宽度"><option value="320">320px</option><option value="360">360px</option><option value="400" selected>400px</option><option value="440">440px</option><option value="520">520px</option></select><button id="demo-theme" type="button" aria-pressed="false">☾ 深色</button></div>
-<p class="demo-note">到期日期仅写入此演示页面内存；正式扩展使用已有本机存储合同。Tab / Enter / Esc 可操作。</p></aside>
+<p class="demo-note">授权测试视频复用 Video Downloader 的 tiny.mp4（不足 15 秒，不做连续 15 秒成功宣称）。到期日期仅保存在演示内存。</p></aside>
 <div class="preview-stage"><div class="stage-label"><span>OpenDesk Browser · Sidebar</span><span id="stage-width">400px</span></div>
-<div class="fixture" data-theme="light"><header class="app-header"><span class="app-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L19 12 7 4.8Z"/></svg></span><div><div class="app-title">视频会员</div><div class="app-sub">Video SVIP · 只读识别</div></div><span class="head-stretch"></span><span class="app-note">不影响播放</span></header>
+<div class="fixture" data-theme="light"><header class="app-header"><span class="app-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.8v14.4L19 12 7 4.8Z"/></svg></span><div><div class="app-title">视频会员</div><div class="app-sub">Video SVIP · 来源验证</div></div><span class="head-stretch"></span><span class="app-note">不影响播放</span></header>
 <div id="tool-root"><main class="vp" aria-label="视频会员">
   <nav class="vp-tabs" aria-label="功能切换"><button type="button" data-vp-tab="watch" aria-pressed="true">当前视频</button><button type="button" data-vp-tab="member" aria-pressed="false">到期记录</button></nav>
   <section class="vp-current">
-    <div class="vp-topline"><span class="vp-eyebrow">当前活动页面</span><span class="demo-live">● 演示数据</span></div>
+    <div class="vp-topline"><span class="vp-eyebrow">当前活动页面</span></div>
     <strong id="vp-title" class="vp-title">正在识别…</strong>
     <div class="vp-subline"><span id="vp-provider" class="vp-pill">待检测</span><span id="vp-episode" class="vp-episode">集数未知</span></div>
-    <p id="vp-page-state" class="vp-state" role="status" aria-live="polite">正在读取活动文档</p><p id="demo-guidance" class="demo-guidance" hidden></p><p id="demo-stop-note" class="demo-stop-note" hidden>停止的是自动识别，不会暂停网站正在播放的视频。点击 ↻ 恢复。</p>
+    <p id="vp-page-state" class="vp-state" role="status" aria-live="polite">正在读取活动文档</p>
     <div class="vp-actions vp-main-actions"><a id="vp-open" class="vp-primary" href="#" target="_blank" rel="noopener noreferrer" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span>原站观看</span></a><button id="vp-copy" class="vp-icon" type="button" disabled title="复制当前视频链接" aria-label="复制当前视频链接"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button><button id="vp-refresh" class="vp-icon" type="button" title="重新识别／恢复自动识别" aria-label="重新识别／恢复自动识别"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6.2M20 4v7h-7"/></svg></button><button id="vp-stop" class="vp-icon" type="button" title="停止自动识别，不会暂停网站视频" aria-label="停止自动识别，不会暂停网站视频"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button></div>
     <label id="vp-manual-wrap" class="vp-manual" hidden>手动复制链接<input id="vp-manual" readonly aria-label="手动复制的视频网页链接"></label>
     <details id="vp-evidence" class="vp-help"><summary>识别依据</summary><p id="vp-evidence-text">等待 Host 识别结果。</p></details>
   </section>
 
   <section id="vp-watch" class="vp-section" aria-label="观看与异常处理">
-    <div class="vp-route"><span class="vp-route-icon">▶</span><div><strong>原站官方播放器</strong><small>不会修改、静音或接管视频</small></div><span id="vp-route-state" class="vp-route-state">待识别</span></div>
-    <details class="vp-help"><summary>识别失败或视频已切换？</summary><p>检查 Chrome 网站访问权限，或重新识别当前活动视频页面。网页内 iframe 可能无法完整读取；不提供第三方解析。</p><button id="vp-recheck" class="vp-secondary" type="button">重新识别</button></details>
+    <div class="vp-section-title">观看来源<span>授权优先 · 不干预原站播放器</span></div>
+    <div class="vp-route"><span class="vp-route-icon">▶</span><div><strong>原站官方播放器</strong><small>仅提供原站链接，不代表会员权益已验证</small></div><span id="vp-route-state" class="vp-route-state">待识别</span></div>
+    <div class="vp-source-card">
+      <div class="vp-source-kicker">当前推荐</div>
+      <strong id="vp-source-name" class="vp-source-name">暂无推荐来源</strong>
+      <p id="vp-source-reason" class="vp-source-reason">等待识别当前作品。</p>
+      <button id="vp-source-play" class="vp-primary" type="button" hidden>播放授权测试媒体</button>
+      <p id="vp-source-status" class="vp-state" role="status" aria-live="polite">等待用户操作</p>
+      <video id="vp-owned-video" class="vp-owned-video" controls playsinline preload="none" hidden aria-label="Video SVIP 自有授权媒体播放器"></video>
+      <p id="vp-source-dev-note" class="vp-source-reason" hidden>开发演示：此视频是自制测试媒体，不是当前平台的会员线路或版权内容。</p>
+      <details class="vp-help"><summary>其他候选来源与手动切换</summary><div id="vp-source-list" class="vp-source-list">尚无候选来源</div></details>
+      <details class="vp-help"><summary>播放验证及独立读回</summary><p id="vp-source-evidence">尚无播放测试记录。</p></details>
+    </div>
+    <details class="vp-help"><summary>识别失败或视频已切换？</summary><p>检查 Chrome 网站访问权限，或重新识别活动视频页面。跨站 iframe 不可据此确认播放；不提供第三方解析。</p><button id="vp-recheck" class="vp-secondary" type="button">重新识别</button></details>
   </section>
   <section id="vp-member" class="vp-section" aria-label="会员记录" hidden>
     <div class="vp-section-title">到期日期<span>手工登记 · 仅本机</span></div>
@@ -69,14 +92,14 @@
     <div id="vp-member-list" class="vp-members" aria-live="polite">正在读取本机记录…</div>
   </section>
   <p id="vp-flash" class="vp-flash" role="status" aria-live="polite" hidden></p>
-</main>
+</main><p id="demo-guidance" class="demo-guidance" hidden></p><p id="demo-stop-note" class="demo-stop-note" hidden>Stop 只停止识别和自有测试播放器，不会暂停原站视频。</p>
 </div></div>
 <div class="preview-foot">模拟 Host · 复用正式 src/main.js 与 src/style.css · 无真实会员权益</div></div></div>
 <script>
 (function(){
 'use strict';
 const base='https://v.qq.com/x/cover/mzc00200aaogpgh/c4102y7ahdb.html',bURL='https://www.bilibili.com/bangumi/play/ep3854821';
-const allowed=new Set(["tencent","bilibili","youtube","switch","total","changing","unsupported","permission","watchfail","iframe","storagefail"]),q=new URLSearchParams(location.search);
+const allowed=new Set(["tencent","bilibili","youtube","switch","total","changing","unsupported","permission","watchfail","iframe","storagefail","r04a-success","r04a-fallback","r04a-unavailable","r04a-unauthorized","r04a-region","r04a-entitlement","r04a-manual","r04a-unknown"]),q=new URLSearchParams(location.search);
 let scene=allowed.has(q.get('scene'))?q.get('scene'):'tencent',rows=[],etag='0'.repeat(64),watching=false,paused=false;
 const root=document.getElementById('tool-root'),fixture=document.querySelector('.fixture'),hint=document.getElementById('demo-guidance');
 const tip={
@@ -89,7 +112,15 @@ const tip={
  permission:'请在 Chrome 扩展管理中允许网站访问，再重新识别。演示不会请求真实权限。',
  watchfail:'作品已识别，但自动监听不可用；页面变化后需要手动重新识别。',
  iframe:'可识别外层作品标题，受限 iframe 内的当前选集尚无法确认。',
- storagefail:'打开“到期记录”可看到本机记录读取失败；原记录不可被覆盖。'
+ storagefail:'打开“到期记录”可看到本机记录读取失败；原记录不可被覆盖。',
+ 'r04a-success':'自制授权视频：用户点击播放后，必须有实际视频帧与 currentTime 前进。',
+ 'r04a-fallback':'来源 A 为真实不存在的文件；来源 B 为合法自制媒体。浏览器如需要新用户手势，请手动点击 B。',
+ 'r04a-unavailable':'两个实际媒体请求均失败；不能显示播放成功。',
+ 'r04a-unauthorized':'即使媒体文件存在，也不能启动未授权来源。',
+ 'r04a-region':'地区条件不满足时禁止受控播放。',
+ 'r04a-entitlement':'没有确认权益时禁止受控播放。',
+ 'r04a-manual':'展开其他来源后可手动选择 A 或 B，用户选择优先。',
+ 'r04a-unknown':'跨域 iframe 没有受控播放协议，结果只能是 UNKNOWN。'
 };
 const ep=n=>({number:n,season:null,label:'第 '+n+' 集'});
 const item=(siteId,siteName,title,episode,url,rev,extra={})=>({
@@ -108,7 +139,12 @@ const page={
  unsupported:item(null,null,null,'unknown','https://example.org/article','00000007',{titleSource:'none',titleConfidence:'none',recognitionState:'unsupported',recognitionReason:'unsupported-site'}),
  watchfail:item('tencent','腾讯视频','演示作品 · 星海来信',ep(12),base,'00000008'),
  iframe:item('bilibili','哔哩哔哩','演示番剧 · 风从海边来','unknown',bURL,'00000009',{partial:true,evidence:{title:'可读外层标题（模拟）',episode:'iframe 读取受限'}})
-};page.storagefail=page.tencent;
+};
+const fixtureDemo=item('fixture','本地自制测试','内部自制演示片',ep(1),
+ 'http://127.0.0.1:8765/__opendesk_video_svip_fixture__/','f0000001');
+for(const mode of ['r04a-success','r04a-fallback','r04a-unavailable','r04a-unauthorized',
+ 'r04a-region','r04a-entitlement','r04a-manual','r04a-unknown'])page[mode]=fixtureDemo;
+page.storagefail=page.tencent;
 function paintDemo(){
  root.dataset.demo=scene;root.dataset.paused=String(paused);
  for(const button of document.querySelectorAll('[data-demo]'))button.setAttribute('aria-pressed',String(button.dataset.demo===scene));
@@ -121,7 +157,7 @@ function syncDate(){
  document.getElementById('vp-member-expiry').value=record?.expiry||'';
  document.getElementById('vp-member-save').textContent=record?'更新日期':'保存日期';
 }
-window.OpenDeskTool={root,setState:()=>{},request:async(op,args={})=>{
+window.OpenDeskTool={root,demoMode:"R04A_AUTHORIZED_MEDIA",demoScene:scene,setState:()=>{},request:async(op,args={})=>{
  await Promise.resolve();
  if(op==='videoSVIP.watch'){watching=!['permission','watchfail'].includes(scene);return {watching};}
  if(op==='videoSVIP.stop'){watching=false;return {stopped:true};}
@@ -145,7 +181,7 @@ for(const b of document.querySelectorAll('[data-demo]'))b.addEventListener('clic
  if(next==='storagefail'||scene==='storagefail'){
   if(next!==scene){const u=new URL(location.href);u.searchParams.set('scene',next);location.href=u.href;}return;
  }
- scene=next;paintDemo();root.dispatchEvent(new Event('opendesk-page-changed'));
+ scene=next;window.OpenDeskTool.demoScene=scene;paused=false;paintDemo();root.dispatchEvent(new Event('opendesk-page-changed'));
 });
 for(const b of root.querySelectorAll('[data-vp-tab]'))b.addEventListener('click',()=>queueMicrotask(paintDemo));
 document.getElementById('vp-stop').addEventListener('click',()=>{paused=true;paintDemo()});
