@@ -34,3 +34,10 @@ node --test examples/sidebar-tools/scrapyjs/tests/static-http-trial.test.mjs
 node --test examples/sidebar-tools/scrapyjs/tests/app-model.test.mjs
 node --test examples/sidebar-tools/scrapyjs/tests/extraction-contract.test.mjs
 ```
+
+## GitHub Actions 真实 Node 证据（不是网络真机验收）
+- Browser commit `119f082812b2133d5643f7793f4859f77ec266c7` 对应 workflow run `41042514274`：ScrapyJS App CI Node 测试 **190 项、通过 189 项、失败 1 项**；本轮新增 `static-http-trial.test.mjs` 13 项全部通过。链接：https://github.com/shopable-ai/opendesk-browser/actions/runs/41042514274
+- 唯一失败：原有 `examples/sidebar-tools/scrapyjs/tests/package.test.mjs` 的 `E_TOOL_BUILD: project installable package differs from current source`，因此 ScrapyJS 整体 App CI **FAIL**、后续 Chromium 和 Mac 原生验收尚未获得证据。不要写成整套 NODE_PASS。
+- **已确认该发行包失败在本轮之前存在**：更早的 Browser commit `82f69d6488d1b3c374de5d63528791fd4901168b`，workflow `41041483759` 的同一个 scrapyjs package 测试已失败（177 项、通过 176、失败 1，错误相同）。基线链接：https://github.com/shopable-ai/opendesk-browser/actions/runs/41041483759
+- 不因新静态模块尚未接线就擅自重发旧 App 包、改变安装身份、降低版本检查或覆盖正式包。旧发行包差异由 R2.4.2 本机验明原因，按正式候选构建、测试、版本递增与推广流程处理。
+- 分层状态：`SOURCE_COMPLETE`（新增纯业务内核），`NODE_COMPONENT_PASS`（本轮新增 13/13），`APP_CI_FAIL_PREEXISTING_PACKAGE`，`CHROMIUM_PASS=NOT_TESTED`（HTTP），`REAL_BROWSER_PASS=NOT_TESTED`，`REAL_DESKTOP_HTTP_PASS=NOT_TESTED`，`MAC_DESKTOP_PASS=NOT_TESTED`，`PUBLIC_HTTP_PRODUCTION=BLOCKED`。
