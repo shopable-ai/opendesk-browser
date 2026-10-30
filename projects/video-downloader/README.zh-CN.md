@@ -15,7 +15,7 @@
 
 ## 真实可复现 Fixture
 
-`tests/fixtures/index.html` 是仅用于本机回环服务器的合法自制媒体页。随项目提交的自制 `tiny.mp4` 和 `tiny-seg00.ts` 可直接作为本机 HTTP Fixture 播放；无需为运行下载 Demo 安装 FFmpeg。若需要重新生成样本，才运行 `generate-media.sh`（开发环境需 FFmpeg）：
+`tests/fixtures/index.html` 是仅用于本机回环服务器的合法自制媒体页。随项目提交的自制 `tiny.mp4` 可用于直接 MP4 下载测试，不需要安装 FFmpeg。HLS master/media 文本已经提供，可直接测试检测与解析；若要实际播放完整 HLS VOD，先运行下述生成脚本创建 `tiny-seg00.ts`（仅开发 Fixture 生成依赖 FFmpeg，产品运行不依赖 FFmpeg）：
 
 ```sh
 sh projects/video-downloader/tests/fixtures/generate-media.sh

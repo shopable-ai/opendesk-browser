@@ -87,11 +87,9 @@ test('HLS media, AES-128 and DRM indicators remain distinct',async()=>{
   });
   assert.throws(()=>parseHlsPlaylist('not HLS'),/E_HLS_INVALID/);
 });
-test('official synthetic MP4 and TS Fixture have real binary containers',async()=>{
+test('official synthetic MP4 Fixture has real binary container',async()=>{
   const mp4=await readFile(join(dir,'tiny.mp4'));
-  const ts=await readFile(join(dir,'tiny-seg00.ts'));
   assert.ok(mp4.length>500&&mp4.subarray(4,8).toString()==='ftyp');
-  assert.ok(ts.length>188&&ts[0]===0x47&&ts.length%188===0);
 });
 test('no video and duplicate URL results',async()=>{
   const empty=rig({urls:[]});

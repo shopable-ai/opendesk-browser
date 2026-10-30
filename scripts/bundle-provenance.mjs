@@ -70,6 +70,26 @@ function reviewedCompiledVideoSVIP(target,path,root){
   return hash;
 }
 
+// R0.1 Video Downloader: only four reviewed first-party source blobs enter
+// the existing Side Panel Host. No sandbox, SW or Page Relay privilege.
+const compiledVideoDownloaderInputs=Object.freeze({
+  'projects/video-downloader/trusted/policy.js':'9b2082eed30c201b66535c7dbe97f06328848116',
+  'projects/video-downloader/trusted/hls.js':'ec5e6570884b5ef10371b3f3f20548743cea72a4',
+  'projects/video-downloader/trusted/host.js':'96a5ae431b44ccf60f29972e99fc6469b942a856',
+  'projects/video-downloader/trusted/admission.js':'c04dc51bc1bd3eecc3265743b9fe49e676a3fbd6'
+});
+function reviewedCompiledVideoDownloader(target,path,root){
+  if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledVideoDownloaderInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Video Downloader source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledVideoDownloaderInputs[path])
+    throw Error('Trusted Video Downloader source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 // This is a deliberately fixed, build-reviewed extension source allowance, NOT
 // permission for arbitrary examples/ JS. All twelve AdBlock privileged/business
 // inputs are exact file-blob pinned; the bundle still has a fixed entry point,
@@ -504,6 +524,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledVideoSpeed(chunk.fileName,path,root)||
       reviewedCompiledVideoSVIP(chunk.fileName,path,root)||
+      reviewedCompiledVideoDownloader(chunk.fileName,path,root)||
       reviewedCompiledAdblock(chunk.fileName,path,root)||
       reviewedCompiledCookieAccounts(chunk.fileName,path,root)||
       reviewedCompiledPromptShortcuts(chunk.fileName,path,root)||
