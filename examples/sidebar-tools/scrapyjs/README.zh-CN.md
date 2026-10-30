@@ -1,10 +1,16 @@
 # scrapyJs 采集应用
 
+## R2.4.2 本机验明（2026-10-30，当前）
+
+HTTP 内核四类缺陷已差量修复，定向 21/21、ScrapyJS App CI Node 200/200 通过。实际 Mac CFT155 已验证原安装链、命名保存重开、DOM 三行独立预期、表格、JSON/CSV 下载读回、重复 Run、运行中 Stop 退休、草稿退出确认及停用/恢复。Chrome HTML/JSON 解析独立验证通过。各项只证明对应范围；**公网 HTTP 仍 BLOCKED**，没有真实 Header、DNS 全地址及 peer IP 证明，不显示可运行入口。
+
+当前唯一包仍为 App **1.6.4**、固定 Task **0.4.1**；其他对话已在 `b7ffa0397` 修复旧包失配，本轮核对同源并复用，没有重复晋升或改权限。完整缺陷、命令、原始失败的分类、证据链及独立八维评分见 [R2.4.2 本机验收报告](docs/LOCAL-ACCEPTANCE-R2.4.2.zh-CN.md) 和 [证据索引](evidence/local-acceptance-r242-20261030.json)。本次为隔离的静态 development 快照，无 serve 连接，不代表日常 Chrome、production 或 Desktop 验收；原 AI unknown 请求未重放，R2.5 尚未启动。
+
 ## 中长期产品规划（2026-10-30）
 
 以下文件保存本轮 AI 爬虫、代理与商业化讨论中的**长期目标与设计决策**。它们均为 **PLANNED / NOT_IMPLEMENTED**，不改变上方真实采集、安装态及候选验收状态：
 
-- [跨端统一执行架构与网页版四阶段交接](docs/UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md)：Browser / Desktop / Android 分工、Headers 能力、唯一合同、去重和验收边界；**仅架构决策，统一合同与 Adapter 未实施**。
+- [跨端统一执行架构与网页版四阶段交接](docs/UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md)：Browser / Desktop / Android 分工、Headers 能力、唯一合同、去重和验收边界；跨端可信 HTTP 与正式 UI 集成未实施，已有 v1 合同及静态业务内核的当前状态以上方 R2.4.2 为准。
 - [产品目标与分阶段路线图](docs/PRODUCT-ROADMAP.zh-CN.md)：当前基础、差距、P0/P1/P2、1–3 页 AI 试采及后续验收。
 - [AI 引擎、代理与云运行技术架构](docs/AI-ENGINE-PROXY-ARCHITECTURE.zh-CN.md)：Scrapling、Crawl4AI、Apify 等执行适配与安全边界。
 - [商业模式、竞品与上下游服务](docs/COMMERCIALIZATION-COMPETITORS.zh-CN.md)：模板复用、定制开发、维护、代理与收费路径。

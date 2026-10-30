@@ -48,6 +48,146 @@ async function trial(){
 }
 const reject=(promise,code)=>assert.rejects(promise,error=>error?.code===code);
 
+function gate(){
+  let release,enter;
+  const waiting=new Promise(resolve=>{release=resolve;});
+  const entered=new Promise(resolve=>{enter=resolve;});
+  return {entered,release,wait:()=>{enter();return waiting;}};
+}
+function digestGate(at){
+  const paused=gate();let calls=0;
+  return {...paused,subtle:{digest:async(...args)=>{
+    if(++calls===at)await paused.wait();
+    return webcrypto.subtle.digest(...args);
+  }}};
+}
+
+test('bundle and URL snapshot precedes the first digest await',async()=>{
+  const b=await trial(),original=clone(b),urls=[b.recipe.target.url];
+  const paused=digestGate(1),{host,hits}=testHost(original);
+  const pending=createStaticHttpTrialRunner(host,{parseHtml:parse,subtle:paused.subtle}).run(b,urls);
+  await paused.entered;
+  b.recipe.extraction.fields[0].selector='p';
+  b.plan.recipeHash='f'.repeat(64);
+  b.headers.entries[0].value='mutated';
+  urls.push(ORIGIN+'/unreviewed');
+  paused.release();
+  const output=await pending;
+  assert.equal(hits(),1);
+  assert.equal(output.receipt.recipeHash,original.recipe.sha256);
+  assert.equal(output.records[0].title,'real 1');
+});
+
+test('GET gate caller mutations cannot change signed extraction or receipt',async()=>{
+  const b=await trial(),original=clone(b),urls=[b.recipe.target.url,ORIGIN+'/two'];
+  const paused=gate(),{host}=testHost(original),get=host.get;
+  host.get=async input=>{
+    await paused.wait();
+    const response=await get(input);
+    return {...response,body:response.body+'<p>unreviewed</p>'};
+  };
+  const pending=createStaticHttpTrialRunner(host,{parseHtml:parse,subtle:webcrypto.subtle}).run(b,urls);
+  await paused.entered;
+  b.recipe.extraction.fields[0].selector='p';
+  b.plan.planId='plan:mutated';
+  b.headers.entries[0].value='mutated';
+  urls[1]=ORIGIN+'/unreviewed';
+  paused.release();
+  const output=await pending;
+  assert.deepEqual(output.records.map(row=>row.title),['real 1','real 2']);
+  assert.deepEqual(output.pages.map(page=>page.url),[original.recipe.target.url,ORIGIN+'/two']);
+  assert.equal(output.receipt.planId,original.plan.planId);
+  assert.equal(output.receipt.recipeHash,original.recipe.sha256);
+});
+
+test('host argument mutations do not alias the internal reviewed snapshot',async()=>{
+  const b=await trial(),{host}=testHost(b),admit=host.admit,get=host.get,save=host.persistAndReadback;
+  host.admit=async input=>{
+    const admission=await admit(input);
+    input.bundle.recipe.extraction.fields[0].selector='p';
+    input.bundle.plan.planId='plan:host-mutated';
+    input.bundle.plan.limits.maxTotalBytes=1;
+    input.urls[1]=ORIGIN+'/host-mutated';
+    input.headers.accept='mutated';
+    return admission;
+  };
+  host.get=async input=>{
+    const response=await get(input);
+    input.headers.accept='mutated';
+    return {...response,body:response.body+'<p>unreviewed</p>'};
+  };
+  host.persistAndReadback=async input=>{
+    const output=await save(input);
+    input.plan.planId='plan:host-mutated';
+    return output;
+  };
+  const output=await createStaticHttpTrialRunner(host,{parseHtml:parse,subtle:webcrypto.subtle})
+    .run(b,[b.recipe.target.url,ORIGIN+'/two']);
+  assert.deepEqual(output.records.map(row=>row.title),['real 1','real 2']);
+  assert.equal(output.pages[1].url,ORIGIN+'/two');
+  assert.equal(output.receipt.planId,b.plan.planId);
+  assert.equal(output.headerEvidence.configured.accept,'text/html');
+  assert.equal(b.recipe.extraction.fields[0].selector,'h2');
+});
+
+test('Stop during fourth digest (readback SHA) rejects instead of completing',async()=>{
+  const b=await trial(),paused=digestGate(4);
+  const runner=createStaticHttpTrialRunner(testHost(b).host,{parseHtml:parse,subtle:paused.subtle});
+  const pending=runner.run(b,[b.recipe.target.url]);
+  await paused.entered;
+  assert.deepEqual(runner.stop(),{requested:true,retired:false});
+  paused.release();
+  await reject(pending,'E_CANCELLED');
+  assert.deepEqual(runner.stop(),{requested:false,retired:false});
+});
+
+for(const changed of ['records','receipt'])test('readback snapshot resists shared '+changed+' mutation during SHA',async()=>{
+  const b=await trial(),paused=digestGate(4),{host}=testHost(b),save=host.persistAndReadback;
+  let shared;
+  host.persistAndReadback=async input=>{shared=await save(input);return shared;};
+  const pending=createStaticHttpTrialRunner(host,{parseHtml:parse,subtle:paused.subtle}).run(b,[b.recipe.target.url]);
+  await paused.entered;
+  if(changed==='records')shared.readbackRecords[0].title='changed';
+  else shared.receipt.result.sha256='f'.repeat(64);
+  paused.release();
+  const output=await pending;
+  const digest=Buffer.from(await webcrypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(output.records)))).toString('hex');
+  assert.equal(digest,output.resultSha256);
+  assert.equal(output.receipt.result.sha256,output.resultSha256);
+  assert.equal(output.records[0].title,'real 1');
+});
+
+test('exhausted total byte budget prevents a second GET dispatch',async()=>{
+  const b=await trial();b.plan.limits.maxResponseBytes=1024;b.plan.limits.maxTotalBytes=1024;
+  const {host}=testHost(b);let dispatched=0,saved=false;
+  host.get=async({url})=>{
+    dispatched++;
+    return {status:200,finalUrl:url,redirectCount:0,mediaType:'text/html',body:'x'.repeat(1024)};
+  };
+  host.persistAndReadback=async()=>{saved=true;throw Error('unexpected storage');};
+  await reject(createStaticHttpTrialRunner(host,{parseHtml:parse,subtle:webcrypto.subtle})
+    .run(b,[b.recipe.target.url,ORIGIN+'/two']),'E_TOTAL_BYTES');
+  assert.equal(dispatched,1);
+  assert.equal(saved,false);
+});
+
+test('remaining byte budget below page cap is passed to GET and enforced',async()=>{
+  for(const overflow of [false,true]){
+    const b=await trial();b.plan.limits.maxResponseBytes=1024;b.plan.limits.maxTotalBytes=1536;
+    const {host}=testHost(b),caps=[];
+    host.get=async({url,maxBytes})=>{
+      caps.push(maxBytes);
+      return {status:200,finalUrl:url,redirectCount:0,mediaType:'text/html',
+        body:'x'.repeat(caps.length===1?1024:512+Number(overflow))};
+    };
+    const pending=createStaticHttpTrialRunner(host,{parseHtml:parse,subtle:webcrypto.subtle})
+      .run(b,[b.recipe.target.url,ORIGIN+'/two']);
+    if(overflow)await reject(pending,'E_TOTAL_BYTES');
+    else assert.equal((await pending).receipt.counters.bytes,1536);
+    assert.deepEqual(caps,[1024,512]);
+  }
+});
+
 test('existing CSS subset converts accurately, nested rules fail closed',()=>{
   assert.deepEqual(legacyStaticFields({
     _listContainer:'.items',_listItem:'article',title:'h2::text',link:'a::href'

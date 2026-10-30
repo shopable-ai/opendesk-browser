@@ -1,10 +1,12 @@
 # ScrapyJS R2.4.1 · HTTP Adapter 边界及后续准入
 
+> 本文保留 R2.4.1 历史 CI 失败与边界。当前源码、包一致性、本机 Chrome 及评分见 [R2.4.2 本机验收](LOCAL-ACCEPTANCE-R2.4.2.zh-CN.md)。旧运行 `41042514274` 仍为 FAIL；当前 main 已由其他对话晋升 App 1.6.4，本轮不重复发包。公网 HTTP 仍 BLOCKED。
+
 ## 原始需求（不要漂移）
 ScrapyJS 是 OpenDesk Browser 的独立扩展产品。用户在当前已授权网页采集 DOM；对受审目标进行最多 1–3 页静态 HTML/JSON 试采、配置安全 Header、真实提取字段、查看和导出结果。电脑 HTTP 是可选底层能力；不将产品迁入 Desktop 自动化框架，不建设第二套 UI / 存储 / HTTP Runtime。
 
 ## A / B / C 结论
-- **A Browser 优先，但生产静态 GET 目前 BLOCKED**：`browser.network.request` 经 Host 提供 GET、有限 Header、`credentials:omit`、`redirect:manual`、Abort/超时和流式读体。然而浏览器 UI 每次请求需可信点击确认，Side Panel 响应预算 12KB；当前 Host 不能证明 DNS 每条结果和实际连接 peer IP 的公网安全。R2.2 的 browser-tab 合同不允许以当前导航声称 Header 可控。
+- **A Browser 优先，但生产静态 GET 目前 BLOCKED**：`browser.network.request` 经 Host 提供 GET、有限 Header、`credentials:omit`、`redirect:manual`、Abort/超时和流式读体。然而浏览器 UI 每次请求需可信点击确认，Side Panel 网络正文上限 8,192 字节、IPC 结果信封上限 12,000 字节；当前 Host 不能证明 DNS 每条结果和实际连接 peer IP 的公网安全。R2.2 的 browser-tab 合同不允许以当前导航声称 Header 可控。
 - **B Desktop 可选且尚未联通**：Desktop `master` 已有 `examples/scrapyjs-desktop/` 可信本机 `http.download()` 示例，不是已经通过验证的 Browser→Desktop 交接；也没有对外公开 DNS/peer IP 的可信证明。原样保留，不作为安装前提。
 - **C 新本机服务不建设**：没有充分证据证明需要重复开发 Node/Go HTTP Runtime。
 
@@ -20,7 +22,7 @@ ScrapyJS 是 OpenDesk Browser 的独立扩展产品。用户在当前已授权�
 2. 可信 Host `get()`：DNS A/AAAA/CNAME 全链 + 最终连接 peer IP 检查，包括 IPv4-mapped IPv6、重绑定、metadata/私网。每次重定向拒绝或独立检查，强制流式字节、Deadline、Stop，不上传浏览器 Cookie。
 3. `persistAndReadback()`：Host 按受审身份写结果，然后重新读取实际记录，返回记录与 v1 RunReceipt，检查 SHA256、预算、运行身份、取消/退休。
 4. 现有 Browser 网络操作每次要求可信点击；要实现 1–3 页一次审阅，需评审现有受审 Task/Host 批量执行授权路径，禁止移除现有点击以“改进 UX”。
-5. Browser Tool 的响应预算 12KB ≠ 网络服务 256KB；不要全局放宽 SDK。必须在可信 Host 内做字段提取和限制后投影，或以受审结果存储独立读取。
+5. Browser Tool 的网络正文 8,192 字节 / IPC 信封 12,000 字节 ≠ 通用网络服务 256 KiB；不要全局放宽 SDK。必须在可信 Host 内做字段提取和限制后投影，或以受审结果存储独立读取。
 6. 正式 JSON 映射需要单一合同的兼容升级，不复写 `execution-v1.schema.json` 人工版本，也不拿 CSS 当 JSONPath。
 7. 上述安全能力落实、通过源码/测试/真实 Mac Chrome 后，才将执行位置以最少的选项添加进现有 React；Desktop 仍然仅按需出现。
 
