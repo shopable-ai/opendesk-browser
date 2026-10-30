@@ -67,7 +67,7 @@ export function normalizeConfig(config = {}) {
     out.headers = {};
     for (const [name, value] of Object.entries(config.headers)) {
       if (!/^[!#$%&'*+.^_`|~0-9a-z-]+$/i.test(name) || typeof value !== 'string' || /[\r\n]/.test(value) ||
-          /^(cookie|authorization|proxy-authorization|host|origin|referer|sec-.*)$/i.test(name))
+          /^(cookie|authorization|proxy-authorization|host|origin|referer|user-agent|sec-.*)$/i.test(name))
         throw fail('E_CONFIG_UNSUPPORTED', 'Unsupported header');
       out.headers[name.toLowerCase()] = value;
     }

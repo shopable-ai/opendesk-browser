@@ -2,6 +2,34 @@
 
 > 本文保留 R2.4.1 历史 CI 失败与边界。当前源码、包一致性、本机 Chrome 及评分见 [R2.4.2 本机验收](LOCAL-ACCEPTANCE-R2.4.2.zh-CN.md)。旧运行 `41042514274` 仍为 FAIL；当前 main 已由其他对话晋升 App 1.6.4，本轮不重复发包。公网 HTTP 仍 BLOCKED。
 
+## Header 真实请求增量（2026-10-30）
+
+下一条用户操作仍是「审阅允许 Header → HTTP 试采」；本轮从真实「扩展 → scrapyjs」入口只读确认原 App 只有 DOM 采集，没有可运行 HTTP 按钮。复用原业务 owner、解析函数与 NetworkService；诊断在自有已关闭 Profile 副本及隔离静态 development 快照运行，未连接 serve，未更新日常 Chrome、原 unknown AI 请求或正式包。
+
+| 事项 | 新实证及边界 |
+| --- | --- |
+| 普通 Header | 三个真实本地 HTTP 页面，配置 `Accept:text/html`、`X-Client-Tag:scrapyjs-local-header-proof`；原 NetworkService 传给原生 Fetch 的小写参数、CDP ExtraInfo 和独立服务器收到的值一致，均 200。服务器只有收到这些 Header 才返回列表。不是 Mock fetch。 |
+| 真实数据 | 三页分别返回「第一项 / 第二项 / 第三项」及 ID 1/2/3；原静态 HTML 提取与独立预期逐值一致。每页 49 bytes，传输上限沿用 Sidebar 8192 bytes，没有扩大 SDK。 |
+| User-Agent | 修复前配置及 Fetch 参数为 `ScrapyJS-Header-Probe/1.0`，服务器却观察到 Chromium 默认 UA。修复唯一 `normalizeConfig()` 禁项后，SDK/Host 与 Chromium 原服务均返回 `E_CONFIG_UNSUPPORTED`，实际 `/agent` 请求为零；不声称 UA 可控。 |
+| 凭据与浏览器管理字段 | Cookie、Authorization、Host、Origin、Referer、UA-CH 均在传输前拒绝；普通请求仍 `credentials:omit`、`redirect:manual`，服务器未收到 Cookie/Authorization。未使用 DNR/debugger 改头、导出 Cookie 或修改 TLS/IP。 |
+| Stop | 服务器已开始实际流式响应后取消原 AbortSignal，原服务返回 `E_CANCELLED`，服务器观察到未自然结束即关闭；只证明 Fetch 取消，不证明安装态 HTTP operation 退休。 |
+| SHA 读回 | fixture 结果写入任务自有 `records.json` 后独立读取、逐值比较并重算 SHA。不是可信 Host 结果存储、安装身份或 v1 RunReceipt 的证明。 |
+
+**可信边界不变**：回显服务器与测试专用 `authorize` 只允许固定 loopback Origin/GET/路径。这不是原安装 Authority、生产批准或公网 DNS/peer 校验；源模块在普通 Chromium 诊断页执行，不是最终 Browser 构建或已安装网络功能验收。旧快照只用于核对原 App 入口，当前网络源码另以逐文件 SHA 绑定。`SOURCE_COMPLETE`、`NODE_PASS`、`CHROMIUM_SOURCE_TRANSPORT_PASS`；生产 `REAL_BROWSER_PASS`、`REAL_DESKTOP_HTTP_PASS`、`MAC_DESKTOP_PASS` 仍 **NOT_TESTED**，公网生产仍 **BLOCKED**。
+
+只运行新缺陷对应检查：原 Header SDK/Host/真实 Node HTTP 三项，以及共享 Driver 四种方法/配置拒绝五项；不重复旧 200 项、全量构建、DOM 安装链、评分或 R2.5。修复前新增 UA 回归先 FAIL，修复后通过。原始两次 Chromium 报告均保留在 artifacts；源码、报告、结果与日志摘要见 [证据索引](../evidence/http-header-proof-20261030.json)。
+
+```sh
+node --test tests/environment/browser-sdk-network-headers.test.mjs
+node --test --test-name-pattern='CMP13|denied URL and config' tests/framework/k4-network.test.mjs
+# 需要已有关闭的任务自有 Profile 与 CFT155；out 必须是尚不存在的新目录。
+node examples/sidebar-tools/scrapyjs/tests/http-header-chromium.mjs --out=artifacts/scrapyjs/http-header-proof-new
+```
+
+Desktop 只读核查：本机 `opendesk/master` 尚无指定示例，但远端固定提交 [`9d79d3be`](https://github.com/shopable-ai/opendesk/tree/9d79d3be48536adfac9304f15c4c31651ee3921a/examples/scrapyjs-desktop) 确实存在。已读 README / main；沿用 `node tests/scrapyjs-desktop/fixture-server.mjs` 及原 `opendesk ai run … --input-file …` 入口即可做后续本机验证。该示例自己声明 DNS 全结果和连接 peer 不可观察，回执只是本地投影，`fixtureClaimedHeaders` 不等于可信 wire 证明；不能解除生产 BLOCKED。本轮未修改、启动或测试 Desktop。
+
+当前停止条件：安全 Header 的真实传输已取得最小证据；已修复一项真实静默失效。下一次推进需提供可信连接级 DNS/peer 能力与原安装身份/预算/退休/结果读回，才能集成正式 HTTP 试采；目标站点失败 URL/状态/Header 尚未提供，不以本地回显声称豆瓣/CSDN HTTP 或反爬成功。
+
 ## 原始需求（不要漂移）
 ScrapyJS 是 OpenDesk Browser 的独立扩展产品。用户在当前已授权网页采集 DOM；对受审目标进行最多 1–3 页静态 HTML/JSON 试采、配置安全 Header、真实提取字段、查看和导出结果。电脑 HTTP 是可选底层能力；不将产品迁入 Desktop 自动化框架，不建设第二套 UI / 存储 / HTTP Runtime。
 

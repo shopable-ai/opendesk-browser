@@ -194,6 +194,8 @@ Controller 支持 `// @opendesk-lib axios`（单文件）或多文件项目的 `
 
 已实现的范围：`get/post/put/delete/request/create/getUri`、请求/响应拦截器、常见文本/JSON 响应、`validateStatus`、最终 URL 及安全 Header，HTTP 错误在受授权回执基础上生成 AxiosError。拒绝替换 `adapter`、高权限敏感 Header、请求携带 Cookie/凭据、上传/下载流、二进制及逐请求取消令牌。停止任务会通过原 Controller 生命周期中断授权操作。
 
+`User-Agent` 与 UA-CH 属于浏览器管理字段，不能通过上述 HTTP Header 参数覆盖；统一校验在发请求前返回 `E_CONFIG_UNSUPPORTED`。`Accept`、自定义 `X-*` 等允许字段仍须区分用户配置、传给 Fetch 的参数和服务器实际观察；设置成功不等于站点允许访问或反爬已解决。
+
 [完整 Controller Axios 项目](../../examples/programs/controller-axios-zero-arg/README.md)；该环境没有 Page `document` 或网页 `window.axios`。发布/真实 Chrome 验收必须核对实际 Broker 及同候选 SHA。
 
 ## R7.9.4 已提交的混合 ESM 项目（Chrome 待验收）

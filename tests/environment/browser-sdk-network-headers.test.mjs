@@ -84,7 +84,8 @@ test('safe headers pass the public SDK, installed Host and real NetworkService H
 
 test('sensitive or malformed headers fail in both the SDK and Host before transport',async t=>{
   const f=await fixture(t),base={method:'GET',url:f.origin+'/membership'};
-  const forbidden=['Cookie','aUtHoRiZaTiOn','Origin','Host','Proxy-Authorization','Referer','Sec-Fetch-Site'];
+  const forbidden=['Cookie','aUtHoRiZaTiOn','Origin','Host','Proxy-Authorization','Referer','Sec-Fetch-Site',
+    'User-Agent','uSeR-aGeNt'];
   const unsafe=[...forbidden.map(name=>({[name]:'secret'})),
     {'X-Bad\r\nInjected':'secret'},{'X-Test':'value\r\nCookie: secret'},
     {'X-Test':1},null,[]];

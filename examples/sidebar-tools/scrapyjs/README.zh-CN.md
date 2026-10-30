@@ -1,5 +1,13 @@
 # scrapyJs 采集应用
 
+## HTTP Header 实证增量（2026-10-30，当前）
+
+真实 Mac CFT155 + 原 NetworkService 在独立本地回显 fixture 完成三页 HTTP 提取：`Accept`、`X-Client-Tag` 的配置、Fetch 参数、服务器观察一致，三条数据与独立预期相同；流式请求取消后服务器观察到连接提前关闭。结果文件独立读回 SHA 一致，仅证明 fixture 文件，不是 Host 持久运行回执。
+
+修复前实证 `User-Agent` 参数被接受但被 Chromium 替换；现已在唯一公共校验处发请求前拒绝，Node SDK/Host 与 Chromium 源码传输验证通过。原 App 仍只有 DOM 采集入口，App **1.6.4** / Task **0.4.1** 未变；**公网 HTTP 仍 BLOCKED，未解决站点反爬**。没有正式 HTTP Grant、全 DNS/实际 peer 安全证明或 HTTP 运行身份读回，暂不集成假运行按钮。
+
+复现命令、三层 Header 证据、Desktop 复用结论及未验证项见 [HTTP 边界的当前增量](docs/HTTP-ADAPTER-BOUNDARY-R2.4.1.zh-CN.md#header-真实请求增量2026-10-30) 和 [证据索引](evidence/http-header-proof-20261030.json)。这次不重复旧 200 项内核/DOM 验收，不重建 Browser 或晋升工具包。
+
 ## R2.4.2 本机验明（2026-10-30，当前）
 
 HTTP 内核四类缺陷已差量修复，定向 21/21、ScrapyJS App CI Node 200/200 通过。实际 Mac CFT155 已验证原安装链、命名保存重开、DOM 三行独立预期、表格、JSON/CSV 下载读回、重复 Run、运行中 Stop 退休、草稿退出确认及停用/恢复。Chrome HTML/JSON 解析独立验证通过。各项只证明对应范围；**公网 HTTP 仍 BLOCKED**，没有真实 Header、DNS 全地址及 peer IP 证明，不显示可运行入口。
