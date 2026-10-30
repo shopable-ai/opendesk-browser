@@ -41,11 +41,12 @@ openssl x509 -in mac.crt -outform DER | shasum -a 256
 
 export SCRAPYJS_POC_CERT="$PWD/mac.crt"
 export SCRAPYJS_POC_KEY="$PWD/mac.key"
+export SCRAPYJS_POC_LISTEN_IP="$LAN_IP"
 export SCRAPYJS_TEST_ORIGIN="https://qa.your-real-domain.tld"
 node /Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/nodes/poc/mac/collector.mjs
 ~~~
 
-Mac 系统 OpenSSL/LibreSSL 可能不支持 -addext；使用支持该选项的 OpenSSL 或配置 SAN 文件，**不可**为赶进度关闭 TLS 主机名/证书验证。Mac 防火墙只允许可信 LAN，禁止端口映射与公网暴露。
+Mac 系统 OpenSSL/LibreSSL 可能不支持 -addext；使用支持该选项的 OpenSSL 或配置 SAN 文件，**不可**为赶进度关闭 TLS 主机名/证书验证。接收器强制绑定 `SCRAPYJS_POC_LISTEN_IP` 指定的真实私有局域网地址，不监听全部网络接口。Mac 防火墙只允许可信 LAN，禁止端口映射与公网暴露。
 
 接收器默认为 4443，启动时一次性打印随机临时配对令牌（64 位 hex）。私有结果默认保存到 ~/.opendesk/scrapyjs-private-node/evidence/，文件权限 0600、目录权限 0700。**禁止将 mac.key、mac.crt、任何配对令牌、完整结果或隐私数据提交 Git**。停止接收器后配对令牌立即失效。
 

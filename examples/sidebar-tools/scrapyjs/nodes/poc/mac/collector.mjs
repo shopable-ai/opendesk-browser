@@ -16,6 +16,10 @@ validateAllowedOrigin(origin);
 const port = Number(process.env.SCRAPYJS_POC_PORT || 4443);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw Error('Invalid port');
 const outDir = resolve(process.env.SCRAPYJS_POC_EVIDENCE || join(homedir(),'.opendesk','scrapyjs-private-node','evidence'));
+const listenIp=process.env.SCRAPYJS_POC_LISTEN_IP;
+if (!isPrivateLanAddress(listenIp) || listenIp === '127.0.0.1' || listenIp?.startsWith('127.')) {
+  throw Error('SCRAPYJS_POC_LISTEN_IP must be the Mac actual private LAN IP');
+}
 const pairingToken = randomBytes(32).toString('hex');
 const runPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function respond(res,status,body) {
@@ -86,8 +90,8 @@ const server = createServer({cert:await readFile(cert),key:await readFile(key),
 });
 server.requestTimeout=15000;
 server.headersTimeout=12000;
-server.listen(port,'0.0.0.0',()=>{
-  process.stdout.write('Private LAN evidence collector listening on port '+port+'\n');
+server.listen(port,listenIp,()=>{
+  process.stdout.write('Private LAN evidence collector listening on '+listenIp+':'+port+'\n');
   process.stdout.write('Pairing token (do not commit or share): '+pairingToken+'\n');
   process.stdout.write('Allowed test origin: '+origin+'\n');
   process.stdout.write('Stored privately in '+outDir+'\n');
