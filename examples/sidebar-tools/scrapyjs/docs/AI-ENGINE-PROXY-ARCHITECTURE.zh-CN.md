@@ -4,6 +4,8 @@
 >
 > 目的：在不重建 OpenDesk Runtime、不改现有权限模型的前提下，将 ScrapyJS 接入可选 AI、代理与云端爬虫服务。下面的接口、数据结构、组件名称除明确指出已有者外均为**建议合同**，并非现存 API。
 
+**跨端统一权威：** [统一采集与多执行环境架构](UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md) 已明确 Browser、Desktop HTTP、Desktop Browser、Android Cellular 的执行能力分工与 Header 边界。本文件仍负责 AI/代理/云专题；所列远端 Adapter、Broker、Worker 只是规划，不能据此声称已实施。
+
 ## 1. 已有基础与不可跨越的边界
 
 - 正式产品位置：examples/sidebar-tools/scrapyjs/；React App 使用 app-model 和 adapters/app-sdk.js 委托固定 Controller Task scrapyjs.capture。

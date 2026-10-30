@@ -1,3 +1,19 @@
+## R1.9 企业管理员决策视图（2026-10-30）
+
+本轮在原有 `web/main.jsx` / `web/model.mjs` / `web/style.css` 上差量改造；原历史库、额度读取、身份验证、管理员会话及 Cookie Editor Relay 均未重建。
+
+- 总表：账号名/邮箱、套餐与来源、已知到期、管理标签、当前缓存剩余及是否过期、独立窗口近 7 次已识别重置前柱图、7 次固定规则的管理结论。可搜索、状态筛选、排序、切换短/长额度窗口。
+- 统计：`web/usage-insights.mjs` 是正式 React 和预览共用的纯函数。仅统计 `CROSSED_PREDICTED_RESET` 且 `estimateQuality=NEAR_RESET_OBSERVATION`、有可靠数值及前置观测/间隔的事件；未确认预测变化、缺失值、无历史都不按 0。至少 4/7 可靠且至少 3/7 ≥80% 才为“值得关注”。详情的 10/20 次切换只改变显示范围，不改变 7 次关注基准。
+- 详情：原生 `<dialog>` 右侧抽屉、每窗口真实历史再读取、每根柱子可点击和键盘访问；账号资料、近重置估计、证据等级优先展示；错误与未证实记录折叠。没有引入 ECharts；7 根紧贴柱子的原生 CSS/SVG 图更轻量，没有额外运行时依赖。
+- 官方邀请指引：仅针对可能存在组织成员管理的 Business/Enterprise/Edu 账号显示入口。**当前 API 没有工作区身份、管理员权限或邀请操作**，故只在对话框指引管理员前往官方平台核实并发送邀请；不生成链接、不模拟成功、不共享 Cookie/Token。
+- 预览隔离：`web/demo-data.mjs` 是虚构账号/历史的只读适配器。正式构建 `npm run build:web` 会使用现有本机同源 API；仅 `npm run build:web:preview` 生成 `web/preview-dist/index.html` 的交互演示，界面有醒目“虚构数据”标记；演示刷新禁用且绝不写入真实历史。
+- 数据读取：总表每账号以最多四条并发的只读请求加载最多 500 条历史，以支持多独立窗口；详情以 `windowKey` 单独请求最多 20 条。不会自动刷新配额。实际手动刷新沿用原 API；单次失败保留原有历史。
+- 单元验证：`node --test tests/ai-account-usage-web-ui.test.mjs tests/ai-account-usage-decision.test.mjs`（执行后须记录真实结果，不以文档替代）；浏览器截图、1440/320/360/400/440/520px、200% 与 Mac Chrome 需独立验收。
+
+**验收边界：** GitHub 源码提交不代表构建通过、正式服务可用或 Mac Chrome 完成验收。未获得相应执行证据的项目统一标记 `NOT_TESTED`。
+
+---
+
 # OpenDesk Browser · AI 账号额度管理中心 R1.5（本机核心功能）
 
 **进度：参数化 Node 服务、显式账号来源、独立 React 账号列表/详情/手动刷新及私有历史已接通；2026-10-30 00:37 北京时间单账号 Node 查询 HTTP 200。Cookie-only 保留原 403 / challenge 记录，真实双账号隔离仍 `NOT_TESTED`。** 本文档不把模拟 HTTP 测试当作真实账号查询，也不把 OAuth 成功改写为 Cookie-only 成功。

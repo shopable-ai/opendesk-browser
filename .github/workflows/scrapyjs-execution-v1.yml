@@ -1,0 +1,66 @@
+name: ScrapyJS execution contract v1 (pure Node)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/scrapyjs-execution-v1.yml'
+      - 'examples/sidebar-tools/scrapyjs/contracts/**'
+      - 'examples/sidebar-tools/scrapyjs/tests/execution-*.test.mjs'
+      - 'examples/sidebar-tools/scrapyjs/tests/ci-chromium.mjs'
+      - 'examples/sidebar-tools/scrapyjs/app.ci.json'
+      - 'examples/sidebar-tools/scrapyjs/contracts/fixtures/**'
+      - 'examples/sidebar-tools/scrapyjs/docs/EXECUTION-FRAMEWORK-R2.2.zh-CN.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate canonical contract structure, policies and negative cases
+        run: node --test examples/sidebar-tools/scrapyjs/tests/execution-v1.test.mjs examples/sidebar-tools/scrapyjs/tests/execution-interop.test.mjs
+      - name: Rebuild portable JSON Schema and reject manual drift
+        run: |
+          node examples/sidebar-tools/scrapyjs/contracts/generate-schema.mjs
+          git diff --exit-code -- examples/sidebar-tools/scrapyjs/contracts/execution-v1.schema.json
+          sha256sum examples/sidebar-tools/scrapyjs/contracts/execution-v1.schema.json examples/sidebar-tools/scrapyjs/contracts/fixtures/execution-v1-vectors.json
+
+  chromium-react-mock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore pinned React compiler without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compile only original ScrapyJS React, without rebuilding broken Host
+        run: npm --prefix examples/sidebar-tools/scrapyjs run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real Chromium runs original React under explicit mocked SDK and minimal UI component shim
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: xvfb-run -a node examples/sidebar-tools/scrapyjs/tests/ci-chromium.mjs artifacts/scrapyjs/r22-contract/chromium
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scrapyjs-r22-chromium-mock-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: artifacts/scrapyjs/r22-contract/chromium/

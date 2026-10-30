@@ -1,8 +1,8 @@
-# 视频会员 · SVIP（品牌副名称）R0.1.1
+# 视频会员 · Video SVIP R0.2
 
 正式展示名称：**视频会员**；品牌副名称：**SVIP**（仅品牌识别，不代表已提供超高级会员权益）。
 
-正式产品源码：projects/video-pass/。独立 Side Panel 应用，复用 OpenDesk Host 与 Storage；官方目录采用 optional 安装。
+正式产品源码：projects/video-svip/。独立 Side Panel 应用，复用 OpenDesk Host 与 Storage；官方目录采用 optional 安装。
 
 ## 原始目标
 用户进入视频网站 → 识别页面 → 优先原站播放 → 遇到故障时提供明确恢复指引 → 后续在获得内容/渠道授权后接入稳定备援来源 → 管理合法会员权益/家庭席位 → 提供经授权的会员推广入口。
@@ -27,8 +27,8 @@ P0 使用现有 currentPage.read 与 storage.local，不修改宿主 SW、Runtim
 未经提供商许可，不销售他人会员权益、不代理共享个人账户、不使用未授权的盗播线路。
 
 ## 验收（不能虚报）
-- NODE：node --test tests/environment/video-pass.test.mjs
-- BUILD：npm run build:sidebar-tool -- projects/video-pass；npm run build:dev
+- NODE：node --test tests/environment/video-svip.test.mjs
+- BUILD：npm run build:sidebar-tool -- projects/video-svip；npm run build:dev
 - MAC_CHROME：真实 Chrome 安装后检查原站识别、分享、非视频页、导航、撤权及本机保存/恢复/删除。
 - UI：320/360/400/440/520px、200% 缩放、明暗色与键盘。
 - 播放诊断、稳定备用线路、付费与好友席位：NOT_IMPLEMENTED / NOT_TESTED。
@@ -36,6 +36,15 @@ P0 使用现有 currentPage.read 与 storage.local，不修改宿主 SW、Runtim
 ## 命名与扩展商店搜索说明
 
 - 扩展中心正式展示名称为「视频会员」，品牌副名称为「SVIP」。
-- internal app id 保留 video-pass，用户搜索使用展示名及准确功能描述，不因改名而生成第二套目录或安装身份。
+- 正式 app id = video-svip（从旧实验 id video-pass 调整；老安装不能原地自动升级），用户搜索使用展示名及准确功能描述，不因改名而生成第二套目录或安装身份。
 - 当前功能不是付费视频解锁工具，不应将「全网 SVIP 免费解锁」「去除会员限制」「百分百可用」作为搜索文案。
 - 后续确实完成授权播放或会员合作服务后，才能在产品名称、页面及商店介绍中描述相应真实能力。
+
+## R0.2 命名和演进决策（本版本）
+- 唯一正式产品 ID：video-svip；用户看到的名称：视频会员；副品牌 Video SVIP。
+- 源码已经重定位；禁止再创建 video-pass 的平行业务目录。
+- 原参考脚本源码分析与可复用技术边界：REFERENCE-ANALYSIS.zh-CN.md。
+- 差量功能顺序与验收：ROADMAP.zh-CN.md。
+- 历史安装/本机数据保护：MIGRATION.zh-CN.md。
+- 产品 ID 变化 **不是无损升级**：如已安装 video-pass，必须先检查和备份其 membership 记录，新产品的真正迁移当前仍为 NOT_IMPLEMENTED。
+- R0.2 仅完成源码、名称与计划收敛，不声称已实现视频解析、首帧读取、授权备用源或好友共享。

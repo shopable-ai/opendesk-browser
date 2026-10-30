@@ -5,7 +5,7 @@ import {sameSidebarToolPackage} from '../../../src/ui/sidebar-tools/installation
 import {requireToolEnableRecords,requireToolRevocationEpochs} from '../../../src/ui/sidebar-tools/lifecycle.js';
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY} from './policy.js';
 
-export const VIDEO_SPEED_VERSION='1.0.0';
+export const VIDEO_SPEED_VERSION='1.1.0';
 export const VIDEO_SPEED_MARKET_ID='opendesk/video-speed-controller';
 const digest=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 

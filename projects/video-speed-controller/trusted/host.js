@@ -8,7 +8,42 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 //
 // Results contain only bounded numbers and booleans, never source URLs, DOM
 // text, media stream identifiers or other private webpage information.
-export function pageVideoSpeed(mode,speed,index=-1) {
+export function pageVideoSpeed(mode,speed,index=-1,nonce='') {
+  // Trusted fixed function installed in an isolated document. The listener
+  // signals keys only; it cannot mutate media or authorize an operation.
+  if(mode==='shortcut-on'||mode==='shortcut-off'){
+    const key='__opendeskVideoSpeedShortcutListener_v1';
+    const existing=globalThis[key];
+    if(existing?.listener)document.removeEventListener('keydown',existing.listener,true);
+    delete globalThis[key];
+    if(mode==='shortcut-off')return {found:false,count:0,shortcuts:false};
+    const runtime=globalThis.chrome?.runtime;
+    if(typeof nonce!=='string'||!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(nonce)||
+      typeof runtime?.sendMessage!=='function'||typeof document.addEventListener!=='function')
+      return {found:false,count:0,shortcuts:false};
+    const listener=event=>{
+      if(event?.isTrusted!==true||event.repeat||event.isComposing||event.defaultPrevented||
+         event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+      if(event.target?.isContentEditable||
+         event.target?.closest?.('input,textarea,select,[contenteditable],[role="textbox"]'))return;
+      const path=typeof event.composedPath==='function'?event.composedPath().slice(0,16):[];
+      if(path.some(node=>node?.isContentEditable||
+        ['INPUT','TEXTAREA','SELECT'].includes(node?.tagName)||
+        node?.getAttribute?.('role')==='textbox'))return;
+      const hotkey=String(event.key||'').toLowerCase();
+      if(hotkey!=='s'&&hotkey!=='d'&&hotkey!=='r')return;
+      // Never preventDefault: a closed or revoked tool must not intercept the
+      // website's own keyboard behavior. Only an admitted Host may write.
+      try{
+        const result=runtime.sendMessage({protocol:'opendesk.video-speed.shortcut.v1',
+          nonce,key:hotkey});
+        if(result&&typeof result.catch==='function')result.catch(()=>{});
+      }catch{/* Side Panel closed. No mutation in the page listener. */}
+    };
+    document.addEventListener('keydown',listener,true);
+    globalThis[key]={listener};
+    return {found:false,count:0,shortcuts:true};
+  }
   const nodes=Array.from(document.querySelectorAll('video')).slice(0,48);
   let best=null,bestIndex=-1,bestScore=-1;
   for(let i=0;i<nodes.length;i++){
@@ -54,12 +89,12 @@ function admittedFrame(frame) {
   try {const u=new URL(frame.url);return ['http:','https:'].includes(u.protocol);}
   catch {return false;}
 }
-async function inject(api,tabId,frame,mode,speed=null,index=-1) {
+async function inject(api,tabId,frame,mode,speed=null,index=-1,nonce='') {
   // documentIds (Chrome 106+) prevents a navigated/recycled frame from
   // receiving an operation intended for an earlier document.
   const results=await api.scripting.executeScript({
     target:{tabId,documentIds:[frame.documentId]},
-    world:'ISOLATED',func:pageVideoSpeed,args:[mode,speed,index]
+    world:'ISOLATED',func:pageVideoSpeed,args:[mode,speed,index,nonce]
   });
   const result=checkedResult(results,frame);
   if(!result)throw fail('E_VIDEO_READBACK','视频脚本未返回与目标文档匹配的结果');
@@ -67,7 +102,7 @@ async function inject(api,tabId,frame,mode,speed=null,index=-1) {
 }
 export async function requestVideoSpeed({
   api,tool,operation,payload,currentPageTarget,revocationEpoch,
-  assertCurrent,assertInstalled
+  assertCurrent,assertInstalled,shortcutNonce=null
 }={}) {
   if(tool?.id!==VIDEO_SPEED_ID||
      !tool?.capabilities?.includes(VIDEO_SPEED_CAPABILITY)||
@@ -77,10 +112,15 @@ export async function requestVideoSpeed({
   if(!args||typeof args!=='object'||Array.isArray(args))
     throw fail('E_SCHEMA','视频倍速参数无效');
   const read=operation==='videoSpeed.status';
-  if(read&&Object.keys(args).length!==0||
-     !read&&(Object.keys(args).length!==1||!Object.hasOwn(args,'speed')||
-       !validVideoSpeed(args.speed)))
-    throw fail('E_SCHEMA','倍速应为 0.25×～4× 的有效数值');
+  const set=operation==='videoSpeed.set';
+  const enableKeys=operation==='videoSpeed.shortcuts.enable';
+  const disableKeys=operation==='videoSpeed.shortcuts.disable';
+  if(set?(Object.keys(args).length!==1||!Object.hasOwn(args,'speed')||
+      !validVideoSpeed(args.speed)):Object.keys(args).length!==0)
+    throw fail('E_SCHEMA','倍速参数无效，应为 0.25×～4×');
+  if(enableKeys&&(typeof shortcutNonce!=='string'||
+      !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(shortcutNonce)))
+    throw fail('E_SCHEMA','快捷键会话令牌无效');
   if(typeof api?.scripting?.executeScript!=='function'||
      typeof api?.webNavigation?.getAllFrames!=='function'||
      typeof currentPageTarget?.capture!=='function'||
@@ -105,6 +145,19 @@ export async function requestVideoSpeed({
   eligible.sort((a,b)=>a.frameId===0?-1:b.frameId===0?1:a.frameId-b.frameId);
   const truncated=eligible.length>16;
   const selectedFrames=eligible.slice(0,16);
+  if(enableKeys||disableKeys){
+    const frame=selectedFrames.find(row=>row.frameId===0&&row.documentId===target.documentId);
+    if(!frame)throw fail('E_VIDEO_SITE_ACCESS','当前网页无法使用快捷键');
+    await currentPageTarget.revalidate(target);
+    assertCurrent();await assertInstalled();
+    const outcome=await inject(api,target.tabId,frame,
+      enableKeys?'shortcut-on':'shortcut-off',null,-1,enableKeys?shortcutNonce:'');
+    await currentPageTarget.revalidate(target);
+    assertCurrent();await assertInstalled();
+    if(outcome.shortcuts!==enableKeys)
+      throw fail('E_VIDEO_SHORTCUT','网页快捷键监听无法完成');
+    return {enabled:enableKeys};
+  }
   let rejected=0,videoCount=0;
   const rows=await Promise.all(selectedFrames.map(async frame=>{
     try {
