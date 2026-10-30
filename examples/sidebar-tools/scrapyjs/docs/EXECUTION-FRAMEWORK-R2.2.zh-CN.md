@@ -116,3 +116,9 @@ sha256sum examples/sidebar-tools/scrapyjs/contracts/execution-v1.schema.json
 ### R2.2 GitHub CI 的隔离运行边界
 
 本工具声明 `app.ci.json` 且自动发现本目录的 `*.test.mjs`。由于全仓 `npm run build:dev` 当前存在跨产品迁移后的旧路径未解析（`src/ui/conversation/provider-consumer.js` 引用 `examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js`），**ScrapyJS 的 CI 不应通过扩 Host 路径或修改 Runtime 绕过该阻断**。因此该 App CI profile 不设置 `host: development`，单独编译当前 ScrapyJS React IIFE；Chromium 测试实际加载该 IIFE 与原 React 19.2.0，但 **仅以最小 Button shim + 既有 memory mock** 测通操作（不是原生安装和完整设计系统截图）。全仓 Host 正式构建仍为 BLOCKED，并需产品迁移专项处理；该浏览器模拟测试不提升此事实。
+
+## 9. Android / Desktop 可复制的互操作测试向量
+
+`contracts/fixtures/execution-v1-vectors.json` 是**纯 JSON、可跨语言读取**的稳定样例：包含六份完整合同、具备真实 SHA-256 的 Recipe 黄金值、一个静态 HTML Desktop HTTP 允许例、DOM / Header / Authorization / DNS / 网络路由拒绝例，以及完成收据的正/负例。`fixturesOnly: true` 明确其 `approvalRef` 和 `evidenceRef` **是虚构测试值，不代表用户授权、真机可用或实际抓取**。
+
+Browser 的 `tests/execution-interop.test.mjs` 对全部跨语言样例执行验证；R2.3 Android 将相同 JSON 文件以本轮最终 `main` 提交 SHA 和自身文件 SHA-256 固定拷贝，逐一复现 expected supported/reason/error，先验证静态合同，再进行独立真机网络测试。失败码不能在 Android 被吞掉或改解释，不需要复制 JS 引擎或建立第二套 Schema。

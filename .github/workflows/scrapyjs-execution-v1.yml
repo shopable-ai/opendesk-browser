@@ -6,7 +6,8 @@ on:
     paths:
       - '.github/workflows/scrapyjs-execution-v1.yml'
       - 'examples/sidebar-tools/scrapyjs/contracts/**'
-      - 'examples/sidebar-tools/scrapyjs/tests/execution-v1.test.mjs'
+      - 'examples/sidebar-tools/scrapyjs/tests/execution-*.test.mjs'
+      - 'examples/sidebar-tools/scrapyjs/contracts/fixtures/**'
       - 'examples/sidebar-tools/scrapyjs/docs/EXECUTION-FRAMEWORK-R2.2.zh-CN.md'
   workflow_dispatch:
 
@@ -25,7 +26,7 @@ jobs:
         with:
           node-version: '22'
       - name: Validate canonical contract structure, policies and negative cases
-        run: node --test examples/sidebar-tools/scrapyjs/tests/execution-v1.test.mjs
+        run: node --test examples/sidebar-tools/scrapyjs/tests/execution-v1.test.mjs examples/sidebar-tools/scrapyjs/tests/execution-interop.test.mjs
       - name: Rebuild portable JSON Schema and reject manual drift
         run: |
           node examples/sidebar-tools/scrapyjs/contracts/generate-schema.mjs

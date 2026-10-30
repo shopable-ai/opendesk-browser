@@ -1,0 +1,372 @@
+{
+  "format": "scrapyjs.execution.v1.interop-fixtures",
+  "contractVersion": "scrapyjs.execution.v1",
+  "generatedFromBrowserAuthority": true,
+  "fixturesOnly": true,
+  "warning": "Literal fixture evidenceRef/approvalRef never confers permission, device availability, verified network, or real capture.",
+  "base": {
+    "recipe": {
+      "schemaVersion": "scrapyjs.execution.v1",
+      "recipeId": "recipe:interop",
+      "version": "1.0.0",
+      "sha256": "2d10b45f2f82306c9d13c28d682727c719dfb8a60f0906703d435ac4299bf735",
+      "description": "Portable static HTML contract vector",
+      "target": {
+        "url": "https://example.com/catalog",
+        "origins": [
+          "https://example.com"
+        ],
+        "session": "none"
+      },
+      "extraction": {
+        "kind": "static-html",
+        "fields": [
+          {
+            "name": "title",
+            "selector": "h2",
+            "read": "text"
+          }
+        ]
+      },
+      "limits": {
+        "maxPages": 3,
+        "maxRequests": 5,
+        "maxResponseBytes": 65536,
+        "maxTotalBytes": 196608,
+        "deadlineMs": 45000,
+        "maxRedirects": 2
+      }
+    },
+    "headers": {
+      "schemaVersion": "scrapyjs.execution.v1",
+      "profileId": "headers:interop",
+      "version": "1.0.0",
+      "entries": [
+        {
+          "name": "accept",
+          "value": "text/html"
+        }
+      ],
+      "userAgent": {
+        "mode": "inherit"
+      }
+    },
+    "network": {
+      "schemaVersion": "scrapyjs.execution.v1",
+      "profileId": "network:direct",
+      "version": "1.0.0",
+      "mode": "direct"
+    },
+    "node": {
+      "schemaVersion": "scrapyjs.execution.v1",
+      "nodeId": "node:desktop-http",
+      "kind": "desktop-http",
+      "availability": "verified",
+      "evidenceRef": "fixture:fake-not-runtime-attestation",
+      "approvedOrigins": [
+        "https://example.com"
+      ],
+      "supportedExtraction": [
+        "static-html"
+      ],
+      "supportedNetworks": [
+        "direct"
+      ],
+      "verifiedHeaderNames": [
+        "accept"
+      ],
+      "javascriptRendering": false,
+      "canOverrideUserAgent": false,
+      "canUseCredentialRefs": false,
+      "canUseCurrentTabSession": false,
+      "enforcesDnsGuard": true,
+      "inspectsRedirects": true,
+      "stopReadback": true,
+      "resultReadback": true,
+      "cellularBindingVerified": false,
+      "egressVerification": false,
+      "maxLimits": {
+        "maxPages": 3,
+        "maxRequests": 5,
+        "maxResponseBytes": 65536,
+        "maxTotalBytes": 196608,
+        "deadlineMs": 45000,
+        "maxRedirects": 2
+      }
+    },
+    "plan": {
+      "schemaVersion": "scrapyjs.execution.v1",
+      "planId": "plan:interop",
+      "recipeId": "recipe:interop",
+      "recipeVersion": "1.0.0",
+      "recipeHash": "2d10b45f2f82306c9d13c28d682727c719dfb8a60f0906703d435ac4299bf735",
+      "phase": "trial",
+      "executionKind": "desktop-http",
+      "nodeId": "node:desktop-http",
+      "headerProfileId": "headers:interop",
+      "headerProfileVersion": "1.0.0",
+      "networkProfileId": "network:direct",
+      "networkProfileVersion": "1.0.0",
+      "limits": {
+        "maxPages": 3,
+        "maxRequests": 5,
+        "maxResponseBytes": 65536,
+        "maxTotalBytes": 196608,
+        "deadlineMs": 45000,
+        "maxRedirects": 2
+      },
+      "approval": {
+        "approvalRef": "fixture:not-a-valid-grant",
+        "approvedOrigin": "https://example.com",
+        "executionKind": "desktop-http",
+        "networkMode": "direct",
+        "headerProfileId": "headers:interop",
+        "permissions": [
+          "read"
+        ]
+      }
+    },
+    "receipt": {
+      "schemaVersion": "scrapyjs.execution.v1",
+      "runId": "run:interop",
+      "planId": "plan:interop",
+      "recipeHash": "2d10b45f2f82306c9d13c28d682727c719dfb8a60f0906703d435ac4299bf735",
+      "nodeId": "node:desktop-http",
+      "executionKind": "desktop-http",
+      "status": "completed",
+      "stopState": "none",
+      "retirementState": "released",
+      "startedAt": "2026-10-30T08:00:00Z",
+      "endedAt": "2026-10-30T08:00:05Z",
+      "counters": {
+        "requests": 1,
+        "pages": 1,
+        "bytes": 4096,
+        "records": 2
+      },
+      "network": {
+        "expected": "direct",
+        "observed": "direct",
+        "egressVerified": false,
+        "evidenceRef": null
+      },
+      "result": {
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "readbackVerified": true,
+        "evidenceRef": "fixture:independent-test-only"
+      },
+      "errorCode": null,
+      "idempotencyKey": "idemp:interop"
+    }
+  },
+  "cases": [
+    {
+      "id": "desktop-http-static-ok",
+      "operation": "evaluateExecution",
+      "changes": [],
+      "expected": {
+        "supported": true
+      }
+    },
+    {
+      "id": "desktop-http-dom-rejected",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "recipe",
+          "path": "extraction.kind",
+          "value": "dom"
+        }
+      ],
+      "expected": {
+        "reason": "E_EXTRACTION_UNSUPPORTED"
+      }
+    },
+    {
+      "id": "unverified-node-rejected",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "node",
+          "path": "availability",
+          "value": "unverified"
+        }
+      ],
+      "expected": {
+        "reason": "E_NODE_UNVERIFIED"
+      }
+    },
+    {
+      "id": "node-does-not-support-header",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "node",
+          "path": "verifiedHeaderNames",
+          "value": []
+        }
+      ],
+      "expected": {
+        "reason": "E_HEADER_UNSUPPORTED"
+      }
+    },
+    {
+      "id": "credential-not-consented",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "headers",
+          "path": "credentialRef",
+          "value": "vault:private"
+        }
+      ],
+      "expected": {
+        "reason": "E_CREDENTIAL_UNSUPPORTED"
+      }
+    },
+    {
+      "id": "origin-approval-mismatch",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "plan",
+          "path": "approval.approvedOrigin",
+          "value": "https://another.example.com"
+        }
+      ],
+      "expected": {
+        "reason": "E_APPROVAL_SCOPE"
+      }
+    },
+    {
+      "id": "network-route-change-not-allowed",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "network",
+          "path": "mode",
+          "value": "cellular"
+        },
+        {
+          "scope": "plan",
+          "path": "approval.networkMode",
+          "value": "cellular"
+        }
+      ],
+      "expected": {
+        "reason": "E_NETWORK_UNSUPPORTED"
+      }
+    },
+    {
+      "id": "DNS-guard-mandatory",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "node",
+          "path": "enforcesDnsGuard",
+          "value": false
+        }
+      ],
+      "expected": {
+        "reason": "E_SSRF_GUARD"
+      }
+    },
+    {
+      "id": "header-spoofing-rejected",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "headers",
+          "path": "entries",
+          "value": [
+            {
+              "name": "host",
+              "value": "attacker.test"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "error": "E_HEADER"
+      }
+    },
+    {
+      "id": "unapproved-full-run",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "plan",
+          "path": "phase",
+          "value": "full"
+        }
+      ],
+      "expected": {
+        "error": "E_FULL_APPROVAL"
+      }
+    },
+    {
+      "id": "unknown-field",
+      "operation": "evaluateExecution",
+      "changes": [
+        {
+          "scope": "recipe",
+          "path": "executable",
+          "value": "console.log(1)"
+        }
+      ],
+      "expected": {
+        "error": "E_SCHEMA"
+      }
+    },
+    {
+      "id": "receipt-completed",
+      "operation": "validateRunReceipt",
+      "changes": [],
+      "expected": {
+        "supported": true
+      }
+    },
+    {
+      "id": "receipt-missing-readback",
+      "operation": "validateRunReceipt",
+      "changes": [
+        {
+          "scope": "receipt",
+          "path": "result.readbackVerified",
+          "value": false
+        }
+      ],
+      "expected": {
+        "error": "E_RESULT_UNVERIFIED"
+      }
+    },
+    {
+      "id": "receipt-retirement-unknown",
+      "operation": "validateRunReceipt",
+      "changes": [
+        {
+          "scope": "receipt",
+          "path": "retirementState",
+          "value": "unknown"
+        }
+      ],
+      "expected": {
+        "error": "E_RESULT_UNVERIFIED"
+      }
+    },
+    {
+      "id": "receipt-byte-over-budget",
+      "operation": "validateRunReceipt",
+      "changes": [
+        {
+          "scope": "receipt",
+          "path": "counters.bytes",
+          "value": 9999999
+        }
+      ],
+      "expected": {
+        "error": "E_RECEIPT_BUDGET"
+      }
+    }
+  ]
+}
