@@ -1,8 +1,8 @@
 {
   "result": "CHROMIUM_PASS",
   "source": "services/ai-account-usage/web/main.jsx",
-  "scriptSHA256": "edb2f28c4747683720bcaa0a87b3ebb39fc401eb467c907763d5476581bff1ed",
-  "cssSHA256": "e11631cc5c665a4204048f5da9cc91add37582870eed29815556addf2d3399dd",
+  "scriptSHA256": "7e4591ba0344481cd76b6279e3333f1d4feb3a305406f94c34daeda055281e76",
+  "cssSHA256": "133702f77aa52760347a38d475113420c0474d88796c4e0d6cfb42e5e7f2289a",
   "browserVersion": "156.0.8078.80",
   "checks": [
     {
@@ -24,6 +24,18 @@
       "name": "six independent desktop table columns",
       "passed": true,
       "details": null
+    },
+    {
+      "name": "one accessible page heading and no duplicated title",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "compact desktop header",
+      "passed": true,
+      "details": {
+        "headerHeight": 62
+      }
     },
     {
       "name": "failed account retains stable name and query warning",
