@@ -6,7 +6,7 @@ import {ORIGINAL_CONFIG,BUILTIN_PRESETS,CONFIG_FIELDS,copyConfig,
   validConfig} from './env-config.js';
 import {readPresets,savePreset,deletePreset,readRuns,appendRun} from './presets.js';
 import {applyEnvironment,verifyEnvironment,restoreEnvironment,
-  ACTIVE_STATES,classifyFailure,classifyRestoration,readbackFailureState,sessionActions} from './run-session.js';
+  ACTIVE_STATES,classifyFailure,classifyRestoration,readbackFailureState,sessionActions,sameTarget} from './run-session.js';
 
 const stamp=()=>new Date().toISOString();
 const ident=prefix=>prefix+(globalThis.crypto?.randomUUID?.()||
@@ -80,7 +80,7 @@ function Notice({notice}){
 function Field({fieldKey,value,onChange,disabled,showNote=false}){
   const def=CONFIG_FIELDS[fieldKey];
   return <div className="fp-parameter" key={fieldKey}>
-    <label htmlFor={'fp-param-'+fieldKey}>{def.label}</label>
+    <label htmlFor={'fp-param-'+fieldKey}>{fieldKey==='ua'?'浏览器标识 / UA、UA-CH':def.label}</label>
     <select id={'fp-param-'+fieldKey} className="fp-control" value={value}
       onChange={event=>onChange(fieldKey,event.target.value)} disabled={disabled}>
       {def.values.map(([id,label])=><option value={id} key={id}>{label}</option>)}
@@ -224,6 +224,9 @@ export default function App({adapter,preview=false}){
         setVerification(null);
         setNotice({type:'warning',
           text:'网页身份或授权已变化；当前会话已失效，不能复用旧文档执行操作。'});
+      }else{
+        // A completed session must never be advertised as the new document's state.
+        setStatus('idle');setSession(null);setVerification(null);
       }
       adapter.context().then(raw=>{
         if(!live)return;
@@ -267,7 +270,14 @@ export default function App({adapter,preview=false}){
       const info=safeContext(await adapter.context());
       currentOrigin.current=info.origin;
       setContext({origin:info.origin,title:info.title});
-      warn('当前网页身份已重新读取：'+info.origin,'info');
+      if(activeSession.current&&!sameTarget(activeSession.current.target,info)){
+        activeSession.current={...activeSession.current,invalidated:true};
+        setStatus('invalidated');setVerification(null);
+        warn('当前网页不再匹配原有 Session；禁止对新文档重放应用或恢复，请人工核对。','warning');
+      }else{
+        if(!activeSession.current){setStatus('idle');setSession(null);setVerification(null);}
+        warn('当前网页身份已重新读取：'+info.origin,'info');
+      }
     }catch(error){
       currentOrigin.current=null;setContext({origin:null});
       warn('无法读取当前网页：'+readableError(error));
@@ -517,7 +527,7 @@ export default function App({adapter,preview=false}){
             const target=event.key==='Home'?0:event.key==='End'?items.length-1:
               (current+(event.key==='ArrowRight'?1:items.length-1))%items.length;
             selectTab(items[target][0]);
-            document.getElementById('fp-tab-'+items[target][0])?.focus();
+            event.currentTarget.parentElement?.children?.[target]?.focus();
           }}>{text}</button>)}
     </nav>
     {preview?<p className="fp-preview-note">离线 React 预览只使用测试替身，不修改 Chrome，也不产生真实验证结果。</p>:null}
