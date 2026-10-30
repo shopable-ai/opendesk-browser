@@ -1,6 +1,6 @@
 {
   "name": "scrapyjs-capture",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "description": "scrapyJs controlled fields, pagination and list-detail capture",
@@ -18,7 +18,8 @@
     ],
     "permissions": [
       "page.automation",
-      "network"
+      "network",
+      "network.localRelay"
     ],
     "deadlineMs": 90000,
     "paramsSchema": {

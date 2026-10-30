@@ -185,8 +185,8 @@ export default function App(){
         <Button id="load-http-example" onClick={()=>loadMode(httpExample())}>载入本机 HTTP 示例</Button>
       </fieldset>
       {httpLocal&&<fieldset disabled={locked||pending||!ui.valid||!ui.targetValid}>
-        <p className="secondary">仅 GET 本机自有回显 JSON；公网未开放。不执行 DOM 选择器。</p>
-        <Field id="http-user-agent" label="User-Agent（留空继承，最多 512 个可打印 ASCII 字符）" value={httpForm.userAgent} onChange={event=>editHTTP({userAgent:event.target.value})}/>
+        <p className="secondary">通过本机 Node 仅 GET 自有回显 JSON；最多 3 页共享 15 秒，公网未开放。不执行 DOM 选择器。</p>
+        <Field id="http-user-agent" label="User-Agent（留空使用 OpenDesk-NativeHTTP/1.0，最多 512 个可打印 ASCII 字符）" value={httpForm.userAgent} onChange={event=>editHTTP({userAgent:event.target.value})}/>
         <Field id="http-headers" label="Headers JSON（普通请求头，值仅可打印 ASCII）"><textarea id="http-headers" rows={4} spellCheck={false} value={httpForm.headers} placeholder={'{"Accept":"application/json","X-Client-Tag":"scrapyjs-app"}'} aria-invalid={!ui.httpValid} aria-describedby="config-error" onChange={event=>editHTTP({headers:event.target.value})}/></Field>
         <Field id="http-fields" label="JSON 字段点路径 itemConfig（最多 32 字段，每路径 4 段 / 128 字符）"><textarea id="http-fields" rows={5} spellCheck={false} value={httpForm.fields} aria-invalid={!ui.httpValid} aria-describedby="config-error" onChange={event=>editHTTP({fields:event.target.value})}/></Field>
         <Field id="http-max-pages" label="页数安全上限（1–3）" type="number" min={1} max={3} value={httpForm.maxPages} onChange={event=>editHTTP({maxPages:event.target.value})}/>

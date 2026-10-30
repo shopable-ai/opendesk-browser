@@ -32,7 +32,7 @@
           const name = key.toLowerCase();
           if (!/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(key) || !headerValue(text) || names.has(name) ||
               /^(sec-|proxy-|x-opendesk-)/.test(name) ||
-              ['__proto__','constructor','prototype','user-agent','host','connection','content-length','transfer-encoding','cookie','authorization','origin','referer'].includes(name))
+              ['__proto__','constructor','prototype','user-agent','host','connection','keep-alive','te','trailer','upgrade','expect','accept-encoding','content-length','transfer-encoding','cookie','authorization','origin','referer'].includes(name))
             throw new Error('Headers 值仅接受可打印 ASCII，头名不能大小写重复；UA 请独立填写，身份与传输控制头不可配置');
           names.add(name);
         }
@@ -95,7 +95,9 @@
     if(new TextEncoder().encode(JSON.stringify(options)).byteLength>4096) throw new Error('分页、详情与处理配置超过 4096 字节');
     if (new TextEncoder().encode(JSON.stringify(value.itemConfig)).byteLength > 4096) throw new Error('itemConfig 超过 configJson 的 4096 字节上限');
     if (new TextEncoder().encode(JSON.stringify(value)).byteLength > 8192) throw new Error('配置超过 8192 字节');
-    return copy(value);
+    const config = copy(value);
+    if (httpLocal && config.timeoutMs !== undefined) config.timeoutMs = Math.min(config.timeoutMs, 15000);
+    return config;
   }
   function targetUrl(value) {
     if (typeof value !== 'string') throw new Error('请填写目标 URL');

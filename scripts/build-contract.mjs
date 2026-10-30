@@ -2,6 +2,7 @@ import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 // One static trusted HTML document; the existing classic WXT entries stay fixed.
 export {SIDEPANEL_DOCUMENT_PATH} from '../src/tool-document-url.js';
 export const PACKAGE_ENTRIES = Object.freeze({
+  'native-agent/http-relay-settings': './src/native-agent/http-relay-settings.js',
   'network-request': './src/platform/chrome/network-request.js',
   sw: './src/sw.js',
   'ui/tool-shell': './src/ui/tool-shell.js',

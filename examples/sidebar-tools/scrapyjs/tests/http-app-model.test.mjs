@@ -34,7 +34,7 @@ test('HTTP rejects DOM grammar, unsafe paths and malformed or privileged header 
   for(const option of [{nextPageSelector:'a'}, {waitForSelector:'body'}, {detail:{}},{processing:{version:1,rules:[]}},{validation:{version:1,rowShape:'row'}},{fieldRequirements:[]},{dedupeKey:'accept'}])assert.throws(()=>validateConfig({...config(),...option}),/DOM/);
   for(const http of [null,[],{code:'fetch()'},{userAgent:42},{userAgent:'ua\r\nInjected: yes'},
     {headers:[]},{headers:{Accept:42}},{headers:{'Bad Name':'x'}},{headers:{Accept:'x\nInjected: yes'}},
-    ...['User-Agent','Host','Cookie','Authorization','Content-Length'].map(key=>({headers:{[key]:'x'}}))])assert.throws(()=>validateConfig({...config(),http}));
+    ...['User-Agent','Host','Cookie','Authorization','Content-Length','Keep-Alive','TE','Trailer','Upgrade','Expect','Accept-Encoding'].map(key=>({headers:{[key]:'x'}}))])assert.throws(()=>validateConfig({...config(),http}));
 });
 test('HTTP additions stay inside original 4096-byte options/item and 8192-byte config budgets',()=>{
   assert.throws(()=>validateConfig({...config(),http:{userAgent:'中'.repeat(1400)}}),/User-Agent/);
@@ -137,4 +137,31 @@ test('valid HTTP values reach exact options/item/total byte budgets, then reject
   const total=config();total.url+='?pad=';total.url+='x'.repeat(8192-bytes(total));
   assert.equal(bytes(total),8192);assert.doesNotThrow(()=>validateConfig(total));
   total.url+='x';assert.throws(()=>validateConfig(total),/8192/);
+});
+
+test('HTTP timeout clamps at 15 seconds while DOM retains its original timeout range',()=>{
+  for(const timeoutMs of [1,5000,15000,30000,60000]){
+    assert.equal(validateConfig({...config(),timeoutMs}).timeoutMs,Math.min(timeoutMs,15000));
+    assert.equal(validateConfig({...DEFAULT_CONFIG,timeoutMs}).timeoutMs,timeoutMs);
+  }
+  for(const timeoutMs of [0,-1,null,1.5,'15000',60001])
+    assert.throws(()=>validateConfig({...config(),timeoutMs}));
+});
+test('HTTP start freezes URL, UA, headers, mapping, pages and timeout before async prepare',async()=>{
+  let release;const prepared=new Promise(resolve=>{release=resolve;});let received;
+  const page={status:'available',url:config().url};
+  const app=createApp({currentPage:async()=>page,prepare:()=>prepared,
+    start:async(value,_url,clientRequestId)=>{
+      received=plain(value);return {clientRequestId,runId:'frozen-run',status:'running'};
+    },read:async clientRequestId=>({clientRequestId,runId:'frozen-run',status:'completed',retired:true})});
+  const input={...config(),timeoutMs:60000};app.edit(input);await app.refreshTarget();
+  const running=app.start(page.url);
+  assert.throws(()=>app.edit(DEFAULT_CONFIG),/运行期间/);
+  input.http.headers.Accept='external edit';input.http.userAgent='external edit';
+  app.state.config.url='https://example.com/';app.state.config.http.headers.Accept='state edit';
+  app.state.config.itemConfig={wrong:'missing'};app.state.config.maxPages=1;app.state.config.timeoutMs=1;
+  release();await running;
+  assert.deepEqual(received,{...config(),timeoutMs:15000});
+  assert.deepEqual(plain(app.state.runProfile.config),received);
+  assert.equal(app.state.runId,'frozen-run');assert.equal(app.state.phase,'retired');
 });

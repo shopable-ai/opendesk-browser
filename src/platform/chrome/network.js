@@ -33,11 +33,12 @@ async function readBody(response, maxBytes, signal) {
   } finally { signal.removeEventListener('abort', cancel); reader.releaseLock(); }
 }
 export function createNetworkService({fetchImpl = globalThis.fetch, authorize, clock = Date,
-  maxResponseBytes = SDK_LIMITS.responseBytes, setTimer = setTimeout, clearTimer = clearTimeout, networkInfoEnabled = false, isolatedTransport} = {}) {
+  maxResponseBytes = SDK_LIMITS.responseBytes, setTimer = setTimeout, clearTimer = clearTimeout, networkInfoEnabled = false, isolatedTransport, nativeTransport} = {}) {
   async function request({method, url, data, config}, context = {}) {
     if (!['GET', 'POST', 'PUT', 'DELETE'].includes(method)) throw fail('E_SERVICE_UNSUPPORTED');
     const normalized = normalizeConfig(config);
-    if (normalized.transport && !isolatedTransport) throw fail('E_SERVICE_UNSUPPORTED', 'Isolated HTTP transport unavailable');
+    const transport = normalized.transport === 'native-http' ? nativeTransport : isolatedTransport;
+    if (normalized.transport && !transport) throw fail('E_SERVICE_UNSUPPORTED', 'Requested HTTP transport unavailable');
     if (data !== undefined) jsonValue(data);
     const target = new URL(httpUrl(url));
     for (const [name, value] of Object.entries(normalized.params ?? {})) {
@@ -67,7 +68,8 @@ export function createNetworkService({fetchImpl = globalThis.fetch, authorize, c
       context.assertDispatch?.();
       const options={method,headers,body,credentials:'omit',redirect:'manual',signal:controller.signal};
       const response = normalized.transport
-        ? await isolatedTransport.request(target.href,{...options,userAgent:normalized.userAgent},context,async()=>{
+        ? await transport.request(target.href,{...options,userAgent:normalized.userAgent},
+          {...context,deadlineAt:Math.min(context.deadlineAt??Infinity,clock.now()+timeout)},async()=>{
           await authorize({capability:'network',url:target.href,method,phase:'pre'},context);context.assertDispatch?.();
         })
         : await fetchImpl(target.href,options);
@@ -85,7 +87,8 @@ export function createNetworkService({fetchImpl = globalThis.fetch, authorize, c
       }
       const projection = {data: responseData, status: response.status, statusText: response.statusText,
         headers: responseHeaders, config: {...normalized, method: method.toLowerCase(), url: target.href}};
-      if(normalized.transport)projection.request={runId:context.runId,requestId:context.requestId};
+      if(normalized.transport)projection.request={runId:context.runId,requestId:context.requestId,
+        ...(response.executor?{executor:response.executor}:{})};
       await abortable(context.recordNativeReceipt?.(projection), controller.signal);
       if (!response.ok) {
         await abortable(authorize({capability:'network',url:target.href,method,phase:'post'}, context), controller.signal);

@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src http://127.0.0.1:43122; base-uri 'none'; form-action 'none'">
+<title>OpenDesk · 本地 HTTP 转发</title><link rel="stylesheet" href="../ui/design-tokens.css"><link rel="stylesheet" href="settings.css"></head>
+<body><main class="settings-page"><h1>本地 HTTP 转发</h1>
+<section class="settings-card"><p>浏览器配置并触发采集；本机 Node.js 服务发送目标请求。当前仅支持自有回显地址 127.0.0.1:43121。</p>
+<p>首次连接：启动服务后生成短时邀请，在此配对。重启后保留连接身份；每个任务仍按安装时审阅的权限运行。</p>
+<label for="relay-invite">一次性邀请</label><input id="relay-invite" type="password" autocomplete="off" spellcheck="false">
+<div class="connection-actions"><button id="relay-pair" type="button">配对本机服务</button><button id="relay-refresh" type="button">检测状态</button><button id="relay-revoke" type="button">撤销配对</button></div>
+<p id="relay-status" role="status" aria-live="polite">尚未检测</p>
+<p>请求不携带浏览器 Cookie 或登录凭据，不跟随重定向；服务断开时采集失败。停止请求无法撤回目标已收到的内容。</p>
+<button id="relay-back" type="button">返回本机连接</button></section></main><script src="http-relay-settings.js"></script></body></html>

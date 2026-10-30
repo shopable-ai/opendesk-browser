@@ -19,6 +19,7 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
     feedback.hidden=!value;
   };
   const controls=pending=>{toggle.disabled=pending||!lastState;refresh.disabled=pending;};
+  doc.getElementById('http-relay-open')?.addEventListener('click',()=>navigate(api.runtime.getURL('native-agent/http-relay.html')));
   doc.getElementById('workspace-open')?.addEventListener('click',()=>api.tabs.create({
     url:api.runtime.getURL('native-agent/workspace.html')
   }));

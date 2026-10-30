@@ -1,0 +1,1473 @@
+{
+  "status": "PASS_REAL_APP_NODE_HTTP_LOCAL",
+  "scope": "LOCAL_STATIC_DEVELOPMENT_CFT_ORIGINAL_INSTALLED_APP_AND_TASK",
+  "productionHttp": "BLOCKED",
+  "publicInternet": "BLOCKED",
+  "productionAcceptance": "NOT_TESTED",
+  "physicalManualMacUi": "NOT_TESTED",
+  "independentScore": "NOT_SCORED",
+  "finishedAt": "2026-10-30T18:08:32.669Z",
+  "chrome": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "extensionId": "fmdjmphcebgdkbambbjmgooojocholmf",
+  "loadedExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/node-http-20261031/core-install-02/cft-q0Gv67/extension",
+  "browserPackageHash": "9b858903ddd4e029e976e0866cb069c00cd8cdaf16f85f6c231e367d92ed77f1",
+  "service": {
+    "pid": 97453,
+    "port": 43122,
+    "nodeVersion": "v24.16.0",
+    "executorSource": {
+      "algorithm": "sha256",
+      "framing": "service.mjs\u0000<service bytes>protocol.mjs\u0000<protocol bytes>",
+      "files": {
+        "service.mjs": {
+          "bytes": 22672,
+          "sha256": "1ad440a31164734c4653ea3341689ad018b776c975c5184a8c8b3ac7db11fbad"
+        },
+        "protocol.mjs": {
+          "bytes": 2020,
+          "sha256": "4ec89bfc9195454ab7b9445add7174e634ac8125021704b2508ab92e3ba8fe88"
+        }
+      },
+      "combinedSha256": "706fc9c8b705dc2381409a60b5f24663e53e70f727029e74799ee65b63bc9abe"
+    }
+  },
+  "packages": {
+    "app": {
+      "path": "examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "id": "scrapyjs",
+      "version": "1.8.0",
+      "sha256": "675002c85a52beef494c0ab77694fd29b1a051cb41aa407cb744b3443abbc641"
+    },
+    "task": {
+      "path": "examples/sidebar-tools/scrapyjs/controller/scrapyjs.opendesk-task.json",
+      "taskId": "scrapyjs.capture",
+      "version": "0.6.0",
+      "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "sha256": "4b8db4f5158fb765b50e201c092514f5551861038a4ff426072af38b2877f01e"
+    }
+  },
+  "scenarios": {
+    "headers-A": "PASS",
+    "headers-B": "PASS",
+    "headers-deleted": "PASS",
+    "three-pages-bound": "PASS",
+    "stop-stream": "PASS",
+    "timeout-stream": "PASS",
+    "host-500": "PASS",
+    "redirect-refused": "PASS",
+    "early-close": "PASS",
+    "service-down": "PASS",
+    "revocation": "PASS"
+  },
+  "terminals": [
+    {
+      "scenario": "headers-A",
+      "runId": "9f1daf1e-e3d7-42f2-8c7c-509ab60c5abd",
+      "requestId": "a540827a-17ef-4f31-baeb-48886ca66eac",
+      "resultId": "3ca33177-ecd1-484c-a706-935360379305",
+      "state": "completed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"9f1daf1e-e3d7-42f2-8c7c-509ab60c5abd\",\"e4d20ada-5adc-4493-967c-89a994b9e9d4\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": null
+    },
+    {
+      "scenario": "headers-B",
+      "runId": "4ececdbd-91d7-41ec-b1fb-46214e8cac7f",
+      "requestId": "c491f2ae-bf86-4d51-8dbd-d69a0115a7c7",
+      "resultId": "c6fd8c7c-a8c7-49bd-83b6-80f03cc49bf9",
+      "state": "completed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"4ececdbd-91d7-41ec-b1fb-46214e8cac7f\",\"942f9936-cd5e-4fac-b830-33bc1a12e04a\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": null
+    },
+    {
+      "scenario": "headers-deleted",
+      "runId": "86faa2cc-9f52-4645-a963-92cfd2427742",
+      "requestId": "33562a30-8bdd-4728-bcf3-e2f2b7a9dee1",
+      "resultId": "682157fd-9fd7-4ab8-8009-b30932f30df4",
+      "state": "completed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"86faa2cc-9f52-4645-a963-92cfd2427742\",\"d0607169-d56b-4e4a-a272-35343d8c5aa3\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": null
+    },
+    {
+      "scenario": "three-pages-bound",
+      "runId": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+      "requestId": "5359ec5a-da5c-4874-8b28-6d93cb85a170",
+      "resultId": "abd9f098-d819-4fe7-b51e-8419703ec1d2",
+      "state": "completed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"1a25c001-1ed9-4409-ab1c-458a7673434b\",\"a736d907-873b-4f89-ac93-554d1d22123c\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": null
+    },
+    {
+      "scenario": "stop-stream",
+      "runId": "cd97da5f-3089-468f-809b-c42c5136584c",
+      "requestId": "374032d1-ac53-4ec5-9d8d-cb2d79107ad8",
+      "resultId": "83543f07-10bf-4a61-980e-fb537f627210",
+      "state": "stopped",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"cd97da5f-3089-468f-809b-c42c5136584c\",\"ce81ac0f-73e0-430b-a947-53e27afca5d6\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": {
+        "code": "E_CANCELLED",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      }
+    },
+    {
+      "scenario": "timeout-stream",
+      "runId": "be92cc7d-cf04-4586-89ce-e70140229588",
+      "requestId": "c6dc4334-ea84-4b69-9a8e-0baa7cdd5639",
+      "resultId": "c123cc66-7592-4199-96c6-12b1f0fe8ef2",
+      "state": "failed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"be92cc7d-cf04-4586-89ce-e70140229588\",\"410a215d-2252-4cba-adc2-73a40d47b53a\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": {
+        "code": "E_TIMEOUT",
+        "name": "PageError",
+        "message": "E_TIMEOUT",
+        "stack": "PageError: E_TIMEOUT\n    at x (blob:null/773098b2-0358-477a-ba21-580124cdf24f:36:115166)\n    at async I (blob:null/773098b2-0358-477a-ba21-580124cdf24f:36:115955)\n    at async runHttpCapture (eval at <anonymous> (blob:null/773098b2-0358-477a-ba21-580124cdf24f:36:120247), <anonymous>:1720:20)\n    at async main (eval at <anonymous> (blob:null/773098b2-0358-477a-ba21-580124cdf24f:36:120247), <anonymous>:30920:10)\n    at async Object.eval (eval at <anonymous> (blob:null/773098b2-0358-477a-ba21-580124cdf24f:36:120247), <anonymous>:30924:125)"
+      }
+    },
+    {
+      "scenario": "host-500",
+      "runId": "d3e478cb-41d0-4a51-bbfd-bdf8c90c6ed7",
+      "requestId": "9b891bda-712d-4a4a-b370-524a77bf548a",
+      "resultId": "a9a783ff-8ea7-4fb9-b20a-c9e6aeebc85f",
+      "state": "failed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"d3e478cb-41d0-4a51-bbfd-bdf8c90c6ed7\",\"70bfa80a-a0f0-4d6b-8c03-7e1310d97e1c\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": {
+        "code": "E_HTTP",
+        "name": "PageError",
+        "message": "HTTP 500",
+        "stack": "PageError: HTTP 500\n    at x (blob:null/1aab7bbc-c0bd-4851-8112-aec5a62bfdf5:36:115166)\n    at async I (blob:null/1aab7bbc-c0bd-4851-8112-aec5a62bfdf5:36:115955)\n    at async runHttpCapture (eval at <anonymous> (blob:null/1aab7bbc-c0bd-4851-8112-aec5a62bfdf5:36:120247), <anonymous>:1720:20)\n    at async main (eval at <anonymous> (blob:null/1aab7bbc-c0bd-4851-8112-aec5a62bfdf5:36:120247), <anonymous>:30920:10)\n    at async Object.eval (eval at <anonymous> (blob:null/1aab7bbc-c0bd-4851-8112-aec5a62bfdf5:36:120247), <anonymous>:30924:125)"
+      }
+    },
+    {
+      "scenario": "redirect-refused",
+      "runId": "a19aeb3b-4fac-499b-a571-d4d1d0e40cf5",
+      "requestId": "db7a00a0-236b-41bc-b15b-f3fd31456324",
+      "resultId": "310bac7f-4bfc-4628-aaae-7af8ec4c93bf",
+      "state": "failed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"a19aeb3b-4fac-499b-a571-d4d1d0e40cf5\",\"1609d96e-a621-4404-816a-c277e9b0d85f\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": {
+        "code": "E_HTTP",
+        "name": "PageError",
+        "message": "HTTP 302",
+        "stack": "PageError: HTTP 302\n    at x (blob:null/352d9fdf-d37f-4583-92af-6254413fd210:36:115166)\n    at async I (blob:null/352d9fdf-d37f-4583-92af-6254413fd210:36:115955)\n    at async runHttpCapture (eval at <anonymous> (blob:null/352d9fdf-d37f-4583-92af-6254413fd210:36:120247), <anonymous>:1720:20)\n    at async main (eval at <anonymous> (blob:null/352d9fdf-d37f-4583-92af-6254413fd210:36:120247), <anonymous>:30920:10)\n    at async Object.eval (eval at <anonymous> (blob:null/352d9fdf-d37f-4583-92af-6254413fd210:36:120247), <anonymous>:30924:125)"
+      }
+    },
+    {
+      "scenario": "early-close",
+      "runId": "30645f37-9559-4473-a63f-f0be85568866",
+      "requestId": "f35659b0-f78f-492c-be92-b819fde1303e",
+      "resultId": "2ef13d64-3c5b-4f47-a83f-10420f95e6f4",
+      "state": "failed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"30645f37-9559-4473-a63f-f0be85568866\",\"60e7fb5f-36d9-421f-a1a6-02d3ffee60fd\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": {
+        "code": "E_NETWORK",
+        "name": "PageError",
+        "message": "Node HTTP: early_close",
+        "stack": "PageError: Node HTTP: early_close\n    at x (blob:null/abd2a981-2572-4019-ab95-f85270840364:36:115166)\n    at async I (blob:null/abd2a981-2572-4019-ab95-f85270840364:36:115955)\n    at async runHttpCapture (eval at <anonymous> (blob:null/abd2a981-2572-4019-ab95-f85270840364:36:120247), <anonymous>:1720:20)\n    at async main (eval at <anonymous> (blob:null/abd2a981-2572-4019-ab95-f85270840364:36:120247), <anonymous>:30920:10)\n    at async Object.eval (eval at <anonymous> (blob:null/abd2a981-2572-4019-ab95-f85270840364:36:120247), <anonymous>:30924:125)"
+      }
+    },
+    {
+      "scenario": "revocation",
+      "runId": "39751404-2966-4424-bf6a-4ff911a32317",
+      "requestId": "111e4710-e770-4563-b188-88b7b6f4d8b3",
+      "resultId": "c3a0f052-f8be-4c3b-a92d-79256f3508fe",
+      "state": "failed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"39751404-2966-4424-bf6a-4ff911a32317\",\"bd4abf36-290e-49d8-b823-8590ee47fac5\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": {
+        "code": "E_EFFECT_UNKNOWN",
+        "name": "PageError",
+        "message": "Node request cancellation could not be confirmed; never replay",
+        "stack": "PageError: Node request cancellation could not be confirmed; never replay\n    at x (blob:null/ee0e09e4-d766-444d-b4e0-2d5df0edef25:36:115166)\n    at async I (blob:null/ee0e09e4-d766-444d-b4e0-2d5df0edef25:36:115955)\n    at async runHttpCapture (eval at <anonymous> (blob:null/ee0e09e4-d766-444d-b4e0-2d5df0edef25:36:120247), <anonymous>:1720:20)\n    at async main (eval at <anonymous> (blob:null/ee0e09e4-d766-444d-b4e0-2d5df0edef25:36:120247), <anonymous>:30920:10)\n    at async Object.eval (eval at <anonymous> (blob:null/ee0e09e4-d766-444d-b4e0-2d5df0edef25:36:120247), <anonymous>:30924:125)"
+      }
+    },
+    {
+      "scenario": "service-down",
+      "runId": "c0f6f3f0-c239-4370-8057-2eb5b3c28259",
+      "requestId": "c1ea1c01-50e5-4408-8184-5001706bab1e",
+      "resultId": "6b826af5-bf6c-471a-bed6-afc14fb8388c",
+      "state": "failed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:scrapyjs.capture:0.6.0",
+        "revision": 1,
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v10",
+          "catalogSha256": "085e98aaa50e60a734671ec3e99b16cd909bc5336dd6f7585a8be9ae0e394c0f",
+          "bundleSha256": "4565b8671b82c73568c3840c3caca2644c913c7db29875002ef11f5ebe5fb033"
+        },
+        "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+        "pinKey": "script-pin:[\"tool:fmdjmphcebgdkbambbjmgooojocholmf\",\"c0f6f3f0-c239-4370-8057-2eb5b3c28259\",\"08bebf2d-5fe7-4000-b5d7-68a81fb3ad40\",\"task:scrapyjs.capture:0.6.0\",1]"
+      },
+      "error": {
+        "code": "E_NATIVE_UNAVAILABLE",
+        "name": "PageError",
+        "message": "Local Node HTTP service unavailable; no browser fallback",
+        "stack": "PageError: Local Node HTTP service unavailable; no browser fallback\n    at x (blob:null/73c76b9a-fc58-4664-9d16-78b3706e4418:36:115166)\n    at async I (blob:null/73c76b9a-fc58-4664-9d16-78b3706e4418:36:115955)\n    at async runHttpCapture (eval at <anonymous> (blob:null/73c76b9a-fc58-4664-9d16-78b3706e4418:36:120247), <anonymous>:1720:20)\n    at async main (eval at <anonymous> (blob:null/73c76b9a-fc58-4664-9d16-78b3706e4418:36:120247), <anonymous>:30920:10)\n    at async Object.eval (eval at <anonymous> (blob:null/73c76b9a-fc58-4664-9d16-78b3706e4418:36:120247), <anonymous>:30924:125)"
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operationId": "d285bb45-8654-4944-89ac-8471151e1bb5",
+      "runId": "9f1daf1e-e3d7-42f2-8c7c-509ab60c5abd",
+      "requestId": "b5bcde9ae4f27e5a2e448d5d394f8fd5",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/http-echo",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383661126,
+      "generation": 1,
+      "status": "completed",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"9f1daf1e-e3d7-42f2-8c7c-509ab60c5abd\",\"b5bcde9ae4f27e5a2e448d5d394f8fd5\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      },
+      "executor": {
+        "pid": 97453,
+        "nodeVersion": "v24.16.0",
+        "sourceHash": "706fc9c8b705dc2381409a60b5f24663e53e70f727029e74799ee65b63bc9abe",
+        "localAddress": "127.0.0.1",
+        "localPort": 53861,
+        "remoteAddress": "127.0.0.1",
+        "remotePort": 43121
+      }
+    },
+    {
+      "operationId": "93551326-8da3-4e90-ad33-a15eb3757567",
+      "runId": "4ececdbd-91d7-41ec-b1fb-46214e8cac7f",
+      "requestId": "02f3bea46c41a1f7639d8bcfb8a1b794",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/http-echo",
+      "userAgent": "ScrapyJS-UA-B/1.0",
+      "headers": {
+        "accept": "application/json; profile=B",
+        "x-client-tag": "B"
+      },
+      "deadlineAt": 1793383663784,
+      "generation": 1,
+      "status": "completed",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"4ececdbd-91d7-41ec-b1fb-46214e8cac7f\",\"02f3bea46c41a1f7639d8bcfb8a1b794\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      },
+      "executor": {
+        "pid": 97453,
+        "nodeVersion": "v24.16.0",
+        "sourceHash": "706fc9c8b705dc2381409a60b5f24663e53e70f727029e74799ee65b63bc9abe",
+        "localAddress": "127.0.0.1",
+        "localPort": 53864,
+        "remoteAddress": "127.0.0.1",
+        "remotePort": 43121
+      }
+    },
+    {
+      "operationId": "c5e4c593-2b62-456d-be62-f8491011f589",
+      "runId": "86faa2cc-9f52-4645-a963-92cfd2427742",
+      "requestId": "710c69c5733bf3996510b8401ff9bcc0",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/http-echo",
+      "userAgent": "OpenDesk-NativeHTTP/1.0",
+      "headers": {},
+      "deadlineAt": 1793383667205,
+      "generation": 1,
+      "status": "completed",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"86faa2cc-9f52-4645-a963-92cfd2427742\",\"710c69c5733bf3996510b8401ff9bcc0\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      },
+      "executor": {
+        "pid": 97453,
+        "nodeVersion": "v24.16.0",
+        "sourceHash": "706fc9c8b705dc2381409a60b5f24663e53e70f727029e74799ee65b63bc9abe",
+        "localAddress": "127.0.0.1",
+        "localPort": 53872,
+        "remoteAddress": "127.0.0.1",
+        "remotePort": 43121
+      }
+    },
+    {
+      "operationId": "a484e676-3e2c-499e-83f5-8a39617221db",
+      "runId": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+      "requestId": "a3da21ecca4cf61511598fdb2340d16e",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/http-echo?pages=3&page=1&delay=5000",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383669837,
+      "generation": 1,
+      "status": "completed",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"1a25c001-1ed9-4409-ab1c-458a7673434b\",\"a3da21ecca4cf61511598fdb2340d16e\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      },
+      "executor": {
+        "pid": 97453,
+        "nodeVersion": "v24.16.0",
+        "sourceHash": "706fc9c8b705dc2381409a60b5f24663e53e70f727029e74799ee65b63bc9abe",
+        "localAddress": "127.0.0.1",
+        "localPort": 53875,
+        "remoteAddress": "127.0.0.1",
+        "remotePort": 43121
+      }
+    },
+    {
+      "operationId": "9b94ea4d-50ac-4479-8a6b-f6a06b177691",
+      "runId": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+      "requestId": "2d09c1c8c00f777ec46742fb8aaa635a",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/http-echo?pages=3&page=2",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383669835,
+      "generation": 1,
+      "status": "completed",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"1a25c001-1ed9-4409-ab1c-458a7673434b\",\"2d09c1c8c00f777ec46742fb8aaa635a\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      },
+      "executor": {
+        "pid": 97453,
+        "nodeVersion": "v24.16.0",
+        "sourceHash": "706fc9c8b705dc2381409a60b5f24663e53e70f727029e74799ee65b63bc9abe",
+        "localAddress": "127.0.0.1",
+        "localPort": 53879,
+        "remoteAddress": "127.0.0.1",
+        "remotePort": 43121
+      }
+    },
+    {
+      "operationId": "a387b2d7-2884-4231-a704-9fd53ed03332",
+      "runId": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+      "requestId": "42e650ece42db4d7453ad04685d41d09",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/http-echo?pages=3&page=3",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383669836,
+      "generation": 1,
+      "status": "completed",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"1a25c001-1ed9-4409-ab1c-458a7673434b\",\"42e650ece42db4d7453ad04685d41d09\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      },
+      "executor": {
+        "pid": 97453,
+        "nodeVersion": "v24.16.0",
+        "sourceHash": "706fc9c8b705dc2381409a60b5f24663e53e70f727029e74799ee65b63bc9abe",
+        "localAddress": "127.0.0.1",
+        "localPort": 53884,
+        "remoteAddress": "127.0.0.1",
+        "remotePort": 43121
+      }
+    },
+    {
+      "operationId": "73e62f86-bea9-4383-9bf9-c25a52ba9287",
+      "runId": "cd97da5f-3089-468f-809b-c42c5136584c",
+      "requestId": "78b90b3817b979082dbb7bdfe101d66c",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/slow?pages=3&page=1",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383677803,
+      "generation": 1,
+      "status": "cancelled",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"cd97da5f-3089-468f-809b-c42c5136584c\",\"78b90b3817b979082dbb7bdfe101d66c\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      }
+    },
+    {
+      "operationId": "5f4c7b41-5627-4ec2-ad97-e0abd96ccc05",
+      "runId": "be92cc7d-cf04-4586-89ce-e70140229588",
+      "requestId": "3368adbe1283c3a277f632130ba4c7ce",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/slow?pages=3&page=1",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383676413,
+      "generation": 1,
+      "status": "timeout",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"be92cc7d-cf04-4586-89ce-e70140229588\",\"3368adbe1283c3a277f632130ba4c7ce\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      }
+    },
+    {
+      "operationId": "469d7cbe-3fc1-469f-b660-8f9ee3b37083",
+      "runId": "d3e478cb-41d0-4a51-bbfd-bdf8c90c6ed7",
+      "requestId": "4d8a217acf0b9fd5a72c34826f36c31a",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/error",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383702015,
+      "generation": 1,
+      "status": "completed",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"d3e478cb-41d0-4a51-bbfd-bdf8c90c6ed7\",\"4d8a217acf0b9fd5a72c34826f36c31a\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      },
+      "executor": {
+        "pid": 97453,
+        "nodeVersion": "v24.16.0",
+        "sourceHash": "706fc9c8b705dc2381409a60b5f24663e53e70f727029e74799ee65b63bc9abe",
+        "localAddress": "127.0.0.1",
+        "localPort": 53926,
+        "remoteAddress": "127.0.0.1",
+        "remotePort": 43121
+      }
+    },
+    {
+      "operationId": "207341bc-783e-455e-be6c-b4a074033334",
+      "runId": "a19aeb3b-4fac-499b-a571-d4d1d0e40cf5",
+      "requestId": "154533e1dd36da6f461aeff46155d6b8",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/redirect",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383704845,
+      "generation": 1,
+      "status": "completed",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"a19aeb3b-4fac-499b-a571-d4d1d0e40cf5\",\"154533e1dd36da6f461aeff46155d6b8\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      },
+      "executor": {
+        "pid": 97453,
+        "nodeVersion": "v24.16.0",
+        "sourceHash": "706fc9c8b705dc2381409a60b5f24663e53e70f727029e74799ee65b63bc9abe",
+        "localAddress": "127.0.0.1",
+        "localPort": 53929,
+        "remoteAddress": "127.0.0.1",
+        "remotePort": 43121
+      }
+    },
+    {
+      "operationId": "c0e864cc-34d4-4813-8612-54a2d7f78ec7",
+      "runId": "30645f37-9559-4473-a63f-f0be85568866",
+      "requestId": "79822fde229e474666dea23566464a80",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/early-close",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383707803,
+      "generation": 1,
+      "status": "early_close",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"30645f37-9559-4473-a63f-f0be85568866\",\"79822fde229e474666dea23566464a80\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      }
+    },
+    {
+      "operationId": "b77acf99-55ac-4189-b1ab-cc4e91982f16",
+      "runId": "39751404-2966-4424-bf6a-4ff911a32317",
+      "requestId": "a36db10607dbf898d8ccc2cfeb506ae2",
+      "taskId": "scrapyjs.capture",
+      "revision": 1,
+      "sourceHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791",
+      "method": "GET",
+      "url": "http://127.0.0.1:43121/slow?pages=3&page=1",
+      "userAgent": "ScrapyJS-UA-A/1.0",
+      "headers": {
+        "accept": "application/json",
+        "x-client-tag": "A"
+      },
+      "deadlineAt": 1793383711002,
+      "generation": 1,
+      "status": "revoked",
+      "authority": {
+        "mode": "installedTask",
+        "installation": {
+          "version": "0.6.0",
+          "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+          "installationId": "03fd5d02-8c95-4165-b849-1783bffd82c8",
+          "generation": 1
+        },
+        "appBindingHash": "7f9b3fddea92c7304f75c0f72684addf3d2ae3b7d1cf8d8f76466026b2a47d31",
+        "namespace": "tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "principal": "extension-tool:fmdjmphcebgdkbambbjmgooojocholmf",
+        "grantIncarnation": "867fc8f1-3468-4c20-bc2f-eeb65952f73c",
+        "resultId": "controller-op:[\"39751404-2966-4424-bf6a-4ff911a32317\",\"a36db10607dbf898d8ccc2cfeb506ae2\"]:result",
+        "browserSessionIncarnation": "208b0c39-4934-4a26-a3f5-93b40ee04570"
+      }
+    }
+  ],
+  "chromeEgressProof": [
+    {
+      "label": "chrome-egress-block-before-app-start",
+      "value": {
+        "probes": [
+          {
+            "name": "extension",
+            "blocked": true,
+            "networkFailure": {
+              "requestId": "97478.68",
+              "timestamp": 5379425.42087,
+              "type": "Fetch",
+              "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+              "canceled": false,
+              "blockedReason": "other"
+            }
+          },
+          {
+            "name": "target-page",
+            "blocked": true,
+            "networkFailure": {
+              "requestId": "97475.3",
+              "timestamp": 5379425.426544,
+              "type": "Fetch",
+              "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+              "canceled": false,
+              "blockedReason": "other"
+            }
+          },
+          {
+            "name": "service-worker",
+            "blocked": true,
+            "networkFailure": {
+              "requestId": "97478.69",
+              "timestamp": 5379425.428919,
+              "type": "Fetch",
+              "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+              "canceled": false,
+              "blockedReason": "other"
+            }
+          }
+        ],
+        "rule": {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "regexFilter": "^http://127[.]0[.]0[.]1:43121/",
+            "resourceTypes": [
+              "xmlhttprequest"
+            ]
+          },
+          "id": 2000000000,
+          "priority": 1000000
+        }
+      },
+      "at": "2026-10-30T18:07:21.698Z"
+    },
+    {
+      "label": "chrome-egress-block-after-app-runs",
+      "value": {
+        "probes": [
+          {
+            "name": "extension",
+            "blocked": true,
+            "networkFailure": {
+              "requestId": "97478.385",
+              "timestamp": 5379478.061438,
+              "type": "Fetch",
+              "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+              "canceled": false,
+              "blockedReason": "other"
+            }
+          },
+          {
+            "name": "target-page",
+            "blocked": true,
+            "networkFailure": {
+              "requestId": "97475.4",
+              "timestamp": 5379478.062917,
+              "type": "Fetch",
+              "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+              "canceled": false,
+              "blockedReason": "other"
+            }
+          },
+          {
+            "name": "service-worker",
+            "blocked": true,
+            "networkFailure": {
+              "requestId": "97478.386",
+              "timestamp": 5379478.064128,
+              "type": "Fetch",
+              "errorText": "net::ERR_BLOCKED_BY_CLIENT",
+              "canceled": false,
+              "blockedReason": "other"
+            }
+          }
+        ],
+        "rule": {
+          "action": {
+            "type": "block"
+          },
+          "condition": {
+            "regexFilter": "^http://127[.]0[.]0[.]1:43121/",
+            "resourceTypes": [
+              "xmlhttprequest"
+            ]
+          },
+          "id": 2000000000,
+          "priority": 1000000
+        }
+      },
+      "at": "2026-10-30T18:08:14.334Z"
+    }
+  ],
+  "server": {
+    "origin": "http://127.0.0.1:43121",
+    "seen": [
+      {
+        "at": "2026-10-30T18:07:26.206Z",
+        "method": "GET",
+        "url": "/http-echo",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53861,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "9f1daf1e-e3d7-42f2-8c7c-509ab60c5abd",
+          "x-opendesk-request-id",
+          "b5bcde9ae4f27e5a2e448d5d394f8fd5",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "9f1daf1e-e3d7-42f2-8c7c-509ab60c5abd",
+          "x-opendesk-request-id": "b5bcde9ae4f27e5a2e448d5d394f8fd5",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"data\":[{\"userAgent\":\"ScrapyJS-UA-A/1.0\",\"accept\":\"application/json\",\"clientTag\":\"A\",\"requestId\":\"b5bcde9ae4f27e5a2e448d5d394f8fd5\",\"runId\":\"9f1daf1e-e3d7-42f2-8c7c-509ab60c5abd\"}],\"next\":null}",
+        "runId": "9f1daf1e-e3d7-42f2-8c7c-509ab60c5abd",
+        "requestId": "b5bcde9ae4f27e5a2e448d5d394f8fd5",
+        "closed": true,
+        "finished": true,
+        "prematureClose": false,
+        "status": 200,
+        "closedAt": "2026-10-30T18:07:26.206Z"
+      },
+      {
+        "at": "2026-10-30T18:07:28.861Z",
+        "method": "GET",
+        "url": "/http-echo",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53864,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json; profile=B",
+          "x-client-tag",
+          "B",
+          "User-Agent",
+          "ScrapyJS-UA-B/1.0",
+          "x-opendesk-run-id",
+          "4ececdbd-91d7-41ec-b1fb-46214e8cac7f",
+          "x-opendesk-request-id",
+          "02f3bea46c41a1f7639d8bcfb8a1b794",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json; profile=B",
+          "x-client-tag": "B",
+          "user-agent": "ScrapyJS-UA-B/1.0",
+          "x-opendesk-run-id": "4ececdbd-91d7-41ec-b1fb-46214e8cac7f",
+          "x-opendesk-request-id": "02f3bea46c41a1f7639d8bcfb8a1b794",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"data\":[{\"userAgent\":\"ScrapyJS-UA-B/1.0\",\"accept\":\"application/json; profile=B\",\"clientTag\":\"B\",\"requestId\":\"02f3bea46c41a1f7639d8bcfb8a1b794\",\"runId\":\"4ececdbd-91d7-41ec-b1fb-46214e8cac7f\"}],\"next\":null}",
+        "runId": "4ececdbd-91d7-41ec-b1fb-46214e8cac7f",
+        "requestId": "02f3bea46c41a1f7639d8bcfb8a1b794",
+        "closed": true,
+        "finished": true,
+        "prematureClose": false,
+        "status": 200,
+        "closedAt": "2026-10-30T18:07:28.861Z"
+      },
+      {
+        "at": "2026-10-30T18:07:32.279Z",
+        "method": "GET",
+        "url": "/http-echo",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53872,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "User-Agent",
+          "OpenDesk-NativeHTTP/1.0",
+          "x-opendesk-run-id",
+          "86faa2cc-9f52-4645-a963-92cfd2427742",
+          "x-opendesk-request-id",
+          "710c69c5733bf3996510b8401ff9bcc0",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "user-agent": "OpenDesk-NativeHTTP/1.0",
+          "x-opendesk-run-id": "86faa2cc-9f52-4645-a963-92cfd2427742",
+          "x-opendesk-request-id": "710c69c5733bf3996510b8401ff9bcc0",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"data\":[{\"userAgent\":\"OpenDesk-NativeHTTP/1.0\",\"accept\":null,\"clientTag\":null,\"requestId\":\"710c69c5733bf3996510b8401ff9bcc0\",\"runId\":\"86faa2cc-9f52-4645-a963-92cfd2427742\"}],\"next\":null}",
+        "runId": "86faa2cc-9f52-4645-a963-92cfd2427742",
+        "requestId": "710c69c5733bf3996510b8401ff9bcc0",
+        "closed": true,
+        "finished": true,
+        "prematureClose": false,
+        "status": 200,
+        "closedAt": "2026-10-30T18:07:32.280Z"
+      },
+      {
+        "at": "2026-10-30T18:07:34.912Z",
+        "method": "GET",
+        "url": "/http-echo?pages=3&page=1&delay=5000",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53875,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "1a25c001-1ed9-4409-ab1c-458a7673434b",
+          "x-opendesk-request-id",
+          "a3da21ecca4cf61511598fdb2340d16e",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+          "x-opendesk-request-id": "a3da21ecca4cf61511598fdb2340d16e",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"data\":[{\"userAgent\":\"ScrapyJS-UA-A/1.0\",\"accept\":\"application/json\",\"clientTag\":\"A\",\"requestId\":\"a3da21ecca4cf61511598fdb2340d16e\",\"runId\":\"1a25c001-1ed9-4409-ab1c-458a7673434b\"}],\"next\":\"http://127.0.0.1:43121/http-echo?pages=3&page=2\"}",
+        "runId": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+        "requestId": "a3da21ecca4cf61511598fdb2340d16e",
+        "closed": true,
+        "finished": true,
+        "prematureClose": false,
+        "status": 200,
+        "closedAt": "2026-10-30T18:07:39.913Z"
+      },
+      {
+        "at": "2026-10-30T18:07:40.176Z",
+        "method": "GET",
+        "url": "/http-echo?pages=3&page=2",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53879,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "1a25c001-1ed9-4409-ab1c-458a7673434b",
+          "x-opendesk-request-id",
+          "2d09c1c8c00f777ec46742fb8aaa635a",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+          "x-opendesk-request-id": "2d09c1c8c00f777ec46742fb8aaa635a",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"data\":[{\"userAgent\":\"ScrapyJS-UA-A/1.0\",\"accept\":\"application/json\",\"clientTag\":\"A\",\"requestId\":\"2d09c1c8c00f777ec46742fb8aaa635a\",\"runId\":\"1a25c001-1ed9-4409-ab1c-458a7673434b\"}],\"next\":\"http://127.0.0.1:43121/http-echo?pages=3&page=3\"}",
+        "runId": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+        "requestId": "2d09c1c8c00f777ec46742fb8aaa635a",
+        "closed": true,
+        "finished": true,
+        "prematureClose": false,
+        "status": 200,
+        "closedAt": "2026-10-30T18:07:40.177Z"
+      },
+      {
+        "at": "2026-10-30T18:07:40.301Z",
+        "method": "GET",
+        "url": "/http-echo?pages=3&page=3",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53884,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "1a25c001-1ed9-4409-ab1c-458a7673434b",
+          "x-opendesk-request-id",
+          "42e650ece42db4d7453ad04685d41d09",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+          "x-opendesk-request-id": "42e650ece42db4d7453ad04685d41d09",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"data\":[{\"userAgent\":\"ScrapyJS-UA-A/1.0\",\"accept\":\"application/json\",\"clientTag\":\"A\",\"requestId\":\"42e650ece42db4d7453ad04685d41d09\",\"runId\":\"1a25c001-1ed9-4409-ab1c-458a7673434b\"}],\"next\":null}",
+        "runId": "1a25c001-1ed9-4409-ab1c-458a7673434b",
+        "requestId": "42e650ece42db4d7453ad04685d41d09",
+        "closed": true,
+        "finished": true,
+        "prematureClose": false,
+        "status": 200,
+        "closedAt": "2026-10-30T18:07:40.302Z"
+      },
+      {
+        "at": "2026-10-30T18:07:42.882Z",
+        "method": "GET",
+        "url": "/slow?pages=3&page=1",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53886,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "cd97da5f-3089-468f-809b-c42c5136584c",
+          "x-opendesk-request-id",
+          "78b90b3817b979082dbb7bdfe101d66c",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "cd97da5f-3089-468f-809b-c42c5136584c",
+          "x-opendesk-request-id": "78b90b3817b979082dbb7bdfe101d66c",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"data\":[{\"userAgent\":\"ScrapyJS-UA-A/1.0\",\"accept\":\"application/json\",\"clientTag\":\"A\",\"requestId\":\"78b90b3817b979082dbb7bdfe101d66c\",\"runId\":\"cd97da5f-3089-468f-809b-c42c5136584c\"}],\"next\":\"http://127.0.0.1:43121/http-echo?pages=3&page=2\"}",
+        "runId": "cd97da5f-3089-468f-809b-c42c5136584c",
+        "requestId": "78b90b3817b979082dbb7bdfe101d66c",
+        "closed": true,
+        "finished": false,
+        "prematureClose": true,
+        "status": 200,
+        "firstChunkAt": "2026-10-30T18:07:42.882Z",
+        "closedAt": "2026-10-30T18:07:43.152Z"
+      },
+      {
+        "at": "2026-10-30T18:07:54.992Z",
+        "method": "GET",
+        "url": "/slow?pages=3&page=1",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53909,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "be92cc7d-cf04-4586-89ce-e70140229588",
+          "x-opendesk-request-id",
+          "3368adbe1283c3a277f632130ba4c7ce",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "be92cc7d-cf04-4586-89ce-e70140229588",
+          "x-opendesk-request-id": "3368adbe1283c3a277f632130ba4c7ce",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"data\":[{\"userAgent\":\"ScrapyJS-UA-A/1.0\",\"accept\":\"application/json\",\"clientTag\":\"A\",\"requestId\":\"3368adbe1283c3a277f632130ba4c7ce\",\"runId\":\"be92cc7d-cf04-4586-89ce-e70140229588\"}],\"next\":\"http://127.0.0.1:43121/http-echo?pages=3&page=2\"}",
+        "runId": "be92cc7d-cf04-4586-89ce-e70140229588",
+        "requestId": "3368adbe1283c3a277f632130ba4c7ce",
+        "closed": true,
+        "finished": false,
+        "prematureClose": true,
+        "status": 200,
+        "firstChunkAt": "2026-10-30T18:07:54.992Z",
+        "closedAt": "2026-10-30T18:07:56.414Z"
+      },
+      {
+        "at": "2026-10-30T18:08:07.091Z",
+        "method": "GET",
+        "url": "/error",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53926,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "d3e478cb-41d0-4a51-bbfd-bdf8c90c6ed7",
+          "x-opendesk-request-id",
+          "4d8a217acf0b9fd5a72c34826f36c31a",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "d3e478cb-41d0-4a51-bbfd-bdf8c90c6ed7",
+          "x-opendesk-request-id": "4d8a217acf0b9fd5a72c34826f36c31a",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"error\":\"Owned HTTP 500\"}",
+        "runId": "d3e478cb-41d0-4a51-bbfd-bdf8c90c6ed7",
+        "requestId": "4d8a217acf0b9fd5a72c34826f36c31a",
+        "closed": true,
+        "finished": true,
+        "prematureClose": false,
+        "status": 500,
+        "closedAt": "2026-10-30T18:08:07.091Z"
+      },
+      {
+        "at": "2026-10-30T18:08:09.932Z",
+        "method": "GET",
+        "url": "/redirect",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53929,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "a19aeb3b-4fac-499b-a571-d4d1d0e40cf5",
+          "x-opendesk-request-id",
+          "154533e1dd36da6f461aeff46155d6b8",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "a19aeb3b-4fac-499b-a571-d4d1d0e40cf5",
+          "x-opendesk-request-id": "154533e1dd36da6f461aeff46155d6b8",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"error\":\"Do not follow\"}",
+        "runId": "a19aeb3b-4fac-499b-a571-d4d1d0e40cf5",
+        "requestId": "154533e1dd36da6f461aeff46155d6b8",
+        "closed": true,
+        "finished": true,
+        "prematureClose": false,
+        "status": 302,
+        "closedAt": "2026-10-30T18:08:09.933Z"
+      },
+      {
+        "at": "2026-10-30T18:08:12.888Z",
+        "method": "GET",
+        "url": "/early-close",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53944,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "30645f37-9559-4473-a63f-f0be85568866",
+          "x-opendesk-request-id",
+          "79822fde229e474666dea23566464a80",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "30645f37-9559-4473-a63f-f0be85568866",
+          "x-opendesk-request-id": "79822fde229e474666dea23566464a80",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": null,
+        "runId": "30645f37-9559-4473-a63f-f0be85568866",
+        "requestId": "79822fde229e474666dea23566464a80",
+        "closed": true,
+        "finished": false,
+        "prematureClose": true,
+        "status": 200,
+        "firstChunkAt": "2026-10-30T18:08:12.888Z",
+        "closedAt": "2026-10-30T18:08:12.988Z"
+      },
+      {
+        "at": "2026-10-30T18:08:16.088Z",
+        "method": "GET",
+        "url": "/slow?pages=3&page=1",
+        "peer": {
+          "address": "127.0.0.1",
+          "port": 53957,
+          "localPort": 43121
+        },
+        "rawHeaders": [
+          "accept",
+          "application/json",
+          "x-client-tag",
+          "A",
+          "User-Agent",
+          "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id",
+          "39751404-2966-4424-bf6a-4ff911a32317",
+          "x-opendesk-request-id",
+          "a36db10607dbf898d8ccc2cfeb506ae2",
+          "Connection",
+          "close",
+          "Host",
+          "127.0.0.1:43121"
+        ],
+        "headers": {
+          "accept": "application/json",
+          "x-client-tag": "A",
+          "user-agent": "ScrapyJS-UA-A/1.0",
+          "x-opendesk-run-id": "39751404-2966-4424-bf6a-4ff911a32317",
+          "x-opendesk-request-id": "a36db10607dbf898d8ccc2cfeb506ae2",
+          "connection": "close",
+          "host": "127.0.0.1:43121"
+        },
+        "requestBody": "",
+        "body": "{\"data\":[{\"userAgent\":\"ScrapyJS-UA-A/1.0\",\"accept\":\"application/json\",\"clientTag\":\"A\",\"requestId\":\"a36db10607dbf898d8ccc2cfeb506ae2\",\"runId\":\"39751404-2966-4424-bf6a-4ff911a32317\"}],\"next\":\"http://127.0.0.1:43121/http-echo?pages=3&page=2\"}",
+        "runId": "39751404-2966-4424-bf6a-4ff911a32317",
+        "requestId": "a36db10607dbf898d8ccc2cfeb506ae2",
+        "closed": true,
+        "finished": false,
+        "prematureClose": true,
+        "status": 200,
+        "firstChunkAt": "2026-10-30T18:08:16.088Z",
+        "closedAt": "2026-10-30T18:08:16.324Z"
+      }
+    ],
+    "redirectTargetHits": 0
+  },
+  "cleanup": {
+    "browserClosed": true,
+    "echoClosed": true,
+    "ownedDnrRuleRemoved": true,
+    "relayStopped": {
+      "pid": 97453,
+      "receipt": {
+        "status": "stopping"
+      },
+      "listenerClosed": true
+    }
+  },
+  "checks": {
+    "targetedNode": "53/53 PASS",
+    "relayProtocol": "8/8 PASS",
+    "webCryptoChannel": "9/9 PASS",
+    "taskInstall": "PASS_UI_RECEIPT",
+    "domRegression": "PASS",
+    "appPackage": "PROJECT_PACKAGE_MATCH"
+  },
+  "evidence": {
+    "realApp": "artifacts/scrapyjs/node-http-20261031/app-node-proof-03/report.json",
+    "taskInstall": "artifacts/scrapyjs/node-http-20261031/core-install-02/report.json",
+    "build": "artifacts/scrapyjs/node-http-20261031/build-readiness-post-hello.json",
+    "originDiagnostic": "artifacts/scrapyjs/node-http-20261031/hello-diagnostic/report.json",
+    "priorFullProof": "artifacts/scrapyjs/node-http-20261031/app-node-proof-02/report.json"
+  },
+  "notes": [
+    "Chrome GET omitted Origin; strict-origin JSON POST discovery fixes status without weakening Origin checks.",
+    "Prior-generation results are hidden after restart or revoke/re-pair; protocol regressions preserve unknown and forbid re-execution.",
+    "Formal Task was copied byte-for-byte after the final browser proof; the App was promoted using the original packer.",
+    "Private relay control/pairing keys and invitation files are deliberately excluded. Daily watcher and dist/development were untouched."
+  ]
+}

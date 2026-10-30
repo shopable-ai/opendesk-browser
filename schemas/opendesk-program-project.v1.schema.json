@@ -217,10 +217,10 @@
                 }
               ],
               "minItems": 1,
-              "maxItems": 3,
+              "maxItems": 4,
               "uniqueItems": true,
               "items": {
-                "enum": ["storage.persistent", "network"]
+                "enum": ["storage.persistent", "network", "network.localRelay"]
               }
             },
             "paramsSchema": {

@@ -19,6 +19,7 @@ export function createHttpEchoServer() {
     }
     if (url.pathname === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     const row = {at:new Date().toISOString(),method:req.method,url:req.url,
+      peer:{address:req.socket.remoteAddress,port:req.socket.remotePort,localPort:req.socket.localPort},
       rawHeaders:[...req.rawHeaders],headers:{...req.headers},requestBody:'',body:null,
       runId:req.headers['x-opendesk-run-id'] ?? null,
       requestId:req.headers['x-opendesk-request-id'] ?? null,
@@ -47,6 +48,11 @@ export function createHttpEchoServer() {
     }
     if (url.pathname === '/redirect') {
       send(302, JSON.stringify({error:'Do not follow'}), {Location:origin+'/redirect-target'}); return;
+    }
+    if (url.pathname === '/early-close') {
+      row.status=200; row.firstChunkAt=new Date().toISOString();
+      res.writeHead(200, {'Content-Type':'application/json','Content-Length':'128'});
+      res.write('{'); later(() => res.destroy(), 100); return;
     }
     if (url.pathname === '/error') { send(500, JSON.stringify({error:'Owned HTTP 500'})); return; }
     if (!['/http-echo','/slow'].includes(url.pathname)) { send(404, '{}'); return; }
