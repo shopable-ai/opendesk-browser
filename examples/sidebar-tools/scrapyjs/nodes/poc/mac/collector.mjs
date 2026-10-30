@@ -2,6 +2,7 @@
 import {createServer} from 'node:https';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
+import {homedir} from 'node:os';
 import {randomBytes,timingSafeEqual} from 'node:crypto';
 import {validateAllowedOrigin,validateReport,isPrivateLanAddress,MAX_REPORT_BYTES} from './contract.mjs';
 
@@ -14,7 +15,7 @@ if (!cert || !key || !origin) {
 validateAllowedOrigin(origin);
 const port = Number(process.env.SCRAPYJS_POC_PORT || 4443);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw Error('Invalid port');
-const outDir = resolve(process.env.SCRAPYJS_POC_EVIDENCE || './.private-node-evidence');
+const outDir = resolve(process.env.SCRAPYJS_POC_EVIDENCE || join(homedir(),'.opendesk','scrapyjs-private-node','evidence'));
 const pairingToken = randomBytes(32).toString('hex');
 const runPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function respond(res,status,body) {

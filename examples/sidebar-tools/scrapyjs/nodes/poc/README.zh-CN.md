@@ -26,10 +26,12 @@ route -n get default
 
 需要 Mac 与手机在同一可信 Wi-Fi，Mac Node.js 22+、OpenSSL 和一个本人拥有或有明确采集授权的**公共 HTTPS 站点**，预备最多 3 个小于 24 KiB 的无登录、无重定向静态测试页面。站点应有服务端访问日志，以便独立核对手机出口 IP。
 
-在 Mac 私有工作目录中生成短期 TLS 证书，SAN 必须包含当前 Wi-Fi LAN IPv4；示例：
+在 Mac 用户目录（不要放在仓库内）中生成短期 TLS 证书，SAN 必须包含当前 Wi-Fi LAN IPv4；示例：
 
 ~~~sh
-cd examples/sidebar-tools/scrapyjs/nodes/poc/mac
+mkdir -p "$HOME/.opendesk/scrapyjs-private-node"
+chmod 700 "$HOME/.opendesk/scrapyjs-private-node"
+cd "$HOME/.opendesk/scrapyjs-private-node"
 LAN_IP=192.168.1.10 # 必须替换为 Mac 实际 LAN IPv4
 openssl req -x509 -newkey rsa:3072 -sha256 -nodes -days 1 \
   -keyout mac.key -out mac.crt \
@@ -40,12 +42,12 @@ openssl x509 -in mac.crt -outform DER | shasum -a 256
 export SCRAPYJS_POC_CERT="$PWD/mac.crt"
 export SCRAPYJS_POC_KEY="$PWD/mac.key"
 export SCRAPYJS_TEST_ORIGIN="https://qa.your-real-domain.tld"
-node collector.mjs
+node /Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs/nodes/poc/mac/collector.mjs
 ~~~
 
 Mac 系统 OpenSSL/LibreSSL 可能不支持 -addext；使用支持该选项的 OpenSSL 或配置 SAN 文件，**不可**为赶进度关闭 TLS 主机名/证书验证。Mac 防火墙只允许可信 LAN，禁止端口映射与公网暴露。
 
-接收器默认为 4443，启动时一次性打印随机临时配对令牌（64 位 hex）。私有结果默认保存到 mac/.private-node-evidence/，权限 0600。**禁止将 mac.key、mac.crt、任何配对令牌、完整结果或隐私数据提交 Git**。停止接收器后配对令牌立即失效。
+接收器默认为 4443，启动时一次性打印随机临时配对令牌（64 位 hex）。私有结果默认保存到 ~/.opendesk/scrapyjs-private-node/evidence/，文件权限 0600、目录权限 0700。**禁止将 mac.key、mac.crt、任何配对令牌、完整结果或隐私数据提交 Git**。停止接收器后配对令牌立即失效。
 
 ## A1 Android 编译与前台测试
 
@@ -81,6 +83,7 @@ Mac 接收器拒绝非 LAN 请求、错误令牌、与 Wi-Fi peer 不符的 LAN 
 Node 合同测试（须在真实本机运行后才能填写 PASS）：
 
 ~~~sh
+cd /Users/shopme/Documents/workspace/opendesk-browser
 node --test examples/sidebar-tools/scrapyjs/nodes/poc/mac/contract.test.mjs
 ~~~
 
