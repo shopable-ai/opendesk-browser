@@ -160,3 +160,22 @@
 
 - Development recovery finished: only stale AI VIP Share ignored Vite assets required rebuilding. Original npm run dev is RUNNING with npm PID26835/node PID26852, fixed dist/development, revision013acb73fda645a802ea383aa1cd927484b5ec5434ce2640cc574ab408c76721. All129 marker file hashes match; SW1005879B/SHAef9f1f77766e053d725993b2a2850a6c9f4dd0755730a0d0917c2f8476eeb548, official Cookie package SHA matches2.0.57. New watcher remains the sole writer under this Cookie owner; no force Chrome reload.
 - Current Chrome applied revision, actual loaded path and fresh dev connection remain NOT_TESTED. Default /usr/local/bin/opendesk browser doctor reports native-agent-r1 missing; this unrelated Native installation is not changed or treated as Cookie feature proof. Chrome Skill has no public window/native Side Panel control API here; only task tab759148162 exists. Native A/B/refresh and real two-device recovery/login remain pending.
+
+## 01a18d05：创建执行目标、固定关键条件并恢复当前更新候选
+
+本任务 `get_goal` 初读 null，按用户本次明确授权创建完整执行目标，无预算；随后实读 **active**。旧任务 blocked goal 未迁移、暂停或完成。01a18c92 已明确停止全部 Cookie 操作并移交原 writer；本任务为唯一 Cookie owner。沿原 README、正式 Catalog 和可信 Skill 核对，业务仍归 `examples/sidebar-tools/cookie-editor/`，原 SW／Host／Authority／Foundation／安装器继续复用，不搬目录或新建运行器。
+
+| 关键条件 | 必须独立证明 | 本任务结果 |
+| --- | --- | --- |
+| A 同候选原位更新 | 实际 ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`、固定加载路径、serve 连接及完整应用 revision；原安装器 2.0.56→2.0.57；官方来源／SHA／旧 A/B／白名单／设置读回；JSON 与可信 SW 分别验证 | 原生 NOT_TESTED；源码包元数据 ID／权限／依赖等一致 |
+| B 关闭侧栏 A/B | 原 UI 核实自动切换、刷新及 A/B 白名单；实际关闭侧栏；从已核实另一账号分别打开两条 URL；只读回虚构 Cookie；独立区分导航请求与 SW 额外刷新 | NOT_TESTED；A 预期值仍未独立确认；test1、token/theme 保留 |
+| C 双机原分享 | 两端原入口、真实 LAN HTTPS、完整指纹独立核对、ECDH/HKDF/AES-GCM 加密交付、认证领取独立账号、明确 switch 后 Cookie 恢复读回、合法网站独立登录 | 原生 NOT_TESTED；仅双机 HTTPS /health 准备通过 |
+
+- 当前操作原本是打开独立 Chrome 窗口／原 SidePanel 审阅更新。Chrome Skill 的实际公开能力仍只有 tabs／Tab CUA，没有窗口或原生侧栏 API；fresh openTabs 原对象接手 tab759148162，只读普通根 DOM 正常，未重载、未打开 A/B URL、未操作 Cookie，也未绕历史管理页安全拒绝。
+- 实际新阻塞：原 npm26835/node26852 持续报官方目录校验失败；19:56:50 的旧 marker 保留，但当前 15 个文件已漂移。fresh 进程 `readOfficialSources`／`officialToolInputs` 同输入通过（17 tools／64 inputs），说明旧进程保留合并前模块校验。原始证据 `artifacts/cookie-editor-r31/dev-stale-after-merge-01a18d05.json`；不将旧 ready 继续报为当前一致候选。
+- Cloud01a18c80 一次明确释放全局输入及 live，确认无 Run／确认／chooser／Native／Grant／草稿在途。核实旧 PID 与 cwd 后正常 SIGTERM；旧进程退出、43119/43120 空闲后仅启动原 `npm run dev`，未手改 lock／marker，未启动第二 writer。新 npm43432/node43447，固定 `dist/development`；188 秒首次编译后 RUNNING，revision `aeaed3ff1f268c733c71d8666429045e1aff66c86be9d60a8f8d593d1896b21a`，130 个指纹无差异。SW 1005900 B，SHA `8ce4a2dbb6fb7b14e9d2ce654a17dd676f4caf6401f9af72c89543870db9fecd`。原安全刷新栅栏保留；Chrome 实际应用仍未测。
+- 正式包未改：2.0.57，245715 B，SHA `438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601`，磁盘与新 dev 官方资源一致。只读对比 d408faff449920b50b0450cf94c8e1bd1fbadc67 的父提交包，format／id／capabilities／requires／contributes／uiRuntime 全部一致；这不能替代已安装数据读回。未重跑未变输入的测试或重新打包。
+- 原 8713/8443 均无监听后恢复原 Relay 与 TLS：PID42246／43377，原 SQLite 和 `.runtime/cookie-share-r31-01a188f1/` 证书保留。mac4g.local 与严格 BatchMode/host-key 的 mac96→shopme.local 均经原公开 CA 校验访问 HTTPS /health；远端 CA 仅 stdin、不持久化，无远端仓库／Profile／Chrome 写入。证书原 DER SHA `98b93064b6121a0edc7c023fe1666d2b4fb07bc60d072d78b8f4f531fdd068bf`，有效期至 2026-10-31 19:56:54 UTC。无邀请／配对／领取和 Cookie 数据。Chrome 自身 HTTPS 导航超时，fresh 状态仍 about:blank，原因未分类；浏览器证书信任 NOT_TESTED，未跳过安全页或修改信任。
+- 唯一最新证据为 `s3FinishExecutionGoal20261030`。本机辅助原始记录：`dev-restart-01a18d05.json`、`dev-resumed-after-merge-01a18d05.log`、`package-metadata-diff-01a18d05.json`、`relay-resume-01a18d05.json`，均在既有 `artifacts/cookie-editor-r31/`。未编辑产品源码、未扩权限、未全量 CI／production／评分／宽度缩放验收；其他 dirty、Cloud 服务及标签页保留。
+- 下一条用户操作：在独立 Chrome 窗口打开原 OpenDesk SidePanel，通过原安装器审阅并更新 2.0.57；取得实际身份、加载路径及开发连接后，再验证关闭侧栏 A/B。当前控制能力不足以执行原生侧栏步骤，需要用户完成这一具体入口操作；完整目标继续 active，不伪报 complete 或提前 blocked。
+- 后续一次资源移交：视频任务01a18d4e-120b-7632-a596-819ce4ca58ef请求让原进程载入其已验证的projects监听修复。实核npm43432/node43447及43119/43120后，已明确移交同一writer正常停止／重启协调权；Cookie无任何在途副作用，不再启停或覆盖该输出。上述revision是本轮恢复时快照，移交后的新PID／revision以接收方回执为准，不再推定旧值仍为当前。原Relay42246／TLS43377、8713/8443与数据库仍归Cookie，不在移交范围；Cookie目标继续active。
