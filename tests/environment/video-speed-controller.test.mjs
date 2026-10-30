@@ -121,3 +121,66 @@ test('only the official installed release can use first-party video mutation',as
     {tool:{...tool,id:'other-id'}}
   ])assert.equal(await admitsOfficialVideoSpeed({...admitted,...changes}),false);
 });
+
+test('isolated key listener emits signals only; trusted Host remains the sole media writer',async()=>{
+  const f=fixture(),events=[],messages=[];
+  const topDocument=f.docs[f.top.documentId];
+  topDocument.addEventListener=(kind,fn,capture)=>{events.push({kind,fn,capture,op:'add'});};
+  topDocument.removeEventListener=(kind,fn,capture)=>{events.push({kind,fn,capture,op:'remove'});};
+  const previous=globalThis.chrome;
+  const nonce='00000000-0000-4000-8000-000000000001';
+  globalThis.chrome={runtime:{sendMessage:async message=>{messages.push(message);}}};
+  try{
+    await assert.rejects(requestVideoSpeed({...f.options,
+      operation:'videoSpeed.shortcuts.enable',payload:{},shortcutNonce:'bad'}),{code:'E_SCHEMA'});
+    const enabled=await requestVideoSpeed({...f.options,
+      operation:'videoSpeed.shortcuts.enable',payload:{},shortcutNonce:nonce});
+    assert.equal(enabled.enabled,true);
+    assert.equal(f.calls.filter(x=>x.args[0]==='set').length,0);
+    const listener=events.find(row=>row.op==='add')?.fn;
+    assert.equal(typeof listener,'function');
+    const key=(letter,overrides={})=>({
+      isTrusted:true,key:letter,target:{closest:()=>false,isContentEditable:false},
+      composedPath:()=>[],...overrides
+    });
+    listener(key('d'));
+    listener(key('s',{target:{closest:()=>true}})); // User is typing in a form.
+    listener(key('r',{isTrusted:false})); // Site JS cannot forge a real keystroke.
+    listener(key('d',{ctrlKey:true}));
+    assert.deepEqual(messages,[{protocol:'opendesk.video-speed.shortcut.v1',nonce,key:'d'}]);
+    assert.equal(f.docs[f.inner.documentId].querySelectorAll()[0].playbackRate,1);
+    const disabled=await requestVideoSpeed({...f.options,
+      operation:'videoSpeed.shortcuts.disable',payload:{}});
+    assert.equal(disabled.enabled,false);
+    assert.equal(events.filter(row=>row.op==='remove').length,1);
+    assert.equal(f.calls.filter(x=>x.args[0]==='set').length,0);
+  }finally{
+    if(previous===undefined)delete globalThis.chrome;else globalThis.chrome=previous;
+    delete globalThis.__opendeskVideoSpeedShortcutListener_v1;
+  }
+});
+
+test('website playback override does not become an acknowledged speed change',async()=>{
+  const f=fixture();
+  const video=f.docs[f.inner.documentId].querySelectorAll()[0];
+  Object.defineProperty(video,'playbackRate',{configurable:true,get:()=>1,set:()=>{}});
+  const result=await requestVideoSpeed({...f.options,
+    operation:'videoSpeed.set',payload:{speed:2}});
+  assert.equal(result.requested,2);
+  assert.equal(result.speed,1);
+  assert.equal(result.verified,false);
+});
+
+test('preview remains a standalone demo and is not a declared production resource',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const {resolve}=await import('node:path');
+  const root=resolve(new URL('../..',import.meta.url).pathname);
+  const config=JSON.parse(await readFile(resolve(root,'projects/video-speed-controller/tool.config.json'),'utf8'));
+  const preview=await readFile(resolve(root,'projects/video-speed-controller/preview/index.html'),'utf8');
+  assert.equal(config.version,'1.1.0');
+  assert.deepEqual(config.capabilities,['page.videoSpeed','storage.local']);
+  assert.deepEqual(Object.values(config.files).sort(),['src/index.html','src/main.js','src/style.css']);
+  assert.match(preview,/<!doctype html>/i);
+  assert.match(preview,/模拟/);
+  assert.match(preview,/data-theme/);
+});
