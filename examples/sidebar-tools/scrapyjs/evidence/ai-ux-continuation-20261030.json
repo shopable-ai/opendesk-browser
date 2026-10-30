@@ -787,8 +787,525 @@
       "proposedAlternativeApplied": false,
       "requirementChanged": false,
       "scope": "Only query/stop the original request; no archive-and-generate alternative, replay, late-result application, install or reload to escape the fence."
+    },
+    "nativeRecoveryContinuation": {
+      "owner": "01a18b9d-9657-74b2-946c-be2986d78e55",
+      "recordedAt": "2026-10-30T07:38:12.265087+00:00",
+      "stage": "SAME_INSTANCE_NATIVE_RECOVERY_BEFORE_AI_LOOP",
+      "ownGoal": {
+        "observedInitially": null,
+        "created": true,
+        "status": "active",
+        "scope": "full delegated objective; no token budget",
+        "otherChatGoals": "not controlled or changed"
+      },
+      "currentSource": {
+        "branch": "main",
+        "head": "7ba591db354b03ef0c840af6fd1f97484bcdaaa1",
+        "parallelCommitObserved": "7ba591db3; not created or claimed by this owner",
+        "recoverySourceHashesMatchInherited": true,
+        "candidateSha256": "aad84c13750433f1182c6893e470a764eed46e8e229fd4dfa3ebdc5374cadaf7",
+        "candidateInstalledByThisOwner": false
+      },
+      "native": {
+        "instance": "scrapyjs-react-01a186cc",
+        "supportedDoctor": {
+          "connected": true,
+          "local": {
+            "browser": "cft",
+            "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+            "installed": true,
+            "manifest": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+            "note": "Socket presence does not prove an authenticated Chrome connection",
+            "provider": "opendesk",
+            "socketExists": true
+          },
+          "response": {
+            "v": 1,
+            "kind": "response",
+            "requestId": "38106b38-1f68-4bce-a607-1cb05c52d431",
+            "result": {
+              "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+              "bridgeVersion": 1,
+              "nativeConnected": true,
+              "enabled": true,
+              "hostRegistrations": [
+                "4a4e60b7-1c6b-4dcc-ae72-137f3a3b8600"
+              ]
+            }
+          }
+        },
+        "socket": {
+          "retiredDevice": 16777234,
+          "retiredInode": 44456559,
+          "mutated": true,
+          "newSocket": {
+            "device": 16777234,
+            "inode": 44806389,
+            "mode": "0o600"
+          }
+        },
+        "installExecutable": "/Applications/OpenDesk.app/Contents/MacOS/opendesk",
+        "managementCommands": "source confirms setup/update/doctor/native-host; dev-only --help text does not prove missing management commands",
+        "developmentServe": "no wxt writer observed; static development artifact only",
+        "baselineFilesAndModesPreserved": true,
+        "recovery": {
+          "state": "socket-retired",
+          "requestReconciled": false,
+          "receipts": "/Users/shopme/Documents/workspace/opendesk/.runtime/tests/native-socket-recovery-01a18b9d",
+          "privateBackup": "/Users/shopme/.codex/backups/scrapyjs-native-recovery-01a18b9d-20261030",
+          "method": "Source-built existing component executable calling production browsercli/browserbridge; same instance and expected device/inode; original UI launcher safely disabled and no old Native Host process or socket open handle observed before explicit legacy-quiesced assertion",
+          "currentConnection": "PASS original CFT UI reenabled; original /Applications/OpenDesk.app browser doctor nativeConnected true",
+          "currentAppExecutableReplaced": false,
+          "newHostLifecycleCodeInstalled": false
+        }
+      },
+      "originalRequest": {
+        "requestId": "cb6d0e92-0e45-4ae0-a30c-96377d535106",
+        "state": "unknown",
+        "sessionId": null,
+        "turnId": null,
+        "terminal": "NOT_VERIFIED",
+        "newInferenceRequests": 0,
+        "lateResultApplied": false,
+        "userDisposition": "2026-10-30 14:40 Asia/Shanghai keep original restriction; unchanged",
+        "restoredUi": {
+          "installedVersion": "1.6.2",
+          "candidate1_6_3Installed": false,
+          "window": "IT技术在线图文专栏-CSDN文库; same CSDN URL; opened existing extension and installed scrapyjs entry",
+          "observed": "Saved CSDN 核心 intact. AI panel did not render original requestId; Stop disabled; requirement empty. Absence of row is not terminal proof. No request sent or pending state modified. Returned to saved workspace.",
+          "cancelOrGenerateInvokedByThisOwner": false,
+          "authoritativeHistoricalCorrelation": "UNAVAILABLE; original sessionId/turnId absent and new Native Manager has no persisted mapping to business requestId",
+          "fence": "USER_RESTRICTION_RETAINED despite restored UI not rendering old row"
+        }
+      },
+      "independentArchitecture": {
+        "agent": "Dewey",
+        "agentId": "01a18ba0-22ef-7cc3-b25d-c22b6016477c",
+        "mode": "read-only; no formal scoring",
+        "supportedOrphanSocketRecovery": "NOT_FOUND",
+        "ownerRepository": "/Users/shopme/Documents/workspace/opendesk",
+        "ownerBranch": "master",
+        "ownerHead": "a867a782",
+        "alternateMainCheckout": "not found in worktree list or explicit project records",
+        "scope": [
+          "browserbridge explicit RecoverSocketContext and local browser socket recover CLI",
+          "instance lifecycle lock shared by Host start/close and installation/recovery",
+          "same-instance config, private directory, socket UID/mode and fresh inode validation",
+          "refuse active listener, lock contention, timeout, identity change, symlink and unfinished installation journal",
+          "preserve exact install/credential/manifest/grants bytes; no AI Manager call"
+        ],
+        "firstMigrationCondition": "legacy Host and launching side must be safely quiescent; new lock alone is not proof",
+        "historicalRequestLimit": "new Host creates fresh in-memory Manager; restoring transport cannot reconstruct original session/turn or prove terminal",
+        "plannedTargetedChecks": [
+          "orphan success and byte-preserving identity/grants",
+          "active or not-ready Host rejection",
+          "Host start/close vs recover/update mutual exclusion",
+          "inode/parent/symlink and journal conflict rejection",
+          "concurrent recover and failure/retry",
+          "no AI dispatch during recovery"
+        ]
+      },
+      "writeScopeDecision": {
+        "status": "AUTHORIZED_NATIVE_EXISTING_MASTER_MINIMAL_REPAIR",
+        "userAnswer": "允许本次在 Native 既有 master 最小修复（推荐）",
+        "recordedAt": "2026-10-30T07:18:02.816878+00:00",
+        "scope": [
+          "browserbridge/browsercli recovery and targeted tests/docs",
+          "no branch/worktree/commit/push; preserve parallel work",
+          "original AI restriction unchanged"
+        ]
+      },
+      "verification": {
+        "targetedRace": "PASS observed command output; go test -race ./internal/browserbridge ./internal/browsercli -run ^(TestRecoverSocket|TestSocketRecovery|TestClosedHostNever|TestCloseReleasesHost|TestHostWillNotRemove|TestHostRefuses|TestInstall|TestNativeInstance|TestNativeHostLauncher|TestNoArgumentSetup) -count=1",
+        "vet": "PASS go vet ./internal/browserbridge ./internal/browsercli",
+        "toolchain": "/Users/shopme/.local/opt/go1.25.13-amd64/bin/go",
+        "componentBuild": "PASS existing tests/browser-native-files/tools/native-host with -trimpath; no desktop app replacement",
+        "actualSocketRecovery": "PASS; exact original orphan retired and all six baseline files plus modes preserved",
+        "actualNativeReconnect": "PASS same original CFT Native settings and original executable doctor",
+        "originalRequestTerminal": "NOT_VERIFIED",
+        "browserProductTestsRepeated": false,
+        "formalAcceptance": "NOT_TESTED"
+      },
+      "effects": {
+        "ui": true,
+        "browserWindowCreated": true,
+        "nativePairingChanged": false,
+        "socketRemovedOrMoved": true,
+        "providerOrAuthChanged": false,
+        "servicesStartedOrStopped": "Only original Native connection safely off/on via existing settings; normal Native Host relaunched; unrelated services unchanged",
+        "installed": false,
+        "formalPromotion": false,
+        "commitOrPush": false,
+        "nativeConnectionToggledOffThenOn": true,
+        "desktopAppReplaced": false,
+        "newInferenceRequests": 0,
+        "browserOrUnrelatedServicesTerminated": false,
+        "uiLeaseReleased": true
+      },
+      "status": "INCOMPLETE_FULL_OBJECTIVE; SAME_INSTANCE_NATIVE_RESTORED; ORIGINAL_AI_TERMINAL_NOT_VERIFIED",
+      "nextOperation": "Only use a supported authoritative correlation/terminal record for original request if it becomes available. Do not reissue, archive, reload/install candidate, or change Provider to bypass the original unknown request. No repeated polling or unrelated tests. Full goal remains incomplete; prior goals not changed.",
+      "nativeSource": {
+        "repository": "/Users/shopme/Documents/workspace/opendesk",
+        "branch": "master",
+        "authorization": "User permitted this task only on existing master; no new branch/commit/push",
+        "filesSha256": {
+          "internal/browserbridge/socket_recovery.go": "6908788d00cc889461e19a6c511a1f7377b18e296acd3c7c40a26d9adf2a8246",
+          "internal/browserbridge/socket_recovery_unix.go": "83c32c2c7586be55a61a06fbe9f33ed3d61547f3752cbe3e64c019a33398b433",
+          "internal/browserbridge/socket_recovery_unix_test.go": "186df6d26d60b140a267e1ce38cc2eedf146a880a1947b3a3acc95ce551658b7",
+          "internal/browserbridge/host_unix.go": "95b008c296d33d79cbc1909d2640b440dc699dc172f343997ab38a63235636a6",
+          "internal/browserbridge/install_transaction_unix.go": "2af1273dc8ed455f1eaf6855166d22ef4c105e0ed65b4082aedfd9e887eff435",
+          "internal/browserbridge/unsupported.go": "d72f7f65036603aa4322356d4eca0014172ca7bc2bd255873369ea2a140597e2",
+          "internal/browsercli/command.go": "2e8b721362f7f00bad4f974e2d203af25263cf8961df78d6c57f37e5d777f1ba",
+          "internal/browsercli/socket_recovery_test.go": "6bc5e66b145a8cff58a28fed06e8ce05e852d31eb819f048c541dc8c9fd5008e"
+        },
+        "sharedContract": "global installation lock then lifetime Host lock; explicit exact socket-only recovery; no setup/cleanup/AI call"
+      },
+      "independentReview": {
+        "agent": "Gibbs",
+        "agentId": "01a18bb4-ca2d-75f3-9e01-44b8ab860c6c",
+        "scope": "8 Native production/test files; read-only static review",
+        "result": "CLEAR; no substantive P1/P2 found",
+        "qualification": "COMMENT, not formal approval or score; reviewer reused leader race result and did not rerun tests/vet",
+        "formalScores": "NOT_SCORED"
+      }
     }
   },
-  "currentOwner": "01a188fa-5bb8-7423-a071-aa31f5b91997",
-  "currentStage": "NATIVE_ORIGINAL_REQUEST_RECOVERY_BLOCKED"
+  "currentOwner": "01a18bf4-78f7-7353-addd-ffca6ced48c7",
+  "currentStage": "DEVELOPMENT_INSTALLED_UI_ALIGNED_REAL_AI_FENCED",
+  "sharedChatDevelopmentContinuation": {
+    "recordedAt": "2026-10-30T08:26:02.863104+00:00",
+    "owner": "01a18bc6-84b6-7ba0-89dd-4e0af3ba5063",
+    "stage": "DEVELOPMENT_SHARED_CHAT_VERIFIED_REAL_AI_FENCED",
+    "scope": "Independent scrapyjs Sidebar Tool; real local-source preview, shared Chat reuse and minimum verification. Prior stage/nextOperation/notTested fields remain historical; this entry defines latest development scope.",
+    "ownershipGate": {
+      "business": "examples/sidebar-tools/scrapyjs/; original opaque sandbox and OpenDeskTool SDK",
+      "provenPublicGap": "Fixed OpenDeskSidebarUI previously exposed Button/IconButton/Card/CardContent/Switch but no Chat frame/session. Existing ai.info/generate/cancel already provide transport; no ai.generateConfig API was invented.",
+      "whyNotToolOnly": "Exact bookmark Chat reuse required exporting existing presentation primitives. Copying controls/store into the tool would create another implementation.",
+      "platformFiles": [
+        "src/entrypoints/sidebar-shared-ui.js",
+        "src/ui/react/components/conversation.tsx",
+        "src/ui/react/components/conversation-dock.css",
+        "src/ui/react/components/conversation-frame.css",
+        "tests/environment/sidebar-shared-ui-r16.test.mjs",
+        "docs/api/sidebar-tools-ai.zh-CN.md",
+        "docs/api/sidebar-tool-development.zh-CN.md"
+      ],
+      "crossToolValue": "Any opt-in sandbox tool can reuse the same neutral Chat frame and in-memory session as trusted consumers.",
+      "boundary": "No trusted Workspace, Provider, credentials, privileged business bindings or authority export. No new Host/network channel. Existing default props/IME guards retained; exact Chat CSS moved out of dock styles.",
+      "taskChanged": false,
+      "goChanged": false,
+      "dependenciesAdded": false
+    },
+    "behavior": {
+      "shared": "SharedConversationFrame + createConversationSession via fixed @opendesk/ui, original ai.* and request/CAS fences retained.",
+      "proposal": "Separate base/proposal; full semantic diff and JSON review; changed input/base/profile/URL/provider invalidates apply.",
+      "applySaveRun": "Explicit apply opens existing named save/copy flow. Existing record defaults to independent copy. Save and Run require separate actions.",
+      "deterministicProposal": "Only column_title added, exact structured clone of title semantics; all original nested/validation/processing/wait/timeout rules retained.",
+      "localPreview": "Read-only preview denies real AI/Task/downloads/writes; visible denial and disabled Send preserved.",
+      "mock": "Named exports synchronized. Old Shared UI source receipt is stale; auxiliary browser/build NOT_TESTED."
+    },
+    "identities": {
+      "sourceVersion": "1.6.3",
+      "buildId": "de9d1b3a9880a89d524baa047892d34d6c408179b6f636696d56c218dd0a3200",
+      "sourceBuildReceipt": "MATCH all source/output fingerprints",
+      "previewSnapshotPath": "examples/sidebar-tools/scrapyjs/.opendesk-preview/scrapyjs/a9064a9dbfdd2719446286c3812093c27463c5f4d94c157e3eb545e06d0c1b1d.opendesk-tool.json",
+      "previewSnapshotSha256": "a9064a9dbfdd2719446286c3812093c27463c5f4d94c157e3eb545e06d0c1b1d",
+      "previewInstalled": false,
+      "installedVersionLastObserved": "1.6.2",
+      "installedSha256": "56c5a05d6f884771148b3bb0fa41f56b89f7d5e7a8b4b134e09fd1ad2283eea7",
+      "formalVersion": "1.3.1",
+      "formalSha256": "691842c130eebd6c45075ba8465f27e9bd3b5da89a9b49872a4d08f42d35e96a",
+      "promoted": false,
+      "task": {
+        "version": "0.4.0",
+        "sourceHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+        "manifestHash": "b0a7b212f244e16de772e54724f1e039a3c7d2d238b9443031a6f37a61af0e95",
+        "origins": [
+          "http://127.0.0.1:43111",
+          "https://book.douban.com",
+          "https://download.csdn.net"
+        ],
+        "changedOrReinstalled": false
+      },
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "browser": "Chrome for Testing 149.0.7827.55",
+      "profile": "~/Library/Application Support/Google/Chrome for Testing/Default",
+      "nativeInstance": "scrapyjs-react-01a186cc",
+      "workspaceId": "workspace-68299749-e4bf-ddf3-fa63-c22109726a7a",
+      "sourceId": "source-a7f47ad5b7ea71ce48c45070",
+      "latestHostInstanceId": "5795ed60-3bc7-401d-9e51-6f5b5a4000f0",
+      "previewIntent": "c80e8f27-b780-4ef8-8a4f-cd510fd56c85"
+    },
+    "actualOperations": [
+      {
+        "operation": "开发 → 本地项目 → scrapyjs → 在侧栏调试",
+        "result": "PASS",
+        "observed": "Current 1.6.3 sandbox rendered, realtime preview a9064a9dbfdd / 未安装 / isolated test data; Native 已连接."
+      },
+      {
+        "operation": "Reversible JSX/CSS change and restore",
+        "result": "PASS",
+        "observed": "Original preview title 采集配置 · 源码更新验证 and CSS marker 本地源码 CSS 已更新 appeared automatically, then both restored without installation/reload. Temporary b56b8976... then restored aad84c137... before current shared Chat edits."
+      },
+      {
+        "operation": "Installed bookmark-manager AI 对话 reference",
+        "result": "PASS",
+        "observed": "Real shared Chat/composer inspected; no send and no bookmark business moved."
+      },
+      {
+        "operation": "Latest source Chat draft close/reopen/clear",
+        "result": "PASS",
+        "observed": "Native AX and screenshot showed shared transcript/composer and disabled Send. Pasted Chinese draft 本地草稿检查：保留全部规则，仅增加与 title 相同的 column_title。 survived 返回工作区 → reopen. Cleared afterward. Native typeText did not reliably enter Chinese, so clipboard paste was used; native IME itself NOT_TESTED."
+      },
+      {
+        "operation": "Original unknown AI request reconciliation",
+        "result": "NOT_VERIFIED",
+        "observed": "No authoritative original sessionId/turnId/terminal; no new inference/cancel/pending-state rewrite/late apply by this owner."
+      }
+    ],
+    "checks": [
+      {
+        "command": "node --test examples/sidebar-tools/scrapyjs/tests/ai-app.test.mjs examples/sidebar-tools/scrapyjs/tests/ai-panel.test.mjs examples/sidebar-tools/scrapyjs/tests/ai-config.test.mjs examples/sidebar-tools/scrapyjs/tests/ai-request.test.mjs examples/sidebar-tools/scrapyjs/tests/ai-pending.test.mjs examples/sidebar-tools/scrapyjs/tests/app-view.test.mjs",
+        "result": "PASS",
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0,
+        "log": "/tmp/scrapyjs-chat-tests-01a18bc6.log",
+        "coverage": "Real App/AiPanel/shared Frame/session, deterministic transport; column_title preservation, full review, stale input, independent named save, original record intact, no Task calls; original request/CAS/unknown protections."
+      },
+      {
+        "command": "node --test tests/environment/sidebar-shared-ui-r16.test.mjs",
+        "result": "PASS_WITH_SKIP",
+        "passed": 3,
+        "failed": 0,
+        "skipped": 1,
+        "executor": "platform subagent 01a18bcd-27be-74b0-b19a-0e87338752bd",
+        "coverage": "In-memory pinned-runtime compile, no privileged modules/credentials/runtime duplication, original opt-in package contract, session, Enter/Shift+Enter/IME guards, text escaping and exact CSS. Existing compiled demo skipped because build-ready proof absent; no extra build."
+      },
+      {
+        "command": "Own tool Vite watcher + source-locked stage + fingerprint readback",
+        "result": "PASS",
+        "coverage": "Current source/output hashes and deterministic buildId match staged a9064a9dbfdd; not an installed/production pass."
+      },
+      {
+        "command": "node --check examples/sidebar-tools/scrapyjs/preview/vite.config.mjs; named-export mapping; edited Markdown links; git diff --check",
+        "result": "PASS",
+        "coverage": "Follow-up adapter/docs only; product build inputs unchanged after passing tests."
+      }
+    ],
+    "runtime": {
+      "appWatchSession": 11659,
+      "stageWatchSession": 63061,
+      "directoryCliSession": 45123,
+      "ownServicesRunningAtLastPoll": true,
+      "directoryCli": "OPENDESK_NATIVE_INSTANCE=scrapyjs-react-01a186cc /Applications/OpenDesk.app/Contents/MacOS/opendesk browser dev /Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs",
+      "directoryErrors": "E_PROJECT_SCHEMA means non-Controller project; file/Sidebar preview works. E_PROFILE_TARGET prevented auto-open; actual product entry succeeded.",
+      "rootWatcher": "Parallel owner preserved. Duplicate own start rejected by port guard. Owner independently restarted writer; temporary missing workspace/sandbox output caused ERR_FILE_NOT_FOUND, later recovered. Latest recorded root PID 89002.",
+      "rootClientConnection": "NOT_VERIFIED after restart; process/output revision is not actual client connection proof.",
+      "appAutoUpdate": "PASS actual JSX/CSS visibility; Native snapshot replacement, not React HMR/state-preservation promise.",
+      "uiLeaseReleased": true,
+      "previewLeftOpen": "Latest 1.6.3 AI panel, empty draft, Send disabled. Installed storage untouched."
+    },
+    "originalRequest": {
+      "requestId": "cb6d0e92-0e45-4ae0-a30c-96377d535106",
+      "state": "unknown",
+      "sessionId": null,
+      "turnId": null,
+      "terminal": "NOT_VERIFIED",
+      "newInferenceRequests": 0,
+      "cancelInvoked": false,
+      "lateResultApplied": false,
+      "bypass": false
+    },
+    "notTested": [
+      "real model inference/proposal",
+      "new-source installed AI apply/save/export/Task run/download",
+      "native IME",
+      "root WXT client connection after restart",
+      "auxiliary mock refreshed runtime receipt/browser"
+    ],
+    "deferred": [
+      "independent final >=95 scores",
+      "formal package promotion/production",
+      "full lifecycle/SDK/host/browser matrices",
+      "width/zoom/stress"
+    ],
+    "nextOperation": "Keep original-request fence until trustworthy same-request disposition exists. A later authorized installed request must preserve all rules and current-page scope, adding column_title with exact title semantics. Deterministic tests do not prove real inference.",
+    "sourceHashes": {
+      "examples/sidebar-tools/scrapyjs/src/AiPanel.jsx": "6d664bfcb476076ebe86a787cb1fd784d0955009acfb9605e89984f618e560ee",
+      "examples/sidebar-tools/scrapyjs/src/App.jsx": "e4a81720cb2db22aad57aabbf1c281f505e9fa2333e57d9d272f75fe5f97ee63",
+      "examples/sidebar-tools/scrapyjs/src/style.css": "f7d3499ac6096833daf551c22804cb54bdc59afb64f42cded3da4eaf4667c259",
+      "examples/sidebar-tools/scrapyjs/preview/vite.config.mjs": "c15c7a5dd545e16d958e3bbffb4c41e94bc663a5dc9eee1527aeaa5bc17f37df",
+      "examples/sidebar-tools/scrapyjs/tests/ai-panel.test.mjs": "0d56cd151b65a6b381fcabe2cfa10858f590adba5b2fd78b22c0acc21c0559a6",
+      "examples/sidebar-tools/scrapyjs/tests/ai-app.test.mjs": "d438ef593b2009a89751461af5ef598d801d651140039e179f229f499afa7471",
+      "examples/sidebar-tools/scrapyjs/tests/react-fixture.mjs": "ffcbd73b04c0027d627fe8c4fa17e9a773c2800ae0c7aef325d9d34a85296239",
+      "src/entrypoints/sidebar-shared-ui.js": "204294ada0af19ab3d1e3e3d1b21c036dec60111028203e10083726faf1990f1",
+      "src/ui/react/components/conversation.tsx": "9766ec1b1c8d0222cba0ae0c00a501b693ee478eac3e9eed177f406eb1ebe34d",
+      "src/ui/react/components/conversation-dock.css": "b534ef82816c9592d8e1c589104868c37dec6a47f73d8197af3d5cc1e7c3eca9",
+      "src/ui/react/components/conversation-frame.css": "dd9507fb6578e40ae23d19e3427c5d5ea0c499208424a701e35fbb5d2acc5c4a",
+      "tests/environment/sidebar-shared-ui-r16.test.mjs": "0370b1e013004f5d859bf5a37df77e8f0feddacb774c292e8a05283f12ebeb57"
+    },
+    "git": {
+      "branch": "main",
+      "committed": false,
+      "pushed": false,
+      "branchWorktreeOrPRCreated": false,
+      "parallelChangesPreserved": true
+    },
+    "goals": {
+      "createdOrChangedInThisChat": false,
+      "parent": "paused per handoff; not controlled or reread here",
+      "otherChatMessaging": false
+    }
+  },
+  "visibleUiConsistencyContinuation": {
+    "recordedAt": "2026-10-30T17:00:30.444836+08:00",
+    "owner": "01a18bf4-78f7-7353-addd-ffca6ced48c7",
+    "stage": "DEVELOPMENT_INSTALLED_UI_ALIGNED_REAL_AI_FENCED",
+    "scope": "Diagnose and align the real installed scrapyjs UI with existing optimized source. No business or platform source edits in this continuation; previous entries remain historical.",
+    "diagnosis": {
+      "entry": "Original CFT → 扩展 → 已安装 → scrapyjs 采集",
+      "installedBefore": {
+        "version": "1.6.2",
+        "sha256": "56c5a05d6f884771148b3bb0fa41f56b89f7d5e7a8b4b134e09fd1ad2283eea7",
+        "ui": "Old standalone textarea + 生成配置草稿/停止生成; no shared conversation frame."
+      },
+      "sourcePreview": {
+        "version": "1.6.3",
+        "sha256": "a9064a9dbfdd2719446286c3812093c27463c5f4d94c157e3eb545e06d0c1b1d",
+        "state": "Read-only realtime preview; debug session had expired at first observation."
+      },
+      "cause": "The installed app remained on the older candidate. Existing source and immutable preview already contained styled SharedConversationFrame; no source/CSS defect reproduced.",
+      "results": "Installed results were empty before and after update. No current populated-table regression was reproduced; prior collection evidence remains historical."
+    },
+    "runtime": {
+      "mode": "Continuous development Browser + installed temporary tool candidate",
+      "browser": "Chrome for Testing 149.0.7827.55",
+      "profileLabel": "您的 Chromium",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "hostInstanceId": "f54d16ed-bb3b-45fd-b7bc-7b6c7cdf7f37",
+      "rootClientConnection": {
+        "result": "PASS",
+        "evidence": "Original UI 调试 → 本地开发服务 explicitly reported 开发服务已连接; not inferred from process existence.",
+        "revisionObserved": "31e5d8260b078983a525d43f133b96e03a56082e4cd774b898eddc8213296b7f"
+      },
+      "native": "Original workspace displayed Native 已连接 during initial read-only inspection.",
+      "watchers": "Existing root, app compile, stage, same-instance directory CLI and demo services preserved. No Browser build/reload or service restart by this owner.",
+      "uiLeaseReleased": true,
+      "leftVisible": "Original CSDN page; installed 1.6.3 CSDN 核心 → 采集规则, seven fields, 准备采集. No task started."
+    },
+    "candidate": {
+      "path": "artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json",
+      "version": "1.6.3",
+      "sha256": "a9064a9dbfdd2719446286c3812093c27463c5f4d94c157e3eb545e06d0c1b1d",
+      "bytes": 83829,
+      "buildId": "de9d1b3a9880a89d524baa047892d34d6c408179b6f636696d56c218dd0a3200",
+      "sourceOutputFingerprints": "MATCH; unchanged inputs from prior shared Chat checks.",
+      "equalsImmutablePreviewBytes": true,
+      "installed": true,
+      "installedVia": "Original 扩展 → 筛选和管理扩展 → 导入扩展 → review → 确认更新",
+      "review": "当前 v1.6.2 → 新 v1.6.3; original data retained; 权限未变化; old/new canonical SHA and fixed Task hashes checked.",
+      "capabilities": [
+        "ai.generate",
+        "storage.local",
+        "currentPage.read",
+        "user.export",
+        "tasks.run"
+      ],
+      "formalPromoted": false,
+      "formalVersion": "1.3.1",
+      "formalSha256": "691842c130eebd6c45075ba8465f27e9bd3b5da89a9b49872a4d08f42d35e96a"
+    },
+    "actualOperations": [
+      {
+        "operation": "Open same installed app after update",
+        "result": "PASS",
+        "observed": "Header scrapyjs 采集 · v1.6.3; original opaque sandbox; no uninstall or second identity."
+      },
+      {
+        "operation": "Open AI 配置助手",
+        "result": "PASS",
+        "observed": "Shared AI 配置对话, transcript and styled composer visible. Chinese temporary draft editable and cleared; no Send/cancel invocation."
+      },
+      {
+        "operation": "Open 采集规则 and 配置 JSON",
+        "result": "PASS",
+        "observed": "Original named CSDN 核心 still selected/saved; author_display, description, membership, metrics_text, price_text, title, url unchanged; div.file-content/div.course-list retained; full JSON fieldRequirements/validation/current-page/timeout/wait selector visible."
+      },
+      {
+        "operation": "Return to original CSDN browser tab and 刷新当前网页",
+        "result": "PASS",
+        "observed": "Original target title/URL recognized; 准备采集 and enabled 开始采集. No Run/Stop/Save was invoked."
+      }
+    ],
+    "checks": [
+      {
+        "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --out artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json",
+        "result": "PASS",
+        "purpose": "Prepare the exact current source for original installed-app update; no promotion or app recompilation."
+      },
+      {
+        "command": "SCRAPYJS_CANDIDATE=artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json node --test examples/sidebar-tools/scrapyjs/tests/package.test.mjs",
+        "result": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "purpose": "Candidate canonical bytes, UI and public boundary, original identity/capabilities and fixed Task hashes/origins."
+      },
+      {
+        "command": "Fingerprint comparison with sharedChatDevelopmentContinuation.sourceHashes",
+        "result": "PASS",
+        "sourceDrift": [],
+        "purpose": "Reuse previous 31 tool and 3 shared UI checks (one pre-existing skip); no implementation changed, no repeated broad suite."
+      }
+    ],
+    "task": {
+      "version": "0.4.0",
+      "sourceHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+      "manifestHash": "b0a7b212f244e16de772e54724f1e039a3c7d2d238b9443031a6f37a61af0e95",
+      "origins": [
+        "http://127.0.0.1:43111",
+        "https://book.douban.com",
+        "https://download.csdn.net"
+      ],
+      "changedOrReinstalled": false
+    },
+    "originalRequest": {
+      "requestId": "cb6d0e92-0e45-4ae0-a30c-96377d535106",
+      "state": "unknown",
+      "sessionId": null,
+      "turnId": null,
+      "terminal": "NOT_VERIFIED",
+      "newInferenceRequests": 0,
+      "cancelInvoked": false,
+      "pendingStateManuallyRewritten": false,
+      "lateResultApplied": false,
+      "boundary": "The UI update is not request reconciliation, terminal proof or permission to dispatch another inference. No pending-state clearing, replay, Provider switch or Task execution."
+    },
+    "evidenceCapture": "Native AX snapshots and screenshots returned by cua_repl in this thread; no standalone screenshot file was saved.",
+    "notTested": [
+      "real Provider inference and original request terminal",
+      "native model proposal apply / independent save / subsequent Task run in 1.6.3",
+      "new populated-table or download run",
+      "native IME",
+      "production/formal package acceptance"
+    ],
+    "deferred": [
+      "formal promotion/release",
+      "independent >=95 score",
+      "full host/SDK/lifecycle/browser matrices",
+      "zoom/width/stress"
+    ],
+    "git": {
+      "branch": "main",
+      "headObservedAtWrite": "110b0826b40d5d959d3d5d1376b6c1976107dc98",
+      "committed": false,
+      "pushed": false,
+      "branchWorktreeOrPRCreated": false,
+      "parallelChangesPreserved": true
+    },
+    "nextOperation": "Current UI consistency task complete after installed rendering/config preservation checks. Any later real AI request still requires trustworthy disposition of the original unknown request; do not infer success from this update."
+  }
 }

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
+import frameCSS from './conversation-frame.css?raw';
 import {IconButton as OpenDeskIconButton} from './ui/button.tsx';
 
 // Shared, presentation-only primitives. Callers retain provider credentials,
@@ -28,10 +29,10 @@ export function ConversationInput({id,value='',onChange,onKeyDown,placeholder=''
 }
 
 
-// A business-neutral trusted Chat Frame: no Provider, Chrome, Host, or business IDs.
+// A business-neutral Chat Frame: no Provider, Chrome, Host, or business IDs.
 export function SharedConversationFrame({
  open=true,rows=[],draft='',busy=false,blocked=false,inputDisabled=false,canSend=true,
- inputId,placeholder='描述要完成的操作',inputLabel='对话输入',
+ inputId,placeholder='描述要完成的操作',inputLabel='对话输入',maxLength=4000,stopLabel='停止对话',
  onDraftChange=()=>{},onSend=()=>{},onStop=()=>{},
  intro=null,emptyPrompt=null,feedback=null,review=null,technical=null,inputRef=null,logRef=null,
  onLogScroll=null,logClassName='od-conversation-log',entryClassName='od-conversation-entry',
@@ -65,7 +66,7 @@ export function SharedConversationFrame({
  const composer=<form className="od-conversation-composer" onSubmit={submit}>
    <label className="od-conversation-sr" htmlFor={inputId}>{inputLabel}</label>
    <ConversationInput id={inputId} inputRef={input} value={draft}
-    className="od-conversation-input" rows={inputRows} maxLength={4000}
+    className="od-conversation-input" rows={inputRows} maxLength={maxLength}
     placeholder={placeholder} disabled={inputDisabled}
     onChange={event=>onDraftChange(event.currentTarget.value,event)}
     onCompositionStart={()=>{composing.current=true;}}
@@ -76,7 +77,7 @@ export function SharedConversationFrame({
     }}/>
    {busy?<OpenDeskIconButton id={stopId||undefined}
       className="od-conversation-action od-conversation-action--stop"
-      type="button" label="停止对话" title="停止 AI 后续操作"
+      type="button" label={stopLabel} title={stopLabel==='停止对话'?'停止 AI 后续操作':stopLabel}
       onClick={event=>{event.preventDefault();onStop(event);}}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
      </OpenDeskIconButton>:
@@ -88,6 +89,8 @@ export function SharedConversationFrame({
      </OpenDeskIconButton>}
   </form>;
  return <>
+  {/* Fixed CSS only; both worlds use these exact rules without host/settings CSS. */}
+  <style data-opendesk-conversation-frame="">{frameCSS}</style>
   {intro}
   {splitTargets
    ?transcriptTarget?createPortal(transcript,transcriptTarget):null

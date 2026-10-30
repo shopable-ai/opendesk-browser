@@ -14,10 +14,10 @@
 - 交接/载入 Markdown 不是写盘；必须有用户授权、明确的创建、回执及读回才能宣称写入。云盘同步须单独验证。
 - 仅在安全的 `main` 和已协调的测试资源上作业，不强推/重置/清理其他 Agent 的修改、Profile、证据。不编造验收 PASS。
 
-## 源码交付必须完成
+## 按当前变化选择验证与交付
 
 1. 修改相应真实源码而非直接修改序列化 JSON。
 2. 按需执行 `npm run build:sidebar-tool -- projects/knowledge-inbox` 生成本地审阅包；正式扩展构建自动生成 `dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json` 与对应摘要，不进行人工 cp 同步。
-3. 运行 `npm run check`、知识工具与宿主定向测试、`npm run build`、`npm run build:dev`、`npm run verify`；原生 Chrome 的现有 CI 入口为 `.github/workflows/knowledge-inbox-r1.yml`。
+3. 先说明本次变化/失败与验证目标，再选能证明该行为的知识工具定向测试；只有公共宿主/权限/撤权受影响才加相应共享负例。确需固定扩展产物或当前任务明确进入正式交付时，再选相关 check/build/verify，不把 production/dev 双构建作为日常前置；复用已有 watcher、保护共享输出。仅改文档/Skill/AGENTS 时只核对内容、链接与 diff。原生 Chrome CI 入口仍为 `.github/workflows/knowledge-inbox-r1.yml`，未执行的真实链路标 NOT_TESTED。目录存在条件、测试归属与阶段规则按[唯一目录合同](../../docs/architecture/extension-project-layout.zh-CN.md)，不新增平行规则。
 4. 人类可读行为变化更新本目录 README；通用 API 变化更新 `docs/api/sidebar-tools.zh-CN.md`；产品路线更新 `docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md`；候选和原始证据记入 `docs/framework/workstreams/knowledge-inbox-r1-20261011.md`。
 5. 汇报时分开列 `PASS / FAIL / BLOCKED / NOT_TESTED`，附 commit、构建包哈希和测试范围；不把受控 DOM 冒充线上 ChatGPT，不把 SW 启动冒充 Native 文件写入。

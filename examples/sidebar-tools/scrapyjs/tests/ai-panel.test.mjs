@@ -1,23 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
-import {transform} from 'esbuild';
 import * as React from 'react';
 import {createExtensionCenterDOM} from '../../../../tests/helpers/extension-center-react-dom.mjs';
+import {AiPanel} from './react-fixture.mjs';
 
 // Exercise the actual React state transitions in a DOM fixture. No browser,
 // Native request, real Provider, installation or layout evidence is claimed.
-const button='data:text/javascript,'+encodeURIComponent(`import * as React from ${JSON.stringify(import.meta.resolve('react'))};export function Button({variant,...props}){return React.createElement('button',props)}`);
-const source=await readFile(new URL('../src/AiPanel.jsx',import.meta.url),'utf8');
-const compiled=await transform(source,{loader:'jsx',format:'esm',jsx:'transform'});
-const replacements={react:import.meta.resolve('react'),'@opendesk/ui':button,
-  './ai-config.js':new URL('../src/ai-config.js',import.meta.url).href,
-  './ai-pending.js':new URL('../src/ai-pending.js',import.meta.url).href,
-  './ai-request.js':new URL('../src/ai-request.js',import.meta.url).href};
-let code=compiled.code;
-for(const [from,to] of Object.entries(replacements))code=code.replaceAll(JSON.stringify(from),JSON.stringify(to));
-const {default:AiPanel}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
+// linkedom does not implement a browser's default submit-button action.
+const send=doc=>doc.getElementById('ai-requirement').closest('form').dispatch('submit');
 
 test('lost claim receipt retains the local operation so explicit stop can retire preparation',async t=>{
   const previous=globalThis.OpenDeskTool,storage=storageFixture(),calls=[];let lost=true;
@@ -38,7 +29,7 @@ test('lost claim receipt retains the local operation so explicit stop can retire
   await settle();const get=id=>ui.doc.getElementById(id);
   get('ai-requirement').value='preserve this input';get('ai-requirement').dispatch('input');
   get('ai-use-page').checked=true;get('ai-use-page').dispatch('click');
-  get('ai-generate').dispatch('click');await settle();
+  send(ui.doc);await settle();
   assert.match(get('ai-request-status').textContent,/unknown/);assert.equal(get('ai-generate').disabled,true);
   get('ai-cancel').dispatch('click');await settle();
   assert.equal(get('ai-request-status')===null,true);assert.equal(get('ai-generate').disabled,false);
@@ -82,11 +73,11 @@ test('retry displays the same previous-error snapshot sent for that request',asy
   const page=ui.doc.getElementById('ai-use-page');page.checked=true;page.dispatch('click');
   const generate=ui.doc.getElementById('ai-generate');
   assert.equal(generate.disabled,false,'fixture entered a valid request');
-  generate.dispatch('click');await settle();
+  send(ui.doc);await settle();
   assert.equal(calls.length,1);
   rejectRequest(Error('生成错误 A'));await settle();
   assert.match(ui.doc.querySelector('[role="alert"]').textContent,/生成错误 A/);
-  generate.dispatch('click');await settle();
+  send(ui.doc);await settle();
   assert.equal(calls.length,2);
   assert.equal(calls[1].context.previousError,'生成错误 A');
   const displayed=JSON.parse([...ui.doc.querySelectorAll('details')].find(node=>
@@ -127,7 +118,7 @@ test('unknown permits next-input edits but fences generation/application and pre
   const check=(id,value)=>{get(id).checked=value;get(id).dispatch('click');};
   const preview=()=>JSON.parse([...ui.doc.querySelectorAll('details')].find(node=>node.querySelector('summary').textContent.includes('配置与错误资料')).querySelector('pre').textContent);
   edit('ai-requirement','original requirement');edit('ai-sample','<h2>sent sample</h2>');check('ai-use-page',true);
-  get('ai-generate').dispatch('click');await settle();
+  send(ui.doc);await settle();
   assert.equal(get('ai-requirement').disabled,true,'pending requests still lock edits');
   assert.equal(get('ai-use-page').closest('fieldset').hasAttribute('disabled'),true);
   const sent=calls.find(call=>call.operation==='ai.generate').payload;
@@ -146,7 +137,7 @@ test('unknown permits next-input edits but fences generation/application and pre
   assert.ok(ui.doc.body.textContent.includes(sent.requestId),'show the unresolved request identity');
   assert.match(get('ai-request-status').textContent,/unknown/);
   assert.equal(get('ai-generate').disabled,true);assert.equal(get('ai-apply'),null);
-  get('ai-generate').dispatch('click');
+  send(ui.doc);
   assert.equal(calls.filter(call=>call.operation==='ai.generate').length,1,'never replay unknown');
   assert.equal(get('ai-cancel').disabled,false);get('ai-cancel').dispatch('click');await settle();
   assert.deepEqual(calls.filter(call=>call.operation==='ai.cancel').map(call=>call.payload.requestId),[sent.requestId]);
@@ -189,4 +180,35 @@ test('reopened pending identity and failed initial read block dispatch until a c
   const writes=calls.filter(c=>c.operation==='storage.set');assert.equal(writes.length,1);assert.equal(writes[0].payload.value,null);
   assert.deepEqual(calls.filter(c=>c.operation==='ai.cancel').map(c=>c.payload.requestId),[stored.requestId,stored.requestId]);
   assert.equal(calls.filter(c=>c.operation==='ai.generate').length,0);
+});
+
+test('local preview keeps the shared Chat draft across closing and reopening without dispatching AI',async t=>{
+  const previous=globalThis.OpenDeskTool,storage=storageFixture(),calls=[];
+  globalThis.OpenDeskTool={request:async(operation,payload)=>{
+    calls.push(operation);
+    if(operation.startsWith('storage.'))return storage(operation,payload);
+    if(operation==='ai.info')throw Error('开发预览不允许真实写入、打开任务或控制网页');
+    throw Error('Preview must not dispatch '+operation);
+  }};
+  t.after(()=>{globalThis.OpenDeskTool=previous;});
+  const state={config:{url:'https://example.com/',itemConfig:{title:'h2'}},target:{title:'page',url:'https://example.com/'},profileEpoch:1};
+  const ui=createExtensionCenterDOM(t,{component:({open,...props})=>React.createElement('div',{hidden:!open},React.createElement(AiPanel,{open,...props})),
+    props:{open:false,state,valid:true,onBusy(){},onDirty(){},onApply(){throw Error('must not apply');},onClose(){}}});
+  ui.window.getSelection=()=>({anchorNode:null,anchorOffset:0,focusNode:null,focusOffset:0}); // No native selection in linkedom.
+  await settle();
+  const get=id=>ui.doc.getElementById(id);
+  assert.notEqual(ui.doc.activeElement,get('ai-requirement'),'a hidden assistant must not steal focus');
+  ui.state.open=true;ui.paint();
+  assert.equal(ui.doc.activeElement,get('ai-requirement'));
+  get('ai-requirement').value='保留原规则，只增加 column_title';get('ai-requirement').dispatch('input');
+  get('ai-sample').value='<h2>结构样本</h2>';get('ai-sample').dispatch('input');
+  get('ai-use-page').checked=true;get('ai-use-page').dispatch('click');
+  assert.equal(get('ai-generate').disabled,true);
+  send(ui.doc);get('ai-requirement').dispatch('keydown',{key:'Enter'});await settle();
+  ui.state.open=false;ui.paint();ui.state.open=true;ui.paint();
+  assert.equal(get('ai-requirement').value,'保留原规则，只增加 column_title');
+  assert.equal(get('ai-sample').value,'<h2>结构样本</h2>');assert.equal(get('ai-use-page').checked,true);
+  assert.ok(ui.doc.querySelector('[data-opendesk-conversation-frame]'),'uses the actual shared frame');
+  assert.match(ui.doc.querySelector('[role="alert"]').textContent,/开发预览/);
+  assert.equal(calls.filter(op=>op==='ai.generate'||op==='ai.cancel').length,0);
 });

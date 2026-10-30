@@ -1,5 +1,34 @@
 # Stay Focus · 独立保持专注工具
 
+## 当前维护入口（2026-10-30 静态核对）
+
+本项目唯一 owner 为 `projects/stay-focus/`，Catalog 也指向这里。当前 `tool.config.json` 为 **3.0.0**，files 选 `src/index.html`、`dist/tool.css`、`dist/tool.js`；配置与实际消费者优先于下方 R2/R5 的旧路径、旧版本和命令记录。本轮未验证构建、预览同步、安装或 Chrome，不能据此给当前正式包/运行结果记 PASS。
+
+| 组成 | 当前职责与消费者 |
+| --- | --- |
+| `src/` | 工具沙箱 UI；Vite 从 `src/entry.js` 编译，配置另选 `src/index.html` |
+| `trusted/` | 固定受审策略、计时、DNR、生命周期、限制页及可信 React 控件，由原 SW/entrypoints、资源构建和工作台固定导入；部分纯模型也被 UI 编译引用，目录名不决定权限 |
+| `preview/` | 预览适配器、模拟宿主和历史 HTML；不执行真实 Chrome 权限/DNR，不维护第二份产品 |
+| `dist/` | Vite 输出 `tool.js/css` 和来源绑定的 `build-ready.json`；是当前打包输入，不能因属生成物就删掉正在被使用的产物 |
+| 配置、需求、构建/CI 与唯一正式包 | 保留原职责；不套最小 HTML 目录树压平，不复制 owner 或新建安装身份 |
+
+维护命令从仓库根按本次变化选择，复用已有 watcher/依赖，执行前核对输出 writer：
+
+```sh
+# 仅在 UI/相关模型变化且需要产物时；这是 app.ci.json 指向的原编译/校验入口
+node scripts/build-stay-focus-react.mjs
+# 仅在相应业务行为变化时选择原测试文件，不按工具名运行整组
+node --test tests/environment/stay-focus-r1.test.mjs
+```
+
+日常从[开发 → 本地项目 → 在侧栏调试](../../docs/api/sidebar-tool-development.zh-CN.md#直接调试与开发数据隔离2026-10-29)使用实际项目；Workspace 只读预览另走原合同。`preview/build.mjs` 仍有读取原 src 和旧仓库相对定位的逻辑，不能假设它已同步当前配置的 dist；本轮仅记录，未运行或修复预览生成器。后续确需此预览时先核对这两处来源/路径，不将旧 HTML 当当前包证据。
+
+需要正式 UI 包时，按[打包 Skill](../../.agents/skills/opendesk-sidebar-tool-package/SKILL.md)传实际项目路径，完成候选→相关验证→同源晋升→check；`app:update` 当前固定 examples owner，不用于本项目。固定可信模块变化另由 Browser 维护者沿现有 `dist/development` watcher 和安全刷新合同处理，JSON 更新不替换后台；不默认执行 production/dev 双构建。目录条件、测试归属及生成物保留规则见[唯一目录合同](../../docs/architecture/extension-project-layout.zh-CN.md)。本项目无需为重复这些说明新建 AGENTS。
+
+## 历史阶段记录
+
+以下保留原阶段的路径、候选、版本、命令与验收缺口用于追溯；包括“用户场景”“实施文件”“本地构建”等段落，均不能覆盖上方当前维护入口，也不构成本轮全量构建/缩放宽度/原生验收要求。
+
 > **R5.9（2026-10-20）· 一次授权，日常只管网站。** 第一次打开在可信 Side Panel 点击「开启 Stay Focus」，Chrome 只在缺少可选 `idle` 权限时询问。后台通过 `focus.status` 验证真实权限、安装摘要和 DNR 规则后才显示已开启；规则未验证不虚报保护成功。首次开启只初始化每日共享额度与工作时段，不自动添加推荐网站。打开 YouTube 等网页后，从可信 React「当前网页」点击一次「加入」，才生成该站点的管理设置。正常编辑、暂停、恢复不重复申请 Chrome 权限。
 >
 > **停止不等于撤销权限。** 「更多操作 → 停止限制」清理 Stay Focus 所属 DNR 规则并保留签名授权与用户数据；恢复时只要 Chrome 权限仍在，不会再弹原生权限框。真正 Chrome 权限失效、安装包升级导致授权身份变化，均须重新开启，但不重置已选网站、每日额度、暂停状态和使用记录。旧版已自动选中的存量网站继续保留，不做静默清理。主页面移除含义不清的「临时专注」，改为「更多设置 → 临时屏蔽网站（25 分钟）」，到期恢复原有规则，不重置每日额度。
@@ -8,9 +37,9 @@
 
 > 2026-10-13。工具 ID `stay-focus`。本项目是 OpenDesk 原有 Side Panel「工具」选项卡中的**可选独立工具**，不是另一款 Chrome 扩展，也不是 Time Review 子模块。
 
-**2026-10-22 · 可信界面归属收敛：** 原 `src/ui/react/tabs/trusted-settings.tsx` 内的当前网站加入/暂停、运行状态、启动/停止与清空确认界面，已归还本项目 [`trusted/react-controls.tsx`](trusted/react-controls.tsx)。通用工作台只保留固定组件导出，共享 focus/scroll effect 仍由工作台提供。组件仍经精确源码锁静态编译，不从安装 JSON 执行可信代码；修改这份可信界面需要更新 Browser。本次没有改变 `src/` 沙箱界面或正式工具包字节，也不代表共享组、白名单、提醒与会话已迁至普通动态后台应用。当前候选与原生证据见 [R1.4 运行记录](../../../docs/framework/workstreams/dynamic-app-runtime-r14-local-20261022.md)。
+**2026-10-22 · 可信界面归属收敛：** 原 `src/ui/react/tabs/trusted-settings.tsx` 内的当前网站加入/暂停、运行状态、启动/停止与清空确认界面，已归还本项目 [`trusted/react-controls.tsx`](trusted/react-controls.tsx)。通用工作台只保留固定组件导出，共享 focus/scroll effect 仍由工作台提供。组件仍经精确源码锁静态编译，不从安装 JSON 执行可信代码；修改这份可信界面需要更新 Browser。本次没有改变 `src/` 沙箱界面或正式工具包字节，也不代表共享组、白名单、提醒与会话已迁至普通动态后台应用。当前候选与原生证据见 [R1.4 运行记录](../../docs/framework/workstreams/dynamic-app-runtime-r14-local-20261022.md)。
 
-**源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的唯一业务源码位于本应用的 [`trusted/`](trusted/)；旧 `src/stay-focus/*.js` 已删除，测试与生产入口直接引用本目录业务源码。详见 [R2 源码提取记录](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
+**源码身份（2026-10-14）：此目录是正式官方发行工具的 UI 源码，不是仅供演示的副本。** `official-tools/catalog.json` 精确登记本 project，统一 packer 将 `tool.config.json` 声明的 `src/index.html`、`src/style.css`、`src/main.js` 编入可安装 JSON；README 与后台代码不在工具包中。计时、限制、可信审批和生命周期适配的唯一业务源码位于本应用的 [`trusted/`](trusted/)；旧 `src/stay-focus/*.js` 已删除，测试与生产入口直接引用本目录业务源码。详见 [R2 源码提取记录](../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
 
 **R4.1 有界规则包源码已接线（原生验收未完成）**：从 1.0.2 起，工具 JSON 包允许携带经校验的 `backgroundPolicy: {kind:'site-budget.v1',suggestions:[...]}`。可信后台从已安装包解析网站建议；用户在 UI 点击加入、经可信 Host 确认并重新启用后，才能通过既有 `focus.site.put` / DNR 规则实现新站点额度。同一 OpenDesk Browser 构建可以安装 1.0.1 与 1.0.2 两个版本的工具 JSON 完成对照。版本更换使旧 `authorizedHash` 失效，旧 DNR 先清理，不自动拦截新增网站；原网站额度与使用记录保留。该字段**不是可执行后台 JS**。目前仍有初始默认清单/额度、时段等旧固定模型；将所有业务策略变成应用包可独立升级属于后续 R4.2/R4.3，不可宣称 R4 整体完成。完整需求见 [Stay Focus R4](REQUIREMENTS.zh-CN.md)。
 
@@ -28,7 +57,7 @@
 - **运行时安全边界**：可安装 JSON **只包含** `tool.config.json` 声明的三个 UI 文件，不包含 `trusted/`。Chrome 原生 DNR、Alarms 与 idle 必须由预编译可信适配器执行，沙箱不能从 JSON 动态获得原生权限；旧版 OpenDesk Host 若无对应服务会明确返回 `RUNTIME_UNAVAILABLE`，不得声称通用 Host 已可热加载任意特权扩展。
 - **身份与数据兼容**：工具 ID `stay-focus`、协议、Store、Alarm、DNR ID 段、已授权包摘要与卸载事务均不更换；原用户安装和日常额度无需迁移或重置。
 - **唯一打包入口**：`npm run build:sidebar-tool -- examples/sidebar-tools/stay-focus`。更改 `trusted/` 时需要重新构建 OpenDesk Browser 的固定可信模块，不能只更新 UI JSON 即宣称后台功能已升级。
-- **自动验证**：新增 `tests/environment/stay-focus-extraction-r2.test.mjs` 防止业务回流宿主，原策略/服务/授权/真实 Chrome 测试继续承担行为验证。参见 [R2 提取记录](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
+- **自动验证**：新增 `tests/environment/stay-focus-extraction-r2.test.mjs` 防止业务回流宿主，原策略/服务/授权/真实 Chrome 测试继续承担行为验证。参见 [R2 提取记录](../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。
 
 ## 用户场景与安装
 
@@ -74,7 +103,7 @@
 - 本地在 Mac 直接打开：`open examples/sidebar-tools/stay-focus/preview/index.html`。支持 320/360/400/440px、明暗外观、模拟授权和额度/网站/升级/撤权等操作。
 - **预览适配器不进入可安装 JSON，也不执行真实 Chrome DNR/Alarm/idle。** 安装、跨重启计时、双 JSON 升级、权限撤销、跨应用隔离和卸载仍必须独立获取原生证据；不能把预览状态当作通过证明。
 
-## 本地构建与定向验证
+## 历史构建与定向验证记录
 
 在仓库根目录运行：
 

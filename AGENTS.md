@@ -18,7 +18,7 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 | 类型 | 默认业务代码所有权 | 公开能力与主 Skill |
 | --- | --- | --- |
-| Sidebar Tool（沙箱应用） | `examples/sidebar-tools/<id>/` | `OpenDeskTool.root/request`；开发 `opendesk-sidebar-tool-dev`，正式打包 `opendesk-sidebar-tool-package` |
+| Sidebar Tool（沙箱应用） | 新正式产品 `projects/<id>/`；教学示例 `examples/sidebar-tools/<id>/`；现有项目保持核实后的唯一 owner | `OpenDeskTool.root/request`；开发 `opendesk-sidebar-tool-dev`，正式打包 `opendesk-sidebar-tool-package` |
 | Page USER_SCRIPT / Page Program | `examples/programs/<id>/` | 网页 `document` / 公开 Page UI；开发 `opendesk-script-authoring`，正式安装 `opendesk-program-publish` |
 | Controller Task | 现有 Controller 项目 | 受控 `page` / Locator；开发 `opendesk-script-authoring`，正式冻结 `opendesk-program-publish` |
 | 经审计第一方可信功能 | 独立工具目录和必要的 `src/<feature>/` | `opendesk-trusted-sidebar-feature`，固定编译并独立审查权限 |
@@ -26,9 +26,17 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 **独立扩展开发默认先读公开 SDK 文档、Schema、示例与当前项目 README，优先修改自身目录及定向测试。** Browser Framework `src/` 默认只读，普通第三方作者不需要也不应被要求阅读内部 Broker、Host、Registry 或 Installer。现有 SDK 能完成的功能直接调用，不在通用宿主内加入 ChatGPT、Mind Map、Cookie Editor 等业务判断；不能以原生验收、资源加载或测试便利为由扩大平台写入范围。
 
+**编码前先发现与复用，迭代先走已有入口（2026-10-30）**：按[唯一工作流的发现与复用步骤](.agents/workflows/extension-creation.md#二-b发现与复用)，先确定业务 owner、下一条用户操作及失败/未验证点，核对正式项目、真实消费者与公开边界，在原交接或简短进展中记录实际入口和复用判断。AI Chat 按[公共 Chat 合同](docs/api/sidebar-tools-ai.zh-CN.md#独立-chat-的职责与最小接入)复用独立展示、会话与受控推理；书签只是消费者，不能以“复制书签 Chat”为由调查整套书签业务。具体发现顺序与最小消费者取证见工作流；可信消费者可用不代表沙箱可用，普通工具不以调查 Go/Host 为起点。现有项目以真实 README/配置归属为准，不按默认目录另建副本。日常工具迭代优先「开发 → 本地项目 → 在侧栏调试」及已有编译/快照 watcher；Browser 本体继续用已连接 serve 的 `dist/development`，具体职责和合法平台修复例外均见该工作流。历史 unknown 只约束相关副作用、身份及依赖，保留刷新/重载安全栅栏；无依赖的文档或源码工作继续，纯文档不启动产品环境。
+
 **通用能力例外**：必须记录缺少哪项公开 SDK 能力及对应文档、可复现失败、为何工具内部无法解决、跨工具价值、最小公共 API/源码/测试范围，以及权限、生命周期、兼容性与安全影响。无证据先记 `SDK_GAP_NOT_PROVEN`，不得编造公开 API；普通第三方不安全或无合法授权的特权操作记 `BLOCKED`。证明通用缺口后由平台 Skill 独立处理，工具业务继续留原项目。
 
 **不采用“一切 `src/` 变更都违规”的路径禁令**：用户本来要求修通用 SDK、安装撤权或第一方可信模块时，允许其 owner 正常修改 `src/` 并定向回归。CI 静态门禁不因并行提交包含 `src/` 就一票否决；它也不能证明未来所有 AI 不漂移。真实模型路由、Chrome 安装及撤权未执行时标 `NOT_TESTED`。具体门禁以 [唯一 Extension Creation Workflow](.agents/workflows/extension-creation.md) 与 [现行八个 Skill 路由](.agents/skills/README.md) 为准。
+
+## 扩展目录与测试归属（2026-10-30）
+
+按[扩展项目目录与测试归属合同](docs/architecture/extension-project-layout.zh-CN.md)执行：业务源码、业务测试、专用 fixture、预览与脚本归扩展自己的真实项目；根测试只持有公共 SDK/Host/安装权限/生命周期与跨项目合同。新正式 Sidebar 产品默认 `projects/<id>/`，教学示例留 `examples/`；现有项目不因路径美观搬迁，Page/Controller 保留原类型合同。新增测试须能指出用户行为或安全回归及已有覆盖缺口；可逆文案/样式不默认新增源码字符串断言，不按每轮版本复制测试。开发只运行本次相关检查，根 `npm test`/完整 CI 不作为单工具默认前置；受影响权限、来源、身份、撤权与未知副作用保护继续验证。旧测试按 owner 渐进拆分/迁移，确认消费者与发现入口后才能合并或删除，保留并行改动和历史证据。
+
+目录按用途与消费者区分必需、条件必需、可选、生成物和历史资料；最小树不是删除或压平 Stay Focus 等复杂项目的清单。优先复用已有 HTML/React/Vue 示例，预览壳不当源码模板，不预建空目录或引入无关依赖；项目级 AGENTS 只写真实差异，简单项目不强制。选择条件与指导分工只在上述合同第 2 节维护，规范修订不自动触发 G4 试点或测试迁移。
 
 ## 安装即用与权限一次审阅（2026-10-17）
 
