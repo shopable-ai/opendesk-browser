@@ -20,7 +20,7 @@
 ## 2. 当前代码事实（截至本次读取 main）
 
 - 正式业务路径：examples/sidebar-tools/scrapyjs/；不是 docs/contracts/source-snapshots/scrapyJs/（历史只读来源）。
-- tool.config.json 的开发应用版本 1.6.1、委托 Task scrapyjs.capture 0.4.0；README 记录正式 App 安装包仍为 1.3.1，**开发候选≠正式已晋升**。
+- tool.config.json 本次复核的开发应用版本 1.6.3、委托 Task scrapyjs.capture 0.4.0；README 记录正式 App 安装包仍为 1.3.1，**开发候选≠正式已晋升**。
 - 已有 React 采集界面、命名配置、字段/分页/列表详情配置、数据预览、JSON/CSV、Stop 和 AI 配置相关代码；历史豆瓣/CSDN 的安装态采集证据见本目录 README 和 evidence/，仅限相应候选。
 - package.json 当前 Task 精确批准 origin：127.0.0.1:43111、book.douban.com、download.csdn.net；deadlineMs 为 90000。不能由修改配置或 AI 推广为任意网站、无限时长。
 - 原 README 对当前 AI、新固定 Task 以及正式安装与运行验收仍有未完成项；本规划不改变现有证据状态。
@@ -90,3 +90,16 @@
 不立即开发通用 AI Agent、自建代理池、代理转售、多租户大规模云集群、开放任意脚本执行、付费市场与分账，也不扩展现有固定 Task Origin 或放宽 90 秒限制。所有未来改动先查当前实际源代码，仅做差量，在 main 上实施，禁止平行产品与重复 Runtime。
 
 配套文档：[AI 爬虫与代理架构](AI-ENGINE-PROXY-ARCHITECTURE.zh-CN.md)｜[商业模式与竞品](COMMERCIALIZATION-COMPETITORS.zh-CN.md)。
+
+## 8. R2.2～R2.5 网页端跨端施工阶段（2026-10-30 新增，未实施）
+
+此处的 R2.2～R2.5 是**跨端执行架构的施工阶段**，与上文长期产品 R0～R4 并非同一编号系列。唯一权威与具体任务边界见[统一执行架构](UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md)，不要从本文件复制完整架构造成多处漂移。
+
+| 顺序 | 代码责任 | 最小交付 | 本次状态 |
+| --- | --- | --- | --- |
+| R2.2-FRAMEWORK-WEB | OpenDesk Browser / ScrapyJS | 版本化纯声明式合同、能力匹配/拒绝、测试、源绑定可点击预览 | NOT_IMPLEMENTED |
+| R2.3-ANDROID-WEB | todo-user Android | 在**已有 App** 内新增 ScrapyNode Plugin/受限 Cellular GET、回传与 Stop；复用旧 PoC | NOT_IMPLEMENTED；真机 NOT_TESTED |
+| R2.4-DESKTOP-WEB | OpenDesk Desktop | 复用现有 http.request/axios 的应用级 Adapter 和真实 Header 回显 | NOT_IMPLEMENTED |
+| R2.5-BROWSER-WEB | ScrapyJS React | 正式执行位置/Headers 兼容显示、真实 RunReceipt、不可用能力禁用 | NOT_IMPLEMENTED |
+
+**先完成网页版 GitHub 代码工作，最后才进入本地 Codex 真机验收。** 旧 React、Controller Task、Host、Cookie/授权、AI 与安装工作只复用不重建。每段输出提交 SHA、已完成/未完成/阻断及独立证据等级。

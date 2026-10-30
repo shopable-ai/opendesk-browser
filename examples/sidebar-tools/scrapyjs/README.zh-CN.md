@@ -4,6 +4,7 @@
 
 以下文件保存本轮 AI 爬虫、代理与商业化讨论中的**长期目标与设计决策**。它们均为 **PLANNED / NOT_IMPLEMENTED**，不改变上方真实采集、安装态及候选验收状态：
 
+- [跨端统一执行架构与网页版四阶段交接](docs/UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md)：Browser / Desktop / Android 分工、Headers 能力、唯一合同、去重和验收边界；**仅架构决策，统一合同与 Adapter 未实施**。
 - [产品目标与分阶段路线图](docs/PRODUCT-ROADMAP.zh-CN.md)：当前基础、差距、P0/P1/P2、1–3 页 AI 试采及后续验收。
 - [AI 引擎、代理与云运行技术架构](docs/AI-ENGINE-PROXY-ARCHITECTURE.zh-CN.md)：Scrapling、Crawl4AI、Apify 等执行适配与安全边界。
 - [商业模式、竞品与上下游服务](docs/COMMERCIALIZATION-COMPETITORS.zh-CN.md)：模板复用、定制开发、维护、代理与收费路径。

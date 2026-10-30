@@ -173,3 +173,7 @@ IP、节点定位和完整访问日志属于敏感信息，默认不向其他用
 ## 10. R2.0-NODE 实施增量（源码不等于设备通过）
 
 新增 [nodes/poc/README.zh-CN.md](../nodes/poc/README.zh-CN.md) 与隔离的 Android 前台/ Mac HTTPS 接收器源码；仅服务自有 Android + Mac + 本人授权测试站点。**Wi-Fi 只需局域网可达，蜂窝网络才承担目标 HTTPS GET**。不重建原 React/Task/Host。未运行的 Android 编译、实际双网络、Mac 原生 Chrome 和计费均 NOT_TESTED；具体步骤和阻断以 PoC 手册为准。
+
+## 11. R2.2 跨端架构决策补充（2026-10-30）
+
+自用 Android 正式节点应优先**复用现有 `shopable-ai/todo-user` Capacitor/Kotlin App**，在已有 App 内提供独立 ScrapyNode 模块/受限接口；`nodes/poc/android/` 仅为迁移审查和小范围网络验证参考，不再发展成第二套 Android 产品。Mac 接收器仍为隔离 PoC，未证明已有 Browser↔Android 调度闭环。手机网络实测与 Browser/电脑端请求头的分工已集中到[统一执行架构](UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md)；本文件继续记录 A0/A1/B/C 网络细节，不重复 Header 合同和四阶段施工任务。**本次仅保存架构决策，todo-user 集成 / REAL_NETWORK 仍 NOT_TESTED。**
