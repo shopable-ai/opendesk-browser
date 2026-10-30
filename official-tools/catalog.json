@@ -95,6 +95,12 @@
       "project": "projects/video-speed-controller",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
+    },
+    {
+      "id": "video-pass",
+      "project": "projects/video-pass",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
     }
   ]
 }

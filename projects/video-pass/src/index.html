@@ -1,0 +1,27 @@
+<main class="vp" aria-label="视频通行证">
+  <section class="vp-current">
+    <div class="vp-topline"><span class="vp-eyebrow">当前视频网页</span><button id="vp-refresh" class="vp-icon" type="button" title="重新识别" aria-label="重新识别">↻</button></div>
+    <strong id="vp-title" class="vp-title">正在识别…</strong>
+    <div class="vp-subline"><span id="vp-provider" class="vp-pill">待检测</span><span id="vp-page-state">读取当前网页</span></div>
+    <div class="vp-actions"><a id="vp-open" class="vp-primary" href="#" target="_blank" rel="noopener noreferrer" hidden>原站观看 ↗</a><button id="vp-copy" class="vp-secondary" type="button" disabled>分享影片链接</button></div>
+    <label id="vp-manual-wrap" class="vp-manual" hidden>手动复制链接<input id="vp-manual" readonly aria-label="手动复制的视频网页链接"></label>
+  </section>
+  <nav class="vp-tabs" aria-label="功能切换"><button type="button" data-vp-tab="watch" aria-pressed="true">观看</button><button type="button" data-vp-tab="member" aria-pressed="false">会员</button></nav>
+  <section id="vp-watch" class="vp-section" aria-label="观看与异常处理">
+    <div class="vp-section-title">观看路径<span>不接管原播放器</span></div>
+    <div class="vp-route"><span class="vp-route-icon">▶</span><div><strong>原站官方播放器</strong><small>沿用自己的登录及订阅</small></div><span id="vp-route-state" class="vp-route-state">待识别</span></div>
+    <div class="vp-route vp-muted"><span class="vp-route-icon">◇</span><div><strong>授权备用播放服务</strong><small>需版权方或服务方许可</small></div><span class="vp-route-state">未接入</span></div>
+    <details class="vp-help"><summary>播放异常？</summary><p>检查网络、原平台登录及会员权益；可在原站重新打开。暂不提供 DRM 绕过或第三方盗播来源。</p><button id="vp-recheck" class="vp-secondary" type="button">重新检查网页</button></details>
+  </section>
+  <section id="vp-member" class="vp-section" aria-label="会员管理" hidden>
+    <div class="vp-section-title">我的会员记录<span>仅保存于本机</span></div>
+    <form id="vp-member-form" class="vp-form">
+      <label>视频网站<select id="vp-member-provider"><option value="tencent">腾讯视频</option><option value="iqiyi">爱奇艺</option><option value="youku">优酷</option><option value="mango">芒果 TV</option><option value="bilibili">哔哩哔哩</option></select></label>
+      <label>到期日期<input id="vp-member-expiry" type="date" required></label>
+      <button id="vp-member-save" class="vp-primary" type="submit" disabled>保存</button>
+    </form>
+    <div id="vp-member-list" class="vp-members" aria-live="polite">正在读取本机记录…</div>
+    <div class="vp-promo"><strong>会员优惠与好友邀请</strong><p>仅接入官方或经授权合作渠道，不提供未获许可的账号池或代充服务。</p><span>合作入口 · 未开放</span></div>
+  </section>
+  <p id="vp-flash" class="vp-flash" role="status" aria-live="polite" hidden></p>
+</main>
