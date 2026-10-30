@@ -45,3 +45,17 @@ test('UI uses native modal focus boundary, Escape and return focus; no refresh e
   assert.equal((ui.match(/api\.refresh\(/g)||[]).length,1);
   assert.doesNotMatch(ui,/localStorage|sessionStorage|document\.cookie|Authorization|https?:\/\//);
 });
+
+test('R2.0 UI keeps independent six columns and no fabricated owner or raw aliases',async()=>{
+  const source=await readFile(new URL('../services/ai-account-usage/web/main.jsx',import.meta.url),'utf8');
+  const css=await readFile(new URL('../services/ai-account-usage/web/style.css',import.meta.url),'utf8');
+  assert.ok(source.includes('className="col-current"'));
+  assert.ok(source.includes('summarizeVisibleAccounts(rows,records,scope)'));
+  assert.ok(source.includes('projectAccountView(a,records[a.alias],scope)'));
+  for(const forbidden of ['负责 / 标签','负责人 / 管理标签','className="account-alias"','className="plan-source"'])
+    assert.equal(source.includes(forbidden),false);
+  assert.ok(source.includes('account.identity?.displayName ?'));
+  assert.ok(css.includes('@media(max-width:520px)'));
+  assert.ok(css.includes('@media(max-width:240px)'));
+  assert.ok(source.includes('className="foot-note"><summary>'));
+});

@@ -33,8 +33,8 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/ui/cloud-hosting.css':'ui/cloud-hosting.css',
   'src/ui/target-bootstrap.html':'ui/target-bootstrap.html',
   ...Object.fromEntries(['quota','schedule','session','always'].map(reason=>[
-    'examples/sidebar-tools/stay-focus/trusted/blocked-'+reason+'.html','stay-focus/blocked-'+reason+'.html'])),
-  'examples/sidebar-tools/stay-focus/trusted/blocked.css':'stay-focus/blocked.css',
+    'projects/stay-focus/trusted/blocked-'+reason+'.html','stay-focus/blocked-'+reason+'.html'])),
+  'projects/stay-focus/trusted/blocked.css':'stay-focus/blocked.css',
   ...Object.fromEntries(['quota','schedule','session','always'].map(reason=>[
     'src/platform/chrome/blocked/blocked-'+reason+'.html','managed-site/blocked-'+reason+'.html'])),
   'src/platform/chrome/blocked/blocked.css':'managed-site/blocked.css',

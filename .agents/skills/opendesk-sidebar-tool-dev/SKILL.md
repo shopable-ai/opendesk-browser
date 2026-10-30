@@ -1,6 +1,6 @@
 ---
 name: opendesk-sidebar-tool-dev
-description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI and business logic in independent examples/sidebar-tools projects with OpenDeskTool.request; hand off packaging, install verification and offline release to opendesk-sidebar-tool-package, not Page/Task or audited trusted runtime features.
+description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI and business logic in existing independent tool projects with OpenDeskTool.request; hand off packaging, install verification and offline release to opendesk-sidebar-tool-package, not Page/Task or audited trusted runtime features.
 ---
 
 # OpenDesk Browser · 扩展中心应用（Sidebar Tool）开发 Skill
@@ -15,6 +15,8 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 - **混合型第一方应用**：例如阅读目录侧栏 UI 可独立更新，但其 `trusted/` 网页悬浮目录由 Browser 固定 Content Script 提供；仅更新 JSON 不改变网页脚本。AI 应协调受信功能/Browser 维护者处理实际静态变更；用户仍只接收一个完整的更新结论，不必自行编译插件。
 
 当前 `app:update` 命令自动处理应用版本检查、无扩权的 PATCH 提升、相关 Node 测试、单一正式包晋升与 SHA 核验；**不会调用 Chrome 安装器、绕过安装确认或承诺用户 Mac 的安装已生效**。如需要真实本机验收但无设备条件，明确 `INSTALLED_CHROME_NOT_TESTED`。用户描述中出现「浏览器插件本体编译/重载/打包」时应直接路由管理员 Skill，而非要求普通应用用户学习 WXT。
+
+**当前入口限制**：该命令仍固定查找 examples owner，且不自动发现全部项目自有测试；对于 `projects/` 产品，应由 AI 按[目录合同第 6 节](../../../docs/architecture/extension-project-layout.zh-CN.md#6-当前支持与明确缺口)选择现有路径参数打包/验证/晋升链或交平台 owner 修复入口，不让普通用户迁回旧目录，也不把部分 Node PASS 当成全部业务已验证。
 
 ## 触发与文档优先级
 
@@ -35,22 +37,28 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 **第三方作者免读 Browser 内部源码**：本 Skill、公开 SDK/Schema、示例和工具自身 README 足够作为默认开发输入。`src/ui/sidebar-tools/package.js` 等内部实现仅供平台维护者在已证明通用缺口时调查；不能要求普通用户读取 Broker/Host，也不能靠某工具需求新增通用运行器。无证据时记 `SDK_GAP_NOT_PROVEN`。
 
-## 工具项目归属与演进顺序（2026-10-14）
+**开发前发现与复用**：先执行[唯一工作流的发现与复用步骤](../../workflows/extension-creation.md#二-b发现与复用)，记录实际 owner/入口、下一条操作、已有消费者、公开边界及复用判断。新正式 Sidebar 产品默认 `projects/<id>/`，教学示例位于 `examples/sidebar-tools/<id>/`；已有正式项目服从自身 README/配置及实际消费者，不重建旧目录。AI Chat 先读[公共职责与最小接入](../../../docs/api/sidebar-tools-ai.zh-CN.md#独立-chat-的职责与最小接入)，复用业务无关展示/会话和受控推理；最小消费者片段仅作辅助，不复制书签 App，不把书签业务当成共享合同。业务 adapter 留工具，公共出口不足先按工作流取证再交 Runtime owner，不让普通作者先研究 Go。真实 Native/平台故障仍由对应 owner 处理，不能以此建立路径禁令。
 
-**先在同一仓库模块化，不拆仓库、不新增一套工具体系。** `examples/sidebar-tools/<tool-id>/` 是一个工具自己的项目目录；官方条目在此处的 HTML/CSS/JS 是**真实发行源码**，不是待迁移的演示副本。新增或修改一般工具优先只触碰自己的配置、UI、资产、README 和测试，不为独立二字创建 `opendesk-tools` 仓库、独立 Chrome 扩展、额外 Host 或另一套包格式。顶层“我的/扩展/工作流/开发/云控”等 Tab 是宿主产品导航，不能当作各工具的源码边界。
+## 工具项目归属与演进顺序（2026-10-30 更新）
+
+**目录与测试只遵守[扩展项目目录与测试归属合同](../../../docs/architecture/extension-project-layout.zh-CN.md)**：新正式 Sidebar 产品默认 `projects/<id>/`，教学示例留 `examples/sidebar-tools/<id>/`；以下历史 examples 路径仅表示尚未迁移项目或示例，不覆盖这个新默认。先找真实 owner，不重建副本。业务测试/fixture 放 `<owner>/tests/`，框架公共安全/接线测试留根目录；当前 native.tests 的框架路径限制保持。明确现有行为覆盖缺口才加测试，不为可逆文案/样式或每轮版本新增正则文件；日常直接选相关测试，不默认根 npm test 或完整 CI。自动发现、app:update 的当前限制与迁移顺序以该合同第 6–7 节为准，不能把目录设计说成 runner 已修复。
+
+**结构与起点按需选择**：按合同第 2 节的存在条件复用最小 HTML、React/Vue Starter；先区分自带框架与 Shared UI 模式，重设新项目身份和最小能力，不复制 dist/收据/正式包。预览模板只生成预览壳，不作源码脚手架。已有复杂目录由真实消费者决定必要性，不按最小树清理；项目级 AGENTS 只承载确有差异的边界/禁改项，命令事实由 README 维护，不强制每个项目创建。
+
+**先在同一仓库模块化，不拆仓库、不新增一套工具体系。** 新正式 Sidebar 产品使用 `projects/<id>/`，教学示例使用 `examples/sidebar-tools/<id>/`，已有工具使用已核实的正式项目目录；官方项目的 HTML/CSS/JS 是**真实发行源码**，不是待迁移的演示副本。新增或修改一般工具优先只触碰自己的配置、UI、资产、README 和测试，不为独立二字创建 `opendesk-tools` 仓库、独立 Chrome 扩展、额外 Host 或另一套包格式。顶层“我的/扩展/工作流/开发/云控”等 Tab 是宿主产品导航，不能当作各工具的源码边界。
 
 **按执行环境辨认代码，不以一个目录对应一个 JS World：**
 
 | 世界 | 工具的典型责任 | 当前源码落点与接入方式 |
 | --- | --- | --- |
-| Sandbox 工具 UI | 表单、展示、`OpenDeskTool.request` | `examples/sidebar-tools/<id>/src/`；独立构建安装的 JSON，opaque-origin iframe；不接触 `chrome.*` |
+| Sandbox 工具 UI | 表单、展示、`OpenDeskTool.request` | `<owner>/src/` 或已配置源码位置；独立构建安装的 JSON，opaque-origin iframe；不接触 `chrome.*` |
 | 扩展 Background / MV3 SW | 长期策略、Alarm、Chrome DNR、事件恢复 | 确需可信服务时由已审计项目 `trusted/` 或原有 `src/<feature>/` 的**固定预编译**代码通过现有 `src/sw.js` 接线；SW 可休眠，业务状态须持久化 |
 | Content Script / ISOLATED | 限定目标文档中的提醒、授权后的 DOM 操作 | 确需时经既有静态 `src/entrypoints/page-relay.js` 接线；不能依赖 Side Panel 持续打开 |
 | Page / MAIN | 极少数需要网页 JS 上下文的操作 | 默认**无**此入口；如必须使用，沿用既有明确授权的 SDK/User Script 世界合同，严禁把可信宿主权限送入网站 |
 | 可信 Side Panel / 扩展页面 | 真实点击、Chrome 原生权限申请、危险操作确认 | 独立项目 `trusted/tool-host.js`、`trusted/host-controls.js` 或尚在 `src/<feature>/` 的审计代码由固定扩展构建入口引用；不能从动态工具包导入 JS |
 | 扩展拦截说明页 | DNR 导航说明、无敏感信息显示 | 经固定资源清单编译；不加载可安装 UI 的动态字节 |
 
-**以已完成 R2 业务提取的 Stay Focus 为例**：`examples/sidebar-tools/stay-focus/src/` 是独立工具 UI；同一项目 `trusted/` 才是受审后台、策略、DNR、页面提醒和权限适配的唯一业务源，经原 `src/sw.js`、`src/entrypoints/` 固定入口编译；`src/stay-focus/*.js` 只是兼容转发，不再接收业务。当前 Stay Focus 的 files 只选 UI；修改固定可信模块要重建浏览器扩展。该结论不是目录禁令：Prompt Shortcuts 的 v2 files.dependencies 选择了 trusted/model.js 这一纯模型进入沙箱，网页入口也复用它；两个环境不共享内存、权限或升级后的代码实例。见 [产品说明](../../../examples/sidebar-tools/stay-focus/README.zh-CN.md) 和 [R2 提取证据](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)。**不为路径美观二次搬动已通过的代码**。
+**以已完成 R2 业务提取的 Stay Focus 为例**：当前 `projects/stay-focus/src/` 是独立工具 UI；同一项目 `trusted/` 是受审后台、策略、DNR、页面提醒和权限适配的业务源，经原 `src/sw.js`、`src/entrypoints/` 等固定入口编译；旧 `src/stay-focus/` 转发层已删除，不重建。当前 files 选择 `src/index.html` 和 `dist/tool.js/css`；预编译与来源收据按项目 README，修改固定可信模块另由 Browser 构建交付。目录名不是世界边界：纯模型可被 UI 编译引用；Prompt Shortcuts 的 v2 files.dependencies 也选择 trusted/model.js 进入沙箱，两个环境不共享内存或权限。见 [当前产品入口](../../../projects/stay-focus/README.zh-CN.md) 和 [R2 历史提取证据](../../../docs/framework/workstreams/stay-focus-extraction-r2-20261018.md)；历史路径保留。**不为路径美观二次搬动代码**。
 
 依赖方向以 `工具 UI → 受控工具请求 → 现有可信宿主/授权 → 工具受信任服务 → Chrome 能力` 为准。共用宿主可以有**固定、审计的组合入口**，但不得继续长出某个工具的业务策略、确认文案、私有存储/DNR 清理细节；这些属于该工具的受信任模块。反过来，工具也不能复制通用安装器、消息授权、SW 或构建器。
 
@@ -60,7 +68,7 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 ## R3.1 发行、安装与真实能力门槛
 
-- 普通用户只需要发布的 OpenDesk Browser 扩展和既有官方 Catalog 离线工具包；不得要求下载 `examples/`、安装 Node 或复制 Background。普通工具项目仍在 `examples/sidebar-tools/<tool-id>/`。
+- 普通用户只需要发布的 OpenDesk Browser 扩展和既有官方 Catalog 离线工具包；不得要求下载源码、安装 Node 或复制 Background。维护者在核实的唯一 owner 开发，新正式产品/教学示例按上面的目录合同选择。
 - 进入安装更新/发行阶段、正式包字节有变化时，提升三段式版本，经原有 packer/catalog 生成资源；普通源码迭代不反复升级正式包。不能把同版本不同字节当作升级，不复制安装器、Host、SDK 或权限模块。
 - 普通能力使用现有 Browser SDK；确需 Chrome 原生权限时只能依赖固定、经审计的预编译扩展逻辑。工具审阅、安装确认、启动都应检查目标发行扩展能否实际提供所需可信能力；缺失提示升级，不能假装安装成功。
 - Background 管持久计时与 DNR，Content Script 管网页显示，沙箱管 UI，Side Panel 固定 Host 管权限和可信点击。前台授权按钮应在首次打开的可见区域；已停用工具不可触发无效的原生授权。
@@ -89,16 +97,16 @@ R2.2 增量约束：新建/编辑表单的区域 ARIA 名称复用已有业务�
 
 ## 与编译、发行和未来市场 Skill 的明确分工
 
-- **本 Skill 主责**：HTML/CSS/JS、React/Vue 组件的功能实现、用户界面、源码正确性、隔离预览和开发侧功能测试。修改 `examples/sidebar-tools/<id>/src/`、`tool.config.json` 等真实业务源码。
+- **本 Skill 主责**：HTML/CSS/JS、React/Vue 组件的功能实现、用户界面、源码正确性、隔离预览和开发侧功能测试。修改已核实工具项目中的 `src/`、`tool.config.json` 等真实业务源码。
 - **编译/JSON/独立目录安装包/安装确认**：转交 [Sidebar Tool 打包 Skill](../opendesk-sidebar-tool-package/SKILL.md)，它持有 `build-sidebar-tool.mjs`、可再现性、版本、输出、生成包一致性、离线 Catalog 和安装验收的详细流程。本 Skill 不建立第二种构建命令或打包器。
 - **第三方线上市场上传/审核/上架**：当前仅 [预留说明](../opendesk-marketplace-publish/RESERVED.md)，尚无可调用发布接口；不得标记已上架。市场 UI 属 `opendesk-extension-ui`，授权/Host 属 Runtime。
 
 ## 任务判断（先选一条，再改代码）
 
-- **普通工具 / UI**：编辑 `examples/sidebar-tools/<id>/tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
+- **普通工具 / UI**：在已核实工具项目中编辑 `tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
 - **复杂组件**：复用既有 React/Vue 项目与本地 IIFE + 静态 CSS 构建。当前工具可显式选择 `uiRuntime: "opendesk.react-ui.v1"` 使用固定 Shared UI，按实际项目配置处理外部依赖；最新 AdBlock 已有真实例子。工具在自己的沙箱文档创建 Root，不把 App 导入主工作台 Root。Tailwind 仅作为构建期可选工具；构建后仍走唯一打包器。
 - **网页按钮 / DOM 增强**：先确认是否为 Page USER_SCRIPT，属于该类型就走 `examples/programs/<id>/` 与 `opendesk-script-authoring`，不能因为用户说“扩展”就默认建可信 Content/Host。
-- **Native / 特权数据**：先查公开 `OpenDeskTool.request`，固定 `page.toc/page.clip/page.capture/knowledge.store` 不是第三方任意 DOM API。缺公开能力记 `SDK_GAP_NOT_PROVEN`，危险权限无法合规授予记 `BLOCKED`；仅在经审计的一方可信业务才移交 `opendesk-trusted-sidebar-feature` 调查必要的 `src/<feature>/`。
+- **Native / 特权数据**：先查公开 `OpenDeskTool.request`，固定 `page.toc/page.clip/page.capture/knowledge.store` 不是第三方任意 DOM API。缺公开能力先取证，不足记 `SDK_GAP_NOT_PROVEN`，危险权限无法合规授予记 `BLOCKED`；证实通用 SDK/Native 缺口交 `opendesk-extension-runtime`，经审计第一方专有业务交 `opendesk-trusted-sidebar-feature`，仅处理实际阻塞。
 - **普通工具导入**：当前任务需要可安装交付时，才进入打包 Skill；受影响门禁通过后在工具目录保留唯一、规范构建的 `<id>.opendesk-tool.json`，不能只给 CI ZIP。**官方可选工具**仍由 `official-tools/catalog.json` 和同一构建器生成离线资源。正式包不手工编辑，不为每次迭代增加新文件；提交遵守当前用户授权。
 
 **源码修改不是安装包发布。** 对当前任务要交付给用户安装的工具，开发过程中只生成 `artifacts/` 或 `.opendesk-preview/` 临时候选；完成受影响测试后转交打包 Skill 进行 `--promote-from`，工具根最终只保留一个同 ID `.opendesk-tool.json` 并随源码提交。未通过时保留上一个正式包，不能只交付 CI ZIP；不要给同一工具连续制造 R/日期/版本后缀的正式包。普通工具源码归本项目，Host/原生权限仍由现有审计入口处理。
@@ -114,7 +122,7 @@ node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>
 # STAGED_NOT_INSTALLED，不授予网站、Cookie 或浏览器权限
 ```
 
-持续迭代复用 `node scripts/watch-sidebar-tool.mjs <真实项目目录>` 与原 Native Workspace 的「只读预览工具 ↗」：明确打开一次后，同一来源、同一工具的新完整快照自动重挂原沙箱，不重复安装/导入。按[唯一开发文档的本地只读预览章节](../../../docs/api/sidebar-tool-development.zh-CN.md#b-本地只读预览改得勤但暂不安装)执行“绑定真实来源→修改 CSS→构建→观察同一预览→修改 UI/JS→再次观察→错误保留旧画面→恢复”。状态 SHA 更新不能代替可见更新；正式包、安装身份和用户数据必须不变。关闭、撤销、断连与编译失败分别报告；只读存储 mock 不证明业务保存。React/Vue 先复用自身 `build:watch` 的完整构建回执，不另建编译器。
+持续迭代优先「开发 → 本地项目 → 在侧栏调试」，复用项目自身编译 watcher 和 `node scripts/watch-sidebar-tool.mjs <真实项目目录>`；按[直接调试与开发数据隔离](../../../docs/api/sidebar-tool-development.zh-CN.md#直接调试与开发数据隔离2026-10-29)核对真实来源、快照、实例和获准调试能力。Native Workspace「只读预览工具 ↗」保留为[只读预览路径](../../../docs/api/sidebar-tool-development.zh-CN.md#b-本地只读预览改得勤但暂不安装)，不混用两种权限。快照 watcher 不运行 npm、不安装；React/Vue 先有项目原完整编译回执。Browser 固定资源另由维护者复用 WXT serve，不要求工具作者启动第二个 WXT。按本次失败选择可见更新/错误恢复检查，不能以状态 SHA 代替真实画面；iframe 替换不保证内存状态保留。正式数据/权限不参与开发链，历史 unknown 对相关刷新与副作用的限制按工作流执行，无依赖的安全编辑继续。
 
 React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调试由本 Skill 负责；**正式 JSON 生成、项目目录预构建包、版本/原始字节核对及本地导入/离线发行**统一按 [`opendesk-sidebar-tool-package`](../opendesk-sidebar-tool-package/SKILL.md) 执行。源码/UI 调整本身不意味着已经安装、运行、获准读 Cookie 或完成 Chrome 原生测试。不重复定义 `--out`、Catalog、Host、SW 或市场上传协议。
 
@@ -133,7 +141,7 @@ React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调
 按 [AGENTS.md 的开发阶段规则](../../../AGENTS.md#开发阶段先完成核心需求与最小验证用户于2026-10-17明确)选择当前完成条件；用户调整优先级后，旧 GOAL、计划和历史清单不继续触发全量验证。文档/Skill 变更仅核对差异、链接、事实、元数据及阶段逻辑，不运行产品测试、构建或浏览器。
 
 - **普通开发**：先在原入口走最短核心操作链并修复，再执行能证明本次行为的语法/类型/依赖或工具定向检查。仅改工具 UI/业务不触发官方扩展全量构建。公共工具合同/Host 实际变化时，才从 `tests/environment/sidebar-tools.test.mjs`、`sidebar-tools-host.test.mjs` 选择相关项；不因同属一个工具就运行整组测试。
-- **受影响的安全保护**：权限、CSP、来源锁定、身份、撤权、旧 epoch、未知副作用、DNR 自有规则或清理变更，保留对应负例和必要跨工具对照；预览仍只读，安装/更新仍经原审阅和确认。可信模块交由其 owner Skill，不因普通工具开发扩大宿主范围。
+- **受影响的安全保护**：权限、CSP、来源锁定、身份、撤权、旧 epoch、未知副作用、DNR 自有规则或清理变更，保留对应负例和必要跨工具对照；Workspace 只读预览保持只读，侧栏直接调试仅按原隔离开发能力合同，安装/更新仍经原审阅和确认。可信模块交由其 owner Skill，不因普通工具开发扩大宿主范围。
 - **确需产物证据**：React/Vue 按项目已有配置预编译；正式 JSON 按打包 Skill 构建、校验后晋升同源候选。只有受影响的扩展入口/Manifest/编译闭包确需证明时才选相应扩展构建与包校验；失败先定位入口、日志和定向检查，相关输入和诊断依据均未变化时不重复全量构建。复用已有 watcher，保护共享输出。
 - **浏览器与正式交付**：当前核心操作必须依赖浏览器证明时，只走相关正常流程和安全场景。完整安装/更新/撤权矩阵、正式包/Chrome/Mac 验收及独立评分，仅由用户当前明确要求或适用正式交付合同触发，在核心可用后执行；环境可用不是触发条件。宽度、缩放专项仍按用户当前明确范围处理；保留历史标准与证据。
 - **文档与结果**：信息写回唯一 owner：通用方法归本开发规范，API 归 `sidebar-tools.zh-CN.md`，具体操作归工具 README，确需特殊说明才用 DEVELOPMENT/范围内 AGENTS，路线沿用 REQUIREMENTS/ROADMAP。开发只报告核心操作、实际检查和剩余缺口，不新建评分或验收账本；正式交付按原合同保留原始证据与候选身份。相关未执行项标 `NOT_TESTED`；`STAGED_NOT_INSTALLED`、构建或 fixture PASS 均不能替代真实安装、网站、Native 或落盘证据。
@@ -152,11 +160,11 @@ React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调
 
 **UI 框架按真实需求选用。** 小型、没有复杂组件状态的工具可以保留 HTML/原生 JS；当用户明确要求 React，或工具已有多处表单、菜单、异步读写和嵌套视图时，优先复用仓库已有 React Shared UI，不应机械回退到 `document.createElement()`/DOM 重新拼接。只改工具本身，不迁移其他 HTML/Vue 应用。
 
-**先核对唯一公开合同**：`src/entrypoints/sidebar-shared-ui.js` 在选择 `uiRuntime: "opendesk.react-ui.v1"` 后向 opaque-origin 工具提供 `OpenDeskPageReact`、`OpenDeskSidebarUI`；当前实际公开的组件只有 `Button`、`IconButton`、`Card`、`CardContent`、`Switch`。实现分别在 `src/ui/react/components/ui/button.tsx`、`card.tsx`、`switch.tsx`，视觉来自现有 Design Tokens。不能把可信 Side Panel `src/ui/react/` 任意组件当成沙箱已公开 API；也不能为了一个工具复制另一套组件库。React 只拥有自身 `#tool-app`，不能使用可信 Side Panel Root 或调用 `chrome.*`。
+**先核对唯一公开合同**：选择 `uiRuntime: "opendesk.react-ui.v1"` 后，工具按[Shared UI 合同](../../../docs/api/sidebar-tool-development.zh-CN.md)使用固定 `OpenDeskPageReact`、`OpenDeskSidebarUI`；Chat 展示/会话另见[公共 AI bridge](../../../docs/api/sidebar-tools-ai.zh-CN.md)。成员以现行合同、项目配置和目标 Browser 的实际导出为准，平台维护者必要时核对 `src/entrypoints/sidebar-shared-ui.js`，本 Skill 不维护第二份封闭清单。不能把可信 `src/ui/react/` 任意组件或业务 consumer 当成沙箱 API；新源码导出也不证明旧运行候选已有能力。视觉复用现有 Design Tokens，React 只拥有工具自身 Root，不挂可信 Side Panel Root、不调用 `chrome.*`，不复制组件库。
 
-**参考真实消费者**：`examples/sidebar-tools/adblock/src/App.jsx`、`src/main.jsx`、`vite.config.mjs` 与 `scripts/build-adblock-react.mjs`；`examples/sidebar-tools/shared-ui-demo/` 展示外置 React 的组件使用。JSX 构建走既有 Vite + IIFE + 本地 CSS，`react`/`react-dom/client`/`react/jsx-runtime`/`@opendesk/ui` 通过既有浏览器受控 Runtime 外置；单 Root，`pagehide` 时 `root.unmount()`，Effect 释放轮询和事件监听。Classic JS 直接通过现有运行时创建 React 元素也是合法的过渡源码，但**未经实际 Vite 编译不能声称已交付 JSX/Vite 产物**。
+**参考真实消费者**：[AdBlock App](../../../projects/adblock/src/App.jsx)、[main.jsx](../../../projects/adblock/src/main.jsx)、[Vite 配置](../../../projects/adblock/vite.config.mjs) 与[原编译器](../../../scripts/build-adblock-react.mjs)；`examples/sidebar-tools/shared-ui-demo/` 展示外置 React 的组件使用。引用项目须交叉核对当前配置和构建消费，不能只检查 Markdown 链接；路径过时先纠正引用，不复制旧目录。JSX 构建走既有 Vite + IIFE + 本地 CSS，`react`/`react-dom/client`/`react/jsx-runtime`/`@opendesk/ui` 通过既有浏览器受控 Runtime 外置；单 Root，`pagehide` 时 `root.unmount()`，Effect 释放轮询和事件监听。Classic JS 直接通过现有运行时创建 React 元素也是合法的过渡源码，但**未经实际 Vite 编译不能声称已交付 JSX/Vite 产物**。
 
-**交互规范**：编辑/添加/关闭/更多操作首选共享 `IconButton`，必须有明确 `label`/触控热区/键盘焦点；不把所有动作都变成无文字图标。保存、危险移除和可信授权保留可理解的语义。复杂菜单优先沿用已有 React Aria 能力；若组件尚未公开，使用可检查的轻量菜单并完成 Escape、外部点击、焦点恢复与触控测试，不另建全局菜单库。宽度 320/360/400/440px，浅深色及缩放分别实测。
+**交互规范**：编辑/添加/关闭/更多操作首选共享 `IconButton`，必须有明确 `label`/触控热区/键盘焦点；不把所有动作都变成无文字图标。保存、危险移除和可信授权保留可理解的语义。复杂菜单优先沿用已有 React Aria 能力；若组件尚未公开，使用可检查的轻量菜单并完成 Escape、外部点击、焦点恢复与触控检查，不另建全局菜单库。只验证当前受影响的交互；宽度/缩放专项仅在用户当前明确要求时执行。
 
 **异步与所有权**：仅通过现有 `OpenDeskTool.request` 读写；后台/可信 Host 仍是计时、DNR、授权和规则真相来源。写入用单次锁和可核实回执，状态读用请求代次防止旧响应覆盖新状态；静默轮询不能覆盖未保存的 React draft。Host 结果未知不能自动重试风险写入，正在导航时必须再次核对当前网页身份，不把 iframe 点击冒充可信真实点击。若 Host 仍要求二次受信确认，如实标注产品阻断，不在沙箱绕过。
 

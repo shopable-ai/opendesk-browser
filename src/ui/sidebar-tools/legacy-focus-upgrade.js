@@ -3,7 +3,7 @@
 // the original journal/locks; the public Driver owns all new native state.
 // Remove this adapter only after a separately verified archival upgrade path.
 import {FOCUS_ID,FOCUS_STORE,FOCUS_ALARM,FOCUS_RULE_FIRST,FOCUS_RULE_LAST,
-  focusPackageHash} from '../../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+  focusPackageHash} from '../../../projects/stay-focus/trusted/policy.js';
 import {migrateLegacyFocusV1Snapshot} from './legacy-focus-v1-snapshot.js';
 import {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {sidebarToolPackageHash} from './package.js';
@@ -17,7 +17,7 @@ import {stageManagedSiteV3MigrationLocked,stopManagedSiteBudgetForTool,
   MANAGED_SITE_BUDGET_STORE,MANAGED_SITE_BUDGET_ALARM}
   from '../../platform/chrome/browser-managed-site-budget.js';
 import {desiredManagedSiteV3Rules,isManagedSiteV3RuleId} from '../../platform/chrome/managed-site-v3-rules.js';
-import {stopStayFocusForTool} from '../../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
+import {stopStayFocusForTool} from '../../../projects/stay-focus/trusted/lifecycle.js';
 
 export const LEGACY_FOCUS_SNAPSHOT_PREFIX='opendesk.market.legacy-focus.v1:';
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};

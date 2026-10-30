@@ -42,7 +42,7 @@ jobs:
           import {createHash} from 'node:crypto';
           const filename='artifacts/ai-vip-share-react/candidate.opendesk-tool.json';
           const bytes=readFileSync(filename),pkg=JSON.parse(bytes);
-          assert.equal(pkg.id,'ai-vip-share');assert.equal(pkg.version,'1.4.2');
+          assert.equal(pkg.id,'ai-vip-share');assert.equal(pkg.version,'1.4.4');
           assert.equal(pkg.uiRuntime,'opendesk.react-ui.v1');
           assert.equal(pkg.html.trim(),'<div id="tool-app"></div>');
           console.log('UNPROMOTED_REACT_CANDIDATE',createHash('sha256').update(bytes).digest('hex'));

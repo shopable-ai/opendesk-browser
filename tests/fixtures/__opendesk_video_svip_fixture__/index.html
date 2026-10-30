@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta property="og:title" content="Fixture 影片 A">
+<title>Fixture 影片 A</title>
+<style>
+body{max-width:720px;margin:24px auto;padding:16px;font:15px/1.5 system-ui,-apple-system,sans-serif}
+button{min-height:38px;border-radius:8px;border:1px solid #bec9d7;background:#fff;padding:6px 12px;margin:3px;cursor:pointer}
+button:focus-visible{outline:2px solid #386bd9}
+video{width:100%;max-height:280px;background:#202939;border-radius:10px}
+#context{background:#f1f5fa;padding:10px;border-radius:8px}
+</style></head><body>
+<h1 data-opendesk-video-title>Fixture 影片 A</h1>
+<div id="context"><strong>当前集数：</strong>
+<span data-opendesk-active-episode aria-current="page">第 12 集</span>
+</div>
+<video id="player" controls preload="none" aria-label="原播放器 DOM 不得被扩展修改"></video>
+<p><button id="switch">同 URL 切换影片 B</button>
+<button id="episode">同片切换到第 5 集</button>
+<button id="total">仅显示共 24 集</button>
+<button id="history">History API 切回影片 A</button></p>
+<output id="trace" aria-live="polite">等待操作，原播放器应保持不变。</output>
+<script>
+(function(){
+ const title=document.querySelector('[data-opendesk-video-title]');
+ const current=document.querySelector('[data-opendesk-active-episode]');
+ const trace=document.getElementById('trace');
+ const player=document.getElementById('player');
+ const baseline={controls:player.controls,rate:player.playbackRate,muted:player.muted,paused:player.paused};
+ const update=(name,episode)=>{
+  title.textContent=name;
+  current.textContent=episode;
+  document.title=name;
+  document.querySelector('meta[property="og:title"]').setAttribute('content',name);
+  trace.textContent='页面 DOM 已切换至：'+name+' / '+episode+
+   ' · 播放器未修改：'+String(player.controls===baseline.controls&&
+     player.playbackRate===baseline.rate&&player.muted===baseline.muted&&player.paused===baseline.paused);
+ };
+ document.getElementById('switch').onclick=()=>update('Fixture 影片 B','第 3 集');
+ document.getElementById('episode').onclick=()=>update(title.textContent,'第 5 集');
+ document.getElementById('total').onclick=()=>{
+   history.replaceState({fixture:true},'',location.pathname);
+   current.removeAttribute('data-opendesk-active-episode');
+   current.removeAttribute('aria-current');
+   update(title.textContent,'共 24 集');
+ };
+ document.getElementById('history').onclick=()=>{
+   history.pushState({fixture:true},'',location.pathname+'?episode_number=2');
+   current.setAttribute('data-opendesk-active-episode','');
+   current.setAttribute('aria-current','page');
+   update('Fixture 影片 A','第 2 集');
+ };
+})();
+</script>
+</body></html>

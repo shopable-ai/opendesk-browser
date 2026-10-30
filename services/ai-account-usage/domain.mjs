@@ -155,13 +155,20 @@ export function recordProbeResult(state, alias, result) {
       estimateQuality: closeEnough ? 'NEAR_RESET_OBSERVATION' : 'INSUFFICIENT_EVIDENCE'});
   }
   next.observations.push(...samples);
-  if (next.observations.length > MAX_OBSERVATIONS)
-    next.observations.splice(0, next.observations.length - MAX_OBSERVATIONS);
+  account.lastSuccessAt = attempt.checkedAt;
+  if (next.observations.length > MAX_OBSERVATIONS) {
+    // Historical retention must not remove another account's current snapshot.
+    // Latest sets cost at most 64 accounts * 32 independent windows.
+    const current = row => row.observedAt === next.accounts[row.accountAlias]?.lastSuccessAt;
+    const protectedCount = next.observations.filter(current).length;
+    const historical = next.observations.filter(row=>!current(row)).slice(-(MAX_OBSERVATIONS-protectedCount));
+    const retained = new Set(historical);
+    next.observations = next.observations.filter(row=>current(row) || retained.has(row));
+  }
   if (next.rollovers.length > MAX_ROLLOVERS)
     next.rollovers.splice(0, next.rollovers.length - MAX_ROLLOVERS);
   account.providerPlan = plan;
   account.lastAttempt = attempt;
-  account.lastSuccessAt = attempt.checkedAt;
   return next;
 }
 

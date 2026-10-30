@@ -8,9 +8,9 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {parse} from 'acorn';
 import {build} from 'vite';
 import {inspectSidebarToolProject} from './stage-sidebar-tool.mjs';
-import {STAY_FOCUS_REACT_SOURCES} from '../examples/sidebar-tools/stay-focus/vite.config.mjs';
+import {STAY_FOCUS_REACT_SOURCES} from '../projects/stay-focus/vite.config.mjs';
 
-const root=fileURLToPath(new URL('../examples/sidebar-tools/stay-focus/',import.meta.url));
+const root=fileURLToPath(new URL('../projects/stay-focus/',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const fingerprints=async()=>Object.fromEntries(await Promise.all(
   STAY_FOCUS_REACT_SOURCES.map(async path=>[path,sha256(await readFile(resolve(root,path)))])));

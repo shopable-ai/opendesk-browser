@@ -5,6 +5,8 @@
 保留原笔记读取、显式保存功能；新图表只使用模拟数据，支持“本周 / 上周”切换、
 SVG 趋势显示、统计和可展开的无障碍数值表格。图表本身不访问网站、网络或笔记数据。
 
+**作为起点使用**：这是含笔记和图表业务的教学示例，不是空白骨架，也不使用宿主外置 React Shared UI。只复用需要的源码/配置，重设 ID、标题、版本与最小能力；不复制旧 dist、收据或正式 JSON。简单 HTML 工具选[最小 JS 示例](../runtime-globals-demo/README.md)，不加 React/Vite。目录、可选 tests/preview/assets/locales 与项目级 AGENTS 的条件见[唯一目录合同](../../../docs/architecture/extension-project-layout.zh-CN.md#23-模板选择复用已有-starter)，不预建空目录。
+
 ## 为什么不能在工具里直接加载 CDN.js？
 
 例如下面的 CDN 文件与本示例使用的 npm 包对应相同的**固定发行版本**：
@@ -24,7 +26,7 @@ OpenDesk 普通工具运行在隔离沙箱中，`tool.config.json` 只接收单�
 ```text
 第三方发布到 npm / CDN（选择、审查、固定版本）
                  ↓
-开发机 npm install（生成并审阅 package-lock.json）
+开发机按现有 package-lock.json 执行 npm ci
                  ↓
 Vite 将 React + 图表依赖编译进 dist/tool.js、dist/tool.css
                  ↓
@@ -44,7 +46,7 @@ OpenDesk 共用打包器验证大小、格式与本地资源
 
 ```bash
 cd examples/sidebar-tools/react-starter
-npm install --ignore-scripts --no-audit --no-fund
+npm ci --ignore-scripts --no-audit --no-fund
 npm run build
 node ../../../scripts/stage-sidebar-tool.mjs "$PWD"
 ```
@@ -52,19 +54,17 @@ node ../../../scripts/stage-sidebar-tool.mjs "$PWD"
 `stage` 的输出是 `STAGED_NOT_INSTALLED` 只读快照，**不等于已安装**。
 在 Native Workspace 中需要主动点击“只读预览工具”才能预览。
 
-需要在扩展中使用完整功能时，仍在该目录下运行：
+日常迭代优先[开发 → 本地项目 → 在侧栏调试](../../../docs/api/sidebar-tool-development.zh-CN.md#直接调试与开发数据隔离2026-10-29)，复用已有编译/快照 watcher，保护输出；开发授权/数据与安装版隔离。构建与 stage 不自动安装。确需生成临时候选时，仍在该目录下运行：
 
 ```bash
 node ../../../scripts/build-sidebar-tool.mjs "$PWD"
 ```
 
-从仓库根目录找到 `artifacts/sidebar-tools/react-notes-starter/1.1.0/react-notes-starter.opendesk-tool.json`，
-在 OpenDesk Side Panel 的“工具 → 导入”选择 JSON、检查
-`storage.local` 能力、确认安装或更新，再主动打开。
+候选位于仓库根 `artifacts/sidebar-tools/<配置 ID>/<版本>/`。本轮确需正式交付时，按[唯一打包 Skill](../../../.agents/skills/opendesk-sidebar-tool-package/SKILL.md)完成候选→相关验证→`--promote-from`→`--check-project`，再在 OpenDesk「扩展 → 更多操作 → 导入本地工具包」审阅唯一正式 JSON、检查
+`storage.local` 能力、确认安装或更新，再主动打开；stage 快照不作正式交付。
 本地工具的旧笔记数据按工具 ID 保留；请在更新前做好个人数据备份。
 
-项目首次 `npm install` 会生成 `package-lock.json`，请审查并提交该项目专属锁文件；
-后续采用 `npm ci --ignore-scripts --no-audit --no-fund`。
+本项目已提交 `package-lock.json`，复用现有固定依赖；仅在实际修改依赖时更新并审阅锁文件，不因复制起点删除有效锁。
 模板仓库不预提交第三方库编译后的 `dist`；这些产物由开发机或 CI 构建。
 `npm run build:watch` 只在构建成功后刷新 `dist/build-ready.json` 回执，
 不会自动安装、覆盖已安装工具或执行后台脚本。
@@ -84,12 +84,14 @@ renderer（参见 Apache ECharts 官方树摇文档），测量产物并审查�
 ## 验证与限制
 
 ```bash
-# 仓库根目录：静态契约
+# 仓库根目录：本次确实涉及依赖打包边界时选择静态契约
 node --test tests/environment/sidebar-react-cdn-bundle.test.mjs
-# React/Vue 已在各自目录构建后：回执、包上限、本地库代码
+# 两个 Starter 的共同构建/打包合同变化且均已构建时，才检查二者回执/包上限
 node tests/framework/sidebar-tool-starter-build.mjs
 ```
 
+不为 React 单项目文案/样式变化默认构建 Vue 或运行双 Starter 检查；定向验证按实际变化选择。本次只修说明，没有运行以上命令或重打正式包。
+
 该示例的编译/打包验收只证明 JSON 可导入及源码无外链，并不等于
-真实 Mac Chrome 中已完成手动安装、深色模式、200% 缩放和完整生命周期验收。
+真实 Mac Chrome 中已完成手动安装、深色模式和完整生命周期验收；缩放/宽度专项只由当前明确要求触发。
 预览不写入存储；只有明确安装后、点击保存才能存储笔记。

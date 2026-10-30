@@ -8,9 +8,9 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {parse} from 'acorn';
 import {build} from 'vite';
 import {inspectSidebarToolProject} from './stage-sidebar-tool.mjs';
-import {ADBLOCK_REACT_SOURCE_FILES} from '../examples/sidebar-tools/adblock/vite.config.mjs';
+import {ADBLOCK_REACT_SOURCE_FILES} from '../projects/adblock/vite.config.mjs';
 
-const root=fileURLToPath(new URL('../examples/sidebar-tools/adblock/',import.meta.url));
+const root=fileURLToPath(new URL('../projects/adblock/',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const sourceFingerprint=async()=>Object.fromEntries(await Promise.all(
   ADBLOCK_REACT_SOURCE_FILES.map(async file=>[file,

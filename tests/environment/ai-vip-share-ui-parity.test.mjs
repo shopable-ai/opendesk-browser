@@ -36,15 +36,16 @@ test('one React app owns exactly one root and all controller-required nodes',()=
   assert.match(controller,/secondaryMetrics\.textContent=extras\.map/);
 });
 
-test('member-first product structure reuses official Shared UI and never clones Host',()=>{
+test('website-first product structure reuses official Shared UI and never clones Host',()=>{
   for(const name of ['Button','IconButton','Card','CardContent'])
     assert.match(view,new RegExp('\\b'+name+'\\b'));
-  const order=['ai-vip-brand','ai-vip-membership','ai-vip-redeem',
-    'ai-vip-shop','ai-vip-proxy','ai-vip-cookie-section','ai-vip-desktop-promo'];
+  const order=['ai-vip-brand','ai-vip-sites','ai-vip-cookie-section','ai-vip-membership','ai-vip-redeem',
+    'ai-vip-shop','ai-vip-proxy','ai-vip-desktop-promo'];
   const indices=order.map(v=>view.indexOf(v));
   assert(indices.every((v,i)=>v>0&&(i===0||v>indices[i-1])));
   assert.doesNotMatch(view,/<h1\b|功能与接入状态|服务与开发信息|本地开发|演示步骤|ai-vip-feature-|ai-vip-local-connect|公司共享账号|ai-vip-shared-section|ai-vip-shared-account/);
-  assert.match(view,/aria-label="AI VIP Share 会员与权益中心"/);
+  assert.match(view,/aria-label="AI VIP Share 网站快速登录、会员与网络服务"/);
+  assert.match(view,/id="ai-vip-source-credential"[^>]*type="password"[^>]*data-sensitive/);
   assert.match(view,/id="ai-vip-redeem-code"[^>]*type="text"[^>]*data-sensitive/);
   assert.doesNotMatch(view,/PREVIEW-RECEIPT|DEMO-ACCESS|example\.com|演示网站访问|公司共享账号/);
   assert.match(view,/id="ai-vip-redeem-code"[^>]*type="text"[^>]*data-sensitive/);
@@ -71,11 +72,11 @@ test('redemption stays review-first and unresolved side effects retain journals'
 
 test('formal package references one compiled React UI and immutable business safeguards',async()=>{
   assert.equal(config.id,'ai-vip-share');
-  assert.equal(config.version,'1.4.2');
+  assert.equal(config.version,'1.4.6');
   assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
   assert.deepEqual(config.files,{html:'src/index.html',css:'dist/tool.css',js:'dist/tool.js'});
   const pkg=await createSidebarToolPackage(base);
-  assert.equal(pkg.version,'1.4.2');
+  assert.equal(pkg.version,'1.4.6');
   assert.equal(pkg.html.trim(),'<div id="tool-app"></div>');
   assert.match(pkg.js,/OpenDeskPageReact/);
   assert.match(pkg.js,/OpenDeskSidebarUI/);

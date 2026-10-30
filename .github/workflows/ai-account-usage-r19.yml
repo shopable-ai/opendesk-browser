@@ -1,0 +1,118 @@
+name: AI Account Usage R2.0 · React Decision Chromium
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/ai-account-usage/web/**'
+      - 'services/ai-account-usage/package.json'
+      - 'services/ai-account-usage/domain.mjs'
+      - 'services/ai-account-usage/history-store.mjs'
+      - 'services/ai-account-usage/read-api.mjs'
+      - 'services/ai-account-usage/web-server.mjs'
+      - 'tests/ai-account-usage-*.test.mjs'
+      - 'tests/ai-account-usage-chromium-r19.mjs'
+      - '.github/workflows/ai-account-usage-r19.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ai-account-usage-r19-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  production-react-and-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked project packages
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Existing local API and historical contract regressions
+        run: npm test --prefix services/ai-account-usage
+      - name: Build the formal production and synthetic preview from ONE React source
+        run: |
+          npm run build:web --prefix services/ai-account-usage
+          npm run build:web:preview --prefix services/ai-account-usage
+      - name: Check production compiled assets do not embed synthetic account identities
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
+          import assert from 'node:assert/strict';
+          const p='services/ai-account-usage/web/';
+          const live=await readFile(p+'dist/app.js','utf8');
+          const demo=await readFile(p+'preview-dist/app.js','utf8');
+          const css=await readFile(p+'dist/app.css','utf8');
+          assert.ok(live.length>12000 && css.length>3000 && demo.length>12000);
+          assert.ok(demo.length>live.length+500,'preview must contain isolated synthetic dataset');
+          const standalone=await readFile(p+'preview/index.html','utf8');
+          assert.ok(standalone.length>200000,'single-file preview must bundle actual React JS');
+          assert.match(standalone,/Content-Security-Policy/);
+          assert.ok(standalone.includes('spare.pro@example.com'));
+          const inlineStart=standalone.indexOf('<script>');
+          const inlineEnd=standalone.lastIndexOf('</script>');
+          assert.ok(inlineStart>0 && inlineEnd>inlineStart,'inline JS must be present');
+          const shell=standalone.slice(0,inlineStart)+standalone.slice(inlineEnd+'</script>'.length);
+          assert.ok(!shell.includes('<script type="module" src="./app.js"></script>'));
+          assert.ok(!shell.includes('<link rel="stylesheet" href="./app.css">'));
+          for(const domain of ['unpkg.com','cdn.jsdelivr.net','cdnjs.cloudflare.com']) assert.ok(!standalone.includes('https://'+domain));
+
+          assert.doesNotMatch(live,/spare\.pro@example\.com/);
+          assert.doesNotMatch(live,/DEMO_FAILURE/);
+          for(const domain of ['unpkg.com','cdn.jsdelivr.net','cdnjs.cloudflare.com']) assert.ok(!live.includes('https://'+domain));
+          console.log('FORMAL_REACT_BUILD_READY',{liveBytes:live.length,previewBytes:demo.length});
+          NODE
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Install Chromium automation harness
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund --no-save --package-lock=false playwright@1.55.0
+      - name: Verify Chinese font rendering for screenshots
+        run: |
+          if ! fc-list :lang=zh-cn family | grep -Eq 'Noto Sans CJK|WenQuanYi'; then
+            sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=25 install -y --no-install-recommends fonts-wqy-microhei
+          fi
+          fc-cache -f >/dev/null
+          fc-match -f '%{family}\\n' 'sans:lang=zh-cn' | tee /tmp/ai-usage-cjk-family
+          grep -Eq 'Noto Sans CJK|WenQuanYi' /tmp/ai-usage-cjk-family
+      - name: "Actual Chrome renderer: interactions, responsive sizes and screenshots"
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tests/ai-account-usage-chromium-r19.mjs
+      - name: Publish source-bound, synthetic HTML preview on existing main only
+        run: |
+          set -euo pipefail
+          test -s services/ai-account-usage/web/preview/index.html
+          latest="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$latest" != "$GITHUB_SHA" ]; then
+            echo "::warning::main moved during validation, refusing stale preview publish"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          evidence=services/ai-account-usage/web/preview/evidence
+          mkdir -p "$evidence"
+          for name in 1440-account-overview.png 390-mobile.png spare-pro-history.png business-invite-guidance.png chromium-report.json; do
+            test -s "artifacts/ai-usage-r19/$name"
+            cp "artifacts/ai-usage-r19/$name" "$evidence/$name"
+          done
+          git add services/ai-account-usage/web/preview/index.html "$evidence"
+          if git diff --cached --quiet; then
+            echo "Standalone HTML already matches the validated React build."
+            exit 0
+          fi
+          git commit -m "docs(ai-account-usage): publish verified R2.0 React preview [skip ci]"
+          git push origin HEAD:main
+      - name: Archive exact React preview and four screenshot sources
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-account-usage-r20-${{ github.sha }}-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            services/ai-account-usage/web/preview-dist/
+            services/ai-account-usage/web/preview/index.html
+            artifacts/ai-usage-r19/

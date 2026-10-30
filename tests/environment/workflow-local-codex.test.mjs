@@ -630,3 +630,50 @@ test('R23.26 verified read-only facts pass to the next Native turn, but forged f
   assert.throws(()=>workflowCodexInput('继续',workflow(),[
     {...proven,effectKind:'unverified-click'}]),{code:'E_AI_CONFIG'});
 });
+
+
+for(const recovery of ['late-ack','session-events','missing-turn','terminal-before-ack'])test(`submitted start disconnect before ACK preserves original fence: ${recovery}`,async t=>{
+  const ack=deferred();let offline=true;
+  const f=fixture({plannerOptions:{cancelTimeoutMs:15},override:({method,sessionId,sessions})=>{
+    if(method==='ai.plan.start'){
+      const s=sessions.get(sessionId);s.turnId='submitted-turn';
+      if(recovery==='session-events')f.emit(s,'turn.started');
+      for(const notify of f.listeners)notify({nativeConnected:false});
+      return ack.promise;
+    }
+    if(method==='ai.plan.cancel'&&offline)throw Object.assign(Error('offline'),{code:'E_DISCONNECTED'});
+  }});t.after(()=>f.planner.dispose());
+  await assert.rejects(f.planner.planStructured({input:'structured request'}),{code:'E_AI_DISCONNECTED'});
+  assert.equal(f.planner.snapshot().sessionId,'session-1');
+  assert.equal(f.planner.snapshot().threadId,'thread-1');
+  await assert.rejects(f.planner.cancel(),{code:'E_AI_OUTCOME_UNKNOWN'});
+  await assert.rejects(f.planner.planStructured({input:'must not resend'}),{code:'E_AI_BUSY'});
+  offline=false;
+  if(recovery==='terminal-before-ack'){
+    f.emit(f.sessions.get('session-1'),'turn.completed',{status:'interrupted'});
+    await assert.rejects(f.planner.cancel(),{code:'E_AI_OUTCOME_UNKNOWN'});
+  }
+  if(recovery==='late-ack'||recovery==='terminal-before-ack'){
+    ack.resolve({sessionId:'session-1',threadId:'thread-1',turnId:'submitted-turn'});await tick();
+  }
+  if(recovery==='missing-turn'){
+    f.emit(f.sessions.get('session-1'),'turn.completed',{turnId:'',status:'interrupted'});
+    await assert.rejects(f.planner.cancel(),{code:'E_AI_OUTCOME_UNKNOWN'});
+    assert.equal(f.planner.snapshot().state,'OUTCOME_UNKNOWN');
+  }else{
+    if(recovery!=='terminal-before-ack')f.emit(f.sessions.get('session-1'),'turn.completed',{status:'interrupted'});
+    const result=await f.planner.cancel();assert.equal(result.terminalStatus,'interrupted');
+    assert.equal(f.planner.snapshot().busy,false);
+  }
+  assert.equal(f.calls.filter(c=>c.method==='ai.plan.start').length,1);
+  assert.equal(f.calls.filter(c=>c.method==='ai.session.close').length,0);
+  assert.ok(f.calls.filter(c=>c.method==='ai.plan.cancel'||c.method==='ai.events.read').every(c=>c.sessionId==='session-1'));
+});
+
+
+test('a completed structured turn keeps terminal proof for subsequent provider retirement',async t=>{
+  const f=fixture();t.after(()=>f.planner.dispose());
+  await f.planner.planStructured({input:'complete once'});
+  assert.deepEqual(await f.planner.cancel(),{state:'READY_FOR_TURN',terminalStatus:'completed'});
+  assert.equal(f.calls.filter(c=>c.method==='ai.plan.cancel').length,0);
+});

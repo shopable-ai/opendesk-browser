@@ -8,7 +8,7 @@ import {createPanelToolIntent,createPanelToolIntentReceiver,panelToolIntentKey,
   validPanelToolIntent,PANEL_TOOL_INTENT_TTL_MS}
   from '../../src/ui/sidebar-tools/panel-tool-intent.js';
 import {handlePromptRailOpen,PROMPT_RAIL_OPEN_PROTOCOL}
-  from '../../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+  from '../../projects/prompt-shortcuts/trusted/rail-open.js';
 
 const id='00000000-0000-4000-8000-000000000001';
 const make=(windowId=3)=>createPanelToolIntent({
@@ -133,7 +133,7 @@ test('a pending native open does not route until Chrome confirms it',async()=>{
 });
 
 test('Built-in prompt rail has one first OD management entry but no collapsers or transcript arrows',async()=>{
-  const source=await readFile('examples/sidebar-tools/prompt-shortcuts/trusted/page.js','utf8');
+  const source=await readFile('projects/prompt-shortcuts/trusted/page.js','utf8');
   assert.ok(source.includes("for(const row of items)"),'saved items remain directly usable');
   assert.ok(source.includes("brand.title='打开提示词快捷按钮管理侧栏'"),
     'the single first OD brand entry has its accessible management purpose');
@@ -163,10 +163,10 @@ test('reviewed prompt rail bridge is pinned for fixed Service Worker only, never
   const root=process.cwd(),info={renderedLength:15,originalLength:15};
   const bundle=(fileName,path)=>describeBundle({root,lock:{packages:{}},
     chunk:{fileName,modules:{[resolve(root,path)]:info}}});
-  const modulePath='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+  const modulePath='projects/prompt-shortcuts/trusted/rail-open.js';
   const trusted=bundle('sw.js',modulePath);
-  assert.equal(trusted.modules[0].reviewedFirstPartyBlob,'5f0184b28abe5d8e03855f9c130d45faba807d1e');
-  assert.throws(()=>bundle('sw.js','examples/sidebar-tools/prompt-shortcuts/trusted/page.js'),
+  assert.equal(trusted.modules[0].reviewedFirstPartyBlob,'3131842ad495be96fcf26c83571f7061bc66c3d7');
+  assert.throws(()=>bundle('sw.js','projects/prompt-shortcuts/trusted/page.js'),
     /Historical\/user\/vendor code cannot enter/);
   assert.throws(()=>bundle('scripting/user-scripts.js',modulePath),
     /Historical\/user\/vendor code cannot enter/);

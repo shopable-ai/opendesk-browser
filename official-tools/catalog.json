@@ -11,7 +11,7 @@
     },
     {
       "id": "ai-knowledge-answers",
-      "project": "examples/sidebar-tools/ai-knowledge-answers",
+      "project": "projects/ai-knowledge-answers",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },
@@ -54,14 +54,14 @@
     },
     {
       "id": "stay-focus",
-      "project": "examples/sidebar-tools/stay-focus",
+      "project": "projects/stay-focus",
       "kind": "sidebar-tool",
       "installationPolicy": "optional",
       "packageFile": "stay-focus.opendesk-tool.json"
     },
     {
       "id": "adblock",
-      "project": "examples/sidebar-tools/adblock",
+      "project": "projects/adblock",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },
@@ -86,9 +86,21 @@
     },
     {
       "id": "prompt-shortcuts",
-      "project": "examples/sidebar-tools/prompt-shortcuts",
+      "project": "projects/prompt-shortcuts",
       "kind": "sidebar-tool",
       "installationPolicy": "preinstalled"
+    },
+    {
+      "id": "video-speed-controller",
+      "project": "projects/video-speed-controller",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
+    },
+    {
+      "id": "video-svip",
+      "project": "projects/video-svip",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
     }
   ]
 }

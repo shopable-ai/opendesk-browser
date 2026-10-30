@@ -15,13 +15,15 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 本 Skill 是工程规则，不创建新的工具安装器、授权系统、后台服务、Worker、Browser SDK 或第二套 UI 运行时。
 
+**目录与测试归属**只在[唯一目录合同](../../../docs/architecture/extension-project-layout.zh-CN.md)维护。先查项目 README/配置和固定消费者；`trusted/preview/dist` 等不是所有工具的必备树，也不是可被最小树压平的冗余目录。产品策略/模型测试归业务 owner，固定接线、权限、安装撤权和跨项目合同留框架；native 驱动沿现行允许路径。项目级 AGENTS 只写真实差异，不复制根规则或强制每次全构建；纯指导修订不启动产品验证。
+
 **第三方与第一方的边界**：普通沙箱 Sidebar Tool、Page USER_SCRIPT 的独立业务仍在各自项目和公开 SDK 中维护，不触发本可信源码 Skill。只有经证实需第一方固定预编译特权、并完成来源/授权审计时，才最小修改其 `src/<feature>/`，通用宿主问题再交 Runtime Skill。缺乏通用能力证据记 `SDK_GAP_NOT_PROVEN`，第三方无法合规取得的 Chrome/Native 特权操作记 `BLOCKED`；不得因工具统一展示在「扩展」Tab 就将动态代码提升到可信页面。
 
 ## 先解释产品选择与独立升级边界
 
 普通开发者先读 [五种使用场景与多 JS 分工指南](../../../docs/api/extension-development-selection.zh-CN.md)：Controller、Page、Sidebar Tool 各有现成合同；后台服务是独立使用场景，但没有任意第三方特权后台 JS 安装器；组合式应用是职责组合，不新增 Runtime。源码归产品、入口决定运行环境、权限由 Authority 核验；文件名、目录和 React/Vue 不决定信任。独立工具 UI 可以在自己的沙箱文档创建 React Root，不应因组件复杂就把业务放入主工作台。
 
-独立源码、独立 UI 安装、关闭 UI 后继续运行、独立后台升级是四个不同目标。Stay Focus R2 已完成源码提取，已有 focus.* 支持参数变化；JSON 不替换固定计时/DNR/提醒代码。后续沿 [Stay Focus R4 唯一需求](../../../examples/sidebar-tools/stay-focus/REQUIREMENTS.zh-CN.md) 评估最小声明式公共能力，不能把未实现需求写成 API，不重开迁移或后台运行器。
+独立源码、独立 UI 安装、关闭 UI 后继续运行、独立后台升级是四个不同目标。Stay Focus R2 已完成源码提取，已有 focus.* 支持参数变化；JSON 不替换固定计时/DNR/提醒代码。后续沿 [Stay Focus R4 唯一需求](../../../projects/stay-focus/REQUIREMENTS.zh-CN.md) 评估最小声明式公共能力，不能把未实现需求写成 API，不重开迁移或后台运行器。
 
 **现状审计与下一步**：[宿主解耦合同与 AdBlock / Stay Focus 最新源码审计](../../../docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md) 已按真实代码列出 AdBlock 与 Stay Focus 留在 SW、Content、可信 Host、Installer 的静态接线和 L1–L4 缺口。固定、审查并精确锁定来源的第一方适配器允许作为安全兼容例外，但新增每工具入口不能被默认当作可扩展框架方案。先验证公共能力、租约与独立策略升级；不为消除静态引用直接放开动态特权代码。仅在行为/权限/重启/DNR/跨工具清理与旧实现同等时移除旧入口。
 
@@ -48,25 +50,25 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 | 已审计工具项目 `trusted/{policy,model}.js`，或尚在 `src/<feature>/` 的唯一业务模块 | 私有数据合同、状态机、站点范围和校验；先查真实调用方 | 把 Stay Focus 域名分类规则放入通用工具包校验器 |
 | 对应唯一业务源的 `service.js`、`rule-ownership.js` | Background 计时、DNR/idle、撤销和重启对账；只从固定入口编译 | Side Panel 关闭导致服务停止；iframe 定时器代替后台 |
 | 对应唯一业务源的 `host-controls.js` / 可信 UI adapter | 用户可见状态、真实 Chrome 权限点击、危险确认；只由固定可信页面加载 | 不可信 iframe 的合成事件直接授权/删除 |
-| `examples/sidebar-tools/<id>/src/` | 需要保留沙箱可安装包时的一份工具 UI 源 | 长期复制两个互相漂移的官方 UI 实现 |
+| `<owner>/src/` | 需要保留沙箱可安装包时的一份工具 UI 源 | 长期复制两个互相漂移的官方 UI 实现 |
 | `src/ui/sidebar-tools*.js` 和 `src/ui/sidebar-tools/` | 通用安装、展示、挂载、生命周期、审查和消息分发 | 新业务判断大段复制进通用 Host，或因一个工具改动破坏其他工具 |
 | `src/ui/design-tokens.css` / `design-system.css` | 共享可信 Side Panel token 和语义组件 | 每个功能重新定义全局 reset、动态 Tailwind、跨 iframe 注入 CSS |
 
-**最小解耦顺序**：定位具体耦合及调用方 → 测试复现 → 把纯业务策略/数据归还**已有独立项目的唯一业务源**（已迁移的工具保留 `examples/sidebar-tools/<id>/trusted/`；尚未迁移的第一方模块先核查 `src/<feature>/` 是否真有必须的可信职责）→ 通用 Host 只留固定接线/受限适配 → 原入口与安装/撤权身份不变 → 做受影响回归。不存在代码缺陷时不为了“分层好看”重构所有工具；禁止增加一个通用巨型 Registry 代替旧巨型文件。
+**最小解耦顺序**：定位具体耦合及调用方 → 测试复现 → 把纯业务策略/数据归还**已有独立项目的唯一业务源**（已提取的工具保留 `<owner>/trusted/`；尚未迁移的第一方模块先核查 `src/<feature>/` 是否真有必须的可信职责）→ 通用 Host 只留固定接线/受限适配 → 原入口与安装/撤权身份不变 → 做受影响回归。不存在代码缺陷时不为了“分层好看”重构所有工具；禁止增加一个通用巨型 Registry 代替旧巨型文件。
 
 ## 两个必须区分的具体案例
 
-**Stay Focus（R2，2026-10-18 已提取）**：真正业务源在 `examples/sidebar-tools/stay-focus/trusted/`，由 `src/sw.js`、`src/entrypoints/{stay-focus-controls,page-relay,blocked}.js` 等固定入口静态加载；`src/stay-focus/*.js` 只是兼容转发，不得向其中重新写入业务。DNR 拦截规则归属、每日额度、站点识别、页面提醒、撤权与后台状态应有专用职责。参阅 `docs/framework/workstreams/stay-focus-extraction-r2-20261018.md`。工具 UI 展示/发起受限操作，不缓存规则真相、不复制第二套调度器。关闭 UI、focus.session.stop、focus.disable、停用和卸载须分别核查：停用保留设置/使用数据，卸载删除业务存储并回读自有规则清理；不承诺共用 Chrome 权限或所有临时键均被删除；变更通用安装器的卸载清理必须有跨工具负向回归。
+**Stay Focus（R2 已提取，当前 owner 经 2026-10-30 核对）**：真正业务源在 `projects/stay-focus/trusted/`，由 `src/sw.js`、`src/entrypoints/{stay-focus-controls,page-relay,blocked}.js` 等固定入口静态加载；旧 `src/stay-focus/` 转发层已删除，不重建。DNR 拦截规则归属、每日额度、站点识别、页面提醒、撤权与后台状态应有专用职责。参阅 `docs/framework/workstreams/stay-focus-extraction-r2-20261018.md`。工具 UI 展示/发起受限操作，不缓存规则真相、不复制第二套调度器。关闭 UI、focus.session.stop、focus.disable、停用和卸载须分别核查：停用保留设置/使用数据，卸载删除业务存储并回读自有规则清理；不承诺共用 Chrome 权限或所有临时键均被删除；变更通用安装器的卸载清理必须有跨工具负向回归。
 
-**Time Review（尚保留可信业务在 `src/time-review/`）**：`src/time-review/service.js` 经 `src/entrypoints/time-review-host.js` 固定接入 Background；`src/time-review/trusted-native-ui.js` 静态引用 `examples/sidebar-tools/time-review/src/` 的可维护 UI 源，并由 `trusted-admission.js` 核实来源与安装身份；不是从已安装 JSON 读取任意 JS 在可信页执行。不得假定 R1.6 历史通过即意味着当前所有 Chrome 生命周期或其他官方工具也支持可信直挂。服务仍由后台独立完成，撤权、包版本改变和卸载都应销毁相关 UI 会话但不伪造历史数据。后续提取应同时核查通用 sidebar-tools.js 的 time.* 私有处理和 installation.js 对 TIME_REVIEW_KEY 的直接清理；本轮存在并行工具任务时仅记录具体调用方，交由 owner 修复。
+**Time Review（当前 owner 为 `projects/time-review/`）**：`projects/time-review/trusted/service.js` 经 `src/entrypoints/time-review-host.js` 固定接入 Background；同项目 `trusted/trusted-native-ui.js` 静态引用 `projects/time-review/src/` 的可维护 UI 源，并由 `trusted-admission.js` 核实来源与安装身份；不是从已安装 JSON 读取任意 JS 在可信页执行。不得假定 R1.6 历史通过即意味着当前所有 Chrome 生命周期或其他官方工具也支持可信直挂。服务仍由后台独立完成，撤权、包版本改变和卸载都应销毁相关 UI 会话但不伪造历史数据。后续维护仍须核查通用 sidebar-tools.js 的 time.* 私有处理和 installation.js 对 TIME_REVIEW_KEY 的直接清理；本轮存在并行工具任务时仅记录具体调用方，交由 owner 修复。
 
-**AdBlock** 的可安装 UI 位于 `examples/sidebar-tools/adblock/src/`，固定受信代码位于其 `trusted/`，由 `src/sw.js` / `src/entrypoints/sidebar-tool-host.js` 预编译接入，不能随动态包获得 DNR。对 Cookie Editor、订阅管理、计划、其他工具按同样边界核查，但**不得把所有模块强行迁为可信直挂**。单个试点的结果不能推导其余工具均已迁移。
+**AdBlock** 的可安装 UI 位于 `projects/adblock/src/`，固定受信代码位于其 `trusted/`，由 `src/sw.js` / `src/entrypoints/sidebar-tool-host.js` 预编译接入，不能随动态包获得 DNR。对 Cookie Editor、订阅管理、计划、其他工具按同样边界核查，但**不得把所有模块强行迁为可信直挂**。单个试点的结果不能推导其余工具均已迁移。
 
 ## 工具专属文档归属
 
 对第一方可信产品，不论受审业务源位于独立项目 `trusted/` 还是既有 `src/<feature>/`，**产品事实归其唯一产品目录维护**，不要把每个工具的功能宇宙、交互细则、AI 设想、商业方案和实现说明复制到 `docs/product/`、`docs/api/` 或通用 Host 文档：
 
-- 以现有唯一项目 README 为产品入口：Stay Focus 使用 `examples/sidebar-tools/stay-focus/README.zh-CN.md`；尚未迁移的 `src/<feature>/` 可沿用原 README。兼容转发目录不能重写第二份业务事实。
+- 以现有唯一项目 README 为产品入口：Stay Focus 使用 `projects/stay-focus/README.zh-CN.md`；尚未迁移的 `src/<feature>/` 可沿用原 README。兼容转发目录不能重写第二份业务事实。
 - 只有路线足够长、需要持续独立维护时，才增设一份 `ROADMAP.zh-CN.md`；P1–P3、商业实验及隐私限制放其中，不为每次讨论新建分散的 GOAL 或大批 Markdown。
 - UI 交互 HTML 可以留在现有 `prototypes/` 统一预览画廊；由模块 README 指向它，不保存两套会漂移的副本。
 - `docs/framework/workstreams/` 和 `evidence/` 继续归属跨会话验收身份、原始证据和资源账本。各模块 README 只引用，不能把静态设计自评分提升为 Chrome PASS。

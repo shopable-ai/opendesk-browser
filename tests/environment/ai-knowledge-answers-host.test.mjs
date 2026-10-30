@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {createTrustedKnowledgeHost} from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/host.js';
+import {createTrustedKnowledgeHost} from '../../projects/ai-knowledge-answers/trusted/host.js';
 import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
 import {createBusinessConversation} from '../../src/ui/conversation/provider-consumer.js';
-import {KNOWLEDGE_ANSWER_INSTRUCTIONS} from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js';
+import {KNOWLEDGE_ANSWER_INSTRUCTIONS} from '../../projects/ai-knowledge-answers/trusted/ai-request.js';
 
 // Integration uses the actual shared runtime/consumer; model transport is fake.
 const trusted={isTrusted:true},id='qa_test_refund01';

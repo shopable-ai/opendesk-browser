@@ -6,10 +6,10 @@ import {tmpdir} from 'node:os';
 import {resolve,join} from 'node:path';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {handlePromptRailOpen,PROMPT_RAIL_OPEN_PROTOCOL}
-  from '../../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+  from '../../projects/prompt-shortcuts/trusted/rail-open.js';
 
 test('R2.15 fixed build admits exact reviewed rail code only in its two owners',async()=>{
-  const path='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+  const path='projects/prompt-shortcuts/trusted/rail-open.js';
   const describe=(target,root=process.cwd(),input=path)=>describeBundle({root,
     chunk:{fileName:target,modules:{[resolve(root,input)]:{renderedLength:1,originalLength:1}}},lock:{packages:{}}});
   for(const target of ['sw.js','agents/page-relay.js'])
@@ -22,7 +22,7 @@ test('R2.15 fixed build admits exact reviewed rail code only in its two owners',
     'cb7dcbd4733ba546c4b50790433f1b3cb4e3fd6f');
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-rail-provenance-')));
   try{
-    await mkdir(resolve(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
+    await mkdir(resolve(root,'projects/prompt-shortcuts/trusted'),{recursive:true});
     for(const input of [path,path.replace('rail-open.js','page.js')]){
       await writeFile(resolve(root,input),(await readFile(input,'utf8'))+'\n// unreviewed change\n');
       assert.throws(()=>describe('agents/page-relay.js',root,input),/review and re-pin/);

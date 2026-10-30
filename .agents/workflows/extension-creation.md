@@ -28,7 +28,7 @@
 - 修改说明、README 或 Skill 时，仅核对内容、链接与格式。需要手动导入时，直接指出项目唯一正式 `<id>.opendesk-tool.json` 的真实路径、ID、版本与 SHA；源码变更仍遵守原候选测试、版本升级和晋升流程。
 - 报告列出本次运行模式、实际扩展路径/ID、开发连接状态、包身份、已执行命令及退出码、真实操作、可复核证据路径和失败/未测项。缺少证据写 `NOT_TESTED`；文档描述、进程存在、Node/预览通过不能替代当前 Chrome 结果。
 - 历史 production、Linux、其他 Profile、旧候选和 AI 评分各自保留范围，不写成当前持续开发会话 PASS。发生失败先保留原输出，再修复和定向重测，不为改变分数扩大测试或重写报告。
-- AI 热开发先走真实业务项目的原 `watch-sidebar-tool` → Native Workspace → 同一只读沙箱预览；具体命令和状态以[唯一 Sidebar Tool 开发文档](../../docs/api/sidebar-tool-development.zh-CN.md#b-本地只读预览改得勤但暂不安装)为准。先实测 CSS、UI/JS 连续两次自动可见及错误保留旧画面，再完善统一入口与受限 SDK 调试；不用独立 Demo 替代。源码保存不自动重放业务副作用，开发预览与同 ID 安装版数据/授权隔离。可信 WXT 代码仍遵守原安全刷新，不能承诺所有修改免重载。
+- 工具日常迭代先走「开发 → 本地项目 → 在侧栏调试」，复用真实项目的编译、快照 watcher 与原 Native 来源授权；具体步骤和可用能力见[直接调试与开发数据隔离](../../docs/api/sidebar-tool-development.zh-CN.md#直接调试与开发数据隔离2026-10-29)。只读 Workspace 预览仍按[原只读预览合同](../../docs/api/sidebar-tool-development.zh-CN.md#b-本地只读预览改得勤但暂不安装)，不能与侧栏调试权限混用。只验证本次变化；当前问题确是可见更新失败时，检查相关源码保存→完整编译→快照发布→同一预览画面，不以新 SHA 替代可见结果。源码保存不重放业务副作用，开发数据/授权与安装版隔离；可信 WXT 代码仍走原安全刷新。
 
 ## 二、九个环节、四道关卡
 
@@ -42,7 +42,7 @@
 | 5. UI 评审定稿 | 用功能树逐项测试主路径、空态、保存/取消、异常、撤权、键盘和小尺寸；用户反馈后定向修正 | UI 评审记录、功能覆盖、定稿 SHA | **关卡 B：用户看得懂、操作得了** |
 | 6. 正式开发 | 根据真实运行世界在工具自身项目开发；复用原 SDK/沙箱/Host/安装器/权限/设计系统 | 源码、功能编号→文件映射 | 不建第二套执行或状态机制 |
 | 7. 分级测试 | 源码→忽略目录的单一临时候选→定向 Node/DOM/权限/包字节验证→可用时真实 Chrome/网站/IME | 与源码绑定的 candidate SHA、PASS/FAIL/BLOCKED/NOT_TESTED；失败不写正式包 | **关卡 C：真实功能，不拼旧成绩** |
-| 8. 保存交付 | **仅 Sidebar Tool** 在门禁通过后晋升唯一 `<id>.opendesk-tool.json`；Page/Controller 走各自 Candidate/Authority；均核对同源、更新唯一文档、提交 main/推送并保留安装证据边界 | 同源正式包/提交 SHA、Native 未测边界、下一步 | **关卡 D：可继续维护** |
+| 8. 保存交付 | **仅 Sidebar Tool** 在门禁通过后晋升唯一 `<id>.opendesk-tool.json`；Page/Controller 走各自 Candidate/Authority；均核对同源、更新唯一文档，仅在当前任务授权范围内提交 main/推送并保留安装证据边界 | 同源正式包/提交 SHA、Native 未测边界、下一步 | **关卡 D：可继续维护** |
 
 当任务只是修已有工具时，先定位受影响的 F/S/A 编号，**只复查受影响环节**。用户明确只做设计/原型时止步相应阶段，不能自动发布。
 
@@ -54,7 +54,7 @@ Phase 0–3 / Gate A 中先按[五种使用场景](../../docs/api/extension-deve
 
 | 类型 | 业务目录 | 执行世界 / 开发主 Skill | 正式交付 |
 | --- | --- | --- | --- |
-| Sidebar Tool | `examples/sidebar-tools/<id>/` | opaque-origin iframe / `opendesk-sidebar-tool-dev` | `opendesk-sidebar-tool-package` 生成唯一正式 JSON |
+| Sidebar Tool | 新正式产品 `projects/<id>/`；教学示例 `examples/sidebar-tools/<id>/`；现有项目沿真实 owner | opaque-origin iframe / `opendesk-sidebar-tool-dev` | `opendesk-sidebar-tool-package` 生成唯一正式 JSON |
 | Page USER_SCRIPT / Program | `examples/programs/<id>/` | USER_SCRIPT、`document` / `opendesk-script-authoring` | `opendesk-program-publish`，Page Candidate → Verified → Available → Installed |
 | Controller Task | 现有 Controller 项目 | Worker、`page`/Locator / `opendesk-script-authoring` | `opendesk-program-publish`，Task 不是 Sidebar JSON |
 | 第一方可信功能 | 工具目录的 `trusted/` + 必要的旧 `src/<feature>/` 兼容/可信模块 | 固定编译代码 / `opendesk-trusted-sidebar-feature` | 静态资源、安全权限与原生回归 |
@@ -65,6 +65,33 @@ Phase 0–3 / Gate A 中先按[五种使用场景](../../docs/api/extension-deve
 **防漂移流程**：业务问题先在项目内修；公开 SDK 已有能力直接使用；通用 SDK 确实缺失时核对公开文档、可复现失败、为何项目内部无法解决、跨工具价值、最小接口/文件/测试、权限/生命周期/兼容性与安全影响，证据不足为 `SDK_GAP_NOT_PROVEN`。仅某工具需要的 Host/Installer 特例默认拒绝；第三方不应拥有的特权动作记 `BLOCKED`。临时 Chrome 直接注入、Node 通过、资源容量问题均不自动等于平台漏洞或正式 Page Installed PASS。
 
 **所有权而非路径拦截**：一般工具内部业务修改不扩展到 Broker/安装器；经证实的第一方可信产品仅在其 `src/<feature>/` 最小改动；真正通用 Page 安装/撤权/SDK 任务可由 Runtime Skill 正常修改 `src/`，CI 不得机械拒绝含 `src/` 的并行提交。维持现有 F/S/A、授权/升级/撤权与用户数据合同，不另建 Skill、Host、安装器或创建工作流。
+
+**项目目录与测试归属**：按[唯一目录合同](../../docs/architecture/extension-project-layout.zh-CN.md)维护工具自己的源码、业务测试与 fixture；根目录只保留框架/跨项目测试。开发验证按变化选择，不默认全仓执行，不按修订轮次复制测试；混合业务与宿主测试按责任拆分，现有 native 路径限制保留。新正式 Sidebar 产品默认 projects；下文 examples 默认路径仅适用教学示例或尚未迁移的实际 owner，不构成移动已有项目的授权。
+
+**选择结构与指导入口**：按目录合同第 2 节的用途/消费者决定必需、条件必需、可选与生成物，合法额外目录不按最小树删除。优先已有 HTML/React/Vue Starter，只复用必要源码并重设身份/最小能力；预览壳不作源码模板。根 AGENTS 管通用约束，项目 README 管真实命令，项目 AGENTS 只写确有差异的 AI 边界；不强制新增。纯规范/模板说明不触发试点、测试搬迁或产物流程。
+
+## 二-B、发现与复用
+
+这是阶段 0–3 的执行补充；明确的已有功能修复只走受影响步骤，不重做需求表或原型。AI 自行完成，在原项目 README/主交接或简短进展中留下“实际入口、复用决定、证据/未知、下一动作”，不让用户填技术表单。
+
+1. **定位本次操作与正式 owner**：先识别类型、运行世界、业务 owner、当前阶段、下一条用户操作和失败/未验证步骤。有产品运行授权时先走最短核心链；入口被阻塞才做直接诊断。搜索现有正式项目、README、配置、公开 SDK/Schema、相似实现与真实消费者，再决定写入范围。新正式 Sidebar 产品默认 `projects/<id>/`，教学示例默认 `examples/sidebar-tools/<id>/`；已有项目以当前配置、正式 Catalog/构建引用和 README 交叉核对，不能因旧索引或残留目录存在就新建/搬动副本。纯文档任务只读核对这些事实，不启动产品。
+2. **先核对边界，再选复用方式**：公开 SDK 已覆盖就直接调用；展示与会话可共享时用现有公共组件；领域输入转换、校验、差异审阅和显式应用留业务 owner 的最小 adapter。记录实际消费者、公开合同/导出、目标运行世界和缺口，区分源码可用、已公开、候选已构建及实际运行通过。可信代码已有能力不等于沙箱可导入，也不证明另一个工具取得权限。
+3. **AI Chat 先读公共合同，再按问题取最小消费者证据**：从[独立 Chat 职责与最小接入](../../docs/api/sidebar-tools-ai.zh-CN.md#独立-chat-的职责与最小接入)及[工具 Shared UI](../../docs/api/sidebar-tool-development.zh-CN.md)开始，分别确认展示、内存会话、受控推理/权限及工具领域 adapter。Chat 是业务无关公共能力；书签是消费者之一，其 App、CRUD、树、搜索、权限和私有存储不是共享合同，不能把“复制书签 Chat”当成实现方案或阅读整个书签项目的指令。普通作者按公开签名接入；需要参考时优先选已存在的非书签消费者，仅取 import、组件 props、发送/停止和清理片段，不通读业务项目。当前[ScrapyJS 的 AiPanel](../../examples/sidebar-tools/scrapyjs/src/AiPanel.jsx)可辅助核对展示接线，领域提示词、提案和请求状态不自动成为公共规范；公开接口仍不能解释具体行为时，才补取书签的最小调用片段。记录问题、所取片段与结论后停止扩查。
+
+   平台维护者确需确认实现时，从 `src/entrypoints/sidebar-shared-ui.js` 的公共导出沿最短链核对 `src/ui/react/components/conversation.tsx`（Frame）/`conversation-frame.css`、`src/ui/conversation/session.js` 和 `src/ui/ai/sidebar-tool-adapter.js`；只有推理链的问题才读 `src/ui/ai/provider-runtime.js`。`provider-consumer.js` 含领域 consumer，不是沙箱公共入口。现行成员、签名与安全界限由公共合同及目标版本实际导出确定，本页不维护第二份清单。沙箱只走已批准 `ai.info/generate/cancel`；复用配置链不公开私有设置或凭据，展示 identity 不授予安装权限。会话本地取消/清理不证明 Host 或远端退休；unknown 处理见下文。独立能力不要求搬目录、拆仓库或另建组件/存储/Runner/Host；真实业务上下文转换、提案校验、差异审阅、显式应用与保存由原工具负责。
+4. **选择当前开发入口，缺口才升级 owner**：普通工具先复用下表和原项目命令，完成核心操作及最小相关验证；明确要求正式安装时进入打包 Skill 的候选→定向门禁→晋升→原可信安装审阅，不以预览代替安装。若仅缺沙箱公共展示出口，先按二-A 证明公开能力不足、可复现失败、工具内无法解决、跨工具价值及最小权限/生命周期影响，再由 Runtime owner 在既有 Shared UI/SDK 补出口，业务继续留原项目；不足记 `SDK_GAP_NOT_PROVEN`，不复制 Chat 或新建 Host。真实 Native 故障阻断当前操作，或用户明确要求平台修复时，原平台 owner 可按职责最小修复 `src/`/Go；证据限于实际阻塞，不扩成普通工具的前置研究。权限、身份、来源、撤权与未知副作用保护保持原合同。
+
+| 本次改动 | 优先复用入口及职责 | 不能据此声称 |
+| --- | --- | --- |
+| 工具 JSX/Vue、业务 JS/CSS | 「开发 → 本地项目 → 在侧栏调试」；项目原编译 watcher 生成完整 IIFE/CSS 回执，原 `watch-sidebar-tool` 发布快照，Native/Host 核对来源和实例 | 快照 watcher 会执行 npm、安装工具或授予正式权限；每次保存保留 React 内存状态 |
+| Browser 固定 Shared UI/SDK/可信入口 | 维护者复用原 `npm run dev` / `dist/development`，核对真实加载路径、ID、serve 客户端连接与指纹，按资源类别安全更新 | `build:dev`、Chrome 开发者模式、产品「开发」Tab、进程存在证明热更新连接；所有源码原地 HMR |
+| 正式工具安装/升级 | 原打包与安装 Skill、唯一正式包、同 ID 数据/权限审阅及安装证据 | 开发预览、构建或新包 SHA 证明安装已生效；JSON 更新固定可信代码 |
+
+具体命令与能力只引用[工具开发规范](../../docs/api/sidebar-tool-development.zh-CN.md)和[Browser 持续开发指南](../../docs/framework/extension-development-r131.zh-CN.md)。复用已有 watcher，不覆盖共享输出，不为 UI 迭代反复打包安装。当前预览支持什么须查现行合同；例如 AI 展示可复用与调试中可发真实推理是两项独立判断，不能关闭只读/准入保护取得能力。
+
+**Chat 接入的关键检查**：按公共 Chat 合同核对可发现性、业务独立、输入/消息/停止、实例隔离与清理、推理和 unknown、领域显式应用、开发更新路径及当前阶段。纯指引修订以真实签名/路径、链接、Skill 元数据和反例决策检查为证，不启动浏览器或模型；实现变化才由对应 owner 选择受影响行为测试。源码导出、目标 Browser 已包含、实际运行及权限批准分别记录，未执行写 `NOT_TESTED`；现有消费者源码或历史分数不能替代本候选运行证据。
+
+**unknown 的依赖范围**：原请求/操作终态未证实时，只查询或停止原操作，不重放、不应用迟到结果，不换窗口、Provider、请求 ID、重载或清空会话绕过保护。明确受此状态影响的写入、授权、刷新/重载与同一生命周期仍受阻；没有该依赖的文档、展示与源码编辑继续。自动刷新可能被安全栅栏延后，如实记录，不能把“可继续编辑”写成“新画面已运行”。文档检查只核对内容、链接、格式与决策效果；正式原生验收仍按当前阶段授权，不因历史未知或旧清单扩大本轮任务。
 
 ## 三、核心新增：需求推理引擎（不是问卷）
 

@@ -4,6 +4,8 @@
 >
 > 目的：在不重建 OpenDesk Runtime、不改现有权限模型的前提下，将 ScrapyJS 接入可选 AI、代理与云端爬虫服务。下面的接口、数据结构、组件名称除明确指出已有者外均为**建议合同**，并非现存 API。
 
+**跨端统一权威：** [统一采集与多执行环境架构](UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md) 已明确 Browser、Desktop HTTP、Desktop Browser、Android Cellular 的执行能力分工与 Header 边界。本文件仍负责 AI/代理/云专题；所列远端 Adapter、Broker、Worker 只是规划，不能据此声称已实施。
+
 ## 1. 已有基础与不可跨越的边界
 
 - 正式产品位置：examples/sidebar-tools/scrapyjs/；React App 使用 app-model 和 adapters/app-sdk.js 委托固定 Controller Task scrapyjs.capture。
@@ -71,6 +73,10 @@ Run 单独记录 runId、recipeVersion、snapshotHash、用户确认范围、执
 | Managed Proxy Provider | 后期有商业合作的供应商代理服务 | 真实健康检查、区域/额度、服务条款、合规转售和成本账单 |
 
 必须验证：启用/撤销状态、连接测试、凭据不出现在日志、代理失效时不经用户同意回退直连（fail closed）、Stop/崩溃恢复、并发任务互不污染。用 IP 地理位置选项不能冒称改变真实设备、身份或所有浏览器指纹。
+
+## 5.1 可选用户贡献节点（补充设计，NOT_IMPLEMENTED）
+
+用户自有 Android 手机可探索 Wi-Fi 局域网控制与蜂窝网络采集出口的双网络模式；跨互联网优先采用**主动领取受限 Job 的任务节点**，而非让手机公网入站或开放任意 HTTP/SOCKS 代理。社区共享出口属后期独立合规项目，默认关闭。详细决策、技术事实、MVP 及测试矩阵见 [自有设备与社区协作节点](COMMUNITY-NODES-MOBILE-EGRESS.zh-CN.md)。
 
 ## 6. 可选 HTTP 后端的最小接口（仅建议）
 

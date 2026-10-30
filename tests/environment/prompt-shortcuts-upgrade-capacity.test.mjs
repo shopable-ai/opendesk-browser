@@ -7,11 +7,11 @@ import {createHash} from 'node:crypto';
 import {executePromptPlan} from '../../src/ui/conversation/prompt-actions.js';
 import {SIDEBAR_TOOL_DATA_LIMITS} from '../../src/ui/sidebar-tools/package.js';
 import {writeVerifiedLocalValue,stableStorageString} from '../../src/ui/sidebar-tools/storage-state.js';
-import '../../examples/sidebar-tools/prompt-shortcuts/trusted/model.js';
+import '../../projects/prompt-shortcuts/trusted/model.js';
 const model=globalThis.OpenDeskPromptShortcutsModel;
 const hash=value=>createHash('sha256').update(stableStorageString(value)).digest('hex');
 const clone=value=>JSON.parse(JSON.stringify(value));
-const tool='examples/sidebar-tools/prompt-shortcuts';
+const tool='projects/prompt-shortcuts';
 const [main,host]=await Promise.all([readFile(tool+'/src/main.js','utf8'),readFile('src/ui/sidebar-tools.js','utf8')]);
 function slice(source,start,end){
   const i=source.indexOf(start),j=source.indexOf(end,i);

@@ -12,20 +12,20 @@ import {MANAGED_SITE_BUDGET_STORE,MANAGED_SITE_BUDGET_ALARM}
   from '../../src/platform/chrome/browser-managed-site-budget.js';
 import {MANAGED_SITE_REVIEWED_SCOPE_STORE} from '../../src/framework/host/managed-site-reviewed-scopes.js';
 import {FOCUS_STORE,FOCUS_ALARM,FOCUS_RULE_FIRST,focusPackageHash}
-  from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+  from '../../projects/stay-focus/trusted/policy.js';
 import {emptyFocus}
-  from '../../examples/sidebar-tools/stay-focus/trusted/model.js';
+  from '../../projects/stay-focus/trusted/model.js';
 import {matchesManagedSiteV3NativeRules}
   from '../../src/ui/sidebar-tools/legacy-focus-upgrade.js';
 import {migrateLegacyFocusV1Snapshot}
   from '../../src/ui/sidebar-tools/legacy-focus-v1-snapshot.js';
 import {migrateFocusState}
-  from '../../examples/sidebar-tools/stay-focus/trusted/migrations.js';
+  from '../../projects/stay-focus/trusted/migrations.js';
 import {desiredManagedSiteV3Rules,managedSiteV3RuleRange}
   from '../../src/platform/chrome/managed-site-v3-rules.js';
 
 const legacy=JSON.parse(await readFile(new URL(
-  '../../examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json',import.meta.url)));
+  '../../projects/stay-focus/stay-focus.opendesk-tool.json',import.meta.url)));
 // The independent app build binds an actual v3 JSON package here. Original
 // historical tests keep their synthetic candidate without a redundant build.
 const realCandidateFile=process.env.OPENDESK_STAY_FOCUS_V3_CANDIDATE;

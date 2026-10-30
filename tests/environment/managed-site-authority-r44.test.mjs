@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readManagedSiteToolAuthority,assertManagedSiteToolLease}
   from '../../src/platform/host/managed-site-authority.js';
-import {focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {focusPackageHash} from '../../projects/stay-focus/trusted/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../src/ui/sidebar-tools/lifecycle.js';

@@ -7,7 +7,7 @@ import {webcrypto} from 'node:crypto';
 import {findConversationNavigation,jumpConversationEdge,jumpRegionEnd} from
   '../../examples/programs/chatgpt-jump-top/src/conversation.js';
 
-const ROOT='examples/sidebar-tools/prompt-shortcuts';
+const ROOT='projects/prompt-shortcuts';
 async function readModel(){
   const sandbox={URL,Intl,TextEncoder,crypto:webcrypto};
   runInNewContext(await readFile(ROOT+'/trusted/model.js','utf8'),sandbox);

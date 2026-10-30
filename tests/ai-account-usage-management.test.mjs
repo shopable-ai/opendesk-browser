@@ -19,11 +19,21 @@ test('same-origin HttpOnly pairing hides read API secret; only explicit refresh 
   const server=await startManagementServer({store,service,assetsDirectory:directory,clock:()=>now});
   t.after(()=>server.close());
   const origin=new URL(server.url).origin;
-  const req=(path,options={})=>fetch(origin+path,{redirect:'manual',...options});
+  assert.match(new URL(server.url).hostname,/^usage-[a-f0-9]+\.localhost$/);
+  const req=(path,options={})=>new Promise((resolve,reject)=>{
+    const request=httpRequest({hostname:'127.0.0.1',port:new URL(server.url).port,path,method:options.method??'GET',
+      headers:{host:new URL(server.url).host,...options.headers}},res=>{
+        const chunks=[];res.on('data',part=>chunks.push(part));res.on('end',()=>{
+          const body=Buffer.concat(chunks).toString();const responseHeaders=new Headers();
+          for(const [key,value]of Object.entries(res.headers))responseHeaders.set(key,Array.isArray(value)?value.join(', '):value);
+          resolve({status:res.statusCode,headers:responseHeaders,text:async()=>body,json:async()=>JSON.parse(body)});
+        });
+      });request.once('error',reject);request.end(options.body);
+  });
   assert.equal((await req('/api/v1/accounts')).status,401);
   assert.equal((await req('/api/v1/accounts',{headers:{origin:'http://other.example'}})).status,403);
-  const badHost=await new Promise((resolve,reject)=>{const r=httpRequest(origin+'/api/v1/accounts',{headers:{host:'evil.example'}},res=>{res.resume();resolve(res.statusCode);});r.once('error',reject);r.end();});
-  assert.equal(badHost,403);
+  assert.equal((await req('/api/v1/accounts',{headers:{host:'evil.example'}})).status,403);
+  assert.equal((await req('/api/v1/accounts',{headers:{host:`127.0.0.1:${new URL(server.url).port}`}})).status,403);
   const publicBody=await (await req('/')).text();assert.ok(!publicBody.includes(server.pairingCode));
   const session=await req('/session',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({code:server.pairingCode})});
   assert.equal(session.status,200);const cookie=session.headers.get('set-cookie');

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ADBLOCK_COSMETIC_HOSTS,createAdblockCosmeticController}
-  from '../../examples/sidebar-tools/adblock/trusted/cosmetic.js';
+  from '../../projects/adblock/trusted/cosmetic.js';
 
 class Element {
   constructor(tagName){

@@ -5,9 +5,9 @@ import {resolve,dirname,isAbsolute,relative,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {packageFingerprint} from './verify-package.mjs';
 import {ADBLOCK_COSMETIC_STORE,readCosmeticState,validCosmeticSelector}
-  from '../examples/sidebar-tools/adblock/trusted/cosmetic-policy.js';
+  from '../projects/adblock/trusted/cosmetic-policy.js';
 import {ADBLOCK_STORE,readAdblockState}
-  from '../examples/sidebar-tools/adblock/trusted/policy.js';
+  from '../projects/adblock/trusted/policy.js';
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const required=['nativePermission','network','globalToggle','siteException',

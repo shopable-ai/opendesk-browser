@@ -78,7 +78,12 @@ function interrupted(signal) {
   return typeof signal.reason?.code==='string'?signal.reason:fail('E_CANCELLED','AI 规划已停止');
 }
 function withSignal(promise,signal) {
-  if(signal.aborted)return Promise.reject(interrupted(signal));
+  if(signal.aborted){
+    // The RPC may synchronously publish disconnect before returning its
+    // rejected promise. It still needs a rejection handler after the abort.
+    void Promise.resolve(promise).catch(()=>{});
+    return Promise.reject(interrupted(signal));
+  }
   return new Promise((resolve,reject)=>{
     const abort=()=>{signal.removeEventListener('abort',abort);reject(interrupted(signal));};
     signal.addEventListener('abort',abort,{once:true});
@@ -98,12 +103,15 @@ function delay(ms,signal) {
 // Owns AI planning state only. It neither owns a browser executor nor persists
 // workflows, credentials, browser results, or private thread history.
 export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180000,cancelTimeoutMs=12000}={}) {
-  let session=null,resumable=null,active=null,cancelling=null,closing=null,generation=0,disposed=false;
+  let session=null,resumable=null,active=null,cancelling=null,closing=null,unresolved=null,generation=0,disposed=false;
   const rpc=(method,params={},sessionId=null)=>client.requestWorkflowAI(method,params,sessionId);
   const safeClose=id=>rpc('ai.session.close',{},id).catch(()=>null);
   function discardUncertainSession(error) {
     if(error?.outcome==='OUTCOME_UNKNOWN'||/(?:OWNER|SESSION|PROTOCOL|EVENTS_GAP|CURSOR_EXPIRED|DISCONNECT|OUTCOME_UNKNOWN|EFFECT_UNKNOWN|TIMEOUT|CODEX_POLICY|CODEX_UNSUPPORTED|CAPABILITY|APPROVAL)/.test(error?.code||'')) {
       resumable=null;
+      // A disconnected transport cannot retire a known turn. Keep its exact
+      // correlation for a later read/cancel, separate from a reusable session.
+      if(unresolved&&!unresolved.row.terminal){session=null;return Promise.resolve();}
       return close();
     }
     return null;
@@ -147,7 +155,7 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
   }
   function begin(externalSignal) {
     if(disposed)throw fail('E_HOST_CLOSED','工作流窗口已关闭');
-    if(active||cancelling||closing)throw fail('E_AI_BUSY','请先等待当前 AI 规划、晚到会话回执或停止收尾完成');
+    if(active||cancelling||closing||unresolved)throw fail('E_AI_BUSY','请先等待当前 AI 规划、晚到会话回执或停止收尾完成');
     if(externalSignal?.aborted)throw interrupted(externalSignal);
     const row={generation:++generation,controller:new AbortController(),sessionId:session?.sessionId||null};
     active=row;
@@ -157,7 +165,10 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
     row.release=()=>externalSignal?.removeEventListener('abort',abort);
     return row;
   }
-  function finish(row) {row.release?.();if(active===row)active=null;}
+  function finish(row) {
+    row.release?.();if(active===row)active=null;
+    if(row.terminal&&unresolved?.row===row)unresolved=null;
+  }
   async function probe() {
     const connection=await rpc('ai.connection.read');
     if(!connection?.nativeConnected||!connection.protocolAvailable)return connection;
@@ -169,7 +180,7 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
     return {promise,resolve,reject,controller:new AbortController()};
   }
   async function drainCancelledTurn(record,row,current) {
-    if(!current||current.sessionId!==row.sessionId||!row.turnId)
+    if(!current||current.sessionId!==row.sessionId)
       throw fail('E_AI_PROTOCOL','停止时无法核对原 AI 回合');
     let terminal=null;
     while(true) {
@@ -185,7 +196,11 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
           throw fail('E_AI_EVENTS_GAP','停止回执的身份或序列不一致');
         cursor=event.sequence;
         if(event.type==='session.closed')closed=true;
-        if(event.type==='turn.completed'&&event.turnId===row.turnId) {
+        // events.read is scoped to the original session and cursor. Only a
+        // newly observed turn.started can replace a lost start ACK.
+        if(!row.turnId&&event.type==='turn.started'&&typeof event.turnId==='string'&&event.turnId)
+          row.turnId=event.turnId;
+        if(row.turnId&&event.type==='turn.completed'&&event.turnId===row.turnId) {
           if(event.error?.outcome==='OUTCOME_UNKNOWN')throw fail('E_AI_OUTCOME_UNKNOWN','本机服务已停止，但未取得 Codex 的真实回合终态');
           if(!['completed','failed','interrupted'].includes(event.status))
             throw fail('E_AI_PROTOCOL','停止回执没有可核对的回合终态');
@@ -193,8 +208,13 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
         }
       }
       if(cursor!==batch.cursor)throw fail('E_AI_EVENTS_GAP','停止回执跳过了未读取的事件');
-      current.cursor=cursor;current.state=batch.state;current.inferenceVerified=batch.inferenceVerified===true;
+      // Without a turn identity, do not consume a terminal that a late ACK
+      // may subsequently correlate. Re-read from the original cursor instead.
+      if(row.turnId)current.cursor=cursor;
+      current.state=batch.state;current.inferenceVerified=batch.inferenceVerified===true;
       if(terminal&&(batch.state==='READY_FOR_TURN'||terminalStates.has(batch.state))) {
+        row.terminal=terminal;current.terminalStatus=terminal.status;
+        if(unresolved?.row===row)unresolved=null;
         if(closed||['CLOSED','DISCONNECTED'].includes(batch.state)){if(session===current)session=null;resumable=null;}
         return {state:batch.state,terminalStatus:terminal.status};
       }
@@ -206,26 +226,28 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
   function cancel() {
     if(cancelling)return cancelling.promise;
     if(closing)return closing.promise;
-    const row=active;
-    if(!row)return Promise.resolve({state:'IDLE'});
-    const record=cleanupRecord(),current=session;cancelling=record;
+    const row=active||unresolved?.row;
+    if(!row)return Promise.resolve(session?.terminalStatus?
+      {state:session.state,terminalStatus:session.terminalStatus}:{state:'IDLE'});
+    const record=cleanupRecord(),current=unresolved?.row===row?unresolved.current:session;cancelling=record;
     generation++;
     row.controller.abort(fail('E_CANCELLED','AI 规划已停止；已发送给模型的内容无法撤回'));
     // Keep this cleanup independently of active: plan() releases active as soon
     // as its UI wait is aborted, before a Native stop ACK or terminal arrives.
     const timer=setTimeout(()=>record.controller.abort(fail('E_AI_OUTCOME_UNKNOWN','未能及时确认 AI 回合终态')),cancelTimeoutMs);
     (async()=>{
-      // An opening or unacknowledged turn has no trustworthy turn identity.
-      // Closing revokes pending opens and never repeats the submitted turn.
-      if(!row.sessionId||!row.turnId)return close();
+      // Only an unsubmitted opening can be closed without a turn receipt.
+      // A lost start ACK must be reconciled on its exact original session.
+      if(!row.sessionId||!row.startPending)return close();
       await withSignal(rpc('ai.plan.cancel',{},row.sessionId),record.controller.signal);
       return await drainCancelledTurn(record,row,current);
     })().catch(async error=>{
       if(record.replacedBy)return record.replacedBy.promise;
-      // CANCELLING is only an ACK. An unconfirmed terminal cannot be reused as
-      // a ready thread; explicitly close it and forget its identity first.
-      try{await close();}catch{}
-      throw fail('E_AI_OUTCOME_UNKNOWN','无法确认本次 AI 回合的终态；旧会话已移除并请求关闭，不会自动重发');
+      // CANCELLING is only an ACK. Preserve a known turn for reconciliation;
+      // closing/forgetting it here would make later queries resolve IDLE.
+      if(unresolved?.row===row)session=null;
+      else try{await close();}catch{}
+      throw fail('E_AI_OUTCOME_UNKNOWN','无法确认本次 AI 回合的终态；保留原请求关联，不会自动重发');
     }).then(value=>{clearTimeout(timer);if(cancelling===record)cancelling=null;record.resolve(value);},
       error=>{clearTimeout(timer);if(cancelling===record)cancelling=null;record.reject(error);});
     return record.promise;
@@ -291,10 +313,22 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
       }
       if(!session)await open(row,scope,model);
       assertActive(row);const current=session;row.sessionId=current.sessionId;
-      const started=await checked(row,'ai.plan.start',{input,consent:scope,...(captured?{target:captured}:{})},current.sessionId);
-      if(started?.sessionId!==current.sessionId||started.threadId!==current.threadId||typeof started.turnId!=='string'||!started.turnId)
-        throw fail('E_AI_PROTOCOL','无法核对本次 Codex 规划身份');
-      row.turnId=started.turnId;current.state='RUNNING';
+      // Fence before invoking RPC: it may synchronously publish disconnect.
+      unresolved={row,current};current.state='OUTCOME_UNKNOWN';delete current.terminalStatus;row.startPending=true;
+      const acceptStart=started=>{
+        if(started?.sessionId!==current.sessionId||started.threadId!==current.threadId||
+          typeof started.turnId!=='string'||!started.turnId||row.turnId&&row.turnId!==started.turnId)
+          throw fail('E_AI_PROTOCOL','无法核对本次 Codex 规划身份');
+        row.turnId=started.turnId;return started;
+      };
+      row.startAck=Promise.resolve(rpc('ai.plan.start',{input,consent:scope,...(captured?{target:captured}:{})},current.sessionId)).then(acceptStart);
+      // Keep the original ACK alive even after the UI wait has been aborted.
+      void row.startAck.catch(()=>{});
+      await withSignal(row.startAck,row.controller.signal);assertActive(row);
+      current.state='RUNNING';
+      // Structured consumers retain recoverable unknown turns after ACK too.
+      // Workflow planning keeps its existing explicit-close cleanup contract.
+      if(!generic&&unresolved?.row===row)unresolved=null;
       while(true) {
         const batch=await checked(row,'ai.events.read',{cursor:current.cursor,limit:24},current.sessionId);
         if(!object(batch)||!Array.isArray(batch.events)||batch.events.length>24||
@@ -358,7 +392,7 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
         current.cursor=batch.cursor;current.state=batch.state;
         current.inferenceVerified=batch.inferenceVerified===true;
         if(terminal) {
-          row.terminal=terminal;
+          row.terminal=terminal;current.terminalStatus=terminal.status;
           if(terminal.status!=='completed')throw fail(terminal.error?.code||'E_AI_PROVIDER',
             terminal.error?.message||'本次 Codex 规划未完成');
           if(!finalMessageSeen)throw fail('E_AI_RESPONSE','Codex 未返回完整的工作流提议');
@@ -408,9 +442,9 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
       signal,onEvent
     }),
     cancel,close,resume,
-    snapshot:()=>({sessionId:session?.sessionId||null,threadId:session?.threadId||null,
-      state:session?.state||'IDLE',inferenceVerified:session?.inferenceVerified===true,
-      busy:Boolean(active||cancelling||closing),resumable:Boolean(resumable&&!session)}),
+    snapshot:()=>({sessionId:session?.sessionId||unresolved?.current.sessionId||null,threadId:session?.threadId||unresolved?.current.threadId||null,
+      state:session?.state||(unresolved?'OUTCOME_UNKNOWN':'IDLE'),inferenceVerified:session?.inferenceVerified===true,
+      busy:Boolean(active||cancelling||closing||unresolved),resumable:Boolean(resumable&&!session&&!unresolved)}),
     dispose(){if(disposed)return;disposed=true;generation++;unsubscribe?.();
       cancelling?.controller.abort(fail('E_HOST_CLOSED','工作流窗口已关闭'));
       active?.controller.abort(fail('E_HOST_CLOSED','工作流窗口已关闭'));

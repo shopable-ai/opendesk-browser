@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-29T16:47:56.436Z",
+  "phase": "CORE_FUNCTIONALITY_LOCAL_ONLY",
+  "nodeLive": {
+    "startedAt": "2026-10-29T16:37:23.831Z",
+    "completedAt": "2026-10-29T16:37:25.004Z",
+    "mode": "CODEX_OAUTH",
+    "entry": "createAccountService.query({alias,operation:refresh})",
+    "transport": "NODE_HTTPS_TLS_VIA_EXPLICIT_LOOPBACK_CONNECT",
+    "status": "OK",
+    "reason": "CODEX_OAUTH_CONFIRMED",
+    "requests": 1,
+    "quotaHttpStatus": 200,
+    "retries": 0,
+    "refreshes": 0,
+    "redirects": 0,
+    "sourceUnchanged": true,
+    "emailPresent": true,
+    "emailSource": "USAGE_RESPONSE",
+    "namePresent": true,
+    "nameSource": "OAUTH_CACHE",
+    "plan": "pro",
+    "observedAt": "2026-10-29T16:37:23.835Z",
+    "windows": [
+      {
+        "windowKey": "codex:primary:604800",
+        "limitId": "codex",
+        "mode": "CODEX_OAUTH",
+        "slot": "primary",
+        "kind": "LONG_WINDOW",
+        "durationSeconds": 604800,
+        "usedPercent": 85,
+        "remainingPercent": 15,
+        "resetsAt": "2026-11-04T06:35:41.000Z",
+        "observedAt": "2026-10-29T16:37:23.835Z"
+      }
+    ],
+    "G2": "NOT_TESTED",
+    "sensitiveDataPersisted": "ONLY_BUSINESS_PROFILE_IN_PRIVATE_HISTORY_NO_TOKENS"
+  },
+  "liveRequestImplementationUnchangedSinceQuery": {
+    "codex-oauth.mjs": "a76835369a64faf1171f53e4ea1058209801964ebe287fc41b341edbc44f57dc",
+    "transport.mjs": "584f91418156613db4a4c35c55be46ce506315b943ab98c7d2410a2e951f7bec",
+    "authorized-sources.mjs": "25d95ed2751418f060a512a7d7aae3584271e75d7a7b18b28d53790d53680b4b"
+  },
+  "localChangesAfterLive": "Strict query validation, identity error classification, transactional history lock, current-window retention, and browser session hostname isolation were validated offline; no second upstream query.",
+  "sourceHashesAfterLocalFixes": {
+    "services/ai-account-usage/account-service.mjs": "59abc5a3dcecc67423d0117196b8dabd4471f1286a7ade1c0ef66c8a9a653fb6",
+    "services/ai-account-usage/authorized-sources.mjs": "25d95ed2751418f060a512a7d7aae3584271e75d7a7b18b28d53790d53680b4b",
+    "services/ai-account-usage/codex-oauth.mjs": "a76835369a64faf1171f53e4ea1058209801964ebe287fc41b341edbc44f57dc",
+    "services/ai-account-usage/collector.mjs": "9466ae7ff9d59287ace1e427bafcbe2ebd62efd08306f824dbfe9bf08c5dfc10",
+    "services/ai-account-usage/domain.mjs": "c12d69acad9359cb5471a58bb6fd8affba0bb7cad3f4536d5ccb5b334d7a6e50",
+    "services/ai-account-usage/history-store.mjs": "34e6619c12823964a41e70b2405698357cc0dbd9fa4d414b33ca2ed1d221007f",
+    "services/ai-account-usage/manage.mjs": "e3c0d6bc81e35a187737d206f2f8d91470b8c446076d4a3cc912e969ed611c24",
+    "services/ai-account-usage/read-api.mjs": "2bcebd0af67fd809a58c8910cda7cff3dbfda84cdf846c1b6d52dd11cad7471e",
+    "services/ai-account-usage/transport.mjs": "584f91418156613db4a4c35c55be46ce506315b943ab98c7d2410a2e951f7bec",
+    "services/ai-account-usage/web-server.mjs": "6d63fcf26ba6de2d27d9308e691681b591a09e4e3e141998b44dff762172af7c",
+    "services/ai-account-usage/web/main.jsx": "6a5bb731c6a3f3e316c856687179734e97b2f3e93e8288467bcb6a3a6d8e1afe",
+    "services/ai-account-usage/web/model.mjs": "08433d6c06b4613b9ee384a8211761a83b42ba4aea64810b339677d1045aaf2a",
+    "services/ai-account-usage/web/style.css": "7c01d5fea6dc7c3596cca92b921d3c59349f7e3eebe1667def5fb7494917fcca",
+    "services/ai-account-usage/web/build.mjs": "9510a7697e620d8f55eecb16825b688fb4edacb150112c9c3c54c1636d2a5570",
+    "services/ai-account-usage/web/index.html": "2cedae1e782f37b1d6480b809e4fa0d9f08e5748f1f0a9455e67af11eef5aa10"
+  },
+  "history": {
+    "reopenMatchedLiveObservation": true,
+    "profileReopenVerified": true,
+    "fileMode": 384
+  },
+  "browser": {
+    "environment": "Mac Codex in-app browser, real local same-origin session",
+    "pairing": "PASS",
+    "list": "PASS",
+    "detailsAndIdentitySources": "PASS",
+    "history": "PASS",
+    "search": "PASS",
+    "escapeFocusReturn": "PASS",
+    "isolatedLocalhostPairing": "PASS",
+    "manualRefresh": "OFFLINE_INTERACTION_AND_SERVER_BOUNDARY_PASS; no second live UI-triggered upstream request",
+    "publicScreenshot": "OMITTED_PRIVATE_ACCOUNT_FIELDS"
+  },
+  "verification": {
+    "initialScopedSuite": {
+      "passed": 53,
+      "failed": 0
+    },
+    "afterPersistenceAndSessionFixes": {
+      "passed": 33,
+      "failed": 0,
+      "command": "node --test tests/ai-account-usage-store-concurrency.test.mjs tests/ai-account-usage-backend.test.mjs tests/ai-account-usage-service.test.mjs tests/ai-account-usage-management.test.mjs tests/ai-account-usage-profile.test.mjs"
+    },
+    "webBuild": "PASS",
+    "independentBoundedReview": "3 findings fixed; fix review PASS",
+    "syntaxAndDiffWhitespace": "PASS"
+  },
+  "notTested": [
+    "REAL_TWO_ACCOUNT_G2",
+    "NODE_DIRECT_NETWORK_WITHOUT_PROXY",
+    "CHROME_LOGIN_VAULT_BEFORE_AFTER",
+    "COOKIE_ONLY_G1_REMAINS_NOT_PASSED",
+    "PRODUCTION_EXTENSION_INSTALL_OR_RELEASE",
+    "MEMBERSHIP_EXPIRY_OFFICIAL_SOURCE"
+  ],
+  "sensitiveDataPolicy": "No email, name, user/account IDs, credentials, auth hashes, raw upstream body or session credentials in this evidence."
+}

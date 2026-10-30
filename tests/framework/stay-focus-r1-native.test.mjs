@@ -8,7 +8,7 @@ import {createServer} from 'node:http';
 import {mkdtemp,mkdir,readFile,writeFile,copyFile,rm} from 'node:fs/promises';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 import {build as buildVite} from 'vite';
-import {focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {focusPackageHash} from '../../projects/stay-focus/trusted/policy.js';
 import {tmpdir} from 'node:os';
 import {lookup} from 'node:dns/promises';
 import path from 'node:path';
@@ -182,7 +182,7 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   assert.ok(BIN&&spawnSync(BIN,['--version'],{stdio:'ignore'}).status===0);
   const packageFile=path.join(ROOT,'official-tools/stay-focus/stay-focus.opendesk-tool.json');
   const bytes=await readFile(packageFile),pkg=JSON.parse(bytes);
-  const sourceConfig=JSON.parse(await readFile(path.resolve('examples/sidebar-tools/stay-focus/tool.config.json'),'utf8'));
+  const sourceConfig=JSON.parse(await readFile(path.resolve('projects/stay-focus/tool.config.json'),'utf8'));
   assert.equal(pkg.id,'stay-focus');
   assert.equal(pkg.version,sourceConfig.version,'native candidate must match the current official source version');
   await mkdir(OUT,{recursive:true});
@@ -902,10 +902,10 @@ test('Real Chrome default sharing, live page reminder, DNR and uninstall',{skip:
   try{
     await mkdir(path.join(temporaryProject,'src'));
     for(const name of ['index.html','style.css','main.js','entry.js'])
-      await copyFile(path.resolve('examples/sidebar-tools/stay-focus/src',name),
+      await copyFile(path.resolve('projects/stay-focus/src',name),
         path.join(temporaryProject,'src',name));
     for(const name of ['vite.config.mjs','package.json'])
-      await copyFile(path.resolve('examples/sidebar-tools/stay-focus',name),
+      await copyFile(path.resolve('projects/stay-focus',name),
         path.join(temporaryProject,name));
     await writeFile(path.join(temporaryProject,'tool.config.json'),
       JSON.stringify(upgradedConfig,null,2)+'\n');

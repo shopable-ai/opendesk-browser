@@ -9,6 +9,7 @@ import {emptyState, registerAccount, recordProbeResult,
   listAccounts, accountHistory, underuseInsights, normalizeIdentity, SCHEMA_VERSION} from './domain.mjs';
 
 const FILE = 'history-v1.json';
+const LOCK_FILE = '.history-v1.lock';
 const MAX_FILE_BYTES = 32 * 1024 * 1024;
 const err = code => Object.assign(new Error(code), {code});
 const exact = (o, names) => o && typeof o === 'object' && !Array.isArray(o) &&
@@ -110,23 +111,55 @@ export class HistoryStore {
       throw err('E_HISTORY_WRITE');
     } finally {await fd?.close();await unlink(temp).catch(()=>{});}
   }
+  // All cooperating processes must acquire this lock BEFORE loading state.
+  // Contention (including a crash-left lock) fails explicitly; never guess owner
+  // liveness or remove a lock that this transaction did not create.
+  async #writeTransaction(run) {
+    await this.#init();
+    const path = join(this.#dir, LOCK_FILE);
+    let lock;
+    try {
+      lock = await open(path, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY |
+        (constants.O_NOFOLLOW || 0), 0o600);
+    } catch (error) {
+      throw err(error?.code === 'EEXIST' ? 'E_HISTORY_BUSY' : 'E_HISTORY_WRITE');
+    }
+    try {
+      const stat = await lock.stat();
+      if (!stat.isFile() || (stat.mode & 0o077) !== 0 ||
+          (typeof process.getuid === 'function' && stat.uid !== process.getuid()))
+        throw err('E_HISTORY_PERMISSIONS');
+      return await run();
+    } finally {
+      try {
+        const held = await lock.stat();
+        const current = await lstat(path);
+        if (current.isSymbolicLink() || current.dev !== held.dev || current.ino !== held.ino)
+          throw err('E_HISTORY_BUSY');
+        await unlink(path);
+      } catch (error) {
+        if (error?.code === 'E_HISTORY_BUSY') throw error;
+        throw err('E_HISTORY_WRITE');
+      } finally { await lock.close(); }
+    }
+  }
   #serial(run) {
     const task = this.#queue.then(run,run);
     this.#queue=task.catch(()=>{});
     return task;
   }
-  register(meta) {return this.#serial(async()=>{
+  register(meta) {return this.#serial(()=>this.#writeTransaction(async()=>{
     const state=await this.#load();
     const next=registerAccount(state,meta);
     await this.#save(next);
     return {registered:true,alias:meta.alias};
-  });}
-  record(alias,probeResult) {return this.#serial(async()=>{
+  }));}
+  record(alias,probeResult) {return this.#serial(()=>this.#writeTransaction(async()=>{
     const state=await this.#load();
     const next=recordProbeResult(state,alias,probeResult);
     await this.#save(next);
     return next.accounts[alias].lastAttempt;
-  });}
+  }));}
   snapshot() {return this.#serial(async()=>structuredClone(await this.#load()));}
   accounts() {return this.#serial(async()=>listAccounts(await this.#load()));}
   history(alias, options) {return this.#serial(async()=>accountHistory(await this.#load(),alias,options));}

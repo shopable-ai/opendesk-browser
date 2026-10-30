@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {focusPackageHash} from '../../projects/stay-focus/trusted/policy.js';
 import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
-import {emptyFocus} from '../../examples/sidebar-tools/stay-focus/trusted/model.js';
-import {migrateFocusState} from '../../examples/sidebar-tools/stay-focus/trusted/migrations.js';
-import {mutateFocusModel} from '../../examples/sidebar-tools/stay-focus/trusted/mutations.js';
-import {createFocusController} from '../../examples/sidebar-tools/stay-focus/trusted/focus-controller.js';
+import {emptyFocus} from '../../projects/stay-focus/trusted/model.js';
+import {migrateFocusState} from '../../projects/stay-focus/trusted/migrations.js';
+import {mutateFocusModel} from '../../projects/stay-focus/trusted/mutations.js';
+import {createFocusController} from '../../projects/stay-focus/trusted/focus-controller.js';
 
 const at=new Date(2026,9,23,13,0,0).getTime();
 const site={host:'example.com',subdomains:true,enabled:true,
@@ -251,7 +251,7 @@ test('failed legacy proof never caches fallback after an install-epoch change',a
 
 test('old Focus grant hash is NOT the new public Installer package digest',async()=>{
   const legacy=JSON.parse(await readFile(
-    new URL('../../examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json',import.meta.url),
+    new URL('../../projects/stay-focus/stay-focus.opendesk-tool.json',import.meta.url),
     'utf8'));
   assert.equal(legacy.version,'1.0.10','test must attest the pinned legacy owner');
   assert.equal(legacy.id,'stay-focus');

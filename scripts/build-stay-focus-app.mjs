@@ -12,7 +12,7 @@ import {buildStayFocusReact} from './build-stay-focus-react.mjs';
 import {createSidebarToolPackage,encodeSidebarToolPackage}
   from './build-sidebar-tool.mjs';
 
-const root=fileURLToPath(new URL('../examples/sidebar-tools/stay-focus/',import.meta.url));
+const root=fileURLToPath(new URL('../projects/stay-focus/',import.meta.url));
 const repositoryRoot=fileURLToPath(new URL('../',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const execFileAsync=promisify(execFile);

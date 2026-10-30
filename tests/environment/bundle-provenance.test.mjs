@@ -7,6 +7,21 @@ import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordB
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
 const root='/repo';
+
+test('migration: unpinned projects cannot enter fixed trusted outputs',()=>{
+  for(const path of [
+    'projects/prompt-shortcuts/trusted/unaudited.js',
+    'projects/adblock/trusted/unaudited.js',
+    'projects/stay-focus/trusted/unaudited.js'
+  ])assert.throws(()=>describeBundle({chunk:{fileName:'sw.js',
+    modules:{[resolve(path)]:{renderedLength:1,originalLength:1}}},
+    lock:{packages:{}}}),/cannot enter a privileged fixed bundle/);
+  const accepted=describeBundle({chunk:{fileName:'sw.js',modules:{
+    [resolve('projects/stay-focus/trusted/service.js')]:{renderedLength:1,originalLength:1}
+  }},lock:{packages:{}}});
+  assert.equal(accepted.modules[0].reviewedFirstPartyBlob,'2e387c7bfdca4add8093489368777b4a651d0c01');
+});
+
 test('fixed Bookmark CSS keeps its exact source pin after leaving the JS bundle',async t=>{
   const css=trustedBookmarkStyle();
   assert.match(css,/\.bm-app\{/);
@@ -198,14 +213,14 @@ test('R3.1 symlink substitution cannot bypass trusted Bookmark static pin',async
 });
 
 test('AdBlock session fence is a fixed audited source and rejects byte drift',async t=>{
-  const path='examples/sidebar-tools/adblock/trusted/dnr-session.js';
+  const path='projects/adblock/trusted/dnr-session.js';
   const chunkFor=file=>({fileName:'sw.js',modules:{[file]:{renderedLength:1,originalLength:1}}});
   const accepted=describeBundle({chunk:chunkFor(resolve(path)),lock:{packages:{}}});
-  assert.equal(accepted.modules[0].reviewedFirstPartyBlob,'d3e221eac17261a34751cb8ab035c622eb1b42a8');
+  assert.equal(accepted.modules[0].reviewedFirstPartyBlob,'6cf976c7f89ab6e9aec04bf7bc92b5189e8b3cca');
   const project=await realpath(await mkdtemp(join(tmpdir(),'opendesk-adblock-session-pin-')));
   t.after(()=>rm(project,{recursive:true,force:true}));
   const file=join(project,path);
-  await mkdir(join(project,'examples/sidebar-tools/adblock/trusted'),{recursive:true});
+  await mkdir(join(project,'projects/adblock/trusted'),{recursive:true});
   await writeFile(file,(await readFile(resolve(path),'utf8'))+'\n// unreviewed drift\n');
   assert.throws(()=>describeBundle({chunk:chunkFor(file),root:project,lock:{packages:{}}}),
     /Trusted AdBlock source changed/);
@@ -243,7 +258,7 @@ test('R1.3 app-owned trusted background inputs require an exact reviewed Git blo
 
 
 test('Marketplace shares only the byte-pinned Prompt Shortcuts asset identity for uninstall cleanup',async ctx=>{
-  const path='examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
+  const path='projects/prompt-shortcuts/trusted/asset-contract.js';
   const pin='86e95bff786e52efb9089f97126542430f39a716';
   const make=(target,root=process.cwd(),file=path)=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,file)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
@@ -252,18 +267,18 @@ test('Marketplace shares only the byte-pinned Prompt Shortcuts asset identity fo
   for(const target of ['sw.js','ui/tool-shell.js','marketplace/market-host.js','scripting/sandbox/sandbox.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   assert.throws(()=>make('ui/marketplace.js',process.cwd(),
-    'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js'),
+    'projects/prompt-shortcuts/trusted/asset-host.js'),
     /cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-asset-cleanup-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
-  await mkdir(join(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
+  await mkdir(join(root,'projects/prompt-shortcuts/trusted'),{recursive:true});
   await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unsigned change\n');
   assert.throws(()=>make('ui/marketplace.js',root),/Trusted Prompt Shortcuts source changed/);
 });
 
 test('first-party Clipper full-text notes store is pinned exclusively to the original Sidebar Host',async ctx=>{
-  const path='examples/sidebar-tools/web-markdown-clipper/trusted/notes-store.js';
-  const pin='a801ebcf0b932cf4a9425588a8e2dbada0de3963';
+  const path='projects/web-markdown-clipper/trusted/notes-store.js';
+  const pin='34547422b3a85be15cfad179e8df5993146c5b80';
   const make=(target,root=process.cwd(),source=path)=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,source)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   assert.equal(make('ui/sidebar-tool-host.js').modules[0].reviewedFirstPartyBlob,pin);
@@ -271,18 +286,18 @@ test('first-party Clipper full-text notes store is pinned exclusively to the ori
     'scripting/sandbox/sandbox.js','scripting/sandbox/worker-runtime.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   assert.throws(()=>make('ui/sidebar-tool-host.js',process.cwd(),
-    'examples/sidebar-tools/web-markdown-clipper/trusted/unreviewed.js'),
+    'projects/web-markdown-clipper/trusted/unreviewed.js'),
     /cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'clip-notes-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
-  await mkdir(join(root,'examples/sidebar-tools/web-markdown-clipper/trusted'),{recursive:true});
+  await mkdir(join(root,'projects/web-markdown-clipper/trusted'),{recursive:true});
   await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unsigned change\n');
   assert.throws(()=>make('ui/sidebar-tool-host.js',root),/Trusted Web Clipper source changed/);
 });
 
 test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed outputs',async ctx=>{
-  const path='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
-  const pin='5f0184b28abe5d8e03855f9c130d45faba807d1e';
+  const path='projects/prompt-shortcuts/trusted/rail-open.js';
+  const pin='3131842ad495be96fcf26c83571f7061bc66c3d7';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   for(const target of ['sw.js','agents/page-relay.js'])
@@ -292,7 +307,7 @@ test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed ou
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-rail-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
   const file=join(root,path);
-  await mkdir(join(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
+  await mkdir(join(root,'projects/prompt-shortcuts/trusted'),{recursive:true});
   await writeFile(file,(await readFile(resolve(path),'utf8'))+'\n// unsigned edit\n');
   assert.throws(()=>make('sw.js',root),/Trusted Prompt Shortcuts source changed/);
 });
@@ -306,7 +321,7 @@ test('independent Scroll Page source cannot regain privileged fixed output admis
 });
 
 test('removed Prompt Shortcuts site bindings cannot regain privileged output admission',async ctx=>{
-  const path='examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js';
+  const path='projects/prompt-shortcuts/trusted/conversation-sites.js';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   const targets=['agents/page-relay.js','sw.js','ui/sidebar-tool-host.js','ui/tool-shell.js'];
@@ -314,7 +329,7 @@ test('removed Prompt Shortcuts site bindings cannot regain privileged output adm
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
   const root=await realpath(await mkdtemp(join(tmpdir(),'prompt-site-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));
-  await mkdir(join(root,'examples/sidebar-tools/prompt-shortcuts/trusted'),{recursive:true});
+  await mkdir(join(root,'projects/prompt-shortcuts/trusted'),{recursive:true});
   await writeFile(join(root,path),'export const sites = [];\n');
   for(const target of targets)
     assert.throws(()=>make(target,root),/cannot enter a privileged fixed bundle/,
@@ -323,7 +338,7 @@ test('removed Prompt Shortcuts site bindings cannot regain privileged output adm
 
 test('R1.3 pinned shared Markdown converter can only enter the existing Page Relay',async ctx=>{
   const path='examples/shared/markdown/convert.js';
-  const legacy='examples/sidebar-tools/web-markdown-clipper/trusted/convert.js';
+  const legacy='projects/web-markdown-clipper/trusted/convert.js';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:20,originalLength:40}}},root,lock:{packages:{}}});
   const row=make('agents/page-relay.js');

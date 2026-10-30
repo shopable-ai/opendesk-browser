@@ -13,13 +13,15 @@
 | **受信任网页剪藏** | 文章/选区，按网站独立授权 | [web-markdown-clipper](../../projects/web-markdown-clipper/README.md) |
 | **受信任 ChatGPT 内容保存** | 官方内容抓取、可信数据服务、Workspace 交接 | [knowledge-inbox](../../projects/knowledge-inbox/README.zh-CN.md)、[专项开发](../../projects/knowledge-inbox/DEVELOPMENT.zh-CN.md) |
 
-**源码组织原则（R2.1 迁移期）**：已迁移正式产品的唯一源码位于 `projects/<id>/`，尚未迁移的正式产品暂留 `examples/sidebar-tools/<id>/`；后者目录也保留独立教学工具。不得双份维护同一正式产品。确实需要 Chrome 后台、网页 Content Script、可信授权或 DNR 的产品（如 Stay Focus），继续使用现有 `src/<feature>/` 预编译模块和固定入口；普通工具不需要这些模块。不要把沙箱 UI 运行时脚本注入 SW/Content Script，也不要因目录整齐而改写现有 Catalog、Host、权限或构建器。具体执行世界和单向依赖规则参阅 [统一工具开发规范](../../docs/api/sidebar-tool-development.zh-CN.md#一个项目多种执行环境不是多个插件)。
+**源码组织原则（2026-10-30）**：新正式 Sidebar 产品默认 `projects/<id>/`，本目录用于教学示例及尚未迁移的现有产品；以真实配置、README 与构建/Catalog 消费者确认唯一 owner，不双份维护。业务测试、fixture、预览与脚本归原项目，公共安全/跨项目测试留框架；完整结构、最小验证与当前入口限制见[目录与测试归属合同](../../docs/architecture/extension-project-layout.zh-CN.md)。确实需要 Chrome 后台、网页 Content Script、可信授权或 DNR 的产品，继续沿用已有受审静态入口；普通工具不能靠目录调整或 JSON 获得权限。执行世界和依赖方向见[统一工具开发规范](../../docs/api/sidebar-tool-development.zh-CN.md#一个项目多种执行环境不是多个插件)。
+
+**选择起点**：先选上表已有 HTML/React/Vue 示例；React/Vue Starter 自带框架依赖与演示业务，不等同于 Shared UI 或空白模板。复用时重设身份/最小能力，不复制 dist/收据/正式包。`scripts/templates` 只供预览生成器消费；目录存在条件与项目级 AGENTS 分工见目录合同第 2 节，简单项目不补空目录或无关 npm 依赖。
 
 **最小工具与全局变量区别**：`runtime-globals-demo/` 是可打包安装的独立小工具。它只能访问工具自身的 `OpenDeskTool`，没有 Controller 的词法 `page`，也不会继承 `_`、`dayjs`。可信 Side Panel Host 若要用 Day.js，应在[自己受信的入口](../libs/trusted-imports/README.zh-CN.md)静态 import，不是向用户工具 iframe 隐式注入。
 
 普通工具的标准源码是 `tool.config.json` + `src/index.html` / `style.css` / `main.js`；React/Vue 先编译为单文件经典 JS 和静态 CSS，再交给**同一个** `scripts/build-sidebar-tool.mjs`。其他官方工具可能还修改 `src/` 内的可信扩展代码，不能假定普通工具通过 JSON 就获得相同能力。
 
-当前八个官方候选为 reading-toc、web-markdown-clipper、quick-notes、markdown-workbench、knowledge-inbox、time-review、stay-focus、cookie-editor，均由根目录 `official-tools/catalog.json` 登记；Time Review 为可选安装，其余工具遵循 Catalog 中各自的预装策略。版本、能力与内容由各项目配置和源码生成，具体见 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md)。React/Vue starter 仍是本地示例，不属于官方发行。所有源码目录都不需要维护第二份生成 JSON。
+官方工具包括 reading-toc、web-markdown-clipper、quick-notes、markdown-workbench、knowledge-inbox、time-review、stay-focus、cookie-editor 等；完整名单、实际 owner 与各自预装策略以根目录 `official-tools/catalog.json` 为准。版本、能力与内容由各项目配置和源码生成，具体见 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md)。React/Vue starter 仍是本地示例，不属于官方发行。不手改生成 JSON；确需正式交付时按下文保留唯一正式包，不维护第二份业务源码。
 
 最短打包命令（在仓库根执行）：
 
@@ -34,9 +36,9 @@ npm run build:sidebar-tool -- projects/quick-notes
 
 **不要直接开发生成后的 JSON；不要把工具 JSON 当成 Chrome 的解压扩展目录**。要加载或更新整个浏览器扩展时，才使用 `npm run build` 生成的 `dist/production/`。
 
-Stay Focus 的独立授权、额度、Chrome 拦截与清理见 [专注工具说明](stay-focus/README.zh-CN.md)。
+Stay Focus 的独立授权、额度、Chrome 拦截与清理见 [专注工具说明](../../projects/stay-focus/README.zh-CN.md)。
 
-Time Review 的安装、空闲权限和启停步骤见 [时间回顾说明](time-review/README.zh-CN.md)。首次使用后台需更新扩展；之后纯 UI 改动可独立打包更新工具。
+Time Review 的安装、空闲权限和启停步骤见 [时间回顾说明](../../projects/time-review/README.zh-CN.md)。首次使用后台需更新扩展；之后纯 UI 改动可独立打包更新工具。
 
 
 ## Browser SDK v2（R1.3）

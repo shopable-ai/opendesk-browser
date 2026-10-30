@@ -18,7 +18,7 @@ const tool={id:'ai-vip-share',capabilities:['ai.access']};
 test('R5 official tool compiles member, redeem and store UI with canonical design',async t=>{
   const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
   assert.equal(pkg.id,'ai-vip-share');
-  assert.equal(pkg.version,'1.4.2');
+  assert.equal(pkg.version,'1.4.6');
   const view=await readFile('examples/sidebar-tools/ai-vip-share/src/App.jsx','utf8');
   const script=await readFile('examples/sidebar-tools/ai-vip-share/src/main.js','utf8');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');

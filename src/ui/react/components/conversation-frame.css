@@ -1,0 +1,39 @@
+/* Presentation-only Chat Frame. Shared by trusted Dock and opt-in sandbox. */
+/* Scope outgoing bubble colors to the transcript, including the Workflow transcript Portal. */
+.od-conversation-log,.workflow-chat-transcript{
+ --od-conversation-user-bg:#95ec69;
+ --od-conversation-user-ink:#20341e;
+}
+@media(prefers-color-scheme:dark){
+ .od-conversation-log,.workflow-chat-transcript{
+  --od-conversation-user-bg:#31543c;
+  --od-conversation-user-ink:#effaf0;
+ }
+}
+.od-conversation-log{min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain;padding:13px 10px 6px;display:flex;flex-direction:column;gap:7px;scrollbar-width:thin}
+.od-conversation-empty{margin:0;padding:2px 1px;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
+.od-conversation-entry{align-self:flex-start;max-width:94%;min-width:0;display:grid;gap:3px;background:var(--od-bg);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:7px 9px;overflow-wrap:anywhere}
+/* User-only outgoing bubble; assistant, system and error states remain neutral. */
+.od-conversation-entry[data-speaker="user"]{align-self:flex-end;background:var(--od-conversation-user-bg);color:var(--od-conversation-user-ink);border-color:transparent}
+.od-conversation-entry p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;line-height:1.48;font-size:var(--od-note-size)}
+.od-conversation-error{margin:0;padding:4px 10px;color:var(--od-negative);font-size:var(--od-meta-size);line-height:1.5}
+.od-conversation-feedback{flex:0 1 auto;min-height:26px;max-height:25%;overflow:auto;overflow-wrap:anywhere;overscroll-behavior:contain}
+.od-conversation-feedback:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
+/* The autosized draft may shrink before the composer or Stop leaves the Dock. */
+.od-conversation-composer{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);position:relative;flex:0 1 auto;min-width:0;min-height:59px;padding:6px 10px 8px;border-top:1px solid var(--od-line)}
+.od-conversation-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.od-conversation-input{grid-area:1/1;margin:0;box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;max-height:min(112px,100%);resize:none;overflow-y:auto;border:1px solid var(--od-input-border);border-radius:var(--radius-surface);padding:10px 52px 9px 10px;background:var(--od-paper);color:var(--od-ink);font:inherit;font-size:var(--od-note-size);line-height:1.5;scrollbar-width:thin}
+.od-conversation-input::placeholder{color:var(--od-sub);opacity:1}
+.od-conversation-input:focus-visible,.od-conversation-action:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+/* Input and action occupy one grid cell: no viewport/zoom-dependent bottom offset. */
+.od-conversation-action{position:relative;z-index:1;grid-area:1/1;align-self:end;justify-self:end;margin:0 6px 6px 0;display:grid;place-items:center;width:32px;min-width:32px;height:32px;min-height:32px;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);cursor:pointer}
+.od-conversation-action svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.od-conversation-action--primary{background:var(--od-brand);color:var(--od-on-brand);border-color:var(--od-brand)}
+.od-conversation-action:disabled{opacity:.45;cursor:not-allowed}
+@media(max-height:520px){.od-conversation-composer{min-height:54px;padding:4px 8px 5px}.od-conversation-input{max-height:min(76px,100%)}.od-conversation-log{padding-right:8px;padding-bottom:4px}}
+@media(pointer:coarse){.od-conversation-log{padding-top:23px}.od-conversation-action{width:44px;min-width:44px;height:44px;min-height:44px;margin:0 5px 5px 0}.od-conversation-input{min-height:54px;padding-right:60px}}
+@media(pointer:coarse){.od-conversation-composer{min-height:69px}}
+@media(pointer:coarse) and (max-height:520px){.od-conversation-composer{min-height:64px}}
+
+.od-conversation-phase{flex:none;padding:4px 10px;color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.45}
+

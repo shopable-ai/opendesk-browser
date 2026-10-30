@@ -4,8 +4,8 @@ import {loadReviewIntent,consumeReviewIntent,settleReviewIntent,cancelReviewInte
 import {claimMarketReview} from './panel.js';
 import {readMarketInstallStatus,marketExpectedIdentity} from './status.js';
 import {getInstalledSidebarTools,installReviewedSidebarTool,recoverMarketOperation,sameSidebarToolPackage,MARKET_OPERATIONS_STORE} from '../ui/sidebar-tools/installation.js';
-import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
-import {probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
+import {FOCUS_ID,FOCUS_CAPABILITY} from '../../projects/stay-focus/trusted/policy.js';
+import {probeStayFocusService} from '../../projects/stay-focus/trusted/tool-host.js';
 
 // Transaction owner for the existing ImportSheet. Presentation receives text
 // and bounded actions only; dynamic package JS remains in the original sandbox.

@@ -23,9 +23,13 @@ function runIsolated(checks,{mode='development'}={}){
     import {runInNewContext} from 'node:vm';
     import {randomUUID} from 'node:crypto';
     import {resolve} from 'node:path';
-    import {createSidebarToolPackage} from './scripts/build-sidebar-tool.mjs';
-    import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
-      from './src/ui/sidebar-tools/package.js';
+    // Register before loading the packer: its installation graph also imports
+    // the profile. A static import would cache an untransformed MODE first.
+    register('data:text/javascript,'+encodeURIComponent(${JSON.stringify(loader)}),{
+      parentURL:import.meta.url,data:{mode:${JSON.stringify(mode)}}});
+    const {createSidebarToolPackage}=await import('./scripts/build-sidebar-tool.mjs');
+    const {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}=
+      await import('./src/ui/sidebar-tools/package.js');
     process.env.NODE_ENV='production'; // WXT serve's inner Vite build also uses this.
     process.env.OPENDESK_BUILD_MODE='development'; // Cannot override production MODE.
     const packageFor=id=>validateSidebarToolPackage({format:'opendesk.sidebar-tool.v2',
@@ -38,8 +42,6 @@ function runIsolated(checks,{mode='development'}={}){
     // cannot turn a production-compiled route on.
     globalThis.__OPENDESK_MANAGED_PROXY_DEV__=true;
     globalThis.__OPENDESK_MANAGED_PROXY_DEV_PACKAGE_HASH__=packageHash;
-    register('data:text/javascript,'+encodeURIComponent(${JSON.stringify(loader)}),{
-      parentURL:import.meta.url,data:{mode:${JSON.stringify(mode)}}});
     const profiles=await import('./src/platform/chrome/browser-managed-proxy-profiles.js');
     const {createBrowserManagedProxy,compileManagedProxyPac,validateManagedProxyConfig,
       reconcileManagedProxy,MANAGED_PROXY_STORE}=await import('./src/platform/chrome/browser-managed-proxy.js');
@@ -109,8 +111,8 @@ async function installedFixture(){
 test('trusted development MODE and reviewed source pin emit fixed HTTP PAC for website/API hosts',()=>{
   runIsolated(`
     assert.equal(profiles.MANAGED_PROXY_DEVELOPMENT_ENABLED,true);
-    assert.equal(tool.version,'1.4.0');
-    assert.equal(packageHash,'043e97c5b92685d4865b03b36d45896777153709e8b32f7fca9530828c40ddfe');
+    assert.equal(tool.version,'1.4.6');
+    assert.equal(packageHash,'2edc509ca45a853fdfe09786cd5fd448d3935e8affb1245a73b30fefc963d4d0');
     assert.deepEqual(profiles.REVIEWED_MANAGED_PROXY_PROFILES,[]);
     assert(Object.isFrozen(profiles.REVIEWED_MANAGED_PROXY_PROFILES));
     assert.deepEqual(profiles.getDevelopmentManagedProxyProfile(owner),config);

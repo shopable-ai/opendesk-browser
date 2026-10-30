@@ -25,8 +25,10 @@ export function createCollector({store, loadAuthorizedAccount, mode = 'COOKIE_ON
           if (attempt?.mode !== mode) throw new Error('E_PROBE_MODE');
         } catch(error) {
           // An aborted or denied credential handoff must not become an HTTP request.
-          attempt={mode,status:error?.message==='E_AUTH_REQUIRED'?'AUTH_REQUIRED':'UNAVAILABLE',
-            reason:error?.message==='E_AUTH_REQUIRED'?'TRUSTED_ACCOUNT_AUTH_REQUIRED':'TRUSTED_PROVIDER_ERROR',
+          const binding=['E_IDENTITY_BINDING','E_IDENTITY_DUPLICATE'].includes(error?.code);
+          attempt={mode,status:binding?'IDENTITY_UNVERIFIED':error?.message==='E_AUTH_REQUIRED'?'AUTH_REQUIRED':'UNAVAILABLE',
+            reason:binding?(error.code==='E_IDENTITY_BINDING'?'ACCOUNT_BINDING_CHANGED':'DUPLICATE_ACCOUNT_BINDING'):
+              error?.message==='E_AUTH_REQUIRED'?'TRUSTED_ACCOUNT_AUTH_REQUIRED':'TRUSTED_PROVIDER_ERROR',
             checkedAt:new Date(clock()).toISOString()};
         }
         await store.record(alias,attempt);

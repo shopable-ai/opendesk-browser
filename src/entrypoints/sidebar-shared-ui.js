@@ -2,6 +2,8 @@ import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {Button,IconButton} from '../ui/react/components/ui/button.tsx';
 import {Card,CardContent} from '../ui/react/components/ui/card.tsx';
 import {Switch} from '../ui/react/components/ui/switch.tsx';
+import {SharedConversationFrame} from '../ui/react/components/conversation.tsx';
+import {createConversationSession} from '../ui/conversation/session.js';
 import tokensCSS from '../ui/design-tokens.css?raw';
 import designSystemCSS from '../ui/design-system.css?raw';
 import componentCSS from '../ui/react/components/ui/sidebar-shared.css?raw';
@@ -25,7 +27,8 @@ export default defineUnlistedScript(()=>{
   style.textContent=tokensCSS+'\n'+componentCSS+'\n'+buttonCSS;
   document.head.append(style);
   Object.defineProperty(globalThis,'OpenDeskSidebarUI',{
-    value:Object.freeze({Button,IconButton,Card,CardContent,Switch}),
+    value:Object.freeze({Button,IconButton,Card,CardContent,Switch,
+      SharedConversationFrame,createConversationSession}),
     enumerable:false,configurable:false,writable:false
   });
 });

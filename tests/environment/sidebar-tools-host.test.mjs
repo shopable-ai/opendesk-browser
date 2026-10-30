@@ -6,12 +6,12 @@ import {readFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {runInNewContext} from 'node:vm';
 import {createSidebarTools,checkSidebarToolRequestBudget} from '../../src/ui/sidebar-tools.js';
-import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
-import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/stay-focus/trusted/host-controls.js';
-import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {requestStayFocusOperation,runTrustedStayFocusOperation} from '../../projects/stay-focus/trusted/tool-host.js';
+import {createStayFocusPermissionControls} from '../../projects/stay-focus/trusted/host-controls.js';
+import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_OPERATIONS} from '../../projects/stay-focus/trusted/policy.js';
 import {AI_ID,AI_CAPABILITY,AI_OPERATIONS} from '../../examples/sidebar-tools/ai-vip-share/trusted/policy.js';
-import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS,ADBLOCK_RULE_FIRST,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
-import {prepareAdblockUninstallCleanup} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
+import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_OPERATIONS,ADBLOCK_RULE_FIRST,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from '../../projects/adblock/trusted/policy.js';
+import {prepareAdblockUninstallCleanup} from '../../projects/adblock/trusted/host-controls.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
@@ -2780,6 +2780,44 @@ test('sandbox Browser RPC honors Registry argument-byte budget and settles overs
   const unicode={...near,cookies:near.cookies.map((row,i)=>i===0?{...row,value:'中文'.repeat(960)}:row)};
   assert.deepEqual(checkSidebarToolRequestBudget({...envelope,payload:unicode}),{ok:false,code:'E_LIMIT'},
     'UTF-8 byte budget must reject large multibyte payloads');
+});
+
+test('Cookie batch review cancellation proves no dispatch while later cancellation stays ambiguous',async t=>{
+  cookieTestLocation(t);
+  const tool={...sample,format:'opendesk.sidebar-tool.v2',id:'cookie-batch-cancel',
+    capabilities:['browser.cookies.write'],requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}};
+  const origin='https://cookie-r537.example',target=cookieTestTarget(origin),messages=[];
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[BROWSER_MENU_GRANTS_STORE,{[tool.id]:{
+    version:tool.version,packageHash:await sidebarToolPackageHash(tool),installEpoch:null,
+    cookieSites:{[origin]:{write:true,storeId:'0',grantEpoch:'cancel-test'}}}}]]);
+  let lateCancel=false;
+  const f=await hostFixture(t,{tool,store,target,hostReply:async message=>{
+    messages.push(message);
+    if(message.operation==='browser.intent.confirm')return {ok:true,data:{approvalRef:'a'.repeat(32)}};
+    if(message.operation==='browser.cookies.setMany'){
+      if(lateCancel)return {ok:false,error:{code:'E_CANCELLED',message:'Host closed after dispatch'}};
+      return {ok:true,data:{saved:1,verified:1,results:[{index:0,saved:true,verified:true}]}};
+    }
+  }});
+  const payload={url:origin+'/',cookies:[{name:'fixture_only',value:'test-value'}]};
+  const reply=async id=>{await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.requestId===id);};
+  f.ask('browser.cookies.setMany',payload,'cancel-before');
+  await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
+  f.emit(f.elements['sidebar-tool-action-cancel'],'click',{isTrusted:true});
+  assert.equal((await reply('cancel-before')).error.code,'E_COOKIE_NOT_SUBMITTED');
+  assert.equal(messages.length,0,'cancelling review dispatches neither approval nor Cookie write');
+  for(const id of ['fresh-manual','cancel-after']){
+    lateCancel=id==='cancel-after';
+    f.ask('browser.cookies.setMany',payload,id);
+    await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
+    f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+    const result=await reply(id);
+    if(lateCancel)assert.equal(result.error.code,'E_CANCELLED','post-dispatch uncertainty is not relabelled');
+    else assert.equal(result.result.verified,1);
+  }
+  assert.deepEqual(messages.map(row=>row.operation),['browser.intent.confirm','browser.cookies.setMany',
+    'browser.intent.confirm','browser.cookies.setMany']);
 });
 
 test('R5.30.3 official export reuses one real click and still requires exact Host approval',async t=>{

@@ -145,6 +145,10 @@ async function load(name,sources){
     fail('page TOC requires page/installed Chrome suite');
   if(caps.includes('page.clip')&&(!declared||profile.kind!=='page'||!browser.length||!native))
     fail('page clip requires explicit page profile, real Chrome browser tests and installed native suite');
+  // A privileged video controller is a page feature, never a UI-only test pass.
+  // This MVP declares its Node-only evidence; browser/native remain NOT_TESTED.
+  if(caps.includes('page.videoSpeed')&&(!declared||profile.kind!=='page'))
+    fail('page video speed requires an explicit page CI profile');
   if(caps.some(x=>/^browser\.cookies\./.test(x))&&!declared)
     fail('cookie privileges require an explicit test profile');
   if(meta.uiRuntime==='opendesk.react-ui.v1'&&!declared)

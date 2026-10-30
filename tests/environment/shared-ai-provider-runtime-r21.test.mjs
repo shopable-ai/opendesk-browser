@@ -6,7 +6,7 @@ import {createBusinessConversation} from '../../src/ui/conversation/provider-con
 import {createPreviewProviderSettings} from '../../src/ui/react/preview/shared-ai-preview.js';
 
 const fail=code=>Object.assign(new Error(code),{code});
-const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
+const deferred=()=>{let resolve,reject;const promise=new Promise((done,no)=>{resolve=done;reject=no;});return {promise,resolve,reject};};
 function setup() {
   let nextThread=0;
   const cancelled=[],released=[];
@@ -22,7 +22,7 @@ function setup() {
       async plan(){return {threadId};},
       async probe(){return {readyForTurn:true,state:'READY_FOR_TURN'};},
       snapshot(){return {sessionId:'native-session-'+threadId,threadId};},
-      async cancel(){cancelled.push(threadId);return {state:'CANCELLING'};},
+      async cancel(){cancelled.push(threadId);return {state:'CANCELLED',terminalStatus:'interrupted'};},
       async close(){return {state:'CLOSED'};},
       async resume(){return {threadId};},
       dispose(){released.push(threadId);}
@@ -299,4 +299,52 @@ test('R2.2.1 shared Consumer Session retains Prompt ETag but never leaks other b
   assert.deepEqual(tasks.readSession().refs,{});
   assert.equal(listeners.size,0);
   r.runtime.dispose();
+});
+
+
+test('retired generation shares only in-flight cleanup and retries unknown on original planner',async()=>{
+  const attempts=[],released=[];let count=0;
+  const runtime=createSharedAIProviderRuntime({client:{requestWorkflowAI:async()=>({})},hostInstanceId:'host',
+    plannerFactory:()=>{
+      const id=++count;
+      return {planStructured:async()=>({id}),snapshot:()=>({sessionId:'s'+id,threadId:'t'+id}),
+        cancel(){const d=deferred();attempts.push({id,...d});return d.promise;},dispose(){released.push(id);}};
+    },facadeFactory:({localPlanner})=>({generateStructured:({request})=>localPlanner.planStructured({input:request})})});
+  const lease=runtime.acquire({consumerId:'sidebar-tools',instanceId:'original'});
+  try{
+    await lease.requestStructured({request:'first'});
+    runtime.updateSettings({model:'changed'});
+    const first=lease.cancelInference(),same=lease.cancelInference();assert.equal(first,same);
+    attempts[0].resolve({state:'OUTCOME_UNKNOWN'});await first;await Promise.resolve();
+    assert.deepEqual(released,[],'unknown must retain original planner');
+    assert.equal(lease.planner.snapshot().sessionId,'s1');
+    await assert.rejects(lease.requestStructured({request:'blocked'}),{code:'E_AI_OUTCOME_UNKNOWN'});
+    assert.equal(count,1);
+    const retry=lease.planner.cancel();assert.equal(attempts.length,2);assert.equal(attempts[1].id,1);
+    attempts[1].reject(fail('E_DISCONNECTED'));await assert.rejects(retry,{code:'E_DISCONNECTED'});
+    const idle=lease.cancelInference();attempts[2].resolve({state:'IDLE'});await idle;
+    assert.deepEqual(released,[],'IDLE cannot retire the submitted turn');
+    runtime.updateSettings({source:'cloud_responses'});
+    const cloudFence=lease.cancelInference();attempts[3].resolve({state:'OUTCOME_UNKNOWN'});await cloudFence;
+    await assert.rejects(lease.requestStructured({request:'cloud must also wait'}),{code:'E_AI_OUTCOME_UNKNOWN'});
+    const terminal=lease.cancelInference();assert.equal(attempts[4].id,1);
+    attempts[4].resolve({state:'CANCELLED',terminalStatus:'interrupted'});await terminal;
+    assert.deepEqual(released,[1]);
+    await lease.requestStructured({request:'fresh'});assert.equal(count,2);
+  }finally{lease.dispose();runtime.dispose();for(const d of attempts)d.resolve({state:'CANCELLED',terminalStatus:'interrupted'});}
+});
+
+test('a readiness-only planner can retire on provider change without inventing a pending turn',async()=>{
+  const calls=[];
+  const runtime=createSharedAIProviderRuntime({hostInstanceId:'probe-host',client:{
+    async requestWorkflowAI(method){calls.push(method);return {nativeConnected:true,protocolAvailable:true,state:'READY_FOR_TURN'};}
+  },facadeFactory:()=>({generateStructured:async()=>({accepted:true})})});
+  const lease=runtime.acquire({consumerId:'sidebar-tools',instanceId:'probe-only'});
+  try{
+    await lease.probe();assert.deepEqual(calls,['ai.connection.read','ai.capabilities.read']);
+    runtime.updateSettings({model:'next-model'});
+    assert.deepEqual(await lease.cancelInference(),{state:'IDLE'});
+    assert.deepEqual(await lease.requestStructured({request:'new explicit intent'}),{accepted:true});
+    assert.equal(calls.includes('ai.plan.start'),false,'readiness must not create inference');
+  }finally{lease.dispose();runtime.dispose();}
 });

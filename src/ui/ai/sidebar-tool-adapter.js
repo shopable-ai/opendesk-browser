@@ -1,13 +1,33 @@
 // Trusted adapter only: package code never receives a Provider configuration or credential.
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const safeCodes=new Set(['E_AI_REQUEST','E_AI_IDENTITY','E_TOOL_CHANGED','E_MODEL_STALE','E_AI_BUSY','E_AI_REPLAY','E_AI_LIMIT','E_AI_TIMEOUT','E_AI_UNKNOWN','E_CANCELLED','E_HOST_CLOSED']);
+// Fixed Native failure and trusted planner codes, never provider-controlled text.
+const diagnosticCodes=new Set([...safeCodes,
+  'E_CODEX_UNSUPPORTED','E_CODEX_MISSING','E_CODEX_LOGIN_REQUIRED','E_CODEX_POLICY',
+  'E_MODEL_UNAVAILABLE','E_RATE_LIMITED','E_NETWORK','E_PROVIDER',
+  'E_WORKFLOW_ORIGIN','E_AI_INPUT_LIMIT','E_AI_CONSENT','E_AI_PROTOCOL','E_AI_EVENTS_GAP',
+  'E_AI_OUTCOME_UNKNOWN','E_AI_RESUME','E_AI_RESUME_SCOPE','E_AI_CONFIG','E_DOCUMENT_STALE',
+  'E_AI_DISCONNECTED','E_AI_RESPONSE','E_AI_TOOL_RESULT','E_AI_OBSERVATION_REQUIRED','E_AI_PROVIDER']);
 const unknownError=error=>error?.code==='E_AI_OUTCOME_UNKNOWN'||error?.outcome==='OUTCOME_UNKNOWN'||error?.code==='E_AI_UNKNOWN';
 const normalizeError=error=>unknownError(error)?fail('E_AI_UNKNOWN','AI 终态尚未确认，请查询原 requestId；不会自动重放'):error;
-const safeError=original=>{const error=normalizeError(original);return fail(safeCodes.has(error?.code)?error.code:'E_AI_PROVIDER',
-  error?.code==='E_AI_TIMEOUT'?'AI 请求超时，结果未知；不会自动重放':error?.code==='E_AI_UNKNOWN'?'AI 终态尚未确认，请查询原 requestId；不会自动重放':'AI 请求未完成；请检查状态，不会自动重放');};
+const safeError=original=>{
+  const error=normalizeError(original);
+  const diagnosticCode=diagnosticCodes.has(original?.code)?original.code:null;
+  const message=error?.code==='E_AI_TIMEOUT'?'AI 请求超时，结果未知；不会自动重放':
+    error?.code==='E_AI_UNKNOWN'?'AI 终态尚未确认，请查询原 requestId；不会自动重放':'AI 请求未完成；请检查状态，不会自动重放';
+  return fail(safeCodes.has(error?.code)?error.code:'E_AI_PROVIDER',message+(diagnosticCode?' ('+diagnosticCode+')':''));
+};
 // Only bounded protocol identifiers/statuses cross the sandbox boundary.
 const traceString=value=>typeof value==='string'&&/^[A-Za-z0-9_.:-]{1,200}$/.test(value)?value:null;
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
+function safeUsage(value){
+  if(!object(value))return null;
+  const counts={};
+  // Responses names and Chat Completions names; never copy provider extensions.
+  for(const key of ['input_tokens','output_tokens','total_tokens','prompt_tokens','completion_tokens'])
+    if(Object.hasOwn(value,key)&&Number.isSafeInteger(value[key])&&value[key]>=0)counts[key]=value[key];
+  return Object.keys(counts).length?counts:null;
+}
 function schema(value,keys){
   if(!object(value)||Object.keys(value).some(k=>!keys.includes(k)))throw fail('E_AI_REQUEST','未知 AI 字段');
 }
@@ -61,7 +81,7 @@ export function createSidebarToolAIAdapter({providerRuntime,instanceId,installEp
           // retirement proof for this dispatched request. Keep unknown.
         }catch{/* No terminal proof: keep unknown. */}
       }
-    })().finally(()=>{row.stopping=false;release(row);});
+    })().finally(()=>{row.stopPromise=null;row.stopping=false;release(row);});
     return row.stopPromise;
   }
   const unsubscribe=providerRuntime.subscribeSettings(()=>{void stop();});
@@ -114,7 +134,7 @@ export function createSidebarToolAIAdapter({providerRuntime,instanceId,installEp
           if(JSON.stringify(result.proposal).length>262144)throw fail('E_AI_LIMIT','AI 结果过大');
           const snapshot=lease.planner.snapshot();
           return {requestId,proposal:result.proposal,providerGeneration,metadata:{provider:s.source,
-            usage:result.metadata?.usage??null,
+            usage:safeUsage(result.metadata?.usage),
             responseId:traceString(result.metadata?.responseId),upstreamStatus:traceString(result.metadata?.upstreamStatus),
             upstreamRequestId:traceString(result.metadata?.upstreamRequestId),turnId:completed?.turnId??null,status:completed?.status??'unknown',
             threadId:snapshot.threadId??null,sessionId:snapshot.sessionId??null,model:snapshot.model||s.model||null}};
@@ -131,6 +151,6 @@ export function createSidebarToolAIAdapter({providerRuntime,instanceId,installEp
       }catch(error){throw safeError(error);}
     },
     dispose(){if(disposed)return;const cleanup=stop();disposed=true;unsubscribe();
-      void cleanup.finally(()=>lease.dispose());}
+      void cleanup.finally(()=>lease.dispose()).catch(()=>{});}
   });
 }

@@ -47,7 +47,8 @@ export function createAccountService({store = new HistoryStore(), accounts = [],
       : probeCookieOnly({...options, clock, ...(requestImpl ? {fetchImpl: requestImpl} : {})})
   }));
   async function query(input = {}) {
-    if (!input || typeof input !== 'object' || Array.isArray(input)) throw fail('E_QUERY');
+    if (!input || typeof input !== 'object' || Array.isArray(input) ||
+        Object.keys(input).some(k=>!['alias','aliases','operation','limit','windowKey'].includes(k))) throw fail('E_QUERY');
     const {alias, aliases, operation = 'cache', limit = 100, windowKey = null} = input;
     if (!['cache', 'refresh', 'history'].includes(operation) || (alias !== undefined && aliases !== undefined)) throw fail('E_QUERY');
     const selected = alias !== undefined ? [alias] : aliases === undefined ? [...configured.keys()] : aliases;
@@ -72,7 +73,9 @@ export function createAccountService({store = new HistoryStore(), accounts = [],
           const status = operation === 'refresh' ? account.lastAttempt?.status ?? 'UNAVAILABLE' : 'OK';
           results.push({alias: name, status, ...(status === 'OK' ? {} : {error: 'E_REFRESH_FAILED'}), account});
         }
-      } catch { results.push({alias: name, status: 'UNAVAILABLE', error: 'E_ACCOUNT_OPERATION'}); }
+      } catch(error) { results.push({alias: name, status: 'UNAVAILABLE',
+        error: ['E_HISTORY_BUSY','E_SAMPLE_NOT_NEWER','E_ACCOUNT_IDENTITY_CHANGED'].includes(error?.code)
+          ? error.code : 'E_ACCOUNT_OPERATION'}); }
     }
     return {results};
   }

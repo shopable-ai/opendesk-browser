@@ -20,7 +20,7 @@
 ## 2. 当前代码事实（截至本次读取 main）
 
 - 正式业务路径：examples/sidebar-tools/scrapyjs/；不是 docs/contracts/source-snapshots/scrapyJs/（历史只读来源）。
-- tool.config.json 的开发应用版本 1.6.1、委托 Task scrapyjs.capture 0.4.0；README 记录正式 App 安装包仍为 1.3.1，**开发候选≠正式已晋升**。
+- tool.config.json 本次复核的开发应用版本 1.6.3、委托 Task scrapyjs.capture 0.4.0；README 记录正式 App 安装包仍为 1.3.1，**开发候选≠正式已晋升**。
 - 已有 React 采集界面、命名配置、字段/分页/列表详情配置、数据预览、JSON/CSV、Stop 和 AI 配置相关代码；历史豆瓣/CSDN 的安装态采集证据见本目录 README 和 evidence/，仅限相应候选。
 - package.json 当前 Task 精确批准 origin：127.0.0.1:43111、book.douban.com、download.csdn.net；deadlineMs 为 90000。不能由修改配置或 AI 推广为任意网站、无限时长。
 - 原 README 对当前 AI、新固定 Task 以及正式安装与运行验收仍有未完成项；本规划不改变现有证据状态。
@@ -41,6 +41,8 @@
 | P1 | 任务版本、云同步与 API 交付 | 新增后端服务；本地配置默认私有 | 跨设备恢复同版本；API/Webhook 导出有租户隔离 |
 | P2 | 付费模板与开发者发布 | 复用现有扩展市场展示/安装，不假定已支持交易 | 发布审阅、权限差异、源码/规则版本、购买授权、售后可核 |
 | P2 | 定制开发、长期维护、代理等增值服务 | 初期人工交付与供应商合作 | 有报价、验收标准、账单、范围与维护责任 |
+| P1（可选验证） | 自有 Android 双网络任务节点 | 独立移动端 Node Agent；不改现有 MV3 Task 权限 | Wi-Fi 控制+蜂窝出口的 1–3 页真实样本与 fail-closed 读回，见[节点设计](COMMUNITY-NODES-MOBILE-EGRESS.zh-CN.md) |
+| P2（延期） | 远程自愿领取任务与社区互助 | 先受限签名 Job，后独立审核共享代理与商业规则 | 设备同意/流量预算/Stop/权限/结算分别核验；**不开放通用代理** |
 | P2 | 自建规模化采集平台 | 付费与负载得到验证后再建设 | 租户隔离、成本可控、计费与执行事件对账 |
 
 不把“更多功能”视为直接成功：先提高普通用户完成一项真实采集任务的成功率，再扩平台。
@@ -88,3 +90,16 @@
 不立即开发通用 AI Agent、自建代理池、代理转售、多租户大规模云集群、开放任意脚本执行、付费市场与分账，也不扩展现有固定 Task Origin 或放宽 90 秒限制。所有未来改动先查当前实际源代码，仅做差量，在 main 上实施，禁止平行产品与重复 Runtime。
 
 配套文档：[AI 爬虫与代理架构](AI-ENGINE-PROXY-ARCHITECTURE.zh-CN.md)｜[商业模式与竞品](COMMERCIALIZATION-COMPETITORS.zh-CN.md)。
+
+## 8. R2.2～R2.5 网页端跨端施工阶段（2026-10-30 新增，未实施）
+
+此处的 R2.2～R2.5 是**跨端执行架构的施工阶段**，与上文长期产品 R0～R4 并非同一编号系列。唯一权威与具体任务边界见[统一执行架构](UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md)，不要从本文件复制完整架构造成多处漂移。
+
+| 顺序 | 代码责任 | 最小交付 | 本次状态 |
+| --- | --- | --- | --- |
+| R2.2-FRAMEWORK-WEB | OpenDesk Browser / ScrapyJS | 版本化纯声明式合同、能力匹配/拒绝、测试、源绑定可点击预览 | NOT_IMPLEMENTED |
+| R2.3-ANDROID-WEB | todo-user Android | 在**已有 App** 内新增 ScrapyNode Plugin/受限 Cellular GET、回传与 Stop；复用旧 PoC | NOT_IMPLEMENTED；真机 NOT_TESTED |
+| R2.4-DESKTOP-WEB | OpenDesk Desktop | 复用现有 http.request/axios 的应用级 Adapter 和真实 Header 回显 | NOT_IMPLEMENTED |
+| R2.5-BROWSER-WEB | ScrapyJS React | 正式执行位置/Headers 兼容显示、真实 RunReceipt、不可用能力禁用 | NOT_IMPLEMENTED |
+
+**先完成网页版 GitHub 代码工作，最后才进入本地 Codex 真机验收。** 旧 React、Controller Task、Host、Cookie/授权、AI 与安装工作只复用不重建。每段输出提交 SHA、已完成/未完成/阻断及独立证据等级。

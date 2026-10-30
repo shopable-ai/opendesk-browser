@@ -11,7 +11,7 @@ import {createSidebarToolPackage,checkSidebarToolProjectPackage}
   from '../../scripts/build-sidebar-tool.mjs';
 import {SIDEBAR_TOOL_SHARED_UI_RUNTIME}
   from '../../src/ui/sidebar-tools/package.js';
-const project=resolve('examples/sidebar-tools/adblock');
+const project=resolve('projects/adblock');
 const read=path=>readFile(resolve(project,path),'utf8');
 
 test('opened AdBlock preview renders the real React settings entry visibly',async()=>{

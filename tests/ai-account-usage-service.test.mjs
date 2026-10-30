@@ -55,7 +55,8 @@ test('persisted identity blocks replaced source before any request',async () => 
     record:async(alias,attempt)=>{recorded=attempt;},register:async()=>{throw Error('unexpected');}};
   const service=createAccountService({store,clock:()=>now,accounts:[{alias:'bound',displayName:'Bound',mode:'CODEX_OAUTH',loadAuthorizedAccount:async()=>loaded('bound','replacement')}],requestImpl:async()=>{requests++;}});
   await service.query({alias:'bound',operation:'refresh'});
-  assert.equal(requests,0);assert.equal(recorded.status,'UNAVAILABLE');
+  assert.equal(requests,0);assert.equal(recorded.status,'IDENTITY_UNVERIFIED');
+  assert.equal(recorded.reason,'ACCOUNT_BINDING_CHANGED');
 });
 test('private explicit source omits refresh tokens, rereads replacement and rejects unsafe files',async t => {
   const {directory}=await fixture(t);const path=join(directory,'auth.json');

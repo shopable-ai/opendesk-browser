@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {initAdblockCosmetics} from '../../examples/sidebar-tools/adblock/trusted/page.js';
-import {ADBLOCK_STORE,ADBLOCK_PAGE_PROTOCOL} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+import {initAdblockCosmetics} from '../../projects/adblock/trusted/page.js';
+import {ADBLOCK_STORE,ADBLOCK_PAGE_PROTOCOL} from '../../projects/adblock/trusted/policy.js';
 
 function event(){
   const listeners=new Set();

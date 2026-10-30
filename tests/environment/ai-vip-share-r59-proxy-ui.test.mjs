@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
+import {runControllerVm} from '../../examples/sidebar-tools/ai-vip-share/tests/helpers/controller-vm.mjs';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 
@@ -34,7 +34,7 @@ async function runtime({status=()=>released,start=async()=>owned,stop=async()=>r
   }
   const window={OpenDeskTool:{root:{querySelector:s=>nodes.get(s.slice(1))},request:async()=>({value:null,etag:createHash('sha256').update('null').digest('hex')})},
     OpenDeskSDK:{browser:{proxy:{managed:proxy},network:{request:async()=>({status:200,data:{schemaVersion:1,serverNow:Date.now(),account:{state:'bound',id:'member',displayNameMasked:'m***'},entitlements:[{type:'time',status:'active',title:'fixture only',expiresAt:Date.now()+(expired?-60000:60000)}],redemptions:[]}})}}}};
-  vm.runInNewContext(script,{window,document,URL,Date,Intl,performance,crypto:{randomUUID:()=>crypto.randomUUID()}});
+  await runControllerVm(script,{window,document,URL,Date,Intl,performance,crypto:{randomUUID:()=>crypto.randomUUID()}});
   await flush();await flush();
   return {get:name=>nodes.get('ai-vip-'+name),document,calls,click:async(name,trusted=true)=>{nodes.get('ai-vip-'+name).listeners.click({isTrusted:trusted});await flush();await flush();},flush};
 }
@@ -52,9 +52,9 @@ test('pending status refresh does not take focus back from another control',asyn
   const read=deferred();let reads=0;
   const e=await runtime({status:()=>++reads===1?released:read.promise});
   e.get('proxy-refresh').focus();await e.click('proxy-refresh');
-  e.get('redeem-code').focus();
+  e.get('shop-open').focus();
   read.resolve(released);await flush();await flush();
-  assert.equal(e.document.activeElement,e.get('redeem-code'));
+  assert.equal(e.document.activeElement,e.get('shop-open'));
 });
 
 test('formal core keeps member/redeem/shop/proxy order and one proxy action',async()=>{

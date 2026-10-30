@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {requestStayFocusOperation,runTrustedStayFocusOperation}
-  from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
+  from '../../projects/stay-focus/trusted/tool-host.js';
 import {sidebarToolRequestTimeout} from '../../src/sidebar-tools/bridge.js';
 
 test('Stay Focus mutations get a conservative outcome-unknown transport deadline',()=>{
@@ -15,7 +15,7 @@ test('Stay Focus mutations get a conservative outcome-unknown transport deadline
 
 async function requestFixture({networkFails=false,expireAfterSend=false}={}){
   const tool=JSON.parse(readFileSync(new URL(
-    '../../examples/sidebar-tools/stay-focus/stay-focus.opendesk-tool.json',import.meta.url),'utf8'));
+    '../../projects/stay-focus/stay-focus.opendesk-tool.json',import.meta.url),'utf8'));
   const api={storage:{local:{get:async()=>({
     [SIDEBAR_TOOL_STORE]:[tool],
     [TOOL_REVOCATION_EPOCHS_STORE]:{'stay-focus':'epoch-r44'}

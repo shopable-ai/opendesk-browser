@@ -10,11 +10,11 @@ import {webcrypto} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {CHATGPT_ORIGIN,PROMPT_ID,PROMPT_CAPABILITY,installedPromptTool,
-  supportedOrigin,PROMPT_SITE_STORE,changePromptSiteGrant,allowedPromptSite} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+  supportedOrigin,PROMPT_SITE_STORE,changePromptSiteGrant,allowedPromptSite} from '../../projects/prompt-shortcuts/trusted/policy.js';
 import {cleanupUninstalledToolLocked,PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 
-const ROOT='examples/sidebar-tools/prompt-shortcuts';
+const ROOT='projects/prompt-shortcuts';
 async function model(){
   const source=await readFile(ROOT+'/trusted/model.js','utf8'),sandbox={
     URL,Intl,TextEncoder,crypto:webcrypto
@@ -265,7 +265,7 @@ test('R1.4 shared uninstall cleanup removes only this tool grant and data, not a
 });
 
 test('R1.13 formal source builds a canonical candidate, then CI promotes it only after tests',async()=>{
-  const base='examples/sidebar-tools/prompt-shortcuts/';
+  const base='projects/prompt-shortcuts/';
   const [html,css,js,formal]=await Promise.all([
     readFile(base+'src/index.html','utf8'),readFile(base+'src/style.css','utf8'),
     readFile(base+'src/main.js','utf8'),readFile(process.env.PROMPT_SHORTCUTS_PACKAGE_PATH||base+'prompt-shortcuts.opendesk-tool.json','utf8')

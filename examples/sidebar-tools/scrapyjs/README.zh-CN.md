@@ -66,22 +66,37 @@
 
 以下文件保存本轮 AI 爬虫、代理与商业化讨论中的**长期目标与设计决策**。它们均为 **PLANNED / NOT_IMPLEMENTED**，不改变上方真实采集、安装态及候选验收状态：
 
+- [跨端统一执行架构与网页版四阶段交接](docs/UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md)：Browser / Desktop / Android 分工、Headers 能力、唯一合同、去重和验收边界；**仅架构决策，统一合同与 Adapter 未实施**。
 - [产品目标与分阶段路线图](docs/PRODUCT-ROADMAP.zh-CN.md)：当前基础、差距、P0/P1/P2、1–3 页 AI 试采及后续验收。
 - [AI 引擎、代理与云运行技术架构](docs/AI-ENGINE-PROXY-ARCHITECTURE.zh-CN.md)：Scrapling、Crawl4AI、Apify 等执行适配与安全边界。
 - [商业模式、竞品与上下游服务](docs/COMMERCIALIZATION-COMPETITORS.zh-CN.md)：模板复用、定制开发、维护、代理与收费路径。
+- [自有私有双网络 PoC 与真实设备测试步骤](nodes/poc/README.zh-CN.md)：隔离源码已提交；安卓编译与真实网络均 NOT_TESTED。
+- [自有手机/电脑网络与社区协作节点](docs/COMMUNITY-NODES-MOBILE-EGRESS.zh-CN.md)：Wi-Fi 控制 + 蜂窝采集出口、远程主动领取任务及未来自愿共享；**仅设计，不是已启用代理服务**。
 
 **当前不创建新 Runtime、云服务、付费功能或扩展权限；后续按最新 main 实际完成状态增量实施。**
 
 
-## 本轮最新范围（2026-10-29）
+## 此前 1.6.3 共享 Chat 阶段（2026-10-30，历史证据）
 
-当前源码 1.6.0：本轮目标是改进 React 结果排版，完成真实 AI 配置助手及独立专家 95+ 评审。旧文中 AI 排除/95 延期仅描述历史阶段，以本节与 INTERACTIONS 最新决策为准。正式包仍保留 1.3.1，未晋升；本轮只准备开发候选并走原审阅安装。
+2026-10-30 Git 集成已将下述共享 Chat、未决 AI 身份恢复与字段差异审阅合入上方 R1.7 本机试采流程。合并后源码尚未重新编译、晋升正式包或完成真实安装验收；原 1.7.1 包与以下各阶段证据继续绑定各自原候选，不能作为合并后源码的同源或原生验收结果。
 
-用户本轮已明确采用并行升级的固定 Task 0.4.0，身份以 `tool.config.json` 与对应 Task 包为准；下文 0.3.0 的安装/运行结果仅保留历史证据，不代表当前候选通过。引擎升级由并行 owner 维护，本轮验证 AI/UI 与新固定 Task 的实际衔接。
+本节记录此前**独立应用开发、共享 Chat 复用、安装态界面对齐与最小验证**阶段。当时源码、实时调试快照及安装态已对齐为 1.6.3（SHA256 `a9064a9dbfdd2719446286c3812093c27463c5f4d94c157e3eb545e06d0c1b1d`）；当时唯一正式包仍保留 1.3.1，未晋升。该次经原安装审阅链更新同一个应用，未提交、推送，也没有修改 Go。
 
-结果区提供两行摘要、完整记录详情/复制、列设置和分页，JSON 保留全部原值；CSV 保留全部记录与字段，对可能被电子表格执行的字符串增加安全前缀。AI 入口在应用右上角：描述需求 → 选择当前网页/原配置/可选 HTML 样本 → 核对真实 Provider 和发送资料 → 生成草稿 → 查看差异与完整 JSON → 应用 → 原命名保存或导出配置 → 单独「开始采集」。生成不是网页采集验证，不自动运行，也不扩大固定 Task 的三个 origin。
+安装态对齐复查（2026-10-30）：从原 CFT 的「扩展 → 已安装 → scrapyjs 采集」确认旧实例为 1.6.2（SHA256 `56c5a05d6f884771148b3bb0fa41f56b89f7d5e7a8b4b134e09fd1ad2283eea7`），显示旧 AI 表单；本地源码预览已是共享 Chat。用原打包器生成与不可变调试快照逐字节相同的临时候选，原安装器核对“权限未变化”、固定 Task 0.4.0 与包 SHA 后更新到 1.6.3。重新从同一列表打开，实际显示共享对话区、输入框及正确样式；临时中文草稿可编辑并已清空，未发送。原「CSDN 核心」命名配置、7 个字段、列表选择器及完整 JSON 仍在。返回原 CSDN 标签页并刷新目标后显示“准备采集”，未启动任务。采集结果区当前“尚无记录 / 尚无运行”，没有新的有数据表格原生证据，不据此判定历史表格丢失或损坏。此次没有修改业务源码、重编/重装 Browser、升级固定 Task 或晋升正式包。
 
-本轮原生与独立评审证据将绑定当前候选；实现中的状态不能提前写为已通过。正式包晋升/production、完整生命周期、全量宿主、宽度/缩放和压力专项继续延期。
+AI 配置助手现复用书签管理器同一 `SharedConversationFrame` 与 `createConversationSession`，通过固定 opt-in `@opendesk/ui` 在本工具 opaque iframe 内运行。共享部分仅包含展示、输入和内存会话；真实推理仍经既有 `ai.info/generate/cancel`、共享 Provider 与安装 Authority。没有复制第二套 Chat、Provider 或宿主，也没有将采集业务挂入可信 React 根。公开边界见 [Sidebar Tool AI API](../../../docs/api/sidebar-tools-ai.zh-CN.md)。
+
+用户流程为：描述需求 → 明确选择发送资料 → 生成独立提案 → 查看全部差异与完整 JSON → 明确应用 → 命名保存独立配置 → 单独「开始采集」。已有配置应用 AI 提案后默认进入“副本”命名表单，原记录保持不变；没有自动保存或运行。确定性组件验证覆盖保留完整原规则、仅新增与 `title` 同选择器及提取语义的 `column_title`、输入变化使旧提案失效、独立保存及运行分离。**该验证使用传输 fixture，不是真实模型成功证据。**
+
+真实 CFT149（149.0.7827.55、原 Default Profile、扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`）已通过「开发 → 本地项目 → scrapyjs → 在侧栏调试」打开当前源码。可逆 JSX 标题与 CSS 标记的自动更新、还原已实测；最新共享 Chat 显示、中文草稿输入、关闭重开保留及清空也已实测。最近快照 SHA256 `a9064a9dbfdd2719446286c3812093c27463c5f4d94c157e3eb545e06d0c1b1d`，仍标记“实时开发预览 / 未安装 / 隔离测试数据”。只读预览拒绝真实 AI、Task 与真实写入，发送按钮保持禁用；本轮没有放宽该限制。
+
+Native 已由前序 owner 恢复，当前真实工作区显示“Native 已连接”。Browser 仍加载固定 `dist/development`；根 `npm run dev` 由并行 owner 维护，曾重启并短暂缺少工作区/沙箱文件，随后已恢复。当前应用编译监听、stage 监听与同实例目录 CLI 可用；此前未单独核实的根 WXT 客户端连接，已在原 CFT「调试 → 本地开发服务」读到“开发服务已连接”（revision `31e5d8260b078983a525d43f133b96e03a56082e4cd774b898eddc8213296b7f`）；这是当次实际连接观察，不保证后续服务状态。辅助 Mock 的 named exports 已同步；其旧 Shared UI 来源回执已过期，本轮未重建或启动该辅助预览。
+
+原 AI 请求 `cb6d0e92-0e45-4ae0-a30c-96377d535106` 仍为 **unknown**，没有可信 sessionId、turnId 或终态证据。本轮未重新派发、未重放、未应用迟到结果，也未借新窗口、Provider、安装或重载绕过围栏。下一条真实推理须先按原身份取得可信处置结果；当前真实 Provider 推理、AI 提案原生应用/保存及后续 Task 采集仍为 **NOT_TESTED**。界面未显示旧请求不证明旧请求已经结束。
+
+固定 `scrapyjs.capture` Task 0.4.0 保持不变：sourceHash `94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e`，manifestHash `b0a7b212f244e16de772e54724f1e039a3c7d2d238b9443031a6f37a61af0e95`。没有重冻、重装、扩大三个 origin 或改动引擎。历史 Task 采集、结果排版与下载证据继续保留，不能替代本次 AI 主链。
+
+本轮 31 项工具定向检查通过；共享 UI 3 项通过、1 项因缺少现成编译示例回执跳过，未为该跳过启动构建。公开运行时检查确认没有导出可信 Workspace、Provider 或凭据模块。原共享 Chat 检查源码指纹仍一致，复用已有 31 项工具与共享 UI 检查；本次临时候选包定向检查 1/1 通过。完整记录见 [接续证据](evidence/ai-ux-continuation-20261030.json) 的 `sharedChatDevelopmentContinuation`（此前阶段）及 `visibleUiConsistencyContinuation`（当前安装态对齐）。独立专家 95+、正式晋升/production、完整生命周期、全量宿主与压力专项继续延期，评分保持 **NOT_SCORED**；下文旧阶段的 95+ 要求不作为当前开发前置条件。
 
 ## 此前 1.5.0 核心采集证据（历史）
 

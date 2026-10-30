@@ -1,0 +1,10 @@
+# Local-only private-node secrets and artifacts; never commit.
+**/*.key
+**/*.crt
+**/*.pem
+**/receipt.json
+**/.private-node-evidence/
+**/.gradle/
+**/build/
+**/local.properties
+**/*.apk

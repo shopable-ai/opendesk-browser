@@ -6,7 +6,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {runInNewContext} from 'node:vm';
 import {parseHTML} from 'linkedom';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-const base=new URL('../../examples/sidebar-tools/ai-knowledge-answers/',import.meta.url);
+const base=new URL('../../projects/ai-knowledge-answers/',import.meta.url);
 const read=path=>readFileSync(new URL(path,base),'utf8');
 test('R2 UI: source pages are separate and there is no ever-expanded CRUD column',()=>{
  const html=read('src/index.html');

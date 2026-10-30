@@ -38,14 +38,23 @@ test('R2.1 migrated official source locations are exact and preserve unmigrated 
   assert.equal(current.tools.find(row=>row.id==='web-markdown-clipper').project,'projects/web-markdown-clipper');
   assert.equal(current.tools.find(row=>row.id==='reading-toc').project,'projects/reading-toc');
   assert.equal(current.tools.find(row=>row.id==='time-review').project,'projects/time-review');
+  assert.equal(current.tools.find(row=>row.id==='prompt-shortcuts').project,'projects/prompt-shortcuts');
+  assert.equal(current.tools.find(row=>row.id==='adblock').project,'projects/adblock');
+  assert.equal(current.tools.find(row=>row.id==='stay-focus').project,'projects/stay-focus');
+  assert.equal(current.tools.find(row=>row.id==='ai-knowledge-answers').project,'projects/ai-knowledge-answers');
   assert.equal(current.tools.find(row=>row.id==='cookie-editor').project,'examples/sidebar-tools/cookie-editor');
   for(const [id,project] of [
     ['cookie-editor','projects/cookie-editor'],
+    ['ai-knowledge-answers','examples/sidebar-tools/ai-knowledge-answers'],
+    ['ai-knowledge-answers','projects/ai-knowledge-answers/../ai-knowledge-answers'],
     ['bookmark-manager','examples/sidebar-tools/bookmark-manager'],
     ['knowledge-inbox','examples/sidebar-tools/knowledge-inbox'],
     ['web-markdown-clipper','examples/sidebar-tools/web-markdown-clipper'],
     ['reading-toc','examples/sidebar-tools/reading-toc'],
     ['time-review','examples/sidebar-tools/time-review'],
+    ['prompt-shortcuts','examples/sidebar-tools/prompt-shortcuts'],
+    ['adblock','examples/sidebar-tools/adblock'],
+    ['stay-focus','examples/sidebar-tools/stay-focus'],
     ['ai-send-queue','projects/ai-send-queue'],
     ['markdown-workbench','examples/sidebar-tools/markdown-workbench'],
     ['markdown-workbench','projects/markdown-workbench/extra'],
@@ -77,10 +86,10 @@ async function fixture(t){
 test('R4.8 authored catalog includes default Cookie Editor and optional AI VIP Share UI',async()=>{
   const source=await readOfficialSources();
   assert.deepEqual(source.tools.map(row=>row.id).sort(),
-    ['adblock','ai-knowledge-answers','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','web-markdown-clipper']);
+    ['adblock','ai-knowledge-answers','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-speed-controller','web-markdown-clipper']);
   const policies=Object.fromEntries(source.tools.map(row=>[row.id,row.installationPolicy]));
   assert.deepEqual(policies,{'ai-send-queue':'optional','ai-knowledge-answers':'optional','reading-toc':'preinstalled','web-markdown-clipper':'optional',
-    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled'});
+    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled','video-speed-controller':'optional'});
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);

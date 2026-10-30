@@ -71,42 +71,61 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
       throw fail('E_AI_IDENTITY','Provider Lease 身份无效');
     const key=JSON.stringify([consumerId,instanceId,owner,installEpoch]);
     if(leases.has(key))throw fail('E_AI_LEASE_DUPLICATE','此实例已经持有 Provider Lease');
-    let stopped=false,epoch=0,nativePlanner=null,retiredCleanup=null;
+    let stopped=false,epoch=0,nativePlanner=null,retiredPlanner=null,retiredCleanup=null;
+    let nativePlannerUsed=false,retiredPlannerUsed=false;
     const pending=new Set();
     const assertOpen=()=>{ensure();if(stopped)throw fail('E_TOOL_CHANGED','消费者已关闭');};
     const native=()=>{
       assertOpen();
-      if(!nativePlanner){retiredCleanup=null;nativePlanner=plannerFactory({client});}
+      if(retiredPlanner)throw fail('E_AI_OUTCOME_UNKNOWN','原 Provider 回合尚未确认终态，请先核对原请求');
+      if(!nativePlanner){nativePlanner=plannerFactory({client});nativePlannerUsed=false;}
       return nativePlanner;
     };
+    const plan=(method,args)=>{const current=native();nativePlannerUsed=true;return current[method](args);};
     // Existing workflow facade receives its own stable per-lease planner proxy.
     const planner=Object.freeze({
-      plan:args=>native().plan(args),
-      planStructured:args=>native().planStructured(args),
+      plan:args=>plan('plan',args),
+      planStructured:args=>plan('planStructured',args),
       probe:()=>native().probe(),
-      snapshot:()=>nativePlanner?.snapshot()??idle(),
-      cancel:()=>nativePlanner?.cancel()??Promise.resolve({state:'IDLE'}),
+      snapshot:()=>retiredPlanner?.snapshot()??nativePlanner?.snapshot()??idle(),
+      cancel:()=>cleanupRetired(),
       close:args=>nativePlanner?.close(args)??Promise.resolve({state:'IDLE'}),
       resume:args=>native().resume(args)
     });
     const transport=facadeFactory({localPlanner:planner,conversationPlanner:planner,
       taskConversationPlanner:planner});
+    function cleanupRetired(){
+      if(retiredCleanup)return retiredCleanup;
+      if(!retiredPlanner)return nativePlanner?.cancel()??Promise.resolve({state:'IDLE'});
+      const retired=retiredPlanner,used=retiredPlannerUsed;
+      // Share only the in-flight attempt. Unknown/rejected receipts retain the
+      // exact planner so an explicit later query can reconcile that generation.
+      let attempt;
+      try{attempt=retired.cancel();}catch(error){attempt=Promise.reject(error);}
+      retiredCleanup=Promise.resolve(attempt).then(value=>{
+        // An IDLE receipt is sufficient only when this lease never attempted
+        // planning on that instance. It cannot retire a submitted unknown turn.
+        if(['completed','failed','interrupted'].includes(value?.terminalStatus)||!used&&value?.state==='IDLE'){
+          if(retiredPlanner===retired){retiredPlanner=null;retired.dispose();}
+        }
+        return value;
+      }).finally(()=>{retiredCleanup=null;});
+      void retiredCleanup.catch(()=>{});
+      return retiredCleanup;
+    }
     function invalidate({waitForCleanup=true}={}){
       epoch++;
-      if(nativePlanner){
-        const retired=nativePlanner;nativePlanner=null;
-        // Keep the exact old-generation receipt reachable after settings publish.
-        try{retiredCleanup=Promise.resolve(retired.cancel());}
-        catch(error){retiredCleanup=Promise.reject(error);}
-        if(waitForCleanup)retiredCleanup=retiredCleanup.finally(()=>retired.dispose());
-        else retired.dispose();
-        void retiredCleanup.catch(()=>{});
+      if(nativePlanner){retiredPlanner=nativePlanner;retiredPlannerUsed=nativePlannerUsed;nativePlanner=null;nativePlannerUsed=false;}
+      if(retiredPlanner){
+        if(waitForCleanup)cleanupRetired();
+        else {retiredPlanner.dispose();retiredPlanner=null;}
       }
       for(const controller of pending)
         controller.abort(fail('E_MODEL_STALE','Provider 或实例改变，旧结果无效'));
     }
     async function guarded(dispatch,signal){
       assertOpen();
+      if(retiredPlanner)throw fail('E_AI_OUTCOME_UNKNOWN','原 Provider 回合尚未确认终态，请先核对原请求');
       const expectedEpoch=epoch,expectedGeneration=generation,controller=new AbortController();
       const abort=()=>controller.abort(signal?.reason||fail('E_CANCELLED','AI 已停止'));
       signal?.addEventListener('abort',abort,{once:true});
@@ -152,7 +171,7 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
         assertOpen();
         // Start Native cleanup before forwarding abort (which also requests
         // cancellation). Preserve its exact promise, including UNKNOWN outcomes.
-        const cleanup=retiredCleanup||planner.cancel();
+        const cleanup=cleanupRetired();
         for(const controller of pending)controller.abort(fail('E_CANCELLED','AI 已停止'));
         return cleanup;
       },

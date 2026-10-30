@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/prompt-shortcuts-r14.yml'
-      - 'examples/sidebar-tools/prompt-shortcuts/**'
+      - 'projects/prompt-shortcuts/**'
       - 'tests/environment/prompt-shortcuts-r14*.test.mjs'
       - 'tests/environment/sidebar-tool-secondary-header.test.mjs'
       - 'tests/environment/prompt-shortcuts-r19-first-run.test.mjs'
@@ -67,18 +67,18 @@ jobs:
           node --check src/ui/sidebar-tools/package.js
           node --check src/ui/sidebar-tools/installation.js
           node --check scripts/build-sidebar-tool.mjs
-          node --check examples/sidebar-tools/prompt-shortcuts/src/main.js
-          node --check examples/sidebar-tools/prompt-shortcuts/trusted/model.js
-          node --check examples/sidebar-tools/prompt-shortcuts/trusted/page.js
-          node --check examples/sidebar-tools/prompt-shortcuts/trusted/policy.js
-          node --check examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js
-          node --check examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js
-          node --check examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js
+          node --check projects/prompt-shortcuts/src/main.js
+          node --check projects/prompt-shortcuts/trusted/model.js
+          node --check projects/prompt-shortcuts/trusted/page.js
+          node --check projects/prompt-shortcuts/trusted/policy.js
+          node --check projects/prompt-shortcuts/trusted/rail-open.js
+          node --check projects/prompt-shortcuts/trusted/asset-contract.js
+          node --check projects/prompt-shortcuts/trusted/asset-host.js
           node --check src/sw.js
           node --check src/ui/sidebar-tools.js
       - name: Build and validate real portable v2 tool package
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --out artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/prompt-shortcuts --out artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {createHash} from 'node:crypto';
@@ -88,7 +88,7 @@ jobs:
           const bytes=readFileSync(path);
           const pkg=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
           assert.equal(pkg.id,'prompt-shortcuts');
-          const config=JSON.parse(readFileSync('examples/sidebar-tools/prompt-shortcuts/tool.config.json','utf8'));
+          const config=JSON.parse(readFileSync('projects/prompt-shortcuts/tool.config.json','utf8'));
           assert.equal(pkg.version,config.version,'candidate must match source version');
           assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
           assert(pkg.capabilities.includes('page.prompts'));
@@ -99,8 +99,8 @@ jobs:
           NODE
       - name: Promote only the verified candidate in the CI checkout
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --promote-from artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project
+          node scripts/build-sidebar-tool.mjs projects/prompt-shortcuts --promote-from artifacts/sidebar-tools/prompt-shortcuts/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/prompt-shortcuts --check-project
       - name: Provide readable CJK fonts for actual HTML screenshots
         run: |
           sudo apt-get update -qq
@@ -127,13 +127,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          file=examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project
+          file=projects/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/prompt-shortcuts --check-project
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
-          const config=JSON.parse(readFileSync('examples/sidebar-tools/prompt-shortcuts/tool.config.json','utf8'));
-          const pkg=JSON.parse(readFileSync('examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json','utf8'));
+          const config=JSON.parse(readFileSync('projects/prompt-shortcuts/tool.config.json','utf8'));
+          const pkg=JSON.parse(readFileSync('projects/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json','utf8'));
           assert.equal(pkg.version,config.version);
           assert.equal(pkg.id,'prompt-shortcuts');
           assert.equal(pkg.html.includes('ps-detail-back'),false,'retired back action must not appear in installer HTML');
@@ -155,7 +155,7 @@ jobs:
           git push origin HEAD:refs/heads/main
           git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
           test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || exit 1
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project
+          node scripts/build-sidebar-tool.mjs projects/prompt-shortcuts --check-project
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -190,7 +190,7 @@ jobs:
         if: always()
         with:
           name: prompt-shortcuts-r34-original-html-${{ github.sha }}
-          path: examples/sidebar-tools/prompt-shortcuts/preview/index.html
+          path: projects/prompt-shortcuts/preview/index.html
           if-no-files-found: error
           retention-days: 14
       - uses: actions/upload-artifact@v4
@@ -253,7 +253,7 @@ jobs:
           import {createHash} from 'node:crypto';
           const repo=process.env.GITHUB_REPOSITORY;
           const sourceCommit=process.env.GITHUB_SHA;
-          const path='examples/sidebar-tools/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json';
+          const path='projects/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json';
           const content=readFileSync('.verified-prompt-tool/candidate.opendesk-tool.json');
           const pkg=JSON.parse(content.toString('utf8'));
           if(pkg.id!=='prompt-shortcuts'||pkg.format!=='opendesk.sidebar-tool.v2')
@@ -269,7 +269,7 @@ jobs:
               throw Error('GitHub API '+response.status+': '+String(data.message||'unknown error'));
             return {status:response.status,data};
           }
-          const configReply=await request('/contents/examples/sidebar-tools/prompt-shortcuts/tool.config.json?ref='+sourceCommit);
+          const configReply=await request('/contents/projects/prompt-shortcuts/tool.config.json?ref='+sourceCommit);
           if(configReply.status!==200||!configReply.data?.content)
             throw Error('Cannot verify version of the source commit');
           const sourceVersion=JSON.parse(Buffer.from(configReply.data.content,'base64').toString('utf8')).version;
@@ -286,7 +286,7 @@ jobs:
               'src/ui/design-system.css','src/ui/sidebar-tools/package.js',
               'official-tools/catalog.json']);
             if(cmp.data.status!=='ahead'||changed.length>=300||
-              changed.some(file=>file.filename.startsWith('examples/sidebar-tools/prompt-shortcuts/')||
+              changed.some(file=>file.filename.startsWith('projects/prompt-shortcuts/')||
                 depends.has(file.filename))){
               console.log('SKIP_STALE_PROMPT_PACKAGE: a newer source candidate exists on main');
               process.exit(0);
@@ -320,7 +320,7 @@ jobs:
           git clone --quiet --depth 1 --branch main "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" .verify-main
           cd .verify-main
           npm ci --ignore-scripts --no-audit --no-fund
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/prompt-shortcuts --check-project
+          node scripts/build-sidebar-tool.mjs projects/prompt-shortcuts --check-project
           node --test tests/environment/prompt-shortcuts-r195-return-and-rail.test.mjs
 
   rail-geometry-r196:

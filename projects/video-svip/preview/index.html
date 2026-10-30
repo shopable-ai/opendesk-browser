@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>视频会员 · 交互预览（演示）</title><link rel="stylesheet" href="../src/style.css">
+<style>body{margin:0;background:#e8edf4;color:#1d2b44;font:13px system-ui,sans-serif}.fixture{max-width:440px;min-width:280px;margin:20px auto;background:#f8fafc;border-radius:16px;box-shadow:0 16px 50px rgba(22,43,76,.15);overflow:hidden}.fixture-controls{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:10px;background:#e7edf6}.fixture-controls strong{margin-right:auto}.fixture-controls button{border:1px solid #c4d0e0;background:#fff;border-radius:8px;padding:6px 9px;cursor:pointer}.fixture-controls button[aria-pressed=true]{background:#365eda;color:#fff}.fixture-note{color:#53647e;padding:0 12px 12px;margin:0;font-size:11px}@media(max-width:470px){.fixture{margin:0;min-height:100vh;border-radius:0}}@media(prefers-color-scheme:dark){body{background:#131a25}.fixture{background:#1e293b;color:#e9eef7}.fixture-controls{background:#26354a}.fixture-note{color:#b5c6db}}</style>
+</head><body><div class="fixture"><div class="fixture-controls"><strong>视频会员 · 交互预览</strong><button data-demo="tencent" aria-pressed="true">剧集 A</button><button data-demo="switch" aria-pressed="false">同 URL 换片 B</button><button data-demo="total" aria-pressed="false">只有总集数</button><button data-demo="unknown" aria-pressed="false">非视频页</button><button data-demo="error" aria-pressed="false">权限拒绝</button></div>
+<div id="tool-root"><main class="vp" aria-label="视频会员">
+  <section class="vp-current">
+    <div class="vp-topline"><span class="vp-eyebrow">当前视频</span><div class="vp-actions"><button id="vp-refresh" class="vp-icon" type="button" title="重新识别" aria-label="重新识别">↻</button><button id="vp-stop" class="vp-icon" type="button" title="停止监听" aria-label="停止监听">■</button></div></div>
+    <strong id="vp-title" class="vp-title">正在识别…</strong>
+    <div class="vp-subline"><span id="vp-provider" class="vp-pill">待检测</span><span id="vp-episode" class="vp-episode">集数未知</span></div>
+    <p id="vp-page-state" class="vp-state" role="status" aria-live="polite">正在读取活动文档</p>
+    <div class="vp-actions"><a id="vp-open" class="vp-primary" href="#" target="_blank" rel="noopener noreferrer" hidden>原站观看</a><button id="vp-copy" class="vp-secondary" type="button" disabled>复制页面链接</button></div>
+    <label id="vp-manual-wrap" class="vp-manual" hidden>手动复制链接<input id="vp-manual" readonly aria-label="手动复制的视频网页链接"></label>
+    <details id="vp-evidence" class="vp-help"><summary>识别依据与限制</summary><p id="vp-evidence-text">等待 Host 识别结果。</p></details>
+  </section>
+  <nav class="vp-tabs" aria-label="功能切换"><button type="button" data-vp-tab="watch" aria-pressed="true">观看</button><button type="button" data-vp-tab="member" aria-pressed="false">会员</button></nav>
+  <section id="vp-watch" class="vp-section" aria-label="观看与异常处理">
+    <div class="vp-route"><span class="vp-route-icon">▶</span><div><strong>原站官方播放器</strong><small>不会修改、静音或接管视频</small></div><span id="vp-route-state" class="vp-route-state">待识别</span></div>
+    <details class="vp-help"><summary>识别失败或视频已切换？</summary><p>检查 Chrome 网站访问权限，或重新识别当前活动视频页面。网页内 iframe 可能无法完整读取；不提供第三方解析。</p><button id="vp-recheck" class="vp-secondary" type="button">重新识别</button></details>
+  </section>
+  <section id="vp-member" class="vp-section" aria-label="会员记录" hidden>
+    <div class="vp-section-title">会员到期记录<span>手工登记 · 仅本机</span></div>
+    <form id="vp-member-form" class="vp-form">
+      <label>视频网站<select id="vp-member-provider"><option value="tencent">腾讯视频</option><option value="iqiyi">爱奇艺</option><option value="youku">优酷</option><option value="mango">芒果 TV</option><option value="bilibili">哔哩哔哩</option></select></label>
+      <label>到期日期<input id="vp-member-expiry" type="date" required></label>
+      <button id="vp-member-save" class="vp-primary" type="submit" disabled>保存</button>
+    </form>
+    <div id="vp-member-list" class="vp-members" aria-live="polite">正在读取本机记录…</div>
+  </section>
+  <p id="vp-flash" class="vp-flash" role="status" aria-live="polite" hidden></p>
+</main>
+</div>
+<p class="fixture-note">交互预览仅为模拟识别数据；真实 DOM、Chrome 授权与官方 Host 必须单独验收。</p></div>
+<script>
+(function(){
+ const episode=(n)=>({number:n,season:null,label:'第'+n+'集'});
+ const context=(title,n,revision)=>({siteId:'tencent',siteName:'腾讯视频',domain:'v.qq.com',
+   canonicalPageUrl:'https://v.qq.com/x/cover/demo/video.html?vid=example',title,
+   titleSource:'site-selector',titleConfidence:'high',
+   episode:n===null?'unknown':episode(n),episodeConfidence:n===null?'none':'high',
+   recognitionState:'recognized',recognitionReason:n===null?'episode-unknown':'site-evidence',
+   contentRevision:revision,partial:false,
+   evidence:{title:'[data-video-title]',episode:n===null?'none':'selected:[aria-current="page"]'}});
+ const pages={
+  tencent:context('示例剧集 A',12,'01234567'),
+  switch:context('示例剧集 B',3,'87654321'),
+  total:context('示例剧集 A',null,'01234444'),
+  unknown:{...context(null,null,'00000000'),siteId:null,siteName:null,
+    canonicalPageUrl:'https://example.org/learn',title:null,titleSource:'none',
+    titleConfidence:'none',recognitionState:'unsupported',recognitionReason:'unsupported-site'},
+  error:null
+ };
+ let scenario='tencent',rows=[],etag='0'.repeat(64),watching=false;
+ const root=document.getElementById('tool-root');
+ window.OpenDeskTool={root,request:async(operation,args={})=>{
+  await Promise.resolve();
+  if(operation==='videoSVIP.watch'){watching=scenario!=='unknown'&&scenario!=='error';return {watching};}
+  if(operation==='videoSVIP.stop'){watching=false;return {stopped:true};}
+  if(operation==='videoSVIP.inspect'){
+   if(scenario==='error')throw Object.assign(Error('模拟：Chrome 不允许读取此网站'),{code:'E_VIDEO_SITE_ACCESS'});
+   return structuredClone(pages[scenario]);
+  }
+  if(operation==='storage.get')return {value:rows,etag};
+  if(operation==='storage.set'){
+   if(args.ifMatch!==etag)throw Error('模拟：其他窗口修改');
+   rows=structuredClone(args.value);etag=etag[0]==='0'?'1'.repeat(64):'0'.repeat(64);return {etag};
+  }
+  throw Error('预览未实现操作 '+operation);
+ },setState:()=>{}};
+ for(const button of document.querySelectorAll('[data-demo]'))button.addEventListener('click',()=>{
+  scenario=button.dataset.demo;
+  for(const item of document.querySelectorAll('[data-demo]'))item.setAttribute('aria-pressed',String(item===button));
+  root.dispatchEvent(new Event('opendesk-page-changed'));
+ });
+})();
+</script><script src="../src/main.js"></script></body></html>

@@ -47,3 +47,16 @@ test('profile persists privately; failed refresh preserves it and binding cannot
     await assert.rejects(store.accounts(),/E_HISTORY_SCHEMA/);
   }finally{await rm(directory,{recursive:true,force:true});}
 });
+
+test('bounded history retains the current windows of an inactive account',async()=>{
+  const {emptyState,registerAccount,recordProbeResult,listAccounts,MAX_OBSERVATIONS}=await import('../services/ai-account-usage/domain.mjs');
+  let state=registerAccount(registerAccount(emptyState(),{alias:'old_01',displayName:'Inactive'}),{alias:'hot_01',displayName:'Active'});
+  const first=await probe();state=recordProbeResult(state,'old_01',first);
+  const sample={...state.observations[0],accountAlias:'hot_01'};
+  state.observations.push(...Array.from({length:MAX_OBSERVATIONS-1},(_,n)=>({...sample,observedAt:new Date(now+n+1).toISOString()})));
+  state.accounts.hot_01.lastSuccessAt=state.observations.at(-1).observedAt;
+  const newer=await probe({},now+MAX_OBSERVATIONS+1000);state=recordProbeResult(state,'hot_01',newer);
+  assert.equal(state.observations.length,MAX_OBSERVATIONS);
+  assert.equal(listAccounts(state).find(x=>x.alias==='old_01').windows.length,1);
+  assert.equal(listAccounts(state).find(x=>x.alias==='hot_01').windows[0].observedAt,newer.checkedAt);
+});

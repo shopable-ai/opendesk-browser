@@ -1,0 +1,42 @@
+<main class="video-speed" aria-label="视频倍速控制">
+  <div class="video-speed-context">
+    <div class="video-speed-video">
+      <span class="speed-video-icon" aria-hidden="true">▣</span>
+      <div class="speed-video-text"><strong>当前网页视频</strong><span id="speed-video-detail">正在检测…</span></div>
+    </div>
+    <button id="speed-refresh" class="speed-icon" type="button" title="重新检测视频" aria-label="重新检测视频">↻</button>
+  </div>
+
+  <section class="speed-meter" aria-label="实际播放倍速">
+    <div class="speed-meter-top"><span>当前实际倍速</span><span id="speed-verification" class="speed-verification" data-kind="neutral">检测中</span></div>
+    <div class="speed-meter-value"><strong id="speed-current" aria-live="polite" aria-atomic="true">—</strong><span id="speed-unit" hidden>×</span></div>
+    <p id="speed-message" class="speed-feedback" role="status" aria-live="polite">正在读取网页当前速度…</p>
+  </section>
+
+  <div class="speed-section"><strong>播放速度</strong><span>点击立即设置</span></div>
+  <div class="speed-presets" role="group" aria-label="选择播放倍速">
+    <button type="button" data-speed="0.75">0.75×</button>
+    <button type="button" data-speed="1">1×</button>
+    <button type="button" data-speed="1.25">1.25×</button>
+    <button type="button" data-speed="1.5">1.5×</button>
+    <button type="button" data-speed="1.75">1.75×</button>
+    <button type="button" data-speed="2">2×</button>
+    <button type="button" data-speed="3">3×</button>
+    <button type="button" data-speed="4">4×</button>
+  </div>
+
+  <div class="speed-section"><strong>精细调整</strong><span>每次 0.25×</span></div>
+  <div class="speed-adjust" role="group" aria-label="微调倍速">
+    <button type="button" id="speed-minus" aria-label="降低 0.25 倍">−</button>
+    <span>0.25× — 4×</span>
+    <button type="button" id="speed-plus" aria-label="提高 0.25 倍">+</button>
+  </div>
+
+  <section class="speed-shortcuts" aria-label="快捷键">
+    <div class="speed-shortcut-head"><strong>⌨ 快捷键</strong><button id="speed-shortcut-toggle" type="button" class="speed-toggle" role="switch" aria-checked="true" aria-label="启用快捷键" title="开启或关闭快捷键"></button></div>
+    <div class="speed-keys" id="speed-key-list">
+      <span><kbd>S</kbd>减速</span><span><kbd>D</kbd>加速</span><span><kbd>R</kbd>恢复 1×</span>
+    </div>
+    <p id="speed-shortcut-note" class="speed-shortcut-note" hidden></p>
+  </section>
+</main>

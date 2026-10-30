@@ -1,0 +1,17 @@
+{
+  "id": "video-svip",
+  "version": "0.3.0",
+  "title": "视频会员",
+  "description": "只读识别已授权视频页的片名、当前集数及 SPA 变化；提供原站入口和本机会员日期记录。不解锁 VIP。",
+  "capabilities": [
+    "currentPage.read",
+    "page.videoContext",
+    "storage.local"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": []
+}

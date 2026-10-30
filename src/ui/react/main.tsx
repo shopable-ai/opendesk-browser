@@ -16,13 +16,13 @@ import timeReviewHostCSS from '../../../projects/time-review/trusted/host.css?ra
 import bookmarkManagerHostCSS from '../../../projects/bookmark-manager/trusted/host.css?raw';
 import cookieEditorHostCSS from '../../../examples/sidebar-tools/cookie-editor/trusted/host.css?raw';
 import aiVipShareHostCSS from '../../../examples/sidebar-tools/ai-vip-share/trusted/host.css?raw';
-import promptShortcutsHostCSS from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/host.css?raw';
+import promptShortcutsHostCSS from '../../../projects/prompt-shortcuts/trusted/host.css?raw';
 import readingTocHostCSS from '../../../projects/reading-toc/trusted/host.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
 import localeManagerCSS from './tabs/locale-manager.css?raw';
-import KnowledgeWorkspace from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx';
-import knowledgeWorkspaceCSS from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/workspace.css?raw';
+import KnowledgeWorkspace from '../../../projects/ai-knowledge-answers/trusted/Workspace.jsx';
+import knowledgeWorkspaceCSS from '../../../projects/ai-knowledge-answers/trusted/workspace.css?raw';
 
 const PROMPT_PHASE_LABELS=Object.freeze({
  thinking:'正在理解提示词操作…',observing:'正在查找并核对提示词…',

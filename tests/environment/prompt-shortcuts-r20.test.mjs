@@ -6,9 +6,9 @@ import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {allowedPromptSite} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+import {allowedPromptSite} from '../../projects/prompt-shortcuts/trusted/policy.js';
 
-const root='examples/sidebar-tools/prompt-shortcuts';
+const root='projects/prompt-shortcuts';
 async function model(){
   const code=await readFile(root+'/trusted/model.js','utf8');
   const scope={URL,Intl,TextEncoder,crypto:webcrypto};

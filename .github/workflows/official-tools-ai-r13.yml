@@ -9,7 +9,7 @@ on:
       - 'src/ui/tool-shell.js'
       - 'src/ui/react/main.tsx'
       - 'src/ui/react/components/conversation.tsx'
-      - 'examples/sidebar-tools/prompt-shortcuts/**'
+      - 'projects/prompt-shortcuts/**'
       - 'tests/environment/opendesk-conversation-r13-prompt-business.test.mjs'
       - 'tests/environment/opendesk-conversation-r17-prompt-recovery.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'

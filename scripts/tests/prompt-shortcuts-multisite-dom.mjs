@@ -1,7 +1,7 @@
 import {
   deepSeekConversation,
   findDeepSeekBindings,
-} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/conversation-sites.js';
+} from '../../projects/prompt-shortcuts/trusted/conversation-sites.js';
 import {
   installJumpToTop,
   isLong,

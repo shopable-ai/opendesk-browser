@@ -21,8 +21,8 @@ test('legacy UI shows read-only upgrade guidance with normal management retained
   assert.match(text,/frameRoot\.hidden=.*[\s\S]*?legacyAdblock;/);
 });
 test('legacy cleanup and DNR authorization remain under installed package gates',async()=>{
-  const host=await readFile(new URL('../../examples/sidebar-tools/adblock/trusted/tool-host.js',import.meta.url),'utf8');
-  const cleanup=await readFile(new URL('../../examples/sidebar-tools/adblock/trusted/host-controls.js',import.meta.url),'utf8');
+  const host=await readFile(new URL('../../projects/adblock/trusted/tool-host.js',import.meta.url),'utf8');
+  const cleanup=await readFile(new URL('../../projects/adblock/trusted/host-controls.js',import.meta.url),'utf8');
   assert.match(host,/sameSidebarToolPackage/);
   assert.match(host,/requestBrowserClick/);
   assert.match(host,/event\?\.isTrusted!==true/);

@@ -1,3 +1,30 @@
+## R2.0 决策总表减法设计（2026-10-30）
+
+在正式 `web/main.jsx` / `style.css` 上直接迭代，继续使用 R1.9 的唯一 React 界面与同源 HTML 预览。
+
+- **身份：** 管理员设置的 `account.displayName` 是稳定标签，不是负责人；查询失败只作为状态。技术别名仍可搜索，但仅在详情显示；`identity.displayName` 与其来源独立保存，无法证实时不伪造姓名。
+- **总表：** 账号身份、会员资料（含已知到期）、当前缓存、独立额度窗口最近 7 次重置前剩余、管理结论、操作。来源、查询时间、内部代码、原始身份字段和错误详情放入折叠区。
+- **一致口径：** `projectAccountView` 同时供顶部计数、行内结论、筛选和排序使用；顶部只统计当前筛选结果，按各行所选窗口计算，明确区分历史加载中、读取失败与无所选窗口。`evaluateHistory` 的证据等级和固定 7 次阈值未改。
+- **成员管理：** 仅可能具有组织席位的 Business / Enterprise / Edu 显示官方成员管理指引，不推断管理员身份、不提交邀请、不分享 Token 或 Cookie。
+- **发布：** 构建仍从正式 React 生成 production 与纯虚构 preview；GitHub workflow 的真实测试、构建、预览发布和四张浏览器截图均须核验运行记录。Mac Chrome 独立验收，不拿 Linux Chrome 替代。
+
+---
+## R1.9 企业管理员决策视图（2026-10-30）
+
+本轮在原有 `web/main.jsx` / `web/model.mjs` / `web/style.css` 上差量改造；原历史库、额度读取、身份验证、管理员会话及 Cookie Editor Relay 均未重建。
+
+- 总表：账号名/邮箱、套餐与来源、已知到期、管理标签、当前缓存剩余及是否过期、独立窗口近 7 次已识别重置前柱图、7 次固定规则的管理结论。可搜索、状态筛选、排序、切换短/长额度窗口。
+- 统计：`web/usage-insights.mjs` 是正式 React 和预览共用的纯函数。仅统计 `CROSSED_PREDICTED_RESET` 且 `estimateQuality=NEAR_RESET_OBSERVATION`、有可靠数值及前置观测/间隔的事件；未确认预测变化、缺失值、无历史都不按 0。至少 4/7 可靠且至少 3/7 ≥80% 才为“值得关注”。详情的 10/20 次切换只改变显示范围，不改变 7 次关注基准。
+- 详情：原生 `<dialog>` 右侧抽屉、每窗口真实历史再读取、每根柱子可点击和键盘访问；账号资料、近重置估计、证据等级优先展示；错误与未证实记录折叠。没有引入 ECharts；7 根紧贴柱子的原生 CSS/SVG 图更轻量，没有额外运行时依赖。
+- 官方邀请指引：仅针对可能存在组织成员管理的 Business/Enterprise/Edu 账号显示入口。**当前 API 没有工作区身份、管理员权限或邀请操作**，故只在对话框指引管理员前往官方平台核实并发送邀请；不生成链接、不模拟成功、不共享 Cookie/Token。
+- 预览隔离：`web/demo-data.mjs` 是虚构账号/历史的只读适配器。正式构建 `npm run build:web` 会使用现有本机同源 API；仅 `npm run build:web:preview` 生成 `web/preview-dist/index.html` 的交互演示，界面有醒目“虚构数据”标记；演示刷新禁用且绝不写入真实历史。
+- 数据读取：总表每账号以最多四条并发的只读请求加载最多 500 条历史，以支持多独立窗口；详情以 `windowKey` 单独请求最多 20 条。不会自动刷新配额。实际手动刷新沿用原 API；单次失败保留原有历史。
+- 单元验证：`node --test tests/ai-account-usage-web-ui.test.mjs tests/ai-account-usage-decision.test.mjs`（执行后须记录真实结果，不以文档替代）；浏览器截图、1440/320/360/400/440/520px、200% 与 Mac Chrome 需独立验收。
+
+**验收边界：** GitHub 源码提交不代表构建通过、正式服务可用或 Mac Chrome 完成验收。未获得相应执行证据的项目统一标记 `NOT_TESTED`。
+
+---
+
 # OpenDesk Browser · AI 账号额度管理中心 R1.5（本机核心功能）
 
 **进度：参数化 Node 服务、显式账号来源、独立 React 账号列表/详情/手动刷新及私有历史已接通；2026-10-30 00:37 北京时间单账号 Node 查询 HTTP 200。Cookie-only 保留原 403 / challenge 记录，真实双账号隔离仍 `NOT_TESTED`。** 本文档不把模拟 HTTP 测试当作真实账号查询，也不把 OAuth 成功改写为 Cookie-only 成功。
@@ -18,7 +45,7 @@ npm run build:web --prefix services/ai-account-usage
 node services/ai-account-usage/manage.mjs serve --proxy http://127.0.0.1:7897
 ```
 
-打开 `serve` 在**本机终端**打印的一次性 `/pair#pair=…` 链接：有效期 5 分钟、使用后失效，立即从地址栏移除并换成 8 小时 HttpOnly / SameSite=Strict 会话。页面为同源会话入口，不持有只读 API 的服务秘密。服务绑定 `127.0.0.1` 随机端口，可用 `serve --port 43121` 指定空闲端口。关闭服务后会话失效；另一个浏览器须重启服务获取新链接。终端链接属于本机访问凭据，不分享。页面数据只在本机显示；详情含邮箱与账号 ID，不要上传截图。关闭终端/服务停止监听，无自动调度、自动刷新或模型推理。
+打开 `serve` 在**本机终端**打印的一次性 `/pair#pair=…` 链接：有效期 5 分钟、使用后失效，立即从地址栏移除并换成 8 小时 HttpOnly / SameSite=Strict 会话。页面为同源会话入口，不持有只读 API 的服务秘密。服务绑定 `127.0.0.1` 随机端口，通过每次启动独立的 `usage-<随机值>.localhost` 主机名访问，避免 Cookie 被发送到其他本机端口的服务；不修改 DNS 或系统配置。可用 `serve --port 43121` 指定空闲端口。关闭服务后会话失效；另一个浏览器须重启服务获取新链接。终端链接属于本机访问凭据，不分享。页面数据只在本机显示；详情含邮箱与账号 ID，不要上传截图。关闭终端/服务停止监听，无自动调度、自动刷新或模型推理。
 
 多账号使用管理员指定的本机 JSON 配置（不放入仓库，不含 Token/Cookie），每份 `path` 必须对应其明确授权的独立账号快照：
 
@@ -34,6 +61,8 @@ node services/ai-account-usage/manage.mjs refresh --config /absolute/accounts.js
 node services/ai-account-usage/manage.mjs refresh --config /absolute/accounts.json --all
 node services/ai-account-usage/manage.mjs serve --config /absolute/accounts.json
 ```
+
+历史写入在完整读改写事务上使用私有跨进程排他锁。CLI / 页面写入竞争返回明确 `E_HISTORY_BUSY`，不自动重新查询上游；旧成功数据可继续读取。进程异常退出留下的 `.history-v1.lock` 不会被自动删除，须由管理员确认全部写入进程已停止后清理该锁，历史文件无需删除。历史裁剪会保留各账号最新成功窗口。CLI 参数/服务错误退出码为 1，逐账号查询失败为 2，成功为 0。
 
 认证文件必须是当前用户拥有的私有普通文件（0600/0400），拒绝末级符号链接、目录、超大文件。不会扫描其他认证目录，不复制或刷新认证，不修改 Chrome 登录。首次从已授权文件提取缓存身份，再由上游双 ID 和邮箱比对验证；成功绑定后，换成另一个账号的文件会在联网前拒绝，不能重用 alias 静默覆盖历史。同一已验证用户/工作区不得再绑定到另一个 alias。更改账号请使用新的 alias 和独立授权。
 
@@ -78,7 +107,7 @@ await service.query({alias:'codex_local_01',operation:'history',limit:20});
 | 重置时间 | `2026-11-04T06:35:41.000Z`（北京时间 11 月 4 日 14:35:41） |
 | 会员到期时间 | 未知；不使用额度重置或缓存订阅声明代替 |
 
-该次本机 Python 标准库 harness 验证了真实协议；新增 Node 适配器随后通过离线定向测试，**尚未以该 Node 适配器重复真实请求**。实测只提取主 `rate_limit`，不声称穷尽额外额度桶或 ChatGPT 所有模型限额。源 auth 与 Cookie JSON 在查询前后哈希相同；Chrome 登录、Cookie Editor Vault 不变性和官方页面对照仍为 `NOT_TESTED`。没有第二份已授权 Codex 凭据，不搜索其他项目或备份补足账号。[OAuth 独立实测证据](evidence/r14-codex-oauth-live-20261029.json)。
+该次本机 Python 标准库 harness 验证了真实协议；新增 Node 适配器随后通过离线定向测试，**上轮结束时尚未使用该 Node 适配器真实请求；本轮结果见前文**。实测只提取主 `rate_limit`，不声称穷尽额外额度桶或 ChatGPT 所有模型限额。源 auth 与 Cookie JSON 在查询前后哈希相同；Chrome 登录、Cookie Editor Vault 不变性和官方页面对照仍为 `NOT_TESTED`。没有第二份已授权 Codex 凭据，不搜索其他项目或备份补足账号。[OAuth 独立实测证据](evidence/r14-codex-oauth-live-20261029.json)。
 
 选择单次 GET 的依据是与 CLI `0.164.0` 对应的官方源码提交 `6aaac694803004a63c6f393d153c96d22521a6b9`：[固定 usage 路径](https://github.com/openai/codex/blob/6aaac694803004a63c6f393d153c96d22521a6b9/codex-rs/backend-client/src/client/rate_limit_resets.rs#L124-L128)、[认证与账号头](https://github.com/openai/codex/blob/6aaac694803004a63c6f393d153c96d22521a6b9/codex-rs/backend-client/src/client.rs#L269-L289)、[服务端双 ID 比对](https://github.com/openai/codex/blob/6aaac694803004a63c6f393d153c96d22521a6b9/codex-rs/app-server/src/request_processors/account_processor.rs#L1227-L1237)。这是官方客户端的内部协议实现证据，不是稳定公开 HTTP API 的承诺。
 
@@ -166,7 +195,7 @@ const api = await startReadApi({store});
 
 可信主进程须指定 `createCollector({store, mode:'CODEX_OAUTH', loadAuthorizedAccount})`；提供者只在内存返回 `{alias, authorized:true, snapshot, expectedIdentity}`，并由授权记录固定 alias 与同一账号的绑定。`snapshot` 形状为 `{authMode:'chatgpt', accessToken, idToken, accountId}`，`expectedIdentity` 为 `{userId, accountId, email?}`；不传 Refresh Token。Codex 私有文件提供者已由 `authorized-sources.mjs` 接通；不能由普通网页或 HTTP Query 提供这些数据。
 
-原 CLI 默认 Cookie-only；可信 stdin JSON 只有显式 `mode:'CODEX_OAUTH'` 才调用 OAuth。无任何自动认证降级。Node 默认传输使用单次原生 `https.request`，不发现系统代理、不复制 Codex 配置；本机真实 harness 则显式沿用系统 `127.0.0.1:7897`。因此当前 默认直连路径仍未实测；本轮只证明显式 Node CONNECT 路径，不会自动切换代理。
+原 CLI 默认 Cookie-only；可信 stdin JSON 只有显式 `mode:'CODEX_OAUTH'` 才调用 OAuth。无任何自动认证降级。Node 默认传输使用单次原生 `https.request`，不发现系统代理、不复制 Codex 配置；本机真实 harness 则显式沿用系统 `127.0.0.1:7897`。默认直连路径仍未实测；本轮只证明显式 Node CONNECT 路径，不会自动切换代理。
 
 ## 套餐命名与使用条款注意
 
