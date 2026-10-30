@@ -1,0 +1,93 @@
+{
+  "format": "scrapyjs.runtime-identity-repair.v1",
+  "date": "2026-10-30",
+  "owner": "01a18c16-88ce-7ae3-ac04-d28269b63de5",
+  "scope": "Repair installed App Start capture rejection on the current Douban page; preserve saved configurations and the existing runtime identity guard.",
+  "reproduction": {
+    "appVersion": "1.6.3",
+    "taskVersion": "0.4.0",
+    "configuration": "豆瓣核心",
+    "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
+    "action": "Click 开始采集 in the original installed Sidebar App",
+    "result": "内置运行时已改变或旧版本未记录身份；请保存新版本并重新验证",
+    "cause": "The fixed Task retained an older builtin runtime verification identity. Capture configuration saving does not reverify an immutable Task revision.",
+    "failureBoundary": "Task preparation failed before tasks.start; no automatic replay or guard bypass."
+  },
+  "runtime": {
+    "browser": "Chrome for Testing 149.0.7827.55",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "hostInstanceId": "f54d16ed-bb3b-45fd-b7bc-7b6c7cdf7f37",
+    "mode": "Existing development Browser and installed Sidebar App",
+    "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "loadedRootEvidence": "Previously verified by the preceding owner; no Browser path switch, rebuild, reload or reinstall in this repair.",
+    "serveClientConnection": "NOT_RECHECKED in this repair; preceding owner observed connected, which does not prove the current connection.",
+    "watchers": "Existing App Vite build watcher and staging watcher reused; Browser output and services not overwritten or stopped.",
+    "nativeUiLease": "Acquired using chatgpt-test-profiles and released after leaving the completed capture visible."
+  },
+  "task": {
+    "version": "0.4.1",
+    "sourceHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+    "sourceEqualsPreviousTask": true,
+    "manifestHash": "d68502a39d207a4a1a26cfb441e613cff417bfdcf714f96dbf77d2862311506c",
+    "packageSha256": "9fa0b6429e3a6422079518f046c7d08dd03108968f74302db53451cdfb1078f8",
+    "origins": ["http://127.0.0.1:43111", "https://book.douban.com", "https://download.csdn.net"],
+    "permissions": ["page.automation"],
+    "sameSourceVerificationRunId": "126069ec-8f3d-4a75-8ac7-621f6724c5e2",
+    "verification": "Original 开发 imported the fixed compiled draft, ran it on the Douban target, and showed completed/resources released with the matching source hash. Original task catalog then confirmed persistent run and page-native receipts, enabled local availability, and installed 0.4.1.",
+    "installed": true,
+    "installedUiEvidence": "本地可用 · v0.4.1 · 已安装",
+    "shippedPath": "controller/scrapyjs.opendesk-task.json"
+  },
+  "app": {
+    "version": "1.6.4",
+    "packageBytes": 84235,
+    "packageSha256": "42fdb94d777947d3e2921b045656f0278111b56e707d724a2288ce91b61d7ecb",
+    "buildId": "0b4c94709824d9c8d6289101c56ce2f4fd10fdbb69ec9122d768435906324d42",
+    "installed": true,
+    "installedVia": "Original 扩展 → 导入扩展 → review 当前 v1.6.3 → 新 v1.6.4 / 权限未变化 / 原有应用数据保留 → 确认更新",
+    "capabilities": ["ai.generate", "storage.local", "currentPage.read", "user.export", "tasks.run"],
+    "shippedPath": "scrapyjs.opendesk-tool.json",
+    "promotion": "Original build-sidebar-tool.mjs --promote-from accepted the tested candidate; package bytes equal the installed candidate. This does not constitute production acceptance."
+  },
+  "actualCoreOperation": {
+    "result": "PASS",
+    "configuration": "豆瓣核心",
+    "action": "Open installed App 1.6.4 and click 开始采集 without changing or saving the configuration",
+    "records": 20,
+    "fields": 11,
+    "visibleState": "采集完成 / 共 20 条记录 / 配置已保存",
+    "clientRequestId": "3ecad6f6-ff06-4208-b3c6-b26208287e94",
+    "runId": "9a2e9690-9a8b-45e5-bc28-e1782e0fb294",
+    "resultId": "c2a9a0a9-cb83-4654-ab40-37800a4d1c0d",
+    "hostState": "completed",
+    "engineState": "completed",
+    "retirementState": "released",
+    "firstRecord": {"title": "Claude Code实战 Harness工程之道", "rating": "8.8", "url": "https://book.douban.com/subject/38445510/"},
+    "lastRecord": {"title": "用Go语言自制编译器", "rating": "9.2", "url": "https://book.douban.com/subject/35909089/"},
+    "capture": "Native AX observations in this chat; no synthetic page execution or forged persistent verification record."
+  },
+  "targetedChecks": [
+    {"check": "New stale-task and failed-preparation regressions against old adapter", "result": "EXPECTED_FAIL", "failed": 2},
+    {"command": "node --test examples/sidebar-tools/scrapyjs/tests/app-model.test.mjs", "result": "PASS", "passed": 20},
+    {"command": "node --check examples/sidebar-tools/scrapyjs/adapters/app-sdk.js", "result": "PASS"},
+    {"command": "node --test examples/sidebar-tools/scrapyjs/tests/profiles.test.mjs", "result": "PASS", "passed": 11},
+    {"check": "Candidate App/Task package test with SCRAPYJS_CANDIDATE and SCRAPYJS_TASK_CANDIDATE", "result": "PASS", "passed": 1},
+    {"command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --check-project", "result": "PROJECT_PACKAGE_MATCH"},
+    {"command": "node --test examples/sidebar-tools/scrapyjs/tests/package.test.mjs", "result": "PASS", "passed": 1, "purpose": "Verify promoted App bytes against current source and the shipped Task revision"},
+    {"command": "git diff --check", "result": "PASS"}
+  ],
+  "preservedBoundaries": {
+    "frameworkSourceChanged": false,
+    "runtimeIdentityGuardWeakened": false,
+    "captureEngineChanged": false,
+    "scrapyJsAndScrapyJsChromeRepositoriesChanged": false,
+    "newPermissionsOrOrigins": false,
+    "configurationWritePerformed": false,
+    "originalAiRequestId": "cb6d0e92-0e45-4ae0-a30c-96377d535106",
+    "originalAiRequestState": "unknown; not reconciled by this repair",
+    "newInferenceRequests": 0,
+    "pendingAiStateClearedOrReplayed": false
+  },
+  "notTested": ["production acceptance", "AI proposal generation/application/save chain", "original AI request terminal", "CSDN under the new runtime", "new Stop and download native runs", "independent scoring", "full lifecycle/host/SDK/stress/zoom/width matrices"],
+  "git": {"branch": "main", "branchWorktreeOrPrCreated": false, "parallelChangesPreserved": true}
+}

@@ -13,7 +13,14 @@
     return {
       currentPage: () => request('currentPage.info', {}),
       async prepare() {
-        const resolved = await request('tasks.read', {taskId: TASK_ID});
+        task = undefined;
+        let resolved;
+        try {resolved = await request('tasks.read', {taskId: TASK_ID});}
+        catch (error) {
+          if (error.code === 'E_BUILTIN_VERSION_UNAVAILABLE') throw Object.assign(new Error(
+            '固定采集任务与当前运行时不匹配；请更新 scrapyjs 应用及其固定采集任务。采集配置已保留，保存配置不会更新任务验证。'), {code: error.code});
+          throw error;
+        }
         if (!resolved?.task) throw new Error('请先经原安装审阅链安装固定采集 Task');
         task = resolved.task;
       },
