@@ -993,8 +993,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       },'*');
     return response.data;
   }
+  // Only the active, officially admitted iframe has a keyboard session.
+  // Page key listeners never receive direct media/Chrome mutation authority.
+  let videoShortcutSession=null,videoShortcutBusy=false;
   let sidebarAI=null;
   function destroyFrame() {
+    videoShortcutSession=null;
     sidebarAI?.dispose();sidebarAI=null;
     if(taskDelegationHost){void taskDelegationHost.dispose();taskDelegationHost=null;}
     developmentStorage?.revoke();developmentStorage=null;
@@ -3139,14 +3143,46 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
 
       if(operation==='currentPage.info')return currentPageInfo(currentPageTarget?.snapshot);
-      if(VIDEO_SPEED_OPERATIONS.includes(operation))return requestVideoSpeed({
-        api,tool,operation,payload,currentPageTarget,revocationEpoch,
-        assertCurrent:()=>assertSession(source,token),
-        assertInstalled:async()=>{
-          if(!await admittedOfficialVideoSpeed(tool,revocationEpoch))
-            throw Object.assign(new Error('视频倍速需要审阅并安装同版本官方工具，请从扩展中心重新安装'),{code:'E_VIDEO_TRUST'});
+      if(VIDEO_SPEED_OPERATIONS.includes(operation)){
+        const runVideo=(name,args={},shortcutNonce=null)=>requestVideoSpeed({
+          api,tool,operation:name,payload:args,currentPageTarget,revocationEpoch,shortcutNonce,
+          assertCurrent:()=>assertSession(source,token),
+          assertInstalled:async()=>{
+            if(!await admittedOfficialVideoSpeed(tool,revocationEpoch))
+              throw Object.assign(new Error('视频倍速需要审阅并安装同版本官方工具，请从扩展中心重新安装'),{code:'E_VIDEO_TRUST'});
+          }
+        });
+        if(operation==='videoSpeed.shortcuts.enable'){
+          if(!frame||active!==tool||frame.contentWindow!==source||
+             typeof globalThis.crypto?.randomUUID!=='function'||
+             typeof api.runtime?.onMessage?.addListener!=='function')
+            throw Object.assign(new Error('网页快捷键所需的可信会话不存在'),{code:'E_VIDEO_SHORTCUT'});
+          const page=currentPageTarget?.capture();
+          videoShortcutSession=null;
+          const nonce=globalThis.crypto.randomUUID();
+          const result=await runVideo(operation,{},nonce);
+          assertSession(source,token);
+          if(!frame||active!==tool||frame.contentWindow!==source||
+             currentPageTarget?.snapshot?.documentId!==page?.documentId||
+             currentPageTarget?.snapshot?.tabId!==page?.tabId)
+            throw Object.assign(new Error('网页已切换，请重新启用快捷键'),{code:'E_DOCUMENT_STALE'});
+          videoShortcutSession={nonce,tabId:page.tabId,documentId:page.documentId,
+            source,token,tool,epoch:revocationEpoch};
+          return result;
         }
-      });
+        if(operation==='videoSpeed.shortcuts.disable'){
+          // Revoke the capability synchronously BEFORE trying to remove the
+          // inert page signaler. A stale/inaccessible document cannot bypass it.
+          videoShortcutSession=null;
+          try{return await runVideo(operation);}
+          catch(error){
+            if(['E_DOCUMENT_STALE','E_VIDEO_SITE_ACCESS','E_VIDEO_TARGET','E_VIDEO_DOCUMENT'].includes(error?.code))
+              return {enabled:false,listenerRemoved:false};
+            throw error;
+          }
+        }
+        return runVideo(operation,payload);
+      }
       if(operation==='toc.snapshot'||operation==='toc.navigate'){
         if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||!api.tabs?.sendMessage)
           throw new Error('当前网页的目录服务不可用');
@@ -4654,6 +4690,66 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
   });
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
+  // Runtime messages originate only from our fixed isolated-world listener.
+  // Neither page JS nor an untrusted Sidebar Tool can present the secret nonce.
+  const onVideoShortcutMessage=(data,sender)=>{
+    const session=videoShortcutSession;
+    if(disposed||!session||videoShortcutBusy||
+       data?.protocol!=='opendesk.video-speed.shortcut.v1'||
+       data.nonce!==session.nonce||!['s','d','r'].includes(data.key)||
+       sender?.id!==api.runtime.id||sender?.frameId!==0||
+       sender?.tab?.id!==session.tabId||sender?.documentId!==session.documentId)
+      return;
+    const check=()=>{
+      if(disposed||videoShortcutSession!==session||!frame||
+         active!==session.tool||instance!==session.token||
+         frame.contentWindow!==session.source)
+        throw Object.assign(new Error('快捷键会话已经关闭'),{code:'E_VIDEO_SHORTCUT_STALE'});
+      assertSession(session.source,session.token);
+      const target=currentPageTarget.capture();
+      if(target.tabId!==session.tabId||target.documentId!==session.documentId)
+        throw Object.assign(new Error('网页已经切换'),{code:'E_DOCUMENT_STALE'});
+    };
+    const emit=(kind,details={})=>{
+      if(!disposed&&videoShortcutSession===session&&frame?.contentWindow===session.source)
+        session.source.postMessage({protocol:'opendesk.video-speed.shortcut.v1',
+          kind,key:data.key,...details},'*');
+    };
+    const run=(operation,payload={})=>requestVideoSpeed({
+      api,tool:session.tool,operation,payload,currentPageTarget,revocationEpoch:session.epoch,
+      assertCurrent:check,
+      assertInstalled:async()=>{
+        check();
+        if(!await admittedOfficialVideoSpeed(session.tool,session.epoch))
+          throw Object.assign(new Error('视频倍速工具已撤权或版本变化'),{code:'E_VIDEO_TRUST'});
+      }
+    });
+    videoShortcutBusy=true;
+    void (async()=>{
+      try{
+        check();
+        const read=await run('videoSpeed.status',{});
+        check();
+        if(read.status!=='available'||!Number.isFinite(read.speed))
+          throw Object.assign(new Error('当前网页没有可控制的视频'),{code:'E_VIDEO_NOT_FOUND'});
+        const desired=data.key==='r'?1:data.key==='s'?read.speed-.25:read.speed+.25;
+        const speed=Number(Math.max(.25,Math.min(4,desired)).toFixed(2));
+        emit('pending',{requested:speed});
+        const result=Math.abs(speed-read.speed)<.001?
+          {...read,requested:speed,verified:true}:
+          await run('videoSpeed.set',{speed});
+        check();
+        emit('verified',{result});
+      }catch(error){
+        emit('error',{code:String(error?.code||'E_VIDEO_SHORTCUT').slice(0,64),
+          message:String(error?.message||'网页快捷键设置失败').slice(0,160)});
+      }finally{videoShortcutBusy=false;}
+    })();
+  };
+  if(api.runtime?.onMessage?.addListener){
+    api.runtime.onMessage.addListener(onVideoShortcutMessage);
+    listeners.push(()=>api.runtime.onMessage.removeListener(onVideoShortcutMessage));
+  }
   const messageWindow=window;
   messageWindow.addEventListener('message',onMessage);
   listeners.push(()=>messageWindow.removeEventListener('message',onMessage));
@@ -4724,6 +4820,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const nextPage=pageKey();
       if(nextPage===previousPage)return;
       previousPage=nextPage;
+      // A navigated document must never reuse a previous key capability.
+      videoShortcutSession=null;
        cookieImportGate.revoke();
        cookieWriteGate.revoke();
        cookieClearGate.revoke();
