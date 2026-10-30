@@ -1,8 +1,8 @@
 {
   "id": "video-speed-controller",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "title": "视频倍速",
-  "description": "在侧边栏调节 HTML5 视频倍速并独立读回；支持默认开启的 S/D/R 快捷键。",
+  "description": "调节 HTML5 视频倍速并独立读回；可明确开启全局模式，在同一 Chrome Profile 已授权网站沿用倍速，关闭侧栏仍生效；可停止并尝试恢复已控制视频 1×。",
   "capabilities": [
     "page.videoSpeed",
     "storage.local"

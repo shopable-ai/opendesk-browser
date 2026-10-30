@@ -11,6 +11,13 @@
     <p id="speed-message" class="speed-feedback" role="status" aria-live="polite">正在读取网页当前速度…</p>
   </section>
 
+  <section class="speed-global" aria-label="全局倍速设置">
+    <div class="speed-shortcut-head"><strong>全局倍速</strong><button id="speed-global-toggle" type="button" class="speed-toggle" role="switch" aria-checked="false" aria-label="全局倍速" aria-describedby="speed-global-scope" disabled></button></div>
+    <div class="speed-global-target"><span id="speed-global-target" aria-live="polite">共享目标 · 未开启</span><button id="speed-global-stop" type="button" disabled>停止</button></div>
+    <p id="speed-global-scope" class="speed-shortcut-note">本 Profile 已授权网站的可见页面主视频 / 播放中视频；关闭侧栏仍生效。</p>
+    <p id="speed-global-note" class="speed-global-note" role="status" aria-live="polite">正在读取全局设置…</p>
+  </section>
+
   <div class="speed-section"><strong>播放速度</strong><span>点击立即设置</span></div>
   <div class="speed-presets" role="group" aria-label="选择播放倍速">
     <button type="button" data-speed="0.75">0.75×</button>

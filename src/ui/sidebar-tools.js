@@ -51,7 +51,7 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPA
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../../projects/web-markdown-clipper/trusted/policy.js';
 import {CLIP_NOTES_OPERATIONS,executeClipNotes} from '../../projects/web-markdown-clipper/trusted/notes-store.js';
 import {installedSiteAllowed,blockedInstalledOrigins} from './sidebar-tools/site-grants.js';
-import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY,VIDEO_SPEED_OPERATIONS} from '../../projects/video-speed-controller/trusted/policy.js';
+import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY,VIDEO_SPEED_OPERATIONS,VIDEO_SPEED_GLOBAL_PROTOCOL,VIDEO_SPEED_GLOBAL_STORE,VIDEO_SPEED_GLOBAL_OPERATIONS,globalVideoSpeedState} from '../../projects/video-speed-controller/trusted/policy.js';
 import {requestVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
 import {admitsOfficialVideoSpeed} from '../../projects/video-speed-controller/trusted/admission.js';
 import {VIDEO_SVIP_ID,VIDEO_SVIP_CAPABILITY,VIDEO_SVIP_OPERATIONS,VIDEO_SVIP_WATCH_PORT} from '../../projects/video-svip/trusted/policy.js';
@@ -396,7 +396,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'tasks.run':'运行已审阅的固定任务、读取结果及停止原实例',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
     'page.clip':'按点击读取当前网页的正文或选区，安装后直接可用',
-    'page.videoSpeed':'仅对当前授权网页的一段 HTML5 视频进行有限倍速调整及读回',
+    'page.videoSpeed':'调节已授权网页主/播放中 HTML5 视频；明确开启全局模式后跨网页沿用倍速，关闭侧栏仍生效；可停止并尝试恢复已控制视频 1×',
     'page.videoContext':'只读识别已授权视频网页的片名、当前集数与页面变化；不读取会员凭证或视频流',
     'user.export':'复制文本或请求文件下载',
     'page.capture':'安装后在支持的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
@@ -2969,7 +2969,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
        operation==='currentPage.info'?'currentPage.read':
        operation==='tasks.open'?'tasks.open':
        ['toc.snapshot','toc.navigate'].includes(operation)?TOC_CAPABILITY:
-       VIDEO_SPEED_OPERATIONS.includes(operation)?VIDEO_SPEED_CAPABILITY:
+       (VIDEO_SPEED_OPERATIONS.includes(operation)||VIDEO_SPEED_GLOBAL_OPERATIONS.includes(operation))?VIDEO_SPEED_CAPABILITY:
         VIDEO_SVIP_OPERATIONS.includes(operation)?VIDEO_SVIP_CAPABILITY:
         CLIP_OPERATIONS.includes(operation)?CLIP_CAPABILITY:
       CLIP_NOTES_OPERATIONS.includes(operation)?'storage.local':
@@ -3069,6 +3069,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         error.code=response?.error?.code||'E_KNOWLEDGE';throw error;}
       return response.data;
     }
+    if(VIDEO_SPEED_GLOBAL_OPERATIONS.includes(operation)){
+      if(tool.id!==VIDEO_SPEED_ID||!await admittedOfficialVideoSpeed(tool,revocationEpoch))
+        throw Object.assign(new Error('全局倍速需有效的官方安装'),{code:'E_VIDEO_TRUST'});
+      assertSession(source,token);
+      const response=await api.runtime.sendMessage({protocol:VIDEO_SPEED_GLOBAL_PROTOCOL,
+        toolId:tool.id,installEpoch:revocationEpoch,operation,payload});
+      assertSession(source,token);
+      if(response?.ok!==true)throw Object.assign(new Error(response?.error?.message||'全局操作结果未知，请刷新核对，勿自动重试'),
+        {code:response?.error?.code||'E_OUTCOME_UNKNOWN'});
+      return response.data;
+    }
     return locked('tool:'+tool.id,async()=>{
       assertSession(source,token);
       await assertSidebarToolEnabled(api,tool.id);
@@ -3161,8 +3172,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
 
       if(operation==='currentPage.info')return currentPageInfo(currentPageTarget?.snapshot);
       if(VIDEO_SPEED_OPERATIONS.includes(operation)){
+        const globalSet=operation==='videoSpeed.set'&&payload&&Object.hasOwn(payload,'expectedRevision');
+        if(globalSet&&(Object.keys(payload).sort().join(',')!=='expectedRevision,speed'||
+          typeof payload.expectedRevision!=='string'||!payload.expectedRevision||payload.expectedRevision.length>64))
+          throw Object.assign(new Error('全局倍速版本无效'),{code:'E_SCHEMA'});
+        const expectedRevision=globalSet?payload.expectedRevision:'';
         const runVideo=(name,args={},shortcutNonce=null)=>requestVideoSpeed({
           api,tool,operation:name,payload:args,currentPageTarget,revocationEpoch,shortcutNonce,
+          globalRevision:expectedRevision,
           assertCurrent:()=>{
             assertSession(source,token);
             if(name==='videoSpeed.shortcuts.enable'&&
@@ -3179,6 +3196,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             }
             if(!await admittedOfficialVideoSpeed(tool,revocationEpoch))
               throw Object.assign(new Error('视频倍速需要审阅并安装同版本官方工具，请从扩展中心重新安装'),{code:'E_VIDEO_TRUST'});
+            if(expectedRevision){
+              const raw=(await api.storage.local.get(VIDEO_SPEED_GLOBAL_STORE))[VIDEO_SPEED_GLOBAL_STORE];
+              const release=officialReleases.find(row=>row.toolId===VIDEO_SPEED_ID&&row.version===tool.version);
+              const state=globalVideoSpeedState(raw,revocationEpoch,release?.sha256);
+              if(!state.enabled||state.revision!==expectedRevision||state.speed!==args.speed)
+                throw Object.assign(new Error('全局倍速已停止或变化，请重新检测'),{code:'E_VIDEO_CHANGED'});
+            }
           }
         });
         if(operation==='videoSpeed.shortcuts.enable'){
@@ -3212,7 +3236,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             return {enabled:false,listenerRemoved:false};
           }
         }
-        return runVideo(operation,payload);
+        return runVideo(operation,globalSet?{speed:payload.speed}:payload);
       }
       if(VIDEO_SVIP_OPERATIONS.includes(operation)){
         const runVideoSVIP=(name,watchNonce=null)=>requestVideoSVIP({
@@ -3544,6 +3568,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Other Side Panels may update/uninstall a tool. Revoke the old iframe immediately.
   const onToolStorageChanged=(changes,area)=>{
     if(disposed||area!=='local')return;
+    if(Object.hasOwn(changes||{},VIDEO_SPEED_GLOBAL_STORE)&&active?.id===VIDEO_SPEED_ID&&
+       frame?.contentWindow&&!readOnlyPreview){
+      // Raw local state is only a change notification. SW independently admits
+      // the current installation before projecting an enabled preference.
+      const currentFrame=frame,currentInstance=instance,currentTool=active,epoch=frameRevocationEpoch;
+      void api.runtime.sendMessage({protocol:VIDEO_SPEED_GLOBAL_PROTOCOL,toolId:VIDEO_SPEED_ID,
+        operation:'videoSpeed.global.status',payload:{},installEpoch:epoch}).then(response=>{
+        if(!disposed&&frame===currentFrame&&instance===currentInstance&&active===currentTool&&response?.ok)
+          frame.contentWindow.postMessage({protocol:VIDEO_SPEED_GLOBAL_PROTOCOL,kind:'preference',state:response.data},'*');
+      }).catch(()=>{});
+    }
     if(Object.hasOwn(changes||{},sidebarToolStorageKey(VIDEO_SPEED_ID))){
       const value=changes[sidebarToolStorageKey(VIDEO_SPEED_ID)]?.newValue;
       const enabled=Boolean(value&&typeof value==='object'&&!Array.isArray(value)&&
@@ -4825,7 +4860,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       try{
         // Match sidebar requests: install, disable and revocation use this
         // same tool lock. A key signal cannot bypass an in-flight lifecycle edit.
-        await locked('tool:'+session.tool.id,async()=>{
+        const outcome=await locked('tool:'+session.tool.id,async()=>{
           check();
           const read=await run('videoSpeed.status',{});
           check();
@@ -4838,8 +4873,25 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             {...read,requested:speed,verified:true}:
             await run('videoSpeed.set',{speed});
           check();
-          emit('verified',{result});
+          return {result,speed};
         });
+        check();
+        const state=await api.runtime.sendMessage({protocol:VIDEO_SPEED_GLOBAL_PROTOCOL,
+          toolId:VIDEO_SPEED_ID,installEpoch:session.epoch,operation:'videoSpeed.global.status',payload:{}});
+        check();
+        if(state?.ok!==true)throw Object.assign(new Error('当前视频已调整，全局状态未确认，请刷新核对'),
+          {code:state?.error?.code||'E_OUTCOME_UNKNOWN'});
+        if(state.data.enabled){
+          const configured=await api.runtime.sendMessage({protocol:VIDEO_SPEED_GLOBAL_PROTOCOL,
+            toolId:VIDEO_SPEED_ID,installEpoch:session.epoch,operation:'videoSpeed.global.sync',
+            payload:{expectedRevision:state.data.revision,speed:outcome.speed}});
+          check();
+          if(configured?.ok!==true)throw Object.assign(new Error('当前视频已调整，全局目标尚未确认，请刷新核对'),
+            {code:configured?.error?.code||'E_OUTCOME_UNKNOWN'});
+          if(configured.data?.superseded)throw Object.assign(new Error('全局设置已变化，先前读数已失效，请重新检测'),
+            {code:'E_VIDEO_CHANGED'});
+        }
+        emit('verified',{result:outcome.result});
       }catch(error){
         emit('error',{code:String(error?.code||'E_VIDEO_SHORTCUT').slice(0,64),
           message:String(error?.message||'网页快捷键设置失败').slice(0,160)});

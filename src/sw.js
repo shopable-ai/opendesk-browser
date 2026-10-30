@@ -17,6 +17,7 @@ import {installAnalyticsHost} from './analytics/host.js';
 import {readAnalyticsAuthorityProjection} from './analytics/authority-projection.js';
 import {installedKey as taskInstalledKey} from './platform/tasks/contract.js';
 import {installChatGPTBridgeTriggerGate} from './native-agent/chatgpt-bridge-trigger-gate.js';
+import {installGlobalVideoSpeedService} from '../projects/video-speed-controller/trusted/service.js';
 
 
 export function initServiceWorker({development=null}={}) {
@@ -24,6 +25,7 @@ let pendingFoundation=0;
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
 // One-use bridge trigger fence only. Foundation Authority/RunHost remain the sole executors.
 installChatGPTBridgeTriggerGate({api:chrome});
+installGlobalVideoSpeedService({api:chrome});
 // Isolated trusted telemetry sidecar attaches after the single Foundation
 // instance is created. This must never create a second IndexedDB owner.
 // Validated foundation ports are shared only with the fixed local Native

@@ -935,8 +935,13 @@ async function videoShortcutHostFixture(t){
   const listeners=new Set(),calls=[],lockCalls=[],baseLocks=sharedLocks();
   const locks={request(name,work){lockCalls.push(name);return baseLocks.request(name,work);}};
   let rate=1,removeFails=false;
+  const globalCalls=[];
+  let globalReply=async()=>({ok:true,data:{enabled:false,speed:1,revision:''}});
   const f=await hostFixture(t,{tool,store,target,locks,configureApi(api){
     api.runtime.id='test';
+    api.runtime.sendMessage=async message=>{
+      globalCalls.push(message);return globalReply(message);
+    };
     api.runtime.onMessage={addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)};
     api.webNavigation={getAllFrames:async()=>[{...page}]};
     api.scripting={executeScript:async req=>{
@@ -958,8 +963,12 @@ async function videoShortcutHostFixture(t){
   const nonce=calls.find(req=>req.args[0]==='shortcut-on').args[3];
   const signal={protocol:'opendesk.video-speed.shortcut.v1',nonce,key:'d'};
   const sender={id:'test',frameId:0,tab:{id:4},documentId:'video-doc'};
-  return {...f,tool,locks,lockCalls,calls,signal,sender,response,target,
+  return {...f,tool,locks,lockCalls,calls,globalCalls,signal,sender,response,target,
     emitSignal(data=signal,from=sender){for(const listener of listeners)listener(data,from);},
+    setGlobalReply(reply){globalReply=reply;},
+    setGlobalState(enabled,speed=2,revision='global-A'){
+      f.store.set('opendesk.video-speed.global.v1',{enabled,speed,revision,epoch,packageHash:release.sha256});
+    },
     setRemoveFails(){removeFails=true;},get rate(){return rate;}};
 }
 test('video shortcut receiver rejects forged sender and nonce, then independently verifies a valid key',async t=>{
@@ -980,6 +989,59 @@ test('video shortcut receiver rejects forged sender and nonce, then independentl
   assert.equal(f.calls.filter(req=>req.args[0]==='set').length,1);
   assert.equal(f.calls.at(-1).args[0],'read');
   assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='verified').result.verified,true);
+});
+test('video shortcut reports unknown global status without pretending the entire key succeeded',async t=>{
+  const f=await videoShortcutHostFixture(t);
+  f.setGlobalReply(async()=>undefined);
+  f.emitSignal();
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='error'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='error').code,'E_OUTCOME_UNKNOWN');
+  assert.equal(f.frame.contentWindow.sent.some(row=>row.kind==='verified'),false);
+  assert.equal(f.rate,1.25,'the already-verified media mutation is not replayed');
+  assert.deepEqual(f.globalCalls.map(row=>row.operation),['videoSpeed.global.status']);
+});
+test('video shortcut sync carries the observed revision so a concurrent global STOP wins',async t=>{
+  const f=await videoShortcutHostFixture(t);
+  f.setGlobalReply(async message=>message.operation==='videoSpeed.global.status'?
+    {ok:true,data:{enabled:true,speed:1,revision:'before-stop'}}:
+    {ok:true,data:{enabled:false,speed:1,revision:'after-stop',superseded:true}});
+  f.emitSignal();
+  await settle(()=>f.globalCalls.length===2);
+  assert.deepEqual(f.globalCalls.map(row=>row.operation),['videoSpeed.global.status','videoSpeed.global.sync']);
+  assert.deepEqual(f.globalCalls[1].payload,{expectedRevision:'before-stop',speed:1.25});
+  assert.equal(f.globalCalls.some(row=>row.operation==='videoSpeed.global.configure'),false);
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='error'));
+  assert.equal(f.frame.contentWindow.sent.some(row=>row.kind==='verified'),false,'a superseded readback cannot become current actual');
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='error').code,'E_VIDEO_CHANGED');
+});
+test('video global current-video set binds the confirmed preference revision',async t=>{
+  const f=await videoShortcutHostFixture(t);f.setGlobalState(true);
+  f.ask('videoSpeed.set',{speed:2,expectedRevision:'global-A'},'global-set');
+  await settle(()=>f.response('global-set'));
+  assert.equal(f.response('global-set').ok,true,JSON.stringify(f.response('global-set')));
+  assert.equal(f.rate,2);assert.equal(f.calls.find(row=>row.args[0]==='set').args[4],'global-A');
+});
+for(const reason of ['stopped','new-revision','different-speed'])test(
+  'video global current-video set rejects '+reason+' before probing',async t=>{
+    const f=await videoShortcutHostFixture(t);
+    f.setGlobalState(reason!=='stopped',reason==='different-speed'?3:2,reason==='new-revision'?'global-B':'global-A');
+    const before=f.calls.length;
+    f.ask('videoSpeed.set',{speed:2,expectedRevision:'global-A'},'stale-global-set');
+    await settle(()=>f.response('stale-global-set'));
+    assert.equal(f.response('stale-global-set').ok,false);
+    assert.equal(f.calls.length,before);assert.equal(f.rate,1);
+  });
+test('video global queued current-video set cannot write after STOP takes effect',async t=>{
+  const f=await videoShortcutHostFixture(t);f.setGlobalState(true);
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const held=f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{entered.resolve();await gate.promise;});
+  await entered.promise;
+  const before=f.calls.length;
+  f.ask('videoSpeed.set',{speed:2,expectedRevision:'global-A'},'queued-global-set');
+  f.setGlobalState(false,2,'global-stop');gate.resolve();await held;
+  await settle(()=>f.response('queued-global-set'));
+  assert.equal(f.response('queued-global-set').ok,false);
+  assert.equal(f.calls.length,before);assert.equal(f.rate,1);
 });
 for(const action of ['close','disable','revoke','uninstall'])test(
   'video shortcut receiver ignores old signals after '+action,async t=>{

@@ -28,18 +28,23 @@ function reviewedCompiledTimeReview(target,path,root){
   return hash;
 }
 
-// R1.0 video playback controller: three reviewed, exact first-party source
-// blobs may enter ONLY the existing Side Panel trusted host. The sandbox
-// package never carries scripting access. At runtime the Host separately
-// checks official release bytes, provenance, enablement and install epoch.
-// No global projects/** or arbitrary app scripts are trusted by this rule.
+// Audited video code enters only these existing fixed build entries. Each
+// source is byte-pinned; installed UI JSON can never replace SW/Content code.
 const compiledVideoSpeedInputs=Object.freeze({
-  'projects/video-speed-controller/trusted/policy.js':'3644e10a0f8cba57349b2d3700b44832e43f7932',
-  'projects/video-speed-controller/trusted/host.js':'fd6884a171bb12b9cbc88a03418810dd32d36c27',
-  'projects/video-speed-controller/trusted/admission.js':'5635e2b13843dcea863f228985c1a06bd9550ce0'
+  'projects/video-speed-controller/trusted/policy.js':'23bf069d126b53047539b4038a2114b447f87ec7',
+  'projects/video-speed-controller/trusted/host.js':'e9b67d8c682359afbe0de5b25d6e231580c44d03',
+  'projects/video-speed-controller/trusted/admission.js':'384acd9be2a3c16e39b7b71011b88f5af81559fe',
+  'projects/video-speed-controller/trusted/page.js':'5ab8b5ad8c07c8eabb360807c40e336e3e5c840e',
+  'projects/video-speed-controller/trusted/service.js':'b0e746d0a18b18d75f95771350345d79f7ddc69b'
+});
+const videoSpeedTargets=Object.freeze({
+  'ui/sidebar-tool-host.js':['policy.js','host.js','admission.js'],
+  'sw.js':['policy.js','host.js','admission.js','service.js'],
+  'agents/page-relay.js':['policy.js','page.js']
 });
 function reviewedCompiledVideoSpeed(target,path,root){
-  if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledVideoSpeedInputs,path))return null;
+  if(!Object.hasOwn(compiledVideoSpeedInputs,path)||
+    !videoSpeedTargets[target]?.includes(path.split('/').at(-1)))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
     throw Error('Trusted Video Speed source must not be a symlink: '+path);

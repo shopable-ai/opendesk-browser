@@ -9,6 +9,11 @@ const verification=byId('speed-verification'),message=byId('speed-message');
 const meterLabel=root.querySelector('.speed-meter-top > span');
 const refresh=byId('speed-refresh'),minus=byId('speed-minus'),plus=byId('speed-plus');
 const toggle=byId('speed-shortcut-toggle'),keys=byId('speed-key-list'),shortcutNote=byId('speed-shortcut-note');
+const globalToggle=byId('speed-global-toggle'),globalStop=byId('speed-global-stop');
+const globalTarget=byId('speed-global-target'),globalNote=byId('speed-global-note');
+let globalState={enabled:false,speed:1,revision:''},globalLoading=true,globalSaving=false,globalEpoch=0;
+let globalHint='',globalReadPending=false;
+const validSpeed=n=>typeof n==='number'&&Number.isFinite(n)&&n>=.25&&n<=4;
 const presets=[...root.querySelectorAll('[data-speed]')];
 let actual=null,available=false,phase='detecting',busy=false,requested=null;
 let notice='',noticeKind='',lastSource='',closed=false,seq=0,readTicket=0;
@@ -32,15 +37,20 @@ function render(){
   verification.textContent=state;verification.dataset.kind=kind;
   message.textContent=text||'✓ 已读取网页当前播放速度';
   message.dataset.kind=level||'';
-  const canChange=available&&!busy&&!closed;
+  globalToggle.setAttribute('aria-checked',String(globalState.enabled));
+  globalToggle.disabled=globalLoading||globalSaving||busy||closed||phase==='disabled';
+  globalStop.disabled=!globalState.enabled||globalToggle.disabled;
+  globalTarget.textContent='共享目标 · '+fmt(globalState.speed)+(globalState.enabled?'（非实际）':'（已关闭）');
+  globalNote.textContent=globalHint||(globalLoading?'正在读取全局设置…':globalState.enabled?'自动应用已开启；上方数字仅为当前视频实际读回。':'未开启；仅调整当前视频。');
+  const canChange=(available||globalState.enabled)&&!globalLoading&&!globalSaving&&!busy&&!closed&&phase!=='disabled';
   for(const button of presets){
     const speed=Number(button.dataset.speed);
     button.disabled=!canChange;
     button.setAttribute('aria-pressed',String(available&&speed===actual));
     button.dataset.pending=String(phase==='submitting'&&speed===requested);
   }
-  minus.disabled=!canChange||actual<=.25;
-  plus.disabled=!canChange||actual>=4;
+  minus.disabled=!canChange||adjustBase()<=.25;
+  plus.disabled=!canChange||adjustBase()>=4;
   refresh.disabled=busy||closed||phase==='disabled';
   toggle.disabled=shortcutLoading||shortcutSaving||closed||phase==='disabled';
   toggle.setAttribute('aria-checked',String(shortcutsEnabled));
@@ -85,6 +95,49 @@ function classify(error){
     phase='error';notice=text;noticeKind='error';
   }
 }
+function adjustBase(){return available?actual:globalState.enabled?globalState.speed:actual;}
+function acceptGlobal(state){
+  if(typeof state?.enabled!=='boolean'||!validSpeed(state.speed)||typeof state.revision!=='string')
+    throw Error('全局设置读取结果无效');
+  globalState={enabled:state.enabled,speed:state.speed,revision:state.revision};
+}
+function drainGlobalRead(){
+  if(globalReadPending&&!busy&&!globalSaving&&!closed){globalReadPending=false;void read();}
+}
+async function loadGlobal(){
+  const epoch=globalEpoch;
+  try{
+    const state=await request('videoSpeed.global.status',{});
+    if(closed||epoch!==globalEpoch)return;
+    acceptGlobal(state);globalHint='';
+  }catch(error){
+    if(closed||epoch!==globalEpoch)return;
+    globalHint='全局设置未确认：'+String(error?.message||'请重新打开应用').slice(0,90);
+  }finally{if(!closed&&epoch===globalEpoch){globalLoading=false;render();}}
+}
+async function configureGlobal(enabled,speed){
+  const epoch=globalEpoch;
+  const state=await request('videoSpeed.global.configure',{enabled,speed,expectedRevision:globalState.revision});
+  if(closed)return false;
+  if(epoch===globalEpoch){acceptGlobal(state);globalLoading=false;}
+  // A newer cross-window preference wins; never replay a superseded write.
+  if(state.superseded===true||globalState.enabled!==enabled||globalState.speed!==speed||globalState.revision!==state.revision){
+    globalHint='全局设置已变化，本次调整未应用。';
+    globalReadPending=true;render();return false;
+  }
+  globalHint=enabled?'':state.restore?.status==='requested'
+    ?'已停止自动应用；已请求将仍可访问且由本工具控制的视频恢复 1×，尚未确认所有页面恢复。'
+    :'已停止自动应用；部分或全部视频恢复结果未知，请检查仍可访问的视频。';
+  render();return state;
+}
+async function toggleGlobal(enabled){
+  if(globalLoading||globalSaving||busy||closed||phase==='disabled')return;
+  const speed=enabled?(validSpeed(actual)?actual:validSpeed(globalState.speed)?globalState.speed:1):globalState.speed;
+  const ticket=++seq;globalSaving=true;busy=true;globalHint='正在保存全局设置…';render();
+  try{await configureGlobal(enabled,speed);globalReadPending=true;}
+  catch(error){globalHint='全局设置或恢复结果未知：'+String(error?.message||'请重新打开核对').slice(0,90);}
+  finally{globalSaving=false;if(ticket===seq)busy=false;if(!closed){render();drainGlobalRead();}}
+}
 async function read(background=false){
   if(busy||closed||(background&&readTicket===seq))return;
   pageShortcutPending=false;
@@ -101,22 +154,30 @@ async function read(background=false){
   }catch(error){if(ticket===seq&&!closed)classify(error);}
   finally{
     if(readTicket===ticket)readTicket=0;
-    if(ticket===seq&&!closed){busy=false;render();}
+    if(ticket===seq&&!closed){busy=false;render();drainGlobalRead();}
   }
 }
 async function set(speed,source){
-  if(busy||closed||!available||!Number.isFinite(speed))return;
+  if(busy||globalLoading||globalSaving||closed||phase==='disabled'||(!available&&!globalState.enabled)||!Number.isFinite(speed))return;
   const next=short(Math.max(.25,Math.min(4,speed)));
   if(next===null)return;
   // A cached read cannot prove the page still has this speed, even at 1×.
   pageShortcutPending=false;
+  const previousPhase=phase;
   const ticket=++seq;requested=next;busy=true;phase='submitting';notice='';noticeKind='';render();
   try{
-    const result=await request('videoSpeed.set',{speed:next});
+    const payload={speed:next};
+    if(globalState.enabled){
+      const configured=await configureGlobal(true,next);
+      if(!configured||ticket!==seq||closed)return;
+      payload.expectedRevision=configured.revision;
+      if(!available){globalHint='共享目标已保存；当前无可控制视频，未验证实际倍速。';phase=previousPhase;return;}
+    }
+    const result=await request('videoSpeed.set',payload);
     if(ticket!==seq||closed)return;
     receive(result,source);
   }catch(error){if(ticket===seq&&!closed)classify(error);}
-  finally{if(ticket===seq&&!closed){busy=false;render();}}
+  finally{if(ticket===seq&&!closed){busy=false;render();drainGlobalRead();}}
 }
 async function activatePageShortcuts(){
   const ticket=++shortcutEpoch;
@@ -176,16 +237,18 @@ async function saveShortcuts(){
   }
 }
 function onShortcutKey(key){
-  if(!shortcutsEnabled||shortcutLoading||shortcutSaving||!available||busy||closed)return;
-  if(key==='s')void set(Math.max(.25,actual-.25),'快捷键 S');
-  if(key==='d')void set(Math.min(4,actual+.25),'快捷键 D');
+  if(!shortcutsEnabled||shortcutLoading||shortcutSaving||(!available&&!globalState.enabled)||busy||globalSaving||closed)return;
+  if(key==='s')void set(Math.max(.25,adjustBase()-.25),'快捷键 S');
+  if(key==='d')void set(Math.min(4,adjustBase()+.25),'快捷键 D');
   if(key==='r')void set(1,'快捷键 R');
 }
 for(const button of presets)button.addEventListener('click',()=>void set(Number(button.dataset.speed),'预设 '+button.textContent));
-minus.addEventListener('click',()=>void set(actual-.25,'微调减速'));
-plus.addEventListener('click',()=>void set(actual+.25,'微调加速'));
+minus.addEventListener('click',()=>void set(adjustBase()-.25,'微调减速'));
+plus.addEventListener('click',()=>void set(adjustBase()+.25,'微调加速'));
 refresh.addEventListener('click',()=>{void read().then(()=>{if(shortcutsEnabled)void activatePageShortcuts();});});
 toggle.addEventListener('click',()=>void saveShortcuts());
+globalToggle.addEventListener('click',()=>void toggleGlobal(!globalState.enabled));
+globalStop.addEventListener('click',()=>void toggleGlobal(false));
 document.addEventListener('keydown',event=>{
   if(event.repeat||event.isComposing||event.defaultPrevented||
      event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||
@@ -196,6 +259,11 @@ document.addEventListener('keydown',event=>{
 });
 window.addEventListener('message',event=>{
   const data=event.data;
+  if(event.source===window.parent&&data?.protocol==='opendesk.video-speed.global.v1'&&data.kind==='preference'&&!closed){
+    try{acceptGlobal(data.state);}catch{return;}
+    ++globalEpoch;globalLoading=false;globalHint=globalState.enabled?'':'已停止自动应用；跨窗口恢复结果未确认。';
+    globalReadPending=true;render();drainGlobalRead();return;
+  }
   if(event.source!==window.parent||!data||
      data.protocol!=='opendesk.video-speed.shortcut.v1'||closed)return;
   if(data.kind==='preference'){
@@ -203,7 +271,7 @@ window.addEventListener('message',event=>{
     shortcutsEnabled=data.enabled===true;
     if(!shortcutsEnabled)cancelPageShortcutReadback();
     shortcutHint=shortcutsEnabled?'':'已关闭网页与侧边栏快捷键';
-    render();
+    render();drainGlobalRead();
     if(shortcutsEnabled)void activatePageShortcuts();
     return;
   }
@@ -216,9 +284,9 @@ window.addEventListener('message',event=>{
     pageShortcutPending=false;++seq;busy=false;
     try{receive(data.result,'快捷键 '+String(data.key||'').toUpperCase());}
     catch(error){classify(error);}
-    render();
+    render();drainGlobalRead();
   }else if(data.kind==='error'){
-    pageShortcutPending=false;++seq;busy=false;classify({code:data.code,message:data.message});render();
+    pageShortcutPending=false;++seq;busy=false;classify({code:data.code,message:data.message});render();drainGlobalRead();
   }
 });
 root.addEventListener('opendesk-page-changed',()=>{
@@ -227,5 +295,5 @@ root.addEventListener('opendesk-page-changed',()=>{
 });
 window.addEventListener('focus',()=>{if(!busy)void read(true);});
 window.addEventListener('pagehide',()=>{closed=true;++seq;++shortcutEpoch;},{once:true});
-render();void read();void loadShortcuts();
+render();void read();void loadShortcuts();void loadGlobal();
 })();
