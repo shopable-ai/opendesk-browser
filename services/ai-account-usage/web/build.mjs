@@ -34,18 +34,21 @@ if (preview) {
   const standalone = htmlTemplate
     .replace('<link rel="stylesheet" href="./app.css">', `${csp}<style>${css}</style>`)
     .replace('<script type="module" src="./app.js"></script>', `<script>${inlineJs}</script>`);
+  // The bundle may contain textual HTML examples. Audit the actual HTML shell
+  // after removing the exact inline JS payload, not inert strings within JS.
+  const exactInlineTag = `<script>${inlineJs}</script>`;
+  if (!standalone.includes(exactInlineTag)) throw Error('E_PREVIEW_INLINE_SCRIPT_MISSING');
+  const shell = standalone.replace(exactInlineTag, '<script></script>');
   const previewChecks = {
-    // Assert actual standalone markup, not an inert string inside bundled JavaScript.
-    hasExternalScriptTag: standalone.includes('<script type="module" src="./app.js"></script>'),
-    hasExternalStyleTag: standalone.includes('<link rel="stylesheet" href="./app.css">'),
+    hasExternalScriptTag: shell.includes('<script type="module" src="./app.js"></script>'),
+    hasExternalStyleTag: shell.includes('<link rel="stylesheet" href="./app.css">'),
     hasSyntheticEmail: standalone.includes('spare.pro@example.com'),
-    hasReactRoot: standalone.includes('id="root"'),
+    hasReactRoot: shell.includes('id="root"'),
+    bundleContainsTemplateText: inlineJs.includes('<script type="module" src="./app.js"></script>'),
     jsBytes: inlineJs.length,
     cssBytes: css.length
   };
-  const occurrence = standalone.indexOf('src="./app.js"');
-  if (occurrence >= 0 && !previewChecks.hasExternalScriptTag)
-    console.log('PREVIEW_INERT_SCRIPT_MARKER', JSON.stringify(standalone.slice(Math.max(0, occurrence-65), occurrence+65)));
+  console.log('PREVIEW_INLINE_AUDIT', JSON.stringify(previewChecks));
   if (previewChecks.hasExternalScriptTag || previewChecks.hasExternalStyleTag || !previewChecks.hasSyntheticEmail)
     throw Error('E_PREVIEW_INLINE_BUILD ' + JSON.stringify(previewChecks));
   await mkdir(`${root}preview`, {recursive:true});
