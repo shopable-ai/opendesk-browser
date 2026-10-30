@@ -28,7 +28,7 @@ if (preview) {
   const htmlTemplate = await readFile(`${root}index.html`, 'utf8');
   const css = await readFile(`${target}/app.css`, 'utf8');
   const compiled = await readFile(`${target}/app.js`, 'utf8');
-  const inlineJs = compiled.split('</script').join('<\\\\/script');
+  const inlineJs = compiled.split('</script').join('<\\/script');
   const integrity = createHash('sha256').update(inlineJs).digest('base64');
   const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${integrity}'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; font-src 'none'; base-uri 'none'; form-action 'none'">`;
   const standalone = htmlTemplate
