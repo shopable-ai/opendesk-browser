@@ -12,12 +12,12 @@ import {createPromptReconciliationAdapter} from '../conversation/prompt-controll
 import sharedUiCSS from './components/ui/sidebar-shared.css?raw';
 import conversationDockCSS from './components/conversation-dock.css?raw';
 import trustedSettingsCSS from './components/trusted-settings.css?raw';
-import timeReviewHostCSS from '../../../examples/sidebar-tools/time-review/trusted/host.css?raw';
+import timeReviewHostCSS from '../../../projects/time-review/trusted/host.css?raw';
 import bookmarkManagerHostCSS from '../../../projects/bookmark-manager/trusted/host.css?raw';
 import cookieEditorHostCSS from '../../../examples/sidebar-tools/cookie-editor/trusted/host.css?raw';
 import aiVipShareHostCSS from '../../../examples/sidebar-tools/ai-vip-share/trusted/host.css?raw';
 import promptShortcutsHostCSS from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/host.css?raw';
-import readingTocHostCSS from '../../../examples/sidebar-tools/reading-toc/trusted/host.css?raw';
+import readingTocHostCSS from '../../../projects/reading-toc/trusted/host.css?raw';
 import bookmarkPilotLayoutCSS from './tabs/bookmark-pilot.css?raw';
 import myAgentCSS from './tabs/my-agent.css?raw';
 import localeManagerCSS from './tabs/locale-manager.css?raw';
