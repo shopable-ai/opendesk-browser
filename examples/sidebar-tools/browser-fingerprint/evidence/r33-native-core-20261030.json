@@ -1,0 +1,409 @@
+{
+  "schema": "opendesk.fingerprint.native-core.v1",
+  "recordedAt": "2026-10-30T11:55:05.119292+00:00",
+  "scope": "CORE_ONLY; NOT_FULL_R33_ACCEPTANCE",
+  "sourceIdentity": "App.jsx/content and package hashes in r33-core-20261030.json; raw observer sourceCommit is pre-change base 571a4d784, not candidate commit",
+  "input": "MACOS_CUA_NATIVE_UI_ONLY; CDP worker/sandbox/passive chrome.scripting reads only; no target-page debugger attachment by observer",
+  "browser": {
+    "product": "Chrome/154.0.8037.92",
+    "platform": "darwin arm64",
+    "profile": "artifacts/fingerprint-r33/profile-native",
+    "mode": "headed production static host; serve=false"
+  },
+  "host": {
+    "sourceCommit": "d57bc6c681a01cd76433cc880c71453d6a72c0c5",
+    "extensionId": "nohbijocppfnjliinhdfnclbddljobfe",
+    "path": "artifacts/fingerprint-r25/acceptance-d57/dist/production",
+    "packageHash": "86fa5c0e50a32c87108ce54da23317669e476ebd7b50e2e6ace00363cdb80fa4"
+  },
+  "checks": {
+    "SOURCE_PACKAGE_JS_CSS_IDENTITY": "PASS",
+    "SAVED_PROFILE_READBACK_REOPEN": "PASS (created on 0.2.5, retained and loaded on 0.2.6)",
+    "FIRST_SITE_AUTHORIZATION": "PASS (0.2.6 native confirmation at 19:51:57)",
+    "APPLY_INDEPENDENT_WEB_READBACK": "PASS",
+    "FORM_RESET_LEAVES_WEB_UNCHANGED": "PASS; exact zero Host calls additionally covered by fixture",
+    "SESSION_STOP_INDEPENDENT_BASELINE_RESTORED": "PASS",
+    "COMPLETED_RECEIPT_REMAINS_WITH_ORIGINAL_PROFILE": "PASS",
+    "UNSAVED_DIRECT_APPLY": "PASS on 0.2.4 with same Session implementation; 0.2.6 uses saved profile",
+    "SLOW_FIRST_GRANT_TIMEOUT": "OBSERVED_LIMITATION_OLD_R25_HOST; UNKNOWN truthfully, no replay"
+  },
+  "stages": [
+    {
+      "stage": "v025-saved-baseline",
+      "at": "2026-10-30T11:45:35.375Z",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.5",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "00526fdb-3a90-4744-a0d8-5fc74c757281",
+        "enabled": true,
+        "jsSha256": "e2d68612422070a59454196af05d618a23e25414e4382e1313d30a6bf618aa66",
+        "cssSha256": "d08d04d7ee142ab4e43138d520a1fbb3e1a9b3001eeb2ba66ceef32922ec23d4"
+      },
+      "independent": {
+        "tabId": 538687910,
+        "documentId": "FE2E1FBE3A3108B8CD0277ADBC388EA9",
+        "values": {
+          "language": "zh-CN",
+          "languages": [
+            "zh-CN"
+          ],
+          "timezone": "Asia/Shanghai",
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+          "uaCH": "macOS",
+          "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+          "viewport": {
+            "height": 799,
+            "width": 874
+          }
+        },
+        "debuggerAttached": false,
+        "source": "CHROME_SCRIPTING_INDEPENDENT_MAIN_WORLD"
+      },
+      "react": {
+        "status": "尚未应用 · 仅当前 Tab",
+        "notice": "环境已保存，并从可信存储读回确认；未改变当前网页。",
+        "completedSessionLine": null
+      },
+      "rawFile": "artifacts/fingerprint-r33/native-core/v025-saved-baseline.json",
+      "rawSha256": "8dd3aecdf6446619b51d81a4cca53a1098ec8ed3c6ca6f57c44f202181f85f42"
+    },
+    {
+      "stage": "v026-authorized-applied",
+      "at": "2026-10-30T11:52:02.889Z",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.6",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "6d1a71ed-43a7-487e-8fc1-54ac1bab972a",
+        "enabled": true,
+        "jsSha256": "e2d68612422070a59454196af05d618a23e25414e4382e1313d30a6bf618aa66",
+        "cssSha256": "7e50f01817959014338ff16ec6d7feefe934757138a46a969f4652dc531f5f24"
+      },
+      "independent": {
+        "tabId": 538687910,
+        "documentId": "FE2E1FBE3A3108B8CD0277ADBC388EA9",
+        "values": {
+          "language": "en-US",
+          "languages": [
+            "en-US"
+          ],
+          "timezone": "America/New_York",
+          "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+          "uaCH": "Windows",
+          "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+          "viewport": {
+            "height": 768,
+            "width": 1366
+          }
+        },
+        "debuggerAttached": true,
+        "source": "CHROME_SCRIPTING_INDEPENDENT_MAIN_WORLD"
+      },
+      "react": {
+        "status": "已应用 · 网页字段已核验 · 仅当前 Tab",
+        "notice": null,
+        "completedSessionLine": "本次会话：Mac 核心美国"
+      },
+      "rawFile": "artifacts/fingerprint-r33/native-core/v026-authorized-applied.json",
+      "rawSha256": "5ace1dca04fbeb0f8b291b74d558cb72af6675e08380262c0b073ccf460f6d0c"
+    },
+    {
+      "stage": "v026-form-reset-only",
+      "at": "2026-10-30T11:52:22.038Z",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.6",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "6d1a71ed-43a7-487e-8fc1-54ac1bab972a",
+        "enabled": true,
+        "jsSha256": "e2d68612422070a59454196af05d618a23e25414e4382e1313d30a6bf618aa66",
+        "cssSha256": "7e50f01817959014338ff16ec6d7feefe934757138a46a969f4652dc531f5f24"
+      },
+      "independent": {
+        "tabId": 538687910,
+        "documentId": "FE2E1FBE3A3108B8CD0277ADBC388EA9",
+        "values": {
+          "language": "en-US",
+          "languages": [
+            "en-US"
+          ],
+          "timezone": "America/New_York",
+          "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+          "uaCH": "Windows",
+          "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+          "viewport": {
+            "height": 768,
+            "width": 1366
+          }
+        },
+        "debuggerAttached": true,
+        "source": "CHROME_SCRIPTING_INDEPENDENT_MAIN_WORLD"
+      },
+      "react": {
+        "status": "已应用 · 网页字段已核验 · 仅当前 Tab",
+        "notice": "仅将当前表单恢复原始参数；没有调用 Host，也没有恢复网页。",
+        "completedSessionLine": "本次会话：Mac 核心美国"
+      },
+      "rawFile": "artifacts/fingerprint-r33/native-core/v026-form-reset-only.json",
+      "rawSha256": "cf674ac01320b5a26806a66e64a179d84616e6dcd6782b7a70171adb888413cd"
+    },
+    {
+      "stage": "v026-restored-next-preset",
+      "at": "2026-10-30T11:52:50.529Z",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.6",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "6d1a71ed-43a7-487e-8fc1-54ac1bab972a",
+        "enabled": true,
+        "jsSha256": "e2d68612422070a59454196af05d618a23e25414e4382e1313d30a6bf618aa66",
+        "cssSha256": "7e50f01817959014338ff16ec6d7feefe934757138a46a969f4652dc531f5f24"
+      },
+      "independent": {
+        "tabId": 538687910,
+        "documentId": "FE2E1FBE3A3108B8CD0277ADBC388EA9",
+        "values": {
+          "language": "zh-CN",
+          "languages": [
+            "zh-CN"
+          ],
+          "timezone": "Asia/Shanghai",
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+          "uaCH": "macOS",
+          "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+          "viewport": {
+            "height": 799,
+            "width": 874
+          }
+        },
+        "debuggerAttached": false,
+        "source": "CHROME_SCRIPTING_INDEPENDENT_MAIN_WORLD"
+      },
+      "react": {
+        "status": "已停止 · 网页字段已恢复 · 仅当前 Tab",
+        "notice": null,
+        "completedSessionLine": "本次会话：Mac 核心美国"
+      },
+      "rawFile": "artifacts/fingerprint-r33/native-core/v026-restored-next-preset.json",
+      "rawSha256": "e90b8a8da8138276ebc2f76e049060a6bf76cde3cbd6fd9045ee247c49e34739"
+    }
+  ],
+  "earlierUnsavedCycle": [
+    {
+      "stage": "us-applied-authorized",
+      "at": "2026-10-30T11:37:34.800Z",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.4",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "0ca1b4e4-17e1-42a8-a17d-9d337bcce0e5",
+        "enabled": true,
+        "jsSha256": "86cc779febd82f1d1a78c04a57b873cff4dfdf802ba66b108ac90e974a2aba0f",
+        "cssSha256": "d08d04d7ee142ab4e43138d520a1fbb3e1a9b3001eeb2ba66ceef32922ec23d4"
+      },
+      "independent": {
+        "tabId": 538687910,
+        "documentId": "FE2E1FBE3A3108B8CD0277ADBC388EA9",
+        "values": {
+          "language": "en-US",
+          "languages": [
+            "en-US"
+          ],
+          "timezone": "America/New_York",
+          "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+          "uaCH": "Windows",
+          "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+          "viewport": {
+            "height": 768,
+            "width": 1366
+          }
+        },
+        "debuggerAttached": true,
+        "source": "CHROME_SCRIPTING_INDEPENDENT_MAIN_WORLD"
+      },
+      "react": {
+        "status": "已应用 · 网页字段已核验 · 仅当前 Tab",
+        "notice": null,
+        "completedSessionLine": "本次会话：美国 · 桌面 Chrome"
+      },
+      "rawFile": "artifacts/fingerprint-r33/native-core/us-applied-authorized.json",
+      "rawSha256": "76ea06f1e29e175d9573cd0966a7cd57aa2a6580d7079866ac4b709aa7b91f29"
+    },
+    {
+      "stage": "applied-form-reset",
+      "at": "2026-10-30T11:38:00.041Z",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.4",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "0ca1b4e4-17e1-42a8-a17d-9d337bcce0e5",
+        "enabled": true,
+        "jsSha256": "86cc779febd82f1d1a78c04a57b873cff4dfdf802ba66b108ac90e974a2aba0f",
+        "cssSha256": "d08d04d7ee142ab4e43138d520a1fbb3e1a9b3001eeb2ba66ceef32922ec23d4"
+      },
+      "independent": {
+        "tabId": 538687910,
+        "documentId": "FE2E1FBE3A3108B8CD0277ADBC388EA9",
+        "values": {
+          "language": "en-US",
+          "languages": [
+            "en-US"
+          ],
+          "timezone": "America/New_York",
+          "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+          "uaCH": "Windows",
+          "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+          "viewport": {
+            "height": 768,
+            "width": 1366
+          }
+        },
+        "debuggerAttached": true,
+        "source": "CHROME_SCRIPTING_INDEPENDENT_MAIN_WORLD"
+      },
+      "react": {
+        "status": "已应用 · 网页字段已核验 · 仅当前 Tab",
+        "notice": "仅将当前表单恢复原始参数；没有调用 Host，也没有恢复网页。",
+        "completedSessionLine": "本次会话：美国 · 桌面 Chrome"
+      },
+      "rawFile": "artifacts/fingerprint-r33/native-core/applied-form-reset.json",
+      "rawSha256": "ab59e17c44308507e907c349afa9ae086c15f790c3a0cb7adcc49b6acf68b1e8"
+    },
+    {
+      "stage": "us-restored",
+      "at": "2026-10-30T11:38:14.812Z",
+      "installed": {
+        "id": "browser-fingerprint",
+        "version": "0.2.4",
+        "capabilities": [
+          "currentPage.read",
+          "browser.page.environment.read",
+          "browser.fingerprint.control",
+          "storage.local",
+          "user.export"
+        ],
+        "epoch": "0ca1b4e4-17e1-42a8-a17d-9d337bcce0e5",
+        "enabled": true,
+        "jsSha256": "86cc779febd82f1d1a78c04a57b873cff4dfdf802ba66b108ac90e974a2aba0f",
+        "cssSha256": "d08d04d7ee142ab4e43138d520a1fbb3e1a9b3001eeb2ba66ceef32922ec23d4"
+      },
+      "independent": {
+        "tabId": 538687910,
+        "documentId": "FE2E1FBE3A3108B8CD0277ADBC388EA9",
+        "values": {
+          "language": "zh-CN",
+          "languages": [
+            "zh-CN"
+          ],
+          "timezone": "Asia/Shanghai",
+          "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+          "uaCH": "macOS",
+          "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+          "viewport": {
+            "height": 799,
+            "width": 874
+          }
+        },
+        "debuggerAttached": false,
+        "source": "CHROME_SCRIPTING_INDEPENDENT_MAIN_WORLD"
+      },
+      "react": {
+        "status": "已停止 · 网页字段已恢复 · 仅当前 Tab",
+        "notice": null,
+        "completedSessionLine": "本次会话：美国 · 桌面 Chrome"
+      },
+      "rawFile": "artifacts/fingerprint-r33/native-core/us-restored.json",
+      "rawSha256": "e6039e338b5d30a76721fe7f4a5c74fddd5e91b677eb16a3af31525838411eaa"
+    }
+  ],
+  "slowGrantFailure": {
+    "stage": "v025-first-grant",
+    "at": "2026-10-30T11:46:03.233Z",
+    "installed": {
+      "id": "browser-fingerprint",
+      "version": "0.2.5",
+      "capabilities": [
+        "currentPage.read",
+        "browser.page.environment.read",
+        "browser.fingerprint.control",
+        "storage.local",
+        "user.export"
+      ],
+      "epoch": "00526fdb-3a90-4744-a0d8-5fc74c757281",
+      "enabled": true,
+      "jsSha256": "e2d68612422070a59454196af05d618a23e25414e4382e1313d30a6bf618aa66",
+      "cssSha256": "d08d04d7ee142ab4e43138d520a1fbb3e1a9b3001eeb2ba66ceef32922ec23d4"
+    },
+    "independent": {
+      "tabId": 538687910,
+      "documentId": "FE2E1FBE3A3108B8CD0277ADBC388EA9",
+      "values": {
+        "language": "zh-CN",
+        "languages": [
+          "zh-CN"
+        ],
+        "timezone": "Asia/Shanghai",
+        "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+        "uaCH": "macOS",
+        "url": "http://127.0.0.1:43111/browser-fingerprint.html",
+        "viewport": {
+          "height": 799,
+          "width": 874
+        }
+      },
+      "debuggerAttached": false,
+      "source": "CHROME_SCRIPTING_INDEPENDENT_MAIN_WORLD"
+    },
+    "react": {
+      "status": "执行结果未知 · 仅当前 Tab",
+      "notice": "工具请求超时",
+      "completedSessionLine": "本次会话：Mac 核心美国"
+    },
+    "rawFile": "artifacts/fingerprint-r33/native-core/v025-first-grant.json",
+    "rawSha256": "502abf4b58e220d6c1719af6b805a3061ec7c09e81ee2fea9115a1abd082be50"
+  },
+  "screenshot": "artifacts/fingerprint-r33/native-core/v026-restored-next-preset.png",
+  "limitations": [
+    "Old reused R2.5 Host can time out if first grant confirmation exceeds its short request window; no Host workaround or replay added.",
+    "HTTP headers/geolocation not independently verified.",
+    "Full current-main Host production build, lifecycle matrix, width/zoom/theme and scores NOT_TESTED/NOT_SCORED."
+  ],
+  "knownPendingSideEffects": false
+}

@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "browser-fingerprint",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "title": "浏览器指纹",
   "description": "当前授权网页的受控环境设置、独立验证与恢复。需要 Chrome 调试权限和单网站授权。",
   "capabilities": [
