@@ -52,6 +52,8 @@ const server = createServer({cert:await readFile(cert),key:await readFile(key),
         return respond(res,415,{error:'E_CONTENT_TYPE'});
       const report=await bodyAsJson(req);
       const summary=validateReport(report,origin);
+      const peer=String(req.socket.remoteAddress).replace(/^::ffff:/,'');
+      if (peer!==report.wifiLanIp) return respond(res,422,{error:'E_WIFI_PEER_MISMATCH'});
       const file=join(outDir,summary.runId+'.json');
       const saved={receivedAt:new Date().toISOString(),lanRemoteAddress:req.socket.remoteAddress,
         evidence:summary,report};

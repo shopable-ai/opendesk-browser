@@ -23,13 +23,13 @@ export function validateAllowedOrigin(origin) {
 
 export function validateReport(report, allowedOrigin) {
   validateAllowedOrigin(allowedOrigin);
-  if (!exactKeys(report, ['schema','runId','mode','shared','origin','wifiIp','cellularIp',
+  if (!exactKeys(report, ['schema','runId','mode','shared','origin','wifiLanIp','cellularEgressIp',
     'wifiNetworkHandle','cellularNetworkHandle','durationMs','pages']) ||
       report.schema !== SCHEMA || !uuid.test(report.runId) ||
       report.mode !== 'private' || report.shared !== false || report.origin !== allowedOrigin)
     fail('E_REPORT_SCHEMA', 'Unreviewed report or non-private node');
-  if (typeof report.wifiIp !== 'string' || typeof report.cellularIp !== 'string' ||
-      !isIP(report.wifiIp) || !isIP(report.cellularIp) || report.wifiIp === report.cellularIp)
+  if (typeof report.wifiLanIp !== 'string' || typeof report.cellularEgressIp !== 'string' ||
+      !isPrivateLanAddress(report.wifiLanIp) || !isIP(report.cellularEgressIp) || isPrivateLanAddress(report.cellularEgressIp))
     fail('E_EGRESS', 'Distinct network egress proof is missing');
   if (![report.wifiNetworkHandle,report.cellularNetworkHandle].every(h => typeof h === 'string' && /^[0-9]{1,22}$/.test(h)) ||
       report.wifiNetworkHandle === report.cellularNetworkHandle ||

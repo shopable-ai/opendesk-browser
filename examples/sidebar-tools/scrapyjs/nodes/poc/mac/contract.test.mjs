@@ -7,7 +7,7 @@ const origin='https://qa.example.org';
 function makeReport(){
   const body=Buffer.from('<html>authorized QA fixture</html>');
   return {schema:SCHEMA,runId:randomUUID(),mode:'private',shared:false,origin,
-    wifiIp:'198.51.100.10',cellularIp:'203.0.113.9',
+    wifiLanIp:'192.168.1.55',cellularEgressIp:'203.0.113.9',
     wifiNetworkHandle:'12345',cellularNetworkHandle:'67890',durationMs:1200,
     pages:[{url:origin+'/test-1',status:200,bytes:body.length,
       sha256:createHash('sha256').update(body).digest('hex'),bodyBase64:body.toString('base64')}]};
@@ -22,7 +22,7 @@ test('only explicitly named public test origins',()=>{
 });
 test('reject shared mode and same Wi-Fi/Cellular IP',()=>{
   const r=makeReport();r.shared=true;assert.throws(()=>validateReport(r,origin),/non-private/);
-  r.shared=false;r.cellularIp=r.wifiIp;assert.throws(()=>validateReport(r,origin),/egress/);
+  r.shared=false;r.cellularEgressIp=r.wifiLanIp;assert.throws(()=>validateReport(r,origin),/egress/);
 });
 test('reject tampering and cross-origin results',()=>{
   const r=makeReport();r.pages[0].sha256='a'.repeat(64);
