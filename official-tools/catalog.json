@@ -97,8 +97,8 @@
       "installationPolicy": "optional"
     },
     {
-      "id": "video-pass",
-      "project": "projects/video-pass",
+      "id": "video-svip",
+      "project": "projects/video-svip",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     }

@@ -2,6 +2,6 @@
   "schema": "opendesk.app-ci.v1",
   "kind": "ui",
   "node": [
-    "tests/environment/video-pass.test.mjs"
+    "tests/environment/video-svip.test.mjs"
   ]
 }

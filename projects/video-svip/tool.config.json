@@ -1,0 +1,16 @@
+{
+  "id": "video-svip",
+  "version": "0.2.0",
+  "title": "视频会员",
+  "description": "视频会员助手：识别当前视频页、提供官方观看入口、影片链接分享和本机会员到期记录。不提供未授权会员解锁。",
+  "capabilities": [
+    "currentPage.read",
+    "storage.local"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": []
+}

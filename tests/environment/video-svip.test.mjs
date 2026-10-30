@@ -1,13 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {officialSourceProjectPath,validateOfficialSourceCatalog} from '../../src/sidebar-tools/official-catalog.js';
 
-const base=new URL('../../projects/video-pass/',import.meta.url);
+const base=new URL('../../projects/video-svip/',import.meta.url);
 const read=path=>readFile(new URL(path,base),'utf8');
 
-test('VideoPass declares only safe current-page and local-storage permissions',async()=>{
+test('Video SVIP declares only safe current-page and local-storage permissions',async()=>{
  const config=JSON.parse(await read('tool.config.json'));
- assert.equal(config.id,'video-pass');
+ assert.equal(config.id,'video-svip');
  assert.deepEqual(config.capabilities,['currentPage.read','storage.local']);
  assert.deepEqual(config.files,{html:'src/index.html',css:'src/style.css',js:'src/main.js'});
 });
@@ -33,4 +34,14 @@ test('backup and commerce are explicitly disabled until licensed service exists'
  assert.match(html,/授权备用播放服务/);
  assert.match(html,/未接入/);
  assert.match(html,/合作入口 · 未开放/);
+});
+
+test('official catalog uses only video-svip and is mapped to the project directory',async()=>{
+ assert.equal(officialSourceProjectPath('video-svip'),'projects/video-svip');
+ const catalog=JSON.parse(await readFile(new URL('../../official-tools/catalog.json',import.meta.url),'utf8'));
+ const verified=validateOfficialSourceCatalog(catalog);
+ const entries=verified.tools.filter(row=>row.id==='video-svip');
+ assert.equal(entries.length,1);
+ assert.equal(entries[0].project,'projects/video-svip');
+ assert.equal(verified.tools.some(row=>row.id==='video-pass'),false);
 });
