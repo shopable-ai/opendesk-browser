@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Video SVIP · R0.4A 真实授权媒体交互 Demo</title><link rel="stylesheet" href="../src/style.css">
+<title>Video SVIP · R0.3.2 识别交互验收预览</title><link rel="stylesheet" href="../src/style.css">
 <!-- Product main markup is an exact snapshot of ../src/index.html, checked by tests; JS/CSS are shared. -->
 <style>
 *{box-sizing:border-box}body{margin:0;background:#eef2f8;color:#1c2b46;font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -32,6 +32,9 @@
 #tool-root .vp-member-row{border-color:var(--od-line);border-radius:9px;min-height:43px}#tool-root .vp-member-row span{font-variant-numeric:tabular-nums}#tool-root .vp-member-row button{font-size:19px;border-radius:7px}#tool-root .vp-flash{order:3;font-size:11px;overflow-wrap:anywhere}
 #tool-root[data-demo=youtube] #vp-episode,#tool-root[data-demo=unsupported] #vp-episode,#tool-root[data-demo=permission] #vp-episode,#tool-root[data-demo=changing] #vp-episode,#tool-root[data-paused=true] #vp-episode{display:none}
 .fixture[data-theme=dark]{--preview-back:#121b2a;--preview-line:#324159;--od-ink:#edf3ff;--od-sub:#a8b6ce;--od-paper:#1d293b;--od-line:#36475e;--od-soft:#29384e;--od-accent-bg:#293e62;--od-brand:#9fb6ff;--od-on-brand:#fff;--od-positive:#81d6b1;--od-warning:#e4ba76;--od-negative:#ff9ca7}.fixture[data-theme=dark] #tool-root .demo-live{background:#463721;color:#f1ce9c}
+.demo-probes{display:grid;gap:6px;margin:10px 0;min-width:0}.demo-probes .demo-case{white-space:normal;min-width:0;width:100%;overflow-wrap:anywhere}.demo-probes p{margin:0;font-size:11px;color:#5d6d84;overflow-wrap:anywhere}.demo-probes summary{cursor:pointer}.demo-probes .demo-sizing{flex-wrap:wrap}
+/* Preserve R0.4A markup and opt-in scenes; R0.3.2 keeps the original-page action primary. */
+#tool-root:not([data-demo^="r04a-"]) #vp-watch{display:none!important}
 @media(max-width:720px){.preview-shell{display:flex;flex-direction:column;gap:14px;padding:12px}.demo-controls{padding:12px;width:100%}.demo-scenarios{display:flex;overflow-x:auto;gap:4px;padding-bottom:4px}.demo-case{width:auto;min-width:max-content;padding:7px 10px}.demo-case i{display:none}.demo-label{margin:8px 0 5px}.demo-note{margin-top:8px}.preview-stage{width:100%}}
 @media(max-width:360px){#tool-root .vp{padding:9px;gap:9px}#tool-root .vp-current,#tool-root #vp-member{padding:11px;gap:10px}#tool-root .vp-title{font-size:16px}#tool-root .vp-main-actions .vp-icon{width:32px;min-width:32px;height:34px;min-height:34px}#tool-root .vp-form{grid-template-columns:1fr}}
 </style></head>
@@ -39,6 +42,7 @@
 <aside class="demo-controls" aria-label="演示场景控制区"><div class="demo-controls-head"><strong>交互预览</strong><span class="demo-badge">演示数据</span></div>
 <p class="demo-caption">原有识别场景使用模拟 Host；R0.4A 测试使用真实 HTML5 video 与自制媒体事件，不代表商业站点播放通过。</p>
 <div class="demo-label">视频与异常场景</div><div class="demo-scenarios"><button class="demo-case" type="button" data-demo="tencent" aria-pressed="true"><i aria-hidden="true"></i>腾讯视频 · 已识别</button><button class="demo-case" type="button" data-demo="bilibili" aria-pressed="false"><i aria-hidden="true"></i>B 站 · 番剧</button><button class="demo-case" type="button" data-demo="youtube" aria-pressed="false"><i aria-hidden="true"></i>YouTube · 普通视频</button><button class="demo-case" type="button" data-demo="switch" aria-pressed="false"><i aria-hidden="true"></i>同 URL 换片</button><button class="demo-case" type="button" data-demo="total" aria-pressed="false"><i aria-hidden="true"></i>只有总集数</button><button class="demo-case" type="button" data-demo="changing" aria-pressed="false"><i aria-hidden="true"></i>页面切换中</button><button class="demo-case" type="button" data-demo="unsupported" aria-pressed="false"><i aria-hidden="true"></i>不支持页面</button><button class="demo-case" type="button" data-demo="permission" aria-pressed="false"><i aria-hidden="true"></i>网站权限不足</button><button class="demo-case" type="button" data-demo="watchfail" aria-pressed="false"><i aria-hidden="true"></i>自动监听不可用</button><button class="demo-case" type="button" data-demo="iframe" aria-pressed="false"><i aria-hidden="true"></i>iframe 不完整</button><button class="demo-case" type="button" data-demo="storagefail" aria-pressed="false"><i aria-hidden="true"></i>本机记录读取失败</button></div>
+<details class="demo-probes"><summary>已有 R0.4A 授权媒体演示（本轮未验收）</summary>
 <div class="demo-label">R0.4A · 授权播放（实际视频元素）</div>
 <div class="demo-scenarios">
 <button class="demo-case" type="button" data-demo="r04a-success" aria-pressed="false"><i aria-hidden="true"></i>真实媒体播放</button>
@@ -50,6 +54,17 @@
 <button class="demo-case" type="button" data-demo="r04a-manual" aria-pressed="false"><i aria-hidden="true"></i>手动选来源</button>
 <button class="demo-case" type="button" data-demo="r04a-unknown" aria-pressed="false"><i aria-hidden="true"></i>iframe 不可观测</button>
 </div>
+</details>
+<details class="demo-probes"><summary>识别等待、失败与存储冲突</summary>
+<button class="demo-case" type="button" data-demo="loading" aria-pressed="false">正在识别 · 挂起作品 A</button>
+<button id="demo-release" class="demo-case" type="button" disabled>返回挂起的识别响应</button>
+<p id="demo-pending" role="status" aria-live="polite">没有挂起的识别请求。</p>
+<button class="demo-case" type="button" data-demo="unrecognized" aria-pressed="false">一般识别失败 · 无可信标题</button>
+<button class="demo-case" type="button" data-demo="inspectfail" aria-pressed="false">读取失败 · 可恢复</button>
+<button id="demo-conflict" class="demo-case" type="button">模拟其他窗口更新到期记录</button>
+<button id="demo-writefail" class="demo-case" type="button" aria-pressed="false">模拟保存失败：关</button>
+<p id="demo-storage-status" role="status" aria-live="polite">演示记录仅在本页内存中；刷新页面会重置。</p>
+</details>
 <div class="demo-label">布局与主题</div><div class="demo-sizing"><select id="demo-width" aria-label="Sidebar 宽度"><option value="320">320px</option><option value="360">360px</option><option value="400" selected>400px</option><option value="440">440px</option><option value="520">520px</option></select><button id="demo-theme" type="button" aria-pressed="false">☾ 深色</button></div>
 <p class="demo-note">授权测试视频复用 Video Downloader 的 tiny.mp4（不足 15 秒，不做连续 15 秒成功宣称）。到期日期仅保存在演示内存。</p></aside>
 <div class="preview-stage"><div class="stage-label"><span>OpenDesk Browser · Sidebar</span><span id="stage-width">400px</span></div>
@@ -99,12 +114,15 @@
 (function(){
 'use strict';
 const base='https://v.qq.com/x/cover/mzc00200aaogpgh/c4102y7ahdb.html',bURL='https://www.bilibili.com/bangumi/play/ep3854821';
-const allowed=new Set(["tencent","bilibili","youtube","switch","total","changing","unsupported","permission","watchfail","iframe","storagefail","r04a-success","r04a-fallback","r04a-unavailable","r04a-unauthorized","r04a-region","r04a-entitlement","r04a-manual","r04a-unknown"]),q=new URLSearchParams(location.search);
+const allowed=new Set(["tencent","bilibili","youtube","switch","total","changing","unsupported","permission","watchfail","iframe","storagefail","loading","unrecognized","inspectfail","r04a-success","r04a-fallback","r04a-unavailable","r04a-unauthorized","r04a-region","r04a-entitlement","r04a-manual","r04a-unknown"]),q=new URLSearchParams(location.search);
 let scene=allowed.has(q.get('scene'))?q.get('scene'):'tencent',rows=[],etag='0'.repeat(64),watching=false,paused=false;
+let revision=0,writeFails=false,memberState={dirty:false,busy:false};
+const pending=[];
+const bumpEtag=()=>{etag=(++revision).toString(16).padStart(64,'0');};
 const root=document.getElementById('tool-root'),fixture=document.querySelector('.fixture'),hint=document.getElementById('demo-guidance');
 const tip={
  tencent:'',bilibili:'URL 中的 ep3854821 是视频标识，不是当前第 3854821 集。',
- youtube:'普通单视频没有选集信息，不显示多余的集数标签。',
+ youtube:'这是具体视频页链接；标题为演示数据，实际可访问与播放未在此模拟中验证。普通视频不强制显示集数。',
  switch:'当前作品 B 与作品 A 使用完全相同的 URL；旧结果必须失效。',
  total:'页面只提供“共 24 集”，没有可靠的当前选集证据。',
  changing:'页面尚未稳定，等待后可以重新识别。',
@@ -113,6 +131,9 @@ const tip={
  watchfail:'作品已识别，但自动监听不可用；页面变化后需要手动重新识别。',
  iframe:'可识别外层作品标题，受限 iframe 内的当前选集尚无法确认。',
  storagefail:'打开“到期记录”可看到本机记录读取失败；原记录不可被覆盖。',
+ loading:'正在识别：请求已挂起。可先选“同 URL 换片”显示 B，再点“返回挂起的识别响应”检验迟到的 A；也可先 Stop。',
+ unrecognized:'没有可信标题或当前选集。请打开视频播放页，再点击重新识别。',
+ inspectfail:'模拟读取失败。选择“腾讯视频 · 已识别”后重新识别，可恢复；不会伪造成功结果。',
  'r04a-success':'自制授权视频：用户点击播放后，必须有实际视频帧与 currentTime 前进。',
  'r04a-fallback':'来源 A 为真实不存在的文件；来源 B 为合法自制媒体。浏览器如需要新用户手势，请手动点击 B。',
  'r04a-unavailable':'两个实际媒体请求均失败；不能显示播放成功。',
@@ -132,11 +153,12 @@ const item=(siteId,siteName,title,episode,url,rev,extra={})=>({
 const page={
  tencent:item('tencent','腾讯视频','演示作品 · 星海来信',ep(12),base,'00000001'),
  bilibili:item('bilibili','哔哩哔哩','演示番剧 · 风从海边来',{number:6,season:1,label:'第 6 话'},bURL,'00000002',{evidence:{title:'[title]（模拟）',episode:'选中分集按钮，而非 ep ID（模拟）'}}),
- youtube:item('youtube','YouTube','Design Notes — How Cities Breathe','unknown','https://www.youtube.com/','00000003'),
+ youtube:item('youtube','YouTube','演示视频 · Big Buck Bunny 60fps 4K — Official Blender Foundation Short Film','unknown','https://www.youtube.com/watch?v=aqz-KE-bpKQ','00000003'),
  switch:item('tencent','腾讯视频','演示作品 · 远航的回声',ep(3),base,'00000004'),
  total:item('tencent','腾讯视频','演示作品 · 星海来信','unknown',base,'00000005',{evidence:{title:'[data-video-title]（模拟）',episode:'仅“共 24 集”'}}),
  changing:item('tencent','腾讯视频',null,'unknown',base,'00000006',{titleSource:'none',titleConfidence:'none',recognitionState:'changing',recognitionReason:'document-changing'}),
  unsupported:item(null,null,null,'unknown','https://example.org/article','00000007',{titleSource:'none',titleConfidence:'none',recognitionState:'unsupported',recognitionReason:'unsupported-site'}),
+ unrecognized:item('tencent','腾讯视频',null,'unknown',base,'00000010',{titleSource:'none',titleConfidence:'none',recognitionState:'unrecognized',recognitionReason:'no-title-evidence'}),
  watchfail:item('tencent','腾讯视频','演示作品 · 星海来信',ep(12),base,'00000008'),
  iframe:item('bilibili','哔哩哔哩','演示番剧 · 风从海边来','unknown',bURL,'00000009',{partial:true,evidence:{title:'可读外层标题（模拟）',episode:'iframe 读取受限'}})
 };
@@ -145,6 +167,12 @@ const fixtureDemo=item('fixture','本地自制测试','内部自制演示片',ep
 for(const mode of ['r04a-success','r04a-fallback','r04a-unavailable','r04a-unauthorized',
  'r04a-region','r04a-entitlement','r04a-manual','r04a-unknown'])page[mode]=fixtureDemo;
 page.storagefail=page.tencent;
+page.loading=page.tencent;
+function paintPending(){
+ document.getElementById('demo-release').disabled=pending.length===0;
+ document.getElementById('demo-pending').textContent=pending.length?
+  '挂起 '+pending.length+' 个作品 A 请求；仅点击返回才完成。':'没有挂起的识别请求。';
+}
 function paintDemo(){
  root.dataset.demo=scene;root.dataset.paused=String(paused);
  for(const button of document.querySelectorAll('[data-demo]'))button.setAttribute('aria-pressed',String(button.dataset.demo===scene));
@@ -152,17 +180,26 @@ function paintDemo(){
  hint.textContent=paused?'':tip[scene]||'';hint.hidden=paused||members||!tip[scene];
  document.getElementById('demo-stop-note').hidden=!paused;
 }
-function syncDate(){
+function syncDate(force=false){
+ if(!force&&(memberState.dirty||memberState.busy))return;
  const id=document.getElementById('vp-member-provider').value,record=rows.find(x=>x.id===id);
  document.getElementById('vp-member-expiry').value=record?.expiry||'';
  document.getElementById('vp-member-save').textContent=record?'更新日期':'保存日期';
 }
-window.OpenDeskTool={root,demoMode:"R04A_AUTHORIZED_MEDIA",demoScene:scene,setState:()=>{},request:async(op,args={})=>{
+window.OpenDeskTool={root,demoMode:"R04A_AUTHORIZED_MEDIA",demoScene:scene,setState:state=>{
+ memberState={...memberState,...state};
+ if(!memberState.dirty&&!memberState.busy)queueMicrotask(()=>syncDate());
+},request:async(op,args={})=>{
  await Promise.resolve();
  if(op==='videoSVIP.watch'){watching=!['permission','watchfail'].includes(scene);return {watching};}
  if(op==='videoSVIP.stop'){watching=false;return {stopped:true};}
  if(op==='videoSVIP.inspect'){
   if(scene==='permission')throw Object.assign(Error('模拟：网站访问权限不足'),{code:'E_VIDEO_SITE_ACCESS'});
+  if(scene==='inspectfail')throw Error('模拟：网页读取失败，请打开视频页面后重新识别');
+  if(scene==='loading'){
+   const snapshot=structuredClone(page.loading);
+   return new Promise(resolve=>{pending.push(()=>resolve(snapshot));paintPending();});
+  }
   return structuredClone(page[scene]);
  }
  if(op==='storage.get'){
@@ -170,26 +207,46 @@ window.OpenDeskTool={root,demoMode:"R04A_AUTHORIZED_MEDIA",demoScene:scene,setSt
   return {value:structuredClone(rows),etag};
  }
  if(op==='storage.set'){
+  if(scene==='storagefail'||writeFails)throw Error('模拟：本机存储写入失败，未修改记录');
   if(etag!==args.ifMatch)throw Error('模拟：并发记录已变更');
-  rows=structuredClone(args.value);etag=etag[0]==='0'?'1'.repeat(64):'0'.repeat(64);
-  queueMicrotask(syncDate);return {etag};
+  rows=structuredClone(args.value);bumpEtag();return {etag};
  }
  throw Error('未知演示 Host 操作：'+op);
 }};
 for(const b of document.querySelectorAll('[data-demo]'))b.addEventListener('click',()=>{
  const next=b.dataset.demo;
  if(next==='storagefail'||scene==='storagefail'){
+  if(paused){
+   document.getElementById('demo-storage-status').textContent='识别已停止，未重新加载演示。请先点击顶部重新识别，再切换读取失败场景。';return;
+  }
+  if(memberState.dirty||memberState.busy){
+   document.getElementById('demo-storage-status').textContent='当前有未保存或尚未确认的修改，未重置演示。请先完成保存或保留草稿。';return;
+  }
   if(next!==scene){const u=new URL(location.href);u.searchParams.set('scene',next);location.href=u.href;}return;
  }
- scene=next;window.OpenDeskTool.demoScene=scene;paused=false;paintDemo();root.dispatchEvent(new Event('opendesk-page-changed'));
+ scene=next;window.OpenDeskTool.demoScene=scene;paintDemo();root.dispatchEvent(new Event('opendesk-page-changed'));
+});
+document.getElementById('demo-release').addEventListener('click',()=>{
+ for(const resolve of pending.splice(0))resolve();paintPending();
+});
+document.getElementById('demo-conflict').addEventListener('click',()=>{
+ rows=[...rows.filter(row=>row.id!=='tencent'),{id:'tencent',expiry:'2035-05-05'}];bumpEtag();
+ document.getElementById('demo-storage-status').textContent='模拟其他窗口已保存：腾讯视频 2035-05-05。当前窗口使用旧 etag 的保存必须失败；刷新会重置全部演示内存。';
+});
+document.getElementById('demo-writefail').addEventListener('click',event=>{
+ writeFails=!writeFails;event.currentTarget.setAttribute('aria-pressed',String(writeFails));
+ event.currentTarget.textContent='模拟保存失败：'+(writeFails?'开':'关');
 });
 for(const b of root.querySelectorAll('[data-vp-tab]'))b.addEventListener('click',()=>queueMicrotask(paintDemo));
 document.getElementById('vp-stop').addEventListener('click',()=>{paused=true;paintDemo()});
-document.getElementById('vp-refresh').addEventListener('click',()=>{paused=false;paintDemo()});
-document.getElementById('vp-member-provider').addEventListener('change',syncDate);
+for(const id of ['vp-refresh','vp-recheck'])document.getElementById(id).addEventListener('click',()=>{paused=false;paintDemo()});
+document.getElementById('vp-member-provider').addEventListener('change',()=>syncDate(true));
 document.getElementById('vp-member-list').addEventListener('click',event=>{
  if(event.target.closest('button')){setTimeout(syncDate,0);return;}
  const row=event.target.closest('.vp-member-row');if(!row)return;
+ if(memberState.dirty||memberState.busy){
+  document.getElementById('demo-storage-status').textContent='当前有未保存或尚未确认的日期，未切换记录。请先完成保存。';return;
+ }
  const ids={'腾讯视频':'tencent','爱奇艺':'iqiyi','优酷':'youku','芒果 TV':'mango','哔哩哔哩':'bilibili'};
  const id=ids[row.querySelector('strong')?.textContent];
  if(id){document.getElementById('vp-member-provider').value=id;syncDate();document.getElementById('vp-member-expiry').focus();}
@@ -202,6 +259,13 @@ document.getElementById('demo-theme').addEventListener('click',e=>{
  const dark=fixture.dataset.theme!=='dark';fixture.dataset.theme=dark?'dark':'light';
  e.currentTarget.setAttribute('aria-pressed',String(dark));e.currentTarget.textContent=dark?'☀ 浅色':'☾ 深色';
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){for(const d of root.querySelectorAll('details[open]'))d.open=false;document.getElementById('vp-manual-wrap').hidden=true;}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){
+ const active=document.activeElement,manual=document.getElementById('vp-manual-wrap');
+ let restore=manual.contains(active)?document.getElementById('vp-copy'):null;
+ for(const d of root.querySelectorAll('details[open]')){
+  if(!restore&&d.contains(active))restore=d.querySelector('summary');d.open=false;
+ }
+ manual.hidden=true;restore?.focus();
+}});
 paintDemo();
 })();</script><script src="../src/main.js"></script></body></html>
