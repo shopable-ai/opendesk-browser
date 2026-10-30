@@ -111,3 +111,8 @@ sha256sum examples/sidebar-tools/scrapyjs/contracts/execution-v1.schema.json
 | Mac Chrome / REAL_RUNHOST / REAL_NETWORK / CLOUD / BILLING | NOT_TESTED |
 
 通过后仍需隔离安全评审：源代码能拒绝违规配置 ≠ 所有潜在 DNS、重定向、Cookie 与出口问题已经被真实运行时阻断。
+
+
+### R2.2 GitHub CI 的隔离运行边界
+
+本工具声明 `app.ci.json` 且自动发现本目录的 `*.test.mjs`。由于全仓 `npm run build:dev` 当前存在跨产品迁移后的旧路径未解析（`src/ui/conversation/provider-consumer.js` 引用 `examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js`），**ScrapyJS 的 CI 不应通过扩 Host 路径或修改 Runtime 绕过该阻断**。因此该 App CI profile 不设置 `host: development`，单独编译当前 ScrapyJS React IIFE；Chromium 测试实际加载该 IIFE 与原 React 19.2.0，但 **仅以最小 Button shim + 既有 memory mock** 测通操作（不是原生安装和完整设计系统截图）。全仓 Host 正式构建仍为 BLOCKED，并需产品迁移专项处理；该浏览器模拟测试不提升此事实。

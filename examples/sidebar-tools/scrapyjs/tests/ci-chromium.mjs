@@ -14,7 +14,6 @@ assert(process.env.CHROME_BIN,'Real Chrome required');
 await mkdir(out,{recursive:true});
 const assetFiles={
  '/react.js':resolve('src/libs/page-frameworks/react-19.2.0.js'),
- '/shared.js':resolve('dist/development/sidebar-shared-ui.js'),
  '/sdk.js':join(root,'adapters/app-sdk.js'),
  '/model.js':join(root,'src/app-model.js'),
  '/mock.js':join(root,'preview/mock-host.js'),
@@ -25,12 +24,13 @@ const assets=Object.fromEntries(await Promise.all(Object.entries(assetFiles)
 const config=JSON.parse(await readFile(join(root,'tool.config.json')));
 const task=config.delegatedTasks.find(x=>x.taskId==='scrapyjs.capture');
 assert(task?.manifestHash&&task?.contentHash);
+const buttonStub='window.OpenDeskSidebarUI=Object.freeze({Button:function(props){const p={...props};delete p.variant;return OpenDeskPageReact.createElement("button",p);}});';
 const page='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
  '<meta name="viewport" content="width=device-width,initial-scale=1">'+
  '<link rel="stylesheet" href="/tool.css"></head><body><div id="tool-root"><div id="tool-app"></div></div>'+
  '<script>window.__opendeskPreviewScenario="success";window.__opendeskPreviewTask='+JSON.stringify(task)+';</script>'+
- ['/mock.js','/react.js','/shared.js','/sdk.js','/model.js','/tool.js']
- .map(src=>'<script src="'+src+'"></script>').join('')+'</body></html>';
+ ['/mock.js','/react.js','/sdk.js','/model.js','/tool.js']
+ .map(src=>'<script src="'+src+'"></script>'+(src==='/react.js'?'<script>'+buttonStub+'</script>':'')).join('')+'</body></html>';
 const server=createServer((req,res)=>{
  const name=req.url?.split('?')[0];
  if(name!=='/'&&!Object.hasOwn(assets,name)){res.writeHead(404);res.end();return;}
@@ -67,7 +67,7 @@ async function click(selector){
    'if(!el||el.disabled)return false;el.click();return true;})()');
  assert.equal(ok,true,'Enabled control missing: '+selector);
 }
-const report={status:'STARTED',kind:'CHROMIUM_ORIGINAL_REACT_SIMULATED_SDK',sourceCommit:process.env.GITHUB_SHA||null,
+const report={status:'STARTED',kind:'CHROMIUM_ORIGINAL_REACT_SIMULATED_SDK_AND_BUTTON_STUB',sourceCommit:process.env.GITHUB_SHA||null,
  installed:false,realCapture:false,network:false,android:false,checks,errors};
 try{
  let port;
@@ -93,7 +93,7 @@ try{
  await call('Page.navigate',{url:'http://127.0.0.1:'+server.address().port+'/'});
  await until('Boolean(document.querySelector("#config-heading")) && '+
    'document.querySelector("#app-notice")?.textContent.includes("已读取保存配置")','React initial state');
- checks.push('Real Chromium renders original React and explicit memory-only mock');
+ checks.push('Real Chromium renders original React with minimal Button shim and memory-only mock');
  assert.equal(await read('document.querySelector("#config-heading").textContent'),'采集配置');
  assert.equal(await read('document.querySelector("#target-heading").textContent'),'采集目标');
  checks.push('Original capture/target headings preserved');

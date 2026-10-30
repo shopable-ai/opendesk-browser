@@ -1,7 +1,6 @@
 {
   "schema": "opendesk.app-ci.v1",
   "kind": "react",
-  "host": "development",
   "browser": [
     "examples/sidebar-tools/scrapyjs/tests/ci-chromium.mjs"
   ]
