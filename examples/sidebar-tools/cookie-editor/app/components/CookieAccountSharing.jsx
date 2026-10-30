@@ -133,21 +133,25 @@ export function CookieAccountReceive({onBack,request,origin}){
           onChange={e=>{setUrl(e.target.value);setInspection(null);}}/>
       </label>
       <button className="od-button od-button--secondary" type="button" disabled={busy||!url.trim()||received}
-        onClick={()=>run('shareInspect',{inviteUrl:url.trim()},setInspection)}>查看邀请</button>
+        onClick={()=>run('shareInspect',{inviteUrl:url.trim()},value=>{
+          setInspection(value);setReceived(value.configurationImported===true);
+        })}>查看邀请</button>
       {inspection&&<div className="cookie-market-detail">
         <strong>{inspection.invite.displayName}</strong><p>{inspection.invite.description}</p>
         <p className="cookie-account-empty">网站：{inspection.invite.origin}<br/>
-          到期时间：{new Date(inspection.invite.expiresAt).toLocaleString()}<br/>
-          剩余领取：{inspection.invite.remainingClaims} 次</p>
+          {inspection.localSavePending||inspection.configurationImported
+            ?<>本机已保留领取记录；此处不查询邀请的当前状态。</>
+            :<>到期时间：{new Date(inspection.invite.expiresAt).toLocaleString()}<br/>
+              剩余领取：{inspection.invite.remainingClaims} 次</>}</p>
         {inspection.invite.origin!==origin&&<p role="status">请先打开 {inspection.invite.origin}，再返回本入口领取。</p>}
-        <p className="cookie-account-empty">将新增独立账号，重名自动区分；保留当前网站会话。不会写入 Cookie 或确认登录。</p>
-        {inspection.invite.mode==='session'
+        {!received&&<p className="cookie-account-empty">将新增独立账号，重名自动区分；保留当前网站会话。不会写入 Cookie 或确认登录。</p>}
+        {!received&&(inspection.invite.mode==='session'
           ?<p role="status">{messages.E_SHARE_DEVICE_KEY_STORAGE_REQUIRED}</p>
           :<button className="od-button od-button--primary" type="button"
             disabled={busy||received||unknown||inspection.invite.origin!==origin||
               (!inspection.localSavePending&&inspection.invite.remainingClaims<1)}
             onClick={()=>run('shareClaim',{inviteUrl:inspection.url},()=>setReceived(true))}>
-            {inspection.localSavePending?'继续保存已领取配置':'领取账号配置'}</button>}
+            {inspection.localSavePending?'继续保存已领取配置':'领取账号配置'}</button>)}
       </div>}
       {received&&<p role="status" className="cookie-account-notice">配置已保存；Cookie 未写入，网站登录尚未验证。请使用网站正常登录流程。</p>}
       {notice&&<p className="cookie-account-feedback" role="status">{notice}</p>}

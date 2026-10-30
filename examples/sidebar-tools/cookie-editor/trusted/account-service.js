@@ -466,8 +466,26 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
         if(data.revision!==revision)throw fail('E_VAULT_CONFLICT');
         const account=data.accounts.find(x=>x.alias===payload.alias&&x.origin===origin);
         if(!account)throw fail('E_ACCOUNT_NOT_FOUND');
-        return runSwitch(account,record,payload.document,
+        const id=String(payload.document?.tabId);let priorFence=null;
+        try{
+          await api.storage.session.setAccessLevel({accessLevel:'TRUSTED_CONTEXTS'});
+          const prior=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]?.[id];
+          if(prior?.phase==='in_flight'&&new URL(prior.url).origin===origin)priorFence=prior;
+        }catch{/* Manual switching does not depend on automatic session storage. */}
+        const result=await runSwitch(account,record,payload.document,
           {refresh:data.settings.autoRefresh});
+        if(priorFence)try{
+          const next=(await api.storage.session.get(SEEN_KEY))[SEEN_KEY]||{};
+          if(sameAccountAutoSwitchFence(next[id],priorFence)){
+            await hostSender(sender,hostDocumentId);await installed(message);
+            // A verified explicit recovery settles the global tab block, but
+            // retains the old intent identity: that old URL still cannot replay.
+            // Do not label the uncertain automatic write as successfully applied.
+            next[id]={...priorFence,phase:'recovered'};
+            await api.storage.session.set({[SEEN_KEY]:next});
+          }
+        }catch{/* Never retry recovery bookkeeping or the verified Cookie effects. */}
+        return result;
       }
     }
     let capture=null,captureScope=null;

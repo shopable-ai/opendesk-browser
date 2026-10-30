@@ -279,6 +279,74 @@ test('SW saves directly at revision zero and switches after service restart with
 });
 
 
+test('a verified manual recovery allows a different automatic URL but never replays the unresolved URL',async t=>{
+  const f=await serviceFixture(t),session={};
+  f.api.storage.session={
+    setAccessLevel:async value=>assert.deepEqual(value,{accessLevel:'TRUSTED_CONTEXTS'}),
+    get:async key=>structuredClone({[key]:session[key]}),
+    set:async values=>Object.assign(session,structuredClone(values))
+  };
+  let service=createCookieAccountService({api:f.api,storage:f.storage});
+  const dispatch=(operation,payload)=>service.dispatch(f.message(operation,payload),f.sender);
+  f.setCookie('account-a');
+  const a=(await dispatch('create',{revision:0,displayName:'A'})).accounts[0];
+  f.setCookie('account-b');
+  const b=(await dispatch('create',{revision:1,displayName:'B'})).accounts[1];
+  await dispatch('allowAlias',{revision:2,alias:a.alias,accountVersion:1,enabled:true});
+  await dispatch('allowAlias',{revision:3,alias:b.alias,accountVersion:1,enabled:true});
+  await dispatch('setAutoEnabled',{revision:4,enabled:true});
+  await dispatch('setAutoRefresh',{revision:5,enabled:false});
+  const nativeSet=f.api.cookies.set;
+  // Native mutation happens, but its receipt is lost. A fresh service must
+  // preserve this durable fence until an explicit, verified manual recovery.
+  f.api.cookies.set=(details,callback)=>nativeSet(details,()=>callback(undefined));
+  f.document.url='https://example.com/#od-account='+a.alias;
+  const navigation=()=>service.navigation({frameId:0,tabId:1,url:f.document.url});
+  await navigation();assert.equal(f.writes(),1);
+  assert.equal(session[COOKIE_ACCOUNT_SEEN_KEY]['1'].phase,'in_flight');
+  f.api.cookies.set=nativeSet;
+  service=createCookieAccountService({api:f.api,storage:f.storage});
+  await navigation();assert.equal(f.writes(),1,'restart must not replay the uncertain write');
+  assert.equal((await dispatch('switch',{revision:6,alias:b.alias})).verified,true);
+  assert.equal(f.writes(),2);
+  await navigation();assert.equal(f.writes(),2,'the unresolved old URL is still not a new intent');
+  f.setCookie('external-session-change');
+  f.document.url='https://example.com/#od-account='+b.alias;
+  await navigation();
+  assert.equal(f.writes(),3,'a different explicit URL must work after verified manual recovery');
+  assert.equal(session[COOKIE_ACCOUNT_SEEN_KEY]['1'].alias,b.alias);
+  assert.equal(session[COOKIE_ACCOUNT_SEEN_KEY]['1'].phase,'applied');
+});
+
+for(const failure of ['lost native receipt','permission revoked','session write failed','newer fence','different website'])
+test(`manual recovery preserves the automatic fence on ${failure}`,async t=>{
+  const f=await serviceFixture(t);
+  const saved=await f.dispatch('create',{revision:0,displayName:'A'}),alias=saved.accounts[0].alias;
+  const prior={url:(failure==='different website'?'https://other.example/':'https://example.com/')+
+    '#od-account='+alias,alias,version:1,phase:'in_flight'};
+  const newer={...prior,url:'https://example.com/#od-account=acct_other',alias:'acct_other'};
+  const session={[COOKIE_ACCOUNT_SEEN_KEY]:{'1':prior}};
+  f.api.storage.session={setAccessLevel:async()=>{},
+    get:async key=>structuredClone({[key]:session[key]}),
+    set:async values=>{
+      if(failure==='session write failed')throw Error('session unavailable');
+      Object.assign(session,structuredClone(values));
+    }};
+  f.setCookie('changed-session');
+  const nativeSet=f.api.cookies.set;
+  f.api.cookies.set=(details,callback)=>nativeSet(details,result=>{
+    if(failure==='newer fence')session[COOKIE_ACCOUNT_SEEN_KEY]['1']=newer;
+    callback(failure==='lost native receipt'?undefined:result);
+  });
+  if(failure==='permission revoked')f.revoke();
+  const operation=f.dispatch('switch',{revision:1,alias});
+  if(failure==='lost native receipt'||failure==='permission revoked')
+    await assert.rejects(operation,{code:failure==='lost native receipt'?'E_OUTCOME_UNKNOWN':'E_SITE_GRANT_REQUIRED'});
+  else assert.equal((await operation).verified,true,'bookkeeping cannot undo a verified Cookie switch');
+  assert.deepEqual(session[COOKIE_ACCOUNT_SEEN_KEY]['1'],failure==='newer fence'?newer:prior);
+  assert.equal(f.writes(),failure==='permission revoked'?0:1);
+});
+
 test('SW creates, edits and deletes an account when a granted site has zero Cookies',async t=>{
   const f=await serviceFixture(t);f.setCookie(null);
   const created=await f.dispatch('create',{

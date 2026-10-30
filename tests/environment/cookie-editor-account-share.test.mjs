@@ -108,6 +108,33 @@ test('configuration claim creates distinct alias/name, preserves sessions and is
   assert.equal((await service.dispatch('shareStatus',{ref:created.ref},'owner')).invite.remainingClaims,2);
   assert.doesNotMatch(JSON.stringify(result),/NEVER_TRANSMIT_COOKIE|managerSecret/);
 });
+test('reopened inspection recognizes a saved configuration after sender revocation without another network request',async t=>{
+  const f=await fixture(t),service=f.create();
+  const created=await service.dispatch('shareCreate',{...f.payload,maxClaims:1},'owner');
+  const result=await service.dispatch('shareClaim',{revision:1,inviteUrl:created.url},'owner');
+  const stored=f.records.get(COOKIE_SHARE_STORAGE_KEY).items[0];
+  f.relay.operations.revoke(stored.id,stored.managerSecret);
+  const calls=f.calls.length;
+  const inspection=await f.create().dispatch('shareInspect',{inviteUrl:created.url},'owner');
+  assert.equal(inspection.configurationImported,true);
+  assert.equal(inspection.localSavePending,false);
+  assert.equal(inspection.cookieWriteVerified,false);
+  assert.equal(inspection.websiteLoginConfirmed,false);
+  assert.equal(f.calls.length,calls);
+  assert.equal((await f.vault.read()).accounts.some(a=>a.alias===result.alias),true);
+  await assert.rejects(f.create().dispatch('shareInspect',{inviteUrl:created.url},'other-owner'),
+    {code:'E_INVITE_REVOKED'});
+});
+test('reopened inspection never reports a deleted received account as saved',async t=>{
+  const f=await fixture(t),service=f.create();
+  const created=await service.dispatch('shareCreate',f.payload,'owner');
+  const result=await service.dispatch('shareClaim',{revision:1,inviteUrl:created.url},'owner');
+  await f.vault.update(2,data=>{data.accounts=data.accounts.filter(a=>a.alias!==result.alias);});
+  const calls=f.calls.length;
+  await assert.rejects(f.create().dispatch('shareInspect',{inviteUrl:created.url},'owner'),
+    {code:'E_ACCOUNT_NOT_FOUND'});
+  assert.equal(f.calls.length,calls);
+});
 test('empty accounts can be shared, wrong website and session invites never consume a claim',async t=>{
   const f=await fixture(t);await f.vault.update(1,data=>{data.accounts[0].cookies=[];});
   const service=f.create();
@@ -139,6 +166,17 @@ test('lost remote claim receipt retains durable fence; restart never automatical
   assert.equal(f.calls.filter(x=>x.url.endsWith('/claim')).length,1);
   assert.equal((await f.vault.read()).accounts.length,1);
   assert.equal(f.records.get(COOKIE_SHARE_STORAGE_KEY).claims[0].phase,'claiming');
+});
+test('reopened inspection preserves an unknown claim fence instead of presenting a new invitation',async t=>{
+  const f=await fixture(t),service=f.create();
+  const created=await service.dispatch('shareCreate',f.payload,'owner');f.drop();
+  await assert.rejects(service.dispatch('shareClaim',{revision:1,inviteUrl:created.url},'owner'),
+    {code:'E_OUTCOME_UNKNOWN'});
+  const calls=f.calls.length;
+  await assert.rejects(f.create().dispatch('shareInspect',{inviteUrl:created.url},'owner'),
+    {code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.calls.length,calls);
+  assert.equal((await f.vault.read()).accounts.length,1);
 });
 test('uncertain durable create fence prevents any remote POST and cleanup preserves unrelated account data',async t=>{
   const f=await fixture(t);f.loseCommit();

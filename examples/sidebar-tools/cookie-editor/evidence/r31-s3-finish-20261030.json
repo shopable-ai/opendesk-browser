@@ -25,8 +25,8 @@
   ],
   "s1": {
     "status": "NOT_TESTED",
-    "sourceChanged": false,
-    "reason": "Complete fixed development output has been restored by its existing writer. Chrome control explicitly refuses claiming chrome://extensions/, leaving actual loaded extension ID/path/dev client and the real Sidebar unverified. No current A/B Cookie operation was performed."
+    "sourceChanged": true,
+    "reason": "Trusted same-site manual recovery repaired and component-tested. No current real Chrome A/B operation yet; ordinary Side Panel entry is being verified by ScrapyJS owner, with input still owned there."
   },
   "session": {
     "status": "BLOCKED",
@@ -49,7 +49,7 @@
     "TWO_DEVICE_LAN": "NOT_TESTED",
     "REAL_SITE": "NOT_TESTED"
   },
-  "nodeScope": "Targeted suites pass; shared Host regression and formal package gate still fail, so aggregate NODE is FAIL.",
+  "nodeScope": "Current affected component, source-provenance and package gates pass. Full shared Host was not rerun; unrelated historical failures remain, so aggregate NODE is retained as FAIL, not a new full-suite result.",
   "checks": [
     {
       "command": "node --test services/cookie-share-relay/server.test.mjs tests/environment/cookie-editor-account-share.test.mjs tests/environment/cookie-editor-account-switch-url.test.mjs tests/environment/cookie-editor-account-vault.test.mjs tests/environment/cookie-editor-account-switch-host.test.mjs tests/environment/cookie-editor-account-ui-receipt.test.mjs tests/environment/cookie-account-provenance-r134.test.mjs tests/environment/cookie-editor-import-intent.test.mjs tests/environment/cookie-editor-write-intent.test.mjs tests/environment/cookie-editor-clear-intent.test.mjs tests/environment/cookie-editor-export-intent.test.mjs",
@@ -135,17 +135,17 @@
   "packages": {
     "formal": {
       "path": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
-      "version": "2.0.55",
-      "bytes": 240481,
-      "sha256": "70e398b10d40d1a93242f6dbc0d6d7d172faa9d2f6a1d236c7f43a576c91cb07"
+      "version": "2.0.56",
+      "bytes": 240710,
+      "sha256": "9bbf1cf7aab6afab95d3f9f63247064dbcdb6e36dac2976cb075abf25e34ab64"
     },
     "candidate": {
       "path": "artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json",
-      "version": "2.0.55",
-      "bytes": 240481,
-      "sha256": "70e398b10d40d1a93242f6dbc0d6d7d172faa9d2f6a1d236c7f43a576c91cb07"
+      "version": "2.0.56",
+      "bytes": 240710,
+      "sha256": "9bbf1cf7aab6afab95d3f9f63247064dbcdb6e36dac2976cb075abf25e34ab64"
     },
-    "promotion": "PROMOTED_CANONICAL_PACKER_LOCAL_AUTOMATED_GATES_INSTALL_NOT_TESTED",
+    "promotion": "PROMOTED_CANONICAL_APP_UPDATE_LOCAL_GATES_NOT_INSTALLED",
     "catalog": "Source catalog consumes the sole promoted formal 2.0.55 JSON; actual dist catalog and Chrome installed version not verified by this task.",
     "previousFormalBeforeLocalPromotion": {
       "path": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
@@ -174,7 +174,7 @@
     "reason": "Required latest-candidate Chromium, Mac, two-device LAN and real-site evidence absent; no 95+ assertion"
   },
   "nextUserOperation": "Verify the actually loaded OpenDesk extension ID/path and Debug local development connection through an accessible real Chrome product entry; then save A/B, enable each alias, close Sidebar and verify URL switching and reload. Do not guess an ID or bypass the protected Chrome page. Session sharing remains blocked by the existing nonextractable-key recovery contract.",
-  "goalLifecycle": "Original goal remains active and unmet; this source increment does not mark S3-FINISH complete.",
+  "goalLifecycle": "Original task goal remains BLOCKED_NOT_COMPLETE; current task get_goal is null. No goal was created, migrated or marked complete.",
   "continuation20261030": {
     "sourceHeadBeforeCommit": "a292e33ad50d271fb9b6432318646bf17e67a4ac",
     "stage": "DEV_IMPORT_AND_SOURCE_BOUNDARY_REPAIRED_TWO_MAC_HTTPS_API_PROVEN_CORE_GOAL_STILL_UNMET",
@@ -520,5 +520,154 @@
     "twoDeviceLanFullChain": "NOT_TESTED",
     "realSiteLogin": "NOT_TESTED",
     "overall": "NOT_FINISHED"
+  },
+  "recoveryContinuation20261030": {
+    "recordedAt": "2026-10-30T08:21:54.509142+00:00",
+    "owner": "01a18bd4-fed1-7b71-b10c-6a15a56eb271",
+    "previousOwner": "01a18b80-2d95-7602-86d9-c21ec9d27340",
+    "sourceHeadBeforeCommit": "db00bf39c36ebfeedd85c8ae7c353252e5df88a6",
+    "goalRead": null,
+    "businessSourceChanged": true,
+    "operations": [
+      "Reopen configuration receipt: exact owner/URL, applied account alias/origin still exists, local saved result without a new remote claim; deleted account and unknown claim rejected.",
+      "Pending received configuration remains explicitly saveable without another claim; UI distinguishes cached local receipt from current remote availability.",
+      "Verified same-site manual Cookie switch can settle the unchanged in-flight automatic tab fence as recovered, while retaining old URL/alias/version replay rejection.",
+      "Unknown manual effects, revoked permissions, failed session storage, a newer fence and a different website leave the unresolved fence unchanged."
+    ],
+    "review": {
+      "reviewer": "01a18bdc-731d-74f0-8064-e484b40b388a",
+      "status": "NO_P1_P2_FINDINGS_READ_ONLY",
+      "approvedGitBlobs": {
+        "trusted/account-service.js": "59235830431e630361fee9a440b9ca9f9d3d0a76",
+        "trusted/account-share.js": "ffd8c426187666081f7e3d0ba62c5d0e5f13f707"
+      },
+      "admission": "Only original exact-path SW targets; byte drift, target mismatch and symlink rejection unchanged."
+    },
+    "checks": [
+      {
+        "command": "node --test --test-name-pattern=\"reopened inspection\" tests/environment/cookie-editor-account-share.test.mjs",
+        "status": "REPRODUCED_PRODUCT_DEFECT",
+        "exitCode": 1,
+        "passed": 0,
+        "failed": 3,
+        "log": "artifacts/cookie-editor-r31/receipt-reopen-red-20261030.log",
+        "logSha256": "791397780c621fc63b7f1397cf19b9900632735784768ab88631cddf21fcd9a8"
+      },
+      {
+        "command": "node --test tests/environment/cookie-editor-account-sharing-ui.test.mjs",
+        "status": "REPRODUCED_MISSING_SAVED_STATE",
+        "exitCode": 1,
+        "passed": 2,
+        "failed": 1,
+        "log": "artifacts/cookie-editor-r31/receipt-ui-red-20261030.log",
+        "logSha256": "d1de522257f47db5d0be7499b8b1a89789f4316c80e3c68eb5edfedd2dd31114"
+      },
+      {
+        "command": "node --test tests/environment/cookie-editor-account-sharing-ui.test.mjs tests/environment/cookie-editor-account-share.test.mjs tests/environment/cookie-editor-account-ui-receipt.test.mjs",
+        "status": "NODE_COMPONENT_PASS",
+        "exitCode": 0,
+        "passed": 36,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/receipt-targeted-20261030.log",
+        "logSha256": "f34d99e0dc1d34095b7f4d2c05defcc34ef57e911d0c9c07d860117d89fbd019"
+      },
+      {
+        "command": "node --test --test-name-pattern=\"verified manual recovery\" tests/environment/cookie-editor-account-switch-host.test.mjs",
+        "status": "REPRODUCED_PRODUCT_DEFECT",
+        "exitCode": 1,
+        "passed": 0,
+        "failed": 1,
+        "log": "artifacts/cookie-editor-r31/manual-recovery-red-20261030.log",
+        "logSha256": "fe206e22fcda78ee16589088a4d33bde69a15b0d664eb8dcea85b5681e7152c7"
+      },
+      {
+        "command": "node --test tests/environment/cookie-editor-account-switch-host.test.mjs tests/environment/cookie-editor-account-parent-domain.test.mjs",
+        "status": "NODE_COMPONENT_PASS_BEFORE_FINAL_SAME_ORIGIN_REFINEMENT",
+        "exitCode": 0,
+        "passed": 96,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/manual-recovery-targeted-20261030.log",
+        "logSha256": "6868c340740434af2b4c0eb62e0f5e627c6459af0a2cf14699e1c1eb319ef493"
+      },
+      {
+        "command": "node --test --test-name-pattern=\"manual recovery\" tests/environment/cookie-editor-account-switch-host.test.mjs",
+        "status": "FINAL_SAME_ORIGIN_AND_RECOVERY_PROTECTIONS_PASS",
+        "exitCode": 0,
+        "passed": 7,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/manual-recovery-protection-20261030.log",
+        "logSha256": "814ca2dd97768df6e0852d75dd0b4bc7611216963d3a27994580690a532f6244"
+      },
+      {
+        "command": "node --test tests/environment/cookie-account-provenance-r134.test.mjs",
+        "status": "SOURCE_TARGET_DRIFT_SYMLINK_PASS",
+        "exitCode": 0,
+        "passed": 6,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/recovery-provenance-20261030.log",
+        "logSha256": "cf6c19c58bb2d56903fbe4c79707233bf76b261486d2c359163e5b9b389636cb"
+      },
+      {
+        "command": "node --test --test-name-pattern=\"source drift|built React JSX\" tests/environment/cookie-editor-react-build.test.mjs",
+        "status": "COMPILED_CANDIDATE_PASS",
+        "exitCode": 0,
+        "passed": 2,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/recovery-react-candidate-20261030.log",
+        "logSha256": "6bb09a271c02c1b6c3933e00f60ebcacba1784688d9eae3ae949a89c85ee7103"
+      },
+      {
+        "command": "node scripts/app-update.mjs cookie-editor",
+        "status": "PATCH_TEST_PROMOTE_CHECK_PASS",
+        "exitCode": 0,
+        "passed": 8,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/recovery-app-update-20261030.log",
+        "logSha256": "6d231c211289dea453fc4453dd48cc7fb0f557ff485cba4cb69fd45e1f47cfab"
+      },
+      {
+        "command": "node --test --test-name-pattern=\"canonical packer emits|checked-in official React package\" tests/environment/cookie-editor-react-build.test.mjs",
+        "status": "FORMAL_PACKAGE_SOURCE_PARITY_PASS",
+        "exitCode": 0,
+        "passed": 2,
+        "failed": 0,
+        "log": "artifacts/cookie-editor-r31/recovery-package-parity-20261030.log",
+        "logSha256": "d07caca035b4474c90348904154bdb2050168f0015cdbc92151f4344fb6bb672"
+      }
+    ],
+    "reactBuild": {
+      "command": "node scripts/build-cookie-editor-react.mjs",
+      "exitCode": 0,
+      "log": "artifacts/cookie-editor-r31/receipt-react-build-20261030.log",
+      "buildId": "1237e2bbc1e49cd0d8d80e4df44ce6f871bde6abcfc154fec42bbf03001783e6",
+      "note": "Compiled with package.json 2.0.56 before original app:update automatically PATCHed tool.config from 2.0.55; tool.config is not a Vite receipt input. Final canonical package/check-project version is 2.0.56."
+    },
+    "package": {
+      "status": "PROJECT_PACKAGE_MATCH",
+      "output": "/Users/mac/Documents/workspace/opendesk-browser/examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+      "id": "cookie-editor",
+      "version": "2.0.56",
+      "bytes": 240710,
+      "sha256": "9bbf1cf7aab6afab95d3f9f63247064dbcdb6e36dac2976cb075abf25e34ab64",
+      "validated": true,
+      "installed": false
+    },
+    "installed": false,
+    "reusedEvidence": "Unchanged Relay, vault, URL parser, public Cookies driver, Host/Authority, permissions and installer contracts reuse earlier relevant results. No repeated full Host or production build.",
+    "development": {
+      "mode": "continuous development; disk writer owned by cloud task",
+      "path": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+      "writerPid": 62841,
+      "writerOwner": "01a18b96-4e45-7971-b993-28d6dde17f60",
+      "restarted": false,
+      "rootBuildPerformed": false,
+      "actualChromeIdentity": "AWAITING_NORMAL_UI_EVIDENCE_FROM_SCRAPY_OWNER",
+      "cookieNativeOperationPerformed": false
+    },
+    "session": "BLOCKED_E_SHARE_DEVICE_KEY_STORAGE_REQUIRED",
+    "twoDeviceLanFullChain": "NOT_TESTED",
+    "realSiteLogin": "NOT_TESTED",
+    "overall": "NOT_FINISHED",
+    "nextOperation": "After normal Chrome UI identity/dev connection evidence and input release, verify the paired fixed SW and 2.0.56 UI through the original entry, then local A/B URL switching with Sidebar closed. Never reuse unknown effects or bypass rejected internal pages."
   }
 }

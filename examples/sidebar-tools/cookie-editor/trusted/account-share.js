@@ -163,10 +163,20 @@ export function createCookieAccountShare({api,storage,vault,authorize,fetcher=(.
     }
     const address=cookieShareAddress(payload.inviteUrl,{invitation:true});
     if(action==='shareInspect'){
-      const pending=(await read()).claims.find(x=>x.url===address.url&&x.owner===owner&&x.phase==='received');
-      if(pending){
+      const prior=(await read()).claims.find(x=>x.url===address.url&&x.owner===owner);
+      if(prior){
+        // Remote availability cannot settle an earlier local claim. Reopen
+        // from the durable receipt, preserving unknown-effect fences.
+        if(!['received','applied'].includes(prior.phase))throw fail('E_OUTCOME_UNKNOWN');
+        const invite=metadata(prior.invite),applied=prior.phase==='applied';
+        if(applied){
+          const current=await vault.read();
+          if(!current.accounts.some(a=>a.alias===prior.alias&&a.origin===invite.origin))
+            throw fail('E_ACCOUNT_NOT_FOUND');
+        }
         await authorize();
-        return {url:address.url,invite:metadata(pending.invite),localSavePending:true,
+        return {url:address.url,invite,localSavePending:!applied,
+          configurationImported:applied,cookieWriteVerified:false,websiteLoginConfirmed:false,
           sessionAvailable:false,sessionBlocker:'E_SHARE_DEVICE_KEY_STORAGE_REQUIRED'};
       }
       const invite=metadata(await request(address.origin,'/v1/invites/'+address.id));
