@@ -8,7 +8,7 @@ const account={alias:'test-account', displayName:'Test label',lastAttempt:{statu
 const window={observedAt:new Date(now-1000).toISOString(),resetsAt:new Date(now+1000).toISOString()};
 test('cached samples age, fail and cross reset conservatively',()=>{
   assert.equal(sampleStale(account,window,now),false);
-  assert.equal(sampleStale({...account,lastAttempt:{status:'UNAVAILABLE'}},window,now),true);
+  assert.equal(sampleStale({...account,lastAttempt:{status:'UNAVAILABLE'}},window,now),false); // failure != cache expiry
   assert.equal(sampleStale(account,{...window,observedAt:new Date(now-900001).toISOString()},now),true);
   assert.equal(sampleStale(account,{...window,resetsAt:new Date(now).toISOString()},now),true);
   assert.equal(sampleStale(account,{...window,observedAt:null},now),true);
@@ -19,11 +19,13 @@ test('cached samples age, fail and cross reset conservatively',()=>{
 });
 test('API only uses cookie-session same-origin requests and explicit refresh has no retry',async()=>{
   const calls=[];
-  const api=createApi(async(path,options)=>{calls.push({path,options});return {ok:true,json:async()=>path.endsWith('/refresh')?{account}:{accounts:[],observations:[],rollovers:[]}};});
+  const api=createApi(async(path,options)=>{calls.push({path,options});return {ok:true,json:async()=>path.endsWith('/refresh')?{status:'OK',account}:
+    path.endsWith('/accounts/test-account')?{account}:{accounts:[],observations:[],rollovers:[]}};});
   assert.equal(calls.length,0);
-  await api.accounts(); await api.history(account.alias); await api.refresh(account.alias);
+  await api.accounts(); await api.history(account.alias); await api.account(account.alias); await api.refresh(account.alias);
   assert.deepEqual(calls.map(x=>[x.path,x.options.method]),[
-    ['/api/v1/accounts','GET'],['/api/v1/accounts/test-account/history?limit=20','GET'],['/api/v1/accounts/test-account/refresh','POST']]);
+    ['/api/v1/accounts','GET'],['/api/v1/accounts/test-account/history?limit=20','GET'],
+    ['/api/v1/accounts/test-account','GET'],['/api/v1/accounts/test-account/refresh','POST']]);
   for(const {options} of calls){
     assert.equal(options.credentials,'same-origin');assert.equal(options.redirect,'error');
     assert.deepEqual(options.headers,options.method==='POST' ? {Accept:'application/json','Content-Type':'application/json'} : {Accept:'application/json'});
@@ -37,12 +39,37 @@ test('API only uses cookie-session same-origin requests and explicit refresh has
 test('rejects session failures, malformed payloads and mismatched refresh identities',async()=>{
   for(const status of [401,403]) await assert.rejects(createApi(async()=>({ok:false,status})).accounts(),{message:'请从本机启动终端的连接链接打开'});
   await assert.rejects(createApi(async()=>({ok:true,json:async()=>({})})).accounts(),/格式/);
-  await assert.rejects(createApi(async()=>({ok:true,json:async()=>({account:{alias:'other'}})})).refresh(account.alias),/身份/);
+  await assert.rejects(createApi(async()=>({ok:true,json:async()=>({status:'OK',account:{alias:'other'}})})).refresh(account.alias),/身份/);
+  await assert.rejects(createApi(async()=>({ok:true,json:async()=>({account:{alias:'other'}})})).account(account.alias),/身份/);
+});
+test('HTTP 200 with failed lastAttempt is not query success, including persisted failure metadata',async()=>{
+  const previous={...account,windows:[{remainingPercent:68}],lastSuccessAt:'2026-10-29T00:00:00.000Z'};
+  for(const [http,status] of [[200,'UNAVAILABLE'],[424,'AUTH_REQUIRED'],[422,'IDENTITY_UNVERIFIED'],
+    [429,'RATE_LIMITED'],[502,'SCHEMA_UNKNOWN'],[503,'UNAVAILABLE']]){
+    let count=0;
+    const failed=createApi(async()=>{count++;return {ok:http===200,status:http,
+      json:async()=>({status,account:{...previous,lastAttempt:{status}}})};});
+    await assert.rejects(failed.refresh(account.alias),error=>{
+      assert.equal(error.account.lastSuccessAt,previous.lastSuccessAt);
+      assert.equal(error.account.windows[0].remainingPercent,68);
+      return /失败|受限|格式|授权|身份/.test(error.message);
+    });
+    assert.equal(count,1,'no hidden retry');
+  }
+  for(const http of [401,403,409,504])await assert.rejects(
+    createApi(async()=>({ok:false,status:http,json:async()=>({error:'PRIVATE_NOT_FOR_UI'})})).refresh(account.alias),
+    error=>!error.message.includes('PRIVATE_NOT_FOR_UI'));
+  await assert.rejects(createApi(async()=>({ok:true,status:200,json:async()=>({status:'OK',account:{
+    ...previous,lastAttempt:{status:'UNAVAILABLE'}}})})).refresh(account.alias),/失败/);
 });
 test('UI uses native modal focus boundary, Escape and return focus; no refresh effect',async()=>{
   const ui=await readFile(new URL('../services/ai-account-usage/web/main.jsx',import.meta.url),'utf8');
   assert.match(ui,/\.showModal\(\)/);assert.match(ui,/onCancel=/);assert.match(ui,/previous\.focus\(\)/);
   assert.equal((ui.match(/api\.refresh\(/g)||[]).length,1);
+  assert.match(ui,/pending\.current\.has\(alias\)/);
+  assert.match(ui,/disabled=\{busy\|\|isDemo\}/);
+  assert.match(ui,/api\.account\(alias\)/);
+  assert.doesNotMatch(ui,/shouldRefresh/);
   assert.doesNotMatch(ui,/localStorage|sessionStorage|document\.cookie|Authorization|https?:\/\//);
 });
 

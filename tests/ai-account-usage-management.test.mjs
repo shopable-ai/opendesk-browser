@@ -14,8 +14,10 @@ test('same-origin HttpOnly pairing hides read API secret; only explicit refresh 
   for(const file of ['index.html','app.js','app.css'])await writeFile(join(directory,file),'public asset');
   const store=new HistoryStore({directory:join(directory,'history')});
   await store.register({alias:'test_01',displayName:'Synthetic'});
-  let calls=0,now=Date.now();
-  const service={query:async input=>{calls++;assert.deepEqual(input,{alias:'test_01',operation:'refresh'});return {results:[{account:(await store.accounts())[0]}]};}};
+  let calls=0,now=Date.now(),nextStatus='OK';
+  const service={query:async input=>{calls++;assert.deepEqual(input,{alias:'test_01',operation:'refresh'});
+    const account={...(await store.accounts())[0],lastAttempt:{status:nextStatus}};
+    return {results:[{status:nextStatus,account}]};}};
   const server=await startManagementServer({store,service,assetsDirectory:directory,clock:()=>now});
   t.after(()=>server.close());
   const origin=new URL(server.url).origin;
@@ -46,7 +48,19 @@ test('same-origin HttpOnly pairing hides read API secret; only explicit refresh 
   assert.equal((await req('/api/v1/accounts/test_01/refresh',{method:'POST',headers:{...h,'content-type':'application/json'},body:'{}'})).status,403);
   assert.equal((await req('/api/v1/accounts/test_01/refresh',{method:'POST',headers:{...h,origin,'content-type':'application/json'},body:'{"path":"/tmp/auth"}'})).status,400);
   const refresh=await req('/api/v1/accounts/test_01/refresh',{method:'POST',headers:{...h,origin,'content-type':'application/json'},body:'{}'});
-  assert.equal(refresh.status,200);assert.equal(calls,1);
+  assert.equal(refresh.status,200);assert.equal((await refresh.json()).status,'OK');assert.equal(calls,1);
+  for(const [status,http] of [['AUTH_REQUIRED',424],['IDENTITY_UNVERIFIED',422],
+    ['RATE_LIMITED',429],['SCHEMA_UNKNOWN',502],['UNAVAILABLE',503]]){
+    nextStatus=status;
+    const failed=await req('/api/v1/accounts/test_01/refresh',{method:'POST',
+      headers:{...h,origin,'content-type':'application/json'},body:'{}'});
+    assert.equal(failed.status,http,status);
+    const body=await failed.json();
+    assert.equal(body.status,status);assert.equal(body.account.lastAttempt.status,status);
+    assert.equal(body.account.alias,'test_01');
+    assert.ok(!JSON.stringify(body).includes('TOKEN_SECRET'));
+  }
+  assert.equal(calls,6);
   assert.equal((await req('/api/v1/accounts?token=x',{headers:h})).status,400);
   assert.equal((await req('/authorized-sources.mjs',{headers:h})).status,404);
   assert.equal(refresh.headers.get('access-control-allow-origin'),null);

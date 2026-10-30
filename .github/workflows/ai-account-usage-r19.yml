@@ -1,4 +1,4 @@
-name: AI Account Usage R2.0 · React Decision Chromium
+name: AI Account Usage R2.2 · Real Refresh Contract & React Chromium
 on:
   push:
     branches: [main]
@@ -11,6 +11,7 @@ on:
       - 'services/ai-account-usage/web-server.mjs'
       - 'tests/ai-account-usage-*.test.mjs'
       - 'tests/ai-account-usage-chromium-r19.mjs'
+      - 'tests/ai-account-usage-chromium-r22.mjs'
       - '.github/workflows/ai-account-usage-r19.yml'
   workflow_dispatch:
 permissions:
@@ -81,6 +82,10 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node tests/ai-account-usage-chromium-r19.mjs
+      - name: "Production React: single-click API refresh, status, readback and cache retention"
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tests/ai-account-usage-chromium-r22.mjs
       - name: Publish source-bound, synthetic HTML preview on existing main only
         run: |
           set -euo pipefail
@@ -97,6 +102,10 @@ jobs:
           for name in 1440-account-overview.png 390-mobile.png spare-pro-history.png business-invite-guidance.png chromium-report.json; do
             test -s "artifacts/ai-usage-r19/$name"
             cp "artifacts/ai-usage-r19/$name" "$evidence/$name"
+          done
+          for name in production-refresh.png production-refresh-report.json; do
+            test -s "artifacts/ai-usage-r22/$name"
+            cp "artifacts/ai-usage-r22/$name" "$evidence/$name"
           done
           git add services/ai-account-usage/web/preview/index.html "$evidence"
           if git diff --cached --quiet; then
@@ -116,3 +125,4 @@ jobs:
             services/ai-account-usage/web/preview-dist/
             services/ai-account-usage/web/preview/index.html
             artifacts/ai-usage-r19/
+            artifacts/ai-usage-r22/
