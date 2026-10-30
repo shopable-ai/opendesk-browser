@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {pageVideoSpeed,requestVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY} from '../../projects/video-speed-controller/trusted/policy.js';
+import {admitsOfficialVideoSpeed,VIDEO_SPEED_VERSION,VIDEO_SPEED_MARKET_ID} from '../../projects/video-speed-controller/trusted/admission.js';
+import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
+import {createHash} from 'node:crypto';
 
 const video=(playing=false,speed=1,area=100)=>({
   paused:!playing,ended:false,playbackRate:speed,
@@ -10,9 +13,11 @@ const video=(playing=false,speed=1,area=100)=>({
 function fixture(){
   const top={frameId:0,documentId:'top-document',url:'https://media.example/watch'};
   const inner={frameId:2,documentId:'inner-document',url:'https://player.example/embed'};
+  // Persistent mock media elements mirror a real DOM: playbackRate survives reads.
+  const topVideo=video(false,1,300),innerVideo=video(true,1,800);
   const docs={
-    [top.documentId]:{querySelectorAll:()=>[video(false,1,300)]},
-    [inner.documentId]:{querySelectorAll:()=>[video(true,1,800)]}
+    [top.documentId]:{querySelectorAll:()=>[topVideo]},
+    [inner.documentId]:{querySelectorAll:()=>[innerVideo]}
   };
   const calls=[],target={status:'available',windowId:1,tabId:4,frameId:0,
     documentId:top.documentId,url:top.url,origin:'https://media.example'};
@@ -89,4 +94,30 @@ test('page injection function is self-contained and chooses playing video',()=>{
     assert.equal(paused.playbackRate,1);
     assert.equal(playing.playbackRate,1.75);
   }finally{globalThis.document=before;}
+});
+
+test('only the official installed release can use first-party video mutation',async()=>{
+  const tool=await createSidebarToolPackage('projects/video-speed-controller');
+  const bytes=encodeSidebarToolPackage(tool);
+  const sha256=createHash('sha256').update(bytes).digest('hex');
+  const release={id:VIDEO_SPEED_MARKET_ID,toolId:VIDEO_SPEED_ID,
+    version:VIDEO_SPEED_VERSION,packagePath:'official-tools/'+VIDEO_SPEED_ID+'/'+VIDEO_SPEED_ID+'.opendesk-tool.json',
+    sha256,bytes:bytes.length,capabilities:tool.capabilities};
+  const expectedEpoch='video-install-epoch';
+  const source={[VIDEO_SPEED_ID]:{marketId:VIDEO_SPEED_MARKET_ID,
+    version:VIDEO_SPEED_VERSION,sha256}};
+  const admitted={tool,release,installed:[tool],provenance:source,
+    enableRecords:{},epochs:{[VIDEO_SPEED_ID]:expectedEpoch},expectedEpoch};
+  assert.equal(await admitsOfficialVideoSpeed(admitted),true);
+  for(const changes of [
+    {tool:{...tool,html:tool.html+'<p>modified</p>'}},
+    {installed:[tool,{...tool}]},
+    {provenance:{}},
+    {provenance:{[VIDEO_SPEED_ID]:{marketId:VIDEO_SPEED_MARKET_ID,version:VIDEO_SPEED_VERSION,sha256:'0'.repeat(64)}}},
+    {release:{...release,sha256:'a'.repeat(64)}},
+    {enableRecords:{[VIDEO_SPEED_ID]:false}},
+    {epochs:{[VIDEO_SPEED_ID]:'another-install'}},
+    {expectedEpoch:'another-install'},
+    {tool:{...tool,id:'other-id'}}
+  ])assert.equal(await admitsOfficialVideoSpeed({...admitted,...changes}),false);
 });

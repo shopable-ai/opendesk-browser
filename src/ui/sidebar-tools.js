@@ -53,6 +53,7 @@ import {CLIP_NOTES_OPERATIONS,executeClipNotes} from '../../projects/web-markdow
 import {installedSiteAllowed,blockedInstalledOrigins} from './sidebar-tools/site-grants.js';
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY,VIDEO_SPEED_OPERATIONS} from '../../projects/video-speed-controller/trusted/policy.js';
 import {requestVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
+import {admitsOfficialVideoSpeed} from '../../projects/video-speed-controller/trusted/admission.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../../projects/time-review/trusted/policy.js';
@@ -1110,6 +1111,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const release=officialReleases.find(row=>row.toolId===PROMPT_ID&&row.version===TRUSTED_PROMPT_VERSION);
     if(!release)return false;
     return admitsTrustedPrompt({tool,release,expectedEpoch,...await installedAdmissionState()});
+  }
+  async function admittedOfficialVideoSpeed(tool,expectedEpoch){
+    // First-party page effects are never admitted solely by an ID or capability.
+    // Check the actual bundled release, installed bytes, source provenance,
+    // enablement and installation epoch before every operation and readback.
+    if(!officialLoaded&&!officialError)await officialReady;
+    if(!officialLoaded||officialError)return false;
+    const release=officialReleases.find(row=>row.toolId===VIDEO_SPEED_ID&&
+      row.version===tool?.version);
+    return admitsOfficialVideoSpeed({tool,release,expectedEpoch,...await installedAdmissionState()});
   }
   async function admittedNativeKnowledge(tool,expectedEpoch){
     if(trustedKnowledgePilot?.enabled!==true||typeof trustedKnowledgePilot.mount!=='function')return false;
@@ -3131,7 +3142,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(VIDEO_SPEED_OPERATIONS.includes(operation))return requestVideoSpeed({
         api,tool,operation,payload,currentPageTarget,revocationEpoch,
         assertCurrent:()=>assertSession(source,token),
-        assertInstalled:()=>assertInstalledTool(tool,revocationEpoch,'视频倍速工具已更新或卸载')
+        assertInstalled:async()=>{
+          if(!await admittedOfficialVideoSpeed(tool,revocationEpoch))
+            throw Object.assign(new Error('视频倍速需要审阅并安装同版本官方工具，请从扩展中心重新安装'),{code:'E_VIDEO_TRUST'});
+        }
       });
       if(operation==='toc.snapshot'||operation==='toc.navigate'){
         if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||!api.tabs?.sendMessage)
