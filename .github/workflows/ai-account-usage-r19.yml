@@ -46,7 +46,7 @@ jobs:
           const demo=await readFile(p+'preview-dist/app.js','utf8');
           const css=await readFile(p+'dist/app.css','utf8');
           assert.ok(live.length>12000 && css.length>3000 && demo.length>12000);
-          assert.match(demo,/虚构数据/);
+          assert.match(demo,/spare\\.pro@example\\.com/);
           assert.doesNotMatch(live,/spare\.pro@example\.com/);
           assert.doesNotMatch(live,/DEMO_FAILURE/);
           assert.doesNotMatch(live,/https?:\/\/(?:unpkg|cdn\.jsdelivr|cdnjs)\./);
