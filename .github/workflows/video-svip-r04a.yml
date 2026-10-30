@@ -5,6 +5,7 @@ on:
     paths:
       - 'projects/video-svip/**'
       - 'tests/environment/video-svip*.test.mjs'
+      - 'tests/browser/video-svip-r04a.mjs'
       - '.github/workflows/video-svip-r04a.yml'
   workflow_dispatch:
 jobs:
@@ -27,3 +28,5 @@ jobs:
         run: npm run build:sidebar-tool -- projects/video-svip
       - name: Build development extension
         run: npm run build:dev
+      - name: Real Chromium click-to-play authorized media demo
+        run: node tests/browser/video-svip-r04a.mjs
