@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createDemoApi} from '../services/ai-account-usage/web/demo-data.mjs';
 import {evaluateHistory, reliableEstimate, windowOptions, selectedWindow,
-  canShowWorkspaceGuidance, knownCycles} from '../services/ai-account-usage/web/usage-insights.mjs';
+  canShowWorkspaceGuidance, knownCycles, projectAccountView, summarizeVisibleAccounts} from '../services/ai-account-usage/web/usage-insights.mjs';
 
 const api=createDemoApi();
 async function sample(alias,windowKey) {
@@ -101,4 +101,49 @@ test('source gates keep direct network quota query explicit only',async()=>{
   assert.match(build,/__OD_PREVIEW__/);
   assert.match(ui,/role="group"/);
   assert.doesNotMatch(ui,/localStorage|sessionStorage|document\.cookie|Authorization/);
+});
+
+test('manager label is stable and separate from failed status and identity provenance',async()=>{
+  const accounts=await api.accounts();
+  const failed=accounts.find(x=>x.alias==='unavailable');
+  assert.equal(failed.displayName,'运营 Pro');
+  assert.equal(failed.identity.email,'stale@example.com');
+  assert.equal(failed.identity.displayName,null);
+  assert.equal(failed.identity.displayNameSource,'UNKNOWN');
+  assert.equal(failed.lastAttempt.status,'UNAVAILABLE');
+  assert.equal(accounts.filter(x=>x.displayName==='最近查询失败').length,0);
+});
+test('totals and filters use exactly the same per-account window as displayed rows',async()=>{
+  const accounts=await api.accounts();
+  const records=Object.fromEntries(await Promise.all(accounts.map(async a=>[
+    a.alias,{status:'ready',data:await api.history(a.alias,{limit:500})}
+  ])));
+  for(const scope of ['all','short','long']){
+    const projections=accounts.map(a=>projectAccountView(a,records[a.alias],scope));
+    const totals=summarizeVisibleAccounts(accounts,records,scope);
+    assert.equal(totals.attention,projections.filter(x=>x.state==='attention').length);
+    assert.equal(totals.insufficient,projections.filter(x=>x.state==='insufficient').length);
+    assert.equal(totals.notApplicable,projections.filter(x=>x.state==='not-applicable').length);
+    assert.equal(totals.loaded,accounts.length);
+    const filtered=accounts.filter(a=>projectAccountView(a,records[a.alias],scope).state==='attention');
+    assert.equal(summarizeVisibleAccounts(filtered,records,scope).attention,filtered.length);
+  }
+  const onlyLong=accounts.find(a=>a.alias==='weekly_only');
+  const noShort=projectAccountView(onlyLong,records.weekly_only,'short');
+  const hasLong=projectAccountView(onlyLong,records.weekly_only,'long');
+  assert.equal(noShort.state,'not-applicable');
+  assert.equal(noShort.summary,null);
+  assert.equal(hasLong.state,'attention');
+  assert.notEqual(hasLong.summary.average,null);
+});
+test('history read failure differs from insufficient evidence and preserves last cache',async()=>{
+  const accounts=await api.accounts();
+  const account=accounts.find(x=>x.alias==='unavailable');
+  const history=await api.history(account.alias,{limit:500});
+  assert.equal(projectAccountView(account,{status:'ready',data:history}).state,'attention');
+  assert.equal(projectAccountView(account,{status:'error'}).state,'error');
+  const totals=summarizeVisibleAccounts([account],{[account.alias]:{status:'error'}},'all');
+  assert.equal(totals.errors,1);
+  assert.equal(totals.insufficient,0);
+  assert.ok(account.windows.length>0);
 });

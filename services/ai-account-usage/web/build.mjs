@@ -32,10 +32,17 @@ if (preview) {
   const integrity = createHash('sha256').update(inlineJs).digest('base64');
   const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${integrity}'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; font-src 'none'; base-uri 'none'; form-action 'none'">`;
   const standalone = htmlTemplate
-    .replace('<link rel="stylesheet" href="./app.css">', `${csp}<style>${css}</style>`)
-    .replace('<script type="module" src="./app.js"></script>', `<script>${inlineJs}</script>`);
-  if (standalone.includes('src="./app.js"') || standalone.includes('href="./app.css"') ||
+    .replace('<link rel="stylesheet" href="./app.css">', () => `${csp}<style>${css}</style>`)
+    .replace('<script type="module" src="./app.js"></script>', () => `<script>${inlineJs}</script>`);
+  // Check the HTML shell separately from inert strings inside compiled React.
+  // Using replacement functions also prevents dollar expansion in bundled JS.
+  const inlineTag = `<script>${inlineJs}</script>`;
+  if (!standalone.includes(inlineTag)) throw Error('E_PREVIEW_INLINE_SCRIPT_MISSING');
+  const shell = standalone.replace(inlineTag, '<script></script>');
+  if (shell.includes('<script type="module" src="./app.js"></script>') ||
+      shell.includes('<link rel="stylesheet" href="./app.css">') ||
       !standalone.includes('spare.pro@example.com')) throw Error('E_PREVIEW_INLINE_BUILD');
+  console.log('PREVIEW_INLINE_AUDIT', JSON.stringify({jsBytes:inlineJs.length, cssBytes:css.length}));
   await mkdir(`${root}preview`, {recursive:true});
   await writeFile(`${root}preview/index.html`, standalone, 'utf8');
   console.log('Built standalone HTML from the formal React preview: web/preview/index.html');

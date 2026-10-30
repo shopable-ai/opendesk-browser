@@ -6,14 +6,14 @@ const stamp = offset => new Date(Date.now() + offset).toISOString();
 const names = [
   ['spare_pro','备用 Pro','spare.pro@example.com','pro','Pro', '管理标签 · 备用', 'OK', [98,94,92,97,89,93,95], [91,85,88,90,86,82,92]],
   ['falling','研发主账号','research@example.com','pro','Pro','管理标签 · 研发', 'OK', [96,87,75,64,49,28,13], null],
-  ['partial','四次有效观测','sample4@example.com','plus','Plus','管理标签 · 测试', 'OK', [93,null,88,null,85,null,55], null],
-  ['single','证据稀少账号','limited@example.com','pro','Pro','管理标签 · 项目 A', 'OK', [null,null,97,null,null,null,null], null],
-  ['none','新建未采集账号','new@example.com','plus','Plus','管理标签 · 新员工', 'AUTH_REQUIRED', null, null],
-  ['unavailable','最近查询失败','stale@example.com','pro','Pro','管理标签 · 运营', 'UNAVAILABLE', [95,90,91,88,86,84,94], null],
-  ['unknown','身份待确认','',null,'','管理标签 · 待认证', 'AUTH_REQUIRED', null, null],
+  ['partial','测试项目 Plus','sample4@example.com','plus','Plus','管理标签 · 测试', 'OK', [93,null,88,null,85,null,55], null],
+  ['single','项目 A Pro','limited@example.com','pro','Pro','管理标签 · 项目 A', 'OK', [null,null,97,null,null,null,null], null],
+  ['none','新员工 Plus','new@example.com','plus','Plus','管理标签 · 新员工', 'AUTH_REQUIRED', null, null],
+  ['unavailable','运营 Pro','stale@example.com','pro','Pro','管理标签 · 运营', 'UNAVAILABLE', [95,90,91,88,86,84,94], null],
+  ['unknown','待分配账号','',null,'','管理标签 · 待认证', 'AUTH_REQUIRED', null, null],
   ['business','企业工作区','workspace@example.com','business','Business','管理标签 · 企业', 'OK', [21,32,42,45,35,25,19], [33,28,45,29,21,39,32]],
-  ['enterprise','Enterprise 席位','ent@example.com','enterprise','Enterprise','管理标签 · 管理员', 'OK', [81,79,87,78,82,60,55], null],
-  ['weekly_only','长期窗口账号','weekly@example.com','pro','Pro','管理标签 · 财务', 'OK', null, [98,99,96,null,95,97,94]]
+  ['enterprise','企业席位 A','ent@example.com','enterprise','Enterprise','管理标签 · 管理员', 'OK', [81,79,87,78,82,60,55], null],
+  ['weekly_only','财务 Pro','weekly@example.com','pro','Pro','管理标签 · 财务', 'OK', null, [98,99,96,null,95,97,94]]
 ];
 function observation(accountAlias, definition, remaining) {
   return {accountAlias,windowKey:definition.key,limitId:'codex',durationSeconds:definition.durationSeconds,
@@ -40,8 +40,8 @@ const data = new Map();
 const accounts = names.map(([alias,displayName,email,code,tier,label,status,small,weekly],index)=>{
   const windows = [small!==null?{...observation(alias,short,Math.max(3,78-index*5)),windowKey:short.key}:null,
     weekly!==null?{...observation(alias,long,Math.max(5,77-index*3)),windowKey:long.key}:null].filter(Boolean);
-  const identity=email?{email,displayName:label,userId:'demo-'+alias,accountId:'demo-account-'+alias,
-    emailSource:'USAGE_RESPONSE',displayNameSource:'USAGE_RESPONSE',observedAt:stamp(-3600000)}:null;
+  const identity=email?{email,displayName:null,userId:'demo-'+alias,accountId:'demo-account-'+alias,
+    emailSource:'USAGE_RESPONSE',displayNameSource:'UNKNOWN',observedAt:stamp(-3600000)}:null;
   const account={alias,displayName,identity,
     providerPlan:{family:code?.toUpperCase()??'UNKNOWN',code,source:code?'QUOTA_RESPONSE':'UNKNOWN'},
     subscription:{tierLabel:tier||null,membershipExpiresAt:!tier||index%4===0?null:stamp((25+index)*86400000),
