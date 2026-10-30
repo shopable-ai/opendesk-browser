@@ -213,7 +213,7 @@ node --input-type=module -e 'import {originalSites} from "./examples/sidebar-too
 
 未应用的表单编辑阻止运行与保存。完整 JSON 保留原选择器/嵌套字段语法，也可填写原 `validation` / `fieldRequirements` / `processing`；配置只接收数据。表格呈现真实记录，完整快照仍保留。宿主、引擎、Stop 受理和实例退休分别显示；结果未知时禁止重复开始。原 Stop、配置 ETag 冲突保护和 JSON/CSV 下载继续使用已有链路。
 
-当前 P0 引擎升级源码使用固定 Task **0.4.0**：分页链接通过公开 `page.goto()` 推进原目标会话，按 `document.baseURI` 解析，确认新文档后等待配置的完整页标记；标记也须适用于空末页。按钮、同文档锚点和没有可靠完成信号的异步翻页在动作前返回 `NOT_SUPPORTED`，不再把固定 300ms 静止当作加载完成。下一页控件须唯一，字段 DSL 继续交给原 ItemLoader。旧安装 Task 0.3.0 不会自动获得这些修复；来源、候选和未测范围见 [P0 升级记录](PLAYWRIGHT-UPGRADE.zh-CN.md)。分页只开放 CSS，最多 50 页；达到上限时保留已采集数据及 partial/page_limit，不伪称自然结束；详情最多 100 条、串行执行，严格核对 URL 与 ID，不静默重试。相同身份而内容不同报错；重复详情 URL、详情覆盖列表字段、错误 ID、非法价格均拒绝。详情 `numberFields` 使用来源示例的严格小数 Pipeline。滚动分页、XPath 翻页、断点恢复和重试管理未交付。
+当前 P0 引擎升级源码使用固定 Task **0.4.0**：分页链接通过公开 `page.goto()` 推进原目标会话，按 `document.baseURI` 解析，确认新文档后等待配置的完整页标记；标记也须适用于空末页。按钮、同文档锚点和没有可靠完成信号的异步翻页在动作前返回 `NOT_SUPPORTED`，不再把固定 300ms 静止当作加载完成。下一页控件须唯一，字段 DSL 继续交给原 ItemLoader。旧安装 Task 0.3.0 不会自动获得这些修复；来源、候选和未测范围见 [P0 升级记录](PLAYWRIGHT-UPGRADE.zh-CN.md)。分页只开放 CSS，最多 10 页；达到上限时保留已采集数据及 partial/page_limit，不伪称自然结束；详情最多 100 条、串行执行，严格核对 URL 与 ID，不静默重试。相同身份而内容不同报错；重复详情 URL、详情覆盖列表字段、错误 ID、非法价格均拒绝。详情 `numberFields` 使用来源示例的严格小数 Pipeline。滚动分页、XPath 翻页、断点恢复和重试管理未交付。
 
 ## 先脚本验证，再接 UI
 
