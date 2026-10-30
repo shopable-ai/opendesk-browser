@@ -152,7 +152,9 @@ async function main(){
    '404 fallback outcome');
   const initial=recovery.status;
   if(/再次点击播放/.test(initial)){
-   await cdp.click('#vp-source-play');
+   // An explicit fresh gesture must select the *backup*, not replay the broken first source.
+   await cdp.click('#vp-watch .vp-source-card details summary');
+   await cdp.click('#vp-source-list button');
    recovery=await eventually(observation,value=>/视频帧/.test(value?.status||''),
     'manual gesture for backup');
   }
