@@ -9,6 +9,8 @@
 - [`preview/index.html`](preview/index.html) 是保留的 **R3.1 设计基准**，不代表当前正式 React UI。
 - 唯一可导入包：[`browser-fingerprint.opendesk-tool.json`](browser-fingerprint.opendesk-tool.json)，版本 **0.2.6**。从原有「扩展 → 更多操作 → 导入扩展」安装/更新；已在独立 Mac CFT 通过原安装流程更新，权限未变化。
 
+**日常 Chrome 的入口核对（2026-10-30 续接）**：已从原生 UI 确认「您的 Chrome」加载本仓库 `dist/development`，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`。其「全部 / 已安装」列表为 15 项，未见浏览器指纹；不能将上面的独立 CFT 安装结果理解为日常实例已更新。当前待办是在该实例通过原安装器导入 0.2.6、打开并核对三 Tab。浏览器接口拒绝打开扩展内部 URL，自动安装未完成；未更换加载目录、扩展 ID 或 Native 配对。详见[当前入口记录](evidence/r33-core-20261030.zh-CN.md#日常-chrome-入口续接核对)。
+
 ## 本轮结果
 
 档案保存继续使用原 `fingerprint.r21.presets.v1`、ETag/CAS 和写后读回。新增编辑基线检查：同一档案已被其他窗口修改或删除时，拒绝旧草稿覆盖；不阻止其他档案的独立修改。可通过「刷新网页身份」刷新档案列表，再从「我的环境」重新载入，旧草稿仍需明确丢弃。

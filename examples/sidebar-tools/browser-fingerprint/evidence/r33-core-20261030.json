@@ -159,10 +159,61 @@
     "nine-dimension scores and mean"
   ],
   "scores": "NOT_SCORED",
-  "remainingCore": "No pending side effects. Known limitation: slow first-grant timeout in reused old R2.5 Host; current-main Host not rebuilt. Broader acceptance deferred per latest user instruction.",
+  "remainingCore": "Independent CFT has no pending fingerprint side effects. Daily Chrome still needs 0.2.6 import/open and core verification; automated internal URL blocked. Safe merge/push waits for overlapping uncommitted shared files. Prior slow-first-grant old Host limitation retained; broader acceptance deferred.",
   "previousEvidence": {
     "commit": "571a4d784a8d293e21291fe04d1dddedfe0c7621",
     "version": "0.2.4",
     "nativeStatus": "NOT_TESTED_CORE at that point; file chooser subsequently resolved by fresh native app focus"
+  },
+  "DAILY_CHROME_FOLLOW_UP": {
+    "recordedAt": "2026-10-30T20:50:48.529923+08:00",
+    "ownerThread": "01a18cd3-81dd-79a2-8cf4-28906b22ac3b",
+    "scope": "READ_ONLY_CURRENT_ENTRY_CHECK; NO_SOURCE_OR_PACKAGE_CHANGE",
+    "observationMethod": "CUA native macOS AX state; Chrome window explicitly labelled 您的 Chrome",
+    "extension": {
+      "id": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "enabled": true,
+      "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "mode": "development; no Browser build or environment switch performed",
+      "dailyServeConnection": "NOT_INDEPENDENTLY_VERIFIED_IN_DAILY_WINDOW"
+    },
+    "installedList": {
+      "typeFilter": "全部",
+      "scopeFilter": "已安装",
+      "visibleCount": 15,
+      "fingerprintPresent": false
+    },
+    "toolStatus": "NOT_INSTALLED_AT_OBSERVATION",
+    "latestThreeTabUI": "NOT_TESTED_IN_DAILY_INSTANCE",
+    "dailyCoreApplyRestore": "NOT_TESTED",
+    "fingerprintMutationCalled": false,
+    "packageRecheck": {
+      "version": "0.2.6",
+      "bytes": 103224,
+      "sha256": "65a2fe2c03498d2cc349f484ba24819415ac7eb4c3928be15ab66f5d4cac5a5d"
+    },
+    "automationBlocker": {
+      "action": "open original chrome-extension sidepanel URL through browser interface",
+      "status": "REJECTED_BY_AUTOMATIC_BROWSER_POLICY",
+      "reason": "Only http and https protocols allowed; no workaround permitted",
+      "nativeUI": "Cross-profile focus and AX-index conflict observed; cooperative UI lock acquired and released",
+      "installationCompleted": false
+    },
+    "gitAtObservation": {
+      "head": "f40af119d6807e53d69c6bdc112574da8c51cf75",
+      "originMain": "e4dbffd74714264fb416d9d4857950545d837fc3",
+      "ahead": 6,
+      "behind": 8,
+      "dirtyRemoteOverlap": [
+        "src/ui/sidebar-tools.js",
+        "scripts/bundle-provenance.mjs",
+        "projects/video-svip/preview/index.html"
+      ],
+      "mergePerformed": false,
+      "pushPerformed": false
+    },
+    "nextUserOperation": "Import/open existing 0.2.6 in daily OpenDesk through original installer, then verify three tabs and shortest apply/readback/restore chain",
+    "priorEvidenceReuse": "Independent CFT only, with original version and old Host limits; no Node/build/browser-matrix repetition",
+    "uiLease": "released"
   }
 }
