@@ -141,7 +141,7 @@ const page={
  iframe:item('bilibili','哔哩哔哩','演示番剧 · 风从海边来','unknown',bURL,'00000009',{partial:true,evidence:{title:'可读外层标题（模拟）',episode:'iframe 读取受限'}})
 };
 const fixtureDemo=item('fixture','本地自制测试','内部自制演示片',ep(1),
- 'http://127.0.0.1:8765/__opendesk_video_svip_fixture__/','f0000001');
+ new URL('../../video-downloader/tests/fixtures/index.html',location.href).href,'f0000001');
 for(const mode of ['r04a-success','r04a-fallback','r04a-unavailable','r04a-unauthorized',
  'r04a-region','r04a-entitlement','r04a-manual','r04a-unknown'])page[mode]=fixtureDemo;
 page.storagefail=page.tencent;
