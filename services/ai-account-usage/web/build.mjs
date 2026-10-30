@@ -31,9 +31,10 @@ if (preview) {
   const inlineJs = compiled.split('</script').join('<\\/script');
   const integrity = createHash('sha256').update(inlineJs).digest('base64');
   const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${integrity}'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; font-src 'none'; base-uri 'none'; form-action 'none'">`;
+  // Function replacements keep dollar sequences in compiled JS literal and unchanged.
   const standalone = htmlTemplate
-    // Replacement callbacks preserve dollar-sequences (    .replace('<link rel="stylesheet" href="./app.css">', `${csp}<style>${css}</style>`)
-    .replace('<script type="module" src="./app.js"></script>', `<script>${inlineJs}</script>`);, 
+    .replace('<link rel="stylesheet" href="./app.css">', () => `${csp}<style>${css}</style>`)
+    .replace('<script type="module" src="./app.js"></script>', () => `<script>${inlineJs}</script>`);
   // The bundle may contain textual HTML examples. Audit the actual HTML shell
   // after removing the exact inline JS payload, not inert strings within JS.
   const exactInlineTag = `<script>${inlineJs}</script>`;
