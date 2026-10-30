@@ -1,10 +1,11 @@
 {
   "id": "video-speed-controller",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "视频倍速",
-  "description": "在侧边栏调节当前网页 HTML5 视频的速度；单击生效并读取真实倍速。",
+  "description": "在侧边栏调节 HTML5 视频倍速并独立读回；支持默认开启的 S/D/R 快捷键。",
   "capabilities": [
-    "page.videoSpeed"
+    "page.videoSpeed",
+    "storage.local"
   ],
   "files": {
     "html": "src/index.html",
