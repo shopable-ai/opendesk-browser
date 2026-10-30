@@ -398,6 +398,7 @@ async function refresh({resume=false}={}){
     !(ctx.episode==='unknown'||ctx.episode&&typeof ctx.episode.label==='string'))
    throw Error('Host 返回了无效的视频识别结果');
   page={context:ctx,url:safeUrl(ctx.canonicalPageUrl),watchProblem};
+  orchestrator.cancel('IDLE'); // fresh recognised document, no playback claim yet
   paintPage();
  }catch(error){
   if(ticket!==pageEpoch||closed||stopped)return;
