@@ -75,7 +75,7 @@ function reviewedCompiledVideoSVIP(target,path,root){
 const compiledVideoDownloaderInputs=Object.freeze({
   'projects/video-downloader/trusted/policy.js':'9b2082eed30c201b66535c7dbe97f06328848116',
   'projects/video-downloader/trusted/hls.js':'ec5e6570884b5ef10371b3f3f20548743cea72a4',
-  'projects/video-downloader/trusted/host.js':'96a5ae431b44ccf60f29972e99fc6469b942a856',
+  'projects/video-downloader/trusted/host.js':'f4ea42f5fd4e152d892f9634b9d93ecbad097cbe',
   'projects/video-downloader/trusted/admission.js':'c04dc51bc1bd3eecc3265743b9fe49e676a3fbd6'
 });
 function reviewedCompiledVideoDownloader(target,path,root){

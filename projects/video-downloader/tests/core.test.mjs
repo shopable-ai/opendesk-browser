@@ -9,15 +9,16 @@ import {createVideoDownloaderHost} from '../trusted/host.js';
 
 const dir=join(dirname(fileURLToPath(import.meta.url)),'fixtures');
 const fixture=async name=>readFile(join(dir,name),'utf8');
-const doc=()=>({status:'available',windowId:3,tabId:8,frameId:0,documentId:'doc-1',
-  url:'https://fixture.example/page',origin:'https://fixture.example',title:'Fixture'});
+const doc=(pageUrl='https://fixture.example/page')=>({status:'available',windowId:3,tabId:8,frameId:0,documentId:'doc-1',
+  url:pageUrl,origin:new URL(pageUrl).origin,title:'Fixture'});
 function rig({urls=['https://fixture.example/tiny.mp4'],sourceMime='',allowed=true,fetcher,
-  actionState='in_progress',exists=true,bytesReceived=100,totalBytes=200}={}){
-  let target=doc(),failDoc=false,admit=true,downloadId=100,downloadCalls=0,cancelled=[];
+  actionState='in_progress',exists=true,bytesReceived=100,totalBytes=200,
+  pageUrl='https://fixture.example/page'}={}){
+  let target=doc(pageUrl),failDoc=false,admit=true,downloadId=100,downloadCalls=0,cancelled=[],permissionsSeen=[];
   let resultsState={state:actionState,exists,bytesReceived,totalBytes,error:null};
   let exportReady=null;
   const api={
-    permissions:{contains:async()=>allowed},
+    permissions:{contains:async value=>{permissionsSeen.push(value.origins);return allowed;}},
     webNavigation:{getAllFrames:async()=>[{frameId:0,documentId:target.documentId,
       url:target.url,documentLifecycle:'active'}]},
     scripting:{executeScript:async()=>[{frameId:0,documentId:target.documentId,
@@ -52,7 +53,8 @@ function rig({urls=['https://fixture.example/tiny.mp4'],sourceMime='',allowed=tr
     state:v=>{resultsState={...resultsState,...v};},
     setDownload:fn=>{api.downloads.download=fn;},
     get calls(){return downloadCalls;},
-    get cancelled(){return cancelled;}
+    get cancelled(){return cancelled;},
+    get permissionsSeen(){return permissionsSeen;}
   };
 }
 
@@ -90,6 +92,16 @@ test('HLS media, AES-128 and DRM indicators remain distinct',async()=>{
 test('official synthetic MP4 Fixture has real binary container',async()=>{
   const mp4=await readFile(join(dir,'tiny.mp4'));
   assert.ok(mp4.length>500&&mp4.subarray(4,8).toString()==='ftyp');
+});
+test('localhost native permission omits port but candidate remains exact-origin',async()=>{
+  const r=rig({pageUrl:'http://127.0.0.1:43112/index.html',urls:[
+    'http://127.0.0.1:43112/tiny.mp4','http://127.0.0.1:43113/tiny.mp4'
+  ]});
+  const d=await r.request('media.detect');
+  assert.deepEqual(r.permissionsSeen,[['http://127.0.0.1/*']]);
+  assert.equal(d.candidates.length,2);
+  assert.equal(d.candidates.filter(x=>x.mode==='ready').length,1);
+  assert.equal(d.candidates.filter(x=>x.mode==='detected_only').length,1);
 });
 test('no video and duplicate URL results',async()=>{
   const empty=rig({urls:[]});

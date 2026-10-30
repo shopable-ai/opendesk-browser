@@ -80,7 +80,11 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       throw fail('E_MEDIA_UNAVAILABLE','Chrome 媒体读取能力不可用');
     const target=currentPageTarget.capture();
     if(!target.origin)throw fail('E_MEDIA_TARGET','请选择普通 HTTP(S) 网页');
-    if(!await api.permissions.contains({origins:[target.origin+'/*']}))
+    // Chrome match patterns do not support ports. Document/candidate identity
+    // remains exact-origin (including port), even though native site grants do not.
+    const permissionOrigin=new URL(target.origin);
+    const chromePattern=permissionOrigin.protocol+'//'+permissionOrigin.hostname+'/*';
+    if(!await api.permissions.contains({origins:[chromePattern]}))
       throw fail('E_MEDIA_PERMISSION','Chrome 未授权当前网站');
     await recheck(target,assertCurrent,assertInstalled);
     const frames=await api.webNavigation.getAllFrames({tabId:target.tabId});
