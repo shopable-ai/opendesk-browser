@@ -84,7 +84,7 @@ const compiledVideoDownloaderInputs=Object.freeze({
   'projects/video-downloader/trusted/discovery.js':'c6a5c4761233645a3232a80978e6fc9c4d7805a1',
   'projects/video-downloader/trusted/host.js':'bd527e971c757ec79855bfd98ab7e35e55150279',
   'projects/video-downloader/trusted/admission.js':'c04dc51bc1bd3eecc3265743b9fe49e676a3fbd6',
-  'projects/video-downloader/trusted/remux.js':'f18fcffc13e0342d242d00c89c1d13c2773fc9b4',
+  'projects/video-downloader/trusted/remux.js':'bf099118512fc86923c94bea222f155ebe4a7a63',
   'projects/video-downloader/trusted/vendor/mux-transmuxer.js':'4c49d31aa7936c774f3c2d73e1bd2aa283dce7ae'
 });
 function reviewedCompiledVideoDownloader(target,path,root){

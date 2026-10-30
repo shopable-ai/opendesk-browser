@@ -61,28 +61,81 @@ function fragmentEnds(data){
  }
  return ends;
 }
+// mux.js targets MSE and emits one moof/mdat per track. A downloaded movie
+// is canonicalized to one fragment with simultaneous tracks and explicit
+// moof-relative addressing. Preserve every sample payload.
+function combineFragmentTracks(data){
+ const top=boxes(data),tracks=[],payloads=[];let header=null;
+ if(top.length%2||top.length>4)fail();
+ for(let i=0;i<top.length;i+=2){
+  const moof=top[i],mdat=top[i+1];if(moof.type!=='moof'||mdat.type!=='mdat')fail();
+  header??=data.slice(child(data,moof,'mfhd').p,child(data,moof,'mfhd').p+16);
+  const trafs=children(data,moof).filter(b=>b.type==='traf');if(trafs.length!==1)fail();
+  const traf=trafs[0],copy=data.slice(traf.p,traf.p+traf.n),tfhd=child(copy,{p:0,n:copy.length},'tfhd');
+  const trun=child(copy,{p:0,n:copy.length},'trun');
+  if(!(u32(copy,trun.p+8)&1))fail();
+  // Each trun offset below is relative to this shared moof, including the
+  // second track. Never depend on implicit base offsets from a previous traf.
+  put(copy,tfhd.p+8,u32(copy,tfhd.p+8)|0x020000);
+  tracks.push({bytes:copy,trun});payloads.push(data.subarray(mdat.p+8,mdat.p+mdat.n));
+ }
+ const moofSize=8+header.length+tracks.reduce((n,t)=>n+t.bytes.length,0);let offset=moofSize+8;
+ for(let i=0;i<tracks.length;i++){put(tracks[i].bytes,tracks[i].trun.p+16,offset);offset+=payloads[i].length;}
+ return join([box('moof',join([header,...tracks.map(t=>t.bytes)])),box('mdat',join(payloads))]);
+}
+// ISO BMFF sample times use the decoded/output AAC rate. Keep the source
+// timeline unchanged by scaling every audio tick, including fragment runs.
+// Use the same timebase in mdhd, sample entry, tfdt and every trun duration.
+function scaleAudioFragments(data,ids){
+ for(const moof of boxes(data).filter(b=>b.type==='moof'))for(const traf of children(data,moof).filter(b=>b.type==='traf')){
+  const tfhd=child(data,traf,'tfhd');if(!ids.has(u32(data,tfhd.p+12)))continue;
+  const tfdt=child(data,traf,'tfdt');
+  if(data[tfdt.p+8]===1){const time=(u32(data,tfdt.p+12)*4294967296+u32(data,tfdt.p+16))*2;
+   put(data,tfdt.p+12,Math.floor(time/4294967296));put(data,tfdt.p+16,time%4294967296);
+  }else put(data,tfdt.p+12,u32(data,tfdt.p+12)*2);
+  const flags=u32(data,tfhd.p+8)&0xffffff;let offset=tfhd.p+16+(flags&1?8:0)+(flags&2?4:0);
+  if(flags&8)put(data,offset,u32(data,offset)*2);
+  const trun=child(data,traf,'trun'),runFlags=u32(data,trun.p+8)&0xffffff,count=u32(data,trun.p+12);
+  let at=trun.p+16+(runFlags&1?4:0)+(runFlags&4?4:0);
+  for(let i=0;i<count;i++){
+   put(data,at,u32(data,at)*2);at+=4;
+   for(const flag of [0x200,0x400,0x800])if(runFlags&flag){if(flag===0x800)put(data,at,u32(data,at)*2);at+=4;}
+  }
+ }
+}
 function finalizeInit(init,data,audioType,trackCount){
  const top=boxes(init),moov=top.find(b=>b.type==='moov');if(!moov)fail();
  const mvhd=child(init,moov,'mvhd'),movieScale=u32(init,mvhd.p+20),ends=fragmentEnds(data);
  const tracks=children(init,moov).filter(b=>b.type==='trak');
  if(tracks.length!==trackCount||ends.size!==trackCount)fail();
- const durations=new Map();let seconds=0;
+ const durations=new Map(),outputAudioIds=new Set();let seconds=0;
  for(const track of tracks){
   const tkhd=child(init,track,'tkhd'),mdhd=child(init,child(init,track,'mdia'),'mdhd');
   const id=u32(init,tkhd.p+20),scale=u32(init,mdhd.p+20),end=ends.get(id);
-  if(!scale||!end)fail();seconds=Math.max(seconds,end/scale);durations.set(id,{end,scale});
+  if(!scale||!end)fail();seconds=Math.max(seconds,end/scale);
+  const hdlr=child(init,child(init,track,'mdia'),'hdlr'),audio=text(init,hdlr.p+16)==='soun';
+  const multiplier=audio&&[5,29].includes(audioType)?2:1;
+  if(audio&&scale*multiplier>65535)fail();
+  if(multiplier===2)outputAudioIds.add(id);
+  durations.set(id,{end:end*multiplier,scale:scale*multiplier});
  }
  if(!seconds||seconds>1801)fail();
+ scaleAudioFragments(data,outputAudioIds);
  function rewrite(row,trackId=null){
   let body=init.slice(row.p+8,row.p+row.n);
   if(row.type==='trak')trackId=u32(init,child(init,row,'tkhd').p+20);
   const prefix=row.type==='stsd'?8:row.type==='mp4a'?28:row.type==='avc1'?78:0;
-  if(['moov','trak','mdia','minf','stbl','stsd','mp4a','avc1'].includes(row.type)){
+  if(['moov','trak','mdia','minf','stbl','stsd','mp4a','avc1','mvex'].includes(row.type)){
    const nested=boxes(init,row.p+8+prefix,row.p+row.n);
    body=join([body.subarray(0,prefix),...nested.map(r=>rewrite(r,trackId))]);
-  }else if(row.type==='mvhd')put(body,16,Math.round(seconds*movieScale));
-  else if(row.type==='mdhd')put(body,16,durations.get(trackId).end);
-  else if(row.type==='tkhd'){const d=durations.get(trackId);put(body,20,Math.round(d.end/d.scale*movieScale));}
+   if(row.type==='mp4a')put(body,24,durations.get(trackId).scale*65536);
+   if(row.type==='mvex'){const duration=new Uint8Array(8);put(duration,4,Math.round(seconds*movieScale));body=join([box('mehd',duration),body]);}
+  }// The init sample tables are empty: their durations MUST be zero.
+  // The full movie length belongs in mvex/mehd; non-zero init durations
+  // are added to fragment time by QuickTime and cause a doubled timeline.
+  else if(row.type==='mvhd')put(body,16,0);
+  else if(row.type==='mdhd'){put(body,12,durations.get(trackId).scale);put(body,16,0);}
+  else if(row.type==='tkhd')put(body,20,0);
   else if(row.type==='esds'){
    // mux.js emits a two-byte AAC-LC AudioSpecificConfig. ADTS contains the
    // core rate; explicit HE-AAC in the source CODECS carries SBR/PS identity.
@@ -122,8 +175,9 @@ export async function remuxTsToMp4(parts,{signal,codecs=null,assertAuthorized=as
   if(!state.tracks||audioType&&!state.tracks.some(t=>t.type===0x0f))fail();
   await assertAuthorized();guard();mux.flush();await pause();guard();await assertAuthorized();guard();
   if(events.length!==1)fail();const event=events[0];
-  const init=finalizeInit(event.initSegment,event.data,audioType,state.tracks.length);
-  const bytes=join([init,event.data]);if(bytes.length>134217728)throw error('E_MEDIA_TOTAL_SIZE');
+  const data=combineFragmentTracks(event.data);
+  const init=finalizeInit(event.initSegment,data,audioType,state.tracks.length);
+  const bytes=join([init,data]);if(bytes.length>134217728)throw error('E_MEDIA_TOTAL_SIZE');
   guard();return bytes;
  }catch(e){if(signal?.aborted)throw error('E_MEDIA_STOPPED');throw e?.code?e:error('E_MEDIA_REMUX');}
  finally{mux.dispose();events.length=0;}
