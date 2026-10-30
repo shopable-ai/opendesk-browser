@@ -236,10 +236,10 @@ function discoverSources(){
    region:'SUPPORTED',entitlement:'NOT_REQUIRED',cost:0,
    availability:'UNKNOWN',verificationLevel:'OWNED_VIDEO_EVENTS',mediaUrl:url,...props
   });
-  if(scene==='r04a-fallback'){media('first-fails','测试来源 A · 确定失败',mediaUrls.bad);
-   media('backup','测试来源 B · 自制视频',mediaUrls.good);}
-  else if(scene==='r04a-unavailable'){media('first-fails','测试来源 A · 失效',mediaUrls.bad);
-   media('backup-fails','测试来源 B · 失效',mediaUrls.bad);}
+  if(scene==='r04a-fallback'){media('a-fails','测试来源 A · 确定失败',mediaUrls.bad);
+   media('b-backup','测试来源 B · 自制视频',mediaUrls.good);}
+  else if(scene==='r04a-unavailable'){media('a-fails','测试来源 A · 失效',mediaUrls.bad);
+   media('b-fails','测试来源 B · 失效',mediaUrls.bad);}
   else if(scene==='r04a-unauthorized')media('denied','测试来源 · 未获授权',mediaUrls.good,{authorization:'DENIED'});
   else if(scene==='r04a-region')media('wrong-region','测试来源 · 地区不符',mediaUrls.good,{region:'UNSUPPORTED'});
   else if(scene==='r04a-entitlement')media('no-right','测试来源 · 无权益',mediaUrls.good,{entitlement:'NONE'});
@@ -273,7 +273,9 @@ function paintSources(){
   CLOSED:'侧边栏关闭，已清理自有播放器'
  };
  const status=el('vp-source-status');
- if(status)status.textContent=description[state.status]||'等待用户操作';
+ if(status)status.textContent=state.status==='IDLE'&&rows.some(r=>r.source.type==='CATALOG_ONLY')?
+  'UNKNOWN · 跨站媒体无可用播放观测协议，不能确认成功或失败':
+  description[state.status]||'等待用户操作';
  const proof=el('vp-source-evidence');
  if(proof){
   const observe=state.observation;
@@ -283,7 +285,8 @@ function paintSources(){
    '未启动授权播放。原站链接仅表示可以打开，不代表实际播放成功。';
  }
  panel.replaceChildren();
- for(const row of rows){
+ if(rows.length<=1)panel.textContent='暂无其他来源。';
+ for(const row of rows.slice(1)){
   const wrap=document.createElement('div');wrap.className='vp-source-row';
   const info=document.createElement('div');info.className='vp-source-info';
   const label=document.createElement('strong');label.textContent=row.source.label;
@@ -302,8 +305,8 @@ function paintSources(){
   }
   panel.append(wrap);
  }
- const video=el('vp-owned-video');if(video)video.hidden=!previewMode;
- const note=el('vp-source-dev-note');if(note)note.hidden=!previewMode;
+ const video=el('vp-owned-video');if(video)video.hidden=!previewMode||ctx?.siteId!=='fixture';
+ const note=el('vp-source-dev-note');if(note)note.hidden=!previewMode||ctx?.siteId!=='fixture';
 }
 function refreshSources(){
  const nextKey=sourceContentKey(page?.context);
