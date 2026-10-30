@@ -292,8 +292,8 @@ DESIGN / NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / NAT_HARD_REAL / DIRECT_VER
 ## 11. 长期推进路线（不代表立即全部实施）
 
 - **Now · R0.3.1 并行但不覆盖：**腾讯/B站识别实站验收；本文件只记录未来方向，不修改既有 Host、App、版本或预览。
-- **Next · 方案确认：**先从“用户拥有授权媒体的远程播放”切入，明确 A（Tailscale/WireGuard）与 B（WebRTC）两方案互斥比较，定项目边界与数据合同。
-- **PoC · 第一项真实技术闭环：**两台电脑、实际跨网、真实可播授权视频、自动直连/中继切换、独立证据；不以 Node mock 代替。
+- **Next · GitHub 网页最小代码：**FUTURE-R1 已确定先用 Tailscale/WireGuard 做个人合法媒体 PoC-1，WebRTC 为有条件的独立候选；下一轮仅增加受限节点与真实验收 harness，不改正式播放器、Host、Runtime 或 UI。
+- **PoC · 代码就绪后本地 Mac Codex：**两台电脑、实际跨网、自制视频、Tailscale 自动直连/中继回退、真实播放和独立证据；必须在有隔离 harness 与访问控制后执行，不以 Node mock 代替。
 - **Integration · 可选节点：**把网络状态/有权媒体候选作为 Video SVIP 的来源之一，严格与独立 Video Downloader 分责，不产生第二套 Host。
 - **Product · 用户体验：**当前视频、官方观看、设备/文件库观看、来源失败原因、手动与自动切换；不把陌生人的个人 VIP 文件当来源。
 - **Business · 真正签约以后：**开展授权 P2P CDN、边缘缓存、版权许可、会员分销和明确计费。无合同仅标 NOT_AVAILABLE。
