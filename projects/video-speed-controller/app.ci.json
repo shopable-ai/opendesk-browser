@@ -2,6 +2,7 @@
   "schema": "opendesk.app-ci.v1",
   "kind": "page",
   "node": [
-    "tests/environment/video-speed-controller.test.mjs"
+    "tests/environment/video-speed-controller.test.mjs",
+    "tests/environment/video-speed-bundle-boundary.test.mjs"
   ]
 }

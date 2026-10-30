@@ -28,6 +28,28 @@ function reviewedCompiledTimeReview(target,path,root){
   return hash;
 }
 
+// R1.0 video playback controller: three reviewed, exact first-party source
+// blobs may enter ONLY the existing Side Panel trusted host. The sandbox
+// package never carries scripting access. At runtime the Host separately
+// checks official release bytes, provenance, enablement and install epoch.
+// No global projects/** or arbitrary app scripts are trusted by this rule.
+const compiledVideoSpeedInputs=Object.freeze({
+  'projects/video-speed-controller/trusted/policy.js':'29e0ed78fb437203acd730a2bb0b58290fded1a8',
+  'projects/video-speed-controller/trusted/host.js':'ce1bc70e3ca79b4dc8378fde15665fb0802bdbc6',
+  'projects/video-speed-controller/trusted/admission.js':'40d54bb3b94fc1045d7865fdcbc84b76c81306a4'
+});
+function reviewedCompiledVideoSpeed(target,path,root){
+  if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledVideoSpeedInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Video Speed source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledVideoSpeedInputs[path])
+    throw Error('Trusted Video Speed source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 // This is a deliberately fixed, build-reviewed extension source allowance, NOT
 // permission for arbitrary examples/ JS. All twelve AdBlock privileged/business
 // inputs are exact file-blob pinned; the bundle still has a fixed entry point,
@@ -460,6 +482,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     const path=modulePath(id,root);
     assertLibraryModuleBoundary(chunk.fileName,path);
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
+      reviewedCompiledVideoSpeed(chunk.fileName,path,root)||
       reviewedCompiledAdblock(chunk.fileName,path,root)||
       reviewedCompiledCookieAccounts(chunk.fileName,path,root)||
       reviewedCompiledPromptShortcuts(chunk.fileName,path,root)||
