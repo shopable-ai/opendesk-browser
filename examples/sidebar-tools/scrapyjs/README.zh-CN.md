@@ -1,5 +1,13 @@
 # scrapyJs 采集应用
 
+## 原站点示例复查（2026-10-30，最新）
+
+优先复用旧 `scrapyJsChrome/examples/douban-books`、`examples/csdn` 已迁入的 `examples/original-sites.js`，未另造规则或扩大固定 Task 的站点范围。真实 Mac CFT155 的原安装态 App **1.6.4** / Task **0.4.1** 完成豆瓣读书当前页采集：**20 条、11 字段**，与同页独立 DOM 预期逐值一致，表格及实际 JSON/CSV 下载读回通过；原运行 `completed/released`。条数与内容是本次观察，不能固定为以后线上断言。
+
+CSDN 原示例地址本次返回 **HTTP 521 / 安全验证页**，没有列表，记为 `BLOCKED_SITE_VERIFICATION`；只访问一次，未操作验证码或重试。此前 CSDN 9 条、7 字段及本地样本证据保留为历史，不代表本次线上通过。只读检索旧 Chrome/core 示例尚未找到豆瓣电影的独立采集配置，未将读书页面的电影导航当作示例。
+
+本轮修正测试驱动的过时表格断言（字段名、类型提示、操作列及空值显示），没有修改 App、采集引擎或正式包。前两次驱动失败原件保留，后续完整链已通过。结果和导出文件摘要见 [原站点证据索引](evidence/original-sites-20261030.json)。本次环境为隔离的静态 development 快照，无 serve 连接；只证明安装态 DOM 当前页流程，**公网受控 HTTP 仍 BLOCKED**，不证明 Header 覆盖、反爬解决、真实 AI 或 production 验收。各次自有测试浏览器均已关闭，日常开发实例未改动。
+
 ## HTTP Header 实证增量（2026-10-30，当前）
 
 真实 Mac CFT155 + 原 NetworkService 在独立本地回显 fixture 完成三页 HTTP 提取：`Accept`、`X-Client-Tag` 的配置、Fetch 参数、服务器观察一致，三条数据与独立预期相同；流式请求取消后服务器观察到连接提前关闭。结果文件独立读回 SHA 一致，仅证明 fixture 文件，不是 Host 持久运行回执。

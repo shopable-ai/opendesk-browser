@@ -1,0 +1,137 @@
+{
+  "format": "scrapyjs.original-sites-current-page.v1",
+  "date": "2026-10-30",
+  "owner": "examples/sidebar-tools/scrapyjs",
+  "scope": "Existing original-site examples; installed DOM current-page flow, independent DOM oracle, table and actual export bytes",
+  "baseline": "36f0a78a0f8a5cbdf61bc68212308804e79b6c5e",
+  "mode": {
+    "kind": "STATIC_DEVELOPMENT_SNAPSHOT_NO_SERVE",
+    "serveConnected": false,
+    "chrome": "Chrome/155.0.8059.39",
+    "extensionId": "gflnognlhofjhjaogbobboidhmkdoghi",
+    "loadedExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/r242-local-acceptance/native-task-valid-input/cft-9XywIm/extension",
+    "snapshotInputSha256": "4e74dae760606268516df76381fc1772770e7d10ce009b0572fcefc5900aee40",
+    "dailyDevelopmentEnvironment": "Untouched"
+  },
+  "discovery": {
+    "reused": "examples/sidebar-tools/scrapyjs/examples/original-sites.js",
+    "originalSources": [
+      "/Users/shopme/Documents/workspace/scrapyJsChrome/examples/douban-books",
+      "/Users/shopme/Documents/workspace/scrapyJsChrome/examples/csdn"
+    ],
+    "sourceRepositories": "Read-only; existing uncommitted work preserved",
+    "movieExample": "NOT_FOUND_IN_SEARCHED_EXAMPLES; book-page movie navigation is not a capture recipe; no Task origin expansion"
+  },
+  "book": {
+    "status": "PASS_REAL_BROWSER_CURRENT_PAGE_BOOKS",
+    "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
+    "pages": 1,
+    "records": 20,
+    "fields": 11,
+    "appVersion": "1.6.4",
+    "appPackage": {
+      "path": "examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "bytes": 84235,
+      "sha256": "42fdb94d777947d3e2921b045656f0278111b56e707d724a2288ce91b61d7ecb"
+    },
+    "taskVersion": "0.4.1",
+    "taskSourceHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+    "runId": "96798866-1d1b-4464-9068-c01dd7949310",
+    "resultId": "96a7a613-b37c-4f4b-a8a4-7d41e75f80e2",
+    "state": "completed",
+    "retirementState": "released",
+    "validation": [
+      "Current-page native DOM extracted independently of ItemLoader/Processing; publication split independently",
+      "Original Task durable outcome decoded and equal to complete result",
+      "Table field names read from column controls; exact visible values including null markers, excluding action cells",
+      "Actual JSON and CSV Browser downloads completed and all records/fields read back; friendly copies byte-identical"
+    ],
+    "report": {
+      "path": "artifacts/scrapyjs/example-sites-20261030/books-app-c/report.json",
+      "bytes": 178691,
+      "sha256": "aac03d5cf6093beb7c493f6ffc9d11d80207a13ce5a157a5daaf22d75fdef529"
+    },
+    "driver": {
+      "path": "artifacts/scrapyjs/example-sites-20261030/books-app-c.mjs",
+      "bytes": 8368,
+      "sha256": "1530465eaac35dbd85649ff80c3c8fabfa05bcfca33c3ed498ba8b1919b56c09"
+    },
+    "exports": {
+      "json": {
+        "path": "artifacts/scrapyjs/example-sites-20261030/douban-books.json",
+        "bytes": 97770,
+        "sha256": "a9daad69e3ce8c3103d481486dd9f14ee7f2d1d75637e4f4cc98dc2a59fa900a"
+      },
+      "csv": {
+        "path": "artifacts/scrapyjs/example-sites-20261030/douban-books.csv",
+        "bytes": 7166,
+        "sha256": "392e9e384e1773674948218332367cbac771ba365c0e09f20ca5cfa09de75183"
+      }
+    },
+    "ownedBrowserReleased": true
+  },
+  "csdn": {
+    "status": "BLOCKED_SITE_VERIFICATION",
+    "url": "https://download.csdn.net/list/blog/100-0-0-0-5-1.html",
+    "httpStatus": 521,
+    "title": "请进行安全验证(Security Verification)",
+    "rows": 0,
+    "attempts": 1,
+    "challengeInteraction": false,
+    "reloadOrRetry": false,
+    "report": {
+      "path": "artifacts/scrapyjs/example-sites-20261030/initial-navigation/report.json",
+      "bytes": 43558,
+      "sha256": "97e1d02a83fd2f50044f09477d2523f2bb23bbf140883248365b3d78157e4d45"
+    },
+    "driver": {
+      "path": "artifacts/scrapyjs/example-sites-20261030/probe.mjs",
+      "bytes": 2522,
+      "sha256": "0e2040c1f87b646ea8bba2f2af6ec60be411f6cbdd43bdec69049f871dfccc08"
+    },
+    "priorEvidence": "examples/sidebar-tools/scrapyjs/evidence/original-sites-20261029.json",
+    "priorEvidenceNote": "Historical CSDN fixture/live success is retained; it does not prove current public-site access.",
+    "ownedBrowserReleased": true
+  },
+  "driverCorrection": {
+    "file": {
+      "path": "examples/sidebar-tools/scrapyjs/tests/native-sites-app.mjs",
+      "bytes": 13290,
+      "sha256": "0114f2c5c9c161ede87296f28f1cf41d27301cdcc67a788f71c0a2a670d951a9"
+    },
+    "behavior": "Read column keys separately from labels/type hints and ignore record-action cells; match actual missing/null/empty/object display semantics.",
+    "failedReportsRetained": [
+      {
+        "report": {
+          "path": "artifacts/scrapyjs/example-sites-20261030/books-app/report.json",
+          "bytes": 54234,
+          "sha256": "f3233b11d4bb05f328292f37ec6534eed08e11cffacfbede1438df269350e462"
+        },
+        "classification": "DRIVER_LAYOUT_GUARD",
+        "detail": "Pointer mapping guard failed before emitting mouse input; no Task was started.",
+        "ownedBrowserReleased": true
+      },
+      {
+        "report": {
+          "path": "artifacts/scrapyjs/example-sites-20261030/books-app-b/report.json",
+          "bytes": 298798,
+          "sha256": "2f4158cb777d40092f4d9c7cbb711abf14c60aa7651a92aed5b7f7e37a700c99"
+        },
+        "classification": "OBSOLETE_TABLE_ASSERTION",
+        "detail": "Task completed/released with 20 matching records; old assertion mixed header labels, type hints and action column and expected blank null cells.",
+        "ownedBrowserReleased": true
+      }
+    ],
+    "finalOfflineReadback": "PASS: final helper checks stored table and actual JSON/CSV 20 rows x 11 fields; no new browser or website requests",
+    "csvNote": "Actual export has no BOM; speculative BOM parser change removed after direct byte check."
+  },
+  "limits": {
+    "productionHttp": "BLOCKED: installed HTTP grant, complete DNS/actual peer enforcement and durable HTTP identity/retirement proof remain absent",
+    "headerOverride": "NOT_TESTED_ON_PUBLIC_SITES; no override used in this DOM run",
+    "antiBot": "NOT_SOLVED; CSDN remains challenged",
+    "ai": "NOT_TESTED; original CFT149 unknown request not replayed",
+    "productionAndDesktop": "NOT_TESTED",
+    "packagesEnginePermissions": "UNCHANGED; no Browser build or package promotion",
+    "rawReports": "Local ignored artifacts; committed index contains digests, not the full browser Profiles or raw results"
+  }
+}

@@ -16,6 +16,22 @@ export function parseCsv(text){
  }
  assert(!quoted,'Unclosed CSV field');row.push(cell);rows.push(row);return rows;
 }
+
+// Field names come from the column controls, independently of display labels/type hints.
+export async function readRecordPreview(frame){
+ return frame.read(`(()=>{const table=document.querySelector('#record-table');return {
+  keys:[...document.querySelectorAll('.scrapy-column-list > li')]
+   .filter(e=>e.querySelector('input[type="checkbox"]').checked)
+   .map(e=>e.querySelector('input[aria-label]').getAttribute('aria-label').replace(/ 显示名称$/,'')),
+  rows:[...table.querySelectorAll('tbody tr')].map(row=>[...row.querySelectorAll('td:not(.scrapy-record-action)')].map(e=>e.textContent))
+ };})()`);
+}
+export function assertRecordPreview(table,records){
+ const display=(row,key)=>!Object.hasOwn(row,key)?'（缺失）':row[key]===null?'（null）':row[key]===''?'（空）':
+  typeof row[key]==='object'?JSON.stringify(row[key],null,2):String(row[key]);
+ assert.deepEqual([...table.keys].sort(),[...new Set(records.flatMap(row=>Object.keys(row)))].sort());
+ assert.deepEqual(table.rows,records.map(row=>table.keys.map(key=>display(row,key))));
+}
 // Independent current DOM oracle, deliberately without ItemLoader/Processing calls.
 function observedRows(config){
  const fields=Object.entries(config.itemConfig).filter(([k])=>!k.startsWith('_'));
@@ -109,8 +125,7 @@ export async function runExampleApp({browser,view,candidate,configs,out,report,r
    assert.equal(value.engine.status,'completed');assert.deepEqual(value.data,expected);assert(terminal.ui.runProfile.includes(entry.name));
    // The public run summary exposes committed rows, not internal processing counters.
    assert.equal(value.stats.counts.committed,expected.length);assert.equal(value.engine.pageCount,1);
-   row.table=await frame.read('(()=>{const t=document.querySelector("#record-table");return {headers:[...t.querySelectorAll("thead th")].map(e=>e.textContent),rows:[...t.querySelectorAll("tbody tr")].map(r=>[...r.querySelectorAll("td")].map(e=>e.textContent))}})()');
-   const cell=v=>v==null?'':typeof v==='object'?JSON.stringify(v):String(v);assert.deepEqual(row.table.rows,expected.map(r=>row.table.headers.map(k=>cell(r[k]))));
+   row.table=await readRecordPreview(frame);assertRecordPreview(row.table,expected);
    row.exports={json:await download('json',snapshot),csv:await download('csv',snapshot)};row.status='PASS_CURRENT_PAGE';row.finishedAt=new Date().toISOString();await record('site-pass',row);
   }
   for(const row of [evidence.scenarios[0],evidence.scenarios.at(-1)]){
