@@ -98,7 +98,10 @@
     "serveClientConnection": "NOT_TESTED",
     "observedLogError": "Workspace/static publish failed: 官方工具身份、源码路径或安装策略无效",
     "ownerLog": ".runtime/integration-20261029-01a1884d/browser-dev-development-resume.log",
-    "action": "Coordinate with existing watcher owner; do not replace profile, output or source pins"
+    "action": "Coordinate normal product-entry evidence with current shared environment owner; do not replace profile/output/source pins or bypass prior Browser URL rejection.",
+    "observedLogErrorStatus": "HISTORICAL_DISK_OUTPUT_RESTORED; actual Chrome path/id/serve still unverified",
+    "restorationReceipt": ".runtime/cloud-mac24dev-20261030-01a188d9/development-output-restored.json",
+    "currentOwnerTask": "01a18b96-4e45-7971-b993-28d6dde17f60"
   },
   "knownBaselineFailures": {
     "suite": "sidebar-tools-host.test.mjs",
@@ -176,5 +179,139 @@
       "production acceptance",
       "formal six-dimension score"
     ]
+  },
+  "currentCoreAcceptance": {
+    "recordedAt": "2026-10-30T07:01:31.638701+00:00",
+    "ownerTask": "01a18b95-f00c-7fe2-a79e-aa13bf5593cc",
+    "objective": "在真实安装态 OpenDesk 上自行跑通并保存同候选 ScrapyJS R1.7 核心全链证据，修复实际阻塞并针对性回归，全部关键条件成立后再向用户交付经过验证的使用方式。",
+    "nativeGoal": {
+      "readBeforeCreate": null,
+      "createReceiptStatus": "active",
+      "statusLastObserved": "active",
+      "complete": false
+    },
+    "entry": "../README.zh-CN.md#当前目标与关键测试条件唯一当前入口",
+    "deliveryGate": "Codex自行完成所有真实核心条件后才交付验证过的使用方式；六步仅待验证草稿，不让用户代跑测试。",
+    "candidate": {
+      "version": "1.7.0",
+      "sha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
+      "taskRevision": "0.4.0"
+    },
+    "criteria": [
+      {
+        "order": 1,
+        "key": "installedIdentity",
+        "operation": "真实入口与同ID更新",
+        "status": "BLOCKED",
+        "requiredEvidence": "核实实际扩展身份、加载路径、serve连接及构建/包指纹；同ID更新App并保留旧配置，使用当前真实Host。",
+        "currentEvidence": "现有Chrome控制只提供普通网页视口，没有工具栏或右侧Side Panel控制；实际身份和连接未知。"
+      },
+      {
+        "order": 2,
+        "key": "realAi",
+        "operation": "安装态单一AI入口",
+        "status": "NOT_TESTED",
+        "requiredEvidence": "真实ai.generate经原可信Provider和发送审阅返回有效声明式配置，保存实际接收方和请求身份。",
+        "currentEvidence": "真实安装态入口尚未取得。"
+      },
+      {
+        "order": 3,
+        "key": "threePageGolden",
+        "operation": "真实三页试采与全字段黄金",
+        "status": "NOT_TESTED",
+        "requiredEvidence": "真实Python三页恰好六条；id/title/price全字段一致，F价格空串，完整度正确，错误和worker退出明确。",
+        "currentEvidence": "既有Python1/2/3页集成证据保留；尚非安装态React→Host→Python。"
+      },
+      {
+        "order": 4,
+        "key": "previewFullBinding",
+        "operation": "试采认证和full精确绑定",
+        "status": "NOT_TESTED",
+        "requiredEvidence": "试采前full不可启动，输入或配置变化使认证失效；明确确认的full绑定原previewRunId/configHash/config/scope，不再AI改写或静默重放。",
+        "currentEvidence": "既有Client/AI/Host定向证据复用其原验证等级，安装态动作未执行。"
+      },
+      {
+        "order": 5,
+        "key": "activeSidebarReopen",
+        "operation": "活跃任务关闭重开恢复",
+        "status": "NOT_TESTED",
+        "requiredEvidence": "full活跃时真正关闭重开侧栏，后台继续并恢复同runId，不创建第二任务。",
+        "currentEvidence": "尚无真实full run。"
+      },
+      {
+        "order": 6,
+        "key": "originalWorkerStop",
+        "operation": "Stop原任务及进程退出",
+        "status": "NOT_TESTED_IN_CHROME",
+        "requiredEvidence": "至少采一页后Stop原run，原PID真实退出、workerExited且无后续采集请求；自然完成或停止受理不算通过。",
+        "currentEvidence": "已有Python原PID退出证据保留；Chrome链未执行。"
+      },
+      {
+        "order": 7,
+        "key": "chromeDownloadReadback",
+        "operation": "Chrome下载及独立读回",
+        "status": "NOT_TESTED",
+        "requiredEvidence": "CSV和JSONL真实Chrome下载落盘，独立全字段读回与同run一致；导出受理不等于落盘。",
+        "currentEvidence": "尚无真实安装态下载。"
+      },
+      {
+        "order": 8,
+        "key": "affectedSecurity",
+        "operation": "受影响安全保护和原主链",
+        "status": "NOT_TESTED_IN_CHROME",
+        "requiredEvidence": "对实际改动影响的Origin/安装身份/权限/撤权/未知回执不重放保护定向验证，保留原浏览器采集主链。",
+        "currentEvidence": "本轮仅改目标/文档/证据；未变Python、Client、Host及原浏览器主链证据复用，不扩大无关回归。"
+      }
+    ],
+    "fixtureBrowser": {
+      "url": "http://127.0.0.1:43233/page-1.html",
+      "title": "ScrapyJS 本地试采 · 1/3",
+      "status": "VISIBLE_IN_REAL_CHROME",
+      "level": "FIXTURE_INPUT_ONLY"
+    },
+    "services": {
+      "fixture43233": {
+        "pid": 37216,
+        "status": "EXISTING_PROCESS_VERIFIED"
+      },
+      "simulatedPreview43234": {
+        "pid": 32357,
+        "status": "EXISTING_PROCESS_VERIFIED_SIMULATION_ONLY"
+      },
+      "runner43231": {
+        "status": "NOT_STARTED",
+        "credentialGenerated": false
+      }
+    },
+    "environment": {
+      "mode": "existing continuous development writer",
+      "output": "dist/development",
+      "watcherPid": 62841,
+      "ownerTask": "01a18b96-4e45-7971-b993-28d6dde17f60",
+      "actualChromeId": "NOT_TESTED",
+      "actualLoadedPath": "NOT_TESTED",
+      "serveConnection": "NOT_TESTED",
+      "coordination": "Normal product-entry evidence requested from shared environment owner; no profile/output takeover.",
+      "sharedOwnerCapabilityReceipt": "Owner 01a18b96 confirmed Browser viewport/ordinary tabs and pageAssets only; no Side Panel or toolbar API. A TCP connection to 43119 does not verify OpenDesk identity, path or revision."
+    },
+    "nextOperation": "核实真实OpenDesk正常侧栏入口的当前安装身份、路径和连接，随后同ID审阅更新、启动并可信配对本机服务。",
+    "safetyBoundary": "Prior Browser URL rejection for chrome://extensions/ and Workspace remains in force; no alternate surface, CLI/config reads or CDP to obtain the same blocked information.",
+    "deferred": [
+      "width/theme/native200%zoom matrix",
+      "Mac sleep/resume",
+      "production acceptance",
+      "formal95+score"
+    ],
+    "sourceOrPackageEdited": false,
+    "rawContinuationReceipt": "artifacts/scrapyjs/r17-manual-demo/continuation-20261030.json",
+    "recordIntegrity": {
+      "json": "PASS",
+      "criteriaCount": 8,
+      "localLinksChecked": 5,
+      "unchangedBoundSourceHashes": 11,
+      "unchangedPackageSha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
+      "diffWhitespace": "PASS",
+      "scope": "condition records and evidence integrity only; no native core acceptance"
+    }
   }
 }
