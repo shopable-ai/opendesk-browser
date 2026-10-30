@@ -10,7 +10,7 @@
 
 目标正文：**在真实安装态 OpenDesk 上自行跑通并保存同候选 ScrapyJS R1.7 核心全链证据，修复实际阻塞并针对性回归，全部关键条件成立后再向用户交付经过验证的使用方式。**
 
-接续任务 `01a18b95-f00c-7fe2-a79e-aa13bf5593cc` 已实读原生 Goal 为 null，随后按用户授权建立本范围 Goal，创建回执为 `active`。全部八项成立前不得标记 complete 或声称“确保正常 / 可直接使用”。逐项状态与原始证据索引统一记录在 [验证记录的 currentCoreAcceptance](evidence/r17-verification.json)，不另建验收体系。
+接续任务 `01a18b95-f00c-7fe2-a79e-aa13bf5593cc` 已实读原生 Goal 为 null，随后按用户授权建立本范围 Goal，创建回执为 `active`。因缺少合法工具栏及右侧 Side Panel 控制能力的同一阻塞连续出现三轮，原生 Goal 已按规则更新为 `blocked`；完整目标和八项条件保留，待该工具能力恢复后续测。全部八项成立前不得标记 complete 或声称“确保正常 / 可直接使用”。逐项状态与原始证据索引统一记录在 [验证记录的 currentCoreAcceptance](evidence/r17-verification.json)，不另建验收体系。
 
 | 关键操作 | 必须取得的真实证据 | 当前状态 |
 | --- | --- | --- |

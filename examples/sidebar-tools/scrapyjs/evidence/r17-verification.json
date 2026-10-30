@@ -187,8 +187,10 @@
     "nativeGoal": {
       "readBeforeCreate": null,
       "createReceiptStatus": "active",
-      "statusLastObserved": "active",
-      "complete": false
+      "statusLastObserved": "blocked",
+      "complete": false,
+      "updateReceiptStatus": "blocked",
+      "statusObservedAt": "2026-10-30T07:09:05.090833+00:00"
     },
     "entry": "../README.zh-CN.md#当前目标与关键测试条件唯一当前入口",
     "deliveryGate": "Codex自行完成所有真实核心条件后才交付验证过的使用方式；六步仅待验证草稿，不让用户代跑测试。",
@@ -312,6 +314,15 @@
       "unchangedPackageSha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
       "diffWhitespace": "PASS",
       "scope": "condition records and evidence integrity only; no native core acceptance"
+    },
+    "blockedAudit": {
+      "consecutiveGoalTurns": 3,
+      "condition": "No permitted control for real Chrome toolbar and right Side Panel; actual installed identity/path/serve cannot be verified.",
+      "currentToolDiscovery": "No Side Panel or toolbar interface added.",
+      "independentEnvironmentReceipt": "Shared environment owner confirmed ordinary tabs/viewport/pageAssets only.",
+      "requiredExternalChange": "Provide a permitted interface to observe and control actual Chrome toolbar and right Side Panel, respecting prior management-page and Workspace denials.",
+      "goalScopePreserved": true,
+      "nativeCoreConditionsAchieved": false
     }
   }
 }
