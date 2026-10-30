@@ -205,9 +205,11 @@ def extract(html, compiled):
             result[name] = values if spec['cardinality']=='many' or len(values)>1 else values[0] if values else ''
         return result
     if not compiled['container']: return [row(root,compiled['fields'])]
-    matched = {node._root for node in query(root,compiled['item'])} if compiled['item'] else None
     seen, records = set(), []
     for container in query(root,compiled['container']):
+        # _listItem is relative to this list, including :scope. The direct-child
+        # intersection below excludes nested rows and sibling/container escapes.
+        matched = {node._root for node in query(container,compiled['item'],root=root)} if compiled['item'] else None
         for node in container.children:
             if node._root in seen or (matched is not None and node._root not in matched): continue
             seen.add(node._root)

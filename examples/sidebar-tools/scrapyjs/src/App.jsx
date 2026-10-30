@@ -38,13 +38,10 @@ export default function App(){
   const [view,setView]=React.useState('results');
   const [naming,setNaming]=React.useState(null);
   const [workspaceOpen,setWorkspaceOpen]=React.useState(false);
-  const [aiOpen,setAiOpen]=React.useState(false);
   const [localBusy,setLocalBusy]=React.useState(false);
   const [localDirty,setLocalDirty]=React.useState(false);
   const [aiBusy,setAiBusy]=React.useState(false);
   const [aiGenerating,setAiGenerating]=React.useState(false);
-  const [aiDirty,setAiDirty]=React.useState(false);
-  const onAiDirty=React.useCallback(value=>setAiDirty(value),[]);
   const actionFocus=React.useRef('profile-list');
   const jsonDetails=React.useRef(null);
   const exportPending=React.useRef(false);
@@ -79,7 +76,7 @@ export default function App(){
     pending?'有未应用的'+[ui.fieldPending?'字段':'',ui.crawlPending?'分页与详情':''].filter(Boolean).join('、')+'编辑，请先点击对应的「应用」按钮。':
     !state.target?'请先打开目标网页，再刷新当前网页。':!busy&&!matches?'目标网址与当前网页不同源，请切换到目标网站后刷新当前网页。':
     state.saving?'正在保存配置，请稍候。':naming||state.pendingAction?'请先完成或取消配置操作。':'';
-  React.useEffect(()=>{tool.setState?.({dirty:state.dirty||!valid||pending||Boolean(naming)||aiDirty||localDirty,busy:busy||state.saving||aiBusy||localBusy});},[tool,state.dirty,valid,pending,naming,busy,state.saving,aiBusy,aiDirty,localBusy,localDirty]);
+  React.useEffect(()=>{tool.setState?.({dirty:state.dirty||!valid||pending||Boolean(naming)||localDirty,busy:busy||state.saving||aiGenerating||aiBusy||localBusy});},[tool,state.dirty,valid,pending,naming,busy,state.saving,aiGenerating,aiBusy,localBusy,localDirty]);
   function guarded(action){try{action();}catch(error){update({error:error.message});}}
   function touch(change){guarded(()=>{app.touch();update({...change,error:''});});}
   function editJSON(text){
@@ -121,7 +118,7 @@ export default function App(){
     else if(ui.removeField){event.preventDefault();update({removeField:false});focusLater('remove-field');}
   }}>
     <section aria-labelledby="config-heading" hidden={workspaceOpen}>
-      <div className="toolbar"><h2 id="config-heading">采集配置</h2><Button id="open-local-runner" variant="primary" disabled={baseLocked} onClick={()=>{setWorkspaceOpen(true);setAiOpen(false);focusLater('capture-heading');}}>本机试采 / 任务</Button><Button id="open-ai" aria-label="打开 AI 配置助手" disabled={baseLocked} aria-describedby="run-help" onClick={()=>{setWorkspaceOpen(true);setAiOpen(true);focusLater('ai-heading');}}>✧ AI 配置</Button><Button id="new-profile" disabled={managementLocked} onClick={()=>requestAction('newProfile','new-profile')}>＋ 新建</Button></div>
+      <div className="toolbar"><h2 id="config-heading">采集配置</h2><Button id="open-local-runner" variant="primary" disabled={baseLocked} onClick={()=>{setWorkspaceOpen(true);focusLater('capture-heading');}}>本机试采 / 任务</Button><Button id="new-profile" disabled={managementLocked} onClick={()=>requestAction('newProfile','new-profile')}>＋ 新建</Button></div>
       <div className="profile-choice"><label className="sr-only" htmlFor="profile-list">已保存配置</label>
         <select id="profile-list" aria-label="已保存配置" value={state.selectedId||''} disabled={managementLocked||!state.records.length} onChange={event=>{
           actionFocus.current='profile-list';app.selectProfile(event.target.value);if(app.state.pendingAction)focusLater('profile-confirm-cancel');
@@ -164,7 +161,7 @@ export default function App(){
       <Message id="run-help">{help}</Message><Message id="app-error" alert>{state.error}</Message><Message id="app-notice">{state.notice}</Message>
       <div className="view-tabs" role="tablist" aria-label="采集工作区">{tabs.map(([name,label,panel])=><Button key={name} id={'tab-'+name} role="tab" variant="quiet" aria-selected={view===name} aria-controls={panel} tabIndex={view===name?0:-1} onClick={()=>setView(name)} onKeyDown={tabKey}>{label}</Button>)}</div>
     </section>
-    <div hidden={!workspaceOpen}><CaptureWorkspace open={workspaceOpen} assistantOpen={aiOpen} state={state} locked={baseLocked} pending={pending} valid={valid} onBusy={setLocalBusy} onDirty={setLocalDirty} onAiBusy={setAiBusy} onAiGenerating={setAiGenerating} onAiDirty={onAiDirty} onAssistantOpen={()=>setAiOpen(true)} onAssistantClose={()=>setAiOpen(false)} onClose={()=>{setWorkspaceOpen(false);setAiOpen(false);focusLater('open-local-runner');}} onApply={(config,base,epoch,page)=>{if(app.state.profileEpoch!==epoch||JSON.stringify(app.state.config)!==JSON.stringify(base)||app.state.target?.url!==page.url)throw Error('配置或网页已变化，请重新生成。');app.edit(config);update({...freshUI(state.profileEpoch)});setAiOpen(false);setWorkspaceOpen(false);openName(current?'copy':'save','open-ai');}}/></div>
+    <div hidden={!workspaceOpen}><CaptureWorkspace open={workspaceOpen} state={state} locked={baseLocked} pending={pending} valid={valid} onBusy={setLocalBusy} onDirty={setLocalDirty} onAiGenerating={setAiGenerating} onAiBusy={setAiBusy} onClose={()=>{setWorkspaceOpen(false);focusLater('open-local-runner');}}/></div>
     <section id="rules-editor" role="tabpanel" aria-labelledby="tab-rules" tabIndex={0} hidden={workspaceOpen||view!=='rules'}>
       <div className="toolbar"><h2>采集规则</h2><p id="config-summary" className="secondary">{fields.length} 个字段 · {state.config.nextPageSelector?'分页':'当前页'}{state.config.detail?' + 详情':''}</p></div>
       <details id="field-editor" open><summary>字段与属性</summary>

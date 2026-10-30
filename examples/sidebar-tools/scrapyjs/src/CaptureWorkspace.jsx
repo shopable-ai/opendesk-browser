@@ -1,7 +1,9 @@
 import * as React from 'react';
 import {Button} from '@opendesk/ui';
-import AiPanel from './AiPanel.jsx';
 import {createLocalRunnerClient,configKey,isRunSettled,previewCertified} from './local-runner-client.js';
+import {doubanTrialConfig,DOUBAN_REQUIREMENT,validateLocalCapture,trialRequirement} from './capture-trials.js';
+import {createAiCapture} from './ai-capture.js';
+import {createAiPending} from './ai-pending.js';
 import './local-runner.css';
 
 const format=value=>value===undefined?'（无）':typeof value==='string'?value:JSON.stringify(value,null,2);
@@ -19,11 +21,12 @@ function RunSummary({run}){
     <p className="secondary">原 run：{run.runId} · worker {run.workerExited===true?'已确认退出':'尚未确认退出'}</p>
   </div>;
 }
-function RunRecords({data,onPage,loading,error}){
+function RunRecords({data,fields=[],onPage,loading,error}){
   return <div className="runner-records" aria-busy={loading}>
     <p className="secondary" role="status">{loading?'正在读取原 run 的记录…':`共 ${data.total} 条 · 本页 ${data.records.length} 条`}</p>
     {error&&<p role="alert" className="error">{error}</p>}
     {!data.records.length&&!loading&&<p className="secondary">原 run 尚未返回记录。</p>}
+    {data.records.length>0&&<div className="runner-table"><table><caption>字段预览{fields.length>8?'（前 8 个字段）':''}</caption><thead><tr>{fields.slice(0,8).map(field=><th scope="col" key={field}>{field}</th>)}</tr></thead><tbody>{data.records.map((row,index)=><tr key={data.offset+index}>{fields.slice(0,8).map(field=><td key={field}>{format(row[field])}</td>)}</tr>)}</tbody></table></div>}
     <ol start={data.offset+1}>{data.records.map((record,index)=><li key={data.offset+index}><details className="flat"><summary>记录 {data.offset+index+1}<span className="runner-record-teaser">{Object.values(record&&typeof record==='object'?record:{value:record}).slice(0,2).map(format).join(' · ')}</span></summary><pre tabIndex={0} aria-label={'记录 '+(data.offset+index+1)+' 完整 JSON'}>{JSON.stringify(record,null,2)}</pre></details></li>)}</ol>
     {data.total>50&&<nav className="toolbar" aria-label="原 run 记录分页"><Button disabled={loading||data.offset===0} onClick={()=>onPage(Math.max(0,data.offset-50))}>上一页</Button><span>第 {Math.floor(data.offset/50)+1} / {Math.ceil(data.total/50)} 页</span><Button disabled={loading||data.offset+50>=data.total} onClick={()=>onPage(data.offset+50)}>下一页</Button></nav>}
   </div>;
@@ -33,11 +36,16 @@ const noop=()=>{};
 const stringify=value=>JSON.stringify(value,null,2);
 
 // One collection owner, shared by manual rules and the optional AI proposal adapter.
-export default function CaptureWorkspace({open,assistantOpen,state,locked,pending,valid,onApply,onClose,onAssistantOpen,onAssistantClose,onBusy=noop,onDirty=noop,onAiBusy=noop,onAiDirty=noop,onAiGenerating=noop}){
+export default function CaptureWorkspace({open,state,locked,pending,valid,onClose,onBusy=noop,onDirty=noop,onAiGenerating=noop,onAiBusy=noop}){
   const tool=globalThis.OpenDeskTool;
   const [client]=React.useState(()=>createLocalRunnerClient((op,args)=>tool.request(op,args)));
-  const [assistantActivated,setAssistantActivated]=React.useState(Boolean(assistantOpen));
   const [generating,setGenerating]=React.useState(false);
+  const [aiCapture]=React.useState(()=>createAiCapture({request:(op,args)=>tool.request(op,args),pending:createAiPending((op,args)=>tool.request(op,args)),validate:value=>validateLocalCapture(value,globalThis.ScrapyAppModel.validateConfig)}));
+  const ai=React.useSyncExternalStore(aiCapture.subscribe,()=>aiCapture.snapshot);
+  const [sample,setSample]=React.useState(''),[sampleUrl,setSampleUrl]=React.useState('');
+  const [sampleRevision,setSampleRevision]=React.useState(0),[aiNotice,setAiNotice]=React.useState('');
+  const [aiProposal,setAiProposal]=React.useState(null);
+  const aiStarting=React.useRef(false);
   const [configText,setConfigText]=React.useState(null);
   const [configRevision,setConfigRevision]=React.useState(0);
   const [previewPages,setPreviewPages]=React.useState(3);
@@ -60,6 +68,8 @@ export default function CaptureWorkspace({open,assistantOpen,state,locked,pendin
   const text=configText??stringify(state.config);
   const binding=configKey({text,configRevision,previewPages,config:state.config,epoch:state.profileEpoch,target:state.target?.url||null});
   const latestBinding=React.useRef(binding);latestBinding.current=binding;
+  const aiBinding=configKey({binding,sample,sampleUrl,sampleRevision});
+  const latestAiBinding=React.useRef(aiBinding);latestAiBinding.current=aiBinding;
   const runnerActive=Boolean(runner.pointer&&!isRunSettled(runner.run));
   const blocked=Boolean(locked||pending||!valid);
   const busy=runnerBusy||runnerActive||recovering;
@@ -68,12 +78,12 @@ export default function CaptureWorkspace({open,assistantOpen,state,locked,pendin
     if(previewContext.current)previewContext.current.invalidated=true;
     setAuthorization(null);setConfirming(false);setConfirmed(false);
   },[]);
-  const invalidateAi=React.useCallback(()=>{if(previewContext.current?.source==='ai')invalidate();},[invalidate]);
   React.useEffect(()=>{invalidate();},[binding,invalidate]);
-  React.useEffect(()=>{if(assistantOpen)setAssistantActivated(true);},[assistantOpen]);
   React.useEffect(()=>{onBusy(busy);},[busy,onBusy]);
   React.useEffect(()=>{onAiGenerating(generating);},[generating,onAiGenerating]);
-  React.useEffect(()=>{onDirty(configText!==null);},[configText,onDirty]);
+  React.useEffect(()=>{onDirty(configText!==null||Boolean(sample||aiProposal));},[configText,sample,aiProposal,onDirty]);
+  React.useEffect(()=>{onAiBusy(ai.busy||ai.unknown);},[ai.busy,ai.unknown,onAiBusy]);
+  React.useEffect(()=>{aiCapture.restore().catch(e=>{if(alive.current)setAiNotice(e.message);});return()=>aiCapture.dispose();},[aiCapture]);
   React.useEffect(()=>{if(confirming)confirmationCheckbox.current?.focus();},[confirming]);
   const syncRunner=React.useCallback(()=>{
     if(!alive.current)return;
@@ -125,16 +135,38 @@ export default function CaptureWorkspace({open,assistantOpen,state,locked,pendin
     catch(e){if(alive.current)setRunnerError(e.message);return false;}
     finally{runnerPending.current=false;if(alive.current){syncRunner();setRunnerBusy(false);}}
   }
-  async function startPreview(value,source='manual'){
+  async function startPreview(value,source='manual',pages=previewPages){
     if(blocked||busy||(generating&&source==='manual')||runnerPending.current)return false;
     return runAction(async()=>{
-      const config=globalThis.ScrapyAppModel.validateConfig(value??JSON.parse(text),{runtime:'local'});
+      const config=validateLocalCapture(value??JSON.parse(text),globalThis.ScrapyAppModel.validateConfig);
       invalidate();
       const runnerRequestId=crypto.randomUUID();
-      previewContext.current={source,config,binding:latestBinding.current,previewPages,runnerRequestId};
-      await client.start({requestId:runnerRequestId,mode:'preview',config,previewPages});
+      previewContext.current={source,config,binding:latestBinding.current,previewPages:pages,runnerRequestId};
+      await client.start({requestId:runnerRequestId,mode:'preview',config,previewPages:pages});
       if(alive.current)setNotice('已按声明式配置试采；请核对记录和错误，再明确确认完整采集。');
     });
+  }
+  async function generatePreview(){
+    if(aiStarting.current||blocked||busy||generating||ai.unknown||!ai.ready)return;
+    aiStarting.current=true;setGenerating(true);setAiNotice('');
+    const inputBinding=latestAiBinding.current;
+    try{
+      const config=validateLocalCapture(JSON.parse(text),globalThis.ScrapyAppModel.validateConfig);
+      const result=await aiCapture.generate({requestId:crypto.randomUUID(),requirement:trialRequirement(config),targetUrl:config.url,
+        context:{page:{url:config.url,title:state.target?.url===config.url?state.target.title:'用户指定公开列表'},sample,sampleUrl,currentConfig:config,
+          previousError:JSON.stringify({ai:ai.error||null,configuration:state.error||null,runner:runnerError||null,originalRun:runner.run?{runId:runner.run.runId,status:runner.run.status,errors:runner.run.errors}:null})},
+        assertCurrent:()=>{if(!alive.current||latestAiBinding.current!==inputBinding)throw Error('输入、原配置或目标已变化，提案未采用。');}});
+      if(!result||!alive.current||inputBinding!==latestAiBinding.current)return;
+      setAiProposal(result);
+      const started=await startPreview(result.config,'ai',3);
+      if(alive.current)setAiNotice(started?'AI 规则已校验并交给原采集链试采三页；未保存配置或启动 full。':'AI 规则已保留；试采未确认，请查看原运行状态。');
+    }catch(error){if(alive.current)setAiNotice(error.message);}
+    finally{aiStarting.current=false;if(alive.current)setGenerating(false);}
+  }
+  async function cancelAi(){
+    try{const reply=await aiCapture.cancel();if(alive.current)setAiNotice(reply?.state==='unknown'?'原 AI 请求结果仍为 unknown；不重新发送。':'原 AI 请求已确认结束；停止后的提案不采用。');}
+    catch(error){if(alive.current)setAiNotice(error.message);}
+    finally{if(alive.current)setGenerating(false);}
   }
   const certified=Boolean(authorization&&authorization.binding===binding&&!previewContext.current?.invalidated);
   function cancelConfirmation(){setConfirming(false);setConfirmed(false);panel.current?.querySelector('#runner-prepare-full')?.focus();}
@@ -159,11 +191,20 @@ export default function CaptureWorkspace({open,assistantOpen,state,locked,pendin
     <details className="flat" open><summary>手动试采配置 JSON</summary><label htmlFor="runner-config">当前采集配置 · 本机分页上限 50 页</label><textarea id="runner-config" rows={10} disabled={editingLocked} value={text} onChange={e=>{invalidate();setConfigRevision(n=>n+1);setConfigText(e.target.value);}}/>
       <Button disabled={editingLocked} onClick={()=>{invalidate();setConfigRevision(n=>n+1);setConfigText(null);}}>使用工作区当前配置</Button>
     </details>
+    <details className="flat"><summary>豆瓣三页试采 · 公开列表</summary><p>{DOUBAN_REQUIREMENT}</p><p className="secondary">候选规则尚未实采核对；2026-10-31 robots 返回 403。服务会继续遵守 robots，不绕过访问拒绝；此操作不覆盖当前配置。</p><Button id="runner-trial-douban" disabled={blocked||editingLocked} onClick={()=>startPreview(doubanTrialConfig(),'douban',3)}>试采豆瓣 3 页</Button></details>
     <div className="runner-preview-actions"><label htmlFor="runner-preview-pages">试采页数<select id="runner-preview-pages" value={previewPages} disabled={editingLocked} onChange={e=>{invalidate();setPreviewPages(Number(e.target.value));}}>{[1,2,3].map(n=><option key={n} value={n}>{n} 页{n===3?'（默认）':''}</option>)}</select></label>
       <Button id="runner-start-preview" variant="primary" disabled={blocked||editingLocked} onClick={()=>startPreview()}>按当前配置试采</Button>
-      <Button id="open-ai-assistant" disabled={runnerBusy} onClick={onAssistantOpen}>✧ AI 生成 / 纠正规则（可选）</Button>
     </div>
-    {(assistantActivated||assistantOpen)&&<div hidden={!assistantOpen}><AiPanel open={open&&assistantOpen} state={state} locked={locked} pending={pending} valid={valid} onApply={onApply} onClose={onAssistantClose} onBusy={onAiBusy} onDirty={onAiDirty} onGenerating={setGenerating} onPreview={config=>startPreview(config,'ai')} onInvalidate={invalidateAi} runnerBusy={runnerBusy} runnerActive={runnerActive} runnerRun={runner.run} runnerError={runnerError}/></div>}
+    <div className="runner-preview-actions"><Button id="ai-trial" disabled={blocked||editingLocked||!ai.ready||ai.unknown||ai.busy} onClick={generatePreview}>AI 试采 3 页</Button>
+      {ai.requestId&&<Button id="ai-cancel" onClick={cancelAi}>查询 / 停止原 AI 请求</Button>}
+      {!ai.ready&&<Button id="ai-recover" onClick={()=>aiCapture.restore().catch(e=>setAiNotice(e.message))}>读取原 AI 身份</Button>}
+    </div>
+    <details className="flat"><summary>AI 所需结构样本与发送范围</summary><p className="secondary">仅发送当前 JSON 的目标、固定三页需求、规则及必要 HTML 样本，经原可信发送审阅。不会自动读取网页；请提供已获准的公开结构，移除私人正文和凭证。</p>
+      <label htmlFor="ai-sample">当前目标的必要 HTML 结构</label><textarea id="ai-sample" rows={3} maxLength={12000} disabled={editingLocked} value={sample} onChange={e=>{if(previewContext.current?.source==='ai')invalidate();setSampleRevision(n=>n+1);setSample(e.target.value);try{setSampleUrl(JSON.parse(text).url);}catch{setSampleUrl('');}}}/>
+      <p className="secondary">样本绑定目标：{sampleUrl||'尚未提供'}</p>{ai.context&&<details><summary>本次实际发送资料</summary><pre>{stringify(ai.context)}</pre></details>}
+    </details>
+    <p id="ai-status" role="status">{ai.unknown?'原 AI 请求 unknown：'+ai.requestId+'；仅围住 AI，手动采集仍可用。':aiNotice||ai.error}{ai.unknown&&aiNotice?' '+aiNotice:''}</p>
+    {aiProposal&&<details id="ai-proposal" className="flat"><summary>AI 已校验规则{aiProposal.config.url!==sampleUrl?'（输入已变化，仅供对照）':''}</summary><pre>{stringify(aiProposal)}</pre></details>}
     {blocked&&<p className="secondary">请先处理未应用编辑、无效工作区配置或原浏览器采集操作。</p>}
     <p id="runner-notice" role="status" hidden={!notice}>{notice}</p>
     <section className="runner-card" aria-labelledby="runner-heading">
@@ -171,7 +212,7 @@ export default function CaptureWorkspace({open,assistantOpen,state,locked,pendin
       <p id="runner-error" className="error" role="alert" hidden={!runnerError}>{runnerError}</p>
       {!runner.run&&<p className="secondary" role="status">{recovering?'正在读取已保存的运行指针…':runner.pointer?'正在按原 requestId 找回运行；不会重复创建。':!runner.ready?'运行指针读取失败，请读取原 run。':'尚未试采。可直接使用当前配置，无需 AI。'}</p>}
       {runner.pointer&&!runner.run&&<p className="secondary">原 requestId：{runner.pointer.requestId}</p>}
-      {runner.run&&<><RunSummary run={runner.run}/><RunRecords data={displayedRecords} loading={recordsLoading} error={recordsError} onPage={readRecords}/>
+      {runner.run&&<><RunSummary run={runner.run}/><RunRecords fields={runner.run.fields} data={displayedRecords} loading={recordsLoading} error={recordsError} onPage={readRecords}/>
         <div className="toolbar"><Button id="runner-stop" variant="danger" disabled={!runnerActive||runnerBusy} onClick={()=>runAction(()=>client.stop())}>Stop · 停止原 run</Button><Button id="runner-export-jsonl" disabled={exporting} onClick={()=>exportRun('jsonl')}>导出 JSONL</Button><Button id="runner-export-csv" disabled={exporting} onClick={()=>exportRun('csv')}>导出 CSV</Button></div>
         <details className="flat"><summary>原 run 状态详情</summary><pre>{JSON.stringify(runner.run,null,2)}</pre></details>
       </>}

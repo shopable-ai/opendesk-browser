@@ -48,9 +48,16 @@ export function createAiRequest(request,payload,onInfo=()=>{},pending=null){
         phase='settled';claimed=false;
         return {requestId:id,state:'cancelled'};
       }
+      phase='unknown'; // Keep the fence while cancellation itself may lose its receipt.
       const reply=await request('ai.cancel',{requestId:id});
       if(reply?.requestId!==id||!['cancelled','completed','failed','unknown'].includes(reply.state))throw Error('停止回执身份或状态无效，原请求仍在等待确认。');
-      if(claimed&&release&&reply.state!=='unknown')await pending.clear(id);
+      // A late generate result is not terminal proof after an unknown cancel.
+      // During unmount leave the persisted identity for the next instance.
+      if(reply.state==='unknown'||!release)phase='unknown';
+      else {
+        if(claimed)await pending.clear(id);
+        phase='settled';
+      }
       return reply;
     }
   };

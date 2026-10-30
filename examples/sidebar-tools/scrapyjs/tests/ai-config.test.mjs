@@ -56,3 +56,13 @@ test('diff includes every validator-accepted underscore field and only separates
  assert.equal(diff.listChanged,true);assert.equal(diff.listAfter._listItem,'article');
  assert.deepEqual([JSON.stringify(before),JSON.stringify(after)],snapshots);
 });
+test('local capture rejects unsupported user rules intact while original browser configuration remains valid',async()=>{
+ const {validateLocalCapture}=await import('../src/capture-trials.js');
+ const before=JSON.stringify(base);
+ assert.throws(()=>validateLocalCapture(base,validateConfig),/不支持/);assert.equal(JSON.stringify(base),before);
+ validateConfig(base);
+ for(const rule of ['//a','a::innerHTML',{selector:'h2',read:'innerHTML'},{selector:'//a',read:'text'}])
+  assert.throws(()=>validateLocalCapture({url:base.url,itemConfig:{title:rule}},validateConfig));
+ const local={url:base.url,itemConfig:{title:'h2::text'},maxPages:50};
+ assert.equal(validateLocalCapture(local,validateConfig).maxPages,50);
+});

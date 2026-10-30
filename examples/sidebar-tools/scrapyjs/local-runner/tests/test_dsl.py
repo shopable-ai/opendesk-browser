@@ -52,3 +52,12 @@ class ReviewScopeTests(unittest.TestCase):
     def test_review_nested_field_named_selector_remains_nested(self):
         self.assertEqual(self.parse('<html><body><b>A</b><b>B</b><p>P</p></body></html>',{'meta':{'selector':{'selector':'b','read':'text'},'value':'p'}}),[
             {'meta':{'selector':['A','B'],'value':'P'}}])
+
+class ListContainerScopeTests(unittest.TestCase):
+    def test_scope_item_filter_binds_each_container_and_keeps_direct_children_only(self):
+        config={'url':'https://example.org/list','itemConfig':{
+            '_listContainer':'ul','_listItem':':scope > li.book','id':'.::data-id',
+            'title':'h2::text','missing':'.price::text'}}
+        html='<ul><li class="book" data-id="A"><h2>甲</h2></li><li data-id="skip"><h2>跳过</h2></li><section><li class="book" data-id="nested"><h2>嵌套</h2></li></section></ul><ul><li class="book" data-id="B"><h2>乙</h2></li></ul>'
+        self.assertEqual(extract(html,compile_config(config)),[
+            {'id':'A','title':'甲','missing':''},{'id':'B','title':'乙','missing':''}])
