@@ -134,6 +134,29 @@ test('two page HTML extraction + sha256 + full v1 RunReceipt and storage readbac
   assert.equal(output.headerEvidence.wireObserved,null);
   assert.match(output.resultSha256,/^[0-9a-f]{64}$/);
 });
+test('v1 refuses unsigned list selectors that are missing from Recipe SHA',async()=>{
+  const b=await trial();let admitted=false;
+  const host={admit:async()=>{admitted=true;return {};},
+    get:async()=>{throw Error('unexpected');},
+    persistAndReadback:async()=>{throw Error('unexpected');}};
+  await reject(createStaticHttpTrialRunner(host,{parseHtml:parse,subtle:webcrypto.subtle})
+    .run(b,[b.recipe.target.url],{listContainer:'.items',listItem:'article'}),'E_UNSIGNED_SELECTOR');
+  assert.equal(admitted,false);
+});
+test('parallel start is refused while original run is awaiting admission',async()=>{
+  const b=await trial();let unblock;
+  const gate=new Promise(resolve=>{unblock=resolve;});
+  const runner=createStaticHttpTrialRunner({
+    admit:async()=>{await gate;return {};},
+    get:async({url})=>({status:200,finalUrl:url,redirectCount:1,mediaType:'text/html',body:'<h2>no</h2>'}),
+    persistAndReadback:async()=>{throw Error('unexpected');}
+  },{parseHtml:parse,subtle:webcrypto.subtle});
+  const first=runner.run(b,[b.recipe.target.url]);
+  await reject(runner.run(b,[b.recipe.target.url]),'E_RUN_BUSY');
+  assert.equal(runner.stop().requested,true);
+  unblock();
+  await reject(first,'E_CANCELLED');
+});
 test('hash mismatch rejects claimed readback even if receipt says verified',async()=>{
   const b=await trial();
   await reject(createStaticHttpTrialRunner(testHost(b,{mismatchReadback:true}).host,
