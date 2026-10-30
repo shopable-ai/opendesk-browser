@@ -1,6 +1,6 @@
-// Official R0.1 media download: opaque candidate IDs, not arbitrary URL access.
+// Official media download: opaque candidate/rendition IDs, never arbitrary URL access.
 export const MEDIA_ID='video-downloader';
-export const MEDIA_VERSION='0.1.0';
+export const MEDIA_VERSION='0.2.0';
 export const MEDIA_CAPABILITY='page.mediaDownload';
 export const MEDIA_OPERATIONS=Object.freeze(['media.detect','media.start','media.status','media.stop']);
 export function classifyMedia(url,mime='',pageOrigin=''){

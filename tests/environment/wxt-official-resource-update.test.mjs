@@ -48,7 +48,7 @@ async function fixture(t,{starting=false,buildError}={}){
   await write('output/'+sandbox,'<html>shared sandbox sentinel</html>');
   await write('output/official-tools/diagnostic.txt','unrelated');
   const staticAssets=staticPaths.map(fileName=>({type:'asset',fileName,customMetadata:{retain:true}}));
-  const watcher=new EventEmitter();watcher.add=()=>{};watcher.close=async()=>{};
+  const watcher=new EventEmitter(),watched=[];watcher.add=paths=>watched.push(...paths);watcher.close=async()=>{};
   let restarts=0;
   const errors=[];
   const output={manifest,steps:[],publicAssets:[...staticAssets,...[...generated.resources.keys()].map(fileName=>({type:'asset',fileName}))]};
@@ -84,7 +84,7 @@ async function fixture(t,{starting=false,buildError}={}){
     assert.equal(record.revision,digest(JSON.stringify(record.files)));
     assert.deepEqual(errors,[]);await assertIntact();return record;
   };
-  return {root,outDir,publicDir,write,catalog,saveCatalog,change,flush,marker,errors,output,server,wxt,generated,assertIntact,assertPublished};
+  return {root,outDir,publicDir,write,catalog,saveCatalog,change,flush,marker,errors,output,server,wxt,generated,assertIntact,assertPublished,watched};
 }
 
 test('official catalog data and declared source edits publish without restarting or touching sandbox',async t=>{
@@ -96,6 +96,29 @@ test('official catalog data and declared source edits publish without restarting
   await f.write(path,'void "changed source";');f.change(path);
   f.change('examples/sidebar-tools/alpha-tool/README.md');await f.flush();
   assert.notEqual((await f.assertPublished()).revision,policy.revision);
+});
+
+test('catalog-owned projects sources publish on save, retain the last good package on error, and recover',async t=>{
+  const f=await fixture(t),project='projects/video-downloader';
+  await f.write(project+'/tool.config.json',JSON.stringify({id:'video-downloader',version:'1.0.0',title:'Video fixture',
+    description:'Project source update fixture',capabilities:[],files:{html:'src/index.html',css:'src/style.css',js:'src/main.js'},assets:[]}));
+  await f.write(project+'/src/index.html','<main>Project fixture</main>');
+  await f.write(project+'/src/style.css','main { color: green; }');
+  await f.write(project+'/src/main.js','void 0;');
+  f.catalog.tools.push({id:'video-downloader',project,kind:'sidebar-tool',installationPolicy:'optional'});
+  await f.saveCatalog();f.change(OFFICIAL_CATALOG_PATH);await f.flush();
+  const before=await f.assertPublished(),source=project+'/src/main.js';
+  await f.write(source,'void "saved project source";');f.change(source);await f.flush();
+  const changed=await f.assertPublished();assert.notEqual(changed.revision,before.revision);
+  assert.ok(f.watched.includes(join(f.root,'projects')),'the real watcher must subscribe to the projects root');
+  const packagePath='official-tools/video-downloader/video-downloader.opendesk-tool.json';
+  assert.match(JSON.parse(await readFile(join(f.outDir,packagePath),'utf8')).js,/saved project source/);
+  await f.write(source,'void (');f.change(source);await f.flush();
+  assert.deepEqual(await f.marker(),changed);assert.ok(f.errors.length>0);
+  f.errors.length=0;await f.write(source,'void "recovered project source";');f.change(source);await f.flush();
+  const recovered=await f.assertPublished();assert.notEqual(recovered.revision,changed.revision);
+  const unlisted='projects/unlisted/src/main.js';await f.write(unlisted,'void "not an official input";');
+  f.change(unlisted);await f.flush();assert.deepEqual(await f.marker(),recovered);await f.assertIntact();
 });
 
 test('adding and removing official tools refreshes only owned public assets and publishes without ENOENT',async t=>{

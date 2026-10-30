@@ -27,7 +27,7 @@ export function configureDevelopmentRestarts(server,{root=process.cwd(),isClosin
     if(isClosing()||!['add','change','unlink'].includes(event))return;
     const path=relative(root,resolve(file));
     if(!path.startsWith('src/')&&!path.startsWith('scripts/')&&!path.startsWith('official-tools/')&&
-      !path.startsWith('examples/sidebar-tools/')&&
+      !path.startsWith('examples/sidebar-tools/')&&!path.startsWith('projects/')&&
       !['wxt.config.mjs','manifest.json','package.json','package-lock.json'].includes(path))return;
     clearRecovery();void server.restart();
   };
@@ -139,6 +139,7 @@ export function configureDevelopment(wxt,server) {
   // The authored catalog and declared tool sources replace checked-in JSON.
   const officialRoot=resolve(wxt.config.root,'official-tools');
   const toolRoot=resolve(wxt.config.root,'examples/sidebar-tools');
+  const projectRoot=resolve(wxt.config.root,'projects');
   let officialGeneration=0,catalogDirty=false,changeId=0;
   // Keep validated ownership across partial writer failures: its catalog rename
   // precedes stale-package removal, so disk alone cannot recover the old set.
@@ -157,7 +158,8 @@ export function configureDevelopment(wxt,server) {
     if(input.startsWith(resolve(toolRoot,'adblock/dist')+'/')||
       input.startsWith(resolve(toolRoot,'stay-focus/dist')+'/')||
       input.startsWith(resolve(toolRoot,'cookie-editor/dist')+'/'))return;
-    const official=input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||input.startsWith(toolRoot+'/');
+    const official=input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||
+      input.startsWith(toolRoot+'/')||input.startsWith(projectRoot+'/');
     if(!dest&&!style&&!official)return;
     const version=++changeId;sourceVersions.set(input,version);
     const errorKey=official?'official':input;
@@ -276,7 +278,7 @@ export function configureDevelopment(wxt,server) {
   const watcher=server.watcher;
   const checkCopyErrors=()=>{if(copyErrors.size)throw copyErrors.values().next().value;};
   publicationGuard=async()=>{await copying;checkCopyErrors();};
-  watcher.add([...new Set([...sources.keys(),...styleSources,officialRoot,toolRoot])]);watcher.on('all',sync);
+  watcher.add([...new Set([...sources.keys(),...styleSources,officialRoot,toolRoot,projectRoot])]);watcher.on('all',sync);
   // WXT's asynchronous file reloader is installed after server:started.
   // Keep its rejected metadata/build queue from escaping EventEmitter.
   server[restartKey]?.protectWatcher();

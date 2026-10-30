@@ -1,8 +1,8 @@
 {
   "id": "video-downloader",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "title": "视频下载",
-  "description": "检测已授权网页的媒体；直接 MP4/WebM 使用 Chrome 原生下载，非 DRM HLS 当前仅识别。",
+  "description": "检测已授权网页的媒体，选择清晰度下载完整非加密 HLS，或直接保存 MP4/WebM。",
   "capabilities": ["page.mediaDownload"],
   "files": {
     "html": "src/index.html",

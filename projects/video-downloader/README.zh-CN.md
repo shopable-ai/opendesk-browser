@@ -1,45 +1,73 @@
-# 视频下载 · Video Downloader R0.1
+# 视频下载 · Video Downloader R0.2（核心流程已实测）
 
-唯一正式业务目录：`projects/video-downloader/`。这是 OpenDesk Browser 中的独立 Sidebar Tool，不是第二个 Chrome 插件，也不是 Desktop 自动化框架。正式 UI 唯一源为 `src/index.html`、`src/style.css`、`src/main.js`；专用可信边界为 `trusted/`，由已有固定 Side Panel Host 静态引入。
+唯一业务目录：`projects/video-downloader/`。UI 源为 `src/index.html`、`src/style.css`、`src/main.js`，通过原 `OpenDeskTool.request` 调用固定可信 Host。`trusted/` 由已有 Side Panel Host 静态编译，六个来源文件按精确 Git blob 审查；普通导入包不能携带或替换这些特权代码。
 
-## 本版真实操作与边界
+## 当前用户操作
 
-1. 浏览器访问已授予 Chrome 网站权限的普通 HTTP(S) 网页，网页中的 HTML5 `<video>`/`<source>` 有明确的媒体 URL。
-2. 在扩展中心审阅并安装官方 `video-downloader` 0.1.0（optional），打开「视频下载」，点击「检测」。
-3. 固定可信函数在活动文档的 ISOLATED world 读取有界媒体 URL，按绝对 URL 去重。不接收沙箱上传的 URL、tabId、JS、选择器或 Cookie。
-4. **只有与当前顶层网页同源、明确识别为 MP4 或 WebM 的直接 URL**出现「下载」操作。可信 Host 在正式安装/发行 SHA/启停/撤权代际与 Document 二次检查后调用一次 `chrome.downloads.download`。返回 downloadId 仅表示已提交给 Chrome。
-5. 使用 `downloads.search({id})` 查询实际进度、`complete/interrupted` 状态；只有 `state=complete && exists=true && bytesReceived>0` 才展示「Chrome 下载完成」，并且 `playbackVerified=false`。独立解码、文件类型、播放验证必须在本机人工完成。停止通过 `chrome.downloads.cancel`，异步启动迟到回包不会被当成成功。
-6. HLS `.m3u8` 同源资源可在**不携带 Cookie、拒绝重定向、有限时间和字节数**的情况下读取 master/media playlist，报告候选清晰度/码率、声明的音轨、分段数、是否 VOD、加密状态。即使非 DRM，本版仍为 `DETECTED_ONLY`，不下载片段，不伪装合并 MP4。DASH/跨源/无法读取/加密及 DRM 内容不下载。
+在有权保存视频的普通 HTTP(S) 网页中播放视频，打开 OpenDesk「扩展 → 视频下载」，点击「检测」。工具读取当前已授权文档中的 `<video>` / `<source>`，并在一次检测中读取最近 30 秒资源记录末尾最多 256 条明确媒体 URL；最多返回 48 个去重候选。临时 blob 播放器的 VOD 清单可能只在初始化时请求；若已超出最近 30 秒窗口，请重新加载播放器后立即检测。没有后台监听、全站抓包、播放器改写或持久化媒体 URL。
 
-无后台全站监听、无 webRequest 抓包、无密码/Cookie 存储、无脱离活动文档下载或网页播放器修改。签名 URL 只留在当前可信 Side Panel 的内存候选表，UI 只收到 opaque candidateId/媒体类型/有限元信息；不持久化 URL。任意下载 URL、Cookie/HTTP 请求头、跨站和 Native 命令不对沙箱开放。用户必须有权保存相应媒体；不绕过付费墙或 DRM；不将未经授权的 YouTube 下载作为发行功能。
+- 同源直接 MP4/WebM 经文档、工具身份、网站权限复查后交给 Chrome 下载。
+- HLS master 展示真实清晰度、码率和分段数，默认选择最低已知码率的可用档。只有已获源站 Chrome 权限、完整、非加密且当前封装受支持的 VOD 可下载。跨源 HLS 的每个清单、初始化段和分段都分别校验来源与权限；不自动申请扩权。
+- HLS 依序合并所有分段后才提交一次 Chrome 保存。TS 保持 `.ts`，fMP4 保存 `.mp4`；尚无 TS → MP4 转封装。界面分别显示分段、合并、保存及 Chrome 下载状态。
+- `complete` 必须从 Chrome 记录确认文件存在且收到字节；所有回执仍为 `playbackVerified=false`，只有独立解码/播放才是可播放证据。
+- 停止会中止分段并取消已知 Chrome 下载。导航、撤权和卸载使旧候选失效，迟到的 native ID 仍被接收并请求取消。已知终态才释放 Blob；原生回执或取消结果未知时保留 `unknown`，不重新下载。
 
-## 真实可复现 Fixture
+清单最多 256 KiB，单段最多 8 MiB，总读取最多 128 MiB、2048 段、30 分钟；并发 3，每次读取超时 15 秒。请求不携带 Cookie、不发送引用页信息、拒绝重定向，失败不自动重试。拒绝私网/本地 URL、加密/DRM、直播、缺失分段、分离外部音轨及当前不支持的清单特性。DASH 合并与 YouTube 只读结构诊断延期；不提供未经授权的 YouTube 下载。
 
-`tests/fixtures/index.html` 是仅用于本机回环服务器的合法自制媒体页。随项目提交的自制 `tiny.mp4` 可用于直接 MP4 下载测试，不需要安装 FFmpeg。HLS master/media 文本已经提供，可直接测试检测与解析；若要实际播放完整 HLS VOD，先运行下述生成脚本创建 `tiny-seg00.ts`（仅开发 Fixture 生成依赖 FFmpeg，产品运行不依赖 FFmpeg）：
+## 本轮真实操作与证据
+
+已在真实 Mac Chrome 经「扩展 → 官方市场 → 视频下载」审阅安装 `0.2.0`，再在普通 hls.js 播放器网页检测公共 Big Buck Bunny 测试流，使用真实主清单默认最低档 `320×184 / 246 kbps / 64 段`，完成分段、合并及 Chrome 最终保存。
+
+- 实际保存文件：`/Users/mac/Downloads/opendesk-video-1793376964608.ts`，`22,418,060` 字节；SHA-256 `dca82b4374ee198b5a605dc03b0924152f6122e594df577a3e9ce8b63a9db0d3`。
+- 独立本机完整解码：固定、SRI 核对的 `@ffmpeg-installer/darwin-x64@4.1.0`，对该文件执行严格视频和音频解码，退出码 `0`；H.264 `320×184`、`19,039` 帧，双声道 HE-AAC，`634.633333` 秒。独立图形播放器播放未测试；没有将 TS 声称为 MP4。
+- 真实安全操作：下载中的 Stop 最终为「已取消」；下载中刷新网页使旧候选和任务失效；工具停用/恢复未自动重放；下载中确认卸载清除安装身份后未新增文件。随后经原官方审阅链重新安装 `0.2.0`，保持可打开状态。
+- 两次较早的 Stop 尝试分别先遇到大小上限、先完成下载，**不计为停止通过**。有效 Stop 证据是后续明确的「下载分段 → 停止中 → 已取消」。本轮共保存两份同长度完整 TS，停止、导航和卸载的后续检查未再新增文件。
+- 迟到原生 ID、分段中撤权及 unknown 防重放继续复用当前未变源码的定向 Node 证据；没有额外制造 Chrome 回包延迟或撤销共享 Chrome 网站权限。
+
+原始证据沿用 [`ui-core/progress.json`](../../artifacts/video-downloader/ui-core/progress.json)、[`decode-result.json`](../../artifacts/video-downloader/ui-core/decode-result.json) 和原交接；截图与解码日志仍放忽略的 `artifacts/video-downloader/ui-core/`，不打进安装包。公共测试影片署名：Big Buck Bunny © 2008 Blender Foundation，CC BY 3.0；完整输出保留原片尾。
+
+## 持续开发与安装身份
+
+复用固定 `/Users/mac/Documents/workspace/opendesk-browser/dist/development`。原 dev writer owner 明确移交后，已正常退出原进程并通过原 `npm run dev` 恢复，新 Node PID `65804`；没有第二 writer 或静态副本。侧栏「调试 → 本地开发服务」实测已连接，构建指纹 `967ea3877a19`，对应完整 revision `967ea3877a191cbb1726471799304dc014d589fab10667ddf795a85894d30a30`。实际操作的扩展 ID 为 `ljclbnojkhhgdpoaaggiihlmidgcoihi`。Chrome 管理页中的实际加载路径仍未独立核实；服务输出路径与已连接指纹分别记录，不用它们代替管理页证据。
+
+`scripts/wxt-development.mjs` 已覆盖 Catalog 所属 `projects/` 的保存发布与恢复；相关 9 项定向检查已通过。新服务已载入该修复，磁盘官方视频包与项目正式包同为 `0.2.0` / `12143` 字节 / SHA-256 `622668f5dcea70d579ed3cd51b81bbe5b675ef934dfb1a2f82f117f56d5058cd`。重启服务后曾出现旧侧栏目录与新包不一致的 `E_PACKAGE_INTEGRITY`；正常关闭重开该测试窗口侧栏后，原校验通过，未放宽来源或摘要校验。
+
+普通本地 JSON/项目不能凭同 ID 取得特权。当前真实安装走原官方目录、包摘要、可信 Host 和安装代际，未将 `page.mediaDownload` 扩给普通本地预览。
+
+| 项目 | 当前证据范围 |
+| --- | --- |
+| SOURCE / NODE | 原定向来源、完整性、身份及竞态检查通过，未变输入复用 |
+| BUILD | 当前持续开发服务已完整编译并真实连接；production 未测 |
+| PACKAGE / INSTALL | 原打包晋升门禁通过；真实官方安装、卸载与重装通过 |
+| HLS_SEGMENTS / HLS_PLAYABLE_FILE | 真实最低档完整文件及全长独立音视频解码通过 |
+| MAC_CHROME | 上述真实日常开发环境 UI 核心操作通过，不代表 production/CWS 验收 |
+| FILE_PLAYBACK | 全长独立解码通过；图形播放器播放未测 |
+| SECURITY | 原生 Stop、导航失效、停用/恢复、卸载撤权通过；强制迟到原生回包及共享网站权限撤销未测 |
+| DASH_TRACKS / DASH_MERGE / YOUTUBE_DIAGNOSTICS | 延期，未测 |
+
+## 当前限制与后续完善
+
+发现只读取最近 30 秒、末尾最多 256 条资源记录。长时间运行的 blob VOD 播放器可能已没有最近清单请求，需要重新加载后检测；并非任意网站抓包下载器。Chrome 内置直接 HLS 媒体文档实测无法确认活动主文档，普通播放器网页可以；未为此绕过文档身份要求。
+
+本轮还观察到终态或重新检测后部分顶部/详情提示保留旧文案，任务状态卡与停止/失效保护不受影响；后续可在工具自身修正文案状态。更高码率可能触发原单段/总量上限，拒绝时不生成不完整文件。不将这些边界或未测项写成全站、全部格式及正式发布通过。
+
+## 定向验证与包
+
+本次 UI/Host/来源变更的检查入口：
 
 ```sh
-sh projects/video-downloader/tests/fixtures/generate-media.sh
-python3 -m http.server 43112 --bind 127.0.0.1 --directory projects/video-downloader/tests/fixtures
+node --test projects/video-downloader/tests/core.test.mjs projects/video-downloader/tests/ui.test.mjs projects/video-downloader/tests/bundle.test.mjs
 ```
 
-在 Chrome 打开 `http://127.0.0.1:43112/index.html`，由官方应用检测 `tiny.mp4` 并下载；到系统下载目录找到实际文件后，用视频播放器打开或运行：
+`tests/stream.test.mjs` 与 `tests/discovery.test.mjs` 分别覆盖有界读取/完整性和固定文档发现；相关模块没有新变化时复用有效证据，不因脚本存在重复全组测试。`tests/fixtures/tiny.mp4` 是合法自制的直接 MP4 样本，可在回环服务中验证直接下载。HLS transport 拒绝回环来源，不能将本地 Fixture 替代公共真实流验收。
+
+仍使用唯一打包器：
 
 ```sh
-ffprobe -v error -show_entries format=format_name,duration -of json /实际/下载目录/opendesk-video-*.mp4
+node scripts/build-sidebar-tool.mjs projects/video-downloader --out artifacts/sidebar-tools/video-downloader/candidate.opendesk-tool.json
+# 定向门禁通过后，才允许显式晋升并核对同源。
+node scripts/build-sidebar-tool.mjs projects/video-downloader --promote-from artifacts/sidebar-tools/video-downloader/candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs projects/video-downloader --check-project
 ```
 
-`master.m3u8`、`media.m3u8`、`encrypted.m3u8`、`drm.m3u8` 是测试样本；HLS master 虽能由可信服务解析，但页面需要 `video.src` 明确使用它，或在同源自有 Fixture 页面中增加测试视频，才能通过 HTML5 源发现；本版并不主动扫描网页里的普通 HLS 超链接。R0.1 不能把解析成功记成视频合并成功。
-
-## 开发与验收
-
-定向 Node 测试：`node --test projects/video-downloader/tests/core.test.mjs`。
-
-候选包（仅构建，不安装）：`node scripts/build-sidebar-tool.mjs projects/video-downloader --out artifacts/sidebar-tools/video-downloader/candidate.opendesk-tool.json`。官方发行由既有 `scripts/build-official-tools.mjs` 在 Browser 构建时从 `official-tools/catalog.json` 生成，沿用正式审核/安装/撤权。此官方特权扩展需要最新 Browser 构建，不能单独把普通本地开发候选 JSON 当成可信官方发行；开发和安装阶段身份不能互相代替。
-
-本地 Mac Chrome 验收需核对：安装来源与权限、直接 MP4 downloadId 和进度、下载目录文件及 ffprobe/播放器、停止/页面导航/权限撤销/过期 403、无视频/去重、HLS 显示 `DETECTED_ONLY`。Node mock、GitHub commit、JS 代码存在或构建成功都不代表上述 Chrome 结果 PASS。真实网站兼容、跨源/CDN、分离音轨、HLS remux、文件真实播放验证的自动读回暂不提供。
-
-### 状态合同（供 R0.2 使用，不重画 UI）
-
-检测：`available | no-video`，候选 `ready | detected_only`，HLS `clear | encrypted | drm | unknown`。下载：`starting → started → in_progress → complete | complete_unverified | interrupted | cancelled | unknown`；并行 Stop 为 `cancel_requested`，不提供「已成功保存」的乐观状态。错误按 `E_MEDIA_* / E_DOCUMENT_STALE / E_OUTCOME_UNKNOWN`，不得自动重新触发下载。
-
-R0.2 才考虑最简洁的正式交互原型、网站适配器与更多真实站点；在完整播放验收之前不声称「任何视频下载均可用」。
+项目唯一正式 UI JSON 为 `video-downloader.opendesk-tool.json`。真实特权准入还要求当前 Browser 固定代码、原官方 Catalog 的包 SHA、安装来源与撤权代际一致；单独从本地导入 JSON 不能冒充官方身份。不要绕过来源审阅来执行开发包，也不要把包晋升、Git 提交或定向编译当成 Chrome 安装成功。
