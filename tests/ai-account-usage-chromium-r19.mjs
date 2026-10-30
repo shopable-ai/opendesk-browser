@@ -131,6 +131,16 @@ try {
   await page.getByRole('button',{name:/查看.*备用 Pro.*历史证据/}).first().click();
   check('standalone HTML keeps interactive drawer working',
     await page.locator('dialog.drawer[open]').count()===1);
+  // Also prove the portable HTML works by opening a local file in Chrome,
+  // independent of CDN, localhost server, GitHub file viewer or React build tooling.
+  const portable=resolve('services/ai-account-usage/web/preview/index.html');
+  await page.goto('file://'+portable,{waitUntil:'load'});
+  await page.locator('.accounts tbody tr').first().waitFor();
+  check('offline file URL renders ten source-bound synthetic accounts',
+    await page.locator('.accounts tbody tr').count()===10);
+  await page.getByRole('button',{name:/查看.*备用 Pro.*历史证据/}).first().click();
+  check('offline file URL opens interactive React history drawer',
+    await page.locator('dialog.drawer[open]').count()===1);
   check('no browser script errors',issues.length===0,issues);
   const js=await readFile(join(root,'app.js'));
   const css=await readFile(join(root,'app.css'));

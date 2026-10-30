@@ -1,0 +1,224 @@
+{
+  "result": "CHROMIUM_PASS",
+  "source": "services/ai-account-usage/web/main.jsx",
+  "scriptSHA256": "edb2f28c4747683720bcaa0a87b3ebb39fc401eb467c907763d5476581bff1ed",
+  "cssSHA256": "e11631cc5c665a4204048f5da9cc91add37582870eed29815556addf2d3399dd",
+  "browserVersion": "156.0.8078.80",
+  "checks": [
+    {
+      "name": "10 demo accounts from formal React",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "demo is visibly labelled",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "no failed live HTTP auth attempts",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "six independent desktop table columns",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "failed account retains stable name and query warning",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "no fake owner or raw alias is visible in the comparison table",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "dense desktop rows",
+      "passed": true,
+      "details": {
+        "desktopHeight": 88.4375
+      }
+    },
+    {
+      "name": "spare pro decision",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "20-cycle display switch",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "clicked bar has selected evidence",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "Escape closes drawer",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "focus restored after drawer",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "clicking a table mini-bar selects exact historical cycle",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "invite cannot fabricate success",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "account search",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "top counts use the actual selected-window rows",
+      "passed": true,
+      "details": {
+        "attentionRows": 2,
+        "overview": "10 / 10 个账号\n2 个值得关注\n0 个数据不足\n7 个无所选窗口\n仅当前筛选 · 按各行窗口 · 历史已读 10/10"
+      }
+    },
+    {
+      "name": "short-only account has no long-window decision",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "window filter aria state",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "attention status filter narrows to five review candidates",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "account name sorting uses visible locale collation",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "responsive no page overflow at 320",
+      "passed": true,
+      "details": {
+        "documentWidth": 320,
+        "viewport": 320
+      }
+    },
+    {
+      "name": "responsive no page overflow at 360",
+      "passed": true,
+      "details": {
+        "documentWidth": 360,
+        "viewport": 360
+      }
+    },
+    {
+      "name": "responsive no page overflow at 390",
+      "passed": true,
+      "details": {
+        "documentWidth": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "390px card fills available width instead of inheriting desktop column percentages",
+      "passed": true,
+      "details": {
+        "rowWidth": 366,
+        "identityWidth": 338,
+        "chartWidth": 338,
+        "rowHeight": 266.125
+      }
+    },
+    {
+      "name": "390px card density stays readable rather than a 500px text column",
+      "passed": true,
+      "details": {
+        "rowWidth": 366,
+        "identityWidth": 338,
+        "chartWidth": 338,
+        "rowHeight": 266.125
+      }
+    },
+    {
+      "name": "responsive no page overflow at 400",
+      "passed": true,
+      "details": {
+        "documentWidth": 400,
+        "viewport": 400
+      }
+    },
+    {
+      "name": "responsive no page overflow at 440",
+      "passed": true,
+      "details": {
+        "documentWidth": 440,
+        "viewport": 440
+      }
+    },
+    {
+      "name": "responsive no page overflow at 520",
+      "passed": true,
+      "details": {
+        "documentWidth": 520,
+        "viewport": 520
+      }
+    },
+    {
+      "name": "responsive no page overflow at 1440",
+      "passed": true,
+      "details": {
+        "documentWidth": 1440,
+        "viewport": 1440
+      }
+    },
+    {
+      "name": "200% zoom no page horizontal overflow",
+      "passed": true,
+      "details": {
+        "documentWidth": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "name": "standalone published HTML renders all 10 formal React demo accounts",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "standalone HTML keeps interactive drawer working",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "offline file URL renders ten source-bound synthetic accounts",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "offline file URL opens interactive React history drawer",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "no browser script errors",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "issues": []
+}

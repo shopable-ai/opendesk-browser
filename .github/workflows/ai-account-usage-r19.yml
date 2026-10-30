@@ -50,18 +50,18 @@ jobs:
           const standalone=await readFile(p+'preview/index.html','utf8');
           assert.ok(standalone.length>200000,'single-file preview must bundle actual React JS');
           assert.match(standalone,/Content-Security-Policy/);
-          assert.match(standalone,/spare\\.pro@example\\.com/);
+          assert.ok(standalone.includes('spare.pro@example.com'));
           const inlineStart=standalone.indexOf('<script>');
           const inlineEnd=standalone.lastIndexOf('</script>');
           assert.ok(inlineStart>0 && inlineEnd>inlineStart,'inline JS must be present');
           const shell=standalone.slice(0,inlineStart)+standalone.slice(inlineEnd+'</script>'.length);
           assert.ok(!shell.includes('<script type="module" src="./app.js"></script>'));
           assert.ok(!shell.includes('<link rel="stylesheet" href="./app.css">'));
-          assert.doesNotMatch(standalone,/https?:\\/\\/(?:unpkg|cdn\\.jsdelivr|cdnjs)\\./);
+          for(const domain of ['unpkg.com','cdn.jsdelivr.net','cdnjs.cloudflare.com']) assert.ok(!standalone.includes('https://'+domain));
 
           assert.doesNotMatch(live,/spare\.pro@example\.com/);
           assert.doesNotMatch(live,/DEMO_FAILURE/);
-          assert.doesNotMatch(live,/https?:\/\/(?:unpkg|cdn\.jsdelivr|cdnjs)\./);
+          for(const domain of ['unpkg.com','cdn.jsdelivr.net','cdnjs.cloudflare.com']) assert.ok(!live.includes('https://'+domain));
           console.log('FORMAL_REACT_BUILD_READY',{liveBytes:live.length,previewBytes:demo.length});
           NODE
       - uses: browser-actions/setup-chrome@v2
@@ -92,7 +92,13 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add services/ai-account-usage/web/preview/index.html
+          evidence=services/ai-account-usage/web/preview/evidence
+          mkdir -p "$evidence"
+          for name in 1440-account-overview.png 390-mobile.png spare-pro-history.png business-invite-guidance.png chromium-report.json; do
+            test -s "artifacts/ai-usage-r19/$name"
+            cp "artifacts/ai-usage-r19/$name" "$evidence/$name"
+          done
+          git add services/ai-account-usage/web/preview/index.html "$evidence"
           if git diff --cached --quiet; then
             echo "Standalone HTML already matches the validated React build."
             exit 0
