@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "scrapyjs",
-  "version": "1.7.1",
+  "version": "1.7.3",
   "title": "scrapyjs 采集",
-  "description": "通过现有 AI 生成声明式规则，本机 Scrapling 试采并核对后启动持久任务；保留原浏览器采集、配置与导出。",
+  "description": "用已有或手填声明式规则进行本机试采，核对后确认持久采集；可选 AI 生成或纠正规则，保留原浏览器采集与导出。",
   "capabilities": [
     "ai.generate",
     "localTasks",

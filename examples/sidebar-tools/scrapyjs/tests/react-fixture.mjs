@@ -23,7 +23,8 @@ for(const name of ['ai-config.js','ai-request.js','ai-pending.js','local-runner-
   replacements['./'+name]=new URL(sourceRoot+name,root).href;
 const panel=await compile(sourceRoot+'AiPanel.jsx',replacements);
 export const {default:AiPanel}=await import(panel);
+const workspace=await compile(sourceRoot+'CaptureWorkspace.jsx',{...replacements,'./AiPanel.jsx':panel});
 const results=await compile(sourceRoot+'Results.jsx',replacements);
 export const {default:App}=await import(await compile(sourceRoot+'App.jsx',{
-  ...replacements,'./AiPanel.jsx':panel,'./Results.jsx':results
+  ...replacements,'./CaptureWorkspace.jsx':workspace,'./Results.jsx':results
 }));
