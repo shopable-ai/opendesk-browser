@@ -55,6 +55,7 @@ try {
     el=>document.activeElement===el));
   await spare.locator('.bar-btn:not([disabled])').last().click();
   await page.locator('dialog.drawer[open]').waitFor();
+  await page.locator('.drawer .bar-btn[aria-pressed="true"]').waitFor();
   check('clicking a table mini-bar selects exact historical cycle',
     await page.locator('.drawer .bar-btn[aria-pressed="true"]').count()===1);
   await page.keyboard.press('Escape');
@@ -72,11 +73,14 @@ try {
   await page.getByRole('button',{name:'可用窗口'}).click();
   const statusFilter=page.locator('.controls select').first();
   await statusFilter.selectOption('attention');
+  await page.waitForFunction(()=>document.querySelectorAll('.accounts tbody tr').length===5);
   check('attention status filter narrows to five review candidates',
     await page.locator('.accounts tbody tr').count()===5);
   await statusFilter.selectOption('all');
+  await page.waitForFunction(()=>document.querySelectorAll('.accounts tbody tr').length===10);
   const sorting=page.locator('.controls select').nth(1);
   await sorting.selectOption('name');
+  await page.waitForFunction(()=>{const n=[...document.querySelectorAll('.account-name')].map(x=>x.textContent);return n.every((v,i)=>i===0||n[i-1].localeCompare(v,'zh-CN')<=0)});
   const ordered=await page.locator('.account-name').allTextContents();
   check('account name sorting uses visible locale collation',
     ordered.every((name,i)=>i===0||ordered[i-1].localeCompare(name,'zh-CN')<=0));
