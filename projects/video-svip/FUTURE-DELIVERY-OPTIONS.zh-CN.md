@@ -292,7 +292,7 @@ DESIGN / NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / NAT_HARD_REAL / DIRECT_VER
 ## 11. 长期推进路线（不代表立即全部实施）
 
 - **Now · R0.3.1 并行但不覆盖：**腾讯/B站识别实站验收；本文件只记录未来方向，不修改既有 Host、App、版本或预览。
-- **Next · GitHub 网页最小代码：**FUTURE-R1 已确定先用 Tailscale/WireGuard 做个人合法媒体 PoC-1，WebRTC 为有条件的独立候选；下一轮仅增加受限节点与真实验收 harness，不改正式播放器、Host、Runtime 或 UI。
+- **Next · GitHub PoC-1 代码已建立：**Tailscale/WireGuard 个人合法媒体 PoC-1 已完成隔离 harness 与 7/7 Node 合同测试；详见 `poc/personal-media/README.zh-CN.md`，禁止重新实施相同 harness；WebRTC 仍是条件备选。
 - **PoC · 代码就绪后本地 Mac Codex：**两台电脑、实际跨网、自制视频、Tailscale 自动直连/中继回退、真实播放和独立证据；必须在有隔离 harness 与访问控制后执行，不以 Node mock 代替。
 - **Integration · 可选节点：**把网络状态/有权媒体候选作为 Video SVIP 的来源之一，严格与独立 Video Downloader 分责，不产生第二套 Host。
 - **Product · 用户体验：**当前视频、官方观看、设备/文件库观看、来源失败原因、手动与自动切换；不把陌生人的个人 VIP 文件当来源。
@@ -327,7 +327,7 @@ DESIGN / NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / NAT_HARD_REAL / DIRECT_VER
 
 **五选一 vs 可组合：**P0 产品主线取 E 的**受限子集**（原站＋自有会员＋已核验内容来源），可选加 D 的低带宽清单/房间元数据；A 是实验验证而不是必需产品依赖。A 与 B 在第一版个人远程传输上**互斥**，Headscale 仅是 A 的控制面替换；C 与 E/D 不冲突但因签约条件尚不成立不做生产实现。
 
-**下一轮唯一交付入口：GitHub 网页端创建 PoC-1 的隔离最小 harness 与真实测试说明（不改正式 UI、Host、Runtime），随后才是本地 Mac Codex 使用两台真实设备/两张网络执行验收。**当前对 PoC-1 的 DESIGN 可标完成；所有 NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / DIRECT_VERIFIED / RELAY_VERIFIED / MAC_CHROME / PLAYBACK_VERIFIED / LICENSE_VERIFIED 均为 **NOT_TESTED**（媒体样本许可也尚未实物核验）。架构设计高分不得替代测试记录。
+**PoC-1 GitHub 最小代码已提交：**隔离实现位于 `projects/video-svip/poc/personal-media/`，包括 loopback 单文件媒体服务、Range、会话撤销/限额、浏览器观察页、双机验收说明和 Node 合同测试。GitHub Actions `Video SVIP Personal Media PoC` 在代码提交 `0b2876dd7e6515c63d8e778ab02210ac6812e88f` 已完成语法检查及 **7/7 NODE 测试通过**（[实际运行证据](https://github.com/shopable-ai/opendesk-browser/actions/runs/41061530553)）。该结果只是 GitHub Runner 的本机 HTTP 测试，不代表真实浏览器播放。DESIGN=完成、NODE=PASS（该 SHA）；BUILD=NOT_APPLICABLE（实验无独立构建，不代替正式扩展 BUILD）；**LAN_REAL / TWO_NETWORK_REAL / DIRECT_VERIFIED / RELAY_VERIFIED / MAC_CHROME / PLAYBACK_VERIFIED / LICENSE_VERIFIED 仍为 NOT_TESTED**。下一轮直接本地 Mac Codex 双设备/双网验收，禁止重复创建相同 harness 或修改正式播放器。
 
 ## 14. 技术依据与待验证引用（2026-10-30）
 
@@ -351,4 +351,4 @@ DESIGN / NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / NAT_HARD_REAL / DIRECT_VER
 - 项目已有视频下载边界：projects/video-downloader/README.zh-CN.md
 - 项目已有分期路线：projects/video-svip/ROADMAP.zh-CN.md
 
-**FUTURE-R1 决策结果：**本轮已收敛 A/B 互斥边界与 PoC-1 双机验收合同；下一轮 **GitHub 网页端仅构建隔离 PoC-1 harness**，具备受限访问、Range、日志和用户授权后再转本地 Mac Codex 真实双网验收。尚无跨网实测、可用第三方会员线路或分发/渠道合同，一律不得报 PASS。
+**FUTURE-R1 当前状态：**PoC-1 隔离 GitHub 代码和 [运行合同](poc/personal-media/README.zh-CN.md) 已建立，Node 7/7 实测通过；R0.3.1/R0.4A 与 Video Downloader 均不在本轮修改范围。下一步为**本地 Mac Codex 真实 A/B 两设备、两个网络、Tailscale Serve、Chrome 首帧/15s、撤权与选路核验**。其余网络、播放和许可等级仍是 NOT_TESTED；无合法签约不得宣传 VIP 线路、会员解锁或公共再分发。
