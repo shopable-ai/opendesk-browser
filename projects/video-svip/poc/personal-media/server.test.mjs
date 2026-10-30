@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, rm, symlink, utimes } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { request as httpRequest } from 'node:http';
 import { join } from 'node:path';
 import { createPersonalMediaService, parseSingleRange } from './server.mjs';
 
@@ -105,8 +106,17 @@ test('one-file admission, no URL tokens, secure short session and Range bytes', 
 
     const missing = await fetch(fx.base + '/secret.txt', { headers: { Cookie: cookie } });
     assert.equal(missing.status, 404);
-    const suspiciousHost = await fetch(fx.base + '/media', { headers: { Cookie: cookie, Host: 'attacker.example' } });
-    assert.equal(suspiciousHost.status, 421);
+    const suspiciousHostStatus = await new Promise((done, fail) => {
+      const request = httpRequest(fx.base + '/media', {
+        headers: { Cookie: cookie, Host: 'attacker.example' }
+      }, response => {
+        response.resume();
+        response.on('end', () => done(response.statusCode));
+      });
+      request.on('error', fail);
+      request.end();
+    });
+    assert.equal(suspiciousHostStatus, 421);
 
     assert.equal(fx.events.some(event => JSON.stringify(event).includes(CODE)), false);
     assert.equal(fx.events.some(event => JSON.stringify(event).includes(fx.filePath)), false);
@@ -181,14 +191,24 @@ test('private local-only HTTP has no external bind; active stream limit and revo
   try {
     assert.match(fx.base, /^http:\/\/127\.0\.0\.1:\d+$/);
     const cookie = await auth(fx);
-    const slow = await fetch(fx.base + '/media', { headers: { Cookie: cookie } });
-    assert.equal(slow.status, 200);
+    // Start the first request without awaiting its first body chunk: the throttle delays it.
+    const slowResult = fetch(fx.base + '/media', { headers: { Cookie: cookie } })
+      .then(async response => { await response.arrayBuffer(); return 'complete'; })
+      .catch(() => 'aborted');
+    let activeObserved = false;
+    for (let i = 0; i < 30; i++) {
+      const status = await fetch(fx.base + '/status', { headers: { Cookie: cookie } });
+      const data = await status.json();
+      if (data.activeStreams === 1) { activeObserved = true; break; }
+      await new Promise(done => setTimeout(done, 15));
+    }
+    assert.equal(activeObserved, true, 'first request must really be active');
     const concurrent = await fetch(fx.base + '/media', { headers: { Cookie: cookie } });
     assert.equal(concurrent.status, 429);
     assert.equal((await concurrent.json()).error, 'CONCURRENT_STREAM_LIMIT');
     fx.service.revoke();
     assert.equal(fx.service.metrics().revokedCount, 1);
     assert.equal((await fetch(fx.base + '/status', { headers: { Cookie: cookie } })).status, 401);
-    try { await slow.arrayBuffer(); } catch { /* destroyed stream is expected */ }
+    assert.equal(await slowResult, 'aborted', 'revoke must interrupt an active response');
   } finally { await fx.clean(); }
 });
