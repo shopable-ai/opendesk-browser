@@ -183,16 +183,23 @@ export function createStaticHttpTrialRunner(host,{parseHtml,subtle=globalThis.cr
     requireValue(!active,'E_RUN_BUSY');
     requireValue(host&&['admit','get','persistAndReadback'].every(k=>typeof host[k]==='function'),
       'E_TRUSTED_HOST_REQUIRED');
-    assertExecutable(bundle); // Contract only, not authorization.
-    await verifyRecipeHash(bundle.recipe,subtle);
-    const targets=reviewedTargets(bundle.recipe,bundle.plan,urls);
-    const headers=normalizeHeaders(bundle.headers);
+    // v1 signs CSS field rules, but not list container/item selectors. A host
+    // may not execute unsigned extraction configuration under a signed Recipe.
+    requireValue(listContainer===undefined&&listItem===undefined,'E_UNSIGNED_SELECTOR');
+    // Reserve the run before any await: concurrent start/Stop must refer to
+    // exactly one instance even while SHA-256 or admission is pending.
     const controller=new AbortController();
     active=controller;
-    const deadline=setTimeout(()=>controller.abort(failure('E_TIMEOUT')),bundle.plan.limits.deadlineMs);
-    let requests=0,totalBytes=0;
-    const rows=[],pages=[];
+    let deadline;
     try{
+      assertExecutable(bundle); // Contract only, not authorization.
+      await verifyRecipeHash(bundle.recipe,subtle);
+      if(controller.signal.aborted)throw controller.signal.reason;
+      const targets=reviewedTargets(bundle.recipe,bundle.plan,urls);
+      const headers=normalizeHeaders(bundle.headers);
+      deadline=setTimeout(()=>controller.abort(failure('E_TIMEOUT')),bundle.plan.limits.deadlineMs);
+      let requests=0,totalBytes=0;
+      const rows=[],pages=[];
       const admission=await host.admit({bundle,urls:targets,headers,signal:controller.signal});
       requireValue(admission!==null&&admission!==undefined,'E_APPROVAL_DENIED');
       if(controller.signal.aborted)throw controller.signal.reason;
@@ -237,7 +244,7 @@ export function createStaticHttpTrialRunner(host,{parseHtml,subtle=globalThis.cr
         headerEvidence:{configured:headers,submittedToHost:headers,
           serverObserved:null,wireObserved:null},
         receipt:persisted.receipt};
-    }finally{clearTimeout(deadline);active=null;}
+    }finally{if(deadline!==undefined)clearTimeout(deadline);active=null;}
   }
   return Object.freeze({run,stop});
 }
