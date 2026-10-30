@@ -92,7 +92,13 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add services/ai-account-usage/web/preview/index.html
+          evidence=services/ai-account-usage/web/preview/evidence
+          mkdir -p "$evidence"
+          for name in 1440-account-overview.png 390-mobile.png spare-pro-history.png business-invite-guidance.png chromium-report.json; do
+            test -s "artifacts/ai-usage-r19/$name"
+            cp "artifacts/ai-usage-r19/$name" "$evidence/$name"
+          done
+          git add services/ai-account-usage/web/preview/index.html "$evidence"
           if git diff --cached --quiet; then
             echo "Standalone HTML already matches the validated React build."
             exit 0
