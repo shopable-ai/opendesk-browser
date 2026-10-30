@@ -1,5 +1,6 @@
 import {build} from 'esbuild';
-import {mkdir, copyFile} from 'node:fs/promises';
+import {mkdir, copyFile, readFile, writeFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 const root = fileURLToPath(new URL('.', import.meta.url));
 const preview = process.argv.includes('--preview');
@@ -21,4 +22,22 @@ await build({entryPoints:[`${root}main.jsx`], bundle:true, minify:true, sourcema
   outfile:`${target}/app.js`, jsx:'automatic', plugins:[previewGate],
   define:{'process.env.NODE_ENV':'"production"',__OD_PREVIEW__:preview?'true':'false'}});
 await copyFile(`${root}index.html`, `${target}/index.html`);
+if (preview) {
+  // Portable, source-bound HTML for browser viewing without a ChatGPT file viewer.
+  // It embeds the very same compiled CSS/React JS as preview-dist; NO parallel UI.
+  const htmlTemplate = await readFile(`${root}index.html`, 'utf8');
+  const css = await readFile(`${target}/app.css`, 'utf8');
+  const compiled = await readFile(`${target}/app.js`, 'utf8');
+  const inlineJs = compiled.split('</script').join('<\\\\/script');
+  const integrity = createHash('sha256').update(inlineJs).digest('base64');
+  const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${integrity}'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; font-src 'none'; base-uri 'none'; form-action 'none'">`;
+  const standalone = htmlTemplate
+    .replace('<link rel="stylesheet" href="./app.css">', `${csp}<style>${css}</style>`)
+    .replace('<script type="module" src="./app.js"></script>', `<script>${inlineJs}</script>`);
+  if (standalone.includes('src="./app.js"') || standalone.includes('href="./app.css"') ||
+      !standalone.includes('spare.pro@example.com')) throw Error('E_PREVIEW_INLINE_BUILD');
+  await mkdir(`${root}preview`, {recursive:true});
+  await writeFile(`${root}preview/index.html`, standalone, 'utf8');
+  console.log('Built standalone HTML from the formal React preview: web/preview/index.html');
+}
 console.log(`Built ${preview?'synthetic preview':'production'} UI: ${target}`);
