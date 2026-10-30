@@ -11,7 +11,7 @@ const built=buildSync({entryPoints:[
 ],bundle:true,write:false,format:'cjs',platform:'node',external:['react'],jsx:'transform'});
 const nodes=node=>node&&typeof node==='object'?[node,...node.children.flatMap(nodes)]:[];
 const text=node=>node&&typeof node==='object'?node.children.map(text).join(''):String(node??'');
-function receive(request){
+function receive(request,kind='receive'){
   const slots=[],effects=[];let cursor=0,tree,changed=true;
   const React={
     createElement:(type,props,...children)=>({type,props:props||{},children:children.flat(Infinity)}),
@@ -26,12 +26,19 @@ function receive(request){
   new Function('require','module','exports',built.outputFiles[0].text)(
     name=>name==='react'?React:require(name),module,module.exports);
   const render=()=>{cursor=0;changed=false;
-    tree=module.exports.CookieAccountReceive({request,origin:'https://example.com',onBack(){}});
+    tree=(kind==='send'?module.exports.CookieAccountShareLive:module.exports.CookieAccountReceive)({
+      request,origin:'https://example.com',onBack(){},
+      account:{alias:'acct_source',version:1,displayName:'工作账号',cookieCount:3}});
     for(const effect of effects.splice(0))effect();};
   const find=predicate=>nodes(tree).find(predicate);
   const flush=async()=>{for(let i=0;i<20;i++){if(changed)render();await Promise.resolve();}};
   render();
   return {flush,find,text:()=>text(tree),
+    async field(label,value){
+      const field=find(n=>n.props['aria-label']===label);
+      assert.ok(field,'UI must expose the visible field: '+label);
+      field.props.onChange({target:{value}});await flush();
+    },
     async inspect(){
       find(n=>n.type==='input').props.onChange({target:{value:'https://relay.invalid/i/'+ 'a'.repeat(32)}});
       await flush();
@@ -74,4 +81,44 @@ test('an unknown local claim result never offers another claim after reopening',
   assert.match(app.text(),/结果未知/);
   assert.equal(app.find(n=>n.type==='button'&&text(n)==='领取账号配置'),undefined);
   assert.deepEqual(calls,['shareInspect']);
+});
+
+test('session sender uses the original invitation entry and only one claim',async()=>{
+  const calls=[];
+  const app=receive(async(action,payload)=>{calls.push({action,payload});return {
+    ref:'ref-1',url:'https://relay.invalid/i/'+invitation.id,phase:'active',
+    invite:{...invitation,mode:'session',remainingClaims:1}};},'send');
+  await app.field('分享内容','session');
+  await app.field('局域网 HTTPS 分享服务','https://relay.invalid');
+  app.find(n=>n.type==='button'&&text(n)==='生成真实邀请').props.onClick();await app.flush();
+  assert.equal(calls[0].action,'shareCreate');
+  assert.equal(calls[0].payload.mode,'session');
+  assert.equal(calls[0].payload.maxClaims,1);
+  assert.match(app.text(),/配对/);
+  assert.doesNotMatch(app.text(),/不包含 Cookie。配置领取后/);
+});
+
+test('session receiver requires pairing and a reviewed sender fingerprint before claiming',async()=>{
+  const calls=[],receiverFingerprint='a'.repeat(64),senderFingerprint='b'.repeat(64);
+  const inspected={url:'https://relay.invalid/i/'+invitation.id,
+    invite:{...invitation,mode:'session',remainingClaims:1},sessionAvailable:true};
+  const app=receive(async(action,payload)=>{
+    calls.push({action,payload});
+    if(action==='shareInspect')return inspected;
+    if(action==='sharePair')return {...inspected,pair:{requestId:'r'.repeat(32),receiverFingerprint}};
+    return {status:'session_imported',sessionImported:true,cookieWriteVerified:false,websiteLoginConfirmed:false};
+  });
+  await app.inspect();
+  assert.equal(app.find(n=>n.type==='button'&&text(n)==='领取加密会话快照'),undefined);
+  const pair=app.find(n=>n.type==='button'&&text(n)==='请求设备配对');
+  assert.ok(pair,'A session invitation needs the explicit device-pairing action');
+  pair.props.onClick();await app.flush();
+  assert.match(app.text(),new RegExp(receiverFingerprint));
+  assert.equal(app.find(n=>n.type==='button'&&text(n)==='领取加密会话快照').props.disabled,true);
+  await app.field('已核对的发送设备指纹',senderFingerprint);
+  app.find(n=>n.type==='button'&&text(n)==='领取加密会话快照').props.onClick();await app.flush();
+  assert.equal(calls[2].payload.senderFingerprint,senderFingerprint);
+  assert.match(app.text(),/会话快照已保存/);
+  assert.match(app.text(),/Cookie 未写入，网站登录尚未验证/);
+  assert.deepEqual(calls.map(x=>x.action),['shareInspect','sharePair','shareClaim']);
 });

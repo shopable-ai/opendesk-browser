@@ -8,6 +8,9 @@ import {planAccountCookieEffects,validateAccountCookieRow,
   createCookieAccountService,installCookieAccountService,inspectAccountSnapshotUpdate}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-service.js';
 import {readFile} from 'node:fs/promises';
+import {COOKIE_SHARE_STORAGE_KEY} from '../../examples/sidebar-tools/cookie-editor/trusted/account-share.js';
+import {createDeviceKeyStorage} from '../../src/platform/storage/device-keys.js';
+import {createCookieSessionCrypto} from '../../examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js';
 
 const original=(overrides={})=>({
   name:'demo',value:'fiction',domain:'example.com',path:'/',
@@ -248,6 +251,25 @@ test('share operations retain the exact trusted sender and original-click bounda
     await assert.rejects(service.dispatch({...message,installEpoch:'retired'},f.sender),{code:'E_TOOL_CHANGED'});
   }
   assert.equal(f.writes(),0);
+});
+
+test('session sharing rejects a removed or renewed site grant before relay access',async t=>{
+  for(const change of ['removed','renewed']){
+    await t.test(change,async t=>{
+      const f=await serviceFixture(t),get=f.api.storage.local.get;let reads=0;
+      f.api.storage.local.get=async keys=>{
+        if(++reads===2){
+          const site=f.state[BROWSER_MENU_GRANTS_STORE]['cookie-editor'].cookieSites['https://example.com'];
+          if(change==='removed')delete f.state[BROWSER_MENU_GRANTS_STORE]['cookie-editor'].cookieSites['https://example.com'];
+          else site.grantEpoch='renewed-grant';
+        }
+        return get(keys);
+      };
+      await assert.rejects(f.dispatch('sharePairs',{ref:'not-read-before-site-check'}),
+        {code:'E_SITE_GRANT_REQUIRED'});
+      assert.equal(f.writes(),0);
+    });
+  }
 });
 
 test('SW saves directly at revision zero and switches after service restart with metadata-only receipts',async t=>{
@@ -548,6 +570,125 @@ test('fixed SW install forwards Foundation storage and exposes cleanup only to i
   assert.deepEqual(await service.cleanup(),{cleared:true});
   assert.equal(f.records.has(COOKIE_ACCOUNT_STORE_KEY),false);
   assert.deepEqual(f.records.get('other-tool'),unrelated);
+});
+
+for (const cleanupError of ['E_DEVICE_KEY_OUTCOME_UNKNOWN', 'E_DEVICE_KEY_CLEANUP_PENDING'])
+test('fixed lifecycle cleanup preserves owner references until keys are cleared: ' + cleanupError, async t => {
+  const f = await serviceFixture(t);
+  await f.dispatch('create', {revision: 0, displayName: '卸载清理'});
+  const owners = [JSON.stringify([f.message('status').packageHash, 'epoch']), 'retired-package-owner'];
+  const keyOwner = owner => 'cookie-editor:' + createHash('sha256').update(owner).digest('hex');
+  const deviceRecords = new Map(owners.map(owner => [keyOwner(owner), ['receiver', 'signing', 'sender']]));
+  deviceRecords.set('another-tool:install', ['unrelated']);
+  const share = {format: 1, items: [{owner: owners[0], ref: 'source'}],
+    claims: [{owner: owners[1], ref: 'received'}]};
+  f.records.set(COOKIE_SHARE_STORAGE_KEY, share);
+  let lost = true;
+  const service = createCookieAccountService({api: f.api, storage: f.storage,
+    deviceKeyStorageFactory: ({owner, authorize}) => ({async clear() {
+      await authorize();
+      assert.ok(f.records.has(COOKIE_SHARE_STORAGE_KEY), 'keep recovery references until all owners are cleared');
+      deviceRecords.delete(owner);
+      if (lost) {
+        lost = false;
+        if (cleanupError === 'E_DEVICE_KEY_CLEANUP_PENDING') deviceRecords.set(owner, ['remaining']);
+        throw Object.assign(Error('cleanup incomplete'), {code: cleanupError});
+      }
+    }})});
+  f.state[SIDEBAR_TOOL_STORE] = [];
+  await assert.rejects(service.cleanup(), {code: cleanupError});
+  assert.deepEqual(f.records.get(COOKIE_SHARE_STORAGE_KEY), share);
+  assert.ok(f.records.has(COOKIE_ACCOUNT_STORE_KEY));
+  assert.deepEqual(await service.cleanup(), {cleared: true});
+  assert.equal(f.records.has(COOKIE_SHARE_STORAGE_KEY), false);
+  assert.equal(f.records.has(COOKIE_ACCOUNT_STORE_KEY), false);
+  assert.deepEqual([...deviceRecords], [['another-tool:install', ['unrelated']]]);
+  assert.equal(f.writes(), 0);
+});
+
+test('session delivery enforces the full saved parent-domain scope before encryption and at the outbound fence', async t => {
+  for (const scenario of ['revoked before delivery', 'revoked during key preparation',
+    'renewed during key preparation', 'revoked at outbound fence', 'authorized after logout']) {
+    await t.test(scenario, async t => {
+      const f = await serviceFixture(t), origin = 'https://app.example.com';
+      const ledger = f.state[BROWSER_MENU_GRANTS_STORE]['cookie-editor'];
+      ledger.cookieSites[origin] = {...ledger.cookieSites['https://example.com'], grantEpoch: 'child-grant'};
+      f.document.url = origin + '/';
+      const parentCookie = original({domain: '.example.com', hostOnly: false});
+      let live = [parentCookie];
+      f.api.cookies.getAll = async () => structuredClone(live);
+      const saved = await f.dispatch('create', {origin, revision: 0, displayName: '父域合成会话'});
+      const alias = saved.accounts[0].alias, requestId = 'r'.repeat(32), inviteId = 'i'.repeat(32);
+      const invite = {id: inviteId, origin, displayName: '父域合成会话', description: '',
+        mode: 'session', expiresAt: Date.now() + 3600000, remainingClaims: 1, revoked: false};
+      f.records.set(COOKIE_SHARE_STORAGE_KEY, {format: 1, claims: [], items: [{ref: 'share-source',
+        owner: JSON.stringify([f.message('status').packageHash, 'epoch']), alias, accountVersion: 1,
+        siteOrigin: origin, relay: 'https://relay.invalid', id: inviteId, managerSecret: 'm'.repeat(32),
+        url: 'https://relay.invalid/i/' + inviteId, invite, phase: 'active'}]});
+      const sessionCrypto = createCookieSessionCrypto();
+      const receiver = await crypto.subtle.generateKey({name: 'ECDH', namedCurve: 'P-256'}, false, ['deriveBits']);
+      const signing = await crypto.subtle.generateKey({name: 'ECDSA', namedCurve: 'P-256'}, false, ['sign', 'verify']);
+      const ecdhPublic = await sessionCrypto.publicJwk(receiver.publicKey);
+      const verifyPublic = await sessionCrypto.publicJwk(signing.publicKey);
+      const receiverFingerprint = await sessionCrypto.deviceFingerprint(ecdhPublic, verifyPublic);
+      const priorFetch = globalThis.fetch; let packet, posts = 0;
+      globalThis.fetch = async (url, options) => {
+        if (url.startsWith('chrome-extension:')) return priorFetch(url, options);
+        if (url.endsWith('/pairs')) return new Response(JSON.stringify({requests: [{requestId,
+          ecdhPublic, verifyPublic, status: 'pending', createdAt: Date.now()}]}));
+        assert.ok(url.endsWith('/deliver')); posts++; packet = JSON.parse(options.body);
+        return new Response(JSON.stringify({status: 'encrypted_ready', requestId}));
+      };
+      const keyRecords = new Map();
+      const keyStorage = async () => ({readOnly: false, async transaction(stores, mode, work) {
+        const draft = structuredClone(keyRecords);
+        const result = await work({get: async (s, k) => draft.get(k),
+          put: async (s, v, k) => draft.set(k, v), delete: async (s, k) => draft.delete(k),
+          countPrefix: async (s, prefix) => [...draft.keys()].filter(k => k.startsWith(prefix)).length,
+          keys: async (s, {prefix, limit}) => [...draft.keys()].filter(k => k.startsWith(prefix)).sort().slice(0, limit)});
+        if (mode === 'readwrite') { keyRecords.clear(); for (const entry of draft) keyRecords.set(...entry); }
+        return result;
+      }});
+      const removeParent = () => { delete ledger.cookieSites['https://example.com']; };
+      if (scenario === 'revoked before delivery') removeParent();
+      if (scenario === 'authorized after logout') live = [];
+      const wrappedStorage = async () => {
+        const base = await f.storage();
+        return {...base, transaction: (stores, mode, work) => base.transaction(stores, mode, tx => work({
+          ...tx, put: async (store, value, key) => {
+            await tx.put(store, value, key);
+            if (scenario === 'revoked at outbound fence' && key === COOKIE_SHARE_STORAGE_KEY &&
+              value.items[0]?.deliveries?.[0]?.phase === 'delivering') removeParent();
+          }
+        }))};
+      };
+      const service = createCookieAccountService({api: f.api, storage: wrappedStorage,
+        deviceKeyStorageFactory: options => {
+          const keys = createDeviceKeyStorage({...options, storageFactory: keyStorage});
+          return {...keys, async create(...args) {
+            const key = await keys.create(...args);
+            if (scenario === 'revoked during key preparation') removeParent();
+            if (scenario === 'renewed during key preparation')
+              ledger.cookieSites['https://example.com'].grantEpoch = 'renewed-parent';
+            return key;
+          }};
+        }});
+      const sending = service.dispatch(f.message('shareDeliver', {origin, ref: 'share-source',
+        requestId, receiverFingerprint, revision: 1}), f.sender);
+      if (scenario === 'authorized after logout') {
+        const receipt = await sending;
+        const snapshot = await sessionCrypto.decrypt({packet, receiver,
+          expectedSenderFingerprint: receipt.senderFingerprint,
+          context: {origin, inviteId, requestId, receiverFingerprint}});
+        assert.deepEqual(snapshot.cookies, [parentCookie]); assert.equal(posts, 1);
+      } else {
+        await assert.rejects(sending, {code: scenario === 'revoked at outbound fence'
+          ? 'E_OUTCOME_UNKNOWN' : 'E_SITE_GRANT_REQUIRED'});
+        assert.equal(posts, 0);
+      }
+      assert.equal(f.writes(), 0);
+    });
+  }
 });
 
 for(const pausedAt of ['capture','authorization'])

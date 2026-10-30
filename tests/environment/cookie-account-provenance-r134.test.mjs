@@ -15,9 +15,11 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 // No source is executed, transformed, built or installed by these tests.
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
-  'trusted/account-contract.js':'144e5104455c453ada4c7e3ba19dbe93c994be0e',
-  'trusted/account-service.js':'59235830431e630361fee9a440b9ca9f9d3d0a76',
-  'trusted/account-share.js':'63f6e84bf6fc360210be242247c29d993389ec15',
+  'trusted/account-contract.js':'454a6d5095c312728d76963df345bed34d734e04',
+  'trusted/account-service.js':'02ffe9783c431859afb7d49bb0b5a8c02c8a11a0',
+  'trusted/account-share.js':'6124420696da31472805467c9a09ef9640b5d388',
+  'trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
+  'trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
   'trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };
@@ -116,7 +118,11 @@ test('R134: audited Cookie closure uses only static imports and a pure shared co
   assert.deepEqual(deps(contract),[]);
   assert.deepEqual(deps('app/domain/account-switch-url.js'),[]);
   assert.deepEqual([...new Set(deps('trusted/account-vault.js'))],['./account-contract.js']);
-  assert.deepEqual(deps('trusted/account-share.js'),[]);
+  assert.deepEqual(deps('trusted/account-share.js'),['./account-session-share.js',
+    './account-session-crypto.js','../../../../src/platform/protocol.js']);
+  assert.deepEqual(deps('trusted/account-session-share.js'),['./account-share.js',
+    '../../../../src/platform/protocol.js']);
+  assert.deepEqual(deps('trusted/account-session-crypto.js'),[]);
   assert.deepEqual(deps('trusted/account-service.js').filter(path=>!path.startsWith('../../../../src/')),
     ['../app/domain/account-switch-url.js','./account-vault.js','./account-share.js','./account-contract.js','./account-contract.js']);
 });

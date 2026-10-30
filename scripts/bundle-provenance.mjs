@@ -117,19 +117,22 @@ function reviewedCompiledAdblock(target,path,root){
 // Store/Partition, user gesture and account version checks. Empty accounts
 // never enter the automatic-switch whitelist. No new source or privilege.
 const compiledCookieAccountInputs=Object.freeze({
-  // S3 configuration-only review: fixed Relay paths, HTTPS/permission fences,
-  // metadata projection, Foundation-only manager secret and durable unknown
-  // claim fences. No session keys/Cookie transport admitted; private-key
-  // backup incompatibility rejects session requests before any network effect.
-  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'144e5104455c453ada4c7e3ba19dbe93c994be0e',
+  // S3 fixed Relay session transport: exact HTTPS paths, explicit fingerprints,
+  // nonexportable device identities and authenticated encrypted snapshots.
+  // The shared contract remains pure; session helpers may enter only the SW.
+  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'454a6d5095c312728d76963df345bed34d734e04',
   // Reviewed shared-domain restore and post-save proof: full snapshot, final
   // scope/Host fence, redacted URL; proof failure preserves the saved receipt.
   // Verified same-site manual recovery settles only the unchanged tab fence;
   // its old URL remains blocked. Reopened shares use exact-owner local receipts.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'59235830431e630361fee9a440b9ca9f9d3d0a76',
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'02ffe9783c431859afb7d49bb0b5a8c02c8a11a0',
   // Only a private preflight-unsent receipt can re-arm an unclaimed invite;
   // dispatched requests and lost replies retain the durable unknown fence.
-  'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'63f6e84bf6fc360210be242247c29d993389ec15',
+  'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'6124420696da31472805467c9a09ef9640b5d388',
+  // Full saved-Cookie scope is checked before and after encryption and again
+  // before POST; durable unknown fences never replay a consumed request.
+  'examples/sidebar-tools/cookie-editor/trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
+  'examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
   'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'

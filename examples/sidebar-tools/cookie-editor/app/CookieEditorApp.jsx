@@ -758,7 +758,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           const origin=target?.origin,epoch=controller.snapshot().epoch;
           let intent;
           try{intent=adapter.accountRequest(action,{
-            ...payload,...(['shareCreate','shareClaim'].includes(action)?{revision:accountState.revision}:{})
+            ...payload,...(['shareCreate','shareClaim','shareDeliver'].includes(action)?{revision:accountState.revision}:{})
           });}catch(error){accountInFlight.current=false;return Promise.reject(error);}
           setAccountBusy(true);
           return Promise.resolve(intent).then(result=>{

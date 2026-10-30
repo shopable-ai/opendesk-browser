@@ -79,3 +79,84 @@
 - **最新未分类点**：账号初始显示0条，进入添加表单；PID限定输入失败code2，title守卫对Cookie字段有效，但账号名替换未见预期R31-A。未点击账号保存，随后界面已返回列表显示当前快照test1。未知来源，不删除/复用test1作为A证据。当前自动刷新开关观察为关闭，可能在路由意外变化后被原坐标点击误触，接续先核对并按场景明确开启。云控01a18bb3明确否认期间任何输入/Native/Run，ScrapyJS亦明确否认移交后的任何桌面输入或创建test1；来源仍未分类，不将此症状直接归因产品或改源码。
 - 用户明确要求创建新任务；已将Browser测试tab以handoff finalize释放，页面保留，当前无在途Run/Native，无主动未保存表单（最后观察为账号列表）。桌面输入将交新Cookie owner，旧owner接手确认后停止Cookie源码/浏览器/服务/输出操作。新任务不自动迁移旧blocked goal；本任务goal实读null。
 - 原始现场在 artifacts/cookie-editor-r31/native-local-20261030-01a18bd4/progress.json 及截图；唯一JSON追加 nativeLocalContinuation20261030。下一操作：先分类账号输入/驱动异常，保留未知test1和原Cookie；再完成R31-A/B保存、白名单、关闭侧栏URL切换、独立读回与刷新。双机加密恢复仍受原密钥合同阻断，完整目标未完成。
+
+## 新 Cookie owner：输入分类及真实 A/B 保存
+
+- `01a18c21-788c-72f0-8b41-9355b27b5044` 已接手，旧 Cookie owner 已明确停止操作；本任务 goal 实读 null，未迁移或新建总 goal。继续 main，复用原持续开发候选和已安装的 2.0.56。
+- 普通 demo 的「当前网页标题」输入框独立证明：无 PID 的 `tm_type` 带 `pressEnter:false` 报执行成功但实际无文字，PID489 则报 AX focused UI element code 2。普通页填写虚构文字后，必须原生点击该输入框，再 `cmd+a/c`；原生粘贴可准确填入侧栏。已用清空后粘贴和普通 DOM 独立读回验证路径；不将驱动回执等同实际输入成功。
+- 明确保存 `R31-A-01a18c21`，只修改原虚构 Cookie 为 `fiction-b-01a18c21`，再明确保存 `R31-B-01a18c21`。两次均先截图核对名称再点击保存，等待后分别看到当前快照及列表「已核对」，账号列表从 1 条变为 3 条。原 `test1` 及两条原 Cookie 未编辑或删除，`test1` 历史来源仍未知。
+- 已明确开启自动刷新并截图读回 ON。当前白名单、关闭侧栏 URL A/B、独立 Cookie 值读回和刷新链尚未验证；设备密钥及双机完整链边界保持，未修改产品源码、重编或重跑未变测试。
+- 原始记录为 `artifacts/cookie-editor-r31/native-local-20261030-01a18c21/progress.json`，唯一 JSON 追加 `nativeAccountContinuation20261030` 及相关截图 SHA。无草稿或写入在途后，桌面已明确交给新 Scrapy owner `01a18c24-e6e0-7b82-8a3b-4d270f4d7537`；Cookie 下段操作等待其明确释放，期间不并发系统输入。
+
+
+## S3 设备密钥最小能力（接入前开发）
+
+- 原缺口证据不重复运行：主 Foundation 的 raw-backup JSON 无法无损保存非导出 CryptoKey；工具 UI／普通 JSON SDK 不能解决，不能导出私钥或放宽原备份编码器。配对、设备签名等其他可信功能也需要同类本地能力。
+- 最小平台范围：新增私有 `src/platform/storage/device-keys.js`，继续使用原 `createStorage` 及 strict frameworkKV 事务，仅使用固定 `opendesk-browser.device-keys.v1` 数据库命名空间。主数据库、Schema、Host、Authority、公开 SDK 和普通备份格式均未修改；无备份／RPC 方法。设备绑定身份不会随普通备份搬迁，丢失后必须重新配对，open 不自动生成替代密钥。
+- 业务仍在 Cookie 项目：新增纯 `trusted/account-session-crypto.js`，ECDH/HKDF/AES-GCM 认证网站、邀请、配对请求及收件设备指纹；收件还须核对发送公钥指纹。签名沿原 Relay 的 ECDSA challenge 字符串，不创建第二 Relay 或传递明文。
+- 密钥9项、加密6项定向 Node 检查已通过；独立审查提出的真实事务错误码包装问题已先红后修。当前模块尚未接入原 SW／分享界面，原 `E_SHARE_DEVICE_KEY_STORAGE_REQUIRED` 仍有效；Chrome 持久化、加密分享入口、双机恢复与登录均未因此获得 PASS。接入前还须完成复审、精确来源锁和共享服务安全窗口。
+
+
+## 用户再次要求新任务：最新断点与冻结交接
+
+- 用户最新原话「创建新对话，就像完善。」按继续完善处理；本任务 goal 再次实读 null，不创建／迁移／完成总 goal。当前 HEAD `1c009c6803d07a9d47e4821fb1a08bbc1aacb8ca`，main，Cookie 本轮改动未提交、无暂存或推送；其他 Cloud/Scrapy 改动保留。
+- 原生新增：B 虚构值 `fiction-b-01a18c21` 已在新打开的原编辑器独立读回。自动切换 ON、自动刷新 ON，A/B 白名单 ON，test1 OFF；两个真实生成链接见唯一 JSON。实际关闭 SidePanel 后第一次打开 A URL，Chrome 错误页 `ERR_BLOCKED_BY_CLIENT`；未重放，恢复标准 demo 后再次独立读回仍为 B。A/B URL 切换和刷新不能标 PASS。没有改第三方拦截器或绕 Chrome 屏蔽。
+- 桌面已明确释放给 Scrapy 新 owner `01a18c46-dd04-77d3-8cc7-06d8eb19631c`，其持稳定原生窗口；Cookie 无输入／剪贴板／Native／Run 在途。43111 属 Cloud `01a18bb3-2243-7e90-93c1-6c9337dbbde7`，固定 root writer 仍属 `01a18b96-4e45-7971-b993-28d6dde17f60`。不得因预计时间结束自行拿回。
+- 具体共享冲突：share 在 18:28:12、service 在 18:32:32（Asia/Shanghai）落了新 import；Scrapy 报 chooser 期间 SidePanel 消失。原 writer 核对 ed52 marker/SW 仍一致，尚无中间 SW 发布证据；普通 dev 的 recordBundle 在无 evidence 时不强制来源 pin，不能当独立审阅闸门。Scrapy 明确给恢复窗口后，本任务仅将自己修改的 share/service/Sharing presenter 三文件按 HEAD 原字节恢复，精确前后 SHA 和副本在 `artifacts/cookie-editor-r31/s3-live-recovery-20261030/recovery.json`；这三文件现 Git 干净。未运行根构建／重启／写输出。
+- 已恢复的全部 S3 接线保存在 `artifacts/cookie-editor-r31/s3-wiring-candidate-20261030/`，汇总补丁为 `artifacts/cookie-editor-r31/s3-imported-wiring-pending-20261030.patch`。候选包含 share/service/contract、原 Host 严格 optional 字段及真实 Document 捕获、App revision 转发和 Sharing presenter；原 provenance 文件尚未更新新源 pin。未引用的新 helper 与测试仍在 main 工作区；不要丢失或当已接入真实 SW。
+- 已有 Node 证据：设备密钥9项、加密7项。隔离 Node loader `artifacts/cookie-editor-r31/s3-candidate-loader-20261030.mjs` 仅在 Node 验证时加载离线接线，未写 live graph；离线 Host1项、真实 Sender／点击及撤权4项、原分享分发／配置兼容和接收映射22项 PASS。UI曾在恢复前通过5项组件用例，其源码现在只在候选，不能直接把当前 main 新测试称全绿。配对助手旧参考模型23项通过已被下面复现补充，不作当前 aggregate green。
+- 独立 reviewer `01a18c39-b429-7381-8348-e068e7ada845`：密钥服务的普通 Error 包装问题已修为原 FoundationError 并通过9项；另两项 helper P2 未修。第一项：received 在解密前固化错误 senderFingerprint，后续正确人审值无法继续；应只在 received 中以新值验证同一 packet 公钥 SPKI 与认证解密后，完整 CAS 更新本地 FP，owner/URL/request/context/密文不变，不新增 challenge/claim，不开放 applied/unknown。第二项：helper 回执 CAS 在事务中抛普通 Error，经 storageError 变 E_SCHEMA；应使用原 FoundationError。已新增真实 storageError 包装及错→正确／回执串改复现，`session-recovery-review-red-20261030.log` 为 0 PASS / 4 FAIL。接手先修这两项，并复核密钥清理／资源上限与生命周期。
+- 两个子代理都已关闭。纯 helpers 没有安装 UI、原生 Cookie 写入或网站登录证明。正式包保持2.0.56、240710B、原SHA；新候选尚未编译／晋升／来源准入。Chrome Key 持久化、两台真实 Mac 原分享入口、加密恢复、网站独立登录均 NOT_TESTED，完整目标不变。
+- 新 owner 先确认接手，再按本轮实际操作选择：先修两项已复现助手缺陷并完成离线审阅／精确 pin；与 shared/Scrapy 取得明确空闲窗口后一次性落入 live graph，原 writer 发布并核对指纹。原生 A/B 则先分类 root URL 的 Chrome client block，复用现有白名单／B 值证据，不重跑旧管理页拒绝或全组巡检。最终通过原包 Skill 编译／测试／晋升新的唯一包，不能手改 JSON 或把 Node 候选冒充原生。
+
+- 新 Cookie 接续任务已创建：`01a18c73-2eb3-77c3-9b61-39052a2a8116`，同保存项目 local/main。Browser 已 finalize keep=handoff tab759148157。Scrapy 也已再次移交，新唯一 owner `01a18c70-9415-75e2-beb9-a49f22683ef7`；旧01a18c46已停止全部业务/输入，最后 goal=null，无 chooser/安装/AI/Native/Run。新 owner 之间重新明确窗口，不能沿用旧输入租约或轮询空转。
+
+## 新 Cookie owner：离线恢复修复及中间发布结论纠正
+
+- `01a18c73-2eb3-77c3-9b61-39052a2a8116` 已两次明确向旧 owner 确认接手，实读 main、HEAD `1c009c6803d07a9d47e4821fb1a08bbc1aacb8ca`、本任务 goal=null，不新建总 GOAL。Cloud/Scrapy 及 Cookie 既有未提交源全部保留。
+- 继承旧红色复现后，修复 received 错误发送指纹：只有同一 packet 通过新的人审 SPKI 指纹与认证解密，且完整本地回执 CAS 成功，才更新指纹并继续保存；applied/unknown 不开放，不新增网络请求。helper 的事务异常改用原 FoundationError，保留 E_OUTCOME_UNKNOWN。助手27项、额外密文／并发回执保护3项通过，日志分别为 session-helper-recovery-20261030.log、session-fingerprint-fences-20261030.log；不是 Chrome 或新 SW PASS。
+- **纠正中间发布事实**：shared owner 迟到只读审计确认普通 dev 曾发布 `1805e674655d`、`84ffd31e4ff4`、`aff138a98f1568fb12b6245f47d600058788636a0f18b66f56c046e6d90b4228`；aff SW 为1002571B，marker时间18:33:10–11。此前“未证中间发布”被此新证据推翻，不能依赖旧 pin 保护普通 dev。原18:43:02+08 share/service/Sharing三文件按HEAD恢复已经完成，本任务实读干净，不再重复覆盖。
+- 新 Scrapy 唯一 owner `01a18c70-9415-75e2-beb9-a49f22683ef7` 明确正在真实导入审阅链，占用桌面／剪贴板／Chrome及live窗口。Cookie只做离线源与定向验证；待它和shared writer `01a18b96-4e45-7971-b993-28d6dde17f60` 的明确事件回执再接入。旧owner已停止，不轮询旧任务。
+- 独立审阅正在核对密钥清理／上限和候选完整接线／来源；share/service/UI live import未变，无root构建、第二writer、dist写入或新包。A的client block尚未分类，B URL尚未执行，双机真实入口、Cookie恢复和网站登录均未因此获得PASS。
+
+## 用户再次要求创建新任务：01a18c73 离线修复冻结交接
+
+- 最新指示为「创建新对话，继续完善。尽量在不冲突的情况继续推进」，并要求本 owner 只保存／收尾后停止新增业务。已执行；本任务 get_goal 实读 null，没有创建、迁移或完成总 GOAL。
+- 已修：错误发送指纹本地认证恢复、事务未知结果错误码、签名会话领取700000B有界响应（其他元数据仍16384B）、设备密钥每owner768上限及私有clear、原SW-only卸载先清精确owner密钥再删分享引用、只回收完全终态的旧owner配额。旧active、received、pairing/claiming与未知delivery围栏不按TTL删除。
+- 独立审查新发现P1也已修：发送账号快照此前只核Origin，撤销父域授权后仍可交付父域Cookie。候选service现用原scope/validateRows/assertScope校验全部保存行，并将发送scope绑定原authorize，在加密后、fence及POST preflight继续核对父域授权／代际；不靠过滤快照、扩权或读新Cookie放行。最新6项定向验证覆盖事前撤权、密钥准备时撤权／重授、出站围栏时撤权和合法授权下logout后发送，全部通过，真实crypto／模拟Relay，不是Chrome证据。
+- 原始日志：session-dispatch-recovery-final-20261030.log 28PASS；session-source-scope-fixed-20261030.log 6PASS；session-lifecycle-host-fixed-20261030.log 1PASS；session-retired-quota-fixed-20261030.log 6PASS；device-key-lifecycle-fixed-20261030.log 11PASS。早期helper27和追加恢复保护3的日志保留；helper后来增加validateSnapshot hook和密钥countPrefix接口，未再跑整组，不合并成最新aggregate green。keys11之后只新增每次delete前guard，未为交接重跑。失败日志均保留。
+- 最终候选在 artifacts/cookie-editor-r31/s3-wiring-candidate-20261030/；新的helper/crypto/device-keys已同步副本，汇总补丁 s3-imported-wiring-pending-20261030.patch 已重新生成，最新逐文件SHA及Git blob见 s3-candidate-handoff-20261030.json。Node验证继续使用原task-only loader；WXT/live不引用它。
+- **仍待做**：最新清理／旧owner回收／发送授权增量的最终独立审阅、精确来源pin及对应来源测试（新增helper只能SW、原contract目标不扩展）。原pins仍旧值，provenance测试AST期望也尚未同步。不得直接覆盖live以求测试绿；不得把这份候选当成已发布SW。
+- 两位只读reviewer 01a18c76-191c-7331-a382-fbaabaa3692a、01a18c76-1b5a-7012-b992-d1f657d0ef64已收到停止新工作的指示并关闭。最终增量审阅未完成，不宣称无P1/P2。全部新增业务仍离线，share/service/Sharing三处live保持HEAD。
+- Cookie无键鼠、剪贴板、Native、Run、chooser或Browser控制会话。Scrapy01a18c70已明确释放；随后Cloud新owner01a18c80-2e69-7760-9d09-4e7f1383b805获本任务明确短GUI段，正在其原Task安装／配对／Grant入口，后续原生Cookie仅需对此实际重叠取得一次释放事件。shared01a18b96已停止业务／发布；原writer27680持续保留，没有停／重启／新增writer、没有新provenance门禁。它的消息不是新live发布授权。
+- 下一任务直接推进独立源码与受影响定向验证，只在同文件写入、全局键鼠／剪贴板、共享服务启停或可能重载正在使用的GUI时协调一次；其他任务存在／dirty不阻塞。A/B快捷URL的Chrome client block未在本owner重试；两真实电脑原HTTPS分享入口、Cookie写入读回、网站登录仍未完成。正式包2.0.56未编译／晋升／安装；本owner未暂存、提交、push/pull、建分支/worktree/PR/ZIP。
+
+- reviewer关闭回执补充：终态回收的“整个旧owner均终态、先清钥后删引用”方案已获认可，但最新实现未审；发送P1的最新修复也尚未独立关闭。另有**尚未修的P2**：keys.clear()若遇同owner超过768条旧记录会拒绝，缺少可恢复的有界分页清理；最后已审keys blob `0deae649f35e720c57e538648caa787eb248dfb9`。用户已要求停止新增业务，本owner仅记录，下一任务先分类／修复该清理边界，不将本轮所有review项写成关闭。
+
+## 01a18c89：有界清理修复、来源锁验证及再次交接
+
+- 前任已明确停止全部 Cookie 写入后接手；本任务 goal 实读 null，没有创建或迁移总 GOAL。用户最新要求由新任务继续，可新建独立 Chrome 窗口，避免争用输入。本 owner 保存后停止源码／候选／测试／文档／浏览器／服务／输出写入，无在途操作。
+- 补齐前任最终 P2：旧同 owner 超额记录曾在 clear 中直接 E_DEVICE_KEY_LIMIT。新增真实事务模型复现后，改为每次最多768条精确owner删除，读回余量，未清完返回 E_DEVICE_KEY_CLEANUP_PENDING；未知提交仍 E_DEVICE_KEY_OUTCOME_UNKNOWN。逐delete授权守卫保留；批内撤权回滚整批。原SW-only cleanup对待继续／未知均保留分享与vault引用，不误报清完。
+- 本轮密钥13项、卸载引用2项、validateSnapshot hook后的真实crypto/SQLite helper30项、精确pin/target/漂移/symlink/静态imports6项分别通过。只证明对应Node/离线候选，不合并成全量或Chrome PASS；原父域授权6项／终态配额6项输入未改，复用既有证据。日志及SHA已写唯一JSON s3BoundedCleanupContinuation20261030。
+- 最终增量由本owner复核：源快照经完整scope授权，outgoingScope进入原authorize，覆盖加密后、fence和POST前；终态owner清理只处理全部完成者，失败保留引用；原严格storage keepalive支持异步授权。未扩Authority/Host/SDK。新helpers精确pin只进SW，pure contract原targets不变；provenance AST已同步。pins仅在离线候选中验证，未改live来源表。
+- **新的实际阻塞仅影响共享落地**：在准备接线时外部任务开始 origin/main merge，本地HEAD仍1c009c680，出现 scripts/bundle-provenance.mjs UU，src/ui/sidebar-tools.js已stage修改，多个旧工具目录迁往projects。Cookie目录未迁移，live share/service/Sharing仍未由本owner接线。本owner没有fetch/pull/merge/reset/stage/commit。保留所有合并现场，不解决非本任务冲突；新owner只需在合并完成／明确同文件owner后窄重放Cookie增量，**不能把候选中旧版整个provenance或sidebar-tools覆盖过去**。
+- 候选11文件、包含最新key清理及pins/AST，逐文件SHA/Gitblob和pending.patch已重生；路径仍为 s3-wiring-candidate-20261030、s3-candidate-handoff-20261030.json、s3-imported-wiring-pending-20261030.patch。task-only loader继续只用于Node。正式包2.0.56未编译／晋升／安装。
+- Cloud01a18c80明确释放全局键鼠／剪贴板及当前live重叠，无Run/确认/Native/chooser；保留其tab140/160/161、43111/Provider/后端。本人未初始化Browser／占用输入／操作Cookie。原writer27680最近只读仍运行，未停重启或开第二writer。新owner可fresh openTabs并独立Chrome窗口测试，仍不得绕过历史管理页／任务目录安全拒绝。
+- 下一操作：解决或等待真实共享文件merge写入收尾后，仅合入受审Cookie delta+pin，复用原writer核对一致revision；UI变更按原app:update/packer升级唯一JSON。再分类A根URL client block并完成侧栏关闭A/B读回/刷新，随后原两真机HTTPS配对/恢复与独立网站登录；这些原生仍未完成。旧总goal blocked未完成，本任务goal=null，交接不伪报迁移或完成。
+
+
+## 01a18c92：接手、窄重放与真实根路径诊断
+
+- 已收到01a18c89停止全部写入的最终回执，当前唯一Cookie owner为01a18c92-ada2-75e3-8929-31dfdb996e32；本任务goal实读null，旧总目标仍未完成。
+- 类型与边界保持原经审计第一方：业务为examples/sidebar-tools/cookie-editor/，沙箱UI沿原OpenDeskTool请求，可信分享固定编译入原SW；设备绑定键仅复用原Foundation私有存储，原安装包格式不变。复用11文件候选摘要及已通过的有界清理／hook／来源检查，不重做已修P2。
+- 本轮预定写入仅Cookie候选所列业务源／两个UI消费者、device-keys及受影响测试；共享src/ui/sidebar-tools.js与scripts/bundle-provenance.mjs只在外部merge owner01a188ec明确释放后落Cookie局部增量，保留其迁移和视频消费者。Git index/HEAD/merge保持外部owner所有；不暂存／提交／推送。已有root writer27680不启停、不覆盖输出。
+- Chrome Skill已fresh连接，独立创建本任务tab759148162，未接管Cloud/Scrapy页。当前公开接口只有tabs.new，无窗口创建API；一次页面Meta+N未产生新窗口，独立窗口尚未创建，不将专用tab冒称窗口／Profile隔离。实际加载路径、当前开发连接尚未fresh验证。
+- 在本任务tab只读访问普通无fragment的http://127.0.0.1:43111/，可见Chrome ERR_BLOCKED_BY_CLIENT；未打开账号URL／写Cookie／点重载。独立无Cookie HTTP GET同root为404/0B，demo-form可访问；二者不能直接认作同一根因。Cloud owner已接手精确root路由修复及原服务安全重启，期间不依赖43111；未走其他通道绕过Browser拒绝。
+
+- Merge owner explicitly released both shared files; Cookie deltas and exact pins are now on main without changing its migrations/video consumers. Live provenance 6, scope/gesture/cleanup 13, UI 5, UI artifact 2, package 8 and promoted same-source 2 checks passed at their individual Node/package levels.
+- Original app:update promoted the only formal package to 2.0.57, 245715B, SHA438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601; capabilities unchanged. Not installed in Chrome by this task.
+- Cloud root fix is now visibly successful in this task tab: ordinary root reload shows normal HTML. New session ea89e280-f720-48bb-9bcd-e3e43af1c2ad seq1 was maintainer self-check; seq2 was this plain-root reload, not A/B or SW refresh proof.
+- Old root writer cached the pre-merge official-source path schema. Fresh source catalog validation passed while old process repeatedly failed. Original owner explicitly transferred PID27680/ports/output; SIGTERM stop completed and both ports were free. Dead PID lock metadata is left for the original acquireDevelopmentLock protocol to recover; no manual deletion. A single new original npm run dev has been started after those checks. See artifacts/cookie-editor-r31/dev-restart-01a18c92.json.
+
+- Development recovery finished: only stale AI VIP Share ignored Vite assets required rebuilding. Original npm run dev is RUNNING with npm PID26835/node PID26852, fixed dist/development, revision013acb73fda645a802ea383aa1cd927484b5ec5434ce2640cc574ab408c76721. All129 marker file hashes match; SW1005879B/SHAef9f1f77766e053d725993b2a2850a6c9f4dd0755730a0d0917c2f8476eeb548, official Cookie package SHA matches2.0.57. New watcher remains the sole writer under this Cookie owner; no force Chrome reload.
+- Current Chrome applied revision, actual loaded path and fresh dev connection remain NOT_TESTED. Default /usr/local/bin/opendesk browser doctor reports native-agent-r1 missing; this unrelated Native installation is not changed or treated as Cookie feature proof. Chrome Skill has no public window/native Side Panel control API here; only task tab759148162 exists. Native A/B/refresh and real two-device recovery/login remain pending.

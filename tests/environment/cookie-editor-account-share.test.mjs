@@ -10,6 +10,7 @@ import {createCookieAccountShare,cookieShareAddress,COOKIE_SHARE_STORAGE_KEY}
 import {createCookieAccountVault,COOKIE_ACCOUNT_STORE_KEY}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-vault.js';
 import {captureBackup} from '../../src/platform/storage/idb.js';
+import {createDeviceKeyStorage} from '../../src/platform/storage/device-keys.js';
 
 // Real HTTP/SQLite Relay, injected loopback transport. This is a NODE test,
 // never evidence for TLS, Chrome permissions, native IDB or TWO_DEVICE_LAN.
@@ -20,7 +21,7 @@ async function fixture(t){
   const server=createShareHttpServer(relay);server.listen(0,'127.0.0.1');await once(server,'listening');
   t.after(async()=>{server.closeAllConnections();await new Promise(r=>server.close(r));relay.close();await rm(dir,{recursive:true});});
   const calls=[],records=new Map();let granted=true,authorized=true,drop=false,commitLost=false;
-  let serial=Promise.resolve(),readHook=()=>{},responseHook=()=>{};
+  let serial=Promise.resolve(),readHook=()=>{},responseHook=()=>{},replyTransform=(_url,text)=>text;
   const storage=async()=>({transaction(stores,mode,work){
     assert.deepEqual(stores,['frameworkKV']);
     const run=serial.then(async()=>{
@@ -44,10 +45,10 @@ async function fixture(t){
     const reply=await fetch('http://127.0.0.1:'+server.address().port+url.slice(origin.length),options);
     if(drop&&options.method==='POST')throw Error('lost HTTP receipt');
     const text=await reply.text();responseHook(url,options);
-    return new Response(text,{status:reply.status,headers:reply.headers});
+    return new Response(replyTransform(url,text),{status:reply.status,headers:reply.headers});
   };
-  const create=()=>{
-    const service=createCookieAccountShare({api,storage,vault,authorize,fetcher});
+  const create=(options={})=>{
+    const service=createCookieAccountShare({api,storage,vault,authorize,fetcher,...options});
     return {...service,dispatch:(action,payload,owner)=>service.dispatch(action,{
       origin:'https://example.com',...payload},owner)};
   };
@@ -60,8 +61,109 @@ async function fixture(t){
     revoke:()=>{granted=false;},disable:()=>{authorized=false;},
     grant:()=>{granted=true;},
     drop:()=>{drop=true;},loseCommit:()=>{commitLost=true;},
-    onRead:fn=>{readHook=fn;},onResponse:fn=>{responseHook=fn;}};
+    onRead:fn=>{readHook=fn;},onResponse:fn=>{responseHook=fn;},
+    onReply:fn=>{replyTransform=fn;}};
 }
+function sessionTransport(f) {
+  const keyRecords = new Map(); let tail = Promise.resolve();
+  const storageFactory = async () => ({readOnly: false, transaction(stores, mode, work) {
+    const next = tail.then(async () => {
+      const draft = structuredClone(keyRecords);
+      const result = await work({get: async (s, k) => structuredClone(draft.get(k)),
+        put: async (s, v, k) => draft.set(k, structuredClone(v)),
+        delete: async (s, k) => draft.delete(k),
+        countPrefix: async (s, prefix) => [...draft.keys()].filter(key => key.startsWith(prefix)).length,
+        keys: async (s, {prefix, limit}) => [...draft.keys()].filter(key => key.startsWith(prefix)).sort().slice(0, limit)});
+      if (mode === 'readwrite') {
+        keyRecords.clear(); for (const [key, value] of draft) keyRecords.set(key, value);
+      }
+      return result;
+    });
+    tail = next.catch(() => {}); return next;
+  }});
+  return () => f.create({sessionKeys: owner => createDeviceKeyStorage({owner: 'test:' + owner,
+    authorize: async () => {}, storageFactory}), mapSnapshot: async snapshot => snapshot.cookies,
+    validateSnapshot: async () => {}});
+}
+
+test('the original dispatcher receives an encrypted session snapshot larger than metadata responses', async t => {
+  const f = await fixture(t);
+  const cookies = Array.from({length: 5}, (_, n) => ({name: 'synthetic_' + n, value: 'S'.repeat(4096)}));
+  await f.vault.update(1, data => { data.accounts[0].cookies = cookies; });
+  const service = sessionTransport(f)();
+  const created = await service.dispatch('shareCreate', {...f.payload, revision: 2, mode: 'session', maxClaims: 1}, 'sender');
+  const paired = await service.dispatch('sharePair', {inviteUrl: created.url}, 'receiver');
+  const delivered = await service.dispatch('shareDeliver', {ref: created.ref,
+    requestId: paired.pair.requestId, receiverFingerprint: paired.pair.receiverFingerprint, revision: 2}, 'sender');
+  const result = await service.dispatch('shareClaim', {inviteUrl: created.url,
+    senderFingerprint: delivered.senderFingerprint, revision: 2}, 'receiver');
+  assert.deepEqual((await f.vault.read()).accounts.find(a => a.alias === result.alias).cookies, cookies);
+  assert.equal(result.cookieWriteVerified, false); assert.equal(result.websiteLoginConfirmed, false);
+  assert.equal(f.calls.filter(row => row.url.endsWith('/claim')).length, 1);
+  assert.doesNotMatch(JSON.stringify(f.calls), /S{50}|privateKey/);
+});
+
+test('session response capacity preserves metadata limits and fences an oversized consumed claim', async t => {
+  await t.test('metadata remains limited to 16 KiB', async t => {
+    const f = await fixture(t), service = f.create();
+    const created = await service.dispatch('shareCreate', f.payload, 'owner');
+    f.onReply((_url, text) => JSON.stringify({...JSON.parse(text), padding: 'x'.repeat(16384)}));
+    await assert.rejects(service.dispatch('shareStatus', {ref: created.ref}, 'owner'), {code: 'E_SHARE_RESPONSE'});
+    assert.equal(f.calls.filter(row => row.options.method === 'POST').length, 1);
+  });
+  await t.test('oversized encrypted claim stays unknown without replay', async t => {
+    const f = await fixture(t), service = sessionTransport(f)();
+    const created = await service.dispatch('shareCreate', {...f.payload, mode: 'session', maxClaims: 1}, 'sender');
+    const paired = await service.dispatch('sharePair', {inviteUrl: created.url}, 'receiver');
+    const delivered = await service.dispatch('shareDeliver', {ref: created.ref,
+      requestId: paired.pair.requestId, receiverFingerprint: paired.pair.receiverFingerprint, revision: 1}, 'sender');
+    f.onReply((url, text) => url.endsWith('/claim')
+      ? JSON.stringify({...JSON.parse(text), padding: 'x'.repeat(700000)}) : text);
+    const input = {inviteUrl: created.url, senderFingerprint: delivered.senderFingerprint, revision: 1};
+    await assert.rejects(service.dispatch('shareClaim', input, 'receiver'), {code: 'E_OUTCOME_UNKNOWN'});
+    assert.equal(f.records.get(COOKIE_SHARE_STORAGE_KEY).claims[0].phase, 'claiming');
+    await assert.rejects(sessionTransport(f)().dispatch('shareClaim', input, 'receiver'), {code: 'E_OUTCOME_UNKNOWN'});
+    assert.equal(f.calls.filter(row => row.url.endsWith('/claim')).length, 1);
+    assert.equal((await f.vault.read()).accounts.length, 1);
+  });
+});
+
+test('a confirmed current owner recovers quota only from fully completed retired owners', async t => {
+  const f = await fixture(t), cleared = [];
+  const retired = Array.from({length: 32}, (_, n) => ({owner: 'retired-owner', ref: 'old-' + n,
+    phase: 'revoked', invite: {mode: 'configuration'}}));
+  const unknown = {owner: 'unknown-owner', ref: 'unknown', phase: 'claiming'};
+  f.records.set(COOKIE_SHARE_STORAGE_KEY, {format: 1, items: retired, claims: [unknown]});
+  const service = f.create({clearSessionKeys: async owner => { cleared.push(owner); }});
+  const result = await service.dispatch('shareCreate', f.payload, 'current-owner');
+  assert.equal(result.phase, 'active'); assert.deepEqual(cleared, ['retired-owner']);
+  assert.deepEqual(f.records.get(COOKIE_SHARE_STORAGE_KEY).claims, [unknown]);
+  assert.equal(f.records.get(COOKIE_SHARE_STORAGE_KEY).items.length, 1);
+});
+
+test('retired quota collection preserves active owners, pending/unknown receipts and cleanup failures', async t => {
+  for (const reason of ['current owner', 'unknown receipt', 'pending local save', 'cleanup failure']) {
+    await t.test(reason, async t => {
+      const f = await fixture(t);
+      const owner = reason === 'current owner' ? 'current-owner' : 'retired-owner';
+      const state = {format: 1, items: Array.from({length: 32}, (_, n) => ({owner, ref: 'old-' + n,
+        phase: 'revoked', invite: {mode: 'configuration'}})), claims: []};
+      if (reason === 'unknown receipt' || reason === 'pending local save') state.claims.push({owner,
+        ref: 'keep', phase: reason === 'unknown receipt' ? 'claiming' : 'received'});
+      f.records.set(COOKIE_SHARE_STORAGE_KEY, state);
+      const service = f.create({clearSessionKeys: async () => {
+        if (reason === 'cleanup failure') throw Object.assign(Error('unknown'), {code: 'E_DEVICE_KEY_OUTCOME_UNKNOWN'});
+        assert.fail('must not clear an owner with active authority or retained receipts');
+      }});
+      await assert.rejects(service.dispatch('shareCreate', f.payload, 'current-owner'), {
+        code: reason === 'cleanup failure' ? 'E_DEVICE_KEY_OUTCOME_UNKNOWN' : 'E_SHARE_LIMIT'
+      });
+      assert.deepEqual(f.records.get(COOKIE_SHARE_STORAGE_KEY), state);
+      assert.equal(f.calls.length, 0);
+    });
+  }
+});
+
 test('share addresses require exact HTTPS origin or invitation path, never credentials or fragments',()=>{
   assert.deepEqual(cookieShareAddress('https://lan.example:8443'),{origin:'https://lan.example:8443'});
   for(const value of ['http://localhost:8713','https://user:pass@lan.example',
@@ -71,6 +173,26 @@ test('share addresses require exact HTTPS origin or invitation path, never crede
   assert.equal(cookieShareAddress('https://lan.example/i/'+id,{invitation:true}).id,id);
   for(const value of ['https://lan.example/i/short','https://lan.example/i/'+id+'/extra',
     'https://lan.example/v1/invites/'+id])assert.throws(()=>cookieShareAddress(value,{invitation:true}));
+});
+
+test('session transport integrates with the original share dispatcher without changing configuration or current Cookies',async t=>{
+  const f=await fixture(t),create=sessionTransport(f);
+  const created=await create().dispatch('shareCreate',{...f.payload,mode:'session',maxClaims:1},'sender');
+  const inspected=await create().dispatch('shareInspect',{inviteUrl:created.url},'receiver');
+  assert.equal(inspected.sessionAvailable,true);
+  const paired=await create().dispatch('sharePair',{inviteUrl:created.url},'receiver');
+  const pairs=await create().dispatch('sharePairs',{ref:created.ref},'sender');
+  assert.equal(pairs.pairs[0].receiverFingerprint,paired.pair.receiverFingerprint);
+  const delivered=await create().dispatch('shareDeliver',{ref:created.ref,
+    requestId:paired.pair.requestId,receiverFingerprint:paired.pair.receiverFingerprint,revision:1},'sender');
+  const result=await create().dispatch('shareClaim',{inviteUrl:created.url,
+    senderFingerprint:delivered.senderFingerprint,revision:1},'receiver');
+  assert.equal(result.sessionImported,true);assert.equal(result.cookieWriteVerified,false);
+  assert.equal(result.websiteLoginConfirmed,false);
+  const data=await f.vault.read(),added=data.accounts.find(x=>x.alias===result.alias);
+  assert.deepEqual(added.cookies,f.saved.cookies);assert.deepEqual(data.accounts[0],f.saved);
+  assert.equal((await create().dispatch('shareInspect',{inviteUrl:created.url},'receiver')).sessionImported,true);
+  assert.doesNotMatch(JSON.stringify(f.calls),/NEVER_TRANSMIT_COOKIE|"cookies"|privateKey/);
 });
 test('real Relay create/status/revoke exposes no manager secret or Cookie bytes',async t=>{
   const f=await fixture(t),service=f.create();

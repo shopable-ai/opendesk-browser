@@ -8,8 +8,11 @@ export const COOKIE_ACCOUNT_SEEN_KEY='opendesk.cookie-editor.auto-seen.v1';
 export const COOKIE_ACCOUNT_SHARE_FIELDS=Object.freeze({
   shareCreate:['alias','accountVersion','revision','relayOrigin','expiresInSeconds','maxClaims','mode'],
   shareStatus:['ref'],shareRevoke:['ref'],shareInspect:['inviteUrl'],
-  shareClaim:['inviteUrl','revision'],shareList:['alias']
+  shareClaim:['inviteUrl','revision'],shareList:['alias'],
+  sharePair:['inviteUrl'],sharePairs:['ref'],
+  shareDeliver:['ref','requestId','receiverFingerprint','revision']
 });
+export const COOKIE_ACCOUNT_SHARE_OPTIONAL_FIELDS=Object.freeze({shareClaim:['senderFingerprint']});
 export const COOKIE_ACCOUNT_OPERATIONS=Object.freeze([
   'status','create','rename','update','attach','delete','switch',
   'setAutoEnabled','setAutoRefresh','allowAlias',...Object.keys(COOKIE_ACCOUNT_SHARE_FIELDS)

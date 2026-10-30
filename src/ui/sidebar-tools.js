@@ -36,7 +36,8 @@ import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
 import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
-import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_SHARE_FIELDS}
+import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_SHARE_FIELDS,
+  COOKIE_ACCOUNT_SHARE_OPTIONAL_FIELDS}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
@@ -2163,12 +2164,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }[action];
       // Description is optional for historic account clients. All other
       // caller-supplied fields remain strictly allowlisted.
-      const optionalFields=(action==='create'||action==='rename')?['description']:[];
+      const optionalFields=(action==='create'||action==='rename')?['description']:
+        COOKIE_ACCOUNT_SHARE_OPTIONAL_FIELDS[action]||[];
       if(!fields||Object.keys(payload).some(field=>
         !fields.includes(field)&&!optionalFields.includes(field))||
          fields.some(field=>!Object.hasOwn(payload,field)))
         throw Object.assign(new Error('账号操作字段不符合协议'),{code:'E_ACCOUNT_REQUEST'});
-      if(action==='shareCreate'||action==='shareInspect'||action==='shareClaim'){
+      if(['shareCreate','shareInspect','shareClaim','sharePair'].includes(action)){
         let relay;
         try{relay=new URL(action==='shareCreate'?payload.relayOrigin:payload.inviteUrl);}
         catch{throw Object.assign(Error('请输入有效 HTTPS 邀请服务地址'),{code:'E_SHARE_URL'});}
@@ -2176,7 +2178,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           throw Object.assign(Error('分享仅允许可信 HTTPS 服务'),{code:'E_SHARE_HTTPS_REQUIRED'});
         if(!await api.permissions.contains({origins:[relay.origin+'/*']})){
           await requestBrowserClick({toolId:tool.id,
-            message:'允许 Cookie Editor 连接 '+relay.origin+' 以发送或领取账号配置？本次不传输 Cookie。',
+            message:'允许 Cookie Editor 连接 '+relay.origin+' 以分享邀请、配对公钥或加密会话快照？明文 Cookie 不会发送给分享服务。',
             button:'允许连接此分享服务',run:async()=>{
               if(!await api.permissions.request({origins:[relay.origin+'/*']}))
                 throw Object.assign(Error('未允许连接分享服务'),{code:'E_SHARE_PERMISSION_REQUIRED'});
@@ -2189,8 +2191,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(!origin)throw Object.assign(new Error('当前没有活动的 HTTP(S) 网站'),
         {code:'E_DOCUMENT_CHANGED'});
       const data={origin,...Object.fromEntries(fields.map(field=>[field,payload[field]])),
-        ...(Object.hasOwn(payload,'description')?{description:payload.description}:{})};
-      if(['create','update','attach','switch','shareClaim'].includes(action)){
+        ...Object.fromEntries(optionalFields.filter(field=>Object.hasOwn(payload,field))
+          .map(field=>[field,payload[field]]))};
+      if(['create','update','attach','switch','shareClaim','sharePair','shareDeliver'].includes(action)||
+        action==='shareCreate'&&payload.mode==='session'){
         const {captured,document}=captureCookieImportDocument('账号');
         await currentPageTarget.revalidate(captured);
         assertSession(source,token);
