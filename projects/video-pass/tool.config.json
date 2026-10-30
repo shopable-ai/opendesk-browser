@@ -1,8 +1,8 @@
 {
   "id": "video-pass",
-  "version": "0.1.0",
-  "title": "视频通行证",
-  "description": "识别当前视频网页，提供官方观看、影片链接分享和本机会员到期记录。",
+  "version": "0.1.1",
+  "title": "视频会员",
+  "description": "视频会员助手：识别当前视频网页，打开官方观看入口、分享影片链接并记录会员到期日期。不提供会员解锁。",
   "capabilities": [
     "currentPage.read",
     "storage.local"
