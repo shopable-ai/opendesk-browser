@@ -7,7 +7,7 @@ import {describeLocalCodex} from '../workflow/local-codex.js';
 import {promptInstructions,promptEditInstructions} from './prompt-actions.js';
 import {bookmarkInstructions} from './bookmark-instructions.js';
 import {taskInstructions} from './my-task-instructions.js';
-import {KNOWLEDGE_ANSWER_INSTRUCTIONS} from '../../../examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js';
+import {KNOWLEDGE_ANSWER_INSTRUCTIONS} from '../../../projects/ai-knowledge-answers/trusted/ai-request.js';
 
 const err=(code,message)=>Object.assign(new Error(message),{code});
 
