@@ -213,6 +213,7 @@ const mediaUrls=previewMode?Object.freeze({
 const admittedMedia=new Set(previewMode?[mediaUrls.good,mediaUrls.bad]:[]);
 const owned=makeOwnedPlayer(playerNode,admittedMedia);
 let sourceRows=[],lastContentKey='UNKNOWN',sessionPreferred=null;
+const measuredHealth=new Map(); // only actual owned-media observations, never fabricated external SLA
 const orchestrator=createSourceOrchestrator({
  playOwned:owned.play,stopOwned:owned.stop,inspectOwned:owned.inspect,
  onUpdate:()=>paintSources()
@@ -234,7 +235,9 @@ function discoverSources(){
    sourceId:'demo:'+id,type:'AUTHORIZED_MEDIA',label,platform:'self-authored',
    contentKey,authorization:'APPROVED',rights:'SELF_AUTHORED',
    region:'SUPPORTED',entitlement:'NOT_REQUIRED',cost:0,
-   availability:'UNKNOWN',verificationLevel:'OWNED_VIDEO_EVENTS',mediaUrl:url,...props
+   availability:'UNKNOWN',verificationLevel:'OWNED_VIDEO_EVENTS',mediaUrl:url,
+   lastOutcome:measuredHealth.get('demo:'+id)?.outcome||'UNKNOWN',
+   checkedAt:measuredHealth.get('demo:'+id)?.checkedAt||'UNKNOWN',...props
   });
   if(scene==='r04a-fallback'){media('a-fails','测试来源 A · 确定失败',mediaUrls.bad);
    media('b-backup','测试来源 B · 自制视频',mediaUrls.good);}
@@ -322,9 +325,11 @@ function startOwned(sourceId){
  if(!row)return;
  sessionPreferred=sourceId;sourceRows=discoverSources();
  const ticket=pageEpoch;
- void orchestrator.start(sourceRows,{sourceId}).then(()=>{
+ void orchestrator.start(sourceRows,{sourceId}).then(result=>{
   if(ticket!==pageEpoch||closed||stopped)return;
-  paintSources(); // independent read of the product-owned <video> state
+  for(const attempt of result.attempts||[])if(['VERIFIED','FAILED'].includes(attempt.outcome))
+   measuredHealth.set(attempt.sourceId,{outcome:attempt.outcome,checkedAt:Date.now()});
+  sourceRows=discoverSources();paintSources(); // independent owned-video readback
  });
 }
 
@@ -499,6 +504,7 @@ root.addEventListener('opendesk-page-changed',invalidateAndSchedule);
 window.addEventListener('focus',()=>{if(!stopped)invalidateAndSchedule();});
 window.addEventListener('pagehide',()=>{
  closed=true;stopped=true;++pageEpoch;orchestrator.cancel('CLOSED');
+ void request('videoSVIP.stop',{}).catch(()=>{});
  if(eventTimer!==null)clearTimeout(eventTimer);
 },{once:true});
 void Promise.all([refresh(),restoreMembers()]);
