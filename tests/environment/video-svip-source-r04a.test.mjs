@@ -12,7 +12,7 @@ async function engine(){
  assert.equal(src.split(needle).length,2);
  const code=src.replace(needle,
   'globalThis.__r04a={SourceRegistry,sourceContentKey,rankSources,createSourceOrchestrator,makeOwnedPlayer};\n'+needle);
- const context={OpenDeskTool:null,URL,setTimeout,clearTimeout,console};
+ const context={OpenDeskTool:null,URL,AbortController,setTimeout,clearTimeout,console};
  runInNewContext(code,context,{filename:'projects/video-svip/src/main.js'});
  return context.__r04a;
 }
