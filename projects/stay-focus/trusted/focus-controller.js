@@ -5,7 +5,7 @@ import {FOCUS_CATALOG,FOCUS_DEFAULT_GROUP,FOCUS_DEFAULT_MINUTES} from './catalog
 import {compileFocusPolicy} from './compile-site-policy.js';
 import {mutateFocusModel} from './mutations.js';
 import {normalizeManagedSiteV3Policy,canonicalManagedSiteV3ModelBytes}
-  from '../../../../src/framework/sdk/site-budget-v3-policy.js';
+  from '../../../src/framework/sdk/site-budget-v3-policy.js';
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 // The public Driver reports E_TOOL_CHANGED for a real legacy focus.control
 // owner because it lacks browser.siteBudget. The private Host must independently

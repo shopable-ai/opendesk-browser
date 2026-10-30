@@ -27,7 +27,7 @@ const CLOSEOUT=process.env.OPENDESK_ADBLOCK_NATIVE_CLOSEOUT==='1';
 const CORE_UPGRADE=process.env.OPENDESK_ADBLOCK_NATIVE_CORE_UPGRADE==='1';
 const SOURCE_ROOT=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_SOURCE_ROOT||'.');
 const OLD_PACKAGE=path.resolve(process.env.OPENDESK_ADBLOCK_NATIVE_OLD_PACKAGE||
-  'examples/sidebar-tools/adblock/adblock.opendesk-tool.json');
+  'projects/adblock/adblock.opendesk-tool.json');
 const STORE='opendesk.adblock.state.v1',F=741000,L=741199;
 const COSMETIC_STORE='opendesk.adblock.cosmetic.v1';
 const MANUAL_CASES=['mouseSelection','immediateHide','storageReadback','refreshPersistence',
@@ -467,7 +467,7 @@ test('macOS Chrome actual AdBlock DNR, manual cosmetics and network lifecycle',
     assert.equal(JSON.parse(oldBytes).version,'1.2.1','preserved old formal package required');
     assert.equal(pkg.version,'1.2.3','frozen candidate must be 1.2.3');
   }
-  const adblockProject=path.join(SOURCE_ROOT,'examples/sidebar-tools/adblock');
+  const adblockProject=path.join(SOURCE_ROOT,'projects/adblock');
   // Existing packer enforces the source-bound React build-ready receipt.
   const currentSourcePackage=await createSidebarToolPackage(adblockProject);
   const currentSourcePackageHash=await sidebarToolPackageHash(currentSourcePackage);

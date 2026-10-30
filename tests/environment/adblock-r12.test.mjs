@@ -10,18 +10,18 @@ import {sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-to
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {installReviewedSidebarTool,setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolCleanup,
   TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
-import {FOCUS_RULE_FIRST} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {FOCUS_RULE_FIRST} from '../../projects/stay-focus/trusted/policy.js';
 import {ADBLOCK_ID,ADBLOCK_STORE,ADBLOCK_PROTOCOL,ADBLOCK_PAGE_PROTOCOL,ADBLOCK_CAPABILITY,
-  ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST,ADBLOCK_DNR_CLEANUP_STORE,ADBLOCK_PERMISSION,adblockHost} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+  ADBLOCK_RULE_FIRST,ADBLOCK_RULE_LAST,ADBLOCK_DNR_CLEANUP_STORE,ADBLOCK_PERMISSION,adblockHost} from '../../projects/adblock/trusted/policy.js';
 import {wantedAdblockRules,clearAdblockRules,reconcileAdblockRules}
-  from '../../examples/sidebar-tools/adblock/trusted/rules.js';
-import {createAdblockService,installAdblockService} from '../../examples/sidebar-tools/adblock/trusted/service.js';
-import {stopAdblockForTool} from '../../examples/sidebar-tools/adblock/trusted/lifecycle.js';
-import {createAdblockPermissionControls} from '../../examples/sidebar-tools/adblock/trusted/host-controls.js';
+  from '../../projects/adblock/trusted/rules.js';
+import {createAdblockService,installAdblockService} from '../../projects/adblock/trusted/service.js';
+import {stopAdblockForTool} from '../../projects/adblock/trusted/lifecycle.js';
+import {createAdblockPermissionControls} from '../../projects/adblock/trusted/host-controls.js';
 import {requestAdblockOperation,runTrustedAdblockOperation}
-  from '../../examples/sidebar-tools/adblock/trusted/tool-host.js';
+  from '../../projects/adblock/trusted/tool-host.js';
 
-const PROJECT=resolve('examples/sidebar-tools/adblock');
+const PROJECT=resolve('projects/adblock');
 const senderId='abcdefghijklmnopabcdefghijklmnop';
 const hostUrl='chrome-extension://'+senderId+
   '/sidepanel.html?hostInstanceId=123e4567-e89b-42d3-a456-426614174000';
@@ -580,9 +580,9 @@ test('blocked DNR initialization never confirms uninstall or corrupt-authority c
 test('official optional AdBlock uses one canonical installable project package',async()=>{
   const sources=await readOfficialSources();
   const row=sources.tools.find(row=>row.id==='adblock');
-  assert.deepEqual(row,{id:'adblock',project:'examples/sidebar-tools/adblock',
+  assert.deepEqual(row,{id:'adblock',project:'projects/adblock',
     kind:'sidebar-tool',installationPolicy:'optional'});
-  const path='examples/sidebar-tools/adblock/adblock.opendesk-tool.json';
+  const path='projects/adblock/adblock.opendesk-tool.json';
   const expected=encodeSidebarToolPackage(await createSidebarToolPackage(PROJECT));
   // While source/CI is pending the sole formal package must not be forged.
   let actual;

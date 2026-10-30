@@ -38,6 +38,9 @@ test('R2.1 migrated official source locations are exact and preserve unmigrated 
   assert.equal(current.tools.find(row=>row.id==='web-markdown-clipper').project,'projects/web-markdown-clipper');
   assert.equal(current.tools.find(row=>row.id==='reading-toc').project,'projects/reading-toc');
   assert.equal(current.tools.find(row=>row.id==='time-review').project,'projects/time-review');
+  assert.equal(current.tools.find(row=>row.id==='prompt-shortcuts').project,'projects/prompt-shortcuts');
+  assert.equal(current.tools.find(row=>row.id==='adblock').project,'projects/adblock');
+  assert.equal(current.tools.find(row=>row.id==='stay-focus').project,'projects/stay-focus');
   assert.equal(current.tools.find(row=>row.id==='cookie-editor').project,'examples/sidebar-tools/cookie-editor');
   for(const [id,project] of [
     ['cookie-editor','projects/cookie-editor'],
@@ -46,6 +49,9 @@ test('R2.1 migrated official source locations are exact and preserve unmigrated 
     ['web-markdown-clipper','examples/sidebar-tools/web-markdown-clipper'],
     ['reading-toc','examples/sidebar-tools/reading-toc'],
     ['time-review','examples/sidebar-tools/time-review'],
+    ['prompt-shortcuts','examples/sidebar-tools/prompt-shortcuts'],
+    ['adblock','examples/sidebar-tools/adblock'],
+    ['stay-focus','examples/sidebar-tools/stay-focus'],
     ['ai-send-queue','projects/ai-send-queue'],
     ['markdown-workbench','examples/sidebar-tools/markdown-workbench'],
     ['markdown-workbench','projects/markdown-workbench/extra'],

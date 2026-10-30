@@ -1,6 +1,6 @@
 // Minimal scoped asset store: existing Side Panel authorization, per-tool lock and Chrome local.
 // Stored separately from the legacy 8-KiB text library; no external upload or second Host.
-import {writeVerifiedLocalValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
+import {writeVerifiedLocalValue} from '../../../src/ui/sidebar-tools/storage-state.js';
 import {PROMPT_DATA_STORE} from './policy.js';
 import {PROMPT_ASSET_STORE,PROMPT_ASSET_OPERATIONS,PROMPT_ASSET_ID,
   PROMPT_ASSET_MAX_BYTES,PROMPT_ASSET_MAX_COUNT,PROMPT_ASSET_MAX_TOTAL,

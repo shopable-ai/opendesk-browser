@@ -11,10 +11,10 @@ import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
 
 const out=resolve(process.argv[2]||'artifacts/prompt-shortcuts-r21-page-chromium');
 await mkdir(out,{recursive:true});
-const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
 assert.equal(pkg.id,'prompt-shortcuts');
 // Controlled HTTPS response for the trusted page; public CDN is NOT tested.
-const previewSource=await readFile('examples/sidebar-tools/prompt-shortcuts/preview/index.html','utf8');
+const previewSource=await readFile('projects/prompt-shortcuts/preview/index.html','utf8');
 const fixtureMarker="const PREVIEW_OFFLINE_PNG='data:image/png;base64,";
 const fixtureIndex=previewSource.indexOf(fixtureMarker);
 assert(fixtureIndex>=0,'original preview must embed a raster PNG');
@@ -74,7 +74,7 @@ initial={
   'opendesk.sidebar-tools.data.v1:prompt-shortcuts':{library,sites:{schema:1,rules:[rule]}}
 };
 boot=[
-  'import {initPromptShortcuts} from "/examples/sidebar-tools/prompt-shortcuts/trusted/page.js";',
+  'import {initPromptShortcuts} from "/projects/prompt-shortcuts/trusted/page.js";',
   'const initial='+JSON.stringify(initial)+';',
   'const values=JSON.parse(localStorage.getItem("ps-r21-fixture")||"null")||initial;',
   'const changes=new Set(),messages=new Set();',

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {verifyMarketplaceToolRuntime} from '../../src/marketplace/page.js';
 import {FOCUS_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION}
-  from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+  from '../../projects/stay-focus/trusted/policy.js';
 
 const modern={id:'stay-focus',capabilities:['focus.control'],
   backgroundPolicy:{kind:'site-budget.v2'}};

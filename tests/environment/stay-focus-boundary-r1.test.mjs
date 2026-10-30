@@ -5,11 +5,11 @@ import {setInstalledSidebarToolEnabled,recordToolUninstall,retryUninstalledToolC
   TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
-import {FOCUS_ID,FOCUS_STORE,FOCUS_SESSION,FOCUS_RULE_FIRST,FOCUS_PROTOCOL,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
-import {TIME_REVIEW_KEY} from '../../examples/sidebar-tools/time-review/trusted/model.js';
-import {requestStayFocusOperation,runTrustedStayFocusOperation,probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
+import {FOCUS_ID,FOCUS_STORE,FOCUS_SESSION,FOCUS_RULE_FIRST,FOCUS_PROTOCOL,focusPackageHash} from '../../projects/stay-focus/trusted/policy.js';
+import {TIME_REVIEW_KEY} from '../../projects/time-review/trusted/model.js';
+import {requestStayFocusOperation,runTrustedStayFocusOperation,probeStayFocusService} from '../../projects/stay-focus/trusted/tool-host.js';
 import {isSidebarToolHostSender,isSidebarToolManagementSender} from '../../src/sidebar-tools/sender.js';
-import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/stay-focus/trusted/host-controls.js';
+import {createStayFocusPermissionControls} from '../../projects/stay-focus/trusted/host-controls.js';
 
 const tool={format:'opendesk.sidebar-tool.v1',id:'stay-focus',version:'1.0.0',title:'Stay Focus',
   description:'Boundary regression',capabilities:['focus.control'],html:'<main>Focus</main>',css:'',js:'void 0;'};

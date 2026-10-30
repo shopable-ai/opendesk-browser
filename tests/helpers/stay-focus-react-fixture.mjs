@@ -92,7 +92,7 @@ export function mountStayFocusReact({url='https://m.youtube.com/',title='YouTube
     removeEventListener:(key,fn)=>{if(listeners.get('document:'+key)===fn)listeners.delete('document:'+key);}};
   // Vite emits the single audited Classic IIFE actually installed in Chrome.
   // The authored main.js is ESM and must never be evaluated as a raw VM Script.
-  const source=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/dist/tool.js',import.meta.url),'utf8');
+  const source=readFileSync(new URL('../../projects/stay-focus/dist/tool.js',import.meta.url),'utf8');
   runInNewContext(source,{globalThis:globals,document,URL});
   const visit=(item,visitor)=>{
     if(Array.isArray(item)){item.forEach(n=>visit(n,visitor));return;}

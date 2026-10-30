@@ -10,9 +10,9 @@ import {SIDEBAR_TOOL_STORE,sidebarToolStorageKey,validateSidebarToolPackage}
   from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool}
   from '../../src/ui/sidebar-tools/installation.js';
-import {PROMPT_ASSET_STORE} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
+import {PROMPT_ASSET_STORE} from '../../projects/prompt-shortcuts/trusted/asset-contract.js';
 
-const ROOT='examples/sidebar-tools/prompt-shortcuts';
+const ROOT='projects/prompt-shortcuts';
 const TOOL_ID='prompt-shortcuts',STORAGE=sidebarToolStorageKey(TOOL_ID);
 const clone=value=>value===undefined?undefined:structuredClone(value);
 const pack=()=>createSidebarToolPackage(ROOT);

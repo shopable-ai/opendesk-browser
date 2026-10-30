@@ -1,7 +1,7 @@
 import './model.js';
-import {ANALYTICS_PROTOCOL,ANALYTICS_PAGE_SCOPE_CHECK} from '../../../../src/analytics/contract.js';
-import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {ANALYTICS_PROTOCOL,ANALYTICS_PAGE_SCOPE_CHECK} from '../../../src/analytics/contract.js';
+import {SIDEBAR_TOOL_STORE} from '../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolEnabled} from '../../../src/ui/sidebar-tools/lifecycle.js';
 import {PROMPT_ID,PROMPT_DATA_STORE,PROMPT_PICKER_PROTOCOL,supportedOrigin,allowedPromptSite,installedPromptTool} from './policy.js';
 import {PROMPT_RAIL_OPEN_PROTOCOL} from './rail-open.js';
 import {PROMPT_ASSET_STORE,imageAssetDataUrl} from './asset-contract.js';

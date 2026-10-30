@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 
-const root=resolve('examples/sidebar-tools/adblock');
+const root=resolve('projects/adblock');
 const read=path=>readFile(resolve(root,path),'utf8');
 
 test('AdBlock picker stays textual while secondary rule operations use host-owned icons',async()=>{

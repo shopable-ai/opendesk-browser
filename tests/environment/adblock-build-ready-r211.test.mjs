@@ -8,7 +8,7 @@ import {tmpdir} from 'node:os';
 import {createSidebarToolPackage,checkCompiledToolBuildReady} from '../../scripts/build-sidebar-tool.mjs';
 import {inspectSidebarToolProject} from '../../scripts/stage-sidebar-tool.mjs';
 
-const PROJECT=resolve('examples/sidebar-tools/adblock');
+const PROJECT=resolve('projects/adblock');
 const sha256=value=>createHash('sha256').update(value).digest('hex');
 const read=path=>readFile(join(PROJECT,path));
 const inputs=[

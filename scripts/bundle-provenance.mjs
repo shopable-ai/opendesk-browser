@@ -33,18 +33,18 @@ function reviewedCompiledTimeReview(target,path,root){
 // inputs are exact file-blob pinned; the bundle still has a fixed entry point,
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
-  'examples/sidebar-tools/adblock/trusted/dnr-session.js':'d3e221eac17261a34751cb8ab035c622eb1b42a8',
-  'examples/sidebar-tools/adblock/trusted/service.js':'947294e8b961d3417491d1b248c8296228510564',
-  'examples/sidebar-tools/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
-  'examples/sidebar-tools/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
-  'examples/sidebar-tools/adblock/trusted/lifecycle.js':'d63c2b7ea5faa86c9bf39d1b9a935859d55c4636',
-  'examples/sidebar-tools/adblock/trusted/tool-host.js':'fe96d9d1a9b1e737f42c3f875c1622d4cd5ea076',
-  'examples/sidebar-tools/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
-  'examples/sidebar-tools/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',
-  'examples/sidebar-tools/adblock/trusted/cosmetic.js':'da37f1f0e8f40860ac059ef2f43a27daeeb6d3d3',
-  'examples/sidebar-tools/adblock/trusted/page.js':'8a65d7d913b84282cc6d3b5f21eed1caf862b296',
-  'examples/sidebar-tools/adblock/trusted/picker.js':'dd92c939a12a72be2239634bddf8fd878ca153dc',
-  'examples/sidebar-tools/adblock/trusted/cosmetic-policy.js':'65804d9e8455fb9521f789744e4b3d276876b455'
+  'projects/adblock/trusted/dnr-session.js':'6cf976c7f89ab6e9aec04bf7bc92b5189e8b3cca',
+  'projects/adblock/trusted/service.js':'47f424bd9591cb8dac84b03caf04ef8fc2e0ca99',
+  'projects/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
+  'projects/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
+  'projects/adblock/trusted/lifecycle.js':'50143f14fa3a1e9434f5c79bd2df37db83c245bb',
+  'projects/adblock/trusted/tool-host.js':'e5e9962a63bb929560aab4701107dc9e275358a2',
+  'projects/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
+  'projects/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',
+  'projects/adblock/trusted/cosmetic.js':'da37f1f0e8f40860ac059ef2f43a27daeeb6d3d3',
+  'projects/adblock/trusted/page.js':'8f723ff1feb98ee40d680f4e6cf87f39892c1c06',
+  'projects/adblock/trusted/picker.js':'dd92c939a12a72be2239634bddf8fd878ca153dc',
+  'projects/adblock/trusted/cosmetic-policy.js':'65804d9e8455fb9521f789744e4b3d276876b455'
 });
 const preapprovedFixedTargets=new Set(['sw.js',...Object.values(FIXED_OUTPUTS)]);
 function reviewedCompiledAdblock(target,path,root){
@@ -216,15 +216,15 @@ export function trustedToolShellStyle(root=process.cwd()){
 const compiledPromptShortcutInputs=Object.freeze({
   // Reviewed dffeec493 model-only delta: discard retired navigation settings;
   // prompt/image handling, current settings and quotas remain unchanged.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/model.js':'730496110c2ebc316eb74e1c29ac66dc74d60561',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/policy.js':'4c6f608a26e0d69278c18a0afda94b3c8ce8274c',
+  'projects/prompt-shortcuts/trusted/model.js':'730496110c2ebc316eb74e1c29ac66dc74d60561',
+  'projects/prompt-shortcuts/trusted/policy.js':'6a837d85880378262b21b8e51bb18d81e52d0a90',
   // OD entry restored from ed7ceb65; first built-in rail button only, using already pinned SW gesture bridge.
   // No origin, permission, storage, navigation arrows, sender scope or injection surface changed.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/page.js':'96290d6c96b957bf530c37f67bb74ddbc4b8d6fb',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js':'b960044deb5e7d059c26d5d520f912c0b72c7b0e',
+  'projects/prompt-shortcuts/trusted/page.js':'3a9d4aac86b5c5d7ba12e58100b8cdc3e2fbf602',
+  'projects/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
+  'projects/prompt-shortcuts/trusted/asset-host.js':'8de12e8e40c083392a58e07a5cc4a45eab79c56f',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
-  'examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js':'5f0184b28abe5d8e03855f9c130d45faba807d1e'
+  'projects/prompt-shortcuts/trusted/rail-open.js':'3131842ad495be96fcf26c83571f7061bc66c3d7'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
 // Installer is shared by Marketplace. Allow only the byte-pinned asset identity
@@ -232,8 +232,8 @@ const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.j
 const promptAssetContractTargets=new Set([...promptFixedTargets,'ui/marketplace.js']);
 const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
-  const targets=path==='examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js'?promptAssetContractTargets:
-    path==='examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:promptFixedTargets;
+  const targets=path==='projects/prompt-shortcuts/trusted/asset-contract.js'?promptAssetContractTargets:
+    path==='projects/prompt-shortcuts/trusted/rail-open.js'?promptRailTargets:promptFixedTargets;
   if(!targets.has(target)||!Object.hasOwn(compiledPromptShortcutInputs,path))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
@@ -251,18 +251,18 @@ function reviewedCompiledPromptShortcuts(target,path,root){
 // These blob pins intentionally require review when privileged code changes.
 const compiledStayFocusInputs=Object.freeze({
   // R6.10: reviewed b8c0596e4; only two shared presentation class names changed.
-  'examples/sidebar-tools/stay-focus/trusted/react-controls.tsx':'2e490028e19fbb048c2b9aa49073e7ee94100daf',
-  'examples/sidebar-tools/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
-  'examples/sidebar-tools/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
-  'examples/sidebar-tools/stay-focus/trusted/host-controls.js':'65346648494b88fbf434a5a951769edba445c32e',
-  'examples/sidebar-tools/stay-focus/trusted/lifecycle.js':'77afc647cf1345462751964d7c74c2ee8b0fbce2',
-  'examples/sidebar-tools/stay-focus/trusted/model.js':'3634f018d4282af101e408b5acf77d4d08626fe0',
-  'examples/sidebar-tools/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
-  'examples/sidebar-tools/stay-focus/trusted/policy.js':'508056b5ad9e1651efec29fbcfe87676c4fd0495',
-  'examples/sidebar-tools/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
-  'examples/sidebar-tools/stay-focus/trusted/rule-ownership.js':'f5bd5722b94a772bb461ff00882ae8cf66ce9d29',
-  'examples/sidebar-tools/stay-focus/trusted/service.js':'b1dc68d94740b704706766ebf3f99c05cec9ad09',
-  'examples/sidebar-tools/stay-focus/trusted/tool-host.js':'cb7ac4b76be907d07d699c802fc576de6074d0b9'
+  'projects/stay-focus/trusted/react-controls.tsx':'0c14d175188a33532004be0869fd6b237f9f6fb7',
+  'projects/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
+  'projects/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
+  'projects/stay-focus/trusted/host-controls.js':'65346648494b88fbf434a5a951769edba445c32e',
+  'projects/stay-focus/trusted/lifecycle.js':'77afc647cf1345462751964d7c74c2ee8b0fbce2',
+  'projects/stay-focus/trusted/model.js':'9f92ff1df68e9570cbf1e83c247efedce1f9ae8b',
+  'projects/stay-focus/trusted/page-notice.js':'a2cf3feda9902cfe0bb64187f11119ff0f2a2b20',
+  'projects/stay-focus/trusted/policy.js':'a62b4ec56ac2754f32f31a016f7cc35b14b1c86d',
+  'projects/stay-focus/trusted/rule-host.js':'b6aa04a83ca05d2c11bdee6dd65bca78b9b26841',
+  'projects/stay-focus/trusted/rule-ownership.js':'7c063535097df818cca43d76cc5fc77b3987047e',
+  'projects/stay-focus/trusted/service.js':'2e387c7bfdca4add8093489368777b4a651d0c01',
+  'projects/stay-focus/trusted/tool-host.js':'58962523b7c74a49cf51059233a0d43dea7a9685'
 });
 // The shared lifecycle module is statically linked by other approved hosts
 // (including knowledge-host). Reuse AdBlock's exact fixed-output registry:
@@ -344,9 +344,9 @@ function reviewedCompiledSharedMarkdown(target,path,root){
 // Only byte-reviewed first-party Clipper page/policy sources enter fixed
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
-  'projects/web-markdown-clipper/trusted/page.js':'24c9a9b38965bc1a02931a243a99a5bd9edc5cab',
-  'projects/web-markdown-clipper/trusted/policy.js':'35b60045acd85bc021f25e9e97b5de3474e44d08',
-  'projects/web-markdown-clipper/trusted/notes-store.js':'a801ebcf0b932cf4a9425588a8e2dbada0de3963'
+  'projects/web-markdown-clipper/trusted/page.js':'6bfc9eb7949659cbd645fe8285553c8fd4ef64ea',
+  'projects/web-markdown-clipper/trusted/policy.js':'30b4c35933a813e394eb9173c034b1a21927f6d1',
+  'projects/web-markdown-clipper/trusted/notes-store.js':'34547422b3a85be15cfad179e8df5993146c5b80'
 });
 function reviewedCompiledWebClipper(target,path,root){
   // Notes storage is the reviewed first-party Clipper-only service imported by
@@ -382,11 +382,11 @@ const compiledReadingTocInputs=Object.freeze({
   'projects/reading-toc/trusted/overview.js':'a148dc645ec49b22f0f0a911f4861960442617b5',
   'projects/reading-toc/trusted/model.js':'9a7320084caa2efa2acb40dcaf5c00e60659bc66',
   'projects/reading-toc/trusted/placement.js':'b29ddc6e66d0203fefccbcb98c071b046aaaa2c0',
-  'projects/reading-toc/trusted/page.js':'558571f1d95e2ac3eec1212b9ee78bb396678582',
-  'projects/reading-toc/trusted/view.js':'e79fe3289544f09f13ebd5c26a382e70526be3f6',
-  'projects/reading-toc/trusted/policy.js':'16a4f6693afaa807811d53f30adf32aa31ffbd13',
+  'projects/reading-toc/trusted/page.js':'fe9fa7093b570c280bf9f3304002f50eda4bdae9',
+  'projects/reading-toc/trusted/view.js':'af923d91c57904138245b3741c4bbbdb7a873014',
+  'projects/reading-toc/trusted/policy.js':'2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2',
   'projects/reading-toc/trusted/locales.generated.js':'8e1458eb0325a897514e7bfaf6aad14a474dfeff',
-  'projects/reading-toc/trusted/existing-tabs.js':'f5d9882cd1de65ef2ed0115c4d002114575c1058'
+  'projects/reading-toc/trusted/existing-tabs.js':'e82a3e3b43debfff756180ccf1da110b7dfd8172'
 });
 function reviewedCompiledReadingToc(target,path,root){
   if(!Object.hasOwn(compiledReadingTocInputs,path))return null;
@@ -415,7 +415,7 @@ const compiledHostStyleInputs=Object.freeze({
   'projects/bookmark-manager/trusted/host.css':'5bbe841558c86389994defd93f6077aa928a9cf9',
   'examples/sidebar-tools/cookie-editor/trusted/host.css':'b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f',
   'examples/sidebar-tools/ai-vip-share/trusted/host.css':'634786710c463671b9c24c424725bf6c7ff4ec8e',
-  'examples/sidebar-tools/prompt-shortcuts/trusted/host.css':'aa08e38ebd56e34c49c1c07be5a1b6727426865b',
+  'projects/prompt-shortcuts/trusted/host.css':'aa08e38ebd56e34c49c1c07be5a1b6727426865b',
   'projects/reading-toc/trusted/host.css':'93db2443725c8fac84dd94585d08d933766c2040'
 });
 function reviewedCompiledHostStyle(target,path,root){
@@ -471,7 +471,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
       reviewedCompiledReadingToc(chunk.fileName,path,root)||
       reviewedCompiledHostStyle(chunk.fileName,path,root);
-    if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|src\/vendor\/)/.test(path))
+    if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|projects\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,
       ...(reviewedSource?{reviewedFirstPartyBlob:reviewedSource}:{})};

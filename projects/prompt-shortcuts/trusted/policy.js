@@ -1,6 +1,6 @@
 // Fixed, audited website-scope policy. No sandbox package code is executed here.
-import {validateSidebarToolPackage,sidebarToolStorageKey,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
-import {sidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {validateSidebarToolPackage,sidebarToolStorageKey,sidebarToolPackageHash} from '../../../src/ui/sidebar-tools/package.js';
+import {sidebarToolEnabled} from '../../../src/ui/sidebar-tools/lifecycle.js';
 import './model.js';
 export const PROMPT_ID='prompt-shortcuts';
 export const PROMPT_CAPABILITY='page.prompts';

@@ -2,10 +2,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
-import {initPromptShortcuts} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/page.js';
-import {PROMPT_RAIL_OPEN_PROTOCOL} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/rail-open.js';
+import {initPromptShortcuts} from '../../projects/prompt-shortcuts/trusted/page.js';
+import {PROMPT_RAIL_OPEN_PROTOCOL} from '../../projects/prompt-shortcuts/trusted/rail-open.js';
 import {PROMPT_ID,PROMPT_SITE_STORE,PROMPT_DATA_STORE,CHATGPT_ORIGIN,changePromptSiteGrant}
-  from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
+  from '../../projects/prompt-shortcuts/trusted/policy.js';
 import {installAnalyticsHost} from '../../src/analytics/host.js';
 import {ANALYTICS_STATE_KEY,ANALYTICS_PROTOCOL,ANALYTICS_PAGE_SCOPE_CHECK,ANALYTICS_DISCLOSURE_VERSION} from '../../src/analytics/contract.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
@@ -166,7 +166,7 @@ function fixture({pkg,library,grants,insertText=null,noEditor=false,rejectCopy=f
 // Real light-DOM shapes for defaults; query descendant/class selectors against
 // the tree rather than mirroring the production rule's selector strings.
 async function builtinPage(provider,{empty=false,custom=false}={}){
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'完整提示词🙂\n第二行'},null,()=> 'builtin-prompt');
   const library={schema:1,items:empty?[]:[row],settings:{webButtons:true}};
   const f=fixture({pkg,library,grants:{}}),deepSeek=provider==='DeepSeek';
@@ -309,7 +309,7 @@ for(const provider of ['DeepSeek','Gemini']){
 
 
 test('Default built-in rail puts OD first, followed by saved prompts and no transcript arrows',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const f=fixture({pkg,library:pkg.initialData.library,grants:{}});
   const controller=initPromptShortcuts({api:f.api,doc:f.doc,win:f.win});
   try{
@@ -335,7 +335,7 @@ test('Default built-in rail puts OD first, followed by saved prompts and no tran
 });
 
 test('R1.9.1 each of the three built-in commercial prompts inserts its full stored body',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const seed=pkg.initialData.library.items;
   assert.deepEqual(seed.map(row=>row.label),['插件','外包','提示']);
   for(const [index,row] of seed.entries()){
@@ -357,7 +357,7 @@ test('R1.9.1 each of the three built-in commercial prompts inserts its full stor
 });
 
 test('Every saved library displays the first OD entry and all real shortcuts',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const seed=pkg.initialData.library.items;
   const legacy=Array.from({length:5},(_,i)=>({...seed[0],
     id:'legacy-r191-'+i,label:'旧'+i,name:'历史提示词 '+i,
@@ -401,7 +401,7 @@ test('Every saved library displays the first OD entry and all real shortcuts',as
 });
 
 test('R1.13 ChatGPT rail: no second consent, one click-to-draft, independent enable lifecycle',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'检查项目\n列出风险'},null,()=> 'prompt-123456');
   const library={schema:1,items:[row],settings:{webButtons:true}};
@@ -522,7 +522,7 @@ function jumpDOM(node){
 }
 
 async function jumpPage({installed=true,enabled=true,webButtons=true,url=CHATGPT_ORIGIN+'/c/mock',customSite=false}={}){
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'完整正文\n第二行'},null,()=> 'jump-prompt');
   const library={schema:1,items:[row],settings:{webButtons}};
   const f=fixture({pkg,library,grants:{}});
@@ -588,7 +588,7 @@ test('Prompt Shortcuts never creates reply arrows or a conversation dock',async(
   }finally{f.controller.dispose();}
 });
 test('R1.5 IME composition prevents edit; corrupted line breaks never count as insertion success',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'第一行\n\n第三行🧑‍💻'},null,()=> 'prompt-r15');
   const library={schema:1,items:[row],settings:{webButtons:true}};
@@ -618,7 +618,7 @@ test('R1.5 IME composition prevents edit; corrupted line breaks never count as i
 });
 
 test('R1.5 reconstructs sibling editor paragraphs and empty lines without relying on flattened textContent',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'第一行\n\n第三行'},null,()=> 'prompt-r15-blocks');
   const grant=await changePromptSiteGrant({},pkg,'first',true);
@@ -651,7 +651,7 @@ test('R1.5 reconstructs sibling editor paragraphs and empty lines without relyin
 
 
 test('R1.11: when editor is missing, clipboard denial gives no false success',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'完整提示词\n第二行'},null,()=> 'prompt-r111');
   const grant=await changePromptSiteGrant({},pkg,'first',true);
@@ -672,7 +672,7 @@ test('R1.11: when editor is missing, clipboard denial gives no false success',as
 });
 
 test('R1.11: when editor is missing, entire multiline prompt is copied',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'第一行\n\n第三行🧑‍💻'},null,()=> 'prompt-r111-copy');
   const grant=await changePromptSiteGrant({},pkg,'first',true);
@@ -691,7 +691,7 @@ test('R1.11: when editor is missing, entire multiline prompt is copied',async()=
 });
 
 test('R2.6 narrow ChatGPT rail shows shortcuts immediately without a fold button',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'首行🧑‍💻\n\n第三行',label:'🧑‍💻中'},null,()=> 'prompt-r17-narrow');
   const grant=await changePromptSiteGrant({},pkg,'first',true);
@@ -715,7 +715,7 @@ test('R2.6 narrow ChatGPT rail shows shortcuts immediately without a fold button
 });
 
 test('R2.6 newly saved library entries appear on injected page via storage change without refresh',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const first=model.draft({body:'检查一：文字润色',label:'润色'},null,()=> 'prompt-r26-one');
   const second=model.draft({body:'检查二：新的提示词',label:'新建'},null,()=> 'prompt-r26-two');
@@ -737,7 +737,7 @@ test('R2.6 newly saved library entries appear on injected page via storage chang
 });
 
 async function readyPage(){
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'完整正文\n第二行'},null,()=> 'prompt-r18');
   const grants=await changePromptSiteGrant({},pkg,'first',true);
   const f=fixture({pkg,grants,library:{schema:1,items:[row],settings:{webButtons:true}}});
@@ -1272,7 +1272,7 @@ for(const region of ['aside','dialog']){
 
 
 test('R2 custom site exact two selectors, enabled lifecycle, ambiguous editor fail-closed',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'第一段\n\n中文🙂'},null,()=> 'site-prompt-1234');
   const library={schema:1,items:[row],settings:{webButtons:true}};
   const f=fixture({pkg,library});
@@ -1311,7 +1311,7 @@ const multisiteInputs=[
 // Reuse the page fixture with saved rules and a bounded editing-command model.
 // Exact selector lookup and Quill-shaped paragraphs do not run a CSS engine or Quill.
 async function multisiteInputPage(site){
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'第一段\n\n第二段🧑‍💻'},null,()=> 'multisite-prompt');
   const library={schema:1,items:[row],settings:{webButtons:true}};
@@ -1438,7 +1438,7 @@ for(const site of multisiteInputs){
 }
 
 test('R2 picker uses extension-owned message, exact document, unique semantic selector, Esc',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const library={schema:1,items:[],settings:{webButtons:true}};
   const f=fixture({pkg,library});f.win.location.href='https://example.org/compose';
   f.editor.tagName='textarea';f.editor.attributes.id='composer';
@@ -1476,7 +1476,7 @@ test('R2 picker uses extension-owned message, exact document, unique semantic se
 
 
 test('R2.1 site picker suppresses pointerup/dblclick, keyboard submission and supports Esc',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const library={schema:1,items:[],settings:{webButtons:true}};
   const f=fixture({pkg,library});f.win.location.href='https://example.org/compose';
   f.editor.tagName='textarea';f.editor.attributes.id='composer';
@@ -1528,7 +1528,7 @@ for(const scenario of [
   {name:'plain single-line',body:'继续',draft:'旧草稿',expected:'insert'}
 ]){
   test('R2.1 input '+scenario.name+' preflights before focus, preserving original text',async()=>{
-    const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+    const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
     const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:scenario.body},
       null,()=> 'input-12345678');
     const library={schema:1,items:[row],settings:{webButtons:true}};
@@ -1567,7 +1567,7 @@ for(const scenario of [
 
 for(const value of ['true','plaintext-only']){
   test('R2.2 cross-site anonymous contenteditable='+value+' uses scoped semantic selector',async()=>{
-    const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+    const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
     const f=fixture({pkg,library:{schema:1,items:[],settings:{webButtons:true}}});
     f.win.location.href='https://example.org/chat';
     // This fixture normally accelerates all timers to zero. A 65s picker
@@ -1623,7 +1623,7 @@ for(const value of ['true','plaintext-only']){
 }
 
 test('R2.3 rejects disjoint website selector and hides stale custom rail',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'安全正文🙂'},
     null,()=> 'scope-12345678');
   const library={schema:1,items:[row],settings:{webButtons:true}};
@@ -1656,7 +1656,7 @@ test('R2.3 rejects disjoint website selector and hides stale custom rail',async(
 });
 
 test('R2.3 refuses native edit when site steals focus during editor focus()',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'完整提示词🙂'},
     null,()=> 'focus-12345678');
   const library={schema:1,items:[row],settings:{webButtons:true}};
@@ -1705,7 +1705,7 @@ test('R2.7 transient fallback toast expires and old callback cannot hide a newer
 });
 
 test('R2.7 failed clipboard toast is bounded to five seconds and cleaned on disable',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const row=model.draft({body:'未能复制的提示词'},null,()=> 'prompt-r27-failure');
   const f=fixture({pkg,grants:{},noEditor:true,rejectCopy:true,
@@ -1902,7 +1902,7 @@ test('R2.8 long history scrolling keeps the shortcuts in the visible conversatio
 });
 
 test('Built-in empty library retains OD; subsequent saves, dark theme and disable stay correct',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const model=globalThis.OpenDeskPromptShortcutsModel;
   const make=i=>model.draft({label:'提'+i,body:'正文'+i},null,()=> 'prompt-r215-'+i);
   const f=fixture({pkg,library:{schema:1,items:[],settings:{webButtons:true}}});
@@ -1978,7 +1978,7 @@ test('R2.15 390px fallback aligns above composer, never overlays the input',asyn
 });
 
 test('R2.16 light-dark sites track system theme changes and release the media listener',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const row=globalThis.OpenDeskPromptShortcutsModel.draft({body:'主题响应正文'},null,()=> 'theme-test-row');
   const f=fixture({pkg,library:{schema:1,items:[row],settings:{webButtons:true}}});
   const listeners=new Set();let dark=false,scheme='light dark';
@@ -2015,7 +2015,7 @@ function pageScope(f,message=scopeMessage(f.win.location.href),sender=scopeWorke
   });
 }
 async function scopePage(t,{url=CHATGPT_ORIGIN+'/c/private',sites}={}){
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+  const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
   const library={schema:1,items:[],settings:{webButtons:false}};
   const f=fixture({pkg,library,noEditor:true});f.win.location.href=url;
   if(sites)f.values.set(PROMPT_DATA_STORE,{library,sites});

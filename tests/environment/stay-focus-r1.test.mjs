@@ -4,15 +4,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS,FOCUS_PAGE_NOTICE_PROTOCOL} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
-import {installFocusPageNotice} from '../../examples/sidebar-tools/stay-focus/trusted/page-notice.js';
+import {focusHost,hostnameMatches,focusRemovedOriginAffectsSite,focusLocalDay,FOCUS_MAX_GAP_MS,FOCUS_PAGE_NOTICE_PROTOCOL} from '../../projects/stay-focus/trusted/policy.js';
+import {installFocusPageNotice} from '../../projects/stay-focus/trusted/page-notice.js';
 import {emptyFocus,readFocus,focusSite,focusSiteScopesValid,focusSchedule,focusMatchingSite,focusPool,
-  focusBudget,focusReason,focusScheduleActive,settleFocus,focusDueReminder,focusSummary} from '../../examples/sidebar-tools/stay-focus/trusted/model.js';
-import {FOCUS_CATALOG,focusCatalogMatch,focusDefaultSites} from '../../examples/sidebar-tools/stay-focus/trusted/catalog.js';
-import {installStayFocusBlockedPage} from '../../examples/sidebar-tools/stay-focus/trusted/blocked.js';
-import {createStayFocusPermissionControls} from '../../examples/sidebar-tools/stay-focus/trusted/host-controls.js';
+  focusBudget,focusReason,focusScheduleActive,settleFocus,focusDueReminder,focusSummary} from '../../projects/stay-focus/trusted/model.js';
+import {FOCUS_CATALOG,focusCatalogMatch,focusDefaultSites} from '../../projects/stay-focus/trusted/catalog.js';
+import {installStayFocusBlockedPage} from '../../projects/stay-focus/trusted/blocked.js';
+import {createStayFocusPermissionControls} from '../../projects/stay-focus/trusted/host-controls.js';
 import {focusRuleForSite,wantedFocusRules,reconcileFocusRules,clearFocusRules,isFocusRuleId}
-  from '../../examples/sidebar-tools/stay-focus/trusted/rule-host.js';
+  from '../../projects/stay-focus/trusted/rule-host.js';
 
 const at=new Date(2026,9,13,12,0,0).getTime();
 const mkSite=(host,overrides={})=>({host,subdomains:true,enabled:true,mode:'limit',minutes:15,group:'',...overrides});
@@ -82,7 +82,7 @@ test('R5.9 existing Chrome idle permission never causes another native prompt',a
 });
 test('R3.1 Stay Focus CI resolves the current package version instead of pinning old artifacts',()=>{
   const workflow=readFileSync(new URL('../../.github/workflows/stay-focus-r1.yml',import.meta.url),'utf8');
-  assert.match(workflow,/examples\/sidebar-tools\/stay-focus\/tool\.config\.json/);
+  assert.match(workflow,/projects\/stay-focus\/tool\.config\.json/);
   assert.match(workflow,/artifacts\/sidebar-tools\/stay-focus\/\$version\/stay-focus\.opendesk-tool\.json/);
   assert.doesNotMatch(workflow,/artifacts\/sidebar-tools\/stay-focus\/1\.0\.0\//);
 });
@@ -317,10 +317,10 @@ test('DNR write failure and readback corruption are not called successful',async
   await assert.rejects(reconcileFocusRules(noPersist,wanted),error=>error.code==='E_FOCUS_DNR_MISMATCH');
 });
 test('independent Time Review never imported as model state or authority',async()=>{
-  const {FOCUS_STORE}=await import('../../examples/sidebar-tools/stay-focus/trusted/policy.js');
-  const {TIME_REVIEW_KEY}=await import('../../examples/sidebar-tools/time-review/trusted/model.js');
+  const {FOCUS_STORE}=await import('../../projects/stay-focus/trusted/policy.js');
+  const {TIME_REVIEW_KEY}=await import('../../projects/time-review/trusted/model.js');
   assert.notEqual(FOCUS_STORE,TIME_REVIEW_KEY);
-  const {FOCUS_ID}=await import('../../examples/sidebar-tools/stay-focus/trusted/policy.js');
+  const {FOCUS_ID}=await import('../../projects/stay-focus/trusted/policy.js');
   assert.equal(FOCUS_ID,'stay-focus');
 });
 
@@ -416,7 +416,7 @@ test('R5.6 daily budget saves only a validated edited value',async()=>{
 });
 
 test('R5.6 UI uses one React owner, shared icon controls and responsive styling',()=>{
-  const base=new URL('../../examples/sidebar-tools/stay-focus/',import.meta.url);
+  const base=new URL('../../projects/stay-focus/',import.meta.url);
   const css=readFileSync(new URL('src/style.css',base),'utf8');
   const js=readFileSync(new URL('src/main.js',base),'utf8');
   const html=readFileSync(new URL('src/index.html',base),'utf8');
@@ -524,7 +524,7 @@ test('R1.4 isolated page notice accepts fixed messages only, never duplicates or
 });
 
 test('R5.6 first-screen order is shared budget then sites, no preset buttons',()=>{
-  const base=new URL('../../examples/sidebar-tools/stay-focus/',import.meta.url);
+  const base=new URL('../../projects/stay-focus/',import.meta.url);
   const html=readFileSync(new URL('src/index.html',base),'utf8');
   const script=readFileSync(new URL('src/main.js',base),'utf8');
   assert.equal(html.trim(),'<div id="tool-app" aria-label="Stay Focus 应用"></div>');
@@ -539,14 +539,14 @@ test('R5.6 first-screen order is shared budget then sites, no preset buttons',()
 });
 
 test('R5.6 React has button-driven budget, site, schedule, group and whitelist writes',()=>{
-  const script=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/src/main.js',import.meta.url),'utf8');
+  const script=readFileSync(new URL('../../projects/stay-focus/src/main.js',import.meta.url),'utf8');
   for(const operation of ['focus.group.put','focus.site.put','focus.site.remove',
     'focus.schedule.set','focus.whitelist.set','focus.session.start','focus.session.stop'])
     assert.ok(script.includes(operation),'missing business operation: '+operation);
   assert.doesNotMatch(script,/addEventListener\('submit'|type=['"]submit['"]/);
   assert.doesNotMatch(script,/request\('currentPage\.info'/,
     'current-site discovery belongs to extension-owned trusted React');
-  const controller=readFileSync(new URL('../../examples/sidebar-tools/stay-focus/trusted/focus-controller.js',import.meta.url),'utf8');
+  const controller=readFileSync(new URL('../../projects/stay-focus/trusted/focus-controller.js',import.meta.url),'utf8');
   assert.match(script,/controller\.readStatus\(\)/,
     'the installed React UI must read the one Controller, not bypass it');
   assert.match(controller,/request\('focus\.status'/,
@@ -578,7 +578,7 @@ test('R5.6 editor locks the domain and preserves paused rule state',async()=>{
 });
 
 test('R5.1 portable preview embeds the exact installable Stay Focus HTML/CSS/JS',()=>{
-  const base=new URL('../../examples/sidebar-tools/stay-focus/',import.meta.url);
+  const base=new URL('../../projects/stay-focus/',import.meta.url);
   const preview=readFileSync(new URL('preview/index.html',base),'utf8');
   const prefix='<script type="application/json" id="sf-bundle">';
   const begin=preview.indexOf(prefix);
@@ -598,7 +598,7 @@ test('R5.1 portable preview embeds the exact installable Stay Focus HTML/CSS/JS'
   assert.equal(embedded.runtime.kind,'PREVIEW_SHARED_UI_ADAPTER_NOT_NATIVE');
   assert.equal(embedded.runtime.reactVersion,'19.2.0');
   assert.equal(embedded.runtime.react,readFileSync(
-    new URL('../../../src/libs/page-frameworks/react-19.2.0.js',base),'utf8'));
+    new URL('../../src/libs/page-frameworks/react-19.2.0.js',base),'utf8'));
   assert.equal(embedded.runtime.adapter,readFileSync(
     new URL('preview/ui-adapter.js',base),'utf8'));
   assert.match(embedded.runtime.css,/od-shared-switch/);

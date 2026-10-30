@@ -157,7 +157,7 @@ async function state(){
 async function run(){
   await connect();
   await call('Emulation.setDeviceMetricsOverride',{width:1200,height:1000,deviceScaleFactor:1,mobile:false});
-  await call('Page.navigate',{url:pathToFileURL(resolve('examples/sidebar-tools/prompt-shortcuts/preview/index.html')).href});
+  await call('Page.navigate',{url:pathToFileURL(resolve('projects/prompt-shortcuts/preview/index.html')).href});
   await poll('document.readyState==="complete"&&document.querySelectorAll(".prompt-card").length===3','three first-install demo cards');
   await waitPreviewRail();
   assert.equal(await evalChrome('document.querySelectorAll("#pageRail .page-shortcut").length'),3,
@@ -576,7 +576,7 @@ async function run(){
   for(let i=0;i<20&&!fileChooserEvents.length;i++)await sleep(80);
   assert(fileChooserEvents.length>=1,'the visible Choose Image button opens the real file picker');
   report.r41NativePicker=true;
-  const previewHTML=await readFile(resolve('examples/sidebar-tools/prompt-shortcuts/preview/index.html'),'utf8');
+  const previewHTML=await readFile(resolve('projects/prompt-shortcuts/preview/index.html'),'utf8');
   const pngBase64=previewHTML.split("const PREVIEW_OFFLINE_PNG='")[1]?.split("'")[0]?.split(',')[1];
   assert(pngBase64,'source-bound PNG fixture');
   const imageFilePath=join(profile,'r37-file.png');

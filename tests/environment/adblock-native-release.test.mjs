@@ -12,8 +12,8 @@ import {packageFingerprint} from '../../scripts/verify-package.mjs';
 import {verifyAdblockNativeRelease,MANUAL_COSMETIC_CASES}
   from '../../scripts/verify-adblock-native-release.mjs';
 import {ADBLOCK_COSMETIC_STORE}
-  from '../../examples/sidebar-tools/adblock/trusted/cosmetic-policy.js';
-import {ADBLOCK_STORE} from '../../examples/sidebar-tools/adblock/trusted/policy.js';
+  from '../../projects/adblock/trusted/cosmetic-policy.js';
+import {ADBLOCK_STORE} from '../../projects/adblock/trusted/policy.js';
 
 const digest=value=>createHash('sha256').update(value).digest('hex');
 const inputs={

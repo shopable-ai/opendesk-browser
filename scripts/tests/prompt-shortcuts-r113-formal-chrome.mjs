@@ -12,15 +12,15 @@ import {createSidebarToolPackage,encodeSidebarToolPackage} from '../build-sideba
 
 const out=resolve(process.argv[2]||'artifacts/prompt-shortcuts-r113-formal-chrome');
 await mkdir(out,{recursive:true});
-const pkg=await createSidebarToolPackage('examples/sidebar-tools/prompt-shortcuts');
+const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
 assert.equal(pkg.id,'prompt-shortcuts');
-const config=JSON.parse(await readFile('examples/sidebar-tools/prompt-shortcuts/tool.config.json','utf8'));
+const config=JSON.parse(await readFile('projects/prompt-shortcuts/tool.config.json','utf8'));
 assert.equal(pkg.version,config.version,'formal candidate must match the current tool manifest');
 assert.equal(pkg.scripts?.length,1);
 assert.equal(pkg.scripts[0].name,'trusted/model.js');
 // Read the SAME offline raster from the original full preview as browser fixture.
 // Official model still validates genuine HTTPS URLs; no data: is stored or exported.
-const previewSource=await readFile('examples/sidebar-tools/prompt-shortcuts/preview/index.html','utf8');
+const previewSource=await readFile('projects/prompt-shortcuts/preview/index.html','utf8');
 const fixtureMarker="const PREVIEW_OFFLINE_PNG='data:image/png;base64,";
 const fixtureIndex=previewSource.indexOf(fixtureMarker);
 assert(fixtureIndex>=0,'original source-bound preview image exists');

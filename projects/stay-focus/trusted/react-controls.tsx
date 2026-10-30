@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {useSettingsEffect} from '../../../../src/ui/react/use-settings-effect.ts';
+import {useSettingsEffect} from '../../../src/ui/react/use-settings-effect.ts';
 
 // This button is in the fixed extension-owned React tree above the sandbox.
 // It is intentionally not an iframe approval or a second confirmation dialog.

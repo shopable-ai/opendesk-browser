@@ -1,10 +1,10 @@
 // Fixed SW owner of the AdBlock state and Chrome DNR namespace.
 // Installed iframe bytes are NEVER imported/executed in the privileged worker.
-import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords} from '../../../../src/ui/sidebar-tools/lifecycle.js';
-import {requireCompleteInstalledSidebarTools} from '../../../../src/ui/sidebar-tools/installation.js';
-import {writeVerifiedLocalValue,sameStorageValue} from '../../../../src/ui/sidebar-tools/storage-state.js';
-import {isSidebarToolHostSender,isSidebarToolManagementSender} from '../../../../src/sidebar-tools/sender.js';
+import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash} from '../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords} from '../../../src/ui/sidebar-tools/lifecycle.js';
+import {requireCompleteInstalledSidebarTools} from '../../../src/ui/sidebar-tools/installation.js';
+import {writeVerifiedLocalValue,sameStorageValue} from '../../../src/ui/sidebar-tools/storage-state.js';
+import {isSidebarToolHostSender,isSidebarToolManagementSender} from '../../../src/sidebar-tools/sender.js';
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PROTOCOL,ADBLOCK_SERVICE_VERSION,
   ADBLOCK_STORE,ADBLOCK_PERMISSION,ADBLOCK_MAX_EXCEPTIONS,ADBLOCK_OPERATIONS,ADBLOCK_PAGE_PROTOCOL,
   adblockError,adblockHost,readAdblockState} from './policy.js';

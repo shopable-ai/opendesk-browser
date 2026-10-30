@@ -6,8 +6,8 @@ import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT} from '../../src/ui/sidebar-tools
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE}
   from '../../src/ui/sidebar-tools/lifecycle.js';
 import {FOCUS_ID,FOCUS_RULE_FIRST,FOCUS_SESSION,FOCUS_STORE,FOCUS_ALARM}
-  from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
-import {probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
+  from '../../projects/stay-focus/trusted/policy.js';
+import {probeStayFocusService} from '../../projects/stay-focus/trusted/tool-host.js';
 
 const focusTool={format:SIDEBAR_TOOL_FORMAT,id:FOCUS_ID,version:'1.0.0',
   title:'Stay Focus',description:'bounded native cleanup regression',

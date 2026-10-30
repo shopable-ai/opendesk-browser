@@ -196,7 +196,7 @@ test('real approval disarms review timer while the Chrome write is still unresol
 });
 
 test('React follows uncertain writes with a single status read, not replay',async()=>{
-  const src=await readFile(new URL('../../examples/sidebar-tools/adblock/src/App.jsx',import.meta.url),'utf8');
+  const src=await readFile(new URL('../../projects/adblock/src/App.jsx',import.meta.url),'utf8');
   assert.match(src,/needsReadback=true/);
   assert.match(src,/if\(queued\.current\|\|needsReadback\)/);
   assert.match(src,/void refresh\(true\)/);

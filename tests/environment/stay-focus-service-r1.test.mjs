@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createStayFocusService,installStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/service.js';
-import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js';
-import {FOCUS_PROTOCOL,FOCUS_STORE,FOCUS_PAGE_NOTICE_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,focusPackageHash} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
+import {createStayFocusService,installStayFocusService} from '../../projects/stay-focus/trusted/service.js';
+import {stopStayFocusForTool,cleanupUninstalledStayFocus} from '../../projects/stay-focus/trusted/lifecycle.js';
+import {FOCUS_PROTOCOL,FOCUS_STORE,FOCUS_PAGE_NOTICE_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,focusPackageHash} from '../../projects/stay-focus/trusted/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 

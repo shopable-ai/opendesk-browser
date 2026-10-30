@@ -5,10 +5,10 @@ import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
 import {PROMPT_ASSET_STORE,PROMPT_ASSET_OPERATIONS,imageAssetDataUrl} from
-  '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
-import {executePromptAsset} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-host.js';
-import {PROMPT_DATA_STORE} from '../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
-const ROOT='examples/sidebar-tools/prompt-shortcuts';
+  '../../projects/prompt-shortcuts/trusted/asset-contract.js';
+import {executePromptAsset} from '../../projects/prompt-shortcuts/trusted/asset-host.js';
+import {PROMPT_DATA_STORE} from '../../projects/prompt-shortcuts/trusted/policy.js';
+const ROOT='projects/prompt-shortcuts';
 const PNG='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==';
 const dataUrl='data:image/png;base64,'+PNG;
 function mockChrome(){

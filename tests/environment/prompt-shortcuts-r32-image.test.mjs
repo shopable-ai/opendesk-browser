@@ -6,7 +6,7 @@ import {runInNewContext} from 'node:vm';
 import {webcrypto} from 'node:crypto';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 
-const ROOT='examples/sidebar-tools/prompt-shortcuts';
+const ROOT='projects/prompt-shortcuts';
 const read=path=>readFile(ROOT+'/'+path,'utf8');
 const id='image-button-123456';
 async function model(){

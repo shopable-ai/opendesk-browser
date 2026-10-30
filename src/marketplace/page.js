@@ -9,8 +9,8 @@ import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   requireCompleteInstalledSidebarTools,
   TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 import {MARKET_PANEL_NAV_PROTOCOL,marketPanelNavigationKey,validMarketPanelNavigation} from './panel-navigation.js';
-import {FOCUS_ID,FOCUS_CAPABILITY} from '../../examples/sidebar-tools/stay-focus/trusted/policy.js';
-import {probeStayFocusService} from '../../examples/sidebar-tools/stay-focus/trusted/tool-host.js';
+import {FOCUS_ID,FOCUS_CAPABILITY} from '../../projects/stay-focus/trusted/policy.js';
+import {probeStayFocusService} from '../../projects/stay-focus/trusted/tool-host.js';
 import {MARKET_INTENTS_STORE,loadReviewIntent,marketSubjectRoute,consumeReviewIntent,settleReviewIntent,closeUnjournaledReview} from './intent.js';
 import {MARKET_BATCH_STORE,readMarketBatch,createMarketBatch,marketBatchUnresolved,
   reconcileQueuedAfterInterruption,withMarketBatchLock} from './batch.js';

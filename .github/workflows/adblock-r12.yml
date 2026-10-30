@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'examples/sidebar-tools/adblock/**'
-      - '!examples/sidebar-tools/adblock/adblock.opendesk-tool.json'
+      - 'projects/adblock/**'
+      - '!projects/adblock/adblock.opendesk-tool.json'
       - 'src/sw.js'
       - 'src/entrypoints/sidebar-tool-host.js'
       - 'src/ui/sidebar-tools.js'
@@ -73,19 +73,19 @@ jobs:
       - name: Compile current AdBlock React before testing or packaging
         run: |
           node scripts/build-adblock-react.mjs
-          sha256sum examples/sidebar-tools/adblock/dist/tool.js examples/sidebar-tools/adblock/dist/tool.css
+          sha256sum projects/adblock/dist/tool.js projects/adblock/dist/tool.css
       # The checked-in official JSON may belong to the previous release.
       # Test the newly compiled candidate in this disposable Actions checkout;
       # this is NOT a commit or a native-authorized formal promotion.
       - name: Build exact candidate and stage it locally before source-bound tests
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --out artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/adblock --out artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
           test -s artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
           sha256sum artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
-          sha256sum examples/sidebar-tools/adblock/rules/domains.js
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --promote-from artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --check-project
-          cmp artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          sha256sum projects/adblock/rules/domains.js
+          node scripts/build-sidebar-tool.mjs projects/adblock --promote-from artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/adblock --check-project
+          cmp artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json projects/adblock/adblock.opendesk-tool.json
       - name: Independent AdBlock boundary and adversarial tests
         run: |
           node --test tests/environment/adblock-r12.test.mjs tests/environment/adblock-host-controls-r13.test.mjs tests/environment/adblock-preview-contract.test.mjs tests/environment/adblock-navigation-r15.test.mjs tests/environment/stay-focus-boundary-r1.test.mjs tests/environment/verify-package-react-constructor.test.mjs tests/environment/react-dom-input-csp-r3331.test.mjs
@@ -118,16 +118,16 @@ jobs:
           sha256sum artifacts/previews/adblock/chromium/adblock-preview-chrome.json
       - name: Check candidate source identity - not native approval yet
         run: |
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --promote-from artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --check-project
-          cmp artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json examples/sidebar-tools/adblock/adblock.opendesk-tool.json
-          cmp dist/production/official-tools/adblock/adblock.opendesk-tool.json examples/sidebar-tools/adblock/adblock.opendesk-tool.json
-          sha256sum examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/adblock --promote-from artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/adblock --check-project
+          cmp artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json projects/adblock/adblock.opendesk-tool.json
+          cmp dist/production/official-tools/adblock/adblock.opendesk-tool.json projects/adblock/adblock.opendesk-tool.json
+          sha256sum projects/adblock/adblock.opendesk-tool.json
       - name: Preserve the exact compiled React inputs for native-gated publishing
         run: |
           mkdir -p artifacts/adblock-r24-react
-          cp examples/sidebar-tools/adblock/dist/tool.js artifacts/adblock-r24-react/tool.js
-          cp examples/sidebar-tools/adblock/dist/tool.css artifacts/adblock-r24-react/tool.css
+          cp projects/adblock/dist/tool.js artifacts/adblock-r24-react/tool.js
+          cp projects/adblock/dist/tool.css artifacts/adblock-r24-react/tool.css
       - name: Preserve exact candidate - not native approval yet
         uses: actions/upload-artifact@v4
         with:
@@ -138,8 +138,8 @@ jobs:
             dist/production/
             artifacts/sidebar-tools/adblock/
             artifacts/adblock-r24-react/
-            examples/sidebar-tools/adblock/dist/
-            examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+            projects/adblock/dist/
+            projects/adblock/adblock.opendesk-tool.json
             artifacts/previews/adblock/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json
@@ -173,12 +173,12 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           test -s dist/production/manifest.json
           # Download the exact source-job compiled files and its source-bound receipt.
-          test -s examples/sidebar-tools/adblock/dist/tool.js
-          test -s examples/sidebar-tools/adblock/dist/tool.css
-          test -s examples/sidebar-tools/adblock/dist/build-ready.json
-          cmp examples/sidebar-tools/adblock/dist/tool.js artifacts/adblock-r24-react/tool.js
-          cmp examples/sidebar-tools/adblock/dist/tool.css artifacts/adblock-r24-react/tool.css
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --check-project
+          test -s projects/adblock/dist/tool.js
+          test -s projects/adblock/dist/tool.css
+          test -s projects/adblock/dist/build-ready.json
+          cmp projects/adblock/dist/tool.js artifacts/adblock-r24-react/tool.js
+          cmp projects/adblock/dist/tool.css artifacts/adblock-r24-react/tool.css
+          node scripts/build-sidebar-tool.mjs projects/adblock --check-project
           shasum -a 256 dist/production/sw.js
           shasum -a 256 dist/production/official-tools/adblock/adblock.opendesk-tool.json
       - uses: browser-actions/setup-chrome@v2
@@ -234,7 +234,7 @@ jobs:
         run: |
           set -euo pipefail
           candidate=artifacts/sidebar-tools/adblock/candidate.opendesk-tool.json
-          official=examples/sidebar-tools/adblock/adblock.opendesk-tool.json
+          official=projects/adblock/adblock.opendesk-tool.json
           test -s "$candidate"
           test -s dist/production/official-tools/adblock/adblock.opendesk-tool.json
           cmp "$candidate" dist/production/official-tools/adblock/adblock.opendesk-tool.json
@@ -247,7 +247,7 @@ jobs:
           git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
           if ! git diff --quiet "$REVIEWED_HEAD" refs/remotes/origin/main -- \
               src scripts manifest.json native-agent/local-project-source-contract.mjs \
-              examples/sidebar-tools/adblock \
+              projects/adblock \
               src/ui/tool.html \
               src/ui/sidebar-tools.js \
               src/ui/tool-shell.css \
@@ -289,12 +289,12 @@ jobs:
           git switch -C main refs/remotes/origin/main
           npm ci --ignore-scripts --no-audit --no-fund
           node scripts/build-adblock-react.mjs
-          cmp examples/sidebar-tools/adblock/dist/tool.js artifacts/adblock-r24-react/tool.js
-          cmp examples/sidebar-tools/adblock/dist/tool.css artifacts/adblock-r24-react/tool.css
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --out artifacts/sidebar-tools/adblock/revalidated.opendesk-tool.json
+          cmp projects/adblock/dist/tool.js artifacts/adblock-r24-react/tool.js
+          cmp projects/adblock/dist/tool.css artifacts/adblock-r24-react/tool.css
+          node scripts/build-sidebar-tool.mjs projects/adblock --out artifacts/sidebar-tools/adblock/revalidated.opendesk-tool.json
           cmp "$candidate" artifacts/sidebar-tools/adblock/revalidated.opendesk-tool.json
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --promote-from "$candidate"
-          node scripts/build-sidebar-tool.mjs examples/sidebar-tools/adblock --check-project
+          node scripts/build-sidebar-tool.mjs projects/adblock --promote-from "$candidate"
+          node scripts/build-sidebar-tool.mjs projects/adblock --check-project
           cmp "$candidate" "$official"
           sha256sum "$official"
 

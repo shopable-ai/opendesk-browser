@@ -3,9 +3,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {siteHost,confirmed} from '../../examples/sidebar-tools/adblock/src/model.js';
+import {siteHost,confirmed} from '../../projects/adblock/src/model.js';
 
-const src=()=>readFile(new URL('../../examples/sidebar-tools/adblock/src/App.jsx',import.meta.url),'utf8');
+const src=()=>readFile(new URL('../../projects/adblock/src/App.jsx',import.meta.url),'utf8');
 const state=(host,overrides={})=>({
   enabled:true,exceptions:[],toolEnabled:true,restartRequired:false,
   permissions:{dnr:true},rules:{verified:true},

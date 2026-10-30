@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 
 const read=path=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
-const app='examples/sidebar-tools/stay-focus/';
+const app='projects/stay-focus/';
 const modules=["blocked.js","catalog.js","host-controls.js","lifecycle.js","model.js","page-notice.js","policy.js","rule-host.js","rule-ownership.js","service.js","tool-host.js"];
 const resources=["blocked-always.html","blocked-quota.html","blocked-schedule.html","blocked-session.html","blocked.css"];
 
@@ -15,7 +15,7 @@ test('Stay Focus business has one app-owned source and no obsolete src re-export
     assert.ok(impl.length>100,'missing real app implementation: '+file);
     assert.equal(existsSync(new URL('../../src/stay-focus/'+file,import.meta.url)),false,'obsolete shim must be physically deleted: '+file);
   }
-  const newPolicy=await import('../../examples/sidebar-tools/stay-focus/trusted/policy.js');
+  const newPolicy=await import('../../projects/stay-focus/trusted/policy.js');
   assert.equal(newPolicy.FOCUS_ID,'stay-focus');
   assert.equal(newPolicy.FOCUS_RULE_FIRST,730000);
   assert.equal(newPolicy.FOCUS_RULE_LAST,730199);
@@ -32,7 +32,7 @@ test('only reviewed UI files become an installable tool package, not privileged 
   for(const file of Object.values(config.files))assert.ok(read(app+file).length>0);
   const catalog=JSON.parse(read('official-tools/catalog.json'));
   assert.equal(catalog.tools.filter(x=>x.id==='stay-focus').length,1);
-  assert.equal(catalog.tools.find(x=>x.id==='stay-focus').project,'examples/sidebar-tools/stay-focus');
+  assert.equal(catalog.tools.find(x=>x.id==='stay-focus').project,'projects/stay-focus');
 });
 test('trusted entrypoints consume app-owned sources with stable Chrome restriction paths',()=>{
   for(const [path,name] of [
@@ -42,19 +42,19 @@ test('trusted entrypoints consume app-owned sources with stable Chrome restricti
     ['src/entrypoints/blocked.js','blocked.js'],
     ['src/ui/sidebar-tools.js','policy.js'],
     ['src/ui/sidebar-tools/installation.js','lifecycle.js']
-  ])assert.ok(read(path).includes('examples/sidebar-tools/stay-focus/trusted/'+name),path);
+  ])assert.ok(read(path).includes('projects/stay-focus/trusted/'+name),path);
   const staging=read('scripts/prepare-public.mjs');
-  assert.ok(staging.includes("'examples/sidebar-tools/stay-focus/trusted/blocked-'+reason+'.html'"));
-  assert.ok(staging.includes("'examples/sidebar-tools/stay-focus/trusted/blocked.css'"));
-  assert.ok(read('scripts/build-contract.mjs').includes("'./examples/sidebar-tools/stay-focus/trusted/blocked.js'"));
+  assert.ok(staging.includes("'projects/stay-focus/trusted/blocked-'+reason+'.html'"));
+  assert.ok(staging.includes("'projects/stay-focus/trusted/blocked.css'"));
+  assert.ok(read('scripts/build-contract.mjs').includes("'./projects/stay-focus/trusted/blocked.js'"));
   for(const file of resources)assert.ok(read(app+'trusted/'+file).length>0);
   assert.ok(read('manifest.json').includes('stay-focus/blocked-quota.html'));
 });
 test('privileged service imports shared platform contracts rather than old product folders',()=>{
   const service=read(app+'trusted/service.js'),host=read(app+'trusted/tool-host.js');
-  assert.match(service,/from '\.\.\/\.\.\/\.\.\/\.\.\/src\/sidebar-tools\/sender\.js'/);
+  assert.match(service,/from '\.\.\/\.\.\/\.\.\/src\/sidebar-tools\/sender\.js'/);
   for(const content of [service,host]){
-    assert.match(content,/from '\.\.\/\.\.\/\.\.\/\.\.\/src\/ui\/sidebar-tools\/package\.js'/);
+    assert.match(content,/from '\.\.\/\.\.\/\.\.\/src\/ui\/sidebar-tools\/package\.js'/);
     assert.doesNotMatch(content,/from '\.\.\/ui\/sidebar-tools\//);
   }
 });

@@ -1,10 +1,10 @@
 // Precompiled Stay Focus adapter for the existing trusted tool host. The dynamic
 // package can request an operation; only extension-owned controls approve it.
 import {FOCUS_ID,FOCUS_CAPABILITY,FOCUS_PROTOCOL,FOCUS_PROBE_OPERATION,FOCUS_SERVICE_VERSION,FOCUS_OPERATIONS,focusPackageHash} from './policy.js';
-import {SIDEBAR_TOOL_STORE} from '../../../../src/ui/sidebar-tools/package.js';
-import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled} from '../../../../src/ui/sidebar-tools/lifecycle.js';
-import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../../../../src/ui/sidebar-tools/installation.js';
-import {assertManagedSitePolicySupported} from '../../../../src/platform/host/managed-site-runtime-contract.js';
+import {SIDEBAR_TOOL_STORE} from '../../../src/ui/sidebar-tools/package.js';
+import {TOOL_REVOCATION_EPOCHS_STORE,assertSidebarToolEnabled} from '../../../src/ui/sidebar-tools/lifecycle.js';
+import {requireCompleteInstalledSidebarTools,sameSidebarToolPackage} from '../../../src/ui/sidebar-tools/installation.js';
+import {assertManagedSitePolicySupported} from '../../../src/platform/host/managed-site-runtime-contract.js';
 
 const trustedOnly=['focus.enable','focus.disable','focus.clear'];
 // The fixed extension-owned Side Panel also owns the one-click current-site add.

@@ -2,8 +2,8 @@
 // uninstall journal and verified storage removal.
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_STORE,ADBLOCK_PERMISSION,ADBLOCK_DNR_CLEANUP_STORE,
   readAdblockState,adblockError} from './policy.js';
-import {validateSidebarToolPackage,sidebarToolPackageHash} from '../../../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from '../../../../src/ui/sidebar-tools/lifecycle.js';
+import {validateSidebarToolPackage,sidebarToolPackageHash} from '../../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from '../../../src/ui/sidebar-tools/lifecycle.js';
 import {clearAdblockRules} from './rules.js';
 import {ADBLOCK_COSMETIC_STORE} from './cosmetic-policy.js';
 import {adblockDnrSessionReady,adblockDnrCleanupPending,confirmAdblockDnrCleanup} from './dnr-session.js';
