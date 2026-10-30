@@ -53,6 +53,12 @@ try {
   check('Escape closes drawer',await page.locator('dialog.drawer[open]').count()===0);
   check('focus restored after drawer',await spare.getByRole('button',{name:/查看.*历史证据/}).evaluate(
     el=>document.activeElement===el));
+  await spare.locator('.bar-btn:not([disabled])').last().click();
+  await page.locator('dialog.drawer[open]').waitFor();
+  await page.locator('.drawer .bar-btn[aria-pressed="true"]').waitFor();
+  check('clicking a table mini-bar selects exact historical cycle',
+    await page.locator('.drawer .bar-btn[aria-pressed="true"]').count()===1);
+  await page.keyboard.press('Escape');
   const business=page.locator('tr').filter({hasText:'企业工作区'});
   await business.getByRole('button',{name:/官方工作区邀请指引/}).click();
   await page.locator('dialog.invite[open]').waitFor();
@@ -65,6 +71,20 @@ try {
   await page.getByRole('button',{name:'长周期'}).click();
   check('window filter aria state',await page.getByRole('button',{name:'长周期'}).getAttribute('aria-pressed')==='true');
   await page.getByRole('button',{name:'可用窗口'}).click();
+  const statusFilter=page.locator('.controls select').first();
+  await statusFilter.selectOption('attention');
+  await page.waitForFunction(()=>document.querySelectorAll('.accounts tbody tr').length===5);
+  check('attention status filter narrows to five review candidates',
+    await page.locator('.accounts tbody tr').count()===5);
+  await statusFilter.selectOption('all');
+  await page.waitForFunction(()=>document.querySelectorAll('.accounts tbody tr').length===10);
+  const sorting=page.locator('.controls select').nth(1);
+  await sorting.selectOption('name');
+  await page.waitForFunction(()=>{const n=[...document.querySelectorAll('.account-name')].map(x=>x.textContent);return n.every((v,i)=>i===0||n[i-1].localeCompare(v,'zh-CN')<=0)});
+  const ordered=await page.locator('.account-name').allTextContents();
+  check('account name sorting uses visible locale collation',
+    ordered.every((name,i)=>i===0||ordered[i-1].localeCompare(name,'zh-CN')<=0));
+  await sorting.selectOption('attention');
   for (const width of [320,360,390,400,440,520,1440]) {
     await page.setViewportSize({width,height:900});
     await page.waitForTimeout(60);
