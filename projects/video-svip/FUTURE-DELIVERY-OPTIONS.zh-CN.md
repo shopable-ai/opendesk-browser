@@ -84,6 +84,31 @@
 
 **路线建议：**在证明自有文件双机 P2P 技术之前，Watch Party 和跨设备续看可先做独立的低成本产品可行性评估；它们是商业/体验备选项，不应抢占 R0.3.1 实站识别验收或强制成为 Video SVIP 主界面。
 
+## 4.2 FUTURE-R1 收敛决策增量（2026-10-30）· 先按需求付费方选择，不按协议选择
+
+下表的「付费意愿」为**访谈前的产品假设**，不是实际定价、转化或市场验证；「独立」指能否在不建设公共视频再分发网络的前提下交付可观察价值。
+
+| # / 用户是谁 | 痛点 | 更直接的最小解法（对应路线） | 付费意愿假设 | 独立交付 |
+| --- | --- | --- | --- | --- |
+| 01 多会员个人用户 | 有会员但不知道在哪看 | 已有会员登记＋合法来源入口；未知来源明确未知（01/24） | 中；省钱导向 | 是 |
+| 02 跨平台追剧用户 | 多站切换、重复搜片 | 统一作品/剧集清单、官方深链、观看进度（22/23） | 中 | 是 |
+| 03 价格敏感用户 | 不知会员、租赁、购买哪个划算 | 以地区、采集时间、平台条款标注可核验的报价；数据缺失不排序（24） | 中 | 有来源数据时 |
+| 04 自有文件家庭 | 自己 MP4 在电视/手机不方便看 | 本地小型媒体库＋受限 HTTPS Range 播放（03/04/05） | 中高 | 是 |
+| 05 异地两台电脑用户 | 不会配置异地连接 | 一次配对＋Tailscale/WireGuard 联网（07） | 中 | 是，需客户端 |
+| 06 无公网 IP 家庭 | CGNAT、路由器不可配置 | 直连尝试＋受预算限制的 Peer Relay/DERP（07/10） | 中 | 是，非直连保证 |
+| 07 多网络切换用户 | 直连/中继手动判断难 | 分离网络通路状态和播放器状态，自动降级（07/09/10） | 低，适合作为服务能力 | 否，依附远程播放 |
+| 08 NAS/闲置电脑用户 | 存储空闲、不会维护 | 可选节点＋显式目录白名单＋资源限额（04/05/18） | 中高 | 是 |
+| 09 合法发行商 | CDN 流量费高、同时看的人多 | **先合作合同**再受控 Hybrid CDN/P2P 试点（14/15/26） | 潜在高；需客户验证 | 合同前否 |
+| 10 异地好友 | 各看各的、进度不同步 | 各自官方播放器，只同步状态/房间；无法合法控制则仅共享链接与时间码（21/23） | 低中 | 是 |
+| 11 多设备／慢网上的用户 | 起播慢、重复订阅或流量贵 | 会员预算提醒＋实际网络路径诊断；授权本地文件可复用缓存（19/24） | 中 | 分别独立 |
+| 12 正规内容渠道商 | 想开辟新收入分成 | 作品目录合作、正规联盟分销或合约授权媒体交付（14/15） | 潜在高 | 签约后 |
+| 13 家庭多人使用者（新增） | 设备/并发边界不清 | 清晰展示官方家庭权益、并发限制与设备授权（01/22） | 低中 | 是，绝不共享 Cookie |
+| 14 迁移设备用户（新增） | 手机/电视续看信息断裂 | 可取得的合法官方进度＋用户手工续看点；无官方 API 不伪造同步（22） | 低中 | 是 |
+| 15 隐私/低成本用户（新增） | 不愿上传自己的整个媒体库 | 本机目录白名单、元数据最小化、停止共享与限额（03/07） | 中 | 是 |
+| 16 内容运营方（新增） | 版权地区、过期与清退难 | RightsCapability 与交付路径正交、到期失效及节点清退证据（15/26） | 潜在高 | 合同后 |
+
+**用户任务优先级：**E「正规找片＋自有会员＋成本决策」是大众入口；D「观影清单/可允许的同步观影」是低带宽留存；A「自己的文件跨网播放」有可独立验证的硬技术价值。B、C 先保留实验/商业准入，不得把家庭远程播放等同公开分发。对愿付费、使用频率、数据来源覆盖、能否获取平台许可均标 **MARKET_NOT_VALIDATED**。
+
 ## 5. 用户想要的自动打洞：正确架构与限制
 
 ### 私人设备之间的可行路径
@@ -108,6 +133,25 @@
 
 Video SVIP 是 MV3 Side Panel 应用，不应将 Chrome Service Worker 当作 24×7 视频种子服务器。长期在线、本地文件持有与稳定上传需要一个可选的、有用户明确授权的桌面/家用设备节点；它可以复用已有 Desktop 的受限 HTTP/IPC 通道或独立轻量伴随进程，但**不应侵入桌面自动化 Runtime**。浏览器只负责发现、选择、授权、展示与受控会话。若浏览器本身使用 WebRTC，仍须在标签页/扩展生命周期中正确处理关闭与暂停。
 
+## 5.1 两台电脑免端口映射：八类连接的实选矩阵
+
+| 网络路线 | 两端需装服务？Browser 单独完成？ | 协调/账号与 NAT 条件 | 失败降级及费用责任 | 决策 |
+| --- | --- | --- | --- | --- |
+| LAN 发现＋本机 HTTPS | A 需文件服务，B 可 Chrome；同网可以 | mDNS/本地发现需受限权限；不跨 NAT | 局域网无中心视频流量；离开 LAN 切到下一候选 | 近端首选 |
+| **Tailscale（WireGuard＋NAT 协调）** | A 需常驻媒体服务＋Tailscale；B 需系统 Tailscale 客户端及 Chrome；**不能只装 Browser** | 依赖控制面/身份提供商；自动尝试 UDP 直连，严格 NAT/UDP 封锁时不能保证 | 现有 tailnet 有 Peer Relay 则优先，否则 DERP；用户/经营方需确认服务条款、可用性与费用上限 | **双机 PoC 唯一主路线** |
+| 原生 WireGuard 自组 | 两端安装；Browser 不是网络栈 | 仅 WireGuard 不自带全套设备发现/自动打洞/DERP；通常要自建管理与路由 | 自建公网节点或手工配置，运维与出口自付 | 不与 Tailscale 重复造轮 |
+| Headscale 控制面 | 两端客户端＋自有控制服务器 | 自托管替代 Tailscale 控制面，不等于拥有免费数据中继或版权 | 自付控制面可用性、安全升级与必要的 DERP/其他中继 | 企业/高手可选，不是 P0 |
+| **WebRTC ICE/STUN/TURN** | 活跃浏览器两端可传 DataChannel；A 若关浏览器仍要常驻节点 | 需要信令和身份认证；host/srflx/prflx/relay 候选；严格 NAT 需 TURN | 用户明确允许的 TURN；按 GB、并发与时长计费/限额 | 仅独立 PoC-2；不是 PoC-1 的附加必需 |
+| IPv6 公网直连 | A 需服务，B Chrome 可访问经认证 HTTPS | 两网均支持端到端 IPv6 与防火墙允许；无 NAT 不代表安全或必达 | 不通则选 VPN/中继，家庭公网暴露仍要审计 | 可作为测速优化，非默认 |
+| 受控反向隧道/HTTPS 网关 | A 需本地代理进程，B 可普通 Chrome | 依赖隧道商／自有网关，HTTPS、逐设备授权；不应使用公开 Funnel | 网关流量、可用性与条款由运营方/用户承担，触发预算停流 | 用户不愿 B 装客户端时的候选 |
+| 用户 VPS / Peer Relay / DERP | 需要至少中继实例或第三方服务；不是端到端直连 | VPS 可转发经授权的加密流；Peer Relay/DERP 是 Tailscale 路线内部回退 | 中继每 GB 出口、峰值与滥用由实际出资者承担；不能承诺永久免费 | 严格预算下兜底 |
+
+**限制分工：**Video SVIP 仍是 MV3 控制面，Chrome SW 会休眠，不能承担长时在线上传；A 的自有文件需要**可选本地常驻节点**，不进入现有自动化 Runtime。B 为纯观看端时，经 Tailscale 方案通常要安装 OS 客户端；若必须「只用浏览器」，那是另一个 HTTPS 反向网关方案或两端页面在线的 WebRTC 方案，不是同一 PoC 的隐形前提。WebTransport 属于浏览器到 HTTP/3 服务器的传输，不是免费的浏览器到浏览器直连；libp2p/WebTorrent/IPFS 并不替代权益授权、信令成本和节点在线率。
+
+**一键之后的边界：**用户首次批准设备登录、文件目录、配对对象与限额；之后在既定授权范围内自动探测 direct→peer-relay/DERP。增添陌生设备、扩大目录、付费中继、配置路由器/UPnP 或改公共监听必须再次明确同意。服务端按**设备身份＋具体文件＋短时会话**逐次鉴权；Tailscale 网络通路允许 ≠ 文件可读取。Stop、撤权、离线需拒绝新请求并使租约失效；已经发送到播放器缓存中的字节不能远程抹除。
+
+**容量算账：**家庭 10 Mbps 可用上行不能持续承诺超过此总上传的多路高清流；允许控制最大并发、限速、每日电量/GB 与局域网优先，超过预算则告知降画质、停止分享或选择有授权的官方 CDN。P2P 只可能减少**第三方中继/中心出口**，不会消除 A 上行与 B 下载；Tailscale DERP 本身也可能有吞吐与服务限制。
+
 ## 6. 可组合的目标架构：不是把所有能力塞进 Browser
 
 - **Video SVIP（产品控制面）**：识别影片、观看方式决策、权益信息、来源选择、状态反馈、用户授权。
@@ -127,6 +171,12 @@ Video SVIP 是 MV3 Side Panel 应用，不应将 Chrome Service Worker 当作 24
 **DeliveryPath** = 网络拓扑 + transport + endpoint + peer/relay + 性能 + 费用 + 身份认证 + 失败原因。
 
 “有 WatchOffer”不意味着有 DeliveryPath；“打通了 DeliveryPath”不意味着可以传这个作品。来源选择器必须两个都判定，并尊重原站官方优先。
+
+## 6.1 两个独立准入判定与互斥边界
+
+先执行 `ContentRightsGate(asset, actor, targetDevice, action, territory, now)`：输出 ALLOWED / DENIED / UNKNOWN，证据可指向本人自制文件声明、明确个人跨设备许可或商用分发合同；**私人访问与公开再分发必须分别授权**。再执行 `NetworkPathGate(peer, budget, uploadCap, networkPolicy)`：输出 LAN / DIRECT / RELAY / OFFLINE / BUDGET_DENIED / UNKNOWN，并单独记录身份与费用。两个 Gate 均通过且影片/集数匹配，才能显示对应**个人文件播放路径**；纯平台订阅只输出官方 WatchOffer，不进入媒体节点路径。网络失效不改变内容权限，许可失效立即封锁新的媒体读取。
+
+同一段合法文件的 P0 远程播放在 **Tailscale 与 WebRTC** 两条路径中只选一条实施；PoC-2 只用于证明浏览器端互联是否带来**无需系统客户端**的净收益。Headscale 是控制面替换而非第三个媒体传输协议。**P2P Media Loader（HLS/DASH）**只在内容方可控播放器、签约分发权及可控 tracker/TURN 条件下适用，不能注入第三方 VIP/DRM 播放器。Watch Party 只同步合法控制元数据，不与任何视频转发相混合。
 
 ## 7. 可靠性目标：不是“无论什么片都至少有一路播放”
 
@@ -180,6 +230,35 @@ DESIGN / NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / NAT_HARD_REAL / DIRECT_VER
 
 **关键成本指标**：每 GB 的源站或中继出口费、P2P 直连占比、家庭上行消耗、播前等待、卡顿、节点在线率、授权范围；不能只用某些测试结果声称“节省 80%”。
 
+## 9.1 PoC-1 · 可直接派发下一轮的双设备验收合同（**本轮只定义，不提交实现代码**）
+
+**最小目标：**设备 A 持有用户自制 30–60 秒、Chrome 可解码的 H.264/AAC MP4（记录 sha256、时长、字节数与本人创作声明）；设备 B 在真实另一个运营商网络（如手机热点）访问，完成鉴权、实际 Range 分段、视频首帧及连续 15 秒播放。LAN 测试单独进行，localhost/模拟 NAT 不算 TWO_NETWORK_REAL。不得采用腾讯/B 站 VIP 媒体或 Video Downloader 的下载结果充当许可证明。
+
+**最小边界：**在 `projects/video-svip/` 下未来仅增加可删除的隔离实验 harness（不是正式播放器/Host/Runtime/第二产品）；A 上运行仅服务一份 allowlist 文件的本地常驻 HTTPS/受限 HTTP Range 媒体节点，优先监听 loopback，由 Tailscale **Serve（私有 tailnet，不用公开 Funnel）**以 HTTPS 暴露给经准入的 B。A/B 安装 Tailscale 并登录授权 tailnet；配置最小 Grants/ACL；应用服务另验设备/用户及短时会话，不把网络准入当文件授权。B 在真实 Mac Chrome 用用户手势 Play，经独立观察者读回解码、首帧、15 秒播放。纯静态 Python 文件服务器、开放整个 Downloads 目录、匿名 HTTP、公网端口或将文件 token 放 URL 均不合格。
+
+**状态合同（不得合并）：**
+- 权利：`RIGHTS_TEST_VERIFIED | RIGHTS_DENIED | RIGHTS_UNKNOWN`；网络：`OFFLINE | AUTH_PENDING | AUTHENTICATED | ROUTE_CHECKING | DIRECT | PEER_RELAY | DERP_RELAY | ROUTE_FAILED`。
+- 传输：`FILE_ALLOWED → HTTP_200_OR_206 → DECODABLE → FIRST_FRAME → PLAYING_15S`；失败/停止：`DENIED | TOKEN_EXPIRED | FILE_MISSING | UPLOAD_LIMIT | BUDGET_DENIED | STALLED | REVOKED | STOPPED | UNKNOWN`。网络 CONNECTED、HTTP 206 和 Chrome 能解析 metadata 均不等于播放。
+- 自动路由由 Tailscale 完成，日志独立记录 `tailscale status` / `tailscale ping` 显示 direct、peer-relay 或 DERP；**不允许**将「第一次先经 DERP 连接」记作直连证据。需要隔离 UDP/硬 NAT 的真实测试场景，才能对 RELAY_VERIFIED 给 PASS。
+
+**真实验收检查：**
+
+| 测试 | 必须留下的独立证据 | 成功语义 |
+| --- | --- | --- |
+| 许可/身份 | 自制媒体证明、sha256、仅 A/B 的权限策略及脱敏身份日志 | 只有声明且许可范围适合 PoC 的文件被允许 |
+| LAN 与跨网 | A/B 不同网络 ISP/出口证据、真实网络接口和时间戳；另测 LAN | LAN_REAL 与 TWO_NETWORK_REAL 分开 |
+| 连通/回退 | `tailscale netcheck/status/ping` 的脱敏结果、实际选路及时间序列 | DIRECT_VERIFIED 和 RELAY_VERIFIED 分开；只观察到哪种就报告哪种 |
+| HTTP/Range/播放 | 受限服务端 200/206、Range 校验（含非法 416）、B 的 `video` 解码状态、视频帧回调与播放器截图/录屏、连续 15s 进度 | FIRST_FRAME / PLAYBACK_VERIFIED；不凭「可连通」报播放通过 |
+| 失败恢复 | 离线 A、B 换网、丢 UDP（可控环境）、慢上行、断开服务、超时、取消/Stop、重新播放 | 显式恢复或有因失败；不做未知重复请求 |
+| 安全撤权 | 未配对设备、越界路径、过期会话、播放中撤销；验证新的 Range 请求被拒 | REVOKE_VERIFIED；已传入缓存的字节不保证被抹除 |
+| 费用与资源 | A 上传/峰值、B 下载、relay GB、可用码率、成本承担方与最大上传/每日 GB | 没有费用明细不宣称省钱；预算越界必须停流 |
+
+**证据 JSON 最小字段：**`runId, gitSha, testTime, mediaSha256, rightsEvidenceType, deviceAClass, deviceBClass, networkClassA, networkClassB, transportPath, relayProvider, routeProof, authResult, httpRangeResult, codecResult, firstFrameObserved, playing15sObserved, revokeResult, bytesAUp, bytesBDown, relayBytes, assumedUnitCost, totalCost, failureCode, evidenceRefs`。不得提交原始公网 IP、登录令牌、私密文件名、身份证明或完整视频到仓库。
+
+**验收分级：**`DESIGN` 仅合同；`NODE` 仅单测；`BUILD` 仅构建；`LAN_REAL` 真局域网；`TWO_NETWORK_REAL` 真不同网络；`DIRECT_VERIFIED` 选路证据；`RELAY_VERIFIED` 真实中继；`MAC_CHROME` 真实本机 Chrome；`PLAYBACK_VERIFIED` 真首帧＋连续 15 秒；`LICENSE_VERIFIED` 该测试素材的许可证据。每项分别给 PASS/FAIL/NOT_TESTED；不能用某一级替代另一级。性能阈值与成本比率在首轮实测后建立，不预填「直连率」「节省比例」「N 秒必起播」指标。
+
+**PoC-2 触发条件：**PoC-1 已有真实播放与成本/安装步骤基线，且用户明确提出「B 端不装系统 VPN」的需求。届时创建另一个**互斥**受限 WebRTC DataChannel 传输实验（信令、ICE、TURN、短块/背压、hash、播放器适配）；用 `RTCPeerConnection.getStats()` 中的当前 candidate-pair 核验直连/relay。文件传输性能不能简单等同 MP4 原生 HTTP Range；比较获得的体验增益与维护成本，无优势则停。
+
 ## 10. 商业方向：区分真正的付款方
 
 | 模式 | 用户/客户 | 可售价值 | 准入 | 探索优先级 |
@@ -193,6 +272,22 @@ DESIGN / NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / NAT_HARD_REAL / DIRECT_VER
 | 个人 VIP 文件众包给陌生人 | 不应提供 | 技术可传输不代表可经营 | 缺失再分发授权 | 排除 |
 
 会员付费、单片租赁和家庭共享属于**商业权益逻辑**；视频文件能否复制、缓存、远程访问或向多人分发属于**内容权利逻辑**。不要将两者合并。
+
+## 10.1 三阶段商业准入与停损：先有真实客户，再有节点规模
+
+| 阶段 / 独立服务 | 客户与付费意愿（假设） | 成本和技术门槛 | 合同/合规门槛 | 运营难度与市场风险 | 可区分价值 / 决策 |
+| --- | --- | --- | --- | --- | --- |
+| 1 · 合法找片＋自有会员登记＋观看成本决策 | 大众观众；低中，适合免费基础与可选高级提醒 | 目录映射、区域/有效期/价格更新；成本低，数据可信度为主 | 官方深链与公开信息可以先做；报价与数据许可必须核验 | 中；来源变化频繁，错误推荐损害信任 | 用户现有会员优先；**短期主产品** |
+| 1 · 观影清单/好友投票/仅状态 Watch Party | 朋友、家庭；低中，靠留存而非大笔收入 | 协调消息服务器、同步偏差/设备兼容；低带宽 | 平台条款/官方 API/操作授权；没有权限只能手工同看 | 中；第三方页面易变 | 无视频搬运；**可独立推出合法低成本功能** |
+| 2 · 私有文件跨设备/家庭媒体节点 | NAS/自有文件用户；中高，需要访谈与试付费 | 用户上行和电费为主，运营方中继收费需封顶；中等技术 | 自有/私人合法跨设备文件，设备配对、安全审计 | 中高；设备离线、安装流失、支持成本 | 一次配对可诊断，**PoC-1 后再决定产品化** |
+| 2 · 托管家庭媒体服务/远程设置辅助 | 小家庭/个人 NAS；中，按运维价值定价 | 支持/隐私/远程恢复成本高；技术中高 | 用户授权目录、供应商 SLA、数据保留条款 | 高；客户支持吃掉利润 | 带运维闭环才成立，先小样本付费验证 |
+| 2 · 正规会员导购/联盟渠道 | 正版消费者/渠道；分成收入取决合同，无法预估 | 归因、账单、更新与退款；技术中 | **必须先有明确联盟/渠道合同** | 中高；费率变动、退单、广告披露 | 不建虚假会员商城；**签约后小范围试点** |
+| 3 · 授权 HLS/DASH P2P CDN＋源站兜底 | 具有分发权的内容方；B2B 合同潜在高 | 节点质量/峰值/流控/中继/可观测性成本高；技术高 | 地区、期限、并发、复制/缓存/转码、清退、数据保护与 SLA 全部合同覆盖 | 很高；并发峰值不稳、版权/质量事故 | 仅以交付质量与真实 CDN 单位成本差形成价差；**有客户合同才研发上线** |
+| 3 · 授权边缘/家庭贡献节点与 B2B 数据 API | 发行商/有权数据客户；未知 | 激励、存储、清退、防刷、流量账单与数据许可，成本最高 | 每个内容及节点明确同意、API 商业再许可 | 极高；低密度网络无法盈利 | **只保留技术观察，不预售** |
+
+**财务判断必须落到单位经济模型：**月毛利 = 可核验实际收入 −（中继出站 GB×实际单价＋控制/存储/转码/支付手续费＋支持/退款＋第三方数据许可成本）；个人设备节省的是中心中继流量，不能把家庭用户的上行/电费算成零。B2B 混合 CDN 对照需要同码率、同峰值、同首帧/卡顿/SLA，在版权方许可下做 A/B 测量；没有签约客户、商业出口单价与可观测播放日志，ROI = **NOT_VERIFIED**。
+
+**停损条件：**找片来源无法核验地区/时间则只展示官方入口不做价格冠军排名；用户实际不愿为节点便利付费则保持实验性质；没有合法 HLS/DASH 发行合同不开发生产 P2P CDN；官方播放器不允许远程同步控制则退回共享链接/手动进度，不做隐蔽劫持。
 
 ## 11. 长期推进路线（不代表立即全部实施）
 
@@ -215,15 +310,36 @@ DESIGN / NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / NAT_HARD_REAL / DIRECT_VER
 - 产品：不要把 Video SVIP 变成下载器、VPN 或云存储的集合。优先保留“看视频/找片/会员”用户价值。
 - 资源：没有两台真实设备、可控网络、明确许可和证据收集能力时，继续设计优于伪造实测。
 
-## 13. 独立专家设计评分规则
+## 13. FUTURE-R1 独立角色评审与架构最终选择（设计评分，不是实测通过）
 
-对**推荐的阶段组合**（保留原站 → 个人合法文件跨设备 PoC → 授权来源策略 → 正规商业扩展）进行设计评估，目标每维不低于 95：用户价值、架构边界、安全合规、网络可靠性设计、兼容性、测试可验证性、可持续成本、UI/操作效率。综合分取八项算术平均，不能累加。**评分不是实现结果**：实测没做的必须 NOT_TESTED，许可没取得必须 NOT_AUTHORIZED。对不适合现在采用的候选技术如 IPFS/自托管控制面允许低于 95，不可通过虚报提升排名。
+**评分口径：**以下由本轮分析按 8 个互不替代的专业视角分别评定：用户研究（U=用户价值）、网络工程（T=技术可行性）、SRE（R=可靠性设计）、安全工程（P=隐私安全）、版权/商务风控（C=商业合规）、系统架构（S=可扩展性）、财务运营（K=长期成本）、QA（V=测试可验证性）。**是角色化专家评估，不是假冒外部专家签名或真实用户访谈**；每列满分 100，平均分 = 八列总和 / 8，不能累加为总分或解释为成功率。没有真实合同、客户与实测仍然是风险，不因评分高而变成 VERIFIED。
+
+| 架构（应用范围） | U | T | R | P | C | S | K | V | 算术平均 | 处置 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| A 自有合法媒体＋Tailscale | 88 | 96 | 94 | 94 | 95 | 88 | 92 | 98 | **93.13** | PoC-1；小众但有强技术价值 |
+| B 纯浏览器 WebRTC 共享 | 75 | 90 | 82 | 82 | 92 | 80 | 81 | 90 | **84.00** | 等待 PoC-1 数据，非 P0 |
+| C 授权 P2P CDN（**现无合同**） | 79 | 89 | 84 | 89 | 65 | 93 | 80 | 80 | **82.38** | 商务准入后才立项 |
+| D Watch Party/续看/共选片 | 93 | 95 | 90 | 96 | 89 | 97 | 97 | 94 | **93.88** | 先做清单/手动同步，自动控制须核验平台 |
+| E 全网找片/订阅与报价优化 | 98 | 94 | 88 | 97 | 94 | 96 | 97 | 95 | **94.88** | 先做有来源且可核验的子集，不能假称全网 |
+| **短期 P0 收敛组合**：原站优先＋本机会员登记＋核验来源的观影清单/成本提醒；同步观影仅手动合规模式；A 独立实验不进入正式播放 | **97** | **97** | **96** | **98** | **98** | **97** | **98** | **98** | **97.38** | **仅此缩小范围的设计每维≥95，建议选择** |
+
+**为什么最后一行比某一技术高：**它主动删去未经签约的公共视频流、未经验证的全网价格、自动控制第三方播放器、无限流量承诺和长期在线 Chrome SW，保留已有可交付能力与独立 PoC；其 R/P/C/K 高分是对**失败时安全退出、范围可控、无商业履约承诺**的设计评价，不代表用户付费、正式上线或多平台实际覆盖已达 95。倘若把 B/C 或完整 E 的未解决风险加回正式发布范围，必须重打分，不得沿用 97.38。
+
+**五选一 vs 可组合：**P0 产品主线取 E 的**受限子集**（原站＋自有会员＋已核验内容来源），可选加 D 的低带宽清单/房间元数据；A 是实验验证而不是必需产品依赖。A 与 B 在第一版个人远程传输上**互斥**，Headscale 仅是 A 的控制面替换；C 与 E/D 不冲突但因签约条件尚不成立不做生产实现。
+
+**下一轮唯一交付入口：GitHub 网页端创建 PoC-1 的隔离最小 harness 与真实测试说明（不改正式 UI、Host、Runtime），随后才是本地 Mac Codex 使用两台真实设备/两张网络执行验收。**当前对 PoC-1 的 DESIGN 可标完成；所有 NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / DIRECT_VERIFIED / RELAY_VERIFIED / MAC_CHROME / PLAYBACK_VERIFIED / LICENSE_VERIFIED 均为 **NOT_TESTED**（媒体样本许可也尚未实物核验）。架构设计高分不得替代测试记录。
 
 ## 14. 技术依据与待验证引用（2026-10-30）
 
 - Chrome Web Store policies — 不鼓励或促成未经授权的受版权保护内容下载/流播：https://developer.chrome.com/docs/webstore/program-policies/policies
 - Tailscale connection types / 直连、Peer Relay、DERP：https://tailscale.com/docs/reference/connection-types
 - Tailscale device connectivity / hard NAT：https://tailscale.com/docs/reference/device-connectivity
+- Tailscale Serve（tailnet 内 HTTPS，区别于公开 Funnel）：https://tailscale.com/docs/features/tailscale-serve
+- Tailscale 客户端和业务服务均需安装/运行：https://tailscale.com/docs/how-to/connect-to-devices
+- Chrome MV3 SW 生命周期（非长驻视频服务器）：https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
+- MDN WebRTC ICE candidate 类型：https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
+- MDN RTCDataChannel 大消息与缓冲边界：https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send
+- MDN WebTransport 是 HTTP/3 client/server：https://developer.mozilla.org/en-US/docs/Web/API/WebTransport_API
 - WebRTC ICE/STUN/TURN 官方说明：https://webrtc.org/getting-started/peer-connections
 - MDN WebRTC ICE 连通：https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Connectivity
 - Jellyfin 外网访问与安全边界：https://jellyfin.org/docs/general/post-install/networking/
@@ -235,4 +351,4 @@ DESIGN / NODE / BUILD / LAN_REAL / TWO_NETWORK_REAL / NAT_HARD_REAL / DIRECT_VER
 - 项目已有视频下载边界：projects/video-downloader/README.zh-CN.md
 - 项目已有分期路线：projects/video-svip/ROADMAP.zh-CN.md
 
-**下一轮工作说明：**先复查 main 和本文件，输出最终 A/B 技术选型 + 双机真实 PoC 合同 + 互斥边界，再决定是否实现。不得把“未来可能性文档”当成已完成多源播放器、会员解锁或真实跨网直连的证据。
+**FUTURE-R1 决策结果：**本轮已收敛 A/B 互斥边界与 PoC-1 双机验收合同；下一轮 **GitHub 网页端仅构建隔离 PoC-1 harness**，具备受限访问、Range、日志和用户授权后再转本地 Mac Codex 真实双网验收。尚无跨网实测、可用第三方会员线路或分发/渠道合同，一律不得报 PASS。
