@@ -122,5 +122,59 @@
     "mean": 89.16666666666667,
     "status": "PROVISIONAL_NOT_NATIVE_ACCEPTANCE"
   },
-  "dependencyLockSha256": "1382c83e216015b5596b5715f40042de098960ee62a3783752546ad9de8203ec"
+  "dependencyLockSha256": "1382c83e216015b5596b5715f40042de098960ee62a3783752546ad9de8203ec",
+  "manualDemoContinuation": {
+    "observedAt": "2026-10-30T06:40:29.120210+00:00",
+    "ownerTask": "01a18b7d-a94e-7fb2-8f8c-09db4c298e12",
+    "currentPhase": "prepare one real user-operated AI/Host/Python demo; native chain not executed",
+    "goalRead": null,
+    "rootWriter": {
+      "ownerTask": "01a188d9-a03e-78d1-b1d7-ccc12b4a8817",
+      "status": "EXISTING_WRITER_OUTPUT_RESTORED",
+      "output": "dist/development",
+      "newWriterStartedByThisTask": false,
+      "readyForInstall": false,
+      "diskOutputReady": true,
+      "watcherPid": 62841,
+      "revision": "1d1737183db0b8afb6da5809e9bcace3f31a423dcea2d03e3666552c772385b8",
+      "receipt": ".runtime/cloud-mac24dev-20261030-01a188d9/development-output-restored.json",
+      "remainingGate": "actual Chrome path/id/dev-client unverified"
+    },
+    "fixture": {
+      "origin": "http://127.0.0.1:43233",
+      "pages": 50,
+      "delaySeconds": 1,
+      "httpGoldenInput": "PASS",
+      "browserHomeOpened": true,
+      "rawHttpEvidence": "artifacts/scrapyjs/r17-manual-demo/fixture-input-check.json",
+      "processOwnerReceipt": "artifacts/scrapyjs/r17-manual-demo/owner.json",
+      "level": "FIXTURE_INPUT_ONLY"
+    },
+    "runner": {
+      "status": "NOT_STARTED",
+      "reason": "actual enabled Chrome extension origin unverified",
+      "credentialGenerated": false
+    },
+    "browser": {
+      "surface": "Chrome",
+      "extensionManagementAttempt": "BLOCKED_BY_BROWSER_URL_POLICY",
+      "attemptedUrl": "chrome://extensions/",
+      "workaroundAttempted": false,
+      "actualExtensionId": "NOT_TESTED",
+      "actualLoadedPath": "NOT_TESTED",
+      "serveConnection": "NOT_TESTED"
+    },
+    "userGuide": "../README.zh-CN.md#r17-当前状态与亲手测试2026-10-30",
+    "realAiRequest": "NOT_TESTED",
+    "realHostPython": "NOT_TESTED",
+    "activeSidebarReopen": "NOT_TESTED",
+    "originalWorkerStop": "NOT_TESTED_IN_CHROME",
+    "chromeDownloadReadback": "NOT_TESTED",
+    "deferred": [
+      "width/theme/native 200% zoom matrix",
+      "Mac sleep/resume",
+      "production acceptance",
+      "formal six-dimension score"
+    ]
+  }
 }
