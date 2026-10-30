@@ -999,7 +999,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   // Only the active, officially admitted iframe has a keyboard session.
   // Page key listeners never receive direct media/Chrome mutation authority.
-  let videoShortcutSession=null,videoShortcutBusy=false;
+  let videoShortcutSession=null,videoShortcutBusy=false,videoShortcutEpoch=0,videoShortcutPreferenceOff=false;
   let videoSVIPWatchSession=null;
   function stopVideoSVIPWatch(){
     const previous=videoSVIPWatchSession;videoSVIPWatchSession=null;
@@ -2008,6 +2008,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
   }
   async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportGrantEpoch=null,directExportPort=null,assertWrite=null) {
+    const videoEnableEpoch=videoShortcutEpoch;
     assertSession(source,token);
     if(!readOnlyPreview)await assertSidebarToolEnabled(api,tool.id);
     assertSession(source,token);
@@ -3162,8 +3163,20 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(VIDEO_SPEED_OPERATIONS.includes(operation)){
         const runVideo=(name,args={},shortcutNonce=null)=>requestVideoSpeed({
           api,tool,operation:name,payload:args,currentPageTarget,revocationEpoch,shortcutNonce,
-          assertCurrent:()=>assertSession(source,token),
+          assertCurrent:()=>{
+            assertSession(source,token);
+            if(name==='videoSpeed.shortcuts.enable'&&
+               (videoEnableEpoch!==videoShortcutEpoch||videoShortcutPreferenceOff))
+              throw Object.assign(new Error('快捷键偏好已关闭或变更'),{code:'E_VIDEO_SHORTCUT_STALE'});
+          },
           assertInstalled:async()=>{
+            if(name==='videoSpeed.shortcuts.enable'){
+              const key=sidebarToolStorageKey(VIDEO_SPEED_ID);
+              const stored=(await api.storage.local.get(key))[key];
+              if(stored!==undefined&&(!stored||typeof stored!=='object'||Array.isArray(stored)||
+                 Object.hasOwn(stored,'shortcutsEnabled')&&stored.shortcutsEnabled!==true))
+                throw Object.assign(new Error('快捷键偏好未开启'),{code:'E_VIDEO_SHORTCUT_STALE'});
+            }
             if(!await admittedOfficialVideoSpeed(tool,revocationEpoch))
               throw Object.assign(new Error('视频倍速需要审阅并安装同版本官方工具，请从扩展中心重新安装'),{code:'E_VIDEO_TRUST'});
           }
@@ -3178,7 +3191,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           const nonce=globalThis.crypto.randomUUID();
           const result=await runVideo(operation,{},nonce);
           assertSession(source,token);
-          if(!frame||active!==tool||frame.contentWindow!==source||
+          if(videoEnableEpoch!==videoShortcutEpoch||videoShortcutPreferenceOff||
+             !frame||active!==tool||frame.contentWindow!==source||
              currentPageTarget?.snapshot?.documentId!==page?.documentId||
              currentPageTarget?.snapshot?.tabId!==page?.tabId)
             throw Object.assign(new Error('网页已切换，请重新启用快捷键'),{code:'E_DOCUMENT_STALE'});
@@ -3189,7 +3203,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(operation==='videoSpeed.shortcuts.disable'){
           // Revoke the capability synchronously BEFORE trying to remove the
           // inert page signaler. A stale/inaccessible document cannot bypass it.
-          videoShortcutSession=null;
+          ++videoShortcutEpoch;videoShortcutSession=null;
           try{return await runVideo(operation);}
           catch{
             // Host nonce is already revoked; the old document may be gone or
@@ -3500,7 +3514,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(rateExceeded){reply(false,null,new Error(knowledgeOperation(message.operation)?'工具请求过于频繁，请稍后重试':'工具请求过于频繁，请一分钟后重试'));return;}
     // Serialize mutations for each tool; concurrent set operations cannot overwrite each other.
     const previous=queued.get(tool.id)||Promise.resolve();
-    const work=previous.catch(()=>{}).then(()=>dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportGrantEpoch,exportPort));
+    const videoEnableEpoch=videoShortcutEpoch;
+    const checkVideoEnable=()=>{
+      if(tool.id===VIDEO_SPEED_ID&&message.operation==='videoSpeed.shortcuts.enable'&&
+         videoEnableEpoch!==videoShortcutEpoch)
+        throw Object.assign(new Error('快捷键偏好已变更'),{code:'E_VIDEO_SHORTCUT_STALE'});
+    };
+    const work=previous.catch(()=>{}).then(()=>{
+      checkVideoEnable();
+      return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportGrantEpoch,exportPort);
+    });
     if(message.operation==='storage.set')queued.set(tool.id,work);
     work.then(async result=>{
       if(!readOnlyPreview){
@@ -3512,6 +3535,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(['browser.launch.consume','browser.page.getSelection'].includes(message.operation)&&
          (!Number.isFinite(result?.expiresAt)||Date.now()>=result.expiresAt))
         throw Object.assign(new Error('选区在交付前已过期；不能重放旧领取'),{code:'E_LAUNCH_EXPIRED'});
+      checkVideoEnable();
       reply(true,result);
     }).catch(error=>reply(false,null,error));
     work.finally(()=>{if(queued.get(tool.id)===work)queued.delete(tool.id);}).catch(()=>{});
@@ -3520,6 +3544,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Other Side Panels may update/uninstall a tool. Revoke the old iframe immediately.
   const onToolStorageChanged=(changes,area)=>{
     if(disposed||area!=='local')return;
+    if(Object.hasOwn(changes||{},sidebarToolStorageKey(VIDEO_SPEED_ID))){
+      const value=changes[sidebarToolStorageKey(VIDEO_SPEED_ID)]?.newValue;
+      const enabled=Boolean(value&&typeof value==='object'&&!Array.isArray(value)&&
+        value.shortcutsEnabled===true);
+      ++videoShortcutEpoch;videoShortcutPreferenceOff=!enabled;
+      // Invalidate queued keys and pending enable BEFORE notifying the exact iframe.
+      if(!enabled)videoShortcutSession=null;
+      if(active?.id===VIDEO_SPEED_ID&&frame?.contentWindow&&!readOnlyPreview)
+        frame.contentWindow.postMessage({protocol:'opendesk.video-speed.shortcut.v1',
+          kind:'preference',enabled},'*');
+    }
     if(active?.id===TRUSTED_KNOWLEDGE_ID&&
        Object.hasOwn(changes||{},sidebarToolStorageKey(TRUSTED_KNOWLEDGE_ID))){
       knowledgeDataGeneration++;nativeUI?.kind==='knowledge'&&nativeUI.invalidate();

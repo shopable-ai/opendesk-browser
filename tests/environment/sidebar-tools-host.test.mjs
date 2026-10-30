@@ -947,7 +947,7 @@ async function videoShortcutHostFixture(t){
       if(mode==='shortcut-off'&&removeFails)throw Error('old document is inaccessible');
       if(mode==='set')rate=speed;
       const result=mode.startsWith('shortcut-')?{found:false,count:0,shortcuts:mode==='shortcut-on'}:
-        {found:true,count:1,index:0,score:100,playing:true,speed:rate,...(mode==='set'?{applied:true}:{})};
+        {found:true,count:1,index:0,score:100,playing:true,speed:rate,token:req.args[2],...(mode==='set'?{applied:true}:{})};
       return [{frameId:0,documentId:'video-doc',result}];
     }};
   }});
@@ -974,7 +974,8 @@ test('video shortcut receiver rejects forged sender and nonce, then independentl
   f.emitSignal();
   // A second key while a request is busy must not produce a second write.
   f.emitSignal();
-  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='verified'));
+  await settle(()=>f.frame.contentWindow.sent.some(row=>['verified','error'].includes(row.kind)));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='error'),undefined,JSON.stringify(f.frame.contentWindow.sent.filter(row=>row.kind==='error')));
   assert.equal(f.rate,1.25);
   assert.equal(f.calls.filter(req=>req.args[0]==='set').length,1);
   assert.equal(f.calls.at(-1).args[0],'read');
@@ -1022,10 +1023,88 @@ test('video shortcut mutation shares the installation and revocation tool lock',
   const whileLocked=f.calls.length;
   const waitedOnLock=f.lockCalls.slice(locksBefore).includes('opendesk.sidebar-tools:tool:'+f.tool.id);
   release();await locked;
-  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='verified'));
+  await settle(()=>f.frame.contentWindow.sent.some(row=>['verified','error'].includes(row.kind)));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='error'),undefined,JSON.stringify(f.frame.contentWindow.sent.filter(row=>row.kind==='error')));
   assert.equal(whileLocked,before,'shortcut must wait for an in-flight install/revocation');
   assert.equal(waitedOnLock,true);
   assert.equal(f.rate,1.25);
+});
+for(const value of [{shortcutsEnabled:false},undefined,{shortcutsEnabled:'true'},{}])test(
+  'video shortcut OFF or malformed storage event revokes a queued key: '+JSON.stringify(value),async t=>{
+    const f=await videoShortcutHostFixture(t),key=sidebarToolStorageKey(f.tool.id);
+    const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+    const held=f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{entered.resolve();await gate.promise;});
+    await entered.promise;
+    const before=f.calls.length;f.emitSignal();
+    if(value===undefined)f.store.delete(key);else f.store.set(key,value);
+    f.changeStorage({[key]:{newValue:value}});
+    assert.equal(f.frame.contentWindow.sent.at(-1).kind,'preference','sync preference before awaiting any lock');
+    assert.equal(f.frame.contentWindow.sent.at(-1).enabled,false);
+    gate.resolve();await held;
+    await f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+    assert.equal(f.calls.length,before,'queued key cannot probe or set after OFF');
+    f.ask('videoSpeed.shortcuts.enable',{},'late-off-enable');await settle(()=>f.response('late-off-enable'));
+    assert.equal(f.response('late-off-enable').ok,false);
+    f.emitSignal();await pause();assert.equal(f.rate,1);
+    assert.deepEqual(f.store.get(sidebarToolStorageKey(sample.id)),{note:'unrelated data'});
+  });
+test('video shortcut in-flight enable cannot revive after OFF even if ON follows',async t=>{
+  const f=await videoShortcutHostFixture(t),key=sidebarToolStorageKey(f.tool.id);
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const original=f.api.scripting.executeScript;
+  f.api.scripting.executeScript=async req=>{
+    const result=await original(req);
+    if(req.args[0]==='shortcut-on'){entered.resolve();await gate.promise;}
+    return result;
+  };
+  f.ask('videoSpeed.shortcuts.enable',{},'pending-enable');await entered.promise;
+  const nonce=f.calls.at(-1).args[3];
+  for(const enabled of [false,true]){
+    const value={shortcutsEnabled:enabled};f.store.set(key,value);f.changeStorage({[key]:{newValue:value}});
+  }
+  gate.resolve();await settle(()=>f.response('pending-enable'));
+  assert.equal(f.response('pending-enable').ok,false,'OFF invalidates enable across a later ON');
+  const before=f.calls.length;f.emitSignal({...f.signal,nonce});
+  await f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+  assert.equal(f.calls.length,before);assert.equal(f.rate,1);
+});
+test('video shortcut enable checks stored OFF even without a storage event',async t=>{
+  const f=await videoShortcutHostFixture(t);
+  f.store.set(sidebarToolStorageKey(f.tool.id),{shortcutsEnabled:false});
+  const before=f.calls.length;
+  f.ask('videoSpeed.shortcuts.enable',{},'stored-off');await settle(()=>f.response('stored-off'));
+  assert.equal(f.response('stored-off').ok,false);
+  assert.equal(f.calls.length,before,'stored OFF prevents listener injection');
+});
+test('video shortcut queued enable stays revoked across OFF then ON',async t=>{
+  const f=await videoShortcutHostFixture(t),key=sidebarToolStorageKey(f.tool.id);
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const held=f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{entered.resolve();await gate.promise;});
+  await entered.promise;
+  f.ask('videoSpeed.shortcuts.enable',{},'queued-enable');await pause();
+  for(const enabled of [false,true]){
+    const value={shortcutsEnabled:enabled};f.store.set(key,value);f.changeStorage({[key]:{newValue:value}});
+  }
+  const before=f.calls.length;gate.resolve();await held;await settle(()=>f.response('queued-enable'));
+  assert.equal(f.response('queued-enable').ok,false);assert.equal(f.calls.length,before);
+});
+test('video shortcut enable receipt cannot report success after OFF',async t=>{
+  const f=await videoShortcutHostFixture(t),key=sidebarToolStorageKey(f.tool.id);
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const original=f.locks.request.bind(f.locks);
+  f.locks.request=(name,work)=>original(name,async()=>{
+    const result=await work();
+    if(result?.enabled===true){entered.resolve();await gate.promise;}
+    return result;
+  });
+  f.ask('videoSpeed.shortcuts.enable',{},'late-receipt');await entered.promise;
+  const nonce=f.calls.at(-1).args[3],value={shortcutsEnabled:false};
+  f.store.set(key,value);f.changeStorage({[key]:{newValue:value}});
+  gate.resolve();await settle(()=>f.response('late-receipt'));
+  assert.equal(f.response('late-receipt').ok,false);
+  const before=f.calls.length;f.emitSignal({...f.signal,nonce});
+  await original('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+  assert.equal(f.calls.length,before);assert.equal(f.rate,1);
 });
 test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox iframe without remount',async t=>{
   const tool=await officialToolFixture('prompt-shortcuts');

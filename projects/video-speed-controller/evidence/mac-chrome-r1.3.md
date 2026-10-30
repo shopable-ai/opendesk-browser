@@ -1,4 +1,70 @@
-# 视频倍速 R1.3 · Mac Chrome 差量验收记录
+# 视频倍速 R1.3 · 当前 Mac Chrome 进展
+
+更新：2026-10-30。当前 owner：Codex chat 01a18c66-2de6-7822-a7b4-96e53c2b2f68；唯一目录 projects/video-speed-controller/；main。
+
+**当前结果：PARTIAL。1.1.2 持续开发环境的实际升级、新 UI 和核心播放操作已通过；完整原生验收、真实站点与九维 95 分尚未完成。** 下方首次会话的 BLOCKED 是历史观察，不再表示当前连接状态。用户最新要求优先确认最近的交互预览与扩展代码已经显示；本次没有重设计 UI，保留并打包了这些并行修改。
+
+## 当前可直接操作的入口
+
+- 真实 Google Chrome 154.0.8037.93 arm64，macOS 26.5.1 / 25F80；独立 test-chatgpt-02 / Default。
+- Chrome 实际扩展 ID ccfcjegpkdlgbclopjmadlcjedelidmf，详情页加载来源为本仓库 dist/development。使用已有唯一 npm run dev writer；不是 production 静态验收。
+- 原生调试页明确显示“开发服务已连接”；revision d8e05f71086a06bee88c316938635ac26730152ed82fd14c13afe3cae4315f1c。编译后 ui/sidebar-tool-host.js SHA256 为 9c7def27bf06c5db246c1688749ffbf83f3757449038e0de1fb08b025c3b6514。
+- 本地 http://127.0.0.1:43233/single 使用原 evidence/fixture.mjs 和实际 VP9 媒体。侧栏“视频倍速”标题帮助文本为 v1.1.2。preview/index.html 也在同一主窗口独立标签中打开；预览仅模拟，不作为实际视频证据。
+- 可见 UI：移除“当前网页视频 / HTML5 视频已检测”整行；刷新按钮在倍速卡片右上角；提示区域自然撑高、12px 字号与 8px 上间距；唯一 1× 预设。原生截图已直接审阅。
+
+## 为何原窗口没有马上变化
+
+观察到两个开发更新边界：当前 watcher 的官方包刷新入口覆盖 examples/sidebar-tools，但本项目实际归属 projects；可信 Host 更新本身不会刷新其官方 UI 包。使用原 watcher 的 catalog 输入触发后，生成包已匹配新源码，未启动第二个输出 writer。另一个已打开侧栏会缓存旧官方目录，曾正确拒绝新包并报 E_PACKAGE_INTEGRITY；在空闲时通过 Chrome 原生“重新加载”重开侧栏后，目录与 Host 一致，正常审阅升级成功。没有放宽 SHA、直接改安装存储、换 ID 或复制日常扩展。
+
+这是本次看到旧版本的证据和操作恢复；自动监控 projects 的平台改动未在本任务实施，不宣称今后所有源码修改都无需刷新或升级。
+
+## 当前候选与真实升级
+
+| 项目 | 当前实读 |
+| --- | --- |
+| 唯一正式包 | projects/video-speed-controller/video-speed-controller.opendesk-tool.json |
+| 版本 / 大小 | 1.1.2 / 20,936 字节 |
+| SHA256 | 4eb6edd57d2c4009942ec1d231783321e90ecd0adc8b161c7059552092c74b62 |
+| 同源 | 候选、正式 JSON、development 内官方包逐字节相同；--check-project PASS |
+| 原生升级 | v1.1.1 → v1.1.2；原始和规范 SHA 均与上方一致；权限未变化；原有 OFF 数据保留 |
+| 能力 | page.videoSpeed、storage.local，无新增权限 |
+| 来源 pin | host fd6884a171bb12b9cbc88a03418810dd32d36c27；admission 5635e2b13843dcea863f228985c1a06bd9550ce0 |
+
+1.1.1 的首次实际核心验证保留在 [native-1.1.1-core.json](native-1.1.1-core.json)；最终当前候选证据为 [native-1.1.2-core.json](native-1.1.2-core.json)，不混用版本。
+
+## 当前修复与对应验证
+
+1. **单击被焦点检测吞掉。** 1.1.0 首次真实操作需要再次点击。后台 focus 检测现在保留已有有效控件，单击 set 使旧检测失效；点击与缓存相同的速度也实际提交，不把缓存当作实时状态。首次检测和切页仍阻止旧状态写入；新增 12 项业务入口回归。
+2. **另一窗口 OFF 后旧窗口仍响应 D。** 1.1.1 已原生复现。沿用既有 storage.onChanged 和固定快捷键信息通道，同步精确工具 iframe；事件到达即撤销 Host nonce，旧队列、enable、偏好加载/保存和晚到回执不能恢复 OFF。共享适配器没有新增 SDK、服务或权限。
+3. **同文档视频重排/替换错选。** 执行真实 pageVideoSpeed 的四种竞态均先 FAIL。以文档内弱引用令牌绑定同一元素，限 16 个待处理令牌、15 秒过期，一次设置/读回；替换或移除返回 E_VIDEO_CHANGED。此竞态由 NODE 验证，未声称原生重排验收。
+
+| 1.1.2 原生操作 | 实际结果 |
+| --- | --- |
+| 网页 Play → 单击 2× → 网页 Play → 单击唯一 1× | PASS；侧栏与网页实际 rate 均为 2 / 1；Host set requestId 7 / 9 均 verified:true |
+| 实际播放计时 | 2×：wall 2.002s，媒体 22.965→26.969；1×：wall 2.002s，媒体 21.449→23.451；ratio 2 / 1，均持续解码播放 |
+| 网页 D / S / D→R | PASS；实际 1.25 / 1 / 1，与侧栏快捷键读回一致 |
+| 双窗口 OFF | PASS；A ON，B /dual 关闭，已开 A 即显示 OFF；侧栏 D 和网页 D 后实际仍 1 |
+| 双视频 | PASS；primary paused/rate1/time0；正在播放 secondary rate2，未改 primary |
+| 跨源 iframe | PASS；顶层 127.0.0.1 无 video，localhost 子文档视频实际2，侧栏独立读回2 |
+| 播放器覆盖 | PASS；/reset 实际1；侧栏“未生效；目标2.00×未生效；实际1.00×” |
+| OFF 刷新与重新打开 | 1.1.1 曾实际 PASS；1.1.2 升级保留 OFF，未将旧版刷新证据提升为本版本全量回归 |
+
+回执和数字从 native cua_repl AX 输出转录；Console 仅监听原有 response，媒体写入均来自实际 UI 操作；未使用 CDP、直接 SDK 调速或修改 Chrome 安装状态制造通过。独立网页采样读取 HTMLVideoElement、currentTime、performance.now 和解码帧。转录文件不是自动保存的原始截图或另一验证者独立重放。
+
+## 最小检查
+
+- node --test projects/video-speed-controller/tests/focus-controls.test.mjs projects/video-speed-controller/tests/shortcut-preference.test.mjs tests/environment/video-speed-controller.test.mjs tests/environment/video-speed-bundle-boundary.test.mjs：47/47 PASS。
+- node --test --test-name-pattern='video shortcut' tests/environment/sidebar-tools-host.test.mjs：14/14 PASS。
+- 同一原打包器 candidate → 上述检查成功 → --promote-from → --check-project：PASS；正式 JSON 唯一，没有版本后缀副本。
+- 当前可信源码 pin、包大小/SHA、development 内对应字节已核对；相关 JS 语法及 scoped diff 检查通过。未运行根全量测试、无关模块整改或 production 构建。
+
+## 尚未完成
+
+本次可见更新与核心操作验证不等于完整 R1.3 验收。真实 B站/优酷/第三个普通网站、原生网站撤权/停用/卸载/未知副作用矩阵、IME 和站点快捷键冲突、320/360/400/440/520 CSS px、200% 缩放/深浅色/完整键盘焦点矩阵、production 与独立九维评分仍未完成。全部保留 NOT_TESTED 或 NOT_SCORED，不能写每项或综合 ≥95；当前总状态仍 PARTIAL。
+
+---
+
+## 历史首次会话：当时的静态构建与连接阻塞
 
 日期：2026-10-30（Asia/Shanghai）。Owner：Codex chat `01a18c47-8aa9-7cb3-af0b-350b936e0706`。
 

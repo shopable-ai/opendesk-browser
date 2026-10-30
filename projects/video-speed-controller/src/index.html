@@ -1,14 +1,12 @@
 <main class="video-speed" aria-label="视频倍速控制">
-  <div class="video-speed-context">
-    <div class="video-speed-video">
-      <span class="speed-video-icon" aria-hidden="true">▣</span>
-      <div class="speed-video-text"><strong>当前网页视频</strong><span id="speed-video-detail">正在检测…</span></div>
-    </div>
-    <button id="speed-refresh" class="speed-icon" type="button" title="重新检测视频" aria-label="重新检测视频">↻</button>
-  </div>
-
   <section class="speed-meter" aria-label="实际播放倍速">
-    <div class="speed-meter-top"><span>当前实际倍速</span><span id="speed-verification" class="speed-verification" data-kind="neutral">检测中</span></div>
+    <div class="speed-meter-top">
+      <span>当前实际倍速</span>
+      <div class="speed-meter-actions">
+        <span id="speed-verification" class="speed-verification" data-kind="neutral">检测中</span>
+        <button id="speed-refresh" class="speed-icon" type="button" title="重新检测视频" aria-label="重新检测视频">↻</button>
+      </div>
+    </div>
     <div class="speed-meter-value"><strong id="speed-current" aria-live="polite" aria-atomic="true">—</strong><span id="speed-unit" hidden>×</span></div>
     <p id="speed-message" class="speed-feedback" role="status" aria-live="polite">正在读取网页当前速度…</p>
   </section>

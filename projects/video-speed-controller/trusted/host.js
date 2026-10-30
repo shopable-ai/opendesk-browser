@@ -6,9 +6,9 @@ const fail=(code,message)=>Object.assign(new Error(message),{code});
 // webNavigation document. It must remain self-contained; sandbox JS is never
 // passed to executeScript and never gains access to chrome.scripting.
 //
-// Results contain only bounded numbers and booleans, never source URLs, DOM
+// Results contain only bounded scalars and request tokens, never source URLs, DOM
 // text, media stream identifiers or other private webpage information.
-export function pageVideoSpeed(mode,speed,index=-1,nonce='') {
+export function pageVideoSpeed(mode,speed,token='',nonce='') {
   // Trusted fixed function installed in an isolated document. The listener
   // signals keys only; it cannot mutate media or authorize an operation.
   if(mode==='shortcut-on'||mode==='shortcut-off'){
@@ -45,7 +45,22 @@ export function pageVideoSpeed(mode,speed,index=-1,nonce='') {
     return {found:false,count:0,shortcuts:true};
   }
   const nodes=Array.from(document.querySelectorAll('video')).slice(0,48);
-  let best=null,bestIndex=-1,bestScore=-1;
+  // This expando belongs to the extension's ISOLATED document wrapper, not
+  // MAIN. Weak references cannot keep removed media alive. At most 16 pending
+  // requests per document survive, and each expires after 15 seconds. Lazy
+  // pruning keeps work bounded even when admission aborts before set/read.
+  const key='__opendeskVideoSpeedElements_v1';
+  const now=Date.now();
+  const pending=document[key];
+  if(pending)for(const [id,entry] of pending){
+    if(entry.expires<=now||!entry.element.deref())pending.delete(id);
+  }
+  const validToken=typeof token==='string'&&
+    /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(token);
+  const bound=mode==='probe'||mode==='set'||mode==='read';
+  const changed=()=>({found:false,count:nodes.length,changed:true,token});
+  if(bound&&!validToken)return changed();
+  let best=null,bestScore=-1;
   for(let i=0;i<nodes.length;i++){
     const video=nodes[i];
     const playing=!video.paused&&!video.ended;
@@ -55,11 +70,28 @@ export function pageVideoSpeed(mode,speed,index=-1,nonce='') {
       area=Math.max(0,rect.width)*Math.max(0,rect.height);
     }catch{/* Detached/virtual media may not have a box. */}
     const score=(playing?1000000000:0)+Math.min(99999999,Math.floor(area));
-    if(score>bestScore){bestScore=score;best=video;bestIndex=i;}
+    if(score>bestScore){bestScore=score;best=video;}
   }
-  const chosen=Number.isInteger(index)&&index>=0?nodes[index]:best;
-  const chosenIndex=Number.isInteger(index)&&index>=0?index:bestIndex;
+  let chosen=best;
+  if(mode==='set'||mode==='read'){
+    const entry=pending?.get(token);
+    chosen=entry?.element.deref();
+    if(!chosen||!nodes.includes(chosen)||entry.phase!==(mode==='set'?'probe':'set')){
+      pending?.delete(token);
+      return changed();
+    }
+    // One write and one independent read only; neither may replay a receipt.
+    if(mode==='read')pending.delete(token);
+    else entry.phase='set';
+  }
+  const chosenIndex=nodes.indexOf(chosen);
   if(!chosen)return {found:false,count:nodes.length};
+  if(mode==='probe'){
+    const entries=pending??(document[key]=new Map());
+    if(entries.has(token))return changed();
+    if(entries.size>=16)entries.delete(entries.keys().next().value);
+    entries.set(token,{element:new WeakRef(chosen),expires:now+15000,phase:'probe'});
+  }
   const playing=!chosen.paused&&!chosen.ended;
   if(mode==='set'){
     if(typeof speed!=='number'||!Number.isFinite(speed)||speed<0.25||speed>4)
@@ -69,7 +101,7 @@ export function pageVideoSpeed(mode,speed,index=-1,nonce='') {
   }
   return {found:true,count:nodes.length,index:chosenIndex,playing,
     score:bestScore,speed:Number(chosen.playbackRate),
-    ...(mode==='set'?{applied:true}:{})};
+    ...(bound?{token}:{}),...(mode==='set'?{applied:true}:{})};
 }
 
 function checkedResult(injections,frame) {
@@ -89,15 +121,18 @@ function admittedFrame(frame) {
   try {const u=new URL(frame.url);return ['http:','https:'].includes(u.protocol);}
   catch {return false;}
 }
-async function inject(api,tabId,frame,mode,speed=null,index=-1,nonce='') {
+async function inject(api,tabId,frame,mode,speed=null,token='',nonce='') {
   // documentIds (Chrome 106+) prevents a navigated/recycled frame from
   // receiving an operation intended for an earlier document.
   const results=await api.scripting.executeScript({
     target:{tabId,documentIds:[frame.documentId]},
-    world:'ISOLATED',func:pageVideoSpeed,args:[mode,speed,index,nonce]
+    world:'ISOLATED',func:pageVideoSpeed,args:[mode,speed,token,nonce]
   });
   const result=checkedResult(results,frame);
   if(!result)throw fail('E_VIDEO_READBACK','视频脚本未返回与目标文档匹配的结果');
+  if(result.changed)throw fail('E_VIDEO_CHANGED','视频已切换或请求已失效，请重新检测');
+  if((mode==='probe'&&result.found||mode==='set'||mode==='read')&&result.token!==token)
+    throw fail('E_VIDEO_READBACK','视频脚本返回了不匹配的请求令牌');
   return result;
 }
 export async function requestVideoSpeed({
@@ -160,7 +195,7 @@ export async function requestVideoSpeed({
     assertCurrent();await assertInstalled();
     assertLiveTarget();
     const outcome=await inject(api,target.tabId,frame,
-      enableKeys?'shortcut-on':'shortcut-off',null,-1,enableKeys?shortcutNonce:'');
+      enableKeys?'shortcut-on':'shortcut-off',null,'',enableKeys?shortcutNonce:'');
     await currentPageTarget.revalidate(target);
     assertCurrent();await assertInstalled();
     assertLiveTarget();
@@ -168,11 +203,13 @@ export async function requestVideoSpeed({
       throw fail('E_VIDEO_SHORTCUT','网页快捷键监听无法完成');
     return {enabled:enableKeys};
   }
+  // Generated by the trusted Host, never accepted from sandbox payloads.
+  const requestToken=set?globalThis.crypto.randomUUID():'';
   let rejected=0,videoCount=0;
   const rows=await Promise.all(selectedFrames.map(async frame=>{
     try {
       assertLiveTarget();
-      const data=await inject(api,target.tabId,frame,'status');
+      const data=await inject(api,target.tabId,frame,set?'probe':'status',null,requestToken);
       videoCount+=data.count;
       return data.found&&Number.isFinite(data.speed)&&data.speed>=0&&
         Number.isInteger(data.index)&&data.index>=0&&
@@ -203,12 +240,12 @@ export async function requestVideoSpeed({
   // No asynchronous gap may remain between this live-session check and the
   // deliberate write. Admission itself can yield while the panel/tab changes.
   assertLiveTarget();
-  const applied=await inject(api,target.tabId,chosen.frame,'set',args.speed,chosen.data.index);
+  const applied=await inject(api,target.tabId,chosen.frame,'set',args.speed,requestToken);
   if(!applied.found||applied.applied!==true)
     throw fail('E_VIDEO_CHANGED','视频已切换或播放器拒绝调整，请刷新检测');
   // Independent second injection: never claim a successful adjustment solely
   // from the setter's acknowledgement. The site may override playbackRate.
-  const verified=await inject(api,target.tabId,chosen.frame,'read',null,chosen.data.index);
+  const verified=await inject(api,target.tabId,chosen.frame,'read',null,requestToken);
   await currentPageTarget.revalidate(target);
   assertCurrent();
   await assertInstalled();

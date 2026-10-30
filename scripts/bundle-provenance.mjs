@@ -35,8 +35,8 @@ function reviewedCompiledTimeReview(target,path,root){
 // No global projects/** or arbitrary app scripts are trusted by this rule.
 const compiledVideoSpeedInputs=Object.freeze({
   'projects/video-speed-controller/trusted/policy.js':'3644e10a0f8cba57349b2d3700b44832e43f7932',
-  'projects/video-speed-controller/trusted/host.js':'3a75076eac82b8e6bac434ed606fc08f2b720733',
-  'projects/video-speed-controller/trusted/admission.js':'fd7318f9c19d0a4ad1e179083c9f0e05d2d6fe53'
+  'projects/video-speed-controller/trusted/host.js':'fd6884a171bb12b9cbc88a03418810dd32d36c27',
+  'projects/video-speed-controller/trusted/admission.js':'5635e2b13843dcea863f228985c1a06bd9550ce0'
 });
 function reviewedCompiledVideoSpeed(target,path,root){
   if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledVideoSpeedInputs,path))return null;
