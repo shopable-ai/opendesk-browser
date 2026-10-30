@@ -10,8 +10,8 @@ import {createHash} from 'node:crypto';
 const root=resolve('services/ai-account-usage/web/preview-dist');
 const evidence=resolve('artifacts/ai-usage-r19');
 await mkdir(evidence,{recursive:true});
-const assetTypes={'/':'text/html','/index.html':'text/html','/app.js':'text/javascript','/app.css':'text/css'};
-const assetNames={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/app.css':'app.css'};
+const assetTypes={'/':'text/html','/index.html':'text/html','/standalone':'text/html','/app.js':'text/javascript','/app.css':'text/css'};
+const assetNames={'/':'index.html','/index.html':'index.html','/standalone':'../preview/index.html','/app.js':'app.js','/app.css':'app.css'};
 const server=createServer(async(req,res)=>{
   const name=assetNames[req.url];
   if(!name){res.writeHead(404);res.end();return;}
@@ -107,6 +107,14 @@ try {
   await page.evaluate(()=>document.documentElement.style.zoom='200%');
   const zoom=await page.evaluate(()=>({documentWidth:document.documentElement.scrollWidth,viewport:innerWidth}));
   check('200% zoom no page horizontal overflow',zoom.documentWidth<=zoom.viewport+1,zoom);
+  // Independent self-contained HTML served with strict CSP; must use the same React logic.
+  await page.goto(base+'standalone',{waitUntil:'load'});
+  await page.locator('.accounts tbody tr').first().waitFor();
+  check('standalone published HTML renders all 10 formal React demo accounts',
+    await page.locator('.accounts tbody tr').count()===10);
+  await page.getByRole('button',{name:/查看.*备用 Pro.*历史证据/}).first().click();
+  check('standalone HTML keeps interactive drawer working',
+    await page.locator('dialog.drawer[open]').count()===1);
   check('no browser script errors',issues.length===0,issues);
   const js=await readFile(join(root,'app.js'));
   const css=await readFile(join(root,'app.css'));
