@@ -41,10 +41,13 @@ export async function startManagementServer({service,store,port=0,
   assets.set('/session.js',{body:pairingJS,type:'text/javascript'});
   const reader = await startReadApi({store});
   let pairingCode=randomBytes(32).toString('hex');
+  // Cookies are host-scoped, never port-scoped. A unique localhost subdomain
+  // prevents this session being sent to unrelated numeric-loopback services.
+  const hostname=`usage-${randomBytes(12).toString('hex')}.localhost`;
   const expires=clock()+5*60_000, session=randomBytes(32).toString('hex');
   let sessionExpires=0, busy=false;
   const server=createServer(async(req,res)=>{
-    const origin=`http://127.0.0.1:${server.address()?.port}`;
+    const origin=`http://${hostname}:${server.address()?.port}`;
     const cookieName=`od_usage_${server.address()?.port}`;
     if(req.headers.host!==new URL(origin).host)return reply(res,403,{error:'HOST_REJECTED'});
     if(req.headers.origin && req.headers.origin!==origin)return reply(res,403,{error:'ORIGIN_REJECTED'});
@@ -92,6 +95,6 @@ export async function startManagementServer({service,store,port=0,
   server.requestTimeout=15000;server.headersTimeout=5000;server.maxRequestsPerSocket=100;
   try {await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});}
   catch(error){await reader.close();throw error;}
-  return Object.freeze({url:`http://127.0.0.1:${server.address().port}/pair`,pairingCode,
+  return Object.freeze({url:`http://${hostname}:${server.address().port}/pair`,pairingCode,
     close:async()=>{await new Promise(resolve=>server.close(resolve));await reader.close();}});
 }

@@ -124,13 +124,16 @@ try{
   await connect();
   await call('Page.navigate',{url});
   await until('document.querySelectorAll(".fp-app").length===1','React rendered');
-  assert.equal(await evaluate('document.querySelectorAll(".fp-tabs button").length'),3);
+  assert.deepEqual(await evaluate('[...document.querySelectorAll(".fp-tabs button")].map(x=>x.textContent.trim())'),
+    ['环境设置','运行记录']);
   assert.equal(await evaluate('document.querySelector(".fp-tabs button.active")?.textContent'),
     '环境设置');
   assert.equal(await evaluate('document.querySelector("select[aria-label=\'选择环境预设\']")?.value'),'us');
   await until('document.querySelector(".fp-context")?.textContent.includes("qa.example.test")',
     'trusted-context fixture read');
-  evidence.checks.push('R20_THREE_PAGES_CONFIG_DEFAULT_AND_VALID_CONTEXT');
+  assert.deepEqual(await evaluate('[...document.querySelectorAll(".fp-bottom-actions button")].map(x=>x.textContent.trim())'),
+    ['应用配置','停止 / 恢复']);
+  evidence.checks.push('TWO_TABS_CONFIG_DEFAULT_TWO_CORE_ACTIONS_AND_VALID_CONTEXT');
 
   // Changing a builtin creates a draft. A preset switch must not silently lose it.
   await select('#fp-param-tz','Europe/Berlin');
@@ -162,7 +165,6 @@ try{
     'blocked native apply');
   assert.equal(await evaluate('document.querySelector(".fp-status-note")?.textContent.includes("配置保存不代表环境已生效")'),true);
   assert.equal(await evaluate('document.querySelectorAll(".fp-bottom-actions button")[1]?.disabled'),true);
-  assert.equal(await evaluate('document.querySelectorAll(".fp-bottom-actions button")[2]?.disabled'),true);
   // Saving a custom preset already records a separate history row. The blocked
   // apply must be present, but the history must not be constrained to one row.
   await until('JSON.parse(localStorage.getItem("opendesk.fingerprint.r21.preview-only.v1")||"{}")["fingerprint.r21.runs.v1"]?.items?.some(row=>row.kind==="apply"&&row.status==="blocked")',
@@ -170,10 +172,16 @@ try{
   assert.equal(await evaluate('JSON.parse(localStorage.getItem("opendesk.fingerprint.r21.preview-only.v1"))["fingerprint.r21.runs.v1"].items.filter(row=>row.kind==="apply"&&row.status==="blocked").length'),1);
   evidence.checks.push('NATIVE_APPLY_BLOCKED_NO_FALSE_SUCCESS_NO_RETRY');
 
-  await click('网页验证');
-  await until('document.querySelectorAll(".fp-check").length===8','verification rows');
-  assert.equal(await evaluate('[...document.querySelectorAll(".fp-check")].every(x=>x.textContent.includes("无法验证"))'),true);
-  assert.equal(await evaluate('[...document.querySelectorAll(".fp-report-actions button")].every(x=>x.disabled)'),true);
+  assert.equal(await evaluate('document.querySelectorAll(".fp-check").length'),0);
+  const reportDetails='[...document.querySelectorAll("details")].find(x=>x.querySelector("summary")?.textContent.trim()==="核验详情与报告")';
+  assert.equal(await evaluate('('+reportDetails+')?.open'),false);
+  // Open the disclosure through its summary, as a user would; no fake rows exist.
+  assert.equal(await evaluate('(()=>{const details='+reportDetails+';if(!details)return false;details.querySelector("summary").click();return true;})()'),true);
+  await until('('+reportDetails+')?.open===true','verification disclosure opened');
+  assert.equal(await evaluate('('+reportDetails+')?.textContent.includes("尚无可信读回")'),true);
+  assert.equal(await evaluate('document.querySelectorAll(".fp-check").length'),0);
+  assert.deepEqual(await evaluate('[...document.querySelectorAll(".fp-report-actions button")].map(x=>({label:x.textContent.trim(),disabled:x.disabled}))'),
+    [{label:'复制报告',disabled:true},{label:'导出 JSON',disabled:true}]);
   evidence.checks.push('NO_FAKE_PAGE_JS_OR_NETWORK_INDEPENDENT_READBACK');
 
   await click('运行记录');
@@ -191,18 +199,43 @@ try{
   evidence.checks.push('RESTART_READS_STORED_PRESETS_AND_RUN_HISTORY');
   await click('环境设置');
 
-  // Supplemental one-width layout evidence, not a substitute for Native testing.
-  await call('Emulation.setDeviceMetricsOverride',
-    {width:380,height:850,deviceScaleFactor:1,mobile:false});
-  const m=await evaluate('('+function(){
-    return {documentWidth:document.documentElement.clientWidth,
-      scrollWidth:document.documentElement.scrollWidth};
+  // Explicit fault injection tests unknown-outcome UI only. The normal preview
+  // fixture above remains fail-closed; no native success/readback is fabricated.
+  await evaluate('('+function(){
+    const bridge=globalThis.OpenDeskTool,request=bridge.request.bind(bridge);
+    globalThis.__fpPreviewFaultCalls=[];
+    bridge.request=async(operation,args={})=>{
+      if(operation==='browser.capabilities.getStatus'&&args.operation==='browser.fingerprint.apply')
+        return {operation:args.operation,implementation:'implemented',
+          authorization:{tool:'granted'},callableNow:true};
+      if(operation.startsWith('browser.fingerprint.')){
+        globalThis.__fpPreviewFaultCalls.push(operation);
+        throw Object.assign(Error('Injected preview timeout; no native operation executed'),{code:'E_TIMEOUT'});
+      }
+      return request(operation,args);
+    };
   }.toString()+')()');
-  assert(m.scrollWidth<=m.documentWidth+1,'main UI horizontal overflow: '+JSON.stringify(m));
+  await click('应用配置');
+  await until('document.querySelector(".fp-status-title")?.textContent.includes("执行结果未知")',
+    'unknown apply is not success');
+  await until('document.querySelectorAll(".fp-bottom-actions button")[1]?.disabled===false',
+    'unknown apply finished');
+  assert.equal(await evaluate('document.querySelectorAll(".fp-bottom-actions button")[0]?.disabled'),true);
+  assert.equal(await evaluate('document.querySelectorAll(".fp-check").length'),0);
+  await click('停止 / 恢复');
+  await until('document.querySelector(".fp-status-title")?.textContent.includes("恢复结果未知")',
+    'unknown restore never claims recovery');
+  await until('JSON.parse(localStorage.getItem("opendesk.fingerprint.r21.preview-only.v1")||"{}")["fingerprint.r21.runs.v1"]?.items?.some(row=>row.kind==="restore"&&row.status==="restore_unknown")',
+    'unknown restoration recorded');
+  assert.deepEqual(await evaluate('globalThis.__fpPreviewFaultCalls'),['browser.fingerprint.apply']);
+  evidence.checks.push('INJECTED_TIMEOUT_UNKNOWN_NO_APPLY_RETRY_OR_RESTORE_REPLAY');
+
+  // Capture the normal default window, without a width/zoom emulation test.
+  const viewport=await evaluate('({width:innerWidth,height:innerHeight})');
   const capture=await call('Page.captureScreenshot',{format:'png'});
   const bytes=Buffer.from(capture.data,'base64');
-  await writeFile(join(out,'fingerprint-r21-380.png'),bytes);
-  evidence.screenshots.push({width:380,sha256:createHash('sha256').update(bytes).digest('hex')});
+  await writeFile(join(out,'fingerprint-r21-default.png'),bytes);
+  evidence.screenshots.push({...viewport,sha256:createHash('sha256').update(bytes).digest('hex')});
   assert.deepEqual(exceptions,[],'Unexpected Chromium JavaScript exceptions');
   evidence.status='PASS_R21_PREVIEW_FIXTURE_ONLY';
   console.log(JSON.stringify(evidence,null,2));

@@ -20,5 +20,5 @@ test('single promoted App is reproducible and delegates only to the shipped fixe
   assert.equal(sha(task.sourceUtf8),task.manifest.program.sourceHash);
   assert.deepEqual(app.delegatedTasks,[{taskId:task.manifest.taskId,version:task.manifest.version,
     manifestHash:task.manifestHash,contentHash:sha(task.sourceUtf8)}]);
-  assert.deepEqual(app.capabilities,['storage.local','currentPage.read','user.export','tasks.run']);
+  assert.deepEqual(app.capabilities,['ai.generate','storage.local','currentPage.read','user.export','tasks.run']);
 });

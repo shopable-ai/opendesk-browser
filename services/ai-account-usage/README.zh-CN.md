@@ -18,7 +18,7 @@ npm run build:web --prefix services/ai-account-usage
 node services/ai-account-usage/manage.mjs serve --proxy http://127.0.0.1:7897
 ```
 
-打开 `serve` 在**本机终端**打印的一次性 `/pair#pair=…` 链接：有效期 5 分钟、使用后失效，立即从地址栏移除并换成 8 小时 HttpOnly / SameSite=Strict 会话。页面为同源会话入口，不持有只读 API 的服务秘密。服务绑定 `127.0.0.1` 随机端口，可用 `serve --port 43121` 指定空闲端口。关闭服务后会话失效；另一个浏览器须重启服务获取新链接。终端链接属于本机访问凭据，不分享。页面数据只在本机显示；详情含邮箱与账号 ID，不要上传截图。关闭终端/服务停止监听，无自动调度、自动刷新或模型推理。
+打开 `serve` 在**本机终端**打印的一次性 `/pair#pair=…` 链接：有效期 5 分钟、使用后失效，立即从地址栏移除并换成 8 小时 HttpOnly / SameSite=Strict 会话。页面为同源会话入口，不持有只读 API 的服务秘密。服务绑定 `127.0.0.1` 随机端口，通过每次启动独立的 `usage-<随机值>.localhost` 主机名访问，避免 Cookie 被发送到其他本机端口的服务；不修改 DNS 或系统配置。可用 `serve --port 43121` 指定空闲端口。关闭服务后会话失效；另一个浏览器须重启服务获取新链接。终端链接属于本机访问凭据，不分享。页面数据只在本机显示；详情含邮箱与账号 ID，不要上传截图。关闭终端/服务停止监听，无自动调度、自动刷新或模型推理。
 
 多账号使用管理员指定的本机 JSON 配置（不放入仓库，不含 Token/Cookie），每份 `path` 必须对应其明确授权的独立账号快照：
 
@@ -34,6 +34,8 @@ node services/ai-account-usage/manage.mjs refresh --config /absolute/accounts.js
 node services/ai-account-usage/manage.mjs refresh --config /absolute/accounts.json --all
 node services/ai-account-usage/manage.mjs serve --config /absolute/accounts.json
 ```
+
+历史写入在完整读改写事务上使用私有跨进程排他锁。CLI / 页面写入竞争返回明确 `E_HISTORY_BUSY`，不自动重新查询上游；旧成功数据可继续读取。进程异常退出留下的 `.history-v1.lock` 不会被自动删除，须由管理员确认全部写入进程已停止后清理该锁，历史文件无需删除。历史裁剪会保留各账号最新成功窗口。CLI 参数/服务错误退出码为 1，逐账号查询失败为 2，成功为 0。
 
 认证文件必须是当前用户拥有的私有普通文件（0600/0400），拒绝末级符号链接、目录、超大文件。不会扫描其他认证目录，不复制或刷新认证，不修改 Chrome 登录。首次从已授权文件提取缓存身份，再由上游双 ID 和邮箱比对验证；成功绑定后，换成另一个账号的文件会在联网前拒绝，不能重用 alias 静默覆盖历史。同一已验证用户/工作区不得再绑定到另一个 alias。更改账号请使用新的 alias 和独立授权。
 
@@ -78,7 +80,7 @@ await service.query({alias:'codex_local_01',operation:'history',limit:20});
 | 重置时间 | `2026-11-04T06:35:41.000Z`（北京时间 11 月 4 日 14:35:41） |
 | 会员到期时间 | 未知；不使用额度重置或缓存订阅声明代替 |
 
-该次本机 Python 标准库 harness 验证了真实协议；新增 Node 适配器随后通过离线定向测试，**尚未以该 Node 适配器重复真实请求**。实测只提取主 `rate_limit`，不声称穷尽额外额度桶或 ChatGPT 所有模型限额。源 auth 与 Cookie JSON 在查询前后哈希相同；Chrome 登录、Cookie Editor Vault 不变性和官方页面对照仍为 `NOT_TESTED`。没有第二份已授权 Codex 凭据，不搜索其他项目或备份补足账号。[OAuth 独立实测证据](evidence/r14-codex-oauth-live-20261029.json)。
+该次本机 Python 标准库 harness 验证了真实协议；新增 Node 适配器随后通过离线定向测试，**上轮结束时尚未使用该 Node 适配器真实请求；本轮结果见前文**。实测只提取主 `rate_limit`，不声称穷尽额外额度桶或 ChatGPT 所有模型限额。源 auth 与 Cookie JSON 在查询前后哈希相同；Chrome 登录、Cookie Editor Vault 不变性和官方页面对照仍为 `NOT_TESTED`。没有第二份已授权 Codex 凭据，不搜索其他项目或备份补足账号。[OAuth 独立实测证据](evidence/r14-codex-oauth-live-20261029.json)。
 
 选择单次 GET 的依据是与 CLI `0.164.0` 对应的官方源码提交 `6aaac694803004a63c6f393d153c96d22521a6b9`：[固定 usage 路径](https://github.com/openai/codex/blob/6aaac694803004a63c6f393d153c96d22521a6b9/codex-rs/backend-client/src/client/rate_limit_resets.rs#L124-L128)、[认证与账号头](https://github.com/openai/codex/blob/6aaac694803004a63c6f393d153c96d22521a6b9/codex-rs/backend-client/src/client.rs#L269-L289)、[服务端双 ID 比对](https://github.com/openai/codex/blob/6aaac694803004a63c6f393d153c96d22521a6b9/codex-rs/app-server/src/request_processors/account_processor.rs#L1227-L1237)。这是官方客户端的内部协议实现证据，不是稳定公开 HTTP API 的承诺。
 
@@ -166,7 +168,7 @@ const api = await startReadApi({store});
 
 可信主进程须指定 `createCollector({store, mode:'CODEX_OAUTH', loadAuthorizedAccount})`；提供者只在内存返回 `{alias, authorized:true, snapshot, expectedIdentity}`，并由授权记录固定 alias 与同一账号的绑定。`snapshot` 形状为 `{authMode:'chatgpt', accessToken, idToken, accountId}`，`expectedIdentity` 为 `{userId, accountId, email?}`；不传 Refresh Token。Codex 私有文件提供者已由 `authorized-sources.mjs` 接通；不能由普通网页或 HTTP Query 提供这些数据。
 
-原 CLI 默认 Cookie-only；可信 stdin JSON 只有显式 `mode:'CODEX_OAUTH'` 才调用 OAuth。无任何自动认证降级。Node 默认传输使用单次原生 `https.request`，不发现系统代理、不复制 Codex 配置；本机真实 harness 则显式沿用系统 `127.0.0.1:7897`。因此当前 默认直连路径仍未实测；本轮只证明显式 Node CONNECT 路径，不会自动切换代理。
+原 CLI 默认 Cookie-only；可信 stdin JSON 只有显式 `mode:'CODEX_OAUTH'` 才调用 OAuth。无任何自动认证降级。Node 默认传输使用单次原生 `https.request`，不发现系统代理、不复制 Codex 配置；本机真实 harness 则显式沿用系统 `127.0.0.1:7897`。默认直连路径仍未实测；本轮只证明显式 Node CONNECT 路径，不会自动切换代理。
 
 ## 套餐命名与使用条款注意
 

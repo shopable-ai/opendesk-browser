@@ -10,7 +10,7 @@ export default function VipApp({createDevelopmentControls}={}){
     return ()=>dispose?.();
   },[createDevelopmentControls]);
   return (
-    <main className="ai-vip" aria-label="AI VIP Share 会员与权益中心">
+    <main className="ai-vip" aria-label="AI VIP Share 网站快速登录、会员与网络服务">
       <header className="ai-vip-brand" aria-label="AI VIP Share">
         <span className="ai-vip-logo" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -20,9 +20,50 @@ export default function VipApp({createDevelopmentControls}={}){
         </span>
         <div className="ai-vip-brand-copy">
           <strong>AI VIP Share</strong>
-          <span>会员权益 · 兑换激活 · AI 网站访问</span>
+          <span>网站快速登录 · 会员与网络服务</span>
         </div>
       </header>
+      <Card className="ai-vip-sites" aria-labelledby="ai-vip-site-title">
+        <CardContent className="ai-vip-site-content">
+          <div className="ai-vip-section-head">
+            <h2 id="ai-vip-site-title">网站与快速登录</h2>
+          </div>
+          <label className="ai-vip-site-field" htmlFor="ai-vip-site-select">
+            <span>网站</span>
+            <select id="ai-vip-site-select" className="od-field" defaultValue="" aria-describedby="ai-vip-site-source ai-vip-site-account">
+              <option value="" disabled>请选择网站</option>
+            </select>
+          </label>
+          <div className="ai-vip-site-summary">
+            <p id="ai-vip-site-source">选择网站后查看来源与目标。</p>
+            <p id="ai-vip-site-account">尚未获取授权账号。</p>
+          </div>
+          <div id="ai-vip-source-auth" className="ai-vip-source-auth" hidden>
+            <label className="ai-vip-site-field" htmlFor="ai-vip-source-credential">
+              <span>来源凭据</span>
+              <input id="ai-vip-source-credential" className="od-field" type="password" data-sensitive
+                autoComplete="off" autoCapitalize="none" spellCheck="false" />
+            </label>
+            <Button id="ai-vip-source-clear" className="od-button od-button--secondary" type="button">清除凭据</Button>
+          </div>
+          <div className="ai-vip-site-actions">
+            <Button variant="primary" id="ai-vip-site-open" className="od-button ai-vip-primary" type="button" disabled>打开网站</Button>
+            <Button id="ai-vip-site-receive" className="od-button od-button--secondary" type="button" disabled>获取授权会话</Button>
+            <Button id="ai-vip-site-cancel" className="od-button od-button--secondary" type="button" hidden>清除未提交会话</Button>
+          </div>
+          <p id="ai-vip-site-status" className="ai-vip-site-status" role="status" aria-live="polite">请选择网站。</p>
+        </CardContent>
+      </Card>
+      <section id="ai-vip-cookie-section" className="ai-vip-review" aria-labelledby="ai-vip-cookie-title" hidden>
+        <h2 id="ai-vip-cookie-title">网站会话</h2>
+        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
+        <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
+        <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
+        <Button id="ai-vip-cookie-install" className="od-button od-button--secondary" type="button" disabled>设置并打开网站</Button>
+        <Button id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
+        <Button id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
+      </section>
+
       <Card id="ai-vip-member-card" className="ai-vip-membership" data-view="unconfigured" aria-labelledby="ai-vip-member-title">
         <CardContent className="ai-vip-card-inner">
           <div className="ai-vip-section-head">
@@ -120,15 +161,7 @@ export default function VipApp({createDevelopmentControls}={}){
         <Button variant="primary" id="ai-vip-proxy-toggle" className="od-button ai-vip-primary ai-vip-proxy-toggle" type="button" hidden disabled>启用代理</Button>
         <div id="ai-vip-proxy-alert" className="ai-vip-proxy-alert" hidden><p id="ai-vip-proxy-alert-text"></p></div>
       </section>
-      <section id="ai-vip-cookie-section" className="ai-vip-review" aria-labelledby="ai-vip-cookie-title" hidden>
-        <h2 id="ai-vip-cookie-title">网站会话</h2>
-        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
-        <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
-        <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
-        <Button id="ai-vip-cookie-install" className="od-button od-button--secondary" type="button" disabled>确认应用网站会话</Button>
-        <Button id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
-        <Button id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
-      </section>
+
     
       <section id="ai-vip-desktop-promo" className="ai-vip-desktop-promo" aria-labelledby="ai-vip-desktop-title">
         <div className="ai-vip-desktop-main">

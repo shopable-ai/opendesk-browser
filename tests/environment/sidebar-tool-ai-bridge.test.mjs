@@ -93,6 +93,48 @@ test('Native cancellation failure is unknown and its raw error is discarded',asy
  assert.equal((await t.adapter.request('ai.cancel',{requestId:'one'})).state,'unknown');await rejected;
  finish({proposal:{late:true}});await new Promise(r=>setImmediate(r));t.adapter.dispose();
 });
+test('a settled unknown stop can reconcile the same request after connection recovery',async()=>{
+ let finish,cancels=0;
+ const t=setup({generate:()=>new Promise(resolve=>finish=resolve),cancel:async()=>{
+   cancels++;return cancels===1?{state:'UNKNOWN'}:{state:'READY_FOR_TURN',terminalStatus:'interrupted'};
+ }});
+ try{
+   const pending=t.adapter.request('ai.generate',input);
+   const rejected=assert.rejects(pending,{code:'E_AI_UNKNOWN'});
+   await new Promise(resolve=>setImmediate(resolve));
+   assert.equal((await t.adapter.request('ai.cancel',{requestId:'one'})).state,'unknown');
+   await rejected;
+   assert.equal((await t.adapter.request('ai.cancel',{requestId:'one'})).state,'cancelled');
+   assert.equal(cancels,2);assert.equal(t.calls(),1,'reconciliation never dispatches inference again');
+ }finally{finish?.({proposal:{late:true}});await new Promise(resolve=>setImmediate(resolve));t.adapter.dispose();}
+});
+test('real planner retains original turn after failed cancellation and reconnects without another start',async()=>{
+ const {createSharedAIProviderRuntime}=await import('../../src/ui/ai/provider-runtime.js');
+ let connected=false,starts=0,cancels=0,notify;
+ const sessionId='recovery-session',threadId='recovery-thread',turnId='recovery-turn';
+ const client={subscribeWorkflowAI(fn){notify=fn;return ()=>{};},async requestWorkflowAI(method,params,id){
+   if(method==='ai.session.open')return {sessionId,threadId,cursor:0,state:'READY_FOR_TURN'};
+   if(method==='ai.plan.start'){starts++;return {sessionId,threadId,turnId};}
+   if(method==='ai.events.read'){
+     assert.equal(id,sessionId);
+     if(!connected){notify({nativeConnected:false});throw Object.assign(Error('offline'),{code:'E_AI_DISCONNECTED'});}
+     return {events:[{sequence:1,type:'turn.completed',sessionId,threadId,turnId,status:'interrupted'}],cursor:1,hasMore:false,state:'READY_FOR_TURN'};
+   }
+   if(method==='ai.plan.cancel'){cancels++;assert.equal(id,sessionId);if(!connected)throw Error('offline');return {state:'CANCELLING'};}
+   if(method==='ai.session.close')throw Error('offline');
+   throw Error('Unexpected RPC '+method);
+ }};
+ const runtime=createSharedAIProviderRuntime({client,hostInstanceId:'recovery-host'});
+ const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},confirm:async()=>{}});
+ try{
+   await assert.rejects(adapter.request('ai.generate',input),{code:'E_AI_UNKNOWN'});
+   assert.equal((await adapter.request('ai.cancel',{requestId:'one'})).state,'unknown');
+   await assert.rejects(adapter.request('ai.generate',{...input,requestId:'two'}),{code:'E_AI_BUSY'});
+   connected=true;
+   assert.equal((await adapter.request('ai.cancel',{requestId:'one'})).state,'cancelled');
+   assert.equal(starts,1);assert.ok(cancels>=2);
+ }finally{adapter.dispose();runtime.dispose();}
+});
 test('actual shared runtime/facade/planner preserves flat terminal events and session across turns',async()=>{
  const {createSharedAIProviderRuntime}=await import('../../src/ui/ai/provider-runtime.js');
  let opens=0,turn=0,events=[];
@@ -165,7 +207,7 @@ test('real runtime switch retains old planner cleanup instead of synthetic idle'
  let returned=false;const query=adapter.request('ai.cancel',{requestId:'one'}).then(r=>(returned=true,r));
  await new Promise(r=>setImmediate(r));assert.equal(returned,false);
  reply({state:'UNKNOWN'});assert.equal((await query).state,'unknown');await rejected;
- assert.equal(disposed,1);
+ assert.equal(disposed,0,'unknown retains the old planner for a later explicit query');
  await assert.rejects(adapter.request('ai.generate',{...input,requestId:'two',providerGeneration:2}),{code:'E_AI_BUSY'});
  finish({ok:true});await new Promise(r=>setImmediate(r));adapter.dispose();runtime.dispose();
 });
@@ -181,7 +223,7 @@ test('Host AI budget accepts 12000 sample while preserving independent field/env
  delete message.extra;message.operation='storage.set';message.payload={value:'x'.repeat(12000)};
  assert.equal(checkSidebarToolRequestBudget(message).ok,false);
 });
-test('actual planner unknown turn plus failed session close cannot turn idle into retirement proof',async()=>{
+test('actual planner unknown terminal retains original identity and cannot turn idle into retirement proof',async()=>{
  const {createSharedAIProviderRuntime}=await import('../../src/ui/ai/provider-runtime.js');
  const calls=[];
  const sessionId='uncertain-session',threadId='uncertain-thread',turnId='uncertain-turn';
@@ -194,17 +236,16 @@ test('actual planner unknown turn plus failed session close cannot turn idle int
    if(method==='ai.session.close')throw Object.assign(Error('Native close failed'),{code:'E_DISCONNECTED'});
    throw Error('Unexpected Native RPC '+method);
  }};
- // No planner/facade doubles: exercise their real cleanup, which clears session
- // before the failing close and then releases active in plan's finally block.
+ // No planner/facade doubles: an unknown terminal is never confirmed failure.
  const runtime=createSharedAIProviderRuntime({client,hostInstanceId:'host'});
  const adapter=createSidebarToolAIAdapter({providerRuntime:runtime,instanceId:'i',installEpoch:'e',assertCurrent(){},confirm:async()=>{}});
  try{
    await assert.rejects(adapter.request('ai.generate',input),{code:'E_AI_UNKNOWN'});
-   assert.equal(calls.filter(row=>row.method==='ai.session.close').length,1);
+   assert.equal(calls.filter(row=>row.method==='ai.session.close').length,0);
    for(let i=0;i<2;i++)assert.equal((await adapter.request('ai.cancel',{requestId:'one'})).state,'unknown');
-   // The real planner has no active turn: cancel resolves IDLE without issuing
-   // any Native cancellation. That absence must never unlock another dispatch.
-   assert.equal(calls.filter(row=>row.method==='ai.plan.cancel').length,0);
+   // Each explicit retry reconciles the original turn; no synthetic IDLE or
+   // failed cancellation may unlock another inference dispatch.
+   assert.equal(calls.filter(row=>row.method==='ai.plan.cancel').length,2);
    await assert.rejects(adapter.request('ai.generate',{...input,requestId:'two'}),{code:'E_AI_BUSY'});
    assert.equal(calls.filter(row=>row.method==='ai.plan.start').length,1);
  }finally{adapter.dispose();runtime.dispose();}
@@ -259,14 +300,64 @@ test('trace metadata permits only bounded identifiers and no arbitrary provider 
    const t=setup({generate:async()=>({proposal:{ok:true},metadata:{
      responseId:invalid?'Bearer secret-token':'resp_123',upstreamStatus:invalid?{secret:'secret-token'}:'completed',
      upstreamRequestId:invalid?'x'.repeat(201):'req-123',apiKey:'secret-token',headers:{authorization:'secret-token'},
-     endpoint:'https://secret-token@example.com'}})});
+     endpoint:'https://secret-token@example.com',usage:{input_tokens:4,output_tokens:0,total_tokens:6,
+       prompt_tokens:4,completion_tokens:2,credential:'secret-token',headers:{authorization:'secret-token'},
+       unknown:{credential:'secret-token'},input_tokens_details:{cached_tokens:1,credential:'secret-token'}}}})});
    try{
      const {metadata}=await t.adapter.request('ai.generate',input);
+     assert.deepEqual(metadata.usage,{input_tokens:4,output_tokens:0,total_tokens:6,prompt_tokens:4,completion_tokens:2});
      assert.equal(metadata.responseId,invalid?null:'resp_123');
      assert.equal(metadata.upstreamStatus,invalid?null:'completed');
      assert.equal(metadata.upstreamRequestId,invalid?null:'req-123');
      assert.equal(JSON.stringify(metadata).includes('secret-token'),false);
      assert.equal(Object.hasOwn(metadata,'headers'),false);assert.equal(Object.hasOwn(metadata,'apiKey'),false);
+   }finally{t.adapter.dispose();}
+ }
+});
+
+test('safe diagnostic code uses fixed whitelist and never exposes raw provider data',async()=>{
+ const allowed=['E_CODEX_UNSUPPORTED','E_CODEX_MISSING','E_CODEX_LOGIN_REQUIRED','E_CODEX_POLICY',
+   'E_MODEL_UNAVAILABLE','E_RATE_LIMITED','E_NETWORK','E_PROVIDER','E_AI_CONSENT','E_AI_PROTOCOL'];
+ for(const code of [...allowed,'E_AI_CAPABILITY','E_UNKNOWN_PROVIDER_SECRET','E_SECRET',undefined,'E_token-secret',
+   'E_SECRET\nAuthorization: secret-token','E_'+ 'A'.repeat(63),{secret:'secret-token'}]){
+   const t=setup({generate:async()=>{throw Object.assign(Error('Bearer secret-token'),{
+     code,details:'private-details',headers:{authorization:'private-header'},credential:'private-credential'});}});
+   try{
+     await assert.rejects(t.adapter.request('ai.generate',input),error=>{
+       assert.equal(error.code,'E_AI_PROVIDER');
+       const valid=allowed.includes(code);
+       assert.equal(error.message,'AI 请求未完成；请检查状态，不会自动重放'+(valid?' ('+code+')':''));
+       assert.deepEqual(Object.keys(error),['code']);
+       return true;
+     });
+   }finally{t.adapter.dispose();}
+ }
+});
+
+test('diagnostic code preserves unknown classification and original request fence',async()=>{
+ const t=setup({generate:async()=>{throw Object.assign(Error('private-message'),{code:'E_AI_OUTCOME_UNKNOWN'});}});
+ try{
+   await assert.rejects(t.adapter.request('ai.generate',input),error=>{
+     assert.equal(error.code,'E_AI_UNKNOWN');
+     assert.equal(error.message,'AI 终态尚未确认，请查询原 requestId；不会自动重放 (E_AI_OUTCOME_UNKNOWN)');
+     return true;
+   });
+   assert.equal((await t.adapter.request('ai.cancel',{requestId:'one'})).state,'unknown');
+   await assert.rejects(t.adapter.request('ai.generate',{...input,requestId:'retry'}),{code:'E_AI_BUSY'});
+ }finally{t.adapter.dispose();}
+});
+
+
+test('usage projection drops invalid counts without coercion or fabricated totals',async()=>{
+ for(const usage of [null,[], 'private-credential', {}, {headers:{authorization:'private-credential'}},
+   ...[-1,1.5,Number.MAX_SAFE_INTEGER+1,'3',true,NaN,Infinity,{credential:'private-credential'}].map(value=>({
+     input_tokens:value,output_tokens:value,total_tokens:value,prompt_tokens:value,completion_tokens:value})),
+   {input_tokens:0,total_tokens:Number.MAX_SAFE_INTEGER,output_tokens:-1}]){
+   const t=setup({source:'custom_https',generate:async()=>({proposal:{ok:true},metadata:{usage}})});
+   try{
+     const result=await t.adapter.request('ai.generate',input);
+     assert.deepEqual(result.metadata.usage,usage?.total_tokens===Number.MAX_SAFE_INTEGER?
+       {input_tokens:0,total_tokens:Number.MAX_SAFE_INTEGER}:null);
    }finally{t.adapter.dispose();}
  }
 });

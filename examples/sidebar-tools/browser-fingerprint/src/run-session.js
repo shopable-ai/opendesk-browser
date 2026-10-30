@@ -21,6 +21,20 @@ export function classifyFailure(error,phase){
     return phase==='restore'?'restore_unknown':'invalidated';
   return phase==='restore'?'restore_unknown':'unknown';
 }
+// An accepted mutation and its read-only verification have separate outcomes.
+// A read failure cannot erase an owned session or authorize a mutation replay.
+export function readbackFailureState(error,{restore=false,invalidated=false}={}){
+  if(invalidated)return 'invalidated';
+  if(restore)return 'restore_unknown';
+  const failure=classifyFailure(error,'verify');
+  return ['denied','invalidated'].includes(failure)?failure:'applied_unverified';
+}
+export function sessionActions(status,session){
+  const valid=Boolean(session?.sessionRef)&&!session.uncertain&&!session.invalidated&&status!=='invalidated';
+  const applied=['applied_unverified','verified_limited','partial','denied','blocked'].includes(status);
+  return {canRead:valid&&(session.restoreAccepted===true||applied),
+    canRestore:valid&&session.restoreAccepted!==true&&applied};
+}
 export function checkedTarget(raw){
   const target=safeContext(raw);
   if(!REF.test(target.volatile.documentRef||'')||!REF.test(target.volatile.tabRef||''))

@@ -13,7 +13,7 @@ export function parseProposal(proposal,validate,expectedUrl){
 export function changes(before,after){
   const all=new Set([...Object.keys(before.itemConfig),...Object.keys(after.itemConfig)]);
   const describe=(a,b,key)=>({key,before:a[key],after:b[key],kind:!Object.hasOwn(a,key)?'新增':!Object.hasOwn(b,key)?'删除':JSON.stringify(a[key])!==JSON.stringify(b[key])?'修改':'保留'});
-  const fields=[...all].filter(key=>!key.startsWith('_')).map(key=>describe(before.itemConfig,after.itemConfig,key));
+  const fields=[...all].filter(key=>!['_listContainer','_listItem'].includes(key)).map(key=>describe(before.itemConfig,after.itemConfig,key));
   const options=[...new Set([...Object.keys(before),...Object.keys(after)])].filter(key=>key!=='itemConfig'&&JSON.stringify(before[key])!==JSON.stringify(after[key]));
   const listChanged=['_listContainer','_listItem'].some(key=>before.itemConfig[key]!==after.itemConfig[key]);
   return {fields,options,optionChanges:options.map(key=>describe(before,after,key)),listChanged,

@@ -27,3 +27,19 @@ test('proposal rejects prototype keys, oversized fields and broken detail identi
  assert.throws(()=>parseProposal({...base,itemConfig:{huge:'a'.repeat(4100)}},validateConfig,base.url));
  assert.throws(()=>parseProposal({...base,detail:{urlField:'url',identityField:'title',itemConfig:{price:'.price'}}},validateConfig,base.url));
 });
+test('diff includes every validator-accepted underscore field and only separates the two list keys',()=>{
+ const before={...base,itemConfig:{...base.itemConfig,_modified:'.old',_removed:'.remove',_kept:'.keep',_listItemLabel:'.label'}};
+ const after={...base,itemConfig:{...base.itemConfig,_modified:{selector:'.new',read:'text'},_added:'.add',_kept:'.keep',_listItemLabel:'.label',_listItem:'article'}};
+ const snapshots=[JSON.stringify(before),JSON.stringify(after)];
+ // Use the product validator to prove these are supported user fields.
+ validateConfig(before);validateConfig(after);
+ const diff=changes(before,after);
+ for(const [key,kind] of [['_modified','修改'],['_removed','删除'],['_added','新增'],['_kept','保留'],['_listItemLabel','保留']]){
+  const row=diff.fields.find(row=>row.key===key);
+  assert.ok(row,`${key} must be reviewable`);
+  assert.equal(row.kind,kind);assert.deepEqual(row.before,before.itemConfig[key]);assert.deepEqual(row.after,after.itemConfig[key]);
+ }
+ assert.deepEqual(diff.fields.map(row=>row.key).sort(),['title','url','_modified','_removed','_added','_kept','_listItemLabel'].sort());
+ assert.equal(diff.listChanged,true);assert.equal(diff.listAfter._listItem,'article');
+ assert.deepEqual([JSON.stringify(before),JSON.stringify(after)],snapshots);
+});

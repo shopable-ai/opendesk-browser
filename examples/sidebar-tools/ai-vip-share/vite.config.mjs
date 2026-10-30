@@ -8,6 +8,7 @@ const root=fileURLToPath(new URL('.',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export const AI_VIP_REACT_SOURCES=[
   'src/index.html','src/App.jsx','src/main.jsx','src/main.js','src/style.css',
+  'src/session-context.js','src/cookie-journal.js','src/site-session.js',
   'dev/local-test/connection.js',
   'tool.config.json','package.json','vite.config.mjs'
 ];

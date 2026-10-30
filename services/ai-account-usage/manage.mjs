@@ -65,5 +65,6 @@ export async function main(argv = process.argv.slice(2)) {
   return result;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  main().catch(() => { process.stderr.write('E_MANAGEMENT_FAILED\n'); process.exitCode = 1; });
+  main().then(result=>{if(result?.results?.some(row=>row.status!=='OK'))process.exitCode=2;})
+    .catch(() => { process.stderr.write('E_MANAGEMENT_FAILED\n'); process.exitCode = 1; });
 }

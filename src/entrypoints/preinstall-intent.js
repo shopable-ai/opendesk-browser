@@ -1,7 +1,7 @@
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {registerDefaultPreinstall} from '../sidebar-tools/preinstall-intent.js';
 import {resumeDefaultPreinstall} from '../sidebar-tools/default-preinstall.js';
-import {repairReadingTocOpenTabs,checkReadingTocContentAccess} from '../../examples/sidebar-tools/reading-toc/trusted/existing-tabs.js';
+import {repairReadingTocOpenTabs,checkReadingTocContentAccess} from '../../projects/reading-toc/trusted/existing-tabs.js';
 import {READING_TOC_CHROME_ACCESS_PROTOCOL} from '../sidebar-tools/official-reading-toc.js';
 
 // Trusted packaged classic script, outside the 320 KiB SW main bundle.

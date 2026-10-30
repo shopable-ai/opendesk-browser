@@ -17,3 +17,7 @@ metadata 的 turnId/status 取自真实 turn.completed 事件，threadId/session
 本机推理调用中断连且没有原回合关联 terminal 时，返回 E_AI_UNKNOWN 并保留原 requestId 锁；planner 清空 session 或后续 cancel 返回 IDLE 均不解除锁。确认前失败、local planner 输入准备拒绝仍记 failed，可用新 requestId 明确重试；不自动重发。
 
 metadata 额外白名单透传 responseId、upstreamStatus、upstreamRequestId：仅接受 1–200 位字母数字及 `_ . : -`，缺失或不合规则为 null。不透传任意 Provider metadata、headers、凭据、原始错误或带认证信息的 URL。
+
+安全错误文案仅可追加固定白名单内的原始错误 code，例如 `… (E_AI_CONSENT)`。Native failure 白名单为 `E_CODEX_UNSUPPORTED`、`E_CODEX_MISSING`、`E_CODEX_LOGIN_REQUIRED`、`E_CODEX_POLICY`、`E_MODEL_UNAVAILABLE`、`E_RATE_LIMITED`、`E_NETWORK`、`E_PROVIDER`；另允许 adapter 既有安全分类及可信 local planner 的固定 code：`E_WORKFLOW_ORIGIN`、`E_AI_INPUT_LIMIT`、`E_AI_CONSENT`、`E_AI_PROTOCOL`、`E_AI_EVENTS_GAP`、`E_AI_OUTCOME_UNKNOWN`、`E_AI_RESUME`、`E_AI_RESUME_SCOPE`、`E_AI_CONFIG`、`E_DOCUMENT_STALE`、`E_AI_DISCONNECTED`、`E_AI_RESPONSE`、`E_AI_TOOL_RESULT`、`E_AI_OBSERVATION_REQUIRED`、`E_AI_PROVIDER`。形状合法但不在白名单的 code 也不回显，普通未知错误降级 E_AI_PROVIDER。unknown 仍为 E_AI_UNKNOWN 并保持原请求锁；不透传原始 message、details、headers 或 credential。
+
+metadata.usage 在桥边界仅投影 Responses 的 `input_tokens`、`output_tokens`、`total_tokens` 及 Chat Completions 的 `prompt_tokens`、`completion_tokens`，保留原字段名且仅接受非负安全整数（包括 0）。不转换、不补算；无有效计数返回 null。额外字段、嵌套 token details、credential、headers 均不传给沙箱。

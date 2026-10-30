@@ -1,0 +1,133 @@
+{
+  "stage": "BLOCKED_UI_TARGETING",
+  "owner": "01a1887e-ffdf-7d20-9b3d-991deef32151",
+  "app": {
+    "version": "1.6.1",
+    "candidate": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/scrapyjs/candidate.opendesk-tool.json",
+    "sha256": "7cf0f59d500a0d755389d3310f89b0b0b5e0128164a5dabe41392bc3e310d826",
+    "installedSameHashObserved": true
+  },
+  "chrome": {
+    "version": "149.0.7827.55",
+    "profile": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/Default",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development"
+  },
+  "task": {
+    "version": "0.4.0",
+    "sourceHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+    "manifestHash": "b0a7b212f244e16de772e54724f1e039a3c7d2d238b9443031a6f37a61af0e95",
+    "installed": "PASS_REUSED_SAME_PINS",
+    "evidence": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-observations.json",
+    "csdnRunId": "03151e11-7433-476c-bf59-6160a101f6df",
+    "csdnResultId": "9e7c2f24-2cfa-4d56-8c9b-bc53d2fefc47",
+    "csdnRows": 9,
+    "scope": "Non-AI operation only; does not prove AI-generated configuration."
+  },
+  "ai": [
+    {
+      "requestId": "2adefbb6-d983-48e8-a765-f8113fa891df",
+      "provider": "local_codex",
+      "trustedReview": "confirmed via native UI",
+      "result": "FAIL",
+      "message": "AI 请求未完成；请检查状态，不会自动重放",
+      "inputRetained": true,
+      "diagnosis": "E_CODEX_UNSUPPORTED: registered Native doctor resolved codex-cli 0.164.0; no turn was dispatched."
+    }
+  ],
+  "score": {
+    "phase": "MIDTERM_EVIDENCE_ONLY",
+    "value": 0,
+    "maximum": 100,
+    "fail": 1,
+    "notTested": 19,
+    "target": 95,
+    "achieved": false,
+    "review": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-review-20261030.json"
+  },
+  "run": null,
+  "downloads": [],
+  "recordedAt": "2026-10-29T17:04:12.911030+00:00",
+  "aiReadiness": {
+    "command": "existing Native browser ai doctor with process-local PATH prefix",
+    "cliVersion": "codex-cli 0.162.1",
+    "state": "READY_FOR_TURN",
+    "authState": "chatgpt",
+    "appServerCompatible": true,
+    "inferenceVerified": false,
+    "globalConfigurationChanged": false
+  },
+  "runtime": {
+    "mode": "continuous development",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "watcher": "RUNNING",
+    "log": "artifacts/scrapyjs/ai-ux-20261030-01a1887e/root-dev.log",
+    "lastObservedOutputRevision": "d2c4ce548db0",
+    "chromeAppliedRevision": "NOT_VERIFIED",
+    "repair": "six stale import paths across five runtime files now point to existing projects/{reading-toc,time-review} sources"
+  },
+  "browserRestart": {
+    "authorization": "User explicitly permitted this CLI launch only; further UI remains cua_repl",
+    "application": "/Applications/Google Chrome.app",
+    "pid": 26055,
+    "profile": "Default",
+    "cliDiscovery": "process-local PATH prefix to existing audited official 0.162.1; no download or global route/auth change",
+    "result": "process started; UI not yet verified"
+  },
+  "blocker": {
+    "kind": "CUA_APP_TARGET_MISMATCH",
+    "expected": "CFT149 at /Applications/Google Chrome.app with original scrapyjs Profile",
+    "observed": "cua_repl returned an unexpected window: OpenDesk AI account center at 127.0.0.1:43879; ownership unknown",
+    "recoveryTried": [
+      "display name",
+      "full .app path",
+      "session reset",
+      "Finder exact application open",
+      "Dock entry (timeout)"
+    ],
+    "boundary": "No further clicks in the unrelated page; ownership not attributed to the diagnostic support chat. No CDP, private page JS, AppleScript, global routing change, version-gate relaxation or fake Provider."
+  },
+  "securityReview": {
+    "reviewer": "Galileo",
+    "scope": "disconnect unknown fence, fixed error code whitelist, bounded trace and usage projection",
+    "result": "CLEAR_FOR_CHANGED_SCOPE",
+    "targetedTests": "4/4 independently passed for final diagnostic/usage changes",
+    "nativeEndToEnd": "NOT_TESTED",
+    "bridgeFileRegression": "23/23 passed; node --test tests/environment/sidebar-tool-ai-bridge.test.mjs"
+  },
+  "remaining": [
+    "restore cua_repl targeting of the original CFT",
+    "real Provider generation and valid proposal",
+    "diff review, explicit apply, named save and config export",
+    "independent Run of Task0.4 using that AI configuration and full result interactions",
+    "fixed 20-item independent UX score at least95 without core blocker"
+  ],
+  "deferred": [
+    "formal package promotion",
+    "production acceptance",
+    "full lifecycle/host matrices",
+    "width/zoom and stress matrices"
+  ],
+  "bridgeReadiness": {
+    "source": "authorized support read existing instance ordinary browser doctor, not AI doctor",
+    "requestId": "c9d21276-5210-420f-86a9-01643b5842b7",
+    "connected": true,
+    "enabled": true,
+    "nativeConnected": true,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "hostRegistrations": [],
+    "limit": "Pairing only; does not prove Side Panel Host or model inference."
+  },
+  "sourceHashes": {
+    "src/ui/ai/sidebar-tool-adapter.js": "1f7d9600119ee1d28d9c8719908ceef9c3bd24eebc264e7ffed10d0523a36828",
+    "tests/environment/sidebar-tool-ai-bridge.test.mjs": "d3ea083959685a40cd11ee781952ff9839cc26db1fec77ef18ea81dacc7514c4",
+    "docs/api/sidebar-tools-ai.zh-CN.md": "ab2a3cc5d61ab4c6bf3d0755706bf35fa9efeaad4eb25f09ad0cb061f13401ef"
+  },
+  "lifecycle": {
+    "uiLock": "released; native_ui_owner null",
+    "developmentServices": "preserved running",
+    "browser": "original CFT process preserved; no further UI operations until targeting is repaired",
+    "git": "main; changes not committed",
+    "goal": "none created; no goal status changed"
+  }
+}

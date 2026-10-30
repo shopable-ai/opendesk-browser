@@ -1,0 +1,622 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-ux-midterm-review",
+  "reviewedAt": "2026-10-29T17:11:05.604Z",
+  "reviewDate": "2026-10-30",
+  "phase": "MIDTERM_EVIDENCE_ONLY",
+  "reviewer": {
+    "role": "independent UX sidecar",
+    "modelRouting": "inherited; unchanged"
+  },
+  "scope": {
+    "onlyEvidenceReadThisPass": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+    "output": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-review-20261030.json",
+    "browserOperated": false,
+    "productSourceModified": false,
+    "testsOrChecksRun": false,
+    "furtherSearchPerformed": false,
+    "staticSourceUsedAsNativePass": false,
+    "note": "按用户最新收束要求，只读本文件现有证据并写本评审。未追读链接文件、未扩场景、未操作 UI、未修改产品或路由。"
+  },
+  "candidate": {
+    "appVersion": "1.6.1",
+    "appSha256": "7cf0f59d500a0d755389d3310f89b0b0b5e0128164a5dabe41392bc3e310d826",
+    "installedSameHashObserved": true,
+    "taskVersion": "0.4.0",
+    "taskSourceHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+    "taskManifestHash": "b0a7b212f244e16de772e54724f1e039a3c7d2d238b9443031a6f37a61af0e95",
+    "identityBasis": "全部身份引用指定持久证据；本评审未重算安装包或产物摘要。",
+    "postRestartAppliedRevision": "NOT_VERIFIED"
+  },
+  "evidenceBoundary": {
+    "sourceRecordedAt": "2026-10-29T17:04:12.911030+00:00",
+    "sourceStage": "BLOCKED_UI_TARGETING",
+    "nonAiReuse": {
+      "accepted": true,
+      "scope": "仅非 AI 运行索引；不提升为 AI 生成配置或本轮结果交互通过。",
+      "csdnRunId": "03151e11-7433-476c-bf59-6160a101f6df",
+      "csdnResultId": "9e7c2f24-2cfa-4d56-8c9b-bc53d2fefc47",
+      "rowCount": 9,
+      "referencedArtifact": "artifacts/scrapyjs/playwright-upgrade-20261029/continuation-20261030/native-observations.json",
+      "referencedArtifactReadThisPass": false
+    },
+    "realAiAttempt": {
+      "requestId": "2adefbb6-d983-48e8-a765-f8113fa891df",
+      "provider": "local_codex",
+      "trustedReview": "confirmed via native UI",
+      "result": "FAIL",
+      "diagnosis": "E_CODEX_UNSUPPORTED: CLI 0.164.0; no turn was dispatched",
+      "inputRetained": true,
+      "successObserved": false
+    },
+    "recovery": {
+      "auditedCli": "0.162.1",
+      "doctorState": "READY_FOR_TURN",
+      "authState": "chatgpt",
+      "appServerCompatible": true,
+      "inferenceVerified": false,
+      "bridgePairingIsNotInference": true,
+      "securityReviewAndNodeChecksAreNotNativeUxPass": true
+    }
+  },
+  "scoringPolicy": {
+    "itemCount": 20,
+    "pointsPerItem": 5,
+    "allowedScores": [
+      5,
+      0
+    ],
+    "passRule": "整项有指定证据中的真实交互覆盖才可记 PASS=5；部分覆盖不折分。",
+    "zeroRule": "FAIL 与 NOT_TESTED 均为 0；缺真实证据标 NOT_TESTED，不推定产品故障。",
+    "threshold": 95,
+    "coreBlockerMustBeAbsent": true,
+    "targetScorePredetermined": false,
+    "note": "这是现有证据覆盖评分，不是对未操作功能的质量判死。"
+  },
+  "items": [
+    {
+      "id": 1,
+      "group": "共享",
+      "criterion": "配置名/未保存状态",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/task"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "仅有非 AI 既有配置运行索引；没有本候选配置名称、未保存标记及相关实际操作的完整记录。"
+    },
+    {
+      "id": 2,
+      "group": "共享",
+      "criterion": "网页/配置目标核对",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/task"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/chrome"
+        }
+      ],
+      "reason": "可复用 Task 0.4.0 的 CSDN 非 AI 运行身份及 9 条记录，但本文件未记录网页与配置目标的实际核对过程；不据运行成功补推目标 UI 已通过。"
+    },
+    {
+      "id": 3,
+      "group": "共享",
+      "criterion": "结果绑定原快照",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/task"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/run"
+        }
+      ],
+      "reason": "非 AI runId/resultId 可追溯，但未记录编辑或切换配置后结果仍绑定启动快照的实际操作。"
+    },
+    {
+      "id": 4,
+      "group": "共享",
+      "criterion": "准备运行Stop未知准确不重Run",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/run"
+        }
+      ],
+      "reason": "首次 AI 失败显示不自动重放；这不能替代采集准备、运行、Stop、未知状态及原实例不重 Run 的整项验证。"
+    },
+    {
+      "id": 5,
+      "group": "结果",
+      "criterion": "列/值语义",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/task/csdnRows"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "CSDN 9 条结果仅作为非 AI 采集证据；没有列标识、字段原值及空/null/缺失等语义的本轮实际核对。"
+    },
+    {
+      "id": 6,
+      "group": "结果",
+      "criterion": "摘要到完整记录",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "没有从摘要打开完整记录并核对内容完整性的实际记录。"
+    },
+    {
+      "id": 7,
+      "group": "结果",
+      "criterion": "完整复制准确反馈",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "没有完整复制、粘贴读回及成功/失败反馈的实际记录。"
+    },
+    {
+      "id": 8,
+      "group": "结果",
+      "criterion": "列顺序显隐别名恢复不改数据",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "没有移动、显隐、别名、恢复及原数据不变的实际操作证据。"
+    },
+    {
+      "id": 9,
+      "group": "结果",
+      "criterion": "分页覆盖全部、导出不受展示影响",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/task"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/downloads"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "非 AI CSDN 运行不能证明结果区分页覆盖全部记录，也不能证明改变展示后导出仍完整；本轮 downloads 为空。不重复前序已关闭的导出锁检查。"
+    },
+    {
+      "id": 10,
+      "group": "真实AI",
+      "criterion": "真实Provider可追溯",
+      "status": "FAIL",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/aiReadiness"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/bridgeReadiness"
+        }
+      ],
+      "reason": "真实尝试 2adefbb6-d983-48e8-a765-f8113fa891df 已记录 local_codex 和原生审阅，但在推理前因 E_CODEX_UNSUPPORTED（CLI 0.164.0）失败，没有实际推理及返回链。0.162.1 doctor READY_FOR_TURN 且 inferenceVerified=false，不能替代成功调用。此 FAIL 归因本次 Native 兼容门禁阻断，不指称伪 Provider 或追溯字段错误。"
+    },
+    {
+      "id": 11,
+      "group": "真实AI",
+      "criterion": "显示范围与发送一致",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0/trustedReview"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0/diagnosis"
+        }
+      ],
+      "reason": "原生发送审阅已确认，但没有 Provider 实际收到资料的核对证据；no turn was dispatched，不能将审阅完成记为实际发送一致。"
+    },
+    {
+      "id": 12,
+      "group": "真实AI",
+      "criterion": "输入可编辑失败保留",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0/inputRetained"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/blocker"
+        }
+      ],
+      "reason": "失败后输入保留已观察；失败后继续编辑的实际操作未记录，复合项未完整覆盖。"
+    },
+    {
+      "id": 13,
+      "group": "真实AI",
+      "criterion": "原schema/业务校验拒绝无效",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0/diagnosis"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "请求在推理前失败，没有实际生成配置进入原 schema/业务校验；CLI 兼容拒绝不是配置校验拒绝。"
+    },
+    {
+      "id": 14,
+      "group": "真实AI",
+      "criterion": "结构/网页验证区分",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0/diagnosis"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "尚无成功草稿、结构校验反馈和后续网页验证的实际记录，不能凭文案或源码通过。"
+    },
+    {
+      "id": 15,
+      "group": "差异应用",
+      "criterion": "关键修改删除后果完整",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "没有成功生成配置，未实际审阅关键修改、删除和相关后果。"
+    },
+    {
+      "id": 16,
+      "group": "差异应用",
+      "criterion": "绑定生成身份版本防旧覆盖",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0/requestId"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/app"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "请求及候选身份已记录，但没有旧生成结果在输入、配置、网页或 Provider 变化后被拒绝覆盖的实际操作。"
+    },
+    {
+      "id": 17,
+      "group": "差异应用",
+      "criterion": "明确应用才改草稿且原保存导出",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/run"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/downloads"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "没有成功生成后的明确应用、原命名保存或配置导出的真实流程。"
+    },
+    {
+      "id": 18,
+      "group": "差异应用",
+      "criterion": "失败不损坏输入配置且应用保存不Run",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0/inputRetained"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0/message"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/run"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "已观察首次失败保留输入，提示不自动重放；未记录原配置内容核对，也未执行成功应用/保存后的不自动 Run 检查。run:null 不单独证明整项通过。"
+    },
+    {
+      "id": 19,
+      "group": "连续性",
+      "criterion": "Tab/助手草稿滚动焦点键盘连续性",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/blocker"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/lifecycle"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/remaining"
+        }
+      ],
+      "reason": "没有 Tab/助手往返、草稿、滚动、焦点及键盘连续性的实际操作记录；CUA 目标绑定阻塞不能当作产品连续性故障。"
+    },
+    {
+      "id": 20,
+      "group": "连续性",
+      "criterion": "正常窗口主操作错误可读R27/R28",
+      "status": "NOT_TESTED",
+      "score": 0,
+      "maxScore": 5,
+      "evidence": [
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/ai/0/message"
+        },
+        {
+          "source": "examples/sidebar-tools/scrapyjs/evidence/ai-ux-20261030.json",
+          "pointer": "/blocker"
+        }
+      ],
+      "reason": "单条可见失败消息及成功进入审阅不足以证明正常窗口整项可读性、主操作和 R27/R28 布局；当前返回非预期窗口，未继续 UI 操作。"
+    }
+  ],
+  "summary": {
+    "totalScore": 0,
+    "maxScore": 100,
+    "passCount": 0,
+    "failCount": 1,
+    "notTestedCount": 19,
+    "groups": [
+      {
+        "name": "共享",
+        "itemIds": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "score": 0,
+        "maxScore": 20
+      },
+      {
+        "name": "结果",
+        "itemIds": [
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "score": 0,
+        "maxScore": 25
+      },
+      {
+        "name": "真实AI",
+        "itemIds": [
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "score": 0,
+        "maxScore": 25
+      },
+      {
+        "name": "差异应用",
+        "itemIds": [
+          15,
+          16,
+          17,
+          18
+        ],
+        "score": 0,
+        "maxScore": 20
+      },
+      {
+        "name": "连续性",
+        "itemIds": [
+          19,
+          20
+        ],
+        "score": 0,
+        "maxScore": 10
+      }
+    ],
+    "blocked": true,
+    "meetsThreshold": false,
+    "complete": false,
+    "verdict": "中期证据不足且核心链仍阻塞；不达标，不能当作 95+ 完成。",
+    "interpretation": "唯一已实际尝试的真实 AI 生成失败；其余整项均未由指定文件完整实测覆盖。非 AI CSDN 操作和输入保留作为部分证据保留，不升级为整项 PASS。"
+  },
+  "blockers": [
+    {
+      "kind": "CUA_APP_TARGET_MISMATCH",
+      "status": "CURRENT_EVIDENCE_COLLECTION_BLOCKER",
+      "description": "CUA 返回非预期窗口，无法重新选定原目标；窗口归属未知，不归因任何支援对话。",
+      "sourcePointer": "/blocker",
+      "productDefectProven": false
+    },
+    {
+      "kind": "AI_SUCCESS_CHAIN_UNVERIFIED",
+      "status": "CORE_FLOW_NOT_COMPLETED",
+      "description": "首次请求被 Native CLI 兼容门禁拒绝。临时 PATH doctor READY 后尚无实际推理成功；不能据此宣称原生恢复、差异应用或 AI 配置 Run 成功。",
+      "sourcePointers": [
+        "/ai/0",
+        "/aiReadiness",
+        "/remaining"
+      ]
+    }
+  ],
+  "retainedStaticRisks": {
+    "provenance": "沿用本对话前序只读源码评审；本次未新读源码，未验证这些疑点是否形成原生缺陷。",
+    "usedAsPassOrConfirmedFailure": false,
+    "items": [
+      {
+        "itemIds": [
+          11
+        ],
+        "risk": "动态错误资料预览可能与请求捕获的 previousError 不一致。",
+        "status": "UNVERIFIED_STATIC_RISK"
+      },
+      {
+        "itemIds": [
+          19
+        ],
+        "risk": "助手返回仅见焦点恢复路径，滚动上下文恢复仍待真实证明。",
+        "status": "UNVERIFIED_STATIC_RISK"
+      },
+      {
+        "itemIds": [
+          8,
+          9,
+          19
+        ],
+        "risk": "结果身份作为 React key 变化可能重置列设置或分页状态。",
+        "status": "UNVERIFIED_STATIC_RISK"
+      },
+      {
+        "itemIds": [
+          5
+        ],
+        "risk": "按字段名标注列语义可能使价格文本等被误解为已转换值。",
+        "status": "UNVERIFIED_STATIC_RISK"
+      },
+      {
+        "itemIds": [
+          15
+        ],
+        "risk": "复杂选项及删除差异是否完整、易发现、可读仍未实测。",
+        "status": "UNVERIFIED_STATIC_RISK"
+      },
+      {
+        "itemIds": [
+          20
+        ],
+        "risk": "返回位置、长差异、长 URL、表格与弹窗在正常窗口下仍缺可读性证据。",
+        "status": "UNVERIFIED_STATIC_RISK"
+      }
+    ],
+    "disposition": "只记录，不为静态疑点制造业务修改或扩展验证。"
+  },
+  "lifecycle": {
+    "sourceUiLock": "released; native_ui_owner null",
+    "sourceDevelopmentServices": "preserved running",
+    "reviewerAcquiredUiLock": false,
+    "reviewerChangedServices": false,
+    "deferred": [
+      "正式包晋升",
+      "production 验收",
+      "全生命周期/宿主矩阵",
+      "宽度/缩放及压力矩阵"
+    ],
+    "stopCondition": "指定中期评审 JSON 已写入即收束；未追求达到 95，未继续检索、检查或恢复 UI。"
+  }
+}
