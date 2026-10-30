@@ -1,20 +1,33 @@
 <main class="vp" aria-label="视频会员">
+  <nav class="vp-tabs" aria-label="功能切换"><button type="button" data-vp-tab="watch" aria-pressed="true">当前视频</button><button type="button" data-vp-tab="member" aria-pressed="false">到期记录</button></nav>
   <section class="vp-current">
-    <div class="vp-topline"><span class="vp-eyebrow">当前视频</span><div class="vp-actions"><button id="vp-refresh" class="vp-icon" type="button" title="重新识别" aria-label="重新识别">↻</button><button id="vp-stop" class="vp-icon" type="button" title="停止监听" aria-label="停止监听">■</button></div></div>
+    <div class="vp-topline"><span class="vp-eyebrow">当前活动页面</span></div>
     <strong id="vp-title" class="vp-title">正在识别…</strong>
     <div class="vp-subline"><span id="vp-provider" class="vp-pill">待检测</span><span id="vp-episode" class="vp-episode">集数未知</span></div>
     <p id="vp-page-state" class="vp-state" role="status" aria-live="polite">正在读取活动文档</p>
-    <div class="vp-actions"><a id="vp-open" class="vp-primary" href="#" target="_blank" rel="noopener noreferrer" hidden>原站观看</a><button id="vp-copy" class="vp-secondary" type="button" disabled>复制页面链接</button></div>
+    <div class="vp-actions vp-main-actions"><a id="vp-open" class="vp-primary" href="#" target="_blank" rel="noopener noreferrer" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg><span>原站观看</span></a><button id="vp-copy" class="vp-icon" type="button" disabled title="复制当前视频链接" aria-label="复制当前视频链接"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button><button id="vp-refresh" class="vp-icon" type="button" title="重新识别／恢复自动识别" aria-label="重新识别／恢复自动识别"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6.2M20 4v7h-7"/></svg></button><button id="vp-stop" class="vp-icon" type="button" title="停止自动识别，不会暂停网站视频" aria-label="停止自动识别，不会暂停网站视频"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button></div>
     <label id="vp-manual-wrap" class="vp-manual" hidden>手动复制链接<input id="vp-manual" readonly aria-label="手动复制的视频网页链接"></label>
-    <details id="vp-evidence" class="vp-help"><summary>识别依据与限制</summary><p id="vp-evidence-text">等待 Host 识别结果。</p></details>
+    <details id="vp-evidence" class="vp-help"><summary>识别依据</summary><p id="vp-evidence-text">等待 Host 识别结果。</p></details>
   </section>
-  <nav class="vp-tabs" aria-label="功能切换"><button type="button" data-vp-tab="watch" aria-pressed="true">观看</button><button type="button" data-vp-tab="member" aria-pressed="false">会员</button></nav>
+
   <section id="vp-watch" class="vp-section" aria-label="观看与异常处理">
-    <div class="vp-route"><span class="vp-route-icon">▶</span><div><strong>原站官方播放器</strong><small>不会修改、静音或接管视频</small></div><span id="vp-route-state" class="vp-route-state">待识别</span></div>
-    <details class="vp-help"><summary>识别失败或视频已切换？</summary><p>检查 Chrome 网站访问权限，或重新识别当前活动视频页面。网页内 iframe 可能无法完整读取；不提供第三方解析。</p><button id="vp-recheck" class="vp-secondary" type="button">重新识别</button></details>
+    <div class="vp-section-title">观看来源<span>授权优先 · 不干预原站播放器</span></div>
+    <div class="vp-route"><span class="vp-route-icon">▶</span><div><strong>原站官方播放器</strong><small>仅提供原站链接，不代表会员权益已验证</small></div><span id="vp-route-state" class="vp-route-state">待识别</span></div>
+    <div class="vp-source-card">
+      <div class="vp-source-kicker">当前推荐</div>
+      <strong id="vp-source-name" class="vp-source-name">暂无推荐来源</strong>
+      <p id="vp-source-reason" class="vp-source-reason">等待识别当前作品。</p>
+      <button id="vp-source-play" class="vp-primary" type="button" hidden>播放授权测试媒体</button>
+      <p id="vp-source-status" class="vp-state" role="status" aria-live="polite">等待用户操作</p>
+      <video id="vp-owned-video" class="vp-owned-video" controls playsinline preload="none" hidden aria-label="Video SVIP 自有授权媒体播放器"></video>
+      <p id="vp-source-dev-note" class="vp-source-reason" hidden>开发演示：此视频是自制测试媒体，不是当前平台的会员线路或版权内容。</p>
+      <details class="vp-help"><summary>其他候选来源与手动切换</summary><div id="vp-source-list" class="vp-source-list">尚无候选来源</div></details>
+      <details class="vp-help"><summary>播放验证及独立读回</summary><p id="vp-source-evidence">尚无播放测试记录。</p></details>
+    </div>
+    <details class="vp-help"><summary>识别失败或视频已切换？</summary><p>检查 Chrome 网站访问权限，或重新识别活动视频页面。跨站 iframe 不可据此确认播放；不提供第三方解析。</p><button id="vp-recheck" class="vp-secondary" type="button">重新识别</button></details>
   </section>
   <section id="vp-member" class="vp-section" aria-label="会员记录" hidden>
-    <div class="vp-section-title">会员到期记录<span>手工登记 · 仅本机</span></div>
+    <div class="vp-section-title">到期日期<span>手工登记 · 仅本机</span></div>
     <form id="vp-member-form" class="vp-form">
       <label>视频网站<select id="vp-member-provider"><option value="tencent">腾讯视频</option><option value="iqiyi">爱奇艺</option><option value="youku">优酷</option><option value="mango">芒果 TV</option><option value="bilibili">哔哩哔哩</option></select></label>
       <label>到期日期<input id="vp-member-expiry" type="date" required></label>
