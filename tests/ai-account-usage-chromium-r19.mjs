@@ -39,6 +39,13 @@ try {
   check('demo is visibly labelled',await page.getByText('虚构数据 · 交互预览 · 不连接真实账号').count()===1);
   check('no failed live HTTP auth attempts',await page.locator('.accounts').count()===1);
   check('six independent desktop table columns',await page.locator('.accounts thead th').count()===6);
+  check('one accessible page heading and no duplicated title',
+    await page.locator('h1').count()===1 &&
+    await page.getByRole('heading',{level:1,name:'AI 账号额度管理'}).count()===1 &&
+    await page.locator('.page-title').count()===0 &&
+    await page.getByText('账号使用概览').count()===0);
+  const headerHeight=await page.locator('.app-header').evaluate(el=>el.getBoundingClientRect().height);
+  check('compact desktop header',headerHeight<=70,{headerHeight});
   const failed=page.locator('tr').filter({hasText:'stale@example.com'});
   check('failed account retains stable name and query warning',
     await failed.locator('.account-name').innerText()==='运营 Pro' &&

@@ -177,6 +177,7 @@ export default function App({adapter,preview=false}){
   const [config,setConfig]=React.useState(()=>copyConfig(BUILTIN_PRESETS.us.config));
   const [dirty,setDirty]=React.useState(false);
   const [presets,setPresets]=React.useState([]);
+  const [presetBaseline,setPresetBaseline]=React.useState(null);
   const [runs,setRuns]=React.useState([]);
   const [context,setContext]=React.useState({origin:null});
   const [status,setStatus]=React.useState('idle');
@@ -281,12 +282,18 @@ export default function App({adapter,preview=false}){
     }catch(error){
       currentOrigin.current=null;setContext({origin:null});
       warn('无法读取当前网页：'+readableError(error));
-    }finally{finish('target');}
+    }
+    try{
+      const stored=await readPresets(adapter.request);
+      if(mounted.current)setPresets(stored.value.items);
+    }catch(error){warn('档案列表未能刷新：'+readableError(error),'warning');}
+    finish('target');
   }
   function assignPreset(value){
     const builtIn=BUILTIN_PRESETS[value],saved=presets.find(row=>row.id===value);
     if(!builtIn&&!saved)return;
     setSelected(value);setConfig(copyConfig((builtIn||saved).config));
+    setPresetBaseline(saved||null);
     setNameDraft((builtIn||saved).name);setDirty(false);
     setPage(null);setView('config');
     // Reading another form must not erase independent Host verification.
@@ -306,6 +313,7 @@ export default function App({adapter,preview=false}){
   function newEnvironment(){
     discardGuard(()=>{
       setSelected('custom');setConfig(copyConfig(ORIGINAL_CONFIG));
+      setPresetBaseline(null);
       setNameDraft('自定义环境');setDirty(true);
       setView('config');setPage(null);
     });
@@ -316,6 +324,7 @@ export default function App({adapter,preview=false}){
     const source=item||{name:nameDraft,config};
     const action=()=>{
       setSelected('custom');setConfig(copyConfig(source.config));
+      setPresetBaseline(null);
       setNameDraft((source.name+' 副本').slice(0,24));setDirty(true);
       setView('config');setPage(null);
     };
@@ -335,9 +344,11 @@ export default function App({adapter,preview=false}){
     if(!begin('preset'))return;
     try{
       const saved=await savePreset(adapter.request,
-        {id:custom?.id||null,name,config:copyConfig(config)});
+        {id:presetBaseline?.id||null,name,config:copyConfig(config),
+          expectedPreset:presetBaseline||undefined});
       if(!mounted.current)return;
       setPresets(saved.items);setSelected(saved.id);setNameDraft(name);setDirty(false);
+      setPresetBaseline(saved.items.find(row=>row.id===saved.id));
       warn('环境已保存，并从可信存储读回确认；未改变当前网页。','success');
       await record('preset','idle','环境档案已保存并读回','client-precheck');
     }catch(error){warn('保存未确认：'+readableError(error));}
@@ -350,7 +361,7 @@ export default function App({adapter,preview=false}){
       const saved=await deletePreset(adapter.request,id);
       if(!mounted.current)return;
       setPresets(saved);setDeleteTarget(null);setDialog(null);
-      if(selected===id){setSelected('custom');setDirty(true);}
+      if(selected===id){setSelected('custom');setPresetBaseline(null);setDirty(true);}
       warn('已删除自定义环境档案；当前网页运行状态没有改变。','success');
       await record('preset','idle','自定义环境档案已删除','client-precheck');
     }catch(error){warn('删除未确认：'+readableError(error));}

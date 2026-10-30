@@ -1,0 +1,32 @@
+name: Video SVIP R0.4A
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/video-svip/**'
+      - 'tests/environment/video-svip*.test.mjs'
+      - 'tests/browser/video-svip-r04a.mjs'
+      - '.github/workflows/video-svip-r04a.yml'
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Test legacy video recognition and R0.4A engine
+        run: node --test tests/environment/video-svip.test.mjs tests/environment/video-svip-ui-r03.test.mjs tests/environment/video-svip-source-r04a.test.mjs
+      - name: Real Chromium click-to-play authorized media demo
+        run: node tests/browser/video-svip-r04a.mjs
+      - name: Build Video SVIP sidebar tool
+        run: npm run build:sidebar-tool -- projects/video-svip
+      - name: Build development extension
+        run: npm run build:dev

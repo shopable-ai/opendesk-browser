@@ -3,7 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {createApi, time, sampleStale, accountStale, matches} from './model.mjs';
 import {createDemoApi, DEMO_DATA_LABEL} from './demo-data.mjs';
 import {evaluateHistory, reliableEstimate, windowOptions, windowLabel, selectedWindow,
-  projectAccountView, summarizeVisibleAccounts, canShowWorkspaceGuidance,
+  projectAccountView, summarizeVisibleAccounts, retainHistoryOnReadFailure, canShowWorkspaceGuidance,
   OFFICIAL_MEMBER_GUIDES, OFFICIAL_WORKSPACE_URL} from './usage-insights.mjs';
 import './style.css';
 
@@ -46,7 +46,7 @@ function CompactBars({rollovers, windowKey, count=7, expanded=false, onChoose, s
   const entries = [...Array(Math.max(0,count-result.displayed.length)).fill(null),...result.displayed];
   return <div className={expanded?'detail-chart':''}>
     <div className="bar-wrap"><div className="bars" style={{'--num':count}}
-      role="group" aria-label={`最近 ${count} 次已识别重置前剩余百分比，固定 0 到 100，缺失不是零`}>
+      role="group" aria-label={`最近 ${count} 次已识别重置前剩余百分比，固定 0 到 100，80% 虚线参考线，缺失不是零`}>
       <div className="reference" aria-hidden="true"/>
       {entries.map((row,i)=>{
         const value=reliableEstimate(row)?row.nearResetUnusedEstimatePercent:null;
@@ -80,8 +80,8 @@ function IntroSummary({rows, allCount, records, scope}) {
     <span className="strip-note">仅当前筛选 · 按各行窗口 · 历史已读 {stats.loaded}/{stats.total}</span>
   </div>;
 }
-function Row({account,record,scope,onDetail,onInvite,onRefresh,busy,refreshError,now}) {
-  const {history,choice,summary,state}=projectAccountView(account,record,scope);
+function Row({account,record,scope,onDetail,onInvite,onRefresh,busy,refreshError,refreshSuccess,now}) {
+  const {history,choice,summary,state,readError}=projectAccountView(account,record,scope);
   const current=account.windows?.find(w=>w.windowKey===choice?.key);
   const plan=account.subscription?.tierLabel || account.providerPlan?.code?.toUpperCase() ||
     account.providerPlan?.family?.replace('UNKNOWN','') || '未知';
@@ -90,8 +90,7 @@ function Row({account,record,scope,onDetail,onInvite,onRefresh,busy,refreshError
   const guidance=canShowWorkspaceGuidance(account);
   const expired=current?sampleStale(account,current,now):true;
   const show=(event=null)=>onDetail(account.alias,choice?.key??null,event?.priorResetsAt??null);
-  const shouldRefresh=!isDemo&&(issue||!current||expired||state==='error');
-  return <tr>
+  return <tr aria-busy={busy}>
     <td className="col-id"><div className="identity-top">
       <button className="account-name" title={title} type="button" onClick={()=>show()}>{title}</button>
       {issue&&<span className="account-status" title={attemptLabel(account.lastAttempt?.status)}>{issue}</span>}
@@ -100,11 +99,13 @@ function Row({account,record,scope,onDetail,onInvite,onRefresh,busy,refreshError
       <span className="meta-line">到期 {formatDate(account.subscription?.membershipExpiresAt)}</span></td>
     <td className="col-current"><strong className="quota-value" title="最近一次缓存额度，非实时数据">
       {choice?(current&&Number.isFinite(current.remainingPercent)?percent(current.remainingPercent):'未知'):'—'}</strong>
-      {choice&&<span className={expired?'quota-cache expired':'quota-cache'}>{current?(expired?'已过期':'缓存'):'无样本'}</span>}</td>
+      {choice&&<span className={expired?'quota-cache expired':'quota-cache'}>{current?(expired?'缓存过期':'缓存观测'):'无样本'}</span>}
+      {current?.resetsAt&&<span className="quota-reset" title="额度窗口预计重置，不代表会员到期">预计重置 {time(current.resetsAt)}</span>}</td>
     <td className="col-chart">{choice?<><div className="window-head"><strong>{windowLabel(choice)}</strong></div>
       {state==='error'?<span className="error">历史读取失败</span>:
        state==='loading'?<span className="working" role="status">读取历史…</span>:
-       <CompactBars rollovers={history?.rollovers??[]} windowKey={choice.key} onChoose={show}/>}</>:
+       <><CompactBars rollovers={history?.rollovers??[]} windowKey={choice.key} onChoose={show}/>
+         {readError&&<span className="history-warning" role="status">历史读回失败 · 保留旧记录</span>}</>}</>:
        <span className="muted">{scope==='all'?'暂无额度窗口':'无所选额度窗口'}</span>}</td>
     <td className="col-summary">
       {state==='error'?<span className="decision insufficient">历史读取失败</span>:
@@ -116,9 +117,12 @@ function Row({account,record,scope,onDetail,onInvite,onRefresh,busy,refreshError
     </td>
     <td className="col-actions"><div className="actions">
       <IconButton name="history" label={'查看 '+title+' 历史证据'} onClick={()=>show()} extra="important"/>
-      {shouldRefresh&&<IconButton name="refresh" label={'手动刷新 '+title+' 额度'} disabled={busy} onClick={()=>onRefresh(account.alias)}/>}
+      <IconButton name="refresh" label={isDemo?'演示模式不执行真实额度查询':('手动刷新 '+title+' 额度')}
+        disabled={busy||isDemo} extra={busy?'is-busy':''} onClick={()=>onRefresh(account.alias)}/>
       {guidance&&<IconButton name="invite" label={'查看 '+title+' 的官方工作区邀请指引'} onClick={()=>onInvite(account.alias)}/>}
-    </div>{refreshError&&<div className="row-error" role="alert">{refreshError}</div>}</td>
+    </div>{busy&&<div className="row-working" role="status">查询中…</div>}
+      {!busy&&refreshError&&<div className="row-error" role="alert">{refreshError}</div>}
+      {!busy&&!refreshError&&refreshSuccess&&<div className="row-success" role="status">{refreshSuccess}</div>}</td>
   </tr>;
 }
 function Evidence({event,account}) {
@@ -142,12 +146,23 @@ function Drawer({account, summaryHistory, initialWindow, initialCycle, close, re
   const choice=options.find(w=>w.key===windowKey)??options[0]??null;
   useEffect(()=>{
     if(!choice){setDetail({status:'ready',data:{observations:[],rollovers:[]}});return;}
-    let active=true;setDetail({status:'loading'});
+    let active=true;
+    setDetail({status:'loading'});
     api.history(account.alias,{limit:20,windowKey:choice.key}).then(value=>{
-      if(active)setDetail({status:'ready',data:value});
-    },()=>{if(active)setDetail({status:'error'});});
+      if(active)setDetail({status:'ready',data:value,readError:false});
+    },()=>{
+      if(!active)return;
+      // Last known 500-record aggregate is a read-only fallback for this exact window.
+      // Never replace a valid chart with "no history" after a transient GET failure.
+      const fallback=summaryHistory && Array.isArray(summaryHistory.rollovers) &&
+        Array.isArray(summaryHistory.observations) ? {
+          observations:summaryHistory.observations.filter(x=>x.windowKey===choice.key).slice(-20),
+          rollovers:summaryHistory.rollovers.filter(x=>x.windowKey===choice.key).slice(-20)
+        } : null;
+      setDetail(fallback?{status:'ready',data:fallback,readError:true}:{status:'error'});
+    });
     return ()=>{active=false;};
-  },[account.alias,choice?.key]);
+  },[account.alias,choice?.key,summaryHistory]);
   const result=evaluateHistory(detail.status==='ready'?detail.data.rollovers:[],choice?.key,count);
   const event=result.displayed.find(row=>row.priorResetsAt===cycleKey)??result.displayed.at(-1)??null;
   return <dialog ref={dialog} className="drawer" aria-labelledby="detail-title"
@@ -162,7 +177,8 @@ function Drawer({account, summaryHistory, initialWindow, initialCycle, close, re
         <div className="drawer-controls"><div className="mini-toggle" role="group" aria-label="切换独立额度窗口">
           {options.map(w=><button type="button" key={w.key} aria-pressed={choice?.key===w.key} onClick={()=>{setWindowKey(w.key);setCycleKey(null);}}>{windowLabel(w)}</button>)}
           {!options.length&&<span className="muted">暂无窗口</span>}</div></div>
-        {detail.status==='error'?<p role="alert" className="error">该窗口历史读取失败；不显示估算结论。</p>:
+        {detail.readError&&<p role="status" className="warning">该窗口重新读取失败；以下保留最后一次成功读取的可靠历史。</p>}
+        {detail.status==='error'?<p role="alert" className="error">该窗口历史读取失败，暂无可读回的历史证据。</p>:
           detail.status==='loading'?<p role="status">正在读取该窗口的真实历史…</p>:
           <><CompactBars rollovers={detail.data.rollovers} windowKey={choice?.key} count={count} expanded
             selected={event?.priorResetsAt} onChoose={row=>setCycleKey(row.priorResetsAt)}/>
@@ -221,7 +237,8 @@ function App() {
   const [records,setRecords]=useState({}),[query,setQuery]=useState(''),[filter,setFilter]=useState('all');
   const [scope,setScope]=useState('all'),[sort,setSort]=useState('attention');
   const [selected,setSelected]=useState(null),[inviting,setInviting]=useState(null);
-  const [busy,setBusy]=useState({}),[errors,setErrors]=useState({}),[now,setNow]=useState(Date.now());
+  const [busy,setBusy]=useState({}),[errors,setErrors]=useState({});
+  const [success,setSuccess]=useState({}),[now,setNow]=useState(Date.now());
   const pending=useRef(new Set());
   useEffect(()=>{let active=true;api.accounts().then(rows=>{if(active)setAccounts(rows);},error=>{if(active)setLoadError(error.message);});
     return ()=>{active=false;};},[]);
@@ -236,7 +253,7 @@ function App() {
         const alias=rows[next++].alias;
         try{const data=await api.history(alias,{limit:historyLimit});
           if(!stopped)setRecords(old=>({...old,[alias]:{status:'ready',data}}));}
-        catch{if(!stopped)setRecords(old=>({...old,[alias]:{status:'error'}}));}
+        catch{if(!stopped)setRecords(old=>({...old,[alias]:retainHistoryOnReadFailure(old[alias])}));}
       }
     };
     void Promise.all(Array.from({length:Math.min(4,rows.length)},()=>worker()));
@@ -244,13 +261,43 @@ function App() {
   },[aliases]);
   async function refresh(alias) {
     if(isDemo || pending.current.has(alias))return;
-    pending.current.add(alias);setBusy(old=>({...old,[alias]:true}));setErrors(old=>({...old,[alias]:''}));
+    pending.current.add(alias);
+    setBusy(old=>({...old,[alias]:true}));
+    setErrors(old=>({...old,[alias]:''}));
+    setSuccess(old=>({...old,[alias]:''}));
     try{
-      const account=await api.refresh(alias);setAccounts(old=>old.map(a=>a.alias===alias?account:a));
-      try{const data=await api.history(alias,{limit:historyLimit});setRecords(old=>({...old,[alias]:{status:'ready',data}}));}
-      catch{setRecords(old=>({...old,[alias]:{status:'error'}}));}
-    }catch(error){setErrors(old=>({...old,[alias]:error.message}));}
-    finally{pending.current.delete(alias);setBusy(old=>({...old,[alias]:false}));}
+      // One explicit POST: only the trusted service talks to the provider.
+      const returned=await api.refresh(alias);
+      let readbackConfirmed=false;
+      try{
+        const saved=await api.account(alias); // Independent GET verifies persisted identity + result.
+        if(saved.lastAttempt?.status!=='OK' || !saved.lastSuccessAt ||
+           saved.lastSuccessAt!==returned.lastSuccessAt)
+          throw new Error('E_REFRESH_READBACK_MISMATCH');
+        setAccounts(old=>old.map(a=>a.alias===alias?saved:a));
+        setSuccess(old=>({...old,[alias]:`查询成功 · ${time(saved.lastAttempt.checkedAt)}`}));
+        readbackConfirmed=true;
+      }catch{
+        setErrors(old=>({...old,[alias]:'本次响应返回成功，但账号资料独立读回未确认；请检查本机服务。'}));
+      }
+      try{
+        const data=await api.history(alias,{limit:historyLimit});
+        setRecords(old=>({...old,[alias]:{status:'ready',data,readError:false}}));
+      }catch{
+        setRecords(old=>({...old,[alias]:retainHistoryOnReadFailure(old[alias])}));
+        if(readbackConfirmed)setErrors(old=>({...old,[alias]:'额度已更新；历史读回失败，仍保留上次成功读取的记录。'}));
+      }
+      setNow(Date.now());
+    }catch(error){
+      // Failed attempts may change lastAttempt, never last successful quota.
+      if(error.account?.alias===alias)
+        setAccounts(old=>old.map(a=>a.alias===alias?error.account:a));
+      setErrors(old=>({...old,[alias]:error.message}));
+      setNow(Date.now());
+    }finally{
+      pending.current.delete(alias);
+      setBusy(old=>({...old,[alias]:false}));
+    }
   }
   const rows=useMemo(()=>{
     const list=(accounts??[]).filter(a=>matches(a,query)).filter(a=>{
@@ -275,12 +322,12 @@ function App() {
   const inviteAccount=accounts?.find(a=>a.alias===inviting);
   const openDetails=(alias,windowKey,cycleKey)=>setSelected({alias,windowKey,cycleKey});
   return <div className="shell">
-    <header className="app-header"><div className="brand"><span className="mark" aria-hidden="true">OD</span>
-      <div><strong>OpenDesk</strong><small>AI 账号额度管理</small></div></div>
-      <div className="head-right">{isDemo&&<span className="tag demo-tag">{DEMO_DATA_LABEL}</span>}</div></header>
-    <main><div className="page-title"><div><h1>账号使用概览</h1>
-      <p>比较每个账号最近 7 次重置前剩余，识别长期未充分使用的额度。</p></div>
-      <span className="legend"><i/> 80% 参考线 · 缺失 ≠ 0</span></div>
+    <header className="app-header">
+      <div className="brand"><span className="mark" title="OpenDesk" aria-hidden="true">OD</span>
+        <h1 id="page-title" className="app-title">AI 账号额度管理</h1></div>
+      <div className="head-right">{isDemo&&<span className="tag demo-tag">{DEMO_DATA_LABEL}</span>}</div>
+    </header>
+    <main aria-labelledby="page-title">
       {loadError?<p className="error" role="alert">{loadError}</p>:accounts===null?<p role="status">正在读取本机账号列表…</p>:<>
       <IntroSummary rows={rows} allCount={accounts.length} records={records} scope={scope}/>
       <div className="controls" aria-label="账号搜索和视图设置">
@@ -304,7 +351,8 @@ function App() {
           <th className="col-current" scope="col">当前缓存</th><th className="col-chart" scope="col">最近 7 次重置前剩余</th>
           <th className="col-summary" scope="col">管理结论</th><th className="col-actions" scope="col">操作</th></tr></thead>
         <tbody>{rows.map(a=><Row key={a.alias} account={a} record={records[a.alias]} scope={scope} now={now}
-          onDetail={openDetails} onInvite={setInviting} onRefresh={refresh} busy={!!busy[a.alias]} refreshError={errors[a.alias]}/>)}</tbody></table></div>}
+          onDetail={openDetails} onInvite={setInviting} onRefresh={refresh} busy={!!busy[a.alias]}
+          refreshError={errors[a.alias]} refreshSuccess={success[a.alias]}/>)}</tbody></table></div>}
       <details className="foot-note"><summary>统计规则与数据说明</summary>
         <p>按每个账号独立额度窗口的最近 7 次已识别重置计算；至少 4 次可靠近重置观测且其中 3 次剩余 ≥80% 才值得关注。10/20 次仅改变详情展示范围。缺失不等于 0，最近 7 次不是最近 7 天；当前额度均为缓存。</p></details>
       </>}

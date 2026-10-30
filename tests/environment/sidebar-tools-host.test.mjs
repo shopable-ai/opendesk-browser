@@ -877,7 +877,7 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedPromptPilot=null,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null,configureApi=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
@@ -898,6 +898,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     async remove(key){store.delete(key);}
   }}};
   if(chromePermissions)api.permissions=chromePermissions;
+  configureApi?.(api);
   const host=createSidebarTools({api,doc,view,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedPromptPilot,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
@@ -917,6 +918,115 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     for(const fn of changed.listeners.get('change')||[])fn(changes,'local');
   },get focused(){return focused;}};
 }
+// Exercise the actual runtime.onMessage receiver and official admission. Only
+// Chrome's injection transport is doubled; pageVideoSpeed has separate tests.
+async function videoShortcutHostFixture(t){
+  const tool=await officialToolFixture('video-speed-controller');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const epoch='video-r13-installed',store=new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:true}],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}],
+    [sidebarToolStorageKey(sample.id),{note:'unrelated data'}]
+  ]);
+  const page={status:'available',windowId:1,tabId:4,frameId:0,documentId:'video-doc',
+    url:'https://media.example/watch',origin:'https://media.example'};
+  const target={snapshot:page,capture:()=>({...target.snapshot}),revalidate:async()=>target.snapshot};
+  const listeners=new Set(),calls=[],lockCalls=[],baseLocks=sharedLocks();
+  const locks={request(name,work){lockCalls.push(name);return baseLocks.request(name,work);}};
+  let rate=1,removeFails=false;
+  const f=await hostFixture(t,{tool,store,target,locks,configureApi(api){
+    api.runtime.id='test';
+    api.runtime.onMessage={addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)};
+    api.webNavigation={getAllFrames:async()=>[{...page}]};
+    api.scripting={executeScript:async req=>{
+      calls.push(req);
+      assert.deepEqual(req.target,{tabId:4,documentIds:['video-doc']});
+      assert.equal(req.world,'ISOLATED');
+      const [mode,speed]=req.args;
+      if(mode==='shortcut-off'&&removeFails)throw Error('old document is inaccessible');
+      if(mode==='set')rate=speed;
+      const result=mode.startsWith('shortcut-')?{found:false,count:0,shortcuts:mode==='shortcut-on'}:
+        {found:true,count:1,index:0,score:100,playing:true,speed:rate,...(mode==='set'?{applied:true}:{})};
+      return [{frameId:0,documentId:'video-doc',result}];
+    }};
+  }});
+  const response=id=>f.frame.contentWindow.sent.find(row=>row.requestId===id);
+  f.ask('videoSpeed.shortcuts.enable',{},'enable-video');
+  await settle(()=>response('enable-video'));
+  assert.equal(response('enable-video').ok,true,JSON.stringify(response('enable-video')));
+  const nonce=calls.find(req=>req.args[0]==='shortcut-on').args[3];
+  const signal={protocol:'opendesk.video-speed.shortcut.v1',nonce,key:'d'};
+  const sender={id:'test',frameId:0,tab:{id:4},documentId:'video-doc'};
+  return {...f,tool,locks,lockCalls,calls,signal,sender,response,target,
+    emitSignal(data=signal,from=sender){for(const listener of listeners)listener(data,from);},
+    setRemoveFails(){removeFails=true;},get rate(){return rate;}};
+}
+test('video shortcut receiver rejects forged sender and nonce, then independently verifies a valid key',async t=>{
+  const f=await videoShortcutHostFixture(t),before=f.calls.length,locksBefore=f.lockCalls.length;
+  for(const sender of [{...f.sender,id:'foreign'},{...f.sender,frameId:1},
+    {...f.sender,tab:{id:8}},{...f.sender,documentId:'old-document'},{}])f.emitSignal(f.signal,sender);
+  f.emitSignal({...f.signal,nonce:'forged'});
+  f.emitSignal({...f.signal,key:'x'});
+  assert.equal(f.lockCalls.length,locksBefore,'forged messages must be rejected synchronously before any queued work');
+  await f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+  assert.equal(f.calls.length,before,'invalid messages cannot even probe media');
+  f.emitSignal();
+  // A second key while a request is busy must not produce a second write.
+  f.emitSignal();
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='verified'));
+  assert.equal(f.rate,1.25);
+  assert.equal(f.calls.filter(req=>req.args[0]==='set').length,1);
+  assert.equal(f.calls.at(-1).args[0],'read');
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='verified').result.verified,true);
+});
+for(const action of ['close','disable','revoke','uninstall'])test(
+  'video shortcut receiver ignores old signals after '+action,async t=>{
+    const f=await videoShortcutHostFixture(t);
+    if(action==='close')f.host.closeTool();
+    if(action==='disable'){
+      f.setRemoveFails();
+      f.ask('videoSpeed.shortcuts.disable',{},'disable-video');
+      await settle(()=>f.response('disable-video'));
+      assert.equal(f.response('disable-video').result.listenerRemoved,false);
+      f.ask('storage.set',{key:'shortcutsEnabled',value:false},'save-off');
+      await settle(()=>f.response('save-off'));
+      assert.equal(f.response('save-off').ok,true);
+      assert.deepEqual(f.store.get(sidebarToolStorageKey(f.tool.id)),{shortcutsEnabled:false});
+      assert.deepEqual(f.store.get(sidebarToolStorageKey(sample.id)),{note:'unrelated data'});
+    }
+    if(action==='revoke'){
+      const epochs={[f.tool.id]:'revoked-generation'};
+      f.store.set(TOOL_REVOCATION_EPOCHS_STORE,epochs);
+      f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:epochs}});
+    }
+    if(action==='uninstall'){
+      f.store.set(SIDEBAR_TOOL_STORE,[]);f.changeStorage({[SIDEBAR_TOOL_STORE]:{newValue:[]}});
+    }
+    const before=f.calls.length;f.emitSignal();
+    // Drain the real per-tool queue rather than assuming two event-loop turns
+    // are long enough for asynchronous official-package admission to finish.
+    await f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+    assert.equal(f.calls.length,before);assert.equal(f.rate,1);
+  });
+test('video shortcut mutation shares the installation and revocation tool lock',async t=>{
+  const f=await videoShortcutHostFixture(t);
+  let release,held=false;
+  const gate=new Promise(resolve=>{release=resolve;});
+  t.after(release);
+  const locked=f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{held=true;await gate;});
+  await settle(()=>held);
+  const before=f.calls.length,locksBefore=f.lockCalls.length;
+  f.emitSignal();
+  await settle(()=>f.calls.length>before||f.lockCalls.length>locksBefore);
+  const whileLocked=f.calls.length;
+  const waitedOnLock=f.lockCalls.slice(locksBefore).includes('opendesk.sidebar-tools:tool:'+f.tool.id);
+  release();await locked;
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='verified'));
+  assert.equal(whileLocked,before,'shortcut must wait for an in-flight install/revocation');
+  assert.equal(waitedOnLock,true);
+  assert.equal(f.rate,1.25);
+});
 test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox iframe without remount',async t=>{
   const tool=await officialToolFixture('prompt-shortcuts');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);

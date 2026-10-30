@@ -129,12 +129,20 @@ export async function requestVideoSpeed({
     throw fail('E_VIDEO_UNAVAILABLE','当前 Chrome 视频控制能力不可用');
   assertCurrent();
   await assertInstalled();
+  assertCurrent();
   const target=currentPageTarget.capture();
   if(!target.origin||!Number.isSafeInteger(target.tabId)||!target.documentId)
     throw fail('E_VIDEO_TARGET','请选择普通网页中的视频');
+  const assertLiveTarget=()=>{
+    assertCurrent();
+    const live=currentPageTarget.capture();
+    if(['windowId','tabId','documentId','url','origin'].some(key=>live[key]!==target[key]))
+      throw fail('E_DOCUMENT_STALE','网页已切换，请重新检测视频');
+  };
   await currentPageTarget.revalidate(target);
   assertCurrent();
   await assertInstalled();
+  assertLiveTarget();
   const frames=await api.webNavigation.getAllFrames({tabId:target.tabId});
   if(!Array.isArray(frames))throw fail('E_VIDEO_DOCUMENT','无法检测当前网页的视频文档');
   const top=frames.find(row=>row?.frameId===0);
@@ -150,10 +158,12 @@ export async function requestVideoSpeed({
     if(!frame)throw fail('E_VIDEO_SITE_ACCESS','当前网页无法使用快捷键');
     await currentPageTarget.revalidate(target);
     assertCurrent();await assertInstalled();
+    assertLiveTarget();
     const outcome=await inject(api,target.tabId,frame,
       enableKeys?'shortcut-on':'shortcut-off',null,-1,enableKeys?shortcutNonce:'');
     await currentPageTarget.revalidate(target);
     assertCurrent();await assertInstalled();
+    assertLiveTarget();
     if(outcome.shortcuts!==enableKeys)
       throw fail('E_VIDEO_SHORTCUT','网页快捷键监听无法完成');
     return {enabled:enableKeys};
@@ -161,6 +171,7 @@ export async function requestVideoSpeed({
   let rejected=0,videoCount=0;
   const rows=await Promise.all(selectedFrames.map(async frame=>{
     try {
+      assertLiveTarget();
       const data=await inject(api,target.tabId,frame,'status');
       videoCount+=data.count;
       return data.found&&Number.isFinite(data.speed)&&data.speed>=0&&
@@ -172,6 +183,7 @@ export async function requestVideoSpeed({
   await currentPageTarget.revalidate(target);
   assertCurrent();
   await assertInstalled();
+  assertLiveTarget();
   const candidates=rows.filter(Boolean).sort((a,b)=>b.data.score-a.data.score);
   const chosen=candidates[0];
   const partial=truncated||rejected>0;
@@ -188,6 +200,9 @@ export async function requestVideoSpeed({
   await currentPageTarget.revalidate(target);
   assertCurrent();
   await assertInstalled();
+  // No asynchronous gap may remain between this live-session check and the
+  // deliberate write. Admission itself can yield while the panel/tab changes.
+  assertLiveTarget();
   const applied=await inject(api,target.tabId,chosen.frame,'set',args.speed,chosen.data.index);
   if(!applied.found||applied.applied!==true)
     throw fail('E_VIDEO_CHANGED','视频已切换或播放器拒绝调整，请刷新检测');
@@ -197,6 +212,7 @@ export async function requestVideoSpeed({
   await currentPageTarget.revalidate(target);
   assertCurrent();
   await assertInstalled();
+  assertLiveTarget();
   if(!verified.found||!Number.isFinite(verified.speed))
     throw fail('E_VIDEO_READBACK','倍速已经请求，但无法核对实际结果；请刷新读取');
   return {status:'available',speed:verified.speed,requested:args.speed,

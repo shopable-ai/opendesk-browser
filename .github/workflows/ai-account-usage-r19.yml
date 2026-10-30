@@ -1,4 +1,4 @@
-name: AI Account Usage R2.0 · React Decision Chromium
+name: AI Account Usage R2.2 · Real Refresh Contract & React Chromium
 on:
   push:
     branches: [main]
@@ -11,6 +11,7 @@ on:
       - 'services/ai-account-usage/web-server.mjs'
       - 'tests/ai-account-usage-*.test.mjs'
       - 'tests/ai-account-usage-chromium-r19.mjs'
+      - 'tests/ai-account-usage-chromium-r22.mjs'
       - '.github/workflows/ai-account-usage-r19.yml'
   workflow_dispatch:
 permissions:
@@ -81,30 +82,65 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node tests/ai-account-usage-chromium-r19.mjs
+      - name: "Production React: single-click API refresh, status, readback and cache retention"
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tests/ai-account-usage-chromium-r22.mjs
       - name: Publish source-bound, synthetic HTML preview on existing main only
         run: |
           set -euo pipefail
           test -s services/ai-account-usage/web/preview/index.html
-          latest="$(git ls-remote origin refs/heads/main | cut -f1)"
-          if [ "$latest" != "$GITHUB_SHA" ]; then
-            echo "::warning::main moved during validation, refusing stale preview publish"
-            exit 1
-          fi
+          # Preserve only the just-validated assets outside the checkout.
+          # This is an ephemeral CI runner, not a developer's local worktree.
+          verified="$(mktemp -d)"
+          cp services/ai-account-usage/web/preview/index.html "$verified/index.html"
+          for name in 1440-account-overview.png 390-mobile.png spare-pro-history.png business-invite-guidance.png chromium-report.json; do
+            test -s "artifacts/ai-usage-r19/$name"
+            cp "artifacts/ai-usage-r19/$name" "$verified/$name"
+          done
+          for name in production-refresh.png production-refresh-report.json; do
+            test -s "artifacts/ai-usage-r22/$name"
+            cp "artifacts/ai-usage-r22/$name" "$verified/$name"
+          done
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           evidence=services/ai-account-usage/web/preview/evidence
-          mkdir -p "$evidence"
-          for name in 1440-account-overview.png 390-mobile.png spare-pro-history.png business-invite-guidance.png chromium-report.json; do
-            test -s "artifacts/ai-usage-r19/$name"
-            cp "artifacts/ai-usage-r19/$name" "$evidence/$name"
+          # Other projects commit to main while Chromium is running. Rebase the
+          # *publication only* on their newer main, if and only if neither the
+          # validated React inputs nor these exact preview destinations changed.
+          # A concurrent unrelated push can cause a non-force push rejection.
+          # Retry only that Git operation, never any upstream quota request.
+          for attempt in 1 2 3 4; do
+            git fetch -q origin refs/heads/main
+            latest="$(git rev-parse FETCH_HEAD)"
+            if ! git diff --quiet "$GITHUB_SHA" "$latest" --               services/ai-account-usage/web/main.jsx               services/ai-account-usage/web/style.css               services/ai-account-usage/web/model.mjs               services/ai-account-usage/web/usage-insights.mjs               services/ai-account-usage/web/demo-data.mjs               services/ai-account-usage/web/build.mjs               services/ai-account-usage/web/index.html               services/ai-account-usage/package.json               src/ui/design-tokens.css package-lock.json; then
+              echo "::error::React inputs changed after CI checkout; refuse stale preview"
+              exit 1
+            fi
+            if ! git diff --quiet "$GITHUB_SHA" "$latest" --               services/ai-account-usage/web/preview/index.html               services/ai-account-usage/web/preview/evidence; then
+              echo "::error::Preview destination changed after CI checkout; refuse overwrite"
+              exit 1
+            fi
+            git checkout -q --detach -f "$latest"
+            mkdir -p "$evidence"
+            cp "$verified/index.html" services/ai-account-usage/web/preview/index.html
+            for name in 1440-account-overview.png 390-mobile.png spare-pro-history.png business-invite-guidance.png chromium-report.json production-refresh.png production-refresh-report.json; do
+              cp "$verified/$name" "$evidence/$name"
+            done
+            git add services/ai-account-usage/web/preview/index.html "$evidence"
+            if git diff --cached --quiet; then
+              echo "Current main already has the exact verified R2.2 preview."
+              exit 0
+            fi
+            git commit -m "docs(ai-account-usage): publish verified R2.2 React preview [skip ci]"
+            if git push origin HEAD:main; then
+              echo "Published validated React preview on the latest main."
+              exit 0
+            fi
+            echo "::warning::main advanced concurrently (attempt $attempt), retrying safe publication"
           done
-          git add services/ai-account-usage/web/preview/index.html "$evidence"
-          if git diff --cached --quiet; then
-            echo "Standalone HTML already matches the validated React build."
-            exit 0
-          fi
-          git commit -m "docs(ai-account-usage): publish verified R2.0 React preview [skip ci]"
-          git push origin HEAD:main
+          echo "::error::main remained busy; archived CI assets available but not published"
+          exit 1
       - name: Archive exact React preview and four screenshot sources
         if: always()
         uses: actions/upload-artifact@v4
@@ -116,3 +152,4 @@ jobs:
             services/ai-account-usage/web/preview-dist/
             services/ai-account-usage/web/preview/index.html
             artifacts/ai-usage-r19/
+            artifacts/ai-usage-r22/

@@ -111,7 +111,7 @@ async function set(speed,source){
 }
 async function activatePageShortcuts(){
   const ticket=++shortcutEpoch;
-  if(!shortcutsEnabled||closed)return;
+  if(!shortcutsEnabled||shortcutLoading||shortcutSaving||closed)return;
   try{
     const response=await request('videoSpeed.shortcuts.enable',{});
     if(ticket!==shortcutEpoch||closed||!shortcutsEnabled)return;
@@ -149,11 +149,10 @@ async function saveShortcuts(){
     await request('storage.set',{key:'shortcutsEnabled',value:next});
     shortcutsEnabled=next;
     shortcutHint=next?'': '已关闭网页与侧边栏快捷键';
-    if(next)void activatePageShortcuts();
   }catch(error){
     shortcutHint='设置保存失败：'+String(error?.message||'请重试').slice(0,90);
-    if(!next&&shortcutsEnabled)void activatePageShortcuts();
   }finally{shortcutSaving=false;if(!closed)render();}
+  if(shortcutsEnabled&&!closed)void activatePageShortcuts();
 }
 function onShortcutKey(key){
   if(!shortcutsEnabled||shortcutLoading||shortcutSaving||!available||busy||closed)return;

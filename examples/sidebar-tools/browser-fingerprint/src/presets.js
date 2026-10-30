@@ -85,10 +85,17 @@ async function commit(request,key,proposed,etag,parse){
 }
 export const readPresets=request=>read(request,PRESETS_KEY,parsePresets);
 export const readRuns=request=>read(request,RUNS_KEY,parseRuns);
-export async function savePreset(request,{id,name,config}){
+export async function savePreset(request,{id,name,config,expectedPreset}){
   if((id!==null&&id!==undefined&&!idOk(id))||!validName(name)||!validConfig(config))
     throw fail('E_PRESET_SCHEMA','预设参数不符合约束');
   const {value,etag}=await readPresets(request);
+  // Bind edits to the complete loaded profile, independent of other profiles
+  // and object key order. Undefined preserves the legacy caller contract.
+  if(expectedPreset!==undefined){
+    const current=value.items.find(row=>row.id===id);
+    if(!current||storageString(current)!==storageString(expectedPreset))
+      throw fail('E_STORAGE_CONFLICT','目标预设已更改或删除；请刷新后再编辑');
+  }
   const items=value.items.map(row=>({id:row.id,name:row.name,config:copyConfig(row.config)}));
   if(items.some(row=>row.name.toLowerCase()===name.toLowerCase()&&row.id!==id))
     throw fail('E_PRESET_DUPLICATE','预设名称已存在');

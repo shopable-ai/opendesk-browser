@@ -1,4 +1,26 @@
-# 视频会员 · Video SVIP R0.3（源码候选，Chrome 待验收）
+# 视频会员 · Video SVIP R0.4A（GitHub 源码候选）
+
+> 2026-10-30：本轮新增 **真实来源决策代码 + 自有授权媒体 Demo 入口**，尚未取得 Chrome 播放实测证据；**正式配置仍为 0.3.0**，不能称为商用发布。原有 R0.3 识别适配器仍需另外进行 Mac Chrome 实站验收。
+
+## 当前可执行的功能增量（不是设计稿）
+
+- `src/main.js` 中新增来源注册表（稳定 ID、重复拒绝、UNKNOWN）、准入排序及限次回退协调器。来源类型：官方入口 / 授权自有媒体 / 仅渠道信息 / 不可用；官方链接可打开 **不等于** 用户有权益或视频已播放。
+- 原有可信 Host 的 `videoSVIP.inspect/watch/stop`、SPA 失效、原站分享链接、`memberships` + `ifMatch` 完整保留；不新增 Host、Runtime 或视频站点权限。
+- `src/index.html` 与 `preview/index.html` 共享精确一致的产品主结构，复用相同 `src/main.js` / `src/style.css`。观看区显示推荐来源、理由、候选切换、状态和独立自有视频元素读回。
+- **仅预览/开发场景**通过固定 `demoMode` 和预览路径双重门控接入 `projects/video-downloader/tests/fixtures/tiny.mp4`（合法自生成 1 秒 MP4）及故意不存在的失败 URL；验证媒体错误、视频帧和 `currentTime` 增长。正式平台界面只有原站链接，不接入 VIP 解析线路。
+- 自有播放器限定单实例、用户点击启动、等待有界、明确失败最多一次回退；未知/被浏览器手势拒绝不会自动连环重试。Stop、SPA、关闭取消旧操作；不影响原站视频。
+- Node 回归文件：`tests/environment/video-svip-source-r04a.test.mjs`；真实 Chrome 自动点击测试：`tests/browser/video-svip-r04a.mjs`（独立可选命令，需要 Chromium + 已安装的 npm 依赖）。GitHub Actions 验证配置：`.github/workflows/video-svip-r04a.yml`。**是否真正 PASS 必须依据 CI/浏览器日志，不能依据源码存在判断。**
+
+## 最短 Demo 操作
+
+从仓库根目录使用 HTTP 服务加载 `projects/video-svip/preview/index.html`（或在允许本地资源访问的开发环境打开）。选择左侧「R0.4A · 授权播放」的「真实媒体播放」→ 点击右侧「播放授权测试媒体」。真实浏览器应读取自制视频的 `loadeddata / playing / timeupdate` 等事件，并要求帧与时间变化后才写 `PLAYING_VERIFIED`。选择「失败 → 备用媒体」可触发真实资源错误；若备用的自动播放被浏览器要求新用户手势，应手动点选来源 B，**不得把被拒绝视作成功**。
+
+`tiny.mp4` 只有 1 秒，**绝不报告连续 15 秒播放成功**。预览里的腾讯、B 站等识别场景仍是模拟 Host 数据，不能替代实际网站的 Chrome 验收。全部证据及未测试等级见 `R0.4A-EVIDENCE.zh-CN.md`。
+
+---
+
+## R0.3 历史基线（保留原记录）
+
 
 正式展示名称：**视频会员**；品牌副名称：**SVIP**（仅品牌识别，不代表已提供超高级会员权益）。
 

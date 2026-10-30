@@ -13,6 +13,11 @@ const headers = {'cache-control':'no-store','x-content-type-options':'nosniff',
 const match = (a,b) => typeof a==='string' && Buffer.byteLength(a)===Buffer.byteLength(b) &&
   timingSafeEqual(Buffer.from(a),Buffer.from(b));
 const reply=(res,status,data)=>{res.writeHead(status,{...headers,'content-type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));};
+// Provider attempts are business results, not evidence of HTTP success.
+export const refreshHttpStatus = status => ({
+  OK:200, AUTH_REQUIRED:424, IDENTITY_UNVERIFIED:422, RATE_LIMITED:429,
+  SCHEMA_UNKNOWN:502, UNAVAILABLE:503
+})[status] ?? 503;
 async function input(req) {
   if (!/^application\/json(?:;|$)/i.test(req.headers['content-type']||'')) throw Error();
   let size=0;const chunks=[];
@@ -86,7 +91,15 @@ export async function startManagementServer({service,store,port=0,
         busy=true;
         try {
           const result=(await service.query({alias:refresh[1],operation:'refresh'})).results[0];
-          return reply(res,result.account?200:400,result.account?{account:result.account}:{error:result.error??'REFRESH_FAILED'});
+          if (!result?.account || result.account.alias !== refresh[1])
+            return reply(res,result?.error==='E_ACCOUNT_UNKNOWN'?404:503,{error:'REFRESH_FAILED'});
+          const observed = result.account.lastAttempt?.status;
+          const valid = result.status === 'OK' && observed === 'OK';
+          const status = valid ? 'OK' : observed && observed !== 'OK' ? observed : 'UNAVAILABLE';
+          // Persisted, sanitized profile is included even on failure so the UI
+          // can update lastAttempt without erasing lastSuccessAt or prior windows.
+          return reply(res,refreshHttpStatus(status),{status,account:result.account,
+            ...(valid ? {} : {error:'REFRESH_FAILED'})});
         }finally{busy=false;}
       }
       reply(res,404,{error:'NOT_FOUND'});

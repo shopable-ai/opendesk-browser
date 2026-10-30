@@ -1,0 +1,29 @@
+name: Video SVIP Personal Media PoC
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/video-svip/poc/personal-media/**'
+      - '.github/workflows/video-svip-personal-media-poc.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check projects/video-svip/poc/personal-media/server.mjs
+          node --check projects/video-svip/poc/personal-media/client.js
+          node --check projects/video-svip/poc/personal-media/server.test.mjs
+      - name: Real localhost HTTP admission and Range tests (not real two-network playback)
+        run: node --test projects/video-svip/poc/personal-media/server.test.mjs

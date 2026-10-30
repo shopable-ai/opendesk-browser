@@ -140,6 +140,36 @@ test('SDK task requests pin the installed revision and correlate pre-reply cance
   assert.ok(Object.values(calls[0][1].params).every(value=>['string','number','boolean'].includes(typeof value)));
   assert.throws(()=>validateConfig({...DEFAULT_CONFIG,itemConfig:{title:'中'.repeat(1400)}}),/4096/);
 });
+test('stale fixed Task reports task recovery without changing saved capture configurations or starting', async () => {
+  const calls=[];
+  const sdk=context.ScrapyAppSdk.createSdk(async(op)=>{
+    calls.push(op);
+    if(op==='currentPage.info')return page;
+    if(op==='tasks.read')throw Object.assign(new Error('内置运行时已改变或旧版本未记录身份；请保存新版本并重新验证'),{code:'E_BUILTIN_VERSION_UNAVAILABLE'});
+    throw new Error('Unexpected operation: '+op);
+  });
+  const app=createApp(sdk);
+  const before=plain(app.state.config);
+  await app.refreshTarget();await app.start(page.url);
+  assert.match(app.state.error,/固定采集任务.*运行时/);
+  assert.match(app.state.error,/更新.*scrapyjs/);
+  assert.match(app.state.error,/采集配置已保留/);
+  assert.equal(app.state.phase,'idle');assert.equal(app.state.clientRequestId,null);
+  assert.deepEqual(plain(app.state.config),before);
+  assert.deepEqual(calls,['currentPage.info','tasks.read']);
+});
+test('failed Task preparation discards the previous installed identity and preserves other failures', async () => {
+  const failure=Object.assign(new Error('Permission denied'),{code:'E_PERMISSION'});
+  let fail=false,starts=0;
+  const sdk=context.ScrapyAppSdk.createSdk(async(op)=>{
+    if(op==='tasks.read'){if(fail)throw failure;return {task:{taskId:'scrapyjs.capture'}};}
+    if(op==='tasks.start')starts++;
+  });
+  await sdk.prepare();fail=true;
+  await assert.rejects(sdk.prepare(),error=>error===failure);
+  await assert.rejects(sdk.start(DEFAULT_CONFIG,page.url,'stale-task'),/尚未确认安装身份/);
+  assert.equal(starts,0);
+});
 test('CSV escapes formula prefixes in fields and values while JSON retains original data',async()=>{
   const calls=[],sdk=context.ScrapyAppSdk.createSdk(async(op,payload)=>{calls.push(plain(payload));return {started:true};});
   const data=[{'=key':'=1+1',plus:'+cmd',minus:'-1+2',at:'@SUM(A1)',tab:'\tcommand',newline:'\rcommand',space:'  =1',number:-2,plain:'a=b'}];

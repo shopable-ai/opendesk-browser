@@ -81,6 +81,27 @@ test('stale document is rejected without setting media rate',async()=>{
   await assert.rejects(requestVideoSpeed({...f.options,operation:'videoSpeed.set',payload:{speed:2}}),/E_DOCUMENT_STALE/);
   assert.equal(f.calls.length,0);
 });
+for(const invalidation of ['closed','target-changed'])test(
+  'final admission await cannot outlive '+invalidation+' before a media write',async()=>{
+    const f=fixture();
+    let checks=0,closed=false;
+    const original=f.options.currentPageTarget.capture();
+    let current=original;
+    f.options.currentPageTarget.capture=()=>current;
+    f.options.assertCurrent=()=>{if(closed)throw Error('session closed');};
+    f.options.assertInstalled=async()=>{
+      // The fourth admission follows the probe and is the last await before set.
+      if(++checks===4){
+        await Promise.resolve();
+        if(invalidation==='closed')closed=true;
+        else current={...original,tabId:9,documentId:'new-document'};
+      }
+    };
+    await assert.rejects(requestVideoSpeed({...f.options,
+      operation:'videoSpeed.set',payload:{speed:2}}));
+    assert.equal(f.calls.filter(call=>call.args[0]==='set').length,0,
+      'revocation must prevent the effect, not just reject its later receipt');
+  });
 test('page injection function is self-contained and chooses playing video',()=>{
   const before=globalThis.document;
   const paused=video(false,1,2000),playing=video(true,1,100);
