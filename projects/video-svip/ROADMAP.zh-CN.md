@@ -11,7 +11,7 @@
 | 阶段 | 源码增量 | 不能误报的边界 |
 | --- | --- | --- |
 | R0.3 / R0.3.2 | 7 站识别候选 + loopback 适配器、SPA 观察、Document 二次读回、Stop、手工会员、交互预览 | 国内/海外站点真实 Mac Chrome 验收仍属另一任务 |
-| R0.4A | `SourceRegistry` / `rankSources` / `createSourceOrchestrator`、同源观看区、预览自制 MP4 和故障媒体、Node 测试/CI 配置 | 授权播放在真实 Chromium/Mac Chrome 中尚未获实际证据；不是 VIP 解锁或商用线路 |
+| R0.4A | `SourceRegistry` / `rankSources` / `createSourceOrchestrator`、同源观看区、预览自制 MP4 和故障媒体、Node 测试、Chromium 真实媒体点击脚本及 CI 配置 | 授权播放在真实 Chromium/Mac Chrome 中尚未获实际证据；不是 VIP 解锁或商用线路 |
 | R0.4A 来源身份 | `OFFICIAL_LINK`、`AUTHORIZED_MEDIA`、`CATALOG_ONLY`、`UNAVAILABLE`，稳定 ID、授权/地区/权益/费用/验证状态 UNKNOWN | 外部站点不被接管、无来源成功率数据则不显示 KPI |
 | R0.4A 回退 | 仅受控自有视频，明确失败最多一次回退，未知不自动再试，Stop/SPA/关闭失效旧任务 | 浏览器可能要求再次点击手势，不能后台重放 |
 
