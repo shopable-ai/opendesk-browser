@@ -9,7 +9,7 @@
 - `src/index.html` 与 `preview/index.html` 共享精确一致的产品主结构，复用相同 `src/main.js` / `src/style.css`。观看区显示推荐来源、理由、候选切换、状态和独立自有视频元素读回。
 - **仅预览/开发场景**通过固定 `demoMode` 和预览路径双重门控接入 `projects/video-downloader/tests/fixtures/tiny.mp4`（合法自生成 1 秒 MP4）及故意不存在的失败 URL；验证媒体错误、视频帧和 `currentTime` 增长。正式平台界面只有原站链接，不接入 VIP 解析线路。
 - 自有播放器限定单实例、用户点击启动、等待有界、明确失败最多一次回退；未知/被浏览器手势拒绝不会自动连环重试。Stop、SPA、关闭取消旧操作；不影响原站视频。
-- Node 回归文件：`tests/environment/video-svip-source-r04a.test.mjs`。Github Actions 验证配置：`.github/workflows/video-svip-r04a.yml`。**是否真正 PASS 必须依据 CI/浏览器日志，不能依据源码存在判断。**
+- Node 回归文件：`tests/environment/video-svip-source-r04a.test.mjs`；真实 Chrome 自动点击测试：`tests/browser/video-svip-r04a.mjs`（独立可选命令，需要 Chromium + 已安装的 npm 依赖）。GitHub Actions 验证配置：`.github/workflows/video-svip-r04a.yml`。**是否真正 PASS 必须依据 CI/浏览器日志，不能依据源码存在判断。**
 
 ## 最短 Demo 操作
 
