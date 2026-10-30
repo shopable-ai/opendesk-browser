@@ -1418,20 +1418,23 @@
     "commit": "Task-scoped main source/package commit; exact SHA reported in task result. No push."
   },
   "s3FinishExecutionGoal20261030": {
-    "recordedAt": "2026-10-30T13:49:37.935618+00:00",
+    "recordedAt": "2026-10-30T15:43:35.682866+00:00",
     "owner": "01a18d05-c615-7230-a917-8240fabb9316",
     "overall": "NOT_FINISHED",
     "goal": {
       "initialRead": null,
       "threadId": "01a18d05-c615-7230-a917-8240fabb9316",
       "objective": "在现有Cookie Editor及唯一可信SW/Host/Authority/安装器内，完成2.0.57与当前持续开发候选的真实原位更新和身份核对；完成同站已保存账号A/B的各自快捷URL在侧栏实际关闭时自动切换Cookie、独立读回与自动刷新；完成两台真实电脑从原分享入口经真实LAN HTTPS邀请、双方设备指纹核对、ECDH/HKDF/AES-GCM加密交付、接收端保存独立账号及明确切换后的Cookie恢复读回，并在网站合法允许移交时独立验证登录。配置保存、Cookie写入读回、网站登录分别记录，完整目标不降格为Node/HTTP/配置demo。修复具体复现阻塞并执行最小相关验证，保存准确证据；未执行的原生项NOT_TESTED，网站明确禁止移交则报告真实限制，不绕MFA/设备绑定，不将阻断当登录PASS。",
-      "status": "active",
-      "tokensUsed": 92054,
-      "timeUsedSeconds": 586,
+      "status": "paused",
+      "tokensUsed": 102710,
+      "timeUsedSeconds": 846,
       "createdAt": 1793367388,
-      "updatedAt": 1793367975,
+      "updatedAt": 1793368234,
       "tokenBudget": null,
-      "scope": "New task only; previous blocked goal not migrated, paused or completed"
+      "scope": "New task only; previous blocked goal not migrated, paused or completed",
+      "statusAtCreation": "active",
+      "lastReadAt": "2026-10-30T15:43:35.682866+00:00",
+      "lastReadSource": "get_goal actual tool state; no goal status mutation by this task"
     },
     "ownership": {
       "type": "Audited first-party fixed trusted SW + original sandbox UI",
@@ -1530,7 +1533,19 @@
         "lastVerifiedPid": 43447,
         "cookieInFlight": "NONE",
         "cookieWriterOperationsAfterHandoff": "NONE",
-        "subsequentPidRevision": "AWAITING_RECEIPT; do not infer old revision is current",
+        "subsequentPidRevision": {
+          "receivedAt": "2026-10-30T15:43:35.682866+00:00",
+          "source": "Owner receipt from 01a18d4e-120b-7632-a596-819ce4ca58ef; not independently reverified by Cookie this turn",
+          "oldProcesses": "node43447/npm43432 exited normally",
+          "pid": 65804,
+          "revision": "967ea3877a191cbb1726471799304dc014d589fab10667ddf795a85894d30a30",
+          "log": "artifacts/video-downloader/ui-core/dev-resumed.log",
+          "statusReported": "RUNNING",
+          "path": "dist/development",
+          "lock": "Original lock recovery; no second writer or manual lock edits",
+          "chromeApplied": "NOT_TESTED; video owner checking actual client",
+          "cookieRelayTlsDb": "Untouched according to owner receipt"
+        },
         "relayTls": "Not transferred; Cookie keeps original Relay42246/TLS43377 at8713/8443"
       }
     },

@@ -2,11 +2,11 @@
 
 ## 本任务目标与关键测试条件已设置（2026-10-30，01a18d05）
 
-本接续任务按用户明确授权创建完整执行目标，实读状态为 **active**，无 token 预算；旧任务的 blocked goal 没有迁移、暂停或完成。关键条件与逐项结果已写入唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishExecutionGoal20261030`：同候选原位安装并保留数据；侧栏实际关闭后的 A/B 双向自动切换、独立 Cookie 读回及额外刷新；双真实设备原分享入口配对、加密交付、独立账号保存、明确恢复及允许移交网站的独立登录。配置保存、Cookie 恢复与网站登录分别记录。
+本接续任务按用户明确授权创建完整执行目标，创建后实读 **active**，无 token 预算；收到下述 writer 重启回执时再次实读为 **paused**，本任务未改写目标状态。旧任务的 blocked goal 没有迁移、暂停或完成。关键条件与逐项结果已写入唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishExecutionGoal20261030`：同候选原位安装并保留数据；侧栏实际关闭后的 A/B 双向自动切换、独立 Cookie 读回及额外刷新；双真实设备原分享入口配对、加密交付、独立账号保存、明确恢复及允许移交网站的独立登录。配置保存、Cookie 恢复与网站登录分别记录。
 
 本轮实际解除一个更新入口阻塞：合并后旧 dev 进程缓存的目录校验持续失败，15 个输出已与旧 ready 指纹不符。新进程只读校验通过后，经原 owner 移交与云控释放，正常停止旧 writer，再运行原 `npm run dev`。固定 `dist/development` 已恢复 **RUNNING**，revision `aeaed3ff1f268c733c71d8666429045e1aff66c86be9d60a8f8d593d1896b21a`，130 个文件指纹一致；未改 Cookie 源码或正式包。2.0.56→2.0.57 的 ID、权限、依赖与运行声明一致，仅证明包元数据，不证明 Chrome 已更新。
 
-随后已将同一 dev writer 的正常重启协调权移交视频任务，以载入其已验证的 `projects/` 监听修复；以上 revision 仅保留本轮恢复时范围，移交后的当前 PID／revision 等待真实回执。Cookie 不再启停或覆盖该输出，原 Relay／TLS 不在移交范围。
+随后已将同一 dev writer 的正常重启协调权移交视频任务，以载入其已验证的 `projects/` 监听修复。接收方回执：旧进程退出，新 node PID65804，日志 `artifacts/video-downloader/ui-core/dev-resumed.log` 已 RUNNING，完整 revision `967ea3877a191cbb1726471799304dc014d589fab10667ddf795a85894d30a30`；固定目录／ID／安全刷新栅栏保留。这是 owner 回执，Cookie 本轮未重复验证输出或 Chrome 实际应用；前一 revision 仅保留本轮恢复时范围。Cookie 不再启停或覆盖该输出，原 Relay／TLS／数据库未被此次移交触及。
 
 原 Relay／TLS 使用原数据库和证书恢复，两台 Mac 的 HTTPS 健康检查通过，仅属传输准备；没有创建邀请、配对或领取，也没有发送 Cookie。Chrome HTTPS 导航超时后仍为空白页，未推断证书信任或绕过保护。当前公开驱动没有独立窗口／原生侧栏操作入口；下一步需在独立 Chrome 窗口打开原 OpenDesk SidePanel，经原安装器审阅并更新 2.0.57，然后核对实际 ID、加载路径、连接和应用 revision。**真实安装、侧栏关闭 A/B、双机恢复和网站登录仍为 NOT_TESTED，完整目标未完成。**
 
