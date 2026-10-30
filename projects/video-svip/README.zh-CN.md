@@ -28,7 +28,7 @@ P0 使用现有 currentPage.read 与 storage.local，不修改宿主 SW、Runtim
 
 ## 验收（不能虚报）
 - NODE：node --test tests/environment/video-svip.test.mjs
-- BUILD：npm run build:sidebar-tool -- projects/video-pass；npm run build:dev
+- BUILD：npm run build:sidebar-tool -- projects/video-svip；npm run build:dev
 - MAC_CHROME：真实 Chrome 安装后检查原站识别、分享、非视频页、导航、撤权及本机保存/恢复/删除。
 - UI：320/360/400/440/520px、200% 缩放、明暗色与键盘。
 - 播放诊断、稳定备用线路、付费与好友席位：NOT_IMPLEMENTED / NOT_TESTED。
