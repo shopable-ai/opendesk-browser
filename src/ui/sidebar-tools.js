@@ -3175,10 +3175,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           // inert page signaler. A stale/inaccessible document cannot bypass it.
           videoShortcutSession=null;
           try{return await runVideo(operation);}
-          catch(error){
-            if(['E_DOCUMENT_STALE','E_VIDEO_SITE_ACCESS','E_VIDEO_TARGET','E_VIDEO_DOCUMENT'].includes(error?.code))
-              return {enabled:false,listenerRemoved:false};
-            throw error;
+          catch{
+            // Host nonce is already revoked; the old document may be gone or
+            // inaccessible. Report physical listener removal as unknown, not
+            // as a successful injection, and allow the OFF preference to save.
+            return {enabled:false,listenerRemoved:false};
           }
         }
         return runVideo(operation,payload);
