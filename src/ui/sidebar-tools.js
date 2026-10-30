@@ -51,6 +51,8 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPA
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../../projects/web-markdown-clipper/trusted/policy.js';
 import {CLIP_NOTES_OPERATIONS,executeClipNotes} from '../../projects/web-markdown-clipper/trusted/notes-store.js';
 import {installedSiteAllowed,blockedInstalledOrigins} from './sidebar-tools/site-grants.js';
+import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY,VIDEO_SPEED_OPERATIONS} from '../../projects/video-speed-controller/trusted/policy.js';
+import {requestVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../../projects/time-review/trusted/policy.js';
@@ -390,6 +392,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'tasks.run':'运行已审阅的固定任务、读取结果及停止原实例',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
     'page.clip':'按点击读取当前网页的正文或选区，安装后直接可用',
+    'page.videoSpeed':'仅对当前授权网页的一段 HTML5 视频进行有限倍速调整及读回',
     'user.export':'复制文本或请求文件下载',
     'page.capture':'安装后在支持的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
@@ -2935,6 +2938,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
        operation==='currentPage.info'?'currentPage.read':
        operation==='tasks.open'?'tasks.open':
        ['toc.snapshot','toc.navigate'].includes(operation)?TOC_CAPABILITY:
+       VIDEO_SPEED_OPERATIONS.includes(operation)?VIDEO_SPEED_CAPABILITY:
         CLIP_OPERATIONS.includes(operation)?CLIP_CAPABILITY:
       CLIP_NOTES_OPERATIONS.includes(operation)?'storage.local':
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
@@ -3124,6 +3128,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       }
 
       if(operation==='currentPage.info')return currentPageInfo(currentPageTarget?.snapshot);
+      if(VIDEO_SPEED_OPERATIONS.includes(operation))return requestVideoSpeed({
+        api,tool,operation,payload,currentPageTarget,revocationEpoch,
+        assertCurrent:()=>assertSession(source,token),
+        assertInstalled:()=>assertInstalledTool(tool,revocationEpoch,'视频倍速工具已更新或卸载')
+      });
       if(operation==='toc.snapshot'||operation==='toc.navigate'){
         if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||!api.tabs?.sendMessage)
           throw new Error('当前网页的目录服务不可用');
