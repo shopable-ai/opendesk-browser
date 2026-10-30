@@ -1,6 +1,6 @@
 {
   "schema": "opendesk.app-ci.v1",
-  "kind": "ui",
+  "kind": "page",
   "node": [
     "tests/environment/video-speed-controller.test.mjs"
   ]
