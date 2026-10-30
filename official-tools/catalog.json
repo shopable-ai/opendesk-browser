@@ -11,7 +11,7 @@
     },
     {
       "id": "ai-knowledge-answers",
-      "project": "examples/sidebar-tools/ai-knowledge-answers",
+      "project": "projects/ai-knowledge-answers",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
     },

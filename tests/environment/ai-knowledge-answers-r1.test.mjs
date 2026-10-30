@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {randomUUID} from 'node:crypto';
 
-const base=new URL('../../examples/sidebar-tools/ai-knowledge-answers/',import.meta.url);
+const base=new URL('../../projects/ai-knowledge-answers/',import.meta.url);
 const source=readFileSync(new URL('src/model.js',base),'utf8');
 const context={TextEncoder,crypto:{randomUUID}};
 runInNewContext(source,context,{filename:'src/model.js'});

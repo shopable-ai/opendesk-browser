@@ -6,11 +6,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import '../../examples/sidebar-tools/ai-knowledge-answers/src/model.js';
-import {createLocalKnowledgeTestRuntime} from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js';
-import {createLocalKnowledgeDemoAdapter} from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-adapter.js';
+import '../../projects/ai-knowledge-answers/src/model.js';
+import {createLocalKnowledgeTestRuntime} from '../../projects/ai-knowledge-answers/trusted/local-test-runtime.js';
+import {createLocalKnowledgeDemoAdapter} from '../../projects/ai-knowledge-answers/trusted/local-test-adapter.js';
 
-const base=new URL('../../examples/sidebar-tools/ai-knowledge-answers/fixtures/',import.meta.url);
+const base=new URL('../../projects/ai-knowledge-answers/fixtures/',import.meta.url);
 const library=JSON.parse(readFileSync(new URL('sample-knowledge.json',base),'utf8'));
 const cases=JSON.parse(readFileSync(new URL('answer-test-cases.json',base),'utf8')).cases;
 const csv=readFileSync(new URL('sample-knowledge.csv',base),'utf8');
@@ -441,7 +441,7 @@ test('R1.4 manual AI: attached draft must match original customer, session, ETag
 });
 
 test('R1.4 trusted UI: full actual answer and the linked website receipt must be visible',()=>{
- const workspace=readFileSync(new URL('../../examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx',
+ const workspace=readFileSync(new URL('../../projects/ai-knowledge-answers/trusted/Workspace.jsx',
    import.meta.url),'utf8');
  assert.match(workspace,/state\.result\.answer/,'show answer, not a field named question');
  assert.doesNotMatch(workspace,/<p>\{state\.result\.question\}<\/p>/);
@@ -748,7 +748,7 @@ test('R3.1 read-only receipt recovery requires trusted click and an UNKNOWN orig
 });
 
 test('R3.1 trusted source owns UNKNOWN read-only UI and Host route; sandbox package cannot send',()=>{
- const trusted=new URL('../../examples/sidebar-tools/ai-knowledge-answers/trusted/',import.meta.url);
+ const trusted=new URL('../../projects/ai-knowledge-answers/trusted/',import.meta.url);
  const ui=readFileSync(new URL('Workspace.jsx',trusted),'utf8');
  const host=readFileSync(new URL('host.js',trusted),'utf8');
  const runtime=readFileSync(new URL('local-test-runtime.js',trusted),'utf8');

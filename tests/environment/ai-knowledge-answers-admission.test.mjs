@@ -36,7 +36,7 @@ test('actual knowledge source and optional official release share bytes; plain i
  const {catalog,resources}=await createOfficialToolResources();
  const release=catalog.apps.find(row=>row.toolId===id);
  assert.equal(release.installationPolicy,'optional');
- const tool=await createSidebarToolPackage('examples/sidebar-tools/'+id);
+ const tool=await createSidebarToolPackage('projects/'+id);
  assert.deepEqual(resources.get(release.packagePath),encodeSidebarToolPackage(tool));
  assert.deepEqual(tool.capabilities,['storage.local','user.export']);
  const args={...fixture(),tool,installed:[tool],release,

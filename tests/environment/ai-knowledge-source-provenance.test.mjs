@@ -7,13 +7,13 @@ import {tmpdir} from 'node:os';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 
-const project='examples/sidebar-tools/ai-knowledge-answers';
+const project='projects/ai-knowledge-answers';
 const reviewed={
   'src/model.js':'752b91ea8d98f7da10e9d8902e3629bef69df58c',
   'trusted/host.js':'02bdd31fdcb2292196c849bd0a4c13e9bde78c0c',
   'trusted/ai-request.js':'2228f1490904f99b47d087cc617015da57dce26f',
   'trusted/local-test-runtime.js':'2605e9d4825f3d95140a1eaccc73c1cc62ee6cda',
-  'trusted/local-test-adapter.js':'fd56f20148aefe75cc2cc91187a831db0dbadcc1',
+  'trusted/local-test-adapter.js':'25c43a64db60933c61f16a569afbfd376a5f8ac5',
   'trusted/Workspace.jsx':'9fa5a0e47805bfbbd092dbab7f78bb346588058b',
   'trusted/workspace.css':'3f11650babfd3e1a490907b33e2f722bd97fa53d',
   'trusted/multi-intent.js':'82d4b49d194783e04844e36df78d757955e31378'

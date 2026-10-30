@@ -41,9 +41,12 @@ test('R2.1 migrated official source locations are exact and preserve unmigrated 
   assert.equal(current.tools.find(row=>row.id==='prompt-shortcuts').project,'projects/prompt-shortcuts');
   assert.equal(current.tools.find(row=>row.id==='adblock').project,'projects/adblock');
   assert.equal(current.tools.find(row=>row.id==='stay-focus').project,'projects/stay-focus');
+  assert.equal(current.tools.find(row=>row.id==='ai-knowledge-answers').project,'projects/ai-knowledge-answers');
   assert.equal(current.tools.find(row=>row.id==='cookie-editor').project,'examples/sidebar-tools/cookie-editor');
   for(const [id,project] of [
     ['cookie-editor','projects/cookie-editor'],
+    ['ai-knowledge-answers','examples/sidebar-tools/ai-knowledge-answers'],
+    ['ai-knowledge-answers','projects/ai-knowledge-answers/../ai-knowledge-answers'],
     ['bookmark-manager','examples/sidebar-tools/bookmark-manager'],
     ['knowledge-inbox','examples/sidebar-tools/knowledge-inbox'],
     ['web-markdown-clipper','examples/sidebar-tools/web-markdown-clipper'],

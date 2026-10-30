@@ -10,7 +10,7 @@ import {createSidebarTabMemory} from './sidebar-tab-memory.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSharedAIProviderRuntime} from './ai/provider-runtime.js';
 import {createBusinessConversation} from './conversation/provider-consumer.js';
-import {createTrustedKnowledgeHost} from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/host.js';
+import {createTrustedKnowledgeHost} from '../../projects/ai-knowledge-answers/trusted/host.js';
 import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
 import {createMarketPanelNavigationReceiver,verifyMarketPanelNavigationSource} from '../marketplace/panel-navigation.js';

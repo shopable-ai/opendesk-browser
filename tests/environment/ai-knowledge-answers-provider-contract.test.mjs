@@ -4,9 +4,9 @@ import {readFileSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
 import {runInNewContext} from 'node:vm';
 import {createKnowledgeAnswerConsumer,KNOWLEDGE_ANSWER_INSTRUCTIONS}
-  from '../../examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js';
+  from '../../projects/ai-knowledge-answers/trusted/ai-request.js';
 
-const modelSource=readFileSync(new URL('../../examples/sidebar-tools/ai-knowledge-answers/src/model.js',import.meta.url),'utf8');
+const modelSource=readFileSync(new URL('../../projects/ai-knowledge-answers/src/model.js',import.meta.url),'utf8');
 const sandbox={TextEncoder,crypto:{randomUUID}};
 runInNewContext(modelSource,sandbox);
 const model=sandbox.OpenDeskKnowledgeAnswersModel;

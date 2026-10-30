@@ -3,16 +3,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import '../../examples/sidebar-tools/ai-knowledge-answers/src/model.js';
+import '../../projects/ai-knowledge-answers/src/model.js';
 import {planCustomerMessage,splitCustomerIntents,GREETING_REPLY} from
-  '../../examples/sidebar-tools/ai-knowledge-answers/trusted/multi-intent.js';
+  '../../projects/ai-knowledge-answers/trusted/multi-intent.js';
 import {createLocalKnowledgeTestRuntime} from
-  '../../examples/sidebar-tools/ai-knowledge-answers/trusted/local-test-runtime.js';
+  '../../projects/ai-knowledge-answers/trusted/local-test-runtime.js';
 import {createKnowledgeAnswerConsumer} from
-  '../../examples/sidebar-tools/ai-knowledge-answers/trusted/ai-request.js';
+  '../../projects/ai-knowledge-answers/trusted/ai-request.js';
 
 const lib=JSON.parse(readFileSync(new URL(
-  '../../examples/sidebar-tools/ai-knowledge-answers/fixtures/sample-knowledge.json',import.meta.url),'utf8'));
+  '../../projects/ai-knowledge-answers/fixtures/sample-knowledge.json',import.meta.url),'utf8'));
 const model=globalThis.OpenDeskKnowledgeAnswersModel,etag='a'.repeat(64);
 const plan=(q,scope='')=>planCustomerMessage(model,lib,{question:q,scope});
 const mixed='你好！退款期限是多少？何时发货？可以上门安装吗？';

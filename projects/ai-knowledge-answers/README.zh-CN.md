@@ -53,7 +53,7 @@ UNKNOWN 使用显式启用、仅作用于当前测试文档的临时诊断：**�
 - 本轮只修复已复现的发行/准入阻塞：旧准入限定 `0.1.5`，已有工具为 `0.1.6`，且正式包与当前样式源码不同。使用原 `npm run app:update -- ai-knowledge-answers` 构建、校验、晋升为 `0.1.7`，同步可信版本门禁；经原官方市场审阅升级后进入原可信 React 工作台。未重写任何发送业务模块。
 - 真实 Chrome：未知知识不发送、问候和多问题保留人工审核、暂停/停止不发送新消息、切会话停止旧许可均已观察。`UNKNOWN` 故障及 ETag 变更仍只有定向 Node 证据，未完成本轮 Chrome 故障验证，不记原生 PASS。
 - 定向 Node：客服 Runtime / 多问题 **60/60 PASS**，官方准入 / 包一致性 / 原 UI **45/45 PASS**，原更新流程包测试 **8/8 PASS**。历史 GitHub App CI 仍为 **188/190**，不能冒称已重跑通过。
-- 环境为日常 `npm run dev` → `dist/development` 的持续开发包，非 production 验收。测试后监听已停止，新窗口保留会话 A 的真实回复。本机完整操作及原始证据索引见 [R3.7 本机实测记录](../../../docs/framework/workstreams/ai-knowledge-answers-r37-auto-mvp-20261028.md)（按仓库忽略规则不提交日志）；核心 DOM 原件为 `artifacts/ai-knowledge-r37-auto-mvp/chrome-core-dom.json`。
+- 环境为日常 `npm run dev` → `dist/development` 的持续开发包，非 production 验收。测试后监听已停止，新窗口保留会话 A 的真实回复。本机完整操作及原始证据索引见 [R3.7 本机实测记录](../../docs/framework/workstreams/ai-knowledge-answers-r37-auto-mvp-20261028.md)（按仓库忽略规则不提交日志）；核心 DOM 原件为 `artifacts/ai-knowledge-r37-auto-mvp/chrome-core-dom.json`。
 
 独立只读评审根据真实 DOM、侧栏 AX/截图、原始 Node 日志及最小 diff 评分；这是本轮限定 MVP 的证据充分度，各维满分 100，非 production 产品评分：
 
@@ -92,8 +92,8 @@ node scripts/preview/build-preview.mjs --tool ai-knowledge-answers --surface sid
 
 ### 唯一真实入口及启动
 
-- 同源 HTML：`examples/sidebar-tools/ai-knowledge-answers/preview/index.html`。
-- 在本仓库根目录启动（原端口空闲时）：`python3 -m http.server 43112 --bind 127.0.0.1 --directory examples/sidebar-tools/ai-knowledge-answers`。
+- 同源 HTML：`projects/ai-knowledge-answers/preview/index.html`。
+- 在本仓库根目录启动（原端口空闲时）：`python3 -m http.server 43112 --bind 127.0.0.1 --directory projects/ai-knowledge-answers`。
 - 浏览器打开：**http://127.0.0.1:43112/preview/**。页面内知识管理直接加载正式 `src/index.html`、`src/style.css`、`src/model.js`、`src/main.js`，Host 存储仅为预览模拟。
 - 产品容器**外**的「多问题处理检查」默认折叠，动态加载真实业务模块 `trusted/multi-intent.js`，用户可以输入任意 300 字以内的消息检查独立来源及一条合成草稿。320/360/400/440 宽度、知识种子、故障注入都在外部折叠开发工具中；它们不出现在真实客服界面。
 - **不能**在此 HTTP 预览中执行可信 `Workspace.jsx`、真实 Shared Provider、Chrome 权限或网页发送。可信组件需要原 Browser 构建/发行身份和授权；仍按下方 R3.1 说明打开 `http://127.0.0.1:43111/ai-knowledge-chat-demo.html` 执行真实本地 DOM 测试链。
@@ -134,7 +134,7 @@ node scripts/preview/build-preview.mjs --tool ai-knowledge-answers --surface sid
 
 **剩余界面差量**：可信客服界面已去掉「本地测试」业务标题；原沙箱 `src/index.html` 中「测试知识回答」是历史知识查询管理页文字，因未在本轮触及正式沙箱发行输入及单一 JSON 包，仍保留在 0.1.5。若要求该标题也全部去测试化，需要由发行 owner 用原候选构建、校验和晋升流程同时更新 `src/` 与唯一正式安装包，不能仅改预览制造正式效果。
 
-关闭对话后请以本 README、原预览路径及 [R3.2 增量记录](../../../docs/framework/workstreams/ai-knowledge-answers-r32-20261026.md) 复现，不以历史一次性的聊天附件作为持久入口。
+关闭对话后请以本 README、原预览路径及 [R3.2 增量记录](../../docs/framework/workstreams/ai-knowledge-answers-r32-20261026.md) 复现，不以历史一次性的聊天附件作为持久入口。
 
 ---
 
@@ -144,14 +144,14 @@ node scripts/preview/build-preview.mjs --tool ai-knowledge-answers --surface sid
 
 | 项目 | 仓库内准确路径 | 使用角色 |
 | --- | --- | --- |
-| 正式 Sidebar Tool 安装包 | `examples/sidebar-tools/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json` | 官方扩展中心导入、更新及身份核验，版本 `0.1.5` |
-| 知识问答正式界面 | `examples/sidebar-tools/ai-knowledge-answers/src/index.html`、`style.css`、`main.js`、`model.js` | 沙箱知识查询、CRUD、搜索筛选、JSON/CSV、ETag 写后读回 |
-| 正式同源交互预览 | **`examples/sidebar-tools/ai-knowledge-answers/preview/index.html`** | HTTP 载入真实 `src/` 页面脚本；仅模拟 Host 存储和可信 AI 外观 |
-| 可信 AI 客服界面 | `examples/sidebar-tools/ai-knowledge-answers/trusted/Workspace.jsx`、`workspace.css`、`host.js` | 真正客服监听、审核、发送、UNKNOWN 只读核对入口；**不属于 HTTP 预览所模拟的权限** |
+| 正式 Sidebar Tool 安装包 | `projects/ai-knowledge-answers/ai-knowledge-answers.opendesk-tool.json` | 官方扩展中心导入、更新及身份核验，版本 `0.1.5` |
+| 知识问答正式界面 | `projects/ai-knowledge-answers/src/index.html`、`style.css`、`main.js`、`model.js` | 沙箱知识查询、CRUD、搜索筛选、JSON/CSV、ETag 写后读回 |
+| 正式同源交互预览 | **`projects/ai-knowledge-answers/preview/index.html`** | HTTP 载入真实 `src/` 页面脚本；仅模拟 Host 存储和可信 AI 外观 |
+| 可信 AI 客服界面 | `projects/ai-knowledge-answers/trusted/Workspace.jsx`、`workspace.css`、`host.js` | 真正客服监听、审核、发送、UNKNOWN 只读核对入口；**不属于 HTTP 预览所模拟的权限** |
 | 真实客户端业务接线 | `trusted/ai-request.js`、`local-test-runtime.js`、`local-test-adapter.js` | 现有 Shared Provider、固定端口/文档 DOM、去重与只读回执 |
 | 客服模拟网页 | `examples/tasks/ai-knowledge-chat-demo.html`、`.js`、`.css` | 独立客户消息和客服 DOM 发送表单；网页本身**不生成客服答案** |
 | 示例知识及用例 | `fixtures/sample-knowledge.json`、`sample-knowledge.csv`、`answer-test-cases.json` | 14 条虚构知识、52 个场景，不代表真实商家政策 |
-| 自动化测试接入 | `examples/sidebar-tools/ai-knowledge-answers/app.ci.json` | 直接复用仓库既有 App CI，每次定向提交运行知识、Host、Provider 与客服 Runtime 测试 |
+| 自动化测试接入 | `projects/ai-knowledge-answers/app.ci.json` | 直接复用仓库既有 App CI，每次定向提交运行知识、Host、Provider 与客服 Runtime 测试 |
 | 本轮状态及证据边界 | `docs/framework/workstreams/ai-knowledge-answers-r31-20261026.md` | 已有能力、增量改动、未验证项与下一条真实操作 |
 
 ### 启动两个互相独立的网页（Mac，仓库根目录）
@@ -160,7 +160,7 @@ node scripts/preview/build-preview.mjs --tool ai-knowledge-answers --surface sid
 
 ```sh
 cd /Users/shopme/Documents/workspace/opendesk-browser
-python3 -m http.server 43112 --bind 127.0.0.1 --directory examples/sidebar-tools/ai-knowledge-answers
+python3 -m http.server 43112 --bind 127.0.0.1 --directory projects/ai-knowledge-answers
 # 打开 http://127.0.0.1:43112/preview/ （知识 UI，同源业务源码 + 假 Host）
 
 # 新终端，在相同仓库根目录
@@ -207,7 +207,7 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 ```sh
 node --test tests/environment/ai-knowledge-chat-r13.test.mjs
 node --test tests/environment/ai-knowledge-answers-host.test.mjs tests/environment/ai-knowledge-answers-provider-contract.test.mjs
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-knowledge-answers --check-project
+node scripts/build-sidebar-tool.mjs projects/ai-knowledge-answers --check-project
 ```
 
 历史的 UI/包/Native 分层证据继续见下文及相应 workstream；本 README 和上述仓库路径才是**跨 ChatGPT 对话的长期启动入口**。
@@ -228,7 +228,7 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 
 先通过官方安装器取得已验证来源的 `ai-knowledge-answers` 安装身份，导入 `fixtures/sample-knowledge.json`（14 条虚构演示政策，非商家事实），在可信侧栏点击**批准并监听本地测试页**，然后在测试网页发送「几天内可以退款」。默认需手动确认发送固定答案；只有开始前单独批准的固定答案才允许自动发送。非精确问题如「退款需要几天」必须经过真实 Shared Provider 和人工审核才可发送；定时消息仅在页面制造客户 DOM，不直接调用模型。
 
-`fixtures/sample-knowledge.csv` 与 JSON 同值；`fixtures/answer-test-cases.json` 包含 52 个场景，37 个检索期可静态检验，15 个真实端到端阶段不得当作 PASS。默认 Side Panel 保持打开；暂停/停止可分别从网页和侧栏操作。来源、撤权、发送结果未知与会话切换的逐项验收步骤见 [R1.3 真实 DOM 测试记录](../../../docs/framework/workstreams/ai-knowledge-answers-r13-20261026.md)。连续点击同一发送确认的最小栅栏修复及证据见 [R1.3 并发回归](../../../docs/framework/workstreams/ai-knowledge-answers-r13-send-fence-20261026.md)。
+`fixtures/sample-knowledge.csv` 与 JSON 同值；`fixtures/answer-test-cases.json` 包含 52 个场景，37 个检索期可静态检验，15 个真实端到端阶段不得当作 PASS。默认 Side Panel 保持打开；暂停/停止可分别从网页和侧栏操作。来源、撤权、发送结果未知与会话切换的逐项验收步骤见 [R1.3 真实 DOM 测试记录](../../docs/framework/workstreams/ai-knowledge-answers-r13-20261026.md)。连续点击同一发送确认的最小栅栏修复及证据见 [R1.3 并发回归](../../docs/framework/workstreams/ai-knowledge-answers-r13-send-fence-20261026.md)。
 
 **已复核的是业务源码和隔离 V8 逻辑，不是完整本机 Chrome/Native Provider/真实网站回执。** 修改的可信宿主代码仍须通过原日常 watcher 编译，并在当前开发 Chrome 中真实验证；不要只导入旧 0.1.2 JSON 就推断最新可信代码已经运行。
 
@@ -240,7 +240,7 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - 模型只接收候选的 `id/question/answer/scope`，aliases 留在本机。发送及交付均核对安装身份，交付时回读 ETag。换 Provider、取消、Native 断线、相关权限撤销和知识更新会丢弃旧结果。
 - AI 必须引用本轮真实知识 ID；新增数字事实被拒绝。语义仍需人工证明，所有 AI 答案为 `REVIEW_REQUIRED / needsHuman=true`。
 
-R1.2 历史记录为 58 项定向 Node 测试通过，包含实际编辑器脚本在内存存储下的新建、保存读回、重开、同义回答与未知写入保护；这属于组件证据。已保留并行提交的未知写入恢复和本地测试接线，并验证普通手动问答不会自动读取网站，问题修改后迟到回答失效。0.1.2 修复 R2 UI 的打包失败和过时 AI 提示。旧记录中的真实 Local Codex backend 有来源实答不代表当前包已获原生验收。**0.1.5 已完成下述 CFT 安装、保存及侧栏关闭重开核心链；可信 Send 和原生异常恢复仍为 NOT_TESTED**。历史详见[现有工作记录](../../../docs/framework/workstreams/ai-knowledge-answers-r1-20261025.md)，最新核心结果见文末 0.1.5 原生记录。
+R1.2 历史记录为 58 项定向 Node 测试通过，包含实际编辑器脚本在内存存储下的新建、保存读回、重开、同义回答与未知写入保护；这属于组件证据。已保留并行提交的未知写入恢复和本地测试接线，并验证普通手动问答不会自动读取网站，问题修改后迟到回答失效。0.1.2 修复 R2 UI 的打包失败和过时 AI 提示。旧记录中的真实 Local Codex backend 有来源实答不代表当前包已获原生验收。**0.1.5 已完成下述 CFT 安装、保存及侧栏关闭重开核心链；可信 Send 和原生异常恢复仍为 NOT_TESTED**。历史详见[现有工作记录](../../docs/framework/workstreams/ai-knowledge-answers-r1-20261025.md)，最新核心结果见文末 0.1.5 原生记录。
 
 ## 安装与操作入口
 
@@ -264,10 +264,10 @@ CSV 表头 `id,question,aliases,answer,scope,enabled`，aliases 是 JSON 数组�
 
 ```sh
 node --test tests/environment/ai-knowledge-answers-r1.test.mjs tests/environment/ai-knowledge-answers-ui-r2.test.mjs tests/environment/ai-knowledge-answers-provider-contract.test.mjs tests/environment/ai-knowledge-answers-admission.test.mjs tests/environment/ai-knowledge-answers-host.test.mjs
-npm run build:sidebar-tool -- examples/sidebar-tools/ai-knowledge-answers --out artifacts/sidebar-tools/ai-knowledge-answers/candidate.opendesk-tool.json
+npm run build:sidebar-tool -- projects/ai-knowledge-answers --out artifacts/sidebar-tools/ai-knowledge-answers/candidate.opendesk-tool.json
 # 定向测试及包校验通过后才晋升：
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-knowledge-answers --promote-from artifacts/sidebar-tools/ai-knowledge-answers/candidate.opendesk-tool.json
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/ai-knowledge-answers --check-project
+node scripts/build-sidebar-tool.mjs projects/ai-knowledge-answers --promote-from artifacts/sidebar-tools/ai-knowledge-answers/candidate.opendesk-tool.json
+node scripts/build-sidebar-tool.mjs projects/ai-knowledge-answers --check-project
 ```
 
 Provider 契约及 Host 集成测试使用明确标注的 fake transport，只证明接线与保护；真实推理证据单独记录。晋升不代表已安装、线上上架或 production 验收。
@@ -280,7 +280,7 @@ Provider 契约及 Host 集成测试使用明确标注的 fake transport，只�
 可视化原型 `preview/index.html` **通过同源 HTTP** 加载 `../src/index.html`、`style.css`、`model.js`、`main.js`；唯一模拟的是 Host Storage 与文件导出，不得作为真实 Provider 或 Mac Chrome 验收证据。附带 `fixtures/sample-knowledge.json`（演示规则，不代表真实企业政策）。运行：
 
 ```sh
-python3 -m http.server 43112 --bind 127.0.0.1 --directory examples/sidebar-tools/ai-knowledge-answers
+python3 -m http.server 43112 --bind 127.0.0.1 --directory projects/ai-knowledge-answers
 # http://127.0.0.1:43112/preview/
 node --test tests/environment/ai-knowledge-answers-ui-r2.test.mjs
 ```
@@ -333,7 +333,7 @@ HTTP 正式源码预览中，已完成「输入退款期限是多少 → 查询�
 
 已登记 CLI 的只读 `opendesk-dev --doctor --json` 返回 Native 认证成功、`browserReady: true`，且登记内容与安装目录相符；通用 `opendesk browser doctor` 则返回 `connected: false`。这两种诊断都不能替代侧栏中的源码 Provider 就绪证据，也未证明实际加载的扩展路径、构建指纹或 dev serve 连接。保留已有 `npm run dev` 与 `dist/development`，没有重启、复制或替换日常扩展。
 
-按[现行本地预览合同](../../../docs/api/sidebar-tool-development.zh-CN.md#b-本地只读预览改得勤但暂不安装)，「实时开发预览 ↗」将短时、一次性的来源绑定意图交给原 Workspace，仍需校验目录、Native 租约与工具 ID；它不等于直接运行或安装 Sidebar Tool。当前 CLI 连接命令会自动打开原 Workspace，本轮没有用它绕过上一轮 URL 策略限制。共享 Chrome 前台随后被并行任务切换，停止争用窗口；未修改其他工具的目录关联、启动新 Provider 或新增 Profile。本工具的来源关联、实时预览、隔离存储批准及原生保存重开链仍为 **NOT_TESTED**，不是已复现的 UI 缺陷。
+按[现行本地预览合同](../../docs/api/sidebar-tool-development.zh-CN.md#b-本地只读预览改得勤但暂不安装)，「实时开发预览 ↗」将短时、一次性的来源绑定意图交给原 Workspace，仍需校验目录、Native 租约与工具 ID；它不等于直接运行或安装 Sidebar Tool。当前 CLI 连接命令会自动打开原 Workspace，本轮没有用它绕过上一轮 URL 策略限制。共享 Chrome 前台随后被并行任务切换，停止争用窗口；未修改其他工具的目录关联、启动新 Provider 或新增 Profile。本工具的来源关联、实时预览、隔离存储批准及原生保存重开链仍为 **NOT_TESTED**，不是已复现的 UI 缺陷。
 
 本轮另在 HTTP 同源预览重新执行「查询退款期限 → 编辑答案 → 保存并读回确认 → 返回问答 → 再次查询」，可见固定答案包含新增的「本轮界面保存核对。」并保留 `qa_demo_refund` 来源。此次运行使用模拟内存 Host，刷新仍会重置，不证明安装后持久化或真实 AI。未发现新 UI 缺陷；正式源码、预览源码及唯一 `0.1.4` 安装包均未改动，因此复用前述有效定向证据，没有重复构建、全组测试或评分。
 
