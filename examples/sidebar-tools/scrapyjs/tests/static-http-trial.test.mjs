@@ -168,6 +168,30 @@ test('first redirect is denied, no second request',async()=>{
     .run(b,[b.recipe.target.url,ORIGIN+'/two']),'E_HTTP_RESPONSE');
   assert.equal(hits(),1);
 });
+test('oversized HTTP body fails before parsing or saving a result',async()=>{
+  const b=await trial();let pages=0,saved=false;
+  const runner=createStaticHttpTrialRunner({
+    admit:async()=>({}),
+    get:async({url})=>{pages++;return {status:200,finalUrl:url,redirectCount:0,
+      mediaType:'text/html',body:'x'.repeat(17000)};},
+    persistAndReadback:async()=>{saved=true;throw Error('unexpected');}
+  },{parseHtml:parse,subtle:webcrypto.subtle});
+  await reject(runner.run(b,[b.recipe.target.url,ORIGIN+'/two']),'E_RESPONSE_BYTES');
+  assert.equal(pages,1);
+  assert.equal(saved,false);
+});
+test('trial deadline aborts unresponsive GET without moving to next page',async()=>{
+  const b=await trial();
+  b.plan.limits.deadlineMs=1000;let pages=0;
+  const runner=createStaticHttpTrialRunner({
+    admit:async()=>({}),
+    get:async({signal})=>{pages++;return new Promise((_resolve,reject)=>
+      signal.addEventListener('abort',()=>reject(signal.reason),{once:true}));},
+    persistAndReadback:async()=>{throw Error('unexpected');}
+  },{parseHtml:parse,subtle:webcrypto.subtle});
+  await reject(runner.run(b,[b.recipe.target.url,ORIGIN+'/two']),'E_TIMEOUT');
+  assert.equal(pages,1);
+});
 test('Stop aborts active trial without claiming remote retirement',async()=>{
   const b=await trial();
   const runner=createStaticHttpTrialRunner({
