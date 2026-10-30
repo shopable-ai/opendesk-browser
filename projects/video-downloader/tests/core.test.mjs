@@ -211,18 +211,19 @@ test('clear complete HLS VOD is downloadable; 403 degrades without a download',a
   assert.equal(x.candidates[0].mode,'detected_only');
   assert.equal(missing.calls,0);
 });
-const ts=()=>{const bytes=new Uint8Array(188*3);for(let i=0;i<bytes.length;i+=188){bytes[i]=0x47;bytes[i+3]=0x10;}return bytes;};
+const realTs=new Uint8Array(await readFile(join(dir,'h264-aac.ts')));
+const ts=()=>realTs.slice();
 const clearVod='#EXTM3U\n#EXTINF:2,\nsegment.ts\n#EXT-X-ENDLIST\n';
 const streamRig=options=>rig({urls:['https://fixture.example/media.m3u8'],fetcher:async url=>
   new Response(url.endsWith('.m3u8')?clearVod:ts()),...options});
-const until=async predicate=>{for(let i=0;i<100;i++){if(await predicate())return;await new Promise(resolve=>setImmediate(resolve));}assert.fail('expected task state was not reached');};
-test('HLS saves every segment as a truthful TS Blob and only Chrome confirms completion',async()=>{
+const until=async predicate=>{for(let i=0;i<200;i++){if(await predicate())return;await new Promise(resolve=>setTimeout(resolve,1));}assert.fail('expected task state was not reached');};
+test('HLS automatically saves a genuine MP4 Blob and only Chrome confirms completion',async()=>{
   const r=streamRig(),d=await r.request('media.detect');
   const receipt=await r.request('media.start',{candidateId:d.candidates[0].id});
   assert.equal(receipt.state,'segments');assert.equal(receipt.downloadId,undefined);
   await until(()=>r.calls===1);
-  const options=r.submitted[0];assert.match(options.filename,/\.ts$/);assert.match(options.url,/^blob:/);
-  assert.deepEqual(new Uint8Array(await (await fetch(options.url)).arrayBuffer()),ts());
+  const options=r.submitted[0];assert.match(options.filename,/\.mp4$/);assert.match(options.url,/^blob:/);
+  const file=new Uint8Array(await (await fetch(options.url)).arrayBuffer());assert.equal(new TextDecoder().decode(file.subarray(4,8)),'ftyp');assert.notDeepEqual(file,ts());
   let status=await r.request('media.status',{taskId:receipt.taskId});
   assert.equal(status.state,'in_progress');assert.equal(status.playbackVerified,false);
   r.state({state:'complete',bytesReceived:ts().length,totalBytes:ts().length});
@@ -293,8 +294,9 @@ test('a Stop for another task cannot invalidate a valid candidate',async()=>{
   await r.request('media.start',{candidateId:d.candidates[0].id});assert.equal(r.calls,1);
 });
 test('parallel HLS segment authority checks serialize the real target revalidation contract',async()=>{
-  const playlist='#EXTM3U\n'+[0,1,2].map(i=>'#EXTINF:2,\nsegment'+i+'.ts\n').join('')+'#EXT-X-ENDLIST\n';
-  const r=streamRig({fetcher:async url=>new Response(url.endsWith('.m3u8')?playlist:ts())});
+  const playlist='#EXTM3U\n#EXT-X-MAP:URI="init.mp4"\n'+[0,1,2].map(i=>'#EXTINF:2,\nsegment'+i+'.ts\n').join('')+'#EXT-X-ENDLIST\n';
+  const box=type=>{const b=new Uint8Array(8);b[3]=8;b.set(new TextEncoder().encode(type),4);return b;};
+  const r=streamRig({fetcher:async url=>new Response(url.endsWith('.m3u8')?playlist:new Blob(url.endsWith('init.mp4')?[box('ftyp'),box('moov')]:[box('moof'),box('mdat')]))});
   let sequence=0;
   r.currentPageTarget.revalidate=async()=>{
     const ticket=++sequence;await new Promise(resolve=>setImmediate(resolve));
@@ -327,4 +329,19 @@ test('only opaque candidate ID is accepted; requests cannot supply arbitrary sou
   await assert.rejects(r.request('media.detect',{tabId:88}),
     error=>error.code==='E_SCHEMA');
   assert.equal(r.calls,0);
+});
+
+test('Stop, navigation, installation revocation and source permission withdrawal during packaging prevent every native save',async()=>{
+ for(const action of ['stop','navigate','revoke','permission']){
+  const r=streamRig(),d=await r.request('media.detect');
+  const receipt=await r.request('media.start',{candidateId:d.candidates[0].id});
+  await until(async()=>(await r.request('media.status',{taskId:receipt.taskId})).state==='remuxing');
+  if(action==='stop')await r.request('media.stop',{taskId:receipt.taskId});
+  else if(action==='navigate'){r.navigate();r.host.invalidate();}
+  else if(action==='revoke'){r.refuse();r.host.invalidate();}
+  else r.api.permissions.contains=async()=>false;
+  await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal(r.calls,0,action+' must fence Blob/native save');
+  if(action==='stop')assert.equal((await r.request('media.status',{taskId:receipt.taskId})).state,'cancelled');
+ }
 });

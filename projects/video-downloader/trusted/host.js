@@ -145,7 +145,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
                 ready=hls.encryption==='unknown'&&!hls.audio.some(x=>x.group===rendition.audioGroup&&x.external);
               }catch{}
               const variantId=uuid();
-              if(ready)renditions.push({id:variantId,url:variantUrl,playlist:info});
+              if(ready)renditions.push({id:variantId,url:variantUrl,playlist:{...info,codecs:rendition.codecs}});
               variants.push({id:variantId,ready,resolution:/^\d{1,5}x\d{1,5}$/.test(rendition.resolution||'')?rendition.resolution:null,bandwidth:rendition.bandwidth,
                 segments:info?.segments??null,encryption:info?.encryption||'unknown',
                 container:info?.container||'unknown'});

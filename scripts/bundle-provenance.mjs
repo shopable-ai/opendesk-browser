@@ -70,16 +70,22 @@ function reviewedCompiledVideoSVIP(target,path,root){
   return hash;
 }
 
-// R0.2 Video Downloader: six reviewed, exact first-party source blobs enter
-// only the existing Side Panel Host. Public-origin transport requires a current
-// document, source grants and installed official identity; no sandbox URL API.
+// R0.3 Video Downloader: eight exact reviewed inputs enter ONLY the existing
+// Side Panel Host. remux.js is pure H.264/AAC packaging, including explicit
+// source HE-AAC configuration and finite sample-derived durations. The fixed
+// mux.js 7.1.1 subset is SRI-verified, Apache-2.0, network/eval-free, reproducible
+// from its per-input SHA receipt. No wildcard vendor admission, new executable
+// target, privilege, remote dependency or dynamic package-code interpretation.
+// Existing document/source/installation checks fence every native save.
 const compiledVideoDownloaderInputs=Object.freeze({
-  'projects/video-downloader/trusted/policy.js':'67d0c549e56c412210e934bf06a51ece7cfe62e5',
+  'projects/video-downloader/trusted/policy.js':'29329c79661eaec895e04407d88c7b84e129db2d',
   'projects/video-downloader/trusted/hls.js':'e3eaebc20fc3dffb0884ef14d2f61164e7099ea0',
-  'projects/video-downloader/trusted/stream.js':'1913b06d987fee2fe6098fd6192492a5735dd498',
+  'projects/video-downloader/trusted/stream.js':'3707eff88789e6a93f9603400937e4dcaee78719',
   'projects/video-downloader/trusted/discovery.js':'c6a5c4761233645a3232a80978e6fc9c4d7805a1',
-  'projects/video-downloader/trusted/host.js':'7c7161acd1c9405879007f9a0bb45bdc15d1e8ce',
-  'projects/video-downloader/trusted/admission.js':'c04dc51bc1bd3eecc3265743b9fe49e676a3fbd6'
+  'projects/video-downloader/trusted/host.js':'bd527e971c757ec79855bfd98ab7e35e55150279',
+  'projects/video-downloader/trusted/admission.js':'c04dc51bc1bd3eecc3265743b9fe49e676a3fbd6',
+  'projects/video-downloader/trusted/remux.js':'f18fcffc13e0342d242d00c89c1d13c2773fc9b4',
+  'projects/video-downloader/trusted/vendor/mux-transmuxer.js':'4c49d31aa7936c774f3c2d73e1bd2aa283dce7ae'
 });
 function reviewedCompiledVideoDownloader(target,path,root){
   if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledVideoDownloaderInputs,path))return null;

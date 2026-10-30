@@ -15,7 +15,7 @@ function refreshControls(){
  stop.disabled=!active()||phase==='cancel_requested';
 }
 function label(state){
- return {starting:'正在启动',segments:'下载分段',assembling:'正在合并',saving:'正在保存',started:'已启动',in_progress:'下载中',cancel_requested:'停止中',
+ return {starting:'正在启动',segments:'下载分段',assembling:'正在合并',remuxing:'正在封装 MP4',saving:'正在保存',started:'已启动',in_progress:'下载中',cancel_requested:'停止中',
  complete:'Chrome 下载完成',complete_unverified:'文件未核实',cancelled:'已取消',
  interrupted:'下载中断',unknown:'结果未知'}[state]||'未开始';
 }
@@ -24,20 +24,22 @@ function status(data){
  const total=data.totalBytes||0,received=data.bytesReceived||0,segments=data.segmentsTotal||0,completed=data.segmentsCompleted||0;
  const progress=$('vd-progress');
  if(phase==='segments')progress.value=segments>0?Math.min(100,Math.floor(completed*100/segments)):0;
+ else if(phase==='remuxing')progress.value=data.remuxTotalBytes?Math.min(100,Math.floor((data.remuxBytes||0)*100/data.remuxTotalBytes)):0;
  else if(phase==='assembling'||phase==='saving')progress.value=100;
  else progress.value=total>0?Math.min(100,Math.floor(received*100/total)):0;
  $('vd-info').textContent=phase==='complete'
   ?'已从 Chrome 下载记录核对：文件存在、收到数据；格式及独立播放仍需本机验证。'
   :phase==='complete_unverified'?'Chrome 认为下载完成，但文件存在性/大小未得到确认。'
-  :phase==='interrupted'?'下载中断：'+String(data.error||'未知原因')
+  :phase==='interrupted'?({E_MEDIA_CODEC_UNSUPPORTED:'当前音视频编码不支持直接封装为 MP4，未保存文件。',E_MEDIA_AUDIO_CONFIG:'缺少低采样率 AAC 配置，请从含编码信息的 HLS 主清单检测。',E_MEDIA_REMUX:'MP4 封装失败，未保存文件。'}[data.error]||'下载中断：'+String(data.error||'未知原因'))
   :phase==='unknown'?'下载结果未知，检查 Chrome 下载记录；不要直接重试。'
   :phase==='cancel_requested'?'正在停止分段请求或 Chrome 下载，等待状态回读。'
   :phase==='cancelled'?'下载已取消。重新检测后可选择媒体。'
   :phase==='segments'?'已下载 '+completed+' / '+segments+' 段 · '+received+' 字节'
+  :phase==='remuxing'?'正在封装 MP4，保留原音视频质量，不重新编码。'
   :phase==='assembling'?'全部分段已收到，正在按原顺序合并。'
   :phase==='saving'?'正在将完整文件交给 Chrome 保存。'
   :total>0?received+' / '+total+' 字节':'进度以 Chrome 下载记录为准。';
- if(finished.has(phase)||phase==='unknown'||phase==='cancel_requested')
+ if(finished.has(phase)||phase==='unknown'||phase==='cancel_requested'||phase==='remuxing'||phase==='saving')
   message(label(phase),['interrupted','unknown','complete_unverified'].includes(phase));
  refreshControls();
  if(finished.has(phase)||phase==='unknown')clearPoll();

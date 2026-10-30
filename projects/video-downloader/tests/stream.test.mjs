@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {parseHlsPlaylist} from '../trusted/hls.js';
 import {publicMediaUrl,readMediaBytes,readHls,downloadHlsVod,STREAM_LIMITS} from '../trusted/stream.js';
 const source='https://media.example/vod/list.m3u8';
@@ -22,16 +23,20 @@ test('URL transport rejects private literals, local names, credentials, ports an
 });
 test('real ordered assembly with bounded concurrent requests and every segment SHA',async()=>{
   let running=0,peak=0;const completions=[],progress=[];
-  const result=await downloadHlsVod(source,parsed(),{authorize,fetcher:async url=>{
+  const p=parsed(3,'#EXT-X-MAP:URI="init.mp4"\n');
+  const box=(type,payload=new Uint8Array())=>{const b=new Uint8Array(8+payload.length);new DataView(b.buffer).setUint32(0,b.length);b.set(new TextEncoder().encode(type),4);b.set(payload,8);return b;};
+  const segments=[0,1,2].map(i=>new Blob([box('moof'),box('mdat',ts(i))]));
+  const result=await downloadHlsVod(source,p,{authorize,fetcher:async url=>{
+    if(url.endsWith('init.mp4'))return new Response(new Blob([box('ftyp'),box('moov')]));
     running++;peak=Math.max(peak,running);const i=Number(new URL(url).pathname.match(/(\d+)\.ts/)[1]);
     await new Promise(resolve=>setTimeout(resolve,(3-i)*5));running--;completions.push(i);
-    return new Response(ts(i),{headers:{'content-type':'video/mp2t','content-length':String(ts(i).length)}});
+    return new Response(segments[i],{headers:{'content-type':'video/mp4','content-length':String(segments[i].size)}});
   },onProgress:p=>progress.push(p)});
-  assert.equal(peak,3);assert.deepEqual(completions,[2,1,0]);assert.equal(result.format,'ts');
-  assert.equal(result.bytes.length,188*3*3);assert.equal(result.duration,6);assert.equal(result.segments,3);
+  assert.equal(peak,3);assert.deepEqual(completions,[2,1,0]);assert.equal(result.format,'mp4');
+  assert.equal(result.bytes.length,16+(188*3+16)*3);assert.equal(result.duration,6);assert.equal(result.segments,3);
   assert.deepEqual(result.integrity.map(x=>x.index),[0,1,2]);
   result.integrity.forEach(x=>{assert.match(x.sha256,/^[a-f0-9]{64}$/);assert.equal(x.status,200);assert.equal(x.bytes,x.contentLength);});
-  assert.equal(result.bytes[188*3+2],1);assert.equal(result.bytes[188*6+2],2);
+  assert.equal(result.bytes[16+580+16+2],1);assert.equal(result.bytes[16+1160+16+2],2);
   assert.equal(progress.at(-1).phase,'assembling');assert.equal(result.playbackVerified,false);
 });
 test('403/expired, HTML, partial, truncated and invalid TS responses cannot be saved',async()=>{
@@ -91,4 +96,14 @@ test('fMP4 init and media are validated as boxes and retain true mp4 extension',
     url.endsWith('init.mp4')?[box('ftyp'),box('moov')]:[box('moof'),box('mdat')]))});
   assert.equal(result.format,'mp4');assert.equal(result.bytes.length,32);
   assert.equal(result.playbackVerified,false,'box structure is not decode evidence');
+});
+
+test('the real TS transport automatically packages MP4 and refuses Stop during packaging before save',async()=>{
+ const bytes=new Uint8Array(await readFile(new URL('./fixtures/h264-he-aac.ts',import.meta.url)));
+ const p={...parsed(1),codecs:'avc1.42c00d,mp4a.40.5'};
+ const phases=[];const result=await downloadHlsVod(source,p,{authorize,fetcher:async()=>new Response(bytes),onProgress:v=>phases.push(v.phase)});
+ assert.equal(result.format,'mp4');assert.equal(result.mime,'video/mp4');assert.equal(new TextDecoder().decode(result.bytes.subarray(4,8)),'ftyp');assert.ok(phases.includes('remuxing'));
+ const controller=new AbortController();
+ await assert.rejects(downloadHlsVod(source,p,{authorize,signal:controller.signal,fetcher:async()=>new Response(bytes),
+ onProgress:v=>{if(v.phase==='remuxing')controller.abort();}}),coded('E_MEDIA_STOPPED'));
 });

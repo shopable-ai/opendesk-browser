@@ -33,7 +33,7 @@ const candidate={id:'candidate',format:'hls',mode:'ready',hls:{kind:'master',aud
 ]}};
 test('choose a rendition and follow a segmented task through saving without a native download ID at start',async()=>{
   const states=[{state:'segments',segmentsCompleted:3,segmentsTotal:64,bytesReceived:1000},
-    {state:'assembling',segmentsCompleted:64,segmentsTotal:64},
+    {state:'remuxing',segmentsCompleted:64,segmentsTotal:64,remuxBytes:50,remuxTotalBytes:100},
     {state:'saving'},{state:'started',downloadId:7},
     {state:'complete',downloadId:7,bytesReceived:2000,totalBytes:2000,playbackVerified:false}];
   const app=ui((operation)=>operation==='media.detect'?{candidates:[candidate]}:
@@ -47,7 +47,7 @@ test('choose a rendition and follow a segmented task through saving without a na
   assert.equal(app.ids['vd-state'].textContent,'下载分段');assert.equal(app.ids['vd-stop'].disabled,false);
   assert.equal(app.ids['vd-detect'].disabled,true);
   await app.tick();assert.match(app.ids['vd-info'].textContent,/3\s*\/\s*64/);
-  await app.tick();assert.equal(app.ids['vd-state'].textContent,'正在合并');
+  await app.tick();assert.equal(app.ids['vd-state'].textContent,'正在封装 MP4');assert.equal(app.ids['vd-progress'].value,50);assert.equal(app.ids['vd-stop'].disabled,false);assert.match(app.ids['vd-info'].textContent,/不重新编码/);
   await app.tick();assert.equal(app.ids['vd-state'].textContent,'正在保存');
   await app.tick();await app.tick();
   assert.equal(app.ids['vd-state'].textContent,'Chrome 下载完成');

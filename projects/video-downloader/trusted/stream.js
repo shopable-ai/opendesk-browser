@@ -1,5 +1,6 @@
 // Fixed first-party transport. No API in this file is exposed to the sandbox.
 import {parseHlsPlaylist} from './hls.js';
+import {remuxTsToMp4} from './remux.js';
 export const STREAM_LIMITS=Object.freeze({manifestBytes:262144,segmentBytes:8388608,
   totalBytes:134217728,concurrency:3,timeoutMs:15000,maxDuration:1800});
 export const mediaError=(code)=>Object.assign(new Error(code),{code});
@@ -122,9 +123,16 @@ export async function downloadHlsVod(url,playlist,{signal,authorize,fetcher=glob
   const parts=new Array(playlist.segments),integrity=new Array(playlist.segments);
   const progress=()=>onProgress({phase:'segments',segmentsCompleted:completed,
     segmentsTotal:parts.length,bytesReceived:total,totalBytes:0});
+  const sources=new Map([[new URL(url).origin,url]]);
+  const authorizeSources=async()=>{for(const source of sources.values()){
+    controller.signal.throwIfAborted();await authorize(source);controller.signal.throwIfAborted();
+  }};
   const options={fetcher,authorize,signal:controller.signal,maxBytes:budget.segmentBytes,timeoutMs:budget.timeoutMs,
     onBytes:count=>{total+=count;if(total>budget.totalBytes)throw mediaError('E_MEDIA_TOTAL_SIZE');progress();}};
   try{
+  for(const uri of [playlist.init,...playlist.segmentList.map(s=>s.uri)].filter(Boolean)){
+    const source=publicMediaUrl(uri,url);sources.set(new URL(source).origin,source);
+  }
     if(playlist.container==='fmp4'){
       if(!playlist.init)throw mediaError('E_MEDIA_MP4');
       init=await readMediaBytes(publicMediaUrl(playlist.init,url),options);
@@ -153,13 +161,20 @@ export async function downloadHlsVod(url,playlist,{signal,authorize,fetcher=glob
     if(firstError)throw firstError;
     controller.signal.throwIfAborted();
     if(parts.some(row=>!row)||completed!==playlist.segments)throw mediaError('E_MEDIA_INCOMPLETE');
-    onProgress({phase:'assembling',segmentsCompleted:completed,segmentsTotal:completed,bytesReceived:total,totalBytes:total});
-    const output=new Uint8Array(total);let offset=0;
-    if(init){output.set(init,offset);offset+=init.length;}
-    for(const part of parts){output.set(part,offset);offset+=part.length;}
-    controller.signal.throwIfAborted();await authorize(url);controller.signal.throwIfAborted();
-    const format=playlist.container==='ts'?'ts':'mp4';
-    return {bytes:output,format,mime:format==='ts'?'video/mp2t':'video/mp4',
+    let output;
+    if(playlist.container==='ts'){
+      output=await remuxTsToMp4(parts,{signal:controller.signal,codecs:playlist.codecs,
+        assertAuthorized:authorizeSources,onProgress:value=>onProgress({phase:'remuxing',
+          segmentsCompleted:completed,segmentsTotal:completed,bytesReceived:total,
+          remuxBytes:value.processedBytes,remuxTotalBytes:value.totalBytes})});
+    }else{
+      onProgress({phase:'assembling',segmentsCompleted:completed,segmentsTotal:completed,bytesReceived:total,totalBytes:total});
+      output=new Uint8Array(total);let offset=0;
+      if(init){output.set(init,offset);offset+=init.length;}
+      for(const part of parts){output.set(part,offset);offset+=part.length;}
+    }
+    controller.signal.throwIfAborted();await authorizeSources();controller.signal.throwIfAborted();
+    return {bytes:output,format:'mp4',mime:'video/mp4',
       segments:completed,duration:playlist.duration,integrity,sha256:await sha(output),playbackVerified:false};
   }catch(error){throw mediaError(/^E_[A-Z_]+$/.test(error?.code||'')?error.code:'E_MEDIA_STOPPED');}
   finally{controller.abort();signal?.removeEventListener('abort',abort);parts.fill(null);}
