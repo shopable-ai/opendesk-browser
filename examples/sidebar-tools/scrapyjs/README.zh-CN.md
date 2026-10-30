@@ -1,5 +1,13 @@
 # scrapyJs 采集应用
 
+## Header 修改、删除与真实触发链（2026-10-30，最新增量）
+
+普通 Header 的**本地 Chromium 传输分支**已补齐可点击诊断：`Accept` / `X-Client-Tag` 从 A 改 B、删除后，配置快照、原 NetworkService 提交的 Fetch 参数、CDP 观察和服务器 `rawHeaders` 逐次对应。删除后 `X-Client-Tag` 不存在，`Accept` 为浏览器默认 `*/*`。19 个诊断场景共 17 次实际请求；运行中编辑不改变原三页配置，Stop/超时只请求首个流式页面，服务器观察提前关闭，12 组 UA/敏感/无效配置零请求。这里的 runId 是诊断关联号，**不是安装态 Host runId**。
+
+当前产品真实入口仍是「扩展 → scrapyjs → 开始采集」→ `tasks.read/start` → 固定 DOM Task。App 和 Task 都不接受 Header/UA 配置；公开 `OpenDeskSDK.browser.network.request` 已存在，但尚未形成 ScrapyJS 的安装态 HTTP 授权、执行和结果闭环。**安装态 Header 运行仍 BLOCKED，Browser UA override 仍 UNSUPPORTED**；本轮未改引擎、包、权限或产品 UI，也未用 Desktop/Node/CDP 覆写代替产品能力。
+
+本次静态 development 快照无 serve 连接，日常 Browser 与原 AI unknown Profile 未动。复现命令、实际调用、分层状态、服务端样本与最小公共能力缺口见 [HTTP 边界增量](docs/HTTP-ADAPTER-BOUNDARY-R2.4.1.zh-CN.md#header-修改删除与触发链2026-10-30增量) 和 [关联证据](evidence/http-header-transitions-20261030.json)。历史豆瓣/CSDN DOM 采集结果不用于证明 Header 能力。
+
 ## 原站点示例复查（2026-10-30，最新）
 
 优先复用旧 `scrapyJsChrome/examples/douban-books`、`examples/csdn` 已迁入的 `examples/original-sites.js`，未另造规则或扩大固定 Task 的站点范围。真实 Mac CFT155 的原安装态 App **1.6.4** / Task **0.4.1** 完成豆瓣读书当前页采集：**20 条、11 字段**，与同页独立 DOM 预期逐值一致，表格及实际 JSON/CSV 下载读回通过；原运行 `completed/released`。条数与内容是本次观察，不能固定为以后线上断言。

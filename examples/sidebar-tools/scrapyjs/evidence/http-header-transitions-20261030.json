@@ -1,0 +1,550 @@
+{
+  "format": "scrapyjs.http-header-transitions.v1",
+  "date": "2026-10-30",
+  "owner": "examples/sidebar-tools/scrapyjs",
+  "baseline": "156e842ce",
+  "scope": "Clickable loopback diagnostic using current NetworkService source in Chromium; installed App HTTP remains blocked",
+  "report": {
+    "path": "artifacts/scrapyjs/http-header-transitions-20261030-b/report.json",
+    "bytes": 147482,
+    "sha256": "96a83f47111c690519fcae096260c4de294fbf3d849ba40f616e023f61236305",
+    "status": "PASS_CHROMIUM_HEADER_TRANSITIONS_DIAGNOSTIC_ONLY"
+  },
+  "sources": {
+    "/src/platform/chrome/network.js": {
+      "sha256": "5b841a2abc84a46cbd3f995ca30b228b08eab6536b2ab68377eff84cf7c46d39",
+      "bytes": 7034
+    },
+    "/src/framework/sdk/registry.js": {
+      "sha256": "0ffc353a9e2b7bb4e5736d70a13a8eea9c470372995a450698997921eee8e2da",
+      "bytes": 9266
+    },
+    "/src/framework/utils/network-info.js": {
+      "sha256": "2af82434ec8529dacc14eb2ba7fe06895909fe07a61a58d6d0cde21e7563c562",
+      "bytes": 223
+    },
+    "/src/platform/protocol.js": {
+      "sha256": "be91db624627180e21e2a8b4d2ebe9f7ec3f1da8048d4aa236a23f56b552ad94",
+      "bytes": 11260
+    },
+    "/src/platform/schema.js": {
+      "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356",
+      "bytes": 43891
+    },
+    "/examples/sidebar-tools/scrapyjs/adapters/static-http-trial.mjs": {
+      "sha256": "14c3ee7e4eb41a09835923fbf06bdbaffb88866d294c5059742d603a54fdedd7",
+      "bytes": 13773
+    },
+    "/examples/sidebar-tools/scrapyjs/contracts/execution-v1.mjs": {
+      "sha256": "16b5647ea96d85b56012a2d601829b497bf44a28bf9f89d122a8e0b077a042c2",
+      "bytes": 37375
+    },
+    "/examples/sidebar-tools/scrapyjs/fixtures/http-header-probe.mjs": {
+      "sha256": "86f6d5bb21fa70d5dab547091576c1f7cfec70a91a835d5da80814f992c09564",
+      "bytes": 6555
+    }
+  },
+  "drivers": [
+    {
+      "path": "examples/sidebar-tools/scrapyjs/fixtures/http-header-probe.mjs",
+      "bytes": 6555,
+      "sha256": "86f6d5bb21fa70d5dab547091576c1f7cfec70a91a835d5da80814f992c09564"
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/tests/http-header-chromium.mjs",
+      "bytes": 12187,
+      "sha256": "ee9cc6019ac79b96482181d218e3504d4679f3a3d8be2872c2747cdb8aac0231"
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/tests/http-header-transition-checks.mjs",
+      "bytes": 8264,
+      "sha256": "8875599b8685cb428f501395e37148d3477f8329e442b8f0d94a9ccd2f921d5d"
+    },
+    {
+      "path": "examples/sidebar-tools/scrapyjs/tests/capture-config.test.mjs",
+      "bytes": 4299,
+      "sha256": "e9d0b08e65d16e0b19340836d4c1915e6b010709b8bc90daee79627a2a341a77"
+    }
+  ],
+  "mode": "STATIC_DEVELOPMENT_SNAPSHOT_NO_SERVE",
+  "nodeRuntime": "v24.16.0",
+  "chrome": "Chrome/155.0.8059.39",
+  "extensionId": "gflnognlhofjhjaogbobboidhmkdoghi",
+  "browser": {
+    "loadedExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/r242-local-acceptance/native-task-valid-input/cft-9XywIm/extension",
+    "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/http-header-transitions-20261030-b/cft-nbqMVV/profile",
+    "inputSha256": "4e74dae760606268516df76381fc1772770e7d10ce009b0572fcefc5900aee40"
+  },
+  "originalEntry": {
+    "origin": "null",
+    "hasDomStart": true,
+    "runnableHttpButtons": [],
+    "title": "OpenDesk 隔离工具界面",
+    "installedHttp": "BLOCKED_NO_APP_HTTP_ENTRY",
+    "identityReadback": {
+      "id": "scrapyjs",
+      "version": "1.6.4",
+      "capabilities": [
+        "ai.generate",
+        "storage.local",
+        "currentPage.read",
+        "user.export",
+        "tasks.run"
+      ],
+      "delegatedTasks": [
+        {
+          "contentHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+          "manifestHash": "d68502a39d207a4a1a26cfb441e613cff417bfdcf714f96dbf77d2862311506c",
+          "taskId": "scrapyjs.capture",
+          "version": "0.4.1"
+        }
+      ],
+      "matchedFormalPackageFields": true,
+      "formalFileSha256": "42fdb94d777947d3e2921b045656f0278111b56e707d724a2288ce91b61d7ecb"
+    }
+  },
+  "nodeValidation": {
+    "command": "node --test --test-name-pattern='DOM capture refuses HTTP headers' examples/sidebar-tools/scrapyjs/tests/capture-config.test.mjs",
+    "status": "PASS",
+    "tests": 1,
+    "behavior": "Header/User-Agent/browser-http configurations rejected with E_CAPTURE_CONFIG before any controlled page access"
+  },
+  "chromiumValidation": {
+    "command": "node examples/sidebar-tools/scrapyjs/tests/http-header-chromium.mjs --scenario=transitions --out=artifacts/scrapyjs/http-header-transitions-20261030-b",
+    "scenarios": 19,
+    "actualRequests": 17,
+    "negativeConfigurations": 12,
+    "negativeObservationMs": 1000,
+    "finalServerAudit": {
+      "status": "PASS_AFTER_BROWSER_AND_SERVER_CLOSED",
+      "requests": 17
+    },
+    "cases": [
+      {
+        "name": "A",
+        "runId": "fb3ae3f1-eb47-4a35-a86f-e0a986e45396",
+        "status": "completed",
+        "configured": {
+          "Accept": "text/html",
+          "X-Client-Tag": "header-A"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "X-Client-Tag": "header-A"
+        },
+        "isTrustedClick": true,
+        "submitted": 3,
+        "serverRequests": 3,
+        "witness": {
+          "reportServerObservedIndex": 1,
+          "cdpRequestId": "9377.11",
+          "submittedHeaders": {
+            "accept": "text/html",
+            "x-client-tag": "header-A"
+          },
+          "networkHeaderExcerpt": {
+            "accept": "text/html",
+            "x-client-tag": "header-A"
+          },
+          "serverRawHeaderExcerpt": [
+            "accept",
+            "text/html",
+            "x-client-tag",
+            "header-A"
+          ],
+          "fullRawHeadersSha256": "2b4ee302f619b9a39b05862019d1ede0d50485c38fbd5727d928cb6bbc344a07"
+        }
+      },
+      {
+        "name": "B",
+        "runId": "60b19d1b-fbd9-40c5-9a74-f501db44bcfd",
+        "status": "completed",
+        "configured": {
+          "Accept": "application/xhtml+xml",
+          "X-Client-Tag": "header-B"
+        },
+        "snapshot": {
+          "Accept": "application/xhtml+xml",
+          "X-Client-Tag": "header-B"
+        },
+        "isTrustedClick": true,
+        "submitted": 3,
+        "serverRequests": 3,
+        "witness": {
+          "reportServerObservedIndex": 4,
+          "cdpRequestId": "9377.14",
+          "submittedHeaders": {
+            "accept": "application/xhtml+xml",
+            "x-client-tag": "header-B"
+          },
+          "networkHeaderExcerpt": {
+            "accept": "application/xhtml+xml",
+            "x-client-tag": "header-B"
+          },
+          "serverRawHeaderExcerpt": [
+            "accept",
+            "application/xhtml+xml",
+            "x-client-tag",
+            "header-B"
+          ],
+          "fullRawHeadersSha256": "9d555406a4fda19443a0e54141374e8daf0902d1aec2d9749f443eac2901a941"
+        }
+      },
+      {
+        "name": "deleted",
+        "runId": "38d643f0-850c-4aea-b3ea-847feae91c39",
+        "status": "completed",
+        "configured": {},
+        "snapshot": {},
+        "isTrustedClick": true,
+        "submitted": 3,
+        "serverRequests": 3,
+        "witness": {
+          "reportServerObservedIndex": 7,
+          "cdpRequestId": "9377.17",
+          "submittedHeaders": {},
+          "networkHeaderExcerpt": {
+            "Accept": "*/*"
+          },
+          "serverRawHeaderExcerpt": [
+            "Accept",
+            "*/*"
+          ],
+          "fullRawHeadersSha256": "c4275ae52d917f1ed6f2086c7fdeed656374dc61f4fa26dbcd56b704acb66001"
+        }
+      },
+      {
+        "name": "inflight-edit-stays-A",
+        "runId": "d93a16d9-3898-4dd2-8b6f-6475488d42ea",
+        "status": "completed",
+        "configured": {
+          "Accept": "text/html",
+          "X-Client-Tag": "header-A"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "X-Client-Tag": "header-A"
+        },
+        "isTrustedClick": true,
+        "submitted": 3,
+        "serverRequests": 3,
+        "nextEditor": {
+          "Accept": "application/xhtml+xml",
+          "X-Client-Tag": "header-B"
+        },
+        "witness": {
+          "reportServerObservedIndex": 10,
+          "cdpRequestId": "9377.20",
+          "submittedHeaders": {
+            "accept": "text/html",
+            "x-client-tag": "header-A"
+          },
+          "networkHeaderExcerpt": {
+            "accept": "text/html",
+            "x-client-tag": "header-A"
+          },
+          "serverRawHeaderExcerpt": [
+            "accept",
+            "text/html",
+            "x-client-tag",
+            "header-A"
+          ],
+          "fullRawHeadersSha256": "2b4ee302f619b9a39b05862019d1ede0d50485c38fbd5727d928cb6bbc344a07"
+        }
+      },
+      {
+        "name": "stop",
+        "runId": "119c38a0-a19b-44fb-bdec-565e263a2c56",
+        "status": "stopped",
+        "error": "E_CANCELLED",
+        "configured": {
+          "X-Client-Tag": "header-stop"
+        },
+        "snapshot": {
+          "X-Client-Tag": "header-stop"
+        },
+        "isTrustedClick": true,
+        "submitted": 1,
+        "serverRequests": 1,
+        "serverStream": {
+          "runId": "119c38a0-a19b-44fb-bdec-565e263a2c56",
+          "request": 1,
+          "finished": false,
+          "closed": true
+        }
+      },
+      {
+        "name": "timeout",
+        "runId": "a1e24dc0-d35e-40fa-9490-06beea6d68e0",
+        "status": "error",
+        "error": "E_TIMEOUT",
+        "configured": {
+          "X-Client-Tag": "header-timeout"
+        },
+        "snapshot": {
+          "X-Client-Tag": "header-timeout"
+        },
+        "isTrustedClick": true,
+        "submitted": 1,
+        "serverRequests": 1,
+        "serverStream": {
+          "runId": "a1e24dc0-d35e-40fa-9490-06beea6d68e0",
+          "request": 1,
+          "finished": false,
+          "closed": true
+        }
+      },
+      {
+        "name": "rejected",
+        "runId": "ac509cc9-26a4-4e5f-9364-995e9991a4f5",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "Accept": "text/html",
+          "User-Agent": "fixture-only"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "User-Agent": "fixture-only"
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "58b1a3c8-33e3-44c7-9ff9-bfedce2141ab",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "Accept": "text/html",
+          "uSeR-aGeNt": "fixture-only"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "uSeR-aGeNt": "fixture-only"
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "1d2bfeb8-db5d-4af6-9383-87bb13349a87",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "Accept": "text/html",
+          "Cookie": "fixture-only"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "Cookie": "fixture-only"
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "d21ab302-9777-4b50-8a17-16df5df3b6f9",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "Accept": "text/html",
+          "Authorization": "fixture-only"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "Authorization": "fixture-only"
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "97b35323-64a6-4c47-8fd5-867962f5f387",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "Accept": "text/html",
+          "Host": "fixture-only"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "Host": "fixture-only"
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "824cced5-8047-4e18-a6f7-fba14f44a5ca",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "Accept": "text/html",
+          "Origin": "fixture-only"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "Origin": "fixture-only"
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "6206b7b4-d728-446b-83af-e0efb004e177",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "Accept": "text/html",
+          "Referer": "fixture-only"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "Referer": "fixture-only"
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "8f009a7d-44c7-4bd8-bc20-f2b765d374f7",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "Accept": "text/html",
+          "Sec-CH-UA": "fixture-only"
+        },
+        "snapshot": {
+          "Accept": "text/html",
+          "Sec-CH-UA": "fixture-only"
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "44dcb696-ee47-4b2f-a220-f181c0a0eeb9",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "X-Test": "value\r\nInjected: bad"
+        },
+        "snapshot": {
+          "X-Test": "value\r\nInjected: bad"
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "b33a88f7-1012-4839-81b0-53e8d3f6ac60",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": {
+          "X-Test": 1
+        },
+        "snapshot": {
+          "X-Test": 1
+        },
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "6e36adc8-08cd-42d9-a789-7c9862e585f0",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": null,
+        "snapshot": null,
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "rejected",
+        "runId": "82fb31c8-fff3-47bb-b936-5c8feb6dbeb8",
+        "status": "error",
+        "error": "E_CONFIG_UNSUPPORTED",
+        "configured": [],
+        "snapshot": [],
+        "isTrustedClick": true,
+        "submitted": 0,
+        "serverRequests": 0
+      },
+      {
+        "name": "recovery",
+        "runId": "726ac394-6872-4cbb-848c-2eb934ee8102",
+        "status": "completed",
+        "configured": {
+          "X-Client-Tag": "header-recovery"
+        },
+        "snapshot": {
+          "X-Client-Tag": "header-recovery"
+        },
+        "isTrustedClick": true,
+        "submitted": 3,
+        "serverRequests": 3
+      }
+    ]
+  },
+  "review": {
+    "initialFinding": "Outcome-time snapshots could miss late authorization or requests; none observed in the initial run",
+    "correction": "Live logs by runId after a defined 1000ms observation window; final server URL/count audit after browser and server close",
+    "followupReadOnlyReview": "Original finding resolved; no new blocking findings in the three diagnostic files",
+    "supersededReport": {
+      "path": "artifacts/scrapyjs/http-header-transitions-20261030-a/report.json",
+      "sha256": "5ece9c3f29325f3fcf3017733ae6148e274153bc2bea9d97da667ff4efaa0372",
+      "status": "PASS_CHROMIUM_HEADER_TRANSITIONS_DIAGNOSTIC_ONLY",
+      "note": "Preserved initial diagnostic, superseded for negative evidence; not a product failure"
+    }
+  },
+  "status": {
+    "SOURCE": "DIAGNOSTIC_WIRED_APP_HTTP_NOT_WIRED",
+    "NODE": "PASS_DOM_HTTP_CONFIG_REJECTION",
+    "CHROMIUM": "PASS_SOURCE_TRANSPORT_DIAGNOSTIC_ONLY",
+    "INSTALLED_APP": "HTTP_BLOCKED_NO_ENTRY",
+    "BROWSER_USER_AGENT_OVERRIDE": "UNSUPPORTED_REJECTED_BEFORE_REQUEST",
+    "PUBLIC_HTTP_PRODUCTION": "BLOCKED",
+    "INSTALLED_HTTP_RETIREMENT": "NOT_TESTED",
+    "HOST_RESULT_IDENTITY_SHA": "NOT_TESTED",
+    "DESKTOP_UA_TRANSPORT_SOURCE": "SOURCE_PATH_EXISTS_NOT_RUN",
+    "BROWSER_DESKTOP_HTTP_INTEGRATION": "NOT_TESTED"
+  },
+  "knownGap": {
+    "publicMethod": "OpenDeskSDK.browser.network.request already exists; current App has no network capability or HTTP execution route",
+    "actualEntry": "App start -> tasks.read installed pin -> tasks.start -> scrapyjs.capture -> controlled DOM page; Header/UA fields rejected",
+    "missingTrustedContracts": [
+      "Legal browser-http execution kind and App integration",
+      "Installation-bound immutable Recipe/Plan and request budget admission",
+      "All DNS A/AAAA/CNAME and actual selected peer public-safety validation",
+      "Single reviewed bounded 1-3 page execution, cancellation retirement and durable result SHA readback"
+    ],
+    "crossToolValue": "Reusable bounded, installation-scoped static HTTP execution and independently readable outcomes",
+    "proposedBoundary": "Existing Host/Authority/NetworkService; retain per-request gesture, 8192 body/12000 envelope limits until separately reviewed",
+    "implemented": false
+  },
+  "cleanup": {
+    "ownedBrowserReleased": true,
+    "fixtureServerClosed": true
+  },
+  "limitations": [
+    "Only Accept and X-Client-Tag proven in this increment; no all-headers claim",
+    "Diagnostic runId/query correlation is not a Host runId/RunReceipt or production approval",
+    "Loopback authorize is test-only, no relaxation of production private-network rules",
+    "Installed package field readback matches formal App 1.6.4 and delegated Task 0.4.1 reference; no HTTP operation exists to read back",
+    "UA override remains unsupported in Browser; no CDP/DNR/debugger/Node client substitution",
+    "No Browser build, package/version/capability change, Desktop execution, external-site request or AI replay",
+    "Historical SDK/Host Node evidence retained separately; no full regression, production or scoring claim"
+  ]
+}

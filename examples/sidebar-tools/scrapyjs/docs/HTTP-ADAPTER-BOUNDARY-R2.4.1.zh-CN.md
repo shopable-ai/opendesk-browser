@@ -2,6 +2,46 @@
 
 > 本文保留 R2.4.1 历史 CI 失败与边界。当前源码、包一致性、本机 Chrome 及评分见 [R2.4.2 本机验收](LOCAL-ACCEPTANCE-R2.4.2.zh-CN.md)。旧运行 `41042514274` 仍为 FAIL；当前 main 已由其他对话晋升 App 1.6.4，本轮不重复发包。公网 HTTP 仍 BLOCKED。
 
+## Header 修改、删除与触发链（2026-10-30，增量）
+
+实际 owner 仍为本目录；复用原 NetworkService、静态字段解析、Node 回显服务与已关闭的自有 CFT155 Profile 副本，没有新建网络 Runtime。下一条产品操作是「配置 Header 后开始 HTTP 试采」，目前阻塞在原 App **没有 HTTP 执行入口**。本轮完成可独立验证的本地传输分支，不把诊断控件接成假的产品按钮。
+
+**两条触发链分别取证：**
+
+- 原安装入口：`src/App.jsx` 的「开始采集」→ `app-model.start()` → `adapters/app-sdk.js` 的 `tasks.read({taskId:'scrapyjs.capture'})` 取得安装 pin → `tasks.start({task,clientRequestId,params})` → `controller/main.js` / `runCapture()` → 受控 DOM `page`。`params` 为 URL、itemConfig、其余声明式 options、选择器和超时；App/Task 配置白名单均无 Header/UA。原安装页面再次打开，仅有 DOM 开始入口；固定 App 1.6.4 / Task 0.4.1 未改。
+- 本地诊断入口：在自有 loopback 页面编辑 Header JSON → Chromium 实际输入点击 `Run diagnostic`（`event.isTrusted=true`）→ **原** `createNetworkService().request({method:'GET',url,config:{headers,responseType:'text',timeout}}, {signal})` → 原生 Fetch → 独立 Node 服务保存 `headers/rawHeaders`。每个 URL 带 `runId` + 请求序号，关联同次配置、提交、CDP requestId、服务端观察和完成/错误/停止结果。测试专用 `authorize` 仅允许同一 loopback Origin、GET 和固定路径，不是安装 Authority。
+
+| 操作 | 服务器实际观察及同次结果 |
+| --- | --- |
+| A → B | A 三页均 `accept:text/html`、`x-client-tag:header-A`；B 三页均 `accept:application/xhtml+xml`、`x-client-tag:header-B`，没有串用 |
+| 删除两个字段 | Fetch 提交 `{}`，三页均无 `x-client-tag`；Chromium 默认补 `accept:*/*`，不能把删除配置说成线上没有 Accept |
+| 运行中改编辑器 | 首页由服务器挂起后把 A 改 B，再释放；该次三页仍是启动时 A，结果属于原诊断 runId |
+| Stop / 超时 | 各只发第一页流式请求；分别 `E_CANCELLED` / `E_TIMEOUT`，服务器均提前关闭，未请求第二、三页；后续独立运行正常 |
+| 被拒配置 | UA（含混合大小写）、Cookie、Authorization、Host、Origin、Referer、Sec-CH-UA、换行、非字符串/null/数组，共 12 组；全部 `E_CONFIG_UNSUPPORTED`，零授权回调、零 Fetch、零服务端请求 |
+
+本次共 19 个诊断场景、17 个真实 HTTP 请求，每条均有 Fetch/CDP/server rawHeaders 关联。所有场景结束后另观察实时日志 1000ms，按 runId 核对未出现迟发授权/提交；浏览器与服务器关闭后再次核对最终 URL 顺序及计数。这个有界观察不是无限期保证。普通 Header **本轮实证范围只包括 Accept、X-Client-Tag**；合同中的其他 configurable 名称不据此升级为 Chromium 实测通过。现有 `credentials:omit`、`redirect:manual`、8192 字节响应上限不变；没有上传凭据或改 UA/UA-CH。原始报告和代表性 rawHeaders 见 [证据索引](../evidence/http-header-transitions-20261030.json)。
+
+| 层次 | 当前状态 |
+| --- | --- |
+| SOURCE | 诊断触发与关联已接线；产品 HTTP 未接线，原引擎/SDK/包未变 |
+| NODE | 新定向检查：DOM Task 对 Header/UA/伪造 browser-http 配置返回 `E_CAPTURE_CONFIG`，受控 page 访问为零；原 SDK/Host Header 历史证据保留，不冒充本轮重测 |
+| CHROMIUM | `PASS_CHROMIUM_HEADER_TRANSITIONS_DIAGNOSTIC_ONLY`，CFT155，静态 development 自有快照、无 serve；不是产品网络构建/安装验收 |
+| INSTALLED_APP | 原 App 入口已打开，存储中 App 全部正式包字段与 1.6.4 源包一致（SHA `42fdb94d…`），含 Task 0.4.1 委托 pin；这不是独立 Task 安装/运行回执。HTTP `BLOCKED_NO_APP_HTTP_ENTRY`，正式 HTTP runId、退休、持久结果身份及 SHA 读回均 `NOT_TESTED` |
+| UA | Browser 路径 `UNSUPPORTED`、发请求前拒绝；本地 Desktop Go HTTP 源码支持把调用者 Header 写入请求，但 Browser→Desktop 受审接入及服务端 UA A/B 实证 `NOT_TESTED` |
+
+**已定位的公共能力缺口：** [公开 API](../../../../docs/api/browser-sdk.developer.generated.md#opendesksdkbrowsernetworkrequest) 已有 `OpenDeskSDK.browser.network.request`，不是“完全没有 HTTP 方法”。但它按每次可信确认执行；ScrapyJS 包没有 network 能力、合法 `browser-http` 类型，既有 DOM Task 也不接收该配置。更关键的是现有公开传输/回执不能提供本任务要求的完整 DNS A/AAAA/CNAME 与最终 peer 安全证明、安装身份绑定的不可变 Recipe/Plan/预算、一次审阅 1–3 页、Stop 退休及持久结果 SHA 独立读回。仅在工具内增加表单或声明能力无法补齐这些可信事实。实际复现是原 App 无 HTTP 入口；向现有 `runCapture` 传入 Header/UA/`browser-http` 均在页面操作前被拒绝。
+
+后续平台范围应复用原 Host/Authority/NetworkService，为多个静态 HTTP 工具补齐上述受审准入、连接安全、预算及可读回运行合同，业务仍留本工具。UA 另需已有受审且证实支持的执行引擎及明确授权；当前不放开拒绝、不使用 DNR/debugger/CDP 改头、不新建 Node/Go 采集服务。本轮只定位此缺口，未实施平台扩权；公网 production HTTP 仍 **BLOCKED**。
+
+```sh
+# 仅验证现有 DOM 入口不会静默接受 HTTP 配置；不是 HTTP 产品成功证据。
+node --test --test-name-pattern='DOM capture refuses HTTP headers' examples/sidebar-tools/scrapyjs/tests/capture-config.test.mjs
+# 需要原已关闭的任务自有 seed Profile；out 必须为新目录，不重复旧基线/外站采集。
+node examples/sidebar-tools/scrapyjs/tests/http-header-chromium.mjs --scenario=transitions --out=artifacts/scrapyjs/http-header-transitions-new
+```
+
+本机的 seed 报告默认位于 `artifacts/scrapyjs/r242-local-acceptance/native-app-lifecycle/report.json`；可用 `--seed=<已有关闭的自有报告>` 指定，报告必须含关闭状态及 Browser/Profile/静态快照路径。不是可在任意机器无前置安装状态运行的裸 HTTP 命令。测试自行关闭回显服务和自有浏览器；未重放 AI、未访问外站、未晋升包，production/完整 CI/评分仍延期。
+
 ## Header 真实请求增量（2026-10-30）
 
 下一条用户操作仍是「审阅允许 Header → HTTP 试采」；本轮从真实「扩展 → scrapyjs」入口只读确认原 App 只有 DOM 采集，没有可运行 HTTP 按钮。复用原业务 owner、解析函数与 NetworkService；诊断在自有已关闭 Profile 副本及隔离静态 development 快照运行，未连接 serve，未更新日常 Chrome、原 unknown AI 请求或正式包。
