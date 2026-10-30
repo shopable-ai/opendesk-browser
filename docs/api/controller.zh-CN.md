@@ -106,6 +106,10 @@ Task `siteOrigins` 接受 1–8 个唯一 canonical 精确 HTTP(S) origin；拒�
 
 Task 默认只有 `page.automation`。需使用 AppStorage 的任务在固定 manifest 中显式声明 `storage.persistent`；只开放 getItem/setItem/removeItem/clear 四个 AppStorage 方法，不因名称相同的能力标记开放 Chrome local、HTTP、Cookie 或 Native。存储按 namespace + 稳定 taskId 隔离，同一任务跨版本保留；草稿旧记录不自动迁入，脚本不能指定其他任务的存储作用域。
 
+使用受控 `axiosx.get/post/put/delete` 的已安装 Task 必须在同一固定 manifest 中显式声明 `network`。该许可只开放这四项请求，不授予其他服务、Cookie 或存储权限；请求仍限当前获准目标同源，并在发送前、结果返回后重新检查原 Authority。Stop、停用和网站撤权均阻止后续调用，未知效果不自动重放。
+
+**本机 HTTP 开发路径**：`axiosx.get(url,{transport:'isolated-http',userAgent:'Example/1.0',headers:{Accept:'application/json'},responseType:'text'})` 当前仅在 development 构建接受 `http://127.0.0.1:43121` 的 GET。`userAgent` 可省略以继承 Chrome 默认值，显式值限 1–512 个可打印 ASCII 字符；不能放入 `headers['User-Agent']`。普通 Fetch 路径继续拒绝 UA 覆盖。固定可信请求页按每请求独立 tab、精确 URL 和扩展 initiator 隔离 UA 规则，完成、Stop 或超时后清理页面和规则；无法确认清理则返回 `E_EFFECT_UNKNOWN` 并封锁该 driver 的后续请求。此路径不带 Cookie、不跟随重定向、响应最多 8192 字节，仍受原 15 秒服务上限与消息预算约束。返回的 `request.runId/requestId` 来自实际 Host 操作，可与自有回显服务器关联。生产、公网及其他本机地址均未开放；它不替代正式 HTTP 采集的计划、审批与生产出口合同。
+
 Task manifest 的可选 `deadlineMs` 为1000–120000整数，默认30000；安装审阅显示权限与期限，全部受 manifestHash 绑定。「我的」和本地项目按该声明启动；安装版共享 Authority 强制该上限，外部调用只能缩短。Stop、撤权及资源退役合同保持有效。
 
 「我的」手动运行使用固定安装版本。另有原 Native Agent 的[已安装任务调用](native-installed-tasks.zh-CN.md)：只读 `task.list` 发现真实安装身份，`run.start` 的 `installed-task` 来源必须明确 pin taskId/version/sourceHash，经原 RunHost 和 Authority 执行；不读取源码 Provider，不是新增开发 MCP 工具。工作流和 Worker SDK 没有因此增加 `tasks.run`。新调用合同的 Node 验证与真实 Chrome/Native 验收分别记录，不能互相代替。

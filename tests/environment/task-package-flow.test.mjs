@@ -324,7 +324,7 @@ test('R23.37 real Task Service versioned-intent import -> Verify -> Available ->
 });
 
 
-test('Task optional storage and bounded deadline are closed and covered by manifestHash',async()=>{
+test('Task optional storage/network and bounded deadline are closed and covered by manifestHash',async()=>{
   const original=await example();
   for(const deadlineMs of [1000,30000,120000]){
     const pkg=await createTaskPackage({...original.manifest,permissions:['page.automation','storage.persistent'],deadlineMs},source);
@@ -336,9 +336,17 @@ test('Task optional storage and bounded deadline are closed and covered by manif
   }
   for(const deadlineMs of [0,999,120001,1.5,'30000',null])
     await assert.rejects(createTaskPackage({...original.manifest,deadlineMs},source),{code:'E_SCHEMA'});
+  for(const permissions of [['page.automation','network'],['page.automation','storage.persistent','network'],
+    ['page.automation','network','storage.persistent']]){
+    const pkg=await createTaskPackage({...original.manifest,permissions},source);
+    assert.deepEqual((await verifyTaskPackage(pkg)).manifest.permissions,permissions);
+    assert.notEqual(pkg.manifestHash,original.manifestHash);
+    await assert.rejects(verifyTaskPackage({...pkg,manifest:{...pkg.manifest,permissions:['page.automation']}}),{code:'E_HASH'});
+  }
   for(const permissions of [[],['storage.persistent'],['page.automation','page.automation'],
-    ['page.automation','network'],['page.automation','storage.session'],['page.automation','cookies'],
-    ['page.automation','storage.persistent','network']])
+    ['network','page.automation'],['page.automation','network','network'],
+    ['page.automation','storage.session'],['page.automation','cookies'],
+    ['page.automation','storage.persistent','network','network']])
     await assert.rejects(createTaskPackage({...original.manifest,permissions},source),{code:'E_PERMISSION'});
 });
 

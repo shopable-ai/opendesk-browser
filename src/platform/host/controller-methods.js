@@ -2,6 +2,7 @@ import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../source-budgets.js';
 import {assertTaskDelegationApp} from '../tasks/delegation-installation.js';
 import {sameTaskPin,normalizeDelegatedTask} from '../tasks/delegation-contract.js';
 import {createNetworkService} from '../chrome/network.js';
+import {createIsolatedHttpTransport} from '../chrome/network-transport.js';
 import {normalizeMethod, SDK_METHODS} from '../../framework/sdk/registry.js';
 import {FoundationError, BUDGETS, invariant, newId, canonical, digest, digestUtf8} from '../protocol.js';
 import {encodeValue, decodeValue} from '../page-port/codec.js';
@@ -74,6 +75,7 @@ function hasNativeEffect(operation) {
 // injected storage transaction; the maps below only correlate live promises.
 export function controllerMethods({storage, api, session, clock, assertHost, currentHost,
   loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud,scheduled}) {
+  const isolatedTransport=createIsolatedHttpTransport({api});
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
   const locatorWriters = new Set();
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
@@ -638,11 +640,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     invariant(operation.kind!=='browser-sdk','E_CAPABILITY','Browser app operations require an installed app-service');
     if(!run.installedTaskAuthorization)return;
-    // Only the installed, hash-covered grant can authorize Task AppStorage.
+    // Only the installed, hash-covered grant can authorize Task services.
     if(operation.kind==='service'){
-      invariant(run.installedTaskAuthorization.authorization?.scope?.capabilities?.includes('storage.persistent') &&
-        ['APPSTORAGE_GETITEM','APPSTORAGE_SETITEM','APPSTORAGE_REMOVEITEM','APPSTORAGE_CLEAR'].includes(operation.method),
-        'E_CAPABILITY','此安装任务未声明对应的持久存储能力');
+      const capability=['AXIOS_GET','AXIOS_POST','AXIOS_PUT','AXIOS_DELETE'].includes(operation.method)
+        ? 'network'
+        : ['APPSTORAGE_GETITEM','APPSTORAGE_SETITEM','APPSTORAGE_REMOVEITEM','APPSTORAGE_CLEAR'].includes(operation.method)
+          ? 'storage.persistent' : null;
+      invariant(capability && run.installedTaskAuthorization.authorization?.scope?.capabilities?.includes(capability),
+        'E_CAPABILITY','此安装任务未声明对应的网络或持久存储能力');
       return;
     }
     invariant(!(operation.kind==='browser'&&
@@ -830,7 +835,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           recordNativeReceipt:recordReceipt,recordEffect:recordServiceEffect};
         const httpMethod = {AXIOS_GET:'GET',AXIOS_POST:'POST',AXIOS_PUT:'PUT',AXIOS_DELETE:'DELETE'}[context.method];
         const value = httpMethod
-          ? await createNetworkService({clock,authorize:(details,ctx)=>ctx.authorize(details)}).request({method:httpMethod,...serviceArgs},context)
+          ? await createNetworkService({clock,isolatedTransport,authorize:(details,ctx)=>ctx.authorize(details)}).request({method:httpMethod,...serviceArgs},context)
           : await storage.executeSdk(context.method,serviceArgs,context);
         return {requestId:envelope.requestId,value:encodeControlValue(value)};
       }

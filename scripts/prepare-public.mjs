@@ -17,6 +17,7 @@ const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
 const edition=resolveBrowserEdition();
 const browserCompilerFiles=compilerResourcesForEdition(edition);
 export const STATIC_RESOURCES=Object.freeze({
+  'src/platform/chrome/network-request.html':'network-request.html',
   ['src/ui/'+SIDEPANEL_DOCUMENT_PATH]:SIDEPANEL_DOCUMENT_PATH,
   'src/ui/cloud-control.html':'ui/cloud-control.html',
   'src/cloud-control/runner.html':'cloud-control/runner.html',

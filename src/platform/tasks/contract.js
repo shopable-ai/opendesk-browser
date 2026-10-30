@@ -143,10 +143,11 @@ export function validateTaskManifest(manifest) {
   label(manifest.description,800);
   invariant(validExactSiteOrigins(manifest.siteOrigins),'E_PERMISSION',
     'Task requires 1–8 unique canonical exact HTTP(S) origins');
-  invariant(Array.isArray(manifest.permissions) && manifest.permissions.length>=1 && manifest.permissions.length<=2 &&
+  invariant(Array.isArray(manifest.permissions) && manifest.permissions.length>=1 && manifest.permissions.length<=3 &&
     manifest.permissions[0]==='page.automation' &&
-    (manifest.permissions.length===1 || manifest.permissions[1]==='storage.persistent'),
-    'E_PERMISSION','Task v1 supports page.automation and optional storage.persistent only');
+    new Set(manifest.permissions).size===manifest.permissions.length &&
+    manifest.permissions.slice(1).every(permission=>['storage.persistent','network'].includes(permission)),
+    'E_PERMISSION','Task v1 requires page.automation first and only unique optional storage.persistent/network permissions');
   invariant(manifest.deadlineMs===undefined || Number.isSafeInteger(manifest.deadlineMs) &&
     manifest.deadlineMs>=1000 && manifest.deadlineMs<=120000,'E_SCHEMA','Invalid Task deadlineMs');
   invariant(manifest.entryFormat==='async-main','E_SCHEMA','Task entry must be async main()');

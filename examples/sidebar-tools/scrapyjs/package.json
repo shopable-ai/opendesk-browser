@@ -1,6 +1,6 @@
 {
   "name": "scrapyjs-capture",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "scrapyJs controlled fields, pagination and list-detail capture",
@@ -12,11 +12,13 @@
     "entry": "controller/main.js",
     "siteOrigins": [
       "http://127.0.0.1:43111",
+      "http://127.0.0.1:43121",
       "https://book.douban.com",
       "https://download.csdn.net"
     ],
     "permissions": [
-      "page.automation"
+      "page.automation",
+      "network"
     ],
     "deadlineMs": 90000,
     "paramsSchema": {

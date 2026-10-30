@@ -27,8 +27,18 @@ test('Task project validates closed permissions/deadline and builds the same rev
     await assert.rejects(validateProgramProject(root),{code:'E_PROJECT_SCHEMA'});
   }
   delete pkg.opendesk.deadlineMs;
-  for(const permissions of [['page.automation','network'],['storage.persistent'],['page.automation','storage.session'],
-    ['page.automation','storage.persistent','network'],['page.automation','page.automation']]){
+  for(const permissions of [['page.automation','network'],['page.automation','storage.persistent','network'],
+    ['page.automation','network','storage.persistent']]){
+    pkg.opendesk.permissions=permissions;await save();await validateProgramProject(root);
+    const networkOut=join(root,'out-'+permissions.join('-'));
+    const networkBuilt=await buildProgramProject(root,{outputDirectory:networkOut});
+    assert.deepEqual(networkBuilt.permissions,permissions);
+    const networkCandidate=await verifyTaskPackage(JSON.parse(await readFile(join(networkOut,'program.opendesk-task.json'),'utf8')));
+    assert.deepEqual(networkCandidate.manifest.permissions,permissions);
+  }
+  for(const permissions of [['network','page.automation'],['storage.persistent'],['page.automation','storage.session'],
+    ['page.automation','network','network'],['page.automation','storage.persistent','network','network'],
+    ['page.automation','page.automation']]){
     pkg.opendesk.permissions=permissions;await save();
     await assert.rejects(validateProgramProject(root),{code:'E_PROJECT_PERMISSION'});
   }

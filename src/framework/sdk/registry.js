@@ -49,8 +49,17 @@ export function httpUrl(value) {
   return url.href;
 }
 export function normalizeConfig(config = {}) {
-  fields(config, ['params', 'headers', 'timeout', 'responseType', 'withCredentials'], [], 'E_CONFIG_UNSUPPORTED');
+  fields(config, ['params', 'headers', 'timeout', 'responseType', 'withCredentials', 'transport', 'userAgent'], [], 'E_CONFIG_UNSUPPORTED');
   const out = {};
+  if (config.transport !== undefined) {
+    if (config.transport !== 'isolated-http') throw fail('E_CONFIG_UNSUPPORTED');
+    out.transport = config.transport;
+  }
+  if (config.userAgent !== undefined) {
+    if (config.transport !== 'isolated-http' || typeof config.userAgent !== 'string' ||
+        !/^[\x20-\x7e]{1,512}$/.test(config.userAgent)) throw fail('E_CONFIG_UNSUPPORTED', 'Invalid isolated User-Agent');
+    out.userAgent = config.userAgent;
+  }
   if (config.params !== undefined) {
     record(config.params, 'E_CONFIG_UNSUPPORTED');
     out.params = {};

@@ -214,14 +214,14 @@
               "prefixItems": [
                 {
                   "const": "page.automation"
-                },
-                {
-                  "const": "storage.persistent"
                 }
               ],
               "minItems": 1,
-              "maxItems": 2,
-              "items": false
+              "maxItems": 3,
+              "uniqueItems": true,
+              "items": {
+                "enum": ["storage.persistent", "network"]
+              }
             },
             "paramsSchema": {
               "type": "object"
