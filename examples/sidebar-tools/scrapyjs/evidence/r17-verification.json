@@ -5,7 +5,7 @@
   "package": {
     "version": "1.7.0",
     "sha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
-    "installed": false,
+    "installed": true,
     "taskRevisionUnchanged": "0.4.0"
   },
   "levels": {
@@ -181,32 +181,32 @@
     ]
   },
   "currentCoreAcceptance": {
-    "recordedAt": "2026-10-30T07:01:31.638701+00:00",
-    "ownerTask": "01a18b95-f00c-7fe2-a79e-aa13bf5593cc",
+    "recordedAt": "2026-10-30T08:56:17.331709+00:00",
+    "ownerTask": "01a18bd5-be11-7ff2-8d91-e73c88d4e3e8",
     "objective": "在真实安装态 OpenDesk 上自行跑通并保存同候选 ScrapyJS R1.7 核心全链证据，修复实际阻塞并针对性回归，全部关键条件成立后再向用户交付经过验证的使用方式。",
     "nativeGoal": {
       "readBeforeCreate": null,
       "createReceiptStatus": "active",
-      "statusLastObserved": "blocked",
+      "statusLastObserved": "paused",
       "complete": false,
-      "updateReceiptStatus": "blocked",
-      "statusObservedAt": "2026-10-30T07:09:05.090833+00:00"
+      "statusObservedAt": "2026-10-30T09:24:19.816555+00:00"
     },
     "entry": "../README.zh-CN.md#当前目标与关键测试条件唯一当前入口",
     "deliveryGate": "Codex自行完成所有真实核心条件后才交付验证过的使用方式；六步仅待验证草稿，不让用户代跑测试。",
     "candidate": {
       "version": "1.7.0",
       "sha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
-      "taskRevision": "0.4.0"
+      "taskRevision": "0.4.0",
+      "installed": true
     },
     "criteria": [
       {
         "order": 1,
         "key": "installedIdentity",
         "operation": "真实入口与同ID更新",
-        "status": "BLOCKED",
+        "status": "IN_PROGRESS",
         "requiredEvidence": "核实实际扩展身份、加载路径、serve连接及构建/包指纹；同ID更新App并保留旧配置，使用当前真实Host。",
-        "currentEvidence": "现有Chrome控制只提供普通网页视口，没有工具栏或右侧Side Panel控制；实际身份和连接未知。"
+        "currentEvidence": "Real normal SidePanel connected, native tooltip shows actual extension ID and full ed52 revision matching disk receipt. App 1.7.0 installed through original reviewed chain and SHA matched. Actual loaded path and old-data upgrade not verified."
       },
       {
         "order": 2,
@@ -262,7 +262,13 @@
         "operation": "受影响安全保护和原主链",
         "status": "NOT_TESTED_IN_CHROME",
         "requiredEvidence": "对实际改动影响的Origin/安装身份/权限/撤权/未知回执不重放保护定向验证，保留原浏览器采集主链。",
-        "currentEvidence": "本轮仅改目标/文档/证据；未变Python、Client、Host及原浏览器主链证据复用，不扩大无关回归。"
+        "currentEvidence": "本轮仅改目标/文档/证据；未变Python、Client、Host及原浏览器主链证据复用，不扩大无关回归。",
+        "liveServiceOriginCheck": {
+          "status": "PASS",
+          "level": "LIVE_SERVICE_HTTP_ONLY",
+          "evidence": "artifacts/scrapyjs/r17-manual-demo/live-origin-check-01a18bd5.json",
+          "scope": "exact actual extension Origin accepted; null and unrelated extension denied; unauthenticated read denied; no credentials used or runs created"
+        }
       }
     ],
     "fixtureBrowser": {
@@ -281,22 +287,34 @@
         "status": "EXISTING_PROCESS_VERIFIED_SIMULATION_ONLY"
       },
       "runner43231": {
-        "status": "NOT_STARTED",
-        "credentialGenerated": false
+        "status": "MANUALLY_STARTED_IDLE",
+        "pid": 38045,
+        "version": "1.7.0",
+        "scraplingVersion": "0.5",
+        "credentialGenerated": true,
+        "credentialContentsRecorded": false,
+        "credentialMode": "0600",
+        "privateDirectories": "0700",
+        "pairedWithTrustedHost": false
       }
     },
     "environment": {
       "mode": "existing continuous development writer",
       "output": "dist/development",
-      "watcherPid": 62841,
+      "watcherPid": 27680,
       "ownerTask": "01a18b96-4e45-7971-b993-28d6dde17f60",
-      "actualChromeId": "NOT_TESTED",
+      "actualChromeId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
       "actualLoadedPath": "NOT_TESTED",
-      "serveConnection": "NOT_TESTED",
+      "serveConnection": "VISIBLE_CONNECTED",
       "coordination": "Normal product-entry evidence requested from shared environment owner; no profile/output takeover.",
-      "sharedOwnerCapabilityReceipt": "Owner 01a18b96 confirmed Browser viewport/ordinary tabs and pageAssets only; no Side Panel or toolbar API. A TCP connection to 43119 does not verify OpenDesk identity, path or revision."
+      "sharedOwnerCapabilityReceipt": "Owner 01a18b96 confirmed Browser viewport/ordinary tabs and pageAssets only; no Side Panel or toolbar API. A TCP connection to 43119 does not verify OpenDesk identity, path or revision.",
+      "visibleRevisionPrefix": "ed52e7aea28a",
+      "visibleEvidence": "artifacts/scrapyjs/r17-manual-demo/dev-ed52-hover-01a18bd5.png",
+      "sharedWriterCurrentState": "RECOVERED_MANIFEST_MATCH",
+      "actualClientRevision": "ed52e7aea28a2bfe5373a16b8f5024b89bb0ddb06b16d0b0824928eb9b3f5d55",
+      "diskReceipt": ".runtime/shared-dev-recovery-20261030-01a18b96/publication-consistent.json"
     },
-    "nextOperation": "核实真实OpenDesk正常侧栏入口的当前安装身份、路径和连接，随后同ID审阅更新、启动并可信配对本机服务。",
+    "nextOperation": "Wait for Cookie desktop release, open installed App AI workbench and perform real Provider review, then trusted credential pairing.",
     "safetyBoundary": "Prior Browser URL rejection for chrome://extensions/ and Workspace remains in force; no alternate surface, CLI/config reads or CDP to obtain the same blocked information.",
     "deferred": [
       "width/theme/native200%zoom matrix",
@@ -305,7 +323,7 @@
       "formal95+score"
     ],
     "sourceOrPackageEdited": false,
-    "rawContinuationReceipt": "artifacts/scrapyjs/r17-manual-demo/continuation-20261030.json",
+    "rawContinuationReceipt": "artifacts/scrapyjs/r17-manual-demo/continuation-01a18bd5.json",
     "recordIntegrity": {
       "json": "PASS",
       "criteriaCount": 8,
@@ -313,16 +331,53 @@
       "unchangedBoundSourceHashes": 11,
       "unchangedPackageSha256": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
       "diffWhitespace": "PASS",
-      "scope": "condition records and evidence integrity only; no native core acceptance"
+      "scope": "records, current local goal status, screenshot hashes and unchanged source/package identity only; native chain pending"
     },
-    "blockedAudit": {
-      "consecutiveGoalTurns": 3,
-      "condition": "No permitted control for real Chrome toolbar and right Side Panel; actual installed identity/path/serve cannot be verified.",
-      "currentToolDiscovery": "No Side Panel or toolbar interface added.",
-      "independentEnvironmentReceipt": "Shared environment owner confirmed ordinary tabs/viewport/pageAssets only.",
-      "requiredExternalChange": "Provide a permitted interface to observe and control actual Chrome toolbar and right Side Panel, respecting prior management-page and Workspace denials.",
-      "goalScopePreserved": true,
-      "nativeCoreConditionsAchieved": false
-    }
+    "previousOwners": [
+      {
+        "ownerTask": "01a18b95-f00c-7fe2-a79e-aa13bf5593cc",
+        "nativeGoal": {
+          "readBeforeCreate": null,
+          "createReceiptStatus": "active",
+          "statusLastObserved": "blocked",
+          "complete": false,
+          "updateReceiptStatus": "blocked",
+          "statusObservedAt": "2026-10-30T07:09:05.090833+00:00"
+        },
+        "blockedAudit": {
+          "consecutiveGoalTurns": 3,
+          "condition": "No permitted control for real Chrome toolbar and right Side Panel; actual installed identity/path/serve cannot be verified.",
+          "currentToolDiscovery": "No Side Panel or toolbar interface added.",
+          "independentEnvironmentReceipt": "Shared environment owner confirmed ordinary tabs/viewport/pageAssets only.",
+          "requiredExternalChange": "Provide a permitted interface to observe and control actual Chrome toolbar and right Side Panel, respecting prior management-page and Workspace denials.",
+          "goalScopePreserved": true,
+          "nativeCoreConditionsAchieved": false
+        }
+      }
+    ],
+    "controlMethod": {
+      "ordinaryPage": "Chrome Browser Skill",
+      "toolbarAndSidePanel": "OpenDesk desktop tools under current continuation authorization",
+      "desktopResourceCoordination": "Cloud and Cookie owners confirmed no input occupation",
+      "prohibitedTargetsUnchanged": [
+        "chrome://extensions/",
+        "previously rejected extension Workspace"
+      ]
+    },
+    "installation": {
+      "kind": "FIRST_INSTALL_IN_VISIBLE_LIST",
+      "version": "1.7.0",
+      "reviewedHash": "cb0de984ebbab77dc63c2d48715011752c472e218bf2f91842683526c5c82b45",
+      "reviewEvidence": "artifacts/scrapyjs/r17-manual-demo/import-sha-01a18bd5.png",
+      "successEvidence": "artifacts/scrapyjs/r17-manual-demo/installed-01a18bd5.png",
+      "oldDataUpgrade": "NOT_TESTED_NO_PREVIOUS_VISIBLE_INSTALL"
+    },
+    "stopObservationPreparation": {
+      "fixtureLog": "artifacts/scrapyjs/r17-manual-demo/fixture.log",
+      "requestLogging": "DISABLED_IN_EXISTING_FIXTURE",
+      "emptyLogIsNoRequestEvidence": false,
+      "fixtureRestarted": false
+    },
+    "handoffRequested": true
   }
 }
