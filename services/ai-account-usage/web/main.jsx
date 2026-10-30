@@ -46,7 +46,7 @@ function CompactBars({rollovers, windowKey, count=7, expanded=false, onChoose, s
   const entries = [...Array(Math.max(0,count-result.displayed.length)).fill(null),...result.displayed];
   return <div className={expanded?'detail-chart':''}>
     <div className="bar-wrap"><div className="bars" style={{'--num':count}}
-      role="group" aria-label={`最近 ${count} 次已识别重置前剩余百分比，固定 0 到 100，缺失不是零`}>
+      role="group" aria-label={`最近 ${count} 次已识别重置前剩余百分比，固定 0 到 100，80% 虚线参考线，缺失不是零`}>
       <div className="reference" aria-hidden="true"/>
       {entries.map((row,i)=>{
         const value=reliableEstimate(row)?row.nearResetUnusedEstimatePercent:null;
@@ -275,12 +275,12 @@ function App() {
   const inviteAccount=accounts?.find(a=>a.alias===inviting);
   const openDetails=(alias,windowKey,cycleKey)=>setSelected({alias,windowKey,cycleKey});
   return <div className="shell">
-    <header className="app-header"><div className="brand"><span className="mark" aria-hidden="true">OD</span>
-      <div><strong>OpenDesk</strong><small>AI 账号额度管理</small></div></div>
-      <div className="head-right">{isDemo&&<span className="tag demo-tag">{DEMO_DATA_LABEL}</span>}</div></header>
-    <main><div className="page-title"><div><h1>账号使用概览</h1>
-      <p>比较每个账号最近 7 次重置前剩余，识别长期未充分使用的额度。</p></div>
-      <span className="legend"><i/> 80% 参考线 · 缺失 ≠ 0</span></div>
+    <header className="app-header">
+      <div className="brand"><span className="mark" title="OpenDesk" aria-hidden="true">OD</span>
+        <h1 id="page-title" className="app-title">AI 账号额度管理</h1></div>
+      <div className="head-right">{isDemo&&<span className="tag demo-tag">{DEMO_DATA_LABEL}</span>}</div>
+    </header>
+    <main aria-labelledby="page-title">
       {loadError?<p className="error" role="alert">{loadError}</p>:accounts===null?<p role="status">正在读取本机账号列表…</p>:<>
       <IntroSummary rows={rows} allCount={accounts.length} records={records} scope={scope}/>
       <div className="controls" aria-label="账号搜索和视图设置">

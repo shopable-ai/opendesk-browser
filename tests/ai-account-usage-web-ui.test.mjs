@@ -59,3 +59,16 @@ test('R2.0 UI keeps independent six columns and no fabricated owner or raw alias
   assert.ok(css.includes('@media(max-width:240px)'));
   assert.ok(source.includes('className="foot-note"><summary>'));
 });
+
+test('R2.1 renders one meaningful title without a repeated page-header block',async()=>{
+  const jsx=await readFile(new URL('../services/ai-account-usage/web/main.jsx',import.meta.url),'utf8');
+  const css=await readFile(new URL('../services/ai-account-usage/web/style.css',import.meta.url),'utf8');
+  assert.equal(jsx.split('<h1').length-1,1);
+  assert.ok(jsx.includes('<h1 id="page-title" className="app-title">AI 账号额度管理</h1>'));
+  assert.ok(jsx.includes('<main aria-labelledby="page-title">'));
+  assert.ok(!jsx.includes('className="page-title"'));
+  assert.ok(!jsx.includes('账号使用概览'));
+  assert.ok(!jsx.includes('比较每个账号最近 7 次重置前剩余'));
+  assert.ok(css.includes('.shell main{padding-top:18px}'));
+  assert.ok(!css.includes('.page-title{'));
+});
