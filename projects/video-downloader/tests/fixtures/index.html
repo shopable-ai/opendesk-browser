@@ -1,0 +1,15 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8">
+<title>OpenDesk 授权媒体测试页</title>
+<h1>自有合法媒体 Fixture</h1>
+<video controls playsinline preload="metadata" width="320">
+  <source src="./tiny.mp4" type="video/mp4">
+</video>
+<p>此媒体通过本项目脚本生成，没有第三方受保护内容。</p>
+<h2>HLS 识别样本（不要求桌面 Chrome 原生播放 HLS）</h2>
+<video controls preload="none"><source src="./master.m3u8" type="application/vnd.apple.mpegurl"></video>
+<video controls preload="none"><source src="./media.m3u8" type="application/vnd.apple.mpegurl"></video>
+<video controls preload="none"><source src="./encrypted.m3u8" type="application/vnd.apple.mpegurl"></video>
+<video controls preload="none"><source src="./drm.m3u8" type="application/vnd.apple.mpegurl"></video>
+<a href="./master.m3u8">HLS master playlist</a>
+<a href="./media.m3u8">HLS media playlist</a>
+</html>
