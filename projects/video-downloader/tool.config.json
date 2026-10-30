@@ -1,6 +1,6 @@
 {
   "id": "video-downloader",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "title": "视频下载",
   "description": "检测已授权网页的媒体，选择清晰度下载完整非加密 HLS，或直接保存 MP4/WebM。",
   "capabilities": ["page.mediaDownload"],

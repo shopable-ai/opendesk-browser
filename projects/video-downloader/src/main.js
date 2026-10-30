@@ -4,6 +4,7 @@ const sdk=globalThis.OpenDeskTool;
 if(!sdk?.root||typeof sdk.request!=='function')return;
 const {root,request}=sdk,$=id=>root.querySelector('#'+id);
 const list=$('vd-list'),detect=$('vd-detect'),stop=$('vd-stop');
+const initialInfo=$('vd-info').textContent;
 const finished=new Set(['complete','complete_unverified','cancelled','interrupted']);
 let phase='idle',taskId=null,jobEpoch=0,scanEpoch=0,closed=false,timer=null,scanning=false,stopWanted=false,controls=[];
 const active=()=>phase!=='idle'&&!finished.has(phase);
@@ -36,8 +37,14 @@ function status(data){
   :phase==='assembling'?'全部分段已收到，正在按原顺序合并。'
   :phase==='saving'?'正在将完整文件交给 Chrome 保存。'
   :total>0?received+' / '+total+' 字节':'进度以 Chrome 下载记录为准。';
+ if(finished.has(phase)||phase==='unknown'||phase==='cancel_requested')
+  message(label(phase),['interrupted','unknown','complete_unverified'].includes(phase));
  refreshControls();
  if(finished.has(phase)||phase==='unknown')clearPoll();
+}
+function resetJob(){
+ ++jobEpoch;clearPoll();taskId=null;phase='idle';stopWanted=false;
+ $('vd-state').textContent='未开始';$('vd-progress').value=0;$('vd-info').textContent=initialInfo;
 }
 function clearPoll(){if(timer!==null){clearTimeout(timer);timer=null;}}
 function poll(){
@@ -65,7 +72,7 @@ function describe(item){
 }
 function showCandidates(items){
  list.replaceChildren();controls=[];
- if(!items.length){list.textContent='未检测到可识别的视频源；如播放器使用临时地址，请播放几秒后重新检测。';return;}
+ if(!items.length){list.textContent='未检测到可识别的视频源；若视频已播放较久，请重新加载播放器网页后立即检测。部分临时地址或加密视频暂不支持。';return;}
  items.forEach((item,index)=>{
   const row=document.createElement('div');row.className='vd-item';
   const info=document.createElement('div');info.className='vd-item-info';
@@ -93,6 +100,7 @@ function showCandidates(items){
 }
 async function scan(){
  if(closed||scanning||active())return;
+ resetJob();
  const current=++scanEpoch;scanning=true;refreshControls();list.replaceChildren();controls=[];message('正在检测网页媒体…');
  try{
   const result=await request('media.detect',{});
@@ -113,7 +121,7 @@ async function start(candidateId,variantId){
   if(closed||current!==jobEpoch)return;
   if(typeof receipt?.taskId!=='string'||!receipt.taskId)throw Error('未返回可核对的下载任务');
   taskId=receipt.taskId;
-  if(!stopWanted){status(receipt);message(receipt.state==='segments'?'正在下载所选清晰度的完整分段。':'已提交 Chrome，正在核对下载记录。');}
+  if(!stopWanted){status(receipt);if(!finished.has(phase)&&phase!=='unknown')message(receipt.state==='segments'?'正在下载所选清晰度的完整分段。':'已提交 Chrome，正在核对下载记录。');}
   if(!finished.has(phase))poll();
  }catch(error){
   if(!closed&&current===jobEpoch){
@@ -136,7 +144,7 @@ async function stopDownload(){
 }
 detect.addEventListener('click',()=>void scan());
 stop.addEventListener('click',()=>void stopDownload());
-root.addEventListener('opendesk-page-changed',()=>{++scanEpoch;++jobEpoch;clearPoll();taskId=null;phase='idle';scanning=false;stopWanted=false;controls=[];
- list.replaceChildren();$('vd-state').textContent='未开始';$('vd-progress').value=0;refreshControls();message('网页已切换，旧媒体候选及任务已失效。');});
+root.addEventListener('opendesk-page-changed',()=>{++scanEpoch;resetJob();scanning=false;controls=[];
+ list.replaceChildren();refreshControls();message('网页已切换，旧媒体候选及任务已失效。');});
 window.addEventListener('pagehide',()=>{closed=true;++scanEpoch;++jobEpoch;clearPoll();},{once:true});
 })();

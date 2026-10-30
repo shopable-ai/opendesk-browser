@@ -74,7 +74,7 @@ function reviewedCompiledVideoSVIP(target,path,root){
 // only the existing Side Panel Host. Public-origin transport requires a current
 // document, source grants and installed official identity; no sandbox URL API.
 const compiledVideoDownloaderInputs=Object.freeze({
-  'projects/video-downloader/trusted/policy.js':'01813a754161d04f381d67d72adb64acae140c7d',
+  'projects/video-downloader/trusted/policy.js':'67d0c549e56c412210e934bf06a51ece7cfe62e5',
   'projects/video-downloader/trusted/hls.js':'e3eaebc20fc3dffb0884ef14d2f61164e7099ea0',
   'projects/video-downloader/trusted/stream.js':'1913b06d987fee2fe6098fd6192492a5735dd498',
   'projects/video-downloader/trusted/discovery.js':'c6a5c4761233645a3232a80978e6fc9c4d7805a1',

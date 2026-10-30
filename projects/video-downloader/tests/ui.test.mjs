@@ -52,6 +52,11 @@ test('choose a rendition and follow a segmented task through saving without a na
   await app.tick();await app.tick();
   assert.equal(app.ids['vd-state'].textContent,'Chrome 下载完成');
   assert.equal(app.ids['vd-detect'].disabled,false);assert.match(app.ids['vd-info'].textContent,/播放仍需/);
+  assert.doesNotMatch(app.ids['vd-message'].textContent,/正在下载|正在启动|正在核对/,'a completed task must retire its in-flight notice');
+  await app.click('detect');
+  assert.equal(app.ids['vd-state'].textContent,'未开始');
+  assert.equal(app.ids['vd-progress'].value,0);
+  assert.doesNotMatch(app.ids['vd-info'].textContent,/已从 Chrome 下载记录核对/,'a new scan must clear the previous task summary');
 });
 test('Stop while start is pending adopts the task receipt and cannot be overwritten by late segment progress',async()=>{
   let resolveStart;
@@ -63,6 +68,10 @@ test('Stop while start is pending adopts the task receipt and cannot be overwrit
   resolveStart({taskId:'task',state:'segments'});await settle();
   assert.equal(app.ids['vd-state'].textContent,'停止中');
   await app.tick();assert.equal(app.ids['vd-state'].textContent,'已取消');
+  assert.doesNotMatch(app.ids['vd-message'].textContent,/正在下载|正在启动/);
+  await app.root.fire('opendesk-page-changed');
+  assert.equal(app.ids['vd-state'].textContent,'未开始');
+  assert.doesNotMatch(app.ids['vd-info'].textContent,/下载已取消/,'navigation must clear the retired task details');
   assert.equal(app.calls.filter(x=>x.operation==='media.start').length,1);
 });
 test('navigation discards a late scan and restores detection without replay',async()=>{
