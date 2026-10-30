@@ -34,8 +34,16 @@ if (preview) {
   const standalone = htmlTemplate
     .replace('<link rel="stylesheet" href="./app.css">', `${csp}<style>${css}</style>`)
     .replace('<script type="module" src="./app.js"></script>', `<script>${inlineJs}</script>`);
-  if (standalone.includes('src="./app.js"') || standalone.includes('href="./app.css"') ||
-      !standalone.includes('spare.pro@example.com')) throw Error('E_PREVIEW_INLINE_BUILD');
+  const previewChecks = {
+    hasExternalScript: standalone.includes('src="./app.js"'),
+    hasExternalCSS: standalone.includes('href="./app.css"'),
+    hasSyntheticEmail: standalone.includes('spare.pro@example.com'),
+    hasReactRoot: standalone.includes('id="root"'),
+    jsBytes: inlineJs.length,
+    cssBytes: css.length
+  };
+  if (previewChecks.hasExternalScript || previewChecks.hasExternalCSS || !previewChecks.hasSyntheticEmail)
+    throw Error('E_PREVIEW_INLINE_BUILD ' + JSON.stringify(previewChecks));
   await mkdir(`${root}preview`, {recursive:true});
   await writeFile(`${root}preview/index.html`, standalone, 'utf8');
   console.log('Built standalone HTML from the formal React preview: web/preview/index.html');
