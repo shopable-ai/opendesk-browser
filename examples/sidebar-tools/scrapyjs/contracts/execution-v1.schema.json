@@ -1,0 +1,843 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opendesk.ai/contracts/scrapyjs.execution.v1.schema.json",
+  "title": "ScrapyJS execution contract v1",
+  "description": "Canonical contract source is contracts/execution-v1.mjs. Schema is generated and tested for byte-independent semantic identity.",
+  "$defs": {
+    "Limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxPages",
+        "maxRequests",
+        "maxResponseBytes",
+        "maxTotalBytes",
+        "deadlineMs",
+        "maxRedirects"
+      ],
+      "properties": {
+        "maxPages": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "maxRequests": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "maxResponseBytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 1048576
+        },
+        "maxTotalBytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 8388608
+        },
+        "deadlineMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 300000
+        },
+        "maxRedirects": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
+      }
+    },
+    "Recipe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "recipeId",
+        "version",
+        "sha256",
+        "description",
+        "target",
+        "extraction",
+        "limits"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "scrapyjs.execution.v1"
+        },
+        "recipeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "sha256": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url",
+            "origins",
+            "session"
+          ],
+          "properties": {
+            "url": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "origins": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 253
+              },
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "session": {
+              "enum": [
+                "none",
+                "current-tab"
+              ]
+            }
+          }
+        },
+        "extraction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "fields"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "dom",
+                "static-html"
+              ]
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ExtractionField"
+              },
+              "minItems": 1,
+              "maxItems": 32
+            }
+          }
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        }
+      }
+    },
+    "ExtractionField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "selector",
+        "read"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "selector": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "read": {
+          "enum": [
+            "text",
+            "attribute"
+          ]
+        },
+        "attribute": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "HeaderProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "profileId",
+        "version",
+        "entries",
+        "userAgent"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "scrapyjs.execution.v1"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HeaderEntry"
+          },
+          "minItems": 0,
+          "maxItems": 32
+        },
+        "userAgent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "inherit",
+                "override"
+              ]
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          }
+        },
+        "credentialRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        }
+      }
+    },
+    "HeaderEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "value"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "value": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 2048
+        }
+      }
+    },
+    "NetworkProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "profileId",
+        "version",
+        "mode"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "scrapyjs.execution.v1"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "mode": {
+          "enum": [
+            "browser-current",
+            "direct",
+            "approved-proxy",
+            "cellular"
+          ]
+        },
+        "proxyRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        }
+      }
+    },
+    "NodeCapabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "nodeId",
+        "kind",
+        "availability",
+        "evidenceRef",
+        "approvedOrigins",
+        "supportedExtraction",
+        "supportedNetworks",
+        "verifiedHeaderNames",
+        "javascriptRendering",
+        "canOverrideUserAgent",
+        "canUseCredentialRefs",
+        "canUseCurrentTabSession",
+        "enforcesDnsGuard",
+        "inspectsRedirects",
+        "stopReadback",
+        "resultReadback",
+        "cellularBindingVerified",
+        "egressVerification",
+        "maxLimits"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "scrapyjs.execution.v1"
+        },
+        "nodeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "kind": {
+          "enum": [
+            "browser-tab",
+            "desktop-http",
+            "desktop-browser",
+            "android-cellular"
+          ]
+        },
+        "availability": {
+          "enum": [
+            "verified",
+            "unverified",
+            "offline"
+          ]
+        },
+        "evidenceRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "approvedOrigins": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253
+          },
+          "minItems": 0,
+          "maxItems": 32
+        },
+        "supportedExtraction": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "dom",
+              "static-html"
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 2
+        },
+        "supportedNetworks": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "browser-current",
+              "direct",
+              "approved-proxy",
+              "cellular"
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 4
+        },
+        "verifiedHeaderNames": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "minItems": 0,
+          "maxItems": 32
+        },
+        "javascriptRendering": {
+          "type": "boolean"
+        },
+        "canOverrideUserAgent": {
+          "type": "boolean"
+        },
+        "canUseCredentialRefs": {
+          "type": "boolean"
+        },
+        "canUseCurrentTabSession": {
+          "type": "boolean"
+        },
+        "enforcesDnsGuard": {
+          "type": "boolean"
+        },
+        "inspectsRedirects": {
+          "type": "boolean"
+        },
+        "stopReadback": {
+          "type": "boolean"
+        },
+        "resultReadback": {
+          "type": "boolean"
+        },
+        "cellularBindingVerified": {
+          "type": "boolean"
+        },
+        "egressVerification": {
+          "type": "boolean"
+        },
+        "maxLimits": {
+          "$ref": "#/$defs/Limits"
+        }
+      }
+    },
+    "ExecutionPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "planId",
+        "recipeId",
+        "recipeVersion",
+        "recipeHash",
+        "phase",
+        "executionKind",
+        "nodeId",
+        "headerProfileId",
+        "headerProfileVersion",
+        "networkProfileId",
+        "networkProfileVersion",
+        "limits",
+        "approval"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "scrapyjs.execution.v1"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "recipeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "recipeVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "recipeHash": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "phase": {
+          "enum": [
+            "trial",
+            "full"
+          ]
+        },
+        "executionKind": {
+          "enum": [
+            "browser-tab",
+            "desktop-http",
+            "desktop-browser",
+            "android-cellular"
+          ]
+        },
+        "nodeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "headerProfileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "headerProfileVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "networkProfileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "networkProfileVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        },
+        "approval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "approvalRef",
+            "approvedOrigin",
+            "executionKind",
+            "networkMode",
+            "headerProfileId",
+            "permissions"
+          ],
+          "properties": {
+            "approvalRef": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+            },
+            "approvedOrigin": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 253
+            },
+            "executionKind": {
+              "enum": [
+                "browser-tab",
+                "desktop-http",
+                "desktop-browser",
+                "android-cellular"
+              ]
+            },
+            "networkMode": {
+              "enum": [
+                "browser-current",
+                "direct",
+                "approved-proxy",
+                "cellular"
+              ]
+            },
+            "headerProfileId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+            },
+            "permissions": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "read",
+                  "session-use",
+                  "credential-use",
+                  "ua-override",
+                  "proxy-use",
+                  "cellular-use",
+                  "full-run"
+                ]
+              },
+              "minItems": 1,
+              "maxItems": 7
+            }
+          }
+        },
+        "trialReceiptRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        }
+      }
+    },
+    "RunReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "runId",
+        "planId",
+        "recipeHash",
+        "nodeId",
+        "executionKind",
+        "status",
+        "stopState",
+        "retirementState",
+        "startedAt",
+        "endedAt",
+        "counters",
+        "network",
+        "result",
+        "errorCode",
+        "idempotencyKey"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "scrapyjs.execution.v1"
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "recipeHash": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "nodeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        },
+        "executionKind": {
+          "enum": [
+            "browser-tab",
+            "desktop-http",
+            "desktop-browser",
+            "android-cellular"
+          ]
+        },
+        "status": {
+          "enum": [
+            "created",
+            "awaiting-approval",
+            "running",
+            "stop-requested",
+            "completed",
+            "failed",
+            "stopped",
+            "unknown"
+          ]
+        },
+        "stopState": {
+          "enum": [
+            "none",
+            "requested",
+            "accepted",
+            "unknown"
+          ]
+        },
+        "retirementState": {
+          "enum": [
+            "pending",
+            "released",
+            "unknown"
+          ]
+        },
+        "startedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "endedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "counters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "requests",
+            "pages",
+            "bytes",
+            "records"
+          ],
+          "properties": {
+            "requests": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "pages": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8388608
+            },
+            "records": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000
+            }
+          }
+        },
+        "network": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "expected",
+            "observed",
+            "egressVerified",
+            "evidenceRef"
+          ],
+          "properties": {
+            "expected": {
+              "enum": [
+                "browser-current",
+                "direct",
+                "approved-proxy",
+                "cellular"
+              ]
+            },
+            "observed": {
+              "enum": [
+                "browser-current",
+                "direct",
+                "approved-proxy",
+                "cellular",
+                "unknown"
+              ]
+            },
+            "egressVerified": {
+              "type": "boolean"
+            },
+            "evidenceRef": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sha256",
+            "readbackVerified",
+            "evidenceRef"
+          ],
+          "properties": {
+            "sha256": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64,
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "readbackVerified": {
+              "type": "boolean"
+            },
+            "evidenceRef": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "errorCode": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"
+        }
+      }
+    }
+  }
+}
