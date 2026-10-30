@@ -127,4 +127,4 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
 }
 
 
-export {runtime,profile,released,owned,flush,deferred,clone,ORIGIN,EXTENSION_ORIGIN,PREFERENCE,RECOVERY,fixtureRequest};
+export {runtime,profile,domains,released,owned,flush,deferred,clone,ORIGIN,EXTENSION_ORIGIN,PREFERENCE,RECOVERY,fixtureRequest};

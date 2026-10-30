@@ -143,7 +143,14 @@ export function planCookieAttempt(value,candidate){
   if(journal.attempts.some(r=>['unknown','partial'].includes(r.state)))fail('E_COOKIE_UNRESOLVED');
   const intent=r=>canonical([r.scopeKey,r.deliveryId,r.requestId,r.policyVersion,r.payloadHash,
     r.expiresAt,r.count,r.slots]);
-  if(journal.attempts.some(r=>r.scopeKey===row.scopeKey&&(r.attemptId===row.attemptId||
+  // A renewed grant or commercial allocation cannot make a consumed delivery
+  // fresh. Keep IDs isolated by source/site/subject/operation/target, while the
+  // full scope still binds the exact authorization and submitted receipt.
+  const replayNamespace=r=>{
+    const scope=JSON.parse(r.scopeKey);
+    return canonical([scope[0],scope[1],scope[2],scope[3],scope[5],scope[6]]);
+  };
+  if(journal.attempts.some(r=>replayNamespace(r)===replayNamespace(row)&&(r.attemptId===row.attemptId||
     ((r.deliveryId===row.deliveryId||r.requestId===row.requestId)&&
       !(r.resolution==='not-submitted'&&intent(r)===intent(row))))))
     fail('E_COOKIE_REPLAY');

@@ -93,9 +93,11 @@ function node(env,name){return env.nodes.get('ai-vip-'+name)}
 const preflight=env=>node(env,'redeem-form').listeners.submit({isTrusted:true,preventDefault(){}});
 const confirm=env=>node(env,'redeem-confirm').listeners.click({isTrusted:true});
 
-test('R5.2 official package grants scoped recovery storage but no network permission',async()=>{
-  const pkg=await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share');
-  assert.equal(pkg.version,'1.4.5');
+test('R5.2 candidate package matches current source and grants only reviewed capabilities',async()=>{
+  const pkg=JSON.parse(await readFile('artifacts/sidebar-tools/ai-vip-share/candidate.opendesk-tool.json','utf8'));
+  assert.deepEqual(pkg,await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share'),
+    'temporary candidate must match the current source-bound compiled output');
+  assert.equal(pkg.version,'1.4.6');
   const view=await readFile(htmlPath,'utf8');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write','currentPage.read']);
@@ -573,7 +575,7 @@ test('R5.2 preview expiry during journal persistence forbids consumption and ret
   assert.equal(elapsed,180000,'clock advances only after durable journal write');
   assert.equal(e.calls.filter(args=>args.method==='POST'&&args.url.endsWith('/redeem')).length,0);
   assert.equal(store.value?.accountId,'customer-123');
-  assert.equal(store.value?.packageVersion,'1.4.5');
+  assert.equal(store.value?.packageVersion,'1.4.6');
   assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,1);
   assert.equal(node(e,'recovery').hidden,false);
   assert.equal(node(e,'redeem').disabled,true);

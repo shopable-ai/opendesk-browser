@@ -2,6 +2,7 @@
  * No CLI/autostart, remote dependencies, commercial model, or HTTP Set-Cookie.
  * authorize() is an in-process owner action, never a public HTTP endpoint. Its bearer
  * credential proves the controlled subject; a caller-supplied subjectId alone does not.
+ * Owners may supply disposable synthetic test bearers; never use production credentials.
  * Secrets exist only in private memory and authenticated delivery responses. Bearers
  * belong only in the test process/short-lived controller memory, never React/storage.
  * Never log credentials or deliveries. close() destroys the ledger; not durable recovery.
@@ -229,14 +230,18 @@ export function createOrdinarySiteFixture({host = '127.0.0.1', port = 0, now = D
         return {method, path, count};
       }), authorizationRequests, sessionRequests, validTargetVisits};
     },
-    authorize({subjectId = 'ordinary-subject', expiresAt = clock() + MAX_AUTH_MS} = {}) {
+    authorize({subjectId = 'ordinary-subject', expiresAt = clock() + MAX_AUTH_MS,
+      credential = `Bearer ${randomUUID()}`} = {}) {
       declarations();
       const issuedAt = clock();
       if (!id(subjectId) || !time(expiresAt) || expiresAt <= issuedAt || expiresAt - issuedAt > MAX_AUTH_MS)
         throw Error('Invalid controlled authorization');
+      if (typeof credential !== 'string' || !/^Bearer [A-Za-z0-9_-]{1,200}$/.test(credential))
+        throw Error('Invalid controlled credential');
+      // Retain old credentials until close(): never overwrite or rebind any generation.
+      if (grants.has(credential)) throw Error('Controlled credential already used');
       if (grants.size >= MAX_ROWS) throw Error('Authorization budget exhausted');
       const grant = {subjectId, revision: String(++generation), issuedAt, expiresAt, revoked: false};
-      const credential = `Bearer ${randomUUID()}`;
       subjects.set(subjectId, grant); grants.set(credential, grant);
       return {credential, authorization: authorization(grant)};
     },

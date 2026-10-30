@@ -11,12 +11,13 @@ export const REVIEWED_MANAGED_PROXY_PROFILES=Object.freeze([]);
 // installed package, storage, or the legacy AI local-test adapter. WXT serve
 // uses Vite's build pipeline, so DEV may be false; MODE is the actual mode.
 const developmentBuild=import.meta.env?.MODE==='development';
-// Source-reviewed 2026-10-30: ai-vip-share 1.4.4, 92704 bytes. Independent
-// review covered optional dev controls, pre-dispatch Cookie cancellation, and
-// unchanged Authority, PAC scope and STOP fences; real Chrome remains separate.
+// Source-reviewed 2026-10-30: ai-vip-share 1.4.6, 121330 bytes. Independent
+// review covered selection restoration without effects, source separation,
+// original-key CAS and replay protection; Authority, PAC scope and STOP remain.
+// Real Chrome evidence is separate from this development source approval.
 // Any package change needs a new source review and pin. Runtime preferences
 // and package claims cannot approve it. See the tool README core-function goal.
-const developmentPackageHash='b0f5c9605c755d60e20209a23e97b600ced61705954abd0fcc40a7a3857b1917';
+const developmentPackageHash='2edc509ca45a853fdfe09786cd5fd448d3935e8affb1245a73b30fefc963d4d0';
 export const MANAGED_PROXY_DEVELOPMENT_ENABLED=developmentBuild&&
   typeof developmentPackageHash==='string'&&/^[0-9a-f]{64}$/.test(developmentPackageHash);
 export const DEVELOPMENT_MANAGED_PROXY_CONFIG=Object.freeze({

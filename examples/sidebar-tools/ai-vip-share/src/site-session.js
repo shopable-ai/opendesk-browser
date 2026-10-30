@@ -14,13 +14,58 @@ export const ORDINARY_SITES=Object.freeze(ORIGINS.map((origin,index)=>{
     operationKinds:['setCookies'],maxAuthorizationMs:3600000,maxDeliveryMs:120000})});
 }));
 export function createWebsiteController({byId,network,tabs,getPending,setPending,validateDelivery,
-  commercialReceive,commercialTarget,onChange,blocked}){
+  commercialReceive,commercialTarget,onChange,blocked,storeRequest,getRestoredTarget}){
   const select=byId('ai-vip-site-select'),summary=byId('ai-vip-site-source'),account=byId('ai-vip-site-account');
   const status=byId('ai-vip-site-status'),open=byId('ai-vip-site-open'),receive=byId('ai-vip-site-receive');
   const cancel=byId('ai-vip-site-cancel'),authPanel=byId('ai-vip-source-auth');
   const credentialInput=byId('ai-vip-source-credential'),clear=byId('ai-vip-source-clear');
   const clocks=Session.createSourceClocks();
   let available=false,disposed=false,generation=0,loading=false,notice='',masked='',optionsKey='';
+  // Display preference only: no credential, grant, delivery or browser authority.
+  const preferenceKey='aiVipSiteSelectionR1';
+  const validChoice=value=>value===''||value==='commercial'||ORDINARY_SITES.some(row=>row.key===value);
+  let choiceVersion=0,restored=false,restoreBlocked=false,storedChoice=null,etag=null;
+  let preferenceReady=false,saveRunning=false,queuedChoice=null,storageFailed=false;
+  async function readPreference(){
+    const result=await storeRequest('storage.get',{key:preferenceKey,withEtag:true});
+    const value=result?.value;
+    if(result?.preview===true||typeof result?.etag!=='string'||!/^[a-f0-9]{64}$/.test(result.etag)||
+      (value!==null&&(!value||typeof value!=='object'||Array.isArray(value)||
+        Object.keys(value).sort().join(',')!=='schemaVersion,selection'||value.schemaVersion!==1||
+        !validChoice(value.selection))))throw Error('Invalid site preference');
+    return result;
+  }
+  function storageFailure(){
+    storageFailed=true;queuedChoice=null;
+  }
+  const preferenceLoad=(async()=>{
+    try{
+      const result=await readPreference();
+      if(disposed)return;
+      storedChoice=result.value?.selection??null;etag=result.etag;
+    }catch{if(!disposed)storageFailure();}
+    finally{preferenceReady=true;if(!disposed)onChange();}
+  })();
+  async function saveChoice(){
+    if(saveRunning)return;
+    saveRunning=true;
+    try{
+      await preferenceLoad;
+      // Coalesce changes while waiting; cap writes rather than retrying conflicts.
+      for(let writes=0;queuedChoice&&!disposed&&!storageFailed;writes++){
+        if(writes===4){storageFailure();break;}
+        const choice=queuedChoice;queuedChoice=null;
+        const value={schemaVersion:1,selection:choice.value};
+        try{
+          await storeRequest('storage.set',{key:preferenceKey,value,ifMatch:etag});
+          const after=await readPreference();
+          if(disposed)return;
+          if(after.value?.selection!==choice.value)throw Error('Site preference changed');
+          etag=after.etag;storedChoice=choice.value;
+        }catch{if(!disposed)storageFailure();}
+      }
+    }finally{saveRunning=false;if(!disposed)onChange();}
+  }
   const current=()=>ORDINARY_SITES.find(row=>row.key===select?.value);
   const assertActive=(context,epoch)=>{
     if(disposed||!available||generation!==epoch||current()!==context)throw Error('Selection changed');
@@ -85,7 +130,15 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
       if(generation===epoch){setPending(null);masked='';notice='来源授权或交付无效，未设置 Cookie。请重新取得有效凭据。';}
     }finally{if(generation===epoch){loading=false;onChange();}}
   }
-  select?.addEventListener('change',event=>{if(event.isTrusted===true)invalidate();});
+  select?.addEventListener('change',event=>{
+    if(event.isTrusted!==true||disposed)return;
+    ++choiceVersion;restored=true;
+    const value=select.value;
+    if(!validChoice(value)||(!available&&value.startsWith('ordinary-'))||
+      (value==='commercial'&&!commercialTarget()))select.value='';
+    invalidate();
+    queuedChoice={value:select.value};void saveChoice();
+  });
   clear?.addEventListener('click',event=>{if(event.isTrusted===true)invalidate();});
   cancel?.addEventListener('click',event=>{if(event.isTrusted===true)invalidate();});
   open?.addEventListener('click',event=>{
@@ -130,7 +183,7 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
     render({development,locked,busy:controllerBusy,commercialLabel}){
       if(!select)return;
       const lost=available&&!development;available=Boolean(development);
-      if(lost)invalidate();
+      if(lost){restoreBlocked=true;invalidate();}
       const rows=[...(available?ORDINARY_SITES:[]),...(commercialTarget()?[{key:'commercial',site:{label:commercialLabel||'会员网站'}}]:[])];
       const key=rows.map(row=>row.key+'|'+row.site.label).join(',');
       if(key!==optionsKey){
@@ -141,6 +194,21 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         }
         select.value=rows.some(row=>row.key===old)?old:'';
       }
+      if(!restored&&!restoreBlocked&&!choiceVersion&&preferenceReady&&available){
+        const target=getRestoredTarget?.();
+        // undefined means the independent journal read has not settled yet.
+        if(storedChoice!==null||target!==undefined){
+          const choice=storedChoice??ORDINARY_SITES.find(row=>row.site.targetUrl===target)?.key??'';
+          const present=rows.some(row=>row.key===choice);
+          // A commercial directory is verified asynchronously. Wait for it
+          // without treating the saved preference as authority or replacing a
+          // newer explicit selection.
+          if(choice!=='commercial'||present){
+            select.value=present?choice:'';
+            restored=true;
+          }
+        }
+      }
       const context=current(),commercial=select.value==='commercial'&&commercialTarget();
       select.disabled=Boolean(controllerBusy);open.disabled=!context&&!commercial;
       receive.disabled=Boolean(locked||controllerBusy||loading||(!context&&!commercial));
@@ -150,7 +218,8 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         commercial?'来源：已核验的会员服务 · 网站：'+new URL(commercial).host:'选择已配置的网站及其会话来源。';
       account.textContent=masked?'账号：'+masked:commercial?'使用服务器当前分配的账号':'尚未取得会话';
       status.textContent=locked?'恢复记录仍需核对，已停止取得及写入新会话；仍可打开网站。':notice||
-        (context?'普通网站直接使用来源授权，无需会员、额度或代理。':'');
+        (storageFailed?'网站选择未能保存；仍可手动选择，重新打开后请核对。':
+          context?'普通网站直接使用来源授权，无需会员、额度或代理。':'');
     },
     dispose(){disposed=true;++generation;loading=false;if(credentialInput)credentialInput.value='';setPending(null);}
   };

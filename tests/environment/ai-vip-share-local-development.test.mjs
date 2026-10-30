@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {createLocalFixture} from '../../examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs';
-import {runtime,profile,released,owned,flush,deferred,clone,ORIGIN,EXTENSION_ORIGIN,PREFERENCE,RECOVERY,fixtureRequest}
+import {runtime,profile,domains,released,owned,flush,deferred,clone,ORIGIN,EXTENSION_ORIGIN,PREFERENCE,RECOVERY,fixtureRequest}
   from '../../examples/sidebar-tools/ai-vip-share/tests/helpers/controller-fixture.mjs';
 
 function cookieAttempt(env){
@@ -91,7 +91,7 @@ test('real fixture preview/confirm grants development feature, refreshes member 
   assert.equal(e.store.get(RECOVERY),null);
   const journal=e.storageCalls.find(row=>row.operation==='storage.set'&&row.key===RECOVERY&&row.value);
   assert.equal(journal.value.schemaVersion,2);assert.equal(journal.value.serviceOrigin,ORIGIN);
-  assert.equal(journal.value.packageVersion,'1.4.5');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
+  assert.equal(journal.value.packageVersion,'1.4.6');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
   await e.click('proxy-toggle');
   assert.deepEqual(e.proxyCalls,[{action:'enable',config:profile}]);
   assert.equal(e.get('proxy-toggle').attributes['data-action'],'stop');
@@ -688,6 +688,25 @@ test('success A then B survives reopen and refuses a still-valid historical A de
   await reopened.click('shared-receive');await reopened.click('cookie-install');
   assert.equal(reopened.cookieCalls.length,0);
   assert.equal(cookieAttempt(reopened).deliveryId,b.deliveryId);
+});
+test('commercial catalog and deliveries cannot borrow either ordinary website target',async()=>{
+  for(const origin of ['http://localhost:7901','http://127.0.0.1:7902']){
+    for(const injectCatalog of [false,true]){
+      const e=await runtime({network:async(args,fixture)=>{
+        const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
+        if(injectCatalog&&response.data?.sharedAccounts)
+          for(const row of response.data.sharedAccounts.accounts)row.targetUrl=origin+'/session/';
+        if(response.data?.cookieDelivery)response.data.cookieDelivery.targetUrl=origin+'/session/';
+        return response;
+      }});
+      await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+      await e.click('shared-receive');await e.click('cookie-install');
+      assert.equal(e.cookieCalls.length,0,origin+' catalog='+injectCatalog);
+      assert.equal(e.get('cookie-install').hidden,true);
+      assert.equal(e.store.get(COOKIE_KEY)??null,null);
+      assert(!e.calls.some(row=>new URL(row.url).origin===origin));
+    }
+  }
 });
 
 const ACTIVATION='aiVipActivationR140';

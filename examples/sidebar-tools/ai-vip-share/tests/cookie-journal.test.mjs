@@ -176,6 +176,16 @@ test('only explicit pre-dispatch cancellation permits a new user-confirmed attem
   assert.equal(neverCalled.attempts[0].resolution,'not-submitted');
   assert.throws(()=>planCookieReceipt(pending,ref(a),{notInvoked:false}),{code:'E_COOKIE_RECEIPT'});
 });
+test('renewed authorization cannot replay a consumed delivery in the same site namespace',()=>{
+  const a=attempt(),settled=planCookieReceipt(planCookieAttempt(empty(),a),ref(a),saved());
+  const scope=JSON.parse(a.scopeKey);scope[4]='renewed-grant';
+  const renewed={...a,scopeKey:JSON.stringify(scope),attemptId:'renewed-attempt'};
+  assert.throws(()=>planCookieAttempt(settled,renewed),{code:'E_COOKIE_REPLAY'});
+  assert.throws(()=>planCookieAttempt(settled,{...renewed,requestId:'fresh-request'}),{code:'E_COOKIE_REPLAY'});
+  assert.throws(()=>planCookieAttempt(settled,{...renewed,deliveryId:'fresh-delivery'}),{code:'E_COOKIE_REPLAY'});
+  assert.equal(planCookieAttempt(settled,{...renewed,deliveryId:'fresh-delivery',
+    requestId:'fresh-request'}).attempts.length,2);
+});
 test('legacy success without Store/Partition cannot silently replace a related host login',()=>{
   const journal=planCookieJournalMigration(success(),[mapping]);
   assert.throws(()=>planCookieAttempt(journal,attempt('127.0.0.1')),{code:'E_COOKIE_LEGACY_SCOPE_UNPROVEN'});

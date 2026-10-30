@@ -133,9 +133,9 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.5';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.6';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4']);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5',PACKAGE_VERSION]);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
@@ -219,7 +219,7 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     const ids=new Set(),scopes=new Map();
     const accounts=data.accounts.map(row=>{
       if(!exactKeys(row,['id','label','targetUrl','cookieScope'])||!safeString(row.id,120)||
-        ids.has(row.id)||!safeString(row.label,100)||!cookieTarget(row.targetUrl)||
+        ids.has(row.id)||!safeString(row.label,100)||!commercialCookieTarget(row.targetUrl)||
         !Array.isArray(row.cookieScope)||!row.cookieScope.length||row.cookieScope.length>50)
         fail('E_SHARED_SCHEMA','共享账号或目标无效');
       ids.add(row.id);
@@ -309,13 +309,21 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
   }
   cookieOpen?.addEventListener('click',event=>{if(event.isTrusted===true)void openCookieTarget();});
   function cookieTarget(url){
-    const targets=[...COOKIE_TARGETS,...(localMode&&developmentProfile?[LOCAL_ORIGIN+'/session/']:[]),
-      ...(developmentProfile?ORDINARY_SITES.map(row=>row.site.targetUrl):[])];
+    return commercialCookieTarget(url)||Boolean(developmentProfile&&
+      ORDINARY_SITES.some(row=>row.site.targetUrl===url));
+  }
+  function commercialCookieTarget(url){
+    const targets=[...COOKIE_TARGETS,...(localMode&&developmentProfile?[LOCAL_ORIGIN+'/session/']:[])];
     return typeof url==='string'&&targets.includes(url);
   }
   function validateCookieDelivery(data,now=estimatedServerNow(),expectedTarget=null){
+    // Only the ordinary controller supplies a fixed expected target, after its
+    // own source authorization. Commercial responses cannot borrow that policy.
+    const allowed=expectedTarget?Boolean(developmentProfile&&
+      ORDINARY_SITES.some(row=>row.site.targetUrl===expectedTarget)&&data?.targetUrl===expectedTarget):
+      commercialCookieTarget(data?.targetUrl);
     if(!exactKeys(data,['schemaVersion','deliveryId','targetUrl','expiresAt','cookies'])||data.schemaVersion!==1||
-      !safeString(data.deliveryId,120)||!cookieTarget(data.targetUrl)||(expectedTarget&&data.targetUrl!==expectedTarget)||now===null||
+      !safeString(data.deliveryId,120)||!allowed||now===null||
       dateMs(data.expiresAt)===null||data.expiresAt<=now||data.expiresAt-now>PREVIEW_MAX_LIFETIME_MS||
       !Array.isArray(data.cookies)||data.cookies.length<1||data.cookies.length>50)
       fail('E_COOKIE_DELIVERY','Cookie 交付格式、目标范围或有效期无效');
@@ -348,8 +356,8 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
   }
   function renderCookies(){
     if(!cookieSection||!cookieStatus||!cookieInstall||!cookieResults)return;
-    cookieSection.hidden=!cookiePending&&!cookieRecord&&!cookieFault&&!assignedShared();
     projectCookieRecord();
+    cookieSection.hidden=!cookiePending&&!cookieRecord&&!cookieFault&&!assignedShared();
     const record=cookieRecord;
     cookieInstall.hidden=!cookiePending;
     cookieInstall.disabled=!cookieReady||cookieBusy||busy||!cookiePending||Boolean(cookieFault)||journalLocked()||
@@ -388,6 +396,8 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     // Old evidence is always visible as old evidence, never attributed to a new site.
     if(cookieRecord===cookieJournal.legacy.record&&cookieRecord&&target&&cookieRecord.targetUrl!==target&&
       !['unknown','partial'].includes(cookieRecord.state))cookieRecord=null;
+    // Retained development facts are display-only and unavailable without the profile.
+    if(!developmentProfile&&ORDINARY_SITES.some(row=>row.site.targetUrl===cookieRecord?.targetUrl))cookieRecord=null;
   }
   async function readCookieRecord(){return Journal.readCookieJournal(storeRequest);}
   async function loadCookieRecord(){
@@ -420,7 +430,7 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     }
     const now=estimatedServerNow();
     if(delivery.revision!==serviceRevision||!memberVerifiedFresh||snapshot?.account.id!==delivery.accountId||
-      now===null||delivery.expiresAt<=now||!cookieTarget(delivery.targetUrl)||
+      now===null||delivery.expiresAt<=now||!commercialCookieTarget(delivery.targetUrl)||
       delivery.assignmentGeneration!==sharedGeneration||sharedId!==delivery.sharedAccountId||
       sharedCatalog?.companyId!==delivery.companyId||sharedCatalog?.redemptionId!==delivery.redemptionId||
       cookieScope(assignedShared()?.cookieScope||[])!==cookieScope(delivery.payload.cookies))
@@ -507,6 +517,8 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
           if(delivery.kind==='ordinary')websiteController.completed(delivery);
           cookiePending=null;
           cookieFault=cookieFault||(started?'Cookie 写入结果未知，已禁止重放；请在目标页面人工核对。':
+            error?.code==='E_COOKIE_SCOPE'?
+              '当前主机已有不同范围的网站会话，本次交付不能完整替换，未写入 Cookie。请使用独立的浏览器配置处理此会话。':
             'Cookie 未提交：交付已变化、恢复记录锁定或存储无法核对。请核对后重新取得有效交付。');
           cookieFaultRecoverable=!started&&!journalLocked()&&(!marker||confirmedNotInvoked)&&
             !cookieFault.startsWith('Cookie 恢复记录无法确认');
@@ -914,10 +926,10 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     redeemStatus.hidden=!recoveryPanel.hidden||!redeemError.hidden;
     refreshProxyPresentation();
     renderLocalDevelopment();
-    renderCookies();
-    renderShared();
     websiteController?.render({development:Boolean(developmentProfile),locked:journalLocked()||Boolean(cookieFault&&!cookieFaultRecoverable),
       busy:busy||cookieBusy||sharedBusy,commercialLabel:assignedShared()?.label});
+    renderCookies();
+    renderShared();
     window.OpenDeskTool.setState?.({dirty:Boolean(code.value||pending||cookiePending),
       busy:busy||cookieBusy||sharedBusy||Boolean(websiteController?.busy)});
   }
@@ -1539,6 +1551,8 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     renderRedeem();
   }
   websiteController=createWebsiteController({byId,network:businessSdk,tabs:window.OpenDeskSDK?.browser?.tabs,
+    storeRequest,getRestoredTarget:()=>!cookieReady?undefined:cookieJournal?.schemaVersion===2?
+      cookieJournal.attempts.filter(row=>row.state==='success').map(row=>JSON.parse(row.scopeKey)[6]).at(-1):null,
     getPending:()=>cookiePending,setPending:value=>{cookiePending=value;if(value&&cookieFaultRecoverable){cookieFault='';cookieFaultRecoverable=false;}},
     validateDelivery:validateCookieDelivery,commercialReceive:requestSharedSession,
     commercialTarget:()=>assignedShared()?.targetUrl||null,onChange:renderRedeem,

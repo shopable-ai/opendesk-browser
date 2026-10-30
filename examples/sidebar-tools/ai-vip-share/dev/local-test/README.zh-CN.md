@@ -186,6 +186,32 @@ node --test examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-ser
 4. **P3** 在 Mac Chrome/CFT 隔离 Profile，用真实安装身份和可信按钮完成 ENABLE、网络出口检查、STOP、冲突、Worker 重启、撤销、安装升级与卸载验收；同包输入一致方可认定 NATIVE PASS。
 
 
+## Ordinary Site fixture：原生 CUA 的一次性测试 bearer
+
+`ordinary-site-fixture.mjs` 仅是本地测试 fixture，不是正式 Provider。原生 CUA 的
+`localhost:7901` / `127.0.0.1:7902` 流程可由各实例 owner 在进程内调用
+`authorize({subjectId, expiresAt, credential})`，显式传入自行选择的、可丢弃的合成测试 bearer，
+避免为填入测试界面而把默认随机秘密打印到工具输出。**这些 token 仅供一次性本地测试，绝不能使用生产凭据。**
+省略 `credential`（或传入 `undefined`）仍使用 `Bearer ${randomUUID()}`，不从 subject 派生。
+
+完整值必须严格符合 `^Bearer [A-Za-z0-9_-]{1,200}$`；不修剪、不补前缀、不转换类型。
+同一实例内任何已用 credential（有效、被替代、撤销或过期）均拒绝重复授权，既不能覆盖原 grant，
+也不能重绑同一或另一 subject；拒绝不改变授权代次或当前 grant。新 credential 对同一 subject
+重新授权仍按原规则替换其当前 grant。原有 128 条授权预算、最长一小时授权、短时交付、
+精确 source/subject/revision/target/operation 绑定与撤权语义保持不变。
+
+只有持有实例的 owner 能签发授权；HTTP 没有 grant 端点，`POST /api/authorize` 仍为 404。
+请求继续使用 `X-OpenDesk-Local-Test: 1` 与 `X-Ordinary-Session-Credential`，不接受 `Authorization`。
+不记录 bearer、Cookie 或完整交付，不将它们写入观察输出、React 状态或持久存储。
+fixture 不通过 HTTP 安装 Cookie；原生流程继续使用原 SDK 的权限、确认和 Cookie 写入链。
+本节不要求启动或重启现有服务，Node 测试也不证明原生 CUA 已通过。
+
+仅验证本 fixture：
+
+```sh
+node --test examples/sidebar-tools/ai-vip-share/dev/local-test/ordinary-site-fixture.test.mjs
+```
+
 ## Managed Proxy SDK R1：7897 三层验证（2026-10-15）
 
 在**用户自己创建的隔离 Chrome Profile** 测试，不能复用常用浏览器 Profile。此目录只提供本地联调材料，不参与正式工具构建、运营会员或真实授权。

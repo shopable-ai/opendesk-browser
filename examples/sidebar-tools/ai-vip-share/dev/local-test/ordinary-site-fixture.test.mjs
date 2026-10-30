@@ -124,6 +124,96 @@ test('no credential or wrong subject/revision/target/operation is refused withou
   assert.equal((await request(`${f.origin}/api/authorize`, {method: 'POST', data: {subjectId: 'attacker'}})).status, 404);
 });
 
+test('supplied synthetic bearer works only after in-process owner authorization', async t => {
+  const f = await fixture(t);
+  const credential = 'Bearer disposable_native_test-A_1';
+  const headers = apiHeaders({credential});
+  assert.equal((await request(f.context.source.endpoints.authorization, {headers})).status, 403);
+  assert.equal((await request(`${f.origin}/api/authorize`, {
+    method: 'POST', data: {subjectId: 'native-subject', credential}
+  })).status, 404);
+  assert.equal((await request(f.context.source.endpoints.authorization, {headers})).status, 403);
+  const grant = f.app.authorize({subjectId: 'native-subject', credential});
+  assert.ok(grant.credential === credential, 'owner receives supplied bearer without printing it');
+  const auth = await request(f.context.source.endpoints.authorization, {headers});
+  assert.equal(auth.status, 200);
+  assert.deepEqual(auth.json.authorization, grant.authorization);
+  const result = await deliver(f, grant);
+  assert.equal(result.status, 200);
+  validPage(await page(f, cookieHeader(result.json.cookieDelivery)));
+  for (const value of [await request(`${f.origin}/health`), await page(f), f.app.observations()]) {
+    assert.ok(!JSON.stringify(value).includes(credential), 'public output omits bearer');
+  }
+  f.app.revoke('native-subject');
+  assert.equal((await request(f.context.source.endpoints.authorization, {headers})).status, 403);
+  loggedOut(await page(f, cookieHeader(result.json.cookieDelivery)));
+});
+
+test('malformed and active or old duplicate bearers cannot mutate or rebind grants', async t => {
+  let now = 1800000000000;
+  const f = await fixture(t, {now: () => now});
+  const original = f.app.authorize({subjectId: 'first', credential: 'Bearer disposable_first'});
+  for (const credential of [null, false, 1, {}, '', 'bearer wrong', 'Bearer ', 'Bearer two words',
+    ' Bearer padded', 'Bearer trailing ', 'Bearer bad.token', 'Bearer bad/token',
+    'Bearer bad+token', 'Bearer bad=token', 'Bearer line\n', 'Bearer line\r\n', `Bearer ${'a'.repeat(201)}`]) {
+    assert.throws(() => f.app.authorize({subjectId: 'first', credential}),
+      {message: 'Invalid controlled credential'});
+  }
+  const second = f.app.authorize({subjectId: 'second', credential: `Bearer ${'b'.repeat(200)}`});
+  const refuseDuplicate = credential => {
+    for (const subjectId of ['first', 'second', 'unbound']) {
+      assert.throws(() => f.app.authorize({subjectId, credential}),
+        {message: 'Controlled credential already used'});
+    }
+  };
+  refuseDuplicate(original.credential);
+  for (const grant of [original, second]) {
+    const result = await request(f.context.source.endpoints.authorization, {headers: apiHeaders(grant)});
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.json.authorization, grant.authorization);
+  }
+  const replacement = f.app.authorize({subjectId: 'first', credential: 'Bearer x', expiresAt: now + 1000});
+  assert.equal(replacement.authorization.authorizationRevision, '3', 'refusals do not advance generation');
+  refuseDuplicate(original.credential); // Superseded, even though not explicitly revoked.
+  assert.equal((await request(f.context.source.endpoints.authorization, {headers: apiHeaders(original)})).status, 403);
+  f.app.revoke('second');
+  refuseDuplicate(second.credential);
+  now += 1000;
+  refuseDuplicate(replacement.credential);
+  for (const grant of [second, replacement]) {
+    assert.equal((await request(f.context.source.endpoints.authorization, {headers: apiHeaders(grant)})).status, 403);
+  }
+});
+
+test('default bearers remain opaque random UUIDs and cannot be rebound', async t => {
+  const f = await fixture(t);
+  const first = f.app.authorize();
+  const second = f.app.authorize({credential: undefined});
+  for (const grant of [first, second]) {
+    assert.ok(/^Bearer [0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(grant.credential),
+      'default credential is a UUID v4 bearer (value omitted)');
+    assert.ok(!grant.credential.includes(grant.authorization.subjectId), 'bearer does not encode subject');
+    assert.throws(() => f.app.authorize({subjectId: 'other', credential: grant.credential}),
+      {message: 'Controlled credential already used'});
+  }
+  assert.ok(first.credential !== second.credential, 'each default bearer is fresh');
+});
+
+test('supplied bearers retain authorization lifetime and total grant budget limits', async t => {
+  const now = 1800000000000;
+  const f = await fixture(t, {now: () => now});
+  for (const expiresAt of [now, now - 1, now + 3600001]) {
+    assert.throws(() => f.app.authorize({credential: 'Bearer disposable_lifetime', expiresAt}),
+      {message: 'Invalid controlled authorization'});
+  }
+  for (let i = 0; i < 128; i++) {
+    const grant = f.app.authorize({credential: `Bearer disposable_budget_${i}`});
+    assert.equal(grant.authorization.expiresAt - now, 3600000);
+  }
+  assert.throws(() => f.app.authorize({credential: 'Bearer disposable_over_budget'}),
+    {message: 'Authorization budget exhausted'});
+});
+
 test('only the fixed custom credential header authenticates; Authorization is rejected', async t => {
   const f = await fixture(t);
   const grant = f.app.authorize();
