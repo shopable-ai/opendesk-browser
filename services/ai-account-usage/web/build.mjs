@@ -31,53 +31,18 @@ if (preview) {
   const inlineJs = compiled.split('</script').join('<\\/script');
   const integrity = createHash('sha256').update(inlineJs).digest('base64');
   const csp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${integrity}'; style-src 'unsafe-inline'; connect-src 'none'; img-src data:; font-src 'none'; base-uri 'none'; form-action 'none'">`;
-  // Function replacements keep dollar sequences in compiled JS literal and unchanged.
   const standalone = htmlTemplate
     .replace('<link rel="stylesheet" href="./app.css">', () => `${csp}<style>${css}</style>`)
     .replace('<script type="module" src="./app.js"></script>', () => `<script>${inlineJs}</script>`);
-  // The bundle may contain textual HTML examples. Audit the actual HTML shell
-  // after removing the exact inline JS payload, not inert strings within JS.
-  const exactInlineTag = `<script>${inlineJs}</script>`;
-  if (!standalone.includes(exactInlineTag)) throw Error('E_PREVIEW_INLINE_SCRIPT_MISSING');
-  const shell = standalone.replace(exactInlineTag, '<script></script>');
-  const previewChecks = {
-    hasExternalScriptTag: shell.includes('<script type="module" src="./app.js"></script>'),
-    hasExternalStyleTag: shell.includes('<link rel="stylesheet" href="./app.css">'),
-    hasSyntheticEmail: standalone.includes('spare.pro@example.com'),
-    hasReactRoot: shell.includes('id="root"'),
-    bundleContainsTemplateText: inlineJs.includes('<script type="module" src="./app.js"></script>'),
-    jsBytes: inlineJs.length,
-    cssBytes: css.length
-  };
-  console.log('PREVIEW_INLINE_AUDIT', JSON.stringify(previewChecks));
-  if (previewChecks.hasExternalScriptTag || previewChecks.hasExternalStyleTag || !previewChecks.hasSyntheticEmail)
-    throw Error('E_PREVIEW_INLINE_BUILD ' + JSON.stringify(previewChecks));
-  await mkdir(`${root}preview`, {recursive:true});
-  await writeFile(`${root}preview/index.html`, standalone, 'utf8');
-  console.log('Built standalone HTML from the formal React preview: web/preview/index.html');
-}
-console.log(`Built ${preview?'synthetic preview':'production'} UI: ${target}`);
-, $\`) inside compiled React.
-    // Passing the bundle as a replacement string corrupts it and reinserts source tags.
-    .replace('<link rel="stylesheet" href="./app.css">', () => `${csp}<style>${css}</style>`)
-    .replace('<script type="module" src="./app.js"></script>', () => `<script>${inlineJs}</script>`);
-  // The bundle may contain textual HTML examples. Audit the actual HTML shell
-  // after removing the exact inline JS payload, not inert strings within JS.
-  const exactInlineTag = `<script>${inlineJs}</script>`;
-  if (!standalone.includes(exactInlineTag)) throw Error('E_PREVIEW_INLINE_SCRIPT_MISSING');
-  const shell = standalone.replace(exactInlineTag, '<script></script>');
-  const previewChecks = {
-    hasExternalScriptTag: shell.includes('<script type="module" src="./app.js"></script>'),
-    hasExternalStyleTag: shell.includes('<link rel="stylesheet" href="./app.css">'),
-    hasSyntheticEmail: standalone.includes('spare.pro@example.com'),
-    hasReactRoot: shell.includes('id="root"'),
-    bundleContainsTemplateText: inlineJs.includes('<script type="module" src="./app.js"></script>'),
-    jsBytes: inlineJs.length,
-    cssBytes: css.length
-  };
-  console.log('PREVIEW_INLINE_AUDIT', JSON.stringify(previewChecks));
-  if (previewChecks.hasExternalScriptTag || previewChecks.hasExternalStyleTag || !previewChecks.hasSyntheticEmail)
-    throw Error('E_PREVIEW_INLINE_BUILD ' + JSON.stringify(previewChecks));
+  // Check the HTML shell separately from inert strings inside compiled React.
+  // Using replacement functions also prevents dollar expansion in bundled JS.
+  const inlineTag = `<script>${inlineJs}</script>`;
+  if (!standalone.includes(inlineTag)) throw Error('E_PREVIEW_INLINE_SCRIPT_MISSING');
+  const shell = standalone.replace(inlineTag, '<script></script>');
+  if (shell.includes('<script type="module" src="./app.js"></script>') ||
+      shell.includes('<link rel="stylesheet" href="./app.css">') ||
+      !standalone.includes('spare.pro@example.com')) throw Error('E_PREVIEW_INLINE_BUILD');
+  console.log('PREVIEW_INLINE_AUDIT', JSON.stringify({jsBytes:inlineJs.length, cssBytes:css.length}));
   await mkdir(`${root}preview`, {recursive:true});
   await writeFile(`${root}preview/index.html`, standalone, 'utf8');
   console.log('Built standalone HTML from the formal React preview: web/preview/index.html');
