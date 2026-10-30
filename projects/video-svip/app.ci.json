@@ -2,6 +2,7 @@
   "schema": "opendesk.app-ci.v1",
   "kind": "ui",
   "node": [
-    "tests/environment/video-svip.test.mjs"
+    "tests/environment/video-svip.test.mjs",
+    "tests/environment/video-svip-ui-r03.test.mjs"
   ]
 }

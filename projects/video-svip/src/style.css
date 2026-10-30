@@ -7,3 +7,17 @@
 .vp-members{display:grid;gap:6px}.vp-member-row{display:flex;gap:8px;align-items:center;min-height:38px;border:1px solid var(--od-line,#dce3ec);border-radius:8px;padding:6px 9px}.vp-member-row strong{flex:1;font-size:12px}.vp-member-row span{color:var(--od-sub,#66758a);font-size:11px}.vp-member-row button{min-height:27px;min-width:27px;border:0;background:transparent;color:var(--od-sub,#66758a)}
 .vp-empty{padding:8px 0;color:var(--od-sub,#66758a);font-size:12px}.vp-promo{border:1px dashed var(--od-line,#dce3ec);border-radius:10px;padding:11px}.vp-promo strong{font-size:12px}.vp-promo span{font-size:11px;color:var(--od-sub,#66758a)}.vp-manual{display:grid;gap:4px;font-size:11px;color:var(--od-sub,#66758a)}.vp-flash{margin:0;overflow-wrap:anywhere;padding:7px 9px;border-radius:8px;background:var(--od-soft,#eef1f6);font-size:12px}.vp-flash[data-kind=error]{color:var(--od-negative,#ba3d4c)}
 @media(max-width:360px){.vp-form{grid-template-columns:1fr 1fr}.vp-form button{grid-column:1/-1}.vp-actions>*{flex:1}.vp-route-state{font-size:9px}}@media(prefers-color-scheme:dark){.vp{color:var(--od-ink,#eaf0fa)}.vp-current,.vp-route,.vp-promo{border-color:var(--od-line,#39465b)}.vp-primary{color:var(--od-on-brand,#fff)}}
+
+/* R0.3: recognition evidence is primary; no fake playback/source metrics. */
+.vp-topline>.vp-actions{flex-wrap:nowrap;gap:2px}
+.vp-topline .vp-icon{display:grid;place-items:center;min-height:32px;min-width:32px;padding:0}
+.vp-episode{font-size:12px;font-weight:650;overflow-wrap:anywhere}
+.vp-state{margin:0;font-size:12px;color:var(--od-sub,#66758a);overflow-wrap:anywhere}
+.vp-state[data-kind=ready]{color:var(--od-positive,#257855)}
+.vp-state[data-kind=warn]{color:var(--od-warning,#9b681c)}
+.vp-state[data-kind=error]{color:var(--od-negative,#ba3d4c)}
+.vp-current .vp-help{font-size:11px}
+.vp-current .vp-help p{overflow-wrap:anywhere}
+.vp-evidence{min-width:0}
+@media(max-width:320px){.vp{padding:8px;gap:10px}.vp-current{padding:10px}.vp-title{font-size:15px}.vp-subline{gap:6px}}
+@media(prefers-color-scheme:dark){.vp-state[data-kind=ready]{color:#7bd3ad}.vp-state[data-kind=warn]{color:#e4bb77}}
