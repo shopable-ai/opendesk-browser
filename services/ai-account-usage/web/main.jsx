@@ -56,7 +56,7 @@ function CompactBars({rollovers, windowKey, count=7, expanded=false, onChoose, s
           aria-pressed={!!row && selected === row.priorResetsAt}
           onClick={()=>row && onChoose?.(row)}>
           {value===null?<span className="bar-missing" aria-hidden="true">—</span>:
-            <span className="bar-fill" style={{'--bar-height':`${value}%`}}
+            <span className={`bar-fill ${value>=80?'high':''}`} style={{'--bar-height':`${value}%`}}
               aria-hidden="true"/>}
           {value!==null && value>=80 && <span className="sr-only">超过 80% 关注线</span>}
         </button>;

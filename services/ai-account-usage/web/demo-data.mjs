@@ -44,7 +44,7 @@ const accounts = names.map(([alias,displayName,email,code,tier,label,status,smal
     emailSource:'USAGE_RESPONSE',displayNameSource:'USAGE_RESPONSE',observedAt:stamp(-3600000)}:null;
   const account={alias,displayName,identity,
     providerPlan:{family:code?.toUpperCase()??'UNKNOWN',code,source:code?'QUOTA_RESPONSE':'UNKNOWN'},
-    subscription:{tierLabel:tier||null,membershipExpiresAt:index%4===0?null:stamp((25+index)*86400000),
+    subscription:{tierLabel:tier||null,membershipExpiresAt:!tier||index%4===0?null:stamp((25+index)*86400000),
       nextBillingAt:null,source:tier?'ADMIN_ENTERED':'UNKNOWN'},
     lastAttempt:{status,checkedAt:stamp(-120000),mode:'CODEX_OAUTH',reason:status==='OK'?'OK':'DEMO_FAILURE'},
     windows, lastSuccessAt:windows.length?stamp(-120000):null};
