@@ -38,6 +38,16 @@ try {
   check('10 demo accounts from formal React',await page.locator('.accounts tbody tr').count()===10);
   check('demo is visibly labelled',await page.getByText('虚构数据 · 交互预览 · 不连接真实账号').count()===1);
   check('no failed live HTTP auth attempts',await page.locator('.accounts').count()===1);
+  check('six independent desktop table columns',await page.locator('.accounts thead th').count()===6);
+  const failed=page.locator('tr').filter({hasText:'stale@example.com'});
+  check('failed account retains stable name and query warning',
+    await failed.locator('.account-name').innerText()==='运营 Pro' &&
+    await failed.getByText('查询失败',{exact:true}).count()===1);
+  check('no fake owner or raw alias is visible in the comparison table',
+    await page.locator('table.accounts .account-alias,table.accounts .plan-source').count()===0 &&
+    !(await page.locator('table.accounts').innerText()).includes('负责 / 标签'));
+  const desktopHeight=await page.locator('.accounts tbody tr').first().evaluate(el=>el.getBoundingClientRect().height);
+  check('dense desktop rows',desktopHeight<=104,{desktopHeight});
   await page.screenshot({path:join(evidence,'1440-account-overview.png'),fullPage:true});
   const spare=page.locator('tr').filter({hasText:'备用 Pro'});
   check('spare pro decision',await spare.getByText('值得关注').count()===1);
@@ -69,6 +79,12 @@ try {
   check('account search',await page.locator('.accounts tbody tr').count()===1);
   await page.getByPlaceholder('搜索账号、邮箱、别名…').fill('');
   await page.getByRole('button',{name:'长周期'}).click();
+  const attentionRows=await page.locator('.accounts tbody tr .decision.attention').count();
+  const overview=await page.locator('main > .status-strip').innerText();
+  check('top counts use the actual selected-window rows',
+    overview.includes(String(attentionRows)+' 个值得关注'),{attentionRows,overview});
+  check('short-only account has no long-window decision',
+    await page.locator('tr').filter({hasText:'research@example.com'}).getByText('不适用当前窗口').count()===1);
   check('window filter aria state',await page.getByRole('button',{name:'长周期'}).getAttribute('aria-pressed')==='true');
   await page.getByRole('button',{name:'可用窗口'}).click();
   const statusFilter=page.locator('.controls select').first();
@@ -123,7 +139,7 @@ try {
     cssSHA256:createHash('sha256').update(css).digest('hex'),
     browserVersion:await browser.version(),checks,issues};
   await writeFile(join(evidence,'chromium-report.json'),JSON.stringify(report,null,2)+'\n');
-  console.log('R19_CHROMIUM',JSON.stringify({browserVersion:report.browserVersion,passed:checks.length,screenshots:4}));
+  console.log('R20_CHROMIUM',JSON.stringify({browserVersion:report.browserVersion,passed:checks.length,screenshots:4}));
 } catch(error) {
   const report={result:'CHROMIUM_FAIL',error:String(error.message||error),checks,issues};
   await writeFile(join(evidence,'chromium-report.json'),JSON.stringify(report,null,2)+'\n');

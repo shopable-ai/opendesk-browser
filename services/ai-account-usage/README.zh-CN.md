@@ -1,3 +1,14 @@
+## R2.0 决策总表减法设计（2026-10-30）
+
+在正式 `web/main.jsx` / `style.css` 上直接迭代，继续使用 R1.9 的唯一 React 界面与同源 HTML 预览。
+
+- **身份：** 管理员设置的 `account.displayName` 是稳定标签，不是负责人；查询失败只作为状态。技术别名仍可搜索，但仅在详情显示；`identity.displayName` 与其来源独立保存，无法证实时不伪造姓名。
+- **总表：** 账号身份、会员资料（含已知到期）、当前缓存、独立额度窗口最近 7 次重置前剩余、管理结论、操作。来源、查询时间、内部代码、原始身份字段和错误详情放入折叠区。
+- **一致口径：** `projectAccountView` 同时供顶部计数、行内结论、筛选和排序使用；顶部只统计当前筛选结果，按各行所选窗口计算，明确区分历史加载中、读取失败与无所选窗口。`evaluateHistory` 的证据等级和固定 7 次阈值未改。
+- **成员管理：** 仅可能具有组织席位的 Business / Enterprise / Edu 显示官方成员管理指引，不推断管理员身份、不提交邀请、不分享 Token 或 Cookie。
+- **发布：** 构建仍从正式 React 生成 production 与纯虚构 preview；GitHub workflow 的真实测试、构建、预览发布和四张浏览器截图均须核验运行记录。Mac Chrome 独立验收，不拿 Linux Chrome 替代。
+
+---
 ## R1.9 企业管理员决策视图（2026-10-30）
 
 本轮在原有 `web/main.jsx` / `web/model.mjs` / `web/style.css` 上差量改造；原历史库、额度读取、身份验证、管理员会话及 Cookie Editor Relay 均未重建。

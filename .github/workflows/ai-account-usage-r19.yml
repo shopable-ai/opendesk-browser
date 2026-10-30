@@ -1,4 +1,4 @@
-name: AI Account Usage R1.9 · React Decision Chromium
+name: AI Account Usage R2.0 · React Decision Chromium
 on:
   push:
     branches: [main]
@@ -92,13 +92,13 @@ jobs:
             echo "Standalone HTML already matches the validated React build."
             exit 0
           fi
-          git commit -m "docs(ai-account-usage): publish verified R1.9 React preview [skip ci]"
+          git commit -m "docs(ai-account-usage): publish verified R2.0 React preview [skip ci]"
           git push origin HEAD:main
       - name: Archive exact React preview and four screenshot sources
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ai-account-usage-r19-${{ github.sha }}-${{ github.run_attempt }}
+          name: ai-account-usage-r20-${{ github.sha }}-${{ github.run_attempt }}
           retention-days: 14
           if-no-files-found: warn
           path: |
