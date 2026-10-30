@@ -1,6 +1,6 @@
 # ScrapyJS · 自有设备、手机移动网络与社区协作节点（方案决策）
 
-> 日期：2026-10-30｜状态：DESIGN_ONLY / NOT_IMPLEMENTED / NOT_TESTED
+> 日期：2026-10-30｜状态：DESIGN + ISOLATED_POC_SOURCE；ANDROID_DEVICE / REAL_NETWORK 均 NOT_TESTED；远程领取与社区共享 NOT_IMPLEMENTED
 >
 > 本文记录“用户自己的电脑或手机作为采集出口/任务节点；用户可主动领取任务；未来自愿互助共享与收益”的长期产品方向。**不是已实现的代理、手机应用或用户网络共享服务。** 下一轮先做小范围架构与真实设备可行性验证，不直接上线开放住宅代理市场。
 >
@@ -169,3 +169,7 @@ IP、节点定位和完整访问日志属于敏感信息，默认不向其他用
 下次对话先检查本文、`README.zh-CN.md`、`PRODUCT-ROADMAP.zh-CN.md`、`AI-ENGINE-PROXY-ARCHITECTURE.zh-CN.md` 和最新 `main` 的真实代码/证据。已完成项不重做，只实施未完成的差量。并行开发不能因文档新建而宣布已安装或正式发布。
 
 每维分别按 100 分评估：产品价值、端到端可用性、移动双网络可行性、安全与合规、复用现有架构、成本/可维护性、可扩展性；综合分为算术平均，不得累加。所有设计方案目标 >=95，但不能将设计评分冒充真实 Android/Chrome 功能通过。真实验收独立标注 NODE、ANDROID_DEVICE、MAC_CHROME、REAL_NETWORK、REAL_RUNHOST、CLOUD、BILLING；未测标 NOT_TESTED。
+
+## 10. R2.0-NODE 实施增量（源码不等于设备通过）
+
+新增 [nodes/poc/README.zh-CN.md](../nodes/poc/README.zh-CN.md) 与隔离的 Android 前台/ Mac HTTPS 接收器源码；仅服务自有 Android + Mac + 本人授权测试站点。**Wi-Fi 只需局域网可达，蜂窝网络才承担目标 HTTPS GET**。不重建原 React/Task/Host。未运行的 Android 编译、实际双网络、Mac 原生 Chrome 和计费均 NOT_TESTED；具体步骤和阻断以 PoC 手册为准。

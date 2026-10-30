@@ -7,6 +7,7 @@
 - [产品目标与分阶段路线图](docs/PRODUCT-ROADMAP.zh-CN.md)：当前基础、差距、P0/P1/P2、1–3 页 AI 试采及后续验收。
 - [AI 引擎、代理与云运行技术架构](docs/AI-ENGINE-PROXY-ARCHITECTURE.zh-CN.md)：Scrapling、Crawl4AI、Apify 等执行适配与安全边界。
 - [商业模式、竞品与上下游服务](docs/COMMERCIALIZATION-COMPETITORS.zh-CN.md)：模板复用、定制开发、维护、代理与收费路径。
+- [自有私有双网络 PoC 与真实设备测试步骤](nodes/poc/README.zh-CN.md)：隔离源码已提交；安卓编译与真实网络均 NOT_TESTED。
 - [自有手机/电脑网络与社区协作节点](docs/COMMUNITY-NODES-MOBILE-EGRESS.zh-CN.md)：Wi-Fi 控制 + 蜂窝采集出口、远程主动领取任务及未来自愿共享；**仅设计，不是已启用代理服务**。
 
 **当前不创建新 Runtime、云服务、付费功能或扩展权限；后续按最新 main 实际完成状态增量实施。**
