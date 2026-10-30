@@ -3,7 +3,7 @@
   "date": "2026-10-30",
   "task": "R3.1-S3-FINISH",
   "overall": "NOT_FINISHED",
-  "stage": "PACKAGE_READY_INSTALL_NOT_TESTED_NATIVE_ENTRY_AND_DEVICE_KEY_BLOCKED",
+  "stage": "RECOVERY_FIXES_PACKAGE_READY_NATIVE_CANDIDATE_PAIRING_PENDING_DEVICE_KEY_BLOCKED",
   "repository": "/Users/mac/Documents/workspace/opendesk-browser",
   "branch": "main",
   "sourceHeadBeforeCommit": "c880be64c1208fa922ce1efed81d6b46291cf19e",
@@ -173,7 +173,7 @@
     "arithmeticMean": null,
     "reason": "Required latest-candidate Chromium, Mac, two-device LAN and real-site evidence absent; no 95+ assertion"
   },
-  "nextUserOperation": "Verify the actually loaded OpenDesk extension ID/path and Debug local development connection through an accessible real Chrome product entry; then save A/B, enable each alias, close Sidebar and verify URL switching and reload. Do not guess an ID or bypass the protected Chrome page. Session sharing remains blocked by the existing nonextractable-key recovery contract.",
+  "nextUserOperation": "Existing development writer/guard must publish a coherent fingerprint for changed SW, then verify actual Chrome identity/path and paired SW/UI via ordinary toolbar/Side Panel after ScrapyJS input release; perform local A/B URL switching with Sidebar closed. Device session sharing remains blocked by key recovery contract.",
   "goalLifecycle": "Original task goal remains BLOCKED_NOT_COMPLETE; current task get_goal is null. No goal was created, migrated or marked complete.",
   "continuation20261030": {
     "sourceHeadBeforeCommit": "a292e33ad50d271fb9b6432318646bf17e67a4ac",
@@ -668,6 +668,22 @@
     "twoDeviceLanFullChain": "NOT_TESTED",
     "realSiteLogin": "NOT_TESTED",
     "overall": "NOT_FINISHED",
-    "nextOperation": "After normal Chrome UI identity/dev connection evidence and input release, verify the paired fixed SW and 2.0.56 UI through the original entry, then local A/B URL switching with Sidebar closed. Never reuse unknown effects or bypass rejected internal pages."
+    "nextOperation": "Existing development writer/guard must publish a coherent fingerprint for changed SW, then verify actual Chrome identity/path and paired SW/UI via ordinary toolbar/Side Panel after ScrapyJS input release; perform local A/B URL switching with Sidebar closed. Device session sharing remains blocked by key recovery contract.",
+    "commit": "cb66ae58badd5ce9a506be72b7b35bfac4ecbb0d",
+    "developmentOutputReadbackAfterCommit": {
+      "recordedAt": "2026-10-30T08:25:18.577451+00:00",
+      "status": "SW_CHANGED_DEVELOPMENT_FINGERPRINT_STALE_NOT_PAIRED",
+      "declaredRevision": "1d1737183db0b8afb6da5809e9bcace3f31a423dcea2d03e3666552c772385b8",
+      "declaredSwSha256": "424aefb25f11205ee03a0f99b36711aca64fe2f0fc34da4937eac3e9e6ef2265",
+      "actualSwBytes": 978038,
+      "actualSwSha256": "a2c4b02605d2f3faba913004773c19e818f801b4d61461b30e16c658a5a82e5b",
+      "newSourceMarkersPresent": [
+        "configurationImported",
+        "phase:recovered"
+      ],
+      "interpretation": "A single read proves output/declared-hash mismatch, not a final coherent build or loaded Chrome SW. Existing sole writer/guard owner notified; no second build, output write or restart.",
+      "normalSidePanelReport": "ScrapyJS owner reports ordinary-toolbar Side Panel reachable; cloud owner reports connected UI with old short revision 1d1737183db0. This is inherited connection evidence, not current Cookie candidate/native proof.",
+      "cookieChromeOperations": false
+    }
   }
 }
