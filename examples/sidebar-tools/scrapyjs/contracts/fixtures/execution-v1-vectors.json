@@ -361,7 +361,7 @@
         {
           "scope": "receipt",
           "path": "counters.bytes",
-          "value": 9999999
+          "value": 200000
         }
       ],
       "expected": {
