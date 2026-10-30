@@ -69,3 +69,13 @@
 - 原分享服务17项检查PASS，日志 artifacts/cookie-editor-r31/claim-permission-targeted-20261030.log。新增真实Relay领取后撤权反例证明，重新授权后也不发第二次POST；0 POST的权限拒绝则可以明确恢复且只有一条本地记录。2.0.56 UI和唯一正式包未变，不重编/重复晋升。
 - ScrapyJS已释放输入并提供正常侧栏截图，截图实见开发连接及旧短revision1d173；ID/路径仍未可见。新云控输入协调owner为 `01a18bb3-2243-7e90-93c1-6c9337dbbde7`，已同步Cookie需要一致候选后的短段A/B窗口；本任务尚未操作桌面输入。
 - 独立只读审查无P1/P2，允许share blob `63f6e84bf6fc360210be242247c29d993389ec15` 继续仅准入SW；原来源表和来源测试已精确更新，target/漂移/symlink6项PASS。已向原writer owner通知最终源pin和17项结果就绪；其恢复仍自行按Native/草稿安全窗口执行，本任务不操作服务。唯一证据追加 unsentPermissionContinuation20261030，UI包2.0.56字节保持不变。
+
+## 真实 Chrome 原位更新与用户要求新任务接续
+
+- 原writer维护已完成：Node27680/npm27665为唯一writer，固定dist/development、Developer edition，revision `ed52e7aea28a2bfe5373a16b8f5024b89bb0ddb06b16d0b0824928eb9b3f5d55`。本任务独立核对manifest、SW、sidepanel、tool-shell、Cookie正式JSON五项均匹配清单；原127项和marker自摘要由owner验证。不再沿用旧1d阻断。
+- 正常SidePanel tooltip已取得实际ID `ljclbnojkhhgdpoaaggiihlmidgcoihi` 和完整client revision，与磁盘一致；实际Chrome加载路径仍NOT_TESTED，不访问已拒内部页或Profile/CDP。
+- **真实原位更新已执行**：原扩展列表Cookie「审阅新版」显示2.0.54→2.0.56、权限不变；明确确认后查看安装详情，实见2.0.56、官方来源、已启用及完整SHA256 `9bbf1cf7aab6afab95d3f9f63247064dbcdb6e36dac2976cb075abf25e34ab64`。本轮不再称Cookie安装未执行，但不将安装等同A/B通过。
+- 独立测试tab `759148157` 打开标准demo-form；原可信授权完成后列表初始2条，新增唯一虚构Cookie `od_r31_local_01a18bd4=fiction-a-01a18bd4` 后列表3条。原两条Cookie未编辑，值未读出。尚未执行独立值读回和关闭侧栏URL切换。
+- **最新未分类点**：账号初始显示0条，进入添加表单；PID限定输入失败code2，title守卫对Cookie字段有效，但账号名替换未见预期R31-A。未点击账号保存，随后界面已返回列表显示当前快照test1。未知来源，不删除/复用test1作为A证据。当前自动刷新开关观察为关闭，可能在路由意外变化后被原坐标点击误触，接续先核对并按场景明确开启。云控01a18bb3明确否认期间任何输入/Native/Run，ScrapyJS亦明确否认移交后的任何桌面输入或创建test1；来源仍未分类，不将此症状直接归因产品或改源码。
+- 用户明确要求创建新任务；已将Browser测试tab以handoff finalize释放，页面保留，当前无在途Run/Native，无主动未保存表单（最后观察为账号列表）。桌面输入将交新Cookie owner，旧owner接手确认后停止Cookie源码/浏览器/服务/输出操作。新任务不自动迁移旧blocked goal；本任务goal实读null。
+- 原始现场在 artifacts/cookie-editor-r31/native-local-20261030-01a18bd4/progress.json 及截图；唯一JSON追加 nativeLocalContinuation20261030。下一操作：先分类账号输入/驱动异常，保留未知test1和原Cookie；再完成R31-A/B保存、白名单、关闭侧栏URL切换、独立读回与刷新。双机加密恢复仍受原密钥合同阻断，完整目标未完成。
