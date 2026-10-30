@@ -1,10 +1,22 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-## R3.1-S3 配置分享接线候选（2026-10-30，未完成正式交付）
+## R3.1-S3 续跑：2.0.55 安装包已准备（2026-10-30，完整目标未完成）
+
+唯一正式包现为 **2.0.55**，SHA-256 `70e398b10d40d1a93242f6dbc0d6d7d172faa9d2f6a1d236c7f43a576c91cb07`，包含当前配置分享入口。当前源码、Vite 编译回执与候选逐字节一致，原打包器 `--promote-from` 晋升后 `--check-project` 通过；先前延期的三条正式包同源检查也已通过。权限和依赖要求未变化。
+
+本轮修正三条过时 Host 测试：等待异步包身份/授权完成、为设置场景提供有效目标与 Chrome 权限，并按现行合同允许未授权的非特权界面可见；额外证明该界面仍不能发出 Cookie 写入。三条定向检查通过，产品权限代码未修改；其他未变的业务/来源/打包证据复用，全共享 Host 的其他失败保留，不宣称全套 Node PASS。
+
+**PACKAGE_READY_INSTALL_NOT_TESTED**：可经原「扩展」安装审阅流程更新，尚未安装或在真实 Chrome 验证。本机关闭侧栏 A/B URL 快切仍未测；会话分享仍拒绝 `E_SHARE_DEVICE_KEY_STORAGE_REQUIRED`，配置领取、Cookie 写入读回、网站登录三个结果继续分开。共享开发服务由云控 owner `01a18b96-4e45-7971-b993-28d6dde17f60` 协调，Browser 管理页拒绝与真实侧栏控制缺口未解除。本轮未运行扩展构建、未重启 watcher，未导出设备私钥。
+
+以下保留晋升前的开发与阻断记录；当前包状态以上述同源晋升及同一证据 JSON 的最新追加为准。
+
+## R3.1-S3 配置分享接线历史（2026-10-30，晋升前记录）
 
 **同日续跑：** 已修正 Analytics 的 Reading TOC 旧导入，复核并更新五项仅修正相对导入深度的迁移源码锁；`projects/` 中未经精确审查的源码现在与 `examples/` 一样拒绝进入可信包，迁移不再意外绕过准入。定向迁移与保护检查 10/10、Analytics 导入图 1/1、Cookie 来源保护 6/6 通过。另一台真实 Mac 已用显式证书信任经 LAN HTTPS 从原 Relay 领取一份无 Cookie 测试配置（创建 201、领取 200、次数归零），默认未信任证书则校验拒绝。**这只证明双机 HTTPS API 传输**，没有修改系统／Chrome 信任，也没有经过 OpenDesk 接收 Host、Cookie 恢复或网站登录。已有开发 watcher（PID 62841）仍报目录合同错误、疑似使用迁移前缓存，且由其他任务持有，未擅自停止或启动第二个 writer；最新开发产物和原生验收仍待恢复。详细续跑证据已追加到下述同一证据文件。
 
 **后续阻断核对：** watcher 已推进到 `preinstall-intent` 并暴露另一处 Reading TOC 旧导入，现已最小改为 `projects/reading-toc/trusted/existing-tabs.js`；语法和四项相对依赖解析通过。目录虽已有部分 SW，但仍缺 `manifest.json` 和开发发布指纹，不能视为完整可加载候选。原重启确认未获明确答复，没有停止其他任务服务。非导出私钥恢复阻断连续三轮未解除，目标仍未完成并等待所需协调；不重复宽回归或把 TLS API 领取提升为 OpenDesk／登录验收。
+
+**接续资源更新（同日）：** 原 watcher 的恢复 owner `01a188d9-a03e-78d1-b1d7-ccc12b4a8817` 已明确通知就绪，PID 62841 未重启，仍是固定 `dist/development` 的唯一 writer；manifest、sidepanel 和开发发布指纹已恢复。Cookie owner 独立核对四个相关文件与指纹一致（revision `1d1737183db0b8afb6da5809e9bcace3f31a423dcea2d03e3666552c772385b8`），构建恢复等待已解除。**当前阻断转为真实 Chrome 入口**：控制工具明确拒绝接管已有 `chrome://extensions/` 标签页，实际 OpenDesk ID、加载路径和 dev client 连接仍未知，本轮未操作 Cookie 或绕过保护。下一步先取得可访问的真实工作台和身份/连接证据，再做关闭侧栏 A/B URL 快切。非导出密钥恢复合同未变化，会话分享继续 BLOCKED。接续事实已追加到同一证据 JSON；工作流见 [`cookie-editor-r31-s3-finish-20261030.md`](../../../docs/framework/workstreams/cookie-editor-r31-s3-finish-20261030.md)。
 
 当前开发源码为 **2.0.55**，目录内唯一正式包仍为 **2.0.54**，没有覆盖或晋升。正式包与当前源码检查明确失败；本次源码提交不能当作用户已安装、已更新或跨设备登录成功。
 

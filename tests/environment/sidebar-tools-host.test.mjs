@@ -3454,7 +3454,10 @@ test('R5.38 forged clear size or revoked site grant never falls through to a dup
     observe:true,clear:true,values:true,valueConsent:true};
   const store=await verifiedCookieStore(tool,grant);
   const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true}});
-  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
+  // R2.8 renders the unprivileged UI before asynchronous admission finishes.
+  // The clear intent requires the completed package/grant decision, not visibility.
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='撤销授权'&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
   const old=Object.getOwnPropertyDescriptor(globalThis,'navigator');
   Object.defineProperty(globalThis,'navigator',{configurable:true,
     value:{userActivation:{isActive:true}}});
@@ -3469,7 +3472,8 @@ test('R5.38 forged clear size or revoked site grant never falls through to a dup
     return f.frame.contentWindow.sent.find(row=>row.kind==='response'&&row.requestId===id);
   };
   f.ask('cookieEditor.clear.begin',{url,previewRef,expectedCount:2},'prepared');
-  assert.equal((await reply('prepared')).ok,true);
+  const prepared=await reply('prepared');
+  assert.equal(prepared.ok,true,JSON.stringify(prepared.error));
   f.ask('browser.cookies.clearSite',{url,previewRef,expectedCount:1,maxCookies:50},'changed-count');
   assert.equal((await reply('changed-count')).error.code,'E_DOCUMENT_CHANGED');
   assert.equal(messages.length,0);
@@ -3496,7 +3500,9 @@ test('R5.37 development Cookie package grants declared capabilities for current 
     hostReply:cookieHostReceipt(tool,store,hostCalls)});
   await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='允许管理本站 Cookie'&&
     !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
-  assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false,
+    'R2.8 keeps the unprivileged editor visible before site consent');
+  await assertCookieWorkspaceUnauthorized(f,f.frame,f.loaded,target.snapshot.url);
   f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
   await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieSites?.[origin]?.clear===true);
   await settle(()=>f.elements['sidebar-tool-frame'].hidden===false);
@@ -3606,11 +3612,14 @@ test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns an
   const baseGrant={storeId:'0',grantEpoch:'r525-fixture',read:true,values:true,valueConsent:true,
     write:true,observe:true,clear:true};
   const store=await verifiedCookieStore(tool,baseGrant);
-  const f=await hostFixture(t,{tool,store}),original=f.frame;
+  const target=cookieTestTarget();
+  const f=await hostFixture(t,{tool,store,target,
+    chromePermissions:{contains:async()=>true}}),original=f.frame;
   assert.ok(original,'installed Cookie Editor mounts its official iframe');
-  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='撤销授权'&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
   const settings=f.elements['sidebar-tool-cookie-permissions'];
-  assert.equal(settings.hidden,true);
+  assert.equal(settings.hidden,true,'Cookie settings before first explicit open');
   for(let i=0;i<10;i++){
     assert.equal(f.host.openSettings(tool.id),true,'settings opens without destroying the editor');
     assert.equal(f.runtime.frameRoot.children[0],original,'openSettings must not destroy the active frame');
