@@ -12,11 +12,12 @@ const runRow=()=>({id:'r-'+randomUUID(),at:new Date().toISOString(),kind:'restor
   status:'restored_limited',origin:'https://qa.example.test',presetName:'美国',
   detail:'网页字段恢复，网络头未验证',source:'trusted-browser-host'});
 function fakeHost({readValue=value=>value}={}){
-  const store=new Map();let loseAck=false;
+  const store=new Map(),writes=[];let loseAck=false;
   return {setLoseAck:()=>loseAck=true,
-    store,request:async(name,args)=>{
+    store,writes,request:async(name,args)=>{
       if(name==='storage.get')return {value:readValue(structuredClone(store.get(args.key)??null)),etag:tag(store.get(args.key)??null)};
       if(name==='storage.set'){
+        writes.push(structuredClone(args));
         if(args.ifMatch!==tag(store.get(args.key)??null))
           throw Object.assign(Error('conflict'),{code:'E_STORAGE_CONFLICT'});
         store.set(args.key,structuredClone(args.value));
@@ -43,6 +44,78 @@ test('presets persist with CAS readback and deletion leaves old snapshot namespa
   await deletePreset(host.request,saved.id);
   assert.equal((await readPresets(host.request)).value.items.length,0);
   assert.deepEqual(host.store.get('fingerprint.a.history.v1'),{legacy:true});
+});
+test('stale preset drafts cannot overwrite changes to the same saved profile',async t=>{
+  for(const change of [{name:'renamed'},...Object.entries(BUILTIN_PRESETS.jp.config)
+    .map(([key,value])=>({config:{...BUILTIN_PRESETS.us.config,[key]:value}}))]){
+    await t.test(JSON.stringify(change),async()=>{
+      const host=fakeHost();
+      await savePreset(host.request,{id:null,name:'shared',config:BUILTIN_PRESETS.us.config});
+      const expectedPreset=(await readPresets(host.request)).value.items[0];
+      await savePreset(host.request,{...expectedPreset,...change});
+      const before=structuredClone(host.store.get(PRESETS_KEY)),writes=host.writes.length;
+      await assert.rejects(()=>savePreset(host.request,{...expectedPreset,
+        config:{...expectedPreset.config,viewport:'mobile'},expectedPreset}),
+      {code:'E_STORAGE_CONFLICT'});
+      assert.equal(host.writes.length,writes,'conflicting draft must not attempt a write');
+      assert.deepEqual(host.store.get(PRESETS_KEY),before);
+    });
+  }
+});
+test('a deleted preset baseline conflicts without recreating or writing the profile',async()=>{
+  const host=fakeHost();
+  await savePreset(host.request,{id:null,name:'shared',config:BUILTIN_PRESETS.us.config});
+  const expectedPreset=(await readPresets(host.request)).value.items[0];
+  await deletePreset(host.request,expectedPreset.id);
+  const before=structuredClone(host.store.get(PRESETS_KEY)),writes=host.writes.length;
+  await assert.rejects(()=>savePreset(host.request,{...expectedPreset,expectedPreset}),
+    {code:'E_STORAGE_CONFLICT'});
+  assert.equal(host.writes.length,writes);
+  assert.deepEqual(host.store.get(PRESETS_KEY),before);
+});
+test('unchanged baseline accepts reordered keys and preserves changes to other profiles',async()=>{
+  const host=fakeHost();
+  await savePreset(host.request,{id:null,name:'shared',config:BUILTIN_PRESETS.us.config});
+  const expectedPreset=reorderKeys((await readPresets(host.request)).value.items[0]);
+  const other=await savePreset(host.request,{id:null,name:'other',config:BUILTIN_PRESETS.de.config});
+  const removed=await savePreset(host.request,{id:null,name:'removed',config:BUILTIN_PRESETS.us.config});
+  await savePreset(host.request,{id:other.id,name:'other edited',config:BUILTIN_PRESETS.jp.config});
+  await deletePreset(host.request,removed.id);
+  const updated=await savePreset(host.request,{...expectedPreset,
+    config:BUILTIN_PRESETS.de.config,expectedPreset});
+  assert.deepEqual(updated.items,[
+    {id:expectedPreset.id,name:'shared',config:BUILTIN_PRESETS.de.config},
+    {id:other.id,name:'other edited',config:BUILTIN_PRESETS.jp.config}
+  ]);
+});
+test('omitted or undefined baseline preserves legacy update and deleted-profile behavior',async()=>{
+  const host=fakeHost();
+  await savePreset(host.request,{id:null,name:'shared',config:BUILTIN_PRESETS.us.config});
+  const stale=(await readPresets(host.request)).value.items[0];
+  await savePreset(host.request,{...stale,config:BUILTIN_PRESETS.de.config});
+  const updated=await savePreset(host.request,{...stale,expectedPreset:undefined});
+  assert.deepEqual(updated.items,[stale]);
+  await deletePreset(host.request,stale.id);
+  await assert.rejects(()=>savePreset(host.request,stale),{code:'E_PRESET_CHANGED'});
+});
+test('baseline validation retains CAS protection against a later concurrent write',async()=>{
+  const host=fakeHost();
+  await savePreset(host.request,{id:null,name:'shared',config:BUILTIN_PRESETS.us.config});
+  const expectedPreset=(await readPresets(host.request)).value.items[0];
+  let concurrent;
+  const request=async(name,args)=>{
+    if(name==='storage.set'){
+      const latest=structuredClone(host.store.get(PRESETS_KEY));
+      latest.items[0].name='concurrent';
+      host.store.set(PRESETS_KEY,latest);concurrent=structuredClone(latest);
+    }
+    return host.request(name,args);
+  };
+  const writes=host.writes.length;
+  await assert.rejects(()=>savePreset(request,{...expectedPreset,
+    config:BUILTIN_PRESETS.jp.config,expectedPreset}),{code:'E_STORAGE_CONFLICT'});
+  assert.equal(host.writes.length,writes+1,'CAS failure must not retry the write');
+  assert.deepEqual(host.store.get(PRESETS_KEY),concurrent);
 });
 test('CAS rejection and write-ack loss cannot claim saved',async()=>{
   const host=fakeHost(),request=host.request;

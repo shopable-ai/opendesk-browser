@@ -44,7 +44,8 @@ test('profile CRUD preserves the existing CAS storage identity and never implies
   assert.match(app,/readPresets\(adapter\.request\)/);
   assert.match(app,/savePreset\(adapter\.request,/);
   assert.match(app,/deletePreset\(adapter\.request,id\)/);
-  assert.match(app,/setSelected\('custom'\);setDirty\(true\)/);
+  assert.match(app,/setSelected\('custom'\);setPresetBaseline\(null\);setDirty\(true\)/);
+  assert.match(app,/expectedPreset:presetBaseline\|\|undefined/);
   assert.match(app,/discardGuard\(\(\)=>assignPreset\(item\.id\)\)/);
   assert.match(session,/sessionActions\(status,session\)/);
 });

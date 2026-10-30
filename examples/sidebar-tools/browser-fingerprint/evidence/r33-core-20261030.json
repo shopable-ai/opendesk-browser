@@ -1,0 +1,157 @@
+{
+  "schema": "opendesk.fingerprint.core-delivery.v1",
+  "recordedAt": "2026-10-30T11:26:34.164Z",
+  "scope": "LATEST_UI_AND_CORE_DEVELOPMENT; NOT_FULL_R33_ACCEPTANCE",
+  "headAtEvidence": "0fd942223bfe47a2a30ef144661c5df8f0ea0fd2",
+  "sourceIdentity": "working tree content hashes; commit supplied with delivery",
+  "NODE": {
+    "status": "PASS",
+    "command": "npm --prefix examples/sidebar-tools/browser-fingerprint test",
+    "tests": 72,
+    "failures": 0
+  },
+  "BUILD": {
+    "status": "PASS",
+    "buildId": "0ea723faabc36dcd506dcfae6c089ac31cad2610d3930eb07da1f00f17cf7145"
+  },
+  "CHROMIUM": {
+    "kind": "SOURCE_BOUND_REACT_R32_CHROMIUM_PREVIEW_FIXTURE_ONLY",
+    "sourceCommit": null,
+    "installed": false,
+    "native": false,
+    "targetPageEnvironmentModified": false,
+    "targetPageIndependentReadback": false,
+    "htmlSha256": "92ba55945e3065358fcdcd447a70b28b932a4e5e84500d3afd5bb3bb73fd2a30",
+    "buildId": "0ea723faabc36dcd506dcfae6c089ac31cad2610d3930eb07da1f00f17cf7145",
+    "checks": [
+      {
+        "name": "SOURCE_BUILD_FRESHNESS",
+        "status": "PASS",
+        "scope": "SOURCE_PROVENANCE",
+        "drift": []
+      },
+      {
+        "name": "R32_DEFAULT_AND_FOUR_PRESETS",
+        "status": "PASS",
+        "scope": "FIXTURE_ONLY"
+      },
+      {
+        "name": "DIRECT_EDIT_DRAFT_GUARD_KEYBOARD_FOCUS",
+        "status": "PASS",
+        "scope": "FIXTURE_ONLY"
+      },
+      {
+        "name": "SAVE_READBACK_REOPEN_EDIT_COPY_DELETE",
+        "status": "PASS",
+        "scope": "FIXTURE_ONLY"
+      },
+      {
+        "name": "RESET_ORIGINAL_FORM_ZERO_BRIDGE_CALLS",
+        "status": "PASS",
+        "scope": "FIXTURE_ONLY"
+      },
+      {
+        "name": "APPLY_FAIL_CLOSED_NO_FAKE_READBACK",
+        "status": "PASS",
+        "scope": "FIXTURE_ONLY"
+      },
+      {
+        "name": "FIXTURE_ONLY_UNKNOWN_NO_MUTATION_REPLAY",
+        "status": "PASS",
+        "scope": "FIXTURE_ONLY"
+      },
+      {
+        "name": "PRO_LINKS_AND_DETECTION_ENTRY_FIXTURE_ONLY",
+        "status": "PASS",
+        "scope": "FIXTURE_ONLY"
+      }
+    ],
+    "screenshots": [],
+    "exceptions": [],
+    "sourceDrift": [],
+    "snapshotOnly": false,
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/154.0.8037.92",
+      "revision": "@334b65d254ccc35df4fca82706d1753227b01039",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "jsVersion": "15.4.80.19"
+    },
+    "deferred": [
+      "Width/zoom/theme matrix: OUT_OF_SCOPE per latest instruction",
+      "20/21 capacity browser operations: deferred; existing Node coverage owned separately"
+    ],
+    "status": "PASS_R32_PREVIEW_FIXTURE_ONLY"
+  },
+  "REACT_PREVIEW": {
+    "status": "PASS",
+    "opened": "http://127.0.0.1:43277/?r=3.3",
+    "screenshot": "artifacts/fingerprint-r33/latest-react-ui.png",
+    "sdk": "FIXTURE_ONLY; real fingerprint mutations rejected"
+  },
+  "MAC_CHROME": {
+    "status": "NOT_TESTED_CORE",
+    "browser": "Chrome for Testing 154.0.8037.92 macOS arm64 headed",
+    "reached": [
+      "independent website visible",
+      "existing production extension real SIDE_PANEL opened",
+      "existing import UI reached"
+    ],
+    "blocker": "Native file chooser did not complete candidate selection",
+    "candidateInstalled": false,
+    "applyCalled": false,
+    "restoreCalled": false,
+    "ownedBrowserClosed": true
+  },
+  "REAL_HOST": {
+    "status": "NOT_TESTED_WITH_NEW_UI",
+    "reusedHistory": "evidence/mac-lifecycle-20261030.json",
+    "sourceCommit": "d57bc6c681a01cd76433cc880c71453d6a72c0c5",
+    "packageHash": "86fa5c0e50a32c87108ce54da23317669e476ebd7b50e2e6ace00363cdb80fa4",
+    "extensionId": "nohbijocppfnjliinhdfnclbddljobfe",
+    "mode": "production static; serve=false"
+  },
+  "PACKAGE": {
+    "status": "PROJECT_PACKAGE_MATCH_INSTALL_NOT_TESTED",
+    "version": "0.2.4",
+    "bytes": 102881,
+    "sha256": "5c419884acf44db7b6c957e020d04fd1155117a075cb5d61b78d8cccb173780e"
+  },
+  "files": {
+    "src/App.jsx": {
+      "bytes": 39564,
+      "sha256": "9f388a91961c4829f16ba3915006a00b6f8519b41e2501a0b7f156f6077c3ecf"
+    },
+    "src/presets.js": {
+      "bytes": 7506,
+      "sha256": "1202d6a68b3ad5f8557fbd6609f6a0a2e16ccb7fceafe70671a3f164ae10bb70"
+    },
+    "src/run-session.js": {
+      "bytes": 9369,
+      "sha256": "ba8069419906a84cec30270cdb34d336a9519605024d89c205da83d5b8ede511"
+    },
+    "src/env-config.js": {
+      "bytes": 5686,
+      "sha256": "65a7885872f5260b032054d6cc488d21b3288aa3b63ff6e3adb67a7992f52646"
+    },
+    "preview/index.html": {
+      "bytes": 33943,
+      "sha256": "30d7ff8bc173d4544a7569c8077293052c014b2042c6cc67fe952b42273adeea"
+    },
+    "preview/react/index.html": {
+      "bytes": 499206,
+      "sha256": "92ba55945e3065358fcdcd447a70b28b932a4e5e84500d3afd5bb3bb73fd2a30"
+    },
+    "browser-fingerprint.opendesk-tool.json": {
+      "bytes": 102881,
+      "sha256": "5c419884acf44db7b6c957e020d04fd1155117a075cb5d61b78d8cccb173780e"
+    }
+  },
+  "deferred": [
+    "width/zoom/theme matrix",
+    "full visible-button acceptance",
+    "nine-dimension scores and mean"
+  ],
+  "scores": "NOT_SCORED",
+  "remainingCore": "Install same 0.2.4 through existing installer; authorize site; apply unsaved config; independently read website; stop and verify restored baseline"
+}

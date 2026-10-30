@@ -1,4 +1,30 @@
-# Browser Fingerprint R2.2 · 真实网页环境修改（开发待验收）
+# Browser Fingerprint · 当前 React 核心功能
+
+2026-10-30：按用户最新要求优先更新当前页面和核心配置流程，延期宽度/缩放矩阵、全量验收及九项评分。
+
+## 当前入口
+
+- 正式业务源码：`src/App.jsx`、`src/style.css`。首页是「配置」，另外两个 Tab 是「我的环境」「检测」。
+- 最新同源 React 预览：[`preview/react/index.html`](preview/react/index.html)。可修改 UA、语言、时区、视口，选择原始/美国/德国/日本，保存与管理档案；预览始终拒绝修改真实 Chrome，不显示虚假生效。
+- [`preview/index.html`](preview/index.html) 是保留的 **R3.1 设计基准**，不代表当前正式 React UI。
+- 唯一可导入包：[`browser-fingerprint.opendesk-tool.json`](browser-fingerprint.opendesk-tool.json)，版本 **0.2.4**。从原有「扩展 → 更多操作 → 导入扩展」安装/更新；包同源通过不等于新版 Chrome 安装验收通过。
+
+## 本轮结果
+
+档案保存继续使用原 `fingerprint.r21.presets.v1`、ETag/CAS 和写后读回。新增编辑基线检查：同一档案已被其他窗口修改或删除时，拒绝旧草稿覆盖；不阻止其他档案的独立修改。可通过「刷新网页身份」刷新档案列表，再从「我的环境」重新载入，旧草稿仍需明确丢弃。
+
+相关 Node **72/72 PASS**，正式 Vite 构建和预览同源核对通过，Chromium 完成三 Tab、四预设、草稿保护、保存重开/编辑/复制/删除、表单恢复零 Host 调用、拒绝假应用与 unknown 不重放的核心检查。所有预览 SDK 结果均为 **FIXTURE_ONLY**。
+
+新版真实 Mac Chrome 授权/应用/恢复 **NOT_TESTED**：本轮独立 CFT 已打开真实网页和 production 侧栏，但原生文件选择对话框未完成候选导入；未调用新版应用或恢复。旧 Host 的 R2.5 实测仅作为历史复用证据，见 [Mac 生命周期记录](evidence/mac-lifecycle-20261030.zh-CN.md)，不能替代新版 UI 验收。
+
+「恢复原始参数」只改表单；「停止并恢复网页」继续走原 Session 和独立读回。unknown、invalidated、restore_unknown 保护不放宽。产品不承诺独立 Profile、Cookie 隔离、代理或完整指纹浏览器能力；专业方案为自愿入口，不阻断免费配置功能。
+
+本轮完整范围、来源哈希、证据与剩余项见 [核心交付记录](evidence/r33-core-20261030.zh-CN.md)。
+
+<details>
+<summary>R2.x 历史实现记录（不作为当前 UI、Host 或发行状态）</summary>
+
+# Browser Fingerprint R2.2 · 历史记录
 
 **原始产品目标（最高优先级）：** 选择环境预设 → 修改并保存 → 对当前明确授权 Tab 应用真实 Chrome 环境覆盖 → 独立读取网页实际值 → 停止并核对恢复。不是只读检测器。R2.0 原型 preview/r20-reference.html 继续作为设计基线，正式 React Root 为 src/App.jsx。
 
@@ -158,3 +184,5 @@ node examples/sidebar-tools/browser-fingerprint/tests/native-core.mjs --headed -
 ```
 
 `--headed` 通过 Chrome 自身 UI 开启该临时 Profile 的开发者模式，加载固定 `dist/development`；安装与网站授权仍走原产品审阅 UI。`--keep-open` 必须与 `--headed` 一起使用，结束后保留成功结果（失败时保留现场），不会自动关闭窗口。证据目录的 `session.json` 记录本任务进程与 Profile。终端输入 `close` 或向记录的 `driverPid` 发送 `SIGTERM`，由原 launcher 关闭所属浏览器并清理临时 Profile；保留期间不要手动删除该 Profile。
+
+</details>
