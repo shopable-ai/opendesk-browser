@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Video SVIP · 私有文件双机播放 PoC</title>
+  <style>
+    :root { color-scheme: light dark; font: 15px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif; }
+    body { max-width: 700px; margin: 0 auto; padding: 24px 16px 48px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    h1 { font-size: 20px; margin: 0; } h2 { font-size: 16px; margin: 0 0 12px; }
+    p { color: CanvasText; opacity: .78; } section { padding: 16px; border: 1px solid GrayText; border-radius: 12px; margin-top: 16px; }
+    label { display: block; font-size: 13px; margin-bottom: 6px; } input { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 12px; border: 1px solid GrayText; border-radius: 8px; }
+    button { border: 1px solid GrayText; border-radius: 8px; background: Canvas; color: CanvasText; cursor: pointer; padding: 9px 12px; }
+    button:focus-visible, input:focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; } video { width: 100%; background: #000; border-radius: 8px; }
+    code { overflow-wrap: anywhere; } pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; max-height: 210px; overflow: auto; }
+    [hidden] { display: none !important; }
+    .secondary { font-size: 13px; opacity: .72; }
+  </style>
+  <script defer src="/client.js"></script>
+</head>
+<body>
+  <header><h1>Video SVIP · 私有播放实验</h1><span>PoC-1</span></header>
+  <p>仅用于本人自制或明确允许跨设备观看的视频。此处不读取原站 VIP、Cookie 或 DRM。网络直连与中继类型须在 Tailscale 另行核验。</p>
+  <section id="login-panel">
+    <h2>授权访问</h2>
+    <form id="login">
+      <label for="code">输入设备 A 终端显示的一次性配对码</label>
+      <input id="code" name="code" type="password" minlength="16" required autocomplete="off" spellcheck="false">
+      <button type="submit">配对并进入</button>
+    </form>
+    <p id="login-result" role="status"></p>
+  </section>
+  <section id="play-panel" hidden>
+    <h2>已授权的单个媒体文件</h2>
+    <video id="player" controls playsinline preload="none" aria-label="私有授权测试视频"></video>
+    <p id="play-result" role="status">准备就绪，点击播放。</p>
+    <div class="actions">
+      <button id="start" type="button">播放</button>
+      <button id="stop" type="button">停止</button>
+      <button id="stats" type="button">流量状态</button>
+      <button id="copy" type="button">复制脱敏播放证据</button>
+      <button id="revoke" type="button">撤销全部访问</button>
+    </div>
+    <p class="secondary">FIRST_FRAME 与 PLAYING_15S 由浏览器观测，不等于独立验收 PASS。复制的证据不含配对码、Cookie 或文件路径。</p>
+    <pre id="evidence" aria-live="polite"></pre>
+  </section>
+</body>
+</html>
