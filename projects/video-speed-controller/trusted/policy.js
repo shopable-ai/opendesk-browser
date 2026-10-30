@@ -2,7 +2,7 @@
 // Never expose arbitrary page JS, tab IDs, URLs, or DOM data to the sandbox.
 export const VIDEO_SPEED_ID='video-speed-controller';
 export const VIDEO_SPEED_CAPABILITY='page.videoSpeed';
-export const VIDEO_SPEED_OPERATIONS=Object.freeze(['videoSpeed.status','videoSpeed.set']);
+export const VIDEO_SPEED_OPERATIONS=Object.freeze(['videoSpeed.status','videoSpeed.set','videoSpeed.shortcuts.enable','videoSpeed.shortcuts.disable']);
 export const VIDEO_SPEED_MIN=0.25;
 export const VIDEO_SPEED_MAX=4;
 export function validVideoSpeed(value) {
