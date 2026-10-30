@@ -92,7 +92,7 @@ function createSourceOrchestrator({playOwned,stopOwned,inspectOwned,onUpdate=()=
    publish({status:'ALL_UNAVAILABLE'},token);
    active=null;return Promise.resolve({...snapshot});
   }
-  // Called synchronously from a user click: first HTMLMediaElement.play() retains user activation.
+  // Called synchronously from a user click: first owned video.play() retains user activation.
   const perform=async()=>{
    const attempts=[];
    for(let i=0;i<Math.min(queue.length,1+maxFallbacks);i++){
