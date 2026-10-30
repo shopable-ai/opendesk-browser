@@ -50,6 +50,26 @@ function reviewedCompiledVideoSpeed(target,path,root){
   return hash;
 }
 
+// R0.3 Video SVIP: exactly three first-party, immutable source blobs may
+// enter ONLY the existing Side Panel Host; never the SW, sandbox or Page Relay.
+// Runtime admission independently checks official package SHA and revoke epoch.
+const compiledVideoSVIPInputs=Object.freeze({
+  'projects/video-svip/trusted/policy.js':'5b479e4e2df81ea7d7bae75c5c5f03fefbe4aecb',
+  'projects/video-svip/trusted/host.js':'5e9e9a70a466ccf64c6a17c65ed5945380fe314c',
+  'projects/video-svip/trusted/admission.js':'3b6e07c464cb54d8f65d421dcb580a297a99a431'
+});
+function reviewedCompiledVideoSVIP(target,path,root){
+  if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledVideoSVIPInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)
+    throw Error('Trusted Video SVIP source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledVideoSVIPInputs[path])
+    throw Error('Trusted Video SVIP source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 // This is a deliberately fixed, build-reviewed extension source allowance, NOT
 // permission for arbitrary examples/ JS. All twelve AdBlock privileged/business
 // inputs are exact file-blob pinned; the bundle still has a fixed entry point,
@@ -483,6 +503,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     assertLibraryModuleBoundary(chunk.fileName,path);
     const reviewedSource=reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledVideoSpeed(chunk.fileName,path,root)||
+      reviewedCompiledVideoSVIP(chunk.fileName,path,root)||
       reviewedCompiledAdblock(chunk.fileName,path,root)||
       reviewedCompiledCookieAccounts(chunk.fileName,path,root)||
       reviewedCompiledPromptShortcuts(chunk.fileName,path,root)||

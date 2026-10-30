@@ -1,17 +1,16 @@
 (function(){
 'use strict';
 const bridge=globalThis.OpenDeskTool;
-if(!bridge||!bridge.root||typeof bridge.request!=='function')return;
-const root=bridge.root,request=bridge.request,el=id=>root.querySelector('#'+id);
+if(!bridge?.root||typeof bridge.request!=='function')return;
+const {root,request}=bridge,el=id=>root.querySelector('#'+id);
 const PROVIDERS=Object.freeze([
- {id:'tencent',name:'腾讯视频',hosts:['v.qq.com','m.v.qq.com']},
- {id:'iqiyi',name:'爱奇艺',hosts:['iqiyi.com','iq.com']},
- {id:'youku',name:'优酷',hosts:['youku.com']},
- {id:'mango',name:'芒果 TV',hosts:['mgtv.com']},
- {id:'bilibili',name:'哔哩哔哩',hosts:['bilibili.com']}
+ {id:'tencent',name:'腾讯视频'},{id:'iqiyi',name:'爱奇艺'},
+ {id:'youku',name:'优酷'},{id:'mango',name:'芒果 TV'},
+ {id:'bilibili',name:'哔哩哔哩'}
 ]);
 const SHARE_KEYS=new Set(['vid','v','id','ep','episode','p','bvid','aid','cid','season_id','episode_id']);
-let page=null,memberRecords=[],etag=null,storageReady=false,writing=false,closed=false,pageEpoch=0;
+let page=null,memberRecords=[],etag=null,storageReady=false,writing=false;
+let closed=false,stopped=false,pageEpoch=0,eventTimer=null;
 function flash(text='',kind=''){
  const node=el('vp-flash');node.textContent=text;node.dataset.kind=kind;node.hidden=!text;
 }
@@ -20,57 +19,108 @@ function safeUrl(input){
  try{const u=new URL(input);return (u.protocol==='https:'||u.protocol==='http:')&&!u.username&&!u.password?u:null;}
  catch{return null;}
 }
-function siteFor(u){
- if(!u)return null;
- const host=u.hostname.toLowerCase();
- return PROVIDERS.find(p=>p.hosts.some(base=>host===base||host.endsWith('.'+base)))||null;
-}
 function shareUrl(u){
  if(!u)return '';
  const safe=new URL(u.href);safe.hash='';
  for(const key of [...safe.searchParams.keys()])if(!SHARE_KEYS.has(key.toLowerCase()))safe.searchParams.delete(key);
  return safe.href;
 }
+const statusText=ctx=>{
+ if(!ctx)return '正在读取活动文档';
+ if(ctx.recognitionState==='recognized')
+   return ctx.episode==='unknown'?'已识别影片 · 当前集数未知':'已识别 · 与活动文档核对';
+ if(ctx.recognitionState==='needs-confirmation')return '需人工确认 · 仅有弱标题证据';
+ if(ctx.recognitionState==='changing')return '页面内容正在切换 · 尚未确认';
+ if(ctx.recognitionState==='unsupported')return '当前页面不在视频识别范围内';
+ return '无法识别影片 · 请检查页面后重试';
+};
 function paintPage(){
- const site=page?.site||null;
- el('vp-title').textContent=page?.title||'未识别到视频网页';
+ const ctx=page?.context,siteId=ctx?.siteId;
+ const site=siteId?{id:siteId,name:ctx.siteName}:null;
+ const url=page?.url;
+ el('vp-title').textContent=stopped?'已停止识别':ctx?.title||'未识别影片';
  el('vp-provider').textContent=site?.name||'未识别';
- el('vp-page-state').textContent=page?.state||'仅支持常见视频网站';
- el('vp-route-state').textContent=site?'原站入口':'不可用';
- const open=el('vp-open');open.hidden=!site;open.href=site?page.url.href:'#';
- el('vp-copy').disabled=!site;
+ el('vp-episode').textContent=ctx?.episode&&ctx.episode!=='unknown'?
+  String(ctx.episode.label||'集数未知').slice(0,50):'集数未知';
+ el('vp-page-state').textContent=stopped?'监听已停止 · 点击 ↻ 可重新开始':page?.error||statusText(ctx);
+ el('vp-page-state').dataset.kind=page?.error?'error':
+  ctx?.recognitionState==='recognized'?'ready':
+  ctx?.recognitionState==='needs-confirmation'||ctx?.recognitionState==='changing'?'warn':'neutral';
+ el('vp-route-state').textContent=site&&url?'原站入口':'不可用';
+ const open=el('vp-open');open.hidden=!site||!url;open.href=site&&url?url.href:'#';
+ el('vp-copy').disabled=!site||!url||stopped;
+ el('vp-stop').disabled=stopped||closed;
  el('vp-manual-wrap').hidden=true;
- if(site&&storageReady)el('vp-member-provider').value=site.id;
+ const evidence=ctx?.evidence;
+ el('vp-evidence-text').textContent=page?.error||(
+  ctx?'来源：'+(ctx.titleSource||'none')+' · 标题可信度：'+(ctx.titleConfidence||'none')+
+  ' · 集数可信度：'+(ctx.episodeConfidence||'none')+
+  ' · 标题依据：'+(evidence?.title||'无')+' · 集数依据：'+(evidence?.episode||'无')+
+  ' · 页面版本：'+(ctx.contentRevision||'未确认')+
+  (ctx.partial?' · iframe 未全面检测':'')+
+  (page?.watchProblem?' · 自动监听不可用，请手动重新识别':''):'没有来自可信 Host 的 DOM 证据');
+ if(site&&storageReady&&PROVIDERS.some(item=>item.id===site.id))
+  el('vp-member-provider').value=site.id;
 }
-async function refresh(){
- const epoch=++pageEpoch;
+function classify(error){
+ const code=String(error?.code||''),message=String(error?.message||'无法读取网页').slice(0,130);
+ if(code==='E_VIDEO_SITE_ACCESS'||code==='E_VIDEO_TRUST'||/权限|授权|permission/i.test(message))
+  return '网站访问或官方安装权限不足，请检查 Chrome 扩展权限';
+ if(code==='E_DOCUMENT_STALE'||code==='E_VIDEO_TARGET')
+  return '视频网页正在切换，旧识别结果已废弃，请重试';
+ return code?code+'：'+message:message;
+}
+async function refresh({resume=false}={}){
+ if(closed||stopped&&!resume)return;
+ if(eventTimer!==null){clearTimeout(eventTimer);eventTimer=null;}
+ if(resume)stopped=false;
+ const ticket=++pageEpoch;
  page=null;paintPage();
- el('vp-page-state').textContent='正在从 Host 读取…';
+ let watchProblem=false;
  try{
-  const result=await request('currentPage.info');
-  if(epoch!==pageEpoch||closed)return;
-  const url=result?.status==='available'?safeUrl(result.url):null;
-  const site=siteFor(url);
-  page={url,site,title:site?String(result.title||'未命名视频页面').slice(0,160):'未识别到支持的视频网页',
-    state:site?'已识别站点 · 播放状态未检测':url?'此网站暂未适配':'当前网页不可读取'};
+  try{const watch=await request('videoSVIP.watch',{});watchProblem=watch?.watching!==true;}
+  catch{watchProblem=true;}
+  if(ticket!==pageEpoch||closed||stopped)return;
+  const ctx=await request('videoSVIP.inspect',{});
+  if(ticket!==pageEpoch||closed||stopped)return;
+  if(!ctx||!['recognized','needs-confirmation','unrecognized','unsupported','changing'].includes(ctx.recognitionState)||
+    ctx.title!==null&&typeof ctx.title!=='string'||
+    !(ctx.episode==='unknown'||ctx.episode&&typeof ctx.episode.label==='string'))
+   throw Error('Host 返回了无效的视频识别结果');
+  page={context:ctx,url:safeUrl(ctx.canonicalPageUrl),watchProblem};
   paintPage();
  }catch(error){
-  if(epoch!==pageEpoch||closed)return;
-  page={state:'网页读取失败；请检查网站访问权限'};
-  paintPage();flash('识别失败：'+String(error?.message||'未知错误').slice(0,130),'error');
+  if(ticket!==pageEpoch||closed||stopped)return;
+  page={error:classify(error)};
+  paintPage();
  }
 }
+function invalidateAndSchedule(){
+ if(closed||stopped)return;
+ ++pageEpoch;page=null;paintPage();
+ if(eventTimer!==null)clearTimeout(eventTimer);
+ eventTimer=setTimeout(()=>{eventTimer=null;void refresh();},230);
+}
+function stop(){
+ if(stopped||closed)return;
+ stopped=true;++pageEpoch;
+ if(eventTimer!==null){clearTimeout(eventTimer);eventTimer=null;}
+ page=null;paintPage();
+ // The trusted Host releases its MutationObserver port; this response must
+ // never turn an already stopped UI back on.
+ void request('videoSVIP.stop',{}).catch(()=>{});
+}
 async function share(){
- if(!page?.site||!page.url)return;
+ if(!page?.context?.siteId||!page.url||stopped)return;
  const address=shareUrl(page.url);
  try{
   if(!globalThis.navigator?.clipboard?.writeText)throw Error('clipboard unavailable');
   await globalThis.navigator.clipboard.writeText(address);
-  flash('已复制影片网页链接（已去除无关查询参数）。');
+  flash('已复制原站视频页面链接。');
  }catch{
   el('vp-manual-wrap').hidden=false;el('vp-manual').value=address;
   el('vp-manual').focus();el('vp-manual').select();
-  flash('当前环境未开放剪贴板；请复制已选中的链接。');
+  flash('无法访问剪贴板，请复制已选中的链接。');
  }
 }
 function validDate(input){
@@ -136,11 +186,15 @@ for(const tab of root.querySelectorAll('[data-vp-tab]'))tab.addEventListener('cl
  for(const control of root.querySelectorAll('[data-vp-tab]'))control.setAttribute('aria-pressed',String(control.dataset.vpTab===mode));
  el('vp-watch').hidden=mode!=='watch';el('vp-member').hidden=mode!=='member';flash('');
 });
-el('vp-refresh').addEventListener('click',()=>void refresh());
-el('vp-recheck').addEventListener('click',()=>void refresh());
+el('vp-refresh').addEventListener('click',()=>void refresh({resume:true}));
+el('vp-recheck').addEventListener('click',()=>void refresh({resume:true}));
+el('vp-stop').addEventListener('click',stop);
 el('vp-copy').addEventListener('click',()=>void share());
-root.addEventListener('opendesk-page-changed',()=>{flash('');void refresh();});
-window.addEventListener('focus',()=>void refresh());
-window.addEventListener('pagehide',()=>{closed=true;pageEpoch++;},{once:true});
+root.addEventListener('opendesk-page-changed',invalidateAndSchedule);
+window.addEventListener('focus',()=>{if(!stopped)invalidateAndSchedule();});
+window.addEventListener('pagehide',()=>{
+ closed=true;stopped=true;++pageEpoch;
+ if(eventTimer!==null)clearTimeout(eventTimer);
+},{once:true});
 void Promise.all([refresh(),restoreMembers()]);
 })();

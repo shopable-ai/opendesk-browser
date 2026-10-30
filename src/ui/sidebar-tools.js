@@ -54,6 +54,9 @@ import {installedSiteAllowed,blockedInstalledOrigins} from './sidebar-tools/site
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY,VIDEO_SPEED_OPERATIONS} from '../../projects/video-speed-controller/trusted/policy.js';
 import {requestVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
 import {admitsOfficialVideoSpeed} from '../../projects/video-speed-controller/trusted/admission.js';
+import {VIDEO_SVIP_ID,VIDEO_SVIP_CAPABILITY,VIDEO_SVIP_OPERATIONS,VIDEO_SVIP_WATCH_PORT} from '../../projects/video-svip/trusted/policy.js';
+import {requestVideoSVIP} from '../../projects/video-svip/trusted/host.js';
+import {admitsOfficialVideoSVIP} from '../../projects/video-svip/trusted/admission.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../../projects/time-review/trusted/policy.js';
@@ -394,6 +397,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
     'page.clip':'按点击读取当前网页的正文或选区，安装后直接可用',
     'page.videoSpeed':'仅对当前授权网页的一段 HTML5 视频进行有限倍速调整及读回',
+    'page.videoContext':'只读识别已授权视频网页的片名、当前集数与页面变化；不读取会员凭证或视频流',
     'user.export':'复制文本或请求文件下载',
     'page.capture':'安装后在支持的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
@@ -996,9 +1000,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   // Only the active, officially admitted iframe has a keyboard session.
   // Page key listeners never receive direct media/Chrome mutation authority.
   let videoShortcutSession=null,videoShortcutBusy=false;
+  let videoSVIPWatchSession=null;
+  function stopVideoSVIPWatch(){
+    const previous=videoSVIPWatchSession;videoSVIPWatchSession=null;
+    try{previous?.port?.disconnect();}catch{}
+  }
   let sidebarAI=null;
   function destroyFrame() {
-    videoShortcutSession=null;
+    videoShortcutSession=null;stopVideoSVIPWatch();
     sidebarAI?.dispose();sidebarAI=null;
     if(taskDelegationHost){void taskDelegationHost.dispose();taskDelegationHost=null;}
     developmentStorage?.revoke();developmentStorage=null;
@@ -1125,6 +1134,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const release=officialReleases.find(row=>row.toolId===VIDEO_SPEED_ID&&
       row.version===tool?.version);
     return admitsOfficialVideoSpeed({tool,release,expectedEpoch,...await installedAdmissionState()});
+  }
+  async function admittedOfficialVideoSVIP(tool,expectedEpoch){
+    if(!officialLoaded&&!officialError)await officialReady;
+    if(!officialLoaded||officialError)return false;
+    const release=officialReleases.find(row=>row.toolId===VIDEO_SVIP_ID&&row.version===tool?.version);
+    return admitsOfficialVideoSVIP({tool,release,expectedEpoch,...await installedAdmissionState()});
   }
   async function admittedNativeKnowledge(tool,expectedEpoch){
     if(trustedKnowledgePilot?.enabled!==true||typeof trustedKnowledgePilot.mount!=='function')return false;
@@ -2954,6 +2969,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
        operation==='tasks.open'?'tasks.open':
        ['toc.snapshot','toc.navigate'].includes(operation)?TOC_CAPABILITY:
        VIDEO_SPEED_OPERATIONS.includes(operation)?VIDEO_SPEED_CAPABILITY:
+        VIDEO_SVIP_OPERATIONS.includes(operation)?VIDEO_SVIP_CAPABILITY:
         CLIP_OPERATIONS.includes(operation)?CLIP_CAPABILITY:
       CLIP_NOTES_OPERATIONS.includes(operation)?'storage.local':
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
@@ -3183,6 +3199,50 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           }
         }
         return runVideo(operation,payload);
+      }
+      if(VIDEO_SVIP_OPERATIONS.includes(operation)){
+        const runVideoSVIP=(name,watchNonce=null)=>requestVideoSVIP({
+          api,tool,operation:name,payload:{},watchNonce,currentPageTarget,
+          assertCurrent:()=>assertSession(source,token),
+          assertInstalled:async()=>{
+            if(!await admittedOfficialVideoSVIP(tool,revocationEpoch))
+              throw Object.assign(new Error('视频会员需安装已审阅的 0.3.0 官方版本并保持授权'),
+                {code:'E_VIDEO_TRUST'});
+          }
+        });
+        if(operation==='videoSVIP.stop'){
+          stopVideoSVIPWatch();
+          return {stopped:true};
+        }
+        if(operation==='videoSVIP.watch'){
+          if(typeof api.runtime?.onConnect?.addListener!=='function'||
+             typeof globalThis.crypto?.randomUUID!=='function')
+            throw Object.assign(new Error('当前 Chrome 无法监听视频页面变化'),
+              {code:'E_VIDEO_WATCH_UNAVAILABLE'});
+          const target=currentPageTarget.capture();
+          const existing=videoSVIPWatchSession;
+          if(existing?.source===source&&existing.token===token&&existing.tool===tool&&
+             existing.documentId===target.documentId&&existing.tabId===target.tabId&&existing.ready){
+            if(!await admittedOfficialVideoSVIP(tool,revocationEpoch))
+              throw Object.assign(new Error('视频会员授权已变化'),{code:'E_VIDEO_TRUST'});
+            await currentPageTarget.revalidate(target);assertSession(source,token);
+            return {watching:true};
+          }
+          stopVideoSVIPWatch();
+          const watch={source,token,tool,epoch:revocationEpoch,
+            tabId:target.tabId,documentId:target.documentId,nonce:globalThis.crypto.randomUUID(),
+            port:null,ready:false};
+          videoSVIPWatchSession=watch;
+          try{
+            const result=await runVideoSVIP(operation,watch.nonce);
+            assertSession(source,token);
+            if(videoSVIPWatchSession!==watch)
+              throw Object.assign(new Error('页面监听已停止'),{code:'E_VIDEO_WATCH_STALE'});
+            if(result.watching!==true)stopVideoSVIPWatch();
+            return result;
+          }catch(error){if(videoSVIPWatchSession===watch)stopVideoSVIPWatch();throw error;}
+        }
+        return runVideoSVIP(operation);
       }
       if(operation==='toc.snapshot'||operation==='toc.navigate'){
         if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||!api.tabs?.sendMessage)
@@ -4751,6 +4811,38 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     api.runtime.onMessage.addListener(onVideoShortcutMessage);
     listeners.push(()=>api.runtime.onMessage.removeListener(onVideoShortcutMessage));
   }
+  // ISOLATED-world signals only invalidate data; they never supply a title.
+  const onVideoSVIPConnect=port=>{
+    if(port?.name!==VIDEO_SVIP_WATCH_PORT)return;
+    const session=videoSVIPWatchSession,sender=port.sender;
+    if(!session||sender?.id!==api.runtime.id||sender?.frameId!==0||
+       sender?.tab?.id!==session.tabId||sender?.documentId!==session.documentId||
+       !sameInstance(session.source,session.token)||active!==session.tool){
+      try{port.disconnect();}catch{}
+      return;
+    }
+    if(session.port){try{port.disconnect();}catch{}return;}
+    session.port=port;
+    port.onMessage.addListener(message=>{
+      if(videoSVIPWatchSession!==session||session.port!==port||
+         message?.nonce!==session.nonce||!sameInstance(session.source,session.token))return;
+      if(message.kind==='ready'){session.ready=true;return;}
+      if(message.kind!=='changed'||!session.ready)return;
+      const target=currentPageTarget?.snapshot;
+      if(target?.tabId!==session.tabId||target?.documentId!==session.documentId){
+        stopVideoSVIPWatch();return;
+      }
+      session.source.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,
+        kind:'page-changed',instance:session.token,toolId:VIDEO_SVIP_ID},'*');
+    });
+    port.onDisconnect.addListener(()=>{
+      if(videoSVIPWatchSession===session&&session.port===port)stopVideoSVIPWatch();
+    });
+  };
+  if(api.runtime?.onConnect?.addListener){
+    api.runtime.onConnect.addListener(onVideoSVIPConnect);
+    listeners.push(()=>api.runtime.onConnect.removeListener(onVideoSVIPConnect));
+  }
   const messageWindow=window;
   messageWindow.addEventListener('message',onMessage);
   listeners.push(()=>messageWindow.removeEventListener('message',onMessage));
@@ -4786,6 +4878,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const ready=Promise.all([enableReady,installedReady,sitesReady,menuReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady,officialReady,preinstallReady]);
   const menuPermissionsChanged=(details,removed=false)=>{
     menuStatusKey='';cookieChromeKey='';cookieChromeState=null;
+    if(removed&&active?.id===VIDEO_SVIP_ID){
+      stopVideoSVIPWatch();
+      if(frame&&instance)frame.contentWindow?.postMessage({
+        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:VIDEO_SVIP_ID},'*');
+    }
     if(removed&&active?.id==='cookie-editor'&&!readOnlyPreview&&frame){
       const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
       const requested=origin?cookieChromeRequest(origin,cookieAdmissionState===true):null;
@@ -4822,7 +4919,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(nextPage===previousPage)return;
       previousPage=nextPage;
       // A navigated document must never reuse a previous key capability.
-      videoShortcutSession=null;
+      videoShortcutSession=null;stopVideoSVIPWatch();
        cookieImportGate.revoke();
        cookieWriteGate.revoke();
        cookieClearGate.revoke();
