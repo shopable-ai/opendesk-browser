@@ -310,12 +310,17 @@ export default function App({adapter,preview=false}){
       setView('config');setPage(null);
     });
   }
-  function duplicateEnvironment(item={name:nameDraft,config}){
-    discardGuard(()=>{
-      setSelected('custom');setConfig(copyConfig(item.config));
-      setNameDraft((item.name+' 副本').slice(0,24));setDirty(true);
+  function duplicateEnvironment(item){
+    // Copying the currently edited draft preserves its changes in the new
+    // profile; switching to a different saved row still needs a discard guard.
+    const source=item||{name:nameDraft,config};
+    const action=()=>{
+      setSelected('custom');setConfig(copyConfig(source.config));
+      setNameDraft((source.name+' 副本').slice(0,24));setDirty(true);
       setView('config');setPage(null);
-    });
+    };
+    if(item)discardGuard(action);
+    else if(!busyRef.current)action();
   }
   function resetForm(){
     if(busyRef.current)return;
