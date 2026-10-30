@@ -70,7 +70,18 @@ try {
     await page.waitForTimeout(60);
     const result=await page.evaluate(()=>({documentWidth:document.documentElement.scrollWidth,viewport:innerWidth}));
     check(`responsive no page overflow at ${width}`,result.documentWidth<=result.viewport+1,result);
-    if(width===390)await page.screenshot({path:join(evidence,'390-mobile.png'),fullPage:true});
+    if(width===390){
+      const card=await page.locator('.accounts tbody tr').first().evaluate(el=>{
+        const row=el.getBoundingClientRect();
+        const identity=el.querySelector('.col-id').getBoundingClientRect();
+        const chart=el.querySelector('.col-chart').getBoundingClientRect();
+        return {rowWidth:row.width, identityWidth:identity.width, chartWidth:chart.width, rowHeight:row.height};
+      });
+      check('390px card fills available width instead of inheriting desktop column percentages',
+        card.identityWidth>=card.rowWidth*0.72 && card.chartWidth>=card.rowWidth*0.72,card);
+      check('390px card density stays readable rather than a 500px text column',card.rowHeight<390,card);
+      await page.screenshot({path:join(evidence,'390-mobile.png'),fullPage:true});
+    }
   }
   await page.setViewportSize({width:390,height:900});
   await page.evaluate(()=>document.documentElement.style.zoom='200%');
