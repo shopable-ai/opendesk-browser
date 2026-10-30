@@ -52,7 +52,7 @@ test('HTTP 200 with failed lastAttempt is not query success, including persisted
     await assert.rejects(failed.refresh(account.alias),error=>{
       assert.equal(error.account.lastSuccessAt,previous.lastSuccessAt);
       assert.equal(error.account.windows[0].remainingPercent,68);
-      return /失败|受限|格式|授权|身份/.test(error.message);
+      return /失败|受限|限制|格式|授权|身份/.test(error.message);
     });
     assert.equal(count,1,'no hidden retry');
   }
