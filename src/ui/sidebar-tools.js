@@ -4728,19 +4728,23 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     videoShortcutBusy=true;
     void (async()=>{
       try{
-        check();
-        const read=await run('videoSpeed.status',{});
-        check();
-        if(read.status!=='available'||!Number.isFinite(read.speed))
-          throw Object.assign(new Error('当前网页没有可控制的视频'),{code:'E_VIDEO_NOT_FOUND'});
-        const desired=data.key==='r'?1:data.key==='s'?read.speed-.25:read.speed+.25;
-        const speed=Number(Math.max(.25,Math.min(4,desired)).toFixed(2));
-        emit('pending',{requested:speed});
-        const result=Math.abs(speed-read.speed)<.001?
-          {...read,requested:speed,verified:true}:
-          await run('videoSpeed.set',{speed});
-        check();
-        emit('verified',{result});
+        // Match sidebar requests: install, disable and revocation use this
+        // same tool lock. A key signal cannot bypass an in-flight lifecycle edit.
+        await locked('tool:'+session.tool.id,async()=>{
+          check();
+          const read=await run('videoSpeed.status',{});
+          check();
+          if(read.status!=='available'||!Number.isFinite(read.speed))
+            throw Object.assign(new Error('当前网页没有可控制的视频'),{code:'E_VIDEO_NOT_FOUND'});
+          const desired=data.key==='r'?1:data.key==='s'?read.speed-.25:read.speed+.25;
+          const speed=Number(Math.max(.25,Math.min(4,desired)).toFixed(2));
+          emit('pending',{requested:speed});
+          const result=Math.abs(speed-read.speed)<.001?
+            {...read,requested:speed,verified:true}:
+            await run('videoSpeed.set',{speed});
+          check();
+          emit('verified',{result});
+        });
       }catch(error){
         emit('error',{code:String(error?.code||'E_VIDEO_SHORTCUT').slice(0,64),
           message:String(error?.message||'网页快捷键设置失败').slice(0,160)});

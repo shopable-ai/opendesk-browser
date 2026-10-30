@@ -25,6 +25,7 @@
 在最新 main:
 
 1. node --test tests/environment/video-speed-controller.test.mjs
+   本轮竞态回归：`node --test projects/video-speed-controller/tests/shortcut-preference.test.mjs`；共享 Host 接收器：`node --test --test-name-pattern='video shortcut' tests/environment/sidebar-tools-host.test.mjs`。
 2. npm run build:sidebar-tool -- projects/video-speed-controller
 3. npm run build:dev；加载 dist/development 到真实 Chrome 后，在包含原生 video 的测试网页安装候选并验证设置、读回、1×、切换标签、撤权、iframe 场景。
 4. 官方目录中本产品策略为 optional，不会首次安装就自动运行网页脚本；Chrome 网站访问受浏览器权限控制。
@@ -42,3 +43,5 @@
 - SOURCE_REVIEW：已把 UI、偏好读写与可信快捷键链路提交到 main。
 - NODE / CI：以实际 GitHub Actions 结果为准，未取得结果不得写 PASS。
 - MAC_CHROME / REAL_SITE：NOT_TESTED；本地 Codex 使用真实 Mac Chrome 分别验证 B站、优酷及普通 HTML5 视频、撤权/iframe/键盘冲突、200% 缩放。不得将模拟状态视为站点通过。
+
+R1.3 的差量修复、25 项定向 Node 结果、修复后包 SHA 和原生连接阻塞见 [Mac 验收记录](evidence/mac-chrome-r1.3.md)。该记录不是全面验收 PASS。

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
-import {readFile,mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
+import {readFile,mkdtemp,mkdir,writeFile,rm,realpath} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
@@ -26,7 +26,9 @@ test('reviewed video modules compile only into the existing trusted sidebar host
 });
 
 test('a changed video trusted source fails closed instead of silently entering a privileged bundle',async t=>{
-  const dir=await mkdtemp(join(tmpdir(),'opendesk-video-source-proof-'));
+  // macOS exposes tmpdir() through /var -> /private/var. Canonicalize the
+  // fixture root so the production symlink guard tests source changes here.
+  const dir=await realpath(await mkdtemp(join(tmpdir(),'opendesk-video-source-proof-')));
   t.after(()=>rm(dir,{recursive:true,force:true}));
   for(const path of owned){
     const to=join(dir,path);await mkdir(dirname(to),{recursive:true});
