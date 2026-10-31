@@ -197,3 +197,13 @@
 - 同任务第二轮自动续跑的新增只读结论：B 机原 src/sw.js 明确静态导入其 trusted/account-service.js；该服务仅接 account-vault／service-connections，App 未接 sharePair／shareDeliver，磁盘SW1044412B与Host623605B均无本次S3入口，SW亦无设备密钥库命名空间或ECDH。不是单纯路径改名；详见原账本 s3FinishNativeEntry20261031.receiverCandidate.s3DeploymentDiagnosis。仍未改远端／源码／包，未重复测试、安装或发送；A机原生审阅没有新回执，8项产品结果保持NOT_TESTED。
 
 - 同任务第三轮自动续跑：核对原账本与当前任务文件干净，仍无原生SidePanel安装回执或控制能力变化。原生入口缺口已连续原始轮＋两次自动续跑共3轮；无依赖传输／窗口／接收端源码诊断已完成，没有需重复的测试或可合法重放操作。按严格blocked条件调用update_goal，2026-10-31T09:05:35Z工具返回blocked，完整目标正文未改，未标complete；8项产品结果仍NOT_TESTED。解除条件为原更新结果可读回或可操作原生SidePanel的合法工具；本轮不再次请求手工动作。
+
+## 2026-10-31 · 01a19164：恢复原 serve，保留原生更新与接收机部署边界
+
+- 本任务初读 `get_goal=null`，按本次明确要求创建无预算完整目标，实读 active。旧任务 blocked／paused 均未改动；不是迁移或完成旧目标。唯一业务 owner、可信 SW／Host／Authority／Foundation／Relay／Catalog／安装器保持原合同，main 上其他修改保留。
+- 下一条真实操作仍为原 SidePanel 的 2.0.57 更新审阅。当前 Chrome Skill 已连接，公开能力只有标签页／页内操作和 viewport，无原生 SidePanel 控制；fresh 列举仍有此前独立窗口的普通根标签页759148195。本任务只读发现，没有重试受拒管理页、打开账号 URL、安装、重载、读写 Cookie 或使用替代入口。
+- 实际解除当前环境阻塞：旧锁 PID73839 已退出，43119／43120 无监听。与当前来源边界任务01a19166仅作一次精确协调，其回告只计划修改 provenance 及定向边界测试，不占 writer／dist／Chrome，S3 和原精确 pin 保留。随后恢复原 `npm run dev`，不手改 lock、不开第二 writer、不强制刷新或清理历史 unknown。新 writer PID12811 已 RUNNING；固定 `dist/development` 的磁盘 revision `236bd2746e81c7dd4caea54be82d4c893ea47e4c281ce4ac4ab539153a85412e`，136 文件全部匹配。SW1081953 B／SHA `53b75746fa9a34093fa14d24f3f9d46870536a465121c715bc09c8a9eb500388`；官方 Cookie 资源与唯一正式包2.0.57／245715 B／SHA438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601一致。这些仅为服务／磁盘证据；Chrome 实际加载路径、ID、serve、完整应用 revision、已安装版本及旧数据仍未取得。
+- 接收机在2026-10-31T10:01:08Z经严格 BatchMode／host-key SSH 只读确认仍为 shopme.local、main HEAD2bac158e4；包2.0.57／264961 B／SHA829a3c7be21af15c09c6a8a12cf3842e19ff06595cd62e6de86c2b18d346b23b。其 account-service SHA f32c3c6c69f7a00511738bda7911732b92293e7d44aebfaa1730979e402a7dc3，未接 sharePair／shareDeliver，device-keys 源仍不存在。没有覆盖远端企业功能、未提交修改、Profile 或日常扩展；接收机本次 S3 部署仍是后续产品链的实际缺口。
+- 原 Relay42246／8713、TLS43377／8443 仍在监听，未重启。原证书 SAN IP192.168.30.104，当前 checkend0 通过，有效至2026-10-31T19:56:54Z／北京时间11月1日03:56:54；Chrome 信任未测。未变的双机 explicit-CA health 证据复用，没有重复请求、邀请、配对、交付或领取。
+- 证据沿原 JSON 的 `s3FinishNativeEntry20261031.resume01a19164`；原始记录 `artifacts/cookie-editor-r31/current-resume-01a19164.json`、就绪清单 `development-update-01a19164.json`、原 watcher 日志 `dev-resumed-01a19164.log`。没有产品源码／正式包变化，没有重复 Node 组测、静态构建、CI、production、评分或宽度缩放验证。八项产品结果仍全部 NOT_TESTED，不能把环境恢复、配置领取、Cookie 写入或登录互相替代。
+- 下一条具体手工步骤仅为已准备独立窗口内的原 SidePanel 更新审阅并停留安装详情；若已更新或结果未知先读回，不重复安装或卸载清数据。之后仍须取得可信 SW／旧 A/B／白名单／设置证据，完成实际关闭侧栏双向快切与独立刷新，再完成接收机原分享／恢复／网站登录；完整目标保持未完成。
