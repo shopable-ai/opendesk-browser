@@ -18,11 +18,11 @@ test('one React app owns exactly one root and all controller-required nodes',()=
   assert.match(entry,/createRoot\(mount\)/);
   assert.match(entry,/root\.unmount\(\)/);
   assert.match(entry,/import VipApp from '\.\/App\.jsx'/);
-  assert.match(view,/<main className="ai-vip"/);
+  assert.match(view,/<main className="ai-vip od-theme-shadcn"/);
   assert.match(view,/useLayoutEffect/);
   assert.match(controller,/__OpenDeskVipStart=mountController/);
   const testOnly=new Set(['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status',
-    'ai-vip-shared-section','ai-vip-shared-account','ai-vip-shared-status']);
+    'ai-vip-test-sites','ai-vip-shared-section','ai-vip-shared-account','ai-vip-shared-status']);
   for(const [,id] of controller.matchAll(/\bbyId\('([^']+)'\)/g))
     if(!testOnly.has(id))assert.ok(ids.includes(id),'Missing React product target '+id);
   for(const id of testOnly)assert.ok(!ids.includes(id),'Developer UI leaked into product: '+id);
@@ -72,11 +72,11 @@ test('redemption stays review-first and unresolved side effects retain journals'
 
 test('formal package references one compiled React UI and immutable business safeguards',async()=>{
   assert.equal(config.id,'ai-vip-share');
-  assert.equal(config.version,'1.4.12');
+  assert.equal(config.version,JSON.parse(await read('package.json')).version);
   assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
   assert.deepEqual(config.files,{html:'src/index.html',css:'dist/tool.css',js:'dist/tool.js'});
   const pkg=await createSidebarToolPackage(base);
-  assert.equal(pkg.version,'1.4.12');
+  assert.equal(pkg.version,config.version);
   assert.equal(pkg.html.trim(),'<div id="tool-app"></div>');
   assert.match(pkg.js,/OpenDeskPageReact/);
   assert.match(pkg.js,/OpenDeskSidebarUI/);
@@ -84,7 +84,6 @@ test('formal package references one compiled React UI and immutable business saf
   assert.match(pkg.css,/ai-vip-membership/);
   assert.match(pkg.css,/ai-vip-secondary-metrics/);
   assert.doesNotMatch(pkg.css,/\.ai-vip-benefits\{/);
-  assert.match(pkg.css,/\.ai-vip-desktop-promo/);
   assert.deepEqual(pkg.capabilities,config.capabilities);
   const ready=JSON.parse(await read('dist/build-ready.json'));
   assert.equal(ready.format,'opendesk.ui-build-ready.v1');
@@ -120,15 +119,4 @@ test('preview imports the same React source, isolates fixture and leaves product
   assert.match(controller,/bindPromotion\(desktopOpen,desktopStatus,desktopClient,'桌面客户端'\)/);
   assert.match(controller,/shopSdk\.create\(\{url\}\)/);
   assert.doesNotMatch(controller,/codeReveal|code\.type='password'/);
-});
-
-test('320px and 360px shared-theme CSS remains declared',()=>{
-  assert.match(style,/^\/\* @opendesk-shared-design \*\//);
-  assert.match(style,/@media\(max-width:360px\)/);
-  assert.match(style,/@media\(max-width:320px\)/);
-  assert.match(style,/--od-paper/);
-  assert.match(style,/\.ai-vip-redeem-inputs\{display:flex/);
-  assert.match(style,/\.ai-vip-code-field>\.ai-vip-code-clear\{position:absolute/);
-  assert.doesNotMatch(style,/grid-template-columns:minmax\(0,1fr\) 36px 36px/);
-  assert.match(style,/\[hidden\]\{display:none!important\}/);
 });

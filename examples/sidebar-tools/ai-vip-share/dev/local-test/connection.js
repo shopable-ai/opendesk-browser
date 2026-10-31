@@ -19,7 +19,10 @@ export function createDevelopmentConnection(root){
   const status=document.createElement('p');
   status.id='ai-vip-local-status';status.className='od-note';
   status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-  section.append(title,description,button,status);
+  const websiteButton=document.createElement('button');
+  websiteButton.id='ai-vip-test-sites';websiteButton.type='button';
+  websiteButton.className='od-button od-button--secondary';websiteButton.textContent='测试网站登录';
+  section.append(title,description,button,websiteButton,status);
   root.append(section);
-  return {section,button,status,dispose:()=>section.remove()};
+  return {section,button,websiteButton,status,dispose:()=>section.remove()};
 }

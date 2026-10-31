@@ -62,6 +62,7 @@ test('reopen restores latest B choice and existing verified v2 receipt without r
   assert.equal(reopened.get('cookie-section').hidden,false);
   assert.match(reopened.get('cookie-status').textContent,/全部 Cookie 已写入并核验/);
   assert.equal(reopened.get('cookie-results').children.length,2);
+  assert.notEqual(reopened.get('sites-section').open,true,'restored successful history stays compact');
   assert.equal(JSON.stringify(e.store.get(JOURNAL)),before);
   noEffects(reopened);
   assert.equal(reopened.storageCalls.filter(row=>row.operation==='storage.set').length,0);
@@ -97,12 +98,27 @@ test('commercial preference waits for the verified directory without replaying a
   assert.equal(reopened.get('site-select').value,'','preference cannot stand in for a verified directory');
   gate.resolve();await reopened.flush();
   assert.equal(reopened.get('site-select').value,'commercial');
-  assert.match(reopened.get('site-source').textContent,/已核验的会员服务/);
+  assert.equal(reopened.get('site-source').textContent,'公司共享账号 A · 127.0.0.1:7898');
   assert.deepEqual(reopened.calls.map(row=>[row.method,new URL(row.url).pathname]),[['GET','/api/member']]);
   assert.deepEqual(reopened.cookieCalls,[]);assert.deepEqual(reopened.tabCalls,[]);
   assert.deepEqual(reopened.proxyCalls,[]);
   assert.equal(reopened.get('cookie-install').hidden,true);
   assert.equal(reopened.storageCalls.filter(row=>row.operation==='storage.set').length,0);
+});
+
+test('profile revocation blocks a late ordinary preference even with no journal',async()=>{
+  const gate=deferred();
+  const e=await runtime({store:new Map([[KEY,preference('ordinary-1')]]),beforeStorageGet:async payload=>{
+    if(payload.key===KEY)await gate.promise;
+  }});
+  assert.equal(e.get('sites-section').hidden,true);
+  e.setStatus(released);await e.click('proxy-refresh');
+  gate.resolve();await e.flush();
+  e.setStatus({...released,developmentProfile:profile});await e.click('proxy-refresh');
+  assert.equal(e.get('site-select').value,'','profile return must not restore a choice read after revocation');
+  noEffects(e);
+  await e.chooseSite('ordinary-1');
+  assert.equal(e.get('site-select').value,'ordinary-1','a new trusted choice still works');
 });
 
 test('commercial Cookie scope refusal after ordinary B explains no write and preserves journal',async()=>{

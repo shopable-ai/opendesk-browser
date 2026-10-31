@@ -4,11 +4,13 @@
 
 ## 当前 UI 对齐目标（2026-11-01）
 
-用户明确以 [`preview/design.html`](preview/design.html) 为视觉与交互参照；本对话已设原生 **active** 目标。目标、G1–G8 关键条件、基线与下一步统一见[当前 UI 对齐账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#design-alignment-20261101)，取舍见[当前设计合同](DESIGN.zh-CN.md#当前-ui-对齐合同2026-11-01)。重点是同状态下的布局和反馈、兑换确认/取消与焦点、快速登录/返回、错误恢复、代理 STOP；不以旧功能测试或模拟成功态代替 UI 一致。
+用户指定 [`preview/design.html`](preview/design.html) 为参照后，最新调整为复用公开 Neutral shadcn aria-nova 视觉，并简化难理解的网站登录区。正式 React 保持唯一实现：默认会员页不展示测试网站；有已核验目录时只显示可展开的「网站登录 / 名称与域名」，单站不显示选择器，取得会话后再核对账号、目标与替换提示。普通站测试须主动使用批准的开发入口；历史选择恢复仍受原授权约束。
 
-本轮初始日常 Chrome 原入口是 **1.4.8 / 服务未配置**，与此前 Core Profile 的 1.4.11 更新证据是不同安装观察；已保存同状态对照基线。随后按用户要求，从 `src/App.jsx` 和 `preview/design.html` 同时删除图标、`AI VIP Share` 标题和「网站快速登录 · 会员与网络服务」副标题，并清除专属样式。浏览器确认两个预览均不再显示该块；工具/预览构建、7 项定向检查及原打包器晋升/同源核对通过。
+共享组件负责按钮、卡片、输入框、焦点和禁用态，工具只保留业务布局；预览 CSS 与正式打包器使用同一公共抽取器。兑换 Enter 预检、Escape 取消回焦、清空、记录展开、错误反馈、网站准备/取消、未知写入锁定及离线 STOP 已有当前预览操作证据，**51 项定向检查通过**。独立审阅发现的延迟恢复、隐藏失败反馈和强制展开三项问题已补回归并修复。
 
-唯一正式文件 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)：**1.4.12，131840 字节，SHA-256 `f22fdcc24f9d429b6f9455a36444b46ff884bbed13a10b6032f8fc992877a537`**。本轮未更改控制器或权限，未更新日常安装，也未签署整个 UI 一致性目标；商业/production/全量矩阵/评分仍延期。
+唯一正式文件 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)：**1.4.13，127261 字节，SHA-256 `1472645e0046d04170bc5b49b8bb1696cdcd2e043c5e99e9f44bd2b5d040b7bd`**，六项能力与权限范围不变，原打包器晋升及同源核对通过。当前为 **PACKAGE_READY_INSTALL_NOT_TESTED**；未更新日常 Chrome、Profile 或 Browser 构建。初始日常 1.4.8、Core Profile 1.4.11 均只是各自历史观察，不能代替 1.4.13 安装证据。
+
+目标、G1–G8、截图、来源回执和未测项见[唯一当前账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#design-alignment-20261101)，取舍见[当前设计合同](DESIGN.zh-CN.md#当前-ui-对齐合同2026-11-01)。原对话原生目标最新交接报告为 **blocked**，本对话未迁移、恢复或完成它；本轮只完成已授权的源码、预览、包与本地提交。原生安装/宿主配对、商业/production/全量矩阵/评分仍延期。
 
 ## 新实验与 1.4.11 交付（2026-11-01）
 

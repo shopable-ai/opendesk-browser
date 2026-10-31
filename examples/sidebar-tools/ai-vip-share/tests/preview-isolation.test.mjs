@@ -24,3 +24,35 @@ test('preview works beside read-only real SDK globals without using real capabil
   assert.equal(member.data.account.state,'bound');
   await assert.rejects(request({method:'GET',url:'https://example.com/api/member'}),/NO_EXTERNAL_NETWORK/);
 });
+
+test('only the session preview supplies a website directory, including after redemption',async()=>{
+  const source=await readFile(new URL('../preview/sdk-fixture.js',import.meta.url),'utf8');
+  const {outputFiles}=await build({stdin:{contents:source,loader:'js'},bundle:true,
+    write:false,format:'iife',globalName:'Fixture',define:config.define});
+  for(const scene of [null,'member','redeem','session']){
+    const page={URL,structuredClone,location:{href:'http://preview.localhost/'+(scene?'?scene='+scene:'')}};
+    page.window=page;
+    const context=vm.createContext(page);
+    vm.runInContext(outputFiles[0].text,context);
+    vm.runInContext('Fixture.installPreviewFixture({})',context);
+    const sdk=page.__OpenDeskVipPreviewSDK.browser;
+    const status=await sdk.proxy.managed.getStatus();
+    assert.ok(status.developmentProfile,'member endpoints retain local preview configuration');
+    const request=sdk.network.request;
+    const readMember=async()=>(await request({method:'GET',url:'http://127.0.0.1:7898/api/member'})).data;
+    const member=await readMember();
+    assert.equal(member.account.state,'bound');
+    if(scene==='session'){
+      assert.equal(member.sharedAccounts.accounts.length,1);
+      assert.equal(member.sharedAccounts.accounts[0].targetUrl,'http://127.0.0.1:7898/session/');
+    }else assert.equal(member.sharedAccounts,undefined,`${scene??'default'} has no website directory`);
+    if(scene==='redeem'){
+      const preview=await request({method:'POST',url:'http://127.0.0.1:7898/api/preview',data:{code:'DEMO-VIP-01'}});
+      await request({method:'POST',url:'http://127.0.0.1:7898/api/redeem',data:{
+        accountId:member.account.id,previewId:preview.data.previewId,idempotencyKey:'preview-isolation'}});
+      const redeemed=await readMember();
+      assert.ok(redeemed.entitlements.length>0);
+      assert.equal(redeemed.sharedAccounts,undefined,'redemption does not reveal a website directory');
+    }
+  }
+});

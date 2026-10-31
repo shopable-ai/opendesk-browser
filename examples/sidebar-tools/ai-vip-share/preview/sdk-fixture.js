@@ -56,10 +56,10 @@ export function installPreviewFixture(root){
       granted?(scene==='quota'?[quota(),access()]:[time(),quota(),access()]):[],
     redemptions:granted?[{redemptionId:'demo-r1',skuTitle:'AI 会员体验权益',
       redeemedAt:Date.now()-1000,status:'redeemed',idempotencyKey:'preview-only'}]:[],
-    ...(granted&&['redeem','session'].includes(scene)?
+    ...(granted&&scene==='session'?
       {sharedAccounts:{schemaVersion:1,companyId:'preview-company',
         assignedAccountId:'account-'+assigned,redemptionId:'demo-r1',
-        accounts:[{id:'account-'+assigned,label:'已获授权的网站会话',
+        accounts:[{id:'account-'+assigned,label:'网站体验账号 '+assigned,
           targetUrl:SITE,cookieScope:scope()}]}}:{})
   });
   const api={

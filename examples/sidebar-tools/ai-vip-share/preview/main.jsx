@@ -1,6 +1,5 @@
-import '../../../../src/ui/design-tokens.css';
-import '../../../../src/ui/design-system.css';
-import '../../../../src/ui/react/components/ui/sidebar-shared.css';
+// style.css is compiled by the original public-style extractor in Vite.
+// This is the same approved CSS slice the installable packer embeds.
 import {installPreviewFixture} from './sdk-fixture.js';
 
 // The laboratory stays outside #tool-app. Nothing here is packaged into the
@@ -53,9 +52,22 @@ document.getElementById('preview-member-failure').addEventListener('click',()=>{
     '模拟会员服务已恢复；点会员卡刷新重新核验');
 });
 const theme=document.getElementById('preview-theme');
+const applyToolTheme=()=>{
+  const app=document.querySelector('.ai-vip');
+  if(app)app.dataset.theme=theme.value==='dark'?'dark':
+    theme.value==='system'&&matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+};
+const toolMount=document.getElementById('tool-app');
+const mounted=new MutationObserver(()=>{
+  if(!toolMount.querySelector('.ai-vip'))return;
+  applyToolTheme();mounted.disconnect();
+});
+mounted.observe(toolMount,{childList:true});
+addEventListener('pagehide',()=>mounted.disconnect(),{once:true});
 theme.addEventListener('change',()=>{
   if(theme.value==='system')delete document.documentElement.dataset.previewTheme;
   else document.documentElement.dataset.previewTheme=theme.value;
+  applyToolTheme();
 });
 const savedTheme=new URL(location.href).searchParams.get('theme');
 if(['light','dark'].includes(savedTheme)){

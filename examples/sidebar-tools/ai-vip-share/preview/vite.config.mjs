@@ -4,20 +4,27 @@ import {resolve} from 'node:path';
 import {readFile,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {AI_VIP_REACT_SOURCES} from '../vite.config.mjs';
+import {compileSharedToolCss,SHARED_DESIGN_MARKER} from '../../../../scripts/preview/shared-tool-design.mjs';
 const root=fileURLToPath(new URL('.',import.meta.url));
 const repo=resolve(root,'../../../..');
 const app='examples/sidebar-tools/ai-vip-share/';
 const names=[...AI_VIP_REACT_SOURCES.map(name=>app+name),
   ...['index.html','main.jsx','sdk-fixture.js','shared-ui.jsx','vite.config.mjs'].map(name=>app+'preview/'+name),
-  'package-lock.json','src/ui/design-tokens.css','src/ui/design-system.css',
+  'package-lock.json','scripts/preview/shared-tool-design.mjs','src/ui/design-tokens.css','src/ui/design-system.css',
   ...['sidebar-shared.css','button.tsx','card.tsx','switch.tsx'].map(name=>'src/ui/react/components/ui/'+name)];
 const fingerprint=bytes=>({bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});
 async function sourceDigests(){return Object.fromEntries(await Promise.all(names.map(async name=>
   [name,fingerprint(await readFile(resolve(repo,name)))])))}
 function previewReceipt(){
   let before;
-  return {name:'ai-vip-source-bound-preview',apply:'build',
+  return {name:'ai-vip-source-bound-preview',apply:'build',enforce:'pre',
+    async transform(code,id){
+      if(id===resolve(root,'../src/style.css'))return {code:await compileSharedToolCss(code),map:null};
+    },
     async buildStart(){before=await sourceDigests()},
+    async generateBundle(){
+      this.emitFile({type:'asset',fileName:'design.css',source:await compileSharedToolCss(SHARED_DESIGN_MARKER)});
+    },
     async writeBundle(options,bundle){
       const sources=await sourceDigests();
       if(JSON.stringify(sources)!==JSON.stringify(before))throw Error('Preview sources changed during build');

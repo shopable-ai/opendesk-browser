@@ -43,7 +43,7 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   developmentControls=false,ordinaryNetwork,documentState,proxyDisable}={}){
   // Historical VM business tests simulate a development panel that now exists
   // ONLY in the test harness, not in the installable React product DOM.
-  const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status',
+  const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status','ai-vip-test-sites',
     'ai-vip-service-mode','ai-vip-demo-availability','ai-vip-feature-member',
     'ai-vip-feature-redeem','ai-vip-feature-cookie','ai-vip-feature-shop',
     'ai-vip-feature-proxy','ai-vip-shared-section','ai-vip-shared-account',
@@ -53,7 +53,7 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     'Development/account allocation diagnostics must not appear in shipped App.jsx');
   const nodes=new Map([...ids,...testOnly].map(id=>[id,node(id)]));
   let rootReady=!developmentControls,createdControls=0,removedControls=0,release;
-  if(developmentControls)for(const id of ['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status'])nodes.delete(id);
+  if(developmentControls)for(const id of ['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status','ai-vip-test-sites'])nodes.delete(id);
   const calls=[],storageCalls=[],proxyCalls=[],cookieCalls=[],tabCalls=[],pageCalls=[],timers=[],toolStates=[];
   let page=currentPage??{status:'unavailable'};
   let current={...released,...(developmentProfile?{developmentProfile}: {})};
@@ -111,9 +111,9 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     rootReady=true;
     release=window.__OpenDeskVipStart({createDevelopmentControls(){
       createdControls++;
-      for(const id of ['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status'])nodes.set(id,node(id));
+      for(const id of ['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status','ai-vip-test-sites'])nodes.set(id,node(id));
       return {section:nodes.get('ai-vip-local-development'),button:nodes.get('ai-vip-local-connect'),
-        status:nodes.get('ai-vip-local-status'),dispose(){removedControls++;}};
+        status:nodes.get('ai-vip-local-status'),websiteButton:nodes.get('ai-vip-test-sites'),dispose(){removedControls++;}};
     }});
   }
   await flush();
@@ -125,6 +125,8 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     async chooseSite(value,{trusted=true}={}){
       const current=get('site-select').value;
       if(trusted&&value===current)return;
+      if(value?.startsWith('ordinary-')&&!get('site-options').children.some(row=>row.value===value))
+        await click('test-sites',trusted);
       const button=get('site-options').children.find(row=>row.value===(value||current));
       assert.ok(button,'configured site button: '+value);
       button.listeners.click({isTrusted:trusted});await flush();

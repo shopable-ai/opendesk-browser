@@ -55,6 +55,11 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
   const desktopSection=byId('ai-vip-desktop-promo');
   let localSection=byId('ai-vip-local-development');
   let localConnect=byId('ai-vip-local-connect'),localStatus=byId('ai-vip-local-status');
+  let testSites=byId('ai-vip-test-sites');
+  const enableWebsiteTests=event=>{
+    if(event.isTrusted===true&&developmentProfile){websiteController?.enableTests();}
+  };
+  testSites?.addEventListener('click',enableWebsiteTests);
   let developmentControls=null,disposed=false;
   const cookieSection=byId('ai-vip-cookie-section'),cookieStatus=byId('ai-vip-cookie-status');
   const cookieInstall=byId('ai-vip-cookie-install'),cookieResults=byId('ai-vip-cookie-results');
@@ -170,6 +175,7 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     E_LIMIT:'会话内容超出限制'
   });
   let cookiePending=null,cookieRecord=null,cookieReady=false,cookieBusy=false,cookieFault='';
+  let presentedCookiePending=null,presentedCookieIssue='';
   let cookieFaultRecoverable=false,cookieJournal=null,websiteController=null;
   let sharedCatalog=null,sharedId='',sharedGeneration=0,sharedBusy=false,sharedNotice='',acquireAfterActivation=false;
   let localSwitchBlocked=()=>false,refreshDevelopmentAvailability=async()=>{};
@@ -252,8 +258,9 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     if(sharedAssigned)sharedAssigned.textContent=selection?.label||'尚未分配';
     if(sharedReceive){
       sharedReceive.textContent=cookieRecord?.state==='success'?'重新获取网站会话':'获取网站会话';
-      sharedReceive.hidden=websiteController?.isOrdinarySelected()||!selection||Boolean(cookiePending)||
-        ['unknown','partial'].includes(cookieRecord?.state);
+      // The staged website-login entry owns the single next action. Keep the
+      // legacy retry node inert instead of showing a second acquisition button.
+      sharedReceive.hidden=true;
       sharedReceive.disabled=busy||cookieBusy||sharedBusy||!selection||
         !cookieReady||(Boolean(cookieFault)&&!cookieFaultRecoverable)||
         ['unknown','partial'].includes(cookieRecord?.state);
@@ -358,8 +365,18 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
   function renderCookies(){
     if(!cookieSection||!cookieStatus||!cookieInstall||!cookieResults)return;
     projectCookieRecord();
-    cookieSection.hidden=!cookiePending&&!cookieRecord&&!cookieFault&&!assignedShared();
+    cookieSection.hidden=!cookiePending&&!cookieRecord&&!cookieFault;
     const record=cookieRecord;
+    const siteSection=byId('ai-vip-sites-section');
+    const issue=cookieFault||(['unknown','partial'].includes(record?.state)?record.deliveryId||record.state:'');
+    if(siteSection&&!cookieSection.hidden){
+      siteSection.hidden=false;
+      // New decisions and warnings are revealed once. Unrelated renders and
+      // restored successful receipts respect the user's collapsed state.
+      if((cookiePending&&cookiePending!==presentedCookiePending)||(issue&&issue!==presentedCookieIssue))
+        siteSection.open=true;
+    }
+    presentedCookiePending=cookiePending;presentedCookieIssue=issue;
     cookieInstall.hidden=!cookiePending;
     cookieInstall.disabled=!cookieReady||cookieBusy||busy||!cookiePending||Boolean(cookieFault)||journalLocked()||
       (record?.scopeKey&&record.scopeKey===cookiePending?.scopeKey&&
@@ -560,11 +577,14 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
       developmentControls=createDevelopmentControls();
       localSection=developmentControls.section;localConnect=developmentControls.button;
       localStatus=developmentControls.status;
+      testSites=developmentControls.websiteButton;
+      testSites?.addEventListener('click',enableWebsiteTests);
       localConnect.addEventListener('click',connectLocalDevelopment);
     }
     renderFeatureStatus();
     if(!localSection||!localConnect||!localStatus)return;
     localSection.hidden=!developmentProfile;
+    if(testSites)testSites.disabled=!developmentProfile||busy||cookieBusy;
     localConnect.disabled=!developmentProfile||localConnecting||busy||cookieBusy||
       (localMode&&(Boolean(recoveryFault)||Boolean(recovery&&recoveryMatchesService())||localSwitchBlocked()));
     localConnect.textContent=localConnecting?'正在连接…':localMode?'退出本地开发':'连接本地开发';
@@ -936,7 +956,8 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     refreshProxyPresentation();
     renderLocalDevelopment();
     websiteController?.render({development:Boolean(developmentProfile),locked:journalLocked()||Boolean(cookieFault&&!cookieFaultRecoverable),
-      busy:busy||cookieBusy||sharedBusy,commercialLabel:assignedShared()?.label});
+      busy:busy||cookieBusy||sharedBusy,commercialLabel:assignedShared()?.label,
+      commercialNotice:sharedBusy?'正在准备网站登录…':sharedNotice});
     renderCookies();
     renderShared();
     window.OpenDeskTool.setState?.({dirty:Boolean(code.value||pending||cookiePending),

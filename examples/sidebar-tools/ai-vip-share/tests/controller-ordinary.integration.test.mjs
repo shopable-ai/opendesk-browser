@@ -134,7 +134,10 @@ test('profile revocation after marker saves notInvoked and permits fresh acquisi
   }});e=h.e;
   await h.acquire(0);await h.wait(()=>!e.get('cookie-install').hidden);
   await e.click('cookie-install');await h.wait(()=>e.store.get(KEY)?.attempts?.[0]?.resolution==='not-submitted'&&!e.toolStates.at(-1)?.busy);
-  assert.equal(e.get('sites-section').hidden,true);
+  assert.equal(e.get('sites-section').hidden,false,'the combined login area retains the no-write warning');
+  assert.equal(e.get('source-auth').hidden,true,'revocation removes the credential form');
+  assert.equal(e.get('site-receive').disabled,true,'retained feedback cannot authorize a new session');
+  assert.match(e.get('cookie-status').textContent,/未提交/);
   assert.equal(e.cookieCalls.length,0);assert.equal((await attempts(e))[0].resolution,'not-submitted');
   assert.equal((await attempts(e))[0].state,'failed');
   assert.doesNotMatch(e.get('site-status').textContent,/已设置/);
