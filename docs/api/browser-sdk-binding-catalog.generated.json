@@ -1976,7 +1976,7 @@
         "sidebar-tool"
       ],
       "siteScope": "target-origin",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,

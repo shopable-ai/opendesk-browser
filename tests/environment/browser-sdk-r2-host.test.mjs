@@ -130,19 +130,17 @@ test('R2 Host enforces installed tool capability, site revocation and Chrome per
   assert.equal(f.created.length,0);
 });
 
-test('R2 bounded HTTP uses old driver, strips sensitive headers, denies stale approval',async()=>{
+test('R2 bounded HTTP reuses the existing driver and site permission without exposing credentials',async()=>{
   const seen=[];
   const f=fixture({fetchImpl:async(url,init)=>{
     seen.push({url,credentials:init.credentials,redirect:init.redirect});
     return new Response('{"ok":true}',{status:200,headers:{'content-type':'application/json','set-cookie':'hidden=1'}});
   }});
   const args={method:'GET',url:'https://example.org/json',config:{responseType:'json'}};
-  assert.deepEqual(await f.call('browser.network.request',args,
-    (await f.confirm('browser.network.request',args)).approvalRef),{status:200,data:{ok:true}});
+  assert.deepEqual(await f.call('browser.network.request',args),{status:200,data:{ok:true}});
   assert.deepEqual(seen,[{url:'https://example.org/json',credentials:'omit',redirect:'manual'}]);
-  const token=(await f.confirm('browser.network.request',args)).approvalRef;
   f.setSite(false);
-  await assert.rejects(f.call('browser.network.request',args,token),err('E_SITE_PERMISSION_REVOKED'));
+  await assert.rejects(f.call('browser.network.request',args),err('E_SITE_PERMISSION_REVOKED'));
   assert.equal(seen.length,1);
 });
 
@@ -161,8 +159,7 @@ test('R2 revocation aborts a request that already entered the trusted fetch driv
    entered();
  })});
  const args={method:'GET',url:'https://example.org/private'};
- const token=(await f.confirm('browser.network.request',args)).approvalRef;
- const pending=f.call('browser.network.request',args,token);
+ const pending=f.call('browser.network.request',args);
  await inFlight;
  f.host.revokeBrowserOperations();
  await assert.rejects(pending,err('E_CANCELLED'));

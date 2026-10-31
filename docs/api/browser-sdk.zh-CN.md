@@ -183,7 +183,7 @@ await OpenDeskTool.request('storage.get',{key:'notes'});
 | `browser.tabs.create` | {url} | **PLANNED** | 禁止任意 tabId, 计划受控 tabRef |
 | `browser.tabs.activateOwned` | {tabRef} | **PLANNED** | 需要不可伪造引用 |
 | `browser.sidePanel.openSelf` | {} | **PLANNED** | 真实用户手势可信前台 |
-| `browser.network.request` | HTTP 请求合同 | **IMPLEMENTED** | 已安装工具声明 `network` 后可调用（含 localhost 普通 fetch）；可信真实点击先请求 Chrome 来源权限，审阅阶段取消或拒绝返回 `E_NETWORK_NOT_SUBMITTED`，仅此码证明 HTTP RPC 未提交；后续取消/撤权仍可能已产生效果。Host 按精确 Origin（含端口）单次批准并复核撤权，原生验证 `NOT_TESTED` |
+| `browser.network.request` | HTTP 请求合同 | **IMPLEMENTED** | 安装已批准 `network` 且 Chrome 已有目标网站访问权限后，GET/POST/PUT/DELETE 直接调用（含 localhost 普通 fetch），无需逐次确认方法或请求体；仅缺少 Chrome 来源权限时由可信真实点击申请，并复用后续权限。Chrome host permission 按其原生主机范围生效，不提供端口级许可；每次请求仍绑定精确 URL/Origin、安装身份和能力，发送前后复核撤权，凭据省略、手工重定向及字节限制不变。仅预提交权限阶段取消/拒绝返回 `E_NETWORK_NOT_SUBMITTED`；后续取消/撤权仍可能已产生效果。原生验证 `NOT_TESTED` |
 | `browser.network.observe.start` | {tabRef,origins,durationMs,...} | **PLANNED** | R2 被动 HTTP(S) 元数据 |
 | `browser.network.observe.getStatus` | {observationId} | **PLANNED** | R2 |
 | `browser.network.observe.stop` | {observationId} | **PLANNED** | R2 |

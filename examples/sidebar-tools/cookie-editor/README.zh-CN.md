@@ -1,5 +1,15 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 普通 HTTP 请求免逐次审批 · 2.0.59（2026-10-31）
+
+已在日常 Chrome 的「企业 → 服务连接 → 确认解绑」看到框架再次要求允许 POST。外层 POST 是工具的普通服务 RPC；根因是公共 `browser.network.request` 被列入逐次手势/intent 审批，并非 Cookie Editor 业务又申请了 Cookie 权限。
+
+本次框架复用安装批准的 `network` 能力和 Chrome 当前网站访问权限，GET/POST/PUT/DELETE 不再逐次审阅；仅确实缺少 Chrome 网站访问时才通过原可信点击申请。工具沿用公开 SDK，更新说明，不新增私有通道。配对、业务解绑确认、安装身份、危险请求头拒绝、凭据省略、手工重定向、请求前后撤权核对及未知写入不重放保持。Chrome 网站权限按主机生效，不提供端口级许可；业务仍固定使用保存的精确服务 Origin。
+
+唯一正式包为 **2.0.59**，305489 bytes，SHA-256 `3dd3cdd1e9ebd40de4e052d8ba864e5c38e0a30f42aa6b41a71bc5271f96ee4c`。原 Vite 编译、64 项相关网络/Host/业务测试、8 项原打包门禁、显式晋升和 `--check-project` 同源检查通过；独立只读审查未发现必修问题。同源检查对应晋升时源码；随后其他任务开始调整添加服务表单，本包不包含该并行布局改动，本轮不重新打包覆盖它的输出。
+
+**PACKAGE_READY_INSTALL_NOT_TESTED / NEW_BEHAVIOR_CHROME_NOT_TESTED：** 新版本未安装，原生 UI 锁由其他任务占用。继续复用 `dist/development` 的既有 `npm run dev` watcher（本轮观察 PID 11774），未重启或覆盖输出；本轮未重新实读 Chrome 加载路径、serve 连接及新框架行为。JSON 不包含框架代码。完整 SDK 生成检查另被既存五个 Registry-only 接口数量差异阻塞（fingerprint 三项、siteBudget 两项）；仅通过原生成器同步已有批准条目的网络元数据，未修改该无关差异，未声称全量检查通过。production 与评分未执行。
+
 ## 普通 HTTP 服务连接 · 2.0.58（2026-10-31）
 
 当前核心开发入口是「企业 → 服务连接」：填写终端输出的精确服务来源地址，保存配置后再用 **Application pairing** 应用配对码明确连接。后台使用普通 `serve`，无需 `--native`、桌面服务登记或端口扫描。管理员配对链接与应用配对码分离；在已登录的管理页「Cookie 同步设置」可重新生成应用配对码。
@@ -8,7 +18,7 @@
 
 HTTP 业务在本项目 `app/domain/http-services.js`、`app/components/CookieHttpConnections.jsx` 与 `ai-account-usage/` 内，通过公开 `browser.network.request`、工具专属 `browser.storage.local`、`browser.tabs.create` 调用。通用宿主只补齐真实点击请求 Chrome 来源权限和“RPC 尚未提交”的精确错误边界，没有新增 Cookie HTTP 专用通道、Host 或安装器。旧 Native 连接在折叠记录中保留，关闭新增配置入口；旧可信实现暂留以核对历史状态，不宣称已完成整个遗留可信层拆除。
 
-应用凭据只覆盖配对时冻结的资源、当前工具版本和 15 分钟会话，经工具专属 SDK 存储保存，不进入 React 状态或 URL；原有真实安装身份、哈希及撤权检查仍由宿主执行。上游 Token、管理员 Cookie 与 Native 进程秘密不交给应用。请求仍需逐次可信宿主审阅，Chrome 来源权限不能代替精确来源（含端口）的本次授权。版本变化不继承原会话。
+应用凭据只覆盖配对时冻结的资源、当前工具版本和 15 分钟会话，经工具专属 SDK 存储保存，不进入 React 状态或 URL；原有真实安装身份、哈希及撤权检查仍由宿主执行。上游 Token、管理员 Cookie 与 Native 进程秘密不交给应用。普通 HTTP 请求复用安装时批准的 `network` 能力与 Chrome 已有的网站访问权限，不再逐次弹出 POST 审阅；缺少 Chrome 来源权限时仍从可信点击按需申请。业务请求固定使用已保存服务的精确 Origin（含端口），Host 每次仍验证当前安装身份、能力与网站权限。版本变化不继承原会话。
 
 配对回包丢失仅查原 `receiptKey / connectionId / operationId`，不重复创建设备；写入未知保留原操作并阻止重发。打开管理页任一阶段未知可明确归档，不再次打开；过期、版本失效或 DELETE 后仅可查回执的旧连接可明确归档再新配对。归档不表示远端已撤销，也不表示未知操作失败；原未知请求保留。资源/用量缓存仅保存在当前应用会话，持久化遵守原 8 KiB 单项限制，不扩容或清除旧 Cookie 账号数据。
 

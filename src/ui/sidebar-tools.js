@@ -2732,7 +2732,29 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           button:'打开侧边栏',run:event=>coordinator.confirm(prepared.requestRef,event)});
         }finally{coordinator.dispose();}
       }
-      if(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.network.request',
+      if(operation==='browser.network.request'){
+        // Installation already approved network access. Ask only when Chrome
+        // actually lacks access to this host, never for each HTTP method/body.
+        try{
+          const origins=[permissionPattern(payload.url)];
+          if(!await api.permissions.contains({origins})){
+            assertSession(source,token);
+            await requestBrowserClick({toolId:tool.id,button:'允许访问此服务',
+              message:'「'+tool.title+'」需要访问 '+new URL(payload.url).origin+'。允许后无需逐次确认 HTTP 请求。',
+              run:async event=>{
+                if(!event?.isTrusted)throw Object.assign(new Error('需要用户真实点击'),{code:'E_USER_GESTURE_REQUIRED'});
+                assertSession(source,token);
+                const request=api.permissions.request({origins});
+                if(await request!==true)throw Object.assign(new Error('未获网站访问权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
+              }});
+          }
+          assertSession(source,token);
+        }catch{
+          // Only this pre-RPC boundary can prove the request was not sent.
+          throw Object.assign(new Error('HTTP request was not submitted'),{code:'E_NETWORK_NOT_SUBMITTED'});
+        }
+      }
+      if(['browser.tabs.create','browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned',
         'browser.network.observe.start','browser.network.observe.export',
         'browser.screenshot.captureVisible','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.createOwned','browser.bookmarks.removeOwned','browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear',
         'browser.proxy.managed.requestEnable','browser.proxy.managed.requestDisable'].includes(operation)){
@@ -2756,8 +2778,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           operation==='browser.bookmarks.removeOwned'?'删除本工具创建的书签 '+payload.bookmarkRef.slice(0,8)+'…':
           operation==='browser.storage.local.clear'?'清空本工具保存的数据（不影响其他工具）':
           operation==='browser.proxy.managed.requestEnable'?'启用 Chrome 浏览器级分流代理；端点 '+payload.config.endpoint.scheme+'://'+payload.config.endpoint.host+':'+payload.config.endpoint.port+'；目标域名 '+payload.config.domains.join('、')+'；将影响匹配网站的所有标签页':
-          operation==='browser.proxy.managed.requestDisable'?'停止当前安装确实拥有的 Chrome 分流代理（不会清除其他工具或扩展的配置）':
-            '向 '+new URL(payload.url).origin+' 发送 '+payload.method+' HTTP 请求';
+          '停止当前安装确实拥有的 Chrome 分流代理（不会清除其他工具或扩展的配置）';
         let bookmarkConsent,bookmarkPrepared,bookmarkSender;
         if(['browser.bookmarks.createOwned','browser.bookmarks.removeOwned'].includes(operation)){
           bookmarkConsent=createToolPermissionConsent({api});
@@ -2776,13 +2797,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               throw Object.assign(new Error('代理操作需要可信 Side Panel 的真实点击'),
                 {code:'E_USER_GESTURE_REQUIRED'});
             assertSession(source,token);
-            // Optional Chrome permission prompts must run in this real trusted click,
-            // before any await or Host RPC. Missing site grants remain Host-denied.
-            if(operation==='browser.network.request'){
-              if(!event?.isTrusted)throw Object.assign(new Error('需要用户真实点击'),{code:'E_USER_GESTURE_REQUIRED'});
-              const request=api.permissions.request({origins:[permissionPattern(payload.url)]});
-              if(await request!==true)throw Object.assign(new Error('未获网站访问权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
-            }
             if(operation==='browser.network.observe.start'){
               if(!event?.isTrusted)throw Object.assign(new Error('需要用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
               const request=api.permissions.request({permissions:['webRequest']});
@@ -2809,13 +2823,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           ['browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move'].includes(operation)
           ?await confirmAction():await requestBrowserClick({toolId:tool.id,
             message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
-            button:'允许本次操作',run:confirmAction}).catch(error=>{
-              // Approval failed before the HTTP RPC below was submitted. Later
-              // driver cancellation/revocation must retain its original code.
-              if(operation==='browser.network.request')throw Object.assign(
-                new Error('HTTP request was not submitted'),{code:'E_NETWORK_NOT_SUBMITTED'});
-              throw error;
-            });
+            button:'允许本次操作',run:confirmAction});
         assertSession(source,token);
         envelope.approvalRef=approvalRef;
       }

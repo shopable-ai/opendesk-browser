@@ -8863,7 +8863,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
-      "userGesture": true,
+      "userGesture": false,
       "maxRequestBytes": 12000,
       "errors": [
         "E_SCHEMA",

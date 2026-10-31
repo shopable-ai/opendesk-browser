@@ -26,7 +26,7 @@ const shared={apiVersion:BROWSER_API_VERSION,platform:'chrome>=138',timeout:8000
 const USER_GESTURE_OPERATIONS=new Set([
   'browser.clipboard.writeText','browser.downloads.text','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.createOwned','browser.bookmarks.removeOwned',
   'browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear','browser.scheduler.create',
-  'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.request','browser.network.observe.start',
+  'browser.tabs.activateOwned','browser.tabs.pinOwned','browser.tabs.reloadOwned','browser.tabs.navigateOwned','browser.tabs.removeOwned','browser.sidePanel.openSelf','browser.network.observe.start',
   'browser.network.observe.export','browser.screenshot.captureVisible',
   'browser.proxy.managed.requestEnable','browser.proxy.managed.requestDisable',
   'browser.cookies.set','browser.cookies.setMany','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'

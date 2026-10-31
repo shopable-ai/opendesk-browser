@@ -4,33 +4,21 @@ import {readFile} from 'node:fs/promises';
 import {createServer} from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {permissionPattern} from '../../src/environment.js';
-import {BROWSER_HOST_PROTOCOL} from '../../src/framework/sdk/browser-contract.js';
+import {BROWSER_HOST_PROTOCOL,browserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash}
   from '../../src/ui/sidebar-tools/package.js';
 
 const uiSource=await readFile(new URL('../../src/ui/sidebar-tools.js',import.meta.url),'utf8');
-const start=uiSource.indexOf('const confirmAction=async event=>{');
+// Exercise the real pre-RPC permission branch, including its trusted click.
+const start=uiSource.indexOf("      if(operation==='browser.network.request'){");
 assert.notEqual(start,-1);
-const end=uiSource.indexOf('\n          };',start);
+const end=uiSource.indexOf("\n      if(['browser.tabs.create'",start);
 assert.notEqual(end,-1);
-const confirmSource=uiSource.slice(start+'const confirmAction='.length,end)+'\n}';
-
-const approvalMarker="button:'允许本次操作',run:confirmAction}).catch(";
-const approvalStart=uiSource.indexOf(approvalMarker)+approvalMarker.length;
-assert.ok(approvalStart>=approvalMarker.length);
-const approvalEnd=uiSource.indexOf('\n            });',approvalStart);
-assert.notEqual(approvalEnd,-1);
-const approvalFailure=operation=>Function('operation','return ('+uiSource.slice(approvalStart,approvalEnd)+'\n})')(operation);
-
-test('only the pre-RPC approval boundary reports HTTP not submitted; other browser actions retain their errors',()=>{
-  for(const code of ['E_CANCELLED','E_CHROME_PERMISSION_REQUIRED','E_TOOL_CHANGED']){
-    const original=Object.assign(Error(),{code});
-    assert.throws(()=>approvalFailure('browser.network.request')(original),{code:'E_NETWORK_NOT_SUBMITTED'});
-    assert.throws(()=>approvalFailure('browser.tabs.create')(original),error=>error===original);
-  }
-});
+const prepare=Function('api','operation','payload','assertSession','source','token',
+  'tool','permissionPattern','requestBrowserClick',
+  'return (async()=>{'+uiSource.slice(start,end)+'})()');
 
 const errorCode=code=>error=>error?.code===code;
 async function fixture(t){
@@ -59,7 +47,7 @@ async function fixture(t){
       .map(key=>[key,structuredClone(map.get(key))])),
     set:async values=>{for(const [key,value] of Object.entries(values))map.set(key,structuredClone(value))}
   });
-  let permitted=false,approvalRef;
+  let permitted=false;
   const messages=[],requests=[];
   let grant=true,clickActive=false;
   const api={runtime:{id:extensionId,getURL:path=>'chrome-extension://'+extensionId+'/'+path,
@@ -74,7 +62,7 @@ async function fixture(t){
   // Real installed Host and NetworkService, using native fetch to the local server.
   const host=createContextMenuHost({api,lockManager:{request:(_key,work)=>work()},logger:{warn(){}}});
   const call=args=>host.handleTool(structuredClone({operation:'browser.network.request',args,
-    ...identity,...(approvalRef?{approvalRef}:{})}),sender).then(structuredClone);
+    ...identity}),sender).then(structuredClone);
   const sdk=createBrowserSdk({request:(operation,args)=>{
     assert.equal(operation,'browser.network.request');return call(args);
   }});
@@ -83,62 +71,69 @@ async function fixture(t){
     try{return {ok:true,data:await host.handleHost(structuredClone(message),sender)}}
     catch(error){return {ok:false,error:{code:error.code,message:error.message}}}
   };
-  // Execute the actual lexical click handler without exporting private UI internals.
-  const confirm=Function('api','operation','payload','assertSession','source','token',
-    'BROWSER_HOST_PROTOCOL','tool','revocationEpoch','packageHash','hostInstanceId','permissionPattern',
-    'return ('+confirmSource+')');
-  const approve=(args,event={isTrusted:true})=>{
-    const action=confirm(api,'browser.network.request',args,()=>{},null,identity.toolInstance,
-      BROWSER_HOST_PROTOCOL,tool,null,identity.packageHash,hostInstanceId,permissionPattern);
-    clickActive=true;
-    try{return action(event).then(value=>{approvalRef=value;return value})}
-    finally{clickActive=false}
-  };
-  return {sdk,call,seen,local,origin,requests,messages,approve,
+  let reviews=0,current=true;
+  const preflight=(args,event={isTrusted:true})=>prepare(api,'browser.network.request',args,
+    ()=>{if(!current)throw Object.assign(Error(),{code:'E_TOOL_CHANGED'})},
+    null,identity.toolInstance,tool,permissionPattern,async ({run})=>{
+      reviews++;clickActive=true;
+      try{return run(event)}finally{clickActive=false}
+    });
+  return {sdk,call,seen,local,origin,requests,messages,preflight,
+    get reviews(){return reviews},
     setGrant:value=>{grant=value},setSite:value=>{permitted=value},
+    setCurrent:value=>{current=value}
   };
 }
 
-test('denied Chrome origin consent prevents Host approval and HTTP dispatch',async t=>{
-  const f=await fixture(t),args={method:'GET',url:f.origin+'/membership'};
-  f.setGrant(false);
-  await assert.rejects(f.approve(args),errorCode('E_CHROME_PERMISSION_REQUIRED'));
-  assert.deepEqual(f.requests,[{origins:['http://127.0.0.1/*']}]);
-  assert.equal(f.messages.length,0);
-  assert.equal(f.seen.length,0);
+test('ordinary HTTP is not a gesture operation; network observation still requires one',()=>{
+  assert.equal(browserOperation('browser.network.request').requiresUserGesture,false);
+  assert.equal(browserOperation('browser.network.observe.start').requiresUserGesture,true);
 });
 
-test('synthetic and missing click events cannot request Chrome origins or dispatch',async t=>{
+test('existing Chrome permission sends repeated POSTs with no trusted review or approval RPC',async t=>{
+  const f=await fixture(t),args={method:'POST',url:f.origin+'/membership',data:{action:'read-cache'}};
+  f.setSite(true);
+  for(let i=0;i<2;i++){
+    await f.preflight(args);
+    assert.deepEqual(await f.sdk.network.request(args),{status:200,data:{ok:true}});
+  }
+  assert.equal(f.reviews,0);assert.equal(f.requests.length,0);
+  assert.equal(f.messages.length,0);assert.equal(f.seen.length,2);
+});
+
+test('missing Chrome permission is requested once from the real trusted click and then reused',async t=>{
+  const f=await fixture(t),args={method:'POST',url:f.origin+'/membership'};
+  await f.preflight(args);
+  await f.sdk.network.request(args);
+  await f.preflight(args);
+  await f.sdk.network.request(args);
+  assert.equal(f.reviews,1);
+  assert.deepEqual(f.requests,[{origins:['http://127.0.0.1/*']}]);
+  assert.equal(f.messages.length,0);assert.equal(f.seen.length,2);
+});
+
+test('denied or synthetic permission prompts prove no HTTP was submitted',async t=>{
   const f=await fixture(t),args={method:'GET',url:f.origin+'/membership'};
   for(const event of [{isTrusted:false},null])
-    await assert.rejects(f.approve(args,event),errorCode('E_USER_GESTURE_REQUIRED'));
+    await assert.rejects(f.preflight(args,event),errorCode('E_NETWORK_NOT_SUBMITTED'));
   assert.equal(f.requests.length,0);
-  assert.equal(f.messages.length,0);
-  assert.equal(f.seen.length,0);
+  f.setGrant(false);
+  await assert.rejects(f.preflight(args),errorCode('E_NETWORK_NOT_SUBMITTED'));
+  assert.equal(f.requests.length,1);
+  await assert.rejects(f.sdk.network.request(args),errorCode('E_SITE_PERMISSION_REVOKED'));
+  assert.equal(f.messages.length,0);assert.equal(f.seen.length,0);
 });
 
-test('trusted origin consent enables the existing scoped SDK fetch with one-use approval',async t=>{
-  const f=await fixture(t),args={method:'GET',url:f.origin+'/membership'};
-  await f.approve(args);
-  assert.deepEqual(f.requests,[{origins:['http://127.0.0.1/*']}]);
-  assert.equal(f.messages.length,1);
-  assert.equal(f.messages[0].targetArgs.url,args.url);
-  assert.deepEqual(await f.sdk.network.request(args),{status:200,data:{ok:true}});
-  await assert.rejects(f.sdk.network.request(args),errorCode('E_USER_GESTURE_REQUIRED'));
-  assert.equal(f.seen.length,1);
+test('stale tool instance cannot prompt or submit HTTP',async t=>{
+  const f=await fixture(t),args={method:'POST',url:f.origin+'/membership'};
+  f.setCurrent(false);
+  await assert.rejects(f.preflight(args),errorCode('E_NETWORK_NOT_SUBMITTED'));
+  assert.equal(f.requests.length,0);assert.equal(f.reviews,0);assert.equal(f.seen.length,0);
 });
 
-test('portless Chrome permission does not expand the exact-port one-use Host approval',async t=>{
+test('revocation after preflight remains a dispatch error, never mislabeled as not submitted',async t=>{
   const f=await fixture(t),args={method:'GET',url:f.origin+'/membership'};
-  await f.approve(args);
-  const changed=new URL(args.url);changed.port=String(Number(changed.port)===65535?65534:Number(changed.port)+1);
-  await assert.rejects(f.sdk.network.request({...args,url:changed.href}),errorCode('E_USER_GESTURE_REQUIRED'));
-  assert.equal(f.seen.length,0);
-});
-
-test('Chrome origin revocation after confirmation still prevents HTTP dispatch',async t=>{
-  const f=await fixture(t),args={method:'GET',url:f.origin+'/membership'};
-  await f.approve(args);f.setSite(false);
+  await f.preflight(args);f.setSite(false);
   await assert.rejects(f.sdk.network.request(args),errorCode('E_SITE_PERMISSION_REVOKED'));
   assert.equal(f.seen.length,0);
 });

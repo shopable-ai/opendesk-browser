@@ -10,7 +10,7 @@ import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage,sidebarToolPackageHash}
   from '../../src/ui/sidebar-tools/package.js';
 
 const errorCode=code=>error=>error?.code===code;
-async function fixture(t){
+async function fixture(t,{capabilities=['network']}={}){
   const seen=[];
   const server=createServer((request,response)=>{
     seen.push({url:request.url,headers:request.headers});
@@ -23,7 +23,7 @@ async function fixture(t){
   const origin='http://127.0.0.1:'+server.address().port;
   const tool=validateSidebarToolPackage({format:'opendesk.sidebar-tool.v2',
     id:'network-header-probe',version:'1.0.0',title:'Network header probe',description:'Test only',
-    capabilities:['network'],html:'<main>probe</main>',css:'',js:'void 0;',
+    capabilities,html:'<main>probe</main>',css:'',js:'void 0;',
     requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}});
   const extensionId='a'.repeat(32),hostInstanceId=randomUUID();
   const identity={toolId:tool.id,toolVersion:tool.version,toolInstance:randomUUID(),
@@ -36,7 +36,7 @@ async function fixture(t){
       .map(key=>[key,structuredClone(map.get(key))])),
     set:async values=>{for(const [key,value] of Object.entries(values))map.set(key,structuredClone(value))}
   });
-  let permitted=true,approvalRef;
+  let permitted=true;
   const api={runtime:{id:extensionId,getURL:path=>'chrome-extension://'+extensionId+'/'+path,
     getContexts:async()=>[{contextType:'SIDE_PANEL',documentId:sender.documentId,
       documentUrl:sender.url,frameId:0,incognito:false}]},
@@ -45,17 +45,37 @@ async function fixture(t){
   // Real installed Host and NetworkService, using native fetch to the local server.
   const host=createContextMenuHost({api,lockManager:{request:(_key,work)=>work()},logger:{warn(){}}});
   const call=args=>host.handleTool(structuredClone({operation:'browser.network.request',args,
-    ...identity,...(approvalRef?{approvalRef}:{})}),sender).then(structuredClone);
+    ...identity}),sender).then(structuredClone);
   const sdk=createBrowserSdk({request:(operation,args)=>{
     assert.equal(operation,'browser.network.request');return call(args);
   }});
-  return {sdk,call,seen,local,origin,setSite:value=>{permitted=value},
-    approve:async args=>{
-      const result=await host.handleHost(structuredClone({...identity,operation:'browser.intent.confirm',
-        targetOperation:'browser.network.request',targetArgs:args}),sender);
-      approvalRef=result.approvalRef;return approvalRef;
-    }};
+  return {sdk,call,seen,local,origin,setSite:value=>{permitted=value}};
 }
+
+test('installed network capability reuses Chrome site permission across GET and POST without per-request approval',async t=>{
+  const f=await fixture(t);
+  for(const method of ['GET','POST','POST']){
+    const result=await f.sdk.network.request({method,url:f.origin+'/service',
+      ...(method==='POST'?{data:{action:'read-cache'}}:{})});
+    assert.deepEqual(result,{status:200,data:{ok:true}});
+  }
+  assert.equal(f.seen.length,3);
+  f.setSite(false);
+  await assert.rejects(f.sdk.network.request({method:'POST',url:f.origin+'/service'}),
+    errorCode('E_SITE_PERMISSION_REVOKED'));
+  assert.equal(f.seen.length,3);
+});
+
+test('Chrome permission alone cannot grant network capability or access to another host',async t=>{
+  const withoutCapability=await fixture(t,{capabilities:[]});
+  await assert.rejects(withoutCapability.sdk.network.request({method:'POST',url:withoutCapability.origin+'/service'}),
+    errorCode('E_TOOL_CAPABILITY_REQUIRED'));
+  assert.equal(withoutCapability.seen.length,0);
+  const f=await fixture(t);
+  await assert.rejects(f.sdk.network.request({method:'POST',url:f.origin.replace('127.0.0.1','localhost')+'/service'}),
+    errorCode('E_SITE_PERMISSION_REVOKED'));
+  assert.equal(f.seen.length,0);
+});
 
 test('safe headers pass the public SDK, installed Host and real NetworkService HTTP transport',async t=>{
   const f=await fixture(t);
@@ -63,9 +83,6 @@ test('safe headers pass the public SDK, installed Host and real NetworkService H
     headers:{'X-OpenDesk-Local-Test':'1',Accept:'application/json','X-Request-Id':'probe'}}};
   assert.deepEqual(normalizeBrowserOperation('browser.network.request',args).config.headers,
     {'x-opendesk-local-test':'1',accept:'application/json','x-request-id':'probe'});
-  await assert.rejects(f.sdk.network.request(args),errorCode('E_USER_GESTURE_REQUIRED'));
-  assert.equal(f.seen.length,0);
-  await f.approve(args);
   const result=await f.sdk.network.request(args);
   assert.deepEqual(result,{status:200,data:{ok:true}});
   assert.equal(f.seen.length,1);
@@ -100,16 +117,15 @@ test('sensitive or malformed headers fail in both the SDK and Host before transp
   assert.equal(f.seen.length,0);
 });
 
-test('safe headers remain bound to one-use confirmation, site consent and installed identity',async t=>{
+test('safe headers reuse installed authority while site revocation and uninstall still stop requests',async t=>{
   const f=await fixture(t),args={method:'GET',url:f.origin+'/membership',
-    config:{headers:{'X-Request-Id':'approved'}}};
-  await f.approve(args);
-  await assert.rejects(f.sdk.network.request({...args,config:{headers:{'X-Request-Id':'changed'}}}),
-    errorCode('E_USER_GESTURE_REQUIRED'));
-  await assert.rejects(f.sdk.network.request(args),errorCode('E_USER_GESTURE_REQUIRED'));
-  await f.approve(args);f.setSite(false);
+    config:{headers:{'X-Request-Id':'first'}}};
+  await f.sdk.network.request(args);
+  await f.sdk.network.request({...args,config:{headers:{'X-Request-Id':'changed'}}});
+  assert.deepEqual(f.seen.map(row=>row.headers['x-request-id']),['first','changed']);
+  f.setSite(false);
   await assert.rejects(f.sdk.network.request(args),errorCode('E_SITE_PERMISSION_REVOKED'));
-  f.setSite(true);await f.approve(args);f.local.set(SIDEBAR_TOOL_STORE,[]);
+  f.setSite(true);f.local.set(SIDEBAR_TOOL_STORE,[]);
   await assert.rejects(f.sdk.network.request(args),errorCode('E_TOOL_CHANGED'));
-  assert.equal(f.seen.length,0);
+  assert.equal(f.seen.length,2);
 });

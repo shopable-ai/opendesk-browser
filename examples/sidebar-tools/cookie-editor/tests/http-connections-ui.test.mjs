@@ -264,7 +264,8 @@ test('resource pagination explicitly sends next cursor while ordinary read reset
     ['serviceResources',{revision:7,connectionId:'c1'}]]);
   h.update({state:{revision:8,connections:[{...connection,resourceCursor:null}]}});
   assert.ok(!h.find(n=>n.props['aria-label']==='读取更多资源：HTTP 服务'));
-  assert.match(text(h.tree),/每次公开网络请求都需要宿主的一次性审阅/);
+  assert.match(text(h.tree),/复用安装时批准的网络能力和已有网站访问权限/);
+  assert.match(text(h.tree),/缺少网站访问权限时，由宿主提示一次授权/);
 });
 
 test('retirement confirmation cannot survive eligibility or revision change',async()=>{

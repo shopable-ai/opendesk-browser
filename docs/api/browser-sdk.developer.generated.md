@@ -384,7 +384,7 @@
 - Signature: `(input: { readonly config?: { readonly headers?: { readonly [key: string]: unknown; }; readonly responseType?: "json" | "text"; readonly timeout?: number; }; readonly data?: unknown; readonly method: "GET" | "POST" | "PUT" | "DELETE"; readonly url: string; }) => Promise<{ readonly data?: unknown; readonly status: number; }>`
 - Mode: COMPOSED; native: existing trusted service
 - Capabilities: `network`; Chrome permissions: none
-- Scope: target-origin; user gesture: required
+- Scope: target-origin; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.operations.cancel

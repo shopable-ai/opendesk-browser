@@ -897,7 +897,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
               throw failure('E_GRANT_REVOKED','Cookie site/store/partition grant changed during operation');
           }});
       }
-      if(intentOperations.has(operation)||operation==='browser.sidePanel.openSelf'){
+      if(intentOperations.has(operation)||operation==='browser.sidePanel.openSelf'||operation==='browser.network.request'){
         const checked=normalizeBrowserOperation(operation,args),hash=await digestTool(tool);
         const owner={toolId,toolVersion,packageHash:hash,epoch:installEpoch??null,
           installEpoch:String(installEpoch??'initial-install'),approvedOrigin:null,
@@ -906,14 +906,19 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
           await verifyBrowserOwner(owner,operation);
           return {requiresVisibleUserClick:true};
         }
-        const intent=browserIntents.get(approvalRef);
-        browserIntents.delete(approvalRef);
-        if(!intent||Date.now()>=intent.expiresAt||intent.operation!==operation||
-           intent.toolId!==toolId||intent.toolVersion!==toolVersion||
-           intent.packageHash!==hash||intent.epoch!==(installEpoch??null)||
-           intent.toolInstance!==toolInstance||intent.hostInstanceId!==hostInstanceId||
-           intent.args!==canonicalJSON(checked))
-          throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
+        // HTTP reuses the installed network capability and current Chrome site
+        // permission. Sensitive Browser actions still consume exact one-use intents.
+        let intent=null;
+        if(intentOperations.has(operation)){
+          intent=browserIntents.get(approvalRef);
+          browserIntents.delete(approvalRef);
+          if(!intent||Date.now()>=intent.expiresAt||intent.operation!==operation||
+             intent.toolId!==toolId||intent.toolVersion!==toolVersion||
+             intent.packageHash!==hash||intent.epoch!==(installEpoch??null)||
+             intent.toolInstance!==toolInstance||intent.hostInstanceId!==hostInstanceId||
+             intent.args!==canonicalJSON(checked))
+            throw failure('E_USER_GESTURE_REQUIRED','New explicit approval required for this exact action');
+        }
         const approvedOrigin=operation==='browser.scheduler.create'&&checked.service!=='background'?new URL(intent.schedulerIntent.task.targetUrl).origin:
           operation==='browser.network.observe.start'?checked.origins[0]:
           ['browser.tabs.create','browser.tabs.navigateOwned','browser.network.request','browser.downloads.download','browser.bookmarks.createOwned'].includes(operation)

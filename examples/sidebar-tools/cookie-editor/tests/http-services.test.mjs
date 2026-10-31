@@ -58,6 +58,53 @@ async function connected(options={}){
   state=await service.dispatch('serviceConnect',{revision:state.revision,connectionId,code:'b'.repeat(64)});
   return {f,service,state,connectionId};
 }
+test('explicit unbind submits one public HTTP request without an approval flow and never replays an unknown write',async()=>{
+  for(const outcome of ['confirmed','E_NETWORK_NOT_SUBMITTED','E_CANCELLED','E_SITE_PERMISSION_REVOKED']){
+    const network=[];
+    const s=await connected({intercept:(operation,input)=>{
+      if(operation!=='browser.network.request')return;
+      network.push(structuredClone(input));
+      assert.equal(Object.hasOwn(input,'approvalRef'),false);
+      if(input.data.path==='/opendesk/v1/bindings')return Promise.resolve({status:200,data:{
+        bindingId:'binding_01',remoteAccountId:'remote_01',providerKey:'codex',purpose:'usage',
+        verificationState:'UNVERIFIED',localAccount:input.data.body.localAccount,
+        deviceId:'device_01',revoked:false,revision:1,authEpoch:1
+      }});
+      if(input.data.method==='DELETE'){
+        if(outcome!=='confirmed')return Promise.reject(Object.assign(Error(),{code:outcome}));
+        return Promise.resolve({status:200,data:{status:'REVOKED',authEpoch:2}});
+      }
+    }});
+    let state=await s.service.dispatch('serviceResources',{connectionId:s.connectionId});
+    state=await s.service.dispatch('serviceBind',{revision:state.revision,connectionId:s.connectionId,
+      alias:account.alias,accountVersion:account.version,remoteAccountId:'remote_01'});
+    const before=network.length;
+    const unbind=()=>s.service.dispatch('serviceUnbind',{revision:state.revision,connectionId:s.connectionId,bindingId:'binding_01'});
+    if(outcome==='E_NETWORK_NOT_SUBMITTED'){
+      await assert.rejects(unbind(),{code:outcome});
+      state=await s.service.dispatch('serviceStatus');
+      assert.equal(state.connections[0].pending,null);
+      assert.equal(state.connections[0].history.at(-1).outcome,'NOT_DISPATCHED');
+      assert.equal(state.connections[0].bindings[0].revoked,false);
+    }else{
+      state=await unbind();
+      if(outcome==='confirmed'){
+        assert.equal(state.connections[0].pending,null);
+        assert.equal(state.connections[0].bindings[0].revoked,true);
+      }else{
+        assert.equal(state.connections[0].status,'OUTCOME_UNKNOWN');
+        assert.equal(state.connections[0].receiptOnly,true);
+        await assert.rejects(unbind(),{code:'E_OUTCOME_UNKNOWN'});
+      }
+    }
+    assert.equal(network.length,before+1);
+    assert.equal(network.at(-1).url,'http://127.0.0.1:43119/opendesk/client/request');
+    assert.equal(network.at(-1).method,'POST');
+    assert.equal(network.at(-1).data.method,'DELETE');
+    assert.equal(network.at(-1).data.path,'/opendesk/v1/bindings/binding_01');
+    assert.ok(s.f.calls.every(c=>['browser.storage.local.get','browser.storage.local.set','browser.network.request'].includes(c.operation)));
+  }
+});
 test('only explicit pre-submission proof clears pending; post-dispatch revocation and cancellation remain unknown',async()=>{
   for(const code of ['E_SITE_PERMISSION_REVOKED','E_CANCELLED','E_NETWORK_NOT_SUBMITTED']){
     const s=await connected({intercept:(operation,input)=>{

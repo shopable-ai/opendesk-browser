@@ -29,6 +29,9 @@ export function sidebarToolRequestTimeout(operation,toolId){
  // still times out after 3s, and no late receipt is accepted.
  if(operation==='ai.generate')return 190000;
  if(operation==='browser.page.readEnvironment')return 100000;
+ // HTTP normally dispatches immediately, but its first missing Chrome origin
+ // permission still needs time for the native prompt in the trusted parent.
+ if(operation==='browser.network.request')return 120000;
  if(toolId==='web-markdown-clipper'&&operation.startsWith('clipNotes.'))
    return ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)?60000:30000;
  return (toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation))||

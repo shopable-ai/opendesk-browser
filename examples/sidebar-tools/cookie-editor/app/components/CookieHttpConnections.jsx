@@ -186,7 +186,7 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
         onClick={event => open(event, 'config')}>添加服务</button>
     </header>
     <p>填写普通 HTTP 服务的地址即可连接，无需安装本机辅助程序。不会扫描端口或自动连接。</p>
-    <p>会话有效期为 15 分钟。每次请求仅发往已确认的服务地址；每次公开网络请求都需要宿主的一次性审阅，确认地址和操作范围。</p>
+    <p>会话有效期为 15 分钟。请求仅发往已确认的服务地址，复用安装时批准的网络能力和已有网站访问权限；缺少网站访问权限时，由宿主提示一次授权。</p>
     {notice && <p role="status" className="cookie-business-callout">{notice}</p>}
     {error && <p role="alert" className="od-form-error">{error}</p>}
     {!state && <p role="status">服务状态尚未就绪，请等待读取完成。</p>}
