@@ -392,7 +392,7 @@ test('browser.downloads.text: Chrome downloads permission revoked after approval
 
 test('browser.events.close: actual owned observation closes; foreign owner, revoked Origin and closed ref reject', async () => {
   const f = await fixture();
-  const tab = await f.approved('browser.tabs.create', {url: TARGET_URL});
+  const tab = await f.call('browser.tabs.create', {url: TARGET_URL});
   const observation = await f.approved('browser.network.observe.start',
     {tabRef: tab.tabRef, origins: [ORIGIN], durationMs: 10000, maxEvents: 10});
   const args = {sessionRef: observation.observationId};

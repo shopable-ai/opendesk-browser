@@ -43,6 +43,7 @@ function fixture({fetchImpl=async()=>new Response('{"ok":true}',{status:200,head
       onRemoved:{addListener:fn=>removed.push(fn)},
       onUpdated:{addListener:fn=>updated.push(fn)},
       create:async ({url})=>{const item={id:100+created.length,windowId:9,url};tabs.set(item.id,item);created.push(item);return item;},
+      reload:async()=>{},
       remove:async id=>{tabs.delete(id);for(const fn of removed)fn(id);},
       get:async id=>{if(!tabs.has(id))throw Error('Tab missing');return tabs.get(id);},
       update:async (id,attrs)=>{const item={...tabs.get(id),...attrs};tabs.set(id,item);return item;},
@@ -98,36 +99,31 @@ test('R2 schema rejects arbitrary tabs, credentials, bad methods and unsafe head
   assert.throws(()=>normalizeBrowserOperation('browser.network.request',{method:'POST',url:'https://host.test',config:{headers:{authorization:'secret'}}}),err('E_CONFIG_UNSUPPORTED'));
 });
 
-test('R2 Host requires exact one-use approved action, binds TabRef to package and rejects raw tabId',async()=>{
+test('R2 Host directly creates and activates owned tabs while rejecting foreign sites and raw IDs',async()=>{
   const f=fixture(),args={url:'https://example.org/path'};
-  await assert.rejects(f.call('browser.tabs.create',args),err('E_USER_GESTURE_REQUIRED'));
-  const {approvalRef}=await f.confirm('browser.tabs.create',args);
-  await assert.rejects(f.call('browser.tabs.create',{url:'https://different.test/'},approvalRef),err('E_USER_GESTURE_REQUIRED'));
-  await assert.rejects(f.call('browser.tabs.create',args,approvalRef),err('E_USER_GESTURE_REQUIRED'));
+  await assert.rejects(f.call('browser.tabs.create',{url:'https://different.test/'}),err('E_SITE_PERMISSION_REVOKED'));
   assert.equal(f.created.length,0);
-  const ref=(await f.call('browser.tabs.create',args,(await f.confirm('browser.tabs.create',args)).approvalRef)).tabRef;
-  assert.equal(typeof ref,'string');
+  const {tabRef}=await f.call('browser.tabs.create',args);
+  assert.equal(typeof tabRef,'string');
   assert.equal(f.created.length,1);
   await assert.rejects(f.call('browser.tabs.activateOwned',{tabId:100}),err('E_SCHEMA'));
-  await assert.rejects(f.call('browser.tabs.activateOwned',{tabRef:ref}),err('E_USER_GESTURE_REQUIRED'));
-  assert.deepEqual(await f.call('browser.tabs.activateOwned',{tabRef:ref},
-    (await f.confirm('browser.tabs.activateOwned',{tabRef:ref})).approvalRef),{focused:true});
+  assert.deepEqual(await f.call('browser.tabs.activateOwned',{tabRef}),{focused:true});
   f.navigate(100,'https://different.test/elsewhere');
-  await assert.rejects(f.confirm('browser.tabs.activateOwned',{tabRef:ref}),err('E_TAB_REF_INVALID'));
+  await assert.rejects(f.call('browser.tabs.activateOwned',{tabRef}),err('E_TAB_REF_INVALID'));
 });
 
 test('R2 Host enforces installed tool capability, site revocation and Chrome permission checks',async()=>{
   const f=fixture(),args={url:'https://example.org'};
   f.setSite(false);
-  await assert.rejects(f.confirm('browser.tabs.create',args),err('E_SITE_PERMISSION_REVOKED'));
+  await assert.rejects(f.call('browser.tabs.create',args),err('E_SITE_PERMISSION_REVOKED'));
+  assert.equal(f.created.length,0);
   f.setSite(true);f.setChrome(false);
-  assert.equal(typeof (await f.confirm('browser.tabs.create',args)).approvalRef,'string',
+  assert.equal(typeof (await f.call('browser.tabs.create',args)).tabRef,'string',
     'chrome.tabs.create does not require native tabs permission');
   f.setChrome(true);
-  const {approvalRef}=await f.confirm('browser.tabs.create',args);
   await f.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[]});
-  await assert.rejects(f.call('browser.tabs.create',args,approvalRef),err('E_TOOL_CHANGED'));
-  assert.equal(f.created.length,0);
+  await assert.rejects(f.call('browser.tabs.create',args),err('E_TOOL_CHANGED'));
+  assert.equal(f.created.length,1);
 });
 
 test('R2 bounded HTTP reuses the existing driver and site permission without exposing credentials',async()=>{
@@ -167,8 +163,7 @@ test('R2 revocation aborts a request that already entered the trusted fetch driv
 
 test('R2 observe/end-to-end Host only sees owned TabRef; pagination and export are bound',async()=>{
  const f=fixture(),url={url:'https://example.org/page'};
- const tabRef=(await f.call('browser.tabs.create',url,
-   (await f.confirm('browser.tabs.create',url)).approvalRef)).tabRef;
+ const tabRef=(await f.call('browser.tabs.create',url)).tabRef;
  const args={tabRef,origins:['https://example.org'],durationMs:10000,maxEvents:10};
  await assert.rejects(f.call('browser.network.observe.start',args),err('E_USER_GESTURE_REQUIRED'));
  const started=await f.call('browser.network.observe.start',args,
@@ -193,7 +188,7 @@ test('R2 observe/end-to-end Host only sees owned TabRef; pagination and export a
 });
 test('R2 observer rejects off-Origin, Chrome revocation and uninstalled tool',async()=>{
  const f=fixture(),url={url:'https://example.org'};
- const tabRef=(await f.call('browser.tabs.create',url,(await f.confirm('browser.tabs.create',url)).approvalRef)).tabRef;
+ const tabRef=(await f.call('browser.tabs.create',url)).tabRef;
  const bad={tabRef,origins:['https://different.org']};
  await assert.rejects(f.confirm('browser.network.observe.start',bad),err('E_SITE_PERMISSION_REVOKED'));
  const exact={tabRef,origins:['https://example.org']};
@@ -206,8 +201,7 @@ test('R2 observer rejects off-Origin, Chrome revocation and uninstalled tool',as
 
 test('R4 owned operation status/cancel refers to a real network observation and never controls other tabs',async()=>{
  const f=fixture(),url={url:'https://example.org/observe'};
- const tabRef=(await f.call('browser.tabs.create',url,
-   (await f.confirm('browser.tabs.create',url)).approvalRef)).tabRef;
+ const tabRef=(await f.call('browser.tabs.create',url)).tabRef;
  const params={tabRef,origins:['https://example.org'],durationMs:30000};
  const started=await f.call('browser.network.observe.start',params,
    (await f.confirm('browser.network.observe.start',params)).approvalRef);
@@ -227,8 +221,7 @@ test('R4 owned operation status/cancel refers to a real network observation and 
 
 test('P1 screenshot: exact owned visible tab, one-use user approval and private PNG Save As receipt',async()=>{
  const f=fixture(),args={url:'https://example.org/screenshot'};
- const tabRef=(await f.call('browser.tabs.create',args,
-   (await f.confirm('browser.tabs.create',args)).approvalRef)).tabRef;
+ const tabRef=(await f.call('browser.tabs.create',args)).tabRef;
  const capture={tabRef};
  await assert.rejects(f.call('browser.screenshot.captureVisible',capture),err('E_USER_GESTURE_REQUIRED'));
  await assert.rejects(f.confirm('browser.screenshot.captureVisible',{tabId:100}),err('E_SCHEMA'));
@@ -248,74 +241,76 @@ test('P1 screenshot: exact owned visible tab, one-use user approval and private 
 });
 test('P1 screenshot revocation and wrong visible tab prevent a Chrome capture side effect',async()=>{
  const f=fixture(),args={url:'https://example.org/screenshot'};
- const tabRef=(await f.call('browser.tabs.create',args,
-   (await f.confirm('browser.tabs.create',args)).approvalRef)).tabRef;
+ const tabRef=(await f.call('browser.tabs.create',args)).tabRef;
  f.setSite(false);
   await assert.rejects(f.confirm('browser.screenshot.captureVisible',{tabRef}),
     err('E_SITE_PERMISSION_REVOKED'));
  assert.equal(f.downloads.length,0);
  f.setSite(true);
  const second={url:'https://example.org/another'};
- await f.call('browser.tabs.create',second,(await f.confirm('browser.tabs.create',second)).approvalRef);
+ await f.call('browser.tabs.create',second);
  const approval=(await f.confirm('browser.screenshot.captureVisible',{tabRef})).approvalRef;
  await assert.rejects(f.call('browser.screenshot.captureVisible',{tabRef},approval),
    err('E_TARGET_CHANGED'));
  assert.equal(f.downloads.length,0);
 });
 
-test('R9 installed tool pinOwned requires exact one-use Host approval and returns Chrome pin state',async()=>{
+test('R9 installed tool pinOwned directly returns Chrome pin state and respects revocation',async()=>{
   const f=fixture(),url={url:'https://example.org/pin'};
-  const tabRef=(await f.call('browser.tabs.create',url,
-    (await f.confirm('browser.tabs.create',url)).approvalRef)).tabRef;
+  const tabRef=(await f.call('browser.tabs.create',url)).tabRef;
   const input={tabRef,pinned:true};
-  await assert.rejects(f.call('browser.tabs.pinOwned',input),err('E_USER_GESTURE_REQUIRED'));
   await assert.rejects(f.call('browser.tabs.pinOwned',{tabId:100,pinned:true}),err('E_SCHEMA'));
-  const receipt=(await f.confirm('browser.tabs.pinOwned',input)).approvalRef;
-  assert.deepEqual(await f.call('browser.tabs.pinOwned',input,receipt),{pinned:true});
+  assert.deepEqual(await f.call('browser.tabs.pinOwned',input),{pinned:true});
   assert.equal(f.tabs.get(100).pinned,true);
-  await assert.rejects(f.call('browser.tabs.pinOwned',input,receipt),err('E_USER_GESTURE_REQUIRED'));
+  assert.deepEqual(await f.call('browser.tabs.pinOwned',input),{pinned:true});
   f.setSite(false);
-  await assert.rejects(f.confirm('browser.tabs.pinOwned',{tabRef,pinned:false}),err('E_SITE_PERMISSION_REVOKED'));
+  await assert.rejects(f.call('browser.tabs.pinOwned',{tabRef,pinned:false}),err('E_SITE_PERMISSION_REVOKED'));
 });
-test('R9 reloadOwned crosses SDK → one-shot approval → Host → Chrome and revokes the ref',async()=>{
+test('R9 reloadOwned directly reaches Chrome and revokes the ref',async()=>{
   const f=fixture(),url={url:'https://example.org/reload'};
   let native=0;f.api.tabs.reload=async(id,options)=>{
     assert.equal(id,100);assert.deepEqual(options,{bypassCache:false});native++;
   };
-  const {tabRef}=await f.call('browser.tabs.create',url,
-    (await f.confirm('browser.tabs.create',url)).approvalRef);
+  const {tabRef}=await f.call('browser.tabs.create',url);
   const args={tabRef};
-  await assert.rejects(f.call('browser.tabs.reloadOwned',args),err('E_USER_GESTURE_REQUIRED'));
-  const approvalRef=(await f.confirm('browser.tabs.reloadOwned',args)).approvalRef;
-  assert.deepEqual(await f.call('browser.tabs.reloadOwned',args,approvalRef),
+  assert.deepEqual(await f.call('browser.tabs.reloadOwned',args),
     {reloadRequested:true,tabRefRevoked:true});
   assert.equal(native,1);
-  await assert.rejects(f.call('browser.tabs.reloadOwned',args,approvalRef),
-    err('E_USER_GESTURE_REQUIRED'));
+  await assert.rejects(f.call('browser.tabs.reloadOwned',args),
+    err('E_TAB_REF_INVALID'));
   await assert.rejects(f.call('browser.tabs.getOwned',{tabRef}),err('E_TAB_REF_INVALID'));
 });
-test('R9 navigateOwned requires single use approval and never grants cross-Origin Chrome update',async()=>{
+test('R9 navigateOwned directly navigates and never grants cross-Origin Chrome update',async()=>{
  const f=fixture(),url={url:'https://example.org/start'};let updates=0;
  const original=f.api.tabs.update;
  f.api.tabs.update=async(id,props)=>{updates++;return original(id,props)};
- const {tabRef}=await f.call('browser.tabs.create',url,
-   (await f.confirm('browser.tabs.create',url)).approvalRef);
+ const {tabRef}=await f.call('browser.tabs.create',url);
  const args={tabRef,url:'https://example.org/next'};
- await assert.rejects(f.call('browser.tabs.navigateOwned',args),err('E_USER_GESTURE_REQUIRED'));
- await assert.rejects(f.confirm('browser.tabs.navigateOwned',{tabRef,url:'https://foreign.example/'}),
-   err('E_SITE_PERMISSION_REVOKED'));
- const approvalRef=(await f.confirm('browser.tabs.navigateOwned',args)).approvalRef;
- assert.deepEqual(await f.call('browser.tabs.navigateOwned',args,approvalRef),
+ await assert.rejects(f.call('browser.tabs.navigateOwned',{tabRef,url:'https://foreign.example/'}),
+   err('E_SITE_GRANT_REQUIRED'));
+ assert.deepEqual(await f.call('browser.tabs.navigateOwned',args),
    {navigationRequested:true,tabRefRevoked:true});
  assert.equal(updates,1);
- await assert.rejects(f.call('browser.tabs.navigateOwned',args,approvalRef),
-   err('E_USER_GESTURE_REQUIRED'));
+ await assert.rejects(f.call('browser.tabs.navigateOwned',args),
+   err('E_TAB_REF_INVALID'));
  await assert.rejects(f.call('browser.tabs.getOwned',{tabRef}),err('E_TAB_REF_INVALID'));
 });
-test('R9 Host cannot mint a one-use intent for revoked or foreign owned TabRefs',async()=>{
+for(const operation of ['browser.tabs.reloadOwned','browser.tabs.navigateOwned']){
+ test(operation+' direct unknown native outcome is not replayed with the consumed TabRef',async()=>{
+  const f=fixture(),{tabRef}=await f.call('browser.tabs.create',{url:'https://example.org/start'});
+  let effects=0;
+  f.api.tabs[operation.endsWith('reloadOwned')?'reload':'update']=async()=>{
+    effects++;throw Error('native reply lost');
+  };
+  const args=operation.endsWith('reloadOwned')?{tabRef}:{tabRef,url:'https://example.org/next'};
+  await assert.rejects(f.call(operation,args),err('E_OUTCOME_UNKNOWN'));
+  await assert.rejects(f.call(operation,args),err('E_TAB_REF_INVALID'));
+  assert.equal(effects,1);
+ });
+}
+test('R9 Host rejects direct ordinary calls and sensitive intents for revoked or foreign TabRefs',async()=>{
   const f=fixture(),url={url:'https://example.org/preflight'};
-  const {tabRef}=await f.call('browser.tabs.create',url,
-    (await f.confirm('browser.tabs.create',url)).approvalRef);
+  const {tabRef}=await f.call('browser.tabs.create',url);
   const operations=[
     ['browser.tabs.activateOwned',{tabRef}],
     ['browser.tabs.pinOwned',{tabRef,pinned:false}],
@@ -327,11 +322,12 @@ test('R9 Host cannot mint a one-use intent for revoked or foreign owned TabRefs'
   ];
   for(const [operation,args] of operations){
     f.setSite(false);
-    await assert.rejects(f.confirm(operation,args),err('E_SITE_PERMISSION_REVOKED'),
-      operation+' must check current site grant before issuing an approval');
+    const invoke=operation.startsWith('browser.tabs.')?f.call:f.confirm;
+    await assert.rejects(invoke(operation,args),err('E_SITE_PERMISSION_REVOKED'),
+      operation+' must check current site grant before execution or approval');
     f.setSite(true);
-    await assert.rejects(f.confirm(operation,{...args,tabRef:'r'.repeat(32)}),
-      err('E_TAB_REF_INVALID'),operation+' must reject a foreign resource before approval');
+    await assert.rejects(invoke(operation,{...args,tabRef:'r'.repeat(32)}),
+      err('E_TAB_REF_INVALID'),operation+' must reject a foreign resource before execution or approval');
   }
 });
 test('R9 capability status fails closed when an owned-TabRef Chrome document driver is absent',async()=>{
@@ -346,7 +342,7 @@ test('R9 capability status fails closed when an owned-TabRef Chrome document dri
 });
 test('compact network.watch() returns an owned session handle and uses only existing trusted Host operations',async()=>{
  const f=fixture(),routed=[];
- const needsApproval=new Set(['browser.tabs.create','browser.network.observe.start','browser.network.observe.export']);
+ const needsApproval=new Set(['browser.network.observe.start','browser.network.observe.export']);
  const sdk=createBrowserSdk({request:async(operation,args)=>{
    routed.push(operation);
    const approvalRef=needsApproval.has(operation)
@@ -390,7 +386,7 @@ test('compact network.watch() returns an owned session handle and uses only exis
 });
 test('compact network.watch rejects non-exact origins, foreign fields, and absent site grants',async()=>{
  const f=fixture(),sdk=createBrowserSdk({request:async(operation,args)=>{
-   const approvalRef=['browser.tabs.create','browser.network.observe.start'].includes(operation)
+   const approvalRef=['browser.network.observe.start'].includes(operation)
       ?(await f.confirm(operation,args)).approvalRef:undefined;
    return f.call(operation,args,approvalRef);
  }});
@@ -408,14 +404,12 @@ test('compact network.watch rejects non-exact origins, foreign fields, and absen
  assert.equal(typeof page.network,'undefined');
 });
 
-test('R5 actual installed Host reads and closes an owned tab only after one-use approval',async()=>{
+test('R5 actual installed Host directly reads and closes an owned tab and rejects a stale ref',async()=>{
  const f=fixture(),url={url:'https://example.org/r5'};
- const {tabRef}=await f.call('browser.tabs.create',url,(await f.confirm('browser.tabs.create',url)).approvalRef);
+ const {tabRef}=await f.call('browser.tabs.create',url);
  assert.equal((await f.call('browser.tabs.getOwned',{tabRef})).origin,'https://example.org');
  assert.deepEqual((await f.call('browser.tabs.listOwned')).tabs,[{tabRef,origin:'https://example.org'}]);
- await assert.rejects(f.call('browser.tabs.removeOwned',{tabRef}),err('E_USER_GESTURE_REQUIRED'));
- const receipt=(await f.confirm('browser.tabs.removeOwned',{tabRef})).approvalRef;
- assert.deepEqual(await f.call('browser.tabs.removeOwned',{tabRef},receipt),{closed:true});
- await assert.rejects(f.call('browser.tabs.removeOwned',{tabRef},receipt),err('E_USER_GESTURE_REQUIRED'));
+ assert.deepEqual(await f.call('browser.tabs.removeOwned',{tabRef}),{closed:true});
+ await assert.rejects(f.call('browser.tabs.removeOwned',{tabRef}),err('E_TAB_REF_INVALID'));
  assert.deepEqual((await f.call('browser.tabs.listOwned')).tabs,[]);
 });

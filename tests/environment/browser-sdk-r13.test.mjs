@@ -506,7 +506,7 @@ test('R10 export Host requires exact one-use intent, current tool package and Ch
   await assert.rejects(execute(copy,text,last.approvalRef),{code:'E_TOOL_CHANGED'},
     'an old package cannot use an earlier export approval');
 });
-test('R10 P3 native Downloads Host binds one-use intent to installed owner and exact website',async()=>{
+test('R10 P3 native Downloads Host directly executes for installed owner and exact website',async()=>{
   const base=await readSample('selection-notes.opendesk-tool.json');
   const tool={...base,capabilities:[...base.capabilities,'user.export']};
   const fake=makeChrome(),native=[],items=new Map();
@@ -520,12 +520,6 @@ test('R10 P3 native Downloads Host binds one-use intent to installed owner and e
   fake.setPermission(true);
   const host=createContextMenuHost({api:fake.api,lockManager,logger:{warn(){}}});
   const identity={...hostContext,packageHash:await sidebarToolPackageHash(tool)};
-  const confirm=(operation,args)=>host.handleHost({
-    operation:'browser.intent.confirm',toolId:identity.toolId,toolVersion:identity.toolVersion,
-    toolInstance:identity.toolInstance,hostInstanceId:identity.hostInstanceId,
-    installEpoch:identity.installEpoch,packageHash:identity.packageHash,
-    targetOperation:operation,targetArgs:args
-  },sender);
   const execute=(operation,args={},approvalRef)=>host.handleTool({
     operation,args,approvalRef,...identity
   },sender);
@@ -534,24 +528,18 @@ test('R10 P3 native Downloads Host binds one-use intent to installed owner and e
   const deniedStatus=await execute('browser.capabilities.getStatus',{operation:op,url});
   assert.equal(deniedStatus.callableNow,false);
   assert.equal(deniedStatus.reasonCode,'E_SITE_GRANT_REQUIRED');
-  await assert.rejects(confirm(op,args),{code:'E_SITE_PERMISSION_REVOKED'});
+  await assert.rejects(execute(op,args),{code:'E_SITE_PERMISSION_REVOKED'});
   fake.setSiteAccess(true);
   const allowedStatus=await execute('browser.capabilities.getStatus',{operation:op,url});
   assert.equal(allowedStatus.callableNow,true);
   assert.equal(allowedStatus.authorization.site,'granted');
-  await assert.rejects(execute(op,args),{code:'E_USER_GESTURE_REQUIRED'});
-  const ticket=await confirm(op,args);
-  await assert.rejects(execute(op,{url:'https://example.com/different.txt',saveAs:true},ticket.approvalRef),
-    {code:'E_USER_GESTURE_REQUIRED'});
   assert.equal(native.length,0);
-  const accepted=await confirm(op,args);
-  const receipt=await execute(op,args,accepted.approvalRef);
+  const receipt=await execute(op,args);
   assert.equal(receipt.status,'started');
   assert.match(receipt.downloadRef,/^[A-Za-z0-9_-]{16,160}$/);
   assert.equal(Object.hasOwn(receipt,'downloadId'),false);
   assert.equal(native.length,1);
   assert.equal(native[0].args.url,url);
-  await assert.rejects(execute(op,args,accepted.approvalRef),{code:'E_USER_GESTURE_REQUIRED'});
   const progress=await execute('browser.downloads.getOwned',{downloadRef:receipt.downloadRef});
   assert.equal(progress.state,'in_progress');
   assert.deepEqual((await execute('browser.downloads.listOwned')).items,
@@ -559,9 +547,9 @@ test('R10 P3 native Downloads Host binds one-use intent to installed owner and e
   await assert.rejects(execute('browser.downloads.getOwned',{downloadRef:'other-owned-download-token-xxxx'}),
     {code:'E_DOWNLOAD_REF_INVALID'});
   const cancelOp='browser.downloads.cancelOwned',cancelArgs={downloadRef:receipt.downloadRef};
-  await assert.rejects(execute(cancelOp,cancelArgs),{code:'E_USER_GESTURE_REQUIRED'});
-  const cancelTicket=await confirm(cancelOp,cancelArgs);
-  assert.deepEqual(await execute(cancelOp,cancelArgs,cancelTicket.approvalRef),{cancelled:true});
+  await assert.rejects(execute(cancelOp,{downloadRef:'other-owned-download-token-xxxx'}),
+    {code:'E_DOWNLOAD_REF_INVALID'});
+  assert.deepEqual(await execute(cancelOp,cancelArgs),{cancelled:true});
   assert.equal(native.filter(x=>x.kind==='cancel').length,1);
   fake.setSiteAccess(false);
   await assert.rejects(execute('browser.downloads.getOwned',{downloadRef:receipt.downloadRef}),

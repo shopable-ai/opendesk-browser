@@ -32,6 +32,9 @@ export function sidebarToolRequestTimeout(operation,toolId){
  // HTTP normally dispatches immediately, but its first missing Chrome origin
  // permission still needs time for the native prompt in the trusted parent.
  if(operation==='browser.network.request')return 120000;
+ // Reusing authorization does not shorten a first-use Chrome permission or
+ // native Save As dialog to the ordinary RPC budget.
+ if(operation==='browser.bookmarks.createOwned'||operation==='browser.downloads.download')return 120000;
  if(toolId==='web-markdown-clipper'&&operation.startsWith('clipNotes.'))
    return ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)?60000:30000;
  return (toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation))||
@@ -163,21 +166,22 @@ export function initSidebarToolSandbox() {
     // Allocate only at delivery: unrelated reads may finish during preparation.
     const requestId=''+(++sequence);
     return new Carrier((resolve,reject)=>{
+      const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
+      const browserWrite=exporting||browserOperation(operation)?.effectClass==='write';
       const timeoutMs=sidebarToolRequestTimeout(operation,toolId);
       const timeout=later(()=>{
         apply(mapDelete,waiting,[requestId]);
         // Once sent the Host may already have committed the effect.
-        const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
-        const uncertain=exporting||toolId==='web-markdown-clipper'&&
+        const uncertain=browserWrite||exporting||toolId==='web-markdown-clipper'&&
           ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)||
           toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation)||
           toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status'||
            toolId==='ai-send-queue'&&operation==='sendQueue.command';
         reject(exportError(uncertain?'E_OUTCOME_UNKNOWN':'E_TOOL_TIMEOUT',
           exporting?'导出回执超时，结果未知；请核对实际结果，勿自动重试':uncertain?
-          '确认或 DNR 回读超时，结果未知；请重新读取后台状态与 Chrome 规则，不要重复提交':'工具请求超时'));
+          '操作回执超时，结果未知；请核对实际结果，不要重复提交':'工具请求超时'));
       },timeoutMs);
-      apply(mapSet,waiting,[requestId,{resolve,reject,timeout,operation}]);
+      apply(mapSet,waiting,[requestId,{resolve,reject,timeout,operation,browserWrite}]);
       const message={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance,toolId,requestId,operation,payload};
       // Timeout discovery and request initialization may run tool-modified
       // intrinsics. Check only after them; nothing tool-controlled may run
@@ -507,11 +511,11 @@ export function initSidebarToolSandbox() {
     if(exportPort)apply(portClose,exportPort,[]);
     exportPort=null;exportClick=null;
     apply(setClear,localeListeners,[]);if(scriptUrl)URL.revokeObjectURL(scriptUrl);
-    apply(mapForEach,waiting,[({reject,timeout,operation})=>{
+    apply(mapForEach,waiting,[({reject,timeout,operation,browserWrite})=>{
       cancelTimer(timeout);
       const exporting=operation==='browser.clipboard.writeText'||operation==='browser.downloads.text';
-      reject(exportError(exporting?'E_OUTCOME_UNKNOWN':'E_TOOL_DISPOSED',
-        exporting?'工具已关闭，导出结果未知；请核对实际结果，勿自动重试':'工具已关闭'));
+      reject(exportError(exporting||browserWrite?'E_OUTCOME_UNKNOWN':'E_TOOL_DISPOSED',
+        exporting||browserWrite?'工具已关闭，操作结果未知；请核对实际结果，勿自动重试':'工具已关闭'));
     }]);
     apply(mapClear,waiting,[]);
   },{once:true});

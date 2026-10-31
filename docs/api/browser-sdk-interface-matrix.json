@@ -1955,7 +1955,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
-      "userGesture": true,
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_OWNER",
@@ -2084,12 +2084,12 @@
       "toolCapabilities": [
         "browser.bookmarks"
       ],
-      "siteScope": "exact selected URL; trusted confirmation; tool-owned bookmark mapping",
+      "siteScope": "exact selected URL; installed capability and Chrome permission; tool-owned bookmark mapping",
       "allowedWorlds": [
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_EXPLICIT_CAPABILITY_AND_ORIGIN",
-      "userGesture": true,
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -2412,7 +2412,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
-      "userGesture": true,
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_OWNER",
@@ -3383,7 +3383,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_FULL_BOOKMARKS_EXPLICIT_TRUSTED_UI_CONSENT_AND_CHROME_OPTIONAL_PERMISSION",
-      "userGesture": true,
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_OWNER",
@@ -6968,7 +6968,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
-      "userGesture": true,
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -7122,7 +7122,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_VERIFIED_SENDER_PACKAGE_HASH_EPOCH_PERMISSION_AND_ONE_USE_INTENT",
-      "userGesture": true,
+      "userGesture": false,
       "errors": [
         "E_SCHEMA",
         "E_CONTEXT",
@@ -11686,7 +11686,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
-      "userGesture": true,
+      "userGesture": false,
       "maxRequestBytes": 12000,
       "errors": [
         "E_SCHEMA",
@@ -11825,7 +11825,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
-      "userGesture": true,
+      "userGesture": false,
       "maxRequestBytes": 12000,
       "errors": [
         "E_SCHEMA",
@@ -12235,7 +12235,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
-      "userGesture": true,
+      "userGesture": false,
       "maxRequestBytes": 12000,
       "errors": [
         "E_SCHEMA",
@@ -12365,7 +12365,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
-      "userGesture": true,
+      "userGesture": false,
       "maxRequestBytes": 12000,
       "errors": [
         "E_SCHEMA",
@@ -12486,7 +12486,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
-      "userGesture": true,
+      "userGesture": false,
       "maxRequestBytes": 12000,
       "errors": [
         "E_SCHEMA",
@@ -12609,7 +12609,7 @@
         "sidebar-tool"
       ],
       "trust": "INSTALLED_TOOL_WITH_VERIFIED_SENDER",
-      "userGesture": true,
+      "userGesture": false,
       "maxRequestBytes": 12000,
       "errors": [
         "E_SCHEMA",

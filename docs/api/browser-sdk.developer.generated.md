@@ -8,7 +8,7 @@
 - Signature: `(input: { readonly index?: number; readonly parentId?: string; readonly sourcePage?: { readonly documentRef: string; readonly tabRef: string; readonly url: string; }; readonly title: string; readonly url?: string; }) => Promise<{ readonly dateAdded?: number; readonly dateGroupModified?: number; readonly folderType?: string; readonly id: string; readonly index: number | null; readonly parentId: string | null; readonly syncing?: boolean; readonly title: string; readonly unmodifiable?: string; readonly url?: string; }>`
 - Mode: SCOPED; native: `chrome.bookmarks.create`
 - Capabilities: `browser.bookmarks.full`; Chrome permissions: `bookmarks`
-- Scope: all-bookmarks; user gesture: required
+- Scope: all-bookmarks; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.bookmarks.createOwned
@@ -16,7 +16,7 @@
 - Signature: `(input: { readonly parentRef?: string; readonly title?: string; readonly url: string; }) => Promise<{ readonly bookmarkRef: string; }>`
 - Mode: SCOPED; native: `chrome.bookmarks.create`
 - Capabilities: `browser.bookmarks`; Chrome permissions: `bookmarks`
-- Scope: exact selected URL; trusted confirmation; tool-owned bookmark mapping; user gesture: required
+- Scope: exact selected URL; installed capability and Chrome permission; tool-owned bookmark mapping; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.bookmarks.get
@@ -40,7 +40,7 @@
 - Signature: `(input: { readonly destination: { readonly index?: number; readonly parentId: string; }; readonly expected: { readonly folderType: string | null; readonly id: string; readonly index: number | null; readonly parentId: string | null; readonly title: string; readonly unmodifiable: string | null; readonly url: string | null; }; readonly id: string; }) => Promise<{ readonly dateAdded?: number; readonly dateGroupModified?: number; readonly folderType?: string; readonly id: string; readonly index: number | null; readonly parentId: string | null; readonly syncing?: boolean; readonly title: string; readonly unmodifiable?: string; readonly url?: string; }>`
 - Mode: SCOPED; native: `chrome.bookmarks.move`
 - Capabilities: `browser.bookmarks.full`; Chrome permissions: `bookmarks`
-- Scope: all-bookmarks; user gesture: required
+- Scope: all-bookmarks; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.bookmarks.observe.read
@@ -112,7 +112,7 @@
 - Signature: `(input: { readonly changes: { readonly title?: string; readonly url?: string; }; readonly expected: { readonly folderType: string | null; readonly id: string; readonly index: number | null; readonly parentId: string | null; readonly title: string; readonly unmodifiable: string | null; readonly url: string | null; }; readonly id: string; }) => Promise<{ readonly dateAdded?: number; readonly dateGroupModified?: number; readonly folderType?: string; readonly id: string; readonly index: number | null; readonly parentId: string | null; readonly syncing?: boolean; readonly title: string; readonly unmodifiable?: string; readonly url?: string; }>`
 - Mode: SCOPED; native: `chrome.bookmarks.update`
 - Capabilities: `browser.bookmarks.full`; Chrome permissions: `bookmarks`
-- Scope: all-bookmarks; user gesture: required
+- Scope: all-bookmarks; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.capabilities.getStatus
@@ -272,7 +272,7 @@
 - Signature: `(input: { readonly downloadRef: string; }) => Promise<{ readonly cancelled: boolean; }>`
 - Mode: SCOPED; native: `chrome.downloads.cancel`
 - Capabilities: `user.export`; Chrome permissions: `downloads`
-- Scope: own in-progress download only; user gesture: required
+- Scope: own in-progress download only; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.downloads.download
@@ -280,7 +280,7 @@
 - Signature: `(input: { readonly filename?: string; readonly saveAs?: boolean; readonly url: string; }) => Promise<{ readonly downloadRef: string; readonly status: "started"; }>`
 - Mode: SCOPED; native: `chrome.downloads.download`
 - Capabilities: `user.export`; Chrome permissions: `downloads`
-- Scope: explicit approved-origin URL; tool owns generated downloadRef; user gesture: required
+- Scope: explicit approved-origin URL; tool owns generated downloadRef; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.downloads.getOwned
@@ -552,7 +552,7 @@
 - Signature: `(input: { readonly tabRef: string; }) => Promise<{ readonly focused: boolean; }>`
 - Mode: SCOPED; native: `chrome.tabs.get`, `chrome.tabs.update`, `chrome.windows.update`
 - Capabilities: `browser.tabs`; Chrome permissions: `tabs`, `webNavigation`
-- Scope: tab-ref; user gesture: required
+- Scope: tab-ref; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.tabs.create
@@ -560,7 +560,7 @@
 - Signature: `(input: { readonly url: string; }) => Promise<{ readonly tabRef: string; }>`
 - Mode: SCOPED; native: `chrome.tabs.create`
 - Capabilities: `browser.tabs`; Chrome permissions: none
-- Scope: explicit-url; user gesture: required
+- Scope: explicit-url; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.tabs.getOwned
@@ -584,7 +584,7 @@
 - Signature: `(input: { readonly tabRef: string; readonly url: string; }) => Promise<{ readonly navigationRequested: boolean; readonly tabRefRevoked: boolean; }>`
 - Mode: SCOPED; native: `chrome.tabs.get`, `chrome.tabs.update`, `chrome.webNavigation.getFrame`
 - Capabilities: `browser.tabs`; Chrome permissions: `tabs`, `webNavigation`
-- Scope: same-Origin own TabRef only; retire old TabRef before chrome.tabs.update({url}); never retry unknown native effect; user gesture: required
+- Scope: same-Origin own TabRef only; retire old TabRef before chrome.tabs.update({url}); never retry unknown native effect; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.tabs.pinOwned
@@ -592,7 +592,7 @@
 - Signature: `(input: { readonly pinned: boolean; readonly tabRef: string; }) => Promise<{ readonly pinned: boolean; }>`
 - Mode: SCOPED; native: `chrome.tabs.get`, `chrome.tabs.update`, `chrome.webNavigation.getFrame`
 - Capabilities: `browser.tabs`; Chrome permissions: `tabs`, `webNavigation`
-- Scope: tab-ref; user gesture: required
+- Scope: tab-ref; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.tabs.reloadOwned
@@ -600,7 +600,7 @@
 - Signature: `(input: { readonly tabRef: string; }) => Promise<{ readonly reloadRequested: boolean; readonly tabRefRevoked: boolean; }>`
 - Mode: SCOPED; native: `chrome.tabs.reload`, `chrome.webNavigation.getFrame`
 - Capabilities: `browser.tabs`; Chrome permissions: `tabs`, `webNavigation`
-- Scope: tab-ref; tabRef retired BEFORE native reload and never revived after unknown effect; user gesture: required
+- Scope: tab-ref; tabRef retired BEFORE native reload and never revived after unknown effect; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 
 ## OpenDeskSDK.browser.tabs.removeOwned
@@ -608,6 +608,6 @@
 - Signature: `(input: { readonly tabRef: string; }) => Promise<{ readonly closed: boolean; }>`
 - Mode: SCOPED; native: `chrome.tabs.get`, `chrome.tabs.remove`, `chrome.webNavigation.getFrame`
 - Capabilities: `browser.tabs`; Chrome permissions: `tabs`, `webNavigation`
-- Scope: tab-ref; user gesture: required
+- Scope: tab-ref; user gesture: not required
 - Route: installed-tool bridge → original authorized Host → approved Driver/Chrome
 

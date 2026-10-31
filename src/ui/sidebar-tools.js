@@ -2758,56 +2758,58 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         'browser.network.observe.start','browser.network.observe.export',
         'browser.screenshot.captureVisible','browser.downloads.download','browser.downloads.cancelOwned','browser.bookmarks.createOwned','browser.bookmarks.removeOwned','browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree','browser.storage.local.clear',
         'browser.proxy.managed.requestEnable','browser.proxy.managed.requestDisable'].includes(operation)){
-        const target=operation==='browser.tabs.navigateOwned'?'将本工具标签页导航到同源站点 '+new URL(payload.url).origin+'（原 TabRef 将失效）':
-          operation==='browser.tabs.reloadOwned'?'重新加载本工具拥有的标签页（原 TabRef 将失效）':
-          operation==='browser.tabs.pinOwned'?(payload.pinned?'固定此工具此前打开的标签页':'取消固定此工具此前打开的标签页'):
-          operation==='browser.tabs.removeOwned'?'关闭此工具此前打开的标签页（不可撤销）':
-          operation==='browser.tabs.activateOwned'?'聚焦此工具此前打开的标签页':
-          operation==='browser.tabs.create'?'打开网页 '+new URL(payload.url).origin:
-          operation==='browser.network.observe.start'?'观察已打开标签页内 '+payload.origins[0]+' 的 HTTP 元数据':
-          operation==='browser.network.observe.export'?'导出本工具已停止的网络观察为 JSON 文件':
-          operation==='browser.screenshot.captureVisible'?'截取当前可见且已授权的网页，并打开 PNG 保存对话框':
-          operation==='browser.downloads.download'?'下载网站 '+new URL(payload.url).origin+' 的指定文件（仅此一次）':
-          operation==='browser.downloads.cancelOwned'?'取消本工具已发起、编号为 '+payload.downloadRef.slice(0,8)+'… 的下载':
-          operation==='browser.bookmarks.createOwned'?'收藏网站 '+new URL(payload.url).origin+' 的指定网址':
-          operation==='browser.bookmarks.create'?'向 Chrome 创建'+(payload.url?'书签':'文件夹')+'「'+payload.title+'」':
-          operation==='browser.bookmarks.update'?'更新 Chrome 书签或文件夹 '+payload.id:
-          operation==='browser.bookmarks.move'?'移动 Chrome 书签或文件夹 '+payload.id:
-          operation==='browser.bookmarks.remove'?'删除 Chrome 书签或空文件夹 '+payload.id:
-          operation==='browser.bookmarks.removeTree'?'递归删除 Chrome 非空文件夹 '+payload.id+' 及其全部子项（不可撤销）':
-          operation==='browser.bookmarks.removeOwned'?'删除本工具创建的书签 '+payload.bookmarkRef.slice(0,8)+'…':
-          operation==='browser.storage.local.clear'?'清空本工具保存的数据（不影响其他工具）':
-          operation==='browser.proxy.managed.requestEnable'?'启用 Chrome 浏览器级分流代理；端点 '+payload.config.endpoint.scheme+'://'+payload.config.endpoint.host+':'+payload.config.endpoint.port+'；目标域名 '+payload.config.domains.join('、')+'；将影响匹配网站的所有标签页':
-          '停止当前安装确实拥有的 Chrome 分流代理（不会清除其他工具或扩展的配置）';
-        let bookmarkConsent,bookmarkPrepared,bookmarkSender;
+        const needsReview=browserOperation(operation).requiresUserGesture;
+        let requestBookmarkPermission;
+        // Prepare outside the click; request Chrome permission synchronously
+        // inside it. Destructive actions reuse their existing review click.
         if(['browser.bookmarks.createOwned','browser.bookmarks.removeOwned'].includes(operation)){
-          bookmarkConsent=createToolPermissionConsent({api});
-          bookmarkPrepared=await bookmarkConsent.prepare({toolId:tool.id,toolVersion:tool.version,
+          const consent=createToolPermissionConsent({api});
+          const prepared=await consent.prepare({toolId:tool.id,toolVersion:tool.version,
             packageHash,installEpoch:revocationEpoch,capability:'browser.bookmarks',
             ...(operation==='browser.bookmarks.createOwned'?{origin:new URL(payload.url).origin}:{})});
-          const contexts=await api.runtime.getContexts({contextTypes:['SIDE_PANEL'],documentUrls:[globalThis.location.href]});
-          if(contexts.length!==1||!contexts[0].documentId)
-            throw Object.assign(new Error('请在真实 Side Panel 中授权书签权限'),{code:'E_DOCUMENT_CHANGED'});
-          bookmarkSender={id:api.runtime.id,url:globalThis.location.href,frameId:0,
-            documentId:contexts[0].documentId,documentLifecycle:'active'};
           assertSession(source,token);
+          if(!prepared.granted){
+            const contexts=await api.runtime.getContexts({contextTypes:['SIDE_PANEL'],documentUrls:[globalThis.location.href]});
+            if(contexts.length!==1||!contexts[0].documentId)
+              throw Object.assign(new Error('请在真实 Side Panel 中授权书签权限'),{code:'E_DOCUMENT_CHANGED'});
+            const sender={id:api.runtime.id,url:globalThis.location.href,frameId:0,
+              documentId:contexts[0].documentId,documentLifecycle:'active'};
+            requestBookmarkPermission=event=>{
+              assertSession(source,token);
+              return consent.requestForTool(event,prepared,{sender,hostInstanceId});
+            };
+            if(!needsReview){
+              await requestBrowserClick({toolId:tool.id,button:'允许使用 Chrome 书签',
+                message:'「'+tool.title+'」需要补齐 Chrome 书签及目标网站 '+new URL(payload.url).origin+' 的权限。批准后普通收藏无需逐次确认。',
+                run:requestBookmarkPermission});
+              assertSession(source,token);
+            }
+          }
         }
-        const confirmAction=async event=>{
+        if(needsReview){
+          const needsWebRequest=operation==='browser.network.observe.start'&&
+            !await api.permissions.contains({permissions:['webRequest']});
+          assertSession(source,token);
+          const target=operation==='browser.network.observe.start'?'观察已打开标签页内 '+payload.origins[0]+' 的 HTTP 元数据':
+            operation==='browser.network.observe.export'?'导出本工具已停止的网络观察为 JSON 文件':
+            operation==='browser.screenshot.captureVisible'?'截取当前可见且已授权的网页，并打开 PNG 保存对话框':
+            operation==='browser.bookmarks.remove'?'删除 Chrome 书签或空文件夹 '+payload.id:
+            operation==='browser.bookmarks.removeTree'?'递归删除 Chrome 非空文件夹 '+payload.id+' 及其全部子项（不可撤销）':
+            operation==='browser.bookmarks.removeOwned'?'删除本工具创建的书签 '+payload.bookmarkRef.slice(0,8)+'…':
+            operation==='browser.storage.local.clear'?'清空本工具保存的数据（不影响其他工具）':
+            operation==='browser.proxy.managed.requestEnable'?'启用 Chrome 浏览器级分流代理；端点 '+payload.config.endpoint.scheme+'://'+payload.config.endpoint.host+':'+payload.config.endpoint.port+'；目标域名 '+payload.config.domains.join('、')+'；将影响匹配网站的所有标签页':
+            '停止当前安装确实拥有的 Chrome 分流代理（不会清除其他工具或扩展的配置）';
+          const confirmAction=async event=>{
             if(operation.startsWith('browser.proxy.managed.')&&!event?.isTrusted)
               throw Object.assign(new Error('代理操作需要可信 Side Panel 的真实点击'),
                 {code:'E_USER_GESTURE_REQUIRED'});
             assertSession(source,token);
-            if(operation==='browser.network.observe.start'){
+            if(needsWebRequest){
               if(!event?.isTrusted)throw Object.assign(new Error('需要用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
               const request=api.permissions.request({permissions:['webRequest']});
               if(await request!==true)throw Object.assign(new Error('未获 webRequest 权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
             }
-            if(['browser.bookmarks.createOwned','browser.bookmarks.removeOwned'].includes(operation)){
-              if(!event?.isTrusted)throw Object.assign(new Error('需要用户真实点击'),{code:'E_USER_GESTURE_REQUIRED'});
-              // Prepared installed identity; request runs before the first await.
-              const request=bookmarkConsent.requestForTool(event,bookmarkPrepared,{sender:bookmarkSender,hostInstanceId});
-              await request;
-            }
+            if(requestBookmarkPermission)await requestBookmarkPermission(event);
             const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
               operation:'browser.intent.confirm',toolId:tool.id,toolVersion:tool.version,
               installEpoch:revocationEpoch,packageHash,toolInstance:token,hostInstanceId,
@@ -2816,16 +2818,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
               {code:approval?.error?.code||'E_BROWSER'});
             return approval.data.approvalRef;
           };
-        // Only the admitted, statically compiled Bookmark UI owns this source.
-        // Its Save already checks the real input event; retain exact one-use Host
-        // approvals for each write without asking the user to approve Save again.
-        const approvalRef=source===trustedBookmarkSource&&
-          ['browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move'].includes(operation)
-          ?await confirmAction():await requestBrowserClick({toolId:tool.id,
+          const approvalRef=await requestBrowserClick({toolId:tool.id,
             message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
             button:'允许本次操作',run:confirmAction});
-        assertSession(source,token);
-        envelope.approvalRef=approvalRef;
+          assertSession(source,token);
+          envelope.approvalRef=approvalRef;
+        }
       }
 
       if(['browser.cookies.set','browser.cookies.setMany','browser.cookies.remove','browser.cookies.clearSite','browser.cookies.observe.start'].includes(operation)&&

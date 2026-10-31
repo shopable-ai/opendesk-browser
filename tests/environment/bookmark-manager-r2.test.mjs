@@ -198,11 +198,11 @@ const sample=()=>[{id:'0',title:'root',children:[
   ]}
 ]}];
 
-test('R2.4 allows authorized tree reads while separate write/observer operations remain click-gated',async()=>{
+test('R2.4 allows authorized tree reads and ordinary writes while sensitive operations remain click-gated',async()=>{
   const ctx=await sandbox(),data=fullSdk(ctx,{roots:sample()});
   const original=data.sdk.capabilities.list;
   data.sdk.capabilities.list=async()=>(await original()).map(row=>({
-    ...row,status:{callableNow:['getTree','get','search'].some(name=>
+    ...row,status:{callableNow:['getTree','get','search','create','update','move'].some(name=>
       row.operation==='browser.bookmarks.'+name),
       reasonCode:'E_USER_GESTURE_REQUIRED'}
   }));

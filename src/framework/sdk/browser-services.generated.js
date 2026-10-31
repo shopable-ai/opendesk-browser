@@ -58,7 +58,7 @@ export const APPROVED_BROWSER_SCOPED_BINDINGS=Object.freeze([
     "supportedContexts": [
       "sidebar-tool"
     ],
-    "requiresUserGesture": true,
+    "requiresUserGesture": false,
     "siteScope": "explicit-url",
     "effectClass": "write",
     "riskLevel": "medium",

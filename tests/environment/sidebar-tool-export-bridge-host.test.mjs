@@ -12,6 +12,7 @@ import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 import {SIDEBAR_TOOL_FORMAT_V2,SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_LIMITS} from '../../src/ui/sidebar-tools/limits.js';
 import {officialFixtureFetch} from '../helpers/official-tools.mjs';
 import {createToolLocalization} from '../../src/ui/sidebar-tools/localization.js';
 
@@ -65,10 +66,10 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
   const realm=runInNewContext(`const browserOperation=(${browserOperation.toString()});
     const sidebarToolRequestTimeout=(${sidebarToolRequestTimeout.toString()});
     (${initSidebarToolSandbox.toString()})(); ({Reflect,Function,Promise,Object,Map,Set,Number,globalThis})`,{
-    SIDEBAR_TOOL_PROTOCOL,createBrowserSdk,BROWSER_OPERATIONS,ADBLOCK_CONFIRM_OPERATIONS,normalizeBrowserOperation,sandboxToolMessages,performance:clock,
+    SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_LIMITS,createBrowserSdk,BROWSER_OPERATIONS,ADBLOCK_CONFIRM_OPERATIONS,normalizeBrowserOperation,sandboxToolMessages,performance:clock,
     window:win,parent,Event:NativeEvent,MessagePort:Port,
     document:{getElementById:id=>id==='tool-root'?root:status,documentElement:{},head:node(),body:node(),createElement:node},
-    Blob,URL:{createObjectURL:()=> 'blob:export-fixture',revokeObjectURL(){}},...timers,requestAnimationFrame:()=>0
+    Blob,TextEncoder,URL:{createObjectURL:()=> 'blob:export-fixture',revokeObjectURL(){}},...timers,requestAnimationFrame:()=>0
   });
   let leaked=false;
   win.addEventListener('message',event=>{if(event.ports?.length)leaked=true;});
@@ -101,6 +102,38 @@ function sandbox({loaded={protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:'f
     async dispose(){win.emit('pagehide',{});await Promise.all(pending);}
   };
 }
+
+for(const operation of ['browser.bookmarks.createOwned','browser.downloads.download']){
+  test(`ordinary ${operation}: a native permission/save prompt may complete after eight seconds`,async()=>{
+    let now=0,next=0;const tasks=new Map();
+    const timers={setTimeout(fn,ms){const id=++next;tasks.set(id,{fn,at:now+ms});return id;},
+      clearTimeout(id){tasks.delete(id);}};
+    const b=sandbox({timers,clock:{now:()=>now}});
+    try{
+      let settled=false;
+      const result=b.request(operation,{url:'https://example.org/'});
+      void result.then(()=>{settled=true;},()=>{settled=true;});
+      now=9000;
+      for(const [id,task] of [...tasks])if(task.at<=now){tasks.delete(id);task.fn();}
+      await tick();assert.equal(settled,false,'the native prompt must not expire at the ordinary RPC deadline');
+      const message=b.publicMessages.find(row=>row.kind==='request');
+      b.respond({...message,kind:'response',ok:true,result:{completed:true}});
+      assert.deepEqual(await result,{completed:true});assert.equal(tasks.size,0);
+      assert.equal(b.publicMessages.filter(row=>row.kind==='request').length,1);
+    }finally{await b.dispose();}
+  });
+}
+
+for(const phase of ['timeout','closed'])test(`ordinary Browser writes report unknown on ${phase} without replay`,async()=>{
+  let expire;
+  const b=sandbox({timers:{setTimeout(fn){expire=fn;return 1;},clearTimeout(){}}});
+  const result=b.request('browser.bookmarks.createOwned',{url:'https://example.org/'});
+  const rejection=assert.rejects(result,{code:'E_OUTCOME_UNKNOWN'});
+  if(phase==='timeout')expire();else b.win.emit('pagehide',{});
+  await rejection;
+  assert.equal(b.publicMessages.filter(row=>row.kind==='request').length,1);
+  await b.dispose();
+});
 
 test('R2.6 actual draft bridge retains account names but excludes React Cookie values and import text',async()=>{
   const require=createRequire(import.meta.url),React=require('react');

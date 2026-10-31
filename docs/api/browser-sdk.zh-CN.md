@@ -17,7 +17,7 @@
 > **框架能力四层总账**：[Chrome 原生 ↔ Driver/Host ↔ Browser SDK ↔ 验收证据](browser-framework-four-layer-ledger.zh-CN.md)；所有 27 组 114 项候选和 Cookie 10 项 P0 缺口都有逐项索引。此页保留当前开发者 API/历史设计，四层总账不构成额外授权。
 
 
-> **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当时记载的 28 项仅属旧时间点快照；当前接口数与可调用状态应直接查询 [唯一运行时注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
+> **更新：2026-10-31。** 对安装工具的开发者，优先使用易理解的高层写法；下方方法状态已按当前实现校正，R1.3 / 2026-10-12 小节的数量仍是历史快照。当前接口数与可调用状态应直接查询 [唯一运行时注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
 
 ## 有限公共代理：用户审阅精确路由（2026-10-30）
 
@@ -176,21 +176,27 @@ await OpenDeskTool.request('storage.get',{key:'notes'});
 // 旧 axiosx / AppStorage / AppLocal API 不应改变签名或错误合同。
 ```
 
-### 已编写但不可执行的后续方法
+### 普通操作复用授权（2026-10-31）
 
-| 拟议名称 | 参数/输入形态 | 当前阶段 | 原因 |
+已安装工具的 `tabs.create/activateOwned/pinOwned/reloadOwned/navigateOwned/removeOwned`、`downloads.download/cancelOwned`、`bookmarks.createOwned/create/update/move` 复用已审阅能力与仍有效的 Chrome 权限，不再追加每次操作的 Host 确认。Owned 书签首次缺少 Chrome bookmarks 权限时，仍由可信界面真实点击申请；Full 书签仍要求独立的全书签范围授权，不能从 Owned 或其他工具继承。Chrome 的原生保存/危险下载提示按其自身规则保留。
+
+Registry 的 `requiresUserGesture` 表示 OpenDesk 可信前台意图门槛，不能一律解释为 Chrome 强制要求。书签删除、整库清空、敏感观察及导出、截图、Cookie 写入、代理切换和未来计划等仍按各自合同审阅；剪贴板与文本下载沿用已有真实点击桥接。所有实际分派继续校验当前安装、包摘要、代际、能力、网站、资源归属与撤权；拒绝、取消和未知结果均不自动重放。定向源码证据见[授权 UX 审计](../framework/workstreams/authorization-ux-audit-20261031.zh-CN.md)，真实 Chrome 新候选为 **NOT_TESTED**。
+
+### 其他 Browser 方法的源码状态（2026-10-31 校正）
+
+| 名称 | 参数/输入形态 | 当前阶段 | 边界 |
 | --- | --- | --- | --- |
-| `browser.tabs.create` | {url} | **PLANNED** | 禁止任意 tabId, 计划受控 tabRef |
-| `browser.tabs.activateOwned` | {tabRef} | **PLANNED** | 需要不可伪造引用 |
-| `browser.sidePanel.openSelf` | {} | **PLANNED** | 真实用户手势可信前台 |
+| `browser.tabs.create` | {url} | **IMPLEMENTED** | 安装能力与目标网站权限；返回本工具持有的不可伪造 tabRef，不开放任意 tabId |
+| `browser.tabs.activateOwned` | {tabRef} | **IMPLEMENTED** | 仅控制当前安装持有的有效 tabRef，每次复核安装身份与文档 |
+| `browser.sidePanel.openSelf` | {} | **IMPLEMENTED** | Chrome 要求真实用户操作；由可信前台执行，不接受沙箱自报手势 |
 | `browser.network.request` | HTTP 请求合同 | **IMPLEMENTED** | 安装已批准 `network` 且 Chrome 已有目标网站访问权限后，GET/POST/PUT/DELETE 直接调用（含 localhost 普通 fetch），无需逐次确认方法或请求体；仅缺少 Chrome 来源权限时由可信真实点击申请，并复用后续权限。Chrome host permission 按其原生主机范围生效，不提供端口级许可；每次请求仍绑定精确 URL/Origin、安装身份和能力，发送前后复核撤权，凭据省略、手工重定向及字节限制不变。仅预提交权限阶段取消/拒绝返回 `E_NETWORK_NOT_SUBMITTED`；后续取消/撤权仍可能已产生效果。原生验证 `NOT_TESTED` |
-| `browser.network.observe.start` | {tabRef,origins,durationMs,...} | **PLANNED** | R2 被动 HTTP(S) 元数据 |
-| `browser.network.observe.getStatus` | {observationId} | **PLANNED** | R2 |
-| `browser.network.observe.stop` | {observationId} | **PLANNED** | R2 |
-| `browser.network.observe.export` | {observationId,format} | **PLANNED** | R2 |
-| `browser.events.read` | {sessionRef,cursor,limit} | **PLANNED** | R2 |
-| `browser.events.close` | {sessionRef} | **PLANNED** | R2 |
-| `browser.screenshot.captureVisible` | {tabRef} | **HOST_ONLY** | 现有 Controller 截图，未公开给工具 |
+| `browser.network.observe.start` | {tabRef,origins,durationMs,...} | **IMPLEMENTED** | 精确网站、文档及有限时长的元数据观察；保留开始审阅，仅缺少 webRequest 时申请 Chrome 权限 |
+| `browser.network.observe.getStatus` | {observationId} | **IMPLEMENTED** | 仅本安装的观察会话 |
+| `browser.network.observe.stop` | {observationId} | **IMPLEMENTED** | 停止本安装的观察，无新增采集审阅 |
+| `browser.network.observe.export` | {observationId,format} | **IMPLEMENTED** | 已停止的自有观察导出，保留敏感数据单次审阅 |
+| `browser.events.read` | {sessionRef,cursor,limit} | **IMPLEMENTED** | 仅当前安装持有的有界会话与游标 |
+| `browser.events.close` | {sessionRef} | **IMPLEMENTED** | 关闭自有会话 |
+| `browser.screenshot.captureVisible` | {tabRef} | **IMPLEMENTED** | 工具可申请；可信前台审阅当前可见且获准的精确文档，PNG 保存不向沙箱返回截图字节 |
 | `browser.media.recording.prepare` | 录屏显式选择 | **PLANNED** | R3 |
 | `browser.media.recording.getStatus` | {recordingId} | **PLANNED** | R3 |
 | `browser.media.recording.stop` | {recordingId} | **PLANNED** | R3 |
@@ -200,8 +206,8 @@ await OpenDeskTool.request('storage.get',{key:'notes'});
 | `browser.speech.stop` | {sessionRef} | **PLANNED** | R3 以上 |
 | `browser.notifications.create` | 旧通知合同 | **NOT_EXPOSED** | 原 Page SDK createNotify，未对通用工具授权 |
 | `browser.notifications.clear` | {notificationRef} | **NOT_EXPOSED** | 无通用工具实现 |
-| `browser.operations.getStatus` | {operationId} | **PLANNED** | 仅有持久真实记录才开放 |
-| `browser.operations.cancel` | {operationId} | **PLANNED** | 不得伪造取消成功 |
+| `browser.operations.getStatus` | {operationId} | **IMPLEMENTED** | 查询本安装的网络观察操作记录，不代表任意操作都有可恢复记录 |
+| `browser.operations.cancel` | {operationId} | **IMPLEMENTED** | 取消本安装的网络观察；不宣称撤回已产生的外部效果 |
 
 未实现项目只在目录中出现，不会作为可运行方法注册；未知执行请求必须返回 `E_SERVICE_UNSUPPORTED`。
 
@@ -277,7 +283,7 @@ v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放�
 
 菜单注销清除旧票据；重新注册不复活旧选区。异步校验/确认存储跨过 60 秒截止时间不交付内容；同步时清理过期选区。SW 请求带挂载包 SHA-256，锁内拒绝同版本内容替换后的旧请求。页面 BFCache 暂停时取消旧 pending，恢复仅重建来源监听，不恢复旧请求或旧选区。
 
-剩余三项的本轮决策：`tabs.open`、`tabs.focus`、`sidePanel.openSelf` 继续 **PLANNED**，调用返回 `E_SERVICE_UNSUPPORTED`，没有便捷方法。现有 Tabs driver 只注入固定资源；未建立供第三方工具使用的不可伪造 tab 引用及网站授权/打开批准合同。`clicked:*` 是选区来源的描述性引用，不是控制标签页的凭据。Side Panel 的真实用户手势来自原生菜单，由既有可信 Host 执行；不能把沙箱 `postMessage` 当作 Chrome 原生手势。参照 [Chrome Side Panel open](https://developer.chrome.com/docs/extensions/reference/api/sidePanel#method-open)。本轮不扩大 v1/v2 工具能力白名单，不开放通知、截图、录屏或语音。
+该时间点的未开放清单已由当前 Registry 取代：工具现使用 `tabs.create`、`tabs.activateOwned` 等规范方法和不可伪造的自有 tabRef，`tabs.open` / `tabs.focus` 不作为别名。`clicked:*` 仍只是选区来源描述，不能代替 tabRef。`sidePanel.openSelf` 与可见文档截图已有工具实现；Side Panel 打开仍须可信前台的真实用户操作，不能把沙箱 `postMessage` 当作 Chrome 原生手势。参照 [Chrome Side Panel open](https://developer.chrome.com/docs/extensions/reference/api/sidePanel#method-open)。通知、录屏及语音仍按上表标记，源码接通不等于真实 Chrome 验收通过。
 
 错误码补充：`E_LIMIT`（UTF-8/数据超限）、`E_SCHEMA`（参数/文件名）、`E_TOOL_CHANGED`（包摘要/代际/版本变化）、`E_LAUNCH_EXPIRED`（已领取/注销/到期）、`E_DOCUMENT_CHANGED`（同 URL 换文档/导航）、`E_LAUNCH_UNAVAILABLE`（状态查询无有效上下文）、`E_OUTCOME_UNKNOWN`（存储写入未确认）。未知写入结果先核对存储，禁止自动重放。
 

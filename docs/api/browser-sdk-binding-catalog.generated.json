@@ -42,7 +42,7 @@
         "sidebar-tool"
       ],
       "siteScope": "all-bookmarks",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -80,8 +80,8 @@
       "supportedContexts": [
         "sidebar-tool"
       ],
-      "siteScope": "exact selected URL; trusted confirmation; tool-owned bookmark mapping",
-      "userGesture": true,
+      "siteScope": "exact selected URL; installed capability and Chrome permission; tool-owned bookmark mapping",
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -197,7 +197,7 @@
         "sidebar-tool"
       ],
       "siteScope": "all-bookmarks",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -648,7 +648,7 @@
         "sidebar-tool"
       ],
       "siteScope": "all-bookmarks",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -1438,7 +1438,7 @@
         "sidebar-tool"
       ],
       "siteScope": "own in-progress download only",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -1471,7 +1471,7 @@
         "sidebar-tool"
       ],
       "siteScope": "explicit approved-origin URL; tool owns generated downloadRef",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -2822,7 +2822,7 @@
         "sidebar-tool"
       ],
       "siteScope": "tab-ref",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -2859,7 +2859,7 @@
         "sidebar-tool"
       ],
       "siteScope": "explicit-url",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -3040,7 +3040,7 @@
         "sidebar-tool"
       ],
       "siteScope": "same-Origin own TabRef only; retire old TabRef before chrome.tabs.update({url}); never retry unknown native effect",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -3113,7 +3113,7 @@
         "sidebar-tool"
       ],
       "siteScope": "tab-ref",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -3172,7 +3172,7 @@
         "sidebar-tool"
       ],
       "siteScope": "tab-ref; tabRef retired BEFORE native reload and never revived after unknown effect",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,
@@ -3240,7 +3240,7 @@
         "sidebar-tool"
       ],
       "siteScope": "tab-ref",
-      "userGesture": true,
+      "userGesture": false,
       "minChrome": 138,
       "maxRequestBytes": 12000,
       "maxResponseBytes": 12000,

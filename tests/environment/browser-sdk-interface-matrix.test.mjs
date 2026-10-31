@@ -41,7 +41,7 @@ test('native and tool grants cannot drift from active Browser Host metadata',()=
  assert(inspectBrowserSdkInterfaceMatrix(tool).some(x=>x.includes('Tool capability drift browser.tabs.create')));
  assert.deepEqual(BROWSER_OPERATIONS['browser.tabs.create'].requiredChromePermissions,[]);
  assert.deepEqual(BROWSER_OPERATIONS['browser.tabs.create'].requiredCapabilities,['browser.tabs']);
- assert.equal(BROWSER_OPERATIONS['browser.tabs.create'].requiresUserGesture,true);
+ assert.equal(BROWSER_OPERATIONS['browser.tabs.create'].requiresUserGesture,false);
 });
 
 test('implemented trusted Host-only rows must never claim design-only status',()=>{
