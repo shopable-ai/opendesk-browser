@@ -1863,12 +1863,13 @@
       "goal": {
         "initialRead": null,
         "createdWithoutBudget": true,
-        "latestActualRead": "blocked",
+        "latestActualRead": "paused",
         "previousGoals": "Unchanged; 01a19125 blocked and 01a18d05 paused remain their separate historical scopes",
         "statusAtCreation": "active",
-        "lastReadAt": "2026-10-31T10:21:06+00:00"
+        "lastReadAt": "2026-10-31T11:56:18.417636+00:00",
+        "handoffReceipt": "artifacts/cookie-editor-r31/native-control-01a19164/source-goal-at-handoff.json"
       },
-      "state": "BLOCKED_NATIVE_SIDEPANEL_CONFIRMATION_REQUIRED",
+      "state": "USER_REQUESTED_HANDOFF_UPDATE_AND_PRESERVED_DATA_PASS_A_VALUE_AND_AB_URL_NEXT",
       "package": {
         "file": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
         "version": "2.0.57",
@@ -1971,7 +1972,8 @@
       },
       "results": {
         "inPlaceUpdate": {
-          "status": "NOT_TESTED"
+          "status": "PASS",
+          "scope": "Original 2.0.56→2.0.57 confirmation, installed official source/full SHA and original accounts/settings readback. Physical loaded path remains separately NOT_TESTED."
         },
         "closedSidebarBtoA": {
           "status": "NOT_TESTED"
@@ -2024,6 +2026,109 @@
         "receiptSha256": "a2de7b6fc033d7deba9ff7777862e59e886def25d6c0f6c2b8adb84edb903f6f",
         "previousBlockedReceipt": "artifacts/cookie-editor-r31/goal-blocked-01a19164.json",
         "repeatedInstallTestsManualRequests": false
+      },
+      "nativeControlExecution20261031": {
+        "recordedAt": "2026-10-31T11:56:18.417636+00:00",
+        "rawEvidence": "artifacts/cookie-editor-r31/native-control-01a19164/progress.json",
+        "rawEvidenceSha256": "246fc9a7f001b9ffbee643179a4a398a6ae9f03e7453f191a284bbf4aea8db2b",
+        "stage": "USER_REQUESTED_HANDOFF_UPDATE_AND_PRESERVED_DATA_PASS_A_VALUE_AND_AB_URL_NEXT",
+        "installation": {
+          "status": "PASS_ORIGINAL_UPDATE_INSTALLED_IDENTITY_AND_PRESERVED_DATA",
+          "previousVersion": "2.0.56",
+          "actualVersion": "2.0.57",
+          "source": "OpenDesk 官方市场 · opendesk/cookie-editor",
+          "actualInstalledSha256": "438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601",
+          "review": "Original 扩展 → Cookie Editor → 审阅新版; permission unchanged; original data retained according to review",
+          "confirmClicks": 1,
+          "installedDetailsIndependentReadback": true,
+          "uninstallOrDataClear": false,
+          "accountSettingsReadback": "PASS: original A/B IDs and test1 preserved; auto-switch/allowlist/refresh independently read in original UI",
+          "physicalLoadedPath": "NOT_TESTED; distinct environment limitation, not substituted by revision"
+        },
+        "development": {
+          "mode": "CONTINUOUS_DEVELOPMENT",
+          "expectedPath": "/Users/mac/Documents/workspace/opendesk-browser/dist/development",
+          "actualPhysicalLoadedPath": "NOT_TESTED",
+          "actualUiExtensionId": "ljclbnojkhhgdpoaaggiihlmidgcoihi",
+          "actualUiAppliedFullRevision": "ad9bed4dc7893a7d3aaeddeb7692c7f65b24cf5e12d4f81cf30e73ac89d8105c",
+          "connected": "PASS_ORIGINAL_UI",
+          "diskRevision": "ad9bed4dc7893a7d3aaeddeb7692c7f65b24cf5e12d4f81cf30e73ac89d8105c",
+          "filesVerified": 136,
+          "mismatches": [],
+          "chromeAppliedEvidence": "artifacts/cookie-editor-r31/native-control-01a19164/development-full-accessibility.json",
+          "scope": "Actual native UI revision/ID and independent disk comparison, not disk-only inference",
+          "currentDiskRevisionAtHandoff": "ad9bed4dc7893a7d3aaeddeb7692c7f65b24cf5e12d4f81cf30e73ac89d8105c",
+          "actualUiReadbackTime": "2026-10-31T11:20:10Z",
+          "noForcedReloadOrFenceRemoval": true
+        },
+        "results": {
+          "inPlaceUpdate": {
+            "status": "PASS",
+            "scope": "Original 2.0.56→2.0.57 confirmation, installed official source/full SHA and original accounts/settings readback. Physical loaded path remains separately NOT_TESTED."
+          },
+          "closedSidebarBtoA": {
+            "status": "NOT_TESTED"
+          },
+          "closedSidebarAtoB": {
+            "status": "NOT_TESTED"
+          },
+          "automaticRefreshBothDirections": {
+            "status": "NOT_TESTED"
+          },
+          "twoDevicePairAndClaim": {
+            "status": "NOT_TESTED"
+          },
+          "independentAccountSaved": {
+            "status": "NOT_TESTED"
+          },
+          "cookieRestoreReadback": {
+            "status": "NOT_TESTED"
+          },
+          "websiteLogin": {
+            "status": "NOT_TESTED"
+          }
+        },
+        "localReadback": {
+          "status": "PASS_FICTION_B_READ_ONLY",
+          "proof": "artifacts/cookie-editor-r31/native-control-01a19164/baseline-current-fiction-readback.json",
+          "name": "od_r31_local_01a18bd4",
+          "value": "fiction-b-01a18c21",
+          "recordedAt": "2026-10-31T11:40:46.936452+00:00",
+          "doesNotProveCookieRestore": true,
+          "AExpectedValue": "fiction-a-01a18bd4 STILL_NOT_INDEPENDENTLY_CONFIRMED",
+          "domainPath": "Original selected fiction editor metadata showed Domain127.0.0.1/Path/",
+          "storePartitionMapping": "NOT_VERIFIED; temporary identity parser trials are not acceptance evidence",
+          "noCookieWritesOrSwitchesThisRun": true
+        },
+        "autoSettings": {
+          "freshAfterInputInterferenceAt": "2026-10-31T11:48:45.138869+00:00",
+          "autoEnabled": true,
+          "autoRefresh": true,
+          "allowlistA": true,
+          "allowlistB": true,
+          "allowlistTest1": false,
+          "changedByThisTask": false,
+          "source": "Original installed UI, not direct storage or forged Host call"
+        },
+        "inputCoordination": {
+          "otherOwner": "01a1915b-1722-7862-9259-306e05ee7b24",
+          "interferenceReported": "19:25–19:31 native inputs; 19:31:25 click1855,644 could affect current Cookie page",
+          "scope": "Actual shared global keyboard/mouse only; unrelated source work continued",
+          "independentReadback": "All required allowlist states remained correct at11:48:45Z; autoRefresh rechecked ON before release. No settings repair needed.",
+          "releasedTo": "Scrapy owner01a1915b",
+          "releasedAt": "2026-10-31T11:50:03Z",
+          "releaseReceipt": "Explicit send_message_to_thread release, no Cookie input ownership transferred automatically to next task",
+          "lastCookieUi": "Original test window on 账号; no unsaved editor, pending Cookie write, share delivery or claim. Old owner stops all native input/clipboard/screenshot actions."
+        },
+        "handoff": {
+          "requestedByUser": true,
+          "receipt": "artifacts/cookie-editor-r31/native-control-01a19164/handoff-owner.json",
+          "nextOperation": "After a real input window is available, use original A row switch and fresh fiction-only UI read to confirm A value first; explicitly restore/verify B, then actual closed-sidepanel B→A and A→B URL/refresh verification. No duplicate installation.",
+          "sourceScopeOwner": "01a19178-5710-7792-b097-bb455f5e0f71 owns service-connections/session/view, relevant Host/provenance/tests/README refactor; do not overwrite or restart writer for it.",
+          "readme": "Existing README top may retain historical blocked state; current nativeControlExecution20261031 and this raw progress supersede it. This task did not write the refactor owner README.",
+          "twoDevice": "Receiver S3 deployment and original UI pairing/claim/restore/site login still NOT_TESTED; receiving machine enterprise work must be preserved."
+        },
+        "previousBlockedAudits": "Historical only; native control was resolved by new user authorization and installed native AX helpers. Current source goal actually paused at user-requested handoff; not complete or migrated."
       }
     }
   }
