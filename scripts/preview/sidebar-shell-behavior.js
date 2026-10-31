@@ -100,3 +100,4 @@
     extensionPage='detail';activateTab(byId('tab-tools'));back.focus();
   });
 })();
+
