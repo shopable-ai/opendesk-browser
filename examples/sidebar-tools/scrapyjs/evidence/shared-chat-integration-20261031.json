@@ -1,0 +1,67 @@
+{
+  "status": "PASS_OFFLINE_INTEGRATION_CANDIDATE_NOT_MERGED",
+  "localSharedChatCommit": "224deda3758a7479c7f5c2c523285fb168d370c1",
+  "remoteConsumerCommit": "07ab1034cc7b24f3de966bb437dd03c72a439a1a",
+  "activeMainConsumer": "legacy AiPanel; unmodified this turn",
+  "candidateConsumer": "CaptureWorkspace + original local-runner; no AiPanel resurrection",
+  "mainIntegration": "BLOCKED_CROSS_PROJECT_MERGE_CONFLICTS",
+  "push": "NOT_PUSHED",
+  "tests": {
+    "passed": 17,
+    "failed": 0,
+    "log": "artifacts/shared-chat-followup-20261031/tests.log"
+  },
+  "browserChecks": [
+    "Host AI opens shared bottom Dock in CaptureWorkspace",
+    "keyboard separator resizes bottom Dock",
+    "Chat draft and DOM retained on collapse/reopen",
+    "pending simulated send review survives collapse",
+    "confirmed Chat send produces a proposal without a run",
+    "explicit apply still creates no run",
+    "manual trial starts only on separate click and reports simulated completion",
+    "collapse returns focus to Host AI"
+  ],
+  "bookmark": {
+    "previewSha256": "216067325366cc198322dd6d2c885144f0453ae38253252cb1156b28b518a655",
+    "settingsOpened": true,
+    "settingsAndCollapseHit": true,
+    "focusReturned": true,
+    "draftRetained": true
+  },
+  "preview": {
+    "path": "artifacts/shared-chat-followup-20261031/candidate/preview.html",
+    "sha256": "3bf20095b33c77298449916c62ec8aa238708abf3f2c5f6a483d4be9ec220739",
+    "manifestSha256": "14fef5746ff9f7dcebc238128dd8d3459f64d3ebce2b3c738ddb5e1dafde96e8",
+    "sourceFilesRechecked": 1376,
+    "screenshot": "artifacts/shared-chat-followup-20261031/candidate/chat-interaction.png"
+  },
+  "patch": {
+    "path": "artifacts/shared-chat-followup-20261031/capture-workspace.patch",
+    "sha256": "50aa6297e37db65126d338aa2037285feafd8fb137379c32ceb42e5e3c08ed74",
+    "base": "origin/main 07ab1034cc7b24f3de966bb437dd03c72a439a1a",
+    "requires": "shared Chat exports and Host API from local 224deda37; this patch is NOT a completed main merge",
+    "applyCheck": "PASS against remote file snapshot",
+    "changedPaths": [
+      "examples/sidebar-tools/scrapyjs/src/App.jsx",
+      "examples/sidebar-tools/scrapyjs/src/CaptureWorkspace.jsx",
+      "examples/sidebar-tools/scrapyjs/src/style.css",
+      "examples/sidebar-tools/scrapyjs/tests/react-fixture.mjs",
+      "examples/sidebar-tools/scrapyjs/tests/ai-app.test.mjs",
+      "examples/sidebar-tools/scrapyjs/preview/build-preview.mjs",
+      "examples/sidebar-tools/scrapyjs/preview/conversation-header.js",
+      "examples/sidebar-tools/scrapyjs/preview/dev.html",
+      "examples/sidebar-tools/scrapyjs/preview/mock-host.js",
+      "examples/sidebar-tools/scrapyjs/preview/runtime-source.mjs",
+      "examples/sidebar-tools/scrapyjs/preview/runtime-source.test.mjs",
+      "examples/sidebar-tools/scrapyjs/preview/runtime.mjs",
+      "examples/sidebar-tools/scrapyjs/preview/vite.config.mjs"
+    ]
+  },
+  "notTested": [
+    "installed Chrome",
+    "real Provider",
+    "production acceptance",
+    "full CI"
+  ],
+  "synchronizationConstraint": "Do not choose Cookie Editor formal package version, discard either history, stash parallel edits, force push, create branch/worktree/PR, or claim snapshot as pushed main."
+}

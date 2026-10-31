@@ -65,22 +65,32 @@ AI Chat 是业务无关的公共能力，书签、采集等工具只是消费者
 
 已 opt-in `uiRuntime: "opendesk.react-ui.v1"` 的工具，可从固定 `OpenDeskSidebarUI` 使用 `SharedConversationDock`、`SharedConversationFrame` 与 `createConversationSession`；预编译 JSX 继续将 `@opendesk/ui` 映射到该全局、React 映射到原固定 `OpenDeskPageReact`。它们只在工具自己的 opaque iframe / React Root 中运行，不挂入可信工作台。
 
+以下组件可在已有固定 React Root 中渲染，演示独立页面的展示、草稿与内存消息；发送只记入本地消息，不调用模型。真实推理按上文接入受控桥接。
+
 ```jsx
+const React = OpenDeskPageReact;
 const {SharedConversationFrame, createConversationSession} = OpenDeskSidebarUI;
-const session = createConversationSession({
-  identity: {consumerId: 'my-tool', instanceId: 'view-1', hostInstanceId: 'local-view'},
-  rowsLimit: 32
-});
-// 在工具组件内订阅；卸载时调用 session.dispose()。
-const state = React.useSyncExternalStore(session.subscribe, session.getSnapshot);
-<SharedConversationFrame
-  rows={state.rows} draft={state.draft} busy={state.busy}
-  inputId="my-chat-input" maxLength={4000} inputLabel="对话输入" stopLabel="停止对话"
-  onDraftChange={draft => session.update({draft})}
-  onSend={event => sendThroughApprovedBridge(event)}
-  onStop={event => cancelThroughApprovedBridge(event)}
-/>;
+function LocalChat() {
+  const [session] = React.useState(() => createConversationSession({
+    identity: {consumerId: 'my-tool', instanceId: crypto.randomUUID(), hostInstanceId: 'local-view'}
+  }));
+  const state = React.useSyncExternalStore(session.subscribe, session.getSnapshot);
+  React.useEffect(() => () => session.dispose(), [session]);
+  const inputId = React.useId();
+  return <SharedConversationFrame
+    rows={state.rows} draft={state.draft} inputId={inputId}
+    onDraftChange={draft => session.update({draft})}
+    onSend={() => {
+      const draft = session.getSnapshot().draft.trim();
+      if (!draft) return;
+      session.append('你', draft);
+      session.update({draft: ''});
+    }}
+  />;
+}
 ```
+
+Frame 的 `open` 控制发送、焦点与滚动行为，不隐藏整个组件；需要可收起的完整界面时由 Dock 的 `open` 控制可见性。Dock 保留隐藏子节点，消费者无需为开合重建 session。
 
 `SharedConversationFrame({open=true, rows=[], draft='', busy=false, blocked=false, inputDisabled=false, canSend=true, inputId, placeholder='描述要完成的操作', maxLength=4000, inputLabel='对话输入', stopLabel='停止对话', onDraftChange(value,event), onSend(event), onStop(event), ...presentationProps})` 返回 React 展示元素。`onSend` 保持原始事件签名；Enter 发送、Shift+Enter 换行，IME 组合输入不发送。busy / blocked / canSend 和空白草稿阻止发送；调用者仍负责请求单并发，可使用 `session.begin()` 或既有请求状态机与持久围栏；展示会话不能代替 Authority。可选 `intro/emptyPrompt/feedback/review/technical` 为工具自身 React 内容；日志/输入 ref、滚动和焦点 props 沿用既有 Frame。消息行为 `{id, speaker, message}`，speaker/message 通过 React 文本节点展示，不解析原始 HTML。
 
