@@ -1863,10 +1863,12 @@
       "goal": {
         "initialRead": null,
         "createdWithoutBudget": true,
-        "latestActualRead": "active",
-        "previousGoals": "Unchanged; 01a19125 blocked and 01a18d05 paused remain their separate historical scopes"
+        "latestActualRead": "blocked",
+        "previousGoals": "Unchanged; 01a19125 blocked and 01a18d05 paused remain their separate historical scopes",
+        "statusAtCreation": "active",
+        "lastReadAt": "2026-10-31T10:11:45+00:00"
       },
-      "state": "DEV_RUNNING_NATIVE_SIDEPANEL_CONFIRMATION_REQUIRED",
+      "state": "BLOCKED_NATIVE_SIDEPANEL_CONFIRMATION_REQUIRED",
       "package": {
         "file": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
         "version": "2.0.57",
@@ -1924,7 +1926,19 @@
         "threadId": "01a19166-7740-7a20-8e93-d9afd4c9f009",
         "requests": 1,
         "reply": "No source edits at reply; plans only bundle-provenance and root boundary tests. No writer/build/dist/Chrome actions; S3 and exact pins preserved. Native workflow may continue with disk/source evidence kept separate.",
-        "effect": "Original npm run dev resumed after exited-lock PID and free-port checks; no second writer"
+        "effect": "Original npm run dev resumed after exited-lock PID and free-port checks; no second writer",
+        "completionReceipt": {
+          "source": "01a19166-7740-7a20-8e93-d9afd4c9f009 explicit completion message; owner receipt, not native verification",
+          "changed": [
+            "scripts/bundle-provenance.mjs",
+            "tests/environment/cookie-account-provenance-r134.test.mjs",
+            "docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md",
+            "docs/framework/extension-development-r131.zh-CN.md"
+          ],
+          "preserved": "account-service/share/session/Vault/S3, src/sw.js, formal package, exact pins, dist and writer unchanged",
+          "checks": "Owner reported three targeted groups 10/6/2 passed; no full build/serve/Chrome verification",
+          "effectOnThisGoal": "No original SidePanel control or installation receipt; native statuses remain NOT_TESTED and goal remains blocked. No Cookie regression rerun required."
+        }
       },
       "receiver": {
         "checkedAt": "2026-10-31T10:01:08Z",
@@ -1985,7 +1999,20 @@
       "manualNextOperation": "In the already prepared independent Chrome window open original OpenDesk SidePanel, use 扩展 → Cookie Editor → 审阅新版 to confirm 2.0.57 and retain installation details. If already updated or result uncertain, read details before any retry.",
       "deferred": "After original installed identity/data and trusted SW readback, perform actual closed-sidebar A/B plus independent refresh; receiving S3 deployment must preserve enterprise work before original two-device pairing/claim/restore/login.",
       "rawEvidence": "artifacts/cookie-editor-r31/current-resume-01a19164.json",
-      "rawEvidenceSha256": "f6e84d31c66bc9141847a93bcd1cdc970a8098e227100287e10d2c21f6f30acf"
+      "rawEvidenceSha256": "f6e84d31c66bc9141847a93bcd1cdc970a8098e227100287e10d2c21f6f30acf",
+      "latestGoalAudit": {
+        "recordedAt": "2026-10-31T10:11:45+00:00",
+        "consecutiveGoalTurns": 3,
+        "status": "blocked",
+        "reason": "Original native SidePanel review/update cannot be controlled by the documented Chrome API; no new update or installed-identity readback receipt across the original turn and two automatic continuations. Independent environment recovery and receiver source diagnosis are finished.",
+        "notProductFailure": true,
+        "scopeReduced": false,
+        "completionClaimed": false,
+        "receipt": "artifacts/cookie-editor-r31/goal-blocked-01a19164.json",
+        "receiptSha256": "6e6335be6958b2786f642a7dc211de232f48af0eb0daa3dd9947c0b0f9412aeb",
+        "releaseCondition": "Original installed version/source/SHA and preserved-data readback, or supported native SidePanel control; never retry uncertain install or bypass browser restrictions.",
+        "remaining": "All eight product results remain NOT_TESTED; receiver S3 deployment and both full native workflows remain incomplete."
+      }
     }
   }
 }

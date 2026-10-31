@@ -2,7 +2,7 @@
 
 ## 当前接续：原开发服务已恢复，原生更新确认仍待执行（2026-10-31，01a19164）
 
-本任务初读 goal 为 null，已按用户要求创建无预算完整目标，实读 **active**；此前任务的 blocked／paused 状态均未改动。最新证据在同一 [JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishNativeEntry20261031.resume01a19164`，下节 blocked 属于前一任务。
+本任务初读 goal 为 null，已按用户要求创建无预算完整目标，创建后实读 active；**最新工具实读为 blocked（2026-10-31 10:11:45 UTC）**。同一原生 SidePanel 控制缺口已连续原始轮及两次自动续跑共三轮，没有新安装或详情读回回执；无依赖的环境恢复与接收机诊断已完成，按目标生命周期规则标记阻塞，未缩小目标或声称完成。此前任务的 blocked／paused 状态均未改动。最新证据在同一 [JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishNativeEntry20261031.resume01a19164.latestGoalAudit`，原始开发就绪记录保留其当时 active 状态。
 
 确认旧 writer PID73839 已退出、43119／43120 空闲，并与当前来源审计任务一次核对实际共享输入后，已恢复原 `npm run dev`，没有强制重载或清除 unknown 围栏。固定 `dist/development` 现为 **RUNNING**，writer PID12811，磁盘 revision `236bd2746e81c7dd4caea54be82d4c893ea47e4c281ce4ac4ab539153a85412e`，136 个产物指纹一致。唯一正式包仍为 2.0.57／245715 B／SHA-256 `438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601`，新开发资源摘要一致；**Chrome 实际加载路径、serve 连接、应用 revision、安装版本及旧数据均 NOT_TESTED**，不能用本次服务恢复替代。
 
