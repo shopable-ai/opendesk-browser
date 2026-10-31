@@ -1,0 +1,849 @@
+/* Adapted from the read-only original options.css. Geometry and cascade preserved; root selectors scoped to this app. */
+@scope (.proxy-app) {
+/**
+ * AI Proxy Options UI · R8.6 design-system consolidation.
+ * Full-page settings only; Side Panel continues to import style.css.
+ * Component-level styles from historical R8.5 have been moved from style.css.
+ *
+ * Spacing scale: 4 / 8 / 12 / 16 / 20 / 24 / 32.
+ * Semantic CSS tokens intentionally align with the canonical offline prototype.
+ * R10 keeps CSS variables and shared React components. Tailwind is optional
+ * only after measured maintenance and bundle benefits, not a migration gate.
+ */
+/* MOVED OPTIONS-ONLY component styles from legacy shared style.css. */
+/* Historical R8.5 full-page Options rules. Keep their original cascade priority:
+   options.css loads after style.css but before the consolidated Options overrides. */
+:scope .options .nav button { font-size: 13px; }
+:scope .options .panelHeadIntro { min-width: 0; flex: 1 1 300px; }
+:scope .options .panelHeadIntro .subtleTag { margin-top: 8px; }
+:scope .options .profilePanelHead { align-items: center; margin-bottom: 18px; }
+:scope .options .panelHeadActions {
+  display: flex; flex: 0 0 auto; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+:scope .options .panelHeadActions button { white-space: nowrap; }
+:scope .options .profilePanelHead + .optionsModeBar { margin-top: 0; }
+:scope .options .profileRecords {
+  overflow: hidden; gap: 0; margin-top: 10px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+}
+:scope .options .profileRecords .proxyRecord {
+  border: 0; border-radius: 0; padding: 12px 14px;
+}
+:scope .options .profileRecords .proxyRecord + .proxyRecord {
+  border-top: 1px solid var(--line);
+}
+/* R3.2 / R3.3 diagnostic page lives inside Options, never the popup. */
+:scope .diagnosticLead { position: relative; overflow: hidden; display: grid; justify-items: start; gap: 8px;
+  border-radius: 10px; padding: 22px 23px; margin-bottom: 14px; color: #f7f8ff;
+  background: linear-gradient(115deg,#242b55 0%,#38477d 73%,#455795 100%); }
+:scope .diagnosticLead .eyebrow { margin-bottom: 0; color: #d7defc; }
+:scope .diagnosticLead h2 { font-size: 20px; color: #fff; max-width: 620px; }
+:scope .diagnosticLead p:not(.eyebrow) { max-width: 650px; font-size: 12px; color: #e1e5fa; }
+:scope .diagnosticEvidence { font-size: 10px; color: #e4eaff; border: 1px solid #ffffff52;
+  border-radius: 5px; padding: 3px 8px; margin-top: 3px; }
+:scope .diagnosticMetrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; margin-bottom: 17px; }
+:scope .diagnosticMetrics>div { min-width: 0; display: grid; align-content: start; gap: 5px;
+  border: 1px solid var(--line); border-radius: 9px; padding: 13px; background: var(--surface); }
+:scope .diagnosticMetrics strong { font-size: 15px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+:scope .diagnosticMetrics small { font-size: 10px; }
+:scope .diagnosticTabs { display: flex; align-items: center; gap: 5px; overflow-x: auto; max-width: 100%;
+  padding: 0 0 8px; border-bottom: 1px solid var(--line); scrollbar-width: thin; }
+:scope .diagnosticTabs button { border: 0; border-radius: 6px; background: transparent; color: var(--muted); white-space: nowrap; padding: 8px 13px; font-size: 12px; }
+:scope .diagnosticTabs button[aria-selected="true"] { background: var(--accentFill); color: var(--accent); font-weight: 720; }
+:scope .diagnosticPanel { padding: 17px 0 0; }
+:scope .diagnosticOverview { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+:scope .diagnosticFeature { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 9px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 9px; background: var(--surface); }
+:scope .diagnosticFeature>small { font-size: 10px; }
+:scope .diagnosticFeature h3 { font-size: 15px; }
+:scope .diagnosticFeature p { flex: 1; color: var(--muted); font-size: 12px; }
+:scope .diagnosticFeature button { font-size: 11px; min-height: 33px; }
+:scope .diagnosticUnavailable { display: grid; justify-items: start; gap: 14px; padding: 27px 24px; border: 1px solid var(--line); border-radius: 9px; }
+:scope .diagnosticUnavailable p { max-width: 610px; color: var(--muted); }
+:scope .basicDiagnostic>h3 { margin-bottom: 5px; }
+:scope .basicDiagnostic>.hint { margin-bottom: 12px; }
+
+
+/* R7.2.2: real, on-demand AI-site diagnostics inside Options only. */
+:scope .diagnosticSection { display: grid; gap: 13px; min-width: 0; }
+:scope .diagnosticSectionHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+:scope .diagnosticSectionHead > div { min-width: 0; }
+:scope .diagnosticSectionHead .actions { margin: 0; }
+:scope .diagnosticSectionHead h3, :scope .diagnosticIssues h3 { font-size: 15px; }
+:scope .diagnosticSiteList { display: grid; gap: 9px; min-width: 0; }
+:scope .diagnosticSite { min-width: 0; display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1.3fr) auto;
+  gap: 12px; align-items: center; padding: 14px; border: 1px solid var(--line);
+  background: var(--surface); border-radius: 10px; }
+:scope .diagnosticSiteName { min-width: 0; display: flex; align-items: center; gap: 9px; }
+:scope .diagnosticSiteName span { min-width: 0; }
+:scope .diagnosticSiteName strong, :scope .diagnosticSiteName small { display: block; overflow-wrap: anywhere; }
+:scope .diagnosticSiteName small, :scope .diagnosticResult small { font-size: 11px; color: var(--muted); }
+:scope .diagnosticSiteName input { flex: none; width: 16px; height: 16px; accent-color: var(--accent); }
+:scope .diagnosticResult { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 9px; min-width: 0; overflow-wrap: anywhere; }
+:scope .diagnosticResultLabel { display: inline-flex; padding: 4px 7px; font-size: 11px; font-weight: 700;
+  border-radius: 6px; color: var(--ink); background: var(--soft); }
+:scope .diagnosticSiteActions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; align-items: center; }
+:scope .diagnosticSiteActions button, :scope .diagnosticSiteActions select, :scope .diagnosticSiteActions a {
+  min-height: 32px; padding: 6px 9px; font-size: 11px; }
+:scope .diagnosticSiteActions a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+:scope .diagnosticAddSite { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,2fr) 76px auto;
+  align-items: end; gap: 9px; padding: 15px; background: var(--soft); border: 1px solid var(--line); border-radius: 9px; }
+:scope .diagnosticAddSite input,:scope .diagnosticAddSite select { min-width: 0; width: 100%; height: 36px; }
+:scope .diagnosticAddSite label { align-self: center; overflow-wrap: anywhere; }
+:scope .diagnosticRunProgress { display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 9px; margin-top: 13px; padding: 11px 13px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--accentFill); font-weight: 650; }
+:scope .diagnosticIssues { display: grid; gap: 9px; margin-top: 19px; }
+:scope .diagnosticIssue { padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; }
+:scope .diagnosticIssue strong { display: block; font-size: 13px; }
+:scope .diagnosticIssue p { font-size: 12px; margin-top: 7px; color: var(--muted); }
+:scope .diagnosticIssue .actions { margin-bottom: 0; }
+@media(max-width: 900px) {
+  :scope .diagnosticSite { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  :scope .diagnosticSiteActions { grid-column: 1/-1; justify-content: flex-start; }
+}
+@media(max-width: 600px) {
+  :scope .diagnosticSite { display: flex; align-items: stretch; flex-direction: column; gap: 10px; }
+  :scope .diagnosticSiteActions { justify-content: flex-start; }
+  :scope .diagnosticAddSite { grid-template-columns: minmax(0,1fr) 85px; }
+  :scope .diagnosticAddSite label { grid-column: 1/-1; }
+  :scope .diagnosticAddSite button { grid-column: 1/-1; }
+  :scope .diagnosticRunProgress button { flex-shrink: 0; }
+}
+
+
+
+/* Optional official Provider: scoped design, no effect on the free proxy workbench. */
+:scope .officialPage { display:grid; gap:18px; min-width:0; }
+:scope .officialStateGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+:scope .officialStateGrid>div { border:1px solid var(--line); background:var(--soft); min-width:0;
+  padding:15px; border-radius:10px; display:grid; gap:6px; align-content:start; }
+:scope .officialStateGrid small,:scope .officialEntitlement small { font-size:11px; color:var(--muted); }
+:scope .officialStateGrid strong { font-size:14px; overflow-wrap:anywhere; }
+:scope .officialCaution { font-size:12px; color:var(--muted); }
+:scope .officialEmpty { display:grid; align-content:start; justify-items:start; gap:12px;
+  padding:23px; background:var(--soft); border:1px dashed var(--control-line); border-radius:11px; }
+:scope .officialEmpty p { max-width:600px; color:var(--muted); }
+:scope .officialSection { padding:19px; border:1px solid var(--line); border-radius:11px;
+  min-width:0; display:grid; gap:14px; }
+:scope .officialSectionHead { display:flex; align-items:flex-start; justify-content:space-between;
+  gap:12px; min-width:0; }
+:scope .officialSectionHead h3 { margin:0 0 4px; }
+:scope .officialSectionHead p { overflow-wrap:anywhere; }
+:scope .officialActions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+:scope .officialPlanGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+:scope .officialPlan { border:1px solid var(--line); background:var(--soft); border-radius:9px;
+  display:grid; align-content:start; gap:10px; padding:16px; min-width:0; }
+:scope .officialPlan small { font-weight:650; color:var(--accent); }
+:scope .officialPlan>strong { font-size:22px; letter-spacing:-.025em; }
+:scope .officialPlan button { justify-self:start; }
+:scope .officialEntitlement { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+:scope .officialEntitlement>div { display:grid; gap:4px; min-width:0; }
+:scope .officialEntitlement strong { font-size:15px; overflow-wrap:anywhere; }
+:scope .officialEntitlement .hint { margin:0; }
+:scope .officialMuted { font-size:12px; color:var(--muted); background:var(--soft); padding:15px;
+  border-radius:8px; }
+:scope .officialLines { display:grid; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+:scope .officialLine { display:flex; gap:10px; align-items:center; padding:12px 14px; }
+:scope .officialLine+.officialLine { border-top:1px solid var(--line); }
+:scope .officialLine>div { flex:1; display:grid; min-width:0; gap:3px; }
+:scope .officialLine strong { overflow-wrap:anywhere; }
+:scope .officialLine small { font-size:11px; color:var(--muted); }
+:scope .officialLine>span { text-align:right; }
+:scope .officialFooter { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+  border-top:1px solid var(--line); padding-top:16px; gap:12px; }
+:scope .officialFooter p { font-size:12px; color:var(--muted); flex:1 1 250px; }
+@media(max-width:650px) {
+  :scope .officialStateGrid { grid-template-columns:1fr; }
+  :scope .officialSectionHead { flex-direction:column; }
+  :scope .officialPlanGrid { grid-template-columns:1fr; }
+  :scope .officialEntitlement { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  :scope .officialSection { padding:14px; }
+  :scope .officialLine { flex-wrap:wrap; }
+  :scope .officialLine>span { text-align:left; }
+}
+@media(max-width:400px) { :scope .officialEntitlement {grid-template-columns:1fr;} }
+:scope .subscriptionReader { grid-column:1 / -1; width:100%; min-width:0; }
+:scope .subscriptionReaderToolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; }
+:scope .subscriptionReadStatus { color:var(--muted); font-size:13px; }
+:scope .subscriptionReaderPanel { border-top:1px solid var(--line); margin-top:12px; padding-top:12px; }
+:scope .subscriptionReaderPanel textarea { width:100%; min-height:100px; resize:vertical; box-sizing:border-box; }
+:scope .subscriptionReaderPanel input[type=file] { max-width:100%; }
+:scope .subscriptionReaderPanel .field { display:grid; gap:6px; margin:12px 0; min-width:0; }
+:scope .subscriptionReadResult { overflow-wrap:anywhere; }
+:scope .subscriptionNodes { padding:0; list-style:none; max-height:420px; overflow:auto; overscroll-behavior:contain; }
+:scope .subscriptionNode { border-top:1px solid var(--line); padding:12px 0; }
+:scope .subscriptionNode strong,:scope .subscriptionNode small { display:block; overflow-wrap:anywhere; }
+:scope .subscriptionNode p { font-size:13px; margin:6px 0; }
+
+
+/* R7.2.3A: local usage controls, scoped to the diagnostics usage section. */
+:scope .usageSection { display: grid; gap: 13px; min-width: 0; }
+:scope .usageSection .usageControls { padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); min-width: 0; }
+:scope .usageSection .usageControlHead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+:scope .usageSection .usageControlHead h4 { margin: 0; font-size: 14px; }
+:scope .usageSection .usageControls > .hint { margin: 9px 0; }
+:scope .usageSection .usageActions, :scope .usageSection .usageBadges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+:scope .usageSection .usagePreferences { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: center; margin-top: 13px; }
+:scope .usageSection .usagePreferences label { font-size: 12px; color: var(--muted); }
+:scope .usageSection .usagePreferences select { width: 100%; min-width: 0; }
+:scope .usageSection .usageError { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 9px; }
+:scope .usageSection .usageError p { flex: 1 1 220px; font-size: 12px; }
+:scope .usageSection .usageIgnored { margin-top: 12px; }
+:scope .usageSection summary { cursor: pointer; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+:scope .usageSection summary:focus-visible, :scope .usageSection a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+:scope .usageSection .usageIgnored ul { display: grid; gap: 8px; margin: 10px 0; padding: 0; list-style: none; }
+:scope .usageSection .usageIgnored li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; }
+:scope .usageSection .usageIgnored li span { flex: 1 1 150px; min-width: 0; overflow-wrap: anywhere; font-size: 12px; }
+:scope .usageSection .usageSite { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; }
+:scope .usageSection .usageSiteInfo { min-width: 0; }
+:scope .usageSection .usageSiteInfo .diagnosticSiteName { display: grid; gap: 3px; }
+:scope .usageSection .usageSiteInfo .hint { margin-top: 8px; }
+:scope .usageSection .usageBadges { margin-top: 8px; }
+:scope .usageSection .usageMetrics { margin-top: 8px; min-width: 0; }
+:scope .usageSection .usageMetrics dl { display: grid; gap: 6px; margin: 9px 0; font-size: 12px; }
+:scope .usageSection .usageMetrics dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 9px; }
+:scope .usageSection .usageMetrics dt { color: var(--muted); }
+:scope .usageSection .usageMetrics dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+:scope .usageSection .usageSiteActions { grid-column: 1 / -1; justify-content: flex-start; min-width: 0; }
+:scope .usageSection button, :scope .usageSection select, :scope .usageSection a { max-width: 100%; }
+:scope .usageSection button, :scope .usageSection a, :scope .usageSection .subtleTag { white-space: normal; overflow-wrap: anywhere; }
+:scope .usageSection button:disabled { cursor: default; }
+@media (max-width: 600px) {
+  :scope .usageSection .usagePreferences { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
+  :scope .usageSection .usageControls { padding: 12px; }
+  :scope .usageSection .usageSite { display: grid; grid-template-columns: minmax(0, 1fr); }
+  :scope .usageSection .usageActions { align-items: stretch; }
+  :scope .usageSection .usageActions button { flex: 1 1 180px; }
+  :scope .usageSection .usageSiteActions { gap: 8px; }
+  :scope .usageSection .usageSiteActions button { min-height: 36px; }
+}
+
+
+
+/* Multi-add proxy editor: address and protocol have a predictable reading order. */
+:scope .proxyPrimaryFields { display: grid;
+  grid-template-columns: minmax(100px,.85fr) minmax(0,2fr) minmax(90px,.85fr);
+  gap: 12px; }
+:scope .proxyPrimaryFields > div { min-width: 0; }
+:scope .proxyNameField { margin-top: 14px; }
+:scope .proxyAuthDetails { margin-top: 17px; padding: 11px 12px; border: 1px solid var(--line);
+  border-radius: 8px; }
+:scope .proxyAuthDetails > summary, :scope .ruleAdvanced > summary { cursor: pointer; font-size: 12px; font-weight: 650; }
+:scope .proxyAuthFields,:scope .ruleRouteFields { display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+:scope .proxyAuthFields { margin-top: 12px; }
+:scope .proxyAuthDetails .hint { margin-top: 8px; }
+:scope .ruleEditorForm { max-width: 740px; margin: 13px 0 24px; display: grid; gap: 14px; }
+:scope .ruleEditorForm > div:first-child .hint { margin-top: 6px; }
+:scope .ruleRouteFields > div { min-width: 0; }
+:scope .ruleAdvanced { border: 1px solid var(--line); border-radius: 8px; padding: 11px 13px; }
+:scope .ruleAdvancedFields { margin-top: 12px; display: grid; gap: 12px; }
+:scope .ruleCheckbox { display: flex; gap: 8px; align-items: center; }
+:scope .ruleCheckbox input { width: auto; min-height: auto; }
+:scope .ruleAdvancedFields .hint { margin-top: 4px; }
+:scope .ruleEditorForm .actions { margin: 0; }
+:scope .ruleEditorForm .actions .hint { flex: 1 1 220px; }
+@media (max-width: 650px) {
+  :scope .proxyPrimaryFields { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  :scope .proxyPrimaryFields > div:nth-child(2) { grid-column: 1/-1; grid-row: 2; }
+}
+@media (max-width: 460px) {
+  :scope .proxyAuthFields,:scope .ruleRouteFields { grid-template-columns: minmax(0,1fr); }
+  :scope .proxyEditorForm .editorActions { flex-wrap: wrap; }
+}
+
+
+:scope .options {
+  --settings-1: 4px;
+  --settings-2: 8px;
+  --settings-3: 12px;
+  --settings-4: 16px;
+  --settings-5: 20px;
+  --settings-6: 24px;
+  --settings-8: 32px;
+  --settings-radius-sm: 8px;
+  --settings-radius-md: 12px;
+  --settings-radius-lg: 16px;
+  --settings-page-max: 1280px;
+  max-width: var(--settings-page-max);
+  padding: 28px 30px 64px;
+  color: var(--ink);
+}
+:scope .options .optionsHead {
+  flex-wrap: wrap;
+  min-width: 0; min-height: 66px;
+  padding: 13px 19px;
+  margin-bottom: var(--settings-5);
+  border: 1px solid var(--line);
+  border-radius: var(--settings-radius-lg);
+  background: var(--surface);
+}
+:scope .options .optionsBrand { gap: 12px; min-width: 0; }
+:scope .options .optionsBrand strong { font-size: 16px; letter-spacing: -.02em; }
+:scope .options .optionsBrand small { font-size: 11px; line-height: 1.45; }
+:scope .options .optionsHeadActions { min-width: 0; gap: 12px; flex-wrap: wrap; }
+:scope .options .optionsHeadActions button { min-height: 34px; padding: 7px 11px; font-size: 12px; }
+:scope .options .layout {
+  display: grid;
+  grid-template-columns: 204px minmax(0,1fr);
+  align-items: start;
+  gap: var(--settings-5);
+}
+:scope .options .nav {
+  position: sticky;
+  top: 18px;
+  padding: 12px;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--settings-radius-lg);
+  background: var(--surface);
+}
+:scope .options .navLabel {
+  padding: 8px 12px 9px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: .09em;
+  font-weight: 750;
+}
+:scope .options .nav button,
+:scope .options .navBottom button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: 41px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 590;
+  line-height: 1.4;
+}
+:scope .options .nav button.active {
+  color: var(--accent);
+  background: var(--accentFill);
+  font-weight: 710;
+}
+:scope .options .nav button.active::before {
+  content: '';
+  position: absolute;
+  width: 3px;
+  height: 21px;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  background: var(--accent);
+  border-radius: 0 3px 3px 0;
+}
+:scope .options .nav .optionsNavIcon {
+  flex: none; width: 17px; height: 17px;
+  color: currentColor; opacity: .85;
+}
+:scope .options .nav .optionsNavText {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+:scope .options .navBottom {
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+  min-width: 0;
+}
+:scope .options .navBottom button small {
+  flex: none; font-size: 10px;
+  grid-column: 2;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+:scope .options .navBottom button {
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr);
+  row-gap: 2px;
+}
+:scope .options .panel.optionsContent {
+  min-width: 0;
+  min-height: 0;
+  padding: 28px 30px 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--settings-radius-lg);
+  background: var(--surface);
+}
+:scope .options .optionsPageHead {
+  min-width: 0;
+  gap: 18px;
+  margin: 0 0 24px;
+  padding: 0 0 21px;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+}
+:scope .options .panelHeadIntro { min-width: 0; flex: 1 1 270px; }
+:scope .options .optionsPageHead .eyebrow {
+  margin: 0 0 7px; color: var(--accent);
+  font-size: 10px; font-weight: 750; letter-spacing: .09em;
+}
+:scope .options .optionsPageHead h1 {
+  font-size: clamp(22px,2.3vw,25px);
+  line-height: 1.25;
+  letter-spacing: -.035em;
+  font-weight: 750;
+}
+:scope .options .optionsPageHead .hint {
+  margin-top: 9px;
+  max-width: 680px;
+  font-size: 12px;
+  line-height: 1.65;
+}
+:scope .options .optionsPageHead .subtleTag { margin-top: 10px; }
+:scope .options .optionsPageHead .panelHeadActions {
+  display: flex;
+  flex: 0 1 auto;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+:scope .options .panelHeadActions button {
+  min-height: 37px;
+  padding: 8px 12px;
+  font-size: 12px;
+  white-space: normal;
+}
+:scope .options :where(.optionsModeBar,.pacDetails,.rulesList,.rulesEditor,.rulesDefault,
+  .backupCard,.sourceIntro,.sourceInlineEditor,.sourceRecord,.generalInfoCard,
+  .diagnosticFeature,.diagnosticSite,.officialSection,.officialEmpty,.officialPlan) {
+  border-radius: var(--settings-radius-md);
+}
+:scope .options :where(h2,h3) { letter-spacing: -.017em; }
+:scope .options .optionsModeBar {
+  margin: 0 0 var(--settings-6);
+  padding: var(--settings-5);
+  border-color: var(--line);
+  background: var(--soft);
+}
+:scope .options .optionsModeGrid {
+  margin: 15px 0 17px;
+  gap: 9px;
+}
+:scope .options .optionsModeGrid button {
+  min-height: 44px;
+  border-radius: 9px;
+  background: var(--surface);
+  font-size: 12px;
+}
+:scope .options .runtimeSummary {
+  gap: 9px;
+  padding: 14px 15px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+:scope .options .modeActions { gap: 9px; margin: 14px 0 3px; }
+:scope .options .modeActions > button { min-height: 38px; }
+:scope .options .listSection { margin: 0 0 22px; }
+:scope .options .listSection .sectionHeading { margin-bottom: 13px; }
+:scope .options .profileRecords { margin-top: 10px; border-radius: 11px; }
+:scope .options .profileRecords .proxyRecord { min-height: 64px; padding: 12px 14px; }
+:scope .options .pacDetails { margin: 16px 0; }
+:scope .options .serviceNote { border-radius: 11px; }
+:scope .options .records { min-width: 0; }
+:scope .options .record strong { line-height: 1.45; }
+:scope .options .recordActions { gap: 7px; }
+:scope .options .emptyState { padding: 22px; }
+:scope .options .rulesPage,:scope .options .backupPage,:scope .options .generalPage,:scope .options .sourcesPage { min-width: 0; }
+:scope .options .rulesGrid { gap: 16px; }
+:scope .options .rulesList,:scope .options .rulesEditor,:scope .options .rulesDefault { padding: 20px; }
+:scope .options .rulesList .record { background: var(--surface); }
+:scope .options .rulesDefault { background: var(--soft); }
+:scope .options .ruleEditorForm { gap: 15px; }
+:scope .options .backupGrid {
+  grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);
+  gap: 16px;
+}
+:scope .options .backupCard {
+  gap: 13px; padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+:scope .options .backupCard h2 { font-size: 17px; }
+:scope .options .backupCardIndex { border-radius: 7px; }
+:scope .options .backupExport {
+  background: linear-gradient(155deg,var(--accentFill),var(--surface) 60%);
+}
+:scope .options .backupExport > .hint { max-width: 410px; }
+:scope .options .backupImport textarea { min-height: 185px; }
+:scope .options .backupImport > label { margin-top: 2px; }
+:scope .options .backupImport > button { min-height: 38px; }
+:scope .options .generalGrid { gap: 12px; }
+:scope .options .generalGrid .languageRecord { min-height: 112px; }
+:scope .options .generalGrid .generalInfoCard { min-height: 135px; }
+:scope .options .sourceIntro { padding: 20px; }
+:scope .options .sourcesPage { gap: 24px; }
+:scope .options .sourceList { gap: 12px; }
+:scope .options .sourceList .records.sourceCards { gap: 12px; }
+:scope .options .sourceList .sourceRecord { padding: 17px; }
+:scope .options .sourceListHead h2 { font-size: 16px; }
+:scope .options .diagnosticLead {
+  padding: 20px 22px; margin-bottom: 18px;
+  background: var(--accentFill);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+:scope .options .diagnosticLead .eyebrow { color: var(--accent); }
+:scope .options .diagnosticLead h2 { max-width: 750px; color: var(--ink); font-size: 19px; }
+:scope .options .diagnosticLead p:not(.eyebrow) { color: var(--muted); font-size: 12px; }
+:scope .options .diagnosticEvidence {
+  color: var(--accent); border-color: var(--line);
+  background: var(--surface); border-radius: 6px;
+}
+:scope .options .diagnosticMetrics { gap: 12px; margin-bottom: 17px; }
+:scope .options .diagnosticMetrics>div { padding: 15px; }
+:scope .options .diagnosticMetrics strong { overflow-wrap: normal; word-break: normal; }
+@media (max-width: 460px) {
+  :scope .options .diagnosticMetrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 359px) {
+  :scope .options .diagnosticMetrics { grid-template-columns: 1fr; }
+}
+:scope .options .diagnosticOverview { gap: 13px; }
+:scope .options .diagnosticOverview > * { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 720px) {
+  :scope .options .diagnosticOverview { grid-template-columns: minmax(0,1fr); }
+}
+:scope .options .diagnosticFeature { padding: 19px; gap: 10px; }
+:scope .options .diagnosticSiteList { gap: 10px; }
+:scope .options .diagnosticSite { padding: 15px; }
+:scope .options .officialPage { gap: 20px; }
+/* The official page uses the same header at every width. Its grid owns the
+   following gap, so do not add the shared header's bottom margin as well. */
+:scope .options .officialHero.optionsPageHead { margin: 0; }
+:scope .options .officialStateGrid,:scope .options .officialPlanGrid { gap: 12px; }
+:scope .options .officialSection { padding: 20px; }
+:scope .options .officialEmpty { padding: 22px; }
+@media (max-width: 1100px) {
+  :scope .options .profilePanelHead { flex-direction: column; align-items: stretch; }
+  :scope .options .profilePanelHead .panelHeadIntro { flex: none; }
+  :scope .options .layout { grid-template-columns: 184px minmax(0,1fr); gap: 16px; }
+  :scope .options .panel.optionsContent { padding: 23px 24px 27px; }
+  :scope .options .optionsPageHead .panelHeadActions { justify-content: flex-start; }
+}
+@media (max-width: 900px) {
+  :scope .options { padding: 19px 17px 45px; }
+  :scope .options .layout { grid-template-columns: 162px minmax(0,1fr); gap: 13px; }
+  :scope .options .nav { padding: 8px; }
+  :scope .options .nav button { padding: 9px 8px; gap: 7px; font-size: 11.5px; }
+  :scope .options .optionsPageHead { flex-direction: column; gap: 12px; }
+  :scope .options .panelHeadIntro { flex: none; }
+  :scope .options .panelHeadActions { justify-content: flex-start; }
+  :scope .options .backupGrid { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  :scope .options .layout { display: flex; flex-direction: column; gap: 12px; }
+  :scope .options .nav {
+    display: flex;
+    flex-direction: row;
+    position: static;
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    gap: 3px;
+    padding: 7px;
+    scrollbar-width: thin;
+  }
+  :scope .options .nav > .navLabel,:scope .options .navBottom > .navLabel { display: none; }
+  :scope .options .nav button {
+    flex: none;
+    width: auto;
+    min-height: 39px;
+    white-space: nowrap;
+    padding: 8px 10px;
+    gap: 7px;
+  }
+  :scope .options .nav .optionsNavText { white-space: nowrap; }
+  :scope .options .navBottom { display: flex; margin: 0 0 0 3px; padding: 0 0 0 6px; border: 0; border-left: 1px solid var(--line); }
+  :scope .options .navBottom button small { display: none; }
+  :scope .options .panel.optionsContent { width: 100%; padding: 21px 20px 25px; }
+  :scope .options .optionsPageHead { margin-bottom: 20px; padding-bottom: 17px; }
+}
+@media (max-width: 460px) {
+  :scope .options { padding: 10px 9px 32px; }
+  :scope .options .optionsHead {
+    min-height: 0;
+    padding: 10px 11px;
+    margin-bottom: 11px;
+    gap: 8px;
+  }
+  :scope .options .optionsBrand { gap: 8px; }
+  :scope .options .optionsBrand strong { font-size: 14px; }
+  :scope .options .optionsBrand small { display: none; }
+  :scope .options .optionsHeadActions { gap: 5px; }
+  :scope .options .optionsHeadActions button { min-height: 33px; padding: 6px 8px; font-size: 11px; }
+  :scope .options .nav button { min-height: 37px; padding: 7px 9px; }
+  :scope .options .nav .optionsNavIcon { width: 15px; height: 15px; }
+  :scope .options .panel.optionsContent { padding: 17px 15px 22px; }
+  :scope .options .optionsPageHead { gap: 10px; margin-bottom: 18px; }
+  :scope .options .optionsPageHead h1 { font-size: 21px; }
+  :scope .options .optionsPageHead .hint { margin-top: 6px; }
+  :scope .options .optionsPageHead .panelHeadActions {
+    display: grid; grid-template-columns: repeat(2,minmax(0,1fr));
+    width: 100%; gap: 7px;
+  }
+  :scope .options .optionsPageHead .panelHeadActions > button:last-child { grid-column: 1 / -1; }
+  :scope .options .optionsModeBar { padding: 14px 12px; }
+  :scope .options .optionsModeGrid { gap: 5px; }
+  :scope .options .optionsModeGrid button { min-height: 40px; padding: 7px 4px; }
+  :scope .options .runtimeSummary { padding: 11px; }
+  :scope .options .rulesList,:scope .options .rulesEditor,:scope .options .rulesDefault,:scope .options .backupCard,:scope .options .generalGrid .generalInfoCard { padding: 15px; }
+  :scope .options .backupImport textarea { min-height: 135px; }
+  :scope .options .diagnosticLead { padding: 16px; }
+  :scope .options .diagnosticLead h2 { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :scope .options * { scroll-behavior: auto; }
+}
+
+/* Consolidated R8.5 component styles, moved from the shared Side Panel CSS. */
+/* R8.5 Options / Third-party sources: the panel width, not a fixed number of
+   one-per-line records, controls whether saved sources appear in two columns.
+   Subscription readers expand to the whole grid row without squeezing inputs. */
+/* Every Options route shares one width; do not narrow Sources alone. */
+:scope .options.sourcesOptions { max-width: var(--settings-page-max); }
+:scope .sourcesPage { display: grid; gap: 24px; min-width: 0; }
+:scope .sourceIntro {
+  min-width: 0; padding: 20px 22px 17px; border: 1px solid var(--line);
+  border-radius: 14px; background: linear-gradient(120deg,var(--accentFill),var(--surface) 78%);
+}
+:scope .sourceIntroMain { display: flex; align-items: center; gap: 13px; min-width: 0; }
+:scope .sourceIntroMain > div { min-width: 0; }
+:scope .sourceIntroMain strong { display: block; font-size: 16px; font-weight: 720; letter-spacing: -.015em; }
+:scope .sourceIntroMain p { font-size: 12px; line-height: 1.65; margin-top: 4px; max-width: 650px; color: var(--muted); }
+:scope .sourceIntroIcon,:scope .sourceCardIcon { display: grid; flex: none; place-items: center; color: var(--accent);
+  background: var(--accentFill); border: 1px solid var(--line); border-radius: 12px; width: 42px; height: 42px; }
+:scope .sourceIntroIcon { color: var(--primaryText); background: var(--primaryFill); border-color: var(--primaryFill); width: 45px; height: 45px; }
+:scope .sourceIntroIcon svg,:scope .sourceCardIcon svg { width: 21px; height: 21px; }
+:scope .sourceToolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin: 16px 0 9px; }
+:scope .sourceToolbar button { min-height: 37px; padding-inline: 14px; font-size: 12px; }
+:scope .sourceToolbar button[aria-expanded="true"]:not(.primary) { color: var(--accent); background: var(--accentFill); border-color: var(--accent); }
+:scope .sourceHint { color: var(--muted); font-size: 11px; line-height: 1.6; }
+:scope .sourceQuickStats { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 23px;
+  border-top: 1px solid var(--line); padding-top: 12px; margin-top: 13px; }
+:scope .sourceQuickStats span { display: inline-flex; align-items: baseline; gap: 7px; color: var(--muted); font-size: 11px; }
+:scope .sourceQuickStats strong { font-size: 16px; color: var(--ink); font-weight: 750; font-variant-numeric: tabular-nums; }
+:scope .sourceInlineEditor { min-width: 0; padding: 19px 20px; border: 1px solid var(--control-line);
+  border-radius: 12px; background: var(--soft); scroll-margin-top: 20px; }
+:scope .sourceEditorHead { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
+:scope .sourceEditorHead h2 { font-size: 15px; }
+:scope .sourceEditorHead button { flex: none; white-space: nowrap; border: 0; background: var(--surface); min-height: 32px; padding: 6px 12px; }
+:scope .sourceForm { display: grid; gap: 13px; max-width: 650px; }
+:scope .sourceForm label { margin-bottom: 5px; font-size: 12px; }
+:scope .sourceForm input,:scope .sourceForm select { font-size: 12px; }
+:scope .sourceFormPair { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(110px,.7fr); gap: 12px; }
+:scope .sourceFormPair > div { min-width: 0; }
+:scope .sourceFieldNote { color: var(--muted); font-size: 11px; line-height: 1.65; }
+:scope .sourceFormActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+:scope .sourceList { min-width: 0; display: grid; gap: 13px; }
+:scope .sourceListHead h2 { font-size: 16px; }
+:scope .sourceListHead p { margin-top: 3px; color: var(--muted); font-size: 12px; }
+:scope .sourceList .records.sourceCards { display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,312px),1fr));
+  align-items: stretch; gap: 12px; margin: 0; }
+:scope .sourceList .sourceRecord { min-width: 0; display: flex; flex-direction: column; align-items: stretch;
+  justify-content: flex-start; gap: 11px; padding: 16px; border: 1px solid var(--line);
+  border-radius: 12px; background: var(--surface); box-shadow: 0 3px 14px #1523410a; }
+:scope .sourceList .sourceRecord:hover { border-color: var(--control-line); }
+:scope .sourceList .sourceRecord.isSelected { border-color: var(--accent); }
+:scope .sourceList .sourceRecord.isApplied { border-color: var(--good); }
+:scope .sourceCardTop { display: flex; align-items: flex-start; gap: 11px; min-width: 0; }
+:scope .sourceCardIcon { width: 39px; height: 39px; border-radius: 10px; }
+:scope .sourceCardIdentity { display: grid; gap: 4px; flex: 1; min-width: 0; }
+:scope .sourceCardIdentity strong { font-size: 14px; font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; }
+:scope .sourceCardIdentity small { font-size: 11px; overflow-wrap: anywhere; word-break: break-word; }
+:scope .sourceList .sourceRecord > .rowBadges { margin-top: 0; min-height: 20px; }
+:scope .sourceList .sourceRecord > .recordActions { margin-top: auto; padding-top: 5px; justify-content: flex-start; gap: 7px; }
+:scope .sourceList .sourceRecord > .recordActions button { padding: 6px 10px; min-height: 34px; font-size: 12px; }
+:scope .sourceList .sourceRecord .recordActions button:first-child:not(.quietDanger) { background: var(--soft); }
+:scope .sourceList .subscriptionRecord > .subscriptionReader {
+  margin-top: 2px; width: 100%; min-width: 0; border-top: 1px solid var(--line); padding-top: 11px;
+}
+/* :has() is supported by the Chrome version targeted by WXT/MV3 and keeps
+   all nested editor fields in the expanded reader at a usable width. */
+:scope .sourceList .subscriptionRecord:has(.subscriptionReaderPanel) { grid-column: 1 / -1; }
+:scope .subscriptionRecord .subscriptionReaderToolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 10px; }
+:scope .subscriptionRecord .subscriptionReaderToolbar > span { font-size: 11px; color: var(--muted); }
+:scope .subscriptionRecord .subscriptionReadStatus { display: inline-flex; align-items: center; gap: 6px; }
+:scope .subscriptionRecord .subscriptionReadStatus::before { content: ""; display: inline-block; flex: none;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--control-line); }
+:scope .subscriptionRecord [data-read-status="success"] .subscriptionReadStatus::before { background: var(--good); }
+:scope .subscriptionRecord [data-read-status="partial"] .subscriptionReadStatus::before { background: var(--warn); }
+:scope .subscriptionRecord [data-read-status="failed"] .subscriptionReadStatus::before { background: var(--bad); }
+:scope .subscriptionRecord .subscriptionReaderToolbar > button { margin-left: auto; padding: 6px 11px;
+  min-height: 34px; font-size: 11px; background: var(--accentFill); color: var(--accent); border-color: transparent; }
+:scope .subscriptionRecord .subscriptionReaderPanel { margin-top: 13px; padding-top: 16px; min-width: 0; }
+:scope .subscriptionRecord .subscriptionReaderPanel form { max-width: 740px; }
+:scope .sourceEmpty { padding: 18px; border: 1px dashed var(--control-line); background: var(--soft);
+  border-radius: 10px; color: var(--muted); font-size: 12px; }
+:scope .sourceHelp { min-width: 0; padding: 13px 2px 3px; border-top: 1px solid var(--line); }
+:scope .sourceHelp summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 650; }
+:scope .sourceHelp p { margin-top: 9px; color: var(--muted); font-size: 12px; }
+:scope .sourceHelp .actions { margin-bottom: 0; }
+:scope .subscriptionCliDetails { margin: 0; padding: 12px 14px; border: 1px solid var(--line);
+  border-radius: 10px; background: var(--soft); }
+:scope .subscriptionCliDetails code { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 1050px) {
+  :scope .options .profilePanelHead { flex-direction: column; align-items: stretch; }
+  :scope .options .profilePanelHead .panelHeadIntro { flex: 0 1 auto; }
+  :scope .options .panelHeadActions { justify-content: flex-start; }
+}
+@media (max-width: 460px) {
+  :scope .options .panelHeadActions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  :scope .options .panelHeadActions button:last-child { grid-column: 1 / -1; }
+  :scope .sourceIntro { padding: 15px 14px; }
+  :scope .sourceIntroMain { align-items: flex-start; gap: 10px; }
+  :scope .sourceIntroIcon { width: 38px; height: 38px; }
+  :scope .sourceIntroMain strong { font-size: 14px; }
+  :scope .sourceToolbar button { flex: 1 1 160px; }
+  :scope .sourceInlineEditor { padding: 15px 13px; }
+  :scope .sourceFormPair { grid-template-columns: minmax(0,1fr); }
+  :scope .sourceList .sourceRecord { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :scope .sourceList .sourceRecord { transition: none; }
+}
+
+/* R8.5: other Options sections match the source card density; no routing logic changes. */
+:scope .rulesPage { display:grid; gap:16px; min-width:0; }
+:scope .rulesGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr)); align-items:start; gap:15px; min-width:0; }
+:scope .rulesList,:scope .rulesEditor,:scope .rulesDefault { min-width:0; border:1px solid var(--line); border-radius:12px; padding:19px 20px; background:var(--surface); }
+:scope .rulesList { background:var(--soft); }
+:scope .rulesList h2,:scope .rulesEditor h2,:scope .rulesDefault h2 { font-size:16px; }
+:scope .rulesList > .hint,:scope .rulesDefault > .hint { margin-top:6px; }
+:scope .rulesList .records { margin:15px 0 0; gap:0; overflow:hidden; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+:scope .rulesList .records > .record { min-width:0; border:0; border-radius:0; padding:12px 13px; flex-wrap:wrap; gap:8px; }
+:scope .rulesList .records > .record + .record { border-top:1px solid var(--line); }
+:scope .rulesList .record .actions { margin:0; gap:6px; }
+:scope .rulesList .record .actions button { min-height:31px; padding:5px 9px; font-size:11px; }
+:scope .rulesList .rulesEmpty { margin-top:15px; background:var(--surface); }
+:scope .rulesEditor .ruleEditorForm { margin:13px 0 0; max-width:none; }
+:scope .rulesEditor .ruleRouteFields { gap:9px; }
+:scope .rulesDefault .formGrid { max-width:700px; margin-top:16px; }
+:scope .rulesDefault > .actions { margin-bottom:0; }
+
+:scope .backupPage { min-width:0; }
+:scope .backupGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,335px),1fr)); gap:15px; align-items:start; }
+:scope .backupCard { display:flex; flex-direction:column; align-items:flex-start; gap:13px; min-width:0; padding:21px 20px; border:1px solid var(--line); border-radius:12px; background:var(--soft); }
+:scope .backupCard h2 { font-size:17px; line-height:1.4; }
+:scope .backupCard .hint { font-size:12px; line-height:1.65; }
+:scope .backupCardIndex { display:inline-flex; align-items:center; color:var(--accent); background:var(--accentFill); border-radius:6px; padding:3px 9px; font-size:11px; font-weight:760; font-variant-numeric:tabular-nums; }
+:scope .backupCard button { max-width:100%; font-size:12px; }
+:scope .backupExport > button { margin-top:0; }
+:scope .backupImport label { font-size:12px; margin:0; }
+:scope .backupImport textarea { flex:1; align-self:stretch; min-height:168px; resize:vertical; font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; }
+:scope .backupImport > button { margin-top:auto; }
+:scope .backupImport input[type="file"] { align-self:stretch; width:100%; height:auto; min-height:43px; padding:7px;
+  font-size:12px; overflow-wrap:anywhere; }
+:scope .backupImport input[type="file"]::file-selector-button { margin-right:10px; border:1px solid var(--line);
+  border-radius:8px; background:var(--soft); color:var(--ink); padding:6px 10px; font:inherit; }
+:scope .backupImport .backupSuccess { align-self:stretch; margin:0; padding:10px 12px;
+  color:var(--good); background:var(--goodBg); border-radius:8px; font-size:12px; }
+
+:scope .generalPage { display:grid; gap:15px; min-width:0; }
+:scope .generalGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); align-items:stretch; gap:12px; min-width:0; }
+:scope .generalGrid > .record { min-width:0; border-radius:12px; }
+:scope .generalGrid .languageRecord { grid-column:1 / -1; flex-wrap:wrap; padding:20px; background:var(--accentFill); border-color:var(--line); }
+:scope .generalGrid .generalInfoCard { display:flex; flex-direction:column; justify-content:flex-start; align-items:stretch; gap:13px; min-height:145px; padding:20px; background:var(--soft); }
+:scope .generalInfoCard > div { display:grid; gap:9px; min-width:0; }
+:scope .generalInfoCard strong { font-size:14px; }
+:scope .generalInfoCard small { font-size:12px; line-height:1.65; }
+:scope .generalInfoCard a { color:var(--accent); align-self:flex-start; margin-top:auto; font-size:12px; font-weight:650; overflow-wrap:anywhere; }
+:scope .generalPage > .hint { max-width:710px; }
+@media (max-width:460px) {
+  :scope .rulesList,:scope .rulesEditor,:scope .rulesDefault,:scope .backupCard,:scope .generalGrid .generalInfoCard { padding:16px 14px; }
+  :scope .generalGrid .languageRecord { padding:16px 14px; }
+  :scope .backupImport textarea { min-height:130px; }
+}
+
+/* R9.2: labelled copy-route action without crowding 320px Options headers. */
+:scope .options .optionsCopyLink { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+:scope .options .optionsCopyLink > span:first-child { font-size:16px; line-height:1; }
+@media(max-width:650px) {
+  :scope .options .optionsCopyLink { min-width:34px; width:34px; flex:none; justify-content:center; padding:5px; }
+  :scope .options .optionsCopyLinkText { display:none; }
+}
+
+
+/* R11.2.4: a single scannable subscription index; management/reader only in detail. */
+:scope .options .subscriptionIndexPage,:scope .options .subscriptionDetailPage { gap:16px; }
+:scope .subscriptionIndexHead { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px 16px;min-width:0; }
+:scope .subscriptionIndexHead > div { flex:1 1 240px;min-width:0; }
+:scope .subscriptionIndexHead h2 { font-size:17px;display:flex;align-items:center;flex-wrap:wrap;gap:8px; }
+:scope .subscriptionIndexHead p,:scope .subscriptionOtherAccess p { font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6; }
+:scope .subscriptionIndex { min-width:0;display:grid;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface); }
+:scope .subscriptionIndexRow { width:100%;min-width:0;display:flex;gap:12px;align-items:center;text-align:left;
+  border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;
+  padding:13px 15px;min-height:74px;color:var(--ink);cursor:pointer; }
+:scope .subscriptionIndexRow:last-of-type { border-bottom:0; }
+:scope .subscriptionIndexRow:hover,:scope .subscriptionIndexRow:focus-visible { background:var(--soft); }
+:scope .subscriptionIndexRow:focus-visible { outline:2px solid var(--accent);outline-offset:-3px; }
+:scope .subscriptionRowSymbol { display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:10px;
+  color:var(--accent);background:var(--accentFill); }
+:scope .subscriptionRowSymbol svg {width:21px;height:21px}
+:scope .subscriptionRowMain { display:grid;gap:5px;min-width:0;flex:1;overflow-wrap:anywhere; }
+:scope .subscriptionRowMain strong {font-size:13px;line-height:1.45;}
+:scope .subscriptionRowMain small {font-size:11px;color:var(--muted);line-height:1.55;overflow-wrap:anywhere;}
+:scope .subscriptionRowStatus {font-size:11px;color:var(--muted);flex:0 0 auto;white-space:nowrap;}
+:scope .subscriptionRowArrow {font-size:22px;line-height:1;color:var(--muted);flex:none;}
+:scope .subscriptionIndexEmpty {border:0;border-radius:0;}
+:scope .subscriptionOtherAccess {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  min-width:0;padding:16px;border:1px solid var(--line);border-radius:11px;background:var(--soft);}
+:scope .subscriptionOtherAccess > div:first-child {min-width:0;flex:1 1 240px;}
+:scope .subscriptionOtherAccess h3 {font-size:13px;margin:0;}
+:scope .subscriptionOtherActions,:scope .subscriptionDetailActions {display:flex;flex-wrap:wrap;gap:8px;}
+:scope .subscriptionLocalDetails {border:1px solid var(--line);border-radius:10px;padding:13px 15px;}
+:scope .subscriptionLocalDetails summary {font-size:12px;font-weight:650;cursor:pointer;}
+:scope .subscriptionLocalDetails .sourceList {margin-top:15px;}
+:scope .subscriptionBreadcrumb {display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:12px;}
+:scope .subscriptionBreadcrumb button {border:0;background:transparent;color:var(--accent);padding:6px 2px;font-size:12px;}
+:scope .subscriptionBreadcrumb button:hover {text-decoration:underline;}
+:scope .subscriptionDetailCard {min-width:0;display:grid;gap:14px;padding:20px;border:1px solid var(--line);
+  border-radius:12px;background:var(--surface);overflow-wrap:anywhere;}
+:scope .subscriptionDetailHeading {display:flex;align-items:flex-start;gap:12px;min-width:0;}
+:scope .subscriptionDetailIdentity {display:grid;gap:4px;min-width:0;}
+:scope .subscriptionDetailIdentity h2 {font-size:19px;line-height:1.45;overflow-wrap:anywhere;}
+:scope .subscriptionDetailIdentity .hint {overflow-wrap:anywhere;font-size:12px;}
+:scope .subscriptionTypeLabel {font-size:11px;font-weight:700;color:var(--muted);}
+:scope .subscriptionDetailStats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;}
+:scope .subscriptionDetailStats > div {display:grid;gap:6px;min-width:0;padding:12px;background:var(--soft);border-radius:8px;}
+:scope .subscriptionDetailStats small {font-size:11px;color:var(--muted);}
+:scope .subscriptionDetailStats strong {font-size:13px;overflow-wrap:anywhere;}
+:scope .subscriptionDetailMeta {display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;color:var(--muted);font-size:11px;}
+:scope .subscriptionDetailActions button {min-height:35px;}
+:scope .subscriptionReadSection {min-width:0;padding:16px 20px;border:1px solid var(--line);
+  border-radius:12px;background:var(--surface);}
+:scope .subscriptionReadSection .subscriptionReaderPanel {min-width:0;}
+:scope .subscriptionMissing {display:grid;gap:12px;}
+:scope .subscriptionMissing h2 {font-size:17px;color:var(--ink);}
+:scope .subscriptionMissing button {justify-self:start;}
+:scope .subscriptionVisuallyHidden {position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+@media (max-width:460px) {
+  :scope .subscriptionIndexHead > button {width:100%;}
+  :scope .subscriptionIndexRow {gap:8px;padding:11px;min-height:66px;}
+  :scope .subscriptionRowSymbol {width:32px;height:32px;}
+  :scope .subscriptionRowMain strong {font-size:12px;}
+  :scope .subscriptionRowStatus {font-size:10px;}
+  :scope .subscriptionOtherActions {width:100%;}
+  :scope .subscriptionOtherActions button {flex:1 1 120px;min-width:0;}
+  :scope .subscriptionDetailCard,:scope .subscriptionReadSection {padding:14px;}
+  :scope .subscriptionDetailStats {grid-template-columns:1fr;}
+  :scope .subscriptionDetailStats > div {grid-template-columns:minmax(0,1fr) auto;align-items:center;}
+}
+
+}

@@ -1,0 +1,387 @@
+{
+  "note": "Historical source working-tree fingerprints before adaptation; sha256 identifies source bytes only, never current target equality. UI structure is reused with modifications; no runtime/service/background copied.",
+  "files": [
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/domain/messages.ts",
+      "target": "projects/ai-proxy/src/domain/messages.ts",
+      "sha256": "550cbd39d9ba68e021e093eec1cb18896ae4d3b180fc07569044f65f65ce47d0",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/domain/pac-starters.ts",
+      "target": "projects/ai-proxy/src/domain/pac-starters.ts",
+      "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/domain/proxy-entry.ts",
+      "target": "projects/ai-proxy/src/domain/proxy-entry.ts",
+      "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/domain/pac.ts",
+      "target": "projects/ai-proxy/src/domain/pac.ts",
+      "sha256": "5bb56c19ee0227fd1a8f1123d72327dbeb390e0a448bf2cebe1ebfd3e1bb7d5d",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/domain/error-codes.ts",
+      "target": "projects/ai-proxy/src/domain/error-codes.ts",
+      "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/domain/types.ts",
+      "target": "projects/ai-proxy/src/domain/types.ts",
+      "sha256": "c84506c349b330d543b7d7cb08981a579321d57093ef150bd6e0d2a071dd3aa3",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/domain/config.ts",
+      "target": "projects/ai-proxy/src/domain/config.ts",
+      "sha256": "3c804cf4afbae754b317f7ed9b9fc8bfddd216b34e98665b95bbef3dcc461bf2",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/i18n/errors.ts",
+      "target": "projects/ai-proxy/src/i18n/errors.ts",
+      "sha256": "f3738dc405ac36651bca0652dbf09a3e14ee103bf0439d48207276091f38d4e5",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/i18n/locale.ts",
+      "target": "projects/ai-proxy/src/i18n/locale.ts",
+      "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/i18n/LocaleProvider.tsx",
+      "target": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+      "sha256": "6de1213e7f15e590dc79eb130a88b9ab3d7abe05e865763a7432cd04f3ad8879",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/i18n/locales/zh-CN.json",
+      "target": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "sha256": "368796762763dcfafc5549f8b79cd581b5f3d1ae7e50cce40d3b88a856b0348b",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/i18n/locales/en.json",
+      "target": "projects/ai-proxy/src/i18n/locales/en.json",
+      "sha256": "7198673c221c2a365e9650004451b827382a24f1c3e3dd957c7bc65b96d756bf",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/i18n/locales/zh-TW.json",
+      "target": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "sha256": "4b083e1786f005dd071655a85b8e12429f531275c7959188651eb5bfc4fabd43",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/OfficialServicePage.tsx",
+      "target": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+      "sha256": "79d2463a8ec011e5da79023af215aecb6b428533fac8d9d8ab1cba2c6e02beac",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/backupImport.ts",
+      "target": "projects/ai-proxy/src/ui/backupImport.ts",
+      "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/RotationPlan.tsx",
+      "target": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+      "sha256": "4e539136c364d996d2db93bbc2a98738a00da0518448d83abcc5a57ebd717782",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/UsageControls.tsx",
+      "target": "projects/ai-proxy/src/ui/UsageControls.tsx",
+      "sha256": "75074754f14303c3b10376493c5e5f3c171db49bdc78f64c870da87ef932511e",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/FormField.tsx",
+      "target": "projects/ai-proxy/src/ui/FormField.tsx",
+      "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/SourcesPage.tsx",
+      "target": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+      "sha256": "720708e546e0bbdeccb11b311045008051e5d37c7ed6773602c1a41281098acc",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/OptionsShell.tsx",
+      "target": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+      "sha256": "08c5571c5ded94a8cdb32e384dd713a0f7e1ee2b4da77f5df23bf4484889dabf",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/rotation-entry.css",
+      "target": "projects/ai-proxy/src/ui/rotation-entry.css",
+      "sha256": "487f5bbe31d4af61acc14366f70f39feb8178f5b4dc2205cd154d0afdf0aa1f4",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "deleted",
+      "replacement": "projects/ai-proxy/src/style.css (canonical tokens + shared Button)"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/sidepanel-r86.css",
+      "target": "projects/ai-proxy/src/ui/sidepanel-r86.css",
+      "sha256": "842f8c118594288d8cfa4fbce0f62ba876f5bdcb9d3928ecbcc99e56373412f4",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "deleted",
+      "replacement": "projects/ai-proxy/src/style.css (canonical tokens + shared Button)"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/ProxyEntry.tsx",
+      "target": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+      "sha256": "46c0d5e2d3a2a4d8ffcbe30544542e3c7131048de35abc1fde6b61773dacbf60",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/optionsRoute.ts",
+      "target": "projects/ai-proxy/src/ui/optionsRoute.ts",
+      "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/style.css",
+      "target": "projects/ai-proxy/src/ui/style.css",
+      "sha256": "bd60c30d2c8f21faafa874600a977d48584eb70d530854dc92c0bd3581ac8631",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "deleted",
+      "replacement": "projects/ai-proxy/src/style.css (canonical tokens + shared Button)"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/DiagnosticsPage.tsx",
+      "target": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+      "sha256": "9740ed7ab9e92808dc05af181ad97c5b74f693d54ce09d67ad3aa68043d78cc2",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/Status.tsx",
+      "target": "projects/ai-proxy/src/ui/Status.tsx",
+      "sha256": "12ba6fc74043d5f5cb1ad856f12cfddaf8fca3344f5dfebb48bb38838f12e09d",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/SubscriptionReader.tsx",
+      "target": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+      "sha256": "297d9e1f6b60721e9225a9ba017a9dc2645de2f7d6025175bedd6fd8870b880b",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/useProxy.ts",
+      "target": "projects/ai-proxy/src/ui/useProxy.ts",
+      "sha256": "524fe8df73276c4a635cf7b00c6b00d969640eb7fdf9b8b332033d4a12ffce42",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/ui/options.css",
+      "target": "projects/ai-proxy/src/ui/options.css",
+      "sha256": "ee10fb5c0508d979adeea730dc9c7cef6bf15021306fa329a427b3ea8323c2c3",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "deleted",
+      "replacement": "projects/ai-proxy/src/style.css (canonical tokens + shared Button)"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/subscription/parser.ts",
+      "target": "projects/ai-proxy/src/subscription/parser.ts",
+      "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/subscription/download.ts",
+      "target": "projects/ai-proxy/src/subscription/download.ts",
+      "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/config/remote-config.ts",
+      "target": "projects/ai-proxy/src/config/remote-config.ts",
+      "sha256": "bd8fc8733d83d7fdef91a25f26cc9d1f48cad373ec73760d58e132b797f9623d",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/config/product-links.demo.json",
+      "target": "projects/ai-proxy/src/config/product-links.demo.json",
+      "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/config/public-hosts.allowlist.json",
+      "target": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/config/product-links.defaults.json",
+      "target": "projects/ai-proxy/src/config/product-links.defaults.json",
+      "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/config/public-config.ts",
+      "target": "projects/ai-proxy/src/config/public-config.ts",
+      "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/collector/rotation-plan.ts",
+      "target": "projects/ai-proxy/src/collector/rotation-plan.ts",
+      "sha256": "bdc8391e848c034a16652b45f2bc749cff0773e28de7d9489523a55a16ae5b00",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/diagnostics/types.ts",
+      "target": "projects/ai-proxy/src/diagnostics/types.ts",
+      "sha256": "97af68a3cf2d225fc7a7dd6bcf7abc378d6a06fc35187b74c8e46cfe5e8226c0",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/diagnostics/catalog.ts",
+      "target": "projects/ai-proxy/src/diagnostics/catalog.ts",
+      "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/diagnostics/logic.ts",
+      "target": "projects/ai-proxy/src/diagnostics/logic.ts",
+      "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/diagnostics/favorites.ts",
+      "target": "projects/ai-proxy/src/diagnostics/favorites.ts",
+      "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/usage/types.ts",
+      "target": "projects/ai-proxy/src/usage/types.ts",
+      "sha256": "3d4073a194c8a319e2d415f0e12f4e726309392eb1f3a236c1d08595654dca02",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/usage/ranking.ts",
+      "target": "projects/ai-proxy/src/usage/ranking.ts",
+      "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/usage/domain.ts",
+      "target": "projects/ai-proxy/src/usage/domain.ts",
+      "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/usage/state.ts",
+      "target": "projects/ai-proxy/src/usage/state.ts",
+      "sha256": "c378f7121c0536cbf538b0bf29e63117e2dda65d75397c44a6b34b6980303203",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/usage/vendor/README.md",
+      "target": "projects/ai-proxy/src/usage/vendor/README.md",
+      "sha256": "2fbbe80f60cbcbc05059b055104071b3f3b475b90a6e74ba5f32e913ceb10195",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/usage/vendor/MPL-2.0.txt",
+      "target": "projects/ai-proxy/src/usage/vendor/MPL-2.0.txt",
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/usage/vendor/public_suffix_list.dat",
+      "target": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat",
+      "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/official/contracts.ts",
+      "target": "projects/ai-proxy/src/official/contracts.ts",
+      "sha256": "aed54244b75daabba36751605678530f98f453636ba9ddb5411e1a46da272ff8",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/src/official/messages.ts",
+      "target": "projects/ai-proxy/src/official/messages.ts",
+      "sha256": "a30603c862ad3a4b2ecfdff6a27fb5b149c806ec8dc283ef5251c1e7d71ac578",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "current_equality_not_verified"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/entrypoints/sidepanel/App.tsx",
+      "target": "projects/ai-proxy/src/QuickPanel.tsx",
+      "sha256": "fb2ad5603769de4e3eb06407690c522b6ebc4719fb6f7fdccdb81ad0f7ae78d3",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    },
+    {
+      "source": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension/entrypoints/options/App.tsx",
+      "target": "projects/ai-proxy/src/Settings.tsx",
+      "sha256": "9210e3107389d6fd0227a5a8203659e410c1bb530684f5325deb3db57b8adfd4",
+      "hashScope": "historical_source_before_adaptation",
+      "targetStatus": "modified_not_verbatim"
+    }
+  ],
+  "adaptation": {
+    "status": "modified_not_verbatim",
+    "uiStructure": "Original QuickPanel, Settings and supporting UI structure reused and adapted; not an unchanged copy.",
+    "styles": "Four original UI CSS files deleted; canonical tokens mapped in projects/ai-proxy/src/style.css.",
+    "buttons": "Use shared Button from @opendesk/ui; no legacy button styling ownership.",
+    "verification": "No current target hash equality or runtime PASS claimed; final evidence belongs to leader."
+  }
+}

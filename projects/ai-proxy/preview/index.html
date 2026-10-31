@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Proxy · 同源离线预览</title>
+<h1>AI Proxy 同源离线预览</h1>
+<p>在仓库根运行 <code>node projects/ai-proxy/scripts/stage-preview.mjs --serve</code>，打开 <a href="http://127.0.0.1:43263/ai-proxy-preview">可交互同源预览</a>。该命令直接编译 UI 源码，无需 Browser 构建、正式安装包或可信挂载；已有该服务时直接复用。</p>
+<p>原版对照：先运行 <code>node projects/ai-proxy/scripts/reference-preview.mjs</code>，再打开 <a href="compare.html">四种状态逐屏对照</a>。原工作树只读；两侧仅使用内存数据。</p>
+<p>省略 <code>--serve</code> 生成不可变离线快照及来源清单。</p>
+<p><a href="../.opendesk-preview/index.html">打开最新已生成预览</a>（仅 SDK / storage 内存模拟，无真实网络、Chrome 或持久存储）。</p>
+<p>历史原型保留于 <a href="legacy-ai-proxy.html">legacy-ai-proxy.html</a>，与当前同源预览分别记录。</p>
+</html>

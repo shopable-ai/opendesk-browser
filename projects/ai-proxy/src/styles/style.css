@@ -1,0 +1,633 @@
+/* Adapted from the read-only original style.css. Geometry and cascade preserved; root selectors scoped to this app. */
+@scope (.proxy-app) {
+/* Production WXT UI. Design tokens follow the canonical R6/R7.1 prototype.
+   These styles are scoped by the actual popup/options page and contain no R5 workspaces. */
+:scope {
+  color-scheme: light;
+  font-family: Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  font-synthesis: none;
+  --bg: #f3f5f8; --surface: #ffffff; --soft: #f7f8fb;
+  --ink: #202736; --muted: #606a79; --line: #dce1e9; --control-line: #838fa2;
+  --accent: #414fca; --accentFill: #edf0ff; --primaryFill: #414fca; --primaryText: #ffffff;
+  --good: #196542; --goodBg: #edf7f1; --warn: #855300; --warnBg: #fff5e3;
+  --bad: #ae303c; --badBg: #fff0f1;
+  color: var(--ink); background: var(--bg);
+}
+:scope * { box-sizing: border-box; }
+:scope { margin: 0; min-height: 100%; }
+:scope { font-size: 13px; line-height: 1.5; background: var(--bg); }
+:scope button,:scope input,:scope select,:scope textarea { font: inherit; }
+:scope button { appearance: none; -webkit-appearance: none; cursor: pointer; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px;
+  min-height: 36px; background: var(--surface); color: var(--ink); font-weight: 600; line-height: 1.35;
+  /* Theme changes must not leave light buttons on a dark page mid-transition. */
+  transition: border-color .15s ease; }
+:scope button:hover:not(:disabled) { border-color: var(--accent); background: var(--accentFill); }
+:scope button:disabled { opacity: .55; cursor: not-allowed; }
+:scope button.primary { background: var(--primaryFill); color: var(--primaryText); border-color: var(--primaryFill); }
+:scope button.primary:hover:not(:disabled) { filter: brightness(.94); background: var(--primaryFill); }
+:scope :where(button,a,input,textarea,select,summary):focus-visible {
+  outline: 3px solid var(--accent); outline-offset: 3px;
+}
+:scope input,:scope select,:scope textarea { width: 100%; min-width: 0; min-height: 38px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--control-line);
+  border-radius: 8px; padding: 8px 10px; }
+:scope input::placeholder,:scope textarea::placeholder { color: var(--muted); opacity: .83; }
+/* Error color supplements the associated message; it never replaces it. */
+:scope :where(input,select,textarea)[aria-invalid="true"] { border-color: var(--bad); }
+:scope textarea { resize: vertical; min-height: 130px; }
+:scope label { display: block; margin: 0 0 6px; font-weight: 600; }
+:scope h1,:scope h2,:scope h3,:scope p { margin: 0; }
+:scope h1 { font-size: 23px; letter-spacing: -.025em; font-weight: 680; line-height: 1.35; }
+:scope h2 { font-size: 16px; letter-spacing: -.015em; font-weight: 680; line-height: 1.4; }
+:scope h3 { font-size: 15px; font-weight: 650; }
+:scope p { line-height: 1.6; }
+:scope small,:scope .hint { font-size: 12px; color: var(--muted); line-height: 1.55; }
+:scope .eyebrow { margin: 0 0 7px; letter-spacing: .08em; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+:scope .brandSymbol { display: grid; place-items: center; flex: none; width: 30px; height: 30px;
+  border-radius: 8px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 800; }
+:scope .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+:scope .actions small { flex: 1 1 170px; }
+:scope .iconButton { display: grid; place-items: center; border-color: transparent; background: transparent; min-width: 32px; min-height: 32px; padding: 5px 8px; font-size: 19px; }
+:scope .subtleTag,:scope .countTag { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 5px;
+  background: var(--accentFill); color: var(--accent); font-size: 11px; font-weight: 650; white-space: nowrap; }
+:scope .countTag { margin-left: 5px; background: var(--soft); color: var(--muted); }
+:scope .textAction { background: transparent; border: 0; color: var(--accent); padding: 4px 0; min-height: 29px; }
+:scope .textAction:hover:not(:disabled) { background: transparent; text-decoration: underline; }
+:scope .notice { margin: 8px 0; padding: 9px 11px; border-radius: 7px; color: var(--warn); background: var(--warnBg); font-size: 12px; overflow-wrap: anywhere; }
+:scope .notice.error { background: var(--badBg); color: var(--bad); }
+:scope .status { padding: 12px 14px; margin: 13px 0 0; border: 1px solid var(--line); border-radius: 9px; background: var(--soft); }
+:scope .statusTop { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; line-height: 1.4; }
+:scope .statusTop strong { font-size: 12px; font-weight: 650; }
+:scope .statusDot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #8390a0; }
+:scope .statusDot.ok { background: var(--good); } :scope .statusDot.danger { background: var(--bad); }
+:scope .statusDot.pending { background: var(--warn); }
+:scope .status small { display: block; overflow-wrap: anywhere; }
+:scope .status .hint { margin-top: 7px; }
+:scope .statusCompact { padding: 10px 11px; margin: 8px 0 11px; }
+:scope .statusCompact .notice { padding: 7px 9px; }
+:scope .mono { font-family: ui-monospace,SFMono-Regular,Consolas,monospace; font-size: 11px; overflow-wrap: anywhere; }
+
+/* Popup: 380px, one purposeful control per section, no big tiled modes. */
+:scope .popup { display: flex; flex-direction: column; width: 380px; max-width: 100%; max-height: 600px; overflow: hidden;
+  scrollbar-width: thin; background: var(--surface); }
+:scope .popup>.brand { flex: none; }
+:scope .brand { display: flex; align-items: center; gap: 10px; padding: 15px 18px 13px; }
+:scope .brand>div { display: grid; gap: 1px; }
+:scope .brand strong { font-size: 15px; font-weight: 720; letter-spacing: -.015em; }
+:scope .brand small { font-size: 11px; }
+:scope .brand>div { min-width: 0; }
+:scope .brand .quickAddTrigger { flex: none; margin-left: auto; min-height: 31px;
+  padding: 5px 9px; border-radius: 7px; background: var(--soft); color: var(--accent);
+  border-color: var(--line); font-size: 11px; white-space: nowrap; }
+:scope .brand .iconButton { margin-left: 0; }
+:scope .modeGrid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 2px;
+  border-radius: 8px; padding: 3px; background: var(--soft); }
+:scope .modeButton { border: 1px solid transparent; border-radius: 6px; min-height: 35px; padding: 6px 0;
+  background: transparent; color: var(--muted); font-size: 12px; font-weight: 550; white-space: nowrap; }
+:scope .modeButton:hover:not(:disabled) { background: var(--accentFill); }
+:scope .modeButton.selected { background: var(--primaryFill); border-color: var(--primaryFill); color: var(--primaryText); font-weight: 700; }
+:scope .modeButton.selected:hover:not(:disabled) { background: var(--primaryFill); }
+:scope .compact { margin-top: 10px; } :scope .compact label { margin-bottom: 4px; font-size: 11px; }
+:scope .compact select { font-size: 12px; min-height: 35px; }
+:scope .compact .textAction { display: block; margin-top: 5px; }
+:scope .siteDomain { display: block; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
+:scope .siteRoute { display: block; margin-top: 5px; font-size: 11px; color: var(--muted); line-height: 1.5; overflow-wrap: anywhere; }
+:scope .siteRoute strong { color: var(--ink); font-weight: 600; }
+:scope .quickProfileList { display: grid; gap: 5px; }
+:scope .quickProfileList button { display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  width: 100%; min-height: 42px; padding: 6px 9px; border-radius: 7px; text-align: left; background: var(--surface); }
+:scope .quickProfileList button>span:first-child { min-width: 0; display: grid; gap: 1px; }
+:scope .quickProfileList strong,:scope .quickProfileList small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+:scope .quickProfileList strong { font-size: 12px; }
+:scope .quickProfileList small { font-size: 10px; }
+:scope .quickProfileList button.active { border-color: var(--accent); background: var(--accentFill); }
+:scope .quickProfileList button.selectedPending { border-color: var(--control-line); background: var(--soft); }
+:scope .quickProfileList button.applied .quickChoice { font-weight: 750; }
+:scope .quickChoice { color: var(--accent); font-size: 10px; font-weight: 650; white-space: nowrap; flex: none; }
+:scope .popupSourceLinks { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px 8px; color: var(--muted); }
+:scope .popupSourceLinks button { min-height: 22px; border: 0; background: transparent; padding: 0; font-size: 11px; font-weight: 550; color: var(--muted); }
+:scope .popupSourceLinks button:hover:not(:disabled) { color: var(--accent); background: transparent; text-decoration: underline; }
+:scope .popup>.notice { margin: 5px 18px; }
+
+/* Popup quick-add uses a second compact view, never a desktop-size form. */
+:scope .popupQuickHeader { border-bottom: 1px solid var(--line); padding: 11px 15px; }
+:scope .popupQuickHeader strong { font-size: 13px; margin-left: auto; }
+:scope .quickBack { border: 0; background: transparent; color: var(--accent); padding: 5px 6px;
+  min-height: 30px; font-size: 12px; }
+:scope .quickSetupBody { min-height: 0; overflow-y: auto; padding: 18px; }
+:scope .quickSetupBody h1 { font-size: 18px; margin-bottom: 4px; }
+:scope .quickSetupForm { display: grid; gap: 12px; margin-top: 16px; }
+:scope .quickSetupForm label { font-size: 12px; margin-bottom: 5px; }
+:scope .quickSetupForm input,:scope .quickSetupForm select { font-size: 13px; }
+:scope .quickFixedHost { padding: 9px 11px; background: var(--soft); border: 1px solid var(--line);
+  border-radius: 7px; font-size: 11px; color: var(--muted); }
+:scope .quickFixedHost strong { color: var(--ink); }
+:scope .quickSetupActions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+:scope .quickSetupForm>p.hint { font-size: 11px; }
+:scope .quickEmptyPrompt { padding-top: 5px; }
+:scope .quickEmptyPrompt .textAction { margin-top: 4px; }
+:scope .popupSavedHint { margin: 0; padding: 8px 18px; font-size: 11px; color: var(--good);
+  background: var(--goodBg); }
+
+/* Options: R6 classic navigation and visible mode + profile list. */
+:scope .options { max-width: 1160px; padding: 25px 26px 60px; margin: auto; }
+:scope .optionsHead { display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  margin-bottom: 17px; padding: 14px 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+:scope .optionsBrand { display: flex; align-items: center; gap: 10px; }
+:scope .optionsBrand>div { display: grid; gap: 1px; }
+:scope .optionsBrand strong { font-size: 16px; font-weight: 750; }
+:scope .optionsBrand small { font-size: 11px; }
+:scope .optionsHeadActions { display: flex; align-items: center; gap: 11px; }
+:scope .controlChip { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+:scope .controlChip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #8994a3; }
+:scope .controlChip.isApplied::before { background: var(--good); }
+:scope .layout { display: grid; grid-template-columns: 180px minmax(0,1fr); align-items: start; gap: 17px; }
+:scope .nav { position: sticky; top: 18px; display: flex; flex-direction: column; gap: 4px; padding: 12px;
+  border: 1px solid var(--line); background: var(--surface); border-radius: 12px; }
+:scope .navLabel { display: block; color: var(--muted); font-size: 10px; letter-spacing: .08em; font-weight: 700;
+  padding: 4px 10px 8px; }
+:scope .nav button { border: 0; border-radius: 7px; text-align: left; background: transparent;
+  min-height: 40px; padding: 9px 11px; color: var(--muted); font-weight: 580; font-size: 12px; }
+:scope .nav button:hover:not(:disabled) { background: var(--soft); color: var(--ink); }
+:scope .nav button.active,:scope .nav button.active:hover:not(:disabled) { background: var(--accentFill); color: var(--accent); font-weight: 720; }
+:scope .navBottom { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--line); display: grid; gap: 4px; }
+:scope .navBottom button { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+:scope .navBottom small { color: inherit; font-size: 10px; opacity: .77; }
+:scope .panel { min-width: 0; padding: 24px 26px 30px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 12px; min-height: 640px; }
+:scope .panelHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-bottom: 23px; }
+:scope .panelHead .hint { margin-top: 5px; }
+:scope .workbenchIntro { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+:scope .workbenchIntro .hint { margin-top: 4px; max-width: 510px; }
+:scope .workbenchIntro .actions { flex: none; margin: 0; }
+:scope .optionsModeBar { border: 1px solid var(--line); background: var(--surface); border-radius: 10px;
+  padding: 17px 18px 16px; margin: 15px 0 24px; }
+:scope .sectionHeading { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+:scope .sectionHeading h2 { font-size: 15px; }
+:scope .sectionHeading .hint { margin-top: 4px; font-size: 11px; }
+:scope .optionsModeGrid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; margin: 15px 0; }
+:scope .optionsModeGrid button { min-width: 0; min-height: 41px; border-radius: 7px; background: var(--soft); font-size: 12px; }
+:scope .optionsModeGrid button.selected { color: var(--accent); background: var(--accentFill); border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent); }
+:scope .optionsProfileSelect { max-width: 470px; margin-bottom: 14px; }
+:scope .optionsProfileSelect label { font-size: 11px; }
+:scope .runtimeSummary { display: grid; grid-template-columns: 1.25fr 1fr 1.1fr; gap: 12px; padding: 13px 14px; background: var(--soft); border-radius: 8px; }
+:scope .runtimeSummary>div { min-width: 0; display: grid; align-content: start; gap: 3px; }
+:scope .runtimeSummary small { font-size: 10px; }
+:scope .runtimeSummary strong { overflow-wrap: anywhere; font-size: 12px; font-weight: 660; }
+:scope .modeActions { margin: 14px 0 4px; } :scope .modeActions small { font-size: 11px; }
+:scope .optionsModeBar>.status { margin-top: 9px; }
+:scope .runtimeDetails { margin-top: 9px; }
+:scope .runtimeDetails>summary { cursor: pointer; color: var(--muted); font-size: 11px; }
+:scope .runtimeDetails .status { margin: 9px 0 0; }
+:scope .listSection { margin: 4px 0 25px; }
+:scope .listSection .sectionHeading { margin-bottom: 14px; }
+:scope .records { display: grid; gap: 7px; margin: 12px 0; }
+:scope .record { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; }
+:scope .record>div:first-child { min-width: 0; }
+:scope .record strong { overflow-wrap: anywhere; font-size: 13px; }
+:scope .record small { display: block; overflow-wrap: anywhere; }
+:scope .record .actions { margin: 0; }
+:scope .recordActions { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+:scope .recordActions button { padding: 6px 9px; font-size: 11px; min-height: 32px; }
+:scope .recordActions button.selectedAction { background: var(--accentFill); color: var(--accent); border-color: var(--accent); }
+:scope .recordActions button.quietDanger { color: var(--bad); }
+:scope .proxyRecordMain { display: flex; align-items: center; gap: 11px; min-width: 0; }
+:scope .proxyRecordMain>div { min-width: 0; }
+:scope .proxyAvatar { display: grid; place-items: center; background: var(--soft); color: var(--accent); border: 1px solid var(--line);
+  width: 35px; height: 35px; border-radius: 9px; flex: none; font-weight: 700; font-size: 13px; }
+:scope .rowBadges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+:scope .rowBadges span { font-size: 10px; color: var(--muted); background: var(--soft); border-radius: 4px; padding: 1px 6px; }
+:scope .rowBadges .appliedBadge { color: var(--good); background: var(--goodBg); }
+:scope .emptyState { display: grid; gap: 12px; justify-items: start; border: 1px dashed var(--control-line);
+  border-radius: 10px; padding: 23px; background: var(--soft); }
+:scope .emptyState .emptyMark { display: grid; place-items: center; width: 34px; height: 34px;
+  font-size: 18px; border-radius: 8px; border: 1px solid var(--line); color: var(--accent); background: var(--surface); }
+:scope .emptyState strong { font-size: 14px; }
+:scope .emptyState p { font-size: 12px; margin-top: 4px; color: var(--muted); max-width: 620px; }
+:scope .emptyState .actions { margin: 0; }
+:scope .pacDetails { border: 1px solid var(--line); border-radius: 9px; margin-top: 18px; overflow: hidden; }
+:scope .pacDetails>summary { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 13px 16px; cursor: pointer; list-style: none; }
+:scope .pacDetails>summary::-webkit-details-marker { display: none; }
+:scope .pacDetails>summary span:first-child { display: grid; gap: 2px; }
+:scope .pacDetails>summary strong { font-size: 13px; }
+:scope .pacDetails>summary small { font-size: 11px; }
+:scope .summaryAction { color: var(--accent); font-size: 11px; white-space: nowrap; }
+:scope .pacDetails[open] .summaryAction { text-decoration: underline; }
+:scope .pacContent { border-top: 1px solid var(--line); padding: 14px 17px 18px; }
+:scope .pacContent .records { margin: 12px 0; } :scope .pacContent form { margin-top: 17px; }
+:scope .pacContent textarea { font-family: ui-monospace,SFMono-Regular,Consolas,monospace; }
+:scope .fieldSpacing { margin-top: 13px; }
+:scope .serviceNote { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin: 18px 0 0;
+  padding: 13px 16px; border: 1px solid var(--line); background: var(--soft); border-radius: 9px; }
+:scope .serviceNote strong { font-size: 12px; }
+:scope .serviceNote p { margin-top: 3px; font-size: 11px; color: var(--muted); }
+:scope .serviceNote button { white-space: nowrap; font-size: 11px; }
+:scope .formGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; }
+:scope .formGrid .span2 { grid-column: 1/-1; }
+:scope hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+:scope .panel>h2 { margin: 17px 0 8px; }
+
+/* The native modal handles Escape, focus trapping and inert background. */
+:scope .proxyEditorDialog { width: min(610px,calc(100vw - 28px)); max-height: 88dvh; overflow: auto;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 13px; padding: 0; box-shadow: 0 22px 65px #10162950; }
+:scope .proxyEditorDialog::backdrop { background: #0d1429a6; }
+:scope .proxyEditorForm { padding: 20px 23px 0; }
+:scope .editorHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+:scope .editorHead h2 { font-size: 20px; }
+:scope .editorHead .iconButton { font-size: 23px; font-weight: 400; }
+:scope .proxyEditorForm>.hint { margin: 10px 0 18px; }
+:scope .proxyEditorForm .formGrid { gap: 12px; }
+:scope .editorActions { display: flex; justify-content: flex-end; gap: 8px; margin: 20px -23px 0;
+  padding: 14px 23px; border-top: 1px solid var(--line); background: var(--soft); }
+
+/* Planned integrations: informative pages, no fake login/payment/subscription actions. */
+:scope .placeholderPage { display: grid; gap: 15px; justify-items: start; max-width: 690px; }
+:scope .placeholderPage h2 { font-size: 19px; }
+:scope .placeholderPage p { color: var(--muted); font-size: 13px; }
+:scope .guidanceSteps { display: grid; gap: 0; width: 100%; margin: 4px 0; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+:scope .guidanceSteps>div { display: flex; align-items: flex-start; gap: 12px; padding: 15px 16px; }
+:scope .guidanceSteps>div+div { border-top: 1px solid var(--line); }
+:scope .guidanceSteps>div>span { color: var(--accent); font-size: 12px; font-weight: 750; min-width: 18px; }
+:scope .guidanceSteps strong { display: block; font-size: 13px; margin-bottom: 4px; }
+:scope .guidanceSteps small { font-size: 12px; }
+
+
+/* Options-only rules relocated to options.css. */
+
+/* Small screens: no page-wide horizontal overflow; sidebar converts to scrollable nav. */
+@media(max-width: 900px) {
+  :scope .options { padding: 18px 16px 45px; }
+  :scope .panel { padding: 20px; }
+  :scope .layout { grid-template-columns: 160px minmax(0,1fr); gap: 12px; }
+  :scope .workbenchIntro { align-items: flex-start; flex-direction: column; }
+  :scope .workbenchIntro .actions { flex-wrap: wrap; }
+  :scope .diagnosticMetrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media(max-width: 720px) {
+  :scope .layout { display: flex; flex-direction: column; align-items: stretch; }
+  :scope .nav { position: static; display: flex; flex-direction: row; gap: 2px; overflow-x: auto;
+    width: 100%; max-width: 100%; padding: 7px; scrollbar-width: thin; }
+  :scope .nav button { flex: none; white-space: nowrap; min-height: 36px; }
+  :scope .nav>.navLabel,:scope .navBottom>.navLabel { display: none; }
+  :scope .navBottom { display: flex; flex: none; margin: 0; padding: 0 0 0 7px; border: 0; border-left: 1px solid var(--line); }
+  :scope .panel { min-height: 520px; }
+  :scope .optionsModeGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  :scope .runtimeSummary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  :scope .runtimeSummary>div:last-child { grid-column: 1/-1; }
+  :scope .formGrid { grid-template-columns: 1fr; }
+}
+@media(max-width: 460px) {
+  :scope .options { padding: 10px 9px 30px; }
+  :scope .optionsHead { padding: 11px; gap: 8px; }
+  :scope .optionsBrand strong { font-size: 14px; }
+  :scope .optionsBrand small { font-size: 10px; }
+  :scope .optionsHeadActions { gap: 6px; }
+  :scope .optionsHeadActions .controlChip { display: none; }
+  :scope .optionsHeadActions button { padding: 7px 8px; font-size: 11px; }
+  :scope .panel { padding: 17px 13px; }
+  :scope .panelHead { margin-bottom: 19px; }
+  :scope .workbenchIntro { margin-bottom: 17px; }
+  :scope .sectionHeading { align-items: flex-start; flex-wrap: wrap; }
+  :scope .optionsModeBar { padding: 12px 11px; }
+  :scope .modeActions small { flex: 1 1 100%; }
+  :scope .record { align-items: stretch; flex-direction: column; }
+  :scope .recordActions { justify-content: flex-start; padding-left: 0; }
+  :scope .emptyState { padding: 17px; }
+  :scope .serviceNote { align-items: flex-start; flex-direction: column; }
+  :scope .diagnosticMetrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  :scope .diagnosticMetrics>div { padding: 10px; }
+  :scope .diagnosticOverview { grid-template-columns: 1fr; }
+  :scope .diagnosticLead { padding: 18px 16px; }
+  :scope .diagnosticLead h2 { font-size: 18px; }
+  :scope .proxyEditorForm { padding: 16px 16px 0; }
+  :scope .editorActions { margin: 18px -16px 0; padding: 13px 16px; }
+}
+@media(prefers-color-scheme: dark) {
+  :scope {
+    color-scheme: dark;
+    --bg: #15191f; --surface: #20262f; --soft: #282f3a;
+    --ink: #f0f2f8; --muted: #aeb8c9; --line: #424c5c; --control-line: #8493a8;
+    --accent: #b4bdff; --accentFill: #303958; --primaryFill: #a6b2ff; --primaryText: #171f3b;
+    --good: #92dbb5; --goodBg: #1d3930; --warn: #ffd18d; --warnBg: #41321f;
+    --bad: #ffb0b9; --badBg: #432932;
+  }
+  :scope .brandSymbol { background: var(--accent); color: #171f3b; }
+  :scope .diagnosticLead { background: linear-gradient(115deg,#202747,#29365e 75%,#364675); }
+  :scope .proxyEditorDialog { box-shadow: 0 25px 65px #00000080; }
+}
+@media(prefers-reduced-motion: reduce) {
+  :scope *,:scope *::before,:scope *::after { transition-duration: .01ms!important; animation-duration: .01ms!important; }
+}
+
+/* R0.2 i18n: make long English options readable without clipping controls. */
+:scope .languageRecord { gap: 16px; flex-wrap: wrap; align-items: center; }
+:scope .languageRecord > div { min-width: 0; flex: 1 1 220px; }
+:scope .languageSelect { display: block; flex: 0 1 250px; min-width: min(100%, 180px); }
+:scope .languageSelect select { width: 100%; min-width: 0; }
+:scope .options button, :scope .popup button { overflow-wrap: anywhere; white-space: normal; }
+:scope .options .nav button, :scope .popup .modeButton { overflow-wrap: normal; }
+/* At phone widths the Options record becomes column-based; do not preserve
+   desktop flex-basis sizing on the select or let the grid grow past 390px. */
+@media (max-width: 460px) {
+  :scope .options .languageRecord {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 9px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  :scope .options .languageRecord > div,
+  :scope .options .languageSelect,
+  :scope .options .languageSelect select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    flex: none;
+  }
+}
+
+/* Language-safe diagnostics on narrow screens: keep whole English words. */
+@media (max-width: 460px) {
+  :scope .options .diagnosticTabs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px 6px;
+    overflow-x: visible;
+    scroll-snap-type: none;
+    padding-bottom: 8px;
+  }
+  :scope .options .diagnosticTabs button {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 44px;
+    padding: 7px 5px;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+  :scope .options .diagnosticTabs button:nth-child(n+4) { grid-column: span 3; }
+  :scope .options .nav { scroll-snap-type: x proximity; scroll-padding-inline: 8px; }
+  :scope .options .nav button { scroll-snap-align: start; }
+}
+
+/* The independent Welcome entrypoint uses a compact card, not the full-height
+   settings workbench. Avoid a large empty panel on 390px Chrome windows. */
+:scope .welcomePage .panel { min-height: 0; padding: 23px; }
+:scope .welcomePage .panel h2 { margin-bottom: 12px; }
+:scope .welcomePage .panel p + p { margin-top: 9px; }
+:scope .welcomePage .panel button { margin-top: 15px; }
+:scope .welcomePage > .hint { margin-top: 16px; }
+@media (max-width: 460px) { :scope .welcomePage .panel { padding: 18px 16px; } }
+
+/* Options-only rules relocated to options.css. */
+
+/* Options-only rules relocated to options.css. */
+
+/* Options-only rules relocated to options.css. */
+
+/* R8.1: the former compact quick-controls now fill the persistent Chrome Side Panel. */
+:scope { height: 100%; }
+:scope .popup.sidepanel {
+  width: 100%; max-width: none; height: 100dvh; max-height: none; min-height: 0;
+}
+@media (max-width: 340px) {
+  :scope .popup.sidepanel .brand { padding-inline: 12px; }
+}
+
+
+/* PAC starters are generated only from an existing validated endpoint. */
+:scope .pacStarterGuide { display: grid; gap: 10px; padding: 14px; margin: 14px 0;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--soft); }
+:scope .pacStarterGuide h3 { font-size: 14px; }
+:scope .pacStarterFields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px; }
+:scope .pacStarterSite { grid-column: 1 / -1; }
+:scope .pacStarterSite .hint { margin-top: 5px; }
+:scope .pacStarterGuide .actions { margin: 0; }
+:scope .pacStarterEmpty { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+:scope .pacStarterEmpty p { flex: 1 1 200px; }
+@media (max-width: 600px) {
+  :scope .pacStarterFields { grid-template-columns: 1fr; }
+}
+
+
+/* R8.3 frozen prototype: four choices in ONE segmented control.
+   Keep the selection semantic separate from the Chrome-applied state. */
+:scope .popup.sidepanel .modeGrid {
+  display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 3px; padding: 3px; border-radius: 9px; margin: 10px 0 4px;
+  background: var(--soft);
+}
+:scope .popup.sidepanel .modeButton {
+  min-width: 0; min-height: 37px; padding: 5px 1px; text-align: center;
+  font-size: 11px; letter-spacing: -.04em; overflow-wrap: normal;
+  background: transparent; border: 0; border-radius: 7px;
+  white-space: nowrap; line-height: 1.35;
+}
+:scope .popup.sidepanel .modeButton:hover:not(:disabled) { background: var(--accentFill); }
+:scope .popup.sidepanel .modeButton.selected {
+  background: var(--accent); border-color: transparent;
+  color: var(--primaryText); font-weight: 720;
+}
+:scope .popup.sidepanel .modeButton.selected:hover:not(:disabled) { background: var(--accent); }
+:scope .popup.sidepanel .brandSymbol {
+  width: 27px; height: 27px; border-radius: 7px; font-size: 11px;
+  letter-spacing: -.7px; background: var(--ink); color: var(--surface);
+}
+@media (max-width: 410px) {
+  :scope .popup.sidepanel .modeButton { font-size: 10.5px; }
+  :scope .popup.sidepanel .brand, :scope .popup.sidepanel .r83CollectorCard {
+    padding-inline: 11px;
+  }
+}
+:scope .popup.sidepanel .brand { padding: 12px 15px; }
+:scope .popup.sidepanel .quickProfileList { max-height: 236px; overflow-y: auto; padding: 2px; scrollbar-width: thin; }
+:scope .popup.sidepanel .quickProfileList button { min-height: 48px; }
+:scope .popup.sidepanel .quickProfileList small { font-size: 11px; }
+:scope .sideModeHelp { margin-top: 8px; }
+:scope .sideFilter { margin-bottom: 9px; min-height: 37px; }
+:scope .sideEmpty { display: grid; gap: 8px; padding: 12px; border-radius: 9px;
+  border: 1px dashed var(--control-line); background: var(--soft); }
+:scope .sideEmpty strong { font-size: 13px; }
+:scope .sideEmpty .actions { margin: 3px 0 0; }
+:scope .sideEmpty .actions button { flex: 1 1 120px; }
+:scope .sideCurrentSite { display: grid; gap: 3px; margin: 10px 0 12px; min-width: 0; }
+:scope .sideCurrentSite small { font-size: 11px; }
+:scope .sideCurrentSite .siteRoute { margin-top: 0; }
+:scope .sideRuleForm { display: grid; gap: 10px; }
+:scope .sideRuleForm label { margin-bottom: 4px; font-size: 12px; }
+:scope .sideRuleForm .hint { margin-top: 5px; }
+:scope .sideRuleInputs,:scope .sideAddTwo { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+:scope .sideRuleInputs > div, :scope .sideAddTwo > div { min-width: 0; }
+:scope .sideRuleSave { width: 100%; background: var(--accentFill); border-color: var(--accent);
+  color: var(--accent); font-weight: 650; }
+:scope .sideRuleForm+.popupSavedHint { border-radius: 6px; margin-top: 10px; }
+:scope .sideAddKind { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; margin-top: 14px; }
+:scope .sideAddKind button { min-width: 0; }
+:scope .sideAddKind button.active { background: var(--accentFill); color: var(--accent); border-color: var(--accent); }
+:scope .sideAddActions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+:scope .sideAddForm { margin-top: 14px; }
+:scope .sideAddForm .popupSavedHint { padding: 9px 11px; border-radius: 6px; }
+:scope .sideAddForm > .textAction { justify-self: start; }
+:scope .sideLoading { display: grid; align-content: start; gap: 10px; padding: 20px; }
+@media (max-width: 340px) {
+  :scope .sideRuleInputs { grid-template-columns: minmax(0,1fr); }
+  :scope .sideAddActions { grid-template-columns: minmax(0,1fr); }
+}
+
+/* Options-only rules relocated to options.css. */
+
+:scope .popup.sidepanel .sideRuleShortcut { display: block; margin-top: 10px; font-size: 12px; min-height: 30px; font-weight: 650; }
+
+/* R8.2 visual screenshot audit: connecting and stopping are the persistent footer
+   actions, never hidden below large profile lists. Diagnosis is tertiary. */
+:scope .popup.sidepanel .sidePrimaryActions {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.1fr) minmax(0, .95fr);
+  gap: 7px; padding: 10px 12px 11px;
+  border-top: 1px solid var(--line);
+}
+:scope .popup.sidepanel .sidePrimaryActions button {
+  min-width: 0; min-height: 42px; font-size: 12px; padding: 7px 4px;
+}
+:scope .popup.sidepanel .sidePrimaryActions button.primary {
+  color: var(--primaryText); background: var(--primaryFill); border-color: var(--primaryFill);
+}
+:scope .popup.sidepanel .sideProbeAction { margin-top: 2px; font-size: 12px; }
+:scope .popup.sidepanel .popupSavedHint {
+  background: var(--soft); color: var(--ink); border-left: 3px solid var(--accent);
+  padding: 9px 13px;
+}
+
+/* R8.5 supersedes old R8.4 text/icon toggle and 2×2 fallback.
+   Keep the four segmented choices and visible icon toolbar in one place below. */
+
+/* Options R8.5+ card rules now live in options.css, imported only by
+   entrypoints/options/main.tsx. Keep Side Panel scoped rules below untouched. */
+
+/* R8.5: protocol monogram tiles restore the saved-proxy rows in the canonical prototype. */
+:scope .popup.sidepanel .quickProfileList button { gap: 9px; padding: 9px 10px; border-radius: 9px; }
+:scope .popup.sidepanel .quickProfileList button > .sideProfileBadge {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 29px; width: 29px; height: 29px; padding: 0;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 600;
+}
+:scope .popup.sidepanel .quickProfileList button > .sideProfileInfo {
+  display: grid; flex: 1 1 auto; gap: 1px; min-width: 0;
+}
+:scope .popup.sidepanel .quickProfileList button > .quickChoice { margin-left: auto; }
+
+/* R8.5: unified geometry + SVG controls in canonical prototype and WXT/React. */
+:scope .popup.sidepanel .modeButton{display:inline-flex;align-items:center;justify-content:center;gap:4px}
+:scope .popup.sidepanel .sideUiIcon{display:block;width:16px;height:16px;flex:none}
+:scope .popup.sidepanel .modeButton .sideUiIcon{width:13px;height:13px}
+:scope .popup.sidepanel .modeButton .sideModeLabel{min-width:0;overflow:hidden;text-overflow:ellipsis}
+:scope .popup.sidepanel .sideSelectedMode{display:inline-flex;align-items:center;border-radius:99px;padding:3px 8px;background:var(--soft);color:var(--muted);white-space:nowrap;font-size:10.5px;font-weight:650}
+:scope .popup.sidepanel .brand .quickAddTrigger,:scope .popup.sidepanel .sideSettingsTrigger{
+  display:inline-grid;place-items:center;flex:none;width:32px;height:32px;min-width:32px;min-height:32px;
+  border:1px solid var(--line);border-radius:8px;padding:0;background:var(--soft);color:var(--ink)
+}
+:scope .popup.sidepanel .brand .quickAddTrigger{margin-left:auto}
+:scope .popup.sidepanel .sideSettingsTrigger{margin-left:0}
+:scope .popup.sidepanel .brand .quickAddTrigger:hover:not(:disabled),:scope .popup.sidepanel .sideSettingsTrigger:hover:not(:disabled){
+  background:var(--accentFill);border-color:var(--accent);color:var(--accent)
+}
+:scope .popup.sidepanel .sideRuntimeCard{display:flex;align-items:center;gap:9px;padding:10px;border-radius:9px;background:var(--soft);min-width:0}
+:scope .popup.sidepanel .sideRuntimeCard .statusCompact{flex:1 1 auto;min-width:0;margin:0;padding:0;border:0;background:transparent;border-radius:0}
+:scope .popup.sidepanel .sideRuntimeCard .statusTop{margin-bottom:3px}
+:scope .popup.sidepanel .sideRuntimeCard .statusCompact small{font-size:10.5px;line-height:1.45;overflow-wrap:anywhere}
+:scope .popup.sidepanel .sideRuntimeCard .statusCompact .notice{margin-top:6px}
+:scope .popup.sidepanel .sideProxyToggle{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:0 0 76px;
+  width:76px;min-width:76px;min-height:36px;padding:6px 7px;font-size:12px;font-weight:720;
+  border:1px solid var(--line);border-radius:8px;color:var(--accent);background:var(--surface)
+}
+:scope .popup.sidepanel .sideProxyToggle.isPaused{border-color:var(--accent);background:var(--accentFill)}
+:scope .popup.sidepanel .sideProxyToggle:hover:not(:disabled){border-color:var(--accent)}
+@media(max-width:410px){
+  :scope .popup.sidepanel .modeButton{gap:3px}
+  :scope .popup.sidepanel .modeButton .sideUiIcon{width:12px;height:12px}
+}
+@media(max-width:355px){:scope .popup.sidepanel .brand{gap:5px;padding-inline:9px}}
+@media(max-width:319px){
+  :scope .popup.sidepanel .modeGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  :scope .popup.sidepanel .modeButton{flex-direction:column;min-height:46px;gap:2px;font-size:9px}
+}
+
+/* R8.5 status card and same-slot pause/enable below supersede the old text-only toolbar. */
+:scope .popup.sidepanel .sidePrimaryActions { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+:scope .popup.sidepanel .r83CollectorCard { padding: 14px 18px; border-top: 1px solid var(--line); }
+:scope .popup.sidepanel .r83CollectorCard .hint + .hint { margin-top: 7px; }
+:scope .popup.sidepanel .r83CollectorCard .textAction { margin-top: 8px; font-size: 12px; }
+:scope .r83RotationSettings { margin: 22px 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+:scope .r83RotationSettings > summary { cursor: pointer; display: flex; justify-content: space-between; gap: 14px; padding: 17px 18px; font-size: 14px; }
+:scope .r83RotationSettings > summary span { color: var(--accent); font-size: 12px; }
+:scope .r83RotationBody { border-top: 1px solid var(--line); padding: 18px; }
+:scope .r83RotationBody > .notice { margin-top: 12px; }
+:scope .r83RotationForm { display: grid; gap: 15px; margin: 16px 0; max-width: 740px; }
+:scope .r83RotationFields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+:scope .r83RotationFields > div { min-width: 0; }
+:scope .r83RotationFull { grid-column: 1 / -1; }
+:scope .r83RotationPool { margin: 0; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+:scope .r83RotationPool legend { font-size: 12px; font-weight: 650; padding: 0 5px; }
+:scope .r83RotationPool > label { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+:scope .r83RotationPool input[type="checkbox"], :scope .r83RotationConsent input[type="checkbox"] { flex: none; width: 16px; height: 16px; min-height: auto; }
+:scope .r83RotationPool small { display: block; color: var(--muted); overflow-wrap: anywhere; }
+:scope .r83RotationConsent { display: flex; align-items: start; gap: 9px; font-size: 12px; line-height: 1.55; }
+:scope .r83RotationSettings .actions { flex-wrap: wrap; }
+@media(max-width:460px) {
+  :scope .r83RotationFields { grid-template-columns: minmax(0,1fr); }
+  :scope .r83RotationFull { grid-column: auto; }
+  :scope .r83RotationBody { padding: 13px; }
+}
+@media(max-width:355px) {
+  :scope .popup.sidepanel .brand small { display: none; }
+}
+
+/* R9.2 shared draft input / quick-entry affordances; consumed by Options and Side Panel. */
+:scope .fieldWithClear { position:relative; display:block; min-width:0; width:100%; }
+:scope .fieldWithClear > input { display:block; width:100%; min-width:0; padding-right:35px; }
+:scope .fieldWithClear > .fieldClear { position:absolute; top:50%; right:5px; transform:translateY(-50%);
+  display:grid; place-items:center; width:25px; height:25px; min-height:25px; min-width:25px;
+  padding:0; border:0; border-radius:6px; color:var(--muted); background:transparent; font-size:17px; line-height:1; }
+:scope .fieldWithClear > .fieldClear:hover { color:var(--ink); background:var(--soft); }
+:scope .fieldWithClear > .fieldClear:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+:scope .proxyQuickPicks { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+:scope .proxyQuickPicks > button { min-width:0; min-height:26px; padding:3px 8px; font-size:11px; line-height:1.2;
+  border-radius:6px; color:var(--muted); background:var(--soft); border:1px solid var(--line); }
+:scope .proxyQuickPicks > button:hover, :scope .proxyQuickPicks > button.isActive { color:var(--accent); border-color:var(--accent); background:var(--accentFill); }
+:scope .proxyQuickPicks > button:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+:scope .proxyEntryError { display:block; font-size:11px; margin-top:5px; color:var(--bad); }
+
+/* Reveal is independent of clearing the password draft. Both remain keyboard accessible. */
+:scope .fieldWithClear > .fieldReveal { position:absolute; top:50%; transform:translateY(-50%); width:25px; height:25px;
+  min-height:25px; min-width:25px; padding:0; border:0; border-radius:6px; display:grid; place-items:center;
+  background:transparent; color:var(--muted); }
+:scope .fieldWithClear > .fieldReveal:hover { background:var(--soft); color:var(--ink); }
+:scope .fieldWithClear > .fieldReveal:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+
+/* Draft number fields use the clear affordance rather than overlapping native spin controls. */
+:scope .fieldWithClear > input[type="number"] { appearance:textfield; -moz-appearance:textfield; }
+:scope .fieldWithClear > input[type="number"]::-webkit-outer-spin-button,
+:scope .fieldWithClear > input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+
+/* R9.2: status in Options header uses the same verified runtime meaning. */
+:scope .controlChip.isApplied { color:var(--good); }
+:scope .controlChip.isPending { color:var(--warn); }
+:scope .controlChip.isPending::before { background:var(--warn); }
+:scope .controlChip.isError { color:var(--bad); }
+:scope .controlChip.isError::before { background:var(--bad); }
+
+}

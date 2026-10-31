@@ -1,0 +1,651 @@
+{
+  "at": "2026-10-30T16:37:06.755939+00:00",
+  "phase": "sidebar UI prototype then existing local project workflow",
+  "status": {
+    "prototype": "PASS",
+    "localProjectDebug": "UI_CORE_PASS",
+    "realProxy": "NOT_TESTED",
+    "formalPackage": "DEFERRED",
+    "production": "DEFERRED",
+    "PCResponsive": "OUT_OF_SCOPE",
+    "independentScore": "NOT_SCORED",
+    "currentPhase": "COMPLETE"
+  },
+  "original": {
+    "head": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+    "path": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension",
+    "readOnly": true,
+    "filesVerified": 45,
+    "sources": {
+      "src/i18n/locales/zh-CN.json": {
+        "bytes": 67833,
+        "sha256": "368796762763dcfafc5549f8b79cd581b5f3d1ae7e50cce40d3b88a856b0348b"
+      },
+      "src/i18n/locales/en.json": {
+        "bytes": 70761,
+        "sha256": "7198673c221c2a365e9650004451b827382a24f1c3e3dd957c7bc65b96d756bf"
+      },
+      "src/i18n/locales/zh-TW.json": {
+        "bytes": 68299,
+        "sha256": "4b083e1786f005dd071655a85b8e12429f531275c7959188651eb5bfc4fabd43"
+      },
+      "src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "src/i18n/LocaleProvider.tsx": {
+        "bytes": 2629,
+        "sha256": "6de1213e7f15e590dc79eb130a88b9ab3d7abe05e865763a7432cd04f3ad8879"
+      },
+      "src/domain/config.ts": {
+        "bytes": 13713,
+        "sha256": "3c804cf4afbae754b317f7ed9b9fc8bfddd216b34e98665b95bbef3dcc461bf2"
+      },
+      "src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "src/i18n/errors.ts": {
+        "bytes": 433,
+        "sha256": "f3738dc405ac36651bca0652dbf09a3e14ee103bf0439d48207276091f38d4e5"
+      },
+      "src/domain/messages.ts": {
+        "bytes": 2441,
+        "sha256": "550cbd39d9ba68e021e093eec1cb18896ae4d3b180fc07569044f65f65ce47d0"
+      },
+      "src/ui/useProxy.ts": {
+        "bytes": 4511,
+        "sha256": "524fe8df73276c4a635cf7b00c6b00d969640eb7fdf9b8b332033d4a12ffce42"
+      },
+      "src/ui/Status.tsx": {
+        "bytes": 4677,
+        "sha256": "12ba6fc74043d5f5cb1ad856f12cfddaf8fca3344f5dfebb48bb38838f12e09d"
+      },
+      "src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "src/ui/ProxyEntry.tsx": {
+        "bytes": 4546,
+        "sha256": "46c0d5e2d3a2a4d8ffcbe30544542e3c7131048de35abc1fde6b61773dacbf60"
+      },
+      "src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "src/config/remote-config.ts": {
+        "bytes": 6082,
+        "sha256": "bd8fc8733d83d7fdef91a25f26cc9d1f48cad373ec73760d58e132b797f9623d"
+      },
+      "src/collector/rotation-plan.ts": {
+        "bytes": 3350,
+        "sha256": "bdc8391e848c034a16652b45f2bc749cff0773e28de7d9489523a55a16ae5b00"
+      },
+      "src/ui/RotationPlan.tsx": {
+        "bytes": 7944,
+        "sha256": "4e539136c364d996d2db93bbc2a98738a00da0518448d83abcc5a57ebd717782"
+      },
+      "entrypoints/sidepanel/App.tsx": {
+        "bytes": 33433,
+        "sha256": "fb2ad5603769de4e3eb06407690c522b6ebc4719fb6f7fdccdb81ad0f7ae78d3"
+      },
+      "src/ui/OptionsShell.tsx": {
+        "bytes": 2192,
+        "sha256": "08c5571c5ded94a8cdb32e384dd713a0f7e1ee2b4da77f5df23bf4484889dabf"
+      },
+      "src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "src/official/messages.ts": {
+        "bytes": 915,
+        "sha256": "a30603c862ad3a4b2ecfdff6a27fb5b149c806ec8dc283ef5251c1e7d71ac578"
+      },
+      "src/ui/OfficialServicePage.tsx": {
+        "bytes": 9906,
+        "sha256": "79d2463a8ec011e5da79023af215aecb6b428533fac8d9d8ab1cba2c6e02beac"
+      },
+      "src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "src/ui/SubscriptionReader.tsx": {
+        "bytes": 17492,
+        "sha256": "297d9e1f6b60721e9225a9ba017a9dc2645de2f7d6025175bedd6fd8870b880b"
+      },
+      "src/ui/SourcesPage.tsx": {
+        "bytes": 25035,
+        "sha256": "720708e546e0bbdeccb11b311045008051e5d37c7ed6773602c1a41281098acc"
+      },
+      "src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      },
+      "src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "src/ui/UsageControls.tsx": {
+        "bytes": 16186,
+        "sha256": "75074754f14303c3b10376493c5e5f3c171db49bdc78f64c870da87ef932511e"
+      },
+      "src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20458,
+        "sha256": "9740ed7ab9e92808dc05af181ad97c5b74f693d54ce09d67ad3aa68043d78cc2"
+      },
+      "src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "entrypoints/options/App.tsx": {
+        "bytes": 47696,
+        "sha256": "9210e3107389d6fd0227a5a8203659e410c1bb530684f5325deb3db57b8adfd4"
+      },
+      "src/ui/style.css": {
+        "bytes": 38302,
+        "sha256": "bd60c30d2c8f21faafa874600a977d48584eb70d530854dc92c0bd3581ac8631"
+      },
+      "src/ui/options.css": {
+        "bytes": 46489,
+        "sha256": "ee10fb5c0508d979adeea730dc9c7cef6bf15021306fa329a427b3ea8323c2c3"
+      },
+      "src/ui/sidepanel-r86.css": {
+        "bytes": 16087,
+        "sha256": "842f8c118594288d8cfa4fbce0f62ba876f5bdcb9d3928ecbcc99e56373412f4"
+      },
+      "src/ui/rotation-entry.css": {
+        "bytes": 664,
+        "sha256": "487f5bbe31d4af61acc14366f70f39feb8178f5b4dc2205cd154d0afdf0aa1f4"
+      }
+    }
+  },
+  "styles": {
+    "style.css": {
+      "original": "bd60c30d2c8f21faafa874600a977d48584eb70d530854dc92c0bd3581ac8631",
+      "current": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171",
+      "adaptation": "root selectors scoped to .proxy-app; geometry and cascade retained"
+    },
+    "options.css": {
+      "original": "ee10fb5c0508d979adeea730dc9c7cef6bf15021306fa329a427b3ea8323c2c3",
+      "current": "ea42376ecfa688b53ea7bcf8204b5612063af8dec60e3783df5f2c3a98600804",
+      "adaptation": "root selectors scoped to .proxy-app; geometry and cascade retained"
+    },
+    "sidepanel-r86.css": {
+      "original": "842f8c118594288d8cfa4fbce0f62ba876f5bdcb9d3928ecbcc99e56373412f4",
+      "current": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5",
+      "adaptation": "root selectors scoped to .proxy-app; geometry and cascade retained"
+    },
+    "rotation-entry.css": {
+      "original": "487f5bbe31d4af61acc14366f70f39feb8178f5b4dc2205cd154d0afdf0aa1f4",
+      "current": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5",
+      "adaptation": "root selectors scoped to .proxy-app; geometry and cascade retained"
+    }
+  },
+  "preview": {
+    "url": "http://127.0.0.1:43263/ai-proxy-preview",
+    "comparison": "http://127.0.0.1:43263/projects/ai-proxy/preview/compare.html",
+    "container": "opaque allow-scripts iframe; connect-src none; form-action none",
+    "sources": {
+      "scripts/templates/sidebar-tool-preview-shell.html": {
+        "bytes": 7078,
+        "sha256": "ade920b4b6f11f3f27d352447b0ccd7a65b6084ad5de3dedb29452d45f562ae7"
+      },
+      "scripts/preview/sidebar-shell-behavior.js": {
+        "bytes": 4840,
+        "sha256": "3b0fab946fd8e7fff01991cd5dd89302a880e4ce93dc60e5d4513fcd54ee35f4"
+      },
+      "src/ui/design-tokens.css": {
+        "bytes": 2526,
+        "sha256": "63532100e61777fde7042099d2b0f6d5f583323b45b98f0937d2bf1c6678af79"
+      },
+      "src/ui/design-system.css": {
+        "bytes": 12317,
+        "sha256": "720733aa85839f44b5c1035c09323c8ca1c657817932ae1b209e7f961566cd7d"
+      },
+      "src/ui/react/components/ui/sidebar-shared.css": {
+        "bytes": 1717,
+        "sha256": "fdb9cd6e76093fff2fa31d940599fd1ba57c679f871468f6296cba9e4738204a"
+      },
+      "projects/ai-proxy/src/styles/style.css": {
+        "bytes": 41336,
+        "sha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171"
+      },
+      "projects/ai-proxy/src/styles/options.css": {
+        "bytes": 50427,
+        "sha256": "ea42376ecfa688b53ea7bcf8204b5612063af8dec60e3783df5f2c3a98600804"
+      },
+      "projects/ai-proxy/src/styles/sidepanel-r86.css": {
+        "bytes": 17231,
+        "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+      },
+      "projects/ai-proxy/src/styles/rotation-entry.css": {
+        "bytes": 846,
+        "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+      },
+      "projects/ai-proxy/src/style.css": {
+        "bytes": 2360,
+        "sha256": "f53cdb1421c71e689868064692c218814ce159b65226101c9a392f2032288eb1"
+      },
+      "src/ui/react/components/ui/button.tsx": {
+        "bytes": 845,
+        "sha256": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"
+      },
+      "projects/ai-proxy/src/domain/config.ts": {
+        "bytes": 13713,
+        "sha256": "3c804cf4afbae754b317f7ed9b9fc8bfddd216b34e98665b95bbef3dcc461bf2"
+      },
+      "projects/ai-proxy/src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "projects/ai-proxy/src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "projects/ai-proxy/src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "projects/ai-proxy/src/service.ts": {
+        "bytes": 22958,
+        "sha256": "99cdcba9fe19605f80518ed39008dd1c0fa3999e201d7ee0d8fb634470dfb8fa"
+      },
+      "projects/ai-proxy/src/model.js": {
+        "bytes": 5324,
+        "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+      },
+      "projects/ai-proxy/src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "projects/ai-proxy/src/ui/navigation.ts": {
+        "bytes": 1887,
+        "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+      },
+      "projects/ai-proxy/src/environment.ts": {
+        "bytes": 6942,
+        "sha256": "131791ac29511b9f68a9297af96358e27b5cee260bb823c919ba7804b6bc0ea8"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json": {
+        "bytes": 68035,
+        "sha256": "e134adf5a3a46bba6867f8fd84cf8644713edcc135c4d04934c53a3baf73090b"
+      },
+      "projects/ai-proxy/src/i18n/locales/en.json": {
+        "bytes": 71170,
+        "sha256": "36ce0e8f0e402f93799f3de98def719ee559b8f533cb0851d0ea3270aedb186c"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json": {
+        "bytes": 68474,
+        "sha256": "0f626b64af9e88e91ff69e8d2bc4e80ca90f00773d134600bf709ecb7c775e1f"
+      },
+      "projects/ai-proxy/src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "projects/ai-proxy/src/i18n/LocaleProvider.tsx": {
+        "bytes": 2767,
+        "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+      },
+      "projects/ai-proxy/src/ui/useProxy.ts": {
+        "bytes": 1177,
+        "sha256": "eee6f2429a6b6acde836ec5612c942b317d01d2b1b433d89a366fbfccc7cf2a3"
+      },
+      "projects/ai-proxy/src/i18n/errors.ts": {
+        "bytes": 433,
+        "sha256": "f3738dc405ac36651bca0652dbf09a3e14ee103bf0439d48207276091f38d4e5"
+      },
+      "projects/ai-proxy/src/ui/Status.tsx": {
+        "bytes": 4677,
+        "sha256": "12ba6fc74043d5f5cb1ad856f12cfddaf8fca3344f5dfebb48bb38838f12e09d"
+      },
+      "projects/ai-proxy/src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "projects/ai-proxy/src/ui/ProxyEntry.tsx": {
+        "bytes": 4977,
+        "sha256": "33f54f70081896962aeff4ad944f134ab80e28984da028002459d30e3e7f665c"
+      },
+      "projects/ai-proxy/src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "projects/ai-proxy/src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "projects/ai-proxy/src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "projects/ai-proxy/src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "projects/ai-proxy/src/config/remote-config.ts": {
+        "bytes": 6144,
+        "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+      },
+      "projects/ai-proxy/src/collector/rotation-plan.ts": {
+        "bytes": 3427,
+        "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+      },
+      "projects/ai-proxy/src/ui/RotationPlan.tsx": {
+        "bytes": 8379,
+        "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+      },
+      "projects/ai-proxy/src/QuickPanel.tsx": {
+        "bytes": 32990,
+        "sha256": "aa706bb9e35f46d8607d3e5c728e410047ab783734e883652153db10973c22af"
+      },
+      "projects/ai-proxy/src/ui/OptionsShell.tsx": {
+        "bytes": 2192,
+        "sha256": "08c5571c5ded94a8cdb32e384dd713a0f7e1ee2b4da77f5df23bf4484889dabf"
+      },
+      "projects/ai-proxy/src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "projects/ai-proxy/src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "projects/ai-proxy/src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "projects/ai-proxy/src/official/messages.ts": {
+        "bytes": 961,
+        "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+      },
+      "projects/ai-proxy/src/ui/OfficialServicePage.tsx": {
+        "bytes": 9979,
+        "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+      },
+      "projects/ai-proxy/src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "projects/ai-proxy/src/ui/SubscriptionReader.tsx": {
+        "bytes": 17769,
+        "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+      },
+      "projects/ai-proxy/src/ui/SourcesPage.tsx": {
+        "bytes": 25577,
+        "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+      },
+      "projects/ai-proxy/src/domain/messages.ts": {
+        "bytes": 2486,
+        "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+      },
+      "projects/ai-proxy/src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      },
+      "projects/ai-proxy/src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "projects/ai-proxy/src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "projects/ai-proxy/src/ui/UsageControls.tsx": {
+        "bytes": 16278,
+        "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+      },
+      "projects/ai-proxy/src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20805,
+        "sha256": "e5ea97a27090b7b688604dd2aa7d5ec9cf7c28dbb6325ddcb2a24c256ac3984c"
+      },
+      "projects/ai-proxy/src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "projects/ai-proxy/src/Settings.tsx": {
+        "bytes": 49287,
+        "sha256": "7ba04dc61e8a8d1b3beb17beb19cd932c5a6ebb0922a79dd5798761194c8f6c7"
+      },
+      "projects/ai-proxy/src/App.jsx": {
+        "bytes": 4675,
+        "sha256": "d92ac0044254da0261f786efed66e69388cc0840b180b973f3ef989b433a16c7"
+      },
+      "projects/ai-proxy/trusted/Surface.jsx": {
+        "bytes": 370,
+        "sha256": "fb8d8df0fcf325085758f2ea1dd704d07f1cfcec59c998f1555f825594272833"
+      },
+      "projects/ai-proxy/preview/sdk-preview.js": {
+        "bytes": 3375,
+        "sha256": "e5f984762315c2c78321b54c08eac6da78dc1d2a24b45badd93bc3c366c23644"
+      },
+      "projects/ai-proxy/preview/frame.jsx": {
+        "bytes": 1141,
+        "sha256": "cfdce3cb52aaee65a8d2e51eef18986e87bb1854858521e1ebd3edccb4546491"
+      }
+    },
+    "checks": [
+      "click Save selects config without applying; hidden/reopened draft survives; dirty lock releases only after save",
+      "Enter submits the original React handler inside allow-scripts sandbox",
+      "all seven Settings sections and return render",
+      "Keep Editing retains draft; explicit discard navigates and clears only abandoned UI",
+      "simulated uninstall stays unmounted until explicit restore; empty/reset uses fresh memory",
+      "four same-size original/current views captured from actual React/CSS"
+    ],
+    "pageErrors": [],
+    "externalRequests": [],
+    "screenshots": {
+      "compare-configured": {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/ui-alignment/compare-configured.png",
+        "sha256": "1c29cba3998a20f661afc0d8b6ba934e3fe7a47344cdd03cc59c4a39c8b6974a"
+      },
+      "compare-empty": {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/ui-alignment/compare-empty.png",
+        "sha256": "c8bf796771b90e48881aedba228b7b50be5a75633f1c890fddd98a56a8e6b73a"
+      },
+      "compare-add": {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/ui-alignment/compare-add.png",
+        "sha256": "7df23de3195afb82f61d8620793860140baa09da084fa7ff59f183eb0bccb779"
+      },
+      "compare-settings": {
+        "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/ui-alignment/compare-settings.png",
+        "sha256": "14bf3efc1914dae0abb7d35370d75095bbab2d0f33df5db50fbdff8dbbf9dc1d"
+      }
+    },
+    "notProofOf": "Native authority, actual Chrome proxy routing, installed package, official acceptance",
+    "offline": {
+      "path": "projects/ai-proxy/.opendesk-preview/source-21512126-684a-4f66-9829-d1e429a7073d/preview.html",
+      "sha256": "e1da7cea674d3f00d43a86ab9eadb8419fc6d0590bb53f6258aa36b22dd36037",
+      "loadedViaBrowser": true
+    }
+  },
+  "targetedTests": {
+    "command": "node --test projects/ai-proxy/tests/{drafts,navigation,settings-credentials,form-submit}.test.mjs",
+    "pass": 29,
+    "fail": 0
+  },
+  "development": {
+    "projectBuildId": "e80e4393-8e91-465e-bdf9-4958f49d831d",
+    "compiledFiles": {
+      "dist/tool.js": {
+        "bytes": 736959,
+        "sha256": "322913dfc8f725e5b6482d3d299dceee82f8c533b1a3339432a690637ef56908"
+      },
+      "dist/tool.css": {
+        "bytes": 95361,
+        "sha256": "86e51d1cdc52a7473e4171363dabb30913fee39fafe8fb1dd32dd0e154209eb2"
+      }
+    },
+    "receiptSources": [
+      "src/App.jsx",
+      "src/QuickPanel.tsx",
+      "src/Settings.tsx",
+      "src/adapter.js",
+      "src/collector/rotation-plan.ts",
+      "src/config/product-links.defaults.json",
+      "src/config/product-links.demo.json",
+      "src/config/public-config.ts",
+      "src/config/public-hosts.allowlist.json",
+      "src/config/remote-config.ts",
+      "src/diagnostics/catalog.ts",
+      "src/diagnostics/favorites.ts",
+      "src/diagnostics/logic.ts",
+      "src/domain/config.ts",
+      "src/domain/error-codes.ts",
+      "src/domain/messages.ts",
+      "src/domain/pac-starters.ts",
+      "src/domain/proxy-entry.ts",
+      "src/environment.ts",
+      "src/i18n/LocaleProvider.tsx",
+      "src/i18n/errors.ts",
+      "src/i18n/locale.ts",
+      "src/i18n/locales/en.json",
+      "src/i18n/locales/zh-CN.json",
+      "src/i18n/locales/zh-TW.json",
+      "src/main.jsx",
+      "src/model.js",
+      "src/official/messages.ts",
+      "src/service.ts",
+      "src/style.css",
+      "src/styles/options.css",
+      "src/styles/rotation-entry.css",
+      "src/styles/sidepanel-r86.css",
+      "src/styles/style.css",
+      "src/subscription/download.ts",
+      "src/subscription/parser.ts",
+      "src/ui/DiagnosticsPage.tsx",
+      "src/ui/FormField.tsx",
+      "src/ui/OfficialServicePage.tsx",
+      "src/ui/OptionsShell.tsx",
+      "src/ui/ProxyEntry.tsx",
+      "src/ui/RotationPlan.tsx",
+      "src/ui/SourcesPage.tsx",
+      "src/ui/Status.tsx",
+      "src/ui/SubscriptionReader.tsx",
+      "src/ui/UsageControls.tsx",
+      "src/ui/backupImport.ts",
+      "src/ui/navigation.ts",
+      "src/ui/optionsRoute.ts",
+      "src/ui/useProxy.ts",
+      "src/usage/domain.ts",
+      "src/usage/ranking.ts",
+      "src/usage/vendor/public_suffix_list.dat"
+    ],
+    "stage": "STAGED_NOT_INSTALLED",
+    "chrome": {
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "observedLoadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "nativeDoctorConnected": true,
+      "allowedOriginsMatched": true
+    },
+    "browserWatcher": {
+      "pid": 94442,
+      "ports": [
+        43119,
+        43120
+      ],
+      "serveClientConnected": true,
+      "sidepanel": "LOADED",
+      "buildError": null,
+      "output": "dist/development",
+      "log": "artifacts/ai-proxy/core-sidebar/development.log",
+      "ownership": "existing writer and other window installation review preserved; no platform changes",
+      "serveClientEvidence": "Native Chrome 调试 → 本地开发服务: 开发服务已连接",
+      "revision": "788800fd97ca6d51ba6872e22aa19ff3c65d2f390db17bea8ef3054af23d9066",
+      "resolvedHistory": {
+        "sidepanel": "ERR_FILE_NOT_FOUND",
+        "buildError": "Unapproved WXT entry: network-request",
+        "output": "previously empty; recovered by existing Browser owner before local project verification"
+      }
+    },
+    "next": "Current UI prototype/local development phase complete. Keep existing watchers and temporary directory connection; real proxy, formal package, production and PC responsive remain deferred.",
+    "incrementalReceipt": "PASS: all five CSS files remain bound after a JS-only watch update",
+    "localProject": {
+      "command": "opendesk browser dev .",
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy",
+      "grant": "CLI lifetime; only this directory; read/write",
+      "workspaceId": "workspace-77a73569-fd83-039c-ba2b-30e2e0864f50",
+      "sourceId": "source-405c778e3b76b8d2d18b971d",
+      "hostInstanceId": "6d13a4d6-9f4f-4d58-ab14-685b1d6e631a",
+      "entry": "开发 → 本地项目 → ai-proxy → 在侧栏调试",
+      "version": "0.2.0",
+      "storage": "isolated development session",
+      "checks": [
+        "same React UI rendered in actual OpenDesk sandbox",
+        "pointer Save created and selected sidebar-ui.example.com:8443; UI stated not applied",
+        "Settings → 通用设置 → Back retained saved data",
+        "same preview session displayed temporary source text 连接方式 · 实时更新验证",
+        "restoring source restored original text and retained saved development data"
+      ],
+      "initialAndRestoredSha256": "79cc9f62d810617c3520945d39da2a207c873b68211a4b400df66a2ebd286daa",
+      "updateSha256": "e5487f7fa20be8506e0bf2835cda33f2ebae3d262369f0cbddc424f14ba4f68d",
+      "realProxyState": "NOT_CONNECTED: UI reported status failure / unknown; no Apply, Stop, retry or network probe executed",
+      "nativeScreenshots": {
+        "native-add": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/ui-alignment/native-add.png",
+          "sha256": "b1f12d83c4b1d8c3170f4d106867a6763aa84ce32e0d4bf54c0ac39ff9807b7c"
+        },
+        "native-watch-update": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/ui-alignment/native-watch-update.png",
+          "sha256": "05a6491c4c86a1acfb79f26bf3807ece832c46160544f021c7607a1ccd1f9343"
+        },
+        "native-watch-restored": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/ui-alignment/native-watch-restored.png",
+          "sha256": "387d2e29b49877c9c9b97fde2eb3379fa355d5bf98108cb96ff3e91cd636a244"
+        },
+        "native-serve-connected": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/ui-alignment/native-serve-connected.png",
+          "sha256": "df98c0d4c2bcede01e7985a8542d115f0988921594e0df9896e0348d7fd7820b"
+        }
+      }
+    }
+  },
+  "historical": {
+    "trustedSourceLock": "unchanged historical candidate; not approval of current UI",
+    "installableJson": "unchanged historical candidate; not promoted or delivered",
+    "verificationJson": "older phase, not current proof"
+  }
+}

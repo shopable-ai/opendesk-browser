@@ -1,0 +1,22 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src 'self'; base-uri 'none'; form-action 'none'">
+<title>AI Proxy · 原版与迁移版逐屏对照</title>
+<style>
+body{margin:24px;background:#f5f7fb;color:#1b2c49;font:13px/1.5 system-ui,sans-serif}h1{font-size:20px}p{max-width:900px}label{display:block;margin:18px 0}select{padding:8px;font:inherit}.screens{display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap}section{width:402px}h2{font-size:15px}iframe{box-sizing:content-box;width:400px;height:880px;border:1px solid #e1e8f1;border-radius:12px;background:white}a{color:#365eda}
+</style>
+<h1>AI Proxy · 原版与 OpenDesk 侧栏对照</h1>
+<p>第一组比较完整应用内容：两侧均为 400 × 880 的内容视口，默认缩放，不裁切、不平移。左侧编译只读原工作树的实际 React 和各入口实际导入的 CSS；右侧运行当前应用同一组件和样式。相同简中、纯内存数据和初始状态；没有真实网络、代理、Native 或正式存储。第二组完整展示 OpenDesk 外壳，单独观察其占高。</p>
+<label>对应状态 <select id="view"><option value="empty">空态主界面</option><option value="configured" selected>已有代理的主界面</option><option value="add">添加代理</option><option value="settings">设置入口与七区</option></select></label>
+<p><a href="/ai-proxy-preview" target="_blank">单独打开可操作的迁移预览</a> · 编辑草稿期间暂停切换对照状态。</p>
+<div class="screens"><section><h2>原程序 · 完整应用内容</h2><iframe id="original" title="原程序 UI，只读来源与内存模拟"></iframe></section><section><h2>迁移版 · 完整应用内容</h2><iframe id="migrated" title="迁移 UI，同源内存模拟" sandbox="allow-scripts"></iframe></section></div>
+<h2>完整 OpenDesk Preview（包含宿主，不作为等高内容比较）</h2>
+<p>原品牌页头由外层工具栏承担；主屏添加/设置放在连接方式行，该行保留原 32px 图标操作区。设置内部返回、复制链接和刷新为应用导航操作。宿主导航/工具栏和应用内容均完整呈现；此处内容视口 760px，与上方 880px 对照用途不同。</p>
+<iframe id="hosted" title="OpenDesk 完整外壳与当前应用" style="height:850px"></iframe>
+<script>
+const select=document.getElementById('view'),original=document.getElementById('original'),migrated=document.getElementById('migrated'),hosted=document.getElementById('hosted');
+function show(){const view=select.value,scenario=view==='empty'?'empty':'success',query='?scenario='+scenario+(view==='add'||view==='settings'?'&view='+view:'');original.src='../.opendesk-preview/reference.html?scenario='+scenario+(view==='add'?'&view=add':'')+(view==='settings'?'#/profiles':'');migrated.src='/ai-proxy-content'+query;hosted.src='/ai-proxy-preview'+query+'&compare=1';}
+select.addEventListener('change',show);
+addEventListener('message',event=>{if(event.source===migrated.contentWindow&&event.data?.type==='ai-proxy-preview-state')select.disabled=event.data.dirty===true||event.data.busy===true;});
+show();
+</script></html>

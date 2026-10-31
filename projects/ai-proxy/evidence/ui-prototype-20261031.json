@@ -1,0 +1,1077 @@
+{
+  "format": "ai-proxy.current-ui-review.v1",
+  "at": "2026-10-30T18:18:22.239462+00:00",
+  "phase": "Current sidebar UI correction and existing local-project development workflow only",
+  "status": {
+    "currentPhase": "COMPLETE_CURRENT_UI_SCOPE",
+    "visualConsistency": "PASS_WITH_DOCUMENTED_ADAPTATION",
+    "localProjectDebug": "PASS_CURRENT_UI_SCOPE",
+    "overallMigration": "INCOMPLETE",
+    "realProxy": "NOT_TESTED",
+    "nativeOSIME": "NOT_TESTED",
+    "formalPackage": "DEFERRED_NOT_PROMOTED",
+    "production": "DEFERRED",
+    "fullCI": "DEFERRED",
+    "independentScore": "NOT_SCORED",
+    "PCResponsive": "OUT_OF_SCOPE"
+  },
+  "supersededJudgment": {
+    "path": "evidence/ui-prototype-20261031-superseded.json",
+    "sha256": "11fba260b8b9c2b1e6fb944b17452a5a68cce8309485fbea520a498147092cb3",
+    "applicability": "Old PASS/COMPLETE visual conclusion invalidated. Historical operation facts retained; this current record does not restore old verdicts.",
+    "preservedByteExact": true
+  },
+  "currentUiReview": {
+    "K1": {
+      "result": "PASS",
+      "basis": "Actual original React/CSS from read-only dirty tree, correct per-route CSS imports; same zh-CN/non-secret memory fixture/route/state/default zoom. Full app 400x880 on both sides; full host separately 400x850 with inner760. No crop/translation/zoom to hide differences.",
+      "oldEvidence": "Earlier mismatched viewport/layout screenshots FAIL; generated screenshots alone remain NOT_REVIEWED until separate review.",
+      "evidenceScope": "Complete comparison in existing CFT155 renderer and separately reviewed screenshots. Daily Chrome online comparison helper has an unclassified iframe-load issue; it is not this PASS evidence."
+    },
+    "K2": {
+      "result": "PASS_WITH_DOCUMENTED_ADAPTATION",
+      "basis": "Empty/configured main regions, add and settings checked for dimensions, type, line height, spacing, controls, content and scroll. Fixed host details styles, shared Button flex/gap and textarea margins.",
+      "differences": [
+        "OpenDesk host replaces original 62.3px brand header; retained 32px action row instead of original18.2px heading yields main content48.484px higher. Content is retained; no comparison image translated.",
+        "OpenDesk semantic colours; Settings brand slot is internal Back; mock labels remain explicit.",
+        "Fixed footer same y818/h62 in equal880px app viewport."
+      ]
+    },
+    "K3": {
+      "result": "PASS_CURRENT_SCOPE",
+      "basis": "Add field order/advanced controls/layout retained. Valid click and Enter save select isolated config only; invalid65536 port blocked; Back cancels without writes and draft remains; composition Enter does not submit. Native saved native-ui.example.com:8443, visibly not applied.",
+      "notTested": [
+        "Native OS IME input session; composition protection tested with synthetic composition event reaching actual handler.",
+        "Real proxy apply/stop/routing."
+      ]
+    },
+    "K4": {
+      "result": "PASS_CURRENT_SCOPE",
+      "basis": "Seven actual settings contents and control inventories checked, not only headings; top/bottom/internal last-control reachability. Six contents/heights match; diagnostics controls match with disclosed mock wording. Keep editing/discard and trigger-focus return checked. Native seven sections opened and actual AX contents recorded.",
+      "panelHeights": {
+        "profiles": {
+          "original": 1493.75,
+          "migrated": 1493.75
+        },
+        "rules": {
+          "original": 1238.65625,
+          "migrated": 1238.65625
+        },
+        "subscriptions": {
+          "original": 634.703125,
+          "migrated": 634.703125
+        },
+        "backup": {
+          "original": 903.21875,
+          "migrated": 903.21875
+        },
+        "general": {
+          "original": 788.921875,
+          "migrated": 788.921875
+        },
+        "official": {
+          "original": 400.125,
+          "migrated": 400.125
+        },
+        "diagnostics": {
+          "original": 1697.96875,
+          "migrated": 1678.78125
+        }
+      },
+      "diagnosticsDifference": "1697.96875px original vs1678.78125px migrated; explicit simulation wording explains19.1875px total-height difference. No controls removed.",
+      "nativeScope": "Native key pages and section navigation/content; not a full native seven-section visual acceptance matrix."
+    },
+    "K5": {
+      "result": "PASS_CURRENT_SCOPE",
+      "basis": "Preview changes only SDK boundary; same App/QuickPanel/Settings and public CSS extraction. All62 browser manifest inputs,63 offline inputs and53 build inputs match current files. Stage JS equals dist JS, stage CSS equals await compileSharedToolCss(dist CSS). Actual development/local project/sidebar debug, main/add/save/settings/back and seven sections observed.",
+      "notTested": [
+        "Trusted portal route and real proxy service integration.",
+        "Formal installation/upgrade/production."
+      ]
+    },
+    "K6": {
+      "result": "PASS_CURRENT_SCOPE",
+      "basis": "Reused existing Vite build watcher and original stage watcher. Same hostInstanceId showed top in-flow marker then restored91fd stage, saved config retained. main.jsx restored byte-for-byte. Dirty draft blocked candidate replacement; Keep Editing retained fields. Explicit discard released replacement. Four original CSS inputs are in build receipt.",
+      "sourceChangeSafety": "Stale-source save rejected E_PREVIEW_GRANT and was not replayed; fields retained. This is not a successful save during a pending source update.",
+      "limits": [
+        "Earlier fixed-position marker was in AX but not visually recognizable, so that screenshot is not visual marker proof; replaced by native-marker-visible-top.png.",
+        "Shared App/QuickPanel changes are also imported by the existing trusted Browser portal and correlated with earlier Browser reloads. Sandbox-only main.jsx update is the current same-session proof; no general component HMR guarantee."
+      ]
+    },
+    "K7": {
+      "result": "PASS_AFFECTED_SCOPE",
+      "basis": "No platform/trusted portal/formal JSON/source-lock edits; no additional sandbox flags, allow-forms, CSP relaxation, Native permissions or installation. Preview externalRequests/pageErrors empty. Confirmation now locks replacement while pending and disposed continuation fails. Native actual proxy remains failure/unknown; no retry/apply/stop/probe/official login or network action used. Only isolated local-development config was saved.",
+      "notTested": [
+        "Full native revoke/uninstall/real proxy lifecycle; Preview uninstall/restore is simulation only."
+      ]
+    }
+  },
+  "original": {
+    "head": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+    "path": "/Users/shopme/Documents/workspace/ai-proxy/apps/browser-extension",
+    "readOnly": true,
+    "filesVerified": 45,
+    "sources": {
+      "src/i18n/locales/zh-CN.json": {
+        "bytes": 67833,
+        "sha256": "368796762763dcfafc5549f8b79cd581b5f3d1ae7e50cce40d3b88a856b0348b"
+      },
+      "src/i18n/locales/en.json": {
+        "bytes": 70761,
+        "sha256": "7198673c221c2a365e9650004451b827382a24f1c3e3dd957c7bc65b96d756bf"
+      },
+      "src/i18n/locales/zh-TW.json": {
+        "bytes": 68299,
+        "sha256": "4b083e1786f005dd071655a85b8e12429f531275c7959188651eb5bfc4fabd43"
+      },
+      "src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "src/i18n/LocaleProvider.tsx": {
+        "bytes": 2629,
+        "sha256": "6de1213e7f15e590dc79eb130a88b9ab3d7abe05e865763a7432cd04f3ad8879"
+      },
+      "src/domain/config.ts": {
+        "bytes": 13713,
+        "sha256": "3c804cf4afbae754b317f7ed9b9fc8bfddd216b34e98665b95bbef3dcc461bf2"
+      },
+      "src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "src/i18n/errors.ts": {
+        "bytes": 433,
+        "sha256": "f3738dc405ac36651bca0652dbf09a3e14ee103bf0439d48207276091f38d4e5"
+      },
+      "src/domain/messages.ts": {
+        "bytes": 2441,
+        "sha256": "550cbd39d9ba68e021e093eec1cb18896ae4d3b180fc07569044f65f65ce47d0"
+      },
+      "src/ui/useProxy.ts": {
+        "bytes": 4511,
+        "sha256": "524fe8df73276c4a635cf7b00c6b00d969640eb7fdf9b8b332033d4a12ffce42"
+      },
+      "src/ui/Status.tsx": {
+        "bytes": 4677,
+        "sha256": "12ba6fc74043d5f5cb1ad856f12cfddaf8fca3344f5dfebb48bb38838f12e09d"
+      },
+      "src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "src/ui/ProxyEntry.tsx": {
+        "bytes": 4546,
+        "sha256": "46c0d5e2d3a2a4d8ffcbe30544542e3c7131048de35abc1fde6b61773dacbf60"
+      },
+      "src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "src/config/remote-config.ts": {
+        "bytes": 6082,
+        "sha256": "bd8fc8733d83d7fdef91a25f26cc9d1f48cad373ec73760d58e132b797f9623d"
+      },
+      "src/collector/rotation-plan.ts": {
+        "bytes": 3350,
+        "sha256": "bdc8391e848c034a16652b45f2bc749cff0773e28de7d9489523a55a16ae5b00"
+      },
+      "src/ui/RotationPlan.tsx": {
+        "bytes": 7944,
+        "sha256": "4e539136c364d996d2db93bbc2a98738a00da0518448d83abcc5a57ebd717782"
+      },
+      "entrypoints/sidepanel/App.tsx": {
+        "bytes": 33433,
+        "sha256": "fb2ad5603769de4e3eb06407690c522b6ebc4719fb6f7fdccdb81ad0f7ae78d3"
+      },
+      "src/ui/OptionsShell.tsx": {
+        "bytes": 2192,
+        "sha256": "08c5571c5ded94a8cdb32e384dd713a0f7e1ee2b4da77f5df23bf4484889dabf"
+      },
+      "src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "src/official/messages.ts": {
+        "bytes": 915,
+        "sha256": "a30603c862ad3a4b2ecfdff6a27fb5b149c806ec8dc283ef5251c1e7d71ac578"
+      },
+      "src/ui/OfficialServicePage.tsx": {
+        "bytes": 9906,
+        "sha256": "79d2463a8ec011e5da79023af215aecb6b428533fac8d9d8ab1cba2c6e02beac"
+      },
+      "src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "src/ui/SubscriptionReader.tsx": {
+        "bytes": 17492,
+        "sha256": "297d9e1f6b60721e9225a9ba017a9dc2645de2f7d6025175bedd6fd8870b880b"
+      },
+      "src/ui/SourcesPage.tsx": {
+        "bytes": 25035,
+        "sha256": "720708e546e0bbdeccb11b311045008051e5d37c7ed6773602c1a41281098acc"
+      },
+      "src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      },
+      "src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "src/ui/UsageControls.tsx": {
+        "bytes": 16186,
+        "sha256": "75074754f14303c3b10376493c5e5f3c171db49bdc78f64c870da87ef932511e"
+      },
+      "src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20458,
+        "sha256": "9740ed7ab9e92808dc05af181ad97c5b74f693d54ce09d67ad3aa68043d78cc2"
+      },
+      "src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "entrypoints/options/App.tsx": {
+        "bytes": 47696,
+        "sha256": "9210e3107389d6fd0227a5a8203659e410c1bb530684f5325deb3db57b8adfd4"
+      },
+      "src/ui/style.css": {
+        "bytes": 38302,
+        "sha256": "bd60c30d2c8f21faafa874600a977d48584eb70d530854dc92c0bd3581ac8631"
+      },
+      "src/ui/options.css": {
+        "bytes": 46489,
+        "sha256": "ee10fb5c0508d979adeea730dc9c7cef6bf15021306fa329a427b3ea8323c2c3"
+      },
+      "src/ui/sidepanel-r86.css": {
+        "bytes": 16087,
+        "sha256": "842f8c118594288d8cfa4fbce0f62ba876f5bdcb9d3928ecbcc99e56373412f4"
+      },
+      "src/ui/rotation-entry.css": {
+        "bytes": 664,
+        "sha256": "487f5bbe31d4af61acc14366f70f39feb8178f5b4dc2205cd154d0afdf0aa1f4"
+      }
+    }
+  },
+  "sourceVerification": {
+    "at": "2026-10-30T18:15:38.335Z",
+    "result": "PASS",
+    "originalFilesUnchanged": 45,
+    "browserPreviewInputsMatched": 62,
+    "offlinePreviewInputsMatched": 63,
+    "buildInputsMatched": 53,
+    "referenceSha256": "7cfc6cf9d3077702faf76ac919ff000d6c3cf935ea537cfbcfac91bf4aaa9c31",
+    "referenceRouteCss": {
+      "quick": [
+        "style.css",
+        "sidepanel-r86.css",
+        "rotation-entry.css"
+      ],
+      "settings": [
+        "style.css",
+        "options.css"
+      ]
+    },
+    "offline": {
+      "path": "projects/ai-proxy/.opendesk-preview/source-9a521b16-bebc-4d86-897a-e583fa11fb44/preview.html",
+      "sha256": "30215d7106c9df761cb7bfd058fcaa0415c206554716f7cbfe3d0c9bcb91abc5"
+    },
+    "stage": {
+      "path": "projects/ai-proxy/.opendesk-preview/ai-proxy/91fdcffbe86866647c41e87d30f9644cb1a095882262e33480bc43f54f5e54ed.opendesk-tool.json",
+      "sha256": "91fdcffbe86866647c41e87d30f9644cb1a095882262e33480bc43f54f5e54ed",
+      "jsEqualsDist": true,
+      "cssEqualsPublicCompiler": true,
+      "cssSha256": "29f8421927841b8699b397dd6f43f86e215d5b135d1e32284913e7fdcd351a26",
+      "status": "STAGED_NOT_INSTALLED"
+    },
+    "buildId": "bf33bbdb-4411-45bc-b5b9-674d0b8874a2",
+    "buildOutputs": {
+      "dist/tool.js": {
+        "bytes": 737703,
+        "sha256": "069e09e21ca313ed1541b87a6e82c8cce024440ec4a8d6f0012c46f7c6608456"
+      },
+      "dist/tool.css": {
+        "bytes": 95473,
+        "sha256": "e0c23d1e1d37f4e01fbb3bbdbbfa67f62481c77f74d052d21a247d82af728c84"
+      }
+    },
+    "buildSources": {
+      "src/App.jsx": {
+        "bytes": 4675,
+        "sha256": "d92ac0044254da0261f786efed66e69388cc0840b180b973f3ef989b433a16c7"
+      },
+      "src/QuickPanel.tsx": {
+        "bytes": 32990,
+        "sha256": "aa706bb9e35f46d8607d3e5c728e410047ab783734e883652153db10973c22af"
+      },
+      "src/Settings.tsx": {
+        "bytes": 49287,
+        "sha256": "7ba04dc61e8a8d1b3beb17beb19cd932c5a6ebb0922a79dd5798761194c8f6c7"
+      },
+      "src/adapter.js": {
+        "bytes": 1966,
+        "sha256": "e9433df83d02d74406dc56de295e30d9e590e2a266714cbc4e6b04ea648ab5f1"
+      },
+      "src/collector/rotation-plan.ts": {
+        "bytes": 3427,
+        "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+      },
+      "src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "src/config/remote-config.ts": {
+        "bytes": 6144,
+        "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+      },
+      "src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "src/domain/config.ts": {
+        "bytes": 13713,
+        "sha256": "3c804cf4afbae754b317f7ed9b9fc8bfddd216b34e98665b95bbef3dcc461bf2"
+      },
+      "src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "src/domain/messages.ts": {
+        "bytes": 2486,
+        "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+      },
+      "src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "src/environment.ts": {
+        "bytes": 7103,
+        "sha256": "8fb5c40ec38cc215d38ddb212a20ab52e7e45e500e401fcb578144909218dde6"
+      },
+      "src/i18n/LocaleProvider.tsx": {
+        "bytes": 2767,
+        "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+      },
+      "src/i18n/errors.ts": {
+        "bytes": 433,
+        "sha256": "f3738dc405ac36651bca0652dbf09a3e14ee103bf0439d48207276091f38d4e5"
+      },
+      "src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "src/i18n/locales/en.json": {
+        "bytes": 71170,
+        "sha256": "36ce0e8f0e402f93799f3de98def719ee559b8f533cb0851d0ea3270aedb186c"
+      },
+      "src/i18n/locales/zh-CN.json": {
+        "bytes": 68035,
+        "sha256": "e134adf5a3a46bba6867f8fd84cf8644713edcc135c4d04934c53a3baf73090b"
+      },
+      "src/i18n/locales/zh-TW.json": {
+        "bytes": 68474,
+        "sha256": "0f626b64af9e88e91ff69e8d2bc4e80ca90f00773d134600bf709ecb7c775e1f"
+      },
+      "src/main.jsx": {
+        "bytes": 734,
+        "sha256": "09fa1358fb26b5b3c38534c480924c0ba0a55cf96f8ba11493eee4440e39f65a"
+      },
+      "src/model.js": {
+        "bytes": 5324,
+        "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+      },
+      "src/official/messages.ts": {
+        "bytes": 961,
+        "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+      },
+      "src/service.ts": {
+        "bytes": 22958,
+        "sha256": "99cdcba9fe19605f80518ed39008dd1c0fa3999e201d7ee0d8fb634470dfb8fa"
+      },
+      "src/style.css": {
+        "bytes": 2882,
+        "sha256": "6c535cc882d103a17817ac0050867660feec9c7e7bc87c14b520f712e417a89d"
+      },
+      "src/styles/options.css": {
+        "bytes": 50427,
+        "sha256": "ea42376ecfa688b53ea7bcf8204b5612063af8dec60e3783df5f2c3a98600804"
+      },
+      "src/styles/rotation-entry.css": {
+        "bytes": 846,
+        "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+      },
+      "src/styles/sidepanel-r86.css": {
+        "bytes": 17231,
+        "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+      },
+      "src/styles/style.css": {
+        "bytes": 41336,
+        "sha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171"
+      },
+      "src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20805,
+        "sha256": "e5ea97a27090b7b688604dd2aa7d5ec9cf7c28dbb6325ddcb2a24c256ac3984c"
+      },
+      "src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "src/ui/OfficialServicePage.tsx": {
+        "bytes": 9979,
+        "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+      },
+      "src/ui/OptionsShell.tsx": {
+        "bytes": 2192,
+        "sha256": "08c5571c5ded94a8cdb32e384dd713a0f7e1ee2b4da77f5df23bf4484889dabf"
+      },
+      "src/ui/ProxyEntry.tsx": {
+        "bytes": 4977,
+        "sha256": "33f54f70081896962aeff4ad944f134ab80e28984da028002459d30e3e7f665c"
+      },
+      "src/ui/RotationPlan.tsx": {
+        "bytes": 8379,
+        "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+      },
+      "src/ui/SourcesPage.tsx": {
+        "bytes": 25577,
+        "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+      },
+      "src/ui/Status.tsx": {
+        "bytes": 4677,
+        "sha256": "12ba6fc74043d5f5cb1ad856f12cfddaf8fca3344f5dfebb48bb38838f12e09d"
+      },
+      "src/ui/SubscriptionReader.tsx": {
+        "bytes": 17769,
+        "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+      },
+      "src/ui/UsageControls.tsx": {
+        "bytes": 16278,
+        "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+      },
+      "src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "src/ui/navigation.ts": {
+        "bytes": 1887,
+        "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+      },
+      "src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "src/ui/useProxy.ts": {
+        "bytes": 2804,
+        "sha256": "6b6762878462e6777a26871a5d5d34e7bf4f9b16837000a7e88bce1840418722"
+      },
+      "src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      }
+    },
+    "offlineSources": {
+      "projects/ai-proxy/preview/main.jsx": {
+        "bytes": 2914,
+        "sha256": "f08a2911d3c88be008b2e8884dd03666f41620c459e00141523656b40767dd05"
+      },
+      "projects/ai-proxy/scripts/stage-preview.mjs": {
+        "bytes": 10938,
+        "sha256": "f76caecbde375a6db65c4c7ce6e25d4ca846c492d61b09af14b5cb8df4fc708d"
+      },
+      "scripts/preview/shared-tool-design.mjs": {
+        "bytes": 9232,
+        "sha256": "a75e86c40d89c50d42720e2f727acc78f259f030ec00f32ae19bfdf930a9dba5"
+      },
+      "scripts/templates/sidebar-tool-preview-shell.html": {
+        "bytes": 7078,
+        "sha256": "ade920b4b6f11f3f27d352447b0ccd7a65b6084ad5de3dedb29452d45f562ae7"
+      },
+      "scripts/preview/sidebar-shell-behavior.js": {
+        "bytes": 4840,
+        "sha256": "3b0fab946fd8e7fff01991cd5dd89302a880e4ce93dc60e5d4513fcd54ee35f4"
+      },
+      "src/ui/design-tokens.css": {
+        "bytes": 2526,
+        "sha256": "63532100e61777fde7042099d2b0f6d5f583323b45b98f0937d2bf1c6678af79"
+      },
+      "src/ui/react/components/ui/sidebar-shared.css": {
+        "bytes": 1717,
+        "sha256": "fdb9cd6e76093fff2fa31d940599fd1ba57c679f871468f6296cba9e4738204a"
+      },
+      "src/ui/design-system.css": {
+        "bytes": 12317,
+        "sha256": "720733aa85839f44b5c1035c09323c8ca1c657817932ae1b209e7f961566cd7d"
+      },
+      "projects/ai-proxy/src/styles/style.css": {
+        "bytes": 41336,
+        "sha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171"
+      },
+      "projects/ai-proxy/src/styles/options.css": {
+        "bytes": 50427,
+        "sha256": "ea42376ecfa688b53ea7bcf8204b5612063af8dec60e3783df5f2c3a98600804"
+      },
+      "projects/ai-proxy/src/styles/sidepanel-r86.css": {
+        "bytes": 17231,
+        "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+      },
+      "projects/ai-proxy/src/styles/rotation-entry.css": {
+        "bytes": 846,
+        "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+      },
+      "projects/ai-proxy/src/style.css": {
+        "bytes": 2882,
+        "sha256": "6c535cc882d103a17817ac0050867660feec9c7e7bc87c14b520f712e417a89d"
+      },
+      "src/ui/react/components/ui/button.tsx": {
+        "bytes": 845,
+        "sha256": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"
+      },
+      "projects/ai-proxy/src/domain/config.ts": {
+        "bytes": 13713,
+        "sha256": "3c804cf4afbae754b317f7ed9b9fc8bfddd216b34e98665b95bbef3dcc461bf2"
+      },
+      "projects/ai-proxy/src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "projects/ai-proxy/src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "projects/ai-proxy/src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "projects/ai-proxy/src/service.ts": {
+        "bytes": 22958,
+        "sha256": "99cdcba9fe19605f80518ed39008dd1c0fa3999e201d7ee0d8fb634470dfb8fa"
+      },
+      "projects/ai-proxy/src/model.js": {
+        "bytes": 5324,
+        "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+      },
+      "projects/ai-proxy/src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "projects/ai-proxy/src/ui/navigation.ts": {
+        "bytes": 1887,
+        "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+      },
+      "projects/ai-proxy/src/environment.ts": {
+        "bytes": 7103,
+        "sha256": "8fb5c40ec38cc215d38ddb212a20ab52e7e45e500e401fcb578144909218dde6"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json": {
+        "bytes": 68035,
+        "sha256": "e134adf5a3a46bba6867f8fd84cf8644713edcc135c4d04934c53a3baf73090b"
+      },
+      "projects/ai-proxy/src/i18n/locales/en.json": {
+        "bytes": 71170,
+        "sha256": "36ce0e8f0e402f93799f3de98def719ee559b8f533cb0851d0ea3270aedb186c"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json": {
+        "bytes": 68474,
+        "sha256": "0f626b64af9e88e91ff69e8d2bc4e80ca90f00773d134600bf709ecb7c775e1f"
+      },
+      "projects/ai-proxy/src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "projects/ai-proxy/src/i18n/LocaleProvider.tsx": {
+        "bytes": 2767,
+        "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+      },
+      "projects/ai-proxy/src/i18n/errors.ts": {
+        "bytes": 433,
+        "sha256": "f3738dc405ac36651bca0652dbf09a3e14ee103bf0439d48207276091f38d4e5"
+      },
+      "projects/ai-proxy/src/ui/useProxy.ts": {
+        "bytes": 2804,
+        "sha256": "6b6762878462e6777a26871a5d5d34e7bf4f9b16837000a7e88bce1840418722"
+      },
+      "projects/ai-proxy/src/ui/Status.tsx": {
+        "bytes": 4677,
+        "sha256": "12ba6fc74043d5f5cb1ad856f12cfddaf8fca3344f5dfebb48bb38838f12e09d"
+      },
+      "projects/ai-proxy/src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "projects/ai-proxy/src/ui/ProxyEntry.tsx": {
+        "bytes": 4977,
+        "sha256": "33f54f70081896962aeff4ad944f134ab80e28984da028002459d30e3e7f665c"
+      },
+      "projects/ai-proxy/src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "projects/ai-proxy/src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "projects/ai-proxy/src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "projects/ai-proxy/src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "projects/ai-proxy/src/config/remote-config.ts": {
+        "bytes": 6144,
+        "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+      },
+      "projects/ai-proxy/src/collector/rotation-plan.ts": {
+        "bytes": 3427,
+        "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+      },
+      "projects/ai-proxy/src/ui/RotationPlan.tsx": {
+        "bytes": 8379,
+        "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+      },
+      "projects/ai-proxy/src/QuickPanel.tsx": {
+        "bytes": 32990,
+        "sha256": "aa706bb9e35f46d8607d3e5c728e410047ab783734e883652153db10973c22af"
+      },
+      "projects/ai-proxy/src/ui/OptionsShell.tsx": {
+        "bytes": 2192,
+        "sha256": "08c5571c5ded94a8cdb32e384dd713a0f7e1ee2b4da77f5df23bf4484889dabf"
+      },
+      "projects/ai-proxy/src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "projects/ai-proxy/src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "projects/ai-proxy/src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "projects/ai-proxy/src/official/messages.ts": {
+        "bytes": 961,
+        "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+      },
+      "projects/ai-proxy/src/ui/OfficialServicePage.tsx": {
+        "bytes": 9979,
+        "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+      },
+      "projects/ai-proxy/src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "projects/ai-proxy/src/ui/SubscriptionReader.tsx": {
+        "bytes": 17769,
+        "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+      },
+      "projects/ai-proxy/src/ui/SourcesPage.tsx": {
+        "bytes": 25577,
+        "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+      },
+      "projects/ai-proxy/src/domain/messages.ts": {
+        "bytes": 2486,
+        "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+      },
+      "projects/ai-proxy/src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      },
+      "projects/ai-proxy/src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "projects/ai-proxy/src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "projects/ai-proxy/src/ui/UsageControls.tsx": {
+        "bytes": 16278,
+        "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+      },
+      "projects/ai-proxy/src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20805,
+        "sha256": "e5ea97a27090b7b688604dd2aa7d5ec9cf7c28dbb6325ddcb2a24c256ac3984c"
+      },
+      "projects/ai-proxy/src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "projects/ai-proxy/src/Settings.tsx": {
+        "bytes": 49287,
+        "sha256": "7ba04dc61e8a8d1b3beb17beb19cd932c5a6ebb0922a79dd5798761194c8f6c7"
+      },
+      "projects/ai-proxy/src/App.jsx": {
+        "bytes": 4675,
+        "sha256": "d92ac0044254da0261f786efed66e69388cc0840b180b973f3ef989b433a16c7"
+      },
+      "projects/ai-proxy/trusted/Surface.jsx": {
+        "bytes": 370,
+        "sha256": "fb8d8df0fcf325085758f2ea1dd704d07f1cfcec59c998f1555f825594272833"
+      },
+      "projects/ai-proxy/preview/sdk-preview.js": {
+        "bytes": 3375,
+        "sha256": "e5f984762315c2c78321b54c08eac6da78dc1d2a24b45badd93bc3c366c23644"
+      },
+      "projects/ai-proxy/preview/frame.jsx": {
+        "bytes": 1141,
+        "sha256": "cfdce3cb52aaee65a8d2e51eef18986e87bb1854858521e1ebd3edccb4546491"
+      }
+    },
+    "receipt": {
+      "file": "artifacts/ai-proxy/ui-correction-20261031/final/source-verification.json",
+      "sha256": "c7c9fd5ebc4f416c000e80c1d14399226abfa73515c0b817e364ca9d30863ec7"
+    }
+  },
+  "preview": {
+    "url": "http://127.0.0.1:43263/ai-proxy-preview",
+    "compareUrl": "http://127.0.0.1:43263/projects/ai-proxy/preview/compare.html",
+    "report": {
+      "file": "artifacts/ai-proxy/ui-correction-20261031/final/preview-browser.json",
+      "sha256": "f03abe82f4436fd3ffe1fed6cc6b3130b000eaf9c434c7c6deb4471f3153ac3b",
+      "result": "EVIDENCE_GENERATED_VISUAL_NOT_REVIEWED",
+      "visualResult": "NOT_REVIEWED"
+    },
+    "behaviorChecks": [
+      "invalid port cannot submit; Back cancels without writes and preserves the isolated draft",
+      "click Save selects config without applying; hidden/reopened draft survives; dirty lock releases only after save",
+      "synthetic composition Enter reaches the real handler without submission; native OS IME not tested",
+      "Enter submits the original React handler inside allow-scripts sandbox",
+      "all seven Settings sections and return render",
+      "clean delete confirmation locks host replacement; Cancel preserves data and restores trigger focus",
+      "Keep Editing retains draft; explicit discard navigates and clears only abandoned UI",
+      "simulated uninstall stays unmounted until explicit restore; empty/reset uses fresh memory"
+    ],
+    "behaviorResult": "PASS",
+    "externalRequests": [],
+    "pageErrors": [],
+    "screenshots": {
+      "compare-configured": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/compare-configured.png",
+        "sha256": "9f81a8854a9e70cf246d53ad0fa3fafe895cf791941644d6600d9cca20e8dc71"
+      },
+      "compare-empty": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/compare-empty.png",
+        "sha256": "facb1f66d2832e93e831ca8d943e648578ff81442f2c6ba7f2116de6c0268c68"
+      },
+      "compare-add": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/compare-add.png",
+        "sha256": "1816d718190d3cee4915f2d0bc6e486a7101448e1120f6d83e2fa4bb8f826d01"
+      },
+      "compare-settings": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/compare-settings.png",
+        "sha256": "30865b630a1f19cd8e8daff18816c14659ca7a02db19f620b9e7939ffa470be4"
+      },
+      "settings-profiles-top": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-profiles-top.png",
+        "sha256": "e97a5569a89be48ab6a1c228ee68024dda0049ca00744d25647054b5c5d34c10"
+      },
+      "settings-profiles-bottom": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-profiles-bottom.png",
+        "sha256": "e9f2afbe34ba0bacb2d6925508657fc88b61e7ee8ff6d317c76b65774d094716"
+      },
+      "settings-rules-top": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-rules-top.png",
+        "sha256": "261ea585103ba88d3a6f9038f0b416458bfbd2b0e9ea510f603a20760c00de18"
+      },
+      "settings-rules-bottom": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-rules-bottom.png",
+        "sha256": "ba61cc609a385f6ee69d01a0eb93cc4cd704a8a248f01bdc5e2d075c86187a86"
+      },
+      "settings-subscriptions-top": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-subscriptions-top.png",
+        "sha256": "a47046c0b75d18f42a90c3c5e18a31725321e6bf652753fb431b982a61fb9e98"
+      },
+      "settings-subscriptions-bottom": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-subscriptions-bottom.png",
+        "sha256": "a47046c0b75d18f42a90c3c5e18a31725321e6bf652753fb431b982a61fb9e98"
+      },
+      "settings-backup-top": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-backup-top.png",
+        "sha256": "d2d07d1bda114d40bd95ad94e9e91bc866d22c5d964765acdc52aaeef7663afd"
+      },
+      "settings-backup-bottom": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-backup-bottom.png",
+        "sha256": "9c07017a2c10733d46f34ee22d0ae8c62a1c81af8905122fe341d78e67a90e9f"
+      },
+      "settings-diagnostics-top": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-diagnostics-top.png",
+        "sha256": "0814fa6c9f6dcb7f330d60a98291ee12ec29d25eec9ccc5654b5179ce971e7a0"
+      },
+      "settings-diagnostics-bottom": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-diagnostics-bottom.png",
+        "sha256": "87e1945ba0a1dee7630009f080e67212df30b3feeedc107694601e6bdad5933b"
+      },
+      "settings-general-top": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-general-top.png",
+        "sha256": "b42fd4a5cd2d2c202b6c6f44bde370c536704e9e5fc0e4d1aac45abee03451a1"
+      },
+      "settings-general-bottom": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-general-bottom.png",
+        "sha256": "b42fd4a5cd2d2c202b6c6f44bde370c536704e9e5fc0e4d1aac45abee03451a1"
+      },
+      "settings-official-top": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-official-top.png",
+        "sha256": "1e35ed6bcc12ed40dca311d76564268b6fc7453698e71923975fa60aa8c3e6bb"
+      },
+      "settings-official-bottom": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/settings-official-bottom.png",
+        "sha256": "1e35ed6bcc12ed40dca311d76564268b6fc7453698e71923975fa60aa8c3e6bb"
+      }
+    },
+    "liveStandalone": {
+      "result": "PASS_RENDERED_IN_DAILY_CHROME",
+      "file": "artifacts/ai-proxy/ui-correction-20261031/final/live-preview.png",
+      "sha256": "2149885e78686c230a2c6c79cd577ded5d7bf7e90159cb734ff1ffc908d524b1",
+      "ax": "artifacts/ai-proxy/ui-correction-20261031/final/live-preview-ax.txt",
+      "axSha256": "ae89d78ee7726e0318c3939d901c20e116fcc4c83586e93798dda28d1fd22b08",
+      "scope": "Mock disclaimer, same complete app, mode/list/site/footer content visibly rendered. This tab is kept as deliverable."
+    },
+    "onlineComparisonDailyChrome": {
+      "result": "LOAD_ISSUE_UNCLASSIFIED",
+      "observed": "Normal daily Chrome online comparison iframes remained about:blank, also in one fresh tab; both endpoint HTTP200. Standalone same-source Preview renders. Existing CFT full comparison evidence remains valid.",
+      "diagnostic": "Explicit initial iframe src had no effect and was reverted byte-for-byte; no speculative code/CSP/platform change retained. No browser-version matrix launched.",
+      "evidence": "artifacts/ai-proxy/ui-correction-20261031/final/daily-compare-empty.png",
+      "sha256": "61f77bc33181ce5b69c80c7e997c4c8621bffd8f19e90815bbd1a7c0f3355522",
+      "disposition": "Known auxiliary online comparison limitation; do not claim daily Chrome comparison PASS. Use standalone interactive Preview and complete CFT comparison screenshots for this UI phase."
+    }
+  },
+  "native": {
+    "mode": "continuous development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "loadPathEvidence": "Actual Chrome extension details verified earlier in this run; unchanged ID throughout. Not inferred from package version.",
+    "serveConnection": "Actual Debug UI observed 开发服务已连接",
+    "browserRevisionObserved": "b4e1cef46a1f901e60d613137db8da993cb2267e91c9b0c571978c35382064e2",
+    "doctor": "connected=true; response.nativeConnected=true; same extensionId",
+    "nativeAllowedOrigins": [
+      "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+    ],
+    "entry": "opendesk browser dev . → 开发 → 本地项目 ai-proxy → 独立本地项目 → 在侧栏调试",
+    "sourceId": "source-405c778e3b76b8d2d18b971d",
+    "workspaceId": "workspace-77a73569-fd83-039c-ba2b-30e2e0864f50",
+    "providerEpoch": "86425592-deac-4059-86ac-c882dd95aaf8",
+    "hostInstanceId": "1ef62db8-52a2-4cfe-a58c-797717e42488",
+    "sandboxUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidebar-tools/sandbox.html",
+    "isolatedSavedConfig": "HTTP native-ui.example.com:8443, selected, not applied",
+    "restoredStage": "91fdcffbe86866647c41e87d30f9644cb1a095882262e33480bc43f54f5e54ed",
+    "markerVerification": {
+      "at": "2026-10-30T18:10:51.840801+00:00",
+      "originalSha256": "09fa1358fb26b5b3c38534c480924c0ba0a55cf96f8ba11493eee4440e39f65a",
+      "markerSha256": "e191b622171a1c2b02d66c18a919781a0399d40ab22606d6d8dd9fafae04d732",
+      "restored": true,
+      "restoredSha256": "09fa1358fb26b5b3c38534c480924c0ba0a55cf96f8ba11493eee4440e39f65a",
+      "restoredAt": "2026-10-30T18:12:12.686677+00:00",
+      "hostInstanceId": "1ef62db8-52a2-4cfe-a58c-797717e42488",
+      "markedStage": "7239a4356e1cda3d54f4af18d18ab9d3125959e5832338b10889334981dc557e",
+      "draftGuard": "New snapshot waited while dirty; source grant invalidated stale save with E_PREVIEW_GRANT; draft fields retained through Keep Editing. Explicit discard released update. Previously saved native-ui.example.com:8443 remained.",
+      "result": "PASS_SAME_HOST_VISIBLE_MARKER_RESTORED_SAVED_DATA_RETAINED",
+      "nativeRestoreObserved": true,
+      "draftAfterSourceChange": "Save rejected E_PREVIEW_GRANT; fields preserved; explicit discard, no automatic replay.",
+      "secondMarkerSha256": "10a21a23fbaa507b18ba29b5c37ddb07a534eee53de7737ebc1a7624cb43f791",
+      "secondMarkerReason": "First fixed marker was in AX but not recognizable in screenshot; use in-flow top marker for visible proof.",
+      "visibleMarkerStagePrefix": "23113983492d",
+      "secondNativeRestoreObserved": true,
+      "restoredStage": "91fdcffbe86866647c41e87d30f9644cb1a095882262e33480bc43f54f5e54ed",
+      "secondMarkerScreenshot": "native-marker-visible-top.png",
+      "restoredScreenshot": "native-restored-final.png",
+      "firstMarkerScreenshotVisibility": "NOT_PROVEN_FIXED_MARKER_OUTSIDE_VISIBLE_AREA"
+    },
+    "screenshots": {
+      "native-add-draft.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-add-draft.png",
+        "sha256": "1de5710dcdd265d29b7f83a073baeabf844728683ea41097790e638e9c251e11"
+      },
+      "native-draft-update-guard.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-draft-update-guard.png",
+        "sha256": "a5dea33ac8be9d4f383ebb2e35cae3784fb63d20a9181234287e6054f1b284f7"
+      },
+      "native-empty.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-empty.png",
+        "sha256": "20ec988c5b58520aef8fa5b8c57ada4fd5905fb6bc4de03deb80231cdb908c0e"
+      },
+      "native-marker-visible-top.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-marker-visible-top.png",
+        "sha256": "d75c18b6e1aa1f8d454a74924772d3ad71701562de46c8c4afc5fa66454d7b3d"
+      },
+      "native-marker-visible.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-marker-visible.png",
+        "sha256": "244be7dcc402b29c2eda9cd8b501312e9ba7e8f896755992c13526660ea1aa10"
+      },
+      "native-restored-final.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-restored-final.png",
+        "sha256": "24b419432a6bbda81e53dcaa45add4ca724fa50ee42915e180e200bd7c0ff505"
+      },
+      "native-restored.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-restored.png",
+        "sha256": "8d75365055e7a730552f9230bbc3426f9a4ee258c1fd5ef861d16121edc522c8"
+      },
+      "native-saved.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-saved.png",
+        "sha256": "a4b6172dda795f4d3f833ad2e7483596e93201b28cd91d6167e9b436b2fe9efe"
+      },
+      "native-settings-backup.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-settings-backup.png",
+        "sha256": "1dc9a884f493b291ccdb319fbd832244c056a5bf40a9d0442c71e242d6e597f1"
+      },
+      "native-settings-diagnostics.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-settings-diagnostics.png",
+        "sha256": "81e56aec68d3354693161c9a305d847ccb6d36952a31283338a10e9f086acaf3"
+      },
+      "native-settings-general.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-settings-general.png",
+        "sha256": "2e674588911fa46c12d0487244d335898e45a1d024bd983ecd36d61a0e961837"
+      },
+      "native-settings-official.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-settings-official.png",
+        "sha256": "63a0d748d355d0f5a33e0d6c635e9f398eaa064967d79592de80ac3143973711"
+      },
+      "native-settings-profiles.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-settings-profiles.png",
+        "sha256": "6149cf01cf8d2b51d43092806fbff096318904b6f4d899471912d9232ed296d5"
+      },
+      "native-settings-rules.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-settings-rules.png",
+        "sha256": "1498a3f670a6f3d5fefdb15cd067c760ef8cbdb71b0eb7dbe176f1f226b26785"
+      },
+      "native-settings-subscriptions.png": {
+        "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-settings-subscriptions.png",
+        "sha256": "c5536d83d31472f4321f7971e87a708070e0205699f0fd9f0ff46c567a53922f"
+      }
+    },
+    "sectionContents": {
+      "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-settings-ax.json",
+      "sha256": "9ca6f0d127e30e2ca223fbd0f4f106c5f4ef42891af86983bdb006195ebe105b"
+    },
+    "finalAX": {
+      "file": "artifacts/ai-proxy/ui-correction-20261031/final/native-restored-final-ax.txt",
+      "sha256": "1aa9455e7b7f6bc2fb43c1c982aa6775d4ef687512302ef7e82415e161474962"
+    },
+    "earlierFailures": "Earlier ERR_FILE_NOT_FOUND/E_NATIVE_NOT_READY and shared Browser reload observations retained as history; final sandbox-entry proof succeeded without platform changes.",
+    "cleanup": "Clicked Stop Debug, then Ctrl-C own opendesk browser dev session39151, exit0. Temporary source grant released. Existing build/stage/Browser writers left running."
+  },
+  "targetedTests": {
+    "result": "PASS",
+    "tests": 39,
+    "failures": 0,
+    "command": "node --test projects/ai-proxy/tests/use-proxy-errors.test.mjs projects/ai-proxy/tests/environment-confirm.test.mjs projects/ai-proxy/tests/drafts.test.mjs projects/ai-proxy/tests/navigation.test.mjs projects/ai-proxy/tests/form-submit.test.mjs projects/ai-proxy/tests/settings-credentials.test.mjs",
+    "scope": "Current error localization/preservation, pending confirmation busy/disposal, drafts/navigation/form/credential boundaries. No persistent behavior-code changes after run; temporary main.jsx marker restored exactly.",
+    "browserChecks": 8
+  },
+  "independentReview": {
+    "agent": "Laplace / 01a18de0-3682-72c2-9698-b9d62c4f06d7",
+    "readOnly": true,
+    "method": "Actual view_image screenshots, separate from writer and screenshot-generation assertions",
+    "preview": "Sixteen iteration5 images reviewed; caught backup20px margin and lower-host route mismatch. Iteration7 backup/same-route host review found no missing content/overlap/white blocks; documented brand/Tokens/mock differences accepted.",
+    "native": "Actual saved/settings/guard/marker/restored images reviewed. Current native visible key-page structure matches reviewed Preview without obvious regression. First fixed marker visibility not proved; top marker23113983492d visibly present, final91fd restored image visibly absent with saved config retained.",
+    "limits": "No score. Native review covers shown key pages/currentUI only, not full seven-section native visual acceptance or real proxy."
+  },
+  "changes": [
+    "Project style resets restore original Button layout and textarea spacing without importing host-only details CSS.",
+    "Preview/reference routes use real source and proper CSS sets, full equal viewport and actual seven section content/controls/scroll evidence.",
+    "Error localization retained through passive refresh; confirmation busy/disposal prevents unsafe replacement.",
+    "Preview server ignores unrelated generated build artifacts; evidence-generation success no longer claims visual PASS."
+  ],
+  "resources": {
+    "previewServer": "node projects/ai-proxy/scripts/stage-preview.mjs --serve, port43263, kept running",
+    "buildWatcherPid": 56445,
+    "stageWatcherPid": 51896,
+    "browserWriterPid": 63479,
+    "temporaryNativeCli": "stopped cleanly; source grant released",
+    "unchanged": "No other windows/services or original repository files modified."
+  },
+  "deferred": [
+    "Real proxy integration/apply/stop/routing/credentials/network/official service",
+    "Formal package promotion, installation/upgrade/release, production",
+    "FullCI,95+ score,PC/responsive/width/zoom/stress/mutation",
+    "Trusted portal/platform refactor; general component hot-update guarantee",
+    "Daily Chrome auxiliary online comparison iframe-load issue; standalone same-source Preview verified usable."
+  ],
+  "delivery": "Current UI prototype and local development phase complete only. Source remains uncommitted on main; no branch/worktree/PR created and formal package not promoted."
+}
