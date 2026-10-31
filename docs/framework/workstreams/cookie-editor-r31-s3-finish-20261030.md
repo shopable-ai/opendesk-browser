@@ -193,3 +193,5 @@
 - 现有 Relay 源码／README 只有 API 与 `/i/:id` 静态引导，领取仍指向原 Cookie Editor 入口；未发现另一套分享管理员页面。远端企业额度管理页属于其现有独立业务，不能拿来代替 S3 配对领取。
 - 原位更新、关闭侧栏 B→A、A→B、两方向自动刷新、双机真实配对领取、独立账号保存、Cookie 恢复读回、真实网站登录均 NOT_TESTED。A 值仍待独立核对，旧 B 读回仅保留历史范围，test1／token／theme 未动。未改产品源码、重跑测试、构建／打包／晋升、CI、production、评分或宽度缩放矩阵。
 - 唯一账本追加 `s3FinishNativeEntry20261031`；原始事实在 `artifacts/cookie-editor-r31/current-entry-01a19125.json`，沿原账本引用，不另建总账。下一条具体手工动作：在已打开的新 Chrome 窗口，打开原 SidePanel，经「扩展 → Cookie Editor → 审阅新版」确认更新2.0.57并保留安装详情，未知先读回不重装。当前驱动未提供该原生审阅／确认能力；完整目标仍未完成。
+
+- 同任务第二轮自动续跑的新增只读结论：B 机原 src/sw.js 明确静态导入其 trusted/account-service.js；该服务仅接 account-vault／service-connections，App 未接 sharePair／shareDeliver，磁盘SW1044412B与Host623605B均无本次S3入口，SW亦无设备密钥库命名空间或ECDH。不是单纯路径改名；详见原账本 s3FinishNativeEntry20261031.receiverCandidate.s3DeploymentDiagnosis。仍未改远端／源码／包，未重复测试、安装或发送；A机原生审阅没有新回执，8项产品结果保持NOT_TESTED。
