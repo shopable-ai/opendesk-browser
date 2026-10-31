@@ -40,7 +40,7 @@ function fixtureRequest(fixture,{method,url,data,headers}){
 async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN}),
   developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
   performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false,
-  developmentControls=false,ordinaryNetwork,documentState}={}){
+  developmentControls=false,ordinaryNetwork,documentState,proxyDisable}={}){
   // Historical VM business tests simulate a development panel that now exists
   // ONLY in the test harness, not in the installable React product DOM.
   const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status',
@@ -86,7 +86,9 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   };
   const managed={getStatus:async()=>getStatus?getStatus():clone(current),
     requestEnable:async args=>{proxyCalls.push({action:'enable',...clone(args)});current={...owned,developmentProfile};return clone(current)},
-    requestDisable:async()=>{proxyCalls.push({action:'disable'});current={...released,developmentProfile};return clone(current)}};
+    requestDisable:async()=>{proxyCalls.push({action:'disable'});
+      if(proxyDisable)return proxyDisable();
+      current={...released,developmentProfile};return clone(current)}};
   const window={OpenDeskTool:{root:{querySelector:id=>rootReady?nodes.get(id.slice(1)):null},request:storage,
     setState:state=>toolStates.push(clone(state))},
     OpenDeskSDK:{browser:{network:{request},proxy:{managed},cookies:{setMany:async args=>{
