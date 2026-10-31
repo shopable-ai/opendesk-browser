@@ -57,3 +57,62 @@
 - 未跑之项均标 `NOT_TESTED`，版本/包晋升之前旧可安装版保持可用。各维独立评分目标 95+，未测不能以主观分数顶替验收。
 
 本记录的作用是帮助同步**正在并行推进的可信 Side Panel React**与**可安装 Cookie Tool React**，不更改前者的组件所有权、安全合同或正在使用的正式 Cookie 业务。
+
+## 2026-10-31 增量：SW 展示职责拆分
+
+当前阶段：核心源码拆分和最小验证；负责人为本任务，原生账号/S3任务仍归 `01a19164-c087-76d1-a47f-b1a90732d898`。不创建 Goal、分支、worktree、PR，不推送。
+
+下一条产品操作是企业页读取连接状态。原生入口由原 owner 持有，未取得本候选 Chrome 证据；本轮将 SW 中的安装/连接事实与展示合成分离，保持账号、Native 和分享功能。
+
+写入范围：Cookie 的 `trusted/service-connections.js`、`trusted/service-session.js`、新 `trusted/service-view.js`、相关项目测试与 README；`src/ui/sidebar-tools.js` 的原 Cookie 返回适配；`scripts/bundle-provenance.mjs` 与对应来源测试的精确 pin/目标；原宿主解耦文档第9节。已一次通知原 owner。内部事实 DTO 仅用于原 SW→可信 Host；App 继续接收原字段。无存储 schema、权限、安装包或公开 SDK 变更。
+
+资源：仅 Node/临时目录，不占 Chrome、Native、端口或 dist，不启停 writer；保留历史 unknown 刷新围栏。原 writer 可能自动观察源码，精确来源门禁继续拒绝未经审查的中间字节；本任务不触发刷新。
+
+验证范围：事实脱敏与展示投影，原配置/会话的版本、身份、撤权、未知写入和重连行为，Node 实际业务适配器，固定入口来源/目标。完整 Browser 构建、serve 发布及真实 Chrome 均 NOT_TESTED。本文件只记录本轮执行，不代替原产品需求或原生账本。
+
+### 本轮实施与验证
+
+`service-connections.js` 仅生成安装身份、断开和本站账号版本事实；`service-session.js` 仅生成脱敏的租约/代际/可恢复性/绑定/pending事实，在可信侧就过滤无效会话的资源与策略。原事务、存储 schema、远端写入及 unknown 保护未移走。`service-view.js` 是纯 UI 投影，在原 Host 的 Cookie 响应处调用，保留旧 App 返回字段。没有改 App/正式 JSON、公开 SDK、账号/分享核心或后台注册。
+
+- 两条事实 DTO 回归先以旧实现运行，均因缺少事实 DTO 而失败；实施后通过。
+- `node --test examples/sidebar-tools/cookie-editor/tests/service-connections.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections-ui.test.mjs`：最终96 PASS / 0 FAIL。首次92 PASS / 1 FAIL为旧fixture断言读取已移出SW的capabilities字段；改为断言原外部结果，产品代码未为该断言放宽。新增真实Host路径测试的fixture先后漏传taskWorkbench及误用data/result字段，两处均仅修fixture；真实Host→App兼容及内部事实不外传检查已通过。
+- `node --test --test-name-pattern '^Cookie session Host forwards only reviewed metadata and its captured document$' tests/environment/sidebar-tools-host.test.mjs`：1 PASS；复用该既有测试，未修改其并行diff，确认非service的分享路径不受转换影响。
+- `node --test tests/environment/cookie-account-provenance-r134.test.mjs`：10 PASS / 0 FAIL。对应两份SW源码精确重新锁定；展示模块只准进入原Sidebar Host。保留前任务recordBundle守卫及回归，不放宽目录、动态代码、目标或symlink合同。
+- esbuild `write:false, bundle:true, minify:true` 独立编译账号服务闭包；before通过仅对两份变更服务的onLoad读取当前HEAD原文件，after读取工作区。284771 → 283620 B（-1151 B）；展示模块2084 B，唯一输入为自身，不在账号闭包中。这是Cookie组件，不是完整SW/WXT构建。
+
+没有移除既有Vault/分享/Native静态依赖；减少的是两处展示判断。当前仍随Browser发布，独立App/后台升级未实现。源码主观复评74/100（前任务约70），不是独立专家评分，证据等级分开报告。原owner已确认无重叠未提交源码；本任务不接管其blocked Goal或八项NOT_TESTED原生结果。
+
+资源 released：本轮Node与临时目录已退出；未启停writer、手动写dist、安装/重载Chrome、操作Native、提交或推送。后续产品验证须由原owner在合法入口及unknown刷新围栏允许时进行，不自动开启旧完整验收。
+
+语法检查和本轮diff检查通过。执行记录归并本文件，未保留新增架构账本。新增相对链接均存在；README与旧宿主审计中历史CSDN/发行记录/迁移前AdBlock、Stay Focus链接有既存缺失，确认HEAD原文即已存在后延期，未扩成本轮清理。
+
+### 接续审查：服务操作与账号仓库的实际依赖
+
+2026-10-31，当前任务接手上述源码写入范围；实读 `main...origin/main [ahead 3]`，HEAD `3f7d38c14`，本任务 `get_goal=null`，不创建 Goal。原生/S3 owner 和 blocked 状态不变。原 `src/native-agent/transport.js → service-worker.js → managed-service-client.js` 只在固定 SW 创建并持有 Port 客户端，未发现可信 UI 可直接复用的同等连接与持久账本入口；暂不迁移 Native 编排，不另建通道。
+
+IN_PROGRESS：下一条操作为「尚无本站账号关联 → 添加本机服务 → 手动连接/读取资源/打开管理页」。`account-service.js` 当前在任何 service 操作前调用 `statusFor(origin)`，因此会受无关 Cookie 仓库损坏影响。新增最小回归先定位这条依赖；拟仅在创建关联或返回已有本站关联前读取账号版本。关联授权、原 Native 租约/账本、全局串行清理、unknown、来源 pin 和原消息/存储合同保持。
+
+新增写入 `trusted/account-service.js` 及其精确来源 pin；扩展原项目 Host/集成测试，README/本记录更新。只占用 Node 与各测试自行分配的临时目录/loopback 管理 HTTP，不占 Chrome、Native、dist 或固定端口，不启停 writer。已有96项/来源10项作为历史证据保留；因账号分发输入变化，仅重测服务 Host/集成链与精确来源，不重跑纯展示/配置/会话模块未变的单元组或产品构建。
+
+结果：上述 `IN_PROGRESS` 已结束，资源 released。修复仅调整 service 分支内依赖顺序：先取本站连接/关联事实，只有 `serviceAssociate` 或存在本站关联时再读 `statusFor(origin)`；随后仍执行 `assertCurrent()`。`serviceSession` 最终事实继续从真实账号核对 `accountCurrent`；Native dispatch 不信任显示状态。其他账号、分享和自动导航分支未改，无消息/存储 schema、公开 API、App、正式 JSON、权限或 Native 通道变化。企业页源码确认 `serviceStatus` 与账号 `status` 分开请求，配置按钮不依赖 `accountReady`；仅关联草稿依赖它。没有真实 Chrome 操作证据，不能提升为原生可用。
+
+验证命令与结果（Node v24.15.0）：
+
+- `node --test --test-name-pattern 'Cookie account store' examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs`：改实现前2 PASS / 2 FAIL；两条连接正例均在 `account-vault.js → checkRecord/load` 报 `E_VAULT_CORRUPT`，负例通过。最小修复后4 PASS / 0 FAIL。未改测试预期适配实现。
+- `node --test examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs`：15 PASS / 0 FAIL，含配置/关联、原 Host→App 事实兼容、真实 Node 资源与管理 HTTP、无账号仓库时的连接/资源/策略/管理/远端断开链，以及账号仓库损坏时关联仍拒绝、安装/Document/撤权、未知绑定原回执和重连版本围栏。
+- `node --test tests/environment/cookie-account-provenance-r134.test.mjs`：10 PASS / 0 FAIL。`account-service.js` 审查后精确 pin 从 `fcd7fab18b0bac62fe4a105569523c0c6011d1cb` 更新到 `944308bfcdc4fa5db302c0935b405ee7e488129b`。前任务 `recordBundle` 的无 evidence 目录守卫、新展示目标限制及其测试均保留。
+- `node --check examples/sidebar-tools/cookie-editor/trusted/account-service.js` 与本轮文件 `git diff --check` 通过。没有执行完整构建或改写 dist。
+
+剩余优先级和执行边界维护在项目 README「继续审查」表：Native 手动编排可信但不天然必须 SW，当前没有可直接复用的可信 UI 等价传输/账本；邀请普通流程与草稿已在 App，不能重复迁移；固定展示投影收益有限，不继续叠加包装或评分。后台独立升级及完全公共替代仍未实现/`SDK_GAP_NOT_PROVEN`。Chrome/Native、当前 writer/serve 连接状态均未知/NOT_TESTED，不接管原生 owner 的 blocked Goal；本任务 Goal 实读 null，未创建/提交/推送。
+
+本次通过后的关键输入 SHA-256（用于后续影响判断，不是完整 Browser 候选指纹）：
+
+```text
+6c6b2a131f0148f83318b2c3bf629ed1cb1c95f249c579bd92097be2b9845537  trusted/account-service.js
+24df9cbd744e497275374e41293b6fc68673a0f9a099abdb73ebaad5f6d82221  tests/service-connections-host.test.mjs
+6fd5c4666852a4b7e24341de3f394be6cc974f01b180f8c202a2c2e2bbccbea1  tests/service-session-integration.test.mjs
+d2ac78c6f9386d81fce79a26b900758d1e46d21b3121e496f794b938d600e4a8  scripts/bundle-provenance.mjs
+de78e056f6ca0a4bc5c98998e5b34a19707483e18cef2a3fc93ebad125155455  tests/environment/cookie-account-provenance-r134.test.mjs
+```
+
+前三项相对 Cookie 项目，其余相对仓库根；包含继承的未提交拆分，不可只按 HEAD 复用。后续正常产品操作仍是合法入口下核对企业页服务连接；Chrome/Native 资源继续由原 owner 管理，本轮无独立原生待办，不通过刷新或重装绕过历史 unknown。

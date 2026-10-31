@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildSync} from 'esbuild';
 import {createCookieServiceConnections} from '../trusted/service-connections.js';
+import {presentCookieServiceState} from '../trusted/service-view.js';
 import {serviceDescriptor} from '../../../../src/native-agent/managed-service-protocol.js';
 
 // The existing JSX harness extended with state/effect scheduling and host refs.
@@ -423,7 +424,7 @@ test('Native local draft visibly reviews a local organization label and passes t
   }});
   const engine=createCookieServiceConnections({storage});
   const identity={packageHash:'a'.repeat(64),installEpoch:'install-1'};
-  const dispatch=(operation,payload)=>engine.dispatch({operation,payload:{origin:account.origin,...payload},identity,accounts:[account]});
+  const dispatch=async(operation,payload)=>presentCookieServiceState(await engine.dispatch({operation,payload:{origin:account.origin,...payload},identity,accounts:[account]}));
   const saved=await dispatch('serviceSave',{revision:0,label:'本机服务',mode:'local',serviceOrigin:''});
   const connectionId=saved.connections[0].id;
   const required={revision:saved.revision,connectionId,alias:account.alias,accountVersion:account.version,

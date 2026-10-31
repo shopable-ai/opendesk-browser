@@ -1,5 +1,42 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## SW 职责精简：展示模型已退出后台（2026-10-31）
+
+本轮是独立的架构源码任务，**不改变下方原生任务的 blocked 状态或任何安装结论**。企业页原来的连接/关联状态合成、reasonCode、按钮显示和 capabilities 展示投影已从 `trusted/service-connections.js` / `trusted/service-session.js` 移出，集中为固定可信 UI 的 `trusted/service-view.js`。原 `cookieAccount` Host 调用它后，仍向已安装 App 返回原字段；App、正式 JSON、存储键/schema、权限与安装身份均未变化。
+
+SW→可信 Host 只传版本化的最小事实 DTO：配置身份是否有效、账号版本是否匹配、租约/连接代际、可恢复性、脱敏绑定及原 pending 操作摘要。资源与策略在 SW 内就按有效身份/租约/pending 收口，私有 owner、Native 连接 ID、租约、完整账本、Cookie 和密钥不交给展示层。展示结果不回送为授权，Native dispatch 继续独立核验真实身份、配置/会话 revision、手势、权限与 unknown。
+
+| 模块/职责 | 必要执行边界与当前处理 |
+| --- | --- |
+| `account-service.js` 导航自动切换、撤权与卸载入口 | 关闭侧栏后仍要接收浏览器事件，这些事件入口需后台；不能因此推导整份模块都必须 SW |
+| `account-vault.js` 私有快照及写入核验 | 需可信权限和持久化；不因敏感就必须 SW。当前仍由原后台消费，未改数据合同 |
+| `service-connections.js` | 名称/地址草稿和交互属普通 App；持久安装身份、连接代际、关联账号版本需可信核验。此次仅保留可信事实和原事务，展示合成已移出 |
+| `service-session.js` | 真实 Native 租约、操作账本与响应核验需可信，但用户点击的连接/管理操作不天然要求 SW。当前仍复用原 SW Native client，展示合成已移出 |
+| `service-view.js` | 纯展示投影，已仅由原固定 Sidebar Host 编译消费，SW 不再消费；仍随 Browser 发布，**不是应用包独立升级** |
+| `account-share.js` | 邀请表单/流程选择属 App；管理秘密、权限/目标/网络结果核验需可信。手动分享不天然要求 SW，本轮未迁移其安全/生命周期边界 |
+| `account-session-share.js` / `account-session-crypto.js` | 私有快照、设备密钥与加密需可信；并非加密算法必须 SW。当前固定后台实现保留，未向沙箱交付秘密 |
+| `account-contract.js` / `app/domain/account-switch-url.js` | 纯合同可在各自世界消费，校验本身不授予权限；当前后台消费者仍固定编译 |
+| `app/` 与 `ai-account-usage/` | UI、表单和普通模型已在 App；额度采集、历史统计与管理服务已在独立 Node，未被迁入 SW |
+
+这是一次真实的 SW 展示职责减少，**没有移除现有 Vault/分享/Native 模块导入，没有完成账号后台独立升级**。原 `src/sw.js:12` 的账号服务注册仍存在。隔离 esbuild 账号组件对比为 284771 → 283620 B（压缩，减少 1151 B），新展示模块 2084 B、无依赖且不在账号组件实际编译图；这不是完整 SW/WXT 体积或 Browser 构建证据。
+
+五份相关配置/会话/Host/实际 Node 业务适配器/UI 检查 **96 PASS**，包括两个先红后绿的事实 DTO 回归、unknown/过期前脱敏、伪造显示状态不能替代安装身份，以及真实 `createSidebarTools` Host 的返回兼容和内部事实不外传。固定来源/目标/漂移/symlink 检查 **10 PASS**；新模块只准进入 `ui/sidebar-tool-host.js`，SW 与其他目标继续拒绝。另1项原分享Host转发检查通过。仅 Node/隔离组件证据；完整 Browser 构建、serve 应用与 Chrome 原生结果均 `NOT_TESTED`。源码架构主观复评 **74/100**（前任务约70）；主要扣分仍是前台 Native/分享编排留在 SW、私有合同及固定 Browser 发布耦合，非独立专家或产品验收评分。执行范围及命令见[本轮工作记录](../../../docs/framework/workstreams/cookie-editor-react-shared-ui-20261017.md#2026-10-31-增量sw-展示职责拆分)。
+
+### 继续审查：剩余优化与已修依赖（2026-10-31）
+
+本次修复了服务与账号仓库的不必要耦合：**没有本站账号关联时**，企业页读取状态、保存/改名/断开配置、手动 Native 连接、读取资源/策略和打开服务管理页，不再先读 Cookie 账号仓库。损坏的账号存储不再阻断这些服务操作，也不被修复或覆盖。创建关联、返回已有本站关联及打开关联资源仍读取真实账号并核对版本；账号损坏时继续拒绝，不把空账号列表当作授权。企业页本来就独立请求服务状态，账号读取失败不决定配置表单可用性；App 和正式 JSON 无需修改。
+
+| 优先级与真实操作 | 当前归属、必要性及候选位置 | 保留的约束 | App 包能否独立升级、最小下一动作 |
+| --- | --- | --- | --- |
+| 1．配置服务、未关联时连接/打开管理页 | 配置草稿/流程已在 App；持久身份在 `service-connections.js`，手动会话在 SW。无需 Cookie 账号的分支已解除仓库依赖；不是执行世界迁移 | 原安装/连接 epoch、revision、Native 租约、原操作账本与 unknown 保护 | 本次改固定可信服务仍需 Browser 更新。先复用原入口验证此分支；有本站关联时仍依赖账号仓库 |
+| 2．手动 Native 连接、资源/策略、管理页 | 操作需可信，未证明需要 SW 生命周期；但 `src/native-agent/transport.js → service-worker.js → managed-service-client.js` 的实际客户端只由 SW 持有。候选是已有固定可信 Host 的前台编排，不能直接把当前模块挪入 Host | 关闭文档后的原请求对账、SW 重启租约失效、撤权、精确管理目标及秘密不外传 | 当前仍需 Browser 发行。先核对可复用的前台传输/账本合同；本轮未发现同等入口，不新增桥。完全公开替代能力仍 `SDK_GAP_NOT_PROVEN` |
+| 3．填写邀请、选择配置/会话分享 | 表单、模式和发送/接收流程已在 `app/components/CookieAccountSharing.jsx`；`account-share.js` / session-share 保留可信秘密和响应核验。普通交互继续在原 App 维护，无需重复迁出 | 管理秘密、设备私钥、快照、原网络效果账本、权限/目标/签名核验不交给沙箱 | 原 App 的表单/交互可以随包升级；新特权分享算法仍需 Browser。下一步仅随具体用户缺陷修改相应 owner，不为减 import 移走安全边界 |
+| 4．连接名/地址、状态文案与展示 | 草稿和中文文案已在 App；持久配置与安装/连接/账号版本关联需可信，不因非秘密就交给 App 决定授权。`service-view.js` 只是固定 Host 的纯投影 | 展示结果不授予操作，旧 App 返回形状保持；未知结果不能被展示状态清除 | 草稿/文案可独立改包；现有事实→展示投影仍随 Browser。本轮保留一个投影，不继续增加固定适配层或第二模型；若转交 App，先解决真实旧消费者与包升级兼容 |
+
+关闭侧栏后的导航自动切换、撤权/卸载和未知 Cookie 效果围栏仍需要后台事件/收尾。Vault 与加密本身只证明可信必要性；本次没有迁移它们、删除 SW 导入或实现特权后台独立升级。上一轮 1.1 KB 的组件差异及主观分数只保留为历史，不据此次小改累加评分。
+
+新增四条账号仓库边界回归，其中两条正例先复现 `E_VAULT_CORRUPT` 后通过。受影响 Host/真实 Node 服务适配器与受限管理 HTTP 链 **15 PASS / 0 FAIL**，精确来源/目标/漂移守卫 **10 PASS / 0 FAIL**。只更新账号服务一个精确 pin，未放宽准入。真实 Chrome、Native Port、serve 发布/连接与完整 Browser 构建仍 `NOT_TESTED`；未安装/重载、提交或推送。
+
 ## 当前接续：原开发服务已恢复，原生更新确认仍待执行（2026-10-31，01a19164）
 
 本任务初读 goal 为 null，已按用户要求创建无预算完整目标，创建后实读 active；**最新工具实读为 blocked（2026-10-31 10:21:06 UTC）**。同一原生 SidePanel 控制缺口已连续原始轮及两次自动续跑共三轮，没有新安装或详情读回回执；无依赖的环境恢复与接收机诊断已完成，按目标生命周期规则标记阻塞，未缩小目标或声称完成。此前任务的 blocked／paused 状态均未改动。最新证据在同一 [JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishNativeEntry20261031.resume01a19164.latestGoalAudit`，原始开发就绪记录保留其当时 active 状态。此前 blocked 后曾实读恢复为 active，恢复来源未知；恢复后的第三轮同一缺口仍未解除，已重新按严格条件标记 blocked，最新回执见同节 `resumedGoalAudit`。

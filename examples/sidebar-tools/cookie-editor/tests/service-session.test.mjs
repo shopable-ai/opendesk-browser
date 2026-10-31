@@ -1,11 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createCookieServiceSession,COOKIE_SERVICE_SESSION_KEY} from '../trusted/service-session.js';
+import {createCookieServiceSession as createAuthority,COOKIE_SERVICE_SESSION_KEY} from '../trusted/service-session.js';
+import {presentCookieServiceState} from '../trusted/service-view.js';
+// Exercise the real authority→UI projection together for the existing outward
+// behavior assertions. Raw authority facts are checked separately below.
+function createCookieServiceSession(options){
+  const session=createAuthority(options);
+  return {...session,facts:session,
+    present:async(...args)=>presentCookieServiceState(await session.present(...args)),
+    dispatch:async(...args)=>presentCookieServiceState(await session.dispatch(...args))};
+}
 const origin='https://chatgpt.com';
 const identity={extensionId:'a'.repeat(32),toolId:'cookie-editor',packageHash:'b'.repeat(64),installEpoch:'install_1'};
 const descriptor={serviceId:'ai-account-usage',serviceInstanceId:'instance_1',providerEpoch:'epoch_1',productName:'Usage',origin:'http://usage.localhost:1234',capabilities:['usage:manual-binding','policy:metadata-state','management:resource-open']};
 const localRef={origin,alias:'acct_local',version:1,storeId:'0',partitionKey:null};
-const config=()=>({revision:3,connections:[{id:'conn_local',mode:'local',origin:'',label:'Local',epoch:1,status:'UNCONNECTED',reasonCode:'E_SERVICE_BRIDGE_UNAVAILABLE'}],associations:[{id:'assoc_local',connectionId:'conn_local',connectionEpoch:1,localAlias:'acct_local',localOrigin:origin,accountVersion:1,remoteAccountId:'acct_remote',providerKey:'codex',verification:'UNVERIFIED',status:'PENDING_CONNECTION'}],capabilities:{connect:false,openManagement:false,policyAcceptance:false}});
+const config=()=>({format:'opendesk.cookie-service-facts.v1',revision:3,connections:[{id:'conn_local',mode:'local',origin:'',label:'Local',epoch:1,ownerCurrent:true,disconnected:false}],associations:[{id:'assoc_local',connectionId:'conn_local',connectionEpoch:1,localAlias:'acct_local',localOrigin:origin,accountVersion:1,remoteAccountId:'acct_remote',providerKey:'codex',verification:'UNVERIFIED',accountCurrent:true}]});
 const binding={bindingId:'binding_1',deviceId:'device_1',purpose:'usage',providerKey:'codex',remoteAccountId:'acct_remote',revision:1,authEpoch:1,sourceMode:'MANUAL',verificationState:'UNVERIFIED',verifiedAt:null,revoked:false,localAccount:localRef};
 const scope={bindingIds:['binding_1'],dataCategories:['ACCOUNT_METADATA'],trigger:'MANUAL',retentionDays:7};
 const policy={serviceInstanceId:'instance_1',deviceId:'device_1',authEpoch:1,status:'PENDING',desired:{desiredRevision:1,desiredHash:'c'.repeat(64),scope},acceptance:null,paused:false};
@@ -22,6 +31,50 @@ function fixture(){
 const connect=f=>f.run('serviceConnect',{serviceId:'ai-account-usage',providerEpoch:'epoch_1'});
 // Omitted keys, rather than undefined properties, are required on wire payloads.
 const assoc=(f,operation='serviceCommitAssociation',overrides={})=>f.session.dispatch({...f.context,operation,payload:{origin,revision:3,sessionRevision:f.records.get(COOKIE_SERVICE_SESSION_KEY)?.revision??0,associationId:'assoc_local'},localRef,...overrides});
+
+test('SW session returns redacted authority facts rather than the connection display model',async()=>{
+  const f=fixture();await connect(f);const result=await f.session.facts.present(config(),f.context);
+  assert.equal(result.format,'opendesk.cookie-service-facts.v1');
+  assert.equal(result.connections[0].session.live,true);
+  assert.equal(result.connections[0].session.ownerCurrent,true);
+  for(const key of ['reasonCode','canConnect','canOpenManagement'])
+    assert.equal(Object.hasOwn(result.connections[0],key),false,key);
+  assert.equal(Object.hasOwn(result,'capabilities'),false);
+  assert.doesNotMatch(JSON.stringify(result),/remoteConnectionId|runtimeId|installEpoch|packageHash|localAccount|retired|ledger/);
+});
+
+test('raw unknown and expired facts withhold resources and private recovery context before UI projection',async()=>{
+  const f=fixture();await connect(f);await f.run('serviceResources');await assoc(f);
+  await f.run('serviceReadPolicy');
+  let result=await f.session.facts.present(config(),f.context);
+  assert.deepEqual(result.associations[0].binding,{id:'binding_1',revoked:false});
+  assert.equal(result.connections[0].session.resources.length,1);
+  f.setHandler(async()=>{throw Error('PRIVATE_TRANSPORT_ERROR');});
+  await assert.rejects(assoc(f,'serviceUnbindAssociation'),{code:'E_OUTCOME_UNKNOWN'});
+  result=await f.session.facts.present(config(),f.context);
+  const pending=result.connections[0].session.pending;
+  assert.deepEqual(Object.keys(pending).sort(),['action','operationId','outcome']);
+  assert.equal(pending.outcome,'OUTCOME_UNKNOWN');
+  assert.deepEqual(result.connections[0].session.resources,[]);
+  assert.equal(result.connections[0].session.policy,null);
+  const attempts=f.calls.length;
+  f.setState({supported:false,connected:false,services:[]});
+  result=await f.session.facts.present(config(),f.context);
+  assert.equal(result.connections[0].session.live,false);
+  assert.deepEqual(result.connections[0].session.resources,[]);
+  assert.equal(result.connections[0].session.pending.operationId,pending.operationId);
+  assert.equal(f.calls.length,attempts);
+  assert.doesNotMatch(JSON.stringify(result),/PRIVATE_|remoteConnectionId|runtimeId|installEpoch|packageHash|localAccount|retired|ledger|expected/);
+});
+
+test('a display status cannot substitute for current installation facts at Native dispatch',async()=>{
+  const f=fixture(),localState=config();
+  localState.connections[0].ownerCurrent=false;
+  localState.connections[0].status='CONNECTED';
+  await assert.rejects(f.run('serviceConnect',{serviceId:'ai-account-usage',providerEpoch:'epoch_1'},
+    {localState}),{code:'E_SERVICE_DISCONNECTED'});
+  assert.equal(f.calls.length,0);
+});
 
 test('reconnect invalidates an old mutation confirmation even when configuration revision and epoch stay unchanged',async()=>{
   const f=fixture();await connect(f);const reviewed=await f.run('serviceResources');
@@ -49,7 +102,7 @@ test('binding mismatch or current installation change after dispatch is unknown,
 test('unbind uses stored exact revision and auth epoch before local removal; disconnect guards local config',async()=>{const f=fixture();await connect(f);await f.run('serviceResources');await assoc(f);await assert.rejects(f.session.guardLocalChange({...f.context,operation:'serviceDisconnect',payload:{origin,connectionId:'conn_local'}}),{code:'E_SERVICE_REMOTE_ACTIVE'});await assoc(f,'serviceUnbindAssociation');const call=f.calls.find(c=>c.action==='unbind');assert.equal(call.payload.expectedRevision,1);assert.equal(call.payload.authEpoch,1);await f.session.guardLocalChange({...f.context,operation:'serviceRemoveAssociation',payload:{origin,associationId:'assoc_local'}});assert.equal((await f.run('serviceRemoteDisconnect')).connections[0].status,'DISCONNECTED');});
 test('corrupt schema fails closed and clear deletes only owned session key',async()=>{const f=fixture();f.records.set('unrelated',{keep:true});f.records.set(COOKIE_SERVICE_SESSION_KEY,{format:1,secret:'bad'});await assert.rejects(f.session.present(config(),f.context),{code:'E_SERVICE_STORE'});await f.session.clear();assert.deepEqual([...f.records.keys()],['unrelated']);});
 
-test('offline legacy identity remains usable without granting Native capabilities',async()=>{const f=fixture();f.setState({supported:false,connected:false,services:[]});const v=await f.session.present(config(),{...f.context,identity:{...identity,extensionId:'test'}});assert.equal(v.connections[0].status,'UNCONNECTED');assert.deepEqual(v.capabilities,config().capabilities);});
+test('offline legacy identity remains usable without granting Native capabilities',async()=>{const f=fixture();f.setState({supported:false,connected:false,services:[]});const v=await f.session.present(config(),{...f.context,identity:{...identity,extensionId:'test'}});assert.equal(v.connections[0].status,'UNCONNECTED');assert.deepEqual(v.capabilities,{connect:false,openManagement:false,policyAcceptance:false});});
 test('unsafe management targets never open tabs or leak URLs and cannot archive as an uncertain tab-open',async()=>{for(const url of ['https://evil.test/opendesk/admin/sync?device=device_1#open='+'d'.repeat(64),descriptor.origin+'/opendesk/admin/sync?device=other#open='+'d'.repeat(64),descriptor.origin+'/opendesk/admin/sync?device=device_1&extra=1#open='+'d'.repeat(64),descriptor.origin+'/opendesk/admin/sync?device=device_1#open=private']){const f=fixture();await connect(f);f.setHandler(async()=>({url}));await assert.rejects(f.run('serviceOpenManagement',{associationId:''}),{code:'E_OUTCOME_UNKNOWN'});assert.equal(f.tabs.length,0);const v=await f.session.present(config(),f.context);await assert.rejects(f.run('serviceArchiveOpenUnknown',{operationId:v.connections[0].pending.operationId}));assert.doesNotMatch(JSON.stringify([...f.records.values()]),/evil|private|#open/);}});
 test('resource management target requires current exact bound account and opens only that resource',async()=>{const f=fixture();await connect(f);await f.run('serviceResources');await assoc(f);f.setHandler(async input=>{assert.deepEqual(input.payload,{connectionId:f.calls[0].payload.connectionId,remoteAccountId:'acct_remote',bindingId:'binding_1'});return {url:descriptor.origin+'/opendesk/admin/accounts/acct_remote#open='+'d'.repeat(64)};});const v=await f.run('serviceOpenManagement',{associationId:'assoc_local'});assert.equal(v.opened,true);assert.equal(f.tabs.length,1);await assert.rejects(f.run('serviceOpenManagement',{associationId:'assoc_local'},{accounts:[{alias:'acct_local',origin,version:2}]}),{code:'E_VAULT_CONFLICT'});});
 test('provider changes during Native request make a write unknown and invalidate the runtime lease',async()=>{const f=fixture();f.setHandler(async input=>{f.setState({supported:true,connected:true,services:[{...descriptor,providerEpoch:'epoch_2'}]});return {connectionId:input.payload.connectionId,serviceInstanceId:'instance_1',deviceId:'device_1',authEpoch:1};});await assert.rejects(connect(f),{code:'E_OUTCOME_UNKNOWN'});const v=await f.session.present(config(),f.context);assert.equal(v.connections[0].status,'SESSION_EXPIRED');assert.equal(v.connections[0].pending.outcome,'OUTCOME_UNKNOWN');await assert.rejects(connect(f));assert.equal(f.calls.length,1);});

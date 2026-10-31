@@ -41,6 +41,7 @@ import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.j
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_SHARE_FIELDS,
   COOKIE_ACCOUNT_SHARE_OPTIONAL_FIELDS,COOKIE_SERVICE_FIELDS,COOKIE_SERVICE_READS}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
+import {presentCookieServiceState} from '../../examples/sidebar-tools/cookie-editor/trusted/service-view.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
@@ -2296,7 +2297,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw Object.assign(new Error(response?.error?.message||'可信账号服务未确认操作'),
           {code:response?.error?.code||'E_ACCOUNT_HOST'});
       assertSession(source,token);
-      return response.data;
+      return Object.hasOwn(COOKIE_SERVICE_FIELDS,action)
+        ?presentCookieServiceState(response.data):response.data;
     }
     if(operation==='analytics.report'){
       // Legacy portable tool UI may only self-report its own bounded copy success.

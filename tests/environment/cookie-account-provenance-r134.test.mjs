@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {readFileSync,mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync,realpathSync} from 'node:fs';
+import {readFileSync,readdirSync,mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync,realpathSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {resolve,dirname} from 'node:path';
 import {parse} from 'acorn';
@@ -16,12 +16,13 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
   'trusted/account-contract.js':'081311cdc99d828e631efd2a5be1bcc20c461246',
-  'trusted/account-service.js':'fcd7fab18b0bac62fe4a105569523c0c6011d1cb',
+  'trusted/account-service.js':'944308bfcdc4fa5db302c0935b405ee7e488129b',
   'trusted/account-share.js':'6124420696da31472805467c9a09ef9640b5d388',
   'trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
   'trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
-  'trusted/service-connections.js':'e2f0007c8e82084125c86ea9c72ac4c43bd5bf6a',
-  'trusted/service-session.js':'8a4654e89d518d88cbf1993f774c78ee5ed1228d',
+  'trusted/service-connections.js':'0b9281abb8a89837829414fee442953e776ce734',
+  'trusted/service-session.js':'6084f613f13a7e84e9dd143a9443fdfdf4c4ac06',
+  'trusted/service-view.js':'6e71b0f18afd1d4433d1a61dd1789046f82a9a8e',
   'trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };
@@ -31,6 +32,8 @@ const contractTargets=[
   'ui/marketplace.js','marketplace/market-host.js','knowledge/knowledge-host.js',
   'platform/context-menus.js','sidebar-tools/preinstall-intent.js'
 ];
+const allowedTargets=name=>name===contract?contractTargets:
+  name==='trusted/service-view.js'?['ui/sidebar-tool-host.js']:['sw.js'];
 const targets=[...new Set(['sw.js',...Object.values(FIXED_OUTPUTS),
   'unregistered/custom.js','cookie-editor.js'])];
 const blob=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
@@ -49,10 +52,85 @@ function fixture(t){
   return root;
 }
 
+// Exercise the actual WXT generateBundle callback's recorder with serve's
+// environment. Keep cwd/env isolated from other tests and the daily writer.
+function record(root,path,target,{evidence,fixedHook=false}={}){
+  const env={...process.env};
+  delete env.OPENDESK_MODULE_EVIDENCE_DIR;
+  env.OPENDESK_AI_LOCAL_TEST='0';
+  if(evidence)env.OPENDESK_MODULE_EVIDENCE_DIR=evidence;
+  writeFileSync(resolve(root,'package-lock.json'),JSON.stringify({packages:{}}));
+  const source=`import {recordBundle} from ${JSON.stringify(new URL('../../scripts/bundle-provenance.mjs',import.meta.url).href)};
+    const chunk=JSON.parse(process.argv[1]);
+    try{
+      if(${fixedHook}){
+        const {default:config}=await import(${JSON.stringify(new URL('../../wxt.config.mjs',import.meta.url).href)});
+        const vite={mode:'development',plugins:[],build:{lib:{},terserOptions:{format:{},compress:{}},rollupOptions:{}}};
+        config.hooks['vite:build:extendConfig']([{type:'background',name:'sw'}],vite);
+        await vite.plugins.find(p=>p.name==='opendesk-fixed-sw').generateBundle({}, {[chunk.fileName]:chunk});
+      }else await recordBundle(chunk);
+      console.log(JSON.stringify({accepted:true}));
+    }
+    catch(error){console.log(JSON.stringify({accepted:false,message:error.message,code:error.code}));}`;
+  return JSON.parse(execFileSync(process.execPath,['--input-type=module','-e',source,
+    JSON.stringify({type:'chunk',fileName:target,imports:[],dynamicImports:[],code:'/* fixed fixture */',modules:{
+      [resolve(root,path)]:{originalLength:100,renderedLength:80}
+    }})],{cwd:root,env,encoding:'utf8'}));
+}
+
+test('serve: exact reviewed SW code passes without creating a build receipt',t=>{
+  const root=fixture(t),before=readdirSync(root).sort();
+  assert.deepEqual(record(root,prefix+'trusted/account-service.js','sw.js'),{accepted:true});
+  assert.deepEqual(readdirSync(root).sort(),[...before,'package-lock.json'].sort());
+});
+
+test('serve: missing evidence directory cannot admit changed, misrouted or dynamic app code',t=>{
+  const root=fixture(t),path=prefix+'trusted/account-service.js';
+  const rejected=(path,target,reason)=>{
+    const result=record(root,path,target);
+    assert.equal(result.accepted,false,`${path} must not enter ${target}`);
+    assert.match(result.message,reason);
+  };
+  rejected(path,'ui/tool-shell.js',/cannot enter a privileged fixed bundle/);
+  rejected(prefix+'app/main.jsx','sw.js',/cannot enter a privileged fixed bundle/);
+  rejected('projects/unreviewed-app/background.js','sw.js',/cannot enter a privileged fixed bundle/);
+  rejected('src/libs/core.js','sw.js',/implementation unexpectedly bundled/);
+  rejected('node_modules/unlocked-library/index.js','sw.js',/missing lock provenance/);
+  const file=resolve(root,path),original=readFileSync(file);
+  writeFileSync(file,Buffer.concat([original,Buffer.from('\n// unreviewed development edit\n')]));
+  rejected(path,'sw.js',/Trusted Cookie account source changed/);
+  const source=resolve(root,'original-service.js');writeFileSync(source,original);
+  rmSync(file);symlinkSync(source,file);
+  rejected(path,'sw.js',/must not be a symlink/);
+});
+
+test('serve: the existing WXT output hook enforces the gate before emitting a fixed SW',t=>{
+  const root=fixture(t),path=prefix+'trusted/account-service.js';
+  assert.deepEqual(record(root,path,'sw.js',{fixedHook:true}),{accepted:true});
+  const file=resolve(root,path);
+  writeFileSync(file,Buffer.concat([readFileSync(file),Buffer.from('\n// unfinished privileged edit\n')]));
+  const result=record(root,path,'sw.js',{fixedHook:true});
+  assert.equal(result.accepted,false);
+  assert.match(result.message,/Trusted Cookie account source changed/);
+});
+
+test('build: the same source gate still records exact output and never overwrites a receipt',t=>{
+  const root=fixture(t),evidence=resolve(root,'evidence');mkdirSync(evidence);
+  assert.deepEqual(record(root,prefix+'trusted/account-service.js','sw.js',{evidence}),{accepted:true});
+  const file=resolve(evidence,'sw.js.json'),bytes=readFileSync(file);
+  const receipt=JSON.parse(bytes);
+  assert.equal(receipt.target,'sw.js');
+  assert.equal(receipt.modules[0].reviewedFirstPartyBlob,pins['trusted/account-service.js']);
+  assert.equal(receipt.sha256,createHash('sha256').update('/* fixed fixture */').digest('hex'));
+  assert.equal(receipt.bytes,Buffer.byteLength('/* fixed fixture */'));
+  assert.equal(record(root,prefix+'trusted/account-service.js','sw.js',{evidence}).code,'EEXIST');
+  assert.deepEqual(readFileSync(file),bytes);
+});
+
 test('R134: each reviewed Cookie blob enters only its actual fixed static targets',t=>{
   const root=fixture(t);
   for(const [name,pin] of Object.entries(pins))for(const target of targets){
-    const allowed=name===contract?contractTargets.includes(target):target==='sw.js';
+    const allowed=allowedTargets(name).includes(target);
     if(allowed){
       const row=describe(root,prefix+name,target).modules[0];
       assert.equal(row.path,prefix+name);
@@ -67,7 +145,7 @@ test('R134: every approved source-target pair fails closed on byte drift',t=>{
   for(const name of Object.keys(pins)){
     const file=resolve(root,prefix+name);
     writeFileSync(file,Buffer.concat([readFileSync(file),Buffer.from('\n// unreviewed drift\n')]));
-    for(const target of name===contract?contractTargets:['sw.js'])
+    for(const target of allowedTargets(name))
       assert.throws(()=>describe(root,prefix+name,target),/Trusted Cookie account source changed/);
   }
 });
@@ -76,7 +154,7 @@ test('R134: file and ancestor-directory symlinks cannot substitute reviewed byte
   const root=fixture(t),linked=fixture(t);
   for(const name of Object.keys(pins)){
     const file=resolve(linked,prefix+name);rmSync(file);symlinkSync(resolve(root,prefix+name),file);
-    for(const target of name===contract?contractTargets:['sw.js'])
+    for(const target of allowedTargets(name))
       assert.throws(()=>describe(linked,prefix+name,target),/must not be a symlink/);
   }
   const dir=resolve(linked,prefix,'trusted');rmSync(dir,{recursive:true});
@@ -122,6 +200,7 @@ test('R134: audited Cookie closure uses only static imports and a pure shared co
   assert.deepEqual([...new Set(deps('trusted/account-vault.js'))],['./account-contract.js']);
   assert.deepEqual(deps('trusted/service-connections.js'),['./account-contract.js']);
   assert.deepEqual(deps('trusted/service-session.js'),['../../../../src/native-agent/managed-service-protocol.js']);
+  assert.deepEqual(deps('trusted/service-view.js'),[]);
   assert.deepEqual(deps('trusted/account-share.js'),['./account-session-share.js',
     './account-session-crypto.js','../../../../src/platform/protocol.js']);
   assert.deepEqual(deps('trusted/account-session-share.js'),['./account-share.js',
@@ -140,7 +219,7 @@ test('R134: the pre-fence service is rejected, and working-tree drift never inhe
     assert.throws(()=>describe(root,prefix+name,'sw.js'),/Trusted Cookie account source changed/);
   }
   for(const [name,pin] of Object.entries(pins)){
-    const target=name===contract?'ui/sidebar-tool-host.js':'sw.js';
+    const target=allowedTargets(name).includes('ui/sidebar-tool-host.js')?'ui/sidebar-tool-host.js':'sw.js';
     if(blob(readFileSync(resolve(prefix+name)))===pin)
       assert.equal(describe(process.cwd(),prefix+name,target).modules[0].reviewedFirstPartyBlob,pin);
     else assert.throws(()=>describe(process.cwd(),prefix+name,target),/Trusted Cookie account source changed/);

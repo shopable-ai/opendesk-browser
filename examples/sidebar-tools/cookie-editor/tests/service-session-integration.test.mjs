@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {request} from 'node:http';
 import {createCookieAccountService} from '../trusted/account-service.js';
+import {presentCookieServiceState} from '../trusted/service-view.js';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_STORE_KEY,COOKIE_SERVICE_FIELDS} from '../trusted/account-contract.js';
 import {HistoryStore} from '../ai-account-usage/history-store.mjs';
 import {ServiceBindingStore} from '../ai-account-usage/service-binding-store.mjs';
@@ -98,7 +99,7 @@ async function fixture(t,{loseBind=false,afterOpen=()=>{}}={}){
         ...(COOKIE_SERVICE_FIELDS[operation]?.includes('sessionRevision')?{sessionRevision:observedSessionRevision}:{}),
         ...payload}}),structuredClone(sender));
     if(Number.isSafeInteger(result.sessionRevision))observedSessionRevision=result.sessionRevision;
-    return result;
+    return presentCookieServiceState(result);
   };
   const http=(path,body,cookie)=>new Promise((resolve,reject)=>{
     const u=new URL(server.url),r=request({hostname:'127.0.0.1',port:u.port,path,method:body?'POST':'GET',
@@ -121,6 +122,33 @@ async function ready(f){
     remoteAccountId:'remote_1',organization:'本机用户',providerKey:'codex',document:f.document});
   return {state,connectionId,associationId:state.associations[0].id};
 }
+test('connection-only Native workflow does not depend on the Cookie account store',async t=>{
+  const f=await fixture(t);
+  f.records.set(COOKIE_ACCOUNT_STORE_KEY,null);
+  let state=await f.send('serviceSave',{revision:0,label:'本机',mode:'local',serviceOrigin:''});
+  const connectionId=state.connections[0].id;
+  state=await f.send('serviceConnect',{revision:state.revision,connectionId,serviceId:'ai-account-usage',providerEpoch:'provider_1'});
+  assert.equal(state.connections[0].status,'CONNECTED');
+  state=await f.send('serviceResources',{connectionId});
+  assert.equal(state.connections[0].resources[0].remoteAccountId,'remote_1');
+  state=await f.send('serviceReadPolicy',{connectionId});
+  assert.ok(state.connections[0].policy);
+  state=await f.send('serviceOpenManagement',{revision:state.revision,connectionId,associationId:''});
+  assert.equal(state.opened,true);
+  assert.equal(f.tabs.length,1);
+  assert.equal(new URL(f.tabs[0].url).pathname,'/opendesk/admin/sync');
+  state=await f.send('serviceRemoteDisconnect',{revision:state.revision,connectionId});
+  assert.equal(state.connections[0].status,'DISCONNECTED');
+  assert.deepEqual(f.nativeCalls.map(call=>call.action),['connect','accounts','policy','open','disconnect']);
+  assert.equal(f.records.get(COOKIE_ACCOUNT_STORE_KEY),null);
+});
+test('binding cannot bypass an unavailable Cookie account store',async t=>{
+  const f=await fixture(t),{state,associationId}=await ready(f);
+  f.records.set(COOKIE_ACCOUNT_STORE_KEY,null);
+  const calls=f.nativeCalls.length;
+  await assert.rejects(f.send('serviceCommitAssociation',{revision:state.revision,associationId,document:f.document}),{code:'E_VAULT_CORRUPT'});
+  assert.equal(f.nativeCalls.length,calls);
+});
 test('fixed Cookie service binds real isolated resource, accepts a subset and consumes only scoped management open',async t=>{
   const f=await fixture(t);let {state,connectionId,associationId}=await ready(f);
   state=await f.send('serviceCommitAssociation',{revision:state.revision,associationId,document:f.document});

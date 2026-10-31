@@ -1,4 +1,5 @@
-// Build-only evidence. Never emitted into dist or imported by extension code.
+// Fixed-entry source admission and optional build evidence. Never emitted into
+// dist or imported by extension code; serve must enforce the same source gate.
 import {readFile,writeFile,readdir,mkdir} from 'node:fs/promises';
 import {readFileSync,realpathSync} from 'node:fs';
 import {createHash,randomUUID} from 'node:crypto';
@@ -156,6 +157,9 @@ function reviewedCompiledAdblock(target,path,root){
 // in the existing Foundation store. The fixed service consumer uses only the
 // original Native subprotocol; no Cookie transfer or sandbox Native authority.
 // Its exact reviewed bytes may enter only the fixed SW closure.
+// Display composition now consumes redacted facts only in the existing fixed
+// Sidebar Host. Its UI-only blob is explicitly rejected in the SW and all
+// other entries; no tool package or arbitrary trusted/ file gains admission.
 const compiledCookieAccountInputs=Object.freeze({
   // S3 fixed Relay session transport: exact HTTPS paths, explicit fingerprints,
   // nonexportable device identities and authenticated encrypted snapshots.
@@ -165,7 +169,7 @@ const compiledCookieAccountInputs=Object.freeze({
   // scope/Host fence, redacted URL; proof failure preserves the saved receipt.
   // Verified same-site manual recovery settles only the unchanged tab fence;
   // its old URL remains blocked. Reopened shares use exact-owner local receipts.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'fcd7fab18b0bac62fe4a105569523c0c6011d1cb',
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'944308bfcdc4fa5db302c0935b405ee7e488129b',
   // Only a private preflight-unsent receipt can re-arm an unclaimed invite;
   // dispatched requests and lost replies retain the durable unknown fence.
   'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'6124420696da31472805467c9a09ef9640b5d388',
@@ -173,8 +177,9 @@ const compiledCookieAccountInputs=Object.freeze({
   // before POST; durable unknown fences never replay a consumed request.
   'examples/sidebar-tools/cookie-editor/trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
   'examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
-  'examples/sidebar-tools/cookie-editor/trusted/service-connections.js':'e2f0007c8e82084125c86ea9c72ac4c43bd5bf6a',
-  'examples/sidebar-tools/cookie-editor/trusted/service-session.js':'8a4654e89d518d88cbf1993f774c78ee5ed1228d',
+  'examples/sidebar-tools/cookie-editor/trusted/service-connections.js':'0b9281abb8a89837829414fee442953e776ce734',
+  'examples/sidebar-tools/cookie-editor/trusted/service-session.js':'6084f613f13a7e84e9dd143a9443fdfdf4c4ac06',
+  'examples/sidebar-tools/cookie-editor/trusted/service-view.js':'6e71b0f18afd1d4433d1a61dd1789046f82a9a8e',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
   'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
@@ -187,7 +192,9 @@ const cookieAccountContractTargets=new Set([
 function reviewedCompiledCookieAccounts(target,path,root){
   if(!Object.hasOwn(compiledCookieAccountInputs,path))return null;
   if(path==='examples/sidebar-tools/cookie-editor/trusted/account-contract.js'
-    ?!cookieAccountContractTargets.has(target):target!=='sw.js')return null;
+    ?!cookieAccountContractTargets.has(target):
+    path==='examples/sidebar-tools/cookie-editor/trusted/service-view.js'
+      ?target!=='ui/sidebar-tool-host.js':target!=='sw.js')return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
     throw Error('Trusted Cookie account source must not be a symlink: '+path);
@@ -613,10 +620,13 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     note:'Rollup module graph; renderedLength is pre-minification characters, not final bytes or browser execution proof.'};
 }
 export async function recordBundle(chunk) {
-  const directory=process.env.OPENDESK_MODULE_EVIDENCE_DIR;
-  if(!directory)return; // Direct WXT debugging is not a verified build receipt.
   const lock=JSON.parse(await readFile('package-lock.json','utf8'));
   const record=describeBundle({chunk,lock});
+  // Admission must precede WXT output in serve as well as verified builds.
+  // Omitting the evidence directory skips only the receipt, never source,
+  // target, symlink, npm or exact reviewed-blob checks.
+  const directory=process.env.OPENDESK_MODULE_EVIDENCE_DIR;
+  if(!directory)return; // Passing this gate alone is not a verified build receipt.
   await writeFile(resolve(directory,encodeURIComponent(chunk.fileName)+'.json'),
     JSON.stringify(record),{flag:'wx'});
 }

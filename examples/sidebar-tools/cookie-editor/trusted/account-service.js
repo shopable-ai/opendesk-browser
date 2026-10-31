@@ -545,8 +545,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
         operation==='serviceOpenManagement'&&payload.associationId!=='';
       if(needsDocument)await validateDocument(payload.document,origin);
       const {document:serviceDocument,...metadata}=payload;
-      const accounts=(await statusFor(origin)).accounts;
-      // Recheck installation/sender after storage awaits; no caller-provided
+      // Recheck installation/sender after document awaits; no caller-provided
       // account metadata, credentials, URL handoff or capabilities are trusted.
       await installed(message);await hostSender(sender,hostDocumentId);
       if(needsDocument)await validateDocument(serviceDocument,origin);
@@ -566,8 +565,14 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
             if(!latest||latest.version!==selectedAccount.version)throw fail('E_VAULT_CONFLICT');
           }
       };
+      const localState=await connections.dispatch({operation:'serviceStatus',payload:{origin},identity,assertCurrent});
+      // Service-only configuration and Native operations do not consume Cookie
+      // accounts. Load them only to create or verify this site's associations;
+      // an unrelated unavailable vault must not block connection management.
+      const accounts=operation==='serviceAssociate'||localState.associations.length>0
+        ?(await statusFor(origin)).accounts:[];
+      await assertCurrent();
       const context={identity,accounts,origin,assertCurrent};
-      const localState=await connections.dispatch({operation:'serviceStatus',payload:{origin},...context});
       if(operation==='serviceCommitAssociation'||operation==='serviceOpenManagement'&&metadata.associationId!==''){
         const association=localState.associations.find(item=>item.id===metadata.associationId);
         selectedAccount=accounts.find(item=>item.alias===association?.localAlias&&item.origin===origin);

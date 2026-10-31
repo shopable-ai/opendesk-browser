@@ -74,29 +74,29 @@ export function createCookieServiceSession({api,storage,transport}={}){
       check(same(await read(d),next),'E_OUTCOME_UNKNOWN');await guard();
     }catch(e){if(attempted)throw fail('E_OUTCOME_UNKNOWN');throw e?.code?e:fail('E_ACCOUNT_STORAGE_UNAVAILABLE');}
   }
-  function view(localState,identity,accounts,n,state){
-    const result=clone(localState),status=new Map();result.sessionRevision=state.revision;
+  function facts(localState,identity,accounts,n,state){
+    const result=clone(localState);result.sessionRevision=state.revision;
     result.nativeServices=n.providers.map(p=>({...clone(p),capabilities:p.capabilities.filter(x=>['usage:manual-binding','policy:metadata-state','management:resource-open'].includes(x))}));
-    result.capabilities={...result.capabilities,connect:n.providers.length>0,openManagement:n.providers.some(p=>p.capabilities.includes('management:resource-open')),policyAcceptance:n.providers.length>0};
     result.connections=result.connections.map(c=>{
-      const r=state.sessions.find(x=>x.connectionId===c.id);let s=c.status;
-      if(r){if(!same(r.owner,identity)||r.connectionEpoch!==c.epoch||c.status==='INVALIDATED')s='INVALIDATED';
-        else if(!live(r,n))s='SESSION_EXPIRED';else if(r.pending)s='OUTCOME_UNKNOWN';else s=r.status;}
-      const active=s==='CONNECTED';status.set(c.id,s);
-      return {...c,status:s,reasonCode:s==='INVALIDATED'?'E_TOOL_CHANGED':s==='SESSION_EXPIRED'?'E_SERVICE_SESSION_EXPIRED':s==='OUTCOME_UNKNOWN'?'E_OUTCOME_UNKNOWN':s==='UNCONNECTED'&&!n.providers.length?(c.reasonCode||'E_SERVICE_BRIDGE_UNAVAILABLE'):'',canConnect:c.mode==='local'&&c.status!=='INVALIDATED'&&n.providers.length>0&&(!r||same(r.owner,identity)&&recoverable(r)&&r.retired.length<8),
-        canOpenManagement:active&&r.provider.capabilities.includes('management:resource-open'),resources:active?clone(r.resources):[],policy:active?clone(r.policy):null,
-        pending:r?.pending?pick(r.pending,['operationId','action','outcome']):null};
+      const r=state.sessions.find(x=>x.connectionId===c.id);
+      if(!r)return {...c,session:null};
+      const ownerCurrent=same(r.owner,identity),epochCurrent=r.connectionEpoch===c.epoch,
+        leased=live(r,n),active=c.ownerCurrent&&ownerCurrent&&epochCurrent&&leased&&!r.pending&&r.status==='CONNECTED';
+      return {...c,session:{ownerCurrent,epochCurrent,live:leased,status:r.status,
+        reconnectable:recoverable(r)&&r.retired.length<8,
+        management:r.provider.capabilities.includes('management:resource-open'),
+        resources:active?clone(r.resources):[],policy:active?clone(r.policy):null,
+        pending:r.pending?pick(r.pending,['operationId','action','outcome']):null}};
     });
     result.associations=result.associations.map(a=>{
       const r=state.sessions.find(x=>x.connectionId===a.connectionId),b=r?.bindings.find(x=>x.associationId===a.id)?.value;
-      const account=accounts.find(x=>x.alias===a.localAlias&&x.origin===a.localOrigin),stale=!account||account.version!==a.accountVersion;
-      return {...a,...(b?{remoteBindingId:b.bindingId,remoteRevocation:b.revoked?'CONFIRMED':'REQUIRED'}:{}),verification:'UNVERIFIED',
-        status:stale?'STALE':b&&!b.revoked&&status.get(a.connectionId)==='CONNECTED'?'BOUND':status.get(a.connectionId)==='CONNECTED'?'PENDING_CONNECTION':a.status==='STALE'?'STALE':status.get(a.connectionId)==='UNCONNECTED'?a.status:status.get(a.connectionId)};
+      return {...a,accountCurrent:accounts.some(x=>x.alias===a.localAlias&&x.origin===a.localOrigin&&x.version===a.accountVersion),
+        binding:b?{id:b.bindingId,revoked:b.revoked}:null};
     });
     return result;
   }
   async function present(localState,{identity,accounts=[],assertCurrent=async()=>{}}={}){
-    const d=await db();await assertCurrent();const state=await read(d);await assertCurrent();return view(localState,identity,accounts,native(),state);
+    const d=await db();await assertCurrent();const state=await read(d);await assertCurrent();return facts(localState,identity,accounts,native(),state);
   }
   function apply(r,p,result){
     check(object(result),'E_SERVICE_RESULT');
@@ -134,7 +134,7 @@ export function createCookieServiceSession({api,storage,transport}={}){
     if(action==='open'&&association)check(payload.connectionId===association.connectionId,'E_SERVICE_BINDING');
     const connectionId=association?.connectionId??payload.connectionId;
     const c=localState.connections.find(x=>x.id===connectionId);check(c,'E_SERVICE_NOT_FOUND');
-    check(c.mode==='local','E_SERVICE_UNSUPPORTED');check(c.status!=='INVALIDATED','E_SERVICE_DISCONNECTED');
+    check(c.mode==='local','E_SERVICE_UNSUPPORTED');check(c.ownerCurrent===true,'E_SERVICE_DISCONNECTED');
     let r=state.sessions.find(x=>x.connectionId===c.id);
     let opened=false;
     const guard=async()=>{await assertCurrent({allowInactiveDocument:action==='open'&&opened});const now=native();check(now.client===client&&now.providers.some(p=>same(p,r.provider)),'E_SERVICE_SESSION_EXPIRED');check(same(identity,r.owner)&&r.connectionEpoch===c.epoch,'E_SERVICE_SESSION_EXPIRED');};
@@ -153,7 +153,7 @@ export function createCookieServiceSession({api,storage,transport}={}){
     const commit=async()=>{state.revision++;await save(d,before,state,guard);before=clone(state);};
     if(action==='archive'){
       check(r.pending?.action==='open'&&r.pending.expected.tabAttempted&&r.pending.outcome==='OUTCOME_UNKNOWN'&&r.pending.operationId===payload.operationId,'E_SERVICE_PENDING');
-      r.pending.archived=true;r.ledger.push(r.pending);r.pending=null;check(r.ledger.length<=128,'E_SERVICE_LIMIT');await commit();return view(localState,identity,accounts,native(),state);
+      r.pending.archived=true;r.ledger.push(r.pending);r.pending=null;check(r.ledger.length<=128,'E_SERVICE_LIMIT');await commit();return facts(localState,identity,accounts,native(),state);
     }
     let wire={connectionId:r.remoteConnectionId},expected={};
     const ownBinding=()=>{check(association,'E_SERVICE_NOT_FOUND');const b=r.bindings.find(x=>x.associationId===association.id)?.value;check(b&&!b.revoked,'E_SERVICE_BINDING');return b;};
@@ -201,7 +201,7 @@ export function createCookieServiceSession({api,storage,transport}={}){
         await guard();await api.tabs.create({url:result.url});opened=true;await guard();
       }else apply(r,intent,result);
       if(write){intent.outcome='CONFIRMED';r.ledger.push(intent);r.pending=null;}
-      await commit();const v=view(localState,identity,accounts,native(),state);if(action==='open')v.opened=true;return v;
+      await commit();const v=facts(localState,identity,accounts,native(),state);if(action==='open')v.opened=true;return v;
     }catch(error){
       if(write){
         const known=!dispatched?'NOT_DISPATCHED':['NOT_DISPATCHED','FAILED_CONFIRMED'].includes(error?.outcome)?error.outcome:null;

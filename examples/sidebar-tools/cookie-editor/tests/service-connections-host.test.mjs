@@ -1,10 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {parseHTML} from 'linkedom';
+import {createSidebarTools} from '../../../../src/ui/sidebar-tools.js';
+import {createSidebarToolsView} from '../../../../src/ui/sidebar-tools-view.js';
 import {createCookieAccountService} from '../trusted/account-service.js';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_STORE_KEY} from '../trusted/account-contract.js';
 import {COOKIE_SERVICE_CONNECTIONS_KEY} from '../trusted/service-connections.js';
-import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,serializeSidebarToolPackage,validateSidebarToolPackage}
+import {presentCookieServiceState} from '../trusted/service-view.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,sidebarToolPackageContractHash,serializeSidebarToolPackage,validateSidebarToolPackage}
   from '../../../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../../../../src/ui/sidebar-tools/lifecycle.js';
 import {MARKET_PROVENANCE_STORE} from '../../../../src/sidebar-tools/official-reading-toc.js';
@@ -55,11 +59,66 @@ async function fixture(t,{serviceTransport}={}){
     webNavigation:{getFrame:async()=>({...document,documentLifecycle:'active'})},
     cookies:{getAll:forbidden,set:forbidden,remove:forbidden},permissions:{request:forbidden}};
   const service=createCookieAccountService({api,storage,serviceTransport});
-  const send=(operation,payload={},extra={})=>service.dispatch({protocol:COOKIE_ACCOUNT_PROTOCOL,
+  const send=async(operation,payload={},extra={})=>presentCookieServiceState(await service.dispatch({protocol:COOKIE_ACCOUNT_PROTOCOL,
     toolId:'cookie-editor',operation,packageHash:hash,installEpoch:'epoch',trustedClick:true,
-    payload:{origin,...payload},...extra},sender);
-  return {send,records,state,document,sender,service,api,setBeforePut:fn=>{beforePut=fn;}};
+    payload:{origin,...payload},...extra},sender));
+  return {send,records,state,document,sender,service,api,tool,release,setBeforePut:fn=>{beforePut=fn;}};
 }
+
+test('actual Sidebar Host converts SW facts to the installed App contract without forwarding authority facts',async t=>{
+  const f=await fixture(t);
+  await f.send('serviceSave',{revision:0,label:'本机',mode:'local',serviceOrigin:''});
+  const listeners=new Map(),win={
+    addEventListener(type,fn){listeners.set(type,[...(listeners.get(type)||[]),fn]);},
+    removeEventListener(type,fn){listeners.set(type,(listeners.get(type)||[]).filter(x=>x!==fn));}
+  };
+  const oldWindow=globalThis.window,oldLocation=globalThis.location;
+  globalThis.window=win;globalThis.location={href:f.sender.url};
+  t.after(()=>{globalThis.window=oldWindow;if(oldLocation===undefined)delete globalThis.location;else globalThis.location=oldLocation;});
+  const {document:doc}=parseHTML('<html><body></body></html>');
+  const createElement=doc.createElement.bind(doc);
+  doc.createElement=tag=>{
+    const node=createElement(tag);
+    if(tag==='iframe')Object.defineProperty(node,'contentWindow',{value:{sent:[],postMessage(message){this.sent.push(message);}}});
+    return node;
+  };
+  const view=createSidebarToolsView(),runtime={frameRoot:doc.createElement('div'),settingsControl:doc.createElement('button')};
+  doc.body.append(runtime.frameRoot,runtime.settingsControl);view.attachRuntime(runtime);
+  const internal=[];
+  f.api.runtime.getManifest=()=>({version:'0.1.0'});
+  f.api.runtime.sendMessage=async message=>{
+    if(message.kind==='runtime-contract')return {ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:await sidebarToolPackageContractHash()}};
+    if(message.protocol===COOKIE_ACCOUNT_PROTOCOL){
+      const data=await f.service.dispatch(message,f.sender);internal.push(data);return {ok:true,data};
+    }
+  };
+  f.api.storage.session={get:async()=>({}),remove:async()=>{}};
+  const target={snapshot:{status:'available',url:f.document.url},
+    capture:()=>({...f.document,origin:new URL(f.document.url).origin,windowId:1}),revalidate:async()=>true};
+  const catalog={schema:'opendesk.official-tools.releases.v1',sourceRepository:'https://github.com/shopable-ai/opendesk-browser',apps:[f.release]};
+  const host=createSidebarTools({api:f.api,doc,view,currentPageTarget:target,taskWorkbench:{},
+    lockManager:{request:async(_name,work)=>work()},fetcher:async url=>new URL(url).protocol==='chrome-extension:'
+      ?new Response(JSON.stringify(catalog)):new Response('',{status:404})});
+  t.after(()=>{host.dispose();view.dispose();});
+  await host.ready;host.setVisible(true);host.openTool(f.tool.id);
+  const frame=runtime.frameRoot.children[0];assert.ok(frame);await frame.onload();
+  const loaded=frame.contentWindow.sent[0];
+  for(const listener of listeners.get('message')||[])listener({origin:'null',source:frame.contentWindow,
+    data:{protocol:loaded.protocol,toolId:f.tool.id,instance:loaded.instance,kind:'request',requestId:'1',operation:'cookieAccount.serviceStatus',payload:{}}});
+  let response;
+  for(let i=0;i<200&&!response;i++){
+    await new Promise(resolve=>setTimeout(resolve,5));
+    response=frame.contentWindow.sent.find(x=>x.requestId==='1');
+  }
+  assert.equal(response?.ok,true,JSON.stringify(response));
+  assert.equal(internal[0].format,'opendesk.cookie-service-facts.v1');
+  assert.equal(internal[0].connections[0].ownerCurrent,true);
+  assert.equal(response.result.connections[0].status,'UNCONNECTED');
+  assert.equal(response.result.connections[0].reasonCode,'E_SERVICE_BRIDGE_UNAVAILABLE');
+  assert.equal(response.result.connections[0].canConnect,false);
+  assert.deepEqual(response.result.capabilities,{connect:false,openManagement:false,policyAcceptance:false});
+  assert.doesNotMatch(JSON.stringify(response.result),/ownerCurrent|accountCurrent|reconnectable|cookie-service-facts|PRIVATE_COOKIE/);
+});
 test('fixed Host service persists configuration and scoped association without Cookie or Native effects',async t=>{
   const f=await fixture(t);
   const saved=await f.send('serviceSave',{revision:0,label:'本机',mode:'local',serviceOrigin:''});
@@ -92,6 +151,33 @@ test('revocation during metadata commit produces unknown and cannot return a lat
   f.setBeforePut(()=>{f.state[TOOL_REVOCATION_EPOCHS_STORE]['cookie-editor']='revoked';});
   await assert.rejects(f.send('serviceSave',{revision:0,label:'本机',mode:'local',serviceOrigin:''}),{code:'E_OUTCOME_UNKNOWN'});
   assert.equal(f.records.get(COOKIE_SERVICE_CONNECTIONS_KEY).revision,1);
+});
+test('connection-only configuration does not depend on the Cookie account store',async t=>{
+  const f=await fixture(t);
+  f.records.set(COOKIE_ACCOUNT_STORE_KEY,null);
+  assert.deepEqual((await f.send('serviceStatus')).associations,[]);
+  let result=await f.send('serviceSave',{revision:0,label:'本机',mode:'local',serviceOrigin:''});
+  const connectionId=result.connections[0].id;
+  result=await f.send('serviceRename',{revision:1,connectionId,label:'工作服务'});
+  assert.equal(result.connections[0].label,'工作服务');
+  // A new association still requires a real, current saved account.
+  await assert.rejects(f.send('serviceAssociate',{revision:2,connectionId,
+    alias:'acct_local_1',accountVersion:1,remoteAccountId:'remote_1',
+    organization:'本机用户',providerKey:'codex',document:f.document}),{code:'E_VAULT_CORRUPT'});
+  result=await f.send('serviceDisconnect',{revision:2,connectionId});
+  assert.equal(result.connections[0].status,'DISCONNECTED');
+  assert.equal(f.records.get(COOKIE_ACCOUNT_STORE_KEY),null);
+});
+test('existing site associations still require the current Cookie account store',async t=>{
+  const f=await fixture(t);
+  const saved=await f.send('serviceSave',{revision:0,label:'本机',mode:'local',serviceOrigin:''});
+  const connectionId=saved.connections[0].id;
+  await f.send('serviceAssociate',{revision:1,connectionId,alias:'acct_local_1',accountVersion:1,
+    remoteAccountId:'remote_1',organization:'本机用户',providerKey:'codex',document:f.document});
+  f.records.set(COOKIE_ACCOUNT_STORE_KEY,null);
+  await assert.rejects(f.send('serviceStatus'),{code:'E_VAULT_CORRUPT'});
+  await assert.rejects(f.send('serviceRename',{revision:2,connectionId,label:'未核实'}),{code:'E_VAULT_CORRUPT'});
+  assert.equal(f.records.get(COOKIE_SERVICE_CONNECTIONS_KEY).revision,2);
 });
 test('Native service actions remain fenced by actual sender, installed epoch and user gesture',async t=>{
   let calls=0;

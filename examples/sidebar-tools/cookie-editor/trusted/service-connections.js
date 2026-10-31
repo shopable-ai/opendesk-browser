@@ -57,23 +57,17 @@ function validate(value){
   }
   return value;
 }
-function present(value,{identity,accounts,origin}){
-  const connections=value.connections.map(row=>{
-    const invalid=row.packageHash!==identity.packageHash||row.installEpoch!==identity.installEpoch;
-    return {id:row.id,label:row.label,mode:row.mode,origin:row.origin,epoch:row.epoch,
-      status:invalid?'INVALIDATED':row.disconnected?'DISCONNECTED':'UNCONNECTED',
-      reasonCode:invalid?'E_TOOL_CHANGED':'E_SERVICE_BRIDGE_UNAVAILABLE'};
-  });
-  return {revision:value.revision,connections,
-    associations:value.associations.filter(row=>row.localOrigin===origin).map(row=>{
-      const connection=connections.find(item=>item.id===row.connectionId);
-      const account=accounts.find(item=>item.alias===row.localAlias&&item.origin===origin);
-      return {...row,status:connection.status==='INVALIDATED'?'INVALIDATED':
-        connection.status==='DISCONNECTED'||connection.epoch!==row.connectionEpoch?'DISCONNECTED':
-          !account||account.version!==row.accountVersion?'STALE':'PENDING_CONNECTION',
-        remoteRevocation:'NOT_REQUIRED'}; // No remote grant was ever created.
-    }),
-    capabilities:{connect:false,openManagement:false,policyAcceptance:false}};
+// Only verified facts cross the internal SW→Host boundary. Presentation is
+// owned by service-view.js in the fixed UI, which is never imported by the SW.
+function facts(value,{identity,accounts,origin}){
+  return {format:'opendesk.cookie-service-facts.v1',revision:value.revision,
+    connections:value.connections.map(row=>({id:row.id,label:row.label,mode:row.mode,
+      origin:row.origin,epoch:row.epoch,disconnected:row.disconnected,
+      ownerCurrent:row.packageHash===identity.packageHash&&row.installEpoch===identity.installEpoch})),
+    associations:value.associations.filter(row=>row.localOrigin===origin).map(row=>({
+      ...row,accountCurrent:accounts.some(item=>item.alias===row.localAlias&&
+        item.origin===origin&&item.version===row.accountVersion)
+    }))};
 }
 export function createCookieServiceConnections({storage}={}){
   async function service(){
@@ -97,7 +91,7 @@ export function createCookieServiceConnections({storage}={}){
         !text(identity.packageHash,80)||!text(identity.installEpoch,160))throw fail('E_SERVICE_INPUT');
       const origin=site(payload.origin),context={identity,accounts,origin},db=await service();
       if(operation==='serviceStatus'){
-        const value=await read(db);await assertCurrent();return present(value,context);
+        const value=await read(db);await assertCurrent();return facts(value,context);
       }
       if(!integer(payload.revision))throw fail('E_SERVICE_INPUT');
       // Fully validate untrusted input before starting the mutation transaction.
@@ -154,7 +148,7 @@ export function createCookieServiceConnections({storage}={}){
         if(error?.code)throw error;throw fail('E_ACCOUNT_STORAGE_UNAVAILABLE');}
       try{if(!same(await read(db),next))throw Error();await assertCurrent();}
       catch{throw fail('E_OUTCOME_UNKNOWN');}
-      return present(next,context);
+      return facts(next,context);
     },
     async clear(){const db=await service();
       await db.transaction(['frameworkKV'],'readwrite',tx=>tx.delete('frameworkKV',COOKIE_SERVICE_CONNECTIONS_KEY));
