@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runtime,profile,owned,released,PREFERENCE,fixtureRequest} from './helpers/controller-fixture.mjs';
+import {runtime,profile,owned,released,PREFERENCE,fixtureRequest,deferred} from './helpers/controller-fixture.mjs';
 import {ORDINARY_SITES} from '../src/site-session.js';
 import {createScopeKey} from '../src/session-context.js';
 
@@ -102,6 +102,69 @@ test('failed refresh keeps last verified member and history as stale read-only f
   assert.deepEqual(requests(e).slice(count),[['GET','/api/member']]);
   await e.preview();await e.click('redeem-confirm');await e.click('proxy-toggle');
   assert.deepEqual(requests(e).slice(count),[['GET','/api/member']]);noEffects(e);
+});
+
+test('explicit refresh after service recovery restores the same ledger without acquiring a website session',async()=>{
+  let disconnected=false;
+  const network=async(args,fixture)=>disconnected?offline():
+    fixtureRequest(fixture,{...args,headers:args.config.headers});
+  const previous=await runtime({network});
+  await previous.chooseSite('ordinary-1');
+  await previous.click('local-connect');await previous.preview();await previous.click('redeem-confirm');
+  await settle(previous,()=>previous.get('history-list').children.length===1&&!previous.get('refresh').disabled);
+  const ledger=JSON.stringify([...previous.fixture.ledger]);
+  disconnected=true;
+  const e=await runtime({store:previous.store,fixture:previous.fixture,network});
+  assert.equal(e.get('member-card').attributes['data-view'],'failed');
+  assert.equal(e.get('site-select').value,'ordinary-1');
+  disconnected=false;
+  assert.deepEqual(requests(e),[['GET','/api/member']],'service availability alone triggers no request');
+  await e.click('refresh');
+  assert.equal(e.get('member-card').attributes['data-view'],'active');
+  assert.equal(e.get('member-state').textContent,'权益有效');
+  assert.equal(e.get('remaining').textContent,'20');
+  assert.equal(e.get('history-list').children.length,1);
+  assert.equal(e.get('history-count').textContent,'1 条');
+  assert.equal(e.get('site-select').value,'ordinary-1');
+  assert.match(e.get('site-source').textContent,/127\.0\.0\.1:7902/);
+  assert.match(e.get('site-account').textContent,/尚未取得会话/);
+  assert.match(e.get('redeem-status').textContent,/输入兑换码并预检/);
+  assert.equal(e.get('redeem-error').hidden,true);
+  assert.equal(e.get('redeem-code').disabled,false);
+  assert.equal(e.get('refresh').disabled,false);
+  assert.equal(JSON.stringify([...e.fixture.ledger]),ledger);
+  assert.deepEqual(requests(e),[['GET','/api/member'],['GET','/api/member']]);
+  noEffects(e);
+});
+
+test('in-flight recovery refresh rejects duplicates and preserves the ordinary site choice',async()=>{
+  const gate=deferred();let disconnected=true,hold=true;
+  const e=await runtime({store:new Map([[PREFERENCE,{schemaVersion:1,enabled:true}]]),
+    network:async(args,fixture)=>{
+      if(disconnected)return offline();
+      if(hold)await gate.promise;
+      return fixtureRequest(fixture,{...args,headers:args.config.headers});
+    }});
+  await e.chooseSite('ordinary-1');
+  disconnected=false;
+  try{
+    await e.click('refresh');
+    assert.equal(e.get('refresh').disabled,true);
+    assert.equal(e.get('member-card').attributes['data-view'],'loading');
+    await e.click('refresh');await e.click('refresh');
+    await e.chooseSite('ordinary-0');
+    assert.equal(e.get('site-select').value,'ordinary-1');
+    assert.deepEqual(requests(e),[['GET','/api/member'],['GET','/api/member']]);
+  }finally{hold=false;gate.resolve();}
+  await settle(e,()=>!e.get('refresh').disabled);
+  assert.equal(e.get('member-card').attributes['data-view'],'empty');
+  assert.equal(e.get('site-select').value,'ordinary-1');
+  assert.match(e.get('site-source').textContent,/127\.0\.0\.1:7902/);
+  assert.equal(e.get('redeem-code').disabled,false);
+  assert.deepEqual(requests(e),[['GET','/api/member'],['GET','/api/member']]);
+  await e.chooseSite('ordinary-0');
+  assert.equal(e.get('site-select').value,'ordinary-0','selection is available again when the request settles');
+  noEffects(e);
 });
 
 for(const mode of ['offline','missing-profile','missing-provider'])for(const lostAck of [false,true]){
