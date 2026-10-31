@@ -6,6 +6,8 @@
 
 扩展到新 VIP 页的真实测试尚未通过；当前状态、下一条实际操作及安全续接要求见[扩展到模拟 VIP 页测试与完善](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md)。HTTP 通过不等于原扩展写入通过。
 
+**19:17 接收核对：** 原 `AI VIP Core 20261030` Profile 的 1.4.8 仍显示 Cookie unknown，获取会话禁用；实际加载 `dist/development`，serve 已连接，当前 revision `311299080ee8…`。新目标已建立且未完成，原服务与旧记录保留。维护文档已补齐[具体处置范围、备份门禁和不可恢复项](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#具体处置方案尚未授权尚未执行)：只有用户明确接受旧普通站内存账本丢失并批准本工具卸载重装及 7901/7902 服务重启后，才能开展标明新安装代际的新实验；这不能记为旧事务恢复。本轮未执行这些动作，未改源码或重跑旧测试。
+
 **续接修复：** 已在原可信侧栏补齐新批次缺精确网站 write 授权时的 `E_COOKIE_NOT_SUBMITTED`，证明批准及 Cookie Host 均未派发；单项原码、派发后错误和旧 unknown 保护不变。3 项 Host、3 项 journal、2 项内存控制器检查通过；另 2 项 HTTP 控制器因保留原服务占用 7901 端口而未进入行为验证。原 Profile 重开仍锁定，旧服务也没有保账本热升级入口，新 VIP 页仍 **BLOCKED / NOT_TESTED**。未清日志、补权重试或改固定来源；完整依据及命令见上述维护文档。
 
 页面实现轮已完善原有两类 fixture 的 `/session/`，用于从**目标网站的服务端结果**核对 Cookie 交付，而非仅看 SDK 成功提示。业务 owner 和入口仍是本目录 `dev/local-test/ordinary-site-fixture.mjs` / `local-fixture-server.mjs`；共用 `vip-session-page.mjs` 只负责渲染，授权、完整 Cookie 对匹配、时钟和账本继续由各自服务负责。该页面实现轮未修改 Framework 或公开 SDK；本次续接仅按已证实公共缺口修改可信 gate、公开合同与定向测试。工具源码及打包输入未改，唯一正式包继续为 1.4.8，未重打包。
