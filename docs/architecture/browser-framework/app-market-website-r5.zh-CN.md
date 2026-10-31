@@ -2,6 +2,20 @@
 
 日期：2026-10-12。实现入口及逐项结果见 [R5 工作流](../../framework/workstreams/app-market-r5.md)。本文描述已写入源码的合同；源码、组件、真实 Chrome、本机 Mac 与正式 HTTPS 的完成状态分别记录，不能互相替代。
 
+## 2026-10-31：网页市场独立运行与浏览器内安装
+
+网页市场无需安装、启动、连接或配对 OpenDesk 桌面应用。正常浏览、搜索与查看详情不探测接收方，不显示通用连接状态或重连按钮。应用按钮为“安装到浏览器”；安装时需要同一 Chrome Profile 中已安装并启用的 **OpenDesk Browser 浏览器扩展**。缺少接收方时在该次操作处说明浏览器扩展要求，本地扩展 ID 只放在帮助页的开发诊断详情。
+
+单应用沿用 `chrome.runtime.sendMessage` → 原 `onMessageExternal` 来源与文档校验 → Chrome Side Panel 可信 React 审阅 → 固定版本 descriptor/包摘要核验 → 原 `installReviewedSidebarTool`、存储及事务回执 → 主动打开使用。这里的浏览器原生侧栏不代表 Native Messaging；通用安装链路不以桌面应用、Go、Native Messaging 或本地 Provider 为前置条件。应用打开后的特定业务能力仍遵守各自授权与依赖。
+
+网页没有安装批准权。打开面板不等于确认，取消不提交安装；超时保留原 intent，只查询回执或由用户返回同一审阅。刷新与焦点恢复仅恢复未结束的原事务，不自动重新打开或重放安装。显式操作重新读取通道配置，接收方或配置失效不能沿用旧目标；服务端诊断用的 `PROBE` 协议保留，普通网页客户端不再发送它。
+
+构建为外部客户端脚本 URL 添加内容摘要，避免新 HTML 搭配缓存旧脚本继续显示旧连接流程。下文 R5 候选与 CI 是历史证据，不能代替本轮结果，也不能成为普通用户安装桌面软件的前置步骤。
+
+本轮本机核心验证：`http://127.0.0.1:43132/` 已实际更新，147 个文件摘要与部署身份匹配，107 个页面移除连接控件；原 catalog 与 26 个固定发行资源保持字节不变。网页 build ID 为 `085a6b654e39c606ed527d5be2b2e7a3a9f9094ac4165ece6af7c8127a2b8a7e`，客户端、模板、来源与事务恢复相关检查 54/54 PASS。既有 Chrome 扩展 `ccfcjegpkdlgbclopjmadlcjedelidmf` 加载 `dist/development`，本轮未重建或重载扩展，也未重启网站服务；该扩展没有持续开发连接的证明。
+
+真实 Chrome 使用更新后的网页完成：网页笔记审阅 → 取消并显示“已取消，未提交安装” → 显式新审阅 → 确认从 v1.0.0 更新到 v1.1.10 → 打开使用 → 保存专用本机笔记 → 列表回读 1 条。网页分别取得取消与成功事务回执。未操作桌面软件或 Native 配对；源码已确认通用链路无此依赖，但未强制关闭 Native 服务做故障试验。生产/HTTPS、全部当前工具源码重新发行、全仓及对抗验收均未执行。原始本机回执与截图位于 `artifacts/market-browser-install-20261031/`，不作为正式发布证据。
+
 ## 实施与验证状态（2026-10-12）
 
 受测候选 `3744be088240124d3ab803ef10c2c0256e787b37` 的 [Linux/macOS R5 HTTP 原生安装和生产包验收](https://github.com/shopable-ai/opendesk-browser/actions/runs/38237391020) 三个作业均通过。Linux/macOS 各 16 个专项场景覆盖官网交接、可信审阅、安装、工具真实使用、固定版本与套装、五秒超时、错误请求拒绝、A1/A2/B/C 中断恢复、用户数据保留及 Chrome 正常重启。实际证据的扩展 ID、版本、包、网页 build 和未测边界见 [R5 机器索引](../../framework/workstreams/evidence/app-market-r5/ci-38237391020/index.json) 与 [R5 工作流](../../framework/workstreams/app-market-r5.md)。

@@ -12,6 +12,12 @@ const collectionSubject={kind:'collection',collectionId:col.id,revision:col.revi
 const render=(body,extra={})=>layout({title:'市场',description:'安装说明',body,path:'/',channel,...extra});
 const main=html=>html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)[1];
 
+test('client revision gives updated pages a distinct external script URL',()=>{
+  const html=render(home([app]),{clientRevision:'a'.repeat(64)});
+  assert.match(html,/<script type="module" src="\/client.js\?v=a{64}"><\/script>/);
+  assert.doesNotMatch(html,/<script(?![^>]*\bsrc=)/);
+});
+
 test('every site page uses external scripts and has no in-page review container or iframe',()=>{
   const pages=[home([app]),appDetail(app,{current:app,versions:[app]}),installPage(subject,app.title),
     helpPage(channel),collectionList([col]),collectionDetail(col,{releases:[app],current:[app]}),
@@ -24,7 +30,8 @@ test('every site page uses external scripts and has no in-page review container 
     assert.doesNotMatch(html,/<script(?![^>]*\bsrc=)|\bonclick=|unsafe-inline|官方应用/);
     assert.doesNotMatch(html,/<iframe\b/);
     assert.match(html,/仅发起安装审阅；应用请在 OpenDesk 侧边栏安装面板 中确认安装/);
-    assert.match(html,/打开使用是独立动作；敏感权限仍遵守原有检查/);
+    assert.match(html,/请在 OpenDesk 侧边栏打开使用；敏感权限仍遵守原有检查/);
+    assert.doesNotMatch(html,/connection-state|connect-button|已连接 OpenDesk|正在连接|重新连接/);
     assert.match(html,/套装仍使用原扩展审阅页/);
   }
 });
@@ -32,13 +39,13 @@ test('every site page uses external scripts and has no in-page review container 
 test('single app buttons request external review with separate return/open controls and fixed identity',()=>{
   for(const body of [home([app]),appDetail(app,{current:app,versions:[app]}),installPage(subject,app.title)]){
     const html=render(body,{installSubject:subject});
-    assert.match(html,/>安装到OpenDesk<\/button>/);
+    assert.match(html,/>安装到浏览器<\/button>/);
     assert.match(html,/OpenDesk 侧边栏安装面板 中/);
-    assert.match(html,/点击 OpenDesk 工具栏继续安装/);
+    assert.match(html,/点击 OpenDesk Browser 浏览器扩展的工具栏图标继续安装/);
     assert.match(html,/打开面板不表示已批准/);
     assert.doesNotMatch(html,/在本页审阅|在本页提供安装审阅|官方应用/);
     assert.match(html,/data-return-review hidden>返回同一审阅<\/button>/);
-    assert.match(html,/data-open-installed hidden>打开当前安装<\/button>/);
+    assert.doesNotMatch(html,/data-open-installed/);
     assert.match(html,/data-subject="\{&quot;kind&quot;:&quot;app&quot;,&quot;marketId&quot;:&quot;opendesk\/copy-test&quot;,&quot;version&quot;:&quot;1\.2\.3&quot;\}"/);
     assert.ok(html.includes('rel="opendesk-install" href="'+channel.origin+installPath(subject)+'"'));
   }
@@ -48,7 +55,7 @@ test('single app buttons request external review with separate return/open contr
   assert.match(detail,/从市场独立下载固定版本/);
   assert.match(detail,/制品 SHA-256/);
   const install=render(installPage(subject,app.title));
-  assert.match(install,/确认或取消安装；返回网页可核对进度与结果/);
+  assert.match(install,/确认或取消安装；返回网页可核对原安装事务的进度与结果/);
   assert.match(install,/网站不会批准权限，也不会自动运行应用/);
 });
 
@@ -56,13 +63,14 @@ test('help distinguishes app review from collection handoff and preserves distri
   const html=render(helpPage(channel),{section:'help',path:'/how-to-install/'});
   assert.doesNotMatch(html,/安装小窗|在 OpenDesk 中审阅安装/);
   assert.match(html,/网页仅发起审阅；在 OpenDesk 侧边栏安装面板 中核对/);
-  assert.match(html,/点击 OpenDesk 工具栏继续安装；打开面板不表示已批准/);
+  assert.match(html,/点击 OpenDesk Browser 浏览器扩展的工具栏图标继续安装；打开面板不表示已批准/);
   assert.match(html,/版本、来源（Origin）与能力后确认或取消/);
   assert.match(html,/套装仍通过原扩展审阅页逐项确认/);
   assert.match(html,/无需重新编译或安装主扩展/);
-  assert.match(html,/结果未知时仅核对状态/);
-  assert.match(html,/安装成功以真实本机记录为准/);
-  assert.match(html,/刷新、返回页面或重新连接只查询状态，不自动弹窗或安装/);
+  assert.match(html,/结果未知时仅核对原事务回执/);
+  assert.match(html,/网页成功回执仅说明本次事务完成/);
+  assert.match(html,/刷新、返回页面仅恢复未结束的原事务回执，不自动弹窗或安装/);
+  assert.match(html,/无需安装、启动或配对 OpenDesk 桌面应用/);
   assert.match(html,/取消后再次显式安装会发起新审阅/);
   assert.match(html,/敏感权限与网站访问仍遵守原有检查/);
 });
@@ -87,7 +95,7 @@ test('rendered application content is escaped and never rewritten as installatio
   const html=render(appDetail({...app,summary},{current:app,versions:[app]}));
   assert.ok(html.includes('安装到 OpenDesk &lt;script&gt;用户提供的说明&lt;/script&gt;'));
   assert.doesNotMatch(html,/<script>用户提供的说明/);
-  assert.match(html,/>安装到OpenDesk<\/button>/);
+  assert.match(html,/>安装到浏览器<\/button>/);
 });
 
 

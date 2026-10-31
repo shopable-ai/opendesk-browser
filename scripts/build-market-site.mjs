@@ -143,6 +143,7 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
     return current.some(r=>r.id===row.id&&r.version===row.version)?app:{...app,summary:row.description};
   });
   const stage=dest+'.building-'+randomUUID(),outputFiles=[];
+  const clientRevision=hash(await readFile('src/market-site/client.js'));
   await mkdir(stage,{recursive:true});
   const write=async(path,bytes)=>{
     if(!/^[a-zA-Z0-9_./-]+$/.test(path)||path.startsWith('/')||path.includes('..')||path.includes('//'))throw Error('Invalid generated market path: '+path);
@@ -152,7 +153,7 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
   const routes=[],page=async(path,title,description,body,section='apps',installSubject=null)=>{
     if(path!=='/'&&!/^\/[a-z0-9/.-]+\/$/.test(path))throw Error('Invalid market route');
     if(routes.includes(path))throw Error('Duplicate market route '+path);
-    routes.push(path);await write(path.slice(1)+'index.html',layout({title,description,body,path,channel,origin,section,installSubject}));
+    routes.push(path);await write(path.slice(1)+'index.html',layout({title,description,body,path,channel,origin,section,installSubject,clientRevision}));
   };
   try{
     for(const [input,path] of [['src/market-site/market.css','market.css'],['src/market-site/client.js','client.js'],['src/ui/design-tokens.css','design-tokens.css']])await write(path,await readFile(input));
@@ -200,8 +201,8 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
       const subject={kind:'collection',collectionId:col.id,revision:col.revision};
       await page(installPath(subject),'安装 '+col.title+' · revision '+col.revision,'逐项审阅固定版本套装。',installPage(subject,col.title),'collections');
     }
-    await page('/how-to-install/','安装与连接帮助','获取 OpenDesk 主扩展、连接市场、审阅应用与处理安装异常。',helpPage(channel),'help');
-    await write('404.html',layout({title:'页面不存在',description:'请检查应用与固定版本地址。',body:'<section class="hero"><h1>找不到这个页面</h1><p class="lead">请检查链接。已有固定版本不会自动改为其他版本。</p><p><a href="/">返回应用市场</a></p></section>',path:'/404.html',channel,origin}));
+    await page('/how-to-install/','安装帮助','在浏览器中审阅安装应用，无需 OpenDesk 桌面应用。',helpPage(channel),'help');
+    await write('404.html',layout({title:'页面不存在',description:'请检查应用与固定版本地址。',body:'<section class="hero"><h1>找不到这个页面</h1><p class="lead">请检查链接。已有固定版本不会自动改为其他版本。</p><p><a href="/">返回应用市场</a></p></section>',path:'/404.html',channel,origin,clientRevision}));
     await write('_headers','/*\n'+Object.entries({...MARKET_HEADERS,...(mode==='production'?{'Strict-Transport-Security':'max-age=31536000'}:{})}).map(([key,value])=>'  '+key+': '+value).join('\n')+'\n');
     await write('robots.txt','User-agent: *\n'+(mode==='development'?'Disallow: /\n':'Allow: /\n')+(origin?'Sitemap: '+origin+'/sitemap.xml\n':''));
     await write('sitemap.xml','<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+(origin?routes.filter(p=>!p.startsWith('/install/')).map(p=>'<url><loc>'+escapeHTML(origin+p)+'</loc></url>').join(''):'')+'</urlset>\n');

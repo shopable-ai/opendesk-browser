@@ -2,9 +2,8 @@
 // Confirmation and installation belong to the trusted extension review.
 const $=selector=>document.querySelector(selector);
 const protocol='opendesk.market.intent.v1';
-const connection=$('#connection-state'),connectButton=$('#connect-button');
 const action=$('#open-review'),status=$('#handoff-state');
-let channel,active=false,probeGeneration=0,connected=false;
+let channel,active=false;
 const automaticReads=[];
 function allowAutomaticRead(){
   const now=Date.now();while(automaticReads.length&&automaticReads[0]<=now-60000)automaticReads.shift();
@@ -14,19 +13,19 @@ function allowAutomaticRead(){
 function problem(code,message){return Object.assign(new Error(message),{code});}
 function noReceiver(target){
   return Object.assign(problem('E_NO_RECEIVER',target?.mode==='development'?
-    '无法连接 OpenDesk。当前窗口未连接本地市场指定的开发扩展；已安装其他测试副本也不能连接。请查看「安装帮助」核对窗口与扩展 ID。':
-    '无法连接 OpenDesk。请在同一个 Chrome 个人资料中核对扩展已启用，并查看「安装帮助」。'),{extensionId:target?.extensionId});
+    '无法发起安装审阅。请在当前 Chrome 个人资料中启用本市场指定的 OpenDesk Browser 浏览器扩展。请查看「安装帮助」核对开发窗口；无需 OpenDesk 桌面应用。':
+    '无法发起安装审阅。请使用桌面版 Chrome，并在同一个人资料中安装、启用 OpenDesk Browser 浏览器扩展；无需 OpenDesk 桌面应用。详情见「安装帮助」。'),{extensionId:target?.extensionId});
 }
 function send(message,target=channel){
   return new Promise((resolve,reject)=>{
     if(!globalThis.chrome?.runtime?.sendMessage)return reject(noReceiver(target));
-    const timer=setTimeout(()=>reject(problem('E_CONNECT_TIMEOUT','无法连接 OpenDesk：等待响应超时。请查看已有审阅页或重试连接。')),5000);
+    const timer=setTimeout(()=>reject(problem('E_CONNECT_TIMEOUT','浏览器扩展未及时返回安装回执，当前结果无法确认。请核对安装结果或返回同一审阅；不会自动重装。')),5000);
     try{chrome.runtime.sendMessage(target.extensionId,message,response=>{
       clearTimeout(timer);
       if(chrome.runtime.lastError)return reject(noReceiver(target));
       if(response?.protocol!==protocol)return reject(problem('E_PROTOCOL','OpenDesk 安装协议不兼容，请更新扩展。'));
       if(response.ok!==true)return reject(problem(response.error?.code||'E_HANDOFF',String(response.error?.message||'无法完成交接。').slice(0,400)));
-      const expected={PROBE:'CONNECTED',OPEN_INSTALL_REVIEW:'REVIEW_OPENED',
+      const expected={OPEN_INSTALL_REVIEW:'REVIEW_OPENED',
         GET_INSTALL_STATUS:'INSTALL_STATUS'}[message.action];
       const panelRequired=message.action==='OPEN_INSTALL_REVIEW'&&message.subject.kind==='app'&&
         ['PANEL_REQUIRED','REVIEW_PENDING'].includes(response.status);
@@ -58,11 +57,11 @@ async function configuration(refresh=false){
     if(response.ok!==true)throw Error('Channel HTTP error');
     value=await response.json();
     if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Channel JSON error');
-  }catch{throw problem('E_CHANNEL','暂时无法读取市场连接配置。请检查网络后重试，或使用扩展内市场。');}
-  if(value.protocol!==protocol||value.schema!=='opendesk.market.channel.v1')throw problem('E_PROTOCOL','市场连接配置不兼容。');
+  }catch{throw problem('E_CHANNEL','暂时无法读取市场安装配置。请检查网络后重试，或使用浏览器扩展内市场。');}
+  if(value.protocol!==protocol||value.schema!=='opendesk.market.channel.v1')throw problem('E_PROTOCOL','市场安装配置不兼容。');
   if(!value.enabled)throw problem('E_CHANNEL_DISABLED','此网站尚未启用安装交接，请使用扩展内市场。');
   if(value.origin!==location.origin)throw problem('E_ORIGIN','此页面地址与受信任市场来源不一致，请使用配置中的地址。');
-  if(!/^[a-p]{32}$/.test(value.extensionId))throw problem('E_EXTENSION_ID','市场未配置有效的 OpenDesk 扩展 ID。');
+  if(!/^[a-p]{32}$/.test(value.extensionId))throw problem('E_EXTENSION_ID','市场未配置有效的 OpenDesk Browser 浏览器扩展，请联系市场维护者。');
   channel=value;return value;
 }
 function showError(error,target=status){
@@ -73,21 +72,6 @@ function showError(error,target=status){
     $('#handoff-code').textContent=(error.code||'E_CONNECT')+(extensionId?' · 市场目标扩展 ID：'+extensionId:'');
   }
 }
-async function connect(refresh=false){
-  const generation=++probeGeneration;
-  connected=false;
-  connectButton.disabled=true;connection.textContent='正在连接 OpenDesk…';
-  try{
-    const target=await configuration(refresh);await send({protocol,action:'PROBE'},target);
-    if(generation===probeGeneration){
-      connected=true;connection.textContent='已连接 OpenDesk';connection.dataset.state='success';
-      await refreshStatuses();
-    }
-  }catch(error){
-    if(generation===probeGeneration){connected=false;showError(error,connection);}
-  }finally{if(generation===probeGeneration)connectButton.disabled=false;}
-}
-connectButton?.addEventListener('click',()=>connect(true));
 // Each fixed subject owns a session intent. An uncertain attempt is queried,
 // including after refresh; only an explicit return button reopens that intent.
 const reviewButtons=[...document.querySelectorAll('[data-open-review]')];
@@ -114,12 +98,7 @@ function unresolved(entry){return entry.intent&&!['installed','cancelled','faile
 function render(entry){
   if(entry.returnButton)entry.returnButton.hidden=!unresolved(entry);
   if(unresolved(entry)){entry.button.textContent='核对安装结果';return;}
-  entry.button.textContent=entry.baseLabel||(entry.subject.kind==='app'?'安装到OpenDesk':'打开 OpenDesk 安装审阅');
-}
-function connectionLost(error){
-  if(!['E_NO_RECEIVER','E_CONNECT_TIMEOUT','E_PROTOCOL','E_CHANNEL','E_CHANNEL_DISABLED'].includes(error.code))return;
-  connected=false;
-  connection.textContent='连接不可用，请重新连接 OpenDesk';connection.dataset.state='error';
+  entry.button.textContent=entry.baseLabel||(entry.subject.kind==='app'?'安装到浏览器':'打开 OpenDesk 安装审阅');
 }
 function feedback(entry,text,state='pending'){
   if(entry.localStatus){entry.localStatus.hidden=false;entry.localStatus.textContent=text;entry.localStatus.dataset.state=state;}
@@ -160,18 +139,16 @@ async function checkInstallation(entry){
   saveIntent(entry);render(entry);
 }
 async function refreshStatuses(){
-  if(active||!connected)return;
+  if(active||!entries.some(entry=>unresolved(entry)&&!entry.busy))return;
   active=true;
   try{
-    await configuration();
     for(const entry of entries){
-      if(!connected)break;
       const now=Date.now();
       if(unresolved(entry)&&!entry.busy){
         if((entry.intentCheckedId!==entry.intent.id||entry.intentCheckedAt===null||
           now-entry.intentCheckedAt>=15000)&&allowAutomaticRead()){
           entry.intentCheckedId=entry.intent.id;entry.intentCheckedAt=now;
-          try{await checkInstallation(entry);}catch(error){connectionLost(error);showError(error,entry.localStatus);}
+          try{await configuration();await checkInstallation(entry);}catch(error){channel=undefined;showError(error,entry.localStatus);}
         }
       }
     }
@@ -182,7 +159,7 @@ async function perform(entry,operation){
   entry.busy=true;
   for(const control of [entry.button,entry.returnButton])if(control)control.disabled=true;
   try{
-    await configuration();
+    await configuration(true);
     if(operation==='primary'&&unresolved(entry)){await checkInstallation(entry);return;}
     if(!entry.intent||!unresolved(entry)){
       entry.intent={id:crypto.randomUUID(),subject:entry.subject,installation:'unknown'};
@@ -193,14 +170,12 @@ async function perform(entry,operation){
     const result=await send({protocol,action:'OPEN_INSTALL_REVIEW',intentId:entry.intent.id,subject:entry.subject});
     // The backend may recover a pre-existing unresolved operation for this subject.
     entry.intent.id=result.intentId;saveIntent(entry);
-    probeGeneration++;connected=true;connectButton.disabled=false;
-    connection.textContent='已连接 OpenDesk';connection.dataset.state='success';
     feedback(entry,entry.subject.kind==='app'?appReviewFeedback(result.status==='REVIEW_OPENED'?'panel-open':
       result.status==='REVIEW_PENDING'?'panel-opening':'panel-required'):
       '已打开 OpenDesk 安装审阅，请核对并确认；发起审阅不表示已安装。');
     if($('#handoff-details'))$('#handoff-details').hidden=true;
   }catch(error){
-    connectionLost(error);showError(error,entry.localStatus);
+    channel=undefined;showError(error,entry.localStatus);
   }finally{
     entry.busy=false;render(entry);
     for(const control of [entry.button,entry.returnButton])if(control)control.disabled=false;
@@ -216,8 +191,7 @@ for(const event of ['focus','pageshow'])globalThis.addEventListener?.(event,()=>
   for(const entry of entries)if(!entry.intent&&entry.localStatus?.dataset.state==='success'){
     entry.localStatus.hidden=true;entry.localStatus.textContent='';delete entry.localStatus.dataset.state;
   }
-  if(!connected)void connect(true);
-  else void refreshStatuses().catch(error=>{connectionLost(error);showError(error);});
+  void refreshStatuses();
 });
 const search=$('#app-search'),cards=[...document.querySelectorAll('.app-card')];let selected='全部';
 function filter(){
@@ -229,4 +203,4 @@ search?.addEventListener('input',filter);
 for(const button of document.querySelectorAll('[data-filter]'))button.addEventListener('click',()=>{
   selected=button.dataset.filter;for(const peer of document.querySelectorAll('[data-filter]'))peer.setAttribute('aria-pressed',String(peer===button));filter();
 });
-void connect();
+void refreshStatuses();
