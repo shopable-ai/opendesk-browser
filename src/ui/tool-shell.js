@@ -324,7 +324,8 @@ scriptEditor.connectLocalProjects(nativeAgentHost,{onInstalled:({kind,id})=>{
     void extensionCenter.refresh();
   }
 }});
-const disposeDevelopment=installDevelopment?.({api:chrome,onStatus:value=>extensionList.renderDevelopmentStatus(value),prepareReload:async()=>
+const disposeDevelopment=installDevelopment?.({api:chrome,onStatus:value=>extensionList.renderDevelopmentStatus(value),
+  canReload:providerRuntime.developmentIdle,prepareReload:async()=>
   !sidebarTools.isDirty()&&nativeAgentHost.developmentIdle()&&await scriptEditor.prepareDevelopmentReload()&&nativeAgentHost.developmentIdle()});
 let sidebarSurface=false, draftImportAttached=false;
 const draftImportListener=(message,sender,sendResponse)=>{

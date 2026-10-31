@@ -74,6 +74,9 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
     let stopped=false,epoch=0,nativePlanner=null,retiredPlanner=null,retiredCleanup=null;
     let nativePlannerUsed=false,retiredPlannerUsed=false;
     const pending=new Set();
+    const developmentIdle=()=>pending.size===0&&!retiredPlanner&&!retiredCleanup&&
+      !nativePlanner?.snapshot().busy;
+    const forgetStopped=()=>{if(stopped&&developmentIdle())leases.delete(key);};
     const assertOpen=()=>{ensure();if(stopped)throw fail('E_TOOL_CHANGED','消费者已关闭');};
     const native=()=>{
       assertOpen();
@@ -109,7 +112,7 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
           if(retiredPlanner===retired){retiredPlanner=null;retired.dispose();}
         }
         return value;
-      }).finally(()=>{retiredCleanup=null;});
+      }).finally(()=>{retiredCleanup=null;forgetStopped();});
       void retiredCleanup.catch(()=>{});
       return retiredCleanup;
     }
@@ -138,9 +141,12 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
           throw fail('E_MODEL_STALE','旧 Provider 结果不能交付给新会话');
         if(controller.signal.aborted)throw controller.signal.reason||fail('E_CANCELLED','AI 已停止');
         return result;
-      }finally{pending.delete(controller);signal?.removeEventListener('abort',abort);}
+      }finally{pending.delete(controller);signal?.removeEventListener('abort',abort);forgetStopped();}
     }
     const lease=Object.freeze({
+      // A gap between Native event polls is not an idle inference. Keep the
+      // original retired generation fenced even after its transport settles.
+      developmentIdle,
       identity:()=>Object.freeze({consumerId,instanceId,hostInstanceId:owner,installEpoch,
         providerGeneration:generation}),
       planner,
@@ -176,14 +182,24 @@ export function createSharedAIProviderRuntime({client,hostInstanceId,
         return cleanup;
       },
       invalidate,
-      dispose(){if(stopped)return;stopped=true;invalidate({waitForCleanup:false});leases.delete(key);}
+      dispose(){
+        if(stopped&&!disposed)return;
+        // Removing a consumer cannot authorize a reload of its surviving Host.
+        // Keep the exact Native planner until cleanup proves its turn retired.
+        // Whole-Host destruction still releases transports, without claiming a
+        // terminal or making this disposed runtime eligible for reload.
+        const idle=disposed||developmentIdle();
+        stopped=true;invalidate({waitForCleanup:!idle});
+        if(idle)leases.delete(key);
+      }
     });
     leases.set(key,lease);
     return lease;
   }
   return Object.freeze({acquire,configure,configuration,updateSettings,
+    developmentIdle:()=>!disposed&&[...leases.values()].every(lease=>lease.developmentIdle()),
     settingsSnapshot:()=>publicSettings,subscribeSettings,
-    dispose(){if(disposed)return;for(const lease of [...leases.values()])lease.dispose();
-      disposed=true;settingsListeners.clear();
+    dispose(){if(disposed)return;disposed=true;for(const lease of [...leases.values()])lease.dispose();
+      settingsListeners.clear();
       config={source:'local_codex',endpoint:'',model:'',apiKey:'',httpsSource:null};}});
 }
