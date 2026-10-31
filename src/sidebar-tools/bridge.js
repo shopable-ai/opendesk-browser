@@ -300,6 +300,11 @@ export function initSidebarToolSandbox() {
   window.addEventListener('message',event=>{
     if (event.source!==parent || !event.data || event.data.protocol!==SIDEBAR_TOOL_PROTOCOL)return;
     const message=event.data;
+    if(message.kind==='conversation-action'){
+      if(!disposed&&instance&&message.instance===instance&&message.toolId===toolId&&message.action==='toggle')
+        root.dispatchEvent(new CustomEvent('opendesk:conversation-action',{detail:{action:'toggle'}}));
+      return;
+    }
     if (message.kind==='response') {
       if (message.instance!==instance || message.toolId!==toolId)return;
       const pending=apply(mapGet,waiting,[message.requestId]);
@@ -422,8 +427,15 @@ export function initSidebarToolSandbox() {
       if(dirty||busy)sendDraft();
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'edit-state',instance,toolId,dirty,busy},'*');
     };
+    const setConversationState=value=>{
+      if(disposed||!value||typeof value!=='object'||Array.isArray(value)||
+         Object.keys(value).length!==2||!Object.hasOwn(value,'visible')||!Object.hasOwn(value,'open')||typeof value.visible!=='boolean'||typeof value.open!=='boolean')return false;
+      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'conversation-state',instance,toolId,
+        visible:value.visible,open:value.open},'*');
+      return true;
+    };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({
-      root,request,setState,
+      root,request,setState,setConversationState,
       ...(navigationAllowed?{setNavigation}:{}),
       get locale(){return uiLocale;},
       get messages(){return uiMessages;},

@@ -24,9 +24,13 @@ const compileComponent = async (path, replacements) => {
 const buttonModule = await compileComponent('../../src/ui/react/components/ui/button.tsx',{'react':import.meta.resolve('react')});
 const switchModule = await compileComponent('../../src/ui/react/components/ui/switch.tsx',{
   'react':import.meta.resolve('react'),'react-aria-components':import.meta.resolve('react-aria-components')});
+const conversationCSS='data:text/javascript;base64,'+Buffer.from('export default '+JSON.stringify(
+  await readFile(new URL('../../src/ui/react/components/conversation-frame.css',import.meta.url),'utf8'))).toString('base64');
+const conversationLayoutCSS='data:text/javascript;base64,'+Buffer.from('export default '+JSON.stringify(
+  await readFile(new URL('../../src/ui/react/components/conversation-layout.css',import.meta.url),'utf8'))).toString('base64');
 const conversationModule = await compileComponent('../../src/ui/react/components/conversation.tsx',{
   'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
-  './ui/button.tsx':buttonModule});
+  './ui/button.tsx':buttonModule,'./conversation-frame.css?raw':conversationCSS,'./conversation-layout.css?raw':conversationLayoutCSS});
 const toolsModule = await compileComponent('../../src/ui/react/tabs/tools.tsx',{'react':import.meta.resolve('react'),
   'react-dom':import.meta.resolve('react-dom'),'../components/ui/button.tsx':buttonModule,
   '../components/ui/switch.tsx':switchModule,

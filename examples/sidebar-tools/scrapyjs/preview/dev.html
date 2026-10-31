@@ -1,6 +1,24 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>scrapyjs · 热更新交互预览</title>
-<style>body{margin:0;font:14px/1.5 system-ui,sans-serif;background:#f5f7fb;color:#1b2c49}header{max-width:800px;margin:16px auto;padding:0 16px}header p{margin:4px 0}iframe{display:block;width:420px;max-width:100%;height:860px;border:1px solid #e1e8f1;border-radius:12px;margin:16px auto;background:white}</style></head><body>
-<header><strong>scrapyjs · 持续开发 / Vite HMR</strong><p>模拟预览：保存仅在内存，任务不采集网页，下载只含模拟数据。编辑 JSX / CSS 后更新界面，不生成安装包。</p><label>模拟场景 <select id="scrapyjs-preview-scenario"><option>success</option><option>empty</option><option>error</option><option>loading</option><option>permission-denied</option><option>untrusted</option></select></label></header>
-<iframe id="opendesk-preview-frame" title="scrapyjs 模拟 App" sandbox="allow-scripts allow-downloads" src="/preview/dev-frame.html"></iframe>
-<script type="module">const picker=document.querySelector('select');picker.addEventListener('change',()=>document.querySelector('iframe').src='/preview/dev-frame.html?scenario='+picker.value);</script>
+<!-- CANONICAL_SHELL_CSS --><style>body{margin:0;font:14px/1.5 system-ui,sans-serif;background:#f5f7fb;color:#1b2c49}.dev-intro{max-width:800px;margin:16px auto;padding:0 16px}.dev-intro p{margin:4px 0}iframe{display:block;width:420px;max-width:100%;height:860px;border:1px solid #e1e8f1;border-radius:12px;margin:0;background:white}.preview-device{width:420px;max-width:100%;margin:16px auto;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden}.sidebar-tool-frame{min-height:0}</style></head><body>
+<header class="dev-intro"><strong>scrapyjs · 持续开发 / Vite HMR</strong><p>模拟预览：保存仅在内存，任务不采集网页；AI 返回固定示例提案，复制仅模拟确认，下载只含模拟数据。编辑 JSX / CSS 后更新界面；共享组件来自当前源码的内存编译，不生成安装包。<a href="./preview.html" target="_blank" rel="noopener">打开正式外壳离线预览</a></p><label>模拟场景 <select id="scrapyjs-preview-scenario"><option>success</option><option>empty</option><option>error</option><option>loading</option><option>permission-denied</option><option>untrusted</option></select></label> <button id="scrapyjs-preview-reset" type="button">重置模拟数据</button><p id="scrapyjs-preview-guard" role="status" aria-live="polite"></p></header>
+<div class="preview-device"><!-- CANONICAL_SHELL_HEADER --><div id="sidebar-tool-frame" class="sidebar-tool-frame"><iframe id="opendesk-preview-frame" title="scrapyjs 模拟 App" sandbox="allow-scripts allow-downloads" src="/preview/dev-frame.html"></iframe></div></div>
+<script type="module">
+import {installPreviewConversationHeader} from './conversation-header.js';
+const picker=document.getElementById('scrapyjs-preview-scenario');
+const frame=document.getElementById('opendesk-preview-frame');
+const reset=document.getElementById('scrapyjs-preview-reset');
+installPreviewConversationHeader(frame,document.getElementById('sidebar-tool-conversation-toggle'));
+let locked=false;
+window.addEventListener('message',event=>{
+  if(event.source!==frame.contentWindow||event.origin!=='null')return;
+  const state=event.data;
+  if(!state||state.type!=='scrapyjs-preview-state'||typeof state.dirty!=='boolean'||typeof state.busy!=='boolean')return;
+  locked=state.dirty||state.busy;
+  const reason=state.busy?'任务正在进行，完成或停止后可重置模拟数据':state.dirty?'有未保存修改，请先保存或取消后再切换或重置':'';
+  for(const control of [picker,reset]){control.disabled=locked;control.title=reason;}
+  document.getElementById('scrapyjs-preview-guard').textContent=reason;
+});
+picker.addEventListener('change',()=>{if(!locked)frame.src='/preview/dev-frame.html?scenario='+encodeURIComponent(picker.value);});
+reset.addEventListener('click',()=>{if(!locked){picker.value='success';frame.src='/preview/dev-frame.html?scenario=success';}});
+</script>
 </body></html>

@@ -18,6 +18,8 @@
     {id: 'douban', name: '豆瓣图书', config: douban}
   ]};
   let revision = 1, sequence = 0;
+  let aiPending = null, aiRevision = 1;
+  const aiRequests = new Map();
   const runs = new Map();
   const etag = () => 'preview-memory-' + revision;
   const terminal = new Set(['completed', 'failed', 'cancelled']);
@@ -37,10 +39,19 @@
   }
   const request = async (operation, payload = {}) => {
     const allowed = ['storage.get', 'storage.set', 'currentPage.info', 'tasks.read',
-      'tasks.start', 'tasks.stop', 'browser.downloads.text'];
+      'tasks.start', 'tasks.stop', 'browser.downloads.text', 'ai.info', 'ai.generate', 'ai.cancel'];
     if (!allowed.includes(operation)) throw error('E_PREVIEW_UNSUPPORTED', '不支持此操作');
     if (scenario === 'permission-denied') throw error('E_PERMISSION_DENIED', '模拟权限不足；不能申请真实权限');
     if (operation.startsWith('storage.')) {
+      if (payload.key === 'ai-pending-request') {
+        const etag = 'preview-ai-' + aiRevision;
+        if (operation === 'storage.get') return {value: clone(aiPending), etag};
+        if (payload.ifMatch !== etag) throw error('E_STORAGE_CONFLICT', 'AI 内存版本冲突');
+        if (payload.value !== null && (payload.value?.schemaVersion !== 1 || typeof payload.value.requestId !== 'string'))
+          throw error('E_PREVIEW_IDENTITY', 'AI 请求身份无效');
+        aiPending = clone(payload.value); aiRevision++;
+        return {saved: true};
+      }
       if (payload.key !== 'capture-config') throw error('E_PREVIEW_KEY', '仅允许本工具存储键');
       if (operation === 'storage.get') {
         if (payload.withEtag !== true) throw error('E_PREVIEW_ETAG', '读取需要 ETag');
@@ -55,6 +66,28 @@
     if (operation === 'currentPage.info') return {status: 'available',
       url: value?.records?.find(row => row.id === value.selectedId)?.config.url || demo.url,
       title: scenario === 'untrusted' ? '<img src=x onerror=alert(1)>' : '离线模拟 demo 网页（未连接真实页面）'};
+    if (operation === 'ai.info') return {provider: '离线演示', model: '固定示例提案（非模型）', generation: 1};
+    if (operation === 'ai.generate') {
+      if (payload.providerGeneration !== 1 || payload.requestId !== aiPending?.requestId || aiRequests.has(payload.requestId))
+        throw error('E_PREVIEW_IDENTITY', 'AI 原请求身份不符或重复');
+      const current = payload.context?.currentConfig;
+      if (!current?.itemConfig || typeof payload.request !== 'string') throw error('E_PREVIEW_AI', '缺少配置或需求');
+      const operation = {state: 'running'};
+      aiRequests.set(payload.requestId, operation);
+      await new Promise(resolve => setTimeout(resolve, 700));
+      if (operation.state === 'cancelled') throw error('E_CANCELLED', '已停止固定示例提案');
+      operation.state = 'completed';
+      const config = clone(current);
+      config.itemConfig.column_title = clone(config.itemConfig.title || '.::text');
+      return {requestId: payload.requestId, providerGeneration: 1, proposal: JSON.stringify(config),
+        metadata: {simulation: true, fixedProposal: '仅演示新增 column_title，不理解输入或读取网页'}};
+    }
+    if (operation === 'ai.cancel') {
+      const operation = aiRequests.get(payload.requestId);
+      if (!operation) return {requestId: payload.requestId, state: 'unknown'};
+      if (operation.state === 'running') operation.state = 'cancelled';
+      return {requestId: payload.requestId, state: operation.state};
+    }
     if (operation === 'tasks.read' && payload.taskId === task.taskId && !payload.clientRequestId)
       return {task: clone(task)};
     if (operation === 'tasks.start') {
@@ -82,9 +115,10 @@
     }
     if (operation === 'browser.downloads.text') {
       const exportable = [...runs.values()].some(run => run.value !== null);
-      if (!exportable || typeof payload.text !== 'string' ||
+      const configExport = /^scrapyjs-ai-config\.json$/.test(payload.filename);
+      if ((!exportable && !configExport) || typeof payload.text !== 'string' ||
           new TextEncoder().encode(payload.text).byteLength > 150000 ||
-          !/^scrapyjs-result\.(json|csv)$/.test(payload.filename))
+          !/^scrapyjs-(?:result\.(json|csv)|ai-config\.json)$/.test(payload.filename))
         throw error('E_PREVIEW_EXPORT', '仅允许下载有界的模拟结果');
       const url = URL.createObjectURL(new Blob([payload.text], {type: 'text/plain;charset=utf-8'}));
       const link = document.createElement('a'); link.href = url; link.download = 'SIMULATED-' + payload.filename;
@@ -95,5 +129,20 @@
     throw error('E_PREVIEW_UNSUPPORTED', '请求格式无效');
   };
   const root = document.getElementById('tool-root');
-  Object.defineProperty(globalThis, 'OpenDeskTool', {value: Object.freeze({root, request})});
+  const setState = ({dirty = false, busy = false} = {}) => parent.postMessage({
+    type: 'scrapyjs-preview-state', dirty: Boolean(dirty), busy: Boolean(busy)
+  }, '*');
+  let conversation={visible:false,open:false};
+  const publishConversation=()=>parent.postMessage({type:'scrapyjs-preview-conversation-state',...conversation},'*');
+  const setConversationState=value=>{
+    if(!value||typeof value.visible!=='boolean'||typeof value.open!=='boolean'||Object.keys(value).some(key=>!['visible','open'].includes(key)))throw error('E_PREVIEW_CONVERSATION_STATE','无效展示状态');
+    conversation={visible:value.visible,open:value.open};publishConversation();
+  };
+  window.addEventListener('message',event=>{
+    if(event.source!==parent)return;
+    if(event.data?.type==='scrapyjs-preview-conversation-sync')return publishConversation();
+    if(event.data?.type!=='scrapyjs-preview-conversation-action'||event.data.action!=='toggle'||!conversation.visible)return;
+    root.dispatchEvent(new CustomEvent('opendesk:conversation-action',{detail:{action:'toggle'}}));
+  });
+  Object.defineProperty(globalThis, 'OpenDeskTool', {value: Object.freeze({root, request, setState,setConversationState})});
 })();

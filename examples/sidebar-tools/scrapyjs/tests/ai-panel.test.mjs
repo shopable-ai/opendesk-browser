@@ -111,7 +111,7 @@ test('unknown permits next-input edits but fences generation/application and pre
   t.after(()=>{globalThis.OpenDeskTool=previous;});
   const state={config:{url:'https://example.com/',itemConfig:{title:'h2'}},target:{title:'Sent page',url:'https://example.com/'},profileEpoch:1,error:'original error'};
   const ui=createExtensionCenterDOM(t,{component:({show,...props})=>show?React.createElement(AiPanel,props):null,
-    props:{show:true,state,valid:true,onBusy:value=>busy.push(value),onDirty(){},onApply:config=>applied.push(config),onClose(){}}});
+    props:{show:true,open:true,state,valid:true,onBusy:value=>busy.push(value),onDirty(){},onApply:config=>applied.push(config),onClose(){}}});
   await settle();
   const get=id=>ui.doc.getElementById(id);
   const edit=(id,value)=>{get(id).value=value;get(id).dispatch('input');};
@@ -137,6 +137,14 @@ test('unknown permits next-input edits but fences generation/application and pre
   assert.ok(ui.doc.body.textContent.includes(sent.requestId),'show the unresolved request identity');
   assert.match(get('ai-request-status').textContent,/unknown/);
   assert.equal(get('ai-generate').disabled,true);assert.equal(get('ai-apply'),null);
+  const input=get('ai-requirement');
+  ui.state.open=false;ui.paint();await settle();
+  assert.equal(get('ai-panel').hidden,true);assert.equal(ui.doc.querySelector('.od-conversation-close').disabled,false,'unknown can be collapsed without clearing its lock');
+  assert.equal(calls.filter(call=>call.operation==='ai.cancel').length,0,'hiding has no request side effect');
+  assert.equal(busy.at(-1),true);assert.equal(input,get('ai-requirement'));
+  ui.state.open=true;ui.paint();await settle();
+  assert.equal(get('ai-requirement').value,'next requirement');assert.match(get('ai-request-status').textContent,/unknown/);
+  assert.equal(get('ai-generate').disabled,true,'reopening never releases unknown');
   send(ui.doc);
   assert.equal(calls.filter(call=>call.operation==='ai.generate').length,1,'never replay unknown');
   assert.equal(get('ai-cancel').disabled,false);get('ai-cancel').dispatch('click');await settle();
@@ -199,7 +207,7 @@ test('local preview keeps the shared Chat draft across closing and reopening wit
   const get=id=>ui.doc.getElementById(id);
   assert.notEqual(ui.doc.activeElement,get('ai-requirement'),'a hidden assistant must not steal focus');
   ui.state.open=true;ui.paint();
-  assert.equal(ui.doc.activeElement,get('ai-requirement'));
+  assert.equal(ui.doc.activeElement,get('ai-requirement'),'opening the bottom Dock focuses the shared composer');
   get('ai-requirement').value='保留原规则，只增加 column_title';get('ai-requirement').dispatch('input');
   get('ai-sample').value='<h2>结构样本</h2>';get('ai-sample').dispatch('input');
   get('ai-use-page').checked=true;get('ai-use-page').dispatch('click');

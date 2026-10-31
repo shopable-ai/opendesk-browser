@@ -63,7 +63,7 @@ AI Chat 是业务无关的公共能力，书签、采集等工具只是消费者
 
 ## 沙箱复用 Chat 展示
 
-已 opt-in `uiRuntime: "opendesk.react-ui.v1"` 的工具，可从固定 `OpenDeskSidebarUI` 使用 `SharedConversationFrame` 与 `createConversationSession`；预编译 JSX 继续将 `@opendesk/ui` 映射到该全局、React 映射到原固定 `OpenDeskPageReact`。它们只在工具自己的 opaque iframe / React Root 中运行，不挂入可信工作台。
+已 opt-in `uiRuntime: "opendesk.react-ui.v1"` 的工具，可从固定 `OpenDeskSidebarUI` 使用 `SharedConversationDock`、`SharedConversationFrame` 与 `createConversationSession`；预编译 JSX 继续将 `@opendesk/ui` 映射到该全局、React 映射到原固定 `OpenDeskPageReact`。它们只在工具自己的 opaque iframe / React Root 中运行，不挂入可信工作台。
 
 ```jsx
 const {SharedConversationFrame, createConversationSession} = OpenDeskSidebarUI;
@@ -92,4 +92,12 @@ const state = React.useSyncExternalStore(session.subscribe, session.getSnapshot)
 
 工具负责把发送/停止接入上文 `ai.info/generate/cancel`，核对 Host 回执、保留 unknown 状态且不自动重放。不要以本地 finish/reset/cancel 表示真实推理已完成。local debug / 只读预览可使用展示组件，但仍不开放真实 AI。
 
-Frame 从单一 `conversation-frame.css` 渲染固定 CSS 文本，与可信 Dock 共享原气泡、输入框和动作样式；不注入 Dock 布局、设置页或宿主整份 CSS，不新增 palette 或依赖。固定 runtime 仅新增这两个公开成员，不导出 `TrustedConversationWorkspace`、可信 Header Slot、Provider、业务 consumer、Authority 或 private config。
+Frame 从单一 `conversation-frame.css` 渲染固定 CSS 文本，与可信 Dock 共享原气泡、输入框和动作样式；公开 Dock 单独加载纯展示 `conversation-layout.css`。两者都不注入设置页或宿主整份 CSS，不新增 palette 或依赖。固定 runtime 公开 Dock、Frame 和 session，不导出 `TrustedConversationWorkspace`、可信 Header Slot、Provider、业务 consumer、Authority 或 private config。
+
+### 沙箱工具的公共页头入口与底部 Dock
+
+`OpenDeskTool.setConversationState({visible: boolean, open: boolean})` 将展示状态同步到 Host 固定 AI 按钮；默认隐藏。参数只能含这两个布尔字段，无效调用返回 false。监听 `OpenDeskTool.root` 的 `opendesk:conversation-action`，收到固定 `detail: {action: 'toggle'}` 后，由工具切换自己的 open 并重新同步状态。完整合同与示例见 [Sidebar Tool API](sidebar-tools.zh-CN.md)。此通知不携带原事件、HTML、任意动作名或 AI 授权，不可作为模型请求的用户手势。
+
+公开 `OpenDeskSidebarUI.SharedConversationDock` 可搭配 `SharedConversationFrame`：Dock 接受 `open` / `onClose`，提供底部展示容器与 resizer；Frame 负责对话内容。关闭时更新工具 open 并调用上述 API 同步页头 aria 状态。Dock、Frame 和 session 仍在工具自己的 iframe 内；它们不公开 TrustedWorkspace / HeaderSlot，也不改变 AI 调用、权限或安装合同。Host 清理实例后入口隐藏，迟到状态消息被拒绝；可信 Workspace 保留自身固定入口，避免重复。
+
+Dock 的可选 `toolbar` 接收消费者自有 React 展示节点，位于收起按钮旁；它不创建 Provider 配置或授权入口。可信书签继续通过已有 `onOpenSettings` 打开共享设置面板。按钮必须完整位于 Dock 内，分隔条不能遮住按钮或裁切焦点环。

@@ -17,7 +17,8 @@ const INPUTS = ['src/ui/design-tokens.css', 'src/ui/design-system.css', 'scripts
   'scripts/preview/sidebar-component-recipes.jsx',
   'src/ui/react/components/ui/button.tsx', 'src/ui/react/components/ui/card.tsx',
   'src/ui/react/components/ui/switch.tsx', 'src/entrypoints/sidebar-shared-ui.js', 'package-lock.json',
-  'scripts/preview/shared-tool-design.mjs'];
+  'scripts/preview/shared-tool-design.mjs', 'src/ui/react/components/conversation.tsx',
+  'src/ui/react/components/conversation-frame.css', 'src/ui/react/components/conversation-layout.css', 'src/ui/conversation/session.js'];
 const escapeHTML = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hash = text => createHash('sha256').update(text).digest('hex');
 const policies = `default-src 'none'; script-src 'nonce-opendesk-preview'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`;
@@ -75,12 +76,16 @@ export async function createPreviewKit({title = '我的工具', repoRoot = ROOT}
 export async function createComponentReference(kit) {
   const bundled=await build({entryPoints:[join(ROOT,'scripts/preview/sidebar-component-recipes.jsx')],
     bundle:true,write:false,format:'iife',platform:'browser',target:'es2022',minify:true,
-    define:{'process.env.NODE_ENV':'"production"'},metafile:true,legalComments:'inline'});
+    define:{'process.env.NODE_ENV':'"production"'},metafile:true,legalComments:'inline',
+    plugins:[{name:'canonical-frame-css',setup(builder){
+      builder.onResolve({filter:/\.css\?raw$/},args=>({path:resolve(args.resolveDir,args.path.slice(0,-4)),namespace:'frame-css'}));
+      builder.onLoad({filter:/.*/,namespace:'frame-css'},async args=>({contents:await readFile(args.path,'utf8'),loader:'text'}));
+    }}]});
   const js=bundled.outputFiles[0].text;
   const $=load(kit.html);
   $('title').text('OpenDesk · 组件与组合用法');
   $('#od-preview-app').empty().attr('aria-label','真实共享组件的离线示例');
-  $('#od-preview-controls').html('<div class="od-stack"><h2 class="od-title">组件用法 · 仅离线内存</h2><p class="od-note">Button / IconButton / Card / Switch 运行当前共享 React 源码；表单与状态复用 canonical CSS。没有调用 Host 或安装包，未验证已安装 Runtime。</p><div id="od-preview-recipe-controls" class="od-stack"></div><div id="od-preview-recipe-code" class="od-stack"></div><a href="preview.html">返回设计稿 →</a></div>');
+  $('#od-preview-controls').html('<div class="od-stack"><h2 class="od-title">组件用法 · 仅离线内存</h2><p class="od-note">Button / IconButton / Card / Switch / Chat Frame 与 session 运行当前共享源码；表单与状态复用 canonical CSS。没有调用 Host 或安装包，未验证已安装 Runtime。</p><div id="od-preview-recipe-controls" class="od-stack"></div><div id="od-preview-recipe-code" class="od-stack"></div><a href="preview.html">返回设计稿 →</a></div>');
   $('#od-preview-behavior').text($('#od-preview-behavior').text().split('/* DESIGN_APP_BEHAVIOR */')[0]+'\n'+js.replaceAll('</script','<\\/script'));
   $('#opendesk-preview-shell-data').text(JSON.stringify({title:'组件与组合用法'}));
   $('.preview-provenance').first().text('SOURCE_COMPONENT_PREVIEW · 当前共享组件源码编译；未安装。');
@@ -88,7 +93,10 @@ export async function createComponentReference(kit) {
   const recipes=componentRecipeGuide();
   $('#od-preview-recipe-code').append('<pre class="preview-actions-code"></pre>').find('pre').text(recipes);
   const inputs={};
-  for(const path of Object.keys(bundled.metafile.inputs).sort())inputs[path]=hash(await readFile(join(ROOT,path)));
+  for(const path of Object.keys(bundled.metafile.inputs).sort()){
+    const actual=path.startsWith('frame-css:')?path.slice('frame-css:'.length):path;
+    inputs[actual.startsWith(ROOT+'/')?actual.slice(ROOT.length+1):actual]=hash(await readFile(resolve(ROOT,actual)));
+  }
   return {html:$.html(),guide:recipes,inputs,evidence:'SOURCE_COMPONENT_PREVIEW'};
 }
 
@@ -120,6 +128,24 @@ HTML（保留原工具语言，不转 React）：
 </div></div>
 校验失败显示错误并设 aria-invalid=true，修正后移除；必填字段加 required。
 React 中同样组合原生 label/input/select 与 od-*，当前没有共享 Field/Select/Dialog 导出。
+
+共享 Chat（components.html 内同源码运行，无 Provider/Host/业务）：
+import {SharedConversationDock, SharedConversationFrame, createConversationSession} from '@opendesk/ui';
+// session 用 useState 懒初始化或稳定 ref；useSyncExternalStore 订阅；卸载 dispose()。
+// 外层有界高度：div.od-conversation-workspace → div.od-conversation-business + Dock。
+// <SharedConversationDock open={open} onClose={close} id="chat" aria-label="AI 对话">
+//   <SharedConversationFrame open={open} ...frameProps />
+// </SharedConversationDock>
+// open 默认 false，由调用者控制；隐藏保留 children/session，不以 open 条件卸载。
+// Dock 支持 className/style/section DOM 属性、toolbar 展示槽、expandedFeedback 高度预留。
+// 拖动分隔条或方向键/Shift/Home/End 调整高度；业务区域自行设置 overflow。
+// 同文档离线外壳按钮 portal 到 #sidebar-tool-chat-slot（卸载旁）；这不是 sandbox API。
+// Frame 接 rows/draft/busy/blocked、onDraftChange/onSend/onStop、feedback/review。
+// session.begin() 的轮次必须 finish；Stop 先 cancel；恢复/卸载清理轮次与订阅。
+Dock 自动带纯展示 conversation-layout.css；Frame 自动带 conversation-frame.css；勿复制气泡/输入/Send/Stop，不导出可信 Workspace。
+外部 Chat 状态 ready/busy/error/blocked/review 只改本页内存；发送后外部完成固定回复。
+诊断顺序：找成熟 owner → 查组件 CSS → 查有界 flex column 容器 → 对 manifest 同 SHA；
+过期先重生成，不手改产物；再截图并实际输入、Send、Stop、失败/blocked 与 review。
 
 布局：od-page-head + od-page-title + od-page-actions（刷新在所属区域右上）；
 od-stack 为区内 8px；独立分区使用 --space-4；CardContent 为 12px；不逐字段套卡。
@@ -225,6 +251,9 @@ async function cli(args) {
     const reference=await createComponentReference(kit);
     for(const [path,expected] of Object.entries(kit.manifest.inputs)){
       if(hash(await readFile(join(ROOT,path)))!==expected)throw Error('生成期间来源漂移，请重新生成：'+path);
+    }
+    for(const [path,expected] of Object.entries(reference.inputs)){
+      if(hash(await readFile(resolve(ROOT,path)))!==expected)throw Error('组件生成期间来源漂移，请重新生成：'+path);
     }
     kit.manifest.componentReference={evidence:reference.evidence,htmlHash:hash(reference.html),guideHash:hash(reference.guide),inputs:reference.inputs};
     await mkdir(dirname(out), {recursive:true}); await mkdir(out); // existing output is never overwritten

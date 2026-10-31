@@ -50,6 +50,8 @@ details>section{margin-top:var(--space-3)}
 .od-icon-button{position:relative;display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .od-icon-button--primary{border-color:var(--od-brand);background:var(--od-brand);color:var(--od-on-brand)}
 .od-icon-button--danger{border-color:var(--od-negative);background:var(--od-negative-bg);color:var(--od-negative)}
+/* Sandbox consumers receive this public slice without the document button reset. */
+.od-button:disabled,.od-icon-button:disabled{opacity:.48;cursor:not-allowed}
 /* Opt-in unframed icon action for compact product toolbars.
    Keeps the trusted 34px hit target, focus, disabled and danger semantics. */
 .od-icon-button--quiet{border-color:transparent;background:transparent}

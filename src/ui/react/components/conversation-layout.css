@@ -1,0 +1,24 @@
+/* Presentation-only workspace and Dock; business and session stay mounted. */
+.od-conversation-workspace{height:100%;min-height:0;min-width:0;width:100%;display:flex;flex-direction:column;overflow:hidden;color:var(--od-ink)}
+.od-conversation-business{min-height:0;min-width:0;flex:1 1 auto;overflow:hidden}
+.od-conversation-ai-glyph{display:inline-grid;place-items:center;width:17px;height:17px;
+ font:800 12px/1 system-ui,sans-serif;letter-spacing:-.025em}
+.od-conversation-frame-trigger{width:30px;min-width:30px;height:30px;min-height:30px;
+ padding:0;border:0;background:transparent}
+.od-conversation-frame-trigger[aria-pressed="true"]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
+.od-conversation-dock{position:relative;flex:none;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper);border-top:1px solid var(--od-line)}
+.od-conversation-dock[hidden]{display:none!important}
+/* One visible divider; reserve the full icon hit area instead of clipping it. */
+.od-conversation-dragbar{position:relative;z-index:1;flex:0 0 32px;min-height:32px;background:transparent}
+.od-conversation-separator{position:absolute;top:0;bottom:0;left:0;right:40px;touch-action:none;cursor:row-resize}
+.od-conversation-dragbar--actions .od-conversation-separator{right:74px}
+.od-conversation-toolbar{position:absolute;z-index:2;top:0;right:4px;display:flex;align-items:center;gap:2px;height:32px}
+.od-conversation-separator:before{content:'';position:absolute;left:calc(50% - 16px);width:32px;height:2px;top:8px;background:var(--od-input-border);border-radius:var(--radius-pill)}
+.od-conversation-separator:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
+.od-conversation-close{position:relative;display:grid;place-items:center;width:30px;min-width:30px;height:30px;min-height:30px;padding:0;border:0;background:var(--od-paper);color:var(--od-sub);border-radius:var(--radius-control);cursor:pointer}
+.od-conversation-close svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.od-conversation-close:hover{background:var(--od-muted)}
+.od-conversation-close:focus-visible,.od-conversation-frame-trigger:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+@media(pointer:coarse){.od-conversation-dragbar{flex-basis:44px;min-height:44px}.od-conversation-separator{top:0;bottom:0;right:48px}.od-conversation-dragbar--actions .od-conversation-separator{right:94px}.od-conversation-toolbar{height:44px;right:2px}.od-conversation-separator:before{top:20px}.od-conversation-close{width:44px;min-width:44px;height:44px;min-height:44px}}
+
+@media(pointer:coarse){.od-conversation-frame-trigger{width:44px;min-width:44px;height:44px;min-height:44px}}

@@ -476,6 +476,12 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug}) 
 </svg>
 </ToolField>
 <TrustedConversationHeaderSlot/>
+<ToolField as="button" type="button" id="sidebar-tool-conversation-toggle"
+  className="sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger"
+  title="AI 对话" aria-label="AI 对话" aria-controls="sidebar-tool-frame"
+  aria-expanded="false" aria-pressed="false" hidden={true}>
+  <span className="od-conversation-ai-glyph" aria-hidden="true">AI</span>
+</ToolField>
 <div className="sidebar-tool-header-actions" role="group" aria-label="工具管理"
   data-management-ui="direct-actions-v1" hidden={!managementActionsVisible}>
 <ToolField as="button" type="button" id="sidebar-tool-settings-open" className="sidebar-tool-icon-action od-icon-button"

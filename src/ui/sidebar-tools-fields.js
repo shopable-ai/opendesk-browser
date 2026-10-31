@@ -1,5 +1,17 @@
 // Explicit presentation defaults from the existing trusted tool host. No DOM nodes.
 export const SIDEBAR_TOOL_FIELDS = {
+  "sidebar-tool-conversation-toggle": {
+    "hidden": true,
+    "type": "button",
+    "title": "AI 对话",
+    "className": "sidebar-tool-icon-action od-icon-button od-conversation-frame-trigger",
+    "attributes": {
+      "aria-label": "AI 对话",
+      "aria-controls": "sidebar-tool-frame",
+      "aria-expanded": "false",
+      "aria-pressed": "false"
+    }
+  },
   "sidebar-tool-back": {
     "title": "返回工具列表",
     "className": "sidebar-tool-icon-action od-icon-button",

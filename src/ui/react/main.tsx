@@ -10,6 +10,7 @@ import BookmarkReactApp from '../../../projects/bookmark-manager/src/react/App.j
 import {TrustedConversationWorkspace} from './components/conversation.tsx';
 import {createPromptReconciliationAdapter} from '../conversation/prompt-controller.js';
 import sharedUiCSS from './components/ui/sidebar-shared.css?raw';
+import conversationLayoutCSS from './components/conversation-layout.css?raw';
 import conversationDockCSS from './components/conversation-dock.css?raw';
 import trustedSettingsCSS from './components/trusted-settings.css?raw';
 import timeReviewHostCSS from '../../../projects/time-review/trusted/host.css?raw';
@@ -99,7 +100,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,discoveryModel,
       view:extensionView,onBack:onExtensionBack};
     flushSync(()=>root.render(<>
-      <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
+      <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS}</style>
       <SidebarAppShell activeTab={navigationTab} localeController={localeController}
         debugEnabled={debugEnabled} appDebugEnabled={appDebugEnabled} debugModel={debugModel} debugActions={debugActions} development={development}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}

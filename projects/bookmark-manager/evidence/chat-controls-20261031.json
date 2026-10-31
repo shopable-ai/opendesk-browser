@@ -1,0 +1,48 @@
+{
+  "status": "PASS_OFFLINE_BOOKMARK_CONTROLS",
+  "source": "projects/bookmark-manager/preview/dev.html",
+  "previewSha256": "216067325366cc198322dd6d2c885144f0453ae38253252cb1156b28b518a655",
+  "geometry": [
+    {
+      "name": "AI Provider 设置",
+      "width": 30,
+      "height": 30,
+      "fullyInside": true,
+      "hit": true
+    },
+    {
+      "name": "收起对话",
+      "width": 30,
+      "height": 30,
+      "fullyInside": true,
+      "hit": true
+    }
+  ],
+  "checks": [
+    "settings and collapse are fully visible, unobscured and clickable",
+    "settings sheet opens without hiding the Chat or bookmark business",
+    "closing settings restores its icon focus",
+    "settings keeps existing Chat draft",
+    "collapse icon closes bottom Chat",
+    "collapse returns focus to the header AI button",
+    "reopening restores the same draft"
+  ],
+  "nativeInstalled": "NOT_TESTED",
+  "realProvider": "NOT_TESTED",
+  "before": {
+    "settingsCount": 0,
+    "buttonHeight": 34,
+    "clippedTop": 2,
+    "toolbarHeight": 12
+  },
+  "changes": [
+    "settings callback connected to the existing shared sheet in offline fixture",
+    "full-size toolbar icons kept inside the Dock",
+    "raw trusted style imports layout explicitly; no runtime CSS import"
+  ],
+  "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/toolbar-chat-20261031/bookmark-controls/open-two-actions.png",
+  "notTested": [
+    "installed extension reload",
+    "real Provider configuration"
+  ]
+}

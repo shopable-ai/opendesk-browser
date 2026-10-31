@@ -1,35 +1,13 @@
-/* Framework-owned, trusted shared Dock; the business tree stays mounted. */
-.od-conversation-workspace{height:100%;min-height:0;min-width:0;width:100%;display:flex;flex-direction:column;overflow:hidden;color:var(--od-ink)}
-.od-conversation-business{min-height:0;min-width:0;flex:1 1 auto;overflow:hidden}
 .od-conversation-header-slot:empty{display:none}
 .od-conversation-header-slot{display:inline-flex;align-items:center;flex:none}
-.od-conversation-ai-glyph{display:inline-grid;place-items:center;width:17px;height:17px;
- font:800 12px/1 system-ui,sans-serif;letter-spacing:-.025em}
-.od-conversation-frame-trigger{width:30px;min-width:30px;height:30px;min-height:30px;
- padding:0;border:0;background:transparent}
-.od-conversation-frame-trigger[aria-pressed="true"]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
-.od-conversation-dock{position:relative;flex:none;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper);border-top:1px solid var(--od-line)}
-.od-conversation-dock[hidden]{display:none!important}
-/* One visible 1px divider, with an invisible drag target. The old 23/34px band was visually heavy. */
-.od-conversation-dragbar{position:relative;z-index:1;flex:0 0 12px;min-height:12px;background:transparent}
-.od-conversation-separator{position:absolute;top:-4px;bottom:-4px;left:0;right:40px;touch-action:none;cursor:row-resize}
-.od-conversation-separator:before{content:'';position:absolute;left:calc(50% - 16px);width:32px;height:2px;top:8px;background:var(--od-input-border);border-radius:var(--radius-pill)}
-.od-conversation-separator:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
-.od-conversation-close{position:absolute;z-index:2;top:-3px;right:6px;display:grid;place-items:center;width:30px;min-width:30px;height:30px;padding:0;border:0;background:var(--od-paper);color:var(--od-sub);border-radius:var(--radius-control);cursor:pointer}
-.od-conversation-close svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.od-conversation-close:hover{background:var(--od-muted)}
-.od-conversation-close:focus-visible,.od-conversation-frame-trigger:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
-@media(pointer:coarse){.od-conversation-dragbar{flex-basis:18px;min-height:18px}.od-conversation-separator{top:-10px;bottom:-10px;right:48px}.od-conversation-separator:before{top:16px}.od-conversation-close{width:44px;min-width:44px;height:44px;top:-4px;right:2px}}
-
 /* Framework-level Provider settings: icon-only, compact, no default background. */
-.od-conversation-settings{position:absolute;z-index:2;top:-3px;right:38px;display:grid;
- place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:var(--radius-control);
+.od-conversation-settings{position:relative;display:grid;
+ place-items:center;width:30px;min-width:30px;height:30px;min-height:30px;padding:0;border:0;border-radius:var(--radius-control);
  background:transparent;color:var(--od-sub);cursor:pointer}
 .od-conversation-settings svg{width:17px;height:17px}
 .od-conversation-settings:hover{color:var(--od-ink);background:var(--od-muted)}
 .od-conversation-settings:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
-@media(pointer:coarse){.od-conversation-settings{width:44px;height:44px;right:48px;top:-4px}
- .od-conversation-frame-trigger{width:44px;min-width:44px;height:44px;min-height:44px}}
+@media(pointer:coarse){.od-conversation-settings{width:44px;min-width:44px;height:44px;min-height:44px}}
 /* Workflow reuses the same toolbar rhythm without changing its Source owner. */
 .workflow-composer .od-conversation-input{border:0;border-radius:0;padding-left:var(--space-1);background:transparent}
 .workflow-composer .od-conversation-input:focus-visible{outline:none}

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
 import frameCSS from './conversation-frame.css?raw';
+import layoutCSS from './conversation-layout.css?raw';
 import {IconButton as OpenDeskIconButton} from './ui/button.tsx';
 
 // Shared, presentation-only primitives. Callers retain provider credentials,
@@ -83,7 +84,7 @@ export function SharedConversationFrame({
      </OpenDeskIconButton>:
     <OpenDeskIconButton id={sendId||undefined}
       className="od-conversation-action od-conversation-action--primary"
-      type="submit" title="发送消息" label="发送"
+      type="button" onClick={submit} title="发送消息" label="发送"
       disabled={blocked||!canSend||!draft.trim()}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
      </OpenDeskIconButton>}
@@ -105,8 +106,90 @@ export function SharedConversationFrame({
  </>;
 }
 
+// Controlled presentation only: children remain mounted while hidden. The caller
+// owns the workspace/business containers, session, focus restoration and actions.
+export function SharedConversationDock({open=false,onClose,id='opendesk-conversation-dock',
+ title='AI 对话',className='',children,toolbar=null,expandedFeedback=false,
+ style,...props}){
+ const dockRef=React.useRef(null),resizeRef=React.useRef(null);
+ const [height,setHeight]=React.useState(null);
+ const [totalHeight,setTotalHeight]=React.useState(600);
+ React.useLayoutEffect(()=>{
+  const node=dockRef.current?.parentElement;
+  if(!node)return;
+  // CSS zoom changes visual pixels but Dock height is assigned in layout CSS pixels.
+  const measure=()=>setTotalHeight(node.clientHeight||node.getBoundingClientRect().height||600);
+  measure();
+  if(typeof ResizeObserver==='undefined')return;
+  const observer=new ResizeObserver(measure);observer.observe(node);
+  return()=>observer.disconnect();
+ },[]);
+ const limits=React.useMemo(()=>{
+  // At 200% zoom an 800px physical viewport can yield only 400 CSS px.
+  // Prefer a scrollable transcript over collapsing the original bookmark tree.
+  // Reserve up to 260 CSS px for business toolbar, tree header and visible rows.
+  // Keep the compact composer, phase and coarse-pointer controls inside the Dock.
+  // Tool settings outside this workspace may leave less than the usual floor.
+  // Keep the composer and resize limits inside that actual available space.
+  const min=Math.min(totalHeight,expandedFeedback?184:156,Math.max(144,Math.floor(totalHeight*.34)));
+  const businessMin=Math.min(260,Math.floor(totalHeight*.65));
+  return {min,max:Math.max(min,totalHeight-businessMin)};
+ },[totalHeight,expandedFeedback]);
+ const dockHeight=height===null?clamp(Math.round(totalHeight*.38),limits.min,limits.max):
+  clamp(height,limits.min,limits.max);
+ React.useEffect(()=>{
+  if(height!==null&&height!==dockHeight)setHeight(dockHeight);
+ },[height,dockHeight]);
+ function separatorDown(e){
+  if(e.button!==0)return;
+  const shell=dockRef.current?.parentElement;
+  const scale=shell?.clientHeight?shell.getBoundingClientRect().height/shell.clientHeight:1;
+  resizeRef.current={y:e.clientY,height:dockHeight,scale:scale||1};
+  e.currentTarget.setPointerCapture?.(e.pointerId);
+  e.preventDefault();
+ }
+ function separatorMove(e){
+  if(!resizeRef.current)return;
+  const next=resizeRef.current.height+(resizeRef.current.y-e.clientY)/resizeRef.current.scale;
+  setHeight(clamp(Math.round(next),limits.min,limits.max));
+ }
+ function separatorKey(e){
+  let next=null,step=e.shiftKey?40:16;
+  if(e.key==='ArrowUp')next=dockHeight+step;
+  if(e.key==='ArrowDown')next=dockHeight-step;
+  if(e.key==='Home')next=limits.min;
+  if(e.key==='End')next=limits.max;
+  if(next!==null){e.preventDefault();setHeight(clamp(next,limits.min,limits.max));}
+ }
+
+ return <>
+  <style data-opendesk-conversation-layout="">{layoutCSS}</style>
+  <section {...props} ref={dockRef} id={id} aria-label={props['aria-label']||title}
+   className={'od-conversation-dock '+className} hidden={!open}
+   style={{...style,height:dockHeight+'px'}}>
+   <div className={"od-conversation-dragbar"+(toolbar?" od-conversation-dragbar--actions":"")}>
+    <div className="od-conversation-separator" role="separator" tabIndex={0}
+     aria-label="调整对话与原扩展的高度" aria-orientation="horizontal"
+     aria-valuemin={limits.min} aria-valuemax={limits.max} aria-valuenow={dockHeight}
+     onPointerDown={separatorDown} onPointerMove={separatorMove}
+     onPointerUp={e=>{resizeRef.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId)}}
+     onPointerCancel={()=>{resizeRef.current=null;}} onLostPointerCapture={()=>{resizeRef.current=null;}}
+     onKeyDown={separatorKey}/>
+    <div className="od-conversation-toolbar">
+    {toolbar}
+    <button type="button" className="od-conversation-close" aria-label="收起对话"
+     title="收起对话" onClick={onClose}>
+     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    </div>
+   </div>
+   {children}
+  </section>
+ </>;
+}
+
 // ToolHost owns the slot. Only an admitted trusted workspace may portal Chat here.
-export const TrustedConversationHeaderSlot=React.forwardRef<HTMLSpanElement, Record<string, never>>(function TrustedConversationHeaderSlot(_,ref){
+export const TrustedConversationHeaderSlot=/* @__PURE__ */ React.forwardRef<HTMLSpanElement, Record<string, never>>(function TrustedConversationHeaderSlot(_,ref){
  return <span id="sidebar-tool-chat-slot" className="od-conversation-header-slot" ref={ref}/>;
 });
 const newRefs=()=>({});
@@ -136,8 +219,6 @@ function ConversationWorkspace({
  const [needsReview,setNeedsReview]=React.useState(restored.needsReview===true);
  const [reconcileActionLabel,setReconcileActionLabel]=React.useState('读取真实业务结果并核对');
  const [reconciling,setReconciling]=React.useState(false);
- const [height,setHeight]=React.useState(null);
- const [totalHeight,setTotalHeight]=React.useState(600);
  const shellRef=React.useRef(null),inputRef=React.useRef(null),logRef=React.useRef(null);
  const logScrollRef=React.useRef(null);
  const triggerRef=React.useRef(null),adapterRef=React.useRef(null),abortRef=React.useRef(null);
@@ -145,7 +226,7 @@ function ConversationWorkspace({
  const runRef=React.useRef(null);
  const rowsRef=React.useRef(rows),refsRef=React.useRef(restored.refs||newRefs());
  const draftRef=React.useRef(draft),openRef=React.useRef(open);
- const phaseRef=React.useRef('idle'),resizeRef=React.useRef(null),composingRef=React.useRef(false);
+ const phaseRef=React.useRef('idle'),composingRef=React.useRef(false);
  draftRef.current=draft;openRef.current=open;
 
  const persist=React.useCallback((next={})=>{
@@ -170,32 +251,6 @@ function ConversationWorkspace({
    adapterRef.current=null;
   };
  },[controller,persist]);
- React.useLayoutEffect(()=>{
-  const node=shellRef.current;
-  if(!node)return;
-  // CSS zoom changes visual pixels but Dock height is assigned in layout CSS pixels.
-  const measure=()=>setTotalHeight(node.clientHeight||node.getBoundingClientRect().height||600);
-  measure();
-  if(typeof ResizeObserver==='undefined')return;
-  const observer=new ResizeObserver(measure);observer.observe(node);
-  return()=>observer.disconnect();
- },[]);
- const limits=React.useMemo(()=>{
-  // At 200% zoom an 800px physical viewport can yield only 400 CSS px.
-  // Prefer a scrollable transcript over collapsing the original bookmark tree.
-  // Reserve up to 260 CSS px for business toolbar, tree header and visible rows.
-  // Keep the compact composer, phase and coarse-pointer controls inside the Dock.
-  // Tool settings outside this workspace may leave less than the usual floor.
-  // Keep the composer and resize limits inside that actual available space.
-  const min=Math.min(totalHeight,error||needsReview?184:156,Math.max(144,Math.floor(totalHeight*.34)));
-  const businessMin=Math.min(260,Math.floor(totalHeight*.65));
-  return {min,max:Math.max(min,totalHeight-businessMin)};
- },[totalHeight,error,needsReview]);
- const dockHeight=height===null?clamp(Math.round(totalHeight*.38),limits.min,limits.max):
-  clamp(height,limits.min,limits.max);
- React.useEffect(()=>{
-  if(height!==null&&height!==dockHeight)setHeight(dockHeight);
- },[height,dockHeight]);
 
  const toggle=React.useCallback(()=>setOpen(value=>!value),[]);
  const reconcile=React.useCallback(()=>setNeedsReview(false),[]);
@@ -303,27 +358,6 @@ function ConversationWorkspace({
  function close(){
   setOpen(false);triggerRef.current?.focus({preventScroll:true});
  }
- function separatorDown(e){
-  if(e.button!==0)return;
-  const shell=shellRef.current;
-  const scale=shell?.clientHeight?shell.getBoundingClientRect().height/shell.clientHeight:1;
-  resizeRef.current={y:e.clientY,height:dockHeight,scale:scale||1};
-  e.currentTarget.setPointerCapture?.(e.pointerId);
-  e.preventDefault();
- }
- function separatorMove(e){
-  if(!resizeRef.current)return;
-  const next=resizeRef.current.height+(resizeRef.current.y-e.clientY)/resizeRef.current.scale;
-  setHeight(clamp(Math.round(next),limits.min,limits.max));
- }
- function separatorKey(e){
-  let next=null,step=e.shiftKey?40:16;
-  if(e.key==='ArrowUp')next=dockHeight+step;
-  if(e.key==='ArrowDown')next=dockHeight-step;
-  if(e.key==='Home')next=limits.min;
-  if(e.key==='End')next=limits.max;
-  if(next!==null){e.preventDefault();setHeight(clamp(next,limits.min,limits.max));}
- }
  const bridge=React.useMemo(()=>({open,adapterRef,reconcile}),[open,reconcile]);
  // The live transcript already announces the latest system error once.
  const lastRow=rows.at(-1);
@@ -338,28 +372,15 @@ function ConversationWorkspace({
  return <div ref={shellRef} className="od-conversation-workspace" data-chat-open={open?'true':'false'}>
   {trigger}
   <div className="od-conversation-business">{renderBusiness(bridge)}</div>
-  <section id="opendesk-conversation-dock" className="od-conversation-dock" aria-label={title}
-   hidden={!open} style={{height:dockHeight+'px'}}>
-   <div className="od-conversation-dragbar">
-    <div className="od-conversation-separator" role="separator" tabIndex={0}
-     aria-label="调整对话与原扩展的高度" aria-orientation="horizontal"
-     aria-valuemin={limits.min} aria-valuemax={limits.max} aria-valuenow={dockHeight}
-     onPointerDown={separatorDown} onPointerMove={separatorMove}
-     onPointerUp={e=>{resizeRef.current=null;e.currentTarget.releasePointerCapture?.(e.pointerId)}}
-     onPointerCancel={()=>{resizeRef.current=null;}} onKeyDown={separatorKey}/>
-    {onOpenSettings&&<button type="button" className="od-conversation-settings"
+  <SharedConversationDock open={open} onClose={close} title={title}
+   expandedFeedback={Boolean(error||needsReview)} toolbar={onOpenSettings&&<button type="button" className="od-conversation-settings"
      aria-label="AI Provider 设置" title="AI 设置" onClick={onOpenSettings}>
      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor"
       strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 7h9m6 0h1M4 17h1m6 0h9"/>
       <circle cx="16" cy="7" r="3"/><circle cx="8" cy="17" r="3"/>
      </svg>
-    </button>}
-    <button type="button" className="od-conversation-close" aria-label="收起对话"
-     title="收起对话" onClick={close}>
-     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-    </button>
-   </div>
+    </button>}>
    <SharedConversationFrame open={open} rows={rows} draft={draft} busy={busy}
     blocked={needsReview||busy} canSend={Boolean(controller?.request)}
     placeholder={placeholder} emptyPrompt={emptyPrompt} inputId="od-conversation-input"
@@ -388,6 +409,6 @@ function ConversationWorkspace({
      </div>}
     </>}/>
 
-  </section>
+  </SharedConversationDock>
  </div>;
 }

@@ -1,9 +1,10 @@
 // Read-only runtime evidence loader shared by offline preview and Vite HMR.
-// No tool package/build-ready access and no compilation or platform writes.
+// No tool package/build-ready access or platform writes. Default compilation is memory-only.
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {resolve, join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {compilePreviewRuntime} from './runtime-source.mjs';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../../../src/libs/page-frameworks/contract.js';
 
 const repo = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -13,10 +14,12 @@ const fail = message => {throw Error('E_SCRAPYJS_PREVIEW: ' + message);};
 
 /** record(absolutePath) returns file bytes; callers may also record SHA evidence. */
 export async function loadPreviewRuntime({
-  runtimeDir = join(repo, 'artifacts/scrapyjs/original-sites-20261029/browser-source/dist/development'),
-  runtimeReceipt = join(repo, 'artifacts/scrapyjs/original-sites-20261029/snapshot-receipt.json'),
+  runtimeDir,
+  runtimeReceipt,
   record = readFile
 } = {}) {
+  if (runtimeDir === undefined && runtimeReceipt === undefined) return compilePreviewRuntime({record});
+  if (!runtimeDir || !runtimeReceipt) fail('explicit runtime requires both --runtime-dir and --runtime-receipt');
   // A verified snapshot retains the failed normal build history. Its linked
   // diagnostic supplies compilation evidence; the later package report supplies
   // verification evidence. Neither is relabelled as a passed WXT build.

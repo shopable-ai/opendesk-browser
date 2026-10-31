@@ -144,6 +144,21 @@ await OpenDeskTool.request('browser.scheduler.create', {
 
 `root` 是该工具 UI 自己的根元素。`request(operation,payload)` 异步返回经过宿主验证的结果，或以错误拒绝。任何需要用户数据/站点内容的操作都应在明确的用户动作后执行，不吞掉异步错误。
 
+工具可调用 `OpenDeskTool.setConversationState({visible, open})` 显示公共页头 AI 入口并同步对话开关状态。参数严格为仅含 `visible`、`open` 两个布尔字段的对象；有效调用返回 `true`，无效参数或已销毁实例返回 `false`。默认隐藏；此 API 不扩展 `setState` 的 dirty/busy 合同。按钮位于可信 HeaderSlot 旁、卸载之前，控制目标为宿主 `sidebar-tool-frame`，`aria-expanded` / `aria-pressed` 跟随 open。可信 Workspace 继续使用自身入口，不调用此沙箱 API。
+
+```js
+let open = false;
+OpenDeskTool.setConversationState({visible: true, open});
+OpenDeskTool.root.addEventListener('opendesk:conversation-action', ({detail}) => {
+  if (detail.action !== 'toggle') return;
+  open = !open;
+  // 按工具自己的 UI 状态更新 Frame / Dock。
+  OpenDeskTool.setConversationState({visible: true, open});
+});
+```
+
+Host 只通知固定动作 `{action: 'toggle'}`；root 收到新建 CustomEvent，不包含原始点击事件、HTML 或任意动作名，也不提供 AI 授权或用户手势。沿用 opaque origin、真实 event.source、protocol、instance 和 toolId 校验；销毁时隐藏并清空状态，旧实例消息失效。open 从 true 变 false 且焦点在 iframe 或入口时，宿主请求将焦点恢复到入口；工具通常保持 visible 为 true。模型调用仍走原权限与 Authority。
+
 需要关闭保护的编辑器可调用 `OpenDeskTool.setState({dirty, busy})`，两个字段必须是布尔值，并且通过一个对象传递。输入后标记未保存；写入期间保持 `busy: true`；只有持久保存确认后才清除 dirty，完成后再清除 busy。宿主据此保护关闭与切换；该消息不提供能力或网站授权，也不能阻止用户明确卸载。
 
 ### 普通第三方小工具的基础操作

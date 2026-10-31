@@ -48,7 +48,7 @@ node scripts/tests/sidebar-preview-kit-browser.mjs <套件目录> <新的独立�
 
 同一个 `sidebar-preview-kit.mjs create` 现在输出五个文件：`preview.html`（可编辑设计稿）、`components.html`（可操作共享组件示例）、`component-recipes.md`（HTML/JSX 接入片段）、`chatgpt-prompt.txt`、`manifest.json`。从设计稿应用外部的「打开可操作组件与用法」进入示例；两个 HTML 同目录离线打开即可。给网页模型时附上设计稿和用法文件，不能只给本地路径。
 
-示例不是新 Atlas 或组件库；完整设计参考仍在 [既有统一入口](../../prototypes/sidebar/extension-ui-showcase/index.html)。最小运行消费者为 [sidebar-component-recipes.jsx](../../scripts/preview/sidebar-component-recipes.jsx)，直接导入真实 `Button / IconButton / Card / CardContent / Switch` 源码，用当前 React/React Aria 编译；生成器复用同一宿主壳。`manifest.componentReference` 保存 HTML/用法 SHA 及编译源/依赖 SHA。证据为 `SOURCE_COMPONENT_PREVIEW`，不代表已安装的 `sidebar-shared-ui.js` 或正式工具包通过。组件源码仍只归 `src/ui/react/components/ui/`，没有新增共享 API 或依赖。
+示例不是新 Atlas 或组件库；完整设计参考仍在 [既有统一入口](../../prototypes/sidebar/extension-ui-showcase/index.html)。最小运行消费者为 [sidebar-component-recipes.jsx](../../scripts/preview/sidebar-component-recipes.jsx)，直接导入真实 `Button / IconButton / Card / CardContent / Switch` 源码，用当前 React/React Aria 编译；生成器复用同一宿主壳。`manifest.componentReference` 保存 HTML/用法 SHA 及编译源/依赖 SHA。证据为 `SOURCE_COMPONENT_PREVIEW`，不代表已安装的 `sidebar-shared-ui.js` 或正式工具包通过。组件源码归现有 `src/ui/react/components/`，session 归 `src/ui/conversation/`，展示 API 与组件边界见下文；本页不扩展授权合同。
 
 | 用途 | HTML 设计稿与工具 | React 工具 |
 | --- | --- | --- |
@@ -57,6 +57,7 @@ node scripts/tests/sidebar-preview-kit-browser.mjs <套件目录> <新的独立�
 | 字段与帮助/错误 | `od-form-field` → `od-field-label`、`od-field`、`od-field-help/error` | 当前同样组合原生 label/input 与 canonical CSS；无共享 Field/Select 导出 |
 | 正常 / 空与加载 / 失败 / 权限撤权 | `od-note / od-alert / od-alert--error / od-alert--warning`，配合 status/alert | 同一原生语义与显式编译的 canonical CSS |
 | 开关 | 保留原生 checkbox 基线 | 真实 React Aria `Switch`，传 `isSelected / onChange / isDisabled` |
+| 共享 Chat | 打开同目录 components.html；顶栏小 AI 按钮实际开合 | Host 公共入口 + workspace/business + SharedConversationDock + Frame/session，纯内存展示模拟 |
 | 删除确认 | Card + 对象/后果 + secondary 取消 + danger 确认 | 相同组合；没有新增 Dialog API |
 
 模板默认使用上述字段、Card 和状态组合；独立分区 16px、区内 8px、CardContent 12px；刷新位于所属区右上角。列表低频删除用 quiet，确认才用 danger。空值错误关联 `aria-describedby / aria-invalid`，修正时清除；确认默认焦点在取消，取消/Escape 恢复触发者。检查器拒绝未知/冲突按钮变体、悬空描述引用及移动/改写保护区参考链接；原有来源、CSP 和宿主脚本前缀保护继续有效。
@@ -64,6 +65,28 @@ node scripts/tests/sidebar-preview-kit-browser.mjs <套件目录> <新的独立�
 正式 HTML 工具在自身 CSS 保留原有 `/* @opendesk-shared-design */`，由 [唯一构建期提取器](../../scripts/preview/shared-tool-design.mjs) 输出 canonical 原语和同源 Card 子集，无需另抄卡片样式。React 工具复用已有 `@opendesk/ui` 运行时与项目编译入口，例如 [quick-notes-react](../../projects/quick-notes-react/README.md)。该运行时自动提供 Button/Card/Switch 样式，**不自动提供全套表单与布局 CSS**；需要的 od-* 通过工具原静态 CSS 构建显式提取，不把整个宿主 CSS/权限脚本注入 iframe。新提取规则只影响后续候选生成，不替用户升级已安装包。
 
 当前没有统一沙箱 Menu/Tree/Combobox/Dialog API；组件示例不声称这些能力已封装。HTML/Vue/React 原工具、安装身份及数据保持原合同。真实 Chrome 安装、权限、Native、生产发布和真实 AI 附件回收均为 NOT_TESTED。
+
+### Frame 片段与完整工具栏 Chat
+
+Frame 消息/输入示例在唯一 `components.html` 入口内同源编译 `conversation.tsx`、Frame CSS 与 session，manifest 记录源/依赖/HTML SHA，不消费旧 Browser 构建。Frame 自带 CSS，消费者提供有界 flex column（min-height:0、overflow:hidden），限制消息区滚动且不压缩输入；示例高度不是通用产品高度。session 稳定创建、订阅与卸载清理。单独运行此片段只证明消息/输入，不证明完整工具栏组合。
+
+完整工具栏 Chat 组合是 **Host 公共入口 + workspace/business + SharedConversationDock + SharedConversationFrame/session**。工具通过 `OpenDeskTool.setConversationState({visible:boolean,open:boolean})` 声明展示状态，从 `OpenDeskTool.root` 接收 `opendesk:conversation-action`，其 `detail` 为 `{action:'toggle'}`，再受控更新 open。这些能力仅控制展示，不授予权限、不自动发送。`SharedConversationDock` 是纯展示组件，使用受控 `open/onClose`；消息、输入和会话继续使用原 Frame/session。Host 实际安装入口为 NOT_TESTED；本轮验证层级是工具源码与 preview 模拟。
+
+实际参照为 `projects/bookmark-manager/preview/react`，它消费真实 App + TrustedWorkspace：HeaderSlot 中小字 AI 按钮紧挨卸载；展开后业务在上、Chat 在下，以细分隔条形成底部 split，支持拖动及键盘调整；收起回到按钮，重开保留草稿。此处只复用公开组合与交互，不导出 TrustedWorkspace/HeaderSlot，不跨 iframe DOM，也不复制书签业务。
+
+Frame 示例只是消息/输入片段，不能作为完整工具栏 Chat 范例。公共 `components.html` 顶栏的小 AI 按钮也必须能够实际开合底部 Chat，不能只有内容区 Frame。业务节点、当前页签、编辑与 Chat 草稿、消息和提案保持挂载；收起不取消请求、不清除 busy/UNKNOWN 围栏、不自动重发。
+
+应用外部辅助区模拟 ready/busy/error/blocked/review 与完成回复；输入、Send/Stop、反馈与审阅仍经 Frame/session，仅本页内存，不调用真实 ai、Provider、安装或持久化。Host 按钮在此为展示模拟，不冒充安装验证。
+
+最短步骤（可直接复用）：
+
+1. 先回放真实 consumer 的 AI 开合、底部 split 调整、收起焦点和重开草稿，对照当前失败或未验证点。
+2. 核对公开合同与已有 Host 入口，按完整组合保留业务、Chat 与原请求状态；不以内容区 AI 配置加大 Frame 代替。
+3. 使用原生成器输出新目录，保留工具、运行时、组件与 HTML 的来源 SHA，不手改生成 HTML。
+4. 对同 SHA 候选保存截图与受影响行为的定向证据，含顶栏按钮开合、拖动/键盘分隔条及草稿保留；未执行项写 NOT_TESTED。
+5. 固定交付 `preview.html`、`preview.manifest.json`、`preview.context.json` 三件套，不混用不同候选。将同 SHA 的截图和操作证据链接放回工具 README；未执行项不预填 PASS。
+
+纯文档修订只检查链接与内容，不启动产品。离线迭代不默认触发 Browser build、安装、包晋升、真实 AI、提交推送或完整验收。用户要求的八维分别 >95 保留，但须先通过“实际入口与参照一致”和“规范/来源可追溯”前提；旧 100/99 只是历史评分，不强行给分。
 
 ## 目标与关键验收条件
 

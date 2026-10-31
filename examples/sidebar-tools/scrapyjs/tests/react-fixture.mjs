@@ -13,10 +13,12 @@ async function compile(path,replacements={}){
 }
 const button=await compile('src/ui/react/components/ui/button.tsx');
 const css=moduleURL('export default '+JSON.stringify(await readFile(new URL('src/ui/react/components/conversation-frame.css',root),'utf8')));
+const layout=moduleURL('export default '+JSON.stringify(await readFile(new URL('src/ui/react/components/conversation-layout.css',root),'utf8')));
 const frame=await compile('src/ui/react/components/conversation.tsx',{
-  'react-dom':import.meta.resolve('react-dom'),'./ui/button.tsx':button,'./conversation-frame.css?raw':css
+  'react-dom':import.meta.resolve('react-dom'),'./ui/button.tsx':button,'./conversation-frame.css?raw':css,'./conversation-layout.css?raw':layout
 });
-const shared=moduleURL(`export {Button} from ${JSON.stringify(button)};export {SharedConversationFrame} from ${JSON.stringify(frame)};export {createConversationSession} from ${JSON.stringify(new URL('src/ui/conversation/session.js',root).href)};`);
+const card=await compile('src/ui/react/components/ui/card.tsx');
+const shared=moduleURL(`export {Card,CardContent} from ${JSON.stringify(card)};export {Button,IconButton} from ${JSON.stringify(button)};export {SharedConversationFrame,SharedConversationDock} from ${JSON.stringify(frame)};export {createConversationSession} from ${JSON.stringify(new URL('src/ui/conversation/session.js',root).href)};`);
 const sourceRoot='examples/sidebar-tools/scrapyjs/src/';
 const replacements={'@opendesk/ui':shared};
 for(const name of ['ai-config.js','ai-request.js','ai-pending.js','editor.js','results-model.js'])

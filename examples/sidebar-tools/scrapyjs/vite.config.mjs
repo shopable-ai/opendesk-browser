@@ -1,4 +1,5 @@
 import {defineConfig} from 'vite';
+import {compileSharedToolCss} from '../../../scripts/preview/shared-tool-design.mjs';
 import {createHash,randomUUID} from 'node:crypto';
 import {readFile,writeFile,rename,readdir} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
@@ -13,6 +14,10 @@ export const SCRAPYJS_REACT_SOURCE_FILES=[
   'src/index.html','tool.config.json','vite.config.mjs','package.json',
   'adapters/app-sdk.js'
 ];
+export const DESIGN_SOURCE_FILES=['scripts/preview/shared-tool-design.mjs','src/ui/design-tokens.css',
+  'src/ui/design-system.css','src/ui/react/components/ui/sidebar-shared.css'];
+async function designSnapshot(){return Object.fromEntries(await Promise.all(DESIGN_SOURCE_FILES.map(async name=>
+  [name,fingerprint(await readFile(resolve(root,'../../..',name)))])));}
 const fingerprint=bytes=>({bytes:bytes.length,sha256:hash(bytes)});
 async function sourceFiles(){
   // Include every local UI helper (including editor.js when present).
@@ -25,10 +30,18 @@ async function sourceSnapshot(){
   return Object.fromEntries(await Promise.all((await sourceFiles()).map(async file=>
     [file,fingerprint(await readFile(join(root,file)))])));
 }
+export function sharedDesignPlugin(){
+  return {name:'scrapyjs-canonical-design',enforce:'pre',
+    async transform(source,id){
+      if(id.split('?')[0]!==join(root,'src/style.css'))return;
+      // Reuse the public, non-privileged subset; never import the host stylesheet.
+      return {code:await compileSharedToolCss('/* @opendesk-shared-design */\n')+'\n'+source,map:null};
+    }};
+}
 function receiptPlugin(){
-  let before;
+  let before,designBefore;
   return {name:'scrapyjs-react-build-ready',apply:'build',
-    async buildStart(){before=await sourceSnapshot();},
+    async buildStart(){before=await sourceSnapshot();designBefore=await designSnapshot();},
     generateBundle(_,bundle){
       const chunks=Object.values(bundle).filter(item=>item.type==='chunk');
       if(chunks.length!==1||chunks[0].dynamicImports.length||
@@ -37,15 +50,15 @@ function receiptPlugin(){
         throw Error('scrapyjs must emit one Classic JS chunk with host-owned React externals');
     },
     async writeBundle(){
-      const files={},inputs=await sourceSnapshot();
-      if(JSON.stringify(before)!==JSON.stringify(inputs))
+      const files={},inputs=await sourceSnapshot(),designSources=await designSnapshot();
+      if(JSON.stringify(before)!==JSON.stringify(inputs)||JSON.stringify(designBefore)!==JSON.stringify(designSources))
         throw Error('scrapyjs sources changed during compilation; discard this build');
       for(const file of ['dist/tool.css','dist/tool.js'])
         files[file]=fingerprint(await readFile(join(root,file)));
       // Identical sources and compiled bytes have an identical receipt.
-      const buildId=hash(Buffer.from(JSON.stringify({sources:inputs,files})));
+      const buildId=hash(Buffer.from(JSON.stringify({sources:inputs,files,designSources})));
       const ready={format:'opendesk.ui-build-ready.v1',buildId,
-        sources:inputs,files};
+        sources:inputs,files,designSources};
       const destination=join(root,'dist/build-ready.json');
       const temporary=destination+'.'+randomUUID()+'.new';
       await writeFile(temporary,JSON.stringify(ready,null,2)+'\n',{flag:'wx'});
@@ -55,7 +68,7 @@ function receiptPlugin(){
 }
 // React and shared components are host-owned resources, never tool authority.
 export default defineConfig({
-  root,base:'./',esbuild:{jsx:'automatic'},plugins:[receiptPlugin()],
+  root,base:'./',esbuild:{jsx:'automatic'},plugins:[sharedDesignPlugin(),receiptPlugin()],
   define:{'process.env.NODE_ENV':JSON.stringify('production')},
   build:{target:'es2022',minify:'esbuild',cssCodeSplit:false,
     outDir:resolve(root,'dist'),emptyOutDir:true,

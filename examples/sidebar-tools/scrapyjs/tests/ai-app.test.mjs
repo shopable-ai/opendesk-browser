@@ -21,7 +21,8 @@ test('shared Chat reviews a lossless proposal, applies explicitly and names an i
   const rows=new Map([['capture-config',{value:structuredClone(catalog),etag:'0'}],['ai-pending-request',{value:null,etag:'0'}]]);
   const calls=[];let resolveProposal;
   const previous=Object.fromEntries(['OpenDeskTool','ScrapyAppModel','ScrapyAppSdk','requestAnimationFrame'].map(key=>[key,globalThis[key]]));
-  const tool={setState(){},request:async(operation,payload)=>{
+  let conversationState;
+  const tool={setState(){},setConversationState(value){conversationState=value;},request:async(operation,payload)=>{
     calls.push({operation,payload:structuredClone(payload)});
     if(operation==='storage.get')return structuredClone(rows.get(payload.key));
     if(operation==='storage.set'){
@@ -46,7 +47,7 @@ test('shared Chat reviews a lossless proposal, applies explicitly and names an i
   const get=id=>ui.doc.getElementById(id);
   const edit=(id,value)=>{get(id).value=value;get(id).dispatch('input');};
   const writes=()=>calls.filter(call=>call.operation==='storage.set'&&call.payload.key==='capture-config');
-  assert.equal(get('profile-list').value,'original');get('open-ai').dispatch('click');
+  assert.equal(get('profile-list').value,'original');tool.root.dispatch('opendesk:conversation-action',{detail:{action:'toggle'}});
   edit('ai-requirement','保留全部规则，只增加与 title 相同的 column_title，仅采当前页。');
   get('ai-use-page').checked=true;get('ai-use-page').dispatch('click');
   get('ai-requirement').dispatch('keydown',{key:'Enter',shiftKey:true});
@@ -57,6 +58,15 @@ test('shared Chat reviews a lossless proposal, applies explicitly and names an i
   const sent=calls.find(call=>call.operation==='ai.generate').payload;
   assert.deepEqual(sent.context.currentConfig,original);
   assert.equal(get('ai-requirement').disabled,true);assert.ok(get('ai-cancel'));
+  const editor=get('config-json'),target=get('target-url');
+  ui.doc.querySelector('.od-conversation-close').dispatch('click');await settle();
+  assert.equal(get('ai-panel').hidden,true);assert.equal(conversationState.open,false);
+  assert.equal(ui.doc.querySelector('.config-section').hidden,false);assert.equal(ui.doc.querySelector('.target-section').hidden,false);
+  assert.equal(editor,get('config-json'));assert.equal(target,get('target-url'));
+  assert.equal(get('start').disabled,true);assert.equal(get('profile-list').disabled,true);
+  assert.equal(calls.some(call=>call.operation==='ai.cancel'),false,'collapsing must not cancel or retire a request');
+  tool.root.dispatch('opendesk:conversation-action',{detail:{action:'toggle'}});await settle();
+  assert.equal(get('ai-requirement').value,sent.request);assert.equal(get('ai-requirement').disabled,true);
   resolveProposal();await settle();await settle();
   const preview=get('ai-config-preview');
   assert.deepEqual(JSON.parse(preview.value||preview.defaultValue),proposal); // linkedom does not reflect defaultValue into value.
@@ -65,20 +75,33 @@ test('shared Chat reviews a lossless proposal, applies explicitly and names an i
   assert.deepEqual(rows.get('capture-config').value,catalog);assert.equal(writes().length,0);
   assert.equal(ui.doc.querySelector('#profile-naming').hidden,true);
 
+  assert.equal(get('ai-generate').disabled,true,'a current proposal makes review the next step');
+  get('ai-requirement').dispatch('keydown',{key:'Enter'});await settle();
+  assert.equal(calls.filter(call=>call.operation==='ai.generate').length,1,'Enter cannot resend an unchanged reviewed proposal');
+
   edit('ai-requirement','纠正后的另一需求');assert.equal(get('ai-apply').disabled,true,'changed input cannot apply old proposal');
+  assert.equal(get('ai-generate').disabled,false,'a correction may generate a replacement proposal');
   edit('ai-requirement',sent.request);assert.equal(get('ai-apply').disabled,false);
+  assert.equal(get('ai-generate').disabled,true,'restoring the reviewed input restores the review step');
   get('ai-apply').dispatch('click');await settle();await settle();
   assert.equal(get('profile-naming').hidden,false);assert.equal(get('profile-name').value,'CSDN 核心 副本');
+  assert.equal(get('ai-panel').hidden,false,'applying remains in the business workspace with the Chat mounted');
   assert.equal(get('start').disabled,true,'naming must finish before Run is available');
   assert.equal(writes().length,0,'applying a proposal only edits the local draft');
   assert.deepEqual(rows.get('capture-config').value,catalog,'original stays saved until explicit named save');
   get('profile-name').type='text'; // Browser default; linkedom otherwise reports a null input type to React.
+  edit('profile-name','CSDN 核心');get('profile-name-submit').dispatch('click');await settle();await settle();
+  assert.equal(get('profile-naming').hidden,false);assert.equal(writes().length,0);
+  assert.match(get('ai-feedback').textContent,/未保存草稿/,'failed naming must not acknowledge a saved proposal');
+  get('profile-name').type='text'; // React re-renders the default input type after the validation error.
   edit('profile-name','CSDN 标题副本');get('profile-name-submit').dispatch('click');await settle();await settle();
   const saved=rows.get('capture-config').value;
   assert.equal(writes().length,1);assert.equal(saved.records.length,2);assert.notEqual(saved.selectedId,'original');
   assert.deepEqual(saved.records.find(row=>row.id==='original'),catalog.records[0]);
   assert.deepEqual(saved.records.find(row=>row.id===saved.selectedId),{id:saved.selectedId,name:'CSDN 标题副本',config:proposal});
   assert.equal(get('profile-naming').hidden,true);assert.equal(get('start').disabled,false);
+  assert.match(get('ai-feedback').textContent,/此提案的配置已保存/);
+  assert.doesNotMatch(get('ai-feedback').textContent,/未保存|命名保存/,'saved receipt replaces the pending naming instruction');
   assert.equal(calls.some(call=>call.operation.startsWith('tasks.')||call.operation.startsWith('browser.')),false,
     'AI, apply and save must never start capture, navigate or download');
 });

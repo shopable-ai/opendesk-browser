@@ -5,6 +5,8 @@ import {createRoot} from 'react-dom/client';
 import {createPortal} from 'react-dom';
 import {Button,IconButton} from '../../src/ui/react/components/ui/button.tsx';
 import {Card,CardContent} from '../../src/ui/react/components/ui/card.tsx';
+import {SharedConversationFrame,SharedConversationDock} from '../../src/ui/react/components/conversation.tsx';
+import {createConversationSession} from '../../src/ui/conversation/session.js';
 import {Switch} from '../../src/ui/react/components/ui/switch.tsx';
 
 const root=document.getElementById('od-preview-app');
@@ -20,7 +22,9 @@ function Recipes(){
     return ()=>root.removeEventListener('opendesk-preview-reset',reset);
   },[]);
   return <>
-    <RecipeContent key={generation} onLock={setLocked}/>
+    <ChatRecipe key={'chat-'+generation} locked={locked}>
+      <RecipeContent onLock={setLocked}/>
+    </ChatRecipe>
     {createPortal(<div className="preview-controls">
       <label htmlFor="recipe-theme" className="od-field-label">工具主题</label>
       <select id="recipe-theme" className="od-field" value={theme} disabled={locked} onChange={event=>setTheme(event.target.value)}>
@@ -93,4 +97,72 @@ function RecipeContent({onLock}){
   </>;
 }
 
+// One session per mounted recipe; theme changes and input renders retain it.
+function ChatRecipe({locked,children}){
+  const [open,setOpen]=React.useState(false);
+  const trigger=React.useRef(null);
+  const close=()=>{setOpen(false);trigger.current?.focus({preventScroll:true});};
+  const [session]=React.useState(()=>createConversationSession({identity:{
+    consumerId:'offline-component-recipe',instanceId:'chat-recipe',hostInstanceId:'memory-only'
+  }}));
+  const state=React.useSyncExternalStore(session.subscribe,session.getSnapshot);
+  const round=React.useRef(null);
+  const [scenario,setScenario]=React.useState('ready');
+  const [feedback,setFeedback]=React.useState('仅本页内存；发送后可停止，或在外部辅助区完成模拟回复。');
+  React.useEffect(()=>()=>{session.dispose();round.current=null;},[session]);
+  const finish=()=>{round.current?.finish();round.current=null;};
+  const choose=next=>{
+    session.cancel();finish();setScenario(next);
+    session.update({needsReview:next==='review'});
+    if(next==='busy')round.current=session.begin();
+    setFeedback({ready:'内存演示就绪。',busy:'模拟处理中，可点击 Frame 内的停止。',
+      error:'模拟失败；没有发出请求。切换就绪可重试。',blocked:'模拟不可用；发送被阻止。',
+      review:'模拟待核对；未发生真实写入，不自动重放。'}[next]);
+  };
+  const send=()=>{
+    if(state.busy||state.needsReview||['blocked','error'].includes(scenario))return;
+    session.append('你',state.draft.trim());session.update({draft:''});
+    round.current=session.begin();setScenario('busy');setFeedback('模拟处理中，尚未产生回复。');
+  };
+  return <>
+    {createPortal(<button ref={trigger} type="button" className="od-icon-button od-conversation-frame-trigger"
+      aria-label="AI 对话" title="打开或收起 AI 对话" aria-pressed={open} aria-expanded={open}
+      aria-controls="recipe-chat-dock" onClick={()=>setOpen(value=>!value)}><span className="od-conversation-ai-glyph" aria-hidden="true">AI</span></button>,
+      document.getElementById('sidebar-tool-chat-slot'))}
+    <div className="od-conversation-workspace" data-chat-open={String(open)}>
+      <div className="od-conversation-business" style={{overflow:'auto',padding:'var(--space-3)'}}>
+        <div className="preview-sections">{children}</div>
+      </div>
+      <SharedConversationDock open={open} onClose={close} id="recipe-chat-dock" aria-label="共享 Chat 内存演示" onKeyDown={event=>{if(event.key==='Escape'&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();close();}}}>
+        <SharedConversationFrame open={open} inputId="recipe-chat-input" rows={state.rows} draft={state.draft}
+          busy={state.busy} blocked={state.needsReview||['blocked','error'].includes(scenario)}
+          focusOnOpen={true} emptyPrompt="输入一条消息，体验共享 Frame。"
+          onDraftChange={draft=>session.update({draft})} onSend={send}
+          onStop={()=>{session.cancel();finish();setScenario('ready');setFeedback('已停止本页模拟轮次。');}}
+          feedback={<p className={scenario==='error'?'od-conversation-error':'od-conversation-phase'} role={scenario==='error'?'alert':'status'}>{feedback}</p>}
+          review={state.needsReview?<div className="od-conversation-feedback"><Button onClick={()=>{
+            session.update({needsReview:false});setScenario('ready');setFeedback('已确认本页无真实操作；未重放消息。');
+          }}>确认模拟核对</Button></div>:null}/>
+      </SharedConversationDock>
+    </div>
+    {createPortal(<div className="od-stack">
+      <label htmlFor="recipe-chat-scenario" className="od-field-label">Chat 模拟状态（纯内存，无 AI / Provider / Host / 业务）</label>
+      <select id="recipe-chat-scenario" className="od-field" value={scenario} disabled={locked} onChange={event=>choose(event.target.value)}>
+        <option value="ready">ready</option><option value="busy">busy</option><option value="error">error</option>
+        <option value="blocked">blocked</option><option value="review">review</option>
+      </select>
+      <Button disabled={locked||!state.busy} onClick={()=>{
+        round.current?.assertCurrent();session.append('助手','这是固定的离线演示回复，未调用模型。');
+        finish();setScenario('ready');setFeedback('模拟回复已完成，仅保存在本页内存。');
+      }}>完成模拟回复</Button>
+    </div>,document.getElementById('od-preview-recipe-controls'))}
+  </>;
+}
+
+// Only this same-document component reference bounds the real shell content.
+const detail=document.getElementById('od-preview-extension-detail');
+Object.assign(detail.style,{height:'700px',display:'flex',flexDirection:'column',minHeight:'0'});
+for(const node of detail.children)if(node!==root)node.style.flex='none';
+root.className='';
+Object.assign(root.style,{flex:'1 1 auto',minHeight:'0',padding:'0',overflow:'hidden'});
 createRoot(root).render(<Recipes/>);

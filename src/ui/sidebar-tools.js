@@ -229,6 +229,17 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const title=view.fields["sidebar-tool-title"],openTabButton=view.fields["sidebar-tool-open-tab"];
   const primaryAction=view.fields["sidebar-tool-primary-action"];
   const secondaryAction=view.fields["sidebar-tool-secondary-action"];
+  const conversationToggle=view.fields['sidebar-tool-conversation-toggle'];
+  let conversationVisible=false,conversationOpen=false;
+  function setConversationState({visible,open}){
+    const restore=visible&&conversationOpen&&!open&&
+      (doc.activeElement===frame||doc.activeElement?.id==='sidebar-tool-conversation-toggle');
+    conversationVisible=visible;conversationOpen=open;
+    patchToolField(view,conversationToggle,{hidden:!visible});
+    setToolFieldAttribute(view,conversationToggle,'aria-expanded',String(open));
+    setToolFieldAttribute(view,conversationToggle,'aria-pressed',String(open));
+    if(restore)requestToolFieldEffect(view,conversationToggle,'focus',{preventScroll:true});
+  }
   const clipNavigationTitles=Object.freeze({
     home:'网页剪藏',library:'我的摘录',reader:'摘录详情',edit:'编辑摘录',new:'新建便签'
   });
@@ -1019,6 +1030,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   let sidebarAI=null;
   function destroyFrame() {
+    setConversationState({visible:false,open:false});
     videoShortcutSession=null;stopVideoSVIPWatch();videoDownloader.invalidate();
     sidebarAI?.dispose();sidebarAI=null;
     if(taskDelegationHost){void taskDelegationHost.dispose();taskDelegationHost=null;}
@@ -3551,6 +3563,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(event.origin!=='null'||!sameInstance(event.source,event.data?.instance)||
        event.data?.protocol!==SIDEBAR_TOOL_PROTOCOL||event.data?.toolId!==active.id)return;
     const message=event.data;
+    if(message.kind==='conversation-state'){
+      if(frame?.contentWindow===event.source&&typeof message.visible==='boolean'&&typeof message.open==='boolean')
+        setConversationState({visible:message.visible,open:message.open});
+      return;
+    }
     if(message.kind==='ai-guard-response'){
       if(active?.id===PROMPT_ID&&promptHost)promptHost.onGuardResponse(message,event.source);
       return;
@@ -4653,6 +4670,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(requestBusinessNavigation('primary'))return;
     if(['library','reader','edit','new'].includes(clipPage))
       requestClipNavigation('primary');
+  });
+  listen(conversationToggle,'click',()=>{
+    if(!conversationVisible||!frame||!sameInstance(frame.contentWindow,instance))return;
+    frame.contentWindow.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'conversation-action',
+      instance,toolId:active.id,action:'toggle'},'*');
   });
   listen(secondaryAction,'click',()=>{
     if(tocSettingsOpen)return;

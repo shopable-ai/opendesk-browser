@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from '../../../src/react/App.jsx';
 import {TrustedConversationWorkspace,TrustedConversationHeaderSlot} from '../../../../../src/ui/react/components/conversation.tsx';
 import '../../../../../src/ui/react/components/conversation-dock.css';
+import {SharedProviderSettingsSheet} from '../../../../../src/ui/react/components/provider-settings.tsx';
 import '../../../src/react/style.css';
 // Offline-only chrome CSS is injected separately by build-preview.mjs;
 // keep the production App/Dock stylesheet byte-identical to formal builds.
@@ -74,6 +75,7 @@ const root=createRoot(container);
 // App, shared Workspace, frame slot and Composer are imported from production.
 function OfflineTrustedToolHost(){
  const [headerTarget,setHeaderTarget]=React.useState(null);
+ const [settingsOpen,setSettingsOpen]=React.useState(false);
  return <div className="od-preview-trusted-host">
   <header className="sidebar-tool-view-head od-toolbar od-page-head" aria-label="框架工具标题栏（离线预览）">
    <strong className="od-page-title">书签管理</strong>
@@ -85,9 +87,12 @@ function OfflineTrustedToolHost(){
   </header>
   <div className="od-preview-trusted-frame">
    <TrustedConversationWorkspace controller={conversation} headerTarget={headerTarget}
-    title="AI 对话" placeholder="描述要完成的操作"
+    title="AI 对话" placeholder="描述要完成的操作" onOpenSettings={()=>setSettingsOpen(true)}
     renderBusiness={dock=><App runtime={{conversation}} mode="preview" dock={dock}/>}/>
   </div>
+  <SharedProviderSettingsSheet open={settingsOpen} onClose={()=>setSettingsOpen(false)}>
+   <p>离线预览：此处复用正式 AI 设置面板的开合与焦点。Provider 配置和连接仅在已安装的扩展中生效。</p>
+  </SharedProviderSettingsSheet>
  </div>;
 }
 root.render(<OfflineTrustedToolHost/>);

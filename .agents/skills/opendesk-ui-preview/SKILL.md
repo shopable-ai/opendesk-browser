@@ -110,3 +110,22 @@ quick-notes 的 `--scenario` 值为 `success / permission-denied / revoked / loa
 模板完善与新设计先运行原 `sidebar-preview-kit.mjs create`，从同目录 `components.html` 实际操作真实共享 Button/IconButton/Card/Switch，读取 `component-recipes.md` 的 HTML/JSX 接入；设计稿外部有直接入口。不是另建 Atlas，完整参考仍用 `prototypes/sidebar/extension-ui-showcase/index.html`。具体支持、源码及边界见[组件与组合入口](../../../docs/api/sidebar-preview-kit.zh-CN.md#组件与组合的直接入口2026-10-30)。
 
 默认复用 Card、od-form-field/label/field/help/error、od-alert 及各语义状态组合，不能只要求“遵守规范”。React 从现有 `@opendesk/ui` 导入，原生字段不是虚构的 Field/Select API；运行时不自动发布全套表单/布局 CSS，需要时由工具静态 CSS 显式编译 canonical 规则。HTML 原工具继续原生语义，原共享样式提取器现已输出同源 Card 子集，不手绘 React Aria Switch。组件示例为 SOURCE_COMPONENT_PREVIEW，单独保存源/依赖/产物 SHA，不能冒充安装包或 Native 验收。
+
+
+共享 Chat 配方从同一 `components.html` 进入；先区分 Frame 消息/输入片段与完整工具栏 Chat 组合。Frame CSS 随同源组件编译；session 按挂载稳定创建、订阅并在卸载清理。有界 flex column 使用 min-height:0、overflow:hidden，消息区局部滚动，输入不被压缩；示例 360px 不是通用高度。外部 ready/busy/error/blocked/review 仅改本页内存。
+
+完整工具栏 Chat 组合是 **Host 公共入口 + workspace/business + SharedConversationDock + SharedConversationFrame/session**。工具通过 `OpenDeskTool.setConversationState({visible:boolean,open:boolean})` 声明展示状态，从 `OpenDeskTool.root` 接收 `opendesk:conversation-action`，其 `detail` 为 `{action:'toggle'}`，再受控更新 open。这些能力仅控制展示，不授予权限、不自动发送。`SharedConversationDock` 是纯展示组件，使用受控 `open/onClose`；消息、输入和会话继续使用原 Frame/session。Host 实际安装入口为 NOT_TESTED；本轮验证层级是工具源码与 preview 模拟。
+
+实际参照为 `projects/bookmark-manager/preview/react`，它消费真实 App + TrustedWorkspace：HeaderSlot 中小字 AI 按钮紧挨卸载；展开后业务在上、Chat 在下，以细分隔条形成底部 split，支持拖动及键盘调整；收起回到按钮，重开保留草稿。此处只复用公开组合与交互，不导出 TrustedWorkspace/HeaderSlot，不跨 iframe DOM，也不复制书签业务。
+
+Frame 示例只是消息/输入片段，不能作为完整工具栏 Chat 范例。公共 `components.html` 顶栏的小 AI 按钮也必须能够实际开合底部 Chat，不能只有内容区 Frame。业务节点、当前页签、编辑与 Chat 草稿、消息和提案保持挂载；收起不取消请求、不清除 busy/UNKNOWN 围栏、不自动重发。
+
+最短步骤（可直接复用）：
+
+1. 先回放真实 consumer 的 AI 开合、底部 split 调整、收起焦点和重开草稿，对照当前失败或未验证点。
+2. 核对公开合同与已有 Host 入口，按完整组合保留业务、Chat 与原请求状态；不以内容区 AI 配置加大 Frame 代替。
+3. 使用原生成器输出新目录，保留工具、运行时、组件与 HTML 的来源 SHA，不手改生成 HTML。
+4. 对同 SHA 候选保存截图与受影响行为的定向证据，含顶栏按钮开合、拖动/键盘分隔条及草稿保留；未执行项写 NOT_TESTED。
+5. 固定交付 `preview.html`、`preview.manifest.json`、`preview.context.json` 三件套，不混用不同候选。将同 SHA 的截图和操作证据链接放回工具 README；未执行项不预填 PASS。
+
+离线迭代不默认触发提交推送、包晋升、安装、Browser 构建、真实 AI 或完整验收；用户明确要求的提交推送按相关范围执行。用户要求八维分别 >95 时保留该门槛，但先通过实际入口与参照前提；缺少证据不强行评分，历史 100/99 不构成新标准或当前 PASS。

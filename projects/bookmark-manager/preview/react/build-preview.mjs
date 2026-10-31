@@ -28,6 +28,9 @@ const inputs=[
  join(toolDir,'src/model.js'),join(toolDir,'src/service.js'),
  join(root,'src/ui/react/components/conversation.tsx'),
  join(root,'src/ui/react/components/conversation-dock.css'),
+ join(root,'src/ui/react/components/conversation-layout.css'),
+ join(root,'src/ui/react/components/provider-settings.tsx'),
+ join(root,'src/ui/tool-shell.css'),
  join(root,'src/ui/react/components/ui/button.tsx'),
  join(root,'src/ui/react/tabs/tool-host.tsx'),join(root,'src/ui/react/main.tsx'),
  join(root,'src/ui/conversation/bookmark-actions.js')
@@ -58,11 +61,12 @@ async function generate(){
   assert.match(out,framePattern);
   assert.match(bundle,/__BookmarkReactPreview/);
   assert.match(app,/export default function App/);
+  const sheetCSS=(await read(join(root,'src/ui/tool-shell.css'))).split('\n').filter(line=>/^\.workflow-sheet-(?:overlay|backdrop|panel|heading|content)(?:\{|\[| h3\{)/.test(line)).join('\n');
   const scripts=[mock,model,service,bundle].map(code=>'<script src="data:text/javascript;base64,'+encoded(code)+'"></script>').join('');
   const frame='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
    '<meta name="viewport" content="width=device-width,initial-scale=1">'+
    '<meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; script-src data: &#39;unsafe-inline&#39;; style-src data: &#39;unsafe-inline&#39;; img-src data:; connect-src &#39;none&#39;; object-src &#39;none&#39;; base-uri &#39;none&#39;; form-action &#39;none&#39;">'+
-   '<link rel="stylesheet" href="data:text/css;base64,'+encoded(tokens+'\n'+designSystem+'\n'+style)+'">'+
+   '<link rel="stylesheet" href="data:text/css;base64,'+encoded(tokens+'\n'+designSystem+'\n'+sheetCSS+'\n'+style)+'">'+
    // Fixture-only chrome: same immutable preview source, separate from product CSS.
    '<link rel="stylesheet" data-preview-shell="offline-only" href="data:text/css;base64,'+encoded(previewShell)+'">'+
    '<style>html,body{height:100%;width:100%;margin:0;overflow:hidden}</style>'+
@@ -131,8 +135,8 @@ if(process.argv.includes('--watch')){
   fsWatch(join(here,'src'),{recursive:true},schedule),
   fsWatch(join(toolDir,'src'),{recursive:true},schedule),
   fsWatch(join(root,'scripts/preview'),{},(type,file)=>{if(String(file)==='bookmark-manager-mock.js')schedule()}),
-  fsWatch(join(root,'src/ui'),{},(type,file)=>{if(String(file)==='design-tokens.css')schedule()}),
-  fsWatch(join(root,'src/ui/react/components'),{},(type,file)=>{if(['conversation.tsx','conversation-dock.css'].includes(String(file)))schedule()}),
+  fsWatch(join(root,'src/ui'),{},(type,file)=>{if(['design-tokens.css','tool-shell.css'].includes(String(file)))schedule()}),
+  fsWatch(join(root,'src/ui/react/components'),{},(type,file)=>{if(['conversation.tsx','conversation-dock.css','conversation-layout.css','provider-settings.tsx'].includes(String(file)))schedule()}),
   fsWatch(join(root,'src/ui/conversation'),{},(type,file)=>{if(String(file)==='bookmark-actions.js')schedule()}),
   fsWatch(here,{},(type,file)=>{if(['vite.config.mjs','package-lock.json','package.json'].includes(String(file)))schedule()}),
   fsWatch(dirname(approved),{},(type,file)=>{if(String(file)===basename(approved))schedule()})
