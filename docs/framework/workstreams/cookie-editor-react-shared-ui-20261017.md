@@ -60,6 +60,8 @@
 
 ## 2026-10-31 增量：SW 展示职责拆分
 
+> 当前状态更正：本节前期的原生 owner/blocked/八项均未测属于记录时事实；已收到并核实同日 `e002aa308` 的后续原生证据。原安装更新已通过，旧 owner Goal 实读 paused，新产品 owner 为 `01a191d5-511b-7330-9643-f4aa4d5f4891`。见本节末尾更正；这些结果不提升本次 SW 拆分候选为 Chrome PASS。
+
 当前阶段：核心源码拆分和最小验证；负责人为本任务，原生账号/S3任务仍归 `01a19164-c087-76d1-a47f-b1a90732d898`。不创建 Goal、分支、worktree、PR，不推送。
 
 下一条产品操作是企业页读取连接状态。原生入口由原 owner 持有，未取得本候选 Chrome 证据；本轮将 SW 中的安装/连接事实与展示合成分离，保持账号、Native 和分享功能。
@@ -116,3 +118,11 @@ de78e056f6ca0a4bc5c98998e5b34a19707483e18cef2a3fc93ebad125155455  tests/environm
 ```
 
 前三项相对 Cookie 项目，其余相对仓库根；包含继承的未提交拆分，不可只按 HEAD 复用。后续正常产品操作仍是合法入口下核对企业页服务连接；Chrome/Native 资源继续由原 owner 管理，本轮无独立原生待办，不通过刷新或重装绕过历史 unknown。
+
+### 原生状态更正与所有权（2026-10-31）
+
+只读核实 `e002aa308` 的 `evidence/r31-s3-finish-20261030.json → s3FinishNativeEntry20261031.resume01a19164.nativeControlExecution20261031`、原始 `artifacts/cookie-editor-r31/native-control-01a19164/progress.json`、Goal 和 owner 交接回执。旧 owner `01a19164` Goal 原始回执为 paused（SHA-256 `5b795f1db4f5c35a70798f0a48116aac478bf3a3d223db051bcfbf6d5805b88e`），新产品/原生 owner 为 `01a191d5-511b-7330-9643-f4aa4d5f4891`，local/main；未完成或自动迁移旧目标。原生 owner 另维护唯一 S3 evidence JSON 和原 `cookie-editor-r31-s3-finish-20261030.md`，本任务不写这两份文件。
+
+原工具栏→SidePanel→原审阅2.0.56→2.0.57及官方来源/完整包 SHA 已独立确认；原 A/B/test1 和白名单/自动切换/刷新已读回，B 的虚构值仅只读核对。指定候选的 UI revision 为 `ad9bed4dc7893a7d3aaeddeb7692c7f65b24cf5e12d4f81cf30e73ac89d8105c`、ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`，实际 UI 连接与当时磁盘比对有证据；AX JSON SHA-256 `a8fef410e8671ef38720194bab2df503e74a3a79df33f52495f4c1e9b90d749b`，安装详情截图 SHA-256 `94635776ecc89c73e3c99e811fec76c6c4a4433516a7e27d626146066defb403`。实际物理加载路径、A 值、闭侧栏双向切换/刷新、双机/恢复/登录仍未测；不能以该原候选证据提升 `b9c058fca` 的 SW 拆分为 Chrome PASS。
+
+README 已顶置上述当前入口，将旧 blocked/待安装段落标为历史。仅改 README 与本记录，检查证据字段/摘要、链接和 diff，不跑产品测试/构建、不占输入/Chrome/Native/服务/dist，不启停 writer或清 unknown。共享输入已释放给 Scrapy，新 owner 不自动继承。新收到的 Sharing/Accounts/preview/react.css 等 dirty 不是本任务变更、具体 owner 未知，已一次告知新原生 owner 保留；不覆盖或随本次文档保存。

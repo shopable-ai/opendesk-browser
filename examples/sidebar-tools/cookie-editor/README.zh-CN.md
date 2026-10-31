@@ -1,8 +1,18 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 当前原生入口：2.0.57 已原位更新，产品流程由新 owner 接续（2026-10-31）
+
+已核实 `e002aa308` 的唯一[原生证据 JSON](evidence/r31-s3-finish-20261030.json)：`s3FinishNativeEntry20261031.resume01a19164.nativeControlExecution20261031`，对应原始记录为 `artifacts/cookie-editor-r31/native-control-01a19164/progress.json`，记录时间 **2026-10-31 11:56:18 UTC**。原生 SidePanel 控制缺口已解除：原工具栏 → SidePanel → 原安装审阅 **2.0.56 → 2.0.57** 已确认，安装详情独立读回官方来源 `opendesk/cookie-editor` 和完整 SHA-256 `438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601`，未卸载或清数据。下方旧 blocked、待安装和全部八项未测的叙述只保留为各自历史，不再作为当前入口结论。
+
+该记录的环境是**持续开发**：期望目录为本仓库 `dist/development`，实际 UI 读回 extension ID `ljclbnojkhhgdpoaaggiihlmidgcoihi`、连接及完整应用 revision `ad9bed4dc7893a7d3aaeddeb7692c7f65b24cf5e12d4f81cf30e73ac89d8105c`，与当时磁盘136项指纹一致；**Chrome 实际物理加载路径仍 NOT_TESTED**。这是该原候选的证据，不证明当前磁盘、后续源码或本次 SW 展示拆分候选已在 Chrome 运行，也不是 production 验收。
+
+原 A/B/test1 保留；A/B 白名单 ON、test1 OFF，自动切换及自动刷新 ON 已独立读回。虚构 B 值 `fiction-b-01a18c21` 仅作原 UI 只读核对，不等于 Cookie 恢复通过。**A 值独立确认、实际关闭侧栏的双向 A/B 切换与额外刷新、双机配对领取、独立保存、Cookie 恢复和真实网站登录仍 NOT_TESTED。**
+
+产品/原生新 owner 为 `01a191d5-511b-7330-9643-f4aa4d5f4891`（local/main）。旧 owner `01a19164-c087-76d1-a47f-b1a90732d898` 的原始 Goal 回执实读 **paused**，不是 blocked/complete，也未自动迁移；其源码、Chrome、服务和输出操作已停止。全局输入已释放给 Scrapy `01a1915b`，不自动归新 Cookie owner；writer、服务和历史 unknown 围栏保持。取得真实输入窗口后，下一步由产品 owner 在原 UI 先独立确认 A 值，再明确恢复并核对 B，随后验证闭侧栏双向切换；不重复安装或代替 owner 操作环境。
+
 ## SW 职责精简：展示模型已退出后台（2026-10-31）
 
-本轮是独立的架构源码任务，**不改变下方原生任务的 blocked 状态或任何安装结论**。企业页原来的连接/关联状态合成、reasonCode、按钮显示和 capabilities 展示投影已从 `trusted/service-connections.js` / `trusted/service-session.js` 移出，集中为固定可信 UI 的 `trusted/service-view.js`。原 `cookieAccount` Host 调用它后，仍向已安装 App 返回原字段；App、正式 JSON、存储键/schema、权限与安装身份均未变化。
+本轮是独立的架构源码任务，**不把上方原候选的安装/原生结果提升为本次拆分候选通过**。企业页原来的连接/关联状态合成、reasonCode、按钮显示和 capabilities 展示投影已从 `trusted/service-connections.js` / `trusted/service-session.js` 移出，集中为固定可信 UI 的 `trusted/service-view.js`。原 `cookieAccount` Host 调用它后，仍向已安装 App 返回原字段；App、正式 JSON、存储键/schema、权限与安装身份均未变化。
 
 SW→可信 Host 只传版本化的最小事实 DTO：配置身份是否有效、账号版本是否匹配、租约/连接代际、可恢复性、脱敏绑定及原 pending 操作摘要。资源与策略在 SW 内就按有效身份/租约/pending 收口，私有 owner、Native 连接 ID、租约、完整账本、Cookie 和密钥不交给展示层。展示结果不回送为授权，Native dispatch 继续独立核验真实身份、配置/会话 revision、手势、权限与 unknown。
 
@@ -37,7 +47,9 @@ SW→可信 Host 只传版本化的最小事实 DTO：配置身份是否有效�
 
 新增四条账号仓库边界回归，其中两条正例先复现 `E_VAULT_CORRUPT` 后通过。受影响 Host/真实 Node 服务适配器与受限管理 HTTP 链 **15 PASS / 0 FAIL**，精确来源/目标/漂移守卫 **10 PASS / 0 FAIL**。只更新账号服务一个精确 pin，未放宽准入。真实 Chrome、Native Port、serve 发布/连接与完整 Browser 构建仍 `NOT_TESTED`；未安装/重载、提交或推送。
 
-## 当前接续：原开发服务已恢复，原生更新确认仍待执行（2026-10-31，01a19164）
+## 历史接续：原开发服务恢复时，原生更新尚待确认（2026-10-31，01a19164）
+
+> 以下为当时记录；后续更新确认与旧 owner paused 状态以上方「当前原生入口」及同一 JSON 的 `nativeControlExecution20261031` 为准。
 
 本任务初读 goal 为 null，已按用户要求创建无预算完整目标，创建后实读 active；**最新工具实读为 blocked（2026-10-31 10:21:06 UTC）**。同一原生 SidePanel 控制缺口已连续原始轮及两次自动续跑共三轮，没有新安装或详情读回回执；无依赖的环境恢复与接收机诊断已完成，按目标生命周期规则标记阻塞，未缩小目标或声称完成。此前任务的 blocked／paused 状态均未改动。最新证据在同一 [JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishNativeEntry20261031.resume01a19164.latestGoalAudit`，原始开发就绪记录保留其当时 active 状态。此前 blocked 后曾实读恢复为 active，恢复来源未知；恢复后的第三轮同一缺口仍未解除，已重新按严格条件标记 blocked，最新回执见同节 `resumedGoalAudit`。
 
@@ -45,9 +57,9 @@ SW→可信 Host 只传版本化的最小事实 DTO：配置身份是否有效�
 
 严格 SSH 只读核对接收机：仍为企业功能工作线的不同 2.0.57 包，`account-service.js` 未接 `sharePair/shareDeliver`，设备密钥源不存在；未改远端仓库、Profile 或扩展。原 Relay／TLS 未重启，证书 SAN／有效期检查通过，Chrome 信任未测。当前 Chrome 接口仍无原生 SidePanel 控制，尚无更新确认回执。下一条操作仍是在已准备的独立窗口打开原 SidePanel，通过原「扩展 → Cookie Editor → 审阅新版」确认更新并保留安装详情；若已经更新或结果未知，只先读回详情。**八项产品验收结果仍全部 NOT_TESTED，完整目标未完成。**
 
-## 当前真实入口：独立窗口已打开，2.0.57 原位更新仍待执行（2026-10-31）
+## 历史入口：独立窗口打开后，2.0.57 原位更新尚待执行（2026-10-31）
 
-**最新目标状态：blocked（2026-10-31 09:05:35 UTC 实读）**。原生 SidePanel 控制缺口连续三轮未解除，仍无安装回执，按目标生命周期规则标记阻塞，未完成或缩小完整目标。此前已请求一次具体手工更新动作，不重复请求或安装；等待该结果或合法可控的原生入口。下文 active 是创建时历史状态。
+**当时目标状态：blocked（2026-10-31 09:05:35 UTC 实读）**。原生 SidePanel 控制缺口连续三轮未解除，仍无安装回执，按目标生命周期规则标记阻塞，未完成或缩小完整目标。此前已请求一次具体手工更新动作，不重复请求或安装；等待该结果或合法可控的原生入口。下文 active 是创建时历史状态；本节不覆盖上方已解除缺口的当前结论。
 
 本任务 `01a19125-0a3e-7182-a77c-c44b378bc850` 初读 goal 为 null，已按用户要求创建无预算完整目标，实读 active；旧任务 paused 目标未迁移或改动。最新事实见唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishNativeEntry20261031`，原始记录为 `artifacts/cookie-editor-r31/current-entry-01a19125.json`。
 
