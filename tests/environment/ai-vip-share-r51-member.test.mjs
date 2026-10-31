@@ -97,7 +97,7 @@ test('R5.2 candidate package matches current source and grants only reviewed cap
   const pkg=JSON.parse(await readFile('artifacts/sidebar-tools/ai-vip-share/candidate.opendesk-tool.json','utf8'));
   assert.deepEqual(pkg,await createSidebarToolPackage('examples/sidebar-tools/ai-vip-share'),
     'temporary candidate must match the current source-bound compiled output');
-  assert.equal(pkg.version,'1.4.8');
+  assert.equal(pkg.version,'1.4.10');
   const view=await readFile(htmlPath,'utf8');
   assert.equal(pkg.format,'opendesk.sidebar-tool.v2');
   assert.deepEqual(pkg.capabilities,['storage.local','network','browser.tabs','browser.proxy.managed','browser.cookies.write','currentPage.read']);
@@ -575,7 +575,7 @@ test('R5.2 preview expiry during journal persistence forbids consumption and ret
   assert.equal(elapsed,180000,'clock advances only after durable journal write');
   assert.equal(e.calls.filter(args=>args.method==='POST'&&args.url.endsWith('/redeem')).length,0);
   assert.equal(store.value?.accountId,'customer-123');
-  assert.equal(store.value?.packageVersion,'1.4.8');
+  assert.equal(store.value?.packageVersion,'1.4.10');
   assert.equal(e.storageCalls.filter(operation=>operation==='storage.set').length,1);
   assert.equal(node(e,'recovery').hidden,false);
   assert.equal(node(e,'redeem').disabled,true);

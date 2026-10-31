@@ -110,6 +110,7 @@ test('commercial Cookie scope refusal after ordinary B explains no write and pre
   const before=JSON.stringify(e.store.get(JOURNAL)),writes=e.cookieCalls.length;
   await e.click('local-connect');
   await e.preview();await e.click('redeem-confirm');
+  await choose(e,'commercial');await e.click('site-receive');
   await settle(e,()=>!e.get('cookie-install').hidden);
   await e.click('cookie-install');
   await settle(e,()=>!e.get('site-select').disabled);

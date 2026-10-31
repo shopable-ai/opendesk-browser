@@ -40,7 +40,7 @@ function fixtureRequest(fixture,{method,url,data,headers}){
 async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN}),
   developmentProfile=profile,getStatus,network,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
   performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false,
-  developmentControls=false,ordinaryNetwork}={}){
+  developmentControls=false,ordinaryNetwork,documentState}={}){
   // Historical VM business tests simulate a development panel that now exists
   // ONLY in the test harness, not in the installable React product DOM.
   const testOnly=['ai-vip-local-development','ai-vip-local-connect','ai-vip-local-status',
@@ -102,7 +102,8 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   assert.ok(script.includes(anchor),'AI VIP controller instrumentation anchor changed');
   const instrumented=script.replace(anchor,
     '  window.__activationTests={activationCodeFromPage,checkActivationPage,claimActivation:value=>claimActivation(value,serviceRevision)};\n'+anchor);
-  await runControllerVm(instrumented,{window,document:{createElement:()=>node()},URL,Date,Intl,performance:performanceClock,
+  const document=Object.assign(documentState??{},{createElement:()=>node()});
+  await runControllerVm(instrumented,{window,document,URL,Date,Intl,performance:performanceClock,
     TextEncoder,Uint8Array,crypto:{randomUUID,subtle:webcrypto.subtle}}, {timeout:2000});
   if(developmentControls){
     rootReady=true;
