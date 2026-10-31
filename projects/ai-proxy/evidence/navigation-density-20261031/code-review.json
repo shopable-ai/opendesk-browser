@@ -1,0 +1,878 @@
+{
+  "format": "ai-proxy.navigation-density.independent-code-review.v1",
+  "reviewDate": "2026-10-31",
+  "completedAt": null,
+  "reviewer": "independent code/spec/security lane",
+  "status": "AWAITING_OWNER_MINIMAL_FIX_AND_NEW_FROZEN_CANDIDATE",
+  "recommendation": "REQUEST CHANGES",
+  "conclusion": "source-786e候选补核发现代理表单底部取消绕过确认并清空草稿，规格检查暂不通过；当前得分转为历史初评，不是待修复候选最终评分。用户已在最小修复，评审仅核对后续delta及新证据。",
+  "scope": {
+    "owner": "projects/ai-proxy/",
+    "branch": "main",
+    "observedHead": "3c76ae9a4c2d42616ca5d46581204511c16f3650",
+    "filesReviewed": 12,
+    "reviewedFiles": [
+      "projects/ai-proxy/src/App.jsx",
+      "projects/ai-proxy/src/QuickPanel.tsx",
+      "projects/ai-proxy/src/Settings.tsx",
+      "projects/ai-proxy/src/ui/ProxyIcon.tsx",
+      "projects/ai-proxy/src/ui/OptionsShell.tsx",
+      "projects/ai-proxy/src/style.css",
+      "projects/ai-proxy/src/styles/options.css",
+      "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "projects/ai-proxy/tests/navigation.test.mjs",
+      "projects/ai-proxy/tests/drafts.test.mjs",
+      "projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+      "projects/ai-proxy/scripts/navigation-density-preview.mjs"
+    ],
+    "writeAllowlist": [
+      "projects/ai-proxy/evidence/navigation-density-20261031/code-review.json"
+    ],
+    "sourceAndTestsReadOnly": true,
+    "noSubagents": true,
+    "baseline": "按用户最新DESIGN/本轮plan与冻结manifest审查导航删除、密度、共享图标及相关定向回归；git diff只用于发现上下文，前轮删除回执/clearErrorKey等已有dirty作为保留合同，未重新认领为本轮修复。",
+    "architectureLane": "NOT_PART_OF_THIS_LEAF_ASSIGNMENT; 上层负责独立架构/设计结论。本报告仅实现分工，无合并/发布授权。",
+    "reviewCorrection": "初轮检查遗漏真实底部取消接线；已用同候选UI reviewer证据和源码修正，不继续维持PASS或原分数。"
+  },
+  "candidate": {
+    "path": "projects/ai-proxy/.opendesk-preview/source-786e920a-e77b-4e75-b737-4a7a49e76f87/preview.html",
+    "url": "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-786e920a-e77b-4e75-b737-4a7a49e76f87/preview.html",
+    "htmlSha256": "c0107f44c24ac39ce0883389b0c340cd10f6b2e39315aea056f9f6b96dde3eb0",
+    "sourceCount": 65,
+    "sourceDrift": [],
+    "sourceHashes": {
+      "projects/ai-proxy/preview/main.jsx": {
+        "bytes": 3517,
+        "sha256": "a27b1fb74366ca682eaa4245a54498d9ee0b2a20415732e2f08275b9ff7985f8"
+      },
+      "projects/ai-proxy/scripts/stage-preview.mjs": {
+        "bytes": 10938,
+        "sha256": "f76caecbde375a6db65c4c7ce6e25d4ca846c492d61b09af14b5cb8df4fc708d"
+      },
+      "scripts/preview/shared-tool-design.mjs": {
+        "bytes": 9232,
+        "sha256": "a75e86c40d89c50d42720e2f727acc78f259f030ec00f32ae19bfdf930a9dba5"
+      },
+      "scripts/templates/sidebar-tool-preview-shell.html": {
+        "bytes": 7078,
+        "sha256": "ade920b4b6f11f3f27d352447b0ccd7a65b6084ad5de3dedb29452d45f562ae7"
+      },
+      "scripts/preview/sidebar-shell-behavior.js": {
+        "bytes": 4840,
+        "sha256": "3b0fab946fd8e7fff01991cd5dd89302a880e4ce93dc60e5d4513fcd54ee35f4"
+      },
+      "src/ui/design-tokens.css": {
+        "bytes": 2526,
+        "sha256": "63532100e61777fde7042099d2b0f6d5f583323b45b98f0937d2bf1c6678af79"
+      },
+      "src/ui/design-system.css": {
+        "bytes": 12317,
+        "sha256": "720733aa85839f44b5c1035c09323c8ca1c657817932ae1b209e7f961566cd7d"
+      },
+      "src/ui/react/components/ui/sidebar-shared.css": {
+        "bytes": 1717,
+        "sha256": "fdb9cd6e76093fff2fa31d940599fd1ba57c679f871468f6296cba9e4738204a"
+      },
+      "projects/ai-proxy/src/styles/style.css": {
+        "bytes": 41336,
+        "sha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171"
+      },
+      "projects/ai-proxy/src/styles/options.css": {
+        "bytes": 50653,
+        "sha256": "c2d101863f94b63574bd50210ac78ccadfd3b964a6de0a648bd2a9f6c3d759a3"
+      },
+      "projects/ai-proxy/src/styles/sidepanel-r86.css": {
+        "bytes": 17231,
+        "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+      },
+      "projects/ai-proxy/src/styles/rotation-entry.css": {
+        "bytes": 846,
+        "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+      },
+      "projects/ai-proxy/src/styles/sidebar-settings.css": {
+        "bytes": 16800,
+        "sha256": "99bba6b91f289d9839acd6fc6bf15348da0db1744f6969aa961d6fe362437da4"
+      },
+      "projects/ai-proxy/src/style.css": {
+        "bytes": 4929,
+        "sha256": "651bdae4ae0a06cea85893d2e4550ac4be9c1e6647de3e0fe093d36857533c5a"
+      },
+      "src/ui/react/components/ui/button.tsx": {
+        "bytes": 845,
+        "sha256": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"
+      },
+      "projects/ai-proxy/src/domain/config.ts": {
+        "bytes": 13949,
+        "sha256": "08e7444030368b49813e16034c24c38ecce491d2abbcff6e0a796fb48f36ec57"
+      },
+      "projects/ai-proxy/src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "projects/ai-proxy/src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "projects/ai-proxy/src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "projects/ai-proxy/src/service.ts": {
+        "bytes": 28133,
+        "sha256": "9b29f1c8085ec00e8dd809d4e968b7339ef0353fce2083a6e226574907d4aac7"
+      },
+      "projects/ai-proxy/src/model.js": {
+        "bytes": 5324,
+        "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+      },
+      "projects/ai-proxy/src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "projects/ai-proxy/src/ui/navigation.ts": {
+        "bytes": 1887,
+        "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+      },
+      "projects/ai-proxy/src/environment.ts": {
+        "bytes": 8812,
+        "sha256": "fbd44e397f2a6110a49794334da06e9cb400761577b9d66335bf58b98b90e862"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json": {
+        "bytes": 72093,
+        "sha256": "be8bb029293ead685cf7d3f0e977219223661544fb0dff73252af59fb1e5e7de"
+      },
+      "projects/ai-proxy/src/i18n/locales/en.json": {
+        "bytes": 75528,
+        "sha256": "b9bba1d5fb6f33d3ef980165d2f8659507a6699bea062353284781ea863111e2"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json": {
+        "bytes": 72520,
+        "sha256": "b78749885a3622b8a5c3a7017e7f50cebe5a34cd114eb8516a9e6b735b999adc"
+      },
+      "projects/ai-proxy/src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "projects/ai-proxy/src/i18n/LocaleProvider.tsx": {
+        "bytes": 2767,
+        "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+      },
+      "projects/ai-proxy/src/i18n/errors.ts": {
+        "bytes": 1229,
+        "sha256": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129"
+      },
+      "projects/ai-proxy/src/ui/useProxy.ts": {
+        "bytes": 2977,
+        "sha256": "ca615bf91822f78e776883816ead1346a46607b665c541fdf7ecb612a964ec18"
+      },
+      "projects/ai-proxy/src/ui/Status.tsx": {
+        "bytes": 5372,
+        "sha256": "d214c47d17c2f28614651818130841f91877bb5953030213975fdaa20ea5b661"
+      },
+      "projects/ai-proxy/src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "projects/ai-proxy/src/ui/ProxyEntry.tsx": {
+        "bytes": 5393,
+        "sha256": "7cd8f7ed1f26278954a92449e935fc902a57ced83c6bfb5611f19f28df3eff1c"
+      },
+      "projects/ai-proxy/src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "projects/ai-proxy/src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "projects/ai-proxy/src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "projects/ai-proxy/src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "projects/ai-proxy/src/config/remote-config.ts": {
+        "bytes": 6144,
+        "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+      },
+      "projects/ai-proxy/src/collector/rotation-plan.ts": {
+        "bytes": 3427,
+        "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+      },
+      "projects/ai-proxy/src/ui/RotationPlan.tsx": {
+        "bytes": 8379,
+        "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+      },
+      "projects/ai-proxy/src/ui/ProxyIcon.tsx": {
+        "bytes": 1965,
+        "sha256": "bbcc168cce387c9741dea7ff5ce9fc9b9c7af1f8f1f3fa9d0627898ef6a5473a"
+      },
+      "projects/ai-proxy/src/QuickPanel.tsx": {
+        "bytes": 37542,
+        "sha256": "26a9a31ede5f6c84e2f5f82d9fd5a8c7bf25c14863abd6f668aae279bab1bc60"
+      },
+      "projects/ai-proxy/src/ui/OptionsShell.tsx": {
+        "bytes": 2377,
+        "sha256": "8f1a9aa92bbba17ca540526764cef76336e47efb32a2056d70483ba0a8aa015e"
+      },
+      "projects/ai-proxy/src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "projects/ai-proxy/src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "projects/ai-proxy/src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "projects/ai-proxy/src/official/messages.ts": {
+        "bytes": 961,
+        "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+      },
+      "projects/ai-proxy/src/ui/OfficialServicePage.tsx": {
+        "bytes": 9979,
+        "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+      },
+      "projects/ai-proxy/src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "projects/ai-proxy/src/ui/SubscriptionReader.tsx": {
+        "bytes": 17769,
+        "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+      },
+      "projects/ai-proxy/src/ui/SourcesPage.tsx": {
+        "bytes": 25577,
+        "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+      },
+      "projects/ai-proxy/src/domain/messages.ts": {
+        "bytes": 2486,
+        "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+      },
+      "projects/ai-proxy/src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      },
+      "projects/ai-proxy/src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "projects/ai-proxy/src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "projects/ai-proxy/src/ui/UsageControls.tsx": {
+        "bytes": 16278,
+        "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+      },
+      "projects/ai-proxy/src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20743,
+        "sha256": "a4aa3b6c8df72d096400cc45371f484ecb87953c196d77dc64bd6add0d36c7a3"
+      },
+      "projects/ai-proxy/src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "projects/ai-proxy/src/Settings.tsx": {
+        "bytes": 57473,
+        "sha256": "2482045a5d86d3ab0ab217a0975b47a8faa82d07c660ff8ae9038b8e8e414ceb"
+      },
+      "projects/ai-proxy/src/App.jsx": {
+        "bytes": 5107,
+        "sha256": "b0fa75408922d594594cf61c61e75fed18229ec801e848e7d9b1a160e619ed9e"
+      },
+      "projects/ai-proxy/trusted/Surface.jsx": {
+        "bytes": 370,
+        "sha256": "fb8d8df0fcf325085758f2ea1dd704d07f1cfcec59c998f1555f825594272833"
+      },
+      "projects/ai-proxy/preview/sdk-preview.js": {
+        "bytes": 3375,
+        "sha256": "e5f984762315c2c78321b54c08eac6da78dc1d2a24b45badd93bc3c366c23644"
+      },
+      "projects/ai-proxy/preview/frame.jsx": {
+        "bytes": 1141,
+        "sha256": "cfdce3cb52aaee65a8d2e51eef18986e87bb1854858521e1ebd3edccb4546491"
+      }
+    },
+    "sourceCheckSha256": "833b53820f2c27de3a80f240d7ab8026c03b22f409649822dc031ece68f0f432",
+    "interactionsSha256": "a41dacac92dc251bb2c7f2ab0a5b0c7268d46a952005756a2417fee9c3b49fd7",
+    "localeKeys": 1009,
+    "previousCandidate": "source-86f96324-2033-457a-9566-4e0de4cd2209 superseded; tests reused for whitespace-only final change, final browser evidence rebound.",
+    "servedHtml": {
+      "sha256": "d67c0c10256e21137ef6cb292507e17a13a049bb69cda68d40860dcf52584987",
+      "reason": "现有43263 Vite serve在<head>插入55字符的/@vite/client标签；独立逐字比较确认HTTP响应其余字节与冻结HTML完全一致。最初直接HTTP=原文件SHA的诊断断言失败，随后已定位该开发服务插入；不将失败隐藏或判为候选源码漂移。"
+    },
+    "boundary": "现有同源Chromium内存预览，非新安装、正式包、production或真实代理。"
+  },
+  "stage1": {
+    "result": "FAIL_PROXY_CANCEL_DRAFT_GUARD",
+    "requirements": [
+      {
+        "topic": "删除冗余顶部Tabs并沿原齿轮/管理入口进入设置",
+        "result": "PASS",
+        "references": [
+          "projects/ai-proxy/src/App.jsx:74",
+          "projects/ai-proxy/src/QuickPanel.tsx:518"
+        ]
+      },
+      {
+        "topic": "七区与区分目的的退出及草稿/busy",
+        "result": "PASS",
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:472",
+          "projects/ai-proxy/src/Settings.tsx:492",
+          "projects/ai-proxy/src/App.jsx:39"
+        ]
+      },
+      {
+        "topic": "紧凑列表、图标语义、保存/选择不应用",
+        "result": "PASS_WITH_LOW_FOCUS_DEFECT",
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:523",
+          "projects/ai-proxy/src/Settings.tsx:666",
+          "projects/ai-proxy/src/ui/ProxyIcon.tsx:3"
+        ]
+      },
+      {
+        "topic": "系统间距owner及最小layer边界",
+        "result": "PASS",
+        "references": [
+          "projects/ai-proxy/src/styles/options.css:260",
+          "projects/ai-proxy/src/styles/options.css:619",
+          "projects/ai-proxy/src/styles/sidebar-settings.css:43",
+          "projects/ai-proxy/src/styles/sidebar-settings.css:198"
+        ]
+      },
+      {
+        "topic": "代理表单底部取消必须沿原草稿确认",
+        "result": "FAIL",
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:891",
+          "projects/ai-proxy/src/Settings.tsx:147",
+          "projects/ai-proxy/src/Settings.tsx:163"
+        ]
+      }
+    ]
+  },
+  "rootCauseGuard": {
+    "result": "PASS",
+    "reason": "CSS针对已确认的旧高specificity布局优先级根因作限定分层，并在原侧栏owner用gap及子margin归零；没有第二渲染Host、运行时替代路径或错误吞噬。既有clipboard兼容/非法预览输入catch未被本轮扩宽，不作为新fallback批准。"
+  },
+  "stage2": {
+    "result": "SYNTAX_AST_CSS_PASS; SEMANTIC_DIAGNOSTICS_NOT_TESTED",
+    "syntax": {
+      "tool": "esbuild.transform + @babel/parser",
+      "files": 9,
+      "warnings": 0
+    },
+    "css": {
+      "tool": "postcss",
+      "files": 3,
+      "result": "PASS",
+      "layer": {
+        "file": "projects/ai-proxy/src/styles/options.css",
+        "start": 260,
+        "end": 619,
+        "onlyDesktopBlock": true,
+        "originalRulesAndDeclarationsUnchanged": 496
+      },
+      "scope": "options.css/sidebar-settings.css所有样式规则保留@scope(.proxy-app)；style.css原有.proxy-app .od-button及#ai-proxy-app为显式根限定，不是本轮新增泄漏。"
+    },
+    "patternScan": {
+      "tool": "@babel/parser AST walk + targeted rg (ast_grep_search unavailable)",
+      "newMaskingFallbacks": 0,
+      "newHardcodedSecretCandidates": 0,
+      "emptyCatches": [
+        "projects/ai-proxy/src/QuickPanel.tsx:108",
+        "projects/ai-proxy/src/QuickPanel.tsx:333",
+        "projects/ai-proxy/src/Settings.tsx:238"
+      ],
+      "emptyCatchAssessment": "既有预览/已关闭实例处理，无本轮新增；输入验证与保存错误仍显式展示。",
+      "consoleLog": "projects/ai-proxy/scripts/navigation-density-preview.mjs:116 test-only report output"
+    },
+    "lspDiagnostics": {
+      "status": "NOT_TESTED",
+      "files": [
+        {
+          "path": "projects/ai-proxy/src/App.jsx",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/src/QuickPanel.tsx",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/src/Settings.tsx",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/ProxyIcon.tsx",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/src/style.css",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/options.css",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/tests/navigation.test.mjs",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/tests/drafts.test.mjs",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        },
+        {
+          "path": "projects/ai-proxy/scripts/navigation-density-preview.mjs",
+          "status": "NOT_TESTED",
+          "reason": "lsp_diagnostics未提供；本地typescript/typescript-language-server不可用。CSS无对应language-server。"
+        }
+      ],
+      "blockingForDevelopment": false,
+      "preventsUnconditionalApprove": true
+    },
+    "performance": "沿原事件处理、有限列表map及已有rAF，无新增持续轮询/网络/宿主工作。"
+  },
+  "checks": {
+    "independentTargetedTests": {
+      "command": "node --test --test-name-pattern='settings close|closing clean|busy settings|late deletion|late save acknowledgement|settings rule|duplicate rule|same-domain|confirmed rule deletion|successful deletion' projects/ai-proxy/tests/navigation.test.mjs projects/ai-proxy/tests/drafts.test.mjs projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+      "pass": 17,
+      "fail": 0,
+      "result": "PASS",
+      "why": "验证新关闭入口/图标规则操作沿原guard、revision和保存不应用合同；不重复完整套件。"
+    },
+    "ownerReportedTests": {
+      "files": 6,
+      "pass": 60,
+      "fail": 0,
+      "independentlyRepeated": false
+    },
+    "ownerFinalBrowser": {
+      "at": "2026-10-31T08:31:30.122Z",
+      "result": "PASS",
+      "checks": [
+        "No business Tabs; seven settings sections; zero stacked margins; uniform two-line rows; inline local-client status",
+        "Selection is exposed with aria-pressed and does not claim applied routing",
+        "Single form gutter; 12px group/8px label rhythm; invalid port rejected; Enter saves without applying",
+        "Proxy dirty Escape preserves on Keep, discards on confirmation and returns focus to edit icon",
+        "Icon rules preserve domain/scope labels; keyboard opens editor; closing settings keeps/discards draft; panel restores gear focus",
+        "Rule save, delete Cancel/confirm, stale receipt clearing and surviving neighbor focus all work",
+        "Chinese, English and Traditional Chinese retain list/actions and add form"
+      ],
+      "errors": [],
+      "external": [],
+      "screenshots": {
+        "profiles": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/profiles.png",
+          "sha256": "7d2326771917cf9386dcd0af15516ecf53d7959c6d38d2435da8f5a3a557ddaf"
+        },
+        "add-proxy": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/add-proxy.png",
+          "sha256": "07bec5f41a82386da045b246c190295719c439ff5e3aae71bd9300ca89129ab2"
+        },
+        "rules": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/rules.png",
+          "sha256": "b0231d128e5059b361237250d2ad1de36ff9eed266c9fb58d18ff21ca2054393"
+        },
+        "rule-editor": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/rule-editor.png",
+          "sha256": "fecaa935c9881eec82cd7454b451b9ecb1cf741f18ff24372fe908aea05c5ca4"
+        },
+        "profiles-en": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/profiles-en.png",
+          "sha256": "f09527be1a0e5c0f18b38a13ea19f436d4b78788fd28b355ca804bed38a93832"
+        },
+        "add-en": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/add-en.png",
+          "sha256": "ba7f706f815f53be5b74fa59c4e080733d4539514df60e15fbdcedb089b4e82d"
+        },
+        "profiles-zh-TW": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/profiles-zh-TW.png",
+          "sha256": "905faab212c3667e0073900f98feb7d2c8a2476a5c9d45c245781264bc2bb1bc"
+        },
+        "add-zh-TW": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/add-zh-TW.png",
+          "sha256": "5f548198f5809f03b83af68eda261bd4237ec7b573bd8143f3dedd135439a943"
+        },
+        "profiles-zh-CN": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/profiles-zh-CN.png",
+          "sha256": "0ccc7198a61edb2d51156b08bdef9653ff9510419228ecdef37c5ad41987e34c"
+        },
+        "panel": {
+          "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/panel.png",
+          "sha256": "736ea466eabb0aa350478e6ce83693a0a165ff67a34d4f1e82673f617cc5bb49"
+        }
+      },
+      "allScreenshotHashesIndependentlyVerified": true,
+      "inspectedImages": [
+        "profiles.png",
+        "add-proxy.png",
+        "rules.png",
+        "rule-editor.png"
+      ],
+      "note": "读图使用首候选截图；新旧截图已按最终manifest重新SHA核对，未重标旧候选来源。最终interactions重跑来自owner。"
+    },
+    "independentFinalFocusProbe": {
+      "url": "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-786e920a-e77b-4e75-b737-4a7a49e76f87/preview.html",
+      "mode": "独立临时BrowserContext，仅内存导航，不写截图或既有证据；完成后context已关闭。",
+      "operation": "齿轮→代理选择按钮focus→Tab→恢复focus，读取focus-visible与列表边界计算样式。",
+      "observed": {
+        "focusVisible": true,
+        "outline": "rgb(54, 94, 218) solid 2px",
+        "outlineOffset": "1px",
+        "listOverflowX": "hidden",
+        "buttonLeft": 12,
+        "listLeft": 12,
+        "leftFocusRingOutsideList": 3,
+        "buttonRight": 46,
+        "listRight": 388
+      },
+      "result": "LOW_DEFECT_CONFIRMED"
+    }
+  },
+  "issues": [
+    {
+      "id": "ND-F02",
+      "severity": "HIGH",
+      "blocking": true,
+      "file": "projects/ai-proxy/src/Settings.tsx",
+      "line": 891,
+      "title": "管理代理表单底部取消绕过草稿确认",
+      "issue": "底部取消直接调用closeEditor，无条件清除settings-proxy草稿及host/port等输入；X/Escape经requestCloseEditor，有确认及revision保护。",
+      "evidence": "独立只读核对Settings:147–169及891，并核对UI reviewer同候选实际复现R1：填host/port→底部取消，无确认，重开host为空。此前17项定向测试没有覆盖这个真实按钮接线。",
+      "fix": "仅将底部取消接入requestCloseEditor，保留原revision/busy边界；在最终候选补取消/X/Escape的保留/放弃实际操作及真实按钮接线回归。",
+      "attribution": "候选当前行为及本轮要求阻断；不声称该旧handler由本轮首次引入。"
+    },
+    {
+      "id": "ND-F01",
+      "severity": "LOW",
+      "blocking": false,
+      "file": "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "line": 80,
+      "relatedReferences": [
+        "projects/ai-proxy/src/styles/sidebar-settings.css:83",
+        "projects/ai-proxy/src/styles/sidebar-settings.css:104",
+        "projects/ai-proxy/src/styles/options.css:25"
+      ],
+      "title": "零横向内边距列表裁切边缘图标焦点环",
+      "issue": "新布局将代理选择按钮放在列表左边界，但.profileRecords继续继承overflow:hidden。2px outline与1px outline-offset向外扩3px，左侧轮廓被裁切；右端删除图标有同类边界风险，尚未独立测量。",
+      "evidence": "最终候选实际focus-visible=true；buttonLeft=listLeft=12，overflowX=hidden，outline=2px、offset=1px，左侧3px在裁切边界外。按钮及键盘操作本身仍可用，故非阻断。",
+      "fix": "在原sidebar-settings.css的.profileRecords规则将overflow改为visible（边框/圆角已归零），或在该列表采用内嵌焦点环；保持原行高/gap，无需改Host。",
+      "regression": "同一最终候选键盘Tab到首个选择/末端删除图标，确认完整焦点轮廓可见；无需全量构建或安装。"
+    },
+    {
+      "id": "ND-F03",
+      "severity": "MEDIUM",
+      "blocking": false,
+      "file": "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "line": 97,
+      "relatedReferences": [
+        "projects/ai-proxy/src/styles/sidebar-settings.css:141",
+        "projects/ai-proxy/src/styles/sidebar-settings.css:152",
+        "projects/ai-proxy/src/styles/sidebar-settings.css:208"
+      ],
+      "title": "行内操作及动作前间距仍未完全遵守本轮唯一owner合同",
+      "issue": "recordActions/rule actions为space-1即4px；动作前由父gap12加子margin4拼接16，偏离明确的同行8px、父gap负责/子margin归零合同。",
+      "fix": "同行操作改space-2；动作区前16由原父布局行间距负责，子margin归零。",
+      "evidence": "UI reviewer指出后独立核对源码与现有computed form childMargins，确认存在。"
+    },
+    {
+      "id": "ND-F04",
+      "severity": "LOW",
+      "blocking": false,
+      "file": "projects/ai-proxy/src/Settings.tsx",
+      "line": 669,
+      "relatedReferences": [
+        "projects/ai-proxy/src/styles/sidebar-settings.css:94"
+      ],
+      "title": "被省略的规则目标缺少完整文本就地查看",
+      "issue": "规则small被单行ellipsis但没有title；长目标名/优先级可能只能进入编辑查看。DOM保留完整文本，未认定读屏文本丢失。",
+      "fix": "用完整目标/优先级文本作为title，保持原列表与无新依赖。",
+      "evidence": "独立源码核对，超长目标浏览器场景NOT_TESTED。"
+    }
+  ],
+  "issueCounts": {
+    "CRITICAL": 0,
+    "HIGH": 1,
+    "MEDIUM": 1,
+    "LOW": 2
+  },
+  "blockingIssues": [
+    "ND-F02"
+  ],
+  "scoring": {
+    "scale": "每维5项，每项0–20，直接求和；未知项不冒充PASS，不引用旧分数，不以平均分补齐。",
+    "scope": "仅本轮开发实现；非全产品、真实代理、production/安装验收。",
+    "allDimensionsAtLeast95": false,
+    "provisional": true,
+    "status": "INITIAL_SCORES_SUPERSEDED_BY_NEW_BLOCKING_EVIDENCE; REASSESS_AFTER_OWNER_FIX",
+    "previousDimensions": [
+      {
+        "dimension": "正确性",
+        "items": [
+          {
+            "name": "导航与退出目的",
+            "max": 20,
+            "score": 20,
+            "evidence": "App:74移除业务Tabs并以Settings onClose返回主面板；7区选择保留。关闭/取消/确认独立用例通过。"
+          },
+          {
+            "name": "列表操作与身份",
+            "max": 20,
+            "score": 20,
+            "evidence": "Settings:523–544及666–673保留原SELECT/edit/delete；规则保存测试验证id/enabled/priority。"
+          },
+          {
+            "name": "保存与应用分离",
+            "max": 20,
+            "score": 20,
+            "evidence": "Settings:293–305/350仅保存；选择只发SELECT；service:329–340仅编辑配置，APPLY为独立入口。"
+          },
+          {
+            "name": "间距与表单结构",
+            "max": 20,
+            "score": 19,
+            "evidence": "同候选计算样式证明16/12/8/4节奏、单gutter及66/67px两行记录；未逐一实测七区所有低频展开态。"
+          },
+          {
+            "name": "输入与三语覆盖",
+            "max": 20,
+            "score": 19,
+            "evidence": "浏览器非法端口被拒绝、Enter保存，三语同结构/1009键；未穷举同候选空态及所有长内容组合。"
+          }
+        ],
+        "score": 98
+      },
+      {
+        "dimension": "可靠性",
+        "items": [
+          {
+            "name": "草稿保留与放弃",
+            "max": 20,
+            "score": 20,
+            "evidence": "关闭设置及表单Escape的保留/确认放弃有具名用例与最终候选浏览器证据。"
+          },
+          {
+            "name": "revision/generation保护",
+            "max": 20,
+            "score": 20,
+            "evidence": "Settings:329–355/396–418保留先generation再revision条件；独立晚保存/晚删除用例通过。"
+          },
+          {
+            "name": "busy与操作单飞",
+            "max": 20,
+            "score": 20,
+            "evidence": "App:37–45 guard和Settings:492 disabled同时生效；独立busy关闭用例与未完成save锁栏目用例通过。"
+          },
+          {
+            "name": "失败与迟到结果",
+            "max": 20,
+            "score": 18,
+            "evidence": "失败save/delete保留草稿和记录，未引入重试；受控pending的浏览器事件循环场景未在本候选独立重放，组件fixture提供有限证据。"
+          },
+          {
+            "name": "返回及删除落点",
+            "max": 20,
+            "score": 19,
+            "evidence": "浏览器记录齿轮返回及规则邻项focus；独立确认焦点确实可见但边缘外轮廓裁切，见ND-F01。"
+          }
+        ],
+        "score": 97
+      },
+      {
+        "dimension": "安全",
+        "items": [
+          {
+            "name": "执行世界与Host边界",
+            "max": 20,
+            "score": 20,
+            "evidence": "所有本轮业务变更留在projects/ai-proxy；沿用同一个App、environment及opaque sandbox，未增加第二Host/权限。"
+          },
+          {
+            "name": "无新增远程或特权路径",
+            "max": 20,
+            "score": 20,
+            "evidence": "源码及AST检查无新增eval/raw HTML/网络/特权分支；浏览器证据external为空。"
+          },
+          {
+            "name": "明确应用与未知效果",
+            "max": 20,
+            "score": 20,
+            "evidence": "SELECT/SAVE仍不调用APPLY；后台失败可见，未新增静默成功、默认返回或自动重放。"
+          },
+          {
+            "name": "危险操作与范围说明",
+            "max": 20,
+            "score": 20,
+            "evidence": "规则图标title/ARIA及删除确认均包含domain/scope，取消不删除；现有managed删除限制保留。"
+          },
+          {
+            "name": "输入输出安全证据",
+            "max": 20,
+            "score": 18,
+            "evidence": "代理及域名以React文本插值，未发现新增硬编码秘密或认证泄漏；本轮未做动态恶意输入/辅助技术的专项矩阵。"
+          }
+        ],
+        "score": 98
+      },
+      {
+        "dimension": "可维护性",
+        "items": [
+          {
+            "name": "真实owner与小范围改动",
+            "max": 20,
+            "score": 20,
+            "evidence": "复用projects/ai-proxy原入口；未把并行useProxy/正式包/其他项目dirty视作本轮新实现。"
+          },
+          {
+            "name": "既有组件与能力复用",
+            "max": 20,
+            "score": 20,
+            "evidence": "Shared Button/FormField、原navigation guard、原service，ProxyIcon仅在工具内复用原SideIcon，无新依赖。"
+          },
+          {
+            "name": "CSS层级与隔离",
+            "max": 20,
+            "score": 20,
+            "evidence": "PostCSS确认全部options/sidebar-settings规则在.proxy-app scope内；仅260–619桌面块进入proxy-legacy。496个原options规则selector/声明内容及顺序与HEAD完全一致。"
+          },
+          {
+            "name": "事件与状态清晰度",
+            "max": 20,
+            "score": 19,
+            "evidence": "关闭通过单一导航guard；删除复用finishRuleEditor；部分新增内联JSX事件较密，仍可追溯且不要求额外抽象。"
+          },
+          {
+            "name": "回归用例可持续性",
+            "max": 20,
+            "score": 18,
+            "evidence": "测试执行真实组件/handler并断言动作及草稿，但自制hook调度与字符串截取handler对源码组织敏感；浏览器证据弥补本轮主流程，不能替代React调度全语义。"
+          }
+        ],
+        "score": 97
+      },
+      {
+        "dimension": "用户反馈",
+        "items": [
+          {
+            "name": "状态及保存说明",
+            "max": 20,
+            "score": 20,
+            "evidence": "选择aria-pressed与applied图标区分；保存不应用、错误与权限文字保留。"
+          },
+          {
+            "name": "图标名称与提示",
+            "max": 20,
+            "score": 20,
+            "evidence": "ProxyIcon aria-hidden/focusable=false，外层操作button及状态role=img提供可翻译title/ARIA，规则动作有domain/scope。"
+          },
+          {
+            "name": "取消与删除反馈",
+            "max": 20,
+            "score": 20,
+            "evidence": "保留/放弃意图清晰，删除取消无写入，成功delete清旧receipt并返回存活邻项。"
+          },
+          {
+            "name": "键盘焦点可见性",
+            "max": 20,
+            "score": 17,
+            "evidence": "最终候选独立浏览器复现左侧3px焦点环被overflow:hidden裁切；键盘操作和焦点落点本身可用。"
+          },
+          {
+            "name": "实际可访问体验证据",
+            "max": 20,
+            "score": 17,
+            "evidence": "有三语截图、键盘与ARIA源码/计算值；屏幕阅读器实际播报和所有长目标名的可读性尚未独立验证。"
+          }
+        ],
+        "score": 94
+      },
+      {
+        "dimension": "证据充分性",
+        "items": [
+          {
+            "name": "最终源码指纹",
+            "max": 20,
+            "score": 20,
+            "evidence": "最终冻结HTML SHA匹配；65输入逐文件SHA无漂移；三语键一致。"
+          },
+          {
+            "name": "同候选浏览器证据",
+            "max": 20,
+            "score": 20,
+            "evidence": "interactions.json最终URL、7组PASS、10张截图SHA一致；独立实际读图并新增焦点裁切诊断。"
+          },
+          {
+            "name": "相关行为回归",
+            "max": 20,
+            "score": 20,
+            "evidence": "独立复跑17个关键用例全部通过；作者报告6文件60/60，未冒称独立复跑60项。"
+          },
+          {
+            "name": "真实入口与边界区分",
+            "max": 20,
+            "score": 20,
+            "evidence": "source-check记录真实main入口内存编译无warning；未误用旧安装、production或真实流量证据。"
+          },
+          {
+            "name": "语义诊断覆盖",
+            "max": 20,
+            "score": 14,
+            "evidence": "9个JS/JSX/TSX/MJS文件语法/AST检查及3个CSS解析通过，但lsp_diagnostics、ast_grep_search及本地TypeScript语义工具不可用；不将esbuild/Babel当作完整类型检查。"
+          }
+        ],
+        "score": 94
+      }
+    ]
+  },
+  "validationBoundary": {
+    "notTested": [
+      "lsp_diagnostics/完整语义类型诊断",
+      "同候选受控pending浏览器保存调度",
+      "屏幕阅读器实际播报",
+      "本轮新安装/真实代理/production/全CI"
+    ],
+    "outOfScope": [
+      "宽度/缩放专项矩阵",
+      "正式包晋升/安装",
+      "Browser全量测试或构建"
+    ],
+    "developmentBlocking": false
+  },
+  "stopCondition": "等待用户正在处理的最小修复、新冻结候选及同源证据后继续独立复评；不执行全量检查。",
+  "updatedAt": "2026-10-31T08:37:50.309Z"
+}

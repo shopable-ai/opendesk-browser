@@ -238,7 +238,7 @@
   "backupInvalidFormat": "這不是有效的 AI Proxy v1/v2 備份，現有設定未變更。",
   "backupFileFailed": "讀取備份檔案失敗，請重新選擇本機 JSON 檔案。",
   "backupImportSucceeded": "備份已匯入；代理不會自動啟用。需要使用時請手動選擇並套用。",
-  "confirmDeleteRule": "確定刪除網站規則「{domain}」嗎？重新套用網站規則模式後才會更新已套用線路。",
+  "confirmDeleteRule": "確定刪除網站規則「{domain}」（{scope}）嗎？重新套用網站規則模式後才會更新已套用路線。",
   "confirmDeletePac": "確定刪除本機 PAC「{name}」嗎？請確認目前線路未使用它。",
   "validateAndImportStopManagingFirst": "驗證並匯入（需先停止管理）",
   "checkBrowserSettingsSeparatelyFromNetworkConnectivity": "把瀏覽器設定與網路可用性分開驗證",
@@ -990,7 +990,7 @@
   "apSiteRuleSource": "從網站帶入：",
   "apManualRuleSource": "目前網站無法讀取。請手動輸入要設定的網域。",
   "apExistingRuleSource": "正在編輯已儲存的規則：",
-  "apRuleAlreadyExists": "相同網域與範圍的規則已存在，請在「管理規則」中編輯。",
+  "apRuleAlreadyExists": "相同網域與範圍的規則已存在。請先取消目前編輯，再到網站規則清單編輯既有規則。",
   "apFinishStop": "完成停止收尾",
   "apStatusReadFailedHelp": "暫時無法確認瀏覽器代理狀態。可重試讀取狀態；仍可編輯和儲存設定，儲存不會切換路線。",
   "apWorkspaceViews": "AI Proxy 檢視",
@@ -1002,7 +1002,10 @@
   "apRuleEnabled": "已啟用",
   "apRuleDisabled": "已停用",
   "apRuleSaveNote": "僅儲存規則，目前網路維持不變。需要生效時，請在代理面板明確套用。",
-  "editNamedRule": "編輯 {domain} 的規則",
-  "deleteNamedRule": "刪除 {domain} 的規則",
-  "apRulesListSource": "從網站規則列表新增"
+  "editNamedRule": "編輯 {domain} 的規則（{scope}）",
+  "deleteNamedRule": "刪除 {domain} 的規則（{scope}）",
+  "apRulesListSource": "從網站規則列表新增",
+  "apRuleExactScope": "僅此網域",
+  "apRuleSubdomainScope": "包含子網域",
+  "apRuleSavedNotice": "網站規則已儲存。"
 }

@@ -36,18 +36,12 @@
   :scope .popup.sidepanel, :scope .popup.sidepanel.r86Panel { height: 100%; }
   :scope .proxy-route-actions { display: flex; flex: none; gap: 9px; margin-left: auto; }
   :scope .proxy-route-actions .r86IconFirst { margin-left: 0; }
-  :scope .proxy-back { border: 0; padding: 5px 6px; min-height: 30px; color: var(--accent); background: transparent; }
   :scope .proxy-confirm-dialog { width: calc(100% - 24px); max-width: 420px; max-height: calc(100dvh - 24px); overflow: auto; margin: auto; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); }
   :scope .proxy-confirm-dialog::backdrop { background: color-mix(in srgb, var(--ink) 45%, transparent); }
   :scope .proxy-confirm-dialog h2 { margin-bottom: 12px; }
   :scope .proxy-confirm-dialog p { color: var(--muted); overflow-wrap: anywhere; }
   :scope .proxy-confirm-dialog .actions { justify-content: flex-end; margin: 12px 0 0; }
   :scope input[type='checkbox'], :scope input[type='radio'] { flex: none; width: 16px; height: 16px; min-height: 0; padding: 0; accent-color: var(--accent); }
-  :scope .proxy-view-tabs { display:flex; flex:none; gap:16px; padding:0 12px; border-bottom:1px solid var(--line); background:var(--surface); }
-  :scope .proxy-view-tabs .od-button { position:relative; min-height:44px; padding:10px 2px; border:0; border-radius:0; background:transparent; color:var(--muted); font-size:13px; box-shadow:none; }
-  :scope .proxy-view-tabs .od-button[aria-selected='true'] { color:var(--accent); font-weight:650; }
-  :scope .proxy-view-tabs .od-button[aria-selected='true']::after { content:''; position:absolute; height:2px; bottom:0; left:0; right:0; background:var(--od-brand); }
-  :scope .proxy-view-tabs .od-button:focus-visible { outline:2px solid var(--accent); outline-offset:-3px; }
   :scope .sideAddHeader h2 { margin:0; font-size:16px; line-height:1.4; }
   :scope .r86Panel .sideAddHeader .ruleClose { display:inline-flex; align-items:center; justify-content:center; margin-left:auto; min-width:36px; width:36px; min-height:36px; padding:8px; border:0; background:transparent; color:var(--muted); }
   :scope :is(.r86Editor,.rulesEditorFields) .ruleTargetChoices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:0; margin:0; min-width:0; border:0; }

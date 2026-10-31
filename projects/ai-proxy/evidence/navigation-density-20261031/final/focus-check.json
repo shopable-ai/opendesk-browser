@@ -1,0 +1,44 @@
+{
+  "candidate": "source-221a90c1-9053-43fa-a758-6c6b32e41be3",
+  "htmlSha256": "ee20e4c69e3f03f50b749653856d10367b169fcc2784c33a294d1582299b50bb",
+  "sourceCount": 65,
+  "sourceDrift": [],
+  "changedInputsFromRevision2": [
+    "projects/ai-proxy/src/styles/sidebar-settings.css"
+  ],
+  "sourceDelta": "Only overflow:visible on profileRecords and rulesList records; no JS/DOM/locale changes",
+  "browser": "149.0.7827.55",
+  "checks": [
+    {
+      "name": "profile-focus",
+      "metrics": {
+        "focusVisible": true,
+        "outlineWidth": "2px",
+        "outlineOffset": "1px",
+        "clipped": []
+      }
+    },
+    {
+      "name": "rule-focus",
+      "metrics": {
+        "focusVisible": true,
+        "outlineWidth": "2px",
+        "outlineOffset": "1px",
+        "clipped": []
+      }
+    }
+  ],
+  "screenshots": {
+    "profile-focus": {
+      "file": "projects/ai-proxy/evidence/navigation-density-20261031/final/profile-focus.png",
+      "sha256": "61cb533cb28c7e93117af9a973317bc8de38b0ae35f71449cd4de1ff5c5e4b88"
+    },
+    "rule-focus": {
+      "file": "projects/ai-proxy/evidence/navigation-density-20261031/final/rule-focus.png",
+      "sha256": "49800bf98f51bd23f4c59cedcc79651ab2b27396f43f0dc8819e5a8e0347e0b5"
+    }
+  },
+  "previousEvidence": "../revision-2/interactions.json; source-check.json; native-keyboard.json; ui-review.json; code-review.json",
+  "result": "PASS",
+  "errors": []
+}

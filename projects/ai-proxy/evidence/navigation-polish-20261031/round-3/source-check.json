@@ -1,0 +1,24 @@
+{
+  "candidate": "source-b735ff79-684c-4e1c-902a-89d5020f7e06",
+  "htmlSha256": "202f0424f15002d25aefbd595a4f15e5bb1a505945247d9c54979e1a35f8a970",
+  "uiSha256": "16be6aafbaf0e56df56f6b3170990052fa00a58f168667ee47c13de911bea5b5",
+  "sourceCount": 64,
+  "sourceDrift": [],
+  "sourceDeltaFromRound2": [
+    "projects/ai-proxy/src/ui/useProxy.ts",
+    "projects/ai-proxy/src/Settings.tsx"
+  ],
+  "unchangedPresentation": "All CSS, locale text, DOM markup and public boundaries unchanged. Only Settings readability/deletion receipt and useProxy expression layout changed.",
+  "evidenceMapping": {
+    "round2": "Same presentation and unchanged interactions retained as prior-source supplemental evidence, not falsely relabeled current-source screenshots",
+    "round3": "Final candidate direct smoke and delete receipt/focus captured separately"
+  },
+  "tests": "25/25 scoped tests PASS; success-receipt test failed before fix",
+  "outOfScope": [
+    "new native installation",
+    "real proxy traffic",
+    "production",
+    "full typecheck/CI",
+    "width/zoom matrix"
+  ]
+}

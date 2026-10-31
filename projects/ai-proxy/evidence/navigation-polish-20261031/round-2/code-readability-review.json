@@ -1,0 +1,117 @@
+{
+  "format": "ai-proxy.code-readability-review.v1",
+  "reviewDate": "2026-10-31",
+  "recommendation": "COMMENT",
+  "conclusion": "本次局部可读性建议已落实，无新增需改点或代码阻断。维护性由94复评为96，依据是实际状态更新、删除守卫和fixture分支可直接逐步审阅，不是按95门槛调整。其余五维维持上轮范围内结论；本报告不宣称中间候选或尚未冻结最终候选已完成验证。",
+  "scope": "只读审查clearErrorKey、Settings本轮输入处理/removeRule、settings-rules-runtime fixture相应逻辑；仅写本JSON，不改源码/测试/构建。",
+  "conclusions": [
+    {
+      "references": [
+        "projects/ai-proxy/src/ui/useProxy.ts:19"
+      ],
+      "result": "RESOLVED",
+      "reason": "函数式更新的来源/key条件及null/previous结果已分行；保留三元写法也能清楚审阅精确清错边界，无需强求改成if。"
+    },
+    {
+      "references": [
+        "projects/ai-proxy/src/Settings.tsx:679",
+        "projects/ai-proxy/src/Settings.tsx:696"
+      ],
+      "result": "RESOLVED",
+      "reason": "字段错误、指定重复错误及草稿赋值分行，副作用和顺序清楚，没有新增抽象。"
+    },
+    {
+      "references": [
+        "projects/ai-proxy/src/Settings.tsx:397",
+        "projects/ai-proxy/src/Settings.tsx:406",
+        "projects/ai-proxy/src/Settings.tsx:410",
+        "projects/ai-proxy/src/Settings.tsx:413"
+      ],
+      "result": "RESOLVED",
+      "reason": "声明、列表恢复位置及确认参数展开；generation与route分别提前返回，成功后的generation先返回再调用revision清理，保留原短路副作用顺序。removeRule的AST结构确有改变，不能以旧函数数量或整文件AST不变代替此处审查。"
+    },
+    {
+      "references": [
+        "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:35",
+        "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:46",
+        "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:57",
+        "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:96"
+      ],
+      "result": "RESOLVED",
+      "reason": "已删除DOM返回null的条件/注释明确；错误方法、SAVE/DELETE成功分支、return/finally单独展开；click注释明确仅推进void handler发起的即时异步工作，没有声称可控制任意pending操作。未更换整体fixture。"
+    }
+  ],
+  "requiredChanges": [],
+  "blockingIssues": [],
+  "finalScores": {
+    "correctness": {
+      "score": 97,
+      "basis": "维持；局部展开未发现行为变化，generation/revision执行顺序经源码核对保留。"
+    },
+    "reliability": {
+      "score": 96,
+      "basis": "维持；未新增异步路径/错误回退，既有测试和浏览器证据边界不变。"
+    },
+    "security": {
+      "score": 98,
+      "basis": "维持；精准清错与已有权限/网络边界没有变化。"
+    },
+    "maintainability": {
+      "score": 96,
+      "basis": "本次独立复评；此前指定的复合状态更新、嵌套守卫和新增fixture逻辑已展开，阅读时能直接定位副作用和失败退出，且未增加依赖或机制。既有大文件及整体fixture架构不作为本轮扣分依据。"
+    },
+    "userFeedback": {
+      "score": 97,
+      "basis": "维持；无新交互或文案变化，不把代码换行当作新增用户体验验证。"
+    },
+    "evidenceSufficiency": {
+      "score": 96,
+      "basis": "维持上轮限定开发范围的证据结论；本次新增证据仅为实际源码可读性核对。用户报告再次24/24，评审本次未独立重跑；旧候选测试/编译/浏览器证据不冒充新候选结果。"
+    }
+  },
+  "validationBoundary": {
+    "scoreStatus": "以上是本次源码可读性复评后的六维最终结论；不是尚未冻结候选的完整验收分数。",
+    "tests": "作者报告24/24；本次没有重跑测试或构建。原独立24/24与真实入口编译见code-review.json，对应当时源码。",
+    "intermediateCandidate": {
+      "path": "projects/ai-proxy/.opendesk-preview/source-a4ea6982-5c0d-4721-8899-ab2744d3ad9e",
+      "status": "NOT_FINAL_NOT_USED_AS_CURRENT_SOURCE_VALIDATION",
+      "sourceMismatches": [
+        {
+          "path": "projects/ai-proxy/src/Settings.tsx",
+          "currentSha256": "1adf4d5efd686f4c221a6541ba1b3d129ec776c8bde9d818c99caa9e7aa9fd7d",
+          "intermediateSha256": "540fdf90f865000512f713cf8d5e07bad6ae8ce887a9876cf25b52a813a66085"
+        }
+      ],
+      "note": "中间候选manifest并非当前所审源码的完整绑定；用户已计划复评后冻结新候选，因此不列为当前可读性修复阻断。"
+    },
+    "pending": "冻结后最小当前入口验证仍待owner完成；不扩展测试、安装或浏览器harness。",
+    "unchangedNotTested": [
+      "LSP/完整语义类型诊断",
+      "受控pending浏览器延迟",
+      "正式安装/真实代理/production/全CI"
+    ],
+    "outOfScope": [
+      "尺寸/缩放矩阵"
+    ],
+    "approvalLimit": "未运行LSP语义诊断，不作无条件APPROVE；该覆盖限制不构成本轮开发阻断。"
+  },
+  "sourceBindings": [
+    {
+      "path": "projects/ai-proxy/src/ui/useProxy.ts",
+      "sha256": "ca615bf91822f78e776883816ead1346a46607b665c541fdf7ecb612a964ec18"
+    },
+    {
+      "path": "projects/ai-proxy/src/Settings.tsx",
+      "sha256": "1adf4d5efd686f4c221a6541ba1b3d129ec776c8bde9d818c99caa9e7aa9fd7d"
+    },
+    {
+      "path": "projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+      "sha256": "6b309fa39b0d20bffcb23360a4a147c66768f00e6febf94996d41bc2669b89f1"
+    }
+  ],
+  "priorReport": {
+    "path": "projects/ai-proxy/evidence/navigation-polish-20261031/round-2/code-review.json",
+    "sha256": "bacc4fecb9952b644c3ec0be40fadf8bab8ba9cb25af857646ef4e31d40d9907",
+    "preserved": true
+  }
+}

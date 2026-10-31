@@ -1,0 +1,579 @@
+{
+  "schemaVersion": 2,
+  "reviewType": "independent-local-design-addendum",
+  "round": 3,
+  "reviewedOn": "2026-10-31",
+  "candidate": {
+    "id": "source-b735ff79-684c-4e1c-902a-89d5020f7e06",
+    "directory": "projects/ai-proxy/.opendesk-preview/source-b735ff79-684c-4e1c-902a-89d5020f7e06",
+    "htmlSha256": "202f0424f15002d25aefbd595a4f15e5bb1a505945247d9c54979e1a35f8a970",
+    "uiSha256": "16be6aafbaf0e56df56f6b3170990052fa00a58f168667ee47c13de911bea5b5"
+  },
+  "previousReview": {
+    "candidate": "source-37aa3aca-b377-48b7-a76b-2584e2d3e92b",
+    "report": "../round-2/ui-review.json",
+    "sha256": "08e66640d155c6fe895e8a749cf3fc7568275a98ad1d14374c3d0affc070c76a",
+    "preserved": true,
+    "scores": [
+      100,
+      100,
+      100,
+      98,
+      100,
+      100
+    ],
+    "remainingFinding": "R2-F01"
+  },
+  "scope": {
+    "purpose": "只复核2项输入与新候选save→delete通知/焦点及final clean，补充round-2局部设计结论。",
+    "writeScope": "projects/ai-proxy/evidence/navigation-polish-20261031/round-3/ui-review.json",
+    "excluded": [
+      "重复三语矩阵",
+      "七栏目业务全验收",
+      "新增评分指标",
+      "浏览器或服务操作",
+      "源码/包/dist修改",
+      "新安装",
+      "真实代理流量",
+      "production",
+      "全CI/完整类型诊断",
+      "宽度/缩放矩阵"
+    ],
+    "evidenceLimits": "本人只读源码、manifest及已采集截图/AX/操作记录；未亲自重演浏览器操作或重跑25项测试。原25/25及先fail后pass为owner提供的测试报告，不冒称独立执行。"
+  },
+  "inputVerification": {
+    "independentlyVerified": true,
+    "sourceCount": 64,
+    "sourceDrift": [],
+    "addedInputs": [],
+    "removedInputs": [],
+    "changedInputs": [
+      {
+        "path": "projects/ai-proxy/src/ui/useProxy.ts",
+        "oldSha256": "e37c48881ec4d75185be8020805884a455e98c7ed234c6c8bbe182afa71795ce",
+        "newSha256": "ca615bf91822f78e776883816ead1346a46607b665c541fdf7ecb612a964ec18"
+      },
+      {
+        "path": "projects/ai-proxy/src/Settings.tsx",
+        "oldSha256": "1e0a26ad0db311cc951970099c207fa97b7e5e4283c30a96710b67d853fb1090",
+        "newSha256": "1adf4d5efd686f4c221a6541ba1b3d129ec776c8bde9d818c99caa9e7aa9fd7d"
+      }
+    ],
+    "unchangedInputCount": 62,
+    "htmlShaMatches": true,
+    "allCSSAndLocalesByteIdentical": true,
+    "reviewedChanges": [
+      {
+        "file": "projects/ai-proxy/src/ui/useProxy.ts",
+        "basis": "clearErrorKey仍仅在previous.source为key且key匹配时置null；多行三元仅展开排版，后端和无关key的保留条件未变。"
+      },
+      {
+        "file": "projects/ai-proxy/src/Settings.tsx",
+        "basis": "域名/scope动作保持原清错误、更新字段顺序；删除短路拆为提前return，保留generation、route、revision保护和原邻项返回逻辑；唯一有意新增状态变化是成功删除通过保护后setRuleSaved(false)。",
+        "lines": [
+          395,
+          410,
+          412,
+          413,
+          414,
+          416,
+          417,
+          680,
+          697
+        ]
+      }
+    ],
+    "presentationMapping": "两候选manifest有相同64输入，仅上述2项不同。全部CSS、locale、Shared UI、App、QuickPanel、preview与公开边界输入哈希一致；直接读取当前Settings确认未新增/删减表单控件、label或DOM结构，变化位于动作逻辑。两份HTML内嵌frame的style文本合并SHA均为331c141b0b96591a74727043f5d3af016a7a3bf3d6a7cf94d4f66da9afe65642。不是声称两份HTML或JS bundle逐字节相同。"
+  },
+  "evidenceMapping": {
+    "currentCandidate": {
+      "candidate": "source-b735ff79-684c-4e1c-902a-89d5020f7e06",
+      "directory": ".",
+      "screenshots": [
+        "save-receipt.png",
+        "delete-confirm.png",
+        "delete-return.png",
+        "design-result.png"
+      ],
+      "ax": [
+        "save-receipt.ax.txt",
+        "delete-confirm.ax.txt",
+        "delete-return.ax.txt",
+        "design-result.ax.txt"
+      ],
+      "records": [
+        "interactions.json",
+        "source-check.json"
+      ],
+      "observations": [
+        "保存后显示网站规则已保存，AX焦点settings-rule-rule-docs。",
+        "删除确认包含example.com与包含子域名，默认焦点取消。",
+        "确认删除后剩example.org共1条，旧保存通知消失，记录statusCount=0；AX焦点settings-rule-rule-local。",
+        "最终干净CN Add图可读，域名输入聚焦、无旧保存回执，主体字段/高级区/保存取消完整。"
+      ],
+      "axUIHashesMatch": true
+    },
+    "priorCandidate": {
+      "candidate": "source-37aa3aca-b377-48b7-a76b-2584e2d3e92b",
+      "directory": "../round-2",
+      "assessmentRef": "../round-2/ui-review.json",
+      "screenshotsReferenced": [
+        "native-rules-en.png",
+        "native-settings-add-en.png",
+        "native-settings-add-en-actions.png",
+        "native-rules-zh-TW.png",
+        "native-settings-add-zh-TW.png",
+        "native-settings-add-zh-TW-actions.png",
+        "native-settings-edit.png",
+        "native-advanced-focus.png",
+        "native-settings-save-return.png",
+        "quick-edit.png",
+        "quick-retain.png",
+        "same-domain-scopes.png",
+        "duplicate-corrected.png",
+        "delete-scope-confirm.png",
+        "delete-return.png",
+        "native-rules-zh-CN.png",
+        "long-list-native-capture.png",
+        "native-settings-cancel-return.png",
+        "native-duplicate-error.png",
+        "native-duplicate-corrected.png",
+        "native-settings-retain.png",
+        "native-design-result.png"
+      ],
+      "recordsReferenced": [
+        "../round-2/interactions.json",
+        "../round-2/source-check.json"
+      ],
+      "mappingBasis": "用于未受2项输入修改影响的布局、层级、视觉、未修改的草稿/键盘路径与复用边界。对应round-2子项逐一引用，保留原证据年份/候选及验证局限。",
+      "explicitLimit": "这些图片均是37aa前候选截图，不是b735截图；未据此宣称本候选重跑了EN/繁中、七区、Quick草稿或六条列表矩阵。"
+    },
+    "exclusionsRetained": [
+      "../round-2/duplicate-error.png空白clip仍排除",
+      "../round-2/long-list-cancel-return.png采集异常仍排除",
+      "round-2 locator自动滚动CHECK不冒充应用恢复失败或新候选PASS"
+    ],
+    "hashes": {
+      "delete-confirm.ax.txt": "315b829528374afdb16230b7a8c1bf78797e6b053a99fa29e12113e94f768d31",
+      "delete-confirm.png": "a461aaec348bfeeac6242edaa9e74085a85d91aac8387be14622f77378c375c0",
+      "delete-return.ax.txt": "d37f92067aa25d1313a92035ede44e460ed0fd04ea60ee630ec2e3dce5f041ac",
+      "delete-return.png": "7a574cf3401fbb6cf8b08f270e453fc5a400fac75b1743add9b77afa310937a2",
+      "design-result.ax.txt": "42cf37b88e70a341c4efacadead70ece3246ac22100df763f2c5a7ee2f208bd2",
+      "design-result.png": "0f3d181c6d566cf06eb54fc5ed6ed5690a0b602be86904b80c61322098f449c0",
+      "interactions.json": "a4ed13629504318ed9a80fcfbe4fbc33f85c665a1a010e8fffd0ea68bc54bdaf",
+      "save-receipt.ax.txt": "4fbfa0a1eeee26e49ffe46aecec0db81366cc1e1046b64266b0e3c119ef73614",
+      "save-receipt.png": "a0637b563987e836acdd3ff701b3c6eee8b5fc5aa6594b100aaaeb998fe20678",
+      "source-check.json": "11e8d3bef19c1963913ea572ddcf5c49dfdc2c17248aaf97553248367f5a1f80"
+    }
+  },
+  "findingRecheck": {
+    "id": "R2-F01",
+    "previousSeverity": "LOW",
+    "status": "RESOLVED",
+    "source": "projects/ai-proxy/src/Settings.tsx:416",
+    "basis": "setRuleSaved(false)只在DELETE_RULE成功且generation/revision通过后执行；cancel、失败或过期路径不执行成功清除。新候选图/AX及记录证实save→delete不再残留旧回执，并保留邻项焦点。",
+    "regressionSupport": "只读settings-rules-runtime.test.mjs新增用例：先保存出现status；失败删除保留status；成功删除清status并回Add。owner报告25/25及先fail后pass；本review未重跑。",
+    "deductionRemoved": 2
+  },
+  "rubric": {
+    "source": "projects/ai-proxy/README.zh-CN.md:228",
+    "unchanged": true,
+    "dimensions": 6,
+    "subitemsPerDimension": 5,
+    "maxPerSubitem": 20,
+    "acceptance": "每维>=95且无阻断；不按平均分补齐。",
+    "fullScoreMeaning": "在此次固定局部量表及明确映射的证据内，无剩余可据实扣分项；不表示全产品/全环境完美。"
+  },
+  "dimensions": [
+    {
+      "id": "layout",
+      "name": "布局与密度",
+      "score": 100,
+      "maxScore": 100,
+      "meets95": true,
+      "assessment": "输入差异与最终clean图支持保留原量表结论；未重演无关矩阵。",
+      "items": [
+        {
+          "id": "L1",
+          "name": "单gutter",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/0/items/0",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "L2",
+          "name": "无横溢",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/0/items/1",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "L3",
+          "name": "列表可达",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/0/items/2",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "L4",
+          "name": "表单自然流",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/0/items/3",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "L5",
+          "name": "无嵌套壳",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/0/items/4",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        }
+      ]
+    },
+    {
+      "id": "hierarchy",
+      "name": "信息层级与可发现性",
+      "score": 100,
+      "maxScore": 100,
+      "meets95": true,
+      "assessment": "输入差异与最终clean图支持保留原量表结论；未重演无关矩阵。",
+      "items": [
+        {
+          "id": "H1",
+          "name": "七区完整",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/1/items/0",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "H2",
+          "name": "当前栏目",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/1/items/1",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "H3",
+          "name": "添加优先",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/1/items/2",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "H4",
+          "name": "低频渐进",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/1/items/3",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "H5",
+          "name": "返回明确",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/1/items/4",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        }
+      ]
+    },
+    {
+      "id": "visual",
+      "name": "视觉与可读性",
+      "score": 100,
+      "maxScore": 100,
+      "meets95": true,
+      "assessment": "输入差异与最终clean图支持保留原量表结论；未重演无关矩阵。",
+      "items": [
+        {
+          "id": "V1",
+          "name": "字号",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/2/items/0",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "V2",
+          "name": "间距",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/2/items/1",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "V3",
+          "name": "色彩token",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/2/items/2",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "V4",
+          "name": "控件一致",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/2/items/3",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "V5",
+          "name": "长文换行",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/2/items/4",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        }
+      ]
+    },
+    {
+      "id": "interaction",
+      "name": "操作/草稿/反馈",
+      "score": 100,
+      "maxScore": 100,
+      "meets95": true,
+      "assessment": "O5定向复核后18→20，其余子项保留前候选映射。",
+      "items": [
+        {
+          "id": "O1",
+          "name": "保存不应用",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/3/items/0",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "O2",
+          "name": "非法拒绝",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/3/items/1",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "O3",
+          "name": "取消不写",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/3/items/2",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "O4",
+          "name": "草稿防丢",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/3/items/3",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "O5",
+          "name": "删除确认",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 18,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/3/items/4",
+          "evidenceBasis": "CURRENT_CANDIDATE_TARGETED_REVIEW",
+          "basis": "成功DELETE_RULE之后、generation/revision校验通过才setRuleSaved(false)；新候选保存回执存在，删除后statusCount=0、剩1条规则，AX焦点settings-rule-rule-local。旧保存回执不再残留，原2分扣分依据消除；未要求额外删除toast。",
+          "evidence": [
+            "save-receipt.png",
+            "save-receipt.ax.txt",
+            "delete-confirm.png",
+            "delete-confirm.ax.txt",
+            "delete-return.png",
+            "delete-return.ax.txt",
+            "interactions.json",
+            "projects/ai-proxy/src/Settings.tsx:412"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "keyboard",
+      "name": "键盘与焦点",
+      "score": 100,
+      "maxScore": 100,
+      "meets95": true,
+      "assessment": "输入差异与最终clean图支持保留原量表结论；未重演无关矩阵。",
+      "items": [
+        {
+          "id": "K1",
+          "name": "栏目选择",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/4/items/0",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "K2",
+          "name": "字段操作",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/4/items/1",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "K3",
+          "name": "可见焦点",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/4/items/2",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "K4",
+          "name": "Escape",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/4/items/3",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "K5",
+          "name": "返回焦点",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/4/items/4",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        }
+      ]
+    },
+    {
+      "id": "reuse_boundary",
+      "name": "组件复用与边界",
+      "score": 100,
+      "maxScore": 100,
+      "meets95": true,
+      "assessment": "输入差异与最终clean图支持保留原量表结论；未重演无关矩阵。",
+      "items": [
+        {
+          "id": "B1",
+          "name": "同源输入",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/5/items/0",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "B2",
+          "name": "Shared UI",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/5/items/1",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "B3",
+          "name": "仅内存",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/5/items/2",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "B4",
+          "name": "无外网及权限变化",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/5/items/3",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        },
+        {
+          "id": "B5",
+          "name": "证据分级",
+          "score": 20,
+          "maxScore": 20,
+          "previousScore": 20,
+          "previousAssessmentRef": "../round-2/ui-review.json#/dimensions/5/items/4",
+          "evidenceBasis": "PRIOR_CANDIDATE_EXPLICIT_MAPPING",
+          "basis": "仅通过下述输入差异核对映射round-2对应子项的已审源码/旧图/记录；这些仍是37aa证据，未重标为b735新截图。"
+        }
+      ]
+    }
+  ],
+  "result": {
+    "status": "PASS_LOCAL_DESIGN_ADDENDUM",
+    "scores": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100
+    ],
+    "blockers": [],
+    "remainingFindings": [],
+    "allDimensionsAtLeast95": true,
+    "conclusion": "R2-F01的唯一扣分依据已由定向源码与本候选操作证据消除，操作维98→100；其他五维经2输入影响核对保留100。没有为提分新增标准或重复无关矩阵。",
+    "stopCondition": "局部UI补充复评完成，仅写本addendum；安装、真实代理、production、全CI及宽度/缩放仍不在本次结论内。"
+  },
+  "preservedReports": {
+    "round1Sha256": "7027a3c47848fcc230344bba84005c9970e1c787664d84fc38b6741eb72c5e2d",
+    "round2Sha256": "08e66640d155c6fe895e8a749cf3fc7568275a98ad1d14374c3d0affc070c76a"
+  }
+}

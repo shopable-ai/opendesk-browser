@@ -160,8 +160,13 @@ test('implicit proxy close preserves a declined or newer draft and clears no sib
  const {env}=fixture();let closes=0;
  try{
   env.setDraftDirty(true,'settings-proxy');env.setDraftDirty(true,'settings-pac');
+  const busyClose=await handler('../src/Settings.tsx','  async function requestCloseEditor(','  function openEditor(',{
+   busy:true,getEnvironment:()=>env,t:key=>key,closeEditor:()=>closes++
+  });
+  env.setConfirmHandler(()=>assert.fail('busy editor must not start leaving'));
+  await busyClose();assert.equal(closes,0);assert.equal(env.isDraftDirty('settings-proxy'),true);
   const close=await handler('../src/Settings.tsx','  async function requestCloseEditor(','  function openEditor(',{
-   getEnvironment:()=>env,t:key=>key,closeEditor:()=>closes++
+   busy:false,getEnvironment:()=>env,t:key=>key,closeEditor:()=>closes++
   });
   env.setConfirmHandler(async()=>false);
   await close();assert.equal(closes,0);assert.equal(env.isDraftDirty('settings-proxy'),true);
@@ -189,17 +194,20 @@ test('PAC starter confirmation cannot overwrite a newer script revision',async()
 });
 test('late deletion of an edited rule preserves newer input instead of resetting the form',async()=>{
  const {env}=fixture();const writes=[];
+ const context={getEnvironment:()=>env,t:key=>key,busy:false,
+  ruleEditorGeneration:{current:0},config:{rules:[{id:'a',domain:'example.com'}]},
+  sectionContent:{current:null},ruleListPosition:{current:null},
+  navigation:{getRoute:()=>'#/rules'},parseOptionsHash:()=> 'rules',
+  setRuleSaved(){},finishRuleEditor:()=>writes.push('')};
  try{
   env.setConfirmHandler(async()=>true);env.setDraftDirty(true,'settings-rule');
   const remove=await handler('../src/Settings.tsx','  async function removeRule(','  async function loadBackupFile(',{
-   getEnvironment:()=>env,t:key=>key,editingRuleId:'a',config:{endpoints:[]},
-   act:async()=>{env.setDraftDirty(true,'settings-rule');return true;},
-   setEditingRuleId:v=>writes.push(v),setRuleError:v=>writes.push(v),setRule:v=>writes.push(v)
+   ...context,
+   act:async()=>{env.setDraftDirty(true,'settings-rule');return true;}
   });
   await remove({id:'a',domain:'example.com'});assert.deepEqual(writes,[]);assert.equal(env.isDraftDirty('settings-rule'),true);
   const normal=await handler('../src/Settings.tsx','  async function removeRule(','  async function loadBackupFile(',{
-   getEnvironment:()=>env,t:key=>key,editingRuleId:'a',config:{endpoints:[]},act:async()=>true,
-   setEditingRuleId:v=>writes.push(v),setRuleError:v=>writes.push(v),setRule:v=>writes.push(v)
+   ...context,act:async()=>true
   });
   await normal({id:'a',domain:'example.com'});assert.equal(writes[0],'');assert.equal(env.isDraftDirty('settings-rule'),false);
  }finally{env.dispose();}

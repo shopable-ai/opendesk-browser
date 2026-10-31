@@ -8,7 +8,7 @@ import type { OptionsSection } from './optionsRoute';
 export function OptionsPageHeader({
   title, titleId, description, eyebrow, badge, actions, className = ''
 }: {
-  title: string;
+  title: ReactNode;
   titleId?: string;
   description: string;
   eyebrow?: string;
@@ -19,11 +19,13 @@ export function OptionsPageHeader({
   return <header className={['panelHead','optionsPageHead',className].filter(Boolean).join(' ')}>
     <div className="panelHeadIntro">
       {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-      <h2 id={titleId}>{title}</h2>
+      <div className="optionsTitleRow">
+        <h2 id={titleId}>{title}{typeof badge === 'number' && <span className="countTag">{badge}</span>}</h2>
+        {actions && <div className="panelHeadActions">{actions}</div>}
+      </div>
       <p className="hint">{description}</p>
-      {badge && <span className="subtleTag">{badge}</span>}
+      {typeof badge !== 'number' && badge && <span className="subtleTag">{badge}</span>}
     </div>
-    {actions && <div className="panelHeadActions">{actions}</div>}
   </header>;
 }
 

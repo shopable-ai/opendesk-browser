@@ -1,0 +1,12 @@
+{
+  "candidate": "source-b735ff79-684c-4e1c-902a-89d5020f7e06",
+  "boundary": "Chromium opaque sandbox, memory service/storage only",
+  "operation": "Settings existing rule edit→native Enter save→scope-aware delete confirm→accept",
+  "result": "PASS",
+  "observed": {
+    "focus": "settings-rule-rule-local",
+    "ruleText": "仅保存规则，当前网络保持不变。需要生效时，请在代理面板明确应用。1 条网站规则example.org优先级 20 · DIRECT已启用编辑删除",
+    "rules": 1,
+    "statusCount": 0
+  }
+}

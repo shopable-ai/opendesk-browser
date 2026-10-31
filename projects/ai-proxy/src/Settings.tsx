@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { copyableOptionsHash, optionsHash, parseOptionsHash, parseSubscriptionRoute, subscriptionRouteHash,
   type OptionsSection, type SubscriptionRoute } from './ui/optionsRoute';
 import { OptionsPageHeader } from './ui/OptionsShell';
+import { ProxyIcon } from './ui/ProxyIcon';
 import { FormField } from './ui/FormField';
 import { BACKUP_MAX_BYTES, BackupImportValidationError, parseBackupForImport } from './ui/backupImport';
 import { Status, statusLabelKey, statusTone } from './ui/Status';
@@ -23,7 +24,7 @@ import { normalizeRuleSiteInput, priorityForSiteQuickRule } from './domain/confi
 type Page = OptionsSection;
 const emptyEndpoint = {name:'', scheme:'http' as ProxyScheme,host:'',port:''};
 
-export default function App() {
+export default function App({onClose,navigationBusy=false}:{onClose?:()=>void;navigationBusy?:boolean}={}) {
   const { t, preference, setPreference } = useI18n();
   const modes:{mode:RouteMode;name:string}[]=[
   // Keep the same primary action order as the persistent R8.3 Side Panel.
@@ -40,7 +41,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   {id:'official',name:t('officialNetwork'),caption:t('officialIntro')}
 ];
 
-  const {state, busy, error, setError, setErrorKey, act, refresh} = useProxy();
+  const {state, busy, error, setError, setErrorKey, clearErrorKey, act, refresh} = useProxy();
   const navigation = getEnvironment().navigation;
   const [locationHash,setLocationHash] = useState(() => navigation.getRoute());
   const tab: Page = parseOptionsHash(locationHash);
@@ -160,6 +161,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     }
   }
   async function requestCloseEditor() {
+    if (busy) return;
     const environment = getEnvironment();
     const revision = environment.getDraftRevision('settings-proxy');
     if (environment.isDraftDirty('settings-proxy') &&
@@ -393,14 +395,28 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     });
   }
   async function removeRule(item: SiteRule) {
-    const revision = getEnvironment().getDraftRevision('settings-rule');
-    if (!await getEnvironment().confirm(t('confirmDeleteRule',{domain:item.domain}))) return;
-    if (await act({type:'DELETE_RULE',id:item.id}) && editingRuleId === item.id) {
-      if (!getEnvironment().setDraftDirty(false,'settings-rule',revision)) return;
-      setEditingRuleId('');
-      setRuleError(false);
-      setRule({domain:'',includeSubdomains:true,action:'endpoint',
-        endpointId:config.endpoints[0]?.id || '',priority:'100'});
+    if(busy)return;
+    const environment=getEnvironment();
+    const generation=ruleEditorGeneration.current;
+    const revision=environment.getDraftRevision('settings-rule');
+    const index=config.rules.findIndex(rule=>rule.id===item.id);
+    const neighbor=config.rules[index+1]||config.rules[index-1];
+    const position={
+      top:sectionContent.current?.closest('.proxy-route')?.scrollTop??0,
+      focusId:neighbor?'settings-rule-'+neighbor.id:'settings-rule-add'
+    };
+    if (!await environment.confirm(t('confirmDeleteRule',{
+      domain:item.domain,
+      scope:t(item.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')
+    }))) return;
+    if(generation!==ruleEditorGeneration.current)return;
+    if(parseOptionsHash(navigation.getRoute())!=='rules')return;
+    if (await act({type:'DELETE_RULE',id:item.id})) {
+      if(generation!==ruleEditorGeneration.current)return;
+      if(!environment.setDraftDirty(false,'settings-rule',revision))return;
+      ruleListPosition.current=position;
+      setRuleSaved(false);
+      finishRuleEditor();
     }
   }
   async function loadBackupFile(file: File) {
@@ -474,6 +490,8 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           {t('refreshStatus')}
         </Button>
       </div></details>
+      <Button id="settings-close" className="settingsClose proxyIconButton" disabled={busy||navigationBusy}
+        title={t('apBackToPanel')} aria-label={t('apBackToPanel')} onClick={()=>onClose?.()}><ProxyIcon name="close"/></Button>
     </header>
     <div className="layout">
       <section ref={sectionContent} className={'panel optionsContent optionsContent--' + tab}>
@@ -488,19 +506,16 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           actions={tab==='profiles' && endpoints.length>0?<>
             <Button variant="primary" className="primary" onClick={()=>openEditor()}>{t('addProxy2')}</Button>
             <details className="settingsAddWays"><summary>{t('apMoreSetup')}</summary><div className="settingsAddWayActions">
+              <Button onClick={()=>navigate('subscriptions')}>{t('alreadyHaveAProxySubscription')}</Button>
               <Button onClick={()=>navigate('backup')}>{t('importSettings')}</Button>
               <Button onClick={()=>navigateAction('subscriptions','local')}>{t('addLocalProxyClient')}</Button>
               <Button type="button" onClick={()=>{sectionContent.current?.querySelector<HTMLDetailsElement>('.settingsAddWays')?.removeAttribute('open');navigateAction('profiles','pac');}}>{t('localPac')}</Button>
             </div></details>
           </>:undefined}
+          badge={tab==='profiles'?endpoints.length:undefined}
         />}
         {tab==='profiles' && <>
           <section className="listSection">
-            <div className="sectionHeading">
-              <div><h2>{t('proxyServers')} <span className="countTag">{endpoints.length}</span></h2>
-                <p className="hint">{t('selectAProfileThenApplyItEditingAProfile')}</p></div>
-              <Button className="textAction" onClick={()=>navigate('subscriptions')}>{t('alreadyHaveAProxySubscription')}</Button>
-            </div>
             {endpoints.length===0 ? <div className="emptyState">
                <div className="actions"><Button variant="primary" className="primary" onClick={()=>openEditor()}>{t('addYourProxy2')}</Button>
                  <Button onClick={()=>navigateAction('subscriptions','new')}>{t('recordSubscriptionSource')}</Button>
@@ -510,20 +525,24 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               const source=config.sources.find(s=>s.id===p.sourceId);
               const chosen=config.selection.mode==='profile'&&config.selection.profileId===profile?.id;
               const applied=state.runtime.applied&&state.runtime.activeSelection?.mode==='profile'&&state.runtime.activeSelection.profileId===profile?.id;
-              return <article className="record proxyRecord" key={p.id}>
+              return <article className={'record proxyRecord'+(chosen?' isChosen':'')} key={p.id}>
+                <Button className="proxyIconButton proxySelect" disabled={busy||!profile}
+                  title={chosen?t('selected'):t('selectNamedProxy',{name:p.name})}
+                  aria-label={t('selectNamedProxy',{name:p.name})} aria-pressed={chosen}
+                  onClick={()=>void act({type:'SELECT',selection:{mode:'profile',profileId:profile?.id}})}><ProxyIcon name={chosen?'selected':'circle'}/></Button>
                 <div className="proxyRecordMain">
-                  <span className="proxyAvatar" aria-hidden="true">{p.scheme.startsWith('socks')?'S':'P'}</span>
-                  <div><strong>{p.name}</strong><small className="mono">{p.scheme.toUpperCase()} · {p.host}:{p.port}</small>
-                    <div className="rowBadges">{source?.kind==='local-client'&&<span>{t('localClientPortNotTested')}</span>}{p.credentialRef&&<span>{t('sessionAuthenticationRequired')}</span>}{applied&&<span className="appliedBadge">{t('appliedToChrome2')}</span>}</div></div>
+                  <div className="proxyRecordText"><div className="proxyRecordTitle"><strong title={p.name}>{p.name}</strong>
+                    {source?.kind==='local-client'&&<span role="img" aria-label={t('localClientPortNotTested')} title={t('localClientPortNotTested')}><ProxyIcon name="system"/></span>}
+                    {p.credentialRef&&<span role="img" aria-label={t('sessionAuthenticationRequired')} title={t('sessionAuthenticationRequired')}><ProxyIcon name="lock"/></span>}
+                    {applied&&<span className="proxyApplied" role="img" aria-label={t('appliedToChrome2')} title={t('appliedToChrome2')}><ProxyIcon name="play"/></span>}
+                  </div><small className="mono" title={p.scheme.toUpperCase()+' · '+p.host+':'+p.port}>{p.scheme.toUpperCase()} · {p.host}:{p.port}</small></div>
                 </div>
                 <div className="recordActions">
-                  <Button className={chosen?'selectedAction':''} disabled={busy||!profile} aria-label={t('selectNamedProxy',{name:p.name})}
-                    onClick={()=>void act({type:'SELECT',selection:{mode:'profile',profileId:profile?.id}})}>{chosen?t('selected'):t('select2')}</Button>
-                  <Button onClick={()=>source?.kind==='local-client'?navigate('subscriptions'):openEditor(p)}
-                    aria-label={t('editNamedProxy',{name:p.name})}>{t('edit')}</Button>
-                  <Button className="quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):''}
+                  <Button className="proxyIconButton" disabled={busy} onClick={()=>source?.kind==='local-client'?navigate('subscriptions'):openEditor(p)}
+                    title={t('editNamedProxy',{name:p.name})} aria-label={t('editNamedProxy',{name:p.name})}><ProxyIcon name="edit"/></Button>
+                  <Button className="proxyIconButton quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):t('deleteNamedProxy',{name:p.name})}
                     onClick={async()=>{if(await getEnvironment().confirm(t('confirmDeleteProxy',{name:p.name})))void act({type:'DELETE_ENDPOINT',id:p.id});}}
-                    aria-label={t('deleteNamedProxy',{name:p.name})}>{t('delete')}</Button>
+                    aria-label={t('deleteNamedProxy',{name:p.name})}><ProxyIcon name="trash"/></Button>
                 </div>
               </article>;
             })}</div>}
@@ -637,19 +656,24 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           {ruleEditorOpen?<header className="ruleEditorHeader"><h2>{t(editingRuleId?'editRule':'addRule')}</h2></header>:
           <OptionsPageHeader title={t('websiteRules2')}
             description={t('routeByDomainThroughAProxyOrDirect')}
+            badge={config.rules.length}
             actions={!ruleEditorOpen?<Button id="settings-rule-add" variant="primary" className="primary"
               disabled={busy} onClick={()=>editRule()}>{t('addRule')}</Button>:undefined}/>}
           <div className="rulesGrid">
             {!ruleEditorOpen?<section className="rulesList" aria-label={t('websiteRules2')}>
-              {ruleSaved&&<p className="r86Notice" role="status">{t('r86Saved')}</p>}
+              {ruleSaved&&<p className="r86Notice" role="status">{t('apRuleSavedNotice')}</p>}
               <p className="hint">{t('apRuleSaveNote')}</p>
-              <span className="subtleTag">{t('ruleCount',{count:config.rules.length})}</span>
               {config.rules.length === 0 ? <div className="sourceEmpty rulesEmpty">{t('rulesEmpty')}</div> :
-                <div className="records">{config.rules.map(r=><article className="record" key={r.id}><div><strong>{r.domain}{r.includeSubdomains?t('subdomains'):''}</strong>
-            <small>{t('priority')} {r.priority} · {r.action==='direct'?'DIRECT':endpoints.find(e=>e.id===r.endpointId)?.name || t('missingProxy2')}</small>
-            <span className="rulesEnabledState">{t(r.enabled?'apRuleEnabled':'apRuleDisabled')}</span></div>
-            <div className="actions"><Button id={'settings-rule-'+r.id} disabled={busy} aria-label={t('editNamedRule',{domain:r.domain})} onClick={()=>editRule(r)}>{t('edit')}</Button>
-              <Button disabled={busy} aria-label={t('deleteNamedRule',{domain:r.domain})} onClick={()=>void removeRule(r)}>{t('delete')}</Button></div></article>)}</div>}
+                <div className="records">{config.rules.map(r=>{
+              const detail=(r.action==='direct'?t('directConnection2'):endpoints.find(e=>e.id===r.endpointId)?.name || t('missingProxy2'))+' · '+t('priority')+' '+r.priority;
+              return <article className="record ruleRecord" key={r.id}>
+            <span className={'ruleStateIcon '+(r.enabled?'isEnabled':'')} role="img" title={t(r.enabled?'apRuleEnabled':'apRuleDisabled')} aria-label={t(r.enabled?'apRuleEnabled':'apRuleDisabled')}><ProxyIcon name={r.enabled?'selected':'pause'}/></span>
+            <div className="ruleRecordText"><strong title={r.domain+t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')}>{r.domain}{r.includeSubdomains?t('subdomains'):''}</strong>
+            <small title={detail}>{detail}</small></div>
+            <div className="actions"><Button className="proxyIconButton" id={'settings-rule-'+r.id} disabled={busy} title={t('editNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('editNamedRule',{domain:r.domain,
+              scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} onClick={()=>editRule(r)}><ProxyIcon name="edit"/></Button>
+              <Button className="proxyIconButton quietDanger" disabled={busy} title={t('deleteNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('deleteNamedRule',{domain:r.domain,
+                scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} onClick={()=>void removeRule(r)}><ProxyIcon name="trash"/></Button></div></article>;})}</div>}
             </section>:
             <section className="rulesEditor" aria-label={editingRuleId?t('editRule'):t('addRule')}
               onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();void requestCloseRuleEditor();}}}>
@@ -658,10 +682,15 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               <form data-draft-scope="settings-rule" className="ruleEditorForm" aria-busy={busy}
                 aria-describedby={error?'settings-rule-error':undefined} onSubmit={saveRule}>
               <fieldset className="rulesEditorFields" disabled={busy}>
+            <div className="ruleInputFields">
             <FormField id="rule-domain" label={t('ruleWebsiteInput')} hint={t('ruleWebsiteHelp')}
               error={ruleError ? t('ruleWebsiteInvalid') : undefined}>
               {controlProps => <ClearableInput {...controlProps} fieldLabel={t('ruleWebsiteInput')} required value={rule.domain}
-                 onValueChange={value=>{setRuleError(false);setRule({...rule,domain:value});}}
+                 onValueChange={value=>{
+                   setRuleError(false);
+                   clearErrorKey('apRuleAlreadyExists');
+                   setRule({...rule,domain:value});
+                 }}
                  onBlur={()=>{
                    if (!rule.domain.trim()) return;
                    try {
@@ -674,7 +703,10 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                  placeholder={t('ruleWebsitePlaceholder')}/>}
             </FormField>
             <label className="ruleCheckbox"><input id="rule-subdomains" type="checkbox" checked={rule.includeSubdomains}
-              onChange={e=>setRule({...rule,includeSubdomains:e.target.checked})}/>{t('includeSubdomains')}</label>
+              onChange={e=>{
+                clearErrorKey('apRuleAlreadyExists');
+                setRule({...rule,includeSubdomains:e.target.checked});
+              }}/>{t('includeSubdomains')}</label>
             <fieldset className="ruleTargetChoices"><legend>{t('ruleWebsiteUse')}</legend>
               <label><input id="rule-target-endpoint" type="radio" name="settings-rule-target" value="endpoint"
                 checked={rule.action==='endpoint'} onChange={()=>setRule({...rule,action:'endpoint'})}/>{t('specificProxy')}</label>
@@ -704,6 +736,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             </details>
             {error&&<p id="settings-rule-error" className="notice error" role="alert">{error}</p>}
             <p className="hint ruleSaveNote">{t('apRuleSaveNote')}</p>
+            </div>
             <div className="actions">
               <Button variant="primary" className="primary" disabled={busy || rule.action==='endpoint'&&!rule.endpointId}
                 type="submit">{t('saveRule')}</Button>
@@ -806,9 +839,10 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         editorReturnFocus.current?.focus();
       }}>
       <form onSubmit={e=>void saveProxy(e)} data-draft-scope="settings-proxy" className="proxyEditorForm">
+        <div className="proxyEditorFields">
         <header className="editorHead"><div><p className="eyebrow">{t('localProxyConfiguration')}</p>
           <h2 id="proxy-editor-title">{editingId?t('editProxy'):t('addProxy')}</h2></div>
-          <Button type="button" className="iconButton" onClick={()=>void requestCloseEditor()} aria-label={t('closeProxyEditor')}>×</Button>
+          <Button type="button" className="iconButton" disabled={busy} onClick={()=>void requestCloseEditor()} aria-label={t('closeProxyEditor')}>×</Button>
         </header>
         <p className="hint">{t('proxyEditorIntro')}</p>
         <div className="proxyPrimaryFields">
@@ -859,8 +893,9 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           <p className="hint">{t('httpSPasswordsAreSessionOnlyChangesToHost')}</p>
         </details>
         {error&&<p className="notice error" role="alert">{error}</p>}
+        </div>
         <footer className="editorActions">
-          <Button type="button" disabled={busy} onClick={closeEditor}>{t('cancel')}</Button>
+          <Button type="button" disabled={busy} onClick={()=>void requestCloseEditor()}>{t('cancel')}</Button>
           <Button variant="primary" className="primary" disabled={busy} type="submit">{editingId?t('saveChanges'):t('saveProxy')}</Button>
           {!editingId&&<Button type="submit" data-add-another="true" disabled={busy}>{t('proxySaveAndAddAnother')}</Button>}
         </footer>

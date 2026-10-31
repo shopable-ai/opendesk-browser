@@ -14,9 +14,9 @@ const domain=await bundle('../src/domain/config.ts'),routes=await bundle('../src
 const {translate}=await bundle('../src/i18n/locale.ts');
 const {code}=await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'});
 const existing={id:'keep-id',domain:'existing.example',includeSubdomains:false,priority:42,enabled:false,action:'direct'};
-function fixture({locale='en'}={}){
+function fixture({locale='en',OptionsPageHeader}={}){
   const values=[],refs=[],effects=[],drafts=new Map(),calls=[],focus=[],scroll=[],frames=[];
-  let cursor=0,refCursor=0,effectCursor=0,tree,confirmResult=true,saveResult=true,revision=0,operationBusy=false;
+  let cursor=0,refCursor=0,effectCursor=0,tree,confirmResult=true,saveResult=true,revision=0,operationBusy=false,errorKey='';
   const config={...domain.freshConfig(),rules:[{...existing}],endpoints:[{id:'proxy',name:'Proxy',scheme:'https',host:'proxy.example',port:443}]};
   const state={config,runtime:{control:'unknown',pendingChanges:true}};
   const scroller={scrollTop:320,scrollTo(value){this.scrollTop=value.top;scroll.push(value.top);}};
@@ -32,19 +32,49 @@ function fixture({locale='en'}={}){
     useEffect(fn,deps){const index=effectCursor++,previous=effects[index];if(!previous||deps.some((v,i)=>v!==previous.deps[i]))effects[index]={fn,deps,pending:true};}};
   const Button=({children,variant,...props})=>React.createElement('button',{type:'button',...props},children);
   const module={exports:{}};
-  runInNewContext(code,{module,exports:module.exports,crypto:{randomUUID:()=>'new-id'},document:{getElementById:id=>node(id)},
+  runInNewContext(code,{module,exports:module.exports,crypto:{randomUUID:()=>'new-id'},document:{getElementById(id){
+    // A deleted rule's action is absent, so focus must use a surviving row/Add.
+    if(id.startsWith('settings-rule-')&&id!=='settings-rule-add'&&
+      !config.rules.some(r=>'settings-rule-'+r.id===id))return null;
+    return node(id);
+  }},
     requestAnimationFrame:fn=>frames.push(fn),require(name){
       if(name==='react')return hooks;if(name==='react/jsx-runtime')return jsx;
       if(name==='@opendesk/ui')return {Button};
       if(name==='./environment')return {getEnvironment:()=>env};
-      if(name==='./i18n/LocaleProvider')return {useI18n:()=>({t:(key,params)=>['ruleCount','apRuleEnabled','apRuleDisabled'].includes(key)?translate(locale,key,params):key,locale})};
-      if(name==='./ui/useProxy')return {useProxy:()=>({state,busy:operationBusy,error:'',setError(){},setErrorKey:key=>calls.push({error:key}),refresh(){},
-        act:async message=>{operationBusy=true;try{calls.push(JSON.parse(JSON.stringify(message)));const result=typeof saveResult==='function'?await saveResult():saveResult;
-          if(result&&message.type==='SAVE_RULE'){config.rules=config.rules.filter(r=>r.id!==message.rule.id).concat(message.rule);}return result;}finally{operationBusy=false;}}})};
+      if(name==='./i18n/LocaleProvider')return {useI18n:()=>({t:(key,params)=>['ruleCount','apRuleEnabled','apRuleDisabled','editNamedRule','deleteNamedRule','confirmDeleteRule','apRuleExactScope','apRuleSubdomainScope'].includes(key)||(OptionsPageHeader&&key==='websiteRules2')?translate(locale,key,params):key,locale})};
+      if(name==='./ui/useProxy')return {useProxy:()=>({
+        state,busy:operationBusy,error:errorKey,
+        setError(){errorKey='';},
+        setErrorKey(key){
+          errorKey=key;
+          calls.push({error:key});
+        },
+        clearErrorKey(key){
+          if(errorKey===key)errorKey='';
+        },
+        refresh(){},
+        async act(message){
+          operationBusy=true;
+          try{
+            calls.push(JSON.parse(JSON.stringify(message)));
+            const result=typeof saveResult==='function'?await saveResult():saveResult;
+            if(result&&message.type==='SAVE_RULE'){
+              config.rules=config.rules.filter(r=>r.id!==message.rule.id).concat(message.rule);
+            }
+            if(result&&message.type==='DELETE_RULE'){
+              config.rules=config.rules.filter(r=>r.id!==message.id);
+            }
+            return result;
+          }finally{
+            operationBusy=false;
+          }
+        }
+      })};
       if(name==='./domain/config')return domain;if(name==='./ui/optionsRoute')return routes;
       if(name==='./ui/FormField')return {FormField:({id,label,children})=>React.createElement('label',null,label,children({id}))};
       if(name==='./ui/ProxyEntry')return {ClearableInput:({onValueChange,fieldLabel,...props})=>React.createElement('input',{...props,onChange:e=>onValueChange(e.target.value)})};
-      if(name==='./ui/OptionsShell')return {OptionsPageHeader:({title,actions})=>React.createElement('header',null,React.createElement('h2',null,title),actions)};
+      if(name==='./ui/OptionsShell')return {OptionsPageHeader:OptionsPageHeader??(({title,actions})=>React.createElement('header',null,React.createElement('h2',null,title),actions))};
       return new Proxy({},{get:()=>()=>null});
     }});
   function expand(element){
@@ -62,11 +92,18 @@ function fixture({locale='en'}={}){
   function all(predicate,value){if(arguments.length===1)value=tree;if(Array.isArray(value))return value.flatMap(v=>all(predicate,v));if(!value||typeof value!=='object')return [];
     return [...(predicate(value)?[value]:[]),...(value.children===undefined?[]:all(predicate,value.children))];}
   const text=value=>Array.isArray(value)?value.map(text).join(''):value&&typeof value==='object'?text(value.children):String(value??'');
-  const button=label=>{const found=all(n=>n.type==='button'&&text(n)===label)[0];assert.ok(found,'button '+label);return found;};
-  async function click(label){await button(label).props.onClick();render();}
+  const button=label=>{const found=all(n=>n.type==='button'&&(n.props['aria-label']??text(n))===label)[0];assert.ok(found,'button '+label);return found;};
+  async function click(label){
+    await button(label).props.onClick();
+    // Advance immediate async work started by a void click handler before render.
+    await new Promise(setImmediate);
+    render();
+  }
   function change(id,value){const input=all(n=>n.props.id===id)[0];assert.ok(input,'field '+id);env.setDraftDirty(true,'settings-rule');input.props.onChange({target:{value,checked:value}});render();}
   render();render();
   return {config,env,calls,focus,scroll,render,all,text,button,click,change,
+    clickRule:(action,item=existing)=>click(translate(locale,action==='edit'?'editNamedRule':'deleteNamedRule',{
+      domain:item.domain,scope:translate(locale,item.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})),
     setConfirm:value=>{confirmResult=value;},setSave:value=>{saveResult=value;},
     async submit(){await all(n=>n.type==='form'&&n.props.className==='ruleEditorForm')[0].props.onSubmit({preventDefault(){}});render();},
     hasEditor:()=>all(n=>n.props.id==='rule-domain').length>0};
@@ -87,10 +124,10 @@ test('settings rules list opens a separate editor; cancellation confirms only it
 });
 
 test('settings rule edit/save retains identity, disabled state and priority; success returns receipt and never applies',async()=>{
-  const f=fixture();await f.click('edit');f.change('rule-domain','changed.example');
+  const f=fixture();await f.clickRule('edit');f.change('rule-domain','changed.example');
   await f.submit();assert.equal(f.hasEditor(),false);
   assert.deepEqual(f.calls.filter(c=>c.type),[{type:'SAVE_RULE',rule:{...existing,domain:'changed.example'}}]);
-  assert.ok(f.all(n=>n.props.role==='status'&&f.text(n)==='r86Saved').length);
+  assert.ok(f.all(n=>n.props.role==='status'&&f.text(n)==='apRuleSavedNotice').length);
   assert.equal(f.focus.at(-1),'settings-rule-keep-id');
   assert.equal(f.env.isDraftDirty('settings-rule'),false);
 });
@@ -164,11 +201,23 @@ test('settings section selector stays locked until an unfinished save settles',a
 });
 
 
-test('settings rule total is a separate translated badge including disabled saved rules in all three locales',()=>{
-  for(const [locale,label] of [['zh-CN','2 条网站规则'],['en','2 website rules'],['zh-TW','2 條網站規則']]){
-    const f=fixture({locale});
+test('settings rule total appears beside the translated heading and includes disabled saved rules in all three locales',async()=>{
+  const {code:headerCode}=await transform(await readFile(new URL('../src/ui/OptionsShell.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'});
+  const headerModule={exports:{}};
+  runInNewContext(headerCode,{module:headerModule,exports:headerModule.exports,require:()=>jsx});
+  const {OptionsPageHeader}=headerModule.exports;
+  for(const [locale,title] of [['zh-CN','网站规则'],['en','Website rules'],['zh-TW','網站規則']]){
+    const f=fixture({locale,OptionsPageHeader});
     f.config.rules.push({...existing,id:'second',domain:'second.example',enabled:true});f.render();
-    assert.equal(f.all(n=>n.type==='span'&&n.props.className==='subtleTag'&&f.text(n)===label).length,1);
+    const headers=f.all(n=>n.type==='header'&&n.props.className?.split(' ').includes('optionsPageHead'));
+    assert.equal(headers.length,1);
+    const headings=f.all(n=>n.type==='h2',headers[0]);
+    assert.equal(headings.length,1);
+    assert.equal(f.text(headings[0]),title+'2');
+    assert.equal(f.all(n=>n.type==='span'&&n.props.className==='countTag'&&f.text(n)==='2',headings[0]).length,1);
+    const list=f.all(n=>n.props.className==='rulesList')[0];
+    assert.equal(list.props['aria-label'],title);
+    assert.equal(f.all(n=>n.type==='span'&&n.props.className==='subtleTag',list).length,0);
     assert.equal(f.all(n=>n.type==='p'&&n.props.className==='hint'&&f.text(n)==='apRuleSaveNote').length,1);
     assert.equal(f.calls.some(c=>c.type),false);
   }
@@ -199,14 +248,72 @@ test('settings rule list explains save-only semantics and labels enabled and dis
   for(const locale of ['en','zh-CN','zh-TW']){
     const f=fixture({locale});
     f.config.rules.push({...existing,id:'enabled-rule',domain:'enabled.example',enabled:true});f.render();
-    const records=f.all(n=>n.type==='article'&&n.props.className==='record');
+    const records=f.all(n=>n.type==='article'&&n.props.className?.split(' ').includes('ruleRecord'));
     assert.equal(records.length,2);
-    assert.equal(f.all(n=>n.props.className==='rulesEnabledState'&&f.text(n)===translate(locale,'apRuleDisabled'),records[0]).length,1);
-    assert.equal(f.all(n=>n.props.className==='rulesEnabledState'&&f.text(n)===translate(locale,'apRuleEnabled'),records[1]).length,1);
+    assert.equal(f.all(n=>n.type==='span'&&n.props.className?.split(' ').includes('ruleStateIcon')&&n.props.role==='img'&&
+      n.props['aria-label']===translate(locale,'apRuleDisabled')&&n.props.title===translate(locale,'apRuleDisabled'),records[0]).length,1);
+    assert.equal(f.all(n=>n.type==='span'&&n.props.className?.split(' ').includes('ruleStateIcon')&&n.props.role==='img'&&
+      n.props['aria-label']===translate(locale,'apRuleEnabled')&&n.props.title===translate(locale,'apRuleEnabled'),records[1]).length,1);
     assert.equal(f.all(n=>n.type==='p'&&f.text(n)==='apRuleSaveNote').length,1);
     assert.equal(f.all(n=>n.type==='p'&&f.text(n)==='ruleEditorIntro').length,0);
     assert.equal(f.hasEditor(),false);
     assert.ok(f.all(n=>n.props.id==='default-action').length);
     assert.equal(f.calls.some(c=>c.type),false);
   }
+});
+
+test('correcting duplicate rule domain or scope removes its stale conflict without saving',async()=>{
+  for(const field of ['rule-domain','rule-subdomains']){
+    const f=fixture();await f.click('addRule');
+    f.change('rule-domain',existing.domain);f.change('rule-subdomains',false);
+    await f.submit();assert.equal(f.all(n=>n.props.id==='settings-rule-error').length,1);
+    f.change(field,field==='rule-domain'?'unique.example':true);
+    assert.equal(f.all(n=>n.props.id==='settings-rule-error').length,0);
+    assert.equal(f.calls.some(c=>c.type),false);assert.equal(f.env.isDraftDirty('settings-rule'),true);
+  }
+});
+
+test('same-domain rules expose scope in action names and delete confirmation in all locales',async()=>{
+  for(const locale of ['en','zh-CN','zh-TW']){
+    const f=fixture({locale});f.config.rules.push({...existing,id:'with-subdomains',includeSubdomains:true});f.render();
+    const list=f.all(n=>n.props.className==='rulesList')[0];
+    const actions=f.all(n=>n.type==='button'&&n.props['aria-label'],list);
+    const labels=actions.map(n=>n.props['aria-label']);
+    for(const action of actions){
+      assert.equal(action.props.title,action.props['aria-label']);
+      assert.ok(action.props['aria-label'].includes(existing.domain));
+    }
+    assert.equal(new Set(labels).size,4);
+    assert.ok(labels.some(label=>label.includes(translate(locale,'apRuleExactScope'))));
+    assert.ok(labels.some(label=>label.includes(translate(locale,'apRuleSubdomainScope'))));
+    f.setConfirm(false);await f.clickRule('delete');
+    assert.match(f.calls.find(c=>c.confirm).confirm,new RegExp(translate(locale,'apRuleExactScope')));
+    assert.equal(f.calls.some(c=>c.type),false);
+  }
+});
+
+test('confirmed rule deletion returns focus to a surviving neighbor or Add; cancellation and failure preserve the record',async()=>{
+  const f=fixture();f.config.rules.push({...existing,id:'neighbor',domain:'neighbor.example'});f.render();
+  await f.clickRule('delete');assert.equal(f.focus.at(-1),'settings-rule-neighbor');
+  assert.deepEqual(f.calls.filter(c=>c.type),[{type:'DELETE_RULE',id:existing.id}]);
+  await f.clickRule('delete',f.config.rules[0]);assert.equal(f.focus.at(-1),'settings-rule-add');assert.equal(f.config.rules.length,0);
+  for(const mode of ['cancel','failed']){
+    const untouched=fixture();if(mode==='cancel')untouched.setConfirm(false);else untouched.setSave(false);
+    await untouched.clickRule('delete');assert.equal(untouched.config.rules.length,1);
+    assert.equal(untouched.focus.length,0);
+  }
+});
+
+test('successful deletion clears an earlier save receipt while failed deletion retains it',async()=>{
+  const f=fixture();
+  await f.clickRule('edit');
+  await f.submit();
+  assert.equal(f.all(n=>n.props.role==='status').length,1);
+  f.setSave(false);
+  await f.clickRule('delete');
+  assert.equal(f.all(n=>n.props.role==='status').length,1);
+  f.setSave(true);
+  await f.clickRule('delete');
+  assert.equal(f.all(n=>n.props.role==='status').length,0);
+  assert.equal(f.focus.at(-1),'settings-rule-add');
 });

@@ -1,0 +1,155 @@
+{
+  "schema": "ai-proxy.ui-review.supplement.v1",
+  "reviewer": "Codex independent UI reviewer",
+  "date": "2026-10-31",
+  "candidate": {
+    "id": "source-221a90c1-9053-43fa-a758-6c6b32e41be3",
+    "htmlSha256": "ee20e4c69e3f03f50b749653856d10367b169fcc2784c33a294d1582299b50bb",
+    "url": "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-221a90c1-9053-43fa-a758-6c6b32e41be3/preview.html"
+  },
+  "scope": "仅对两条列表根overflow:visible作差异补充复核；不重跑完整验收，不改变首次失败评审或revision-2报告。",
+  "verification": {
+    "htmlShaMatches": true,
+    "sourceCount": 65,
+    "sourceDrift": [],
+    "onlyChangedInput": "projects/ai-proxy/src/styles/sidebar-settings.css",
+    "sourceLines": [
+      "sidebar-settings.css:80：.profileRecords新增overflow:visible",
+      "sidebar-settings.css:132-133：.rulesList .records新增overflow:visible"
+    ],
+    "compiledBundleDelta": "独立解码两候选iframe中的生成脚本并逐行比较；生成包仅嵌入CSS新增两行overflow:visible，无其他差异。没有把含CSS的整个JS包误称字节相同。",
+    "compiledDelta": [
+      {
+        "kind": "insert",
+        "before": [],
+        "after": [
+          "    overflow: visible;"
+        ]
+      },
+      {
+        "kind": "insert",
+        "before": [],
+        "after": [
+          "    overflow: visible;"
+        ]
+      }
+    ],
+    "screenshotHashesMatch": true,
+    "screenshotsActuallyViewed": [
+      "final/profile-focus.png",
+      "final/rule-focus.png"
+    ],
+    "browserEvidenceProvenance": "focus-check.json由实施会话按Tab/ShiftTab采集；本reviewer实际view_image查看两张图，核对计算数据、源码及指纹，未声称另行重放浏览器。"
+  },
+  "ND-F01": {
+    "status": "CLOSED",
+    "blocking": false,
+    "profileFocus": {
+      "target": "代理列表最左选择按钮",
+      "focusVisible": true,
+      "outlineWidth": "2px",
+      "outlineOffset": "1px",
+      "clippedAncestors": [],
+      "visualFinding": "新截图左侧焦点轮廓完整，未在列表边缘截断。"
+    },
+    "ruleFocus": {
+      "target": "规则列表最右删除按钮",
+      "focusVisible": true,
+      "outlineWidth": "2px",
+      "outlineOffset": "1px",
+      "clippedAncestors": [],
+      "visualFinding": "新截图右侧焦点轮廓完整，危险操作图标与可见焦点均保留。"
+    },
+    "reason": "两列表根解除裁切；仅作用于列表容器，名称/地址/规则目标文本的独立ellipsis规则不变。布局gap、行高、34px控件与事件逻辑未改变。"
+  },
+  "evidenceMapping": {
+    "fromCandidate": "source-77f51b48-9e9c-43d1-8837-eaffba1be5b7",
+    "fromHtmlSha256": "f8af1b6f3d7590626e30e2e0008ce1b45c778c8e7bc24ee46d69e3626538ba3d",
+    "fromUIReview": "../revision-2/ui-review.json",
+    "fromUIReviewSha256": "d444bc65490a2ad7adeff9c5345408003833a38d2c56104609e5267c7170e46c",
+    "retained": [
+      "../revision-2/source-check.json：真实入口内存编译、三语1009keys；不标成最终候选重新编译",
+      "../revision-2/interactions.json：八组交互、表单间距、两行记录、取消/X/Escape、长目标及焦点",
+      "../revision-2/native-keyboard.json：原生AX/key栏目切换",
+      "revision-2记录的相关60/60定向测试：沿用已有结果，非本reviewer重新运行",
+      "../revision-2/ui-review.json：六维及其五项各20评分和非阻断建议"
+    ],
+    "rationale": "65项输入仅该CSS变化；生成运行包仅两行overflow插入，JS逻辑/DOM/语言/业务和其他样式相同。上述交互及编译证据明确属于revision-2，按未受影响部分映射到最终候选；新焦点证据单独绑定最终候选，不把旧证据重标为新执行。",
+    "newEvidence": "focus-check.json及两张最终候选焦点截图替换边缘焦点裁切这一局部观察。"
+  },
+  "dimensions": [
+    {
+      "name": "布局与密度",
+      "score": 98,
+      "max": 100,
+      "status": "MAINTAINED_BY_SCOPED_DELTA_REVIEW",
+      "fiveItemsReference": "../revision-2/ui-review.json#/dimensions/0/items",
+      "reason": "此CSS差异不改变该维原五项结论，维持原分，不加分。"
+    },
+    {
+      "name": "信息层级与可发现性",
+      "score": 100,
+      "max": 100,
+      "status": "MAINTAINED_BY_SCOPED_DELTA_REVIEW",
+      "fiveItemsReference": "../revision-2/ui-review.json#/dimensions/1/items",
+      "reason": "此CSS差异不改变该维原五项结论，维持原分，不加分。"
+    },
+    {
+      "name": "视觉与可读性",
+      "score": 100,
+      "max": 100,
+      "status": "MAINTAINED_BY_SCOPED_DELTA_REVIEW",
+      "fiveItemsReference": "../revision-2/ui-review.json#/dimensions/2/items",
+      "reason": "原五项评分按未受影响部分保留；本次两图及计算数据确认焦点可见性缺陷已修复，无新增扣分。"
+    },
+    {
+      "name": "操作/草稿/反馈",
+      "score": 100,
+      "max": 100,
+      "status": "MAINTAINED_BY_SCOPED_DELTA_REVIEW",
+      "fiveItemsReference": "../revision-2/ui-review.json#/dimensions/3/items",
+      "reason": "此CSS差异不改变该维原五项结论，维持原分，不加分。"
+    },
+    {
+      "name": "键盘与焦点",
+      "score": 100,
+      "max": 100,
+      "status": "MAINTAINED_BY_SCOPED_DELTA_REVIEW",
+      "fiveItemsReference": "../revision-2/ui-review.json#/dimensions/4/items",
+      "reason": "原五项评分按未受影响部分保留；本次两图及计算数据确认焦点可见性缺陷已修复，无新增扣分。"
+    },
+    {
+      "name": "组件复用与边界",
+      "score": 100,
+      "max": 100,
+      "status": "MAINTAINED_BY_SCOPED_DELTA_REVIEW",
+      "fiveItemsReference": "../revision-2/ui-review.json#/dimensions/5/items",
+      "reason": "此CSS差异不改变该维原五项结论，维持原分，不加分。"
+    }
+  ],
+  "remainingBlockingIssues": [],
+  "minimalNecessaryFixes": [],
+  "retainedNonBlockingSuggestion": "默认DIRECT时仍展示禁用代理字段，保留revision-2的布局扣2及P3建议；本轮不扩展该行为。",
+  "boundaries": {
+    "notTested": [
+      "安装",
+      "真实代理/流量",
+      "production",
+      "IME",
+      "完整语义类型诊断"
+    ],
+    "outOfScope": [
+      "尺寸/缩放矩阵",
+      "全量验收"
+    ],
+    "inheritedLimitations": "revision-2中其他未测边界继续成立，不将薄补充复核升级为全产品验证。"
+  },
+  "verdict": {
+    "status": "PASS_SCOPED_UI_SUPPLEMENT",
+    "ND-F01": "CLOSED",
+    "allDimensionsAtLeast95": true,
+    "scoresUnchanged": true,
+    "summary": "两条CSS补丁实际消除边缘焦点裁切；最终候选沿用有明确差异依据的revision-2六维评分98/100/100/100/100/100，维持每维>=95，无本轮剩余阻断。",
+    "stopCondition": "本薄补充复核完成；只交付final/ui-review.json，不重跑全套或修改旧报告。"
+  }
+}

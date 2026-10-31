@@ -16,6 +16,11 @@ export function useProxy(){
   :errorState?.source==='key'?translate(locale,errorState.key,errorState.params):errorState?.message??'';
  const setError=useCallback((message:string)=>setErrorState(message?{source:'local',message}:null),[]);
  const setErrorKey=useCallback((key:TranslationKey,params?:TranslationParameters)=>setErrorState({source:'key',key,params}),[]);
+ const clearErrorKey=useCallback((key:TranslationKey)=>setErrorState(previous=>
+  previous?.source==='key'&&previous.key===key
+   ? null
+   : previous
+ ),[]);
  const refresh=useCallback(async()=>{
   try{
    const r=await env.request({type:'GET_STATE'});
@@ -48,5 +53,5 @@ export function useProxy(){
    return null;
   }finally{lock.current=false;if(alive.current)setBusy(false);}
  },[env,refresh]);
- return {state,error,busy,act,refresh,setError,setErrorKey};
+ return {state,error,busy,act,refresh,setError,setErrorKey,clearErrorKey};
 }

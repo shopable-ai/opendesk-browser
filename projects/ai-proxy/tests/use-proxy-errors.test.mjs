@@ -174,3 +174,21 @@ test('denied Apply keeps feedback across status reads and never replays the muta
   assert.equal(f.calls.filter(type=>type==='APPLY').length,1);
   f.unmount();
 });
+
+test('editing a resolved local validation clears only that key, retaining backend and unrelated errors', async () => {
+  const f = await fixture();
+  f.render().setErrorKey('apRuleAlreadyExists');
+  f.render().clearErrorKey('apRuleAlreadyExists');
+  assert.equal(f.render().error, '');
+  f.render().setErrorKey('ruleChooseProxyFirst');
+  const unrelated = f.render().error;
+  f.render().clearErrorKey('apRuleAlreadyExists');
+  assert.equal(f.render().error, unrelated);
+  f.respond(async message => message.type === 'SAVE_RULE'
+    ? {ok:false,errorCode:'errInvalidPort',error:'private details'} : success({revision:2}));
+  await f.render().act({type:'SAVE_RULE'});
+  const backend = f.render().error;
+  f.render().clearErrorKey('apRuleAlreadyExists');
+  assert.equal(f.render().error, backend);
+  f.unmount();
+});

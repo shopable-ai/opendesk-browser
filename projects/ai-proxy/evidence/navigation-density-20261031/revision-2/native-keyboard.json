@@ -1,0 +1,17 @@
+{
+  "candidate": "source-77f51b48-9e9c-43d1-8837-eaffba1be5b7",
+  "htmlSha256": "f8af1b6f3d7590626e30e2e0008ce1b45c778c8e7bc24ee46d69e3626538ba3d",
+  "environment": "Codex in-app Chromium, isolated memory preview tab; cua_repl native AX/key APIs",
+  "source": "This conversation's cua_repl AX observations, not synthetic selectOption or a DOM-dispatched change event",
+  "steps": [
+    {"action": "Gear opens Settings; focus native settings-section select; Space opens menu", "observed": "AX popup expanded, value 代理配置"},
+    {"action": "Down; observe menu state before Return", "observed": "AX popup expanded, value 网站规则; content remains profiles until commit"},
+    {"action": "Return; observe new page", "observed": "AX popup collapsed; 网站规则 selected; heading 网站规则 2; rules list and default-route fields present; focus settings-section"},
+    {"action": "Space; observe expanded menu", "observed": "AX popup expanded, value 网站规则"},
+    {"action": "Down; observe menu state", "observed": "AX popup expanded, value 订阅管理"},
+    {"action": "Return; observe new page", "observed": "AX popup collapsed; 订阅管理 selected; heading 订阅管理 and 我的订阅 1; focus moved to 我的订阅 heading by that page's existing focus behavior"}
+  ],
+  "earlierDriverResult": "Direct Playwright press sequences in Mac Chrome did not commit the native menu selection. This was inconclusive, not a product failure. The successful native-key sequence above waited for AX menu state between keys.",
+  "result": "PASS",
+  "boundary": "Keyboard selection in the same-source preview only. No extension installation, real proxy, OS IME or width/zoom matrix. No daily Chrome tabs were changed."
+}

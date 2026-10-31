@@ -1,8 +1,8 @@
 # AI Proxy · 真实 OpenDesk 扩展代码
 
-**最新导航设计候选见[第 15 节](#15-导航与规则编辑设计完善2026-10-31本轮)。** 已消除双返回并通过本轮独立设计/实现评审；第 14 节记录的是此前安装交付，不作为本轮新设计的安装证据。
+**最新导航与排版纠偏见[第 15.2 节](#152-取消重复tabs与统一排版节奏2026-10-31)。** 已取消业务Tabs，复用齿轮进入设置；代理/规则列表和表单按R27统一间距。第15/15.1节的旧方案与评分只作历史依据，第14节安装证据不覆盖本轮源码。
 
-**当前交付（2026-10-31）：`0.3.0` 正式 JSON 已编译、晋升并在日常 Chrome 实际安装。** 已验证添加/保存代理配置、当前网站识别、规则保存、草稿保护、关闭重开回读及管理/返回路径；配置保存与实际代理应用始终分开。交付范围、安装证据与尚未完成的功能见[第 14 节](#14-030-安装交付与实际完成情况2026-10-31)。第 12–13 节保留上次开发记录，F1–F10 与长期 K1–K13 不删减；安装通过不表示全部迁移功能完成。
+**历史安装记录（2026-10-31，第14节）：`0.3.0` 正式 JSON 曾编译、晋升并在日常 Chrome 实际安装。** 当时验证了添加/保存代理配置、当前网站识别、规则保存、草稿保护、关闭重开回读及管理/返回路径；配置保存与实际代理应用始终分开。该候选范围、安装证据与尚未完成的功能见[第 14 节](#14-030-安装交付与实际完成情况2026-10-31)。第 12–13 节保留上次开发记录，F1–F10 与长期 K1–K13 不删减；旧安装通过不表示最新设计或全部迁移功能完成。
 
 它管理**浏览器网络代理**，不是 AI 模型 API 代理。唯一业务 owner 是本目录，基于现有 React 源码继续开发，没有另建 Chrome 扩展或特权后台。
 
@@ -31,7 +31,7 @@ opendesk browser dev .
 
 真实代理公开接线只表达：**默认直连，同一无认证 HTTPS/SOCKS5 公共节点，1–16 条含子域的域名规则**。启停仍经原 SDK、安装身份、可信手势、精确路由审阅与权限链。不支持的四模式语义、认证、任意 PAC、多节点、精确域及本地客户端保留配置/入口并明确拒绝应用，不静默降级。
 
-`dist/tool.js`、`dist/tool.css`、`dist/build-ready.json` 是真实编译输出；原生调试使用 stage watcher 的不可变快照。**项目唯一正式 `ai-proxy.opendesk-tool.json` 已在本次交付晋升至 `0.3.0`，与当前源码同源，并由原有本地导入链实际安装。** `preview/` 是单独的内存模拟入口，`trusted/` 和 Browser 专用 portal 仍是历史候选，不是本轮运行或授权捷径；本轮实际运行的是安装包沙箱。
+`dist/tool.js`、`dist/tool.css`、`dist/build-ready.json` 是编译输出；原生调试使用 stage watcher 的不可变快照。项目只有一个正式 `ai-proxy.opendesk-tool.json`；第14节记录的是历史 `0.3.0` 安装。当前目录的并行版本及JSON由其owner维护，本轮没有晋升或验证新设计安装，不能再把旧包称为与最新源码同源。`preview/` 是单独的内存模拟入口；`trusted/` 和 Browser 专用portal仍是历史候选，不是本轮授权捷径。
 
 以下第 1–11 节保留历史来源、产品需求与 UI 证据；其中“当前阶段”“只做原型”和历史 PID/SHA 不覆盖上文及第 12 节。
 
@@ -358,10 +358,88 @@ node --test projects/ai-proxy/tests/environment-runtime.test.mjs projects/ai-pro
 
 ### 15.1 导航与规则编辑续轮打磨（2026-10-31）
 
-最新[同源开发预览](http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html)继续复用 `src/App.jsx → QuickPanel.tsx / Settings.tsx`、现有 Shared Button、FormField、i18n 和内存 Preview。最短链先验证「管理设置 → 网站规则 → 键盘编辑 → 修改 → 取消／保留」，确认旧草稿保护正常后再修改。
+最新[同源开发预览](http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-b735ff79-684c-4e1c-902a-89d5020f7e06/preview.html)继续复用 `src/App.jsx → QuickPanel.tsx / Settings.tsx`、现有 Shared Button、FormField、i18n 和内存 Preview。最短链先验证「管理设置 → 网站规则 → 键盘编辑 → 修改 → 取消／保留」，确认旧草稿保护正常后再修改。
 
-本轮可见改进：每条编辑／删除按钮的可访问名称包含对应域名；管理编辑页显示原规则来源；两处编辑器使用同一标题样式及单层表单；域名提示与焦点轮廓分开留白；高级设置有一致的键盘焦点；保存错误位于当前表单内，并关联其 ARIA 描述。未修改规则保存、代理应用、草稿 revision、权限或 Host。
+本轮可见改进：编辑／删除按钮和删除确认包含对应域名及匹配范围；管理编辑页显示原规则来源；两处编辑器使用同一标题样式及单层表单；域名提示与焦点轮廓分开留白；高级设置有一致的键盘焦点；保存错误位于当前表单内，并关联其 ARIA 描述。独立复核后又真实复现并修正了旧重复提示残留和删除后焦点丢失：修改域名／范围只清除对应的本地重复错误，后端失败仍保留；删除成功复用原返回路径聚焦邻项或添加按钮，保留 revision、generation 与当前路由保护。成功回执简短显示，删除成功清除上一条保存回执，取消／失败仍保留；保存不应用说明只保留一份。清错误、删除保护与测试夹具按原短路顺序展开，未增加抽象；代理应用、权限与 Host 不变。
 
-候选 `source-68e774ea-ebdd-48e3-acfc-7a7de011267f` 的 HTML SHA 为 `b8a0330274fe5e9efe4b01f4dbc608a4872c338cea0c7d12d6fa61a417e202b5`，UI SHA 为 `fad1f8b7e71aac7761c0c0ac741e52aee212f84e3b4c6872e7c2c008e85e11bd`。64 项输入核对无漂移；三语言 1006 键一致。Chrome 实际操作覆盖键盘编辑、高级展开、重复规则报错、保留／丢弃、Settings 优先级保存、Quick 目标保存及三语新增文案，证据见 [交互记录](evidence/navigation-polish-20261031/interactions.json) 与 [来源核对](evidence/navigation-polish-20261031/source-check.json)。原第 15 节分数仅是基线，本轮复核结果独立记录。
+最终候选 `source-b735ff79-684c-4e1c-902a-89d5020f7e06` 的 HTML SHA 为 `202f0424f15002d25aefbd595a4f15e5bb1a505945247d9c54979e1a35f8a970`，UI SHA 为 `16be6aafbaf0e56df56f6b3170990052fa00a58f168667ee47c13de911bea5b5`。64 项输入核对无漂移；三语言 1009 键一致。四份相关测试共 25/25 PASS，覆盖新增错误失效、后端错误保留、同域范围识别、删除返回及保存回执清除。新增回执用例先失败、修复后通过；最终 Chrome 候选实际保存后删除，剩一条规则、旧保存通知为零，焦点返回 `settings-rule-rule-local`。见[最终交互记录](evidence/navigation-polish-20261031/round-3/interactions.json)、[来源核对](evidence/navigation-polish-20261031/round-3/source-check.json)和[最终界面](evidence/navigation-polish-20261031/round-3/design-result.png)。
 
-本轮只写项目 UI、三语言和设计证据；并行 `0.3.1` 配置、正式 JSON、Vite 及全局改动保留。没有提交、推送、打包晋升或安装。新候选原生安装、真实代理、production、全 CI／完整类型诊断及宽度／缩放矩阵继续 `NOT_TESTED`。日常 Chrome 仅打开本机内存预览，没有启停真实代理；原 43263 服务保持运行。
+上一候选 `source-37aa3aca-b377-48b7-a76b-2584e2d3e92b` 的 Chrome 操作验证同域不同范围共存、明确删除确认／取消／邻项焦点、Settings 保存身份、Quick 和 Settings 草稿保留／丢弃，以及 EN／繁中表单。六条规则列表用原生 Enter／Escape 完成编辑取消与保存，scrollTop 为 `338 → 338 → 338`，返回同一规则按钮。见[上一候选交互记录](evidence/navigation-polish-20261031/round-2/interactions.json)。最终仅 `Settings.tsx` 动作和 `useProxy.ts` 排版两项输入变化；CSS、语言及 DOM 结构未变。独立补充复核明确映射未受影响的上一候选证据，未把旧图重标为最终候选或宣称重新执行矩阵。
+
+最终独立复核沿用第 15 节固定量表，逐维达标且无阻断。UI 评审只读采集证据及输入差异；代码评审另独立执行新增回执回归 1/1 PASS，真实 `src/main.jsx` IIFE／CSS 内存编译零警告。未把编译等同完整语义类型诊断；代码结论为 COMMENT，无需继续修改的代码问题。完整依据见[最终 UI 补充复核](evidence/navigation-polish-20261031/round-3/ui-review.json)与[最终代码复核](evidence/navigation-polish-20261031/round-3/code-review.json)。
+
+| UI 维度 | 分数 | 代码维度 | 分数 |
+| --- | ---: | --- | ---: |
+| 布局与密度 | 100 | 正确性 | 97 |
+| 信息层级与可发现性 | 100 | 可靠性 | 96 |
+| 视觉与可读性 | 100 | 安全 | 98 |
+| 操作／草稿／反馈 | 100 | 可维护性 | 96 |
+| 键盘与焦点 | 100 | 用户反馈 | 97 |
+| 组件复用与边界 | 100 | 证据充分性 | 96 |
+
+前一候选 `source-68e774ea-ebdd-48e3-acfc-7a7de011267f` 的[UI复核](evidence/navigation-polish-20261031/ui-review.json)与[代码复核](evidence/navigation-polish-20261031/code-review.json)未达全部门槛；round-2 代码可维护性 94、UI 提示问题也保留为修复依据。部分 fullPage／clip PNG 为空白或压缩异常，未据此判定产品故障；`round-2/native-*` 与 `round-3/*.png` 使用原生可见页截图，英文／繁中表单分别保留顶端和底部动作图。定位器自动滚动的中间数值与异常原图也保留，不用其替代原生键盘结果。原第 15 节评分不覆盖新候选。
+
+本轮只写项目 UI、三语言、定向测试和设计证据；并行 `0.3.1` 配置、正式 JSON、Vite 及全局改动保留。没有提交、推送、打包晋升或安装。新候选原生安装、真实代理、production、全 CI／完整类型诊断均 `NOT_TESTED`，宽度／缩放矩阵为 `OUT_OF_SCOPE`。受控延迟保存时的浏览器离页未重放，现有 pending-save 定向测试通过，不冒充浏览器异步证据。日常 Chrome 仅打开本机内存预览，没有启停真实代理；原 43263 服务保持运行。
+
+### 15.2 取消重复Tabs与统一排版节奏（2026-10-31）
+
+用户指出两枚业务Tabs重复、管理列表和添加页密度不合理，以及代理配置页面的垂直间距不一致。本轮覆盖第15/15.1节的Tabs决定，继续沿原 `App → QuickPanel / Settings`、Shared Button、FormField、navigation guard迭代；七区、四模式、三语、配置身份和保存不应用语义保留。
+
+**R27规范仍适用，缺口是样式级联和实际布局验收。** 原PC布局 `.options .listSection .sectionHeading` 覆盖侧栏规则，标题底部实测13px；列表又附加8px顶部和12px底部margin。代理三条记录因状态和文字操作换行，实测约106/131/107px。现在仅将旧PC布局隔离到低优先级 `proxy-legacy` 层，公共控件样式保留；受影响的侧栏布局统一归 `sidebar-settings.css`，用父gap和子margin归零消除叠加，没有新增补丁样式表、`!important`、平台代码或依赖。
+
+- 代理面板复用原齿轮／管理全部／管理规则入口；设置保留七区选择、更多和关闭设置。关闭回代理面板，外层返回仍回扩展列表，两条路径沿用原草稿／busy保护。
+- 代理及规则记录压为名称或域名、地址或目标两行；选择、启用、本地客户端、认证和已应用采用有ARIA/title说明的图标，编辑／删除为34px图标按钮。错误、权限和实际代理控制状态保留必要文字。
+- 管理页保留一个标题／计数／添加主操作，其他添加方式折叠；表单单层16px内边距、12px分组、8px标签间距，帮助文案和主次操作使用同一结构。
+
+最终[冻结同源预览](http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-221a90c1-9053-43fa-a758-6c6b32e41be3/preview.html)为 `source-221a90c1-9053-43fa-a758-6c6b32e41be3`，HTML SHA256 `ee20e4c69e3f03f50b749653856d10367b169fcc2784c33a294d1582299b50bb`。65项输入无漂移；与完整交互候选 `source-77f51b48…` 相比，仅列表根CSS的两处 `overflow:visible` 变化，用于避免裁切焦点环，JS／DOM／三语均未改变。未受影响的真实入口内存编译零警告、三语1009键及行为证据明确映射自revision-2，不冒称全部重新执行；这是语法／打包检查，完整语义类型诊断未执行。[完整交互候选来源](evidence/navigation-density-20261031/revision-2/source-check.json)、[最终差异与焦点验证](evidence/navigation-density-20261031/final/focus-check.json)。
+
+同候选Chromium实际操作与computed style检查通过：代理行内容均66px，第二行起只多1px分隔线；标题／列表margin均0，页面章节gap16、记录内及操作gap8、名称到地址gap4。表单dialog padding0、form padding16、字段组gap12、标签gap8；字段组到动作区由父gap16负责，动作子margin0。新增的[本地取证脚本](scripts/navigation-density-preview.mjs)同时验证齿轮进入、选择不应用、非法端口、Enter保存、取消／X／Escape各自草稿保留及丢弃、规则键盘编辑、设置关闭草稿确认、返回焦点、删除取消／确认与回执清理、长目标title及三语列表和添加表单；8组检查通过，浏览器错误和外部请求均为0。[交互／计算样式记录](evidence/navigation-density-20261031/revision-2/interactions.json)、[代理配置截图](evidence/navigation-density-20261031/revision-2/profiles.png)、[添加表单](evidence/navigation-density-20261031/revision-2/add-proxy.png)、[规则列表](evidence/navigation-density-20261031/revision-2/rules.png)。
+
+首轮独立UI评审实际未通过：操作维度88，键盘栏目切换缺证据。评审在 `source-786e920a…` 复现代理表单底部取消直接丢草稿；X／Escape的确认已存在，底部按钮却没有接入。先将真实点击加入取证脚本，观察旧候选无法出现确认的RED结果，再统一接入原 `requestCloseEditor`，增加busy拒绝并保留revision检查。另将4px操作gap改为8px，字段组与动作区拆成无外框的布局组，消除子margin拼间距；规则长目标保留全文title。新候选已重跑全部本轮浏览器检查，没有把失败记录或旧图改标为新候选PASS。[首轮失败复评](evidence/navigation-density-20261031/ui-review.json)。
+
+栏目原生键盘证据单独记录：直接Playwright连续发键未完成Mac菜单提交，结果只能判驱动证据不足；未改写产品select。独立IAB同候选用原生AX／键盘逐步Space展开→Down选择→Return提交，已进入网站规则，再进入订阅管理；焦点与实际栏目内容均读回。[原生键盘记录](evidence/navigation-density-20261031/revision-2/native-keyboard.json)。这是同源Chromium证据，不冒充正式安装或OS输入法验收。
+
+revision-2独立复评通过后，代码评审仍保留一项LOW：零内边距列表继承 `overflow:hidden`，裁切边缘3px焦点环。最后只在两个列表根取消裁切；最终候选实际Tab／Shift+Tab聚焦最左代理选择和最右规则删除，2px outline＋1px offset完整显示，所有祖先的裁切检测为空，浏览器错误为0。[代理焦点截图](evidence/navigation-density-20261031/final/profile-focus.png)、[规则焦点截图](evidence/navigation-density-20261031/final/rule-focus.png)。未为这两条CSS重复运行60项未变行为或整组八条交互。
+
+受影响的navigation、rules、drafts、QuickPanel、表单提交和凭据检查合计**60/60 PASS**；原navigation用例先观察预期失败，再实现无Tabs关闭路径。未为样式新增源码字符串断言。复跑命令：
+
+```sh
+node --test projects/ai-proxy/tests/navigation.test.mjs projects/ai-proxy/tests/settings-rules-runtime.test.mjs projects/ai-proxy/tests/quick-panel-runtime.test.mjs projects/ai-proxy/tests/drafts.test.mjs projects/ai-proxy/tests/form-submit.test.mjs projects/ai-proxy/tests/settings-credentials.test.mjs
+```
+
+独立UI及实现复评均已完成，逐维达到95门槛，无剩余阻断或已知代码问题；旧100分不作为本轮达标依据。完整逐项依据保留在revision-2，最后两条CSS按已验证差异映射，由两位reviewer分别核对新指纹及焦点截图；没有重标旧证据或为补丁加分。[最终UI复核](evidence/navigation-density-20261031/final/ui-review.json)、[最终代码复核](evidence/navigation-density-20261031/final/code-review.json)。
+
+| UI维度 | 分数 | 实现维度 | 分数 |
+| --- | ---: | --- | ---: |
+| 布局与密度 | 98 | 正确性 | 98 |
+| 信息层级与可发现性 | 100 | 可靠性 | 98 |
+| 视觉与可读性 | 100 | 安全 | 98 |
+| 操作／草稿／反馈 | 100 | 可维护性 | 98 |
+| 键盘与焦点 | 100 | 用户反馈 | 96 |
+| 组件复用与边界 | 100 | 证据充分性 | 98 |
+
+评分只覆盖本轮代理／规则管理、表单与导航的开发证据，不是全产品或发布认证。代码结论保持COMMENT：完整语义类型诊断未执行，单列边界，不阻塞本轮开发收尾。UI非必修建议“默认DIRECT时隐藏禁用代理字段”保留为后续取舍，本轮不扩展该行为。
+
+本轮只完成设计开发与同源内存UI验证；**新候选原生安装、真实代理启停／流量、production、全CI和完整类型诊断为NOT_TESTED，宽度／缩放矩阵为OUT_OF_SCOPE**。并行版本、正式JSON、构建输出和现有43263服务保留，未晋升安装包、提交或推送。
+
+## 16. 0.3.2 同源包与独立安装升级验证（2026-10-31）
+
+本节覆盖第15.2节的正式包／安装延期。沿用已完成的业务源码及0.3.2 metadata，使用原Vite与唯一打包器生成、验证并晋升 [ai-proxy.opendesk-tool.json](ai-proxy.opendesk-tool.json)。正式文件 **916536字节**，SHA-256为 `fb0151b4ef7e135951b54416917617ac6a7a89fbb8f4bd9d376cb7b21ac3a547`；`--check-project` 返回 `PROJECT_PACKAGE_MATCH`，最终buildId为 `f747897c-3ff3-415d-848d-9962f7e5cae7`，绑定56项源码。安装后仅修正ProxyIcon文件末尾空行，重建确认正式包字节未变，原安装证据仍逐字节匹配；两次原始回执均保留。
+
+最新CSS加上原共享设计后实测124067字符，超过原120000上限。只删除经静态／动态消费者核对证实未用的旧popup、返回及sourceIntro等选择器；共享规则保留活跃分支，独立结构比对确认其声明、scope／media和顺序未变。最终包CSS **116697/120000字符**。未调整宿主容量、权限、来源或CSP，未增加依赖；不把本次删除映射为新的设计评分。
+
+测试使用本任务专用CFT **155.0.8059.39 headless** Profile，原 `dist/development` 只读加载，扩展ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。真实SIDE_PANEL上下文已绑定；调试页确认开发服务连接，宿主revision `e3af2915b0a25431789da96191d23db393a6ca817cc46feaab336e134d3e8de4`。这是持续开发环境的实际Chromium安装证据，**不是可见macOS桌面／OS输入法或production验收**。
+
+| 实际操作 | 结果 |
+| --- | --- |
+| 原导入审阅安装0.3.1，保存配置、规则并选择代理 | PASS；未应用代理 |
+| 同Profile审阅“0.3.1→0.3.2／权限未变化”并确认更新 | PASS；规范安装字节与正式包完全一致，配置、规则及选择逐字段保留 |
+| 新版配置编辑保存、规则优先级100→73 | PASS；原endpoint／rule身份保留，返回原规则焦点，列表scrollTop为0→0 |
+| 底部取消、X、Escape各自继续编辑／确认放弃 | PASS；草稿保留／关闭正确，已保存数据不变，焦点返回原编辑入口 |
+| 关闭设置时继续编辑／放弃并返回主面板 | PASS；经原navigation guard，未保存域名未写入 |
+| 关闭工具并重开，进入规则页回读 | PASS；保存后的配置、选择、规则与预期完全一致 |
+| 保存与选择不自动应用、沙箱隔离 | PASS；Chrome代理设置与起始读值完全一致，沙箱没有 `chrome.runtime` |
+
+68项导航／规则／草稿／表单／凭据与包门禁通过，另6项useProxy错误与single-flight检查通过。busy及迟到revision保护是同源码组件测试证据，未伪称浏览器延迟注入测试。驱动曾持有旧沙箱会话、误用隐藏输入是否移除作等待条件，以及在外层滚动时未命中确认；均先读取实际状态，再修正定位／使用原生Tab恢复可见焦点，没有重复安装、保存或代理副作用，没有为驱动失败修改产品。
+
+结构化原始步骤、包／源码哈希、构建回执和截图见 [本次安装证据](evidence/install-0.3.2-20261031.json)。独立浏览器已正常关闭；隔离Profile保留为本机证据，日常Chrome、系统代理和Browser dev未启停。收尾发现原43263 Preview已退出，原因未知，使用原命令恢复同一入口；未停止共享服务或覆盖Browser输出。真实代理启停／流量、认证／PAC／完整四模式、可见macOS原生UI、production、全CI及完整语义类型诊断仍为NOT_TESTED；宽度／缩放矩阵OUT_OF_SCOPE。没有推送或线上发布。

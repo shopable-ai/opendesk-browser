@@ -1,0 +1,429 @@
+{
+  "kind": "source-bound Chromium memory UI",
+  "url": "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-77f51b48-9e9c-43d1-8837-eaffba1be5b7/preview.html",
+  "browser": "149.0.7827.55",
+  "at": "2026-10-31T08:42:46.323Z",
+  "checks": [
+    "No business Tabs; seven settings sections; zero stacked margins; uniform two-line rows; inline local-client status",
+    "Selection is exposed with aria-pressed and does not claim applied routing",
+    "Single form gutter; 12px group/8px label rhythm; invalid port rejected; Enter saves without applying",
+    "Proxy dirty Escape preserves on Keep, discards on confirmation and returns focus to edit icon",
+    "Proxy footer Cancel, X and Escape share dirty Keep/discard confirmation and return focus",
+    "Icon rules preserve domain/scope labels; keyboard opens editor; closing settings keeps/discards draft; panel restores gear focus",
+    "Long rule target retains full title and actions; rule save, delete Cancel/confirm, stale receipt clearing and surviving neighbor focus work",
+    "Chinese, English and Traditional Chinese retain list/actions and add form"
+  ],
+  "errors": [],
+  "external": [],
+  "screenshots": {
+    "profiles": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/profiles.png",
+      "sha256": "ee3024610ed6593b7452ed290c96101805c91788b4c1358b3e468bec56851995"
+    },
+    "add-proxy": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/add-proxy.png",
+      "sha256": "070aa9e667ee4eada75e071f6130f5d0214d9d7778065991fb9dce08a7596623"
+    },
+    "rules": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/rules.png",
+      "sha256": "7bf991db2d3ab2b85f6e95d8c1bac91674dba4b139104916693448abfb2cd7e0"
+    },
+    "rule-editor": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/rule-editor.png",
+      "sha256": "f89754fb1d06d97255b3d13de11e1c12d1c9b05fe85c65ae6aa0a03e7c7ace1a"
+    },
+    "long-rule-target": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/long-rule-target.png",
+      "sha256": "210a6d547d78fd83df5a8717da8bf7d21d74bb38ea1fa30286819fc131a991ef"
+    },
+    "profiles-en": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/profiles-en.png",
+      "sha256": "fb3016bd07067344da1e54cd87b8f880943b252b79a990a68a408bcc463d4a08"
+    },
+    "add-en": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/add-en.png",
+      "sha256": "ba7f706f815f53be5b74fa59c4e080733d4539514df60e15fbdcedb089b4e82d"
+    },
+    "profiles-zh-TW": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/profiles-zh-TW.png",
+      "sha256": "acba7c8c522e7ffab093c77267b2efd4e86b45f2af71d7e4b6b3fd17bacc78ff"
+    },
+    "add-zh-TW": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/add-zh-TW.png",
+      "sha256": "5f548198f5809f03b83af68eda261bd4237ec7b573bd8143f3dedd135439a943"
+    },
+    "profiles-zh-CN": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/profiles-zh-CN.png",
+      "sha256": "d45ca6973a84fdb27934e58c279371540f134615acfecda8afa90d2a620f299a"
+    },
+    "panel": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/evidence/navigation-density-20261031/revision-2/panel.png",
+      "sha256": "fcaa234f2ab60cb15c5fef1cca3a338d83324667580da5eef9a38761616b2975"
+    }
+  },
+  "metrics": {
+    "profiles": {
+      "content": {
+        "height": 1024.34375,
+        "margin": "0px",
+        "padding": "12px",
+        "gap": "16px",
+        "borderTop": "0px"
+      },
+      "header": {
+        "height": 59.1875,
+        "margin": "0px",
+        "padding": "0px",
+        "gap": "12px",
+        "borderTop": "0px"
+      },
+      "list": {
+        "height": 200,
+        "margin": "0px",
+        "padding": "0px",
+        "gap": "0px",
+        "borderTop": "0px"
+      },
+      "rows": [
+        {
+          "height": 66,
+          "margin": "0px",
+          "padding": "12px 0px",
+          "gap": "8px",
+          "borderTop": "0px"
+        },
+        {
+          "height": 67,
+          "margin": "0px",
+          "padding": "12px 0px",
+          "gap": "8px",
+          "borderTop": "1px"
+        },
+        {
+          "height": 67,
+          "margin": "0px",
+          "padding": "12px 0px",
+          "gap": "8px",
+          "borderTop": "1px"
+        }
+      ]
+    },
+    "form": {
+      "display": "grid",
+      "gap": "16px",
+      "padding": "16px",
+      "dialogPadding": "0px",
+      "fieldsGap": "12px",
+      "actionsMargin": "0px",
+      "actionsBefore": 16,
+      "fieldGaps": [
+        "8px",
+        "8px",
+        "8px",
+        "8px"
+      ],
+      "childMargins": [
+        {
+          "class": "proxyEditorFields",
+          "margin": "0px"
+        },
+        {
+          "class": "editorActions",
+          "margin": "0px"
+        }
+      ]
+    },
+    "rules": [
+      {
+        "height": 66,
+        "gap": "8px",
+        "state": "已启用"
+      },
+      {
+        "height": 67,
+        "gap": "8px",
+        "state": "已启用"
+      }
+    ],
+    "ruleForm": {
+      "gap": "16px",
+      "fieldsGap": "12px",
+      "actionsMargin": "0px",
+      "actionsBefore": 16
+    }
+  },
+  "manifest": {
+    "format": "ai-proxy.react-source-preview.v2",
+    "commit": "3c76ae9a4c2d42616ca5d46581204511c16f3650",
+    "presentation": "projects/ai-proxy/trusted/Surface.jsx",
+    "runtime": "React 19.2.0 + canonical @opendesk/ui",
+    "container": "sidebar-tool-frame > sandbox allow-scripts > same App/Surface",
+    "iframe": true,
+    "simulation": "Memory service/storage only. No Chrome, real proxy, network probes or persistence.",
+    "sources": {
+      "projects/ai-proxy/preview/main.jsx": {
+        "bytes": 3517,
+        "sha256": "a27b1fb74366ca682eaa4245a54498d9ee0b2a20415732e2f08275b9ff7985f8"
+      },
+      "projects/ai-proxy/scripts/stage-preview.mjs": {
+        "bytes": 10938,
+        "sha256": "f76caecbde375a6db65c4c7ce6e25d4ca846c492d61b09af14b5cb8df4fc708d"
+      },
+      "scripts/preview/shared-tool-design.mjs": {
+        "bytes": 9232,
+        "sha256": "a75e86c40d89c50d42720e2f727acc78f259f030ec00f32ae19bfdf930a9dba5"
+      },
+      "scripts/templates/sidebar-tool-preview-shell.html": {
+        "bytes": 7078,
+        "sha256": "ade920b4b6f11f3f27d352447b0ccd7a65b6084ad5de3dedb29452d45f562ae7"
+      },
+      "scripts/preview/sidebar-shell-behavior.js": {
+        "bytes": 4840,
+        "sha256": "3b0fab946fd8e7fff01991cd5dd89302a880e4ce93dc60e5d4513fcd54ee35f4"
+      },
+      "src/ui/react/components/ui/sidebar-shared.css": {
+        "bytes": 1717,
+        "sha256": "fdb9cd6e76093fff2fa31d940599fd1ba57c679f871468f6296cba9e4738204a"
+      },
+      "src/ui/design-tokens.css": {
+        "bytes": 2526,
+        "sha256": "63532100e61777fde7042099d2b0f6d5f583323b45b98f0937d2bf1c6678af79"
+      },
+      "src/ui/design-system.css": {
+        "bytes": 12317,
+        "sha256": "720733aa85839f44b5c1035c09323c8ca1c657817932ae1b209e7f961566cd7d"
+      },
+      "projects/ai-proxy/src/styles/style.css": {
+        "bytes": 41336,
+        "sha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171"
+      },
+      "projects/ai-proxy/src/styles/options.css": {
+        "bytes": 50653,
+        "sha256": "c2d101863f94b63574bd50210ac78ccadfd3b964a6de0a648bd2a9f6c3d759a3"
+      },
+      "projects/ai-proxy/src/styles/sidepanel-r86.css": {
+        "bytes": 17231,
+        "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+      },
+      "projects/ai-proxy/src/styles/rotation-entry.css": {
+        "bytes": 846,
+        "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+      },
+      "projects/ai-proxy/src/styles/sidebar-settings.css": {
+        "bytes": 16979,
+        "sha256": "6fd3f51e30b2d7c3dc52edad58538dec99b5b2be2f7b52183faf64db717c7dfe"
+      },
+      "projects/ai-proxy/src/style.css": {
+        "bytes": 4929,
+        "sha256": "651bdae4ae0a06cea85893d2e4550ac4be9c1e6647de3e0fe093d36857533c5a"
+      },
+      "src/ui/react/components/ui/button.tsx": {
+        "bytes": 845,
+        "sha256": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"
+      },
+      "projects/ai-proxy/src/domain/config.ts": {
+        "bytes": 13949,
+        "sha256": "08e7444030368b49813e16034c24c38ecce491d2abbcff6e0a796fb48f36ec57"
+      },
+      "projects/ai-proxy/src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "projects/ai-proxy/src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "projects/ai-proxy/src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "projects/ai-proxy/src/service.ts": {
+        "bytes": 28133,
+        "sha256": "9b29f1c8085ec00e8dd809d4e968b7339ef0353fce2083a6e226574907d4aac7"
+      },
+      "projects/ai-proxy/src/model.js": {
+        "bytes": 5324,
+        "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+      },
+      "projects/ai-proxy/src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "projects/ai-proxy/src/ui/navigation.ts": {
+        "bytes": 1887,
+        "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+      },
+      "projects/ai-proxy/src/environment.ts": {
+        "bytes": 8812,
+        "sha256": "fbd44e397f2a6110a49794334da06e9cb400761577b9d66335bf58b98b90e862"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json": {
+        "bytes": 72093,
+        "sha256": "be8bb029293ead685cf7d3f0e977219223661544fb0dff73252af59fb1e5e7de"
+      },
+      "projects/ai-proxy/src/i18n/locales/en.json": {
+        "bytes": 75528,
+        "sha256": "b9bba1d5fb6f33d3ef980165d2f8659507a6699bea062353284781ea863111e2"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json": {
+        "bytes": 72520,
+        "sha256": "b78749885a3622b8a5c3a7017e7f50cebe5a34cd114eb8516a9e6b735b999adc"
+      },
+      "projects/ai-proxy/src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "projects/ai-proxy/src/i18n/LocaleProvider.tsx": {
+        "bytes": 2767,
+        "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+      },
+      "projects/ai-proxy/src/i18n/errors.ts": {
+        "bytes": 1229,
+        "sha256": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129"
+      },
+      "projects/ai-proxy/src/ui/useProxy.ts": {
+        "bytes": 2977,
+        "sha256": "ca615bf91822f78e776883816ead1346a46607b665c541fdf7ecb612a964ec18"
+      },
+      "projects/ai-proxy/src/ui/Status.tsx": {
+        "bytes": 5372,
+        "sha256": "d214c47d17c2f28614651818130841f91877bb5953030213975fdaa20ea5b661"
+      },
+      "projects/ai-proxy/src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "projects/ai-proxy/src/ui/ProxyEntry.tsx": {
+        "bytes": 5393,
+        "sha256": "7cd8f7ed1f26278954a92449e935fc902a57ced83c6bfb5611f19f28df3eff1c"
+      },
+      "projects/ai-proxy/src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "projects/ai-proxy/src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "projects/ai-proxy/src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "projects/ai-proxy/src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "projects/ai-proxy/src/config/remote-config.ts": {
+        "bytes": 6144,
+        "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+      },
+      "projects/ai-proxy/src/collector/rotation-plan.ts": {
+        "bytes": 3427,
+        "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+      },
+      "projects/ai-proxy/src/ui/RotationPlan.tsx": {
+        "bytes": 8379,
+        "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+      },
+      "projects/ai-proxy/src/ui/ProxyIcon.tsx": {
+        "bytes": 1965,
+        "sha256": "bbcc168cce387c9741dea7ff5ce9fc9b9c7af1f8f1f3fa9d0627898ef6a5473a"
+      },
+      "projects/ai-proxy/src/QuickPanel.tsx": {
+        "bytes": 37542,
+        "sha256": "26a9a31ede5f6c84e2f5f82d9fd5a8c7bf25c14863abd6f668aae279bab1bc60"
+      },
+      "projects/ai-proxy/src/ui/OptionsShell.tsx": {
+        "bytes": 2377,
+        "sha256": "8f1a9aa92bbba17ca540526764cef76336e47efb32a2056d70483ba0a8aa015e"
+      },
+      "projects/ai-proxy/src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "projects/ai-proxy/src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "projects/ai-proxy/src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "projects/ai-proxy/src/official/messages.ts": {
+        "bytes": 961,
+        "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+      },
+      "projects/ai-proxy/src/ui/OfficialServicePage.tsx": {
+        "bytes": 9979,
+        "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+      },
+      "projects/ai-proxy/src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "projects/ai-proxy/src/ui/SubscriptionReader.tsx": {
+        "bytes": 17769,
+        "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+      },
+      "projects/ai-proxy/src/ui/SourcesPage.tsx": {
+        "bytes": 25577,
+        "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+      },
+      "projects/ai-proxy/src/domain/messages.ts": {
+        "bytes": 2486,
+        "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+      },
+      "projects/ai-proxy/src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      },
+      "projects/ai-proxy/src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "projects/ai-proxy/src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "projects/ai-proxy/src/ui/UsageControls.tsx": {
+        "bytes": 16278,
+        "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+      },
+      "projects/ai-proxy/src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20743,
+        "sha256": "a4aa3b6c8df72d096400cc45371f484ecb87953c196d77dc64bd6add0d36c7a3"
+      },
+      "projects/ai-proxy/src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "projects/ai-proxy/src/Settings.tsx": {
+        "bytes": 57734,
+        "sha256": "32f476e88ee5b5f0fa7740c50f3d64114aa313f6b1d222cbc6ce74585f23306b"
+      },
+      "projects/ai-proxy/src/App.jsx": {
+        "bytes": 5107,
+        "sha256": "b0fa75408922d594594cf61c61e75fed18229ec801e848e7d9b1a160e619ed9e"
+      },
+      "projects/ai-proxy/trusted/Surface.jsx": {
+        "bytes": 370,
+        "sha256": "fb8d8df0fcf325085758f2ea1dd704d07f1cfcec59c998f1555f825594272833"
+      },
+      "projects/ai-proxy/preview/sdk-preview.js": {
+        "bytes": 3375,
+        "sha256": "e5f984762315c2c78321b54c08eac6da78dc1d2a24b45badd93bc3c366c23644"
+      },
+      "projects/ai-proxy/preview/frame.jsx": {
+        "bytes": 1141,
+        "sha256": "cfdce3cb52aaee65a8d2e51eef18986e87bb1854858521e1ebd3edccb4546491"
+      }
+    },
+    "nativeChrome": "NOT_TESTED",
+    "browserInteraction": "NOT_TESTED"
+  },
+  "result": "PASS"
+}

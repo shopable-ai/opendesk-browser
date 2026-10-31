@@ -230,13 +230,12 @@
 :scope .proxyAuthDetails { margin-top: 17px; padding: 11px 12px; border: 1px solid var(--line);
   border-radius: 8px; }
 :scope .proxyAuthDetails > summary, :scope .ruleAdvanced > summary { cursor: pointer; font-size: 12px; font-weight: 650; }
-:scope .proxyAuthFields,:scope .ruleRouteFields { display: grid;
+:scope .proxyAuthFields { display: grid;
   grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
 :scope .proxyAuthFields { margin-top: 12px; }
 :scope .proxyAuthDetails .hint { margin-top: 8px; }
 :scope .ruleEditorForm { max-width: 740px; margin: 13px 0 24px; display: grid; gap: 14px; }
 :scope .ruleEditorForm > div:first-child .hint { margin-top: 6px; }
-:scope .ruleRouteFields > div { min-width: 0; }
 :scope .ruleAdvanced { border: 1px solid var(--line); border-radius: 8px; padding: 11px 13px; }
 :scope .ruleAdvancedFields { margin-top: 12px; display: grid; gap: 12px; }
 :scope .ruleCheckbox { display: flex; gap: 8px; align-items: center; }
@@ -249,11 +248,16 @@
   :scope .proxyPrimaryFields > div:nth-child(2) { grid-column: 1/-1; grid-row: 2; }
 }
 @media (max-width: 460px) {
-  :scope .proxyAuthFields,:scope .ruleRouteFields { grid-template-columns: minmax(0,1fr); }
+  :scope .proxyAuthFields { grid-template-columns: minmax(0,1fr); }
   :scope .proxyEditorForm .editorActions { flex-wrap: wrap; }
 }
 
 
+/* Only historical desktop layout is a fallback layer. Existing field/button
+ * components stay unlayered; sidebar-settings.css owns sidebar geometry. */
+}
+@layer proxy-legacy {
+@scope (.proxy-app) {
 :scope .options {
   --settings-1: 4px;
   --settings-2: 8px;
@@ -417,7 +421,7 @@
   white-space: normal;
 }
 :scope .options :where(.optionsModeBar,.pacDetails,.rulesList,.rulesEditor,.rulesDefault,
-  .backupCard,.sourceIntro,.sourceInlineEditor,.sourceRecord,.generalInfoCard,
+  .backupCard,.sourceInlineEditor,.sourceRecord,.generalInfoCard,
   .diagnosticFeature,.diagnosticSite,.officialSection,.officialEmpty,.officialPlan) {
   border-radius: var(--settings-radius-md);
 }
@@ -484,7 +488,6 @@
 :scope .options .generalGrid { gap: 12px; }
 :scope .options .generalGrid .languageRecord { min-height: 112px; }
 :scope .options .generalGrid .generalInfoCard { min-height: 135px; }
-:scope .options .sourceIntro { padding: 20px; }
 :scope .options .sourcesPage { gap: 24px; }
 :scope .options .sourceList { gap: 12px; }
 :scope .options .sourceList .records.sourceCards { gap: 12px; }
@@ -610,6 +613,9 @@
   :scope .options * { scroll-behavior: auto; }
 }
 
+}
+}
+@scope (.proxy-app) {
 /* Consolidated R8.5 component styles, moved from the shared Side Panel CSS. */
 /* R8.5 Options / Third-party sources: the panel width, not a fixed number of
    one-per-line records, controls whether saved sources appear in two columns.
@@ -617,18 +623,9 @@
 /* Every Options route shares one width; do not narrow Sources alone. */
 :scope .options.sourcesOptions { max-width: var(--settings-page-max); }
 :scope .sourcesPage { display: grid; gap: 24px; min-width: 0; }
-:scope .sourceIntro {
-  min-width: 0; padding: 20px 22px 17px; border: 1px solid var(--line);
-  border-radius: 14px; background: linear-gradient(120deg,var(--accentFill),var(--surface) 78%);
-}
-:scope .sourceIntroMain { display: flex; align-items: center; gap: 13px; min-width: 0; }
-:scope .sourceIntroMain > div { min-width: 0; }
-:scope .sourceIntroMain strong { display: block; font-size: 16px; font-weight: 720; letter-spacing: -.015em; }
-:scope .sourceIntroMain p { font-size: 12px; line-height: 1.65; margin-top: 4px; max-width: 650px; color: var(--muted); }
-:scope .sourceIntroIcon,:scope .sourceCardIcon { display: grid; flex: none; place-items: center; color: var(--accent);
+:scope .sourceCardIcon { display: grid; flex: none; place-items: center; color: var(--accent);
   background: var(--accentFill); border: 1px solid var(--line); border-radius: 12px; width: 42px; height: 42px; }
-:scope .sourceIntroIcon { color: var(--primaryText); background: var(--primaryFill); border-color: var(--primaryFill); width: 45px; height: 45px; }
-:scope .sourceIntroIcon svg,:scope .sourceCardIcon svg { width: 21px; height: 21px; }
+:scope .sourceCardIcon svg { width: 21px; height: 21px; }
 :scope .sourceToolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin: 16px 0 9px; }
 :scope .sourceToolbar button { min-height: 37px; padding-inline: 14px; font-size: 12px; }
 :scope .sourceToolbar button[aria-expanded="true"]:not(.primary) { color: var(--accent); background: var(--accentFill); border-color: var(--accent); }
@@ -705,10 +702,6 @@
 @media (max-width: 460px) {
   :scope .options .panelHeadActions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
   :scope .options .panelHeadActions button:last-child { grid-column: 1 / -1; }
-  :scope .sourceIntro { padding: 15px 14px; }
-  :scope .sourceIntroMain { align-items: flex-start; gap: 10px; }
-  :scope .sourceIntroIcon { width: 38px; height: 38px; }
-  :scope .sourceIntroMain strong { font-size: 14px; }
   :scope .sourceToolbar button { flex: 1 1 160px; }
   :scope .sourceInlineEditor { padding: 15px 13px; }
   :scope .sourceFormPair { grid-template-columns: minmax(0,1fr); }
@@ -732,7 +725,6 @@
 :scope .rulesList .record .actions button { min-height:31px; padding:5px 9px; font-size:11px; }
 :scope .rulesList .rulesEmpty { margin-top:15px; background:var(--surface); }
 :scope .rulesEditor .ruleEditorForm { margin:13px 0 0; max-width:none; }
-:scope .rulesEditor .ruleRouteFields { gap:9px; }
 :scope .rulesDefault .formGrid { max-width:700px; margin-top:16px; }
 :scope .rulesDefault > .actions { margin-bottom:0; }
 

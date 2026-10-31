@@ -1,21 +1,20 @@
-/* Sidebar Settings adapter. Original PC styles remain source evidence; this
- * surface now owns a single gutter and task order at every embedded width. */
+/* Sidebar layout owner. Legacy PC CSS is isolated in proxy-legacy; this file
+ * owns the settings gutter, rhythm, records and fields without specificity wars. */
 @scope (.proxy-app) {
   :scope .options {
-    width: 100%; max-width: none; margin: 0; padding: 0 0 16px;
+    width: 100%; max-width: none; margin: 0; padding: 0;
     background: var(--surface);
   }
   :scope .options .optionsHead {
     position: sticky; top: 0; z-index: 3;
     display: flex; flex-wrap: nowrap; align-items: center; gap: 8px;
-    min-height: 56px; margin: 0; padding: 8px 12px;
+    min-height: 52px; margin: 0; padding: 8px 12px;
     border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
     background: var(--surface);
   }
-  :scope .options .proxy-back { flex: none; padding: 6px 2px; min-height: 36px; font-size: 12px; }
   :scope .options .settingsSectionNav { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
   :scope .options .settingsSectionLabel {
-    flex: none; margin: 0; color: var(--muted); font-size: 12px; white-space: nowrap;
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
   }
   :scope .options .settingsSectionNav select {
     flex: 1; min-width: 0; width: 100%; min-height: 36px; padding: 6px 8px;
@@ -42,60 +41,77 @@
   :scope .options .settingsCopyFeedback { margin: 0 0 12px; color: var(--good); font-size: 12px; }
   :scope .options .layout { display: block; }
   :scope .options .panel.optionsContent {
-    width: 100%; padding: 16px 12px; border: 0; border-radius: 0;
+    display: flex; flex-direction: column; gap: var(--space-4);
+    width: 100%; min-height: 0; padding: var(--space-3); border: 0; border-radius: 0;
   }
   :scope .options .optionsPageHead {
     display: flex; flex-direction: column; align-items: stretch; gap: 12px;
-    margin: 0 0 16px; padding: 0; border: 0;
+    margin: 0; padding: 0; border: 0;
   }
   :scope .options .panelHeadIntro { flex: none; }
-  :scope .options .optionsPageHead h2 { font-size: 18px; line-height: 1.4; letter-spacing: -.02em; }
+  :scope .options .optionsTitleRow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
+  :scope .options .optionsTitleRow h2 { margin: 0; flex: none; }
+  :scope .options .optionsPageHead h2 { font-size: 16px; line-height: 1.5; letter-spacing: -.02em; }
   :scope .options .optionsPageHead .hint { margin-top: 4px; font-size: 12px; line-height: 1.6; }
   :scope .options .optionsPageHead .panelHeadActions {
-    display: flex; align-items: flex-start; justify-content: flex-start;
-    width: 100%; gap: 8px; flex-wrap: wrap;
+    display: flex; align-items: center; justify-content: flex-start;
+    width: auto; gap: var(--space-2); flex-wrap: wrap;
   }
-  :scope .options .panelHeadActions > .primary { flex: 1 1 120px; }
+  :scope .options .panelHeadActions > .primary { flex: none; }
   :scope .options .panelHeadActions button { min-height: 36px; padding: 7px 12px; }
-  :scope .options .settingsAddWays { flex: 1 1 145px; min-width: 0; }
+  :scope .options .settingsAddWays { position: relative; min-width: 0; }
   :scope .options .settingsAddWays summary {
     min-height: 36px; padding: 8px; color: var(--muted); cursor: pointer;
     font-size: 12px; text-align: center; border-radius: 8px;
   }
   :scope .options .settingsAddWays summary:hover { background: var(--soft); color: var(--ink); }
   :scope .options .settingsAddWayActions {
-    display: grid; gap: 4px; padding: 8px; margin-top: 4px;
-    border: 1px solid var(--line); border-radius: 8px; background: var(--soft);
+    position: absolute; top: 100%; inset-inline-end: 0; z-index: 2;
+    display: grid; width: 200px; gap: var(--space-1); padding: var(--space-2); margin-top: var(--space-1);
+    border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: 0 4px 12px #0002;
   }
   :scope .options .settingsAddWayActions button { width: 100%; text-align: start; }
-  :scope .options .listSection { margin: 0 0 16px; }
+  :scope .options .listSection { display: grid; gap: var(--space-3); margin: 0; }
   :scope .options .sectionHeading { gap: 8px; align-items: flex-start; margin-bottom: 8px; }
   :scope .options .sectionHeading h2 { font-size: 14px; }
   :scope .options .sectionHeading .hint { margin-top: 4px; }
   :scope .options .sectionHeading > .textAction { flex: none; font-size: 12px; }
-  :scope .options .profileRecords { margin-top: 8px; border-radius: 8px; }
+  :scope .options .profileRecords { margin: 0; gap: 0; border: 0; border-radius: 0; overflow: visible; }
   :scope .options .profileRecords .proxyRecord {
-    display: flex; flex-direction: column; align-items: stretch; gap: 8px;
-    min-height: 0; padding: 12px;
+    display: grid; grid-template-columns: 34px minmax(0,1fr) auto; align-items: center;
+    gap: var(--space-2); min-height: 64px; padding: var(--space-3) 0;
+    border: 0; border-radius: 0;
   }
-  :scope .options .proxyRecordMain { gap: 8px; }
-  :scope .options .proxyAvatar { width: 30px; height: 30px; border-radius: 8px; }
-  :scope .options .proxyRecordMain strong { font-size: 13px; }
-  :scope .options .proxyRecordMain small { font-size: 12px; }
-  :scope .options .recordActions { gap: 8px; }
-  :scope .options .recordActions button { min-height: 36px; padding: 6px 12px; font-size: 12px; }
-  :scope .options .rowBadges { margin-top: 4px; }
-  :scope .options .rowBadges:empty { display: none; }
-  :scope .options .rowBadges span { font-size: 12px; }
-  :scope .options .optionsModeBar { margin: 0 0 16px; padding: 12px; border-radius: 8px; }
-  :scope .options .settingsRuntimeStatus { margin-bottom: 8px; }
+  :scope .options .profileRecords .proxyRecord + .proxyRecord { border-top: 1px solid var(--line); }
+  :scope .options .proxyRecordMain { min-width: 0; }
+  :scope .options .proxyRecordText { display: grid; gap: var(--space-1); width: 100%; }
+  :scope .options .proxyRecordTitle { display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
+  :scope .options .proxyRecordTitle > span { display: inline-flex; flex: none; color: var(--muted); }
+  :scope .options .proxyRecordTitle > .proxyApplied { color: var(--good); }
+  :scope .options .proxyRecordMain strong { font-size: 13px; line-height: 20px; }
+  :scope .options .proxyRecordMain small { font-size: 12px; line-height: 18px; margin: 0; }
+  :scope .options :is(.proxyRecordTitle strong,.proxyRecordText small,.ruleRecordText strong,.ruleRecordText small) {
+    display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  :scope .options .recordActions { display: flex; flex-wrap: nowrap; gap: var(--space-2); }
+  :scope .options .proxyIconButton {
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+    width: var(--od-icon-size); height: var(--od-icon-size); min-height: var(--od-icon-size);
+    padding: 0; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--muted);
+  }
+  :scope .options .proxyIconButton:hover:not(:disabled) { color: var(--accent); background: var(--soft); border-color: var(--line); }
+  :scope .options .proxyIconButton:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  :scope .options .proxySelect[aria-pressed='true'] { color: var(--accent); }
+  :scope .options .quietDanger { color: var(--bad); }
+  :scope .options .optionsModeBar { display: grid; gap: var(--space-3); margin: 0; padding: var(--space-3); border-radius: 8px; }
+  :scope .options .settingsRuntimeStatus { margin: 0; }
   :scope .options .settingsRuntimeStatus .controlChip { display: inline-flex; white-space: normal; font-size: 12px; }
-  :scope .options .optionsModeGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 12px 0; }
+  :scope .options .optionsModeGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-2); margin: 0; }
   :scope .options .optionsModeGrid button { min-height: 36px; padding: 7px; border-radius: 8px; }
-  :scope .options .modeActions { gap: 8px; margin: 8px 0 0; }
+  :scope .options .modeActions { gap: var(--space-2); margin: 0; }
   :scope .options .modeActions > button { min-height: 36px; }
   :scope .options .modeActions small { flex-basis: 100%; font-size: 12px; }
-  :scope .options .pacDetails { margin: 16px 0; border-radius: 8px; }
+  :scope .options .pacDetails { margin: 0; border-radius: 8px; }
   :scope .options .pacDetails > summary { padding: 12px; gap: 8px; }
   :scope .options .pacContent { padding: 12px; }
   :scope .options .pacStarterFields { grid-template-columns: minmax(0,1fr); }
@@ -108,38 +124,45 @@
   :scope .options .generalGrid .languageRecord {
     min-height: 0; padding: 12px; border-radius: 8px;
   }
-  :scope .options .rulesPage { gap: 0; }
-  :scope .options .rulesPage > .optionsPageHead { margin-bottom: 16px; }
-  :scope .options .rulesDefault { margin-top: 16px; }
+  :scope .options .rulesPage { display: grid; gap: var(--space-4); }
+  :scope .options .rulesPage > .optionsPageHead { margin: 0; }
+  :scope .options .rulesDefault { display: grid; gap: var(--space-3); margin: 0; }
   :scope .options .rulesList { padding: 0; border: 0; border-radius: 0; background: transparent; }
   :scope .options .rulesList .records {
-    margin-top: 12px; border: 0; border-radius: 0; background: transparent;
+    margin: 0; border: 0; border-radius: 0; background: transparent; overflow: visible;
   }
-  :scope .options .rulesList .records > .record { padding: 12px 0; background: transparent; }
-  :scope .options .rulesEnabledState { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
-  :scope .options .rulesList .record { flex-direction: row; flex-wrap: wrap; gap: 8px; }
-  :scope .options .rulesList .record > div:first-child { flex: 1 1 180px; min-width: 0; }
+  :scope .options .rulesList .records > .record { padding: var(--space-3) 0; background: transparent; }
+  :scope .options .rulesList { display: grid; gap: var(--space-3); }
+  :scope .options .rulesList .ruleRecord { display: grid; grid-template-columns: 20px minmax(0,1fr) auto; align-items: center; gap: var(--space-2); min-height: 64px; }
+  :scope .options .ruleRecordText { display: grid; gap: var(--space-1); min-width: 0; }
+  :scope .options .ruleRecordText strong { line-height: 20px; }
+  :scope .options .ruleRecordText small { line-height: 18px; }
+  :scope .options .ruleRecord .actions { display: flex; flex-wrap: nowrap; gap: var(--space-2); margin: 0; }
+  :scope .options .ruleStateIcon { display: inline-flex; color: var(--muted); }
+  :scope .options .ruleStateIcon.isEnabled { color: var(--accent); }
+  :scope .options .rulesList > .subtleTag { justify-self: start; }
   :scope .options .rulesEditor { scroll-margin-top: 68px; padding: 0; border: 0; border-radius: 0; background: transparent; }
-  :scope .options .rulesPage > .ruleEditorHeader { margin-bottom: 12px; }
+  :scope .options .rulesPage > .ruleEditorHeader { min-height: 0; margin: 0; padding: 0; }
   :scope .options .ruleEditorForm { margin: 12px 0 0; }
   :scope .options .rulesEditorFields {
-    display: grid; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0;
+    display: grid; gap: var(--space-4); min-width: 0; margin: 0; padding: 0; border: 0;
   }
-  :scope .options .rulesEditorFields > .ruleCheckbox { margin: 0; }
-  :scope .options .rulesEditorFields .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  :scope .options .rulesEditorFields > .ruleInputFields { display: grid; gap: var(--space-3); min-width: 0; }
+  :scope .options .ruleInputFields > .ruleCheckbox { margin: 0; }
+  :scope .options .rulesEditorFields .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; }
   :scope .options .rulesEditorFields .actions > .primary { flex: 1; }
   :scope .options .rulesEditorFields .actions > .hint { flex-basis: 100%; margin: 0; }
   :scope .options .rulesEditorFields .actions > button { min-height: 36px; }
-  :scope .options .rulesList .r86Notice { margin: 0 0 12px; }
+  :scope .options .rulesList .r86Notice { margin: 0; }
   :scope .options :where(input,select,textarea,button,summary) { scroll-margin-top: 68px; }
-  :scope .options .ruleRouteFields, :scope .options .formGrid { grid-template-columns: minmax(0,1fr); }
+  :scope .options .formGrid { grid-template-columns: minmax(0,1fr); }
   :scope .options .backupCard { gap: 12px; }
   :scope .options .backupCard h2 { font-size: 15px; }
   :scope .options .backupCard input[type='file'] { font-size: 12px; padding: 8px; }
   :scope .options .backupImport textarea { min-height: 140px; }
   :scope .options .generalGrid .languageRecord { background: var(--soft); }
   :scope .options .generalGrid .generalInfoCard { gap: 8px; background: var(--surface); }
-  :scope .options .sourceIntro, :scope .options .sourceInlineEditor,
+  :scope .options .sourceInlineEditor,
   :scope .options .sourceList .sourceRecord, :scope .options .diagnosticFeature,
   :scope .options .diagnosticSite, :scope .options .officialSection, :scope .options .officialEmpty {
     padding: 12px; border-radius: 8px;
@@ -159,15 +182,33 @@
   :scope .options .diagnosticResult small,
   :scope .options .diagnosticResultLabel { font-size: 12px; line-height: 1.6; }
   :scope .options .officialHero.optionsPageHead { margin: 0; }
-  :scope .options .serviceNote { display: grid; gap: 8px; margin-top: 16px; padding: 12px; }
+  :scope .options .serviceNote { display: grid; gap: var(--space-2); margin: 0; padding: 12px; }
   :scope .options .serviceNote p, :scope .options .serviceNote button { font-size: 12px; }
   :scope .options :where(.hint,small,.summaryAction) { overflow-wrap: anywhere; }
   :scope .options .proxyEditorDialog {
     width: calc(100% - 24px); max-height: calc(100dvh - 24px);
-    padding: 16px; border-radius: 12px;
+    padding: 0; border-radius: 12px;
   }
-  :scope .options .proxyEditorForm { gap: 12px; }
-  :scope .options .proxyPrimaryFields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  /* Parent gaps own vertical rhythm; legacy child margins must not add to it. */
+  :scope .options :is(.optionsModeBar,.rulesDefault) > *,
+  :scope .options :is(.proxyEditorForm,.proxyEditorFields,.rulesEditorFields,.ruleInputFields) > * { margin: 0; }
+  :scope .options .proxyEditorForm { display: grid; gap: var(--space-4); padding: var(--space-4); }
+  :scope .options .proxyEditorFields { display: grid; gap: var(--space-3); min-width: 0; }
+  :scope .options .proxyEditorForm .eyebrow { display: none; }
+  :scope .options .proxyEditorForm .editorHead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: 0; border: 0; }
+  :scope .options .proxyEditorForm :is(.proxyPrimaryFields > div,.proxyNameField,.proxyAuthFields > div) { display: grid; align-content: start; gap: var(--space-2); }
+  :scope .options .proxyEditorForm label, :scope .options .rulesEditorFields label { margin: 0; }
+  :scope .options .ruleInputFields > div:has(>label) { display: grid; gap: var(--space-2); }
+  :scope .options .ruleInputFields > div > .hint { margin: 0; }
+  :scope .options .proxyEditorForm :is(.hint,.proxyEntryError) { margin: 0; }
+  :scope .options .proxyEditorForm .proxyQuickPicks { margin: 0; gap: var(--space-1); }
+  :scope .options .proxyEditorForm .proxyAuthDetails { padding: var(--space-3); }
+  :scope .options .proxyEditorForm .proxyAuthDetails[open] { display: grid; gap: var(--space-3); }
+  :scope .options .proxyAuthDetails > :is(.notice,.proxyAuthFields) { margin: 0; }
+  :scope .options .proxyEditorForm .editorActions { display: flex; gap: var(--space-2); margin: 0; padding: 0; border: 0; }
+
+  :scope .options .editorActions [data-add-another] { flex-basis: 100%; border-color: transparent; color: var(--accent); background: transparent; }
+  :scope .options .proxyPrimaryFields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-3); }
   :scope .options .proxyPrimaryFields > div { grid-column: auto; grid-row: auto; }
   :scope .options .proxyPrimaryFields > div:first-child { grid-column: 1/-1; }
   :scope .options .proxyAuthFields { grid-template-columns: minmax(0,1fr); }

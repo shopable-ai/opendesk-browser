@@ -166,53 +166,43 @@ test('Workspace events stay per instance and effect cleanup removes its draft li
   assert.equal(a.navigation.navigate('#/backup'), true);
 });
 
-test('workspace view tabs share draft protection and track selection without leaving the tool',()=>{
+test('settings close shares draft protection without adding business tabs',()=>{
  const f=workspaceFixture();let tree=f.render();
- const tabs=()=>tree.props.children.find(child=>child?.props?.role==='tablist');
- assert.equal(tabs().props.children[1].props['aria-selected'],true);
- tabs().props.children[0].props.onClick();tree=f.render();
- assert.equal(f.navigation.getRoute(),'');
- assert.equal(tabs().props.children[0].props['aria-selected'],true);
+ const settings=()=>routeContent(tree).props.children[0];
+ assert.equal(tree.props.children.some(child=>child?.props?.role==='tablist'),false);
  tree.props.onChange({target:{}});
- tabs().props.children[1].props.onClick();tree=f.render();
- assert.equal(f.navigation.getRoute(),'');
+ settings().props.onClose();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'#/rules');
  draftDialog(tree).props.onDone(false);tree=f.render();
- assert.equal(tabs().props.children[0].props['aria-selected'],true);
- tabs().props.children[1].props.onClick();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'#/rules');
+ settings().props.onClose();tree=f.render();
  draftDialog(tree).props.onDone(true);tree=f.render();
- assert.equal(f.navigation.getRoute(),'#/rules');
- assert.equal(tabs().props.children[1].props['aria-selected'],true);
-});
-
-test('active workspace tab keeps its section and switching back restores the last settings route',()=>{
- const f=workspaceFixture();let tree=f.render();
- const tabs=()=>tree.props.children.find(child=>child?.props?.role==='tablist');
- tree.props.onChange({target:{}});
- tabs().props.children[1].props.onClick();tree=f.render();
- assert.equal(f.navigation.getRoute(),'#/rules');
- assert.equal(draftDialog(tree),undefined);
- f.events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:false}));
- f.navigation.navigate('#/diagnostic/ai');tree=f.render();
- tabs().props.children[0].props.onClick();tree=f.render();
  assert.equal(f.navigation.getRoute(),'');
- tabs().props.children[1].props.onClick();tree=f.render();
- assert.equal(f.navigation.getRoute(),'#/diagnostic/ai');
 });
 
-test('busy view tabs cannot switch with arrow keys and release after the operation',()=>{
+test('closing clean settings returns to the proxy panel without resetting navigation identity',()=>{
  const f=workspaceFixture();let tree=f.render();
- const tabs=()=>tree.props.children.find(child=>child?.props?.role==='tablist');
+ routeContent(tree).props.children[0].props.onClose();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'');
+ assert.equal(draftDialog(tree),undefined);
+ f.navigation.navigate('#/diagnostic/ai');tree=f.render();
+ routeContent(tree).props.children[0].props.onClose();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'');
+});
+
+test('busy settings close cannot leave and releases after the operation',()=>{
+ const f=workspaceFixture();let tree=f.render();
+ const settings=()=>routeContent(tree).props.children[0];
  f.events.dispatchEvent(new CustomEvent('ai-proxy-operation',{detail:{busy:true}}));tree=f.render();
- assert.equal(tabs().props.children[0].props.disabled,true);
+ assert.equal(settings().props.navigationBusy,true);
+ settings().props.onClose();
+ assert.equal(f.navigation.getRoute(),'#/rules');
  assert.equal(f.navigation.navigate('#/backup'),false);
  tree=f.render();assert.equal(draftDialog(tree),undefined);
- tabs().props.onKeyDown({key:'Home',preventDefault:()=>assert.fail('busy tabs handled navigation')});
- assert.equal(f.navigation.getRoute(),'#/rules');
  f.events.dispatchEvent(new CustomEvent('ai-proxy-operation',{detail:{busy:false}}));tree=f.render();
- assert.equal(tabs().props.children[0].props.disabled,false);
- let focused=-1;
- tabs().props.onKeyDown({key:'Home',preventDefault(){},currentTarget:{querySelectorAll:()=>[0,1].map(index=>({focus:()=>focused=index}))}});
- assert.equal(f.navigation.getRoute(),'');assert.equal(focused,0);
+ assert.equal(settings().props.navigationBusy,false);
+ settings().props.onClose();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'');
 });
 
 const settingsSource = await readFile(new URL('../src/Settings.tsx', import.meta.url), 'utf8');

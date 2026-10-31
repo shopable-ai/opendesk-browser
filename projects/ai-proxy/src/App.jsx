@@ -33,12 +33,6 @@ function Workspace() {
  const dirtyRef=useRef(false),busyRef=useRef(false),routeContent=useRef(null),focusAfterDiscard=useRef(false),lastRoute=useRef(route);
  function markDirty(value){dirtyRef.current=value;setDirty(value);}
  const settings=route.startsWith('#/');
- const lastSettingsRoute=useRef(settings?route:'#/profiles');
- useEffect(()=>{if(settings)lastSettingsRoute.current=route;},[route,settings]);
- function selectView(management){
-  if(management===settings)return;
-  env.navigation.navigate(management?lastSettingsRoute.current:'');
- }
  useEffect(()=>{env.setConfirmHandler(text=>new Promise(resolve=>setConfirmation({text,resolve})));return()=>env.setConfirmHandler(null);},[env]);
  useEffect(()=>{const changed=event=>{busyRef.current=event.detail.busy===true;setBusy(busyRef.current);};env.events.addEventListener('ai-proxy-operation',changed);return()=>env.events.removeEventListener('ai-proxy-operation',changed);},[env]);
  useEffect(()=>{
@@ -53,9 +47,8 @@ function Workspace() {
  useEffect(()=>{
   if(focusAfterDiscard.current||lastRoute.current!==route){
    focusAfterDiscard.current=false;
-   // Settings tabs retain their own focus; a changed page tree restores focus
-   // inside the new view instead of leaving it on the document body.
-   if(!document.activeElement?.closest?.('.proxy-view-tabs')&&!routeContent.current?.contains(document.activeElement))routeContent.current?.focus();
+   // Keep the restored trigger's focus; otherwise focus the new route region.
+   if(!routeContent.current?.contains(document.activeElement))routeContent.current?.focus();
   }
   lastRoute.current=route;
  },[route,pageEpoch]);
@@ -78,17 +71,7 @@ function Workspace() {
   // Bubble after the field's own controlled update. Capture can restore its old value.
   env.markDraftFrom(event.target);
  }}>
-  <div className="proxy-view-tabs" role="tablist" aria-label={t('apWorkspaceViews')}
-   onKeyDown={event=>{
-    if(busy||!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
-    event.preventDefault();
-    const management=event.key==='Home'?false:event.key==='End'?true:!settings;
-    event.currentTarget.querySelectorAll('[role="tab"]')[management?1:0]?.focus();selectView(management);
-   }}>
-   <Button id="proxy-view-panel" role="tab" disabled={busy} aria-selected={!settings} aria-controls="proxy-workspace-panel" tabIndex={settings?-1:0} onClick={()=>selectView(false)}>{t('apProxyPanel')}</Button>
-   <Button id="proxy-view-settings" role="tab" disabled={busy} aria-selected={settings} aria-controls="proxy-workspace-panel" tabIndex={settings?0:-1} onClick={()=>selectView(true)}>{t('apManageSettings')}</Button>
-  </div>
-  <div id="proxy-workspace-panel" role="tabpanel" aria-labelledby={settings?'proxy-view-settings':'proxy-view-panel'} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings/>:<QuickPanel/>}</div>
+  <div id="proxy-workspace-panel" role="region" aria-label={t(settings?'apManageSettings':'apProxyPanel')} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings onClose={()=>env.navigation.navigate('')} navigationBusy={busy}/>:<QuickPanel/>}</div>
   {confirmation&&<Confirmation title={t('apConfirm')} text={confirmation.text} accept={t('apConfirm')} cancel={t('cancel')} onDone={ok=>{confirmation.resolve(ok);setConfirmation(null);}}/>}
   {pendingRoute!==null&&<Confirmation id="proxy-draft" title={t('apUnsaved')} text={t('apDiscardHelp')} cancel={t('apKeepEditing')} accept={t('apDiscardLeave')} onDone={leaveDraft}/>}
  </div>;

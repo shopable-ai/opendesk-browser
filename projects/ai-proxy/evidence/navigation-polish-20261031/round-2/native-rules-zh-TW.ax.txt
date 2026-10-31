@@ -1,0 +1,83 @@
+Browser tab: 560069431, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-37aa3aca-b377-48b7-a76b-2584e2d3e92b/preview.html".
+1 AXWebArea AI Proxy · React 同源预览, URL: 127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-37aa3aca-b377-48b7-a76b-2584e2d3e92b/preview.html
+	2 container
+		3 container 预览来源和安全范围
+			4 text 模拟预览 · 非真实安装、权限或网络执行
+			5 text 工具：AI Proxy · 初始场景：success · 初始工具主题：light · 预览外壳：浅色
+			6 text Source: 3c76ae9a4c2d42616ca5d46581204511c16f3650 · Design SHA-256: efa5541cac5eda31587ef534cbd79d8b5696b22ef9ff024dab0109674f210380 · Shell SHA-256: 4f4692678370fe6b5f5f7abd74e6e44877ac4a25bb1d47415a450ef0e70a0a68 · UI SHA-256: 791f07c52b3c1b86f0c07bba1e54920b4d1241287ac61fb24a311495608e2a08
+		7 container OpenDesk Browser Side Panel 真实布局来源的离线预览
+			8 tab group 工作台
+				9 tab (selectable, settable, boolean) 我的, Value: 0, ID: tab-my-tasks
+				10 tab (selected, settable, boolean) 扩展, Value: 1, ID: tab-tools
+				11 tab (selectable, settable, boolean) 工作流, Value: 0, ID: tab-workflow
+				12 tab (selectable, settable, boolean) 开发, Value: 0, ID: tab-develop
+				13 tab (selectable, settable, boolean) 云控, Value: 0, ID: tab-cloud
+			14 container Description: 扩展, ID: od-preview-extension-detail
+				15 container
+					16 button Description: 返回扩展列表, ID: sidebar-tool-back
+					17 heading AI Proxy, Value: 2, ID: sidebar-tool-title
+						18 text AI Proxy
+					19 container 工具管理
+						20 button Description: 模拟卸载当前工具（不会删除真实数据）, Help: 模拟卸载（不会删除真实数据）, ID: sidebar-tool-remove
+				21 container Description: AI Proxy · 内存模拟, ID: opendesk-preview-frame
+					22 AXWebArea about:srcdoc
+						23 container proxy-ready
+							24 tab group AI Proxy 檢視
+								25 tab (selectable, settable, boolean) 代理面板, Value: 0, ID: proxy-view-panel
+								26 tab (selected, settable, boolean) 管理設定, Value: 1, ID: proxy-view-settings
+							92 container Description: 管理設定, ID: proxy-workspace-panel
+								93 container
+									94 container 設定欄目
+										95 text 設定欄目
+										96 pop up button (collapsed, settable) Description: 設定欄目, Value: 網站規則, ID: settings-section, Secondary Actions: Expand
+											97 menu
+												98 container 代理管理
+													99 代理設定檔
+													100 (selected) 網站規則
+													101 訂閱管理
+													102 匯入與備份
+													103 網路診斷
+													104 通用設定
+												105 container 可選服務
+													106 官方網路 · 選用官方服務
+									142 container
+										143 button (collapsed) Description: 複製本頁連結 / 重新整理狀態, Help: ⋯, Secondary Actions: Expand
+											144 text ⋯
+									145 container
+										146 heading 網站規則, Value: 2
+											147 text 網站規則
+										148 text 按域名選擇代理或直連
+										149 button 新增規則, ID: settings-rule-add
+									150 container 網站規則
+										151 text 僅儲存規則，目前網路維持不變。需要生效時，請在代理面板明確套用。
+										152 text 2 條網站規則
+										153 container
+											154 text example.com + 子域 優先順序 11  ·  工作代理 已啟用
+											155 button Description: 編輯 example.com 的規則（包含子網域）, ID: settings-rule-rule-docs
+											156 button 刪除 example.com 的規則（包含子網域）
+										157 container
+											158 text example.org 優先順序 20  ·  DIRECT 已啟用
+											159 button Description: 編輯 example.org 的規則（僅此網域）, ID: settings-rule-rule-local
+											160 button 刪除 example.org 的規則（僅此網域）
+									161 container
+										162 heading 無規則命中時, Value: 2
+											163 text 無規則命中時
+										164 text 預設 DIRECT；只有明確選擇代理才會經代理，不會自動回退到未知節點。 預設路由
+										165 pop up button (collapsed, settable) 預設路由, Value: DIRECT, ID: default-action, Secondary Actions: Expand
+											166 menu
+												167 (selected) DIRECT
+												168 指定代理
+										169 text 代理
+										170 pop up button (disabled, collapsed, settable) 代理, Value: 請選擇, ID: default-endpoint, Secondary Actions: Expand
+											171 menu
+												172 (disabled) 請選擇
+												173 (disabled) 工作代理
+												174 (disabled) 本地客户端
+												175 (disabled) 备用 SOCKS
+										176 button 儲存預設路由
+										177 text 當前： DIRECT
+		89 container 离线预览辅助
+			90 button (collapsed) 预览辅助 · 非正式工具, Secondary Actions: Expand
+				91 text 预览辅助 · 非正式工具
+
+The focused UI element is 92 container Description: 管理設定, ID: proxy-workspace-panel

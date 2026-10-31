@@ -1,0 +1,1369 @@
+{
+  "format": "ai-proxy.navigation-polish.code-review.v2",
+  "reviewDate": "2026-10-31",
+  "reviewer": {
+    "role": "independent code/spec/security reviewer",
+    "mode": "solo; no child agents",
+    "scope": "read-only source and supplied Chromium evidence; only this review JSON written"
+  },
+  "status": "COMPLETE_WITHIN_AUTHORIZED_DEVELOPMENT_SCOPE",
+  "recommendation": "COMMENT",
+  "recommendationReason": "本轮代码/spec/security 审查未发现需要修改的缺陷或开发收尾阻断。未运行不可用的 LSP 语义诊断，因此不作无条件 APPROVE；此工具覆盖限制不等同于产品阻断，也不恢复 OUT_OF_SCOPE 的全 typecheck/正式验收。",
+  "provisionalScores": false,
+  "summary": "三项反馈均完成根因修复：重复域名/scope错误随相关输入失效；同域不同scope的操作名和确认可区分；删除成功复用原编辑器收尾路径恢复邻项/Add焦点。24项定向测试和真实 main.jsx 的 write:false IIFE/CSS 编译通过。新候选64输入无漂移，三语原生截图/AX、删除交互和338→338→338数值滚动补证已审阅。没有 CRITICAL/HIGH/MEDIUM/LOW 代码问题。",
+  "scope": {
+    "owner": "projects/ai-proxy",
+    "branch": "main",
+    "observedHead": "3c76ae9a4c2d42616ca5d46581204511c16f3650",
+    "headIsReviewBaseline": false,
+    "previousCandidate": "source-68e774ea-ebdd-48e3-acfc-7a7de011267f",
+    "deltaBaseline": "上一轮候选 manifest 的逐文件 SHA；相关产品文件 HEAD blob 与该候选匹配后才采用 git diff。未将并行 HEAD 推进当作本轮提交。",
+    "originalBaseline": "/tmp/ai-proxy-navigation-polish-before/（第一轮原始增量基线；本轮在已绑定的上一轮候选上复评修复）",
+    "modifiedProductFiles": [
+      {
+        "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+        "sha256": "be8bb029293ead685cf7d3f0e977219223661544fb0dff73252af59fb1e5e7de",
+        "baselineSha256": "9154ff793c9933a8ac5e4b00b974a1811cb353661c74502ac583b3604c06adb5"
+      },
+      {
+        "path": "projects/ai-proxy/src/i18n/locales/en.json",
+        "sha256": "b9bba1d5fb6f33d3ef980165d2f8659507a6699bea062353284781ea863111e2",
+        "baselineSha256": "d0237d36f1704dc138d99b47b6d4b49ec8c4b53b6abad206753b8d1c0eced2c2"
+      },
+      {
+        "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+        "sha256": "b78749885a3622b8a5c3a7017e7f50cebe5a34cd114eb8516a9e6b735b999adc",
+        "baselineSha256": "13f00d930aec3ea4cf8b8f44fb4ef60f83dc39e547b9083789745749f2167aad"
+      },
+      {
+        "path": "projects/ai-proxy/src/ui/useProxy.ts",
+        "sha256": "e37c48881ec4d75185be8020805884a455e98c7ed234c6c8bbe182afa71795ce",
+        "baselineSha256": "6b6762878462e6777a26871a5d5d34e7bf4f9b16837000a7e88bce1840418722"
+      },
+      {
+        "path": "projects/ai-proxy/src/Settings.tsx",
+        "sha256": "1e0a26ad0db311cc951970099c207fa97b7e5e4283c30a96710b67d853fb1090",
+        "baselineSha256": "e91b3244c4f8201a59ecae480d1ae757d73c743ccbe99d37205e596258c40ccb"
+      }
+    ],
+    "modifiedTestFiles": [
+      {
+        "file": "projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+        "sha256": "201d6e1c38ea164a9094d92799e3f66c510081201fd38de9a417a276e8060139",
+        "baselineSha256": "19a12c83618f7e61ec5f9029a36ce8952635868bbe734e771fe8593a07792f32",
+        "baselineMatchesPriorCandidate": true,
+        "parse": "PASS",
+        "changedNamedFunctions": [
+          "fixture",
+          "click"
+        ],
+        "baselinePatterns": [],
+        "currentPatterns": []
+      },
+      {
+        "file": "projects/ai-proxy/tests/use-proxy-errors.test.mjs",
+        "sha256": "b1035cf6554a146a4b256bb31e5e873885aa820e74752940a62e08c508d30749",
+        "baselineSha256": "cff3faf2a24da57f37bdbae95318e47d9db9dac87ba19962e73a3c8ea6cb97cd",
+        "baselineMatchesPriorCandidate": true,
+        "parse": "PASS",
+        "changedNamedFunctions": [],
+        "baselinePatterns": [],
+        "currentPatterns": []
+      }
+    ],
+    "filesReviewed": 7,
+    "unchangedImportantFiles": [
+      "projects/ai-proxy/src/QuickPanel.tsx",
+      "projects/ai-proxy/src/App.jsx",
+      "projects/ai-proxy/src/environment.ts",
+      "projects/ai-proxy/src/service.ts",
+      "projects/ai-proxy/src/ui/navigation.ts",
+      "projects/ai-proxy/src/style.css",
+      "projects/ai-proxy/src/styles/sidebar-settings.css"
+    ],
+    "permissions": "只写 round-2/code-review.json；没有改源码/测试/包/dist、切分支、提交、安装工具、操作浏览器或服务。",
+    "constraintsRead": [
+      "AGENTS.md",
+      "projects/ai-proxy/AGENTS.md",
+      "projects/ai-proxy/README.zh-CN.md 第15节/15.1",
+      "/Users/shopme/.codex/skills/code-review/SKILL.md"
+    ],
+    "oldReport": {
+      "path": "projects/ai-proxy/evidence/navigation-polish-20261031/code-review.json",
+      "sha256Before": "b4d87533e184aa810d2c1750bcb98e65f2744c5e4e8a0c7cac60d413a883027c",
+      "preserved": true,
+      "sha256After": "b4d87533e184aa810d2c1750bcb98e65f2744c5e4e8a0c7cac60d413a883027c"
+    },
+    "documentationSupplement": "README.zh-CN.md 15.1最新版已读，保持新候选与NOT_TESTED/OUT_OF_SCOPE边界；没有修改文档。"
+  },
+  "stage1": {
+    "result": "PASS_WITHIN_SCOPE",
+    "checks": [
+      {
+        "contract": "重复校验随依赖输入变化失效，同时保留后台错误",
+        "result": "PASS",
+        "references": [
+          "projects/ai-proxy/src/ui/useProxy.ts:19",
+          "projects/ai-proxy/src/Settings.tsx:672",
+          "projects/ai-proxy/src/Settings.tsx:685",
+          "projects/ai-proxy/tests/use-proxy-errors.test.mjs:178"
+        ],
+        "evidence": "clearErrorKey 使用函数式更新，仅匹配 source==='key' 且相同 key 时清除；local message、其他 key、backend 均保留。组件测试覆盖 domain/scope 两条路径；真实 hook 测试覆盖 backend/其他 key。新候选 duplicate-corrected AX 和交互记录显示错误及 describedBy 消失，未触发保存。"
+      },
+      {
+        "contract": "同域不同scope操作与删除确认无歧义",
+        "result": "PASS",
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:403",
+          "projects/ai-proxy/src/Settings.tsx:657",
+          "projects/ai-proxy/src/Settings.tsx:659"
+        ],
+        "evidence": "三语 edit/delete/confirm 均传 domain+本地化 scope；24项中的组件用例检查四个操作名互异，浏览器同域两scope新增/删除取消/确认均有记录。三语1009键一致，不再沿用旧1006分母。"
+      },
+      {
+        "contract": "删除后焦点与列表恢复",
+        "result": "PASS",
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:395",
+          "projects/ai-proxy/src/Settings.tsx:357"
+        ],
+        "evidence": "busy时返回；删除前按当前列表计算后邻/前邻/Add；确认后检查generation/route；成功响应后revision/generation通过才复用finishRuleEditor。该函数在rAF再次检查generation/route，并回退到现存Add按钮。定向用例证明邻项/Add以及取消/失败不删除、不移动焦点；真实删除返回settings-rule-rule-local。"
+      },
+      {
+        "contract": "编辑不意外改变 id/enabled/priority；保存不应用",
+        "result": "PASS",
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:325",
+          "projects/ai-proxy/src/Settings.tsx:344"
+        ],
+        "evidence": "saveRule/editRule AST本轮未变；disabled旧规则保存保留id/enabled/priority的既有用例通过，只有SAVE_RULE不含APPLY。浏览器显式把priority10改11属于用户编辑意图，不是自动漂移。后台/service/QuickPanel/配置逻辑无本轮改动。"
+      },
+      {
+        "contract": "草稿revision、busy导航及焦点滚动",
+        "result": "PASS_FOR_EXERCISED_SCOPE",
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:349",
+          "projects/ai-proxy/src/Settings.tsx:362",
+          "projects/ai-proxy/src/Settings.tsx:405"
+        ],
+        "evidence": "既有迟到保存/确认不清较新revision、未完成保存锁导航测试通过。原生键盘列表往返同焦点且338→338→338；未将locator click 365→338的CHECK记录改写成PASS。受控pending浏览器流程NOT_TESTED。 Settings原生补证已核对：拒绝丢弃保留corrected.example，确认丢弃后返回Add焦点，未增加保存记录。"
+      },
+      {
+        "contract": "清楚的保存反馈与共同header",
+        "result": "PASS",
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:650"
+        ],
+        "evidence": "短receipt与保存不应用说明并存。中文/EN/TW原生可读截图确认布局。computed：Quick header8px12px/body16px12px；Settings header8px0px/content16px12px；h2均16px，header最小高52px。未将相对父容器的padding差异推断成可见错位。"
+      }
+    ]
+  },
+  "rootCauseGuard": {
+    "result": "PASS",
+    "references": [
+      "projects/ai-proxy/src/ui/useProxy.ts:19",
+      "projects/ai-proxy/src/Settings.tsx:395"
+    ],
+    "reasoning": "不是宽泛吞错/降级路径。重复错误的有效性依赖domain/scope，改变依赖输入时仅使同key本地校验失效；再次提交仍重新检查duplicate。删除复用原finishRuleEditor而非新增第二套导航/焦点管理器，保留失败响应和并发守卫。未新增empty catch、静默成功或绕过主合同的fallback。"
+  },
+  "stage2": {
+    "result": "SOURCE_RUNTIME_BUILD_PASS_SEMANTIC_DIAGNOSTICS_NOT_TESTED",
+    "astCheck": {
+      "command": "node --input-type=module <<'JS'\nimport {readFileSync} from 'node:fs';\nimport {execFileSync} from 'node:child_process';\nimport {createHash} from 'node:crypto';\nimport {parse} from '@babel/parser';\nconst sha=b=>createHash('sha256').update(b).digest('hex');\nconst old=JSON.parse(readFileSync('projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/manifest.json'));\nconst stripped=new Set(['start','end','loc','extra','comments','leadingComments','trailingComments','innerComments']);\nconst normal=n=>Array.isArray(n)?n.map(normal):n&&typeof n==='object'?Object.fromEntries(Object.entries(n).filter(([k])=>!stripped.has(k)).map(([k,v])=>[k,normal(v)])):n;\nfunction walk(n,fn){if(!n||typeof n!=='object')return;fn(n);for(const [k,v]of Object.entries(n)){if(stripped.has(k))continue;if(Array.isArray(v))v.forEach(x=>walk(x,fn));else if(v&&typeof v==='object')walk(v,fn);}}\nconst files=['projects/ai-proxy/src/Settings.tsx','projects/ai-proxy/src/ui/useProxy.ts','projects/ai-proxy/tests/settings-rules-runtime.test.mjs','projects/ai-proxy/tests/use-proxy-errors.test.mjs'];\nconst results=files.map(file=>{\n const current=readFileSync(file,'utf8'),base=execFileSync('git',['show','HEAD:'+file],{encoding:'utf8'});\n const baselineMatchesPriorCandidate=!old.sources[file]||old.sources[file].sha256===sha(base);\n if(!baselineMatchesPriorCandidate)throw Error('HEAD baseline does not match previous candidate: '+file);\n const parseText=s=>parse(s,{sourceType:'module',plugins:['jsx','typescript']});\n const getPatterns=tree=>{const out=[];walk(tree,n=>{\n  if(n.type==='CallExpression'&&n.callee?.object?.name==='console'&&n.callee?.property?.name==='log')out.push({kind:'console.log',line:n.loc.start.line});\n  if(n.type==='CatchClause'&&!n.body.body.length)out.push({kind:'empty-catch',line:n.loc.start.line});\n  if(n.type==='JSXAttribute'&&n.name?.name==='dangerouslySetInnerHTML')out.push({kind:'raw-html',line:n.loc.start.line});\n  if(n.type==='VariableDeclarator'&&/^(api_?key|secret|access_?token|password)$/i.test(n.id?.name??'')&&n.init?.type==='StringLiteral'&&n.init.value)out.push({kind:'hardcoded-secret-candidate',line:n.loc.start.line});\n });return out;};\n const currentAst=parseText(current),baseAst=parseText(base);\n const functions=tree=>{const m=new Map();walk(tree,n=>{if(n.type==='FunctionDeclaration'&&n.id&&n.id.name!=='App')m.set(n.id.name,JSON.stringify(normal(n)));});return m;};\n const now=functions(currentAst),was=functions(baseAst);\n return {file,sha256:sha(current),baselineSha256:sha(base),baselineMatchesPriorCandidate,parse:'PASS',changedNamedFunctions:[...new Set([...now.keys(),...was.keys()])].filter(k=>now.get(k)!==was.get(k)),baselinePatterns:getPatterns(baseAst),currentPatterns:getPatterns(currentAst)};\n});\nconst catalogs=['en','zh-CN','zh-TW'].map(locale=>({locale,data:JSON.parse(readFileSync('projects/ai-proxy/src/i18n/locales/'+locale+'.json','utf8'))}));\nconst keyString=JSON.stringify(Object.keys(catalogs[0].data).sort());\nconst relevant=['editNamedRule','deleteNamedRule','confirmDeleteRule','apRuleExactScope','apRuleSubdomainScope','apRuleAlreadyExists','apRuleSavedNotice'];\nconst locales=catalogs.map(({locale,data})=>{\n if(JSON.stringify(Object.keys(data).sort())!==keyString)throw Error('Locale key mismatch');\n for(const key of ['editNamedRule','deleteNamedRule','confirmDeleteRule'])if(!data[key].includes('{domain}')||!data[key].includes('{scope}'))throw Error('Missing scope/domain: '+locale+key);\n return {locale,count:Object.keys(data).length,strings:Object.fromEntries(relevant.map(k=>[k,data[k]]))};\n});\nconsole.log(JSON.stringify({status:'PASS',kind:'Babel AST and JSON checks, not semantic typecheck',files:results,locales},null,2));\nJS",
+      "exitCode": 0,
+      "result": {
+        "status": "PASS",
+        "kind": "Babel AST and JSON checks, not semantic typecheck",
+        "files": [
+          {
+            "file": "projects/ai-proxy/src/Settings.tsx",
+            "sha256": "1e0a26ad0db311cc951970099c207fa97b7e5e4283c30a96710b67d853fb1090",
+            "baselineSha256": "e91b3244c4f8201a59ecae480d1ae757d73c743ccbe99d37205e596258c40ccb",
+            "baselineMatchesPriorCandidate": true,
+            "parse": "PASS",
+            "changedNamedFunctions": [
+              "removeRule"
+            ],
+            "baselinePatterns": [
+              {
+                "kind": "empty-catch",
+                "line": 237
+              }
+            ],
+            "currentPatterns": [
+              {
+                "kind": "empty-catch",
+                "line": 237
+              }
+            ]
+          },
+          {
+            "file": "projects/ai-proxy/src/ui/useProxy.ts",
+            "sha256": "e37c48881ec4d75185be8020805884a455e98c7ed234c6c8bbe182afa71795ce",
+            "baselineSha256": "6b6762878462e6777a26871a5d5d34e7bf4f9b16837000a7e88bce1840418722",
+            "baselineMatchesPriorCandidate": true,
+            "parse": "PASS",
+            "changedNamedFunctions": [
+              "useProxy"
+            ],
+            "baselinePatterns": [],
+            "currentPatterns": []
+          },
+          {
+            "file": "projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+            "sha256": "201d6e1c38ea164a9094d92799e3f66c510081201fd38de9a417a276e8060139",
+            "baselineSha256": "19a12c83618f7e61ec5f9029a36ce8952635868bbe734e771fe8593a07792f32",
+            "baselineMatchesPriorCandidate": true,
+            "parse": "PASS",
+            "changedNamedFunctions": [
+              "fixture",
+              "click"
+            ],
+            "baselinePatterns": [],
+            "currentPatterns": []
+          },
+          {
+            "file": "projects/ai-proxy/tests/use-proxy-errors.test.mjs",
+            "sha256": "b1035cf6554a146a4b256bb31e5e873885aa820e74752940a62e08c508d30749",
+            "baselineSha256": "cff3faf2a24da57f37bdbae95318e47d9db9dac87ba19962e73a3c8ea6cb97cd",
+            "baselineMatchesPriorCandidate": true,
+            "parse": "PASS",
+            "changedNamedFunctions": [],
+            "baselinePatterns": [],
+            "currentPatterns": []
+          }
+        ],
+        "locales": [
+          {
+            "locale": "en",
+            "count": 1009,
+            "strings": {
+              "editNamedRule": "Edit rule for {domain} ({scope})",
+              "deleteNamedRule": "Delete rule for {domain} ({scope})",
+              "confirmDeleteRule": "Delete the website rule for “{domain}” ({scope})? The applied route changes only after you explicitly apply Website rules again.",
+              "apRuleExactScope": "this domain only",
+              "apRuleSubdomainScope": "includes subdomains",
+              "apRuleAlreadyExists": "A rule for this domain and scope already exists. Cancel this edit, then open Website rules to edit the existing rule.",
+              "apRuleSavedNotice": "Website rule saved."
+            }
+          },
+          {
+            "locale": "zh-CN",
+            "count": 1009,
+            "strings": {
+              "editNamedRule": "编辑 {domain} 的规则（{scope}）",
+              "deleteNamedRule": "删除 {domain} 的规则（{scope}）",
+              "confirmDeleteRule": "确定删除网站规则「{domain}」（{scope}）吗？重新应用网站规则模式后才会更新已应用线路。",
+              "apRuleExactScope": "仅此域名",
+              "apRuleSubdomainScope": "包含子域名",
+              "apRuleAlreadyExists": "相同域名与范围的规则已存在。请先取消当前编辑，再到网站规则列表编辑已有规则。",
+              "apRuleSavedNotice": "网站规则已保存。"
+            }
+          },
+          {
+            "locale": "zh-TW",
+            "count": 1009,
+            "strings": {
+              "editNamedRule": "編輯 {domain} 的規則（{scope}）",
+              "deleteNamedRule": "刪除 {domain} 的規則（{scope}）",
+              "confirmDeleteRule": "確定刪除網站規則「{domain}」（{scope}）嗎？重新套用網站規則模式後才會更新已套用路線。",
+              "apRuleExactScope": "僅此網域",
+              "apRuleSubdomainScope": "包含子網域",
+              "apRuleAlreadyExists": "相同網域與範圍的規則已存在。請先取消目前編輯，再到網站規則清單編輯既有規則。",
+              "apRuleSavedNotice": "網站規則已儲存。"
+            }
+          }
+        ]
+      }
+    },
+    "security": "无新增外部请求、HTML字符串注入、权限、秘密、安装、真实代理调用或持久化路径。仅本地校验状态、文本插值和焦点恢复；原有backend错误不会被新clearErrorKey清除。",
+    "performance": "新增处理仅在用户输入/删除时执行；删除遍历当前rules查邻项，沿用一次rAF，不新增轮询/订阅/持续任务。未作本轮无需求的性能或尺寸矩阵。",
+    "lspDiagnostics": {
+      "status": "NOT_TESTED",
+      "scope": "OUT_OF_SCOPE for full semantic typing",
+      "reason": "当前工具没有 lsp_diagnostics；本机未提供可用typescript/typescript-language-server。未安装或恢复环境。Babel AST与esbuild是真实语法/依赖编译证据，不能冒充语义类型检查。",
+      "blockingForThisDevelopmentReview": false
+    },
+    "astGrep": {
+      "status": "TOOL_UNAVAILABLE_SUBSTITUTED_WITH_BABEL_AST",
+      "patterns": [
+        "console.log",
+        "empty catch",
+        "dangerouslySetInnerHTML",
+        "hardcoded secret candidate"
+      ],
+      "result": "新增命中0；Settings旧empty catch在237行，与旧候选一致。"
+    }
+  },
+  "checks": {
+    "targetedTests": {
+      "trigger": "本轮修复重复错误、scope标签与删除焦点，并保留保存/草稿/busy语义；运行用户指定四文件。",
+      "command": "node --test projects/ai-proxy/tests/settings-rules-runtime.test.mjs projects/ai-proxy/tests/quick-panel-runtime.test.mjs projects/ai-proxy/tests/form-submit.test.mjs projects/ai-proxy/tests/use-proxy-errors.test.mjs",
+      "exitCode": 0,
+      "status": "PASS",
+      "tests": 24,
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 230.719417,
+      "stdout": "✔ all form submit controls use the real Shared Button submit override; explicit actions remain buttons (74.996375ms)\n✔ pending direct selection keeps an explicit Apply entry and never claims Direct is already active (7.431875ms)\n✔ confirmed unchanged Direct removes the pending Apply entry and shows its confirmed hint (3.086709ms)\n✔ settings rules list opens a separate editor; cancellation confirms only its draft and restores Add focus/scroll (10.62925ms)\n✔ settings rule edit/save retains identity, disabled state and priority; success returns receipt and never applies (5.266084ms)\n✔ settings rule failed save and background refresh preserve draft; Escape uses confirmation (6.332917ms)\n✔ settings rule late save or discard confirmation cannot clear a newer draft revision (10.43875ms)\n✔ settings new rule normalizes domain, saves one enabled target and returns to its list record (4.491792ms)\n✔ settings keeps seven discoverable sections and places copy/refresh in details without a second panel return (1.711ms)\n✔ settings rule endpoint choice stays untouched when refreshed endpoints arrive during editing (5.820166ms)\n✔ settings default route remains independently saveable without applying or clearing another draft (2.639958ms)\n✔ settings section selector stays locked until an unfinished save settles (5.000458ms)\n✔ settings rule total is a separate translated badge including disabled saved rules in all three locales (6.352833ms)\n✔ settings rule target cards drive the matching preview and save only the selected target (6.42575ms)\n✔ settings rule list explains save-only semantics and labels enabled and disabled records in all locales (12.37725ms)\n✔ correcting duplicate rule domain or scope removes its stale conflict without saving (9.176791ms)\n✔ same-domain rules expose scope in action names and delete confirmation in all locales (4.820791ms)\n✔ confirmed rule deletion returns focus to a surviving neighbor or Add; cancellation and failure preserve the record (3.945ms)\n✔ invalid input keys render localized text and follow locale changes without a request (5.948083ms)\n✔ backend codes and legacy errors localize, hide raw details, and transient read errors clear (1.944625ms)\n✔ failed actions retain their localized error through failed and successful refreshes (3.547625ms)\n✔ single-flight lock, subscription cleanup and alive guards survive pending responses (4.517417ms)\n✔ denied Apply keeps feedback across status reads and never replays the mutation (1.532125ms)\n✔ editing a resolved local validation clears only that key, retaining backend and unrelated errors (1.702709ms)\nℹ tests 24\nℹ suites 0\nℹ pass 24\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 230.719417\n",
+      "testFileBindings": [
+        {
+          "path": "projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+          "sha256": "201d6e1c38ea164a9094d92799e3f66c510081201fd38de9a417a276e8060139"
+        },
+        {
+          "path": "projects/ai-proxy/tests/quick-panel-runtime.test.mjs",
+          "sha256": "64822b7f9734d36b02e9bc7d040dd25e175b25e234f791269e557bc12bdb0e9b"
+        },
+        {
+          "path": "projects/ai-proxy/tests/form-submit.test.mjs",
+          "sha256": "970c93a8db3bdc3ceec49381ba9492a98126fe9880f9ad913b70c3ce255b117c"
+        },
+        {
+          "path": "projects/ai-proxy/tests/use-proxy-errors.test.mjs",
+          "sha256": "b1035cf6554a146a4b256bb31e5e873885aa820e74752940a62e08c508d30749"
+        }
+      ],
+      "limits": "测试中的Settings fixture为手写React/DOM模拟，未等同真实浏览器。fixture新增真实错误状态、DELETE数据变化和不存在DOM返回null，使新回归可失败。作者报告的先4项RED未由本评审独立重放；本评审仅实跑修复后24项。"
+    },
+    "realEntryCompile": {
+      "trigger": "实际main.jsx入口必须能解析新增hook导出/调用、三语与共享Button，并真实产生IIFE和CSS；不是只编译片段。",
+      "command": "node --input-type=module <<'JS'\nimport {build} from 'esbuild';\nimport {resolve,relative} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {readFileSync} from 'node:fs';\nconst hash=bytes=>createHash('sha256').update(bytes).digest('hex');\nconst captured=new Map();\nconst result=await build({\n  absWorkingDir:process.cwd(),entryPoints:['projects/ai-proxy/src/main.jsx'],\n  bundle:true,write:false,platform:'browser',format:'iife',target:'es2022',jsx:'automatic',\n  alias:{'@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')},\n  loader:{'.dat':'text'},define:{'process.env.NODE_ENV':JSON.stringify('production')},\n  outdir:'__memory_only_ai_proxy_review__',metafile:true,\n  plugins:[{name:'read-only-input-binding',setup(b){\n    b.onLoad({filter:/\\.(?:[cm]?[jt]sx?|css|json|dat)$/},args=>{\n      const contents=readFileSync(args.path);captured.set(args.path,hash(contents));\n      let ext=args.path.split('.').at(-1);\n      const loader=ext==='dat'?'text':ext==='mjs'||ext==='cjs'?'js':ext;\n      return {contents,loader};\n    });\n  }}]\n});\nconst inputs=Object.keys(result.metafile.inputs).map(path=>{const filePath=path.split('?')[0];return {path:filePath,metafilePath:path,sha256:captured.get(resolve(filePath))??hash(readFileSync(filePath))};});\nconst drift=inputs.filter(item=>hash(readFileSync(item.path))!==item.sha256).map(item=>item.path);\nconst outputs=result.outputFiles.map(file=>({path:relative(process.cwd(),file.path),bytes:file.contents.length,sha256:hash(file.contents)}));\nif(drift.length||!outputs.some(f=>f.path.endsWith('.js'))||!outputs.some(f=>f.path.endsWith('.css')))throw Error('Invalid build proof '+JSON.stringify({drift,outputs}));\nconsole.log(JSON.stringify({status:'PASS',esbuildWrite:false,format:'iife',loader:{'.dat':'text'},alias:{'@opendesk/ui':'src/ui/react/components/ui/button.tsx'},warnings:result.warnings,outputs,inputCount:inputs.length,inputs,drift},null,2));\nJS",
+      "exitCode": 0,
+      "status": "PASS",
+      "esbuildWrite": false,
+      "format": "iife",
+      "loader": {
+        ".dat": "text"
+      },
+      "alias": {
+        "@opendesk/ui": "src/ui/react/components/ui/button.tsx"
+      },
+      "warnings": [],
+      "outputs": [
+        {
+          "path": "__memory_only_ai_proxy_review__/main.js",
+          "bytes": 1704833,
+          "sha256": "ce97cf819dda2aaa6d05731a59dbd21980de6b3c8e89ee5efff71df4cf9cca6a"
+        },
+        {
+          "path": "__memory_only_ai_proxy_review__/main.css",
+          "bytes": 143549,
+          "sha256": "4efc8324329dd4ab5e748d40ceac5fe55e3ab8d825487e49f148fd830f6cb263"
+        }
+      ],
+      "inputCount": 64,
+      "inputs": [
+        {
+          "path": "node_modules/react/cjs/react.production.js",
+          "metafilePath": "node_modules/react/cjs/react.production.js",
+          "sha256": "ae0aae9b31dcccfc8b194dc6ab1cc9cc4525e25b887d10cc22ae4f8fbd2482cc"
+        },
+        {
+          "path": "node_modules/react/index.js",
+          "metafilePath": "node_modules/react/index.js",
+          "sha256": "60caffdecbdc5db3bc4ec4e83df9488345ccb271d07533b9210bf5750918d97e"
+        },
+        {
+          "path": "node_modules/scheduler/cjs/scheduler.production.js",
+          "metafilePath": "node_modules/scheduler/cjs/scheduler.production.js",
+          "sha256": "679adff761d31e9426604f80c0e99be44a3e6f4c6834b0218ecf0312a67c171f"
+        },
+        {
+          "path": "node_modules/scheduler/index.js",
+          "metafilePath": "node_modules/scheduler/index.js",
+          "sha256": "145965504d60007bc25486ab930b0367867dcd5d579ccd343c148d69349a7cfb"
+        },
+        {
+          "path": "node_modules/react-dom/cjs/react-dom.production.js",
+          "metafilePath": "node_modules/react-dom/cjs/react-dom.production.js",
+          "sha256": "42795132f241ebdede96f4a154b6dbac95ff73ed3bb90e86b39ffa28da02392a"
+        },
+        {
+          "path": "node_modules/react-dom/index.js",
+          "metafilePath": "node_modules/react-dom/index.js",
+          "sha256": "ba1a3e33489f868371561777607e3ee5091df0f7ea3f1a10f789d6b86e4c1505"
+        },
+        {
+          "path": "node_modules/react-dom/cjs/react-dom-client.production.js",
+          "metafilePath": "node_modules/react-dom/cjs/react-dom-client.production.js",
+          "sha256": "c59e90f48ba6343343d378d9976b774be6af15a555ecf4ecf3810f62c4381997"
+        },
+        {
+          "path": "node_modules/react-dom/client.js",
+          "metafilePath": "node_modules/react-dom/client.js",
+          "sha256": "00e348ab3d6bc2eef908345d0bc4e008c95bcfecec060dfda5c4967953761396"
+        },
+        {
+          "path": "node_modules/react/cjs/react-jsx-runtime.production.js",
+          "metafilePath": "node_modules/react/cjs/react-jsx-runtime.production.js",
+          "sha256": "1e46f15002696985e80c61d47aaa30dabb03c954270a690f5f7dfbbacfa9002b"
+        },
+        {
+          "path": "node_modules/react/jsx-runtime.js",
+          "metafilePath": "node_modules/react/jsx-runtime.js",
+          "sha256": "b392951a77d0a2e6a6bd017e49d768481ae5b63c4109c6c31f622cf7b2433edc"
+        },
+        {
+          "path": "src/ui/react/components/ui/button.tsx",
+          "metafilePath": "src/ui/react/components/ui/button.tsx",
+          "sha256": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/config.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/config.ts",
+          "sha256": "08e7444030368b49813e16034c24c38ecce491d2abbcff6e0a796fb48f36ec57"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/error-codes.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/error-codes.ts",
+          "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+        },
+        {
+          "path": "projects/ai-proxy/src/diagnostics/catalog.ts",
+          "metafilePath": "projects/ai-proxy/src/diagnostics/catalog.ts",
+          "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+        },
+        {
+          "path": "projects/ai-proxy/src/diagnostics/favorites.ts",
+          "metafilePath": "projects/ai-proxy/src/diagnostics/favorites.ts",
+          "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+        },
+        {
+          "path": "projects/ai-proxy/src/service.ts",
+          "metafilePath": "projects/ai-proxy/src/service.ts",
+          "sha256": "9b29f1c8085ec00e8dd809d4e968b7339ef0353fce2083a6e226574907d4aac7"
+        },
+        {
+          "path": "projects/ai-proxy/src/model.js",
+          "metafilePath": "projects/ai-proxy/src/model.js",
+          "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/optionsRoute.ts",
+          "metafilePath": "projects/ai-proxy/src/ui/optionsRoute.ts",
+          "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/navigation.ts",
+          "metafilePath": "projects/ai-proxy/src/ui/navigation.ts",
+          "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+        },
+        {
+          "path": "projects/ai-proxy/src/environment.ts",
+          "metafilePath": "projects/ai-proxy/src/environment.ts",
+          "sha256": "fbd44e397f2a6110a49794334da06e9cb400761577b9d66335bf58b98b90e862"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+          "metafilePath": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+          "sha256": "be8bb029293ead685cf7d3f0e977219223661544fb0dff73252af59fb1e5e7de"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/locales/en.json",
+          "metafilePath": "projects/ai-proxy/src/i18n/locales/en.json",
+          "sha256": "b9bba1d5fb6f33d3ef980165d2f8659507a6699bea062353284781ea863111e2"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+          "metafilePath": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+          "sha256": "b78749885a3622b8a5c3a7017e7f50cebe5a34cd114eb8516a9e6b735b999adc"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/locale.ts",
+          "metafilePath": "projects/ai-proxy/src/i18n/locale.ts",
+          "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+          "metafilePath": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+          "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/errors.ts",
+          "metafilePath": "projects/ai-proxy/src/i18n/errors.ts",
+          "sha256": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/useProxy.ts",
+          "metafilePath": "projects/ai-proxy/src/ui/useProxy.ts",
+          "sha256": "e37c48881ec4d75185be8020805884a455e98c7ed234c6c8bbe182afa71795ce"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/Status.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/Status.tsx",
+          "sha256": "d214c47d17c2f28614651818130841f91877bb5953030213975fdaa20ea5b661"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/proxy-entry.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/proxy-entry.ts",
+          "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+          "sha256": "7cd8f7ed1f26278954a92449e935fc902a57ced83c6bfb5611f19f28df3eff1c"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/product-links.defaults.json",
+          "metafilePath": "projects/ai-proxy/src/config/product-links.defaults.json",
+          "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+          "metafilePath": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/public-config.ts",
+          "metafilePath": "projects/ai-proxy/src/config/public-config.ts",
+          "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/product-links.demo.json",
+          "metafilePath": "projects/ai-proxy/src/config/product-links.demo.json",
+          "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/remote-config.ts",
+          "metafilePath": "projects/ai-proxy/src/config/remote-config.ts",
+          "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+        },
+        {
+          "path": "projects/ai-proxy/src/collector/rotation-plan.ts",
+          "metafilePath": "projects/ai-proxy/src/collector/rotation-plan.ts",
+          "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+          "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+        },
+        {
+          "path": "projects/ai-proxy/src/QuickPanel.tsx",
+          "metafilePath": "projects/ai-proxy/src/QuickPanel.tsx",
+          "sha256": "11f9ab7dda6fba9962da7c65e27f91e74092b96ef97e848fc49953e23e259670"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+          "sha256": "658aa9b314222826a79757c19383a5e6f31817361c4171aa5c432a5ede3aef3f"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/FormField.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/FormField.tsx",
+          "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/backupImport.ts",
+          "metafilePath": "projects/ai-proxy/src/ui/backupImport.ts",
+          "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+        },
+        {
+          "path": "projects/ai-proxy/src/subscription/download.ts",
+          "metafilePath": "projects/ai-proxy/src/subscription/download.ts",
+          "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+        },
+        {
+          "path": "projects/ai-proxy/src/official/messages.ts",
+          "metafilePath": "projects/ai-proxy/src/official/messages.ts",
+          "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+          "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+        },
+        {
+          "path": "projects/ai-proxy/src/subscription/parser.ts",
+          "metafilePath": "projects/ai-proxy/src/subscription/parser.ts",
+          "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+          "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/messages.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/messages.ts",
+          "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+        },
+        {
+          "path": "projects/ai-proxy/src/diagnostics/logic.ts",
+          "metafilePath": "projects/ai-proxy/src/diagnostics/logic.ts",
+          "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+        },
+        {
+          "path": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat",
+          "metafilePath": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat?raw",
+          "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+        },
+        {
+          "path": "projects/ai-proxy/src/usage/domain.ts",
+          "metafilePath": "projects/ai-proxy/src/usage/domain.ts",
+          "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+        },
+        {
+          "path": "projects/ai-proxy/src/usage/ranking.ts",
+          "metafilePath": "projects/ai-proxy/src/usage/ranking.ts",
+          "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/UsageControls.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/UsageControls.tsx",
+          "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+          "sha256": "a4aa3b6c8df72d096400cc45371f484ecb87953c196d77dc64bd6add0d36c7a3"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/pac-starters.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/pac-starters.ts",
+          "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+        },
+        {
+          "path": "projects/ai-proxy/src/Settings.tsx",
+          "metafilePath": "projects/ai-proxy/src/Settings.tsx",
+          "sha256": "1e0a26ad0db311cc951970099c207fa97b7e5e4283c30a96710b67d853fb1090"
+        },
+        {
+          "path": "projects/ai-proxy/src/App.jsx",
+          "metafilePath": "projects/ai-proxy/src/App.jsx",
+          "sha256": "95bc282f46896c50d8e58e0432d89b7be342623fc579438c5c06c4aa84f0725d"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/style.css",
+          "metafilePath": "projects/ai-proxy/src/styles/style.css",
+          "sha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/options.css",
+          "metafilePath": "projects/ai-proxy/src/styles/options.css",
+          "sha256": "ea42376ecfa688b53ea7bcf8204b5612063af8dec60e3783df5f2c3a98600804"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/sidepanel-r86.css",
+          "metafilePath": "projects/ai-proxy/src/styles/sidepanel-r86.css",
+          "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/rotation-entry.css",
+          "metafilePath": "projects/ai-proxy/src/styles/rotation-entry.css",
+          "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+          "metafilePath": "projects/ai-proxy/src/styles/sidebar-settings.css",
+          "sha256": "7f65ade974d56c7d8af9b28d25f3c6d0d49dc97f74313819959e364d9da0224a"
+        },
+        {
+          "path": "projects/ai-proxy/src/style.css",
+          "metafilePath": "projects/ai-proxy/src/style.css",
+          "sha256": "64dcee27e847766708faf43d064cefc252f47f2203f82a3b92106f13d5e2dc72"
+        },
+        {
+          "path": "projects/ai-proxy/src/main.jsx",
+          "metafilePath": "projects/ai-proxy/src/main.jsx",
+          "sha256": "09fa1358fb26b5b3c38534c480924c0ba0a55cf96f8ba11493eee4440e39f65a"
+        }
+      ],
+      "drift": [],
+      "memoryOutdirCreated": false,
+      "limits": "@opendesk/ui按授权alias到真实Button源码；.dat按text loader。write:false没有写dist或实际outdir。此结果不是正式包/生产安装验收，也不提供完整语义类型证明。"
+    },
+    "sourceBinding": {
+      "status": "PASS",
+      "candidateSources": 64,
+      "candidateSourceDrift": [],
+      "compileInputs": 64,
+      "compileInputDrift": [],
+      "note": "候选manifest与真实入口metafile为各自的输入集合，不能把同为64项当成相同依赖清单；均逐文件重算并未发现漂移。"
+    },
+    "browserEvidenceReview": {
+      "mode": "只读审查owner提供的同候选Chromium截图/AX和结构化操作记录；没有由本评审操作浏览器。",
+      "status": "PASS_FOR_RECORDED_SCENARIOS",
+      "interactions": {
+        "candidate": "source-37aa3aca-b377-48b7-a76b-2584e2d3e92b",
+        "htmlSha256": "a561b4bb8aade24f00b645d52fd0bce390f1ab2eb7081b7521188e067e713b04",
+        "uiSha256": "791f07c52b3c1b86f0c07bba1e54920b4d1241287ac61fb24a311495608e2a08",
+        "boundary": "Chromium sandbox, memory service only",
+        "checks": [
+          {
+            "operation": "Quick edit→modify→Escape→decline retains draft; Escape→confirm discards",
+            "result": "PASS",
+            "returnedFocus": "quick-site-rule",
+            "data": "example.com unchanged"
+          },
+          {
+            "operation": "duplicate save rejected→change to unique domain",
+            "observed": {
+              "describedBy": null,
+              "domain": "unique.example",
+              "error": null
+            },
+            "result": "PASS"
+          },
+          {
+            "operation": "same-domain exact/includes scopes add→delete dialog→cancel→confirm",
+            "cancel": {
+              "count": 3,
+              "focusLabel": "删除 example.com 的规则（仅此域名）"
+            },
+            "confirmed": {
+              "count": 2,
+              "focus": "settings-rule-rule-local",
+              "focusLabel": "编辑 example.org 的规则（仅此域名）"
+            },
+            "result": "PASS"
+          },
+          {
+            "operation": "6-row list edit→cancel, edit→save without capture between operations",
+            "before": {
+              "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+              "height": 1115,
+              "top": 365,
+              "visible": 715
+            },
+            "cancel": {
+              "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+              "top": 338
+            },
+            "save": {
+              "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+              "top": 338
+            },
+            "result": "CHECK",
+            "note": "Earlier clip capture sequence57→365 retained separately; suspected capture/layout timing; final stable operation values here"
+          },
+          {
+            "operation": "Native keyboard last-row Enter→Escape; Enter→Enter submits, no locator auto-scroll",
+            "before": {
+              "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+              "height": 1142,
+              "top": 338,
+              "visible": 715
+            },
+            "cancel": {
+              "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+              "top": 338
+            },
+            "save": {
+              "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+              "top": 338
+            },
+            "result": "PASS",
+            "note": "Locator click may scroll action into view; use native focused activation to isolate application restoration"
+          },
+          {
+            "operation": "Settings existing rule priority10→11→save",
+            "result": "PASS",
+            "focus": "settings-rule-rule-docs",
+            "identity": "rule-docs retained",
+            "enabled": true,
+            "appliedProxy": "not changed; memory only"
+          },
+          {
+            "operation": "General language selector → EN rules/Add → TW rules/Add",
+            "result": "PASS",
+            "capture": "native getScreenshot for visible viewport, top and actions images; original clip anomalies preserved",
+            "settingsGeometry": {
+              "contentPadding": "16px 12px",
+              "headerMinHeight": "52px",
+              "headerPadding": "8px 0px",
+              "titleFont": "16px"
+            },
+            "quickGeometry": {
+              "headerPadding": "8px 12px",
+              "bodyPadding": "16px 12px",
+              "titleFont": "16px",
+              "headerMinHeight": "52px"
+            }
+          },
+          {
+            "operation": "Settings corrected duplicate draft→Escape→decline retains→Escape→confirm discards",
+            "result": "PASS",
+            "focus": "settings-rule-add",
+            "savedRuleCount": 2,
+            "scope": "memory only"
+          }
+        ]
+      },
+      "inspectedQualifiedNativeImages": [
+        "native-rules-zh-CN.png",
+        "native-settings-edit.png",
+        "native-settings-save-return.png",
+        "native-advanced-focus.png",
+        "native-rules-en.png",
+        "native-settings-add-en.png",
+        "native-settings-add-en-actions.png",
+        "native-rules-zh-TW.png",
+        "native-settings-add-zh-TW-actions.png",
+        "native-design-result.png",
+        "native-duplicate-error.png",
+        "native-settings-retain.png",
+        "native-settings-cancel-return.png"
+      ],
+      "additionalVisualContext": [
+        "long-list-keyboard-return.png"
+      ],
+      "axChecks": "所有已绑定AX包含同候选URL及UI SHA；删除确认后focused element为settings-rule-rule-local；原生长列表返回焦点为settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26；priority disclosure实际聚焦。；补充Settings拒绝丢弃后保留corrected.example并聚焦rule-domain，确认丢弃后规则数仍2且焦点settings-rule-add；native重复错误可见且位于当前表单内。",
+      "screenshotPolicy": "异常clip图保留原证据，但不作为合格视觉通过依据；上述原生getScreenshot图实际读图正常。",
+      "scrollVerdict": "PASS仅限原生聚焦按钮Enter→Escape和Enter→Enter链的338→338→338；较早locator/capture链365→338保持CHECK，其成因不作未经证明的确定结论。",
+      "computedGeometryVerdict": "owner记录与有效截图一致，未确认header布局缺陷。",
+      "artifactBindings": [
+        {
+          "file": "delete-return.ax.txt",
+          "bytes": 5134,
+          "sha256": "205a1ca425364a6910aae353ad01fbaf13aa4707334474e322a676b3b3d19675",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 129 button Description: 编辑 example.org 的规则（仅此域名）, ID: settings-rule-rule-local"
+        },
+        {
+          "file": "delete-return.png",
+          "bytes": 36572,
+          "sha256": "792bb63c57345aab24fd0c0c1a5aec1875c56aeff86c056cd09c1bb49e37a7a7",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "delete-scope-confirm.ax.txt",
+          "bytes": 2565,
+          "sha256": "cc244d860edb88d1699ee3a0648014fb6a767ab58c3de01c4e6376bd805a4de6",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 96 button 取消, ID: proxy-confirm-cancel"
+        },
+        {
+          "file": "delete-scope-confirm.png",
+          "bytes": 34418,
+          "sha256": "6749161df6893c84bdadacedb24ff2197110f48a843296d909344b9ba1151cd2",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "duplicate-corrected.ax.txt",
+          "bytes": 5135,
+          "sha256": "024937795c797cefcbb37af11f3993deacf2e681422dec3bf2a817e25429a829",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 127 text field (settable) 网站域名或网址, Value: unique.example, ID: rule-domain"
+        },
+        {
+          "file": "duplicate-corrected.png",
+          "bytes": 36993,
+          "sha256": "d14855945341e10126ac796bc1bb1d1072f82c060fd21c81001d5c05a40410ee",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "duplicate-error.ax.txt",
+          "bytes": 5200,
+          "sha256": "5901507ac0de014eea7c42be4fc1357154f758141e303958108768cc4cf6d249",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 144 button 保存规则"
+        },
+        {
+          "file": "duplicate-error.png",
+          "bytes": 6472,
+          "sha256": "640b525a1cea0f47b2ff28c633f86f0733fa060c3a7ad6b6b9f5a3c3392f0cf9",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "interactions.json",
+          "bytes": 3586,
+          "sha256": "928f8ef15abfbbfa8a98e8ee9bba5cf0fe3a0f316891fe0e8d2c364fb5e0cdbb"
+        },
+        {
+          "file": "long-list-before.ax.txt",
+          "bytes": 6484,
+          "sha256": "2532157d35fe36f2b7a0787cfd1637888b8584b98a269c3892e6db675635bd73",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 150 button Description: 编辑 scroll-4.example 的规则（包含子域名）, ID: settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26"
+        },
+        {
+          "file": "long-list-before.png",
+          "bytes": 39662,
+          "sha256": "41057ae6d65d53d074a26cafa91c517623968d9e3084c02e588aad0716251559",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "long-list-cancel-return.ax.txt",
+          "bytes": 6440,
+          "sha256": "3c128912aa4bd8fe937d5f6ac63d17b96895e0b6ca9f089a427e8b5746f3dc91",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 149 button Description: 编辑 scroll-4.example 的规则（包含子域名）, ID: settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26"
+        },
+        {
+          "file": "long-list-cancel-return.png",
+          "bytes": 11250,
+          "sha256": "74363863053c38a429d7b9065dfd33e19934d7e00288084edaab874f355505a5",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "long-list-keyboard-return.ax.txt",
+          "bytes": 6484,
+          "sha256": "2532157d35fe36f2b7a0787cfd1637888b8584b98a269c3892e6db675635bd73",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 150 button Description: 编辑 scroll-4.example 的规则（包含子域名）, ID: settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26"
+        },
+        {
+          "file": "long-list-keyboard-return.png",
+          "bytes": 43535,
+          "sha256": "3d6aa7fca5e35738de549c5d270ccfc97089f41d8b3f37d2326f1f265894ea65",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "long-list-native-capture.ax.txt",
+          "bytes": 6484,
+          "sha256": "2532157d35fe36f2b7a0787cfd1637888b8584b98a269c3892e6db675635bd73",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 150 button Description: 编辑 scroll-4.example 的规则（包含子域名）, ID: settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26"
+        },
+        {
+          "file": "long-list-native-capture.png",
+          "bytes": 61682,
+          "sha256": "35387e56073756d9c7b1fada708ad28ae07bcf9156f6e374a6c5f2786c0f7c2a",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-advanced-focus.ax.txt",
+          "bytes": 5086,
+          "sha256": "32c05e03f8706cc48fca771ccf2bfd088a851ed509aeb681b6bc0f6f21b7adda",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 172 button (collapsed) 优先级设置（可选）, Secondary Actions: Expand"
+        },
+        {
+          "file": "native-advanced-focus.png",
+          "bytes": 48165,
+          "sha256": "2e9db7f3eca50d8a2e96ca158670956be0abfe072a8f98f686d791ec3b50a0af",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-design-result.ax.txt",
+          "bytes": 4745,
+          "sha256": "73d368b76535ab2cbdabda3be906fde00a8c7426930d01ec32d510091d7497b2",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 123 text field (settable) 网站域名或网址, ID: rule-domain"
+        },
+        {
+          "file": "native-design-result.png",
+          "bytes": 46263,
+          "sha256": "715bcc78aca096953c50cc26dbb0972a06a2bca16eaeba9b1b61084c0c0f54a8",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-duplicate-corrected.ax.txt",
+          "bytes": 5140,
+          "sha256": "1822a85ff8d5fd454e97d674c5bbf4569d61a07e0af848e122f9e443c0e28eb2",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 156 text field (settable) 网站域名或网址, Value: corrected.example, ID: rule-domain"
+        },
+        {
+          "file": "native-duplicate-corrected.png",
+          "bytes": 53095,
+          "sha256": "5403369707e10838b6f2c1bbe42eb96f237fef451a0baa085b3ed6cacd4b0b98",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-duplicate-error.ax.txt",
+          "bytes": 5196,
+          "sha256": "f49fe2d721223b5df63e342a9a213003e4bf35191a25b496f153a3eec258faa0",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 173 button 保存规则"
+        },
+        {
+          "file": "native-duplicate-error.png",
+          "bytes": 45740,
+          "sha256": "f5b1b931bcf0d3f99960c74e000a672ace7b31ecdf8999a9ebd935f355fa7208",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-rules-en.ax.txt",
+          "bytes": 5176,
+          "sha256": "74cb6161a3fb880c938949c149e8d5c8b5e9db18db151d5bae3e2150b2364d77",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 92 container Description: Manage settings, ID: proxy-workspace-panel"
+        },
+        {
+          "file": "native-rules-en.png",
+          "bytes": 46146,
+          "sha256": "2c2e0deadb1799f8c2c08d735f7eba0ea17433ba47485c6449f3492b55cfcaa1",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-rules-zh-CN.ax.txt",
+          "bytes": 5051,
+          "sha256": "6a66760257aa56d7e894a4000918070c2fbb48024f2527172646cbe27d7d4a4e",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 92 container Description: 管理设置, ID: proxy-workspace-panel"
+        },
+        {
+          "file": "native-rules-zh-CN.png",
+          "bytes": 42059,
+          "sha256": "25807ddebe4a0710ee43b91e6287af12ecca47b83275242e39f9126fa25f8235",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-rules-zh-TW.ax.txt",
+          "bytes": 5066,
+          "sha256": "bace1e8536c19a73611683e69fe8effbb880fb5d570bbeb7ea2704ab55343b8a",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 92 container Description: 管理設定, ID: proxy-workspace-panel"
+        },
+        {
+          "file": "native-rules-zh-TW.png",
+          "bytes": 42635,
+          "sha256": "7a30064465dd97a624051fc2dadefaac9cb1fa8b8acf692411dbe3edd9e6a908",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-settings-add-en-actions.ax.txt",
+          "bytes": 4809,
+          "sha256": "3f1caa1baf47415f215895bac403c27c745cd1b64325386b2c530f072babaab4",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 156 text field (settable) Website domain or URL, ID: rule-domain"
+        },
+        {
+          "file": "native-settings-add-en-actions.png",
+          "bytes": 50881,
+          "sha256": "a61093067fb9ca780efe09e6ffe0939b3f115e1876094e430c47de5dbaf35017",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-settings-add-en.ax.txt",
+          "bytes": 4809,
+          "sha256": "3f1caa1baf47415f215895bac403c27c745cd1b64325386b2c530f072babaab4",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 156 text field (settable) Website domain or URL, ID: rule-domain"
+        },
+        {
+          "file": "native-settings-add-en.png",
+          "bytes": 63405,
+          "sha256": "a8947584a69f979808ce0e0ff39b55b381d648d364378fd857a1c578e4af01cf",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-settings-add-zh-TW-actions.ax.txt",
+          "bytes": 4745,
+          "sha256": "011d85d20ee4091ea533492b8d1f0470f7219433787d17aa1534135771f51f48",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 156 text field (settable) 網站網域或網址, ID: rule-domain"
+        },
+        {
+          "file": "native-settings-add-zh-TW-actions.png",
+          "bytes": 46300,
+          "sha256": "a883a93fadd6c4ac9b4d951c2a4704767cf3c8906c0f052db0664d740b0cd056",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-settings-add-zh-TW.ax.txt",
+          "bytes": 4745,
+          "sha256": "011d85d20ee4091ea533492b8d1f0470f7219433787d17aa1534135771f51f48",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 156 text field (settable) 網站網域或網址, ID: rule-domain"
+        },
+        {
+          "file": "native-settings-add-zh-TW.png",
+          "bytes": 61352,
+          "sha256": "fbb93fe36ceda10265402d28c36a74dae7b67e33f6688c1c3459acaf51fcc153",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-settings-cancel-return.ax.txt",
+          "bytes": 5036,
+          "sha256": "04dee824042db346ee66fe5ba5cc76537b5a4a450e9b15bfb92135e779020a93",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 118 button 添加规则, ID: settings-rule-add"
+        },
+        {
+          "file": "native-settings-cancel-return.png",
+          "bytes": 42624,
+          "sha256": "b834f8a25c26b6f688abd34c634fd829a8febe7b014ca8981dc74b469088144b",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-settings-edit.ax.txt",
+          "bytes": 5093,
+          "sha256": "6ec64c065fc4d7fe498dfd37b30c9cde14052399954e5e8e1af2a330cfaaa9c3",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 151 text field (settable) 网站域名或网址, Value: example.com, ID: rule-domain"
+        },
+        {
+          "file": "native-settings-edit.png",
+          "bytes": 45096,
+          "sha256": "8dc5467e5bd2e01ccb25b73953e606cb14a7526bba9debd0af61b6b54fd59299",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-settings-retain.ax.txt",
+          "bytes": 5144,
+          "sha256": "b5128fd9bcaa5dd78c84cb38eb49107728ead8c2921d68b925bac030c679a9b5",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 120 text field (settable) 网站域名或网址, Value: corrected.example, ID: rule-domain"
+        },
+        {
+          "file": "native-settings-retain.png",
+          "bytes": 45222,
+          "sha256": "8044795005b621ca6e1b9d80ec52a50ae888081fe4f7e23dedd1c26afef0e683",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "native-settings-save-return.ax.txt",
+          "bytes": 5132,
+          "sha256": "b95ed2158c3d3e91f9107baa1334687828cc20c5649536b1bd4929ec8ee72b82",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 155 button Description: 编辑 example.com 的规则（包含子域名）, ID: settings-rule-rule-docs"
+        },
+        {
+          "file": "native-settings-save-return.png",
+          "bytes": 41139,
+          "sha256": "e2fa50d511adb119889c2c0f21483275d020b7b4adf4090d00d43d6c05aeb539",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "quick-cancel-return.ax.txt",
+          "bytes": 5443,
+          "sha256": "da65c281deafb9e0a125fefdbb5af2d8c2d1cebf7b1b91984e38e5a6033df25a",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 151 button 编辑命中规则, ID: quick-site-rule"
+        },
+        {
+          "file": "quick-cancel-return.png",
+          "bytes": 38320,
+          "sha256": "d6a4ab3903e300b2fdfe2a5e6393e7ef491dfcdb783bf314aebae8386defd4af",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "quick-edit.ax.txt",
+          "bytes": 4170,
+          "sha256": "6ef81a4e87c1d5916cb6a5ce1d1be53066d07f0039bbde21a517f6454acfaba1",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 100 text field (settable) 网站域名或网址, Value: example.com, ID: side-rule-domain"
+        },
+        {
+          "file": "quick-edit.png",
+          "bytes": 37244,
+          "sha256": "42d93490cee889ae22a2da2e8567165f4f35781afaffab0a357f290f9f7f23bc",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "quick-retain.ax.txt",
+          "bytes": 4257,
+          "sha256": "5cb2876b2895df18e74db35717853b3fae40c404475b8cc489e9cba17a08ee37",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 106 text field (settable) 网站域名或网址, Value: retain.example, ID: side-rule-domain"
+        },
+        {
+          "file": "quick-retain.png",
+          "bytes": 36721,
+          "sha256": "61efab4cb7a061a25094549dc8d6d6319e81620c96f251edcaccc25aa79fde88",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "rules-zh-CN.ax.txt",
+          "bytes": 5030,
+          "sha256": "242d6c1328dd6104a221bd43325c2439bc27c56deb59c8313b74652ab016c17f",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 96 container Description: 管理设置, ID: proxy-workspace-panel"
+        },
+        {
+          "file": "rules-zh-CN.png",
+          "bytes": 36737,
+          "sha256": "af9ecaef349e23ce1b5d83f0a4dfd8526d0759536ddada232b30c2791beae68d",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "same-domain-scopes.ax.txt",
+          "bytes": 5463,
+          "sha256": "e92504bed14a49d7f41e5fe680c00a5e7bf8085bf641b2dfae33ed9c04882c2f",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 140 button Description: 编辑 example.com 的规则（仅此域名）, ID: settings-rule-2037b3e8-9058-4cf6-831d-3f535d9595ad"
+        },
+        {
+          "file": "same-domain-scopes.png",
+          "bytes": 36630,
+          "sha256": "cb892ec5c3a6dbad053439b6d6fff218a164767d083167d0f420104ad8c6d26a",
+          "width": 65536,
+          "height": 4292542531
+        },
+        {
+          "file": "source-check.json",
+          "bytes": 1091,
+          "sha256": "10269a09def741cfd949238cba2c7c53dd7a75bdfd78924051487f1bbc2d7dbd"
+        }
+      ],
+      "sourceCheck": {
+        "candidate": "source-37aa3aca-b377-48b7-a76b-2584e2d3e92b",
+        "htmlSha256": "a561b4bb8aade24f00b645d52fd0bce390f1ab2eb7081b7521188e067e713b04",
+        "uiSha256": "791f07c52b3c1b86f0c07bba1e54920b4d1241287ac61fb24a311495608e2a08",
+        "sourceCommit": "3c76ae9a4c2d42616ca5d46581204511c16f3650",
+        "sourceCount": 64,
+        "sourceDrift": [],
+        "localeKeys": 1009,
+        "keyParity": true,
+        "boundary": "same-source Chromium sandbox with memory service/storage only; no production install or proxy execution",
+        "captureNotes": {
+          "invalidOld": "Original fullPage and some clip captures show blank/compressed body; retained, excluded from visual pass",
+          "accepted": "native-* use original visible-tab getScreenshot; top/actions pairs cover EN/TW form. Individually inspected valid clip examples: quick-edit,quick-retain,duplicate-corrected,same-domain-scopes,delete-scope-confirm,delete-return. duplicate-error clip is blank; native-duplicate-error replaces it.",
+          "widthZoom": "OUT_OF_SCOPE",
+          "invalidRound2": [
+            "duplicate-error.png",
+            "long-list-cancel-return.png"
+          ]
+        }
+      },
+      "excludedInvalidImages": [
+        "duplicate-error.png",
+        "long-list-cancel-return.png"
+      ]
+    }
+  },
+  "candidate": {
+    "path": "projects/ai-proxy/.opendesk-preview/source-37aa3aca-b377-48b7-a76b-2584e2d3e92b",
+    "commit": "3c76ae9a4c2d42616ca5d46581204511c16f3650",
+    "htmlSha256": "a561b4bb8aade24f00b645d52fd0bce390f1ab2eb7081b7521188e067e713b04",
+    "uiSha256": "791f07c52b3c1b86f0c07bba1e54920b4d1241287ac61fb24a311495608e2a08",
+    "sourceCount": 64,
+    "drift": [],
+    "boundary": "Chromium sandbox + memory service/storage；不是正式安装或真实代理"
+  },
+  "issues": [],
+  "issueCounts": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 0,
+    "LOW": 0
+  },
+  "validationGaps": [
+    {
+      "id": "G1",
+      "status": "NOT_TESTED",
+      "outOfScope": true,
+      "blocking": false,
+      "topic": "完整语义类型/LSP诊断",
+      "reason": "用户已明确完整语义类型不在本轮范围；当前环境无可用LSP。真实入口编译、AST和定向运行时测试已提供相应开发证据，没有观察到具体类型缺陷；不因缺工具扩大安装或设产品阻断。"
+    },
+    {
+      "id": "G2",
+      "status": "RESOLVED_FOR_SCOPED_VISUAL_REVIEW",
+      "blocking": false,
+      "topic": "旧异常截图",
+      "reason": "EN/TW top/actions及中文native-*图已经实际读图；坏clip保留但排除。不是声称所有历史图都有效。"
+    },
+    {
+      "id": "G3",
+      "status": "RESOLVED_FOR_NATIVE_KEYBOARD_RETURN",
+      "blocking": false,
+      "topic": "数值滚动与焦点",
+      "reason": "6项列表原生按键338→338→338且同焦点；旧locator/capture CHECK保留，未要求尺寸矩阵或全面像素不变。"
+    },
+    {
+      "id": "G4",
+      "status": "NOT_TESTED",
+      "blocking": false,
+      "topic": "同候选受控pending浏览器延迟",
+      "reason": "瞬时memory scenario无法稳定得到延迟状态；没有新增fixture或第二套harness。当前最具体残余风险是异步确认/DELETE完成与rAF之间的导航/较新草稿竞争在真实浏览器调度下未实测；源码保留generation/revision/route并由既有pending保存/导航测试和hook单飞测试支撑，故本轮不阻断，也不因为未执行此扩展验收机械扣分。"
+    }
+  ],
+  "scores": {
+    "scale": "0-100; final for this scoped development candidate only; independent judgment, no inherited score or forced >=95",
+    "correctness": {
+      "score": 97,
+      "reason": "三项修复直接对应反馈，24项行为测试及同源浏览器证据相互支持；saveRule身份/启用/优先级及save-only合同无新增变更。分数反映已审查范围的高可信度，并非所有平台/运行状态都已证明。"
+    },
+    "reliability": {
+      "score": 96,
+      "reason": "错误按来源/key隔离、删除沿用既有generation/revision/route与单飞锁；失败和取消不误删。实际键盘滚动/焦点往返补证通过。组件fixture仍不能完全再现浏览器事件循环/布局；这种证据边界保留，但受控pending浏览器缺口本身不构成额外强制扣分或阻断。"
+    },
+    "security": {
+      "score": 98,
+      "reason": "新增代码不改变权限/网络/代理/安装面；backend错误不被局部清理吞掉，scope确认降低误删。该分数只评价本轮delta的安全性，不借未运行真实代理或正式权限验收宣称全产品安全通过。"
+    },
+    "maintainability": {
+      "score": 94,
+      "reason": "最小hook API与复用finishRuleEditor避免重复错误和焦点机制，未加依赖/兼容层。Settings与hook中的若干单行复合状态更新及手写组件fixture增加阅读/维护成本；属于非阻断质量余量，不要求扩大为本轮重构。"
+    },
+    "userFeedback": {
+      "score": 97,
+      "reason": "重复校验随相关修改消失；域名+scope操作名/确认可区分；删除后有明确落点；短保存receipt保留不应用说明。三语native截图与AX清晰可读，computed header并无已确认差异。未把局部成功推为生产/所有辅助技术体验已验收。"
+    },
+    "evidenceSufficiency": {
+      "score": 96,
+      "reason": "独立24项测试、真实入口IIFE/CSS write:false、候选64项和编译输入64项逐文件无漂移、同候选交互/AX/有效原生截图均到齐；保留旧CHECK及坏图。浏览器操作由owner执行，评审独立读证；语义类型和受控pending浏览器仍诚实NOT_TESTED，未补造PASS。"
+    }
+  },
+  "blocking": {
+    "codeIssues": [],
+    "developmentCloseout": [],
+    "formalReleaseVerdict": "OUT_OF_SCOPE"
+  },
+  "notTestedOrOutOfScope": [
+    "完整typecheck/LSP语义诊断",
+    "同候选受控pending浏览器延迟",
+    "正式安装/升级/发布",
+    "真实代理/网络/权限运行验收",
+    "全CI/全量测试",
+    "尺寸/缩放矩阵"
+  ],
+  "stopCondition": "指定源码修复、定向测试、真实入口内存编译及新候选补证已完成独立审查；本轮没有待修代码阻断。仅报告G1/G4验证边界，不扩大工具安装、harness、CI或正式验收。旧评审保持原样。"
+}

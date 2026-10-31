@@ -1,0 +1,23 @@
+{
+  "candidate": "projects/ai-proxy/.opendesk-preview/source-786e920a-e77b-4e75-b737-4a7a49e76f87/",
+  "sourceCount": 65,
+  "drift": [],
+  "htmlSha256": "c0107f44c24ac39ce0883389b0c340cd10f6b2e39315aea056f9f6b96dde3eb0",
+  "expectedHtmlSha256": "c0107f44c24ac39ce0883389b0c340cd10f6b2e39315aea056f9f6b96dde3eb0",
+  "realEntry": "projects/ai-proxy/src/main.jsx",
+  "inMemoryCompile": {
+    "warnings": [],
+    "outputBytes": [
+      {
+        "name": "main.js",
+        "bytes": 2223091
+      },
+      {
+        "name": "main.css",
+        "bytes": 148438
+      }
+    ]
+  },
+  "localeKeys": 1009,
+  "fullSemanticTypecheck": "NOT_TESTED"
+}

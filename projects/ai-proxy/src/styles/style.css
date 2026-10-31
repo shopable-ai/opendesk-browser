@@ -43,8 +43,6 @@
 :scope p { line-height: 1.6; }
 :scope small,:scope .hint { font-size: 12px; color: var(--muted); line-height: 1.55; }
 :scope .eyebrow { margin: 0 0 7px; letter-spacing: .08em; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
-:scope .brandSymbol { display: grid; place-items: center; flex: none; width: 30px; height: 30px;
-  border-radius: 8px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 800; }
 :scope .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 :scope .actions small { flex: 1 1 170px; }
 :scope .iconButton { display: grid; place-items: center; border-color: transparent; background: transparent; min-width: 32px; min-height: 32px; padding: 5px 8px; font-size: 19px; }
@@ -70,16 +68,6 @@
 /* Popup: 380px, one purposeful control per section, no big tiled modes. */
 :scope .popup { display: flex; flex-direction: column; width: 380px; max-width: 100%; max-height: 600px; overflow: hidden;
   scrollbar-width: thin; background: var(--surface); }
-:scope .popup>.brand { flex: none; }
-:scope .brand { display: flex; align-items: center; gap: 10px; padding: 15px 18px 13px; }
-:scope .brand>div { display: grid; gap: 1px; }
-:scope .brand strong { font-size: 15px; font-weight: 720; letter-spacing: -.015em; }
-:scope .brand small { font-size: 11px; }
-:scope .brand>div { min-width: 0; }
-:scope .brand .quickAddTrigger { flex: none; margin-left: auto; min-height: 31px;
-  padding: 5px 9px; border-radius: 7px; background: var(--soft); color: var(--accent);
-  border-color: var(--line); font-size: 11px; white-space: nowrap; }
-:scope .brand .iconButton { margin-left: 0; }
 :scope .modeGrid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 2px;
   border-radius: 8px; padding: 3px; background: var(--soft); }
 :scope .modeButton { border: 1px solid transparent; border-radius: 6px; min-height: 35px; padding: 6px 0;
@@ -87,12 +75,6 @@
 :scope .modeButton:hover:not(:disabled) { background: var(--accentFill); }
 :scope .modeButton.selected { background: var(--primaryFill); border-color: var(--primaryFill); color: var(--primaryText); font-weight: 700; }
 :scope .modeButton.selected:hover:not(:disabled) { background: var(--primaryFill); }
-:scope .compact { margin-top: 10px; } :scope .compact label { margin-bottom: 4px; font-size: 11px; }
-:scope .compact select { font-size: 12px; min-height: 35px; }
-:scope .compact .textAction { display: block; margin-top: 5px; }
-:scope .siteDomain { display: block; font-size: 14px; line-height: 1.4; overflow-wrap: anywhere; }
-:scope .siteRoute { display: block; margin-top: 5px; font-size: 11px; color: var(--muted); line-height: 1.5; overflow-wrap: anywhere; }
-:scope .siteRoute strong { color: var(--ink); font-weight: 600; }
 :scope .quickProfileList { display: grid; gap: 5px; }
 :scope .quickProfileList button { display: flex; justify-content: space-between; align-items: center; gap: 10px;
   width: 100%; min-height: 42px; padding: 6px 9px; border-radius: 7px; text-align: left; background: var(--surface); }
@@ -104,28 +86,15 @@
 :scope .quickProfileList button.selectedPending { border-color: var(--control-line); background: var(--soft); }
 :scope .quickProfileList button.applied .quickChoice { font-weight: 750; }
 :scope .quickChoice { color: var(--accent); font-size: 10px; font-weight: 650; white-space: nowrap; flex: none; }
-:scope .popupSourceLinks { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px 8px; color: var(--muted); }
-:scope .popupSourceLinks button { min-height: 22px; border: 0; background: transparent; padding: 0; font-size: 11px; font-weight: 550; color: var(--muted); }
-:scope .popupSourceLinks button:hover:not(:disabled) { color: var(--accent); background: transparent; text-decoration: underline; }
 :scope .popup>.notice { margin: 5px 18px; }
 
 /* Popup quick-add uses a second compact view, never a desktop-size form. */
-:scope .popupQuickHeader { border-bottom: 1px solid var(--line); padding: 11px 15px; }
-:scope .popupQuickHeader strong { font-size: 13px; margin-left: auto; }
-:scope .quickBack { border: 0; background: transparent; color: var(--accent); padding: 5px 6px;
-  min-height: 30px; font-size: 12px; }
 :scope .quickSetupBody { min-height: 0; overflow-y: auto; padding: 18px; }
 :scope .quickSetupBody h1 { font-size: 18px; margin-bottom: 4px; }
 :scope .quickSetupForm { display: grid; gap: 12px; margin-top: 16px; }
 :scope .quickSetupForm label { font-size: 12px; margin-bottom: 5px; }
 :scope .quickSetupForm input,:scope .quickSetupForm select { font-size: 13px; }
-:scope .quickFixedHost { padding: 9px 11px; background: var(--soft); border: 1px solid var(--line);
-  border-radius: 7px; font-size: 11px; color: var(--muted); }
-:scope .quickFixedHost strong { color: var(--ink); }
-:scope .quickSetupActions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 :scope .quickSetupForm>p.hint { font-size: 11px; }
-:scope .quickEmptyPrompt { padding-top: 5px; }
-:scope .quickEmptyPrompt .textAction { margin-top: 4px; }
 :scope .popupSavedHint { margin: 0; padding: 8px 18px; font-size: 11px; color: var(--good);
   background: var(--goodBg); }
 
@@ -315,7 +284,6 @@
     --good: #92dbb5; --goodBg: #1d3930; --warn: #ffd18d; --warnBg: #41321f;
     --bad: #ffb0b9; --badBg: #432932;
   }
-  :scope .brandSymbol { background: var(--accent); color: #171f3b; }
   :scope .diagnosticLead { background: linear-gradient(115deg,#202747,#29365e 75%,#364675); }
   :scope .proxyEditorDialog { box-shadow: 0 25px 65px #00000080; }
 }
@@ -403,9 +371,6 @@
 :scope .popup.sidepanel {
   width: 100%; max-width: none; height: 100dvh; max-height: none; min-height: 0;
 }
-@media (max-width: 340px) {
-  :scope .popup.sidepanel .brand { padding-inline: 12px; }
-}
 
 
 /* PAC starters are generated only from an existing validated endpoint. */
@@ -442,38 +407,14 @@
   color: var(--primaryText); font-weight: 720;
 }
 :scope .popup.sidepanel .modeButton.selected:hover:not(:disabled) { background: var(--accent); }
-:scope .popup.sidepanel .brandSymbol {
-  width: 27px; height: 27px; border-radius: 7px; font-size: 11px;
-  letter-spacing: -.7px; background: var(--ink); color: var(--surface);
-}
 @media (max-width: 410px) {
   :scope .popup.sidepanel .modeButton { font-size: 10.5px; }
-  :scope .popup.sidepanel .brand, :scope .popup.sidepanel .r83CollectorCard {
-    padding-inline: 11px;
-  }
 }
-:scope .popup.sidepanel .brand { padding: 12px 15px; }
 :scope .popup.sidepanel .quickProfileList { max-height: 236px; overflow-y: auto; padding: 2px; scrollbar-width: thin; }
 :scope .popup.sidepanel .quickProfileList button { min-height: 48px; }
 :scope .popup.sidepanel .quickProfileList small { font-size: 11px; }
-:scope .sideModeHelp { margin-top: 8px; }
-:scope .sideFilter { margin-bottom: 9px; min-height: 37px; }
-:scope .sideEmpty { display: grid; gap: 8px; padding: 12px; border-radius: 9px;
-  border: 1px dashed var(--control-line); background: var(--soft); }
-:scope .sideEmpty strong { font-size: 13px; }
-:scope .sideEmpty .actions { margin: 3px 0 0; }
-:scope .sideEmpty .actions button { flex: 1 1 120px; }
-:scope .sideCurrentSite { display: grid; gap: 3px; margin: 10px 0 12px; min-width: 0; }
-:scope .sideCurrentSite small { font-size: 11px; }
-:scope .sideCurrentSite .siteRoute { margin-top: 0; }
-:scope .sideRuleForm { display: grid; gap: 10px; }
-:scope .sideRuleForm label { margin-bottom: 4px; font-size: 12px; }
-:scope .sideRuleForm .hint { margin-top: 5px; }
-:scope .sideRuleInputs,:scope .sideAddTwo { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
-:scope .sideRuleInputs > div, :scope .sideAddTwo > div { min-width: 0; }
-:scope .sideRuleSave { width: 100%; background: var(--accentFill); border-color: var(--accent);
-  color: var(--accent); font-weight: 650; }
-:scope .sideRuleForm+.popupSavedHint { border-radius: 6px; margin-top: 10px; }
+:scope .sideAddTwo { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+:scope .sideAddTwo > div { min-width: 0; }
 :scope .sideAddKind { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; margin-top: 14px; }
 :scope .sideAddKind button { min-width: 0; }
 :scope .sideAddKind button.active { background: var(--accentFill); color: var(--accent); border-color: var(--accent); }
@@ -483,28 +424,13 @@
 :scope .sideAddForm > .textAction { justify-self: start; }
 :scope .sideLoading { display: grid; align-content: start; gap: 10px; padding: 20px; }
 @media (max-width: 340px) {
-  :scope .sideRuleInputs { grid-template-columns: minmax(0,1fr); }
   :scope .sideAddActions { grid-template-columns: minmax(0,1fr); }
 }
 
 /* Options-only rules relocated to options.css. */
 
-:scope .popup.sidepanel .sideRuleShortcut { display: block; margin-top: 10px; font-size: 12px; min-height: 30px; font-weight: 650; }
-
 /* R8.2 visual screenshot audit: connecting and stopping are the persistent footer
    actions, never hidden below large profile lists. Diagnosis is tertiary. */
-:scope .popup.sidepanel .sidePrimaryActions {
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.1fr) minmax(0, .95fr);
-  gap: 7px; padding: 10px 12px 11px;
-  border-top: 1px solid var(--line);
-}
-:scope .popup.sidepanel .sidePrimaryActions button {
-  min-width: 0; min-height: 42px; font-size: 12px; padding: 7px 4px;
-}
-:scope .popup.sidepanel .sidePrimaryActions button.primary {
-  color: var(--primaryText); background: var(--primaryFill); border-color: var(--primaryFill);
-}
-:scope .popup.sidepanel .sideProbeAction { margin-top: 2px; font-size: 12px; }
 :scope .popup.sidepanel .popupSavedHint {
   background: var(--soft); color: var(--ink); border-left: 3px solid var(--accent);
   padding: 9px 13px;
@@ -534,21 +460,6 @@
 :scope .popup.sidepanel .sideUiIcon{display:block;width:16px;height:16px;flex:none}
 :scope .popup.sidepanel .modeButton .sideUiIcon{width:13px;height:13px}
 :scope .popup.sidepanel .modeButton .sideModeLabel{min-width:0;overflow:hidden;text-overflow:ellipsis}
-:scope .popup.sidepanel .sideSelectedMode{display:inline-flex;align-items:center;border-radius:99px;padding:3px 8px;background:var(--soft);color:var(--muted);white-space:nowrap;font-size:10.5px;font-weight:650}
-:scope .popup.sidepanel .brand .quickAddTrigger,:scope .popup.sidepanel .sideSettingsTrigger{
-  display:inline-grid;place-items:center;flex:none;width:32px;height:32px;min-width:32px;min-height:32px;
-  border:1px solid var(--line);border-radius:8px;padding:0;background:var(--soft);color:var(--ink)
-}
-:scope .popup.sidepanel .brand .quickAddTrigger{margin-left:auto}
-:scope .popup.sidepanel .sideSettingsTrigger{margin-left:0}
-:scope .popup.sidepanel .brand .quickAddTrigger:hover:not(:disabled),:scope .popup.sidepanel .sideSettingsTrigger:hover:not(:disabled){
-  background:var(--accentFill);border-color:var(--accent);color:var(--accent)
-}
-:scope .popup.sidepanel .sideRuntimeCard{display:flex;align-items:center;gap:9px;padding:10px;border-radius:9px;background:var(--soft);min-width:0}
-:scope .popup.sidepanel .sideRuntimeCard .statusCompact{flex:1 1 auto;min-width:0;margin:0;padding:0;border:0;background:transparent;border-radius:0}
-:scope .popup.sidepanel .sideRuntimeCard .statusTop{margin-bottom:3px}
-:scope .popup.sidepanel .sideRuntimeCard .statusCompact small{font-size:10.5px;line-height:1.45;overflow-wrap:anywhere}
-:scope .popup.sidepanel .sideRuntimeCard .statusCompact .notice{margin-top:6px}
 :scope .popup.sidepanel .sideProxyToggle{
   display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:0 0 76px;
   width:76px;min-width:76px;min-height:36px;padding:6px 7px;font-size:12px;font-weight:720;
@@ -560,17 +471,12 @@
   :scope .popup.sidepanel .modeButton{gap:3px}
   :scope .popup.sidepanel .modeButton .sideUiIcon{width:12px;height:12px}
 }
-@media(max-width:355px){:scope .popup.sidepanel .brand{gap:5px;padding-inline:9px}}
 @media(max-width:319px){
   :scope .popup.sidepanel .modeGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
   :scope .popup.sidepanel .modeButton{flex-direction:column;min-height:46px;gap:2px;font-size:9px}
 }
 
 /* R8.5 status card and same-slot pause/enable below supersede the old text-only toolbar. */
-:scope .popup.sidepanel .sidePrimaryActions { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
-:scope .popup.sidepanel .r83CollectorCard { padding: 14px 18px; border-top: 1px solid var(--line); }
-:scope .popup.sidepanel .r83CollectorCard .hint + .hint { margin-top: 7px; }
-:scope .popup.sidepanel .r83CollectorCard .textAction { margin-top: 8px; font-size: 12px; }
 :scope .r83RotationSettings { margin: 22px 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
 :scope .r83RotationSettings > summary { cursor: pointer; display: flex; justify-content: space-between; gap: 14px; padding: 17px 18px; font-size: 14px; }
 :scope .r83RotationSettings > summary span { color: var(--accent); font-size: 12px; }
@@ -591,9 +497,6 @@
   :scope .r83RotationFields { grid-template-columns: minmax(0,1fr); }
   :scope .r83RotationFull { grid-column: auto; }
   :scope .r83RotationBody { padding: 13px; }
-}
-@media(max-width:355px) {
-  :scope .popup.sidepanel .brand small { display: none; }
 }
 
 /* R9.2 shared draft input / quick-entry affordances; consumed by Options and Side Panel. */

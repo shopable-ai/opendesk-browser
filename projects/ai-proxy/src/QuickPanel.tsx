@@ -10,23 +10,8 @@ import { ClearableInput } from './ui/ProxyEntry';
 import { isValidProxyPort, parseProxyAddressPaste } from './domain/proxy-entry';
 import { optionsUrl } from './ui/optionsRoute';
 import { RotationEntry } from './ui/RotationPlan';
+import { ProxyIcon as SideIcon } from './ui/ProxyIcon';
 
-type SideIconName = 'profile' | 'rules' | 'direct' | 'system' | 'play' | 'pause' | 'settings' | 'plus' | 'link';
-function SideIcon({name}:{name:SideIconName}) {
-  return <svg className="sideUiIcon" width="16" height="16" viewBox="0 0 24 24"
-    fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
-    focusable="false" aria-hidden="true">
-    {name==='profile'&&<><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></>}
-    {name==='rules'&&<><path d="M4 6h16M4 12h10M4 18h16"/><circle cx="18" cy="12" r="2"/></>}
-    {name==='direct'&&<path d="M4 12h15m-5-5 5 5-5 5"/>}
-    {name==='system'&&<><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8m-4-3v3"/></>}
-    {name==='play'&&<path d="m8 5 11 7-11 7z"/>}
-    {name==='pause'&&<><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></>}
-    {name==='settings'&&<><path d="M9.8 3.2h4.4l.6 2.1 1.5.9 2.1-.6 2.2 3.8-1.5 1.5v2.2l1.5 1.5-2.2 3.8-2.1-.6-1.5.9-.6 2.1H9.8l-.6-2.1-1.5-.9-2.2-3.8 1.5-1.5v-2.2L3.4 9.4l2.2-3.8 2.1.6 1.5-.9z"/><circle cx="12" cy="12" r="3"/></>}
-    {name==='plus'&&<path d="M12 5v14M5 12h14"/>}
-    {name==='link'&&<><path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/></>}
-  </svg>;
-}
 
 type AddKind = 'server' | 'local';
 type RouteTarget = 'endpoint' | 'direct';

@@ -1,0 +1,597 @@
+{
+  "schema": "ai-proxy.independent-ui-review.v1",
+  "reviewer": "Codex independent designer review",
+  "date": "2026-10-31",
+  "candidate": {
+    "id": "source-786e920a-e77b-4e75-b737-4a7a49e76f87",
+    "htmlSha256": "c0107f44c24ac39ce0883389b0c340cd10f6b2e39315aea056f9f6b96dde3eb0",
+    "sourceCount": 65,
+    "independentHashVerification": {
+      "htmlMatch": true,
+      "sourceDrift": [],
+      "screenshotsMatched": 10,
+      "screenshotsReopenedOnFinal": 6
+    }
+  },
+  "scope": "Chromium 内存同源设计复评；源码只读。没有安装、启停真实代理、production 或尺寸/缩放矩阵。旧评分未参与本次计分。",
+  "designSources": [
+    "DESIGN.md：AI Proxy 最新用户纠偏与密度/间距合同",
+    "projects/ai-proxy/evidence/navigation-density-20261031/plan.md",
+    "projects/ai-proxy/README.zh-CN.md:228：既定六维及五项各20量表"
+  ],
+  "methodology": {
+    "imagesActuallyViewed": [
+      "projects/ai-proxy/evidence/navigation-density-20261031/profiles.png",
+      "projects/ai-proxy/evidence/navigation-density-20261031/add-proxy.png",
+      "projects/ai-proxy/evidence/navigation-density-20261031/rules.png",
+      "projects/ai-proxy/evidence/navigation-density-20261031/rule-editor.png",
+      "projects/ai-proxy/evidence/navigation-density-20261031/profiles-en.png",
+      "projects/ai-proxy/evidence/navigation-density-20261031/add-en.png",
+      "projects/ai-proxy/evidence/navigation-density-20261031/panel.png",
+      "projects/ai-proxy/evidence/navigation-density-20261031/profiles-zh-TW.png",
+      "projects/ai-proxy/evidence/navigation-density-20261031/add-zh-TW.png",
+      "projects/ai-proxy/evidence/navigation-density-20261031/profiles-zh-CN.png"
+    ],
+    "suppliedBrowserEvidence": "projects/ai-proxy/evidence/navigation-density-20261031/interactions.json",
+    "suppliedBuildEvidence": "projects/ai-proxy/evidence/navigation-density-20261031/source-check.json",
+    "independentBrowserReplay": "最终候选使用已有Playwright浏览器的新临时context，只加载最终冻结URL，内存草稿操作后finally close；前候选两次临时context用于独立复现和区分键盘驱动问题。未操作共享现有页，未保存额外文件。",
+    "scorePolicy": "严格采用既定六维、每维五项各20；每项列证据与扣分。任一必需项 NOT_TESTED 则该维总分为 null，不将未测记满分或用其他维度平均补齐。无条件总分与平均分不计算。"
+  },
+  "independentObservations": [
+    {
+      "id": "R1",
+      "operation": "最终候选：齿轮→代理配置→添加代理→填host=review-final-unsaved.example、port=8443→底部取消→重新添加",
+      "observed": {
+        "dialogOpenAfterCancel": false,
+        "confirmCountAfterCancel": 0,
+        "reopenedHost": ""
+      },
+      "result": "FAIL",
+      "interpretation": "底部取消无确认清空草稿；与 X/Escape 的 requestCloseEditor 路径不一致。",
+      "candidate": "source-786e920a-e77b-4e75-b737-4a7a49e76f87"
+    },
+    {
+      "id": "R2",
+      "operation": "读取同候选列表计算尺寸",
+      "observed": {
+        "rowHeights": [
+          66,
+          67,
+          67
+        ],
+        "rowMargins": [
+          "0px",
+          "0px",
+          "0px"
+        ]
+      },
+      "result": "PASS",
+      "interpretation": "首行与后续行1px差异为分隔线，不是原106/131/107px的垂直节奏不一致。",
+      "candidate": "source-786e920a-e77b-4e75-b737-4a7a49e76f87"
+    },
+    {
+      "id": "R3",
+      "operation": "规则编辑图标原生 Enter→读取计算CSS→关闭设置",
+      "observed": {
+        "fieldsetDisplay": "grid",
+        "fieldsetGap": "12px",
+        "actionMargin": "4px 0px 0px",
+        "actionGap": "8px",
+        "restoredGearFocus": true
+      },
+      "result": "PASS_WITH_LAYOUT_NOTE",
+      "candidate": "source-786e920a-e77b-4e75-b737-4a7a49e76f87"
+    },
+    {
+      "id": "R4",
+      "operation": "最终候选原生select聚焦后ArrowDown/Enter；前候选另试Home/ArrowDown/Tab",
+      "observed": {
+        "initialValue": "profiles",
+        "valueAfterArrowDown": "profiles",
+        "focusBeforeTab": "settings-section",
+        "focusAfterTab": "unnamed control"
+      },
+      "result": "INCONCLUSIVE",
+      "interpretation": "本驱动未证明键盘切换栏目成功；不能据此把原生select判为产品故障。selectOption仅证明选择/路由通路，不替代原生键盘证据。",
+      "evidenceBoundary": "最终候选也未观察切换；Home/Tab细节来自等字节前候选，不重标为最终重放。"
+    }
+  ],
+  "correctedProblems": [
+    "顶部业务Tabs已撤去；现为七区selector/more/X，X有返回代理面板title和ARIA。",
+    "代理/规则普通记录为两行；本地客户端状态并入图标，选择有aria-pressed，未把选择伪称应用。",
+    "标题/计数/添加收口；英文动作自然换到下一行但未回到独立多层标题结构。",
+    "列表margin归零、单gutter、form grid真实生效；普通代理行66/67/67px。",
+    "保存、取消和继续添加视觉主次明确；三语添加表单动作均在截图可见。"
+  ],
+  "dimensions": [
+    {
+      "name": "布局与密度",
+      "score": 100,
+      "status": "ASSESSED",
+      "items": [
+        {
+          "name": "单gutter",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "metrics.profiles.content.padding=12px",
+            "metrics.form.padding=16px; dialogPadding=0px",
+            "profiles.png",
+            "add-proxy.png"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "无横溢",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "十张截图正常窗口可见范围无页面横向溢出",
+            "sidebar-settings.css:82,94-95,137：minmax(0,1fr)、ellipsis；本项不覆盖尺寸矩阵"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "列表可达",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "profiles.png/rules.png：列表直接可操作",
+            "R2：行高66/67/67，margin全0"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "表单自然流",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "add-proxy.png/add-en.png/rule-editor.png：字段、帮助与操作完整自然排列",
+            "metrics.form.display=grid,gap=12px"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "无嵌套壳",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "profiles.png/rules.png/rule-editor.png：列表/编辑无额外外框层",
+            "单层modal未重复dialog/form padding"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        }
+      ]
+    },
+    {
+      "name": "信息层级与可发现性",
+      "score": 100,
+      "status": "ASSESSED",
+      "items": [
+        {
+          "name": "七区完整",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "Settings.tsx:32-40,473-481：七栏目保留",
+            "checks[0]：seven settings sections；不是七区全功能验收"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "当前栏目",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "profiles.png/rules.png/profiles-en.png：selector显示当前栏目",
+            "App.jsx使用命名region，无残余tablist/tabpanel"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "添加优先",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "profiles.png/profiles-en.png/rules.png：标题计数与添加归同组",
+            "add-proxy.png/add-en.png：保存主按钮，取消次按钮，继续添加低强调"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "低频渐进",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "profiles.png：其他添加方式折叠",
+            "add-en.png：认证折叠",
+            "rule-editor.png：优先级折叠"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "返回明确",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "Settings.tsx:492-493：X的title/ARIA=返回代理面板",
+            "R3：返回齿轮焦点",
+            "panel.png：齿轮与管理全部入口保留；Host返回未新增重复箭头"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        }
+      ]
+    },
+    {
+      "name": "视觉与可读性",
+      "score": 95,
+      "status": "ASSESSED",
+      "items": [
+        {
+          "name": "字号",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "profiles.png/profiles-en.png/rule-editor.png：标题、名称和辅助文字层级清楚",
+            "sidebar-settings.css:55,92-93：16/13/12px；非完整对比度认证"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "间距",
+          "max": 20,
+          "score": 17,
+          "status": "ASSESSED",
+          "evidence": [
+            "metrics.profiles/form/rules",
+            "sidebar-settings.css:97,141,152,208",
+            "R3"
+          ],
+          "reason": "扣3：代理/规则行内操作仍gap4而非最新合同的8；操作区仍用父gap12+子margin4拼16，数值正确但父容器唯一负责尚未彻底收口。不是原大行高缺陷复发。"
+        },
+        {
+          "name": "色彩token",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "sidebar-settings.css：var(--surface/line/accent/muted/bad/good)",
+            "profiles.png/rules.png：形状区分选择/状态，删除危险色有ARIA；不宣称WCAG对比度已实测"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "控件一致",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "profiles.png/rules.png：34px图标操作，同一ProxyIcon",
+            "add-proxy.png/add-en.png：字段和动作样式一致"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "长文换行",
+          "max": 20,
+          "score": 18,
+          "status": "ASSESSED",
+          "evidence": [
+            "add-en.png：英文说明自然换行且动作可见",
+            "sidebar-settings.css:94-95 + Settings.tsx:669"
+          ],
+          "reason": "扣2：规则第二行目标/优先级强制ellipsis，small没有title或其他就地完整查看入口；较长目标只能进入编辑确认。当前英文段落换行已观察，超长规则目标浏览器场景未执行，不能宣称已通过该场景。"
+        }
+      ]
+    },
+    {
+      "name": "操作/草稿/反馈",
+      "score": 88,
+      "status": "ASSESSED",
+      "items": [
+        {
+          "name": "保存不应用",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "checks[1-2]：selection无应用宣称；Enter保存不应用",
+            "profiles.png/add-proxy.png/rules.png/rule-editor.png中的明确说明"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "非法拒绝",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "checks[2]：非法端口被拒",
+            "Settings.tsx：端口上下界、isValidProxyPort及表单内alert"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "取消不写",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "checks[3-5]：保留/放弃、删除取消",
+            "R1底部取消不新增记录，问题是草稿被清空，在下一项扣分"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "草稿防丢",
+          "max": 20,
+          "score": 8,
+          "status": "ASSESSED",
+          "evidence": [
+            "R1",
+            "Settings.tsx:147-169,891"
+          ],
+          "reason": "扣12：底部取消直接closeEditor，绕过requestCloseEditor，真实复现未确认即清空已填写host/port；X/Escape具有确认，不同退出方式语义不一致。此项阻断本轮草稿保护通过。"
+        },
+        {
+          "name": "删除确认",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "checks[5]：规则删除取消/确认、回执清理、邻项焦点",
+            "Settings.tsx:407-417,542-544：域名/范围或代理名确认；未把源码检查算代理删除浏览器全链"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        }
+      ]
+    },
+    {
+      "name": "键盘与焦点",
+      "score": null,
+      "status": "NOT_TESTED",
+      "assessedScore": 80,
+      "assessedMaximum": 80,
+      "items": [
+        {
+          "name": "栏目选择",
+          "max": 20,
+          "score": null,
+          "status": "NOT_TESTED",
+          "evidence": [
+            "checks没有明确原生键盘切换栏目记录",
+            "R4"
+          ],
+          "reason": "未测/证据不足：重放未观察到栏目切换；原因未分类，不作为已证实产品故障。"
+        },
+        {
+          "name": "字段操作",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "checks[2]：Enter保存、非法端口拒绝",
+            "R3：原生Enter打开规则编辑",
+            "R1：可正常编辑host/port；不覆盖IME矩阵"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "可见焦点",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "add-proxy.png/add-en.png：host焦点轮廓",
+            "profiles-en.png：编辑图标焦点",
+            "sidebar-settings.css:104"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "Escape",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "checks[3]：代理dirty Escape保留/丢弃",
+            "Settings.tsx:828与requestCloseEditor：同一路径；底部取消另计草稿缺陷"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "返回焦点",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "checks[3-5]：编辑、删除邻项、关闭设置焦点",
+            "R3：restoredGearFocus=true"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        }
+      ]
+    },
+    {
+      "name": "组件复用与边界",
+      "score": 100,
+      "status": "ASSESSED",
+      "items": [
+        {
+          "name": "同源输入",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "独立重算65项输入SHA均匹配、HTML SHA符合指定值、10张图片SHA全部匹配"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "Shared UI",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "App/Settings/QuickPanel复用@opendesk/ui Button",
+            "OptionsShell/FormField沿既有组件；ProxyIcon仅工具内共享",
+            "options.css:260起proxy-legacy只包历史PC布局回退，基础组件仍unlayered"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "仅内存",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "manifest.simulation明确memory service/storage",
+            "独立重放新context只访问同一冻结内存候选，关闭context"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "无外网及权限变化",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "interactions.external=[]",
+            "本轮UI源码仍沿既有Environment/guard，无新Host/权限通道；并行全仓改动不属于本评审结论"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        },
+        {
+          "name": "证据分级",
+          "max": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "evidence": [
+            "source-check的编译不冒充完整类型诊断",
+            "manifest的静态browserInteraction=NOT_TESTED与动态interactions记录分别保留，不把静态字段当浏览器PASS",
+            "安装/真实代理/production未测；尺寸矩阵范围外"
+          ],
+          "reason": "无扣分；仅限所列证据范围。"
+        }
+      ]
+    }
+  ],
+  "remainingIssues": [
+    {
+      "id": "UI-DENSITY-01",
+      "severity": "P1",
+      "blocking": true,
+      "title": "管理代理表单底部取消绕过草稿确认",
+      "evidence": [
+        "R1",
+        "projects/ai-proxy/src/Settings.tsx:891",
+        "projects/ai-proxy/src/Settings.tsx:147-169"
+      ],
+      "minimalFix": "仅将底部取消接入现有requestCloseEditor，使取消/X/Escape一致；保留revision校验。不要重写草稿系统或Host。",
+      "necessaryVerification": "同候选填写host/port后分别用取消/X/Escape：保留继续编辑且值不变，确认丢弃才清空，返回原触发图标；保存中仍不可离开。"
+    },
+    {
+      "id": "UI-DENSITY-02",
+      "severity": "P2",
+      "blocking": false,
+      "title": "小范围间距owner仍未完全收口",
+      "evidence": [
+        "sidebar-settings.css:97,141：行内操作gap4",
+        "sidebar-settings.css:152,208及metrics.form.childMargins：操作区margin-top4",
+        "R3"
+      ],
+      "minimalFix": "行内操作gap改用现有space-2；操作区前16由父布局row-gap/行轨道负责，并把动作子项margin归零。不新增覆盖文件、不用!important，不触碰已正确的行高。",
+      "necessaryVerification": "读取列表操作gap=8、操作区子margin=0且前间距=16；代理/规则普通行保持两行及一致高度。"
+    },
+    {
+      "id": "UI-DENSITY-03",
+      "severity": "P2",
+      "blocking": false,
+      "title": "规则目标省略缺少就地完整名称查看",
+      "evidence": [
+        "Settings.tsx:669：第二行small无title",
+        "sidebar-settings.css:94-95：强制单行ellipsis"
+      ],
+      "minimalFix": "复用完整目标/优先级文本作为title，保持读屏DOM完整；若提供tooltip，键盘聚焦相关操作时也应能查看，不新增依赖或详情页。",
+      "necessaryVerification": "单条长目标fixture确认操作图标保留、完整目标可查询；无需宽度/缩放矩阵。"
+    }
+  ],
+  "notTested": [
+    {
+      "item": "原生键盘切换设置栏目",
+      "impact": "本轮必需键盘子项缺证据，键盘维度不能判达标",
+      "nextStep": "只补一条已聚焦select通过原生键盘切到另一栏目、观察路由与焦点的记录；区分驱动与产品问题。"
+    },
+    {
+      "item": "受控延迟保存时关闭设置/切换栏目",
+      "impact": "源码有busy guard，现有checks未提供延迟保存的浏览器过程，不宣称浏览器PASS"
+    },
+    {
+      "item": "中文输入法组合输入Enter",
+      "impact": "源码有isComposing保护，当前候选未提供真实IME证据"
+    },
+    {
+      "item": "代理删除的浏览器确认/焦点全链",
+      "impact": "本轮提供的是规则删除链；代理确认仅源码核对"
+    },
+    {
+      "item": "超长规则目标的实际截断状态",
+      "impact": "源码可定位缺少完整查看入口，但浏览器未重放"
+    },
+    {
+      "item": "安装/真实代理/production/完整类型诊断",
+      "impact": "不属于本UI开发预览通过证明"
+    }
+  ],
+  "outOfScope": [
+    "尺寸/缩放矩阵",
+    "真实站点流量及代理权限",
+    "正式包晋升或安装"
+  ],
+  "verdict": {
+    "status": "CHANGES_REQUESTED",
+    "allDimensionsAtLeast95": false,
+    "blockingIssues": [
+      "UI-DENSITY-01"
+    ],
+    "incompleteDimensions": [
+      "键盘与焦点"
+    ],
+    "summary": "最终source-786e920a候选的导航与列表垂直密度改动成立，旧106/131/107px行高及重复Tabs已修正；底部取消丢草稿在最终URL再次复现。视觉95不补齐操作88，键盘未测项不记满分；不能宣称六维全部≥95。",
+    "stopCondition": "本轮独立复评到此，只写本JSON。leader最小修复草稿退出路径并补必要键盘证据后，再绑定新候选复核；不启动安装/真实代理或尺寸矩阵。"
+  },
+  "finalCandidateRebinding": {
+    "previousCandidate": "source-86f96324-2033-457a-9566-4e0de4cd2209",
+    "previousHtmlSha256": "9a50fdfbe6e2af6ea09860de68095d61b814d93082d3ad9a52f2e8aad26d1a3e",
+    "changedInputPaths": [
+      "projects/ai-proxy/src/styles/sidebar-settings.css"
+    ],
+    "sidebarCssBytesBefore": 16802,
+    "sidebarCssBytesAfter": 16800,
+    "compiledIframeBytesEqual": true,
+    "sourceCheck": "最终HTML及65项源码SHA重算匹配，drift=[]；十张最终交互截图SHA匹配。",
+    "suppliedInteractionsAt": "2026-10-31T08:31:30.122Z",
+    "finalImagesActuallyReopened": [
+      "profiles.png",
+      "add-proxy.png",
+      "rules.png",
+      "rule-editor.png",
+      "profiles-en.png",
+      "add-en.png"
+    ],
+    "evidenceMapping": "上述六张已按最终取证重新view_image。panel及繁中/简中补充截图曾在前候选实际查看；最终截图SHA已核对，编译iframe字节完全相同，明确沿用未受影响观察，不冒称额外四张重新打开。",
+    "independentFinalReplay": "最终URL再次真实操作：底部取消仍无确认清空host；普通行66/67/67px且margin0；规则编辑原生Enter可用；规则fieldset gap12、操作margin4/gap8；关闭设置恢复齿轮焦点；原生select ArrowDown/Enter仍未证明切换成功。",
+    "scoring": "按最终截图、重算输入与最终重放逐项复核，评分结论保持；没有因只有空格变更而把缺陷标为修复。"
+  }
+}

@@ -1,0 +1,975 @@
+{
+  "format": "ai-proxy.install-evidence.v1",
+  "startedAt": "2026-10-31T08:57:07.889Z",
+  "mode": "ISOLATED_HEADLESS_DEVELOPMENT",
+  "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/install-0.3.2-20261031-isolated/profile",
+  "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "chrome": "155.0.8059.39",
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "endpoint": {
+    "port": 65417,
+    "browserPath": "/devtools/browser/02531212-bbe3-4ce9-b3b6-1808241155d6"
+  },
+  "sidePanelContext": {
+    "contextId": "f62e3c9b-e86b-4976-9b07-e3f3aae82bec",
+    "contextType": "SIDE_PANEL",
+    "documentId": "DFAC6F45168C8DCD420A21377FC15B0B",
+    "documentOrigin": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "documentUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=5b85babe-8a3f-4912-a12e-1f18f05d6b07",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  "sideTargetId": "F791A65E2067A34A054500149C8FF062",
+  "baselinePackage": {
+    "id": "ai-proxy",
+    "version": "0.3.1",
+    "sha256": "bed14a78ea94b97b1dda048d35fd0a4a8b895a5e870ccf4d57aec347cd06a821",
+    "capabilities": [
+      "storage.local",
+      "currentPage.read",
+      "browser.proxy.managed"
+    ]
+  },
+  "steps": [
+    {
+      "name": "BASELINE_IMPORT_REVIEW",
+      "at": "2026-10-31T08:57:08.360Z",
+      "text": "AI Proxy\nv0.3.1\n\n浏览器网络代理管理：配置、规则与选择独立保存，公开受管服务的有限路由需明确审阅。四模式与七区保留，认证/PAC/订阅联网等能力待接入。\n\n安装所需权限 · 请核对\n\n保存此工具的数据、读取当前网页标题和地址、经可信确认管理浏览器级独占代理；仅提交有限域名及 HTTPS/SOCKS5 端点\n\nOpenDesk 官方发行 · 安装包已校验\n\n技术详情 · 文件与校验信息",
+      "fullText": "AI Proxyv0.3.1浏览器网络代理管理：配置、规则与选择独立保存，公开受管服务的有限路由需明确审阅。四模式与七区保留，认证/PAC/订阅联网等能力待接入。安装所需权限 · 请核对保存此工具的数据、读取当前网页标题和地址、经可信确认管理浏览器级独占代理；仅提交有限域名及 HTTPS/SOCKS5 端点OpenDesk 官方发行 · 安装包已校验技术详情 · 文件与校验信息文件：ai-proxy.opendesk-tool.json · 来源：已核对内置官方发行 · 候选包 SHA-256（规范序列化）：bed14a78ea94b97b1dda048d35fd0a4a8b895a5e870ccf4d57aec347cd06a821。校验值基于规范序列化，文件空白和键顺序不影响结果。工具 ID：ai-proxy；格式：opendesk.sidebar-tool.v2；运行扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；扩展版本：0.1.0；安装器 / Worker 能力合同 SHA-256：b1ea893e1feeda7ba29f27c61e4966ce8e67c2510ee45190ff8d82e1db2ab797。"
+    },
+    {
+      "name": "BASELINE_INSTALLED_THROUGH_PRODUCT_UI",
+      "at": "2026-10-31T08:58:04.652Z",
+      "version": "0.3.1",
+      "canonicalHash": "bed14a78ea94b97b1dda048d35fd0a4a8b895a5e870ccf4d57aec347cd06a821",
+      "driverIssue": "node_repl object realm mismatch; product installation succeeded; no install retry",
+      "canonicalCheck": "PASS in workspace Node validator"
+    },
+    {
+      "name": "BASELINE_OPENED_INSTALLED_SANDBOX",
+      "at": "2026-10-31T08:58:26.767Z",
+      "targetId": "F936C8279A25388C215E80FA03A7F4ED",
+      "chromeRuntimeType": "undefined",
+      "text": "代理面板\n管理设置\n连接方式\n指定代理\n网站规则\n直连\n跟随系统\n尚未添加代理\n技术详情\n添加代理\n其他添加方式\n订阅来源\n本地客户端\nClash / sing-box\n当前网站\n管理规则\n当前网站不可读取\n可手动输入域名添加规则\n浏览器设置\n无法确认\n待应用选择\n网站未知，无法预览匹配\n\n选择仅供配置参考，不代表此网站的实际流量或可达性。\n\n添加规则\n重新识别\n\n仅管理浏览器代理设置，不等于全设备 VPN，也不保证当前网站可达。\n\n订阅来源\n网络诊断 ↗"
+    },
+    {
+      "action": "BASELINE_CONFIG_SAVED",
+      "name": "Isolated upgrade baseline",
+      "host": "isolated-upgrade.example.net",
+      "port": 8443,
+      "scheme": "http",
+      "text": "代理面板\n管理设置\n设置栏目\n代理配置\n网站规则\n订阅管理\n导入与备份\n网络诊断\n通用设置\n官方网络 · 可选官方服务\n⋯\n代理配置\n\n管理代理和本地客户端。保存配置后，手动应用才会切换线路。\n\n＋ 添加代理\n其他添加方式\n代理服务器 1\n\n选择配置后再应用。编辑配置不会自动切换当前浏览器线路。\n\n已有机场订阅？\nP\nIsolated upgrade baseline\nHTTP · isolated-upgrade.example.net:8443\n选择\n编辑\n删除\n尚未管理浏览器代理\n当前代理模式\n\n选择只保存意图，点击「应用选择」才会请求 Chrome 切换。\n\n0 条网站规则\n指定代理\n网站规则\n直连\n跟随系统\n使用指定配置\n请选择已保存的代理或 PAC\nIsolated upgrade baseline · 代理\n应用选择\n停止管理\n设置生效 ≠ 网站可以访问\n控制权与应用详情\n本地 PAC 配置\n0 项 · 高级功能，应用时需确认\n展开管理\n采集代理\n设置规则 ↗\n没有代理服务？\n\nAI Proxy 是管理工具，不附赠可用线路。未来官方网络服务完全可选。\n\n了解官方网络 →",
+      "driverNote": "Saved successfully; initial wait wrongly required hidden editor input removal. No second save."
+    },
+    {
+      "action": "BASELINE_RULE_SAVED",
+      "domain": "upgrade-check.example.com",
+      "text": "代理面板\n管理设置\n设置栏目\n代理配置\n网站规则\n订阅管理\n导入与备份\n网络诊断\n通用设置\n官方网络 · 可选官方服务\n⋯\n网站规则\n\n按域名选择代理或直连\n\n添加规则\n\n网站规则已保存，尚未改变 Chrome 代理设置；需要时请明确应用。\n\n直接填写网站域名，或粘贴完整网址。选择已有代理后保存；未应用网站规则模式前，不会改变当前网络。\n\n1 条网站规则\nupgrade-check.example.com+ 子域\n优先级 100 · Isolated upgrade baseline\n编辑\n删除\n无规则命中时\n\n默认 DIRECT；只有明确选择代理才会经代理，不会自动回退到未知节点。\n\n默认路由\nDIRECT\n指定代理\n代理\n请选择\nIsolated upgrade baseline\n保存默认路由\n当前：DIRECT"
+    },
+    {
+      "action": "SOURCE_CHANGE_SAFE_RELOAD",
+      "note": "Own SIDE_PANEL/sandbox session invalidated by original watcher; saved config and rule read back intact. Selection click did not run because session missing."
+    },
+    {
+      "action": "BASELINE_PROFILE_SELECTED_WITHOUT_APPLY",
+      "selection": {
+        "mode": "profile",
+        "profileId": "profile-118ac94d-acf9-41ab-aae1-65ab647c8ffc"
+      },
+      "proxyUnchanged": true
+    },
+    {
+      "action": "UPGRADE_REVIEW",
+      "version": "0.3.2",
+      "text": "我的\n扩展\n工作流\n开发\n云控\n调试\n5 个扩展\n▦\n提示词快捷按钮\n应用\n提示词快捷按钮：ChatGPT、DeepSeek、Gemini 对话页默认适配，保留草稿，只插入不发送；其他网站可自定义规则。\n▦\n网页笔记\n应用\n在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。\n▦\n阅读目录\n应用\n在侧边栏或授权网页中查看章节并精准跳转。\n▦\nAI Proxy\n应用\n浏览器网络代理管理：配置、规则与选择独立保存，公开受管服务的有限路由需明确审阅。四模式与七区保留，认证/PAC/订阅联网等能力待接入。\n▦\nCookie Editor · Cookie 管理\n应用\nCookie Editor：管理已授权网站的 Cookie，支持原位编辑、复制、下载、导入导出，以及本机多账号快照、显式切换和受控 URL 自动切换。\n导入扩展\n更换安装包\nAI Proxy\n\n当前 v0.3.1 → 新 v0.3.2\n\n更新将替换现有代码；原有应用数据保留。\n\n浏览器网络代理管理：配置、规则与选择独立保存，公开受管服务的有限路由需明确审阅。四模式与七区保留，认证/PAC/订阅联网等能力待接入。\n\n权限未变化 · 查看范围\n\nOpenDesk 官方发行 · 安装包已校验\n\n技术详情 · 文件与校验信息\n确认更新"
+    },
+    {
+      "action": "UPGRADED_THROUGH_PRODUCT_UI",
+      "version": "0.3.2",
+      "dataUnchanged": true,
+      "data": {
+        "ai-proxy.full-config.v2": {
+          "defaultTarget": {
+            "action": "direct"
+          },
+          "endpoints": [
+            {
+              "host": "isolated-upgrade.example.net",
+              "id": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+              "name": "Isolated upgrade baseline",
+              "port": 8443,
+              "scheme": "http",
+              "sourceId": "manual"
+            }
+          ],
+          "managed": false,
+          "profiles": [
+            {
+              "endpointId": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+              "id": "profile-118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+              "kind": "endpoint",
+              "name": "Isolated upgrade baseline",
+              "sourceId": "manual"
+            }
+          ],
+          "rules": [
+            {
+              "action": "endpoint",
+              "domain": "upgrade-check.example.com",
+              "enabled": true,
+              "endpointId": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+              "id": "60597e9d-9931-4168-9892-6130721f006d",
+              "includeSubdomains": true,
+              "priority": 100
+            }
+          ],
+          "schemaVersion": 2,
+          "selection": {
+            "mode": "profile",
+            "profileId": "profile-118ac94d-acf9-41ab-aae1-65ab647c8ffc"
+          },
+          "sources": [
+            {
+              "displayName": "手动创建",
+              "id": "manual",
+              "kind": "manual",
+              "trustedByUser": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "action": "INSTALLED_DRAFT_CANCEL",
+      "keep": true,
+      "discardCloses": true,
+      "focus": "编辑 Isolated upgrade baseline"
+    },
+    {
+      "action": "INSTALLED_DRAFT_X",
+      "keep": true,
+      "discardCloses": true,
+      "focus": "编辑 Isolated upgrade baseline"
+    },
+    {
+      "action": "INSTALLED_DRAFT_ESCAPE",
+      "keep": true,
+      "discardCloses": true,
+      "focus": "编辑 Isolated upgrade baseline"
+    },
+    {
+      "action": "DRAFTS_DID_NOT_CHANGE_SAVED_DATA",
+      "pass": true
+    },
+    {
+      "action": "INSTALLED_CONFIG_EDIT_SAVE",
+      "id": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+      "name": "Isolated upgrade saved",
+      "port": 9443,
+      "identityPreserved": true
+    },
+    {
+      "action": "INSTALLED_SETTINGS_CLOSE_DRAFT",
+      "keep": true,
+      "discardReturnsQuick": true,
+      "driverNote": "First discard pointer attempt left dialog open; fresh geometry-bound click completed. No storage write or route apply was retried."
+    },
+    {
+      "action": "INSTALLED_RULE_EDIT_SAVE",
+      "id": "60597e9d-9931-4168-9892-6130721f006d",
+      "priority": 73,
+      "identityPreserved": true,
+      "focus": "settings-rule-60597e9d-9931-4168-9892-6130721f006d",
+      "scrollBefore": 0,
+      "scrollAfter": 0
+    },
+    {
+      "action": "CLOSE_REOPEN_PERSISTENCE",
+      "pass": true,
+      "dataExact": true,
+      "text": "设置栏目\n代理配置\n网站规则\n订阅管理\n导入与备份\n网络诊断\n通用设置\n官方网络 · 可选官方服务\n⋯\n网站规则1\n添加规则\n\n按域名选择代理或直连\n\n仅保存规则，当前网络保持不变。需要生效时，请在代理面板明确应用。\n\nupgrade-check.example.com+ 子域\nIsolated upgrade saved · 优先级 73\n无规则命中时\n\n默认 DIRECT；只有明确选择代理才会经代理，不会自动回退到未知节点。\n\n默认路由\nDIRECT\n指定代理\n代理\n请选择\nIsolated upgrade saved\n保存默认路由\n当前：DIRECT",
+      "proxyUnchanged": true,
+      "sandboxChromeRuntime": "undefined"
+    }
+  ],
+  "newPackageInstallation": "INSTALLED_CHROMIUM_HEADLESS_PASS",
+  "visibleMacOSNative": "NOT_TESTED",
+  "proxyTraffic": "NOT_TESTED",
+  "baselineScreenshot": {
+    "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/install-0.3.2-20261031-isolated/baseline-0.3.1-main.png",
+    "bytes": 59535,
+    "sha256": "caa81cc467f4e08741ffb9c64fe4c2edf1cdd5cc7c6d759494b89ce5a69cfd4f"
+  },
+  "baselineProxy": {
+    "levelOfControl": "controllable_by_this_extension",
+    "value": {
+      "mode": "system"
+    }
+  },
+  "baselineToolStorageKeys": [
+    "opendesk.sidebar-tools.data.v1:ai-proxy"
+  ],
+  "baselineData": {
+    "ai-proxy.full-config.v2": {
+      "defaultTarget": {
+        "action": "direct"
+      },
+      "endpoints": [
+        {
+          "host": "isolated-upgrade.example.net",
+          "id": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "name": "Isolated upgrade baseline",
+          "port": 8443,
+          "scheme": "http",
+          "sourceId": "manual"
+        }
+      ],
+      "managed": false,
+      "profiles": [
+        {
+          "endpointId": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "id": "profile-118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "kind": "endpoint",
+          "name": "Isolated upgrade baseline",
+          "sourceId": "manual"
+        }
+      ],
+      "rules": [
+        {
+          "action": "endpoint",
+          "domain": "upgrade-check.example.com",
+          "enabled": true,
+          "endpointId": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "id": "60597e9d-9931-4168-9892-6130721f006d",
+          "includeSubdomains": true,
+          "priority": 100
+        }
+      ],
+      "schemaVersion": 2,
+      "selection": {
+        "mode": "profile",
+        "profileId": "profile-118ac94d-acf9-41ab-aae1-65ab647c8ffc"
+      },
+      "sources": [
+        {
+          "displayName": "手动创建",
+          "id": "manual",
+          "kind": "manual",
+          "trustedByUser": true
+        }
+      ]
+    }
+  },
+  "baselineProxyAfterSave": {
+    "levelOfControl": "controllable_by_this_extension",
+    "value": {
+      "mode": "system"
+    }
+  },
+  "baselineProxyUnchanged": true,
+  "sidePanelContextAfterWatcher": {
+    "contextId": "8cb68e67-fc16-470b-bf41-b788d0276348",
+    "contextType": "SIDE_PANEL",
+    "documentId": "5B8D240FD162D5A213E371294CC0ECAE",
+    "documentOrigin": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "documentUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=65dc8271-c738-4c1a-abdf-53e3be446b82",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  "packageSha256": "fb0151b4ef7e135951b54416917617ac6a7a89fbb8f4bd9d376cb7b21ac3a547",
+  "upgradedSandbox": {
+    "session": "8EB6DCCA19DC45ED1CAD424014A7A050",
+    "targetId": "1AA4744D7D577988953C2F1A64CFB1D0",
+    "frameId": "1AA4744D7D577988953C2F1A64CFB1D0"
+  },
+  "upgradedScreenshot": {
+    "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/install-0.3.2-20261031-isolated/upgraded-0.3.2-main.png",
+    "bytes": 58884,
+    "sha256": "d82c4e80a0776c5f6db637c3101fada5c0151b3198e56ebe2ef8636aef16bedd"
+  },
+  "installedCanonicalCheck": "PASS",
+  "afterDiscardData": {
+    "ai-proxy.full-config.v2": {
+      "defaultTarget": {
+        "action": "direct"
+      },
+      "endpoints": [
+        {
+          "host": "isolated-upgrade.example.net",
+          "id": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "name": "Isolated upgrade baseline",
+          "port": 8443,
+          "scheme": "http",
+          "sourceId": "manual"
+        }
+      ],
+      "managed": false,
+      "profiles": [
+        {
+          "endpointId": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "id": "profile-118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "kind": "endpoint",
+          "name": "Isolated upgrade baseline",
+          "sourceId": "manual"
+        }
+      ],
+      "rules": [
+        {
+          "action": "endpoint",
+          "domain": "upgrade-check.example.com",
+          "enabled": true,
+          "endpointId": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "id": "60597e9d-9931-4168-9892-6130721f006d",
+          "includeSubdomains": true,
+          "priority": 100
+        }
+      ],
+      "schemaVersion": 2,
+      "selection": {
+        "mode": "profile",
+        "profileId": "profile-118ac94d-acf9-41ab-aae1-65ab647c8ffc"
+      },
+      "sources": [
+        {
+          "displayName": "手动创建",
+          "id": "manual",
+          "kind": "manual",
+          "trustedByUser": true
+        }
+      ]
+    }
+  },
+  "ruleScrollBefore": 0,
+  "expectedFinalData": {
+    "ai-proxy.full-config.v2": {
+      "defaultTarget": {
+        "action": "direct"
+      },
+      "endpoints": [
+        {
+          "host": "isolated-upgrade.example.net",
+          "id": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "name": "Isolated upgrade saved",
+          "port": 9443,
+          "scheme": "http",
+          "sourceId": "manual"
+        }
+      ],
+      "managed": false,
+      "profiles": [
+        {
+          "endpointId": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "id": "profile-118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "kind": "endpoint",
+          "name": "Isolated upgrade saved",
+          "sourceId": "manual"
+        }
+      ],
+      "rules": [
+        {
+          "action": "endpoint",
+          "domain": "upgrade-check.example.com",
+          "enabled": true,
+          "endpointId": "118ac94d-acf9-41ab-aae1-65ab647c8ffc",
+          "id": "60597e9d-9931-4168-9892-6130721f006d",
+          "includeSubdomains": true,
+          "priority": 73
+        }
+      ],
+      "schemaVersion": 2,
+      "selection": {
+        "mode": "profile",
+        "profileId": "profile-118ac94d-acf9-41ab-aae1-65ab647c8ffc"
+      },
+      "sources": [
+        {
+          "displayName": "手动创建",
+          "id": "manual",
+          "kind": "manual",
+          "trustedByUser": true
+        }
+      ]
+    }
+  },
+  "rulesScreenshot": {
+    "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/install-0.3.2-20261031-isolated/upgraded-0.3.2-rules.png",
+    "bytes": 50397,
+    "sha256": "fb50f7f29c8a25f0b763fbb22b129613d982f7741f9df4ad2a68be78831b4bd8"
+  },
+  "reopenedSandbox": {
+    "session": "459F1F644A903123BADD61579493661D",
+    "targetId": "420C459E46A3D9FDCDC26D56DC7023DF",
+    "frameId": "420C459E46A3D9FDCDC26D56DC7023DF"
+  },
+  "finalProxy": {
+    "levelOfControl": "controllable_by_this_extension",
+    "value": {
+      "mode": "system"
+    }
+  },
+  "proxyUnchanged": true,
+  "finalScreenshot": {
+    "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/install-0.3.2-20261031-isolated/reopened-0.3.2-rules.png",
+    "bytes": 49876,
+    "sha256": "46c719156926b4e73a29b6ac57256ac0aa770a9fbee995153527287626ef327f"
+  },
+  "completedCoreAt": "2026-10-31T09:16:43.790Z",
+  "hostDevelopmentStatus": "我的\n扩展\n工作流\n开发\n云控\n调试\n调试\n\n读取当前 RunHost 的云控状态，不导入第二份任务。\n\n刷新\n复制脱敏摘要\n\n尚未读取云控状态\n\n配对\n未检测\nWSS 连接\n未检测\n持久对账\n未检测\n执行槽\n未检测\n批准任务\n—\n云请求\n—\n\n正在读取当前云控状态…\n\n本地开发服务\n脱敏诊断快照\n历史记录查询",
+  "hostDevelopmentConnection": "{\"text\":\"开发服务已连接 · 构建指纹 e3af2915b0a2；保存源码后自动安全更新。\",\"title\":\"扩展 ID：ccfcjegpkdlgbclopjmadlcjedelidmf；构建 revision：e3af2915b0a25431789da96191d23db393a6ca817cc46feaab336e134d3e8de4。这不证明已打开的网页重新注入了 SDK。\"}",
+  "driverNotes": [
+    "Initial nativeText helper depended on process in Node REPL; replaced driver with explicit macOS CDP input, no product changes.",
+    "Canonical serialization done in standalone Node after REPL realm mismatch; no reinstallation to work around a driver error.",
+    "Native select menu keys did not commit in headless Mac; used existing management buttons.",
+    "After source safe reload, old sandbox references were rebound; later stale closure reference was corrected in driver.",
+    "Outer workspace scroll could hide quick links; native Tab/Shift+Tab restored visible focus; no DOM scroll/value injection."
+  ],
+  "browserClosedAt": "2026-10-31T09:18:58.377Z",
+  "resourceCleanup": {
+    "ownedBrowserClosed": true,
+    "profileRetainedForEvidence": true,
+    "dailyChromeUntouched": true,
+    "proxyEnableDisableNotInvoked": true,
+    "sharedServicesStopped": false,
+    "preview": {
+      "previousPid": 93753,
+      "observed": "Not running at final check; cause unknown",
+      "recoveryCommand": "node projects/ai-proxy/scripts/stage-preview.mjs --serve",
+      "url": "http://127.0.0.1:43263/ai-proxy-preview",
+      "restored": true
+    }
+  },
+  "package": {
+    "file": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "version": "0.3.2",
+    "bytes": 916536,
+    "sha256": "fb0151b4ef7e135951b54416917617ac6a7a89fbb8f4bd9d376cb7b21ac3a547",
+    "cssChars": 116697,
+    "cssLimit": 120000,
+    "capabilities": [
+      "storage.local",
+      "currentPage.read",
+      "browser.proxy.managed"
+    ],
+    "sourceCheck": "PROJECT_PACKAGE_MATCH"
+  },
+  "buildReceipt": {
+    "format": "opendesk.ui-build-ready.v1",
+    "buildId": "26d8894f-9c1b-4255-8ad1-2aa5d838644c",
+    "files": {
+      "dist/tool.js": {
+        "bytes": 763867,
+        "sha256": "f08f50ff9591d457771a3729256f513e005e40ae4e405276d46ec6dd973ea6b9"
+      },
+      "dist/tool.css": {
+        "bytes": 103967,
+        "sha256": "85afc095d70ee8af98403e66edaefded1cbb11fe88d248a77b761c7210a0591b"
+      }
+    },
+    "sources": {
+      "package.json": {
+        "bytes": 270,
+        "sha256": "e61c2cb2e8e85e4808b0bd685b0e59a360f143c0cfcabcc7e3ae1773358c3741"
+      },
+      "src/App.jsx": {
+        "bytes": 5107,
+        "sha256": "b0fa75408922d594594cf61c61e75fed18229ec801e848e7d9b1a160e619ed9e"
+      },
+      "src/QuickPanel.tsx": {
+        "bytes": 37542,
+        "sha256": "26a9a31ede5f6c84e2f5f82d9fd5a8c7bf25c14863abd6f668aae279bab1bc60"
+      },
+      "src/Settings.tsx": {
+        "bytes": 57734,
+        "sha256": "32f476e88ee5b5f0fa7740c50f3d64114aa313f6b1d222cbc6ce74585f23306b"
+      },
+      "src/adapter.js": {
+        "bytes": 1966,
+        "sha256": "e9433df83d02d74406dc56de295e30d9e590e2a266714cbc4e6b04ea648ab5f1"
+      },
+      "src/collector/rotation-plan.ts": {
+        "bytes": 3427,
+        "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+      },
+      "src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "src/config/remote-config.ts": {
+        "bytes": 6144,
+        "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+      },
+      "src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "src/domain/config.ts": {
+        "bytes": 13949,
+        "sha256": "08e7444030368b49813e16034c24c38ecce491d2abbcff6e0a796fb48f36ec57"
+      },
+      "src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "src/domain/messages.ts": {
+        "bytes": 2486,
+        "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+      },
+      "src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "src/environment.ts": {
+        "bytes": 8812,
+        "sha256": "fbd44e397f2a6110a49794334da06e9cb400761577b9d66335bf58b98b90e862"
+      },
+      "src/i18n/LocaleProvider.tsx": {
+        "bytes": 2767,
+        "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+      },
+      "src/i18n/errors.ts": {
+        "bytes": 1229,
+        "sha256": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129"
+      },
+      "src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "src/i18n/locales/en.json": {
+        "bytes": 75528,
+        "sha256": "b9bba1d5fb6f33d3ef980165d2f8659507a6699bea062353284781ea863111e2"
+      },
+      "src/i18n/locales/zh-CN.json": {
+        "bytes": 72093,
+        "sha256": "be8bb029293ead685cf7d3f0e977219223661544fb0dff73252af59fb1e5e7de"
+      },
+      "src/i18n/locales/zh-TW.json": {
+        "bytes": 72520,
+        "sha256": "b78749885a3622b8a5c3a7017e7f50cebe5a34cd114eb8516a9e6b735b999adc"
+      },
+      "src/main.jsx": {
+        "bytes": 734,
+        "sha256": "09fa1358fb26b5b3c38534c480924c0ba0a55cf96f8ba11493eee4440e39f65a"
+      },
+      "src/model.js": {
+        "bytes": 5324,
+        "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+      },
+      "src/official/messages.ts": {
+        "bytes": 961,
+        "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+      },
+      "src/service.ts": {
+        "bytes": 28133,
+        "sha256": "9b29f1c8085ec00e8dd809d4e968b7339ef0353fce2083a6e226574907d4aac7"
+      },
+      "src/style.css": {
+        "bytes": 4810,
+        "sha256": "bbdb6730c22e5f51177705e6b838fe4593d80c6bb8efb125c03917767d90da74"
+      },
+      "src/styles/options.css": {
+        "bytes": 49460,
+        "sha256": "7b7ff1b32423da521581f95262d0afa8fb39aaa056a629a6131eb05d319230db"
+      },
+      "src/styles/rotation-entry.css": {
+        "bytes": 846,
+        "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+      },
+      "src/styles/sidebar-settings.css": {
+        "bytes": 16854,
+        "sha256": "2844dacc9fd214349864502e8c4d3bd8ad09dbfa41eaa363bb25ebb18eef4726"
+      },
+      "src/styles/sidepanel-r86.css": {
+        "bytes": 17231,
+        "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+      },
+      "src/styles/style.css": {
+        "bytes": 34589,
+        "sha256": "83ee077a0e10b2edd7bdd6aa38daad771c8334785c4222b3d67e267bd5d7426b"
+      },
+      "src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20743,
+        "sha256": "a4aa3b6c8df72d096400cc45371f484ecb87953c196d77dc64bd6add0d36c7a3"
+      },
+      "src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "src/ui/OfficialServicePage.tsx": {
+        "bytes": 9979,
+        "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+      },
+      "src/ui/OptionsShell.tsx": {
+        "bytes": 2377,
+        "sha256": "8f1a9aa92bbba17ca540526764cef76336e47efb32a2056d70483ba0a8aa015e"
+      },
+      "src/ui/ProxyEntry.tsx": {
+        "bytes": 5393,
+        "sha256": "7cd8f7ed1f26278954a92449e935fc902a57ced83c6bfb5611f19f28df3eff1c"
+      },
+      "src/ui/ProxyIcon.tsx": {
+        "bytes": 1965,
+        "sha256": "bbcc168cce387c9741dea7ff5ce9fc9b9c7af1f8f1f3fa9d0627898ef6a5473a"
+      },
+      "src/ui/RotationPlan.tsx": {
+        "bytes": 8379,
+        "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+      },
+      "src/ui/SourcesPage.tsx": {
+        "bytes": 25577,
+        "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+      },
+      "src/ui/Status.tsx": {
+        "bytes": 5372,
+        "sha256": "d214c47d17c2f28614651818130841f91877bb5953030213975fdaa20ea5b661"
+      },
+      "src/ui/SubscriptionReader.tsx": {
+        "bytes": 17769,
+        "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+      },
+      "src/ui/UsageControls.tsx": {
+        "bytes": 16278,
+        "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+      },
+      "src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "src/ui/navigation.ts": {
+        "bytes": 1887,
+        "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+      },
+      "src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "src/ui/useProxy.ts": {
+        "bytes": 2977,
+        "sha256": "ca615bf91822f78e776883816ead1346a46607b665c541fdf7ecb612a964ec18"
+      },
+      "src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      }
+    }
+  },
+  "verification": {
+    "componentAndPackage": {
+      "tests": 68,
+      "pass": 68,
+      "fail": 0
+    },
+    "useProxyErrors": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    "busyAndLateRevision": "COMPONENT_TESTED",
+    "visibleMacOSNative": "NOT_TESTED",
+    "proxyTraffic": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "fullTypecheck": "NOT_TESTED",
+    "widthAndZoom": "OUT_OF_SCOPE"
+  },
+  "evidenceFiles": [
+    "install-0.3.2-20261031/upgraded-0.3.2-main.png",
+    "install-0.3.2-20261031/reopened-0.3.2-rules.png",
+    "install-0.3.2-20261031/css-budget-removal.json"
+  ],
+  "sourceOwnership": {
+    "business": "Completed design owner 01a190dc-2f18-7d22-a576-c20e42be8953; integrated without reauthoring",
+    "packagingAndIndependentInstall": "01a19123-a2eb-7bb3-8b87-ccd744e5d48e",
+    "sourceChangesForBudget": "Four project CSS files, dead selectors only; read-only structural review passed"
+  },
+  "finalBuildReceipt": {
+    "format": "opendesk.ui-build-ready.v1",
+    "buildId": "f747897c-3ff3-415d-848d-9962f7e5cae7",
+    "files": {
+      "dist/tool.js": {
+        "bytes": 763867,
+        "sha256": "f08f50ff9591d457771a3729256f513e005e40ae4e405276d46ec6dd973ea6b9"
+      },
+      "dist/tool.css": {
+        "bytes": 103967,
+        "sha256": "85afc095d70ee8af98403e66edaefded1cbb11fe88d248a77b761c7210a0591b"
+      }
+    },
+    "sources": {
+      "package.json": {
+        "bytes": 270,
+        "sha256": "e61c2cb2e8e85e4808b0bd685b0e59a360f143c0cfcabcc7e3ae1773358c3741"
+      },
+      "src/App.jsx": {
+        "bytes": 5107,
+        "sha256": "b0fa75408922d594594cf61c61e75fed18229ec801e848e7d9b1a160e619ed9e"
+      },
+      "src/QuickPanel.tsx": {
+        "bytes": 37542,
+        "sha256": "26a9a31ede5f6c84e2f5f82d9fd5a8c7bf25c14863abd6f668aae279bab1bc60"
+      },
+      "src/Settings.tsx": {
+        "bytes": 57734,
+        "sha256": "32f476e88ee5b5f0fa7740c50f3d64114aa313f6b1d222cbc6ce74585f23306b"
+      },
+      "src/adapter.js": {
+        "bytes": 1966,
+        "sha256": "e9433df83d02d74406dc56de295e30d9e590e2a266714cbc4e6b04ea648ab5f1"
+      },
+      "src/collector/rotation-plan.ts": {
+        "bytes": 3427,
+        "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+      },
+      "src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "src/config/remote-config.ts": {
+        "bytes": 6144,
+        "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+      },
+      "src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "src/domain/config.ts": {
+        "bytes": 13949,
+        "sha256": "08e7444030368b49813e16034c24c38ecce491d2abbcff6e0a796fb48f36ec57"
+      },
+      "src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "src/domain/messages.ts": {
+        "bytes": 2486,
+        "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+      },
+      "src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "src/environment.ts": {
+        "bytes": 8812,
+        "sha256": "fbd44e397f2a6110a49794334da06e9cb400761577b9d66335bf58b98b90e862"
+      },
+      "src/i18n/LocaleProvider.tsx": {
+        "bytes": 2767,
+        "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+      },
+      "src/i18n/errors.ts": {
+        "bytes": 1229,
+        "sha256": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129"
+      },
+      "src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "src/i18n/locales/en.json": {
+        "bytes": 75528,
+        "sha256": "b9bba1d5fb6f33d3ef980165d2f8659507a6699bea062353284781ea863111e2"
+      },
+      "src/i18n/locales/zh-CN.json": {
+        "bytes": 72093,
+        "sha256": "be8bb029293ead685cf7d3f0e977219223661544fb0dff73252af59fb1e5e7de"
+      },
+      "src/i18n/locales/zh-TW.json": {
+        "bytes": 72520,
+        "sha256": "b78749885a3622b8a5c3a7017e7f50cebe5a34cd114eb8516a9e6b735b999adc"
+      },
+      "src/main.jsx": {
+        "bytes": 734,
+        "sha256": "09fa1358fb26b5b3c38534c480924c0ba0a55cf96f8ba11493eee4440e39f65a"
+      },
+      "src/model.js": {
+        "bytes": 5324,
+        "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+      },
+      "src/official/messages.ts": {
+        "bytes": 961,
+        "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+      },
+      "src/service.ts": {
+        "bytes": 28133,
+        "sha256": "9b29f1c8085ec00e8dd809d4e968b7339ef0353fce2083a6e226574907d4aac7"
+      },
+      "src/style.css": {
+        "bytes": 4810,
+        "sha256": "bbdb6730c22e5f51177705e6b838fe4593d80c6bb8efb125c03917767d90da74"
+      },
+      "src/styles/options.css": {
+        "bytes": 49460,
+        "sha256": "7b7ff1b32423da521581f95262d0afa8fb39aaa056a629a6131eb05d319230db"
+      },
+      "src/styles/rotation-entry.css": {
+        "bytes": 846,
+        "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+      },
+      "src/styles/sidebar-settings.css": {
+        "bytes": 16854,
+        "sha256": "2844dacc9fd214349864502e8c4d3bd8ad09dbfa41eaa363bb25ebb18eef4726"
+      },
+      "src/styles/sidepanel-r86.css": {
+        "bytes": 17231,
+        "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+      },
+      "src/styles/style.css": {
+        "bytes": 34589,
+        "sha256": "83ee077a0e10b2edd7bdd6aa38daad771c8334785c4222b3d67e267bd5d7426b"
+      },
+      "src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20743,
+        "sha256": "a4aa3b6c8df72d096400cc45371f484ecb87953c196d77dc64bd6add0d36c7a3"
+      },
+      "src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "src/ui/OfficialServicePage.tsx": {
+        "bytes": 9979,
+        "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+      },
+      "src/ui/OptionsShell.tsx": {
+        "bytes": 2377,
+        "sha256": "8f1a9aa92bbba17ca540526764cef76336e47efb32a2056d70483ba0a8aa015e"
+      },
+      "src/ui/ProxyEntry.tsx": {
+        "bytes": 5393,
+        "sha256": "7cd8f7ed1f26278954a92449e935fc902a57ced83c6bfb5611f19f28df3eff1c"
+      },
+      "src/ui/ProxyIcon.tsx": {
+        "bytes": 1964,
+        "sha256": "06879458211eba9193e30ec1423e9c7472bb75e4ad17b2bc029d37f84207ede8"
+      },
+      "src/ui/RotationPlan.tsx": {
+        "bytes": 8379,
+        "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+      },
+      "src/ui/SourcesPage.tsx": {
+        "bytes": 25577,
+        "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+      },
+      "src/ui/Status.tsx": {
+        "bytes": 5372,
+        "sha256": "d214c47d17c2f28614651818130841f91877bb5953030213975fdaa20ea5b661"
+      },
+      "src/ui/SubscriptionReader.tsx": {
+        "bytes": 17769,
+        "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+      },
+      "src/ui/UsageControls.tsx": {
+        "bytes": 16278,
+        "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+      },
+      "src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "src/ui/navigation.ts": {
+        "bytes": 1887,
+        "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+      },
+      "src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "src/ui/useProxy.ts": {
+        "bytes": 2977,
+        "sha256": "ca615bf91822f78e776883816ead1346a46607b665c541fdf7ecb612a964ec18"
+      },
+      "src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      }
+    }
+  },
+  "finalSourceOnlyCorrection": {
+    "file": "src/ui/ProxyIcon.tsx",
+    "change": "Removed one extra blank line at EOF caught by staged diff check",
+    "packageBytesUnchanged": true,
+    "sourceCheck": "PROJECT_PACKAGE_MATCH",
+    "installedEvidenceStillExact": true
+  }
+}

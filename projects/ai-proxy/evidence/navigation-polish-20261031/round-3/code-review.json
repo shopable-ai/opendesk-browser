@@ -1,0 +1,673 @@
+{
+  "format": "ai-proxy.navigation-polish.final-code-review.v3",
+  "reviewDate": "2026-10-31",
+  "status": "COMPLETE_WITHIN_AUTHORIZED_DEVELOPMENT_SCOPE",
+  "recommendation": "COMMENT",
+  "conclusion": "最终候选源码与补证审查完成：无需修改的代码问题，无本轮开发收尾阻断。可读性建议已经落实；新增删除回执清理只在成功且generation/revision有效后执行。最小回归和真实入口内存编译独立通过，最终候选保存→删除回执与邻项焦点证据通过。未作无条件APPROVE，因为LSP语义诊断不可用；该覆盖限制不构成本轮产品阻断。",
+  "candidate": {
+    "path": "projects/ai-proxy/.opendesk-preview/source-b735ff79-684c-4e1c-902a-89d5020f7e06",
+    "htmlSha256": "202f0424f15002d25aefbd595a4f15e5bb1a505945247d9c54979e1a35f8a970",
+    "uiSha256": "16be6aafbaf0e56df56f6b3170990052fa00a58f168667ee47c13de911bea5b5",
+    "sourceCommit": "3c76ae9a4c2d42616ca5d46581204511c16f3650",
+    "sourceCount": 64,
+    "sourceDrift": [],
+    "changedInputsFromRound2": [
+      {
+        "path": "projects/ai-proxy/src/ui/useProxy.ts",
+        "previousSha256": "e37c48881ec4d75185be8020805884a455e98c7ed234c6c8bbe182afa71795ce",
+        "sha256": "ca615bf91822f78e776883816ead1346a46607b665c541fdf7ecb612a964ec18"
+      },
+      {
+        "path": "projects/ai-proxy/src/Settings.tsx",
+        "previousSha256": "1e0a26ad0db311cc951970099c207fa97b7e5e4283c30a96710b67d853fb1090",
+        "sha256": "1adf4d5efd686f4c221a6541ba1b3d129ec776c8bde9d818c99caa9e7aa9fd7d"
+      }
+    ],
+    "localeKeys": [
+      {
+        "locale": "en",
+        "count": 1009
+      },
+      {
+        "locale": "zh-CN",
+        "count": 1009
+      },
+      {
+        "locale": "zh-TW",
+        "count": 1009
+      }
+    ],
+    "localeKeyParity": true,
+    "boundary": "同源Chromium opaque sandbox + memory service/storage；不是正式安装或真实代理验收。"
+  },
+  "scope": {
+    "owner": "projects/ai-proxy",
+    "branch": "main",
+    "observedHead": "3c76ae9a4c2d42616ca5d46581204511c16f3650",
+    "reviewedFiles": [
+      "projects/ai-proxy/src/ui/useProxy.ts",
+      "projects/ai-proxy/src/Settings.tsx",
+      "projects/ai-proxy/tests/settings-rules-runtime.test.mjs"
+    ],
+    "baseline": "round-2冻结候选source-37aa3aca-b377-48b7-a76b-2584e2d3e92b与其已保存审查；仅复评可读性展开及成功删除后清除旧save receipt。",
+    "noSourceEdits": true,
+    "noSubagents": true,
+    "preservedReports": [
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/code-review.json",
+        "sha256": "b4d87533e184aa810d2c1750bcb98e65f2744c5e4e8a0c7cac60d413a883027c"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/round-2/code-review.json",
+        "sha256": "bacc4fecb9952b644c3ec0be40fadf8bab8ba9cb25af857646ef4e31d40d9907"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/round-2/code-readability-review.json",
+        "sha256": "63ea7c0274146d8adc2a2b2c360010a760fce2c140e0bae42d53a445ed9c0c03"
+      }
+    ],
+    "olderEvidenceUse": "round-2三语、重复错误、scope、草稿和338→338→338焦点/滚动是旧源码的补充证据。最终manifest仅Settings/useProxy两项变化，CSS/三语/其余62项一致；未把旧截图改标成最终候选截图。"
+  },
+  "stage1": {
+    "result": "PASS_WITHIN_SCOPE",
+    "findings": [
+      {
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:412",
+          "projects/ai-proxy/src/Settings.tsx:416"
+        ],
+        "result": "RESOLVED",
+        "topic": "R2-F01：成功delete后旧save receipt残留",
+        "reason": "setRuleSaved(false)位于DELETE_RULE成功分支内，并在generation及revision守卫之后、finishRuleEditor之前。失败、取消、失效generation/revision均不会走此清理。清理的是已过时的成功回执，没有吞掉后台失败。"
+      },
+      {
+        "references": [
+          "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:286"
+        ],
+        "result": "PASS",
+        "topic": "新增回执回归",
+        "reason": "先保存产生receipt，失败delete保留receipt，再成功delete清除receipt并返回Add焦点。评审独立仅运行该新用例，1/1通过；作者报告先FAIL再25/25，没有冒称评审独立重放RED或完整25项。"
+      },
+      {
+        "references": [
+          "projects/ai-proxy/src/ui/useProxy.ts:19",
+          "projects/ai-proxy/src/Settings.tsx:397",
+          "projects/ai-proxy/src/Settings.tsx:679",
+          "projects/ai-proxy/src/Settings.tsx:696"
+        ],
+        "result": "RESOLVED",
+        "topic": "局部可读性",
+        "reason": "clearErrorKey按条件/结果分行；输入的字段错误、重复错误、草稿更新分行；removeRule声明、确认参数和generation/route/revision守卫展开。明确保留generation先返回再revision副作用的短路顺序。没有把旧函数数量或整文件AST不变当成证据。"
+      },
+      {
+        "references": [
+          "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:35",
+          "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:46",
+          "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:57",
+          "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:96"
+        ],
+        "result": "RESOLVED",
+        "topic": "fixture局部可读性",
+        "reason": "已删除DOM为null、错误方法、成功SAVE/DELETE数据变化与finally、void click的即时异步等待已展开并注释；没有换fixture体系或新增harness。"
+      },
+      {
+        "references": [
+          "projects/ai-proxy/src/Settings.tsx:325",
+          "projects/ai-proxy/src/Settings.tsx:357"
+        ],
+        "result": "PRESERVED",
+        "topic": "保存与身份/草稿/焦点合同",
+        "reason": "本次新增receipt清理不修改SAVE_RULE数据、id/enabled/priority、Apply或原焦点返回机制。删除仍复用finishRuleEditor，失败返回前不改变规则列表位置；先前相关运行时和浏览器证据按其候选保留。"
+      }
+    ]
+  },
+  "rootCauseGuard": {
+    "result": "PASS",
+    "reason": "修复成功删除后展示已失效的旧保存回执状态，清理限于成功且有效的完成分支；没有隐藏失败、补造成功、兼容绕行或替代主合同。"
+  },
+  "stage2": {
+    "result": "SOURCE_AST_AND_REAL_ENTRY_BUILD_PASS_SEMANTIC_DIAGNOSTICS_NOT_TESTED",
+    "syntaxAndPatternScan": {
+      "tool": "@babel/parser",
+      "files": 3,
+      "result": "PASS",
+      "newRiskyPatterns": 0,
+      "existingPattern": "Settings.tsx:237既有empty catch，与旧候选一致；本轮未新增console.log/empty catch/raw HTML/hardcoded secret candidate。",
+      "semanticTyping": false
+    },
+    "security": "新增逻辑仅更新本地receipt；clearErrorKey仍只清相同source/key。没有新增依赖、网络、权限、安装、真实代理、持久化或秘密暴露。",
+    "maintainability": "本轮具体复合更新、守卫和fixture分支已足够清晰；既有大文件与整体fixture结构不作为当前缺陷或扣分理由。",
+    "lspDiagnostics": {
+      "status": "NOT_TESTED",
+      "reason": "没有可用lsp_diagnostics或本地typescript-language-server；未安装/恢复工具，Babel/esbuild不冒充完整语义类型检查。",
+      "blocking": false
+    },
+    "performance": "沿用现有事件处理与单次rAF；新增一次本地布尔状态清理，没有持续工作或新增数据遍历。"
+  },
+  "checks": {
+    "targetedReceiptRegression": {
+      "command": "node --test --test-name-pattern='successful deletion clears an earlier save receipt while failed deletion retains it' projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+      "exitCode": 0,
+      "result": "PASS",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "stdout": "✔ successful deletion clears an earlier save receipt while failed deletion retains it (11.939292ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 109.133541\n",
+      "testFile": {
+        "path": "projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+        "sha256": "6b309fa39b0d20bffcb23360a4a147c66768f00e6febf94996d41bc2669b89f1"
+      },
+      "fullFourFileSuite": {
+        "status": "OWNER_REPORTED_PASS",
+        "tests": 25,
+        "independentlyRepeatedThisRound": false
+      },
+      "priorIndependentSuite": "round-2的24/24保留原候选绑定；本次按用户要求不重复整套。"
+    },
+    "realMainCompile": {
+      "command": "node --input-type=module <<'JS'\nimport {build} from 'esbuild';\nimport {resolve,relative} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {readFileSync} from 'node:fs';\nconst hash=bytes=>createHash('sha256').update(bytes).digest('hex');\nconst captured=new Map();\nconst result=await build({\n  absWorkingDir:process.cwd(),entryPoints:['projects/ai-proxy/src/main.jsx'],\n  bundle:true,write:false,platform:'browser',format:'iife',target:'es2022',jsx:'automatic',\n  alias:{'@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')},\n  loader:{'.dat':'text'},define:{'process.env.NODE_ENV':JSON.stringify('production')},\n  outdir:'__memory_only_ai_proxy_review__',metafile:true,\n  plugins:[{name:'read-only-input-binding',setup(b){\n    b.onLoad({filter:/\\.(?:[cm]?[jt]sx?|css|json|dat)$/},args=>{\n      const contents=readFileSync(args.path);captured.set(args.path,hash(contents));\n      let ext=args.path.split('.').at(-1);\n      const loader=ext==='dat'?'text':ext==='mjs'||ext==='cjs'?'js':ext;\n      return {contents,loader};\n    });\n  }}]\n});\nconst inputs=Object.keys(result.metafile.inputs).map(path=>{const filePath=path.split('?')[0];return {path:filePath,metafilePath:path,sha256:captured.get(resolve(filePath))??hash(readFileSync(filePath))};});\nconst drift=inputs.filter(item=>hash(readFileSync(item.path))!==item.sha256).map(item=>item.path);\nconst outputs=result.outputFiles.map(file=>({path:relative(process.cwd(),file.path),bytes:file.contents.length,sha256:hash(file.contents)}));\nif(drift.length||!outputs.some(f=>f.path.endsWith('.js'))||!outputs.some(f=>f.path.endsWith('.css')))throw Error('Invalid build proof '+JSON.stringify({drift,outputs}));\nconsole.log(JSON.stringify({status:'PASS',esbuildWrite:false,format:'iife',loader:{'.dat':'text'},alias:{'@opendesk/ui':'src/ui/react/components/ui/button.tsx'},warnings:result.warnings,outputs,inputCount:inputs.length,inputs,drift},null,2));\nJS",
+      "exitCode": 0,
+      "status": "PASS",
+      "esbuildWrite": false,
+      "format": "iife",
+      "loader": {
+        ".dat": "text"
+      },
+      "alias": {
+        "@opendesk/ui": "src/ui/react/components/ui/button.tsx"
+      },
+      "warnings": [],
+      "outputs": [
+        {
+          "path": "__memory_only_ai_proxy_review__/main.js",
+          "bytes": 1704920,
+          "sha256": "a41df56efd9e1136665247e15e3a41dfaefb171666c5e6eabd83ebd022e1380e"
+        },
+        {
+          "path": "__memory_only_ai_proxy_review__/main.css",
+          "bytes": 143549,
+          "sha256": "4efc8324329dd4ab5e748d40ceac5fe55e3ab8d825487e49f148fd830f6cb263"
+        }
+      ],
+      "inputCount": 64,
+      "inputs": [
+        {
+          "path": "node_modules/react/cjs/react.production.js",
+          "metafilePath": "node_modules/react/cjs/react.production.js",
+          "sha256": "ae0aae9b31dcccfc8b194dc6ab1cc9cc4525e25b887d10cc22ae4f8fbd2482cc"
+        },
+        {
+          "path": "node_modules/react/index.js",
+          "metafilePath": "node_modules/react/index.js",
+          "sha256": "60caffdecbdc5db3bc4ec4e83df9488345ccb271d07533b9210bf5750918d97e"
+        },
+        {
+          "path": "node_modules/scheduler/cjs/scheduler.production.js",
+          "metafilePath": "node_modules/scheduler/cjs/scheduler.production.js",
+          "sha256": "679adff761d31e9426604f80c0e99be44a3e6f4c6834b0218ecf0312a67c171f"
+        },
+        {
+          "path": "node_modules/scheduler/index.js",
+          "metafilePath": "node_modules/scheduler/index.js",
+          "sha256": "145965504d60007bc25486ab930b0367867dcd5d579ccd343c148d69349a7cfb"
+        },
+        {
+          "path": "node_modules/react-dom/cjs/react-dom.production.js",
+          "metafilePath": "node_modules/react-dom/cjs/react-dom.production.js",
+          "sha256": "42795132f241ebdede96f4a154b6dbac95ff73ed3bb90e86b39ffa28da02392a"
+        },
+        {
+          "path": "node_modules/react-dom/index.js",
+          "metafilePath": "node_modules/react-dom/index.js",
+          "sha256": "ba1a3e33489f868371561777607e3ee5091df0f7ea3f1a10f789d6b86e4c1505"
+        },
+        {
+          "path": "node_modules/react-dom/cjs/react-dom-client.production.js",
+          "metafilePath": "node_modules/react-dom/cjs/react-dom-client.production.js",
+          "sha256": "c59e90f48ba6343343d378d9976b774be6af15a555ecf4ecf3810f62c4381997"
+        },
+        {
+          "path": "node_modules/react-dom/client.js",
+          "metafilePath": "node_modules/react-dom/client.js",
+          "sha256": "00e348ab3d6bc2eef908345d0bc4e008c95bcfecec060dfda5c4967953761396"
+        },
+        {
+          "path": "node_modules/react/cjs/react-jsx-runtime.production.js",
+          "metafilePath": "node_modules/react/cjs/react-jsx-runtime.production.js",
+          "sha256": "1e46f15002696985e80c61d47aaa30dabb03c954270a690f5f7dfbbacfa9002b"
+        },
+        {
+          "path": "node_modules/react/jsx-runtime.js",
+          "metafilePath": "node_modules/react/jsx-runtime.js",
+          "sha256": "b392951a77d0a2e6a6bd017e49d768481ae5b63c4109c6c31f622cf7b2433edc"
+        },
+        {
+          "path": "src/ui/react/components/ui/button.tsx",
+          "metafilePath": "src/ui/react/components/ui/button.tsx",
+          "sha256": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/config.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/config.ts",
+          "sha256": "08e7444030368b49813e16034c24c38ecce491d2abbcff6e0a796fb48f36ec57"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/error-codes.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/error-codes.ts",
+          "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+        },
+        {
+          "path": "projects/ai-proxy/src/diagnostics/catalog.ts",
+          "metafilePath": "projects/ai-proxy/src/diagnostics/catalog.ts",
+          "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+        },
+        {
+          "path": "projects/ai-proxy/src/diagnostics/favorites.ts",
+          "metafilePath": "projects/ai-proxy/src/diagnostics/favorites.ts",
+          "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+        },
+        {
+          "path": "projects/ai-proxy/src/service.ts",
+          "metafilePath": "projects/ai-proxy/src/service.ts",
+          "sha256": "9b29f1c8085ec00e8dd809d4e968b7339ef0353fce2083a6e226574907d4aac7"
+        },
+        {
+          "path": "projects/ai-proxy/src/model.js",
+          "metafilePath": "projects/ai-proxy/src/model.js",
+          "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/optionsRoute.ts",
+          "metafilePath": "projects/ai-proxy/src/ui/optionsRoute.ts",
+          "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/navigation.ts",
+          "metafilePath": "projects/ai-proxy/src/ui/navigation.ts",
+          "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+        },
+        {
+          "path": "projects/ai-proxy/src/environment.ts",
+          "metafilePath": "projects/ai-proxy/src/environment.ts",
+          "sha256": "fbd44e397f2a6110a49794334da06e9cb400761577b9d66335bf58b98b90e862"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+          "metafilePath": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+          "sha256": "be8bb029293ead685cf7d3f0e977219223661544fb0dff73252af59fb1e5e7de"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/locales/en.json",
+          "metafilePath": "projects/ai-proxy/src/i18n/locales/en.json",
+          "sha256": "b9bba1d5fb6f33d3ef980165d2f8659507a6699bea062353284781ea863111e2"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+          "metafilePath": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+          "sha256": "b78749885a3622b8a5c3a7017e7f50cebe5a34cd114eb8516a9e6b735b999adc"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/locale.ts",
+          "metafilePath": "projects/ai-proxy/src/i18n/locale.ts",
+          "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+          "metafilePath": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+          "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+        },
+        {
+          "path": "projects/ai-proxy/src/i18n/errors.ts",
+          "metafilePath": "projects/ai-proxy/src/i18n/errors.ts",
+          "sha256": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/useProxy.ts",
+          "metafilePath": "projects/ai-proxy/src/ui/useProxy.ts",
+          "sha256": "ca615bf91822f78e776883816ead1346a46607b665c541fdf7ecb612a964ec18"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/Status.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/Status.tsx",
+          "sha256": "d214c47d17c2f28614651818130841f91877bb5953030213975fdaa20ea5b661"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/proxy-entry.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/proxy-entry.ts",
+          "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+          "sha256": "7cd8f7ed1f26278954a92449e935fc902a57ced83c6bfb5611f19f28df3eff1c"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/product-links.defaults.json",
+          "metafilePath": "projects/ai-proxy/src/config/product-links.defaults.json",
+          "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+          "metafilePath": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+          "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/public-config.ts",
+          "metafilePath": "projects/ai-proxy/src/config/public-config.ts",
+          "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/product-links.demo.json",
+          "metafilePath": "projects/ai-proxy/src/config/product-links.demo.json",
+          "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+        },
+        {
+          "path": "projects/ai-proxy/src/config/remote-config.ts",
+          "metafilePath": "projects/ai-proxy/src/config/remote-config.ts",
+          "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+        },
+        {
+          "path": "projects/ai-proxy/src/collector/rotation-plan.ts",
+          "metafilePath": "projects/ai-proxy/src/collector/rotation-plan.ts",
+          "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+          "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+        },
+        {
+          "path": "projects/ai-proxy/src/QuickPanel.tsx",
+          "metafilePath": "projects/ai-proxy/src/QuickPanel.tsx",
+          "sha256": "11f9ab7dda6fba9962da7c65e27f91e74092b96ef97e848fc49953e23e259670"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+          "sha256": "658aa9b314222826a79757c19383a5e6f31817361c4171aa5c432a5ede3aef3f"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/FormField.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/FormField.tsx",
+          "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/backupImport.ts",
+          "metafilePath": "projects/ai-proxy/src/ui/backupImport.ts",
+          "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+        },
+        {
+          "path": "projects/ai-proxy/src/subscription/download.ts",
+          "metafilePath": "projects/ai-proxy/src/subscription/download.ts",
+          "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+        },
+        {
+          "path": "projects/ai-proxy/src/official/messages.ts",
+          "metafilePath": "projects/ai-proxy/src/official/messages.ts",
+          "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+          "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+        },
+        {
+          "path": "projects/ai-proxy/src/subscription/parser.ts",
+          "metafilePath": "projects/ai-proxy/src/subscription/parser.ts",
+          "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+          "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/messages.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/messages.ts",
+          "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+        },
+        {
+          "path": "projects/ai-proxy/src/diagnostics/logic.ts",
+          "metafilePath": "projects/ai-proxy/src/diagnostics/logic.ts",
+          "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+        },
+        {
+          "path": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat",
+          "metafilePath": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat?raw",
+          "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+        },
+        {
+          "path": "projects/ai-proxy/src/usage/domain.ts",
+          "metafilePath": "projects/ai-proxy/src/usage/domain.ts",
+          "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+        },
+        {
+          "path": "projects/ai-proxy/src/usage/ranking.ts",
+          "metafilePath": "projects/ai-proxy/src/usage/ranking.ts",
+          "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/UsageControls.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/UsageControls.tsx",
+          "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+          "metafilePath": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+          "sha256": "a4aa3b6c8df72d096400cc45371f484ecb87953c196d77dc64bd6add0d36c7a3"
+        },
+        {
+          "path": "projects/ai-proxy/src/domain/pac-starters.ts",
+          "metafilePath": "projects/ai-proxy/src/domain/pac-starters.ts",
+          "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+        },
+        {
+          "path": "projects/ai-proxy/src/Settings.tsx",
+          "metafilePath": "projects/ai-proxy/src/Settings.tsx",
+          "sha256": "1adf4d5efd686f4c221a6541ba1b3d129ec776c8bde9d818c99caa9e7aa9fd7d"
+        },
+        {
+          "path": "projects/ai-proxy/src/App.jsx",
+          "metafilePath": "projects/ai-proxy/src/App.jsx",
+          "sha256": "95bc282f46896c50d8e58e0432d89b7be342623fc579438c5c06c4aa84f0725d"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/style.css",
+          "metafilePath": "projects/ai-proxy/src/styles/style.css",
+          "sha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/options.css",
+          "metafilePath": "projects/ai-proxy/src/styles/options.css",
+          "sha256": "ea42376ecfa688b53ea7bcf8204b5612063af8dec60e3783df5f2c3a98600804"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/sidepanel-r86.css",
+          "metafilePath": "projects/ai-proxy/src/styles/sidepanel-r86.css",
+          "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/rotation-entry.css",
+          "metafilePath": "projects/ai-proxy/src/styles/rotation-entry.css",
+          "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+        },
+        {
+          "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+          "metafilePath": "projects/ai-proxy/src/styles/sidebar-settings.css",
+          "sha256": "7f65ade974d56c7d8af9b28d25f3c6d0d49dc97f74313819959e364d9da0224a"
+        },
+        {
+          "path": "projects/ai-proxy/src/style.css",
+          "metafilePath": "projects/ai-proxy/src/style.css",
+          "sha256": "64dcee27e847766708faf43d064cefc252f47f2203f82a3b92106f13d5e2dc72"
+        },
+        {
+          "path": "projects/ai-proxy/src/main.jsx",
+          "metafilePath": "projects/ai-proxy/src/main.jsx",
+          "sha256": "09fa1358fb26b5b3c38534c480924c0ba0a55cf96f8ba11493eee4440e39f65a"
+        }
+      ],
+      "drift": [],
+      "finalInputDrift": [],
+      "memoryOutputDirCreated": false,
+      "limits": "真实src/main.jsx；@opendesk/ui授权alias到真实Button、.dat text loader；IIFE/CSS仅内存输出，无dist/包写入。不是正式安装或全语义类型证明。"
+    },
+    "finalChromiumEvidence": {
+      "operation": "Settings existing rule edit→native Enter save→scope-aware delete confirm→accept",
+      "mode": "owner实际操作，评审只读交互JSON、AX和三张有效原生viewport截图",
+      "result": "PASS_FOR_RECORDED_FINAL_SCENARIO",
+      "observed": {
+        "focus": "settings-rule-rule-local",
+        "ruleText": "仅保存规则，当前网络保持不变。需要生效时，请在代理面板明确应用。1 条网站规则example.org优先级 20 · DIRECT已启用编辑删除",
+        "rules": 1,
+        "statusCount": 0
+      },
+      "inspectedImages": [
+        "save-receipt.png",
+        "delete-confirm.png",
+        "delete-return.png"
+      ],
+      "assessment": "保存后receipt可见；scope-aware确认保留域名和范围；确认删除后仅example.org存活、statusCount=0，AX focused element为settings-rule-rule-local。实际读图正常，删除后保存不应用说明仍在。未将截图是否有明显焦点轮廓代替AX焦点判断。",
+      "sourceCheck": {
+        "candidate": "source-b735ff79-684c-4e1c-902a-89d5020f7e06",
+        "htmlSha256": "202f0424f15002d25aefbd595a4f15e5bb1a505945247d9c54979e1a35f8a970",
+        "uiSha256": "16be6aafbaf0e56df56f6b3170990052fa00a58f168667ee47c13de911bea5b5",
+        "sourceCount": 64,
+        "sourceDrift": [],
+        "sourceDeltaFromRound2": [
+          "projects/ai-proxy/src/ui/useProxy.ts",
+          "projects/ai-proxy/src/Settings.tsx"
+        ],
+        "unchangedPresentation": "All CSS, locale text, DOM markup and public boundaries unchanged. Only Settings readability/deletion receipt and useProxy expression layout changed.",
+        "evidenceMapping": {
+          "round2": "Same presentation and unchanged interactions retained as prior-source supplemental evidence, not falsely relabeled current-source screenshots",
+          "round3": "Final candidate direct smoke and delete receipt/focus captured separately"
+        },
+        "tests": "25/25 scoped tests PASS; success-receipt test failed before fix",
+        "outOfScope": [
+          "new native installation",
+          "real proxy traffic",
+          "production",
+          "full typecheck/CI",
+          "width/zoom matrix"
+        ]
+      },
+      "artifactBindings": [
+        {
+          "file": "delete-confirm.ax.txt",
+          "bytes": 2568,
+          "sha256": "315b829528374afdb16230b7a8c1bf78797e6b053a99fa29e12113e94f768d31",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 96 button 取消, ID: proxy-confirm-cancel"
+        },
+        {
+          "file": "delete-confirm.png",
+          "bytes": 40529,
+          "sha256": "a461aaec348bfeeac6242edaa9e74085a85d91aac8387be14622f77378c375c0"
+        },
+        {
+          "file": "delete-return.ax.txt",
+          "bytes": 4798,
+          "sha256": "d37f92067aa25d1313a92035ede44e460ed0fd04ea60ee630ec2e3dce5f041ac",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 124 button Description: 编辑 example.org 的规则（仅此域名）, ID: settings-rule-rule-local"
+        },
+        {
+          "file": "delete-return.png",
+          "bytes": 40180,
+          "sha256": "7a574cf3401fbb6cf8b08f270e453fc5a400fac75b1743add9b77afa310937a2"
+        },
+        {
+          "file": "design-result.ax.txt",
+          "bytes": 4745,
+          "sha256": "42cf37b88e70a341c4efacadead70ece3246ac22100df763f2c5a7ee2f208bd2",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 123 text field (settable) 网站域名或网址, ID: rule-domain"
+        },
+        {
+          "file": "design-result.png",
+          "bytes": 46366,
+          "sha256": "0f3d181c6d566cf06eb54fc5ed6ed5690a0b602be86904b80c61322098f449c0"
+        },
+        {
+          "file": "interactions.json",
+          "bytes": 545,
+          "sha256": "a4ed13629504318ed9a80fcfbe4fbc33f85c665a1a010e8fffd0ea68bc54bdaf"
+        },
+        {
+          "file": "save-receipt.ax.txt",
+          "bytes": 5132,
+          "sha256": "4fbfa0a1eeee26e49ffe46aecec0db81366cc1e1046b64266b0e3c119ef73614",
+          "candidateUrlMatches": true,
+          "uiShaMatches": true,
+          "focus": "The focused UI element is 128 button Description: 编辑 example.com 的规则（包含子域名）, ID: settings-rule-rule-docs"
+        },
+        {
+          "file": "save-receipt.png",
+          "bytes": 43282,
+          "sha256": "a0637b563987e836acdd3ff701b3c6eee8b5fc5aa6594b100aaaeb998fe20678"
+        },
+        {
+          "file": "source-check.json",
+          "bytes": 1073,
+          "sha256": "11e8d3bef19c1963913ea572ddcf5c49dfdc2c17248aaf97553248367f5a1f80"
+        }
+      ]
+    }
+  },
+  "issues": [],
+  "requiredChanges": [],
+  "issueCounts": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 0,
+    "LOW": 0
+  },
+  "blockingIssues": [],
+  "finalScores": {
+    "correctness": {
+      "score": 97,
+      "reason": "新receipt修复的成功/失败条件正确，身份与保存不应用合同保留；单项回归和最终候选save→delete互相支持。"
+    },
+    "reliability": {
+      "score": 96,
+      "reason": "generation先返回、revision副作用后调用，失败不误清回执；最终邻项焦点成立。受控pending浏览器调度仍未测，但未改并发边界，不以缺少大harness作为阻断或机械扣分。"
+    },
+    "security": {
+      "score": 98,
+      "reason": "本轮仅本地状态/可读性；精准清错和既有权限/网络边界保留，无新增安全暴露。不是全产品/真实代理安全验收。"
+    },
+    "maintainability": {
+      "score": 96,
+      "reason": "根据实际展开后的条件、顺序、副作用和fixture分支独立复评；原94对应的局部阅读负担已经解除，无需新增抽象或重构既有系统；不按95门槛调分。"
+    },
+    "userFeedback": {
+      "score": 97,
+      "reason": "成功删除不再遗留旧保存回执，删除scope确认和邻项落点清楚；失败删除按测试保留先前receipt，错误展示机制未被绕过。"
+    },
+    "evidenceSufficiency": {
+      "score": 96,
+      "reason": "最终候选HTML/UI SHA、64输入无漂移和1009三语键一致独立核对；最终真实入口编译、新用例1/1、同候选save→delete截图/AX齐备。旧交互证据明确只作补充；作者25/25与独立1/1分开记录，未补造类型/pending浏览器PASS。"
+    }
+  },
+  "validationBoundary": {
+    "notTested": [
+      "LSP/完整语义类型诊断",
+      "同候选受控pending浏览器延迟",
+      "新原生安装/真实代理流量/production/全CI"
+    ],
+    "outOfScope": [
+      "尺寸/缩放矩阵"
+    ],
+    "blockingForCurrentDevelopmentCloseout": false,
+    "nextAction": "本轮代码复评完成；无额外源码修复或扩展检查要求。正式发布验收仍不在本轮结论内。"
+  }
+}

@@ -238,7 +238,7 @@
   "backupInvalidFormat": "This is not a valid AI Proxy v1/v2 backup. Current settings were not changed.",
   "backupFileFailed": "Could not read the backup file. Choose a local JSON file again.",
   "backupImportSucceeded": "Backup imported. Proxy control was not started; select and apply a route explicitly.",
-  "confirmDeleteRule": "Delete website rule “{domain}”? Reapply website rules mode to update the active route.",
+  "confirmDeleteRule": "Delete the website rule for “{domain}” ({scope})? The applied route changes only after you explicitly apply Website rules again.",
   "confirmDeletePac": "Delete local PAC “{name}”? Make sure the active route is not using it.",
   "validateAndImportStopManagingFirst": "Validate and import (stop managing first)",
   "checkBrowserSettingsSeparatelyFromNetworkConnectivity": "Check browser settings separately from network connectivity",
@@ -990,7 +990,7 @@
   "apSiteRuleSource": "Website copied into draft:",
   "apManualRuleSource": "Current website unavailable. Enter the domain you want to configure.",
   "apExistingRuleSource": "Editing saved rule:",
-  "apRuleAlreadyExists": "A rule for this domain and scope already exists. Edit it in Manage rules.",
+  "apRuleAlreadyExists": "A rule for this domain and scope already exists. Cancel this edit, then open Website rules to edit the existing rule.",
   "apFinishStop": "Finish stopping",
   "apStatusReadFailedHelp": "Browser proxy status could not be confirmed. Retry reading the status; you can still edit and save configuration without switching routes.",
   "apWorkspaceViews": "AI Proxy views",
@@ -1002,7 +1002,10 @@
   "apRuleEnabled": "Enabled",
   "apRuleDisabled": "Disabled",
   "apRuleSaveNote": "Saves the rule without changing your connection. Apply it explicitly from the proxy panel when ready.",
-  "editNamedRule": "Edit rule for {domain}",
-  "deleteNamedRule": "Delete rule for {domain}",
-  "apRulesListSource": "Adding from website rules"
+  "editNamedRule": "Edit rule for {domain} ({scope})",
+  "deleteNamedRule": "Delete rule for {domain} ({scope})",
+  "apRulesListSource": "Adding from website rules",
+  "apRuleExactScope": "this domain only",
+  "apRuleSubdomainScope": "includes subdomains",
+  "apRuleSavedNotice": "Website rule saved."
 }

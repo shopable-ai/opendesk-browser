@@ -1,0 +1,20 @@
+{
+  "candidate": "source-37aa3aca-b377-48b7-a76b-2584e2d3e92b",
+  "htmlSha256": "a561b4bb8aade24f00b645d52fd0bce390f1ab2eb7081b7521188e067e713b04",
+  "uiSha256": "791f07c52b3c1b86f0c07bba1e54920b4d1241287ac61fb24a311495608e2a08",
+  "sourceCommit": "3c76ae9a4c2d42616ca5d46581204511c16f3650",
+  "sourceCount": 64,
+  "sourceDrift": [],
+  "localeKeys": 1009,
+  "keyParity": true,
+  "boundary": "same-source Chromium sandbox with memory service/storage only; no production install or proxy execution",
+  "captureNotes": {
+    "invalidOld": "Original fullPage and some clip captures show blank/compressed body; retained, excluded from visual pass",
+    "accepted": "native-* use original visible-tab getScreenshot; top/actions pairs cover EN/TW form. Individually inspected valid clip examples: quick-edit,quick-retain,duplicate-corrected,same-domain-scopes,delete-scope-confirm,delete-return. duplicate-error clip is blank; native-duplicate-error replaces it.",
+    "widthZoom": "OUT_OF_SCOPE",
+    "invalidRound2": [
+      "duplicate-error.png",
+      "long-list-cancel-return.png"
+    ]
+  }
+}

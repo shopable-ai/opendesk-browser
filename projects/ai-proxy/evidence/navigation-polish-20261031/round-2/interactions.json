@@ -1,0 +1,106 @@
+{
+  "candidate": "source-37aa3aca-b377-48b7-a76b-2584e2d3e92b",
+  "htmlSha256": "a561b4bb8aade24f00b645d52fd0bce390f1ab2eb7081b7521188e067e713b04",
+  "uiSha256": "791f07c52b3c1b86f0c07bba1e54920b4d1241287ac61fb24a311495608e2a08",
+  "boundary": "Chromium sandbox, memory service only",
+  "checks": [
+    {
+      "operation": "Quick edit→modify→Escape→decline retains draft; Escape→confirm discards",
+      "result": "PASS",
+      "returnedFocus": "quick-site-rule",
+      "data": "example.com unchanged"
+    },
+    {
+      "operation": "duplicate save rejected→change to unique domain",
+      "observed": {
+        "describedBy": null,
+        "domain": "unique.example",
+        "error": null
+      },
+      "result": "PASS"
+    },
+    {
+      "operation": "same-domain exact/includes scopes add→delete dialog→cancel→confirm",
+      "cancel": {
+        "count": 3,
+        "focusLabel": "删除 example.com 的规则（仅此域名）"
+      },
+      "confirmed": {
+        "count": 2,
+        "focus": "settings-rule-rule-local",
+        "focusLabel": "编辑 example.org 的规则（仅此域名）"
+      },
+      "result": "PASS"
+    },
+    {
+      "operation": "6-row list edit→cancel, edit→save without capture between operations",
+      "before": {
+        "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+        "height": 1115,
+        "top": 365,
+        "visible": 715
+      },
+      "cancel": {
+        "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+        "top": 338
+      },
+      "save": {
+        "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+        "top": 338
+      },
+      "result": "CHECK",
+      "note": "Earlier clip capture sequence57→365 retained separately; suspected capture/layout timing; final stable operation values here"
+    },
+    {
+      "operation": "Native keyboard last-row Enter→Escape; Enter→Enter submits, no locator auto-scroll",
+      "before": {
+        "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+        "height": 1142,
+        "top": 338,
+        "visible": 715
+      },
+      "cancel": {
+        "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+        "top": 338
+      },
+      "save": {
+        "focus": "settings-rule-4330fb85-e95f-4240-b7d5-00d835339a26",
+        "top": 338
+      },
+      "result": "PASS",
+      "note": "Locator click may scroll action into view; use native focused activation to isolate application restoration"
+    },
+    {
+      "operation": "Settings existing rule priority10→11→save",
+      "result": "PASS",
+      "focus": "settings-rule-rule-docs",
+      "identity": "rule-docs retained",
+      "enabled": true,
+      "appliedProxy": "not changed; memory only"
+    },
+    {
+      "operation": "General language selector → EN rules/Add → TW rules/Add",
+      "result": "PASS",
+      "capture": "native getScreenshot for visible viewport, top and actions images; original clip anomalies preserved",
+      "settingsGeometry": {
+        "contentPadding": "16px 12px",
+        "headerMinHeight": "52px",
+        "headerPadding": "8px 0px",
+        "titleFont": "16px"
+      },
+      "quickGeometry": {
+        "headerPadding": "8px 12px",
+        "bodyPadding": "16px 12px",
+        "titleFont": "16px",
+        "headerMinHeight": "52px"
+      }
+    },
+    {
+      "operation": "Settings corrected duplicate draft→Escape→decline retains→Escape→confirm discards",
+      "result": "PASS",
+      "focus": "settings-rule-add",
+      "savedRuleCount": 2,
+      "scope": "memory only"
+    }
+  ]
+}

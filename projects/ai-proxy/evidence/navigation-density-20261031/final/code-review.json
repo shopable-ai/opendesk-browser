@@ -1,0 +1,246 @@
+{
+  "format": "ai-proxy.navigation-density.final-code-review.thin-supplement.v1",
+  "reviewDate": "2026-10-31",
+  "completedAt": "2026-10-31T08:53:00.127Z",
+  "reviewer": "independent code/spec/security lane",
+  "status": "COMPLETE_WITHIN_AUTHORIZED_THIN_CSS_REVIEW",
+  "recommendation": "COMMENT",
+  "conclusion": "ND-F01已关闭；仅两条受scope约束的overflow:visible解除列表边缘焦点裁切，未发现新增问题。revision-2六维评分保守维持且每维>=95。COMMENT保留完整语义诊断NOT_TESTED的既有边界，不是当前开发阻断。",
+  "scope": {
+    "owner": "projects/ai-proxy/",
+    "branch": "main",
+    "writeAllowlist": [
+      "projects/ai-proxy/evidence/navigation-density-20261031/final/code-review.json"
+    ],
+    "reviewedFiles": [
+      "projects/ai-proxy/src/styles/sidebar-settings.css"
+    ],
+    "reviewedLines": [
+      80,
+      133
+    ],
+    "sourceAndTestsReadOnly": true,
+    "previousFailedAndRevision2ReportsUntouched": true,
+    "noFullSuiteRerun": true,
+    "noBrowserBuildOrInstall": true,
+    "notExpanded": [
+      "隐藏DIRECT禁用字段建议",
+      "发布/安装/真实代理/production",
+      "IME/尺寸/缩放",
+      "全类型诊断"
+    ]
+  },
+  "candidate": {
+    "id": "source-221a90c1-9053-43fa-a758-6c6b32e41be3",
+    "path": "projects/ai-proxy/.opendesk-preview/source-221a90c1-9053-43fa-a758-6c6b32e41be3/preview.html",
+    "url": "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-221a90c1-9053-43fa-a758-6c6b32e41be3/preview.html",
+    "htmlSha256": "ee20e4c69e3f03f50b749653856d10367b169fcc2784c33a294d1582299b50bb",
+    "sourceCount": 65,
+    "sourceDrift": [],
+    "soleChangedInput": "projects/ai-proxy/src/styles/sidebar-settings.css",
+    "changedInputSha256": "40e90331aafc351a45a72812e80fbe667dc03c151b39e797ffdf6258a9dd1a22",
+    "sourceManifestSha256": "abdcf8b7277304475d53503b13d7ad080edb1c8d806461323a690d35dee90758",
+    "focusCheckSha256": "5493dcb85511c334138abc126b4d2600712a1fb8c57c1328ed7837ec40e2e701",
+    "no65HashDuplication": true
+  },
+  "stage1": {
+    "result": "PASS",
+    "requirement": "移除已复现的边缘焦点环裁切，保留原布局与业务合同。",
+    "evidence": "两条overflow声明移除后源文件SHA逐字节等于revision-2 CSS SHA，证明除此没有CSS变化；其余64输入SHA与revision-2相同。"
+  },
+  "rootCauseGuard": {
+    "result": "PASS",
+    "reason": "直接取消profileRecords与rulesList records继承的overflow裁切，修复导致轮廓消失的真实祖先合同。没有新fallback、Host、错误抑制、focus绕行或扩大子项尺寸。"
+  },
+  "stage2": {
+    "result": "SCOPED_CSS_PARSE_AND_EVIDENCE_PASS",
+    "cssSyntax": "PostCSS独立解析通过；两条overflow声明均位于原@scope(.proxy-app)内。",
+    "selectors": [
+      {
+        "selector": ":scope .options .profileRecords",
+        "file": "projects/ai-proxy/src/styles/sidebar-settings.css",
+        "line": 80
+      },
+      {
+        "selector": ":scope .options .rulesList .records",
+        "file": "projects/ai-proxy/src/styles/sidebar-settings.css",
+        "line": 133
+      }
+    ],
+    "layout": "overflow只解除剪裁，不改变grid轨道、gap、padding、margin、行高、按钮事件或焦点目标；文字自身ellipsis继续在子元素生效。",
+    "security": "无JS/DOM/locale/权限/网络/Host变化；仍使用原scope及唯一布局owner。",
+    "diagnostics": {
+      "lspDiagnostics": "NOT_TESTED",
+      "reason": "该工具/对应本地language-server不可用；本次仅CSS薄补充，以解析与同源焦点证据验证，不恢复全类型门槛。",
+      "unconditionalApprove": false
+    }
+  },
+  "resolvedIssues": [
+    {
+      "id": "ND-F01",
+      "previousSeverity": "LOW",
+      "status": "CLOSED",
+      "references": [
+        "projects/ai-proxy/src/styles/sidebar-settings.css:80",
+        "projects/ai-proxy/src/styles/sidebar-settings.css:133"
+      ],
+      "reason": "原overflow:hidden的列表祖先现为visible；最终候选Tab/ShiftTab取证focusVisible=true，outline2px+offset1px，clipped=[]。两张实际查看截图分别显示最左选择及最右删除按钮轮廓完整。",
+      "evidence": [
+        "final/focus-check.json",
+        "final/profile-focus.png",
+        "final/rule-focus.png"
+      ]
+    }
+  ],
+  "issues": [],
+  "issueCounts": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 0,
+    "LOW": 0
+  },
+  "blockingIssues": [],
+  "validation": {
+    "independent": {
+      "sourceAndScreenshotHashes": "PASS",
+      "soleChangedCss": "PASS",
+      "exactTwoDeclarationsOnly": "PASS",
+      "cssParseAndScope": "PASS",
+      "imagesActuallyViewed": [
+        "projects/ai-proxy/evidence/navigation-density-20261031/final/profile-focus.png",
+        "projects/ai-proxy/evidence/navigation-density-20261031/final/rule-focus.png"
+      ]
+    },
+    "ownerFinalFocus": {
+      "browser": "149.0.7827.55",
+      "result": "PASS",
+      "checks": [
+        {
+          "name": "profile-focus",
+          "metrics": {
+            "focusVisible": true,
+            "outlineWidth": "2px",
+            "outlineOffset": "1px",
+            "clipped": []
+          }
+        },
+        {
+          "name": "rule-focus",
+          "metrics": {
+            "focusVisible": true,
+            "outlineWidth": "2px",
+            "outlineOffset": "1px",
+            "clipped": []
+          }
+        }
+      ],
+      "screenshots": {
+        "profile-focus": {
+          "file": "projects/ai-proxy/evidence/navigation-density-20261031/final/profile-focus.png",
+          "sha256": "61cb533cb28c7e93117af9a973317bc8de38b0ae35f71449cd4de1ff5c5e4b88"
+        },
+        "rule-focus": {
+          "file": "projects/ai-proxy/evidence/navigation-density-20261031/final/rule-focus.png",
+          "sha256": "49800bf98f51bd23f4c59cedcc79651ab2b27396f43f0dc8819e5a8e0347e0b5"
+        }
+      },
+      "errors": [],
+      "independentlyReplayed": false,
+      "assessment": "评审读取并核对最终同源取证与截图；没有把owner Tab/ShiftTab标成评审独立重放。"
+    },
+    "revision2EvidenceMapping": [
+      {
+        "path": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/interactions.json",
+        "sha256": "06b0d5e77139a14f81b986a413b79b97469d9663f7edde5ac4feab32aa8070f3",
+        "use": "8组实际交互仅映射未变化的JS/DOM/语言/动作及布局基础；最终边缘焦点由新focus-check/截图证明。"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/source-check.json",
+        "sha256": "dd04d482948f4980d5de1c3845b3f07f09ba9cbd23d258f91b56e3e86e5beb45",
+        "use": "真实main入口内存编译无warning、1009三语键；编译结果仍属revision-2，最终CSS解析和指纹单独检查，不谎称重编译最终候选。"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/native-keyboard.json",
+        "sha256": "80a23b4a0c738c89ce9024b6965fc04d384cb7f902f5c2391ee68c7eb687667a",
+        "use": "未变化的原生select键盘行为，Space/Down/Return成功profiles→rules→subscriptions；沿用原候选证据，不改标最终候选重跑。"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/code-review.json",
+        "sha256": "ca1d1821d2ea02ad58bf22857e8cdfc9b641ace26e73287dc2eb8f01e0ece282",
+        "use": "原独立实现审查、相关60/60作者结果、独立17项历史+1项revision-2及busy helper；明确候选和独立程度，维持原评分作为保守基线。"
+      }
+    ],
+    "tests": "未重跑60项或8组交互；由solechangedCSS及精确两声明差异明确映射原验证。最终焦点修复由全新来源证据支持。"
+  },
+  "scoring": {
+    "method": "允许的差异映射：维持revision-2逐维评分作为保守下界，原五项各20的量表及分解见被引用报告；本补充不另算平均或生成新全量评分。",
+    "dimensions": [
+      {
+        "dimension": "正确性",
+        "score": 98,
+        "max": 100,
+        "method": "保守维持revision-2分数，不做全量重新评分或为目标调分。",
+        "rubricReference": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/code-review.json#scoring.dimensions",
+        "note": "相同源码/DOM/语言和既有证据映射维持。"
+      },
+      {
+        "dimension": "可靠性",
+        "score": 98,
+        "max": 100,
+        "method": "保守维持revision-2分数，不做全量重新评分或为目标调分。",
+        "rubricReference": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/code-review.json#scoring.dimensions",
+        "note": "原焦点落点证据继续有效，新的完整焦点环补强，无行为变更或负向证据。"
+      },
+      {
+        "dimension": "安全",
+        "score": 98,
+        "max": 100,
+        "method": "保守维持revision-2分数，不做全量重新评分或为目标调分。",
+        "rubricReference": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/code-review.json#scoring.dimensions",
+        "note": "相同源码/DOM/语言和既有证据映射维持。"
+      },
+      {
+        "dimension": "可维护性",
+        "score": 98,
+        "max": 100,
+        "method": "保守维持revision-2分数，不做全量重新评分或为目标调分。",
+        "rubricReference": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/code-review.json#scoring.dimensions",
+        "note": "相同源码/DOM/语言和既有证据映射维持。"
+      },
+      {
+        "dimension": "用户反馈",
+        "score": 96,
+        "max": 100,
+        "method": "保守维持revision-2分数，不做全量重新评分或为目标调分。",
+        "rubricReference": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/code-review.json#scoring.dimensions",
+        "note": "原ND-F01扣分原因现已关闭；为薄补充范围保留96分作为已验证下界，不能据此认为裁切仍存在。"
+      },
+      {
+        "dimension": "证据充分性",
+        "score": 98,
+        "max": 100,
+        "method": "保守维持revision-2分数，不做全量重新评分或为目标调分。",
+        "rubricReference": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/code-review.json#scoring.dimensions",
+        "note": "相同源码/DOM/语言和既有证据映射维持。"
+      }
+    ],
+    "allDimensionsAtLeast95": true,
+    "minimum": 96,
+    "scoreIncrease": 0,
+    "oldDeductionReasonSuperseded": "revision-2用户反馈中ND-F01裁切扣分的事实描述由本次CLOSED取代；保留数值不表示缺陷保留。",
+    "scope": "只评本轮开发实现，不声明完整类型/发布/真实代理验收。"
+  },
+  "preservedRevision2Report": {
+    "path": "projects/ai-proxy/evidence/navigation-density-20261031/revision-2/code-review.json",
+    "sha256": "ca1d1821d2ea02ad58bf22857e8cdfc9b641ace26e73287dc2eb8f01e0ece282",
+    "unchanged": true
+  },
+  "validationBoundary": {
+    "notTested": [
+      "LSP/完整语义类型诊断",
+      "真实代理及正式安装/production（本轮范围外）"
+    ],
+    "blocksDevelopment": false
+  },
+  "stopCondition": "薄补充完成；ND-F01关闭、无剩余代码问题、六维>=95差异映射成立。仅写本final/code-review.json，保留所有原报告，不扩展DIRECT字段行为或验收范围。"
+}

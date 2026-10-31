@@ -1,0 +1,520 @@
+{
+  "file": "projects/ai-proxy/src/styles/style.css",
+  "beforeSha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171",
+  "afterSha256": "83ee077a0e10b2edd7bdd6aa38daad771c8334785c4222b3d67e267bd5d7426b",
+  "sourceCharsRemoved": 6747,
+  "removed": [
+    {
+      "line": 46,
+      "selector": ":scope .brandSymbol",
+      "unused": [
+        "brandSymbol"
+      ]
+    },
+    {
+      "line": 73,
+      "selector": ":scope .popup>.brand",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 74,
+      "selector": ":scope .brand",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 75,
+      "selector": ":scope .brand>div",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 76,
+      "selector": ":scope .brand strong",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 77,
+      "selector": ":scope .brand small",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 78,
+      "selector": ":scope .brand>div",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 79,
+      "selector": ":scope .brand .quickAddTrigger",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 82,
+      "selector": ":scope .brand .iconButton",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 90,
+      "selector": ":scope .compact",
+      "unused": [
+        "compact"
+      ]
+    },
+    {
+      "line": 90,
+      "selector": ":scope .compact label",
+      "unused": [
+        "compact"
+      ]
+    },
+    {
+      "line": 91,
+      "selector": ":scope .compact select",
+      "unused": [
+        "compact"
+      ]
+    },
+    {
+      "line": 92,
+      "selector": ":scope .compact .textAction",
+      "unused": [
+        "compact"
+      ]
+    },
+    {
+      "line": 93,
+      "selector": ":scope .siteDomain",
+      "unused": [
+        "siteDomain"
+      ]
+    },
+    {
+      "line": 94,
+      "selector": ":scope .siteRoute",
+      "unused": [
+        "siteRoute"
+      ]
+    },
+    {
+      "line": 95,
+      "selector": ":scope .siteRoute strong",
+      "unused": [
+        "siteRoute"
+      ]
+    },
+    {
+      "line": 107,
+      "selector": ":scope .popupSourceLinks",
+      "unused": [
+        "popupSourceLinks"
+      ]
+    },
+    {
+      "line": 108,
+      "selector": ":scope .popupSourceLinks button",
+      "unused": [
+        "popupSourceLinks"
+      ]
+    },
+    {
+      "line": 109,
+      "selector": ":scope .popupSourceLinks button:hover:not(:disabled)",
+      "unused": [
+        "popupSourceLinks"
+      ]
+    },
+    {
+      "line": 113,
+      "selector": ":scope .popupQuickHeader",
+      "unused": [
+        "popupQuickHeader"
+      ]
+    },
+    {
+      "line": 114,
+      "selector": ":scope .popupQuickHeader strong",
+      "unused": [
+        "popupQuickHeader"
+      ]
+    },
+    {
+      "line": 115,
+      "selector": ":scope .quickBack",
+      "unused": [
+        "quickBack"
+      ]
+    },
+    {
+      "line": 122,
+      "selector": ":scope .quickFixedHost",
+      "unused": [
+        "quickFixedHost"
+      ]
+    },
+    {
+      "line": 124,
+      "selector": ":scope .quickFixedHost strong",
+      "unused": [
+        "quickFixedHost"
+      ]
+    },
+    {
+      "line": 125,
+      "selector": ":scope .quickSetupActions",
+      "unused": [
+        "quickSetupActions"
+      ]
+    },
+    {
+      "line": 127,
+      "selector": ":scope .quickEmptyPrompt",
+      "unused": [
+        "quickEmptyPrompt"
+      ]
+    },
+    {
+      "line": 128,
+      "selector": ":scope .quickEmptyPrompt .textAction",
+      "unused": [
+        "quickEmptyPrompt"
+      ]
+    },
+    {
+      "line": 318,
+      "selector": ":scope .brandSymbol",
+      "unused": [
+        "brandSymbol"
+      ]
+    },
+    {
+      "line": 407,
+      "selector": ":scope .popup.sidepanel .brand",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 445,
+      "selector": ":scope .popup.sidepanel .brandSymbol",
+      "unused": [
+        "brandSymbol"
+      ]
+    },
+    {
+      "line": 451,
+      "selector": ":scope .popup.sidepanel .brand",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 451,
+      "selector": ":scope .popup.sidepanel .r83CollectorCard",
+      "unused": [
+        "r83CollectorCard"
+      ]
+    },
+    {
+      "line": 455,
+      "selector": ":scope .popup.sidepanel .brand",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 459,
+      "selector": ":scope .sideModeHelp",
+      "unused": [
+        "sideModeHelp"
+      ]
+    },
+    {
+      "line": 460,
+      "selector": ":scope .sideFilter",
+      "unused": [
+        "sideFilter"
+      ]
+    },
+    {
+      "line": 461,
+      "selector": ":scope .sideEmpty",
+      "unused": [
+        "sideEmpty"
+      ]
+    },
+    {
+      "line": 463,
+      "selector": ":scope .sideEmpty strong",
+      "unused": [
+        "sideEmpty"
+      ]
+    },
+    {
+      "line": 464,
+      "selector": ":scope .sideEmpty .actions",
+      "unused": [
+        "sideEmpty"
+      ]
+    },
+    {
+      "line": 465,
+      "selector": ":scope .sideEmpty .actions button",
+      "unused": [
+        "sideEmpty"
+      ]
+    },
+    {
+      "line": 466,
+      "selector": ":scope .sideCurrentSite",
+      "unused": [
+        "sideCurrentSite"
+      ]
+    },
+    {
+      "line": 467,
+      "selector": ":scope .sideCurrentSite small",
+      "unused": [
+        "sideCurrentSite"
+      ]
+    },
+    {
+      "line": 468,
+      "selector": ":scope .sideCurrentSite .siteRoute",
+      "unused": [
+        "sideCurrentSite",
+        "siteRoute"
+      ]
+    },
+    {
+      "line": 469,
+      "selector": ":scope .sideRuleForm",
+      "unused": [
+        "sideRuleForm"
+      ]
+    },
+    {
+      "line": 470,
+      "selector": ":scope .sideRuleForm label",
+      "unused": [
+        "sideRuleForm"
+      ]
+    },
+    {
+      "line": 471,
+      "selector": ":scope .sideRuleForm .hint",
+      "unused": [
+        "sideRuleForm"
+      ]
+    },
+    {
+      "line": 472,
+      "selector": ":scope .sideRuleInputs",
+      "unused": [
+        "sideRuleInputs"
+      ]
+    },
+    {
+      "line": 473,
+      "selector": ":scope .sideRuleInputs > div",
+      "unused": [
+        "sideRuleInputs"
+      ]
+    },
+    {
+      "line": 474,
+      "selector": ":scope .sideRuleSave",
+      "unused": [
+        "sideRuleSave"
+      ]
+    },
+    {
+      "line": 476,
+      "selector": ":scope .sideRuleForm+.popupSavedHint",
+      "unused": [
+        "sideRuleForm"
+      ]
+    },
+    {
+      "line": 486,
+      "selector": ":scope .sideRuleInputs",
+      "unused": [
+        "sideRuleInputs"
+      ]
+    },
+    {
+      "line": 492,
+      "selector": ":scope .popup.sidepanel .sideRuleShortcut",
+      "unused": [
+        "sideRuleShortcut"
+      ]
+    },
+    {
+      "line": 496,
+      "selector": ":scope .popup.sidepanel .sidePrimaryActions",
+      "unused": [
+        "sidePrimaryActions"
+      ]
+    },
+    {
+      "line": 501,
+      "selector": ":scope .popup.sidepanel .sidePrimaryActions button",
+      "unused": [
+        "sidePrimaryActions"
+      ]
+    },
+    {
+      "line": 504,
+      "selector": ":scope .popup.sidepanel .sidePrimaryActions button.primary",
+      "unused": [
+        "sidePrimaryActions"
+      ]
+    },
+    {
+      "line": 507,
+      "selector": ":scope .popup.sidepanel .sideProbeAction",
+      "unused": [
+        "sideProbeAction"
+      ]
+    },
+    {
+      "line": 537,
+      "selector": ":scope .popup.sidepanel .sideSelectedMode",
+      "unused": [
+        "sideSelectedMode"
+      ]
+    },
+    {
+      "line": 538,
+      "selector": ":scope .popup.sidepanel .brand .quickAddTrigger",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 538,
+      "selector": ":scope .popup.sidepanel .sideSettingsTrigger",
+      "unused": [
+        "sideSettingsTrigger"
+      ]
+    },
+    {
+      "line": 542,
+      "selector": ":scope .popup.sidepanel .brand .quickAddTrigger",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 543,
+      "selector": ":scope .popup.sidepanel .sideSettingsTrigger",
+      "unused": [
+        "sideSettingsTrigger"
+      ]
+    },
+    {
+      "line": 544,
+      "selector": ":scope .popup.sidepanel .brand .quickAddTrigger:hover:not(:disabled)",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 544,
+      "selector": ":scope .popup.sidepanel .sideSettingsTrigger:hover:not(:disabled)",
+      "unused": [
+        "sideSettingsTrigger"
+      ]
+    },
+    {
+      "line": 547,
+      "selector": ":scope .popup.sidepanel .sideRuntimeCard",
+      "unused": [
+        "sideRuntimeCard"
+      ]
+    },
+    {
+      "line": 548,
+      "selector": ":scope .popup.sidepanel .sideRuntimeCard .statusCompact",
+      "unused": [
+        "sideRuntimeCard"
+      ]
+    },
+    {
+      "line": 549,
+      "selector": ":scope .popup.sidepanel .sideRuntimeCard .statusTop",
+      "unused": [
+        "sideRuntimeCard"
+      ]
+    },
+    {
+      "line": 550,
+      "selector": ":scope .popup.sidepanel .sideRuntimeCard .statusCompact small",
+      "unused": [
+        "sideRuntimeCard"
+      ]
+    },
+    {
+      "line": 551,
+      "selector": ":scope .popup.sidepanel .sideRuntimeCard .statusCompact .notice",
+      "unused": [
+        "sideRuntimeCard"
+      ]
+    },
+    {
+      "line": 563,
+      "selector": ":scope .popup.sidepanel .brand",
+      "unused": [
+        "brand"
+      ]
+    },
+    {
+      "line": 570,
+      "selector": ":scope .popup.sidepanel .sidePrimaryActions",
+      "unused": [
+        "sidePrimaryActions"
+      ]
+    },
+    {
+      "line": 571,
+      "selector": ":scope .popup.sidepanel .r83CollectorCard",
+      "unused": [
+        "r83CollectorCard"
+      ]
+    },
+    {
+      "line": 572,
+      "selector": ":scope .popup.sidepanel .r83CollectorCard .hint + .hint",
+      "unused": [
+        "r83CollectorCard"
+      ]
+    },
+    {
+      "line": 573,
+      "selector": ":scope .popup.sidepanel .r83CollectorCard .textAction",
+      "unused": [
+        "r83CollectorCard"
+      ]
+    },
+    {
+      "line": 596,
+      "selector": ":scope .popup.sidepanel .brand small",
+      "unused": [
+        "brand"
+      ]
+    }
+  ]
+}

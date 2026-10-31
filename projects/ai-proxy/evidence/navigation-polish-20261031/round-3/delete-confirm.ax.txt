@@ -1,0 +1,34 @@
+Browser tab: 560069431, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-b735ff79-684c-4e1c-902a-89d5020f7e06/preview.html".
+1 AXWebArea AI Proxy · React 同源预览, URL: 127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-b735ff79-684c-4e1c-902a-89d5020f7e06/preview.html
+	2 container
+		3 container 预览来源和安全范围
+			4 text 模拟预览 · 非真实安装、权限或网络执行
+			5 text 工具：AI Proxy · 初始场景：success · 初始工具主题：light · 预览外壳：浅色
+			6 text Source: 3c76ae9a4c2d42616ca5d46581204511c16f3650 · Design SHA-256: efa5541cac5eda31587ef534cbd79d8b5696b22ef9ff024dab0109674f210380 · Shell SHA-256: 4f4692678370fe6b5f5f7abd74e6e44877ac4a25bb1d47415a450ef0e70a0a68 · UI SHA-256: 16be6aafbaf0e56df56f6b3170990052fa00a58f168667ee47c13de911bea5b5
+		7 container OpenDesk Browser Side Panel 真实布局来源的离线预览
+			8 tab group 工作台
+				9 tab (selectable, disabled, settable, boolean) 我的, Value: 0, ID: tab-my-tasks
+				10 tab (selected, disabled, settable, boolean) 扩展, Value: 1, ID: tab-tools
+				11 tab (selectable, disabled, settable, boolean) 工作流, Value: 0, ID: tab-workflow
+				12 tab (selectable, disabled, settable, boolean) 开发, Value: 0, ID: tab-develop
+				13 tab (selectable, disabled, settable, boolean) 云控, Value: 0, ID: tab-cloud
+			14 container Description: 扩展, ID: od-preview-extension-detail
+				15 container
+					16 button (disabled) Description: 返回扩展列表, ID: sidebar-tool-back
+					17 heading AI Proxy, Value: 2, ID: sidebar-tool-title
+						18 text AI Proxy
+					19 container 工具管理
+						20 button (disabled) Description: 模拟卸载当前工具（不会删除真实数据）, Help: 模拟卸载（不会删除真实数据）, ID: sidebar-tool-remove
+				21 container Description: AI Proxy · 内存模拟, ID: opendesk-preview-frame
+					22 AXWebArea about:srcdoc
+						92 container 确认
+							93 heading 确认, Value: 2, ID: proxy-confirm-title
+								94 text 确认
+							95 text 确定删除网站规则「example.com」（包含子域名）吗？重新应用网站规则模式后才会更新已应用线路。
+							96 button 取消, ID: proxy-confirm-cancel
+							97 button 确认, ID: proxy-confirm-accept
+		89 container 离线预览辅助
+			90 button (collapsed) 预览辅助 · 非正式工具, Secondary Actions: Expand
+				91 text 预览辅助 · 非正式工具
+
+The focused UI element is 96 button 取消, ID: proxy-confirm-cancel
