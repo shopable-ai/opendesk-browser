@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {CookieIcon} from './CookieEditorView.jsx';
 import {CookieServiceConnections} from './CookieServiceConnections.jsx';
+import {CookieHttpConnections} from './CookieHttpConnections.jsx';
 
 // Product-owned presentation translated from preview/cookie-editor.html.
 // All enterprise figures are marked fictional and never impersonate SDK data.
@@ -44,9 +45,14 @@ function FeatureList({items}){
     </article>)}
   </div>;
 }
-export function CookieEnterprisePanel({onCustomize=()=>{},serviceProps}){
+export function CookieEnterprisePanel({onCustomize=()=>{},serviceProps,httpServiceProps}){
   return <Page id="enterprise"><div className="cookie-business-content">
-    {serviceProps&&<CookieServiceConnections key={serviceProps.formRevision} {...serviceProps}/>}
+    {httpServiceProps&&<CookieHttpConnections key={httpServiceProps.formRevision} {...httpServiceProps}/>}
+    {serviceProps&&(!httpServiceProps||serviceProps.state?.connections?.length>0)&&<details>
+      <summary>旧 Native 连接记录</summary>
+      <p>保留原关联与未知操作供核对、解绑和断开。新服务请使用上方 HTTP 连接；旧授权不会迁移。</p>
+      <CookieServiceConnections key={serviceProps.formRevision} {...serviceProps} legacyOnly={Boolean(httpServiceProps)}/>
+    </details>}
     <Hero eyebrow="ENTERPRISE · 企业工作区" title="让团队 AI 账号更好管理">
       集中查看企业已有的 ChatGPT 等 AI 工作区、部门席位与预算概况。让员工更快找到自己获授权的入口，减少人工统计、反复询问和账号维护成本。
     </Hero>

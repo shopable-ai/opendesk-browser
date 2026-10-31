@@ -29,7 +29,26 @@ node --test examples/sidebar-tools/cookie-editor/tests/ai-account-usage/standalo
 | `GET /opendesk/v1/operations/:id` | 按原操作 ID 核对回执，保留历史结果并区分当前授权代际；相同 ID 不同正文拒绝，30 天后失效也不重放 |
 | 同源 `/opendesk/admin/api/…` | 终端管理会话仅可查看设备、保存期望策略和查询原回执，不能代替设备注册或接受 |
 
-`startManagementServer()` 返回的 `serviceBinding.createLocalClient(context)`、`request(secret,input)`、`createManagementOpen(secret,target)` 和 `revokeLocalClient(secret)` **只面向可信进程**，没有 HTTP 发放接口。调用者必须先通过现有 Native 认证通道，推导 connection/installation/user/grant/resource 身份；不能转发浏览器表单作为可信 context。`native-service-adapter.mjs` 将固定 Cookie owner、当前后端已有账号范围和明确操作映射到这套合同，不返回进程秘密；关联始终 `UNVERIFIED`。Cookie Editor 固定消费者已有源码和真实临时 Node 集成验证，Go broker 已有源码、定向 race 和真实 Go/Node 进程验证；当前固定 Cookie 消费者已在真实 Mac Chrome、签名 Native App 与 `serve --native` 完成连接、资源绑定、策略读取/显式接受、受限管理页及解绑/断开；数据仍是合成资源，手动身份仍 `UNVERIFIED`，不证明真实账号额度或公司授权。协议保留不同公司后端的接入形状，本机实现不是通用 OAuth 客户端。
+`startManagementServer()` 返回的 `serviceBinding.createLocalClient(context)`、`request(secret,input)`、`createManagementOpen(secret,target)` 和 `revokeLocalClient(secret)` **只面向可信进程**，不能从 HTTP 提交可信 context。Native 调用者必须先通过现有认证通道，推导 connection/installation/user/grant/resource 身份。下述普通 HTTP 应用配对也复用这些方法，但由服务端生成独立的本机 HTTP context。`native-service-adapter.mjs` 将固定 Cookie owner、当前后端已有账号范围和明确操作映射到这套合同，不返回进程秘密；关联始终 `UNVERIFIED`。Cookie Editor 固定消费者已有源码和真实临时 Node 集成验证，Go broker 已有源码、定向 race 和真实 Go/Node 进程验证；当前固定 Cookie 消费者已在真实 Mac Chrome、签名 Native App 与 `serve --native` 完成连接、资源绑定、策略读取/显式接受、受限管理页及解绑/断开；数据仍是合成资源，手动身份仍 `UNVERIFIED`，不证明真实账号额度或公司授权。协议保留不同公司后端的接入形状，本机实现不是通用 OAuth 客户端。
+
+### 普通 serve 的有界 HTTP 应用接入（无需 Native）
+
+普通 `serve` 在管理员 `/pair#pair=…` 链接之后，另打印一行 `Application pairing: {"code":…, "origin":…, "expiresAt":…}`。`startManagementServer()` 的对应返回字段是 `applicationPairing`。这是显式的本机凭据交付，不是诊断日志；不要保存或分享终端输出。应用必须使用给出的**完整精确 origin（含随机主机名与端口）**，不能换成 `127.0.0.1`。应用 code 与管理员 `pairingCode` 独立，5 分钟有效、单次使用；不放入 URL/query 或请求日志。重新打开浏览器需要新 code 时，已有管理员同源会话可 `POST /opendesk/admin/api/client-pairing`，JSON 必须为 `{}`，返回 `{code,origin,expiresAt}`；重签发使上一未使用 code 失效，管理员「Cookie 同步设置」中的「生成新应用连接码」按钮显示 origin、code 和到期时间，不自动配对；只读资源页不显示此按钮。
+
+| HTTP 入口 | 精确 JSON 合同 |
+| --- | --- |
+| `POST /opendesk/client/pair` | `{code,connectionId,label,operationId,receiptKey}` → `{session,expiresAt,serviceInstanceId,device}`；device 是原注册结果 `{deviceId,authEpoch,serviceInstanceId}` |
+| `POST /opendesk/client/request` | `{session,method,path,body?}` → 原绑定服务结果；GET 不接受 body，POST/DELETE 要求 JSON 对象 body |
+
+`receiptKey` 必须由应用随机生成，为 64 位小写十六进制，并在发出配对请求前与原 operationId、connectionId 一起保存。响应丢失后，只调用 `POST /opendesk/client/pair-result`，精确 JSON 为 `{receiptKey,connectionId,operationId}`，无需 session。确认成功返回 `{operationId,status:'CONFIRMED',result:原始配对结果}`；仅创建前 code 无效的确定拒绝返回 `{operationId,status:'REJECTED',error:'PAIRING_INVALID'}`。不存在、身份不匹配、执行中或创建后结果不确定均返回 HTTP 404 `{error:'RESULT_UNKNOWN'}`，不表示失败，不能重试配对。查询不执行任何写操作。回执仅存在于同一服务进程会话内，固定最多 15 分钟、128 条；容量满在任何 mutation 前拒绝，不驱逐有效回执。同一 receiptKey、operationId 或仍有成功/未知配对的 connectionId 再次配对返回 HTTP 409 `PAIRING_CONFLICT`，不会创建重复设备。仅已确认 code 无效时，允许同一 connectionId 使用新 operationId、receiptKey 和新 code 明确配对。回执、code 和 session 不进入 URL 或诊断日志，关闭服务即清除。
+
+服务端在签发 code 时冻结当前已有资源 ID（最多 64），配对时生成随机 installationId/grantFamilyId，userId 固定为 `local_http`；不信任调用者声明的安装身份，也不把 HTTP 配对冒充 Native 安装认证。`session` 是 15 分钟的受限应用凭据，不是上游 Token、Cookie、管理员会话或只读 API 秘密；不能经 HTTP 续期。HTTP 账号列表 `GET /opendesk/v1/accounts` 返回 `{accounts:前16项,nextCursor:16或null}`；`GET /opendesk/v1/accounts-page/<offset>`（整数 1–63）返回下一段最多 16 项及 `nextCursor`（下一偏移或 null），仍仅读取冻结授权范围内缓存，不影响 Native 完整列表。HTTP 结果超过 8192 字节返回 HTTP 413 `{error:"RESPONSE_TOO_LARGE"}`，HTTP 策略不重复返回关联详情、用量只投影窗口摘要，Native 完整合同保留；超限不截断策略/关联。写操作收到此错误仍须查询原操作，不能据此推断未提交。账户详情只允许 `GET /opendesk/v1/accounts/:id/usage` 读取冻结范围内的本地缓存，永不刷新上游或读取认证文件。
+
+请求仅开放已有 `self/accounts/accounts/:id/usage/sync-policy/operations/:id` GET、`devices/bindings/policy-acceptances` POST 及 `bindings/:id/devices/:id` DELETE；路径、方法和顶层多余字段拒绝，原正文/版本/权限校验保留。另允许 `POST /opendesk/v1/management-open`，body 必须为 `{bindingId,remoteAccountId}` 或 `{}`；服务端推导当前 serviceInstance/device，并复用 `createManagementOpen` 返回 `{url,expiresAt}`，继续使用下述一次性 fragment 和受限管理会话。
+
+所有路由先验证精确 Host。只有这三个应用入口允许精确的 `chrome-extension://[a-p]{32}` Origin（特权 SDK 请求也可无 Origin）；不接受 opaque `null` 或其他网站跨源 Origin，不开放 CORS。其余管理页同源 Origin、安全 Cookie 和 Native bearer 入口保护保留。写入失败保留原错误，未知结果不自动重放；DELETE 失败立即通过 `retainLocalClientReceipts` 不可逆缩小为 GET 原操作回执。设备 DELETE 确认成功也保留回执查询并停止缓存读取、写入和管理会话；解绑成功仅撤销相应关联。
+
+定向测试：`node --test examples/sidebar-tools/cookie-editor/tests/ai-account-usage/http-client.test.mjs`。使用合成缓存、临时目录和受守卫的普通 CLI 子进程，覆盖配对、缓存、UNVERIFIED 绑定、fragment 交换、解绑/断开、期限、来源与未知 DELETE；不证明前端已接入或真实 Chrome/账号额度验收。终端消费者须按行解析输出，不能把整个 stdout 当成一条管理员 URL。
 
 Browser 通用客户端和 Node provider 已加入原 Native 通道，使用独立的 `managedServicesVersion: 1` 协商；旧 Host 不支持时明确拒绝服务注册，原功能保留。`manage.mjs serve --native` 是**显式可选的开发连接入口，已在匹配的本机安装验证核心链**：显式尝试注册当前 Node 服务，不自动连接设备或查询上游；注册失败会关闭此次新建管理服务，错误中不输出凭据。普通 `serve` 不读取 Native 安装凭据或注册服务。普通后台独立 CLI/浏览器入口已有验证，通用 Go/Node 进程传输也已验证；该 flag 已通过真实安装的 Native 通道登记本次 Node 进程。具体字段、请求编号和 Go owner 变更点见[内部协议](../../../../native-agent/managed-services/README.md)。
 

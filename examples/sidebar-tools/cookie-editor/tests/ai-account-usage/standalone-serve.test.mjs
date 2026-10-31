@@ -67,7 +67,7 @@ test('ordinary CLI serve pairs and serves management settings without desktop, c
     child.once('exit', () => { clearTimeout(timer); reject(Error(`CLI exited before pairing: ${stderr}`)); });
     child.stdout.on('data', part => {
       stdout += part;
-      if (stdout.includes('\n')) { clearTimeout(timer); resolve(new URL(stdout.trim())); }
+      if (stdout.includes('\n')) { clearTimeout(timer); resolve(new URL(stdout.split('\n')[0].trim())); }
     });
   });
   assert.match(link.hostname, /^usage-[a-f0-9]+\.localhost$/);

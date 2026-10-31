@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-31",
+  "phase": "core-development",
+  "status": "PACKAGE_READY_INSTALL_NOT_TESTED",
+  "baselineHeadAtVerification": "f425785c3829ca326208abaa698e9f4e0143e410",
+  "package": {
+    "path": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
+    "id": "cookie-editor",
+    "version": "2.0.58",
+    "bytes": 305459,
+    "sha256": "5a92289ff556f097068b9e85cbf5d6f43dc39e935c9a8e227cce014a4a625637",
+    "buildId": "5297d7513e758753e01ba7478b3b59ad6bf50aaff978bb53b955ae4c05f57385",
+    "sourceMatch": "PROJECT_PACKAGE_MATCH",
+    "installed": false,
+    "addedCapabilities": [
+      "network",
+      "browser.storage",
+      "browser.tabs"
+    ]
+  },
+  "operationEvidence": {
+    "ordinaryServeWithoutNative": "PASS_IN_ISOLATED_CHILD_PROCESS",
+    "httpSdkCore": "PASS_REAL_HTTP_AND_SDK_NETWORK_STORAGE_DRIVERS",
+    "pairLostReplyReconcile": "PASS_NO_DEVICE_REPLAY",
+    "metadataBinding": "UNVERIFIED",
+    "cacheRead": "PASS_NO_UPSTREAM_QUERY",
+    "managementTarget": "PASS_EXACT_ORIGIN_RESOURCE_AND_DEVICE; TAB_CREATION_IS_TEST_DOUBLE",
+    "policy": "PASS_EXPLICIT_SUBSET_ACCEPTANCE",
+    "unbindDisconnect": "PASS_WITH_RECEIPTS",
+    "allSixAppTabs": "PASS_REAL_REACT_STATIC_RENDER"
+  },
+  "safetyEvidence": [
+    "Host/Origin validation, no permissive CORS, no query credentials",
+    "one-use application code and exact pairing receipt lookup",
+    "resource scope frozen at code issuance; paginated cache reads",
+    "pre-RPC E_NETWORK_NOT_SUBMITTED distinguished from post-dispatch cancellation/revocation",
+    "unknown mutations preserved with no automatic replay; explicit retirement retains original payload",
+    "tool version invalidation; SDK tool-owned storage quotas; exact tab targets",
+    "admin desired policy separate from device acceptance"
+  ],
+  "checks": [
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/http-services.test.mjs examples/sidebar-tools/cookie-editor/tests/http-connections-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/http-app-integration.test.mjs examples/sidebar-tools/cookie-editor/tests/http-core-integration.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/http-client.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/standalone-serve.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-http.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-ui.test.mjs tests/environment/browser-network-permission-consent.test.mjs",
+      "pass": 60,
+      "fail": 0
+    },
+    {
+      "command": "node --test tests/environment/sidebar-tools.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections-ui.test.mjs",
+      "pass": 53,
+      "fail": 0
+    },
+    {
+      "command": "node --test --test-name-pattern='source drift|classic chunk' tests/environment/cookie-editor-react-build.test.mjs",
+      "pass": 2,
+      "fail": 0
+    },
+    {
+      "command": "npm run build --prefix examples/sidebar-tools/cookie-editor",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run build:web --prefix examples/sidebar-tools/cookie-editor/ai-account-usage",
+      "result": "PASS"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs examples/sidebar-tools/cookie-editor --check-project",
+      "result": "PROJECT_PACKAGE_MATCH"
+    }
+  ],
+  "ownership": {
+    "httpBusiness": [
+      "app/domain/http-services.js",
+      "app/components/CookieHttpConnections.jsx",
+      "ai-account-usage/"
+    ],
+    "frameworkChange": "Generic real-click Chrome origin permission request and precise pre-RPC non-submission error only",
+    "legacyNative": "Retained for existing records; new configuration hidden; no silent migration; full legacy trusted-layer removal not claimed"
+  },
+  "review": {
+    "result": "No remaining concrete correctness/security blocker found in reviewed scope after unknown-pair retirement fix",
+    "lsp": "UNAVAILABLE"
+  },
+  "runtime": {
+    "mode": "existing continuous development watcher retained",
+    "expectedPath": "dist/development",
+    "watcherObserved": "PID11774 node scripts/dev.mjs earlier in session; output not overwritten",
+    "loadedPathAndExtensionId": "NOT_REVERIFIED",
+    "serveClientConnection": "NOT_REVERIFIED",
+    "nativeUiLock": "BUSY_OTHER_OWNER; no native UI operated",
+    "systemChromeUpgrade": "NOT_TESTED"
+  },
+  "notTested": [
+    "real installed Chrome HTTP path and optional-origin prompt",
+    "real tab creation and management page browser exchange for 2.0.58",
+    "company HTTPS/SSO and verified identity mapping",
+    "real account credentials or upstream quota",
+    "production acceptance, exhaustive regressions, ratings"
+  ],
+  "existingData": "Cookie vault and legacy Native records retained; no credential data used by tests"
+}

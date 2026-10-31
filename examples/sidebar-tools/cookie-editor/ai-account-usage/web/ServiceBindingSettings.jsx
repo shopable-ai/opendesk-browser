@@ -82,14 +82,24 @@ function PolicyDevice({device:initialDevice,readOnly,reload}) {
 }
 export function ServiceBindingSettings(){
   const [data,setData]=useState(null),[error,setError]=useState('');
+  const [pairing,setPairing]=useState(null),[issuing,setIssuing]=useState(false);
+  async function issuePairing(){if(issuing||data?.readOnly!==false)return;setIssuing(true);setPairing(null);
+    try{setPairing(await api.issuePairing());setError('');}catch(e){setError(e.message);}finally{setIssuing(false);}
+  }
   async function load(){try{setData(await api.devices());setError('');}catch(e){setError(e.message);}}
   useEffect(()=>{void load();},[]);
   return <section className="drawer-section" aria-labelledby="cookie-sync-title">
     <div className="drawer-controls"><h2 id="cookie-sync-title">Cookie 同步设置</h2><button className="outline" type="button" onClick={load}>重新读取状态</button></div>
     <p>后台保存只产生期望策略，不代表设备已批准。接受、暂停、恢复和撤销必须由可信本机操作；本页不会读取、上传 Cookie 或刷新上游额度。</p>
+    {data?.readOnly===false&&<div>
+      <button className="outline" type="button" disabled={issuing} onClick={issuePairing}>{issuing?'正在生成…':'生成新应用连接码'}</button>
+      <p>新连接码会替换尚未使用的旧码。请在 Cookie Editor 中手动连接；不要分享连接码。</p>
+      {pairing&&<dl><dt>服务地址</dt><dd>{pairing.origin}</dd><dt>应用连接码</dt><dd><code>{pairing.code}</code></dd>
+        <dt>到期时间</dt><dd>{new Date(pairing.expiresAt).toLocaleString()}</dd></dl>}
+    </div>}
     {error&&<p role="alert">{error}</p>}
     {!data&&!error&&<p role="status">正在读取设备状态…</p>}
-    {data?.devices.length===0&&<p>尚无已认证的连接设备。Native 秘密通道未接入时，请保留此未连接状态。</p>}
+    {data?.devices.length===0&&<p>尚无已认证的连接设备。可使用应用连接码在 Cookie Editor 中连接。</p>}
     {data?.devices.map(d=><PolicyDevice key={d.deviceId+':'+(d.desired?.desiredRevision??0)} device={d} readOnly={data.readOnly} reload={load}/>)}
   </section>;
 }

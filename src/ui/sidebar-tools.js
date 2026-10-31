@@ -2778,6 +2778,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             assertSession(source,token);
             // Optional Chrome permission prompts must run in this real trusted click,
             // before any await or Host RPC. Missing site grants remain Host-denied.
+            if(operation==='browser.network.request'){
+              if(!event?.isTrusted)throw Object.assign(new Error('需要用户真实点击'),{code:'E_USER_GESTURE_REQUIRED'});
+              const request=api.permissions.request({origins:[permissionPattern(payload.url)]});
+              if(await request!==true)throw Object.assign(new Error('未获网站访问权限'),{code:'E_CHROME_PERMISSION_REQUIRED'});
+            }
             if(operation==='browser.network.observe.start'){
               if(!event?.isTrusted)throw Object.assign(new Error('需要用户点击'),{code:'E_USER_GESTURE_REQUIRED'});
               const request=api.permissions.request({permissions:['webRequest']});
@@ -2804,7 +2809,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           ['browser.bookmarks.create','browser.bookmarks.update','browser.bookmarks.move'].includes(operation)
           ?await confirmAction():await requestBrowserClick({toolId:tool.id,
             message:'「'+tool.title+'」请求'+target+'；确认仅批准这一次操作。',
-            button:'允许本次操作',run:confirmAction});
+            button:'允许本次操作',run:confirmAction}).catch(error=>{
+              // Approval failed before the HTTP RPC below was submitted. Later
+              // driver cancellation/revocation must retain its original code.
+              if(operation==='browser.network.request')throw Object.assign(
+                new Error('HTTP request was not submitted'),{code:'E_NETWORK_NOT_SUBMITTED'});
+              throw error;
+            });
         assertSession(source,token);
         envelope.approvalRef=approvalRef;
       }

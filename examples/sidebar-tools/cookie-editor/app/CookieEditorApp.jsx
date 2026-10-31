@@ -12,6 +12,7 @@ import CookieOfflineWorkspace from './components/CookieOfflineWorkspace.jsx';
 import {CookieAccounts} from './components/CookieAccounts.jsx';
 import {CookieAccountMarket} from './components/CookieAccountExperiences.jsx';
 import {CookieEnterprisePanel,CookieCustomizePanel,CookieCommunityPanel} from './components/CookieBusinessPanels.jsx';
+import cookiePackage from '../package.json';
 
 // The only transport is Controller -> Adapter -> public OpenDeskSDK.browser.
 // Host permission, value grant and native receipts are never replaced in React.
@@ -28,7 +29,11 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const [serviceState,setServiceState]=React.useState(null);
   const [serviceNotice,setServiceNotice]=React.useState('');
   const [serviceBusy,setServiceBusy]=React.useState(false);
-  const [serviceDirty,setServiceDirty]=React.useState(false);
+  const [legacyServiceDirty,setLegacyServiceDirty]=React.useState(false);
+  const [httpServiceDirty,setHttpServiceDirty]=React.useState(false);
+  const serviceDirty=legacyServiceDirty||httpServiceDirty;
+  const [httpServiceState,setHttpServiceState]=React.useState(null);
+  const [httpServiceNotice,setHttpServiceNotice]=React.useState('');
   const [serviceFormRevision,setServiceFormRevision]=React.useState(0);
   const [serviceUnknown,setServiceUnknown]=React.useState(false);
   const serviceInFlight=React.useRef(false);
@@ -72,7 +77,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   if(data.current===null){
     const adapter=createCookieSdkAdapter({
       getBrowser:()=>globalThis.OpenDeskSDK?.browser,
-      request
+      request,version:cookiePackage.version
     });
     const controller=createCookieController({adapter,onChange:s=>{
       const verified=verifiedAccount.current;
@@ -123,7 +128,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     if(dirty||accountDirty||serviceDirty){ask('放弃未保存修改？',()=>{
       setDirty(false);
       if(accountDirty){setAccountDirty(false);setAccountFormRevision(value=>value+1);}
-      if(serviceDirty){setServiceDirty(false);setServiceFormRevision(value=>value+1);}
+      if(serviceDirty){setLegacyServiceDirty(false);setHttpServiceDirty(false);setServiceFormRevision(value=>value+1);}
       action();},onCancel);return;}
     action();
   };
@@ -251,6 +256,44 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     return ()=>{active=false;};
   },[adapter,mode,section,target?.origin]);
   serviceContext.current=[mode,section,target?.origin,snapshot.epoch].join('|');
+  React.useEffect(()=>{
+    if(mode!=='browser'||section!=='enterprise'){setHttpServiceState(null);return;}
+    let active=true;
+    void adapter.httpServiceRequest('serviceStatus').then(result=>{if(active)setHttpServiceState(result);})
+      .catch(()=>{if(active)setHttpServiceNotice('HTTP 服务配置读取失败，请核对应用存储授权后重新读取。');});
+    return ()=>{active=false;};
+  },[adapter,mode,section]);
+  const httpServiceAction=async(action,payload={})=>{
+    if(serviceInFlight.current||mode!=='browser')return false;
+    serviceInFlight.current=true;setServiceBusy(true);setHttpServiceNotice('');
+    try{
+      const result=await adapter.httpServiceRequest(action,payload);
+      setHttpServiceState(result);
+      const unknown=result.connections.some(c=>c.pending);
+      const rejected=action==='serviceReconcile'&&result.connections.some(c=>c.history.at(-1)?.outcome==='REJECTED');
+      setHttpServiceNotice(unknown?'原操作结果未知，已保留记录；请核对原回执，不要重复发送。':
+        rejected?'服务已确认此配对码无效或过期，未创建设备。请获取新应用配对码后重新审阅连接。':
+        action==='serviceOpen'?'已打开对应管理页。':action==='serviceConnect'?'HTTP 服务已连接，不会上传 Cookie。':
+        action==='serviceBind'?'关联已确认，登录身份仍未核验。':action==='serviceDisconnect'?'服务已确认断开。':
+        action==='serviceUsage'?'已读取缓存用量，没有查询上游。':'服务状态已更新。');
+      return !unknown;
+    }catch(error){
+      const messages={E_SERVICE_INPUT:'请填写精确服务地址和 64 位应用配对码。',E_SERVICE_EXISTS:'该地址或资源已有连接，请使用现有记录。',
+        E_SERVICE_CONFLICT:'状态已变化，请重新读取后核对。',E_VAULT_CONFLICT:'当前网站或保存账号版本已变化，请重新选择。',
+        E_DOCUMENT_CHANGED:'当前网站已变化，请返回原网站后核对。',E_SERVICE_SESSION_EXPIRED:'会话已过期，原授权不会自动恢复。',
+        E_OUTCOME_UNKNOWN:'操作结果未知，请核对原操作；不会自动重发。',E_TOOL_CHANGED:'应用版本已变化，旧服务授权未被继承。',
+        E_NETWORK_NOT_SUBMITTED:'请求尚未发送：已取消审阅或未获访问权限。',
+        E_SERVICE_RECEIPTS_ONLY:'此连接仅可查询原回执；请核对后归档，重新配对不会继承旧授权。',
+        E_LIMIT:'此连接的本地记录或服务回包达到上限，未扩展存储或自动清除历史。',
+        E_SERVICE_PENDING:'该操作需要在后台管理页核对，不能重发。'};
+      setHttpServiceNotice(messages[error?.code]||'请求未确认，请重新读取状态核对；不要重复写入。');
+      try{
+        const current=await adapter.httpServiceRequest('serviceStatus');setHttpServiceState(current);
+        if(!current.connections.some(c=>c.pending)&&error?.code!=='E_OUTCOME_UNKNOWN')return {rejected:true};
+      }catch{/* preserve visible state */}
+      return false;
+    }finally{serviceInFlight.current=false;setServiceBusy(false);}
+  };
   React.useEffect(()=>{
     if(mode!=='browser'||section!=='enterprise'||!target?.origin){setServiceState(null);return;}
     const context=serviceContext.current;
@@ -847,10 +890,14 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           alias:item.alias,accountVersion:item.version,enabled},'自动切换白名单已更新。')}
         onCopyLink={copyAccountLink}/>}
       {section==='enterprise'&&<CookieEnterprisePanel previewMode={previewMode}
+        httpServiceProps={{origin:target?.origin||'',accounts:accountState?.accounts||[],
+          accountReady:accountState?.unlocked===true,state:httpServiceState,busy:locked,
+          notice:httpServiceNotice,onAction:httpServiceAction,onDirtyChange:setHttpServiceDirty,formRevision:serviceFormRevision,
+          onAccounts:()=>chooseSection('accounts')}}
         serviceProps={{origin:target?.origin||'',accounts:accountState?.accounts||[],
           accountReady:accountState?.unlocked===true,state:serviceState,
           busy:locked||serviceUnknown,notice:serviceNotice,
-          onAction:serviceAction,onDirtyChange:setServiceDirty,
+          onAction:serviceAction,onDirtyChange:setLegacyServiceDirty,
           onAccounts:()=>chooseSection('accounts'),formRevision:serviceFormRevision}}
         onCustomize={()=>chooseSection('custom')}/>}
       {section==='market'&&<CookieAccountMarket

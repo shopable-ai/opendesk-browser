@@ -70,6 +70,7 @@ export async function main(argv = process.argv.slice(2)) {
       }catch(error){await server.close();throw error;}
     }
     process.stdout.write(`${server.url}#pair=${encodeURIComponent(server.pairingCode)}\n`);
+    process.stdout.write(`Application pairing: ${JSON.stringify(server.applicationPairing)}\n`);
     return server;
   }
   const result = await service.query({operation: command === 'accounts' ? 'cache' : command,

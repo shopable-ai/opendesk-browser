@@ -1,4 +1,5 @@
 import {parseTarget,redactMetadata,key,sameCookieMetadata,readAllCookies,scopedLiveCookies,nativeInput} from '../domain/cookie-model.js';
+import {createCookieHttpServices} from '../domain/http-services.js';
 
 // This adapter is the ONLY Cookie transport used by the independent React
 // candidate. Host permission checks and native receipts remain authoritative.
@@ -34,7 +35,7 @@ const identityScope=(row)=>({
   ...(row.partitionKey?{partitionKey:row.partitionKey}:{})
 });
 
-export function createCookieSdkAdapter({getBrowser,request}){
+export function createCookieSdkAdapter({getBrowser,request,version='development'}){
   if(typeof getBrowser!=='function'||typeof request!=='function')
     throw Error('E_COOKIE_SDK_NOT_READY');
   const browser=()=>{
@@ -100,11 +101,22 @@ export function createCookieSdkAdapter({getBrowser,request}){
       throw Object.assign(Error('E_COOKIE_VALUES'),{code:'E_COOKIE_VALUES'});
     return cookie.value;
   }
+  const httpServices=createCookieHttpServices({request,version,context:async()=>{
+    const {target}=await targetFor();
+    if(!target)throw Object.assign(Error('E_DOCUMENT_CHANGED'),{code:'E_DOCUMENT_CHANGED'});
+    const accounts=await request('cookieAccount.status',{});
+    const store=await browser().cookies.getCurrentStore({url:target.url});
+    const partition=await browser().cookies.getPartitionKey({url:target.url});
+    const latest=await targetFor();
+    if(latest.target?.url!==target.url)throw Object.assign(Error('E_DOCUMENT_CHANGED'),{code:'E_DOCUMENT_CHANGED'});
+    return {origin:target.origin,accounts:accounts.accounts??[],storeId:store.storeId,partitionKey:partition.partitionKey??null};
+  }});
   return {
     targetFor,checkRead,list,exactList,readValue,
     // Fixed first-party account RPC is admitted by the existing trusted Host.
     // No raw Cookie snapshot is returned to this adapter or to React.
     accountRequest:(action,payload={})=>request('cookieAccount.'+action,payload),
+    httpServiceRequest:(action,payload={})=>httpServices.dispatch(action,payload),
     beginExportIntent:(target,method)=>request('cookieEditor.export.begin',{url:target.url,method}),
     finishExportIntent:ref=>request('cookieEditor.export.finish',{ref}),
     beginImportIntent:target=>request('cookieEditor.import.begin',{url:target.url}),

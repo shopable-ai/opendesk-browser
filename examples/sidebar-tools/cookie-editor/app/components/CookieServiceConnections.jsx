@@ -34,7 +34,7 @@ const scopeValid=(scope,desired,rows)=>scope&&desired&&scope.trigger==='MANUAL'&
   scope.bindingIds.length>0&&scope.bindingIds.every(id=>desired.bindingIds?.includes(id)&&rows.some(row=>row.status==='BOUND'&&row.remoteBindingId===id))&&
   scope.dataCategories.length>0&&scope.dataCategories.every(key=>['ACCOUNT_METADATA','USAGE_SUMMARY'].includes(key)&&desired.dataCategories?.includes(key));
 export function CookieServiceConnections({origin='',accounts=[],accountReady=false,state,
-  busy=false,notice='',onAction,onDirtyChange,onAccounts}){
+  busy=false,notice='',onAction,onDirtyChange,onAccounts,legacyOnly=false}){
   const connections=state?.connections||[];
   const associations=state?.associations||[];
   const [form,setForm]=React.useState(null);
@@ -238,7 +238,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
       <div className="cookie-business-actions"><button type="button" className={secondary}
         disabled={typeof onAction!=='function'} onClick={reread}>重新读取状态</button>
       <button type="button" className={primary} disabled={blocked||Boolean(form)}
-        onClick={event=>beginConfig(event)}>添加服务</button></div>
+        onClick={event=>!legacyOnly&&beginConfig(event)} hidden={legacyOnly}>添加服务</button></div>
     </header>
     {!form&&error&&<p role="alert" className="od-form-error">{error}</p>}
     {notice&&<p role="status" className="cookie-account-feedback">{notice}</p>}

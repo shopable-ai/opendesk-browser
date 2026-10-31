@@ -1,6 +1,24 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-## 服务连接与同步策略：已安装的核心开发结果（2026-10-31）
+## 普通 HTTP 服务连接 · 2.0.58（2026-10-31）
+
+当前核心开发入口是「企业 → 服务连接」：填写终端输出的精确服务来源地址，保存配置后再用 **Application pairing** 应用配对码明确连接。后台使用普通 `serve`，无需 `--native`、桌面服务登记或端口扫描。管理员配对链接与应用配对码分离；在已登录的管理页「Cookie 同步设置」可重新生成应用配对码。
+
+连接后可按页读取已有资源和缓存用量，选择本站已保存账号并二次核对关联，打开对应资源/设备管理页，读取期望策略并显式接受所选元数据子集，再确认解绑和断开。关联始终为 `UNVERIFIED`，不证明同一登录身份；不会传输 Cookie、读取认证文件或刷新上游。后台保存期望策略不代表设备接受。
+
+HTTP 业务在本项目 `app/domain/http-services.js`、`app/components/CookieHttpConnections.jsx` 与 `ai-account-usage/` 内，通过公开 `browser.network.request`、工具专属 `browser.storage.local`、`browser.tabs.create` 调用。通用宿主只补齐真实点击请求 Chrome 来源权限和“RPC 尚未提交”的精确错误边界，没有新增 Cookie HTTP 专用通道、Host 或安装器。旧 Native 连接在折叠记录中保留，关闭新增配置入口；旧可信实现暂留以核对历史状态，不宣称已完成整个遗留可信层拆除。
+
+应用凭据只覆盖配对时冻结的资源、当前工具版本和 15 分钟会话，经工具专属 SDK 存储保存，不进入 React 状态或 URL；原有真实安装身份、哈希及撤权检查仍由宿主执行。上游 Token、管理员 Cookie 与 Native 进程秘密不交给应用。请求仍需逐次可信宿主审阅，Chrome 来源权限不能代替精确来源（含端口）的本次授权。版本变化不继承原会话。
+
+配对回包丢失仅查原 `receiptKey / connectionId / operationId`，不重复创建设备；写入未知保留原操作并阻止重发。打开管理页任一阶段未知可明确归档，不再次打开；过期、版本失效或 DELETE 后仅可查回执的旧连接可明确归档再新配对。归档不表示远端已撤销，也不表示未知操作失败；原未知请求保留。资源/用量缓存仅保存在当前应用会话，持久化遵守原 8 KiB 单项限制，不扩容或清除旧 Cookie 账号数据。
+
+新增能力为 `network`、`browser.storage`、`browser.tabs`，升级需在原可信安装器审阅；六个 Tab、Cookie/vault 原功能和旧记录保留。正式可导入文件仍唯一为 [`cookie-editor.opendesk-tool.json`](cookie-editor.opendesk-tool.json)，**2.0.58**、305459 bytes，SHA-256 `5a92289ff556f097068b9e85cbf5d6f43dc39e935c9a8e227cce014a4a625637`。
+
+**证据：** 真实 HTTP 后端 + SDK 网络/存储驱动已完成配对（含丢失回包查询）、缓存读取、UNVERIFIED 关联、精确管理页目标、策略子集接受、解绑/断开；六 Tab 正式 App 渲染与定向安全/交互检查通过。此链使用合成资源，标签页创建为受控测试替身，不能证明真实扩展运行。包版本、哈希与命令见[本轮 HTTP 证据](evidence/service-http-core-20261031.json)。
+
+**PACKAGE_READY_INSTALL_NOT_TESTED / SYSTEM_CHROME_NOT_TESTED：** 本轮原生 UI 锁被其他任务占用，未升级日常 Chrome 工具，实际加载路径、扩展 ID 与 serve 客户端连接未重新实读。沿用既有 `dist/development` watcher，不静态覆盖 Browser 输出。新包安装、真实 Chrome 来源授权/管理页打开、公司 HTTPS/SSO、真实额度、Cookie 上传/备份、持续同步、production 验收与评分均未由本轮证明。
+
+## 历史 Native 核心开发结果 · 2.0.57（2026-10-31）
 
 当前为**持续开发环境**：真实 Mac Chrome 加载本仓库 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，复用唯一 `npm run dev` watcher。已升级并配对支持 managed services 的完整签名 Native App。唯一正式包 [`cookie-editor.opendesk-tool.json`](cookie-editor.opendesk-tool.json) 为 **2.0.57**，264961 bytes，SHA-256 `829a3c7be21af15c09c6a8a12cf3842e19ff06595cd62e6de86c2b18d346b23b`；真实侧栏已读到该版本，原 Cookie 授权和保存账号可用。源码、安装与运行证据分开记录在[本轮原生证据](evidence/service-binding-native-20261031.json)。
 
@@ -42,7 +60,7 @@ npm start --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
 
 上面的 `npm start --prefix …/ai-account-usage` 命令仅开启本机管理服务并显示一次性连接链接，不查询上游。服务停止后会话失效；页面打开只读缓存，只有明确手动刷新才查询。代理、自定义授权配置、定向单项测试与独立 API 读回见[模块说明](ai-account-usage/README.zh-CN.md)。数据仍使用原 `~/.opendesk/ai-account-usage/`，认证文件不迁移、不复制。
 
-**当前入口是「企业 → 服务连接」**：显式关联本站已保存账号与已登记服务的实际资源后，可打开受限管理页；原生核心链已完成，手动关联仍为 `UNVERIFIED`。账号页尚无经过证明的自动身份映射或直接额度入口；保存 Cookie 或同名 alias 不构成 Codex 授权。独立终端配对入口继续可用，Cookie/Token/一次性配对秘密不经过沙箱。[缺口复现与后续边界](evidence/usage-entry-gap-20261030.md)、[本轮迁移与复核记录](evidence/usage-ownership-20261030.md)分别保留证据等级与未完成项。
+**当前入口是「企业 → 服务连接」**：新连接使用上述普通 HTTP 地址及应用配对码；旧 Native 登记链是 2.0.57 的历史证据。显式关联本站已保存账号与实际资源后可打开受限管理页，手动关联仍为 `UNVERIFIED`。账号页尚无经过证明的自动身份映射或直接额度入口；保存 Cookie 或同名 alias 不构成 Codex 授权。独立终端配对入口继续可用，Cookie/Token/一次性配对秘密不经过沙箱。[缺口复现与后续边界](evidence/usage-entry-gap-20261030.md)、[本轮迁移与复核记录](evidence/usage-ownership-20261030.md)分别保留证据等级与未完成项。
 
 ## 历史：账号保存状态与分享配置排版 · 2.0.54（2026-10-29）
 

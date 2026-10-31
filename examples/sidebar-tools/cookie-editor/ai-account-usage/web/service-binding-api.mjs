@@ -12,6 +12,11 @@ export async function initializeManagementOpen({location=globalThis.location,his
 export function createPolicyApi(fetcher=globalThis.fetch) {
   const options={credentials:'same-origin',cache:'no-store',redirect:'error'};
   return {
+    async issuePairing(){
+      const response=await fetcher('/opendesk/admin/api/client-pairing',{...options,method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+      if(!response.ok)throw Error('未能生成应用连接码；请核实管理员会话。');
+      return response.json();
+    },
     async devices(){const response=await fetcher('/opendesk/admin/api/devices',{...options,method:'GET'});
       if(!response.ok)throw Error('无法读取连接设备；请核实本机管理会话。');
       const data=await response.json();if(!Array.isArray(data.devices))throw Error('设备列表格式无效。');return data;},

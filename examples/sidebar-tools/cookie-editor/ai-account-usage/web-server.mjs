@@ -1,7 +1,7 @@
 // Independent local management session. The existing read API remains GET-only
 // and its bearer secret never leaves this trusted process.
 import {createServer} from 'node:http';
-import {randomBytes, timingSafeEqual} from 'node:crypto';
+import {randomBytes, randomUUID, timingSafeEqual} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
@@ -75,18 +75,124 @@ export async function startManagementServer({service,store,port=0,
   // prevents this session being sent to unrelated numeric-loopback services.
   const hostname=`usage-${randomBytes(12).toString('hex')}.localhost`;
   const expires=clock()+5*60_000, session=randomBytes(32).toString('hex');
+  let clientPairing;
+  async function issueClientPairing(){
+    const resourceIds=(await store.accounts()).map(a=>a.alias);
+    if(resourceIds.length>64||new Set(resourceIds).size!==resourceIds.length)throw bindingError('BAD_INPUT');
+    clientPairing={code:randomBytes(32).toString('hex'),expiresAt:clock()+5*60_000,resourceIds};
+    return {code:clientPairing.code,origin:`http://${hostname}:${server.address().port}`,expiresAt:clientPairing.expiresAt};
+  }
+  const httpClients=new Set();
+  // Process/session-local receipts: reserve before any asynchronous mutation.
+  // Never evict a live receipt to make room for a new pairing.
+  const pairReceipts=new Map();
+  function prunePairReceipts(){for(const [key,row] of pairReceipts)if(clock()>=row.expiresAt)pairReceipts.delete(key);}
+  function pairIdentity(body){
+    if(['connectionId','operationId'].some(k=>typeof body[k]!=='string'||!/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(body[k]))||
+      typeof body.receiptKey!=='string'||!/^[a-f0-9]{64}$/.test(body.receiptKey))throw bindingError('BAD_INPUT');
+  }
+  async function clientRequest(body){
+    exact(body,['session','method','path','body']);
+    if(typeof body.session!=='string'||!httpClients.has(body.session))throw bindingError('TRUSTED_SESSION_REQUIRED',403);
+    getClient(body.session);
+    const {session:secret,method,path}=body;
+    const known=typeof path==='string'&&(
+      method==='GET'&&(/^(?:\/opendesk\/v1\/(?:self|accounts|sync-policy)|\/opendesk\/v1\/accounts-page\/(?:[1-9]|[1-5][0-9]|6[0-3])|\/opendesk\/v1\/accounts\/[A-Za-z0-9_-]+\/usage|\/opendesk\/v1\/operations\/[A-Za-z0-9_-]+)$/.test(path))||
+      method==='POST'&&['/opendesk/v1/devices','/opendesk/v1/bindings','/opendesk/v1/policy-acceptances','/opendesk/v1/management-open'].includes(path)||
+      method==='DELETE'&&/^\/opendesk\/v1\/(bindings|devices)\/[A-Za-z0-9_-]+$/.test(path));
+    if(!known||method==='GET'&&Object.hasOwn(body,'body'))throw bindingError('BAD_INPUT');
+    if(method!=='GET'&&(!body.body||typeof body.body!=='object'||Array.isArray(body.body)))throw bindingError('BAD_INPUT');
+    if(path==='/opendesk/v1/management-open'){
+      exact(body.body,['bindingId','remoteAccountId']);
+      if(Object.keys(body.body).length!==0&&!(Object.keys(body.body).length===2&&typeof body.body.bindingId==='string'&&typeof body.body.remoteAccountId==='string'))throw bindingError('BAD_INPUT');
+      const self=await bindingRequest(secret,{method:'GET',path:'/opendesk/v1/self'});
+      return serviceBinding.createManagementOpen(secret,{...body.body,serviceInstanceId:bindings.serviceInstanceId,deviceId:self.deviceId});
+    }
+    try{
+      const page=method==='GET'&&/^\/opendesk\/v1\/accounts-page\/(?:[1-9]|[1-5][0-9]|6[0-3])$/.test(path);
+      const result=await bindingRequest(secret,{method,path:page?'/opendesk/v1/accounts':path,body:body.body});
+      if(method==='GET'&&(path==='/opendesk/v1/accounts'||page)){
+        const offset=page?Number(path.split('/').at(-1)):0;
+        return {accounts:result.accounts.slice(offset,offset+16),nextCursor:offset+16<result.accounts.length?offset+16:null};
+      }
+      if(method==='GET'&&path==='/opendesk/v1/sync-policy'){
+        // The app already owns its confirmed binding metadata. Avoid returning
+        // every local origin/alias again just to review the desired policy.
+        const {bindings:unused,...summary}=result;return summary;
+      }
+      if(method==='GET'&&/^\/opendesk\/v1\/accounts\/[A-Za-z0-9_-]+\/usage$/.test(path)){
+        return {...result,account:{windows:result.account.windows}};
+      }
+      if(method==='DELETE'&&path.startsWith('/opendesk/v1/devices/'))serviceBinding.retainLocalClientReceipts(secret);
+      return result;
+    }catch(error){
+      // A failed DELETE may have committed. Never retry it or leave resource
+      // access live while the original operation is reconciled through GET.
+      if(method==='DELETE')serviceBinding.retainLocalClientReceipts(secret);
+      throw error;
+    }
+  }
   let sessionExpires=0, busy=false;
   const server=createServer(async(req,res)=>{
     const origin=`http://${hostname}:${server.address()?.port}`;
     const cookieName=`od_usage_${server.address()?.port}`;
     if(req.headers.host!==new URL(origin).host)return reply(res,403,{error:'HOST_REJECTED'});
-    if(req.headers.origin && req.headers.origin!==origin)return reply(res,403,{error:'ORIGIN_REJECTED'});
-    if(req.headers['sec-fetch-site'] && !['same-origin','none'].includes(req.headers['sec-fetch-site']))
-      return reply(res,403,{error:'SITE_REJECTED'});
     let url;
     try{url=new URL(req.url,origin);}catch{return reply(res,400,{error:'BAD_URL'});}
     if(url.origin!==origin || url.searchParams.has('token') || url.searchParams.has('secret'))
       return reply(res,400,{error:'BAD_URL'});
+    // Only these application endpoints accept a real extension Origin. Host
+    // checking above also protects no-Origin privileged SDK HTTP requests.
+    if(['/opendesk/client/pair','/opendesk/client/pair-result','/opendesk/client/request'].includes(url.pathname)){
+      if(req.headers.origin&&req.headers.origin!==origin&&!/^chrome-extension:\/\/[a-p]{32}$/.test(req.headers.origin))return reply(res,403,{error:'ORIGIN_REJECTED'});
+      if(!req.headers.origin&&req.headers['sec-fetch-site']&&!['same-origin','none'].includes(req.headers['sec-fetch-site']))return reply(res,403,{error:'SITE_REJECTED'});
+      if(req.url!==url.pathname)return reply(res,400,{error:'BAD_URL'});
+      if(req.method!=='POST')return reply(res,405,{error:'METHOD_REJECTED'});
+      try{
+        const body=await input(req,16384);
+        if(url.pathname==='/opendesk/client/request'){
+          const result=await clientRequest(body);
+          // Do not truncate policy/binding state or emit a response the SDK
+          // cannot receive. Mutation outcomes still require receipt lookup.
+          if(Buffer.byteLength(JSON.stringify(result))>8192)throw bindingError('RESPONSE_TOO_LARGE',413);
+          return reply(res,200,result);
+        }
+        prunePairReceipts();
+        if(url.pathname==='/opendesk/client/pair-result'){
+          exact(body,['receiptKey','connectionId','operationId']);
+          if(Object.keys(body).length!==3)throw bindingError('BAD_INPUT');
+          pairIdentity(body);
+          const row=pairReceipts.get(body.receiptKey);
+          if(!row||row.connectionId!==body.connectionId||row.operationId!==body.operationId||!row.receipt)
+            return reply(res,404,{error:'RESULT_UNKNOWN'});
+          return reply(res,200,row.receipt);
+        }
+        exact(body,['code','connectionId','label','operationId','receiptKey']);
+        if(Object.keys(body).length!==5||typeof body.code!=='string'||typeof body.label!=='string'||!body.label.length||body.label.length>80||/[\x00-\x1f]/.test(body.label))throw bindingError('BAD_INPUT');
+        pairIdentity(body);
+        if([...pairReceipts.values()].some(row=>row.receiptKey===body.receiptKey||row.operationId===body.operationId||row.connectionId===body.connectionId&&row.receipt?.status!=='REJECTED'))
+          throw bindingError('PAIRING_CONFLICT',409);
+        if(pairReceipts.size>=128)throw bindingError('PAIRING_CAPACITY',503);
+        const row={receiptKey:body.receiptKey,connectionId:body.connectionId,operationId:body.operationId,expiresAt:clock()+15*60_000,receipt:null};
+        pairReceipts.set(body.receiptKey,row);
+        if(!clientPairing||clock()>=clientPairing.expiresAt||!match(body.code,clientPairing.code)){
+          row.receipt={operationId:body.operationId,status:'REJECTED',error:'PAIRING_INVALID'};
+          return reply(res,401,{error:'PAIRING_INVALID'});
+        }
+        const {resourceIds}=clientPairing;clientPairing=null; // Consume before asynchronous work.
+        const client=await serviceBinding.createLocalClient({connectionId:body.connectionId,installationId:randomUUID(),grantFamilyId:randomUUID(),userId:'local_http',resourceIds});
+        try{
+          const device=await bindingRequest(client.secret,{method:'POST',path:'/opendesk/v1/devices',body:{label:body.label,operationId:body.operationId}});
+          httpClients.add(client.secret);
+          const result={session:client.secret,expiresAt:client.expiresAt,serviceInstanceId:bindings.serviceInstanceId,device};
+          row.receipt={operationId:body.operationId,status:'CONFIRMED',result};
+          return reply(res,200,result);
+        }catch(error){serviceBinding.revokeLocalClient(client.secret);throw error;}
+      }catch(error){return reply(res,error.status??503,{error:error.status?error.code:'REQUEST_FAILED'});}
+    }
+    if(req.headers.origin && req.headers.origin!==origin)return reply(res,403,{error:'ORIGIN_REJECTED'});
+    if(req.headers['sec-fetch-site'] && !['same-origin','none'].includes(req.headers['sec-fetch-site']))
+      return reply(res,403,{error:'SITE_REJECTED'});
     try {
       if(req.method==='POST' && url.pathname==='/session') {
         if(req.headers.origin!==origin || url.search) return reply(res,403,{error:'ORIGIN_REQUIRED'});
@@ -107,6 +213,8 @@ export async function startManagementServer({service,store,port=0,
         if(!pending||clock()>=pending.expiresAt)return reply(res,401,{error:'OPEN_INVALID'});
         const context=getClient(pending.secret);
         const path=await bindings.managementPath(context,pending.target);
+        getClient(pending.secret);
+        if(clients.get(pending.secret).receiptOnly)throw bindingError('TRUSTED_SESSION_REQUIRED',403);
         const code=randomBytes(32).toString('hex');
         resourceSessions.set(code,{...pending,path,expiresAt:clock()+15*60_000});
         res.setHeader('set-cookie',`od_resource_${server.address().port}=${code}; HttpOnly; SameSite=Strict; Path=/; Max-Age=900`);
@@ -143,6 +251,7 @@ export async function startManagementServer({service,store,port=0,
       let resourceContext=null;
       if(resourceSession && clock()<resourceSession.expiresAt){
         resourceContext=getClient(resourceSession.secret);
+        if(clients.get(resourceSession.secret).receiptOnly)throw bindingError('TRUSTED_SESSION_REQUIRED',403);
         await bindings.managementPath(resourceContext,resourceSession.target);
       }
       const resourcePage=/^\/opendesk\/admin\/accounts\/[A-Za-z0-9_-]+$/.test(url.pathname)||url.pathname==='/opendesk/admin/sync';
@@ -166,6 +275,11 @@ export async function startManagementServer({service,store,port=0,
           if(req.method==='GET'&&url.pathname==='/opendesk/admin/api/devices'&&!url.search && !resourceSession.target.bindingId)
             return reply(res,200,{devices:[await bindings.request(resourceContext,{method:'GET',path:'/opendesk/v1/sync-policy'})],readOnly:true});
           return reply(res,403,{error:'ADMIN_REQUIRED'});
+        }
+        if(req.method==='POST'&&url.pathname==='/opendesk/admin/api/client-pairing'){
+          if(req.headers.origin!==origin||url.search)return reply(res,403,{error:'ORIGIN_REQUIRED'});
+          const body=await input(req);exact(body,[]);
+          return reply(res,200,await issueClientPairing());
         }
         const adminReceipt=/^\/opendesk\/admin\/api\/operations\/([A-Za-z0-9_-]+)$/.exec(url.pathname);
         if(req.method==='GET'&&adminReceipt && url.searchParams.size===1 && url.searchParams.has('device'))
@@ -260,10 +374,12 @@ export async function startManagementServer({service,store,port=0,
       const context=getClient(secret);
       if(clients.get(secret).receiptOnly)throw bindingError('TRUSTED_SESSION_REQUIRED',403);
       const path=await bindings.managementPath(context,target);
+      getClient(secret);
+      if(clients.get(secret).receiptOnly)throw bindingError('TRUSTED_SESSION_REQUIRED',403);
       const code=randomBytes(32).toString('hex'),expiresAt=clock()+60_000;
       opens.set(code,{secret,target:structuredClone(target),expiresAt});
-      // Same one-time fragment contract as terminal pairing; only Native may open
-      // this URL. Neither the URL nor its code may be returned to the sandbox.
+      // Same one-time fragment contract as terminal pairing. Native or the
+      // explicitly paired HTTP app may open this resource-scoped URL.
       return {url:`http://${hostname}:${server.address().port}${path}#open=${code}`,expiresAt};
     },
     revokeLocalClient(secret){
@@ -271,6 +387,8 @@ export async function startManagementServer({service,store,port=0,
       for(const [code,open] of opens)if(open.secret===secret)opens.delete(code);
     }
   });
-  return Object.freeze({serviceBinding,url:`http://${hostname}:${server.address().port}/pair`,pairingCode,
-    close:async()=>{closed=true;clients.clear();opens.clear();resourceSessions.clear();await new Promise(resolve=>server.close(resolve));await reader.close();}});
+  let applicationPairing;
+  try{applicationPairing=await issueClientPairing();}catch(error){await new Promise(resolve=>server.close(resolve));await reader.close();throw error;}
+  return Object.freeze({serviceBinding,url:`http://${hostname}:${server.address().port}/pair`,pairingCode,applicationPairing,
+    close:async()=>{closed=true;clientPairing=null;pairReceipts.clear();httpClients.clear();clients.clear();opens.clear();resourceSessions.clear();await new Promise(resolve=>server.close(resolve));await reader.close();}});
 }

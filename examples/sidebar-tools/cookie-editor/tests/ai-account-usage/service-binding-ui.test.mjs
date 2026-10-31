@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {buildSync} from 'esbuild';
 import {createPolicyApi,initializeManagementOpen} from '../../ai-account-usage/web/service-binding-api.mjs';
 
 test('opening management resource consumes fragment before any data request and uses no cross-origin URL',async()=>{
@@ -50,4 +51,37 @@ test('archive write failure preserves pending; failed or read-only GET leaves ne
     assert.equal(createPolicyLedger(storage,key).read().needsRevisionRead,true);
     assert.throws(()=>ledger.savePending({...change,operationId:'new_one'}),/REVISION_READ_REQUIRED/);
   }
+});
+
+
+test('admin application code request uses authenticated same-origin empty POST without auto pairing',async()=>{
+  const calls=[],grant={origin:'http://synthetic.localhost:1234',code:'a'.repeat(64),expiresAt:1800000000000};
+  const api=createPolicyApi(async(path,options)=>{calls.push({path,options});return {ok:true,json:async()=>grant};});
+  assert.deepEqual(await api.issuePairing(),grant);
+  assert.deepEqual(calls,[{path:'/opendesk/admin/api/client-pairing',options:{credentials:'same-origin',cache:'no-store',redirect:'error',method:'POST',headers:{'content-type':'application/json'},body:'{}'}}]);
+  await assert.rejects(createPolicyApi(async()=>({ok:false})).issuePairing(),/管理员会话/);
+});
+
+
+test('management renders code issuance only for admin and shows grant without pairing automatically',async()=>{
+  const built=buildSync({entryPoints:[new URL('../../ai-account-usage/web/ServiceBindingSettings.jsx',import.meta.url).pathname],bundle:true,write:false,format:'cjs',platform:'node',external:['react'],jsx:'transform'});
+  const originalFetch=globalThis.fetch;
+  try{for(const readOnly of [false,true]){
+    const calls=[],slots=[],effects=[];let index=0;
+    const React={createElement:(type,props,...children)=>({type,props:props??{},children:children.flat(Infinity)}),
+      useState(initial){const i=index++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];},
+      useEffect(fn){const i=index++;if(!(i in slots)){slots[i]=true;effects.push(fn);}}};
+    const grant={origin:'http://synthetic.localhost:1234',code:'b'.repeat(64),expiresAt:1800000000000};
+    globalThis.fetch=async(path,options)=>{calls.push([path,options]);return {ok:true,json:async()=>path.endsWith('/devices')?{devices:[],readOnly}:grant};};
+    const module={exports:{}};new Function('require','module','exports',built.outputFiles[0].text)(()=>React,module,module.exports);
+    const render=()=>{index=0;return module.exports.ServiceBindingSettings();};
+    const nodes=node=>!node||typeof node!=='object'?[]:[node,...node.children.flatMap(nodes)];
+    const text=node=>!node||typeof node!=='object'?String(node??''):node.children.map(text).join('');
+    render();for(const effect of effects)effect();await new Promise(resolve=>setImmediate(resolve));
+    let tree=render();const button=nodes(tree).find(n=>n.type==='button'&&text(n)==='生成新应用连接码');
+    assert.equal(!!button,!readOnly);
+    if(button){await button.props.onClick();tree=render();assert.ok(text(tree).includes(grant.origin));assert.ok(text(tree).includes(grant.code));
+      assert.deepEqual(calls.map(([path])=>path),['/opendesk/admin/api/devices','/opendesk/admin/api/client-pairing']);}
+    else assert.deepEqual(calls.map(([path])=>path),['/opendesk/admin/api/devices']);
+  }}finally{globalThis.fetch=originalFetch;}
 });
