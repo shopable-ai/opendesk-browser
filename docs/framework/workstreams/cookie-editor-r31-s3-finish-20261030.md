@@ -210,3 +210,5 @@
 
 - 本任务原始轮及两次自动续跑均无新的原生安装确认／详情读回；当前 Chrome 文档化控制面仍无 SidePanel API。开发服务恢复和接收机 S3 缺口诊断均已完成，没有可独立继续的产品操作；不重复测试、安装、轮询旧 owner 或请求手工动作。达到连续三轮的严格条件后，`update_goal(blocked)` 于2026-10-31T10:11:45Z实际返回 blocked。原完整目标未改、未标 complete，八项产品结果仍 NOT_TESTED；writer 未停止、历史 unknown 围栏保留。原始工具回执 `artifacts/cookie-editor-r31/goal-blocked-01a19164.json` 及其摘要写入原 JSON 的 `resume01a19164.latestGoalAudit`；此前开发就绪记录仍保留当时 active 状态。解除条件是原更新／安装详情回执可读回，或出现合法可控的原生 SidePanel 入口；接收机部署与两条主流程仍须随后真实完成。
 - 来源守卫任务01a19166随后回告源码收尾：仅修改 provenance、对应构建边界测试及两份通用文档，S3／业务源码／src/sw.js／正式包／精确 pin／dist／writer 均未动；其10／6／2三组定向检查通过，仅为 owner 回执，未做完整 build／serve／Chrome。此回执未解除本任务原生入口缺口，不提升旧候选证据，不触发 Cookie 重测或改变 blocked 状态；具体范围保存于同节 coordination.completionReceipt，无需回复、等待或再协调。
+
+- 后续自动续跑中 `get_goal` 曾重新实读 active，恢复来源未知，本任务没有调用恢复操作。按恢复后的新审计重新计数，第三轮仍缺原生 SidePanel 控制及安装详情回执，无可独立推进的产品步骤；2026-10-31T10:21:06Z再次 `update_goal(blocked)` 成功。原完整目标、八项 NOT_TESTED、首次阻塞回执和开发就绪证据全部保留；最新工具回执 `artifacts/cookie-editor-r31/goal-reblocked-01a19164.json` 及摘要记入原 JSON `resume01a19164.resumedGoalAudit`。未重复安装、测试、手工请求或修改产品源码。

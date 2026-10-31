@@ -1866,7 +1866,7 @@
         "latestActualRead": "blocked",
         "previousGoals": "Unchanged; 01a19125 blocked and 01a18d05 paused remain their separate historical scopes",
         "statusAtCreation": "active",
-        "lastReadAt": "2026-10-31T10:11:45+00:00"
+        "lastReadAt": "2026-10-31T10:21:06+00:00"
       },
       "state": "BLOCKED_NATIVE_SIDEPANEL_CONFIRMATION_REQUIRED",
       "package": {
@@ -2012,6 +2012,18 @@
         "receiptSha256": "6e6335be6958b2786f642a7dc211de232f48af0eb0daa3dd9947c0b0f9412aeb",
         "releaseCondition": "Original installed version/source/SHA and preserved-data readback, or supported native SidePanel control; never retry uncertain install or bypass browser restrictions.",
         "remaining": "All eight product results remain NOT_TESTED; receiver S3 deployment and both full native workflows remain incomplete."
+      },
+      "resumedGoalAudit": {
+        "recordedAt": "2026-10-31T10:21:06+00:00",
+        "reactivation": "get_goal read active after the previous blocked receipt; source of reactivation is unknown, no active mutation was requested by this task",
+        "freshBlockedAudit": true,
+        "consecutiveResumedGoalTurns": 3,
+        "status": "blocked",
+        "reason": "Original SidePanel control and installation readback are still unavailable; no new manual result or independent product operation. Full objective and all eight NOT_TESTED results preserved.",
+        "receipt": "artifacts/cookie-editor-r31/goal-reblocked-01a19164.json",
+        "receiptSha256": "a2de7b6fc033d7deba9ff7777862e59e886def25d6c0f6c2b8adb84edb903f6f",
+        "previousBlockedReceipt": "artifacts/cookie-editor-r31/goal-blocked-01a19164.json",
+        "repeatedInstallTestsManualRequests": false
       }
     }
   }
