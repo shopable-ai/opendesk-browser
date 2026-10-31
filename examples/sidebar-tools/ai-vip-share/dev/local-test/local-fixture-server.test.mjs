@@ -4,6 +4,7 @@ import {runInNewContext} from 'node:vm';
 import {randomUUID} from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
 import {createLocalFixture} from './local-fixture-server.mjs';
+import {VIP_PAGE_CSP} from './vip-session-page.mjs';
 const SERVER_NOW=Date.UTC(2026,9,15);
 const boundAccount={state:'bound',id:'local-fixture-account',displayNameMasked:'l***@fixture.test'};
 let serverNow=SERVER_NOW,memberState={account:boundAccount,entitlements:[]},sharedAccess=true;
@@ -64,6 +65,49 @@ test.beforeEach(()=>{
   fixture.setNextVerifyDelay(0);
 });
 test.after(()=>new Promise(resolve=>server.close(resolve)));
+test('shared target VIP uses complete server session, current assignment and entitlement deadline',async()=>{
+  const {receipt}=await redeemSession();
+  const delivery=receipt.cookieDelivery;
+  const read=async cookies=>{
+    const res=await fetch(addr+'/session/',{headers:cookies?{Cookie:cookies}:{}});
+    assert.equal(res.headers.get('cache-control'),'no-store');
+    assert.equal(res.headers.get('set-cookie'),null);
+    const html=await res.text();
+    assert.ok(!delivery.cookies.some(cookie=>html.includes(cookie.value)),'HTML omits Cookie values');
+    return html;
+  };
+  assert.match(await read(),/data-session-reason="missing"/);
+  const full=cookieHeader(delivery);
+  let html=await read(full);
+  assert.match(html,/本地模拟网站/);
+  assert.match(html,/data-vip-state="active"/);
+  assert.match(html,/a\*\*\*@fixture\.test/);
+  assert.match(html,/模拟标准 VIP/);
+  assert.ok(html.includes(new Date(receipt.grantedEntitlements[1].expiresAt).toISOString()));
+  const invalid=await read(cookieHeader({cookies:[delivery.cookies[0]]}));
+  assert.match(invalid,/data-session-reason="invalid"/);
+  assert.doesNotMatch(invalid,/data-vip-state="active"|data-identity=/);
+  sharedAccess=false;
+  html=await read(full);
+  assert.match(html,/data-session-reason="revoked"/);
+  assert.doesNotMatch(html,/data-vip-state="active"|data-identity=/);
+  sharedAccess=true;
+  serverNow=receipt.grantedEntitlements[1].expiresAt;
+  html=await read(full);
+  assert.match(html,/data-session-reason="expired"/);
+  assert.doesNotMatch(html,/data-vip-state="active"|data-identity=/);
+  serverNow=SERVER_NOW;
+  const next=await redeemSession('DEMO-VIP-02');
+  html=await read(cookieHeader(next.receipt.cookieDelivery));
+  assert.match(html,/b\*\*\*@fixture\.test/);
+  assert.match(html,/模拟高级 VIP/);
+  assert.match(html,/data-vip-state="active"/);
+  assert.match(await read(full),/data-session-reason="revoked"/);
+  html=await read(cookieHeader({cookies:[delivery.cookies[0],next.receipt.cookieDelivery.cookies[1]]}));
+  assert.match(html,/data-session-reason="invalid"/);
+  assert.doesNotMatch(html,/data-vip-state="active"|data-identity=/);
+});
+
 test('health is loopback only, mock mode is explicit',async()=>{
   const r=await fetch(addr+'/health');const data=await r.json();
   assert.equal(data.ok,true);assert.equal(data.proxyPort,7897);
@@ -200,7 +244,7 @@ test('session page requires an issued unexpired Cookie pair without the API test
     assert.equal(response.status,200);
     assert.equal(response.headers.get('cache-control'),'no-store');
     assert.equal(response.headers.get('content-type'),'text/html; charset=utf-8');
-    assert.equal(response.headers.get('content-security-policy'),"default-src 'none'");
+    assert.equal(response.headers.get('content-security-policy'),VIP_PAGE_CSP);
     assert.equal(response.headers.get('set-cookie'),null);
     const html=await response.text();
     assert(html.includes(expected),'page reports only the expected session state');

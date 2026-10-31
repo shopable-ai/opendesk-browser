@@ -50,6 +50,70 @@ const receipt = ({serverNow: _sample, ...stable}) => stable;
 const sameReceipt = (left, right) => assert.ok(JSON.stringify(receipt(left)) === JSON.stringify(receipt(right)),
   'same scoped delivery receipt (secret payload omitted)');
 
+test('VIP page is a server-verified snapshot with masked identity, deadlines and no secrets', async t => {
+  let now = 1800000000000;
+  const f = await fixture(t, {now: () => now});
+  const g = f.app.authorize({subjectId: 'private-subject'});
+  const first = (await deliver(f, g)).json;
+  const second = (await deliver(f, g, intent(g, 'second'))).json;
+  const show = async (cookies, reason) => {
+    const response = await page(f, cookies);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers['cache-control'], 'no-store');
+    assert.equal(response.headers['set-cookie'], undefined);
+    assert.match(response.text, /本地模拟网站/);
+    assert.match(response.text, new RegExp(`data-session-reason="${reason}"`));
+    assert.ok(![g.credential, 'private-subject', first.metadata.scopeKey,
+      ...first.cookieDelivery.cookies.map(c => c.value), ...second.cookieDelivery.cookies.map(c => c.value)]
+      .some(secret => response.text.includes(secret)), 'page omits all credentials and delivery secrets');
+    assert.doesNotMatch(response.text, /<script\b|localStorage|document\.cookie/);
+    return response.text;
+  };
+  assert.doesNotMatch(await show(undefined, 'missing'), /data-vip-state="active"|data-identity=/);
+  const full = cookieHeader(first.cookieDelivery);
+  const html = await show(full, 'valid');
+  assert.match(html, /data-vip-state="active"/);
+  assert.match(html, /o\*\*\*@fixture\.test/);
+  assert.match(html, /本地体验 VIP/);
+  assert.ok(html.includes(new Date(g.authorization.expiresAt).toISOString()), 'actual server deadline is visible');
+  assert.match(html, /http-equiv="refresh" content="5"/);
+  for (const cookies of [cookieHeader({cookies: [first.cookieDelivery.cookies[0]]}),
+    cookieHeader({cookies: [first.cookieDelivery.cookies[0], second.cookieDelivery.cookies[1]]}),
+    `${full}; ${first.cookieDelivery.cookies[0].name}=duplicate`]) {
+    assert.doesNotMatch(await show(cookies, 'invalid'), /data-vip-state="active"|data-identity=/);
+  }
+  now = first.metadata.expiresAt; // Delivery window is not the installed session lifetime.
+  assert.match(await show(full, 'valid'), /data-vip-state="active"/);
+  f.app.revoke(g.authorization.subjectId);
+  assert.doesNotMatch(await show(full, 'revoked'), /data-vip-state="active"|data-identity=/);
+});
+
+test('VIP disappears at exact Cookie/auth expiry and on authorization replacement', async t => {
+  let now = 1800000000000;
+  const f = await fixture(t, {now: () => now, cookieLifetimeMs: 1000});
+  const g = f.app.authorize({expiresAt: now + 60000});
+  const delivery = (await deliver(f, g)).json.cookieDelivery;
+  const full = cookieHeader(delivery);
+  assert.match((await page(f, full)).text, /http-equiv="refresh" content="1"/);
+  now += 1000;
+  let html = (await page(f, full)).text;
+  assert.match(html, /data-session-reason="expired"/);
+  assert.doesNotMatch(html, /data-vip-state="active"|data-identity=/);
+  const renewed = f.app.authorize({expiresAt: now + 500});
+  const next = (await deliver(f, renewed, intent(renewed, 'renewed'))).json.cookieDelivery;
+  assert.match((await page(f, cookieHeader(next))).text, /data-vip-state="active"/);
+  now += 500;
+  html = (await page(f, cookieHeader(next))).text;
+  assert.match(html, /data-session-reason="expired"/);
+  assert.doesNotMatch(html, /data-vip-state="active"/);
+  const current = f.app.authorize();
+  const currentDelivery = (await deliver(f, current, intent(current, 'current'))).json.cookieDelivery;
+  f.app.authorize();
+  html = (await page(f, cookieHeader(currentDelivery))).text;
+  assert.match(html, /data-session-reason="revoked"/);
+  assert.doesNotMatch(html, /data-vip-state="active"/);
+});
+
 for (const host of ['localhost', '127.0.0.1']) {
   test(`${host}: actual random listener, explicit ordinary declarations, owner-authorized HTTP delivery`, async t => {
     const f = await fixture(t, {host});

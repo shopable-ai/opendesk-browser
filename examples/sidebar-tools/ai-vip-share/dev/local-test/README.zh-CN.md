@@ -5,6 +5,38 @@
 
 当前工具版本、安装与浏览器证据见[工具 README](../../README.zh-CN.md#current-status)。本目录只定义受控开发协议，不是已恢复的商业后台协议。下述 HTTP 测试通过不代表已安装扩展完成可信 Cookie 写入或网页登录；两个真实产品入口由主线程验证。商业后台、日常 Chrome 与 production 正式验收仍为 `NOT_TESTED`。
 
+## 查看简单模拟 VIP 页
+
+原有两个服务器的 `/session/` 共用 `vip-session-page.mjs` 渲染。先由服务端核对完整 Cookie 对与原账本，再核验有效期、来源授权和（共享账号时）当前分配；只有全部有效才展示脱敏账号、模拟等级和到期时间。普通站的体验 VIP 不需要 AI VIP Share 会员或代理权益。无 Cookie、缺失 / 混配、到期及撤权均不展示有效 VIP；浏览器自然过期后不再发送 Cookie 时显示「未登录」，若仍发送过期完整 Cookie 对则显示「会话已到期」。
+
+页面每 5 秒只读刷新，临近已知到期时提前刷新，并提供「立即重新核验」链接；撤权结果在下一次成功核验后显示，不承诺浏览器挂起或断网时实时更新。页面不执行 JS、不读取 HttpOnly Cookie、不使用查询参数或 localStorage 判断登录，不设置 Cookie。固定 CSS 由 CSP 摘要允许，其他资源、脚本、表单和框架嵌入继续禁止，响应禁止缓存。页面及启动日志不输出 Cookie、Bearer 或交付内容。
+
+仅查看页面时，从仓库根目录运行下列命令，使用系统分配的独立端口及新账本，**不占用或重启现有 7898 / 7901 / 7902 服务**：
+
+```sh
+node --input-type=module - <<'JS'
+import {createOrdinarySiteFixture} from './examples/sidebar-tools/ai-vip-share/dev/local-test/ordinary-site-fixture.mjs';
+const app = createOrdinarySiteFixture({host: 'localhost'});
+const {site} = await app.listen();
+console.log(site.targetUrl); // 仅地址；不签发或输出凭据、Cookie。
+for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => {
+  await app.close(); process.exit(0);
+});
+JS
+```
+
+打开输出的地址即可看到「未登录 / 模拟 VIP 未验证」。本轮留存的独立页面地址为 `http://localhost:58251/session/`，仅在该临时进程存活时可用；新实例不恢复旧账本，随机端口也没有被加入工具已审开发来源。不要通过改包摘要、添加来源或直接注入浏览器 Cookie 来声称原工具已登录。
+
+在已批准且可安全操作的原工具环境中，正常步骤仍为「扩展 → AI VIP Share → 选择网站 → 获取授权会话 → 设置并打开网站」，经原网站授权、写前复核与可信两项批次确认后查看目标页。已有 unknown 时停止受影响写入；目标页、补权、重开或新账本都不能解除它。现有固定端口的 Node 进程不会因源码修改而热更新；不得为了升级页面重启并清空它们的内存记录。本轮未升级旧实例，未取得新 VIP 页的真实扩展写入证据。
+
+本次修改涉及的最小 HTTP 检查（每项使用测试自有随机端口 / 隔离账本）：
+
+```sh
+node --test examples/sidebar-tools/ai-vip-share/dev/local-test/ordinary-site-fixture.test.mjs examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.test.mjs
+```
+
+2026-10-31 共 54 项通过，其中新增 3 项验证服务端 VIP 渲染、实际期限、缺失 / 混配、撤权 / 换代和秘密不回显；同文件既有检查继续验证精确来源、完整 Cookie、到期、撤权、分配与幂等保护。HTTP 请求显式附带模拟 Cookie 仅证明服务器判断，不证明浏览器接受 / SDK 写入、网站权限或真实登录。工具包字节未改，无需提升 1.4.8 或运行 Browser 构建。
+
 **先复用现有 7898 服务，不重启账本。** fixture 使用单进程内存存储，重启会丢失演示权益、预检及幂等/未知事务记录；升级工具或 Host 不要求重启它。先在仓库根目录只读检查：
 
 ```bash

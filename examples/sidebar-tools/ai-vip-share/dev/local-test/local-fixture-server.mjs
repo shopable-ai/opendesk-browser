@@ -4,6 +4,7 @@
 import http from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
+import {sendVipSessionPage} from './vip-session-page.mjs';
 
 const AI_DOMAINS=Object.freeze([
   'chatgpt.com','openai.com','claude.ai','anthropic.com','gemini.google.com',
@@ -143,18 +144,24 @@ export function createLocalFixture({proxyPort=7897,proxyKind='http',now=Date.now
     if(req.method==='GET'&&path==='/session/'){
       const cookies=(req.headers.cookie||'').split(';').map(part=>part.trim());
       const currentTime=now();
-      const active=[...sessions.values()].find(row=>sharedAccessAllowed(row.accountId,row.redemptionId)&&
+      const matched=[...sessions.values()].find(row=>
         row.cookieDelivery.cookies.every(cookie=>{
           const matching=cookies.filter(part=>part.startsWith(cookie.name+'='));
-          return cookie.expirationDate*1000>currentTime&&matching.length===1&&matching[0]===cookie.name+'='+cookie.value;
+          return matching.length===1&&matching[0]===cookie.name+'='+cookie.value;
         }));
-      const sharedAccount=active&&SHARED_ACCOUNTS.find(row=>row.id===active.sharedAccountId);
-      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store',
-        'X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"});
-      res.end('<!doctype html><html lang="zh-CN"><meta charset="utf-8"><body><p>'+
-        (active?'受控会话有效':'未建立受控会话')+'</p>'+
-        (sharedAccount?`<p data-shared-account="${sharedAccount.id}">${sharedAccount.label}</p>`:'')+
-        '</body></html>');return;
+      const assignment=matched&&currentAssignment(matched.accountId);
+      const entitlement=assignment?.receipt.grantedEntitlements.find(row=>row.featureId==='local-managed-proxy');
+      const expiresAt=matched?Math.min(...matched.cookieDelivery.cookies.map(cookie=>cookie.expirationDate*1000),
+        entitlement?.expiresAt??0):0;
+      let reason=cookies.some(part=>[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].some(name=>part.startsWith(name+'=')))?
+        'invalid':'missing';
+      if(matched)reason=expiresAt<=currentTime?'expired':sharedAccessAllowed(matched.accountId,matched.redemptionId)?'valid':'revoked';
+      const sharedAccount=reason==='valid'&&SHARED_ACCOUNTS.find(row=>row.id===matched.sharedAccountId);
+      sendVipSessionPage(res,{reason,serverNow:currentTime,siteLabel:'共享账号 · 模拟 VIP 工作台',
+        account:sharedAccount?{kind:'shared',sharedAccountId:sharedAccount.id,label:sharedAccount.label,
+          displayNameMasked:sharedAccount.id==='shared-a'?'a***@fixture.test':'b***@fixture.test',
+          level:sharedAccount.id==='shared-a'?'模拟标准 VIP':'模拟高级 VIP',
+          issuedAt:assignment.receipt.redeemedAt,expiresAt}:null});return;
     }
     if(req.method==='GET'&&path==='/health'){
       json(res,200,{ok:true,mode:'LOCAL_FIXTURE_NOT_PRODUCTION',memberPort:server.address()?.port,

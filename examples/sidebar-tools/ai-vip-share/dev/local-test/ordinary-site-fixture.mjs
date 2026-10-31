@@ -14,6 +14,7 @@
  */
 import http from 'node:http';
 import {randomUUID} from 'node:crypto';
+import {sendVipSessionPage} from './vip-session-page.mjs';
 
 const MAX_BODY = 4096, MAX_HEADERS = 8192, MAX_ROWS = 128;
 const MAX_AUTH_MS = 3600000, MAX_DELIVERY_MS = 120000;
@@ -146,13 +147,19 @@ export function createOrdinarySiteFixture({host = '127.0.0.1', port = 0, now = D
       }
       if (req.method === 'GET' && path === '/session/') {
         const pairs = cookiePairs(req.headers.cookie), currentTime = clock();
-        const row = pairs && [...requests.values()].find(row => active(row.grant, currentTime) &&
-          row.cookieExpiresAt > currentTime && row.cookieDelivery.cookies.every(cookie => pairs.get(cookie.name) === cookie.value));
-        if (row) validTargetVisits++;
-        // Static masked identity, never subject/account input or Cookie values in HTML.
-        reply(res, 200, '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><body>' +
-          (row ? '<p data-session-state="valid">受控会话有效</p><p data-identity="ordinary">o***@fixture.test</p>' :
-            '<p data-session-state="not-logged-in">未登录</p>') + '</body></html>', true);
+        const row = pairs && [...requests.values()].find(row =>
+          row.cookieDelivery.cookies.every(cookie => pairs.get(cookie.name) === cookie.value));
+        let reason = !req.headers.cookie || (pairs && !NAMES.some(name => pairs.has(name))) ? 'missing' : 'invalid';
+        if (row) {
+          reason = row.grant.revoked || subjects.get(row.grant.subjectId) !== row.grant ? 'revoked' :
+            row.cookieExpiresAt <= currentTime || row.grant.expiresAt <= currentTime ? 'expired' :
+              active(row.grant, currentTime) ? 'valid' : 'revoked';
+        }
+        if (reason === 'valid') validTargetVisits++;
+        sendVipSessionPage(res, {reason, serverNow: currentTime, siteLabel: '普通工作台 · 模拟 VIP',
+          account: reason === 'valid' ? {kind: 'ordinary', displayNameMasked: 'o***@fixture.test',
+            level: '本地体验 VIP', issuedAt: row.response.metadata.issuedAt,
+            expiresAt: Math.min(row.cookieExpiresAt, row.grant.expiresAt)} : null});
         return;
       }
       if (!api || !((req.method === 'GET' && path === '/api/authorization') ||
