@@ -12,7 +12,7 @@ import {createBrowserDownloadsHost} from './browser-downloads.js';
 import {createBrowserBookmarksHost} from './bookmarks.js';
 import {createBrowserFullBookmarksHost} from './bookmarks-full.js';
 import {createApprovedBrowserBindings} from '../../framework/sdk/browser-bindings.js';
-import {createBrowserManagedProxy} from './browser-managed-proxy.js';
+import {createBrowserManagedProxy,validateManagedProxyConfig} from './browser-managed-proxy.js';
 import {REVIEWED_MANAGED_PROXY_PROFILES} from './browser-managed-proxy-profiles.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {validateTrustedScheduleIntent,validateTrustedAppServiceScheduleIntent} from '../tasks/schedule-contract.js';
@@ -234,6 +234,9 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   // Single-use intents are created only by the trusted extension UI after a user click.
   // They do not survive Worker restart and are never supplied by tool script.
   const browserIntents=new Map(),INTENT_TTL=15000;
+  // Host-only, exact-context evidence of a consumed one-use proxy intent.
+  // No package field or serialized credential can populate this dispatch scope.
+  const proxyConfigApprovals=new WeakMap();
   // A permission or installed-package change must fence requests that are already in fetch().
   const activeNetworkRequests=new Set();
   // The approved Registry, not a second handwritten Host list, defines which
@@ -477,6 +480,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     downloads:downloadHost,
     'proxy.managed':createBrowserManagedProxy({api,lockManager,
       reviewedProfiles:reviewedProxyProfiles,
+      authorizeConfig:(context,config)=>proxyConfigApprovals.get(context)===canonicalJSON(config),
       authorizeEnable:owner=>verifyBrowserOwner(owner,'browser.proxy.managed.requestEnable')}),
     'storage.local':(input,owner,operation)=>executeBrowserToolStorage({
       api,operation,toolId:owner.toolId,input,
@@ -923,7 +927,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         // in the untrusted iframe or in this approval-only Host branch.
         if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
           return {authorized:true};
-        if(scopedBindings.has(operation))return dispatchScoped(operation,checked,context);
+        if(scopedBindings.has(operation)){
+          if(operation==='browser.proxy.managed.requestEnable'){
+            proxyConfigApprovals.set(context,canonicalJSON(validateManagedProxyConfig(checked.config)));
+            try{return await dispatchScoped(operation,checked,context);}
+            finally{proxyConfigApprovals.delete(context);}
+          }
+          return dispatchScoped(operation,checked,context);
+        }
         if(operation==='browser.scheduler.create'){
           if(typeof scheduleService!=='function')throw failure('E_SERVICE_UNSUPPORTED','Existing Scheduler unavailable');
           const scheduleOwner={kind:'installed-tool-owned',toolId,toolVersion,packageHash:hash,

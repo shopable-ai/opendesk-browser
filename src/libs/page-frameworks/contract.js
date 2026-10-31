@@ -47,10 +47,11 @@ export const PAGE_BROWSER_UI_HELPER=/* @__PURE__ */Object.freeze({
   id:'page-ui-helper',version:'opendesk.page-ui-helper.r243',
   source:'src/libs/page-frameworks/page-ui-helper-r243.js',
   output:'libs/page-frameworks/page-ui-helper-r243.js',
-  bytes:18127,
-  sha256:'40db7b7f1bb936259f5f734560a3578173cd6b88b6d56b105f6cb7e32e471240',
+  bytes:22352,
+  sha256:'5d739174afc4377d3d889d6d47bf8c6591a95022f63f22278df2388092c8a7b1',
   sourceGraph:/* @__PURE__ */Object.freeze(['src/scripting/user-scripts/page-ui.js',
     'src/scripting/user-scripts/page-ui-mount.js',
+    'src/scripting/user-scripts/page-toast.js',
     'src/scripting/user-scripts/page-program-rules.js'])
 });
 export const PAGE_BROWSER_COMPILER_RESOURCE_LIMIT=4*1024*1024;

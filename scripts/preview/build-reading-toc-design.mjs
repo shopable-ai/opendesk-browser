@@ -36,7 +36,7 @@ const appHTML = `
     <p id="article-feedback" class="od-note" role="status" aria-live="polite"></p>
   </section>
   <section class="preview-reading-device od-surface od-surface--padded preview-reading-flow" aria-labelledby="panel-title">
-    <header class="od-page-head preview-reading-row"><div class="preview-reading-actions"><button type="button" id="panel-back" class="od-icon-button" aria-label="返回"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="panel-title" class="od-page-title" tabindex="-1">阅读目录</h1></div><div id="panel-actions" class="preview-reading-actions"></div></header>
+    <header class="od-page-head preview-reading-row"><div class="preview-reading-actions"><button type="button" id="panel-back" class="od-icon-button" aria-label="返回"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h2 id="panel-title" class="od-page-title" tabindex="-1">阅读目录</h2></div><div id="panel-actions" class="preview-reading-actions"></div></header>
     <div id="panel-body" class="preview-reading-flow"></div>
     <p id="panel-feedback" class="od-note" role="status" aria-live="polite"></p>
   </section>
@@ -387,7 +387,8 @@ export async function buildReadingTocDesign() {
     if(typeof value!=='string') throw Error('Missing AI product translation: '+locale+'/'+key);
     return [key,value];
   }))]));
-  $('#od-preview-behavior').text('('+readingDesignBehavior.toString()+')('+JSON.stringify(aiCatalog).replace(/</g,'\\u003c')+');');
+  const sharedBehavior=$('#od-preview-behavior').text().split('/* DESIGN_APP_BEHAVIOR */')[0];
+  $('#od-preview-behavior').text(sharedBehavior+'/* DESIGN_APP_BEHAVIOR */\n('+readingDesignBehavior.toString()+')('+JSON.stringify(aiCatalog).replace(/</g,'\\u003c')+');');
   const html = $.html();
   const check = await checkPreview(html);
   if (!check.ok) throw Error('Reading design contract failed: '+check.errors.join('; '));

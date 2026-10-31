@@ -30,14 +30,19 @@ function Workspace() {
  const [route,setRoute]=useState(()=>env.navigation.getRoute()),[dirty,setDirty]=useState(false);
  const [pendingRoute,setPendingRoute]=useState(null),[pageEpoch,setPageEpoch]=useState(0),[confirmation,setConfirmation]=useState(null);
  const [busy,setBusy]=useState(false);
- const dirtyRef=useRef(false),routeContent=useRef(null),focusAfterDiscard=useRef(false),lastRoute=useRef(route);
+ const dirtyRef=useRef(false),busyRef=useRef(false),routeContent=useRef(null),focusAfterDiscard=useRef(false),lastRoute=useRef(route);
  function markDirty(value){dirtyRef.current=value;setDirty(value);}
  const settings=route.startsWith('#/');
- function selectView(management){env.navigation.navigate(management?'#/profiles':'');}
+ const lastSettingsRoute=useRef(settings?route:'#/profiles');
+ useEffect(()=>{if(settings)lastSettingsRoute.current=route;},[route,settings]);
+ function selectView(management){
+  if(management===settings)return;
+  env.navigation.navigate(management?lastSettingsRoute.current:'');
+ }
  useEffect(()=>{env.setConfirmHandler(text=>new Promise(resolve=>setConfirmation({text,resolve})));return()=>env.setConfirmHandler(null);},[env]);
- useEffect(()=>{const changed=event=>setBusy(event.detail.busy===true);env.events.addEventListener('ai-proxy-operation',changed);return()=>env.events.removeEventListener('ai-proxy-operation',changed);},[env]);
+ useEffect(()=>{const changed=event=>{busyRef.current=event.detail.busy===true;setBusy(busyRef.current);};env.events.addEventListener('ai-proxy-operation',changed);return()=>env.events.removeEventListener('ai-proxy-operation',changed);},[env]);
  useEffect(()=>{
-  env.navigation.setGuard(next=>{if(dirtyRef.current){setPendingRoute(next);return false;}return true;});
+  env.navigation.setGuard(next=>{if(busyRef.current)return false;if(dirtyRef.current){setPendingRoute(next);return false;}return true;});
   const change=()=>setRoute(env.navigation.getRoute());
   const unsubscribe=env.navigation.subscribe(change);
   change();markDirty(env.hasDrafts());

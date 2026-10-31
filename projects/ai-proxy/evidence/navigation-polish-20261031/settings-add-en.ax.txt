@@ -1,0 +1,75 @@
+Browser tab: 560069431, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html".
+1 AXWebArea AI Proxy · React 同源预览, URL: 127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html
+	2 container
+		3 container 预览来源和安全范围
+			4 text 模拟预览 · 非真实安装、权限或网络执行
+			5 text 工具：AI Proxy · 初始场景：success · 初始工具主题：light · 预览外壳：浅色
+			6 text Source: dc3d9fd93d6f6f76ba70ce451894ea167f5bd8c0 · Design SHA-256: efa5541cac5eda31587ef534cbd79d8b5696b22ef9ff024dab0109674f210380 · Shell SHA-256: 4f4692678370fe6b5f5f7abd74e6e44877ac4a25bb1d47415a450ef0e70a0a68 · UI SHA-256: fad1f8b7e71aac7761c0c0ac741e52aee212f84e3b4c6872e7c2c008e85e11bd
+		7 container OpenDesk Browser Side Panel 真实布局来源的离线预览
+			8 tab group 工作台
+				9 tab (selectable, settable, boolean) 我的, Value: 0, ID: tab-my-tasks
+				10 tab (selected, settable, boolean) 扩展, Value: 1, ID: tab-tools
+				11 tab (selectable, settable, boolean) 工作流, Value: 0, ID: tab-workflow
+				12 tab (selectable, settable, boolean) 开发, Value: 0, ID: tab-develop
+				13 tab (selectable, settable, boolean) 云控, Value: 0, ID: tab-cloud
+			14 container Description: 扩展, ID: od-preview-extension-detail
+				15 container
+					16 button Description: 返回扩展列表, ID: sidebar-tool-back
+					17 heading AI Proxy, Value: 2, ID: sidebar-tool-title
+						18 text AI Proxy
+					19 container 工具管理
+						20 button Description: 模拟卸载当前工具（不会删除真实数据）, Help: 模拟卸载（不会删除真实数据）, ID: sidebar-tool-remove
+				21 container Description: AI Proxy · 内存模拟, ID: opendesk-preview-frame
+					22 AXWebArea about:srcdoc
+						92 container proxy-ready
+							93 tab group AI Proxy views
+								94 tab (selectable, settable, boolean) Proxy panel, Value: 0, ID: proxy-view-panel
+								95 tab (selected, settable, boolean) Manage settings, Value: 1, ID: proxy-view-settings
+							96 container Description: Manage settings, ID: proxy-workspace-panel
+								97 container
+									98 container Settings sections
+										99 text Settings sections
+										100 pop up button (collapsed, settable) Description: Settings sections, Value: Website rules, ID: settings-section, Secondary Actions: Expand
+											101 menu
+												102 container Proxy management
+													103 Proxy profiles
+													104 (selected) Website rules
+													105 Subscriptions
+													106 Import and backup
+													107 Network diagnostics
+													108 General settings
+												109 container Optional services
+													110 Official network · Optional official service
+									119 container
+										120 button (collapsed) Description: Copy page link / Refresh status, Help: ⋯, Secondary Actions: Expand
+											121 text ⋯
+									122 heading Add rule, Value: 2
+										123 text Add rule
+									118 container Add rule
+										124 text Adding from website rules
+										125 container
+											126 text Website domain or URL
+											127 text field (settable) Website domain or URL, ID: rule-domain
+											128 text Paste an HTTPS URL to extract the hostname. Subdomains are included. URL paths and query parameters are not saved.
+											129 checkbox (settable, integer) Description: Include subdomains, Value: 1, ID: rule-subdomains
+											130 container For this website, use
+												131 text For this website, use
+												132 radio button (settable, integer) Description: Specific proxy, Value: 1, ID: rule-target-endpoint
+												133 radio button (settable, integer) Description: DIRECT connection, Value: 0, ID: rule-target-direct
+											134 text Specific proxy
+											135 pop up button (collapsed, settable) Specific proxy, Value: 工作代理 · HTTPS, ID: rule-endpoint, Secondary Actions: Expand
+												136 menu
+													137 Please select
+													138 (selected) 工作代理 · HTTPS
+													139 本地客户端 · HTTP
+													140 备用 SOCKS · SOCKS5
+											141 button (collapsed) Priority settings (optional), Secondary Actions: Expand
+												142 text Priority settings (optional)
+											143 text Saves the rule without changing your connection. Apply it explicitly from the proxy panel when ready.
+											144 button Save rule
+											145 button Cancel
+		89 container 离线预览辅助
+			90 button (collapsed) 预览辅助 · 非正式工具, Secondary Actions: Expand
+				91 text 预览辅助 · 非正式工具
+
+The focused UI element is 127 text field (settable) Website domain or URL, ID: rule-domain

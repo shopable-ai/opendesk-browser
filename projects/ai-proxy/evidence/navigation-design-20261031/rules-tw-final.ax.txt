@@ -1,0 +1,46 @@
+Browser tab: 1, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-f98ab925-5d04-4333-9540-9906ce5d19d7/preview.html".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+~						32 tab group AI Proxy 檢視
+~							33 tab (selectable, settable, boolean) 代理面板, Value: 0, ID: proxy-view-panel
+~							34 tab (selected, settable, boolean) 管理設定, Value: 1, ID: proxy-view-settings
+~						35 container Description: 管理設定, ID: proxy-workspace-panel
+~								37 container 設定欄目
+~									38 text 設定欄目
+~									39 pop up button (collapsed, settable) Description: 設定欄目, Value: 網站規則, ID: settings-section, Secondary Actions: Expand
+~											41 container 代理管理
+~												42 代理設定檔
+~												43 (selected) 網站規則
+~												44 訂閱管理
+~												45 匯入與備份
+~												46 網路診斷
+~												47 通用設定
+~											48 container 可選服務
+~												49 官方網路 · 選用官方服務
+~									51 button (collapsed) Description: 複製本頁連結 / 重新整理狀態, Help: ⋯, Secondary Actions: Expand
+~									54 heading 網站規則, Value: 2
+~										55 text 網站規則
+~									56 text 按域名選擇代理或直連
+~									57 button 新增規則, ID: settings-rule-add
+~								58 container 網站規則
+~									59 text 僅儲存規則，目前網路維持不變。需要生效時，請在代理面板明確套用。
+~									60 text 3 條網站規則
+~										62 text example.com + 子域 優先順序 10  ·  DIRECT 已啟用
+~										63 button 編輯, ID: settings-rule-rule-docs
+~										64 button 刪除
+~										66 text example.org 優先順序 20  ·  DIRECT 已啟用
+~										67 button 編輯, ID: settings-rule-rule-local
+~										68 button 刪除
+~										70 text a-very-long-test-subdomain-for-navigation.review.example.net 優先順序 73  ·  DIRECT 已啟用
+~										71 button 編輯, ID: settings-rule-9a7f5161-e101-4585-83f1-a9cf4912b459
+~										72 button 刪除
+~									74 heading 無規則命中時, Value: 2
+~										75 text 無規則命中時
+~									76 text 預設 DIRECT；只有明確選擇代理才會經代理，不會自動回退到未知節點。 預設路由
+~									77 pop up button (collapsed, settable) 預設路由, Value: DIRECT, ID: default-action, Secondary Actions: Expand
+~											80 指定代理
+~									81 text 代理
+~									82 pop up button (disabled, collapsed, settable) 代理, Value: 請選擇, ID: default-endpoint, Secondary Actions: Expand
+~											84 (disabled) 請選擇
+~									88 button 儲存預設路由
+~									89 text 當前： DIRECT
+The focused UI element is 35 container Description: 管理設定, ID: proxy-workspace-panel

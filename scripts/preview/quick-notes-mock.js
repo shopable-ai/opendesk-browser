@@ -3,7 +3,7 @@
   'use strict';
   const root=document.getElementById('tool-root');
   const scenario=globalThis.__opendeskPreviewScenario;
-  const scenarios=new Set(['success','empty','error','loading','permission-denied','untrusted']);
+  const scenarios=new Set(['success','empty','error','loading','permission-denied','untrusted','revoked','long']);
   if(!root||!scenarios.has(scenario))throw Error('E_PREVIEW_MOCK: invalid scenario');
   const initial={id:'preview-note',text:scenario==='untrusted'
     ?'<img src=x onerror=alert(1)> \u003c/script\u003e 中文 & emoji 🧪'
@@ -19,6 +19,8 @@
     if(!['storage.get','storage.set','currentPage.info','tasks.open'].includes(operation))
       return error('未配置的 SDK 操作：'+String(operation).slice(0,70));
     if(scenario==='loading')return new Promise(()=>{});
+    if(scenario==='revoked')return error('授权已撤销；请通过预览辅助区恢复模拟状态。');
+    if(scenario==='long'&&operation.startsWith('storage.'))return error('读取失败，模拟服务返回了较长的诊断信息。请保留草稿并检查状态，随后通过应用外部辅助区恢复。参考地址：https://example.invalid/'+ 'long-error-context-'.repeat(18));
     if(scenario==='permission-denied')return error('未授予 '+operation+' 权限');
     if(scenario==='error'&&operation.startsWith('storage.'))return error('存储故障');
     if(operation==='currentPage.info')

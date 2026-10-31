@@ -112,6 +112,20 @@ R23 当时不引入 React/shadcn，是对当时宿主状态、缺少挂载边界
 
 官方参考：[扩展消息](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)、[Native Messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)、[Sandbox](https://developer.chrome.com/docs/extensions/reference/manifest/sandbox)、[CSP](https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy)。这些不是上述 R1 数字的来源，也不能混作同一安装包上限。
 
+#### 2026-10-30：1 MiB JS / 2 MiB 工具包的有界开发预算
+
+用户明确授权恢复 AI Proxy 完整 UI 并通过正式 Sidebar 包路径运行，而非为预览便利放宽。唯一 owner 为 `projects/ai-proxy/`；原 `node scripts/build-sidebar-tool.mjs projects/ai-proxy --out artifacts/sidebar-tools/ai-proxy/capacity-candidate.opendesk-tool.json` 实际先返回 `E_TOOL_BUILD: source file exceeds budget: dist/tool.js`。该内部预算不是 Chrome 外部硬限制，工具自身无法修改读取/安装/sandbox 门槛，跨工具复用同一容量合同。
+
+原预算为 JS 220,000 UTF-16 字符/源文件 UTF-8 字节、包 320,000 UTF-8 字节、编译回执 32 个 source；本次统一到 `src/ui/sidebar-tools/limits.js`：主/后台 JS 1,048,576 字符且不超过 1,048,576 UTF-8 字节，包 2,097,152 UTF-8 字节（2 MiB），回执最多 64 个 source。HTML 64,000、CSS 120,000、单依赖 96,000 字节及普通工具数据配额保留。2 MiB 包含 JSON 转义，规范导出还检查缩进和尾换行后的实际文件字节。暂定适用本地开发，不代表所有目标设备的性能结论；后续仅在实际失败或正式验收要求时复核。
+
+本机 macOS 开发工作区首次读取现有产物：`dist/tool.js` 为 677,761 UTF-16 字符 / 733,058 UTF-8 字节 / JSON 字符串 766,985 字节；gzip 219,496 / Brotli 168,414 字节。CSS 为 102,539 字符 / 102,541 UTF-8 字节。原配置与选中文件组成的测量对象为紧凑 JSON 814,617 字符 / 870,014 UTF-8 字节、缩进 JSON 加尾换行 870,095 字节；这是测量，不是打包器成功回执。ZIP 未生成、未测试，不作为预算单位。真实回执含 47 个 source；容量调整后继续由同一打包器发现 `src/App.jsx` 已偏离成功构建回执，拒绝生成候选，未覆盖正式包。
+
+执行链仍为项目所选输入 → 原打包器/包校验器 → 原安装与 storage.local → 可信 Side Panel postMessage → opaque sandbox。既有 `unlimitedStorage` 保留，不新增权限或扩大每工具数据预算；未发现安装存储/窗口 postMessage 额外的旧包大小硬编码。Native 使用已有 files.read 的 32 KiB 上限；24,000 字节分片产生最多 32,000 字节 Base64，2 MiB 最多 88 片，manifest 和分片仍各自受 32 KiB 读取保护。旧 16,000 字节分片的小包保持可读，来源/路径/全部摘要/前后 pointer 核对均保留。
+
+容量模块、打包器、官方包生产读取、市场下载、sandbox load 与 Native snapshot reader 已接同一预算。并行 owner 尚须将 `src/ui/sidebar-tools.js` 手工导入的两处 320,000 检查、`src/sidebar-tools/official-catalog.js` 两处总包限制接为 `SIDEBAR_TOOL_LIMITS.packageBytes`；共享 `scripts/stage-sidebar-tool.mjs` 须将单文件 320,000 限制接为 packageBytes，CHUNK_BYTES 接为 nativeChunkBytes。此记录不修改共享 stage/preview 脚本、Skill 或 leader 业务文件，集成前不能宣称全链容量已生效。
+
+定向行为证据覆盖 JS/总包临界与 +1、UTF-8/JSON 转义、64/65 source、provenance 漂移、2 MiB Native 完整重组和坏分片拒绝、已有 v1 包规范字节不变。未触及 capabilities、CSP、来源、安装 epoch、撤权或 Host 准入；Chrome 实际侧栏运行/安装仍由集成 owner 验证，当前 `NOT_TESTED`。
+
 ### 2026-10-21：可信工作台固定入口的有界生产预算
 
 Clipper 正式 Mac 验收记录的同一候选实际压缩后 `ui/tool-shell.js` 为 **1,074,242 UTF-8 字节**，超过原 1024 KiB 项目预算 25,666 字节；对应开发入口实测 1,076,688 字节，已有真实 Mac CFT 核心操作证据。Rollup 图显示 ReactDOM、五 Tab、书签及开发工作台是实际消费者；现有 sidecar 已复用，未发现足量可删除的闲置依赖。不通过删除现有功能或改造执行边界获得通过。

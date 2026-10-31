@@ -14,7 +14,7 @@
 .meter{background:linear-gradient(145deg,var(--hero),var(--surface) 90%);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}.meter-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--sub)}.meter-actions{display:flex;align-items:center;gap:8px;margin-left:auto}.state{font-size:11px;white-space:nowrap;color:var(--good)}.state:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:5px;vertical-align:middle}.state[data-kind=warn]{color:var(--warn)}.state[data-kind=bad]{color:var(--bad)}.state[data-kind=neutral]{color:var(--sub)}.meter-main{text-align:center;white-space:nowrap;line-height:1.13;min-height:80px;font-variant-numeric:tabular-nums}.rate{font-size:66px;font-weight:750;letter-spacing:-3px}.unit{font-size:26px;color:var(--sub);padding-left:5px}.meter-foot{border-top:1px solid var(--line);padding-top:8px;font-size:12px;line-height:1.5;color:var(--sub);overflow-wrap:anywhere}.meter-foot[data-kind=warn]{color:var(--warn)}.meter-foot[data-kind=bad]{color:var(--bad)}
 .section-title{display:flex;justify-content:space-between;align-items:center;margin:16px 1px 8px;gap:6px}.section-title strong{font-size:12px}.section-title span{color:var(--sub);font-size:11px}.presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.preset,.step{border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-height:41px;padding:3px 0;font-size:13px;white-space:nowrap}.preset:hover:not(:disabled),.step:hover:not(:disabled){background:var(--hover);border-color:var(--accent)}.preset[aria-pressed=true]{background:var(--selected);color:#fff;border-color:var(--selected);font-weight:700}.preset[data-pending=true]{background:var(--hero);color:var(--accent);border:1px dashed var(--accent)}.preset:disabled,.step:disabled{opacity:.4;cursor:not-allowed}.adjust{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:8px}.step{font-size:22px}.adjust-hint{display:grid;place-items:center;border-radius:8px;background:var(--soft);font-size:12px;color:var(--sub)}
 .shortcuts{margin-top:17px;border:1px solid var(--line);border-radius:12px;padding:11px 12px}.short-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:650}.toggle{width:40px;height:23px;border-radius:20px;border:0;padding:3px;background:var(--line)}.toggle:before{content:"";display:block;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0003;transition:transform .15s}.toggle[aria-checked=true]{background:#385fdb}.toggle[aria-checked=true]:before{transform:translateX(17px)}.keys{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:10px;font-size:11px;color:var(--sub)}.keys.off{opacity:.43}kbd{font:650 11px ui-monospace,monospace;min-width:21px;height:21px;padding:1px 5px;background:var(--soft);color:var(--ink);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;display:inline-flex;justify-content:center;align-items:center;margin-right:4px}.footer{margin-top:12px;text-align:center;font-size:10px;color:var(--sub)}
-.global{display:grid;gap:8px;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px}.global-target{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--sub)}.global p{margin:0;color:var(--sub);font-size:12px;line-height:1.5}.global button.stop{border:1px solid var(--line);border-radius:8px;min-height:34px;background:var(--surface);color:var(--ink);padding:4px 12px}.lab{background:#fff;border:1px solid #dfe5ee;border-radius:12px;padding:13px}.lab h2{font-size:13px;margin:0 0 16px}.lab-group{margin-bottom:15px}.lab label{display:block;font-size:11px;font-weight:700;margin-bottom:7px}.widths{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}.widths button,.themes button,.keys-try button{background:transparent;border:1px solid #dfe5ee;border-radius:7px;min-height:34px;color:#5c6b83}.widths button{font-size:10px;padding:0}.themes{display:grid;grid-template-columns:1fr 1fr;gap:5px}.themes button{font-size:11px}.widths [aria-pressed=true],.themes [aria-pressed=true]{background:#eef2ff;border-color:#6989ea;color:#365bd6;font-weight:700}.lab select{width:100%;border:1px solid #dfe5ee;border-radius:8px;min-height:37px;padding:4px;background:#fff;color:#24324a;font-size:11px}.keys-try{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.keys-try button{font-size:11px}.result{border-top:1px solid #e4e9f1;padding-top:10px;color:#586984;font-size:11px;line-height:1.5}
+.global{display:grid;gap:8px;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px}.global p{margin:0;color:var(--sub);font-size:12px;line-height:1.5}.lab{background:#fff;border:1px solid #dfe5ee;border-radius:12px;padding:13px}.lab h2{font-size:13px;margin:0 0 16px}.lab-group{margin-bottom:15px}.lab label{display:block;font-size:11px;font-weight:700;margin-bottom:7px}.widths{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}.widths button,.themes button,.keys-try button{background:transparent;border:1px solid #dfe5ee;border-radius:7px;min-height:34px;color:#5c6b83}.widths button{font-size:10px;padding:0}.themes{display:grid;grid-template-columns:1fr 1fr;gap:5px}.themes button{font-size:11px}.widths [aria-pressed=true],.themes [aria-pressed=true]{background:#eef2ff;border-color:#6989ea;color:#365bd6;font-weight:700}.lab select{width:100%;border:1px solid #dfe5ee;border-radius:8px;min-height:37px;padding:4px;background:#fff;color:#24324a;font-size:11px}.keys-try{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.keys-try button{font-size:11px}.result{border-top:1px solid #e4e9f1;padding-top:10px;color:#586984;font-size:11px;line-height:1.5}
 @container(max-width:245px){.meter{padding:9px}.meter-head{flex-wrap:wrap}.meter-main{min-height:50px}.rate{font-size:clamp(27px,17cqw,43px);letter-spacing:-1px}.unit{font-size:16px}.presets{grid-template-columns:repeat(2,minmax(0,1fr))}.preset,.step{min-height:35px}.adjust{grid-template-columns:35px minmax(0,1fr) 35px;gap:4px}.adjust-hint{font-size:10px}}
 @media(max-width:720px){.layout{grid-template-columns:1fr}.stage{padding:10px 6px}.lab{max-width:520px;width:100%}.demo-mark{display:none}}@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -28,7 +28,7 @@
 <header class="host"><span class="host-mark">▶</span><span>视频倍速</span></header>
 <div class="tool">
 <section class="meter" aria-label="当前实际倍速"><div class="meter-head"><span>当前实际倍速</span><div class="meter-actions"><span class="state" id="state">已读回</span><button class="icon" id="refresh" type="button" title="重新检测视频" aria-label="重新检测视频">↻</button></div></div><div class="meter-main"><span id="actual" class="rate" role="status" aria-live="polite">1.00</span><span id="unit" class="unit">×</span></div><div class="meter-foot" id="message" role="status" aria-live="polite">✓ 已读取网页当前播放速度</div></section>
-<section class="global" aria-label="全局倍速设置"><div class="short-row"><span>全局倍速</span><button class="toggle" id="global-toggle" type="button" role="switch" aria-label="全局倍速" aria-checked="false" aria-describedby="global-scope"></button></div><div class="global-target"><span id="global-target" aria-live="polite">共享目标 · 1.00×（已关闭）</span><button class="stop" id="global-stop" type="button" disabled>停止</button></div><p id="global-scope">本 Profile 已授权网站的可见页面主视频 / 播放中视频；关闭侧栏仍生效。</p><p id="global-note" role="status" aria-live="polite">模拟：未开启；仅调整当前视频。</p></section>
+<section class="global" aria-label="全局倍速设置"><div class="short-row"><span>全局倍速</span><button class="toggle" id="global-toggle" type="button" role="switch" aria-label="全局倍速" aria-checked="true"></button></div><p id="global-note" role="status" aria-live="polite" hidden></p></section>
 <div class="section-title"><strong>播放速度</strong><span>点击立即设置</span></div>
 <div class="presets" role="group" aria-label="倍速预设"><button class="preset" data-speed="0.75">0.75×</button><button class="preset" data-speed="1">1×</button><button class="preset" data-speed="1.25">1.25×</button><button class="preset" data-speed="1.5">1.5×</button><button class="preset" data-speed="1.75">1.75×</button><button class="preset" data-speed="2">2×</button><button class="preset" data-speed="3">3×</button><button class="preset" data-speed="4">4×</button></div>
 <div class="section-title"><strong>精细调整</strong><span>每次 0.25×</span></div>
@@ -48,7 +48,7 @@
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id),buttons=[...document.querySelectorAll('[data-speed]')];
-const state={mode:'ready',actual:1,target:null,busy:false,enabled:true,last:'',serial:0,global:false,globalSpeed:1,globalNote:''};
+const state={mode:'ready',actual:1,target:null,busy:false,enabled:true,last:'',serial:0,global:true,globalSpeed:1,globalNote:''};
 const fmt=n=>Number.isFinite(n)?n.toFixed(2):'—';
 const guidance={ready:'已检测 HTML5 视频',success:'成功读回 2×',loading:'正在检测当前网页视频',submitting:'请求中，未验证结果',none:'请播放视频并重新检测',permission:'需要 Chrome 网站访问权限',iframe:'部分嵌入视频不可访问',override:'网站播放器覆盖了目标倍速',changed:'当前文档已失效，请刷新',off:'工具已停用'};
 const available=()=>['ready','success','iframe','override'].includes(state.mode)&&Number.isFinite(state.actual)&&!state.busy;
@@ -72,9 +72,8 @@ $('state').textContent=title;$('state').dataset.kind=kind;$('message').textConte
 buttons.forEach(b=>{let v=Number(b.dataset.speed);b.disabled=!canSet();b.setAttribute('aria-pressed',String(v===state.actual));b.dataset.pending=String((state.busy||m==='submitting')&&v===state.target);});
 $('minus').disabled=!canSet()||base()<=.25;$('plus').disabled=!canSet()||base()>=4;$('refresh').disabled=state.busy||m==='loading'||m==='off';
 $('global-toggle').disabled=state.busy||['loading','submitting','off'].includes(m);$('global-toggle').setAttribute('aria-checked',String(state.global));
-$('global-stop').disabled=!state.global||$('global-toggle').disabled;
-$('global-target').textContent='共享目标 · '+fmt(state.globalSpeed)+'×'+(state.global?'（非实际）':'（已关闭）');
-$('global-note').textContent='模拟：'+(state.globalNote||(state.global?'自动应用已开启；上方数字仅为当前视频模拟读回。':'未开启；仅调整当前视频。'));
+$('global-note').hidden=!state.globalNote;
+$('global-note').textContent=state.globalNote?'模拟：'+state.globalNote:'';
 $('toggle').disabled=m==='off';$('toggle').setAttribute('aria-checked',String(state.enabled));$('keys').classList.toggle('off',!state.enabled);
 }
 function scene(mode){
@@ -87,8 +86,8 @@ $('scenario').value=mode;$('hint').textContent=guidance[mode];paint();log('已�
 function setRate(requested,source){
 if(!canSet()){log('不可操作 · 请检查当前视频');return;}
 let rate=Math.min(4,Math.max(.25,Math.round(requested*4)/4));
-if(state.global){state.globalSpeed=rate;state.globalNote='共享目标已保存（非实际）';}
-if(!available()){paint();log('模拟共享目标已保存 · 当前无可控制视频，未验证实际倍速');return;}
+if(state.global){state.globalSpeed=rate;state.globalNote='';}
+if(!available()){state.globalNote='倍速已保存；当前无可控制视频，未验证实际倍速。';paint();log('模拟全局倍速已保存 · '+fmt(rate)+'× · 当前无可控制视频，未验证实际倍速');return;}
 let serial=++state.serial;state.target=rate;state.busy=true;state.last=source;paint();log((state.global?'模拟 global.configure → videoSpeed.set · ':'模拟 videoSpeed.set · ')+'已提交 '+fmt(rate)+'× · 等待独立读回');
 setTimeout(()=>{
 if(serial!==state.serial)return;
@@ -108,9 +107,8 @@ state.global=enabled;state.globalNote=enabled?'':$('restore').value==='partial'?
 paint();log('模拟 global.configure · '+(enabled?'开启':'停止，恢复结果未确认'));
 }
 $('global-toggle').addEventListener('click',()=>globalMode(!state.global));
-$('global-stop').addEventListener('click',()=>globalMode(false));
 $('remote-global').addEventListener('click',()=>{
-state.global=!state.global;state.globalSpeed=3;state.globalNote=state.global?'其他窗口共享目标已更新（非实际）；已模拟读回当前视频。':'已停止自动应用；跨窗口恢复结果未确认。';
+state.global=!state.global;state.globalSpeed=3;state.globalNote=state.global?'':'已停止自动应用；跨窗口恢复结果未确认。';
 paint();log('模拟跨窗口 preference 通知与当前实际读回；未操作真实视频');
 });
 $('toggle').addEventListener('click',()=>{state.enabled=!state.enabled;paint();log(state.enabled?'快捷键已开启':'快捷键已关闭');});

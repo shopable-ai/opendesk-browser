@@ -1,0 +1,41 @@
+Browser tab: 1, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-f98ab925-5d04-4333-9540-9906ce5d19d7/preview.html".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 22-27
++					31 container proxy-ready
++						32 tab group AI Proxy 视图
++							33 tab (selected, settable, boolean) 代理面板, Value: 1, ID: proxy-view-panel
++							34 tab (selectable, settable, boolean) 管理设置, Value: 0, ID: proxy-view-settings
++						35 container Description: 代理面板, ID: proxy-workspace-panel
++							36 container 编辑规则
++								37 container
++									38 heading 编辑规则, Value: 2
++										39 text 编辑规则
++									40 button 关闭规则编辑
++								41 container
++									42 text 正在编辑已保存的规则： example.com
++								43 container Description: 编辑规则, ID: r86-site-editor
++									44 text 网站域名或网址
++									45 text field (settable) 网站域名或网址, Value: quick-review.example.net, ID: side-rule-domain
++									46 button 清除网站域名或网址
++									47 text 支持粘贴 https:// 网址，会自动提取域名；默认匹配子域名，不保存路径或查询参数。
++									48 checkbox (settable, integer) Description: 同时包含子域名, Value: 1
++									49 container 这个网站使用
++										50 text 这个网站使用
++										51 radio button (settable, integer) Description: 指定代理, Value: 1
++										52 radio button (settable, integer) Description: DIRECT 直连, Value: 0
++									53 text 指定代理
++									54 pop up button (collapsed, settable) 指定代理, Value: 工作代理, ID: side-rule-proxy, Secondary Actions: Expand
++										55 menu
++											56 (selected) 工作代理
++											57 本地客户端
++											58 备用 SOCKS
++									59 container 规则预览
++										60 text 规则预览
++										61 container
++											62 text quick-review.example.net + 子域
++										63 text 这个网站使用
++										64 text 工作代理
++									65 text 仅保存规则，当前网络保持不变。需要生效时，请在代理面板明确应用。
++									66 button 保存规则
++									67 button 取消
+The focused UI element is 67 button 取消

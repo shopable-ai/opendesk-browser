@@ -9,7 +9,7 @@ export const VIDEO_SPEED_GLOBAL_PROTOCOL='opendesk.video-speed.global.v1';
 export const VIDEO_SPEED_GLOBAL_STORE='opendesk.video-speed.global.v1';
 export const VIDEO_SPEED_GLOBAL_OPERATIONS=Object.freeze(['videoSpeed.global.status','videoSpeed.global.configure']);
 export function globalVideoSpeedState(raw,epoch,packageHash){
-  if(raw===undefined)return {enabled:false,speed:1,revision:''};
+  if(raw===undefined)return {enabled:true,speed:1,revision:''};
   if(!raw||typeof raw!=='object'||Array.isArray(raw)||
      typeof raw.enabled!=='boolean'||!validVideoSpeed(raw.speed)||
      typeof raw.revision!=='string'||typeof raw.epoch!=='string'||typeof raw.packageHash!=='string')

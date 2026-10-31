@@ -13,7 +13,7 @@ const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 
 test('preview shell extracts live Side Panel navigation, toolbar and public host rules',async()=>{
   const [html,css,react]=await Promise.all([
-    renderSidebarFixture({activeTab:'tools'}),read('src/ui/tool-shell.css'),read('src/ui/react/tabs/tool-host.tsx')
+    renderSidebarFixture({activeTab:'tools',debugEnabled:false}),read('src/ui/tool-shell.css'),read('src/ui/react/tabs/tool-host.tsx')
   ]);
   const extracted=extractSidebarPreviewShell(html,css,react);
   const live=await sidebarPreviewShellSource();
@@ -40,7 +40,7 @@ test('preview shell extracts live Side Panel navigation, toolbar and public host
 
 test('preview shell rejects missing real button or stylesheet owners instead of redrawing',async()=>{
   const [html,css,react]=await Promise.all([
-    renderSidebarFixture({activeTab:'tools'}),read('src/ui/tool-shell.css'),read('src/ui/react/tabs/tool-host.tsx')
+    renderSidebarFixture({activeTab:'tools',debugEnabled:false}),read('src/ui/tool-shell.css'),read('src/ui/react/tabs/tool-host.tsx')
   ]);
   for(const id of ['sidebar-tool-back','sidebar-tool-title','sidebar-tool-settings-open','sidebar-tool-remove'])
     assert.throws(()=>extractSidebarPreviewShell(html.replace('id="'+id+'"','id="unsupported-action"'),css),
@@ -83,7 +83,7 @@ test('one light preview shell frames the same real sandboxed tool without other 
     assert.ok(preview.html.includes("iframe.srcdoc='';"));
     const {document}=parseHTML(preview.html);
     assert.equal(document.getElementById('sidebar-tool-open-tab'),null);
-    const script=document.querySelector('script:not([type])').textContent;
+    const script=document.getElementById('od-preview-shell-behavior').textContent;
     assert.doesNotThrow(()=>runInNewContext(script,{document,atob,TextDecoder},{timeout:1000}));
     assert.equal(document.getElementById('opendesk-preview-frame').srcdoc,preview.frameHtml);
     assert.equal(document.getElementById('tab-tools').getAttribute('aria-selected'),'true');
@@ -98,4 +98,25 @@ test('dark diagnostic tool rendering does not darken the reusable preview shell'
   assert.ok(preview.html.includes('预览外壳：浅色'));
   assert.match(preview.html,/:root\{color-scheme:light;/);
   assert.ok(preview.frameHtml.includes('color-scheme:dark'));
+});
+
+
+test('preview controls opt in per adapter and never enter packaged tool content',async()=>{
+  const notes=await generatePreview({tool:'quick-notes'});
+  const $=load(notes.html);
+  assert.equal($('.preview-device #od-preview-controls').length,0);
+  assert.equal($('#od-preview-controls select').length,2);
+  assert.doesNotMatch(notes.frameHtml,/id="od-preview-controls"|id="od-preview-scenario"/);
+  const data=JSON.parse($('#opendesk-preview-shell-data').text());
+  assert.equal(Object.keys(data.variants).length,16);
+  for(const scenario of ['revoked','long']){
+    const frame=Buffer.from(data.variants[scenario+':dark'],'base64').toString();
+    assert.match(frame,new RegExp('value:"'+scenario+'"'));
+    assert.match(frame,/color-scheme:dark/);
+    assert.match(frame,/connect-src 'none'/);
+  }
+  const other=await generatePreview({tool:'knowledge-inbox'});
+  assert.equal(load(other.html)('#od-preview-controls').length,0);
+  assert.equal(other.manifest.previewControls,null);
+  await assert.rejects(generatePreview({tool:'bookmark-manager',scenario:'revoked'}),/unsupported scenario/);
 });

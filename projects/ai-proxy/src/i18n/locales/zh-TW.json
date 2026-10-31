@@ -998,5 +998,11 @@
   "apManageSettings": "管理設定",
   "apCloseRuleEditor": "關閉規則編輯",
   "apRulePreview": "規則預覽",
-  "apRuleSaveNote": "僅儲存規則，目前網路維持不變。需要生效時，請在代理面板明確套用。"
+  "apRulePriorityOptions": "優先順序設定（選填）",
+  "apRuleEnabled": "已啟用",
+  "apRuleDisabled": "已停用",
+  "apRuleSaveNote": "僅儲存規則，目前網路維持不變。需要生效時，請在代理面板明確套用。",
+  "editNamedRule": "編輯 {domain} 的規則",
+  "deleteNamedRule": "刪除 {domain} 的規則",
+  "apRulesListSource": "從網站規則列表新增"
 }

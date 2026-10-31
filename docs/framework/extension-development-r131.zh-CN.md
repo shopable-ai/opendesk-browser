@@ -20,9 +20,11 @@ Standard/Developer edition 是另一个打包维度；当前 `npm run dev` 默�
 
 开始工作及切换模式时，记录实际加载路径、扩展 ID、构建模式/edition、开发连接状态和指纹。已有 watcher 存活时复用它，不再启动第二个写入者；只有完成对应资源协调后才能停服务或构建共享目录。独立冻结快照仍遵循现有并行开发协议。
 
+开发配置恢复时，WXT 本地模块 `modules/development-build.js` 重新读取同一代构建 hooks 及其仓库内传递依赖，避免 Node 原生 ESM 缓存继续使用旧入口白名单或旧发行生产者。增量源码编译复用这代 hooks，下次配置恢复才切换；生产静态构建不启用。该机制只刷新 hooks，不承诺 WXT 已重读其首次捕获的 Vite 基础配置，也不改变 runner、edition、输出目录或安全刷新条件。
+
 ## 第一次启动
 
-要求 Node.js >=22.12.0，Chrome >=138。
+持续开发要求 Node.js >=22.15.0（推荐当前 Node 24），Chrome >=138。开发配置的传递模块刷新使用 Node 原生 `module.registerHooks`；生产静态构建不启用该刷新器。
 
 ```sh
 cd /Users/shopme/Documents/workspace/opendesk-browser
@@ -128,9 +130,11 @@ npm run verify
 
 ## 官方可选工具资源（R4.5）
 
-`official-tools/catalog.json` 登记可信项目，正式与开发构建从 `examples/sidebar-tools/<id>/` 的声明输入生成 `.wxt/public/official-tools/...` 和最终 `dist/{production,development}/official-tools/...`。`npm run dev` 监听这些输入并沿用原发布队列，失败不发布新就绪标记；Catalog 结构变更先生成资源再刷新 WXT 的资产清单。生成不安装、不执行工具，也不改变网站许可；旧安装更新仍须审核。详见 [官方 Catalog API](../api/official-tools-catalog.zh-CN.md)。
+`official-tools/catalog.json` 登记可信项目，正式与开发构建从其实际 `projects/<id>/` 或 `examples/sidebar-tools/<id>/` 生成发行资源。有唯一正式 `<id>.opendesk-tool.json`（或明确的 `packageFile`）时，验证并逐字节发布该包，输入指纹只跟踪正式包；未晋升的源码编辑和未完成编译不阻塞其他工具发行。没有正式包的项目才按原源码/编译回执合同打包；已存在但无效的正式包必须报错，不能回退源码。`npm run dev` 监听这两个项目根并沿用原发布队列，失败不发布新就绪标记；资源写入 `.wxt/public/official-tools/...` 和最终 `dist/{production,development}/official-tools/...`。生成不安装、不执行工具，也不改变网站许可；旧安装更新仍须审核。详见 [官方 Catalog API](../api/official-tools-catalog.zh-CN.md)。
 
 官方目录的数据修改及工具增删只刷新其自有资源清单，沿原子写入队列发布，不触发 WXT 重启或清空 `dist/development`。所有工具共用的 `sidebar-tools/sandbox.html` 保持可用；纯目录/JSON 更新也不重载现有工具页。源码、构建配置或可信运行时代码的更新仍按上文安全刷新合同处理。本规则修复了目录变化可能造成共享沙箱短暂缺失的开发环境问题，不代表已经复现并确认每一次 Chrome 文件丢失报错。
+
+Sidebar 导入在解析能力前、审阅时和确认提交前核对安装器与实际 Worker 的能力合同。不一致或 Worker 不支持核对时保留旧安装并停止本次操作；真正未知的能力仍由唯一包校验器拒绝。技术详情显示实际扩展 ID、版本及双方合同摘要。合同一致只证明所声明的包能力/格式/预算一致，不证明所有 Host 功能、已注入网页代码或整个 bundle 同版，也不能代替正式来源、权限和撤权检查。
 
 
 ### 本地应用调试入口简化（2026-10-29）

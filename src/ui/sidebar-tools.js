@@ -27,6 +27,8 @@ import {validateTaskParams} from '../platform/tasks/contract.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolRevocationEpochs,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
+import {SIDEBAR_TOOL_LIMITS} from './sidebar-tools/limits.js';
+import {assertSidebarToolRuntime} from '../sidebar-tools/runtime-compatibility.js';
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
@@ -35,7 +37,7 @@ import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
 import {formatSidebarToolHeading} from './sidebar-tools/title-path.js';
 import {createCookieImportIntentGate} from './sidebar-tools/cookie-import-intent.js';
 import {createCookieWriteIntentGate} from './sidebar-tools/cookie-write-intent.js';
-import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS}
+import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_SERVICE_FIELDS,COOKIE_SERVICE_READS}
   from '../../examples/sidebar-tools/cookie-editor/trusted/account-contract.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
@@ -52,7 +54,7 @@ import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClip
 import {CLIP_NOTES_OPERATIONS,executeClipNotes} from '../../projects/web-markdown-clipper/trusted/notes-store.js';
 import {installedSiteAllowed,blockedInstalledOrigins} from './sidebar-tools/site-grants.js';
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY,VIDEO_SPEED_OPERATIONS,VIDEO_SPEED_GLOBAL_PROTOCOL,VIDEO_SPEED_GLOBAL_STORE,VIDEO_SPEED_GLOBAL_OPERATIONS,globalVideoSpeedState} from '../../projects/video-speed-controller/trusted/policy.js';
-import {requestVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
+import {requestVideoSpeed,notifyVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
 import {admitsOfficialVideoSpeed} from '../../projects/video-speed-controller/trusted/admission.js';
 import {VIDEO_SVIP_ID,VIDEO_SVIP_CAPABILITY,VIDEO_SVIP_OPERATIONS,VIDEO_SVIP_WATCH_PORT} from '../../projects/video-svip/trusted/policy.js';
 import {requestVideoSVIP} from '../../projects/video-svip/trusted/host.js';
@@ -76,6 +78,8 @@ import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION,
   trustedPromptProvenanceChanged} from './trusted-prompt-admission.js';
 import {createTimeReviewPermissionControls} from '../../projects/time-review/trusted/host-controls.js';
 import {admitsTrustedTimeReview,TRUSTED_TIME_REVIEW_VERSION,trustedTimeReviewProvenanceChanged} from '../../projects/time-review/trusted/trusted-admission.js';
+import {admitsTrustedAIProxy,TRUSTED_AI_PROXY_ID,TRUSTED_AI_PROXY_VERSION,
+  trustedAIProxyProvenanceChanged} from '../../projects/ai-proxy/trusted/admission.js';
 import {admitsTrustedBookmark,TRUSTED_BOOKMARK_ID,TRUSTED_BOOKMARK_VERSION,TRUSTED_BOOKMARK_COMPONENT_VERSION,
   trustedBookmarkProvenanceChanged,bookmarkSandboxNotice} from './trusted-bookmark-admission.js';
 import {admitsTrustedKnowledge,TRUSTED_KNOWLEDGE_ID,TRUSTED_KNOWLEDGE_VERSION,
@@ -155,7 +159,7 @@ export function createSidebarTools(options={}) {
 }
 
 function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.document,
-  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
+  currentPageTarget,taskWorkbench,foundationClient,providerRuntime=null,runHost=null,localeController=null,toolLocaleService=null,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,trustedKnowledgePilot=null,view,trustedSettingsUI=view.trustedSettings}) {
   const languageNames={'zh-CN':'简体中文','zh-TW':'繁體中文',en:'English',ja:'日本語'};
   function toolLocaleContext(tool){
     const requested=localeController?.getLocale?.()||'zh-CN';
@@ -834,12 +838,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   }
   // Only a private Symbol lets statically compiled JSX reuse the existing
   // Browser SDK dispatcher; no postMessage or user package can forge it.
+  const trustedAIProxySource=Symbol('opendesk.trusted.ai-proxy');
   const trustedBookmarkSource=Symbol('opendesk.trusted.bookmark');
   const trustedPromptSource=Symbol('opendesk.trusted.prompt');
   const trustedKnowledgeSource=Symbol('opendesk.trusted.knowledge');
   let knowledgeDataGeneration=0;
   const sameInstance=(source,token)=>!disposed&&active&&instance===token&&
     ((frame&&frame.contentWindow===source)||
+     (source===trustedAIProxySource&&active.id===TRUSTED_AI_PROXY_ID&&
+      (nativePending||nativeUI?.kind==='ai-proxy'))||
      (source===trustedBookmarkSource&&active.id===TRUSTED_BOOKMARK_ID&&
       (nativePending||nativeUI?.kind==='bookmark'))||
      (source===trustedPromptSource&&active.id===PROMPT_ID&&
@@ -1029,7 +1036,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(frame){frame.onload=null;frame.remove();frame=null;}
     instance=null;requestCount=0;requestWindow=Date.now();lastHostHeight=null;
     frameRoot.replaceChildren();
-    if(frameRoot.dataset){delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.promptAi;delete frameRoot.dataset.knowledgeAi;delete frameRoot.dataset.officialWorkspace;}
+    if(frameRoot.dataset){delete frameRoot.dataset.aiProxyTrusted;delete frameRoot.dataset.timeReviewNative;delete frameRoot.dataset.bookmarkTrusted;delete frameRoot.dataset.promptAi;delete frameRoot.dataset.knowledgeAi;delete frameRoot.dataset.officialWorkspace;}
   }
   // Preserve text for recovery while retiring every executable old instance.
   function retireUntrustedTool(){
@@ -1097,6 +1104,32 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
 // The normal installed-tool path may mount the single statically compiled
   // React portal only AFTER exact official-release/installation admission.
   // Every SDK operation still uses the existing Host dispatcher and approval UI.
+  async function admittedNativeAIProxy(tool,expectedEpoch){
+    if(trustedAIProxyPilot?.enabled!==true||
+       trustedAIProxyPilot.version!==TRUSTED_AI_PROXY_VERSION||
+       typeof trustedAIProxyPilot.mount!=='function')return false;
+    if(!officialLoaded&&!officialError)await officialReady;
+    if(!officialLoaded||officialError)return false;
+    const release=officialReleases.find(row=>row.toolId===TRUSTED_AI_PROXY_ID&&
+      row.version===TRUSTED_AI_PROXY_VERSION);
+    if(!release)return false;
+    return admitsTrustedAIProxy({tool,release,expectedEpoch,...await installedAdmissionState()});
+  }
+  async function requestTrustedAIProxy(tool,token,epoch,operation,payload={}){
+    const current=()=>!disposed&&!readOnlyPreview&&active===tool&&instance===token&&
+      (nativePending||nativeUI?.kind==='ai-proxy');
+    if(!current())throw Object.assign(new Error('AI Proxy 可信界面已关闭'),{code:'E_TOOL_CHANGED'});
+    if(!['storage.get','storage.set','browser.proxy.managed.getStatus',
+      'browser.proxy.managed.requestEnable','browser.proxy.managed.requestDisable'].includes(operation))
+      throw Object.assign(new Error('不支持此 AI Proxy 操作'),{code:'E_OPERATION'});
+    if(!await admittedNativeAIProxy(tool,epoch)||!current()){
+      if(current()){destroyFrame();tocSettingsOpen=true;render();
+        notice('AI Proxy 官方安装身份或授权已变化，可信界面已关闭。',true);}
+      throw Object.assign(new Error('AI Proxy 可信准入已失效'),{code:'E_TOOL_CHANGED'});
+    }
+    return dispatch(operation,payload,tool,trustedAIProxySource,token,epoch);
+  }
+
   async function admittedNativeBookmark(tool,expectedEpoch){
     if(trustedBookmarkPilot?.enabled!==true||
        trustedBookmarkPilot.componentVersion!==TRUSTED_BOOKMARK_COMPONENT_VERSION||
@@ -1566,6 +1599,42 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         destroyFrame();tocSettingsOpen=true;render();
         notice('官方包身份校验失败，未执行特权 UI：'+String(error?.message||error).slice(0,180),true);
       });
+      return;
+    }
+    if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TRUSTED_AI_PROXY_ID&&
+       trustedAIProxyPilot?.enabled===true&&typeof trustedAIProxyPilot.mount==='function'){
+      const epoch=frameRevocationEpoch;
+      nativePending=true;render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
+      notice('正在核验 AI Proxy 官方安装身份…');
+      const fallback=()=>{
+        if(disposed||active!==tool||instance!==token)return;
+        mountTool(tool,{forceSandbox:true});
+        notice('AI Proxy 官方身份未通过核验，已在受限沙箱中打开。');
+      };
+      void admittedNativeAIProxy(tool,epoch).then(admitted=>{
+        if(disposed||active!==tool||instance!==token)return;
+        if(!admitted){fallback();return;}
+        try{
+          const dispose=trustedAIProxyPilot.mount({container:frameRoot,
+            request:(operation,payload)=>requestTrustedAIProxy(tool,token,epoch,operation,payload),
+            locale:toolLocaleContext(tool).locale,
+            onStateChange:state=>{
+              if(disposed||active!==tool||instance!==token)return;
+              const changed=toolDirty!==Boolean(state?.dirty)||toolSaving!==Boolean(state?.busy);
+              toolDirty=Boolean(state?.dirty);toolSaving=Boolean(state?.busy);
+              if(changed)render();
+            }});
+          if(typeof dispose!=='function')throw new Error('可信 UI 未提供清理函数');
+          if(disposed||active!==tool||instance!==token){dispose();return;}
+          nativeUI={dispose,kind:'ai-proxy'};nativePending=false;
+          frameRoot.dataset.aiProxyTrusted='true';
+          render();notice('');reportReadyOpen(token);
+        }catch(error){
+          if(disposed||active!==tool||instance!==token)return;
+          destroyFrame();tocSettingsOpen=true;render();
+          notice('AI Proxy 可信界面启动失败：'+String(error?.message||error).slice(0,160),true);
+        }
+      }).catch(fallback);
       return;
     }
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TRUSTED_BOOKMARK_ID&&
@@ -2122,7 +2191,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          !await admittedOfficialCookieImport(tool,revocationEpoch))
         throw Object.assign(new Error('当前正式 Cookie Editor 未获得账号管理资格'),
           {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
-      if(action!=='status'&&!verifiedGesture)
+      const accountRead=action==='status'||COOKIE_SERVICE_READS.includes(action);
+      if(!accountRead&&!verifiedGesture)
         throw Object.assign(new Error('请直接点击账号操作按钮重试'),
           {code:'E_USER_GESTURE_REQUIRED'});
       if(!payload||typeof payload!=='object'||Array.isArray(payload))
@@ -2137,7 +2207,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         switch:['alias','revision'],
         setAutoEnabled:['enabled','revision'],
         setAutoRefresh:['enabled','revision'],
-        allowAlias:['alias','accountVersion','enabled','revision']
+        allowAlias:['alias','accountVersion','enabled','revision'],
+        ...COOKIE_SERVICE_FIELDS
       }[action];
       // Description is optional for historic account clients. All other
       // caller-supplied fields remain strictly allowlisted.
@@ -2151,7 +2222,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         {code:'E_DOCUMENT_CHANGED'});
       const data={origin,...Object.fromEntries(fields.map(field=>[field,payload[field]])),
         ...(Object.hasOwn(payload,'description')?{description:payload.description}:{})};
-      if(['create','update','attach','switch'].includes(action)){
+      if(['create','update','attach','switch','serviceAssociate','serviceCommitAssociation','serviceOpenManagement'].includes(action)){
         const {captured,document}=captureCookieImportDocument('账号');
         await currentPageTarget.revalidate(captured);
         assertSession(source,token);
@@ -2164,7 +2235,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const response=await api.runtime.sendMessage({
         protocol:COOKIE_ACCOUNT_PROTOCOL,toolId:tool.id,operation:action,
         payload:data,packageHash,installEpoch:revocationEpoch,
-        trustedClick:action!=='status'&&verifiedGesture
+        trustedClick:!accountRead&&verifiedGesture
       });
       if(!response?.ok)
         throw Object.assign(new Error(response?.error?.message||'可信账号服务未确认操作'),
@@ -3191,6 +3262,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         const expectedRevision=globalSet?payload.expectedRevision:'';
         const runVideo=(name,args={},shortcutNonce=null)=>requestVideoSpeed({
           api,tool,operation:name,payload:args,currentPageTarget,revocationEpoch,shortcutNonce,
+          feedback:name==='videoSpeed.set',
           globalRevision:expectedRevision,
           assertCurrent:()=>{
             assertSession(source,token);
@@ -3713,6 +3785,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(Object.hasOwn(changes||{},MARKET_PROVENANCE_STORE)&&(nativeUI||nativePending)&&
        (active?.id===TIME_REVIEW_ID
          ?trustedTimeReviewProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
+         :active?.id===TRUSTED_AI_PROXY_ID
+           ?trustedAIProxyProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
          :active?.id===TRUSTED_BOOKMARK_ID
            ?trustedBookmarkProvenanceChanged(changes[MARKET_PROVENANCE_STORE])
            :active?.id===PROMPT_ID
@@ -4009,6 +4083,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     render();notice(allow?'已恢复 '+origin+' 的目录':'已停用 '+origin+' 的目录');
   }
   async function reviewCandidate(candidate,sourceLabel,release=null,selection=fileSelection,{deferConfirmation=false}={}){
+    const runtimeIdentity=await assertSidebarToolRuntime(api);
+    if(disposed||selection!==fileSelection)return;
     requireToolRuntime(candidate);
     // A local file may contain the exact bundled official release. Its file
     // name/ID cannot establish provenance; reuse the catalog's byte/hash check
@@ -4044,7 +4120,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, previewFile, {textContent: sourceLabel+' · 候选包 SHA-256（规范序列化）：'+candidateHash+
       (previousHash?' · 当前包 SHA-256（规范序列化）：'+previousHash:'')+
       (candidate.background?' · 后台源码 SHA-256：'+candidate.background.sha256:'')+
-      '。校验值基于规范序列化，文件空白和键顺序不影响结果。'});
+      '。校验值基于规范序列化，文件空白和键顺序不影响结果。'+
+      '工具 ID：'+candidate.id+'；格式：'+candidate.format+'；运行扩展 ID：'+runtimeIdentity.extensionId+
+      '；扩展版本：'+runtimeIdentity.version+'；安装器 / Worker 能力合同 SHA-256：'+runtimeIdentity.contractHash+'。'});
     patchToolField(view, technicalDetails, {open: false});
     if(previous){
       const added=addedCapabilities(candidate,previous);
@@ -4320,7 +4398,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if([PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format)){
         throw new Error('这是开发草稿，不是网页增强安装包。编辑源码请到「开发」导入草稿；安装请选择 .opendesk-page.json 安装包。');
       }
-      if(file.size>320000||byteLength>320000)throw new Error('工具包超过 320 KB');
+      if(file.size>SIDEBAR_TOOL_LIMITS.packageBytes||byteLength>SIDEBAR_TOOL_LIMITS.packageBytes)
+        throw new Error('工具包超过 '+Math.floor(SIDEBAR_TOOL_LIMITS.packageBytes/1024)+' KB');
+      // Compare loaded worlds before classifying a capability as unsupported.
+      await assertSidebarToolRuntime(api);
+      if(disposed||selection!==fileSelection)return;
       const candidate=validateSidebarToolPackage(parsed);
       await reviewCandidate(candidate,'文件：'+(file.name||'本地 JSON'),null,selection);
     }catch(error){
@@ -4339,6 +4421,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     let accepted=null,officialTocInstalled=false;
     try{
       const candidate=validateSidebarToolPackage(pending),baseline=pendingBaseline;
+      await assertSidebarToolRuntime(api);
       requireToolRuntime(candidate); // Revalidate before committing reviewed bytes.
       const release=pendingRelease,operationId=pendingOperationId;
       // Bind confirmation to the exact reviewed local resource even if the
@@ -4873,15 +4956,29 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         session.source.postMessage({protocol:'opendesk.video-speed.shortcut.v1',
           kind,key:data.key,...details},'*');
     };
-    const run=(operation,payload={})=>requestVideoSpeed({
-      api,tool:session.tool,operation,payload,currentPageTarget,revocationEpoch:session.epoch,
+    const access={
+      api,tool:session.tool,currentPageTarget,revocationEpoch:session.epoch,
       assertCurrent:check,
       assertInstalled:async()=>{
         check();
         if(!await admittedOfficialVideoSpeed(session.tool,session.epoch))
           throw Object.assign(new Error('视频倍速工具已撤权或版本变化'),{code:'E_VIDEO_TRUST'});
       }
-    });
+    };
+    const run=(operation,payload={})=>requestVideoSpeed({...access,operation,payload});
+    const feedback=async(details,expectedState)=>{
+      try{await locked('tool:'+session.tool.id,async()=>{
+        check();
+        if(expectedState){
+          const raw=(await api.storage.local.get(VIDEO_SPEED_GLOBAL_STORE))[VIDEO_SPEED_GLOBAL_STORE];
+          const release=officialReleases.find(row=>row.toolId===VIDEO_SPEED_ID&&row.version===session.tool.version);
+          const state=globalVideoSpeedState(raw,session.epoch,release?.sha256);
+          if(state.revision!==expectedState.revision||state.enabled!==expectedState.enabled)return;
+        }
+        return notifyVideoSpeed({...access,...details});
+      });}
+      catch{/* Navigation/revocation or a missing toast receipt never replays media writes. */}
+    };
     videoShortcutBusy=true;
     void (async()=>{
       try{
@@ -4908,6 +5005,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         check();
         if(state?.ok!==true)throw Object.assign(new Error('当前视频已调整，全局状态未确认，请刷新核对'),
           {code:state?.error?.code||'E_OUTCOME_UNKNOWN'});
+        let feedbackState=state.data;
         if(state.data.enabled){
           const configured=await api.runtime.sendMessage({protocol:VIDEO_SPEED_GLOBAL_PROTOCOL,
             toolId:VIDEO_SPEED_ID,installEpoch:session.epoch,operation:'videoSpeed.global.sync',
@@ -4917,9 +5015,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             {code:configured?.error?.code||'E_OUTCOME_UNKNOWN'});
           if(configured.data?.superseded)throw Object.assign(new Error('全局设置已变化，先前读数已失效，请重新检测'),
             {code:'E_VIDEO_CHANGED'});
+          feedbackState=configured.data;
         }
         emit('verified',{result:outcome.result});
+        await feedback({result:outcome.result},feedbackState);
       }catch(error){
+        await feedback({error});
         emit('error',{code:String(error?.code||'E_VIDEO_SHORTCUT').slice(0,64),
           message:String(error?.message||'网页快捷键设置失败').slice(0,160)});
       }finally{videoShortcutBusy=false;}

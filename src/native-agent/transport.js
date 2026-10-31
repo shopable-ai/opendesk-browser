@@ -13,6 +13,8 @@ export function installNativeTransport(scope=globalThis) {
   if(!api?.runtime || !(hostPorts instanceof Map))throw Error('E_HOST_NOT_READY');
   Object.defineProperty(scope,'__opendeskNativeManagedUI',{value:createManagedUIPreview,writable:false,configurable:false});
   const agent=createNativeAgentService({api,hostPorts,development:scope.__opendeskDevelopment});
+  // Internal fixed consumers only. No runtime message or sandbox API exposes it.
+  Object.defineProperty(scope,'__opendeskManagedServices',{value:agent.managedServices,writable:false,configurable:false});
   api.runtime.onMessage.addListener((message,sender,sendResponse)=>{
     if(message?.protocol!==AGENT_CONFIG_PROTOCOL)return false;
     agent.handleSettings(message,sender).then(

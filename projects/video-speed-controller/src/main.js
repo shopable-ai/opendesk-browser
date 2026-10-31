@@ -9,8 +9,8 @@ const verification=byId('speed-verification'),message=byId('speed-message');
 const meterLabel=root.querySelector('.speed-meter-top > span');
 const refresh=byId('speed-refresh'),minus=byId('speed-minus'),plus=byId('speed-plus');
 const toggle=byId('speed-shortcut-toggle'),keys=byId('speed-key-list'),shortcutNote=byId('speed-shortcut-note');
-const globalToggle=byId('speed-global-toggle'),globalStop=byId('speed-global-stop');
-const globalTarget=byId('speed-global-target'),globalNote=byId('speed-global-note');
+const globalToggle=byId('speed-global-toggle');
+const globalNote=byId('speed-global-note');
 let globalState={enabled:false,speed:1,revision:''},globalLoading=true,globalSaving=false,globalEpoch=0;
 let globalHint='',globalReadPending=false;
 const validSpeed=n=>typeof n==='number'&&Number.isFinite(n)&&n>=.25&&n<=4;
@@ -39,9 +39,8 @@ function render(){
   message.dataset.kind=level||'';
   globalToggle.setAttribute('aria-checked',String(globalState.enabled));
   globalToggle.disabled=globalLoading||globalSaving||busy||closed||phase==='disabled';
-  globalStop.disabled=!globalState.enabled||globalToggle.disabled;
-  globalTarget.textContent='共享目标 · '+fmt(globalState.speed)+(globalState.enabled?'（非实际）':'（已关闭）');
-  globalNote.textContent=globalHint||(globalLoading?'正在读取全局设置…':globalState.enabled?'自动应用已开启；上方数字仅为当前视频实际读回。':'未开启；仅调整当前视频。');
+  globalNote.hidden=!globalHint;
+  globalNote.textContent=globalHint;
   const canChange=(available||globalState.enabled)&&!globalLoading&&!globalSaving&&!busy&&!closed&&phase!=='disabled';
   for(const button of presets){
     const speed=Number(button.dataset.speed);
@@ -248,7 +247,6 @@ plus.addEventListener('click',()=>void set(adjustBase()+.25,'微调加速'));
 refresh.addEventListener('click',()=>{void read().then(()=>{if(shortcutsEnabled)void activatePageShortcuts();});});
 toggle.addEventListener('click',()=>void saveShortcuts());
 globalToggle.addEventListener('click',()=>void toggleGlobal(!globalState.enabled));
-globalStop.addEventListener('click',()=>void toggleGlobal(false));
 document.addEventListener('keydown',event=>{
   if(event.repeat||event.isComposing||event.defaultPrevented||
      event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||

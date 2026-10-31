@@ -17,7 +17,6 @@ test('real package and offline preview have one compiled visual source and DOM i
   assert.match(tool.css,/^\/\* opendesk\.shared-design\.v1 sha256=/);
   assert.match(tool.html,/class="od-icon-button/);
   assert.match(tool.html,/class="od-field"/);
-  assert.match(tool.js,/className='od-button od-button--secondary note-chip'/);
   const preview=await generatePreview({width:320,theme:'dark',scenario:'success'});
   assert.ok(preview.frameHtml.includes('data:text/css;base64,'+Buffer.from(tool.css).toString('base64')));
   assert.ok(preview.frameHtml.includes('data:text/javascript;base64,'+Buffer.from(tool.js).toString('base64')));
@@ -31,10 +30,14 @@ test('real package and offline preview have one compiled visual source and DOM i
 });
 test('public token/component CSS is consumed verbatim and follows canonical edits',async()=>{
   const layout=await read('projects/quick-notes/src/style.css');
-  const {tokens,publicRules}=await officialDesignSources();
+  const {tokens,publicRules,cardRules}=await officialDesignSources();
   const built=await compileSharedToolCss(layout);
   assert.ok(built.includes(tokens));
   assert.ok(built.includes(publicRules));
+  assert.ok(built.includes(cardRules),'HTML opt-in builds the same Card rules as shared React');
+  assert.ok(cardRules.includes('.od-shared-card-content{'));
+  assert.ok((await read('src/ui/react/components/ui/sidebar-shared.css')).includes(cardRules));
+  assert.doesNotMatch(cardRules,/\.od-shared-switch/,'HTML does not imitate React Aria Switch behavior');
   assert.ok(built.includes('.od-icon-button{'));
   assert.ok(built.includes('.od-field{')||built.includes(').od-field{'));
   assert.equal(assertLayoutOnly(layout).includes('.notes-app{'),true);

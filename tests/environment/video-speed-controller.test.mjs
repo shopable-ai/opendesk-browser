@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {pageVideoSpeed,requestVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
+import {showPageToast} from '../../src/scripting/user-scripts/page-toast.js';
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY} from '../../projects/video-speed-controller/trusted/policy.js';
 import {admitsOfficialVideoSpeed,VIDEO_SPEED_VERSION,VIDEO_SPEED_MARKET_ID} from '../../projects/video-speed-controller/trusted/admission.js';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
@@ -43,6 +44,28 @@ function fixture(){
   return {options,calls,docs,top,inner,setStale:value=>{stale=value;},
     setAdmitted:value=>{admitted=value;}};
 }
+test('toast transport failure preserves the verified result and never replays the media write',async()=>{
+  const f=fixture(),execute=f.options.api.scripting.executeScript;
+  f.options.api.scripting.executeScript=async request=>{
+    if(request.func===showPageToast){f.calls.push(request);throw Error('feedback transport lost');}
+    return execute(request);
+  };
+  const result=await requestVideoSpeed({...f.options,operation:'videoSpeed.set',payload:{speed:2},feedback:true});
+  assert.equal(result.speed,2);assert.equal(result.verified,true);
+  assert.equal(f.calls.filter(row=>row.args[0]==='set').length,1);
+  assert.equal(f.calls.at(-1).func,showPageToast);
+  assert.deepEqual(f.calls.at(-1).target,{tabId:4,documentIds:[f.top.documentId]},'feedback belongs to the top document even for iframe media');
+});
+test('closing the Host during toast delivery cannot publish the prior media result as current',async()=>{
+  const f=fixture(),execute=f.options.api.scripting.executeScript;let closed=false;
+  f.options.assertCurrent=()=>{if(closed)throw Object.assign(Error('closed'),{code:'E_TOOL_CHANGED'});};
+  f.options.api.scripting.executeScript=async request=>{
+    if(request.func===showPageToast){closed=true;return [{frameId:0,documentId:f.top.documentId,result:{shown:true}}];}
+    return execute(request);
+  };
+  await assert.rejects(requestVideoSpeed({...f.options,operation:'videoSpeed.set',payload:{speed:2},feedback:true}),{code:'E_TOOL_CHANGED'});
+  assert.equal(f.calls.filter(row=>row.args[0]==='set').length,1);
+});
 test('HTML5 playbackRate on the active video is read and verified independently',async()=>{
   const f=fixture();
   const before=await requestVideoSpeed({...f.options,operation:'videoSpeed.status',payload:{}});
@@ -226,6 +249,8 @@ test('only the official installed release can use first-party video mutation',as
     enableRecords:{},epochs:{[VIDEO_SPEED_ID]:expectedEpoch},expectedEpoch};
   assert.equal(await admitsOfficialVideoSpeed(admitted),true);
   for(const changes of [
+    {tool:{...tool,version:'1.2.0'}},
+    {release:{...release,version:'1.2.0'}},
     {tool:{...tool,html:tool.html+'<p>modified</p>'}},
     {installed:[tool,{...tool}]},
     {provenance:{}},

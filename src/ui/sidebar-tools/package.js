@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_LIMITS} from './limits.js';
 import {normalizeTaskDelegations} from '../../platform/tasks/delegation-contract.js';
 import {validateToolLocalization,verifyToolLocalization} from './localization.js';
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
@@ -12,13 +13,26 @@ export const SIDEBAR_TOOL_PROTOCOL = 'opendesk.sidebar-tool.bridge.v1';
 export const SIDEBAR_TOOL_SHARED_UI_RUNTIME='opendesk.react-ui.v1';
 export const SIDEBAR_TOOL_BACKGROUND_KIND='opendesk.app-service.v1';
 export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:32768,maxKeys:32});
-const MAX_PACKAGE_BYTES = 320000;
-const LIMITS = Object.freeze({title:80,description:300,html:64000,css:120000,js:220000});
+const MAX_PACKAGE_BYTES = SIDEBAR_TOOL_LIMITS.packageBytes;
+const LIMITS = Object.freeze({title:80,description:300,html:SIDEBAR_TOOL_LIMITS.html,css:SIDEBAR_TOOL_LIMITS.css,js:SIDEBAR_TOOL_LIMITS.js});
 const CAPABILITIES = Object.freeze(['ai.generate','storage.local','currentPage.read','tasks.open','page.toc','page.clip','page.videoSpeed','page.videoContext','page.mediaDownload','user.export','page.capture','knowledge.store','time.review','focus.control','ai.access','adblock.control']);
 const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'browser.page.environment.read','browser.fingerprint.control','tasks.run','page.prompts','browser.contextMenu','browser.tabs','browser.sidePanel','network',
   'browser.network.observe','browser.events','browser.operations','browser.screenshot','browser.bookmarks','browser.bookmarks.full','browser.scheduler',
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',MANAGED_SITE_BUDGET_CAPABILITY,
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
+const BROWSER_SDK_VERSION='1.0.0';
+// Derived from the validator's sole allowlist, never a permission grant. Each
+// fixed runtime computes this from its own loaded code, not a fetched catalog.
+export function sidebarToolPackageContract(){
+  return {protocol:SIDEBAR_TOOL_PROTOCOL,formats:{
+    [SIDEBAR_TOOL_FORMAT]:[...CAPABILITIES],[SIDEBAR_TOOL_FORMAT_V2]:[...V2_CAPABILITIES]
+  },limits:{...SIDEBAR_TOOL_LIMITS},browserSdk:BROWSER_SDK_VERSION};
+}
+export async function sidebarToolPackageContractHash(){
+  const bytes=new TextEncoder().encode(JSON.stringify(sidebarToolPackageContract()));
+  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
+    value=>value.toString(16).padStart(2,'0')).join('');
+}
 const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy','localization']);
 const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData','background','delegatedTasks']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
@@ -41,6 +55,8 @@ export function validateSidebarToolPackage(value) {
     fail('不支持的共享 UI Runtime','E_TOOL_RUNTIME');
   for (const name of ['title','description','html','css','js'])
     if (!validText(value[name],LIMITS[name],name==='css')) fail('工具字段过大或无效：'+name,'E_TOOL_LIMIT');
+  if(new TextEncoder().encode(value.js).byteLength>LIMITS.js)
+    fail('界面源码 UTF-8 字节超限','E_TOOL_LIMIT');
   const supportedCapabilities=v2?V2_CAPABILITIES:CAPABILITIES;
   if (!Array.isArray(value.capabilities)) fail('工具能力声明必须是数组');
   if (value.capabilities.length>supportedCapabilities.length) fail('工具能力声明数量超出当前支持范围');
@@ -49,7 +65,8 @@ export function validateSidebarToolPackage(value) {
   const unsupportedCapabilities=value.capabilities.filter(item=>!supportedCapabilities.includes(item));
   if (unsupportedCapabilities.length) {
     const names=unsupportedCapabilities.slice(0,4).map(item=>item.length>80?item.slice(0,80)+'…':item).join('、');
-    fail('工具能力声明超出当前支持范围：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+'。请核对工具包格式，并更新 OpenDesk Browser 扩展后重新导入。');
+    fail('当前安装器不支持此工具格式的能力：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+
+      '。请核对工具包格式与扩展运行身份；确认新版支持这些能力后再更新 OpenDesk Browser。','E_TOOL_CAPABILITY_UNSUPPORTED');
   }
   if(value.capabilities.includes('tasks.run')||value.delegatedTasks!==undefined){
     if(!v2||!value.capabilities.includes('tasks.run'))fail('固定任务委托必须在 v2 包中审阅 tasks.run');
@@ -63,7 +80,7 @@ export function validateSidebarToolPackage(value) {
        typeof background.js!=='string'||!background.js.trim()||
        !['browser.storage','browser.scheduler'].every(capability=>value.capabilities.includes(capability)))
       fail('后台服务需要固定 v2 源码、SHA 及 browser.storage/browser.scheduler 能力','E_TOOL_BACKGROUND');
-    if(background.js.length>LIMITS.js)fail('后台服务源码字段过大','E_TOOL_LIMIT');
+    if(background.js.length>LIMITS.js||new TextEncoder().encode(background.js).byteLength>LIMITS.js)fail('后台服务源码字段过大','E_TOOL_LIMIT');
     if(/(?:^|\n)\s*(?:import|export)\s+(?:[\w*{]|["'])/.test(background.js))
       fail('后台服务必须是 Classic JavaScript；ESM 请先使用可信构建器','E_TOOL_BACKGROUND');
   }
@@ -77,7 +94,7 @@ export function validateSidebarToolPackage(value) {
     fail('公共预算能力只支持独立的 v2 有限预算合同','E_TOOL_POLICY');
   if(v2){
     if(!plain(value.requires)||!fields(value.requires,['browserSdk'])||
-       value.requires.browserSdk!=='1.0.0')fail('浏览器 SDK 版本不受支持');
+       value.requires.browserSdk!==BROWSER_SDK_VERSION)fail('浏览器 SDK 版本不受支持');
     if(!plain(value.contributes)||!fields(value.contributes,['contextMenus'])||
        !Array.isArray(value.contributes.contextMenus)||
        value.contributes.contextMenus.length>(value.capabilities.includes('browser.contextMenu')?3:0)||
@@ -157,7 +174,7 @@ export function validateSidebarToolPackage(value) {
   if (/(?:^|\n)\s*(?:import|export)\s+(?:[\w*{]|["'])/.test(value.js))
     fail('界面代码须先构建为单个经典 JavaScript 文件');
   const utf8 = new TextEncoder().encode(JSON.stringify(value));
-  if (utf8.byteLength>MAX_PACKAGE_BYTES) fail('工具包超过 320 KB','E_TOOL_LIMIT');
+  if (utf8.byteLength>MAX_PACKAGE_BYTES) fail('工具包超过 2 MiB','E_TOOL_LIMIT');
   return backgroundPolicy?{...structuredClone(value),backgroundPolicy}:structuredClone(value);
 }
 

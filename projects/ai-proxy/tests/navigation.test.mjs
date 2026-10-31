@@ -162,8 +162,57 @@ test('Workspace events stay per instance and effect cleanup removes its draft li
   const remove = a.events.removeEventListener.bind(a.events);
   a.events.removeEventListener = (type, fn) => { removed.push(type); remove(type, fn); };
   a.unmount();
-  assert.deepEqual(removed.sort(), ['ai-proxy-draft']);
+  assert.deepEqual(removed.sort(), ['ai-proxy-draft','ai-proxy-operation']);
   assert.equal(a.navigation.navigate('#/backup'), true);
+});
+
+test('workspace view tabs share draft protection and track selection without leaving the tool',()=>{
+ const f=workspaceFixture();let tree=f.render();
+ const tabs=()=>tree.props.children.find(child=>child?.props?.role==='tablist');
+ assert.equal(tabs().props.children[1].props['aria-selected'],true);
+ tabs().props.children[0].props.onClick();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'');
+ assert.equal(tabs().props.children[0].props['aria-selected'],true);
+ tree.props.onChange({target:{}});
+ tabs().props.children[1].props.onClick();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'');
+ draftDialog(tree).props.onDone(false);tree=f.render();
+ assert.equal(tabs().props.children[0].props['aria-selected'],true);
+ tabs().props.children[1].props.onClick();tree=f.render();
+ draftDialog(tree).props.onDone(true);tree=f.render();
+ assert.equal(f.navigation.getRoute(),'#/rules');
+ assert.equal(tabs().props.children[1].props['aria-selected'],true);
+});
+
+test('active workspace tab keeps its section and switching back restores the last settings route',()=>{
+ const f=workspaceFixture();let tree=f.render();
+ const tabs=()=>tree.props.children.find(child=>child?.props?.role==='tablist');
+ tree.props.onChange({target:{}});
+ tabs().props.children[1].props.onClick();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'#/rules');
+ assert.equal(draftDialog(tree),undefined);
+ f.events.dispatchEvent(new CustomEvent('ai-proxy-draft',{detail:false}));
+ f.navigation.navigate('#/diagnostic/ai');tree=f.render();
+ tabs().props.children[0].props.onClick();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'');
+ tabs().props.children[1].props.onClick();tree=f.render();
+ assert.equal(f.navigation.getRoute(),'#/diagnostic/ai');
+});
+
+test('busy view tabs cannot switch with arrow keys and release after the operation',()=>{
+ const f=workspaceFixture();let tree=f.render();
+ const tabs=()=>tree.props.children.find(child=>child?.props?.role==='tablist');
+ f.events.dispatchEvent(new CustomEvent('ai-proxy-operation',{detail:{busy:true}}));tree=f.render();
+ assert.equal(tabs().props.children[0].props.disabled,true);
+ assert.equal(f.navigation.navigate('#/backup'),false);
+ tree=f.render();assert.equal(draftDialog(tree),undefined);
+ tabs().props.onKeyDown({key:'Home',preventDefault:()=>assert.fail('busy tabs handled navigation')});
+ assert.equal(f.navigation.getRoute(),'#/rules');
+ f.events.dispatchEvent(new CustomEvent('ai-proxy-operation',{detail:{busy:false}}));tree=f.render();
+ assert.equal(tabs().props.children[0].props.disabled,false);
+ let focused=-1;
+ tabs().props.onKeyDown({key:'Home',preventDefault(){},currentTarget:{querySelectorAll:()=>[0,1].map(index=>({focus:()=>focused=index}))}});
+ assert.equal(f.navigation.getRoute(),'');assert.equal(focused,0);
 });
 
 const settingsSource = await readFile(new URL('../src/Settings.tsx', import.meta.url), 'utf8');

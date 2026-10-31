@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_LIMITS} from '../ui/sidebar-tools/limits.js';
 // The compiled channel is the distribution authority. Page-provided URLs,
 // redirects and package-declared publishers never establish source trust.
 import {loadMarketChannel} from './external.js';
@@ -36,7 +37,7 @@ export async function loadMarketReleaseDescriptor(subject,{api=globalThis.chrome
   const release=decode(await marketResource(origin+base+'descriptor.json',4096,fetcher));
   if(!fields(release,['schema','marketId','version','bytes','sha256','packagePath'])||
     release.schema!=='opendesk.market.release.v1'||release.marketId!==subject.marketId||release.version!==subject.version||
-    release.packagePath!==base+'package.opendesk-tool.json'||!Number.isSafeInteger(release.bytes)||release.bytes<1||release.bytes>320000||
+    release.packagePath!==base+'package.opendesk-tool.json'||!Number.isSafeInteger(release.bytes)||release.bytes<1||release.bytes>SIDEBAR_TOOL_LIMITS.packageBytes||
     typeof release.sha256!=='string'||!(/^[a-f0-9]{64}$/).test(release.sha256))
     throw marketError('E_PACKAGE_IDENTITY','市场发行描述与所选应用或版本不一致。');
   return {release,base};
@@ -45,7 +46,7 @@ export async function loadMarketTool(subject,options={}){
   const {release,base}=await loadMarketReleaseDescriptor(subject,options);
   const {fetcher=globalThis.fetch,origin}=options;
   const decode=bytes=>JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
-  const bytes=await marketResource(origin+release.packagePath,320000,fetcher);
+  const bytes=await marketResource(origin+release.packagePath,SIDEBAR_TOOL_LIMITS.packageBytes,fetcher);
   const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');
   if(bytes.length!==release.bytes||digest!==release.sha256)throw marketError('E_PACKAGE_INTEGRITY','市场安装包大小或摘要不符。');
   const tool=validateSidebarToolPackage(decode(bytes));

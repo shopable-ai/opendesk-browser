@@ -1,0 +1,18 @@
+{
+  "name": "opendesk-ai-account-usage-backend",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "probe": "node cli.mjs",
+    "manage": "node manage.mjs",
+    "start": "node manage.mjs serve",
+    "build:web": "node web/build.mjs",
+    "test": "node --test ../tests/ai-account-usage/*.test.mjs ../tests/usage-entry-boundary.test.mjs",
+    "build:web:preview": "node web/build.mjs --preview",
+    "test:browser": "node ../tests/ai-account-usage/ai-account-usage-chromium-r19.mjs && node ../tests/ai-account-usage/ai-account-usage-chromium-r22.mjs"
+  }
+}

@@ -1,6 +1,6 @@
 # OpenDesk Browser Preview Contract R1 — 构建期设计复用与离线模拟
 
-日期：2026-10-15。适用：独立 Sidebar Tool，首个样板 quick-notes。网页对话的可编辑设计稿采用已有 [Sidebar Preview Kit](../../api/sidebar-preview-kit.zh-CN.md)；本方案只实现正式工具源码同源预览，二者共享规范但不混淆证据级别。此文仅描述**构建和验证契约**，不复制设计 Token、颜色/尺寸表。权威视觉规则：
+日期：2026-10-15；2026-10-30 增量修订。适用：独立 Sidebar Tool，首个样板 quick-notes。网页对话的可编辑设计稿采用已有 [Sidebar Preview Kit](../../api/sidebar-preview-kit.zh-CN.md)；本方案只实现正式工具源码同源预览，二者共享规范但不混淆证据级别。此文仅描述**构建和验证契约**，不复制设计 Token、颜色/尺寸表。权威视觉规则：
 - ../ui-layout-conventions-r27.zh-CN.md
 - ../sidebar-design-system-r20.zh-CN.md
 - ../../../src/ui/design-tokens.css
@@ -23,9 +23,13 @@
                        |-- scripts/preview/quick-notes-mock.js (仅替换 SDK 边界)
                        |-- 离线 HTML + 来源/模式/主题/模拟声明
 
+两个既有预览生成器共同消费 `scripts/templates/sidebar-tool-preview-shell.html`，作为唯一完整宿主 DOM；`scripts/preview/sidebar-shell-behavior.js` 是唯一共享导航、返回及模拟卸载行为。`scripts/templates/sidebar-preview.html` 仅是设计内容/模拟逻辑 fragment，kit 仍输出完整单文件 HTML、prompt 和 manifest。共享 helper 配置只读、纯模拟，不写入平台，也不改变公开 API。
+
+两个既有预览生成器共用 `scripts/preview/sidebar-shell-source.mjs`，从真实 `src/ui/react/` 导航/工具栏及 `src/ui/tool-shell.css` 提取基础壳。React SSR 当前含 7 项，预览仅显示正式五 Tab；隐藏的 `app-debug` 等项目不应触发硬编码总数失败，也不载入其业务。
+
 正式静态工具页面和预览内 iframe 的布局标记、业务 JS、编译后 CSS 必须来自同一次官方构建接口 createSidebarToolPackage()，禁止另存或手写第二份工具 UI。R1 无法为 HTML/JSX/Vue 创建通用热重载编辑器，不声明该能力。
 
-构建：
+既有生成入口（实际证据见本轮生成文件与报告，示例不代表已通过验证）：
 
     node scripts/build-sidebar-tool.mjs projects/quick-notes --out artifacts/quick-notes-contract.opendesk-tool.json
     node scripts/preview/build-preview.mjs --tool quick-notes --surface side-panel --scenario success --theme light --width 360 --height 760
@@ -36,11 +40,17 @@
 
 ## 模拟能力与失败闭锁
 
-现有模拟适配器只处理 quick-notes 的 storage.get、storage.set、currentPage.info、tasks.open。模拟存储仅驻留 iframe 内存，etag 仅供状态机模拟；成功/空/故障/持续加载/权限不足及恶意文本五类边界可复现。tasks.open 永不执行真实任务；currentPage.info 只返回明确的虚拟域名。所有内容由真实业务 JS 的 textContent 路径渲染。预览不接触已安装工具、真实站点、磁盘或 Chrome API。
+quick-notes 模拟适配器处理的边界为 storage.get、storage.set、currentPage.info、tasks.open。模拟存储仅驻留 iframe 内存，etag 仅供状态机模拟；支持的场景为 `success / permission-denied / revoked / loading / empty / error / untrusted / long`。外部控件切换场景、工具主题或恢复时重建纯内存 iframe，并明确提示模拟数据会重置；不伪装真实授权、撤权或持久化恢复。宿主始终 light，light/dark 只改变工具应用。重置只涉及模拟内存，没有真实结果未知（unknown）的操作；产品未知副作用保护不变。tasks.open 永不执行真实任务；currentPage.info 只返回明确的虚拟域名。所有内容由真实业务 JS 的 textContent 路径渲染。预览不接触已安装工具、真实站点、磁盘或 Chrome API。
+
+bookmark-manager 外部选择支持既有六场景 `success / empty / error / loading / permission-denied / untrusted` 及 light/dark，切换同样重建内存 iframe。8 项专属 lab 另用于运行时故障及 revoke/restore；不支持 quick-notes 的 `revoked / long` 场景值，`revoke` 命令与 `revoked` 场景不可混用。未接入控件的工具明确不支持。
+
+设计稿只允许修改 `#od-preview-app` 内部，以及 `#od-preview-behavior` 中 `/* DESIGN_APP_BEHAVIOR */` 之后的工具逻辑；前面的共享宿主交互由 check 保护。顶部正式工具标题已有 `role="heading"`，应用无重复 `h1`。未保存表单期间禁用外部状态/主题/恢复，取消或 Escape 返回后恢复这些控件。
 
 尚无可靠正式注入 UI Adapter 或独立页面 Adapter：请求这些 surface 时 fail closed；不使用漂亮但不相同的 iframe 结果冒充真实 ShadowRoot/弹窗。
 
 ## CI、新鲜度和反例
+
+来源变更后按需执行相关检查；结果以生成文件和报告记录为准，生成成功不等于交互终验或测试 PASS，不默认启动 Browser 构建或完整 CI。
 
     node scripts/preview/check-preview-contract.mjs
     node --test tests/environment/sidebar-preview-contract.test.mjs tests/environment/sidebar-quick-notes.test.mjs
@@ -51,13 +61,15 @@ contracts/ui-preview/quick-notes.lock.json 是**输入源码的 Git blob SHA-1 �
 
 仅执行生成不会悄悄修改来源锁。CI 根据实际磁盘字节计算 Git blob SHA，逐文件拒绝过期锁；测试另验证两次独立生成结果完全一致，且模拟私有按钮颜色和更改 token 哈希时**必须失败**。这不意味着视觉检查已经通过。
 
-## 本地真实验收矩阵（本轮不代跑 Mac Chrome）
+## 历史真实验收矩阵（按需另行触发）
+
+以下保留历史对照方法，不作为普通离线模板迭代前置。多档缩放及物理宽度矩阵默认 OUT_OF_SCOPE；安装、完整矩阵和评分仅在用户当前明确要求时执行。
 
 基于当前 source SHA/package SHA，安装正式扩展和 quick-notes，先在真实 Side Panel sandbox iframe 中截图，再打开相同输入的离线预览 HTML。逐组使用同视口 320/360/400/480、真实浏览器 zoom 100/125/150%、light/dark、空数据/加载/故障、长中文/长 URL/不可信标签字符串。
 
 对每组记录：Chrome/CFT 版本与候选 SHA、实际扩展 ID 与工具版本、截图文件和 SHA、DOM 中 od-* 组件来源、font-family/font-size/height/width/padding/background/border/radius/focus-outline 的 computed-style 对照、scrollWidth、可见焦点、键盘操作、控制台错误。设置鼠标 hover/active/disabled、列表选择、删除确认与返回；实际权限与磁盘存储仅验正式安装，模拟状态单独标识。不要通过放宽像素阈值掩盖失真。
 
-源文件已改≠构建 PASS；CI Node PASS≠真实安装 PASS；离线 HTML≠已安装工具。R1 每项交付按目标 GOAL 的五维权重记录证据，Mac 原生对照未完成时不能给总分 95+。
+源文件已改≠构建 PASS；CI Node PASS≠真实安装 PASS；离线 HTML≠已安装工具。按当前阶段记录证据；历史 GOAL 权重和 95 分评分不作为离线预览前置，无同候选原生证据则标 `NATIVE_CHROME=NOT_TESTED`。
 
 ## 扩展到其他工具时
 
@@ -69,10 +81,10 @@ contracts/ui-preview/quick-notes.lock.json 是**输入源码的 Git blob SHA-1 �
 
 必须遵守：
 
-1. **生产内层**：\`examples/sidebar-tools/<tool-id>/src/\` 与官方 \`createSidebarToolPackage()\` 的 HTML/CSS/JS 只呈现真正安装后的业务 UI。条目点击首先只读详情；明确点击“编辑”才转为表单。
+1. **生产内层**：工具真实 owner 下的 `src/` 与官方 \`createSidebarToolPackage()\` 的 HTML/CSS/JS 只呈现真正安装后的业务 UI。条目点击首先只读详情；明确点击“编辑”才转为表单。
 
-6. **共享模板不漂移**：专有诊断的 CSS、脚本和测试控件按目标工具 ID 由 `build-preview.mjs` 注入生成后的外层 HTML；不能改变所有工具共用模板的产物结构（包括插入空脚本或空容器），不得迫使 AdBlock/Quick Notes/Reading TOC 的正式同源预览因书签专有实验台而变化。编译后对三个非目标工具分别检查不含书签诊断脚本与节点。
-2. **预览外层**：测试操作板只能作为 \`scripts/templates/sidebar-tool-preview-shell.html\` 中模拟设备区 **之外** 的 \`aside\`/折叠区出现，由 builder 为需要的工具显式启用。没有测试需求的其他工具不能显示书签实验台。正式安装 JSON 不得打包外层测试代码。
-3. **消息与权限**：外层 \`bookmark-manager-lab.js\` 的固定 8 项命令通过 \`postMessage\` 给 opaque iframe 中的 \`bookmark-manager-mock.js\`。内层检查 \`event.source===parent\`、精确消息类型、请求 ID、命令白名单；外层检查 \`event.source===iframe.contentWindow\`、opaque 来源 \`null\`、请求一致性再显示回执。消息只触发内存故障模拟，不获得真实书签/权限、网络、Storage 或 Host 写入能力。工具沙箱继续 **仅** \`sandbox="allow-scripts"\`。
-4. **草稿与选择**：切换到其他书签时，干净的表单直接关闭并显示新节点只读详情；脏草稿维持旧选择、暂停编辑呈现并展示目标名称和保留/放弃操作，不能默许丢弃或自动保存；确认放弃后打开新节点**只读**详情；Escape/保留返回原草稿与焦点。
-5. **证据分级**：分别通过正式包无实验台、外层/内层 DOM 隔离、CDP 真实点击外部辅助按钮、Chrome read/edit/dirty-switch 三状态与 2159 节点回归。Source-Bound/Mock 不升级为正式 Chrome Native PASS。更改模板/packer/工具 UI 后更新同候选源码锁，并记录失败与跨 Agent 输入变动。
+2. **共享模板与专有 adapter**：允许为跨工具复用增加外部状态/工具主题/恢复辅助区，并同步来源锁及受影响检查；不要求无关工具字节永远不变。书签专有诊断 CSS、脚本和固定 8 项命令仍仅由目标 adapter 提供，其他工具不含书签 lab；未接入公共控件的工具明确显示不支持。
+3. **预览外层**：测试操作板只能作为 \`scripts/templates/sidebar-tool-preview-shell.html\` 中模拟设备区 **之外** 的 \`aside\`/折叠区出现，由 builder 为需要的工具显式启用。没有测试需求的其他工具不能显示书签实验台。正式安装 JSON 不得打包外层测试代码。
+4. **消息与权限**：外层 \`bookmark-manager-lab.js\` 的固定 8 项命令通过 \`postMessage\` 给 opaque iframe 中的 \`bookmark-manager-mock.js\`。内层检查 \`event.source===parent\`、精确消息类型、请求 ID、命令白名单；外层检查 \`event.source===iframe.contentWindow\`、opaque 来源 \`null\`、请求一致性再显示回执。消息只触发内存故障模拟，不获得真实书签/权限、网络、Storage 或 Host 写入能力。工具沙箱继续 **仅** \`sandbox="allow-scripts"\`。
+5. **草稿与选择**：切换到其他书签时，干净的表单直接关闭并显示新节点只读详情；脏草稿维持旧选择、暂停编辑呈现并展示目标名称和保留/放弃操作，不能默许丢弃或自动保存；确认放弃后打开新节点**只读**详情；Escape/保留返回原草稿与焦点。
+6. **证据分级**：按当前改动选择正式包/内层无辅助控件、外层归属及 Mock 状态交互检查；书签 read/edit/dirty-switch 与大数据回归仅在相关变更影响它们时执行，不把历史整组回归作为离线预览前置。Source-Bound/Mock 不升级为正式 Chrome Native PASS。更改模板/packer/工具 UI 后更新同候选源码锁，并记录失败与跨 Agent 输入变动。

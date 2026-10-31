@@ -338,9 +338,9 @@ export default function App() {
     setRuleTarget(currentRule?.action??'endpoint');setRuleEndpoint(currentRule?.endpointId??quickEndpoint);
     setSiteError(false);setError('');setRuleHint(false);setSiteEditorOpen(true);
   }
-  async function closeSiteRule(discard=false){
+  async function closeSiteRule(){
     const env=getEnvironment(),revision=env.getDraftRevision('quick-rule');
-    if(!discard&&env.isDraftDirty('quick-rule')&&!await env.confirm(t('apDiscardHelp')))return;
+    if(env.isDraftDirty('quick-rule')&&!await env.confirm(t('apDiscardHelp')))return;
     if(!env.setDraftDirty(false,'quick-rule',revision))return;
     ruleReturn.current=true;setSiteEditorOpen(false);setError('');
   }
@@ -348,7 +348,7 @@ export default function App() {
   try{ruleDomain=normalizeRuleSiteInput(siteInput);}catch{/* Invalid input has no matching preview. */}
   if(siteEditorOpen)return <main className="popup sidepanel r86Panel siteRulePage" aria-label={t(editingSiteRule?'editRule':'addRule')}
     onKeyDown={event=>{if(event.key==='Escape'&&!busy){event.preventDefault();void closeSiteRule();}}}>
-    <header className="r86Header sideAddHeader">
+    <header className="r86Header sideAddHeader ruleEditorHeader">
       <h2>{t(editingSiteRule?'editRule':'addRule')}</h2>
       <Button className="ruleClose" variant="quiet" disabled={busy} aria-label={t('apCloseRuleEditor')} title={t('apCloseRuleEditor')} onClick={()=>void closeSiteRule()}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></Button>
     </header>
@@ -384,7 +384,7 @@ export default function App() {
         <p className="hint ruleSaveNote">{t('apRuleSaveNote')}</p>
         <div className="actions">
           <Button variant="primary" type="submit" className="primary" disabled={busy||(ruleTarget==='endpoint'&&!quickEndpoint)}>{t('saveRule')}</Button>
-          <Button type="button" disabled={busy} onClick={()=>void closeSiteRule(true)}>{t('cancel')}</Button>
+          <Button type="button" disabled={busy} onClick={()=>void closeSiteRule()}>{t('cancel')}</Button>
         </div>
       </form>
     </div>

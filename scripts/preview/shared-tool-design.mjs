@@ -6,6 +6,7 @@ export const SHARED_DESIGN_MARKER = '/* @opendesk-shared-design */';
 export const SHARED_TOKENS_MARKER = '/* @opendesk-shared-tokens */';
 const tokenUrl = new URL('../../src/ui/design-tokens.css', import.meta.url);
 const componentUrl = new URL('../../src/ui/design-system.css', import.meta.url);
+const sharedComponentUrl = new URL('../../src/ui/react/components/ui/sidebar-shared.css', import.meta.url);
 const sharedStart = '/* Shared primitives:';
 const sharedEnd = '/* Keep the trusted tool host';
 const baseSelectors = [':root','*','[hidden]','body','input,select,textarea',
@@ -87,7 +88,7 @@ export function assertLayoutOnly(css) {
   return layout;
 }
 export async function officialDesignSources() {
-  const [tokens,components]=await Promise.all([readFile(tokenUrl,'utf8'),readFile(componentUrl,'utf8')]);
+  const [tokens,components,sharedComponents]=await Promise.all([readFile(tokenUrl,'utf8'),readFile(componentUrl,'utf8'),readFile(sharedComponentUrl,'utf8')]);
   const start=components.indexOf(sharedStart),end=components.indexOf(sharedEnd);
   if(start<0||end<=start)throw Error('E_PREVIEW_DESIGN: official public component boundary missing');
   const publicRules=components.slice(start,end).trim();
@@ -99,8 +100,12 @@ export async function officialDesignSources() {
   }
   if(!publicRules.includes(').od-field{'))
     throw Error('E_PREVIEW_DESIGN: missing official field component');
-  return {tokens,components,publicRules,
-    digest:hash(tokens+'\n'+components)};
+  // HTML's opt-in packer gets the exact Card visuals used by @opendesk/ui.
+  // Switch behavior remains React Aria; never export a CSS-only imitation.
+  const cardRules=['.od-shared-card','.od-shared-card-content','.od-shared-card[data-size="sm"] .od-shared-card-content']
+    .map(selector=>canonicalRule(sharedComponents,selector)).join('\n');
+  return {tokens,components,publicRules,cardRules,
+    digest:hash(tokens+'\n'+components+'\n'+cardRules)};
 }
 export async function compileSharedToolCss(sourceCss) {
   if(sourceCss.trimStart().startsWith(SHARED_TOKENS_MARKER)){
@@ -123,7 +128,7 @@ export async function compileSharedToolCss(sourceCss) {
   }
   if(!sourceCss.trimStart().startsWith(SHARED_DESIGN_MARKER))return sourceCss;
   const layout=assertLayoutOnly(sourceCss);
-  const {tokens,components,publicRules,digest}=await officialDesignSources();
+  const {tokens,components,publicRules,cardRules,digest}=await officialDesignSources();
   const basic=baseSelectors.map(selector=>canonicalRule(components,selector)).join('\n');
   const focus=components.split('\n').find(line=>line.startsWith(':focus-visible{'));
   if(!focus)throw Error('E_PREVIEW_DESIGN: missing canonical focus rule');
@@ -132,7 +137,7 @@ export async function compileSharedToolCss(sourceCss) {
   // The sandbox contains its own document. Only approved, non-privileged visuals
   // are copied; host navigation, workspace and page scroll styles are excluded.
   return '/* opendesk.shared-design.v1 sha256='+digest+'; GENERATED from canonical CSS */\n'+
-    tokens+'\n'+basic+'\n'+focus+'\n'+schemeSource[0]+'}'+'\n'+publicRules+'\n'+layout;
+    tokens+'\n'+basic+'\n'+focus+'\n'+schemeSource[0]+'}'+'\n'+publicRules+'\n'+cardRules+'\n'+layout;
 }
 export async function canonicalThemeOverride(theme) {
   if(!['light','dark'].includes(theme))throw Error('E_PREVIEW_THEME: unsupported theme');

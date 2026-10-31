@@ -1,0 +1,57 @@
+Browser tab: 1, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-f98ab925-5d04-4333-9540-9906ce5d19d7/preview.html".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 57-72
+~						32 tab group AI Proxy views
+~							33 tab (selectable, settable, boolean) Proxy panel, Value: 0, ID: proxy-view-panel
+~							34 tab (selected, settable, boolean) Manage settings, Value: 1, ID: proxy-view-settings
+~						35 container Description: Manage settings, ID: proxy-workspace-panel
+~								37 container Settings sections
+~									38 text Settings sections
+~									39 pop up button (collapsed, settable) Description: Settings sections, Value: Website rules, ID: settings-section, Secondary Actions: Expand
+~											41 container Proxy management
+~												42 Proxy profiles
+~												43 (selected) Website rules
+~												44 Subscriptions
+~												45 Import and backup
+~												46 Network diagnostics
+~												47 General settings
+~											48 container Optional services
+~												49 Official network · Optional official service
+~									51 button (collapsed) Description: Copy page link / Refresh status, Help: ⋯, Secondary Actions: Expand
+~									54 heading Website rules, Value: 2
+~										55 text Website rules
+~									56 text Route by domain through a proxy or DIRECT
++									57 button Add rule, ID: settings-rule-add
++								58 container Website rules
++									59 text Saves the rule without changing your connection. Apply it explicitly from the proxy panel when ready.
++									60 text 3 website rules
++									61 container
++										62 text example.com + Subdomains Priority 10  ·  DIRECT Enabled
++										63 button Edit, ID: settings-rule-rule-docs
++										64 button Delete
++									65 container
++										66 text example.org Priority 20  ·  DIRECT Enabled
++										67 button Edit, ID: settings-rule-rule-local
++										68 button Delete
++									69 container
++										70 text a-very-long-test-subdomain-for-navigation.review.example.net Priority 73  ·  DIRECT Enabled
++										71 button Edit, ID: settings-rule-9a7f5161-e101-4585-83f1-a9cf4912b459
++										72 button Delete
++								73 container
++									74 heading When no rule matches, Value: 2
++										75 text When no rule matches
++									76 text DIRECT by default. Traffic uses a proxy only when explicitly configured; no fallback to unknown nodes. Default route
++									77 pop up button (collapsed, settable) Default route, Value: DIRECT, ID: default-action, Secondary Actions: Expand
++										78 menu
++											79 (selected) DIRECT
++											80 Specific proxy
++									81 text Proxy
++									82 pop up button (disabled, collapsed, settable) Proxy, Value: Please select, ID: default-endpoint, Secondary Actions: Expand
++										83 menu
++											84 (disabled) Please select
++											85 (disabled) 工作代理
++											86 (disabled) 本地客户端
++											87 (disabled) 备用 SOCKS
++									88 button Save default route
++									89 text Current: DIRECT
+The focused UI element is 35 container Description: Manage settings, ID: proxy-workspace-panel

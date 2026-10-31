@@ -31,9 +31,9 @@ function reviewedCompiledTimeReview(target,path,root){
 // Audited video code enters only these existing fixed build entries. Each
 // source is byte-pinned; installed UI JSON can never replace SW/Content code.
 const compiledVideoSpeedInputs=Object.freeze({
-  'projects/video-speed-controller/trusted/policy.js':'23bf069d126b53047539b4038a2114b447f87ec7',
-  'projects/video-speed-controller/trusted/host.js':'e9b67d8c682359afbe0de5b25d6e231580c44d03',
-  'projects/video-speed-controller/trusted/admission.js':'384acd9be2a3c16e39b7b71011b88f5af81559fe',
+  'projects/video-speed-controller/trusted/policy.js':'45c5531da48e44cb8170d4e0766a834591db3903',
+  'projects/video-speed-controller/trusted/host.js':'bd0024ed057e86fa4a0cc2309ed59f09ceacec65',
+  'projects/video-speed-controller/trusted/admission.js':'bcf9a90166da5cae8162fd66b56ebadf2f2320e1',
   'projects/video-speed-controller/trusted/page.js':'5ab8b5ad8c07c8eabb360807c40e336e3e5c840e',
   'projects/video-speed-controller/trusted/service.js':'b0e746d0a18b18d75f95771350345d79f7ddc69b'
 });
@@ -141,11 +141,17 @@ function reviewedCompiledAdblock(target,path,root){
 // Vault revision and readback; Cookie effects retain exact site permission,
 // Store/Partition, user gesture and account version checks. Empty accounts
 // never enter the automatic-switch whitelist. No new source or privilege.
+// 2026-10-31: independently reviewed service configuration/association metadata
+// in the existing Foundation store. The fixed service consumer uses only the
+// original Native subprotocol; no Cookie transfer or sandbox Native authority.
+// Its exact reviewed bytes may enter only the fixed SW closure.
 const compiledCookieAccountInputs=Object.freeze({
-  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'f2b539b1255ba7ad56070015cd889986b50eeac7',
+  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'1b20551bef0c24cb31505960ba9d73f886b8c31c',
   // Reviewed shared-domain restore and post-save proof: full snapshot, final
   // scope/Host fence, redacted URL; proof failure preserves the saved receipt.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'2efe25ce9ac264bf3ac0e5bad1978375a9ef7280',
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'f7d79918af45f254a6a04f9e07b11aa41432268c',
+  'examples/sidebar-tools/cookie-editor/trusted/service-connections.js':'e2f0007c8e82084125c86ea9c72ac4c43bd5bf6a',
+  'examples/sidebar-tools/cookie-editor/trusted/service-session.js':'8a4654e89d518d88cbf1993f774c78ee5ed1228d',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
   'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
@@ -498,6 +504,22 @@ function reviewedCompiledHostStyle(target,path,root){
 
 const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')
   .map(row=>[row.npm,row.output]));
+// Only reviewed static AI Proxy inputs enter the existing trusted React shell.
+// The admission module also serves the original Tool Host. Installed package
+// bytes remain opaque; source drift requires a separate reviewed lock update.
+const compiledAIProxyInputs=Object.freeze(JSON.parse(readFileSync(
+  new URL('../projects/ai-proxy/trusted/source-lock.json',import.meta.url),'utf8')));
+function reviewedCompiledAIProxy(target,path,root){
+  if(!Object.hasOwn(compiledAIProxyInputs,path)||
+    !(target==='ui/tool-shell.js'||target==='ui/sidebar-tool-host.js'&&
+      path==='projects/ai-proxy/trusted/admission.js'))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted AI Proxy source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledAIProxyInputs[path])throw Error('Trusted AI Proxy source changed; review and re-pin: '+path);
+  return hash;
+}
 export function assertLibraryModuleBoundary(target,path,npmName) {
   const embeddedPackage=[...npmOwners].find(([name])=>npmName===name||path.includes('node_modules/'+name+'/'));
   const packageSource=path.startsWith('src/libs/packages/');
@@ -540,6 +562,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledSharedMarkdown(chunk.fileName,path,root)||
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
       reviewedCompiledReadingToc(chunk.fileName,path,root)||
+      reviewedCompiledAIProxy(chunk.fileName,path,root)||
       reviewedCompiledHostStyle(chunk.fileName,path,root);
     if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|projects\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);

@@ -12,6 +12,7 @@ export const COOKIE_REACT_SOURCE_FILES=[
   'app/components/CookieEditorView.jsx','app/components/CookieAccounts.jsx',
   'app/components/CookieAccountExperiences.jsx',
   'app/components/CookieBusinessPanels.jsx',
+  'app/components/CookieServiceConnections.jsx',
   'app/components/CookieInlineEditor.jsx','app/components/CookieClearDialog.jsx',
   'app/components/CookieImport.jsx','app/components/CookieExport.jsx',
   'app/components/CookiePermissions.jsx','app/components/CookieOfflineWorkspace.jsx',

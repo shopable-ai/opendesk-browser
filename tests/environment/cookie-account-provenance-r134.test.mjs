@@ -9,14 +9,16 @@ import {parse} from 'acorn';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 
-// Independently reviewed cdfe6e3d6 bytes plus the uninstall-race repair: the flow uses
-// trusted Foundation storage and preserves the legacy encrypted record.
-// Git fixtures verify exact approval without rewriting another owner's service.
+// Independently reviewed account flow and fixed internal service consumer.
+// Current source fixtures must match exact reviewed Git blobs before admission;
+// no generated or installed package can inherit this approval.
 // No source is executed, transformed, built or installed by these tests.
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
-  'trusted/account-contract.js':'1d17f897014a4c4e2876018994a6daaea255c835',
-  'trusted/account-service.js':'db6aad9e0f8936fcb735f6ff605f274399c6404b',
+  'trusted/account-contract.js':'1b20551bef0c24cb31505960ba9d73f886b8c31c',
+  'trusted/account-service.js':'f7d79918af45f254a6a04f9e07b11aa41432268c',
+  'trusted/service-connections.js':'e2f0007c8e82084125c86ea9c72ac4c43bd5bf6a',
+  'trusted/service-session.js':'8a4654e89d518d88cbf1993f774c78ee5ed1228d',
   'trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };
@@ -37,7 +39,7 @@ function fixture(t){
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   for(const [name,pin] of Object.entries(pins)){
     const file=resolve(root,prefix+name);
-    const bytes=execFileSync('git',['cat-file','blob',pin]);
+    const bytes=readFileSync(new URL('../../'+prefix+name,import.meta.url));
     assert.equal(blob(bytes),pin);
     mkdirSync(dirname(file),{recursive:true});writeFileSync(file,bytes);
   }
@@ -115,8 +117,10 @@ test('R134: audited Cookie closure uses only static imports and a pure shared co
   assert.deepEqual(deps(contract),[]);
   assert.deepEqual(deps('app/domain/account-switch-url.js'),[]);
   assert.deepEqual([...new Set(deps('trusted/account-vault.js'))],['./account-contract.js']);
+  assert.deepEqual(deps('trusted/service-connections.js'),['./account-contract.js']);
+  assert.deepEqual(deps('trusted/service-session.js'),['../../../../src/native-agent/managed-service-protocol.js']);
   assert.deepEqual(deps('trusted/account-service.js').filter(path=>!path.startsWith('../../../../src/')),
-    ['../app/domain/account-switch-url.js','./account-vault.js','./account-contract.js','./account-contract.js']);
+    ['../app/domain/account-switch-url.js','./account-vault.js','./service-connections.js','./service-session.js','./account-contract.js','./account-contract.js']);
 });
 
 test('R134: the pre-fence service is rejected, and working-tree drift never inherits approval',t=>{

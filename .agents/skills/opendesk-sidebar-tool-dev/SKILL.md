@@ -89,7 +89,13 @@ Stay Focus 安装提交前，静态 Side Panel 适配器的 `focus.probe` 对当
 
 需要网页模型设计时，使用 [opendesk-ui-preview](../opendesk-ui-preview/SKILL.md) 的 canonical CSS、源 SHA 与真实附件传递规范；本地 Skill 路径不等于网页模型已获得规范。交付交互原型时使用无 Chrome/Native 写入权限的模拟数据，提供可打开 HTML，并在客户端支持时直接呈现；截图或包 JSON 不等于交互预览。设计原型、stage 只读包预览和可安装包分级，完整宿主 CSS 不可注入动态工具 iframe。
 
+**离线公共预览模板（2026-10-30）**：沿用 `sidebar-preview-kit.mjs` 设计稿和 `scripts/preview/build-preview.mjs` 源码同源预览；二者共同消费 `scripts/templates/sidebar-tool-preview-shell.html` 这一唯一完整宿主 DOM，导航/返回/模拟卸载共用 `scripts/preview/sidebar-shell-behavior.js`；`scripts/templates/sidebar-preview.html` 仅为设计内容/模拟逻辑 fragment，kit 仍输出完整单文件 HTML、prompt 和 manifest。共享 helper 配置只读、纯模拟，不产生平台写入或公开 API 变化。`sidebar-shell-source.mjs` 继续提取真实 `src/ui/react/` 导航/工具栏与 `src/ui/tool-shell.css`。SSR 当前含 7 项（含隐藏 `app-debug`），预览仅显示正式五 Tab，不硬编码总数。设计稿仅允许修改 `#od-preview-app` 内部与 `#od-preview-behavior` 中 `/* DESIGN_APP_BEHAVIOR */` 标记之后的工具逻辑；标记及之前的共享宿主交互受 check 保护。返回/标题/模拟卸载取消、确认和恢复沿用真实外壳位置，顶部正式工具标题已有 `role="heading"`，内容不重复工具标题或 `h1`。状态、主题、恢复及模拟说明留在应用外部；正式源码、安装包和 iframe 不含辅助控件。宿主始终 light，工具仅按已支持能力切换 light/dark。
+
+设计稿外部状态为模拟已授权/未授权/撤权/加载/空/失败/长文本及恢复；未保存表单期间禁用外部状态/主题/恢复，取消或 Escape 返回后恢复这些控件。quick-notes 场景支持 `success / permission-denied / revoked / loading / empty / error / untrusted / long`，外部状态/工具主题/恢复切换重建纯内存 iframe，须提示模拟数据会重置，不冒充真实授权。bookmark-manager 外部选择支持 `success / empty / error / loading / permission-denied / untrusted` 六种既有场景及 light/dark，切换同样重建内存 iframe；另保留专属外部 lab 的 8 项运行时命令（含 revoke/restore）。它不支持 quick-notes 新增的 `revoked / long` 场景值，`revoke` 命令不等于 `revoked` 场景；未接入控件的工具明确不支持，不复用其专有故障注入。允许共享模板增加真正通用的外部辅助区，并同步来源锁与受影响检查。源码同源预览切换重置纯模拟内存，不涉及真实结果未知（unknown）的操作；产品未知副作用保护保持原样。实际证据见本轮生成文件与报告，生成成功不代表交互终验或测试 PASS；普通离线预览不默认进入安装、Browser 构建、发布、全量验收或评分。详见[预览外壳合同](../../../docs/architecture/browser-framework/ui-preview-shell-template-r12.zh-CN.md)。
+
 独立工具页不堆静态描述：依照 [R28 多功能区 Tab 契约](../../../docs/architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md)，头部默认只有返回、当前标题和必要操作；文件夹/列表等集合“＋ 新建”放在所属区域标题右侧，条目管理入口必须能在窄屏/键盘下找到。真正的授权/错误等动态提示放到状态区，不借口信息完整性常驻重复描述。
+
+**内容区精简与状态间距**：按[统一 UI 规范](../../../docs/api/sidebar-tool-development.zh-CN.md#6-统一-uiux-与代码质量规范)移除不提供目标选择的重复对象/检测说明，刷新放在所属区域右上角；不为刷新另留空行。同步删除失效的 DOM 查询和冗余渲染，保留实际状态、忙碌锁及可访问名称。状态行自然撑高，检查分隔线到文字、文字到卡片底部的留白，不用固定最小高度或纵向均分填充。正式源码与已有交互 HTML 同步修改，只验证受影响的操作与状态。
 
 **子视图标题同步（R2.2）**：业务通过原有受约束的 `OpenDeskTool.setNavigation({page,title,canBack,...})` 继续上报**完整**业务页名（例如「提示词详情」「编辑书签」）；已验真宿主的共享 Header **只显示当前短名称**（「详情」「编辑」；可信设置「设置」；根页仍为工具名）。完整工具/业务路径在可信 `title` / `aria-label` 中，不在沙箱里删业务含义，也不创建面包屑、第二条 Header 或父子 flex 拉伸留白。普通第三方或未验真的同 ID 包保留自己的内部导航，不能控制可信标题。书签 React 的新建/编辑 Sheet 有真实 `requestCloseSheet()` 和脏草稿 Back，允许显示短标题；详情 PreviewPane、菜单仍非子路由。权限、保存锁和返回操作不由标题字符串决定。详见[共享导航合同](../../../docs/architecture/sidebar-tool-navigation-contract-r1.zh-CN.md)；纯 Browser Host 修复不必重打未改动的 JSON 包。
 
@@ -176,3 +182,9 @@ React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调
 仅当现有 SDK Registry 支持 `browser.siteBudget` 时，在原项目 `tool.config.json` 声明受限能力与 `backgroundPolicy`：`{kind:'site-budget.v2',dailyMinutes:30,defaultSites:[],schedule:{enabled:false,days:[1,2,3,4,5],startMinute:540,endMinute:1020},suggestions:[{host:'example.com',name:'Example',category:'工作',suggestLimit:true,quick:false}]}`。保存/运行时由应用 UI 使用 `OpenDeskSDK.browser.siteBudget.getStatus()` 取得 `desiredPolicyRev`，再通过 `setPolicy({enabled,dailyMinutes,sites,schedule,expectedRev})` 申请用户审阅。安装/升级先由原 Installer 验证版本、容量、来源与包摘要；未批准时不得因模板自动创建规则。普通工具不要把 `chrome.*`、DNR ID、Worker JavaScript 或自建报警/保活器写入自己的项目。
 
 仍按已有 `scripts/build-sidebar-tool.mjs` → Extension Center 导入/审核 → 同 ID 升级 → 停用/卸载路径交付。不需要重编 Browser 来更改已支持的站点、额度、时段；但**此能力截至 R1.4 仅有源码提交，原生 Chrome 与固定 B0 验收尚未通过**。无原生证据不得声称侧边栏关闭后计时或新包独立升级已验证。见 `docs/api/browser-sdk.zh-CN.md`。
+
+## 2026-10-30 · 组件组合入口
+
+模板完善与新设计先运行原 `sidebar-preview-kit.mjs create`，从同目录 `components.html` 实际操作真实共享 Button/IconButton/Card/Switch，读取 `component-recipes.md` 的 HTML/JSX 接入；设计稿外部有直接入口。不是另建 Atlas，完整参考仍用 `prototypes/sidebar/extension-ui-showcase/index.html`。具体支持、源码及边界见[组件与组合入口](../../../docs/api/sidebar-preview-kit.zh-CN.md#组件与组合的直接入口2026-10-30)。
+
+默认复用 Card、od-form-field/label/field/help/error、od-alert 及各语义状态组合，不能只要求“遵守规范”。React 从现有 `@opendesk/ui` 导入，原生字段不是虚构的 Field/Select API；运行时不自动发布全套表单/布局 CSS，需要时由工具静态 CSS 显式编译 canonical 规则。HTML 原工具继续原生语义，原共享样式提取器现已输出同源 Card 子集，不手绘 React Aria Switch。组件示例为 SOURCE_COMPONENT_PREVIEW，单独保存源/依赖/产物 SHA，不能冒充安装包或 Native 验收。

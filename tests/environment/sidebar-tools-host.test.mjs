@@ -18,7 +18,7 @@ import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {MANAGED_SITE_BUDGET_PROTOCOL,MANAGED_SITE_RUNTIME_CONTRACT} from '../../src/platform/host/managed-site-runtime-contract.js';
 import {ANALYTICS_PROTOCOL} from '../../src/analytics/contract.js';
-import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash,sidebarToolPackageContractHash} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {OFFICIAL_STAY_FOCUS_RELEASE_URL as OFFICIAL_FOCUS_LATEST_URL} from '../../src/sidebar-tools/official-catalog.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
@@ -697,7 +697,8 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const {doc,view,elements,emit,selectFile}=toolRuntimeFixture();
   const store=new Map();
   const changed=new Node();
-  const api={runtime:{getURL:path=>'chrome-extension://test/'+path,async sendMessage(message){
+  const api={runtime:{id:'test',getManifest:()=>({version:'0.1.0'}),getURL:path=>'chrome-extension://test/'+path,async sendMessage(message){
+    if(message?.kind==='runtime-contract')return {ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:await sidebarToolPackageContractHash()}};
     if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
       return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
   }},
@@ -883,8 +884,9 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
   let focused=0;
   const changed=new Node();
-  const api={runtime:{getURL:p=>'chrome-extension://test/'+p,async sendMessage(message){
+  const api={runtime:{id:'test',getManifest:()=>({version:'0.1.0'}),getURL:p=>'chrome-extension://test/'+p,async sendMessage(message){
     if(hostReply){const response=await hostReply(message,{store});if(response!==undefined)return response;}
+    if(message?.kind==='runtime-contract')return {ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:await sidebarToolPackageContractHash()}};
     if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
       return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
   }},storage:{session:{async get(){return {};},async remove(){}},onChanged:{
@@ -986,6 +988,7 @@ async function videoShortcutHostFixture(t){
       assert.deepEqual(req.target,{tabId:4,documentIds:['video-doc']});
       assert.equal(req.world,'ISOLATED');
       const [mode,speed]=req.args;
+      if(typeof mode==='object')return [{frameId:0,documentId:'video-doc',result:{shown:true}}];
       if(mode==='shortcut-off'&&removeFails)throw Error('old document is inaccessible');
       if(mode==='set')rate=speed;
       const result=mode.startsWith('shortcut-')?{found:false,count:0,shortcuts:mode==='shortcut-on'}:
@@ -1024,8 +1027,22 @@ test('video shortcut receiver rejects forged sender and nonce, then independentl
   assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='error'),undefined,JSON.stringify(f.frame.contentWindow.sent.filter(row=>row.kind==='error')));
   assert.equal(f.rate,1.25);
   assert.equal(f.calls.filter(req=>req.args[0]==='set').length,1);
-  assert.equal(f.calls.at(-1).args[0],'read');
+  await settle(()=>f.calls.some(req=>typeof req.args[0]==='object'));
+  const toast=f.calls.at(-1);
+  assert.equal(toast.args[0].message,'视频倍速 · 1.25×');
+  assert.ok(f.calls.findIndex(req=>req.args[0]==='read')<f.calls.indexOf(toast),'feedback follows independent readback');
   assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='verified').result.verified,true);
+});
+test('video shortcut suppresses a stale success toast after another window changes the global revision',async t=>{
+  const f=await videoShortcutHostFixture(t);
+  f.setGlobalReply(async()=>{
+    f.setGlobalState(false,1,'stopped-later');
+    return {ok:true,data:{enabled:false,speed:1,revision:''}};
+  });
+  f.emitSignal();await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='verified'));
+  await f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+  assert.equal(f.calls.some(req=>typeof req.args[0]==='object'),false);
+  assert.equal(f.calls.filter(req=>req.args[0]==='set').length,1);
 });
 test('video shortcut reports unknown global status without pretending the entire key succeeded',async t=>{
   const f=await videoShortcutHostFixture(t);
@@ -1450,7 +1467,7 @@ test('R14 import refuses oversized packages, ignores stale asynchronous reads an
   f.emit(f.elements['sidebar-tool-import-trigger'],'click');
   const input=f.elements['sidebar-tool-file'];
   input.value='C:\\fakepath\\too-big.json';
-  f.selectFile({name:'too-big.json',size:320001,text:async()=>JSON.stringify(sample)});await pause();
+  f.selectFile({name:'too-big.json',size:2*1024*1024+1,text:async()=>JSON.stringify(sample)});await pause();
   assert.match(f.elements['sidebar-tool-file-error'].textContent,/超过 320 KB/);
   assert.equal(input.value,'C:\\fakepath\\too-big.json','selected filename must remain in native picker');
   assert.equal(f.elements['sidebar-tool-install'].disabled,true);
@@ -1478,6 +1495,34 @@ test('R5.3 local review identifies normalized candidate/current hashes and cance
   f.emit(f.elements['sidebar-tool-import-close'],'click');
   assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),before);
+});
+
+test('import refuses a mixed runtime before review and preserves the old installation',async t=>{
+  const f=await hostFixture(t,{startTool:false,hostReply:async message=>message.kind==='runtime-contract'
+    ?{ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:'0'.repeat(64)}}:undefined});
+  const before=structuredClone([...f.store]);
+  f.host.openImport();
+  const text=JSON.stringify({...sample,version:'1.0.1'});
+  f.selectFile({name:'candidate.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>Boolean(f.elements['sidebar-tool-file-error'].textContent));
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/安装器与实际 Worker/);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.deepEqual([...f.store],before);
+});
+
+test('a Worker contract change after review cannot commit the candidate',async t=>{
+  let mixed=false;
+  const f=await hostFixture(t,{startTool:false,hostReply:async message=>mixed&&message.kind==='runtime-contract'
+    ?{ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:'0'.repeat(64)}}:undefined});
+  const before=structuredClone([...f.store]);
+  f.host.openImport();
+  const text=JSON.stringify({...sample,version:'1.0.1'});
+  f.selectFile({name:'candidate.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  mixed=true;f.emit(f.elements['sidebar-tool-install'],'click');
+  await settle(()=>Boolean(f.elements['sidebar-tool-file-error'].textContent));
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/安装器与实际 Worker/);
+  assert.deepEqual([...f.store],before);
 });
 
 test('local official import updates the reviewed release and preserves app data',async t=>{

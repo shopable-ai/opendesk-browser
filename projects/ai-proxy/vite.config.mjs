@@ -69,7 +69,9 @@ function receiptPlugin(){
 export default defineConfig({
   root,base:'./',esbuild:{jsx:'automatic'},plugins:[receiptPlugin()],
   define:{'process.env.NODE_ENV':JSON.stringify('production')},
-  build:{target:'es2022',minify:'esbuild',cssCodeSplit:false,emptyOutDir:true,
+  // Reuse the workspace's installed CSS compiler to keep the standalone
+  // stylesheet within the public 120000-character package budget.
+  build:{target:'es2022',minify:'esbuild',cssMinify:'lightningcss',cssCodeSplit:false,emptyOutDir:true,
     lib:{entry:resolve(root,'src/main.jsx'),name:'OpenDeskAIProxy',
       formats:['iife'],fileName:()=>'tool.js',cssFileName:'tool'},
     rollupOptions:{

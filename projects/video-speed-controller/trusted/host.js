@@ -1,6 +1,23 @@
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY,VIDEO_SPEED_OPERATIONS,validVideoSpeed} from './policy.js';
+import {requestPageToast} from '../../../src/platform/chrome/page-toast.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
+
+export async function notifyVideoSpeed({result,error,...access}){
+  let message,variant='success';
+  if(error){
+    variant='warning';
+    message=error.code==='E_VIDEO_NOT_FOUND'?'视频倍速 · 未找到可调速的视频':
+      '视频倍速 · 操作未确认，请在侧栏重新检测';
+  }else{
+    if(result?.status!=='available'||!Number.isFinite(result.speed))return {shown:false};
+    const actual=Number(result.speed.toFixed(2))+'×';
+    variant=result.verified?'success':'warning';
+    message=result.verified?(result.requested===1?'视频倍速 · 已恢复 '+actual:'视频倍速 · '+actual):
+      '视频倍速 · 目标 '+Number(result.requested.toFixed(2))+'× 未生效，实际 '+actual;
+  }
+  return requestPageToast({...access,id:VIDEO_SPEED_ID,message,variant,position:'top',duration:variant==='warning'?3500:2000});
+}
 
 // Chrome serializes THIS fixed function into the isolated world of an exact
 // webNavigation document. It must remain self-contained; sandbox JS is never
@@ -152,7 +169,7 @@ async function inject(api,tabId,frame,mode,speed=null,token='',nonce='',revision
 }
 export async function requestVideoSpeed({
   api,tool,operation,payload,currentPageTarget,revocationEpoch,
-  assertCurrent,assertInstalled,shortcutNonce=null,globalRevision=''
+  assertCurrent,assertInstalled,shortcutNonce=null,globalRevision='',feedback=false
 }={}) {
   if(tool?.id!==VIDEO_SPEED_ID||
      !tool?.capabilities?.includes(VIDEO_SPEED_CAPABILITY)||
@@ -267,7 +284,13 @@ export async function requestVideoSpeed({
   assertLiveTarget();
   if(!verified.found||!Number.isFinite(verified.speed))
     throw fail('E_VIDEO_READBACK','倍速已经请求，但无法核对实际结果；请刷新读取');
-  return {status:'available',speed:verified.speed,requested:args.speed,
+  const result={status:'available',speed:verified.speed,requested:args.speed,
     verified:Math.abs(verified.speed-args.speed)<=0.02,
     playing:verified.playing,count:videoCount,partial};
+  if(feedback){
+    try{await notifyVideoSpeed({api,currentPageTarget,assertCurrent,assertInstalled,result});}
+    catch{/* Feedback failure never retries or changes a verified media write. */}
+    assertLiveTarget();
+  }
+  return result;
 }

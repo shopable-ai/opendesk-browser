@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_LIMITS} from '../ui/sidebar-tools/limits.js';
 // Runs only as an opaque-origin Chrome MV3 sandbox document, never in the privileged Side Panel.
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_SHARED_UI_RUNTIME} from '../ui/sidebar-tools/package.js';
 import {createBrowserSdk} from '../framework/sdk/browser.js';
@@ -372,7 +373,8 @@ export function initSidebarToolSandbox() {
         message.instance.length>90 || !message.tool || typeof message.tool!=='object')return;
     const tool=message.tool;
     if (typeof tool.id!=='string' || typeof tool.html!=='string' || typeof tool.css!=='string' ||
-        typeof tool.js!=='string' || tool.html.length>64000 || tool.css.length>120000 || tool.js.length>220000)return;
+        typeof tool.js!=='string' || tool.html.length>SIDEBAR_TOOL_LIMITS.html || tool.css.length>SIDEBAR_TOOL_LIMITS.css ||
+        tool.js.length>SIDEBAR_TOOL_LIMITS.js || new TextEncoder().encode(tool.js).byteLength>SIDEBAR_TOOL_LIMITS.js)return;
     // Consume the transferred endpoint before loading scripts. Later tool
     // message listeners must never observe this closure-private capability.
     if(stopImmediate)apply(stopImmediate,event,[]);

@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_LIMITS} from '../../src/ui/sidebar-tools/limits.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,rm,symlink,access} from 'node:fs/promises';
@@ -7,7 +8,7 @@ import {createHash} from 'node:crypto';
 import {runInNewContext} from 'node:vm';
 import {createOfficialToolResources,buildOfficialTools,officialToolInputs,readOfficialSources}
   from '../../scripts/build-official-tools.mjs';
-import {createSidebarToolPackage,buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
+import {createSidebarToolPackage,buildSidebarTool,promoteSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {validateOfficialSourceCatalog,validateOfficialReleaseCatalog,OFFICIAL_SOURCE_SCHEMA,
   OFFICIAL_SOURCE_REPOSITORY,OFFICIAL_CATALOG_PATH,OFFICIAL_STAY_FOCUS_RELEASE_URL,officialPackagePath,loadOfficialCatalog,loadOfficialTool,
   officialToolStatus,matchesOfficialRelease} from '../../src/sidebar-tools/official-catalog.js';
@@ -86,21 +87,23 @@ async function fixture(t){
 test('R4.8 authored catalog includes default Cookie Editor and optional AI VIP Share UI',async()=>{
   const source=await readOfficialSources();
   assert.deepEqual(source.tools.map(row=>row.id).sort(),
-    ['adblock','ai-knowledge-answers','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-speed-controller','web-markdown-clipper']);
+    ['adblock','ai-knowledge-answers','ai-proxy','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-downloader','video-speed-controller','video-svip','web-markdown-clipper']);
   const policies=Object.fromEntries(source.tools.map(row=>[row.id,row.installationPolicy]));
   assert.deepEqual(policies,{'ai-send-queue':'optional','ai-knowledge-answers':'optional','reading-toc':'preinstalled','web-markdown-clipper':'optional',
-    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled','video-speed-controller':'optional'});
+    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled','video-speed-controller':'optional','ai-proxy':'optional','video-svip':'optional','video-downloader':'optional'});
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);
     await assert.rejects(access('src/sidebar-tools/'+row.id+'.opendesk-tool.json'),
       error=>error.code==='ENOENT','runtime sources contain no generated package copies');
-    // Promoted releases keep their reviewed identity while development
-    // sources may advance. Other entries still build from current source.
+    // Canonical promoted packages keep their reviewed identity even without
+    // an explicit packageFile override; draft source may advance independently.
     const portable=await readFile(row.project+'/'+row.id+'.opendesk-tool.json','utf8')
       .catch(error=>{if(error.code==='ENOENT'&&row.id!=='cookie-editor')return null;throw error;});
-    if(portable!==null&&!row.packageFile)
-      assert.deepEqual(JSON.parse(portable),await createSidebarToolPackage(row.project));
+    if(portable!==null&&!row.packageFile){
+      const release=(await officialFixtures()).resources.get(officialPackagePath(row.id));
+      assert.deepEqual(release,Buffer.from(portable));
+    }
   }
   assert(!source.tools.some(row=>/starter/.test(row.id)));
 });
@@ -123,7 +126,7 @@ test('managed proxy release metadata uses v2 while unknown capabilities remain d
     'browser.cookies.write','currentPage.read']);
   assert.deepEqual(validateOfficialReleaseCatalog(catalog),catalog);
   release.capabilities.push('browser.proxy.unapproved');
-  assert.throws(()=>validateOfficialReleaseCatalog(catalog),error=>error.code==='E_TOOL_SCHEMA');
+  assert.throws(()=>validateOfficialReleaseCatalog(catalog),error=>error.code==='E_TOOL_CAPABILITY_UNSUPPORTED');
 });
 test('R4.8 first-install intent uses fixed classic WXT resource without bundling the installer into SW',async()=>{
   const sw=await readFile('src/sw.js','utf8');
@@ -168,10 +171,12 @@ test('R4.5 exact bytes, versions and capabilities are reproducible from the exis
     assert.deepEqual(bytes,b.resources.get(release.packagePath));
     assert.equal(bytes.length,release.bytes);assert.equal(hash(bytes),release.sha256);
     const row=source.tools.find(row=>row.id===release.toolId);
-    const config=JSON.parse(await readFile(row.project+'/'+(row.packageFile||'tool.config.json'),'utf8'));
+    const promoted=row.packageFile||(b.sourceInputs.some(input=>
+      input.path===row.project+'/'+row.id+'.opendesk-tool.json')?row.id+'.opendesk-tool.json':null);
+    const config=JSON.parse(await readFile(row.project+'/'+(promoted||'tool.config.json'),'utf8'));
     assert.equal(release.version,config.version);assert.deepEqual(release.capabilities,config.capabilities);
-    if(row.packageFile){
-      assert.deepEqual(await readFile(row.project+'/'+row.packageFile),bytes,
+    if(promoted){
+      assert.deepEqual(await readFile(row.project+'/'+promoted),bytes,
         'promoted import and official distribution share exact bytes');
     }else{
       const report=await buildSidebarTool(row.project,{out:join(out,release.toolId+'.json')});
@@ -210,6 +215,54 @@ test('R4.5 adding a source catalog entry supplies release and marketplace withou
   assert.deepEqual(apps.map(row=>row.id),['opendesk/first-tool','opendesk/second-tool']);
   assert.equal(apps[0].version,'1.0.0');assert.equal(apps[0].title,'示例 first-tool');
   assert.equal(globalThis.__officialToolMustNotRun,undefined,'building/reading never executes tool JS');
+});
+async function promoteFixture(root,project){
+  const candidate=join(root,'candidate.json');
+  await buildSidebarTool(join(root,project),{out:candidate});
+  await promoteSidebarToolPackage(join(root,project),{from:candidate});
+}
+test('promoted canonical packages isolate official releases from unfinished compiled source',async t=>{
+  const f=await fixture(t);
+  for(const row of f.catalog.tools){
+    await promoteFixture(f.root,row.project);
+    const config=f.config(row.id);
+    config.version='999.0.0';config.capabilities=['network'];config.files.js='dist/tool.js';
+    await f.write(row.project+'/tool.config.json',JSON.stringify(config));
+    await assert.rejects(createSidebarToolPackage(join(f.root,row.project)),/build-ready/);
+  }
+  const result=await createOfficialToolResources({root:f.root});
+  assert.deepEqual(result.sourceInputs.map(row=>row.path).sort(),[OFFICIAL_CATALOG_PATH,
+    ...f.catalog.tools.map(row=>row.project+'/'+row.id+'.opendesk-tool.json')].sort());
+  for(const release of result.catalog.apps){
+    const row=f.catalog.tools.find(row=>row.id===release.toolId);
+    const bytes=await readFile(join(f.root,row.project,row.id+'.opendesk-tool.json'));
+    assert.equal(release.version,'1.0.0');assert.deepEqual(release.capabilities,['storage.local']);
+    assert.deepEqual(result.resources.get(release.packagePath),bytes);
+    assert.equal(release.bytes,bytes.length);assert.equal(release.sha256,hash(bytes));
+  }
+});
+test('invalid promoted package never falls back to source or replaces last valid release',async t=>{
+  const f=await fixture(t),row=f.catalog.tools[0],out=join(f.root,'output');
+  const path=row.project+'/'+row.id+'.opendesk-tool.json';
+  await promoteFixture(f.root,row.project);
+  const good=await readFile(join(f.root,path));
+  const previous=await buildOfficialTools(out,{root:f.root});
+  const wrongId={...JSON.parse(good),id:'other-tool'};
+  const unknown={...JSON.parse(good),capabilities:['browser.unapproved']};
+  for(const bytes of [Buffer.from('{broken'),Buffer.from(JSON.stringify(wrongId)),Buffer.from(JSON.stringify(unknown)),
+    Buffer.from(JSON.stringify(JSON.parse(good)))]){
+    await f.write(path,bytes);
+    await assert.rejects(buildOfficialTools(out,{root:f.root}));
+    for(const [name,expected] of previous.resources)
+      assert.deepEqual(await readFile(join(out,name)),expected);
+  }
+  row.packageFile=row.id+'.opendesk-tool.json';await f.save();
+  await rm(join(f.root,path));
+  await assert.rejects(buildOfficialTools(out,{root:f.root}),{code:'ENOENT'});
+  for(const [name,expected] of previous.resources)
+    assert.deepEqual(await readFile(join(out,name)),expected);
+  await symlink(join(f.root,row.project,'src/main.js'),join(f.root,path));
+  await assert.rejects(buildOfficialTools(out,{root:f.root}),/regular file|symlink/);
 });
 test('R4.5 source change updates only its release bytes and catalog, with declared input identity',async t=>{
   const f=await fixture(t),a=await createOfficialToolResources({root:f.root});
@@ -311,9 +364,9 @@ test('R4.5 corrupt, missing, redirected and over-limit resources cannot be revie
   for(const fetcher of [
     async()=>new Response('missing',{status:404}),
     async()=>new Response(Buffer.concat([bytes,Buffer.from(' ')])),
-    async()=>new Response('x'.repeat(320001)),
+    async()=>new Response('x'.repeat(SIDEBAR_TOOL_LIMITS.packageBytes+1)),
     async()=>({ok:true,url:'https://untrusted.example/package',arrayBuffer:async()=>bytes}),
-    async()=>new Response(bytes,{headers:{'content-length':'320001'}})
+    async()=>new Response(bytes,{headers:{'content-length':String(SIDEBAR_TOOL_LIMITS.packageBytes+1)}})
   ])await assert.rejects(loadOfficialTool(release,{api,fetcher}));
   await assert.rejects(loadOfficialTool({...release,sha256:'a'.repeat(64)},{api,fetcher:officialFixtureFetch}),e=>e.code==='E_PACKAGE_INTEGRITY');
   await assert.rejects(loadOfficialTool({...release,version:'99.0.0'},{api,fetcher:officialFixtureFetch}),e=>e.code==='E_PACKAGE_IDENTITY');
@@ -326,7 +379,7 @@ test('R4.5 generated catalog rejects forged paths, duplicate releases, persisted
   const {catalog}=await officialFixtures(),first=catalog.apps[0];
   for(const app of [{...first,packagePath:'../sw.js'}, {...first,packagePath:'https://example.com/tool.json'},
     {...first,installationPolicy:'default'}, {...first,kind:'page-program'}, {...first,sha256:'bad'},
-    {...first,bytes:320001}, {...first,sites:['https://example.com']}])
+    {...first,bytes:SIDEBAR_TOOL_LIMITS.packageBytes+1}, {...first,sites:['https://example.com']}])
     assert.throws(()=>validateOfficialReleaseCatalog({...catalog,apps:[app]}));
   assert.throws(()=>validateOfficialReleaseCatalog({...catalog,apps:[first,first]}));
   assert.throws(()=>validateOfficialReleaseCatalog({...catalog,installed:[]}));

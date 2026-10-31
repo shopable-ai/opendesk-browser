@@ -115,6 +115,15 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   const [ruleError,setRuleError] = useState(false);
   const [ruleSaved,setRuleSaved]=useState(false);
   const [editingRuleId,setEditingRuleId] = useState('');
+  const [ruleEditorOpen,setRuleEditorOpen] = useState(false);
+  const ruleEditorGeneration=useRef(0);
+  const ruleListPosition=useRef({top:0,focusId:'settings-rule-add'});
+  useEffect(()=>()=>{ruleEditorGeneration.current++;},[]);
+  useEffect(()=>{
+    if(tab==='rules')return;
+    ruleEditorGeneration.current++;
+    setRuleEditorOpen(false);
+  },[tab]);
   const [defaultAction,setDefaultAction] = useState('direct');
   const [defaultEndpointId,setDefaultEndpointId] = useState('');
   const [backup,setBackup] = useState('');
@@ -218,20 +227,14 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     setDefaultAction(state.config.defaultTarget.action);
     setDefaultEndpointId(state.config.defaultTarget.endpointId ?? '');
   }, [state?.config.defaultTarget.action, state?.config.defaultTarget.endpointId]);
-  // New website rules prefer an existing proxy rather than silently defaulting to DIRECT.
-  useEffect(() => {
-    const firstEndpointId = state?.config.endpoints[0]?.id;
-    if (!editingRuleId && firstEndpointId) {
-      setRule(previous => previous.action === 'endpoint' && !previous.endpointId
-        ? {...previous,endpointId:firstEndpointId} : previous);
-    }
-  }, [editingRuleId, state?.config.endpoints]);
   if (!state) return <main className="options"><h1>AI Proxy</h1>
     <p>{t('readingBrowserState')}</p>{error && <p role="alert" className="notice error">{error}</p>}
     <Button onClick={() => void refresh()}>{t('retry')}</Button></main>;
   const config = state.config;
   const endpoints = config.endpoints;
   const profiles = config.profiles;
+  let ruleDomain='';
+  try{ruleDomain=normalizeRuleSiteInput(rule.domain);}catch{/* Invalid input has no matching preview. */}
   const endpointRefs = (id:string) => profiles.filter(p => p.kind === 'endpoint' && p.endpointId === id);
   const selectedProfile = profiles.find(p => p.id === config.selection.profileId);
   async function insertPacStarter() {
@@ -322,6 +325,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   async function saveRule(event: React.FormEvent) {
     event.preventDefault();
     setRuleSaved(false);
+    const generation=ruleEditorGeneration.current;
     const draftRevision=getEnvironment().getDraftRevision('settings-rule');
     let domain: string;
     try { domain = normalizeRuleSiteInput(rule.domain); }
@@ -343,26 +347,50 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       action:rule.action,...(rule.action==='endpoint'?{endpointId:rule.endpointId}:{})
     };
     if (await act({type:'SAVE_RULE',rule:item})) {
-      if(!getEnvironment().setDraftDirty(false,'settings-rule',draftRevision))return;
-      setRule({domain:'',includeSubdomains:true,action:'endpoint',
-        endpointId:config.endpoints[0]?.id||'',priority:'100'});
-      setRuleError(false);
-      setEditingRuleId('');setRuleSaved(true);
-      document.getElementById('rule-domain')?.focus();
+      if(generation!==ruleEditorGeneration.current||
+        !getEnvironment().setDraftDirty(false,'settings-rule',draftRevision))return;
+      finishRuleEditor('settings-rule-'+item.id);
+      setRuleSaved(true);
     }
   }
 
-  async function editRule(item: SiteRule) {
-    const environment = getEnvironment();
-    const revision = environment.getDraftRevision('settings-rule');
-    if (environment.isDraftDirty('settings-rule') &&
-      !await environment.confirm(t('apReplaceRuleDraft'))) return;
-    if (!environment.setDraftDirty(false,'settings-rule',revision)) return;
-    setRuleSaved(false);setEditingRuleId(item.id);
-    setRuleError(false);
-    setRule({domain:item.domain,includeSubdomains:item.includeSubdomains,
-      action:item.action,endpointId:item.endpointId||'',priority:String(item.priority)});
-    requestAnimationFrame(() => document.getElementById('rule-domain')?.focus());
+  function finishRuleEditor(focusId=ruleListPosition.current.focusId) {
+    const generation=++ruleEditorGeneration.current;
+    setRuleEditorOpen(false);setEditingRuleId('');setRuleError(false);setError('');
+    setRule({domain:'',includeSubdomains:true,action:'endpoint',
+      endpointId:config.endpoints[0]?.id||'',priority:'100'});
+    requestAnimationFrame(()=>{
+      if(generation!==ruleEditorGeneration.current||parseOptionsHash(navigation.getRoute())!=='rules')return;
+      sectionContent.current?.closest('.proxy-route')?.scrollTo({top:ruleListPosition.current.top});
+      const target=document.getElementById(focusId)||document.getElementById('settings-rule-add');
+      target?.focus({preventScroll:true});
+      target?.scrollIntoView({block:'nearest'});
+    });
+  }
+  async function requestCloseRuleEditor() {
+    if(busy)return;
+    const environment=getEnvironment(),generation=ruleEditorGeneration.current;
+    const revision=environment.getDraftRevision('settings-rule');
+    if(environment.isDraftDirty('settings-rule')&&!await environment.confirm(t('apDiscardHelp')))return;
+    if(generation!==ruleEditorGeneration.current||!environment.setDraftDirty(false,'settings-rule',revision))return;
+    setRuleSaved(false);finishRuleEditor();
+  }
+  function editRule(item?: SiteRule) {
+    ruleListPosition.current={
+      top:sectionContent.current?.closest('.proxy-route')?.scrollTop??0,
+      focusId:item?'settings-rule-'+item.id:'settings-rule-add'
+    };
+    const generation=++ruleEditorGeneration.current;
+    setError('');setRuleSaved(false);setEditingRuleId(item?.id||'');setRuleError(false);
+    setRule(item?{domain:item.domain,includeSubdomains:item.includeSubdomains,
+      action:item.action,endpointId:item.endpointId||'',priority:String(item.priority)}:
+      {domain:'',includeSubdomains:true,action:'endpoint',endpointId:config.endpoints[0]?.id||'',priority:'100'});
+    setRuleEditorOpen(true);
+    requestAnimationFrame(()=>{
+      if(generation!==ruleEditorGeneration.current)return;
+      sectionContent.current?.closest('.proxy-route')?.scrollTo({top:0});
+      document.getElementById('rule-domain')?.focus({preventScroll:true});
+    });
   }
   async function removeRule(item: SiteRule) {
     const revision = getEnvironment().getDraftRevision('settings-rule');
@@ -427,10 +455,9 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   }
   return <main className={'options' + (tab==='subscriptions' ? ' sourcesOptions' : '')}>
     <header className="optionsHead">
-      <Button className="proxy-back" variant="quiet" aria-label={t('apBackToPanel')} title={t('apBackToPanel')} onClick={()=>getEnvironment().navigate('')}>{t('apPanelBack')}</Button>
       <nav className="settingsSectionNav" aria-label={t('settingsSections')}>
         <label htmlFor="settings-section" className="settingsSectionLabel">{t('settingsSections')}</label>
-        <select id="settings-section" aria-label={t('settingsSections')} value={tab}
+        <select id="settings-section" aria-label={t('settingsSections')} value={tab} disabled={busy}
           onChange={event=>navigate(event.target.value as Page)}>
           <optgroup label={t('proxyManagement')}>
             {tabs.filter(item=>item.id!=='official').map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
@@ -438,22 +465,22 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           <optgroup label={t('optionalServices')}><option value="official">{t('officialNetwork')} · {t('officialOptional')}</option></optgroup>
         </select>
       </nav>
-      <div className="optionsHeadActions">
+      <details className="settingsMore"><summary aria-label={t('copyPageLink')+' / '+t('refreshStatus')}>⋯</summary><div className="optionsHeadActions">
         <Button type="button" className="optionsCopyLink" aria-label={copiedPageLink?t('pageLinkCopied'):t('copyPageLink')}
           title={t('copyPageLink')} onClick={() => void copyCurrentPageLink()}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></svg>
+          {t('copyPageLink')}
         </Button>
         <Button className="settingsRefresh" disabled={busy} aria-label={t('refreshStatus')} title={t('refreshStatus')} onClick={() => void refresh()}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M19 11a7 7 0 0 0-12-5L4 9m16 6-3 3A7 7 0 0 1 5 13"/></svg>
+          {t('refreshStatus')}
         </Button>
-      </div>
+      </div></details>
     </header>
     <div className="layout">
       <section ref={sectionContent} className={'panel optionsContent optionsContent--' + tab}>
         {pageLinkCopyFailed && <p className="notice error" role="alert">{t('pageLinkCopyFailed')}</p>}
         {copiedPageLink && <p className="settingsCopyFeedback" role="status">{t('pageLinkCopied')}</p>}
-        {error && !editorOpen && <p className="notice error" role="alert">{error}</p>}
-        {tab!=='official' && !(tab==='subscriptions' && parseSubscriptionRoute(locationHash).kind==='official') &&
+        {error && !editorOpen && !(tab==='rules' && ruleEditorOpen) && <p className="notice error" role="alert">{error}</p>}
+        {tab!=='official' && tab!=='rules' && !(tab==='subscriptions' && parseSubscriptionRoute(locationHash).kind==='official') &&
           <OptionsPageHeader
           title={tabs.find(item=>item.id===tab)?.name ?? ''}
           description={tab==='profiles'?t('apProfileIntro'):tabs.find(item=>item.id===tab)?.caption ?? ''}
@@ -607,20 +634,30 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           </aside>
         </>}
         {tab==='rules' && <div className="rulesPage">
+          {ruleEditorOpen?<header className="ruleEditorHeader"><h2>{t(editingRuleId?'editRule':'addRule')}</h2></header>:
+          <OptionsPageHeader title={t('websiteRules2')}
+            description={t('routeByDomainThroughAProxyOrDirect')}
+            actions={!ruleEditorOpen?<Button id="settings-rule-add" variant="primary" className="primary"
+              disabled={busy} onClick={()=>editRule()}>{t('addRule')}</Button>:undefined}/>}
           <div className="rulesGrid">
-            <section className="rulesList">
-              <h2>{t('websiteRules2')} <span className="countTag">{config.rules.length}</span></h2>
-              <p className="hint">{t('ruleEditorIntro')}</p>
+            {!ruleEditorOpen?<section className="rulesList" aria-label={t('websiteRules2')}>
+              {ruleSaved&&<p className="r86Notice" role="status">{t('r86Saved')}</p>}
+              <p className="hint">{t('apRuleSaveNote')}</p>
+              <span className="subtleTag">{t('ruleCount',{count:config.rules.length})}</span>
               {config.rules.length === 0 ? <div className="sourceEmpty rulesEmpty">{t('rulesEmpty')}</div> :
                 <div className="records">{config.rules.map(r=><article className="record" key={r.id}><div><strong>{r.domain}{r.includeSubdomains?t('subdomains'):''}</strong>
-            <small>{t('priority')} {r.priority} · {r.action==='direct'?'DIRECT':endpoints.find(e=>e.id===r.endpointId)?.name || t('missingProxy2')}</small></div>
-            <div className="actions"><Button onClick={()=>void editRule(r)}>{t('edit')}</Button>
-              <Button disabled={busy} onClick={()=>void removeRule(r)}>{t('delete')}</Button></div></article>)}</div>}
-            </section>
-            <section className="rulesEditor">
-              <h2>{editingRuleId?t('editRule'):t('addRule')}</h2>
-              {ruleSaved&&<p className="r86Notice" role="status">{t('r86Saved')}</p>}
-              <form data-draft-scope="settings-rule" className="ruleEditorForm" onSubmit={e=>void saveRule(e)}>
+            <small>{t('priority')} {r.priority} · {r.action==='direct'?'DIRECT':endpoints.find(e=>e.id===r.endpointId)?.name || t('missingProxy2')}</small>
+            <span className="rulesEnabledState">{t(r.enabled?'apRuleEnabled':'apRuleDisabled')}</span></div>
+            <div className="actions"><Button id={'settings-rule-'+r.id} disabled={busy} aria-label={t('editNamedRule',{domain:r.domain})} onClick={()=>editRule(r)}>{t('edit')}</Button>
+              <Button disabled={busy} aria-label={t('deleteNamedRule',{domain:r.domain})} onClick={()=>void removeRule(r)}>{t('delete')}</Button></div></article>)}</div>}
+            </section>:
+            <section className="rulesEditor" aria-label={editingRuleId?t('editRule'):t('addRule')}
+              onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();void requestCloseRuleEditor();}}}>
+              <p className="siteRuleOrigin">{t(editingRuleId?'apExistingRuleSource':'apRulesListSource')}
+                {editingRuleId&&<strong className="mono"> {config.rules.find(item=>item.id===editingRuleId)?.domain}</strong>}</p>
+              <form data-draft-scope="settings-rule" className="ruleEditorForm" aria-busy={busy}
+                aria-describedby={error?'settings-rule-error':undefined} onSubmit={saveRule}>
+              <fieldset className="rulesEditorFields" disabled={busy}>
             <FormField id="rule-domain" label={t('ruleWebsiteInput')} hint={t('ruleWebsiteHelp')}
               error={ruleError ? t('ruleWebsiteInvalid') : undefined}>
               {controlProps => <ClearableInput {...controlProps} fieldLabel={t('ruleWebsiteInput')} required value={rule.domain}
@@ -636,47 +673,47 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                  }}
                  placeholder={t('ruleWebsitePlaceholder')}/>}
             </FormField>
-            <div className="ruleRouteFields">
-              <div><label htmlFor="rule-action">{t('ruleWebsiteUse')}</label>
-                <select id="rule-action" value={rule.action}
-                  onChange={e=>setRule({...rule,action:e.target.value as 'direct'|'endpoint'})}>
-                  <option value="endpoint">{t('specificProxy')}</option>
-                  <option value="direct">{t('directConnection2')}</option>
-                </select>
-              </div>
-              {rule.action==='endpoint' && <div><label htmlFor="rule-endpoint">{t('specificProxy')}</label>
-                <select id="rule-endpoint" required value={rule.endpointId} onChange={e=>setRule({...rule,endpointId:e.target.value})}>
-                  <option value="">{t('pleaseSelect')}</option>
-                  {endpoints.map(p=><option key={p.id} value={p.id}>{p.name} · {p.scheme.toUpperCase()}</option>)}
-                </select>
-              </div>}
-            </div>
+            <label className="ruleCheckbox"><input id="rule-subdomains" type="checkbox" checked={rule.includeSubdomains}
+              onChange={e=>setRule({...rule,includeSubdomains:e.target.checked})}/>{t('includeSubdomains')}</label>
+            <fieldset className="ruleTargetChoices"><legend>{t('ruleWebsiteUse')}</legend>
+              <label><input id="rule-target-endpoint" type="radio" name="settings-rule-target" value="endpoint"
+                checked={rule.action==='endpoint'} onChange={()=>setRule({...rule,action:'endpoint'})}/>{t('specificProxy')}</label>
+              <label><input id="rule-target-direct" type="radio" name="settings-rule-target" value="direct"
+                checked={rule.action==='direct'} onChange={()=>setRule({...rule,action:'direct'})}/>{t('directConnection2')}</label>
+            </fieldset>
+            {rule.action==='endpoint' && <FormField id="rule-endpoint" label={t('specificProxy')}
+              hint={!endpoints.length?t('ruleChooseProxyFirst'):undefined}>
+              {controlProps=><select {...controlProps} required value={rule.endpointId} onChange={e=>setRule({...rule,endpointId:e.target.value})}>
+                <option value="">{t('pleaseSelect')}</option>
+                {endpoints.map(p=><option key={p.id} value={p.id}>{p.name} · {p.scheme.toUpperCase()}</option>)}
+              </select>}
+            </FormField>}
+            {ruleDomain&&<div className="ruleMatchPreview" aria-label={t('apRulePreview')}>
+              <span>{t('apRulePreview')}</span><strong>{ruleDomain}{rule.includeSubdomains?t('subdomains'):''}</strong>
+              <span>{t('ruleWebsiteUse')} <strong>{rule.action==='direct'?t('directConnection2'):
+                endpoints.find(ep=>ep.id===rule.endpointId)?.name||t('ruleChooseProxyFirst')}</strong></span>
+            </div>}
             <details className="ruleAdvanced">
-              <summary>{t('ruleAdvancedOptions')}</summary>
+              <summary>{t('apRulePriorityOptions')}</summary>
               <div className="ruleAdvancedFields">
-                <label className="ruleCheckbox"><input type="checkbox" checked={rule.includeSubdomains}
-                  onChange={e=>setRule({...rule,includeSubdomains:e.target.checked})}/>{t('includeSubdomains')}</label>
-                <div><label htmlFor="rule-priority">{t('priority')}</label>
-                  <input id="rule-priority" type="number" min="0" max="99999" required
-                    value={rule.priority} onChange={e=>setRule({...rule,priority:e.target.value})}/>
-                  <p className="hint">{t('rulePriorityHelp')}</p>
-                </div>
+                <FormField id="rule-priority" label={t('priority')} hint={t('rulePriorityHelp')}>
+                  {controlProps=><input {...controlProps} type="number" min="0" max="99999" required
+                    value={rule.priority} onChange={e=>setRule({...rule,priority:e.target.value})}/>}
+                </FormField>
               </div>
             </details>
+            {error&&<p id="settings-rule-error" className="notice error" role="alert">{error}</p>}
+            <p className="hint ruleSaveNote">{t('apRuleSaveNote')}</p>
             <div className="actions">
-              <Button variant="primary" className="primary" disabled={busy || rule.action==='endpoint'&&!endpoints.length}
+              <Button variant="primary" className="primary" disabled={busy || rule.action==='endpoint'&&!rule.endpointId}
                 type="submit">{t('saveRule')}</Button>
-              <Button type="button" onClick={()=>{
-                setRuleSaved(false);getEnvironment().setDraftDirty(false,'settings-rule');setEditingRuleId('');setRuleError(false);
-                setRule({domain:'',includeSubdomains:true,action:'endpoint',endpointId:endpoints[0]?.id||'',priority:'100'});
-                document.getElementById('rule-domain')?.focus();
-              }}>{t('cancel')}</Button>
-              <p className="hint">{t('ruleSaveDoesNotApply')}</p>
+              <Button type="button" disabled={busy} onClick={requestCloseRuleEditor}>{t('cancel')}</Button>
             </div>
+              </fieldset>
               </form>
-            </section>
+            </section>}
           </div>
-          <section className="rulesDefault" data-draft-scope="settings-default">
+          {!ruleEditorOpen&&<section className="rulesDefault" data-draft-scope="settings-default">
             <h2>{t('whenNoRuleMatches')}</h2>
             <p className="hint">{t('directByDefaultTrafficUsesAProxyOnlyWhen')}</p>
           <div className="formGrid"><div><label htmlFor="default-action">{t('defaultRoute')}</label><select id="default-action" value={defaultAction}
@@ -686,7 +723,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           <div className="actions"><Button disabled={busy || (defaultAction==='endpoint' && !defaultEndpointId)} onClick={async()=>{const revision=getEnvironment().getDraftRevision('settings-default');if(await act({type:'SET_DEFAULT',target:defaultAction==='direct'?
             {action:'direct'}:{action:'endpoint',endpointId:defaultEndpointId}}))getEnvironment().setDraftDirty(false,'settings-default',revision);}}>{t('saveDefaultRoute')}</Button>
             <small>{t('current')}{config.defaultTarget.action==='direct'?'DIRECT':endpoints.find(e=>e.id===config.defaultTarget.endpointId)?.name}</small></div>
-          </section>
+          </section>}
         </div>}
         {tab==='subscriptions' && <SourcesPage config={config} runtime={state.runtime}
           busy={busy} act={act} setError={setError} setErrorKey={setErrorKey} navigate={navigate}

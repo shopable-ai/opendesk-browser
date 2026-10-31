@@ -1,0 +1,55 @@
+{
+  "candidate": "source-68e774ea-ebdd-48e3-acfc-7a7de011267f",
+  "browser": "Chrome / same source sandbox memory only",
+  "checks": [
+    {
+      "operation": "Settings → website rules → keyboard Tab to first edit",
+      "result": "Focused button: 编辑 example.com 的规则; other rule/delete names include their domain"
+    },
+    {
+      "operation": "Settings edit → change URL → Escape → cancel discard",
+      "result": "Draft retained; original source still example.com; value normalizes to polish.example.net on blur"
+    },
+    {
+      "operation": "Keyboard opens advanced; duplicate domain+scope Save",
+      "result": {
+        "describedBy": "settings-rule-error",
+        "formContainsError": true,
+        "formError": "相同域名与范围的规则已存在，请在「管理规则」中编辑。",
+        "value": "example.org"
+      }
+    },
+    {
+      "operation": "Settings cancel → accept discard",
+      "result": "Back to unchanged example.com and example.org; focus returns 编辑 example.com 的规则"
+    },
+    {
+      "operation": "Settings edit priority 10→11 → Save",
+      "result": "Receipt, priority 11, same example.com row ID rule-docs and enabled state; focus returns original edit; save does not apply"
+    },
+    {
+      "operation": "Quick edit → modify domain → Close → cancel discard",
+      "result": "quick-draft.example retained; source remains example.com"
+    },
+    {
+      "operation": "Quick Escape → accept discard",
+      "result": "Returns to current site; focus 编辑命中规则; example.com unchanged"
+    },
+    {
+      "operation": "Quick select DIRECT → Save",
+      "result": "Rules saved receipt; focus 编辑命中规则; pending route DIRECT; still 尚未管理浏览器代理"
+    },
+    {
+      "operation": "English rules list → Add rule",
+      "result": "Edit/Delete rule for example.com/example.org; Adding from website rules rendered; no untranslated keys"
+    },
+    {
+      "operation": "Traditional Chinese rules → Add",
+      "result": "編輯/刪除 example.com 的規則; 從網站規則列表新增; no missing keys"
+    },
+    {
+      "operation": "Reset disposable preview memory → Settings Add",
+      "result": "Original sample data restored; Chinese clean Add form left open, no unsaved input; preview retained as deliverable"
+    }
+  ]
+}

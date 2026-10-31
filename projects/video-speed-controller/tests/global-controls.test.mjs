@@ -3,13 +3,14 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {parseHTML} from 'linkedom';
+import {globalVideoSpeedState} from '../trusted/policy.js';
 
 const source=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
 const html=await readFile(new URL('../src/index.html',import.meta.url),'utf8');
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
 const pref=(enabled=false,speed=1,revision='r1')=>({enabled,speed,revision});
-function fixture({state=pref(),actual=1,handlers={}}={}){
+function fixture({state=globalVideoSpeedState(undefined,'installed','official-hash'),actual=1,handlers={}}={}){
   const {document,window}=parseHTML('<html><body>'+html+'</body></html>');
   const root=document.querySelector('main'),calls=[];
   let current=actual,shared=state,revision=1;
@@ -42,12 +43,21 @@ function fixture({state=pref(),actual=1,handlers={}}={}){
   };
 }
 
-test('default OFF preserves single-page set, unique 1x and explicit refresh readback',async()=>{
-  const f=fixture();assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');await flush();
+test('saved OFF preserves single-page set, unique 1x and explicit refresh readback',async()=>{
+  const f=fixture({state:pref(false)});assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');await flush();
   assert.equal(f.root.querySelectorAll('[data-speed="1"]').length,1);
   f.preset(2);await flush();assert.deepEqual(f.writes().map(c=>c.op),['videoSpeed.set']);assert.equal(f.value(),'2.00');
   assert.deepEqual({...f.writes()[0].args},{speed:2});
   f.click('refresh');await flush();assert.equal(f.value(),'2.00');
+});
+test('first use opens with global mode on and can save a target without a current video',async()=>{
+  const f=fixture({actual:null});await flush();
+  assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');
+  assert.equal(f.get('global-note').hidden,true);
+  f.preset(2);await flush();
+  assert.deepEqual(f.writes().map(c=>c.op),['videoSpeed.global.configure']);
+  assert.equal(f.writes()[0].args.speed,2);assert.equal(f.value(),'—');
+  assert.equal(f.get('global-note').hidden,false);
 });
 for(const actual of [1.5,null,8])test(`enable selects valid actual or saved target: ${actual}`,async()=>{
   const f=fixture({actual,state:pref(false,2)});await flush();f.click('global-toggle');await flush();
@@ -61,17 +71,17 @@ test('global presets configure first, retain old actual while set awaits indepen
   configure.resolve(pref(true,2,'r2'));await flush();assert.deepEqual(f.writes().map(c=>c.op),['videoSpeed.global.configure','videoSpeed.set']);
   assert.deepEqual({...f.writes()[0].args},{enabled:true,speed:2,expectedRevision:'r1'});
   assert.deepEqual({...f.writes()[1].args},{speed:2,expectedRevision:'r2'});
-  assert.match(f.get('global-target').textContent,/2.00/);assert.equal(f.value(),'1.00');
+  assert.equal(f.get('global-note').hidden,true);assert.equal(f.value(),'1.00');
   set.resolve({status:'available',speed:1.5,requested:2,verified:false});await flush();
   assert.equal(f.value(),'1.50');assert.equal(f.get('verification').textContent,'未生效');
 });
 test('no video can save global target without showing it as actual or sending page set',async()=>{
   const f=fixture({actual:null,state:pref(true,1)});await flush();f.preset(3);await flush();
   assert.equal(f.writes().length,1);assert.equal(f.writes()[0].args.speed,3);assert.equal(f.value(),'—');
-  assert.equal(f.get('verification').textContent,'无视频');assert.match(f.get('global-target').textContent,/3.00/);
+  assert.equal(f.get('verification').textContent,'无视频');
   f.click('plus');await flush();assert.equal(f.writes()[1].args.speed,3.25);assert.equal(f.value(),'—');
 });
-for(const trigger of ['global-stop','global-toggle'])for(const status of ['requested','partial',undefined])
+for(const trigger of ['global-toggle'])for(const status of ['requested','partial',undefined])
 test(`${trigger} disables automatic application and truthfully reports restore ${status}`,async()=>{
   const f=fixture({state:pref(true,2),actual:2,handlers:{'videoSpeed.global.configure':args=>({...pref(args.enabled,args.speed,'r2'),restore:status?{status}:undefined})}});
   await flush();f.click(trigger);await flush();assert.equal(f.writes().length,1);assert.equal(f.writes()[0].args.enabled,false);
@@ -88,7 +98,7 @@ test('configure failure never falls through to page set or auto-retries',async()
 });
 test('failed stop keeps confirmed state and reports unknown restoration',async()=>{
   const f=fixture({state:pref(true,2),handlers:{'videoSpeed.global.configure':()=>{throw Error('offline');}}});
-  await flush();f.click('global-stop');await flush();assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');
+  await flush();f.click('global-toggle');await flush();assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');
   assert.match(f.get('global-note').textContent,/未知/);assert.equal(f.writes().length,1);
 });
 test('global sidebar S/D/R synchronizes target before each current-video set',async()=>{
@@ -107,14 +117,14 @@ test('external preference wins over stale initial status; malformed/foreign even
   f.send(pref(true,3,'r3'),false);f.send({enabled:true,speed:99,revision:'bad'});
   assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');
   f.send(pref(true,2,'r2'));await flush();pending.resolve(pref(false,1));await flush();
-  assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');assert.match(f.get('global-target').textContent,/2.00/);
+  assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');
   assert.equal(f.value(),'1.00');assert.equal(f.writes().length,0);
 });
 test('preference during configure supersedes older response and prevents stale page write',async()=>{
   const pending=deferred(),f=fixture({state:pref(true,1),handlers:{'videoSpeed.global.configure':()=>pending.promise}});
   await flush();f.preset(2);f.send(pref(false,3,'r3'));pending.resolve(pref(true,2,'r2'));await flush();
   assert.equal(f.writes().length,1);assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');
-  assert.match(f.get('global-target').textContent,/3.00/);assert.equal(f.value(),'1.00');
+  assert.equal(f.value(),'1.00');
 });
 for(const enabled of [false,true])test(`late configure CAS response projects current state without page set: enabled=${enabled}`,async()=>{
   const pending=deferred(),f=fixture({state:pref(true,1),handlers:{'videoSpeed.global.configure':()=>pending.promise}});
@@ -122,7 +132,6 @@ for(const enabled of [false,true])test(`late configure CAS response projects cur
   // No preference event: the response itself must reveal the intervening STOP/change.
   pending.resolve({...pref(enabled,2,'r3'),superseded:true});await flush();
   assert.equal(f.get('global-toggle').getAttribute('aria-checked'),String(enabled));
-  assert.match(f.get('global-target').textContent,/2.00/);
   assert.equal(f.value(),'1.00');assert.equal(f.writes().length,1);
   assert.match(f.get('global-note').textContent,/未应用/);
   assert.equal(f.get('refresh').disabled,false);
@@ -135,7 +144,6 @@ test('superseded enable updates projection without claiming the requested target
   await flush();f.click('global-toggle');await flush();
   assert.equal(f.writes()[0].args.expectedRevision,'r1');
   assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');
-  assert.match(f.get('global-target').textContent,/2.00/);
   assert.match(f.get('global-note').textContent,/未应用/);
   assert.equal(f.value(),'1.50');assert.equal(f.writes().length,1);
 });
@@ -176,14 +184,14 @@ test('STOP sends the known revision but accepts unconditional stop after an unse
     assert.notEqual(args.expectedRevision,shared.revision);
     shared=pref(false,args.speed,'stopped');return {...shared,restore:{status:'partial'}};
   }}});
-  await flush();f.click('global-stop');await flush();
+  await flush();f.click('global-toggle');await flush();
   assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');
   assert.match(f.get('global-note').textContent,/未知/);assert.equal(f.writes().length,1);
 });
 test('preference during page set waits to reread; old read cannot replace final actual',async()=>{
   const pending=deferred(),read=deferred(),f=fixture({state:pref(true,1),handlers:{'videoSpeed.set':()=>pending.promise}});
   await flush();f.preset(2);await flush();const readsBefore=f.calls.filter(c=>c.op==='videoSpeed.status').length;
-  f.send(pref(true,3,'r3'));assert.match(f.get('global-target').textContent,/3.00/);
+  f.send(pref(true,3,'r3'));assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');
   assert.equal(f.calls.filter(c=>c.op==='videoSpeed.status').length,readsBefore);
   f.handlers['videoSpeed.status']=()=>read.promise;pending.resolve({status:'available',speed:2});await flush();
   assert.equal(f.get('refresh').disabled,true);read.resolve({status:'available',speed:3});await flush();

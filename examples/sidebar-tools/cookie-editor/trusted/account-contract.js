@@ -5,12 +5,40 @@ export const COOKIE_ACCOUNT_STORE_KEY='opendesk.cookie-editor.accounts.v1';
 export const COOKIE_ACCOUNT_VAULT_KEY='opendesk.cookie-editor.vault.v1';
 export const COOKIE_ACCOUNT_SESSION_KEY='opendesk.cookie-editor.vault-session.v1';
 export const COOKIE_ACCOUNT_SEEN_KEY='opendesk.cookie-editor.auto-seen.v1';
+// Saving configuration grants no Native or Cookie-transfer authority. Native
+// actions are separately admitted by the fixed consumer and original Host.
+export const COOKIE_SERVICE_FIELDS=Object.freeze({
+  serviceStatus:[],
+  serviceSave:['revision','label','mode','serviceOrigin'],
+  serviceRename:['revision','connectionId','label'],
+  serviceDisconnect:['revision','connectionId'],
+  serviceAssociate:['revision','connectionId','alias','accountVersion','remoteAccountId','organization','providerKey'],
+  serviceRemoveAssociation:['revision','associationId'],
+  serviceConnect:['revision','sessionRevision','connectionId','serviceId','providerEpoch'],
+  serviceResources:['connectionId'],
+  serviceReadPolicy:['connectionId'],
+  serviceCommitAssociation:['revision','sessionRevision','associationId'],
+  serviceUnbindAssociation:['revision','sessionRevision','associationId'],
+  serviceRemoteDisconnect:['revision','sessionRevision','connectionId'],
+  serviceAcceptPolicy:['revision','sessionRevision','connectionId','desiredRevision','desiredHash','scope'],
+  serviceOpenManagement:['revision','sessionRevision','connectionId','associationId'],
+  serviceReconcile:['connectionId'],
+  serviceArchiveOpenUnknown:['revision','sessionRevision','connectionId','operationId']
+});
+export const COOKIE_SERVICE_NATIVE_OPERATIONS=Object.freeze([
+  'serviceConnect','serviceResources','serviceReadPolicy','serviceCommitAssociation',
+  'serviceUnbindAssociation','serviceRemoteDisconnect','serviceAcceptPolicy',
+  'serviceOpenManagement','serviceReconcile','serviceArchiveOpenUnknown'
+]);
+export const COOKIE_SERVICE_READS=Object.freeze([
+  'serviceStatus','serviceResources','serviceReadPolicy','serviceReconcile'
+]);
 export const COOKIE_ACCOUNT_OPERATIONS=Object.freeze([
   'status','create','rename','update','attach','delete','switch',
-  'setAutoEnabled','setAutoRefresh','allowAlias'
+  'setAutoEnabled','setAutoRefresh','allowAlias',...Object.keys(COOKIE_SERVICE_FIELDS)
 ]);
 export const COOKIE_ACCOUNT_EFFECTS=Object.freeze(
-  COOKIE_ACCOUNT_OPERATIONS.filter(name=>name!=='status')
+  COOKIE_ACCOUNT_OPERATIONS.filter(name=>name!=='status'&&!COOKIE_SERVICE_READS.includes(name))
 );
 
 // Pure metadata validation; the trusted service calls this before Vault writes.

@@ -27,6 +27,14 @@ export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([
   'getTree','get','search','create','update','move','remove','prepareRemoveTree','removeTree',
   'observe.start','observe.read','observe.stop'
 ]);
+// Each adapter opts in after its actual mock has been checked; CLI flags alone
+// are not proof that a tool can demonstrate a state or a forced theme.
+export const PREVIEW_CONTROLS=Object.freeze({
+  'quick-notes':Object.freeze({scenarios:[...PREVIEW_SCENARIOS,'revoked','long'],themes:['light','dark']}),
+  'bookmark-manager':Object.freeze({scenarios:PREVIEW_SCENARIOS,themes:['light','dark']})
+});
+const scenarioLabels={success:'已授权（模拟）',empty:'空数据',error:'读取失败',loading:'持续加载',
+  'permission-denied':'未授权',untrusted:'不可信文本',revoked:'授权已撤销',long:'长错误提示'};
 const repoRoot=fileURLToPath(new URL('../../',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const base64=bytes=>Buffer.from(bytes).toString('base64');
@@ -59,7 +67,7 @@ export async function generatePreview({
   if(!['quick-notes','bookmark-manager','adblock','reading-toc',
     'markdown-workbench','web-markdown-clipper','knowledge-inbox','ai-knowledge-answers'].includes(tool))
     fail('mock SDK adapter is not implemented for '+tool);
-  if(!PREVIEW_SCENARIOS.includes(scenario)&&!(tool==='reading-toc'&&scenario==='chatgpt-multi'))fail('unsupported scenario');
+  if(!(PREVIEW_CONTROLS[tool]?.scenarios||PREVIEW_SCENARIOS).includes(scenario)&&!(tool==='reading-toc'&&scenario==='chatgpt-multi'))fail('unsupported scenario');
   if(!['light','dark'].includes(theme))fail('unsupported theme');
   if(tool==='reading-toc'&&theme!=='light')fail('Reading TOC preview shell is light only');
   if(!Number.isInteger(width)||width<240||width>1440||
@@ -164,13 +172,13 @@ export async function generatePreview({
   if(!/^[0-9a-f]{40}$/.test(commit))fail('invalid Git source revision');
   const uiDigest=sha256(JSON.stringify([pkg.id,pkg.version,pkg.html,pkg.css,pkg.js,
     ...(pkg.scripts||[]).map(script=>[script.name,script.sha256,script.code])]));
-  const frameHtml=[
+  const renderFrame=(frameScenario,frameOverride)=>[
     '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width,initial-scale=1">',
     '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src data: \'unsafe-inline\'; style-src data: \'unsafe-inline\'; img-src data:; connect-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">',
     '<link rel="stylesheet" href="'+dataUrl('text/css',pkg.css)+'">',
     '</head><body><div id="tool-root">'+pkg.html+'</div>',
-    '<script>Object.defineProperty(globalThis,"__opendeskPreviewScenario",{value:'+JSON.stringify(scenario)+'});</script>',
+    '<script>Object.defineProperty(globalThis,"__opendeskPreviewScenario",{value:'+JSON.stringify(frameScenario)+'});</script>',
     '<script src="'+dataUrl('text/javascript',mock)+'"></script>',
     ...adblockSharedScripts.map(bytes=>'<script src="'+dataUrl('text/javascript',bytes)+'"></script>'),
     // The v2 package runs its pinned Classic dependencies before its entrypoint.
@@ -178,10 +186,11 @@ export async function generatePreview({
     ...(pkg.scripts||[]).map(script=>'<script src="'+dataUrl('text/javascript',script.code)+'"></script>'),
     // Shared UI installs canonical styles at runtime. Force the requested
     // preview theme after those styles, so it does not depend on the OS theme.
-    '<style>'+override+legacyPalette+'</style>',
+    '<style>'+frameOverride+legacyPalette+'</style>',
     '<script src="'+dataUrl('text/javascript',pkg.js)+'"></script>',
     '</body></html>'
   ].join('');
+  const frameHtml=renderFrame(scenario,override);
   const frameForDisplay=surface==='page-overlay'?tocOverlay?.html:frameHtml;
   const manifest=Object.freeze({
     format:PREVIEW_FORMAT,tool:pkg.id,toolVersion:pkg.version,surface,scenario,theme,
@@ -189,14 +198,15 @@ export async function generatePreview({
     shellSha256:shell.digest,shellTheme:'light',previewBuild:tool==='reading-toc'?'R1.2-reading-toc':'R1.1',
     ...(tocOverlay?{trustedOverlaySourceSha256:tocOverlay.sourceSha256,
       trustedOverlayModuleSha256:tocOverlay.moduleSha256}:{}),
+    previewControls:PREVIEW_CONTROLS[tool]||null,
     mock:true,installed:false,permissionsGranted:false,
     operations
   });
   const viewportTitle='OpenDesk Browser · '+pkg.title+' · 仅供离线模拟';
   // The maintainable preview template has no copy of official component markup,
   // colors or button styling: its real Side Panel tabs/header/CSS are extracted.
-  // This outer shell is always light; the inner tool may explicitly use a dark
-  // diagnostic scenario without adding a theme switch to the preview UI.
+  // The outer shell stays light. Only explicitly adapted tools get external
+  // state/theme controls; their variants use the same packaged UI bytes.
   const safeJS=value=>JSON.stringify(value).replaceAll('<','\\u003c')
     .replaceAll('\u2028','\\u2028').replaceAll('\u2029','\\u2029');
   const adblockScript=adblock?await readFile(new URL('./adblock-host-preview.js',import.meta.url),'utf8'):'';
@@ -257,9 +267,38 @@ export async function generatePreview({
     '<button id="od-preview-adblock-restore-accept" class="od-button" type="button">确认模拟</button>',
     '</div></dialog>'
   ].join(''):'';
+  const controls=PREVIEW_CONTROLS[tool];
+  const variants=Object.create(null);
+  if(controls){
+    for(const toolTheme of controls.themes){
+      const themeOverride=await canonicalThemeOverride(toolTheme);
+      for(const toolScenario of controls.scenarios)
+        variants[toolScenario+':'+toolTheme]=base64(renderFrame(toolScenario,themeOverride));
+    }
+  }
+  const previewControls=controls?[
+    '<aside id="od-preview-controls" class="preview-diagnostic-area" aria-label="应用外部离线预览辅助区">',
+    '<details class="od-disclosure od-surface od-surface--padded" open>',
+    '<summary>预览辅助 · 仅模拟，不属于工具</summary>',
+    '<p class="od-note">切换场景、主题或恢复会重置本页模拟数据。不会申请权限、读写真实数据或卸载工具。</p>',
+    '<div class="preview-controls">',
+    '<label for="od-preview-scenario">模拟状态<select class="od-field" id="od-preview-scenario">',
+    ...controls.scenarios.map(value=>'<option value="'+value+'"'+(value===scenario?' selected':'')+'>'+scenarioLabels[value]+'</option>'),
+    '</select></label>',
+    '<label for="od-preview-theme">工具主题<select class="od-field" id="od-preview-theme">',
+    ...controls.themes.map(value=>'<option value="'+value+'"'+(value===theme?' selected':'')+'>'+(value==='dark'?'深色':'浅色')+'</option>'),
+    '</select></label><button type="button" class="od-button od-button--secondary" id="od-preview-restore">恢复初始预览</button></div>',
+    '<p id="od-preview-controls-feedback" class="od-note" role="status" aria-live="polite">宿主外壳保持浅色；权限和故障只存在于离线 Mock 内存。</p>',
+    '</details></aside>'
+  ].join(''):'';
+  const shellBehavior=await readFile(new URL('./sidebar-shell-behavior.js',import.meta.url),'utf8');
   const values=Object.freeze({
     PAGE_TITLE:htmlEscape(viewportTitle),
-    TOOL_NAME:htmlEscape(pkg.title),TOOL_NAME_JSON:safeJS(pkg.title),
+    APP_CONTENT:'<div id="sidebar-tool-frame" class="sidebar-tool-frame"><iframe id="opendesk-preview-frame" class="sidebar-tool-iframe" title="'+htmlEscape(viewportTitle)+'" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe></div>',
+    PREVIEW_CONTROLS:previewControls,
+    SHELL_DATA_JSON:safeJS({title:pkg.title,scenario,theme,frameBase64:base64(frameForDisplay),variants}),
+    SHELL_BEHAVIOR:shellBehavior,
+    TOOL_NAME:htmlEscape(pkg.title),
     SCENARIO:htmlEscape(scenario),TOOL_THEME:htmlEscape(theme),
     TOKENS:tokens,COMPONENTS:components,SHELL_CSS:shell.css,
     ADBLOCK_HOST_CSS:adblock?.css||'',
@@ -271,7 +310,7 @@ export async function generatePreview({
     HEIGHT:String(height),
     NAV:shell.nav,HEADER:shell.head,
     SOURCE_COMMIT:commit,DESIGN_SHA:digest,SHELL_SHA:shell.digest,UI_SHA:uiDigest,
-    MANIFEST_JSON:safeJS(manifest),FRAME_BASE64:base64(frameForDisplay)
+    MANIFEST_JSON:safeJS(manifest)
   });
   const used=new Set();
   let outputHtml=shellTemplate.replace(/\{\{([A-Z0-9_]+)\}\}/g,(_,key)=>{
@@ -312,8 +351,8 @@ export async function generatePreview({
   if(tool==='bookmark-manager'){
     // Insert only for this OFFLINE tool, beyond .preview-device. The shared
     // Quick Notes, Reading TOC and AdBlock preview HTML is byte-identical.
-    const marker='</div>\n<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall"';
-    const insertion='</div>\n'+bookmarkLab+'\n<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall"';
+    const marker='<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall"';
+    const insertion=bookmarkLab+'\n<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall"';
     if(!outputHtml.includes(marker)||outputHtml.split(marker).length!==2)
       fail('canonical outer preview location is unavailable');
     outputHtml=outputHtml.replace(marker,insertion);
@@ -355,7 +394,7 @@ export function previewReviewContext(preview){
       ...(manifest.tool==='adblock'?['正式 React 全局与本站开关（离线模拟）','全部四种可信写操作的确认与取消（离线模拟）']:[]),
       ...(manifest.tool==='bookmark-manager'?['外层预览测试控制（不属于正式工具）']:[]),
       ...(manifest.tool==='reading-toc'?['简体中文/English 原位切换（离线模拟）','Side Panel / 可信网页悬浮源代码切换','章节/空态/加载/错误模拟']:[])],
-    scenario:manifest.scenario,viewportCssPx:manifest.viewport,
+    scenario:manifest.scenario,previewControls:manifest.previewControls,viewportCssPx:manifest.viewport,
     source:{commit:manifest.sourceCommit,designSha256:manifest.designSha256,
       shellSha256:manifest.shellSha256,uiSha256:manifest.uiSha256},
     simulation:{mock:true,installed:false,permissionsGranted:false,network:false,

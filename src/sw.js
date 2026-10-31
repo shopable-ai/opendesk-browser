@@ -18,6 +18,7 @@ import {readAnalyticsAuthorityProjection} from './analytics/authority-projection
 import {installedKey as taskInstalledKey} from './platform/tasks/contract.js';
 import {installChatGPTBridgeTriggerGate} from './native-agent/chatgpt-bridge-trigger-gate.js';
 import {installGlobalVideoSpeedService} from '../projects/video-speed-controller/trusted/service.js';
+import {handleSidebarToolRuntimeQuery} from './sidebar-tools/runtime-compatibility.js';
 
 
 export function initServiceWorker({development=null}={}) {
@@ -45,6 +46,7 @@ try{installAdblockService({api:chrome});}catch(e){console.warn('E_ADBLOCK_HOST_L
 try{installAiAccessService({api:chrome});}catch(e){console.warn('E_AI_ACCESS_HOST_LOAD',e);}
 let cookieAccounts;
 try{cookieAccounts=installCookieAccountService({api:chrome,
+  serviceTransport:()=>globalThis.__opendeskManagedServices,
   storage:async()=>(await foundation).storage});}
 catch(e){console.warn('E_COOKIE_ACCOUNT_HOST_LOAD',e?.code||'E_ACCOUNT');}
 const recoverManagedProxy=()=>void reconcileManagedProxy(chrome).catch(error=>
@@ -274,6 +276,7 @@ chrome.tabs.onRemoved.addListener(tabId => {
       label:`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`}));
 });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if(handleSidebarToolRuntimeQuery({api:chrome,message,sender,respond:sendResponse,isUpdating:()=>Boolean(development?.held)}))return true;
   if(handlePromptRailOpen({api:chrome,message,sender,respond:sendResponse}))return true;
   // The independent fixed health-host listener owns only the environment
   // protocol. This host continues to own Foundation RPC and its dispatch fence.

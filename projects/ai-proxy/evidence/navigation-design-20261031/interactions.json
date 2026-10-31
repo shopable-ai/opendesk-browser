@@ -1,0 +1,56 @@
+{
+  "candidate": "source-f98ab925-5d04-4333-9540-9906ce5d19d7",
+  "uiSha256": "02cf3d22dbc5a52ed3e386e0eb9e7dfd5d126cf8ef633f4ef1e779652c377d17",
+  "mode": "Chromium IAB same-source sandbox, memory service only",
+  "checks": [
+    {
+      "action": "快捷规则编辑后点取消，在确认中取消",
+      "result": "保留quick-review.example.net，焦点回到取消按钮，dirty保持"
+    },
+    {
+      "action": "快捷规则关闭，确认放弃",
+      "result": "返回代理面板，焦点恢复quick-site-rule，已保存example.com仍在"
+    },
+    {
+      "action": "快捷编辑命中规则→DIRECT→保存",
+      "result": "返回代理面板，焦点quick-site-rule；显示已保存而未改变Chrome代理，当前网站待应用选择DIRECT"
+    },
+    {
+      "action": "管理当前Tab重复点与键盘左右往返",
+      "result": "保持网站规则栏目；选中和焦点在管理设置Tab；现存example.com优先级10保留"
+    },
+    {
+      "action": "更多操作键盘展开/收起",
+      "result": "两项操作可见且样式单层"
+    },
+    {
+      "action": "管理规则草稿切换面板",
+      "result": "出现未保存草稿对话框，默认聚焦继续编辑"
+    },
+    {
+      "action": "继续编辑→优先级73→不含子域→保存DIRECT规则",
+      "result": "长网址只保留域名；返回列表，焦点恢复新规则编辑按钮；优先级73/已启用/DIRECT，状态明确未应用"
+    },
+    {
+      "action": "管理规则Escape取消离开→取消表单并确认放弃",
+      "result": "Escape确认取消保留输入；明确放弃后回列表焦点settings-rule-add，仍3条已保存规则，无额外写入"
+    },
+    {
+      "action": "通用设置切英语/繁体，再打开网站规则",
+      "result": "同源应用真实切换，固定视图Tabs/栏目/状态/数量均翻译，长域名自然换行"
+    },
+    {
+      "action": "原生PageDown→可见记录原生点击编辑→原生点击取消",
+      "before": {
+        "focused": "settings-rule-rule-local",
+        "scrollTop": 164.5
+      },
+      "after": {
+        "focused": "settings-rule-rule-local",
+        "scrollTop": 164.5
+      },
+      "result": "PASS：实际DOM焦点恢复settings-rule-rule-local，scrollTop 164.5→164.5",
+      "driverNote": "先前Playwright locator点击会先自动调整滚动，不能据其点击前位置判断应用恢复；原生输入已复核"
+    }
+  ]
+}

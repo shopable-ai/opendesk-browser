@@ -1,0 +1,507 @@
+{
+  "format": "opendesk.cookie-editor.service-binding-core.v1",
+  "observedAtUTC": "2026-10-30 19:19:36 UTC",
+  "phase": "CORE_DEVELOPMENT",
+  "status": "INITIAL_SNAPSHOT_SUPERSEDED_BY_CONTINUATION",
+  "goalStatus": "active",
+  "scope": {
+    "project": "examples/sidebar-tools/cookie-editor",
+    "backendOwner": "examples/sidebar-tools/cookie-editor/ai-account-usage",
+    "branch": "main",
+    "changesUncommitted": true,
+    "preservedParallelChanges": true,
+    "sharedFiles": "Only Cookie-account additions were made to the existing Host and compiled-source allowlist; other parallel changes in these files were preserved.",
+    "existingOpenDeskExtensionEnvironment": "NOT_STARTED_OR_CHANGED",
+    "formalPackage": "UNCHANGED_2.0.54",
+    "formalPackageSha256": "58a102a648c71321c9b4fad42bb744694e79b0d197eb686a1a8fe2dafb047b2d",
+    "cookieTransfer": false,
+    "realCredentialReads": false,
+    "realUpstreamQueries": 0,
+    "productionAcceptance": "NOT_TESTED"
+  },
+  "userOperations": [
+    {
+      "operation": "Enterprise: save/rename/disconnect local or company service configuration",
+      "result": "SOURCE_AND_TARGETED_TEST_PASS",
+      "runtime": "COMPILED_NOT_INSTALLED",
+      "effect": "Trusted Foundation metadata only; no connection or authorization granted"
+    },
+    {
+      "operation": "Enterprise: explicitly associate saved current-origin alias/version with remote resource",
+      "result": "SOURCE_AND_TARGETED_TEST_PASS",
+      "verification": "UNVERIFIED",
+      "remoteState": "PENDING_CONNECTION"
+    },
+    {
+      "operation": "Enterprise: connect through Native and open corresponding management page",
+      "result": "NOT_IMPLEMENTED",
+      "reason": "No authenticated service discovery/device secret/resource-open methods in the existing Browser/Go Native bridge"
+    },
+    {
+      "operation": "Terminal pairing: open management settings and save desired policy",
+      "result": "REAL_NODE_HTTP_AND_SYNTHETIC_CHROMIUM_PASS",
+      "device": "SYNTHETIC_TRUSTED_PROCESS_FIXTURE",
+      "acceptanceAfterSave": null
+    },
+    {
+      "operation": "Trusted-process resource handoff: open selected account only",
+      "result": "REAL_NODE_HTTP_AND_SYNTHETIC_CHROMIUM_PASS",
+      "nativeAuthorization": "NOT_TESTED",
+      "upstreamQueries": 0
+    },
+    {
+      "operation": "Unknown desired save: reconcile, explicitly archive, read current revision, separately review new operation",
+      "result": "NODE_BEHAVIOR_TEST_PASS",
+      "browserInteraction": "NOT_TESTED",
+      "automaticPostReplay": false
+    }
+  ],
+  "verification": [
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/service-connections.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/usage-entry-boundary.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-http.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-ui.test.mjs",
+      "result": "PASS",
+      "tests": 50,
+      "note": "33 Cookie metadata/Host/UI/boundary tests are unchanged at final source. The original 17 backend checks are superseded by the final 21-check run below."
+    },
+    {
+      "command": "node --test tests/environment/cookie-editor-account-switch-host.test.mjs",
+      "result": "PASS",
+      "tests": 71
+    },
+    {
+      "command": "node --test tests/environment/cookie-account-provenance-r134.test.mjs",
+      "result": "PASS",
+      "tests": 6,
+      "proves": "Exact reviewed blobs, existing target restriction, drift/symlink/history/package rejection"
+    },
+    {
+      "command": "node --test examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-http.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/ai-account-usage-management.test.mjs",
+      "result": "PASS",
+      "tests": 21,
+      "note": "Final backend source, including fixed local provider/resource identity, stale acceptance replay rejection, both-cookie scope isolation, unknown result archive and original terminal management behavior"
+    },
+    {
+      "command": "Explicit service-binding-chromium.mjs import with Node registerHooks resolving the existing Codex Playwright runtime",
+      "result": "PASS",
+      "tests": 1,
+      "afterFinalBackendFix": true,
+      "playwrightRuntime": "/Users/shopme/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs",
+      "chromeExecutable": "/Users/shopme/Library/Caches/ms-playwright/chromium-1248/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "isolation": "Headless temporary browser profile + private synthetic state directory, cleaned up",
+      "proves": "Terminal pairing -> real React settings -> desired save remains PENDING with null acceptance -> exact selected account resource dialog; refresh disabled, fragment removed, zero upstream queries"
+    },
+    {
+      "command": "npm run build --prefix examples/sidebar-tools/cookie-editor",
+      "result": "PASS",
+      "status": "COMPILED_NOT_INSTALLED",
+      "buildId": "ef08b02838d968f10a81d38c30b213705c2c451b4ce92e5eb385f9e3fe0fb75e",
+      "note": "All 21 source and 2 artifact fingerprints were separately checked against the receipt after the last UI edit; formal package unchanged"
+    },
+    {
+      "command": "node --check for account-service.js, service-connections.js, web-server.mjs, and src/ui/sidebar-tools.js; scoped git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "sourceReview": {
+    "reviewer": "Independent read-only Codex native reviewer",
+    "trustedInputs": "APPROVED_EXACT_BLOBS",
+    "reviewedGitBlobs": {
+      "trusted/account-contract.js": "722171e38f335203c5432f67098071f165d4acfb",
+      "trusted/account-service.js": "89a51d6b9fac55b2419782beffd7807855eb01a6",
+      "trusted/service-connections.js": "4c196bc40108d672ed7382a4a98b7f1ff07b029a"
+    },
+    "targetRestriction": "Existing contract target set unchanged; service and metadata module only sw.js",
+    "correctedFindings": [
+      "Persisted null must fail closed rather than initialize empty state",
+      "Resource-scoped cookie must dominate an old admin cookie",
+      "Local provider must be derived from fixed codex resource contract",
+      "Stale accept replay must not present historical acceptance as current authority"
+    ],
+    "backendFinalRecheck": "PASS_BOTH_MEDIUM_FINDINGS_RESOLVED_NO_REMAINING_BLOCKER_IN_REVIEWED_SLICE"
+  },
+  "nativeBlocker": {
+    "browser": "src/native-agent/protocol.js:13",
+    "nativeOwner": "/Users/shopme/Documents/workspace/opendesk/internal/browserbridge/wire.go:30",
+    "nativeDevAllowlist": "/Users/shopme/Documents/workspace/opendesk/internal/browserbridge/wire.go:87",
+    "observation": "Existing bridge methods and development project-source provider have no authenticated management-service discovery, secret channel, device authorization or resource-open contract. No Go source, binary, installation, pairing or Native configuration was changed.",
+    "requiredNext": "Native owner must add authenticated instance/installation/user/grant/resource handling within the existing bridge before connecting local metadata drafts and process-only Node adapter. Do not pass sandbox context into createLocalClient or introduce a bypass Host.",
+    "automaticRetest": "No repeated builds/tests until that dependency or relevant source changes."
+  },
+  "knownUnrelatedChecks": {
+    "file": "tests/environment/cookie-editor-layout-placeholders.test.mjs",
+    "status": "EXISTING_STALE_ASSERTIONS_NOT_FIXED",
+    "failures": [
+      "first use retains three inert account examples without claiming saved snapshots",
+      "save stays unavailable until trusted account metadata is ready",
+      "unreadable legacy snapshots are disclosed without restoring password management"
+    ],
+    "reason": "These old tests look up the former button label 保存当前 Cookie 为账号; current unmodified CookieAccounts uses 添加账号. Not counted as passing."
+  },
+  "notTested": [
+    "Real installed extension enterprise workflow",
+    "Real Native service authorization and resource open",
+    "Real company OAuth/PKCE and DNS/SSRF connector",
+    "True company deployment",
+    "Unknown archive browser interaction",
+    "Production acceptance",
+    "Formal tool packaging/promotion/installation"
+  ],
+  "outOfScope": [
+    "Real Cookie transfer, backup/restore and encryption",
+    "Automatic upstream polling",
+    "Full repository test matrix",
+    "Width/zoom matrix",
+    "Independent score",
+    "Commit/push/PR"
+  ],
+  "filesSha256": {
+    "examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx": "45e84361afc599f5cc160b7d92d26bb6568a3428e77249bdd06289322b2e8ea0",
+    "examples/sidebar-tools/cookie-editor/app/components/CookieBusinessPanels.jsx": "b6e791671b500aa1865dad1dcb8aa793cf4815b3879a353e6298120f6df06cec",
+    "examples/sidebar-tools/cookie-editor/app/components/CookieServiceConnections.jsx": "94ed31cea9fdbcfa02bef4f0c75c4c16e85105f62223be006b45760f9e720b6c",
+    "examples/sidebar-tools/cookie-editor/vite.config.mjs": "5f07d255ac89a83c1f9db48b504266be30e3788263a6ec6d4f0fbb0c99414046",
+    "examples/sidebar-tools/cookie-editor/trusted/account-contract.js": "2209618780937bc9a0062990ea2daddad04c2deded77cb0188e035e28274a276",
+    "examples/sidebar-tools/cookie-editor/trusted/account-service.js": "18f5e6154b70f18b52d0c934dc5863578b97f1318024c6d87c8c74ad0eb3eba7",
+    "examples/sidebar-tools/cookie-editor/trusted/service-connections.js": "2fe21b4c51e586d4b3d4604a3fc646f5e7fff421544e68fc0ebc5a0b2aa5b6e8",
+    "src/ui/sidebar-tools.js": "522817e6ea5984451807c6c762bbf91da12a5df27c650c51998e44ce56e93f44",
+    "scripts/bundle-provenance.mjs": "26b12f912332f7c1c54eabfde1b155b53dea7edf3d6d118cf5b242950e870c5d",
+    "tests/environment/cookie-account-provenance-r134.test.mjs": "290aa41da52635deefc1075da6386d9b065d0efbcb5fd803262a0aa9f34049e3",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/service-binding-store.mjs": "6354c307e76b93a30c1351454619f1e81621837106b05b19945a3fd9ae80626f",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/service-binding.mjs": "5c8d2fb6450c7069e0611edf7da8a54ff3989a9b1119631b4f53c4e5e17a6ff8",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/web-server.mjs": "ef214256a3efe79acfe13625dcbb4f8e3fc9b0e5acc69ddedc87871f8001cf6c",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/web/main.jsx": "d14c24240057f1793fcf855c4feb367f22dd33836a5c5b3a8ec5891db4b08985",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/web/ServiceBindingSettings.jsx": "69f297f544a1203978f6ed9d1280ad04f273acdae63a3041a7ac7cb8ad7e1cba",
+    "examples/sidebar-tools/cookie-editor/ai-account-usage/web/service-binding-api.mjs": "555b58b604e79bfc45337c37c19fb3714f7fe1bebb1823d9131d54b8c3a926af",
+    "examples/sidebar-tools/cookie-editor/tests/service-connections.test.mjs": "c8d59eddac86a3216e24981c68d77861fa473d26a93e2163f5675ba2e9ea60ce",
+    "examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs": "e3fc36da3f5e08eb6f7a4b17ca50f40117e0d6fe15bcfe9d95b31f0c6315ffea",
+    "examples/sidebar-tools/cookie-editor/tests/service-connections-ui.test.mjs": "31b1f85f997427ca0c27a5859d5a3c852700d3fb3c30a0af0f793d3184582949",
+    "examples/sidebar-tools/cookie-editor/tests/usage-entry-boundary.test.mjs": "e9c1f577cb25f75acd6284a0c7f6e319f7b66437e25981b1e9124e03e84b9dfe",
+    "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding.test.mjs": "98906c1186850158b7032ef52562dadb408c29481412d358b8b95e7b55f36ecf",
+    "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-http.test.mjs": "18bccc6d2941262a1dcf6361f08cbbc9d2b2e45116340b56195f93cae07684dc",
+    "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-ui.test.mjs": "f2a954eef64550144fd1ff81e6182ca683398e07a66ab9562c9c57ec1bd902ff",
+    "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-chromium.mjs": "5f7f454f3c326a6cbc34fe812648e2ac0014547c39ef447eb1ba8c19298017e0"
+  },
+  "snapshotRole": "Initial snapshot only; continuation is the latest source observation and supersedes initial nativeBlocker, user-operation status and changed-file fingerprints. Earlier Chromium evidence does not verify the current enterprise UI or Native transport.",
+  "continuation": {
+    "observedAtUTC": "2026-10-30T20:03:37.483003+00:00",
+    "phase": "CORE_SOURCE_DEVELOPMENT",
+    "status": "BROWSER_CONSUMER_AND_NODE_CORE_SOURCE_VERIFIED_GO_BROKER_PENDING",
+    "branch": "main",
+    "goalStatus": "active",
+    "changesUncommitted": true,
+    "userOperation": "Fixed Cookie service → registered local service → resource bind → metadata subset acceptance → scoped management open passes with a real isolated Node backend and substituted Chrome/Foundation/Go boundaries. Actual enterprise Native workflow remains NOT_IMPLEMENTED end-to-end until Go broker and installed matching Browser/Tool are ready.",
+    "implemented": [
+      "Fixed internal Browser client on the original Native Port, negotiated numeric managedServicesVersion 1, no runtime/sandbox service dispatch API",
+      "Explicit Node provider on original private Unix socket, no automatic reconnect/replay; req_<monotonic integer> per-provider watermark, at most four in-flight, original 60 KiB limit",
+      "Cookie business adapter derives fixed codex provider and allowed cached resources, exact string installation epoch and owner, process-only capabilities, manual UNVERIFIED association, metadata-only policy acceptance",
+      "Unknown DELETE retains only original-context GET receipt access, disables reads/mutations/opens, never automatically reissues DELETE",
+      "Private same-context renewal before dispatch, no HTTP renewal endpoint, no scope expansion or retired capability revival",
+      "Device-only and exact account/binding management opens, open URL stays internal-only",
+      "manage serve --native source opt-in with cleanup on registration failure; ordinary serve unchanged",
+      "Fixed Cookie consumer uses original account RPC, exact installed owner, sender/Document/gesture checks and live Store/Partition authority for binding; no Cookie values are captured or sent",
+      "Enterprise UI selects exact registered local service and actual resources; company configuration stays disconnected and grants no Native access",
+      "Bounded Foundation session journal with CAS/readback; unknown effects retain original IDs, GET receipt reconciliation does not replay or revive authority after consumer restart",
+      "All seven Native effects require configuration revision and trusted sessionRevision; reconnect or remote refresh invalidates old confirmations before dispatch",
+      "Management URL is checked against exact registered origin and known device/account path plus one-use fragment, consumed only by fixed SW tabs.create; never returned to sandbox or persisted",
+      "Foreground open permits only the resulting source-tab deactivation after tabs.create resolves; post-handoff Document/install/account fences remain",
+      "Confirmed disconnect permits separately reviewed fresh connection and operation IDs; unknown open can be explicitly archived without marking it failed",
+      "Stale active bindings can still be explicitly unbound; confirmed remote revocation permits local association removal",
+      "Independent reviewed blob admission for new service-session.js is sw.js only; shared contract retains its nine existing targets"
+    ],
+    "verification": {
+      "groups": [
+        {
+          "command": "node --test examples/sidebar-tools/cookie-editor/tests/service-session.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections.test.mjs examples/sidebar-tools/cookie-editor/tests/usage-entry-boundary.test.mjs",
+          "result": "PASS",
+          "tests": 94,
+          "note": "Includes six real isolated Node integration tests. UI low-severity follow-up was rechecked separately, 43/43 PASS; other reviewed source inputs did not change."
+        },
+        {
+          "command": "node --test tests/environment/cookie-editor-account-switch-host.test.mjs tests/environment/cookie-editor-account-switch-url.test.mjs tests/environment/cookie-editor-account-parent-domain.test.mjs",
+          "result": "PASS",
+          "tests": 99
+        },
+        {
+          "command": "node --test tests/environment/cookie-account-provenance-r134.test.mjs",
+          "result": "PASS",
+          "tests": 6,
+          "note": "Exact blob drift, symlink, arbitrary/same-ID imports and all non-approved output targets remain rejected."
+        }
+      ],
+      "currentUniqueTestsCovered": 199,
+      "syntax": "node --check PASS for four trusted modules, src/sw.js, src/ui/sidebar-tools.js and scripts/bundle-provenance.mjs; JSX parsed/compiled by project Vite build",
+      "whitespace": "Scoped git diff --check PASS",
+      "auth": "Synthetic installation/browser/Go peers and isolated Node state only. Not proof of actual Native authentication.",
+      "native": "NOT_TESTED",
+      "currentEnterpriseChromiumInteraction": "NOT_TESTED",
+      "lspDiagnostics": "UNAVAILABLE",
+      "repeatPolicy": "Only affected tests/checks were run; prior unchanged generic transport/backend evidence retained under nativeEndpointVerification."
+    },
+    "remaining": {
+      "goOwner": "/Users/shopme/Documents/workspace/opendesk/internal/browserbridge",
+      "goBranchLastObserved": "master",
+      "goParallelChanges": "host_unix.go has existing parallel modifications; not written by this task.",
+      "goWork": "Typed service registry, Chrome/socket negotiation, provider epoch + monotonic ID routing, retirement and internal seam tests",
+      "browserWork": "Compile/install a matching Browser fixed SW and Tool only when needed for the next real Native operation; the current Tool JSON is intentionally unchanged.",
+      "authorizationBoundary": "SUPERSEDED_BY_USER_CLARIFICATION_20261031: use each repository's existing primary branch; Browser main and OpenDesk master are both permitted. The literal-main interpretation was incorrect and is no longer a blocker. Preserve parallel writes; do not create or rename branches/worktrees.",
+      "realCompanyConnector": "NOT_IMPLEMENTED",
+      "realNative": "NOT_TESTED",
+      "cliFlagLive": "NOT_TESTED"
+    },
+    "preserved": {
+      "formalToolPackage": "UNCHANGED_2.0.54",
+      "existingProcesses": "EXISTING_SERVICES_NOT_CHANGED; temporary isolated Node servers were started and closed by tests only",
+      "goSource": "UNCHANGED_BY_THIS_TASK",
+      "realCredentialReads": false,
+      "realUpstreamQueries": 0,
+      "cookieTransfer": false,
+      "commitPush": false,
+      "formalToolPackageSha256": "58a102a648c71321c9b4fad42bb744694e79b0d197eb686a1a8fe2dafb047b2d"
+    },
+    "filesSha256": {
+      "examples/sidebar-tools/cookie-editor/README.zh-CN.md": "60f7c9cb963cfd23cb7b0164a4bd25e94e610158ceaad5494094c155d34201ae",
+      "examples/sidebar-tools/cookie-editor/ai-account-usage/README.zh-CN.md": "34c2840809b575ed09906854ff6c4e79634dd65500520642fcdbabea5136c369",
+      "examples/sidebar-tools/cookie-editor/ai-account-usage/manage.mjs": "de5cb38ebd774c86ae77375cb4a4b90d42d22d1cfd293b167358d820d6088983",
+      "examples/sidebar-tools/cookie-editor/ai-account-usage/native-connection.mjs": "d507f2bed16e5da4cff0dff54036e192bd51d25f9a1f266e75f9654631faa119",
+      "examples/sidebar-tools/cookie-editor/ai-account-usage/native-service-adapter.mjs": "bb0845ad373a2e4088a099f2619412bc8b081328f1e21326c459d98b6a39810d",
+      "examples/sidebar-tools/cookie-editor/ai-account-usage/web-server.mjs": "78cad329bf16259db76138c767f5ee0f3d9405c89646e277512acb2c6ed998d1",
+      "examples/sidebar-tools/cookie-editor/app/CookieEditorApp.jsx": "0285c17cacb9564448ec23587a4944529cc7f14254ff1c3b18f96d81d1736033",
+      "examples/sidebar-tools/cookie-editor/app/components/CookieServiceConnections.jsx": "bc13b8339969eab86b57cddfa9f3204eaccb6be983190ebdac587b597221ba00",
+      "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/native-connection.test.mjs": "eadb23575bb88fba454b56ba31b66ba3b8dba6cffd409d0acd9ab9c2442bb983",
+      "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/native-service-adapter.test.mjs": "3f8785e1f0c65daf7a94189bc9264f452d3441ae5f5ec9b5001d99f98631373d",
+      "examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs": "a443fb1c0fc79ebec6d0da505342aaa38cc7bd73ef61ec8a2a8af66875881a14",
+      "examples/sidebar-tools/cookie-editor/tests/service-connections-ui.test.mjs": "ba1e01638bcac9dca313d9cecb3c4a38df90574fd079d46e869bd292abcba5e4",
+      "examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs": "52b3f2282dbfd0b09bf7d6fe397a96e335824191fac8642ce446cd06d0b04565",
+      "examples/sidebar-tools/cookie-editor/tests/service-session.test.mjs": "251b6da5e4831191c574a4de08b52274a7f4d929112e01506e1e758f2c467a0e",
+      "examples/sidebar-tools/cookie-editor/trusted/account-contract.js": "71ef88d21c5e8007726292e6ede4471b8b98b0337e23d57968bc3e328b7d0d6b",
+      "examples/sidebar-tools/cookie-editor/trusted/account-service.js": "8b4123d73747243fde825fe636f664d89e6e089c385c0266fcffab034340f0c8",
+      "examples/sidebar-tools/cookie-editor/trusted/service-connections.js": "1844fd2d41bb9535f82d74dbcbee3dbdabde2aa5c2aafcbe7bf98b4a79e95f82",
+      "examples/sidebar-tools/cookie-editor/trusted/service-session.js": "7a68f48cdea6d4a82668db6df78b4a3b4bf95e5f6cb8bbc4f6409ab080377a0d",
+      "native-agent/managed-services/README.md": "764c807c5e50d719c9983b9f7ed478ab0697995573b8ad824203c0cf07f98c65",
+      "native-agent/managed-services/provider.mjs": "63cdc2eb6e98e1de720431d0c432c38e021da8418194409c688d4b18af3b8a41",
+      "scripts/bundle-provenance.mjs": "db8b54aeddb45c389142e80b8f5bc431f213f7bda44bb6d95cc5cc39e71ce7a1",
+      "src/native-agent/managed-service-client.js": "316b989e05d4b1230d6125f6ff0a193a20069e04b36d2ecf5781a97485a7bd83",
+      "src/native-agent/managed-service-protocol.js": "b26ecd00d97fb6abb54c31a0411c1f63516ffecb77c2a3afa5edded4cb6f9935",
+      "src/native-agent/service-worker.js": "aa503b35d9befb8f531524145ed815a7e88fe5a2d3c23686272dc5d2479095da",
+      "src/native-agent/transport.js": "ea7e9072a80c204c12b4d42fe6dfb07218788a1b4752349283eab758c9864cb9",
+      "src/sw.js": "8e9e3ad01dc463a1f135b5ddf8f320f08e66182e37c40c398119a64e99cb5891",
+      "src/ui/sidebar-tools.js": "a53c33f8b2574ab88dfa1a26d481bff1b00cd89cbdd865c6674deb1330455ae0",
+      "tests/environment/cookie-account-provenance-r134.test.mjs": "4573093ec72818672d47677db8194d33e238358c13777609a7465eff25150388",
+      "tests/environment/managed-service-client.test.mjs": "21462b85f5aa32ae6d0e427e9ccc31116a1e51bb03380c9597a7a2ff6b697f3a",
+      "tests/environment/managed-service-provider.test.mjs": "ed5db9f843006422057b2e79f819f8fd6f6ba43f11d398b577729da04fa95c2c",
+      "tests/environment/native-agent-bridge.test.mjs": "c11a35d33343d4343f5f4e3e93e371a7c11251683ba67df5a275368b67d64847"
+    },
+    "sourceReview": {
+      "reviewer": "Independent read-only Codex native reviewer Singer",
+      "scope": "Four trusted Cookie modules, original SW/Host integration, enterprise component and relevant behavioral tests",
+      "fixed": [
+        "Old confirmations surviving reconnect: both local configuration revision and trusted sessionRevision now required",
+        "Stale binding unbind and confirmed-revocation local removal are available",
+        "Enabled inert management button on stale binding is removed",
+        "Foreground-open post-fence preserves actual intended activation handoff"
+      ],
+      "finalRecheck": "COMMENT: no remaining actionable findings. Exact trusted blobs unchanged after final fixes. JS/JSX parsing passed; LSP diagnostics unavailable.",
+      "admission": {
+        "service-session.js": [
+          "sw.js"
+        ],
+        "contractTargetsUnchanged": 9
+      },
+      "reviewedGitBlobs": {
+        "account-contract.js": "1b20551bef0c24cb31505960ba9d73f886b8c31c",
+        "account-service.js": "f7d79918af45f254a6a04f9e07b11aa41432268c",
+        "service-connections.js": "e2f0007c8e82084125c86ea9c72ac4c43bd5bf6a",
+        "service-session.js": "8a4654e89d518d88cbf1993f774c78ee5ed1228d"
+      }
+    },
+    "nativeEndpointVerification": {
+      "command": "node --test tests/environment/managed-service-client.test.mjs tests/environment/managed-service-provider.test.mjs tests/environment/native-agent-bridge.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/native-service-adapter.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/native-connection.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-http.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/service-binding-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/ai-account-usage-management.test.mjs",
+      "result": "PASS",
+      "tests": 95,
+      "syntax": "node --check passed for all nine modified/new production JS/MJS files",
+      "whitespace": "Scoped git diff --check PASS",
+      "auth": "Synthetic peers and isolated state only; not proof of real Native authentication",
+      "finalProviderCheck": {
+        "command": "node --test tests/environment/managed-service-provider.test.mjs",
+        "result": "PASS",
+        "tests": 7,
+        "note": "After duplicate-result fix; supersedes the six provider tests included in the previous 95-test command. All old sequences remain unknown even if their action changes; in-flight duplicate executes once and GET receipt can reconcile."
+      },
+      "uniqueTestsCovered": 96,
+      "lastSyntaxCheck": "PASS after final provider fix"
+    },
+    "uiBuild": {
+      "command": "npm run build --prefix examples/sidebar-tools/cookie-editor",
+      "status": "COMPILED_NOT_INSTALLED",
+      "buildId": "36ebe1b7db4cca70b874ae5c5f7ad73379403678f9f2bfdb48a6cbb11a2fd694",
+      "sources": 21,
+      "files": {
+        "dist/tool.js": {
+          "bytes": 179939,
+          "sha256": "ec2cb76a35bd948044007d2d2006314073ce45930914b5d848a25ac69c7620eb"
+        },
+        "dist/tool.css": {
+          "bytes": 62252,
+          "sha256": "8eeb4727e620623cd8113a6b3dcca93a616090ace62056ec34d827a4a2224b32"
+        }
+      },
+      "sourceArtifactReadback": "PASS",
+      "browserFixedSWBuild": "NOT_TESTED",
+      "formalPackagePromotion": "NOT_PERFORMED"
+    }
+  },
+  "handoffCorrection": {
+    "observedAtUTC": "2026-10-31T06:36:16.004751+00:00",
+    "scope": "Documentation correction and new-chat handoff only; no business or Go source changes in this correction.",
+    "supersededAuthorizationNote": "Task-specific exception for existing Native master checkout was requested and remains unanswered; user main-only rule prevents writing it. No branch/worktree was created or switched.",
+    "primaryBranches": {
+      "opendesk-browser": {
+        "branch": "main",
+        "originHEAD": "origin/main"
+      },
+      "opendesk": {
+        "branch": "master",
+        "originHEAD": "origin/master"
+      }
+    },
+    "businessBoundary": "Cookie Editor and its standalone ai-account-usage Node backend own business logic. Ordinary serve/terminal management must not require the OpenDesk desktop program. OpenDesk internal/browserbridge owns only an optional generic authenticated transport; no Cookie/Codex/account/policy logic moves into Go.",
+    "goalLifecycle": {
+      "originalThreadId": "01a18e2a-5e5e-7ef2-b2ce-d7bba71dee52",
+      "observedStatus": "blocked",
+      "staleBlockReasonCorrected": true,
+      "applicationStatusResumed": false,
+      "reason": "Available update_goal tool cannot resume a blocked goal. Handoff does not complete, migrate or pause it; new chat continues independently."
+    },
+    "verification": "git diff --check passed; README relative business-project path exists; both origin/HEAD primary branches read directly. No product tests/build/browser startup triggered by documentation-only correction.",
+    "filesSha256": {
+      "AGENTS.md": "46f0edec8a50c9eda97cd9ec0653fd699490be7656361c08395f1c845ced4462",
+      "native-agent/managed-services/README.md": "22df0e9a4801ed1fb8d5c27621782c6c5266ddf04fe797f73d91d60a5b2ca284"
+    }
+  },
+  "coreDevelopmentContinuation": {
+    "observedAtUTC": "2026-10-31T06:52:38.943Z",
+    "stage": "CORE_DEVELOPMENT_NOT_RELEASE_ACCEPTANCE",
+    "result": "Standalone CLI and actual browser settings page usable without OpenDesk. Generic Go bridge is source wired; real Go/Node process metadata workflow passes with synthetic Chrome authority. Installed enterprise Chrome/Native workflow remains NOT_TESTED.",
+    "ownership": "Cookie/account/provider/credential/cache/binding/policy/UI remain in Cookie Editor ai-account-usage. OpenDesk internal/browserbridge only handles an optional generic authenticated transport.",
+    "repositories": {
+      "browser": {
+        "branch": "main",
+        "head": "a205cdc6cad0cb19eed3173458cbe366b97e9a8e",
+        "note": "HEAD advanced concurrently; no commit or branch operation by this task"
+      },
+      "opendesk": {
+        "branch": "master",
+        "head": "d38732243438ba9861bc932077fc9c294677b0b2"
+      }
+    },
+    "operations": {
+      "standalone": "PASS: real CLI child process, one-use pair, cache/history/settings APIs and current web assets; actual browser pair -> accounts -> Cookie sync settings -> empty authenticated-device state, zero console errors",
+      "metadataProcess": "PASS: real Go Host Native frames + credential-authenticated private Unix socket + real Node provider and backend; connect -> existing account resource -> bind UNVERIFIED -> admin desired policy still unaccepted -> explicit device acceptance -> scoped one-use account/device management session -> unbind -> disconnect",
+      "connectorRetirement": "PASS: Go removes descriptor and pending; Node invalidates private grants; standalone admin remains usable",
+      "unknownWrites": "PASS: timeout/exit/old sequences remain unknown; write with committed effect followed by unclassified 4xx confirmation error stays OUTCOME_UNKNOWN; no automatic replay",
+      "installedEnterprise": "NOT_TESTED",
+      "cliServeNativeInstalled": "NOT_TESTED"
+    },
+    "verification": [
+      {
+        "command": "npm run build:web --prefix examples/sidebar-tools/cookie-editor/ai-account-usage",
+        "result": "PASS",
+        "scope": "Necessary because existing business web/dist lacked current settings component; Browser dist and tool package untouched"
+      },
+      {
+        "command": "/Users/shopme/.local/opt/go1.25.13-amd64/bin/go test -race ./internal/browserbridge -run '^(TestManaged|TestHostChromeCLIBridgeAndUnknownIdentity$|TestProviderReverseRequestsAndDisconnect$|TestHostNeverDeletesExistingSocket$|TestCloseReleasesHostEvenWithBlockedNativeStdin$|TestClosedHostNeverRecreatesSocketOnDelayedStart$|TestWorkflowAIRequiresNativeWelcomeAndKeepsLegacyMethods$|TestWorkflowAIInvalidProtocolCannotEnterOtherNativeNamespaces$)' -count=1 -timeout=25s",
+        "cwd": "/Users/shopme/Documents/workspace/opendesk",
+        "result": "PASS",
+        "note": "Explicit process fixture skips without its isolated environment; it runs in the separate Node process test"
+      },
+      {
+        "command": "/Users/shopme/.local/opt/go1.25.13-amd64/bin/go vet ./internal/browserbridge",
+        "cwd": "/Users/shopme/Documents/workspace/opendesk",
+        "result": "PASS"
+      },
+      {
+        "command": "node --test tests/environment/managed-service-provider.test.mjs tests/environment/managed-service-client.test.mjs tests/environment/native-agent-bridge.test.mjs",
+        "result": "PASS",
+        "tests": 63
+      },
+      {
+        "command": "OPENDESK_MANAGED_HOST_TEST_BINARY=/Users/shopme/Documents/workspace/opendesk/.runtime/tests/browserbridge/managed-services/browserbridge.test node --test examples/sidebar-tools/cookie-editor/tests/ai-account-usage/native-host-process.test.mjs examples/sidebar-tools/cookie-editor/tests/ai-account-usage/standalone-serve.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs",
+        "result": "PASS",
+        "tests": 8,
+        "note": "The Go private test fixture was compiled from current source; original Foundation/Chrome consumer authority is synthetic, not proof of real installation"
+      },
+      {
+        "command": "node --check (new/changed MJS) + gofmt -l (four new Go files) + scoped git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "failureClassification": [
+      {
+        "test": "TestProviderReverseRequestsAndDisconnect",
+        "initial": "Timed out because existing real-HOME project grants injected an extra dev.state into the legacy test io.Pipe",
+        "resolution": "Isolated HOME in that one existing test; no production behavior changed; selected legacy compatibility checks then passed"
+      },
+      {
+        "test": "native-host-process after revoke",
+        "initial": "Expected 401 but got 403",
+        "resolution": "Assertion corrected to existing explicit TRUSTED_SESSION_REQUIRED 403. Access was correctly denied; no product change."
+      }
+    ],
+    "review": {
+      "reviewer": "Independent native reviewer Feynman",
+      "finding": "Provider inferred confirmed write failure from status 4xx alone",
+      "resolution": "Removed status inference; regression observed RED then GREEN. No remaining actionable Go bridge finding reported."
+    },
+    "browserEvidence": {
+      "mode": "STANDALONE_SYNTHETIC_NO_NATIVE",
+      "screenshot": "artifacts/cookie-service-binding-20261031/standalone-sync-settings.png",
+      "productionReactAssets": true,
+      "currentEnterpriseExtension": "NOT_TESTED",
+      "note": "Actual browser rendering/click of independent backend only; no native service registration, real credentials or upstream calls. Temporary server closed normally after observation."
+    },
+    "environment": {
+      "browserDevelopmentPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "serveConnection": "NOT_RUNNING: recorded watcher PID 63479 absent and 43119/43120 had no listener",
+      "installedNative": "Observed existing older installed OpenDesk native-host processes; not rebuilt/replaced/restarted",
+      "ownership": "Existing Chrome/Profile/Native sessions retained; no ID changes, pairing, reinstallation or output overwrite"
+    },
+    "preserved": {
+      "cookieTransfer": false,
+      "realAuthReads": false,
+      "realUpstreamQueries": 0,
+      "continuousCollection": false,
+      "newDependencies": false,
+      "formalToolPackage": "UNCHANGED_2.0.54",
+      "formalToolPackageSha256": "58a102a648c71321c9b4fad42bb744694e79b0d197eb686a1a8fe2dafb047b2d",
+      "trustedSourcePins": "UNCHANGED; all four trusted Cookie source hashes still match prior independently reviewed continuation",
+      "parallelChanges": "Existing host_unix.go socket lifecycle diff retained; no reset/clean/branch/worktree/PR/commit/push by this task"
+    },
+    "remaining": [
+      "Deploy a matching OpenDesk Host and Browser fixed SW/tool through their existing owners and lifecycle safeguards, then run the real enterprise-page shortest operation chain",
+      "Installed serve --native registration/authorization/revocation remains NOT_TESTED",
+      "Company HTTPS/SSO connector NOT_IMPLEMENTED",
+      "Cookie payload, continuous collection, real upstream refresh and production/full-matrix/score acceptance remain deferred"
+    ],
+    "filesSha256": {
+      "examples/sidebar-tools/cookie-editor/README.zh-CN.md": "b79c7e36650ff92dc459adf3f5865d66e2f9a7c4fc23e31fe878d9f14c41d4dd",
+      "examples/sidebar-tools/cookie-editor/ai-account-usage/README.zh-CN.md": "2aaf19df8b3f30987a235aefc6428b4914a258f51df56dfd65f9a3ad120fd850",
+      "examples/sidebar-tools/cookie-editor/ai-account-usage/manage.mjs": "de5cb38ebd774c86ae77375cb4a4b90d42d22d1cfd293b167358d820d6088983",
+      "examples/sidebar-tools/cookie-editor/ai-account-usage/web/dist/app.js": "23d4706b76d0b3edd0c62a61bbe4d94dd0a59eefa62622969e48b170c063795a",
+      "examples/sidebar-tools/cookie-editor/ai-account-usage/web/dist/app.css": "0d67666e719e4b227f8098f7dd2d3c55c5e245fec4fff0f875ab28ab30ef68d5",
+      "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/standalone-serve.test.mjs": "b290b69b428b6f062060cf3747340d58b37469a78f8ffa30d91181bc46b33af1",
+      "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/fixtures/standalone-guard.mjs": "f253379d2619bfe592799f54dab30380e1b3fbd9e23e444abebe8dd6240b8bdc",
+      "examples/sidebar-tools/cookie-editor/tests/ai-account-usage/native-host-process.test.mjs": "5bea53cd11338cf9068717cadc2aad93eb66b4dce939c4862cd4e7b77afb6888",
+      "native-agent/managed-services/README.md": "d26191d9c81e787d910ae29400b3d1c45f294f848867bf894bba0daad16d922a",
+      "native-agent/managed-services/provider.mjs": "fd03718d941508b08bcd8c7e9ab6d49a01552bbdb47ef53ef85f435928abd3ac",
+      "tests/environment/managed-service-provider.test.mjs": "e8cf0d59b703208013da91369a3193d4d566a7406a89e73a983e292901d58fd8"
+    },
+    "opendeskFilesSha256": {
+      "internal/browserbridge/managed_services.go": "fdfbcb11f2c4c2a0ee63aa3ef9ebd8027096f7133c3e00b62168c049512e94d1",
+      "internal/browserbridge/managed_services_test.go": "b5be6f9c3da9f09e718d0e658790686c41474b65d38752aa2a6b542469a64503",
+      "internal/browserbridge/host_services_unix.go": "bd2b8fd82d95be303405887dc75c5c4e2c56efab2d977bbaa75d8c95a93c9348",
+      "internal/browserbridge/host_services_unix_test.go": "09728aa47002fead2250756f45dfefa4fc1fd4e0223170b592045368b8cf8f8f",
+      "internal/browserbridge/host_unix.go": "36694934f088f5764569dfbb862d0ee42a3b457cd6c782ae44cc1d7e631f4f1e",
+      "internal/browserbridge/host_unix_test.go": "cd624614edfa1c2adf8f0075846afa03feee8ffaa209f4b1296af1ecacdbf751",
+      "docs/quality/go-test-file-classification.md": "95fbca55d1bd7c08af1aed668040f85a6d75fb2dbadfb86b374c25f0ef208d5f"
+    }
+  }
+}

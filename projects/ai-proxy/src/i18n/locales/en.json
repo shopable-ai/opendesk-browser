@@ -998,5 +998,11 @@
   "apManageSettings": "Manage settings",
   "apCloseRuleEditor": "Close rule editor",
   "apRulePreview": "Rule preview",
-  "apRuleSaveNote": "Saves the rule without changing your connection. Apply it explicitly from the proxy panel when ready."
+  "apRulePriorityOptions": "Priority settings (optional)",
+  "apRuleEnabled": "Enabled",
+  "apRuleDisabled": "Disabled",
+  "apRuleSaveNote": "Saves the rule without changing your connection. Apply it explicitly from the proxy panel when ready.",
+  "editNamedRule": "Edit rule for {domain}",
+  "deleteNamedRule": "Delete rule for {domain}",
+  "apRulesListSource": "Adding from website rules"
 }

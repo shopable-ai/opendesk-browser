@@ -1,0 +1,95 @@
+Browser tab: 560069431, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html".
+1 AXWebArea AI Proxy · React 同源预览, URL: 127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html
+	2 container
+		3 container 预览来源和安全范围
+			4 text 模拟预览 · 非真实安装、权限或网络执行
+			5 text 工具：AI Proxy · 初始场景：success · 初始工具主题：light · 预览外壳：浅色
+			6 text Source: dc3d9fd93d6f6f76ba70ce451894ea167f5bd8c0 · Design SHA-256: efa5541cac5eda31587ef534cbd79d8b5696b22ef9ff024dab0109674f210380 · Shell SHA-256: 4f4692678370fe6b5f5f7abd74e6e44877ac4a25bb1d47415a450ef0e70a0a68 · UI SHA-256: fad1f8b7e71aac7761c0c0ac741e52aee212f84e3b4c6872e7c2c008e85e11bd
+		7 container OpenDesk Browser Side Panel 真实布局来源的离线预览
+			8 tab group 工作台
+				9 tab (selectable, settable, boolean) 我的, Value: 0, ID: tab-my-tasks
+				10 tab (selected, settable, boolean) 扩展, Value: 1, ID: tab-tools
+				11 tab (selectable, settable, boolean) 工作流, Value: 0, ID: tab-workflow
+				12 tab (selectable, settable, boolean) 开发, Value: 0, ID: tab-develop
+				13 tab (selectable, settable, boolean) 云控, Value: 0, ID: tab-cloud
+			14 container Description: 扩展, ID: od-preview-extension-detail
+				15 container
+					16 button Description: 返回扩展列表, ID: sidebar-tool-back
+					17 heading AI Proxy, Value: 2, ID: sidebar-tool-title
+						18 text AI Proxy
+					19 container 工具管理
+						20 button Description: 模拟卸载当前工具（不会删除真实数据）, Help: 模拟卸载（不会删除真实数据）, ID: sidebar-tool-remove
+				21 container Description: AI Proxy · 内存模拟, ID: opendesk-preview-frame
+					22 AXWebArea about:srcdoc
+						92 container proxy-ready
+							93 tab group AI Proxy 视图
+								94 tab (selected, settable, boolean) 代理面板, Value: 1, ID: proxy-view-panel
+								95 tab (selectable, settable, boolean) 管理设置, Value: 0, ID: proxy-view-settings
+							96 container Description: 代理面板, ID: proxy-workspace-panel
+								97 container
+									98 container
+										99 heading 连接方式, Value: 2
+											100 text 连接方式
+										101 button 添加代理
+										102 button Description: 打开设置, ID: quick-settings
+										103 container 代理模式
+											104 checkbox Description: 指定代理, Help: 自己的代理或本地 PAC, Value: 0
+											105 checkbox Description: 网站规则, Help: 按域名自动分流, Value: 1
+												106 text 网站规则
+												107 text ✓
+											108 checkbox Description: 直连, Help: 忽略代理直连网络, Value: 0
+											109 checkbox Description: 跟随系统, Help: 浏览器使用系统策略, Value: 0
+									110 container 浏览器状态
+										111 container
+											112 text 尚未管理浏览器代理
+											113 button (collapsed) 技术详情, Secondary Actions: Expand
+												114 text 技术详情
+										115 button 启用
+									116 container 代理快捷选择
+										117 heading 我的代理 4, Value: 2
+											118 text 我的代理 4
+										119 button 管理全部, ID: quick-manage-profiles
+										120 checkbox PAC 示例 PAC 使用, Help: PAC 示例, Value: 0
+											121 text PAC 示例
+											122 text PAC
+											123 text 使用
+										124 checkbox 备用 SOCKS SOCKS5 · gateway.example.com:1080 使用, Help: 备用 SOCKS, Value: 0
+											125 text 备用 SOCKS
+											126 text SOCKS5 · gateway.example.com:1080
+											127 text 使用
+										128 checkbox 本地客户端 HTTP · 127.0.0.1:7890 使用, Help: 本地客户端, Value: 0
+											129 text 本地客户端
+											130 text HTTP · 127.0.0.1:7890
+											131 text 使用
+										132 checkbox 工作代理 HTTPS · proxy.example.com:443 使用, Help: 工作代理, Value: 0
+											133 text 工作代理
+											134 text HTTPS · proxy.example.com:443
+											135 text 使用
+									136 container 当前网站
+										137 heading 当前网站, Value: 2
+											138 text 当前网站
+										139 button 管理规则, ID: quick-manage-rules
+										140 text docs.example.com
+										141 text 示例网站 · 内存模拟
+										142 definition list
+											143 container 浏览器设置
+												144 text 浏览器设置
+											145 text 无法确认
+											146 container 待应用选择
+												147 text 待应用选择
+											148 text DIRECT 直连
+										149 text 已保存规则：example.com
+										150 text 选择仅供配置参考，不代表此网站的实际流量或可达性。
+										151 button 编辑命中规则, ID: quick-site-rule
+										152 button 重新识别
+										153 text 网站规则已保存，尚未改变 Chrome 代理设置；需要时请明确应用。
+									154 link Description: 采集代理，在新标签页打开, Value: example.com/
+									155 text 仅管理浏览器代理设置，不等于全设备 VPN，也不保证当前网站可达。
+									156 container 打开设置
+										157 button 订阅来源
+										158 button 网络诊断 ↗
+		89 container 离线预览辅助
+			90 button (collapsed) 预览辅助 · 非正式工具, Secondary Actions: Expand
+				91 text 预览辅助 · 非正式工具
+
+The focused UI element is 151 button 编辑命中规则, ID: quick-site-rule

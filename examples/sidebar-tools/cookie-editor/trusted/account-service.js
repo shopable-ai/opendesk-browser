@@ -13,8 +13,10 @@ import {isSidebarToolHostSender} from '../../../../src/sidebar-tools/sender.js';
 import {createCookieService} from '../../../../src/platform/chrome/cookies.js';
 import {inspectAccountSwitchUrl} from '../app/domain/account-switch-url.js';
 import {createCookieAccountVault} from './account-vault.js';
+import {createCookieServiceConnections} from './service-connections.js';
+import {createCookieServiceSession} from './service-session.js';
 import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_EFFECTS,COOKIE_ACCOUNT_SEEN_KEY,
-  normalizeAccountDescription} from './account-contract.js';
+  COOKIE_SERVICE_FIELDS,COOKIE_SERVICE_NATIVE_OPERATIONS,normalizeAccountDescription} from './account-contract.js';
 
 export {COOKIE_ACCOUNT_PROTOCOL} from './account-contract.js';
 const ID='cookie-editor',MAX_COOKIES=100,MAX_ACCOUNTS=48,SEEN_KEY=COOKIE_ACCOUNT_SEEN_KEY;
@@ -141,8 +143,10 @@ export function sameAccountAutoSwitchFence(actual,expected){
     fields.every(field=>Object.hasOwn(actual,field)&&Object.hasOwn(expected,field)&&
       actual[field]===expected[field]);
 }
-export function createCookieAccountService({api=globalThis.chrome,storage}={}){
+export function createCookieAccountService({api=globalThis.chrome,storage,serviceTransport=()=>null}={}){
   const vault=createCookieAccountVault({api,storage});
+  const connections=createCookieServiceConnections({storage});
+  const serviceSession=createCookieServiceSession({api,storage,transport:serviceTransport});
   const cookieDriver=createCookieService({api,authorize: async({url},context)=>{
     if(!context?.approved||new URL(url).origin!==context.operationOrigin)
       throw fail('E_ACCOUNT_COOKIE_SCOPE');
@@ -205,8 +209,8 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
     const siteRecord=state[BROWSER_MENU_GRANTS_STORE]?.[ID];
     if(siteRecord?.version!==tool.version||siteRecord?.packageHash!==hash||
        siteRecord?.installEpoch!==epoch)
-      return {tool,siteRecord:null};
-    return {tool,siteRecord};
+      return {tool,siteRecord:null,packageHash:hash,installEpoch:epoch};
+    return {tool,siteRecord,packageHash:hash,installEpoch:epoch};
   }
   function grantFor(record,origin,write=false){
     originOf(origin);
@@ -445,6 +449,59 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
       throw fail('E_USER_GESTURE_REQUIRED');
     const origin=originOf(payload.origin);
     if(operation==='status')return statusFor(origin);
+    if(operation.startsWith('service')){
+      const fields=COOKIE_SERVICE_FIELDS[operation];
+      const documentAction=['serviceAssociate','serviceCommitAssociation','serviceOpenManagement'].includes(operation);
+      if(!fields||fields.some(key=>!Object.hasOwn(payload,key))||Object.keys(payload).some(key=>
+        !['origin',...fields,...(documentAction?['document']:[])].includes(key)))throw fail('E_SERVICE_INPUT');
+      const needsDocument=operation==='serviceAssociate'||operation==='serviceCommitAssociation'||
+        operation==='serviceOpenManagement'&&payload.associationId!=='';
+      if(needsDocument)await validateDocument(payload.document,origin);
+      const {document:serviceDocument,...metadata}=payload;
+      const accounts=(await statusFor(origin)).accounts;
+      // Recheck installation/sender after storage awaits; no caller-provided
+      // account metadata, credentials, URL handoff or capabilities are trusted.
+      await installed(message);await hostSender(sender,hostDocumentId);
+      if(needsDocument)await validateDocument(serviceDocument,origin);
+      const identity={extensionId:api.runtime.id,toolId:ID,
+        packageHash:record.packageHash,installEpoch:record.installEpoch};
+      let localScope=null,localRef=null,selectedAccount=null;
+      const assertCurrent=async({allowInactiveDocument=false}={})=>{
+          await installed(message);await hostSender(sender,hostDocumentId);
+          // A foreground management tab intentionally deactivates the source
+          // tab. Only the fixed consumer can acknowledge that completed open;
+          // URL/Document/install/account checks still run after the handoff.
+          if(needsDocument)await validateDocument(serviceDocument,origin,
+            operation==='serviceOpenManagement'&&allowInactiveDocument===true);
+          if(localScope)await assertScope(localScope);
+          if(selectedAccount){
+            const latest=(await statusFor(origin)).accounts.find(item=>item.alias===selectedAccount.alias);
+            if(!latest||latest.version!==selectedAccount.version)throw fail('E_VAULT_CONFLICT');
+          }
+      };
+      const context={identity,accounts,origin,assertCurrent};
+      const localState=await connections.dispatch({operation:'serviceStatus',payload:{origin},...context});
+      if(operation==='serviceCommitAssociation'||operation==='serviceOpenManagement'&&metadata.associationId!==''){
+        const association=localState.associations.find(item=>item.id===metadata.associationId);
+        selectedAccount=accounts.find(item=>item.alias===association?.localAlias&&item.origin===origin);
+        if(!selectedAccount)throw fail('E_ACCOUNT_NOT_FOUND');
+        if(selectedAccount.version!==association.accountVersion)throw fail('E_VAULT_CONFLICT');
+      }
+      if(operation==='serviceCommitAssociation'){
+        // Only native Store/Partition metadata is used for the reference; no
+        // Cookie value or snapshot is read, captured or sent by service binding.
+        localScope=await scope(serviceDocument,origin,grantFor(record.siteRecord,origin,true),false,record);
+        localRef={origin,alias:selectedAccount.alias,version:selectedAccount.version,
+          storeId:localScope.storeId,partitionKey:localScope.partition};
+        await assertCurrent();
+      }
+      if(COOKIE_SERVICE_NATIVE_OPERATIONS.includes(operation))
+        return serviceSession.dispatch({operation,payload:metadata,localState,localRef,...context});
+      if(operation==='serviceStatus')return serviceSession.present(localState,context);
+      await serviceSession.guardLocalChange({operation,payload:metadata,localState,identity});
+      const changed=await connections.dispatch({operation,payload:metadata,...context});
+      return serviceSession.present(changed,context);
+    }
     const {revision}=payload;
     if(!Number.isSafeInteger(revision)||revision<0)
       throw fail('E_VAULT_REVISION');
@@ -654,11 +711,11 @@ export function createCookieAccountService({api=globalThis.chrome,storage}={}){
   return Object.freeze({
     dispatch:(message,sender)=>exclusive(()=>dispatch(message,sender)),
     navigation:event=>exclusive(()=>navigation(event)),
-    cleanup:()=>exclusive(()=>vault.clear())
+    cleanup:()=>exclusive(async()=>{await serviceSession.clear();await connections.clear();return vault.clear();})
   });
 }
-export function installCookieAccountService({api=globalThis.chrome,storage}={}){
-  const service=createCookieAccountService({api,storage});
+export function installCookieAccountService({api=globalThis.chrome,storage,serviceTransport}={}){
+  const service=createCookieAccountService({api,storage,serviceTransport});
   api.runtime?.onMessage?.addListener((message,sender,respond)=>{
     if(message?.protocol!==COOKIE_ACCOUNT_PROTOCOL)return false;
     void service.dispatch(message,sender).then(data=>respond({ok:true,data}),

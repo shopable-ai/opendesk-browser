@@ -7,14 +7,14 @@ const formal = JSON.parse(await readFile(new URL('../../examples/sidebar-tools/a
 
 test('current importer accepts every declared AI VIP Share capability', () => {
   const tool = validateSidebarToolPackage(formal);
-  assert.deepEqual(tool.capabilities, ['storage.local', 'network', 'browser.tabs', 'browser.proxy.managed']);
+  assert.deepEqual(tool.capabilities, formal.capabilities);
 });
 
-test('unsupported capability names the rejected item and an actionable host update', () => {
+test('unsupported capability names the rejected item and requires checking the running identity', () => {
   assert.throws(() => validateSidebarToolPackage({...formal, capabilities: ['storage.local', 'browser.proxy.unrestricted']}), error => {
-    assert.equal(error.code, 'E_TOOL_SCHEMA');
+    assert.equal(error.code, 'E_TOOL_CAPABILITY_UNSUPPORTED');
     assert.match(error.message, /browser\.proxy\.unrestricted/);
-    assert.match(error.message, /更新.*OpenDesk Browser/);
+    assert.match(error.message, /核对.*运行身份/);
     assert.doesNotMatch(error.message, /storage\.local/);
     return true;
   });
@@ -41,7 +41,7 @@ test('duplicate and malformed declarations remain schema failures with distinct 
 
 test('untrusted capability text cannot produce an unbounded diagnostic', () => {
   assert.throws(() => validateSidebarToolPackage({...formal, capabilities: ['x'.repeat(10000)]}), error => {
-    assert.equal(error.code, 'E_TOOL_SCHEMA');
+    assert.equal(error.code, 'E_TOOL_CAPABILITY_UNSUPPORTED');
     assert(error.message.length < 500);
     return true;
   });

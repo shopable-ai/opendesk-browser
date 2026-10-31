@@ -15,17 +15,22 @@ function fixture(){
     preset:speed=>document.querySelector(`[data-speed="${speed}"]`).click()};
 }
 test('offline preview keeps shared target separate from actual, including no video and stop',()=>{
-  const f=fixture();assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');
-  f.click('global-toggle');f.preset(2);assert.match(f.get('global-target').textContent,/2.00/);
+  const f=fixture();assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');
+  assert.equal(f.get('global-note').hidden,true);
+  f.preset(2);
   assert.equal(f.get('actual').textContent,'1.00');f.settle();assert.equal(f.get('actual').textContent,'2.00');
+  assert.equal(f.get('global-note').hidden,true);
   f.scene('none');assert.equal(f.get('actual').textContent,'—');f.preset(3);
-  assert.match(f.get('global-target').textContent,/3.00/);assert.equal(f.get('actual').textContent,'—');
-  f.click('global-stop');assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');
+  assert.match(f.get('result').textContent,/3.00/);assert.equal(f.get('actual').textContent,'—');
+  f.click('plus');assert.match(f.get('result').textContent,/3.25/);assert.equal(f.get('actual').textContent,'—');
+  f.click('global-toggle');assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');
   assert.match(f.get('global-note').textContent,/未确认|未知/);assert.equal(f.get('actual').textContent,'—');
 });
 test('offline preview can simulate cross-window preference without claiming its target as actual',()=>{
-  const f=fixture();f.click('remote-global');assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');
-  assert.match(f.get('global-target').textContent,/3.00/);assert.equal(f.get('actual').textContent,'1.00');
-  f.click('remote-global');assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');
+  const f=fixture();f.click('remote-global');assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'false');
+  assert.equal(f.get('actual').textContent,'1.00');
   assert.match(f.get('global-note').textContent,/未确认/);
+  f.click('remote-global');assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');
+  assert.equal(f.get('global-note').hidden,true);
+  f.scene('none');f.click('plus');assert.match(f.get('result').textContent,/3.25/);
 });

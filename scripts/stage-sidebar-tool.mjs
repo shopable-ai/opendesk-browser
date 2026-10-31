@@ -6,9 +6,10 @@ import {tmpdir} from 'node:os';
 import {pathToFileURL} from 'node:url';
 import {Script} from 'node:vm';
 import {buildSidebarTool,checkCompiledToolBuildReady} from './build-sidebar-tool.mjs';
+import {SIDEBAR_TOOL_LIMITS} from '../src/ui/sidebar-tools/limits.js';
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 const NATIVE_PREVIEW_ROOT='opendesk-tool-preview';
-const CHUNK_BYTES=16000; // base64 per file <= 21,336 ASCII bytes; Go Native cap: 32,768.
+const CHUNK_BYTES=SIDEBAR_TOOL_LIMITS.nativeChunkBytes;
 function previewId(id){
   if(typeof id!=='string'||!/^[a-z0-9-]{1,64}$/.test(id))fail('invalid Native preview id');
   return id;
@@ -112,7 +113,7 @@ async function ownedFile(root,rel){
   let actual;try{actual=await realpath(target);}catch{fail('required project file missing: '+rel);}
   if(!actual.startsWith(root+sep))fail('symlink escaped project');
   const info=await stat(actual);
-  if(!info.isFile()||info.size>320000)fail('invalid or oversized project file: '+rel);
+  if(!info.isFile()||info.size>SIDEBAR_TOOL_LIMITS.packageBytes)fail('invalid or oversized project file: '+rel);
   return readFile(actual);
 }
 async function declaredSnapshot(root){

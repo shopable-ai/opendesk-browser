@@ -13,36 +13,9 @@
   const feedback=byId('od-preview-adblock-feedback');
   const targetSite=byId('od-preview-adblock-target-site');
   let targetPicking=false;
-  // The preview extracts the actual React toolbar as static SSR markup. Unlike
-  // the installed React host, this document has no hydration: mirror only the
-  // real overflow's user-triggered visibility/focus transitions. Do not show a
-  // hidden action or dispatch synthetic clicks to make a test pass.
-  const moreOpen=byId('sidebar-tool-more-open');
-  const moreMenu=byId('sidebar-tool-more-menu');
-  const moreWrap=moreOpen?.closest('.sidebar-tool-header-more');
-  if(!moreOpen||!moreMenu||!moreWrap||!toolbarSettings)
-    throw Error('E_PREVIEW_ADBLOCK_MORE_MENU_SOURCE');
-  const setMoreOpen=open=>{
-    moreMenu.hidden=!open;
-    moreOpen.setAttribute('aria-expanded',String(open));
-  };
-  moreOpen.addEventListener('click',()=>{
-    if(!moreWrap.hidden&&!moreOpen.disabled)setMoreOpen(moreMenu.hidden);
-  });
-  moreMenu.addEventListener('click',event=>{
-    if(event.target.closest('button'))setMoreOpen(false);
-  });
-  moreWrap.addEventListener('focusout',event=>{
-    if(!moreWrap.contains(event.relatedTarget))setMoreOpen(false);
-  });
-  document.addEventListener('pointerdown',event=>{
-    if(!moreMenu.hidden&&!moreWrap.contains(event.target))setMoreOpen(false);
-  },true);
-  document.addEventListener('keydown',event=>{
-    if(event.key!=='Escape'||moreMenu.hidden)return;
-    event.preventDefault();event.stopPropagation();
-    setMoreOpen(false);moreOpen.focus();
-  },true);
+  // The canonical React toolbar now exposes direct Settings/Uninstall actions.
+  if(!toolbarSettings?.closest('.sidebar-tool-header-actions'))
+    throw Error('E_PREVIEW_ADBLOCK_TOOLBAR_SOURCE');
   targetSite?.addEventListener('click',event=>{
     const target=event.target.closest('[data-preview-selector]');
     if(!targetPicking||!target||!targetSite.contains(target))return;

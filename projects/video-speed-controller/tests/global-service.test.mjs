@@ -139,14 +139,29 @@ function fixture(t){
   return f;
 }
 
-test('current 1.2.0 package passes real SHA/release/provenance admission and trusted host status',async t=>{
+test('current package passes real SHA/release/provenance admission and trusted host status',async t=>{
   const f=fixture(t);
-  assert.equal(tool.version,'1.2.0');
+  assert.equal(tool.version,VIDEO_SPEED_VERSION);
   assert.equal(await admitsOfficialVideoSpeed({tool,release,installed:f.data[SIDEBAR_TOOL_STORE],
     provenance:f.data[MARKET_PROVENANCE_STORE],enableRecords:f.data[SIDEBAR_TOOL_ENABLE_STORE],
     epochs:f.data[TOOL_REVOCATION_EPOCHS_STORE],expectedEpoch:'video-install-epoch'}),true);
-  assert.deepEqual(await f.command('status'),{enabled:false,speed:1,revision:''});
+  assert.deepEqual(await f.command('status'),{enabled:true,speed:1,revision:''});
   assert.equal(f.sets.length,0);
+});
+
+test('first use applies the default global speed without opening or configuring the tool',async t=>{
+  const f=fixture(t),node=f.addVideo(0,video('https://cdn.example/a.mp4',1.5));
+  assert.equal((await f.apply()).verified,true);
+  assert.deepEqual(node.writes,[1]);
+  assert.equal(f.sets.length,0,'the default does not manufacture saved consent or preferences');
+});
+
+test('an explicitly disabled global preference remains off after service restart',async t=>{
+  const f=fixture(t);await f.configure(false);
+  f.restart();const node=f.addVideo();
+  assert.equal((await f.command('status')).enabled,false);
+  assert.equal((await f.apply()).status,'stopped');
+  assert.deepEqual(node.writes,[]);
 });
 
 test('persisted preference survives service restart and applies to new video, source and iframe signals',async t=>{
@@ -234,7 +249,7 @@ test('untrusted host '+reason+' cannot read status or configure',async t=>{
 
 test('Side Panel omitted sender metadata resolves one live document and rejects a reload before save',async t=>{
   const f=fixture(t),sender=clone(f.host);delete sender.documentId;delete sender.frameId;
-  assert.deepEqual(await f.command('status',undefined,sender),{enabled:false,speed:1,revision:''});
+  assert.deepEqual(await f.command('status',undefined,sender),{enabled:true,speed:1,revision:''});
   let changed=false;
   f.beforeGet=async()=>{if(!changed){changed=true;f.contexts[0].documentId='reloaded-host';}};
   await assert.rejects(f.command('configure',{enabled:true,speed:2},sender),{code:'E_DOCUMENT_STALE'});

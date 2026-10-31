@@ -33,6 +33,7 @@ export default async function main() {
 | `ui.getAsset(path)` | 获取声明资产：CSS 为字符串、JSON 为解析后的值、图片为 data URL | `E_UI_RESOURCE`；未声明的路径会拒绝 |
 | `ui.on(target,event,handler,options?)` | 注册有实例归属的监听器，返回主动解绑函数 | `E_UI_LISTENER`；销毁或文档失效后不再调用回调 |
 | `ui.onDispose(fn)` | 注册一次性清理回调，返回取消登记函数 | `E_UI_CLEANUP`；回调只在销毁时触发 |
+| `ui.toast({message,variant='info',duration=2000,position='top'})` | 在当前网页指定位置显示短暂纯文本提示，返回 `{shown:true}`；连续调用更新同一条、调整位置并重新计时 | `E_UI_TOAST`；message 1～240 字符，duration 1000～10000 毫秒；非法选项不改变当前提示；已 Stop 拒绝 |
 | `ui.setTimeout(fn,ms)`、`ui.setInterval(fn,ms)` | 注册受管定时器，返回原生计时器句柄 | `E_UI_TIMER`；销毁时取消未结束计时器 |
 | `ui.observe(target,fn,options?)` | 创建并登记 `MutationObserver`，返回 observer | `E_UI_OBSERVER`；销毁时 disconnect |
 | `ui.objectURL(blob)` | 创建 Blob URL，返回字符串；销毁时 revoke | `E_UI_RESOURCE`；小图片默认内联，无须使用 |
@@ -42,6 +43,20 @@ export default async function main() {
 | `ui.close()` / `ui.destroy()` | 幂等销毁，移除宿主、样式、受管事件、计时器、观察器、URL 并执行清理回调 | 不会再次执行项目的 `main()` |
 
 `createPageUI` 只接受原生 DOM 环境；无 document、目标失效或 ID 不合法分别抛出 `E_UI_DOCUMENT`、`E_UI_ID`。可使用 `baseStyles:false` 完全关闭 OpenDesk 基础 CSS，改由项目 `css` 或 `addStyle` 控制样式；不导入 SDK 的程序不会加载基础 CSS。
+
+### 网页消息反馈
+
+网页增强在已获得的 `ui` 上调用 `ui.toast({message:'已完成',variant:'success'})` 即可，无需手写提示 DOM 或安装组件库。`variant` 支持 `info / success / warning / error`；提示不接收 HTML、链接或按钮，不抢焦点、不拦截鼠标与快捷键，以 `role="status"` 礼貌播报。自动消失，无入场动画；浅色/暗色跟随系统。
+
+`position` 支持 `top-left / top / top-right / left / center / right / bottom-left / bottom / bottom-right`，默认顶部居中 `top`；边缘间距 16px。例如 `ui.toast({message:'已保存',variant:'success',position:'bottom-right',duration:5000})`。可调位置、类型、时长和内容的真实 Page 项目见 [page-toast-demo](../../examples/programs/page-toast-demo/README.zh-CN.md)：从扩展的既有开发入口在当前已授权网站显式运行，不需要专门的测试 HTML。
+
+同一执行世界、同一文档只保留一条最新提示。提示使用独立 Shadow DOM 与手动 Popover 顶层；全屏变化时重新定位，无 Popover 时按固定定位降级。该提示是唯一由框架管理、允许挂到网页/全屏容器的短暂反馈，业务弹层仍使用 `ui.overlay`。关闭 UI、受管 Stop 或 `pagehide` 时清理该实例的提示与计时器；旧实例不能清除另一个实例后来发布的提示，BFCache 返回不复活旧提示。
+
+提示只在自有宿主使用 inline important 重置；内部文字和语义变量在 ShadowRoot 内独立设置，不继承网站的根字号、文字样式与 `--od-*` 值，也不向网页注入工作台 CSS 或全局 reset。closed ShadowRoot 是样式封装，不是安全沙箱；网页脚本移除节点、浏览器禁止注入或严格 CSP 等不属于任意网站必定可显示的承诺。
+
+框架维护者的固定 ISOLATED 适配器复用 `src/platform/chrome/page-toast.js` 的 `requestPageToast`，必须提供原有 `currentPageTarget`、`assertCurrent` 与 `assertInstalled`。它在核对活动文档和原授权后，仅向捕获的顶层 `documentId` 注入固定渲染函数。业务适配器负责真实结果与文案；提示失败不重放业务写入。此内部适配器没有新增沙箱 RPC、Controller `page.toast`、权限或安装格式，Sidebar 沙箱不能直接导入网页 DOM API。
+
+2026-10-30 新增 toast：Node 生命周期、九位置、精确文档/授权、序列化与固定 helper 调用验证通过；独立 headless Chromium 的强冲突样式、普通/容器全屏九位置及网页交互回归 24 项通过。日常 Mac Chrome 中从真实「视频倍速」扩展侧栏分别在 W3Schools 和 W3C 视频页触发顶部提示，独立读回为 1.25×、1.50×，见 [当次证据与未测边界](../../projects/video-speed-controller/evidence/page-toast-20261030.md)。该结果不代表所有网站、原生全屏九位置或 production 验收通过；历史 R2.2 原生结果不作为此接口的证据。
 
 **运行结束 ≠ 关闭界面 ≠ 用户停止任务。** `main()` 可以返回一个有限序列化结果，但 GUI 事件仍留在文档中。面板“关闭”会释放该面板的受管资源；若仅关闭某一个面板，且要不重跑主逻辑而重新打开，可使用仍活跃的独立 launcher 或原有应用控制器调用 `createPageUI`，如 Demo。本地 `dev.stop` 会清理整次预览登记的资源，包括受管 launcher；Stop 后不保证仍有重开入口。完全销毁所有界面后，只有用户再次手动执行源码才能重新创建。此 R1 API 尚未接入正式已安装 Page 的停止/撤权信号；**不能宣称任务停止自动撤销用户任意 DOM 修改**。页面 `pagehide` 释放受管资源，BFCache 返回后不会偷偷自启动。
 

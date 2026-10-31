@@ -132,9 +132,10 @@ async function handler(file,start,end,context){
  const {code}=await transform(slice,{loader:'tsx'});
  return runInNewContext(`${code}; ${/function (\w+)/.exec(start)[1]}`,context);
 }
-test('rule and PAC replacement respect Cancel, confirmed discard and newer/sibling draft revisions',async()=>{
+// Rules now use a separate list/editor; settings-rules-runtime covers its
+// Cancel/late-confirmation behavior through the rendered component.
+test('PAC replacement respects Cancel, confirmed discard and newer/sibling draft revisions',async()=>{
  for(const [scope,name,end,item] of [
-  ['settings-rule','editRule','removeRule',{id:'rule-b',domain:'example.org',includeSubdomains:false,action:'direct',priority:20}],
   ['settings-pac','editPac','savePac',{id:'pac-b',kind:'pac-inline',name:'Saved B',pacText:'function FindProxyForURL(){return "DIRECT";}'}]
  ]){
   const {env}=fixture();const writes=[];
@@ -404,26 +405,26 @@ test('both rule editors reject another saved rule instead of silently replacing 
   const {env}=fixture();const errors=[];
   try{
    const context={getEnvironment:()=>env,config:{rules:[{id:'other',domain:'example.com',includeSubdomains:true}]},
-    normalizeRuleSiteInput:()=> 'example.com',setErrorKey:code=>errors.push(code),setRuleSaved(){},
+    normalizeRuleSiteInput:()=> 'example.com',setErrorKey:code=>errors.push(code),setRuleSaved(){},ruleEditorGeneration:{current:0},
     siteInput:'example.com',ruleTarget:'direct',quickEndpoint:'',includeSubdomains:true,editingSiteRule:null,
     rule:{domain:'example.com',includeSubdomains:true,action:'direct',priority:'100'},editingRuleId:'',
     act:()=>assert.fail('duplicate must not be saved')};
    const save=await handler('../src/'+file+'.tsx',file==='QuickPanel'?'  async function saveSiteRule(':'  async function saveRule(',
-    file==='QuickPanel'?'  async function apply(':'  async function editRule(',context);
+    file==='QuickPanel'?'  async function apply(':'  function finishRuleEditor(',context);
    await save({preventDefault(){}});assert.deepEqual(errors,['apRuleAlreadyExists']);
   }finally{env.dispose();}
  }
 });
-test('current-site Back preserves declined or newer edits and explicit Cancel clears only that editor',async()=>{
+test('every current-site rule close intent confirms dirty input and clears only the accepted editor revision',async()=>{
  const {env}=fixture();let closes=0;
  try{
   env.setDraftDirty(true,'quick-rule');env.setDraftDirty(true,'settings-pac');
   const close=await handler('../src/QuickPanel.tsx','  async function closeSiteRule(','  if(siteEditorOpen)',{
    getEnvironment:()=>env,t:key=>key,ruleReturn:{current:false},setSiteEditorOpen:()=>closes++,setError(){}
   });
-  env.setConfirmHandler(async()=>false);await close();assert.equal(closes,0);
+  env.setConfirmHandler(async()=>false);await close(true);assert.equal(closes,0);
   env.setConfirmHandler(async()=>{env.setDraftDirty(true,'quick-rule');return true;});await close();assert.equal(closes,0);
-  await close(true);assert.equal(closes,1);assert.equal(env.isDraftDirty('quick-rule'),false);assert.equal(env.isDraftDirty('settings-pac'),true);
+  env.setConfirmHandler(async()=>true);await close();assert.equal(closes,1);assert.equal(env.isDraftDirty('quick-rule'),false);assert.equal(env.isDraftDirty('settings-pac'),true);
  }finally{env.dispose();}
 });
 test('a late current-site save keeps newer rule draft open',async()=>{

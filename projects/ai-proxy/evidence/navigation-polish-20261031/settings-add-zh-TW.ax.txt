@@ -1,0 +1,75 @@
+Browser tab: 560069431, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html".
+1 AXWebArea AI Proxy · React 同源预览, URL: 127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html
+	2 container
+		3 container 预览来源和安全范围
+			4 text 模拟预览 · 非真实安装、权限或网络执行
+			5 text 工具：AI Proxy · 初始场景：success · 初始工具主题：light · 预览外壳：浅色
+			6 text Source: dc3d9fd93d6f6f76ba70ce451894ea167f5bd8c0 · Design SHA-256: efa5541cac5eda31587ef534cbd79d8b5696b22ef9ff024dab0109674f210380 · Shell SHA-256: 4f4692678370fe6b5f5f7abd74e6e44877ac4a25bb1d47415a450ef0e70a0a68 · UI SHA-256: fad1f8b7e71aac7761c0c0ac741e52aee212f84e3b4c6872e7c2c008e85e11bd
+		7 container OpenDesk Browser Side Panel 真实布局来源的离线预览
+			8 tab group 工作台
+				9 tab (selectable, settable, boolean) 我的, Value: 0, ID: tab-my-tasks
+				10 tab (selected, settable, boolean) 扩展, Value: 1, ID: tab-tools
+				11 tab (selectable, settable, boolean) 工作流, Value: 0, ID: tab-workflow
+				12 tab (selectable, settable, boolean) 开发, Value: 0, ID: tab-develop
+				13 tab (selectable, settable, boolean) 云控, Value: 0, ID: tab-cloud
+			14 container Description: 扩展, ID: od-preview-extension-detail
+				15 container
+					16 button Description: 返回扩展列表, ID: sidebar-tool-back
+					17 heading AI Proxy, Value: 2, ID: sidebar-tool-title
+						18 text AI Proxy
+					19 container 工具管理
+						20 button Description: 模拟卸载当前工具（不会删除真实数据）, Help: 模拟卸载（不会删除真实数据）, ID: sidebar-tool-remove
+				21 container Description: AI Proxy · 内存模拟, ID: opendesk-preview-frame
+					22 AXWebArea about:srcdoc
+						92 container proxy-ready
+							93 tab group AI Proxy 檢視
+								94 tab (selectable, settable, boolean) 代理面板, Value: 0, ID: proxy-view-panel
+								95 tab (selected, settable, boolean) 管理設定, Value: 1, ID: proxy-view-settings
+							96 container Description: 管理設定, ID: proxy-workspace-panel
+								97 container
+									98 container 設定欄目
+										99 text 設定欄目
+										100 pop up button (collapsed, settable) Description: 設定欄目, Value: 網站規則, ID: settings-section, Secondary Actions: Expand
+											101 menu
+												102 container 代理管理
+													103 代理設定檔
+													104 (selected) 網站規則
+													105 訂閱管理
+													106 匯入與備份
+													107 網路診斷
+													108 通用設定
+												109 container 可選服務
+													110 官方網路 · 選用官方服務
+									119 container
+										120 button (collapsed) Description: 複製本頁連結 / 重新整理狀態, Help: ⋯, Secondary Actions: Expand
+											121 text ⋯
+									128 heading 新增規則, Value: 2
+										129 text 新增規則
+									127 container 新增規則
+										130 text 從網站規則列表新增
+										131 container
+											132 text 網站網域或網址
+											133 text field (settable) 網站網域或網址, ID: rule-domain
+											134 text 可貼上 HTTPS 網址並自動提取網域；預設包含子網域，不儲存路徑或查詢參數。
+											135 checkbox (settable, integer) Description: 同時包含子域名, Value: 1, ID: rule-subdomains
+											136 container 此網站使用
+												137 text 此網站使用
+												138 radio button (settable, integer) Description: 指定代理, Value: 1, ID: rule-target-endpoint
+												139 radio button (settable, integer) Description: DIRECT 直連, Value: 0, ID: rule-target-direct
+											140 text 指定代理
+											141 pop up button (collapsed, settable) 指定代理, Value: 工作代理 · HTTPS, ID: rule-endpoint, Secondary Actions: Expand
+												142 menu
+													143 請選擇
+													144 (selected) 工作代理 · HTTPS
+													145 本地客户端 · HTTP
+													146 备用 SOCKS · SOCKS5
+											147 button (collapsed) 優先順序設定（選填）, Secondary Actions: Expand
+												148 text 優先順序設定（選填）
+											149 text 僅儲存規則，目前網路維持不變。需要生效時，請在代理面板明確套用。
+											150 button 儲存規則
+											151 button 取消
+		89 container 离线预览辅助
+			90 button (collapsed) 预览辅助 · 非正式工具, Secondary Actions: Expand
+				91 text 预览辅助 · 非正式工具
+
+The focused UI element is 133 text field (settable) 網站網域或網址, ID: rule-domain

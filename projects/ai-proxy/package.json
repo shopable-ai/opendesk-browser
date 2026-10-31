@@ -1,7 +1,7 @@
 {
   "name": "opendesk-ai-proxy",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.2",
   "type": "module",
   "scripts": {
     "build": "vite build --config vite.config.mjs",

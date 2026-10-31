@@ -1,0 +1,5 @@
+Browser tab: 1, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-f98ab925-5d04-4333-9540-9906ce5d19d7/preview.html".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 57, 59
++									59 button 添加规则, ID: settings-rule-add
+The focused UI element is 59 button 添加规则, ID: settings-rule-add

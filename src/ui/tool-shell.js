@@ -198,6 +198,7 @@ chrome.runtime.onMessage.addListener(fixedPageChatBridgeListener);
 // Installed extensions retain their existing sandbox and SDK Hosts.
 let workflowView=null,promptConversation=null,bookmarkDisplayCache=null;
 const sidebarTools=createSidebarTools({providerRuntime,api:chrome,currentPageTarget,taskWorkbench,foundationClient,runHost:sharedRunHost,localeController,toolLocaleService,view:toolView,
+  trustedAIProxyPilot:{enabled:true,version:'0.2.0',mount:args=>extensionList.mountAIProxyPilot(args)},
   trustedKnowledgePilot:{enabled:true,mount:args=>{
     const conversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
       consumerId:'knowledge',instanceId:args.instanceId,installEpoch:args.installEpoch});
