@@ -149,11 +149,11 @@ const compiledCookieAccountInputs=Object.freeze({
   'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'1b20551bef0c24cb31505960ba9d73f886b8c31c',
   // Reviewed shared-domain restore and post-save proof: full snapshot, final
   // scope/Host fence, redacted URL; proof failure preserves the saved receipt.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'f7d79918af45f254a6a04f9e07b11aa41432268c',
-  'examples/sidebar-tools/cookie-editor/trusted/service-connections.js':'e2f0007c8e82084125c86ea9c72ac4c43bd5bf6a',
-  'examples/sidebar-tools/cookie-editor/trusted/service-session.js':'8a4654e89d518d88cbf1993f774c78ee5ed1228d',
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'4bffffd2f4960fddea6d3375d5d78c25b6e13edb',
+  'examples/sidebar-tools/cookie-editor/trusted/service-connections.js':'138391e1462cf48ec49b05399a1ffa16a6a9ec9b',
+  'examples/sidebar-tools/cookie-editor/trusted/service-session.js':'0c294fbf65d318c98e4506f720c836a45f01955d',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
-  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
+  'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'72caa6d4668ad1d7c16cd64e89b1bac559e36b09',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 });
 const cookieAccountContractTargets=new Set([

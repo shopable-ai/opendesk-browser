@@ -2,7 +2,7 @@
 
 唯一业务入口是[Cookie Editor 项目](../README.zh-CN.md)。本目录整体收拢原 `services/ai-account-usage/` 的实现；源码组织改变，Node 的独立执行边界保留，不复制服务、OAuth 或凭据仓库。以下 R1.x–R2.x 的记录仍只证明各自历史候选。
 
-**独立启动已验证（2026-10-31，Node 24.16.0）：** 普通 `node manage.mjs serve` 不依赖 OpenDesk 桌面程序。业务测试 [`standalone-serve.test.mjs`](../tests/ai-account-usage/standalone-serve.test.mjs) 以原 `manage.mjs` CLI 主入口启动独立子进程，使用临时 HOME、私有 HistoryStore 和合成账号配置：一次性配对成功，配对码重用返回 401；管理设置页 `/opendesk/admin/sync`、正式 JS/CSS、设置 API、账号缓存与历史均可读取；没有设备时返回空设备列表。SIGTERM 结束子进程后，管理端口拒绝连接。
+**独立启动已验证（2026-10-31，Node 24.16.0）：** 普通 `node manage.mjs serve` 不依赖 OpenDesk 桌面程序。业务测试 [`standalone-serve.test.mjs`](../tests/ai-account-usage/standalone-serve.test.mjs) 以原 `manage.mjs` CLI 主入口启动独立子进程，使用 `--data-dir` 指定的临时私有状态目录和合成账号配置：一次性配对成功，配对码重用返回 401；管理设置页 `/opendesk/admin/sync`、正式 JS/CSS、设置 API、账号缓存与历史均可读取；没有设备时返回空设备列表。SIGTERM 结束子进程后，管理端口拒绝连接。
 
 测试复用 [`fixtures/standalone-guard.mjs`](../tests/ai-account-usage/fixtures/standalone-guard.mjs) 校验禁止动作的拦截有效，再通过权限白名单及审计确认普通 `serve` 未尝试 Native 导入、安装/账号凭据读取或上游请求；子进程权限禁止启动桌面程序。没有读取真实状态或 `~/.codex/auth.json`，没有执行 refresh。该测试仅覆盖独立 CLI、HTTP API 和正式 UI 资产交付。另用隔离假账号在实际浏览器完成配对→账号页→「Cookie 同步设置」，确认空设备状态、零控制台错误；[截图](../../../../artifacts/cookie-service-binding-20261031/standalone-sync-settings.png)仅作本机开发证据。真实账号额度、企业页及 Native 权限不由这些检查证明。
 
@@ -12,6 +12,8 @@ npm run build:web --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
 # 定向验证普通 serve；不构建 Browser 或正式工具包，不调用真实上游/Native
 node --test examples/sidebar-tools/cookie-editor/tests/ai-account-usage/standalone-serve.test.mjs
 ```
+
+隔离开发数据可使用 `node manage.mjs serve --config /绝对路径/accounts.json --data-dir /绝对路径/state`。`--data-dir` 只切换 HistoryStore 和 ServiceBindingStore，不改变 HOME、Native 安装身份或凭据位置；省略时继续使用原默认目录。路径必须为绝对路径；启动不会刷新额度。需要连接已配对的 Browser 时再显式加 `--native`，普通后台继续独立运行。
 
 ## 服务连接协议与管理页状态（2026-10-31）
 
@@ -27,9 +29,9 @@ node --test examples/sidebar-tools/cookie-editor/tests/ai-account-usage/standalo
 | `GET /opendesk/v1/operations/:id` | 按原操作 ID 核对回执，保留历史结果并区分当前授权代际；相同 ID 不同正文拒绝，30 天后失效也不重放 |
 | 同源 `/opendesk/admin/api/…` | 终端管理会话仅可查看设备、保存期望策略和查询原回执，不能代替设备注册或接受 |
 
-`startManagementServer()` 返回的 `serviceBinding.createLocalClient(context)`、`request(secret,input)`、`createManagementOpen(secret,target)` 和 `revokeLocalClient(secret)` **只面向可信进程**，没有 HTTP 发放接口。调用者必须先通过现有 Native 认证通道，推导 connection/installation/user/grant/resource 身份；不能转发浏览器表单作为可信 context。`native-service-adapter.mjs` 将固定 Cookie owner、当前后端已有账号范围和明确操作映射到这套合同，不返回进程秘密；关联始终 `UNVERIFIED`。Cookie Editor 固定消费者已有源码和真实临时 Node 集成验证，Go broker 已有源码、定向 race 和真实 Go/Node 进程验证；Chrome 权限/身份仍为合成边界，真实 Native `NOT_TESTED`。协议保留不同公司后端的接入形状，本机实现不是通用 OAuth 客户端。
+`startManagementServer()` 返回的 `serviceBinding.createLocalClient(context)`、`request(secret,input)`、`createManagementOpen(secret,target)` 和 `revokeLocalClient(secret)` **只面向可信进程**，没有 HTTP 发放接口。调用者必须先通过现有 Native 认证通道，推导 connection/installation/user/grant/resource 身份；不能转发浏览器表单作为可信 context。`native-service-adapter.mjs` 将固定 Cookie owner、当前后端已有账号范围和明确操作映射到这套合同，不返回进程秘密；关联始终 `UNVERIFIED`。Cookie Editor 固定消费者已有源码和真实临时 Node 集成验证，Go broker 已有源码、定向 race 和真实 Go/Node 进程验证；当前固定 Cookie 消费者已在真实 Mac Chrome、签名 Native App 与 `serve --native` 完成连接、资源绑定、策略读取/显式接受、受限管理页及解绑/断开；数据仍是合成资源，手动身份仍 `UNVERIFIED`，不证明真实账号额度或公司授权。协议保留不同公司后端的接入形状，本机实现不是通用 OAuth 客户端。
 
-Browser 通用客户端和 Node provider 已加入原 Native 通道，使用独立的 `managedServicesVersion: 1` 协商；旧 Host 不支持时明确拒绝服务注册，原功能保留。`manage.mjs serve --native` 是**显式可选的开发连接入口，安装环境尚未验证**：显式尝试注册当前 Node 服务，不自动连接设备或查询上游；注册失败会关闭此次新建管理服务，错误中不输出凭据。普通 `serve` 不读取 Native 安装凭据或注册服务。普通后台独立 CLI/浏览器入口已有验证，通用 Go/Node 进程传输也已验证；该 flag 尚未在真实安装环境运行。具体字段、请求编号和 Go owner 变更点见[内部协议](../../../../native-agent/managed-services/README.md)。
+Browser 通用客户端和 Node provider 已加入原 Native 通道，使用独立的 `managedServicesVersion: 1` 协商；旧 Host 不支持时明确拒绝服务注册，原功能保留。`manage.mjs serve --native` 是**显式可选的开发连接入口，已在匹配的本机安装验证核心链**：显式尝试注册当前 Node 服务，不自动连接设备或查询上游；注册失败会关闭此次新建管理服务，错误中不输出凭据。普通 `serve` 不读取 Native 安装凭据或注册服务。普通后台独立 CLI/浏览器入口已有验证，通用 Go/Node 进程传输也已验证；该 flag 已通过真实安装的 Native 通道登记本次 Node 进程。具体字段、请求编号和 Go owner 变更点见[内部协议](../../../../native-agent/managed-services/README.md)。
 
 私有 capability 到期后，仅同一已认证进程可调用 `renewLocalClient(secret)` 延长时间，保留原 grant 和资源范围；HTTP 没有续期接口。适配器在发出下一操作之前续期，不重发已执行的请求。断开 DELETE 结果不明时，通过 `retainLocalClientReceipts(secret)` 不可逆地缩小为原上下文的回执查询，账号读取、管理页与写操作立即停止；可用原操作 ID GET 核对，也可明确放弃该查询上下文。通道结束会撤销所有私有 capability，不能靠续期恢复。
 
@@ -37,9 +39,9 @@ Browser 通用客户端和 Node provider 已加入原 Native 通道，使用独�
 
 管理页保存期望策略前先将操作 ID 和正文保存在本页 sessionStorage。超时/未知时不重复 POST；查询只用 GET。永久未知允许用户明确确认留档，原记录和正文继续保留；须成功 GET 当前版本再重新审阅，才能保存独立新操作。当前仅支持手动 `ACCOUNT_METADATA` / `USAGE_SUMMARY` 策略，未实现 Cookie 载荷、后台同步或服务端 Cookie 处理。
 
-本次定向验证使用临时私有状态目录、合成账号和设备，没有读取真实凭据或调用上游。显式浏览器驱动为 `../tests/ai-account-usage/service-binding-chromium.mjs`，使用现有 Playwright 与 Chromium；普通 Node 测试不启动浏览器。结果与真实 Native/公司授权缺口以[本轮开发证据](../evidence/service-binding-core-20261031.json)为准。
+本次定向验证使用临时私有状态目录、合成账号和设备，没有读取真实凭据或调用上游。显式浏览器驱动为 `../tests/ai-account-usage/service-binding-chromium.mjs`，使用现有 Playwright 与 Chromium；普通 Node 测试不启动浏览器。早期源码/隔离进程结果保留在[原开发证据](../evidence/service-binding-core-20261031.json)；最新真实安装核心结果及版本边界见[原生证据](../evidence/service-binding-native-20261031.json)。
 
-**当前可用：** `manage.mjs serve` → 本机一次性配对 → 正式 React → 已另行授权的 Codex alias → 缓存／手动刷新。**尚未实现：** Cookie Editor 已保存账号 → 经过证明的同一额度来源身份 → 正式页的真实安装验证。当前元数据关联与受限管理会话已有固定消费者及 Go/Node 进程合同，手动关联仍为 UNVERIFIED；不能凭 Cookie alias 猜测账号身份。原型和合成身份测试不证明真实企业页通过。
+**当前可用：** 独立 `serve` → 终端一次性配对 → 正式 React 管理页；另可显式 `serve --native` → Cookie 企业页连接已登记服务 → 手动关联实际资源 → 打开受限管理页。后一条已完成真实 Chrome/Native 核心链，仍只使用虚构缓存。**尚未证明：** Cookie 保存身份与真实额度来源属于同一账号、真实公司部署和额度查询。手动关联始终为 `UNVERIFIED`，不能凭 Cookie alias 猜测身份；受限管理页禁止刷新上游。
 
 维护职责：Node 模块归本子模块；React 归 `web/`；全部业务测试归 [`../tests/ai-account-usage/`](../tests/ai-account-usage/)，两条 Chromium 驱动显式运行。公共 Cookie Host/安装撤权测试仍留框架。默认 Node 命令包含原先漏选的设计原型测试及本轮统计回归，不启动浏览器或真实查询。
 

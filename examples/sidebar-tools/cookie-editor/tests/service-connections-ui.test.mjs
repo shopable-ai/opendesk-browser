@@ -40,7 +40,7 @@ function mount(overrides={}){
   }while(h.changed);return h.tree;};
   h.find=predicate=>nodes(h.tree).find(predicate);
   h.button=label=>{const n=h.find(n=>n.type==='button'&&(n.props['aria-label']||text(n))===label);assert.ok(n,'button '+label);return n;};
-  h.click=label=>{const n=h.button(label);assert.ok(!n.props.disabled,label+' enabled');const result=n.props.onClick?.({currentTarget:{isConnected:true,focus:()=>{h.focus=label;}}});h.render();return result;};
+  h.click=label=>{const n=h.button(label);assert.ok(!n.props.disabled,label+' enabled');const result=n.props.onClick?.({preventDefault(){},currentTarget:{isConnected:true,focus:()=>{h.focus=label;}}});h.render();return result;};
   h.change=(label,value)=>{const n=h.find(n=>n.props['aria-label']===label);assert.ok(n,'field '+label);n.props.onChange({target:{value}});h.render();};
   h.submit=async()=>{const n=h.find(n=>n.type==='form');assert.ok(n);await n.props.onSubmit({preventDefault(){}});h.render();};
   h.update=patch=>{Object.assign(h.props,patch);h.render();};
@@ -49,6 +49,17 @@ function mount(overrides={}){
 function startConfig(h){h.click('添加服务');h.change('服务名称','测试服务');}
 function startAssociation(h){h.click('账号关联：公司服务');h.change('本站点账号','acct_1');
   h.change('组织','org-42');h.change('服务提供方','codex');h.change('远端资源 ID','resource-9');}
+
+// Chrome's installed sandbox deliberately has no allow-forms. Its form
+// submission algorithm cannot deliver onSubmit, so exercise the actual buttons.
+test('sandbox review buttons save configuration, rename and review an association without form submission',async()=>{
+  const config=mount();startConfig(config);await config.click('保存配置');config.render();
+  assert.equal(config.calls[0]?.[0],'serviceSave');
+  const rename=mount();rename.click('改名服务：公司服务');rename.change('新服务名称','新名称');
+  await rename.click('保存名称');rename.render();assert.equal(rename.calls[0]?.[0],'serviceRename');
+  const association=mount();startAssociation(association);await association.click('核对关联');association.render();
+  assert.ok(association.button('保存待连接关联'));assert.deepEqual(association.calls,[]);
+});
 
 test('unavailable production capabilities disclose real states and terminal entry, with inert management',()=>{
   const h=mount({state:{revision:7,connections:[connection,{...connection,id:'c2',label:'断开服务',status:'DISCONNECTED'},
@@ -274,6 +285,17 @@ test('management opens through direct commands for device and bound resource wit
   assert.deepEqual(h.calls,[['serviceOpenManagement',{revision:7,sessionRevision:11,connectionId:'c1',associationId:''}],
     ['serviceOpenManagement',{revision:7,sessionRevision:11,connectionId:'c1',associationId:'a1'}]]);
   assert.equal(nodes(h.tree).some(n=>n.type==='a'||n.props.href),false);
+});
+test('management handoff discards the old-site callback without reporting failure on the new site',async()=>{
+  const h=nativeMount({}, {associations:[bound]});
+  h.props.onAction=async()=>{h.update({origin:'http://usage-test.localhost:4000'});return false;};
+  h.render();
+  await h.click('资源管理页：acct_1');h.render();
+  assert.equal(h.find(n=>n.props.role==='alert'),undefined);
+  const unchanged=nativeMount();unchanged.props.onAction=async()=>false;
+  unchanged.render();
+  await unchanged.click('管理页');unchanged.render();
+  assert.match(text(unchanged.tree),/操作未成功/);
 });
 test('pending unknown permits bounded reads and only open has explicit history-preserving archive',async()=>{
   for(const action of ['open','bind','connect']){

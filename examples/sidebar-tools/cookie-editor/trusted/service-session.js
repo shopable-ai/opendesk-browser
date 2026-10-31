@@ -1,11 +1,14 @@
 // Fixed, trusted Cookie consumer. Never import this into a dynamic tool sandbox.
 import {serviceDescriptor,serviceOwner} from '../../../../src/native-agent/managed-service-protocol.js';
+import {canonical} from '../../../../src/platform/protocol.js';
 export const COOKIE_SERVICE_SESSION_KEY='opendesk.cookie-editor.service-session.v1';
 const fail=code=>Object.assign(Error(code),{code});
 const clone=v=>structuredClone(v);
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const exact=(v,keys)=>object(v)&&Object.keys(v).length===keys.length&&keys.every(k=>Object.hasOwn(v,k));
-const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// Object key order can change across Native JSON and persisted receipts.
+// Compare exact JSON values while preserving array order and all field values.
+const same=(a,b)=>a===b||a!==undefined&&b!==undefined&&canonical(a)===canonical(b);
 const id=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9_-]{0,95}$/.test(v);
 const integer=v=>Number.isSafeInteger(v)&&v>=0;
 const positive=v=>integer(v)&&v>0;
@@ -35,10 +38,19 @@ const expectedValid=(action,v)=>action==='bind'?exact(v,['associationId','remote
   action==='open'?exact(v,['associationId','remoteAccountId','bindingId','tabAttempted'])&&typeof v.tabAttempted==='boolean'&&[v.associationId,v.remoteAccountId,v.bindingId].every(x=>x===''||id(x)):
   ['connect','disconnect'].includes(action)&&exact(v,[]);
 const receiptValid=v=>exact(v,['operationId','action','outcome','expected','archived'])&&id(v.operationId)&&outcomes.includes(v.outcome)&&typeof v.archived==='boolean'&&expectedValid(v.action,v.expected);
-const retiredKeys=['provider','remoteConnectionId','deviceId','authEpoch','status','connectionEpoch','bindings','ledger'];
-const recoverable=r=>!r.pending&&!r.bindings.some(x=>!x.value.revoked)&&
-  (r.status==='DISCONNECTED'&&r.ledger.at(-1)?.action==='disconnect'&&r.ledger.at(-1)?.outcome==='CONFIRMED'||
+const legacyRetiredKeys=['provider','remoteConnectionId','deviceId','authEpoch','status','connectionEpoch','bindings','ledger'];
+// Older retired records have no owner attribution; keep them unchanged. New
+// snapshots always preserve the exact owner alongside the original receipts.
+const retiredKeys=['owner',...legacyRetiredKeys];
+// An explicit new connection may retire an expired, unused context. Never
+// replace a binding or an unresolved operation, or claim the old device revoked.
+const recoverable=(r,{expired=false}={})=>!r.pending&&!r.bindings.some(x=>!x.value.revoked)&&
+  (expired&&r.status==='CONNECTED'||r.status==='DISCONNECTED'&&r.ledger.at(-1)?.action==='disconnect'&&r.ledger.at(-1)?.outcome==='CONFIRMED'||
    r.status==='UNCONNECTED'&&r.deviceId===''&&r.ledger.at(-1)?.action==='connect'&&r.ledger.at(-1)?.outcome==='NOT_DISPATCHED');
+// A changed tool owner may start again only after a confirmed remote disconnect.
+// Active/expired authority or an unresolved effect never crosses installation.
+const renewable=(r,identity)=>r&&r.owner.extensionId===identity.extensionId&&
+  r.status==='DISCONNECTED'&&recoverable(r);
 const stored=v=>v===undefined?empty():v;
 const empty=()=>({format:1,revision:0,sessions:[]});
 function validate(v){
@@ -46,7 +58,7 @@ function validate(v){
   const seen=new Set();
   for(const r of v.sessions){
     check(exact(r,['connectionId','connectionEpoch','owner','runtimeId','provider','remoteConnectionId','deviceId','authEpoch','status','resources','policy','bindings','pending','ledger','retired'])&&id(r.connectionId)&&!seen.has(r.connectionId)&&positive(r.connectionEpoch)&&owner(r.owner)&&id(r.runtimeId)&&serviceDescriptor(r.provider,{registered:true})&&r.provider.serviceId==='ai-account-usage'&&id(r.remoteConnectionId)&&(r.deviceId===''||id(r.deviceId))&&integer(r.authEpoch)&&['UNCONNECTED','CONNECTED','DISCONNECTED'].includes(r.status)&&Array.isArray(r.resources)&&r.resources.length<=64&&r.resources.every(x=>exact(x,['remoteAccountId','providerKey','verificationState'])&&id(x.remoteAccountId)&&x.providerKey==='codex'&&x.verificationState==='UNVERIFIED')&&policyValid(r.policy)&&Array.isArray(r.bindings)&&r.bindings.length<=128&&r.bindings.every(x=>exact(x,['associationId','value'])&&id(x.associationId)&&bindingValid(x.value))&&Array.isArray(r.ledger)&&r.ledger.length<=128&&r.ledger.every(receiptValid)&&(r.pending===null||receiptValid(r.pending)&&['PENDING','OUTCOME_UNKNOWN'].includes(r.pending.outcome)),'E_SERVICE_STORE');
-    check(Array.isArray(r.retired)&&r.retired.length<=8&&r.retired.every(x=>exact(x,retiredKeys)&&serviceDescriptor(x.provider,{registered:true})&&x.provider.serviceId==='ai-account-usage'&&id(x.remoteConnectionId)&&(x.deviceId===''||id(x.deviceId))&&integer(x.authEpoch)&&positive(x.connectionEpoch)&&['UNCONNECTED','DISCONNECTED'].includes(x.status)&&Array.isArray(x.bindings)&&x.bindings.length<=128&&x.bindings.every(b=>exact(b,['associationId','value'])&&id(b.associationId)&&bindingValid(b.value)&&b.value.revoked)&&Array.isArray(x.ledger)&&x.ledger.length<=128&&x.ledger.every(receiptValid)),'E_SERVICE_STORE');
+    check(Array.isArray(r.retired)&&r.retired.length<=8&&r.retired.every(x=>(exact(x,retiredKeys)&&owner(x.owner)||exact(x,legacyRetiredKeys))&&serviceDescriptor(x.provider,{registered:true})&&x.provider.serviceId==='ai-account-usage'&&id(x.remoteConnectionId)&&(x.deviceId===''||id(x.deviceId))&&integer(x.authEpoch)&&positive(x.connectionEpoch)&&['UNCONNECTED','CONNECTED','DISCONNECTED'].includes(x.status)&&Array.isArray(x.bindings)&&x.bindings.length<=128&&x.bindings.every(b=>exact(b,['associationId','value'])&&id(b.associationId)&&bindingValid(b.value)&&b.value.revoked)&&Array.isArray(x.ledger)&&x.ledger.length<=128&&x.ledger.every(receiptValid)),'E_SERVICE_STORE');
     seen.add(r.connectionId);
   }
   return v;
@@ -68,9 +80,9 @@ export function createCookieServiceSession({api,storage,transport}={}){
   }
   async function db(){try{const s=await storage?.();check(s?.readOnly!==true&&typeof s?.transaction==='function','E_ACCOUNT_STORAGE_UNAVAILABLE');return s;}catch{throw fail('E_ACCOUNT_STORAGE_UNAVAILABLE');}}
   async function read(d){try{return validate(await d.transaction(['frameworkKV'],'readonly',async tx=>stored(await tx.get('frameworkKV',COOKIE_SERVICE_SESSION_KEY))));}catch(e){throw fail(e?.code==='E_SERVICE_STORE'?'E_SERVICE_STORE':'E_ACCOUNT_STORAGE_UNAVAILABLE');}}
-  async function save(d,before,next,guard){
+  async function save(d,before,next,guard,renew){
     validate(next);let attempted=false;
-    try{await d.transaction(['frameworkKV'],'readwrite',async tx=>{const current=validate(stored(await tx.get('frameworkKV',COOKIE_SERVICE_SESSION_KEY)));check(same(current,before),'E_SERVICE_CONFLICT');await guard();attempted=true;await tx.put('frameworkKV',clone(next),COOKIE_SERVICE_SESSION_KEY);});
+    try{await d.transaction(['frameworkKV'],'readwrite',async tx=>{const current=validate(stored(await tx.get('frameworkKV',COOKIE_SERVICE_SESSION_KEY)));check(same(current,before),'E_SERVICE_CONFLICT');if(renew)await renew(tx);validate(next);await guard({transaction:tx});attempted=true;await tx.put('frameworkKV',clone(next),COOKIE_SERVICE_SESSION_KEY);});
       check(same(await read(d),next),'E_OUTCOME_UNKNOWN');await guard();
     }catch(e){if(attempted)throw fail('E_OUTCOME_UNKNOWN');throw e?.code?e:fail('E_ACCOUNT_STORAGE_UNAVAILABLE');}
   }
@@ -83,7 +95,7 @@ export function createCookieServiceSession({api,storage,transport}={}){
       if(r){if(!same(r.owner,identity)||r.connectionEpoch!==c.epoch||c.status==='INVALIDATED')s='INVALIDATED';
         else if(!live(r,n))s='SESSION_EXPIRED';else if(r.pending)s='OUTCOME_UNKNOWN';else s=r.status;}
       const active=s==='CONNECTED';status.set(c.id,s);
-      return {...c,status:s,reasonCode:s==='INVALIDATED'?'E_TOOL_CHANGED':s==='SESSION_EXPIRED'?'E_SERVICE_SESSION_EXPIRED':s==='OUTCOME_UNKNOWN'?'E_OUTCOME_UNKNOWN':s==='UNCONNECTED'&&!n.providers.length?(c.reasonCode||'E_SERVICE_BRIDGE_UNAVAILABLE'):'',canConnect:c.mode==='local'&&c.status!=='INVALIDATED'&&n.providers.length>0&&(!r||same(r.owner,identity)&&recoverable(r)&&r.retired.length<8),
+      return {...c,status:s,reasonCode:s==='INVALIDATED'?'E_TOOL_CHANGED':s==='SESSION_EXPIRED'?'E_SERVICE_SESSION_EXPIRED':s==='OUTCOME_UNKNOWN'?'E_OUTCOME_UNKNOWN':s==='UNCONNECTED'&&!n.providers.length?(c.reasonCode||'E_SERVICE_BRIDGE_UNAVAILABLE'):'',canConnect:c.mode==='local'&&n.providers.length>0&&(c.status==='INVALIDATED'?renewable(r,identity)&&r.retired.length<8:!r||same(r.owner,identity)&&recoverable(r,{expired:!live(r,n)})&&r.retired.length<8),
         canOpenManagement:active&&r.provider.capabilities.includes('management:resource-open'),resources:active?clone(r.resources):[],policy:active?clone(r.policy):null,
         pending:r?.pending?pick(r.pending,['operationId','action','outcome']):null};
     });
@@ -91,7 +103,7 @@ export function createCookieServiceSession({api,storage,transport}={}){
       const r=state.sessions.find(x=>x.connectionId===a.connectionId),b=r?.bindings.find(x=>x.associationId===a.id)?.value;
       const account=accounts.find(x=>x.alias===a.localAlias&&x.origin===a.localOrigin),stale=!account||account.version!==a.accountVersion;
       return {...a,...(b?{remoteBindingId:b.bindingId,remoteRevocation:b.revoked?'CONFIRMED':'REQUIRED'}:{}),verification:'UNVERIFIED',
-        status:stale?'STALE':b&&!b.revoked&&status.get(a.connectionId)==='CONNECTED'?'BOUND':status.get(a.connectionId)==='CONNECTED'?'PENDING_CONNECTION':a.status==='STALE'?'STALE':status.get(a.connectionId)==='UNCONNECTED'?a.status:status.get(a.connectionId)};
+        status:stale?'STALE':r&&a.connectionEpoch!==r.connectionEpoch?'DISCONNECTED':b&&!b.revoked&&status.get(a.connectionId)==='CONNECTED'?'BOUND':status.get(a.connectionId)==='CONNECTED'?'PENDING_CONNECTION':a.status==='STALE'?'STALE':status.get(a.connectionId)==='UNCONNECTED'?a.status:status.get(a.connectionId)};
     });
     return result;
   }
@@ -118,7 +130,7 @@ export function createCookieServiceSession({api,storage,transport}={}){
       check(policyValid(v)&&v.serviceInstanceId===r.provider.serviceInstanceId&&v.deviceId===r.deviceId&&v.authEpoch===r.authEpoch&&['ACCEPTED','PAUSED'].includes(v.status)&&v.acceptance&&v.acceptance.authEpoch===r.authEpoch&&same(v.desired,r.policy?.desired)&&same(v.acceptance.scope,p.expected.scope)&&v.acceptance.desiredRevision===p.expected.desiredRevision&&v.acceptance.desiredHash===p.expected.desiredHash,'E_SERVICE_RESULT');r.policy=v;
     }
   }
-  async function dispatch({operation,payload,localState,identity,accounts=[],localRef,assertCurrent=async()=>{}}){
+  async function dispatch({operation,payload,localState,identity,accounts=[],localRef,renewConfiguration,assertCurrent=async()=>{}}){
     const spec=actions[operation];check(spec&&owner(identity)&&origin(payload?.origin));const [action,fields]=spec;
     check(exact(payload,['origin',...(!reads.has(action)?['revision','sessionRevision']:[]),...fields]));
     if(!reads.has(action))check(integer(payload.revision)&&payload.revision===localState.revision,'E_SERVICE_CONFLICT');
@@ -133,13 +145,15 @@ export function createCookieServiceSession({api,storage,transport}={}){
     const association=payload.associationId?localState.associations.find(x=>x.id===payload.associationId&&x.localOrigin===payload.origin):null;
     if(action==='open'&&association)check(payload.connectionId===association.connectionId,'E_SERVICE_BINDING');
     const connectionId=association?.connectionId??payload.connectionId;
-    const c=localState.connections.find(x=>x.id===connectionId);check(c,'E_SERVICE_NOT_FOUND');
-    check(c.mode==='local','E_SERVICE_UNSUPPORTED');check(c.status!=='INVALIDATED','E_SERVICE_DISCONNECTED');
+    let c=localState.connections.find(x=>x.id===connectionId);check(c,'E_SERVICE_NOT_FOUND');
+    check(c.mode==='local','E_SERVICE_UNSUPPORTED');
     let r=state.sessions.find(x=>x.connectionId===c.id);
+    const renewing=c.status==='INVALIDATED';
+    check(!renewing||action==='connect'&&renewable(r,identity)&&typeof renewConfiguration==='function','E_SERVICE_DISCONNECTED');
     let opened=false;
-    const guard=async()=>{await assertCurrent({allowInactiveDocument:action==='open'&&opened});const now=native();check(now.client===client&&now.providers.some(p=>same(p,r.provider)),'E_SERVICE_SESSION_EXPIRED');check(same(identity,r.owner)&&r.connectionEpoch===c.epoch,'E_SERVICE_SESSION_EXPIRED');};
+    const guard=async({transaction}={})=>{await assertCurrent({allowInactiveDocument:action==='open'&&opened,transaction});const now=native();check(now.client===client&&now.providers.some(p=>same(p,r.provider)),'E_SERVICE_SESSION_EXPIRED');check(same(identity,r.owner)&&r.connectionEpoch===c.epoch,'E_SERVICE_SESSION_EXPIRED');};
     if(action==='connect'){
-      check(!r||same(r.owner,identity)&&recoverable(r),'E_SERVICE_SESSION_EXISTS');const provider=n.providers.find(p=>p.serviceId===payload.serviceId&&p.providerEpoch===payload.providerEpoch);check(provider,'E_SERVICE_UNSUPPORTED');
+      check(renewing||!r||same(r.owner,identity)&&recoverable(r,{expired:!live(r,n)}),'E_SERVICE_SESSION_EXISTS');const provider=n.providers.find(p=>p.serviceId===payload.serviceId&&p.providerEpoch===payload.providerEpoch);check(provider,'E_SERVICE_UNSUPPORTED');
       check((r||state.sessions.length<16)&&(!r||r.retired.length<8),'E_SERVICE_LIMIT');
       const retired=r?[...r.retired,pick(r,retiredKeys)]:[];
       if(r)state.sessions.splice(state.sessions.indexOf(r),1);
@@ -150,7 +164,12 @@ export function createCookieServiceSession({api,storage,transport}={}){
       if(action!=='operation'&&action!=='archive')check(r.status==='CONNECTED','E_SERVICE_DISCONNECTED');
     }
     await guard();
-    const commit=async()=>{state.revision++;await save(d,before,state,guard);before=clone(state);};
+    let renew=renewing?async tx=>{
+      localState=await renewConfiguration({transaction:tx,revision:localState.revision,connectionId:c.id,identity,accounts,origin:payload.origin});
+      c=localState.connections.find(x=>x.id===r.connectionId);
+      check(c&&c.status==='UNCONNECTED','E_SERVICE_CONFLICT');r.connectionEpoch=c.epoch;
+    }:null;
+    const commit=async()=>{state.revision++;await save(d,before,state,guard,renew);renew=null;before=clone(state);};
     if(action==='archive'){
       check(r.pending?.action==='open'&&r.pending.expected.tabAttempted&&r.pending.outcome==='OUTCOME_UNKNOWN'&&r.pending.operationId===payload.operationId,'E_SERVICE_PENDING');
       r.pending.archived=true;r.ledger.push(r.pending);r.pending=null;check(r.ledger.length<=128,'E_SERVICE_LIMIT');await commit();return view(localState,identity,accounts,native(),state);

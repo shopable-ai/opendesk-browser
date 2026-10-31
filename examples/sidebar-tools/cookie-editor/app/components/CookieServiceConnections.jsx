@@ -113,7 +113,9 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
     lock.current=true;setPending(true);setError('');
     try{
       const success=await onAction(action,payload);
-      if(!mounted.current)return;
+      // A management handoff activates a different website. Its old-site
+      // callback cannot describe success or failure for the new target.
+      if(!mounted.current||action==='serviceOpenManagement'&&latest.current.origin!==current.origin)return;
       if(success===true){if(!readOnly&&!keepForm){restore.current=true;setForm(null);}}
       else setError('操作未成功，草稿已保留。请核对当前状态后再试。');
     }catch{if(mounted.current)setError('操作未确认，草稿已保留。请先核对当前状态，不要重复操作。');}
@@ -209,7 +211,14 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
     const initial={label:'',mode:'local',serviceOrigin:''};
     open(event,{kind:'config',...initial,initial});
   };
-  const onFormKeyDown=event=>{if(event.key==='Escape'){event.preventDefault();close();}};
+  const onFormKeyDown=event=>{
+    if(event.key==='Escape'){event.preventDefault();close();}
+    // Installed tools cannot submit HTML forms. Keep keyboard review local to
+    // the same explicit handler, without widening the sandbox's permissions.
+    else if(event.key==='Enter'&&event.target?.tagName==='INPUT'&&!event.nativeEvent?.isComposing){
+      event.preventDefault();void submit(event);
+    }
+  };
   const revisionReview=form&&(state?.revision!==form.revision||nativeForm(form)&&
     (!Number.isSafeInteger(form.sessionRevision)||state?.sessionRevision!==form.sessionRevision))&&<div>
     <p role="alert">服务状态版本已变化，请重新核对后保存。已有输入已保留。</p>
@@ -291,7 +300,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
         {revisionReview}
         {error&&<p role="alert" className="od-form-error">{error}</p>}
         <div className="cookie-business-actions">
-          <button type="submit" className={primary} disabled={blocked||form.label.trim()===form.initialLabel}>保存名称</button>
+          <button type="button" className={primary} onClick={submit} disabled={blocked||form.label.trim()===form.initialLabel}>保存名称</button>
           <button type="button" className={secondary} disabled={pending||busy} onClick={close}>取消</button>
         </div>
       </form>}
@@ -329,7 +338,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
           {form.mode==='company'&&<label>服务地址<input className="od-field" aria-label="服务地址" placeholder="https://company.example" disabled={blocked}
             value={form.serviceOrigin} onChange={event=>update({serviceOrigin:event.target.value})}/></label>}
           <p>仅新建未连接配置；每种类型和地址只能保存一份，不会修改已有连接或重新连接。公司登录授权尚不可用。</p>
-          <button type="submit" className={primary} disabled={blocked}>保存配置</button>
+          <button type="button" className={primary} onClick={submit} disabled={blocked}>保存配置</button>
         </>}
         {form.kind==='associate'&&<>
           <p>本站点：{origin||'当前站点不可用'}。{nativeAssociation?'选择已读取的远端资源，仅保存待核验草稿。':'手动填写远端资源仅保存待核验草稿。'}</p>
@@ -367,7 +376,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
             <p>服务：{form.serviceOrigin||'本机额度服务'}；组织：{form.organization}；提供方：{form.providerKey}；远端资源：{form.remoteAccountId}</p>
             <p>尚未验证同一登录身份，不建立远端关联，也不授予 Cookie 上传权限。</p>
             <button type="button" className={primary} disabled={blocked} onClick={saveAssociation}>保存待连接关联</button>
-          </section>:<button type="submit" className={primary} disabled={blocked||!accountReady||!available.length}>核对关联</button>}
+          </section>:<button type="button" className={primary} onClick={submit} disabled={blocked||!accountReady||!available.length}>核对关联</button>}
         </>}
         {form.kind==='disconnect'&&<>
           <p>确认断开「{form.label}」？关联将不可用，本地保存账号不会删除；{form.connectionStatus==='CONNECTED'?'将请求服务端断开，结果以回执为准。':'此操作不代表已完成远端撤权。'}</p>

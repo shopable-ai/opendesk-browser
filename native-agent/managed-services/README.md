@@ -7,8 +7,9 @@ implemented in source. Go race checks cover the registry, exact epoch/owner,
 request mapping and retirement. A cross-process test now runs the real Go Host
 and Node provider/backend through Native frames and the original authenticated
 private socket. Chrome Port, permission and installation authority remain
-synthetic in that test; it is not live Native authorization. No installed Host,
-extension, credential or watcher changes.
+synthetic in that test; it is not live Native authorization. The later installed
+Mac Chrome core result is recorded below; it uses disposable data and does not
+prove real provider identity or quota.
 
 ## Why this platform addition is needed
 
@@ -89,7 +90,7 @@ Errors expose a code and `NOT_DISPATCHED`, `FAILED_CONFIRMED` or `OUTCOME_UNKNOW
 There is no automatic replay or automatic reconnect. Reconcile a lost business
 write through its original `operationId` with a separate read.
 
-## Go integration and remaining installed verification
+## Go integration and installed core verification
 
 The existing `internal/browserbridge/managed_services.go` and
 `host_services_unix.go` own strict decoding, the registry and pending map,
@@ -103,9 +104,10 @@ they do not prove a process signature or peer UID/PID.
 
 The implemented Cookie consumer enforces fixed sender/install/Document/gesture
 checks, explicit connection and account association confirmation, original
-operation receipts, and internal-only opening. These protections have source and
-targeted test evidence, but still need verification through the completed live
-bridge. The one-use management URL is consumed only by the fixed SW after checking
+operation receipts, and internal-only opening. These protections have source,
+targeted tests and a real installed Mac Chrome/Native core run with disposable
+local Cookie metadata and synthetic backend resources. The one-use management
+URL is consumed only by the fixed SW after checking
 the registered origin and exact allowed path; it must never be returned to the
 sandbox. Cookie payload transfer is out of scope.
 
@@ -141,8 +143,18 @@ never an implied pass. The provider also has a regression proving a write follow
 by an unclassified 4xx confirmation error remains `OUTCOME_UNKNOWN`; only an
 explicit handler outcome can establish a confirmed write failure.
 
-Installed `serve --native`, matching fixed SW/tool deployment and the real
-enterprise-page click chain remain `NOT_TESTED`. The currently observed
-`dist/development` has no live serve owner; existing OpenDesk Host processes are
-older installed artifacts. This development slice does not replace or restart
-them. Company HTTPS/SSO, Cookie transport and continuous collection remain deferred.
+Installed `serve --native` and the enterprise click chain were verified on
+2026-10-31 in the existing `dist/development` serve environment, extension
+`ccfcjegpkdlgbclopjmadlcjedelidmf`. The complete signed Native App was upgraded
+through its existing owner command without changing pairing or extension ID.
+Native executable SHA-256 is
+`a92036ec806f0714407d55183a9c4bc5ac2cd439c56ca123b3530350c5646018`.
+Actual tool 2.0.56 completed connect → resources → explicit UNVERIFIED binding →
+scoped cached management page → desired policy still pending → explicit metadata
+acceptance → unbind → disconnect. Tool 2.0.57 was then installed for the late
+post-handoff UI correction; final-source and upgrade-recovery evidence is tracked
+separately in the [native core record](../../examples/sidebar-tools/cookie-editor/evidence/service-binding-native-20261031.json).
+The original standalone management server remains independent of Native.
+Real credential reads/upstream quota queries, verified account identity, company
+HTTPS/SSO, Cookie transport, continuous collection and production acceptance
+remain untested or deferred; synthetic resources do not prove them.

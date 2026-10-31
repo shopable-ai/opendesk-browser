@@ -90,6 +90,20 @@ export function createCookieServiceConnections({storage}={}){
     }catch(error){if(error?.code==='E_SERVICE_STORE')throw error;throw fail('E_ACCOUNT_STORAGE_UNAVAILABLE');}
   }
   return Object.freeze({
+    // Fixed consumer only: called in the same transaction as a reviewed fresh
+    // session intent, after the old session's confirmed revocation is checked.
+    async renewConfiguration({transaction:tx,revision,connectionId,identity,accounts,origin}){
+      const value=validate(await tx.get('frameworkKV',COOKIE_SERVICE_CONNECTIONS_KEY));
+      if(value.revision!==revision)throw fail('E_SERVICE_CONFLICT');
+      const row=value.connections.find(item=>item.id===connectionId);
+      if(!row||row.mode!=='local')throw fail('E_SERVICE_NOT_FOUND');
+      if(row.packageHash===identity.packageHash&&row.installEpoch===identity.installEpoch)
+        throw fail('E_SERVICE_CONFLICT');
+      row.packageHash=identity.packageHash;row.installEpoch=identity.installEpoch;
+      row.epoch++;row.disconnected=false;value.revision++;validate(value);
+      await tx.put('frameworkKV',value,COOKIE_SERVICE_CONNECTIONS_KEY);
+      return present(value,{identity,accounts,origin});
+    },
     async dispatch({operation,payload,identity,accounts=[],assertCurrent=async()=>{}}){
       if(COOKIE_SERVICE_NATIVE_OPERATIONS.includes(operation))throw fail('E_SERVICE_BRIDGE_UNAVAILABLE');
       const fields=COOKIE_SERVICE_FIELDS[operation];

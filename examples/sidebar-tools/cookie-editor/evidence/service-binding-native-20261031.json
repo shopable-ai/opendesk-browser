@@ -1,0 +1,237 @@
+{
+  "format": "opendesk.cookie-editor.service-binding-native.v1",
+  "observedAtUTC": "2026-10-31T08:59:48.699865+00:00",
+  "phase": "CORE_DEVELOPMENT",
+  "status": "NATIVE_CORE_AND_FINAL_UPGRADE_SMOKE_PASS",
+  "historicalRecord": "service-binding-core-20261031.json",
+  "environment": {
+    "mode": "CONTINUOUS_DEVELOPMENT",
+    "browser": "Google Chrome on macOS, real native UI",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "serve": "Existing single npm run dev watcher, exec session 88845; no second output writer",
+    "native": {
+      "app": "/Users/shopme/.opendesk-browser/native-agent-r1/build-cookie-service-20261031-a92036ec/OpenDesk.app",
+      "executableSha256": "a92036ec806f0714407d55183a9c4bc5ac2cd439c56ca123b3530350c5646018",
+      "version": "2.0.1",
+      "signature": "6A3487D1D884CA77AB04B380E0186E23F8E1EE39",
+      "doctor": "CONNECTED_ENABLED_MATCHING_EXTENSION_ID",
+      "allowedOrigins": [
+        "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+      ],
+      "pairing": "Preserved; complete signed App upgraded through existing browser owner command"
+    },
+    "lastDevelopmentUpdate": {
+      "protocol": "opendesk.development.v1",
+      "revision": "f190bba03b9a2b66776563770db8dab63671afcff65e5cc950010bc2772317d1",
+      "note": "Observed after final source smoke; shared dev output can advance after AI Proxy resumes."
+    }
+  },
+  "package": {
+    "version": "2.0.57",
+    "file": "cookie-editor.opendesk-tool.json",
+    "bytes": 264961,
+    "sha256": "829a3c7be21af15c09c6a8a12cf3842e19ff06595cd62e6de86c2b18d346b23b",
+    "installed": "REAL_CHROME_UI_CONFIRMED",
+    "permission": "Existing Cookie authorization approved through original prompt after catalog reload; fixture Cookie and saved account visibly retained",
+    "sourceMatch": "PROJECT_PACKAGE_MATCH",
+    "fullChainVersion": "2.0.56",
+    "delta": "2.0.57 corrects late UI callback after successful management handoff; trusted code is fixed in Browser SW, separate from Tool JSON"
+  },
+  "fixture": {
+    "page": "http://cookie-service-test.localhost:56096/",
+    "cookie": "One disposable synthetic Cookie; values omitted",
+    "savedAccount": "服务测试账号（临时）",
+    "backend": "Independent ai-account-usage manage.mjs serve --native, explicit isolated config/data-dir",
+    "dataRoot": "/Users/shopme/.opendesk/ai-account-usage-tests/cookie-service-20261031",
+    "state": "state-final",
+    "resource": "service_test_01",
+    "cache": "SYNTHETIC_UI_FIXTURE, 80% cached remaining; two observations, not verified reset cycles",
+    "realCredentialReads": false,
+    "upstreamQueries": 0,
+    "cookiePayloadTransferred": false
+  },
+  "userOperations": [
+    {
+      "operation": "Save service config from sandbox; select actual Native registered provider; explicitly connect; read actual resources",
+      "result": "REAL_NATIVE_UI_PASS",
+      "toolVersion": "2.0.56"
+    },
+    {
+      "operation": "Select saved current-origin account and actual remote resource; save draft; explicitly bind",
+      "result": "REAL_NATIVE_UI_PASS",
+      "status": "BOUND",
+      "identityVerification": "UNVERIFIED",
+      "bindingId": "8c556c1f-f473-41f7-ae36-b3278bfbc699"
+    },
+    {
+      "operation": "Open account-scoped management page",
+      "result": "REAL_NATIVE_UI_PASS",
+      "observed": "Exact selected account, cached 80%, refresh disabled, fragment removed; old-site callback falsely displayed error, subsequently fixed in 2.0.57"
+    },
+    {
+      "operation": "Terminal pair, explicitly leave resource session, save desired policy",
+      "result": "REAL_NATIVE_UI_PASS",
+      "scope": {
+        "dataCategories": [
+          "ACCOUNT_METADATA"
+        ],
+        "trigger": "MANUAL",
+        "retentionDays": 7
+      },
+      "acceptedAfterSave": false
+    },
+    {
+      "operation": "Return Cookie page; read exact desired revision 1; explicitly select binding/category and accept",
+      "result": "REAL_NATIVE_UI_PASS",
+      "status": "ACCEPTED",
+      "desiredRevision": 1
+    },
+    {
+      "operation": "Explicit unbind and disconnect",
+      "result": "REAL_NATIVE_UI_PASS",
+      "serverReadback": {
+        "deviceId": "83a9dbdf-fc2e-42b1-b40a-f0d0cd67edfa",
+        "revoked": true,
+        "authEpoch": 3,
+        "bindingRevoked": true
+      },
+      "savedAccountRetained": true
+    },
+    {
+      "operation": "Install 2.0.57, authorize existing scope and read fixture Cookie/saved account",
+      "result": "REAL_NATIVE_UI_PASS"
+    },
+    {
+      "operation": "Explicit reconnect after tool update, without active/unknown effects",
+      "result": "REAL_NATIVE_UI_PASS",
+      "observed": "Old INVALIDATED E_TOOL_CHANGED card allowed a newly reviewed exact registered provider; returned CONNECTED; prior account association remained DISCONNECTED"
+    },
+    {
+      "operation": "Final 2.0.57 management open after upgrade reconnect",
+      "result": "REAL_NATIVE_UI_PASS",
+      "observed": "Exact new device management page, revision 0/unaccepted; fragment removed; prior-origin UI displayed no false operation failure; no old policy acceptance carried forward",
+      "deviceId": "77b406af-f535-4e6d-9dff-15267f9894fb"
+    },
+    {
+      "operation": "End final upgrade smoke with explicit disconnect",
+      "result": "REAL_NATIVE_UI_PASS",
+      "serverReadback": {
+        "deviceId": "77b406af-f535-4e6d-9dff-15267f9894fb",
+        "revoked": true,
+        "authEpoch": 2
+      },
+      "ui": "服务已确认断开。"
+    }
+  ],
+  "fixes": [
+    "Sandbox buttons use actual click handlers because sandbox disallows form submission; Enter supports composition guard",
+    "Account-version fence uses the current Foundation writer transaction rather than nesting a read transaction",
+    "Canonical exact JSON value comparison tolerates object-key order changes across Native; arrays and values stay exact",
+    "Expired unused context can be retired only by a separately reviewed new connect; pending writes and active bindings prevent replacement",
+    "Successful foreground management handoff ignores only an obsolete prior-origin UI callback; unchanged-site failure still displays error",
+    "Changed-tool reauthorization requires prior confirmed remote disconnect, same extension, no pending/active binding; configuration owner+epoch and new intent update atomically, retired receipts retain old owner; stale associations cannot bind"
+  ],
+  "verification": [
+    {
+      "group": "Fixed account vault, metadata/Host/UI, service sessions and real isolated Node integration",
+      "command": "node --test tests/environment/cookie-editor-account-vault.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections-host.test.mjs examples/sidebar-tools/cookie-editor/tests/service-connections-ui.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session.test.mjs examples/sidebar-tools/cookie-editor/tests/service-session-integration.test.mjs",
+      "tests": 113,
+      "result": "PASS",
+      "note": "Following final retired-owner amendment, affected session+integration subset rechecked 44/44 PASS; all other inputs unchanged"
+    },
+    {
+      "group": "Original app:update compile/candidate checks/promotion",
+      "tests": 8,
+      "result": "PASS"
+    },
+    {
+      "group": "Original packager --check-project",
+      "result": "PROJECT_PACKAGE_MATCH"
+    },
+    {
+      "group": "Exact reviewed sources, static dependencies and target/drift/symlink guards",
+      "tests": 6,
+      "result": "PASS"
+    }
+  ],
+  "sourceFingerprints": {
+    "trusted/account-service.js": {
+      "sha256": "f32c3c6c69f7a00511738bda7911732b92293e7d44aebfaa1730979e402a7dc3",
+      "gitBlob": "4bffffd2f4960fddea6d3375d5d78c25b6e13edb"
+    },
+    "trusted/account-vault.js": {
+      "sha256": "5e5ef6058d921c0a7ab67dc1e4aa8b8972f67cd89f38db66d53c2e9eea768074",
+      "gitBlob": "72caa6d4668ad1d7c16cd64e89b1bac559e36b09"
+    },
+    "trusted/service-connections.js": {
+      "sha256": "39d45b9f34ca56b8ad4db38075a6d3b762fb51ee23f94d2267bb939e4ce4838a",
+      "gitBlob": "138391e1462cf48ec49b05399a1ffa16a6a9ec9b"
+    },
+    "trusted/service-session.js": {
+      "sha256": "0e6035c71e88eae25bbf24e3b2d6429e017f762ac08e09dc6550825d5984fc3c",
+      "gitBlob": "0c294fbf65d318c98e4506f720c836a45f01955d"
+    },
+    "app/components/CookieServiceConnections.jsx": {
+      "sha256": "b60615f9ff8e4a9de6ebef6ad3fb6be14d10069c7f3ec04f0a9a52d392510558",
+      "gitBlob": "d40602e73bd15b0c0c53f3a93e506132a2afe7f6"
+    }
+  },
+  "testIsolationAndUnresolvedHistory": {
+    "originalUnknownBind": "An earlier Go JSON-key ordering mismatch caused OUTCOME_UNKNOWN after one real bind. The original state/ backend is stopped and retained; no bind was replayed and revocation was not claimed.",
+    "localMetadataArchive": "Only disposable service-connections.v1 and service-session.v1 records were atomically copied to keys with .test-archive-20261031-before-json-order-fix and removed from active test configuration via native DevTools. Account vault was untouched. This is recoverable fixture isolation, not normal product recovery or resolution of the unknown write.",
+    "otherDevices": "Two earlier unused devices in state-final remain unrevoked records from provider reloads; their process capabilities ended. They have no bindings and were not falsely marked revoked."
+  },
+  "notTestedOrDeferred": [
+    "Real credentials/upstream quota",
+    "Verified Cookie-to-provider account identity",
+    "Company HTTPS/SSO/OAuth",
+    "Cookie backup/restore/upload",
+    "Continuous/background collection",
+    "Production package acceptance",
+    "Independent scoring",
+    "Browser restart/full regression matrix"
+  ],
+  "screenshots": {
+    "bound": "artifacts/cookie-service-native-20261031/02-native-bound.png",
+    "management": "artifacts/cookie-service-native-20261031/03-scoped-management-cache.png",
+    "desired": "artifacts/cookie-service-native-20261031/04-desired-policy-pending.png",
+    "accepted": "artifacts/cookie-service-native-20261031/05-policy-accepted.png",
+    "disconnected": "artifacts/cookie-service-native-20261031/06-disconnected.png",
+    "finalUpgradeReconnect": "artifacts/cookie-service-native-20261031/07-final-upgrade-reconnected.png",
+    "finalManagementHandoff": "artifacts/cookie-service-native-20261031/08-final-management-handoff.png",
+    "finalDisconnected": "artifacts/cookie-service-native-20261031/09-final-disconnected.png"
+  },
+  "parallelWork": "Browser main only; OpenDesk master only; unrelated changes, existing Chrome profiles and other Native services preserved. AI Proxy UI and watcher-triggering writes paused by explicit user coordination.",
+  "sourceReview": {
+    "reviewer": "Independent read-only native Codex reviewer Ohm",
+    "result": "APPROVE_EXACT_BLOBS",
+    "reviewedGitBlobs": {
+      "trusted/account-service.js": "4bffffd2f4960fddea6d3375d5d78c25b6e13edb",
+      "trusted/account-vault.js": "72caa6d4668ad1d7c16cd64e89b1bac559e36b09",
+      "trusted/service-connections.js": "138391e1462cf48ec49b05399a1ffa16a6a9ec9b",
+      "trusted/service-session.js": "0c294fbf65d318c98e4506f720c836a45f01955d"
+    },
+    "fixedFinding": "Retired receipts now preserve exact original owner; older ownerless records remain explicitly unattributed",
+    "provenance": "6/6 PASS after exact repin; static imports and original compiled targets preserved"
+  },
+  "screenshotSha256": {
+    "bound": "4d10c4e0c5a2fe74c99e6c32ccb11cde4463353dfef4d4a3b61fa2358da3bbc6",
+    "management": "a9a5f22ea4d2ef9efba13cc71061ef8acb6b3bb576d00dd8bc0e127bb9a973ae",
+    "desired": "4cb181a94e9f57ab30ae2a1879e2c3703796abb7daea1a6231f1f73de4333941",
+    "accepted": "c6a8b75c9b2365a4012c7c0b475ff76ac818c8f9c940d411e174325aca464490",
+    "disconnected": "1dbea0df0d3f2bf686179ed3125f056fe576685ac937392e07b926e8da76a227",
+    "finalUpgradeReconnect": "8be960c857890d7039b7e266cbecc01c44e3df5a26cdf1fe7f3cd2a4d5302d57",
+    "finalManagementHandoff": "42bd59fa862b8c48e32dc4d72e74ab9c8bd9e1219c303536a81f513deac583ae",
+    "finalDisconnected": "10df0429c08039753aa68a36c8b8be77779907ac4a9447119928ee36c2671d09"
+  },
+  "cleanup": {
+    "nativeUiLease": "RELEASED",
+    "aiProxyCoordination": "Both user-authorized AI Proxy chats notified UI/source writes can resume",
+    "temporaryNodeAndFixtureServer": "STOPPED after confirmed disconnect; private fixture/history/archive retained",
+    "existingDevelopmentWatcher": "PRESERVED",
+    "installedNativeAndTool": "PRESERVED",
+    "otherProfilesAndServices": "PRESERVED"
+  },
+  "installationCatalogRecovery": "During live watcher catalog update, official review returned E_PACKAGE_INTEGRITY and existing Cookie consent returned E_OWNER despite matching on-disk catalog/package. After all prior service mutations were confirmed disconnected, one safe normal extension reload refreshed catalog state; official market recognized installed 2.0.57, original authorization succeeded. No hash/origin/permission guard bypassed."
+}

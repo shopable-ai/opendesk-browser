@@ -16,10 +16,10 @@ import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
   'trusted/account-contract.js':'1b20551bef0c24cb31505960ba9d73f886b8c31c',
-  'trusted/account-service.js':'f7d79918af45f254a6a04f9e07b11aa41432268c',
-  'trusted/service-connections.js':'e2f0007c8e82084125c86ea9c72ac4c43bd5bf6a',
-  'trusted/service-session.js':'8a4654e89d518d88cbf1993f774c78ee5ed1228d',
-  'trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
+  'trusted/account-service.js':'4bffffd2f4960fddea6d3375d5d78c25b6e13edb',
+  'trusted/service-connections.js':'138391e1462cf48ec49b05399a1ffa16a6a9ec9b',
+  'trusted/service-session.js':'0c294fbf65d318c98e4506f720c836a45f01955d',
+  'trusted/account-vault.js':'72caa6d4668ad1d7c16cd64e89b1bac559e36b09',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };
 const contract='trusted/account-contract.js';
@@ -118,7 +118,8 @@ test('R134: audited Cookie closure uses only static imports and a pure shared co
   assert.deepEqual(deps('app/domain/account-switch-url.js'),[]);
   assert.deepEqual([...new Set(deps('trusted/account-vault.js'))],['./account-contract.js']);
   assert.deepEqual(deps('trusted/service-connections.js'),['./account-contract.js']);
-  assert.deepEqual(deps('trusted/service-session.js'),['../../../../src/native-agent/managed-service-protocol.js']);
+  assert.deepEqual(deps('trusted/service-session.js'),['../../../../src/native-agent/managed-service-protocol.js',
+    '../../../../src/platform/protocol.js']);
   assert.deepEqual(deps('trusted/account-service.js').filter(path=>!path.startsWith('../../../../src/')),
     ['../app/domain/account-switch-url.js','./account-vault.js','./service-connections.js','./service-session.js','./account-contract.js','./account-contract.js']);
 });

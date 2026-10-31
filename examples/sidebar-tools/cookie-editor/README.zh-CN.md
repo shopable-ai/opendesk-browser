@@ -1,24 +1,24 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
-## 服务连接与同步策略：当前开发边界（2026-10-31）
+## 服务连接与同步策略：已安装的核心开发结果（2026-10-31）
 
-当前为**源码开发 / COMPILED_NOT_INSTALLED**，尚未完成「企业页 → 真实 Native 授权连接 → 对应管理页」闭环。未修改日常扩展加载目录、扩展 ID、Native 配对或已有 watcher；唯一正式 JSON 仍为下方的 2.0.54，不包含此次企业页增量。
+当前为**持续开发环境**：真实 Mac Chrome 加载本仓库 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，复用唯一 `npm run dev` watcher。已升级并配对支持 managed services 的完整签名 Native App。唯一正式包 [`cookie-editor.opendesk-tool.json`](cookie-editor.opendesk-tool.json) 为 **2.0.57**，264961 bytes，SHA-256 `829a3c7be21af15c09c6a8a12cf3842e19ff06595cd62e6de86c2b18d346b23b`；真实侧栏已读到该版本，原 Cookie 授权和保存账号可用。源码、安装与运行证据分开记录在[本轮原生证据](evidence/service-binding-native-20261031.json)。
 
-| 用户操作 | 当前结果 |
+| 用户操作 | 当前结果与边界 |
 | --- | --- |
-| 企业页添加、改名、断开服务配置 | 已实现本地可信元数据存储；本机配置不填端口，公司配置仅接受精确 HTTPS origin。保存后明确显示未连接 |
-| 从当前站点已保存账号建立关联 | 已实现本地草稿及固定可信消费者：连接后只选实际读取的 codex 资源，明确提交精确 origin/alias/version/Store/Partition；始终 `UNVERIFIED`，不会证明同一登录身份 |
-| 企业页连接本机服务、打开对应管理页 | 已实现注册服务选择、手动连接、远端解绑/断开及固定 SW 内部消费限定管理页；仅当前 Host 协商并登记真实服务后可用；通用 Go 转发已有源码及进程验证。真实 Native 操作 `NOT_TESTED`，不猜端口、不向沙箱交付一次性链接 |
-| 终端启动既有本机管理页 → Cookie 同步设置 | 普通 serve 无需 OpenDesk 即可启动，已用隔离假账号验证真实 CLI/一次性配对与浏览器设置页；后台保存只改变期望策略，未接入设备时显示空状态 |
-| 可信进程协议与指定资源管理页 | 已实现 Node 适配器、设备/关联/策略状态合同和一次性资源会话；已用真实 Node HTTP、虚构设备和临时 Chromium 操作验证，不代表 Native 已接通 |
+| 企业页添加本机配置 → 选择实际登记进程 → 连接 → 读取资源 | 已在真实 Chrome/Native/Node 链完成；配置不要求填写端口，不猜测后台地址 |
+| 选择本站已保存账号与远端资源 → 保存草稿 → 明确绑定 | 已完成，状态 `BOUND / UNVERIFIED`；手动映射不证明同一登录身份 |
+| 从关联打开对应管理页 | 已完成，页面只显示选定合成资源及缓存，刷新禁用；一次性 fragment 被消费并移除，不交给沙箱 |
+| 终端配对 → 管理设置保存期望策略 | 已完成，保存后仍显示尚未接受，不代替设备授权 |
+| Cookie 页读取、审阅并显式接受策略 → 解绑 → 断开 | 已完成；实际策略为 `ACCOUNT_METADATA / MANUAL / 7 天`，版本 1。解绑与断开有确认回执，账号快照保留 |
 
-企业页仍沿用原六 Tab、原 `cookieAccount` Host、Foundation 存储与安装身份检查。账号关联绑定当前站点和账号版本；安装变化、断开、账号删除或版本变化不会继续显示有效关联。未确认写入只允许重新读取核对，不自动重试。管理页的未知期望策略保存保留原操作 ID 和正文，可查询原回执；用户明确留档后须 GET 核实当前版本并重新审阅，才能手动创建独立新操作。留档不代表原操作失败。
+完整链证据对应已安装 **2.0.56**；随后 **2.0.57** 仅修正管理页打开后切站的迟到 UI 回执误报，原可信链不由工具包动态替换。最新可信修复后的升级重连、受限设备管理页打开与最终断开已在 2.0.57 实测；原账号关联保持断开，旧策略未自动继承。精确产物状态见本轮原生证据，旧截图不算新版本全量验收。
 
-**本轮通用接线已完成源码与隔离进程验证：** Browser 复用原 Native Port 客户端，Node 复用显式启动的 socket provider 和业务适配器，OpenDesk `internal/browserbridge` 只增加通用登记、协商、UUID→单调 `req_N` 转发与退出清理。真实 Go/Node 进程经原认证 socket 跑通连接、资源、关联、期望策略/显式接受及受限管理会话；Chrome 的 Port、权限与安装身份仍为合成环境，因此真实企业页链继续 `NOT_TESTED`。此前固定 Cookie 消费者的 Foundation/手势/撤权证据继续保留，未更改可信来源 pin。旧 CLI/项目文件/AI 协议不代用服务通道，业务和凭据留在独立 Node 项目；不把沙箱字段直接作为认证证明。[通用协议与定向验证入口](../../../native-agent/managed-services/README.md)。本轮在各仓库现有主分支（Browser `main`、OpenDesk `master`）工作并保留并行 socket 生命周期改动。公司 OAuth、DNS/SSRF 连接校验及真实公司部署继续未实现。
+修复了沙箱表单提交无效、同一 Foundation 写事务内嵌套读取阻塞、Native JSON 对象键顺序导致正确绑定回执误判、无绑定过期连接无法显式重连，以及管理页成功打开后的旧站 UI 误报。可信来源锁须独立审阅精确 blob 后更新，准入目标和静态依赖限制保留。
 
-`trusted/service-session.js` 仅随固定 SW 编译，另存有界非秘密会话和原操作账本。远端写入同时核对本地配置 revision 与可信 sessionRevision，重新连接和远端读取后，旧确认必须重新审阅。消费者重启或 provider 变化不能凭持久状态恢复连接权限；未知写入仅查询原 GET 回执，不能重发。管理页 URL 在 SW 内验证精确已注册 origin、资源路径和一次性 fragment 后直接打开，不进入 Tool DTO 或存储。已确认断开后的重新连接仍须用户独立审阅和点击，使用新连接/操作身份；未知管理页打开只能明确留档，不冒充原操作失败。账号已过期的远端关联仍可明确解绑，确认撤销后才能移除本地记录。
+企业页沿用原六 Tab、固定 `cookieAccount` Host、Foundation 存储和安装身份检查。账号关联绑定当前站点、账号版本与配置代际。更新后的显式重连只接续已确认断开的旧上下文，原回执留存，旧关联需重新建立；活动绑定、安装变化中的未知写入不得自动恢复或重放。管理页 URL 仅由固定 SW 校验并打开，不能进入 Tool DTO 或持久化存储。
 
-本轮没有发送 Cookie、调用真实上游额度、自动轮询、增加 Chrome 权限或实现备份传输。同步只接受 `ACCOUNT_METADATA` / `USAGE_SUMMARY` 的手动策略状态；Cookie 备份、恢复和加密上传延期。运行入口和小型协议见[后端说明](ai-account-usage/README.zh-CN.md)；本次验证与未测项见[开发证据](evidence/service-binding-core-20261031.json)。旧设计评分只证明当时的设计审阅。
+本轮使用临时 Cookie、合成账号和虚构额度缓存，没有读取真实凭据或查询上游，也没有发送 Cookie。普通 `serve` 继续可独立于桌面程序运行，`--native` 为显式连接入口。公司 HTTPS/SSO、可信身份映射、真实额度、Cookie 备份/恢复/上传、持续同步、production 验收和评分均未由本次证明。早期[源码开发记录](evidence/service-binding-core-20261031.json)保留历史，不再代表当前安装状态。
 
 ## AI 账号额度模块：唯一业务归属与当前入口（2026-10-30）
 
@@ -42,9 +42,9 @@ npm start --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
 
 上面的 `npm start --prefix …/ai-account-usage` 命令仅开启本机管理服务并显示一次性连接链接，不查询上游。服务停止后会话失效；页面打开只读缓存，只有明确手动刷新才查询。代理、自定义授权配置、定向单项测试与独立 API 读回见[模块说明](ai-account-usage/README.zh-CN.md)。数据仍使用原 `~/.opendesk/ai-account-usage/`，认证文件不迁移、不复制。
 
-**正式账号入口尚未接通（NOT_IMPLEMENTED / SYSTEM_CHROME_NOT_TESTED）**：目前可用链是「本机启动命令 → 一次性配对 → 既有 React 管理页 → 已另行授权的 Codex alias → 缓存／手动刷新」。Cookie Editor「账号」页尚不能打开对应额度页；保存 Cookie 或同名 alias 不构成 Codex 授权和身份映射。原型额度图标不代表正式接线。缺少可信账号映射和管理会话发现时停止，不添加假成功入口，不经沙箱或账号按钮传递 Cookie/Token/配对秘密；现有本机终端的一次性配对链接保留原合同。[缺口复现与后续边界](evidence/usage-entry-gap-20261030.md)、[本轮迁移与复核记录](evidence/usage-ownership-20261030.md)分别保留证据等级与未完成项。
+**当前入口是「企业 → 服务连接」**：显式关联本站已保存账号与已登记服务的实际资源后，可打开受限管理页；原生核心链已完成，手动关联仍为 `UNVERIFIED`。账号页尚无经过证明的自动身份映射或直接额度入口；保存 Cookie 或同名 alias 不构成 Codex 授权。独立终端配对入口继续可用，Cookie/Token/一次性配对秘密不经过沙箱。[缺口复现与后续边界](evidence/usage-entry-gap-20261030.md)、[本轮迁移与复核记录](evidence/usage-ownership-20261030.md)分别保留证据等级与未完成项。
 
-## 账号保存状态与分享配置排版 · 2.0.54（2026-10-29）
+## 历史：账号保存状态与分享配置排版 · 2.0.54（2026-10-29）
 
 新建或首次关联账号后，固定可信服务在保存成功后按原文档、授权和完整 Cookie 快照再核对一次。确认相同时，账号页顶部显示账号名和「当前快照（保存时已核对）」，列表显示「已核对」；空快照、页面变化、撤权、版本变化或无法核对时只保留保存结果，不猜测当前账号，也不声称网站已登录。状态仅限当前应用会话，普通账号元数据不能建立这项确认。
 

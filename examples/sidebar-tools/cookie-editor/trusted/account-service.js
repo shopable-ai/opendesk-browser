@@ -466,7 +466,7 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
       const identity={extensionId:api.runtime.id,toolId:ID,
         packageHash:record.packageHash,installEpoch:record.installEpoch};
       let localScope=null,localRef=null,selectedAccount=null;
-      const assertCurrent=async({allowInactiveDocument=false}={})=>{
+      const assertCurrent=async({allowInactiveDocument=false,transaction}={})=>{
           await installed(message);await hostSender(sender,hostDocumentId);
           // A foreground management tab intentionally deactivates the source
           // tab. Only the fixed consumer can acknowledge that completed open;
@@ -474,7 +474,8 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
           if(needsDocument)await validateDocument(serviceDocument,origin,
             operation==='serviceOpenManagement'&&allowInactiveDocument===true);
           if(localScope)await assertScope(localScope);
-          if(selectedAccount){
+          if(selectedAccount&&transaction)await vault.assertAccountVersion(transaction,selectedAccount);
+          else if(selectedAccount){
             const latest=(await statusFor(origin)).accounts.find(item=>item.alias===selectedAccount.alias);
             if(!latest||latest.version!==selectedAccount.version)throw fail('E_VAULT_CONFLICT');
           }
@@ -496,7 +497,8 @@ export function createCookieAccountService({api=globalThis.chrome,storage,servic
         await assertCurrent();
       }
       if(COOKIE_SERVICE_NATIVE_OPERATIONS.includes(operation))
-        return serviceSession.dispatch({operation,payload:metadata,localState,localRef,...context});
+        return serviceSession.dispatch({operation,payload:metadata,localState,localRef,
+          renewConfiguration:input=>connections.renewConfiguration({...input,...context}),...context});
       if(operation==='serviceStatus')return serviceSession.present(localState,context);
       await serviceSession.guardLocalChange({operation,payload:metadata,localState,identity});
       const changed=await connections.dispatch({operation,payload:metadata,...context});

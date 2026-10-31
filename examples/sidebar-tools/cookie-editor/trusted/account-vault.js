@@ -170,6 +170,13 @@ export function createCookieAccountVault({api=globalThis.chrome,storage,
           cookieCount:cookies.length})),settings:{
         autoRefresh:data.settings.autoRefresh,autoEnabled:data.settings.autoEnabled}};
   });
+  // A frameworkKV writer already excludes other readers/writers. Starting a
+  // second transaction here would wait forever on that same writer.
+  async function assertAccountVersion(transaction,expected){
+    const row=checkRecord(await transaction.get('frameworkKV',COOKIE_ACCOUNT_STORE_KEY));
+    const account=row.accounts.find(item=>item.alias===expected.alias&&item.origin===expected.origin);
+    if(!account||account.version!==expected.version)throw fail('E_VAULT_CONFLICT');
+  }
   async function update(expectedRevision,change){
     if(!checkRevision(expectedRevision))throw fail('E_VAULT_REVISION');
     return exclusive(async()=>{
@@ -192,5 +199,5 @@ export function createCookieAccountVault({api=globalThis.chrome,storage,
     }catch{throw fail('E_OUTCOME_UNKNOWN');}
     return {cleared:true};
   });
-  return Object.freeze({status,read,update,clear});
+  return Object.freeze({status,read,update,clear,assertAccountVersion});
 }

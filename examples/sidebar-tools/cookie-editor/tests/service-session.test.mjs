@@ -23,6 +23,34 @@ const connect=f=>f.run('serviceConnect',{serviceId:'ai-account-usage',providerEp
 // Omitted keys, rather than undefined properties, are required on wire payloads.
 const assoc=(f,operation='serviceCommitAssociation',overrides={})=>f.session.dispatch({...f.context,operation,payload:{origin,revision:3,sessionRevision:f.records.get(COOKIE_SERVICE_SESSION_KEY)?.revision??0,associationId:'assoc_local'},localRef,...overrides});
 
+test('expired connection with no bindings permits only a fresh reviewed connect and preserves the old receipt',async()=>{
+  const f=fixture();await connect(f);const original=f.calls[0];
+  const reopened=createCookieServiceSession(f.options);
+  const before=await reopened.present(config(),f.context);
+  assert.equal(before.connections[0].status,'SESSION_EXPIRED');
+  assert.equal(before.connections[0].canConnect,true);assert.equal(f.calls.length,1);
+  const result=await reopened.dispatch({...f.context,operation:'serviceConnect',payload:{origin,revision:3,
+    sessionRevision:before.sessionRevision,connectionId:'conn_local',serviceId:'ai-account-usage',providerEpoch:'epoch_1'}});
+  assert.equal(result.connections[0].status,'CONNECTED');assert.equal(f.calls.length,2);
+  assert.notEqual(f.calls[1].payload.connectionId,original.payload.connectionId);
+  assert.notEqual(f.calls[1].payload.operationId,original.payload.operationId);
+  const retired=f.records.get(COOKIE_SERVICE_SESSION_KEY).sessions[0].retired[0];
+  assert.equal(retired.status,'CONNECTED');assert.equal(retired.remoteConnectionId,original.payload.connectionId);
+  assert.equal(retired.ledger[0].operationId,original.payload.operationId);
+});
+test('expired binding or unknown mutation cannot be replaced by a fresh connection',async()=>{
+  for(const unknown of [false,true]){
+    const f=fixture();await connect(f);await f.run('serviceResources');
+    if(unknown)f.setHandler(async()=>{throw Error('lost bind response');});
+    if(unknown)await assert.rejects(assoc(f),{code:'E_OUTCOME_UNKNOWN'});else await assoc(f);
+    const reopened=createCookieServiceSession(f.options),before=await reopened.present(config(),f.context),count=f.calls.length;
+    assert.equal(before.connections[0].canConnect,false);
+    await assert.rejects(reopened.dispatch({...f.context,operation:'serviceConnect',payload:{origin,revision:3,
+      sessionRevision:before.sessionRevision,connectionId:'conn_local',serviceId:'ai-account-usage',providerEpoch:'epoch_1'}}),{code:'E_SERVICE_SESSION_EXISTS'});
+    assert.equal(f.calls.length,count);
+  }
+});
+
 test('reconnect invalidates an old mutation confirmation even when configuration revision and epoch stay unchanged',async()=>{
   const f=fixture();await connect(f);const reviewed=await f.run('serviceResources');
   const oldPayload={origin,revision:reviewed.revision,sessionRevision:reviewed.sessionRevision,associationId:'assoc_local'};
