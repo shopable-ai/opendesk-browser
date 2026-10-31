@@ -1,9 +1,44 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
 ## 目标与当前阶段
-继续实施 AI VIP Share。用户最新追问“有通过扩展测试这个页面吗”，并明确要求创建新对话继续完善、保留对应 Markdown。准确答案是：新 VIP 页只有 HTTP 测试与浏览器未登录展示证据，尚未通过原扩展 Cookie 写入验证。现在优先完成或解除这条真实用户操作的实际阻塞：扩展 → AI VIP Share → 选择已批准网站 → 获取授权会话 → 原网站授权、写前复核与可信 Cookie 批次确认 → 设置并打开网站 → 目标站服务端显示脱敏账号、有效模拟 VIP、等级和到期时间；缺失、混配、到期或撤权后不能显示有效 VIP。不要停在方案，也不要再次询问是否继续。
+继续实施 AI VIP Share。用户追问“有通过扩展测试这个页面吗”，并要求继续完善、保留对应 Markdown。本轮已完成下面记录的**新实验真实扩展链**：扩展 → AI VIP Share → 选择已批准网站 → 获取授权会话 → 原网站授权、写前复核与可信 Cookie 批次确认 → 设置并打开网站 → 目标站服务端显示脱敏账号、有效模拟 VIP、等级和到期时间。旧实验 unknown 仍未恢复；HTTP、原生及历史证据分别列明。
 
 仓库 /Users/shopme/Documents/workspace/opendesk-browser，业务 owner examples/sidebar-tools/ai-vip-share/。当前是核心开发与最小验证；商业接入、production、正式发布、全量原生矩阵、评分、宽度/缩放及代理流量研究延期。仅用现有 main，不创建或切换分支、worktree、PR，不推送。先读当前 AGENTS、opendesk-sidebar-tool-dev Skill、公开 SDK 和原项目说明；证实公共缺口才按 opendesk-extension-runtime 处理平台范围。
+
+## 2026-10-31 19:43 新实验真实扩展链已通过
+
+用户在下方具体处置方案展示后回复“需要我什么配置，需要你继续完善，知道完成。你有权继续推进”，本轮据此执行该已展示范围。不需要真实账号、Cookie、付费会员或代理配置。**这是封存后的新实验，不是旧 unknown 的恢复。** 下方 19:17 及更早的 BLOCKED、服务与待授权说明均为历史观察。
+
+### 封存与安装身份
+
+- 先从原可信扩展页面只读备份本工具完整 namespace、已安装包、安装代际及其他工具的 ID/版本；未直接修改 Chrome Storage。受限备份为 `/Users/shopme/.codex/backups/ai-vip-share-20261031-current-profile/ai-vip-share-sealed-backup-20261031.json`，129,825 字节，SHA-256 `266b7e70e47aa2c44eadadb06a6a3c698f9d06976f1e7716b64e50833508294a`，目录 0700 / 文件 0600，不提交原始数据。
+- 备份的四个键为 `aiVipCookieDeliveryR137`、`aiVipLocalDevelopmentR136`、`aiVipRedeemR52`、`aiVipSiteSelectionR1`；原 journal schema 2，四次状态为 success / success / success / unknown，最后一条仍 pending。原 journal validator 与已安装包 validator/hash 离线核对通过。
+- 备份核对后，经原管理界面卸载“AI VIP Share 及其本地数据”，界面确认清理成功；其余四个工具保留。再从本项目唯一正式 JSON 经原导入审阅链安装同 ID 1.4.8，界面确认无需二次启用。没有删除网站 Cookie，也未操作其他 Profile 的 1.4.3 unknown。
+- 重装后只读核对已安装完整包为 122,995 字节，SHA-256 `4a96ffbe5b308a2022e192b5abdd4a8cedec98e974a7e774ad777d5dbca34bd2`，与磁盘正式包相同，六项能力不变。旧代际 `d9b432eb-94ff-47fc-aa84-08f31dbaf45b`，新代际 `a1b76f70-f00c-4666-bbab-a815d24094f2`，不得混称原事务解锁。
+
+### 实际操作与可见结果
+
+| 本轮原生操作 | 观察结果与证据边界 |
+| --- | --- |
+| 原浏览器与扩展 | Google Chrome for Testing / `AI VIP Core 20261030`，ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；`chrome://extensions` 再次显示加载本仓库 `dist/development`，未更换 Profile、ID、来源或包 pin |
+| 原批准站点 | 仅运行 `http://localhost:7901` 的当前 ordinary factory。原服务和 dev writer 在本轮操作前已不在监听，并非本轮主动终止；原内存账本没有恢复。未重启 7898、7902，也未触碰 58251 或其他项目服务 |
+| 写入前页面 | 原浏览器打开 `http://localhost:7901/session/` 显示“未登录”“模拟 VIP：未验证 / 不可用”，没有账号；页面未替工具设置 Cookie |
+| 精确网站授权 | 原工具设置显示 `http://localhost:7901 · 未授权`，经原“授权访问”后显示已授权；先完成该授权，再获取和写入会话。没有全站授权 |
+| 获取与写前复核 | 原工具选择“普通工作台 1”，在安全凭据字段输入本机临时测试凭据，点击“获取授权会话”；显示 `o***@fixture.test` 及有效交付。普通站独立于会员、额度和代理；未点击“连接本地开发”，未启动会员服务 |
+| 可信批次确认 | 点击“设置并打开网站”，原可信提示明确为 `http://localhost:7901`、两条 Cookie、当前已授权 Store/Partition、不可自动重试；确认后两项均显示“已写入并核验”，随后通过原单次开页确认 |
+| 新打开的目标页 | 19:39:11 北京时间观察：“受控会话有效”，脱敏账号 `o***@fixture.test`，模拟 VIP“有效”，等级“本地体验 VIP”，生效 `2026-10-31 19:38:09`，到期 `2026-10-31 20:35:37`（北京时间）。已在本对话显示真实原生截图；不是 HTTP 手工 Cookie、预览或 58251 页面 |
+| 退出并重开工具 | 保留“普通工作台 1”选择和两项成功结果，安全凭据为空，无待提交会话。重开前后来源授权 GET 均为 2、会话 POST 均为 1；之后只读安装核对也只有一条 count 2 / success / receipt 的 journal。没有再次确认或派发 Cookie，也没有启用代理 |
+| 服务端撤权 | 19:40:32 在同一 fixture owner 调用原 `revoke('ordinary-subject')`，返回 true；19:40:36 原页面自动显示“授权已撤销或失效”“模拟 VIP：未验证 / 不可用”，不再展示账号或等级。没有清 Cookie、重新授权、重放或创建第二次交付；19:43:47 仍为失效状态 |
+
+新实验资源为忽略目录 `artifacts/ai-vip-share-native-20261031-authorized/` 的临时 owner harness 与非秘密计数，终端 session 78320（不保证跨对话可控）；仅复用现有 factory 的 in-process 授权/撤权/观察，没有新增 HTTP 管理接口。临时凭据未写入工具存储或日志；私有中转文件已删除，字段已清空，剪贴板已替换为普通站 URL。服务暂保留撤权后的现场，打开[当前目标页](http://localhost:7901/session/)应看到失效状态；不能把本次成功截图理解为撤权后仍有效。
+
+### 验证范围与剩余限制
+
+本轮只改变测试运行状态与这两份说明，工具源码、正式包和三个页面实现模块均未改。真实正向链、未登录页面、撤权失效、重开不重放及安装身份已新鲜核对；缺失单枚、混配、重复、到期、授权换代及共享账号分配失效复用下方原 54 项 HTTP 证据，**没有宣称本轮全部原生矩阵通过**。文档只核对差异、链接与证据一致性，不重跑输入未变的测试，不重打工具包。
+
+运行环境在服务退出后已变为**保留的静态开发产物 / serve 未连接**，不是 production 验收，也不是新静态构建。为恢复原持续开发入口仅尝试一次 `npm run dev`，在 `scripts/build-cookie-editor-react.mjs:30` 遇到并行 Cookie Editor 的 `Cookie React exceeds installer budget`，未进入 WXT 启动。该任务并未修改 Cookie Editor 源码、预算或绕过门禁，也未再构建、强制扩展重载；保留的原宿主实际完成了上述链。持续开发服务恢复由该并行构建问题解决后再执行，不阻塞本轮已观察到的核心结果。
+
+**本轮核心完成：新实验原生链 PASS。** 旧 unknown 为 `UNKNOWN_NOT_RECOVERED`，备份保留；第二站新实验、商业服务、production、全量原生矩阵、评分、缩放/宽度和代理流量研究均未执行，不自动进入下一阶段。
 
 ## 2026-10-31 19:17 接收核对与待决定的处置
 
