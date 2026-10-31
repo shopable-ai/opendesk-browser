@@ -285,6 +285,8 @@ v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放�
 
 已安装工具调用 `browser.cookies.setMany` 时，原可信确认框的取消或确认前超时返回 `E_COOKIE_NOT_SUBMITTED`：该次精确批次尚未派发到 Cookie Host，不会自动重试；交付仍有效时可由用户再次明确确认。此码仅在可信审阅尚未完成的位置产生。普通 `E_CANCELLED`、SDK 关闭、超时或派发后丢失回执不能证明零写入，仍按结果未知保存并禁止重放。逐项回执、网站授权、来源、安装身份及撤权校验保持原合同。源码/定向测试与真实 Chrome 证据分别记录，不由本文推断原生 PASS。
 
+2026-10-31 补充：可信侧栏在批次审阅之前发现缺少目标网站 Cookie write 授权，且尚未派发该批次时，也返回 `E_COOKIE_NOT_SUBMITTED`，保留精确网站的授权提示。它是本次新请求的零派发事实，不是某类通用错误的别名；已派发 Host 返回的 `E_SITE_GRANT_REQUIRED`、取消或丢回执仍保持原码及未知结果语义。单项写入、删除和监听的授权拒绝不变。补授权后只能在交付仍有效、没有其他未知屏障时由用户重新明确确认，不自动调用；新事实不能追溯结清旧 unknown。此补充有定向 Sidebar Host harness 证据，真实 Chrome 新批次为 `NOT_TESTED`。
+
 ## R1.4 已接入源码的有限公共后台预算（待原生验收）
 
 `browser.siteBudget` 是普通已安装 Sidebar Tool 可申请的有限能力（无需专属 `focus.control`）。公开入口从正式 Registry 和 Schema 生成，调用 `OpenDeskSDK.browser.siteBudget.getStatus()` 及 `setPolicy({enabled,dailyMinutes,sites,schedule,expectedRev})`；等价 `OpenDeskTool.request('browser.siteBudget.getStatus',{})` 和 `OpenDeskTool.request('browser.siteBudget.setPolicy',args)`。状态读取提供 `desiredPolicyRev`、`appliedPolicyRev`、`status`、`settings`、`usedMs`、`remainingMs` 与 `permissions`；写入 `expectedRev` 必须等于刚读取的 `desiredPolicyRev`，不能省略或盲重试。写入前在原可信 Host 显示网站/额度/时段并等待用户确认；首次启用需 Chrome idle 授权。

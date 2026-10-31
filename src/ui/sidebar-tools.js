@@ -2830,10 +2830,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(!officialBatch&&cookieSiteRecord(tool,origin)?.[requiredCookieGrant]!==true){
           tocSettingsOpen=true;render();
           const currentOrigin=websiteOrigin(currentPageTarget?.snapshot?.url);
+          // This exact trusted gate precedes both approval and the Cookie RPC.
+          // A later Host E_SITE_GRANT_REQUIRED is still an unknown outcome.
           throw Object.assign(new Error(currentOrigin!==origin?
             '请先激活 '+origin+' 标签页，再通过上方可信 Cookie 网站权限区授权 '+requiredCookieGrant:
             '请通过上方可信 Cookie 网站权限区授权 '+requiredCookieGrant+'；未保存草稿可保留'),
-          {code:'E_SITE_GRANT_REQUIRED'});
+          {code:operation==='browser.cookies.setMany'?'E_COOKIE_NOT_SUBMITTED':'E_SITE_GRANT_REQUIRED'});
         }
         // Only the official Cookie Editor may consume a trusted one-click
         // import intent; all other callers still see the original Host review.

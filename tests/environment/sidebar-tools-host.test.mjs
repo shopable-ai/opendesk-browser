@@ -3097,8 +3097,8 @@ test('sandbox Browser RPC honors Registry argument-byte budget and settles overs
   await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='near-limit'));
   const reached=f.frame.contentWindow.sent.find(row=>row.requestId==='near-limit');
   assert.equal(reached.ok,false);
-  assert.equal(reached.error.code,'E_SITE_GRANT_REQUIRED',
-    'the admitted request reaches normal site-authorization refusal; no Cookie is written');
+  assert.equal(reached.error.code,'E_COOKIE_NOT_SUBMITTED',
+    'the admitted batch reaches trusted site-authorization refusal before Cookie dispatch');
 
   const oversized={...near,cookies:near.cookies.map(row=>({...row,value:row.value+'x'.repeat(30)}))};
   assert.deepEqual(checkSidebarToolRequestBudget({...envelope,payload:oversized}),{ok:false,code:'E_LIMIT'});
@@ -3115,6 +3115,33 @@ test('sandbox Browser RPC honors Registry argument-byte budget and settles overs
     'UTF-8 byte budget must reject large multibyte payloads');
 });
 
+test('Cookie batch missing exact site write grant proves no Host dispatch',async t=>{
+  cookieTestLocation(t);
+  const tool={...sample,format:'opendesk.sidebar-tool.v2',id:'cookie-batch-site-grant',
+    capabilities:['browser.cookies.write'],requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}};
+  const origin='https://cookie-r537.example',other='https://other-cookie.example',messages=[];
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[BROWSER_MENU_GRANTS_STORE,{[tool.id]:{
+    version:tool.version,packageHash:await sidebarToolPackageHash(tool),installEpoch:null,
+    cookieSites:{[origin]:{write:true,storeId:'0',grantEpoch:'granted-site'},
+      [other]:{read:true,write:false,storeId:'0',grantEpoch:'read-only-site'}}}}]]);
+  const f=await hostFixture(t,{tool,store,target:cookieTestTarget(origin),hostReply:async message=>{
+    if(message.operation)messages.push(message);
+  }});
+  const reply=async id=>{await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.requestId===id);};
+  for(const [id,url] of [['read-only',other+'/'],['absent','https://absent-cookie.example/']]){
+    f.ask('browser.cookies.setMany',{url,cookies:[{name:'fixture_only',value:'test-value'}]},id);
+    const result=await reply(id);
+    assert.equal(result.ok,false);
+    assert.equal(result.error.code,'E_COOKIE_NOT_SUBMITTED');
+    assert.ok(result.error.message.includes(new URL(url).origin),'retain the exact site authorization guidance');
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'no batch confirmation can authorize a missing grant');
+  }
+  f.ask('browser.cookies.set',{url:other+'/',name:'fixture_only',value:'test-value'},'single');
+  assert.equal((await reply('single')).error.code,'E_SITE_GRANT_REQUIRED','single-write error contract stays unchanged');
+  assert.deepEqual(messages,[],'neither approval nor Cookie Host may be called at this trusted refusal');
+});
+
 test('Cookie batch review cancellation proves no dispatch while later cancellation stays ambiguous',async t=>{
   cookieTestLocation(t);
   const tool={...sample,format:'opendesk.sidebar-tool.v2',id:'cookie-batch-cancel',
@@ -3123,12 +3150,14 @@ test('Cookie batch review cancellation proves no dispatch while later cancellati
   const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[BROWSER_MENU_GRANTS_STORE,{[tool.id]:{
     version:tool.version,packageHash:await sidebarToolPackageHash(tool),installEpoch:null,
     cookieSites:{[origin]:{write:true,storeId:'0',grantEpoch:'cancel-test'}}}}]]);
-  let lateCancel=false;
+  let lateFailure='';
   const f=await hostFixture(t,{tool,store,target,hostReply:async message=>{
     messages.push(message);
     if(message.operation==='browser.intent.confirm')return {ok:true,data:{approvalRef:'a'.repeat(32)}};
     if(message.operation==='browser.cookies.setMany'){
-      if(lateCancel)return {ok:false,error:{code:'E_CANCELLED',message:'Host closed after dispatch'}};
+      if(lateFailure==='lost-after')throw Object.assign(new Error('Receipt lost after dispatch'),{code:'E_TIMEOUT'});
+      if(lateFailure)return {ok:false,error:{code:lateFailure==='grant-after'?'E_SITE_GRANT_REQUIRED':'E_CANCELLED',
+        message:'Host refused after dispatch'}};
       return {ok:true,data:{saved:1,verified:1,results:[{index:0,saved:true,verified:true}]}};
     }
   }});
@@ -3140,17 +3169,19 @@ test('Cookie batch review cancellation proves no dispatch while later cancellati
   f.emit(f.elements['sidebar-tool-action-cancel'],'click',{isTrusted:true});
   assert.equal((await reply('cancel-before')).error.code,'E_COOKIE_NOT_SUBMITTED');
   assert.equal(messages.length,0,'cancelling review dispatches neither approval nor Cookie write');
-  for(const id of ['fresh-manual','cancel-after']){
-    lateCancel=id==='cancel-after';
+  for(const id of ['fresh-manual','cancel-after','grant-after','lost-after']){
+    lateFailure=id==='fresh-manual'?'':id;
     f.ask('browser.cookies.setMany',payload,id);
     await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false);
     f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
     const result=await reply(id);
-    if(lateCancel)assert.equal(result.error.code,'E_CANCELLED','post-dispatch uncertainty is not relabelled');
+    if(lateFailure)assert.equal(result.error.code,{
+      'cancel-after':'E_CANCELLED','grant-after':'E_SITE_GRANT_REQUIRED','lost-after':'E_TIMEOUT'
+    }[id],'post-dispatch uncertainty is not relabelled');
     else assert.equal(result.result.verified,1);
   }
-  assert.deepEqual(messages.map(row=>row.operation),['browser.intent.confirm','browser.cookies.setMany',
-    'browser.intent.confirm','browser.cookies.setMany']);
+  assert.deepEqual(messages.map(row=>row.operation),Array.from({length:4},()=>
+    ['browser.intent.confirm','browser.cookies.setMany']).flat());
 });
 
 test('R5.30.3 official export reuses one real click and still requires exact Host approval',async t=>{
