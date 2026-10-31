@@ -1,5 +1,17 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## 当前真实入口：独立窗口已打开，2.0.57 原位更新仍待执行（2026-10-31）
+
+本任务 `01a19125-0a3e-7182-a77c-c44b378bc850` 初读 goal 为 null，已按用户要求创建无预算完整目标，实读 active；旧任务 paused 目标未迁移或改动。最新事实见唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishNativeEntry20261031`，原始记录为 `artifacts/cookie-editor-r31/current-entry-01a19125.json`。
+
+已使用当前 Chrome Skill 官方窗口命令打开独立窗口，并在新标签页正常打开原 `http://127.0.0.1:43111/`。原服务 session `ea89e280-f720-48bb-9bcd-e3e43af1c2ad` 的 `seq=4` 是这次普通导航，不能算 A/B 切换或 SW 额外刷新。当前控制接口没有原生 SidePanel 操作入口，尚未执行原安装器更新审阅，不能声称 Chrome 已安装 2.0.57 或旧数据已读回。
+
+本机唯一正式包仍是 **2.0.57 / 245715 B / SHA-256 `438871d3e393005d766a9c03117b25f9a7049ec3058099a96be96f94281a7601`**。固定 `dist/development` 的磁盘 revision 为 `cc24806c341794e9f5edeaa9f9495deac73e2ffd9888754dd9d6b70d609edb0e`，131 个指纹一致；原 writer PID73839 已不存在、43119/43120 无监听。这是保留的开发候选，实际加载路径、ID、serve 连接和 Chrome 应用 revision 均未核实。当前 Scrapling owner 已一次回告不持有 writer、无新增原生操作在途，但历史 AI unknown 的相关刷新围栏仍保留；本任务没有启动第二 writer、清围栏或重载。
+
+两台真实 Mac 的原 HTTPS `/health` 再次通过，仅证明传输可达。证书 SAN 仍是 `192.168.30.104`，有效期至 **2026-10-31 19:56:54 UTC（北京时间 11 月 1 日 03:56:54）**，Chrome 信任未测。接收机 `mac96 → shopme.local / 192.168.30.5` 的 Native 响应连接正常、ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；其磁盘 Cookie Editor 同为 2.0.57，但为 **264961 B / SHA-256 `829a3c7be21af15c09c6a8a12cf3842e19ff06595cd62e6de86c2b18d346b23b`**，JS/CSS 与本机不同，README 当前属于企业服务／额度管理工作线，不能由同版本号推断 S3 已部署。未覆盖接收机仓库、Profile 或日常扩展。
+
+**原位更新、关闭侧栏 B→A、A→B、两方向自动刷新、双机配对领取、独立账号保存、Cookie 恢复读回和真实网站登录全部仍为 NOT_TESTED，完整目标未完成。** 下一条操作是在刚打开的新 Chrome 窗口，通过原 OpenDesk SidePanel「扩展 → Cookie Editor → 审阅新版」确认更新 2.0.57，并保留安装详情供核对；结果未知先读回，不能卸载清数据或重复安装。更新之后仍须分别验证可信 SW、旧 A/B／白名单／设置及两条真实主流程。
+
 ## 本任务目标与关键测试条件已设置（2026-10-30，01a18d05）
 
 本接续任务按用户明确授权创建完整执行目标，创建后实读 **active**，无 token 预算；收到下述 writer 重启回执时再次实读为 **paused**，本任务未改写目标状态。旧任务的 blocked goal 没有迁移、暂停或完成。关键条件与逐项结果已写入唯一[证据 JSON](evidence/r31-s3-finish-20261030.json) 的 `s3FinishExecutionGoal20261030`：同候选原位安装并保留数据；侧栏实际关闭后的 A/B 双向自动切换、独立 Cookie 读回及额外刷新；双真实设备原分享入口配对、加密交付、独立账号保存、明确恢复及允许移交网站的独立登录。配置保存、Cookie 恢复与网站登录分别记录。
