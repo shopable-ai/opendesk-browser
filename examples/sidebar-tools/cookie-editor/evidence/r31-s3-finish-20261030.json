@@ -1577,14 +1577,22 @@
     "goal": {
       "initialRead": null,
       "createdWithoutBudget": true,
-      "latestActualRead": "active",
-      "lastReadAt": "2026-10-31T08:55:35Z",
+      "latestActualRead": "blocked",
+      "lastReadAt": "2026-10-31T09:05:35Z",
       "previousTaskGoal": "paused per inherited actual read; not mutated or migrated",
-      "scope": "Complete two real product workflows; account saved, Cookie restored/read back and website login are separate"
+      "scope": "Complete two real product workflows; account saved, Cookie restored/read back and website login are separate",
+      "blockedAudit": {
+        "consecutiveGoalTurns": 3,
+        "reason": "Original native SidePanel review/update cannot be operated by the current Chrome control interface; no new installation/manual action receipt. Unrelated preparation and receiver source diagnosis are complete.",
+        "notProductFailure": true,
+        "scopeReduced": false,
+        "completionClaimed": false,
+        "releaseCondition": "Original 2.0.57 update result/readback or a supported control surface for that native SidePanel; do not repeat install or bypass browser restrictions."
+      }
     },
-    "state": "NOT_FINISHED_NATIVE_SIDEPANEL_ENTRY_REQUIRED",
+    "state": "BLOCKED_NATIVE_SIDEPANEL_ENTRY_REQUIRED",
     "rawEvidence": "artifacts/cookie-editor-r31/current-entry-01a19125.json",
-    "rawEvidenceSha256": "7a1ffa405f17ff1ee3067b6271ab2369d2323a3216824392f032fef337b8e8fd",
+    "rawEvidenceSha256": "bfea94ada50a53dd50caf81647b6ec29675b2a70efdc16d92a1e26bca4775567",
     "package": {
       "status": "PASS_DISK_IDENTITY_ONLY",
       "file": "examples/sidebar-tools/cookie-editor/cookie-editor.opendesk-tool.json",
