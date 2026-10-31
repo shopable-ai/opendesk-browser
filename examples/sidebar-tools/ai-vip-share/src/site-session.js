@@ -16,11 +16,13 @@ export const ORDINARY_SITES=Object.freeze(ORIGINS.map((origin,index)=>{
 export function createWebsiteController({byId,network,tabs,getPending,setPending,validateDelivery,
   commercialReceive,commercialTarget,onChange,blocked,storeRequest,getRestoredTarget}){
   const select=byId('ai-vip-site-select'),summary=byId('ai-vip-site-source'),account=byId('ai-vip-site-account');
+  const section=byId('ai-vip-sites-section'),options=byId('ai-vip-site-options');
   const status=byId('ai-vip-site-status'),open=byId('ai-vip-site-open'),receive=byId('ai-vip-site-receive');
   const cancel=byId('ai-vip-site-cancel'),authPanel=byId('ai-vip-source-auth');
   const credentialInput=byId('ai-vip-source-credential'),clear=byId('ai-vip-source-clear');
   const clocks=Session.createSourceClocks();
-  let available=false,disposed=false,generation=0,loading=false,notice='',masked='',optionsKey='';
+  let available=false,disposed=false,generation=0,loading=false,notice='',masked='',optionsKey=null;
+  let siteButtons=[];
   // Display preference only: no credential, grant, delivery or browser authority.
   const preferenceKey='aiVipSiteSelectionR1';
   const validChoice=value=>value===''||value==='commercial'||ORDINARY_SITES.some(row=>row.key===value);
@@ -130,15 +132,15 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
       if(generation===epoch){setPending(null);masked='';notice='来源授权或交付无效，未设置 Cookie。请重新取得有效凭据。';}
     }finally{if(generation===epoch){loading=false;onChange();}}
   }
-  select?.addEventListener('change',event=>{
-    if(event.isTrusted!==true||disposed)return;
+  function chooseSite(event,key){
+    if(event.isTrusted!==true||disposed||select.disabled)return;
     ++choiceVersion;restored=true;
-    const value=select.value;
-    if(!validChoice(value)||(!available&&value.startsWith('ordinary-'))||
-      (value==='commercial'&&!commercialTarget()))select.value='';
+    const value=select.value===key?'':key;
+    select.value=validChoice(value)&&!(!available&&value.startsWith('ordinary-'))&&
+      !(value==='commercial'&&!commercialTarget())?value:'';
     invalidate();
     queuedChoice={value:select.value};void saveChoice();
-  });
+  }
   clear?.addEventListener('click',event=>{if(event.isTrusted===true)invalidate();});
   cancel?.addEventListener('click',event=>{if(event.isTrusted===true)invalidate();});
   open?.addEventListener('click',event=>{
@@ -185,13 +187,18 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
       const lost=available&&!development;available=Boolean(development);
       if(lost){restoreBlocked=true;invalidate();}
       const rows=[...(available?ORDINARY_SITES:[]),...(commercialTarget()?[{key:'commercial',site:{label:commercialLabel||'会员网站'}}]:[])];
+      if(section)section.hidden=rows.length===0;
       const key=rows.map(row=>row.key+'|'+row.site.label).join(',');
       if(key!==optionsKey){
         optionsKey=key;const old=select.value;
-        select.replaceChildren();
-        for(const row of [{key:'',site:{label:'请选择网站'}},...rows]){
-          const option=document.createElement('option');option.value=row.key;option.textContent=row.site.label;select.append(option);
-        }
+        siteButtons=rows.map(row=>{
+          const button=document.createElement('button');
+          button.type='button';button.value=row.key;button.textContent=row.site.label;
+          button.className='od-button od-button--secondary';
+          button.addEventListener('click',event=>chooseSite(event,row.key));
+          return button;
+        });
+        options?.replaceChildren(...siteButtons);
         select.value=rows.some(row=>row.key===old)?old:'';
       }
       if(!restored&&!restoreBlocked&&!choiceVersion&&preferenceReady&&available){
@@ -210,12 +217,20 @@ export function createWebsiteController({byId,network,tabs,getPending,setPending
         }
       }
       const context=current(),commercial=select.value==='commercial'&&commercialTarget();
-      select.disabled=Boolean(controllerBusy);open.disabled=!context&&!commercial;
+      select.disabled=Boolean(controllerBusy)||rows.length===0;open.disabled=!context&&!commercial;
+      for(const button of siteButtons){
+        const selected=button.value===select.value;
+        button.disabled=select.disabled;
+        button.className='od-button od-button--'+(selected?'primary':'secondary');
+        button.setAttribute('aria-pressed',String(selected));
+        button.title=selected?'再次点击取消选择':'';
+      }
       receive.disabled=Boolean(locked||controllerBusy||loading||(!context&&!commercial));
       authPanel.hidden=!context;cancel.hidden=!getPending()&&!loading;
       clear.disabled=Boolean(controllerBusy);cancel.disabled=Boolean(controllerBusy);
       summary.textContent=context?'来源：'+context.source.serviceOrigin+' · 网站：'+new URL(context.site.targetUrl).host:
-        commercial?'来源：已核验的会员服务 · 网站：'+new URL(commercial).host:'选择已配置的网站及其会话来源。';
+        commercial?'来源：已核验的会员服务 · 网站：'+new URL(commercial).host:
+          rows.length?'选择已配置的网站及其会话来源。':'暂无可用网站。接入会话来源后即可选择。';
       account.textContent=masked?'账号：'+masked:commercial?'使用服务器当前分配的账号':'尚未取得会话';
       status.textContent=locked?'恢复记录仍需核对，已停止取得及写入新会话；仍可打开网站。':notice||
         (storageFailed?'网站选择未能保存；仍可手动选择，重新打开后请核对。':

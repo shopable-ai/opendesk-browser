@@ -1,5 +1,5 @@
 /* @opendesk-shared-design */
-/* R2.7 production visual contract: preview/design.html. Scoped to the single React root. */
+/* Current product UI; preview/design.html is historical reference only. */
 .ai-vip{
   /* Official semantic tokens are the only palette source.
      Purple is a derived tint of existing shared colors, not a new Host theme. */
@@ -32,16 +32,24 @@
 .ai-vip-brand-copy{display:grid;gap:3px;flex:1}
 .ai-vip-brand-copy strong{font-size:16px;line-height:1.2;letter-spacing:-.25px;font-weight:750}
 .ai-vip-brand-copy span{font-size:11px;color:var(--vip-muted)}
-.ai-vip-sites.od-shared-card{border:1px solid var(--vip-line);border-radius:var(--radius-surface,12px);background:var(--vip-paper);box-shadow:none}
-.ai-vip .ai-vip-site-content{display:grid;gap:var(--space-3,12px);padding:var(--space-3,12px)}
+.ai-vip-sites.od-shared-card{border:1px solid var(--vip-light-line);border-radius:var(--radius-surface,12px);background:var(--vip-paper);box-shadow:none}
+.ai-vip .ai-vip-site-content{display:grid;gap:var(--space-3,12px);padding:14px}
+.ai-vip-sites .ai-vip-section-head h2{font-size:14px}
+.ai-vip-section-hint{margin:-6px 0 0;color:var(--vip-muted);font-size:11px;line-height:1.6}
+.ai-vip-site-options{display:flex;flex-wrap:wrap;gap:8px}
+.ai-vip-site-options>.od-button{flex:1 1 auto;min-height:36px;white-space:normal}
 .ai-vip-site-field{display:grid;gap:var(--space-2,8px);font-size:12px;color:var(--vip-ink)}
 .ai-vip-site-field>.od-field{width:100%;min-height:36px;padding:var(--space-2,8px);border:1px solid var(--vip-line);border-radius:var(--radius-control,8px);background:var(--vip-paper);color:var(--vip-ink);font:inherit}
 .ai-vip-site-summary{display:grid;gap:var(--space-1,4px)}
 .ai-vip-site-summary p,.ai-vip-site-status{margin:0;color:var(--vip-muted);font-size:12px;line-height:1.6}
+.ai-vip-current-session{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;padding:8px 10px;border-radius:8px;background:var(--vip-soft)}
+.ai-vip-current-session>span{font-size:11px;color:var(--vip-muted)}
+.ai-vip-current-session>p{color:var(--vip-ink);font-weight:600}
 .ai-vip-source-auth{display:grid;gap:var(--space-2,8px)}
 .ai-vip-source-auth>.od-button{justify-self:start;min-height:36px}
 .ai-vip-site-actions{display:flex;flex-wrap:wrap;gap:var(--space-2,8px)}
 .ai-vip-site-actions>.od-button{flex:1 1 auto;min-height:36px;white-space:normal}
+.ai-vip-site-actions>#ai-vip-site-receive{flex:2 1 auto}
 .ai-vip-membership.od-shared-card{display:block;border:1px solid var(--vip-line);border-radius:12px;background:var(--vip-paper);box-shadow:none;overflow:hidden}
 .ai-vip .ai-vip-card-inner{padding:14px 15px 13px}
 .ai-vip-section-head,.ai-vip-benefits-head{display:flex;align-items:center;justify-content:space-between;gap:8px}

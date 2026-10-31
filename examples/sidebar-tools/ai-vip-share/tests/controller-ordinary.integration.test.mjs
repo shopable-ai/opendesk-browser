@@ -35,8 +35,7 @@ async function setup(t,options={}){
   };
   const e=await runtime({...options,ordinaryNetwork});
   const select=async index=>{
-    e.get('site-select').value='ordinary-'+index;
-    e.get('site-select').listeners.change({isTrusted:true});await e.flush();
+    await e.chooseSite('ordinary-'+index);
   };
   const acquire=async index=>{
     await select(index);e.get('source-credential').value=grants[index].credential;
@@ -124,7 +123,8 @@ test('profile revocation after marker saves notInvoked and permits fresh acquisi
     revoke=false;e.setStatus({...released,developmentProfile:null});await e.click('proxy-refresh');
   }});e=h.e;
   await h.acquire(0);await h.wait(()=>!e.get('cookie-install').hidden);
-  await e.click('cookie-install');await h.wait(()=>!e.get('site-select').disabled);
+  await e.click('cookie-install');await h.wait(()=>e.store.get(KEY)?.attempts?.[0]?.resolution==='not-submitted'&&!e.toolStates.at(-1)?.busy);
+  assert.equal(e.get('sites-section').hidden,true);
   assert.equal(e.cookieCalls.length,0);assert.equal(attempts(e)[0].resolution,'not-submitted');
   assert.equal(attempts(e)[0].state,'failed');
   assert.doesNotMatch(e.get('site-status').textContent,/已设置/);
@@ -143,7 +143,7 @@ test('ambiguous SDK result locks both ordinary Hosts and survives controller reo
   const before=h.trace.length;await h.acquire(1);assert.equal(h.trace.length,before);
   assert.equal(e.get('site-receive').disabled,true);assert.equal(e.cookieCalls.length,1);
   const reopened=await runtime({store:e.store});
-  reopened.get('site-select').value='ordinary-1';reopened.get('site-select').listeners.change({isTrusted:true});
+  await reopened.chooseSite('ordinary-1');
   assert.equal(reopened.get('site-receive').disabled,true);assert.equal(reopened.cookieCalls.length,0);
   assert.equal(attempts(reopened)[0].state,'unknown');
 });

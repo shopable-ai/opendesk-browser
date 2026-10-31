@@ -119,6 +119,13 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
   return {store,fixture,get,click,calls,storageCalls,proxyCalls,cookieCalls,tabCalls,pageCalls,timers,toolStates,
     release,developmentView:()=>({created:createdControls,removed:removedControls}),
     activation:window.__activationTests,setPage(value){page=value},
+    async chooseSite(value,{trusted=true}={}){
+      const current=get('site-select').value;
+      if(trusted&&value===current)return;
+      const button=get('site-options').children.find(row=>row.value===(value||current));
+      assert.ok(button,'configured site button: '+value);
+      button.listeners.click({isTrusted:trusted});await flush();
+    },
     async checkPage(){await window.__activationTests.checkActivationPage();await flush();},
     async preview(value='DEMO-VIP-01'){
       get('redeem-code').value=value;get('redeem-code').listeners.input();

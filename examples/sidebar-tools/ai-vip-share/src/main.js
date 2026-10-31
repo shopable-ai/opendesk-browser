@@ -133,9 +133,9 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.6';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.8';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5',PACKAGE_VERSION]);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7',PACKAGE_VERSION]);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
@@ -896,7 +896,7 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
       redeemNotice('当前账号与未确认兑换归属不同。请切回原账号核对，不会继承权益。',true);
     else if(!busy&&!recovery&&!recoveryFault){
       if(account.state==='guest')redeemNotice('登录并绑定账号后可使用兑换码。');
-      else if(memberVerifiedFresh&&/服务未配置|服务接入后|核验中|会员无法核验|兑换已暂停/.test(redeemStatus.textContent))
+      else if(memberVerifiedFresh&&/服务未配置|服务尚未接入|服务接入后|核验中|会员无法核验|兑换已暂停/.test(redeemStatus.textContent))
         redeemNotice('输入兑换码并预检，确认后再领取。');
     }
     renderRedeem();

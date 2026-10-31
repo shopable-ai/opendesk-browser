@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {Button,IconButton,Card,CardContent} from '@opendesk/ui';
+import toolConfig from '../tool.config.json';
 
 // This is the installable app's only UI tree. The v1.4.2 compatibility
 // controller mounts after React commits. Preview and developer controls
@@ -23,20 +24,20 @@ export default function VipApp({createDevelopmentControls}={}){
           <span>网站快速登录 · 会员与网络服务</span>
         </div>
       </header>
-      <Card className="ai-vip-sites" aria-labelledby="ai-vip-site-title">
+      <Card id="ai-vip-sites-section" className="ai-vip-sites" aria-labelledby="ai-vip-site-title" hidden>
         <CardContent className="ai-vip-site-content">
           <div className="ai-vip-section-head">
             <h2 id="ai-vip-site-title">网站与快速登录</h2>
           </div>
-          <label className="ai-vip-site-field" htmlFor="ai-vip-site-select">
-            <span>网站</span>
-            <select id="ai-vip-site-select" className="od-field" defaultValue="" aria-describedby="ai-vip-site-source ai-vip-site-account">
-              <option value="" disabled>请选择网站</option>
-            </select>
-          </label>
+          <p className="ai-vip-section-hint">选择网站，获取授权会话，确认后再登录。</p>
+          <div id="ai-vip-site-options" className="ai-vip-site-options" role="group" aria-label="选择网站"></div>
+          <input id="ai-vip-site-select" type="hidden" defaultValue="" />
           <div className="ai-vip-site-summary">
             <p id="ai-vip-site-source">选择网站后查看来源与目标。</p>
-            <p id="ai-vip-site-account">尚未获取授权账号。</p>
+            <div className="ai-vip-current-session">
+              <span>当前会话</span>
+              <p id="ai-vip-site-account">尚未获取授权账号。</p>
+            </div>
           </div>
           <div id="ai-vip-source-auth" className="ai-vip-source-auth" hidden>
             <label className="ai-vip-site-field" htmlFor="ai-vip-source-credential">
@@ -47,8 +48,8 @@ export default function VipApp({createDevelopmentControls}={}){
             <Button id="ai-vip-source-clear" className="od-button od-button--secondary" type="button">清除凭据</Button>
           </div>
           <div className="ai-vip-site-actions">
-            <Button variant="primary" id="ai-vip-site-open" className="od-button ai-vip-primary" type="button" disabled>打开网站</Button>
-            <Button id="ai-vip-site-receive" className="od-button od-button--secondary" type="button" disabled>获取授权会话</Button>
+            <Button variant="primary" id="ai-vip-site-receive" className="od-button ai-vip-primary" type="button" disabled>获取授权会话</Button>
+            <Button id="ai-vip-site-open" className="od-button od-button--secondary" type="button" disabled>打开网站</Button>
             <Button id="ai-vip-site-cancel" className="od-button od-button--secondary" type="button" hidden>清除未提交会话</Button>
           </div>
           <p id="ai-vip-site-status" className="ai-vip-site-status" role="status" aria-live="polite">请选择网站。</p>
@@ -59,7 +60,7 @@ export default function VipApp({createDevelopmentControls}={}){
         <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
         <p className="ai-vip-fine-print">应用会话可能替换本站的现有登录，完成后请在网站核验。</p>
         <ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项写入结果"></ul>
-        <Button id="ai-vip-cookie-install" className="od-button od-button--secondary" type="button" disabled>设置并打开网站</Button>
+        <Button variant="primary" id="ai-vip-cookie-install" className="od-button ai-vip-primary" type="button" disabled>设置并打开网站</Button>
         <Button id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
         <Button id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
       </section>
@@ -182,6 +183,7 @@ export default function VipApp({createDevelopmentControls}={}){
       <details className="ai-vip-service">
         <summary><span className="ai-vip-service-dot" aria-hidden="true"></span>适用网站与网络说明 <span aria-hidden="true">▾</span></summary>
         <div className="ai-vip-service-detail">
+          <p>应用版本：{toolConfig.version}</p>
           <p>本工具仅管理自身的 Chrome 代理请求，不会关闭系统 VPN 或其他扩展。使用现有网络不代表网站连通性已验证。</p>
           <p>适用站点示例：ChatGPT · Claude · Gemini · Perplexity。实际网站及会员交付范围以正式服务为准；网络连通不代表第三方会员已开通。</p>
           <p>非匹配网站按直连规则处理；系统 VPN / TUN 仍可能影响实际路由。</p>

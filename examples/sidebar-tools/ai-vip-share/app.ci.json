@@ -2,6 +2,8 @@
   "schema": "opendesk.app-ci.v1",
   "kind": "react",
   "node": [
+    "examples/sidebar-tools/ai-vip-share/tests/member-presentation.test.mjs",
+    "examples/sidebar-tools/ai-vip-share/tests/preview-isolation.test.mjs",
     "tests/environment/ai-vip-share-r2.test.mjs",
     "tests/environment/ai-vip-share-r21-lifecycle.test.mjs",
     "tests/environment/ai-vip-share-r5-ui.test.mjs",

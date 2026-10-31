@@ -91,7 +91,7 @@ test('real fixture preview/confirm grants development feature, refreshes member 
   assert.equal(e.store.get(RECOVERY),null);
   const journal=e.storageCalls.find(row=>row.operation==='storage.set'&&row.key===RECOVERY&&row.value);
   assert.equal(journal.value.schemaVersion,2);assert.equal(journal.value.serviceOrigin,ORIGIN);
-  assert.equal(journal.value.packageVersion,'1.4.6');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
+  assert.equal(journal.value.packageVersion,'1.4.8');assert(!JSON.stringify(journal).includes('DEMO-VIP-01'));
   await e.click('proxy-toggle');
   assert.deepEqual(e.proxyCalls,[{action:'enable',config:profile}]);
   assert.equal(e.get('proxy-toggle').attributes['data-action'],'stop');
@@ -168,18 +168,20 @@ test('unknown redeem acknowledgement survives reopen and only status query resol
   await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
   assert.equal(e.fixture.ledger.size,1);assert(e.store.get(RECOVERY));
   assert.equal(e.get('recovery').hidden,false);
-  // The official 1.3.7 journal must survive the in-place 1.3.8 package upgrade.
+  // Preserve both historical and immediately previous release journals.
   const prior=e.store.get(RECOVERY);
-  e.store.set(RECOVERY,{...prior,packageVersion:'1.3.7'});
-  const reopened=await runtime({store:e.store,fixture:e.fixture});
-  assert.equal(reopened.get('redeem-form').hidden,true);
-  assert.equal(reopened.calls.filter(row=>row.url.endsWith('/redeem')).length,0);
-  await reopened.click('recovery-check');
-  assert.equal(reopened.store.get(RECOVERY),null);
-  assert.equal(reopened.get('member-state').textContent,'权益有效');
-  assert.equal(reopened.calls.filter(row=>row.url.endsWith('/status')&&!row.data?.operation).length,1);
-  assert.equal(e.fixture.ledger.size,1);
-  assert.equal(reopened.calls.filter(row=>row.url.endsWith('/redeem')).length,0);
+  for(const packageVersion of ['1.3.7','1.4.6']){
+    e.store.set(RECOVERY,{...prior,packageVersion});
+    const reopened=await runtime({store:e.store,fixture:e.fixture});
+    assert.equal(reopened.get('redeem-form').hidden,true);
+    assert.equal(reopened.calls.filter(row=>row.url.endsWith('/redeem')).length,0);
+    await reopened.click('recovery-check');
+    assert.equal(reopened.store.get(RECOVERY),null);
+    assert.equal(reopened.get('member-state').textContent,'权益有效');
+    assert.equal(reopened.calls.filter(row=>row.url.endsWith('/status')&&!row.data?.operation).length,1);
+    assert.equal(e.fixture.ledger.size,1);
+    assert.equal(reopened.calls.filter(row=>row.url.endsWith('/redeem')).length,0);
+  }
 });
 
 test('pending or missing fixture ledger remains locked, and dev journal cannot recover in production',async()=>{

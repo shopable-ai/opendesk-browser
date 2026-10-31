@@ -27,8 +27,7 @@ async function ordinaryNetwork(args){
         ({name,path,secure,httpOnly,sameSite,value:cookie,expirationDate:(now+3600000)/1000}))}}};
 }
 async function choose(e,value){
-  e.get('site-select').value=value;
-  e.get('site-select').listeners.change({isTrusted:true});await e.flush();
+  await e.chooseSite(value);
 }
 async function settle(e,predicate){
   for(let i=0;i<100&&!predicate();i++)await e.flush();
@@ -138,7 +137,8 @@ test('profile unavailable or lost hides dev selection and receipts, including a 
   const e=await installedReceipts();
   const unavailable=await runtime({store:e.store,developmentProfile:null,ordinaryNetwork});
   assert.equal(unavailable.get('site-select').value,'');
-  assert.ok(unavailable.get('site-select').children.every(row=>!row.value.startsWith('ordinary-')));
+  assert.ok(unavailable.get('site-options').children.every(row=>!row.value.startsWith('ordinary-')));
+  assert.equal(unavailable.get('sites-section').hidden,true);
   assert.equal(unavailable.get('cookie-section').hidden,true);noEffects(unavailable);
   const active=await runtime({store:e.store,ordinaryNetwork});
   assert.equal(active.get('site-select').value,'ordinary-1');
@@ -188,7 +188,8 @@ test('in-flight saves coalesce in order and untrusted change never persists',asy
   gate.resolve();await e.flush();
   assert.deepEqual(e.store.get(KEY),preference('ordinary-1'));
   assert.equal(e.storageCalls.filter(row=>row.operation==='storage.set'&&row.key===KEY).length,2);
-  e.get('site-select').value='ordinary-0';e.get('site-select').listeners.change({isTrusted:false});await e.flush();
+  await e.chooseSite('ordinary-0',{trusted:false});
+  assert.equal(e.get('site-select').value,'ordinary-1');
   assert.deepEqual(e.store.get(KEY),preference('ordinary-1'));noEffects(e);
 });
 
