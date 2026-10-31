@@ -118,7 +118,7 @@ React 只接收脱敏目标、账号摘要、状态与逐项回执。Cookie payl
 | 工具 trusted | 既有固定可信适配；新站不默认新增特权入口，安装 JSON 不替换可信代码 |
 | [本地 fixture](dev/local-test/local-fixture-server.mjs) | 原会员、交付和合成 Cookie 目标页；只补当前缺少场景，不用 Mock 预览冒充真实 SDK |
 | Browser Framework/SDK | 原 Host、Cookie Driver、Authority、安装和撤权，默认共享 src/ 只读；复现通用缺口后交平台 owner |
-| [额度观测服务](../../../services/ai-account-usage/README.zh-CN.md) | 独立业务，本轮不强制接入/改造；Codex OAuth 不是网页登录会话 |
+| [额度观测服务](../cookie-editor/ai-account-usage/README.zh-CN.md) | 独立业务，本轮不强制接入/改造；Codex OAuth 不是网页登录会话 |
 
 先跑原登录链定位实际失败，再拆清来源授权、站点范围与设置状态。保留现有服务端分配语义，不把通用化误做成任意选择后台共享账号。不新增第二套 Host、Registry、安装器或秘密存储，也不强制移植 Cookie Editor Vault。
 

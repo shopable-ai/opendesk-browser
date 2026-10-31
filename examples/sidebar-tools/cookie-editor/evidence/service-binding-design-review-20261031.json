@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-31",
+  "timezone": "Asia/Shanghai",
+  "scope": "Design completeness and implementability only; no product implementation or runtime acceptance",
+  "document": "../SERVICE-BINDING-DESIGN.zh-CN.md",
+  "documentSha256": "b559f1693eb8ed2487d555c3196f5505e5eddedb2db79fe0ee29113650e6e472",
+  "assessmentType": "Two independent Codex native subagents; subjective design review, not an external certification",
+  "threshold": {"operator": ">", "value": 95, "requiresBothReviewers": true},
+  "rubric": [
+    {"id": "generalityAndOwnership", "max": 20},
+    {"id": "identityAndTenancy", "max": 20},
+    {"id": "secretsAndAuthority", "max": 25},
+    {"id": "userFlow", "max": 15},
+    {"id": "implementationAndLifecycle", "max": 15},
+    {"id": "evidenceBoundaries", "max": 5}
+  ],
+  "firstRound": [
+    {
+      "role": "critic",
+      "agentId": "01a18de5-7c2f-77a0-896e-2648dec99a2c",
+      "score": 91,
+      "decision": "REJECT",
+      "gaps": [
+        "Pre-generated operation identity and restart reconciliation",
+        "Policy tightening timing and atomic admission",
+        "Initial OAuth public-client and endpoint configuration",
+        "Complete public/private address classification",
+        "Executable encrypted snapshot contract"
+      ]
+    },
+    {
+      "role": "architect",
+      "agentId": "01a18de5-c058-72b2-9035-fd89d28aaac5",
+      "score": 89,
+      "decision": "REVISION_REQUIRED",
+      "gaps": [
+        "Device, binding and policy-acceptance mutation contracts",
+        "OAuth discovery and fixed management resource paths",
+        "Local account selection within the existing current-origin UI",
+        "Explicit review, acceptance, manual-backup and unknown-result entry points",
+        "Separate usage identity binding from a manually chosen backup archive",
+        "Independent A/B prerequisites and concrete stage exit criteria"
+      ]
+    }
+  ],
+  "finalRound": [
+    {
+      "role": "critic",
+      "agentId": "01a18de5-7c2f-77a0-896e-2648dec99a2c",
+      "documentSha256": "b559f1693eb8ed2487d555c3196f5505e5eddedb2db79fe0ee29113650e6e472",
+      "scores": [20, 20, 24, 14, 14, 5],
+      "total": 97,
+      "decision": "OKAY",
+      "blockingFindings": [],
+      "remainingItems": [
+        "Freeze exact AAD serialization, field types and cross-implementation test vectors during protocol implementation",
+        "Confirm existing trusted Native, secret storage and transaction storage capabilities before wiring; fail closed if unavailable",
+        "Validate OAuth, DNS/connection restrictions, cross-tenant rejection and revocation races after implementation"
+      ]
+    },
+    {
+      "role": "architect",
+      "agentId": "01a18de5-c058-72b2-9035-fd89d28aaac5",
+      "documentSha256": "b559f1693eb8ed2487d555c3196f5505e5eddedb2db79fe0ee29113650e6e472",
+      "scores": [20, 20, 24, 14, 13, 5],
+      "total": 96,
+      "decision": "DESIGN_APPROVED",
+      "blockingFindings": [],
+      "remainingItems": [
+        "Freeze exact AAD serialization, field types and an interoperability vector before implementing encrypted backup",
+        "Verify a clear mismatch state when the company browser session uses a different user or tenant from the Native connection",
+        "Specify a concrete status lookup for policy acceptance and other non-upload mutations",
+        "Define deliberate user archival of permanently unresolved operations before starting a distinct new backup; prohibit automatic replay"
+      ]
+    }
+  ],
+  "overallDecision": "DESIGN_REVIEW_PASSED_BOTH_ABOVE_95_NO_BLOCKING_FINDINGS",
+  "implementationStatus": {
+    "productCodeChanged": false,
+    "stageA": "NOT_IMPLEMENTED",
+    "stageB": "NOT_IMPLEMENTED",
+    "stageC": "NOT_IMPLEMENTED",
+    "chrome": "NOT_TESTED",
+    "native": "NOT_TESTED",
+    "companyInteroperability": "NOT_TESTED",
+    "realCookieTransfer": "NOT_TESTED",
+    "buildAndProductTests": "NOT_RUN_DOCUMENTATION_ONLY",
+    "commitOrPush": "NOT_PERFORMED"
+  }
+}

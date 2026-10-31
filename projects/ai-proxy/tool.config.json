@@ -1,0 +1,25 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "ai-proxy",
+  "version": "0.3.2",
+  "title": "AI Proxy",
+  "description": "浏览器网络代理管理：配置、规则与选择独立保存，公开受管服务的有限路由需明确审阅。四模式与七区保留，认证/PAC/订阅联网等能力待接入。",
+  "capabilities": [
+    "storage.local",
+    "currentPage.read",
+    "browser.proxy.managed"
+  ],
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "uiRuntime": "opendesk.react-ui.v1",
+  "files": {
+    "html": "src/root.html",
+    "css": "dist/tool.css",
+    "js": "dist/tool.js"
+  },
+  "assets": [],
+  "contributes": {
+    "contextMenus": []
+  }
+}

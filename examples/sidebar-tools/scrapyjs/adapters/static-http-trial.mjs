@@ -192,6 +192,10 @@ export function createStaticHttpTrialRunner(host,{parseHtml,subtle=globalThis.cr
     active=controller;
     let deadline;
     try{
+      // Own the reviewed inputs before the first await. Host arguments below
+      // are separate copies so adapter callbacks cannot mutate this snapshot.
+      bundle=structuredClone(bundle);
+      urls=structuredClone(urls);
       assertExecutable(bundle); // Contract only, not authorization.
       await verifyRecipeHash(bundle.recipe,subtle);
       if(controller.signal.aborted)throw controller.signal.reason;
@@ -200,21 +204,26 @@ export function createStaticHttpTrialRunner(host,{parseHtml,subtle=globalThis.cr
       deadline=setTimeout(()=>controller.abort(failure('E_TIMEOUT')),bundle.plan.limits.deadlineMs);
       let requests=0,totalBytes=0;
       const rows=[],pages=[];
-      const admission=await host.admit({bundle,urls:targets,headers,signal:controller.signal});
+      const admission=await host.admit({bundle:structuredClone(bundle),urls:[...targets],
+        headers:{...headers},signal:controller.signal});
       requireValue(admission!==null&&admission!==undefined,'E_APPROVAL_DENIED');
       if(controller.signal.aborted)throw controller.signal.reason;
       for(const url of targets){
         if(controller.signal.aborted)throw controller.signal.reason;
+        const remaining=bundle.plan.limits.maxTotalBytes-totalBytes;
+        requireValue(remaining>0,'E_TOTAL_BYTES');
+        const maxBytes=Math.min(bundle.plan.limits.maxResponseBytes,remaining);
         requests++;
-        const response=await host.get({admission,url,headers,
+        const response=await host.get({admission,url,headers:{...headers},
           timeoutMs:Math.min(15000,bundle.plan.limits.deadlineMs),
-          maxBytes:bundle.plan.limits.maxResponseBytes,signal:controller.signal});
+          maxBytes,signal:controller.signal});
         if(controller.signal.aborted)throw controller.signal.reason;
         requireValue(response&&response.status===200&&response.finalUrl===url&&
           response.redirectCount===0&&response.mediaType==='text/html'&&
           typeof response.body==='string','E_HTTP_RESPONSE');
         const n=bytes(response.body);
         requireValue(n<=bundle.plan.limits.maxResponseBytes,'E_RESPONSE_BYTES');
+        requireValue(n<=remaining,'E_TOTAL_BYTES');
         totalBytes+=n;
         requireValue(totalBytes<=bundle.plan.limits.maxTotalBytes,'E_TOTAL_BYTES');
         const extracted=extractStaticHtml(response.body,{fields:bundle.recipe.extraction.fields,
@@ -226,14 +235,15 @@ export function createStaticHttpTrialRunner(host,{parseHtml,subtle=globalThis.cr
       }
       const resultSha256=await sha(JSON.stringify(rows),subtle);
       if(controller.signal.aborted)throw controller.signal.reason;
-      const persisted=await host.persistAndReadback({admission,plan:bundle.plan,
+      const persisted=structuredClone(await host.persistAndReadback({admission,plan:structuredClone(bundle.plan),
         records:rows,resultSha256,pages,
         counters:{requests,pages:pages.length,bytes:totalBytes,records:rows.length},
-        signal:controller.signal});
+        signal:controller.signal}));
       if(controller.signal.aborted)throw controller.signal.reason;
       requireValue(persisted&&Array.isArray(persisted.readbackRecords)&&
         persisted.receipt?.result?.sha256===resultSha256,'E_RESULT_READBACK');
       const fromStorage=await sha(JSON.stringify(persisted.readbackRecords),subtle);
+      if(controller.signal.aborted)throw controller.signal.reason;
       requireValue(fromStorage===resultSha256,'E_RESULT_HASH_MISMATCH');
       validateRunReceipt(persisted.receipt,bundle.plan);
       const counters=persisted.receipt.counters;

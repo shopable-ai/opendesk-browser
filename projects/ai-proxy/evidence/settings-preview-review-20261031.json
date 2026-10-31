@@ -1,0 +1,660 @@
+{
+  "scope": "AI Proxy sidebar Settings same-source memory Preview; not installed/native/proxy acceptance",
+  "stage": "PASS: same-source Settings Preview independently reviewed",
+  "url": "http://127.0.0.1:43263/ai-proxy-preview?view=settings",
+  "browser": "156.0.8078.4",
+  "behavior": {
+    "result": "PASS",
+    "checks": [
+      "profiles: content and last action reachable",
+      "rules: content and last action reachable",
+      "subscriptions: content and last action reachable",
+      "backup: content and last action reachable",
+      "diagnostic: content and last action reachable",
+      "general: content and last action reachable",
+      "official: content and last action reachable",
+      "section selector is keyboard reachable with visible focus; OS menu arrows verified separately in IAB",
+      "proxy editor Tab follows visible host, protocol, port order",
+      "dirty proxy Close/Escape confirm discard; Keep preserves fields; accept closes without writing and restores focus",
+      "edit Cancel keeps saved data and restores trigger focus",
+      "invalid port rejected; Enter saves without applying proxy",
+      "delete Escape retains data, locks replacement and restores focus",
+      "all secondary creation actions remain discoverable",
+      "PAC edit confirms replacement: Cancel preserves name/script; accept loads target and focuses editor",
+      "switching rule A to B confirms discard; Cancel preserves A; accept loads B and focuses editor",
+      "rule Edit reveals and focuses the actual editor",
+      "section selector guards drafts: Keep preserves route/input; discard navigates",
+      "invalid file retains backup draft; valid replacement confirms Keep/discard without importing",
+      "three languages render and retain accessible section selector",
+      "return to original QuickPanel",
+      "denied Apply shows feedback; refresh preserves rule draft and host replacement lock",
+      "empty/error/denied/conflict/revoked keep all sections; empty Add opens editor"
+    ],
+    "report": "artifacts/ai-proxy/settings-refinement/review-8/report.json"
+  },
+  "sourceCount": 63,
+  "sourceAudit": {
+    "result": "PASS",
+    "drift": [],
+    "checkedAt": "2026-10-30T19:30:25.417258+00:00"
+  },
+  "screenshots": {
+    "profiles": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/profiles.png",
+      "sha256": "950fbb39704163b09b9e3343635cb27d03351c6fd149926bdb4a8f41e16ac35e"
+    },
+    "rules": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/rules.png",
+      "sha256": "87c7a6c56f0b24c402a01cbd08ea95dae87337742afe854cdc83561ba2906ef8"
+    },
+    "subscriptions": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/subscriptions.png",
+      "sha256": "aa4e98b772adeb10735bf7d512b7fee53956aff8a6bb35d113d5ff3856184bf4"
+    },
+    "backup": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/backup.png",
+      "sha256": "e0b814c28232eae4ee1eaef9898667be8a3399e3a694bc7e74663599cc0138cc"
+    },
+    "diagnostic": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/diagnostic.png",
+      "sha256": "9c093a4fc0c1ddc88e42eff20b727497d5f301379558d24f8c57a7b27c9dba0c"
+    },
+    "general": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/general.png",
+      "sha256": "36dc76ba0c374aa7da7032860b1bdb4476ad4b320459f949065f96bf3b26bce3"
+    },
+    "official": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/official.png",
+      "sha256": "97213a4cc2cdfbf6acc605a13c09c63c02ecf6f0d8cb8b1fce69c305971575fd"
+    },
+    "authentication-limit": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/authentication-limit.png",
+      "sha256": "216cfc96a01796fe7a568fce1b29426fc94608fbfa7d96a0f1a035c3cc01eb9e"
+    },
+    "proxy-discard": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/proxy-discard.png",
+      "sha256": "c256eee26c287b133061c8d224cf423c111d5cce84d4acb79dc4c712a1007a53"
+    },
+    "invalid-proxy": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/invalid-proxy.png",
+      "sha256": "ba16a79db5b590b5f19689ed030103adf356b72bf3df203481f29ce2ab659ab0"
+    },
+    "rule-discard": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/rule-discard.png",
+      "sha256": "6ea7c0c8aecf77ae56369b3e88ccfe9e2651460b927a2e82625e2f5ecca87a01"
+    },
+    "general-en": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/general-en.png",
+      "sha256": "313f050cbd6b13aaa8b20660985d0a375e3b77065aff3b3299f1c5458990c6a8"
+    },
+    "profiles-en": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/profiles-en.png",
+      "sha256": "eb7fa732982a39e2cba434221e99f363dc13e0c7b71760b55cc9f707d9498bbe"
+    },
+    "general-zh-TW": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/general-zh-TW.png",
+      "sha256": "c2b46dd5862f6363d23a6142f8de2c78e18c7122e2d59014b5d284de64f190c5"
+    },
+    "general-zh-CN": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/general-zh-CN.png",
+      "sha256": "fd821bb6ee3133cfe7c6f78bbd09907782270c43c2a031a2da9e1931f04104b6"
+    },
+    "quick-unchanged": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/quick-unchanged.png",
+      "sha256": "fbb0d6947032f00be55fb691ac820957fec8d6105428aa1ebf58b89dc299ea1e"
+    },
+    "state-empty": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/state-empty.png",
+      "sha256": "13348fa88326f7625582b745e9b27daa913dedb533e605daae6f59d3d9d8b4d2"
+    },
+    "state-error": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/state-error.png",
+      "sha256": "c52a1ce38b5286bd1f1ca6efdd60e16e09ca045d2a4e7e9bd3ae4f722c5c0b41"
+    },
+    "state-permission-denied": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/state-permission-denied.png",
+      "sha256": "950fbb39704163b09b9e3343635cb27d03351c6fd149926bdb4a8f41e16ac35e"
+    },
+    "permission-denied-after-apply": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/permission-denied-after-apply.png",
+      "sha256": "3176e4970fe6bf80b31625ee6f798829e93922bf5ec493811b7bae8b08291439"
+    },
+    "state-conflict": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/state-conflict.png",
+      "sha256": "8fd819e1454080e2701ace8bc9a023018d1cee90589249881e327d47d86ff5b0"
+    },
+    "state-revoked": {
+      "file": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/settings-refinement/review-8/state-revoked.png",
+      "sha256": "aaaad8335d32422e1c08224e4f2030346246b124112a42dbd2dd87e554cfc2b4"
+    }
+  },
+  "targetedNode": {
+    "result": "PASS",
+    "tests": 40,
+    "command": "node --test projects/ai-proxy/tests/navigation.test.mjs projects/ai-proxy/tests/drafts.test.mjs projects/ai-proxy/tests/form-submit.test.mjs projects/ai-proxy/tests/settings-credentials.test.mjs projects/ai-proxy/tests/use-proxy-errors.test.mjs"
+  },
+  "nativeMenu": {
+    "surface": "Codex IAB source Preview, OS/native menu; not extension acceptance",
+    "actions": [
+      "Click settings-section while profiles selected",
+      "Down",
+      "Return"
+    ],
+    "observed": "AX settings-section selected 网站规则; 网站规则 heading and editor rendered; focus remained on selector",
+    "result": "PASS",
+    "limitation": "Headless Chromium keyboard menu handling on macOS did not commit ArrowDown; not treated as a product regression"
+  },
+  "parallelChanges": "Existing owner status/canStop/service changes preserved; not attributed to this design task. Final Preview manifest binds observed sources.",
+  "notTested": [
+    "Real browser proxy routing",
+    "Installed extension/native acceptance of this candidate",
+    "Official package promotion",
+    "Production release",
+    "Full TypeScript/LSP diagnostics (no project tsconfig)"
+  ],
+  "outOfScope": [
+    "PC adaptation",
+    "Width/zoom matrix",
+    "Full repository CI"
+  ],
+  "firstReview": {
+    "result": "REQUEST_CHANGES",
+    "scores": {
+      "layout": 96,
+      "hierarchy": 96,
+      "visual": 94,
+      "operations": 92,
+      "keyboard": 94,
+      "boundary": "NOT_TESTED"
+    },
+    "findings": [
+      "rule editor overwrote unsaved draft",
+      "host visual and DOM order differed",
+      "diagnostic labels were 10px",
+      "authentication wording contradicted unavailable capability"
+    ],
+    "sourceDrift": [
+      "service.ts"
+    ],
+    "missingEvidence": [
+      "Apply denial feedback and draft preservation"
+    ]
+  },
+  "corrections": [
+    "Rule replacement now reuses confirmation with per-scope revision protection; real before-fix driver timed out because confirmation was absent; after-fix Keep/discard both pass",
+    "JSX host/protocol/port order matches visual order; forward Tab recorded",
+    "Diagnostic labels, evidence and result text 12px",
+    "Three languages describe authentication unavailable and credentials not stored",
+    "Denied Apply feedback and refresh draft lock demonstrated; actual useProxy test confirms one Apply across refresh and subscription notification",
+    "PAC replacement confirms discard with settings-pac revision check. Browser Cancel/accept/focus pass; actual rule/PAC handler test also protects newer and sibling drafts.",
+    "Dirty proxy implicit Close/Escape now confirm with settings-proxy revision protection; Keep preserves fields; accepted discard closes without writes and restores trigger focus. Explicit Cancel retains cancellation semantics. Browser and actual handler regression pass."
+  ],
+  "proxyEditorTabStops": [
+    "",
+    "",
+    "",
+    "ep-scheme"
+  ],
+  "finalManifest": {
+    "format": "ai-proxy.react-source-preview.v2",
+    "commit": "8867587f423926e0526bf348966a4104cae9c5fd",
+    "presentation": "projects/ai-proxy/trusted/Surface.jsx",
+    "runtime": "React 19.2.0 + canonical @opendesk/ui",
+    "container": "sidebar-tool-frame > sandbox allow-scripts > same App/Surface",
+    "iframe": true,
+    "simulation": "Memory service/storage only. No Chrome, real proxy, network probes or persistence.",
+    "sources": {
+      "projects/ai-proxy/scripts/stage-preview.mjs": {
+        "bytes": 10938,
+        "sha256": "f76caecbde375a6db65c4c7ce6e25d4ca846c492d61b09af14b5cb8df4fc708d"
+      },
+      "scripts/preview/shared-tool-design.mjs": {
+        "bytes": 9232,
+        "sha256": "a75e86c40d89c50d42720e2f727acc78f259f030ec00f32ae19bfdf930a9dba5"
+      },
+      "scripts/templates/sidebar-tool-preview-shell.html": {
+        "bytes": 7078,
+        "sha256": "ade920b4b6f11f3f27d352447b0ccd7a65b6084ad5de3dedb29452d45f562ae7"
+      },
+      "scripts/preview/sidebar-shell-behavior.js": {
+        "bytes": 4840,
+        "sha256": "3b0fab946fd8e7fff01991cd5dd89302a880e4ce93dc60e5d4513fcd54ee35f4"
+      },
+      "src/ui/design-tokens.css": {
+        "bytes": 2526,
+        "sha256": "63532100e61777fde7042099d2b0f6d5f583323b45b98f0937d2bf1c6678af79"
+      },
+      "src/ui/design-system.css": {
+        "bytes": 12317,
+        "sha256": "720733aa85839f44b5c1035c09323c8ca1c657817932ae1b209e7f961566cd7d"
+      },
+      "src/ui/react/components/ui/sidebar-shared.css": {
+        "bytes": 1717,
+        "sha256": "fdb9cd6e76093fff2fa31d940599fd1ba57c679f871468f6296cba9e4738204a"
+      },
+      "projects/ai-proxy/src/styles/style.css": {
+        "bytes": 41336,
+        "sha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171"
+      },
+      "projects/ai-proxy/src/styles/options.css": {
+        "bytes": 50427,
+        "sha256": "ea42376ecfa688b53ea7bcf8204b5612063af8dec60e3783df5f2c3a98600804"
+      },
+      "projects/ai-proxy/src/styles/sidepanel-r86.css": {
+        "bytes": 17231,
+        "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+      },
+      "projects/ai-proxy/src/styles/rotation-entry.css": {
+        "bytes": 846,
+        "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+      },
+      "projects/ai-proxy/src/style.css": {
+        "bytes": 2923,
+        "sha256": "b4d64e04e3d5453d55155b759b6e5d18cfd6b08d126f9ef03c43e2f7831d875e"
+      },
+      "src/ui/react/components/ui/button.tsx": {
+        "bytes": 845,
+        "sha256": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"
+      },
+      "projects/ai-proxy/src/domain/config.ts": {
+        "bytes": 13713,
+        "sha256": "3c804cf4afbae754b317f7ed9b9fc8bfddd216b34e98665b95bbef3dcc461bf2"
+      },
+      "projects/ai-proxy/src/domain/error-codes.ts": {
+        "bytes": 6871,
+        "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+      },
+      "projects/ai-proxy/src/diagnostics/catalog.ts": {
+        "bytes": 2783,
+        "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+      },
+      "projects/ai-proxy/src/diagnostics/favorites.ts": {
+        "bytes": 2352,
+        "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+      },
+      "projects/ai-proxy/src/service.ts": {
+        "bytes": 25702,
+        "sha256": "0bbcb938c688b2f490e3d405b0c557a8a604f15b0b8856bf45857f651418b660"
+      },
+      "projects/ai-proxy/src/model.js": {
+        "bytes": 5324,
+        "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+      },
+      "projects/ai-proxy/src/ui/optionsRoute.ts": {
+        "bytes": 3129,
+        "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+      },
+      "projects/ai-proxy/src/ui/navigation.ts": {
+        "bytes": 1887,
+        "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+      },
+      "projects/ai-proxy/src/environment.ts": {
+        "bytes": 7751,
+        "sha256": "e31aa87c5a81ca2c6da84e8c98277cba7d183a05727544ad647cc3599bd3132b"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json": {
+        "bytes": 70079,
+        "sha256": "52a87ff4ab7981aa90fdc56917e65ae1c98e41144bf17e58600bd11e98a7806b"
+      },
+      "projects/ai-proxy/src/i18n/locales/en.json": {
+        "bytes": 73453,
+        "sha256": "ef6275b4f692276b7d32a17cf12f8fc163a6889f0fd6da72c2be0d6f012f20ca"
+      },
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json": {
+        "bytes": 70494,
+        "sha256": "c4eda14f4141dd42c1069fa4570f4e389a6abca9b0ac7f02a3990f7d27289b21"
+      },
+      "projects/ai-proxy/src/i18n/locale.ts": {
+        "bytes": 1918,
+        "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+      },
+      "projects/ai-proxy/src/i18n/LocaleProvider.tsx": {
+        "bytes": 2767,
+        "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+      },
+      "projects/ai-proxy/src/i18n/errors.ts": {
+        "bytes": 1229,
+        "sha256": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129"
+      },
+      "projects/ai-proxy/src/ui/useProxy.ts": {
+        "bytes": 2804,
+        "sha256": "6b6762878462e6777a26871a5d5d34e7bf4f9b16837000a7e88bce1840418722"
+      },
+      "projects/ai-proxy/src/ui/Status.tsx": {
+        "bytes": 5094,
+        "sha256": "5b4c034bb4ecb106cd34e76a5c588fbd50d8d701d53432d5f93f998e5081fbd2"
+      },
+      "projects/ai-proxy/src/domain/proxy-entry.ts": {
+        "bytes": 2125,
+        "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+      },
+      "projects/ai-proxy/src/ui/ProxyEntry.tsx": {
+        "bytes": 5393,
+        "sha256": "7cd8f7ed1f26278954a92449e935fc902a57ced83c6bfb5611f19f28df3eff1c"
+      },
+      "projects/ai-proxy/src/config/product-links.defaults.json": {
+        "bytes": 170,
+        "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+      },
+      "projects/ai-proxy/src/config/public-hosts.allowlist.json": {
+        "bytes": 3,
+        "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+      },
+      "projects/ai-proxy/src/config/public-config.ts": {
+        "bytes": 4477,
+        "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+      },
+      "projects/ai-proxy/src/config/product-links.demo.json": {
+        "bytes": 100,
+        "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+      },
+      "projects/ai-proxy/src/config/remote-config.ts": {
+        "bytes": 6144,
+        "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+      },
+      "projects/ai-proxy/src/collector/rotation-plan.ts": {
+        "bytes": 3427,
+        "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+      },
+      "projects/ai-proxy/src/ui/RotationPlan.tsx": {
+        "bytes": 8379,
+        "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+      },
+      "projects/ai-proxy/src/QuickPanel.tsx": {
+        "bytes": 33229,
+        "sha256": "8574a0a0243ffb4dfbdc5ea29402eecdebfa5fbe0fe92392683cd68f88d0ec4c"
+      },
+      "projects/ai-proxy/src/ui/OptionsShell.tsx": {
+        "bytes": 2214,
+        "sha256": "658aa9b314222826a79757c19383a5e6f31817361c4171aa5c432a5ede3aef3f"
+      },
+      "projects/ai-proxy/src/ui/FormField.tsx": {
+        "bytes": 1023,
+        "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+      },
+      "projects/ai-proxy/src/ui/backupImport.ts": {
+        "bytes": 1198,
+        "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+      },
+      "projects/ai-proxy/src/subscription/download.ts": {
+        "bytes": 6114,
+        "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+      },
+      "projects/ai-proxy/src/official/messages.ts": {
+        "bytes": 961,
+        "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+      },
+      "projects/ai-proxy/src/ui/OfficialServicePage.tsx": {
+        "bytes": 9979,
+        "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+      },
+      "projects/ai-proxy/src/subscription/parser.ts": {
+        "bytes": 51339,
+        "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+      },
+      "projects/ai-proxy/src/ui/SubscriptionReader.tsx": {
+        "bytes": 17769,
+        "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+      },
+      "projects/ai-proxy/src/ui/SourcesPage.tsx": {
+        "bytes": 25577,
+        "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+      },
+      "projects/ai-proxy/src/domain/messages.ts": {
+        "bytes": 2486,
+        "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+      },
+      "projects/ai-proxy/src/diagnostics/logic.ts": {
+        "bytes": 3147,
+        "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+      },
+      "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat": {
+        "bytes": 335478,
+        "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+      },
+      "projects/ai-proxy/src/usage/domain.ts": {
+        "bytes": 3127,
+        "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+      },
+      "projects/ai-proxy/src/usage/ranking.ts": {
+        "bytes": 3203,
+        "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+      },
+      "projects/ai-proxy/src/ui/UsageControls.tsx": {
+        "bytes": 16278,
+        "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+      },
+      "projects/ai-proxy/src/ui/DiagnosticsPage.tsx": {
+        "bytes": 20743,
+        "sha256": "a4aa3b6c8df72d096400cc45371f484ecb87953c196d77dc64bd6add0d36c7a3"
+      },
+      "projects/ai-proxy/src/domain/pac-starters.ts": {
+        "bytes": 1139,
+        "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+      },
+      "projects/ai-proxy/src/Settings.tsx": {
+        "bytes": 51872,
+        "sha256": "d3e66a90a22fe6225f028a8b779ec4b503910db2848ef1f2ace94dd54cb7c137"
+      },
+      "projects/ai-proxy/src/App.jsx": {
+        "bytes": 4675,
+        "sha256": "d92ac0044254da0261f786efed66e69388cc0840b180b973f3ef989b433a16c7"
+      },
+      "projects/ai-proxy/trusted/Surface.jsx": {
+        "bytes": 370,
+        "sha256": "fb8d8df0fcf325085758f2ea1dd704d07f1cfcec59c998f1555f825594272833"
+      },
+      "projects/ai-proxy/preview/sdk-preview.js": {
+        "bytes": 3375,
+        "sha256": "e5f984762315c2c78321b54c08eac6da78dc1d2a24b45badd93bc3c366c23644"
+      },
+      "projects/ai-proxy/preview/frame.jsx": {
+        "bytes": 1141,
+        "sha256": "cfdce3cb52aaee65a8d2e51eef18986e87bb1854858521e1ebd3edccb4546491"
+      },
+      "projects/ai-proxy/src/styles/sidebar-settings.css": {
+        "bytes": 8765,
+        "sha256": "381568756f99787d7d56968ebae8c3a3b476fccf8d2340769a0014dca98003dd"
+      }
+    },
+    "nativeChrome": "NOT_TESTED",
+    "browserInteraction": "NOT_TESTED"
+  },
+  "secondReview": {
+    "result": "REQUEST_CHANGES",
+    "scores": {
+      "layout": 100,
+      "hierarchy": 100,
+      "visual": 100,
+      "operations": 92,
+      "keyboard": 100,
+      "boundary": 100
+    },
+    "finding": "PAC editing replaced an unsaved name/script without confirmation"
+  },
+  "visualReview": {
+    "agent": "01a18e27-428b-7631-b2b8-533464148791",
+    "candidate": "review-4",
+    "scores": {
+      "layout": 98,
+      "hierarchy": 97,
+      "visual": 98
+    },
+    "blockers": [],
+    "minorNotes": [
+      "Back / other ways labels could be more specific",
+      "Native file control follows browser language, English in captured Chinese UI"
+    ],
+    "review5ScreenshotDrift": []
+  },
+  "thirdReview": {
+    "agent": "01a18e27-428b-7631-b2b8-533464148791",
+    "candidate": "review-5",
+    "result": "REQUEST_CHANGES",
+    "scores": {
+      "layout": 98,
+      "hierarchy": 97,
+      "visual": 98,
+      "operations": 94,
+      "keyboard": 100,
+      "boundary": 100
+    },
+    "finding": "Implicit Close/Escape discarded unsaved proxy input"
+  },
+  "consolidatedDraftAudit": {
+    "previousVerdict": "REQUEST_CHANGES",
+    "designerScore": 94,
+    "findings": [
+      "Invalid backup files erased existing input",
+      "PAC template confirmation lacked revision check",
+      "Late rule deletion reset newer input",
+      "Late host confirmation after successful save recreated a hidden dirty draft"
+    ],
+    "corrections": [
+      "Backup text is validated before replacement, existing input requires confirmation; file-specific change skips bubble dirty mark until acceptance; generation and revision reject stale reads",
+      "PAC template confirmation checks original settings-pac revision",
+      "Deletion receipt clears only matching settings-rule revision",
+      "Host quick selection checks original environment, DOM connection, dialog session and scope revision before dirty/write"
+    ],
+    "regressions": "All four demonstrated with actual handlers before fix and pass after fix; browser additionally verifies invalid file preservation and valid replacement Keep/discard without import."
+  },
+  "changedScreenshotsVsReview6": [
+    "rule-discard",
+    "general-zh-CN",
+    "permission-denied-after-apply"
+  ],
+  "finalReviews": [
+    {
+      "agent": "01a18e27-428b-7631-b2b8-533464148791",
+      "role": "independent designer",
+      "candidate": "review-8",
+      "result": "PASS",
+      "scores": {
+        "layout": 98,
+        "hierarchy": 97,
+        "visual": 98,
+        "operations": 99,
+        "keyboard": 100,
+        "boundary": 100
+      },
+      "items": {
+        "layout": [
+          20,
+          20,
+          20,
+          18,
+          20
+        ],
+        "hierarchy": [
+          20,
+          20,
+          20,
+          19,
+          18
+        ],
+        "visual": [
+          20,
+          20,
+          20,
+          18,
+          20
+        ],
+        "operations": [
+          20,
+          20,
+          20,
+          19,
+          20
+        ],
+        "keyboard": [
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "boundary": [
+          20,
+          20,
+          20,
+          20,
+          20
+        ]
+      },
+      "minimum": 97,
+      "blockers": [],
+      "minorNotes": [
+        "Expanded authentication makes the form longer",
+        "Back and secondary-add wording could be more specific",
+        "Native file control follows browser language",
+        "Generic Cancel/Confirm wording"
+      ],
+      "verification": "Independently checked 63 input hashes, 22 image hashes and finalManifest; viewed changed screenshots; accepted 23 browser records, 40 targeted Node results and IAB menu proof without rerunning in this pass."
+    },
+    {
+      "agent": "01a18e2f-697a-7f10-a8f5-8de4a3d66360",
+      "role": "independent code-reviewer",
+      "candidate": "review-8",
+      "result": "PASS",
+      "codeReviewDisposition": "COMMENT; not merge/release approval",
+      "scores": {
+        "layout": 100,
+        "hierarchy": 100,
+        "visual": 100,
+        "operations": 100,
+        "keyboard": 100,
+        "boundary": 100
+      },
+      "items": {
+        "layout": [
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "hierarchy": [
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "visual": [
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "operations": [
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "keyboard": [
+          20,
+          20,
+          20,
+          20,
+          20
+        ],
+        "boundary": [
+          20,
+          20,
+          20,
+          20,
+          20
+        ]
+      },
+      "minimum": 100,
+      "blockers": [],
+      "verification": "Independently checked 63 source hashes, 22 screenshot hashes, final 23 browser records and changed screenshots; independently reran the five targeted Node files 40/40 PASS. No browser driven in review."
+    }
+  ],
+  "result": "PASS",
+  "minimumIndependentScore": 97,
+  "reviewBasis": "README section 11 frozen rubric, each of six dimensions >=95, no blockers; scores bind review-8 memory Preview only."
+}

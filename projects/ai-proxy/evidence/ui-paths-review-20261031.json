@@ -1,0 +1,211 @@
+{
+  "format": "opendesk.ai-proxy.ui-paths-review.v1",
+  "date": "2026-10-31",
+  "scope": "Current site, dedicated rule editor, manage-all, internal and preview-shell back; source/service regressions introduced or found in this task",
+  "status": "CURRENT_DEVELOPMENT_SCOPE_THRESHOLD_MET",
+  "candidate": {
+    "buildId": "2a788384-022b-432c-a0c5-11da2611029b",
+    "nativeSnapshot": "a5b62aa0e3b064273d40089612e621fa9cc667ab28462c5524db43726942bdff",
+    "manifestSha256": "7e94d8a1948a827074d7d198ce988e93a87bbf9209c991e22afb4e318659116d",
+    "previewUiSha256": "4f0bbc227129f03d6a347b9682929b57098cd48e92322c6355c7ba75ced073b2",
+    "compiledInputCount": 55,
+    "inputMismatch": [],
+    "receipt": "artifacts/ai-proxy/ui-paths-20261031/final-inputs.json",
+    "artifactCount": 2
+  },
+  "environment": {
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "dist/development",
+    "browserServeConnection": "UNKNOWN",
+    "native": "CONNECTED",
+    "mode": "LOCAL_PROJECT_DEBUG_NOT_INSTALLED",
+    "preview": "http://127.0.0.1:43263/ai-proxy-preview",
+    "nativeProxyStatus": "E_TOOL / unknown; cause not independently classified; SDK_GAP_NOT_PROVEN"
+  },
+  "operations": [
+    {
+      "id": "N1",
+      "surface": "native final candidate",
+      "result": "PASS",
+      "behavior": "Switch to ordinary HTTPS example.com; current-site host and real-page source update automatically. No URL path, title or query is displayed/stored."
+    },
+    {
+      "id": "N2",
+      "surface": "native d90 earlier candidate; unchanged behavior evidence reused, final a5b62 only two text/status explanation changes",
+      "result": "PASS",
+      "behavior": "Dedicated editor brings in example.com and saved proxy; Back on changed draft opens confirmation; Cancel retains draft-ui.example.net. Explicit editor Cancel returns focus to Add Rule."
+    },
+    {
+      "id": "N3",
+      "surface": "native d90 earlier candidate; unchanged behavior evidence reused, final a5b62 only two text/status explanation changes",
+      "result": "PASS",
+      "behavior": "Manage All opens profiles in same sidebar. Internal Return goes to main and restores Manage All focus."
+    },
+    {
+      "id": "N4",
+      "surface": "native d90 earlier candidate; unchanged behavior evidence reused, final a5b62 only two text/status explanation changes",
+      "result": "PASS",
+      "behavior": "Read existing isolated ui-paths.example.net DIRECT rule; edit prefilled action, unchecked includeSubdomains and priority100. Save unchanged rule receives success not-applied notice and focuses reset domain field. Existing core-target rule and 2 proxy configs retained. New test rule initially created during earlier5404 snapshot, final candidate re-read and save tested."
+    },
+    {
+      "id": "P1",
+      "surface": "memory preview; final candidate repeated shell return, re-open same route, Enter internal return and focusRestored true",
+      "result": "PASS",
+      "behavior": "Seven grouped setting sections preserved. Shell Back is visibly Extension List; internal Back is Proxy Panel. Shell Back opens labelled simulated list; Open AI Proxy returns to same settings route."
+    },
+    {
+      "id": "P2",
+      "surface": "memory preview; final candidate repeated shell return, re-open same route, Enter internal return and focusRestored true",
+      "result": "PASS",
+      "behavior": "Repeated internal returns, including Enter, restore Manage All focus (read-only DOM focusRestored true). Dirty editor locks external shell navigation; local Cancel restores normal controls."
+    },
+    {
+      "id": "P3",
+      "surface": "memory preview; final candidate repeated running-save-pending, earlier Direct apply evidence reused",
+      "result": "PASS",
+      "behavior": "Simulate Enable, edit saved matching rule target and Save: old route remains active, pending state and explicit Apply shown. Select Direct shows not-applied hint; explicit simulated Apply then shows confirmed Direct. No real proxy or network request was executed."
+    },
+    {
+      "id": "N5",
+      "surface": "native final a5b62",
+      "result": "PASS",
+      "behavior": "Click read-only Retry; status still E_TOOL/unknown. Explanation now says cannot confirm status, may retry and can edit/save without switching. No invalid-configuration claim."
+    },
+    {
+      "id": "P4",
+      "surface": "memory preview final candidate",
+      "result": "PASS",
+      "behavior": "Idle main has Enable. Rule editor says return to enable or apply based on current state. Running old route + edited saved rule shows Pending, Pause and Apply; same editor text remains accurate."
+    }
+  ],
+  "checks": {
+    "targetedNode": {
+      "pass": 122,
+      "fail": 0,
+      "files": [
+        "projects/ai-proxy/tests/config-core.test.mjs",
+        "projects/ai-proxy/tests/service.test.mjs",
+        "projects/ai-proxy/tests/environment-runtime.test.mjs",
+        "projects/ai-proxy/tests/drafts.test.mjs",
+        "projects/ai-proxy/tests/navigation.test.mjs",
+        "projects/ai-proxy/tests/quick-panel-runtime.test.mjs",
+        "projects/ai-proxy/tests/status-runtime.test.mjs",
+        "projects/ai-proxy/tests/form-submit.test.mjs"
+      ],
+      "scope": "122-test baseline before final two message refinements; affected component suites re-run below"
+    },
+    "localeKeys": {
+      "parity": true,
+      "keys": 994,
+      "locales": [
+        "zh-CN",
+        "en",
+        "zh-TW"
+      ]
+    },
+    "build": "Original project Vite/stage writers had exited. Reconfirmed no competing writer, then restored project watch and stage-watch; receipt sources/artifacts all match. Preview original PID94663 preserved.",
+    "affectedFinal": {
+      "pass": 6,
+      "fail": 0,
+      "files": [
+        "projects/ai-proxy/tests/quick-panel-runtime.test.mjs",
+        "projects/ai-proxy/tests/status-runtime.test.mjs"
+      ],
+      "purpose": "Actual component rendering: pending/confirmed Direct and new E_TOOL status explanation in three locales"
+    }
+  },
+  "screenshots": {
+    "nativeFinalStatus": "artifacts/ai-proxy/ui-paths-20261031/19-native-read-status-small.png",
+    "nativeFinalMain": "artifacts/ai-proxy/ui-paths-20261031/20-native-current-site-small.png",
+    "nativeFinalEditor": "artifacts/ai-proxy/ui-paths-20261031/21-native-rule-editor-small.png",
+    "previewFinalIdle": "artifacts/ai-proxy/ui-paths-20261031/22-preview-idle.png",
+    "previewFinalIdleEditor": "artifacts/ai-proxy/ui-paths-20261031/23-preview-idle-editor.png",
+    "previewFinalPending": "artifacts/ai-proxy/ui-paths-20261031/24-preview-pending.png",
+    "previewFinalPendingEditor": "artifacts/ai-proxy/ui-paths-20261031/25-preview-pending-editor.png",
+    "previewFinalSettings": "artifacts/ai-proxy/ui-paths-20261031/26-preview-manage-all.png",
+    "previewShellReturn": "artifacts/ai-proxy/ui-paths-20261031/27-preview-extension-list.png"
+  },
+  "reviews": {
+    "ui": {
+      "reviewer": "Cicero; independent designer; read-only",
+      "agentId": "01a18e5b-695b-7cb1-b27c-d47223256931",
+      "candidateBuildId": "2a788384-022b-432c-a0c5-11da2611029b",
+      "verdict": "CURRENT_DEVELOPMENT_UI_THRESHOLD_MET",
+      "dimensions": {
+        "布局与密度": 98,
+        "信息层级与可发现性": 98,
+        "视觉与可读性": 96,
+        "操作／草稿／反馈": 98,
+        "键盘与焦点": 97,
+        "组件复用与边界": 98
+      },
+      "blockers": [],
+      "evidence": "New candidate source hashes and native19–21 plus preview22–28. Seven sections, both destinations, simulated list/reopen and actual focusRestored true independently inspected.",
+      "limitations": [
+        "Read-only review; browser operated by leader, raw AX and screenshots inspected by reviewer",
+        "Current development UI only; real E_TOOL/unknown, install, production and full tsc/LSP unchanged",
+        "Minor visual reservations retained; no necessary change"
+      ]
+    },
+    "implementation": {
+      "reviewer": "Curie; independent code-reviewer; read-only",
+      "agentId": "01a18e61-e5b5-75e3-9e1c-e14db8b2e91c",
+      "candidateBuildId": "2a788384-022b-432c-a0c5-11da2611029b",
+      "verdict": "COMMENT; development six-dimension threshold met; no formal APPROVE without complete type diagnostics",
+      "dimensions": {
+        "正确性": 96,
+        "可靠性": 96,
+        "安全": 96,
+        "可维护性": 95,
+        "用户反馈": 96,
+        "证据充分性": 95
+      },
+      "blockers": [],
+      "independentValidation": "55 sources +2 artifacts, native snapshot and manifest byte hashes match; AX/screenshots19–27 and focus28 inspected; affected component suites independently re-run6/6 PASS, 994 locale keys parity. Prior122 baseline reused only for corresponding unchanged behavior.",
+      "remainingRisks": [
+        "QuickPanel and Settings duplicate rule-save validation; synchronize when rule contract changes",
+        "service routeSignature is a manual projection; update regression coverage when routing fields change",
+        "No defect proved by these maintenance reservations; do not refactor for score"
+      ],
+      "limitations": [
+        "No full tsc/LSP; not a formal APPROVE",
+        "Real proxy remains E_TOOL/unknown and SDK_GAP_NOT_PROVEN",
+        "No real Enable/Disable/traffic, install, production, full CI or size matrix",
+        "Preview is memory-only;12–17 unchanged-behavior reuse,18 excluded"
+      ]
+    }
+  },
+  "notTested": [
+    "Real proxy Enable/Disable and traffic",
+    "Formal tool install/upgrade/revocation",
+    "Production and full CI",
+    "Complete TypeScript diagnostics (no project tsc)",
+    "Native OS IME",
+    "Width/zoom matrices"
+  ],
+  "lifecycle": {
+    "temporaryCli": "STOPPED_OWN_SESSION75284_CTRL_C_EXIT0; process no longer present",
+    "nativeDebug": "STOPPED_NO_DRAFT; actual Stop Debug returned to Developer, raw AX29",
+    "existingWatchers": "Original Preview PID94663 preserved. Restored project Vite watch PID59444/session85571 and stage watch PID59455/session39244 left running. Browser dist/development untouched.",
+    "git": "main only; no commit, push, branch, worktree or PR"
+  },
+  "rawEvidence": [
+    "artifacts/ai-proxy/ui-paths-20261031/19-native-read-status-ax.txt",
+    "artifacts/ai-proxy/ui-paths-20261031/20-native-current-site-ax.txt",
+    "artifacts/ai-proxy/ui-paths-20261031/21-native-rule-editor-ax.txt",
+    "artifacts/ai-proxy/ui-paths-20261031/22-preview-idle-ax.txt",
+    "artifacts/ai-proxy/ui-paths-20261031/23-preview-idle-editor-ax.txt",
+    "artifacts/ai-proxy/ui-paths-20261031/24-preview-pending-ax.txt",
+    "artifacts/ai-proxy/ui-paths-20261031/25-preview-pending-editor-ax.txt",
+    "artifacts/ai-proxy/ui-paths-20261031/26-preview-manage-all-ax.txt",
+    "artifacts/ai-proxy/ui-paths-20261031/27-preview-extension-list-ax.txt",
+    "artifacts/ai-proxy/ui-paths-20261031/28-preview-return-focus.json",
+    "artifacts/ai-proxy/ui-paths-20261031/29-native-debug-stopped-ax.txt"
+  ],
+  "supersededEvidence": "12–17 refer to previous d90 candidate; navigation/save evidence retained only for unchanged behavior. 18 is pre-restart update failure and proves no successful final load.",
+  "threshold": {
+    "uiEveryDimensionAtLeast95": true,
+    "implementationEveryDimensionAtLeast95": true,
+    "formalReleaseApproval": false
+  }
+}

@@ -9,17 +9,19 @@ import {parse} from 'acorn';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 
-// Independently reviewed cdfe6e3d6 bytes plus the uninstall-race repair: the flow uses
-// trusted Foundation storage and preserves the legacy encrypted record.
-// Git fixtures verify exact approval without rewriting another owner's service.
+// Independently reviewed account flow and fixed internal service consumer.
+// Current source fixtures must match exact reviewed Git blobs before admission;
+// no generated or installed package can inherit this approval.
 // No source is executed, transformed, built or installed by these tests.
 const prefix='examples/sidebar-tools/cookie-editor/';
 const pins={
-  'trusted/account-contract.js':'454a6d5095c312728d76963df345bed34d734e04',
-  'trusted/account-service.js':'02ffe9783c431859afb7d49bb0b5a8c02c8a11a0',
+  'trusted/account-contract.js':'081311cdc99d828e631efd2a5be1bcc20c461246',
+  'trusted/account-service.js':'fcd7fab18b0bac62fe4a105569523c0c6011d1cb',
   'trusted/account-share.js':'6124420696da31472805467c9a09ef9640b5d388',
   'trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
   'trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
+  'trusted/service-connections.js':'e2f0007c8e82084125c86ea9c72ac4c43bd5bf6a',
+  'trusted/service-session.js':'8a4654e89d518d88cbf1993f774c78ee5ed1228d',
   'trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
 };
@@ -40,7 +42,7 @@ function fixture(t){
   t.after(()=>rmSync(root,{recursive:true,force:true}));
   for(const [name,pin] of Object.entries(pins)){
     const file=resolve(root,prefix+name);
-    const bytes=execFileSync('git',['cat-file','blob',pin]);
+    const bytes=readFileSync(new URL('../../'+prefix+name,import.meta.url));
     assert.equal(blob(bytes),pin);
     mkdirSync(dirname(file),{recursive:true});writeFileSync(file,bytes);
   }
@@ -118,13 +120,15 @@ test('R134: audited Cookie closure uses only static imports and a pure shared co
   assert.deepEqual(deps(contract),[]);
   assert.deepEqual(deps('app/domain/account-switch-url.js'),[]);
   assert.deepEqual([...new Set(deps('trusted/account-vault.js'))],['./account-contract.js']);
+  assert.deepEqual(deps('trusted/service-connections.js'),['./account-contract.js']);
+  assert.deepEqual(deps('trusted/service-session.js'),['../../../../src/native-agent/managed-service-protocol.js']);
   assert.deepEqual(deps('trusted/account-share.js'),['./account-session-share.js',
     './account-session-crypto.js','../../../../src/platform/protocol.js']);
   assert.deepEqual(deps('trusted/account-session-share.js'),['./account-share.js',
     '../../../../src/platform/protocol.js']);
   assert.deepEqual(deps('trusted/account-session-crypto.js'),[]);
   assert.deepEqual(deps('trusted/account-service.js').filter(path=>!path.startsWith('../../../../src/')),
-    ['../app/domain/account-switch-url.js','./account-vault.js','./account-share.js','./account-contract.js','./account-contract.js']);
+    ['../app/domain/account-switch-url.js','./account-vault.js','./account-share.js','./service-connections.js','./service-session.js','./account-contract.js','./account-contract.js']);
 });
 
 test('R134: the pre-fence service is rejected, and working-tree drift never inherits approval',t=>{

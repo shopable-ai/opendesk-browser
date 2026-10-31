@@ -1,0 +1,7 @@
+{
+  "sourceUrl": "https://v.qq.com/x/cover/mzc00200aaogpgh/c4102y7ahdb.html",
+  "observedAt": "2026-10-30 (Asia/Shanghai; exact observation time not supplied)",
+  "provenance": "Reconstructed minimal fragments from leader observed read-only native DevTools DOM fragments, Mac Chrome 156. Not a full-page capture. DOM accessibility only, not unrestricted playback evidence: leader observed Tencent trial playback reaching VIP restriction at 03:00. No upstream code, account data, comments or media URLs.",
+  "html": "<!doctype html><html><head><title>仙逆_164_动漫_高清完整版视频在线观看_腾讯视频</title></head><body><h2 class=\"player-play-title__title\">仙逆 第164话</h2><div class=\"intro-title\" title=\"仙逆\">仙逆简介</div><div class=\"episode-item selected normal-font\" id=\"video-pc_web_episode_list_mzc00200aaogpgh_c4102y7ahdb_15_main\"><span class=\"episode-item-text\">164</span></div><div class=\"episode-item selected normal-font\" id=\"video-pc_web_episode_list_mzc00200aaogpgh_c4102y7ahdb_15_main\"><span class=\"episode-item-text\">164</span></div><div class=\"episode-item normal-font\" id=\"video-pc_web_episode_list_mzc00200aaogpgh_c4102ec52co_13_main\"><span class=\"episode-item-text\">164预告</span></div></body></html>",
+  "additionalObservation": "Leader native DevTools: both selected parent textContent=164VIP; .episode-item-text=164; adjacent div.corner-wrap.corner-mark--small.corner-mark--rightTop textContent=VIP. Site trial gate is not playback success."
+}

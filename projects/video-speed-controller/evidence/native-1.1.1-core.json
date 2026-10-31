@@ -1,0 +1,128 @@
+{
+  "capturedAt": "2026-10-30T11:07:44.797703+00:00",
+  "ownerChat": "01a18c66-2de6-7822-a7b4-96e53c2b2f68",
+  "evidenceLevel": "MAC_CHROME_CORE_ONLY",
+  "provenance": "Values transcribed from native cua_repl accessibility output. Actual UI buttons triggered mutations; sandbox Console observer only listened to existing Host response messages. Fixture reads ordinary HTML video DOM and measures performance.now/currentTime/frame count. No CDP or direct SDK mutation was used.",
+  "headObserved": "0383980b8d4de72b937a7ace757780fbfd617764",
+  "browser": {
+    "version": "154.0.8037.93 official arm64",
+    "profile": "test-chatgpt-02/Default",
+    "executable": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "continuous-development",
+    "revision": "4464a49c97e1c7ab879a398a077ca1c63816b5fe0dd0c2d63941cd71dfac050c",
+    "hostSha256": "cb2e110b9356328c09400e967c368e72d74515dd756e195cae96f7fd6f271ea8"
+  },
+  "package": {
+    "id": "video-speed-controller",
+    "version": "1.1.1",
+    "bytes": 19687,
+    "sha256": "dc0fb337d45b2ed8114d2a98fb95c6525eb8a3350b59ce82dca181bffd476172",
+    "upgradeFrom": "1.1.0",
+    "previousSha256": "a2ddf1b08571d036d7f35b4d086380885b738db0dcbdfc53a6644a181d3e5bf1",
+    "nativeReview": "Current v1.1.0 → new v1.1.1; permissions unchanged; existing app data retained; raw and canonical SHA both matched candidate."
+  },
+  "url": "http://127.0.0.1:43233/single",
+  "visibleUI": [
+    "No separate current webpage video row",
+    "Refresh at upper right of actual-speed card",
+    "One 1× preset",
+    "New 1.1.1 UI was visually inspected in native screenshot"
+  ],
+  "singleClickCore": {
+    "result": "PASS",
+    "action": "Focus webpage Play primary, click 2× once; focus webpage Play primary again, click 1× once. Native AX showed rate 2 then 1 and matching sidebar actual values.",
+    "setReceipts": [
+      {
+        "protocol": "opendesk.sidebar-tool.bridge.v1",
+        "kind": "response",
+        "instance": "166bbcaf-2cbb-43a9-ad9b-f15e33aae560",
+        "toolId": "video-speed-controller",
+        "ok": true,
+        "requestId": "29",
+        "result": {
+          "status": "available",
+          "speed": 2,
+          "requested": 2,
+          "verified": true,
+          "playing": true,
+          "count": 1,
+          "partial": false
+        }
+      },
+      {
+        "protocol": "opendesk.sidebar-tool.bridge.v1",
+        "kind": "response",
+        "instance": "166bbcaf-2cbb-43a9-ad9b-f15e33aae560",
+        "toolId": "video-speed-controller",
+        "ok": true,
+        "requestId": "31",
+        "result": {
+          "status": "available",
+          "speed": 1,
+          "requested": 1,
+          "verified": true,
+          "playing": true,
+          "count": 1,
+          "partial": false
+        }
+      }
+    ]
+  },
+  "independentPlaybackSamples": [
+    {
+      "wallSeconds": 2.002,
+      "before": [
+        {
+          "id": "primary",
+          "playbackRate": 2,
+          "currentTime": 20.153,
+          "paused": false,
+          "readyState": 4,
+          "frames": 1076
+        }
+      ],
+      "after": [
+        {
+          "id": "primary",
+          "playbackRate": 2,
+          "currentTime": 24.156,
+          "paused": false,
+          "readyState": 4,
+          "frames": 1196
+        }
+      ],
+      "mediaSecondsPerWallSecond": [
+        2
+      ]
+    },
+    {
+      "wallSeconds": 2.002,
+      "before": [
+        {
+          "id": "primary",
+          "playbackRate": 1,
+          "currentTime": 20.1,
+          "paused": false,
+          "readyState": 4,
+          "frames": 3892
+        }
+      ],
+      "after": [
+        {
+          "id": "primary",
+          "playbackRate": 1,
+          "currentTime": 22.101,
+          "paused": false,
+          "readyState": 4,
+          "frames": 3952
+        }
+      ],
+      "mediaSecondsPerWallSecond": [
+        1
+      ]
+    }
+  ],
+  "remainingStatus": "Other R1.3 native acceptance and real-site/width/permission matrices are not implied by this core PASS; see mac-chrome-r1.3.md."
+}

@@ -971,8 +971,8 @@
       }
     }
   },
-  "currentOwner": "01a18bf4-78f7-7353-addd-ffca6ced48c7",
-  "currentStage": "DEVELOPMENT_INSTALLED_UI_ALIGNED_REAL_AI_FENCED",
+  "currentOwner": "01a18ddc-0695-70a0-8e7e-dbdaa09cd21c",
+  "currentStage": "VERSION_IDENTIFIED_CORE_BLOCKED_RUNTIME_AND_ACTIVE_RELEASE",
   "sharedChatDevelopmentContinuation": {
     "recordedAt": "2026-10-30T08:26:02.863104+00:00",
     "owner": "01a18bc6-84b6-7ba0-89dd-4e0af3ba5063",
@@ -1307,5 +1307,409 @@
       "parallelChangesPreserved": true
     },
     "nextOperation": "Current UI consistency task complete after installed rendering/config preservation checks. Any later real AI request still requires trustworthy disposition of the original unknown request; do not infer success from this update."
+  },
+  "installedUiRecheck20261030": {
+    "recordedAt": "2026-10-30T23:54:06.896816+08:00",
+    "owner": "01a18d74-cbd6-7d81-8a98-05bfaee15d36",
+    "stage": "DEVELOPMENT_CURRENT_UI_CONFIRMED_AI_FENCED_TASK_PREPARATION_FAILED",
+    "scope": "Original CFT149 installed UI/version confirmation, independent core operation and shared Chat draft checks. No source, package, installation or platform changes.",
+    "entry": "Original browser toolbar → OpenDesk → 扩展 → scrapyjs 采集",
+    "runtime": {
+      "mode": "Continuous development Browser; existing installed Sidebar App",
+      "browser": "Chrome for Testing 149.0.7827.55",
+      "profileLabel": "您的 Chromium",
+      "profilePathInherited": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/Default",
+      "profilePathFreshlyRechecked": false,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "loadedRootEvidence": "Existing extension details UI displayed the enabled extension ID and repository dist/development path.",
+      "serveClientConnection": "PASS: 调试 → 本地开发服务 explicitly displayed 开发服务已连接",
+      "revisionObserved": "ab031e1cf8247d785fb72e8976fb97e2a7bf5d860c72c1da110f9068ee3584c5",
+      "uiLeaseReleased": true,
+      "leftVisible": "Installed 1.6.4, 豆瓣核心, 采集结果 selected; all three workspace Tabs visible; 尚无记录 / 尚无运行 after reopening. The earlier failure remains recorded below.",
+      "servicesRestartedStoppedOrOutputsOverwritten": false,
+      "browserReloadedOrReinstalled": false
+    },
+    "uiIdentity": {
+      "installedVersionObserved": "1.6.4",
+      "nativeHeaderHelp": "scrapyjs 采集 · v1.6.4",
+      "tabs": [
+        "采集结果",
+        "采集规则",
+        "配置 JSON"
+      ],
+      "entryChain": {
+        "configuredHtml": "src/index.html",
+        "configuredJavaScript": "dist/tool.js",
+        "sourceBuildEntry": [
+          "src/main.jsx",
+          "src/App.jsx"
+        ]
+      },
+      "resultsComponent": "src/Results.jsx: record-table",
+      "aiView": "App aiOpen switches the shared Chat view and workspace within the same React root.",
+      "finding": "No second effective business UI found in the configured source/build chain; generated outputs and installed snapshots are separate artifacts.",
+      "buildId": "0b4c94709824d9c8d6289101c56ce2f4fd10fdbb69ec9122d768435906324d42",
+      "sourceOutputReceipt": "PASS: each recorded source/output size and SHA-256 matched build-ready.json",
+      "formalPackageSha256": "42fdb94d777947d3e2921b045656f0278111b56e707d724a2288ce91b61d7ecb",
+      "formalPackageBytes": 84235,
+      "installedPackageSha256": "NOT_FRESHLY_READ; native version/rendering checked, previous installation receipt retains its own evidence boundary",
+      "packageCheck": "PASS: node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --check-project → PROJECT_PACKAGE_MATCH; no build or promotion"
+    },
+    "actualOperations": [
+      {
+        "operation": "Switch results/rules/JSON Tabs",
+        "result": "PASS",
+        "observed": "Saved CSDN 核心 retained seven fields and complete JSON; results initially empty. No configuration write."
+      },
+      {
+        "operation": "Open shared AI helper",
+        "result": "PASS",
+        "observed": "共享 AI · local_codex / 接收方 local_codex; provider model/endpoint not exposed in AX and not inferred."
+      },
+      {
+        "operation": "Paste Chinese, Shift+Return, return to workspace/reopen, clear draft",
+        "result": "PASS",
+        "draft": "保留全部规则，仅增加与 title 相同的 column_title。\n只采当前页。",
+        "observed": "Exact multiline draft persisted across view switching; cleared afterward. Send disabled throughout; no inference or proposal. usePage remained unchecked; useConfig checked. Clipboard paste does not prove native IME."
+      },
+      {
+        "operation": "Select existing 豆瓣核心 while CSDN is active",
+        "result": "PASS",
+        "observed": "Cross-origin start disabled: 目标网址与当前网页不同源，请切换到目标网站后刷新当前网页。"
+      },
+      {
+        "operation": "Switch existing Douban browser tab and click 开始采集 once",
+        "result": "FAIL",
+        "observed": "Current runtime rejected fixed Task during preparation; no records or populated table produced. Details below."
+      },
+      {
+        "operation": "Read existing task catalog through product entry",
+        "result": "PASS_READ_ONLY",
+        "observed": "0.4.1 本地可用 / 已安装 and fixed hashes matched. No revalidation, availability change or installation. Closed only the diagnostic catalog tab."
+      }
+    ],
+    "captureFailure": {
+      "observedLocalTime": "2026-10-30T23:46:18+08:00",
+      "configuration": "豆瓣核心",
+      "url": "https://book.douban.com/tag/%E7%BC%96%E7%A8%8B?start=0&type=T",
+      "startClicks": 1,
+      "error": "固定采集任务与当前运行时不匹配；请更新 scrapyjs 应用及其固定采集任务。采集配置已保留，保存配置不会更新任务验证。",
+      "visibleResult": "采集失败，尚无记录；请查看错误信息与运行详情。",
+      "host": "当前网页已连接",
+      "engine": "等待引擎",
+      "stopAcceptance": "未请求",
+      "instanceRetirement": "尚无运行",
+      "rawTaskResult": "尚无结果",
+      "runId": null,
+      "resultId": null,
+      "diagnosis": "Displayed message uniquely maps in adapters/app-sdk.js to E_BUILTIN_VERSION_UNAVAILABLE from tasks.read during prepare, before tasks.start. Raw RPC code was not independently captured. Exact source of runtime verification mismatch is NOT_VERIFIED.",
+      "taskVersionObserved": "0.4.1",
+      "taskSourceHash": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+      "taskManifestHash": "d68502a39d207a4a1a26cfb441e613cff417bfdcf714f96dbf77d2862311506c",
+      "taskCatalogState": "本地可用 · v0.4.1 · 已安装",
+      "guardBypassed": false,
+      "retryPerformed": false,
+      "historicalEvidence": "runtime-identity-repair-20261030.json and CFT155 evidence retain historical/environment-specific validity; neither proves this current CFT149 run passed."
+    },
+    "originalRequest": {
+      "requestId": "cb6d0e92-0e45-4ae0-a30c-96377d535106",
+      "state": "unknown; inherited fence preserved",
+      "sessionId": null,
+      "turnId": null,
+      "terminal": "NOT_VERIFIED",
+      "reconciliation": "BLOCKED_NO_ORIGINAL_REQUEST_HANDLE_OR_TRUSTED_TERMINAL",
+      "currentUi": "No original request query/cancel handle exposed. Absence of pending UI does not prove terminal disposition.",
+      "newInferenceRequests": 0,
+      "cancelInvoked": false,
+      "pendingStateManuallyRewritten": false,
+      "lateResultApplied": false,
+      "profileProviderOrInstallationBypass": false
+    },
+    "notTested": [
+      "Real AI proposal/review/apply",
+      "Independent named save and config export after AI",
+      "Successful current Task run and populated table",
+      "Current JSON/CSV download and disk readback",
+      "Native IME",
+      "Production acceptance and independent >=95 scores"
+    ],
+    "nextOperation": "UI version confirmation is complete. Current capture needs original Task/runtime verification diagnosis through the existing development/verification chain, preserving the identity guard. Real AI send remains fenced until trustworthy original-request disposition. Do not replay unchanged failed operations or treat historical PASS as current proof.",
+    "evidenceCapture": "Native cua_repl AX observations and earlier inline screenshot in this chat. Final screenshot attempt returned native_hook_stdin_oversized; no standalone screenshot file saved.",
+    "git": {
+      "branch": "main",
+      "productSourceChanged": false,
+      "packagesChanged": false,
+      "committed": false,
+      "pushed": false,
+      "branchWorktreeOrPrCreated": false,
+      "parallelChangesPreserved": true
+    },
+    "goals": {
+      "createdOrChangedInThisChat": false,
+      "otherChatGoalState": "NOT_READ; historical goal fields above are not this chat lifecycle"
+    }
+  },
+  "liveSourceStartup20261031": {
+    "recordedAt": "2026-10-31T00:04:52.554491+08:00",
+    "owner": "01a18d74-cbd6-7d81-8a98-05bfaee15d36",
+    "stage": "DEVELOPMENT_LIVE_SOURCE_VISIBLE_UPDATE_VERIFIED",
+    "request": "Start the latest source and prove visible automatic updates; distinguish installed package from live source.",
+    "initialFailure": {
+      "nativeUi": "本地项目 scrapyjs 离线（待连接核验）; 在侧栏调试 disabled",
+      "toolWatchersRunning": false,
+      "stageError": "E_TOOL_STAGE: content-addressed Native preview file was modified",
+      "cause": "Old valid 16000-byte Native chunks collided with current 24000-byte chunk rule under the same package hash directory. This was not a changed or corrupt business package."
+    },
+    "recovery": {
+      "started": [
+        "npm run dev --prefix examples/sidebar-tools/scrapyjs",
+        "node scripts/watch-sidebar-tool.mjs examples/sidebar-tools/scrapyjs",
+        "OPENDESK_NATIVE_INSTANCE=scrapyjs-react-01a186cc /Applications/OpenDesk.app/Contents/MacOS/opendesk browser dev /Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs"
+      ],
+      "legacySnapshotBackup": "artifacts/scrapyjs/dev-startup-01a18d74-20261031/legacy-native-snapshot-42fdb94d777947d3e2921b045656f0278111b56e707d724a2288ce91b61d7ecb",
+      "backupVerified": "All original chunk hashes and assembled package matched the unchanged formal package before reversible move. Original stage watcher recreated current Native chunks.",
+      "sourceOrGuardPatch": false
+    },
+    "visibleUi": {
+      "entry": "开发 → 本地项目 scrapyjs → 在侧栏调试",
+      "browser": "Original CFT149 149.0.7827.55 / 您的 Chromium",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "browserMode": "Existing dist/development; 调试 UI explicitly reported 开发服务已连接",
+      "browserRevisionObserved": "46396e6ad4622e5129415a8d0608253eae801d2f70389922f072146340988325",
+      "version": "1.6.4",
+      "snapshotSha256": "42fdb94d777947d3e2921b045656f0278111b56e707d724a2288ce91b61d7ecb",
+      "buildId": "0b4c94709824d9c8d6289101c56ce2f4fd10fdbb69ec9122d768435906324d42",
+      "tabs": [
+        "采集结果",
+        "采集规则",
+        "配置 JSON"
+      ],
+      "nativeUi": "Native 已连接; 实时开发预览 · 42fdb94d7779 · 未安装; isolated test data",
+      "evidence": "Native AX and final screenshot returned by cua_repl in this chat."
+    },
+    "liveUpdate": {
+      "result": "PASS_VISIBLE_CHANGE_AND_RESTORE",
+      "temporarySourceChange": "src/App.jsx config-heading title → 采集配置 · 热更新验证",
+      "changedSnapshot": "f3402d97e475f6f020c3c3fc59539376dd6fa3b15aed65ccdf8e4b367cebe9b5",
+      "observedAx": "标题 采集配置 · 热更新验证",
+      "restoredAx": "标题 采集配置; 实时开发预览 · 42fdb94d7779",
+      "sourceRestoredByteForByte": true,
+      "sourceSha256": "e4a81720cb2db22aad57aabbf1c281f505e9fa2333e57d9d272f75fe5f97ee63",
+      "appInstallationPerformed": false
+    },
+    "checks": {
+      "sourceAndOutputReceipt": "PASS",
+      "native24000ByteChunksReassembleExactFormalPackage": "PASS",
+      "productSourceRestored": "PASS"
+    },
+    "boundaries": {
+      "captureTaskFailure": "NOT_FIXED; previous same-instance failure remains recorded in installedUiRecheck20261030",
+      "newAiRequests": 0,
+      "originalAiRequest": "cb6d0e92-0e45-4ae0-a30c-96377d535106; unknown fence preserved",
+      "installedDataChanged": false,
+      "formalPackageChanged": false,
+      "platformSourceChanged": false,
+      "browserReloadOrRestart": false,
+      "productionAcceptance": "NOT_TESTED"
+    },
+    "leftRunning": {
+      "compileExecSession": 30177,
+      "stageExecSession": 10749,
+      "directoryCliExecSession": 67969,
+      "reason": "User requested latest live source; retain the working development chain."
+    },
+    "git": {
+      "branch": "main",
+      "committed": false,
+      "pushed": false,
+      "branchWorktreeOrPrCreated": false,
+      "parallelChangesPreserved": true
+    }
+  },
+  "versionConvergence20261031": {
+    "recordedAt": "2026-10-31T01:59:34+08:00",
+    "owner": "01a18ddc-0695-70a0-8e7e-dbdaa09cd21c",
+    "stage": "Daily core development / version convergence",
+    "status": "PARTIAL_CORE_BLOCKED",
+    "branch": "main",
+    "ownership": {
+      "business": "examples/sidebar-tools/scrapyjs",
+      "type": "Independent sandbox Sidebar Tool + fixed scrapyjs.capture Controller Task",
+      "writes": "README and this existing evidence index; temporary title restored before parallel source changes",
+      "parallelSourceOwner": "01a18de0-de1f-7d21-a887-de4a1ed91e1d",
+      "parallelSourceStatus": "Active: ScrapyJS：实现本地 Node 转发与 UA 实收闭环; explicitly avoids this README/index",
+      "sourceChangesPreserved": true
+    },
+    "currentAtLastRead": {
+      "sourceAppVersion": "1.8.0",
+      "sourceTask": {
+        "taskId": "scrapyjs.capture",
+        "version": "0.6.0",
+        "manifestHash": "e240de3001be0e4c990bb8ed19ecc0cb7a97615bd94d4e5e1992c904c954ae1f",
+        "contentHash": "bf6effdd38365ab07b4daaebfa95296d08b361b5aef4c571a52edb7d6eae1791"
+      },
+      "preview": {
+        "format": "opendesk.tool-preview-latest.v1",
+        "id": "scrapyjs",
+        "version": "1.8.0",
+        "sha256": "675002c85a52beef494c0ab77694fd29b1a051cb41aa407cb744b3443abbc641",
+        "manifestPath": "opendesk-tool-preview/scrapyjs/675002c85a52beef494c0ab77694fd29b1a051cb41aa407cb744b3443abbc641/manifest-da0a953bd1b48393a6f7361a5ed5cbe37f85b79deb4d887196a9acf2b4870f96.json",
+        "manifestSha256": "da0a953bd1b48393a6f7361a5ed5cbe37f85b79deb4d887196a9acf2b4870f96",
+        "buildId": "e0a59b83532aaff0e45f4ab2b7f767a196576dc8a3a6292b48d998932c8fa359"
+      },
+      "sourceBuildId": "e0a59b83532aaff0e45f4ab2b7f767a196576dc8a3a6292b48d998932c8fa359",
+      "sourceBuildReceiptHashes": "all source/output hashes match",
+      "formalAppVersion": "1.7.0",
+      "formalAppSha256": "5345de38fb2a30a6c28389228141c9983af993c61e7d02b955e41d6edb10bdc6",
+      "formalAppDelegatedTasks": [
+        {
+          "taskId": "scrapyjs.capture",
+          "version": "0.5.0",
+          "manifestHash": "1ebdbd54e47300b1b2d5a8d6cab5e4ebc92f81f066ac760e4e155c60fa8ce133",
+          "contentHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475"
+        }
+      ],
+      "formalAppEqualsCurrentSource": false,
+      "installedAppVersion": "1.7.0",
+      "installedTaskVersion": "0.4.1",
+      "doNotTreatSourceAndInstalledAsOneCandidate": true
+    },
+    "browser": {
+      "name": "Chrome for Testing",
+      "version": "149.0.7827.55",
+      "app": "/Applications/Google Chrome.app",
+      "profileDisplay": "您的 Chromium",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "loadedRoot": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "loadedRootEvidence": "Native Chrome extensions details UI read enabled extension ID and path",
+      "mode": "Existing daily continuous development",
+      "serveObservedBeforeLaterUpdates": {
+        "connected": true,
+        "revision": "f4b751c692bf83facd8ec7635d12a2cdd92ae2ec7f7fc4bc8d02a9f5ce7f4697"
+      },
+      "serveFinal": "NOT_RECHECKED after shared updates",
+      "explicitReloadOrReinstallBrowser": false,
+      "sharedOutputInterruption": "manifest/sidepanel absent temporarily; recovered without this owner writing outputs; extension documents subsequently closed during shared updates"
+    },
+    "latestSourceOpened": {
+      "appVersion": "1.8.0",
+      "sha256": "675002c85a52beef494c0ab77694fd29b1a051cb41aa407cb744b3443abbc641",
+      "sourceId": "source-a7f47ad5b7ea71ce48c45070",
+      "workspaceId": "workspace-68299749-e4bf-ddf3-fa63-c22109726a7a",
+      "previewIntent": "31a1575f-e48e-423f-9f09-873a5f5b2f47",
+      "nativeUiObserved": "scrapyjs 采集 · 只读预览 · v1.8.0; 实时开发预览 · 675002c85a52 · 未安装; three tabs",
+      "laterState": "Preview document closed during subsequent shared development updates; local-project mode restored; directory CLI later exited E_NATIVE_NOT_READY."
+    },
+    "liveUpdateProof": {
+      "candidate": "App 1.7.0",
+      "baselineSha256": "5345de38fb2a30a6c28389228141c9983af993c61e7d02b955e41d6edb10bdc6",
+      "temporarySha256": "2417f0bafe88090f5a6904b6df2aab106f28864e68aa9b07289cdb9095c60972",
+      "temporaryTitle": "采集配置 · 1.7.0 自动更新验证",
+      "observedAutomatically": true,
+      "restoredAutomatically": true,
+      "AppJsxOriginalSha256": "f449e4cf1e8722dc07f51159dc43f319380cbf8071f7ff3c87024915dea146ce",
+      "restoreGuard": "current bytes checked against this owner exact temporary edit before restoring; later App.jsx changes belong to parallel owner",
+      "sourceBackup": "artifacts/scrapyjs/version-convergence-20261031/App.jsx.before-live-update",
+      "notProofOfNew18Code": true
+    },
+    "installedAppUpdate": {
+      "from": "1.6.4",
+      "to": "1.7.0",
+      "packageSha256": "5345de38fb2a30a6c28389228141c9983af993c61e7d02b955e41d6edb10bdc6",
+      "via": "Original Extensions import -> review same ID, unchanged capabilities and preserved data -> confirm update",
+      "visibleAfter": "v1.7.0; saved 豆瓣核心 config and exact JSON retained",
+      "newInferenceRequests": 0
+    },
+    "actualInstalledCapture": {
+      "action": "Start capture once from saved 豆瓣核心 on matching Douban page",
+      "observedAtLocal": "2026-10-31 01:37:13",
+      "status": "FAIL_PREPARATION",
+      "error": "固定采集任务与当前运行时不匹配；请更新 scrapyjs 应用及其固定采集任务。",
+      "boundary": "tasks.read before tasks.start",
+      "runId": null,
+      "resultId": null,
+      "newResultTable": "NOT_TESTED",
+      "downloads": "NOT_TESTED",
+      "automaticReplay": false
+    },
+    "taskVerification": {
+      "candidateVersion": "0.5.0",
+      "manifestHash": "1ebdbd54e47300b1b2d5a8d6cab5e4ebc92f81f066ac760e4e155c60fa8ce133",
+      "sourceHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475",
+      "draft": "artifacts/scrapyjs/http-ua-20261031/controller/program.opendesk-draft.json",
+      "draftMatchesTaskExecutable": true,
+      "directRun": "Original Developer imported immutable exact source, explicitly ran saved Douban selectors, returned actual book data and completed/resources released",
+      "runIdObservedInDeveloperQueryField": "fcba65c8-5476-4eee-8cd2-efa25264d3c6",
+      "durableResultId": "NOT_INDEPENDENTLY_READ",
+      "candidateVerification": "FAIL: E_BUILTIN_VERSION_UNAVAILABLE 内置运行时已改变或旧版本未记录身份；请保存新版本并重新验证",
+      "rootCause": "Candidate builtinIdentity was bound at import; shared Browser runtime changed afterwards. Immutable old candidate cannot be rebound by config saving or same-version reimport.",
+      "sourceReadOnlyEvidence": [
+        "src/platform/tasks/service.js importTaskPackage/verifyTaskCandidate",
+        "src/libs/identity.js assertBuiltinIdentity"
+      ],
+      "availableOrInstalled": false,
+      "guardBypassed": false,
+      "verificationForged": false
+    },
+    "aiFence": {
+      "requestId": "cb6d0e92-0e45-4ae0-a30c-96377d535106",
+      "provider": "local_codex",
+      "state": "unknown",
+      "trustedSessionId": null,
+      "trustedTurnId": null,
+      "trustedTerminal": null,
+      "newInferenceRequests": 0,
+      "pendingCleared": false,
+      "cancelOrReplayPerformed": false,
+      "scope": "AI only; no new profile/provider/window used to evade"
+    },
+    "cleanup": {
+      "record": "artifacts/scrapyjs/version-convergence-20261031/cleanup.json",
+      "temporaryTitleSnapshot": "2417f0bafe88090f5a6904b6df2aab106f28864e68aa9b07289cdb9095c60972",
+      "quarantinedTo": "artifacts/scrapyjs/version-convergence-20261031/temporary-title-snapshot/2417f0bafe88090f5a6904b6df2aab106f28864e68aa9b07289cdb9095c60972",
+      "verified": "Base64-decoded chunk lengths/SHA and full package SHA; temporary title present; latest references a different SHA; preview document closed",
+      "readme": "One current status at top; old 1.6.4/latest/no-HTTP claims scoped to collapsed history; history preserved",
+      "preserved": [
+        "formal App package",
+        "current source/build/latest pointer",
+        "saved configurations and results",
+        "all other snapshots",
+        "prior legacy 16KB cache recovery backup",
+        "parallel files and services"
+      ],
+      "notDone": "No broad version/cache deletion without consumer evidence"
+    },
+    "services": {
+      "appCompileWatcher": 37469,
+      "snapshotWatcher": 40516,
+      "rootBrowserWatcherOwner": "parallel owner; PID 63479 observed; untouched",
+      "directoryCliSession": 45191,
+      "nativeInstance": "scrapyjs-react-01a186cc",
+      "directoryCli": "restarted with PTY; connected trusted Host / original workspace; E_PROJECT_SCHEMA file-workspace and E_PROFILE_TARGET notices retained",
+      "nativeUiLease": "Released: native_ui_owner null",
+      "directoryCliFinal": {
+        "session": 45191,
+        "exitCode": 1,
+        "error": "E_NATIVE_NOT_READY: 初始化或运行期间 Native 连接已断开，本次临时接入已停止",
+        "running": false,
+        "otherCliObserved": "PID 95123 opendesk browser dev . has cwd projects/ai-proxy; preserved and not mistaken for scrapyjs"
+      }
+    },
+    "nextOperation": "Restore original Native/directory connection when shared updates are stable. After parallel 1.8.0/0.6.0 candidate is fixed, run exact Task on current original runtime, verify durable/native receipts, legally review added localRelay scope, install same-ID App/Task pair, then run saved Douban config and inspect result table.",
+    "notTested": [
+      "Original CFT149 installed capture with current source 1.8.0/Task0.6.0",
+      "Current Node relay permissions or original profile relay pairing",
+      "Original AI terminal and real inference",
+      "New installation-state result table/download",
+      "Production, independent score, full CI/SDK/host/lifecycle, width/zoom/stress"
+    ],
+    "git": {
+      "branch": "main",
+      "commitOrPush": false,
+      "branchWorktreeOrPrCreated": false,
+      "parallelChangesPreserved": true
+    },
+    "goalState": "No goal created or changed; historical goal fields above remain historical"
   }
 }

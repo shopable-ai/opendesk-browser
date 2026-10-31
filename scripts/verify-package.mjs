@@ -37,6 +37,8 @@ export const SANDBOX_HTML = 'scripting/sandbox/sandbox.html';
 export const TOOL_SANDBOX_HTML = 'sidebar-tools/sandbox.html';
 export const TOOL_SANDBOX_META_CSP = "default-src 'none'; script-src 'self' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; child-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 export const TOOL_HOST_META_CSP = "frame-src 'self'";
+export const NETWORK_REQUEST_META_CSP = "default-src 'none'; script-src 'self'; connect-src http://127.0.0.1:43121; base-uri 'none'; form-action 'none'";
+export const HTTP_RELAY_META_CSP = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src http://127.0.0.1:43122; base-uri 'none'; form-action 'none'";
 export const WORKSPACE_HOST_META_CSP = "frame-src 'self' http://127.0.0.1:* http://localhost:*";
 export const CONTROL_WORKER = 'scripting/sandbox/worker-runtime.js';
 export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";
@@ -75,6 +77,8 @@ export const FIXED_ASSETS = Object.freeze({
   'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}
 });
 const HTML_REFERENCES = Object.freeze({
+  'native-agent/http-relay.html': ['../ui/design-tokens.css','settings.css','http-relay-settings.js'],
+  'network-request.html': ['network-request.js'],
   [SIDEPANEL_DOCUMENT_PATH]: ['ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'ui/time-review.css', 'ui/cloud-hosting.css', 'ui/extension-center.css', 'ui/sidebar-tool-host.js', 'ui/stay-focus-controls.js', 'ui/trusted-cookie-ui.js', 'ui/tool-shell.js'],
   'ui/cloud-control.html': ['design-tokens.css', 'design-system.css', 'cloud-control-console.css', 'cloud-console.js'],
   'cloud-control/runner.html': ['cloud-runner.js'],
@@ -560,7 +564,7 @@ export async function inspectHTML(root, file) {
   }
   for (const match of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) if (match[1].trim()) throw new Error(`Unsafe HTML inline script in ${file}`);
   if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
-  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : (file === SIDEPANEL_DOCUMENT_PATH || file === 'cloud-control/runner.html') ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
+  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : (file === SIDEPANEL_DOCUMENT_PATH || file === 'cloud-control/runner.html') ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : file === 'network-request.html' ? [NETWORK_REQUEST_META_CSP] : file === 'native-agent/http-relay.html' ? [HTTP_RELAY_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
   if (file === SIDEPANEL_DOCUMENT_PATH) inspectReactMountHTML(text, file, 'opendesk-react-app');
   if (file === 'native-agent/workspace.html') inspectReactMountHTML(text, file, 'workspace-root');
 }

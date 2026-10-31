@@ -1,0 +1,202 @@
+/* Sidebar Settings adapter. Original PC styles remain source evidence; this
+ * surface now owns a single gutter and task order at every embedded width. */
+@scope (.proxy-app) {
+  :scope .options {
+    width: 100%; max-width: none; margin: 0; padding: 0 0 16px;
+    background: var(--surface);
+  }
+  :scope .options .optionsHead {
+    position: sticky; top: 0; z-index: 3;
+    display: flex; flex-wrap: nowrap; align-items: center; gap: 8px;
+    min-height: 56px; margin: 0; padding: 8px 12px;
+    border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+    background: var(--surface);
+  }
+  :scope .options .proxy-back { flex: none; padding: 6px 2px; min-height: 36px; font-size: 12px; }
+  :scope .options .settingsSectionNav { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  :scope .options .settingsSectionLabel {
+    flex: none; margin: 0; color: var(--muted); font-size: 12px; white-space: nowrap;
+  }
+  :scope .options .settingsSectionNav select {
+    flex: 1; min-width: 0; width: 100%; min-height: 36px; padding: 6px 8px;
+    font-size: 13px; font-weight: 650; border-color: var(--line); background: var(--soft);
+  }
+  :scope .options .settingsMore { position: relative; flex: none; }
+  :scope .options .settingsMore > summary {
+    display: flex; align-items: center; justify-content: center; list-style: none;
+    min-width: 36px; min-height: 36px; border-radius: 8px; cursor: pointer;
+  }
+  :scope .options .settingsMore > summary::-webkit-details-marker { display: none; }
+  :scope .options .settingsMore > summary:hover { background: var(--soft); }
+  :scope .options .optionsHeadActions {
+    position: absolute; inset-inline-end: 0; top: 100%; z-index: 4;
+    display: grid; min-width: 180px; max-width: calc(100vw - 24px); padding: 4px; gap: 4px;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+    box-shadow: 0 4px 12px #0002;
+  }
+  :scope .options .optionsHeadActions button {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 100%; min-width: 0; min-height: 36px; padding: 8px; text-align: start;
+    border-color: transparent; background: transparent;
+  }
+  :scope .options .settingsCopyFeedback { margin: 0 0 12px; color: var(--good); font-size: 12px; }
+  :scope .options .layout { display: block; }
+  :scope .options .panel.optionsContent {
+    width: 100%; padding: 16px 12px; border: 0; border-radius: 0;
+  }
+  :scope .options .optionsPageHead {
+    display: flex; flex-direction: column; align-items: stretch; gap: 12px;
+    margin: 0 0 16px; padding: 0; border: 0;
+  }
+  :scope .options .panelHeadIntro { flex: none; }
+  :scope .options .optionsPageHead h2 { font-size: 18px; line-height: 1.4; letter-spacing: -.02em; }
+  :scope .options .optionsPageHead .hint { margin-top: 4px; font-size: 12px; line-height: 1.6; }
+  :scope .options .optionsPageHead .panelHeadActions {
+    display: flex; align-items: flex-start; justify-content: flex-start;
+    width: 100%; gap: 8px; flex-wrap: wrap;
+  }
+  :scope .options .panelHeadActions > .primary { flex: 1 1 120px; }
+  :scope .options .panelHeadActions button { min-height: 36px; padding: 7px 12px; }
+  :scope .options .settingsAddWays { flex: 1 1 145px; min-width: 0; }
+  :scope .options .settingsAddWays summary {
+    min-height: 36px; padding: 8px; color: var(--muted); cursor: pointer;
+    font-size: 12px; text-align: center; border-radius: 8px;
+  }
+  :scope .options .settingsAddWays summary:hover { background: var(--soft); color: var(--ink); }
+  :scope .options .settingsAddWayActions {
+    display: grid; gap: 4px; padding: 8px; margin-top: 4px;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--soft);
+  }
+  :scope .options .settingsAddWayActions button { width: 100%; text-align: start; }
+  :scope .options .listSection { margin: 0 0 16px; }
+  :scope .options .sectionHeading { gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+  :scope .options .sectionHeading h2 { font-size: 14px; }
+  :scope .options .sectionHeading .hint { margin-top: 4px; }
+  :scope .options .sectionHeading > .textAction { flex: none; font-size: 12px; }
+  :scope .options .profileRecords { margin-top: 8px; border-radius: 8px; }
+  :scope .options .profileRecords .proxyRecord {
+    display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+    min-height: 0; padding: 12px;
+  }
+  :scope .options .proxyRecordMain { gap: 8px; }
+  :scope .options .proxyAvatar { width: 30px; height: 30px; border-radius: 8px; }
+  :scope .options .proxyRecordMain strong { font-size: 13px; }
+  :scope .options .proxyRecordMain small { font-size: 12px; }
+  :scope .options .recordActions { gap: 8px; }
+  :scope .options .recordActions button { min-height: 36px; padding: 6px 12px; font-size: 12px; }
+  :scope .options .rowBadges { margin-top: 4px; }
+  :scope .options .rowBadges:empty { display: none; }
+  :scope .options .rowBadges span { font-size: 12px; }
+  :scope .options .optionsModeBar { margin: 0 0 16px; padding: 12px; border-radius: 8px; }
+  :scope .options .settingsRuntimeStatus { margin-bottom: 8px; }
+  :scope .options .settingsRuntimeStatus .controlChip { display: inline-flex; white-space: normal; font-size: 12px; }
+  :scope .options .optionsModeGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 12px 0; }
+  :scope .options .optionsModeGrid button { min-height: 36px; padding: 7px; border-radius: 8px; }
+  :scope .options .modeActions { gap: 8px; margin: 8px 0 0; }
+  :scope .options .modeActions > button { min-height: 36px; }
+  :scope .options .modeActions small { flex-basis: 100%; font-size: 12px; }
+  :scope .options .pacDetails { margin: 16px 0; border-radius: 8px; }
+  :scope .options .pacDetails > summary { padding: 12px; gap: 8px; }
+  :scope .options .pacContent { padding: 12px; }
+  :scope .options .pacStarterFields { grid-template-columns: minmax(0,1fr); }
+  :scope .options .rulesGrid, :scope .options .backupGrid, :scope .options .generalGrid,
+  :scope .options .diagnosticOverview, :scope .options .officialStateGrid, :scope .options .officialPlanGrid {
+    grid-template-columns: minmax(0,1fr); gap: 12px;
+  }
+  :scope .options .rulesList, :scope .options .rulesEditor, :scope .options .rulesDefault,
+  :scope .options .backupCard, :scope .options .generalGrid .generalInfoCard,
+  :scope .options .generalGrid .languageRecord {
+    min-height: 0; padding: 12px; border-radius: 8px;
+  }
+  :scope .options .rulesPage { gap: 0; }
+  :scope .options .rulesPage > .optionsPageHead { margin-bottom: 16px; }
+  :scope .options .rulesDefault { margin-top: 16px; }
+  :scope .options .rulesList { padding: 0; border: 0; border-radius: 0; background: transparent; }
+  :scope .options .rulesList .records {
+    margin-top: 12px; border: 0; border-radius: 0; background: transparent;
+  }
+  :scope .options .rulesList .records > .record { padding: 12px 0; background: transparent; }
+  :scope .options .rulesEnabledState { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+  :scope .options .rulesList .record { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  :scope .options .rulesList .record > div:first-child { flex: 1 1 180px; min-width: 0; }
+  :scope .options .rulesEditor { scroll-margin-top: 68px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+  :scope .options .rulesPage > .ruleEditorHeader { margin-bottom: 12px; }
+  :scope .options .ruleEditorForm { margin: 12px 0 0; }
+  :scope .options .rulesEditorFields {
+    display: grid; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0;
+  }
+  :scope .options .rulesEditorFields > .ruleCheckbox { margin: 0; }
+  :scope .options .rulesEditorFields .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  :scope .options .rulesEditorFields .actions > .primary { flex: 1; }
+  :scope .options .rulesEditorFields .actions > .hint { flex-basis: 100%; margin: 0; }
+  :scope .options .rulesEditorFields .actions > button { min-height: 36px; }
+  :scope .options .rulesList .r86Notice { margin: 0 0 12px; }
+  :scope .options :where(input,select,textarea,button,summary) { scroll-margin-top: 68px; }
+  :scope .options .ruleRouteFields, :scope .options .formGrid { grid-template-columns: minmax(0,1fr); }
+  :scope .options .backupCard { gap: 12px; }
+  :scope .options .backupCard h2 { font-size: 15px; }
+  :scope .options .backupCard input[type='file'] { font-size: 12px; padding: 8px; }
+  :scope .options .backupImport textarea { min-height: 140px; }
+  :scope .options .generalGrid .languageRecord { background: var(--soft); }
+  :scope .options .generalGrid .generalInfoCard { gap: 8px; background: var(--surface); }
+  :scope .options .sourceIntro, :scope .options .sourceInlineEditor,
+  :scope .options .sourceList .sourceRecord, :scope .options .diagnosticFeature,
+  :scope .options .diagnosticSite, :scope .options .officialSection, :scope .options .officialEmpty {
+    padding: 12px; border-radius: 8px;
+  }
+  :scope .options .sourcesPage, :scope .options .officialPage { gap: 16px; }
+  :scope .options .sourceList .records.sourceCards { grid-template-columns: minmax(0,1fr); }
+  :scope .options .diagnosticLead { margin-bottom: 12px; padding: 12px; border-radius: 8px; }
+  :scope .options .diagnosticLead h2 { font-size: 16px; }
+  :scope .options .diagnosticMetrics { gap: 8px; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  :scope .options .diagnosticMetrics > div { padding: 12px; }
+  :scope .options .diagnosticFeature h3 { font-size: 14px; }
+  :scope .options .diagnosticFeature button { min-height: 36px; font-size: 12px; }
+  :scope .options .diagnosticMetrics small,
+  :scope .options .diagnosticEvidence,
+  :scope .options .diagnosticFeature > small,
+  :scope .options .diagnosticSiteName small,
+  :scope .options .diagnosticResult small,
+  :scope .options .diagnosticResultLabel { font-size: 12px; line-height: 1.6; }
+  :scope .options .officialHero.optionsPageHead { margin: 0; }
+  :scope .options .serviceNote { display: grid; gap: 8px; margin-top: 16px; padding: 12px; }
+  :scope .options .serviceNote p, :scope .options .serviceNote button { font-size: 12px; }
+  :scope .options :where(.hint,small,.summaryAction) { overflow-wrap: anywhere; }
+  :scope .options .proxyEditorDialog {
+    width: calc(100% - 24px); max-height: calc(100dvh - 24px);
+    padding: 16px; border-radius: 12px;
+  }
+  :scope .options .proxyEditorForm { gap: 12px; }
+  :scope .options .proxyPrimaryFields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  :scope .options .proxyPrimaryFields > div { grid-column: auto; grid-row: auto; }
+  :scope .options .proxyPrimaryFields > div:first-child { grid-column: 1/-1; }
+  :scope .options .proxyAuthFields { grid-template-columns: minmax(0,1fr); }
+  :scope .options .editorActions { flex-wrap: wrap; gap: 8px; }
+  :scope .options .editorActions button { min-height: 36px; }
+}
+
+/* Current-site context and its editor use the same form surface and tokens. */
+@scope (.proxy-app) {
+  :scope .r86Panel .siteContext { display:grid; gap:4px; }
+  :scope .r86Panel .r86SiteDomain { font-size:14px; line-height:1.5; }
+  :scope .siteSource { color:var(--muted); font-size:12px; }
+  :scope .siteRouteSummary { display:grid; gap:8px; margin:12px 0 0; padding:12px; background:var(--soft); border-radius:8px; }
+  :scope .siteRouteSummary > div { display:grid; grid-template-columns:96px minmax(0,1fr); gap:8px; align-items:start; }
+  :scope .siteRouteSummary dt { color:var(--muted); font-size:12px; }
+  :scope .siteRouteSummary dd { margin:0; font-size:12px; font-weight:600; overflow-wrap:anywhere; }
+  :scope .r86Panel [data-r86-section='site'] .r86Help { font-size:12px; }
+  :scope .siteRulePage .quickSetupBody { padding:16px 12px; overflow:auto; }
+  :scope .siteRulePage .sideAddHeader { padding:8px 12px; min-height:52px; }
+  :scope .siteRulePage .sideAddHeader h2 { font-size:16px; margin:0; }
+  :scope .siteRulePage .sideAddHeader button { min-height:36px; }
+  :scope .siteRuleOrigin { color:var(--muted); font-size:12px; overflow-wrap:anywhere; }
+  :scope .siteRulePage .r86Editor { margin-top:12px; padding:0; border:0; background:transparent; gap:16px; }
+  :scope .siteRulePage .r86Editor label { font-size:13px; }
+  :scope .siteRulePage .r86Editor input, :scope .siteRulePage .r86Editor select { min-height:36px; font-size:13px; }
+  :scope .siteRulePage .r86Editor .ruleCheckbox { display:flex; gap:8px; align-items:center; }
+  :scope .siteRulePage .r86Editor input[type='checkbox'] { min-height:0; width:16px; height:16px; }
+  :scope .siteRulePage .actions { display:flex; gap:8px; margin:0; }
+  :scope .siteRulePage .actions button { min-height:36px; }
+  :scope .siteRulePage .actions .primary { flex:1; }
+  :scope .siteRulePage .hint { font-size:12px; line-height:1.6; }
+}

@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_LIMITS} from '../../src/ui/sidebar-tools/limits.js';
 import {renderSidebarFixture} from '../helpers/sidebar-react-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -18,7 +19,7 @@ test('tool contract is independent of Task v1 and is closed by default',()=>{
   assert.throws(()=>validateSidebarToolPackage({...example,html:'<img src="x" onerror="alert(1)">' }),/HTML/);
   assert.throws(()=>validateSidebarToolPackage({...example,css:'@import url(https://evil.example/x.css)'}),/样式/);
   assert.throws(()=>validateSidebarToolPackage({...example,id:'../other'}),/格式/);
-  assert.throws(()=>validateSidebarToolPackage({...example,js:'x'.repeat(220001)}),/过大/);
+  assert.throws(()=>validateSidebarToolPackage({...example,js:'x'.repeat(SIDEBAR_TOOL_LIMITS.js+1)}),/过大/);
 });
 test('tool packer rejects traversal, symlink escape, oversized assets and duplicate assets',async()=>{
   const temp=await mkdtemp(join(tmpdir(),'opendesk-tool-boundary-'));

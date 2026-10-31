@@ -3,6 +3,7 @@
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 import {compareToolVersions,sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
 import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
+import {SIDEBAR_TOOL_LIMITS} from '../ui/sidebar-tools/limits.js';
 
 export const OFFICIAL_SOURCE_SCHEMA='opendesk.official-tools.sources.v1';
 export const OFFICIAL_RELEASE_SCHEMA='opendesk.official-tools.releases.v1';
@@ -28,7 +29,7 @@ const gitSha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const error=(message,code='E_OFFICIAL_CATALOG')=>Object.assign(new Error(message),{code});
 // An exact source-location allowlist; migration never authorizes arbitrary repository paths.
-const migratedOfficialToolIds=new Set(['markdown-workbench','quick-notes','bookmark-manager','knowledge-inbox','web-markdown-clipper','reading-toc','time-review','prompt-shortcuts','adblock','stay-focus','video-speed-controller','ai-knowledge-answers','video-svip','video-downloader']);
+const migratedOfficialToolIds=new Set(['ai-proxy','markdown-workbench','quick-notes','bookmark-manager','knowledge-inbox','web-markdown-clipper','reading-toc','time-review','prompt-shortcuts','adblock','stay-focus','video-speed-controller','ai-knowledge-answers','video-svip','video-downloader']);
 export function officialSourceProjectPath(id){
   if(typeof id!=='string'||!idPattern.test(id))throw error('官方工具资源身份无效');
   return (migratedOfficialToolIds.has(id)?'projects/':'examples/sidebar-tools/')+id;
@@ -74,7 +75,7 @@ export function validateOfficialReleaseCatalog(value){
        (row.toolId!=='stay-focus'||!gitSha(row.remoteCommit)))||
       typeof row.toolId!=='string'||!idPattern.test(row.toolId)||row.id!=='opendesk/'+row.toolId||
       row.kind!=='sidebar-tool'||!['optional','preinstalled'].includes(row.installationPolicy)||seen.has(row.id)||
-      row.packagePath!==officialPackagePath(row)||!Number.isSafeInteger(row.bytes)||row.bytes<1||row.bytes>320000||
+      row.packagePath!==officialPackagePath(row)||!Number.isSafeInteger(row.bytes)||row.bytes<1||row.bytes>SIDEBAR_TOOL_LIMITS.packageBytes||
       typeof row.sha256!=='string'||!/^[a-f0-9]{64}$/.test(row.sha256))throw error('官方发行身份、策略、路径或摘要无效');
     // Reuse the existing package metadata/capability validator. These inert
     // placeholders only validate the descriptor; executable bytes load later.
@@ -257,7 +258,7 @@ export async function loadOfficialTool(release,{api=globalThis.chrome,fetcher=gl
   }
   const bytes=await resourceBytes(api,fetcher,
     row.remoteCommit?immutableFocusPackage(row.remoteCommit):officialPackagePath(row),
-    320000,{external:Boolean(row.remoteCommit)});
+    SIDEBAR_TOOL_LIMITS.packageBytes,{external:Boolean(row.remoteCommit)});
   const hash=await digest(bytes);
   if(bytes.length!==row.bytes||hash!==row.sha256)throw error('官方工具包大小或摘要不匹配','E_PACKAGE_INTEGRITY');
   const tool=validateSidebarToolPackage(json(bytes));

@@ -1,0 +1,85 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {request} from 'node:http';
+import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {randomUUID} from 'node:crypto';
+import {HistoryStore} from '../../ai-account-usage/history-store.mjs';
+import {ServiceBindingStore} from '../../ai-account-usage/service-binding-store.mjs';
+import {startManagementServer} from '../../ai-account-usage/web-server.mjs';
+const op=()=>randomUUID();
+async function setup(t){const dir=await mkdtemp(join(tmpdir(),'binding-http-'));t.after(()=>rm(dir,{force:true,recursive:true}));
+  for(const file of ['index.html','app.js','app.css'])await writeFile(join(dir,file),'asset');
+  const store=new HistoryStore({directory:join(dir,'history')});await store.register({alias:'acct_01',displayName:'Allowed'});await store.register({alias:'acct_02',displayName:'Other'});
+  let refreshes=0;const server=await startManagementServer({store,service:{query:async()=>{refreshes++;throw Error('MUST_NOT_REFRESH');}},assetsDirectory:dir,bindingStore:new ServiceBindingStore({directory:join(dir,'bindings')})});t.after(()=>server.close());
+  const origin=new URL(server.url).origin;
+  const req=(path,{method='GET',body,headers={}}={})=>new Promise((resolve,reject)=>{const r=request({hostname:'127.0.0.1',port:new URL(origin).port,path,method,headers:{host:new URL(origin).host,...(body?{'content-type':'application/json'}:{}),...headers}},res=>{const chunks=[];res.on('data',x=>chunks.push(x));res.on('end',()=>{const text=Buffer.concat(chunks).toString();resolve({status:res.statusCode,headers:res.headers,text,json:()=>JSON.parse(text)});});});r.on('error',reject);r.end(body?JSON.stringify(body):undefined);});
+  const pairing=await req('/session',{method:'POST',body:{code:server.pairingCode},headers:{origin}});
+  const cookie=pairing.headers['set-cookie'][0].split(';')[0];
+  return {server,req,origin,cookie,refreshes:()=>refreshes};}
+
+test('same-origin administrator cannot register/accept as a device; trusted capability is process-only and administrator only saves desired',async t=>{
+  const f=await setup(t),admin={cookie:f.cookie,origin:f.origin};
+  assert.equal((await f.req('/opendesk/v1/devices',{method:'POST',headers:admin,body:{operationId:op(),label:'Fake'}})).status,403);
+  assert.equal((await f.req('/opendesk/v1/policy-acceptances',{method:'POST',headers:admin,body:{operationId:op(),action:'accept',authEpoch:1}})).status,403);
+  const client=await f.server.serviceBinding.createLocalClient({connectionId:'conn_a',installationId:'install_a',userId:'user_a',grantFamilyId:'grant_a',resourceIds:['acct_01']});
+  const headers={authorization:`Bearer ${client.secret}`};
+  const device=(await f.req('/opendesk/v1/devices',{method:'POST',headers,body:{operationId:op(),label:'Mac'}})).json();
+  const desired=await f.req('/opendesk/admin/api/sync-policy',{method:'POST',headers:admin,body:{deviceId:device.deviceId,operationId:op(),expectedRevision:0,scope:{bindingIds:[],dataCategories:['ACCOUNT_METADATA'],trigger:'MANUAL',retentionDays:7}}});
+  assert.equal(desired.status,200);
+  assert.equal((await f.req('/opendesk/v1/sync-policy',{headers})).json().acceptance,null);
+  assert.equal((await f.req('/opendesk/admin/api/sync-policy',{method:'POST',headers:{cookie:f.cookie},body:{}})).status,403);
+  const accounts=(await f.req('/opendesk/v1/accounts',{headers})).json();assert.deepEqual(accounts.accounts.map(x=>x.remoteAccountId),['acct_01']);
+  assert.equal((await f.req('/opendesk/v1/accounts/acct_02/usage',{headers})).status,404);
+  assert.equal((await f.req('/opendesk/v1/snapshots',{method:'POST',headers,body:{operationId:op()}})).status,404);
+  assert.equal(f.refreshes(),0);
+  assert.ok(!JSON.stringify((await f.req('/opendesk/admin/api/devices',{headers:admin})).json()).includes(client.secret));
+});
+
+test('management open checks exact instance/resource, consumes one code and restricts opened session to its account',async t=>{
+  const f=await setup(t),client=await f.server.serviceBinding.createLocalClient({connectionId:'conn_a',installationId:'install_a',userId:'user_a',grantFamilyId:'grant_a',resourceIds:['acct_01']});
+  const headers={authorization:`Bearer ${client.secret}`};
+  const device=(await f.req('/opendesk/v1/devices',{method:'POST',headers,body:{operationId:op(),label:'Mac'}})).json();
+  const binding=(await f.req('/opendesk/v1/bindings',{method:'POST',headers,body:{operationId:op(),purpose:'usage',expectedRevision:0,providerKey:'codex',remoteAccountId:'acct_01',localAccount:{origin:'https://chatgpt.com',alias:'saved_01',version:1,storeId:'0',partitionKey:null}}})).json();
+  const target={serviceInstanceId:client.serviceInstanceId,deviceId:device.deviceId,bindingId:binding.bindingId,remoteAccountId:'acct_01'};
+  await assert.rejects(f.server.serviceBinding.createManagementOpen(client.secret,{...target,remoteAccountId:'acct_02'}),{code:'NOT_FOUND'});
+  const open=await f.server.serviceBinding.createManagementOpen(client.secret,target);
+  assert.equal(new URL(open.url).pathname,'/opendesk/admin/accounts/acct_01');
+  const code=new URLSearchParams(new URL(open.url).hash.slice(1)).get('open');
+  const paired=await f.req('/opendesk/open-session',{method:'POST',headers:{origin:f.origin},body:{code}});
+  assert.equal(paired.status,200);const cookie=paired.headers['set-cookie'][0].split(';')[0];
+  assert.equal((await f.req('/opendesk/open-session',{method:'POST',headers:{origin:f.origin},body:{code}})).status,401);
+  assert.equal((await f.req('/api/v1/accounts',{headers:{cookie}})).json().accounts.length,1);
+  assert.equal((await f.req('/api/v1/accounts/acct_02',{headers:{cookie}})).status,404);
+  assert.equal((await f.req('/opendesk/admin/api/devices',{headers:{cookie}})).status,403);
+  assert.equal((await f.req('/api/v1/accounts/acct_01/refresh',{method:'POST',headers:{cookie,origin:f.origin},body:{}})).status,403);
+  const both=f.cookie+'; '+cookie;
+  assert.equal((await f.req('/api/v1/accounts',{headers:{cookie:both}})).json().accounts.length,1);
+  assert.equal((await f.req('/api/v1/accounts/acct_02',{headers:{cookie:both}})).status,404);
+  assert.equal((await f.req('/opendesk/admin/api/devices',{headers:{cookie:both}})).status,403);
+  assert.equal((await f.req('/opendesk/admin/api/sync-policy',{method:'POST',headers:{cookie:both,origin:f.origin},body:{}})).status,403);
+  assert.equal((await f.req('/api/v1/accounts/acct_01/refresh',{method:'POST',headers:{cookie:both,origin:f.origin},body:{}})).status,403);
+  const returnAdmin=await f.req('/opendesk/end-resource-session',{method:'POST',headers:{cookie:both,origin:f.origin},body:{}});
+  assert.equal(returnAdmin.status,200);assert.match(returnAdmin.headers['set-cookie'][0],/Max-Age=0/);
+  assert.equal((await f.req('/api/v1/accounts',{headers:{cookie:f.cookie}})).json().accounts.length,2);
+  assert.equal(f.refreshes(),0);
+});
+
+test('both-cookie device view stays read-only and invalid resource sessions never fall back to administrator',async t=>{
+  const f=await setup(t),client=await f.server.serviceBinding.createLocalClient({connectionId:'conn_a',installationId:'install_a',userId:'user_a',grantFamilyId:'grant_a',resourceIds:['acct_01']});
+  const device=(await f.req('/opendesk/v1/devices',{method:'POST',headers:{authorization:`Bearer ${client.secret}`},body:{operationId:op(),label:'Mac'}})).json();
+  const open=await f.server.serviceBinding.createManagementOpen(client.secret,{serviceInstanceId:client.serviceInstanceId,deviceId:device.deviceId});
+  const code=new URLSearchParams(new URL(open.url).hash.slice(1)).get('open');
+  const exchange=await f.req('/opendesk/open-session',{method:'POST',headers:{origin:f.origin},body:{code}});
+  const resourceCookie=exchange.headers['set-cookie'][0].split(';')[0],both=f.cookie+'; '+resourceCookie;
+  const view=(await f.req('/opendesk/admin/api/devices',{headers:{cookie:both}})).json();
+  assert.equal(view.readOnly,true);assert.deepEqual(view.devices.map(d=>d.deviceId),[device.deviceId]);
+  assert.equal((await f.req('/opendesk/admin/api/sync-policy',{method:'POST',headers:{cookie:both,origin:f.origin},body:{}})).status,403);
+  assert.equal((await f.req('/api/v1/accounts',{headers:{cookie:both}})).status,403);
+  const forged=resourceCookie.split('=')[0]+'=invalid';
+  assert.equal((await f.req('/opendesk/admin/api/devices',{headers:{cookie:f.cookie+'; '+forged}})).status,401);
+  f.server.serviceBinding.revokeLocalClient(client.secret);
+  assert.equal((await f.req('/opendesk/admin/api/devices',{headers:{cookie:both}})).status,403);
+  assert.equal((await f.req('/opendesk/v1/self',{headers:{authorization:`Bearer ${client.secret}`}})).status,403);
+});

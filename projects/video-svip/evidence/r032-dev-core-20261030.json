@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "stage": "CONTINUOUS_DEVELOPMENT_CORE_ONLY",
+  "method": "Observed native macOS Chrome UI through cua_repl. This is a manual observation record, not an automated browser trace. No CDP, shell browser control or new network configuration.",
+  "environment": {
+    "profile": "Video SVIP R031 Accept",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "nativeDisplayedPath": "~/文稿/workspace/opendesk-browser/dist/development",
+    "devService": "connected at 127.0.0.1:43119",
+    "observedRevision": "60a5a6649d0da775ac34df9d7b5c2b88e582cde6eb2f3963dfec37e5d0f0e4f2",
+    "hostInstanceIds": {
+      "initial031": "4598711e-b43f-43d8-8d4c-54e43db37507",
+      "beforeResourceReload": "9a3b6297-7f04-49eb-8765-b6136157d589",
+      "installed032": "7d01ee25-56b0-4130-9ad2-d2ac64b0c041"
+    },
+    "historicalProductionCopies": "V3 and V4 disabled in this task Profile; retained, not revalidated or deleted. Daily Profile settings unchanged.",
+    "nativePairing": "Not changed or used as evidence in this core workflow."
+  },
+  "sourceIdentity": {
+    "trustedHostGitBlob": "a395a0b0a3453993627890cf580061f96e2a8fb5",
+    "trustedPolicy032GitBlob": "39678897d66bc0aa52609952a42a12bff442fc80",
+    "currentPageTargetGitBlob": "f51f4b8193d69419a1068159e2a8116ae21bf9e1",
+    "difference031To032": "Membership UI reports dirty/busy through the existing public bridge; same capabilities and membership key/CAS. Trusted business logic unchanged except fixed package version."
+  },
+  "package": {
+    "id": "video-svip",
+    "version": "0.3.2",
+    "path": "projects/video-svip/video-svip.opendesk-tool.json",
+    "bytes": 20761,
+    "sha256": "a23a1bc5ac39932c32f543e0af7be2cb1d6fc9e7c650d94e12aa50c6ecb99c0c",
+    "capabilities": ["currentPage.read", "page.videoContext", "storage.local"],
+    "gates": ["original packager candidate", "41 affected Node tests PASS", "original --promote-from", "--check-project byte match", "native official 0.3.1 to 0.3.2 update confirmed"],
+    "upgrade": "Official review displayed unchanged permissions and preserved data. After confirmation tool header displayed v0.3.2, and the prior Bilibili membership row remained readable."
+  },
+  "native031": {
+    "bilibili197": {"title": "凡人修仙传", "episode": 197, "contentRevision": "c89ca2bf", "confidence": "high/high"},
+    "permissionRevoke": {
+      "action": "Only in the task Profile, change this dev instance from all sites to on click, return to Bilibili and explicitly re-identify.",
+      "result": "Old title, episode and original link cleared; copy disabled. UI showed 网站访问或官方安装权限不足，请检查 Chrome 扩展权限 without waiting for the old RPC timeout.",
+      "restored": "Restored the original all-sites setting, verified it in Chrome, then explicit re-identification returned verified episode 197.",
+      "injectionClaim": "No native injection trace collected in this turn; the targeted Node test separately proves denied permission prevents injection."
+    },
+    "membership": "Save Bilibili 2030-01-01, observe success, close/reopen and read back. This exposed an incorrect unsaved-content prompt after a confirmed save.",
+    "stop": "Stop cleared the result; selecting real episode 196 did not resume listening."
+  },
+  "native032": {
+    "tencent": {
+      "url": "https://v.qq.com/x/cover/mzc00200aaogpgh/c4102y7ahdb.html",
+      "replacement": false,
+      "title": "仙逆",
+      "episode": 164,
+      "confidence": "high/high",
+      "titleEvidence": "div.intro-title[title]",
+      "episodeEvidence": "selected:.episode-item.selected.normal-font",
+      "contentRevision": "a68f0f80",
+      "partial": "iframe 未全面检测"
+    },
+    "bilibili": {
+      "urls": ["https://www.bilibili.com/zh-Hans/bangumi/play/ep3854820?from_spmid=666.25.episode.0", "https://www.bilibili.com/zh-Hans/bangumi/play/ep3854821?from_spmid=666.25.episode.0"],
+      "replacement": false,
+      "title": "凡人修仙传",
+      "automaticSelection": "Click actual 197 会员 from 196; Side Panel automatically updates to 第197集 and the matching original-site URL.",
+      "stopAndRestore": "Stop at 197 clears old result and disables copy. Click real 196: website changes, tool remains stopped. Explicit 重新识别 restores 第196集.",
+      "confidence": "high/high",
+      "titleEvidence": "a.mediainfo_mediaTitle__Zyiqh[title]",
+      "episodeEvidence": "selected:bilibili-numberTitle:href-ep",
+      "episode196Revision": "5153eb9b",
+      "partial": "iframe 未全面检测",
+      "subtitle": "Numeric current episode verified; subtitle 慕兰之战21 remains unavailable from the Host."
+    },
+    "membership": {
+      "upgradeReadback": "Bilibili 2030-01-01 retained from installed 0.3.1.",
+      "save": "Change to 2030-01-02; click Save once. UI shows new row and 到期日期已保存到本机（未验证真实会员权益）。",
+      "close": "Click 返回扩展列表; list opens directly without unsaved-content prompt.",
+      "reopen": "Reopen v0.3.2 and membership tab: Bilibili 2030-01-02 row read back.",
+      "cleanup": "Delete only the row created by this test in this dev namespace. UI shows 尚未登记会员到期日期。 and 记录已从本机移除。 No production or pre-existing real membership data changed."
+    },
+    "playerBoundary": "Original players remained present. Tencent historical trial/VIP restriction and Bilibili original-site network error 3105 are separate playback limitations; no full paid playback success or player takeover is claimed."
+  },
+  "regression": {
+    "command": "node --test tests/environment/video-svip.test.mjs tests/environment/video-svip-ui-r03.test.mjs projects/video-svip/tests/*.test.mjs",
+    "result": "41/41 PASS",
+    "membershipRedGreen": "New three-case regression failed before bridge state reporting, then passed: confirmed save clears dirty after settlement, unknown save retains guard without replay, later edits remain dirty after an earlier save completes.",
+    "otherChecks": ["node --check projects/video-svip/src/main.js PASS", "scoped git diff --check PASS", "node --test --test-name-pattern='Video SVIP epoch revocation' tests/environment/sidebar-tools-host.test.mjs: 1/1 PASS against 0.3.2 official fixture"],
+    "inheritedUnchangedChecks": "Current-page-target 44/44 passed before this continuation's membership-only change. Inputs retained; no unrelated full suite rerun."
+  },
+  "developmentResourceBlocker": {
+    "observed": "Existing watcher treats examples/sidebar-tools as official source root and does not refresh the catalog for migrated projects inputs. Import initially rejected E_PUBLISHER_CONFLICT; after catalog sync the old loaded resource cache caused E_PACKAGE_INTEGRITY. Original app/data were preserved.",
+    "resolvedForThisRun": "Trigger the existing official-tools/catalog.json watcher input without changing its contents; the sole watcher generated matching 0.3.2 package/catalog. Confirmed matching disk hashes. With no draft or task active, reload only the task Profile dev instance, then official update succeeds.",
+    "deferred": "No watcher/framework source change in this business task. Persistent projects input watch support remains a separate development-infrastructure issue."
+  },
+  "notTestedOrDeferred": ["New production candidate or formal release acceptance", "Overseas and other platform live adaptations", "Same-URL title/episode replacement in native Chrome", "Deliberately delayed old Host response in native Chrome", "All iframe DOM", "Full paid playback or real membership entitlement", "Public marketplace publication", "Independent score"],
+  "outOfScope": ["Width and zoom matrix", "R0.4 playback diagnosis", "Authorized backup streams", "Payment and shared seats", "Full repository CI"]
+}

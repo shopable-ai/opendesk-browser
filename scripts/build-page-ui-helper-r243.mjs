@@ -15,6 +15,7 @@ if(esbuild.version!=='0.28.2')throw Error('E_PAGE_HELPER_TOOLCHAIN_IDENTITY');
 const helpers=[
   'src/scripting/user-scripts/page-ui.js',
   'src/scripting/user-scripts/page-ui-mount.js',
+  'src/scripting/user-scripts/page-toast.js',
   'src/scripting/user-scripts/page-program-rules.js'
 ];
 const inputs=[];

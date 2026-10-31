@@ -1,0 +1,1126 @@
+{
+  "status": "PASS_SCOPED_LOCAL_APP_HTTP",
+  "mode": "STATIC_DEVELOPMENT_NO_SERVE",
+  "date": "2026-10-30T16:44:55.563Z",
+  "owner": "examples/sidebar-tools/scrapyjs",
+  "userOperation": "扩展 → scrapyjs 采集 → 采集规则 → 载入本机 HTTP 示例 → User-Agent / Headers JSON → 开始采集；结果由原 Results 界面展示",
+  "executor": "原 tasks.start → scrapyjs.capture@0.5.0 → Controller Worker axiosx → 原 Authority / network service → 固定可信独立请求页 / Chrome DNR；Node 只作独立回显，不发请求、不代理",
+  "packages": {
+    "app": {
+      "file": "examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "version": "1.7.0",
+      "sha256": "5345de38fb2a30a6c28389228141c9983af993c61e7d02b955e41d6edb10bdc6"
+    },
+    "task": {
+      "file": "examples/sidebar-tools/scrapyjs/controller/scrapyjs.opendesk-task.json",
+      "version": "0.5.0",
+      "sha256": "89f3e0a308016fa4b2d2d246995094b0a99b5bf4b7d835901d601307ac3c0d9c",
+      "manifestHash": "1ebdbd54e47300b1b2d5a8d6cab5e4ebc92f81f066ac760e4e155c60fa8ce133",
+      "contentHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475"
+    }
+  },
+  "browser": {
+    "chrome": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "extensionId": "mhpfkfomdaifejjbcgeoafijglajmlpb",
+    "inputSha256": "7d2d6b7db32922fc446c3db8a5237b453c4472a7feee56cc7448dd755046ff43",
+    "packageHash": "dfea3db672ae6e6e6707ff2ce37638275814f44543c05536256b8df3503a8e52",
+    "mode": "development",
+    "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/http-ua-20261031/native-task/cft-CtKFTr/extension",
+    "reviewedUnrelatedOverlay": {
+      "reason": "Unrelated AI Proxy uncommitted sources differ from its reviewed lock; preserve original main and recover exactly reviewed Git blobs only in owned build snapshot",
+      "files": [
+        {
+          "path": "projects/ai-proxy/src/App.jsx",
+          "reviewedGitBlob": "10e4e91aad92248e0220dc9df67b9c1edba2a6e6"
+        },
+        {
+          "path": "projects/ai-proxy/src/QuickPanel.tsx",
+          "reviewedGitBlob": "3349711b6f26ded0a7f8cdbcd02f9cca52fc40b2"
+        },
+        {
+          "path": "projects/ai-proxy/src/Settings.tsx",
+          "reviewedGitBlob": "2d9ca3da917afe43499ea0d75555f090e7a08140"
+        },
+        {
+          "path": "projects/ai-proxy/src/environment.ts",
+          "reviewedGitBlob": "06b33d90658a8960b5c7cd42922515b1985f2083"
+        },
+        {
+          "path": "projects/ai-proxy/src/style.css",
+          "reviewedGitBlob": "46e59f7344e04aac6e6583fb1617637ec11d1ab2"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+          "reviewedGitBlob": "8984d543f034dcee5e3a0e32855444a0040ded38"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+          "reviewedGitBlob": "e46a48aa5be974529a2cfb27ba5720cb9f41b3f7"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+          "reviewedGitBlob": "014df2ba4e2915ad8c4b9347facfbbfb2b040f78"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+          "reviewedGitBlob": "0bc2c396a00b72774ffd324c5753b1de849081cc"
+        },
+        {
+          "path": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+          "reviewedGitBlob": "4b2c1250c28e2cc7955ff79b560affb37fdfadc9"
+        },
+        {
+          "path": "projects/ai-proxy/trusted/Surface.jsx",
+          "reviewedGitBlob": "287260f9d2b64e49c68186c669cfc916cf39426a"
+        }
+      ]
+    },
+    "platformSources": [
+      {
+        "path": "src/platform/chrome/network-transport.js",
+        "sha256": "7f22e09412aed2d86853b824f51453a83056762b550a50b49164e8302c29bc25"
+      },
+      {
+        "path": "src/platform/chrome/network-request.js",
+        "sha256": "2142b7773fe0e2f66fef6ecdfc68d903f078ab4ae2d12e6a05e49d5f89b72f15"
+      },
+      {
+        "path": "src/platform/chrome/network-request.html",
+        "sha256": "e0f057a6a60e95f36a05d2b95a3367bcd7cad3c6540364907b3ffcfe34bfff01"
+      },
+      {
+        "path": "src/entrypoints/network-request.js",
+        "sha256": "0d5b4d0ad09d05c9e2563ec72f09c190e693aca3e0dc3dcfd2ee82b38ad7f40f"
+      },
+      {
+        "path": "src/platform/chrome/network.js",
+        "sha256": "c6bdbe84fa6078bf4102acb532925a70c096530ee1da5dc3bde6dead0c7ca63d"
+      },
+      {
+        "path": "src/platform/host/controller-methods.js",
+        "sha256": "8f213f3c8c37cd8863fcce2c6370092cd5f93d06f133c091d3330cb63e2f4afa"
+      },
+      {
+        "path": "src/platform/tasks/contract.js",
+        "sha256": "176ee83a4b86e39e520a89c77548298010144be6135090a03788f7c8733843d6"
+      },
+      {
+        "path": "src/framework/sdk/registry.js",
+        "sha256": "f1addb9afeaefd1cd1b291028234212a15d6f3db94f709e9574448dd7fa6bb4a"
+      },
+      {
+        "path": "scripts/build-contract.mjs",
+        "sha256": "74a7b33ce9640ceca1b9cb51e1d9427d1667635262ab30f822f58b116248fb97"
+      },
+      {
+        "path": "scripts/prepare-public.mjs",
+        "sha256": "b7fb5244501ebd5071e02d546a44be0bdefea5fb8cf9752352654d33c834fda9"
+      },
+      {
+        "path": "scripts/verify-package.mjs",
+        "sha256": "cebcad9882cf185fc327969d2a361cbecd6cd97dc572e547049236d400b3cbd9"
+      }
+    ]
+  },
+  "sdkGap": {
+    "status": "PROVEN_AND_FIXED_FOR_LOCAL_DEVELOPMENT",
+    "failure": "Chromium Fetch/XHR do not send configured User-Agent; sandbox cannot safely own Chrome DNR. Existing Task v1 denied network even with a reviewed explicit manifest.",
+    "boundary": "Same existing SDK/Authority/Task/RunHost. New transport is static, generic and development-only, fixed GET origin 127.0.0.1:43121, no Cookie, manual redirects, 8192-byte body, unchanged IPC budget, exact URL/tab/initiator DNR, real document/token Port, cleanup or fence. No ScrapyJS identity/engine logic in framework.",
+    "reference": "https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest"
+  },
+  "nativeTask": {
+    "report": "artifacts/scrapyjs/http-ua-20261031/native-task/report.json",
+    "taskInstall": "PASS_UI_RECEIPT",
+    "originalWorker": "PASS",
+    "scrapyEngine": "PASS"
+  },
+  "scenarios": {
+    "headers-A": {
+      "status": "PASS",
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-http-5/report.json",
+      "clientRequestId": "5288d044-d486-467e-bd27-fd2bc1b5e7e8",
+      "runId": "5965b6a7-ac0b-4c8c-844e-f00665889e57",
+      "resultId": "c4f1379f-a4cb-43c5-81c2-1af2ec907ef5",
+      "state": "completed",
+      "sourceHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475",
+      "retirementState": "released",
+      "outcome": "ok",
+      "requestIds": [
+        "fc95ee86349066daa4c88442d42466d0"
+      ],
+      "result": {
+        "audit": {
+          "requests": [
+            {
+              "requestId": "fc95ee86349066daa4c88442d42466d0",
+              "runId": "5965b6a7-ac0b-4c8c-844e-f00665889e57",
+              "url": "http://127.0.0.1:43121/http-echo",
+              "userAgent": "ScrapyJS-UA-A/1.0"
+            }
+          ]
+        },
+        "data": [
+          {
+            "accept": "application/json",
+            "clientTag": "A",
+            "requestId": "fc95ee86349066daa4c88442d42466d0",
+            "runId": "5965b6a7-ac0b-4c8c-844e-f00665889e57",
+            "userAgent": "ScrapyJS-UA-A/1.0"
+          }
+        ],
+        "engine": {
+          "status": "completed",
+          "transport": "isolated-http"
+        },
+        "stats": {
+          "bytes": 194,
+          "pages": 1,
+          "requests": 1
+        }
+      },
+      "resourcesAfter": {
+        "rules": [],
+        "tabs": []
+      },
+      "rawServer": [
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile",
+            "?0",
+            "x-opendesk-request-id",
+            "fc95ee86349066daa4c88442d42466d0",
+            "x-opendesk-run-id",
+            "5965b6a7-ac0b-4c8c-844e-f00665889e57",
+            "User-Agent",
+            "ScrapyJS-UA-A/1.0",
+            "accept",
+            "application/json",
+            "x-client-tag",
+            "A",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "x-opendesk-request-id": "fc95ee86349066daa4c88442d42466d0",
+            "x-opendesk-run-id": "5965b6a7-ac0b-4c8c-844e-f00665889e57",
+            "user-agent": "ScrapyJS-UA-A/1.0",
+            "accept": "application/json",
+            "x-client-tag": "A",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/http-echo",
+          "requestId": "fc95ee86349066daa4c88442d42466d0",
+          "runId": "5965b6a7-ac0b-4c8c-844e-f00665889e57",
+          "status": 200,
+          "closedAt": "2026-10-30T16:38:22.682Z",
+          "prematureClose": false
+        }
+      ]
+    },
+    "headers-B": {
+      "status": "PASS",
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-http-5/report.json",
+      "clientRequestId": "30dfc673-5758-4e29-ad5f-60eea4e76a34",
+      "runId": "b96c1bc3-5cb2-4fb5-92a7-82f00913ded4",
+      "resultId": "9d9fad58-673b-4d5e-b61b-13ca1fdf303f",
+      "state": "completed",
+      "sourceHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475",
+      "retirementState": "released",
+      "outcome": "ok",
+      "requestIds": [
+        "ecbcc0ae7abc0a643562290467327284"
+      ],
+      "result": {
+        "audit": {
+          "requests": [
+            {
+              "requestId": "ecbcc0ae7abc0a643562290467327284",
+              "runId": "b96c1bc3-5cb2-4fb5-92a7-82f00913ded4",
+              "url": "http://127.0.0.1:43121/http-echo",
+              "userAgent": "ScrapyJS-UA-B/1.0"
+            }
+          ]
+        },
+        "data": [
+          {
+            "accept": "application/json; profile=B",
+            "clientTag": "B",
+            "requestId": "ecbcc0ae7abc0a643562290467327284",
+            "runId": "b96c1bc3-5cb2-4fb5-92a7-82f00913ded4",
+            "userAgent": "ScrapyJS-UA-B/1.0"
+          }
+        ],
+        "engine": {
+          "status": "completed",
+          "transport": "isolated-http"
+        },
+        "stats": {
+          "bytes": 205,
+          "pages": 1,
+          "requests": 1
+        }
+      },
+      "resourcesAfter": {
+        "rules": [],
+        "tabs": []
+      },
+      "rawServer": [
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile",
+            "?0",
+            "x-opendesk-request-id",
+            "ecbcc0ae7abc0a643562290467327284",
+            "x-opendesk-run-id",
+            "b96c1bc3-5cb2-4fb5-92a7-82f00913ded4",
+            "User-Agent",
+            "ScrapyJS-UA-B/1.0",
+            "accept",
+            "application/json; profile=B",
+            "x-client-tag",
+            "B",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "x-opendesk-request-id": "ecbcc0ae7abc0a643562290467327284",
+            "x-opendesk-run-id": "b96c1bc3-5cb2-4fb5-92a7-82f00913ded4",
+            "user-agent": "ScrapyJS-UA-B/1.0",
+            "accept": "application/json; profile=B",
+            "x-client-tag": "B",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/http-echo",
+          "requestId": "ecbcc0ae7abc0a643562290467327284",
+          "runId": "b96c1bc3-5cb2-4fb5-92a7-82f00913ded4",
+          "status": 200,
+          "closedAt": "2026-10-30T16:38:24.438Z",
+          "prematureClose": false
+        }
+      ]
+    },
+    "headers-deleted": {
+      "status": "PASS",
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-http-5/report.json",
+      "clientRequestId": "58201b70-907c-4d10-b023-d69cafa9c2fc",
+      "runId": "6a5148f5-312c-4015-9ccb-fea95d79f2ee",
+      "resultId": "803a0eb7-a5b4-4a4d-a673-84a0e48219c6",
+      "state": "completed",
+      "sourceHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475",
+      "retirementState": "released",
+      "outcome": "ok",
+      "requestIds": [
+        "5454b01d770bd3e4ba8a6d4b56304a68"
+      ],
+      "result": {
+        "audit": {
+          "requests": [
+            {
+              "requestId": "5454b01d770bd3e4ba8a6d4b56304a68",
+              "runId": "6a5148f5-312c-4015-9ccb-fea95d79f2ee",
+              "url": "http://127.0.0.1:43121/http-echo",
+              "userAgent": null
+            }
+          ]
+        },
+        "data": [
+          {
+            "accept": "*/*",
+            "requestId": "5454b01d770bd3e4ba8a6d4b56304a68",
+            "runId": "6a5148f5-312c-4015-9ccb-fea95d79f2ee",
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36"
+          }
+        ],
+        "engine": {
+          "status": "completed",
+          "transport": "isolated-http"
+        },
+        "stats": {
+          "bytes": 282,
+          "pages": 1,
+          "requests": 1
+        }
+      },
+      "resourcesAfter": {
+        "rules": [],
+        "tabs": []
+      },
+      "rawServer": [
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "x-opendesk-run-id",
+            "6a5148f5-312c-4015-9ccb-fea95d79f2ee",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "User-Agent",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "x-opendesk-request-id",
+            "5454b01d770bd3e4ba8a6d4b56304a68",
+            "sec-ch-ua-mobile",
+            "?0",
+            "Accept",
+            "*/*",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "x-opendesk-run-id": "6a5148f5-312c-4015-9ccb-fea95d79f2ee",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "x-opendesk-request-id": "5454b01d770bd3e4ba8a6d4b56304a68",
+            "sec-ch-ua-mobile": "?0",
+            "accept": "*/*",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/http-echo",
+          "requestId": "5454b01d770bd3e4ba8a6d4b56304a68",
+          "runId": "6a5148f5-312c-4015-9ccb-fea95d79f2ee",
+          "status": 200,
+          "closedAt": "2026-10-30T16:38:25.423Z",
+          "prematureClose": false
+        }
+      ]
+    },
+    "three-pages-bound": {
+      "status": "PASS",
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-http-5/report.json",
+      "clientRequestId": "01b1b2dd-773b-4428-967a-8e02ed3b84b2",
+      "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+      "resultId": "4a33e68c-fa18-4c19-932f-b9ca13593576",
+      "state": "completed",
+      "sourceHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475",
+      "retirementState": "released",
+      "outcome": "ok",
+      "requestIds": [
+        "13e3c42c14173636538f8839b42f55b8",
+        "9e58890dc310ed01cde0dec59f140223",
+        "fdf39e5ec696d2ec5fa038d8270232bb"
+      ],
+      "result": {
+        "audit": {
+          "requests": [
+            {
+              "requestId": "13e3c42c14173636538f8839b42f55b8",
+              "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+              "url": "http://127.0.0.1:43121/http-echo?pages=3&page=1&delay=5000",
+              "userAgent": "ScrapyJS-UA-A/1.0"
+            },
+            {
+              "requestId": "9e58890dc310ed01cde0dec59f140223",
+              "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+              "url": "http://127.0.0.1:43121/http-echo?pages=3&page=2",
+              "userAgent": "ScrapyJS-UA-A/1.0"
+            },
+            {
+              "requestId": "fdf39e5ec696d2ec5fa038d8270232bb",
+              "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+              "url": "http://127.0.0.1:43121/http-echo?pages=3&page=3",
+              "userAgent": "ScrapyJS-UA-A/1.0"
+            }
+          ]
+        },
+        "data": [
+          {
+            "accept": "application/json",
+            "clientTag": "A",
+            "requestId": "13e3c42c14173636538f8839b42f55b8",
+            "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+            "userAgent": "ScrapyJS-UA-A/1.0"
+          },
+          {
+            "accept": "application/json",
+            "clientTag": "A",
+            "requestId": "9e58890dc310ed01cde0dec59f140223",
+            "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+            "userAgent": "ScrapyJS-UA-A/1.0"
+          },
+          {
+            "accept": "application/json",
+            "clientTag": "A",
+            "requestId": "fdf39e5ec696d2ec5fa038d8270232bb",
+            "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+            "userAgent": "ScrapyJS-UA-A/1.0"
+          }
+        ],
+        "engine": {
+          "status": "completed",
+          "transport": "isolated-http"
+        },
+        "stats": {
+          "bytes": 672,
+          "pages": 3,
+          "requests": 3
+        }
+      },
+      "resourcesAfter": {
+        "rules": [],
+        "tabs": []
+      },
+      "rawServer": [
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile",
+            "?0",
+            "x-opendesk-request-id",
+            "13e3c42c14173636538f8839b42f55b8",
+            "x-opendesk-run-id",
+            "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+            "User-Agent",
+            "ScrapyJS-UA-A/1.0",
+            "accept",
+            "application/json",
+            "x-client-tag",
+            "A",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "x-opendesk-request-id": "13e3c42c14173636538f8839b42f55b8",
+            "x-opendesk-run-id": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+            "user-agent": "ScrapyJS-UA-A/1.0",
+            "accept": "application/json",
+            "x-client-tag": "A",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/http-echo?pages=3&page=1&delay=5000",
+          "requestId": "13e3c42c14173636538f8839b42f55b8",
+          "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+          "status": 200,
+          "closedAt": "2026-10-30T16:38:31.407Z",
+          "prematureClose": false
+        },
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile",
+            "?0",
+            "x-opendesk-request-id",
+            "9e58890dc310ed01cde0dec59f140223",
+            "x-opendesk-run-id",
+            "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+            "User-Agent",
+            "ScrapyJS-UA-A/1.0",
+            "accept",
+            "application/json",
+            "x-client-tag",
+            "A",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "x-opendesk-request-id": "9e58890dc310ed01cde0dec59f140223",
+            "x-opendesk-run-id": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+            "user-agent": "ScrapyJS-UA-A/1.0",
+            "accept": "application/json",
+            "x-client-tag": "A",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/http-echo?pages=3&page=2",
+          "requestId": "9e58890dc310ed01cde0dec59f140223",
+          "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+          "status": 200,
+          "closedAt": "2026-10-30T16:38:31.553Z",
+          "prematureClose": false
+        },
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile",
+            "?0",
+            "x-opendesk-request-id",
+            "fdf39e5ec696d2ec5fa038d8270232bb",
+            "x-opendesk-run-id",
+            "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+            "User-Agent",
+            "ScrapyJS-UA-A/1.0",
+            "accept",
+            "application/json",
+            "x-client-tag",
+            "A",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "x-opendesk-request-id": "fdf39e5ec696d2ec5fa038d8270232bb",
+            "x-opendesk-run-id": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+            "user-agent": "ScrapyJS-UA-A/1.0",
+            "accept": "application/json",
+            "x-client-tag": "A",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/http-echo?pages=3&page=3",
+          "requestId": "fdf39e5ec696d2ec5fa038d8270232bb",
+          "runId": "8e932b5a-db75-4d7f-810b-de7d79dc595f",
+          "status": 200,
+          "closedAt": "2026-10-30T16:38:31.668Z",
+          "prematureClose": false
+        }
+      ]
+    },
+    "stop-stream": {
+      "status": "PASS",
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-http-5/report.json",
+      "clientRequestId": "a0695e9c-8e46-44e4-90eb-61ed6938123d",
+      "runId": "6b09c62a-defe-4a13-abda-cc42467a5282",
+      "resultId": "cd63452d-efca-4823-aefe-965f7b5d1d4f",
+      "state": "stopped",
+      "sourceHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475",
+      "retirementState": "released",
+      "outcome": "E_CANCELLED",
+      "requestIds": [
+        "44cb1adadcb1789ab53663fede40772e"
+      ],
+      "result": null,
+      "resourcesAfter": {
+        "rules": [],
+        "tabs": []
+      },
+      "rawServer": [
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile",
+            "?0",
+            "x-opendesk-request-id",
+            "44cb1adadcb1789ab53663fede40772e",
+            "x-opendesk-run-id",
+            "6b09c62a-defe-4a13-abda-cc42467a5282",
+            "User-Agent",
+            "ScrapyJS-UA-A/1.0",
+            "accept",
+            "application/json",
+            "x-client-tag",
+            "A",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "x-opendesk-request-id": "44cb1adadcb1789ab53663fede40772e",
+            "x-opendesk-run-id": "6b09c62a-defe-4a13-abda-cc42467a5282",
+            "user-agent": "ScrapyJS-UA-A/1.0",
+            "accept": "application/json",
+            "x-client-tag": "A",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/slow?pages=3&page=1",
+          "requestId": "44cb1adadcb1789ab53663fede40772e",
+          "runId": "6b09c62a-defe-4a13-abda-cc42467a5282",
+          "status": 200,
+          "firstChunkAt": "2026-10-30T16:38:33.434Z",
+          "closedAt": "2026-10-30T16:38:33.493Z",
+          "prematureClose": true
+        }
+      ]
+    },
+    "timeout-stream": {
+      "status": "PASS",
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-http-5/report.json",
+      "clientRequestId": "917388df-040e-479e-9289-89dd653a635d",
+      "runId": "46b80a72-fff6-481d-9bb1-ecf646ab5983",
+      "resultId": "c24c28cc-6db1-4fb6-b2d5-6c7c2f1a788c",
+      "state": "failed",
+      "sourceHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475",
+      "retirementState": "released",
+      "outcome": "E_TIMEOUT",
+      "requestIds": [
+        "6ae3e3b1baeed892ed1642f56a365a17"
+      ],
+      "result": null,
+      "resourcesAfter": {
+        "rules": [],
+        "tabs": []
+      },
+      "rawServer": [
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile",
+            "?0",
+            "x-opendesk-request-id",
+            "6ae3e3b1baeed892ed1642f56a365a17",
+            "x-opendesk-run-id",
+            "46b80a72-fff6-481d-9bb1-ecf646ab5983",
+            "User-Agent",
+            "ScrapyJS-UA-A/1.0",
+            "accept",
+            "application/json",
+            "x-client-tag",
+            "A",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "x-opendesk-request-id": "6ae3e3b1baeed892ed1642f56a365a17",
+            "x-opendesk-run-id": "46b80a72-fff6-481d-9bb1-ecf646ab5983",
+            "user-agent": "ScrapyJS-UA-A/1.0",
+            "accept": "application/json",
+            "x-client-tag": "A",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/slow?pages=3&page=1",
+          "requestId": "6ae3e3b1baeed892ed1642f56a365a17",
+          "runId": "46b80a72-fff6-481d-9bb1-ecf646ab5983",
+          "status": 200,
+          "firstChunkAt": "2026-10-30T16:38:44.691Z",
+          "closedAt": "2026-10-30T16:38:46.164Z",
+          "prematureClose": true
+        }
+      ]
+    },
+    "host-500": {
+      "status": "PASS",
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-http-5/report.json",
+      "clientRequestId": "97e2c65c-2b1e-40d5-892e-c85790b1a635",
+      "runId": "cc28803d-36d6-49ca-aa69-e510b68ea2f1",
+      "resultId": "5ea83640-a8d4-4ec4-bfe2-f1059ca42ec2",
+      "state": "failed",
+      "sourceHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475",
+      "retirementState": "released",
+      "outcome": "E_HTTP",
+      "requestIds": [
+        "2f7c443176da8e7d48983ea60e42d8c6"
+      ],
+      "result": null,
+      "resourcesAfter": {
+        "rules": [],
+        "tabs": []
+      },
+      "rawServer": [
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile",
+            "?0",
+            "x-opendesk-request-id",
+            "2f7c443176da8e7d48983ea60e42d8c6",
+            "x-opendesk-run-id",
+            "cc28803d-36d6-49ca-aa69-e510b68ea2f1",
+            "User-Agent",
+            "ScrapyJS-UA-A/1.0",
+            "accept",
+            "application/json",
+            "x-client-tag",
+            "A",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "x-opendesk-request-id": "2f7c443176da8e7d48983ea60e42d8c6",
+            "x-opendesk-run-id": "cc28803d-36d6-49ca-aa69-e510b68ea2f1",
+            "user-agent": "ScrapyJS-UA-A/1.0",
+            "accept": "application/json",
+            "x-client-tag": "A",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/error",
+          "requestId": "2f7c443176da8e7d48983ea60e42d8c6",
+          "runId": "cc28803d-36d6-49ca-aa69-e510b68ea2f1",
+          "status": 500,
+          "closedAt": "2026-10-30T16:38:55.966Z",
+          "prematureClose": false
+        }
+      ]
+    },
+    "redirect-refused": {
+      "status": "PASS",
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-redirect/report.json",
+      "clientRequestId": "7475063b-71d3-4769-9824-aab36038341c",
+      "runId": "a42c838e-8f5c-4b99-9990-4c3c13662106",
+      "resultId": "2d447fac-099e-4384-9faa-b6d11d9425eb",
+      "state": "failed",
+      "sourceHash": "bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475",
+      "retirementState": "released",
+      "outcome": "E_NETWORK",
+      "requestIds": [
+        "25fe45c20176e6ed0751b656cc71bbbc"
+      ],
+      "result": null,
+      "resourcesAfter": {
+        "rules": [],
+        "tabs": []
+      },
+      "rawServer": [
+        {
+          "rawHeaders": [
+            "Host",
+            "127.0.0.1:43121",
+            "Connection",
+            "keep-alive",
+            "Pragma",
+            "no-cache",
+            "Cache-Control",
+            "no-cache",
+            "sec-ch-ua-platform",
+            "\"macOS\"",
+            "sec-ch-ua",
+            "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile",
+            "?0",
+            "x-opendesk-request-id",
+            "25fe45c20176e6ed0751b656cc71bbbc",
+            "x-opendesk-run-id",
+            "a42c838e-8f5c-4b99-9990-4c3c13662106",
+            "User-Agent",
+            "ScrapyJS-UA-A/1.0",
+            "accept",
+            "application/json",
+            "x-client-tag",
+            "A",
+            "Sec-Fetch-Site",
+            "none",
+            "Sec-Fetch-Mode",
+            "cors",
+            "Sec-Fetch-Dest",
+            "empty",
+            "Accept-Encoding",
+            "gzip, deflate, br, zstd",
+            "Accept-Language",
+            "zh-CN,zh;q=0.9"
+          ],
+          "headers": {
+            "host": "127.0.0.1:43121",
+            "connection": "keep-alive",
+            "pragma": "no-cache",
+            "cache-control": "no-cache",
+            "sec-ch-ua-platform": "\"macOS\"",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "sec-ch-ua-mobile": "?0",
+            "x-opendesk-request-id": "25fe45c20176e6ed0751b656cc71bbbc",
+            "x-opendesk-run-id": "a42c838e-8f5c-4b99-9990-4c3c13662106",
+            "user-agent": "ScrapyJS-UA-A/1.0",
+            "accept": "application/json",
+            "x-client-tag": "A",
+            "sec-fetch-site": "none",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-dest": "empty",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9"
+          },
+          "url": "/redirect",
+          "requestId": "25fe45c20176e6ed0751b656cc71bbbc",
+          "runId": "a42c838e-8f5c-4b99-9990-4c3c13662106",
+          "status": 302,
+          "closedAt": "2026-10-30T16:40:50.718Z",
+          "prematureClose": false
+        }
+      ]
+    }
+  },
+  "validation": {
+    "nodeAppDriverLog": "artifacts/scrapyjs/http-ua-20261031/node-final.log",
+    "nodeAppDriverTests": 57,
+    "publicPermissionAndOriginTests": 10,
+    "taskPackageFlowAndStorageTests": 14,
+    "appPackage": "PROJECT_PACKAGE_MATCH",
+    "browserBuild": "passed",
+    "productionHttp": "BLOCKED",
+    "productionBuild": "NOT_TESTED",
+    "realAi": "NOT_TESTED",
+    "physicalMacInput": "NOT_TESTED",
+    "forcedWorkerRestart": "NOT_TESTED"
+  },
+  "attempts": [
+    {
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-http-5/report.json",
+      "wholeStatus": "FAIL",
+      "note": "Seven scenarios passed. Final navigation to the JSON editor hit blank OOPIF content; no redirect Start occurred. Do not label this whole driver run PASS."
+    },
+    {
+      "report": "artifacts/scrapyjs/http-ua-20261031/native-redirect/report.json",
+      "wholeStatus": "PASS_REAL_APP_REDIRECT_LOCAL",
+      "note": "Only the remaining redirect scenario ran after fixing layout settling. Same exact App, Task and immutable extension snapshot; no source changes to production code between reports."
+    }
+  ],
+  "protected": {
+    "dailyWatcher": {
+      "pid": 94442,
+      "token": "6e875b43-d850-4a9f-8dbf-cc6e03feb156",
+      "untouched": true
+    },
+    "original43111Server": "Read-only canonical fixture; not stopped or replaced",
+    "originalCft149Profile": "UNKNOWN_AI_REQUEST_PROTECTED_UNTOUCHED"
+  },
+  "cleanup": {
+    "ownedBrowsersReleased": true,
+    "ownedEchoServersReleased": true,
+    "remainingTransportRules": 0,
+    "remainingTransportTabs": 0
+  },
+  "limits": "Local development core only. No public HTTP collector, DNS/peer enforcement, production approval, AI run, CI, rating or release claim."
+}

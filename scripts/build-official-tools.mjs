@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_LIMITS} from '../src/ui/sidebar-tools/limits.js';
 // Sole official release producer. Reuses the standalone tool packer; no npm,
 // arbitrary script execution or remote sources are admitted by this build.
 import {readFile,realpath,lstat,mkdir,writeFile,rename,rm} from 'node:fs/promises';
@@ -39,24 +40,39 @@ async function prepackedPackage(project,name){
   const path=resolve(project,name);
   if(!path.startsWith(project+'/'))fail('prepacked package escaped project directory');
   const info=await lstat(path);
-  if(!info.isFile()||info.size<1||info.size>320000||await realpath(path)!==path)
+  if(!info.isFile()||info.size<1||info.size>SIDEBAR_TOOL_LIMITS.packageBytes||await realpath(path)!==path)
     fail('prepacked official package is not a bounded regular file');
   const bytes=await readFile(path);
   let object;
   try{object=JSON.parse(bytes.toString('utf8'));}
   catch{fail('prepacked official package JSON invalid');}
   // Use the same authoritative package validator as all other releases.
-  return validateSidebarToolPackage(object);
+  const tool=validateSidebarToolPackage(object);
+  // Runtime provenance hashes canonical serialization. Publishing different
+  // raw bytes would create a catalog that can never match its installed tool.
+  if(!bytes.equals(encodeSidebarToolPackage(tool)))
+    fail('prepacked official package must use canonical package bytes');
+  return {tool,bytes};
 }
-// Include only declared release inputs, including build-ready for a precompiled
-// project. This same list feeds build identity and the existing dev watcher.
+async function releasePackageFile(project,row){
+  // Promotion already binds these bytes to tested source. Later draft edits
+  // must not change that release or force unrelated UI compilation. Explicit
+  // catalog selections remain mandatory; never fall back after a bad package.
+  if(row.packageFile)return row.packageFile;
+  const name=row.id+'.opendesk-tool.json';
+  try{await lstat(resolve(project,name));return name;}
+  catch(error){if(error.code!=='ENOENT')throw error;return null;}
+}
+// Fingerprint the selected release, not its advancing development source.
+// Source-only projects still require their original build-ready validation.
 export async function officialToolInputs(root=REPOSITORY_ROOT){
   root=await realpath(root);
   const catalog=await readOfficialSources(root),paths=[OFFICIAL_CATALOG_PATH];
   for(const row of catalog.tools){
     const project=await projectPath(root,row);
-    if(row.packageFile){
-      const path=resolve(project,row.packageFile);
+    const packageFile=await releasePackageFile(project,row);
+    if(packageFile){
+      const path=resolve(project,packageFile);
       if(await realpath(path)!==path)fail('prepacked source is a symlink');
       paths.push(relative(root,path));
       continue;
@@ -84,8 +100,9 @@ export async function createOfficialToolResources({root=REPOSITORY_ROOT}={}){
   const before=await fingerprint(root),source=await readOfficialSources(root),apps=[],resources=new Map();
   for(const row of source.tools){
     const project=await projectPath(root,row);
-    const tool=row.packageFile?await prepackedPackage(project,row.packageFile):
-      await createSidebarToolPackage(project);
+    const packageFile=await releasePackageFile(project,row);
+    const packed=packageFile?await prepackedPackage(project,packageFile):null;
+    const tool=packed?packed.tool:await createSidebarToolPackage(project);
     if(tool.id!==row.id)fail('official release ID does not match catalog: '+row.id);
     try{parse(tool.js,{ecmaVersion:'latest',sourceType:'script'});}
     catch(error){fail('official tool JavaScript syntax error: '+row.id+' '+error.message);}
@@ -95,7 +112,7 @@ export async function createOfficialToolResources({root=REPOSITORY_ROOT}={}){
     assets.push(...[...tool.css.matchAll(/url\s*\(([^)]*)\)/gi)].map(match=>match[1].trim().replace(/^["']|["']$/g,'')));
     if(/\bsrcset\s*=/i.test(tool.html)||assets.some(value=>!raster.test(value)))
       fail('official static assets must be embedded: '+row.id);
-    const bytes=encodeSidebarToolPackage(tool),packagePath=officialPackagePath(tool.id);
+    const bytes=packed?packed.bytes:encodeSidebarToolPackage(tool),packagePath=officialPackagePath(tool.id);
     resources.set(packagePath,bytes);
     apps.push({id:'opendesk/'+tool.id,toolId:tool.id,kind:row.kind,installationPolicy:row.installationPolicy,
       version:tool.version,packageTitle:tool.title,description:tool.description,

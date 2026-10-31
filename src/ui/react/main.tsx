@@ -23,6 +23,8 @@ import myAgentCSS from './tabs/my-agent.css?raw';
 import localeManagerCSS from './tabs/locale-manager.css?raw';
 import KnowledgeWorkspace from '../../../projects/ai-knowledge-answers/trusted/Workspace.jsx';
 import knowledgeWorkspaceCSS from '../../../projects/ai-knowledge-answers/trusted/workspace.css?raw';
+import AIProxySurface from '../../../projects/ai-proxy/trusted/Surface.jsx';
+import {configureEnvironment as configureAIProxyEnvironment} from '../../../projects/ai-proxy/src/environment';
 
 const PROMPT_PHASE_LABELS=Object.freeze({
  thinking:'正在理解提示词操作…',observing:'正在查找并核对提示词…',
@@ -69,7 +71,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
   let feedbackModel={showEmpty:false,emptyText:'',countText:'正在读取扩展…'};
   let recoveryModel={ids:[],busy:false,onRetry:()=>{}};
   let statusModel={text:'',state:'info'},cloudPageModel={};
-  let rowMenuModel=null,bookmarkPilot=null,promptPilot=null,knowledgePilot=null;
+  let rowMenuModel=null,bookmarkPilot=null,promptPilot=null,knowledgePilot=null,aiProxyPilot=null;
   let debugModel={},debugActions={},development=null;
   let browserHistoryModel=null,browserHistoryActions=null;
   const ownedNodes=[];
@@ -79,6 +81,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
     finally{
       try{root.unmount();}
       finally{
+        aiProxyPilot?.environment.dispose();aiProxyPilot=null;
         mountedDocuments.delete(doc);
         if(bookmarkPilot?.container.dataset.opendeskReactOwner==='bookmark-react-pilot')
           delete bookmarkPilot.container.dataset.opendeskReactOwner;
@@ -109,6 +112,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
         cloudModel={cloudPageModel.overview} cloudRequestsModel={cloudPageModel.requests}
         cloudSetupModel={cloudPageModel.setup} cloudPageModel={cloudPageModel}/>
       {previewContents&&previewPortal&&createPortal(previewContents,previewPortal)}
+      {aiProxyPilot&&createPortal(<AIProxySurface/>,aiProxyPilot.container)}
       {knowledgePilot&&createPortal(<KnowledgeWorkspace host={knowledgePilot.host}
         onOpenSettings={openSharedProviderSettings}/>,knowledgePilot.container)}
       {promptPilot&&createPortal(
@@ -182,6 +186,24 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
       onExtensionBack=handler;paint();},
     renderView(view){if(disposed||!['list','detail'].includes(view))throw new Error('E_REACT_EXTENSION_VIEW');
       extensionView=view;paint();},
+    mountAIProxyPilot({container,request,locale,onStateChange}={}){
+      if(disposed||aiProxyPilot||!container||container.ownerDocument!==doc||
+        container.childNodes.length||container.dataset.opendeskReactOwner||
+        typeof request!=='function'||typeof onStateChange!=='function')
+        throw Error('E_AI_PROXY_REACT_OWNER');
+      const managed=Object.freeze(Object.fromEntries(['getStatus','requestEnable','requestDisable']
+        .map(name=>[name,payload=>request('browser.proxy.managed.'+name,payload||{})])));
+      const environment=configureAIProxyEnvironment({request,locale,setState:onStateChange},
+        {browser:{proxy:{managed}}},{trusted:true});
+      aiProxyPilot={container,environment};container.dataset.opendeskReactOwner='ai-proxy';
+      const release=()=>{
+        if(aiProxyPilot?.environment!==environment)return;
+        aiProxyPilot=null;
+        try{if(!disposed)paint();}finally{environment.dispose();delete container.dataset.opendeskReactOwner;}
+      };
+      try{paint();}catch(error){release();throw error;}
+      return release;
+    },
     mountKnowledgeWorkspace({container,host}={}){
       if(disposed||knowledgePilot||!container||container.ownerDocument!==doc||
         container.childNodes.length||container.dataset.opendeskReactOwner||typeof host?.send!=='function')

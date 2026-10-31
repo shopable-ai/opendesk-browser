@@ -7,7 +7,9 @@
 - 正式业务源码：`src/App.jsx`、`src/style.css`。首页是「配置」，另外两个 Tab 是「我的环境」「检测」。
 - 最新同源 React 预览：[`preview/react/index.html`](preview/react/index.html)。可修改 UA、语言、时区、视口，选择原始/美国/德国/日本，保存与管理档案；预览始终拒绝修改真实 Chrome，不显示虚假生效。
 - [`preview/index.html`](preview/index.html) 是保留的 **R3.1 设计基准**，不代表当前正式 React UI。
-- 唯一可导入包：[`browser-fingerprint.opendesk-tool.json`](browser-fingerprint.opendesk-tool.json)，版本 **0.2.4**。从原有「扩展 → 更多操作 → 导入扩展」安装/更新；包同源通过不等于新版 Chrome 安装验收通过。
+- 唯一可导入包：[`browser-fingerprint.opendesk-tool.json`](browser-fingerprint.opendesk-tool.json)，版本 **0.2.6**。从原有「扩展 → 更多操作 → 导入扩展」安装/更新；已在独立 Mac CFT 通过原安装流程更新，权限未变化。
+
+**日常 Chrome 的入口核对（2026-10-30 续接）**：已从原生 UI 确认「您的 Chrome」加载本仓库 `dist/development`，扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`。其「全部 / 已安装」列表为 15 项，未见浏览器指纹；不能将上面的独立 CFT 安装结果理解为日常实例已更新。当前待办是在该实例通过原安装器导入 0.2.6、打开并核对三 Tab。浏览器接口拒绝打开扩展内部 URL，自动安装未完成；未更换加载目录、扩展 ID 或 Native 配对。详见[当前入口记录](evidence/r33-core-20261030.zh-CN.md#日常-chrome-入口续接核对)。
 
 ## 本轮结果
 
@@ -15,7 +17,9 @@
 
 相关 Node **72/72 PASS**，正式 Vite 构建和预览同源核对通过，Chromium 完成三 Tab、四预设、草稿保护、保存重开/编辑/复制/删除、表单恢复零 Host 调用、拒绝假应用与 unknown 不重放的核心检查。所有预览 SDK 结果均为 **FIXTURE_ONLY**。
 
-新版真实 Mac Chrome 授权/应用/恢复 **NOT_TESTED**：本轮独立 CFT 已打开真实网页和 production 侧栏，但原生文件选择对话框未完成候选导入；未调用新版应用或恢复。旧 Host 的 R2.5 实测仅作为历史复用证据，见 [Mac 生命周期记录](evidence/mac-lifecycle-20261030.zh-CN.md)，不能替代新版 UI 验收。
+真实 Mac Chrome 核心链路已运行：保存档案并读回、重开载入、授权、应用、独立网页读回、停止和恢复基线。最终 0.2.6 安装 JS/CSS 与正式包一致；停止后调试解除，UA/UA-CH、语言及完整语言数组、时区、视口恢复。不保存直接应用已在本轮 0.2.4 验证，最终包复验保存档案的应用链。复用原 R2.5 production Host，没有重建宿主；详细原始读数见 [Mac 核心证据](evidence/r33-native-core-20261030.json)。
+
+本轮还修复了结果归属问题：停止后切换新预设，完成记录与报告仍绑定原会话，不再错误显示新表单的名称/配置。旧 R2.5 Host 首次授权确认较慢时曾超时；界面如实进入 unknown，没有自动重放，独立网页也未被修改。最终候选及时确认授权后的完整链路通过，但不能据此宣称慢授权问题或当前 main Host 全量验收通过。
 
 「恢复原始参数」只改表单；「停止并恢复网页」继续走原 Session 和独立读回。unknown、invalidated、restore_unknown 保护不放宽。产品不承诺独立 Profile、Cookie 隔离、代理或完整指纹浏览器能力；专业方案为自愿入口，不阻断免费配置功能。
 

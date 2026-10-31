@@ -14,6 +14,15 @@ test('native configuration grammar validates before browser work; only three exp
     {fieldRequirements:[],validation:undefined},{processing:{version:1,rules:[{op:'eval',field:'name'}]}}])
     assert.throws(()=>validateCapture({...fields,...change}));
 });
+test('DOM capture refuses HTTP headers and User-Agent before any controlled page access',async()=>{
+  let pageAccesses=0;
+  const page=new Proxy({}, {get(){pageAccesses++;throw Error('Unexpected page access');}});
+  for(const change of [{headers:{Accept:'text/html'}},{headers:{'User-Agent':'fixture-only'}},
+    {userAgent:'fixture-only'},{executionKind:'browser-http'}]){
+    await assert.rejects(runCapture({...copy(fields),...change},page),{code:'E_CAPTURE_CONFIG'});
+  }
+  assert.equal(pageAccesses,0,'DOM navigation cannot silently ignore HTTP-only configuration');
+});
 test('detail schema binds existing identity and URL fields and refuses overwrites',()=>{
   for(const detail of [{...listDetail.detail,urlField:'missing'},
     {...listDetail.detail,identityField:'missing'},

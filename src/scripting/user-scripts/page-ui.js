@@ -1,5 +1,6 @@
 import {preparePageUIMount,activatePageUIMount} from './page-ui-mount.js';
 import {createPageProgramURLMatcher} from './page-program-rules.js';
+import {showPageToast} from './page-toast.js';
 // Opt-in USER_SCRIPT helper, bundled only for projects importing @opendesk/ui.
 // Not a privileged extension API, DOM security sandbox or Task stop mechanism.
 export const PAGE_UI_VERSION='1';
@@ -170,7 +171,12 @@ export function createPageUI({id,baseStyles=true,css='',assets={},mount,pageRule
     check(active()&&typeof __opendeskPageFramesV1!=='undefined','E_FRAME_UNAVAILABLE','此执行没有已授权的固定子帧资源');
     return __opendeskPageFramesV1.create(options,onDispose,content);
   }
+  function toast(options){
+    check(active(),'E_UI_DOCUMENT','Page UI has retired');
+    return showPageToast({...options,id});
+  }
+  onDispose(()=>showPageToast({id},'dismiss'));
   return Object.freeze({id,host,shadowRoot,content,overlay,active,destroy,close:destroy,onDispose,createFrame,
-    addStyle,getAsset,on,setTimeout:setTimeoutManaged,setInterval:setIntervalManaged,observe,objectURL,
+    addStyle,getAsset,on,toast,setTimeout:setTimeoutManaged,setInterval:setIntervalManaged,observe,objectURL,
     verifyMount:placement.verifyMount,getMountDiagnostics:placement.getMountDiagnostics});
 }

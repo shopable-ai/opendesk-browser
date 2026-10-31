@@ -3,6 +3,7 @@ import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_LAST_C
 import {createLocalProjectService} from './local-project-service.js';
 import {createWorkflowAIService} from './workflow-ai-service.js';
 import {createFileWorkspaceService} from './file-workspace-service.js';
+import {createManagedServiceClient} from './managed-service-client.js';
 import {SIDEPANEL_DOCUMENT_PATH,toolDocumentIdentity} from '../tool-document-url.js';
 import {resolveToolSender} from '../environment.js';
 
@@ -17,6 +18,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   const files=createFileWorkspaceService({api,connection:()=>({enabled,ready,port,generation}),
     onChange:({connected}={})=>{api.runtime.sendMessage?.({protocol:AGENT_CONFIG_PROTOCOL,type:'files.changed',connected}).catch?.(()=>{});}});
   const projects=createLocalProjectService({api,hostPorts,connection:()=>({enabled,ready,port,generation}),files});
+  const managedServices=createManagedServiceClient({api,connection:()=>({enabled,ready,port,generation}),development});
   const sequences={ledger:Promise.resolve(),settings:Promise.resolve()};
   function exclusive(action,key='ledger') {
     const next=sequences[key].then(action);
@@ -131,6 +133,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     const old=port;port=null;ready=false;workflowAiVersion=0;
     projects.disconnected();workflowAI.disconnected();
     files.disconnected();
+    managedServices.disconnected();
     for(const [id,item] of pending) {
       clearTimeout(item.timeout);item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
       pending.delete(id);
@@ -201,10 +204,12 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       if(msg?.v===AGENT_VERSION&&msg.kind==='hello'&&!ready) {
         workflowAiVersion=msg.workflowAiVersion===1?1:0;ready=true;
         files.negotiate(msg.localFilesVersion);
+        managedServices.negotiate(msg.managedServicesVersion);
         projects.negotiateSource(msg.localDevSourceVersion);
         try{connected.postMessage({v:AGENT_VERSION,kind:'welcome',extensionId:api.runtime.id,
           extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localDevMultiVersion:msg.localDevMultiVersion===1?1:0,localFilesVersion:1,
           ...(workflowAiVersion===1?{workflowAiVersion:1}:{}),
+          ...(msg.managedServicesVersion===1?{managedServicesVersion:1}:{}),
           ...(msg.localDevAccessVersion===1?{localDevAccessVersion:1}:{}),
           ...(msg.localDevSourceVersion===1?{localDevSourceVersion:1}:{})});
          // Confirm the transport handshake before recording any connection history.
@@ -216,6 +221,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
       else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
       else if(ready&&files.receive(msg)){ /* trusted file workspace transport */ }
+      else if(ready&&managedServices.receive(msg)){ /* fixed SW service transport */ }
       else if(ready&&msg?.kind==='request')void receive(msg,connected);
       else connected.disconnect();
     });
@@ -340,7 +346,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     writeEnabled(false).catch(()=>{});
   };
   api.permissions.onRemoved?.addListener(onRemoved);
-  return {ready:initial,handleSettings,acceptHostResponse,
+  return {ready:initial,handleSettings,acceptHostResponse,managedServices,
     acceptHostRequest:(host,message)=>workflowAI.acceptHostRequest(host,message)||projects.acceptHostRequest(host,message),
     dropHost(host){workflowAI.dropHost(host);projects.dropHost(host);},dispose() {
     settingsGeneration++;disposed=true;enabled=false;invalidateConnection()?.disconnect();

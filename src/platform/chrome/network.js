@@ -33,10 +33,12 @@ async function readBody(response, maxBytes, signal) {
   } finally { signal.removeEventListener('abort', cancel); reader.releaseLock(); }
 }
 export function createNetworkService({fetchImpl = globalThis.fetch, authorize, clock = Date,
-  maxResponseBytes = SDK_LIMITS.responseBytes, setTimer = setTimeout, clearTimer = clearTimeout, networkInfoEnabled = false} = {}) {
+  maxResponseBytes = SDK_LIMITS.responseBytes, setTimer = setTimeout, clearTimer = clearTimeout, networkInfoEnabled = false, isolatedTransport, nativeTransport} = {}) {
   async function request({method, url, data, config}, context = {}) {
     if (!['GET', 'POST', 'PUT', 'DELETE'].includes(method)) throw fail('E_SERVICE_UNSUPPORTED');
     const normalized = normalizeConfig(config);
+    const transport = normalized.transport === 'native-http' ? nativeTransport : isolatedTransport;
+    if (normalized.transport && !transport) throw fail('E_SERVICE_UNSUPPORTED', 'Requested HTTP transport unavailable');
     if (data !== undefined) jsonValue(data);
     const target = new URL(httpUrl(url));
     for (const [name, value] of Object.entries(normalized.params ?? {})) {
@@ -64,7 +66,13 @@ export function createNetworkService({fetchImpl = globalThis.fetch, authorize, c
         if (typeof data !== 'string' && !headers['content-type']) headers['content-type'] = 'application/json';
       }
       context.assertDispatch?.();
-      const response = await fetchImpl(target.href, {method, headers, body, credentials: 'omit', redirect: 'manual', signal: controller.signal});
+      const options={method,headers,body,credentials:'omit',redirect:'manual',signal:controller.signal};
+      const response = normalized.transport
+        ? await transport.request(target.href,{...options,userAgent:normalized.userAgent},
+          {...context,deadlineAt:Math.min(context.deadlineAt??Infinity,clock.now()+timeout)},async()=>{
+          await authorize({capability:'network',url:target.href,method,phase:'pre'},context);context.assertDispatch?.();
+        })
+        : await fetchImpl(target.href,options);
       if (response.type === 'opaque' || response.type === 'opaqueredirect') throw fail('E_NETWORK', 'HTTP response is not observable');
       const text = await readBody(response, maxResponseBytes, controller.signal);
       let responseData = text;
@@ -79,6 +87,8 @@ export function createNetworkService({fetchImpl = globalThis.fetch, authorize, c
       }
       const projection = {data: responseData, status: response.status, statusText: response.statusText,
         headers: responseHeaders, config: {...normalized, method: method.toLowerCase(), url: target.href}};
+      if(normalized.transport)projection.request={runId:context.runId,requestId:context.requestId,
+        ...(response.executor?{executor:response.executor}:{})};
       await abortable(context.recordNativeReceipt?.(projection), controller.signal);
       if (!response.ok) {
         await abortable(authorize({capability:'network',url:target.href,method,phase:'post'}, context), controller.signal);
@@ -89,6 +99,7 @@ export function createNetworkService({fetchImpl = globalThis.fetch, authorize, c
       if (controller.signal.aborted) throw controller.signal.reason;
       return projection;
     } catch (error) {
+      if (error?.code === 'E_EFFECT_UNKNOWN') throw error;
       if (controller.signal.aborted) throw controller.signal.reason;
       if (error?.code) throw error;
       throw fail('E_NETWORK', 'HTTP transport failed');

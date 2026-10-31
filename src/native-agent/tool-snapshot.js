@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_LIMITS} from '../ui/sidebar-tools/limits.js';
 // Reads a staged *immutable* UI package through the existing 32 KiB Native
 // files.read contract. This is transport and verification, NOT authority.
 import {validateSidebarToolPackage} from '../ui/sidebar-tools/package.js';
@@ -41,17 +42,17 @@ export async function readToolSnapshot({toolId,readText}){
     manifest.format!=='opendesk.tool-snapshot.v1'||manifest.id!==toolId||
     manifest.version!==pointer.version||manifest.sha256!==pointer.sha256||
     manifest.buildId!==pointer.buildId||!SHA.test(manifest.sourceFingerprint)||
-    !Number.isSafeInteger(manifest.bytes)||manifest.bytes<=0||manifest.bytes>322000||
-    !Array.isArray(manifest.chunks)||manifest.chunks.length<1||manifest.chunks.length>21)
+    !Number.isSafeInteger(manifest.bytes)||manifest.bytes<=0||manifest.bytes>SIDEBAR_TOOL_LIMITS.packageBytes||
+    !Array.isArray(manifest.chunks)||manifest.chunks.length<1||manifest.chunks.length>Math.ceil(SIDEBAR_TOOL_LIMITS.packageBytes/SIDEBAR_TOOL_LIMITS.nativeChunkBytes))
     fail('invalid snapshot manifest');
   const buffers=[];let combined=0;
   for(let i=0;i<manifest.chunks.length;i++){
     const part=manifest.chunks[i],expected=prefix+'/'+pointer.sha256+'/part-'+String(i).padStart(3,'0')+'.txt';
     if(!exact(part,['path','sha256','bytes'])||part.path!==expected||
       !SHA.test(part.sha256)||!Number.isSafeInteger(part.bytes)||
-      part.bytes<1||part.bytes>16000)fail('invalid chunk manifest');
+      part.bytes<1||part.bytes>SIDEBAR_TOOL_LIMITS.nativeChunkBytes)fail('invalid chunk manifest');
     const b64=await readText(expected);
-    if(typeof b64!=='string'||b64.length>24000||!B64.test(b64))fail('invalid chunk encoding');
+    if(typeof b64!=='string'||b64.length>4*Math.ceil(SIDEBAR_TOOL_LIMITS.nativeChunkBytes/3)||!B64.test(b64))fail('invalid chunk encoding');
     const ascii=atob(b64);
     const bytes=Uint8Array.from(ascii,x=>x.charCodeAt(0));
     if(bytes.length!==part.bytes||await hash(bytes)!==part.sha256)fail('chunk changed during Native transfer');

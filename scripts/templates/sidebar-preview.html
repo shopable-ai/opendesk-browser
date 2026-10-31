@@ -1,24 +1,14 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-opendesk-preview'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <meta name="od-preview-source" content="{{SOURCE}}">
-  <title>{{TITLE}} · OpenDesk 交互预览</title>
-  <!-- 静态设计文档快照；不得把这份宿主 CSS 注入实际工具 iframe。 -->
-  <style id="od-preview-tokens">{{TOKENS}}
-{{LIGHT_OVERRIDE}}</style>
-  <style id="od-preview-components">{{COMPONENTS}}</style>
   <style id="od-preview-frame">
     /* This standalone document owns its scroll; no extension runtime is loaded. */
     html,body{height:auto;min-height:100%;overflow:auto}
-    .preview-shell{width:100%;max-width:600px;margin-inline:auto;padding:var(--od-page-gutter);display:grid;gap:var(--space-4)}
+    #od-preview-app{padding:var(--space-3);background:var(--od-bg);color:var(--od-ink);min-width:0;overflow-wrap:anywhere}
     .preview-controls{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
     .preview-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
     .preview-row>span{min-width:0;overflow-wrap:anywhere}
     .preview-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
     .preview-heading{display:grid;gap:var(--space-2)}
+    .preview-sections{display:grid;gap:var(--space-4);min-width:0}
+    .preview-actions-code{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
     /* Reading design only: geometry, not component appearance. Article and
        simulated device own separate scroll areas; no runtime CSS is copied. */
     .preview-reading-shell:has(.preview-reading-workbench){max-width:1360px}
@@ -46,40 +36,35 @@
     .preview-reading-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-3)}
     @media(max-width:900px){.preview-reading-workbench{grid-template-columns:minmax(0,1fr)}.preview-reading-article{padding-inline-end:var(--space-4);padding-block-start:320px}.preview-reading-device{max-height:none}}
   </style>
-</head>
-<body>
-<main class="preview-shell preview-reading-shell">
-  <aside class="od-alert" aria-label="预览范围">交互预览 · 模拟数据 · 未安装。保存与删除只改变本页内存；关闭后清空。</aside>
+<aside id="od-preview-controls" class="preview-diagnostic-area" aria-label="应用外部离线预览辅助区"><details class="od-disclosure od-surface od-surface--padded" open><summary>预览辅助 · 仅模拟，不属于工具</summary><p class="od-note">状态切换与恢复会重置本页模拟数据。未保存编辑期间禁用切换；取消后可继续演示。</p>
   <div id="preview-state" class="preview-controls" role="group" aria-label="模拟状态">
     <span class="od-note">模拟状态</span>
-    <button type="button" class="od-button" data-state="ready" aria-pressed="true">正常</button>
+    <button type="button" class="od-button" data-state="ready" aria-pressed="true">已授权</button>
     <button type="button" class="od-button od-button--secondary" data-state="empty" aria-pressed="false">空数据</button>
     <button type="button" class="od-button od-button--secondary" data-state="error" aria-pressed="false">读取失败</button>
+    <button type="button" class="od-button od-button--secondary" data-state="denied" aria-pressed="false">未授权</button>
     <button type="button" class="od-button od-button--secondary" data-state="revoked" aria-pressed="false">授权撤销</button>
     <button type="button" class="od-button od-button--secondary" data-state="busy" aria-pressed="false">处理中</button>
     <button type="button" class="od-button od-button--secondary" data-state="long" aria-pressed="false">长文本</button>
   </div>
-  <!-- 模型可编辑区域：仅工具内容；保留单一标题、od-* 组件、label 与状态语义。 -->
-  <section id="od-preview-app" class="od-stack" aria-label="工具交互预览">
-    <header class="od-page-head"><h1 class="od-page-title">{{TITLE}}</h1></header>
+<div class="preview-controls"><label for="od-design-theme">工具主题<select id="od-design-theme" class="od-field"><option value="light">浅色</option><option value="dark">深色</option></select></label><button id="reset-items" type="button" class="od-button od-button--secondary">恢复初始预览</button></div><p class="od-note">宿主外壳始终为浅色。未授权和撤权仅演示界面状态，不申请真实权限。</p></details></aside>
+  <section id="od-preview-app" class="preview-sections" aria-label="工具交互预览">
     <p id="app-status" class="od-note" role="status" aria-live="polite">示例内容已就绪。</p>
     <section id="list-view" class="od-stack" data-view="list">
-      <div class="od-page-head"><h2 class="od-page-title">我的条目</h2><div class="od-page-actions"><button id="reset-items" type="button" class="od-icon-button" aria-label="重置模拟数据" title="重置模拟数据"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></svg></button><button id="create-item" type="button" class="od-button">新建</button></div></div>
+      <div class="od-page-head"><h2 class="od-page-title">我的条目</h2><div class="od-page-actions"><button id="refresh-items" type="button" class="od-icon-button" aria-label="刷新条目" title="刷新条目"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></svg></button><button id="create-item" type="button" class="od-button">新建</button></div></div>
       <div id="item-list" class="od-stack"></div>
     </section>
-    <form id="form-view" class="od-stack od-surface od-surface--padded" data-view="form" hidden novalidate>
+    <form id="form-view" class="od-shared-card" data-view="form" hidden novalidate><div class="od-shared-card-content preview-sections">
       <h2 id="form-title" class="od-title" tabindex="-1">新建条目</h2>
-      <div><label for="item-title">名称</label><input id="item-title" class="od-field" maxlength="80" required aria-describedby="item-error"><p id="item-error" class="od-field-error" role="alert" hidden>请输入名称。</p></div>
-      <div class="preview-actions"><button id="save-item" type="submit" class="od-button">保存</button><button id="cancel-form" type="button" class="od-button od-button--secondary">取消</button></div>
-    </form>
-    <section id="confirm-view" class="od-stack od-surface od-surface--padded" data-view="confirm" aria-labelledby="confirm-title" hidden>
+      <div class="od-form-field"><label for="item-title" class="od-field-label">名称</label><input id="item-title" class="od-field" maxlength="80" required aria-describedby="item-help item-error"><p id="item-help" class="od-field-help">用于在列表中识别条目，最多 80 个字符。</p><p id="item-error" class="od-field-error" role="alert" hidden>请输入名称。</p></div>
+      <div class="preview-actions"><button id="save-item" type="submit" class="od-button od-button--primary">保存</button><button id="cancel-form" type="button" class="od-button od-button--secondary">取消</button></div>
+    </div></form>
+    <section id="confirm-view" class="od-shared-card" data-view="confirm" aria-labelledby="confirm-title" hidden><div class="od-shared-card-content od-stack">
       <h2 id="confirm-title" class="od-title" tabindex="-1">删除这条记录？</h2><p id="confirm-copy" class="od-body"></p>
-      <div class="preview-actions"><button id="confirm-delete" type="button" class="od-button od-button--danger">确认删除</button><button id="cancel-delete" type="button" class="od-button od-button--secondary">取消</button></div>
-    </section>
-    <details class="od-disclosure od-disclosure--flat"><summary>预览说明</summary><p class="od-note">模拟授权状态不代表申请或取得真实权限。实际安装与运行须经既有工具 Host。</p></details>
+      <p class="od-note">删除后此条目将从本页列表移除。</p>
+      <div class="preview-actions"><button id="cancel-delete" type="button" class="od-button od-button--secondary">取消</button><button id="confirm-delete" type="button" class="od-button od-button--danger">确认删除</button></div>
+    </div></section>
   </section>
-</main>
-<!-- 模型可编辑区域：本地交互模拟；不连接真实 SDK、存储、网站或文件。 -->
 <script id="od-preview-behavior" nonce="opendesk-preview">
 (() => {
   'use strict';
@@ -93,6 +78,8 @@
   function show(view) {
     for (const panel of root.querySelectorAll('[data-view]')) panel.hidden = panel.dataset.view !== view;
     for (const button of stateButtons) button.disabled = view !== 'list';
+    document.getElementById('reset-items').disabled = view !== 'list';
+    document.getElementById('od-design-theme').disabled = view !== 'list';
   }
   function restoreFocus() {
     window.scrollTo({top:returnScroll,behavior:'instant'});
@@ -101,27 +88,30 @@
   }
   function button(text, id, action, dangerous = false) {
     const el = document.createElement('button'); el.type = 'button'; el.id = id;
-    el.className = 'od-button ' + (dangerous ? 'od-button--danger' : 'od-button--secondary');
+    el.className = 'od-button ' + (dangerous ? 'od-button--quiet' : 'od-button--secondary');
     el.textContent = text; el.addEventListener('click', action); return el;
   }
   function render() {
     const list = get('item-list'); list.replaceChildren();
-    const blocked = ['error','revoked','busy'].includes(previewState);
+    const blocked = ['error','denied','revoked','busy'].includes(previewState);
     get('create-item').disabled = blocked;
-    get('reset-items').disabled = blocked;
+    get('refresh-items').disabled = blocked;
     get('app-status').setAttribute('role', ['error','revoked'].includes(previewState) ? 'alert' : 'status');
-    const messages = {error:'读取失败，请切回正常状态重试。',revoked:'授权已撤销，请在实际扩展中重新授权。',busy:'正在处理模拟操作…'};
-    status(blocked ? messages[previewState] : items.length ? '示例内容已就绪。' : '暂无条目，可点击新建。');
+    get('app-status').className = blocked ? 'od-alert ' + (previewState === 'error' ? 'od-alert--error' : ['denied','revoked'].includes(previewState) ? 'od-alert--warning' : '') : items.length ? 'od-note' : 'od-alert';
+    root.setAttribute('aria-busy', String(previewState === 'busy'));
+    const messages = {error:'读取失败，请切回正常状态重试。',denied:'尚未授权，当前内容不可读取。',revoked:'授权已撤销，当前操作已停止。',busy:'正在处理模拟操作…'};
+    status(previewState === 'long' ? '这是一条用于演示自然换行的长状态提示，保留完整说明及恢复路径：https://example.invalid/' + 'long-context-'.repeat(16) : blocked ? messages[previewState] : items.length ? '示例内容已就绪。' : '暂无条目，可点击新建。');
     if (blocked) return;
     for (const item of items) {
-      const row = document.createElement('div'); row.className = 'preview-row od-surface od-surface--padded';
+      const row = document.createElement('div'); row.className = 'od-shared-card';
+      const content = document.createElement('div'); content.className = 'od-shared-card-content preview-row';
       const title = document.createElement('span'); title.className = 'od-body'; title.textContent = item.title;
       const actions = document.createElement('div'); actions.className = 'preview-actions';
       const editId = 'edit-' + item.id, removeId = 'remove-' + item.id;
       actions.append(button('编辑', editId, () => openForm(item, editId)), button('删除', removeId, () => {
         removing = item.id; returnFocus = removeId; returnScroll = window.scrollY; get('confirm-copy').textContent = item.title;
         show('confirm'); get('cancel-delete').focus();
-      }, true)); row.append(title, actions); list.append(row);
+      }, true)); content.append(title, actions); row.append(content); list.append(row);
     }
   }
   function openForm(item, origin) {
@@ -131,6 +121,10 @@
     get('item-error').hidden = true; show('form'); get('item-title').focus();
   }
   get('create-item').addEventListener('click', () => openForm(null, 'create-item'));
+  get('item-title').addEventListener('input', () => {
+    if (!get('item-title').value.trim()) return;
+    get('item-title').removeAttribute('aria-invalid'); get('item-error').hidden = true;
+  });
   get('form-view').addEventListener('submit', event => {
     event.preventDefault(); const title = get('item-title').value.trim();
     if (!title) { get('item-error').hidden = false; get('item-title').setAttribute('aria-invalid','true'); get('item-title').focus(); return; }
@@ -144,8 +138,20 @@
       event.preventDefault(); show('list'); restoreFocus();
     }
   });
-  get('reset-items').addEventListener('click', () => {
-    items = initial(); nextId = 3; render(); status('模拟数据已重置。'); get('reset-items').focus();
+  function reset() {
+    previewState = 'ready'; items = initial(); nextId = 3; editing = removing = null;
+    root.dataset.previewTheme = 'light'; document.getElementById('od-design-theme').value = 'light';
+    for (const button of stateButtons) {
+      const selected = button.dataset.state === 'ready';
+      button.setAttribute('aria-pressed', String(selected)); button.classList.toggle('od-button--secondary', !selected);
+    }
+    show('list'); render();
+  }
+  document.getElementById('reset-items').addEventListener('click', reset);
+  root.addEventListener('opendesk-preview-reset', reset);
+  get('refresh-items').addEventListener('click', () => { render(); status('条目已刷新。'); });
+  document.getElementById('od-design-theme').addEventListener('change', event => {
+    if (['light','dark'].includes(event.target.value)) root.dataset.previewTheme = event.target.value;
   });
   get('confirm-delete').addEventListener('click', () => {
     items = items.filter(item => item.id !== removing); show('list'); render(); status('已从本页模拟数据删除。'); restoreFocus();
@@ -159,8 +165,6 @@
     items = previewState === 'empty' ? [] : previewState === 'long' ? Array.from({length:24}, (_, i) => ({id:i+1,title:'第' + (i+1) + '条很长的中文名称与链接 https://example.invalid/' + 'long-text-'.repeat(14)})) : initial();
     nextId = Math.max(0,...items.map(item => item.id)) + 1; show('list'); render();
   });
-  render();
+  root.dataset.previewTheme = 'light'; render();
 })();
 </script>
-</body>
-</html>

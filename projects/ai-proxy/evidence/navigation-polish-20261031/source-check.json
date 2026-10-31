@@ -1,0 +1,36 @@
+{
+  "candidate": "projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f",
+  "htmlSha256": "b8a0330274fe5e9efe4b01f4dbc608a4872c338cea0c7d12d6fa61a417e202b5",
+  "htmlMatches": true,
+  "sourceCount": 64,
+  "sourceDrift": [],
+  "locales": [
+    {
+      "locale": "en",
+      "count": 1006,
+      "sameKeys": true,
+      "labels": [
+        "Edit rule for {domain}",
+        "Delete rule for {domain}"
+      ]
+    },
+    {
+      "locale": "zh-CN",
+      "count": 1006,
+      "sameKeys": true,
+      "labels": [
+        "编辑 {domain} 的规则",
+        "删除 {domain} 的规则"
+      ]
+    },
+    {
+      "locale": "zh-TW",
+      "count": 1006,
+      "sameKeys": true,
+      "labels": [
+        "編輯 {domain} 的規則",
+        "刪除 {domain} 的規則"
+      ]
+    }
+  ]
+}

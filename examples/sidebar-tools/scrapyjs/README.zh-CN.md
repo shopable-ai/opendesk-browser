@@ -1,5 +1,7 @@
 # scrapyJs 采集应用
 
+**2026-10-31 Git 集成边界：** 合并源码配置为 App 1.8.0，保留本机试采与远端 HTTP/Task 0.6.0；本地原正式 App 1.7.4 JSON 逐字节保留，仍委托 Task 0.4.1。组合源码尚未重新编译、晋升或安装；下文两端证据只证明各自原候选，不相互提升。
+
 ## R1.7 当前状态与亲手测试（2026-10-30）
 
 **2026-10-30 第二批 Git 集成说明：** 源码保留本机试采与共享 Chat，并合入固定 Task 0.4.1 的运行时身份修复；源码配置仍为 App 1.7.1。原已晋升 App 1.7.1 JSON 逐字节保留（仍委托 Task 0.4.0），没有降级为远端 1.6.4，也未手工拼接包内容。合并后源码尚未重新编译、晋升正式包或完成安装验收；下列版本与安装记录分别只证明各自原候选。
@@ -64,11 +66,130 @@
 
 这里的“核心 Demo 完成”要求六步在同一真实安装态实际走完，并保存同次 Provider/配置/preview/full 身份、重开/退出和下载读回证据。Fixture HTTP 检查、模拟 React 预览、包晋升或旧 Task 的 Chrome 通过记录各自保留范围，不代替这条链。
 
+## 远端 HTTP / Task 0.6.0 工作线 · 原候选历史
+
+以下保留远端原候选的实现与验收证据，不代表本机组合源码已重新打包或安装。
+
+## 最近核验结论（2026-10-31）
+
+**豆瓣的手工配置采集、结果查看、列整理和导出已实测可用；AI 修改配置到实际执行的完整流程，以及本次 CSDN 专栏采集仍未完成。整个 ScrapyJS 尚未完成，当前证据仅属于核心功能开发阶段。**
+
+| 用户操作 | 当前结论 |
+| --- | --- |
+| 手工改规则、命名保存、重新打开 | 前序保存与重开已通过；最近续接确认已保存配置可选择、重开，没有再做新的命名保存 |
+| 从已安装的 ScrapyJS 开始豆瓣采集 | 最近真实 Task 完成，返回 20 条、12 字段并释放资源 |
+| 列改名、隐藏、恢复默认；完整记录查看与复制 | 最近实际操作通过；详情仅逐项核验第 1 条 |
+| CSV / JSON 导出 | 实际下载的 240 个单元格逐值一致；隐藏列仍保留，显示名不改写原字段 |
+| 本机 Node HTTP、UA/Header、Stop 与错误/撤权 | 前序原 Chrome 实证覆盖对应本机场景；续接未重跑，测试服务已停止、配对已撤销；公网未验证 |
+| AI 修改→差异→应用→保存→执行 | 未完成；旧请求终态 UNKNOWN，无可用恢复句柄，本次续接零新请求 |
+| CSDN 专栏采集及导出 | 未完成；固定目标页出现验证码，页面替换触发任务安全停止，无本次业务数据 |
+
+**版本已收敛到 App 1.8.0 / scrapyjs.capture 0.6.0。** 正式文件摘要与最近原 Chrome 安装态核验对应，前序 1.7.0 / Task 0.4.1 的运行时失配不再是这组候选的当前阻塞。最近续接没有新增功能或修改代码；此次仅整理文档，没有重跑产品或构建。详见 [核心功能结论、验证范围与证据身份](docs/CORE-STATUS-20261031.zh-CN.md)。
+
+实际使用入口：**扩展 → 已安装的 scrapyjs 采集**。源码 owner 为本目录；配置选择 `src/index.html`、`dist/tool.js/css`，React 入口 `src/main.jsx → App.jsx`，结果组件 `Results.jsx`，AI 组件 `AiPanel.jsx`。
+
+源码迭代继续复用 **开发 → 本地项目 scrapyjs → 在侧栏调试**。最近观察目录连接离线、源码 Provider 为 `E_DEV_PROVIDER_UNAVAILABLE`；需要该入口时重查连接，不代表已安装工具不可用。原 Browser 使用仓库 `dist/development`，最近观察 serve connected；不重装扩展或启动第二个输出 writer。开发预览与安装态的数据、权限分开，预览空列表不代表已保存配置丢失。
+
+后续先处理 AI 原请求的合法恢复阻塞；可信终态和发送条件具备后，再分别验证提案、差异、应用、命名保存、重开和单独 Task 执行。CSDN 仅在固定目标页合法可用后继续。production、完整验收/CI/矩阵、压力、宽度/缩放与 95+ 评分继续延期。
+
+<details>
+<summary>历史开发记录与证据（以下不是当前版本、运行状态或待执行授权）</summary>
+
+> 以下保留各阶段原始说明，包括后来被替代的版本、阶段、权限及验收判断。与本页顶部冲突时，以顶部的明确版本和环境边界为准；历史“无 HTTP 入口”、恢复评分、固定 Task 版本等不能作为当前实施指令。
+
+## 版本收敛阶段原记录（已由上方最近核验结论更新）
+
+以下原文保留该阶段的版本失配、候选与服务观察，不作为当前安装状态或待执行授权。
+
+## 当前版本与实际入口（2026-10-31）
+
+**最新工作源码为 1.8.0，原 CFT149 已实际打开它的三个 Tab；唯一正式 App 包及该浏览器安装态为 1.7.0。安装态核心采集仍被固定 Task 的运行时身份拦截，尚未收敛为可直接采集的最新版。** 本节是本轮观察；下方折叠记录中的“当前 / 最新 / PASS”只属于各自日期、环境和候选。
+
+| 对象 | 本轮实读状态 | 含义 |
+| --- | --- | --- |
+| 工作源码 `tool.config.json` | App **1.8.0** / Task **0.6.0**，并行 Node 转发开发中 | 不等于已晋升、安装或验收 |
+| 原 CFT149 源码调试 | **1.8.0**，快照 `675002c85a52`；采集结果 / 采集规则 / 配置 JSON | 原本地项目入口已实际打开；只读隔离预览，不能运行真实 Task 或 AI |
+| 唯一正式 App 文件 | **1.7.0**，SHA256 `5345de38fb2a30a6c28389228141c9983af993c61e7d02b955e41d6edb10bdc6` | [scrapyjs.opendesk-tool.json](scrapyjs.opendesk-tool.json)；固定要求 Task 0.5.0，不能与正在变化的 Task 0.6.0 文件当成已配对发行组合 |
+| 原 CFT149 安装态 | App **1.7.0** / Task **0.4.1**；原“豆瓣核心”配置保留 | App 已经原安装审阅更新；点击开始采集仍在 `tasks.read` 准备阶段失败 |
+
+源码开发入口只有一条：原浏览器工具栏 → OpenDesk → **开发 → 本地项目 scrapyjs → 在侧栏调试**。实际业务 owner 为本目录；配置使用 `src/index.html`、`dist/tool.js/css`，React 源码为 `src/main.jsx → App.jsx`，结果表格为 `Results.jsx`。AI 助手是同一 App 的另一视图，没有发现第二套生效业务源码。
+
+安装态入口为 **扩展 → scrapyjs 采集**。它与源码调试区的数据和权限分开；预览空列表不表示安装配置丢失。原浏览器仍为 CFT **149.0.7827.55**、扩展 `ccfcjegpkdlgbclopjmadlcjedelidmf`、仓库 `dist/development`；没有切换 Profile 或扩展目录。
+
+### 已完成与尚未完成
+
+- **可见更新已实测于 1.7.0：**同一原侧栏自动显示临时标题“采集配置 · 1.7.0 自动更新验证”，逐字节还原后自动恢复，快照回到正式包 SHA。该证据不冒充 1.8.0 的新一轮改动验证。
+- **App 更新已完成：**原安装器核对同 ID 1.6.4 → 1.7.0、权限未变化后确认更新，原“豆瓣核心”配置和完整 JSON 保留。
+- **固定任务阻塞已定位：**原目录只有 0.4.1 已安装；0.5.0 已导入为待验证候选。原开发入口导入 SHA `bfc42784e7c5cca8437151d136442ae6c8c22c31461f369a8a9224174a433475` 的同源码草稿，在豆瓣完成并显示“资源已释放”，返回实际书目数据。随后核对候选时返回 `E_BUILTIN_VERSION_UNAVAILABLE`：候选绑定的内置运行时已改变，需要新版本重新验证。没有伪造回执、覆盖固定版本或放宽校验。
+- **安装态采集未通过：**尚无本轮安装态结果表格、runId/resultId 与下载读回成功证据。直接草稿运行、热更新和历史 20 条记录均不替代这一项。
+- **HTTP 不是完全没有入口：**[1.7.0 / 0.5.0 本机 HTTP 证据](evidence/http-local-20261031.json)已覆盖独立静态 CFT155 的对应范围；不能用于证明原 CFT149、公网或当前 1.8.0 Node 出口。1.8.0 / 0.6.0 与新增 `network.localRelay` 仍由并行任务开发验证，本轮不替它晋升、安装或批准新能力。
+- **真实 AI 仍受 unknown 围栏约束：**请求 `cb6d0e92-0e45-4ae0-a30c-96377d535106` 没有可信 sessionId/turnId/终态。本轮新推理为零，未清 pending、取消或重放；界面消失不证明结束。
+
+下一条采集操作是：待当前 App/Task 候选完成并固定后，在原 Browser 运行同一 Task 源码，核对当前运行时及持久页面回执，沿原审阅链更新精确配对，再从已保存的“豆瓣核心”开始采集并核对结果表格。共享 Browser 更新会使旧候选验证失效，不能靠保存配置修复。
+
+### 服务、清理与证据
+
+复用现有 App 编译 watcher、快照 watcher 和根 Browser watcher；不启动第二个输出 writer。目录 CLI 曾按原实例恢复并成功打开 1.8.0 预览，随后报 `E_NATIVE_NOT_READY` 退出；最终目录连接已中断。需要源码预览时仍使用下面的原命令；已有连接时不重复启动：
+
+```sh
+OPENDESK_NATIVE_INSTANCE=scrapyjs-react-01a186cc /Applications/OpenDesk.app/Contents/MacOS/opendesk browser dev /Users/shopme/Documents/workspace/opendesk-browser/examples/sidebar-tools/scrapyjs
+```
+
+`E_PROJECT_SCHEMA` / 文件工作区可用是该 Sidebar 项目没有 Controller Provider 的已知提示；从已配对浏览器走上述入口。Browser 使用持续开发目录，服务连接曾实读 CONNECTED；本轮验证中共享输出曾短暂缺少 manifest/入口，随后恢复，多次预览/目录文档被关闭。没有主动重载、覆盖输出或停止其他 owner 的服务，最终连接状态须在原“调试 → 本地开发服务”重新读取。
+
+已清理误导性的顶层“最新 1.6.4”和“HTTP 完全无入口”结论，将原文保留为折叠历史。本轮临时标题快照 `2417f0bafe88` 已校验解码后的各块及完整包 SHA，并从预览目录可恢复地移至 `artifacts/scrapyjs/version-convergence-20261031/temporary-title-snapshot/`；`latest.json`、正式包、配置、其他快照和并行源码未删除或覆盖。前序隔离的旧 16 KB 分块缓存仍保留原恢复材料。
+
+完整本轮记录见 [现有证据索引](evidence/ai-ux-continuation-20261030.json) 的 `versionConvergence20261031`。本轮未提交或推送。production、完整 CI/宿主矩阵、宽度/缩放、压力、独立评分与真实 AI 主链均未纳入本轮完成条件。
+
+## 1.6.4 源码启动与可见更新（历史，2026-10-31）
+
+已恢复原 CFT149 的「开发 → 本地项目 → 在侧栏调试」：当前源码 **1.6.4**、快照 `42fdb94d7779`，实际显示「采集结果 / 采集规则 / 配置 JSON」。本次启动前目录连接离线，应用编译及快照 watcher 均未运行；另有旧 16 KB Native 分块与当前 24 KB 发布规则共用包哈希目录的缓存冲突。旧缓存已验证完整并保留在本机 artifacts，再由原 watcher 重建；正式包和平台源码未改。
+
+**可见更新已实测：**临时将源码标题改为「采集配置 · 热更新验证」，同一侧栏自动显示；逐字节还原后自动恢复，快照回到 `42fdb94d7779`。没有重新安装应用。当前留在隔离源码预览，编译、快照和原目录 CLI 保持运行；已安装包不会自动被该预览替换。此前 Task 运行时拒绝与原 AI unknown 均未因此解决。详见 [启动记录](evidence/ai-ux-continuation-20261030.json) 的 `liveSourceStartup20261031`。
+
+## 原 CFT149 界面复查（2026-10-30 23:46）
+
+原实例实际安装界面为 **App 1.6.4**，包含「采集结果 / 采集规则 / 配置 JSON」三个 Tab；AI 助手是同一应用内切换的独立视图。当前 `src/main.jsx → App.jsx` 是配置指定的 React 入口，结果组件保留表格；源码与构建回执匹配，唯一正式包通过 `--check-project` 同源核对。本次未发现两套业务 UI 同时生效，未修改源码或重新安装。已将界面留在多 Tab 工作区。
+
+**本次原 CFT149 的采集操作失败，不能以历史成功代替：**已安装 Task 为 **0.4.1**，固定源码与 manifest 哈希匹配；选择「豆瓣核心」并在同源网页点击「开始采集」，提示「固定采集任务与当前运行时不匹配」，仍为「等待引擎 / 尚无运行 / 尚无结果」。错误对应 adapter 在 `tasks.read` 准备阶段的运行时校验拒绝；失配来源尚未核实，没有放宽校验或重试。当前运行生成表格及下载均 **NOT_TESTED**。下文 CFT155 与此前 CFT149 的成功证据保留各自环境和时间边界。
+
+共享 Chat 的中文多行草稿、返回工作区后重开保留及清空通过；这使用粘贴，不证明原生 IME。原 AI 请求仍缺少可信终态，未发送新推理、调用取消或清除 pending。Browser 实际加载 `dist/development`，调试页显示开发服务已连接（revision `ab031e1cf824`）；本次未重启、重载或覆盖现有服务。详见 [本次复查证据](evidence/ai-ux-continuation-20261030.json) 的 `installedUiRecheck20261030`。
+
+## Header 修改、删除与真实触发链（历史，2026-10-30）
+
+普通 Header 的**本地 Chromium 传输分支**已补齐可点击诊断：`Accept` / `X-Client-Tag` 从 A 改 B、删除后，配置快照、原 NetworkService 提交的 Fetch 参数、CDP 观察和服务器 `rawHeaders` 逐次对应。删除后 `X-Client-Tag` 不存在，`Accept` 为浏览器默认 `*/*`。19 个诊断场景共 17 次实际请求；运行中编辑不改变原三页配置，Stop/超时只请求首个流式页面，服务器观察提前关闭，12 组 UA/敏感/无效配置零请求。这里的 runId 是诊断关联号，**不是安装态 Host runId**。
+
+当前产品真实入口仍是「扩展 → scrapyjs → 开始采集」→ `tasks.read/start` → 固定 DOM Task。App 和 Task 都不接受 Header/UA 配置；公开 `OpenDeskSDK.browser.network.request` 已存在，但尚未形成 ScrapyJS 的安装态 HTTP 授权、执行和结果闭环。**安装态 Header 运行仍 BLOCKED，Browser UA override 仍 UNSUPPORTED**；本轮未改引擎、包、权限或产品 UI，也未用 Desktop/Node/CDP 覆写代替产品能力。
+
+本次静态 development 快照无 serve 连接，日常 Browser 与原 AI unknown Profile 未动。复现命令、实际调用、分层状态、服务端样本与最小公共能力缺口见 [HTTP 边界增量](docs/HTTP-ADAPTER-BOUNDARY-R2.4.1.zh-CN.md#header-修改删除与触发链2026-10-30增量) 和 [关联证据](evidence/http-header-transitions-20261030.json)。历史豆瓣/CSDN DOM 采集结果不用于证明 Header 能力。
+
+## 原站点示例复查（历史，2026-10-30）
+
+优先复用旧 `scrapyJsChrome/examples/douban-books`、`examples/csdn` 已迁入的 `examples/original-sites.js`，未另造规则或扩大固定 Task 的站点范围。真实 Mac CFT155 的原安装态 App **1.6.4** / Task **0.4.1** 完成豆瓣读书当前页采集：**20 条、11 字段**，与同页独立 DOM 预期逐值一致，表格及实际 JSON/CSV 下载读回通过；原运行 `completed/released`。条数与内容是本次观察，不能固定为以后线上断言。
+
+CSDN 原示例地址本次返回 **HTTP 521 / 安全验证页**，没有列表，记为 `BLOCKED_SITE_VERIFICATION`；只访问一次，未操作验证码或重试。此前 CSDN 9 条、7 字段及本地样本证据保留为历史，不代表本次线上通过。只读检索旧 Chrome/core 示例尚未找到豆瓣电影的独立采集配置，未将读书页面的电影导航当作示例。
+
+本轮修正测试驱动的过时表格断言（字段名、类型提示、操作列及空值显示），没有修改 App、采集引擎或正式包。前两次驱动失败原件保留，后续完整链已通过。结果和导出文件摘要见 [原站点证据索引](evidence/original-sites-20261030.json)。本次环境为隔离的静态 development 快照，无 serve 连接；只证明安装态 DOM 当前页流程，**公网受控 HTTP 仍 BLOCKED**，不证明 Header 覆盖、反爬解决、真实 AI 或 production 验收。各次自有测试浏览器均已关闭，日常开发实例未改动。
+
+## HTTP Header 实证增量（历史，2026-10-30）
+
+真实 Mac CFT155 + 原 NetworkService 在独立本地回显 fixture 完成三页 HTTP 提取：`Accept`、`X-Client-Tag` 的配置、Fetch 参数、服务器观察一致，三条数据与独立预期相同；流式请求取消后服务器观察到连接提前关闭。结果文件独立读回 SHA 一致，仅证明 fixture 文件，不是 Host 持久运行回执。
+
+修复前实证 `User-Agent` 参数被接受但被 Chromium 替换；现已在唯一公共校验处发请求前拒绝，Node SDK/Host 与 Chromium 源码传输验证通过。原 App 仍只有 DOM 采集入口，App **1.6.4** / Task **0.4.1** 未变；**公网 HTTP 仍 BLOCKED，未解决站点反爬**。没有正式 HTTP Grant、全 DNS/实际 peer 安全证明或 HTTP 运行身份读回，暂不集成假运行按钮。
+
+复现命令、三层 Header 证据、Desktop 复用结论及未验证项见 [HTTP 边界的当前增量](docs/HTTP-ADAPTER-BOUNDARY-R2.4.1.zh-CN.md#header-真实请求增量2026-10-30) 和 [证据索引](evidence/http-header-proof-20261030.json)。这次不重复旧 200 项内核/DOM 验收，不重建 Browser 或晋升工具包。
+
+## R2.4.2 本机验明（历史，2026-10-30）
+
+HTTP 内核四类缺陷已差量修复，定向 21/21、ScrapyJS App CI Node 200/200 通过。实际 Mac CFT155 已验证原安装链、命名保存重开、DOM 三行独立预期、表格、JSON/CSV 下载读回、重复 Run、运行中 Stop 退休、草稿退出确认及停用/恢复。Chrome HTML/JSON 解析独立验证通过。各项只证明对应范围；**公网 HTTP 仍 BLOCKED**，没有真实 Header、DNS 全地址及 peer IP 证明，不显示可运行入口。
+
+当前唯一包仍为 App **1.6.4**、固定 Task **0.4.1**；其他对话已在 `b7ffa0397` 修复旧包失配，本轮核对同源并复用，没有重复晋升或改权限。完整缺陷、命令、原始失败的分类、证据链及独立八维评分见 [R2.4.2 本机验收报告](docs/LOCAL-ACCEPTANCE-R2.4.2.zh-CN.md) 和 [证据索引](evidence/local-acceptance-r242-20261030.json)。本次为隔离的静态 development 快照，无 serve 连接，不代表日常 Chrome、production 或 Desktop 验收；原 AI unknown 请求未重放，R2.5 尚未启动。
+
 ## 中长期产品规划（2026-10-30）
 
 以下文件保存本轮 AI 爬虫、代理与商业化讨论中的**长期目标与设计决策**。它们均为 **PLANNED / NOT_IMPLEMENTED**，不改变上方真实采集、安装态及候选验收状态：
 
-- [跨端统一执行架构与网页版四阶段交接](docs/UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md)：Browser / Desktop / Android 分工、Headers 能力、唯一合同、去重和验收边界；**仅架构决策，统一合同与 Adapter 未实施**。
+- [跨端统一执行架构与网页版四阶段交接](docs/UNIFIED-EXECUTION-ARCHITECTURE.zh-CN.md)：Browser / Desktop / Android 分工、Headers 能力、唯一合同、去重和验收边界；跨端可信 HTTP 与正式 UI 集成未实施，已有 v1 合同及静态业务内核的当前状态以上方 R2.4.2 为准。
 - [产品目标与分阶段路线图](docs/PRODUCT-ROADMAP.zh-CN.md)：当前基础、差距、P0/P1/P2、1–3 页 AI 试采及后续验收。
 - [AI 引擎、代理与云运行技术架构](docs/AI-ENGINE-PROXY-ARCHITECTURE.zh-CN.md)：Scrapling、Crawl4AI、Apify 等执行适配与安全边界。
 - [商业模式、竞品与上下游服务](docs/COMMERCIALIZATION-COMPETITORS.zh-CN.md)：模板复用、定制开发、维护、代理与收费路径。
@@ -78,7 +199,7 @@
 **当前不创建新 Runtime、云服务、付费功能或扩展权限；后续按最新 main 实际完成状态增量实施。**
 
 
-## 远端 1.6.4 运行时身份修复（2026-10-30，原候选证据）
+## 采集运行时身份修复（历史，2026-10-30）
 
 远端修复时的安装态与唯一可安装包为 **App 1.6.4 + Task 0.4.1**。旧 Task 0.4.0 的内置运行时身份与当前 Browser 不匹配，导致「开始采集」在任务准备阶段被拒绝；保存采集配置不会更新固定 Task 的验证记录。
 
@@ -114,7 +235,7 @@ Native 已由前序 owner 恢复，当前真实工作区显示“Native 已连�
 
 此前阶段为 **真实扩展持续开发与线上核心采集验证**。当时源码版本 1.5.0，唯一正式 App 包仍为 1.3.1；不因源码版本号认为已晋升或安装。此前 1.4.0 原生证据作为历史保留。完整原浏览器 SDK 保持原样；来源 `scrapyJs` / `scrapyJsChrome` 仓库只读。
 
-## 当前目标与关键测试条件（2026-10-29）
+## 当时目标与关键测试条件（历史，2026-10-29）
 
 **核心目标：用户能在真实 OpenDesk 侧栏中编辑并保存采集配置，完成豆瓣及可访问的 CSDN 当前页采集，查看正确表格，下载完整结果，并安全停止运行。** 当前 React 源码的可见更新、配置持久化和草稿保护一并取得真实操作证据。
 
@@ -270,7 +391,7 @@ node examples/sidebar-tools/scrapyjs/tests/fixture-mount.mjs unmount
 
 原始脚本报告：`artifacts/scrapyjs/native-examples/core-d-20261029/report.json`。可提交的证据摘要与每项证据层级见 `migration-status.json` 和 `evidence/core-examples-20261029.json`。本批 App 独立成功报告为 `artifacts/scrapyjs/native-examples/app-d-driver5-20261029/report.json`：同一 App 的三组字段/分页/详情配置应用、未应用保护、三条全字段表格、保存后销毁并重开、完整 JSON 46,312 字节下载读回均通过。前一报告整体 BLOCKED 是后续 App 下拉框驱动失败，四个脚本结果本身均 PASS；未改写历史状态。
 
-## 后续打包阶段（当前延期）
+## 当时后续打包阶段（历史）
 
 以下仅记录后续交付流程，不是当前 UI 开发的前置步骤。UI 稳定且进入打包阶段后，先执行本工具的 JSX 编译，再候选测试，经原 `--promote-from` 原子晋升和 `--check-project` 同源核对。Task 源码/manifest 改动则重新冻结、运行、验证、安装，并同步 App 的精确委托；不静默更新已安装 Revision。
 
@@ -290,8 +411,10 @@ node scripts/build-sidebar-tool.mjs examples/sidebar-tools/scrapyjs --check-proj
 
 Task v0.3.0 sourceHash `12668947ef0f99851986891b911ee3d32deca993e42066b48f496691579feb4f`，manifestHash `1bec7362a33d4aeb4ce051d2eed699aa4876e3c7ae82efc536005f287340f53a`。App 和 Task 包摘要从同源检查及证据账本读取。
 
-## 尚未完成
+## 当时尚未完成（历史）
 
 可视选择/高亮/表格选择与选择器生成、完整处理/质量编辑、自动保存/来源 profile 运行策略/自动重绑定、暂停/继续、检查点恢复/调度及大结果体验尚未完成，不是当前 UI 阶段的完成条件。AI 助手已由本轮恢复实施；克隆 UI、配置任务库和通用录制/回放继续排除，命名配置继续保留。Rule/LinkExtractor/runCheckpointTasks 等完整实现保留不等于已在 OpenDesk 逐项运行。原 `processing.splitPublication` 的本批豆瓣当前页验证见原站点证据；它不代表任意出版格式均受支持。
 
 上轮 v0.1.0 六项单页核心证据保留在 `migration-status.json.coreEvidence`，包括正常 Stop、回包前取消和 JSON/CSV 文件下载。它们是旧候选证据，不提升为新候选的全量验收。旧 `k3-sandbox-error-forwarding.test.mjs` 的过时 Worker URL 夹具缺口继续保留，未放宽来源校验。本轮延期 production、升级/撤权正式验收、完整 32 项验收、宽度/缩放矩阵及压力测试。独立 95+ 评分按本轮要求执行。Node 文件/CLI 专用功能本轮不迁。
+
+</details>

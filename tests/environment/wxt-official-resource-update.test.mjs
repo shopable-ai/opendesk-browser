@@ -8,6 +8,7 @@ import {join,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {configureDevelopment,closeDevelopment,drainDevelopment} from '../../scripts/wxt-development.mjs';
 import {buildOfficialTools,writeOfficialToolResources} from '../../scripts/build-official-tools.mjs';
+import {buildSidebarTool,promoteSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
 import {OFFICIAL_CATALOG_PATH,OFFICIAL_SOURCE_SCHEMA,OFFICIAL_SOURCE_REPOSITORY} from '../../src/sidebar-tools/official-catalog.js';
 import {SDK_RESOURCE_PATHS} from '../../src/framework/sdk/resource-contract.js';
 import {BUILTIN_RESOURCE_PATHS} from '../../src/libs/runtime-contract.js';
@@ -119,6 +120,51 @@ test('catalog-owned projects sources publish on save, retain the last good packa
   const recovered=await f.assertPublished();assert.notEqual(recovered.revision,changed.revision);
   const unlisted='projects/unlisted/src/main.js';await f.write(unlisted,'void "not an official input";');
   f.change(unlisted);await f.flush();assert.deepEqual(await f.marker(),recovered);await f.assertIntact();
+});
+async function promoteFixture(root,project){
+  const candidate=join(root,'candidate.json');
+  await buildSidebarTool(join(root,project),{out:candidate});
+  await promoteSidebarToolPackage(join(root,project),{from:candidate});
+}
+test('project promotions publish exact package identity despite unrelated unfinished compilation and reject bad packages',async t=>{
+  const f=await fixture(t);
+  assert(f.watched.includes(join(f.root,'projects')),'real project promotions must be watched');
+  const project='projects/video-speed-controller',id='video-speed-controller';
+  const config={id,version:'1.2.1',title:id,description:'Promoted release',capabilities:['storage.local'],
+    files:{html:'src/index.html',css:'src/style.css',js:'src/main.js'},assets:[]};
+  await f.write(project+'/tool.config.json',JSON.stringify(config));
+  await f.write(project+'/src/index.html','<main>Promoted</main>');
+  await f.write(project+'/src/style.css','main { color: navy; }');
+  await f.write(project+'/src/main.js','void 0;');
+  const path=project+'/'+id+'.opendesk-tool.json';
+  await promoteFixture(f.root,project);
+  const other=f.catalog.tools[0];
+  await promoteFixture(f.root,other.project);
+  const draft=JSON.parse(await readFile(join(f.root,other.project,'tool.config.json'),'utf8'));
+  draft.files.js='dist/tool.js';
+  await f.write(other.project+'/tool.config.json',JSON.stringify(draft));
+  f.catalog.tools.push({id,project,kind:'sidebar-tool',installationPolicy:'optional'});
+  await f.saveCatalog();f.change(OFFICIAL_CATALOG_PATH);await f.flush();
+  const first=await f.assertPublished();
+  await f.write(project+'/tool.config.json',JSON.stringify({...config,files:{...config.files,js:'dist/tool.js'}}));
+  f.change(project+'/tool.config.json');await f.flush();
+  assert.deepEqual(await f.assertPublished(),first,'unfinished project source leaves promoted release unchanged');
+  config.version='1.2.2';await f.write(project+'/tool.config.json',JSON.stringify(config));
+  await promoteFixture(f.root,project);
+  const bytes=await readFile(join(f.root,path));
+  f.change(path);await f.flush();
+  const next=await f.assertPublished();assert.notEqual(next.revision,first.revision);
+  const catalog=JSON.parse(await readFile(join(f.outDir,OFFICIAL_CATALOG_PATH),'utf8'));
+  const release=catalog.apps.find(row=>row.toolId===id);
+  assert.equal(release.version,'1.2.2');assert.deepEqual(release.capabilities,config.capabilities);
+  assert.equal(release.sha256,digest(bytes));assert.equal(release.bytes,bytes.length);
+  await f.write(path,'{broken');f.change(path);await f.flush();
+  assert.deepEqual(await f.marker(),next);assert(f.errors.length>0);
+  for(const directory of [f.outDir,f.publicDir]){
+    assert.deepEqual(await readFile(join(directory,release.packagePath)),bytes);
+    assert.deepEqual(JSON.parse(await readFile(join(directory,OFFICIAL_CATALOG_PATH),'utf8')),catalog);
+  }
+  await f.write(path,bytes);f.errors.length=0;f.change(path);await f.flush();await f.assertPublished();
 });
 
 test('adding and removing official tools refreshes only owned public assets and publishes without ENOENT',async t=>{

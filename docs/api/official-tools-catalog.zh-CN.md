@@ -37,7 +37,7 @@
 
 - `id`：`opendesk/<toolId>`，供市场识别来源。
 - `toolId`、`kind`、`installationPolicy`：固定身份和已有运行类型。
-- `version`、`packageTitle`、`description`、`capabilities`：来自实际包；未指定 `packageFile` 时由 `tool.config.json` 和源码打包派生。
+- `version`、`packageTitle`、`description`、`capabilities`：来自实际正式包；未指定 `packageFile` 时先选项目根唯一 `<id>.opendesk-tool.json`，没有正式包才由配置和源码打包派生。
 - `packagePath`：`official-tools/<toolId>/<toolId>.opendesk-tool.json`。
 - `bytes`、`sha256`：最终文件原始 UTF-8 字节的长度和 SHA-256。
 
@@ -47,7 +47,7 @@
 
 `scripts/build-official-tools.mjs` 读取可信登记，检查项目与声明输入，复用 `createSidebarToolPackage`、`validateSidebarToolPackage` 和规范化编码生成每个包。构建验证经典 JavaScript 语法、包身份、能力、UTF-8 字节预算与嵌入图片。输出没有时间戳、机器绝对路径或随机内容；临时落盘文件名不会进入产物。
 
-Cookie Editor 与 Stay Focus 使用已有 `packageFile` 路径，发行时验证并编码唯一正式 JSON，输入指纹只跟踪该包。Cookie Editor 的可信操作核验安装包与发行摘要；不能将开发时重新生成的共享 CSS 作为同版本的新发行，否则合法安装会被拒绝且没有较新版本可供更新。后续工具变更仍经原候选测试、版本升级与显式晋升，不自动更新已安装工具或授予新权限。
+所有已有唯一正式 JSON 的项目使用该发行快照；明确的 `packageFile` 仍优先。发行时验证并保留正式包原始字节，输入指纹只跟踪该包；未完成的 React/Vue 编译或草稿配置不会改变发行。坏包、符号链接或身份不符继续失败，不能回退未审阅源码。Cookie Editor 的可信操作核验安装包与发行摘要；不能将开发时重新生成的共享 CSS 作为同版本的新发行，否则合法安装会被拒绝且没有较新版本可供更新。后续工具变更仍经原候选测试、版本升级与显式晋升，不自动更新已安装工具或授予新权限。
 
 唯一打包器的 `--promote-from` 对已有正式包执行版本门禁：相同字节允许幂等检查；不同字节必须使用更高版本。同版本替换、降级、旧包损坏或身份不符均拒绝并保留旧文件。已有 `app:update` 流程继续为无扩权的内容变化先提升 PATCH，再测试和晋升。
 

@@ -115,7 +115,9 @@ test('existing memberships remain readable, editable and removable under ifMatch
  assert.equal(list.children[0].children[0].textContent,'腾讯视频');
  h.nodes.get('vp-member-provider').value='tencent';
  h.nodes.get('vp-member-expiry').value='2031-03-05';
- h.nodes.get('vp-member-form').fire('submit');await ticks();
+ // The real sandbox does not allow native form submission. Save must work
+ // from the user button without adding allow-forms to the iframe.
+ h.nodes.get('vp-member-save').fire('click');await ticks();
  assert.deepEqual(records,[{id:'tencent',expiry:'2031-03-05'}]);
  assert.equal(sets,1);
  list.children[0].children[2].fire('click');await ticks();

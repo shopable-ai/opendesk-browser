@@ -1,0 +1,21 @@
+{
+  "name": "@opendesk-examples/page-toast-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "通过 OpenDesk 扩展在当前已授权网站演示公共网页提示",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.page-toast-demo",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": ["*://*/*"],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

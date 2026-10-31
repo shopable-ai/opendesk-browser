@@ -1,0 +1,82 @@
+Browser tab: 560069431, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html".
+1 AXWebArea AI Proxy · React 同源预览, URL: 127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html
+	2 container
+		3 container 预览来源和安全范围
+			4 text 模拟预览 · 非真实安装、权限或网络执行
+			5 text 工具：AI Proxy · 初始场景：success · 初始工具主题：light · 预览外壳：浅色
+			6 text Source: dc3d9fd93d6f6f76ba70ce451894ea167f5bd8c0 · Design SHA-256: efa5541cac5eda31587ef534cbd79d8b5696b22ef9ff024dab0109674f210380 · Shell SHA-256: 4f4692678370fe6b5f5f7abd74e6e44877ac4a25bb1d47415a450ef0e70a0a68 · UI SHA-256: fad1f8b7e71aac7761c0c0ac741e52aee212f84e3b4c6872e7c2c008e85e11bd
+		7 container OpenDesk Browser Side Panel 真实布局来源的离线预览
+			8 tab group 工作台
+				9 tab (selectable, settable, boolean) 我的, Value: 0, ID: tab-my-tasks
+				10 tab (selected, settable, boolean) 扩展, Value: 1, ID: tab-tools
+				11 tab (selectable, settable, boolean) 工作流, Value: 0, ID: tab-workflow
+				12 tab (selectable, settable, boolean) 开发, Value: 0, ID: tab-develop
+				13 tab (selectable, settable, boolean) 云控, Value: 0, ID: tab-cloud
+			14 container Description: 扩展, ID: od-preview-extension-detail
+				15 container
+					16 button Description: 返回扩展列表, ID: sidebar-tool-back
+					17 heading AI Proxy, Value: 2, ID: sidebar-tool-title
+						18 text AI Proxy
+					19 container 工具管理
+						20 button Description: 模拟卸载当前工具（不会删除真实数据）, Help: 模拟卸载（不会删除真实数据）, ID: sidebar-tool-remove
+				21 container Description: AI Proxy · 内存模拟, ID: opendesk-preview-frame
+					22 AXWebArea about:srcdoc
+						23 container proxy-ready
+							24 tab group AI Proxy 视图
+								25 tab (selectable, settable, boolean) 代理面板, Value: 0, ID: proxy-view-panel
+								26 tab (selected, settable, boolean) 管理设置, Value: 1, ID: proxy-view-settings
+							92 container Description: 管理设置, ID: proxy-workspace-panel
+								93 container
+									94 container 设置栏目
+										95 text 设置栏目
+										96 pop up button (collapsed, settable) Description: 设置栏目, Value: 网站规则, ID: settings-section, Secondary Actions: Expand
+											97 menu
+												98 container 代理管理
+													99 代理配置
+													100 (selected) 网站规则
+													101 订阅管理
+													102 导入与备份
+													103 网络诊断
+													104 通用设置
+												105 container 可选服务
+													106 官方网络 · 可选官方服务
+									107 button (collapsed) Description: 复制本页链接 / 刷新状态, Help: ⋯, Secondary Actions: Expand
+										108 text ⋯
+									109 container
+										110 heading 网站规则, Value: 2
+											111 text 网站规则
+										112 text 按域名选择代理或直连
+										113 button 添加规则, ID: settings-rule-add
+									114 container 网站规则
+										115 text 仅保存规则，当前网络保持不变。需要生效时，请在代理面板明确应用。
+										116 text 2 条网站规则
+										117 container
+											118 text example.com + 子域 优先级 10  ·  工作代理 已启用
+											119 button Description: 编辑 example.com 的规则, ID: settings-rule-rule-docs
+											120 button 删除 example.com 的规则
+										121 container
+											122 text example.org 优先级 20  ·  DIRECT 已启用
+											123 button Description: 编辑 example.org 的规则, ID: settings-rule-rule-local
+											124 button 删除 example.org 的规则
+									125 container
+										126 heading 无规则命中时, Value: 2
+											127 text 无规则命中时
+										128 text 默认 DIRECT；只有明确选择代理才会经代理，不会自动回退到未知节点。 默认路由
+										129 pop up button (collapsed, settable) 默认路由, Value: DIRECT, ID: default-action, Secondary Actions: Expand
+											130 menu
+												131 (selected) DIRECT
+												132 指定代理
+										133 text 代理
+										134 pop up button (disabled, collapsed, settable) 代理, Value: 请选择, ID: default-endpoint, Secondary Actions: Expand
+											135 menu
+												136 (disabled) 请选择
+												137 (disabled) 工作代理
+												138 (disabled) 本地客户端
+												139 (disabled) 备用 SOCKS
+										140 button 保存默认路由
+										141 text 当前： DIRECT
+		89 container 离线预览辅助
+			90 button (collapsed) 预览辅助 · 非正式工具, Secondary Actions: Expand
+				91 text 预览辅助 · 非正式工具
+
+The focused UI element is 26 tab (selected, settable, boolean) 管理设置, Value: 1, ID: proxy-view-settings

@@ -55,8 +55,8 @@
 | id | `^[a-z][a-z0-9-]{1,39}$`，稳定且安装时按 ID 区分 |
 | version | 数字 `major.minor.patch`，没有前缀/预发布标签 |
 | title / description | 最长 80 / 300 字符 |
-| HTML / CSS / JS | 最长 64,000 / 120,000 / 220,000 字符（源文件还有相应字节预算） |
-| 完整包 | 最大 320,000 UTF-8 bytes |
+| HTML / CSS / JS | 最长 64,000 / 120,000 / 1,048,576 字符（源文件还有相应字节预算） |
+| 完整包 | 最大 2,097,152 UTF-8 bytes（2 MiB，包含 JSON 转义与规范序列化开销） |
 | 安装数量 | 最多 12 个 |
 | 图片 assets | 最多 16 个；每张 ≤96 KiB；PNG/JPEG/WebP，本地预嵌入 |
 
@@ -74,7 +74,7 @@ background: {
 }
 ```
 
-必须同时声明既有 `browser.storage` 和 `browser.scheduler` capabilities；`storage.local` 不能替代 `browser.storage`。UI `js` 保持独立，后台源码不合并到 UI 或依赖资产，也不由安装器执行。后台源码沿用 JS 的 **220,000 字符、源文件 220,000 字节**限制；所有 UI、依赖、后台、数据及 JSON 开销共同占用原 **320,000 UTF-8 bytes** 包预算，没有新增容量。v1 拒绝 `background/files.background`，未声明后台的既有 v1/v2 包保持兼容。
+必须同时声明既有 `browser.storage` 和 `browser.scheduler` capabilities；`storage.local` 不能替代 `browser.storage`。UI `js` 保持独立，后台源码不合并到 UI 或依赖资产，也不由安装器执行。后台源码沿用 JS 的 **1,048,576 UTF-16 字符及 UTF-8 字节**限制；所有 UI、依赖、后台、数据及 JSON 开销共同占用**2,097,152 UTF-8 bytes** 包预算，没有新增容量。v1 拒绝 `background/files.background`，未声明后台的既有 v1/v2 包保持兼容。
 
 `validateSidebarToolPackage` 同步校验形状、能力、源码及完整包预算；`verifySidebarToolBackground(tool)` 异步返回验证后的工具快照，并核对后台源码 SHA（不匹配为 `E_TOOL_BACKGROUND_SHA`）。后台缺失时仍验证原包，随后直接返回。`serializeSidebarToolPackage` 和 `sidebarToolPackageHash` 包含 `background` 的 kind/js/sha256，以固定字段顺序序列化，不受存储重排字段影响；源码或摘要变化都会改变包身份。`sidebarToolPackageHash` 自身也先调用异步后台校验，拒绝错误的源码摘要；同步序列化仅校验形状，不能代替该检查。
 
@@ -251,7 +251,7 @@ App 在 `tool.config.json` 声明 `format: "opendesk.sidebar-tool.v2"`、capabil
 
 宿主空间与工具数量分别处理（2026-10-29）：**框架不设置安装总数上限**。导入、更换安装包、市场批量安装和迁移均读取完整有效注册表，不因超过旧 12/13 项而拒绝或截断。未来 VIP 等数量权益属于独立产品策略，本轮未实现；不得再用存储或沙箱预算冒充安装名额。仍保留以下实际资源保护：
 
-- 单工具包最大 **320,000 UTF-8 字节**。容量策略与旧数量预算的替代关系见 [R32.3](../architecture/browser-ui-r23.zh-CN.md#2026-10-29取消框架安装数量限制)。安装多少工具不等于同时启动多少沙箱。
+- 单工具包最大 **2,097,152 UTF-8 字节（2 MiB）**。容量策略与旧数量预算的替代关系见 [R32.3](../architecture/browser-ui-r23.zh-CN.md#2026-10-29取消框架安装数量限制)。安装多少工具不等于同时启动多少沙箱。
 - 普通工具的单项数据最多 **8,192 字节**、全工具最多 **32,768 字节**，每个工具最多 **32** 个字段。
 - 知识收件箱独立保留 **200 条 / 总数据 4 MiB**；不得用普通工具 32 KiB 限制替代。
 - `E_TOOL_LIMIT` / `E_TOOL_DATA_LIMIT` 是单包/工具数据资源保护；`E_MANAGED_DNR_CAPACITY` 仅表示受管网站原生规则槽位不足或待清理，不限制工具安装总数；`E_HOST_STORAGE_QUOTA` / `E_HOST_STORAGE_WRITE` 属于宿主写入/设备环境问题；`E_STORAGE_CONFLICT` 是版本核对失败；`E_OUTCOME_UNKNOWN` 是读回不足以判断已发生的效果。旧安装错误 `E_TOOL_CAPACITY` 已移除。

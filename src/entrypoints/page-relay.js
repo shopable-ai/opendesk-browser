@@ -7,12 +7,14 @@ import {installFocusPageNotice} from '../../projects/stay-focus/trusted/page-not
 import {installManagedSiteNoticePage} from '../platform/chrome/managed-site-notice-page.js';
 import {initPromptShortcuts} from '../../projects/prompt-shortcuts/trusted/page.js';
 import {initAdblockCosmetics} from '../../projects/adblock/trusted/page.js';
+import {initGlobalVideoSpeed} from '../../projects/video-speed-controller/trusted/page.js';
 export default defineUnlistedScript(() => {
   // Static registration and trusted repair injection may reach the same
   // isolated document. Never create a second set of observers/listeners.
   if(globalThis.__opendeskTrustedPageRelayV1===true)return;
   Object.defineProperty(globalThis,'__opendeskTrustedPageRelayV1',{value:true,configurable:false});
   initPageRelay();
+  initGlobalVideoSpeed();
   if(globalThis.window?.top===globalThis.window){
     initReadingToc();initPageClip();initKnowledgeCapture();installFocusPageNotice();installManagedSiteNoticePage();initPromptShortcuts();initAdblockCosmetics();
   }

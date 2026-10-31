@@ -1,0 +1,49 @@
+{
+  "phase": "core-migration-and-installed-browser",
+  "businessAndPackage": {
+    "command": "node --test projects/ai-proxy/tests/*.test.mjs tests/environment/sidebar-tools.test.mjs",
+    "pass": 19,
+    "fail": 0
+  },
+  "publicProxy": {
+    "agent": "Noether",
+    "pass": 34,
+    "fail": 0,
+    "files": [
+      "tests/environment/browser-managed-proxy-host.test.mjs",
+      "tests/environment/browser-managed-proxy.test.mjs",
+      "tests/environment/browser-sdk-managed-proxy-r54.test.mjs"
+    ]
+  },
+  "existingDevelopmentPins": {
+    "status": "BASELINE_FAILURE",
+    "count": 4,
+    "note": "Agent reproduced the same package/SHA pin failures using HEAD original implementation. Fixed HTTP exception not changed."
+  },
+  "package": {
+    "version": "0.1.0",
+    "sha256": "544ab824c4663641a1d555120798012d0a0fc6de6833d9cce9937cb554d58c4e",
+    "sourceMatch": true
+  },
+  "browser": "INSTALL_PASS_CORE_NOT_VERIFIED",
+  "wan": "NOT_TESTED",
+  "oauth": "NOT_TESTED",
+  "payment": "NOT_TESTED",
+  "restart": "NOT_TESTED",
+  "handoffState": {
+    "date": "2026-10-30",
+    "currentStage": "USER_REJECTED_MINIMAL_UI; rebuild complete React/shared-UI preview against original UI and feature inventory first",
+    "migrationComplete": false,
+    "sourceVersion": "0.1.2",
+    "sourceBuild": "PASS",
+    "formalPackageVersion": "0.1.1",
+    "formalPackageMatchesCurrentSource": false,
+    "previewVersion": "0.1.1",
+    "nativeCore": "FAIL_NOT_VERIFIED",
+    "runs": "artifacts/ai-proxy/core-20261030/run-01..run-06",
+    "latestProductFailure": "Shared Button API was incorrectly called with onPress/isDisabled; Add did not execute. Source corrected to onClick/disabled, rebuilt0.1.2, not repackaged or browser retested.",
+    "priorCounts": "Node/Mock results below predate this UI wiring correction and never proved rendered UI functionality.",
+    "commit": "NOT_COMMITTED",
+    "push": "NOT_PUSHED"
+  }
+}

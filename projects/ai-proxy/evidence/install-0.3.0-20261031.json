@@ -1,0 +1,185 @@
+{
+  "format": "ai-proxy.install-evidence.v1",
+  "recordedAt": "2026-10-31T06:47:01.976937+00:00",
+  "dateLocal": "2026-10-31",
+  "timezone": "Asia/Shanghai",
+  "branch": "main",
+  "owner": "projects/ai-proxy",
+  "status": "INSTALL_PASS_CORE_CONFIGURATION_PASS_TRAFFIC_NOT_TESTED",
+  "previousThread": {
+    "id": "01a18e57-16a0-77f3-b766-9380a00fbfed",
+    "latestFinalRead": true,
+    "result": "Current-site/rule/management/back UI completed; package/install and real proxy traffic were deferred. Historical 12 scores are development-only and were not rerun."
+  },
+  "package": {
+    "id": "ai-proxy",
+    "previousVersion": "0.2.0",
+    "version": "0.3.0",
+    "file": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "bytes": 908680,
+    "sha256": "1b0450872b6bce1878b047f7410296360e93907f67fae93a2aaeb42d1b8cac81",
+    "promotedWith": "scripts/build-sidebar-tool.mjs --promote-from",
+    "checkProject": "PROJECT_PACKAGE_MATCH",
+    "capabilities": [
+      "storage.local",
+      "currentPage.read",
+      "browser.proxy.managed"
+    ],
+    "runtime": "opendesk.react-ui.v1",
+    "candidate": "artifacts/sidebar-tools/ai-proxy/candidate.opendesk-tool.json",
+    "buildId": "c26cdaf3-02fb-4d78-bccd-c19827ce00a9",
+    "sources": 55,
+    "compiledFiles": {
+      "dist/tool.js": {
+        "bytes": 755888,
+        "sha256": "9fd035c6794e18c5dc7acddaa63f7050fff7e5ce29698148d202a79ef4549e0b"
+      },
+      "dist/tool.css": {
+        "bytes": 104544,
+        "sha256": "a2a9d895071f6b9ffdb969405888614993f7c5cbf8dd3956654fcc7598417be7"
+      }
+    }
+  },
+  "checks": {
+    "build": {
+      "command": "npm run build --prefix projects/ai-proxy",
+      "result": "PASS",
+      "note": "Only AI Proxy Vite IIFE/CSS; Browser dist/development not rebuilt"
+    },
+    "business": {
+      "files": [
+        "config-core",
+        "environment-runtime",
+        "service",
+        "status-runtime",
+        "environment-confirm",
+        "drafts",
+        "use-proxy-errors",
+        "navigation",
+        "form-submit",
+        "settings-credentials",
+        "quick-panel-runtime"
+      ],
+      "commandTemplate": "node --test projects/ai-proxy/tests/<name>.test.mjs",
+      "pass": 139,
+      "fail": 0
+    },
+    "packageGuards": {
+      "command": "node --test --test-name-pattern='tool contract|tool packer|native tool directory|portable Sidebar Tool|promotion rejects' tests/environment/sidebar-tools.test.mjs",
+      "pass": 6,
+      "fail": 0
+    },
+    "stagedDiffWhitespace": {
+      "result": "EXISTING_IMPORT_WARNINGS",
+      "detail": "Initial project staging reports trailing whitespace/EOF blank lines in prior imported historical preview and source/test files. Preserved to avoid unrelated source/fingerprint churn; no claim of whitespace-clean diff."
+    }
+  },
+  "native": {
+    "entry": "Extensions → Filter and manage → Import extension → select project JSON → review → Confirm install → Open AI Proxy",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "hostVersion": "0.1.0",
+    "mode": "development",
+    "serveConnection": "UI_REPORTED_CONNECTED",
+    "revisionObservedBeforeInstall": "f1f15cda72f98fd203954d510e179134687ea2304e2131016090305cf8384269",
+    "runtimeContractSha256": "b1ea893e1feeda7ba29f27c61e4966ce8e67c2510ee45190ff8d82e1db2ab797",
+    "source": "local reviewed package; no claim of official marketplace provenance",
+    "sandbox": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidebar-tools/sandbox.html",
+    "installedVersionTitle": "AI Proxy · v0.3.0",
+    "sdkMock": false,
+    "globalProxyMutationsPerformed": false,
+    "chromeProxyPermissionRequested": false,
+    "observedProxyStatus": {
+      "levelOfControl": "controllable_by_this_extension",
+      "permission": "granted",
+      "managed": false,
+      "chromeMode": "UI showed unknown",
+      "priorETool": "NOT_REPRODUCED_IN_INSTALLED_CONTEXT"
+    },
+    "operations": [
+      {
+        "name": "Review package identity and canonical SHA",
+        "result": "PASS"
+      },
+      {
+        "name": "Confirm installation, search installed list and open v0.3.0 sandbox",
+        "result": "PASS"
+      },
+      {
+        "name": "Add HTTPS install-check.example.net:8443; Save and select",
+        "result": "PASS",
+        "visibleReceipt": "代理已保存并选中，还未应用到 Chrome。"
+      },
+      {
+        "name": "Read current ordinary page hostname",
+        "result": "PASS",
+        "hostname": "example.com",
+        "note": "After another browser tab became active, UI followed 127.0.0.1; no claim of an application fault"
+      },
+      {
+        "name": "Current-site rule form carries hostname; edit to draft-check.example.net; Back → Cancel",
+        "result": "PASS",
+        "draftPreserved": true
+      },
+      {
+        "name": "Save example.com + subdomains, priority100, DIRECT",
+        "result": "PASS",
+        "visibleReceipt": "网站规则已保存，尚未改变 Chrome 代理设置；需要时请明确应用。"
+      },
+      {
+        "name": "Manage all, seven section choices visible and rules readback",
+        "result": "PASS",
+        "note": "Section availability observed; not a full native behavior test of every section"
+      },
+      {
+        "name": "Close tool and reopen; endpoint and selection retained; reopen rules shows saved DIRECT rule",
+        "result": "PASS",
+        "scope": "installed storage.local, not isolated local-project development data"
+      },
+      {
+        "name": "Inner Back and outer Return to extension list on clean reopened session",
+        "result": "PASS"
+      },
+      {
+        "name": "One exit after earlier editing showed unsaved guard",
+        "result": "OBSERVED_NOT_CLASSIFIED",
+        "note": "Explicitly discarded only current test draft; saved endpoint/rule retained. Clean reopened navigation exited without a guard. No source defect inferred from this mixed session."
+      }
+    ],
+    "rawEvidenceDirectory": "artifacts/ai-proxy/install-0.3.0-20261031",
+    "rawEvidenceFiles": [
+      "01-review-ax.txt",
+      "02-installed-ax.txt",
+      "03-open-ax.txt",
+      "04-save-config-ax.txt",
+      "05-status-ax.txt",
+      "06-draft-preserved-ax.txt",
+      "07-rule-saved-ax.txt",
+      "08-rule-result-ax.txt",
+      "09-rules-readback-ax.txt",
+      "10-exit-guard-ax.txt",
+      "11-reopen-config-ax.txt",
+      "12-reopen-rule-ax.txt"
+    ],
+    "testData": "Test-only endpoint and DIRECT rule retained pending UI availability; no real proxy endpoint or secret entered",
+    "parallelUi": "Another marketplace Quick Notes update review took over the same Chrome sidepanel; preserved without cancellation or confirmation."
+  },
+  "completion": {
+    "packageAndInstall": true,
+    "configurationCore": true,
+    "fullMigration": false,
+    "realProxyEnableDisableAndTraffic": "NOT_TESTED",
+    "authArbitraryPacFullModeApplyAndOnlineSubscriptions": "NOT_COMPLETE",
+    "productionFullCiFullTypeDiagnosticsNativeImeAndWidthZoom": "NOT_TESTED",
+    "warning": "JSON updates only sandbox UI; it does not update fixed trusted Browser code or permit unsupported proxy semantics."
+  },
+  "hostDependencies": {
+    "currentPackageBudgetBytes": 2097152,
+    "headAtTaskStart": "8867587f4",
+    "headPackageBudgetBytes": 320000,
+    "headJsCharacters": 220000,
+    "sharedWorkingTreeChanges": "Uncommitted parallel capacity/runtime-contract/catalog/trusted integration changes retained under original owners; not included in the project-only commit",
+    "cleanCheckoutInstall": "NOT_PROVEN_WITH_OLD_HOST",
+    "publishRequirement": "Platform owner must land and verify required capacity/runtime changes before claiming a standalone release against clean main"
+  }
+}

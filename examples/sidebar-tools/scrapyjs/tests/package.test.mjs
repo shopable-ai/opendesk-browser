@@ -15,8 +15,8 @@ test('single promoted App is reproducible and delegates only to the shipped fixe
   assert.equal(app.html.trim(),'<div id="tool-app"></div>');
   assert.doesNotMatch(app.js,/__opendeskPreview|E_PREVIEW_(?:UNSUPPORTED|KEY|ETAG|EXPORT|LIMIT|IDENTITY|BUSY)|chrome\.(?:tabs|scripting)|allow-same-origin/);
   const task=JSON.parse(await readFile(process.env.SCRAPYJS_TASK_CANDIDATE || new URL('controller/scrapyjs.opendesk-task.json',tool)));
-  assert.deepEqual(task.manifest.siteOrigins,CAPTURE_ORIGINS);
-  assert.deepEqual(task.manifest.permissions,['page.automation']);
+  assert.deepEqual(task.manifest.siteOrigins,[...CAPTURE_ORIGINS,'http://127.0.0.1:43121'].sort());
+  assert.deepEqual(task.manifest.permissions,['page.automation','network','network.localRelay']);
   assert.equal(sha(task.sourceUtf8),task.manifest.program.sourceHash);
   assert.deepEqual(app.delegatedTasks,[{taskId:task.manifest.taskId,version:task.manifest.version,
     manifestHash:task.manifestHash,contentHash:sha(task.sourceUtf8)}]);

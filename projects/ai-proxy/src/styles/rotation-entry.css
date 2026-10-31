@@ -1,0 +1,18 @@
+/* Adapted from the read-only original rotation-entry.css. Geometry and cascade preserved; root selectors scoped to this app. */
+@scope (.proxy-app) {
+/* R9.3: one native external link, only after a verified URL is configured. */
+:scope .popup.sidepanel .r93CollectorLink {
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  box-sizing:border-box; width:100%; min-height:40px; padding:9px 15px;
+  border-top:1px solid var(--line); color:var(--accent); font-size:12px;
+  font-weight:650; text-decoration:none;
+}
+:scope .popup.sidepanel .r93CollectorLink:hover { background:var(--soft, var(--surface)); }
+:scope .popup.sidepanel .r93CollectorLink:focus-visible {
+  outline:2px solid var(--accent); outline-offset:-3px;
+}
+@media(max-width:340px) {
+  :scope .popup.sidepanel .r93CollectorLink { padding-inline:11px; }
+}
+
+}

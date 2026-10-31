@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {pageVideoSpeed,requestVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
+import {showPageToast} from '../../src/scripting/user-scripts/page-toast.js';
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY} from '../../projects/video-speed-controller/trusted/policy.js';
 import {admitsOfficialVideoSpeed,VIDEO_SPEED_VERSION,VIDEO_SPEED_MARKET_ID} from '../../projects/video-speed-controller/trusted/admission.js';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
@@ -43,6 +44,28 @@ function fixture(){
   return {options,calls,docs,top,inner,setStale:value=>{stale=value;},
     setAdmitted:value=>{admitted=value;}};
 }
+test('toast transport failure preserves the verified result and never replays the media write',async()=>{
+  const f=fixture(),execute=f.options.api.scripting.executeScript;
+  f.options.api.scripting.executeScript=async request=>{
+    if(request.func===showPageToast){f.calls.push(request);throw Error('feedback transport lost');}
+    return execute(request);
+  };
+  const result=await requestVideoSpeed({...f.options,operation:'videoSpeed.set',payload:{speed:2},feedback:true});
+  assert.equal(result.speed,2);assert.equal(result.verified,true);
+  assert.equal(f.calls.filter(row=>row.args[0]==='set').length,1);
+  assert.equal(f.calls.at(-1).func,showPageToast);
+  assert.deepEqual(f.calls.at(-1).target,{tabId:4,documentIds:[f.top.documentId]},'feedback belongs to the top document even for iframe media');
+});
+test('closing the Host during toast delivery cannot publish the prior media result as current',async()=>{
+  const f=fixture(),execute=f.options.api.scripting.executeScript;let closed=false;
+  f.options.assertCurrent=()=>{if(closed)throw Object.assign(Error('closed'),{code:'E_TOOL_CHANGED'});};
+  f.options.api.scripting.executeScript=async request=>{
+    if(request.func===showPageToast){closed=true;return [{frameId:0,documentId:f.top.documentId,result:{shown:true}}];}
+    return execute(request);
+  };
+  await assert.rejects(requestVideoSpeed({...f.options,operation:'videoSpeed.set',payload:{speed:2},feedback:true}),{code:'E_TOOL_CHANGED'});
+  assert.equal(f.calls.filter(row=>row.args[0]==='set').length,1);
+});
 test('HTML5 playbackRate on the active video is read and verified independently',async()=>{
   const f=fixture();
   const before=await requestVideoSpeed({...f.options,operation:'videoSpeed.status',payload:{}});
@@ -102,19 +125,114 @@ for(const invalidation of ['closed','target-changed'])test(
     assert.equal(f.calls.filter(call=>call.args[0]==='set').length,0,
       'revocation must prevent the effect, not just reject its later receipt');
   });
+for(const timing of ['before-set','after-set'])for(const change of ['reorder','replace'])test(
+  `selected element identity survives ${change} ${timing}`,async()=>{
+    const f=fixture();
+    const doc=f.docs[f.inner.documentId];
+    const original=doc.querySelectorAll()[0],other=video(false,change==='replace'?2:3,100);
+    let otherWrites=0,otherSpeed=other.playbackRate;
+    Object.defineProperty(other,'playbackRate',{
+      get:()=>otherSpeed,set:value=>{otherWrites++;otherSpeed=value;}
+    });
+    let nodes=[original,other];
+    doc.querySelectorAll=()=>nodes;
+    const changeNodes=()=>{nodes=change==='reorder'?[other,original]:[other];};
+    if(timing==='before-set'){
+      let checks=0;
+      f.options.assertInstalled=async()=>{
+        if(++checks===4){await Promise.resolve();changeNodes();}
+      };
+    }else{
+      const execute=f.options.api.scripting.executeScript;
+      f.options.api.scripting.executeScript=async req=>{
+        const result=await execute(req);
+        if(req.args[0]==='set')changeNodes();
+        return result;
+      };
+    }
+    const request=requestVideoSpeed({...f.options,operation:'videoSpeed.set',payload:{speed:2}});
+    if(change==='replace'){
+      await assert.rejects(request,{code:'E_VIDEO_CHANGED'});
+      assert.equal(original.playbackRate,timing==='before-set'?1:2);
+    }else{
+      const result=await request;
+      assert.equal(result.verified,true);
+      assert.equal(original.playbackRate,2,'the probed element alone must receive the write');
+    }
+    assert.equal(otherWrites,0,'other/replacement element must never be written');
+  });
+
 test('page injection function is self-contained and chooses playing video',()=>{
   const before=globalThis.document;
   const paused=video(false,1,2000),playing=video(true,1,100);
   globalThis.document={querySelectorAll:()=>[paused,playing]};
   try{
-    const probe=pageVideoSpeed('status');
+    const token=globalThis.crypto.randomUUID();
+    const probe=pageVideoSpeed('probe',null,token);
     assert.equal(probe.index,1);
     assert.equal(probe.speed,1);
-    const changed=pageVideoSpeed('set',1.75,probe.index);
+    const changed=pageVideoSpeed('set',1.75,probe.token);
     assert.equal(changed.speed,1.75);
     assert.equal(paused.playbackRate,1);
     assert.equal(playing.playbackRate,1.75);
   }finally{globalThis.document=before;}
+});
+
+test('element tokens are document-local, bounded, expiring and single-use',()=>{
+  const before=globalThis.document,clock=Date.now;
+  const element=video(true);
+  const doc={querySelectorAll:()=>[element]};
+  globalThis.document=doc;
+  // Match Chrome serialization: no module closure is available to injection.
+  const run=Function(`return (${pageVideoSpeed.toString()})`)();
+  let now=1000;
+  Date.now=()=>now;
+  try{
+    const token=()=>globalThis.crypto.randomUUID();
+    const first=token();
+    assert.equal(run('probe',null,first).token,first);
+    assert.equal(run('probe',null,first).changed,true,'a token cannot rebind its element');
+    globalThis.document={querySelectorAll:()=>[element]};
+    assert.equal(run('set',2,first).changed,true,'another document cannot reuse a token');
+    globalThis.document=doc;
+    assert.equal(run('set',2,token()).changed,true,'another request cannot use leftovers');
+    assert.equal(run('set',2,'invalid').changed,true);
+    assert.equal(element.playbackRate,1);
+    assert.equal(run('set',2,first).applied,true);
+    assert.equal(run('set',3,first).changed,true,'duplicate write is rejected');
+    // A rejected replay invalidates the remaining receipt.
+    assert.equal(run('read',null,first).changed,true);
+    const fresh=token();
+    run('probe',null,fresh);
+    assert.equal(run('set',1.75,fresh).applied,true);
+    assert.equal(run('read',null,fresh).speed,1.75);
+    assert.equal(run('read',null,fresh).changed,true,'read consumes the receipt');
+    const expired=token();
+    run('probe',null,expired);
+    now+=15000;
+    assert.equal(run('set',2,expired).changed,true);
+    assert.equal(element.playbackRate,1.75);
+    const oldest=token();
+    run('probe',null,oldest);
+    for(let i=0;i<16;i++)run('probe',null,token());
+    assert.equal(run('set',2,oldest).changed,true,'capacity eviction must fail closed');
+    assert.equal(element.playbackRate,1.75);
+  }finally{Date.now=clock;globalThis.document=before;}
+});
+
+for(const mode of ['probe','set','read'])test(`Host rejects mismatched ${mode} request tokens`,async()=>{
+  const f=fixture(),execute=f.options.api.scripting.executeScript;
+  f.options.api.scripting.executeScript=async req=>{
+    const rows=await execute(req);
+    if(req.args[0]===mode)for(const row of rows){
+      if(row.result.found)row.result.token=globalThis.crypto.randomUUID();
+    }
+    return rows;
+  };
+  await assert.rejects(requestVideoSpeed({...f.options,
+    operation:'videoSpeed.set',payload:{speed:2}}),
+    {code:mode==='probe'?'E_VIDEO_SITE_ACCESS':'E_VIDEO_READBACK'});
+  if(mode==='probe')assert.equal(f.calls.filter(row=>row.args[0]==='set').length,0);
 });
 
 test('only the official installed release can use first-party video mutation',async()=>{
@@ -131,6 +249,8 @@ test('only the official installed release can use first-party video mutation',as
     enableRecords:{},epochs:{[VIDEO_SPEED_ID]:expectedEpoch},expectedEpoch};
   assert.equal(await admitsOfficialVideoSpeed(admitted),true);
   for(const changes of [
+    {tool:{...tool,version:'1.2.0'}},
+    {release:{...release,version:'1.2.0'}},
     {tool:{...tool,html:tool.html+'<p>modified</p>'}},
     {installed:[tool,{...tool}]},
     {provenance:{}},
@@ -198,7 +318,7 @@ test('preview remains a standalone demo and is not a declared production resourc
   const root=resolve(new URL('../..',import.meta.url).pathname);
   const config=JSON.parse(await readFile(resolve(root,'projects/video-speed-controller/tool.config.json'),'utf8'));
   const preview=await readFile(resolve(root,'projects/video-speed-controller/preview/index.html'),'utf8');
-  assert.equal(config.version,'1.1.0');
+  assert.equal(config.version,VIDEO_SPEED_VERSION);
   assert.deepEqual(config.capabilities,['page.videoSpeed','storage.local']);
   assert.deepEqual(Object.values(config.files).sort(),['src/index.html','src/main.js','src/style.css']);
   assert.match(preview,/<!doctype html>/i);

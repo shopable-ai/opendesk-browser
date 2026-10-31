@@ -147,9 +147,11 @@ function metadata(pkg,projectLabel){
       p.libraries.every(id=>id==='axios'&&BUILTIN_RUNTIME_CATALOG.libraries.axios.worlds.includes('CONTROLLER')),
       'E_PROJECT_LIBRARIES','Controller currently supports only opt-in, Broker-bound Axios',
       {...details,location:'package.json#opendesk.libraries'});
-    ensure(Array.isArray(p.permissions)&&p.permissions.length>=1&&p.permissions.length<=2&&p.permissions[0]==='page.automation'&&
-      (p.permissions.length===1||p.permissions[1]==='storage.persistent'),
-      'E_PROJECT_PERMISSION','Controller projects require page.automation and optional storage.persistent only',
+    ensure(Array.isArray(p.permissions)&&p.permissions.length>=1&&p.permissions.length<=4&&p.permissions[0]==='page.automation'&&
+      new Set(p.permissions).size===p.permissions.length&&
+      p.permissions.slice(1).every(permission=>['storage.persistent','network','network.localRelay'].includes(permission))&&
+      (!p.permissions.includes('network.localRelay')||p.permissions.includes('network')),
+      'E_PROJECT_PERMISSION','Controller local relay requires network and network.localRelay after page.automation',
       {...details,location:'package.json#opendesk.permissions'});
     ensure(validControllerProjectOrigins(p.siteOrigins),
       'E_PROJECT_PERMISSION','Controller sites must be 1–8 unique canonical exact HTTP(S) origins or only <all_urls> for local development',

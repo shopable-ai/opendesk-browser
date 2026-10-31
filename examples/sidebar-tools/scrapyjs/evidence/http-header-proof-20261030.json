@@ -1,0 +1,222 @@
+{
+  "format": "scrapyjs.http-header-proof.v1",
+  "date": "2026-10-30",
+  "scope": "Existing NetworkService source executed in Chromium against a loopback fixture; not an installed production HTTP operation",
+  "owner": "examples/sidebar-tools/scrapyjs",
+  "baseline": "aa5ef4bbea3bb0a038b8d22580b1c19c2740324d",
+  "remoteMainObserved": "1edd511ca3e1bac263a32d44dc04a12d039d0f87",
+  "remoteNote": "Read-only fetched; no new ScrapyJS implementation. Local unpushed work preserved; no merge/push.",
+  "regression": {
+    "before": "New User-Agent cases failed with Missing expected exception; preexisting safe/identity cases passed",
+    "after": "SDK/Host Node checks 3/3 and affected shared HTTP method/config checks 5/5 pass",
+    "files": [
+      {
+        "path": "artifacts/scrapyjs/http-header-proof-20261030-a/network-headers-after.log",
+        "bytes": 416,
+        "sha256": "4f10faa1a5ef5287c2a874b7e032acf9f128f86a1d4d22c902d4a18273025642"
+      },
+      {
+        "path": "artifacts/scrapyjs/http-header-proof-20261030-b/network-shared-after.log",
+        "bytes": 451,
+        "sha256": "784033006ebfa0b6ef5e877d4fa8eac8908482e19900f0d061d713f0b173a7be"
+      }
+    ]
+  },
+  "before": {
+    "report": {
+      "path": "artifacts/scrapyjs/http-header-proof-20261030-a/report.json",
+      "bytes": 73682,
+      "sha256": "da30cca38bf681fd341aeb34bc1a00fa446e04b92058c3e647cb6fea9d6c4703"
+    },
+    "status": "PASS_CHROMIUM_HEADER_TRANSPORT_FIXTURE_ONLY",
+    "configuredUserAgent": "ScrapyJS-Header-Probe/1.0",
+    "submittedUserAgent": "ScrapyJS-Header-Probe/1.0",
+    "serverObservedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "configuredEqualsServerObserved": false,
+    "cleanup": {
+      "ownedBrowserReleased": true,
+      "fixtureServerClosed": true
+    }
+  },
+  "after": {
+    "report": {
+      "path": "artifacts/scrapyjs/http-header-proof-20261030-b/report.json",
+      "bytes": 70358,
+      "sha256": "0c52d4c70dbc50b3bc65c06c6fb07a17c7964462dbd397f51ae4449459947f03"
+    },
+    "status": "PASS_CHROMIUM_HEADER_TRANSPORT_FIXTURE_ONLY",
+    "chrome": "Chrome/155.0.8059.39",
+    "mode": "STATIC_DEVELOPMENT_SNAPSHOT_NO_SERVE",
+    "extensionId": "gflnognlhofjhjaogbobboidhmkdoghi",
+    "snapshotInputSha256": "4e74dae760606268516df76381fc1772770e7d10ce009b0572fcefc5900aee40",
+    "sourceSha256": {
+      "/src/platform/chrome/network.js": "5b841a2abc84a46cbd3f995ca30b228b08eab6536b2ab68377eff84cf7c46d39",
+      "/src/framework/sdk/registry.js": "0ffc353a9e2b7bb4e5736d70a13a8eea9c470372995a450698997921eee8e2da",
+      "/src/framework/utils/network-info.js": "2af82434ec8529dacc14eb2ba7fe06895909fe07a61a58d6d0cde21e7563c562",
+      "/src/platform/protocol.js": "be91db624627180e21e2a8b4d2ebe9f7ec3f1da8048d4aa236a23f56b552ad94",
+      "/src/platform/schema.js": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356",
+      "/examples/sidebar-tools/scrapyjs/adapters/static-http-trial.mjs": "14c3ee7e4eb41a09835923fbf06bdbaffb88866d294c5059742d603a54fdedd7",
+      "/examples/sidebar-tools/scrapyjs/contracts/execution-v1.mjs": "16b5647ea96d85b56012a2d601829b497bf44a28bf9f89d122a8e0b077a042c2",
+      "/examples/sidebar-tools/scrapyjs/fixtures/http-header-probe.mjs": "e070dedf3359f3cfa2b2f5a62661a3cdba74f9a3d459a885581c188dc60a0f69"
+    },
+    "originalEntry": {
+      "origin": "null",
+      "hasDomStart": true,
+      "runnableHttpButtons": [],
+      "title": "OpenDesk 隔离工具界面"
+    },
+    "configuration": {
+      "Accept": "text/html",
+      "X-Client-Tag": "scrapyjs-local-header-proof"
+    },
+    "submittedHeaders": {
+      "accept": "text/html",
+      "x-client-tag": "scrapyjs-local-header-proof"
+    },
+    "credentials": "omit",
+    "redirect": "manual",
+    "pages": [
+      {
+        "page": 1,
+        "status": 200,
+        "bytes": 49
+      },
+      {
+        "page": 2,
+        "status": 200,
+        "bytes": 49
+      },
+      {
+        "page": 3,
+        "status": 200,
+        "bytes": 49
+      }
+    ],
+    "records": [
+      {
+        "title": "第一项",
+        "id": "1"
+      },
+      {
+        "title": "第二项",
+        "id": "2"
+      },
+      {
+        "title": "第三项",
+        "id": "3"
+      }
+    ],
+    "serverObserved": [
+      {
+        "url": "/page/1",
+        "status": 200,
+        "accept": "text/html",
+        "clientTag": "scrapyjs-local-header-proof",
+        "cookiePresent": false,
+        "authorizationPresent": false
+      },
+      {
+        "url": "/page/2",
+        "status": 200,
+        "accept": "text/html",
+        "clientTag": "scrapyjs-local-header-proof",
+        "cookiePresent": false,
+        "authorizationPresent": false
+      },
+      {
+        "url": "/page/3",
+        "status": 200,
+        "accept": "text/html",
+        "clientTag": "scrapyjs-local-header-proof",
+        "cookiePresent": false,
+        "authorizationPresent": false
+      }
+    ],
+    "wireEventCount": 12,
+    "userAgentRejection": "E_CONFIG_UNSUPPORTED",
+    "userAgentRequests": 0,
+    "otherForbiddenHeaders": [
+      {
+        "name": "Cookie",
+        "error": "E_CONFIG_UNSUPPORTED"
+      },
+      {
+        "name": "Authorization",
+        "error": "E_CONFIG_UNSUPPORTED"
+      },
+      {
+        "name": "Host",
+        "error": "E_CONFIG_UNSUPPORTED"
+      },
+      {
+        "name": "Origin",
+        "error": "E_CONFIG_UNSUPPORTED"
+      },
+      {
+        "name": "Referer",
+        "error": "E_CONFIG_UNSUPPORTED"
+      },
+      {
+        "name": "Sec-CH-UA",
+        "error": "E_CONFIG_UNSUPPORTED"
+      }
+    ],
+    "transportStop": {
+      "error": "E_CANCELLED",
+      "serverClosedBeforeEnd": true,
+      "scope": "FETCH_ABORT_ONLY_NOT_INSTALLED_OPERATION_RETIREMENT"
+    },
+    "fileReadback": {
+      "path": "artifacts/scrapyjs/http-header-proof-20261030-b/records.json",
+      "sha256": "131684a05dabf48582388b16f0e62cdc7baaa922f3e8ce43c9d04c823fb31d74",
+      "bytes": 94,
+      "scope": "NODE_FIXTURE_FILE_ONLY_NOT_HOST_PERSISTENCE"
+    },
+    "cleanup": {
+      "ownedBrowserReleased": true,
+      "fixtureServerClosed": true
+    }
+  },
+  "driver": {
+    "path": "examples/sidebar-tools/scrapyjs/tests/http-header-chromium.mjs",
+    "bytes": 9348,
+    "sha256": "08373eb64bb510ebc8ba9afcc9e198ef1e1292a0e4080212404acf4f0e83235a"
+  },
+  "browserFixture": {
+    "path": "examples/sidebar-tools/scrapyjs/fixtures/http-header-probe.mjs",
+    "bytes": 2839,
+    "sha256": "e070dedf3359f3cfa2b2f5a62661a3cdba74f9a3d459a885581c188dc60a0f69"
+  },
+  "desktopReadOnly": {
+    "localHead": "d38732243438ba9861bc932077fc9c294677b0b2",
+    "pinnedRemoteCommit": "9d79d3be48536adfac9304f15c4c31651ee3921a",
+    "read": [
+      "https://github.com/shopable-ai/opendesk/blob/9d79d3be48536adfac9304f15c4c31651ee3921a/examples/scrapyjs-desktop/README.md",
+      "https://github.com/shopable-ai/opendesk/blob/9d79d3be48536adfac9304f15c4c31651ee3921a/examples/scrapyjs-desktop/main.mjs"
+    ],
+    "reusable": "Existing bounded http.download example and local receipt; no new runtime",
+    "blocker": "No all-DNS/selected-peer enforcement or Browser installation/Recipe/Plan/HTTP RunReceipt integration",
+    "execution": "NOT_TESTED",
+    "modified": false
+  },
+  "status": {
+    "SOURCE_COMPLETE": true,
+    "NODE_PASS": "3 Header + 5 affected HTTP method/config cases",
+    "CHROMIUM_PASS": "SOURCE_TRANSPORT_FIXTURE_ONLY",
+    "REAL_BROWSER_PASS": "NOT_TESTED_PRODUCTION_HTTP",
+    "REAL_DESKTOP_HTTP_PASS": "NOT_TESTED",
+    "MAC_DESKTOP_PASS": "NOT_TESTED",
+    "PUBLIC_HTTP_PRODUCTION": "BLOCKED",
+    "INSTALLED_HTTP_OPERATION_RETIREMENT": "NOT_TESTED",
+    "HOST_RESULT_IDENTITY_SHA_READBACK": "NOT_TESTED"
+  },
+  "limitations": [
+    "No production Grant; local test authorize callback is not installation authority",
+    "Server loopback peer is fixture observation, not public target DNS/peer validation",
+    "File SHA is fixture output readback only, not Host persisted result identity",
+    "Old immutable extension snapshot proves only original installed App entry; current network source is separately SHA-bound",
+    "Browser build/install and App/Task packages unchanged; original AI unknown request untouched",
+    "Target failure URLs/status/desired Headers not supplied; no public target request or anti-bot success claim",
+    "Historical scores unchanged; no full CI/native matrix rerun"
+  ]
+}

@@ -1,0 +1,1058 @@
+{
+  "kind": "migration-source-snapshot",
+  "recordedDate": "2026-10-30",
+  "stage": "actual-migration-and-core-installation-verification",
+  "sourceRepository": "/Users/shopme/Documents/workspace/ai-proxy",
+  "sourceProject": "apps/browser-extension",
+  "sourceHead": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+  "sourceWorkingTreeDirty": true,
+  "gitStatusScope": "apps/browser-extension and original preview, excluding generated artifacts",
+  "gitStatusPorcelain": [
+    " M apps/browser-extension/entrypoints/options/App.tsx",
+    " M apps/browser-extension/entrypoints/sidepanel/App.tsx",
+    " M apps/browser-extension/package.json",
+    " M apps/browser-extension/playwright.config.ts",
+    " M apps/browser-extension/scripts/accept-mac-sidepanel.mjs",
+    " M apps/browser-extension/src/i18n/locales/en.json",
+    " M apps/browser-extension/src/i18n/locales/zh-CN.json",
+    " M apps/browser-extension/src/i18n/locales/zh-TW.json",
+    " M apps/browser-extension/src/subscription/parser.ts",
+    " M apps/browser-extension/src/ui/DiagnosticsPage.tsx",
+    " M apps/browser-extension/src/ui/SourcesPage.tsx",
+    " M apps/browser-extension/src/ui/SubscriptionReader.tsx",
+    " M apps/browser-extension/src/ui/options.css",
+    " M apps/browser-extension/src/ui/optionsRoute.ts",
+    " M apps/browser-extension/tests/e2e/ai-diagnostics.spec.ts",
+    " M apps/browser-extension/tests/e2e/i18n.spec.ts",
+    " M apps/browser-extension/tests/e2e/official-service.spec.ts",
+    " M apps/browser-extension/tests/e2e/options-backup-rules.spec.ts",
+    " M apps/browser-extension/tests/e2e/options-page-parity.spec.ts",
+    " M apps/browser-extension/tests/e2e/proxy-lifecycle.spec.ts",
+    " M apps/browser-extension/tests/e2e/proxy-native.spec.ts",
+    " M apps/browser-extension/tests/e2e/proxy-restart.spec.ts",
+    " M apps/browser-extension/tests/e2e/r10-ui-consistency.spec.ts",
+    " M apps/browser-extension/tests/e2e/r72-gateway.spec.ts",
+    " M apps/browser-extension/tests/e2e/r72-local-restart.spec.ts",
+    " M apps/browser-extension/tests/e2e/r83-sidepanel.spec.ts",
+    " M apps/browser-extension/tests/e2e/r831-visual-parity.spec.ts",
+    " M apps/browser-extension/tests/e2e/r861-site-rule-explicit-apply.spec.ts",
+    " M apps/browser-extension/tests/e2e/r92-options-boundaries.spec.ts",
+    " M apps/browser-extension/tests/e2e/r92-quick-entry.spec.ts",
+    " M apps/browser-extension/tests/e2e/r92-rollback-alert.spec.ts",
+    " M apps/browser-extension/tests/e2e/r93-public-links.spec.ts",
+    " M apps/browser-extension/tests/e2e/sidepanel.spec.ts",
+    " M apps/browser-extension/tests/e2e/subscription-ui.spec.ts",
+    " D apps/browser-extension/tests/e2e/usage-monitoring.spec.ts",
+    " M apps/browser-extension/tests/unit/options-route.test.ts",
+    " M apps/browser-extension/tests/unit/subscription-parser.test.ts",
+    "?? apps/browser-extension/src/subscription/download.ts",
+    "?? apps/browser-extension/tests/e2e/direct-activation.spec.ts",
+    "?? apps/browser-extension/tests/e2e/r95-navigation.spec.ts",
+    "?? apps/browser-extension/tests/e2e/r95-visual-matrix.spec.ts",
+    "?? apps/browser-extension/tests/e2e/usage-lifecycle.spec.ts",
+    "?? apps/browser-extension/tests/e2e/usage-navigation.spec.ts",
+    "?? apps/browser-extension/tests/e2e/usage-privacy.spec.ts",
+    "?? apps/browser-extension/tests/e2e/usage-ui.spec.ts",
+    "?? apps/browser-extension/tests/fixtures/usage-harness.ts",
+    "?? apps/browser-extension/tests/unit/manifest-build.test.ts",
+    "?? apps/browser-extension/tests/unit/native-main-lineage.test.mjs",
+    "?? apps/browser-extension/tests/unit/r95-navigation-route.test.ts",
+    "?? apps/browser-extension/tests/unit/subscription-download.test.ts"
+  ],
+  "note": "Actual working-tree bytes, including untracked source/tests. Excludes dependencies, generated artifacts/reports, runtime data, secrets and profiles. This source snapshot does not claim implementation, test, installation or Chrome success; those results belong to the leader.",
+  "preview": {
+    "sourcePath": "prototypes/browser-extension/ai-proxy-extension-preview.html",
+    "preservedPath": "preview/legacy-ai-proxy.html",
+    "bytes": 385487,
+    "sha256": "dadd797a809daca0254013c36f8ffb09f7ef5dcb4638b0d7d604d9337df2f027",
+    "role": "historical-standalone-extension-mock",
+    "openDeskSourceBoundPreview": "NOT_IMPLEMENTED",
+    "browserInteractionVerification": "NOT_TESTED"
+  },
+  "fileCount": 171,
+  "files": [
+    {
+      "path": "apps/browser-extension/entrypoints/background.ts",
+      "bytes": 1916,
+      "sha256": "82eb673cecdf183c6cba3ce11d27ca5dabce07ceb735228d5b9142d942e01877"
+    },
+    {
+      "path": "apps/browser-extension/entrypoints/options/App.tsx",
+      "bytes": 47696,
+      "sha256": "9210e3107389d6fd0227a5a8203659e410c1bb530684f5325deb3db57b8adfd4"
+    },
+    {
+      "path": "apps/browser-extension/entrypoints/options/index.html",
+      "bytes": 301,
+      "sha256": "0eb37d9175189bb51b5e620c494ed64cccf66545c51583a0adf50b495c354cfc"
+    },
+    {
+      "path": "apps/browser-extension/entrypoints/options/main.tsx",
+      "bytes": 391,
+      "sha256": "1304a6c6a17c0f29aca1c012b08a9557510d57695c029999ce65990aa96cc6e0"
+    },
+    {
+      "path": "apps/browser-extension/entrypoints/sidepanel/App.tsx",
+      "bytes": 33433,
+      "sha256": "fb2ad5603769de4e3eb06407690c522b6ebc4719fb6f7fdccdb81ad0f7ae78d3"
+    },
+    {
+      "path": "apps/browser-extension/entrypoints/sidepanel/index.html",
+      "bytes": 261,
+      "sha256": "c4082273455cd51209f3f2af49da4fb4ed339fa11fbb7c728661b2517eb5d425"
+    },
+    {
+      "path": "apps/browser-extension/entrypoints/sidepanel/main.tsx",
+      "bytes": 412,
+      "sha256": "49a57d8e6ae92c6ff8ef332096fc4d11b71f47dc483389411de8623ced56cdb5"
+    },
+    {
+      "path": "apps/browser-extension/entrypoints/welcome/index.html",
+      "bytes": 252,
+      "sha256": "9d839cb081bcb02f91c9a62128d1ff9ffee8b0b1966e4fa090430b317944eb0d"
+    },
+    {
+      "path": "apps/browser-extension/entrypoints/welcome/main.tsx",
+      "bytes": 1287,
+      "sha256": "09b65da6086944bcdf5791b0005d79e57f13efe88fe5ae13dc0fe4ab22b5f561"
+    },
+    {
+      "path": "apps/browser-extension/package.json",
+      "bytes": 1605,
+      "sha256": "8fde2011995d1df92d1788bd859d73e57ffbe5fc17e7f1f6cbaeede58caecc8e"
+    },
+    {
+      "path": "apps/browser-extension/playwright.config.ts",
+      "bytes": 1005,
+      "sha256": "3bd1e9f2f0ab07f63afe9efd3a1a91ce72db5deded40d7d4c787866d8019f5c3"
+    },
+    {
+      "path": "apps/browser-extension/public/_locales/en/messages.json",
+      "bytes": 258,
+      "sha256": "d7e4e8a7faf105100431277ec4b9229ac88598427f7653227bd6ef1a077981d3"
+    },
+    {
+      "path": "apps/browser-extension/public/_locales/zh_CN/messages.json",
+      "bytes": 270,
+      "sha256": "a75fdac333c08269929924898db9b37743e8f390733627e1498bccae34eb1ba1"
+    },
+    {
+      "path": "apps/browser-extension/public/_locales/zh_TW/messages.json",
+      "bytes": 273,
+      "sha256": "3bfa2b53160d9a1149f018579c82ffbe92fd60cc3fb3a2ab0c10a3ac747569f0"
+    },
+    {
+      "path": "apps/browser-extension/scripts/accept-mac-native.mjs",
+      "bytes": 29039,
+      "sha256": "c5ff380a2a3c4003f77995c11c8012db574b2f74e3453ec7830d2b3b0baab031"
+    },
+    {
+      "path": "apps/browser-extension/scripts/accept-mac-sidepanel.mjs",
+      "bytes": 57725,
+      "sha256": "d87b2387a29b2265f5fdb938a1da955819f61706fc733d3eaba0a1b5249257bd"
+    },
+    {
+      "path": "apps/browser-extension/scripts/accept-subscription-mac.mjs",
+      "bytes": 38861,
+      "sha256": "5ec577847dae5c5737bc7898304c9b2ce963446965522ccaf753f302d5d4d04e"
+    },
+    {
+      "path": "apps/browser-extension/scripts/audit-r831-drift.mjs",
+      "bytes": 6134,
+      "sha256": "20dee9e965ce2cb7d763e1a7f505e6fa621b5dbd1689e0ab936373121cd380ba"
+    },
+    {
+      "path": "apps/browser-extension/scripts/build-metadata.d.mts",
+      "bytes": 651,
+      "sha256": "d1783caa3de314f576ea3c9e66cf8cbdd5b9bb94473489acaa318bd066d96e95"
+    },
+    {
+      "path": "apps/browser-extension/scripts/build-metadata.mjs",
+      "bytes": 4092,
+      "sha256": "8085d7a66f2c415f03d4ea95e0ca57fe8d8582782c9610bbcf540b60f40a60d7"
+    },
+    {
+      "path": "apps/browser-extension/scripts/check-manifest.mjs",
+      "bytes": 3430,
+      "sha256": "d3f17f89effc9e039d5f9a219bef94a20278e3366626a9e7b85db8a27641be7c"
+    },
+    {
+      "path": "apps/browser-extension/scripts/check-ui-i18n.mjs",
+      "bytes": 1591,
+      "sha256": "24d8667ad34b7a4617a8fdf400abdbf9d964fd5287cddedaa9fd058e4e60b24a"
+    },
+    {
+      "path": "apps/browser-extension/scripts/e2e-isolation.cjs",
+      "bytes": 1813,
+      "sha256": "0484de3f374c15718a12af8e9212fd0c1fc5d1979f04067f1b9cd170ce03a5b8"
+    },
+    {
+      "path": "apps/browser-extension/scripts/probe-subscription.mjs",
+      "bytes": 3012,
+      "sha256": "4cc627b224086e917d3fa879501f92bf87b66f733465f1914e197fa357732dcf"
+    },
+    {
+      "path": "apps/browser-extension/scripts/subscription-network.mjs",
+      "bytes": 8284,
+      "sha256": "92e7a16dde8e5d62a6d0a09574946b38357b73a54363c0e3e098630d8790483b"
+    },
+    {
+      "path": "apps/browser-extension/scripts/sw-budget.mjs",
+      "bytes": 1781,
+      "sha256": "5950af1790a7ae6827bee3d7881f82c06801523d846b3940a9fca9f8e3998b50"
+    },
+    {
+      "path": "apps/browser-extension/scripts/sync-locales.mjs",
+      "bytes": 1820,
+      "sha256": "31b4f2e95f7ba89f8ff23762fbda70bb4c1ace6b296dd1538d02a179b77317d8"
+    },
+    {
+      "path": "apps/browser-extension/src/collector/rotation-plan.ts",
+      "bytes": 3350,
+      "sha256": "bdc8391e848c034a16652b45f2bc749cff0773e28de7d9489523a55a16ae5b00"
+    },
+    {
+      "path": "apps/browser-extension/src/config/product-links.defaults.json",
+      "bytes": 170,
+      "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+    },
+    {
+      "path": "apps/browser-extension/src/config/product-links.demo.json",
+      "bytes": 100,
+      "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+    },
+    {
+      "path": "apps/browser-extension/src/config/public-config.ts",
+      "bytes": 4477,
+      "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+    },
+    {
+      "path": "apps/browser-extension/src/config/public-hosts.allowlist.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "apps/browser-extension/src/config/remote-config.ts",
+      "bytes": 6082,
+      "sha256": "bd8fc8733d83d7fdef91a25f26cc9d1f48cad373ec73760d58e132b797f9623d"
+    },
+    {
+      "path": "apps/browser-extension/src/diagnostics/catalog.ts",
+      "bytes": 2783,
+      "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+    },
+    {
+      "path": "apps/browser-extension/src/diagnostics/engine.ts",
+      "bytes": 11170,
+      "sha256": "59407c67b70e42a4711432c7c0483e8b34c1636a301cb9eb24962dfda5bab940"
+    },
+    {
+      "path": "apps/browser-extension/src/diagnostics/favorites.ts",
+      "bytes": 2352,
+      "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+    },
+    {
+      "path": "apps/browser-extension/src/diagnostics/logic.ts",
+      "bytes": 3147,
+      "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+    },
+    {
+      "path": "apps/browser-extension/src/diagnostics/types.ts",
+      "bytes": 1399,
+      "sha256": "97af68a3cf2d225fc7a7dd6bcf7abc378d6a06fc35187b74c8e46cfe5e8226c0"
+    },
+    {
+      "path": "apps/browser-extension/src/domain/config.ts",
+      "bytes": 13713,
+      "sha256": "3c804cf4afbae754b317f7ed9b9fc8bfddd216b34e98665b95bbef3dcc461bf2"
+    },
+    {
+      "path": "apps/browser-extension/src/domain/error-codes.ts",
+      "bytes": 6871,
+      "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+    },
+    {
+      "path": "apps/browser-extension/src/domain/messages.ts",
+      "bytes": 2441,
+      "sha256": "550cbd39d9ba68e021e093eec1cb18896ae4d3b180fc07569044f65f65ce47d0"
+    },
+    {
+      "path": "apps/browser-extension/src/domain/pac-starters.ts",
+      "bytes": 1139,
+      "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+    },
+    {
+      "path": "apps/browser-extension/src/domain/pac.ts",
+      "bytes": 1836,
+      "sha256": "5bb56c19ee0227fd1a8f1123d72327dbeb390e0a448bf2cebe1ebfd3e1bb7d5d"
+    },
+    {
+      "path": "apps/browser-extension/src/domain/proxy-entry.ts",
+      "bytes": 2125,
+      "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+    },
+    {
+      "path": "apps/browser-extension/src/domain/types.ts",
+      "bytes": 2845,
+      "sha256": "c84506c349b330d543b7d7cb08981a579321d57093ef150bd6e0d2a071dd3aa3"
+    },
+    {
+      "path": "apps/browser-extension/src/i18n/LocaleProvider.tsx",
+      "bytes": 2629,
+      "sha256": "6de1213e7f15e590dc79eb130a88b9ab3d7abe05e865763a7432cd04f3ad8879"
+    },
+    {
+      "path": "apps/browser-extension/src/i18n/errors.ts",
+      "bytes": 433,
+      "sha256": "f3738dc405ac36651bca0652dbf09a3e14ee103bf0439d48207276091f38d4e5"
+    },
+    {
+      "path": "apps/browser-extension/src/i18n/locale.ts",
+      "bytes": 1918,
+      "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+    },
+    {
+      "path": "apps/browser-extension/src/i18n/locales/en.json",
+      "bytes": 70761,
+      "sha256": "7198673c221c2a365e9650004451b827382a24f1c3e3dd957c7bc65b96d756bf"
+    },
+    {
+      "path": "apps/browser-extension/src/i18n/locales/zh-CN.json",
+      "bytes": 67833,
+      "sha256": "368796762763dcfafc5549f8b79cd581b5f3d1ae7e50cce40d3b88a856b0348b"
+    },
+    {
+      "path": "apps/browser-extension/src/i18n/locales/zh-TW.json",
+      "bytes": 68299,
+      "sha256": "4b083e1786f005dd071655a85b8e12429f531275c7959188651eb5bfc4fabd43"
+    },
+    {
+      "path": "apps/browser-extension/src/official/client.ts",
+      "bytes": 5479,
+      "sha256": "1913b26401d56363d9807f4a35d82ad3d4cdb2f1761928e125faf286e74aa07f"
+    },
+    {
+      "path": "apps/browser-extension/src/official/contracts.ts",
+      "bytes": 7053,
+      "sha256": "aed54244b75daabba36751605678530f98f453636ba9ddb5411e1a46da272ff8"
+    },
+    {
+      "path": "apps/browser-extension/src/official/messages.ts",
+      "bytes": 915,
+      "sha256": "a30603c862ad3a4b2ecfdff6a27fb5b149c806ec8dc283ef5251c1e7d71ac578"
+    },
+    {
+      "path": "apps/browser-extension/src/official/oauth.ts",
+      "bytes": 5125,
+      "sha256": "8338ac25112b0b4c533aa70b34722ca8ec1b465a0ea907ca55247de7e4f6cca2"
+    },
+    {
+      "path": "apps/browser-extension/src/runtime/auth.ts",
+      "bytes": 6789,
+      "sha256": "50a5c2505c19bfbb54ee8d4b1dcd92b2d6328707b4871ed2e7c863c4997e3520"
+    },
+    {
+      "path": "apps/browser-extension/src/runtime/chrome-proxy.ts",
+      "bytes": 6455,
+      "sha256": "a1b2a8c69fa3382b1a480ec59294390752ff84557688b7c4f1dca9fe2cb1432b"
+    },
+    {
+      "path": "apps/browser-extension/src/runtime/official-service.ts",
+      "bytes": 10149,
+      "sha256": "aee3318217ebf1054af87f571dd94e09ab93d08140f608bf4a5e5263e6b9bdab"
+    },
+    {
+      "path": "apps/browser-extension/src/runtime/service.ts",
+      "bytes": 21148,
+      "sha256": "f044d4a746e4e3e299e7cb8bb71cc104bf5db80eac2e7dac42e0460a214f076f"
+    },
+    {
+      "path": "apps/browser-extension/src/storage/config-store.ts",
+      "bytes": 2489,
+      "sha256": "eda82893fc848a560c7808cfc6ad80ebf2b2468493b38979555551b770725baa"
+    },
+    {
+      "path": "apps/browser-extension/src/subscription/download.ts",
+      "bytes": 6114,
+      "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+    },
+    {
+      "path": "apps/browser-extension/src/subscription/parser.ts",
+      "bytes": 51339,
+      "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/DiagnosticsPage.tsx",
+      "bytes": 20458,
+      "sha256": "9740ed7ab9e92808dc05af181ad97c5b74f693d54ce09d67ad3aa68043d78cc2"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/FormField.tsx",
+      "bytes": 1023,
+      "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/OfficialServicePage.tsx",
+      "bytes": 9906,
+      "sha256": "79d2463a8ec011e5da79023af215aecb6b428533fac8d9d8ab1cba2c6e02beac"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/OptionsShell.tsx",
+      "bytes": 2192,
+      "sha256": "08c5571c5ded94a8cdb32e384dd713a0f7e1ee2b4da77f5df23bf4484889dabf"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/ProxyEntry.tsx",
+      "bytes": 4546,
+      "sha256": "46c0d5e2d3a2a4d8ffcbe30544542e3c7131048de35abc1fde6b61773dacbf60"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/RotationPlan.tsx",
+      "bytes": 7944,
+      "sha256": "4e539136c364d996d2db93bbc2a98738a00da0518448d83abcc5a57ebd717782"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/SourcesPage.tsx",
+      "bytes": 25035,
+      "sha256": "720708e546e0bbdeccb11b311045008051e5d37c7ed6773602c1a41281098acc"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/Status.tsx",
+      "bytes": 4677,
+      "sha256": "12ba6fc74043d5f5cb1ad856f12cfddaf8fca3344f5dfebb48bb38838f12e09d"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/SubscriptionReader.tsx",
+      "bytes": 17492,
+      "sha256": "297d9e1f6b60721e9225a9ba017a9dc2645de2f7d6025175bedd6fd8870b880b"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/UsageControls.tsx",
+      "bytes": 16186,
+      "sha256": "75074754f14303c3b10376493c5e5f3c171db49bdc78f64c870da87ef932511e"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/backupImport.ts",
+      "bytes": 1198,
+      "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/options.css",
+      "bytes": 46489,
+      "sha256": "ee10fb5c0508d979adeea730dc9c7cef6bf15021306fa329a427b3ea8323c2c3"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/optionsRoute.ts",
+      "bytes": 3129,
+      "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/rotation-entry.css",
+      "bytes": 664,
+      "sha256": "487f5bbe31d4af61acc14366f70f39feb8178f5b4dc2205cd154d0afdf0aa1f4"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/sidepanel-r86.css",
+      "bytes": 16087,
+      "sha256": "842f8c118594288d8cfa4fbce0f62ba876f5bdcb9d3928ecbcc99e56373412f4"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/style.css",
+      "bytes": 38302,
+      "sha256": "bd60c30d2c8f21faafa874600a977d48584eb70d530854dc92c0bd3581ac8631"
+    },
+    {
+      "path": "apps/browser-extension/src/ui/useProxy.ts",
+      "bytes": 4511,
+      "sha256": "524fe8df73276c4a635cf7b00c6b00d969640eb7fdf9b8b332033d4a12ffce42"
+    },
+    {
+      "path": "apps/browser-extension/src/usage/collector.ts",
+      "bytes": 6847,
+      "sha256": "9afc43ab9233c69b40ce49875ace8501e920a3d07169daf39634effceb6d40a3"
+    },
+    {
+      "path": "apps/browser-extension/src/usage/domain.ts",
+      "bytes": 3127,
+      "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+    },
+    {
+      "path": "apps/browser-extension/src/usage/ranking.ts",
+      "bytes": 3203,
+      "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+    },
+    {
+      "path": "apps/browser-extension/src/usage/state.ts",
+      "bytes": 8540,
+      "sha256": "c378f7121c0536cbf538b0bf29e63117e2dda65d75397c44a6b34b6980303203"
+    },
+    {
+      "path": "apps/browser-extension/src/usage/store.ts",
+      "bytes": 7427,
+      "sha256": "1f00f62cc9095db0544c9a2c901c4e8c4ba363d4e5e07d54239943c676be95a0"
+    },
+    {
+      "path": "apps/browser-extension/src/usage/types.ts",
+      "bytes": 581,
+      "sha256": "3d4073a194c8a319e2d415f0e12f4e726309392eb1f3a236c1d08595654dca02"
+    },
+    {
+      "path": "apps/browser-extension/src/usage/vendor/MPL-2.0.txt",
+      "bytes": 16726,
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04"
+    },
+    {
+      "path": "apps/browser-extension/src/usage/vendor/README.md",
+      "bytes": 1447,
+      "sha256": "2fbbe80f60cbcbc05059b055104071b3f3b475b90a6e74ba5f32e913ceb10195"
+    },
+    {
+      "path": "apps/browser-extension/src/usage/vendor/public_suffix_list.dat",
+      "bytes": 335478,
+      "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/ai-diagnostics.spec.ts",
+      "bytes": 6287,
+      "sha256": "9c92e03587154835f302cb9fbe1dcf669cb30a242f315c6814bc686c1fcf91f9"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/direct-activation.spec.ts",
+      "bytes": 13160,
+      "sha256": "1cd66dc3fbb9e5e2c0e9750623e33ea37e774737ff7faf26ebcd8872cb6064e0"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/i18n.spec.ts",
+      "bytes": 14889,
+      "sha256": "0fd75980ab6fc9b45cf99c11c51da38f53820bde225543d0ffb449c00ae6f11d"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/official-service.spec.ts",
+      "bytes": 4264,
+      "sha256": "a31e5c70cbab38012fa20b749023a2f3a7f4ab14e3cf7dcc63adb30446df6b55"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/options-backup-rules.spec.ts",
+      "bytes": 3409,
+      "sha256": "583d00b7f6fa248dbfa15bf7902a855169f8fae7e7e3dbd95079336624773768"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/options-page-parity.spec.ts",
+      "bytes": 9683,
+      "sha256": "0ff02d868d7bd9db46c446ef39c527e0003a1c629cf2641ed2aa4a994a5c0200"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/proxy-lifecycle.spec.ts",
+      "bytes": 24799,
+      "sha256": "960bf7e3542fedba6aa0c279848048070ec4bdedf831762c1e9a6b43e12cc3cc"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/proxy-native.spec.ts",
+      "bytes": 33970,
+      "sha256": "732cb4b127bc94ec0176bdb09e801777939e54d922710bbc71320358438ce6cf"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/proxy-restart.spec.ts",
+      "bytes": 4503,
+      "sha256": "a4250e83352292eab7ba2f92b2c8fe822443bd6d7050af5255dc9f34c658789b"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r10-first-run-proxy.spec.ts",
+      "bytes": 3584,
+      "sha256": "d79dfe3c4e8f9e9fa4b61d64ff1db5b20cd5877b8c3a8c2569980719569ed1c3"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r10-ui-consistency.spec.ts",
+      "bytes": 23279,
+      "sha256": "283b1323ce14e699c610827d0947f219ad73d367fd220562d1598114ffdc5d06"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r1123-explicit-selection.spec.ts",
+      "bytes": 8969,
+      "sha256": "6aab09739d68da55750951193f5f6a81f83b704e4555c69e990dcfe7a5db89f8"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r72-gateway.spec.ts",
+      "bytes": 22374,
+      "sha256": "382c52c7f7bddab18a6d1bbb5e510a5db3f1f12a4a41140d9d319f9940e78aef"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r72-local-restart.spec.ts",
+      "bytes": 5415,
+      "sha256": "0d0c43776b707a21b6b67a0397904d96b075611f4df6e9b7a19d5fc2ba24d43e"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r83-sidepanel.spec.ts",
+      "bytes": 6606,
+      "sha256": "cd608b13b22fb94018a9810469160df31922f37ad14009fc8fffd8cf7aead916"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r831-visual-parity.spec.ts",
+      "bytes": 16516,
+      "sha256": "a9eefc3abd42ba6a2f68ceabf4e88f6c12514a0c72f92eceb3d997a2df92b02c"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r861-site-rule-explicit-apply.spec.ts",
+      "bytes": 4769,
+      "sha256": "bbda26fdbdc15375601c774a65916ac187a3116c38a137c51ae0a75a82b3661d"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r92-options-boundaries.spec.ts",
+      "bytes": 11307,
+      "sha256": "5301b02fc9be7c1691bbc6a4ea4921cc33b23271d868644a2e7772cb14705f30"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r92-quick-entry.spec.ts",
+      "bytes": 14091,
+      "sha256": "3d42f1ff44fed2c43421981691cf4623139c0be7bcfe1921a09deeef3b6b3b96"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r92-rollback-alert.spec.ts",
+      "bytes": 6256,
+      "sha256": "a18ea1653aa1efb7c4890f36ed923d5b21b22a9bc5c06e3279b72442636a3445"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r92-text-resize.spec.ts",
+      "bytes": 4280,
+      "sha256": "75a2f293dcf955e54c6f615a6f9619c0f77bb1c6d6cd7cf021467ad5132e5bfb"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r93-public-links.spec.ts",
+      "bytes": 2851,
+      "sha256": "865dfa8c73137aa52b3e86fcd398855161cbcacc241122350f516b009bcbce31"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r942-build-boundary.spec.ts",
+      "bytes": 5247,
+      "sha256": "36366c3b139b85c1293e3dcf9153fb05ea4b1b5b89370fc46faca61ad8fd7d40"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r942-ui-state.spec.ts",
+      "bytes": 3664,
+      "sha256": "5882cded653f7307ad77683eb5befe7235021774ab64d7e8f5225db9f2a372bc"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r95-navigation.spec.ts",
+      "bytes": 7320,
+      "sha256": "9735996c9c4613813d644a92ae2d98792886787dc210f59f41fac7ab2bcdac48"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/r95-visual-matrix.spec.ts",
+      "bytes": 17719,
+      "sha256": "9df88c936a28d857e138bf58b4c08b1b34eda19409010e37e2f0474ce0a7f05d"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/sidepanel.spec.ts",
+      "bytes": 7100,
+      "sha256": "7d8392f6fc2ed589b81c91572cf041318cc64b15baaf897e88074d1e3af7e2bd"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/subscription-ui.spec.ts",
+      "bytes": 26970,
+      "sha256": "88b04bfeb69c3f4d71d56ea7ca95a53f632e5432a087d993c0fe468794912590"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/usage-lifecycle.spec.ts",
+      "bytes": 5674,
+      "sha256": "c51f1f50528cc6dcd1ba7848912d5f4596432e1cba2fef0e4989aca6e458f10d"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/usage-navigation.spec.ts",
+      "bytes": 3484,
+      "sha256": "c09a5e39086e42778c67cb0bda8b2f254690d194ef3c889c783ec5af49e6d550"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/usage-privacy.spec.ts",
+      "bytes": 6899,
+      "sha256": "4bb4d89a22ffcd5cd3edadad2b73dc8d40f8f1e9443b12f97abb776058dc36ba"
+    },
+    {
+      "path": "apps/browser-extension/tests/e2e/usage-ui.spec.ts",
+      "bytes": 11981,
+      "sha256": "43d5277c29f7bdc1998e997523feb0024e7bf95926c221babf3479580fbc0db3"
+    },
+    {
+      "path": "apps/browser-extension/tests/fixtures/control-extension/background.js",
+      "bytes": 743,
+      "sha256": "89c1409284504ca8a7f3fc6a814cb5cc1e277e1da7ef9112557d5e772985d3a4"
+    },
+    {
+      "path": "apps/browser-extension/tests/fixtures/control-extension/manifest.json",
+      "bytes": 182,
+      "sha256": "93459b97c710057333a33c34333ca13b1181f4732477a78d308f601be7e00b0b"
+    },
+    {
+      "path": "apps/browser-extension/tests/fixtures/evidence-dir.ts",
+      "bytes": 710,
+      "sha256": "120edffd73691ed6957420ea068354eb7fd3c25c4cbd3db36734ddd40f7c7efe"
+    },
+    {
+      "path": "apps/browser-extension/tests/fixtures/http-fixture.ts",
+      "bytes": 8298,
+      "sha256": "4596f0abeab1849132e991a58617bc16c715484f6e893d7b4d403d07fbe8086a"
+    },
+    {
+      "path": "apps/browser-extension/tests/fixtures/socks-fixture.ts",
+      "bytes": 4582,
+      "sha256": "93a29dc4bedbe3cec67df68356c95bb67b3e64739144d82cd65553d3e787e49d"
+    },
+    {
+      "path": "apps/browser-extension/tests/fixtures/usage-fixture.ts",
+      "bytes": 7965,
+      "sha256": "503c933fb8c55fe9a65bfa0ad4b808a2546bb067959dccd760bd0664c6f485a4"
+    },
+    {
+      "path": "apps/browser-extension/tests/fixtures/usage-harness.ts",
+      "bytes": 12744,
+      "sha256": "70afe8df5c7c5b7c88591ddb19fed3b69c6938ab4fd511020376c1c0431ed843"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/accept-mac-sidepanel.test.mjs",
+      "bytes": 5268,
+      "sha256": "66e3df68369251a5f7e0f21afea4d5fe10636880f6162fc0e0e02da1c2429521"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/auth.test.ts",
+      "bytes": 9097,
+      "sha256": "6d4e1a4c06ab75177af0f409c0004705b157d96b31b1e6f98c443ef4a217b151"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/backup-import.test.ts",
+      "bytes": 1690,
+      "sha256": "08c7b2116b3ea4a5ae9c473030a305b2a08f02984e81c69285f30beab207e8fb"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/build-release-boundary.test.ts",
+      "bytes": 5673,
+      "sha256": "8644dc693f732d02eb0936109283aed19134ed607d2fe0adbe8c3ed334f0e46c"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/config.test.ts",
+      "bytes": 4832,
+      "sha256": "099eb326c488780ac453aedf27708b45b89e08949189a883d32a9aa234271ee7"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/diagnostics-engine.test.ts",
+      "bytes": 4597,
+      "sha256": "c900880958a030706c2fb5befbe53a039e4c361d899f780c9618e35cce51bae9"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/diagnostics-favorites.test.ts",
+      "bytes": 6753,
+      "sha256": "b68915ae40f72e656adb987ca484eae0c22180f25f202c95d013999a0b9045d3"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/diagnostics-logic.test.ts",
+      "bytes": 6866,
+      "sha256": "3416240a3e4cd18f3e96d738dc711352d521052a7f934ddb9913e15e7efce89d"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/evidence-dir.test.ts",
+      "bytes": 782,
+      "sha256": "c468a9d1fcb41541b748f6d150e69b8526c57eadfa7f078e3375a15e8ff0e636"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/i18n.test.ts",
+      "bytes": 2798,
+      "sha256": "55ad9b0bf1385957033a8c6f1e33c300b2f77595746ae1527cbdf6b9696d44bc"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/manifest-build.test.ts",
+      "bytes": 3747,
+      "sha256": "a7226e9b1d3f72e183f27f6b33e87a9290ce4e1bdf7e09d6746d43c20a511492"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/native-main-lineage.test.mjs",
+      "bytes": 2317,
+      "sha256": "d2c3cc585406ed6ec64d2e6dfd268ad0e5e28b9833e4f67d80cec01360a4aabb"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/official-provider.test.ts",
+      "bytes": 5974,
+      "sha256": "2ef6ef8a630100067f7ff67391bc599133b4594d04f30953b97e34cce80f88b5"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/official-runtime.test.ts",
+      "bytes": 7375,
+      "sha256": "1e324a0c51e468455abca2c747cd34d49c59a310f8e96436e60f64fad6e6d7bc"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/options-route.test.ts",
+      "bytes": 3363,
+      "sha256": "38f7eb28c72c6f7375f6a2372e144234136a824f02496e2a63f2125ca7c06c40"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/pac-starters.test.ts",
+      "bytes": 1409,
+      "sha256": "e4543915a8056b165caae0257dd0d390f489a50fe0eef7db013e700fa813fee9"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/proxy-entry.test.ts",
+      "bytes": 2057,
+      "sha256": "11f3c2a75cc61f4569b291d37a2c242f0c65bd906f0be2ed469d97d7cdebe7d2"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/proxy.test.ts",
+      "bytes": 4331,
+      "sha256": "6a2224c043075288e9d528eed7531db11d25f32f4f87fd98ef59816ba70b14e4"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/public-config-mime.test.ts",
+      "bytes": 1491,
+      "sha256": "62f90877bf6e3e198ae0e60135ce22be28a7066d5c407e009515d1d6175d41b2"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/public-config.test.ts",
+      "bytes": 9111,
+      "sha256": "b10caecfd76366ae5b04eefad544ba409c361a4240fda86077e33c29ec40449d"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/r95-navigation-route.test.ts",
+      "bytes": 1441,
+      "sha256": "cf2a4924aea30ee0cc0dfe1bfcb8f4301e9ba45993488e30f4aafdad7d7fb75e"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/remote-config.test.ts",
+      "bytes": 16551,
+      "sha256": "fe7aef79847ae1e78276c664be4a80020dfbab1d5b85a473a0bf87949fb73a81"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/rotation-plan.test.ts",
+      "bytes": 2417,
+      "sha256": "a0ba351e4cc72679a2c11a0698ed9a5b75268f7422da5b0d4075bfdc28b86aa6"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/rule-domain-input.test.ts",
+      "bytes": 2401,
+      "sha256": "6533102d8d1388efeda70f53eddc3aedc03cde8eecc8d895da7b2e641f0e2e0b"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/service.test.ts",
+      "bytes": 19559,
+      "sha256": "e8b0bc45aae2b6db1bc0f9c654a222fa2ee747ab05bf6cfc018be5b307b0b44b"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/sidepanel-entry.test.tsx",
+      "bytes": 17045,
+      "sha256": "99e436d49b1c6d12ee58234c54b675145197962d4ad8d5f01ffcab797be212cb"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/sources-r72.test.ts",
+      "bytes": 5145,
+      "sha256": "9c263ad8fc3a5888faf99e15bad825f1570e43cec55ccb59e1bf116e8053b3fa"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/status-tone.test.ts",
+      "bytes": 1639,
+      "sha256": "163a08180f0c6f900202a3055cec33dbf5904cbfd56e4693e2ec99f67c4156e0"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/subscription-client-evidence.test.mjs",
+      "bytes": 24569,
+      "sha256": "42be0886223ad1fe4debdd3019297afc1869cbb3225fc31a04d78678ef7c12bf"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/subscription-download.test.ts",
+      "bytes": 8287,
+      "sha256": "ecfaf70c6dceb35312daf320ef18d5160c691e62fec668756f313d4534e6bd54"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/subscription-network.test.mjs",
+      "bytes": 7472,
+      "sha256": "37a4508c4c1e4a8f75c0e920aa086f690cf79a9026b1b873417327c7ae3a2a81"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/subscription-parser.test.ts",
+      "bytes": 35538,
+      "sha256": "45f8a8f1fcd99a2876ff2344f9d2ad28d7813441d42d2f9e3940cebd4dd42e32"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/subscription-probe.test.mjs",
+      "bytes": 3141,
+      "sha256": "2464ba8e3f26b1f5a982bf4d53124f333a2264080884093d70c259e050758064"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/subscription-security.test.ts",
+      "bytes": 6952,
+      "sha256": "49a66c91d78af23c225aab49e2d9d2188518a562fe0a1b39fb26b0e3c5f33da9"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/subscription-ui-flows.test.tsx",
+      "bytes": 12005,
+      "sha256": "e8b6cb6a0fe6906769d1633aa56e09723711a07d0539df7ce8540a23d0bf5557"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/subscription-ui.test.ts",
+      "bytes": 4369,
+      "sha256": "751903905ee3bae4e0504a4dc2b088161941e9f7c8bc7691278d6dd2497da011"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/usage-collector.test.ts",
+      "bytes": 21669,
+      "sha256": "8a6ff332656fe4715716bd3603fc17950d41e98d407c82b09b1ae32556584f09"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/usage-domain.test.ts",
+      "bytes": 3946,
+      "sha256": "a8a4f698b35e9c00701d36b66540fa989f708fe0c82ae189b5aa28d423366119"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/usage-messages.test.ts",
+      "bytes": 5244,
+      "sha256": "c56a9a69c9b22e05dbc72fda8bbe6ae2ed37fbe68599df72daf42f45f7b4014d"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/usage-ranking.test.ts",
+      "bytes": 5559,
+      "sha256": "c41217463ad1547c06eb1069802cf6ce474eca0b6abab4d9adafebcb4abd902c"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/usage-state.test.ts",
+      "bytes": 3573,
+      "sha256": "05faa82fadc7381ad59b11086b040d9be456f779dc0cc6905355e303f6c00c51"
+    },
+    {
+      "path": "apps/browser-extension/tests/unit/useProxy.test.ts",
+      "bytes": 5597,
+      "sha256": "70048e5c839f518dec35c84607d84bafa2017862188ca0f3903866b81ee41f1f"
+    },
+    {
+      "path": "apps/browser-extension/tsconfig.json",
+      "bytes": 284,
+      "sha256": "47982fe797d5ec7658956c52ea9c265613a74f9f74ce77ed27e4b3f71b934593"
+    },
+    {
+      "path": "apps/browser-extension/wxt.config.ts",
+      "bytes": 2138,
+      "sha256": "3fb696dd9b27988de7662793c88c00df2eade081545e7d8a5aec5c5f6a971922"
+    }
+  ],
+  "excludedPaths": [
+    "**/.artifacts/**",
+    "**/.cache/**",
+    "**/.git/**",
+    "**/.output/**",
+    "**/.vitest/**",
+    "**/.wxt/**",
+    "**/artifacts/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/generated/**",
+    "**/node_modules/**",
+    "**/playwright-report/**",
+    "**/runtime-secrets/**",
+    "**/test-results/**",
+    "**/.DS_Store",
+    "**/.env",
+    "**/.env.*",
+    "**/*.log",
+    "**/*.tsbuildinfo",
+    "**/*.pem",
+    "**/*.key",
+    "runtime data, credentials, profiles, storage/auth/cookie dumps"
+  ],
+  "excludedHistoricalReports": [
+    {
+      "path": "apps/browser-extension/.vitest/json/output.json",
+      "bytes": 147223,
+      "sha256": "f766dbd1e19002a786e5b86485c1f22088fbdac0761e8c4737ffb5f1afd1cb38",
+      "role": "excluded-historical-generated-test-report",
+      "includedInSourceManifest": false,
+      "usableAsMigrationTestResult": false,
+      "note": "Original erroneously included fingerprint retained as historical metadata only; report contents and test scores are not imported or revalidated."
+    }
+  ],
+  "historicalObservations": [
+    {
+      "recordedDate": "2026-10-30",
+      "stage": "goals-and-test-conditions-only",
+      "sourceHead": "d8e68fec75bf0bbfb39fddccd756a2103cff3787",
+      "sourceWorkingTreeDirty": true,
+      "gitStatusPorcelain": [
+        " M apps/browser-extension/entrypoints/options/App.tsx",
+        " M apps/browser-extension/entrypoints/sidepanel/App.tsx",
+        " M apps/browser-extension/package.json",
+        " M apps/browser-extension/playwright.config.ts",
+        " M apps/browser-extension/scripts/accept-mac-sidepanel.mjs",
+        " M apps/browser-extension/src/i18n/locales/en.json",
+        " M apps/browser-extension/src/i18n/locales/zh-CN.json",
+        " M apps/browser-extension/src/i18n/locales/zh-TW.json",
+        " M apps/browser-extension/src/subscription/parser.ts",
+        " M apps/browser-extension/src/ui/DiagnosticsPage.tsx",
+        " M apps/browser-extension/src/ui/SourcesPage.tsx",
+        " M apps/browser-extension/src/ui/SubscriptionReader.tsx",
+        " M apps/browser-extension/src/ui/options.css",
+        " M apps/browser-extension/src/ui/optionsRoute.ts",
+        " M apps/browser-extension/tests/e2e/ai-diagnostics.spec.ts",
+        " M apps/browser-extension/tests/e2e/i18n.spec.ts",
+        " M apps/browser-extension/tests/e2e/official-service.spec.ts",
+        " M apps/browser-extension/tests/e2e/options-backup-rules.spec.ts",
+        " M apps/browser-extension/tests/e2e/options-page-parity.spec.ts",
+        " M apps/browser-extension/tests/e2e/proxy-lifecycle.spec.ts",
+        " M apps/browser-extension/tests/e2e/proxy-native.spec.ts",
+        " M apps/browser-extension/tests/e2e/proxy-restart.spec.ts",
+        " M apps/browser-extension/tests/e2e/r10-ui-consistency.spec.ts",
+        " M apps/browser-extension/tests/e2e/r72-gateway.spec.ts",
+        " M apps/browser-extension/tests/e2e/r72-local-restart.spec.ts",
+        " M apps/browser-extension/tests/e2e/r83-sidepanel.spec.ts",
+        " M apps/browser-extension/tests/e2e/r831-visual-parity.spec.ts",
+        " M apps/browser-extension/tests/e2e/r861-site-rule-explicit-apply.spec.ts",
+        " M apps/browser-extension/tests/e2e/r92-options-boundaries.spec.ts",
+        " M apps/browser-extension/tests/e2e/r92-quick-entry.spec.ts",
+        " M apps/browser-extension/tests/e2e/r92-rollback-alert.spec.ts",
+        " M apps/browser-extension/tests/e2e/r93-public-links.spec.ts",
+        " M apps/browser-extension/tests/e2e/sidepanel.spec.ts",
+        " M apps/browser-extension/tests/e2e/subscription-ui.spec.ts",
+        " D apps/browser-extension/tests/e2e/usage-monitoring.spec.ts",
+        " M apps/browser-extension/tests/unit/options-route.test.ts",
+        " M apps/browser-extension/tests/unit/subscription-parser.test.ts",
+        "?? apps/browser-extension/src/subscription/download.ts",
+        "?? apps/browser-extension/tests/e2e/direct-activation.spec.ts",
+        "?? apps/browser-extension/tests/e2e/r95-navigation.spec.ts",
+        "?? apps/browser-extension/tests/e2e/r95-visual-matrix.spec.ts",
+        "?? apps/browser-extension/tests/e2e/usage-lifecycle.spec.ts",
+        "?? apps/browser-extension/tests/e2e/usage-navigation.spec.ts",
+        "?? apps/browser-extension/tests/e2e/usage-privacy.spec.ts",
+        "?? apps/browser-extension/tests/e2e/usage-ui.spec.ts",
+        "?? apps/browser-extension/tests/fixtures/usage-harness.ts",
+        "?? apps/browser-extension/tests/unit/manifest-build.test.ts",
+        "?? apps/browser-extension/tests/unit/native-main-lineage.test.mjs",
+        "?? apps/browser-extension/tests/unit/r95-navigation-route.test.ts",
+        "?? apps/browser-extension/tests/unit/subscription-download.test.ts"
+      ],
+      "fileCount": 172,
+      "note": "Original G0-only preparation observation. The 172 entries included one generated Vitest report; corrected current source count is 171. Original stop-at-G0 scope is historical, not a current implementation blocker. Historical checks are not current migration verification."
+    }
+  ],
+  "recheck": {
+    "observedAt": "2026-10-30T12:55:24+00:00",
+    "method": "Read-only working-tree discovery, filtered git porcelain, per-file bytes/SHA-256 and original/preserved preview comparison; no product environment, build or tests started.",
+    "headChanged": false,
+    "dirtyStatusChanged": false,
+    "changedFiles": [],
+    "addedFiles": [],
+    "removedFromSourceManifest": [
+      "apps/browser-extension/.vitest/json/output.json"
+    ],
+    "untrackedSourceAndTestPaths": [
+      "apps/browser-extension/src/subscription/download.ts",
+      "apps/browser-extension/tests/e2e/direct-activation.spec.ts",
+      "apps/browser-extension/tests/e2e/r95-navigation.spec.ts",
+      "apps/browser-extension/tests/e2e/r95-visual-matrix.spec.ts",
+      "apps/browser-extension/tests/e2e/usage-lifecycle.spec.ts",
+      "apps/browser-extension/tests/e2e/usage-navigation.spec.ts",
+      "apps/browser-extension/tests/e2e/usage-privacy.spec.ts",
+      "apps/browser-extension/tests/e2e/usage-ui.spec.ts",
+      "apps/browser-extension/tests/fixtures/usage-harness.ts",
+      "apps/browser-extension/tests/unit/manifest-build.test.ts",
+      "apps/browser-extension/tests/unit/native-main-lineage.test.mjs",
+      "apps/browser-extension/tests/unit/r95-navigation-route.test.ts",
+      "apps/browser-extension/tests/unit/subscription-download.test.ts"
+    ],
+    "previewBytesAndSha256Unchanged": true,
+    "implementationAndVerificationOwner": "leader",
+    "implementationStatus": "NOT_VERIFIED_BY_THIS_RECHECK",
+    "productTests": "NOT_TESTED",
+    "coreInstallationAndChrome": "NOT_TESTED"
+  }
+}

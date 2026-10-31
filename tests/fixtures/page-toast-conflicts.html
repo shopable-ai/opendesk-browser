@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>Page Toast CSS conflict regression fixture</title>
+<style>
+:root { font-size: 43px; --od-paper: transparent; --od-ink: transparent; --od-line: red; --od-positive: transparent; }
+* { box-sizing: content-box !important; font-family: monospace !important; letter-spacing: 5px !important; }
+div, span, button { margin: 7px !important; padding: 3px !important; border-radius: 0 !important; color: purple !important; }
+body { margin: 0; color: red; font: italic 31px/2 monospace; text-transform: uppercase; text-shadow: 8px 8px red; }
+#stage { min-height: 100vh; background: #eee; }
+#controls { position: fixed; left: 30px; top: 100px; width: 500px; }
+#edit { width: 240px; height: 30px; font: 16px sans-serif; }
+#click { width: 100px; height: 40px; }
+[data-opendesk-page-toast] {
+  all: unset !important; display: none !important; position: absolute !important;
+  inset: 170px !important; width: 2px !important; height: 2px !important;
+  min-width: 800px !important; max-height: 1px !important;
+  padding: 90px !important; margin: 90px !important; border: 30px solid red !important;
+  opacity: 0 !important; filter: blur(20px) !important; backdrop-filter: blur(15px) !important;
+  transform: rotate(50deg) !important; translate: 200px !important; scale: .1 !important;
+  rotate: 90deg !important; animation: sabotage 1s infinite !important;
+  transition: all 10s !important; visibility: hidden !important; pointer-events: auto !important;
+  overflow: hidden !important; contain: strict !important; clip-path: inset(100%) !important;
+  font-size: 100px !important; color: transparent !important;
+  --od-paper: transparent !important; --od-ink: transparent !important; --od-positive: transparent !important;
+}
+[data-opendesk-page-toast]::before, [data-opendesk-page-toast]::after {
+  content: 'WEBSITE OVERLAY' !important; display: block !important; position: fixed !important;
+  inset: 0 !important; background: red !important; pointer-events: auto !important;
+}
+[data-opendesk-page-toast]::backdrop { background: rgb(255 0 0 / .9) !important; pointer-events: auto !important; }
+@keyframes sabotage { from { opacity: 0; transform: scale(.01); } to { opacity: .01; transform: translateX(900px); } }
+</style>
+<body><section id="stage"><div id="controls"><span id="label">Website controls</span>
+<input id="edit" aria-label="Website input"><button id="click">Click</button><output id="count">0</output>
+<button id="fullscreen">Fullscreen container</button></div></section>
+<script>
+let clicks=0;
+document.querySelector('#click').addEventListener('click',()=>document.querySelector('#count').textContent=String(++clicks));
+document.querySelector('#fullscreen').addEventListener('click',()=>document.querySelector('#stage').requestFullscreen());
+</script>
+</body></html>

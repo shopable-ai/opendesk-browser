@@ -18,7 +18,7 @@ import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {MANAGED_SITE_BUDGET_PROTOCOL,MANAGED_SITE_RUNTIME_CONTRACT} from '../../src/platform/host/managed-site-runtime-contract.js';
 import {ANALYTICS_PROTOCOL} from '../../src/analytics/contract.js';
-import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash,sidebarToolPackageContractHash} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {OFFICIAL_STAY_FOCUS_RELEASE_URL as OFFICIAL_FOCUS_LATEST_URL} from '../../src/sidebar-tools/official-catalog.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
@@ -697,7 +697,8 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const {doc,view,elements,emit,selectFile}=toolRuntimeFixture();
   const store=new Map();
   const changed=new Node();
-  const api={runtime:{getURL:path=>'chrome-extension://test/'+path,async sendMessage(message){
+  const api={runtime:{id:'test',getManifest:()=>({version:'0.1.0'}),getURL:path=>'chrome-extension://test/'+path,async sendMessage(message){
+    if(message?.kind==='runtime-contract')return {ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:await sidebarToolPackageContractHash()}};
     if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
       return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
   }},
@@ -883,8 +884,9 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
   let focused=0;
   const changed=new Node();
-  const api={runtime:{getURL:p=>'chrome-extension://test/'+p,async sendMessage(message){
+  const api={runtime:{id:'test',getManifest:()=>({version:'0.1.0'}),getURL:p=>'chrome-extension://test/'+p,async sendMessage(message){
     if(hostReply){const response=await hostReply(message,{store});if(response!==undefined)return response;}
+    if(message?.kind==='runtime-contract')return {ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:await sidebarToolPackageContractHash()}};
     if(message?.protocol==='opendesk.foundation.v1'&&message.type==='cleanupUninstalledToolSchedules')
       return {ok:true,data:{toolId:message.payload.toolId,schedulesRetired:true,alarmsCleared:true}};
   }},storage:{session:{async get(){return {};},async remove(){}},onChanged:{
@@ -918,6 +920,43 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     for(const fn of changed.listeners.get('change')||[])fn(changes,'local');
   },get focused(){return focused;}};
 }
+test('Video SVIP epoch revocation disconnects the DOM-reading watch before old signals can run',async t=>{
+  const tool=await officialToolFixture('video-svip');
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
+  const epoch='svip-installed',store=new Map([
+    [SIDEBAR_TOOL_STORE,[tool]],[SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:true}],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}],
+    [MARKET_PROVENANCE_STORE,{[tool.id]:{marketId:release.id,version:release.version,sha256:release.sha256}}]
+  ]);
+  const page={status:'available',windowId:1,tabId:4,frameId:0,documentId:'svip-doc',
+    url:'https://v.qq.com/x/cover/test/abc.html',origin:'https://v.qq.com'};
+  const target={snapshot:page,capture:()=>({...page}),revalidate:async()=>page};
+  const connections=new Set(),messages=new Set(),disconnects=new Set();
+  let disconnected=false;
+  const port={name:'opendesk.video-svip.watch.v1',
+    sender:{id:'test',frameId:0,tab:{id:4},documentId:'svip-doc'},
+    onMessage:{addListener:fn=>messages.add(fn)},onDisconnect:{addListener:fn=>disconnects.add(fn)},
+    disconnect(){if(disconnected)return;disconnected=true;for(const fn of disconnects)fn();}};
+  const f=await hostFixture(t,{tool,store,target,configureApi(api){
+    api.runtime.id='test';
+    api.runtime.onConnect={addListener:fn=>connections.add(fn),removeListener:fn=>connections.delete(fn)};
+    api.permissions={contains:async request=>request.origins?.[0]==='https://v.qq.com/*'};
+    api.webNavigation={getAllFrames:async()=>[{...page}]};
+    api.scripting={executeScript:async req=>{
+      assert.equal(req.args[0],'watch-on');
+      for(const fn of connections)fn(port);
+      for(const fn of messages)fn({nonce:req.args[2],kind:'ready'});
+      return [{frameId:0,documentId:'svip-doc',result:{ok:true,watching:true}}];
+    }};
+  }});
+  f.ask('videoSVIP.watch',{},'svip-watch');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId==='svip-watch'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.requestId==='svip-watch').ok,true);
+  assert.equal(disconnected,false);
+  const epochs={[tool.id]:'svip-revoked'};store.set(TOOL_REVOCATION_EPOCHS_STORE,epochs);
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:epochs}});
+  assert.equal(disconnected,true,'the isolated observer must stop reading DOM immediately');
+});
 // Exercise the actual runtime.onMessage receiver and official admission. Only
 // Chrome's injection transport is doubled; pageVideoSpeed has separate tests.
 async function videoShortcutHostFixture(t){
@@ -935,8 +974,13 @@ async function videoShortcutHostFixture(t){
   const listeners=new Set(),calls=[],lockCalls=[],baseLocks=sharedLocks();
   const locks={request(name,work){lockCalls.push(name);return baseLocks.request(name,work);}};
   let rate=1,removeFails=false;
+  const globalCalls=[];
+  let globalReply=async()=>({ok:true,data:{enabled:false,speed:1,revision:''}});
   const f=await hostFixture(t,{tool,store,target,locks,configureApi(api){
     api.runtime.id='test';
+    api.runtime.sendMessage=async message=>{
+      globalCalls.push(message);return globalReply(message);
+    };
     api.runtime.onMessage={addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn)};
     api.webNavigation={getAllFrames:async()=>[{...page}]};
     api.scripting={executeScript:async req=>{
@@ -944,10 +988,11 @@ async function videoShortcutHostFixture(t){
       assert.deepEqual(req.target,{tabId:4,documentIds:['video-doc']});
       assert.equal(req.world,'ISOLATED');
       const [mode,speed]=req.args;
+      if(typeof mode==='object')return [{frameId:0,documentId:'video-doc',result:{shown:true}}];
       if(mode==='shortcut-off'&&removeFails)throw Error('old document is inaccessible');
       if(mode==='set')rate=speed;
       const result=mode.startsWith('shortcut-')?{found:false,count:0,shortcuts:mode==='shortcut-on'}:
-        {found:true,count:1,index:0,score:100,playing:true,speed:rate,...(mode==='set'?{applied:true}:{})};
+        {found:true,count:1,index:0,score:100,playing:true,speed:rate,token:req.args[2],...(mode==='set'?{applied:true}:{})};
       return [{frameId:0,documentId:'video-doc',result}];
     }};
   }});
@@ -958,8 +1003,12 @@ async function videoShortcutHostFixture(t){
   const nonce=calls.find(req=>req.args[0]==='shortcut-on').args[3];
   const signal={protocol:'opendesk.video-speed.shortcut.v1',nonce,key:'d'};
   const sender={id:'test',frameId:0,tab:{id:4},documentId:'video-doc'};
-  return {...f,tool,locks,lockCalls,calls,signal,sender,response,target,
+  return {...f,tool,locks,lockCalls,calls,globalCalls,signal,sender,response,target,
     emitSignal(data=signal,from=sender){for(const listener of listeners)listener(data,from);},
+    setGlobalReply(reply){globalReply=reply;},
+    setGlobalState(enabled,speed=2,revision='global-A'){
+      f.store.set('opendesk.video-speed.global.v1',{enabled,speed,revision,epoch,packageHash:release.sha256});
+    },
     setRemoveFails(){removeFails=true;},get rate(){return rate;}};
 }
 test('video shortcut receiver rejects forged sender and nonce, then independently verifies a valid key',async t=>{
@@ -974,11 +1023,79 @@ test('video shortcut receiver rejects forged sender and nonce, then independentl
   f.emitSignal();
   // A second key while a request is busy must not produce a second write.
   f.emitSignal();
-  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='verified'));
+  await settle(()=>f.frame.contentWindow.sent.some(row=>['verified','error'].includes(row.kind)));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='error'),undefined,JSON.stringify(f.frame.contentWindow.sent.filter(row=>row.kind==='error')));
   assert.equal(f.rate,1.25);
   assert.equal(f.calls.filter(req=>req.args[0]==='set').length,1);
-  assert.equal(f.calls.at(-1).args[0],'read');
+  await settle(()=>f.calls.some(req=>typeof req.args[0]==='object'));
+  const toast=f.calls.at(-1);
+  assert.equal(toast.args[0].message,'视频倍速 · 1.25×');
+  assert.ok(f.calls.findIndex(req=>req.args[0]==='read')<f.calls.indexOf(toast),'feedback follows independent readback');
   assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='verified').result.verified,true);
+});
+test('video shortcut suppresses a stale success toast after another window changes the global revision',async t=>{
+  const f=await videoShortcutHostFixture(t);
+  f.setGlobalReply(async()=>{
+    f.setGlobalState(false,1,'stopped-later');
+    return {ok:true,data:{enabled:false,speed:1,revision:''}};
+  });
+  f.emitSignal();await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='verified'));
+  await f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+  assert.equal(f.calls.some(req=>typeof req.args[0]==='object'),false);
+  assert.equal(f.calls.filter(req=>req.args[0]==='set').length,1);
+});
+test('video shortcut reports unknown global status without pretending the entire key succeeded',async t=>{
+  const f=await videoShortcutHostFixture(t);
+  f.setGlobalReply(async()=>undefined);
+  f.emitSignal();
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='error'));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='error').code,'E_OUTCOME_UNKNOWN');
+  assert.equal(f.frame.contentWindow.sent.some(row=>row.kind==='verified'),false);
+  assert.equal(f.rate,1.25,'the already-verified media mutation is not replayed');
+  assert.deepEqual(f.globalCalls.map(row=>row.operation),['videoSpeed.global.status']);
+});
+test('video shortcut sync carries the observed revision so a concurrent global STOP wins',async t=>{
+  const f=await videoShortcutHostFixture(t);
+  f.setGlobalReply(async message=>message.operation==='videoSpeed.global.status'?
+    {ok:true,data:{enabled:true,speed:1,revision:'before-stop'}}:
+    {ok:true,data:{enabled:false,speed:1,revision:'after-stop',superseded:true}});
+  f.emitSignal();
+  await settle(()=>f.globalCalls.length===2);
+  assert.deepEqual(f.globalCalls.map(row=>row.operation),['videoSpeed.global.status','videoSpeed.global.sync']);
+  assert.deepEqual(f.globalCalls[1].payload,{expectedRevision:'before-stop',speed:1.25});
+  assert.equal(f.globalCalls.some(row=>row.operation==='videoSpeed.global.configure'),false);
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='error'));
+  assert.equal(f.frame.contentWindow.sent.some(row=>row.kind==='verified'),false,'a superseded readback cannot become current actual');
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='error').code,'E_VIDEO_CHANGED');
+});
+test('video global current-video set binds the confirmed preference revision',async t=>{
+  const f=await videoShortcutHostFixture(t);f.setGlobalState(true);
+  f.ask('videoSpeed.set',{speed:2,expectedRevision:'global-A'},'global-set');
+  await settle(()=>f.response('global-set'));
+  assert.equal(f.response('global-set').ok,true,JSON.stringify(f.response('global-set')));
+  assert.equal(f.rate,2);assert.equal(f.calls.find(row=>row.args[0]==='set').args[4],'global-A');
+});
+for(const reason of ['stopped','new-revision','different-speed'])test(
+  'video global current-video set rejects '+reason+' before probing',async t=>{
+    const f=await videoShortcutHostFixture(t);
+    f.setGlobalState(reason!=='stopped',reason==='different-speed'?3:2,reason==='new-revision'?'global-B':'global-A');
+    const before=f.calls.length;
+    f.ask('videoSpeed.set',{speed:2,expectedRevision:'global-A'},'stale-global-set');
+    await settle(()=>f.response('stale-global-set'));
+    assert.equal(f.response('stale-global-set').ok,false);
+    assert.equal(f.calls.length,before);assert.equal(f.rate,1);
+  });
+test('video global queued current-video set cannot write after STOP takes effect',async t=>{
+  const f=await videoShortcutHostFixture(t);f.setGlobalState(true);
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const held=f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{entered.resolve();await gate.promise;});
+  await entered.promise;
+  const before=f.calls.length;
+  f.ask('videoSpeed.set',{speed:2,expectedRevision:'global-A'},'queued-global-set');
+  f.setGlobalState(false,2,'global-stop');gate.resolve();await held;
+  await settle(()=>f.response('queued-global-set'));
+  assert.equal(f.response('queued-global-set').ok,false);
+  assert.equal(f.calls.length,before);assert.equal(f.rate,1);
 });
 for(const action of ['close','disable','revoke','uninstall'])test(
   'video shortcut receiver ignores old signals after '+action,async t=>{
@@ -1022,10 +1139,88 @@ test('video shortcut mutation shares the installation and revocation tool lock',
   const whileLocked=f.calls.length;
   const waitedOnLock=f.lockCalls.slice(locksBefore).includes('opendesk.sidebar-tools:tool:'+f.tool.id);
   release();await locked;
-  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='verified'));
+  await settle(()=>f.frame.contentWindow.sent.some(row=>['verified','error'].includes(row.kind)));
+  assert.equal(f.frame.contentWindow.sent.find(row=>row.kind==='error'),undefined,JSON.stringify(f.frame.contentWindow.sent.filter(row=>row.kind==='error')));
   assert.equal(whileLocked,before,'shortcut must wait for an in-flight install/revocation');
   assert.equal(waitedOnLock,true);
   assert.equal(f.rate,1.25);
+});
+for(const value of [{shortcutsEnabled:false},undefined,{shortcutsEnabled:'true'},{}])test(
+  'video shortcut OFF or malformed storage event revokes a queued key: '+JSON.stringify(value),async t=>{
+    const f=await videoShortcutHostFixture(t),key=sidebarToolStorageKey(f.tool.id);
+    const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+    const held=f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{entered.resolve();await gate.promise;});
+    await entered.promise;
+    const before=f.calls.length;f.emitSignal();
+    if(value===undefined)f.store.delete(key);else f.store.set(key,value);
+    f.changeStorage({[key]:{newValue:value}});
+    assert.equal(f.frame.contentWindow.sent.at(-1).kind,'preference','sync preference before awaiting any lock');
+    assert.equal(f.frame.contentWindow.sent.at(-1).enabled,false);
+    gate.resolve();await held;
+    await f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+    assert.equal(f.calls.length,before,'queued key cannot probe or set after OFF');
+    f.ask('videoSpeed.shortcuts.enable',{},'late-off-enable');await settle(()=>f.response('late-off-enable'));
+    assert.equal(f.response('late-off-enable').ok,false);
+    f.emitSignal();await pause();assert.equal(f.rate,1);
+    assert.deepEqual(f.store.get(sidebarToolStorageKey(sample.id)),{note:'unrelated data'});
+  });
+test('video shortcut in-flight enable cannot revive after OFF even if ON follows',async t=>{
+  const f=await videoShortcutHostFixture(t),key=sidebarToolStorageKey(f.tool.id);
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const original=f.api.scripting.executeScript;
+  f.api.scripting.executeScript=async req=>{
+    const result=await original(req);
+    if(req.args[0]==='shortcut-on'){entered.resolve();await gate.promise;}
+    return result;
+  };
+  f.ask('videoSpeed.shortcuts.enable',{},'pending-enable');await entered.promise;
+  const nonce=f.calls.at(-1).args[3];
+  for(const enabled of [false,true]){
+    const value={shortcutsEnabled:enabled};f.store.set(key,value);f.changeStorage({[key]:{newValue:value}});
+  }
+  gate.resolve();await settle(()=>f.response('pending-enable'));
+  assert.equal(f.response('pending-enable').ok,false,'OFF invalidates enable across a later ON');
+  const before=f.calls.length;f.emitSignal({...f.signal,nonce});
+  await f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+  assert.equal(f.calls.length,before);assert.equal(f.rate,1);
+});
+test('video shortcut enable checks stored OFF even without a storage event',async t=>{
+  const f=await videoShortcutHostFixture(t);
+  f.store.set(sidebarToolStorageKey(f.tool.id),{shortcutsEnabled:false});
+  const before=f.calls.length;
+  f.ask('videoSpeed.shortcuts.enable',{},'stored-off');await settle(()=>f.response('stored-off'));
+  assert.equal(f.response('stored-off').ok,false);
+  assert.equal(f.calls.length,before,'stored OFF prevents listener injection');
+});
+test('video shortcut queued enable stays revoked across OFF then ON',async t=>{
+  const f=await videoShortcutHostFixture(t),key=sidebarToolStorageKey(f.tool.id);
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const held=f.locks.request('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{entered.resolve();await gate.promise;});
+  await entered.promise;
+  f.ask('videoSpeed.shortcuts.enable',{},'queued-enable');await pause();
+  for(const enabled of [false,true]){
+    const value={shortcutsEnabled:enabled};f.store.set(key,value);f.changeStorage({[key]:{newValue:value}});
+  }
+  const before=f.calls.length;gate.resolve();await held;await settle(()=>f.response('queued-enable'));
+  assert.equal(f.response('queued-enable').ok,false);assert.equal(f.calls.length,before);
+});
+test('video shortcut enable receipt cannot report success after OFF',async t=>{
+  const f=await videoShortcutHostFixture(t),key=sidebarToolStorageKey(f.tool.id);
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  const original=f.locks.request.bind(f.locks);
+  f.locks.request=(name,work)=>original(name,async()=>{
+    const result=await work();
+    if(result?.enabled===true){entered.resolve();await gate.promise;}
+    return result;
+  });
+  f.ask('videoSpeed.shortcuts.enable',{},'late-receipt');await entered.promise;
+  const nonce=f.calls.at(-1).args[3],value={shortcutsEnabled:false};
+  f.store.set(key,value);f.changeStorage({[key]:{newValue:value}});
+  gate.resolve();await settle(()=>f.response('late-receipt'));
+  assert.equal(f.response('late-receipt').ok,false);
+  const before=f.calls.length;f.emitSignal({...f.signal,nonce});
+  await original('opendesk.sidebar-tools:tool:'+f.tool.id,async()=>{});
+  assert.equal(f.calls.length,before);assert.equal(f.rate,1);
 });
 test('R1.3 exact official Prompt admits one trusted React Dock and one sandbox iframe without remount',async t=>{
   const tool=await officialToolFixture('prompt-shortcuts');
@@ -1272,7 +1467,7 @@ test('R14 import refuses oversized packages, ignores stale asynchronous reads an
   f.emit(f.elements['sidebar-tool-import-trigger'],'click');
   const input=f.elements['sidebar-tool-file'];
   input.value='C:\\fakepath\\too-big.json';
-  f.selectFile({name:'too-big.json',size:320001,text:async()=>JSON.stringify(sample)});await pause();
+  f.selectFile({name:'too-big.json',size:2*1024*1024+1,text:async()=>JSON.stringify(sample)});await pause();
   assert.match(f.elements['sidebar-tool-file-error'].textContent,/超过 320 KB/);
   assert.equal(input.value,'C:\\fakepath\\too-big.json','selected filename must remain in native picker');
   assert.equal(f.elements['sidebar-tool-install'].disabled,true);
@@ -1300,6 +1495,34 @@ test('R5.3 local review identifies normalized candidate/current hashes and cance
   f.emit(f.elements['sidebar-tool-import-close'],'click');
   assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),before);
+});
+
+test('import refuses a mixed runtime before review and preserves the old installation',async t=>{
+  const f=await hostFixture(t,{startTool:false,hostReply:async message=>message.kind==='runtime-contract'
+    ?{ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:'0'.repeat(64)}}:undefined});
+  const before=structuredClone([...f.store]);
+  f.host.openImport();
+  const text=JSON.stringify({...sample,version:'1.0.1'});
+  f.selectFile({name:'candidate.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>Boolean(f.elements['sidebar-tool-file-error'].textContent));
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/安装器与实际 Worker/);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.deepEqual([...f.store],before);
+});
+
+test('a Worker contract change after review cannot commit the candidate',async t=>{
+  let mixed=false;
+  const f=await hostFixture(t,{startTool:false,hostReply:async message=>mixed&&message.kind==='runtime-contract'
+    ?{ok:true,data:{extensionId:'test',version:'0.1.0',contractHash:'0'.repeat(64)}}:undefined});
+  const before=structuredClone([...f.store]);
+  f.host.openImport();
+  const text=JSON.stringify({...sample,version:'1.0.1'});
+  f.selectFile({name:'candidate.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  mixed=true;f.emit(f.elements['sidebar-tool-install'],'click');
+  await settle(()=>Boolean(f.elements['sidebar-tool-file-error'].textContent));
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/安装器与实际 Worker/);
+  assert.deepEqual([...f.store],before);
 });
 
 test('local official import updates the reviewed release and preserves app data',async t=>{

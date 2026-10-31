@@ -1,0 +1,86 @@
+Browser tab: 1, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-f98ab925-5d04-4333-9540-9906ce5d19d7/preview.html".
+1 AXWebArea AI Proxy · React 同源预览, URL: 127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-f98ab925-5d04-4333-9540-9906ce5d19d7/preview.html
+	2 container 预览来源和安全范围
+		3 text 模拟预览 · 非真实安装、权限或网络执行
+		4 text 工具：AI Proxy · 初始场景：success · 初始工具主题：light · 预览外壳：浅色
+		5 text Source: a205cdc6cad0cb19eed3173458cbe366b97e9a8e · Design SHA-256: efa5541cac5eda31587ef534cbd79d8b5696b22ef9ff024dab0109674f210380 · Shell SHA-256: 4f4692678370fe6b5f5f7abd74e6e44877ac4a25bb1d47415a450ef0e70a0a68 · UI SHA-256: 02cf3d22dbc5a52ed3e386e0eb9e7dfd5d126cf8ef633f4ef1e779652c377d17
+	6 container OpenDesk Browser Side Panel 真实布局来源的离线预览
+		7 tab group 工作台
+			8 tab (selectable, settable, boolean) 我的, Value: 0, ID: tab-my-tasks
+			9 tab (selected, settable, boolean) 扩展, Value: 1, ID: tab-tools
+			10 tab (selectable, settable, boolean) 工作流, Value: 0, ID: tab-workflow
+			11 tab (selectable, settable, boolean) 开发, Value: 0, ID: tab-develop
+			12 tab (selectable, settable, boolean) 云控, Value: 0, ID: tab-cloud
+		13 container Description: 扩展, ID: od-preview-extension-detail
+			14 container
+				15 button Description: 返回扩展列表, ID: sidebar-tool-back
+				16 heading AI Proxy, Value: 2, ID: sidebar-tool-title
+					17 text AI Proxy
+				18 container 工具管理
+					19 button Description: 模拟卸载当前工具（不会删除真实数据）, Help: 模拟卸载（不会删除真实数据）, ID: sidebar-tool-remove
+			20 container Description: AI Proxy · 内存模拟, ID: opendesk-preview-frame
+				21 AXWebArea about:srcdoc
+					31 container proxy-ready
+						32 tab group AI Proxy 视图
+							33 tab (selectable, settable, boolean) 代理面板, Value: 0, ID: proxy-view-panel
+							34 tab (selected, settable, boolean) 管理设置, Value: 1, ID: proxy-view-settings
+						35 container Description: 管理设置, ID: proxy-workspace-panel
+							36 container
+								37 container 设置栏目
+									38 text 设置栏目
+									39 pop up button (collapsed, settable) Description: 设置栏目, Value: 网站规则, ID: settings-section, Secondary Actions: Expand
+										40 menu
+											41 container 代理管理
+												42 代理配置
+												43 (selected) 网站规则
+												44 订阅管理
+												45 导入与备份
+												46 网络诊断
+												47 通用设置
+											48 container 可选服务
+												49 官方网络 · 可选官方服务
+								50 container
+									51 button (collapsed) Description: 复制本页链接 / 刷新状态, Help: ⋯, Secondary Actions: Expand
+										52 text ⋯
+								53 container
+									54 heading 网站规则, Value: 2
+										55 text 网站规则
+									56 text 按域名选择代理或直连
+									59 button 添加规则, ID: settings-rule-add
+								58 container 网站规则
+									60 text 仅保存规则，当前网络保持不变。需要生效时，请在代理面板明确应用。
+									61 text 3 条网站规则
+									62 container
+										63 text example.com + 子域 优先级 10  ·  DIRECT 已启用
+										64 button 编辑, ID: settings-rule-rule-docs
+										65 button 删除
+									66 container
+										67 text example.org 优先级 20  ·  DIRECT 已启用
+										68 button 编辑, ID: settings-rule-rule-local
+										69 button 删除
+									70 container
+										71 text a-very-long-test-subdomain-for-navigation.review.example.net 优先级 73  ·  DIRECT 已启用
+										72 button 编辑, ID: settings-rule-9a7f5161-e101-4585-83f1-a9cf4912b459
+										73 button 删除
+								74 container
+									75 heading 无规则命中时, Value: 2
+										76 text 无规则命中时
+									77 text 默认 DIRECT；只有明确选择代理才会经代理，不会自动回退到未知节点。 默认路由
+									78 pop up button (collapsed, settable) 默认路由, Value: DIRECT, ID: default-action, Secondary Actions: Expand
+										79 menu
+											80 (selected) DIRECT
+											81 指定代理
+									82 text 代理
+									83 pop up button (disabled, collapsed, settable) 代理, Value: 请选择, ID: default-endpoint, Secondary Actions: Expand
+										84 menu
+											85 (disabled) 请选择
+											86 (disabled) 工作代理
+											87 (disabled) 本地客户端
+											88 (disabled) 备用 SOCKS
+									89 button 保存默认路由
+									90 text 当前： DIRECT
+	28 container 离线预览辅助
+		29 button (collapsed) 预览辅助 · 非正式工具, Secondary Actions: Expand
+			30 text 预览辅助 · 非正式工具
+
+The focused UI element is 68 button 编辑, ID: settings-rule-rule-local

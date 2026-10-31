@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_LIMITS} from '../src/ui/sidebar-tools/limits.js';
 // Deterministic local packer for standalone Sidebar UI tools.
 // React/Vue/Tailwind may be compiled BEFORE packing; no npm or remote code runs in Chrome.
 import {readFile,writeFile,mkdir,realpath,stat,lstat,readdir,rename,unlink} from 'node:fs/promises';
@@ -18,7 +19,7 @@ function rel(value) {
     fail('invalid relative path: '+value);
   return value;
 }
-async function source(root,name,limit=220000,asBytes=false) {
+async function source(root,name,limit=SIDEBAR_TOOL_LIMITS.js,asBytes=false) {
   const path=resolve(root,rel(name));
   if(!path.startsWith(root+'/'))fail('source path escaped project');
   let actual;
@@ -54,17 +55,17 @@ export async function checkCompiledToolBuildReady(root,meta){
     fail('compiled UI build receipt does not match declared tool resources');
   const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
   for(const name of names){
-    const bytes=await source(root,name,220000,true),expected=ready.files[name];
+    const bytes=await source(root,name,SIDEBAR_TOOL_LIMITS.js,true),expected=ready.files[name];
     if(!expected||expected.bytes!==bytes.length||expected.sha256!==sha256(bytes))
       fail('compiled UI bytes differ from their build receipt: '+name);
   }
   if(ready.sources!==undefined){
     if(!ready.sources||typeof ready.sources!=='object'||Array.isArray(ready.sources)||
-      Object.keys(ready.sources).length<1||Object.keys(ready.sources).length>32)
+      Object.keys(ready.sources).length<1||Object.keys(ready.sources).length>SIDEBAR_TOOL_LIMITS.buildSourceFiles)
       fail('compiled UI source receipt is invalid');
     for(const [name,expected] of Object.entries(ready.sources)){
       if(name.startsWith('dist/'))fail('compiled UI source cannot be an output: '+name);
-      const bytes=await source(root,name,220000,true);
+      const bytes=await source(root,name,SIDEBAR_TOOL_LIMITS.js,true);
       if(!expected||expected.bytes!==bytes.length||expected.sha256!==sha256(bytes))
         fail('compiled UI source changed since the successful build: '+name);
     }
@@ -94,15 +95,15 @@ export async function createSidebarToolPackage(projectPath) {
     fail('files.background requires a v2 tool.config.json');
   let background;
   if(Object.hasOwn(meta.files,'background')){
-    const js=await source(root,meta.files.background,220000);
+    const js=await source(root,meta.files.background,SIDEBAR_TOOL_LIMITS.js);
     background={kind:SIDEBAR_TOOL_BACKGROUND_KIND,js,
       sha256:createHash('sha256').update(js,'utf8').digest('hex')};
   }
-  const html=await source(root,meta.files.html,64000);
-  let css=await source(root,meta.files.css,120000);
+  const html=await source(root,meta.files.html,SIDEBAR_TOOL_LIMITS.html);
+  let css=await source(root,meta.files.css,SIDEBAR_TOOL_LIMITS.css);
   // Only opted-in tools import the canonical non-privileged component CSS at build time.
   css=await compileSharedToolCss(css);
-  let js=await source(root,meta.files.js,220000);
+  let js=await source(root,meta.files.js,SIDEBAR_TOOL_LIMITS.js);
   // Opt-in catalog is compiled from its independent JSON source, never tool JS.
   // Keep the existing marker payload and also expose inert package metadata.
   let localization;
@@ -115,7 +116,7 @@ export async function createSidebarToolPackage(projectPath) {
     catch(error){fail('invalid/stale locale resource: '+String(error?.message||error));}
     localization=await createToolLocalization(catalog);
     js=js.replace(marker,JSON.stringify(catalog));
-    if(new TextEncoder().encode(js).byteLength>220000)fail('compiled tool JS exceeds budget');
+    if(new TextEncoder().encode(js).byteLength>SIDEBAR_TOOL_LIMITS.js)fail('compiled tool JS exceeds budget');
   }else if(js.includes(marker))fail('tool locale marker without resources');
 
   const libraries=meta.files.dependencies||[];
@@ -171,7 +172,7 @@ export async function createSidebarToolPackage(projectPath) {
 // canonical indentation and final newline, not a different compact encoding.
 export function encodeSidebarToolPackage(pkg) {
   const bytes=Buffer.from(serializeSidebarToolPackage(pkg));
-  if(bytes.length>320000)fail('encoded tool package exceeds 320 KB');
+  if(bytes.length>SIDEBAR_TOOL_LIMITS.packageBytes)fail('encoded tool package exceeds 2 MiB');
   return bytes;
 }
 // A single, stable root package is a deliberate release artifact. An ordinary

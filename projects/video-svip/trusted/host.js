@@ -12,7 +12,8 @@ export function pageVideoSVIP(mode,site,nonce='') {
       const url=new URL(location.href),host=url.hostname.toLowerCase();
       return ['http:','https:'].includes(url.protocol)&&
         site?.hosts?.some(domain=>site.id==='fixture'?host===domain:host===domain||host.endsWith('.'+domain))&&
-        site.paths.some(prefix=>url.pathname.startsWith(prefix));
+        site.paths.some(prefix=>url.pathname.startsWith(prefix)&&
+          (prefix!=='/zh-Hans/bangumi/play/'||/^\/zh-Hans\/bangumi\/play\/ep[1-9]\d*$/.test(url.pathname)));
     }catch{return false;}
   };
   if(!bound())return {ok:false,reason:'site-changed'};
@@ -24,18 +25,28 @@ export function pageVideoSVIP(mode,site,nonce='') {
     if(typeof nonce!=='string'||!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(nonce)||
        typeof runtime?.connect!=='function'||typeof MutationObserver!=='function'||
        !document.documentElement)return {ok:true,watching:false};
-    let port,timer=null,closed=false;
-    const observer=new MutationObserver(()=>{
+    // Compare the same reviewed recognition snapshot used by inspect. Comment,
+    // danmaku and player animation mutations must not invalidate the sidebar.
+    const fingerprint=()=>JSON.stringify(bound()?readSnapshot():{ok:false,reason:'site-changed'});
+    let previous=fingerprint(),previousUrl=location.href;
+    let port,timer=null,urlTimer=null,closed=false;
+    const schedule=()=>{
       if(closed||timer!==null)return;
       timer=setTimeout(()=>{
         timer=null;
-        if(!closed)try{port.postMessage({nonce,kind:'changed'});}catch{close();}
+        if(closed)return;
+        const next=fingerprint(),url=location.href;
+        if(next===previous&&url===previousUrl)return;
+        previous=next;previousUrl=url;
+        try{port.postMessage({nonce,kind:'changed'});}catch{close();}
       },180);
-    });
+    };
+    const observer=new MutationObserver(schedule);
     const close=()=>{
       if(closed)return;
       closed=true;observer.disconnect();
       if(timer!==null)clearTimeout(timer);
+      if(urlTimer!==null)clearInterval(urlTimer);
       timer=null;
       if(globalThis[key]?.port===port)delete globalThis[key];
       try{port?.disconnect();}catch{}
@@ -44,13 +55,19 @@ export function pageVideoSVIP(mode,site,nonce='') {
       port=runtime.connect({name:'opendesk.video-svip.watch.v1'});
       port.onDisconnect.addListener(close);
       observer.observe(document.documentElement,{subtree:true,childList:true,characterData:true,
-        attributes:true,attributeFilter:['class','aria-current','aria-selected','data-episode','data-current-episode','data-episode-number','content']});
+        attributes:true,attributeFilter:['class','id','title','href','aria-current','aria-selected','data-video-title','data-episode','data-current-episode','data-episode-number','data-season-number','content']});
+      // pushState can change the URL without any DOM mutation or popstate.
+      if(typeof setInterval==='function')urlTimer=setInterval(()=>{
+        if(location.href!==previousUrl)schedule();
+      },500);
       globalThis[key]={port,close};
       port.postMessage({nonce,kind:'ready'});
       return {ok:true,watching:true};
     }catch{close();return {ok:true,watching:false};}
   }
   if(mode!=='inspect')return {ok:false,reason:'unsupported-mode'};
+  return readSnapshot();
+  function readSnapshot(){
   const trim=value=>String(value??'').replace(/\s+/g,' ').trim().slice(0,180);
   const text=node=>trim(node?.textContent||node?.getAttribute?.('content')||'');
   const find=selectors=>{
@@ -67,7 +84,11 @@ export function pageVideoSVIP(mode,site,nonce='') {
   let title='',titleSource='none',titleConfidence='none',titleSelector='';
   const preferred=find(site.titles||[]);
   if(preferred){
-    const candidate=cleanTitle(text(preferred.node));
+    let candidate=cleanTitle((site.id==='tencent'&&preferred.selector==='div.intro-title[title]'||
+      site.id==='bilibili'&&preferred.selector==='a.mediainfo_mediaTitle__Zyiqh[title]')
+      ?preferred.node.getAttribute('title'):text(preferred.node));
+    if(site.id==='tencent'&&preferred.selector==='h2.player-play-title__title')
+      candidate=candidate.replace(/\s+第\s*\d{1,4}\s*[集话]\s*$/,'').trim();
     if(!badTitle(candidate)){
       title=candidate;titleSelector=preferred.selector;
       titleSource='site-selector';
@@ -84,6 +105,18 @@ export function pageVideoSVIP(mode,site,nonce='') {
     const candidate=cleanTitle(trim(document.title));
     if(!badTitle(candidate)){title=candidate;titleSource='document-title';titleConfidence='low';titleSelector='title';}
   }
+  let titleConflict=false,titleAgreement='';
+  if(site.id==='tencent'){
+    const intro=document.querySelector('div.intro-title[title]');
+    const heading=document.querySelector('h2.player-play-title__title');
+    const series=cleanTitle(intro?.getAttribute('title'));
+    const playing=cleanTitle(text(heading)).replace(/\s+第\s*\d{1,4}\s*[集话]\s*$/,'').trim();
+    titleAgreement=series+'|'+playing;
+    if(!badTitle(series)&&!badTitle(playing)&&series!==playing){
+      titleConflict=true;title='';titleSource='none';titleConfidence='none';
+      titleSelector='conflict:tencent-title';
+    }
+  }
   // Episode must describe the ACTIVE item, never a total or "updated to".
   const parseEpisode=value=>{
     const phrase=trim(value);
@@ -99,7 +132,64 @@ export function pageVideoSVIP(mode,site,nonce='') {
   const acceptable=row=>row&&row.number>=1&&row.number<=9999&&
     (row.season===null||row.season>=1&&row.season<=100);
   let episode='unknown',episodeConfidence='none',episodeSource='none';
-  for(const selector of (site.episodes||[]).slice(0,8)){
+  let selectedTencent=false,selectedBilibili=false;
+  if(site.id==='tencent'){
+    // Only this observed Tencent container permits bare digits. Its complete
+    // video ID must equal the current path; titles and preview rows are not proof.
+    const path=new URL(location.href).pathname.match(/^\/x\/(?:cover\/[a-z0-9]+|page)\/([a-z0-9]+)\.html$/i);
+    const selector='.episode-item.selected.normal-font';
+    const nodes=document.querySelectorAll?.(selector)||[];
+    const numbers=new Set();
+    selectedTencent=nodes.length>0;
+    let invalid=nodes.length>32||selectedTencent&&!path;
+    if(path)for(const node of Array.from(nodes).slice(0,32)){
+      const id=node.getAttribute('id')?.match(/^video-pc_web_episode_list_[a-z0-9]+_([a-z0-9]+)_\d+_main$/i);
+      if(!id||id[1]!==path[1]){invalid=true;continue;}
+      selectedTencent=true;
+      const value=text(node.querySelector('.episode-item-text'));
+      const badge=text(node.querySelector('.corner-wrap.corner-mark--small.corner-mark--rightTop'));
+      const rowText=text(node),numericRow=rowText===value||badge==='VIP'&&rowText===value+'VIP';
+      if(!/^[1-9]\d{0,3}$/.test(value)||!numericRow){invalid=true;continue;}
+      numbers.add(Number(value));
+    }
+    if(selectedTencent||invalid){
+      selectedTencent=true;
+      if(!invalid&&numbers.size===1){
+        const number=[...numbers][0];
+        episode={season:null,number,label:'第'+number+'集'};
+        episodeConfidence='high';episodeSource='selected:'+selector;
+      }else episodeSource='conflict:tencent-selected';
+    }
+  }
+  if(site.id==='bilibili'){
+    // epNNN is an identity, never an episode number. Only the observed active
+    // numberTitle child supplies digits; the adjacent membership badge is ignored.
+    const url=new URL(location.href);
+    const path=url.pathname.match(/^\/(?:zh-Hans\/)?bangumi\/play\/ep([1-9]\d*)$/);
+    const selector='a.EpisodeVirtualList_numberItem__GLWgO.EpisodeVirtualList_activeNumber__Sm49O';
+    const nodes=document.querySelectorAll?.(selector)||[];
+    if(path&&nodes.length){
+      selectedBilibili=true;
+      const numbers=new Set();
+      let invalid=nodes.length>32;
+      for(const node of Array.from(nodes).slice(0,32)){
+        let href;
+        try{href=new URL(node.getAttribute('href')||'',url);}catch{continue;}
+        const identity=href.pathname.match(/^\/(?:zh-Hans\/)?bangumi\/play\/ep([1-9]\d*)$/);
+        if(!node.getAttribute('href')||href.origin!==url.origin||href.username||href.password||
+           !identity||identity[1]!==path[1])continue;
+        const value=text(node.querySelector('.EpisodeVirtualList_numberTitle__6SOS6'));
+        if(!/^[1-9]\d{0,3}$/.test(value)){invalid=true;continue;}
+        numbers.add(Number(value));
+      }
+      if(!invalid&&numbers.size===1){
+        const number=[...numbers][0];
+        episode={season:null,number,label:'第'+number+'集'};
+        episodeConfidence='high';episodeSource='selected:bilibili-numberTitle:href-ep';
+      }else episodeSource='conflict:bilibili-selected';
+    }
+  }
+  for(const selector of selectedTencent||selectedBilibili?[]:(site.episodes||[]).slice(0,8)){
     const found=find([selector]);if(!found)continue;
     const node=found.node;
     const index=Number(node.getAttribute?.('data-episode-number'));
@@ -112,7 +202,7 @@ export function pageVideoSVIP(mode,site,nonce='') {
       episode=parsed;episodeConfidence='high';episodeSource='selected:'+selector;break;
     }
   }
-  if(episode==='unknown'){
+  if(episode==='unknown'&&!selectedTencent&&!selectedBilibili){
     try{
       const url=new URL(location.href);
       const path=url.pathname.match(/\/season\/(\d{1,3})\/episode\/(\d{1,4})(?:\/|$)/i)||
@@ -130,17 +220,19 @@ export function pageVideoSVIP(mode,site,nonce='') {
       }
     }catch{/* Navigation invalidates the captured document in Host. */}
   }
+  if(titleConflict){episode='unknown';episodeConfidence='none';episodeSource='conflict:tencent-title';}
   const state=!title?'unrecognized':titleConfidence!=='high'?'needs-confirmation':'recognized';
-  const reason=!title?'title-not-found':titleConfidence!=='high'?'weak-title-evidence':
+  const reason=titleConflict?'title-conflict':!title?'title-not-found':titleConfidence!=='high'?'weak-title-evidence':
     episode==='unknown'?'episode-unknown':'site-evidence';
   // Non-security fingerprint only; the Host independently binds documentId.
-  const snapshot=[location.href,document.title,title,titleSource,titleSelector,
+  const snapshot=[location.href,titleSource==='document-title'?document.title:'',title,titleSource,titleSelector,titleAgreement,
     episode==='unknown'?'unknown':episode.label,episodeSource].join('|');
   let hash=2166136261;
   for(let i=0;i<snapshot.length&&i<1024;i++)hash=Math.imul(hash^snapshot.charCodeAt(i),16777619)>>>0;
   return {ok:true,title,titleSource,titleConfidence,episode,episodeConfidence,
     recognitionState:state,recognitionReason:reason,contentRevision:hash.toString(16).padStart(8,'0'),
     evidence:{title:titleSelector.slice(0,80),episode:episodeSource.slice(0,80)}};
+  }
 }
 
 function rootFrame(frames,target){
@@ -178,6 +270,11 @@ function checkRead(rows,target){
 async function injection(api,target,site,mode,nonce=''){
   let rows;
   try{
+    // Withheld Chrome site access can leave executeScript pending instead of
+    // rejecting promptly. Check the exact origin before every read/watch.
+    if(typeof api.permissions?.contains!=='function'||
+       !await api.permissions.contains({origins:[target.origin+'/*']}))
+      throw Error('Missing host permission');
     rows=await api.scripting.executeScript({target:{tabId:target.tabId,documentIds:[target.documentId]},
       world:'ISOLATED',func:pageVideoSVIP,args:[mode,site,nonce]});
   }catch{
@@ -212,6 +309,11 @@ export async function requestVideoSVIP({api,tool,operation,payload={},currentPag
   if(typeof api?.scripting?.executeScript!=='function'||
      typeof api?.webNavigation?.getAllFrames!=='function')
     throw fail('E_VIDEO_UNAVAILABLE','此 Chrome 缺少固定网页读取能力');
+  if(currentPageTarget.snapshot?.reason==='E_DOCUMENT_UNRESOLVED'&&
+     typeof currentPageTarget.refresh==='function'){
+    await currentPageTarget.refresh({quiet:true,preserveRetry:true});
+    assertCurrent();await assertInstalled();
+  }
   const target=currentPageTarget.capture();
   if(!target.origin||!Number.isSafeInteger(target.tabId)||!target.documentId)
     throw fail('E_VIDEO_TARGET','请选择普通 HTTP(S) 视频网页');

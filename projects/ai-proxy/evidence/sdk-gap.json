@@ -1,0 +1,9 @@
+{
+  "gap": "E_PROXY_PROFILE_NOT_APPROVED",
+  "stage": "pre-fix",
+  "reproduction": "Existing installed Browser SDK Host ENABLE test with reviewedProxyProfiles:[]; exact trusted intent accepted, ordinary unpinned package rejected by Driver.",
+  "result": "FAIL_AS_EXPECTED",
+  "exitCode": 1,
+  "diagnostic": "  Error: A source-reviewed, package-bound proxy endpoint and domain profile is required\n    code: 'E_PROXY_PROFILE_NOT_APPROVED'",
+  "nativeChrome": "NOT_TESTED"
+}

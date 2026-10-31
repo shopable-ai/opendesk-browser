@@ -8,6 +8,7 @@ import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {join,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
+import {build} from 'esbuild';
 const root=resolve('examples/sidebar-tools/scrapyjs');
 const out=resolve(process.argv[2]||'artifacts/app-ci/scrapyjs/chrome');
 assert(process.env.CHROME_BIN,'Real Chrome required');
@@ -24,13 +25,32 @@ const assets=Object.fromEntries(await Promise.all(Object.entries(assetFiles)
 const config=JSON.parse(await readFile(join(root,'tool.config.json')));
 const task=config.delegatedTasks.find(x=>x.taskId==='scrapyjs.capture');
 assert(task?.manifestHash&&task?.contentHash);
-const buttonStub='window.OpenDeskSidebarUI=Object.freeze({Button:function(props){const p={...props};delete p.variant;return OpenDeskPageReact.createElement("button",p);}});';
+// Same public presentation sources as this tool's react-fixture.mjs. Compile
+// only in memory; no platform/dist writes and no Host, Provider or SDK claims.
+const sharedUI=await build({
+ stdin:{contents:`import {Button} from './src/ui/react/components/ui/button.tsx';
+   import {SharedConversationFrame} from './src/ui/react/components/conversation.tsx';
+   import {createConversationSession} from './src/ui/conversation/session.js';
+   window.OpenDeskSidebarUI=Object.freeze({Button,SharedConversationFrame,createConversationSession});`,
+   resolveDir:resolve('.'),sourcefile:'scrapyjs-ci-shared-ui.js'},
+ bundle:true,write:false,format:'iife',jsx:'transform',
+ define:{'process.env.NODE_ENV':'"production"'},
+ plugins:[{name:'scrapyjs-ci-presentation',setup(builder){
+   // ReactDOM and the shared components must use the UI's single pinned React.
+   builder.onResolve({filter:/^react$/},()=>({path:'react',namespace:'pinned-react'}));
+   builder.onLoad({filter:/.*/,namespace:'pinned-react'},()=>({
+     contents:'module.exports=globalThis.OpenDeskPageReact;',loader:'js'}));
+   builder.onResolve({filter:/\.css\?raw$/},args=>({path:resolve(args.resolveDir,args.path.slice(0,-4)),namespace:'raw-css'}));
+   builder.onLoad({filter:/.*/,namespace:'raw-css'},async args=>({contents:await readFile(args.path,'utf8'),loader:'text'}));
+ }}]
+});
+assets['/shared-ui.js']=Buffer.from(sharedUI.outputFiles[0].contents);
 const page='<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+
  '<meta name="viewport" content="width=device-width,initial-scale=1">'+
  '<link rel="stylesheet" href="/tool.css"></head><body><div id="tool-root"><div id="tool-app"></div></div>'+
  '<script>window.__opendeskPreviewScenario="success";window.__opendeskPreviewTask='+JSON.stringify(task)+';</script>'+
- ['/mock.js','/react.js','/sdk.js','/model.js','/tool.js']
- .map(src=>'<script src="'+src+'"></script>'+(src==='/react.js'?'<script>'+buttonStub+'</script>':'')).join('')+'</body></html>';
+ ['/mock.js','/react.js','/shared-ui.js','/sdk.js','/model.js','/tool.js']
+ .map(src=>'<script src="'+src+'"></script>').join('')+'</body></html>';
 const server=createServer((req,res)=>{
  const name=req.url?.split('?')[0];
  if(name!=='/'&&!Object.hasOwn(assets,name)){res.writeHead(404);res.end();return;}
@@ -52,8 +72,13 @@ function call(method,params={}){
 }
 async function read(expression){
  const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
- if(r.exceptionDetails)throw Error(r.exceptionDetails.text);
+ if(r.exceptionDetails)throw Error(JSON.stringify(describeException(r.exceptionDetails)));
  return r.result?.value;
+}
+function describeException(details={}){
+ return {text:details.text,description:details.exception?.description,
+   url:details.url,lineNumber:details.lineNumber,columnNumber:details.columnNumber,
+   stackTrace:details.stackTrace};
 }
 async function until(expression,name){
  for(let i=0;i<120;i++){
@@ -67,7 +92,7 @@ async function click(selector){
    'if(!el||el.disabled)return false;el.click();return true;})()');
  assert.equal(ok,true,'Enabled control missing: '+selector);
 }
-const report={status:'STARTED',kind:'CHROMIUM_ORIGINAL_REACT_SIMULATED_SDK_AND_BUTTON_STUB',sourceCommit:process.env.GITHUB_SHA||null,
+const report={status:'STARTED',kind:'CHROMIUM_ORIGINAL_REACT_SHARED_PRESENTATION_SIMULATED_SDK',sourceCommit:process.env.GITHUB_SHA||null,
  installed:false,realCapture:false,network:false,android:false,checks,errors};
 try{
  let port;
@@ -85,7 +110,7 @@ try{
  });
  socket.addEventListener('message',event=>{
    const message=JSON.parse(event.data);
-   if(message.method==='Runtime.exceptionThrown')errors.push(message.params?.exceptionDetails?.text||'runtime exception');
+   if(message.method==='Runtime.exceptionThrown')errors.push(describeException(message.params?.exceptionDetails));
    const p=pending.get(message.id);
    if(p){pending.delete(message.id);message.error?p.bad(Error(message.error.message)):p.ok(message.result);}
  });
@@ -93,7 +118,7 @@ try{
  await call('Page.navigate',{url:'http://127.0.0.1:'+server.address().port+'/'});
  await until('Boolean(document.querySelector("#config-heading")) && '+
    'document.querySelector("#app-notice")?.textContent.includes("已读取保存配置")','React initial state');
- checks.push('Real Chromium renders original React with minimal Button shim and memory-only mock');
+ checks.push('Real Chromium renders original React with public shared presentation sources and memory-only SDK mock');
  assert.equal(await read('document.querySelector("#config-heading").textContent'),'采集配置');
  assert.equal(await read('document.querySelector("#target-heading").textContent'),'采集目标');
  checks.push('Original capture/target headings preserved');
@@ -115,7 +140,13 @@ try{
  await writeFile(join(out,'preview.png'),bytes);
  report.screenshot={path:'preview.png',sha256:createHash('sha256').update(bytes).digest('hex')};
  report.status='PASS_CHROMIUM_SIMULATED_UI';
-}catch(error){report.status='FAIL';report.error={message:error.message,stack:error.stack};process.exitCode=1;}
+}catch(error){
+ report.status='FAIL';report.error={message:error.message,stack:error.stack};process.exitCode=1;
+ if(socket?.readyState===WebSocket.OPEN){
+   try{report.page=await read('({url:location.href,readyState:document.readyState,text:document.body.innerText.slice(0,6000),sharedUI:Object.keys(window.OpenDeskSidebarUI||{})})');}
+   catch(diagnostic){report.diagnosticError=diagnostic.message;}
+ }
+}
 finally{
  if(socket)socket.close();
  child.kill('SIGTERM');
@@ -123,5 +154,5 @@ finally{
  await new Promise(ok=>server.close(ok));
  await rm(profile,{recursive:true,force:true,maxRetries:3}).catch(e=>{errors.push('cleanup: '+e.message);process.exitCode=1;});
  await writeFile(join(out,'receipt.json'),JSON.stringify(report,null,2)+'\n');
- console.log(JSON.stringify({status:report.status,checks:checks.length,realCapture:'NOT_TESTED',error:report.error?.message}));
+ console.log(JSON.stringify({status:report.status,checks:checks.length,realCapture:'NOT_TESTED',error:report.error?.message,errors,receipt:join(out,'receipt.json')}));
 }

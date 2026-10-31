@@ -32,6 +32,32 @@ function mock({enabled=true,granted=true,lastConnectedAt=null}={}){
 const message=(requestId,method,params={})=>({v:1,kind:'request',requestId,method,params});
 const settingsSender=f=>({id:f.api.runtime.id,
   url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'settings-document'});
+test('managed service negotiation uses the original port and retires requests on permission removal',async t=>{
+  const protocol='opendesk.managed-services.v1';
+  for(const version of [undefined,0,1,2]){
+    const f=mock();t.after(()=>f.service.dispose());await f.service.ready;
+    f.native().onMessage.fire({v:1,kind:'hello',...(version===undefined?{}:{managedServicesVersion:version})});
+    const welcome=f.responses.find(row=>row.kind==='welcome');
+    assert.equal(Object.hasOwn(welcome,'managedServicesVersion'),version===1);
+    assert.equal(f.service.managedServices.state().supported,version===1);
+    assert.equal(f.requests.length,0);
+    await assert.rejects(f.service.handleSettings({type:'services.request'},settingsSender(f)),{code:'E_CAPABILITY'});
+    if(version!==1)continue;
+    const descriptor={serviceId:'usage',serviceInstanceId:'instance_1',providerEpoch:'epoch_1',
+      productName:'Usage',origin:'http://usage-abc.localhost:43210',capabilities:['usage:manual-binding']};
+    f.native().onMessage.fire({v:1,kind:'services.state',protocol,services:[descriptor]});
+    assert.equal(f.service.managedServices.state().services.length,1);
+    const pending=f.service.managedServices.request({serviceId:'usage',providerEpoch:'epoch_1',
+      owner:{extensionId:f.api.runtime.id,toolId:'cookie-editor',packageHash:'b'.repeat(64),installEpoch:'install_1'},
+      action:'connect',payload:{connectionId:'conn_1',label:'Mac',operationId:'op_1'}});
+    await drain();
+    assert.equal(f.responses.filter(row=>row.kind==='services.request').length,1);
+    f.api.permissions.onRemoved.fire({permissions:['nativeMessaging']});
+    await assert.rejects(pending,{code:'E_SERVICE_DISCONNECTED',outcome:'OUTCOME_UNKNOWN'});
+    assert.equal(f.service.managedServices.state().connected,false);
+    assert.deepEqual(f.service.managedServices.state().services,[]);
+  }
+});
 test('trusted Side Panel shows and changes the same Native connection without redirecting',async t=>{
  const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;
  const sender={id:f.api.runtime.id,

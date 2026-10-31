@@ -53,8 +53,8 @@ function ownerOf(context){
   return owner;
 }
 const sameOwner=(a,b)=>Boolean(a&&b&&sameStorageValue(a,b));
-// Syntax and user consent alone do not approve browser-wide traffic routes.
-// Only trusted Host construction supplies a source-reviewed routing profile.
+// Static profiles remain the fallback for consumers without exact Host consent,
+// and are always required for the separate fixed development HTTP exception.
 function requireReviewedProfile(profiles,config,owner){
   if(isFixedDevelopmentManagedProxyConfig(config)){
     if(getDevelopmentManagedProxyProfile(owner))return;
@@ -209,7 +209,16 @@ async function getState(api,owner){
     {developmentProfile:getDevelopmentManagedProxyProfile(owner)}:{})};
 }
 export function createBrowserManagedProxy({api=globalThis.chrome,
-  lockManager=globalThis.navigator?.locks,reviewedProfiles=[],authorizeEnable=null}={}){
+  lockManager=globalThis.navigator?.locks,reviewedProfiles=[],authorizeEnable=null,
+  authorizeConfig=null}={}){
+  async function requireConfigAuthorization(context,config,owner){
+    if(isFixedDevelopmentManagedProxyConfig(config)||authorizeConfig===null){
+      requireReviewedProfile(reviewedProfiles,config,owner);
+      return;
+    }
+    if(typeof authorizeConfig!=='function'||await authorizeConfig(context,config)!==true)
+      throw fail('E_PROXY_AUTHORIZATION_REQUIRED','Exact trusted Host proxy config approval is required');
+  }
   return Object.freeze({
     async getStatus(_input={},context){
       return getState(api,ownerOf(context));
@@ -225,7 +234,7 @@ export function createBrowserManagedProxy({api=globalThis.chrome,
         if(typeof authorizeEnable!=='function')
           throw fail('E_PROXY_AUTHORIZATION_REQUIRED','Trusted Host revalidation is required');
         await authorizeEnable(context);
-        requireReviewedProfile(reviewedProfiles,config,owner);
+        await requireConfigAuthorization(context,config,owner);
         await legacyHold(api);
         const before=await chromeState(api);
         if(levelOf(before)!=='controllable_by_this_extension')
@@ -234,6 +243,7 @@ export function createBrowserManagedProxy({api=globalThis.chrome,
         await persist(api,current,applying); // Durable uncertainty fence precedes native effect.
         // A revoked install, permission or outside proxy must not be overwritten.
         // Keep the applying journal for explicit STOP if this recheck fails.
+        await requireConfigAuthorization(context,config,owner);
         await authorizeEnable(context);
         const recheck=await chromeState(api);
         if(levelOf(recheck)!=='controllable_by_this_extension')

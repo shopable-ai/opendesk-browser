@@ -1,0 +1,65 @@
+Browser tab: 560069431, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html".
+1 AXWebArea AI Proxy · React 同源预览, URL: 127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/preview.html
+	2 container
+		3 container 预览来源和安全范围
+			4 text 模拟预览 · 非真实安装、权限或网络执行
+			5 text 工具：AI Proxy · 初始场景：success · 初始工具主题：light · 预览外壳：浅色
+			6 text Source: dc3d9fd93d6f6f76ba70ce451894ea167f5bd8c0 · Design SHA-256: efa5541cac5eda31587ef534cbd79d8b5696b22ef9ff024dab0109674f210380 · Shell SHA-256: 4f4692678370fe6b5f5f7abd74e6e44877ac4a25bb1d47415a450ef0e70a0a68 · UI SHA-256: fad1f8b7e71aac7761c0c0ac741e52aee212f84e3b4c6872e7c2c008e85e11bd
+		7 container OpenDesk Browser Side Panel 真实布局来源的离线预览
+			8 tab group 工作台
+				9 tab (selectable, disabled, settable, boolean) 我的, Value: 0, ID: tab-my-tasks
+				10 tab (selected, disabled, settable, boolean) 扩展, Value: 1, ID: tab-tools
+				11 tab (selectable, disabled, settable, boolean) 工作流, Value: 0, ID: tab-workflow
+				12 tab (selectable, disabled, settable, boolean) 开发, Value: 0, ID: tab-develop
+				13 tab (selectable, disabled, settable, boolean) 云控, Value: 0, ID: tab-cloud
+			14 container Description: 扩展, ID: od-preview-extension-detail
+				15 container
+					16 button (disabled) Description: 返回扩展列表, ID: sidebar-tool-back
+					17 heading AI Proxy, Value: 2, ID: sidebar-tool-title
+						18 text AI Proxy
+					19 container 工具管理
+						20 button (disabled) Description: 模拟卸载当前工具（不会删除真实数据）, Help: 模拟卸载（不会删除真实数据）, ID: sidebar-tool-remove
+				21 container Description: AI Proxy · 内存模拟, ID: opendesk-preview-frame
+					22 AXWebArea about:srcdoc
+						92 container proxy-ready
+							93 tab group AI Proxy 视图
+								94 tab (selected, settable, boolean) 代理面板, Value: 1, ID: proxy-view-panel
+								95 tab (selectable, settable, boolean) 管理设置, Value: 0, ID: proxy-view-settings
+							96 container Description: 代理面板, ID: proxy-workspace-panel
+								97 container 编辑规则
+									98 container
+										99 heading 编辑规则, Value: 2
+											100 text 编辑规则
+										101 button 关闭规则编辑
+									102 container
+										103 text 正在编辑已保存的规则： example.com
+									104 container Description: 编辑规则, ID: r86-site-editor
+										105 text 网站域名或网址
+										106 text field (settable) 网站域名或网址, Value: quick-draft.example, ID: side-rule-domain
+										107 button 清除网站域名或网址
+										108 text 支持粘贴 https:// 网址，会自动提取域名；默认匹配子域名，不保存路径或查询参数。
+										109 checkbox (settable, integer) Description: 同时包含子域名, Value: 1
+										110 container 这个网站使用
+											111 text 这个网站使用
+											112 radio button (settable, integer) Description: 指定代理, Value: 1
+											113 radio button (settable, integer) Description: DIRECT 直连, Value: 0
+										114 text 指定代理
+										115 pop up button (collapsed, settable) 指定代理, Value: 工作代理, ID: side-rule-proxy, Secondary Actions: Expand
+											116 menu
+												117 (selected) 工作代理
+												118 本地客户端
+												119 备用 SOCKS
+										120 container 规则预览
+											121 text 规则预览
+											122 container
+												123 text quick-draft.example + 子域
+											124 text 这个网站使用
+											125 text 工作代理
+										126 text 仅保存规则，当前网络保持不变。需要生效时，请在代理面板明确应用。
+										127 button 保存规则
+										128 button 取消
+		89 container 离线预览辅助
+			90 button (collapsed) 预览辅助 · 非正式工具, Secondary Actions: Expand
+				91 text 预览辅助 · 非正式工具
+
+The focused UI element is 101 button 关闭规则编辑

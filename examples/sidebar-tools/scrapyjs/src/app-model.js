@@ -11,8 +11,34 @@
     const pageLimit = runtime === 'local' ? 50 : 10;
     const object = v => v && typeof v === 'object' && !Array.isArray(v);
     if (!object(value)) throw new Error('配置必须是 JSON 对象');
-    if (Object.keys(value).some(key => !['url', 'itemConfig', 'waitForSelector', 'timeoutMs', 'nextPageSelector', 'maxPages', 'dedupeKey', 'detail', 'validation', 'fieldRequirements', 'processing'].includes(key))) throw new Error('仅接受字段、分页、详情和处理的声明式配置，不接受执行代码');
+    if (Object.keys(value).some(key => !['url', 'itemConfig', 'waitForSelector', 'timeoutMs', 'nextPageSelector', 'maxPages', 'dedupeKey', 'detail', 'validation', 'fieldRequirements', 'processing', 'executionMode', 'http'].includes(key))) throw new Error('仅接受字段、分页、详情和处理的声明式配置，不接受执行代码');
     targetUrl(value.url);
+    const httpLocal = value.executionMode === 'http-local';
+    if (value.executionMode !== undefined && !httpLocal) throw new Error('executionMode 仅支持 http-local；DOM 模式请省略此字段');
+    if (httpLocal) {
+      if (!/^http:\/\/127\.0\.0\.1:43121(?:[/?#]|$)/.test(value.url) || new URL(value.url).origin !== 'http://127.0.0.1:43121')
+        throw new Error('本机 HTTP 仅允许 http://127.0.0.1:43121；公网未开放');
+      if (value.url.includes('#')) throw new Error('本机 HTTP URL 不接受 hash');
+      if (['waitForSelector','nextPageSelector','detail','processing','validation','fieldRequirements','dedupeKey'].some(key => Object.hasOwn(value, key))) throw new Error('本机 HTTP 不接受 DOM 等待、分页选择器、详情、处理、校验或去重配置');
+    } else if (value.http !== undefined) throw new Error('http 配置仅用于本机 HTTP 模式');
+    if (value.http !== undefined) {
+      const http = value.http;
+      if (!object(http) || Object.keys(http).some(key => !['userAgent','headers'].includes(key))) throw new Error('http 仅接受 userAgent 和 headers');
+      const headerValue = text => typeof text === 'string' && /^[\x20-\x7e]*$/.test(text);
+      if (http.userAgent !== undefined && (!headerValue(http.userAgent) || http.userAgent.length > 512)) throw new Error('User-Agent 必须留空或为 1–512 个可打印 ASCII 字符');
+      if (http.headers !== undefined) {
+        if (!object(http.headers)) throw new Error('Headers 必须是普通请求头的字符串对象');
+        const names = new Set();
+        for (const [key, text] of Object.entries(http.headers)) {
+          const name = key.toLowerCase();
+          if (!/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(key) || !headerValue(text) || names.has(name) ||
+              /^(sec-|proxy-|x-opendesk-)/.test(name) ||
+              ['__proto__','constructor','prototype','user-agent','host','connection','keep-alive','te','trailer','upgrade','expect','accept-encoding','content-length','transfer-encoding','cookie','authorization','origin','referer'].includes(name))
+            throw new Error('Headers 值仅接受可打印 ASCII，头名不能大小写重复；UA 请独立填写，身份与传输控制头不可配置');
+          names.add(name);
+        }
+      }
+    }
     if (!object(value.itemConfig) || !Object.keys(value.itemConfig).length) throw new Error('itemConfig 必须是非空对象');
     // Preserve native SDK selector/descriptor/nested-field grammar. Engine owns CSS/XPath parsing.
     const walk = (node, depth = 0) => {
@@ -32,16 +58,27 @@
         } else throw new Error('字段必须是选择器或描述符');
       }
     };
-    walk(value.itemConfig);
-    for (const key of ['_listContainer', '_listItem']) {
-      if (value.itemConfig[key] !== undefined && (typeof value.itemConfig[key] !== 'string' || !value.itemConfig[key].trim())) throw new Error(key + ' 必须是选择器');
+    if (httpLocal) {
+      if (Object.keys(value.itemConfig).length > 32) throw new Error('本机 HTTP 最多 32 个字段');
+      for (const [key, path] of Object.entries(value.itemConfig)) {
+        if (!/^[\p{L}_][\p{L}\p{N}_-]{0,63}$/u.test(key) || ['__proto__','constructor','prototype'].includes(key) ||
+            typeof path !== 'string' || path.length > 128 || path.split('.').length > 4 ||
+            !path.split('.').every(part => /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(part) && !['__proto__','constructor','prototype'].includes(part)))
+          throw new Error('本机 HTTP 字段名需合法，JSON 点路径最多 4 段、128 字符，每段为 JS 标识符');
+      }
+    } else {
+      walk(value.itemConfig);
+      for (const key of ['_listContainer', '_listItem']) {
+        if (value.itemConfig[key] !== undefined && (typeof value.itemConfig[key] !== 'string' || !value.itemConfig[key].trim())) throw new Error(key + ' 必须是选择器');
+      }
+      if (value.itemConfig._listItem !== undefined && value.itemConfig._listContainer === undefined) throw new Error('_listItem 需要 _listContainer');
+      if (!Object.keys(value.itemConfig).some(key => !['_listContainer', '_listItem'].includes(key))) throw new Error('至少需要一个采集字段');
     }
-    if (value.itemConfig._listItem !== undefined && value.itemConfig._listContainer === undefined) throw new Error('_listItem 需要 _listContainer');
-    if (!Object.keys(value.itemConfig).some(key => !['_listContainer', '_listItem'].includes(key))) throw new Error('至少需要一个采集字段');
     if (value.waitForSelector !== undefined && (typeof value.waitForSelector !== 'string' || !value.waitForSelector.trim())) throw new Error('waitForSelector 必须是非空选择器');
     if (value.timeoutMs !== undefined && (!Number.isInteger(value.timeoutMs) || value.timeoutMs < 1 || value.timeoutMs > 60000)) throw new Error('timeoutMs 必须是 1–60000 的整数');
     if (value.nextPageSelector !== undefined && (typeof value.nextPageSelector !== 'string' || !value.nextPageSelector.trim() || value.nextPageSelector.length > 1024 || /^\(?\.?\//.test(value.nextPageSelector))) throw new Error('下一页必须是 CSS 选择器');
-    if (value.maxPages !== undefined && (!Number.isInteger(value.maxPages) || value.maxPages < 1 || value.maxPages > pageLimit)) throw new Error('页数上限必须是 1–' + pageLimit);
+    const maximumPages = httpLocal ? 3 : pageLimit;
+    if (value.maxPages !== undefined && (!Number.isInteger(value.maxPages) || value.maxPages < 1 || value.maxPages > maximumPages)) throw new Error(httpLocal ? '本机 HTTP 页数上限必须是 1–3' : '页数上限必须是 1–' + maximumPages);
     if (value.dedupeKey !== undefined && (typeof value.dedupeKey !== 'string' || value.dedupeKey.startsWith('_') || !Object.hasOwn(value.itemConfig,value.dedupeKey))) throw new Error('去重字段必须是已有字段');
     if (value.detail !== undefined) {
       const d=value.detail;
@@ -60,7 +97,9 @@
     if(new TextEncoder().encode(JSON.stringify(options)).byteLength>4096) throw new Error('分页、详情与处理配置超过 4096 字节');
     if (new TextEncoder().encode(JSON.stringify(value.itemConfig)).byteLength > 4096) throw new Error('itemConfig 超过 configJson 的 4096 字节上限');
     if (new TextEncoder().encode(JSON.stringify(value)).byteLength > 8192) throw new Error('配置超过 8192 字节');
-    return copy(value);
+    const config = copy(value);
+    if (httpLocal && config.timeoutMs !== undefined) config.timeoutMs = Math.min(config.timeoutMs, 15000);
+    return config;
   }
   function targetUrl(value) {
     if (typeof value !== 'string') throw new Error('请填写目标 URL');
@@ -299,7 +338,7 @@
       state.error = ''; state.notice = '';
       let sent = false;
       try {
-        const config = validateConfig(state.config), expected = targetUrl(url);
+        const expected = targetUrl(url), config = validateConfig({...state.config, url: expected});
         if (!state.target || new URL(expected).origin !== new URL(state.target.url).origin) throw new Error('目标 URL 必须与可信当前网页同源，请刷新当前网页');
         state.phase = 'starting'; state.stopRequested = false; state.stopAccepted = false;
         // A read begun before this run must not clear its identity/result, even after retirement.

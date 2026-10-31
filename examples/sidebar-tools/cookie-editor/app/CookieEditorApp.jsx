@@ -25,6 +25,14 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const [accountState,setAccountState]=React.useState(null);
   const [accountBusy,setAccountBusy]=React.useState(false);
   const [accountDirty,setAccountDirty]=React.useState(false);
+  const [serviceState,setServiceState]=React.useState(null);
+  const [serviceNotice,setServiceNotice]=React.useState('');
+  const [serviceBusy,setServiceBusy]=React.useState(false);
+  const [serviceDirty,setServiceDirty]=React.useState(false);
+  const [serviceFormRevision,setServiceFormRevision]=React.useState(0);
+  const [serviceUnknown,setServiceUnknown]=React.useState(false);
+  const serviceInFlight=React.useRef(false);
+  const serviceContext=React.useRef('');
   const [accountFormRevision,setAccountFormRevision]=React.useState(0);
   const [accountResumeRevision,setAccountResumeRevision]=React.useState(0);
   const [customDraft,setCustomDraft]=React.useState({
@@ -94,7 +102,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   },[accountNotice]);
   const snapshot=view||controller.snapshot();
   const busy=Boolean(snapshot.busy||working);
-  const locked=busy||accountBusy||Boolean(confirmation);
+  const locked=busy||accountBusy||serviceBusy||Boolean(confirmation);
   const scrubSensitive=()=>{
     // Invalidate DOM secrets synchronously on permission changes and navigation,
     // even before React commits the render that removes the editor.
@@ -112,9 +120,10 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   };
   const guarded=(action,onCancel)=>{
     if(locked)return;
-    if(dirty||accountDirty){ask('放弃未保存修改？',()=>{
+    if(dirty||accountDirty||serviceDirty){ask('放弃未保存修改？',()=>{
       setDirty(false);
       if(accountDirty){setAccountDirty(false);setAccountFormRevision(value=>value+1);}
+      if(serviceDirty){setServiceDirty(false);setServiceFormRevision(value=>value+1);}
       action();},onCancel);return;}
     action();
   };
@@ -161,7 +170,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       controller.dispose();
     };
   },[hostRoot,controller]);
-  React.useEffect(()=>{setState?.({busy:busy||accountBusy,dirty:dirty||accountDirty});},[busy,accountBusy,dirty,accountDirty,setState]);
+  React.useEffect(()=>{setState?.({busy:busy||accountBusy||serviceBusy,dirty:dirty||accountDirty||serviceDirty});},
+    [busy,accountBusy,serviceBusy,dirty,accountDirty,serviceDirty,setState]);
   // Auto-sync metadata only while the live list is idle and visible. An open
   // editor or import never loses its draft to an external website update.
   const lastAutoCheck=React.useRef(0);
@@ -170,7 +180,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   },[snapshot.epoch,snapshot.phase]);
   React.useEffect(()=>{
     if(mode!=='browser'||snapshot.phase!=='ready'||selected!==null||
-      panel!==null||exportOpen||busy||dirty||confirmation)return;
+      panel!==null||exportOpen||busy||dirty||serviceBusy||serviceDirty||confirmation)return;
     let active=true;
     const visible=()=>{
       const surface=hostRoot?.host||hostRoot;
@@ -199,7 +209,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       window.removeEventListener('focus',immediate);
       document.removeEventListener('visibilitychange',immediate);
     };
-  },[mode,snapshot.phase,snapshot.epoch,selected,panel,exportOpen,busy,dirty,confirmation,controller,hostRoot]);
+  },[mode,snapshot.phase,snapshot.epoch,selected,panel,exportOpen,busy,dirty,serviceBusy,serviceDirty,confirmation,controller,hostRoot]);
   React.useEffect(()=>{
     // A live session invalidation must not discard an offline editor's
     // independent dirty state when an unrelated browser event fires.
@@ -223,7 +233,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   };
 
   React.useEffect(()=>{
-    if(mode!=='browser'||section!=='accounts'||!target?.origin){
+    if(mode!=='browser'||!['accounts','enterprise'].includes(section)||!target?.origin){
       verifiedAccount.current=null;
       setAccountState(null);return;
     }
@@ -240,6 +250,65 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     });
     return ()=>{active=false;};
   },[adapter,mode,section,target?.origin]);
+  serviceContext.current=[mode,section,target?.origin,snapshot.epoch].join('|');
+  React.useEffect(()=>{
+    if(mode!=='browser'||section!=='enterprise'||!target?.origin){setServiceState(null);return;}
+    const context=serviceContext.current;
+    setServiceState(null);setServiceNotice('');setServiceUnknown(false);
+    void adapter.accountRequest('serviceStatus',{}).then(result=>{
+      if(serviceContext.current!==context)return;
+      if(!Number.isSafeInteger(result?.revision)||!Array.isArray(result.connections)||!Array.isArray(result.associations))
+        throw Error('E_SERVICE_HOST');
+      setServiceState(result);
+    }).catch(()=>{if(serviceContext.current===context)setServiceNotice('服务连接状态不可用，请更新对应 Browser 可信代码。');});
+  },[adapter,mode,section,target?.origin,snapshot.epoch]);
+  const serviceAction=async(action,payload={})=>{
+    if(serviceInFlight.current||mode!=='browser'||!target?.origin)return false;
+    const read=['serviceStatus','serviceResources','serviceReadPolicy','serviceReconcile'].includes(action);
+    if(!read&&(!serviceState||serviceUnknown))return false;
+    const context=serviceContext.current;
+    serviceInFlight.current=true;setServiceBusy(true);setServiceNotice('');
+    try{
+      const result=await adapter.accountRequest(action,action==='serviceStatus'?{}:payload);
+      if(serviceContext.current!==context)return false;
+      if(!Number.isSafeInteger(result?.revision)||!Array.isArray(result.connections)||!Array.isArray(result.associations))
+        throw Object.assign(Error(),{code:'E_OUTCOME_UNKNOWN'});
+      setServiceState(result);setServiceUnknown(false);
+      const notices={serviceStatus:'已重新读取连接状态。',serviceResources:'已读取远端资源；身份仍未核验。',
+        serviceReadPolicy:'已读取服务期望策略，请审阅后明确接受。',serviceReconcile:'已核对原操作回执。',
+        serviceConnect:'本机服务已确认连接；不会传输 Cookie。',
+        serviceCommitAssociation:'服务已确认关联；登录身份仍未核验，不代表 Cookie 同步授权。',
+        serviceUnbindAssociation:'服务已确认解绑。',serviceRemoteDisconnect:'服务已确认断开。',
+        serviceAcceptPolicy:'服务已确认接受所选元数据策略；不会传输 Cookie。',
+        serviceOpenManagement:result.opened?'已受控打开管理页。':'打开结果尚未确认。',
+        serviceArchiveOpenUnknown:'已保留未知打开记录；没有重复打开，也不将原操作记为失败。'};
+      setServiceNotice(result.connections.some(item=>item.pending)
+        ?'原操作结果未知，请核对原操作回执；不会自动重复执行。'
+        :notices[action]||'已保存本地状态；不会传输 Cookie。');
+      return true;
+    }catch(error){
+      if(serviceContext.current!==context)return false;
+      const messages={E_SERVICE_EXISTS:'该服务或关联已存在，请选择现有配置。',
+        E_SERVICE_CONFLICT:'服务配置或连接状态已改变，请重新读取状态后再审阅。',
+        E_SERVICE_DISCONNECTED:'连接已断开或安装身份已改变，未建立关联。',
+        E_SERVICE_INPUT:'请核对服务地址、组织和资源 ID，不能填写凭据或配对链接。',
+        E_VAULT_CONFLICT:'账号版本已改变，请返回账号页确认后重新关联。',
+        E_ACCOUNT_NOT_FOUND:'当前站点的已保存账号不存在，请先管理账号。',
+        E_DOCUMENT_CHANGED:'当前网站已改变，请确认目标网站后再操作。',
+        E_SERVICE_UNSUPPORTED:'当前服务未通过原 Native 通道注册，或不支持此能力。',
+        E_SERVICE_SESSION_EXPIRED:'原连接会话已失效；不能凭本地记录恢复授权。',
+        E_SERVICE_SESSION_EXISTS:'已有连接或待核对操作，请先读取并核对原状态。',
+        E_SERVICE_REMOTE_ACTIVE:'远端仍有关联或连接，须先受控解绑或断开。',
+        E_SERVICE_POLICY:'策略版本或批准范围已改变，请重新读取策略后审阅。',
+        E_SERVICE_READ:'服务读取未成功，已保留原状态；可重新读取。',
+        E_SERVICE_NOT_DISPATCHED:'服务确认未派发该操作；请重新读取状态后核对。',
+        E_SERVICE_FAILED:'服务已确认操作失败，请重新读取状态后核对。'};
+      const known=messages[error?.code];
+      setServiceUnknown(!known&&!read);
+      setServiceNotice(known||'操作未确认，请仅重新读取状态核对；不会自动重复保存。');
+      return false;
+    }finally{serviceInFlight.current=false;setServiceBusy(false);}
+  };
   const accountAction=(action,payload={},success='账号已更新')=>{
     if(accountInFlight.current)return Promise.resolve(false);
     if(modeRef.current!=='browser'||!target?.origin||!accountState?.unlocked){
@@ -810,6 +879,11 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           alias:item.alias,accountVersion:item.version,enabled},'自动切换白名单已更新。')}
         onCopyLink={copyAccountLink}/>}
       {section==='enterprise'&&<CookieEnterprisePanel previewMode={previewMode}
+        serviceProps={{origin:target?.origin||'',accounts:accountState?.accounts||[],
+          accountReady:accountState?.unlocked===true,state:serviceState,
+          busy:locked||serviceUnknown,notice:serviceNotice,
+          onAction:serviceAction,onDirtyChange:setServiceDirty,
+          onAccounts:()=>chooseSection('accounts'),formRevision:serviceFormRevision}}
         onCustomize={()=>chooseSection('custom')}/>}
       {section==='market'&&<CookieAccountMarket
         onEnterprise={()=>chooseSection('enterprise')}

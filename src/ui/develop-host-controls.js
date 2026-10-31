@@ -5,6 +5,7 @@ import {createSiteAccess} from './site-access.js';
 import {createSdkApproval, sdkApprovalPreview, sdkHttpLabPreset} from './sdk-approval.js';
 
 const capabilityLabels = {
+  'network.localRelay': '本机 Node HTTP 转发（独立配对；仅批准的本机 GET）',
   network: 'HTTP 网络请求（仅本次精确批准的来源与目标）', 'storage.persistent': '持久存储',
   'storage.session': '浏览器会话存储', notifications: '通知', 'device.id': '稳定应用 ID',
   'network.info': '外部网络信息（当前未启用）'

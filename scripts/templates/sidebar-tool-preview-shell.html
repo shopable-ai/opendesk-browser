@@ -40,7 +40,12 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
 .preview-confirm{max-width:min(420px,calc(100vw - var(--space-4)));padding:var(--space-4)}
 .preview-confirm::backdrop{background:color-mix(in srgb,var(--od-ink) 25%,transparent)}
 .preview-confirm h2{font-size:var(--od-body-size);margin:0}
-.preview-confirm p{margin:var(--space-3) 0;color:var(--od-sub)}
+.preview-confirm p{margin:var(--space-3) 0;color:var(--od-sub);overflow-wrap:anywhere}
+.preview-diagnostic-area{max-width:880px;margin:var(--space-3) auto;padding-inline:var(--space-2);min-width:0}
+.preview-diagnostic-area p{overflow-wrap:anywhere}
+.preview-controls{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2)}
+.preview-controls label{display:grid;gap:var(--space-1)}
+.preview-controls .od-field{width:auto;max-width:100%}
 .preview-confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:var(--space-2)}
 #od-preview-adblock-feedback:empty{display:none}
 #od-preview-adblock-host:empty{display:none}
@@ -49,7 +54,7 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
 <body>
 <aside class="preview-meta" aria-label="预览来源和安全范围">
   <p class="preview-notice">模拟预览 · 非真实安装、权限或网络执行</p>
-  <p class="preview-provenance">工具：{{TOOL_NAME}} · 场景：{{SCENARIO}} · 工具主题：{{TOOL_THEME}} · 预览外壳：浅色</p>
+  <p class="preview-provenance">工具：{{TOOL_NAME}} · 初始场景：{{SCENARIO}} · 初始工具主题：{{TOOL_THEME}} · 预览外壳：浅色</p>
   <p class="preview-provenance">Source: {{SOURCE_COMMIT}} · Design SHA-256: {{DESIGN_SHA}} · Shell SHA-256: {{SHELL_SHA}} · UI SHA-256: {{UI_SHA}}</p>
 </aside>
 <div class="preview-stage">
@@ -60,9 +65,7 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
         {{HEADER}}
         <div id="od-preview-adblock-host">{{ADBLOCK_HOST}}</div>
         <p id="od-preview-adblock-feedback" class="od-note" role="status" aria-live="polite"></p>
-        <div id="sidebar-tool-frame" class="sidebar-tool-frame">
-          <iframe id="opendesk-preview-frame" class="sidebar-tool-iframe" title="{{PAGE_TITLE}}" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
-        </div>
+{{APP_CONTENT}}
       </section>
       <section id="od-preview-return" role="tabpanel" tabindex="-1" class="od-surface od-surface--padded preview-placeholder" aria-label="返回模拟" hidden>
         <strong class="od-page-title">扩展 · 工具列表（简化预览）</strong>
@@ -83,7 +86,7 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
     </main>
   </section>
 </div>
-<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall" aria-labelledby="od-preview-confirm-title" aria-describedby="od-preview-confirm-description">
+{{PREVIEW_CONTROLS}}<dialog class="preview-confirm od-surface" id="od-preview-confirm-uninstall" aria-labelledby="od-preview-confirm-title" aria-describedby="od-preview-confirm-description">
   <h2 id="od-preview-confirm-title">模拟卸载此工具？</h2>
   <p id="od-preview-confirm-description">这是预览中的交互演示，不会执行真实卸载或清除持久数据。</p>
   <div class="preview-confirm-actions">
@@ -94,83 +97,8 @@ body{display:block;margin:0;background:var(--od-bg);color:var(--od-ink)}
 {{ADBLOCK_RESTORE_DIALOG}}
 <script type="application/json" id="opendesk-preview-adblock-snapshots">{{ADBLOCK_SNAPSHOTS_JSON}}</script>
 <script type="application/json" id="opendesk-preview-manifest">{{MANIFEST_JSON}}</script>
-<script>
-(()=>{
-  'use strict';
-  const byId=id=>document.getElementById(id);
-  const safeFrameBytes=Uint8Array.from(atob('{{FRAME_BASE64}}'),char=>char.charCodeAt(0));
-  const trustedFrameHtml=new TextDecoder().decode(safeFrameBytes);
-  const iframe=byId('opendesk-preview-frame');
-  const nav=[...document.querySelectorAll('.workbench-nav [role="tab"]')].filter(tab=>!tab.hidden);
-  const panels={detail:byId('od-preview-extension-detail'),list:byId('od-preview-return'),
-    other:byId('od-preview-other'),uninstalled:byId('od-preview-uninstalled')};
-  const back=byId('sidebar-tool-back'),remove=byId('sidebar-tool-remove');
-  const modal=byId('od-preview-confirm-uninstall');
-  let extensionPage='detail';
-  byId('sidebar-tool-title').textContent={{TOOL_NAME_JSON}};
-  remove.disabled=false;
-  // This preview must never claim the real tool and its stored data will be removed.
-  remove.setAttribute('aria-label','模拟卸载当前工具（不会删除真实数据）');
-  remove.title='模拟卸载（不会删除真实数据）';
-  iframe.srcdoc=trustedFrameHtml;
-  function showPanel(name,tab){
-    for(const [id,node] of Object.entries(panels))node.hidden=id!==name;
-    panels[name].setAttribute('aria-labelledby',tab.id);
-  }
-  function activateTab(tab){
-    if(!tab||!nav.includes(tab))return;
-    for(const current of nav){
-      const active=current===tab;
-      current.setAttribute('aria-selected',String(active));
-      // Remap production aria-controls to the panels which actually exist in this mock.
-      current.setAttribute('aria-controls',current.id==='tab-tools'?
-        panels[extensionPage].id:panels.other.id);
-      current.tabIndex=active?0:-1;
-    }
-    if(tab.id==='tab-tools')showPanel(extensionPage,tab);
-    else{
-      byId('od-preview-other-title').textContent=tab.textContent.trim()+' · 预览占位';
-      showPanel('other',tab);
-    }
-  }
-  nav.forEach(tab=>{
-    tab.addEventListener('click',()=>activateTab(tab));
-    tab.addEventListener('keydown',event=>{
-      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
-      event.preventDefault();
-      const index=nav.indexOf(tab);
-      const target=event.key==='Home'?nav[0]:event.key==='End'?nav.at(-1):
-        nav[(index+(event.key==='ArrowLeft'?-1:1)+nav.length)%nav.length];
-      activateTab(target);target.focus();
-    });
-  });
-  activateTab(byId('tab-tools'));
-  back.addEventListener('click',()=>{
-    extensionPage='list';activateTab(byId('tab-tools'));
-    byId('od-preview-reopen').focus();
-  });
-  byId('od-preview-reopen').addEventListener('click',()=>{
-    extensionPage='detail';activateTab(byId('tab-tools'));back.focus();
-  });
-  byId('od-preview-to-extensions').addEventListener('click',()=>{
-    activateTab(byId('tab-tools'));byId('tab-tools').focus();
-  });
-  remove.addEventListener('click',()=>modal.showModal());
-  // The close event fires for both the cancel button and the native Escape key.
-  modal.addEventListener('close',()=>{
-    if(extensionPage==='detail'&&!panels.detail.hidden)remove.focus();
-  });
-  byId('od-preview-cancel-uninstall').addEventListener('click',()=>modal.close());
-  byId('od-preview-accept-uninstall').addEventListener('click',()=>{
-    extensionPage='uninstalled';
-    modal.close();
-    iframe.srcdoc='';activateTab(byId('tab-tools'));
-    byId('od-preview-reset').focus();
-  });
-  byId('od-preview-reset').addEventListener('click',()=>{
-    iframe.srcdoc=trustedFrameHtml;extensionPage='detail';activateTab(byId('tab-tools'));back.focus();
-  });
-})();
-</script>
+<script type="application/json" id="opendesk-preview-shell-data">{{SHELL_DATA_JSON}}</script>
+<script id="od-preview-shell-behavior">{{SHELL_BEHAVIOR}}</script>
+
 <script>{{ADBLOCK_PREVIEW_SCRIPT}}</script>
 </body></html>

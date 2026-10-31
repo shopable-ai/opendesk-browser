@@ -1,0 +1,172 @@
+{
+  "capturedAt": "2026-10-30T11:30:31.908322+00:00",
+  "ownerChat": "01a18c66-2de6-7822-a7b4-96e53c2b2f68",
+  "evidenceLevel": "MAC_CHROME_CORE_ONLY",
+  "provenance": "Values transcribed from native cua_repl accessibility output. Actual UI buttons triggered mutations; sandbox Console observer only listened to existing Host response messages. Fixture reads ordinary HTML video DOM and measures performance.now/currentTime/frame count. No CDP or direct SDK mutation was used.",
+  "headObserved": "571a4d784a8d293e21291fe04d1dddedfe0c7621",
+  "browser": {
+    "version": "154.0.8037.93 official arm64",
+    "profile": "test-chatgpt-02/Default",
+    "executable": "/Users/shopme/Documents/Codex/2026-10-01/opendesk-browser-foundation/work/ordinary-chrome/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "continuous-development",
+    "revision": "d8e05f71086a06bee88c316938635ac26730152ed82fd14c13afe3cae4315f1c",
+    "hostSha256": "9c7def27bf06c5db246c1688749ffbf83f3757449038e0de1fb08b025c3b6514"
+  },
+  "package": {
+    "id": "video-speed-controller",
+    "version": "1.1.2",
+    "bytes": 20936,
+    "sha256": "4eb6edd57d2c4009942ec1d231783321e90ecd0adc8b161c7059552092c74b62",
+    "upgradeFrom": "1.1.1",
+    "previousSha256": "dc0fb337d45b2ed8114d2a98fb95c6525eb8a3350b59ce82dca181bffd476172",
+    "nativeReview": "Current v1.1.1 → new v1.1.2; permissions unchanged; existing OFF preference retained; raw and canonical SHA both matched candidate."
+  },
+  "url": "http://127.0.0.1:43233/single",
+  "visibleUI": [
+    "No separate current webpage video row",
+    "Refresh at upper right of actual-speed card",
+    "One 1× preset",
+    "New 1.1.2 UI was visually inspected in native screenshot; local preview HTML also shows the latest layout."
+  ],
+  "singleClickCore": {
+    "result": "PASS",
+    "action": "Focus webpage Play primary, click 2× once; focus webpage Play primary again, click 1× once. Native AX showed rate 2 then 1 and matching sidebar actual values.",
+    "setReceipts": [
+      {
+        "protocol": "opendesk.sidebar-tool.bridge.v1",
+        "kind": "response",
+        "instance": "48fea2d6-bad9-4e4d-a1b9-8bed9d015acc",
+        "toolId": "video-speed-controller",
+        "ok": true,
+        "requestId": "7",
+        "result": {
+          "status": "available",
+          "speed": 2,
+          "requested": 2,
+          "verified": true,
+          "playing": true,
+          "count": 1,
+          "partial": false
+        }
+      },
+      {
+        "protocol": "opendesk.sidebar-tool.bridge.v1",
+        "kind": "response",
+        "instance": "48fea2d6-bad9-4e4d-a1b9-8bed9d015acc",
+        "toolId": "video-speed-controller",
+        "ok": true,
+        "requestId": "9",
+        "result": {
+          "status": "available",
+          "speed": 1,
+          "requested": 1,
+          "verified": true,
+          "playing": true,
+          "count": 1,
+          "partial": false
+        }
+      }
+    ]
+  },
+  "independentPlaybackSamples": [
+    {
+      "wallSeconds": 2.002,
+      "before": [
+        {
+          "id": "primary",
+          "playbackRate": 2,
+          "currentTime": 22.965,
+          "paused": false,
+          "readyState": 4,
+          "frames": 12680
+        }
+      ],
+      "after": [
+        {
+          "id": "primary",
+          "playbackRate": 2,
+          "currentTime": 26.969,
+          "paused": false,
+          "readyState": 4,
+          "frames": 12800
+        }
+      ],
+      "mediaSecondsPerWallSecond": [
+        2
+      ]
+    },
+    {
+      "wallSeconds": 2.002,
+      "before": [
+        {
+          "id": "primary",
+          "playbackRate": 1,
+          "currentTime": 21.449,
+          "paused": false,
+          "readyState": 4,
+          "frames": 14324
+        }
+      ],
+      "after": [
+        {
+          "id": "primary",
+          "playbackRate": 1,
+          "currentTime": 23.451,
+          "paused": false,
+          "readyState": 4,
+          "frames": 14384
+        }
+      ],
+      "mediaSecondsPerWallSecond": [
+        1
+      ]
+    }
+  ],
+  "remainingStatus": "Other R1.3 native acceptance and real-site/width/permission matrices are not implied by this core PASS; see mac-chrome-r1.3.md.",
+  "additionalNativeChecks": {
+    "developmentConnection": "Native Debug page: connected, extension ID and revision exactly as above; watcher uses the same dist/development path.",
+    "pageKeys": "D: actual 1.25 / sidebar shortcut D; S: actual 1 / sidebar shortcut S; D then R: actual 1 / sidebar shortcut R.",
+    "crossWindowOff": {
+      "result": "PASS",
+      "steps": "A /single ON; open B /dual, same 1.1.2 reads ON. B saves OFF. Return to already-open A: OFF and closed hint visible. Sidebar D and webpage Play primary then D both leave actual rate 1."
+    },
+    "dual": {
+      "result": "PASS",
+      "primary": {
+        "playbackRate": 1,
+        "currentTime": 0,
+        "paused": true,
+        "frames": 4
+      },
+      "secondary": {
+        "playbackRate": 2,
+        "currentTime": 2.143,
+        "paused": false,
+        "frames": 73
+      }
+    },
+    "iframe": {
+      "result": "PASS",
+      "top": "127.0.0.1 /iframe count 0",
+      "child": "localhost /child count 1, rate 2, currentTime 2.391, paused false, frames 76",
+      "sidebar": "2.00, verified"
+    },
+    "override": {
+      "result": "PASS",
+      "page": "/reset, rate 1, currentTime 1.681, paused false, frames 55",
+      "sidebar": "未生效；目标 2.00× 未生效；实际 1.00×"
+    },
+    "scopeLimits": "Element reorder/replacement races, delayed enable/load receipts and malformed OFF are Node-tested; no claim of native replay for those races. Full native permissions, IME, sites, width/zoom matrix and production are not covered."
+  },
+  "sourceSha256": {
+    "projects/video-speed-controller/src/index.html": "d180ce0ac792406a8b800332da3e7832a48e0494f6565cda998b54b190fa8206",
+    "projects/video-speed-controller/src/style.css": "68d6a4bacac9063360764f55444a4f92c520a2eb67fda33c74d6161f89c9430a",
+    "projects/video-speed-controller/src/main.js": "5aef06c220f93f79a049d7d9e1ce0592cd2a7afc8141c0834522e2caca734edd",
+    "projects/video-speed-controller/trusted/host.js": "b88a2b850e6b81b316a0619547177bc43622e2ec2b1778a59091fec5b32ecfdb",
+    "projects/video-speed-controller/trusted/admission.js": "4ed26637bd406ab63f81396ae1daafe021482bd7e1c80de2ebd28e625ff90b86",
+    "src/ui/sidebar-tools.js": "cb7984e9438b0c8396386653fbfcdf98a0eedd79a265fd9850c371c8018295cc",
+    "scripts/bundle-provenance.mjs": "7caae406f47039cb41a2f5b9febff6c92708d00dcb0d794135004b4b7285c91a"
+  }
+}

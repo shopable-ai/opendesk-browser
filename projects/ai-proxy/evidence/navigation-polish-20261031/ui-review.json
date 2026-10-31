@@ -1,0 +1,761 @@
+{
+  "schemaVersion": 1,
+  "reviewedDate": "2026-10-31",
+  "reviewer": "Independent Designer / current session",
+  "status": "REVIEW_COMPLETE_NOT_ACCEPTED",
+  "scope": "仅 source-68e774ea-ebdd-48e3-acfc-7a7de011267f 的导航与规则编辑局部设计；同源Chromium设计开发、内存mock。不是全产品评分。",
+  "candidate": {
+    "id": "source-68e774ea-ebdd-48e3-acfc-7a7de011267f",
+    "directory": "projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f",
+    "htmlSha256": "b8a0330274fe5e9efe4b01f4dbc608a4872c338cea0c7d12d6fa61a417e202b5",
+    "uiSha256": "fad1f8b7e71aac7761c0c0ac741e52aee212f84e3b4c6872e7c2c008e85e11bd",
+    "manifestInputCount": 64,
+    "currentSourceDrift": [
+      {
+        "path": "scripts/preview/sidebar-shell-behavior.js",
+        "manifestSha256": "3b0fab946fd8e7fff01991cd5dd89302a880e4ce93dc60e5d4513fcd54ee35f4",
+        "currentSha256": "bd0fd9a3dc3fc3361fe426a6a96b32171151f7950c640cf75de0a8ac13c649c2"
+      }
+    ],
+    "inputVerification": "首轮与评分前的两次只读核算，HTML SHA及64输入全部匹配。落盘末次复核发现并行预览shell输入漂移（详见currentSourceDrift）；未修改或回滚该文件。候选preview.html自身SHA仍匹配。",
+    "framework": "React 19.2.0；项目既有 CSS scope、@opendesk/ui Button、OpenDesk Tokens",
+    "finalReadOnlyRecheck": "不能再声明当前工作树64输入全部无漂移；仅审阅指定冻结HTML与本轮读取的匹配业务源码，最新shell不在本报告通过范围。"
+  },
+  "authorityRead": [
+    "AGENTS.md",
+    "projects/ai-proxy/AGENTS.md",
+    "projects/ai-proxy/README.zh-CN.md sections 11 and 15",
+    "DESIGN.md AI Proxy section"
+  ],
+  "method": {
+    "readOnly": true,
+    "noBrowserOperations": true,
+    "noServiceOperations": true,
+    "noBuildOrTestExecution": true,
+    "noSubagents": true,
+    "onlyWrittenFile": "projects/ai-proxy/evidence/navigation-polish-20261031/ui-review.json",
+    "baseline": "/tmp/ai-proxy-navigation-polish-before/src/",
+    "historyScoresReused": false,
+    "rubric": "README第11节固定六维/每维五项各20，第15节及最新任务限定本轮候选。",
+    "scorePolicy": "已能审定的子项给实际分数；证据冲突不能赋分的子项用null/NOT_TESTED，绝不填0冒充产品失败、不按已评分项归一化、不用其他维度平均补齐。源码设计评分不冒充真实交互执行。"
+  },
+  "aestheticAssessment": "保留原工具紧凑工作台；框架返回、稳定业务Tabs、独立单列表单、蓝色主动作和原生路由卡片方向清楚。不是重新品牌设计。",
+  "findings": [
+    {
+      "id": "EV-01",
+      "severity": "HIGH",
+      "kind": "EVIDENCE_BLOCKER",
+      "productDefectConfirmed": false,
+      "title": "截图与AX/局部图冲突，三语排版不能验收",
+      "evidence": [
+        "projects/ai-proxy/evidence/navigation-polish-20261031/rules.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/rules-en.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-edit.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-en.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-zh-TW.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/design-result.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/design-result-panel.png"
+      ],
+      "detail": "rules.png与rules-en.png逐字节相同（SHA256 35fa345b8d5b88a998c5afda933f0e7f88fb8bdec110ff66dbbd769d9dfe6929），业务区空白，AX却分别有简中/英文完整内容。EN/TW添加和最终full图正文为窄竖列；402×863 clean Add局部图正常。AX/键数一致不能证明视觉布局；本review不擅自归因于产品或捕获器。",
+      "remediation": "由当前取证owner在原有模板/正常默认缩放下补可读的EN规则列表与EN/TW添加截图，保留异常原图并记录采集方式与同候选身份；用full与局部可对照的同状态图确认异常来源。无需宽度/缩放矩阵。",
+      "blocks": [
+        "布局无横溢评分",
+        "表单自然流三语评分",
+        "长文换行三语评分",
+        "六维完整通过"
+      ]
+    },
+    {
+      "id": "UI-01",
+      "severity": "MEDIUM",
+      "kind": "SOURCE_CONFIRMED",
+      "title": "Settings改正重复规则输入后仍保留旧冲突错误",
+      "locations": [
+        "projects/ai-proxy/src/Settings.tsx:337",
+        "projects/ai-proxy/src/Settings.tsx:664",
+        "projects/ai-proxy/src/Settings.tsx:676",
+        "projects/ai-proxy/src/ui/useProxy.ts:18"
+      ],
+      "detail": "setErrorKey(apRuleAlreadyExists)后，domain onValueChange仅清ruleError，scope onChange也不清errorState；form下role=alert会继续显示旧冲突。与Quick域名编辑同时setError('')不一致。错误在form内及aria-describedby本身已修好，不应抵消这项残留。",
+      "suggestedRepro": "Settings编辑→改为example.org且不含子域→保存出现重复错误→改为唯一合法域名；旧错误仍留在form，直到下一次act/关闭。",
+      "remediation": "按错误来源将本地重复/域名相关错误在domain/scope变化时清除或重新计算；不无差别清除仍有效的保存失败/未知结果。",
+      "regressionAttribution": "基线已有；属于本轮规则编辑反馈范围缺口，不宣称由本增量新引入。",
+      "runtimeReplay": "NOT_TESTED；本次只读检查处理器，已有错误态截图支持前半链。"
+    },
+    {
+      "id": "UI-02",
+      "severity": "MEDIUM",
+      "kind": "SOURCE_AND_SCREENSHOT_CONFIRMED",
+      "title": "重复错误指向当前不可用的“管理规则”入口",
+      "locations": [
+        "projects/ai-proxy/src/i18n/locales/zh-CN.json:993",
+        "projects/ai-proxy/src/i18n/locales/en.json:993",
+        "projects/ai-proxy/src/i18n/locales/zh-TW.json:993"
+      ],
+      "evidence": [
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-error.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-error.ax.txt"
+      ],
+      "detail": "用户已经在Settings网站规则的独立编辑表单，界面只有保存/取消；错误让其去“管理规则”，但此表单无该入口，实际需取消后回列表。",
+      "remediation": "复用三语提示说明“相同域名与范围的规则已存在；请取消返回网站规则列表编辑已有规则”，或提供经过原草稿guard的明确返回/定位动作。无需新Router。",
+      "regressionAttribution": "基线已有文案，重排后恢复路径仍未明确。"
+    },
+    {
+      "id": "UI-03",
+      "severity": "MEDIUM",
+      "kind": "SOURCE_CONFIRMED",
+      "title": "同域不同范围的规则，操作名与删除确认仍有歧义",
+      "locations": [
+        "projects/ai-proxy/src/Settings.tsx:337",
+        "projects/ai-proxy/src/Settings.tsx:651",
+        "projects/ai-proxy/src/Settings.tsx:397",
+        "projects/ai-proxy/src/i18n/locales/zh-CN.json:241"
+      ],
+      "detail": "重复校验允许example.com exact与example.com+subdomains并存，但edit/delete aria-label及confirm只含domain。按钮列表读屏和危险确认不能区分两条合法规则。当前example.com/example.org样本未覆盖该条件。",
+      "remediation": "操作名及删除确认添加本域/含子域范围；必要时补路由目标，保留可见“编辑/删除”文字，三语一致。",
+      "regressionAttribution": "本次新增domain accessible name是有效改善，但未覆盖支持的数据身份组合。",
+      "runtimeReplay": "NOT_TESTED；源码可直接证明同域不同范围被允许及文本参数不足。"
+    },
+    {
+      "id": "UI-04",
+      "severity": "MEDIUM",
+      "kind": "SOURCE_GAP",
+      "title": "删除当前焦点规则后无有效返回焦点",
+      "locations": [
+        "projects/ai-proxy/src/Settings.tsx:395",
+        "projects/ai-proxy/src/App.jsx:22"
+      ],
+      "detail": "删除确认dialog尝试恢复origin；成功DELETE_RULE后该按钮所在记录被移除。removeRule没有恢复相邻记录/Add的分支，finishRuleEditor只用于编辑保存/取消。已有四个保存/取消返回AX不能证明删除返回通过。",
+      "remediation": "删除前记录邻项，成功后在本页仍有效时将焦点与必要滚动恢复到邻项编辑按钮，空列表则到settings-rule-add；失败保留原记录与错误。",
+      "regressionAttribution": "基线已有，属于本轮键盘/规则操作范围，不是已复现新回归。",
+      "runtimeReplay": "NOT_TESTED；准确最终document.activeElement未由本候选交互采集，不声称已实测落到body。"
+    },
+    {
+      "id": "UI-05",
+      "severity": "LOW",
+      "kind": "CSS_CASCADE_CONFIRMED",
+      "title": "共用编辑header类尚未统一几何",
+      "locations": [
+        "projects/ai-proxy/src/style.css:62",
+        "projects/ai-proxy/src/styles/sidepanel-r86.css:128",
+        "projects/ai-proxy/src/styles/sidepanel-r86.css:131",
+        "projects/ai-proxy/src/styles/sidebar-settings.css:45"
+      ],
+      "detail": "Quick原.r86Panel .sideAddHeader特异度高于新增.ruleEditorHeader，仍为10px 15px；Settings header为8px 0且包在12px内容gutter内。标题字体已统一，padding与内容起线仍分叉。",
+      "remediation": "在原项目scope内明确两个编辑入口共享的页头/内容内边距，避免只追加被高特异度覆盖的类；无需共享平台新组件。"
+    },
+    {
+      "id": "UI-06",
+      "severity": "LOW",
+      "kind": "SCREENSHOT_AND_SOURCE_CONFIRMED",
+      "title": "保存回列表时两段相近说明重复占用空间",
+      "locations": [
+        "projects/ai-proxy/src/Settings.tsx:644",
+        "projects/ai-proxy/src/Settings.tsx:645"
+      ],
+      "evidence": [
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-save-return.png"
+      ],
+      "detail": "成功回执与常驻保存不应用说明同时展示，重复两段长文将记录下推；不是保存语义错误。",
+      "remediation": "保留简短role=status成功回执与一份常驻保存不应用说明，避免重复段落。"
+    }
+  ],
+  "dimensions": [
+    {
+      "name": "布局与密度",
+      "items": [
+        {
+          "name": "单 gutter",
+          "maxScore": 20,
+          "score": 19,
+          "status": "ASSESSED",
+          "basis": "Settings 内容 12px、Quick 编辑内容 15px；各自单层，但本轮统一编辑体验仍有 3px 起线差。",
+          "evidence": [
+            "projects/ai-proxy/src/styles/sidebar-settings.css:45",
+            "projects/ai-proxy/src/styles/sidepanel-r86.css:131"
+          ],
+          "findingIds": [
+            "UI-05"
+          ]
+        },
+        {
+          "name": "无横溢",
+          "maxScore": 20,
+          "score": null,
+          "status": "NOT_TESTED",
+          "basis": "英文列表图空白、英文及繁中添加图为窄竖列截断；无法区分采集异常与布局故障，不能赋分。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/rules-en.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-en.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-zh-TW.png"
+          ],
+          "findingIds": [
+            "EV-01"
+          ]
+        },
+        {
+          "name": "列表可达",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "繁中列表及简中保存返回截图显示记录/动作；AX 有规则总数、独立添加及默认路由。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/rules-zh-TW.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-save-return.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/rules.ax.txt"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "表单自然流",
+          "maxScore": 20,
+          "score": null,
+          "status": "NOT_TESTED",
+          "basis": "简中编辑从域名到保存为自然单列，但 EN/TW 添加图无法审定；本项按三语本轮范围保留未验证。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/quick-edit.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-en.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-zh-TW.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/design-result-panel.png"
+          ],
+          "findingIds": [
+            "EV-01"
+          ]
+        },
+        {
+          "name": "无嵌套壳",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "Settings 编辑外框已移除，列表无外层卡片；预览与高级折叠属于信息分组，未当作重复页面壳扣分。",
+          "evidence": [
+            "projects/ai-proxy/src/styles/sidebar-settings.css:114",
+            "projects/ai-proxy/src/styles/sidebar-settings.css:122",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.png"
+          ],
+          "findingIds": []
+        }
+      ],
+      "maximum": 100,
+      "assessedCount": 3,
+      "assessedSubtotal": 59,
+      "assessedMaximum": 60,
+      "score": null,
+      "possibleFinalRange": [
+        59,
+        99
+      ],
+      "acceptance": "NOT_TESTED"
+    },
+    {
+      "name": "信息层级与可发现性",
+      "items": [
+        {
+          "name": "七区完整",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "原生 selector/optgroup 保留全部七栏目；本轮只评价入口完整，不代表七区功能全验。",
+          "evidence": [
+            "projects/ai-proxy/src/Settings.tsx:33",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/rules.ax.txt"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "当前栏目",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "稳定业务 Tabs 与原生栏目值明确区分代理面板/管理设置/网站规则。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/rules-zh-TW.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-save-return.png",
+            "projects/ai-proxy/src/App.jsx:81"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "添加优先",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "网站规则标题、添加主按钮先于规则列表及默认路由；列表/表单分视图。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/rules-zh-TW.png",
+            "projects/ai-proxy/src/Settings.tsx:636"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "低频渐进",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "优先级折叠且标签明确为可选，默认路由排在规则后，更多收起次要动作。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.png",
+            "projects/ai-proxy/src/Settings.tsx:696",
+            "projects/ai-proxy/src/Settings.tsx:716"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "返回明确",
+          "maxScore": 20,
+          "score": 18,
+          "status": "ASSESSED",
+          "basis": "框架唯一返回与业务 Tabs 清楚；重复错误却要求去当前表单不存在的“管理规则”，未指出取消回列表的实际路径，扣2。",
+          "evidence": [
+            "projects/ai-proxy/src/App.jsx:81",
+            "projects/ai-proxy/src/i18n/locales/zh-CN.json:993",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-error.png"
+          ],
+          "findingIds": [
+            "UI-02"
+          ]
+        }
+      ],
+      "maximum": 100,
+      "assessedCount": 5,
+      "assessedSubtotal": 98,
+      "assessedMaximum": 100,
+      "score": 98,
+      "possibleFinalRange": null,
+      "acceptance": "NUMERIC_THRESHOLD_MET"
+    },
+    {
+      "name": "视觉与可读性",
+      "items": [
+        {
+          "name": "字号",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "有效中文截图的 12px 辅助文字、13px 控件与16px编辑标题清楚；沿现有字体体系，不以本轮无关换字体要求扣分。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/quick-edit.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.png",
+            "projects/ai-proxy/src/style.css:63"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "间距",
+          "maxScore": 20,
+          "score": 19,
+          "status": "ASSESSED",
+          "basis": "保存成功后同时显示 r86Saved 与 apRuleSaveNote 两段相近的保存不应用说明，重复占用列表上方空间，扣1。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-save-return.png",
+            "projects/ai-proxy/src/Settings.tsx:644"
+          ],
+          "findingIds": [
+            "UI-06"
+          ]
+        },
+        {
+          "name": "色彩 token",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "颜色映射 OpenDesk tokens；选中路由、焦点、警示既有色彩与文字/原生状态并用。未声称已做所有像素对比度仪器测量。",
+          "evidence": [
+            "projects/ai-proxy/src/style.css:20",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-error.png"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "控件一致",
+          "maxScore": 20,
+          "score": 18,
+          "status": "ASSESSED",
+          "basis": "共享 ruleEditorHeader 仍被 Quick 的 .r86Panel .sideAddHeader 高特异度 padding 覆盖：Quick 10px 15px、Settings 8px 0（外容器另有12px）；统一的是标题字样式，未统一页头几何，扣2。",
+          "evidence": [
+            "projects/ai-proxy/src/style.css:62",
+            "projects/ai-proxy/src/styles/sidepanel-r86.css:128",
+            "projects/ai-proxy/src/styles/sidebar-settings.css:45"
+          ],
+          "findingIds": [
+            "UI-05"
+          ]
+        },
+        {
+          "name": "长文换行",
+          "maxScore": 20,
+          "score": null,
+          "status": "NOT_TESTED",
+          "basis": "简中说明/域名可读，EN/TW 添加截图截断；三语1006键相同与AX文案不能替代排版图。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-en.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-zh-TW.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/source-check.json"
+          ],
+          "findingIds": [
+            "EV-01"
+          ]
+        }
+      ],
+      "maximum": 100,
+      "assessedCount": 4,
+      "assessedSubtotal": 77,
+      "assessedMaximum": 80,
+      "score": null,
+      "possibleFinalRange": [
+        77,
+        97
+      ],
+      "acceptance": "NOT_TESTED"
+    },
+    {
+      "name": "操作／草稿／反馈",
+      "items": [
+        {
+          "name": "保存不应用",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "Quick/Settings 保存回执、相同规则ID/启用状态及仍未管理浏览器的记录相符；保存处理器仅 SAVE_RULE，不发 APPLY。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/quick-save-return.ax.txt",
+            "projects/ai-proxy/src/QuickPanel.tsx:259",
+            "projects/ai-proxy/src/Settings.tsx:349"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "非法拒绝",
+          "maxScore": 20,
+          "score": 16,
+          "status": "ASSESSED",
+          "basis": "重复域名+范围被拒绝，错误已在form并被描述关联；Settings 改正域名/范围仍不清除先前 key 错误，可继续宣告已不存在的冲突，扣4。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-error.ax.txt",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json",
+            "projects/ai-proxy/src/Settings.tsx:337",
+            "projects/ai-proxy/src/Settings.tsx:664",
+            "projects/ai-proxy/src/Settings.tsx:676"
+          ],
+          "findingIds": [
+            "UI-01"
+          ]
+        },
+        {
+          "name": "取消不写",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "Settings/Quick 的取消放弃返回记录与原值不变，源码关闭处理无持久写入。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-cancel-return.ax.txt",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/quick-cancel-return.ax.txt",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json",
+            "projects/ai-proxy/src/Settings.tsx:370"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "草稿防丢",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "Settings Escape/Quick X 取消放弃后保留草稿和原规则来源；scope/revision guard 保留，未扩成所有平台退出方式验收。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/quick-retain.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json",
+            "projects/ai-proxy/src/Settings.tsx:374",
+            "projects/ai-proxy/src/QuickPanel.tsx:341"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "删除确认",
+          "maxScore": 20,
+          "score": 18,
+          "status": "ASSESSED",
+          "basis": "删除前有明确确认且不自动应用；确认文本只含domain，合法同域不同范围规则无法从确认本身区别，扣2。删除实际执行未有当前候选交互记录，本分为源码设计评估。",
+          "evidence": [
+            "projects/ai-proxy/src/Settings.tsx:395",
+            "projects/ai-proxy/src/i18n/locales/zh-CN.json:241",
+            "projects/ai-proxy/src/Settings.tsx:337"
+          ],
+          "findingIds": [
+            "UI-03"
+          ]
+        }
+      ],
+      "maximum": 100,
+      "assessedCount": 5,
+      "assessedSubtotal": 94,
+      "assessedMaximum": 100,
+      "score": 94,
+      "possibleFinalRange": null,
+      "acceptance": "BELOW_95"
+    },
+    {
+      "name": "键盘与焦点",
+      "items": [
+        {
+          "name": "栏目选择",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "原生 select、业务 roving tabindex 与 Arrow/Home/End 导航源码完整，当前AX含选中值。未将源码核查提升为本轮所有按键逐项实测。",
+          "evidence": [
+            "projects/ai-proxy/src/App.jsx:81",
+            "projects/ai-proxy/src/Settings.tsx:460",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/rules.ax.txt"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "字段操作",
+          "maxScore": 20,
+          "score": 18,
+          "status": "ASSESSED",
+          "basis": "原生输入/checkbox/radio/summary 语义齐全；列表 edit/delete 虽加domain，但同域不同范围时两个同类按钮名称仍相同，扣2。",
+          "evidence": [
+            "projects/ai-proxy/src/Settings.tsx:651",
+            "projects/ai-proxy/src/Settings.tsx:676",
+            "projects/ai-proxy/src/Settings.tsx:337"
+          ],
+          "findingIds": [
+            "UI-03"
+          ]
+        },
+        {
+          "name": "可见焦点",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "advanced-focus 图有清晰 summary focus ring，AX焦点确在summary，交互说明为Tab及Return展开；Quick输入focus也可见。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.png",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.ax.txt",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/quick-edit.png"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "Escape",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "两条编辑路径均接入同一关闭/确认语义，记录显示保留与放弃分支，无busy时逃逸。",
+          "evidence": [
+            "projects/ai-proxy/src/Settings.tsx:655",
+            "projects/ai-proxy/src/QuickPanel.tsx:350",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "返回焦点",
+          "maxScore": 20,
+          "score": 15,
+          "status": "ASSESSED",
+          "basis": "保存/取消返回原edit或quick-site-rule已有AX证据；但成功 DELETE_RULE 删除焦点所在按钮后没有邻项/Add恢复分支，确认dialog还会尝试恢复到已删除origin，扣5。本项删除后焦点为源码缺口推断，真实最终焦点未采集。",
+          "evidence": [
+            "projects/ai-proxy/src/Settings.tsx:395",
+            "projects/ai-proxy/src/App.jsx:22",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/settings-save-return.ax.txt",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/quick-cancel-return.ax.txt"
+          ],
+          "findingIds": [
+            "UI-04"
+          ]
+        }
+      ],
+      "maximum": 100,
+      "assessedCount": 5,
+      "assessedSubtotal": 93,
+      "assessedMaximum": 100,
+      "score": 93,
+      "possibleFinalRange": null,
+      "acceptance": "BELOW_95"
+    },
+    {
+      "name": "组件复用与边界",
+      "items": [
+        {
+          "name": "同源输入",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "指定HTML SHA匹配；评分前64输入匹配，末次出现共享shell并行漂移。此项20仅评指定冻结候选输入可追溯性，不评价漂移后的工作树。",
+          "evidence": [
+            "projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/manifest.json",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/source-check.json"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "Shared UI",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "保留React、@opendesk/ui Button、FormField/ClearableInput及已有navigation guard；无新框架/依赖/Router。",
+          "evidence": [
+            "projects/ai-proxy/src/Settings.tsx:2",
+            "projects/ai-proxy/src/QuickPanel.tsx:2",
+            "projects/ai-proxy/src/ui/FormField.tsx",
+            "projects/ai-proxy/src/App.jsx:45"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "仅内存",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "候选manifest明确memory service/storage；review未执行安装或读写真实配置，不把预览状态当持久化证明。",
+          "evidence": [
+            "projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f/manifest.json",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "无外网及权限变化",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "本轮差异为UI/CSS/本地文案，未新增网络/权限/Host接线。仅结论于本轮差异和预览约束，不作全产品安全认证。",
+          "evidence": [
+            "projects/ai-proxy/src/Settings.tsx",
+            "projects/ai-proxy/src/QuickPanel.tsx",
+            "projects/ai-proxy/src/style.css"
+          ],
+          "findingIds": []
+        },
+        {
+          "name": "证据分级",
+          "maxScore": 20,
+          "score": 20,
+          "status": "ASSESSED",
+          "basis": "本报告明确源码/AX/截图/作者交互记录等级，截图冲突另列阻断，Native/真实代理/production/全CI及尺寸矩阵不借旧记录晋级。",
+          "evidence": [
+            "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json",
+            "projects/ai-proxy/evidence/navigation-polish-20261031/source-check.json",
+            "本报告 evidenceLimitations"
+          ],
+          "findingIds": []
+        }
+      ],
+      "maximum": 100,
+      "assessedCount": 5,
+      "assessedSubtotal": 100,
+      "assessedMaximum": 100,
+      "score": 100,
+      "possibleFinalRange": null,
+      "acceptance": "NUMERIC_THRESHOLD_MET"
+    }
+  ],
+  "decision": {
+    "accepted": false,
+    "criterion": "六维分别>=95且无阻断；不计算平均分。",
+    "fullyScoredDimensions": 4,
+    "totalSubitems": 30,
+    "numericallyScoredSubitems": 27,
+    "notTestedSubitems": 3,
+    "belowThreshold": [
+      "操作／草稿／反馈 94",
+      "键盘与焦点 93"
+    ],
+    "unscoredDimensions": [
+      "布局与密度",
+      "视觉与可读性"
+    ],
+    "blockers": [
+      "EV-01",
+      "操作／草稿／反馈低于95",
+      "键盘与焦点低于95"
+    ],
+    "productSeveritySummary": "无证据证明崩溃/代理安全P0；存在可修的反馈、歧义及焦点设计缺口。截图异常是证据阻断，未判为产品布局故障。",
+    "nextSteps": [
+      "修Settings本地重复错误的失效处理和三语恢复路径",
+      "为同域不同范围补操作名/删除确认范围及删除后焦点",
+      "补同候选可读EN/TW规则编辑视觉证据，保留原异常图",
+      "只复核受改项；如源码变化需新候选及受影响证据，不沿用本候选通过项冒充新候选验收"
+    ],
+    "stopCondition": "本次只读评审已完成并留存；未获授权修改任何源码/浏览器/服务/包/dist。当前候选不得标六维达标。"
+  },
+  "evidenceLimitations": {
+    "independentObserved": "独立阅读源码/差异、manifest/HTML与64输入哈希、PNG和AX；未运行产品。",
+    "providedInteractionEvidence": "interactions.json是取证owner提供的操作摘要，配套AX支持保存/取消/summary焦点；不等于本reviewer亲自重放。",
+    "visualValidExamples": [
+      "advanced-focus.png",
+      "quick-edit.png",
+      "quick-retain.png",
+      "settings-error.png",
+      "settings-save-return.png",
+      "quick-save-return.png",
+      "rules-zh-TW.png",
+      "design-result-panel.png"
+    ],
+    "visualInvalidOrConflictingExamples": [
+      "rules.png",
+      "settings-edit.png",
+      "settings-cancel-return.png",
+      "quick-cancel-return.png",
+      "rules-en.png",
+      "settings-add-en.png",
+      "settings-add-zh-TW.png",
+      "design-result.png"
+    ],
+    "unsupportedClaims": [
+      "真实新安装",
+      "真实代理启停或流量",
+      "production",
+      "完整类型诊断",
+      "全CI",
+      "OS IME",
+      "宽度/缩放矩阵",
+      "本候选删除后的真实焦点位置",
+      "全部七区完整功能验收"
+    ],
+    "nativeProductionStatus": "NOT_TESTED；本轮明确排除，不作为扩大测试或环境操作的理由。",
+    "parallelSourceDrift": "评审末次复核 scripts/preview/sidebar-shell-behavior.js 已与manifest不同；此前64项全匹配为上次观察，不冒充当前状态。"
+  },
+  "evidenceSha256": {
+    "advanced-focus.ax.txt": "281e46391ca126b266244dae55e7660b48e4bf70350d72d24d6f2919d030c6d6",
+    "advanced-focus.png": "9814c353e5f950c4d1e9cc8a282a12b41115888875bfb8c83d5424cc259f016d",
+    "code-review.json": "b4d87533e184aa810d2c1750bcb98e65f2744c5e4e8a0c7cac60d413a883027c",
+    "design-result-panel.png": "75333a61c22198d8a10ca810fb96d887075fc76a4ff65e69cde765bd57602c5a",
+    "design-result.ax.txt": "ba63de2fd3f42a41d999d86ecbdb3e0de35ea60039cc0d5c8baadd17179ef2a4",
+    "design-result.png": "54cf3ab9cc6146fa86732b69cba1f0afaedea3132f859ed41ea43d70dbc739c5",
+    "interactions.json": "d35c15eae1dd0d7744165bb057da543c695570737356f08c89d864ba1b3ff115",
+    "quick-cancel-return.ax.txt": "6092cddf79bf886b477844ae9bf7eb383d04f858c9c02ee9e36859f8761ac77f",
+    "quick-cancel-return.png": "78b2b0d4d4d411261fedc1ff30ac40b4bdfd28ca272eef743a46988f3859548c",
+    "quick-edit.ax.txt": "ea1bd93398fb53f10dba043ce230a04e52607d57c4e80d52a1cde5d19f7b8489",
+    "quick-edit.png": "f65a5ebbf2a53f9a45f39794ac3192e3d5e38ff84b19e753d276d42c240ddb63",
+    "quick-retain.ax.txt": "bebb00e1914d2b64cb38d7ec8a96b3f9bf0ec5210ec130e72fc8810f53c94784",
+    "quick-retain.png": "c30f798d99b4a1419ad223452412c27f92769c0b1a4b3d088af136cfa6c4ac5d",
+    "quick-save-return.ax.txt": "79d24e4759281c0907e25c0baebf0d7b12b7ec8f8dc159d40b99e160c35a7782",
+    "quick-save-return.png": "8a182069f47f4c4974226a189216c683b773ca68b5f390c5b3b3ffd9054ec245",
+    "rules-en.ax.txt": "5d2293dc3a48099981ff1339afff372c45e2c1599618e23ac7514a846f907985",
+    "rules-en.png": "35fa345b8d5b88a998c5afda933f0e7f88fb8bdec110ff66dbbd769d9dfe6929",
+    "rules-zh-TW.ax.txt": "f85e6219ac4f2bc06ba3d76c6fba70e2360f0b593487c9ee20b02815fe975d4a",
+    "rules-zh-TW.png": "14edc58391341accb45a3a5e9e80396651d4344da0ceb03b1d8133639817b0eb",
+    "rules.ax.txt": "84330d15b9deb2595c53d63cb4216baf87ebe17bf76adef798ac4a0ae677443d",
+    "rules.png": "35fa345b8d5b88a998c5afda933f0e7f88fb8bdec110ff66dbbd769d9dfe6929",
+    "settings-add-en.ax.txt": "1933766a55b4ade5e04482942ee779772da413c6254586e02510ed5d2e2e43be",
+    "settings-add-en.png": "4f8d25065f4981fdd7e4573296d434604f55dc4a35040f6bda10de0ef9087fdd",
+    "settings-add-zh-TW.ax.txt": "31709780ec4bc559b6b12e60e4f59c304d14af7ac7c029ffa6cc4c557a12d536",
+    "settings-add-zh-TW.png": "e12fd91b8ccf21dec030c18ac602dfaf5cf8594591b9b7967d06002ca1f2440b",
+    "settings-cancel-return.ax.txt": "a5a93e6af3e18db881fec8e6250ff68be1f149a2a2d2ff3af7556418a0429938",
+    "settings-cancel-return.png": "2a4b24226c8c7c625d63faccbdd2c839301d33712a996960130aa445fea3b27c",
+    "settings-edit.ax.txt": "d9fcc13567006be2ede80a0ab3f02acde42126d39bbdd7ef863733281b0bccc8",
+    "settings-edit.png": "78b2b0d4d4d411261fedc1ff30ac40b4bdfd28ca272eef743a46988f3859548c",
+    "settings-error.ax.txt": "1c54e590513f017c292dc49928d8494c342cc446fe3247da996046fec24fa267",
+    "settings-error.png": "99743475761479e4d009e1547b1c6e7c0fb7c1843a076ba040dc966f60409dcb",
+    "settings-save-return.ax.txt": "cc05bd3cb8da717d56ed5146df1c2ceeb6b23dd57f1f2670fb343097dcc34654",
+    "settings-save-return.png": "12d0cd4f205ddfe8511df5da7f63808bc167ae842c3ab9c30a97c73cd882ac4a",
+    "source-check.json": "e78408c729e363358457402113e1b86ba7d1cd44c9ea1a64a81d85f5150fb1ed"
+  }
+}

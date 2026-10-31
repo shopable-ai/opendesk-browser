@@ -4,17 +4,23 @@
   "files": {
     "src/ui/design-tokens.css": "c4edf4c691d6cca2749b3476a254b4ed902e6bb4",
     "src/ui/design-system.css": "e0fbe53d33d4f0bf19d8e9ea7c5460bcd11f3c33",
+    "src/ui/react/components/ui/sidebar-shared.css": "a590093737b00ea81025d640120a7c8675b51f17",
     "projects/quick-notes/tool.config.json": "25842847e56362a5bf003479c91c593eae336d96",
     "projects/quick-notes/src/index.html": "a053a16467913d0c35b18e60652d0f53e42dd664",
     "projects/quick-notes/src/main.js": "efa81a9f6703415e6eb5be20fd4a70e2fe0a9d3b",
     "projects/quick-notes/src/style.css": "3db1d161daec2a49ebcc2f9608a41aa0f6889382",
     "projects/quick-notes/assets/mark.png": "a8920cb7fdbb3fc95d4e4323dc83ba6fa4a19b1e",
     "scripts/build-sidebar-tool.mjs": "65ca58f23258ef4d90a3ae77be33a6b699e921ab",
-    "scripts/preview/shared-tool-design.mjs": "f99de73eff299ffa91eee673e518837ee1c30c1a",
-    "scripts/preview/sidebar-shell-source.mjs": "300af5d1ebfc173b9ea463f70ed3e2383781a502",
-    "scripts/templates/sidebar-tool-preview-shell.html": "bbd539cb4fab151e19a87721750ba215c9752119",
-    "scripts/preview/build-preview.mjs": "413de2a184cb0031b708ea402ad07d8bb9d4b670",
-    "scripts/preview/quick-notes-mock.js": "65f447314af901386eb3b32136d2f224701dd7b6",
-    "scripts/preview/check-preview-contract.mjs": "f5d05fa7dfb80933fd483e91daf230d103127a64"
+    "scripts/preview/shared-tool-design.mjs": "83c8f4be32ef9ef301559dcddfcc18a3f2bc5401",
+    "scripts/preview/sidebar-shell-source.mjs": "0bf659375bc310c95f2ce66950741d6cd394c697",
+    "scripts/preview/sidebar-shell-behavior.js": "bbc06890f37139e5c10e035cc054f6907b3c1671",
+    "scripts/preview/react-sidebar-ssr.mjs": "b40c1421147ff62694ec9371816470b1023e4e57",
+    "src/ui/react/tabs/navigation.tsx": "a7e775777405dfe0a42d8160610366bd114250d5",
+    "src/ui/react/tabs/tool-host.tsx": "2ce326eb5716f1aa4d861b411a77bb38dac6d4da",
+    "src/ui/tool-shell.css": "c527cb564216f74fdcb1dff3716a18b1903917db",
+    "scripts/templates/sidebar-tool-preview-shell.html": "85a8be8accfdffb05c330d1fc8677faec10fb0bc",
+    "scripts/preview/build-preview.mjs": "64152614964f78dd49887dc3154748192e659dbd",
+    "scripts/preview/quick-notes-mock.js": "3c17c689e060f6d6b6fa4a5af36c1921e3edca14",
+    "scripts/preview/check-preview-contract.mjs": "c0e55a69295f1dd842ceec6823b3c349bac7426d"
   }
 }

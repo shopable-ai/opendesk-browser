@@ -142,7 +142,7 @@ test('R6.2 market layout stylesheet retains the real R5 layout and R6.1 buttons'
 test('R6.1 market lists real review buttons, fixed-version app pages declare one link',()=>{
   const cards=home([release]);
   assert.match(cards,/data-open-review/);
-  assert.match(cards,/安装到\s*OpenDesk/);
+  assert.match(cards,/安装到浏览器/);
   assert.match(cards,/opendesk\/markdown-workbench/);
   const pinned={kind:'app',marketId:release.id,version:release.version};
   const html=layout({title:'工作台',description:'demo',body:'x',path:'/apps/opendesk/markdown-workbench/',
@@ -240,32 +240,35 @@ function marketListingClient(){
     setChannel:changes=>{configuredChannel={...configuredChannel,...changes};},get fetchCount(){return fetchCount;}};
 }
 
-test('R6.2 reconnect refreshes the configured receiver without replaying installation',async()=>{
+test('a result check refreshes the configured browser receiver without replaying installation',async()=>{
   const script=await readFile('src/market-site/client.js','utf8'),h=marketListingClient();
   const tick=()=>new Promise(resolve=>setImmediate(resolve));
   runInNewContext(script,h.context,{filename:'src/market-site/client.js'});await tick();
+  assert.equal(h.sent.length,0,'browsing has no connection prerequisite');
+  const installing=h.first.button.listeners.click();await tick();
+  const original=h.sent[0].message.intentId;
   h.context.chrome.runtime.lastError={message:'Could not establish connection. Receiving end does not exist.'};
-  h.sent[0].callback();delete h.context.chrome.runtime.lastError;await tick();
-  assert.match(h.nodes.get('#connection-state').textContent,/其他测试副本/);
+  h.sent[0].callback();delete h.context.chrome.runtime.lastError;await installing;
+  assert.match(h.first.state.textContent,/OpenDesk Browser 浏览器扩展/);
   assert.match(h.nodes.get('#handoff-code').textContent,new RegExp('E_NO_RECEIVER.*'+ 'a'.repeat(32)));
   assert.equal(h.nodes.get('#handoff-details').hidden,false);
   h.setChannel({extensionId:'b'.repeat(32)});
-  const reconnect=h.nodes.get('#connect-button').listeners.click();await tick();
-  assert.equal(h.fetchCount,2,'reconnect must fetch fresh configuration');
+  const checking=h.first.button.listeners.click();await tick();
+  assert.equal(h.fetchCount,2,'explicit action must fetch fresh configuration');
   assert.equal(h.sent[1].extensionId,'b'.repeat(32),'use only the newly configured receiver');
-  assert.deepEqual(h.sent.map(row=>row.message.action),['PROBE','PROBE'],'never replay installation');
-  h.sent[1].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'CONNECTED'});await reconnect;
-  assert.match(h.nodes.get('#connection-state').textContent,/已连接 OpenDesk/);
+  assert.deepEqual(h.sent.map(row=>row.message.action),['OPEN_INSTALL_REVIEW','GET_INSTALL_STATUS'],'never replay installation');
+  assert.equal(h.sent[1].message.intentId,original);
+  h.sent[1].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'INSTALL_STATUS',intentId:original,
+    installation:'unknown',progress:null,currentInstallation:'not-installed',installedVersion:null,enabled:null});await checking;
+  assert.match(h.first.state.textContent,/结果未知/);
+  assert.equal(h.nodes.get('#connection-state').textContent,'');
 });
 
 test('R6.2 a disabled refreshed channel cannot fall back to a cached receiver for installation',async()=>{
   const script=await readFile('src/market-site/client.js','utf8'),h=marketListingClient();
   const tick=()=>new Promise(resolve=>setImmediate(resolve));
   runInNewContext(script,h.context,{filename:'src/market-site/client.js'});await tick();
-  h.sent[0].callback({ok:true,protocol:'opendesk.market.intent.v1',status:'CONNECTED'});await tick();
   h.setChannel({enabled:false});
-  await h.nodes.get('#connect-button').listeners.click();
-  assert.match(h.nodes.get('#connection-state').textContent,/尚未启用安装交接/);
   await h.first.button.listeners.click();
   assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,0,'no install message reaches the stale receiver');
   assert.match(h.first.state.textContent,/尚未启用安装交接/);
@@ -288,10 +291,7 @@ test('R6.1 multiple cards use distinct fixed intents; double-click has one in-fl
   runInNewContext(script,h.context,{filename:'src/market-site/client.js'});
   const tick=()=>new Promise(resolve=>setImmediate(resolve));
   await tick();
-  const probe=h.sent.find(row=>row.message.action==='PROBE');
-  assert(probe,'market client starts with existing PROBE');
-  probe.callback({ok:true,protocol:'opendesk.market.intent.v1',status:'CONNECTED'});
-  await tick();
+  assert.equal(h.sent.length,0,'market browsing does not probe the receiver');
 
   const firstPending=h.first.button.listeners.click();
   await h.first.button.listeners.click();await tick();

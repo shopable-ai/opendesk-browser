@@ -20,7 +20,7 @@ export async function verifyPreview(page, {repo = ROOT, artifact, out} = {}) {
   const status = () => page.locator('#app-status').innerText();
   const focused = () => page.evaluate(() => document.activeElement.id);
   const type = async (locator, text) => { await locator.click(); await locator.press('ControlOrMeta+A'); await locator.press('Backspace'); await locator.pressSequentially(text); };
-  const state = index => page.locator('#preview-state [data-state]').nth(index).click();
+  const state = index => page.locator('#preview-state [data-state="'+['ready','empty','error','revoked','busy','long'][index]+'"]').click();
   const visibleFocus = () => page.evaluate(() => {
     const el = document.activeElement, r = el.getBoundingClientRect();
     return r.top >= 0 && r.bottom <= innerHeight && el.matches(':focus-visible');
@@ -32,9 +32,23 @@ export async function verifyPreview(page, {repo = ROOT, artifact, out} = {}) {
   try {
     await page.goto('file://' + artifact + '/preview.html'); await wait();
     assert(await page.locator('#item-list>div').count() === 2,'initial list');
-    assert(await page.locator('h1').count() === 1,'single main heading');
+    assert(await page.getByRole('tab').count() === 5,'five visible product tabs');
+    assert(await page.locator('.preview-device #od-preview-controls').count() === 0,'auxiliary controls outside device');
+    await page.locator('#sidebar-tool-back').click();
+    assert(await page.locator('#od-preview-return').isVisible(),'host back to list');
+    await page.locator('#od-preview-reopen').click();
+    await page.locator('#sidebar-tool-remove').click(); await page.keyboard.press('Escape');
+    assert(await focused() === 'sidebar-tool-remove','uninstall Escape restores trigger');
+    await page.locator('#sidebar-tool-remove').click(); await page.locator('#od-preview-cancel-uninstall').click();
+    assert(await focused() === 'sidebar-tool-remove','uninstall cancel restores trigger');
+    await page.locator('#sidebar-tool-remove').click(); await page.locator('#od-preview-accept-uninstall').click();
+    assert(await page.locator('#od-preview-uninstalled').isVisible(),'simulated uninstall');
+    await page.locator('#od-preview-reset').click();
+
+    assert(await page.locator('#sidebar-tool-title[role=heading]').count() === 1,'single main heading');
     await page.locator('#create-item').click();
     assert(await focused() === 'item-title','create focuses input');
+    assert(await page.locator('#reset-items').isDisabled() && await page.locator('#od-design-theme').isDisabled(),'unsaved form protects external controls');
     await page.locator('#item-title').press('Enter');
     assert(await page.locator('#item-error').isVisible(),'empty submit shows error');
     assert(await page.locator('#item-title').getAttribute('aria-invalid') === 'true','field error association');
@@ -60,7 +74,7 @@ export async function verifyPreview(page, {repo = ROOT, artifact, out} = {}) {
     await state(1); assert(await page.locator('#item-list>div').count() === 0 && !await page.locator('#create-item').isDisabled(),'empty state is actionable');
     for (const [index, label] of [[2,'failure'],[3,'revoked'],[4,'busy']]) {
       await state(index);
-      assert(await page.locator('#create-item').isDisabled() && await page.locator('#reset-items').isDisabled() && await page.locator('#item-list>div').count() === 0,label + ' blocks mutations');
+      assert(await page.locator('#create-item').isDisabled() && await page.locator('#refresh-items').isDisabled() && !await page.locator('#reset-items').isDisabled() && await page.locator('#item-list>div').count() === 0,label + ' blocks mutations');
       assert((await status()).length > 0,label + ' has status text');
     }
     await state(5); assert(await page.locator('#item-list>div').count() === 24,'long state has scrollable content');
@@ -73,37 +87,89 @@ export async function verifyPreview(page, {repo = ROOT, artifact, out} = {}) {
     assert(rectVisible,'restored focus is visible');
     await state(0);
     await page.locator('#reset-items').click(); assert(await page.locator('#item-list>div').count() === 2,'reset uses local data');
-    const canonical = await fs.readFile(repo+'/src/ui/design-tokens.css','utf8') + '\n' + await fs.readFile(repo+'/src/ui/design-system.css','utf8');
+    const canonical = await fs.readFile(repo+'/src/ui/design-tokens.css','utf8') + '\n' + await fs.readFile(repo+'/src/ui/design-system.css','utf8') + '\n' + await fs.readFile(repo+'/src/ui/react/components/ui/sidebar-shared.css','utf8');
     reference = await page.context().newPage();
-    await reference.setContent('<!doctype html><html><head><style>'+canonical+'</style></head><body><main><h1 id="ref-title" class="od-page-title">Canonical 参考</h1><input id="ref-before" class="od-field" aria-label="参考输入"><button type="button" id="ref-main" class="od-button">新建</button><button type="button" id="ref-secondary" class="od-button od-button--secondary">编辑</button><button type="button" id="ref-danger" class="od-button od-button--danger">删除</button><button type="button" id="ref-disabled" class="od-button" disabled>新建</button><button type="button" id="ref-icon" class="od-icon-button" aria-label="重置模拟数据">↻</button><div class="od-stack"><div id="ref-surface" class="od-surface od-surface--padded">示例</div></div><details class="od-disclosure od-disclosure--flat"><summary id="ref-summary">说明</summary></details></main></body></html>');
-    const props=['color','backgroundColor','borderTopColor','borderTopWidth','borderRadius','fontFamily','fontSize','fontWeight','lineHeight','paddingTop','paddingRight','minHeight','opacity','filter','outlineColor','outlineWidth','outlineOffset'];
+    await reference.setContent('<!doctype html><html><head><style>'+canonical+'</style></head><body><main><h1 id="ref-title" class="od-page-title">Canonical 参考</h1><input id="ref-before" class="od-field" aria-label="参考输入"><button type="button" id="ref-main" class="od-button">新建</button><button type="button" id="ref-secondary" class="od-button od-button--secondary">编辑</button><button type="button" id="ref-danger" class="od-button od-button--quiet">删除</button><button type="button" id="ref-disabled" class="od-button" disabled>新建</button><div class="od-page-head"><div class="od-page-actions"><button type="button" id="ref-icon" class="od-icon-button" aria-label="刷新条目">↻</button></div></div><div class="od-stack"><div id="ref-surface" class="od-shared-card"><div id="ref-content" class="od-shared-card-content">示例</div></div></div><details class="od-disclosure od-surface od-surface--padded"><summary id="ref-summary">说明</summary></details></main></body></html>');
+    const props=['color','backgroundColor','borderTopColor','borderTopWidth','borderRadius','boxShadow','fontFamily','fontSize','fontWeight','lineHeight','paddingTop','paddingRight','minHeight','opacity','filter','outlineColor','outlineWidth','outlineOffset'];
     const style = (p, selector) => p.locator(selector).first().evaluate((el, keys) => { const s=getComputedStyle(el); return Object.fromEntries(keys.map(key=>[key,s[key]])); },props);
     async function compare(label,a,b) {
       const actual=await style(page,a), expected=await style(reference,b);
       evidence.styles.push({label,actual,expected}); assert(JSON.stringify(actual)===JSON.stringify(expected),'canonical style '+label,{actual,expected});
     }
+    await compare('light host disclosure','#od-preview-controls summary','#ref-summary');
     for (const theme of ['light','dark']) {
-      await page.emulateMedia({colorScheme:theme}); await reference.emulateMedia({colorScheme:theme});
-      await page.locator('h1').click(); await reference.locator('#ref-title').click();
+      await page.emulateMedia({colorScheme:theme}); await page.locator('#od-design-theme').selectOption(theme); await reference.emulateMedia({colorScheme:theme});
+      await page.locator('#sidebar-tool-title').click(); await reference.locator('#ref-title').click();
       await page.mouse.move(0,0); await reference.mouse.move(0,0);
-      for (const [label,a,b] of [['primary','#create-item','#ref-main'],['secondary','#edit-1','#ref-secondary'],['danger','#remove-1','#ref-danger'],['icon','#reset-items','#ref-icon'],['field','#item-title','#ref-before'],['surface','#item-list>div','#ref-surface'],['disclosure','summary','#ref-summary']]) await compare(theme+' '+label,a,b);
+      for (const [label,a,b] of [['primary','#create-item','#ref-main'],['secondary','#edit-1','#ref-secondary'],['danger','#remove-1','#ref-danger'],['icon','#refresh-items','#ref-icon'],['field','#item-title','#ref-before'],['surface','#item-list>div','#ref-surface'],['card padding','#item-list .od-shared-card-content','#ref-content']]) await compare(theme+' '+label,a,b);
       await page.locator('#create-item').hover(); await reference.locator('#ref-main').hover(); await compare(theme+' hover','#create-item','#ref-main');
-      await page.locator('#reset-items').press('Tab'); await reference.locator('#ref-before').press('Tab');
+      await page.locator('#refresh-items').press('Tab'); await reference.locator('#ref-before').press('Tab');
       assert(await focused()==='create-item' && await visibleFocus(),theme+' keyboard visible focus');
       await compare(theme+' focus','#create-item','#ref-main');
       await page.screenshot({path:dir+'/'+theme+'.png',fullPage:true});
       await state(4); await page.mouse.move(0,0); await compare(theme+' disabled','#create-item','#ref-disabled'); await state(0);
     }
-    assert(await page.locator('aside').isVisible(),'runtime preview declaration preserved');
+    await page.locator('#reset-items').click();
+    assert(await page.locator('#od-preview-app').getAttribute('data-preview-theme')==='light' && await page.locator('#od-design-theme').inputValue()==='light','restore resets tool theme');
+    assert(await page.locator('.preview-meta').isVisible(),'runtime preview declaration preserved');
     assert(await page.locator('style').count()===3,'runtime style block count preserved');
     evidence.runtimeInlineStyles = await page.locator('[style]').evaluateAll(els => els.map(el => ({tag:el.tagName,id:el.id,value:el.getAttribute('style')})));
     // Screenshot instrumentation can leave style=""; no declaration means no visual override.
     assert(evidence.runtimeInlineStyles.every(item => !item.value.trim()),'runtime no inline style declaration',evidence.runtimeInlineStyles);
-    assert(await page.locator('script').count()===1,'runtime single behavior script');
+    assert(await page.locator('script:not([type])').count()===1,'runtime single behavior script');
+    // The companion is source-compiled React, not HTML pretending to be a Switch.
+    const componentHtml=await fs.readFile(artifact+'/components.html');
+    assert(digest(componentHtml)===manifest.componentReference.htmlHash,'component HTML receipt');
+    for(const [path,expected] of Object.entries(manifest.componentReference.inputs)){
+      if(digest(await fs.readFile(repo+'/'+path))!==expected)throw Error('component input drift: '+path);
+    }
+    assert(true,'component source and dependency receipts match');
+    await page.goto('file://'+artifact+'/components.html');
+    const toggle=page.getByRole('switch',{name:'自动整理'});
+    await toggle.waitFor();
+    assert(await toggle.isChecked(),'real Switch starts selected');
+    await toggle.press('Space');
+    assert(!await toggle.isChecked(),'real Switch keyboard toggles');
+    await page.locator('.od-shared-switch').click();assert(await toggle.isChecked(),'real Switch pointer toggles');
+    await page.getByLabel('名称',{exact:true}).fill('');await page.getByRole('button',{name:'保存示例',exact:true}).click();
+    assert(await page.locator('#recipe-name-error').isVisible()&&await focused()==='recipe-name','React form error and focus');
+    await page.getByLabel('名称',{exact:true}).fill('统一组件');
+    assert(await page.locator('#recipe-name-error').count()===0,'React error clears on correction');
+    await page.getByRole('button',{name:'保存示例',exact:true}).click();
+    assert((await page.getByRole('status').allTextContents()).some(text=>text.includes('统一组件')),'React form save');
+    await page.getByRole('button',{name:'删除示例…',exact:true}).click();
+    assert(await page.evaluate(()=>document.activeElement.textContent)==='取消','React confirmation safe focus');
+    await page.getByRole('button',{name:'取消',exact:true}).press('Escape');
+    assert(await page.evaluate(()=>document.activeElement.textContent)==='删除示例…','React Escape restores trigger');
+    await page.getByRole('button',{name:'删除示例…',exact:true}).click();
+    await page.getByRole('button',{name:'取消',exact:true}).click();
+    assert(await page.locator('#recipe-name').inputValue()==='统一组件','React cancel preserves value');
+    await page.getByRole('button',{name:'删除示例…',exact:true}).click();
+    await page.getByRole('button',{name:'确认删除',exact:true}).click();
+    assert(await page.locator('#recipe-name').inputValue()==='','React confirmation changes memory');
+    await page.locator('#recipe-scenario').selectOption('error');
+    assert(await toggle.isDisabled()&&await page.locator('#recipe-name').isDisabled(),'React error disables affected controls');
+    assert((await page.getByRole('alert').allTextContents()).some(text=>text.includes('读取失败')),'React error readable');
+    await page.locator('#recipe-scenario').selectOption('ready');
+    for(const theme of ['light','dark']){
+      await page.locator('#recipe-theme').selectOption(theme);await reference.emulateMedia({colorScheme:theme});
+      await page.locator('#sidebar-tool-title').click();await reference.locator('#ref-title').click();
+      await page.mouse.move(0,0);await reference.mouse.move(0,0);
+      await compare('React '+theme+' Button','button.od-button--primary','#ref-main');
+      await compare('React '+theme+' Card','.od-shared-card','#ref-surface');
+      await compare('React '+theme+' CardContent','.od-shared-card-content','#ref-content');
+      await compare('React '+theme+' input','#recipe-name','#ref-before');
+      await page.screenshot({path:dir+'/components-'+theme+'.png',fullPage:true});
+    }
+    await page.locator('#recipe-reset').click();
+    assert(await toggle.isChecked()&&await page.locator('#recipe-name').inputValue()==='示例条目'&&
+      await page.locator('#od-preview-app').getAttribute('data-preview-theme')==='light','component restore resets memory and theme');
+    assert(await page.locator('#od-preview-app #recipe-theme,#od-preview-app #recipe-scenario').count()===0,'React diagnostics outside tool');
     assert(evidence.network.length===0,'no HTTP network requests',evidence.network);
     assert(evidence.errors.length===0,'no console or page errors',evidence.errors);
     for (const [path, expected] of Object.entries(manifest.inputs)) assert(digest(await fs.readFile(repo+'/'+path))===expected,'stable input '+path);
     assert(digest(await fs.readFile(artifact+'/preview.html'))===evidence.htmlHash,'stable tested HTML');
+    evidence.componentHtmlHash=digest(componentHtml);
     evidence.result='PASS';
   } catch(error) {
     evidence.result='FAIL'; evidence.failure=error.stack;

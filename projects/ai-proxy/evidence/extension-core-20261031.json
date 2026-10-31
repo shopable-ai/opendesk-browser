@@ -1,0 +1,168 @@
+{
+  "format": "ai-proxy.extension-core-evidence.v1",
+  "recordedAt": "2026-10-30T19:16:59.603Z",
+  "branch": "main",
+  "owner": "projects/ai-proxy/",
+  "stage": "core-development",
+  "goal": {
+    "threadId": "01a18e29-3d63-78f1-b44a-97ab7372d8c1",
+    "scope": "Real configuration operation and public SDK adapter, not full proxy migration or release"
+  },
+  "entry": {
+    "source": "src/main.jsx → src/environment.ts → src/service.ts",
+    "runtime": "OpenDesk local project → independent project → sidebar debug",
+    "previewInjection": "explicit in preview/frame.jsx only",
+    "storageKey": "ai-proxy.full-config.v2",
+    "storageScopeObserved": "isolated browser-session development data"
+  },
+  "fixes": [
+    "Reject malformed storage reads instead of replacing them with empty data",
+    "Snapshot writes, enforce 8192-byte quota, condition on ETag and semantically verify readback without replay",
+    "Ignore JSON object member order but preserve array order and value conflicts",
+    "Strip internal endpoint metadata from the exact public managed proxy request",
+    "Fence disposed asynchronous operations and preserve unknown outcomes",
+    "STOP requires previously observed own canStop; status errors cannot erase known own release capability",
+    "Keep safe SDK code and actual permission separate from applied/reachability, localize feedback and use read-only retry"
+  ],
+  "native": {
+    "kind": "native Chrome accessibility observations, not fixture or traffic proof",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "enabled": true,
+    "nativeAllowedOrigin": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/",
+    "browserServeConnection": "NOT_CONFIRMED_AT_CLOSE",
+    "configCandidate": {
+      "sha256": "409c3f591de55a8013c1dbd4afdc39e6c55c3d588d4165618db97f5cbe021188",
+      "version": "0.2.0",
+      "installed": false
+    },
+    "observations": [
+      {
+        "operation": "Add and save/select",
+        "endpoint": "core-config.example.com:8443",
+        "result": "PASS",
+        "effect": "isolated config only, explicitly not applied"
+      },
+      {
+        "operation": "Save rule before fix",
+        "domain": "core-target.example.com",
+        "result": "E_CONFLICT",
+        "classification": "business readback comparison incorrectly required JSON member order",
+        "automaticReplay": false
+      },
+      {
+        "operation": "Save same rule after semantic comparison fix",
+        "domain": "core-target.example.com",
+        "target": "core-config.example.com:8443",
+        "includeSubdomains": true,
+        "priority": 100,
+        "result": "PASS",
+        "visibleReceipt": "网站规则已保存，尚未改变 Chrome 代理设置；需要时请明确应用。"
+      },
+      {
+        "operation": "Stop debug and reopen from local-project entry",
+        "result": "PASS",
+        "visibleState": "same selected core-config endpoint; Settings → 网站规则 1 → core-target.example.com + 子域, priority 100; not applied"
+      },
+      {
+        "operation": "Read real SDK status",
+        "result": "E_TOOL",
+        "permission": null,
+        "control": "unknown",
+        "applied": false,
+        "classification": "underlying host reason unclassified; local debug contract grants no installed proxy authority; SDK_GAP_NOT_PROVEN"
+      },
+      {
+        "operation": "Source changes while dirty and after replacement",
+        "result": "guarded refusal",
+        "visibleState": "source changed / old session stopped; draft discard required before refresh"
+      }
+    ],
+    "globalProxyMutationsPerformed": false,
+    "networkProbesPerformed": false,
+    "installedIdentityBorrowed": false,
+    "ownDebugStopped": true,
+    "ownTemporaryCliExited": true,
+    "existingWatchersPreserved": true,
+    "parallelUiUpdates": "Settings/UI owner produced later candidates; native config observations above belong to 409c3f591de5, not automatically to the later stage"
+  },
+  "checks": {
+    "node": {
+      "command": "node --test projects/ai-proxy/tests/environment-runtime.test.mjs projects/ai-proxy/tests/service.test.mjs projects/ai-proxy/tests/status-runtime.test.mjs projects/ai-proxy/tests/environment-confirm.test.mjs projects/ai-proxy/tests/drafts.test.mjs projects/ai-proxy/tests/use-proxy-errors.test.mjs projects/ai-proxy/tests/navigation.test.mjs projects/ai-proxy/tests/form-submit.test.mjs projects/ai-proxy/tests/settings-credentials.test.mjs",
+      "tests": 94,
+      "pass": 94,
+      "fail": 0,
+      "skipped": 0,
+      "exitCode": 0
+    },
+    "regressionFirst": "member-ordering fixture failed E_CONFLICT before the fix and passed afterward; native save also failed before and passed after",
+    "syntax": "PASS: vm.Script on dist/tool.js; esbuild bundles actual environment, service and Status in behavioral tests",
+    "types": "NOT_TESTED full project: node_modules/.bin/tsc is unavailable; no compiler installed",
+    "buildReceipt": "PASS using existing watcher outputs and original checkCompiledToolBuildReady",
+    "stagedPackage": "PASS: current candidate byte-equal to original packer result in memory, manifest SHA and JS syntax checked, no Preview inputs or privileged background",
+    "rootFullSuite": "NOT_RUN: unrelated to this core stage"
+  },
+  "build": {
+    "buildId": "d2748b0e-c476-40ea-98b6-00af075da079",
+    "compiledFiles": {
+      "dist/tool.js": {
+        "bytes": 744921,
+        "sha256": "92d22c93d2c969b15bf16a2af1743a2a852f076f96b1fd9e80c0dd69d5f7e774"
+      },
+      "dist/tool.css": {
+        "bytes": 102922,
+        "sha256": "6bf8540c33b56b96437983e853671c0f3f0999cc276ad17eeb4f890981395ec2"
+      }
+    },
+    "sourceFileCount": 54,
+    "sourceFingerprints": {
+      "src/environment.ts": "e31aa87c5a81ca2c6da84e8c98277cba7d183a05727544ad647cc3599bd3132b",
+      "src/service.ts": "0bbcb938c688b2f490e3d405b0c557a8a604f15b0b8856bf45857f651418b660",
+      "src/domain/types.ts": "947642b402aee0a38df4bbb252e48f2612c9650b6ffbf6cadd97758faa540671",
+      "src/ui/Status.tsx": "5b4c034bb4ecb106cd34e76a5c588fbd50d8d701d53432d5f93f998e5081fbd2",
+      "src/i18n/errors.ts": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129",
+      "src/QuickPanel.tsx": "8574a0a0243ffb4dfbdc5ea29402eecdebfa5fbe0fe92392683cd68f88d0ec4c",
+      "src/Settings.tsx": "6fcffb82abacf038aa06c4b843d1b420bab2a4ffb50efe4f53fb4e98f2343c62",
+      "src/i18n/locales/zh-CN.json": "40cb1a1abca6a4500ffa8120f2bb898a84bd2f93f83cec989e52e2ca55751688",
+      "src/i18n/locales/en.json": "42ad74a9db72e34356ee01200f7dcfba551b49ceb652164efb7f1659101b808b",
+      "src/i18n/locales/zh-TW.json": "f6cacc8eed2a415d18012b163d4b6c8f7616d138ee3ac4e5b5eccb6fd363a55d",
+      "tool.config.json": "d0b01caab6a15c5db7089e1da916aa93d1346d5ea494547f0efd1a3968b34b95"
+    },
+    "stagedSha256": "11b53803dc565212aacb82135c5962a91b18f2a1d154582f02d6188fadd8c873",
+    "candidatePath": ".opendesk-preview/ai-proxy/11b53803dc565212aacb82135c5962a91b18f2a1d154582f02d6188fadd8c873.opendesk-tool.json",
+    "manifestPath": "opendesk-tool-preview/ai-proxy/11b53803dc565212aacb82135c5962a91b18f2a1d154582f02d6188fadd8c873/manifest-46d17adfab35e89d2442e564b2be6839bb93649d71546f26b1cf4ec67dc2f34a.json",
+    "manifestSha256": "46d17adfab35e89d2442e564b2be6839bb93649d71546f26b1cf4ec67dc2f34a",
+    "installed": false,
+    "official": {
+      "path": "ai-proxy.opendesk-tool.json",
+      "sha256": "26dc8be2e991c10f48ad46e678b30e3c1c2ee51b25f2723851643ea6612a6e67",
+      "promotedByThisTask": false,
+      "source": "historical candidate; not current delivery"
+    }
+  },
+  "gates": {
+    "T1": "SOURCE_WIRED / NATIVE_CONFIG_PASS",
+    "T2": "NODE_PASS / NATIVE_SESSION_PASS; installed/restart persistence NOT_TESTED",
+    "T3": "SOURCE_WIRED / NODE_PASS; real read E_TOOL, SDK_GAP_NOT_PROVEN",
+    "T4": "NOT_TESTED: no exclusive isolated Profile / controlled gateway / installed authority",
+    "T5": "NODE_PASS / native source/draft guards observed; install revoke/uninstall NOT_TESTED",
+    "T6": "affected UI behavior and three-locale status NODE_PASS; full native visual/OS IME NOT_TESTED",
+    "T7": "BUILD_RECEIPT_PASS / STAGED_NOT_INSTALLED"
+  },
+  "deferred": [
+    "Actual Apply → controlled target tab traffic → own STOP in an exclusive isolated Profile",
+    "Authenticated proxy, PAC, complete four-mode semantics, multi-endpoint routing, local clients",
+    "Subscription WAN, OAuth, payment, background usage collection",
+    "Formal JSON promotion/install/release, production, full CI, independent score 95+, width/zoom matrix"
+  ],
+  "repository": {
+    "committed": false,
+    "pushed": false,
+    "branchCreated": false,
+    "worktreeCreated": false,
+    "prCreated": false,
+    "projectInitiallyUntracked": true,
+    "sharedFrameworkEditedByThisTask": false,
+    "originalSourceReadOnly": true
+  }
+}

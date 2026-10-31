@@ -19,6 +19,18 @@
 
 > **更新：2026-10-12。** 对安装工具的开发者，优先使用易理解的高层写法；下方保留的 R1.3 `PLANNED` / `HOST_ONLY` 表是 **2026-10-11 历史快照，不能当作当前进度**。当时记载的 28 项仅属旧时间点快照；当前接口数与可调用状态应直接查询 [唯一运行时注册表](../../src/framework/sdk/browser-contract.js)，状态与原生证据见 [Browser SDK 工作流](../framework/workstreams/browser-sdk-status.md)。
 
+## 有限公共代理：用户审阅精确路由（2026-10-30）
+
+已安装 Sidebar Tool 声明 `browser.proxy.managed` 后，使用原 `browser.proxy.managed.getStatus()`、`requestEnable({config:{endpoint:{scheme,host,port},domains}})` 和 `requestDisable()`。普通路由仅接受 HTTPS/SOCKS5、有效公共 ASCII 主机名及 1–16 个不重复目标域名；不接受 IP、私网/本地域名、原始 ProxyConfig 或用户 PAC。目标域名规则包含该域名及其全部子域，其他域名直连；匹配路由不附加 DIRECT 故障回退。
+
+**普通网络代理管理不再要求维护者预审并静态 pin 每个端点、域名或工具包。** 用户必须在原可信界面明确审阅并批准本次精确代理协议、主机、端口及目标域名（含子域）；用户自选代理不代表维护者背书其安全、隐私或服务质量。授权仍绑定操作、规范化参数、当前包 SHA、安装代际、工具及实例和 Host，短期单次使用；参数或身份变化、撤权及重放均拒绝。沙箱自报 `approved` / `validated` 不能授权，安装或 capability 声明也不能替代本次确认与 Chrome proxy 权限。
+
+Host 消费原 `browser.intent.confirm` 引用后，仅在本次分派的私有 context 作用域保存配置凭据，结束即清除。Driver 的可选可信 `authorizeConfig(context,config)` 必须明确返回 `true`，在全局锁内及第二次身份/权限复核前验证同一 context 和配置；有此回调时不得回退静态表绕过失败。未配置回调的底层消费者继续要求原 source-reviewed profile。固定 development HTTP 特例始终只按原构建模式、固定配置及 source-reviewed package pin 批准，不进入普通用户审阅路径，也不开放其他 HTTP/IP 路由。
+
+原两次安装身份/权限复核、全局代理锁、持久 unknown 栅栏、精确自有 PAC 读回及显式 STOP/撤权恢复合同保留；未知结果不自动重放。此处为源码与定向 Node 合同，真实 Chrome 安装、代理流量与原生生命周期验证为 `NOT_TESTED`。
+
+旧 C1 / receipt 大驱动中的 deny 预期仅属于其冻结路由快照的历史证据，不代表本次公共精确审批路径仍应拒绝。旧驱动保留原样；新正向安装 Chrome 验证由 `projects/ai-proxy/scripts/installed-chrome.mjs` 持有，实际运行结果单独记录，不由 Node PASS 推断。
+
 ## R9 当前推荐：重载本工具拥有的网页
 
 ```js

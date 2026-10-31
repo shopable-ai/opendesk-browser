@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "date": "2026-10-30",
+  "method": "Native macOS Chrome UI and read-only DevTools via cua_repl; formal installed Side Panel and fixed Trusted Host. This is an observation transcript, not an automated browser trace.",
+  "network": "No task-added proxy or network configuration; local network as requested. No login, membership, region or player restriction bypass.",
+  "substitutedSamples": [],
+  "productionV3": {
+    "profile": "Video SVIP R031 Accept",
+    "extensionId": "jkfdogcahfnlcjoefilededlgmokiolp",
+    "loadedPath": "artifacts/video-svip-r031-20261030-01a18c8c/source-snapshot/dist/production",
+    "hostInstanceId": "3e787653-b31f-42b6-adae-7dfcd1229899",
+    "toolVersion": "0.3.0",
+    "manifestSHA256": "294fd628d27b3bb55bd062a110a41d6039cab7353a26af849ada2455f4f12bcc",
+    "packageHash": "1101408fca1990bcf2ab7f34a5faa3913435cd7083a7ea5c4f3d63fa215788a6",
+    "scope": "Historical intermediate candidate; later navigation, permission and membership fixes require V4 revalidation."
+  },
+  "tencent": {
+    "requestedUrl": "https://v.qq.com/x/cover/mzc00200aaogpgh/c4102y7ahdb.html",
+    "replacement": false,
+    "series": "仙逆",
+    "currentNumber": 164,
+    "dom": {
+      "title": {"selector": "div.intro-title[title]", "titleAttribute": "仙逆", "textContent": "仙逆简介"},
+      "heading": {"selector": "h2.player-play-title__title", "textContent": "仙逆 第164话"},
+      "selected": {"selector": ".episode-item.selected.normal-font", "id": "video-pc_web_episode_list_mzc00200aaogpgh_c4102y7ahdb_15_main", "numberSelector": ".episode-item-text", "numberText": "164", "parentText": "164VIP", "identicalResponsiveCopies": 2},
+      "badge": {"selector": ".corner-wrap.corner-mark--small.corner-mark--rightTop", "textContent": "VIP"}
+    },
+    "v3HostUi": {"title": "仙逆", "episodeLabel": "第164集", "state": "已识别 · 与活动文档核对", "titleConfidence": "high", "episodeConfidence": "high", "titleSource": "site-selector", "episodeEvidence": "selected:.episode-item.selected.normal-font", "contentRevision": "a68f0f80", "partial": true},
+    "v3Document": {"tabId": 560069319, "documentId": "C967B294DB6E3C4849B4987D22770778", "frameId": 0, "documentLifecycle": "active", "errorOccurred": false, "tabStatus": "complete"},
+    "v3Switch": {"clicked": "163 VIP 正片", "url": "https://v.qq.com/x/cover/mzc00200aaogpgh/i4102jtkn2v.html", "initialResult": "E_DOCUMENT_UNRESOLVED persisted after loading; manual recheck initially repeated it", "afterTabReactivation": {"title": "仙逆", "episodeLabel": "第163集", "titleConfidence": "high", "episodeConfidence": "high", "contentRevision": "6634d399"}, "automaticNavigationAcceptance": "FAIL_V3"},
+    "playbackLimit": "Original site offered a three-minute trial and then its VIP gate. No full paid playback claim."
+  },
+  "bilibili": {
+    "requestedUrl": "https://www.bilibili.com/bangumi/play/ep3854821?from_spmid=666.25.episode.0",
+    "actualUrl": "https://www.bilibili.com/zh-Hans/bangumi/play/ep3854821?from_spmid=666.25.episode.0",
+    "replacement": false,
+    "series": "凡人修仙传",
+    "currentNumber": 197,
+    "epId": "ep3854821",
+    "episodeNameObservedInSiteAX": "第197话 慕兰之战21",
+    "episodeNameHostLimitation": "Host returns the verified numeric episode label 第197集; it does not currently return the subtitle 慕兰之战21.",
+    "dom": {
+      "title": {"selector": "a.mediainfo_mediaTitle__Zyiqh[title]", "titleAttribute": "凡人修仙传"},
+      "selected": {"selector": "a.EpisodeVirtualList_numberItem__GLWgO.EpisodeVirtualList_activeNumber__Sm49O", "href": "/bangumi/play/ep3854821", "titleAttribute": "197", "numberSelector": ".EpisodeVirtualList_numberTitle__6SOS6", "numberText": "197", "badgeText": "会员"}
+    },
+    "v3HostUi": {"title": "凡人修仙传", "episodeLabel": "第197集", "state": "已识别 · 与活动文档核对", "titleConfidence": "high", "episodeConfidence": "high", "episodeEvidence": "selected:bilibili-numberTitle:href-ep", "contentRevision": "c89ca2bf", "partial": true},
+    "v3Spa": {
+      "action": "Click the real 196 会员 episode link, without manual re-identification",
+      "before": {"tabId": 560069324, "documentId": "3C0B6C28625298E0FFE58764F2F2FBB0", "frameId": 0, "documentLifecycle": "active", "errorOccurred": false, "url": "https://www.bilibili.com/zh-Hans/bangumi/play/ep3854821?from_spmid=666.25.episode.0"},
+      "after": {"tabId": 560069324, "documentId": "3C0B6C28625298E0FFE58764F2F2FBB0", "frameId": 0, "documentLifecycle": "active", "errorOccurred": false, "url": "https://www.bilibili.com/zh-Hans/bangumi/play/ep3854820?from_spmid=666.25.episode.0", "episodeLabel": "第196集", "contentRevision": "5153eb9b", "titleConfidence": "high", "episodeConfidence": "high"}
+    },
+    "v3Stop": "After Stop at 196, click 197: UI remains 已停止识别 / 监听已停止. Explicit 重新识别 restores verified 第197集.",
+    "playbackLimit": "Original site displayed region/member restrictions; a daily-profile trial later showed original-site network error 3105. DOM recognition remains separately verified; no paid playback claim."
+  },
+  "v3AdditionalDefects": {
+    "membershipSave": {"result": "FAIL", "nativeConsole": "Blocked form submission to '' because the form's frame is sandboxed and the 'allow-forms' permission is not set.", "fix": "type=button and click handler reuse the same ETag-guarded Storage RPC; no sandbox permission expansion"},
+    "websiteRevocation": {"action": "Independent profile only: all sites -> on click; restore all sites afterward", "nativePermissionQuery": {"origins": ["https://www.bilibili.com/*"], "contains": false}, "ui": "Old result cleared, but pending injection ended with E_TOOL_TIMEOUT", "fix": "Check exact-origin Chrome permissions before every fixed DOM injection"}
+  },
+  "nativeNotTested": ["Deliberately delayed old Host response race", "Same-URL title/episode replacement without URL navigation", "All iframe DOM", "Other-platform adaptation and full paid playback"],
+  "productionV4": {
+    "status": "PARTIAL_NATIVE_OBSERVATION_FROM_HANDOFF",
+    "extensionId": "nnllmoccmfmdhgomohibcikkngbnjhjg",
+    "evidenceBoundary": "The preceding owner reported these observations before handoff. They were not rerun as production acceptance in the current continuous-dev scope; exact full build identity is not recovered here. The V4 copy is now disabled and retained in the same task Profile.",
+    "reportedTencent": "164 -> preview 163 returns unknown -> regular 163 -> 164, automatic recognition follows the real selection.",
+    "reportedBilibili": "197 -> 196 automatic update; Stop then selecting 197 remains stopped.",
+    "lastReidentify": "Pending at handoff; final result not read back in that V4 instance.",
+    "unverified": ["V4 membership save/readback", "V4 website permission revoke/restore", "Full production acceptance"],
+    "currentDevelopmentEvidence": "r032-dev-core-20261030.json"
+  }
+}

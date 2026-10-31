@@ -1,0 +1,11 @@
+Browser tab: 1, Title: "AI Proxy · React 同源预览", URL: "http://127.0.0.1:43263/projects/ai-proxy/.opendesk-preview/source-f98ab925-5d04-4333-9540-9906ce5d19d7/preview.html".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 92, 95-96
+~										87 text DIRECT 直连
++									92 text 网站规则已保存，尚未改变 Chrome 代理设置；需要时请明确应用。
+~								93 link Description: 采集代理，在新标签页打开, Value: example.com/
+~								94 text 仅管理浏览器代理设置，不等于全设备 VPN，也不保证当前网站可达。
++								95 container 打开设置
++									96 button 订阅来源
++									97 button 网络诊断 ↗
+The focused UI element is 90 button 编辑命中规则, ID: quick-site-rule

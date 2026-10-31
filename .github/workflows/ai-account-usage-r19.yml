@@ -3,15 +3,17 @@ on:
   push:
     branches: [main]
     paths:
-      - 'services/ai-account-usage/web/**'
-      - 'services/ai-account-usage/package.json'
-      - 'services/ai-account-usage/domain.mjs'
-      - 'services/ai-account-usage/history-store.mjs'
-      - 'services/ai-account-usage/read-api.mjs'
-      - 'services/ai-account-usage/web-server.mjs'
-      - 'tests/ai-account-usage-*.test.mjs'
-      - 'tests/ai-account-usage-chromium-r19.mjs'
-      - 'tests/ai-account-usage-chromium-r22.mjs'
+      - 'examples/sidebar-tools/cookie-editor/ai-account-usage/**'
+      - 'examples/sidebar-tools/cookie-editor/tests/ai-account-usage/**'
+      - 'examples/sidebar-tools/cookie-editor/tests/usage-entry-boundary.test.mjs'
+      - 'examples/sidebar-tools/cookie-editor/trusted/**'
+      - 'src/platform/chrome/context-menus.js'
+      - 'src/framework/sdk/browser-contract.js'
+      - 'examples/sidebar-tools/cookie-editor/preview/ai-account-usage.html'
+      - 'examples/sidebar-tools/cookie-editor/package.json'
+      - 'src/ui/design-tokens.css'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/ai-account-usage-r19.yml'
   workflow_dispatch:
 permissions:
@@ -32,17 +34,17 @@ jobs:
       - name: Install locked project packages
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Existing local API and historical contract regressions
-        run: npm test --prefix services/ai-account-usage
+        run: npm test --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
       - name: Build the formal production and synthetic preview from ONE React source
         run: |
-          npm run build:web --prefix services/ai-account-usage
-          npm run build:web:preview --prefix services/ai-account-usage
+          npm run build:web --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
+          npm run build:web:preview --prefix examples/sidebar-tools/cookie-editor/ai-account-usage
       - name: Check production compiled assets do not embed synthetic account identities
         run: |
           node --input-type=module <<'NODE'
           import {readFile} from 'node:fs/promises';
           import assert from 'node:assert/strict';
-          const p='services/ai-account-usage/web/';
+          const p='examples/sidebar-tools/cookie-editor/ai-account-usage/web/';
           const live=await readFile(p+'dist/app.js','utf8');
           const demo=await readFile(p+'preview-dist/app.js','utf8');
           const css=await readFile(p+'dist/app.css','utf8');
@@ -81,19 +83,19 @@ jobs:
       - name: "Actual Chrome renderer: interactions, responsive sizes and screenshots"
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node tests/ai-account-usage-chromium-r19.mjs
+        run: node examples/sidebar-tools/cookie-editor/tests/ai-account-usage/ai-account-usage-chromium-r19.mjs
       - name: "Production React: single-click API refresh, status, readback and cache retention"
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: node tests/ai-account-usage-chromium-r22.mjs
+        run: node examples/sidebar-tools/cookie-editor/tests/ai-account-usage/ai-account-usage-chromium-r22.mjs
       - name: Publish source-bound, synthetic HTML preview on existing main only
         run: |
           set -euo pipefail
-          test -s services/ai-account-usage/web/preview/index.html
+          test -s examples/sidebar-tools/cookie-editor/ai-account-usage/web/preview/index.html
           # Preserve only the just-validated assets outside the checkout.
           # This is an ephemeral CI runner, not a developer's local worktree.
           verified="$(mktemp -d)"
-          cp services/ai-account-usage/web/preview/index.html "$verified/index.html"
+          cp examples/sidebar-tools/cookie-editor/ai-account-usage/web/preview/index.html "$verified/index.html"
           for name in 1440-account-overview.png 390-mobile.png spare-pro-history.png business-invite-guidance.png chromium-report.json; do
             test -s "artifacts/ai-usage-r19/$name"
             cp "artifacts/ai-usage-r19/$name" "$verified/$name"
@@ -104,7 +106,7 @@ jobs:
           done
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          evidence=services/ai-account-usage/web/preview/evidence
+          evidence=examples/sidebar-tools/cookie-editor/ai-account-usage/web/preview/evidence
           # Other projects commit to main while Chromium is running. Rebase the
           # *publication only* on their newer main, if and only if neither the
           # validated React inputs nor these exact preview destinations changed.
@@ -113,26 +115,38 @@ jobs:
           for attempt in 1 2 3 4; do
             git fetch -q origin refs/heads/main
             latest="$(git rev-parse FETCH_HEAD)"
-            if ! git diff --quiet "$GITHUB_SHA" "$latest" --               services/ai-account-usage/web/main.jsx               services/ai-account-usage/web/style.css               services/ai-account-usage/web/model.mjs               services/ai-account-usage/web/usage-insights.mjs               services/ai-account-usage/web/demo-data.mjs               services/ai-account-usage/web/build.mjs               services/ai-account-usage/web/index.html               services/ai-account-usage/package.json               src/ui/design-tokens.css package-lock.json; then
-              echo "::error::React inputs changed after CI checkout; refuse stale preview"
+            if ! git diff --quiet "$GITHUB_SHA" "$latest" -- \
+              examples/sidebar-tools/cookie-editor/ai-account-usage \
+              examples/sidebar-tools/cookie-editor/tests/ai-account-usage \
+              examples/sidebar-tools/cookie-editor/tests/usage-entry-boundary.test.mjs \
+              examples/sidebar-tools/cookie-editor/trusted \
+              src/platform/chrome/context-menus.js src/framework/sdk/browser-contract.js \
+              examples/sidebar-tools/cookie-editor/package.json \
+              examples/sidebar-tools/cookie-editor/preview/ai-account-usage.html \
+              .github/workflows/ai-account-usage-r19.yml \
+              src/ui/design-tokens.css package.json package-lock.json; then
+              echo "::error::Validated inputs or drivers changed after CI checkout; refuse stale evidence"
               exit 1
             fi
-            if ! git diff --quiet "$GITHUB_SHA" "$latest" --               services/ai-account-usage/web/preview/index.html               services/ai-account-usage/web/preview/evidence; then
+            if ! git diff --quiet "$GITHUB_SHA" "$latest" --               examples/sidebar-tools/cookie-editor/ai-account-usage/web/preview/index.html               examples/sidebar-tools/cookie-editor/ai-account-usage/web/preview/evidence; then
               echo "::error::Preview destination changed after CI checkout; refuse overwrite"
               exit 1
             fi
             git checkout -q --detach -f "$latest"
             mkdir -p "$evidence"
-            cp "$verified/index.html" services/ai-account-usage/web/preview/index.html
+            cp "$verified/index.html" examples/sidebar-tools/cookie-editor/ai-account-usage/web/preview/index.html
             for name in 1440-account-overview.png 390-mobile.png spare-pro-history.png business-invite-guidance.png chromium-report.json production-refresh.png production-refresh-report.json; do
               cp "$verified/$name" "$evidence/$name"
             done
-            git add services/ai-account-usage/web/preview/index.html "$evidence"
+            git add examples/sidebar-tools/cookie-editor/ai-account-usage/web/preview/index.html "$evidence"
             if git diff --cached --quiet; then
               echo "Current main already has the exact verified R2.2 preview."
               exit 0
             fi
-            git commit -m "docs(ai-account-usage): publish verified R2.2 React preview [skip ci]"
+            git commit -m "Keep the quota preview tied to verified React inputs [skip ci]" \
+              --trailer "Confidence: high" --trailer "Scope-risk: narrow" \
+              --trailer "Tested: owner Node suite, React builds and simulated Chromium drivers" \
+              --trailer "Not-tested: live Cookie Editor account mapping and provider refresh"
             if git push origin HEAD:main; then
               echo "Published validated React preview on the latest main."
               exit 0
@@ -149,7 +163,7 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
           path: |
-            services/ai-account-usage/web/preview-dist/
-            services/ai-account-usage/web/preview/index.html
+            examples/sidebar-tools/cookie-editor/ai-account-usage/web/preview-dist/
+            examples/sidebar-tools/cookie-editor/ai-account-usage/web/preview/index.html
             artifacts/ai-usage-r19/
             artifacts/ai-usage-r22/

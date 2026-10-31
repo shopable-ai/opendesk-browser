@@ -1,0 +1,1297 @@
+{
+  "format": "ai-proxy.navigation-polish.code-review.v1",
+  "reviewDate": "2026-10-31",
+  "reviewer": "Code Reviewer · independent read-only review",
+  "status": "COMPLETE_WITH_VALIDATION_GAPS",
+  "recommendation": "COMMENT",
+  "provisionalScores": false,
+  "summary": "本轮 7 文件增量未发现新增功能或安全缺陷；指定 15 项测试、真实 main.jsx IIFE/CSS 内存编译、AST 与三语一致性检查通过。已纳入新候选 interactions.json 及中/英/繁中 AX。最终结论 COMMENT：LSP 语义诊断不可用，且多份截图空白/异常，不能无条件 APPROVE；实现六维不全达 95。",
+  "scope": {
+    "repository": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "branch": "main",
+    "observedHead": "dc3d9fd93d6f6f76ba70ce451894ea167f5bd8c0",
+    "headInterpretation": "dc3d9fd 为并行推进的 HEAD，仅追溯；不是本轮提交或本轮增量基线。",
+    "baseline": "/tmp/ai-proxy-navigation-polish-before",
+    "owner": "projects/ai-proxy",
+    "changedFilesReviewed": 7,
+    "files": [
+      {
+        "path": "projects/ai-proxy/src/QuickPanel.tsx",
+        "baselineSha256": "6b33f28f8758b0ebec10c4f21e9a06910d6ee582d49a4547f14d9325d3461bcc",
+        "currentSha256": "11f9ab7dda6fba9962da7c65e27f91e74092b96ef97e848fc49953e23e259670"
+      },
+      {
+        "path": "projects/ai-proxy/src/Settings.tsx",
+        "baselineSha256": "d52aaed971bf1115a1d9a2665d66a31524c1f2b2c3d6d9b35fb635dff2c2783f",
+        "currentSha256": "e91b3244c4f8201a59ecae480d1ae757d73c743ccbe99d37205e596258c40ccb"
+      },
+      {
+        "path": "projects/ai-proxy/src/style.css",
+        "baselineSha256": "80ba305b4465c555e8c491e792da410c0a079d2357ea981231ce763223437780",
+        "currentSha256": "64dcee27e847766708faf43d064cefc252f47f2203f82a3b92106f13d5e2dc72"
+      },
+      {
+        "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+        "baselineSha256": "86b2b82e74f8bda71c8edfe266d8f4fde6bfbda7fec6ffdbc890440173dcafcc",
+        "currentSha256": "7f65ade974d56c7d8af9b28d25f3c6d0d49dc97f74313819959e364d9da0224a"
+      },
+      {
+        "path": "projects/ai-proxy/src/i18n/locales/en.json",
+        "baselineSha256": "a5f622c8980451e3963c79865b744629567f26b1420317b6db2bd0086444c3a8",
+        "currentSha256": "d0237d36f1704dc138d99b47b6d4b49ec8c4b53b6abad206753b8d1c0eced2c2"
+      },
+      {
+        "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+        "baselineSha256": "e18f9694145f09fd26344a61dbab827ece39f5912912f48340f69fb19dfe7bdb",
+        "currentSha256": "9154ff793c9933a8ac5e4b00b974a1811cb353661c74502ac583b3604c06adb5"
+      },
+      {
+        "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+        "baselineSha256": "c9e3c99f4234f38f65bd880761896f9a60cd34375f3377b3211c06d2e4d399cd",
+        "currentSha256": "13f00d930aec3ea4cf8b8f44fb4ef60f83dc39e547b9083789745749f2167aad"
+      }
+    ],
+    "readContext": [
+      "AGENTS.md",
+      "projects/ai-proxy/AGENTS.md",
+      "projects/ai-proxy/README.zh-CN.md#15",
+      "docs/framework/testing-guide.md",
+      "projects/ai-proxy/src/App.jsx",
+      "projects/ai-proxy/src/environment.ts",
+      "projects/ai-proxy/src/service.ts",
+      "projects/ai-proxy/src/ui/navigation.ts",
+      "projects/ai-proxy/src/ui/useProxy.ts",
+      "projects/ai-proxy/src/ui/FormField.tsx",
+      "projects/ai-proxy/src/i18n/locale.ts",
+      "src/ui/react/components/ui/button.tsx",
+      "projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+      "projects/ai-proxy/tests/quick-panel-runtime.test.mjs",
+      "projects/ai-proxy/tests/form-submit.test.mjs",
+      "projects/ai-proxy/scripts/stage-preview.mjs"
+    ],
+    "allowedWrite": "projects/ai-proxy/evidence/navigation-polish-20261031/code-review.json",
+    "performedMutations": [
+      "仅创建本评审 JSON"
+    ],
+    "prohibitedActionsPerformed": [],
+    "boundary": "未提交、切分支、写源码、包、dist、浏览器或服务；未启动子 agent。采用 code-review Skill 的需求/安全/质量框架；用户明确禁止额外 agent，因此未启动其默认双 lane。此报告为用户要求的独立代码审查，不是全流程双 lane 合并批准。",
+    "unrelatedDirtyChanges": "未审理为本轮增量；版本、正式 JSON、Vite 等仍属并行 owner。"
+  },
+  "stage1": {
+    "status": "PASS_FOR_INCREMENTAL_SOURCE_SCOPE",
+    "requirements": [
+      {
+        "requirement": "Edit/Delete aria 包含域名，三语可用",
+        "status": "PASS",
+        "evidence": [
+          "projects/ai-proxy/src/Settings.tsx:651",
+          "projects/ai-proxy/src/Settings.tsx:652",
+          "projects/ai-proxy/src/i18n/locales/en.json:1005",
+          "projects/ai-proxy/src/i18n/locales/zh-CN.json:1005",
+          "projects/ai-proxy/src/i18n/locales/zh-TW.json:1005"
+        ],
+        "reason": "React 文本/属性插值，不注入 HTML；新候选中英文 AX 显示具体域名。三语 1006 键相同，新标签域名占位符均一致。"
+      },
+      {
+        "requirement": "Settings 来源摘要区分列表添加与编辑已保存规则",
+        "status": "PASS",
+        "evidence": [
+          "projects/ai-proxy/src/Settings.tsx:656"
+        ],
+        "reason": "新增来源仅为展示；编辑时展示已保存 domain；不改草稿输入或配置。中英文及繁中AX与interactions.json支持此结论。"
+      },
+      {
+        "requirement": "共同 header、help 间距与优先级 summary 焦点",
+        "status": "PASS_SOURCE_PARTIAL_VISUAL",
+        "evidence": [
+          "projects/ai-proxy/src/Settings.tsx:637",
+          "projects/ai-proxy/src/QuickPanel.tsx:351",
+          "projects/ai-proxy/src/style.css:62",
+          "projects/ai-proxy/src/style.css:64",
+          "projects/ai-proxy/src/style.css:66",
+          "projects/ai-proxy/src/styles/sidebar-settings.css:122"
+        ],
+        "reason": "复用作用域内公共 class 与既有 token；不引入依赖、Host 或权限。advanced-focus 和 quick-edit 可见布局/焦点；部分其他截图不可用于视觉结论。"
+      },
+      {
+        "requirement": "Settings 错误移入 form 并保留明确失败反馈",
+        "status": "PASS_SOURCE_AND_PROVIDED_CHROMIUM_EVIDENCE",
+        "evidence": [
+          "projects/ai-proxy/src/Settings.tsx:482",
+          "projects/ai-proxy/src/Settings.tsx:658",
+          "projects/ai-proxy/src/Settings.tsx:705"
+        ],
+        "reason": "规则编辑时只移除外层重复错误，在 form 内输出同一 error，role=alert，form 关联 aria-describedby 与 aria-busy。settings-error 截图和 AX 显示重复规则错误；没有吞错分支。"
+      },
+      {
+        "requirement": "规则 id/enabled/priority、保存不应用",
+        "status": "PASS_SOURCE_AND_TARGETED_TESTS",
+        "evidence": [
+          "projects/ai-proxy/src/Settings.tsx:325",
+          "projects/ai-proxy/src/QuickPanel.tsx:238",
+          "projects/ai-proxy/src/service.ts:329",
+          "projects/ai-proxy/tests/settings-rules-runtime.test.mjs:89"
+        ],
+        "reason": "saveRule/saveSiteRule 与备份 AST 一致。编辑保留现有 ID/enabled，Settings priority 取原草稿；SAVE_RULE 只持久化，不调用 APPLY。指定测试保留 disabled=false、priority=42，并断言只发送 SAVE_RULE；实际优先级主动编辑仍可保存。 新候选interactions与AX支持 Settings主动改优先级10→11、Quick DIRECT保存后仍未管理浏览器代理。"
+      },
+      {
+        "requirement": "draft revision、busy 导航和焦点/滚动保护",
+        "status": "PASS_SOURCE_AND_COMPONENT_TESTS_WITH_BROWSER_GAPS",
+        "evidence": [
+          "projects/ai-proxy/src/Settings.tsx:349",
+          "projects/ai-proxy/src/Settings.tsx:357",
+          "projects/ai-proxy/src/Settings.tsx:370",
+          "projects/ai-proxy/src/App.jsx:47",
+          "projects/ai-proxy/src/environment.ts:24",
+          "projects/ai-proxy/src/environment.ts:87"
+        ],
+        "reason": "38 个具名行为函数均与备份一致；revision/generation 防晚回包、busy 栏目锁与统一导航 guard 保留。Node 验证晚保存/晚取消不清新草稿、失败保留、恢复焦点及模拟 scrollTop=320。提供的 AX 显示 Settings/Quick 返回原编辑入口；本轮尚无真实 Chromium 延迟写入离页和数值化长列表滚动记录。"
+      }
+    ]
+  },
+  "rootCauseGuard": {
+    "status": "PASS",
+    "newMaskingFallbacks": 0,
+    "reason": "增量仅 JSX/ARIA/样式/翻译，无新增 try/catch、默认成功、隐藏错误或备用执行路径。现有空 catch 仅记录为基线内容；本轮没有新引入或批准其全局行为。"
+  },
+  "stage2": {
+    "status": "PARTIAL_VALIDATION",
+    "security": "未发现本轮新增 secret、console.log、raw HTML 注入、特权/API/存储/执行世界变化；用户域名用正常 React 插值。",
+    "performance": "新增的 config.rules.find 只在编辑来源摘要渲染时执行，与既有页面数组操作同量级；本轮未引入网络调用、全局监听或额外刷新。",
+    "astTool": {
+      "requested": "ast_grep_search",
+      "status": "UNAVAILABLE",
+      "alternative": "已执行本地 @babel/parser AST 扫描与 baseline/current 比较；未安装新依赖。"
+    },
+    "lspDiagnostics": {
+      "requested": "lsp_diagnostics on each modified file",
+      "status": "UNAVAILABLE_NOT_RUN",
+      "files": [
+        "projects/ai-proxy/src/QuickPanel.tsx",
+        "projects/ai-proxy/src/Settings.tsx",
+        "projects/ai-proxy/src/style.css",
+        "projects/ai-proxy/src/styles/sidebar-settings.css",
+        "projects/ai-proxy/src/i18n/locales/en.json",
+        "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+        "projects/ai-proxy/src/i18n/locales/zh-TW.json"
+      ],
+      "reason": "可调用工具中没有 lsp_diagnostics；本地 typescript、typescript-language-server、@ast-grep/napi 及对应 CLI 均不可用。未运行全 typecheck，未下载工具。esbuild/Babel/JSON 检查不能证明语义类型安全，因此不签署无条件 APPROVE。"
+    },
+    "astResults": {
+      "status": "PASS",
+      "diagnosticsKind": "Babel TSX AST + JSON consistency; NOT semantic TypeScript/LSP",
+      "ast": [
+        {
+          "file": "src/Settings.tsx",
+          "unchangedNamedBehaviorFunctions": [
+            "navigate",
+            "navigateSubscription",
+            "navigateAction",
+            "copyCurrentPageLink",
+            "closeEditor",
+            "requestCloseEditor",
+            "openEditor",
+            "handleProxyPaste",
+            "insertPacStarter",
+            "applyRoute",
+            "saveProxy",
+            "editPac",
+            "savePac",
+            "saveRule",
+            "finishRuleEditor",
+            "requestCloseRuleEditor",
+            "editRule",
+            "removeRule",
+            "loadBackupFile",
+            "importBackup",
+            "exportConfig"
+          ],
+          "changedNamedBehaviorFunctions": [],
+          "baselinePatterns": [
+            {
+              "kind": "empty-catch",
+              "line": 237
+            }
+          ],
+          "currentPatterns": [
+            {
+              "kind": "empty-catch",
+              "line": 237
+            }
+          ]
+        },
+        {
+          "file": "src/QuickPanel.tsx",
+          "unchangedNamedBehaviorFunctions": [
+            "defaultServerName",
+            "beginAdd",
+            "closeAdd",
+            "readSite",
+            "rememberView",
+            "handleProxyPaste",
+            "saveProxy",
+            "saveSiteRule",
+            "apply",
+            "focusProxyChoice",
+            "showControlReason",
+            "useProfile",
+            "useMode",
+            "openOptions",
+            "beginSiteRule",
+            "closeSiteRule",
+            "handlePrimaryAction"
+          ],
+          "changedNamedBehaviorFunctions": [],
+          "baselinePatterns": [
+            {
+              "kind": "empty-catch",
+              "line": 123
+            },
+            {
+              "kind": "empty-catch",
+              "line": 348
+            }
+          ],
+          "currentPatterns": [
+            {
+              "kind": "empty-catch",
+              "line": 123
+            },
+            {
+              "kind": "empty-catch",
+              "line": 348
+            }
+          ]
+        }
+      ],
+      "locales": [
+        {
+          "locale": "en",
+          "keyCount": 1006,
+          "newLabels": [
+            {
+              "key": "editNamedRule",
+              "value": "Edit rule for {domain}"
+            },
+            {
+              "key": "deleteNamedRule",
+              "value": "Delete rule for {domain}"
+            },
+            {
+              "key": "apRulesListSource",
+              "value": "Adding from website rules"
+            }
+          ]
+        },
+        {
+          "locale": "zh-CN",
+          "keyCount": 1006,
+          "newLabels": [
+            {
+              "key": "editNamedRule",
+              "value": "编辑 {domain} 的规则"
+            },
+            {
+              "key": "deleteNamedRule",
+              "value": "删除 {domain} 的规则"
+            },
+            {
+              "key": "apRulesListSource",
+              "value": "从网站规则列表添加"
+            }
+          ]
+        },
+        {
+          "locale": "zh-TW",
+          "keyCount": 1006,
+          "newLabels": [
+            {
+              "key": "editNamedRule",
+              "value": "編輯 {domain} 的規則"
+            },
+            {
+              "key": "deleteNamedRule",
+              "value": "刪除 {domain} 的規則"
+            },
+            {
+              "key": "apRulesListSource",
+              "value": "從網站規則列表新增"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "name": "requested targeted tests",
+      "command": "node --test projects/ai-proxy/tests/settings-rules-runtime.test.mjs projects/ai-proxy/tests/quick-panel-runtime.test.mjs projects/ai-proxy/tests/form-submit.test.mjs",
+      "exitCode": 0,
+      "result": "PASS",
+      "counts": {
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "durationMs": 217.470042,
+      "validationInputs": [
+        {
+          "path": "projects/ai-proxy/tests/settings-rules-runtime.test.mjs",
+          "sha256": "19a12c83618f7e61ec5f9029a36ce8952635868bbe734e771fe8593a07792f32"
+        },
+        {
+          "path": "projects/ai-proxy/tests/quick-panel-runtime.test.mjs",
+          "sha256": "64822b7f9734d36b02e9bc7d040dd25e175b25e234f791269e557bc12bdb0e9b"
+        },
+        {
+          "path": "projects/ai-proxy/tests/form-submit.test.mjs",
+          "sha256": "970c93a8db3bdc3ceec49381ba9492a98126fe9880f9ad913b70c3ce255b117c"
+        }
+      ],
+      "coverage": "12 Settings runtime cases + 2 QuickPanel pending-direct rendering cases + 1 actual Shared Button submit audit. Settings uses simulated hooks/DOM; QuickPanel cases do not execute quick editor save/cancel. These are component checks, not native navigation proof."
+    },
+    {
+      "name": "first IIFE/CSS attempt including input binding",
+      "command": "node --input-type=module <<'JS'\nimport {build} from 'esbuild';\nimport {resolve,relative} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {readFileSync} from 'node:fs';\nconst hash=bytes=>createHash('sha256').update(bytes).digest('hex');\nconst captured=new Map();\nconst result=await build({\n  absWorkingDir:process.cwd(),entryPoints:['projects/ai-proxy/src/main.jsx'],\n  bundle:true,write:false,platform:'browser',format:'iife',target:'es2022',jsx:'automatic',\n  alias:{'@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')},\n  loader:{'.dat':'text'},define:{'process.env.NODE_ENV':JSON.stringify('production')},\n  outdir:'__memory_only_ai_proxy_review__',metafile:true,\n  plugins:[{name:'read-only-input-binding',setup(b){\n    b.onLoad({filter:/\\.(?:[cm]?[jt]sx?|css|json|dat)$/},args=>{\n      const contents=readFileSync(args.path);captured.set(args.path,hash(contents));\n      let ext=args.path.split('.').at(-1);\n      const loader=ext==='dat'?'text':ext==='mjs'||ext==='cjs'?'js':ext;\n      return {contents,loader};\n    });\n  }}]\n});\nconst inputs=Object.keys(result.metafile.inputs).map(path=>({path,sha256:captured.get(resolve(path))??hash(readFileSync(path))}));\nconst drift=inputs.filter(item=>hash(readFileSync(item.path))!==item.sha256).map(item=>item.path);\nconst outputs=result.outputFiles.map(file=>({path:relative(process.cwd(),file.path),bytes:file.contents.length,sha256:hash(file.contents)}));\nif(drift.length||!outputs.some(f=>f.path.endsWith('.js'))||!outputs.some(f=>f.path.endsWith('.css')))throw Error('Invalid build proof '+JSON.stringify({drift,outputs}));\nconsole.log(JSON.stringify({status:'PASS',esbuildWrite:false,format:'iife',loader:{'.dat':'text'},alias:{'@opendesk/ui':'src/ui/react/components/ui/button.tsx'},warnings:result.warnings,outputs,inputCount:inputs.length,inputs,drift},null,2));\nJS",
+      "exitCode": 1,
+      "result": "HARNESS_FAILURE_AFTER_BUILD",
+      "error": "ENOENT opening public_suffix_list.dat?raw during the reviewer-added input hash enumeration; the esbuild call itself returned. No dist or output was written.",
+      "classification": "评审脚本路径处理错误；修正为按 ? 拆分 metafile 输入路径后重跑，不修改产品源码。"
+    },
+    {
+      "name": "real main.jsx IIFE/CSS build, write:false",
+      "command": "node --input-type=module <<'JS'\nimport {build} from 'esbuild';\nimport {resolve,relative} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {readFileSync} from 'node:fs';\nconst hash=bytes=>createHash('sha256').update(bytes).digest('hex');\nconst captured=new Map();\nconst result=await build({\n  absWorkingDir:process.cwd(),entryPoints:['projects/ai-proxy/src/main.jsx'],\n  bundle:true,write:false,platform:'browser',format:'iife',target:'es2022',jsx:'automatic',\n  alias:{'@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')},\n  loader:{'.dat':'text'},define:{'process.env.NODE_ENV':JSON.stringify('production')},\n  outdir:'__memory_only_ai_proxy_review__',metafile:true,\n  plugins:[{name:'read-only-input-binding',setup(b){\n    b.onLoad({filter:/\\.(?:[cm]?[jt]sx?|css|json|dat)$/},args=>{\n      const contents=readFileSync(args.path);captured.set(args.path,hash(contents));\n      let ext=args.path.split('.').at(-1);\n      const loader=ext==='dat'?'text':ext==='mjs'||ext==='cjs'?'js':ext;\n      return {contents,loader};\n    });\n  }}]\n});\nconst inputs=Object.keys(result.metafile.inputs).map(path=>{const filePath=path.split('?')[0];return {path:filePath,metafilePath:path,sha256:captured.get(resolve(filePath))??hash(readFileSync(filePath))};});\nconst drift=inputs.filter(item=>hash(readFileSync(item.path))!==item.sha256).map(item=>item.path);\nconst outputs=result.outputFiles.map(file=>({path:relative(process.cwd(),file.path),bytes:file.contents.length,sha256:hash(file.contents)}));\nif(drift.length||!outputs.some(f=>f.path.endsWith('.js'))||!outputs.some(f=>f.path.endsWith('.css')))throw Error('Invalid build proof '+JSON.stringify({drift,outputs}));\nconsole.log(JSON.stringify({status:'PASS',esbuildWrite:false,format:'iife',loader:{'.dat':'text'},alias:{'@opendesk/ui':'src/ui/react/components/ui/button.tsx'},warnings:result.warnings,outputs,inputCount:inputs.length,inputs,drift},null,2));\nJS",
+      "exitCode": 0,
+      "result": "PASS",
+      "proof": {
+        "status": "PASS",
+        "esbuildWrite": false,
+        "format": "iife",
+        "loader": {
+          ".dat": "text"
+        },
+        "alias": {
+          "@opendesk/ui": "src/ui/react/components/ui/button.tsx"
+        },
+        "warnings": [],
+        "outputs": [
+          {
+            "path": "__memory_only_ai_proxy_review__/main.js",
+            "bytes": 1702792,
+            "sha256": "9b29fe3696f332d2fccba2af83bdee107f8112d017d600b56b67e3d057812a73"
+          },
+          {
+            "path": "__memory_only_ai_proxy_review__/main.css",
+            "bytes": 143549,
+            "sha256": "4efc8324329dd4ab5e748d40ceac5fe55e3ab8d825487e49f148fd830f6cb263"
+          }
+        ],
+        "inputCount": 64,
+        "inputs": [
+          {
+            "path": "node_modules/react/cjs/react.production.js",
+            "metafilePath": "node_modules/react/cjs/react.production.js",
+            "sha256": "ae0aae9b31dcccfc8b194dc6ab1cc9cc4525e25b887d10cc22ae4f8fbd2482cc"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "metafilePath": "node_modules/react/index.js",
+            "sha256": "60caffdecbdc5db3bc4ec4e83df9488345ccb271d07533b9210bf5750918d97e"
+          },
+          {
+            "path": "node_modules/scheduler/cjs/scheduler.production.js",
+            "metafilePath": "node_modules/scheduler/cjs/scheduler.production.js",
+            "sha256": "679adff761d31e9426604f80c0e99be44a3e6f4c6834b0218ecf0312a67c171f"
+          },
+          {
+            "path": "node_modules/scheduler/index.js",
+            "metafilePath": "node_modules/scheduler/index.js",
+            "sha256": "145965504d60007bc25486ab930b0367867dcd5d579ccd343c148d69349a7cfb"
+          },
+          {
+            "path": "node_modules/react-dom/cjs/react-dom.production.js",
+            "metafilePath": "node_modules/react-dom/cjs/react-dom.production.js",
+            "sha256": "42795132f241ebdede96f4a154b6dbac95ff73ed3bb90e86b39ffa28da02392a"
+          },
+          {
+            "path": "node_modules/react-dom/index.js",
+            "metafilePath": "node_modules/react-dom/index.js",
+            "sha256": "ba1a3e33489f868371561777607e3ee5091df0f7ea3f1a10f789d6b86e4c1505"
+          },
+          {
+            "path": "node_modules/react-dom/cjs/react-dom-client.production.js",
+            "metafilePath": "node_modules/react-dom/cjs/react-dom-client.production.js",
+            "sha256": "c59e90f48ba6343343d378d9976b774be6af15a555ecf4ecf3810f62c4381997"
+          },
+          {
+            "path": "node_modules/react-dom/client.js",
+            "metafilePath": "node_modules/react-dom/client.js",
+            "sha256": "00e348ab3d6bc2eef908345d0bc4e008c95bcfecec060dfda5c4967953761396"
+          },
+          {
+            "path": "node_modules/react/cjs/react-jsx-runtime.production.js",
+            "metafilePath": "node_modules/react/cjs/react-jsx-runtime.production.js",
+            "sha256": "1e46f15002696985e80c61d47aaa30dabb03c954270a690f5f7dfbbacfa9002b"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "metafilePath": "node_modules/react/jsx-runtime.js",
+            "sha256": "b392951a77d0a2e6a6bd017e49d768481ae5b63c4109c6c31f622cf7b2433edc"
+          },
+          {
+            "path": "src/ui/react/components/ui/button.tsx",
+            "metafilePath": "src/ui/react/components/ui/button.tsx",
+            "sha256": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"
+          },
+          {
+            "path": "projects/ai-proxy/src/domain/config.ts",
+            "metafilePath": "projects/ai-proxy/src/domain/config.ts",
+            "sha256": "08e7444030368b49813e16034c24c38ecce491d2abbcff6e0a796fb48f36ec57"
+          },
+          {
+            "path": "projects/ai-proxy/src/domain/error-codes.ts",
+            "metafilePath": "projects/ai-proxy/src/domain/error-codes.ts",
+            "sha256": "8f3178d8dd470db0263443d2445a7479ac24b44c5134e1d2ba94a0306a38dad5"
+          },
+          {
+            "path": "projects/ai-proxy/src/diagnostics/catalog.ts",
+            "metafilePath": "projects/ai-proxy/src/diagnostics/catalog.ts",
+            "sha256": "78aa426aa44ebcc9028eb8181b520fa35b78956e9ff26a5d14d4c2c8158959d5"
+          },
+          {
+            "path": "projects/ai-proxy/src/diagnostics/favorites.ts",
+            "metafilePath": "projects/ai-proxy/src/diagnostics/favorites.ts",
+            "sha256": "7da1cd14c37642d2651b55857a529091371049274127b1955af4dc5a29aa0181"
+          },
+          {
+            "path": "projects/ai-proxy/src/service.ts",
+            "metafilePath": "projects/ai-proxy/src/service.ts",
+            "sha256": "9b29f1c8085ec00e8dd809d4e968b7339ef0353fce2083a6e226574907d4aac7"
+          },
+          {
+            "path": "projects/ai-proxy/src/model.js",
+            "metafilePath": "projects/ai-proxy/src/model.js",
+            "sha256": "046450ca4ee46f10d355f33056e51b2cead0f2f0cfc486fc15c9941007e74d9a"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/optionsRoute.ts",
+            "metafilePath": "projects/ai-proxy/src/ui/optionsRoute.ts",
+            "sha256": "056db0bc89c293784d8cb610026e2fb103f8d21c0188fc0bbc8101ca6831ea22"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/navigation.ts",
+            "metafilePath": "projects/ai-proxy/src/ui/navigation.ts",
+            "sha256": "5cb6d19292dfde052a733050a5cf76bc62808a34a1821cbdf419918da7df6c1f"
+          },
+          {
+            "path": "projects/ai-proxy/src/environment.ts",
+            "metafilePath": "projects/ai-proxy/src/environment.ts",
+            "sha256": "fbd44e397f2a6110a49794334da06e9cb400761577b9d66335bf58b98b90e862"
+          },
+          {
+            "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+            "metafilePath": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+            "sha256": "9154ff793c9933a8ac5e4b00b974a1811cb353661c74502ac583b3604c06adb5"
+          },
+          {
+            "path": "projects/ai-proxy/src/i18n/locales/en.json",
+            "metafilePath": "projects/ai-proxy/src/i18n/locales/en.json",
+            "sha256": "d0237d36f1704dc138d99b47b6d4b49ec8c4b53b6abad206753b8d1c0eced2c2"
+          },
+          {
+            "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+            "metafilePath": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+            "sha256": "13f00d930aec3ea4cf8b8f44fb4ef60f83dc39e547b9083789745749f2167aad"
+          },
+          {
+            "path": "projects/ai-proxy/src/i18n/locale.ts",
+            "metafilePath": "projects/ai-proxy/src/i18n/locale.ts",
+            "sha256": "ba7a82f053ca0fcc16a2a40a57373b02632aeeb77dc311783764f944b459b33a"
+          },
+          {
+            "path": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+            "metafilePath": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+            "sha256": "7c4d2fe6458d324808591b8fae94f633730ac794a375789792db795dcb37b19c"
+          },
+          {
+            "path": "projects/ai-proxy/src/i18n/errors.ts",
+            "metafilePath": "projects/ai-proxy/src/i18n/errors.ts",
+            "sha256": "cb81f288d356e17e0fa066c0d7eabbc6115384375176ad7110beaf3e1dd79129"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/useProxy.ts",
+            "metafilePath": "projects/ai-proxy/src/ui/useProxy.ts",
+            "sha256": "6b6762878462e6777a26871a5d5d34e7bf4f9b16837000a7e88bce1840418722"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/Status.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/Status.tsx",
+            "sha256": "d214c47d17c2f28614651818130841f91877bb5953030213975fdaa20ea5b661"
+          },
+          {
+            "path": "projects/ai-proxy/src/domain/proxy-entry.ts",
+            "metafilePath": "projects/ai-proxy/src/domain/proxy-entry.ts",
+            "sha256": "57cb800a24181f21e5134e32b8c2b9f5449ef0dc5fef1cbf861b8c613d3c7d01"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+            "sha256": "7cd8f7ed1f26278954a92449e935fc902a57ced83c6bfb5611f19f28df3eff1c"
+          },
+          {
+            "path": "projects/ai-proxy/src/config/product-links.defaults.json",
+            "metafilePath": "projects/ai-proxy/src/config/product-links.defaults.json",
+            "sha256": "50c42f8e41d1f6a63dbc343b6ab44b4d6a565604bf30280861fd4cbc92e29209"
+          },
+          {
+            "path": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+            "metafilePath": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+            "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+          },
+          {
+            "path": "projects/ai-proxy/src/config/public-config.ts",
+            "metafilePath": "projects/ai-proxy/src/config/public-config.ts",
+            "sha256": "2e6546c1fc3216c49d9a7c51be60a7f48c55d45994738ace373a9cd4e285d1af"
+          },
+          {
+            "path": "projects/ai-proxy/src/config/product-links.demo.json",
+            "metafilePath": "projects/ai-proxy/src/config/product-links.demo.json",
+            "sha256": "d73fea332b227b5c91df255b328d1d2557794981f630597a4e865b4b143633db"
+          },
+          {
+            "path": "projects/ai-proxy/src/config/remote-config.ts",
+            "metafilePath": "projects/ai-proxy/src/config/remote-config.ts",
+            "sha256": "839098b31d54b1eebfabb264815179424e308174979819a77d4d21074107e7c6"
+          },
+          {
+            "path": "projects/ai-proxy/src/collector/rotation-plan.ts",
+            "metafilePath": "projects/ai-proxy/src/collector/rotation-plan.ts",
+            "sha256": "079002d5a572606ece201bf64267ebe0c78daf3a6d672afc0d1d291885316b81"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+            "sha256": "0abdd7d3da788d41b09c7454293365d7001728f0b13f86c7ec56984f714a69b9"
+          },
+          {
+            "path": "projects/ai-proxy/src/QuickPanel.tsx",
+            "metafilePath": "projects/ai-proxy/src/QuickPanel.tsx",
+            "sha256": "11f9ab7dda6fba9962da7c65e27f91e74092b96ef97e848fc49953e23e259670"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+            "sha256": "658aa9b314222826a79757c19383a5e6f31817361c4171aa5c432a5ede3aef3f"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/FormField.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/FormField.tsx",
+            "sha256": "9c7a0a73aa02748cadd3f47026c3b81b358b70fd7db5827021cf2715f225c474"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/backupImport.ts",
+            "metafilePath": "projects/ai-proxy/src/ui/backupImport.ts",
+            "sha256": "a9b042600aaf53afeab35e6a6d86ab30d8bf979630fcd84ae51c4fded8ce8170"
+          },
+          {
+            "path": "projects/ai-proxy/src/subscription/download.ts",
+            "metafilePath": "projects/ai-proxy/src/subscription/download.ts",
+            "sha256": "88278e49c0887da8c97eef81a46e3c530d784c2cad96aaab2ae1e6319797fb8f"
+          },
+          {
+            "path": "projects/ai-proxy/src/official/messages.ts",
+            "metafilePath": "projects/ai-proxy/src/official/messages.ts",
+            "sha256": "5d4adb69a39831b3a7493012cf3ce307209fefaeb63626683e58d5046ae8df9d"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+            "sha256": "addf73618c201e863c4e4d601fa41ca5f3251d213138df63da38b37830eb5965"
+          },
+          {
+            "path": "projects/ai-proxy/src/subscription/parser.ts",
+            "metafilePath": "projects/ai-proxy/src/subscription/parser.ts",
+            "sha256": "ff6644a44fc63f5633b1d173351841f432483147bff5502ecec99e15f1ff383d"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+            "sha256": "92fc368ac9e0ecd7bb0e517fa3a503eb486030ac5426d2e5ddb7b7ad55ff4fbf"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+            "sha256": "9a590c1f2a770eafd66e4340a614068c33ac51b4243b09ba33a8ecf8504d26b6"
+          },
+          {
+            "path": "projects/ai-proxy/src/domain/messages.ts",
+            "metafilePath": "projects/ai-proxy/src/domain/messages.ts",
+            "sha256": "e002be1dce69f8e10f208d197aa2fcec0ed9cba2c6bf63e3d932d6b6409669b9"
+          },
+          {
+            "path": "projects/ai-proxy/src/diagnostics/logic.ts",
+            "metafilePath": "projects/ai-proxy/src/diagnostics/logic.ts",
+            "sha256": "c1decf7dcc0e3c45d289f1b8785a116a4d3e3f323b2e4461f7827e20be4fa3e0"
+          },
+          {
+            "path": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat",
+            "metafilePath": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat?raw",
+            "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612"
+          },
+          {
+            "path": "projects/ai-proxy/src/usage/domain.ts",
+            "metafilePath": "projects/ai-proxy/src/usage/domain.ts",
+            "sha256": "5a06abf0ad7129807f1a31f0a9894b5d244dc6418424ef0b583a61f3296bde52"
+          },
+          {
+            "path": "projects/ai-proxy/src/usage/ranking.ts",
+            "metafilePath": "projects/ai-proxy/src/usage/ranking.ts",
+            "sha256": "63315bbc4aa6ba157a778450a398bc9a338475efe041bc150ee59662b4215b70"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/UsageControls.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/UsageControls.tsx",
+            "sha256": "bc3d5ae64a0d03d66ed58186891e8b2fa6ba9bc2904a139178d5b0c11c9fb298"
+          },
+          {
+            "path": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+            "metafilePath": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+            "sha256": "a4aa3b6c8df72d096400cc45371f484ecb87953c196d77dc64bd6add0d36c7a3"
+          },
+          {
+            "path": "projects/ai-proxy/src/domain/pac-starters.ts",
+            "metafilePath": "projects/ai-proxy/src/domain/pac-starters.ts",
+            "sha256": "23754201be04683871878c31b5edf6d2112e463b44748959b5a00566f7ff159e"
+          },
+          {
+            "path": "projects/ai-proxy/src/Settings.tsx",
+            "metafilePath": "projects/ai-proxy/src/Settings.tsx",
+            "sha256": "e91b3244c4f8201a59ecae480d1ae757d73c743ccbe99d37205e596258c40ccb"
+          },
+          {
+            "path": "projects/ai-proxy/src/App.jsx",
+            "metafilePath": "projects/ai-proxy/src/App.jsx",
+            "sha256": "95bc282f46896c50d8e58e0432d89b7be342623fc579438c5c06c4aa84f0725d"
+          },
+          {
+            "path": "projects/ai-proxy/src/styles/style.css",
+            "metafilePath": "projects/ai-proxy/src/styles/style.css",
+            "sha256": "fc32dd83acf44e16f3a992b56b3cbc9165c47ab918987374b8faf1da88de4171"
+          },
+          {
+            "path": "projects/ai-proxy/src/styles/options.css",
+            "metafilePath": "projects/ai-proxy/src/styles/options.css",
+            "sha256": "ea42376ecfa688b53ea7bcf8204b5612063af8dec60e3783df5f2c3a98600804"
+          },
+          {
+            "path": "projects/ai-proxy/src/styles/sidepanel-r86.css",
+            "metafilePath": "projects/ai-proxy/src/styles/sidepanel-r86.css",
+            "sha256": "ee93fb0cc39bf6bcb342fe8d82e8844c21d497640fb8b8d6c1c618d2ca12f0e5"
+          },
+          {
+            "path": "projects/ai-proxy/src/styles/rotation-entry.css",
+            "metafilePath": "projects/ai-proxy/src/styles/rotation-entry.css",
+            "sha256": "709a31d6ab7df0ffd9f365dbbab52173c8302fe05ce5006b5d7365517b52afe5"
+          },
+          {
+            "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+            "metafilePath": "projects/ai-proxy/src/styles/sidebar-settings.css",
+            "sha256": "7f65ade974d56c7d8af9b28d25f3c6d0d49dc97f74313819959e364d9da0224a"
+          },
+          {
+            "path": "projects/ai-proxy/src/style.css",
+            "metafilePath": "projects/ai-proxy/src/style.css",
+            "sha256": "64dcee27e847766708faf43d064cefc252f47f2203f82a3b92106f13d5e2dc72"
+          },
+          {
+            "path": "projects/ai-proxy/src/main.jsx",
+            "metafilePath": "projects/ai-proxy/src/main.jsx",
+            "sha256": "09fa1358fb26b5b3c38534c480924c0ba0a55cf96f8ba11493eee4440e39f65a"
+          }
+        ],
+        "drift": []
+      },
+      "note": "outdir is only an in-memory output name; write:false. Includes real canonical Button alias and .dat text loader. This is neither Vite release output nor install/package-size validation."
+    },
+    {
+      "name": "TSX behavior AST and translation diagnostics",
+      "command": "node --input-type=module <<'JS'\nimport {readFileSync,readdirSync} from 'node:fs';\nimport {createHash} from 'node:crypto';\nimport {parse} from '@babel/parser';\nconst sha=b=>createHash('sha256').update(b).digest('hex');\nconst root='projects/ai-proxy',base='/tmp/ai-proxy-navigation-polish-before';\nconst ignored=new Set(['start','end','loc','extra','comments','leadingComments','trailingComments','innerComments']);\nconst normalized=x=>Array.isArray(x)?x.map(normalized):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).filter(([k])=>!ignored.has(k)).map(([k,v])=>[k,normalized(v)])):x;\nconst walk=(x,fn)=>{if(!x||typeof x!=='object')return;fn(x);for(const [k,v]of Object.entries(x)){if(ignored.has(k))continue;if(Array.isArray(v))v.forEach(n=>walk(n,fn));else if(v&&typeof v==='object')walk(v,fn);}};\nconst parseFile=p=>parse(readFileSync(p,'utf8'),{sourceType:'module',plugins:['jsx','typescript']});\nconst reports=[];\nfor(const file of ['Settings.tsx','QuickPanel.tsx']){\n const after=parseFile(root+'/src/'+file),before=parseFile(base+'/src/'+file);\n const functions=tree=>{const m=new Map();walk(tree,n=>{if(n.type==='FunctionDeclaration'&&n.id&&n.id.name!=='App'&&n.id.name!=='SideIcon')m.set(n.id.name,JSON.stringify(normalized(n)));});return m;};\n const old=functions(before),now=functions(after);\n const changed=[...new Set([...old.keys(),...now.keys()])].filter(n=>old.get(n)!==now.get(n));\n const patterns=tree=>{const rows=[];walk(tree,n=>{\n  if(n.type==='CallExpression'&&n.callee?.object?.name==='console'&&n.callee?.property?.name==='log')rows.push({kind:'console.log',line:n.loc.start.line});\n  if(n.type==='CatchClause'&&n.body.body.length===0)rows.push({kind:'empty-catch',line:n.loc.start.line});\n  if(n.type==='VariableDeclarator'&&/^(api_?key|secret|access_?token|password)$/i.test(n.id?.name??'')&&n.init?.type==='StringLiteral'&&n.init.value)rows.push({kind:'hardcoded-secret-candidate',line:n.loc.start.line});\n  if(n.type==='JSXAttribute'&&n.name?.name==='dangerouslySetInnerHTML')rows.push({kind:'raw-html',line:n.loc.start.line});\n });return rows;};\n reports.push({file:'src/'+file,unchangedNamedBehaviorFunctions:[...now.keys()].filter(n=>old.has(n)&&old.get(n)===now.get(n)),changedNamedBehaviorFunctions:changed,baselinePatterns:patterns(before),currentPatterns:patterns(after)});\n if(changed.length)throw Error('Unexpected handler change');\n}\nconst locales=['en','zh-CN','zh-TW'].map(locale=>({locale,catalog:JSON.parse(readFileSync(root+'/src/i18n/locales/'+locale+'.json','utf8'))}));\nconst keys=Object.keys(locales[0].catalog).sort();\nfor(const {locale,catalog}of locales){\n if(JSON.stringify(Object.keys(catalog).sort())!==JSON.stringify(keys))throw Error('Locale key mismatch '+locale);\n for(const k of ['editNamedRule','deleteNamedRule'])if((catalog[k].match(/\\{domain\\}/g)||[]).length!==1)throw Error('Placeholder mismatch '+locale);\n}\nconsole.log(JSON.stringify({status:'PASS',diagnosticsKind:'Babel TSX AST + JSON consistency; NOT semantic TypeScript/LSP',ast:reports,locales:locales.map(({locale,catalog})=>({locale,keyCount:Object.keys(catalog).length,newLabels:['editNamedRule','deleteNamedRule','apRulesListSource'].map(key=>({key,value:catalog[key]}))}))},null,2));\nJS",
+      "exitCode": 0,
+      "result": "PASS",
+      "namedBehaviorFunctionsCompared": 38,
+      "changedNamedBehaviorFunctions": 0,
+      "localeKeyCount": 1006
+    },
+    {
+      "name": "candidate and evidence identity check",
+      "command": "node --input-type=module <<'JS'\nimport {readFileSync,readdirSync} from 'node:fs';\nimport {createHash} from 'node:crypto';\nimport {join,relative} from 'node:path';\nconst sha=b=>createHash('sha256').update(b).digest('hex');\nconst candidate='projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f';\nconst manifest=JSON.parse(readFileSync(candidate+'/manifest.json','utf8'));\nconst html=sha(readFileSync(candidate+'/preview.html'));\nconst ui=sha(JSON.stringify(manifest.sources).replaceAll('<','\\\\u003c'));\nconst drift=Object.entries(manifest.sources).filter(([p,r])=>sha(readFileSync(p))!==r.sha256).map(([p])=>p);\nconst base='/tmp/ai-proxy-navigation-polish-before';\nconst deltas=readdirSync(base,{recursive:true,withFileTypes:true}).filter(d=>d.isFile()).map(d=>{\n const p=join(d.parentPath,d.name),rel=relative(base,p),current='projects/ai-proxy/'+rel;\n return {path:current,baselineSha256:sha(readFileSync(p)),currentSha256:sha(readFileSync(current))};\n});\nconst evidenceDir='projects/ai-proxy/evidence/navigation-polish-20261031';\nconst evidence=readdirSync(evidenceDir).filter(n=>n.endsWith('.png')||n.endsWith('.txt')||n.endsWith('.json')).map(n=>{const p=join(evidenceDir,n),b=readFileSync(p);return {path:p,bytes:b.length,sha256:sha(b)};});\nconst tests=['settings-rules-runtime.test.mjs','quick-panel-runtime.test.mjs','form-submit.test.mjs'].map(n=>{const p='projects/ai-proxy/tests/'+n;return {path:p,sha256:sha(readFileSync(p))};});\nconst checks={htmlMatchesExpected:html==='b8a0330274fe5e9efe4b01f4dbc608a4872c338cea0c7d12d6fa61a417e202b5',uiMatchesExpected:ui==='fad1f8b7e71aac7761c0c0ac741e52aee212f84e3b4c6872e7c2c008e85e11bd',sourcesMatchCurrent:drift.length===0};\nconsole.log(JSON.stringify({candidate,commit:manifest.commit,htmlSha256:html,uiSha256:ui,sourceCount:Object.keys(manifest.sources).length,checks,drift,deltas,evidence,tests},null,2));\nif(Object.values(checks).some(x=>!x))process.exitCode=1;\nJS",
+      "exitCode": 0,
+      "result": "PASS",
+      "checks": {
+        "htmlMatchesExpected": true,
+        "uiMatchesExpected": true,
+        "sourcesMatchCurrent": true
+      },
+      "drift": [],
+      "evidence": [
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.ax.txt",
+          "bytes": 5151,
+          "sha256": "281e46391ca126b266244dae55e7660b48e4bf70350d72d24d6f2919d030c6d6"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.png",
+          "bytes": 74599,
+          "sha256": "9814c353e5f950c4d1e9cc8a282a12b41115888875bfb8c83d5424cc259f016d"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json",
+          "bytes": 2144,
+          "sha256": "c7f5b5481afe8ec73a2596efcd8967dca848d85924f3e9b88992e68534613ed7"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-cancel-return.ax.txt",
+          "bytes": 5443,
+          "sha256": "6092cddf79bf886b477844ae9bf7eb383d04f858c9c02ee9e36859f8761ac77f"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-cancel-return.png",
+          "bytes": 39774,
+          "sha256": "78b2b0d4d4d411261fedc1ff30ac40b4bdfd28ca272eef743a46988f3859548c"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-edit.ax.txt",
+          "bytes": 4176,
+          "sha256": "ea1bd93398fb53f10dba043ce230a04e52607d57c4e80d52a1cde5d19f7b8489"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-edit.png",
+          "bytes": 69285,
+          "sha256": "f65a5ebbf2a53f9a45f39794ac3192e3d5e38ff84b19e753d276d42c240ddb63"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-retain.ax.txt",
+          "bytes": 4204,
+          "sha256": "bebb00e1914d2b64cb38d7ec8a96b3f9bf0ec5210ec130e72fc8810f53c94784"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-retain.png",
+          "bytes": 68129,
+          "sha256": "c30f798d99b4a1419ad223452412c27f92769c0b1a4b3d088af136cfa6c4ac5d"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-save-return.ax.txt",
+          "bytes": 5550,
+          "sha256": "79d24e4759281c0907e25c0baebf0d7b12b7ec8f8dc159d40b99e160c35a7782"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-save-return.png",
+          "bytes": 73135,
+          "sha256": "8a182069f47f4c4974226a189216c683b773ca68b5f390c5b3b3ffd9054ec245"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules-en.ax.txt",
+          "bytes": 5047,
+          "sha256": "5d2293dc3a48099981ff1339afff372c45e2c1599618e23ac7514a846f907985"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules-en.png",
+          "bytes": 39828,
+          "sha256": "35fa345b8d5b88a998c5afda933f0e7f88fb8bdec110ff66dbbd769d9dfe6929"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules-zh-TW.ax.txt",
+          "bytes": 4986,
+          "sha256": "f85e6219ac4f2bc06ba3d76c6fba70e2360f0b593487c9ee20b02815fe975d4a"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules-zh-TW.png",
+          "bytes": 69163,
+          "sha256": "14edc58391341accb45a3a5e9e80396651d4344da0ceb03b1d8133639817b0eb"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules.ax.txt",
+          "bytes": 4967,
+          "sha256": "84330d15b9deb2595c53d63cb4216baf87ebe17bf76adef798ac4a0ae677443d"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules.png",
+          "bytes": 39828,
+          "sha256": "35fa345b8d5b88a998c5afda933f0e7f88fb8bdec110ff66dbbd769d9dfe6929"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-en.ax.txt",
+          "bytes": 4813,
+          "sha256": "1933766a55b4ade5e04482942ee779772da413c6254586e02510ed5d2e2e43be"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-en.png",
+          "bytes": 43743,
+          "sha256": "4f8d25065f4981fdd7e4573296d434604f55dc4a35040f6bda10de0ef9087fdd"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-zh-TW.ax.txt",
+          "bytes": 4749,
+          "sha256": "31709780ec4bc559b6b12e60e4f59c304d14af7ac7c029ffa6cc4c557a12d536"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-zh-TW.png",
+          "bytes": 44842,
+          "sha256": "e12fd91b8ccf21dec030c18ac602dfaf5cf8594591b9b7967d06002ca1f2440b"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-cancel-return.ax.txt",
+          "bytes": 4993,
+          "sha256": "a5a93e6af3e18db881fec8e6250ff68be1f149a2a2d2ff3af7556418a0429938"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-cancel-return.png",
+          "bytes": 39822,
+          "sha256": "2a4b24226c8c7c625d63faccbdd2c839301d33712a996960130aa445fea3b27c"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-edit.ax.txt",
+          "bytes": 5068,
+          "sha256": "d9fcc13567006be2ede80a0ab3f02acde42126d39bbdd7ef863733281b0bccc8"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-edit.png",
+          "bytes": 39774,
+          "sha256": "78b2b0d4d4d411261fedc1ff30ac40b4bdfd28ca272eef743a46988f3859548c"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-error.ax.txt",
+          "bytes": 5366,
+          "sha256": "1c54e590513f017c292dc49928d8494c342cc446fe3247da996046fec24fa267"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-error.png",
+          "bytes": 72502,
+          "sha256": "99743475761479e4d009e1547b1c6e7c0fb7c1843a076ba040dc966f60409dcb"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-save-return.ax.txt",
+          "bytes": 5099,
+          "sha256": "cc05bd3cb8da717d56ed5146df1c2ceeb6b23dd57f1f2670fb343097dcc34654"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-save-return.png",
+          "bytes": 70116,
+          "sha256": "12d0cd4f205ddfe8511df5da7f63808bc167ae842c3ab9c30a97c73cd882ac4a"
+        },
+        {
+          "path": "projects/ai-proxy/evidence/navigation-polish-20261031/source-check.json",
+          "bytes": 808,
+          "sha256": "e78408c729e363358457402113e1b86ba7d1cd44c9ea1a64a81d85f5150fb1ed"
+        }
+      ]
+    },
+    {
+      "name": "final compile input drift readback",
+      "commandDescription": "Read every path in checks[2].proof.inputs, recompute SHA-256, compare with the hash captured during esbuild onLoad; no writes.",
+      "exitCode": 0,
+      "result": "PASS",
+      "inputCount": 64,
+      "drift": []
+    }
+  ],
+  "candidate": {
+    "path": "projects/ai-proxy/.opendesk-preview/source-68e774ea-ebdd-48e3-acfc-7a7de011267f",
+    "htmlSha256": "b8a0330274fe5e9efe4b01f4dbc608a4872c338cea0c7d12d6fa61a417e202b5",
+    "uiSha256": "fad1f8b7e71aac7761c0c0ac741e52aee212f84e3b4c6872e7c2c008e85e11bd",
+    "sourceCount": 64,
+    "sourceDrift": [],
+    "mode": "same-source Chromium development preview; memory simulation",
+    "evidenceReviewMethod": "本 reviewer 只读现有 AX/PNG 与 manifest，没有操作浏览器；这些是 owner 提供的同候选证据，不冒称 reviewer 原生独立执行。",
+    "inspectedImages": [
+      "rules.png",
+      "settings-edit.png",
+      "advanced-focus.png",
+      "settings-error.png",
+      "settings-save-return.png",
+      "quick-edit.png",
+      "rules-en.png",
+      "settings-add-en.png",
+      "quick-save-return.png",
+      "rules-zh-TW.png",
+      "settings-add-zh-TW.png",
+      "settings-cancel-return.png",
+      "quick-cancel-return.png"
+    ],
+    "positiveEvidence": [
+      "rules.ax.txt/rules-en.ax.txt: 中英文 Edit/Delete 可访问名称含域名",
+      "settings-edit.ax.txt: 来源摘要与初始域名输入焦点",
+      "advanced-focus.ax.txt/advanced-focus.png: 优先级 summary 获焦及可见焦点框",
+      "settings-error.ax.txt/settings-error.png: 重复规则错误在表单中可见",
+      "settings-save-return.ax.txt/settings-save-return.png: 保存反馈、列表、原记录编辑焦点",
+      "settings-cancel-return.ax.txt: 取消返回原编辑记录",
+      "quick-edit.ax.txt/quick-edit.png: 共同标题样式、来源与域名输入焦点",
+      "quick-retain.ax.txt: 输入保留；quick-cancel-return.ax.txt/quick-save-return.ax.txt: 返回命中规则编辑入口",
+      "settings-add-en.ax.txt: 英文添加来源摘要；rules-en.ax.txt: 英文域名 aria",
+      "interactions.json: 10项本候选操作记录，包括草稿保留、重复规则、Settings优先级10→11、Quick DIRECT save与三语文案；与对应AX/有效截图交叉核对。",
+      "rules-zh-TW.ax.txt/rules-zh-TW.png: 繁中域名标签；settings-add-zh-TW.ax.txt: 從網站規則列表新增与初始输入焦点。"
+    ],
+    "limitations": [
+      "本 reviewer 查看 rules.png、settings-edit.png、rules-en.png、settings-cancel-return.png、quick-cancel-return.png 时业务 iframe 区域为空白，尽管对应AX存在正常控件/焦点；不作为这些视图的视觉PASS。",
+      "settings-add-en.png 与 settings-add-zh-TW.png 显示业务内容异常压缩/裁切，而相应AX正常。无法从只读证据区分截图/合成错误与可见渲染故障，不直接归因源码；新候选的这两份添加表单视觉证据仍不足。",
+      "settings-save-return.png、quick-edit.png、quick-save-return.png、rules-zh-TW.png 等正常截图支持部分布局/反馈，不能替代所有异常截图。",
+      "interactions.json 与三语AX补齐当前主要操作叙述，但没有本轮受控延迟保存时跨业务Tabs/框架返回的拒绝日志，也没有真实长列表scrollTop前后数值；README旧候选164.5→164.5及旧分数未继承。",
+      "屏幕阅读器真实播报未实测；当前 reviewer 没有操作浏览器，提供的操作记录不冒称本 reviewer 独立执行。"
+    ],
+    "interactionLog": "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json",
+    "evidenceInventoryAtCompletion": [
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.ax.txt",
+        "bytes": 5151,
+        "sha256": "281e46391ca126b266244dae55e7660b48e4bf70350d72d24d6f2919d030c6d6"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/advanced-focus.png",
+        "bytes": 74599,
+        "sha256": "9814c353e5f950c4d1e9cc8a282a12b41115888875bfb8c83d5424cc259f016d"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/design-result-panel.png",
+        "bytes": 37837,
+        "sha256": "75333a61c22198d8a10ca810fb96d887075fc76a4ff65e69cde765bd57602c5a"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/design-result.ax.txt",
+        "bytes": 4745,
+        "sha256": "ba63de2fd3f42a41d999d86ecbdb3e0de35ea60039cc0d5c8baadd17179ef2a4"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/design-result.png",
+        "bytes": 44807,
+        "sha256": "54cf3ab9cc6146fa86732b69cba1f0afaedea3132f859ed41ea43d70dbc739c5"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/interactions.json",
+        "bytes": 2361,
+        "sha256": "d35c15eae1dd0d7744165bb057da543c695570737356f08c89d864ba1b3ff115"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-cancel-return.ax.txt",
+        "bytes": 5443,
+        "sha256": "6092cddf79bf886b477844ae9bf7eb383d04f858c9c02ee9e36859f8761ac77f"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-cancel-return.png",
+        "bytes": 39774,
+        "sha256": "78b2b0d4d4d411261fedc1ff30ac40b4bdfd28ca272eef743a46988f3859548c"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-edit.ax.txt",
+        "bytes": 4176,
+        "sha256": "ea1bd93398fb53f10dba043ce230a04e52607d57c4e80d52a1cde5d19f7b8489"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-edit.png",
+        "bytes": 69285,
+        "sha256": "f65a5ebbf2a53f9a45f39794ac3192e3d5e38ff84b19e753d276d42c240ddb63"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-retain.ax.txt",
+        "bytes": 4204,
+        "sha256": "bebb00e1914d2b64cb38d7ec8a96b3f9bf0ec5210ec130e72fc8810f53c94784"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-retain.png",
+        "bytes": 68129,
+        "sha256": "c30f798d99b4a1419ad223452412c27f92769c0b1a4b3d088af136cfa6c4ac5d"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-save-return.ax.txt",
+        "bytes": 5550,
+        "sha256": "79d24e4759281c0907e25c0baebf0d7b12b7ec8f8dc159d40b99e160c35a7782"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/quick-save-return.png",
+        "bytes": 73135,
+        "sha256": "8a182069f47f4c4974226a189216c683b773ca68b5f390c5b3b3ffd9054ec245"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules-en.ax.txt",
+        "bytes": 5047,
+        "sha256": "5d2293dc3a48099981ff1339afff372c45e2c1599618e23ac7514a846f907985"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules-en.png",
+        "bytes": 39828,
+        "sha256": "35fa345b8d5b88a998c5afda933f0e7f88fb8bdec110ff66dbbd769d9dfe6929"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules-zh-TW.ax.txt",
+        "bytes": 4986,
+        "sha256": "f85e6219ac4f2bc06ba3d76c6fba70e2360f0b593487c9ee20b02815fe975d4a"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules-zh-TW.png",
+        "bytes": 69163,
+        "sha256": "14edc58391341accb45a3a5e9e80396651d4344da0ceb03b1d8133639817b0eb"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules.ax.txt",
+        "bytes": 4967,
+        "sha256": "84330d15b9deb2595c53d63cb4216baf87ebe17bf76adef798ac4a0ae677443d"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/rules.png",
+        "bytes": 39828,
+        "sha256": "35fa345b8d5b88a998c5afda933f0e7f88fb8bdec110ff66dbbd769d9dfe6929"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-en.ax.txt",
+        "bytes": 4813,
+        "sha256": "1933766a55b4ade5e04482942ee779772da413c6254586e02510ed5d2e2e43be"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-en.png",
+        "bytes": 43743,
+        "sha256": "4f8d25065f4981fdd7e4573296d434604f55dc4a35040f6bda10de0ef9087fdd"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-zh-TW.ax.txt",
+        "bytes": 4749,
+        "sha256": "31709780ec4bc559b6b12e60e4f59c304d14af7ac7c029ffa6cc4c557a12d536"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-zh-TW.png",
+        "bytes": 44842,
+        "sha256": "e12fd91b8ccf21dec030c18ac602dfaf5cf8594591b9b7967d06002ca1f2440b"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-cancel-return.ax.txt",
+        "bytes": 4993,
+        "sha256": "a5a93e6af3e18db881fec8e6250ff68be1f149a2a2d2ff3af7556418a0429938"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-cancel-return.png",
+        "bytes": 39822,
+        "sha256": "2a4b24226c8c7c625d63faccbdd2c839301d33712a996960130aa445fea3b27c"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-edit.ax.txt",
+        "bytes": 5068,
+        "sha256": "d9fcc13567006be2ede80a0ab3f02acde42126d39bbdd7ef863733281b0bccc8"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-edit.png",
+        "bytes": 39774,
+        "sha256": "78b2b0d4d4d411261fedc1ff30ac40b4bdfd28ca272eef743a46988f3859548c"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-error.ax.txt",
+        "bytes": 5366,
+        "sha256": "1c54e590513f017c292dc49928d8494c342cc446fe3247da996046fec24fa267"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-error.png",
+        "bytes": 72502,
+        "sha256": "99743475761479e4d009e1547b1c6e7c0fb7c1843a076ba040dc966f60409dcb"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-save-return.ax.txt",
+        "bytes": 5099,
+        "sha256": "cc05bd3cb8da717d56ed5146df1c2ceeb6b23dd57f1f2670fb343097dcc34654"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/settings-save-return.png",
+        "bytes": 70116,
+        "sha256": "12d0cd4f205ddfe8511df5da7f63808bc167ae842c3ab9c30a97c73cd882ac4a"
+      },
+      {
+        "path": "projects/ai-proxy/evidence/navigation-polish-20261031/source-check.json",
+        "bytes": 808,
+        "sha256": "e78408c729e363358457402113e1b86ba7d1cd44c9ea1a64a81d85f5150fb1ed"
+      }
+    ],
+    "providedInteractions": {
+      "candidate": "source-68e774ea-ebdd-48e3-acfc-7a7de011267f",
+      "browser": "Chrome / same source sandbox memory only",
+      "checks": [
+        {
+          "operation": "Settings → website rules → keyboard Tab to first edit",
+          "result": "Focused button: 编辑 example.com 的规则; other rule/delete names include their domain"
+        },
+        {
+          "operation": "Settings edit → change URL → Escape → cancel discard",
+          "result": "Draft retained; original source still example.com; value normalizes to polish.example.net on blur"
+        },
+        {
+          "operation": "Keyboard opens advanced; duplicate domain+scope Save",
+          "result": {
+            "describedBy": "settings-rule-error",
+            "formContainsError": true,
+            "formError": "相同域名与范围的规则已存在，请在「管理规则」中编辑。",
+            "value": "example.org"
+          }
+        },
+        {
+          "operation": "Settings cancel → accept discard",
+          "result": "Back to unchanged example.com and example.org; focus returns 编辑 example.com 的规则"
+        },
+        {
+          "operation": "Settings edit priority 10→11 → Save",
+          "result": "Receipt, priority 11, same example.com row ID rule-docs and enabled state; focus returns original edit; save does not apply"
+        },
+        {
+          "operation": "Quick edit → modify domain → Close → cancel discard",
+          "result": "quick-draft.example retained; source remains example.com"
+        },
+        {
+          "operation": "Quick Escape → accept discard",
+          "result": "Returns to current site; focus 编辑命中规则; example.com unchanged"
+        },
+        {
+          "operation": "Quick select DIRECT → Save",
+          "result": "Rules saved receipt; focus 编辑命中规则; pending route DIRECT; still 尚未管理浏览器代理"
+        },
+        {
+          "operation": "English rules list → Add rule",
+          "result": "Edit/Delete rule for example.com/example.org; Adding from website rules rendered; no untranslated keys"
+        },
+        {
+          "operation": "Traditional Chinese rules → Add",
+          "result": "編輯/刪除 example.com 的規則; 從網站規則列表新增; no missing keys"
+        },
+        {
+          "operation": "Reset disposable preview memory → Settings Add",
+          "result": "Original sample data restored; Chinese clean Add form left open, no unsaved input; preview retained as deliverable"
+        }
+      ]
+    }
+  },
+  "issues": [],
+  "issueCounts": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 0,
+    "LOW": 0
+  },
+  "validationGaps": [
+    {
+      "id": "G1",
+      "severity": "MEDIUM",
+      "kind": "VALIDATION_NOT_PRODUCT_DEFECT",
+      "location": "projects/ai-proxy/src/Settings.tsx:658",
+      "relatedLocation": "projects/ai-proxy/src/QuickPanel.tsx:351",
+      "issue": "无 LSP 语义诊断证据；内存编译不能排除 TS 语义错误。",
+      "fix": "由具备现有 LSP 能力的 owner 补充受影响文件诊断；保持本轮不跑全 typecheck，不因本报告引入工具或扩大平台范围。",
+      "blocks": "无条件代码 APPROVE / 类型安全声明，不阻塞继续当前设计开发。"
+    },
+    {
+      "id": "G2",
+      "severity": "MEDIUM",
+      "kind": "EVIDENCE_QUALITY_NOT_CONFIRMED_PRODUCT_DEFECT",
+      "location": "projects/ai-proxy/src/Settings.tsx:637",
+      "evidence": [
+        "projects/ai-proxy/evidence/navigation-polish-20261031/rules.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-edit.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/rules-en.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-en.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-add-zh-TW.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/settings-cancel-return.png",
+        "projects/ai-proxy/evidence/navigation-polish-20261031/quick-cancel-return.png"
+      ],
+      "issue": "部分 PNG 空白或异常压缩，不能支撑全部新布局与多语言视觉结论。",
+      "fix": "owner 使用同一冻结候选核对真实可见界面并保存与 AX 同步的有效截图；保留异常原证据并注明原因。无需为截图问题先改源码。",
+      "blocks": "这些具体视图的视觉 PASS / 证据充分性 ≥95；没有已证实的代码阻断。"
+    },
+    {
+      "id": "G3",
+      "severity": "LOW",
+      "kind": "RUNTIME_EVIDENCE_LIMIT",
+      "location": "projects/ai-proxy/src/Settings.tsx:364",
+      "relatedLocation": "projects/ai-proxy/src/App.jsx:47",
+      "issue": "焦点返回有新 AX，真实长列表滚动位置与延迟保存 busy 导航仅有源码/模拟覆盖；旧候选数值不能继承。",
+      "fix": "在当前正常窗口同候选操作中记录长列表返回前后 scrollTop，并记录一次受控 pending 保存期间的栏目/Tabs/框架离页拒绝；不扩为尺寸矩阵、真实代理或全回归。",
+      "blocks": "完整真实交互证据声明，不是本轮已证实回归。"
+    }
+  ],
+  "scores": [
+    {
+      "dimension": "正确性",
+      "score": 97,
+      "provisional": false,
+      "reason": "38 个具名行为函数不变；指定测试精确覆盖 ID、disabled 状态、priority、SAVE_RULE-only、revision 与表单提交；新增文案/错误分支与需求一致。缺语义类型和完整真实异步交互证明，不能给满分。"
+    },
+    {
+      "dimension": "可靠性",
+      "score": 94,
+      "provisional": false,
+      "reason": "失败保留、背景刷新不重置、晚返回防护及 busy 栏目锁测试通过；新 AX 支持保存/取消后的焦点恢复。尚未取得本轮浏览器的受控延迟保存离页和数值化长列表滚动证据，mock hook 测试无法替代。"
+    },
+    {
+      "dimension": "安全",
+      "score": 98,
+      "provisional": false,
+      "reason": "无新增权限、网络、存储、Host 或执行世界变化；React 域名插值安全，原保存不应用/未知效果边界未动，没有新增掩盖错误 fallback。限定本轮代码增量，未宣称真实代理或安装安全验收。"
+    },
+    {
+      "dimension": "可维护性",
+      "score": 95,
+      "provisional": false,
+      "reason": "小范围 JSX/CSS/翻译修改，复用公共 header class、原 tokens 和原行为函数，没有新依赖或第二套状态/导航机制。直接内存编译与 AST 证明边界清晰；现有单文件较大但本轮没有扩大业务逻辑。"
+    },
+    {
+      "dimension": "用户反馈",
+      "score": 95,
+      "provisional": false,
+      "reason": "域名化按钮、区分来源、表单内错误、aria-describedby/busy 和可见 summary 焦点改善可发现性；同候选错误/保存截图、三语AX及交互记录提供实证。未独立验证屏幕阅读器实际播报，部分添加/取消PNG不可用。"
+    },
+    {
+      "dimension": "证据充分性",
+      "score": 90,
+      "provisional": false,
+      "reason": "独立复跑15项测试、真实 main IIFE+CSS、零 warning、64编译输入和64候选源码无漂移、三语1006键，以及同候选 interactions.json、中英繁中AX和有效表单/保存截图。扣分源于不可用LSP、多份PNG空白/异常压缩、缺真实数值滚动及受控延迟busy离页记录；不引用旧分数或用平均补齐。"
+    }
+  ],
+  "blocking": {
+    "codeDefects": [],
+    "unconditionalApproval": [
+      "G1"
+    ],
+    "fullEvidenceClaims": [
+      "G2",
+      "G3"
+    ],
+    "currentDevelopmentBlocked": false,
+    "allSixDimensionsAtLeast95": false
+  },
+  "notTestedOrOutOfScope": [
+    {
+      "item": "LSP / semantic TypeScript diagnostics",
+      "status": "NOT_TESTED_TOOL_UNAVAILABLE"
+    },
+    {
+      "item": "完整 typecheck / 全 CI",
+      "status": "OUT_OF_SCOPE"
+    },
+    {
+      "item": "新正式包晋升/安装、production、真实代理启停/流量",
+      "status": "OUT_OF_SCOPE"
+    },
+    {
+      "item": "宽度/缩放矩阵",
+      "status": "OUT_OF_SCOPE"
+    },
+    {
+      "item": "本轮 reviewer 操作浏览器/服务",
+      "status": "NOT_PERFORMED_USER_BOUNDARY"
+    },
+    {
+      "item": "屏幕阅读器实播、受控 pending 保存离页、数值化真实长列表滚动",
+      "status": "NOT_INDEPENDENTLY_VERIFIED"
+    }
+  ],
+  "stopCondition": "已完成授权的只读源码审查、指定测试、内存编译与现有新候选证据核对。写入并读回本 JSON 后收尾；后续只在新证据或受影响源码变化时更新评审，不自动修复源码或启动正式验收。",
+  "completedAt": "2026-10-31T07:38:43.613Z",
+  "finalInputDrift": {
+    "candidateSources": [],
+    "compileInputs": []
+  }
+}

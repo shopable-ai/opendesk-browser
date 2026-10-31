@@ -28,18 +28,23 @@ function reviewedCompiledTimeReview(target,path,root){
   return hash;
 }
 
-// R1.0 video playback controller: three reviewed, exact first-party source
-// blobs may enter ONLY the existing Side Panel trusted host. The sandbox
-// package never carries scripting access. At runtime the Host separately
-// checks official release bytes, provenance, enablement and install epoch.
-// No global projects/** or arbitrary app scripts are trusted by this rule.
+// Audited video code enters only these existing fixed build entries. Each
+// source is byte-pinned; installed UI JSON can never replace SW/Content code.
 const compiledVideoSpeedInputs=Object.freeze({
-  'projects/video-speed-controller/trusted/policy.js':'3644e10a0f8cba57349b2d3700b44832e43f7932',
-  'projects/video-speed-controller/trusted/host.js':'3a75076eac82b8e6bac434ed606fc08f2b720733',
-  'projects/video-speed-controller/trusted/admission.js':'fd7318f9c19d0a4ad1e179083c9f0e05d2d6fe53'
+  'projects/video-speed-controller/trusted/policy.js':'45c5531da48e44cb8170d4e0766a834591db3903',
+  'projects/video-speed-controller/trusted/host.js':'bd0024ed057e86fa4a0cc2309ed59f09ceacec65',
+  'projects/video-speed-controller/trusted/admission.js':'bcf9a90166da5cae8162fd66b56ebadf2f2320e1',
+  'projects/video-speed-controller/trusted/page.js':'5ab8b5ad8c07c8eabb360807c40e336e3e5c840e',
+  'projects/video-speed-controller/trusted/service.js':'b0e746d0a18b18d75f95771350345d79f7ddc69b'
+});
+const videoSpeedTargets=Object.freeze({
+  'ui/sidebar-tool-host.js':['policy.js','host.js','admission.js'],
+  'sw.js':['policy.js','host.js','admission.js','service.js'],
+  'agents/page-relay.js':['policy.js','page.js']
 });
 function reviewedCompiledVideoSpeed(target,path,root){
-  if(target!=='ui/sidebar-tool-host.js'||!Object.hasOwn(compiledVideoSpeedInputs,path))return null;
+  if(!Object.hasOwn(compiledVideoSpeedInputs,path)||
+    !videoSpeedTargets[target]?.includes(path.split('/').at(-1)))return null;
   const file=resolve(root,path);
   if(realpathSync(file)!==file)
     throw Error('Trusted Video Speed source must not be a symlink: '+path);
@@ -54,8 +59,8 @@ function reviewedCompiledVideoSpeed(target,path,root){
 // enter ONLY the existing Side Panel Host; never the SW, sandbox or Page Relay.
 // Runtime admission independently checks official package SHA and revoke epoch.
 const compiledVideoSVIPInputs=Object.freeze({
-  'projects/video-svip/trusted/policy.js':'5b479e4e2df81ea7d7bae75c5c5f03fefbe4aecb',
-  'projects/video-svip/trusted/host.js':'5e9e9a70a466ccf64c6a17c65ed5945380fe314c',
+  'projects/video-svip/trusted/policy.js':'39678897d66bc0aa52609952a42a12bff442fc80',
+  'projects/video-svip/trusted/host.js':'a395a0b0a3453993627890cf580061f96e2a8fb5',
   'projects/video-svip/trusted/admission.js':'3b6e07c464cb54d8f65d421dcb580a297a99a431'
 });
 function reviewedCompiledVideoSVIP(target,path,root){
@@ -147,16 +152,20 @@ function reviewedCompiledAdblock(target,path,root){
 // Vault revision and readback; Cookie effects retain exact site permission,
 // Store/Partition, user gesture and account version checks. Empty accounts
 // never enter the automatic-switch whitelist. No new source or privilege.
+// 2026-10-31: independently reviewed service configuration/association metadata
+// in the existing Foundation store. The fixed service consumer uses only the
+// original Native subprotocol; no Cookie transfer or sandbox Native authority.
+// Its exact reviewed bytes may enter only the fixed SW closure.
 const compiledCookieAccountInputs=Object.freeze({
   // S3 fixed Relay session transport: exact HTTPS paths, explicit fingerprints,
   // nonexportable device identities and authenticated encrypted snapshots.
   // The shared contract remains pure; session helpers may enter only the SW.
-  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'454a6d5095c312728d76963df345bed34d734e04',
+  'examples/sidebar-tools/cookie-editor/trusted/account-contract.js':'081311cdc99d828e631efd2a5be1bcc20c461246',
   // Reviewed shared-domain restore and post-save proof: full snapshot, final
   // scope/Host fence, redacted URL; proof failure preserves the saved receipt.
   // Verified same-site manual recovery settles only the unchanged tab fence;
   // its old URL remains blocked. Reopened shares use exact-owner local receipts.
-  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'02ffe9783c431859afb7d49bb0b5a8c02c8a11a0',
+  'examples/sidebar-tools/cookie-editor/trusted/account-service.js':'fcd7fab18b0bac62fe4a105569523c0c6011d1cb',
   // Only a private preflight-unsent receipt can re-arm an unclaimed invite;
   // dispatched requests and lost replies retain the durable unknown fence.
   'examples/sidebar-tools/cookie-editor/trusted/account-share.js':'6124420696da31472805467c9a09ef9640b5d388',
@@ -164,6 +173,8 @@ const compiledCookieAccountInputs=Object.freeze({
   // before POST; durable unknown fences never replay a consumed request.
   'examples/sidebar-tools/cookie-editor/trusted/account-session-share.js':'d72a1e10c72af53b03cc8133ae6d2dc5948e39dd',
   'examples/sidebar-tools/cookie-editor/trusted/account-session-crypto.js':'63801908ace414341a84f424245e8cd7ae6f0506',
+  'examples/sidebar-tools/cookie-editor/trusted/service-connections.js':'e2f0007c8e82084125c86ea9c72ac4c43bd5bf6a',
+  'examples/sidebar-tools/cookie-editor/trusted/service-session.js':'8a4654e89d518d88cbf1993f774c78ee5ed1228d',
   // Compare/readback stays within Foundation; old ciphertext remains read-only.
   'examples/sidebar-tools/cookie-editor/trusted/account-vault.js':'bf9cd090b7ba805de70bfdea271b8143fb18ed50',
   'examples/sidebar-tools/cookie-editor/app/domain/account-switch-url.js':'3e5bb3fb3bf6d1d8e74d4a2b1841107d1166d2bd'
@@ -520,6 +531,22 @@ function reviewedCompiledHostStyle(target,path,root){
 
 const npmOwners=new Map(Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')
   .map(row=>[row.npm,row.output]));
+// Only reviewed static AI Proxy inputs enter the existing trusted React shell.
+// The admission module also serves the original Tool Host. Installed package
+// bytes remain opaque; source drift requires a separate reviewed lock update.
+const compiledAIProxyInputs=Object.freeze(JSON.parse(readFileSync(
+  new URL('../projects/ai-proxy/trusted/source-lock.json',import.meta.url),'utf8')));
+function reviewedCompiledAIProxy(target,path,root){
+  if(!Object.hasOwn(compiledAIProxyInputs,path)||
+    !(target==='ui/tool-shell.js'||target==='ui/sidebar-tool-host.js'&&
+      path==='projects/ai-proxy/trusted/admission.js'))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted AI Proxy source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledAIProxyInputs[path])throw Error('Trusted AI Proxy source changed; review and re-pin: '+path);
+  return hash;
+}
 export function assertLibraryModuleBoundary(target,path,npmName) {
   const embeddedPackage=[...npmOwners].find(([name])=>npmName===name||path.includes('node_modules/'+name+'/'));
   const packageSource=path.startsWith('src/libs/packages/');
@@ -562,6 +589,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledSharedMarkdown(chunk.fileName,path,root)||
       reviewedCompiledWebClipper(chunk.fileName,path,root)||
       reviewedCompiledReadingToc(chunk.fileName,path,root)||
+      reviewedCompiledAIProxy(chunk.fileName,path,root)||
       reviewedCompiledHostStyle(chunk.fileName,path,root);
     // Moving an independent app into projects/ never grants privileged access.
     // It must retain the same exact reviewed source/target admission as examples/.

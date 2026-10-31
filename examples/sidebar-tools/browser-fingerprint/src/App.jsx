@@ -377,7 +377,7 @@ export default function App({adapter,preview=false}){
   }
   async function apply(){
     if(!validConfig(config)||locked||originalConfig||!begin('apply'))return;
-    setStatus('applying');setVerification(null);setNotice(null);
+    setStatus('applying');setSession(null);setVerification(null);setNotice(null);
     const frozen=copyConfig(config);
     try{
       const checked=await applyEnvironment(adapter,frozen);
@@ -421,7 +421,9 @@ export default function App({adapter,preview=false}){
       const outcome=restore?classifyRestoration(result):result.status;
       setStatus(outcome);setVerification(result);
       if(restore&&outcome!=='restore_unknown'){
-        activeSession.current=null;setSession(null);
+        // Keep the completed receipt bound to its frozen name/config for
+        // the summary and report while the next form is edited.
+        activeSession.current=null;
       }
       if(outcome==='partial'||outcome==='restore_unknown')
         warn(restore?'恢复核验仍有差异或未知字段；请核对检测页。':

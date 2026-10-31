@@ -1,14 +1,31 @@
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY,VIDEO_SPEED_OPERATIONS,validVideoSpeed} from './policy.js';
+import {requestPageToast} from '../../../src/platform/chrome/page-toast.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
+
+export async function notifyVideoSpeed({result,error,...access}){
+  let message,variant='success';
+  if(error){
+    variant='warning';
+    message=error.code==='E_VIDEO_NOT_FOUND'?'视频倍速 · 未找到可调速的视频':
+      '视频倍速 · 操作未确认，请在侧栏重新检测';
+  }else{
+    if(result?.status!=='available'||!Number.isFinite(result.speed))return {shown:false};
+    const actual=Number(result.speed.toFixed(2))+'×';
+    variant=result.verified?'success':'warning';
+    message=result.verified?(result.requested===1?'视频倍速 · 已恢复 '+actual:'视频倍速 · '+actual):
+      '视频倍速 · 目标 '+Number(result.requested.toFixed(2))+'× 未生效，实际 '+actual;
+  }
+  return requestPageToast({...access,id:VIDEO_SPEED_ID,message,variant,position:'top',duration:variant==='warning'?3500:2000});
+}
 
 // Chrome serializes THIS fixed function into the isolated world of an exact
 // webNavigation document. It must remain self-contained; sandbox JS is never
 // passed to executeScript and never gains access to chrome.scripting.
 //
-// Results contain only bounded numbers and booleans, never source URLs, DOM
+// Results contain only bounded scalars and request tokens, never source URLs, DOM
 // text, media stream identifiers or other private webpage information.
-export function pageVideoSpeed(mode,speed,index=-1,nonce='') {
+export function pageVideoSpeed(mode,speed,token='',nonce='',revision='') {
   // Trusted fixed function installed in an isolated document. The listener
   // signals keys only; it cannot mutate media or authorize an operation.
   if(mode==='shortcut-on'||mode==='shortcut-off'){
@@ -45,7 +62,22 @@ export function pageVideoSpeed(mode,speed,index=-1,nonce='') {
     return {found:false,count:0,shortcuts:true};
   }
   const nodes=Array.from(document.querySelectorAll('video')).slice(0,48);
-  let best=null,bestIndex=-1,bestScore=-1;
+  // This expando belongs to the extension's ISOLATED document wrapper, not
+  // MAIN. Weak references cannot keep removed media alive. At most 16 pending
+  // requests per document survive, and each expires after 15 seconds. Lazy
+  // pruning keeps work bounded even when admission aborts before set/read.
+  const key='__opendeskVideoSpeedElements_v1';
+  const now=Date.now();
+  const pending=document[key];
+  if(pending)for(const [id,entry] of pending){
+    if(entry.expires<=now||!entry.element.deref())pending.delete(id);
+  }
+  const validToken=typeof token==='string'&&
+    /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(token);
+  const bound=mode==='probe'||mode==='set'||mode==='read';
+  const changed=()=>({found:false,count:nodes.length,changed:true,token});
+  if(bound&&!validToken)return changed();
+  let best=null,bestScore=-1;
   for(let i=0;i<nodes.length;i++){
     const video=nodes[i];
     const playing=!video.paused&&!video.ended;
@@ -55,21 +87,53 @@ export function pageVideoSpeed(mode,speed,index=-1,nonce='') {
       area=Math.max(0,rect.width)*Math.max(0,rect.height);
     }catch{/* Detached/virtual media may not have a box. */}
     const score=(playing?1000000000:0)+Math.min(99999999,Math.floor(area));
-    if(score>bestScore){bestScore=score;best=video;bestIndex=i;}
+    if(score>bestScore){bestScore=score;best=video;}
   }
-  const chosen=Number.isInteger(index)&&index>=0?nodes[index]:best;
-  const chosenIndex=Number.isInteger(index)&&index>=0?index:bestIndex;
+  let chosen=best;
+  if(mode==='set'||mode==='read'){
+    const entry=pending?.get(token);
+    chosen=entry?.element.deref();
+    if(!chosen||!nodes.includes(chosen)||entry.phase!==(mode==='set'?'probe':'set')){
+      pending?.delete(token);
+      return changed();
+    }
+    // One write and one independent read only; neither may replay a receipt.
+    if(mode==='read')pending.delete(token);
+    else entry.phase='set';
+  }
+  const chosenIndex=nodes.indexOf(chosen);
   if(!chosen)return {found:false,count:nodes.length};
+  if(mode==='probe'){
+    const entries=pending??(document[key]=new Map());
+    if(entries.has(token))return changed();
+    if(entries.size>=16)entries.delete(entries.keys().next().value);
+    entries.set(token,{element:new WeakRef(chosen),expires:now+15000,phase:'probe'});
+  }
   const playing=!chosen.paused&&!chosen.ended;
   if(mode==='set'){
     if(typeof speed!=='number'||!Number.isFinite(speed)||speed<0.25||speed>4)
       return {found:true,count:nodes.length,applied:false};
+    const key='__opendeskVideoSpeedControlled_v1';
+    const controlled=document[key]??(document[key]=new Map());
+    for(const [id,row] of controlled)if(!row.element.deref())controlled.delete(id);
+    const source=String(chosen.currentSrc||chosen.src||'');
+    const previous=[...controlled.values()].find(row=>row.element.deref()===chosen);
+    // A player override is a result, never an instruction to fight the player.
+    // Only a new user preference, new media source or element may write again.
+    if(revision&&previous?.revision===revision&&previous.source===source)
+      return {found:true,count:nodes.length,index:chosenIndex,playing,score:bestScore,
+        speed:Number(chosen.playbackRate),token,applied:true,skipped:true};
+    // Record the attempt before calling a potentially hostile native setter.
+    // Throwing/lost receipts must not make the next event replay the write.
+    for(const [id,row] of controlled)if(row.element.deref()===chosen)controlled.delete(id);
+    if(controlled.size>=48)controlled.delete(controlled.keys().next().value);
+    controlled.set(token,{element:new WeakRef(chosen),source,speed,revision});
     try{chosen.playbackRate=speed;}
     catch{return {found:true,count:nodes.length,applied:false};}
   }
   return {found:true,count:nodes.length,index:chosenIndex,playing,
     score:bestScore,speed:Number(chosen.playbackRate),
-    ...(mode==='set'?{applied:true}:{})};
+    ...(bound?{token}:{}),...(mode==='set'?{applied:true}:{})};
 }
 
 function checkedResult(injections,frame) {
@@ -89,20 +153,23 @@ function admittedFrame(frame) {
   try {const u=new URL(frame.url);return ['http:','https:'].includes(u.protocol);}
   catch {return false;}
 }
-async function inject(api,tabId,frame,mode,speed=null,index=-1,nonce='') {
+async function inject(api,tabId,frame,mode,speed=null,token='',nonce='',revision='') {
   // documentIds (Chrome 106+) prevents a navigated/recycled frame from
   // receiving an operation intended for an earlier document.
   const results=await api.scripting.executeScript({
     target:{tabId,documentIds:[frame.documentId]},
-    world:'ISOLATED',func:pageVideoSpeed,args:[mode,speed,index,nonce]
+    world:'ISOLATED',func:pageVideoSpeed,args:[mode,speed,token,nonce,revision]
   });
   const result=checkedResult(results,frame);
   if(!result)throw fail('E_VIDEO_READBACK','视频脚本未返回与目标文档匹配的结果');
+  if(result.changed)throw fail('E_VIDEO_CHANGED','视频已切换或请求已失效，请重新检测');
+  if((mode==='probe'&&result.found||mode==='set'||mode==='read')&&result.token!==token)
+    throw fail('E_VIDEO_READBACK','视频脚本返回了不匹配的请求令牌');
   return result;
 }
 export async function requestVideoSpeed({
   api,tool,operation,payload,currentPageTarget,revocationEpoch,
-  assertCurrent,assertInstalled,shortcutNonce=null
+  assertCurrent,assertInstalled,shortcutNonce=null,globalRevision='',feedback=false
 }={}) {
   if(tool?.id!==VIDEO_SPEED_ID||
      !tool?.capabilities?.includes(VIDEO_SPEED_CAPABILITY)||
@@ -160,7 +227,7 @@ export async function requestVideoSpeed({
     assertCurrent();await assertInstalled();
     assertLiveTarget();
     const outcome=await inject(api,target.tabId,frame,
-      enableKeys?'shortcut-on':'shortcut-off',null,-1,enableKeys?shortcutNonce:'');
+      enableKeys?'shortcut-on':'shortcut-off',null,'',enableKeys?shortcutNonce:'');
     await currentPageTarget.revalidate(target);
     assertCurrent();await assertInstalled();
     assertLiveTarget();
@@ -168,11 +235,13 @@ export async function requestVideoSpeed({
       throw fail('E_VIDEO_SHORTCUT','网页快捷键监听无法完成');
     return {enabled:enableKeys};
   }
+  // Generated by the trusted Host, never accepted from sandbox payloads.
+  const requestToken=set?globalThis.crypto.randomUUID():'';
   let rejected=0,videoCount=0;
   const rows=await Promise.all(selectedFrames.map(async frame=>{
     try {
       assertLiveTarget();
-      const data=await inject(api,target.tabId,frame,'status');
+      const data=await inject(api,target.tabId,frame,set?'probe':'status',null,requestToken);
       videoCount+=data.count;
       return data.found&&Number.isFinite(data.speed)&&data.speed>=0&&
         Number.isInteger(data.index)&&data.index>=0&&
@@ -195,27 +264,33 @@ export async function requestVideoSpeed({
   }
   if(read)return {status:'available',speed:chosen.data.speed,
     playing:chosen.data.playing,count:videoCount,partial};
-  // One deliberate mutation on exactly one selected media element/document;
-  // no background reapplication or changes to other frames/videos.
+  // Each request selects one exact media element/document. Global events reuse
+  // this path with a revision that bounds reapplication to a new preference/source.
   await currentPageTarget.revalidate(target);
   assertCurrent();
   await assertInstalled();
   // No asynchronous gap may remain between this live-session check and the
   // deliberate write. Admission itself can yield while the panel/tab changes.
   assertLiveTarget();
-  const applied=await inject(api,target.tabId,chosen.frame,'set',args.speed,chosen.data.index);
+  const applied=await inject(api,target.tabId,chosen.frame,'set',args.speed,requestToken,'',globalRevision);
   if(!applied.found||applied.applied!==true)
     throw fail('E_VIDEO_CHANGED','视频已切换或播放器拒绝调整，请刷新检测');
   // Independent second injection: never claim a successful adjustment solely
   // from the setter's acknowledgement. The site may override playbackRate.
-  const verified=await inject(api,target.tabId,chosen.frame,'read',null,chosen.data.index);
+  const verified=await inject(api,target.tabId,chosen.frame,'read',null,requestToken);
   await currentPageTarget.revalidate(target);
   assertCurrent();
   await assertInstalled();
   assertLiveTarget();
   if(!verified.found||!Number.isFinite(verified.speed))
     throw fail('E_VIDEO_READBACK','倍速已经请求，但无法核对实际结果；请刷新读取');
-  return {status:'available',speed:verified.speed,requested:args.speed,
+  const result={status:'available',speed:verified.speed,requested:args.speed,
     verified:Math.abs(verified.speed-args.speed)<=0.02,
     playing:verified.playing,count:videoCount,partial};
+  if(feedback){
+    try{await notifyVideoSpeed({api,currentPageTarget,assertCurrent,assertInstalled,result});}
+    catch{/* Feedback failure never retries or changes a verified media write. */}
+    assertLiveTarget();
+  }
+  return result;
 }

@@ -4,8 +4,9 @@ import {fieldForm,applyField,crawlForm,applyCrawl} from './editor.js';
 import Results from './Results.jsx';
 import CaptureWorkspace from './CaptureWorkspace.jsx';
 
-const freshUI=epoch=>({epoch,json:null,valid:true,error:'',notice:'',field:null,fieldPending:false,crawl:null,crawlPending:false,target:null,targetValid:true,fieldHelp:'点击字段载入编辑；复杂规则在完整 JSON 中编辑。',removeField:false});
+const freshUI=epoch=>({epoch,json:null,valid:true,error:'',notice:'',field:null,fieldPending:false,crawl:null,crawlPending:false,target:null,targetValid:true,http:null,httpValid:true,fieldHelp:'点击字段载入编辑；复杂规则在完整 JSON 中编辑。',removeField:false});
 const stringify=value=>JSON.stringify(value,null,2);
+const httpExample=()=>({executionMode:'http-local',url:'http://127.0.0.1:43121/http-echo',http:{headers:{Accept:'application/json','X-Client-Tag':'scrapyjs-app'}},maxPages:1,itemConfig:{userAgent:'userAgent',accept:'accept',clientTag:'clientTag',requestId:'requestId'}});
 const tabs=[['results','采集结果','results-panel'],['rules','采集规则','rules-editor'],['json','配置 JSON','json-panel']];
 function Field({id,label,children,...props}){
   return <div className="field"><label htmlFor={id}>{label}</label>{children||<input id={id} autoComplete="off" {...props}/>}</div>;
@@ -64,7 +65,9 @@ export default function App(){
   const locked=baseLocked||aiGenerating||localBusy;
   const managementLocked=locked||!state.storageReady||Boolean(state.conflict);
   const pending=ui.fieldPending||ui.crawlPending;
-  const valid=ui.valid&&ui.targetValid;
+  const valid=ui.valid&&ui.targetValid&&ui.httpValid;
+  const httpLocal=state.config.executionMode==='http-local';
+  const httpForm=ui.http||{userAgent:state.config.http?.userAgent??'',headers:stringify(state.config.http?.headers??{}),fields:stringify(state.config.itemConfig),maxPages:String(state.config.maxPages??1)};
   const current=state.records.find(row=>row.id===state.selectedId);
   const fields=Object.entries(state.config.itemConfig).filter(([key])=>!key.startsWith('_'));
   const form=ui.field||{key:'',originalKey:'',selector:'',read:'text',attr:'',container:state.config.itemConfig._listContainer||'',item:state.config.itemConfig._listItem||''};
@@ -72,7 +75,7 @@ export default function App(){
   let matches=false;
   try{matches=Boolean(state.target)&&new URL(state.config.url).origin===new URL(state.target.url).origin;}catch{}
   const help=state.phase==='unknown'?'开始结果未知，请刷新原实例状态；不要重复开始。':
-    !valid?'完整 JSON 或目标网址有误，请打开「配置 JSON」或目标网址修正。':
+    !valid?'配置草稿有误，请修正规则、Headers JSON 或目标网址后再运行或保存。':
     pending?'有未应用的'+[ui.fieldPending?'字段':'',ui.crawlPending?'分页与详情':''].filter(Boolean).join('、')+'编辑，请先点击对应的「应用」按钮。':
     !state.target?'请先打开目标网页，再刷新当前网页。':!busy&&!matches?'目标网址与当前网页不同源，请切换到目标网站后刷新当前网页。':
     state.saving?'正在保存配置，请稍候。':naming||state.pendingAction?'请先完成或取消配置操作。':'';
@@ -80,8 +83,21 @@ export default function App(){
   function guarded(action){try{action();}catch(error){update({error:error.message});}}
   function touch(change){guarded(()=>{app.touch();update({...change,error:''});});}
   function editJSON(text){
-    try{app.edit(JSON.parse(text));update({json:text,valid:true,target:null,targetValid:true,error:'',field:null,crawl:null,removeField:false});}
+    try{app.edit(JSON.parse(text));update({json:text,valid:true,target:null,targetValid:true,http:null,httpValid:true,error:'',field:null,crawl:null,removeField:false});}
     catch(error){guarded(()=>app.touch());update({json:text,valid:false,error:error.message});}
+  }
+  function loadMode(config){
+    try{app.edit(config);update({...freshUI(state.profileEpoch)});}
+    catch(error){update({error:error.message});}
+  }
+  function editHTTP(change){
+    const draft={...httpForm,...change};
+    try{
+      const http={headers:JSON.parse(draft.headers)};
+      if(draft.userAgent)http.userAgent=draft.userAgent;
+      app.edit({...state.config,http,itemConfig:JSON.parse(draft.fields),maxPages:Number(draft.maxPages)});
+      update({http:draft,httpValid:true,json:null,error:''});
+    }catch(error){guarded(()=>app.touch());update({http:draft,httpValid:false,error:error.message});}
   }
   function apply(which,value){
     try{
@@ -153,7 +169,7 @@ export default function App(){
       <details id="target-settings" className="flat"><summary>目标网址 <span id="target-address" title={state.config.url}>{state.config.url}</span></summary>
         <Field id="target-url" label="目标网址" type="url" disabled={locked||pending||!ui.valid} value={ui.target??state.config.url} aria-describedby="target-help" onChange={event=>{
           const url=event.target.value;try{app.edit({...state.config,url});update({target:url,targetValid:true,json:null,error:''});}catch(error){guarded(()=>app.touch());update({target:url,targetValid:false,error:error.message});}
-        }}/><p id="target-help" className="secondary">在目标网页打开此 App；仅采集当前网页同源地址。</p>
+        }}/><p id="target-help" className="secondary">在目标网页打开此 App；{httpLocal?'本机自有 JSON 回显：仅 http://127.0.0.1:43121；公网未开放。':'仅采集当前网页同源地址。'}</p>
       </details>
       <Message id="config-error" alert>{ui.error}</Message>
       <div className="toolbar actions"><Button id="start" variant="primary" disabled={locked||!matches||!valid||pending} aria-describedby="run-help" onClick={()=>{app.start(state.config.url);setView('results');}}>开始采集</Button><Button id="stop" disabled={!busy||state.retired||state.stopAccepted} onClick={()=>app.stop()}>停止原实例</Button></div>
@@ -164,7 +180,19 @@ export default function App(){
     <div hidden={!workspaceOpen}><CaptureWorkspace open={workspaceOpen} state={state} locked={baseLocked} pending={pending} valid={valid} onBusy={setLocalBusy} onDirty={setLocalDirty} onAiGenerating={setAiGenerating} onAiBusy={setAiBusy} onClose={()=>{setWorkspaceOpen(false);focusLater('open-local-runner');}}/></div>
     <section id="rules-editor" role="tabpanel" aria-labelledby="tab-rules" tabIndex={0} hidden={workspaceOpen||view!=='rules'}>
       <div className="toolbar"><h2>采集规则</h2><p id="config-summary" className="secondary">{fields.length} 个字段 · {state.config.nextPageSelector?'分页':'当前页'}{state.config.detail?' + 详情':''}</p></div>
-      <details id="field-editor" open><summary>字段与属性</summary>
+      <fieldset disabled={locked||pending||!valid}>
+        <Field id="execution-mode" label="采集方式"><select id="execution-mode" value={httpLocal?'http-local':'dom'} onChange={event=>loadMode(event.target.value==='http-local'?httpExample():globalThis.ScrapyAppModel.DEFAULT_CONFIG)}><option value="dom">DOM 网页采集</option><option value="http-local">本机 HTTP（自有回显）</option></select></Field>
+        <p className="secondary">切换方式会载入对应示例配置，请先保存需要保留的规则。</p>
+        <Button id="load-http-example" onClick={()=>loadMode(httpExample())}>载入本机 HTTP 示例</Button>
+      </fieldset>
+      {httpLocal&&<fieldset disabled={locked||pending||!ui.valid||!ui.targetValid}>
+        <p className="secondary">通过本机 Node 仅 GET 自有回显 JSON；最多 3 页共享 15 秒，公网未开放。不执行 DOM 选择器。</p>
+        <Field id="http-user-agent" label="User-Agent（留空使用 OpenDesk-NativeHTTP/1.0，最多 512 个可打印 ASCII 字符）" value={httpForm.userAgent} onChange={event=>editHTTP({userAgent:event.target.value})}/>
+        <Field id="http-headers" label="Headers JSON（普通请求头，值仅可打印 ASCII）"><textarea id="http-headers" rows={4} spellCheck={false} value={httpForm.headers} placeholder={'{"Accept":"application/json","X-Client-Tag":"scrapyjs-app"}'} aria-invalid={!ui.httpValid} aria-describedby="config-error" onChange={event=>editHTTP({headers:event.target.value})}/></Field>
+        <Field id="http-fields" label="JSON 字段点路径 itemConfig（最多 32 字段，每路径 4 段 / 128 字符）"><textarea id="http-fields" rows={5} spellCheck={false} value={httpForm.fields} aria-invalid={!ui.httpValid} aria-describedby="config-error" onChange={event=>editHTTP({fields:event.target.value})}/></Field>
+        <Field id="http-max-pages" label="页数安全上限（1–3）" type="number" min={1} max={3} value={httpForm.maxPages} onChange={event=>editHTTP({maxPages:event.target.value})}/>
+      </fieldset>}
+      <details id="field-editor" hidden={httpLocal} open><summary>字段与属性</summary>
         <div id="field-list" className="field-list" role="group" aria-label="已有采集字段">{fields.map(([key,rule])=><Button key={key} data-field-key={key} aria-label={'编辑字段 '+key} disabled={locked||!valid||pending} onClick={()=>loadField(key,rule)}><strong>{key}</strong><code>{typeof rule==='string'?rule:JSON.stringify(rule)}</code></Button>)}</div>
         <Message id="field-edit-help">{ui.fieldHelp}</Message>
         <Button id="new-field" disabled={locked||!valid||pending} onClick={()=>{update({field:{...form,key:'',originalKey:'',selector:'',read:'text',attr:''},fieldHelp:'填写新字段后点击「应用字段」。',removeField:false});focusLater('field-key');}}>＋ 新增字段</Button>
@@ -183,7 +211,7 @@ export default function App(){
           }}>确认删除字段</Button><Button id="cancel-remove-field" onClick={()=>{update({removeField:false});focusLater('remove-field');}}>取消</Button></div></div>}
         </fieldset>
       </details>
-      <details id="crawl-editor"><summary>分页与列表详情</summary><fieldset disabled={locked||!valid}>
+      <details id="crawl-editor" hidden={httpLocal}><summary>分页与列表详情</summary><fieldset disabled={locked||!valid}>
         {[['next-selector','下一页 CSS 选择器（留空为单页）','next'],['max-pages','页数安全上限','maxPages'],['dedupe-key','去重字段（留空保留全部）','dedupe']].map(([id,label,key])=><Field key={id} id={id} label={label} type={key==='maxPages'?'number':'text'} min={key==='maxPages'?1:undefined} max={key==='maxPages'?10:undefined} value={crawl[key]} onChange={event=>touch({crawl:{...crawl,[key]:event.target.value},crawlPending:true})}/>)}
         <label className="check"><input id="detail-enabled" type="checkbox" checked={crawl.enabled} onChange={event=>touch({crawl:{...crawl,enabled:event.target.checked},crawlPending:true})}/>采集列表对应详情</label>
         <div hidden={!crawl.enabled} className="stack">
@@ -199,7 +227,7 @@ export default function App(){
       <div id="json-editor" className="stack" ref={jsonDetails}><div className="toolbar"><h2>完整配置</h2><Button id="export-config" disabled={!valid||pending||exporting} onClick={async()=>{if(exportPending.current)return;exportPending.current=true;setExporting(true);update({error:'',notice:''});try{const result=await tool.request('browser.downloads.text',{text:stringify(state.config),filename:'scrapyjs-config.json'});if(result?.started!==true)throw Error('下载结果未知');update({error:'',notice:'已请求下载完整配置，请在下载列表确认。'});}catch(error){update({error:error.message,notice:''});}finally{exportPending.current=false;setExporting(false);}}}>导出配置 JSON</Button></div>
         <Message id="config-export-status">{ui.notice}</Message>
         <Field id="config-json" label="完整 JSON 配置"><textarea id="config-json" rows={12} spellCheck={false} disabled={locked||pending} value={ui.json??stringify(state.config)} aria-invalid={!ui.valid} aria-describedby="config-help config-error" onChange={event=>editJSON(event.target.value)}/></Field>
-        <p id="config-help" className="secondary">保留复杂规则、validation / fieldRequirements / processing。_listContainer / _listItem 定义列表；.::text 读取当前项文本。itemConfig 最多 4096 字节。</p>
+        <p id="config-help" className="secondary">{httpLocal?'本机 HTTP：itemConfig 每个字段为 JSON 点路径字符串，maxPages 最多 3；UA 留空继承，Headers 为普通字符串对象。':'保留复杂规则、validation / fieldRequirements / processing。_listContainer / _listItem 定义列表；.::text 读取当前项文本。'} itemConfig 最多 4096 字节，其他选项最多 4096 字节，配置总计最多 8192 字节。</p>
       </div>
     </section>
     <section id="results-panel" role="tabpanel" aria-labelledby="tab-results" tabIndex={0} hidden={workspaceOpen||view!=='results'}>

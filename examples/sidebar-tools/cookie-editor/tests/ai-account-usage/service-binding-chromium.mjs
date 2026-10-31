@@ -1,0 +1,46 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {randomUUID} from 'node:crypto';
+import {build} from 'esbuild';
+import {chromium} from 'playwright';
+import {HistoryStore} from '../../ai-account-usage/history-store.mjs';
+import {ServiceBindingStore} from '../../ai-account-usage/service-binding-store.mjs';
+import {createServiceBindingService} from '../../ai-account-usage/service-binding.mjs';
+import {startManagementServer} from '../../ai-account-usage/web-server.mjs';
+
+test('terminal pairing opens real management UI; desired save stays pending and resource deep link opens only selected account',async t=>{
+  const directory=await mkdtemp(join(tmpdir(),'binding-browser-'));t.after(()=>rm(directory,{recursive:true,force:true}));
+  await build({entryPoints:[fileURLToPath(new URL('../../ai-account-usage/web/main.jsx',import.meta.url))],bundle:true,outfile:join(directory,'app.js'),jsx:'automatic',minify:true,define:{'process.env.NODE_ENV':'"production"',__OD_PREVIEW__:'false'},plugins:[{name:'no-preview',setup(b){b.onResolve({filter:/^\.\/demo-data\.mjs$/},()=>({path:'demo',namespace:'disabled'}));b.onLoad({filter:/.*/,namespace:'disabled'},()=>({contents:"export const DEMO_DATA_LABEL='';export function createDemoApi(){throw Error('PREVIEW_DISABLED')}"}));}}]});
+  await writeFile(join(directory,'index.html'),'<!doctype html><html><head><link rel="stylesheet" href="./app.css"></head><body><div id="root"></div><script type="module" src="./app.js"></script></body></html>');
+  const store=new HistoryStore({directory:join(directory,'history')});await store.register({alias:'acct_01',displayName:'Synthetic account'});
+  let queries=0;const bindingStore=new ServiceBindingStore({directory:join(directory,'bindings')});
+  const server=await startManagementServer({store,service:{query:async()=>{queries++;throw Error('NO_UPSTREAM');}},bindingStore,assetsDirectory:directory});t.after(()=>server.close());
+  // Explicit test-only trusted fixture. This does not establish a production Native grant.
+  const input={userId:'test_user',connectionId:'test_connection',installationId:'test_install',grantFamilyId:'test_grant',resourceIds:['acct_01']};
+  const client=await server.serviceBinding.createLocalClient(input),context={...input,tenantId:'local'};
+  const service=createServiceBindingService({store:bindingStore,serviceInstanceId:client.serviceInstanceId});
+  const device=await service.registerDevice(context,{operationId:randomUUID(),label:'Synthetic device'});
+  const binding=await service.request(context,{method:'POST',path:'/opendesk/v1/bindings',body:{operationId:randomUUID(),purpose:'usage',providerKey:'codex',remoteAccountId:'acct_01',expectedRevision:0,localAccount:{origin:'https://chatgpt.com',alias:'saved_01',version:1,storeId:'0',partitionKey:null}}});
+  const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_BIN||undefined});t.after(()=>browser.close());
+  const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(server.url+'#pair='+server.pairingCode);
+  await page.getByRole('button',{name:'Cookie 同步设置',exact:true}).click();
+  await page.getByRole('heading',{name:'Synthetic device'}).waitFor();
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button',{name:'保存期望策略'}).click();
+  await page.getByText(/版本 1 · [a-f0-9]{64}/).waitFor();
+  const policy=await service.request(context,{method:'GET',path:'/opendesk/v1/sync-policy'});
+  assert.equal(policy.desired.desiredRevision,1);assert.equal(policy.acceptance,null);assert.equal(policy.status,'PENDING');
+  const open=await server.serviceBinding.createManagementOpen(client.secret,{serviceInstanceId:client.serviceInstanceId,deviceId:device.deviceId,bindingId:binding.bindingId,remoteAccountId:'acct_01'});
+  const isolated=await browser.newContext(),resource=await isolated.newPage();
+  await resource.goto(open.url);
+  await resource.getByRole('dialog').waitFor();
+  assert.ok(await resource.getByRole('heading',{name:'Synthetic account'}).isVisible());
+  assert.equal(await resource.getByRole('button',{name:'手动刷新当前额度',exact:true}).isDisabled(),true);
+  assert.equal(new URL(resource.url()).hash,'');assert.equal(queries,0);assert.deepEqual(errors,[]);
+  await isolated.close();
+});

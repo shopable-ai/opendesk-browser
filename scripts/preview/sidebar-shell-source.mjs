@@ -14,6 +14,7 @@ const selectors=Object.freeze([
   '.workbench-nav button:focus-visible{',
   '.sidebar-tool-view-head{',
   '.sidebar-tool-view-head>strong{',
+  '#sidebar-tool-title{',
   '.sidebar-tool-view-head .sidebar-tool-icon-action{',
   '.sidebar-tool-view-head .sidebar-tool-icon-action:disabled{',
   '.sidebar-tool-view-head button:focus-visible,',
@@ -37,12 +38,14 @@ export function extractSidebarPreviewShell(html,css){
     'sidebar-tool-settings-open','sidebar-tool-remove']){
     if(toolbar.find('#'+id).length!==1)fail('React toolbar action missing: '+id);
   }
-  if(toolbar.find('#sidebar-tool-settings-open').attr('aria-controls')!=='sidebar-tool-settings-view')
+  const settingsTarget=toolbar.find('#sidebar-tool-settings-open').attr('aria-controls');
+  if(!['sidebar-tool-settings-view','sidebar-tool-frame'].includes(settingsTarget)||
+     $('#'+settingsTarget).length!==1)
     fail('React settings action/target contract unavailable');
   const settings=$('#sidebar-tool-settings-view');
   if(settings.length!==1||settings.find('#sidebar-tool-open-tab').length!==1)
     fail('React settings action missing: sidebar-tool-open-tab');
-  const tabs=navigation.find('[role=tab]').map((_,node)=>$(node).attr('id')).get();
+  const tabs=navigation.find('[role=tab]:not([hidden])').map((_,node)=>$(node).attr('id')).get();
   const required=['tab-my-tasks','tab-tools','tab-workflow','tab-develop','tab-cloud'];
   const allowed=[...required,'tab-app-debug','tab-debug'];
   if(required.some(id=>!tabs.includes(id))||new Set(tabs).size!==tabs.length||tabs.some(id=>!allowed.includes(id)))
@@ -91,7 +94,7 @@ export async function sidebarPreviewShellSource({tool}={}){
           'aria-label':'打开 AdBlock 产品设置','aria-controls':'sidebar-tool-frame'}});
     }
     const [html,css]=await Promise.all([
-      renderSidebarReact({activeTab:'tools',debugEnabled:true,toolView}),readFile(sourceCss,'utf8')
+      renderSidebarReact({activeTab:'tools',debugEnabled:false,toolView}),readFile(sourceCss,'utf8')
     ]);
     return extractSidebarPreviewShell(html,css);
   }finally{toolView.dispose();}

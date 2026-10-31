@@ -49,8 +49,17 @@ export function httpUrl(value) {
   return url.href;
 }
 export function normalizeConfig(config = {}) {
-  fields(config, ['params', 'headers', 'timeout', 'responseType', 'withCredentials'], [], 'E_CONFIG_UNSUPPORTED');
+  fields(config, ['params', 'headers', 'timeout', 'responseType', 'withCredentials', 'transport', 'userAgent'], [], 'E_CONFIG_UNSUPPORTED');
   const out = {};
+  if (config.transport !== undefined) {
+    if (!['isolated-http','native-http'].includes(config.transport)) throw fail('E_CONFIG_UNSUPPORTED');
+    out.transport = config.transport;
+  }
+  if (config.userAgent !== undefined) {
+    if (!['isolated-http','native-http'].includes(config.transport) || typeof config.userAgent !== 'string' ||
+        !/^[\x20-\x7e]{1,512}$/.test(config.userAgent)) throw fail('E_CONFIG_UNSUPPORTED', 'Invalid isolated User-Agent');
+    out.userAgent = config.userAgent;
+  }
   if (config.params !== undefined) {
     record(config.params, 'E_CONFIG_UNSUPPORTED');
     out.params = {};
@@ -67,7 +76,9 @@ export function normalizeConfig(config = {}) {
     out.headers = {};
     for (const [name, value] of Object.entries(config.headers)) {
       if (!/^[!#$%&'*+.^_`|~0-9a-z-]+$/i.test(name) || typeof value !== 'string' || /[\r\n]/.test(value) ||
-          /^(cookie|authorization|proxy-authorization|host|origin|referer|sec-.*)$/i.test(name))
+          /^(cookie|authorization|proxy-authorization|host|origin|referer|user-agent|sec-.*)$/i.test(name) ||
+          out.transport === 'native-http' && (!/^[\x20-\x7e]*$/.test(value) || Object.hasOwn(out.headers,name.toLowerCase()) ||
+            /^(connection|keep-alive|te|trailer|upgrade|expect|accept-encoding|content-length|transfer-encoding|proxy-.*|x-opendesk-.*)$/i.test(name)))
         throw fail('E_CONFIG_UNSUPPORTED', 'Unsupported header');
       out.headers[name.toLowerCase()] = value;
     }

@@ -1,6 +1,6 @@
 // Video SVIP R0.3: fixed read-only capability, never a caller-provided script or selector.
 export const VIDEO_SVIP_ID='video-svip';
-export const VIDEO_SVIP_VERSION='0.3.0';
+export const VIDEO_SVIP_VERSION='0.3.2';
 export const VIDEO_SVIP_CAPABILITY='page.videoContext';
 export const VIDEO_SVIP_OPERATIONS=Object.freeze(['videoSVIP.inspect','videoSVIP.watch','videoSVIP.stop']);
 export const VIDEO_SVIP_WATCH_PORT='opendesk.video-svip.watch.v1';
@@ -8,15 +8,15 @@ export const VIDEO_SVIP_WATCH_PORT='opendesk.video-svip.watch.v1';
 // Production selectors are provisional until tested on live websites.
 export const VIDEO_SVIP_SITES=Object.freeze([
  {id:'tencent',name:'腾讯视频',hosts:['v.qq.com','m.v.qq.com'],paths:['/x/cover/','/x/page/','/x/m/','/play/'],
-  titles:['[data-video-title]','h1.video-title','h1'],episodes:['[data-current-episode]','[aria-current="page"]','[aria-selected="true"]','.episode-list .active']},
+  titles:['div.intro-title[title]','h2.player-play-title__title','[data-video-title]','h1.video-title','h1'],episodes:['[data-current-episode]','[aria-current="page"]','[aria-selected="true"]','.episode-list .active']},
  {id:'iqiyi',name:'爱奇艺',hosts:['iqiyi.com','iq.com'],paths:['/v_','/v/','/a_','/w_'],
   titles:['[data-video-title]','h1[data-testid="video-title"]','h1'],episodes:['[data-current-episode]','[aria-current="page"]','[aria-selected="true"]','.episode-list .active']},
  {id:'youku',name:'优酷',hosts:['youku.com'],paths:['/v_show/','/video/'],
   titles:['[data-video-title]','h1.video-title','h1'],episodes:['[data-current-episode]','[aria-current="page"]','[aria-selected="true"]','.episode-list .active']},
  {id:'mango',name:'芒果 TV',hosts:['mgtv.com'],paths:['/b/','/l/','/h/'],
   titles:['[data-video-title]','h1.video-title','h1'],episodes:['[data-current-episode]','[aria-current="page"]','[aria-selected="true"]','.episode-list .active']},
- {id:'bilibili',name:'哔哩哔哩',hosts:['bilibili.com'],paths:['/video/','/bangumi/play/'],
-  titles:['[data-video-title]','h1.video-title','h1','[class*="video-title"]'],episodes:['[data-current-episode]','[aria-current="page"]','[aria-selected="true"]','.ep-item.active']},
+ {id:'bilibili',name:'哔哩哔哩',hosts:['bilibili.com'],paths:['/video/','/bangumi/play/','/zh-Hans/bangumi/play/'],
+  titles:['a.mediainfo_mediaTitle__Zyiqh[title]','[data-video-title]','h1.video-title','h1','[class*="video-title"]'],episodes:['[data-current-episode]','[aria-current="page"]','[aria-selected="true"]','.ep-item.active']},
  {id:'youtube',name:'YouTube',hosts:['youtube.com','youtu.be'],paths:['/watch','/shorts/','/live/'],
   titles:['h1.ytd-watch-metadata','h1.ytd-video-primary-info-renderer','h1'],episodes:['[data-current-episode]','[aria-current="page"]','[aria-selected="true"]']},
  {id:'netflix',name:'Netflix',hosts:['netflix.com'],paths:['/watch/'],
@@ -32,5 +32,6 @@ export function videoSVIPSiteFor(input){
  const host=u.hostname.toLowerCase();
  return VIDEO_SVIP_SITES.find(site=>
    site.hosts.some(domain=>site.id==='fixture'?host===domain:host===domain||host.endsWith('.'+domain))&&
-   site.paths.some(prefix=>u.pathname.startsWith(prefix)))||null;
+   site.paths.some(prefix=>u.pathname.startsWith(prefix)&&
+     (prefix!=='/zh-Hans/bangumi/play/'||/^\/zh-Hans\/bangumi\/play\/ep[1-9]\d*$/.test(u.pathname))))||null;
 }

@@ -29,7 +29,12 @@ function fixture(saved=true,initialHandlers=[]){
   // Evaluate the unmodified production entry, with only its SDK boundary stubbed.
   runInNewContext(source,{document,window,OpenDeskTool:{root,request}});
   return {
-    calls,handlers,root,
+    calls,handlers,root,window,
+    on:()=>root.querySelector('#speed-shortcut-toggle').getAttribute('aria-checked'),
+    send(kind,extra={},parent=true){
+      const event=new window.Event('message');event.source=parent?window.parent:{};
+      event.data={protocol:'opendesk.video-speed.shortcut.v1',kind,...extra};window.dispatchEvent(event);
+    },
     count:op=>calls.filter(call=>call.op===op).length,
     toggle:root.querySelector('#speed-shortcut-toggle'),
     refresh:()=>root.querySelector('#speed-refresh').click(),
@@ -122,4 +127,53 @@ test('failed ON save retains the original OFF state',async()=>{
   assert.equal(f.toggle.disabled,false);
   assert.equal(f.count('videoSpeed.shortcuts.enable'),0);
   f.key('d');await flush();assert.equal(f.count('videoSpeed.set'),0);
+});
+
+test('preference OFF event supersedes stale initial load and suppresses both shortcut paths',async()=>{
+  const load=deferred(),f=fixture(true,[['storage.get',()=>load.promise]]);
+  f.send('preference',{enabled:false},false);
+  assert.equal(f.on(),'true','foreign source cannot change preference');
+  f.send('preference',{enabled:false});
+  load.resolve({value:true});await flush();
+  assert.equal(f.on(),'false');assert.equal(f.count('videoSpeed.shortcuts.enable'),0);
+  f.key('d');f.send('verified',{key:'d',result:{status:'available',speed:2}});
+  f.send('pending',{requested:3});await flush();
+  assert.equal(f.count('videoSpeed.set'),0);
+  assert.equal(f.root.querySelector('#speed-current').textContent,'1.00');
+  assert.equal(f.root.querySelector('#speed-verification').textContent,'已读回');
+});
+test('new OFF event wins over pending ON save and late enable completion',async()=>{
+  const f=fixture(false);await flush();
+  const save=deferred();f.handlers.set('storage.set',()=>save.promise);f.toggle.click();await flush();
+  f.send('preference',{enabled:false});save.resolve({});await flush();
+  assert.equal(f.on(),'false');assert.equal(f.count('videoSpeed.shortcuts.enable'),0);
+  f.send('preference',{enabled:true});await flush();
+  assert.equal(f.on(),'true');assert.equal(f.count('videoSpeed.shortcuts.enable'),1);
+  const enable=deferred();f.handlers.set('videoSpeed.shortcuts.enable',()=>enable.promise);
+  f.root.dispatchEvent(new f.window.Event('opendesk-page-changed'));await flush();
+  f.send('preference',{enabled:false});enable.resolve({enabled:true});await flush();
+  assert.equal(f.on(),'false');f.key('d');assert.equal(f.count('videoSpeed.set'),0);
+});
+for(const value of [null,'true',{},undefined])test(`malformed preference event ${JSON.stringify(value)} fails closed`,async()=>{
+  const f=fixture();await flush();f.send('preference',{enabled:value});await flush();
+  assert.equal(f.on(),'false');f.key('d');assert.equal(f.count('videoSpeed.set'),0);
+});
+
+test('own ON storage event during save still activates after the save settles',async()=>{
+  const f=fixture(false);await flush();
+  const save=deferred();f.handlers.set('storage.set',()=>save.promise);
+  f.toggle.click();await flush();f.send('preference',{enabled:true});
+  assert.equal(f.count('videoSpeed.shortcuts.enable'),0);
+  save.resolve({});await flush();
+  assert.equal(f.on(),'true');assert.equal(f.count('videoSpeed.shortcuts.enable'),1);
+});
+test('OFF during pending page shortcut releases controls for explicit fresh detection',async()=>{
+  const f=fixture();await flush();
+  f.send('pending',{requested:1.25});f.send('preference',{enabled:false});
+  f.send('verified',{key:'d',result:{status:'available',speed:1.25}});
+  assert.equal(f.root.querySelector('#speed-refresh').disabled,false);
+  assert.equal(f.root.querySelector('#speed-current').textContent,'—','in-flight effect is unknown');
+  f.refresh();await flush();
+  assert.equal(f.root.querySelector('#speed-current').textContent,'1.00');
+  assert.equal(f.on(),'false');assert.equal(f.count('videoSpeed.shortcuts.enable'),1);
 });

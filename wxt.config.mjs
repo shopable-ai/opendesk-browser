@@ -7,13 +7,14 @@ import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
 // Build and package verification share the exact fixed-entry byte budgets.
-import {FIXED_OUTPUTS, entryByteBudget} from './scripts/build-contract.mjs';
+import {FIXED_OUTPUTS,entryByteBudget} from './scripts/build-contract.mjs';
 import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication} from './scripts/wxt-development.mjs';
 import {outputGuardPort} from './scripts/development-lock.mjs';
 import {resolveMarketChannel,marketExternalConnectable} from './scripts/market-channel.mjs';
 import {resolveBrowserEdition,DEVELOPER_BROWSER_NAME} from './scripts/browser-editions-r245.mjs';
 import {createSidebarToolPackage} from './scripts/build-sidebar-tool.mjs';
 import {sidebarToolPackageHash} from './src/ui/sidebar-tools/package.js';
+import {buildOfficialTools} from './scripts/build-official-tools.mjs';
 
 const browserEdition=resolveBrowserEdition();
 const aiLocalTest=process.env.OPENDESK_BUILD_MODE==='development'&&process.env.OPENDESK_AI_LOCAL_TEST==='1';
@@ -43,6 +44,9 @@ export default defineConfig({
   vite: () => ({resolve:{dedupe:['react','react-dom']},define:{__OPENDESK_MARKET_ORIGIN__:JSON.stringify(resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||'production'}).origin),__OPENDESK_AI_LOCAL_TEST__:JSON.stringify(aiLocalTest),__OPENDESK_AI_LOCAL_PACKAGE_HASH__:JSON.stringify(aiLocalPackageHash),__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer'),__OPENDESK_TRUSTED_BOOKMARK_VERSION__:JSON.stringify(trustedBookmarkVersion)},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
     sourcemap: process.env.OPENDESK_BUILD_MODE === 'development', target: 'es2022'}}),
   hooks: {
+    // The original writer also refreshes promoted resources after config
+    // recovery; it does not reuse a stale public catalog from process startup.
+    'build:before'(wxt){if(wxt.config.command==='serve')return buildOfficialTools(wxt.config.publicDir,{root:wxt.config.root});},
     'build:publicAssets'(wxt){if(wxt.config.command==='serve')return waitDevelopmentPublication(wxt);},
     'build:manifestGenerated'(wxt,output){
       if(browserEdition==='developer')output.name=DEVELOPER_BROWSER_NAME;
@@ -114,6 +118,10 @@ export default defineConfig({
          config.define={...config.define,'process.env.NODE_ENV':JSON.stringify('production')};
       }
       if (target === 'ui/tool-shell.js') {
+         // Compile-time shared Button for audited project sources. Sandboxed
+         // packages still resolve their opt-in global in their own Vite build.
+         config.resolve={...config.resolve,alias:{...config.resolve?.alias,
+           '@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')}};
          // Keep the trusted shell compact within its mode-specific byte budget.
          const options=config.build.terserOptions;
          config.build.terserOptions={...options,

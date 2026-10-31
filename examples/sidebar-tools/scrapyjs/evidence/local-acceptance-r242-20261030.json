@@ -1,0 +1,613 @@
+{
+  "format": "scrapyjs.local-acceptance.r242.v1",
+  "date": "2026-10-30",
+  "scope": "R2.4.2 LOCAL ACCEPTANCE; HTTP kernel fixes, existing App CI and real Mac Chrome DOM; no R2.5",
+  "source": {
+    "candidateBaseCommit": "0fd942223bfe47a2a30ef144661c5df8f0ea0fd2",
+    "observedMainBeforeTaskCommit": "53ee58c64d822b8e51ec6a05c2f74fbf1a3a6e13",
+    "commitBinding": "Task commit obtained with git log -- evidence/local-acceptance-r242-20261030.json; working-input hashes below do not claim membership in candidateBaseCommit",
+    "inputs": [
+      {
+        "path": "examples/sidebar-tools/scrapyjs/adapters/static-http-trial.mjs",
+        "sha256": "14c3ee7e4eb41a09835923fbf06bdbaffb88866d294c5059742d603a54fdedd7"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/tests/static-http-trial.test.mjs",
+        "sha256": "af389a223b2d6c48e3ca98e5406e7a5d1309146d31c57dbff3fdef12141f13ab"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/tests/ci-chromium.mjs",
+        "sha256": "b5892f61a99d2ee3f93e033e3d93130f4aa9fb993e4ecaa19e11317e0849e9ef"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/tests/native-local-acceptance.mjs",
+        "sha256": "7a488938a4a023880ece7a041ee5fed4d4d1487f4cb427e22299ff51c2085b58"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/tests/static-http-chromium.mjs",
+        "sha256": "4dfb7b79c95b80da79e66e622b8ed224231bcd538ed0d57daaa03806c6738f9d"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/README.zh-CN.md",
+        "sha256": "202645373f802dd96ab9abcff49600e83e9d734eaf9ab895ca1bf36622480a36"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/docs/HTTP-ADAPTER-BOUNDARY-R2.4.1.zh-CN.md",
+        "sha256": "9993c5cbe68ec34614cd2c7bef92694cdb29b9496b473022125dd7e309468d16"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/docs/LOCAL-ACCEPTANCE-R2.4.2.zh-CN.md",
+        "sha256": "ff81ac86342e90fb48356ee0d83d5bc710bd45c76f70396ff02c99d1020111f7"
+      }
+    ],
+    "readDependencies": [
+      {
+        "path": "src/ui/react/components/ui/button.tsx",
+        "sha256": "c0ec4806a2bf6931f72ed6965fce9f0cd4b631f391ef6e34d986d0bc58a4bd47"
+      },
+      {
+        "path": "src/ui/react/components/conversation.tsx",
+        "sha256": "9766ec1b1c8d0222cba0ae0c00a501b693ee478eac3e9eed177f406eb1ebe34d"
+      },
+      {
+        "path": "src/ui/conversation/session.js",
+        "sha256": "a7dfbfddfc4d06423da19c914e0b6cac669a8151269420e51dc55f30ac79752d"
+      },
+      {
+        "path": "src/platform/chrome/network.js",
+        "sha256": "5b841a2abc84a46cbd3f995ca30b228b08eab6536b2ab68377eff84cf7c46d39"
+      },
+      {
+        "path": "src/platform/chrome/context-menus.js",
+        "sha256": "1d8ed501011b4ba012136ea38f3dd087bfa38195c5f6de0446201b4abd648177"
+      },
+      {
+        "path": "src/framework/sdk/browser-contract.js",
+        "sha256": "cce7dd2ec94db6aaee365875a97a53d433926d9776f6e2a82dff5db4265b9834"
+      },
+      {
+        "path": "src/framework/sdk/registry.js",
+        "sha256": "3fb67897d321f42a1467353b7a75c673c1e3fd910043ddf53def160dec09c1b3"
+      },
+      {
+        "path": "src/platform/host/controller-methods.js",
+        "sha256": "35de6ee9d803298d65b01d17f21d49d7b91c5e77fa36748e6781a87399917d13"
+      },
+      {
+        "path": "src/platform/storage/repository.js",
+        "sha256": "b9c86392cf906b905a352bbae9867d9bf7c31c9ebe9b2c7aef1fa4c8a3609782"
+      },
+      {
+        "path": "src/platform/tasks/contract.js",
+        "sha256": "9a41c34ad32be3613fdbf40a72ed3c6bf6c60178f6efe698aa5189b0f8245cdc"
+      },
+      {
+        "path": "src/framework/control/result-transfer.js",
+        "sha256": "f063ae23ac06c5234871380dab8c4dda6fa0ee45a42cab2ec8a01623255629a5"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/contracts/execution-v1.mjs",
+        "sha256": "16b5647ea96d85b56012a2d601829b497bf44a28bf9f89d122a8e0b077a042c2"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/contracts/execution-v1.schema.json",
+        "sha256": "b7b42b4fbc44a2e46f0f1e079c92943d64fcb6c4ed368c83358ddbcb8bbbf343"
+      },
+      {
+        "path": "examples/sidebar-tools/scrapyjs/tool.config.json",
+        "sha256": "d73877ea814241bf97ee14acd704e5898e00c9fb0d4de729ab6de21823c2c246"
+      }
+    ]
+  },
+  "dedup": {
+    "thread": "01a18c16-88ce-7ae3-ac04-d28269b63de5",
+    "reusedRepairCommit": "b7ffa039724a837bcf86ad8fe28086fbd7d0db2d",
+    "evidence": {
+      "path": "examples/sidebar-tools/scrapyjs/evidence/runtime-identity-repair-20261030.json",
+      "sha256": "46da485f3de39850978d5a0d1192ba26b92a5f5152c5cfa8b7f144d1c28a5995"
+    },
+    "noDuplicatePromotion": true
+  },
+  "historicalCI": [
+    {
+      "runId": 41042514274,
+      "status": "FAIL",
+      "passed": 189,
+      "total": 190,
+      "httpPassed": 13,
+      "error": "E_TOOL_BUILD",
+      "cause": "config1.6.3 / shipped1.3.1 mismatch",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/41042514274"
+    },
+    {
+      "runId": 41041483759,
+      "status": "FAIL",
+      "passed": 176,
+      "total": 177,
+      "error": "E_TOOL_BUILD",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/41041483759"
+    }
+  ],
+  "package": {
+    "id": "scrapyjs",
+    "version": "1.6.4",
+    "sha256": "42fdb94d777947d3e2921b045656f0278111b56e707d724a2288ce91b61d7ecb",
+    "bytes": 84235,
+    "candidate": {
+      "path": "artifacts/app-ci/scrapyjs/candidate.opendesk-tool.json",
+      "sha256": "42fdb94d777947d3e2921b045656f0278111b56e707d724a2288ce91b61d7ecb"
+    },
+    "formal": {
+      "path": "examples/sidebar-tools/scrapyjs/scrapyjs.opendesk-tool.json",
+      "sha256": "42fdb94d777947d3e2921b045656f0278111b56e707d724a2288ce91b61d7ecb"
+    },
+    "task": {
+      "path": "examples/sidebar-tools/scrapyjs/controller/scrapyjs.opendesk-task.json",
+      "sha256": "9fa0b6429e3a6422079518f046c7d08dd03108968f74302db53451cdfb1078f8"
+    },
+    "taskVersion": "0.4.1",
+    "taskSourceSha256": "94313223c8fd3ea37d5cc89d0027c6e7446fc60f4393310aab04dc588db2b08e",
+    "identityChangedThisTask": false,
+    "promotedThisTask": false
+  },
+  "checks": [
+    {
+      "command": "node --test tests/{static-http-trial,execution-v1,execution-interop,page-adapter,extraction-contract,engine}.test.mjs (paths prefixed examples/sidebar-tools/scrapyjs)",
+      "stage": "initial",
+      "passed": 62,
+      "total": 62
+    },
+    {
+      "command": "node scripts/app-ci.mjs build scrapyjs",
+      "result": "candidate bytes identical to formal1.6.4"
+    },
+    {
+      "command": "GITHUB_SHA=0fd942223bfe47a2a30ef144661c5df8f0ea0fd2 node scripts/app-ci.mjs node scrapyjs",
+      "passed": 200,
+      "total": 200,
+      "includesHTTP21": true
+    },
+    {
+      "command": "node --test examples/sidebar-tools/scrapyjs/tests/static-http-trial.test.mjs",
+      "passed": 21,
+      "total": 21
+    },
+    {
+      "command": "GITHUB_SHA=0fd942223bfe47a2a30ef144661c5df8f0ea0fd2 CHROME_BIN=<existing-CFT149> node scripts/app-ci.mjs browser scrapyjs",
+      "result": "PASS_CHROMIUM_SIMULATED_UI",
+      "passed": 4,
+      "total": 4,
+      "realSDK": false
+    },
+    {
+      "command": "node examples/sidebar-tools/scrapyjs/tests/static-http-chromium.mjs artifacts/scrapyjs/r242-local-acceptance/static-http-chromium-final",
+      "result": "PASS_CHROMIUM_PARSERS_FIXTURE_ONLY",
+      "productionHttp": false
+    },
+    {
+      "command": "Actual native driver finalizer VM fault injection",
+      "result": "PASS_DRIVER_FAULT_INJECTION_ONLY",
+      "cases": 2,
+      "productTest": false
+    }
+  ],
+  "logs": [
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/targeted-before.log",
+      "sha256": "21bd6bcf19bf60af94bf3a36806e93c9dd3ea81fe63ee1361a76658d2209e607"
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/static-http-trial-before.log",
+      "sha256": "110eff5d380ef72476d6c1411d7cc66f071379f71619921c2d540421e13185a6"
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/readback-before.log",
+      "sha256": "6cc1216522332b7a300f7fc4c1422c700c3e7f00f0493a8e51372f1f38adb821"
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/static-http-trial-final.log",
+      "sha256": "afc074475cd47fb15ec3cf0d064694786aba73dc18ed49481f9fd866b9541673"
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/app-ci-build.log",
+      "sha256": "d8e180bcdc0244527dea45f3d11b177b03d51700ee7ef0b3ae34576d27af0438"
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/app-ci-node-verified.log",
+      "sha256": "4d0e79b1f210c08f6c01b58c826e9ca0fb8ff3ffae4514db4acdb446fee4d650"
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/app-ci-browser.log",
+      "sha256": "bcbe290a8411b7b2cc87dfacc0262962f5ea9ac87ff6d66008f88efc7cbd1db3"
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/app-ci-browser-final.log",
+      "sha256": "a8611e4c6e3de9f0e46e439c3d78c065c698a1a7bb1162761dc982497c005382"
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-cleanup-fault.json",
+      "sha256": "a3cf111dc9b5535300d4af5e35b5806ba8a2e19e7b8bcb4a44430fbae7e24ef4"
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/package-diagnosis.txt",
+      "sha256": "2c443cc136b37a38eb0bd861480e91e8bc928a495fb558bb891b964b61adbae1"
+    },
+    {
+      "path": "artifacts/app-ci/scrapyjs/candidate-receipt.json",
+      "sha256": "055a1c62e772f7fd11ac252bee149da5b7cf52db9d24319b69ee02a5fdd4fa36"
+    },
+    {
+      "path": "artifacts/app-ci/scrapyjs/chrome/receipt.json",
+      "sha256": "484d6f8404cd5b13ed9d768609db1cede71347e66803b8ef4ecc73df35489282"
+    }
+  ],
+  "reports": [
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-task/report.json",
+      "sha256": "59bbdd87a393fb86766e0007dfefb10636c24eab04bf00c3c3ffa6a9afb7a53a",
+      "originalStatus": "BLOCKED",
+      "error": "import exposes frozen program hash timed out",
+      "events": [
+        "shared-services",
+        "admission-build-preflight",
+        "lifecycle-build-preflight",
+        "lifecycle-build-preflight",
+        "owned-browser",
+        "chrome-version",
+        "real-sidepanel",
+        "independent-target-oracle",
+        "user-scripts-consent",
+        "develop-navigation",
+        "initial-editor",
+        "source-file-import-failed"
+      ],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": null
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-task-valid-input/report.json",
+      "sha256": "1590199448844b2ea37584ee000b14097fbc14d5c7f66f11c35ede00af9bce7b",
+      "originalStatus": "PASS_SCOPED",
+      "error": null,
+      "events": [
+        "shared-services",
+        "admission-build-preflight",
+        "lifecycle-build-preflight",
+        "lifecycle-build-preflight",
+        "owned-browser",
+        "chrome-version",
+        "real-sidepanel",
+        "independent-target-oracle",
+        "user-scripts-consent",
+        "develop-navigation",
+        "initial-editor",
+        "source-file-import",
+        "scrapy-controller-result-terminal-ui",
+        "scrapy-controller-result",
+        "task-package-input",
+        "task-review",
+        "task-installed"
+      ],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": null
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-app/report.json",
+      "sha256": "ef25452d44617500ddaad5619952f8cfd752ab1fe6ebbfdf81191d41c334ab54",
+      "originalStatus": "FAIL",
+      "error": "clickable #config-json timed out",
+      "events": [
+        "install-review"
+      ],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": null
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-app-visible-json/report.json",
+      "sha256": "beb9bd2e1fffcadc57047913f962c9d9a3e78aa3422f20e72016820149066a9d",
+      "originalStatus": "FAIL",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [\n+     '详情 1',\n      '产品设计'\n    ],\n    [\n+     '详情 2',\n      '浏览器技术'\n    ],\n    [\n+     '详情 3',\n      '交互体验'\n    ]\n  ]\n",
+      "events": [
+        "install-review",
+        "named-save-reopen"
+      ],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": null
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-app-data-cells/report.json",
+      "sha256": "db820a163bb5cce6df1db829b75cbb4bffd39d7be51fcfe9bc479ab017f84eaa",
+      "originalStatus": "FAIL",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [\n+     '详情 1',\n      '产品设计'\n    ],\n    [\n+     '详情 2',\n      '浏览器技术'\n    ],\n    [\n+     '详情 3',\n      '交互体验'\n    ]\n  ]\n",
+      "events": [
+        "install-review",
+        "named-save-reopen"
+      ],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": null
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-app-current-table/report.json",
+      "sha256": "9e8e127da708d0add60843158493d8cfbe92336369f55dd985eb5f7cf853b98f",
+      "originalStatus": "FAIL",
+      "error": "original Stop retires timed out",
+      "events": [
+        "install-review",
+        "named-save-reopen",
+        "real-dom-result",
+        "json-download-readback",
+        "csv-download-readback",
+        "repeat-without-extra-review"
+      ],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": null
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-app-resume/report.json",
+      "sha256": "1f62e8e3f6d398458d26d8a83f3fad4f3c9dec1eaef37576df8465967b44ac78",
+      "originalStatus": "FAIL",
+      "error": "App retired timed out",
+      "events": [
+        "stop-target-running",
+        "stop-retired-readback"
+      ],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/r242-local-acceptance/native-app-current-table/report.json",
+        "sha256": "9e8e127da708d0add60843158493d8cfbe92336369f55dd985eb5f7cf853b98f",
+        "labels": [
+          "install-review",
+          "named-save-reopen",
+          "real-dom-result",
+          "json-download-readback",
+          "csv-download-readback",
+          "repeat-without-extra-review"
+        ]
+      }
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-app-finish/report.json",
+      "sha256": "22e9667acf3000cb78f3553adc8f1ccc4d39f5aff34cd9e5c5b484250815d25a",
+      "originalStatus": "FAIL",
+      "error": "clickable button[data-extension-key=\"app:scrapyjs\"][data-extension-action=\"more\"] timed out",
+      "events": [
+        "stop-retired-readback",
+        "unsaved-draft-review"
+      ],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/r242-local-acceptance/native-app-resume/report.json",
+        "sha256": "1f62e8e3f6d398458d26d8a83f3fad4f3c9dec1eaef37576df8465967b44ac78",
+        "labels": [
+          "stop-target-running",
+          "stop-retired-readback"
+        ]
+      }
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/native-app-lifecycle/report.json",
+      "sha256": "783c24460e0863763908fe6b8c6e5fe403ac2c71054814132cf225577be22202",
+      "originalStatus": "PASS_REAL_BROWSER_LOCAL_DOM_APP",
+      "error": null,
+      "events": [
+        "stop-retired-readback",
+        "unsaved-draft-review",
+        "app-menu",
+        "disabled-row",
+        "restore-preserves-configuration"
+      ],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/r242-local-acceptance/native-app-finish/report.json",
+        "sha256": "22e9667acf3000cb78f3553adc8f1ccc4d39f5aff34cd9e5c5b484250815d25a",
+        "labels": [
+          "stop-retired-readback",
+          "unsaved-draft-review"
+        ]
+      }
+    },
+    {
+      "path": "artifacts/scrapyjs/r242-local-acceptance/static-http-chromium-final/report.json",
+      "sha256": "47499440b3852a54a61e5bdd5bfb8af4b412cbda25dabc2a8af624e184816b74",
+      "originalStatus": "PASS_CHROMIUM_PARSERS_FIXTURE_ONLY",
+      "error": null,
+      "events": [],
+      "ownedBrowserReleased": true,
+      "reusedEvidence": null
+    }
+  ],
+  "native": {
+    "mode": "STATIC_DEVELOPMENT_SNAPSHOT_NO_SERVE",
+    "chrome": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "extensionId": "gflnognlhofjhjaogbobboidhmkdoghi",
+    "loadedExtension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/scrapyjs/r242-local-acceptance/native-task-valid-input/cft-9XywIm/extension",
+    "inputTreeSha256": "4e74dae760606268516df76381fc1772770e7d10ce009b0572fcefc5900aee40",
+    "headed": true,
+    "physicalMacUi": false,
+    "fixtureUrl": "http://127.0.0.1:43111/demo-form.html",
+    "fixture": {
+      "path": "examples/tasks/demo-form.html",
+      "sha256": "6be56498ee27c40fa58c1af1cee41bcbf80603b45d9136ce36f19cb2528f5d2e"
+    },
+    "install": "Original Task and App installation reviews; no new origins or permissions",
+    "expectedRecords": [
+      {
+        "title": "产品设计"
+      },
+      {
+        "title": "浏览器技术"
+      },
+      {
+        "title": "交互体验"
+      }
+    ],
+    "capture": {
+      "runId": "068d02cd-775f-4c9c-840f-8d4b40c3c711",
+      "resultId": "4e7c3956-5060-4060-97de-948083642d49",
+      "state": "completed",
+      "retirementState": "released"
+    },
+    "downloads": [
+      {
+        "label": "json-download-readback",
+        "bytes": 21385,
+        "sha256": "dac62359846f8ae8b8bf19ad6af8b74e9a562f89590a759617a42dd5c4fd6023",
+        "filename": "download.json"
+      },
+      {
+        "label": "csv-download-readback",
+        "bytes": 58,
+        "sha256": "7474b3c40f96f3fbeb49cfd7ebc5ac7cee19b8d4f9a152ee0e26695abb7c12a9",
+        "filename": "download.csv"
+      }
+    ],
+    "repeat": {
+      "runId": "fbcb8731-8d86-4004-879d-898ce4337709",
+      "requests": [
+        "currentPage.info",
+        "tasks.read",
+        "currentPage.info",
+        "tasks.start",
+        "tasks.read",
+        "tasks.read",
+        "tasks.read",
+        "tasks.read",
+        "currentPage.info",
+        "tasks.read",
+        "currentPage.info",
+        "tasks.start",
+        "tasks.read",
+        "tasks.read",
+        "tasks.read"
+      ]
+    },
+    "stop": {
+      "runId": "e0567d9c-f44e-4c00-8f4d-f2c96dd6ff29",
+      "resultId": "2bb129ba-4f3a-41eb-9c02-bb5a0a2a69ae",
+      "state": "stopped",
+      "retirementState": "released",
+      "independentlyComparedToRunning": true
+    },
+    "draftExit": "Cancel preserved App; second original Continue discarded draft",
+    "disableRestore": "Actual menu disable/readback then enable/open preserved named config and complete JSON",
+    "noEnabledHttpControl": true,
+    "lineage": "lifecycle -> finish -> resume -> current-table; SHA references checked. Original FAIL states retained, successful steps reused. Not one full uninterrupted fresh run.",
+    "allOwnedBrowsersReleased": true
+  },
+  "levels": {
+    "SOURCE_COMPLETE": "this bounded adapter fix and tooling",
+    "NODE_PASS": "App CI200/200 includes HTTP21/21",
+    "CHROMIUM_PASS": "Mock-SDK React4; actual DOMParser/JSON fixture only",
+    "REAL_BROWSER_PASS": "Real Mac CFT155 installed local DOM App only, composed SHA evidence chain",
+    "REAL_DESKTOP_HTTP_PASS": "NOT_TESTED",
+    "MAC_DESKTOP_PASS": "NOT_TESTED",
+    "PUBLIC_HTTP_PRODUCTION": "BLOCKED"
+  },
+  "blockers": [
+    "Browser fetch exposes no all-DNS-address and selected socket peer proof",
+    "No immutable Recipe/Plan/Origin/node grant for one reviewed multi-page HTTP execution",
+    "No HTTP-specific cancel-retire-persisted-result SHA independent readback chain",
+    "v1 has no browser-http or JSON mapping; installed DOM Task does not authorize AXIOS",
+    "Sidebar HTTP body8192 bytes / IPC envelope12000 bytes requires trusted bounded extraction or stored projection"
+  ],
+  "headerEvidence": {
+    "configured": "component tested",
+    "submittedToHost": "component tested",
+    "wireObserved": null,
+    "serverObserved": null
+  },
+  "notTested": [
+    "Public HTTP, actual network Headers and transport retirement",
+    "Existing Desktop9d79d3b HTTP runtime and Browser handoff",
+    "Real AI provider/draft chain; original unknown request preserved",
+    "Production build acceptance and Go Native pair",
+    "R2.5 official HTTP React position",
+    "Physical macOS UI acceptance"
+  ],
+  "independentReview": {
+    "agent": "Zeno",
+    "agentId": "01a18c91-29e6-7523-b492-31f95674dfbe",
+    "mode": "read-only, no browser/service manipulation",
+    "scope": "Complete HTTP trial readiness, separate design/implementation coverage/runtime evidence",
+    "scores": [
+      {
+        "dimension": "产品架构",
+        "design": 93,
+        "code": 84,
+        "realRuntime": 65
+      },
+      {
+        "dimension": "便利性",
+        "design": 89,
+        "code": 70,
+        "realRuntime": 75
+      },
+      {
+        "dimension": "HTTP 正确性",
+        "design": 91,
+        "code": 76,
+        "realRuntime": 40
+      },
+      {
+        "dimension": "Header 真实性",
+        "design": 94,
+        "code": 72,
+        "realRuntime": 15
+      },
+      {
+        "dimension": "安全权限",
+        "design": 97,
+        "code": 90,
+        "realRuntime": 80
+      },
+      {
+        "dimension": "代码复用",
+        "design": 97,
+        "code": 96,
+        "realRuntime": 85
+      },
+      {
+        "dimension": "维护成本",
+        "design": 93,
+        "code": 90,
+        "realRuntime": 70
+      },
+      {
+        "dimension": "测试证据",
+        "design": 91,
+        "code": 88,
+        "realRuntime": 68
+      }
+    ],
+    "arithmeticMeans": {
+      "design": 93.125,
+      "code": 83.25,
+      "realRuntime": 62.25
+    },
+    "scoreAfterCleanupFix": "Retained reviewer scores; no self-awarded increase",
+    "highReadbackIssue": "fixed and independently rechecked21/21",
+    "mediumDriverCleanup": "fixed after reviewer, two original-finalizer fault paths passed"
+  },
+  "preserved": {
+    "mainOnly": true,
+    "noBranchPRWorktree": true,
+    "noZip": true,
+    "noPlatformSourceWrites": true,
+    "noDesktopWrites": true,
+    "noProductionHttpEntry": true,
+    "originalAIRequest": "cb6d0e92-0e45-4ae0-a30c-96377d535106 remains unknown, no replay",
+    "dailyBrowserAndWatchers": "preserved; isolated owned profiles only"
+  },
+  "finalVerification": {
+    "syntax": "5 changed/new JS modules PASS",
+    "localMarkdownLinks": "PASS",
+    "allIndexedFileSha256Readbacks": "PASS",
+    "diffWhitespace": "PASS"
+  }
+}
