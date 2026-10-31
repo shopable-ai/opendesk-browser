@@ -39,7 +39,7 @@ test('one React app owns exactly one root and all controller-required nodes',()=
 test('website-first product structure reuses official Shared UI and never clones Host',()=>{
   for(const name of ['Button','IconButton','Card','CardContent'])
     assert.match(view,new RegExp('\\b'+name+'\\b'));
-  const order=['ai-vip-brand','ai-vip-sites','ai-vip-cookie-section','ai-vip-membership','ai-vip-redeem',
+  const order=['ai-vip-sites','ai-vip-cookie-section','ai-vip-membership','ai-vip-redeem',
     'ai-vip-shop','ai-vip-proxy','ai-vip-desktop-promo'];
   const indices=order.map(v=>view.indexOf(v));
   assert(indices.every((v,i)=>v>0&&(i===0||v>indices[i-1])));
@@ -72,11 +72,11 @@ test('redemption stays review-first and unresolved side effects retain journals'
 
 test('formal package references one compiled React UI and immutable business safeguards',async()=>{
   assert.equal(config.id,'ai-vip-share');
-  assert.equal(config.version,'1.4.10');
+  assert.equal(config.version,'1.4.12');
   assert.equal(config.uiRuntime,'opendesk.react-ui.v1');
   assert.deepEqual(config.files,{html:'src/index.html',css:'dist/tool.css',js:'dist/tool.js'});
   const pkg=await createSidebarToolPackage(base);
-  assert.equal(pkg.version,'1.4.10');
+  assert.equal(pkg.version,'1.4.12');
   assert.equal(pkg.html.trim(),'<div id="tool-app"></div>');
   assert.match(pkg.js,/OpenDeskPageReact/);
   assert.match(pkg.js,/OpenDeskSidebarUI/);
@@ -84,7 +84,6 @@ test('formal package references one compiled React UI and immutable business saf
   assert.match(pkg.css,/ai-vip-membership/);
   assert.match(pkg.css,/ai-vip-secondary-metrics/);
   assert.doesNotMatch(pkg.css,/\.ai-vip-benefits\{/);
-  assert.match(pkg.css,/\.ai-vip-brand/);
   assert.match(pkg.css,/\.ai-vip-desktop-promo/);
   assert.deepEqual(pkg.capabilities,config.capabilities);
   const ready=JSON.parse(await read('dist/build-ready.json'));

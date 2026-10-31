@@ -12,18 +12,6 @@ export default function VipApp({createDevelopmentControls}={}){
   },[createDevelopmentControls]);
   return (
     <main className="ai-vip" aria-label="AI VIP Share 网站快速登录、会员与网络服务">
-      <header className="ai-vip-brand" aria-label="AI VIP Share">
-        <span className="ai-vip-logo" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m12 2 8 4v5c0 5.1-3.1 8.4-8 11-4.9-2.6-8-5.9-8-11V6l8-4Z"/>
-            <path d="m12 6.8 1.35 3.7 3.75.1-3 2.4 1.05 3.55L12 14.5 8.85 16.55 9.9 13l-3-2.4 3.75-.1Z"/>
-          </svg>
-        </span>
-        <div className="ai-vip-brand-copy">
-          <strong>AI VIP Share</strong>
-          <span>网站快速登录 · 会员与网络服务</span>
-        </div>
-      </header>
       <Card id="ai-vip-sites-section" className="ai-vip-sites" aria-labelledby="ai-vip-site-title" hidden>
         <CardContent className="ai-vip-site-content">
           <div className="ai-vip-section-head">

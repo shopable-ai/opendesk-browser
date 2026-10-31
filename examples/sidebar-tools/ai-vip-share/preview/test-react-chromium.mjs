@@ -185,7 +185,7 @@ async function appearance(){
       return [...ctx.getImageData(0,0,1,1).data];};
     const luminance=c=>c.slice(0,3).map(n=>{const s=n/255;return s<=.04045?s/12.92:((s+.055)/1.055)**2.4;})
       .reduce((sum,n,i)=>sum+n*[.2126,.7152,.0722][i],0);
-    return Object.fromEntries(['.ai-vip-logo','.ai-vip-membership','.ai-vip-code-field>.od-field',
+    return Object.fromEntries(['.ai-vip-membership','.ai-vip-code-field>.od-field',
       '.ai-vip-shop-link','.ai-vip-desktop-cta','.ai-vip-proxy-toggle',
       '.ai-vip-review--warning','.ai-vip-error','.ai-vip-proxy-alert'].map(selector=>{
       const el=document.querySelector(selector),s=getComputedStyle(el),r=el.getBoundingClientRect();
@@ -445,9 +445,8 @@ async function run(){
   await wait(100);
   const baselineRect=await evaluate('('+function(){
     const shell=document.querySelector('.shell').getBoundingClientRect();
-    const brand=document.querySelector('.brand h2');
     return {x:shell.x+scrollX,y:shell.y+scrollY,width:shell.width,height:shell.height,
-      brandFont:getComputedStyle(brand).fontSize,memberRadius:getComputedStyle(document.querySelector('.membership')).borderRadius};
+      memberRadius:getComputedStyle(document.querySelector('.membership')).borderRadius};
   }.toString()+')()');
   const baselineShot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,
     clip:{x:baselineRect.x,y:baselineRect.y,width:Math.ceil(baselineRect.width),
