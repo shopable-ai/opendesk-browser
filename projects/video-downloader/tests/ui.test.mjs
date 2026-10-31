@@ -31,6 +31,16 @@ const candidate={id:'candidate',format:'hls',mode:'ready',hls:{kind:'master',aud
   {id:'high',ready:true,resolution:'1280x720',bandwidth:2149280,segments:64,encryption:'clear'},
   {id:'low',ready:true,resolution:'320x184',bandwidth:246440,segments:64,encryption:'clear'}
 ]}};
+test('opening the tool detects media and shows a download button without starting a download',async()=>{
+  const app=ui(operation=>operation==='media.detect'?{candidates:[candidate]}:{});
+  await settle();
+  assert.equal(app.find('button').length,1,'opening should reveal the available download');
+  assert.equal(app.find('button')[0].disabled,false);
+  assert.equal(app.find('select')[0].value,'low');
+  assert.deepEqual(app.calls.map(row=>row.operation),['media.detect']);
+  await app.tick();
+  assert.equal(app.calls.length,1,'discovery is a single snapshot, not background polling');
+});
 test('choose a rendition and follow a segmented task through saving without a native download ID at start',async()=>{
   const states=[{state:'segments',segmentsCompleted:3,segmentsTotal:64,bytesReceived:1000},
     {state:'remuxing',segmentsCompleted:64,segmentsTotal:64,remuxBytes:50,remuxTotalBytes:100},
@@ -38,7 +48,7 @@ test('choose a rendition and follow a segmented task through saving without a na
     {state:'complete',downloadId:7,bytesReceived:2000,totalBytes:2000,playbackVerified:false}];
   const app=ui((operation)=>operation==='media.detect'?{candidates:[candidate]}:
     operation==='media.start'?{taskId:'task',state:'segments',segmentsTotal:64}:states.shift());
-  await app.click('detect');
+  await settle();
   const select=app.find('select')[0];assert.ok(select,'rendition choice must be available');
   assert.equal(select.value,'low','default to the smallest known bitrate');
   select.value='high';await select.fire('change');
@@ -63,7 +73,7 @@ test('Stop while start is pending adopts the task receipt and cannot be overwrit
   const app=ui(operation=>operation==='media.detect'?{candidates:[candidate]}:
     operation==='media.start'?new Promise(resolve=>{resolveStart=resolve;}):
     operation==='media.stop'?{taskId:'task',state:'cancel_requested'}:{taskId:'task',state:'cancelled'});
-  await app.click('detect');await app.find('button')[0].fire('click');
+  await settle();await app.find('button')[0].fire('click');
   await app.click('stop');assert.equal(app.ids['vd-state'].textContent,'停止中');
   resolveStart({taskId:'task',state:'segments'});await settle();
   assert.equal(app.ids['vd-state'].textContent,'停止中');
@@ -77,14 +87,14 @@ test('Stop while start is pending adopts the task receipt and cannot be overwrit
 test('navigation discards a late scan and restores detection without replay',async()=>{
   let resolveScan;
   const app=ui(()=>new Promise(resolve=>{resolveScan=resolve;}));
-  await app.click('detect');await app.root.fire('opendesk-page-changed');
+  await app.root.fire('opendesk-page-changed');
   resolveScan({candidates:[candidate]});await settle();
   assert.equal(app.find('button').length,0);assert.equal(app.ids['vd-detect'].disabled,false);
   assert.equal(app.calls.length,1);
 });
 test('unknown start outcome blocks repeat downloads and leaves Stop available',async()=>{
   const app=ui(operation=>{if(operation==='media.detect')return {candidates:[candidate]};throw Error('transport disconnected');});
-  await app.click('detect');await app.find('button')[0].fire('click');
+  await settle();await app.find('button')[0].fire('click');
   assert.equal(app.ids['vd-state'].textContent,'结果未知');assert.equal(app.ids['vd-detect'].disabled,true);
   assert.equal(app.ids['vd-stop'].disabled,false);
   await app.find('button')[0].fire('click');assert.equal(app.calls.filter(x=>x.operation==='media.start').length,1);

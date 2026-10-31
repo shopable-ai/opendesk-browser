@@ -4,7 +4,7 @@
 // logs or storage. Host must still check document identity and source permission.
 export function inspectMediaSources() {
   const windowMs = 30000, sources = [], unique = new Map();
-  let blobVideos = 0, recentManifestRequests = 0;
+  let blobVideos = 0, recentManifestRequests = 0, manifestRequests = 0;
   const types = {
     m3u8: 'application/vnd.apple.mpegurl', mpd: 'application/dash+xml',
     mp4: 'video/mp4', webm: 'video/webm', m4v: 'video/x-m4v',
@@ -71,18 +71,23 @@ export function inspectMediaSources() {
     // Scan the recorded tail newest first; do not enlarge or clear the page buffer.
     for (let i = entries.length - 1, first = Math.max(0, entries.length - 256); i >= first; i--) {
       const entry = entries[i], start = entry?.startTime;
-      if (!Number.isFinite(start) || start < 0 || start > now || now - start > windowMs) continue;
+      if (!Number.isFinite(start) || start < 0 || start > now) continue;
       const url = parse(entry.name);
       if (!url) continue;
       const ext = extension(url);
       if (!ext) continue;
-      if (ext === 'm3u8' || ext === 'mpd') recentManifestRequests++;
+      const manifest = ext === 'm3u8' || ext === 'mpd', recent = now - start <= windowMs;
+      // A blob VOD normally requests its manifest only at initialization. Read
+      // older manifests still in this document's bounded tail, without watching
+      // requests or keeping URLs across snapshots. Direct files keep the window.
+      if (!recent && !(blobVideos > 0 && manifest)) continue;
+      if (manifest) { manifestRequests++; if (recent) recentManifestRequests++; }
       // A network entry cannot prove which video is playing or whether bytes are valid.
       add(url, types[ext], false, 'resource');
     }
   }
   return {sources, diagnostics: {
     blobVideos, recentManifestRequests, windowMs,
-    replaySuggested: blobVideos > 0 && recentManifestRequests === 0
+    replaySuggested: blobVideos > 0 && manifestRequests === 0
   }};
 }

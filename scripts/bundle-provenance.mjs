@@ -76,12 +76,14 @@ function reviewedCompiledVideoSVIP(target,path,root){
 // mux.js 7.1.1 subset is SRI-verified, Apache-2.0, network/eval-free, reproducible
 // from its per-input SHA receipt. No wildcard vendor admission, new executable
 // target, privilege, remote dependency or dynamic package-code interpretation.
-// Existing document/source/installation checks fence every native save.
+// Existing document/source/installation checks fence every native save. R0.3.1
+// keeps old manifest records only for a blob video in the same bounded snapshot;
+// no observers, persistent URL collection, or new executable target is admitted.
 const compiledVideoDownloaderInputs=Object.freeze({
-  'projects/video-downloader/trusted/policy.js':'29329c79661eaec895e04407d88c7b84e129db2d',
+  'projects/video-downloader/trusted/policy.js':'22ff60adeb2746b0c2b3a7621323c78d7321a6c7',
   'projects/video-downloader/trusted/hls.js':'e3eaebc20fc3dffb0884ef14d2f61164e7099ea0',
   'projects/video-downloader/trusted/stream.js':'3707eff88789e6a93f9603400937e4dcaee78719',
-  'projects/video-downloader/trusted/discovery.js':'c6a5c4761233645a3232a80978e6fc9c4d7805a1',
+  'projects/video-downloader/trusted/discovery.js':'43c79f8d502fd3d2697f4486ba9cc328653b82d6',
   'projects/video-downloader/trusted/host.js':'bd527e971c757ec79855bfd98ab7e35e55150279',
   'projects/video-downloader/trusted/admission.js':'c04dc51bc1bd3eecc3265743b9fe49e676a3fbd6',
   'projects/video-downloader/trusted/remux.js':'bf099118512fc86923c94bea222f155ebe4a7a63',

@@ -1,10 +1,10 @@
-# 视频下载 · Video Downloader R0.3.0（默认 MP4）
+# 视频下载 · Video Downloader R0.3.1（默认 MP4）
 
 唯一业务目录：`projects/video-downloader/`。UI 源为 `src/index.html`、`src/style.css`、`src/main.js`，通过原 `OpenDeskTool.request` 调用固定可信 Host。`trusted/` 由已有 Side Panel Host 静态编译，八个来源文件按精确 Git blob 审查（包含固定转封装库子集）；普通导入包不能携带或替换这些特权代码。
 
 ## 当前用户操作
 
-在有权保存视频的普通 HTTP(S) 网页中播放视频，打开 OpenDesk「扩展 → 视频下载」，点击「检测」。工具读取当前已授权文档中的 `<video>` / `<source>`，并在一次检测中读取最近 30 秒资源记录末尾最多 256 条明确媒体 URL；最多返回 48 个去重候选。临时 blob 播放器的 VOD 清单可能只在初始化时请求；若已超出最近 30 秒窗口，请重新加载播放器后立即检测。没有后台监听、全站抓包、播放器改写或持久化媒体 URL。
+在有权保存视频的普通 HTTP(S) 网页中播放视频，打开 OpenDesk「扩展 → 视频下载」，工具自动检测一次，展示清晰度和「下载」按钮；保存仍须用户点击。若先打开工具再开始播放，或切换网页，点击「检测」刷新候选。工具读取当前已授权文档中的 `<video>` / `<source>`，并在一次检测中读取资源记录末尾最多 256 条明确媒体 URL；最多返回 48 个去重候选。普通媒体请求限最近 30 秒；当前文档存在 blob 视频时，也读取该有界记录中更早的 HLS/DASH 清单，避免初始化清单超过 30 秒后无法发现。没有后台监听、全站抓包、播放器改写或持久化媒体 URL。
 
 - 同源直接 MP4/WebM 经文档、工具身份、网站权限复查后交给 Chrome 下载。
 - HLS master 展示真实清晰度、码率和分段数，默认选择最低已知码率的可用档。只有已获源站 Chrome 权限、完整、非加密且当前封装受支持的 VOD 可下载。跨源 HLS 的每个清单、初始化段和分段都分别校验来源与权限；不自动申请扩权。
@@ -14,7 +14,21 @@
 
 清单最多 256 KiB，单段最多 8 MiB，总读取最多 128 MiB、2048 段、30 分钟；并发 3，每次读取超时 15 秒。请求不携带 Cookie、不发送引用页信息、拒绝重定向，失败不自动重试。拒绝私网/本地 URL、加密/DRM、直播、缺失分段、分离外部音轨及当前不支持的清单特性。DASH 合并与 YouTube 只读结构诊断延期；不提供未经授权的 YouTube 下载。
 
-## 0.3.0 自动 MP4 实现与本轮验证
+## 0.3.1 侧栏下载按钮修复（2026-10-31）
+
+真实 hls.js Big Buck Bunny 页面复现：播放器已加载 10:34 影片，右侧「视频下载」点击检测仍没有候选和下载按钮。原固定发现快照把初始化清单按 30 秒窗口过滤；另一个可发现性缺口是打开工具后必须再手动检测。
+
+本版打开 UI 自动检测一次、不自动下载、不轮询；blob 视频在当前文档尾部 256 条资源记录中保留的旧清单可被发现。普通直接文件保持原时间窗，非法时间/URL、候选上限、文档/来源权限、安装准入和未知保存防重放不变。修复使用原项目 UI 与固定 `trusted/discovery.js`，不增加网页悬浮层、后台监听或通用 Host API。正式包及对应 Browser 固定代码需要配套更新，本地导入同 ID JSON 不能取得官方准入。
+
+唯一正式 UI 包 `0.3.1`，13,213 字节，SHA-256 `c56acd7ed951ac57548b2e871d356beef82dc5c62778f93821f1b9f178548e56`。原打包器候选校验、测试后晋升及 `--check-project` 同源检查通过，权限仍为 `page.mediaDownload`；包已准备，不表示当前 Chrome 已安装新版。
+
+UI、发现、Host 核心与精确来源定向检查 52 项通过；新增用例先复现打开后无按钮、旧 blob 清单丢失，再验证修复及尾部扫描限制。**0.3.1 当前核心操作已在原普通 Chrome 通过**：用户明确允许恢复开发更新后，复用原 `dist/development` 与唯一 `npm run dev`，经原官方审阅从 0.3.0 更新到 0.3.1，权限未变。未刷新原 hls.js demo，打开工具自动检测到 3 个 HLS 候选；主清单显示真实 `320×184 / 246 kbps / 64 段` 与可点击下载按钮。
+
+实际点击该主清单下载按钮，观察分段进度 `0/64 → 37/64` 和「Chrome 下载完成」，本次新保存 `/Users/mac/Downloads/opendesk-video-1793434651617.mp4`，**19,914,926 字节**。独立文件回读确认真实 ISO BMFF MP4、`ftyp/moov/moof/mdat`、H.264 `avc1` 视频与 AAC `mp4a` 音轨；SHA-256 `30d38f0eed9f9dcc6a13c76691f56bb0615d467b1225d815970f40a607d74c6b`，与下方历史完整解码及 QuickTime 验证过的 MP4 逐字节一致。瞬时 MP4 封装/保存 UI 未单独捕获，不据此虚报阶段截图；不重复历史全长解码/播放。新文件经下载前文件基线排除了旧文件，不是手工复制或转封装。
+
+本次 Browser 编译 revision `cc24806c341794e9f5edeaa9f9495deac73e2ffd9888754dd9d6b70d609edb0e`，原输出 writer PID `73839`，43119/43120 实际监听；磁盘固定 Host sourcemap 的 discovery 与项目源码逐字节一致，官方 Catalog 和 UI 包同为上述 0.3.1。Chrome 管理页加载路径/真实 ID 未独立核实，不以磁盘产物替代该项。原共享 AI 的 unknown 与禁止重放仍保留，不将本次已获授权的更新写成该 AI 已退休。当前证据为 `artifacts/video-downloader/ui-core/current-entry-01a190d5.json` 与 `current-new-mp4-01a190d5.json`；来源分层与早先失败见 [`video-downloader-sidebar-20261031.md`](../../docs/framework/workstreams/video-downloader-sidebar-20261031.md)。此为当前日常 Chrome 核心通过，production/CWS、全站兼容及完整矩阵仍未测。
+
+## 0.3.0 自动 MP4 实现与历史验证
 
 原入口仍是「扩展 → 视频下载 → 检测 → 下载」；真实消费者 `trusted/host.js` 沿原 `downloadHlsVod` → Blob → Chrome 保存。新增纯字节处理 `trusted/remux.js`，只静态进入原固定 Side Panel Host，不新增 Host、Worker、Native 服务、任意 URL SDK 或网站权限。按 TS 顺序保留 H.264/AAC 码流：空初始化 sample table 的 movie/track/media duration 为零，完整时长写入 `mvex/mehd`，防止 QuickTime 累加为双倍。音视频描述在同一 fragment 内，AAC 初始化、采样时钟与每段时间值一致；主清单的 `CODECS` 传入显式 HE-AAC/SBR 配置。未知低采样率 AAC 缺少主清单声明时拒绝，避免凭采样率猜测 SBR。只接受单 H.264 视频与至多一条 ADTS AAC，未知 PMT 编码、额外媒体轨道或不支持配置拒绝，不静默丢轨。
 
@@ -27,7 +41,7 @@ npm pack mux.js@7.1.1 --ignore-scripts --pack-destination artifacts/video-downlo
 node projects/video-downloader/scripts/build-remux-vendor.mjs artifacts/video-downloader/tooling/mux.js-7.1.1.tgz --check
 ```
 
-当前正式 UI 包 `0.3.0`，13,150 字节，SHA-256 `4b57c39c5dbe5c3bb2693760959d090c83ff0f30a376a8372738457a6514852a`。原候选 → 受影响门禁 → `--promote-from` → `--check-project` 已通过。47 项定向检查覆盖真实 TS→MP4、HE-AAC 配置/有限时长、网络顺序、封装中 Stop/导航/安装撤权/来源权限撤销、unknown/迟到 ID 和八个精确来源 pin。不是 Chrome 安装或播放证据。
+当时正式 UI 包 `0.3.0`，13,150 字节，SHA-256 `4b57c39c5dbe5c3bb2693760959d090c83ff0f30a376a8372738457a6514852a`。原候选 → 受影响门禁 → `--promote-from` → `--check-project` 已通过。47 项定向检查覆盖真实 TS→MP4、HE-AAC 配置/有限时长、网络顺序、封装中 Stop/导航/安装撤权/来源权限撤销、unknown/迟到 ID 和八个精确来源 pin。不是 Chrome 安装或播放证据。
 
 本轮真实结果：沿原官方审阅从 `0.2.1` 更新到 `0.3.0`，权限未变化。公共 hls.js 播放器选择 Big Buck Bunny，检测后在主清单候选看到默认最低 `320×184 / 246 kbps / 64 段`；点击下载，界面实际经过「下载分段 → 正在封装 MP4 → Chrome 下载完成」。新文件为：
 
@@ -39,7 +53,7 @@ node projects/video-downloader/scripts/build-remux-vendor.mjs artifacts/video-do
 
 真实 Browser 是固定 `dist/development` 的已加载候选，revision `a0ebb4a637379cd7ebd7da017db73c1612f4f3e88e4e41f45747c97a70a7132f`。八个可信源码与该实际产物 sourcemap 输入逐字节一致，131 个指纹文件零漂移；Host 698,166 字节，低于既有 1 MiB 上限。Chrome 管理页实际加载路径仍未独立核实，不能以指纹代替该项。正式包与 Browser 固定代码分别核对，普通本地项目仍不能冒充官方安装身份。
 
-**开发服务当前冻结**：新 Node writer `25735`（原路径、无第二 writer）在 `2026-10-31 04:13:45 CST` 以 `SIGSTOP` 暂停，保留锁和当前 `a0ebb4a63737` 产物。原因是先前业务源码保存确实触发 WXT 自动重载，而另一原 AI 请求跨 Host 回执仍未知；不能假定普通安全客户端挡住了这些重载。冻结后完成最终 pin/源码保存，不再触发发布；Chrome、Go/Native、Cookie Relay/TLS/DB 与原 AI 请求未被停止/清理/重放。恢复 writer、重新构建或重载须先由原请求所属工作流完成生命周期对账或合法安全退休，不能另启第二 writer 绕锁。这不是该 AI 已完成/已退休或所有重载边界已释放的声明。
+**开发服务冻结的历史记录**：新 Node writer `25735`（原路径、无第二 writer）在 `2026-10-31 04:13:45 CST` 以 `SIGSTOP` 暂停，保留锁和当时的 `a0ebb4a63737` 产物；后续接续实查该进程已不存在，详见上方当前状态。冻结原因是先前业务源码保存确实触发 WXT 自动重载，而另一原 AI 请求跨 Host 回执仍未知；不能假定普通安全客户端挡住了这些重载。冻结后完成最终 pin/源码保存，不再触发发布；Chrome、Go/Native、Cookie Relay/TLS/DB 与原 AI 请求未被停止/清理/重放。恢复 writer、重新构建或重载须先由原请求所属工作流完成生命周期对账或合法安全退休，不能另启第二 writer 绕锁。这不是该 AI 已完成/已退休或所有重载边界已释放的声明。
 
 完整原始记录仍是 `artifacts/video-downloader/ui-core/progress.json` 的 `mp4Delivery`、原交接末尾、`mp4-final-file.json`、`mp4-final-ui-terminal-ax.json`、`mp4-final-decode-comparison.json`、`mp4-final-after-drag.png` 与播放器回读。生产/CWS、DASH/YouTube、评分、宽度/缩放及强制 Chrome 迟到回包继续延期。
 
@@ -78,7 +92,7 @@ node projects/video-downloader/scripts/build-remux-vendor.mjs artifacts/video-do
 
 ## 当前限制与后续完善
 
-发现只读取最近 30 秒、末尾最多 256 条资源记录。长时间运行的 blob VOD 播放器可能已没有最近清单请求，需要重新加载后检测；并非任意网站抓包下载器。Chrome 内置直接 HLS 媒体文档实测无法确认活动主文档，普通播放器网页可以；未为此绕过文档身份要求。
+发现只读取当前文档末尾最多 256 条资源记录。0.3.1 允许 blob 视频复用该窗口中超过 30 秒的清单；记录已被网页缓冲区淘汰时仍可能无法发现，需要重新加载播放器后检测；并非任意网站抓包下载器。Chrome 内置直接 HLS 媒体文档实测无法确认活动主文档，普通播放器网页可以；未为此绕过文档身份要求。
 
 `0.2.1` 修复了终态顶部旧提示，并在重新检测、换页时清空旧任务详情与进度；空检测改为提示长时间播放后需重载播放器再立即检测。现有 UI 状态测试先复现完成/取消的旧提示，再验证修复，unknown 仍阻止重试。更高码率可能触发原单段/总量上限，拒绝时不生成不完整文件。不将这些边界或未测项写成全站、全部格式及正式发布通过。
 

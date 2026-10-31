@@ -195,6 +195,40 @@ test('only finite request start times within the last 30 seconds are accepted', 
   assert.equal(result.diagnostics.recentManifestRequests, 2);
 });
 
+test('retains old manifest records for a loaded blob video without retaining old direct files', () => {
+  const result = inspect({
+    now: 600000,
+    videos: [media({currentSrc: 'blob:https://page.example/player', paused: true})],
+    entries: [
+      resource('https://cdn.example/master.m3u8?sig=temporary', 1),
+      resource('https://cdn.example/media.mpd', 2),
+      resource('https://cdn.example/old.mp4', 3),
+      resource('https://cdn.example/future.m3u8', 600001),
+      resource('https://cdn.example/invalid.m3u8', NaN)
+    ]
+  });
+  assert.deepEqual(result.sources.map(row => row.url), [
+    'https://cdn.example/media.mpd', 'https://cdn.example/master.m3u8?sig=temporary'
+  ]);
+  assert.equal(result.diagnostics.recentManifestRequests, 0);
+  assert.equal(result.diagnostics.replaySuggested, false);
+  assert.deepEqual(inspect({now: 600000, entries: [
+    resource('https://cdn.example/master.m3u8', 1)
+  ]}).sources, [], 'a page without a blob video keeps the original time window');
+});
+
+test('retained blob manifests still use the same bounded tail and never survive the document snapshot', () => {
+  const videos = [media({currentSrc: 'blob:https://page.example/player'})];
+  const result = inspect({now: 600000, videos, entries: [
+    resource('https://cdn.example/outside-tail.m3u8', 1),
+    ...Array.from({length: 255}, (_, i) => resource(`https://cdn.example/noise-${i}.js`, 2)),
+    resource('https://cdn.example/inside-tail.m3u8', 3)
+  ]});
+  assert.deepEqual(result.sources.map(row => row.url), ['https://cdn.example/inside-tail.m3u8']);
+  assert.deepEqual(inspect({videos}).sources, []);
+  assert.equal(inspect({videos}).diagnostics.replaySuggested, true);
+});
+
 test('only the last 256 resource records are inspected, including non-media records', () => {
   const ignored = {get startTime() { assert.fail('must not inspect records before the tail'); }};
   const result = inspect({entries: [
@@ -241,11 +275,11 @@ test('manifest request counts include repeated requests but candidate URLs are u
   assert.equal(result.diagnostics.recentManifestRequests, 3);
 });
 
-test('blob diagnostics are redacted and suggest replay only when no recent manifest is visible', () => {
+test('blob diagnostics are redacted and suggest replay only when no manifest is visible', () => {
   const videos = [media({currentSrc: 'blob:https://page.example/private-id',
     src: 'blob:https://page.example/private-id'})];
   const result = inspect({videos, entries: [
-    resource('https://cdn.example/stale.m3u8?secret=old', 1),
+    resource('https://cdn.example/stale-segment.ts?secret=old', 1),
     resource('https://cdn.example/direct.mp4?secret=temporary')
   ]});
   assert.deepEqual(result.diagnostics, {blobVideos: 1, recentManifestRequests: 0,

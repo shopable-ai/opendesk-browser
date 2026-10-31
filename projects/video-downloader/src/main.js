@@ -74,7 +74,7 @@ function describe(item){
 }
 function showCandidates(items){
  list.replaceChildren();controls=[];
- if(!items.length){list.textContent='未检测到可识别的视频源；若视频已播放较久，请重新加载播放器网页后立即检测。部分临时地址或加密视频暂不支持。';return;}
+ if(!items.length){list.textContent='未检测到可识别的视频源。请先播放视频，再点「检测」。部分临时地址或加密视频暂不支持。';return;}
  items.forEach((item,index)=>{
   const row=document.createElement('div');row.className='vd-item';
   const info=document.createElement('div');info.className='vd-item-info';
@@ -149,4 +149,6 @@ stop.addEventListener('click',()=>void stopDownload());
 root.addEventListener('opendesk-page-changed',()=>{++scanEpoch;resetJob();scanning=false;controls=[];
  list.replaceChildren();refreshControls();message('网页已切换，旧媒体候选及任务已失效。');});
 window.addEventListener('pagehide',()=>{closed=true;++scanEpoch;++jobEpoch;clearPoll();},{once:true});
+// Opening the installed UI is enough to reveal candidates; saving still needs a click.
+void scan();
 })();
