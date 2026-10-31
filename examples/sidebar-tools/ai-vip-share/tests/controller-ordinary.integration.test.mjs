@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import {createOrdinarySiteFixture} from '../dev/local-test/ordinary-site-fixture.mjs';
 import {runtime,deferred,profile,released,EXTENSION_ORIGIN} from './helpers/controller-fixture.mjs';
+import {readCookieJournal} from '../src/cookie-journal.js';
 
 const KEY='aiVipCookieDeliveryR137';
 const origins=['http://localhost:7901','http://127.0.0.1:7902'];
@@ -18,19 +19,28 @@ function request(args){
   });
 }
 async function setup(t,options={}){
-  const fixtures=[],grants=[];
+  const fixtures=[],grants=[],transportOrigins=[];
   for(const [index,host] of ['localhost','127.0.0.1'].entries()){
-    const fixture=createOrdinarySiteFixture({host,port:7901+index,extensionOrigin:EXTENSION_ORIGIN,
+    const fixture=createOrdinarySiteFixture({host,port:0,extensionOrigin:EXTENSION_ORIGIN,
       ...(options.sameDelivery?{fixedDeliveryId:'same-delivery-id-across-origins'}:{})});
     fixtures.push(fixture);t.after(()=>fixture.close());
-    await fixture.listen();grants.push(fixture.authorize({subjectId:'controlled-subject'}));
+    const declaration=await fixture.listen();transportOrigins.push(declaration.source.serviceOrigin);
+    grants.push(fixture.authorize({subjectId:'controlled-subject'}));
   }
   const trace=[];
   const ordinaryNetwork=async args=>{
     assert.match(args.config.headers['X-Ordinary-Session-Credential'],/^Bearer [A-Za-z0-9_-]+$/);
     assert(!Object.keys(args.config.headers).some(key=>key.toLowerCase()==='authorization'));
     trace.push(args.method+' '+args.url);
-    const response=await request(args);
+    // Physical HTTP ports are private and ephemeral, so this test cannot take
+    // over a native experiment's fixed origins. Only this test transport maps
+    // its own fixture declarations to the controller's approved logical origins.
+    const index=origins.indexOf(new URL(args.url).origin);
+    assert.notEqual(index,-1);
+    const toTransport=value=>JSON.parse(JSON.stringify(value).replaceAll(origins[index],transportOrigins[index]));
+    const response=await request({...args,url:args.url.replace(origins[index],transportOrigins[index]),
+      ...(args.data===undefined?{}:{data:toTransport(args.data)})});
+    response.data=JSON.parse(JSON.stringify(response.data).replaceAll(transportOrigins[index],origins[index]));
     return options.response?options.response(args,response):response;
   };
   const e=await runtime({...options,ordinaryNetwork});
@@ -47,8 +57,8 @@ async function setup(t,options={}){
   };
   return {e,fixtures,grants,trace,select,acquire,wait};
 }
-function attempts(e){
-  const journal=e.store.get(KEY);
+async function attempts(e){
+  const {value:journal}=await readCookieJournal(async()=>({value:e.store.get(KEY),etag:'a'.repeat(64)}));
   assert.equal(journal.schemaVersion,2);
   assert.deepEqual(journal.legacy,{record:null,attribution:null});
   return journal.attempts;
@@ -64,7 +74,7 @@ test('ordinary credentials -> authorization GET -> session POST -> original-key 
   await e.click('cookie-install');await h.wait(()=>e.cookieCalls.length===1&&!e.get('site-select').disabled);
   assert.equal(trace.at(-1),'GET '+origins[0]+'/api/authorization');
   assert.equal(e.cookieCalls[0].url,origins[0]+'/session/');
-  const rows=attempts(e);assert.equal(rows.length,1);assert.equal(rows[0].state,'success');
+  const rows=await attempts(e);assert.equal(rows.length,1);assert.equal(rows[0].state,'success');
   assert.equal(rows[0].results.length,2);assert(rows[0].results.every(row=>row.saved&&row.verified));
   const writes=e.storageCalls.filter(row=>row.operation==='storage.set'&&row.key===KEY);
   assert.deepEqual(writes.map(row=>row.value.attempts.length),[0,1,1]);
@@ -91,7 +101,7 @@ test('A-B-A selection invalidates the first A late session response',async t=>{
   assert.equal(e.store.has(KEY),false);
   await h.acquire(0);await h.wait(()=>!e.get('cookie-install').hidden);
   await e.click('cookie-install');await h.wait(()=>e.cookieCalls.length===1&&!e.get('site-select').disabled);
-  assert.equal(attempts(e).length,1);
+  assert.equal((await attempts(e)).length,1);
 });
 
 test('revoked ordinary authorization at confirmation prevents CAS and SDK writes',async t=>{
@@ -110,7 +120,7 @@ test('both ordinary Hosts use the same handler without conflating identical deli
     await e.click('cookie-install');
     await h.wait(()=>e.cookieCalls.length===index+1&&!e.get('site-select').disabled);
   }
-  const rows=attempts(e);assert.equal(rows.length,2);
+  const rows=await attempts(e);assert.equal(rows.length,2);
   assert.equal(rows[0].deliveryId,rows[1].deliveryId);assert.notEqual(rows[0].scopeKey,rows[1].scopeKey);
   assert.deepEqual(rows.map(row=>row.state),['success','success']);
   assert.deepEqual(e.cookieCalls.map(row=>row.url),origins.map(origin=>origin+'/session/'));
@@ -125,27 +135,27 @@ test('profile revocation after marker saves notInvoked and permits fresh acquisi
   await h.acquire(0);await h.wait(()=>!e.get('cookie-install').hidden);
   await e.click('cookie-install');await h.wait(()=>e.store.get(KEY)?.attempts?.[0]?.resolution==='not-submitted'&&!e.toolStates.at(-1)?.busy);
   assert.equal(e.get('sites-section').hidden,true);
-  assert.equal(e.cookieCalls.length,0);assert.equal(attempts(e)[0].resolution,'not-submitted');
-  assert.equal(attempts(e)[0].state,'failed');
+  assert.equal(e.cookieCalls.length,0);assert.equal((await attempts(e))[0].resolution,'not-submitted');
+  assert.equal((await attempts(e))[0].state,'failed');
   assert.doesNotMatch(e.get('site-status').textContent,/已设置/);
   e.setStatus({...released,developmentProfile:profile});await e.click('proxy-refresh');
   await h.acquire(0);await h.wait(()=>!e.get('cookie-install').hidden);
   await e.click('cookie-install');await h.wait(()=>e.cookieCalls.length===1&&!e.get('site-select').disabled);
-  assert.deepEqual(attempts(e).map(row=>row.state),['failed','success']);
+  assert.deepEqual((await attempts(e)).map(row=>row.state),['failed','success']);
 });
 
 test('ambiguous SDK result locks both ordinary Hosts and survives controller reopen',async t=>{
   const h=await setup(t,{cookieSetMany:async()=>{throw Object.assign(Error('dispatched then closed'),{code:'E_CANCELLED'});}}),{e}=h;
   await h.acquire(0);await h.wait(()=>!e.get('cookie-install').hidden);
   await e.click('cookie-install');await h.wait(()=>e.cookieCalls.length===1&&!e.get('site-select').disabled);
-  assert.equal(attempts(e)[0].state,'unknown');assert.equal(attempts(e)[0].resolution,'pending');
+  assert.equal((await attempts(e))[0].state,'unknown');assert.equal((await attempts(e))[0].resolution,'pending');
   assert.doesNotMatch(e.get('site-status').textContent,/已设置/);
   const before=h.trace.length;await h.acquire(1);assert.equal(h.trace.length,before);
   assert.equal(e.get('site-receive').disabled,true);assert.equal(e.cookieCalls.length,1);
   const reopened=await runtime({store:e.store});
   await reopened.chooseSite('ordinary-1');
   assert.equal(reopened.get('site-receive').disabled,true);assert.equal(reopened.cookieCalls.length,0);
-  assert.equal(attempts(reopened)[0].state,'unknown');
+  assert.equal((await attempts(reopened))[0].state,'unknown');
 });
 
 test('trusted pre-dispatch cancellation requires a fresh manual confirmation, never an automatic retry',async t=>{
@@ -157,9 +167,9 @@ test('trusted pre-dispatch cancellation requires a fresh manual confirmation, ne
   }}),{e}=h;
   await h.acquire(0);await h.wait(()=>!e.get('cookie-install').hidden);
   await e.click('cookie-install');await h.wait(()=>e.cookieCalls.length===1&&!e.get('site-select').disabled);
-  assert.equal(attempts(e)[0].state,'failed');assert.equal(attempts(e)[0].resolution,'not-submitted');
+  assert.equal((await attempts(e))[0].state,'failed');assert.equal((await attempts(e))[0].resolution,'not-submitted');
   await e.flush();assert.equal(e.cookieCalls.length,1);assert.equal(e.get('cookie-install').disabled,false);
   cancel=false;await e.click('cookie-install',false);assert.equal(e.cookieCalls.length,1);
   await e.click('cookie-install');await h.wait(()=>e.cookieCalls.length===2&&!e.get('site-select').disabled);
-  assert.deepEqual(attempts(e).map(row=>row.state),['failed','success']);
+  assert.deepEqual((await attempts(e)).map(row=>row.state),['failed','success']);
 });

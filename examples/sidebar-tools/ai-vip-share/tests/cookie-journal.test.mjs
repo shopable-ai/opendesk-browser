@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {COOKIE_JOURNAL_KEY,planCookieJournalMigration,validateMigratedCookieJournal,
   legacyCookieBarrier,migrateCookieJournal,planCookieAttempt,planCookieReceipt,
-  reserveCookieAttempt,saveCookieReceipt,cookieAttemptConflicts} from '../src/cookie-journal.js';
+  reserveCookieAttempt,saveCookieReceipt,cookieAttemptConflicts,readCookieJournal} from '../src/cookie-journal.js';
 
 const clone=v=>structuredClone(v);
 const legacy=overrides=>({schemaVersion:1,deliveryId:'delivery',attemptId:'attempt',accountId:'account',
@@ -116,7 +116,8 @@ test('migration storage failure, readback loss and concurrent modification never
     const s=storage(legacy(),options);
     await assert.rejects(migrateCookieJournal(s.request,[mapping]));
     assert.ok(s.writes<=1);
-    assert.ok(['unknown','partial'].includes(s.value.schemaVersion===2?s.value.legacy.record.state:s.value.state));
+    const logical=(await readCookieJournal(storage(s.value).request)).value;
+    assert.ok(['unknown','partial'].includes(logical.schemaVersion===2?logical.legacy.record.state:logical.state));
     if(options.concurrent)assert.equal(s.value.attemptId,'other-instance');
     if(options.failRead===1||options.preview)assert.equal(s.writes,0);
   }
@@ -271,12 +272,13 @@ test('two instances racing through the same CAS key confirm at most one marker',
   const a=attempt(),b=attempt('b.example.test');
   const results=await Promise.allSettled([reserveCookieAttempt(s.request,a),reserveCookieAttempt(s.request,b)]);
   assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
-  assert.equal(s.value.attempts.length,1);
-  assert.equal(s.value.attempts[0].resolution,'pending');
-  const winner=s.value.attempts[0];
+  const logical=(await readCookieJournal(s.request)).value;
+  assert.equal(logical.attempts.length,1);
+  assert.equal(logical.attempts[0].resolution,'pending');
+  const winner=logical.attempts[0];
   const after=await saveCookieReceipt(s.request,ref(winner),saved());
   assert.equal(after.value.attempts[0].state,'success');
-  const reopened=validateMigratedCookieJournal(s.value);
+  const reopened=(await readCookieJournal(s.request)).value;
   assert.deepEqual(reopened,after.value);
 });
 test('even identical concurrent intent objects receive unique reservation owners and only one confirms',async()=>{
@@ -284,8 +286,9 @@ test('even identical concurrent intent objects receive unique reservation owners
   const results=await Promise.allSettled([reserveCookieAttempt(s.request,a),reserveCookieAttempt(s.request,a)]);
   const winners=results.filter(r=>r.status==='fulfilled');
   assert.equal(winners.length,1);
-  assert.notEqual(s.value.attempts[0].attemptId,a.attemptId);
-  assert.deepEqual(winners[0].value.reference,ref(s.value.attempts[0]));
+  const logical=(await readCookieJournal(s.request)).value;
+  assert.notEqual(logical.attempts[0].attemptId,a.attemptId);
+  assert.deepEqual(winners[0].value.reference,ref(logical.attempts[0]));
   const before=clone(s.value);
   await assert.rejects(reserveCookieAttempt(s.request,a),{code:'E_COOKIE_UNRESOLVED'});
   assert.deepEqual(s.value,before);

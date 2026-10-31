@@ -262,7 +262,7 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
       '上次会话写入结果仍需人工核对；已停止取得会话，不会自动重放。':
       sharedBusy?'正在取得服务器分配账号的会话…':sharedNotice||
       (selection?'服务器已分配 '+selection.label+'；尚未写入目标网站。':'当前没有服务器分配的账号。');
-    if(cookieBusy)refresh.disabled=true;
+    refresh.disabled=!endpoints||busy||cookieBusy||sharedBusy;
   }
   async function requestSharedSession(){
     if(websiteController?.isOrdinarySelected())return;
@@ -520,6 +520,7 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
           if(delivery.kind==='ordinary')websiteController.completed(delivery);
           cookiePending=null;
           cookieFault=cookieFault||(started?'Cookie 写入结果未知，已禁止重放；请在目标页面人工核对。':
+            error?.code==='E_COOKIE_LIMIT'?'恢复记录容量不足，未提交Cookie；原记录已保留':
             error?.code==='E_COOKIE_SCOPE'?
               '当前主机已有不同范围的网站会话，本次交付不能完整替换，未写入 Cookie。请使用独立的浏览器配置处理此会话。':
             'Cookie 未提交：交付已变化、恢复记录锁定或存储无法核对。请核对后重新取得有效交付。');
@@ -903,7 +904,8 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
       redeemNotice('当前账号与未确认兑换归属不同。请切回原账号核对，不会继承权益。',true);
     else if(!busy&&!recovery&&!recoveryFault){
       if(account.state==='guest')redeemNotice('登录并绑定账号后可使用兑换码。');
-      else if(memberVerifiedFresh&&/服务未配置|服务尚未接入|服务接入后|核验中|会员无法核验|兑换已暂停/.test(redeemStatus.textContent))
+      else if(memberVerifiedFresh&&(/服务未配置|服务尚未接入|服务接入后|核验中|会员无法核验|兑换已暂停/.test(redeemStatus.textContent)||
+        redeemStatus.textContent==='服务端已确认兑换成功，但权益刷新失败；请稍后刷新查看最新数据。'))
         redeemNotice('输入兑换码并预检，确认后再领取。');
     }
     renderRedeem();
