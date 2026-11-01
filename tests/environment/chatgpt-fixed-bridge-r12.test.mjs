@@ -451,8 +451,40 @@ function hostHarness({override={},readReply=null}={}){
     readReply:readReply||(async()=>{
       await override.onReadReply?.();
       return {turnKey:'turn-1',answerKey:'answer-1:0',blocks:[candidateText]};})});
-  return {bridge,events,sender,message,fx,api,installed,catalog,resolved};
+  return {bridge,events,sender,message,fx,api,installed,catalog,resolved,host,client};
 }
+for(const outcome of ['success','target-receipt-lost','source-receipt-lost','unknown-run'])
+test('bridge focus lifecycle preserves single-run delivery: '+outcome,async()=>{
+  const h=hostHarness(),order=[];
+  const target={tabId:42,frameId:0,documentId:'owned-document',mode:'owned',
+    allowedOrigin:'https://httpbingo.org',targetSessionId:'owned-session',targetVersion:1};
+  let running=false;
+  const event={addListener(){},removeListener(){}};
+  Object.assign(h.api.tabs,{onRemoved:event,onDetached:event,onReplaced:event,
+    get:async id=>id===42?{id,url:'https://httpbingo.org/html',incognito:false,windowId:2}:
+      {...h.sender.tab},
+    update:async(id,options)=>{assert.deepEqual(options,{active:true});order.push(id);
+      if(id===42)Object.defineProperty(h.host,'completion',{get:()=>Promise.resolve({runId:'unrelated-next-run'})});
+      if(outcome==='target-receipt-lost'&&id===42||outcome==='source-receipt-lost'&&id===source.tabId)throw new Error('activation receipt lost');
+      return {...await h.api.tabs.get(id),active:true};}});
+  Object.assign(h.api.webNavigation,{onBeforeNavigate:event,onCommitted:event,onHistoryStateUpdated:event,onReferenceFragmentUpdated:event,
+    getAllFrames:async()=>[{frameId:0,documentId:target.documentId,
+      url:'https://httpbingo.org/html',documentLifecycle:'active'}]});
+  // The claim is running while observed, then settles when completion is awaited.
+  h.host.start=async()=>{h.events.start++;running=true;return {runId:h.fx.runId};};
+  Object.defineProperty(h.host,'currentRun',{get:()=>running?h.fx.runId:null});
+  Object.defineProperty(h.host,'completion',{get:()=>({then(resolve){running=false;resolve({
+    runId:h.fx.runId,state:outcome==='unknown-run'?'paused_unknown':'completed',retirement:{state:'released'},
+    result:{resultId:h.fx.snapshot.run.resultId}});}})});
+  h.client.controller.snapshotControllerRun=async()=>running?
+    {run:{runId:h.fx.runId,state:'running',target}}:h.fx.snapshot;
+  const send=h.api.tabs.sendMessage;
+  h.api.tabs.sendMessage=async(...args)=>{if(args[1].kind==='deliver')order.push('deliver');return send(...args);};
+  if(outcome==='unknown-run')await assert.rejects(h.bridge.handle(h.message,h.sender),{code:'E_BRIDGE_RUN_UNKNOWN'});
+  else assert.equal((await h.bridge.handle(h.message,h.sender)).sent,true);
+  assert.deepEqual(order,outcome==='unknown-run'?[42,source.tabId]:[42,source.tabId,'deliver']);
+  assert.equal(h.events.start,1);assert.equal(h.events.send,outcome==='unknown-run'?0:1);
+});
 test('trusted Side Panel uses one Foundation-owned target and one read-back verified chat send',async()=>{
   const h=hostHarness();
   const receipt=await h.bridge.handle(h.message,h.sender);
