@@ -410,6 +410,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if(mode==='prepare'){
       delegationHash(request.paramsDigest);
       selection(request.target);
+      invariant(request.target.mode==='borrowed','E_PERMISSION',
+        'Delegated J06 operation requires a previously captured exact page');
       invariant(Number.isSafeInteger(request.deadlineAt)&&request.deadlineAt>now()&&
         request.deadlineAt<=now()+3600000,CONTROLLER_TIMEOUT_ERROR);
     }
@@ -655,7 +657,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await assertTaskDelegationApp(api,request.taskDelegation);
     }
     if(request.taskDelegationStep){
-      invariant(request.taskDelegation&&!request.cloudRequestId&&!request.scheduledFireId,'E_PERMISSION');
+      invariant(request.taskDelegation&&!request.cloudRequestId&&!request.scheduledFireId&&
+        request.target.mode==='borrowed','E_PERMISSION');
       fields(request.taskDelegationStep,['clientRequestId','operationRef'],
         ['clientRequestId','operationRef']);
       delegationId(request.taskDelegationStep.clientRequestId);
