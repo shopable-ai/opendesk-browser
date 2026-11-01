@@ -1,6 +1,6 @@
 # Web Flow 应用
 
-WebFlow 是 OpenDesk Browser 上的应用业务，负责 AI 会话交接、工作流队列和业务证据回传。Browser 框架继续负责公开 SDK、Authority、RunHost、安装、权限与 Durable Result；百度/Google 搜索属于各自已安装 Controller Task。本文是应用源码入口，唯一产品合同仍为 [AI Workflow Bridge](../../docs/product/ai-workflow-bridge.zh-CN.md)，执行记录沿用 [Web Flow 工作记录](../../docs/framework/workstreams/web-flow-20261101.md)。
+WebFlow 是 OpenDesk Browser 上的应用业务，负责 AI 会话交接、工作流队列和业务证据回传。Browser 框架继续负责公开 SDK、Authority、RunHost、安装、权限与 Durable Result；百度/Google 搜索属于各自已安装 Controller Task。本文是应用源码入口，唯一产品合同仍为 [AI Workflow Bridge](product-contract.zh-CN.md)，执行记录沿用 [Web Flow 工作记录](execution-plan.zh-CN.md)。
 
 ## 归属与当前增量
 
@@ -31,8 +31,8 @@ WebFlow 是 OpenDesk Browser 上的应用业务，负责 AI 会话交接、工�
 检查命令：
 
 ```sh
-node --test projects/web-flow/tests/handoff-contract.test.mjs
-node --check projects/web-flow/src/handoff-contract.js
+node --test projects/webflow/tests/handoff-contract.test.mjs
+node --check projects/webflow/src/handoff-contract.js
 ```
 
 当前为 `SOURCE_IMPLEMENTED / COMPONENT_TESTED`：先运行测试观察模块缺失的 RED，随后实现并得到 120/120 PASS；模块语法检查通过。数据模块未导入正在运行的 Bridge，没有 UI、真实发送或队列接线，P1 纵向闭环和长期任务仍未完成；本轮不需要 Browser 构建/安装/原生验收，不提交推送发布。
@@ -43,7 +43,7 @@ node --check projects/web-flow/src/handoff-contract.js
 
 ## 第二单元：单 owner 队列状态与恢复
 
-复核结论：交接校验保持纯函数和项目内测试，不改它来伪造派发；幂等键需要状态记录才能阻止重复领取。公开 [Controller AppStorage](../../docs/api/controller.zh-CN.md#已安装-task-的存储与调用) 仅有 getItem/setItem/removeItem/clear，没有跨宿主 CAS。下列实现只支持调用方保证独占的单 owner；本地 busy/陈旧写检测不等于分布式锁。
+复核结论：交接校验保持纯函数和项目内测试，不改它来伪造派发；幂等键需要状态记录才能阻止重复领取。公开 [Controller AppStorage](../../../docs/api/controller.zh-CN.md#已安装-task-的存储与调用) 仅有 getItem/setItem/removeItem/clear，没有跨宿主 CAS。下列实现只支持调用方保证独占的单 owner；本地 busy/陈旧写检测不等于分布式锁。
 
 - `src/queue/state.js`：纯状态转换与有界事件日志，单工作流最多两项、64 个事件。`createQueueJournal({workflowId,ownerId,now})` 创建；`appendQueueEvent(journal,event,scope)` 校验并追加；`replayQueueJournal(journal,scope)` 仅重建数据，不重跑网页动作。
 - `src/queue/repository.js`：`createSingleOwnerQueue({storage,key,workflowId,ownerId,scope,clock})`，只注入公开 getItem/setItem。`load()` 读取并恢复；`apply(event)` 保存后读回确认才返回状态；`snapshot()` 区分最后确认状态与存储 UNKNOWN。工厂本身不访问存储，未接实际用户库。
@@ -61,9 +61,9 @@ node --check projects/web-flow/src/handoff-contract.js
 - [x] 跑本项目两个测试文件、语法与 diff；无浏览器/真实派发或根构建。
 
 ```sh
-node --test projects/web-flow/tests/*.test.mjs
-node --check projects/web-flow/src/queue/state.js
-node --check projects/web-flow/src/queue/repository.js
+node --test projects/webflow/tests/*.test.mjs
+node --check projects/webflow/src/queue/state.js
+node --check projects/webflow/src/queue/repository.js
 ```
 
 
@@ -75,4 +75,4 @@ node --check projects/web-flow/src/queue/repository.js
 
 ## 现在可以从 ChatGPT 提示词启动队列吗？
 +
-+还不可以。本目录尚无正式安装/界面、原聊天触发适配器或真实派发，纯交接/队列模块不能被一段聊天提示词直接触发。当前可手测的是[已安装单任务入口](../../examples/tasks/README.zh-CN.md)，完整提示词、实际安装身份和预批准步骤由 P0 owner 在 dev 复测后更新；旧已消费 candidate/许可不可重用。下一次队列集成仅允许明确两步与停止条件，不能把模型自由续答当无限循环。
++还不可以。本目录尚无正式安装/界面、原聊天触发适配器或真实派发，纯交接/队列模块不能被一段聊天提示词直接触发。当前可手测的是[已安装单任务入口](../../../examples/tasks/README.zh-CN.md)，完整提示词、实际安装身份和预批准步骤由 P0 owner 在 dev 复测后更新；旧已消费 candidate/许可不可重用。下一次队列集成仅允许明确两步与停止条件，不能把模型自由续答当无限循环。

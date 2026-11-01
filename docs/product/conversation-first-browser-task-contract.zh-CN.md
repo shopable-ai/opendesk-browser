@@ -1,6 +1,6 @@
 # OpenDesk 对话执行与工作流保存合同
 
-> **文档范围**：本文面向 OpenDesk 的本地 Codex 对话执行与按需保存工作流；[AI Workflow Bridge 长期产品目标](ai-workflow-bridge.zh-CN.md)面向官方 ChatGPT 网页的自动任务监听、可信执行回传及未来跨对话/跨站/持久调度。两者复用相同可信执行边界，但**不能把某一入口的历史成功当成另一入口已验收**。
+> **文档范围**：本文面向 OpenDesk 的本地 Codex 对话执行与按需保存工作流；[AI Workflow Bridge 长期产品目标](../../projects/webflow/docs/product-contract.zh-CN.md)面向官方 ChatGPT 网页的自动任务监听、可信执行回传及未来跨对话/跨站/持久调度。两者复用相同可信执行边界，但**不能把某一入口的历史成功当成另一入口已验收**。
 
 更新：2026-10-13。依据用户在本次对话中的明确纠正。
 

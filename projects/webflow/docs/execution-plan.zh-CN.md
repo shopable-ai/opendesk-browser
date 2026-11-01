@@ -1,0 +1,493 @@
+# Web Flow / AI Workflow Bridge · 连续任务执行计划
+
+> **固定检索词：`OD-AI-WORKFLOW-BRIDGE`。** 本文件是 Web Flow 的唯一进度与执行入口，后续新对话从本文件恢复，不再按对话创建平行总计划。
+>
+> **当前项目入口：** [projects/webflow/README.md](../README.md)。2026-11-01 按用户要求将 Web Flow 归为独立业务扩展应用，完整产品合同与本执行记录迁入项目 `docs/`；旧路径仅保留跳转。目录调整记录见第 8 节，原始源码审计及验收边界保留。
+>
+> **状态：方案与源码核对；产品新增能力 `NOT_TESTED`。** 本轮只维护方案文档，没有执行真实浏览器动作、提交 AI 消息、启动任务队列或安装/发布扩展。
+>
+> **执行者：** 实施时按仓库现行 `.agents/workflows/extension-creation.md` 和对应 owner Skill 逐任务推进；可用时采用 `superpowers:subagent-driven-development` 或 `superpowers:executing-plans`。同一文件及公共合同只有一个写入 owner，只读复核可以并行。
+
+**目标：** 用户把研究/开发任务交给 OpenDesk 后，可以依次完成搜索、AI 输入输出、当前或新对话交接、仓库核验及有边界的连续执行；数日后能够找到并恢复准确断点。
+
+**架构：** `projects/webflow/` 拥有新增 Web Flow 业务；OpenDesk Browser 提供通用框架，复用原 AI Send Queue、Task Catalog、Authority、RunHost、Controller、Page Session 和 Durable Result。各网站动作独立准入，外层交接引用持久结果；队列恢复扩展原持久化体系，不新增第二套运行器、权限或任务数据库。
+
+**技术栈：** 现有 WXT/Vite、JavaScript、Chrome MV3、原 Task/Workflow 合同、原持久存储与调度；本轮不新增依赖。
+
+**依据：** [唯一长期产品合同](product-contract.zh-CN.md)，特别是 BR-01–BR-12 和第 8–10 节；根 [AGENTS.md](../../../AGENTS.md) 与[目录归属合同](../../../docs/architecture/extension-project-layout.zh-CN.md)。
+
+## 1. 首次方案核对记录与全局约束
+
+| 项目 | 本轮核对结果 |
+| --- | --- |
+| 日期 | 2026-11-01，Asia/Shanghai |
+| 仓库及默认分支 | `shopable-ai/opendesk-browser` / `main`，由 GitHub 仓库元数据核实 |
+| 审计基线 | `151ebed67db293cd7ee4e1c9d2cc423c584fa059`；核心源文件按此 commit 复读 |
+| 连接权限 | GitHub 元数据返回 `pull:true`、`push:true`；这证明连接能力，不代表产品中的目标对话已绑定仓库 |
+| 本轮文档 owner | 当前方案会话 `/root`；源码审计和可靠性审查只读并行 |
+| 首次方案写入范围（历史） | `docs/product/ai-workflow-bridge.zh-CN.md`、`docs/framework/workstreams/web-flow-20261101.md` |
+| 原计划状态 | 审计开始时远端 `main` 的本文件路径返回 404；无法据此判断用户旧 Mac 工作区是否已有未提交版本。集成前如目标文件出现，先比较并协调，不覆盖 |
+| 本地执行环境 | 没有访问用户 Mac 工作区、已登录 Chrome/Profile、既有 watcher 或原始 artifacts；未建立可运行的本地完整 checkout |
+| 浏览器/构建资源 | 本轮不占用端口、Profile、dist、watcher、测试服务器或原生 UI |
+| 代码与原生 owner | 尚未在本轮绑定；后续执行者须先登记其准确文件与共享资源范围 |
+
+上述现场属于首次方案提交 `c0d2b4998c1ce8202019ccce3b31603ec1a60f47`；本次目录调整的写入范围见第 8 节，后续以最新实际记录为准。
+
+写入前复核目标文件 blob 与最新 main。主分支已有无关变化时保留并继续；相关文件变化则重新读取合并。提交限定当前登记路径，不包含其他 owner 的源码，不创建分支/worktree/PR，不强推。
+
+### 全局约束
+
+- 原五字段 `opendesk.task.intent.v1` 不变；现有 Workflow v1 单站范围不变。
+- Page、Sidebar、Controller 的安装与权限身份分别保留；一个产品入口不合并授权。
+- 新增 Web Flow 应用业务、专属测试与文档归 `projects/webflow/`；框架只承接通用能力，目录与包身份不会授予权限。
+- 现有 AI Send Queue 的业务目录为 `examples/sidebar-tools/ai-send-queue/`；不迁回旧目录、不创建同名副本。Sidebar 当前只提供提示，不恢复旧消息列表。
+- 方案中的状态/接口是设计责任，不可当作已有公开 API；平台修改必须先证明公共 SDK 缺口。
+- 不自动重放 UNKNOWN 的点击、提交或结果发送；取消不能撤销已发生的副作用。
+- `SOURCE_IMPLEMENTED`、组件验证、真实 Chrome 验收、业务通过和正式发行分别记账。
+- 按实际变化做最小相关验证；纯文档检查不启动产品构建、全仓测试或浏览器。正式发行、多 Profile 与全量压力验证留在原后续阶段。
+
+### 优先复核的五类问题
+
+1. 网站已收到消息但回执丢失：由任务 4/7 验证先对账，不自动补发。
+2. 长回复、代码/引用/附件不完整：由任务 3 验证完整性状态与受控原文可读性。
+3. 新对话能看见仓库名却没有仓库执行能力：由任务 5 验证真实绑定，不信任文字 ACK。
+4. 刷新、Worker 重建或浏览器重启后旧 owner 仍回调：由任务 7 验证代次与持久状态。
+5. 有草稿/附件/IME、用户切换对话或取消：由任务 2/4/6 的实际适配行为验证，不覆盖人工输入、不串聊天。
+
+## 2. 已有能力与真实缺口
+
+这里的“源码已见”仅表示读取了对应实现；没有在本轮运行它。
+
+| 用户操作 | 已有实现/历史依据 | 当前缺口与证据等级 |
+| --- | --- | --- |
+| 同一 ChatGPT 页顺序发送消息 | [队列 README](../../../examples/sidebar-tools/ai-send-queue/README.zh-CN.md)、`src/page/main.js`、`engine.js`、`site.js`；诊断明确 `memory-only`。README 记录 Page `0.1.13/r13` 的 2026-10-29 两条 FIFO 实测 | 原始证据本机未取得；只有历史文档记录。单页内存队列不是刷新/跨日恢复 |
+| A→新对话 B 的固定计算接力 | [计算接力 README](../../../examples/tasks/chatgpt-relay-calculator-r1.README.zh-CN.md) 和同目录 `.js`；Controller + 公开 AppStorage 保存两轮 prompt/answer/result/conversation 及副作用前检查点 | `SOURCE_IMPLEMENTED / CHROME_NOT_TESTED`；固定 active key、未完成记录报 `E_RELAY_RECONCILE`，无续跑或多任务档案。假 Page 测试没有执行真实 DOM；textarea 分支的 value setter / synthetic InputEvent 与现行输入约束需先对齐；New chat 后 document/route 变化未实测 |
+| 固定协议触发已安装 Task 并回原聊天 | `src/native-agent/chatgpt-fixed-bridge-host.js`、`chatgpt-bridge-trigger-gate.js`、`chatgpt-bridge-site.js`；已有持久防重放与最终发送前复核 | 当前目标为已打开的 ChatGPT `/c/...` 原会话；新对话、Gemini 及目标仓库绑定没有取得本轮实现证据 |
+| 本机可见搜索动作 | [Task README](../../../examples/tasks/README.zh-CN.md)、`visible-search-navigation.js` / `.opendesk-task.json`；有历史手动/自动及原聊天续答记录 | 原始本机证据未在本轮取得；只属于 `workflow.visible-search` 测试网页，不代表百度/Google 真实业务通过 |
+| 百度前三条读取 | `examples/tasks/baidu-search-top3.js` 与对应任务包；[旧百度 MVP](../../../docs/framework/workstreams/ai-chat-bridge-r20-baidu-mvp.zh-CN.md) 直接进入 `/s?wd=` 后读取 | 尚需独立证明真实输入、搜索提交、导航和回传；不能用直接导航读取冒充输入点击验收 |
+| 完整 AI 输出 | `workspace-chatgpt.js` 已有完成轮次/固定代码块检查；原回传有持久结果 | 尚非通用完整正文/引用/附件导出；Host 通用 JSON 上限 7000 bytes、最终消息 8192 bytes；超限拒绝，不能用 preview 代替原文 |
+| 本地 AI 会话/工作流保存 | `src/ui/workflow/workflow-view.js`、`local-codex.js`；草稿 session、冻结定义 local、部分会话状态内存 | 恢复本窗口 planner 不等于恢复网页 AI 多步工作；`src/ui/conversation/session.js` 展示内容也有截短 |
+| 持久调度基础 | `src/platform/storage/idb.js`；`src/platform/tasks/schedule-repository.js`、`schedule-service.js`；原 frameworkKV、原子 admission、WAITING_HOST/UNKNOWN 对账 | 可复用底座存在；Web Flow 多步 job、完整交接及运行时检索仍需消费者合同与验证 |
+| 多网站动作 | `src/framework/workflow/contract.js` | 现有 v1 单 `siteOrigin`、1–32 步，明确拒绝跨 origin navigate；不能放宽旧合同来接 Gemini |
+| 仓库绑定 | 本次 GitHub 读取已核实仓库、分支和基线 | 产品 request 中的 script/hash/installation 身份不是 Git 仓库绑定；需单独证明目标环境可读/可写/可执行 |
+
+公开能力预检入口为 [Page USER_SCRIPT](../../../docs/api/page-userscript.zh-CN.md)、[Sidebar Tool API](../../../docs/api/sidebar-tools.zh-CN.md) 与 [Controller 运行时变量](../../../docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md)。计算接力已经使用公开 Controller `AppStorage`，应先核对其配额、授权、任务隔离、生命周期及跨 document 交接；不能把 Sidebar 的配额直接套给它。Sidebar 普通存储和可选 App Service 已有能力边界；App Service 首版后台只开放其存储及只读 capabilities，不能由此假定具备任意网页任务运行权。当前结论是“已发现可复用组件、公共缺口尚需证明”，不是批准修改整个 `src/`。
+
+## 3. 五个可独立验收的交付阶段
+
+保留原 P0–P4 的产品含义。下列是本次执行顺序；原 P4 多 Profile 继续延期，不因本次讨论自动进入实施。
+
+| 执行阶段 | 对应需求/原阶段 | 交付物与退出条件 | 依赖 |
+| --- | --- | --- | --- |
+| A. 固定入口与契约 | BR-06/08/11/12 设计；不提前声称 P3 | 本合同、本记录、源码 owner、交接/结果/恢复语义和首项操作明确；可以仅靠固定关键词找回 | 仓库事实核对 |
+| B. 一次真实搜索到 AI 续答 | BR-01–05，P0 | 百度与 Google 搜索分别完成输入、提交、导航、读取、持久结果、原聊天单次入站及对应 AI 续答。阻塞分别记录 | A；已安装任务/合法网站授权 |
+| C. ChatGPT 当前/新对话接力 | BR-06/10/11，P1 | A→B→A 的单次完整交接；B 原文可读、仓库/执行能力实证，下一任务产生可核对结果 | B；完整结果与交接合同 |
+| D. Gemini 输入输出与跨站接力 | BR-07/10，P2 | ChatGPT→Gemini→指定目标的两站链；每站独立授权，正确回复完整落盘，无串线 | C；Gemini 单站适配 |
+| E. 持久队列与跨日恢复 | BR-08/12，P3 | 三步有依赖任务，受控中断后保留结果，重新核验环境，继续首项未完成步骤；按关键词找回。实际跨日证据单列 | C；含 Gemini 的用例再依赖 D |
+
+持久 ID、完整结果和检查点的数据约束在 A 阶段先确定，避免后续重写；P3 完整调度与重启验证在 E 阶段实现。单次功能修复遵守“当前操作→具体失败→最小修复→对应验证”，不反复重写路线。
+
+网站阻塞按依赖处理：百度或 Google 某一站因实际访问条件受阻时，保留该站 `BLOCKED`，不得宣称两站全过；已取得合法输入且没有这项依赖的完整回复/交接任务可以继续，不把单站阻塞扩大成全线停工。
+
+## 4. 关键执行任务
+
+任务编号 `AWB-*` 仅用于工程追踪，不是已安装 Task ID，也不能送入五字段任务协议。
+
+### AWB-01 · 复用入口与执行合同
+
+**涉及文件：** 本文件、产品合同、项目 README/AGENTS；只读 `examples/sidebar-tools/ai-send-queue/README.zh-CN.md`、公开 Page/Sidebar API、当前执行/存储模块。**依赖：** 无。
+
+**接口责任：** 固定完整输出、交接、仓库证据和队列记录的字段语义；源码 API 名称由消费者与 owner 在同一合同内确定，不从文档凭空调用。
+
+- [x] 核实默认分支、源码基线、当前队列 owner 与基本限制。
+- [x] 对齐新增 BR-10–12，保留原 BR-01–09/P0–P4。
+- [x] 固定本记录、检索词、下一步与阶段证据等级。
+- [ ] 实施前通过公开 SDK 做最小能力探测：Controller AppStorage、Page 到可信持久状态、完整产物读写、已安装 Task 准入、目标对话创建/核验。失败须保留真实接口与返回，先标 `SDK_GAP_NOT_PROVEN`；证明通用缺口后再交平台 owner。
+- [ ] 核实旧 Mac 工作区是否有未提交同名计划及其他 owner 正在编辑的相关文件；只处理实际重叠项。
+
+**通过条件：** 下一执行者能定位唯一 owner 和当前未完成操作，知道已有能力与缺口。**证据：** commit/blob、读取结果、公开接口实际探测回执。**停止条件：** 有冲突的公共契约或无法核实的写入 owner，仅暂停受影响部分。
+
+### AWB-02 · 百度与 Google 的真实动作闭环
+
+**涉及文件：** 原 `examples/tasks/baidu-search-top3.js` 及同名任务包；`examples/tasks/README.zh-CN.md`；原 Bridge 文件仅在真实失败指向它时修改。Google 任务先发现现有 owner；若没有可复用任务，Web Flow 专属 Controller 源码与业务测试归 `projects/webflow/`，按项目 README 的 `src/tasks/` 归属约定建立，沿用原 Controller 候选/安装合同并单独审阅身份与网站。现有示例留原 owner，不把新增 Web Flow 业务写回 `examples/tasks/`。**依赖：** AWB-01。
+
+**接口责任：** 继续消费固定五字段和现有 task schema；输出原 Durable Result 与输入/提交/导航/结果可核对证据，不扩大宿主特例。
+
+- [ ] 在现有本机开发环境先跑最短百度真实输入→提交→原聊天链；失败在哪一步才修哪里。Google 单独记录。
+- [ ] 源码缺口确认为“只导航读取”时，在原任务 owner 补真实输入和提交；固定新源码/版本，按原候选与安装流程处理，不篡改已冻结安装。
+- [ ] 核对预批准后无额外“采用/执行”点击；“查看执行页面”只是观察。
+- [ ] 保存关键词、前后 URL、动作顺序、同轮截图/页面证据、run/result、原聊天用户消息和对应 AI 回复。
+
+**通过条件：** 两站分别有真实业务证据；验证码/网络受限如实阻塞，不靠后台 HTTP 替代所需网页动作。**停止条件：** UNKNOWN、登录/验证码、权限或安装身份不匹配。原 `workflow.visible-search` Demo 只复用作机制证据。
+
+### AWB-03 · 完整 AI 回复持久化
+
+**涉及文件：** 先复用 `examples/sidebar-tools/ai-send-queue/src/page/site.js` 和 `src/native-agent/workspace-chatgpt.js` 的对应轮次判断；完整产物通过既有 Durable Result/存储 owner；`chatgpt-fixed-bridge-host.js` 的小消息合同保持显式边界。**依赖：** AWB-01；可与 AWB-02 的独立任务文件并行。
+
+**接口责任：** 产出 `artifactRef`、来源/轮次、byteLength、hash、completeness、citationRefs、attachmentRefs；摘要独立。字段为设计合同，实际实现前在唯一 owner 内定稿。
+
+- [ ] 选择一条含长正文、代码、引用的自有测试回复，建立“对应轮次+站点终态+稳定内容”的完成判断；无法读取附件明确 PARTIAL。
+- [ ] 完整原文持久化并读回核验，界面摘要不影响原文；超过 7000/8192 bytes 时使用受控原文引用或已批准分段能力，不截断成成功。
+- [ ] 目标环境实际读取原文并核对 hash；没有可读通道则保持阻塞，不能只交本机路径。
+- [ ] 定向验证中断流、超限与旧轮次，复用现有行为测试而非复制版本号测试。
+
+**通过条件：** 完整性可核查，超限仍保留原文；传输/存储缺能力时留下具体缺口。**停止条件：** 捕获未完成、来源不明、内容变更或存储回执未知。
+
+### AWB-04 · 当前对话/指定对话结果交付
+
+**涉及文件：** `src/native-agent/chatgpt-bridge-site.js`、`chatgpt-fixed-bridge-host.js`、`chatgpt-bridge-trigger-gate.js` 的既有交付职责；队列侧复用 `src/page/engine.js`，不并建发送引擎。**依赖：** AWB-03；原聊天验证复用 AWB-02。
+
+**接口责任：** 输入已持久化 artifact 与明确 destination；输出绑定目标 conversation/message 的交付回执，状态与来源任务完成分离。
+
+- [ ] 发送前持久化意图、目标、内容 hash 和发送前会话位置。
+- [ ] 重新核验草稿、附件、IME、原页面身份与取消状态，然后只提交一次。
+- [ ] 核对新增用户消息，再观察对应 AI 回复；发送未知先只读对账，不用相同提示词 hash 冒充唯一回执。
+- [ ] 向错目标/切换后的 document 发送、已有草稿、消息已入站但回执丢失三种直接风险分别验证。
+
+**通过条件：** 结果准确进入指定当前/已有对话且有证据；未知状态不会自动重复。**停止条件：** 身份歧义、草稿冲突、UNKNOWN 或撤权。
+
+### AWB-05 · 新对话交接与 GitHub 环境核验
+
+**涉及文件：** 先核对 `examples/tasks/chatgpt-relay-calculator-r1.js`、同名 README 与 `tests/environment/chatgpt-relay-calculator-r1.test.mjs`；再核对原 Bridge 与当前 `src/ui/workflow/local-codex.js` 的真实消费边界。独立版本化 handoff 合同由同一 owner 协调。不得把 planner 内存恢复冒充新的后台执行环境。**依赖：** AWB-03/04。
+
+**接口责任：** `opendesk.workflow.handoff.v1` 提供目标/证据/下一步与 repo checkpoint；目标接收回执必须链接实际资料读取、目标消息和可信仓库核验。
+
+- [ ] 先对齐计算接力样例与当前原生输入合同，核实 New chat 的 document/route 转换；该样例内生成的 runId 是相关性 nonce，不替代外层 Controller 的真实 run/result。保留原单记录 UNKNOWN 不重放保护，不直接删除旧 active key 后重跑。
+- [ ] 优先定位明确目标 B；确需新建时验证其真实 conversationId，不能只停在首页草稿。
+- [ ] 交付最小上下文与原文引用，不复制整段历史。
+- [ ] 用实际文件/仓库元数据/受控环境回执核实 repo、分支、commit 与所需工具；若需代码执行，再核验 checkout、相关 dirty 文件和动作授权。
+- [ ] B 完成一项有验收条件的任务，输出可复核证据；回到 A 或指定后续任务并单次交付。
+- [ ] 验证仓库读权限存在但写/执行能力不存在、仓库/分支不符、原文不可读时均明确停下；模型 ACK 不提升为已绑定。
+- [ ] 移交成功后旧 owner 不再派发该任务，未完成移交时不伪报已迁移或已完成。
+
+**通过条件：** A→B→A 的原文、任务和证据连贯，B 的实际能力符合所需动作。**停止条件：** 目标无法可靠创建/定位、仓库或工具绑定未知；不静默换任务目标。
+
+### AWB-06 · Gemini 单站适配与跨站组合
+
+**涉及文件：** 先发现现有 Gemini owner；本次审计相关 Bridge/entrypoint 未取得实现证据。站点特定业务留相应适配器/任务 owner，框架只承接经证明的通用缺口。**依赖：** AWB-03/04/05。
+
+**接口责任：** 使用与 ChatGPT 相同的交接/完整输出语义，保留 Gemini 独立的 origin、会话与站点终态识别；不复用 ChatGPT selector 或授权。
+
+- [ ] 在用户已授权的 Gemini 账号中完成一次实际输入、单次提交、对应回复、完整结果读取。
+- [ ] 将 ChatGPT 的已选择结果交给 Gemini，再把 Gemini 的确定结果送至指定目标。
+- [ ] 验证登录失效/限流、未完成回复、多个候选输入框与来源身份变化；只有直接受影响用例进入本次验证。
+
+**通过条件：** Google 搜索与 Gemini 分别验收，每次跨站数据交接都有允许范围和真实交付证据。**停止条件：** 站点 DOM 歧义、必要权限缺失或外部结果中的指令试图改变任务。
+
+### AWB-07 · 持久队列、取消及恢复
+
+**涉及文件：** Web Flow 的多步任务模型、编排与恢复业务及专属测试归 `projects/webflow/`；`examples/sidebar-tools/ai-send-queue/` 继续负责其现有网页发送队列，通过已审阅公开边界协作。底座优先复用 `src/platform/tasks/schedule-repository.js`、`schedule-service.js`、`src/platform/storage/idb.js` 的原事务/准入模式。只有 AWB-01 证明缺口后才确定最小平台写入。**依赖：** AWB-04/05；Gemini 恢复另依赖 AWB-06。
+
+**接口责任：** 单一持久 job 关联 workflow/step/attempt、输入结果、依赖、owner 代次、取消和 UNKNOWN；Queue UI 为投影，不保存第二份权威状态。
+
+- [ ] 先做三步顺序任务、并发 1；每条已批准计划明示步骤数、截止、重试和交接上限，不接受无限默认值。
+- [ ] 准入前持久化，结果提交后再放行依赖；旧 owner 回调不推动新 owner 的任务。
+- [ ] 刷新页面、Worker 重建、浏览器重启后从确定检查点恢复；失效 tab/document 重新绑定，短期批准不延长。
+- [ ] 发送已生效但 ACK 丢失只对账；已完成步骤不重放；取消后不开始后续任务。
+- [ ] 浏览器关闭/设备睡眠记录 WAITING 环境原因；重启从原 due 状态核对，不按错过的 timer 次数补发消息。
+- [ ] 按项目/任务/关键词查回状态、原文、下一步和阻塞；真实隔日恢复单独保留时间与环境证据。
+
+**通过条件：** 不依赖旧聊天内容或常驻 Worker，即可准确续接一条已批准主线。**停止条件：** 持久回执未知、缺少授权、结果歧义、过期/预算用尽。不能声称用户电脑离线仍在操作网页。
+
+### AWB-08 · 同一候选的整链复核与交接
+
+**涉及文件：** 本记录、原 Task README 与各 owner 当前说明；代码只按实际缺陷回到原任务修复。**依赖：** 本轮选定核心阶段通过，不要求自动完成全部 P0–P4。
+
+- [ ] 读取实际扩展加载目录、ID、serve/静态模式与对应源码/安装版本；只读证据核查，不默认重装或重建。
+- [ ] 用一条固定目标验证本轮已选链路，记录各步骤与真实效果，不能拼接不同候选的局部成功。
+- [ ] 更新本文件当前阶段、已通过范围、未测项、owner、下一条未完成操作和原始证据引用。
+- [ ] 收尾当前 owner 的锁与资源，保留用户草稿和其他会话资源；源码通过、原生通过、正式发行分别报告。
+
+**通过条件：** 新执行者只读本记录即可接续，不需要重新讲需求。**停止条件：** 相关源码/安装来源漂移、目标 owner 未确认或原始证据无法核实。
+
+## 5. 证据记录与最小验证入口
+
+每项证据至少记录：task/step、实际操作、预期/实际效果、代码 commit 与受影响文件 hash、安装 ID/版本/sourceHash、环境与日期、candidate/request/run/result（适用时）、源/目标 conversation 与实际 message 回执、正文 artifact/hash/completeness、前后 URL、结果/交付/AI 续答各自状态、资源释放、阻塞和下一步。
+
+证据表中的值来自真实工具或界面观察；没有的字段写 `NOT_TESTED/UNKNOWN/不适用`，不得为了填满表生成 UUID、runId 或截图名称。正文与引用受控保存，默认不提交公开仓库。
+
+| 待验证行为 | 原有最小入口（存在不代表本轮运行） |
+| --- | --- |
+| FIFO 和对应回复栅栏 | `node --test examples/sidebar-tools/ai-send-queue/tests/engine.test.mjs` |
+| 输入恢复、草稿和用户入口 | `node --test examples/sidebar-tools/ai-send-queue/tests/main-recovery.test.mjs` |
+| 唯一编辑器、一次点击、消息回读 | `node --test tests/environment/chatgpt-bridge-site-r13.test.mjs` |
+| 持久一次性记录、撤权、document 身份 | `node --test tests/environment/chatgpt-fixed-bridge-r12.test.mjs` |
+| 已安装 Task、参数及结果上限 | `node --test tests/environment/chatgpt-installed-task-host.test.mjs` |
+| 固定 A→B 计算接力状态逻辑 | `node --test tests/environment/chatgpt-relay-calculator-r1.test.mjs`；fake Page 不执行真实 DOM callback，不能证明原生输入或跨 document 通过 |
+| 调度持久状态 | `tests/environment/scheduled-tasks-r1.test.mjs`；执行前先读用例及依赖，只选择直接相关部分 |
+
+新增行为测试应进入对应 owner，名称按行为命名，不按每轮日期复制。每次执行前说明该验证对应哪个实际变化或失败。以上命令不要求本轮全部运行，不替代真实网页验收，不触发全仓 CI、production、评分或长时间压力测试。
+
+## 6. 当前断点与下次续接提示
+
+**已完成的方案工作：** 独立应用目录与文档归属整理，以及仓库和连接能力核对、唯一队列 owner 发现、现有实现边界记录、架构建议、五阶段与八项执行任务、固定恢复入口。产品源码未修改，新增链路未在本轮实测。
+
+**下一条用户操作：** 在用户现有 OpenDesk 开发环境中，使用已批准的百度任务从真实搜索页输入关键词并提交，检查结果是否准确回原 ChatGPT 对话且得到对应 AI 续答。先核对已有候选和原始证据；若没有运行环境，先完成 AWB-01 的公共接口/owner 核对，再针对 AWB-02 已证实的源码缺口实施，保持 `CHROME_NATIVE_VERIFIED: NOT_TESTED`。
+
+**在进入跨对话前并行完成的技术项：** AWB-03 完整回复/产物合同与 AWB-05 仓库绑定合同。不可因为先做 P0 而丢失后续连续任务目标，也不可为写更多框架文档推迟已能执行的最短核心操作。
+
+**仍待真实证明：** 当前安装候选真实搜索、ChatGPT 新对话交接、目标仓库执行、Gemini 输入输出、跨日恢复。历史 README 中已有成功只对其原候选与实际范围成立。
+
+可复制的续接内容（普通说明，不是可执行 `opendesk-task` 命令）：
+
+> 继续 shopable-ai/opendesk-browser 的 OD-AI-WORKFLOW-BRIDGE。先读取根 AGENTS.md、projects/webflow/AGENTS.md、projects/webflow/README.md、projects/webflow/docs/product-contract.zh-CN.md 和 projects/webflow/docs/execution-plan.zh-CN.md，再核对当前 main、相关改动、owner、授权及真实环境。先报告当前阶段、首项未完成操作和证据缺口，再执行依赖满足的最小任务。复用 examples/sidebar-tools/ai-send-queue 和原 Authority/RunHost/Durable Result；保持五字段协议、单站任务和 UNKNOWN 不重放。只有真实结果才能更新完成状态；无本机 Chrome 则保留 NOT_TESTED，不伪造浏览器行为。每次结束更新同一记录的断点，不另建总 GOAL，不自动进入已延期的发布或多 Profile 阶段。
+
+## 7. 首次方案交付核对（历史）
+
+- [x] 读取根规则及相关目录归属，核实文档父目录未出现额外 AGENTS。
+- [x] 源码审计与可靠性审查独立进行，相关结论纳入两份文档。
+- [x] 文档新增相对链接逐一对应已读取文件或本次新文档；BR-01–12、AWB-01–08、章节与冲突标记检查通过。仅文档验证，未运行产品测试。
+- [x] 构建者只读审查完成：无影响实施计划的重要未决问题；公开能力和环境未知分别归入前置任务。
+- [x] 提交前最新 main 仍为上述基线，产品合同 blob 未变，执行记录目标仍未存在；保留并行成果，只写本轮两条路径。
+
+首次方案已以 `c0d2b4998c1ce8202019ccce3b31603ec1a60f47` 提交并读回核对，仅包含当时的两份文档。该证据不代表产品运行通过。
+
+## 8. Web Flow 独立应用归档（2026-11-01）
+
+**用户决定：** 创建 Web Flow 独立扩展应用目录，相关文档放在同一项目，为后续核心业务代码确定归属。
+
+**本次变更：**
+
+- 项目根为 `projects/webflow/`，增加 README 与仅针对本项目差异的 AGENTS。
+- 完整产品合同迁为 `docs/product-contract.zh-CN.md`，本计划迁为 `docs/execution-plan.zh-CN.md`；各自只有一份正文，保留 BR-01–12、AWB-01–08、原始证据等级和待办。
+- 原 `docs/product/ai-workflow-bridge.zh-CN.md`、`docs/framework/workstreams/web-flow-20261101.md` 改为短迁移入口；修复迁入文档的相对链接、当前续接提示及已发现的外部入链。
+- 未来 Web Flow 新增业务代码与测试留本项目；现有 AI Send Queue、计算接力及框架模块保持原 owner，复用按公开合同接入，源码迁移须另核对真实消费者。
+- 本次不创建空源码/测试目录或假安装配置。实际实现到达对应模块时再加入文件；当前状态为文档与项目归属已建立，尚无 Web Flow 可安装包。
+
+**写入 owner 与范围：** 当前目录整理会话 `/root`；独立审查只读。仅写 `projects/webflow/README.md`、`projects/webflow/AGENTS.md`、本项目上述两份 docs，以及两个旧迁移入口和 `docs/product/conversation-first-browser-task-contract.zh-CN.md` 的入口链接。无浏览器、端口、watcher 或构建资源占用。
+
+**验证与下一步：** 核对迁移前后稳定需求/任务编号、保留内容、新旧入口及相对链接；提交前复读 main 和目标文件，远端读回核对准确内容。这里只验证文档结构；产品测试与真实网页运行仍为 `NOT_TESTED`。下一步继续第 6 节首项未完成任务，应用新增实现落本项目，不再另建 Web Flow 总方案目录。
+
+> **主分支合并说明（2026-11-01）：** 以下保留并行开发的 P0 技术细节与离线模块证据；项目统一为 `projects/webflow/`。当前断点仍从第 6 节进入，离线模块不代表真实队列或跨对话派发已接通。
+
+## 9. 当前 P0 技术方案与执行计划（2026-11-01）
+
+本节细化 BR-01 至 BR-05，不新增、替换或废止需求 ID，不恢复自然语言选脚本/生成脚本，也不提前进入 P1–P4。目标是让用户在原聊天中给出固定命令，已安装任务在明确预批准范围内自动完成公开搜索，再将同一次真实结果送回原聊天。执行记录继续使用本地 `docs/framework/workstreams/web-flow-20261101.md`，不另建产品目标或第二套任务系统；该记录当前未被 Git 跟踪，不假定远端已有，后续发布文档时需单独确认可交付的证据摘要。
+
+### 9.1 当前事实与下一条操作
+
+| 范围 | 已有证据与实现 | 尚缺的证明 |
+| --- | --- | --- |
+| 固定协议、发现与准入 | 五字段解析、完整回复发现、安装身份核验、一次预批准及持久防重放已有源码和定向组件证据。本轮修复了空壳/分批历史基线、同路由编辑器重挂载、无关 Task 安装变更误拒回传 | 这些时序修复的真实 Chrome 专项仍未全部验证；不因组件通过推定通过 |
+| 本机网页演示 | 旧 QA `01a19702-a707-79d1-a8e5-ca3b1d4a09ba` 已记录 `workflow.visible-search@1.0.1` 的手动轮和一次预批准自动轮，包含填写、搜索、详情导航、持久结果及原聊天单次回传 | 仅证明 `http://127.0.0.1:43111` 演示；不代表百度、Google 或 production |
+| 百度业务任务 | 原任务只有结果读取；当前 P0 owner 已补真实搜索动作，并报告百度/Google 的实际输入、点击、导航与读取链已跑通 | 新固定候选的安装、预批准自动触发和原聊天单次回传仍待同轮证据；本文档任务没有重演 |
+| Google 业务任务 | 已有 `examples/tasks/google-search-top3.js`、`google.search.top3.v1.opendesk-task.json` 及定向测试；P0 owner 报告真实动作通过且固定任务已验证安装 | 预批准自动执行与原聊天回传正在验证，不能用单独动作链代替完整 Bridge 闭环 |
+
+以上为方案落地时的快照；以工作记录后续同候选证据更新阶段事实。唯一 P0 真实业务实现 owner 为本机 Codex 对话 `01a19720-f02d-7490-a696-8ad4f8a54221`（“Web Flow · 百度与 Google 自动执行及动作轨迹”），使用用户指定的 `openai/gpt-6.1-sol` / `xhigh`。该任务当前实际权限是 managed / workspace-write / on-request，不能从全局配置推定继承完全访问。本轮文档工作不并发修改其产品源码、任务包、浏览器或 watcher。
+
+**下一条用户操作：** 在既有 ChatGPT 对话与已连接的持续开发环境中，选择经验证安装的搜索任务、核对目标和参数、预批准一次，再发送固定命令。当前下一步是固定安装后的预批准自动执行与原聊天回传同轮验证；并非缺少另一套桥接平台。开发继续复用 `dist/development` 和现有单一 watcher；站点任务先使用公开 Controller / Locator，当前 Profile 不允许 `page.evaluate` 时不得打开安全开关来迁就实现。
+
+### 9.2 单一技术链与文件职责
+
+```text
+ChatGPT 新的完整回复：opendesk-task 代码块，恰好五字段
+  → Site / Discovery：当前原对话、新轮次、唯一完整候选
+  → Intent Parser：protocol / candidateId / taskId / targetUrl / args
+  → Trusted Host：解析当前安装、冻结版本、参数和精确目标
+  → Trigger Gate：匹配明确预批准或等待必要批准，消费一次
+  → 原 Authority / RunHost / Controller：操作自有目标文档
+  → Task 返回有限结果及 actionTrace，原 Durable Result 持久化
+  → Host 再核对安装、运行、结果与原聊天资格
+  → Page / Site：保护草稿并单次交付原聊天，分别确认用户消息与 AI 续答
+```
+
+| 责任 | 现有 owner 文件/入口 | 本轮处理原则 |
+| --- | --- | --- |
+| 固定数据合同 | `src/native-agent/chatgpt-task-request.js` | 保持五字段；安装快照由可信 Host 解析，模型不得提供授权或源码 |
+| 发现与页面状态 | `src/native-agent/chatgpt-task-discovery.js`、`chatgpt-bridge-site.js`、`chatgpt-fixed-bridge-page.js` | 完整新回复自动准备；历史、引用、流式片段、重生成和结果数据不触发。仅在真实复现新缺陷时最小修复 |
+| 预批准与执行/回传核验 | `src/native-agent/chatgpt-bridge-trigger-gate.js`、`chatgpt-fixed-bridge-host.js` | 复用原账本与 Authority，核对当前安装及精确范围，一次消费；撤权、安装身份变化、断开及 UNKNOWN 继续拦截 |
+| 站点业务 | `examples/tasks/` 中既有 Controller 项目、对应 `.opendesk-task.json`，使用[公开 Controller API](../../../docs/api/controller.zh-CN.md) | 百度/Google 各自单 Origin 任务；搜索选择器、填入/点击/提取与轨迹归任务，不写入通用 Host 的站点分支 |
+| 结果与证据 | 原 RunHost / Durable Result、原聊天回传；本地 `artifacts/web-flow-20261101/` | 不建第二数据库。记录同一安装、candidate/request/run/result 及截图/动作证据；本地忽略产物不等于远端交付 |
+
+**为何还会看到点击：** 首次安装/升级的权限审阅、缺少真实网站权限，以及没有匹配执行许可时，仍需要准确的用户操作。当前“预批准一次 · 5 分钟”只允许下一条完全匹配的命令运行一次，不是所有搜索的永久许可。匹配后应自动发现、准备并执行，不再点“采用/执行”。“查看执行页面”只是观察已存在的目标，不是启动动作；验收应证明即使不点它任务仍已开始，不能用该按钮补开网页或补执行。许可已用、过期、参数/目标/安装变化时停止并明确说明原因，不静默扩大范围。长期多次免点击计划属于后续独立设计和明确授权，不冒称本轮已实现。
+
+### 9.3 搜索任务与动作轨迹
+
+百度和 Google 都从其经批准的公开搜索入口开始，使用中性查询 `OpenDesk Browser` 或 `browser automation documentation`，不得包含账号、订单或其他个人资料。Task ID、固定版本、目标 URL 和参数必须取自实际安装及 Schema；新任务的最终身份以实现 owner 核验后的清单为准，不用尚未安装的示意 ID 发命令。提示词只要求 AI 输出一个 `opendesk-task` 代码块、一个完整 JSON、恰好第 4 节五字段；每轮使用新 `candidateId`，不带源码或授权字段。
+
+任务核心步骤为：读取入口 URL 和唯一可操作控件 → 记录输入前值 → `fill` 中性查询 → `inputValue` 回读确认 → 点击当前真实提交控件 → 等待结果文档/URL 并核对查询 → 读取有限自然结果。百度若发生局部更新，应如实记录 URL/文档是否变化，不能将局部更新冒称新文档。需要额外验证受控文档导航时，只在同一批准 Origin 内导航至实际结果页；不打开会跨站的结果链接，不为凑步骤合成导航。
+
+`actionTrace` 是任务返回值里的有界业务数据，**不增加五字段命令**。每步记录递增序号、实际动作、起止时间、目标 Locator 或 URL、必要的前后读回值及 `confirmed` / `failed` / `unknown`。点击调用成功只证明动作调用返回，必须另有结果页/查询/结果样本确认；预先列出的计划步骤不得标记为已执行。轨迹控制在原聊天完整回传 8 KiB 限制内，超限保留持久结果并明确交付失败，不截断冒充成功。
+
+原生验收另外保留输入前后可见截图、点击目标、导航前后 URL/文档事实、结果样本和时间顺序操作记录，与同一持久结果关联。任务自述、截图、终态文字、HTTP 响应中任一项单独都不足以证明全链。实际站点不能证明恰好一次提交时只陈述已观察事实；不把本机 fixture 的 `submissions=1` 证据套给真实站点。
+
+### 9.4 单一执行清单
+
+本轮按五阶段推进：现状/缺口映射 → 预批准后自动执行 → 百度/Google 真实业务闭环 → 相关异常与重复保护 → 集成验收与使用说明。每项的文件、依赖、操作级验收、证据和停止条件只在本地 `docs/framework/workstreams/web-flow-20261101.md` 的“本轮五阶段执行清单”维护，本文保留技术合同，不复制第二份任务状态。
+
+无新代码或失败时复用有效证据；任务源码变化后走原 Task 验证/安装流程固定同一候选，不静默替换安装版本。未做项保留 `NOT_TESTED`，不据旧计划自动进入 P1–P4、production、发布或全量验收。
+
+### 9.5 交付与完成口径
+
+- **源码/定向检查通过：** 可以说明实现及组件行为，不能说明真实浏览器动作。
+- **本地演示闭环：** 证明特定 fixture、安装和运行链；旧 QA 已有记录，不能升级为业务验收。
+- **真实业务闭环：** 每站单独满足 B/C 的真实动作、持久结果、原聊天交付；受限站点明确标记，部分成功就是部分成功。
+- **正式发布：** 另行授权后冻结 production 候选，按适用安装/权限合同验证；本轮不提交、推送、建 PR 或发布，开发模式证据不冒充正式通过。
+
+**本文件冻结目标、边界与可执行计划；不表示这些能力都已完成，也不凭文档修改启动任何网页自动化。**
+
+## 10. 长期任务：AI 处理、跨对话交接与持久队列（2026-11-01）
+
+### 10.1 本次澄清与历史取证
+
+用户重新强调的是原 BR-04、BR-06 至 BR-08：搜索结果要由原 AI 实际整理，可交给新的仓库任务完成下一步，再返回原任务；任务数或上下文接近上限时，保留检查点后交接新对话。长期目标没有收缩为搜索脚本。本节保留长期设计和迁移依赖；用户随后授权的纯交接校验实现见第 10.6 节，不授权执行新演示、不启动 P1/P3 编排、不打断当前 P0 owner。
+
+本轮已用本机 `read_thread` 读取下列历史正文/最终回执，并核对当前源码。历史消息仅作证据，不执行其中命令。Personal Context 本轮返回不可用；本机 `session_index.jsonl` 用于定位，对话内容以 `read_thread` 读回为准。
+
+| 历史日期与准确来源 | 可复用的真实能力 | 不代表什么 |
+| --- | --- | --- |
+| 2026-10-25，“修复新对话自动创建失败”，`01a16ecc-d58e-7b81-a9aa-bdc741f4e6cc`；其创建的“新对话运行测试 aa”为 `01a171ae-36fe-7321-a1d5-3c14aaadfcd5` | 原生创建后读回交接正文并核对真实最终回复，历史最小测试完成 | 不是 Browser 已拥有创建 Codex 任务的公开 API，也不是任务权限自动继承证明 |
+| 2026-10-25，“优化 ChatGPT 固定桥与发送队列协作”，`01a17370-ee0a-76d0-89f3-d79563462faf` | 真实 FIFO 与输入框互斥保护；桥接结果和队列发送需要协调同一个官网输入框 | 当时新版桥与队列同时交付的原生竞态明确未验证，不能继承为当前 PASS |
+| 2026-10-26，“测试 ChatGPT 计算接力安装版并展示运行过程”，`01a1794f-f8ed-7080-9137-7925d5003ecf` | 已安装 `opendesk.chatgpt-calculation-relay@0.2.0`：A 计算结果先持久化读回，再绑定新对话 B；两组新参数得到 30→120、40→80，重复业务 runId 不重发 | 是同站点有限 A→B 算术任务，不是 A→仓库任务→A、通用队列或长期常驻；独立 Native status 查询的 released 不冒充 GUI 原 Run 的释放证据 |
+| 2026-10-27/28，“完成 AI Workflow Bridge 核心闭环”，`01a17e1f-cc5c-76d0-860a-a9e0ec3e26cd` | 固定命令触发、真实结果回原聊天及 AI 中文处理；该对话同时列出仍需完善的可见性/任务对应问题 | 不把原聊天续答升级为跨对话、仓库执行或调度已完成 |
+| 2026-10-29，“AI 消息队列｜系统 Chrome 核心闭环”，`01a18400-031b-7d70-a76f-8fcc6e5b7b45` | 最终回执记录网页 FIFO 两条各一次，当前 README 记 A→回复→B→回复；侧栏按最新要求仅使用提示 | `src/page/engine.js` 是单文档内存队列，页面关闭/刷新恢复未实现；不是持久业务工作队列，公开发行仍 blocked |
+
+计算接力的当前 [README](../../../examples/programs/chatgpt-calculation-relay/README.zh-CN.md)、[输入输出合同](../../../examples/programs/chatgpt-calculation-relay/CONTRACT.zh-CN.md) 和 [EVIDENCE.json](../../../examples/programs/chatgpt-calculation-relay/EVIDENCE.json) 与历史相互印证。本轮只读核对其构建索引中七个源码/配置文件，SHA 均与记录一致；这证明当前文件仍对应历史来源，**不证明今天 Chrome 的安装/登录仍相同**。发送队列以[当前 README](../../../examples/sidebar-tools/ai-send-queue/README.zh-CN.md)和现有 `src/page/engine.js` 为准，不恢复已被取代的侧栏同步目标。
+
+其他现有基础也须按实际边界复用：
+
+- `examples/programs/chatgpt-calculation-relay/src/{site,conversation,relay}.js`：官网适配、草稿保护、写前发送/导航日志、持久化读回、`status/inspect/reconcile`。重启后读取日志不等于恢复旧 Worker；未知发送不自动重放。其业务来源仍在独立项目，不把计算业务搬进 Host。
+- `src/platform/tasks/schedule-{contract,repository,service}.js`、`src/ui/scheduled-task-host.js`：已有 `frameworkKV` 中计划/Fire、安装固定、原子准入、原 Run/Result 关联与等待合法可见 Host；这是已存在源码，不是 Web Flow 队列接线证明。真实调度证据继续按[原设计/实施记录](../../../docs/architecture/browser-framework/scheduled-tasks-r1-design.zh-CN.md)分层，旧宽度/缩放待办不恢复。
+- `src/ui/workflow/agent-loop.js`：现有有界延续保护，最多 8 轮、24 动作、8 分钟；不是长期调度器。`task-review-handoff.js` 只是工作流到任务目录的短期展示交接，不是 AI 跨对话交接或运行授权。
+- `src/cloud-control/host-owner-lease.js`：已有代次、fencing 和 TTL 的租约基础代码，但文件明确 `NOT wired to a message route or dispatch`。可审计复用其模式，不能写成当前 Web Flow 已有可用租约服务，更不能直接复用它的云控 owner key。
+
+### 10.2 执行环境与适配器边界
+
+| 参与方 | 已有能力 | 后续适配责任与缺口 |
+| --- | --- | --- |
+| 普通 ChatGPT 网页 A/B | 官网对话、现有 DOM/Controller 适配、结果消息和有限计算接力 | 观察、受控发送一次、完成读取、精确对话绑定与对账。聊天中的仓库链接不授予 GitHub、shell、本地文件或 Codex 工具权限 |
+| 绑定仓库的 Codex 任务 B | 本次已有本机原生创建/读回任务的证据，执行环境与仓库工作目录独立 | 通过获准的原生入口创建/定位项目任务、读回实际 repo/ref/模型/权限、读取产物与验证结果。Browser/Worker 当前没有通用的 `tasks.run` 或任意 Codex 创建接口，不可伪造公开 SDK |
+| Google AI | 用户尚未指明具体产品/入口 | 设计只保留适配位置；不能把 Google 搜索、现有模型 Provider 或某个假定产品当作 Google AI 网页已接入，状态为 `NOT_IMPLEMENTED / NOT_TESTED` |
+
+适配器是职责抽象，不是本轮新公开 API：应声明可观察、发送、读取完成、新建对话/任务、只读对账等实际能力及其身份/权限前提。不支持的能力明确拒绝。ChatGPT 站点业务继续留独立 Controller 项目，可信编排仅协调已审核接口，全部浏览器动作仍走原 Authority/RunHost/Controller；Codex 仓库任务按它自己的执行权威与权限运行，不由网页文本获得权限。
+
+当前原生 `create_thread` 的参数没有业务幂等键或任务权限覆盖参数，本地项目创建也不能靠交接正文就强制固定 Git ref。创建后必须读回实际线程及执行上下文，核对 repo/main/base commit、模型与权限；无法确认则保持待处理。创建回执丢失且无可靠线程身份时，不能换请求盲建第二个任务，也不读写应用数据库补造映射。
+
+### 10.3 P1 独立、固定版本的交接合同（拟建）
+
+独立 `opendesk.workflow.handoff.v1` 合同已在 `projects/webflow/src/handoff-contract.js` 实现首个纯 Handoff 校验单元；**Receipt、适配器派发和完整 P1 闭环尚未实现**。它不追加到五字段 `opendesk.task.intent.v1`，不借模型生成字段扩大权限。当前纯 Handoff 的封闭 Schema 已固定；后续行为接线前仍需冻结适配能力。模型可提出候选，可信协调层解析真实身份、授权引用和派发账本。
+
+| 合同部分 | 必须固定的内容与验收 |
+| --- | --- |
+| 身份与幂等 | 协议版本、workflowId、stepId、handoffId、attemptId、idempotencyKey；区分业务步骤、创建/发送尝试、真实 thread/run/result。重复输入只返回原映射，不新增任务/消息 |
+| 来源与返回目标 | 原执行环境/Host、conversation/thread/turn、原结果引用、returnTo 的原聊天/原任务及授权接收范围；导航后不能按“当前页”猜原接收方 |
+| 目标执行环境与仓库 | 实际适配器、local/cloud 类型、project/host/thread 身份、repo 规范 URL、ref 和 base commit、允许写入文件及验证命令。当前仓库仅现有 main，禁止新分支/worktree/PR；旧版本只读核查，不强制 reset 到旧 commit |
+| 输入与必要摘要 | 本次目标、已确认事实/决策、未完成项、失败/UNKNOWN、最小必要上下文；原证据和 artifact refs 含来源、路径/URL、哈希、类型、归属及访问范围。摘要不替代原证据，不携带 Cookie/Token/密钥 |
+| 交付与完成条件 | 期望产物、可观察验收、验证命令/结果引用、允许变化范围；仅凭 B 的“完成”文本不能过关，必须读取对应产物/测试事实 |
+| 授权与停止 | 可信 authorizationRef 绑定目标、数据、动作、次数/期限/预算和撤权代次；引用不能由模型自签。验证码、认证失效、超范围、证据不全、冲突或未知效果时暂停/接管 |
+| 输出回执 | 同 handoffId/stepId 的真实目标身份、完成/部分/失败/未知状态、输入/输出摘要哈希、artifact refs、验证事实、剩余问题与下一步；结果持久化、送达、原 AI 处理三项分别记录 |
+
+新对话压缩上下文是减少重复材料的策略，不保证更精准。摘要必须保留来源、反例、未确认假设、停止原因和证据引用；B 应核对必要原证据。交接失败、产物与摘要矛盾或原任务无法辨认时不继续下一轮，不能以多建聊天修补准确性。
+
+P1 最小目标是一次 A→B→A：先交接一个有限任务，确认 B 产物并返回原 A，不做无限“继续”链。P1 先需要一份可持久读回的交接记录与未知效果栅栏，不以完整 P3 调度器作为它的前置；完整队列在独立确认后推进。
+
+### 10.4 P3 持久队列与恢复方案（完整接线待建）
+
+持久队列是跨步骤协调元数据，**不是第二执行器、第二权限中心或第二 Run/Result 库**。它不能运行在父 Controller 占住单执行槽等待子 Task 的循环里；当前 Worker 无嵌套 Task 调用接口。先结束/释放当前步骤，再由合法协调入口申请下一次准入。
+
+| 存储/运行载体 | 能力与限制 | 本设计选择 |
+| --- | --- | --- |
+| 现有 Page 内存 FIFO | 支持单文档排队发送，刷新/关闭会失去队列，无持久跨任务准入 | 不改造成全局工作队列；不把历史待发文本直接迁移为获授权任务 |
+| 已有任务 AppStorage | 计算接力已用于稳定 Task 身份下的业务日志与读回；公开 CRUD 不等于多 owner 原子 claim | 保留业务检查点/证据，不能仅用读后写模拟跨宿主租约 |
+| 既有 frameworkKV 与原事务能力 | 计划/Fire 和原 Controller 已有事务、代次、运行关联；受可信 Host/Authority 限制 | 仅作框架已有能力参考，应用不直接访问私有 IDB。当前先设计单 owner AppStorage 检查点；若多 owner 原子 claim 需求无法由公开 SDK 满足，先记 `SDK_GAP_NOT_PROVEN`，补真实失败与最小通用能力提案后交 Runtime owner，不把 WebFlow 队列塞进核心 |
+| 原生仓库执行环境 | 可在自身已授权范围保存产物/检查点并继续独立仓库步骤；浏览器离线时无法替它操作网页 | 由各任务自己的持久产物与回执关联；若未来用桌面/云服务承接调度，必须显式启用和验证身份/触发所有权，不假定已常驻 |
+
+队列记录需要 workflow/step 定义版本、依赖、准入范围、尝试/幂等映射、检查点与 artifact refs、deadline/次数/预算、暂停/取消原因；结果只引用原 Run/Result，不复制出另一个权威结果。租约记录 owner/document、generation/fencingEpoch、leaseUntil，在原子事务内领取/续租并在派发前重核权威；租约本身不是许可。已有云控租约代码仅提供参考，Web Flow 的接线与冲突域尚未实现。
+
+步骤状态区分待办/可准入/已租用/派发意图/运行/等待结果/完成/失败/取消，以及 `WAITING_HOST`、`WAITING_AUTH`、`NEEDS_ATTENTION`、`UNKNOWN`；结果持久化和对话交付另记阶段。派发、点击、发送和创建前落账意图，拿到真实身份后再关联检查点。租约过期只允许重新领取**确定尚未派发**的工作；已有派发意图、Run/thread 身份或未知副作用时先查询原身份，绝不因 TTL 到期再次执行。
+
+自动重试只适用于确定未派发的准入等待、只读状态查询，或被实际执行接口证明幂等且仍在原授权/预算内的操作。未知创建/发送/点击/仓库写入一律暂停，只读对账；无法确定则人工接管，保留旧记录，不能换候选/线程/安装身份绕过去重。恢复登录、授权或宿主后重新核查当前版本、来源和额度，不自动续旧许可。
+
+长时间执行不等于 MV3 后台永驻：浏览器关闭、电脑休眠、无合法可见 Host、认证过期或网络不可用时保存检查点并等待；恢复时先对账。外部原生任务若独立仍在运行，Browser 队列只能标记等待并在恢复后核查，不能凭网页断开宣布任务失败、已停止或启动替代任务。每个计划必须设有限步数、交接次数、截止时间/预算和用户停止入口。
+
+迁移只新增有版本的编排元数据与索引：保留旧接力日志、Schedule Fire、Run/Result、UNKNOWN 和各自 owner；不自动转换内存队列、不静默搬账号/Profile、不迁移凭据。首轮先支持单 owner 和单工作流，经过断开/恢复与重复准入验证后再评估并发/跨节点；未完成真实验证仍是设计。
+
+### 10.5 分阶段完成条件与最小纵向演示
+
+| 阶段 | 独立完成条件 | 迁移依赖与当前状态 |
+| --- | --- | --- |
+| P0：搜索与原 AI 处理 | 已安装任务真实填写/点击/结果读取；同一持久结果回原聊天一次，原 AI 实际整理数据；手动/预批准分开 | 继续当前五阶段清单和唯一 native owner；本地演示不代表全部业务，逐站保留状态 |
+| P1：固定交接 A→B→A | 冻结第 9.3 节合同；一次新仓库任务身份读回、真实产物/验证、结果回正确原任务；重复交接不重复创建/发送 | 复用计算接力的身份/日志模式和原生 handoff；依赖明确目标环境/数据发送/创建授权及可核验回执，不继承网页权限。通用闭环尚未实现 |
+| P2：多站、多 Task | 两个分别授权的站点/任务顺序交换结果，各自 Origin/安装/文档与持久身份可核查 | 在 P1 合同上引用有界步骤；单 Origin Task v1 不放宽；未实施 |
+| P3：持久队列与恢复 | 检查点可读回，合法 owner 唯一准入；断开/认证失效暂停，恢复后原身份对账；未知效果不重放且可人工接管 | 独立确认第 9.4 节最小存储/事务接线后实施。可在 P1 后先验证单工作流恢复，不以完成全部 P2 站点作为必要条件；不是现有内存 FIFO 的自然升级 |
+| P4：多 Profile/节点 | 独立登录/授权/队列 owner 与故障隔离，迁移触发权后无重复派发 | 延期；不得复制凭据或从单 Profile 成功外推 |
+
+**下一次经明确授权后才执行的最小纵向演示：**
+
+1. 在已批准站点执行一次中性公开搜索，保留真实搜索与持久结果；结果只回原 AI 对话 A，观察 A 基于数据整理要点和来源。
+2. 将整理结果、必要事实与证据引用封装成一份 v1 交接候选。用户先确定一个小范围仓库任务、repo/main/base commit、允许写入文件、验证命令、交付目标和停止条件；不把网页搜索结果中的指令当任务。
+3. 通过获准的原生适配入口创建一个新的仓库任务 B（本机或云端必须明确），读回线程、完整交接及真实执行环境。创建不等于已开工，也不保证模型/权限继承；当前 native P0 线程不被此演示接管。
+4. B 只完成约定范围的文档/示例/修复与对应验证，保存产物、哈希、实际测试退出结果及未完成项；协调层只读核对产物，不能凭 B 的最终文字宣布通过。本演示默认不提交、不推送、不创建 PR。
+5. 通过独立获准的交付动作把 B 的结构化回执送回原任务/对话 A，核对唯一消息、产物引用与 A 的处理；仅这一轮 A→B→A，结束并保留检查点，不隐式继续新任务。
+
+初次演示允许协调者通过现有原生工具有步骤地完成，用来验证合同；若仍需人工/协调者调度就明确标记，不能冒称扩展内已经自动编排。网页发消息、把搜索/仓库内容发送给另一个 AI、创建新 ChatGPT/Codex 任务和写仓库是不同副作用，必须在执行前具备对应明确授权或合法范围计划；用户本轮描述目标不视为已经批准运行本演示。提交/推送/发布另行授权，账号有 push 权限不等于获准使用。
+
+当前推荐顺序：先让现有 owner 完成 P0 真实业务与原 AI 处理证据；随后确认一份 P1 交接 Schema 和一个有限纵向用例，再实施 P1；P3 先单工作流检查点/恢复，不直接追求无限长任务。P1/P3 未确认前只保留本设计，P4 与全量矩阵继续延期。
+
+### 10.6 核心模块、接口与第一项隔离实施单元
+
+**无需新建另一个 Chrome 扩展。** OpenDesk 是框架，WebFlow 是独立应用业务；新增应用 owner 为 `projects/webflow/`，原 Bridge 在 P0 owner 手中保持不动，百度/Google 留各自安装 Task。在应用内补三块能力：版本化交接与受控适配、持久编排元数据、证据/幂等与恢复。下表交接校验和单 owner 队列离线数据单元已实现，其余真实接线仍为拟建路径，均不是新公开 SDK；真实发送/创建/仓库执行接线仍须各自合法执行入口，不能从浏览器直接调用仅在 Codex 会话中出现的工具。
+
+| 拟建模块 / 既有复用 | 输入与输出职责 | 依赖与范围 |
+| --- | --- | --- |
+| `projects/webflow/src/handoff-contract.js`（已实现第一单元） | 纯 JSON Handoff 校验、规范化、幂等键生成；Receipt 延后，不创建任务、不发送、不读写存储 | 独立于 ChatGPT P0 文件，不改五字段 parser；定向测试 `projects/webflow/tests/handoff-contract.test.mjs` |
+| `projects/webflow/src/adapters/session.js`（后续） | 原对话身份、完整结果与一次交付回执；仅协调既有独立 Controller 站点适配 | 复用计算接力的 `site/conversation` 行为与原 Bridge 草稿/输入框保护，来源复用先审计。Google AI 只声明 unsupported |
+| `projects/webflow/src/adapters/repository-task.js`（后续） | 获准的仓库任务请求 → 实际 thread/environment/产物/检查回执 | 当前 Browser Native 尚未证明提供 Codex 任务创建能力，先明确拒绝派发；需要验证已有原生集成能力或另行批准最小接口，不能凭空加任意 shell/MCP 通道 |
+| `projects/webflow/src/queue/state.js`、`queue/repository.js`（离线单元已实现） | 有界事件日志、单 owner 状态恢复、派发意图/原执行/结果引用，保存后读回；不执行真实任务 | 只注入公开 AppStorage getItem/setItem 边界，离线 Map 测试；真实 AppStorage、CAS/跨宿主租约、UI/派发未接，不访问私有 IDB |
+| `projects/webflow/src/continuation.js`（后续） | 可见协调者读取可准入步骤、重核许可、调用适配器、展示等待/暂停/接管 | 复用原 Host/Authority/RunHost；前一步资源结算后再准入下一步，不建后台常驻 Runner |
+
+后续多 owner/CAS 设计草案的接口是 `claimReadyStep({workflowId,stepId,ownerToken,expectedRevision})`、`appendCheckpoint({workflowId,stepId,attemptId,expectedRevision,phase,evidenceRefs})` 和 `bindExecution({workflowId,stepId,attemptId,executionRef})`。它们只更新原存储里的编排元数据，不授予执行许可；事务必须拒绝旧 revision/fencing token。这些草案不是本轮已经实现的公开 SDK；本轮单 owner 的实际 createQueueJournal/appendQueueEvent/replayQueueJournal/createSingleOwnerQueue 接口只在应用 README 维护。多 owner 签名须在 P3 接线前随 owner 合同冻结。状态按“READY → LEASED → DISPATCH_INTENT → RUNNING → RESULT_PERSISTED → DELIVERY_INTENT → DELIVERED → COMPLETED”记录阶段；暂停/等待/FAILED/CANCELLED/UNKNOWN 是独立分支，不能把投影状态当派发依据。
+
+第一单元接口：
+
+```text
+parseWorkflowHandoff(json, {now, expectedSource, expectedTarget}) → 深冻结的规范化 Handoff
+createWorkflowHandoffKey({protocol,workflowId,stepId,handoffId}) → 上述四项的确定性 JSON 数组字符串
+```
+
+第一版只覆盖本轮有限纵向用例。Handoff 已实现，Receipt 为后续设计；封闭对象形状如下：新增适配器/字段必须显式升级或修订版本合同，不能接受任意额外字段：
+
+```text
+Handoff = {
+  protocol: "opendesk.workflow.handoff.v1",
+  workflowId, stepId, handoffId, attemptId, idempotencyKey,
+  source: {adapter:"chatgpt-web", conversationId, turnId},
+  target: {adapter:"codex-local", hostId, projectId, repoUrl, ref, baseCommit, threadId:null},
+  returnTo: {adapter:"chatgpt-web", conversationId, turnId},
+  objective, summary,
+  evidenceRefs: [{kind, id, sha256}],
+  allowedFiles, verificationCommands, expectedArtifacts,
+  authorizationRef,
+  limits: {maxSteps, maxHandoffs, deadlineAt},
+  stopConditions,
+  createdAt, expiresAt
+}
+Receipt = {
+  protocol: "opendesk.workflow.handoff-result.v1",
+  workflowId, stepId, handoffId, attemptId,
+  execution: {adapter:"codex-local", hostId, threadId, projectId, repoUrl, ref, baseCommit},
+  status: "completed" | "partial" | "failed" | "unknown",
+  artifacts: [{kind, id, sha256}],
+  checks: [{command, exitCode, logRef}],
+  summary, remainingIssues, completedAt
+}
+```
+
+第一单元校验值（字符串需非空且 trim 后不变，无控制字符；同一数组不接受重复项）：输入 JSON 不超过 32 KiB；身份 token 为 8–128 位 ASCII 字母/数字/`._:-`；其他标识为非空、无控制字符且最多 256 字符。文本 objective/summary 每项最多 4096 字符，remainingIssues 最多 16 项、每项 512 字符；引用最多 16 项，kind 仅 `durable-result/artifact/conversation-turn`、id 最多 512 字符、sha256 为 64 位小写十六进制。文件/产物路径各最多 32 项（产物至少一项且必须在 allowedFiles 内），单项最多 512 字符、仅相对 POSIX 路径，拒绝绝对路径、反斜杠、冒号、空/`.`/`..` 段；命令最多 8 项、单项 512 字符且不含控制字符，只作数据校验，不执行或插入 shell。
+
+repoUrl 使用无凭据/查询/fragment 的规范 GitHub 仓库 HTTPS 地址，与 expectedTarget 完全一致；ref/baseCommit 与可信调用者提供的预期值一致（本仓库为 `refs/heads/main`，commit 为实际 40 位 SHA），不从模型输入决定 checkout。returnTo 必须等于 source；idempotencyKey 必须等于 `createWorkflowHandoffKey`，其本身不是授权。limits 为正安全整数，第一单元固定 `maxSteps=2/maxHandoffs=1`；时间为 UTC 毫秒安全整数，`createdAt ≤ now < expiresAt ≤ deadlineAt`，expiresAt 是交接准入期限，不代表任务期限或许可续期。authorizationRef 仅非空引用，权限有效性由后续可信层重新核验，解析通过不表示获准。
+
+Receipt 必须匹配同一 workflow/step/handoff/attempt、预期 Host/project/repo/ref/baseCommit，threadId 必须为非空真实身份字段；完成时间不晚于 now/deadlineAt。checks 的 command 必须来自交接声明，exitCode 为整数或 null（未知），logRef 必须引用本次 artifacts 中的一项。`completed` 至少提供一项产物引用、所有声明检查且 exitCode 全为 0；这只是回执的结构一致性，仍须后续适配器独立核对实际线程、文件哈希、日志与退出结果。未知字段、错误协议/类型/范围/期限分别拒绝为 `E_HANDOFF_SCHEMA / E_HANDOFF_SCOPE / E_HANDOFF_EXPIRED`，绝不能由 completed 文本生成可信完成证明。
+
+最小实施与验收：先写有效交接、额外授权字段、Google/错误目标、过期、幂等键篡改、跨仓库/跨原聊天交接、缺摘要/停止条件、路径穿越和超过大小上限的定向回归，再实现上述纯函数。Receipt 的未知退出码误报 completed 等回归留在其后续单元。运行 `node --test projects/webflow/tests/handoff-contract.test.mjs` 与该文件语法检查；不加载浏览器、不调用 Native、不执行命令字符串、不申请队列租约。第一单元交付的是可校验的数据合同，**不是 P1 外部闭环已完成**。
+
+该纯合同单元已确认无既有应用/同职责路径，单独落在 WebFlow 应用并完成 120/120 定向测试与语法检查；不覆盖 P0 owner 的代码或资源。P0 owner `01a19720-f02d-7490-a696-8ad4f8a54221` 继续现有真实业务验证，不接管或重启其资源。本轮先红后绿完成纯 Handoff 校验与项目内测试，使用已完成的本地 HR‑6.1 Sol/xhigh 输出并经协调者审查；不接 Receipt、UI、队列或外部发送。用户随后明确“不强制 HR”，后续由当前任务直接推进，HR 可选，不改全局配置；Dot 额度归属未知，不声称免费。真实完成状态以项目 README 和工作记录为准。后续行为接线只在 P0 完成及明确确认 P1/P3 范围后推进。
+
+
+### 10.7 当前单 owner 队列增量与可用边界
+
+[WebFlow 应用 README](offline-modules.zh-CN.md)维护本轮具体 API、状态和最小计划，执行记录继续沿用原 workstream，不创建平行队列体系。数据单元已实现：单工作流至多两项、64 个有界事件；保存后读回才返回成功，存储不明封锁后续写；重启把已领取/派发意图/运行中的记录标 UNKNOWN，不自动执行。已知原执行身份可显式记入同一结果并确认；无映射则保持停止。相同幂等交接不再入队，同一项不得再次领取，其他项不能占用原执行/resultId。待执行取消与执行后取消请求分开。
+
+离线验收得到 11 个队列用例通过，加交接校验共 131/131；测试包括保存→中断→恢复→拒绝重领→原结果对账→唯一完成、依赖、失败/取消、写入后丢 ACK、读回不一致、陈旧写和单实例重入。它们证明应用数据行为，不证明真实 AppStorage、跨宿主并发、运行时安装、浏览器动作或队列派发。LEASED 仅单 owner 的逻辑状态，没有原子租约/TTL/fencing；busy 与读前检查不是多宿主锁。真实结果引用的真伪仍由后续原执行权威/适配器核验。
+
+用户要求“提示词触发后续队列”的最终手测目标已保留，但当前聊天只接已安装单任务；不把这两个离线模块冒称队列入口。P0 dev 复测完成后交付可复制的真实单任务提示词、安装审阅/一次预批准、预期动作/单次回传与故障排查。队列的两步集成仍需独立接线与有界验收，不在本轮暗中派发新 AI/仓库任务。最新指定 HR‑6.1 Sol/xhigh 的 dev 复测由既有 native owner 负责，不改全局配置、不编译 production。
