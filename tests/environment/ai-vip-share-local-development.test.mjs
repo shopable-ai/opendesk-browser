@@ -7,11 +7,14 @@ import {runtime,profile,domains,released,owned,flush,deferred,clone,ORIGIN,EXTEN
 
 function cookieAttempt(env){
   const journal=env.store.get(COOKIE_KEY);
-  assert.equal(journal.schemaVersion,2);
-  assert.deepEqual(Object.keys(journal).sort(),['attempts','legacy','schemaVersion']);
+  assert.equal(journal.schemaVersion,3);
+  assert.deepEqual(Object.keys(journal).sort(),['attempts','legacy','schemaVersion','scopes','slots']);
   assert.deepEqual(journal.legacy,{record:null,attribution:null});
   assert(journal.attempts.length>0);
-  return journal.attempts.at(-1);
+  const attempt=journal.attempts.at(-1);
+  assert(Number.isSafeInteger(attempt.scopeKey)&&attempt.scopeKey>=0&&attempt.scopeKey<journal.scopes.length);
+  assert(Number.isSafeInteger(attempt.slots)&&attempt.slots>=0&&attempt.slots<journal.slots.length);
+  return {...attempt,scopeKey:journal.scopes[attempt.scopeKey],slots:journal.slots[attempt.slots]};
 }
 
 test('installed controller creates optional development controls only for the approved SDK profile and connects the real fixture',async()=>{

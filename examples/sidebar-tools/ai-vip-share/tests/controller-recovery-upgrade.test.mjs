@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {runtime,ORIGIN,PREFERENCE,RECOVERY} from './helpers/controller-fixture.mjs';
 
-for(const packageVersion of ['1.4.8','1.4.9'])test(`an unresolved ${packageVersion} redemption survives upgrade and can only query its original transaction`,async()=>{
+for(const packageVersion of ['1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13'])test(`an unresolved ${packageVersion} redemption survives upgrade and can only query its original transaction`,async()=>{
   const record={schemaVersion:2,serviceOrigin:ORIGIN,toolId:'ai-vip-share',packageVersion,
     accountId:'local-fixture-account',idempotencyKey:randomUUID(),createdAt:Date.now()};
   const store=new Map([[PREFERENCE,{schemaVersion:1,enabled:true}],[RECOVERY,record]]);

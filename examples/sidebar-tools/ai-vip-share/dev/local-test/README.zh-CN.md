@@ -3,7 +3,35 @@
 本目录已正式纳入 `examples/sidebar-tools/ai-vip-share/dev/local-test/`。**无需再下载或解压 ZIP**。
 它是独立开发测试工具，不属于 Sidebar Tool 安装包，也不会连接尚未审核的商业 Provider。
 
-当前工具版本、安装与浏览器证据见[工具 README](../../README.zh-CN.md#1410-当前交付与真实操作2026-10-31)及[核心 UI 与功能结果](EXTENSION-VIP-TEST.zh-CN.md#2026-10-31-2101-核心-ui-与功能结果)：本轮已通过两站真实扩展链、本地兑换及代理配置启停，分别绑定实际候选。本目录只定义受控开发协议，不是商业后台协议；下述 HTTP 测试通过本身不证明 Chrome 写入或登录。商业后台、代理实际转发与 production 正式验收仍为 `NOT_TESTED`。
+当前工具版本、安装与浏览器证据见[工具 README](../../README.zh-CN.md)；历史两站真实扩展链、本地兑换及代理配置启停见[核心 UI 与功能结果](EXTENSION-VIP-TEST.zh-CN.md#2026-10-31-2101-核心-ui-与功能结果)，分别绑定实际候选。本目录只定义受控开发协议，不是商业后台协议；下述 HTTP 测试通过本身不证明 Chrome 写入或登录。商业后台、代理实际转发与 production 正式验收仍为 `NOT_TESTED`。
+
+## 局域网激活入口（1.4.14）
+
+用户入口是「打开局域网链接 → 在已安装工具中继续激活」。从仓库根目录启动静态指引服务：
+
+```sh
+npm run start:lan --prefix examples/sidebar-tools/ai-vip-share
+```
+
+打开 [http://192.168.30.3:7899/activate?activation_code=DEMO-VIP-01](http://192.168.30.3:7899/activate?activation_code=DEMO-VIP-01)，保持该标签页活动，再打开 AI VIP Share。工具须更新到本次已审阅的 1.4.14，并匹配 development Host 的精确包摘要。在工具中「连接本地开发」后，链接会带入激活码，点击「预检激活」和「确认激活」继续。仅打开网页不会拉起侧栏、兑换、写 Cookie 或启用代理。另一演示码为 `DEMO-VIP-02`；同一账本中每码只能成功消费一次，已消费时不要重启服务清账。
+
+本轮已启动 LAN 指引和回环会员服务，两个 `/health` 均正常；Chrome 已显示指引页。服务只在进程存活且本机仍持有 `192.168.30.3` 时可用，没有安装开机自启。1.4.14 安装更新与原生激活链尚未验证，不能把指引页成功或控制器检查等同于安装后通过。
+
+LAN 服务只绑定固定 `192.168.30.3:7899`，复用 [`src/activation-links.js`](../../src/activation-links.js) 的批准来源；禁止任意绑定地址、错误 Host/Origin、额外参数和 API 请求。响应不回显激活码、不缓存、无脚本或跨域接口。地址变化时须重新审阅来源、构建工具包并更新可信摘要，不自动放宽到全部局域网 IP。`/` 是固定说明地址；带码进入须使用上述完整 `/activate` 链接。
+
+会员服务仍只监听 `127.0.0.1:7898`。先只读检查 `/health` 并复用现有实例；仅在端口空闲、无现有服务时，按实际扩展 ID 启动：
+
+```sh
+VIP_TEST_EXTENSION_ORIGIN=chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf node examples/sidebar-tools/ai-vip-share/dev/local-test/local-fixture-server.mjs
+```
+
+这是新的模拟内存账本，不恢复旧服务的事务。局域网网页不替其他电脑提供会员后端；其他设备的安装与后端接入为 NOT_TESTED，商业/production 来源仍未配置。当前使用原 `dist/development` 的 `npm run dev` watcher，不复制扩展、不清空旧 journal。项目级最小验证：
+
+```sh
+node --test examples/sidebar-tools/ai-vip-share/tests/controller-lan-activation.test.mjs examples/sidebar-tools/ai-vip-share/tests/controller-recovery-upgrade.test.mjs examples/sidebar-tools/ai-vip-share/tests/lan-activation-server.test.mjs
+```
+
+13 项通过，覆盖带入但不自动提交、确认单次兑换、换源阻断、升级保留原事务以及 LAN HTTP 来源/参数/响应限制；安装后的真实 Chrome 流程另行验证。
 
 ## 查看简单模拟 VIP 页
 

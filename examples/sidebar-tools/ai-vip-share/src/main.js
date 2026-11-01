@@ -1,5 +1,6 @@
 import * as Journal from './cookie-journal.js';
 import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
+import {DEVELOPMENT_ACTIVATION_URLS} from './activation-links.js';
 // AI VIP Share business presentation stays inside the installed opaque sandbox.
 // This tool never treats an aiAccess proxy lease as a paid member entitlement.
 (function(){
@@ -138,13 +139,13 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
   const businessSdk=window.OpenDeskSDK?.browser?.network;
   // Existing installed-tool storage is bound by Host to package and install epoch.
   // Never store a voucher, password, auth cookie, proxy lease or access token.
-  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.10';
+  const RECOVERY_KEY='aiVipRedeemR52',PACKAGE_VERSION='1.4.14';
   // Do not strand an unresolved 1.2.0 voucher journal after a tool upgrade.
-  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9',PACKAGE_VERSION]);
+  const RECOVERY_COMPAT_VERSIONS=Object.freeze(['1.2.0','1.3.0','1.3.1','1.3.2','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.4.0','1.4.1','1.4.2','1.4.3','1.4.4','1.4.5','1.4.6','1.4.7','1.4.8','1.4.9','1.4.10','1.4.11','1.4.12','1.4.13',PACKAGE_VERSION]);
   const storeRequest=window.OpenDeskTool.request;
   let snapshot=null,pending=null,recovery=null,recoveryFault=null;
   // Stale validated facts are display-only, not authority for new operations.
-  let memberVerifiedFresh=false,activationHintCode=null,activationSeen=null;
+  let memberVerifiedFresh=false,activationHintCode=null,activationSeen=null,activationSource=null;
   let recoveryReady=false,busy=false,seq=0;
   let refreshProxyPresentation=()=>{};
   let developmentProfile=null,developmentRead=0,localMode=false,localConnecting=false;
@@ -1127,7 +1128,7 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     if(activationHintCode){
       busy=true;renderRedeem();
       try{
-        if(activationCodeFromPage(await storeRequest('currentPage.info'))!==activationHintCode)
+        if(!activationPageMatches(await storeRequest('currentPage.info'),activationHintCode))
           fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化');
       }catch{
         pending=null;code.value='';activationHintCode=null;activationHint.hidden=true;
@@ -1172,7 +1173,7 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     redeemNotice('正在持久保存兑换事务，再提交服务端；请勿重复操作。');
     try{
       await beginRecovery(accountId,key,redemptionIntent); // Write-ahead and verified readback.
-      if(activationHintCode&&activationCodeFromPage(await storeRequest('currentPage.info'))!==activationHintCode)
+      if(activationHintCode&&!activationPageMatches(await storeRequest('currentPage.info'),activationHintCode))
         fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化，保留事务以便核对');
       if(automatic&&activationCodeFromPage(await storeRequest('currentPage.info'))!==urlCode)
         fail('E_ACTIVATION_PAGE_CHANGED','激活网页已变化；保留事务供核对，不会提交');
@@ -1309,7 +1310,7 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
     if(!plain(info)||info.status!=='available'||typeof info.url!=='string'||info.url.length>2048)return null;
     try{
       const url=new URL(info.url);
-      const rules=localMode&&developmentProfile?[{origin:LOCAL_ORIGIN,path:'/activate',parameter:'activation_code'}]:ACTIVATION_URLS;
+      const rules=localMode&&developmentProfile?DEVELOPMENT_ACTIVATION_URLS:ACTIVATION_URLS;
       const rule=rules.find(row=>url.origin===row.origin&&url.pathname===row.path);
       if(!rule||url.username||url.password||url.hash)return null;
       const entries=[...url.searchParams.entries()];
@@ -1317,6 +1318,9 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
         !/^[A-Za-z0-9._-]{6,120}$/.test(entries[0][1]))return null;
       return entries[0][1];
     }catch{return null;}
+  }
+  function activationPageMatches(info,value){
+    return activationCodeFromPage(info)===value&&info.url===activationSource;
   }
   async function claimActivation(value,revision){
     // Salted deduplication markers, never the URL, code, or Cookie. A claim is
@@ -1357,7 +1361,10 @@ import {createWebsiteController,ORDINARY_SITES} from './site-session.js';
         }
         activationSeen=null;return;
       }
-      if(value===activationSeen)return;
+      if(value===activationSeen&&info.url===activationSource)return;
+      // Confirmation stays bound to the exact reviewed landing URL, even when
+      // another approved page carries the same code.
+      activationSource=info.url;
       activationSeen=value;activationHintCode=value;code.value=value;
       activationDetail.textContent='已批准来源的激活码 '+value.slice(0,3)+'****'+value.slice(-2)+
         ' 已带入；请预检并确认，不会自动领取。';
