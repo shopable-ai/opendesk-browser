@@ -1,0 +1,7 @@
+{
+  "schema": "opendesk.app-ci.v1",
+  "kind": "ui",
+  "node": [
+    "projects/webflow/tests/webflow-ui.test.mjs"
+  ]
+}
