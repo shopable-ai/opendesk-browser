@@ -524,7 +524,7 @@ Receipt 必须匹配同一 workflow/step/handoff/attempt、预期 Host/project/r
 | projects/webflow/src/ui/main.js：主 UI 与业务委托 | 02dea96a4c9b091f7e6c2712c4703b410a33e1a3；修复语法 ab5ab463fc4cb845c4127ee084eb6da97f6d678a |
 | projects/webflow/tests/webflow-ui.test.mjs：pin/结果/筛选/原打包器测试 | d0314578e46cf7988ff5bc21dcca6f5c6938c956 |
 | projects/webflow/app.ci.json：接现有 App CI | 40f58b52cd48c10407e28ac0bcaa6058f3aed63a |
-| .github/workflows/webflow-package.yml：唯一正式工具包生成/晋升/提交门禁 | 21ee043a96adb1406c429505c49ffe06ba5559d5；处理并发写入 afebc899fe33271d739b6d20c899d6b722f7f3e5 |
+| .github/workflows/webflow-package.yml：原打包器 + 受控生成；手动发布才可写正式包 | 21ee043a96adb1406c429505c49ffe06ba5559d5；并发 CAS afebc899fe33271d739b6d20c899d6b722f7f3e5；显式晋升 79b37c79de55ebdab07153ccb9203e769a3cb771 |
 | projects/webflow/README.md：更新实际入口和功能限制 | 4fb89e39c25cda682ea80dd8035fe3539f30f744 |
 
 仅 Web Flow 自身与一份专属 CI 门禁发生修改；其他并行项目和原 V0.3.1 预览未覆盖。
@@ -532,8 +532,8 @@ Receipt 必须匹配同一 workflow/step/handoff/attempt、预期 Host/project/r
 ### 11.3 实测门禁、证据等级与剩余任务
 
 - 2026-11-02 项目 CI 第一次运行 41335824089 失败：node --check projects/webflow/src/ui/main.js 在第 342 行报 SyntaxError，exit 1；源码随即修复。
-- 第二次运行 41335988853：node --check model.js/main.js PASS；node --test projects/webflow/tests/webflow-ui.test.mjs tests/environment/task-delegation-package.test.mjs 实际 9/9 PASS、exit 0；原 build-sidebar-tool.mjs 生成 37,986 bytes candidate，原 --promote-from 与 --check-project 在 CI 工作区通过，SHA-256 为 869cd4bfd1986ed61dc519252c939d79d4be983835a9c9acdd13d7fff08e9411；但 GitHub main 被另一线程更新，非快进 git push 被拒，故这一次不能报告远程正式 JSON 已提交。门禁已改为通过文件级 CAS 提交，避免覆盖并行 main。
+- 第二次运行 41335988853：node --check model.js/main.js PASS；node --test projects/webflow/tests/webflow-ui.test.mjs tests/environment/task-delegation-package.test.mjs 实际 9/9 PASS、exit 0；原 build-sidebar-tool.mjs 生成 37,986 bytes candidate，原 --promote-from 与 --check-project 在 CI 工作区通过，SHA-256 为 869cd4bfd1986ed61dc519252c939d79d4be983835a9c9acdd13d7fff08e9411；但 GitHub main 被另一线程更新，非快进 git push 被拒，避免覆盖并行成果。第三次运行 41336225689 使用文件级条件写入，完成全部测试、晋升及远程读回，success，正式文件 projects/webflow/webflow.opendesk-tool.json 已提交到 main，Git commit 8a1cf108a6d0a2538f64eb58a10cfc0a0705090c，内容 SHA 保持不变。之后门禁变更为仅 workflow_dispatch 显式发布，普通 push 仍可验证候选。
 - 原 OpenDesk App CI 在 commit ab5ab463fc4cb845c4127ee084eb6da97f6d678a 的 workflow 41335988885 为 success；它不构成真实 Chrome 安装、授权、网页或原聊天交付证据。
-- SOURCE_IMPLEMENTED = 已完成；COMPONENT_TESTED = 上述 9 项通过；BUILD_VERIFIED = 本地 CI 工作区已通过、远程正式包待实际读回；CHROME_TESTED、BUSINESS_VERIFIED、RELEASED = NOT_TESTED / NOT_RELEASED。
-- 下一步须确认正式单一包通过原 builder 和 GitHub 源码一致性读回；本机 npm run dev + Development Extension Center 审阅/安装/打开 Web Flow；安装对应固定 Task，在真实网站授权并手动运行，核对原 RunHost runId/resultId/结果与 UNKNOWN；实测键盘、320/360/440/580px、暗色/浅色、重载、权限撤销、两次快速点击；原 ChatGPT Bridge 的聊天交付独立取证。没有这些，不应给 95+ 实测验收分。
+- SOURCE_IMPLEMENTED = 已完成（本轮代码已入 main）；COMPONENT_TESTED = 专属 Node 及原委托包 9/9 PASS，主线 App CI success；BUILD_VERIFIED = 原唯一 builder 生成候选、晋升、check-project 及 GitHub 正式包读回均已通过（仅包级）；CHROME_TESTED = NOT_TESTED；BUSINESS_VERIFIED = NOT_TESTED；RELEASED = NOT_RELEASED（提交可安装 JSON 不等于用户安装或生产发布）。
+- 下一步在本机 npm run dev + Development Extension Center 审阅/安装/打开 Web Flow；安装对应固定 Task，在真实网站授权并手动运行，核对原 RunHost runId/resultId/结果与 UNKNOWN；实测键盘、320/360/440/580px、暗色/浅色、重载、权限撤销、两次快速点击；原 ChatGPT Bridge 的聊天交付独立取证。没有这些，不应给 95+ 实测验收分。
 - 后续才针对全局 Task 枚举、跨实例持久历史、逐任务自动授权和持久工作流补最小公共 SDK 能力评审，不复做 UI 原型或并行 Owner 的 Bridge 协议。
