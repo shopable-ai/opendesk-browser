@@ -1,6 +1,6 @@
 # OpenDesk Task Shop · 唯一执行计划（2026-11-02）
 
-> **状态：D0 文档初始化；`IMPLEMENTATION_NOT_STARTED / CHROME_NOT_TESTED / MARKET_NOT_DEPLOYED / PAYMENTS_NOT_LIVE`。**
+> **状态：D0 文档初始化已完成（GitHub 已核验）；`IMPLEMENTATION_NOT_STARTED / CHROME_NOT_TESTED / MARKET_NOT_DEPLOYED / PAYMENTS_NOT_LIVE`。**
 >
 > 固定检索词 `OD-TASK-SHOP`。长期需求：[产品合同](product-contract.zh-CN.md)；职责与状态：[架构](architecture.zh-CN.md)；经济假设：[商业模式](business-model.zh-CN.md)。本文件唯一维护真实进度、责任和下一条操作。
 
@@ -22,7 +22,7 @@
 
 | 阶段 | 最小交付 | 退出标准 | 状态 |
 | --- | --- | --- | --- |
-| D0：文档基线 | 独立项目、产品/商业/架构/SEO/执行文件 | 文件真实可读、相互引用与职责清晰 | 待 GitHub 提交后核对 |
+| D0：文档基线 | 独立项目、产品/商业/架构/SEO/执行文件 | 文件真实可读、相互引用与职责清晰 | **已完成：DOCS_ONLY**（commit db5908f42） |
 | D1：V0.1 单任务闭环 | 模拟市场发布、手动领取、已安装本地脚本、结果对账、模拟验收 | 一条用户可观察的真实授权操作及原 run/result 验收；负例不越权/不重跑 | NOT_STARTED |
 | D2：V0.2 受限托管 | 自动接单规则、限额、可撤销许可、有限 Pull、断网恢复 | 无 AI 对话也可按明确规则接单；超范围必拒绝 | NOT_STARTED |
 | D3：V0.3 B2B 试点 | 合法企业工单、发布者/节点审核、收费意愿实验 | 真实可验证的需求、质量与成本；无资金业务时仍模拟结算 | NOT_STARTED |
@@ -79,4 +79,4 @@
 
 | 日期 | 操作 | 实际证明 | 后续 |
 | --- | --- | --- | --- |
-| 2026-11-02 | D0 项目文档建立 | 提交后核查 GitHub 8 个新文件可读，仅 `DOCS_ONLY` | 从 TS-P01 开始，无已实现接单 UI、节点服务或支付 |
+| 2026-11-02 | D0 项目文档建立 | 已核验 GitHub 8 个新文件可读；提交 `db5908f42c8363a732187c91aeec6f2b0224023f`；仅 `DOCS_ONLY` | 从 TS-P01 开始，无已实现接单 UI、节点服务或支付 |
