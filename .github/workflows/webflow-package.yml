@@ -1,0 +1,61 @@
+name: Web Flow v0.3 - validate and promote installable Sidebar package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/webflow-package.yml'
+      - 'projects/webflow/tool.config.json'
+      - 'projects/webflow/app.ci.json'
+      - 'projects/webflow/src/ui/**'
+      - 'projects/webflow/tests/webflow-ui.test.mjs'
+      - '!projects/webflow/*.opendesk-tool.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: webflow-package-main
+  cancel-in-progress: false
+
+jobs:
+  validate-and-promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install existing pinned dependencies without scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify isolated source, original SDK delegation and no duplicate runners
+        run: |
+          node --check projects/webflow/src/ui/model.js
+          node --check projects/webflow/src/ui/main.js
+          node --test projects/webflow/tests/webflow-ui.test.mjs tests/environment/task-delegation-package.test.mjs
+      - name: Build only through the original Sidebar Tool packager
+        run: |
+          node scripts/build-sidebar-tool.mjs projects/webflow --out artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json
+      - name: Promote identical tested bytes and check canonical project package
+        run: |
+          node scripts/build-sidebar-tool.mjs projects/webflow --promote-from artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json
+          node scripts/build-sidebar-tool.mjs projects/webflow --check-project
+      - name: Commit only generated Web Flow package to current main, never force-push
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- projects/webflow/webflow.opendesk-tool.json
+          if git diff --cached --quiet; then
+            echo 'Canonical package already matches tested source'
+          else
+            git commit -m 'build(webflow): promote verified Sidebar app package'
+            git push origin HEAD:main
+          fi
+      - name: Read back package status
+        run: node scripts/build-sidebar-tool.mjs projects/webflow --check-project
