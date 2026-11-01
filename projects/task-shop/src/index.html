@@ -1,0 +1,60 @@
+<div id="taskshop-app" class="ts-app">
+  <header class="ts-header">
+    <div class="ts-logo" aria-hidden="true">T</div>
+    <div class="ts-brand"><strong>Task Shop</strong><span>任务市场 · 本机演示</span></div>
+    <button class="ts-icon" type="button" data-action="refresh" aria-label="刷新任务与本地状态" title="刷新">↻</button>
+  </header>
+  <div class="ts-disclaimer" role="note"><strong>单设备测试</strong> · 没有远程市场、真实报酬或自动接单。执行只通过已安装并授权的 Controller Task。</div>
+  <div class="ts-error" data-field="error" role="alert" hidden></div>
+  <section class="ts-card" aria-labelledby="ts-job-title">
+    <div class="ts-line"><span class="ts-kicker">任务 #001 · 公开资料</span><span class="ts-pill">仅模拟报酬</span></div>
+    <h1 id="ts-job-title" data-field="title">正在读取演示任务…</h1>
+    <p class="ts-sub" data-field="description"></p>
+    <div class="ts-divider"></div>
+    <div class="ts-metrics">
+      <div><span>任务奖励</span><strong data-field="reward"></strong></div>
+      <div><span>平台费 / 预计净额</span><strong data-field="fee"></strong></div>
+    </div>
+    <dl class="ts-details">
+      <div><dt>发布者</dt><dd data-field="publisher"></dd></div>
+      <div><dt>允许网站</dt><dd data-field="origin"></dd></div>
+      <div><dt>查询内容</dt><dd data-field="query"></dd></div>
+      <div><dt>验收要求</dt><dd data-field="criteria"></dd></div>
+      <div><dt>绑定脚本</dt><dd data-field="script"></dd></div>
+    </dl>
+  </section>
+  <section class="ts-card ts-work" aria-label="接单及执行">
+    <div class="ts-line"><h2>我的任务</h2><span class="ts-state" data-field="state">读取中</span></div>
+    <p class="ts-sub" data-field="explanation"></p>
+    <div class="ts-meta">
+      <span>安装核验</span><span data-field="installed">核查中</span>
+      <span>当前站点</span><span data-field="site">核查中</span>
+      <span>租约到期</span><span data-field="expires">未领取</span>
+    </div>
+    <div class="ts-actions">
+      <button type="button" class="ts-btn ts-primary" data-action="claim" hidden>领取测试任务</button>
+      <button type="button" class="ts-btn ts-primary" data-action="prepare" hidden>核验并准备执行</button>
+      <button type="button" class="ts-btn ts-primary" data-action="execute" hidden>确认执行已安装脚本</button>
+      <button type="button" class="ts-btn" data-action="read" hidden>查询原执行</button>
+      <button type="button" class="ts-btn" data-action="stop" hidden>停止原执行</button>
+      <button type="button" class="ts-btn" data-action="cancel" hidden>放弃（执行前）</button>
+      <button type="button" class="ts-btn ts-primary" data-action="accept" hidden>按演示规则验收</button>
+      <button type="button" class="ts-btn" data-action="reject" hidden>模拟拒绝验收</button>
+      <button type="button" class="ts-btn ts-primary" data-action="settle" hidden>模拟结算</button>
+    </div>
+    <p class="ts-status" data-field="message" role="status" aria-live="polite"></p>
+  </section>
+  <section class="ts-card" aria-labelledby="ts-evidence-title">
+    <h2 id="ts-evidence-title">执行与验收记录</h2>
+    <dl class="ts-details ts-tech">
+      <div><dt>Claim / Lease</dt><dd data-field="claimId">尚无</dd></div>
+      <div><dt>执行请求</dt><dd data-field="requestId">尚无</dd></div>
+      <div><dt>Controller Run</dt><dd data-field="runId">尚未取得</dd></div>
+      <div><dt>持久 Result</dt><dd data-field="resultId">尚未取得</dd></div>
+      <div><dt>原执行证据</dt><dd data-field="receipt">未观察</dd></div>
+      <div><dt>业务验收</dt><dd data-field="review">未验收</dd></div>
+      <div><dt>结算</dt><dd data-field="settlement">仅演示，无实际支付</dd></div>
+    </dl>
+  </section>
+  <footer class="ts-footer">首次使用请先在「我的 → 任务目录」安装指定的固定版本脚本，并打开获准网站。重开工具不能自动找回旧 iframe 委托；UNKNOWN 请人工对账，绝不重复启动。</footer>
+</div>
