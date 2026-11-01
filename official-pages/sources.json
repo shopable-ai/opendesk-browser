@@ -36,7 +36,7 @@
     },
     {
       "programId": "opendesk.ai-send-queue",
-      "project": "examples/sidebar-tools/ai-send-queue",
+      "project": "projects/ai-send-queue",
       "packageFile": "ai-send-queue.opendesk-page.json",
       "version": "0.1.13",
       "revision": 13,

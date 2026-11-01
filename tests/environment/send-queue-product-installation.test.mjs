@@ -10,8 +10,8 @@ import {serializeSidebarToolPackage,SIDEBAR_TOOL_STORE} from '../../src/ui/sideb
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {createExtensionCenterDOM} from '../helpers/extension-center-react-dom.mjs';
 
-const tool=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-tool.json',import.meta.url)));
-const pagePackage=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url)));
+const tool=JSON.parse(await readFile(new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-tool.json',import.meta.url)));
+const pagePackage=JSON.parse(await readFile(new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url)));
 const makePage=()=>({programId:SEND_QUEUE_PIN.pageProgramId,revision:SEND_QUEUE_PIN.pageRevision,
   sourceHash:SEND_QUEUE_PIN.pageSourceHash,manifestHash:'a'.repeat(64),enabled:true,nativeState:'registered',
   authorization:{installationId:'queue-install',generation:4,status:'active'},

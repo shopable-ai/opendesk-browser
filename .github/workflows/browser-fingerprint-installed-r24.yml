@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'examples/sidebar-tools/browser-fingerprint/tests/installed-r24.mjs'
+      - 'projects/browser-fingerprint/tests/installed-r24.mjs'
       - '.github/workflows/browser-fingerprint-installed-r24.yml'
   workflow_dispatch:
 
@@ -42,7 +42,7 @@ jobs:
       - name: Actual SIDE_PANEL install, native React apply, MAIN-world readback and restore
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
-        run: xvfb-run -a -s '-screen 0 1600x1000x24' node examples/sidebar-tools/browser-fingerprint/tests/installed-r24.mjs artifacts/app-ci/browser-fingerprint/chrome
+        run: xvfb-run -a -s '-screen 0 1600x1000x24' node projects/browser-fingerprint/tests/installed-r24.mjs artifacts/app-ci/browser-fingerprint/chrome
       - name: Retain fail-closed GUI evidence and exact candidate
         if: always()
         uses: actions/upload-artifact@v4
@@ -52,4 +52,4 @@ jobs:
           if-no-files-found: warn
           path: |
             artifacts/app-ci/browser-fingerprint/
-            examples/sidebar-tools/browser-fingerprint/dist/
+            projects/browser-fingerprint/dist/
