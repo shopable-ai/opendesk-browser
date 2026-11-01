@@ -43,19 +43,17 @@ function ResultView({state,busy,app,displayKeys,onOrderChange,columnsLocked,acti
   const keys=resultKeys(rows);
   const [page,setPage]=React.useState(0);
   const [settingsOpen,setSettingsOpen]=React.useState(false);
+  // Preview-only display order is managed inside the custom CSV panel, not as a separate toolbar entry.
   const [displayOpen,setDisplayOpen]=React.useState(false);
-  const displayEntry=React.useRef(null),displayHeading=React.useRef(null);
-  function closeDisplay(){setDisplayOpen(false);requestAnimationFrame(()=>displayEntry.current?.focus({preventScroll:true}));}
-  React.useEffect(()=>{if(displayOpen&&active)displayHeading.current?.focus({preventScroll:true});},[displayOpen,active]);
   const [names,setNames]=React.useState({});
   const [csvOrder,setCsvOrder]=React.useState([]),[csvMoving,setCsvMoving]=React.useState(false);
   const rawCsvKeys=[...new Set(rows.flatMap(row=>Object.keys(row)))];
   const csvKeys=[...csvOrder.filter(key=>rawCsvKeys.includes(key)),...rawCsvKeys.filter(key=>!csvOrder.includes(key))];
   const csvLabels=csvKeys.map(key=>(Object.hasOwn(names,key)?names[key].normalize('NFC').trim():'')||key);
   const duplicate=new Set(csvLabels).size!==csvLabels.length;
-  function openSettings(){setNames({...state.config?.output?.fieldNames});setCsvOrder([]);setCsvMoving(false);setDownloadError('');setSettingsOpen(true);}
+  function openSettings(){setNames({...state.config?.output?.fieldNames});setCsvOrder([]);setCsvMoving(false);setDisplayOpen(false);setDownloadError('');setSettingsOpen(true);}
   const settingsEntry=React.useRef(null),settingsHeading=React.useRef(null);
-  function closeSettings(){setSettingsOpen(false);setNames({});setCsvOrder([]);setCsvMoving(false);requestAnimationFrame(()=>settingsEntry.current?.focus({preventScroll:true}));}
+  function closeSettings(){setSettingsOpen(false);setDisplayOpen(false);setNames({});setCsvOrder([]);setCsvMoving(false);requestAnimationFrame(()=>settingsEntry.current?.focus({preventScroll:true}));}
   React.useEffect(()=>{if(settingsOpen&&active)settingsHeading.current?.focus({preventScroll:true});},[settingsOpen,active]);
   const [detail,setDetail]=React.useState(null);
   const [downloading,setDownloading]=React.useState('');
@@ -81,20 +79,21 @@ function ResultView({state,busy,app,displayKeys,onOrderChange,columnsLocked,acti
     <div className="result-tools" hidden={state.result==null}><div id="export-actions" className="toolbar" role="group" aria-label="下载完整采集结果">
       <Button base="aria" id="download-csv" aria-label="下载完整原始结果 CSV" disabled={!rows.length||Boolean(downloading)} onClick={()=>download('csv')}><DownloadIcon/>CSV</Button>
       <Button base="aria" id="download-json" aria-label="下载完整原始结果 JSON" disabled={Boolean(downloading)} onClick={()=>download('json')}><DownloadIcon/>JSON</Button>
-      {rows.length>0&&keys.length>0&&<Button base="aria" id="edit-result-columns" ref={displayEntry} variant="quiet" aria-expanded={displayOpen} aria-controls={displayOpen?'result-display-settings':undefined} disabled={columnsLocked} onClick={()=>displayOpen?closeDisplay():setDisplayOpen(true)}>显示设置</Button>}
       {rows.length>0&&keys.length>0&&<Button base="aria" id="custom-csv" ref={settingsEntry} variant="quiet" aria-expanded={settingsOpen} aria-controls={settingsOpen?'custom-csv-settings':undefined} disabled={columnsLocked||Boolean(downloading)} onClick={()=>settingsOpen?closeSettings():openSettings()}><DownloadIcon/>自定义 CSV 表头</Button>}
     </div>
     {(downloading||downloadError||state.notice||state.error)&&<p className="scrapy-download-status" role={downloadError||state.error?'alert':'status'}>{downloading?'正在请求下载…':downloadError||state.error||state.notice}</p>}</div>
-    {displayOpen&&rows.length>0&&<section id="result-display-settings" className="csv-export-settings" aria-labelledby="display-settings-heading" onKeyDown={event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();event.stopPropagation();closeDisplay();}}}>
-      <div className="toolbar"><h3 id="display-settings-heading" ref={displayHeading} tabIndex={-1}>显示设置</h3><Button base="aria" id="close-result-display" variant="quiet" onClick={closeDisplay}>完成</Button></div>
-      <p className="secondary">拖动调整当前表格列顺序。同配置本次使用期间保留，不改变采集规则与下载顺序。</p>
-      <FieldOrder id="result-column-list" keys={displayKeys} label="调整显示顺序：" locked={columnsLocked} active={active&&displayOpen} onOrderChange={onOrderChange}/>
-      <Button base="aria" id="reset-result-order" variant="quiet" disabled={columnsLocked} onClick={()=>onOrderChange([])}>恢复默认顺序</Button>
-    </section>}
     {settingsOpen&&rows.length>0&&<section id="custom-csv-settings" className="csv-export-settings" aria-labelledby="csv-settings-heading" onKeyDown={event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!event.nativeEvent.isComposing&&event.nativeEvent.keyCode!==229){event.preventDefault();event.stopPropagation();closeSettings();}}}>
       <h3 id="csv-settings-heading" tabIndex={-1} ref={settingsHeading}>自定义 CSV 表头</h3>
       <p className="secondary">拖动调整本次 CSV 的列顺序，并自定义表头。普通 CSV、JSON 和采集规则保持原样。</p>
       <ColumnSettings keys={csvKeys} names={names} onNamesChange={setNames} onOrderChange={setCsvOrder} onMovingChange={setCsvMoving} active={active&&settingsOpen} locked={columnsLocked||Boolean(downloading)}/>
+      <details className="csv-table-order" open={displayOpen} onToggle={event=>setDisplayOpen(event.currentTarget.open)}>
+        <summary>表格预览列顺序（可选）</summary>
+        <div className="csv-table-order-body">
+          <p className="secondary">仅调整当前表格显示顺序；不改变本次自定义 CSV、原始下载或采集规则。</p>
+          <FieldOrder id="result-column-list" keys={displayKeys} label="调整显示顺序：" locked={columnsLocked||Boolean(downloading)} active={active&&settingsOpen&&displayOpen} onOrderChange={onOrderChange}/>
+          <Button base="aria" id="reset-result-order" variant="quiet" disabled={columnsLocked||Boolean(downloading)} onClick={()=>onOrderChange([])}>恢复默认顺序</Button>
+        </div>
+      </details>
       <div className="toolbar"><Button base="aria" id="download-custom-csv" variant="primary" disabled={columnsLocked||Boolean(downloading)||duplicate||csvMoving} onClick={()=>download('csv',{fieldNames:names,fieldOrder:csvKeys})}><DownloadIcon/>下载 CSV</Button><Button base="aria" id="cancel-custom-csv" variant="quiet" disabled={Boolean(downloading)} onClick={closeSettings}>取消</Button></div>
       <p className="secondary">常用名称可在「采集规则 → CSV 表头」中预设并保存。</p>
     </section>}
