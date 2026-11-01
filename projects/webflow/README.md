@@ -34,7 +34,7 @@ OpenDesk Browser 中的独立业务扩展应用：把网页操作、AI 对话输
 
 现有复用入口：
 
-- [AI Send Queue](../../examples/sidebar-tools/ai-send-queue/README.zh-CN.md)：唯一 owner 为 `examples/sidebar-tools/ai-send-queue/`。
+- [AI Send Queue](../../projects/ai-send-queue/README.zh-CN.md)：唯一 owner 为 `projects/ai-send-queue/`。
 - [ChatGPT 计算接力](../../examples/tasks/chatgpt-relay-calculator-r1.README.zh-CN.md)：已有 Controller + AppStorage 的固定 A→新对话 B 源码样例，真实 Chrome 仍按该 README 的证据等级。
 - [公开 Sidebar API](../../docs/api/sidebar-tools.zh-CN.md)、[Page API](../../docs/api/page-userscript.zh-CN.md)、[Controller](../../docs/api/controller.zh-CN.md)：接入以真实公开能力与目标执行世界为准。
 

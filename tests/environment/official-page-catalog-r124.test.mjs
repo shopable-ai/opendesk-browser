@@ -25,7 +25,7 @@ test('R1.2.4 official Page source keeps exact independent IDs, sites and blocked
   ]);
   assert.deepEqual(source.programs.map(row=>row.publication),['blocked','blocked','blocked']);
   assert.deepEqual(await officialPageInputs(),[
-    'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',OFFICIAL_PAGE_SOURCE_PATH]);
+    OFFICIAL_PAGE_SOURCE_PATH,'projects/ai-send-queue/ai-send-queue.opendesk-page.json']);
   for(const row of source.programs)assert.match(row.blockedReason,/./);
 });
 
@@ -34,7 +34,7 @@ test('blocked discovery stays metadata only while exact queue review bytes remai
   const candidatePath='official-pages/opendesk.ai-send-queue/opendesk.ai-send-queue.opendesk-page.json';
   assert.deepEqual([...resources.keys()],[candidatePath,OFFICIAL_PAGE_CATALOG_PATH]);
   assert.deepEqual(resources.get(candidatePath),await readFile(
-    'examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json'));
+    'projects/ai-send-queue/ai-send-queue.opendesk-page.json'));
   assert.equal(catalog.apps.length,3);
   for(const row of catalog.apps){
     assert.equal(row.kind,'page-program');

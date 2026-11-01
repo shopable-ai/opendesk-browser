@@ -10,7 +10,7 @@
     },
     {
       "id": "ai-send-queue",
-      "project": "examples/sidebar-tools/ai-send-queue",
+      "project": "projects/ai-send-queue",
       "kind": "sidebar-tool",
       "installationPolicy": "optional",
       "packageFile": "ai-send-queue.opendesk-tool.json"

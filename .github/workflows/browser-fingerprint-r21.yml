@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'examples/sidebar-tools/browser-fingerprint/**'
+      - 'projects/browser-fingerprint/**'
       - 'src/platform/chrome/browser-fingerprint.js'
       - 'src/platform/chrome/context-menus.js'
       - 'src/platform/chrome/permission-gate.js'
@@ -13,6 +13,12 @@ on:
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/package.js'
       - 'manifest.json'
+      - '.github/workflows/browser-fingerprint-r21.yml'
+  pull_request:
+    paths:
+      - 'projects/browser-fingerprint/**'
+      - 'src/platform/chrome/browser-fingerprint.js'
+      - 'src/platform/chrome/permission-gate.js'
       - '.github/workflows/browser-fingerprint-r21.yml'
   workflow_dispatch:
 
@@ -34,9 +40,9 @@ jobs:
       - name: Install pinned root build dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: R2.1 + R2.2 Node - presets, real-CDP adapter, session and lifecycle guards
-        run: npm --prefix examples/sidebar-tools/browser-fingerprint test
+        run: npm --prefix projects/browser-fingerprint test
       - name: R2.2 production React IIFE and source hash receipts
-        run: npm --prefix examples/sidebar-tools/browser-fingerprint run build
+        run: npm --prefix projects/browser-fingerprint run build
       - name: R2.2 Chrome permission and SDK admission guards
         run: |
           node --check src/platform/chrome/browser-fingerprint.js
@@ -46,7 +52,7 @@ jobs:
           import {readFileSync} from 'node:fs';
           import {BROWSER_OPERATIONS} from './src/framework/sdk/browser-contract.js';
           const manifest=JSON.parse(readFileSync('manifest.json','utf8'));
-          const tool=JSON.parse(readFileSync('examples/sidebar-tools/browser-fingerprint/tool.config.json','utf8'));
+          const tool=JSON.parse(readFileSync('projects/browser-fingerprint/tool.config.json','utf8'));
           if(!manifest.permissions.includes('debugger')||manifest.optional_permissions.includes('debugger'))
             throw Error('Debugger must be a native install-time (not optional) permission');
           if(!tool.capabilities.includes('browser.fingerprint.control'))
@@ -71,8 +77,8 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: |
-          node --check examples/sidebar-tools/browser-fingerprint/tests/native-r23-driver.mjs
-          xvfb-run -a node examples/sidebar-tools/browser-fingerprint/tests/native-r23-driver.mjs
+          node --check projects/browser-fingerprint/tests/native-r23-driver.mjs
+          xvfb-run -a node projects/browser-fingerprint/tests/native-r23-driver.mjs
       - name: Retain build and source-driver native evidence (not installed OpenDesk)
         if: always()
         uses: actions/upload-artifact@v4
@@ -81,7 +87,7 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           path: |
-            examples/sidebar-tools/browser-fingerprint/dist/build-ready.json
-            examples/sidebar-tools/browser-fingerprint/dist/tool.js
-            examples/sidebar-tools/browser-fingerprint/dist/tool.css
+            projects/browser-fingerprint/dist/build-ready.json
+            projects/browser-fingerprint/dist/tool.js
+            projects/browser-fingerprint/dist/tool.css
             artifacts/sidebar-tools/browser-fingerprint/chrome-native-r23/evidence.json

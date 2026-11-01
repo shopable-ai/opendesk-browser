@@ -61,9 +61,17 @@ async function readPrevious(project,id){
 async function updateApp(id,{check=false}={}){
   if(!/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/.test(id))
     fail('E_APP_ID','provide a valid Sidebar App ID');
-  const project=join(root,'examples','sidebar-tools',id);
-  const actual=await realpath(project);
-  if(actual!==project)fail('E_APP_PATH','app path must not be a symlink');
+  const locations=[join(root,'projects',id),join(root,'examples','sidebar-tools',id)];
+  const owners=[];
+  for(const path of locations){
+    const entry=await lstat(path).catch(error=>{if(error.code==='ENOENT')return null;throw error;});
+    if(!entry)continue;
+    if(!entry.isDirectory()||entry.isSymbolicLink()||(await realpath(path))!==path)
+      fail('E_APP_PATH','app path must be a real directory');
+    owners.push(path);
+  }
+  if(owners.length!==1)fail('E_APP_PATH',owners.length?'duplicate app project owner':'app project not found');
+  const project=owners[0];
   const configFile=join(project,'tool.config.json');
   const original=await readFile(configFile,'utf8'),config=JSON.parse(original);
   if(config.id!==id)fail('E_APP_IDENTITY','tool.config.json ID differs from project ID');

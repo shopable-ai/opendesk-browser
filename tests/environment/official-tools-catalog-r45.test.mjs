@@ -43,6 +43,7 @@ test('R2.1 migrated official source locations are exact and preserve unmigrated 
   assert.equal(current.tools.find(row=>row.id==='stay-focus').project,'projects/stay-focus');
   assert.equal(current.tools.find(row=>row.id==='ai-knowledge-answers').project,'projects/ai-knowledge-answers');
   assert.equal(current.tools.find(row=>row.id==='cookie-editor').project,'examples/sidebar-tools/cookie-editor');
+  assert.equal(current.tools.find(row=>row.id==='ai-send-queue').project,'projects/ai-send-queue');
   for(const [id,project] of [
     ['cookie-editor','projects/cookie-editor'],
     ['ai-knowledge-answers','examples/sidebar-tools/ai-knowledge-answers'],
@@ -55,7 +56,7 @@ test('R2.1 migrated official source locations are exact and preserve unmigrated 
     ['prompt-shortcuts','examples/sidebar-tools/prompt-shortcuts'],
     ['adblock','examples/sidebar-tools/adblock'],
     ['stay-focus','examples/sidebar-tools/stay-focus'],
-    ['ai-send-queue','projects/ai-send-queue'],
+    ['ai-send-queue','examples/sidebar-tools/ai-send-queue'],
     ['markdown-workbench','examples/sidebar-tools/markdown-workbench'],
     ['markdown-workbench','projects/markdown-workbench/extra'],
     ['markdown-workbench','projects/../markdown-workbench']

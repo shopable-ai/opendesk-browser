@@ -37,7 +37,7 @@ async function approvedFile(root,row){
   const directory=resolve(root,row.project);
   // Exact single-product exception, not a generalized publication permission.
   const oneQueueProduct=row.programId==='opendesk.ai-send-queue'&&
-    directory===resolve(root,'examples/sidebar-tools/ai-send-queue');
+    directory===resolve(root,'projects/ai-send-queue');
   if(await realpath(directory)!==directory||
     !(directory.startsWith(root+'/examples/programs/')||oneQueueProduct))
     fail('项目目录越过许可的 Page 源码范围');

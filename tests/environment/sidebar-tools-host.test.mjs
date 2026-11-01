@@ -4416,7 +4416,7 @@ test('fixed Task local installation review shows approved ID, version and both h
 async function queueReviewFixture(t,{mode='success',existingTool=false}={}){
   const tool=await officialToolFixture('ai-send-queue');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
-  const pkg=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url),'utf8'));
+  const pkg=JSON.parse(await readFile(new URL('../../projects/ai-send-queue/ai-send-queue.opendesk-page.json',import.meta.url),'utf8'));
   const calls=[],store=new Map([[SIDEBAR_TOOL_STORE,existingTool?[tool]:[]]]);
   let pages=[],granted=false,toolWritten=false,inClick=false,toolAttempted=false;
   const pendingRead=deferred(),readEntered=deferred();
