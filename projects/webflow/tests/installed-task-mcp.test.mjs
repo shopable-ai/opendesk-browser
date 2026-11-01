@@ -143,7 +143,7 @@ test('grant expired, revoked, changed query or installation blocks new admission
     {grant:{...trusted().grant,maxAdmissions:2}},
     {startAllowed:false}]){
     const n=fakeNative(),s=fakeAtomicStore(),m=endpoint({...trusted(),...changed},s,n);
-    await assert.rejects(m.dispatch('opendesk.webflow.start',start()),ERROR('E_GRANT_REQUIRED'));
+    await assert.rejects(m.dispatch('opendesk.webflow.start',start()),ERROR(changed.startAllowed===false?'E_CALLER_CONTEXT_UNAVAILABLE':'E_GRANT_REQUIRED'));
     assert.equal(n.starts,0);assert.equal(s.consumption,0);
   }
   const n=fakeNative();n.inspect=async()=>({registrationId:host,target,
